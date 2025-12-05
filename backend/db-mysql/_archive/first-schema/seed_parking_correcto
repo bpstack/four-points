@@ -1,0 +1,60 @@
+USE hotel_db;
+
+-- 1. Insertar niveles
+INSERT IGNORE INTO parking_levels (level_code) VALUES ('-2'), ('-3');
+
+-- 2. Insertar tipos de plaza
+INSERT IGNORE INTO parking_spot_types (type_name, description) VALUES
+  ('Normal',        'Plaza estándar'),
+  ('Ancha',         'Plaza amplia'),
+  ('Más ancha',     'Plaza muy amplia'),
+  ('Esquina fondo', 'Plaza en esquina al fondo'),
+  ('Minusválidos',  'Plaza para personas con discapacidad'),
+  ('Bicis/estrecha','Plaza para bicicletas u vehículos estrechos');
+
+-- 3. Obtener IDs de niveles y tipos
+SET @lvl1 = (SELECT id FROM parking_levels WHERE level_code = '-2');
+SET @lvl2 = (SELECT id FROM parking_levels WHERE level_code = '-3');
+SET @type_normal = (SELECT id FROM parking_spot_types WHERE type_name='Normal');
+SET @type_ancha = (SELECT id FROM parking_spot_types WHERE type_name='Ancha');
+SET @type_mas_ancha = (SELECT id FROM parking_spot_types WHERE type_name='Más ancha');
+SET @type_esquina = (SELECT id FROM parking_spot_types WHERE type_name='Esquina fondo');
+SET @type_minus = (SELECT id FROM parking_spot_types WHERE type_name='Minusválidos');
+SET @type_bicis = (SELECT id FROM parking_spot_types WHERE type_name='Bicis/estrecha');
+
+-- 4. PLANTA -2: Plazas 1-10 con spot_number 1-10
+INSERT INTO parking_spots (level_id, spot_number, type_id) VALUES
+(@lvl1, 1, @type_normal),
+(@lvl1, 2, @type_ancha),
+(@lvl1, 3, @type_mas_ancha),
+(@lvl1, 4, @type_normal),
+(@lvl1, 5, @type_esquina),
+(@lvl1, 6, @type_minus),
+(@lvl1, 7, @type_normal),
+(@lvl1, 8, @type_normal),
+(@lvl1, 9, @type_bicis),
+(@lvl1, 10, @type_normal);
+
+-- 5. PLANTA -3: Plazas 1-10 con spot_number 1-10 (CORREGIDO)
+INSERT INTO parking_spots (level_id, spot_number, type_id) VALUES
+(@lvl2, 1, @type_normal),
+(@lvl2, 2, @type_ancha),
+(@lvl2, 3, @type_mas_ancha),
+(@lvl2, 4, @type_normal),
+(@lvl2, 5, @type_esquina),
+(@lvl2, 6, @type_minus),
+(@lvl2, 7, @type_normal),
+(@lvl2, 8, @type_normal),
+(@lvl2, 9, @type_bicis),
+(@lvl2, 10, @type_normal);
+
+-- 6. Verificar
+SELECT 
+    pl.level_code AS planta,
+    ps.spot_number AS numero,
+    COUNT(*) OVER (PARTITION BY pl.level_code) AS total
+FROM parking_spots ps
+JOIN parking_levels pl ON ps.level_id = pl.id
+ORDER BY pl.level_code, ps.spot_number;
+
+SELECT '✅ Plazas creadas correctamente con spot_number 1-10 en ambas plantas' AS resultado;

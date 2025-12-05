@@ -1,0 +1,525 @@
+// services/notifications/notification-generator-service.ts
+
+import { NotificationRepository } from '../../repositories/notifications/notification-repository'
+import { GroupPaymentRepository } from '../../repositories/group/group-payment-repository'
+import { GroupRepository } from '../../repositories/group/group-repository'
+import { UserRepository } from '../../repositories/auth/user-repository'
+import { PaymentStatus } from '../../models/group/index'
+import {
+  CreateNotificationDTO,
+  NotificationPriority,
+  NotificationRelatedTo,
+  NotificationModule,
+  NotificationStatus,
+} from '../../models/notifications/index'
+
+// ═══════════════════════════════════════════════════════
+// CONFIGURACIÓN CENTRALIZADA (MODIFICABLE)
+// ═══════════════════════════════════════════════════════
+
+const NOTIFICATION_CONFIG = {
+  payment_upcoming: [15, 7], // 15 días antes y 7 días antes
+  payment_overdue: [0], // Día del vencimiento
+  rooming_list: [15, 7], // 15 y 7 días antes de deadline
+  arrival: [3], // 3 días antes
+  contract_unsigned: [10, 5], // 10 y 5 días antes de llegada
+  balance_pending: [7], // 7 días después de salida
+}
+
+// ═══════════════════════════════════════════════════════
+// SISTEMA DE LINKS DIRECTOS ESCALABLE
+// ═══════════════════════════════════════════════════════
+
+class NotificationLinkBuilder {
+  /**
+   * Link a pestaña de pagos con highlight
+   */
+  static payment(groupId: number, paymentId?: number): string {
+    if (paymentId) {
+      return `/dashboard/groups/${groupId}?tab=payments&highlight=${paymentId}`
+    }
+    return `/dashboard/groups/${groupId}?tab=payments`
+  }
+
+  /**
+   * Link a pestaña de status (rooming list)
+   */
+  static rooming(groupId: number): string {
+    return `/dashboard/groups/${groupId}?tab=status`
+  }
+
+  /**
+   * Link a pestaña de overview (llegada)
+   */
+  static arrival(groupId: number): string {
+    return `/dashboard/groups/${groupId}?tab=overview`
+  }
+
+  /**
+   * Link genérico al grupo
+   */
+  static group(groupId: number): string {
+    return `/dashboard/groups/${groupId}`
+  }
+
+  /**
+   * Link a contrato (status tab)
+   */
+  static contract(groupId: number): string {
+    return `/dashboard/groups/${groupId}?tab=status`
+  }
+
+  /**
+   * Link a balance (payments tab)
+   */
+  static balance(groupId: number): string {
+    return `/dashboard/groups/${groupId}?tab=payments`
+  }
+
+  // 📋 FUTUROS LINKS (comentados por ahora):
+  // static groupEdit(groupId: number): string {
+  //   return `/dashboard/groups/${groupId}?tab=overview&panel=edit-group`
+  // }
+  // static rooms(groupId: number): string {
+  //   return `/dashboard/groups/${groupId}?tab=rooms`
+  // }
+  // static contacts(groupId: number): string {
+  //   return `/dashboard/groups/${groupId}?tab=contacts`
+  // }
+}
+
+// ═══════════════════════════════════════════════════════
+// SERVICIO PRINCIPAL
+// ═══════════════════════════════════════════════════════
+
+export class NotificationGeneratorService {
+  /**
+   * Generar notificación de pago próximo a vencer
+   */
+  static async generatePaymentReminder(
+    paymentId: number,
+    daysBeforeDue: number = 7
+  ): Promise<void> {
+    try {
+      const payment = await GroupPaymentRepository.getById(paymentId)
+
+      if (!payment || payment.status === PaymentStatus.PAID) {
+        return
+      }
+
+      const title = `Recordatorio: Pago "${payment.payment_name}" vence en ${daysBeforeDue} días`
+      const message = `El pago "${payment.payment_name}" del grupo "${
+        payment.group_name
+      }" vence el ${new Date(payment.due_date).toLocaleDateString(
+        'es-ES'
+      )}. Monto pendiente: ${payment.amount - payment.amount_paid}€`
+
+      const notificationData: CreateNotificationDTO = {
+        module: NotificationModule.GROUPS,
+        group_id: payment.group_id,
+        related_to: NotificationRelatedTo.PAYMENT,
+        related_id: paymentId,
+        direct_link: NotificationLinkBuilder.payment(
+          payment.group_id,
+          paymentId
+        ),
+        title,
+        message,
+        priority:
+          daysBeforeDue <= 3
+            ? NotificationPriority.URGENT
+            : NotificationPriority.HIGH,
+        status: NotificationStatus.PENDING,
+        scheduled_for: new Date(),
+      }
+
+      const notification = await NotificationRepository.create(notificationData)
+      await this.addGroupAdminRecipients(notification.id)
+    } catch (error) {
+      console.error('Error generando notificación de pago:', error)
+      throw error
+    }
+  }
+
+  /**
+   * Generar notificación de pago vencido
+   */
+  static async generateOverduePaymentNotification(
+    paymentId: number
+  ): Promise<void> {
+    try {
+      const payment = await GroupPaymentRepository.getById(paymentId)
+
+      if (!payment || payment.status === PaymentStatus.PAID) {
+        return
+      }
+
+      const daysOverdue = Math.floor(
+        (new Date().getTime() - new Date(payment.due_date).getTime()) /
+          (1000 * 60 * 60 * 24)
+      )
+
+      const title = `⚠️ URGENTE: Pago vencido - "${payment.payment_name}"`
+      const message = `El pago "${payment.payment_name}" del grupo "${
+        payment.group_name
+      }" venció hace ${daysOverdue} días. Monto pendiente: ${
+        payment.amount - payment.amount_paid
+      }€`
+
+      const notificationData: CreateNotificationDTO = {
+        module: NotificationModule.GROUPS,
+        group_id: payment.group_id,
+        related_to: NotificationRelatedTo.PAYMENT,
+        related_id: paymentId,
+        direct_link: NotificationLinkBuilder.payment(
+          payment.group_id,
+          paymentId
+        ),
+        title,
+        message,
+        priority: NotificationPriority.URGENT,
+        status: NotificationStatus.PENDING,
+        scheduled_for: new Date(),
+      }
+
+      const notification = await NotificationRepository.create(notificationData)
+      await this.addGroupAdminRecipients(notification.id)
+    } catch (error) {
+      console.error('Error generando notificación de pago vencido:', error)
+      throw error
+    }
+  }
+
+  /**
+   * Generar notificación de rooming list pendiente
+   */
+  static async generateRoomingListReminder(
+    groupId: number,
+    daysBeforeDeadline: number = 10
+  ): Promise<void> {
+    try {
+      const group = await GroupRepository.getById(groupId)
+
+      if (!group) {
+        return
+      }
+
+      const title = `Recordatorio: Rooming list de "${group.name}" pendiente`
+      const message = `La rooming list del grupo "${group.name}" debe recibirse en ${daysBeforeDeadline} días.`
+
+      const notificationData: CreateNotificationDTO = {
+        module: NotificationModule.GROUPS,
+        group_id: groupId,
+        related_to: NotificationRelatedTo.ROOMING,
+        direct_link: NotificationLinkBuilder.rooming(groupId),
+        title,
+        message,
+        priority:
+          daysBeforeDeadline <= 5
+            ? NotificationPriority.HIGH
+            : NotificationPriority.MEDIUM,
+        status: NotificationStatus.PENDING,
+        scheduled_for: new Date(),
+      }
+
+      const notification = await NotificationRepository.create(notificationData)
+      await this.addGroupAdminRecipients(notification.id)
+    } catch (error) {
+      console.error('Error generando notificación de rooming list:', error)
+      throw error
+    }
+  }
+
+  /**
+   * Generar notificación de llegada próxima
+   */
+  static async generateArrivalReminder(
+    groupId: number,
+    daysBeforeArrival: number = 3
+  ): Promise<void> {
+    try {
+      const group = await GroupRepository.getById(groupId)
+
+      if (!group) {
+        return
+      }
+
+      const title = `Llegada próxima: Grupo "${group.name}"`
+      const message = `El grupo "${
+        group.name
+      }" llegará en ${daysBeforeArrival} días (${new Date(
+        group.arrival_date
+      ).toLocaleDateString('es-ES')}).`
+
+      const notificationData: CreateNotificationDTO = {
+        module: NotificationModule.GROUPS,
+        group_id: groupId,
+        related_to: NotificationRelatedTo.ARRIVAL,
+        direct_link: NotificationLinkBuilder.arrival(groupId),
+        title,
+        message,
+        priority: NotificationPriority.MEDIUM,
+        status: NotificationStatus.PENDING,
+        scheduled_for: new Date(),
+      }
+
+      const notification = await NotificationRepository.create(notificationData)
+      await this.addGroupAdminRecipients(notification.id)
+    } catch (error) {
+      console.error('Error generando notificación de llegada:', error)
+      throw error
+    }
+  }
+
+  /**
+   * Generar notificación manual
+   */
+  static async generateManualNotification(
+    groupId: number,
+    title: string,
+    message: string,
+    priority: NotificationPriority = NotificationPriority.MEDIUM,
+    userIds?: string[]
+  ): Promise<void> {
+    try {
+      const notificationData: CreateNotificationDTO = {
+        module: NotificationModule.GROUPS,
+        group_id: groupId,
+        related_to: NotificationRelatedTo.GENERAL,
+        direct_link: NotificationLinkBuilder.group(groupId),
+        title,
+        message,
+        priority,
+        status: NotificationStatus.PENDING,
+        scheduled_for: new Date(),
+      }
+
+      const notification = await NotificationRepository.create(notificationData)
+
+      if (userIds && userIds.length > 0) {
+        await NotificationRepository.addRecipients(notification.id, userIds)
+      } else {
+        await this.addGroupAdminRecipients(notification.id)
+      }
+    } catch (error) {
+      console.error('Error generando notificación manual:', error)
+      throw error
+    }
+  }
+
+  /**
+   * Añadir todos los usuarios con rol group-admin como destinatarios
+   */
+  private static async addGroupAdminRecipients(
+    notificationId: number
+  ): Promise<void> {
+    try {
+      const groupAdminsResult = await UserRepository.getByRole('group-admin')
+      const adminsResult = await UserRepository.getByRole('admin')
+
+      const groupAdmins = Array.isArray(groupAdminsResult)
+        ? groupAdminsResult
+        : []
+      const admins = Array.isArray(adminsResult) ? adminsResult : []
+
+      const allUsers = [...groupAdmins, ...admins]
+
+      const userIds = allUsers
+        .filter((user: any) => user && user.id)
+        .map((user: any) => user.id)
+
+      if (userIds.length > 0) {
+        await NotificationRepository.addRecipients(notificationId, userIds)
+      }
+    } catch (error) {
+      console.error('Error añadiendo destinatarios:', error)
+      throw error
+    }
+  }
+
+  /**
+   * Procesar notificaciones programadas pendientes (para cron job)
+   */
+  static async processPendingNotifications(): Promise<void> {
+    try {
+      // 1. Procesar notificaciones programadas que ya llegó su hora
+      const pendingNotifications =
+        await NotificationRepository.getPendingScheduled()
+
+      for (const notification of pendingNotifications) {
+        await NotificationRepository.updateStatus(
+          notification.id,
+          NotificationStatus.SENT
+        )
+      }
+
+      console.log(
+        `✅ Procesadas ${pendingNotifications.length} notificaciones programadas`
+      )
+
+      // 2. Verificar y generar nuevas notificaciones automáticas
+      const results = await this.checkAndGenerateNotifications()
+
+      console.log('📊 Resumen de notificaciones generadas:', results)
+    } catch (error) {
+      console.error('Error procesando notificaciones pendientes:', error)
+      throw error
+    }
+  }
+
+  /**
+   * 🆕 Obtener configuración de días
+   */
+  static getConfig() {
+    return NOTIFICATION_CONFIG
+  }
+
+  /**
+   * 🆕 VERIFICAR Y GENERAR NOTIFICACIONES AUTOMÁTICAS
+   * Método principal que verifica todos los eventos pendientes
+   */
+  static async checkAndGenerateNotifications(): Promise<{
+    paymentsUpcoming: number
+    paymentsOverdue: number
+    roomingLists: number
+    arrivals: number
+  }> {
+    try {
+      console.log('🔍 Iniciando verificación de eventos pendientes...')
+
+      let paymentsUpcoming = 0
+      let paymentsOverdue = 0
+      let roomingLists = 0
+      let arrivals = 0
+
+      // ═══════════════════════════════════════════════════════
+      // 1. VERIFICAR PAGOS PRÓXIMOS A VENCER
+      // ═══════════════════════════════════════════════════════
+
+      for (const days of NOTIFICATION_CONFIG.payment_upcoming) {
+        const upcomingPayments = await GroupPaymentRepository.getUpcoming(days)
+
+        for (const payment of upcomingPayments) {
+          // Verificar si ya existe notificación para este pago y días
+          const existingNotification = await this.checkIfNotificationExists(
+            payment.group_id,
+            NotificationRelatedTo.PAYMENT,
+            payment.id,
+            days
+          )
+
+          if (!existingNotification) {
+            await this.generatePaymentReminder(payment.id, days)
+            paymentsUpcoming++
+            console.log(
+              `✅ Notificación de pago creada: ${payment.payment_name} (${days} días)`
+            )
+          }
+        }
+      }
+
+      // ═══════════════════════════════════════════════════════
+      // 2. VERIFICAR PAGOS VENCIDOS
+      // ═══════════════════════════════════════════════════════
+
+      const overduePayments = await GroupPaymentRepository.getOverdue()
+
+      for (const payment of overduePayments) {
+        // Verificar si ya existe notificación de vencido para este pago
+        const existingNotification = await this.checkIfNotificationExists(
+          payment.group_id,
+          NotificationRelatedTo.PAYMENT,
+          payment.id,
+          0 // 0 días = vencido
+        )
+
+        if (!existingNotification) {
+          await this.generateOverduePaymentNotification(payment.id)
+          paymentsOverdue++
+          console.log(
+            `⚠️ Notificación de pago vencido: ${payment.payment_name}`
+          )
+        }
+      }
+
+      // ═══════════════════════════════════════════════════════
+      // 3. VERIFICAR ROOMING LISTS PENDIENTES
+      // ═══════════════════════════════════════════════════════
+
+      // TODO: Implementar cuando tengas método para obtener rooming lists pendientes
+      // const pendingRoomingLists = await GroupRepository.getRoomingListsPending()
+
+      // ═══════════════════════════════════════════════════════
+      // 4. VERIFICAR LLEGADAS PRÓXIMAS
+      // ═══════════════════════════════════════════════════════
+
+      // TODO: Implementar verificación de llegadas próximas
+      // for (const days of NOTIFICATION_CONFIG.arrival) {
+      //   const upcomingArrivals = await GroupRepository.getUpcomingArrivals(days)
+      //   // Generar notificaciones de llegada...
+      // }
+
+      console.log('✅ Verificación completada:', {
+        paymentsUpcoming,
+        paymentsOverdue,
+        roomingLists,
+        arrivals,
+      })
+
+      return {
+        paymentsUpcoming,
+        paymentsOverdue,
+        roomingLists,
+        arrivals,
+      }
+    } catch (error) {
+      console.error('❌ Error en verificación automática:', error)
+      throw error
+    }
+  }
+
+  /**
+   * 🆕 VERIFICAR SI YA EXISTE UNA NOTIFICACIÓN
+   * Evita duplicados
+   */
+  private static async checkIfNotificationExists(
+    groupId: number,
+    relatedTo: NotificationRelatedTo,
+    relatedId: number,
+    daysOffset: number
+  ): Promise<boolean> {
+    try {
+      const notifications = await NotificationRepository.getByGroupId(groupId)
+
+      // Últimas 48 horas (más margen)
+      const twoDaysAgo = new Date(Date.now() - 48 * 60 * 60 * 1000)
+
+      const exists = notifications.some((n) => {
+        const isSameType =
+          n.related_to === relatedTo && n.related_id === relatedId
+        const isRecent = new Date(n.created_at) > twoDaysAgo
+
+        // Para vencidos (0 días), buscar por título que contenga "vencido"
+        if (daysOffset === 0) {
+          return (
+            isSameType && isRecent && n.title?.toLowerCase().includes('vencido')
+          )
+        }
+
+        // Para upcoming, buscar exactamente los días en el título
+        return isSameType && isRecent && n.title?.includes(`${daysOffset} días`)
+      })
+
+      if (exists) {
+        console.log(
+          `⏭️  Notificación duplicada evitada: ${relatedTo} ${relatedId} (${daysOffset} días)`
+        )
+      }
+
+      return exists
+    } catch (error) {
+      console.error('Error verificando duplicado:', error)
+      return false
+    }
+  }
+}
