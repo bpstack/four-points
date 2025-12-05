@@ -1,0 +1,35 @@
+# .gitignore for a Next.js project
+
+# Node.js dependencies
+node_modules/
+
+# Next.js build output
+.next/
+out/
+
+# Production build
+dist/
+
+# Env variables (never commit real env files)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Keep example env file versioned (used as template)
+# .env.example NO se ignora
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Mac/Windows system files
+.DS_Store
+Thumbs.db
+
+# Ignorar archivos exportados o descargados del navegador
+public/*Claude*
+public/*.descarga

@@ -1,0 +1,169 @@
+// app/dashboard/layout.tsx
+
+'use client'
+
+import { useEffect, useState } from 'react'
+import { usePathname } from 'next/navigation'
+import Link from 'next/link'
+import SideNav from '@/app/ui/dashboard/sidenav'
+import { FiSearch, FiBell, FiMenu, FiX, FiChevronRight } from 'react-icons/fi'
+import { SimpleThemeButton } from '@/app/components/theme/SetThemeButton'
+import { useAuth } from '@/app/lib/auth/useAuth'
+import ProfileDropdown from '@/app/components/layout/ProfileDropdown'
+import NotificationBell from '@/app/components/notifications/NotificationBell'
+
+export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+  const { user, loading } = useAuth()
+  const pathname = usePathname()
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [mounted, setMounted] = useState(false)
+
+  // ✅ Manejar mount para evitar hydration errors
+  useEffect(() => {
+    setMounted(true)
+    // Limpiar atributos de extensiones que causan hydration errors
+    document.body.removeAttribute('cz-shortcut-listen')
+  }, [])
+
+  // ❌ REMOVIDO: No necesitamos redirigir aquí, el middleware ya lo hace
+  // El middleware se encarga de proteger /dashboard
+  // Si llegamos aquí, es porque el middleware ya verificó el token
+
+  // Generamos breadcrumbs desde la ruta actual
+  const generateBreadcrumbs = (): Array<{ label: string; href: string; isLast: boolean }> => {
+    const paths = pathname.split('/').filter(Boolean)
+    const breadcrumbs: Array<{ label: string; href: string; isLast: boolean }> = []
+    let currentPath = ''
+
+    paths.forEach((path, index) => {
+      currentPath += `/${path}`
+      const label = path.charAt(0).toUpperCase() + path.slice(1).replace(/-/g, ' ')
+      breadcrumbs.push({
+        label,
+        href: currentPath,
+        isLast: index === paths.length - 1,
+      })
+    })
+
+    return breadcrumbs
+  }
+
+  const breadcrumbs = generateBreadcrumbs()
+
+  // ✅ Mostrar loading mientras se carga el usuario
+  if (!mounted || loading) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-white dark:bg-[#0d1117]">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-2 border-gray-300 dark:border-gray-700 border-t-gray-700 dark:border-t-gray-300 mx-auto"></div>
+          <p className="mt-4 text-gray-600 dark:text-gray-400">Cargando...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // ✅ Si no hay usuario después de cargar, mostrar loading
+  // (el middleware redirigirá si es necesario)
+  if (!user) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-white dark:bg-[#0d1117]">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-2 border-gray-300 dark:border-gray-700 border-t-gray-700 dark:border-t-gray-300 mx-auto"></div>
+          <p className="mt-4 text-gray-600 dark:text-gray-400">Verificando sesión...</p>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="flex h-screen bg-white dark:bg-[#010409] antialiased">
+      {/* Mobile Sidebar Overlay */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      {/* Sidebar */}
+      <div
+        className={`
+          fixed md:static inset-y-0 left-0 z-50 w-64 transform transition-transform duration-300 ease-in-out
+          ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+        `}
+      >
+        <SideNav onClose={() => setSidebarOpen(false)} />
+      </div>
+
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Top Header */}
+        <header className="h-16 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-[#010409] flex items-center justify-between px-4 md:px-6">
+          {/* Left Section: Mobile Menu Button + Breadcrumb Navigation */}
+          <div className="flex items-center gap-3 flex-1 min-w-0">
+            <button
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+              className="md:hidden p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors flex-shrink-0"
+            >
+              {sidebarOpen ? <FiX className="h-6 w-6" /> : <FiMenu className="h-6 w-6" />}
+            </button>
+
+            {/* Breadcrumb Navigation */}
+            <nav className="flex items-center gap-1 overflow-x-auto scrollbar-hide min-w-0">
+              {breadcrumbs.map((crumb, index) => (
+                <div key={crumb.href} className="flex items-center gap-1 flex-shrink-0">
+                  {index > 0 && (
+                    <FiChevronRight className="h-4 w-4 text-gray-400 dark:text-gray-600 flex-shrink-0" />
+                  )}
+                  {crumb.isLast ? (
+                    <span className="text-sm font-medium text-gray-900 dark:text-white px-2 py-1 truncate">
+                      {crumb.label}
+                    </span>
+                  ) : (
+                    <Link
+                      href={crumb.href}
+                      className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white px-2 py-1 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors truncate"
+                    >
+                      {crumb.label}
+                    </Link>
+                  )}
+                </div>
+              ))}
+            </nav>
+          </div>
+
+          {/* Right Section */}
+          <div className="flex items-center gap-2 md:gap-3 flex-shrink-0">
+            {/* Search Bar - Hidden on mobile, visible on md+ */}
+            <div className="hidden md:block">
+              <div className="relative">
+                <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Buscar..."
+                  className="w-48 lg:w-64 pl-9 pr-3 py-1.5 text-sm bg-gray-100 dark:bg-[#010409] border-gray-200 dark:border-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-all"
+                />
+              </div>
+            </div>
+
+            {/* Theme Toggle */}
+            <SimpleThemeButton />
+
+            {/* Notifications */}
+            <div className="hidden md:block">
+              <NotificationBell />
+            </div>
+
+            {/* User Avatar - Always visible */}
+            <ProfileDropdown />
+          </div>
+        </header>
+
+        {/* Content Area */}
+        <main className="flex-1 overflow-y-auto bg-white dark:bg-[#010409]">
+          <div className="w-full p-4 md:p-6">{children}</div>
+        </main>
+      </div>
+    </div>
+  )
+}
