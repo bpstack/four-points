@@ -1,0 +1,50 @@
+// app/dashboard/maintenance/actions/getMaintenanceById.ts
+'use server'
+
+import { cookies } from 'next/headers'
+import type { ReportWithDetails } from '@/app/lib/maintenance/maintenance'
+
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'
+
+export interface MaintenanceDetailResponse {
+  success: boolean
+  data: ReportWithDetails
+}
+
+export async function getMaintenanceById(id: string): Promise<MaintenanceDetailResponse> {
+  try {
+    console.log('[getMaintenanceById] Obteniendo reporte:', id)
+
+    // Obtener token de cookies (server-side)
+    const cookieStore = await cookies()
+    const token = cookieStore.get('access_token')?.value
+
+    if (!token) {
+      throw new Error('No autorizado, falta token')
+    }
+
+    const url = `${API_BASE}/api/maintenance/${id}`
+
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      cache: 'no-store',
+    })
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}))
+      if (response.status === 404) {
+        throw new Error('Reporte no encontrado')
+      }
+      throw new Error(errorData.error || `HTTP ${response.status}`)
+    }
+
+    return response.json()
+  } catch (error: any) {
+    console.error('[getMaintenanceById] Error:', error.message)
+    throw new Error(error.message || 'Error al obtener reporte')
+  }
+}

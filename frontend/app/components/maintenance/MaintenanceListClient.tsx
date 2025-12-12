@@ -4,37 +4,53 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { maintenanceApi } from '@/app/api/maintenance/route'
+import { maintenanceApi } from '@/app/lib/maintenance/maintenanceApi'
 import type { MaintenanceReport, ReportFilters } from '@/app/lib/maintenance/maintenance'
 import { CreateReportPanel } from './panels/CreateReportPanel'
 import { FiPlus, FiSearch, FiAlertCircle, FiTool, FiCheckCircle, FiClock } from 'react-icons/fi'
 
-interface MaintenanceListClientProps {
-  initialReports: MaintenanceReport[]
+interface Pagination {
+  total: number
+  page: number
+  limit: number
+  total_pages: number
+  has_next: boolean
+  has_prev: boolean
 }
 
-export function MaintenanceListClient({ initialReports }: MaintenanceListClientProps) {
+interface MaintenanceListClientProps {
+  initialReports: MaintenanceReport[]
+  initialPagination?: Pagination
+}
+
+export function MaintenanceListClient({ initialReports = [], initialPagination }: MaintenanceListClientProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const panel = searchParams.get('panel')
 
-  const [reports, setReports] = useState<MaintenanceReport[]>(initialReports)
+  const [reports, setReports] = useState<MaintenanceReport[]>(initialReports || [])
+  const [pagination, setPagination] = useState<Pagination | undefined>(initialPagination)
   const [loading, setLoading] = useState(false)
-  const [searchTerm, setSearchTerm] = useState('')
-  const [filters, setFilters] = useState<ReportFilters>({})
+  const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '')
+  const [filters, setFilters] = useState<ReportFilters>({
+    status: searchParams.get('status') as any || undefined,
+    priority: searchParams.get('priority') as any || undefined,
+    location_type: searchParams.get('location_type') as any || undefined,
+  })
 
-  useEffect(() => {
-    loadReports()
-  }, [filters])
-
-  const loadReports = async () => {
+  // Cargar reportes cuando cambien los filtros
+  const loadReports = async (newFilters?: ReportFilters, page?: number) => {
     try {
       setLoading(true)
       const response = await maintenanceApi.getAll({
         ...filters,
+        ...newFilters,
         search: searchTerm || undefined,
+        page: page || 1,
+        limit: 20,
       })
-      setReports(response.data)
+      setReports(response.reports || [])
+      setPagination(response.pagination)
     } catch (error) {
       console.error('Error loading reports:', error)
     } finally {
@@ -42,8 +58,27 @@ export function MaintenanceListClient({ initialReports }: MaintenanceListClientP
     }
   }
 
+  // Actualizar URL con filtros
+  const updateUrlWithFilters = (newFilters: ReportFilters, search?: string) => {
+    const params = new URLSearchParams()
+    if (newFilters.status) params.set('status', newFilters.status)
+    if (newFilters.priority) params.set('priority', newFilters.priority)
+    if (newFilters.location_type) params.set('location_type', newFilters.location_type)
+    if (search) params.set('search', search)
+    
+    const queryString = params.toString()
+    router.push(queryString ? `?${queryString}` : '/dashboard/maintenance', { scroll: false })
+  }
+
   const handleSearch = () => {
-    loadReports()
+    updateUrlWithFilters(filters, searchTerm)
+    loadReports(filters)
+  }
+
+  const handleFilterChange = (newFilters: ReportFilters) => {
+    setFilters(newFilters)
+    updateUrlWithFilters(newFilters, searchTerm)
+    loadReports(newFilters)
   }
 
   const handleCreateReport = () => {
@@ -56,11 +91,15 @@ export function MaintenanceListClient({ initialReports }: MaintenanceListClientP
     const params = new URLSearchParams(searchParams.toString())
     params.delete('panel')
     router.push(`?${params.toString()}`, { scroll: false })
-    loadReports()
+    loadReports() // Recargar después de cerrar panel
   }
 
   const handleViewReport = (reportId: string) => {
     router.push(`/dashboard/maintenance/${reportId}`)
+  }
+
+  const handlePageChange = (newPage: number) => {
+    loadReports(filters, newPage)
   }
 
   const getStatusConfig = (status: MaintenanceReport['status']) => {
@@ -148,7 +187,7 @@ export function MaintenanceListClient({ initialReports }: MaintenanceListClientP
   }
 
   // Stats
-  const totalReports = reports.length
+  const totalReports = pagination?.total || reports.length
   const urgentReports = reports.filter((r) => r.priority === 'urgent').length
   const inProgressReports = reports.filter((r) => r.status === 'in_progress').length
   const roomsOutOfService = reports.filter((r) => r.room_out_of_service === true).length
@@ -264,9 +303,10 @@ export function MaintenanceListClient({ initialReports }: MaintenanceListClientP
               </div>
               <button
                 onClick={handleSearch}
-                className="px-4 py-1.5 bg-blue-600 dark:bg-blue-700 text-white text-xs font-medium rounded-md hover:bg-blue-700 dark:hover:bg-blue-800 transition-colors"
+                disabled={loading}
+                className="px-4 py-1.5 bg-blue-600 dark:bg-blue-700 text-white text-xs font-medium rounded-md hover:bg-blue-700 dark:hover:bg-blue-800 transition-colors disabled:opacity-50"
               >
-                Buscar
+                {loading ? 'Buscando...' : 'Buscar'}
               </button>
             </div>
 
@@ -274,7 +314,7 @@ export function MaintenanceListClient({ initialReports }: MaintenanceListClientP
               <select
                 value={filters.status || ''}
                 onChange={(e) =>
-                  setFilters({ ...filters, status: (e.target.value as any) || undefined })
+                  handleFilterChange({ ...filters, status: (e.target.value as any) || undefined })
                 }
                 className="w-full px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent bg-white dark:bg-[#151b23] dark:text-gray-200"
               >
@@ -291,7 +331,7 @@ export function MaintenanceListClient({ initialReports }: MaintenanceListClientP
               <select
                 value={filters.priority || ''}
                 onChange={(e) =>
-                  setFilters({ ...filters, priority: (e.target.value as any) || undefined })
+                  handleFilterChange({ ...filters, priority: (e.target.value as any) || undefined })
                 }
                 className="w-full px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent bg-white dark:bg-[#151b23] dark:text-gray-200"
               >
@@ -305,7 +345,7 @@ export function MaintenanceListClient({ initialReports }: MaintenanceListClientP
               <select
                 value={filters.location_type || ''}
                 onChange={(e) =>
-                  setFilters({ ...filters, location_type: (e.target.value as any) || undefined })
+                  handleFilterChange({ ...filters, location_type: (e.target.value as any) || undefined })
                 }
                 className="w-full px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent bg-white dark:bg-[#151b23] dark:text-gray-200"
               >
@@ -321,6 +361,8 @@ export function MaintenanceListClient({ initialReports }: MaintenanceListClientP
                 onClick={() => {
                   setFilters({})
                   setSearchTerm('')
+                  router.push('/dashboard/maintenance', { scroll: false })
+                  loadReports({})
                 }}
                 className="px-3 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
               >
@@ -362,7 +404,7 @@ export function MaintenanceListClient({ initialReports }: MaintenanceListClientP
                         colSpan={6}
                         className="px-3 py-8 text-center text-xs text-gray-500 dark:text-gray-400"
                       >
-                        {searchTerm || Object.keys(filters).length > 0
+                        {searchTerm || Object.keys(filters).some(k => filters[k as keyof ReportFilters])
                           ? 'No se encontraron reportes con esos criterios'
                           : 'No hay reportes registrados'}
                       </td>
@@ -425,6 +467,33 @@ export function MaintenanceListClient({ initialReports }: MaintenanceListClientP
                 </tbody>
               </table>
             </div>
+
+            {/* Pagination */}
+            {pagination && pagination.total_pages > 1 && (
+              <div className="px-4 py-3 border-t border-gray-200 dark:border-gray-800 flex items-center justify-between">
+                <div className="text-xs text-gray-500 dark:text-gray-400">
+                  Mostrando {((pagination.page - 1) * pagination.limit) + 1} a{' '}
+                  {Math.min(pagination.page * pagination.limit, pagination.total)} de{' '}
+                  {pagination.total} resultados
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => handlePageChange(pagination.page - 1)}
+                    disabled={!pagination.has_prev || loading}
+                    className="px-3 py-1 text-xs font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Anterior
+                  </button>
+                  <button
+                    onClick={() => handlePageChange(pagination.page + 1)}
+                    disabled={!pagination.has_next || loading}
+                    className="px-3 py-1 text-xs font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Siguiente
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Cards - Mobile */}
@@ -432,7 +501,7 @@ export function MaintenanceListClient({ initialReports }: MaintenanceListClientP
             {reports.length === 0 ? (
               <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-6 text-center">
                 <p className="text-xs text-gray-500 dark:text-gray-400">
-                  {searchTerm || Object.keys(filters).length > 0
+                  {searchTerm || Object.keys(filters).some(k => filters[k as keyof ReportFilters])
                     ? 'No se encontraron reportes con esos criterios'
                     : 'No hay reportes registrados'}
                 </p>
@@ -489,6 +558,29 @@ export function MaintenanceListClient({ initialReports }: MaintenanceListClientP
                   </div>
                 )
               })
+            )}
+
+            {/* Mobile Pagination */}
+            {pagination && pagination.total_pages > 1 && (
+              <div className="flex justify-center gap-2 pt-4">
+                <button
+                  onClick={() => handlePageChange(pagination.page - 1)}
+                  disabled={!pagination.has_prev || loading}
+                  className="px-4 py-2 text-xs font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md disabled:opacity-50"
+                >
+                  Anterior
+                </button>
+                <span className="px-4 py-2 text-xs text-gray-500">
+                  {pagination.page} / {pagination.total_pages}
+                </span>
+                <button
+                  onClick={() => handlePageChange(pagination.page + 1)}
+                  disabled={!pagination.has_next || loading}
+                  className="px-4 py-2 text-xs font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md disabled:opacity-50"
+                >
+                  Siguiente
+                </button>
+              </div>
             )}
           </div>
         </div>

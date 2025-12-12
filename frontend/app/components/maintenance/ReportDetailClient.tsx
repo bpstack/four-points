@@ -2,15 +2,19 @@
 
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useMaintenanceStore } from '@/app/stores/useMaintenanceStore'
+import { maintenanceApi } from '@/app/lib/maintenance/maintenanceApi'
 import type { ReportWithDetails } from '@/app/lib/maintenance/maintenance'
 import { ReportHeader } from './layout/ReportHeader'
 import { TabNavigation } from './layout/TabNavigation'
 import { DetailTab } from './tabs/DetailTab'
 import { HistoryTab } from './tabs/HistoryTab'
 import { LoadingSpinner } from './shared/LoadingSpinner'
+import { EditReportPanel } from './panels/EditReportPanel'
+import { ConfirmDialog } from './shared/ConfirmDialog'
+import toast from 'react-hot-toast'
 
 interface ReportDetailClientProps {
   initialReport: ReportWithDetails
@@ -21,7 +25,12 @@ export function ReportDetailClient({ initialReport }: ReportDetailClientProps) {
   const searchParams = useSearchParams()
   const activeTab = searchParams.get('tab') || 'detail'
 
-  const { currentReport, setCurrentReport, setActiveTab, isLoadingReport } = useMaintenanceStore()
+  const { currentReport, setCurrentReport, setActiveTab, isLoadingReport, refreshReport } = useMaintenanceStore()
+  
+  // Estados para editar y eliminar
+  const [isEditPanelOpen, setIsEditPanelOpen] = useState(false)
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   useEffect(() => {
     setCurrentReport(initialReport)
@@ -32,13 +41,35 @@ export function ReportDetailClient({ initialReport }: ReportDetailClientProps) {
   }, [activeTab, setActiveTab])
 
   const handleEdit = () => {
-    // TODO: Implementar edición
-    console.log('Edit report:', currentReport?.id)
+    setIsEditPanelOpen(true)
+  }
+
+  const handleCloseEditPanel = () => {
+    setIsEditPanelOpen(false)
+    // Refrescar datos después de editar
+    if (currentReport) {
+      refreshReport(currentReport.id)
+    }
   }
 
   const handleDelete = () => {
-    // TODO: Implementar borrado
-    console.log('Delete report:', currentReport?.id)
+    setIsDeleteDialogOpen(true)
+  }
+
+  const handleConfirmDelete = async () => {
+    if (!currentReport) return
+    
+    try {
+      setIsDeleting(true)
+      await maintenanceApi.delete(currentReport.id)
+      toast.success('Reporte eliminado correctamente')
+      router.push('/dashboard/maintenance')
+    } catch (error: any) {
+      toast.error(error.message || 'Error al eliminar el reporte')
+    } finally {
+      setIsDeleting(false)
+      setIsDeleteDialogOpen(false)
+    }
   }
 
   if (!currentReport) {
@@ -50,15 +81,36 @@ export function ReportDetailClient({ initialReport }: ReportDetailClientProps) {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-[#010409]">
-      <ReportHeader report={currentReport} onEdit={handleEdit} onDelete={handleDelete} />
+    <>
+      <div className="min-h-screen bg-gray-50 dark:bg-[#010409]">
+        <ReportHeader report={currentReport} onEdit={handleEdit} onDelete={handleDelete} />
 
-      <TabNavigation reportId={currentReport.id} />
+        <TabNavigation reportId={currentReport.id} />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
-        {activeTab === 'detail' && <DetailTab />}
-        {activeTab === 'history' && <HistoryTab />}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
+          {activeTab === 'detail' && <DetailTab />}
+          {activeTab === 'history' && <HistoryTab />}
+        </div>
       </div>
-    </div>
+
+      {/* Panel de edición */}
+      <EditReportPanel 
+        isOpen={isEditPanelOpen} 
+        onClose={handleCloseEditPanel}
+        report={currentReport}
+      />
+
+      {/* Diálogo de confirmación de eliminación */}
+      <ConfirmDialog
+        isOpen={isDeleteDialogOpen}
+        onClose={() => setIsDeleteDialogOpen(false)}
+        onConfirm={handleConfirmDelete}
+        title="Eliminar Reporte"
+        message={`¿Estás seguro de que quieres eliminar el reporte "${currentReport.title}"? Esta acción no se puede deshacer.`}
+        confirmText="Eliminar"
+        confirmVariant="danger"
+        isLoading={isDeleting}
+      />
+    </>
   )
 }

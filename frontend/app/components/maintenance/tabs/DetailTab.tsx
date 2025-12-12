@@ -3,7 +3,7 @@
 
 import { useState } from 'react'
 import { useMaintenanceStore } from '@/app/stores/useMaintenanceStore'
-import { maintenanceApi } from '@/app/api/maintenance/route'
+import { maintenanceApi } from '@/app/lib/maintenance/maintenanceApi'
 import type { ReportStatus, ReportPriority } from '@/app/lib/maintenance/maintenance'
 import { LoadingSpinner } from '../shared/LoadingSpinner'
 import { EmptyState } from '../shared/EmptyState'

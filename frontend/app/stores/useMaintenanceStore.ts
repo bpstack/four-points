@@ -2,12 +2,12 @@
 
 import { create } from 'zustand'
 import type {
-  MaintenanceReport,
   MaintenanceImage,
   MaintenanceHistory,
   ReportWithDetails,
   ReportFilters,
 } from '@/app/lib/maintenance/maintenance'
+import { maintenanceApi } from '@/app/lib/maintenance/maintenanceApi'
 
 interface MaintenanceState {
   // Current report
@@ -51,7 +51,7 @@ interface MaintenanceState {
   setHighlight: (id: number | null) => void
 }
 
-export const useMaintenanceStore = create<MaintenanceState>((set, get) => ({
+export const useMaintenanceStore = create<MaintenanceState>((set) => ({
   // Initial state
   currentReport: null,
   images: [],
@@ -100,14 +100,16 @@ export const useMaintenanceStore = create<MaintenanceState>((set, get) => ({
   setActiveTab: (tab) => set({ activeTab: tab }),
   setHighlight: (id) => set({ highlightId: id }),
 
-  // Refresh actions (mock implementation)
+  // Refresh actions usando API real
   refreshReport: async (reportId: string) => {
     set({ isLoadingReport: true })
     try {
-      // Import mock data
-      const { maintenanceApi } = await import('@/app/api/maintenance/route')
       const response = await maintenanceApi.getById(reportId)
-      set({ currentReport: response.data })
+      set({
+        currentReport: response.report,
+        images: response.report.images || [],
+        history: response.report.history || [],
+      })
     } catch (error) {
       console.error('Error refreshing report:', error)
     } finally {
@@ -118,9 +120,8 @@ export const useMaintenanceStore = create<MaintenanceState>((set, get) => ({
   refreshImages: async (reportId: string) => {
     set({ isLoadingImages: true })
     try {
-      const { maintenanceApi } = await import('@/app/api/maintenance/route')
       const response = await maintenanceApi.getById(reportId)
-      set({ images: response.data.images || [] })
+      set({ images: response.report.images || [] })
     } catch (error) {
       console.error('Error refreshing images:', error)
     } finally {
@@ -131,9 +132,8 @@ export const useMaintenanceStore = create<MaintenanceState>((set, get) => ({
   refreshHistory: async (reportId: string) => {
     set({ isLoadingHistory: true })
     try {
-      const { maintenanceApi } = await import('@/app/api/maintenance/route')
       const response = await maintenanceApi.getById(reportId)
-      set({ history: response.data.history || [] })
+      set({ history: response.report.history || [] })
     } catch (error) {
       console.error('Error refreshing history:', error)
     } finally {

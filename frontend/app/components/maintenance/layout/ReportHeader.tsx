@@ -85,7 +85,7 @@ export function ReportHeader({ report, onEdit, onDelete }: ReportHeaderProps) {
             </div>
 
             <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-gray-600 dark:text-gray-400">
-              <span>ID: {report.id.slice(0, 8)}...</span>
+              <span className="font-mono">ID: {report.id}</span>
               <span>•</span>
               <span>
                 Reportado:{' '}

@@ -4,7 +4,7 @@
 
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { maintenanceApi } from '@/app/api/maintenance/route'
+import { maintenanceApi } from '@/app/lib/maintenance/maintenanceApi'
 import { ReportDetailClient } from '@/app/components/maintenance/ReportDetailClient'
 import { LoadingSpinner } from '@/app/components/maintenance/shared/LoadingSpinner'
 import type { ReportWithDetails } from '@/app/lib/maintenance/maintenance'
@@ -22,7 +22,7 @@ export default function MaintenanceDetailPage() {
       try {
         setLoading(true)
         const response = await maintenanceApi.getById(reportId)
-        setReport(response.data)
+        setReport(response.report)
       } catch (err: any) {
         console.error('Error loading report:', err)
         setError(err.message || 'Error al cargar el reporte')

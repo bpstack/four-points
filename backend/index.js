@@ -19,6 +19,7 @@ import groupRoutes from './routes/group/group-routes.js'
 import notificationRoutes from './routes/notifications/notifications-routes.js'
 import cashierRoutes from './routes/cashier/cashier-routes.js'
 import blacklistRoutes from './routes/blacklist/blacklist-routes.js'
+import maintenanceRoutes from './routes/maintenance/maintenance-routes.js'
 
 const app = express()
 
@@ -117,6 +118,9 @@ app.use('/api/cashier', cashierRoutes)
 
 // Rutas de blacklist
 app.use('/api/blacklist', blacklistRoutes)
+
+// Rutas de maintenance
+app.use('/api/maintenance', maintenanceRoutes)
 
 // ========================================
 // MANEJO DE ERRORES
