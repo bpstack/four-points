@@ -6,9 +6,11 @@
  * Limpia el campo deleted_at
  */
 
+import { cookies } from 'next/headers'
 import { revalidatePath } from 'next/cache'
-import { blacklistApi } from '@/app/lib/blacklist/blacklistApi'
 import type { BlacklistEntry } from '@/app/lib/blacklist/types'
+
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'
 
 interface RestoreBlacklistResult {
   success: boolean
@@ -20,6 +22,14 @@ export async function restoreBlacklist(id: string): Promise<RestoreBlacklistResu
   try {
     console.log('[restoreBlacklist] Restaurando registro:', id)
 
+    // Obtener token de cookies (server-side)
+    const cookieStore = await cookies()
+    const token = cookieStore.get('access_token')?.value
+
+    if (!token) {
+      return { success: false, error: 'No autorizado, falta token' }
+    }
+
     if (!id) {
       return {
         success: false,
@@ -27,14 +37,27 @@ export async function restoreBlacklist(id: string): Promise<RestoreBlacklistResu
       }
     }
 
-    // Restaurar registro
-    const restoredEntry = await blacklistApi.restore(id)
+    const response = await fetch(`${API_BASE}/api/blacklist/${id}/restore`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({}),
+    })
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}))
+      throw new Error(errorData.error || `HTTP ${response.status}`)
+    }
+
+    const restoredEntry = await response.json()
 
     console.log('[restoreBlacklist] ✅ Registro restaurado:', restoredEntry.id)
 
     // Revalidar páginas
-    revalidatePath('/blacklist')
-    revalidatePath(`/blacklist/${id}`)
+    revalidatePath('/dashboard/blacklist')
+    revalidatePath(`/dashboard/blacklist/${id}`)
 
     return {
       success: true,

@@ -1,38 +1,42 @@
 // app/dashboard/blacklist/actions/getBlacklistById.ts
 'use server'
 
-import { blacklistApi } from '@/app/lib/blacklist/blacklistApi'
+import { cookies } from 'next/headers'
 import type { BlacklistDetailResponse } from '@/app/lib/blacklist/types'
-import { USE_MOCK_DATA } from '@/app/lib/blacklist/useMockData'
-import { mockBlacklistEntries, mockAuditTrail } from '@/app/lib/blacklist/mockData'
+
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'
 
 export async function getBlacklistById(id: string): Promise<BlacklistDetailResponse> {
   try {
     console.log('[getBlacklistById] Obteniendo registro:', id)
 
-    // ✅ MOCK MODE
-    if (USE_MOCK_DATA) {
-      console.log('[getBlacklistById] 🎭 MODO MOCK activado')
+    // Obtener token de cookies (server-side)
+    const cookieStore = await cookies()
+    const token = cookieStore.get('access_token')?.value
 
-      // Simular delay de red
-      await new Promise((resolve) => setTimeout(resolve, 200))
-
-      const entry = mockBlacklistEntries.find((e) => e.id === id)
-
-      if (!entry) {
-        throw new Error('Registro no encontrado')
-      }
-
-      const audit_trail = mockAuditTrail[id] || []
-
-      return { entry, audit_trail }
+    if (!token) {
+      throw new Error('No autorizado, falta token')
     }
 
-    // MODO REAL
-    const response = await blacklistApi.getById(id)
+    const url = `${API_BASE}/api/blacklist/${id}`
 
-    return response
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      cache: 'no-store',
+    })
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}))
+      throw new Error(errorData.error || `HTTP ${response.status}`)
+    }
+
+    return response.json()
   } catch (error: any) {
+    console.error('[getBlacklistById] Error:', error.message)
     throw new Error(error.message || 'Error al obtener el registro')
   }
 }

@@ -108,22 +108,18 @@ export function BlacklistForm({ mode, initialData, onSuccess }: BlacklistFormPro
     try {
       let imageUrls: string[] = []
 
-      // 1. MODO CREAR: Validar y subir imágenes
+      // 1. MODO CREAR: Subir imágenes si hay
       if (mode === 'create') {
-        if (data.images.length === 0) {
-          toast.error('Debes subir al menos una imagen')
-          setIsSubmitting(false)
-          return
+        if (data.images.length > 0) {
+          setUploadingImages(true)
+          toast.loading('Subiendo imágenes...')
+
+          const uploadedImages = await blacklistApi.uploadImages(data.images)
+          imageUrls = uploadedImages.map((img) => img.secure_url)
+
+          toast.dismiss()
+          toast.success(`${imageUrls.length} imágenes subidas correctamente`)
         }
-
-        setUploadingImages(true)
-        toast.loading('Subiendo imágenes...')
-
-        const uploadedImages = await blacklistApi.uploadImages(data.images)
-        imageUrls = uploadedImages.map((img) => img.secure_url)
-
-        toast.dismiss()
-        toast.success(`${imageUrls.length} imágenes subidas correctamente`)
       }
       // 2. MODO EDITAR: Mantener existentes + nuevas
       else {

@@ -1,40 +1,54 @@
 // app/dashboard/blacklist/actions/getBlacklist.ts
 'use server'
 
-import { blacklistApi } from '@/app/lib/blacklist/blacklistApi'
+import { cookies } from 'next/headers'
 import type { BlacklistFilters, BlacklistResponse } from '@/app/lib/blacklist/types'
-import { USE_MOCK_DATA } from '@/app/lib/blacklist/useMockData'
-import {
-  mockBlacklistEntries,
-  filterMockData,
-  paginateMockData,
-} from '@/app/lib/blacklist/mockData'
+
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'
 
 export async function getBlacklist(filters?: BlacklistFilters): Promise<BlacklistResponse> {
   try {
     console.log('[getBlacklist] Obteniendo registros con filtros:', filters)
 
-    // ✅ MOCK MODE
-    if (USE_MOCK_DATA) {
-      console.log('[getBlacklist] 🎭 MODO MOCK activado')
+    // Obtener token de cookies (server-side)
+    const cookieStore = await cookies()
+    const token = cookieStore.get('access_token')?.value
 
-      // Simular delay de red
-      await new Promise((resolve) => setTimeout(resolve, 300))
-
-      // Filtrar datos
-      const filtered = filterMockData(mockBlacklistEntries, filters || {})
-
-      // Paginar
-      const response = paginateMockData(filtered, filters?.page || 1, filters?.limit || 50)
-
-      return response
+    if (!token) {
+      throw new Error('No autorizado, falta token')
     }
 
-    // MODO REAL
-    const response = await blacklistApi.getAll(filters)
+    // Construir query params
+    const params = new URLSearchParams()
+    if (filters?.q) params.append('q', filters.q)
+    if (filters?.document) params.append('document', filters.document)
+    if (filters?.severity) params.append('severity', filters.severity)
+    if (filters?.status) params.append('status', filters.status)
+    if (filters?.created_by) params.append('created_by', filters.created_by)
+    if (filters?.from_date) params.append('from_date', filters.from_date)
+    if (filters?.to_date) params.append('to_date', filters.to_date)
+    if (filters?.page) params.append('page', filters.page.toString())
+    if (filters?.limit) params.append('limit', filters.limit.toString())
 
-    return response
+    const url = `${API_BASE}/api/blacklist?${params.toString()}`
+
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      cache: 'no-store',
+    })
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}))
+      throw new Error(errorData.error || `HTTP ${response.status}`)
+    }
+
+    return response.json()
   } catch (error: any) {
+    console.error('[getBlacklist] Error:', error.message)
     throw new Error(error.message || 'Error al obtener registros de blacklist')
   }
 }

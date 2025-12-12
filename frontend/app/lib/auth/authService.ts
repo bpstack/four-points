@@ -34,9 +34,13 @@ export const authLogin = {
 
     if (data.token) {
       localStorage.setItem('access_token', data.token)
+      // También guardar en cookie para Server Actions
+      document.cookie = `access_token=${data.token}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`
     }
     if (data.refreshToken) {
       localStorage.setItem('refresh_token', data.refreshToken)
+      // También guardar en cookie para Server Actions
+      document.cookie = `refresh_token=${data.refreshToken}; path=/; max-age=${60 * 60 * 24 * 30}; SameSite=Lax`
     }
 
     console.log('[authLogin.login] ✅ Login exitoso:', data.user.username)

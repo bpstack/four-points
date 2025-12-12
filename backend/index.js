@@ -18,6 +18,7 @@ import conciliationRoutes from './routes/conciliation/conciliation.routes.js'
 import groupRoutes from './routes/group/group-routes.js'
 import notificationRoutes from './routes/notifications/notifications-routes.js'
 import cashierRoutes from './routes/cashier/cashier-routes.js'
+import blacklistRoutes from './routes/blacklist/blacklist-routes.js'
 
 const app = express()
 
@@ -113,6 +114,9 @@ app.use('/api/notifications', notificationRoutes)
 
 // Rutas de caja
 app.use('/api/cashier', cashierRoutes)
+
+// Rutas de blacklist
+app.use('/api/blacklist', blacklistRoutes)
 
 // ========================================
 // MANEJO DE ERRORES

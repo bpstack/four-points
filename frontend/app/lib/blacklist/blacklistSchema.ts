@@ -56,7 +56,6 @@ export const blacklistSchema = z
 
     images: z
       .array(z.instanceof(File))
-      .min(1, 'Debes subir al menos 1 imagen')
       .max(5, 'No puedes subir más de 5 imágenes')
       .refine(
         (files) => files.every((file) => file.size <= 5 * 1024 * 1024),
@@ -68,7 +67,9 @@ export const blacklistSchema = z
             ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'].includes(file.type)
           ),
         'Solo se permiten imágenes JPG, PNG o WebP'
-      ),
+      )
+      .optional()
+      .default([]),
 
     comments: z
       .string()

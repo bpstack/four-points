@@ -8,10 +8,11 @@
  * 3. Crea el registro en BD
  */
 
+import { cookies } from 'next/headers'
 import { revalidatePath } from 'next/cache'
-import { blacklistApi } from '@/app/lib/blacklist/blacklistApi'
 import type { BlacklistFormData, BlacklistEntry } from '@/app/lib/blacklist/types'
-import { USE_MOCK_DATA } from '@/app/lib/blacklist/useMockData'
+
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'
 
 interface CreateBlacklistResult {
   success: boolean
@@ -23,53 +24,60 @@ export async function createBlacklist(formData: BlacklistFormData): Promise<Crea
   try {
     console.log('[createBlacklist] Iniciando creación de registro')
 
+    // Obtener token de cookies (server-side)
+    const cookieStore = await cookies()
+    const token = cookieStore.get('access_token')?.value
+
+    if (!token) {
+      return { success: false, error: 'No autorizado, falta token' }
+    }
+
     if (!formData.guest_name || !formData.document_number) {
       return { success: false, error: 'Datos incompletos' }
     }
 
-    // ✅ MOCK MODE
-    if (USE_MOCK_DATA) {
-      console.log('[createBlacklist] 🎭 MODO MOCK activado')
+    // Convertir fechas al formato YYYY-MM-DD que espera el backend
+    const checkInDate = typeof formData.check_in_date === 'string'
+      ? new Date(formData.check_in_date)
+      : formData.check_in_date
+    const checkOutDate = typeof formData.check_out_date === 'string'
+      ? new Date(formData.check_out_date)
+      : formData.check_out_date
 
-      // Simular delay
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-
-      // Crear registro mock
-      const newEntry: BlacklistEntry = {
-        id: Math.random().toString(36).substr(2, 9),
-        guest_name: formData.guest_name,
-        document_type: formData.document_type,
-        document_number: formData.document_number,
-        check_in_date: formData.check_in_date.toString(),
-        check_out_date: formData.check_out_date.toString(),
-        reason: formData.reason,
-        severity: formData.severity,
-        images: formData.images as string[], // En mock ya son URLs
-        comments: formData.comments,
-        status: 'ACTIVE',
-        created_by: 'mock-user',
-        created_by_username: 'Usuario Mock',
-        created_at: new Date().toISOString(),
-      }
-
-      console.log('[createBlacklist] ✅ Registro creado (MOCK):', newEntry.id)
-      revalidatePath('/dashboard/blacklist')
-
-      return { success: true, data: newEntry }
+    // Convertir datos del formulario al formato del backend
+    const payload = {
+      guest_name: formData.guest_name,
+      document_type: formData.document_type,
+      document_number: formData.document_number,
+      check_in_date: checkInDate.toISOString().split('T')[0],
+      check_out_date: checkOutDate.toISOString().split('T')[0],
+      reason: formData.reason,
+      severity: formData.severity,
+      images: formData.images || [],
+      comments: formData.comments,
     }
 
-    // MODO REAL
-    if (!Array.isArray(formData.images) || formData.images.length === 0) {
-      return { success: false, error: 'Debes subir al menos una imagen' }
+    const response = await fetch(`${API_BASE}/api/blacklist`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(payload),
+    })
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}))
+      throw new Error(errorData.error || `HTTP ${response.status}`)
     }
 
-    const newEntry = await blacklistApi.create(formData)
-    console.log('[createBlacklist] ✅ Registro creado:', newEntry.id)
+    const newEntry = await response.json()
+    console.log('[createBlacklist] Registro creado:', newEntry.id)
     revalidatePath('/dashboard/blacklist')
 
     return { success: true, data: newEntry }
   } catch (error: any) {
-    console.error('[createBlacklist] ❌ Error:', error.message)
+    console.error('[createBlacklist] Error:', error.message)
     return { success: false, error: error.message || 'Error al crear el registro' }
   }
 }
