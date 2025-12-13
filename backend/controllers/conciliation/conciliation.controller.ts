@@ -159,6 +159,15 @@ export async function updateForm(req: Request, res: Response): Promise<void> {
       return
     }
 
+    // Verificar que la conciliación no esté cerrada
+    const conciliation = await conciliationRepo.getById(id)
+    if (conciliation.status === 'closed') {
+      res.status(403).json({
+        error: 'No se puede modificar una conciliación cerrada',
+      })
+      return
+    }
+
     // Actualizar el formulario
     await conciliationRepo.updateForm(id, formData, userId)
 
@@ -252,6 +261,15 @@ export async function recalculateTotals(
 
     if (isNaN(id)) {
       res.status(400).json({ error: 'ID inválido' })
+      return
+    }
+
+    // Verificar que la conciliación no esté cerrada
+    const conciliation = await conciliationRepo.getById(id)
+    if (conciliation.status === 'closed') {
+      res.status(403).json({
+        error: 'No se puede modificar una conciliación cerrada',
+      })
       return
     }
 

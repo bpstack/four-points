@@ -1,7 +1,5 @@
 // types/express.d.ts
 
-import { IConciliationSummary } from '../models/conciliation.model.js'
-
 declare global {
   namespace Express {
     interface Request {
@@ -11,7 +9,6 @@ declare global {
         email: string
         role: string
       }
-      conciliation?: IConciliationSummary
     }
   }
 }

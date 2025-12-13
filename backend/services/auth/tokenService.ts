@@ -1,0 +1,70 @@
+// services/auth/tokenService.ts
+
+import jwt from 'jsonwebtoken'
+import { SECRET_JWT_KEY } from '../../config/config.js'
+import type { TokenPayload } from '../../models/auth/index.js'
+
+// ✅ CAMBIADO: Access token de 8h a 15 minutos
+const ACCESS_TOKEN_EXPIRY = '15m'
+const REFRESH_TOKEN_EXPIRY = '8h'
+
+interface UserForToken {
+  id: string
+  username?: string
+  role?: string
+}
+
+/**
+ * Genera un token de acceso (corta duración)
+ */
+export function generateAccessToken(user: UserForToken): string {
+  if (!user || !user.id) {
+    throw new Error('Usuario inválido para generar Access Token')
+  }
+
+  const payload: Omit<TokenPayload, 'iat' | 'exp'> = {
+    id: user.id,
+    username: user.username || '',
+    role: user.role || 'user',
+  }
+
+  return jwt.sign(payload, SECRET_JWT_KEY, { expiresIn: ACCESS_TOKEN_EXPIRY })
+}
+
+/**
+ * Genera un token de refresco (larga duración)
+ */
+export function generateRefreshToken(user: UserForToken): string {
+  if (!user || !user.id) {
+    throw new Error('Usuario inválido para generar Refresh Token')
+  }
+
+  // ✅ IMPORTANTE: Incluir los mismos datos que el access token
+  // para poder regenerarlo sin consultar la BD
+  const payload: Omit<TokenPayload, 'iat' | 'exp'> = {
+    id: user.id,
+    username: user.username || '',
+    role: user.role || 'user',
+  }
+
+  return jwt.sign(payload, SECRET_JWT_KEY, { expiresIn: REFRESH_TOKEN_EXPIRY })
+}
+
+/**
+ * Verifica y decodifica un token JWT
+ */
+export function verifyToken(token: string): TokenPayload {
+  try {
+    return jwt.verify(token, SECRET_JWT_KEY) as TokenPayload
+  } catch (error) {
+    if (error instanceof Error) {
+      if (error.name === 'TokenExpiredError') {
+        throw new Error('Token expirado')
+      }
+      if (error.name === 'JsonWebTokenError') {
+        throw new Error('Token inválido')
+      }
+    }
+    throw new Error('Error al verificar token')
+  }
+}
