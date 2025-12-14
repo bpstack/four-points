@@ -50,7 +50,7 @@ interface GroupStore {
   refreshContacts: (groupId: number) => Promise<void>
   refreshRooms: (groupId: number) => Promise<void>
   refreshStatus: (groupId: number) => Promise<void>
-  deletePayment: (groupId: number, paymentId: number) => Promise<void>  // ← NUEVO
+  deletePayment: (groupId: number, paymentId: number) => Promise<void> // ← NUEVO
 
   // ========================================
   // ACTIONS - UI

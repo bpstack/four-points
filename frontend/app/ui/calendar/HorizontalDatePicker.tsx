@@ -187,7 +187,9 @@ export default function HorizontalDatePicker({
                   }
                 `}
               >
-                <span className={`font-normal opacity-80 capitalize leading-tight ${sizes.weekday}`}>
+                <span
+                  className={`font-normal opacity-80 capitalize leading-tight ${sizes.weekday}`}
+                >
                   {weekday.replace('.', '')}
                 </span>
                 <span className={`font-semibold leading-tight ${sizes.day}`}>{day}</span>

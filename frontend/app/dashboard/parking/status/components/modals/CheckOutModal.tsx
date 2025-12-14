@@ -61,9 +61,7 @@ export default function CheckOutModal({
         <div className="p-4 bg-amber-50 dark:bg-amber-950/20 border-l-4 border-amber-500 rounded-r-lg">
           <p className="text-sm font-medium text-amber-900 dark:text-amber-200">
             ⚠️ La fecha de salida programada es el{' '}
-            <span className="font-mono font-bold">
-              {checkoutDate?.toLocaleDateString('es-ES')}
-            </span>
+            <span className="font-mono font-bold">{checkoutDate?.toLocaleDateString('es-ES')}</span>
           </p>
         </div>
       )}

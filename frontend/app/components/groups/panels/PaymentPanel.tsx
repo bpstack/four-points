@@ -180,7 +180,7 @@ export function PaymentPanel({
 
       // ✅ CAMBIO: Refrescar pagos (que también refresca status automáticamente)
       await refreshPayments(groupId)
-      
+
       onClose()
     } catch (error: any) {
       console.error('Error saving payment:', error)
@@ -194,10 +194,10 @@ export function PaymentPanel({
     setIsDeleting(true)
     try {
       await deletePayment(groupId, payment.id)
-      
+
       // ✅ CAMBIO: Refrescar status después de eliminar
       await refreshStatus(groupId)
-      
+
       toast.success('Pago eliminado correctamente')
       onClose()
     } catch (error: any) {

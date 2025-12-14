@@ -62,9 +62,7 @@ export default function EditLogbookModal({
               placeholder="Edit your message..."
               disabled={isSubmitting}
             />
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-              Minimum 3 characters
-            </p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Minimum 3 characters</p>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -74,7 +72,9 @@ export default function EditLogbookModal({
               </label>
               <select
                 value={priority}
-                onChange={(e) => setPriority(e.target.value as 'baja' | 'media' | 'alta' | 'urgente')}
+                onChange={(e) =>
+                  setPriority(e.target.value as 'baja' | 'media' | 'alta' | 'urgente')
+                }
                 className="w-full px-4 py-2.5 bg-white dark:bg-[#0d1117] border border-gray-300 dark:border-[#30363d] rounded-md text-gray-900 dark:text-white"
                 disabled={isSubmitting}
               >

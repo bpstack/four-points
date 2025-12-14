@@ -47,11 +47,16 @@ function getInitials(username: string): string {
 
 function getPriorityLabel(priority: string) {
   switch (priority) {
-    case 'critical': return 'Critical'
-    case 'high': return 'High'
-    case 'medium': return 'Medium'
-    case 'low': return 'Low'
-    default: return priority
+    case 'critical':
+      return 'Critical'
+    case 'high':
+      return 'High'
+    case 'medium':
+      return 'Medium'
+    case 'low':
+      return 'Low'
+    default:
+      return priority
   }
 }
 
@@ -106,8 +111,14 @@ function ReadByAvatars({ users, maxVisible = 8 }: { users: ReadByUser[]; maxVisi
   const remainingCount = users.length - maxVisible
 
   const colors = [
-    'bg-blue-500', 'bg-green-500', 'bg-purple-500', 'bg-pink-500',
-    'bg-orange-500', 'bg-teal-500', 'bg-red-500', 'bg-indigo-500',
+    'bg-blue-500',
+    'bg-green-500',
+    'bg-purple-500',
+    'bg-pink-500',
+    'bg-orange-500',
+    'bg-teal-500',
+    'bg-red-500',
+    'bg-indigo-500',
   ]
 
   const getColor = (index: number) => colors[index % colors.length]
@@ -169,7 +180,9 @@ export default function LogbooksList({
   // Comment modal state
   const [commentModalOpen, setCommentModalOpen] = useState<number | null>(null)
   const [newComment, setNewComment] = useState('')
-  const [commentPriority, setCommentPriority] = useState<'baja' | 'media' | 'alta' | 'urgente'>('baja')
+  const [commentPriority, setCommentPriority] = useState<'baja' | 'media' | 'alta' | 'urgente'>(
+    'baja'
+  )
   const [commentDepartment, setCommentDepartment] = useState<number>(1)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -181,9 +194,14 @@ export default function LogbooksList({
   const [isEditSubmitting, setIsEditSubmitting] = useState(false)
 
   // Edit comment modal state
-  const [editCommentModalOpen, setEditCommentModalOpen] = useState<{ entryId: number; commentId: number } | null>(null)
+  const [editCommentModalOpen, setEditCommentModalOpen] = useState<{
+    entryId: number
+    commentId: number
+  } | null>(null)
   const [editCommentText, setEditCommentText] = useState('')
-  const [editCommentPriority, setEditCommentPriority] = useState<'baja' | 'media' | 'alta' | 'urgente'>('baja')
+  const [editCommentPriority, setEditCommentPriority] = useState<
+    'baja' | 'media' | 'alta' | 'urgente'
+  >('baja')
   const [editCommentDepartment, setEditCommentDepartment] = useState<number>(1)
   const [isEditCommentSubmitting, setIsEditCommentSubmitting] = useState(false)
 
@@ -297,7 +315,11 @@ export default function LogbooksList({
 
   const handleSaveComment = async (
     entryId: number,
-    payload?: { comment: string; department_id: number; importance_level: 'baja' | 'media' | 'alta' | 'urgente' }
+    payload?: {
+      comment: string
+      department_id: number
+      importance_level: 'baja' | 'media' | 'alta' | 'urgente'
+    }
   ) => {
     const commentText = payload?.comment ?? newComment
     const deptId = payload?.department_id ?? commentDepartment
@@ -633,13 +655,18 @@ export default function LogbooksList({
                         </p>
                         <div className="flex items-center justify-between gap-2 mt-1">
                           <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
-                            <span className="font-medium">{formatUsername(comment.author_name)}</span>
+                            <span className="font-medium">
+                              {formatUsername(comment.author_name)}
+                            </span>
                             <span>·</span>
                             <span>{formatEditTimestamp(comment.created_at)}</span>
                             {comment.updated_at && comment.updated_at !== comment.created_at && (
                               <>
                                 <span>·</span>
-                                <span className="italic" title={`Editado el ${formatEditTimestamp(comment.updated_at)}`}>
+                                <span
+                                  className="italic"
+                                  title={`Editado el ${formatEditTimestamp(comment.updated_at)}`}
+                                >
                                   editado
                                 </span>
                               </>
@@ -648,14 +675,20 @@ export default function LogbooksList({
                           {user?.id === comment.user_id && (
                             <div className="flex items-center gap-1">
                               <button
-                                onClick={(e) => { e.stopPropagation(); handleEditComment(entry.id, comment.id) }}
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  handleEditComment(entry.id, comment.id)
+                                }}
                                 className="p-1 text-blue-600 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded transition-colors"
                                 title="Editar comentario"
                               >
                                 <FiEdit2 className="w-3 h-3" />
                               </button>
                               <button
-                                onClick={(e) => { e.stopPropagation(); handleDeleteComment(entry.id, comment.id) }}
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  handleDeleteComment(entry.id, comment.id)
+                                }}
                                 className="p-1 text-red-600 hover:bg-red-100 dark:hover:bg-red-900/30 rounded transition-colors"
                                 title="Eliminar comentario"
                               >
@@ -677,7 +710,9 @@ export default function LogbooksList({
             </div>
 
             <div className="w-28 flex-shrink-0 px-3 border-r border-slate-200 dark:border-slate-700 flex items-start">
-              <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-semibold border ${getPriorityColor(entry.priority ?? 'low')}`}>
+              <span
+                className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-semibold border ${getPriorityColor(entry.priority ?? 'low')}`}
+              >
                 {entry.priority === 'critical' && <FiAlertCircle className="w-3 h-3" />}
                 {getPriorityLabel(entry.priority ?? 'low')}
               </span>
@@ -722,13 +757,19 @@ export default function LogbooksList({
                         {user?.id === comment.user_id && (
                           <div className="flex items-center gap-1">
                             <button
-                              onClick={(e) => { e.stopPropagation(); handleEditComment(entry.id, comment.id) }}
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                handleEditComment(entry.id, comment.id)
+                              }}
                               className="p-1 text-blue-600 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded transition-colors"
                             >
                               <FiEdit2 className="w-3 h-3" />
                             </button>
                             <button
-                              onClick={(e) => { e.stopPropagation(); handleDeleteComment(entry.id, comment.id) }}
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                handleDeleteComment(entry.id, comment.id)
+                              }}
                               className="p-1 text-red-600 hover:bg-red-100 dark:hover:bg-red-900/30 rounded transition-colors"
                             >
                               <FiTrash2 className="w-3 h-3" />
@@ -792,7 +833,10 @@ export default function LogbooksList({
 
                 {user?.id === entry.author_id && (
                   <button
-                    onClick={(e) => { e.stopPropagation(); handleDeleteEntry(entry.id) }}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      handleDeleteEntry(entry.id)
+                    }}
                     className="flex items-center gap-1.5 text-xs text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-500 transition-colors"
                   >
                     <FiTrash2 className="w-4 h-4" />
@@ -806,7 +850,9 @@ export default function LogbooksList({
                     title={`Editado el ${formatEditTimestamp(entry.updated_at)}`}
                   >
                     <FiEdit2 className="w-3 h-3 flex-shrink-0" />
-                    <span className="whitespace-nowrap">Editado: {formatEditTimestamp(entry.updated_at)}</span>
+                    <span className="whitespace-nowrap">
+                      Editado: {formatEditTimestamp(entry.updated_at)}
+                    </span>
                   </div>
                 )}
               </div>
@@ -848,7 +894,9 @@ export default function LogbooksList({
               <button
                 onClick={() => handleToggleStatus(entry.id, entry.status || 'pending')}
                 className={`flex items-center gap-1.5 text-xs transition-colors ${
-                  entry.status === 'resolved' ? 'text-green-600 dark:text-green-400' : 'text-yellow-600 dark:text-yellow-400'
+                  entry.status === 'resolved'
+                    ? 'text-green-600 dark:text-green-400'
+                    : 'text-yellow-600 dark:text-yellow-400'
                 }`}
               >
                 {entry.status === 'resolved' ? (
@@ -866,7 +914,10 @@ export default function LogbooksList({
 
               {user?.id === entry.author_id && (
                 <button
-                  onClick={(e) => { e.stopPropagation(); handleDeleteEntry(entry.id) }}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    handleDeleteEntry(entry.id)
+                  }}
                   className="flex items-center gap-1.5 text-xs text-red-600 dark:text-red-400 hover:text-red-700 transition-colors"
                 >
                   <FiTrash2 className="w-4 h-4" />

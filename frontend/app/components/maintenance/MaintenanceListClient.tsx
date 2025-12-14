@@ -23,7 +23,10 @@ interface MaintenanceListClientProps {
   initialPagination?: Pagination
 }
 
-export function MaintenanceListClient({ initialReports = [], initialPagination }: MaintenanceListClientProps) {
+export function MaintenanceListClient({
+  initialReports = [],
+  initialPagination,
+}: MaintenanceListClientProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const panel = searchParams.get('panel')
@@ -33,9 +36,9 @@ export function MaintenanceListClient({ initialReports = [], initialPagination }
   const [loading, setLoading] = useState(false)
   const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '')
   const [filters, setFilters] = useState<ReportFilters>({
-    status: searchParams.get('status') as any || undefined,
-    priority: searchParams.get('priority') as any || undefined,
-    location_type: searchParams.get('location_type') as any || undefined,
+    status: (searchParams.get('status') as any) || undefined,
+    priority: (searchParams.get('priority') as any) || undefined,
+    location_type: (searchParams.get('location_type') as any) || undefined,
   })
 
   // Cargar reportes cuando cambien los filtros
@@ -65,7 +68,7 @@ export function MaintenanceListClient({ initialReports = [], initialPagination }
     if (newFilters.priority) params.set('priority', newFilters.priority)
     if (newFilters.location_type) params.set('location_type', newFilters.location_type)
     if (search) params.set('search', search)
-    
+
     const queryString = params.toString()
     router.push(queryString ? `?${queryString}` : '/dashboard/maintenance', { scroll: false })
   }
@@ -345,7 +348,10 @@ export function MaintenanceListClient({ initialReports = [], initialPagination }
               <select
                 value={filters.location_type || ''}
                 onChange={(e) =>
-                  handleFilterChange({ ...filters, location_type: (e.target.value as any) || undefined })
+                  handleFilterChange({
+                    ...filters,
+                    location_type: (e.target.value as any) || undefined,
+                  })
                 }
                 className="w-full px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent bg-white dark:bg-[#151b23] dark:text-gray-200"
               >
@@ -404,7 +410,8 @@ export function MaintenanceListClient({ initialReports = [], initialPagination }
                         colSpan={6}
                         className="px-3 py-8 text-center text-xs text-gray-500 dark:text-gray-400"
                       >
-                        {searchTerm || Object.keys(filters).some(k => filters[k as keyof ReportFilters])
+                        {searchTerm ||
+                        Object.keys(filters).some((k) => filters[k as keyof ReportFilters])
                           ? 'No se encontraron reportes con esos criterios'
                           : 'No hay reportes registrados'}
                       </td>
@@ -472,7 +479,7 @@ export function MaintenanceListClient({ initialReports = [], initialPagination }
             {pagination && pagination.total_pages > 1 && (
               <div className="px-4 py-3 border-t border-gray-200 dark:border-gray-800 flex items-center justify-between">
                 <div className="text-xs text-gray-500 dark:text-gray-400">
-                  Mostrando {((pagination.page - 1) * pagination.limit) + 1} a{' '}
+                  Mostrando {(pagination.page - 1) * pagination.limit + 1} a{' '}
                   {Math.min(pagination.page * pagination.limit, pagination.total)} de{' '}
                   {pagination.total} resultados
                 </div>
@@ -501,7 +508,7 @@ export function MaintenanceListClient({ initialReports = [], initialPagination }
             {reports.length === 0 ? (
               <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-6 text-center">
                 <p className="text-xs text-gray-500 dark:text-gray-400">
-                  {searchTerm || Object.keys(filters).some(k => filters[k as keyof ReportFilters])
+                  {searchTerm || Object.keys(filters).some((k) => filters[k as keyof ReportFilters])
                     ? 'No se encontraron reportes con esos criterios'
                     : 'No hay reportes registrados'}
                 </p>

@@ -78,7 +78,7 @@ export function CreateReportPanel({ isOpen, onClose }: CreateReportPanelProps) {
 
     const newPreviews: string[] = []
     const newFiles: File[] = []
-    
+
     Array.from(files).forEach((file) => {
       if (previewImages.length + newPreviews.length >= 5) {
         toast.error('Máximo 5 imágenes permitidas')
@@ -91,7 +91,7 @@ export function CreateReportPanel({ isOpen, onClose }: CreateReportPanelProps) {
       }
 
       newFiles.push(file)
-      
+
       const reader = new FileReader()
       reader.onloadend = () => {
         newPreviews.push(reader.result as string)
@@ -125,7 +125,7 @@ export function CreateReportPanel({ isOpen, onClose }: CreateReportPanelProps) {
             file_size: imageFiles[index]?.size || 0,
             mime_type: imageFiles[index]?.type || 'image/jpeg',
           }))
-          
+
           await maintenanceApi.addImages(response.report.id, imageData)
         } catch (imgError) {
           console.error('Error subiendo imágenes:', imgError)

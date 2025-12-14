@@ -43,15 +43,17 @@ export async function updateBlacklist(
     // Convertir fechas al formato YYYY-MM-DD que espera el backend
     const payload: any = { ...formData }
     if (payload.check_in_date) {
-      const date = typeof payload.check_in_date === 'string' 
-        ? new Date(payload.check_in_date) 
-        : payload.check_in_date
+      const date =
+        typeof payload.check_in_date === 'string'
+          ? new Date(payload.check_in_date)
+          : payload.check_in_date
       payload.check_in_date = date.toISOString().split('T')[0]
     }
     if (payload.check_out_date) {
-      const date = typeof payload.check_out_date === 'string' 
-        ? new Date(payload.check_out_date) 
-        : payload.check_out_date
+      const date =
+        typeof payload.check_out_date === 'string'
+          ? new Date(payload.check_out_date)
+          : payload.check_out_date
       payload.check_out_date = date.toISOString().split('T')[0]
     }
 

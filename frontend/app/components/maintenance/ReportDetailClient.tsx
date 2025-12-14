@@ -25,8 +25,9 @@ export function ReportDetailClient({ initialReport }: ReportDetailClientProps) {
   const searchParams = useSearchParams()
   const activeTab = searchParams.get('tab') || 'detail'
 
-  const { currentReport, setCurrentReport, setActiveTab, isLoadingReport, refreshReport } = useMaintenanceStore()
-  
+  const { currentReport, setCurrentReport, setActiveTab, isLoadingReport, refreshReport } =
+    useMaintenanceStore()
+
   // Estados para editar y eliminar
   const [isEditPanelOpen, setIsEditPanelOpen] = useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
@@ -58,7 +59,7 @@ export function ReportDetailClient({ initialReport }: ReportDetailClientProps) {
 
   const handleConfirmDelete = async () => {
     if (!currentReport) return
-    
+
     try {
       setIsDeleting(true)
       await maintenanceApi.delete(currentReport.id)
@@ -94,8 +95,8 @@ export function ReportDetailClient({ initialReport }: ReportDetailClientProps) {
       </div>
 
       {/* Panel de edición */}
-      <EditReportPanel 
-        isOpen={isEditPanelOpen} 
+      <EditReportPanel
+        isOpen={isEditPanelOpen}
         onClose={handleCloseEditPanel}
         report={currentReport}
       />

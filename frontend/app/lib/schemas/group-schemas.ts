@@ -30,17 +30,9 @@ export const paymentSchema = z
       .optional()
       .nullable(),
 
-    amount: z
-      .number()
-      .min(0, 'El monto no puede ser negativo')
-      .optional()
-      .nullable(),
+    amount: z.number().min(0, 'El monto no puede ser negativo').optional().nullable(),
 
-    amount_paid: z
-      .number()
-      .min(0, 'El monto pagado no puede ser negativo')
-      .optional()
-      .nullable(),
+    amount_paid: z.number().min(0, 'El monto pagado no puede ser negativo').optional().nullable(),
 
     due_date: z.string().min(1, 'La fecha de vencimiento es requerida'),
 

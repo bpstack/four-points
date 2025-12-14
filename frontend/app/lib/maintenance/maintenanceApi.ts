@@ -58,7 +58,9 @@ export const maintenanceApi = {
   // ========================================
   // OBTENER REPORTES (con paginación y filtros)
   // ========================================
-  getAll: async (filters?: ReportFilters & { page?: number; limit?: number }): Promise<MaintenanceListResponse> => {
+  getAll: async (
+    filters?: ReportFilters & { page?: number; limit?: number }
+  ): Promise<MaintenanceListResponse> => {
     const params = new URLSearchParams()
 
     if (filters?.status) params.append('status', filters.status)
@@ -139,10 +141,7 @@ export const maintenanceApi = {
   // ========================================
   // AGREGAR NOTAS DE RESOLUCIÓN
   // ========================================
-  addResolutionNotes: async (
-    id: string,
-    notes: string
-  ): Promise<MaintenanceDetailResponse> => {
+  addResolutionNotes: async (id: string, notes: string): Promise<MaintenanceDetailResponse> => {
     const url = `${API_BASE}/api/maintenance/${id}/resolution-notes`
     return apiClient.patch(url, { notes })
   },

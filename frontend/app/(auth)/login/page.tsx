@@ -2,13 +2,13 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { AtSymbolIcon, KeyIcon, CheckCircleIcon } from '@heroicons/react/24/outline'
 import { ArrowRightIcon } from '@heroicons/react/20/solid'
 import { Fa4 } from 'react-icons/fa6'
 import { TbTransformPointTopLeft } from 'react-icons/tb'
 import { SimpleThemeButton } from '@/app/components/theme/SetThemeButton'
 import { useAuth } from '@/app/lib/auth/useAuth'
+import Link from 'next/link'
 
 export default function LoginPage() {
   const [username, setUsername] = useState('')
@@ -16,7 +16,6 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null)
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
   const [success, setSuccess] = useState(false)
-  const router = useRouter()
   const { login, loading } = useAuth()
   // Validación en tiempo real
   const validateUsername = (value: string) => {
@@ -51,11 +50,12 @@ export default function LoginPage() {
 
     try {
       await login(username, password)
-    } catch (err: any) {
-      if (err.errors && typeof err.errors === 'object') {
-        setFieldErrors(err.errors)
+    } catch (err: unknown) {
+      const error = err as { errors?: Record<string, string>; message?: string }
+      if (error.errors && typeof error.errors === 'object') {
+        setFieldErrors(error.errors)
       } else {
-        setError(err.message || 'Invalid credentials')
+        setError(error.message || 'Invalid credentials')
       }
     }
   }
@@ -70,18 +70,18 @@ export default function LoginPage() {
           </div>
           <div className="relative flex items-center justify-center gap-6">
             <div className="flex gap-1">
-              <a
+              <Link
                 href="/"
                 className="text-white text-5xl drop-shadow-lg hover:scale-125 transition-transform duration-300 cursor-pointer"
               >
                 <Fa4 />
-              </a>
-              <a
+              </Link>
+              <Link
                 href="/"
                 className="text-white text-5xl drop-shadow-lg hover:rotate-12 hover:scale-125 transition-transform duration-300 cursor-pointer"
               >
                 <TbTransformPointTopLeft />
-              </a>
+              </Link>
             </div>
           </div>
         </div>
@@ -226,10 +226,10 @@ export default function LoginPage() {
           </button>
 
           <p className="mt-4 text-center text-sm text-gray-600 dark:text-gray-400">
-            Don't have an account?{' '}
-            <a href="/" className="text-blue-600 dark:text-blue-400 hover:underline">
+            Don&apos;t have an account?{' '}
+            <Link href="/" className="text-blue-600 dark:text-blue-400 hover:underline">
               Ask to the managers
-            </a>
+            </Link>
           </p>
         </form>
       </div>

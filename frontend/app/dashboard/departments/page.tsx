@@ -25,18 +25,18 @@ export default function DepartmentsPage() {
     try {
       setIsLoading(true)
       const data = await departmentsApi.getAll()
-      
+
       // Formatear nombres
-      const formatted: FormattedDepartment[] = data.map(dept => ({
+      const formatted: FormattedDepartment[] = data.map((dept) => ({
         ...dept,
-        displayName: formatDepartmentName(dept.name)
+        displayName: formatDepartmentName(dept.name),
       }))
-      
+
       // Ordenar alfabéticamente por nombre formateado
-      formatted.sort((a, b) => 
+      formatted.sort((a, b) =>
         a.displayName.localeCompare(b.displayName, 'es', { sensitivity: 'base' })
       )
-      
+
       setDepartments(formatted)
     } catch (error: any) {
       console.error('Error loading departments:', error)
@@ -126,7 +126,10 @@ export default function DepartmentsPage() {
             <tbody>
               {departments.length === 0 ? (
                 <tr>
-                  <td colSpan={3} className="px-4 py-8 text-center text-[#57606a] dark:text-[#8b949e]">
+                  <td
+                    colSpan={3}
+                    className="px-4 py-8 text-center text-[#57606a] dark:text-[#8b949e]"
+                  >
                     No hay departamentos registrados
                   </td>
                 </tr>
@@ -136,9 +139,7 @@ export default function DepartmentsPage() {
                     key={dept.id}
                     className="border-b border-[#d0d7de] dark:border-[#30363d] last:border-0 hover:bg-[#f6f8fa] dark:hover:bg-[#0d1117] transition"
                   >
-                    <td className="px-4 py-2.5 text-[#57606a] dark:text-[#8b949e]">
-                      #{dept.id}
-                    </td>
+                    <td className="px-4 py-2.5 text-[#57606a] dark:text-[#8b949e]">#{dept.id}</td>
                     <td className="px-4 py-2.5 text-[#24292f] dark:text-[#c9d1d9] font-medium">
                       {dept.displayName}
                     </td>
@@ -208,12 +209,12 @@ function AddDepartmentModal({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (name.trim().length < 2) {
       toast.error('El nombre debe tener al menos 2 caracteres')
       return
     }
-    
+
     setIsSubmitting(true)
     try {
       await departmentsApi.create({ name: name.trim().toLowerCase() })
@@ -315,12 +316,12 @@ function EditDepartmentModal({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (name.trim().length < 2) {
       toast.error('El nombre debe tener al menos 2 caracteres')
       return
     }
-    
+
     setIsSubmitting(true)
     try {
       await departmentsApi.update(department.id, { name: name.trim().toLowerCase() })

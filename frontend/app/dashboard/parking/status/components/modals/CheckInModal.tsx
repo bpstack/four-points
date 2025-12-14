@@ -66,9 +66,7 @@ export default function CheckInModal({
         <div className="p-4 bg-yellow-50 dark:bg-yellow-950/20 border-l-4 border-yellow-500 rounded-r-lg">
           <p className="text-sm font-medium text-yellow-900 dark:text-yellow-200">
             ⚠️ Entrada programada:{' '}
-            <span className="font-mono font-bold">
-              {checkinDate?.toLocaleDateString('es-ES')}
-            </span>{' '}
+            <span className="font-mono font-bold">{checkinDate?.toLocaleDateString('es-ES')}</span>{' '}
             ({daysDifference} {daysDifference === 1 ? 'día' : 'días'} de retraso)
           </p>
         </div>

@@ -37,12 +37,14 @@ export async function createBlacklist(formData: BlacklistFormData): Promise<Crea
     }
 
     // Convertir fechas al formato YYYY-MM-DD que espera el backend
-    const checkInDate = typeof formData.check_in_date === 'string'
-      ? new Date(formData.check_in_date)
-      : formData.check_in_date
-    const checkOutDate = typeof formData.check_out_date === 'string'
-      ? new Date(formData.check_out_date)
-      : formData.check_out_date
+    const checkInDate =
+      typeof formData.check_in_date === 'string'
+        ? new Date(formData.check_in_date)
+        : formData.check_in_date
+    const checkOutDate =
+      typeof formData.check_out_date === 'string'
+        ? new Date(formData.check_out_date)
+        : formData.check_out_date
 
     // Convertir datos del formulario al formato del backend
     const payload = {
