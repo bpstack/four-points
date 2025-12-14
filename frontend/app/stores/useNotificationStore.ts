@@ -1,37 +1,10 @@
 // stores/useNotificationStore.ts
 
 import { create } from 'zustand'
+import type { Notification } from '@/app/lib/notifications/types'
 
-// ═══════════════════════════════════════════════════════
-// TYPES
-// ═══════════════════════════════════════════════════════
-
-export type NotificationPriority = 'low' | 'medium' | 'high' | 'urgent'
-export type NotificationModule = 'groups' | 'parking' | 'logbooks' | 'system'
-export type NotificationRelatedTo =
-  | 'payment'
-  | 'rooming'
-  | 'balance'
-  | 'contract'
-  | 'arrival'
-  | 'general'
-
-export interface Notification {
-  id: number
-  module: NotificationModule
-  group_id: number | null
-  related_to: NotificationRelatedTo
-  related_id: number | null
-  direct_link: string | null
-  title: string
-  message: string | null
-  priority: NotificationPriority
-  is_read: boolean
-  read_at: string | null
-  group_name?: string
-  created_at: string
-  updated_at: string
-}
+// Re-export types for convenience
+export type { Notification, NotificationPriority, NotificationModule, NotificationRelatedTo } from '@/app/lib/notifications/types'
 
 interface NotificationStore {
   notifications: Notification[]

@@ -10,7 +10,7 @@ import { FiSearch, FiBell, FiMenu, FiX, FiChevronRight } from 'react-icons/fi'
 import { SimpleThemeButton } from '@/app/components/theme/SetThemeButton'
 import { useAuth } from '@/app/lib/auth/useAuth'
 import ProfileDropdown from '@/app/components/layout/ProfileDropdown'
-import NotificationBell from '@/app/components/notifications/NotificationBell'
+import { NotificationBell } from '@/app/components/notifications'
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth()

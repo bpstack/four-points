@@ -1,16 +1,19 @@
-// app/components/notifications/NotificationBell.tsx
+// app/components/notifications/bell/NotificationBell.tsx
 
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { useNotifications } from '@/app/lib/notifications/useNotifications'
-import { Notification } from '@/app/stores/useNotificationStore'
 import { FiBell, FiCheck, FiExternalLink } from 'react-icons/fi'
 import { formatDistanceToNow } from 'date-fns'
 import { es } from 'date-fns/locale'
+import type { Notification } from '@/app/lib/notifications/types'
+import { PRIORITY_COLORS } from '@/app/lib/notifications/types'
 
 export default function NotificationBell() {
+  const router = useRouter()
   const [isOpen, setIsOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const { notifications, unreadCount, loading, markAsRead, markAllAsRead } = useNotifications()
@@ -32,7 +35,7 @@ export default function NotificationBell() {
     }
   }, [isOpen])
 
-  // Solo las 5 más recientes no leídas
+  // Solo las 5 mas recientes no leidas
   const recentUnread = notifications.filter((n) => !n.is_read).slice(0, 5)
 
   const handleNotificationClick = async (id: number, directLink: string | null) => {
@@ -40,7 +43,7 @@ export default function NotificationBell() {
     setIsOpen(false)
 
     if (directLink) {
-      window.location.href = directLink
+      router.push(directLink)
     }
   }
 
@@ -96,7 +99,7 @@ export default function NotificationBell() {
             ) : (
               <div className="divide-y divide-gray-200 dark:divide-[#30363d]">
                 {recentUnread.map((notification) => (
-                  <NotificationDropdownItem
+                  <DropdownItem
                     key={notification.id}
                     notification={notification}
                     onClick={handleNotificationClick}
@@ -122,24 +125,16 @@ export default function NotificationBell() {
   )
 }
 
-// ═══════════════════════════════════════════════════════
-// COMPONENTE ITEM DEL DROPDOWN
-// ═══════════════════════════════════════════════════════
+// -------------------------------------------------------
+// Dropdown Item (internal component)
+// -------------------------------------------------------
 
-function NotificationDropdownItem({
-  notification,
-  onClick,
-}: {
+interface DropdownItemProps {
   notification: Notification
   onClick: (id: number, directLink: string | null) => void
-}) {
-  const priorityColors = {
-    low: 'border-gray-300 dark:border-gray-600',
-    medium: 'border-blue-400 dark:border-blue-600',
-    high: 'border-yellow-400 dark:border-yellow-600',
-    urgent: 'border-red-500 dark:border-red-600',
-  }
+}
 
+function DropdownItem({ notification, onClick }: DropdownItemProps) {
   const relativeTime = formatDistanceToNow(new Date(notification.created_at), {
     addSuffix: true,
     locale: es,
@@ -149,10 +144,10 @@ function NotificationDropdownItem({
     <button
       onClick={() => onClick(notification.id, notification.direct_link)}
       className={`w-full p-3 hover:bg-gray-50 dark:hover:bg-[#21262d] transition-colors text-left border-l-4 ${
-        priorityColors[notification.priority as keyof typeof priorityColors]
+        PRIORITY_COLORS[notification.priority]
       }`}
     >
-      {/* Título */}
+      {/* Titulo */}
       <div className="flex items-start justify-between gap-2 mb-1">
         <p className="text-sm font-medium text-gray-900 dark:text-white line-clamp-1">
           {notification.title}
