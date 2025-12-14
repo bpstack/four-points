@@ -1,40 +1,28 @@
-// app/dashboard/logbooks/layout.tsx
+// app/components/logbooks/LogbooksContainer.tsx
 'use client'
 
 import { useState, useEffect } from 'react'
-import LogbooksPage from './page'
 import { FiChevronLeft, FiChevronRight, FiCalendar, FiPlus } from 'react-icons/fi'
 import { logbooksApi } from '@/app/api/logbooks/route'
 import { LogEntry } from '@/app/lib/logbooks/types'
-import NewLogbookEntry from '@/app/components/logbooks/NewLogbookEntry'
 import { useDepartments } from '@/app/lib/logbooks/hooks/useDepartments'
 import { useAuth } from '@/app/lib/auth/useAuth'
 import HorizontalDatePicker from '@/app/ui/calendar/HorizontalDatePicker'
+import LogbooksList from './LogbooksList'
+import NewLogbookEntry from './NewLogbookEntry'
 
-// Función helper para obtener fecha local en formato YYYY-MM-DD
-const getLocalDateString = (date: Date = new Date()): string => {
-  const year = date.getFullYear()
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const day = String(date.getDate()).padStart(2, '0')
-  return `${year}-${month}-${day}`
-}
-
-export default function LogbooksLayout() {
+export default function LogbooksContainer() {
   const [currentDate, setCurrentDate] = useState(new Date())
   const [selectedDay, setSelectedDay] = useState(new Date().getDate())
   const [dayStatusMessage, setDayStatusMessage] = useState<string>('')
   const [logbookEntries, setLogbookEntries] = useState<LogEntry[]>([])
   const [showNewEntryModal, setShowNewEntryModal] = useState(false)
-  const { departments, getDepartmentName } = useDepartments()
-
-  // ✅ CORRECCIÓN: Llamar useAuth al nivel superior del componente
+  const { getDepartmentName } = useDepartments()
   const { user } = useAuth()
 
-  // Info del mes
   const currentMonth = currentDate.toLocaleString('es-ES', { month: 'long' })
   const currentYear = currentDate.getFullYear()
 
-  // Cargar registros de un día
   const loadEntries = async (year: number, month: number, day: number) => {
     const dateString = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
     try {
@@ -50,15 +38,13 @@ export default function LogbooksLayout() {
               if (entry.importance_level === 'urgente') priority = 'critical'
               else if (entry.importance_level === 'alta') priority = 'high'
               else if (entry.importance_level === 'media') priority = 'medium'
-              else priority = 'low'
 
               return {
                 id: entry.id,
                 timestamp: entry.created_at,
                 description: entry.message,
-                // ✅ IMPORTANTE: Pasar tanto el nombre formateado como el ID
                 department: getDepartmentName(entry.department_id),
-                department_id: entry.department_id, // ✅ AÑADIR ESTA LÍNEA
+                department_id: entry.department_id,
                 priority,
                 readBy: [],
                 status: (entry.is_solved === 1 ? 'resolved' : 'pending') as 'pending' | 'resolved',
@@ -68,20 +54,18 @@ export default function LogbooksLayout() {
                 updated_at: entry.updated_at,
                 is_edited: entry.updated_at && entry.updated_at !== entry.created_at,
               }
-            } catch (err) {
+            } catch {
               let priority: 'low' | 'medium' | 'high' | 'critical' = 'low'
               if (entry.importance_level === 'urgente') priority = 'critical'
               else if (entry.importance_level === 'alta') priority = 'high'
               else if (entry.importance_level === 'media') priority = 'medium'
-              else priority = 'low'
 
               return {
                 id: entry.id,
                 timestamp: entry.created_at,
                 description: entry.message,
-                // ✅ IMPORTANTE: También aquí en el catch
                 department: getDepartmentName(entry.department_id),
-                department_id: entry.department_id, // ✅ AÑADIR ESTA LÍNEA
+                department_id: entry.department_id,
                 priority,
                 readBy: [],
                 status: (entry.is_solved === 1 ? 'resolved' : 'pending') as 'pending' | 'resolved',
@@ -107,21 +91,19 @@ export default function LogbooksLayout() {
     }
   }
 
-  // Guardar nueva entrada (usado por el componente)
   const handleSubmitNewEntry = async (payload: {
     message: string
     date: string
     importance_level: 'baja' | 'media' | 'alta' | 'urgente'
     department_id: number
   }) => {
-    // ✅ CORRECCIÓN: Usar el user que ya obtuvimos arriba
     if (!user) {
       console.error('No user available')
       return
     }
 
     await logbooksApi.createLogbook({
-      author_id: user.id, // ✅ Ahora user ya está disponible
+      author_id: user.id,
       message: payload.message,
       importance_level: payload.importance_level,
       department_id: payload.department_id,
@@ -129,13 +111,10 @@ export default function LogbooksLayout() {
     })
 
     const [year, month, day] = payload.date.split('-').map(Number)
-
     setShowNewEntryModal(false)
-
     const entryDate = new Date(year, month - 1, day)
     setCurrentDate(entryDate)
     setSelectedDay(day)
-
     await loadEntries(year, month, day)
   }
 
@@ -160,17 +139,14 @@ export default function LogbooksLayout() {
     loadEntries(today.getFullYear(), today.getMonth() + 1, today.getDate())
   }
 
-  const checkDayEntries = async (day: number) => {
+  const checkDayEntries = (day: number) => {
     setSelectedDay(day)
     loadEntries(currentYear, currentDate.getMonth() + 1, day)
   }
 
-  const openNewEntryModal = () => {
-    setShowNewEntryModal(true)
-  }
-
   useEffect(() => {
-    checkDayEntries(new Date().getDate())
+    checkDayEntries(selectedDay)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentDate])
 
   const orderedEntries = [...logbookEntries].sort(
@@ -179,19 +155,17 @@ export default function LogbooksLayout() {
 
   return (
     <div className="space-y-6">
-      {/* Header sticky principal */}
+      {/* Header */}
       <div className="sticky top-0 z-30 bg-white dark:bg-[#010409] shadow-sm">
         <div className="px-3 py-2 md:px-4 md:py-3 border-b border-gray-200 dark:border-gray-800">
-          {/* Desktop: compacto en una sola línea */}
+          {/* Desktop */}
           <div className="hidden md:flex items-center gap-3 justify-between">
             <div className="flex items-center gap-3 flex-1 min-w-0">
-              {/* Mes y año con ancho fijo para estabilidad */}
               <div className="w-56 flex-shrink-0">
                 <h1 className="text-base font-semibold text-gray-900 dark:text-white capitalize truncate">
                   {currentMonth} {currentYear}
                 </h1>
               </div>
-              {/* Navegación de mes */}
               <div className="flex items-center gap-2">
                 <button
                   onClick={goToPreviousMonth}
@@ -206,14 +180,12 @@ export default function LogbooksLayout() {
                   <FiChevronRight className="w-4 h-4" />
                 </button>
               </div>
-              {/* Today */}
               <button
                 onClick={goToToday}
                 className="ml-3 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-700 rounded-md hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors flex items-center gap-1"
               >
                 <FiCalendar className="w-4 h-4" /> Today
               </button>
-              {/* Daily Entries */}
               <div className="ml-4 text-sm text-gray-700 dark:text-gray-400 flex-shrink-0">
                 Daily Entries:{' '}
                 <span className="font-medium text-gray-900 dark:text-gray-200">
@@ -221,18 +193,16 @@ export default function LogbooksLayout() {
                 </span>
               </div>
             </div>
-            {/* New Entry a la derecha */}
             <button
-              onClick={openNewEntryModal}
+              onClick={() => setShowNewEntryModal(true)}
               className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 rounded-md transition-colors"
             >
               <FiPlus className="w-4 h-4" /> New Entry
             </button>
           </div>
 
-          {/* Mobile: conserva distribución actual */}
+          {/* Mobile */}
           <div className="md:hidden flex items-center justify-between gap-2">
-            {/* Izquierda: Mes + navegación */}
             <div className="flex items-center gap-2">
               <h1 className="text-base font-semibold text-gray-900 dark:text-white capitalize whitespace-nowrap w-20">
                 {currentMonth.slice(0, 3)} {currentYear}
@@ -250,18 +220,14 @@ export default function LogbooksLayout() {
                 <FiChevronRight className="w-4 h-4" />
               </button>
             </div>
-
-            {/* Centro: Today */}
             <button
               onClick={goToToday}
               className="px-2.5 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors flex items-center gap-1 flex-shrink-0"
             >
               <FiCalendar className="w-3.5 h-3.5" /> Today
             </button>
-
-            {/* Derecha: New Entry */}
             <button
-              onClick={openNewEntryModal}
+              onClick={() => setShowNewEntryModal(true)}
               className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 rounded-lg transition-colors whitespace-nowrap flex-shrink-0"
             >
               <FiPlus className="w-3.5 h-3.5" /> New
@@ -270,7 +236,7 @@ export default function LogbooksLayout() {
         </div>
       </div>
 
-      {/* Paginación sticky - Calendario horizontal */}
+      {/* Date Picker */}
       <div className="sticky top-[64px] z-30">
         <HorizontalDatePicker
           currentDate={currentDate}
@@ -280,18 +246,20 @@ export default function LogbooksLayout() {
         />
       </div>
 
-      <LogbooksPage
+      {/* Logbooks List */}
+      <LogbooksList
         entries={orderedEntries}
         dayStatusMessage={dayStatusMessage}
         onCommentAdded={() => loadEntries(currentYear, currentDate.getMonth() + 1, selectedDay)}
       />
 
+      {/* New Entry Modal */}
       {showNewEntryModal && (
         <NewLogbookEntry
           isOpen={showNewEntryModal}
           onClose={() => setShowNewEntryModal(false)}
           onSubmit={handleSubmitNewEntry}
-          defaultDate={`${currentYear}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(selectedDay).padStart(2, '0')}`} // ✅ SINCRONIZADO
+          defaultDate={`${currentYear}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(selectedDay).padStart(2, '0')}`}
           title="New Logbook Entry"
         />
       )}
