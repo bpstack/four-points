@@ -22,6 +22,45 @@ interface ParsedDay {
   has_discrepancy: boolean
 }
 
+// Raw types from API (values come as strings)
+interface RawMethod {
+  method_name: string
+  total_amount: string | number
+  percentage: string | number
+}
+
+interface RawDay {
+  date: string
+  status: 'open' | 'closed'
+  total_cash: string | number
+  grand_total: string | number
+  has_discrepancia: boolean
+}
+
+interface RawReport {
+  period: {
+    year: number
+    month: number
+    start: string
+    end: string
+    total_days: number
+    days_closed: number
+    days_open: number
+  }
+  totals: {
+    total_cash: string | number
+    total_card: string | number
+    total_bacs: string | number
+    total_web_payment: string | number
+    total_transfer: string | number
+    total_other: string | number
+    grand_total: string | number
+  }
+  payment_methods_breakdown: RawMethod[]
+  daily_breakdown: RawDay[]
+  validation_errors?: string[]
+}
+
 export default function MonthlyReport({ year, month }: MonthlyReportProps) {
   const { data: reportData, isLoading, error } = useMonthlyReport(year, month)
 
@@ -54,33 +93,33 @@ export default function MonthlyReport({ year, month }: MonthlyReportProps) {
 
   if (!reportData) return null
 
-  const rawReport = reportData as any
+  const rawReport = reportData as RawReport
 
-  // ✅ PARSEO SIMPLE - Backend ya envía valores correctos
+  // PARSEO SIMPLE - Backend ya envía valores correctos
   const report = {
     period: rawReport.period,
     totals: {
-      grand_total: parseFloat(rawReport.totals.grand_total) || 0,
-      total_cash: parseFloat(rawReport.totals.total_cash) || 0,
-      total_card: parseFloat(rawReport.totals.total_card) || 0,
-      total_bacs: parseFloat(rawReport.totals.total_bacs) || 0,
-      total_web_payment: parseFloat(rawReport.totals.total_web_payment) || 0,
-      total_transfer: parseFloat(rawReport.totals.total_transfer) || 0,
-      total_other: parseFloat(rawReport.totals.total_other) || 0,
+      grand_total: parseFloat(String(rawReport.totals.grand_total)) || 0,
+      total_cash: parseFloat(String(rawReport.totals.total_cash)) || 0,
+      total_card: parseFloat(String(rawReport.totals.total_card)) || 0,
+      total_bacs: parseFloat(String(rawReport.totals.total_bacs)) || 0,
+      total_web_payment: parseFloat(String(rawReport.totals.total_web_payment)) || 0,
+      total_transfer: parseFloat(String(rawReport.totals.total_transfer)) || 0,
+      total_other: parseFloat(String(rawReport.totals.total_other)) || 0,
     },
     payment_methods_breakdown: rawReport.payment_methods_breakdown.map(
-      (method: any): ParsedMethod => ({
+      (method: RawMethod): ParsedMethod => ({
         method_name: method.method_name,
-        total_amount: parseFloat(method.total_amount) || 0,
-        percentage: parseFloat(method.percentage) || 0,
+        total_amount: parseFloat(String(method.total_amount)) || 0,
+        percentage: parseFloat(String(method.percentage)) || 0,
       })
     ),
     daily_breakdown: rawReport.daily_breakdown.map(
-      (day: any): ParsedDay => ({
+      (day: RawDay): ParsedDay => ({
         date: day.date,
         status: day.status,
-        total_cash: parseFloat(day.total_cash) || 0,
-        grand_total: parseFloat(day.grand_total) || 0,
+        total_cash: parseFloat(String(day.total_cash)) || 0,
+        grand_total: parseFloat(String(day.grand_total)) || 0,
         has_discrepancy: day.has_discrepancia,
       })
     ),

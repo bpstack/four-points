@@ -41,19 +41,32 @@ const COLORS = {
 
 export default function PaymentChart({ report, viewMode = 'pie' }: PaymentChartProps) {
   const totals = {
-    grand_total: parseFloat(report.totals.grand_total as any) || 0,
-    total_days: parseInt(report.period.total_days as any) || 1,
+    grand_total: typeof report.totals.grand_total === 'string' 
+      ? parseFloat(report.totals.grand_total) 
+      : report.totals.grand_total || 0,
+    total_days: typeof report.period.total_days === 'string'
+      ? parseInt(report.period.total_days)
+      : report.period.total_days || 1,
   }
 
-  // ✅ Filtrar métodos con valor > 0 para el gráfico
+  // Filtrar métodos con valor > 0 para el gráfico
   const chartData: ChartDataItem[] = report.payment_methods_breakdown
-    .map((method) => ({
-      name: method.method_name,
-      value: parseFloat(method.total_amount as any) || 0,
-      percentage: parseFloat(method.percentage as any) || 0,
-      color: COLORS[method.method_name as keyof typeof COLORS] || '#6b7280',
-    }))
-    .filter((item) => item.value > 0) // ✅ Solo mostrar métodos con dinero
+    .map((method) => {
+      const totalAmount = typeof method.total_amount === 'string'
+        ? parseFloat(method.total_amount)
+        : method.total_amount || 0
+      const percentage = typeof method.percentage === 'string'
+        ? parseFloat(method.percentage)
+        : method.percentage || 0
+      
+      return {
+        name: method.method_name,
+        value: totalAmount,
+        percentage: percentage,
+        color: COLORS[method.method_name as keyof typeof COLORS] || '#6b7280',
+      }
+    })
+    .filter((item) => item.value > 0) // Solo mostrar métodos con dinero
 
   const CustomTooltip = ({
     active,

@@ -68,9 +68,10 @@ export default function DenominationForm({
 
       toast.success('Conteo guardado')
       setTimeout(() => onSave(), 100)
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error guardando denominaciones:', error)
-      toast.error(error?.message || 'Error al guardar')
+      const errorMessage = error instanceof Error ? error.message : 'Error al guardar'
+      toast.error(errorMessage)
     }
   }
 

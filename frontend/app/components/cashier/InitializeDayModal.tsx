@@ -43,9 +43,10 @@ export default function InitializeDayModal({
 
       toast.success('Día inicializado correctamente')
       onClose()
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error inicializando día:', error)
-      toast.error(error?.message || 'Error al inicializar el día')
+      const errorMessage = error instanceof Error ? error.message : 'Error al inicializar el día'
+      toast.error(errorMessage)
     }
   }
 

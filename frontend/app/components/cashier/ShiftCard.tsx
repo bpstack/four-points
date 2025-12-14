@@ -4,7 +4,7 @@
 import { useState } from 'react'
 import { FiDollarSign, FiUsers, FiEdit2, FiSave, FiX, FiCheckCircle } from 'react-icons/fi'
 import { useShiftDetails, useUpdateShift, useDailyDetails } from '@/app/lib/cashier/queries'
-import type { ShiftType, CashierShiftUser, CashierVoucher } from '@/app/lib/cashier/types' // ✅ Añadido CashierVoucher
+import type { ShiftType, CashierShiftUser, CashierVoucher, CashierDenomination, CashierPayment } from '@/app/lib/cashier/types'
 import { toast } from 'react-hot-toast'
 import DenominationForm from './DenominationForm'
 import PaymentForm from './PaymentForm'
@@ -87,9 +87,10 @@ export default function ShiftCard({ shiftId, shiftType }: ShiftCardProps) {
 
       toast.success('Ingresos actualizados correctamente')
       setIsEditingIncome(false)
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error actualizando ingresos:', error)
-      toast.error(error?.message || 'Error al actualizar ingresos')
+      const errorMessage = error instanceof Error ? error.message : 'Error al actualizar ingresos'
+      toast.error(errorMessage)
     }
   }
 
@@ -102,9 +103,10 @@ export default function ShiftCard({ shiftId, shiftType }: ShiftCardProps) {
     try {
       await justifyVoucherMutation.mutateAsync({ voucherId, shiftId })
       toast.success('Vale justificado correctamente')
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error justificando vale:', error)
-      toast.error(error?.message || 'Error al justificar vale')
+      const errorMessage = error instanceof Error ? error.message : 'Error al justificar vale'
+      toast.error(errorMessage)
     }
   }
 
@@ -291,7 +293,7 @@ export default function ShiftCard({ shiftId, shiftType }: ShiftCardProps) {
           ) : shift?.denominations && shift.denominations.length > 0 ? (
             <div className="space-y-3">
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                {shift.denominations.map((denom: any) => {
+                {shift.denominations.map((denom: CashierDenomination) => {
                   const denominationValue = parseFloat(denom.denomination)
                   const isBill = denominationValue >= 5
 
@@ -326,7 +328,7 @@ export default function ShiftCard({ shiftId, shiftType }: ShiftCardProps) {
                 </span>
                 <span className="text-xl font-bold text-green-600 dark:text-green-400">
                   {shift.denominations
-                    .reduce((sum: number, d: any) => sum + parseFloat(d.total), 0)
+                    .reduce((sum: number, d: CashierDenomination) => sum + parseFloat(d.total), 0)
                     .toFixed(2)}
                   €
                 </span>
@@ -365,7 +367,7 @@ export default function ShiftCard({ shiftId, shiftType }: ShiftCardProps) {
             />
           ) : shift?.payments && shift.payments.length > 0 ? (
             <div className="space-y-3">
-              {shift.payments.map((payment: any) => {
+              {shift.payments.map((payment: CashierPayment) => {
                 const methodIcons: Record<string, string> = {
                   TARJETA: '💳',
                   'TARJETA CRÉDITO O DÉBITO': '💳',
@@ -382,10 +384,10 @@ export default function ShiftCard({ shiftId, shiftType }: ShiftCardProps) {
                   >
                     <div className="flex items-center gap-2">
                       <span className="text-xl">
-                        {methodIcons[payment.payment_method_name] || '💳'}
+                        {methodIcons[payment.payment_method_name || ''] || '💳'}
                       </span>
                       <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                        {payment.payment_method_name}
+                        {payment.payment_method_name || 'Pago'}
                       </span>
                     </div>
                     <span className="text-lg font-bold text-blue-600 dark:text-blue-400">
@@ -401,7 +403,7 @@ export default function ShiftCard({ shiftId, shiftType }: ShiftCardProps) {
                 </span>
                 <span className="text-xl font-bold text-blue-600 dark:text-blue-400">
                   {shift.payments
-                    .reduce((sum: number, p: any) => sum + parseFloat(p.amount), 0)
+                    .reduce((sum: number, p: CashierPayment) => sum + parseFloat(p.amount), 0)
                     .toFixed(2)}
                   €
                 </span>

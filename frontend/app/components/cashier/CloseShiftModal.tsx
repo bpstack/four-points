@@ -57,9 +57,10 @@ export default function CloseShiftModal({
       await closeShiftMutation.mutateAsync(shift.id)
       toast.success('Turno cerrado correctamente')
       onClose()
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error cerrando turno:', error)
-      toast.error(error?.message || 'Error al cerrar turno')
+      const errorMessage = error instanceof Error ? error.message : 'Error al cerrar turno'
+      toast.error(errorMessage)
     }
   }
 

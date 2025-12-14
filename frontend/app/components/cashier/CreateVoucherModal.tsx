@@ -65,9 +65,10 @@ export default function CreateVoucherModal({
       setAmount('')
       setReason('')
       onClose()
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error creando vale:', error)
-      toast.error(error?.message || 'Error al crear vale')
+      const errorMessage = error instanceof Error ? error.message : 'Error al crear vale'
+      toast.error(errorMessage)
     }
   }
 

@@ -85,9 +85,10 @@ export default function CloseDayModal({
       await closeDayMutation.mutateAsync({ date: selectedDate })
       toast.success('Día cerrado correctamente')
       onClose()
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error cerrando día:', error)
-      toast.error(error?.message || 'Error al cerrar día')
+      const errorMessage = error instanceof Error ? error.message : 'Error al cerrar día'
+      toast.error(errorMessage)
     }
   }
 

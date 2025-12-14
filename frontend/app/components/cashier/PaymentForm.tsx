@@ -68,8 +68,9 @@ export default function PaymentForm({
       await updatePaymentsMutation.mutateAsync({ shiftId, payments: paymentsToSend })
       toast.success('Pagos guardados')
       setTimeout(() => onSave(), 100)
-    } catch (error: any) {
-      toast.error(error?.message || 'Error al guardar')
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Error al guardar'
+      toast.error(errorMessage)
     }
   }
 

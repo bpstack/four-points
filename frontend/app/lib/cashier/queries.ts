@@ -38,20 +38,21 @@ export function useDailyDetails(date: string) {
         const response = await apiClient.get(`${API_BASE}/api/cashier/daily/${date}`)
         console.log('✅ Daily details response:', response)
         return response
-      } catch (error: any) {
-        console.error('❌ Error fetching daily:', error.message)
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error)
 
-        // ✅ Si es 404, devolver null (día no inicializado)
+        // ✅ Si es 404, es estado esperado (día no inicializado) - no es error
         if (
-          error.message?.includes('404') ||
-          error.message?.includes('not found') ||
-          error.message?.includes('Día no encontrado')
+          errorMessage.includes('404') ||
+          errorMessage.includes('not found') ||
+          errorMessage.includes('Día no encontrado')
         ) {
-          console.log('ℹ️ Día no inicializado (404 esperado)')
+          console.log('ℹ️ Día no inicializado, mostrando opción de inicializar')
           return null
         }
 
-        // ❌ Otros errores sí deben lanzarse
+        // ❌ Solo loguear como error si es un error real
+        console.error('❌ Error fetching daily:', errorMessage)
         throw error
       }
     },
