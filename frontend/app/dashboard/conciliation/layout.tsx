@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react'
 import ConciliationPage from './page'
 import { FiChevronLeft, FiChevronRight, FiCalendar, FiPlus } from 'react-icons/fi'
 import { conciliationApi, ConciliationDetail } from '@/app/api/conciliation/route'
+import HorizontalDatePicker from '@/app/ui/calendar/HorizontalDatePicker'
 
 export default function ConciliationLayout() {
   const [currentDate, setCurrentDate] = useState(new Date())
@@ -16,8 +17,6 @@ export default function ConciliationLayout() {
   // Info del mes
   const currentMonth = currentDate.toLocaleString('es-ES', { month: 'long' })
   const currentYear = currentDate.getFullYear()
-  const daysInMonth = new Date(currentYear, currentDate.getMonth() + 1, 0).getDate()
-  const days = Array.from({ length: daysInMonth }, (_, i) => i + 1)
 
   // Cargar conciliación de un día específico
   const loadConciliation = async (year: number, month: number, day: number) => {
@@ -213,37 +212,13 @@ export default function ConciliationLayout() {
       </div>
 
       {/* Paginación sticky - Calendario de días */}
-      <div className="sticky top-[64px] z-30 bg-white dark:bg-[#010409] border border-gray-200 dark:border-gray-800 rounded-lg p-4 shadow-sm">
-        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-700">
-          {days.map((day) => {
-            const date = new Date(currentDate.getFullYear(), currentDate.getMonth(), day)
-            const weekday = date.toLocaleDateString('es-ES', { weekday: 'short' })
-
-            const isToday =
-              day === new Date().getDate() &&
-              currentDate.getMonth() === new Date().getMonth() &&
-              currentDate.getFullYear() === new Date().getFullYear()
-
-            const isSelected = day === selectedDay
-
-            return (
-              <button
-                key={day}
-                onClick={() => selectDay(day)}
-                className={`flex-shrink-0 w-12 h-12 rounded-lg font-medium flex flex-col items-center justify-center transition-all ${
-                  isSelected
-                    ? 'bg-blue-600 text-white shadow-lg scale-105'
-                    : isToday
-                      ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border-2 border-blue-600 dark:border-blue-400'
-                      : 'bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-                }`}
-              >
-                <span className="text-[10px] font-normal capitalize">{weekday}</span>
-                <span className="text-sm font-medium">{day}</span>
-              </button>
-            )
-          })}
-        </div>
+      <div className="sticky top-[64px] z-30">
+        <HorizontalDatePicker
+          currentDate={currentDate}
+          selectedDay={selectedDay}
+          onSelectDay={selectDay}
+          locale="es-ES"
+        />
       </div>
 
       {/* Componente Page */}
