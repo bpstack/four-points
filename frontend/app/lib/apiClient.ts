@@ -105,8 +105,13 @@ async function fetchWithRefresh(url: string, options: FetchOptions = {}): Promis
     !url.includes('/auth/refresh') &&
     !url.includes('/auth/register')
 
+  // Auto-refresh DESHABILITADO temporalmente - access token dura 8h
+  // TODO: Arreglar lógica de refresh token (causa loops infinitos)
+  // Ver: docs/PRODUCTION_AUTH_SETUP.md
+  const REFRESH_DISABLED = true
+
   // Auto-refresh solo en cliente
-  if (isClient && response.status === 401 && !skipRefresh && requiresAuth && hasRefreshToken()) {
+  if (!REFRESH_DISABLED && isClient && response.status === 401 && !skipRefresh && requiresAuth && hasRefreshToken()) {
     console.log('[apiClient] 🔄 Token expirado, intentando refresh...')
 
     // Si ya hay refresh en curso, encolar
