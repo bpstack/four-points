@@ -17,7 +17,7 @@ import {
 } from 'react-icons/fi'
 import { HiOutlineClipboardList } from 'react-icons/hi'
 import { SlBookOpen } from 'react-icons/sl'
-import { LogEntry } from '@/app/lib/logbooks/types'
+import { LogEntry, Comment } from '@/app/lib/logbooks/types'
 import { useAuth } from '@/app/lib/auth/useAuth'
 import { toast } from 'react-hot-toast'
 import { useDepartments } from '@/app/lib/logbooks/hooks/useDepartments'
@@ -295,8 +295,9 @@ export default function LogbooksList({
       setEditModalOpen(null)
       toast.success('Entrada actualizada correctamente')
       if (onCommentAdded) onCommentAdded()
-    } catch (error: any) {
-      toast.error(error.message || 'Error al actualizar la entrada')
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Error al actualizar la entrada'
+      toast.error(message)
     } finally {
       setIsEditSubmitting(false)
     }
@@ -423,8 +424,9 @@ export default function LogbooksList({
       setEditCommentModalOpen(null)
       toast.success('Comentario actualizado correctamente')
       if (onCommentAdded) onCommentAdded()
-    } catch (error: any) {
-      toast.error(error.message || 'Error al actualizar el comentario')
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Error al actualizar el comentario'
+      toast.error(message)
     } finally {
       setIsEditCommentSubmitting(false)
     }
@@ -502,8 +504,9 @@ export default function LogbooksList({
       await logbooksApi.deleteLogbook(entryId)
       setLocalEntries((prev) => prev.filter((e) => e.id !== entryId))
       toast.success('Entrada eliminada correctamente')
-    } catch (error: any) {
-      toast.error(error.message || 'Error al eliminar la entrada')
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Error al eliminar la entrada'
+      toast.error(message)
     }
   }
 
@@ -525,8 +528,9 @@ export default function LogbooksList({
         })
       )
       toast.success('Comentario eliminado correctamente')
-    } catch (error: any) {
-      toast.error(error.message || 'Error al eliminar el comentario')
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Error al eliminar el comentario'
+      toast.error(message)
     }
   }
 
@@ -641,7 +645,7 @@ export default function LogbooksList({
                       const dateB = b.created_at ? new Date(b.created_at).getTime() : 0
                       return dateA - dateB
                     })
-                    .map((comment: any) => (
+                    .map((comment: Comment) => (
                       <div
                         key={comment.id}
                         className={`text-sm rounded-lg p-2 border ${
@@ -659,7 +663,7 @@ export default function LogbooksList({
                               {formatUsername(comment.author_name)}
                             </span>
                             <span>·</span>
-                            <span>{formatEditTimestamp(comment.created_at)}</span>
+                            <span>{formatEditTimestamp(comment.created_at || new Date().toISOString())}</span>
                             {comment.updated_at && comment.updated_at !== comment.created_at && (
                               <>
                                 <span>·</span>
@@ -736,7 +740,7 @@ export default function LogbooksList({
                     const dateB = b.created_at ? new Date(b.created_at).getTime() : 0
                     return dateA - dateB
                   })
-                  .map((comment: any) => (
+                  .map((comment: Comment) => (
                     <div
                       key={comment.id}
                       className={`text-sm rounded-lg p-2 border ${
@@ -752,7 +756,7 @@ export default function LogbooksList({
                         <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
                           <span className="font-medium">{formatUsername(comment.author_name)}</span>
                           <span>·</span>
-                          <span>{formatEditTimestamp(comment.created_at)}</span>
+                          <span>{formatEditTimestamp(comment.created_at || new Date().toISOString())}</span>
                         </div>
                         {user?.id === comment.user_id && (
                           <div className="flex items-center gap-1">

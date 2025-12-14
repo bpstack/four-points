@@ -41,8 +41,9 @@ export async function deleteMaintenance(id: string): Promise<DeleteMaintenanceRe
     }
 
     return response.json()
-  } catch (error: any) {
-    console.error('[deleteMaintenance] Error:', error.message)
-    throw new Error(error.message || 'Error al eliminar reporte')
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Error al eliminar reporte'
+    console.error('[deleteMaintenance] Error:', message)
+    throw new Error(message)
   }
 }

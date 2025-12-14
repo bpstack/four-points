@@ -105,9 +105,10 @@ export function EditGroupPanel({ isOpen, onClose, group, onSuccess }: EditGroupP
 
       onSuccess()
       onClose()
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error updating group:', error)
-      toast.error(error.message || 'Error al actualizar el grupo')
+      const message = error instanceof Error ? error.message : 'Error al actualizar el grupo'
+      toast.error(message)
     }
   }
 
@@ -118,9 +119,10 @@ export function EditGroupPanel({ isOpen, onClose, group, onSuccess }: EditGroupP
       toast.success('Grupo eliminado correctamente')
       onClose()
       router.push('/dashboard/groups')
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error deleting group:', error)
-      toast.error(error.message || 'Error al eliminar el grupo')
+      const message = error instanceof Error ? error.message : 'Error al eliminar el grupo'
+      toast.error(message)
     } finally {
       setIsDeleting(false)
       setShowDeleteConfirm(false)

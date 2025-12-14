@@ -38,7 +38,7 @@ export function BalanceCard({ groupId }: BalanceCardProps) {
   // Calcular balance en tiempo real desde los pagos
   useEffect(() => {
     // Helper para parsear valores que pueden ser string o number
-    const parseAmount = (value: any): number => {
+    const parseAmount = (value: unknown): number => {
       if (typeof value === 'number') return value
       if (typeof value === 'string') return parseFloat(value) || 0
       return 0

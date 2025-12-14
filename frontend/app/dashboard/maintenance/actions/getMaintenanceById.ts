@@ -43,8 +43,9 @@ export async function getMaintenanceById(id: string): Promise<MaintenanceDetailR
     }
 
     return response.json()
-  } catch (error: any) {
-    console.error('[getMaintenanceById] Error:', error.message)
-    throw new Error(error.message || 'Error al obtener reporte')
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Error al obtener reporte'
+    console.error('[getMaintenanceById] Error:', message)
+    throw new Error(message)
   }
 }

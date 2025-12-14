@@ -67,9 +67,10 @@ export function ContractCard({ status, groupId }: ContractCardProps) {
 
       setIsEditing(false)
       setShowCalendar(false)
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error updating contract:', error)
-      toast.error(error.message || 'Error al actualizar el contrato')
+      const message = error instanceof Error ? error.message : 'Error al actualizar el contrato'
+      toast.error(message)
     }
   }
 

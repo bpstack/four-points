@@ -80,7 +80,7 @@ export function NotificationModal({ isOpen, onClose, groupId, groupName }: Notif
     setError(null)
 
     try {
-      const data: any = {
+      const data: Record<string, string> = {
         title,
         message,
         priority,
@@ -100,8 +100,9 @@ export function NotificationModal({ isOpen, onClose, groupId, groupName }: Notif
       setTimeout(() => {
         handleClose()
       }, 1500)
-    } catch (err: any) {
-      setError(err.message || 'Error al crear la notificación')
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Error al crear la notificación'
+      setError(message)
     } finally {
       setLoading(false)
     }

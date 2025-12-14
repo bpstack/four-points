@@ -63,11 +63,12 @@ export async function restoreBlacklist(id: string): Promise<RestoreBlacklistResu
       success: true,
       data: restoredEntry,
     }
-  } catch (error: any) {
-    console.error('[restoreBlacklist] ❌ Error:', error.message)
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Error al restaurar el registro'
+    console.error('[restoreBlacklist] ❌ Error:', message)
     return {
       success: false,
-      error: error.message || 'Error al restaurar el registro',
+      error: message,
     }
   }
 }

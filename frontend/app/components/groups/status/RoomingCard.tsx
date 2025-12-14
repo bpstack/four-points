@@ -84,7 +84,11 @@ export function RoomingCard({ status, groupId }: RoomingCardProps) {
 
   const onSubmit = async (data: RoomingFormData) => {
     try {
-      const payload: any = {
+      const payload: {
+        rooming_status: string
+        rooming_requested_date?: string
+        rooming_received_date?: string
+      } = {
         rooming_status: data.rooming_status,
         rooming_requested_date: undefined,
         rooming_received_date: undefined,
@@ -107,9 +111,10 @@ export function RoomingCard({ status, groupId }: RoomingCardProps) {
       setIsEditing(false)
       setShowRequestedCalendar(false)
       setShowReceivedCalendar(false)
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error updating rooming:', error)
-      toast.error(error.message || 'Error al actualizar el rooming')
+      const message = error instanceof Error ? error.message : 'Error al actualizar el rooming'
+      toast.error(message)
     }
   }
 

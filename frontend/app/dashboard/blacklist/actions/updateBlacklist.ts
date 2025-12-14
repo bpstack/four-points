@@ -41,20 +41,20 @@ export async function updateBlacklist(
     }
 
     // Convertir fechas al formato YYYY-MM-DD que espera el backend
-    const payload: any = { ...formData }
-    if (payload.check_in_date) {
+    const payload: Record<string, unknown> = { ...formData }
+    if (formData.check_in_date) {
       const date =
-        typeof payload.check_in_date === 'string'
-          ? new Date(payload.check_in_date)
-          : payload.check_in_date
-      payload.check_in_date = date.toISOString().split('T')[0]
+        typeof formData.check_in_date === 'string'
+          ? new Date(formData.check_in_date)
+          : formData.check_in_date
+      payload.check_in_date = (date as Date).toISOString().split('T')[0]
     }
-    if (payload.check_out_date) {
+    if (formData.check_out_date) {
       const date =
-        typeof payload.check_out_date === 'string'
-          ? new Date(payload.check_out_date)
-          : payload.check_out_date
-      payload.check_out_date = date.toISOString().split('T')[0]
+        typeof formData.check_out_date === 'string'
+          ? new Date(formData.check_out_date)
+          : formData.check_out_date
+      payload.check_out_date = (date as Date).toISOString().split('T')[0]
     }
 
     const response = await fetch(`${API_BASE}/api/blacklist/${id}`, {
@@ -83,11 +83,12 @@ export async function updateBlacklist(
       success: true,
       data: updatedEntry,
     }
-  } catch (error: any) {
-    console.error('[updateBlacklist] ❌ Error:', error.message)
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Error al actualizar el registro'
+    console.error('[updateBlacklist] ❌ Error:', message)
     return {
       success: false,
-      error: error.message || 'Error al actualizar el registro',
+      error: message,
     }
   }
 }

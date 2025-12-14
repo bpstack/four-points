@@ -300,8 +300,9 @@ export default function BookingsPage() {
       setLoading(true)
       const response = await parkingApi.getAllBookings()
       setBookings(response.bookings)
-    } catch (error: any) {
-      toast.error('Error al cargar reservas: ' + error.message)
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Error desconocido'
+      toast.error('Error al cargar reservas: ' + message)
     } finally {
       setLoading(false)
     }
@@ -439,8 +440,9 @@ export default function BookingsPage() {
       setShowCheckInModal(false)
       setCheckInData({ actual_checkin: '', notes: '' })
       loadBookings()
-    } catch (error: any) {
-      toast.error('Error al realizar check-in: ' + error.message)
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Error desconocido'
+      toast.error('Error al realizar check-in: ' + message)
     }
   }
 
@@ -462,8 +464,9 @@ export default function BookingsPage() {
         notes: '',
       })
       loadBookings()
-    } catch (error: any) {
-      toast.error('Error al realizar check-out: ' + error.message)
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Error desconocido'
+      toast.error('Error al realizar check-out: ' + message)
     }
   }
 
@@ -486,8 +489,9 @@ export default function BookingsPage() {
         notes: '',
       })
       loadBookings()
-    } catch (error: any) {
-      toast.error('Error al actualizar reserva: ' + error.message)
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Error desconocido'
+      toast.error('Error al actualizar reserva: ' + message)
     }
   }
 
@@ -496,8 +500,9 @@ export default function BookingsPage() {
       await parkingApi.cancelBooking(booking.booking_code)
       toast.success('Reserva cancelada')
       loadBookings()
-    } catch (error: any) {
-      toast.error('Error al cancelar: ' + error.message)
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Error desconocido'
+      toast.error('Error al cancelar: ' + message)
     }
   }
 
@@ -506,8 +511,9 @@ export default function BookingsPage() {
       await parkingApi.markBookingNoShow(booking.booking_code)
       toast.success('Marcada como No-show')
       loadBookings()
-    } catch (error: any) {
-      toast.error('Error: ' + error.message)
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Error desconocido'
+      toast.error('Error: ' + message)
     }
   }
 

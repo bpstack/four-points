@@ -4,7 +4,6 @@ import { FaArrowLeft, FaSpinner, FaCar } from 'react-icons/fa'
 import { MdLocalParking } from 'react-icons/md'
 import { getStyles } from '../variants'
 import type { BookingWizardState, BookingWizardActions, WizardVariant } from '../types'
-import { stat } from 'fs'
 
 interface ConfirmationStepProps {
   variant: WizardVariant

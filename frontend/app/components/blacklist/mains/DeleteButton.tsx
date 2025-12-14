@@ -40,9 +40,10 @@ export function DeleteButton({ entryId }: DeleteButtonProps) {
       } else {
         toast.error(result.error || 'Error al eliminar el registro')
       }
-    } catch (error: any) {
+    } catch (error) {
       toast.dismiss()
-      toast.error(error.message || 'Error al eliminar')
+      const message = error instanceof Error ? error.message : 'Error al eliminar'
+      toast.error(message)
     } finally {
       setIsDeleting(false)
     }

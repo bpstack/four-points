@@ -76,9 +76,10 @@ export function BookingCard({ status, groupId }: BookingCardProps) {
 
       setIsEditing(false)
       setShowCalendar(false)
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error updating booking:', error)
-      toast.error(error.message || 'Error al actualizar el booking')
+      const message = error instanceof Error ? error.message : 'Error al actualizar el booking'
+      toast.error(message)
     }
   }
 

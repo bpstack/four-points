@@ -65,8 +65,9 @@ export function ReportDetailClient({ initialReport }: ReportDetailClientProps) {
       await maintenanceApi.delete(currentReport.id)
       toast.success('Reporte eliminado correctamente')
       router.push('/dashboard/maintenance')
-    } catch (error: any) {
-      toast.error(error.message || 'Error al eliminar el reporte')
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Error al eliminar el reporte'
+      toast.error(message)
     } finally {
       setIsDeleting(false)
       setIsDeleteDialogOpen(false)

@@ -55,8 +55,9 @@ export async function createMaintenance(data: ReportFormData): Promise<CreateMai
     }
 
     return response.json()
-  } catch (error: any) {
-    console.error('[createMaintenance] Error:', error.message)
-    throw new Error(error.message || 'Error al crear reporte')
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Error al crear reporte'
+    console.error('[createMaintenance] Error:', message)
+    throw new Error(message)
   }
 }

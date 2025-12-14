@@ -10,6 +10,7 @@ import type {
   OverdueBooking,
   AvailabilityData,
   ParkingSpotDisplay,
+  ParkingSpot,
 } from '@/app/lib/parking/types'
 
 export function useParkingStatus(selectedDate: string) {
@@ -98,7 +99,7 @@ export function useParkingStatus(selectedDate: string) {
 
       const allSpotsData = await parkingApi.getAllSpots()
 
-      const spotsWithStatus = allSpotsData.map((spot: any) => {
+      const spotsWithStatus = allSpotsData.map((spot: ParkingSpot) => {
         const activeBooking = activeDateBookings.find((b: ParkingBooking) => {
           const matchesSpot =
             b.spot.id === spot.id ||
@@ -123,9 +124,10 @@ export function useParkingStatus(selectedDate: string) {
       })
 
       setSpots(spotsWithStatus)
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error loading parking data:', error)
-      setError(error.message || 'Error al cargar los datos del parking')
+      const message = error instanceof Error ? error.message : 'Error al cargar los datos del parking'
+      setError(message)
       toast.error('Error al cargar el estado del parking')
     } finally {
       setLoading(false)
@@ -146,9 +148,10 @@ export function useParkingStatus(selectedDate: string) {
       toast.success('Check-in realizado correctamente')
       setCheckinModal({ isOpen: false, booking: null })
       await loadParkingData()
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error during check-in:', error)
-      toast.error(error.message || 'Error al realizar el check-in')
+      const message = error instanceof Error ? error.message : 'Error al realizar el check-in'
+      toast.error(message)
     } finally {
       setActionLoading(false)
     }
@@ -168,9 +171,10 @@ export function useParkingStatus(selectedDate: string) {
       toast.success('Check-out realizado correctamente')
       setCheckoutModal({ isOpen: false, booking: null })
       await loadParkingData()
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error during check-out:', error)
-      toast.error(error.message || 'Error al realizar el check-out')
+      const message = error instanceof Error ? error.message : 'Error al realizar el check-out'
+      toast.error(message)
     } finally {
       setActionLoading(false)
     }
@@ -190,9 +194,10 @@ export function useParkingStatus(selectedDate: string) {
       toast.success('Reserva cancelada correctamente')
       setCancelModal({ isOpen: false, booking: null })
       await loadParkingData()
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error cancelling booking:', error)
-      toast.error(error.message || 'Error al cancelar la reserva')
+      const message = error instanceof Error ? error.message : 'Error al cancelar la reserva'
+      toast.error(message)
     } finally {
       setActionLoading(false)
     }
@@ -230,8 +235,9 @@ export function useParkingStatus(selectedDate: string) {
 
       setOverdueModal({ isOpen: false, booking: null })
       await loadParkingData()
-    } catch (error: any) {
-      toast.error(error.message || `Error al ${action}`)
+    } catch (error) {
+      const message = error instanceof Error ? error.message : `Error al ${action}`
+      toast.error(message)
     } finally {
       setActionLoading(false)
     }

@@ -2,6 +2,7 @@
 
 'use client'
 
+import { useRouter } from 'next/navigation'
 import { FaExclamationCircle, FaCheck } from 'react-icons/fa'
 import { FiPlus, FiX } from 'react-icons/fi'
 import { useBookingWizard } from './hooks/useBookingWizard'
@@ -19,6 +20,7 @@ export default function BookingWizard({
   onSuccess,
   onCancel,
 }: BookingWizardProps) {
+  const router = useRouter()
   const { state, actions } = useBookingWizard({
     variant,
     preSelectedSpot,
@@ -49,13 +51,13 @@ export default function BookingWizard({
 
             <div className="flex gap-2">
               <button
-                onClick={() => (window.location.href = '/dashboard/parking/bookings')}
+                onClick={() => router.push('/dashboard/parking/bookings')}
                 className="flex-1 px-4 py-2 bg-[#0969da] hover:bg-[#0550ae] dark:bg-[#1f6feb] dark:hover:bg-[#1158c7] text-white rounded-md font-medium transition text-sm"
               >
                 Ver Todas las Reservas
               </button>
               <button
-                onClick={() => window.location.reload()}
+                onClick={() => router.refresh()}
                 className="flex-1 px-4 py-2 bg-[#f6f8fa] hover:bg-[#eaeef2] dark:bg-[#21262d] dark:hover:bg-[#30363d] text-[#24292f] dark:text-[#c9d1d9] rounded-md font-medium transition text-sm"
               >
                 Crear Otra Reserva
@@ -105,7 +107,7 @@ export default function BookingWizard({
               variant={variant}
               state={state}
               actions={actions}
-              onCancel={() => (window.location.href = '/dashboard/parking/bookings')}
+              onCancel={() => router.push('/dashboard/parking/bookings')}
             />
           )}
 

@@ -87,9 +87,10 @@ export function RoomPanel({ isOpen, onClose, room, groupId }: RoomPanelProps) {
       await refreshRooms(groupId)
       onClose()
       reset()
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error saving room:', error)
-      toast.error(error.message || 'Error al guardar la habitación')
+      const message = error instanceof Error ? error.message : 'Error al guardar la habitación'
+      toast.error(message)
     }
   }
 

@@ -87,8 +87,9 @@ export default function NewLogbookEntry({
         department_id: department,
       })
       onClose()
-    } catch (err: any) {
-      setError(err?.message || 'Error al crear la entrada')
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Error al crear la entrada'
+      setError(message)
     } finally {
       setIsSubmitting(false)
     }

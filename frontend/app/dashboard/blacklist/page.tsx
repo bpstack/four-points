@@ -40,13 +40,25 @@ export default async function BlacklistPage({ searchParams }: PageProps) {
   // ✅ CAMBIO 2: AWAIT searchParams
   const params = await searchParams
 
+  // Validar severity y status antes de asignarlos
+  const validSeverities = ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'] as const
+  const validStatuses = ['ACTIVE', 'DELETED', 'ALL'] as const
+
+  const severity = validSeverities.includes(params.severity as (typeof validSeverities)[number])
+    ? (params.severity as BlacklistFilters['severity'])
+    : undefined
+
+  const status = validStatuses.includes(params.status as (typeof validStatuses)[number])
+    ? (params.status as BlacklistFilters['status'])
+    : undefined
+
   const filters: BlacklistFilters = {
-    page: params.page ? parseInt(params.page) : 1, // ✅ Ahora usa params
+    page: params.page ? parseInt(params.page) : 1,
     limit: 50,
     q: params.q,
     document: params.document,
-    severity: params.severity as any,
-    status: params.status as any,
+    severity,
+    status,
     from_date: params.from_date,
     to_date: params.to_date,
   }
@@ -56,8 +68,8 @@ export default async function BlacklistPage({ searchParams }: PageProps) {
 
   try {
     data = await getBlacklist(filters)
-  } catch (err: any) {
-    error = err.message
+  } catch (err) {
+    error = err instanceof Error ? err.message : 'Error desconocido'
   }
 
   return (

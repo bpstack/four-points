@@ -78,8 +78,9 @@ export async function createBlacklist(formData: BlacklistFormData): Promise<Crea
     revalidatePath('/dashboard/blacklist')
 
     return { success: true, data: newEntry }
-  } catch (error: any) {
-    console.error('[createBlacklist] Error:', error.message)
-    return { success: false, error: error.message || 'Error al crear el registro' }
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Error al crear el registro'
+    console.error('[createBlacklist] Error:', message)
+    return { success: false, error: message }
   }
 }

@@ -74,9 +74,10 @@ export function ContactPanel({ isOpen, onClose, contact, groupId }: ContactPanel
       await refreshContacts(groupId)
       onClose()
       reset()
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error saving contact:', error)
-      toast.error(error.message || 'Error al guardar el contacto')
+      const message = error instanceof Error ? error.message : 'Error al guardar el contacto'
+      toast.error(message)
     }
   }
 

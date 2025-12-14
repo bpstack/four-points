@@ -47,8 +47,9 @@ export async function updateMaintenance(
     }
 
     return response.json()
-  } catch (error: any) {
-    console.error('[updateMaintenance] Error:', error.message)
-    throw new Error(error.message || 'Error al actualizar reporte')
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Error al actualizar reporte'
+    console.error('[updateMaintenance] Error:', message)
+    throw new Error(message)
   }
 }

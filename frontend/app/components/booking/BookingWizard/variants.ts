@@ -1,12 +1,12 @@
 // app/components/booking/BookingWizard/variants.ts
 
-import { clsx } from 'clsx'
+import { clsx, type ClassValue } from 'clsx'
 import { twMerge } from 'tailwind-merge'
 
 export type WizardVariant = 'full' | 'modal'
 
 // Utility para combinar clases
-export const cn = (...inputs: any[]) => {
+export const cn = (...inputs: ClassValue[]) => {
   return twMerge(clsx(inputs))
 }
 

@@ -29,9 +29,10 @@ export default function GroupDetailPage() {
         setLoading(true)
         const response = await groupsApi.getById(groupId)
         setGroup(response.data)
-      } catch (err: any) {
+      } catch (err) {
         console.error('Error loading group:', err)
-        setError(err.message || 'Error al cargar el grupo')
+        const message = err instanceof Error ? err.message : 'Error al cargar el grupo'
+        setError(message)
       } finally {
         setLoading(false)
       }

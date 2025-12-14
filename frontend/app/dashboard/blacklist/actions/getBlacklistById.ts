@@ -35,8 +35,9 @@ export async function getBlacklistById(id: string): Promise<BlacklistDetailRespo
     }
 
     return response.json()
-  } catch (error: any) {
-    console.error('[getBlacklistById] Error:', error.message)
-    throw new Error(error.message || 'Error al obtener el registro')
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Error al obtener el registro'
+    console.error('[getBlacklistById] Error:', message)
+    throw new Error(message)
   }
 }

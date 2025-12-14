@@ -48,8 +48,9 @@ export async function updateMaintenanceStatus(
     }
 
     return response.json()
-  } catch (error: any) {
-    console.error('[updateMaintenanceStatus] Error:', error.message)
-    throw new Error(error.message || 'Error al actualizar estado')
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Error al actualizar estado'
+    console.error('[updateMaintenanceStatus] Error:', message)
+    throw new Error(message)
   }
 }

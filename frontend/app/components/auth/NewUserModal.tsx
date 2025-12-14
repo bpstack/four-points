@@ -47,9 +47,10 @@ export default function NewUserModal({ isOpen, onClose, onSuccess }: NewUserModa
       setFormData({ username: '', email: '', password: '', role: 'recepcionista' })
       onSuccess()
       onClose()
-    } catch (err: any) {
-      setError(err.message || 'Error creating user')
-      toast.error(err.message || 'Error creating user')
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Error creating user'
+      setError(message)
+      toast.error(message)
     } finally {
       setLoading(false)
     }

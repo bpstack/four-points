@@ -34,7 +34,7 @@ export function PaymentsTab() {
   // Calcular balance - ARREGLADO (parseando strings a números)
   useEffect(() => {
     // Helper para parsear valores que pueden ser string o number
-    const parseAmount = (value: any): number => {
+    const parseAmount = (value: unknown): number => {
       if (typeof value === 'number') return value
       if (typeof value === 'string') return parseFloat(value) || 0
       return 0

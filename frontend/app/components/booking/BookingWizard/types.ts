@@ -1,5 +1,7 @@
 // app/components/booking/BookingWizard/types.ts
 
+import type { ParkingBooking } from '@/app/lib/parking/types'
+
 export type WizardVariant = 'full' | 'modal'
 
 export interface ParkingSpotDisplay {
@@ -8,7 +10,7 @@ export interface ParkingSpotDisplay {
   spot_number: number
   spot_type: string
   status: 'free' | 'reserved' | 'checked_in'
-  booking?: any // ParkingBooking from types
+  booking?: ParkingBooking
 }
 
 export interface VehicleData {

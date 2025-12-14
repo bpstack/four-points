@@ -85,9 +85,10 @@ export function EditReportPanel({ isOpen, onClose, report }: EditReportPanelProp
       await maintenanceApi.update(report.id, data)
       toast.success('Reporte actualizado correctamente')
       onClose()
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error updating report:', error)
-      toast.error(error.message || 'Error al actualizar el reporte')
+      const message = error instanceof Error ? error.message : 'Error al actualizar el reporte'
+      toast.error(message)
     }
   }
 

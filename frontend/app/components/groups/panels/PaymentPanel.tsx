@@ -166,7 +166,7 @@ export function PaymentPanel({
         amount: data.amount ?? undefined,
         amount_paid: data.amount_paid ?? 0,
         due_date: data.due_date,
-        status: data.status as any,
+        status: data.status as 'pending' | 'requested' | 'partial' | 'paid',
         notes: data.notes || undefined,
       }
 
@@ -182,9 +182,10 @@ export function PaymentPanel({
       await refreshPayments(groupId)
 
       onClose()
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error saving payment:', error)
-      toast.error(error.message || 'Error al guardar el pago')
+      const message = error instanceof Error ? error.message : 'Error al guardar el pago'
+      toast.error(message)
     }
   }
 
@@ -200,9 +201,10 @@ export function PaymentPanel({
 
       toast.success('Pago eliminado correctamente')
       onClose()
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error deleting payment:', error)
-      toast.error(error.message || 'Error al eliminar el pago')
+      const message = error instanceof Error ? error.message : 'Error al eliminar el pago'
+      toast.error(message)
     } finally {
       setIsDeleting(false)
       setShowDeleteConfirm(false)

@@ -4,7 +4,7 @@
 import { useState, useEffect } from 'react'
 import { FiChevronLeft, FiChevronRight, FiCalendar, FiPlus } from 'react-icons/fi'
 import { logbooksApi } from '@/app/api/logbooks/route'
-import { LogEntry } from '@/app/lib/logbooks/types'
+import { LogEntry, LogbookEntry } from '@/app/lib/logbooks/types'
 import { useDepartments } from '@/app/lib/logbooks/hooks/useDepartments'
 import { useAuth } from '@/app/lib/auth/useAuth'
 import HorizontalDatePicker from '@/app/ui/calendar/HorizontalDatePicker'
@@ -29,7 +29,7 @@ export default function LogbooksContainer() {
       const data = await logbooksApi.getLogbooksByDay(dateString)
       if (Array.isArray(data) && data.length > 0) {
         const entriesWithComments = await Promise.all(
-          data.map(async (entry: any) => {
+          data.map(async (entry: LogbookEntry) => {
             try {
               const res = await logbooksApi.comments.getComments(entry.id)
               const comments = Array.isArray(res.comments) ? res.comments : []
@@ -41,7 +41,7 @@ export default function LogbooksContainer() {
 
               return {
                 id: entry.id,
-                timestamp: entry.created_at,
+                timestamp: entry.created_at || new Date().toISOString(),
                 description: entry.message,
                 department: getDepartmentName(entry.department_id),
                 department_id: entry.department_id,
@@ -49,10 +49,10 @@ export default function LogbooksContainer() {
                 readBy: [],
                 status: (entry.is_solved === 1 ? 'resolved' : 'pending') as 'pending' | 'resolved',
                 comments: comments || [],
-                author_id: entry.author_id || entry.user_id || entry.created_by || 'unknown',
+                author_id: entry.author_id || 'unknown',
                 author_name: entry.author_name || 'Unknown',
                 updated_at: entry.updated_at,
-                is_edited: entry.updated_at && entry.updated_at !== entry.created_at,
+                is_edited: !!(entry.updated_at && entry.updated_at !== entry.created_at),
               }
             } catch {
               let priority: 'low' | 'medium' | 'high' | 'critical' = 'low'
@@ -62,7 +62,7 @@ export default function LogbooksContainer() {
 
               return {
                 id: entry.id,
-                timestamp: entry.created_at,
+                timestamp: entry.created_at || new Date().toISOString(),
                 description: entry.message,
                 department: getDepartmentName(entry.department_id),
                 department_id: entry.department_id,
@@ -70,10 +70,10 @@ export default function LogbooksContainer() {
                 readBy: [],
                 status: (entry.is_solved === 1 ? 'resolved' : 'pending') as 'pending' | 'resolved',
                 comments: [],
-                author_id: entry.author_id || entry.user_id || entry.created_by || 'unknown',
+                author_id: entry.author_id || 'unknown',
                 author_name: entry.author_name || 'Unknown',
                 updated_at: entry.updated_at,
-                is_edited: entry.updated_at && entry.updated_at !== entry.created_at,
+                is_edited: !!(entry.updated_at && entry.updated_at !== entry.created_at),
               }
             }
           })

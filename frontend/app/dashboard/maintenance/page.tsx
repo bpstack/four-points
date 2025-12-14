@@ -31,9 +31,10 @@ export default async function MaintenancePage({ searchParams }: PageProps) {
 
   try {
     data = await getMaintenance(filters)
-  } catch (err: any) {
-    console.error('[MaintenancePage] Error:', err.message)
-    error = err.message
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Error desconocido'
+    console.error('[MaintenancePage] Error:', message)
+    error = message
   }
 
   if (error) {

@@ -23,9 +23,10 @@ export default function MaintenanceDetailPage() {
         setLoading(true)
         const response = await maintenanceApi.getById(reportId)
         setReport(response.report)
-      } catch (err: any) {
+      } catch (err) {
         console.error('Error loading report:', err)
-        setError(err.message || 'Error al cargar el reporte')
+        const message = err instanceof Error ? err.message : 'Error al cargar el reporte'
+        setError(message)
       } finally {
         setLoading(false)
       }

@@ -48,8 +48,9 @@ export async function deleteBlacklist(id: string): Promise<DeleteBlacklistResult
     revalidatePath(`/dashboard/blacklist/${id}`)
 
     return { success: true, message: result.message || 'Registro eliminado correctamente' }
-  } catch (error: any) {
-    console.error('[deleteBlacklist] Error:', error.message)
-    return { success: false, error: error.message || 'Error al eliminar el registro' }
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Error al eliminar el registro'
+    console.error('[deleteBlacklist] Error:', message)
+    return { success: false, error: message }
   }
 }

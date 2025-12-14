@@ -47,8 +47,9 @@ export async function getBlacklist(filters?: BlacklistFilters): Promise<Blacklis
     }
 
     return response.json()
-  } catch (error: any) {
-    console.error('[getBlacklist] Error:', error.message)
-    throw new Error(error.message || 'Error al obtener registros de blacklist')
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Error al obtener registros de blacklist'
+    console.error('[getBlacklist] Error:', message)
+    throw new Error(message)
   }
 }

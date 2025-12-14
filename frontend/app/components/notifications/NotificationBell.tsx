@@ -5,6 +5,7 @@
 import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
 import { useNotifications } from '@/app/lib/notifications/useNotifications'
+import { Notification } from '@/app/stores/useNotificationStore'
 import { FiBell, FiCheck, FiExternalLink } from 'react-icons/fi'
 import { formatDistanceToNow } from 'date-fns'
 import { es } from 'date-fns/locale'
@@ -129,7 +130,7 @@ function NotificationDropdownItem({
   notification,
   onClick,
 }: {
-  notification: any
+  notification: Notification
   onClick: (id: number, directLink: string | null) => void
 }) {
   const priorityColors = {

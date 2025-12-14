@@ -58,8 +58,9 @@ export function DetailTab() {
       setIsEditingStatus(false)
       setSelectedStatus(null)
       toast.success('Estado actualizado')
-    } catch (error: any) {
-      toast.error(error.message || 'Error al actualizar estado')
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Error al actualizar estado'
+      toast.error(message)
     } finally {
       setIsSaving(false)
     }
@@ -75,8 +76,9 @@ export function DetailTab() {
       setIsEditingPriority(false)
       setSelectedPriority(null)
       toast.success('Prioridad actualizada')
-    } catch (error: any) {
-      toast.error(error.message || 'Error al actualizar prioridad')
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Error al actualizar prioridad'
+      toast.error(message)
     } finally {
       setIsSaving(false)
     }
@@ -95,8 +97,9 @@ export function DetailTab() {
       setShowNotesInput(false)
       setResolutionNotes('')
       toast.success('Notas guardadas')
-    } catch (error: any) {
-      toast.error(error.message || 'Error al guardar notas')
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Error al guardar notas'
+      toast.error(message)
     } finally {
       setIsSaving(false)
     }

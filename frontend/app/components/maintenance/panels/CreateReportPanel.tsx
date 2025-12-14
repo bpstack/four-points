@@ -141,9 +141,10 @@ export function CreateReportPanel({ isOpen, onClose }: CreateReportPanelProps) {
       reset()
       setPreviewImages([])
       setImageFiles([])
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error creating report:', error)
-      toast.error(error.message || 'Error al crear el reporte')
+      const message = error instanceof Error ? error.message : 'Error al crear el reporte'
+      toast.error(message)
     }
   }
 

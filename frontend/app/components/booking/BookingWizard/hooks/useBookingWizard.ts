@@ -12,6 +12,7 @@ import type {
   ReservationData,
   BookingWizardProps,
 } from '../types'
+import type { ParkingSpot, ParkingVehicle, ParkingBooking, CreateBookingDto } from '@/app/lib/parking/types'
 import { formatDateForInput } from '@/app/lib/helpers/date'
 
 const initialVehicleData: VehicleData = {
@@ -117,7 +118,7 @@ export const useBookingWizard = ({
       try {
         const allVehicles = await parkingApi.getAllVehicles()
         const filtered = allVehicles.filter(
-          (v: any) =>
+          (v: ParkingVehicle) =>
             v.plate_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
             v.owner_name.toLowerCase().includes(searchTerm.toLowerCase())
         )
@@ -178,9 +179,10 @@ export const useBookingWizard = ({
       })
       toast.success('Vehículo creado correctamente')
       setState((prev) => ({ ...prev, step: 2 }))
-    } catch (err: any) {
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Error al crear vehículo'
       updateState({ loading: false })
-      setError(err.message || 'Error al crear vehículo')
+      setError(message)
       toast.error('Error al crear vehículo')
     }
   }, [state.vehicleData, updateState, setError])
@@ -210,10 +212,10 @@ export const useBookingWizard = ({
         `${state.reservationData.expected_checkout_date}T${state.reservationData.expected_checkout_time}`
       )
 
-      const available = allSpots.filter((spot: any) => {
+      const available = allSpots.filter((spot: ParkingSpot) => {
         if (!spot.is_active) return false
 
-        const hasConflict = bookingsResponse.bookings?.some((booking: any) => {
+        const hasConflict = bookingsResponse.bookings?.some((booking: ParkingBooking) => {
           if (booking.spot.id !== spot.id) return false
           if (!['reserved', 'checked_in'].includes(booking.status)) return false
 
@@ -228,7 +230,7 @@ export const useBookingWizard = ({
       })
 
       // Transformar a ParkingSpotDisplay con status
-      const availableWithStatus: ParkingSpotDisplay[] = available.map((spot: any) => ({
+      const availableWithStatus: ParkingSpotDisplay[] = available.map((spot: ParkingSpot) => ({
         id: spot.id,
         level_code: spot.level_code,
         spot_number: spot.spot_number,
@@ -247,10 +249,11 @@ export const useBookingWizard = ({
       } else {
         toast.success(`${available.length} plazas disponibles`)
       }
-    } catch (err: any) {
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Error al cargar disponibilidad'
       console.error('❌ Error al cargar disponibilidad:', err)
       updateState({ loading: false })
-      setError(err.message || 'Error al cargar disponibilidad')
+      setError(message)
       toast.error('Error al cargar plazas')
     }
   }, [state.reservationData, updateState, setError])
@@ -346,23 +349,18 @@ export const useBookingWizard = ({
       const checkinISO = `${state.reservationData.expected_checkin_date} ${state.reservationData.expected_checkin_time}`
       const checkoutISO = `${state.reservationData.expected_checkout_date} ${state.reservationData.expected_checkout_time}`
 
-      const payload: any = {
+      const payload: CreateBookingDto = {
         spot_number: parseInt(state.reservationData.spot_number),
         level_code: state.reservationData.level_code,
-        vehicle_id: state.vehicleId,
+        vehicle_id: state.vehicleId ?? undefined,
         expected_checkin: checkinISO,
         expected_checkout: checkoutISO,
-        booking_source: state.reservationData.booking_source || 'direct',
-      }
-
-      if (state.reservationData.total_amount) {
-        payload.total_amount = parseFloat(state.reservationData.total_amount)
-      }
-      if (state.reservationData.external_booking_id) {
-        payload.external_booking_id = state.reservationData.external_booking_id
-      }
-      if (state.reservationData.notes) {
-        payload.notes = state.reservationData.notes
+        source: state.reservationData.booking_source || 'direct',
+        total_amount: state.reservationData.total_amount
+          ? parseFloat(state.reservationData.total_amount)
+          : undefined,
+        external_id: state.reservationData.external_booking_id || undefined,
+        notes: state.reservationData.notes || undefined,
       }
 
       await parkingApi.createBooking(payload)
@@ -379,10 +377,11 @@ export const useBookingWizard = ({
         // En modal, llamar onSuccess inmediatamente
         onSuccess?.()
       }
-    } catch (err: any) {
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Error al crear reserva'
       console.error('❌ Error al crear reserva:', err)
       updateState({ loading: false })
-      setError(err.message || 'Error al crear reserva')
+      setError(message)
       toast.error('Error al crear reserva')
     }
   }, [

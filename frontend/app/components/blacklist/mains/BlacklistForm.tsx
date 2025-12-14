@@ -27,11 +27,20 @@ import { blacklistApi } from '@/app/lib/blacklist/blacklistApi'
 import { createBlacklist, updateBlacklist } from '@/app/dashboard/blacklist/actions'
 
 // ✅ CRÍTICO: Asegúrate de que estos tipos estén importados
-import type {
-  BlacklistEntry,
-  BlacklistCreateFormData,
-  BlacklistEditFormData,
-} from '@/app/lib/blacklist/types'
+import type { BlacklistEntry } from '@/app/lib/blacklist/types'
+
+// Tipo para el formulario (images es opcional para permitir default)
+type BlacklistFormValues = {
+  guest_name: string
+  document_type: 'DNI' | 'PASSPORT' | 'NIE' | 'OTHER'
+  document_number: string
+  check_in_date: Date
+  check_out_date: Date
+  reason: string
+  severity: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL'
+  images?: File[]
+  comments: string
+}
 
 // ✅ Y también las constantes
 import { DOCUMENT_TYPES, SEVERITY_LEVELS } from '@/app/lib/blacklist/types'
@@ -40,19 +49,6 @@ interface BlacklistFormProps {
   mode: 'create' | 'edit'
   initialData?: BlacklistEntry
   onSuccess?: () => void
-}
-
-// Tipo flexible para el formulario
-type FormData = {
-  guest_name: string
-  document_type: 'DNI' | 'PASSPORT' | 'NIE' | 'OTHER'
-  document_number: string
-  check_in_date: Date
-  check_out_date: Date
-  reason: string
-  severity: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL'
-  images: File[]
-  comments: string
 }
 
 export function BlacklistForm({ mode, initialData, onSuccess }: BlacklistFormProps) {
@@ -69,7 +65,7 @@ export function BlacklistForm({ mode, initialData, onSuccess }: BlacklistFormPro
     handleSubmit,
     formState: { errors },
     watch,
-  } = useForm<FormData>({
+  } = useForm<BlacklistFormValues>({
     resolver: zodResolver(blacklistSchema),
     defaultValues:
       mode === 'edit' && initialData
@@ -102,19 +98,20 @@ export function BlacklistForm({ mode, initialData, onSuccess }: BlacklistFormPro
   // ========================================
   // SUBMIT HANDLER
   // ========================================
-  const onSubmit = async (data: FormData) => {
+  const onSubmit = async (data: BlacklistFormValues) => {
     setIsSubmitting(true)
 
     try {
       let imageUrls: string[] = []
+      const formImages = data.images || []
 
       // 1. MODO CREAR: Subir imágenes si hay
       if (mode === 'create') {
-        if (data.images.length > 0) {
+        if (formImages.length > 0) {
           setUploadingImages(true)
           toast.loading('Subiendo imágenes...')
 
-          const uploadedImages = await blacklistApi.uploadImages(data.images)
+          const uploadedImages = await blacklistApi.uploadImages(formImages)
           imageUrls = uploadedImages.map((img) => img.secure_url)
 
           toast.dismiss()
@@ -127,11 +124,11 @@ export function BlacklistForm({ mode, initialData, onSuccess }: BlacklistFormPro
         imageUrls = initialData?.images || []
 
         // Si hay nuevas imágenes, subirlas
-        if (data.images.length > 0) {
+        if (formImages.length > 0) {
           setUploadingImages(true)
           toast.loading('Subiendo nuevas imágenes...')
 
-          const uploadedImages = await blacklistApi.uploadImages(data.images)
+          const uploadedImages = await blacklistApi.uploadImages(formImages)
           const newImageUrls = uploadedImages.map((img) => img.secure_url)
           imageUrls = [...imageUrls, ...newImageUrls]
 
@@ -181,10 +178,11 @@ export function BlacklistForm({ mode, initialData, onSuccess }: BlacklistFormPro
       } else {
         toast.error(result.error || 'Error al guardar el registro')
       }
-    } catch (error: any) {
-      console.error('Error en submit:', error)
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Error al procesar el formulario'
+      console.error('Error en submit:', message)
       toast.dismiss()
-      toast.error(error.message || 'Error al procesar el formulario')
+      toast.error(message)
     } finally {
       setIsSubmitting(false)
       setUploadingImages(false)

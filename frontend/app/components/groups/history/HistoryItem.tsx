@@ -171,7 +171,7 @@ export function HistoryItem({ record }: HistoryItemProps) {
       const newObj = newValue ? JSON.parse(newValue) : {}
 
       // Find changed fields
-      const changes: Array<{ field: string; oldVal: any; newVal: any }> = []
+      const changes: Array<{ field: string; oldVal: unknown; newVal: unknown }> = []
 
       const allFields = new Set([...Object.keys(oldObj), ...Object.keys(newObj)])
 

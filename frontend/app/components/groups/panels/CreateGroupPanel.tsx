@@ -93,9 +93,10 @@ export function CreateGroupPanel({ isOpen, onClose }: CreateGroupPanelProps) {
 
       onClose()
       reset()
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error creating group:', error)
-      toast.error(error.message || 'Error al crear el grupo')
+      const message = error instanceof Error ? error.message : 'Error al crear el grupo'
+      toast.error(message)
     }
   }
 

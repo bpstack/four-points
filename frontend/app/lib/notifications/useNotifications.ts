@@ -30,8 +30,9 @@ export function useNotifications() {
     try {
       const data = await apiClient.get(`${API_URL}/api/notifications`)
       setNotifications(data.data || [])
-    } catch (err: any) {
-      setError(err.message || 'Error al cargar notificaciones')
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Error al cargar notificaciones'
+      setError(message)
       console.error('Error fetching notifications:', err)
     } finally {
       setLoading(false)
@@ -47,8 +48,9 @@ export function useNotifications() {
     try {
       const data = await apiClient.get(`${API_URL}/api/notifications/unread`)
       setNotifications(data.data || [])
-    } catch (err: any) {
-      setError(err.message || 'Error al cargar notificaciones no leídas')
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Error al cargar notificaciones no leídas'
+      setError(message)
       console.error('Error fetching unread notifications:', err)
     } finally {
       setLoading(false)
@@ -62,7 +64,7 @@ export function useNotifications() {
     try {
       const data = await apiClient.get(`${API_URL}/api/notifications/unread/count`)
       setUnreadCount(data.count || 0)
-    } catch (err: any) {
+    } catch (err) {
       console.error('Error fetching unread count:', err)
     }
   }, [setUnreadCount])
@@ -76,8 +78,9 @@ export function useNotifications() {
         await apiClient.patch(`${API_URL}/api/notifications/${id}/read`)
         markAsReadStore(id)
         await fetchUnreadCount() // Actualizar contador
-      } catch (err: any) {
-        setError(err.message || 'Error al marcar como leída')
+      } catch (err) {
+        const message = err instanceof Error ? err.message : 'Error al marcar como leída'
+        setError(message)
         console.error('Error marking as read:', err)
       }
     },
@@ -92,8 +95,9 @@ export function useNotifications() {
       await apiClient.patch(`${API_URL}/api/notifications/read-all`)
       markAllAsReadStore()
       setUnreadCount(0)
-    } catch (err: any) {
-      setError(err.message || 'Error al marcar todas como leídas')
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Error al marcar todas como leídas'
+      setError(message)
       console.error('Error marking all as read:', err)
     }
   }, [markAllAsReadStore, setUnreadCount, setError])
@@ -107,8 +111,9 @@ export function useNotifications() {
         await apiClient.delete(`${API_URL}/api/notifications/${id}`)
         removeNotificationStore(id)
         await fetchUnreadCount() // Actualizar contador
-      } catch (err: any) {
-        setError(err.message || 'Error al eliminar notificación')
+      } catch (err) {
+        const message = err instanceof Error ? err.message : 'Error al eliminar notificación'
+        setError(message)
         console.error('Error deleting notification:', err)
       }
     },

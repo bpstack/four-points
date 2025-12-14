@@ -47,8 +47,9 @@ export async function updateMaintenancePriority(
     }
 
     return response.json()
-  } catch (error: any) {
-    console.error('[updateMaintenancePriority] Error:', error.message)
-    throw new Error(error.message || 'Error al actualizar prioridad')
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Error al actualizar prioridad'
+    console.error('[updateMaintenancePriority] Error:', message)
+    throw new Error(message)
   }
 }

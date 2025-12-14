@@ -28,7 +28,7 @@ export function OverviewTab() {
 
   // Calcular balance status
   useEffect(() => {
-    const parseAmount = (value: any): number => {
+    const parseAmount = (value: unknown): number => {
       if (typeof value === 'number') return value
       if (typeof value === 'string') return parseFloat(value) || 0
       return 0

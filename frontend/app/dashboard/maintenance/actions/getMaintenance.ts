@@ -61,8 +61,9 @@ export async function getMaintenance(
     }
 
     return response.json()
-  } catch (error: any) {
-    console.error('[getMaintenance] Error:', error.message)
-    throw new Error(error.message || 'Error al obtener reportes de mantenimiento')
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Error al obtener reportes de mantenimiento'
+    console.error('[getMaintenance] Error:', message)
+    throw new Error(message)
   }
 }
