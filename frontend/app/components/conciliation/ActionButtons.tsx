@@ -1,7 +1,7 @@
 // app/components/conciliation/ActionButtons.tsx
 
 import { FiSave, FiCheck, FiEdit3, FiLock } from 'react-icons/fi'
-import { ConciliationStatus } from '@/app/api/conciliation/route'
+import type { ConciliationStatus } from '@/app/lib/conciliation'
 
 interface ActionButtonsProps {
   status: ConciliationStatus

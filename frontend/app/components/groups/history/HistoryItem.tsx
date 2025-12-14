@@ -2,7 +2,7 @@
 
 'use client'
 
-import { GroupHistoryRecord, HistoryAction } from '@/app/api/groups/route'
+import { GroupHistoryRecord, HistoryAction } from '@/app/lib/groups'
 import { FiPlus, FiEdit, FiTrash2, FiCheckCircle, FiDollarSign, FiClock } from 'react-icons/fi'
 
 interface HistoryItemProps {

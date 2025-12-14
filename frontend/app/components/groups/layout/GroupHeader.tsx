@@ -2,7 +2,7 @@
 
 'use client'
 
-import { GroupWithDetails } from '@/app/api/groups/route'
+import { GroupWithDetails } from '@/app/lib/groups'
 import { StatusBadge } from '../shared/StatusBadge'
 import { formatDate, formatCurrency, daysBetween } from '@/app/lib/helpers/utils'
 import { FiCalendar, FiDollarSign, FiEdit, FiTrash2, FiUsers } from 'react-icons/fi'

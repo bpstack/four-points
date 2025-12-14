@@ -1,18 +1,12 @@
-// app/api/departments/route.ts
+// app/lib/departments/queries.ts
 // ✅ USA apiClient con auto-refresh automático
 
 import apiClient from '@/app/lib/apiClient'
+import type { Department } from './types'
 
 const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:4000/api'
 
-// =============== TIPOS ===============
-
-export interface Department {
-  id: number
-  name: string
-}
-
-// =============== FUNCIONES DE API ===============
+// =============== API CLIENT ===============
 
 export const departmentsApi = {
   /**

@@ -1,8 +1,7 @@
 // app/lib/schemas/group-schemas.ts
 
 import { z } from 'zod'
-import { RoomType, RoomingStatus, BalanceStatus } from '@/app/api/groups/route'
-import { GroupStatus } from '@/app/api/groups/route'
+import { RoomType, RoomingStatus, BalanceStatus, GroupStatus } from '@/app/lib/groups'
 
 // ========================================
 // PAYMENT SCHEMAS

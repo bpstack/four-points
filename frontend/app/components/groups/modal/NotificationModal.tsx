@@ -4,7 +4,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { FiBell, FiX, FiCalendar, FiClock } from 'react-icons/fi'
-import { groupsApi } from '@/app/api/notifications/route'
+import { groupsApi, type CreateNotificationDTO, NotificationPriority } from '@/app/lib/groups'
 import SimpleCalendarCompact from '@/app/ui/calendar/SimpleCalendarCompact'
 import TimePicker from '@/app/ui/calendar/timepicker'
 
@@ -80,10 +80,10 @@ export function NotificationModal({ isOpen, onClose, groupId, groupName }: Notif
     setError(null)
 
     try {
-      const data: Record<string, string> = {
+      const data: CreateNotificationDTO = {
         title,
         message,
-        priority,
+        priority: priority as NotificationPriority,
       }
 
       // Construir scheduled_for si es programada

@@ -4,10 +4,9 @@
 
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { groupsApi } from '@/app/api/groups/route'
+import { groupsApi, type GroupWithDetails } from '@/app/lib/groups'
 import { GroupDetailClient } from '@/app/components/groups/GroupDetailClient'
 import { LoadingSpinner } from '@/app/components/groups/shared/LoadingSpinner'
-import type { GroupWithDetails } from '@/app/api/groups/route'
 
 export default function GroupDetailPage() {
   const params = useParams()

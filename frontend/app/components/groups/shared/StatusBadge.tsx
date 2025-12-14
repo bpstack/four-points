@@ -1,6 +1,6 @@
 // app/components/groups/shared/StatusBadge.tsx
 
-import { GroupStatus } from '@/app/api/groups/route'
+import { GroupStatus } from '@/app/lib/groups'
 
 interface StatusBadgeProps {
   status: GroupStatus

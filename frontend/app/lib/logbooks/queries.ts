@@ -1,11 +1,13 @@
-// app/api/logbooks/route.ts
+// app/lib/logbooks/queries.ts
+// ✅ USA apiClient con auto-refresh automático
 
 import apiClient from '@/app/lib/apiClient'
-import type { LogbookEntry, LogbookComment } from '@/app/lib/logbooks/types'
+import type { LogbookEntry, LogbookComment } from './types'
 
 const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:4000/api'
 
-// Funciones para logbooks (sin redefinir los tipos)
+// =============== LOGBOOKS API ===============
+
 export const logbooksApi = {
   // Obtener todos los logbooks
   getAllLogbooks: async () => {

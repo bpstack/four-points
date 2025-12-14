@@ -5,7 +5,7 @@
 
 'use client'
 
-import { GroupContact } from '@/app/api/groups/route'
+import { GroupContact } from '@/app/lib/groups'
 import { FiMail, FiPhone, FiEdit, FiStar, FiUser } from 'react-icons/fi'
 
 interface ContactCardProps {

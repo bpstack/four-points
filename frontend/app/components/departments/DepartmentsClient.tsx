@@ -4,7 +4,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { FiPlus, FiEdit2, FiTrash2 } from 'react-icons/fi'
 import { toast } from 'react-hot-toast'
-import { departmentsApi } from '@/app/api/departments/route'
+import { departmentsApi } from '@/app/lib/departments'
 import { formatDepartmentName } from '@/app/lib/logbooks/hooks/useDepartments'
 import AddDepartmentModal from './AddDepartmentModal'
 import EditDepartmentModal from './EditDepartmentModal'

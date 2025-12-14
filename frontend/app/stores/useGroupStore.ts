@@ -1,14 +1,14 @@
 // app/stores/useGroupStore.ts
 
 import { create } from 'zustand'
-import { groupsApi } from '@/app/api/groups/route'
+import { groupsApi } from '@/app/lib/groups'
 import type {
   GroupWithDetails,
   GroupPayment,
   GroupContact,
   GroupRoom,
   GroupStatusRecord,
-} from '@/app/api/groups/route'
+} from '@/app/lib/groups'
 
 interface GroupStore {
   // ========================================

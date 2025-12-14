@@ -1,7 +1,7 @@
 // app/components/conciliation/ConciliationTable.tsx
 
 import { FiFileText } from 'react-icons/fi'
-import { EntryForm } from '@/app/api/conciliation/route'
+import type { EntryForm } from '@/app/lib/conciliation'
 
 interface ReasonConfig {
   label: string

@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { FiCalendar } from 'react-icons/fi'
-import { conciliationApi, ConciliationDetail } from '@/app/api/conciliation/route'
+import { conciliationApi, type ConciliationDetail } from '@/app/lib/conciliation'
 
 interface MonthlySummaryItem {
   reason: string

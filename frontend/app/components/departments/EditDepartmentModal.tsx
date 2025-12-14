@@ -4,7 +4,7 @@
 import { useState } from 'react'
 import { FiX, FiSave } from 'react-icons/fi'
 import { toast } from 'react-hot-toast'
-import { departmentsApi } from '@/app/api/departments/route'
+import { departmentsApi } from '@/app/lib/departments'
 import type { EditDepartmentModalProps } from './types'
 
 export default function EditDepartmentModal({

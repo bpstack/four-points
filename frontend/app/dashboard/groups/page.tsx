@@ -4,7 +4,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { groupsApi, Group, GroupStatus } from '@/app/api/groups/route'
+import { groupsApi, Group, GroupStatus } from '@/app/lib/groups'
 import { CreateGroupPanel } from '@/app/components/groups/panels/CreateGroupPanel'
 import { FiPlus, FiSearch, FiCalendar, FiDollarSign, FiEye, FiUser } from 'react-icons/fi'
 

@@ -210,7 +210,7 @@ export default function LogbooksList({
     if (loadingReaders[entryId]) return
     setLoadingReaders((prev) => ({ ...prev, [entryId]: true }))
     try {
-      const { logbooksApi } = await import('@/app/api/logbooks/route')
+      const { logbooksApi } = await import('@/app/lib/logbooks')
       const readers = await logbooksApi.getReaders(entryId)
       setReadByUsers((prev) => ({ ...prev, [entryId]: readers }))
     } catch (error) {
@@ -263,7 +263,7 @@ export default function LogbooksList({
 
     setIsEditSubmitting(true)
     try {
-      const { logbooksApi } = await import('@/app/api/logbooks/route')
+      const { logbooksApi } = await import('@/app/lib/logbooks')
       await logbooksApi.updateLogbook(editModalOpen!, {
         message: editMessage.trim(),
         importance_level: editPriority,
@@ -330,7 +330,7 @@ export default function LogbooksList({
 
     setIsSubmitting(true)
     try {
-      const { logbooksApi } = await import('@/app/api/logbooks/route')
+      const { logbooksApi } = await import('@/app/lib/logbooks')
       await logbooksApi.comments.createComment(entryId, {
         comment: commentText.trim(),
         department_id: deptId,
@@ -388,7 +388,7 @@ export default function LogbooksList({
 
     setIsEditCommentSubmitting(true)
     try {
-      const { logbooksApi } = await import('@/app/api/logbooks/route')
+      const { logbooksApi } = await import('@/app/lib/logbooks')
       await logbooksApi.comments.updateComment(
         editCommentModalOpen!.entryId,
         editCommentModalOpen!.commentId,
@@ -438,7 +438,7 @@ export default function LogbooksList({
 
   const handleToggleStatus = async (entryId: number, currentStatus: string) => {
     try {
-      const { logbooksApi } = await import('@/app/api/logbooks/route')
+      const { logbooksApi } = await import('@/app/lib/logbooks')
 
       if (currentStatus === 'resolved') {
         await logbooksApi.markAsPending(entryId)
@@ -467,7 +467,7 @@ export default function LogbooksList({
     }
 
     try {
-      const { logbooksApi } = await import('@/app/api/logbooks/route')
+      const { logbooksApi } = await import('@/app/lib/logbooks')
       const currentReaders = readByUsers[entryId] || []
       const alreadyRead = currentReaders.some((reader) => reader.user_id === user.id)
 
@@ -500,7 +500,7 @@ export default function LogbooksList({
     if (!window.confirm('Estas seguro de que quieres eliminar esta entrada?')) return
 
     try {
-      const { logbooksApi } = await import('@/app/api/logbooks/route')
+      const { logbooksApi } = await import('@/app/lib/logbooks')
       await logbooksApi.deleteLogbook(entryId)
       setLocalEntries((prev) => prev.filter((e) => e.id !== entryId))
       toast.success('Entrada eliminada correctamente')
@@ -514,7 +514,7 @@ export default function LogbooksList({
     if (!window.confirm('Estas seguro de que quieres eliminar este comentario?')) return
 
     try {
-      const { logbooksApi } = await import('@/app/api/logbooks/route')
+      const { logbooksApi } = await import('@/app/lib/logbooks')
       await logbooksApi.comments.deleteComment(entryId, commentId)
       setLocalEntries((prev) =>
         prev.map((entry) => {

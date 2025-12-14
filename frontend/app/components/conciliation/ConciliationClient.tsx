@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { FiChevronLeft, FiChevronRight, FiCalendar, FiPlus } from 'react-icons/fi'
-import { conciliationApi, ConciliationDetail } from '@/app/api/conciliation/route'
+import { conciliationApi, type ConciliationDetail } from '@/app/lib/conciliation'
 import HorizontalDatePicker from '@/app/ui/calendar/HorizontalDatePicker'
 import ConciliationForm from './ConciliationForm'
 

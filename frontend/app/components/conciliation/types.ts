@@ -1,6 +1,6 @@
 // app/components/conciliation/types.ts
 
-import { ConciliationDetail } from '@/app/api/conciliation/route'
+import type { ConciliationDetail } from '@/app/lib/conciliation'
 
 export interface ConciliationFormProps {
   conciliation: ConciliationDetail | null

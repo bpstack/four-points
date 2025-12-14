@@ -2,7 +2,7 @@
 
 'use client'
 
-import { GroupStatusRecord, GroupPayment } from '@/app/api/groups/route'
+import { GroupStatusRecord, GroupPayment } from '@/app/lib/groups'
 import { useGroupStore } from '@/app/stores/useGroupStore'
 import { FiCheckCircle, FiCircle } from 'react-icons/fi'
 

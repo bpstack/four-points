@@ -1,44 +1,11 @@
-// app/api/users/route.ts
-// API routes para users
+// app/lib/users/queries.ts
+
+import type { User, LoginCredentials, RegisterData, UpdateUserData, AuthResponse } from './types'
 
 const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:4000'
 
-// Tipos
-export interface User {
-  id: string
-  username: string
-  email: string
-  role: 'admin' | 'recepcionist' | string
-  created_at?: string
-  updated_at?: string
-  deleted_at?: string | null
-}
+// =============== USERS API ===============
 
-export interface LoginCredentials {
-  username: string
-  password: string
-}
-
-export interface RegisterData {
-  username: string
-  email: string
-  password: string
-  role: string
-}
-
-export interface UpdateUserData {
-  username?: string
-  email?: string
-  role?: string
-}
-
-export interface AuthResponse {
-  accessToken: string
-  refreshToken?: string
-  user: User
-}
-
-// Funciones para users y auth
 export const usersApi = {
   // Obtener todos los usuarios
   getAllUsers: async () => {
@@ -134,7 +101,8 @@ export const usersApi = {
   },
 }
 
-// Funciones para autenticación
+// =============== AUTH API ===============
+
 export const authApi = {
   // Login
   login: async (credentials: LoginCredentials): Promise<AuthResponse> => {

@@ -2,7 +2,7 @@
 
 'use client'
 
-import { GroupRoom, RoomType } from '@/app/api/groups/route'
+import { GroupRoom, RoomType } from '@/app/lib/groups'
 import { FiEdit, FiUsers, FiFileText } from 'react-icons/fi'
 
 interface RoomCardProps {

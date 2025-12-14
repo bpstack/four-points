@@ -1,6 +1,6 @@
 // app/components/departments/types.ts
 
-import { Department } from '@/app/api/departments/route'
+import { Department } from '@/app/lib/departments'
 
 export interface FormattedDepartment extends Department {
   displayName: string

@@ -1,8 +1,7 @@
 // app/lib/logbooks/hooks/useDepartments.ts
 
 import { useState, useEffect, useCallback } from 'react'
-import { departmentsApi } from '@/app/api/departments/route'
-import type { Department } from '@/app/api/departments/route'
+import { departmentsApi, type Department } from '@/app/lib/departments'
 
 /**
  * Formatea el nombre del departamento para visualización

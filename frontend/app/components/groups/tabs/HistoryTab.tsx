@@ -4,7 +4,7 @@
 
 import { useEffect, useState } from 'react'
 import { useGroupStore } from '@/app/stores/useGroupStore'
-import { groupsApi, GroupHistoryRecord, HistoryAction } from '@/app/api/groups/route'
+import { groupsApi, GroupHistoryRecord, HistoryAction } from '@/app/lib/groups'
 import { HistoryItem } from '../history/HistoryItem'
 import { EmptyState } from '../shared/EmptyState'
 import { LoadingSpinner } from '../shared/LoadingSpinner'

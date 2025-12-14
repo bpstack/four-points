@@ -75,7 +75,7 @@ export default function DashboardHome() {
     async (period: 'today' | 'week' | 'month') => {
       setLoading(true)
       try {
-        const { logbooksApi } = await import('@/app/api/logbooks/route')
+        const { logbooksApi } = await import('@/app/lib/logbooks')
 
         let dates: string[] = []
         let startTimestamp: number

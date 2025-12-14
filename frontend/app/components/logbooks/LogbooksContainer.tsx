@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react'
 import { FiChevronLeft, FiChevronRight, FiCalendar, FiPlus } from 'react-icons/fi'
-import { logbooksApi } from '@/app/api/logbooks/route'
+import { logbooksApi } from '@/app/lib/logbooks'
 import { LogEntry, LogbookEntry } from '@/app/lib/logbooks/types'
 import { useDepartments } from '@/app/lib/logbooks/hooks/useDepartments'
 import { useAuth } from '@/app/lib/auth/useAuth'

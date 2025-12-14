@@ -5,18 +5,18 @@ import { useState, useEffect, useCallback } from 'react'
 import { FiAlertCircle } from 'react-icons/fi'
 import {
   conciliationApi,
-  ConciliationDetail,
-  ReceptionReason,
-  HousekeepingReason,
-  EntryForm,
-  FormData,
   RECEPTION_REASONS_ORDERED,
   HOUSEKEEPING_REASONS_ORDERED,
   RECEPTION_CONFIG,
   HOUSEKEEPING_CONFIG,
-  ReceptionEntryWithReason,
-  HousekeepingEntryWithReason,
-} from '@/app/api/conciliation/route'
+  type ConciliationDetail,
+  type ReceptionReason,
+  type HousekeepingReason,
+  type EntryForm,
+  type ConciliationFormData,
+  type ReceptionEntryWithReason,
+  type HousekeepingEntryWithReason,
+} from '@/app/lib/conciliation'
 import { useAuth } from '@/app/lib/auth/useAuth'
 import TotalsCards from './TotalsCards'
 import ConciliationTable from './ConciliationTable'
@@ -294,7 +294,7 @@ export default function ConciliationForm({
     if (!conciliation) return
     setSaving(true)
     try {
-      const formData: FormData = {
+      const formData: ConciliationFormData = {
         reception: RECEPTION_REASONS_ORDERED.map((reason) => ({
           reason,
           value: receptionForm[reason]?.value || 0,

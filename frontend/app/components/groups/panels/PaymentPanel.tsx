@@ -8,7 +8,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { paymentSchema, type PaymentFormData } from '@/app/lib/schemas/group-schemas'
 import { useGroupStore } from '@/app/stores/useGroupStore'
-import { groupsApi, type GroupPayment } from '@/app/api/groups/route'
+import { groupsApi, type GroupPayment, PaymentStatus } from '@/app/lib/groups'
 import { FiX, FiSave, FiCalendar, FiEdit2, FiTrash2 } from 'react-icons/fi'
 import SimpleCalendarCompact from '@/app/ui/calendar/SimpleCalendarCompact'
 import { formatDateForInput } from '@/app/lib/helpers/date'
@@ -166,7 +166,7 @@ export function PaymentPanel({
         amount: data.amount ?? undefined,
         amount_paid: data.amount_paid ?? 0,
         due_date: data.due_date,
-        status: data.status as 'pending' | 'requested' | 'partial' | 'paid',
+        status: data.status as PaymentStatus,
         notes: data.notes || undefined,
       }
 

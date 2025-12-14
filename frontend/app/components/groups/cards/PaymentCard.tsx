@@ -2,7 +2,7 @@
 
 'use client'
 
-import { GroupPayment, PaymentStatus } from '@/app/api/groups/route'
+import { GroupPayment, PaymentStatus } from '@/app/lib/groups'
 import { formatCurrency, formatDate, daysUntil } from '@/app/lib/helpers/utils'
 import { cn } from '@/app/lib/helpers/utils'
 import { useGroupStore } from '@/app/stores/useGroupStore'

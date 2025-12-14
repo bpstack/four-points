@@ -15,7 +15,7 @@
 import { useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useGroupStore } from '@/app/stores/useGroupStore'
-import { GroupWithDetails } from '@/app/api/groups/route'
+import { GroupWithDetails } from '@/app/lib/groups'
 import { GroupHeader } from './layout/GroupHeader'
 import { TabNavigation } from './layout/TabNavigation'
 import { OverviewTab } from './tabs/OverviewTab'

@@ -8,7 +8,7 @@ import { useForm, type Resolver } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { contactSchema, type ContactFormData } from '@/app/lib/schemas/group-schemas'
 import { useGroupStore } from '@/app/stores/useGroupStore'
-import { groupsApi, type GroupContact } from '@/app/api/groups/route'
+import { groupsApi, type GroupContact } from '@/app/lib/groups'
 import { FiX, FiSave } from 'react-icons/fi'
 import toast from 'react-hot-toast'
 

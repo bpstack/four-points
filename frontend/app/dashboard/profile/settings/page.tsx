@@ -7,7 +7,7 @@ import { apiClient } from '@/app/lib/apiClient'
 import { useAuth } from '@/app/lib/auth/useAuth'
 import NewUserModal from '@/app/components/auth/NewUserModal'
 import { UsersTableSkeleton } from '@/app/ui/skeletons'
-import { notificationsApi } from '@/app/api/notifications/route'
+import { notificationsApi } from '@/app/lib/groups'
 
 import {
   FiUsers,
