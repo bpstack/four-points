@@ -20,12 +20,10 @@ export default function ProfileDropdown() {
   const router = useRouter()
 
   const { user, logout } = useAuth()
-  const { unreadCount } = useNotifications() // ← AÑADIR
-
-  // ⚠️ Si no hay usuario, no renderizar nada
-  if (!user) return null
+  const { unreadCount } = useNotifications()
 
   // Cerrar dropdown al hacer click fuera
+  // IMPORTANTE: useEffect debe estar ANTES de cualquier return condicional
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -41,6 +39,9 @@ export default function ProfileDropdown() {
       document.removeEventListener('mousedown', handleClickOutside)
     }
   }, [isOpen])
+
+  // Si no hay usuario, no renderizar nada (DESPUES de todos los hooks)
+  if (!user) return null
 
   const handleLogout = async () => {
     await logout()
