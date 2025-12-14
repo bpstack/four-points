@@ -1,5 +1,4 @@
-// app/api/parking/routes.ts
-// ✅ SOLO funciones de API y tipos TypeScript - SIN JSX
+// app/lib/parking/queries.ts
 
 import apiClient from '@/app/lib/apiClient'
 import type {

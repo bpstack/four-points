@@ -3,7 +3,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { parkingApi } from '@/app/api/parking/routes'
+import { parkingApi } from '@/app/lib/parking'
 import { toast } from 'react-hot-toast'
 import type {
   ParkingBooking,

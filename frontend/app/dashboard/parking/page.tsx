@@ -105,7 +105,7 @@ export default function ParkingDashboard() {
       setLoading(true)
       setError(null)
 
-      const { parkingApi } = await import('@/app/api/parking/routes')
+      const { parkingApi } = await import('@/app/lib/parking')
 
       if (selectedPeriod === 'today') {
         // ✅ NO date parameter - backend uses getTodayMadrid()

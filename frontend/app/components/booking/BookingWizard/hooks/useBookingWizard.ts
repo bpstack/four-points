@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from 'react'
 import { toast } from 'react-hot-toast'
-import { parkingApi } from '@/app/api/parking/routes'
+import { parkingApi } from '@/app/lib/parking'
 import type {
   BookingWizardState,
   BookingWizardActions,

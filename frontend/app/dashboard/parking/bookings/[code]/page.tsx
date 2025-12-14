@@ -6,7 +6,7 @@
 
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { parkingApi } from '@/app/api/parking/routes'
+import { parkingApi } from '@/app/lib/parking'
 import { ParkingBooking } from '@/app/lib/parking/types'
 import { toast } from 'react-hot-toast'
 import Link from 'next/link'
