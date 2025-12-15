@@ -19,7 +19,7 @@ const isDev = process.env.NODE_ENV === 'development'
 
 const API_BASE = isDev
   ? 'http://localhost:4000/api/auth'
-  : 'https://api.four-points.stackbp.es/api/auth'
+  : `${process.env.NEXT_PUBLIC_API_URL || 'https://four-points.onrender.com'}/api/auth`
 
 export const authLogin = {
   login: async (username: string, password: string) => {
