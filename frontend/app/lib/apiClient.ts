@@ -20,9 +20,7 @@ interface FetchOptions extends RequestInit {
 const isDev = process.env.NODE_ENV === 'development'
 const isClient = typeof window !== 'undefined'
 
-const API_BASE_URL = isDev
-  ? 'http://localhost:4000'
-  : 'https://api.four-points.stackbp.es'
+const API_BASE_URL = isDev ? 'http://localhost:4000' : 'https://api.four-points.stackbp.es'
 
 // Cola para manejar refresh concurrente
 let isRefreshing = false
@@ -107,13 +105,7 @@ async function fetchWithRefresh(url: string, options: FetchOptions = {}): Promis
     url.includes('/auth/register')
 
   // Auto-refresh cuando recibimos 401
-  if (
-    isClient &&
-    response.status === 401 &&
-    !skipRefresh &&
-    !isAuthRoute &&
-    hasRefreshToken()
-  ) {
+  if (isClient && response.status === 401 && !skipRefresh && !isAuthRoute && hasRefreshToken()) {
     console.log('[apiClient] 🔄 Token expirado, intentando refresh...')
 
     // Si ya hay refresh en curso, encolar este request
@@ -143,7 +135,8 @@ async function fetchWithRefresh(url: string, options: FetchOptions = {}): Promis
       if (isDev) {
         const refreshToken = localStorage.getItem('refresh_token')
         if (!refreshToken) throw new Error('No refresh token')
-        ;(refreshOptions.headers as Record<string, string>)['Authorization'] = `Bearer ${refreshToken}`
+        ;(refreshOptions.headers as Record<string, string>)['Authorization'] =
+          `Bearer ${refreshToken}`
       }
 
       const refreshResponse = await fetch(refreshUrl, refreshOptions)
@@ -182,7 +175,6 @@ async function fetchWithRefresh(url: string, options: FetchOptions = {}): Promis
       console.log('[apiClient] Reintentando request original...')
       response = await fetch(url, retryOptions)
       console.log(`[apiClient] Reintento: ${response.status}`)
-
     } catch (error) {
       console.error('[apiClient] ❌ Error en refresh:', error)
       isRefreshing = false
@@ -203,12 +195,7 @@ async function fetchWithRefresh(url: string, options: FetchOptions = {}): Promis
 
       throw error
     }
-  } else if (
-    isClient &&
-    response.status === 401 &&
-    !skipRefresh &&
-    !isAuthRoute
-  ) {
+  } else if (isClient && response.status === 401 && !skipRefresh && !isAuthRoute) {
     console.log('[apiClient] ❌ 401 sin posibilidad de refresh')
 
     if (isDev) {

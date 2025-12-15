@@ -36,13 +36,13 @@
 
 ### Ventajas de esta arquitectura
 
-| Beneficio | Descripción |
-|-----------|-------------|
-| **Sin CORS complicado** | Subdominios del mismo dominio |
+| Beneficio               | Descripción                                        |
+| ----------------------- | -------------------------------------------------- |
+| **Sin CORS complicado** | Subdominios del mismo dominio                      |
 | **Cookies compartidas** | `domain=.four-points.stackbp.es` funciona en ambos |
-| **HttpOnly seguro** | JavaScript no puede leer los tokens |
-| **Sin proxies** | Frontend llama directamente al backend |
-| **Safari compatible** | No hay problemas de third-party cookies |
+| **HttpOnly seguro**     | JavaScript no puede leer los tokens                |
+| **Sin proxies**         | Frontend llama directamente al backend             |
+| **Safari compatible**   | No hay problemas de third-party cookies            |
 
 ---
 
@@ -74,8 +74,8 @@ api.four-points.stackbp.es  →  CNAME  →  four-points-backend.onrender.com
 ### Duración (backend/services/auth/tokenService.ts)
 
 ```typescript
-const ACCESS_TOKEN_EXPIRY = '15m'  // 15 minutos
-const REFRESH_TOKEN_EXPIRY = '7d'  // 7 días
+const ACCESS_TOKEN_EXPIRY = '15m' // 15 minutos
+const REFRESH_TOKEN_EXPIRY = '7d' // 7 días
 ```
 
 ### Cookies (backend/controllers/auth/auth-controllers.ts)
@@ -84,10 +84,10 @@ const REFRESH_TOKEN_EXPIRY = '7d'  // 7 días
 const COOKIE_DOMAIN = '.four-points.stackbp.es'
 
 const cookieOptions = {
-  httpOnly: true,                    // JS no puede leer
-  secure: true,                      // Solo HTTPS
-  sameSite: 'lax',                   // Protección CSRF
-  domain: COOKIE_DOMAIN,             // Compartida entre subdominios
+  httpOnly: true, // JS no puede leer
+  secure: true, // Solo HTTPS
+  sameSite: 'lax', // Protección CSRF
+  domain: COOKIE_DOMAIN, // Compartida entre subdominios
   path: '/',
 }
 ```
@@ -126,21 +126,21 @@ SECRET_JWT_KEY=tu-clave-secreta-minimo-32-caracteres
 
 ### Frontend
 
-| Archivo | Propósito |
-|---------|-----------|
-| `app/lib/apiClient.ts` | Cliente HTTP con auto-refresh |
-| `app/lib/auth/authService.ts` | Login/logout/me |
-| `app/lib/auth/useAuth.tsx` | React Context de auth |
+| Archivo                       | Propósito                     |
+| ----------------------------- | ----------------------------- |
+| `app/lib/apiClient.ts`        | Cliente HTTP con auto-refresh |
+| `app/lib/auth/authService.ts` | Login/logout/me               |
+| `app/lib/auth/useAuth.tsx`    | React Context de auth         |
 
 ### Backend
 
-| Archivo | Propósito |
-|---------|-----------|
-| `controllers/auth/auth-controllers.ts` | Login, refresh, logout, me |
-| `services/auth/tokenService.ts` | Generar/verificar JWT |
-| `middlewares/authenticateToken.ts` | Verificar token en requests |
-| `middlewares/roleCheck.ts` | Verificar roles |
-| `index.ts` | CORS configuración |
+| Archivo                                | Propósito                   |
+| -------------------------------------- | --------------------------- |
+| `controllers/auth/auth-controllers.ts` | Login, refresh, logout, me  |
+| `services/auth/tokenService.ts`        | Generar/verificar JWT       |
+| `middlewares/authenticateToken.ts`     | Verificar token en requests |
+| `middlewares/roleCheck.ts`             | Verificar roles             |
+| `index.ts`                             | CORS configuración          |
 
 ---
 
@@ -219,12 +219,12 @@ SECRET_JWT_KEY=tu-clave-secreta-minimo-32-caracteres
 
 ### Roles Disponibles
 
-| ID | Nombre | Acceso |
-|----|--------|--------|
-| 1 | recepcionista | Todo excepto admin y grupos |
-| 2 | admin | Todo |
-| 3 | mantenimiento | **SOLO** /api/maintenance |
-| 6 | group-admin | Todo excepto admin |
+| ID  | Nombre        | Acceso                      |
+| --- | ------------- | --------------------------- |
+| 1   | recepcionista | Todo excepto admin y grupos |
+| 2   | admin         | Todo                        |
+| 3   | mantenimiento | **SOLO** /api/maintenance   |
+| 6   | group-admin   | Todo excepto admin          |
 
 ### Restricción del Rol Mantenimiento
 
@@ -235,7 +235,7 @@ El rol `mantenimiento` solo puede acceder a `/api/maintenance`. Todas las demás
 export const excludeMantenimiento = (req, res, next) => {
   if (req.user.role === 'mantenimiento') {
     return res.status(403).json({
-      error: 'Tu rol solo tiene acceso al módulo de mantenimiento'
+      error: 'Tu rol solo tiene acceso al módulo de mantenimiento',
     })
   }
   next()
@@ -244,18 +244,18 @@ export const excludeMantenimiento = (req, res, next) => {
 
 ### Rutas Protegidas
 
-| Módulo | Middleware |
-|--------|------------|
-| /api/logbook | authenticateToken + excludeMantenimiento |
-| /api/blacklist | authenticateToken + excludeMantenimiento |
-| /api/parking | authenticateToken + excludeMantenimiento |
-| /api/cashier | authenticateToken + excludeMantenimiento |
-| /api/conciliation | authenticateToken + excludeMantenimiento |
-| /api/departments | authenticateToken + excludeMantenimiento |
-| /api/groups | authenticateToken + canManageGroups |
-| /api/notifications | authenticateToken + canViewGroups |
-| /api/maintenance | authenticateToken + canAccessMaintenance |
-| /api/auth/users | authenticateToken + isAdmin |
+| Módulo             | Middleware                               |
+| ------------------ | ---------------------------------------- |
+| /api/logbook       | authenticateToken + excludeMantenimiento |
+| /api/blacklist     | authenticateToken + excludeMantenimiento |
+| /api/parking       | authenticateToken + excludeMantenimiento |
+| /api/cashier       | authenticateToken + excludeMantenimiento |
+| /api/conciliation  | authenticateToken + excludeMantenimiento |
+| /api/departments   | authenticateToken + excludeMantenimiento |
+| /api/groups        | authenticateToken + canManageGroups      |
+| /api/notifications | authenticateToken + canViewGroups        |
+| /api/maintenance   | authenticateToken + canAccessMaintenance |
+| /api/auth/users    | authenticateToken + isAdmin              |
 
 ---
 
@@ -341,6 +341,7 @@ export const excludeMantenimiento = (req, res, next) => {
 **Síntoma**: 401 en todas las requests después de login
 
 **Verificar**:
+
 1. DNS configurado correctamente
 2. HTTPS activo en ambos subdominios
 3. `credentials: 'include'` en fetch
@@ -351,6 +352,7 @@ export const excludeMantenimiento = (req, res, next) => {
 **Síntoma**: `Access-Control-Allow-Origin` error en consola
 
 **Verificar**:
+
 1. `https://four-points.stackbp.es` está en `allowedOrigins` del backend
 2. Backend desplegado con los cambios
 
@@ -359,6 +361,7 @@ export const excludeMantenimiento = (req, res, next) => {
 **Síntoma**: Múltiples requests a `/refresh-token`
 
 **Verificar**:
+
 1. El endpoint `/api/auth/refresh-token` funciona
 2. `skipRefresh: true` se pasa en el reintento
 3. Cola de requests (`failedQueue`) se procesa correctamente
@@ -368,6 +371,7 @@ export const excludeMantenimiento = (req, res, next) => {
 **Síntoma**: Login OK, pero inmediatamente dice "no autenticado"
 
 **Verificar**:
+
 1. Cookie se configuró con el dominio correcto
 2. El navegador no está bloqueando cookies
 3. Probar en modo incógnito
@@ -377,11 +381,13 @@ export const excludeMantenimiento = (req, res, next) => {
 ## Desarrollo Local
 
 En desarrollo, el sistema usa:
+
 - Backend: `http://localhost:4000`
 - Tokens en `localStorage` (más fácil para debugging)
 - Cookies sin `domain` (solo localhost)
 
 Para probar producción localmente:
+
 ```bash
 # Backend
 NODE_ENV=production pnpm dev
