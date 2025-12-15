@@ -37,6 +37,7 @@ const allowedOrigins = [
   'https://four-points.stackbp.es',
   'https://four-points.vercel.app',
   'https://api.four-points.stackbp.es',
+  'https://four-points.onrender.com',
   process.env.FRONTEND_URL, // URL adicional si es necesario
 ].filter(Boolean) as string[]
 
