@@ -35,6 +35,7 @@ app.disable('x-powered-by')
 const allowedOrigins = [
   'http://localhost:3000',
   'https://four-points.stackbp.es',
+  'https://four-points.vercel.app',
   process.env.FRONTEND_URL, // URL adicional si es necesario
 ].filter(Boolean) as string[]
 
