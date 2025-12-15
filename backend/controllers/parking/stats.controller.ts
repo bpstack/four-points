@@ -118,9 +118,7 @@ class ParkingStatsController {
         return
       }
 
-      const occupancy = await ParkingStatsRepository.getOccupancyByLevel(
-        targetDate
-      )
+      const occupancy = await ParkingStatsRepository.getOccupancyByLevel(targetDate)
 
       res.status(200).json({
         success: true,
@@ -291,9 +289,7 @@ class ParkingStatsController {
         return
       }
 
-      const availability = await ParkingStatsRepository.getAvailabilityByLevel(
-        targetDate
-      )
+      const availability = await ParkingStatsRepository.getAvailabilityByLevel(targetDate)
 
       res.status(200).json({
         success: true,
@@ -358,23 +354,35 @@ class ParkingStatsController {
         ])
 
         // Calcular promedios de ocupación para cada nivel
-        const occupancyWithAverages: OccupancyWithAverage[] = occupancyResult.data.map(level => ({
+        const occupancyWithAverages: OccupancyWithAverage[] = occupancyResult.data.map((level) => ({
           ...level,
-          occupancy_rate: level.total_spots > 0 
-            ? parseFloat((level.total_occupied / (level.total_spots * days) * 100).toFixed(1))
-            : 0,
-          average_daily_occupied: parseFloat((level.total_occupied / days).toFixed(1))
+          occupancy_rate:
+            level.total_spots > 0
+              ? parseFloat(((level.total_occupied / (level.total_spots * days)) * 100).toFixed(1))
+              : 0,
+          average_daily_occupied: parseFloat((level.total_occupied / days).toFixed(1)),
         }))
 
         // Calcular estadísticas con promedios
         const adjustedStats = {
           ...statsResult.stats,
           // Recalcular occupancy_rate como promedio diario
-          occupancy_rate: statsResult.stats.total_spots > 0
-            ? parseFloat((statsResult.stats.total_occupied / (statsResult.stats.total_spots * days) * 100).toFixed(1))
-            : 0,
+          occupancy_rate:
+            statsResult.stats.total_spots > 0
+              ? parseFloat(
+                  (
+                    (statsResult.stats.total_occupied / (statsResult.stats.total_spots * days)) *
+                    100
+                  ).toFixed(1)
+                )
+              : 0,
           average_daily_occupied: parseFloat((statsResult.stats.total_occupied / days).toFixed(1)),
-          calculation_period: days === 7 ? 'weekly_average' : days === 30 ? 'monthly_average' : `${days}_days_average`
+          calculation_period:
+            days === 7
+              ? 'weekly_average'
+              : days === 30
+                ? 'monthly_average'
+                : `${days}_days_average`,
         }
 
         res.status(200).json({
@@ -413,19 +421,15 @@ class ParkingStatsController {
       const formattedDate = targetDate.toISOString().split('T')[0]
 
       // Ejecutar todas las consultas en paralelo para un día
-      const [
-        stats,
-        occupancy,
-        pendingCheckins,
-        pendingCheckouts,
-        availability,
-      ] = await Promise.all([
-        ParkingStatsRepository.getDailyStats(targetDate),
-        ParkingStatsRepository.getOccupancyByLevel(targetDate),
-        ParkingStatsRepository.getPendingCheckins(targetDate),
-        ParkingStatsRepository.getPendingCheckouts(targetDate),
-        ParkingStatsRepository.getAvailabilityByLevel(targetDate),
-      ])
+      const [stats, occupancy, pendingCheckins, pendingCheckouts, availability] = await Promise.all(
+        [
+          ParkingStatsRepository.getDailyStats(targetDate),
+          ParkingStatsRepository.getOccupancyByLevel(targetDate),
+          ParkingStatsRepository.getPendingCheckins(targetDate),
+          ParkingStatsRepository.getPendingCheckouts(targetDate),
+          ParkingStatsRepository.getAvailabilityByLevel(targetDate),
+        ]
+      )
 
       res.status(200).json({
         success: true,
@@ -567,24 +571,33 @@ class ParkingStatsController {
       )
 
       // Calcular promedios de ocupación
-      const occupancyWithAverages = result.data.map(level => ({
+      const occupancyWithAverages = result.data.map((level) => ({
         ...level,
-        occupancy_rate: level.total_spots > 0 
-          ? parseFloat((level.total_occupied / (level.total_spots * daysInRange) * 100).toFixed(1))
-          : 0,
-        average_daily_occupied: parseFloat((level.total_occupied / daysInRange).toFixed(1))
+        occupancy_rate:
+          level.total_spots > 0
+            ? parseFloat(
+                ((level.total_occupied / (level.total_spots * daysInRange)) * 100).toFixed(1)
+              )
+            : 0,
+        average_daily_occupied: parseFloat((level.total_occupied / daysInRange).toFixed(1)),
       }))
 
       // Calcular totales y promedios generales
-      const totals = occupancyWithAverages.reduce((acc, level) => ({
-        total_spots: acc.total_spots + level.total_spots,
-        total_occupied_sum: acc.total_occupied_sum + level.total_occupied,
-        total_available: acc.total_available + level.available
-      }), { total_spots: 0, total_occupied_sum: 0, total_available: 0 })
+      const totals = occupancyWithAverages.reduce(
+        (acc, level) => ({
+          total_spots: acc.total_spots + level.total_spots,
+          total_occupied_sum: acc.total_occupied_sum + level.total_occupied,
+          total_available: acc.total_available + level.available,
+        }),
+        { total_spots: 0, total_occupied_sum: 0, total_available: 0 }
+      )
 
-      const averageOccupancyRate = totals.total_spots > 0
-        ? parseFloat((totals.total_occupied_sum / (totals.total_spots * daysInRange) * 100).toFixed(1))
-        : 0
+      const averageOccupancyRate =
+        totals.total_spots > 0
+          ? parseFloat(
+              ((totals.total_occupied_sum / (totals.total_spots * daysInRange)) * 100).toFixed(1)
+            )
+          : 0
 
       res.status(200).json({
         success: true,
@@ -598,8 +611,8 @@ class ParkingStatsController {
           average_occupancy_rate: averageOccupancyRate,
           average_daily_occupied: parseFloat((totals.total_occupied_sum / daysInRange).toFixed(1)),
           total_spots: totals.total_spots,
-          calculation_method: 'daily_average'
-        }
+          calculation_method: 'daily_average',
+        },
       })
     } catch (error) {
       console.error('Error en getOccupancyByRange:', error)

@@ -36,16 +36,8 @@ export class GroupRoomRepository {
   /**
    * Crear o actualizar habitación (UPSERT)
    */
-  static async createOrUpdate(
-    roomData: CreateGroupRoomDTO
-  ): Promise<ResultSetHeader> {
-    const {
-      group_id,
-      room_type,
-      quantity,
-      guests_per_room = 1,
-      notes,
-    } = roomData
+  static async createOrUpdate(roomData: CreateGroupRoomDTO): Promise<ResultSetHeader> {
+    const { group_id, room_type, quantity, guests_per_room = 1, notes } = roomData
 
     const query = `
       INSERT INTO group_rooms (group_id, room_type, quantity, guests_per_room, notes)
@@ -71,10 +63,7 @@ export class GroupRoomRepository {
   /**
    * Actualizar habitación
    */
-  static async update(
-    id: number,
-    roomData: UpdateGroupRoomDTO
-  ): Promise<boolean> {
+  static async update(id: number, roomData: UpdateGroupRoomDTO): Promise<boolean> {
     const fields: string[] = []
     const values: any[] = []
 
@@ -91,9 +80,7 @@ export class GroupRoomRepository {
 
     values.push(id)
 
-    const query = `UPDATE group_rooms SET ${fields.join(
-      ', '
-    )}, updated_at = NOW() WHERE id = ?`
+    const query = `UPDATE group_rooms SET ${fields.join(', ')}, updated_at = NOW() WHERE id = ?`
     const [result] = await db.query<ResultSetHeader>(query, values)
 
     return result.affectedRows > 0
@@ -103,10 +90,7 @@ export class GroupRoomRepository {
    * Eliminar habitación
    */
   static async delete(id: number): Promise<boolean> {
-    const [result] = await db.query<ResultSetHeader>(
-      'DELETE FROM group_rooms WHERE id = ?',
-      [id]
-    )
+    const [result] = await db.query<ResultSetHeader>('DELETE FROM group_rooms WHERE id = ?', [id])
     return result.affectedRows > 0
   }
 

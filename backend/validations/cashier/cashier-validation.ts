@@ -6,18 +6,8 @@ import { z } from 'zod'
 // ENUMS
 // ═══════════════════════════════════════════════════════
 
-export const ShiftTypeSchema = z.enum([
-  'night',
-  'morning',
-  'afternoon',
-  'closing',
-])
-export const ShiftStatusSchema = z.enum([
-  'open',
-  'in_progress',
-  'closed',
-  'audited',
-])
+export const ShiftTypeSchema = z.enum(['night', 'morning', 'afternoon', 'closing'])
+export const ShiftStatusSchema = z.enum(['open', 'in_progress', 'closed', 'audited'])
 export const HistoryActionSchema = z.enum([
   'created',
   'updated',
@@ -32,31 +22,20 @@ export const HistoryActionSchema = z.enum([
 // CONSTANTS
 // ═══════════════════════════════════════════════════════
 
-const VALID_DENOMINATIONS = [
-  200, 100, 50, 20, 10, 5, 2, 1, 0.5, 0.2, 0.1, 0.05, 0.02, 0.01,
-]
+const VALID_DENOMINATIONS = [200, 100, 50, 20, 10, 5, 2, 1, 0.5, 0.2, 0.1, 0.05, 0.02, 0.01]
 
 // ═══════════════════════════════════════════════════════
 // CREATE SHIFT
 // ═══════════════════════════════════════════════════════
 
 export const CreateShiftSchema = z.object({
-  shift_date: z
-    .string()
-    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Formato de fecha inválido (YYYY-MM-DD)'),
+  shift_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Formato de fecha inválido (YYYY-MM-DD)'),
   shift_type: ShiftTypeSchema,
   responsible1_id: z.string().uuid('ID de responsable principal inválido'),
-  responsible2_id: z
-    .string()
-    .uuid('ID de responsable secundario inválido')
-    .nullable()
-    .optional(),
+  responsible2_id: z.string().uuid('ID de responsable secundario inválido').nullable().optional(),
 
   initial_fund: z.number().min(0, 'Fondo inicial debe ser >= 0').default(200),
-  comments: z
-    .string()
-    .max(2000, 'Comentarios muy largos (máx 2000 caracteres)')
-    .optional(),
+  comments: z.string().max(2000, 'Comentarios muy largos (máx 2000 caracteres)').optional(),
 })
 
 // ═══════════════════════════════════════════════════════
@@ -64,21 +43,11 @@ export const CreateShiftSchema = z.object({
 // ═══════════════════════════════════════════════════════
 
 export const UpdateShiftSchema = z.object({
-  responsible1_id: z
-    .string()
-    .uuid('ID de responsable principal inválido')
-    .optional(),
-  responsible2_id: z
-    .string()
-    .uuid('ID de responsable secundario inválido')
-    .nullable()
-    .optional(),
+  responsible1_id: z.string().uuid('ID de responsable principal inválido').optional(),
+  responsible2_id: z.string().uuid('ID de responsable secundario inválido').nullable().optional(),
   initial_fund: z.number().min(0, 'Fondo inicial debe ser >= 0').optional(),
   income: z.number().min(0, 'Ingresos deben ser >= 0').optional(),
-  comments: z
-    .string()
-    .max(2000, 'Comentarios muy largos (máx 2000 caracteres)')
-    .optional(),
+  comments: z.string().max(2000, 'Comentarios muy largos (máx 2000 caracteres)').optional(),
 })
 
 // ═══════════════════════════════════════════════════════
@@ -92,10 +61,7 @@ export const CloseShiftSchema = z
     difference: z.number(),
     payments_total: z.number().min(0, 'Total pagos debe ser >= 0'),
     grand_total: z.number().min(0, 'Grand total debe ser >= 0'),
-    comments: z
-      .string()
-      .max(2000, 'Comentarios muy largos (máx 2000 caracteres)')
-      .optional(),
+    comments: z.string().max(2000, 'Comentarios muy largos (máx 2000 caracteres)').optional(),
   })
   .refine(
     (data) => {
@@ -119,10 +85,7 @@ export const DenominationSchema = z.object({
   denomination: z.number().refine((val) => VALID_DENOMINATIONS.includes(val), {
     message: 'Denominación no válida',
   }),
-  quantity: z
-    .number()
-    .int('Cantidad debe ser un número entero')
-    .min(0, 'Cantidad debe ser >= 0'),
+  quantity: z.number().int('Cantidad debe ser un número entero').min(0, 'Cantidad debe ser >= 0'),
 })
 
 export const CreateDenominationsSchema = z
@@ -138,9 +101,7 @@ export const PaymentSchema = z.object({
   amount: z.number().min(0, 'Monto debe ser >= 0'),
 })
 
-export const CreatePaymentsSchema = z
-  .array(PaymentSchema)
-  .max(10, 'Máximo 10 métodos de pago')
+export const CreatePaymentsSchema = z.array(PaymentSchema).max(10, 'Máximo 10 métodos de pago')
 
 // ═══════════════════════════════════════════════════════
 // VOUCHERS
@@ -170,10 +131,7 @@ export const CreateHistorySchema = z.object({
   field_changed: z.string().max(100).optional(),
   old_value: z.string().optional(),
   new_value: z.string().optional(),
-  notes: z
-    .string()
-    .max(2000, 'Notas muy largas (máx 2000 caracteres)')
-    .optional(),
+  notes: z.string().max(2000, 'Notas muy largas (máx 2000 caracteres)').optional(),
 })
 
 // ═══════════════════════════════════════════════════════
@@ -223,9 +181,7 @@ export const GetVouchersQuerySchema = z.object({
 })
 
 export const GetReportQuerySchema = z.object({
-  from_date: z
-    .string()
-    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Formato de fecha inválido'),
+  from_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Formato de fecha inválido'),
   to_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Formato de fecha inválido'),
 })
 

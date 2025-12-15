@@ -22,10 +22,7 @@ interface CustomError extends Error {
 // READ LOGBOOK
 // ============================================
 
-export async function readLogbookController(
-  req: Request,
-  res: Response
-): Promise<void> {
+export async function readLogbookController(req: Request, res: Response): Promise<void> {
   try {
     const { logbookId } = req.params
     const userId = req.user!.id
@@ -42,10 +39,7 @@ export async function readLogbookController(
 // UNREAD LOGBOOK
 // ============================================
 
-export async function unreadLogbookController(
-  req: Request,
-  res: Response
-): Promise<void> {
+export async function unreadLogbookController(req: Request, res: Response): Promise<void> {
   try {
     const { logbookId } = req.params
     const userId = req.user!.id
@@ -62,10 +56,7 @@ export async function unreadLogbookController(
 // SOLVE LOGBOOK
 // ============================================
 
-export async function solveLogbookController(
-  req: Request,
-  res: Response
-): Promise<void> {
+export async function solveLogbookController(req: Request, res: Response): Promise<void> {
   try {
     const { logbookId } = req.params
     const userId = req.user!.id
@@ -83,10 +74,7 @@ export async function solveLogbookController(
 // REOPEN LOGBOOK (mark as pending)
 // ============================================
 
-export async function reopenLogbookController(
-  req: Request,
-  res: Response
-): Promise<void> {
+export async function reopenLogbookController(req: Request, res: Response): Promise<void> {
   try {
     const { logbookId } = req.params
     const userId = req.user!.id
@@ -104,10 +92,7 @@ export async function reopenLogbookController(
 // GET LOGBOOK READERS
 // ============================================
 
-export async function getLogbookReadersController(
-  req: Request,
-  res: Response
-): Promise<void> {
+export async function getLogbookReadersController(req: Request, res: Response): Promise<void> {
   try {
     const { logbookId } = req.params
     const readers = await getUsersWhoReadLogbook(logbookId)
@@ -122,27 +107,20 @@ export async function getLogbookReadersController(
 // GET LOGBOOK SOLVER
 // ============================================
 
-export async function getLogbookSolvedController(
-  req: Request,
-  res: Response
-): Promise<void> {
+export async function getLogbookSolvedController(req: Request, res: Response): Promise<void> {
   try {
     const { logbookId } = req.params
 
     const id = Number(logbookId)
     if (!Number.isSafeInteger(id) || id <= 0) {
-      res
-        .status(400)
-        .json({ error: 'logbookId debe ser un entero positivo' })
+      res.status(400).json({ error: 'logbookId debe ser un entero positivo' })
       return
     }
 
     const solved = await getUsersWhoSolvedLogbook(id)
 
     if (solved.length === 0) {
-      res
-        .status(404)
-        .json({ error: 'Logbook no solucionado o inexistente' })
+      res.status(404).json({ error: 'Logbook no solucionado o inexistente' })
       return
     }
 

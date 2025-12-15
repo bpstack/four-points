@@ -111,13 +111,9 @@ export class CashierVoucherController {
       const voucherData = req.body
 
       // Verificar límite de 5 vales por turno
-      const canAdd = await CashierVoucherRepository.canAddVoucherToShift(
-        parseInt(shiftId)
-      )
+      const canAdd = await CashierVoucherRepository.canAddVoucherToShift(parseInt(shiftId))
       if (!canAdd) {
-        res
-          .status(400)
-          .json({ error: 'El turno ya tiene el máximo de 5 vales' })
+        res.status(400).json({ error: 'El turno ya tiene el máximo de 5 vales' })
         return
       }
 
@@ -125,10 +121,7 @@ export class CashierVoucherController {
       const voucher = await CashierVoucherRepository.create(voucherData)
 
       // Asociar con turno
-      await CashierVoucherRepository.associateWithShift(
-        voucher.id,
-        parseInt(shiftId)
-      )
+      await CashierVoucherRepository.associateWithShift(voucher.id, parseInt(shiftId))
 
       // Registrar en historial
       await CashierHistoryRepository.create({
@@ -156,10 +149,7 @@ export class CashierVoucherController {
       const { id } = req.params
       const updateData = req.body
 
-      const updated = await CashierVoucherRepository.update(
-        parseInt(id),
-        updateData
-      )
+      const updated = await CashierVoucherRepository.update(parseInt(id), updateData)
 
       const userId = req.user?.id
       if (userId) {
@@ -176,9 +166,7 @@ export class CashierVoucherController {
       res.json(updated)
     } catch (error: any) {
       console.error('Error al actualizar vale:', error)
-      res
-        .status(500)
-        .json({ error: error.message || 'Error al actualizar vale' })
+      res.status(500).json({ error: error.message || 'Error al actualizar vale' })
     }
   }
 
@@ -191,10 +179,7 @@ export class CashierVoucherController {
       const { id } = req.params
       const { shift_id } = req.body
 
-      const justified = await CashierVoucherRepository.justify(
-        parseInt(id),
-        shift_id
-      )
+      const justified = await CashierVoucherRepository.justify(parseInt(id), shift_id)
 
       const userId = req.user?.id
       if (userId) {
@@ -214,9 +199,7 @@ export class CashierVoucherController {
       res.json(justified)
     } catch (error: any) {
       console.error('Error al justificar vale:', error)
-      res
-        .status(500)
-        .json({ error: error.message || 'Error al justificar vale' })
+      res.status(500).json({ error: error.message || 'Error al justificar vale' })
     }
   }
 
@@ -277,10 +260,7 @@ export class CashierVoucherController {
     try {
       const { from_date, to_date } = req.query
 
-      const stats = await CashierVoucherRepository.getStats(
-        from_date as string,
-        to_date as string
-      )
+      const stats = await CashierVoucherRepository.getStats(from_date as string, to_date as string)
 
       res.json(stats)
     } catch (error) {

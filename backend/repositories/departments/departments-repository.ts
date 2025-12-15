@@ -128,10 +128,7 @@ export class DepartmentRepository {
         throw new Error('No hay campos para actualizar')
       }
 
-      await dbConnection.query(`UPDATE departments SET name = ? WHERE id = ?`, [
-        name,
-        id,
-      ])
+      await dbConnection.query(`UPDATE departments SET name = ? WHERE id = ?`, [name, id])
 
       await dbConnection.commit()
 
@@ -143,10 +140,7 @@ export class DepartmentRepository {
       console.error('Error en update:', error)
 
       const err = error as MySQLError
-      if (
-        err.message.includes('no encontrado') ||
-        err.message.includes('No hay campos')
-      ) {
+      if (err.message.includes('no encontrado') || err.message.includes('No hay campos')) {
         throw error
       }
 
@@ -165,10 +159,7 @@ export class DepartmentRepository {
    */
   static async delete(id: number | string): Promise<ResultSetHeader | null> {
     try {
-      const [result] = await db.query<ResultSetHeader>(
-        'DELETE FROM departments WHERE id = ?',
-        [id]
-      )
+      const [result] = await db.query<ResultSetHeader>('DELETE FROM departments WHERE id = ?', [id])
 
       if (result.affectedRows === 0) {
         return null
@@ -181,9 +172,7 @@ export class DepartmentRepository {
       const mysqlError = error as MySQLError
       // Si hay registros relacionados (FK constraint)
       if (mysqlError.code === 'ER_ROW_IS_REFERENCED_2') {
-        throw new Error(
-          'No se puede eliminar el departamento porque tiene registros asociados'
-        )
+        throw new Error('No se puede eliminar el departamento porque tiene registros asociados')
       }
 
       throw new Error('Error al eliminar el departamento: ' + (error as Error).message)

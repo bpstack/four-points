@@ -46,10 +46,7 @@ export class CashierShiftUserRepository {
   /**
    * Verificar si un usuario es responsable de un turno
    */
-  static async isUserInShift(
-    shiftId: number,
-    userId: string
-  ): Promise<boolean> {
+  static async isUserInShift(shiftId: number, userId: string): Promise<boolean> {
     const query = `
       SELECT COUNT(*) as count 
       FROM cashier_shift_users 
@@ -63,11 +60,7 @@ export class CashierShiftUserRepository {
   /**
    * Añadir responsable a un turno
    */
-  static async addUser(
-    shiftId: number,
-    userId: string,
-    isPrimary: boolean = false
-  ): Promise<void> {
+  static async addUser(shiftId: number, userId: string, isPrimary: boolean = false): Promise<void> {
     const query = `
       INSERT INTO cashier_shift_users (shift_id, user_id, is_primary)
       VALUES (?, ?, ?)
@@ -91,10 +84,7 @@ export class CashierShiftUserRepository {
       await connection.beginTransaction()
 
       // Eliminar responsables existentes
-      await connection.query(
-        'DELETE FROM cashier_shift_users WHERE shift_id = ?',
-        [shiftId]
-      )
+      await connection.query('DELETE FROM cashier_shift_users WHERE shift_id = ?', [shiftId])
 
       // Añadir responsable principal
       await connection.query(
@@ -124,19 +114,17 @@ export class CashierShiftUserRepository {
    * Eliminar responsable de un turno
    */
   static async removeUser(shiftId: number, userId: string): Promise<void> {
-    await db.query(
-      'DELETE FROM cashier_shift_users WHERE shift_id = ? AND user_id = ?',
-      [shiftId, userId]
-    )
+    await db.query('DELETE FROM cashier_shift_users WHERE shift_id = ? AND user_id = ?', [
+      shiftId,
+      userId,
+    ])
   }
 
   /**
    * Eliminar todos los responsables de un turno
    */
   static async removeAllUsers(shiftId: number): Promise<void> {
-    await db.query('DELETE FROM cashier_shift_users WHERE shift_id = ?', [
-      shiftId,
-    ])
+    await db.query('DELETE FROM cashier_shift_users WHERE shift_id = ?', [shiftId])
   }
 
   /**

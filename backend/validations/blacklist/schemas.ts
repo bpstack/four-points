@@ -28,10 +28,7 @@ export const createBlacklistSchema = z
       .string({ message: 'El nombre es obligatorio' })
       .min(3, 'El nombre debe tener al menos 3 caracteres')
       .max(255, 'El nombre no puede exceder 255 caracteres')
-      .regex(
-        /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/,
-        'El nombre solo puede contener letras y espacios'
-      )
+      .regex(/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/, 'El nombre solo puede contener letras y espacios')
       .trim(),
 
     document_type: documentTypeEnum,
@@ -40,10 +37,7 @@ export const createBlacklistSchema = z
       .string({ message: 'El número de documento es obligatorio' })
       .min(5, 'El documento debe tener al menos 5 caracteres')
       .max(20, 'El documento no puede exceder 20 caracteres')
-      .regex(
-        /^[A-Z0-9-]+$/i,
-        'El documento solo puede contener letras, números y guiones'
-      )
+      .regex(/^[A-Z0-9-]+$/i, 'El documento solo puede contener letras, números y guiones')
       .trim()
       .transform((val) => val.toUpperCase()),
 
@@ -77,13 +71,10 @@ export const createBlacklistSchema = z
       .optional()
       .default([]),
   })
-  .refine(
-    (data) => new Date(data.check_out_date) > new Date(data.check_in_date),
-    {
-      message: 'La fecha de salida debe ser posterior a la fecha de entrada',
-      path: ['check_out_date'],
-    }
-  )
+  .refine((data) => new Date(data.check_out_date) > new Date(data.check_in_date), {
+    message: 'La fecha de salida debe ser posterior a la fecha de entrada',
+    path: ['check_out_date'],
+  })
 
 // ========================================
 // SCHEMA: ACTUALIZAR ENTRADA
@@ -95,10 +86,7 @@ export const updateBlacklistSchema = z
       .string()
       .min(3, 'El nombre debe tener al menos 3 caracteres')
       .max(255, 'El nombre no puede exceder 255 caracteres')
-      .regex(
-        /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/,
-        'El nombre solo puede contener letras y espacios'
-      )
+      .regex(/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/, 'El nombre solo puede contener letras y espacios')
       .trim()
       .optional(),
 
@@ -108,10 +96,7 @@ export const updateBlacklistSchema = z
       .string()
       .min(5, 'El documento debe tener al menos 5 caracteres')
       .max(20, 'El documento no puede exceder 20 caracteres')
-      .regex(
-        /^[A-Z0-9-]+$/i,
-        'El documento solo puede contener letras, números y guiones'
-      )
+      .regex(/^[A-Z0-9-]+$/i, 'El documento solo puede contener letras, números y guiones')
       .trim()
       .transform((val) => val.toUpperCase())
       .optional(),
@@ -181,11 +166,7 @@ export const blacklistFiltersSchema = z.object({
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/, 'to_date debe tener formato YYYY-MM-DD')
     .optional(),
-  page: z.coerce
-    .number()
-    .int('page debe ser entero')
-    .positive('page debe ser positivo')
-    .default(1),
+  page: z.coerce.number().int('page debe ser entero').positive('page debe ser positivo').default(1),
   limit: z.coerce
     .number()
     .int('limit debe ser entero')

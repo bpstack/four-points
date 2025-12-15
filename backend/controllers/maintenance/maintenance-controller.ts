@@ -122,11 +122,7 @@ export class MaintenanceController {
 
       const data = parseResult.data
 
-      const report = await MaintenanceRepository.create(
-        data,
-        req.user.id,
-        req.user.username
-      )
+      const report = await MaintenanceRepository.create(data, req.user.id, req.user.username)
 
       res.status(201).json({
         message: 'Reporte creado correctamente',
@@ -173,12 +169,7 @@ export class MaintenanceController {
       const { id } = idResult.data
       const data = bodyResult.data
 
-      const report = await MaintenanceRepository.update(
-        id,
-        data,
-        req.user.id,
-        req.user.username
-      )
+      const report = await MaintenanceRepository.update(id, data, req.user.id, req.user.username)
 
       if (!report) {
         res.status(404).json({ error: 'Reporte no encontrado' })
@@ -462,11 +453,7 @@ export class MaintenanceController {
 
       const { id } = parseResult.data
 
-      const deleted = await MaintenanceRepository.delete(
-        id,
-        req.user.id,
-        req.user.username
-      )
+      const deleted = await MaintenanceRepository.delete(id, req.user.id, req.user.username)
 
       if (!deleted) {
         res.status(404).json({ error: 'Reporte no encontrado' })
@@ -511,11 +498,7 @@ export class MaintenanceController {
 
       const { id } = parseResult.data
 
-      const report = await MaintenanceRepository.restore(
-        id,
-        req.user.id,
-        req.user.username
-      )
+      const report = await MaintenanceRepository.restore(id, req.user.id, req.user.username)
 
       if (!report) {
         res.status(404).json({ error: 'Reporte no encontrado' })

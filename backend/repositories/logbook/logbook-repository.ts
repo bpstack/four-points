@@ -51,9 +51,7 @@ export async function createLogbook({
 // READ
 // ============================================
 
-export async function getById(
-  id: number | string
-): Promise<LogbookWithAuthor | undefined> {
+export async function getById(id: number | string): Promise<LogbookWithAuthor | undefined> {
   const [rows] = await db.execute<LogbookWithAuthor[]>(
     `SELECT 
       l.*,
@@ -98,9 +96,7 @@ export async function getLogbooksByDepartment(
   return rows
 }
 
-export async function getLogbooksByAuthor(
-  authorId: string
-): Promise<LogbookWithAuthor[]> {
+export async function getLogbooksByAuthor(authorId: string): Promise<LogbookWithAuthor[]> {
   const [rows] = await db.query<LogbookWithAuthor[]>(
     `SELECT 
       l.*,
@@ -115,9 +111,7 @@ export async function getLogbooksByAuthor(
   return rows
 }
 
-export async function getLogbooksByImportance(
-  importance: string
-): Promise<LogbookWithAuthor[]> {
+export async function getLogbooksByImportance(importance: string): Promise<LogbookWithAuthor[]> {
   const allowed = ['baja', 'media', 'alta', 'urgente']
   if (!allowed.includes(importance)) {
     throw new Error('Nivel de importancia no válido')
@@ -191,9 +185,7 @@ export async function updateLogbook(
 // DELETE (soft-delete)
 // ============================================
 
-export async function softDeleteLogbook(
-  logbookId: number | string
-): Promise<boolean> {
+export async function softDeleteLogbook(logbookId: number | string): Promise<boolean> {
   const [result] = await db.execute<ResultSetHeader>(
     'UPDATE logbooks SET deleted_at = NOW() WHERE id = ? AND deleted_at IS NULL',
     [logbookId]

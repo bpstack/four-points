@@ -25,9 +25,7 @@ export class GroupStatusRepository {
   /**
    * Obtener estado de un grupo
    */
-  static async getByGroupId(
-    groupId: number
-  ): Promise<GroupStatusRecord | null> {
+  static async getByGroupId(groupId: number): Promise<GroupStatusRecord | null> {
     const query = `SELECT * FROM group_status WHERE group_id = ?`
     const [rows] = await db.query<GroupStatusRecord[]>(query, [groupId])
     return rows[0] || null
@@ -36,10 +34,7 @@ export class GroupStatusRepository {
   /**
    * Actualizar estado completo
    */
-  static async update(
-    groupId: number,
-    statusData: UpdateGroupStatusDTO
-  ): Promise<boolean> {
+  static async update(groupId: number, statusData: UpdateGroupStatusDTO): Promise<boolean> {
     const fields: string[] = []
     const values: any[] = []
 
@@ -56,9 +51,7 @@ export class GroupStatusRepository {
 
     values.push(groupId)
 
-    const query = `UPDATE group_status SET ${fields.join(
-      ', '
-    )} WHERE group_id = ?`
+    const query = `UPDATE group_status SET ${fields.join(', ')} WHERE group_id = ?`
     const [result] = await db.query<ResultSetHeader>(query, values)
 
     return result.affectedRows > 0
@@ -67,10 +60,7 @@ export class GroupStatusRepository {
   /**
    * Actualizar solo bloqueo/confirmación
    */
-  static async updateBooking(
-    groupId: number,
-    bookingData: UpdateBookingDTO
-  ): Promise<boolean> {
+  static async updateBooking(groupId: number, bookingData: UpdateBookingDTO): Promise<boolean> {
     const { confirmed, date } = bookingData
 
     const connection = await db.getConnection()
@@ -120,10 +110,7 @@ export class GroupStatusRepository {
   /**
    * Actualizar solo contrato
    */
-  static async updateContract(
-    groupId: number,
-    contractData: UpdateContractDTO
-  ): Promise<boolean> {
+  static async updateContract(groupId: number, contractData: UpdateContractDTO): Promise<boolean> {
     const { signed, date } = contractData
 
     const query = `
@@ -133,23 +120,15 @@ export class GroupStatusRepository {
     `
 
     const signDate = signed ? date || new Date() : null
-    const [result] = await db.query<ResultSetHeader>(query, [
-      signed,
-      signDate,
-      groupId,
-    ])
+    const [result] = await db.query<ResultSetHeader>(query, [signed, signDate, groupId])
     return result.affectedRows > 0
   }
 
   /**
    * Actualizar solo rooming list
    */
-  static async updateRooming(
-    groupId: number,
-    roomingData: UpdateRoomingDTO
-  ): Promise<boolean> {
-    const { rooming_status, rooming_requested_date, rooming_received_date } =
-      roomingData
+  static async updateRooming(groupId: number, roomingData: UpdateRoomingDTO): Promise<boolean> {
+    const { rooming_status, rooming_requested_date, rooming_received_date } = roomingData
 
     const fields: string[] = []
     const values: any[] = []
@@ -174,9 +153,7 @@ export class GroupStatusRepository {
 
     values.push(groupId)
 
-    const query = `UPDATE group_status SET ${fields.join(
-      ', '
-    )} WHERE group_id = ?`
+    const query = `UPDATE group_status SET ${fields.join(', ')} WHERE group_id = ?`
 
     const [result] = await db.query<ResultSetHeader>(query, values)
 
@@ -186,12 +163,8 @@ export class GroupStatusRepository {
   /**
    * Actualizar solo balance
    */
-  static async updateBalance(
-    groupId: number,
-    balanceData: UpdateBalanceDTO
-  ): Promise<boolean> {
-    const { balance_status, balance_requested_date, balance_paid_date } =
-      balanceData
+  static async updateBalance(groupId: number, balanceData: UpdateBalanceDTO): Promise<boolean> {
+    const { balance_status, balance_requested_date, balance_paid_date } = balanceData
 
     const fields: string[] = []
     const values: any[] = []
@@ -225,9 +198,7 @@ export class GroupStatusRepository {
 
     values.push(groupId)
 
-    const query = `UPDATE group_status SET ${fields.join(
-      ', '
-    )} WHERE group_id = ?`
+    const query = `UPDATE group_status SET ${fields.join(', ')} WHERE group_id = ?`
     const [result] = await db.query<ResultSetHeader>(query, values)
 
     return result.affectedRows > 0

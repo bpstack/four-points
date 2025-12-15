@@ -2,19 +2,13 @@
 
 import db from '../../config/db.js'
 import { ResultSetHeader } from 'mysql2'
-import {
-  CashierDenomination,
-  CreateDenominationDTO,
-} from '../../models/cashier/index.js'
+import { CashierDenomination, CreateDenominationDTO } from '../../models/cashier/index.js'
 
 export class CashierDenominationRepository {
   /**
    * Crear una denominación
    */
-  static async create(
-    shiftId: number,
-    data: CreateDenominationDTO
-  ): Promise<CashierDenomination> {
+  static async create(shiftId: number, data: CreateDenominationDTO): Promise<CashierDenomination> {
     const query = `
       INSERT INTO cashier_denominations (
         shift_id,
@@ -65,10 +59,7 @@ export class CashierDenominationRepository {
   /**
    * Actualizar cantidad de una denominación
    */
-  static async update(
-    id: number,
-    quantity: number
-  ): Promise<CashierDenomination> {
+  static async update(id: number, quantity: number): Promise<CashierDenomination> {
     const denomination = await this.getById(id)
     if (!denomination) throw new Error('Denominación no encontrada')
 
@@ -99,9 +90,7 @@ export class CashierDenominationRepository {
    * Eliminar todas las denominaciones de un turno
    */
   static async deleteByShift(shiftId: number): Promise<void> {
-    await db.query('DELETE FROM cashier_denominations WHERE shift_id = ?', [
-      shiftId,
-    ])
+    await db.query('DELETE FROM cashier_denominations WHERE shift_id = ?', [shiftId])
   }
 
   /**
@@ -130,10 +119,7 @@ export class CashierDenominationRepository {
     try {
       await connection.beginTransaction()
 
-      await connection.query(
-        'DELETE FROM cashier_denominations WHERE shift_id = ?',
-        [shiftId]
-      )
+      await connection.query('DELETE FROM cashier_denominations WHERE shift_id = ?', [shiftId])
 
       const validDenominations = denominations.filter((d) => d.quantity > 0)
 

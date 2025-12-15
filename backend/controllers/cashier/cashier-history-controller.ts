@@ -3,10 +3,7 @@ import { CashierHistoryRepository } from '../../repositories/cashier/cashier-his
 import { CashierShiftRepository } from '../../repositories/cashier/cashier-shift-repository.js'
 import { UserRepository } from '../../repositories/auth/user-repository.js'
 import db from '../../config/db.js'
-import type {
-  HistoryWithDetails,
-  HistoryAction,
-} from '../../models/cashier/index.js'
+import type { HistoryWithDetails, HistoryAction } from '../../models/cashier/index.js'
 
 export class CashierHistoryController {
   /**

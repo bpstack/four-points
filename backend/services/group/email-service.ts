@@ -21,14 +21,10 @@ export class EmailService {
    */
   static async sendNotification(notification: Notification): Promise<void> {
     try {
-      const recipients = await NotificationRepository.getRecipients(
-        notification.id
-      )
+      const recipients = await NotificationRepository.getRecipients(notification.id)
 
       if (recipients.length === 0) {
-        console.log(
-          `No hay destinatarios para la notificación ${notification.id}`
-        )
+        console.log(`No hay destinatarios para la notificación ${notification.id}`)
         return
       }
 
@@ -61,8 +57,7 @@ export class EmailService {
   ): Promise<void> {
     try {
       // ✅ Convertir priority a tipo aceptado por nodemailer
-      const emailPriority: 'low' | 'high' | 'normal' =
-        priority === 'urgent' ? 'high' : 'normal'
+      const emailPriority: 'low' | 'high' | 'normal' = priority === 'urgent' ? 'high' : 'normal'
 
       const mailOptions = {
         from: process.env.SMTP_FROM || 'noreply@hotel.com',
@@ -83,11 +78,7 @@ export class EmailService {
   /**
    * Generar template HTML para el email
    */
-  private static generateEmailTemplate(
-    title: string,
-    message: string,
-    priority: string
-  ): string {
+  private static generateEmailTemplate(title: string, message: string, priority: string): string {
     const priorityColor = this.getPriorityColor(priority)
 
     return `

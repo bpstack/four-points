@@ -99,10 +99,7 @@ export class CashierPaymentRepository {
   /**
    * Obtener total por método de pago en un turno
    */
-  static async getTotalByMethod(
-    shiftId: number,
-    paymentMethodId: number
-  ): Promise<number> {
+  static async getTotalByMethod(shiftId: number, paymentMethodId: number): Promise<number> {
     const query = `
       SELECT COALESCE(SUM(amount), 0) as total
       FROM cashier_payments
@@ -151,20 +148,13 @@ export class CashierPaymentRepository {
       await connection.beginTransaction()
 
       // Eliminar pagos existentes
-      await connection.query(
-        'DELETE FROM cashier_payments WHERE shift_id = ?',
-        [shiftId]
-      )
+      await connection.query('DELETE FROM cashier_payments WHERE shift_id = ?', [shiftId])
 
       // Insertar nuevos pagos (solo los que tienen amount > 0)
       const validPayments = payments.filter((p) => p.amount > 0)
 
       if (validPayments.length > 0) {
-        const values = validPayments.map((p) => [
-          shiftId,
-          p.payment_method_id,
-          p.amount,
-        ])
+        const values = validPayments.map((p) => [shiftId, p.payment_method_id, p.amount])
         await connection.query(
           'INSERT INTO cashier_payments (shift_id, payment_method_id, amount) VALUES ?',
           [values]

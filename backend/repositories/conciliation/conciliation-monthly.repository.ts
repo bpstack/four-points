@@ -51,10 +51,7 @@ export class ConciliationMonthlyRepository {
    * Obtener metadata del resumen mensual
    * Si no existe, lo crea automáticamente en status 'draft'
    */
-  async getOrCreateMonthlySummaryMeta(
-    year: number,
-    month: number
-  ): Promise<IMonthlySummaryMeta> {
+  async getOrCreateMonthlySummaryMeta(year: number, month: number): Promise<IMonthlySummaryMeta> {
     // Intentar obtener
     const [rows] = await pool.query<RowDataPacket[]>(
       `SELECT * FROM conciliation_monthly_summary 
@@ -90,10 +87,7 @@ export class ConciliationMonthlyRepository {
    * Calcular totales del mes completo
    * Suma todas las conciliaciones del mes (todos los status)
    */
-  async calculateMonthlySummary(
-    year: number,
-    month: number
-  ): Promise<IMonthlySummaryResponse> {
+  async calculateMonthlySummary(year: number, month: number): Promise<IMonthlySummaryResponse> {
     // 1. Obtener metadata del mes
     const metadata = await this.getOrCreateMonthlySummaryMeta(year, month)
 
@@ -180,14 +174,8 @@ export class ConciliationMonthlyRepository {
     }
 
     // 6. Calcular totales globales (VERSIÓN CORREGIDA)
-    const totalReception = receptionSummary.reduce(
-      (sum, item) => sum + item.total,
-      0
-    )
-    const totalHousekeeping = housekeepingSummary.reduce(
-      (sum, item) => sum + item.total,
-      0
-    )
+    const totalReception = receptionSummary.reduce((sum, item) => sum + item.total, 0)
+    const totalHousekeeping = housekeepingSummary.reduce((sum, item) => sum + item.total, 0)
     const difference = totalReception - totalHousekeeping
 
     // 7. Validar si se puede cerrar
@@ -225,10 +213,7 @@ export class ConciliationMonthlyRepository {
    * 1. TODAS las conciliaciones del mes deben estar 'closed'
    * 2. NO deben faltar días (deben existir todos los días del mes)
    */
-  async validateMonthlyClose(
-    year: number,
-    month: number
-  ): Promise<IMonthlyCloseValidation> {
+  async validateMonthlyClose(year: number, month: number): Promise<IMonthlyCloseValidation> {
     const errors: string[] = []
     const warnings: string[] = []
 
@@ -256,9 +241,7 @@ export class ConciliationMonthlyRepository {
     }
 
     // 4. Verificar que TODAS estén cerradas
-    const closedCount = conciliations.filter(
-      (c) => c.status === 'closed'
-    ).length
+    const closedCount = conciliations.filter((c) => c.status === 'closed').length
     const unclosedCount = conciliationsCount - closedCount
 
     if (unclosedCount > 0) {
@@ -313,11 +296,7 @@ export class ConciliationMonthlyRepository {
     if (status === 'closed') {
       const validation = await this.validateMonthlyClose(year, month)
       if (!validation.can_close) {
-        throw new Error(
-          `No se puede cerrar el resumen mensual: ${validation.errors.join(
-            ', '
-          )}`
-        )
+        throw new Error(`No se puede cerrar el resumen mensual: ${validation.errors.join(', ')}`)
       }
     }
 

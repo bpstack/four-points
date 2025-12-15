@@ -59,10 +59,7 @@ export class BlacklistController {
    * GET /api/blacklist/:id
    * Obtener registro por ID con audit trail
    */
-  static async getById(
-    req: Request,
-    res: Response
-  ): Promise<void> {
+  static async getById(req: Request, res: Response): Promise<void> {
     try {
       // Validar ID
       const parseResult = idParamSchema.safeParse(req.params)
@@ -127,9 +124,7 @@ export class BlacklistController {
       const data = parseResult.data
 
       // Verificar si el documento ya existe en blacklist activa
-      const exists = await BlacklistRepository.existsByDocument(
-        data.document_number
-      )
+      const exists = await BlacklistRepository.existsByDocument(data.document_number)
       if (exists) {
         res.status(409).json({
           error: 'Documento ya registrado',
@@ -139,11 +134,7 @@ export class BlacklistController {
       }
 
       // Crear registro
-      const entry = await BlacklistRepository.create(
-        data,
-        req.user.id,
-        req.user.username
-      )
+      const entry = await BlacklistRepository.create(data, req.user.id, req.user.username)
 
       res.status(201).json({
         message: 'Registro creado correctamente',
@@ -197,10 +188,7 @@ export class BlacklistController {
 
       // Si se actualiza el documento, verificar que no exista otro igual
       if (data.document_number) {
-        const exists = await BlacklistRepository.existsByDocument(
-          data.document_number,
-          id
-        )
+        const exists = await BlacklistRepository.existsByDocument(data.document_number, id)
         if (exists) {
           res.status(409).json({
             error: 'Documento ya registrado',
@@ -211,12 +199,7 @@ export class BlacklistController {
       }
 
       // Actualizar registro
-      const entry = await BlacklistRepository.update(
-        id,
-        data,
-        req.user.id,
-        req.user.username
-      )
+      const entry = await BlacklistRepository.update(id, data, req.user.id, req.user.username)
 
       if (!entry) {
         res.status(404).json({
@@ -273,11 +256,7 @@ export class BlacklistController {
 
       const { id } = parseResult.data
 
-      const deleted = await BlacklistRepository.delete(
-        id,
-        req.user.id,
-        req.user.username
-      )
+      const deleted = await BlacklistRepository.delete(id, req.user.id, req.user.username)
 
       if (!deleted) {
         res.status(404).json({
@@ -311,10 +290,7 @@ export class BlacklistController {
    * PATCH /api/blacklist/:id/restore
    * Restaurar registro eliminado
    */
-  static async restore(
-    req: Request,
-    res: Response
-  ): Promise<void> {
+  static async restore(req: Request, res: Response): Promise<void> {
     try {
       // Verificar autenticación
       if (!req.user?.id || !req.user?.username) {
@@ -336,11 +312,7 @@ export class BlacklistController {
 
       const { id } = parseResult.data
 
-      const entry = await BlacklistRepository.restore(
-        id,
-        req.user.id,
-        req.user.username
-      )
+      const entry = await BlacklistRepository.restore(id, req.user.id, req.user.username)
 
       if (!entry) {
         res.status(404).json({
@@ -375,10 +347,7 @@ export class BlacklistController {
    * GET /api/blacklist/stats
    * Obtener estadísticas generales
    */
-  static async getStats(
-    _req: Request,
-    res: Response
-  ): Promise<void> {
+  static async getStats(_req: Request, res: Response): Promise<void> {
     try {
       const stats = await BlacklistRepository.getStats()
 
@@ -396,10 +365,7 @@ export class BlacklistController {
    * POST /api/blacklist/upload
    * Subir imagen a Cloudinary
    */
-  static async uploadImage(
-    req: Request,
-    res: Response
-  ): Promise<void> {
+  static async uploadImage(req: Request, res: Response): Promise<void> {
     try {
       // Verificar autenticación
       if (!req.user?.id) {
@@ -436,10 +402,7 @@ export class BlacklistController {
       }
 
       // Subir a Cloudinary
-      const result = await CloudinaryService.uploadImage(
-        req.file.buffer,
-        req.file.originalname
-      )
+      const result = await CloudinaryService.uploadImage(req.file.buffer, req.file.originalname)
 
       console.log('[BlacklistController.uploadImage] Imagen subida:', result.public_id)
 
@@ -464,10 +427,7 @@ export class BlacklistController {
    * DELETE /api/blacklist/upload/:publicId
    * Eliminar imagen de Cloudinary
    */
-  static async deleteImage(
-    req: Request,
-    res: Response
-  ): Promise<void> {
+  static async deleteImage(req: Request, res: Response): Promise<void> {
     try {
       // Verificar autenticación
       if (!req.user?.id) {

@@ -4,10 +4,7 @@ import { Request, Response } from 'express'
 import { GroupRoomRepository } from '../../repositories/group/group-room-repository'
 import { GroupRepository } from '../../repositories/group/group-repository'
 import { GroupHistoryService } from '../../services/group/group-history-service'
-import {
-  CreateGroupRoomDTO,
-  UpdateGroupRoomDTO,
-} from '../../models/group/index'
+import { CreateGroupRoomDTO, UpdateGroupRoomDTO } from '../../models/group/index'
 
 export class GroupRoomController {
   /**
@@ -58,10 +55,7 @@ export class GroupRoomController {
    * POST /api/groups/:id/rooms
    * Crear o actualizar habitación (UPSERT)
    */
-  static async createOrUpdateRoom(
-    req: Request,
-    res: Response
-  ): Promise<Response> {
+  static async createOrUpdateRoom(req: Request, res: Response): Promise<Response> {
     try {
       const groupId = parseInt(req.params.id)
       const userId = req.user?.id
@@ -258,13 +252,7 @@ export class GroupRoomController {
         })
       }
 
-      await GroupHistoryService.logDeleted(
-        groupId,
-        userId,
-        'group_rooms',
-        roomId,
-        room
-      )
+      await GroupHistoryService.logDeleted(groupId, userId, 'group_rooms', roomId, room)
 
       return res.status(200).json({
         success: true,

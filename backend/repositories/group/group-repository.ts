@@ -163,9 +163,7 @@ export class GroupRepository {
       const groupId = result.insertId
 
       // Crear registro en group_status automáticamente
-      await connection.query(`INSERT INTO group_status (group_id) VALUES (?)`, [
-        groupId,
-      ])
+      await connection.query(`INSERT INTO group_status (group_id) VALUES (?)`, [groupId])
 
       await connection.commit()
 
@@ -189,10 +187,7 @@ export class GroupRepository {
    * Actualizar grupo
    * ✅ CAMBIO: Ahora sincroniza booking_confirmed cuando cambia el status
    */
-  static async update(
-    id: number,
-    groupData: UpdateGroupDTO
-  ): Promise<Group | null> {
+  static async update(id: number, groupData: UpdateGroupDTO): Promise<Group | null> {
     const fields: string[] = []
     const values: any[] = []
 
@@ -269,10 +264,7 @@ export class GroupRepository {
    * Eliminar grupo
    */
   static async delete(id: number): Promise<boolean> {
-    const [result] = await db.query<ResultSetHeader>(
-      'DELETE FROM hotel_groups WHERE id = ?',
-      [id]
-    )
+    const [result] = await db.query<ResultSetHeader>('DELETE FROM hotel_groups WHERE id = ?', [id])
     return result.affectedRows > 0
   }
 

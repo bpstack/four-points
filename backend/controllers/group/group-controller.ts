@@ -7,11 +7,7 @@ import { GroupRoomRepository } from '../../repositories/group/group-room-reposit
 import { GroupPaymentRepository } from '../../repositories/group/group-payment-repository'
 import { PaymentCalculatorService } from '../../services/group/payment-calculator-service'
 import { GroupHistoryService } from '../../services/group/group-history-service'
-import {
-  CreateGroupDTO,
-  UpdateGroupDTO,
-  GroupFilters,
-} from '../../models/group/index'
+import { CreateGroupDTO, UpdateGroupDTO, GroupFilters } from '../../models/group/index'
 
 export class GroupController {
   /**
@@ -29,12 +25,8 @@ export class GroupController {
         agency: req.query.agency as string,
         sort: req.query.sort as string,
         order: req.query.order as 'ASC' | 'DESC',
-        limit: req.query.limit
-          ? parseInt(req.query.limit as string)
-          : undefined,
-        offset: req.query.offset
-          ? parseInt(req.query.offset as string)
-          : undefined,
+        limit: req.query.limit ? parseInt(req.query.limit as string) : undefined,
+        offset: req.query.offset ? parseInt(req.query.offset as string) : undefined,
       }
 
       const groups = await GroupRepository.getAll(filters)
@@ -81,9 +73,7 @@ export class GroupController {
       const contacts = await GroupContactRepository.getByGroupId(groupId)
       const rooms = await GroupRoomRepository.getByGroupId(groupId)
       const payments = await GroupPaymentRepository.getByGroupId(groupId)
-      const roomsSummary = await GroupRoomRepository.getTotalRoomsByGroup(
-        groupId
-      )
+      const roomsSummary = await GroupRoomRepository.getTotalRoomsByGroup(groupId)
       const balance = await PaymentCalculatorService.calculateBalance(groupId)
 
       return res.status(200).json({
@@ -127,15 +117,10 @@ export class GroupController {
         created_by: userId,
       }
 
-      if (
-        !groupData.name ||
-        !groupData.arrival_date ||
-        !groupData.departure_date
-      ) {
+      if (!groupData.name || !groupData.arrival_date || !groupData.departure_date) {
         return res.status(400).json({
           success: false,
-          error:
-            'Faltan campos obligatorios: name, arrival_date, departure_date',
+          error: 'Faltan campos obligatorios: name, arrival_date, departure_date',
         })
       }
 
@@ -201,10 +186,7 @@ export class GroupController {
         updateData.total_amount !== undefined &&
         updateData.total_amount !== oldGroup.total_amount
       ) {
-        await PaymentCalculatorService.recalculatePayments(
-          groupId,
-          updateData.total_amount
-        )
+        await PaymentCalculatorService.recalculatePayments(groupId, updateData.total_amount)
       }
 
       await GroupHistoryService.logGroupUpdated(
@@ -288,10 +270,7 @@ export class GroupController {
    * GET /api/groups/dashboard/overview
    * Obtener resumen general para dashboard
    */
-  static async getDashboardOverview(
-    _req: Request,
-    res: Response
-  ): Promise<Response> {
+  static async getDashboardOverview(_req: Request, res: Response): Promise<Response> {
     try {
       const overview = await GroupRepository.getDashboardOverview()
       const paymentsSummary = await GroupPaymentRepository.getPaymentsSummary()
@@ -317,14 +296,9 @@ export class GroupController {
    * GET /api/groups/dashboard/timeline
    * Obtener timeline de grupos por año
    */
-  static async getDashboardTimeline(
-    req: Request,
-    res: Response
-  ): Promise<Response> {
+  static async getDashboardTimeline(req: Request, res: Response): Promise<Response> {
     try {
-      const year = req.query.year
-        ? parseInt(req.query.year as string)
-        : new Date().getFullYear()
+      const year = req.query.year ? parseInt(req.query.year as string) : new Date().getFullYear()
 
       const timeline = await GroupRepository.getTimeline(year)
 

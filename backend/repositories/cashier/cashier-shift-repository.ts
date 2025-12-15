@@ -41,9 +41,7 @@ export class CashierShiftRepository {
     if (!createdShift) throw new Error('Error al recuperar turno creado')
 
     // Añadir usuarios al turno
-    const { CashierShiftUserRepository } = await import(
-      './cashier-shift-user-repository.js'
-    )
+    const { CashierShiftUserRepository } = await import('./cashier-shift-user-repository.js')
     await CashierShiftUserRepository.setUsers(
       result.insertId,
       data.primary_user_id,
@@ -94,33 +92,23 @@ export class CashierShiftRepository {
     return shift
   }
 
-  static async getByIdWithUsers(
-    id: number
-  ): Promise<CashierShiftWithUsers | null> {
+  static async getByIdWithUsers(id: number): Promise<CashierShiftWithUsers | null> {
     const shift = await this.getById(id)
     if (!shift) return null
 
-    const { CashierShiftUserRepository } = await import(
-      './cashier-shift-user-repository.js'
-    )
+    const { CashierShiftUserRepository } = await import('./cashier-shift-user-repository.js')
     const users = await CashierShiftUserRepository.getByShiftId(id)
 
     // ✅ AÑADIR: Cargar pagos
-    const { CashierPaymentRepository } = await import(
-      './cashier-payment-repository.js'
-    )
+    const { CashierPaymentRepository } = await import('./cashier-payment-repository.js')
     const payments = await CashierPaymentRepository.getByShift(id)
 
     // ✅ AÑADIR: Cargar denominaciones
-    const { CashierDenominationRepository } = await import(
-      './cashier-denomination-repository.js'
-    )
+    const { CashierDenominationRepository } = await import('./cashier-denomination-repository.js')
     const denominations = await CashierDenominationRepository.getByShift(id)
 
     // ✅ AÑADIR: Cargar vales
-    const { CashierVoucherRepository } = await import(
-      './cashier-voucher-repository.js'
-    )
+    const { CashierVoucherRepository } = await import('./cashier-voucher-repository.js')
     const vouchers = await CashierVoucherRepository.getByShift(id)
 
     return {
@@ -172,10 +160,7 @@ export class CashierShiftRepository {
 
     // Parsear income_breakdown
     return rows.map((shift) => {
-      if (
-        shift.income_breakdown &&
-        typeof shift.income_breakdown === 'string'
-      ) {
+      if (shift.income_breakdown && typeof shift.income_breakdown === 'string') {
         shift.income_breakdown = JSON.parse(shift.income_breakdown)
       }
       return shift
@@ -264,10 +249,7 @@ export class CashierShiftRepository {
 
     // Parsear income_breakdown
     return rows.map((shift) => {
-      if (
-        shift.income_breakdown &&
-        typeof shift.income_breakdown === 'string'
-      ) {
+      if (shift.income_breakdown && typeof shift.income_breakdown === 'string') {
         shift.income_breakdown = JSON.parse(shift.income_breakdown)
       }
       return shift
@@ -335,9 +317,7 @@ export class CashierShiftRepository {
 
     if (data.income_breakdown !== undefined) {
       updates.push('income_breakdown = ?')
-      params.push(
-        data.income_breakdown ? JSON.stringify(data.income_breakdown) : null
-      )
+      params.push(data.income_breakdown ? JSON.stringify(data.income_breakdown) : null)
     }
 
     if (data.comments !== undefined) {
@@ -395,8 +375,7 @@ export class CashierShiftRepository {
   static async reopen(id: number): Promise<CashierShift> {
     const shift = await this.getById(id)
     if (!shift) throw new Error('Turno no encontrado')
-    if (shift.status !== 'closed')
-      throw new Error('Solo se pueden reabrir turnos cerrados')
+    if (shift.status !== 'closed') throw new Error('Solo se pueden reabrir turnos cerrados')
 
     const query = `
       UPDATE cashier_shifts
@@ -421,8 +400,7 @@ export class CashierShiftRepository {
   static async delete(id: number): Promise<void> {
     const shift = await this.getById(id)
     if (!shift) throw new Error('Turno no encontrado')
-    if (shift.status === 'closed')
-      throw new Error('No se puede eliminar un turno cerrado')
+    if (shift.status === 'closed') throw new Error('No se puede eliminar un turno cerrado')
 
     await db.query('DELETE FROM cashier_shifts WHERE id = ?', [id])
   }
@@ -446,9 +424,7 @@ export class CashierShiftRepository {
    * Obtener último turno de un usuario
    * ✅ CORREGIDO: Usar DATE_FORMAT
    */
-  static async getLastShiftByUser(
-    userId: string
-  ): Promise<CashierShift | null> {
+  static async getLastShiftByUser(userId: string): Promise<CashierShift | null> {
     const query = `
       SELECT 
         cs.id,

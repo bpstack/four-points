@@ -10,9 +10,7 @@ import { ShiftStatus } from '../../models/cashier/index.js'
 // ✅ Helper para obtener fecha actual en zona horaria de Madrid
 function getTodayMadrid(): string {
   const now = new Date()
-  const madridTime = new Date(
-    now.toLocaleString('en-US', { timeZone: 'Europe/Madrid' })
-  )
+  const madridTime = new Date(now.toLocaleString('en-US', { timeZone: 'Europe/Madrid' }))
   return madridTime.toISOString().split('T')[0]
 }
 
@@ -21,10 +19,7 @@ export class CashierReportController {
    * GET /api/cashier/reports/dashboard
    * Dashboard overview (solo admin)
    */
-  static async getDashboardOverview(
-    _req: Request,
-    res: Response
-  ): Promise<Response> {
+  static async getDashboardOverview(_req: Request, res: Response): Promise<Response> {
     try {
       const today = getTodayMadrid()
 
@@ -32,23 +27,13 @@ export class CashierReportController {
       const todayShifts = await CashierShiftRepository.getByDate(today)
 
       // Contar turnos por estado
-      const openShifts = todayShifts.filter(
-        (s) => s.status === ShiftStatus.OPEN
-      ).length
-      const closedShifts = todayShifts.filter(
-        (s) => s.status === ShiftStatus.CLOSED
-      ).length
+      const openShifts = todayShifts.filter((s) => s.status === ShiftStatus.OPEN).length
+      const closedShifts = todayShifts.filter((s) => s.status === ShiftStatus.CLOSED).length
 
       // Calcular totales de hoy
       const totalCashToday = todayShifts.reduce((sum, s) => sum + s.income, 0)
-      const totalPaymentsToday = todayShifts.reduce(
-        (sum, s) => sum + s.payments_total,
-        0
-      )
-      const grandTotalToday = todayShifts.reduce(
-        (sum, s) => sum + s.grand_total,
-        0
-      )
+      const totalPaymentsToday = todayShifts.reduce((sum, s) => sum + s.payments_total, 0)
+      const grandTotalToday = todayShifts.reduce((sum, s) => sum + s.grand_total, 0)
 
       // ✅ CORREGIDO: Usar getStats() en lugar de getSummary()
       const vouchersStats = await CashierVoucherRepository.getStats()
@@ -150,8 +135,7 @@ export class CashierReportController {
             total_vouchers: totalVouchers,
             total_difference: totalDifference,
             shifts_count: shifts.length,
-            shifts_closed: shifts.filter((s) => s.status === ShiftStatus.CLOSED)
-              .length,
+            shifts_closed: shifts.filter((s) => s.status === ShiftStatus.CLOSED).length,
           },
         },
       })
@@ -201,14 +185,11 @@ export class CashierReportController {
       const totalVouchers = vouchers.reduce((sum, v) => sum + v.amount, 0)
 
       // Calcular días con descuadre
-      const daysWithDiscrepancy = shifts.filter(
-        (s) => Math.abs(s.difference) > 0.5
-      ).length
+      const daysWithDiscrepancy = shifts.filter((s) => Math.abs(s.difference) > 0.5).length
 
       // Calcular promedio diario (solo días con al menos 1 turno)
       const uniqueDates = [...new Set(shifts.map((s) => s.shift_date))]
-      const averageDailyCash =
-        uniqueDates.length > 0 ? totalCash / uniqueDates.length : 0
+      const averageDailyCash = uniqueDates.length > 0 ? totalCash / uniqueDates.length : 0
 
       // ✅ CORREGIDO: Calcular resumen por método de pago manualmente
       const paymentsMap = new Map<number, { name: string; total: number }>()
@@ -234,15 +215,9 @@ export class CashierReportController {
       const dailyBreakdown = uniqueDates.map((date) => {
         const dayShifts = shifts.filter((s) => s.shift_date === date)
         const dayCash = dayShifts.reduce((sum, s) => sum + s.income, 0)
-        const dayPayments = dayShifts.reduce(
-          (sum, s) => sum + s.payments_total,
-          0
-        )
+        const dayPayments = dayShifts.reduce((sum, s) => sum + s.payments_total, 0)
         const dayTotal = dayShifts.reduce((sum, s) => sum + s.grand_total, 0)
-        const dayDifference = dayShifts.reduce(
-          (sum, s) => sum + s.difference,
-          0
-        )
+        const dayDifference = dayShifts.reduce((sum, s) => sum + s.difference, 0)
 
         return {
           date,
@@ -290,10 +265,7 @@ export class CashierReportController {
    * GET /api/cashier/reports/vouchers-history
    * Historial completo de vales con resumen
    */
-  static async getVouchersHistory(
-    req: Request,
-    res: Response
-  ): Promise<Response> {
+  static async getVouchersHistory(req: Request, res: Response): Promise<Response> {
     try {
       const { status, from_date, to_date, limit = '1000' } = req.query
 
@@ -306,10 +278,7 @@ export class CashierReportController {
         order: 'DESC',
       })
 
-      const stats = await CashierVoucherRepository.getStats(
-        from_date as string,
-        to_date as string
-      )
+      const stats = await CashierVoucherRepository.getStats(from_date as string, to_date as string)
 
       return res.json({
         vouchers,
@@ -334,10 +303,7 @@ export class CashierReportController {
    * GET /api/cashier/reports/shifts-summary
    * Resumen de turnos por tipo (solo admin)
    */
-  static async getShiftsSummary(
-    req: Request,
-    res: Response
-  ): Promise<Response> {
+  static async getShiftsSummary(req: Request, res: Response): Promise<Response> {
     try {
       const from_date = req.query.from_date as string
       const to_date = req.query.to_date as string
@@ -360,12 +326,8 @@ export class CashierReportController {
       const summaryByType = shiftTypes.map((type) => {
         const typeShifts = allShifts.filter((s) => s.shift_type === type)
         const totalIncome = typeShifts.reduce((sum, s) => sum + s.income, 0)
-        const totalPayments = typeShifts.reduce(
-          (sum, s) => sum + s.payments_total,
-          0
-        )
-        const averageIncome =
-          typeShifts.length > 0 ? totalIncome / typeShifts.length : 0
+        const totalPayments = typeShifts.reduce((sum, s) => sum + s.payments_total, 0)
+        const averageIncome = typeShifts.length > 0 ? totalIncome / typeShifts.length : 0
 
         return {
           shift_type: type,

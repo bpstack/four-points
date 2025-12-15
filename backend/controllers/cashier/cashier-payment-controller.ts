@@ -13,9 +13,7 @@ export class CashierPaymentController {
     try {
       const { shiftId } = req.params
 
-      const payments = await CashierPaymentRepository.getByShift(
-        parseInt(shiftId)
-      )
+      const payments = await CashierPaymentRepository.getByShift(parseInt(shiftId))
 
       res.json(payments)
     } catch (error) {
@@ -32,9 +30,7 @@ export class CashierPaymentController {
     try {
       const { shiftId } = req.params
 
-      const summary = await CashierPaymentRepository.getSummaryByShift(
-        parseInt(shiftId)
-      )
+      const summary = await CashierPaymentRepository.getSummaryByShift(parseInt(shiftId))
 
       res.json(summary)
     } catch (error) {
@@ -54,10 +50,7 @@ export class CashierPaymentController {
       console.log('🔍 [Controller] replaceAll payments - shiftId:', shiftId) // ✅ LOG
       console.log('🔍 [Controller] replaceAll payments - data:', payments) // ✅ LOG
 
-      await CashierPaymentRepository.replaceAllForShift(
-        parseInt(shiftId),
-        payments
-      )
+      await CashierPaymentRepository.replaceAllForShift(parseInt(shiftId), payments)
 
       const userId = req.user?.id
       if (userId) {
@@ -70,9 +63,7 @@ export class CashierPaymentController {
         })
       }
 
-      const updated = await CashierPaymentRepository.getByShift(
-        parseInt(shiftId)
-      )
+      const updated = await CashierPaymentRepository.getByShift(parseInt(shiftId))
       console.log('✅ [Controller] Pagos actualizados:', updated) // ✅ LOG
       res.json(updated)
     } catch (error) {
@@ -111,17 +102,12 @@ export class CashierPaymentController {
       const { id } = req.params
       const { amount } = req.body
 
-      const updated = await CashierPaymentRepository.update(
-        parseInt(id),
-        amount
-      )
+      const updated = await CashierPaymentRepository.update(parseInt(id), amount)
 
       res.json(updated)
     } catch (error: any) {
       console.error('Error al actualizar pago:', error)
-      res
-        .status(500)
-        .json({ error: error.message || 'Error al actualizar pago' })
+      res.status(500).json({ error: error.message || 'Error al actualizar pago' })
     }
   }
 

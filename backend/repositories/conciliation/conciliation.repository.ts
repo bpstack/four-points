@@ -30,10 +30,7 @@ export class ConciliationRepository {
    * Esto garantiza que siempre haya 5 entries reception + 7 entries housekeeping
    */
   async createWithAllEntries(
-    data: Pick<
-      IConciliationSummary,
-      'date' | 'notes' | 'department_id' | 'created_by'
-    >
+    data: Pick<IConciliationSummary, 'date' | 'notes' | 'department_id' | 'created_by'>
   ): Promise<IConciliationDetail> {
     const connection = await pool.getConnection()
 
@@ -45,12 +42,7 @@ export class ConciliationRepository {
         `INSERT INTO conciliation_summary 
         (date, notes, department_id, created_by, status) 
         VALUES (?, ?, ?, ?, 'draft')`,
-        [
-          data.date,
-          data.notes || null,
-          data.department_id || null,
-          data.created_by || null,
-        ]
+        [data.date, data.notes || null, data.department_id || null, data.created_by || null]
       )
 
       const conciliationId = summaryResult.insertId
@@ -283,10 +275,7 @@ export class ConciliationRepository {
    * Soft delete de una conciliación
    */
   async delete(id: number): Promise<void> {
-    await pool.query(
-      'UPDATE conciliation_summary SET deleted_at = NOW() WHERE id = ?',
-      [id]
-    )
+    await pool.query('UPDATE conciliation_summary SET deleted_at = NOW() WHERE id = ?', [id])
   }
 
   // =========================================================

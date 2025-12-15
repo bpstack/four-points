@@ -158,10 +158,7 @@ export class GroupStatusController {
       const oldStatus = await GroupStatusRepository.getByGroupId(groupId)
 
       // Actualizar rooming
-      const updated = await GroupStatusRepository.updateRooming(
-        groupId,
-        roomingData
-      )
+      const updated = await GroupStatusRepository.updateRooming(groupId, roomingData)
 
       if (!updated) {
         res.status(404).json({ error: 'Grupo no encontrado' })
@@ -169,10 +166,7 @@ export class GroupStatusController {
       }
 
       // Registrar en historial si cambió el status
-      if (
-        roomingData.rooming_status &&
-        roomingData.rooming_status !== oldStatus?.rooming_status
-      ) {
+      if (roomingData.rooming_status && roomingData.rooming_status !== oldStatus?.rooming_status) {
         await GroupHistoryService.logStatusChanged(
           groupId,
           userId,
@@ -211,10 +205,7 @@ export class GroupStatusController {
       const oldStatus = await GroupStatusRepository.getByGroupId(groupId)
 
       // Actualizar balance
-      const updated = await GroupStatusRepository.updateBalance(
-        groupId,
-        balanceData
-      )
+      const updated = await GroupStatusRepository.updateBalance(groupId, balanceData)
 
       if (!updated) {
         res.status(404).json({ error: 'Grupo no encontrado' })
@@ -222,10 +213,7 @@ export class GroupStatusController {
       }
 
       // Registrar en historial si cambió el status
-      if (
-        balanceData.balance_status &&
-        balanceData.balance_status !== oldStatus?.balance_status
-      ) {
+      if (balanceData.balance_status && balanceData.balance_status !== oldStatus?.balance_status) {
         await GroupHistoryService.logStatusChanged(
           groupId,
           userId,

@@ -20,10 +20,9 @@ export const getAllSpots = (): Promise<[ParkingSpotRow[], unknown]> =>
   db.execute<ParkingSpotRow[]>('SELECT * FROM parking_spots')
 
 export const getSpotById = async (id: number): Promise<ParkingSpotRow | null> => {
-  const [rows] = await db.execute<ParkingSpotRow[]>(
-    'SELECT * FROM parking_spots WHERE id = ?',
-    [id]
-  )
+  const [rows] = await db.execute<ParkingSpotRow[]>('SELECT * FROM parking_spots WHERE id = ?', [
+    id,
+  ])
   return rows[0] || null
 }
 
@@ -38,9 +37,7 @@ export const getSpotByNumberAndLevel = async (
   return rows[0] || null
 }
 
-export const getSpotsByType = async (
-  spot_type: string
-): Promise<ParkingSpotRow[]> => {
+export const getSpotsByType = async (spot_type: string): Promise<ParkingSpotRow[]> => {
   const [rows] = await db.execute<ParkingSpotRow[]>(
     'SELECT * FROM parking_spots WHERE spot_type = ? AND is_active = TRUE ORDER BY level_code, spot_number',
     [spot_type]
@@ -48,9 +45,7 @@ export const getSpotsByType = async (
   return rows
 }
 
-export const getSpotsByLevel = async (
-  level_code: LevelCode
-): Promise<ParkingSpotRow[]> => {
+export const getSpotsByLevel = async (level_code: LevelCode): Promise<ParkingSpotRow[]> => {
   const [rows] = await db.execute<ParkingSpotRow[]>(
     'SELECT * FROM parking_spots WHERE level_code = ? AND is_active = TRUE ORDER BY level_code, spot_number',
     [level_code]
@@ -81,9 +76,7 @@ export const getAllVehicles = async (): Promise<ParkingVehicleRow[]> => {
   return rows
 }
 
-export const getVehicleById = async (
-  id: number
-): Promise<ParkingVehicleRow | null> => {
+export const getVehicleById = async (id: number): Promise<ParkingVehicleRow | null> => {
   const [rows] = await db.execute<ParkingVehicleRow[]>(
     'SELECT * FROM parking_vehicles WHERE id = ?',
     [id]
@@ -101,9 +94,7 @@ export const getVehicleByPlateNumber = async (
   return rows[0] || null
 }
 
-export const getVehiclesByOwner = async (
-  owner_name: string
-): Promise<ParkingVehicleRow[]> => {
+export const getVehiclesByOwner = async (owner_name: string): Promise<ParkingVehicleRow[]> => {
   const [rows] = await db.execute<ParkingVehicleRow[]>(
     'SELECT * FROM parking_vehicles WHERE owner_name LIKE ? ORDER BY plate_number',
     [`%${owner_name}%`]
@@ -150,19 +141,16 @@ export const updateVehicle = async (
  * Eliminar vehículo por ID
  */
 export const deleteVehicle = async (id: number): Promise<ResultSetHeader> => {
-  const [result] = await db.execute<ResultSetHeader>(
-    'DELETE FROM parking_vehicles WHERE id = ?',
-    [id]
-  )
+  const [result] = await db.execute<ResultSetHeader>('DELETE FROM parking_vehicles WHERE id = ?', [
+    id,
+  ])
   return result
 }
 
 /**
  * Buscar vehículos por matrícula O propietario (búsqueda parcial)
  */
-export async function searchVehicles(
-  searchTerm: string
-): Promise<ParkingVehicleRow[]> {
+export async function searchVehicles(searchTerm: string): Promise<ParkingVehicleRow[]> {
   const normalizedTerm = searchTerm.trim().toUpperCase()
 
   const [rows] = await db.query<ParkingVehicleRow[]>(
@@ -188,9 +176,7 @@ export async function searchVehicles(
  * ----------------------------------------------------------------- */
 
 // Usa parking_availability
-export const getAvailableSpots = async (
-  date: string | null = null
-): Promise<ParkingSpotRow[]> => {
+export const getAvailableSpots = async (date: string | null = null): Promise<ParkingSpotRow[]> => {
   const targetDate = date || new Date().toISOString().split('T')[0]
 
   const [rows] = await db.execute<ParkingSpotRow[]>(
@@ -214,17 +200,10 @@ export const getAvailableSpotsByDateRange = async (
 ): Promise<AvailableSpotRow[]> => {
   const start = new Date(startDate)
   const end = new Date(endDate)
-  const totalDays = Math.ceil(
-    (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)
-  )
+  const totalDays = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24))
 
   let levelFilter = ''
-  const params: (string | number | LevelCode)[] = [
-    totalDays,
-    startDate,
-    endDate,
-    totalDays,
-  ]
+  const params: (string | number | LevelCode)[] = [totalDays, startDate, endDate, totalDays]
 
   if (level) {
     levelFilter = 'AND ps.level_code = ?'
@@ -270,9 +249,7 @@ interface AvailabilityCheckRow {
 }
 
 // Este lo puedes mantener si lo necesitas para otras cosas
-export const getVehicleIdByPlateNumber = async (
-  plate_number: string
-): Promise<number | null> => {
+export const getVehicleIdByPlateNumber = async (plate_number: string): Promise<number | null> => {
   const [rows] = await db.execute<(VehicleIdRow & import('mysql2').RowDataPacket)[]>(
     'SELECT id FROM parking_vehicles WHERE plate_number = ?',
     [plate_number]
@@ -310,9 +287,7 @@ export const isSpotAvailable = async (
 }
 
 // Para calcular precio
-export const calculatePriceByDays = async (
-  days: number
-): Promise<ParkingRateRow | null> => {
+export const calculatePriceByDays = async (days: number): Promise<ParkingRateRow | null> => {
   const [rows] = await db.execute<ParkingRateRow[]>(
     'SELECT price, description FROM parking_rates WHERE days = ?',
     [days]

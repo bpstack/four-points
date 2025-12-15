@@ -119,16 +119,10 @@ export class NotificationGeneratorService {
         group_id: payment.group_id,
         related_to: NotificationRelatedTo.PAYMENT,
         related_id: paymentId,
-        direct_link: NotificationLinkBuilder.payment(
-          payment.group_id,
-          paymentId
-        ),
+        direct_link: NotificationLinkBuilder.payment(payment.group_id, paymentId),
         title,
         message,
-        priority:
-          daysBeforeDue <= 3
-            ? NotificationPriority.URGENT
-            : NotificationPriority.HIGH,
+        priority: daysBeforeDue <= 3 ? NotificationPriority.URGENT : NotificationPriority.HIGH,
         status: NotificationStatus.PENDING,
         scheduled_for: new Date(),
       }
@@ -144,9 +138,7 @@ export class NotificationGeneratorService {
   /**
    * Generar notificación de pago vencido
    */
-  static async generateOverduePaymentNotification(
-    paymentId: number
-  ): Promise<void> {
+  static async generateOverduePaymentNotification(paymentId: number): Promise<void> {
     try {
       const payment = await GroupPaymentRepository.getById(paymentId)
 
@@ -155,26 +147,20 @@ export class NotificationGeneratorService {
       }
 
       const daysOverdue = Math.floor(
-        (new Date().getTime() - new Date(payment.due_date).getTime()) /
-          (1000 * 60 * 60 * 24)
+        (new Date().getTime() - new Date(payment.due_date).getTime()) / (1000 * 60 * 60 * 24)
       )
 
       const title = `⚠️ URGENTE: Pago vencido - "${payment.payment_name}"`
       const message = `El pago "${payment.payment_name}" del grupo "${
         payment.group_name
-      }" venció hace ${daysOverdue} días. Monto pendiente: ${
-        payment.amount - payment.amount_paid
-      }€`
+      }" venció hace ${daysOverdue} días. Monto pendiente: ${payment.amount - payment.amount_paid}€`
 
       const notificationData: CreateNotificationDTO = {
         module: NotificationModule.GROUPS,
         group_id: payment.group_id,
         related_to: NotificationRelatedTo.PAYMENT,
         related_id: paymentId,
-        direct_link: NotificationLinkBuilder.payment(
-          payment.group_id,
-          paymentId
-        ),
+        direct_link: NotificationLinkBuilder.payment(payment.group_id, paymentId),
         title,
         message,
         priority: NotificationPriority.URGENT,
@@ -214,10 +200,7 @@ export class NotificationGeneratorService {
         direct_link: NotificationLinkBuilder.rooming(groupId),
         title,
         message,
-        priority:
-          daysBeforeDeadline <= 5
-            ? NotificationPriority.HIGH
-            : NotificationPriority.MEDIUM,
+        priority: daysBeforeDeadline <= 5 ? NotificationPriority.HIGH : NotificationPriority.MEDIUM,
         status: NotificationStatus.PENDING,
         scheduled_for: new Date(),
       }
@@ -245,9 +228,7 @@ export class NotificationGeneratorService {
       }
 
       const title = `Llegada próxima: Grupo "${group.name}"`
-      const message = `El grupo "${
-        group.name
-      }" llegará en ${daysBeforeArrival} días (${new Date(
+      const message = `El grupo "${group.name}" llegará en ${daysBeforeArrival} días (${new Date(
         group.arrival_date
       ).toLocaleDateString('es-ES')}).`
 
@@ -310,23 +291,17 @@ export class NotificationGeneratorService {
   /**
    * Añadir todos los usuarios con rol group-admin como destinatarios
    */
-  private static async addGroupAdminRecipients(
-    notificationId: number
-  ): Promise<void> {
+  private static async addGroupAdminRecipients(notificationId: number): Promise<void> {
     try {
       const groupAdminsResult = await UserRepository.getByRole('group-admin')
       const adminsResult = await UserRepository.getByRole('admin')
 
-      const groupAdmins = Array.isArray(groupAdminsResult)
-        ? groupAdminsResult
-        : []
+      const groupAdmins = Array.isArray(groupAdminsResult) ? groupAdminsResult : []
       const admins = Array.isArray(adminsResult) ? adminsResult : []
 
       const allUsers = [...groupAdmins, ...admins]
 
-      const userIds = allUsers
-        .filter((user: any) => user && user.id)
-        .map((user: any) => user.id)
+      const userIds = allUsers.filter((user: any) => user && user.id).map((user: any) => user.id)
 
       if (userIds.length > 0) {
         await NotificationRepository.addRecipients(notificationId, userIds)
@@ -343,19 +318,13 @@ export class NotificationGeneratorService {
   static async processPendingNotifications(): Promise<void> {
     try {
       // 1. Procesar notificaciones programadas que ya llegó su hora
-      const pendingNotifications =
-        await NotificationRepository.getPendingScheduled()
+      const pendingNotifications = await NotificationRepository.getPendingScheduled()
 
       for (const notification of pendingNotifications) {
-        await NotificationRepository.updateStatus(
-          notification.id,
-          NotificationStatus.SENT
-        )
+        await NotificationRepository.updateStatus(notification.id, NotificationStatus.SENT)
       }
 
-      console.log(
-        `✅ Procesadas ${pendingNotifications.length} notificaciones programadas`
-      )
+      console.log(`✅ Procesadas ${pendingNotifications.length} notificaciones programadas`)
 
       // 2. Verificar y generar nuevas notificaciones automáticas
       const results = await this.checkAndGenerateNotifications()
@@ -411,9 +380,7 @@ export class NotificationGeneratorService {
           if (!existingNotification) {
             await this.generatePaymentReminder(payment.id, days)
             paymentsUpcoming++
-            console.log(
-              `✅ Notificación de pago creada: ${payment.payment_name} (${days} días)`
-            )
+            console.log(`✅ Notificación de pago creada: ${payment.payment_name} (${days} días)`)
           }
         }
       }
@@ -436,9 +403,7 @@ export class NotificationGeneratorService {
         if (!existingNotification) {
           await this.generateOverduePaymentNotification(payment.id)
           paymentsOverdue++
-          console.log(
-            `⚠️ Notificación de pago vencido: ${payment.payment_name}`
-          )
+          console.log(`⚠️ Notificación de pago vencido: ${payment.payment_name}`)
         }
       }
 
@@ -495,15 +460,12 @@ export class NotificationGeneratorService {
       const twoDaysAgo = new Date(Date.now() - 48 * 60 * 60 * 1000)
 
       const exists = notifications.some((n) => {
-        const isSameType =
-          n.related_to === relatedTo && n.related_id === relatedId
+        const isSameType = n.related_to === relatedTo && n.related_id === relatedId
         const isRecent = new Date(n.created_at) > twoDaysAgo
 
         // Para vencidos (0 días), buscar por título que contenga "vencido"
         if (daysOffset === 0) {
-          return (
-            isSameType && isRecent && n.title?.toLowerCase().includes('vencido')
-          )
+          return isSameType && isRecent && n.title?.toLowerCase().includes('vencido')
         }
 
         // Para upcoming, buscar exactamente los días en el título

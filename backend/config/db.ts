@@ -1,7 +1,7 @@
 // config/db.ts
 
 import mysql from 'mysql2/promise'
-import type { Pool } from 'mysql2/promise'  // ← AÑADIDO
+import type { Pool } from 'mysql2/promise' // ← AÑADIDO
 import dotenv from 'dotenv'
 import fs from 'fs'
 import path from 'path'
@@ -20,7 +20,8 @@ const isDevelopment = process.env.NODE_ENV === 'development'
 // ========================================
 // 🔧 INTERFAZ DE CONFIGURACIÓN
 // ========================================
-interface DBConfig {  // ← AÑADIDO
+interface DBConfig {
+  // ← AÑADIDO
   host: string
   port: number
   user: string
@@ -32,26 +33,25 @@ interface DBConfig {  // ← AÑADIDO
 // ========================================
 // 🎯 PRESETS DE CONFIGURACIÓN
 // ========================================
-const presets: Record<string, DBConfig> = {  // ← MODIFICADO (añadido tipo)
+const presets: Record<string, DBConfig> = {
+  // ← MODIFICADO (añadido tipo)
   local: {
     host: process.env.LOCAL_DB_HOST || 'localhost',
-    port: parseInt(process.env.LOCAL_DB_PORT || '3306'),  // ← MODIFICADO (añadido fallback)
+    port: parseInt(process.env.LOCAL_DB_PORT || '3306'), // ← MODIFICADO (añadido fallback)
     user: process.env.LOCAL_DB_USER || 'root',
     password: process.env.LOCAL_DB_PASSWORD,
     database: process.env.LOCAL_DB_NAME || 'hotel_db',
   },
   aiven: {
-    host: process.env.AIVEN_DB_HOST || '',  // ← MODIFICADO (añadido fallback)
-    port: parseInt(process.env.AIVEN_DB_PORT || '23225'),  // ← MODIFICADO (añadido fallback)
+    host: process.env.AIVEN_DB_HOST || '', // ← MODIFICADO (añadido fallback)
+    port: parseInt(process.env.AIVEN_DB_PORT || '23225'), // ← MODIFICADO (añadido fallback)
     user: process.env.AIVEN_DB_USER || 'avnadmin',
     password: process.env.AIVEN_PASSWORD,
     database: process.env.AIVEN_DB_NAME || 'hotel_db',
     ssl: isDevelopment
       ? { rejectUnauthorized: false }
       : {
-          ca: fs.readFileSync(
-            path.join(__dirname, 'certs', 'ca-certificate.pem')
-          ),
+          ca: fs.readFileSync(path.join(__dirname, 'certs', 'ca-certificate.pem')),
           rejectUnauthorized: true,
         },
   },
@@ -71,9 +71,7 @@ if (!config) {
 // Validar credenciales críticas
 if (!config.password) {
   throw new Error(
-    `❌ Falta ${
-      environment === 'local' ? 'LOCAL_DB_PASSWORD' : 'AIVEN_PASSWORD'
-    } en .env`
+    `❌ Falta ${environment === 'local' ? 'LOCAL_DB_PASSWORD' : 'AIVEN_PASSWORD'} en .env`
   )
 }
 
@@ -95,7 +93,7 @@ console.log('━━━━━━━━━━━━━━━━━━━━━━�
 // ========================================
 // 🔌 POOL DE CONEXIONES
 // ========================================
-const pool: Pool = mysql.createPool(config)  // ← MODIFICADO (añadido tipo)
+const pool: Pool = mysql.createPool(config) // ← MODIFICADO (añadido tipo)
 
 // Verificar conexión al inicio
 pool

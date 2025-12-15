@@ -74,11 +74,7 @@ export const createReportSchema = z
 
     priority: reportPriorityEnum.optional().default('medium'),
 
-    assigned_to: z
-      .string()
-      .uuid('assigned_to debe ser un UUID válido')
-      .optional()
-      .nullable(),
+    assigned_to: z.string().uuid('assigned_to debe ser un UUID válido').optional().nullable(),
 
     assigned_type: assignedTypeEnum.optional().nullable(),
 
@@ -164,11 +160,7 @@ export const updateReportSchema = z
 
     status: reportStatusEnum.optional(),
 
-    assigned_to: z
-      .string()
-      .uuid('assigned_to debe ser un UUID válido')
-      .optional()
-      .nullable(),
+    assigned_to: z.string().uuid('assigned_to debe ser un UUID válido').optional().nullable(),
 
     assigned_type: assignedTypeEnum.optional().nullable(),
 
@@ -266,10 +258,7 @@ export const reportFiltersSchema = z.object({
 export const idParamSchema = z.object({
   id: z
     .string({ message: 'El ID es obligatorio' })
-    .regex(
-      /^\d{6}-\d{3}$/,
-      'El ID debe tener formato DDMMYY-XXX (ej: 120625-001)'
-    ),
+    .regex(/^\d{6}-\d{3}$/, 'El ID debe tener formato DDMMYY-XXX (ej: 120625-001)'),
 })
 
 // ========================================
@@ -279,7 +268,11 @@ export const idParamSchema = z.object({
 export const addImageSchema = z.object({
   file_name: z.string().max(255),
   file_path: z.string().url('file_path debe ser una URL válida'),
-  file_size: z.number().int().positive().max(5 * 1024 * 1024, 'El archivo no puede exceder 5MB'),
+  file_size: z
+    .number()
+    .int()
+    .positive()
+    .max(5 * 1024 * 1024, 'El archivo no puede exceder 5MB'),
   mime_type: z.enum(['image/jpeg', 'image/png', 'image/webp', 'image/gif']),
   public_id: z.string().optional(),
   auto_delete_on_close: z.boolean().optional().default(true),
@@ -292,23 +285,9 @@ export const addImageSchema = z.object({
 export const assignReportSchema = z
   .object({
     assigned_type: assignedTypeEnum,
-    assigned_to: z
-      .string()
-      .uuid('assigned_to debe ser un UUID válido')
-      .optional()
-      .nullable(),
-    external_company_name: z
-      .string()
-      .max(150)
-      .trim()
-      .optional()
-      .nullable(),
-    external_contact: z
-      .string()
-      .max(100)
-      .trim()
-      .optional()
-      .nullable(),
+    assigned_to: z.string().uuid('assigned_to debe ser un UUID válido').optional().nullable(),
+    external_company_name: z.string().max(150).trim().optional().nullable(),
+    external_contact: z.string().max(100).trim().optional().nullable(),
   })
   .refine(
     (data) => {

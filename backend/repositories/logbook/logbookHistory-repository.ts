@@ -45,16 +45,7 @@ export async function addHistory(
     `INSERT INTO logbook_history 
       (logbook_id, editor_id, type, action, previous_content, new_content, comment_id, department_id, created_at)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())`,
-    [
-      logbook_id,
-      editor_id,
-      type,
-      action,
-      previous_content,
-      new_content,
-      comment_id,
-      department_id,
-    ]
+    [logbook_id, editor_id, type, action, previous_content, new_content, comment_id, department_id]
   )
 
   return {
@@ -96,9 +87,7 @@ interface HistoryJoinRow extends RowDataPacket {
   logbook_department: number | null
 }
 
-export async function getHistoryByLogbookId(
-  logbookId: number
-): Promise<HistoryByLogbookResponse> {
+export async function getHistoryByLogbookId(logbookId: number): Promise<HistoryByLogbookResponse> {
   const [rows] = await db.execute<HistoryJoinRow[]>(
     `SELECT
         lh.id,
@@ -148,7 +137,8 @@ export async function getHistoryByLogbookId(
       id: logbookId,
       authorId: row.author_id || '',
       message: row.message || '',
-      importance: (row.importance_level as FormattedHistoryEntry['logbook']['importance']) || 'baja',
+      importance:
+        (row.importance_level as FormattedHistoryEntry['logbook']['importance']) || 'baja',
       isSolved: !!row.is_solved,
       solvedAt: row.solved_at ? new Date(row.solved_at).toISOString() : null,
       solvedBy: row.solved_by || null,

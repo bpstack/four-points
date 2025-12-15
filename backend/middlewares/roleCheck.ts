@@ -12,9 +12,7 @@ export const isAdmin: RoleCheckMiddleware = (req, res, next) => {
   const allowedRoles = ['admin']
 
   if (!req.user?.role) {
-    res
-      .status(403)
-      .json({ error: 'No se pudo verificar el rol del usuario' })
+    res.status(403).json({ error: 'No se pudo verificar el rol del usuario' })
     return
   }
 
@@ -62,9 +60,7 @@ export const canManageGroups: RoleCheckMiddleware = (req, res, next) => {
   const allowedRoles = ['admin', 'group-admin']
 
   if (!req.user?.role) {
-    res
-      .status(403)
-      .json({ error: 'No se pudo verificar el rol del usuario' })
+    res.status(403).json({ error: 'No se pudo verificar el rol del usuario' })
     return
   }
 
@@ -85,9 +81,7 @@ export const canViewGroups: RoleCheckMiddleware = (req, res, next) => {
   const allowedRoles = ['admin', 'recepcionista', 'group-admin']
 
   if (!req.user?.role) {
-    res
-      .status(403)
-      .json({ error: 'No se pudo verificar el rol del usuario' })
+    res.status(403).json({ error: 'No se pudo verificar el rol del usuario' })
     return
   }
 
@@ -108,9 +102,7 @@ export const canManageCashier: RoleCheckMiddleware = (req, res, next) => {
   const allowedRoles = ['admin', 'recepcionista', 'group-admin']
 
   if (!req.user?.role) {
-    res
-      .status(403)
-      .json({ error: 'No se pudo verificar el rol del usuario' })
+    res.status(403).json({ error: 'No se pudo verificar el rol del usuario' })
     return
   }
 
@@ -118,8 +110,7 @@ export const canManageCashier: RoleCheckMiddleware = (req, res, next) => {
     next()
   } else {
     res.status(403).json({
-      error:
-        'Acceso denegado. Se requiere rol de admin, recepcionista o group-admin',
+      error: 'Acceso denegado. Se requiere rol de admin, recepcionista o group-admin',
     })
   }
 }
@@ -132,9 +123,7 @@ export const canViewReports: RoleCheckMiddleware = (req, res, next) => {
   const allowedRoles = ['admin']
 
   if (!req.user?.role) {
-    res
-      .status(403)
-      .json({ error: 'No se pudo verificar el rol del usuario' })
+    res.status(403).json({ error: 'No se pudo verificar el rol del usuario' })
     return
   }
 

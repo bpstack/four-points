@@ -13,27 +13,12 @@ const router = Router()
 // ═══════════════════════════════════════════════════════
 
 // Obtener notificaciones del usuario autenticado
-router.get(
-  '/',
-  verifyToken,
-  canViewGroups,
-  NotificationController.getUserNotifications
-)
+router.get('/', verifyToken, canViewGroups, NotificationController.getUserNotifications)
 // Obtener solo notificaciones no leídas
-router.get(
-  '/unread',
-  verifyToken,
-  canViewGroups,
-  NotificationController.getUnreadNotifications
-)
+router.get('/unread', verifyToken, canViewGroups, NotificationController.getUnreadNotifications)
 
 // Obtener contador de no leídas (para badge)
-router.get(
-  '/unread/count',
-  verifyToken,
-  canViewGroups,
-  NotificationController.getUnreadCount
-)
+router.get('/unread/count', verifyToken, canViewGroups, NotificationController.getUnreadCount)
 
 // Verificar notificaciones pendientes (trigger manual)
 router.post(
@@ -43,27 +28,12 @@ router.post(
   NotificationController.checkPendingNotifications
 )
 // Marcar todas como leídas
-router.patch(
-  '/read-all',
-  verifyToken,
-  canViewGroups,
-  NotificationController.markAllAsRead
-)
+router.patch('/read-all', verifyToken, canViewGroups, NotificationController.markAllAsRead)
 
 // Marcar una como leída
-router.patch(
-  '/:id/read',
-  verifyToken,
-  canViewGroups,
-  NotificationController.markAsRead
-)
+router.patch('/:id/read', verifyToken, canViewGroups, NotificationController.markAsRead)
 
 // Eliminar notificación (solo admin)
-router.delete(
-  '/:id',
-  verifyToken,
-  isAdmin,
-  NotificationController.deleteNotification
-)
+router.delete('/:id', verifyToken, isAdmin, NotificationController.deleteNotification)
 
 export default router

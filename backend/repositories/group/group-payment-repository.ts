@@ -75,9 +75,7 @@ export class GroupPaymentRepository {
   /**
    * Crear pago
    */
-  static async create(
-    paymentData: CreateGroupPaymentDTO
-  ): Promise<GroupPayment> {
+  static async create(paymentData: CreateGroupPaymentDTO): Promise<GroupPayment> {
     const {
       group_id,
       payment_name,
@@ -120,10 +118,7 @@ export class GroupPaymentRepository {
   /**
    * Actualizar pago completo
    */
-  static async update(
-    id: number,
-    paymentData: UpdateGroupPaymentDTO
-  ): Promise<boolean> {
+  static async update(id: number, paymentData: UpdateGroupPaymentDTO): Promise<boolean> {
     const fields: string[] = []
     const values: any[] = []
 
@@ -140,9 +135,7 @@ export class GroupPaymentRepository {
 
     values.push(id)
 
-    const query = `UPDATE group_payments SET ${fields.join(
-      ', '
-    )}, updated_at = NOW() WHERE id = ?`
+    const query = `UPDATE group_payments SET ${fields.join(', ')}, updated_at = NOW() WHERE id = ?`
     const [result] = await db.query<ResultSetHeader>(query, values)
 
     return result.affectedRows > 0
@@ -151,10 +144,7 @@ export class GroupPaymentRepository {
   /**
    * Actualizar solo el estado del pago
    */
-  static async updateStatus(
-    id: number,
-    status: PaymentStatus
-  ): Promise<boolean> {
+  static async updateStatus(id: number, status: PaymentStatus): Promise<boolean> {
     const query = `
       UPDATE group_payments 
       SET status = ?, status_updated_at = NOW()
@@ -168,10 +158,7 @@ export class GroupPaymentRepository {
   /**
    * Actualizar cantidad pagada (pagos parciales)
    */
-  static async updateAmountPaid(
-    id: number,
-    amountPaid: number
-  ): Promise<boolean> {
+  static async updateAmountPaid(id: number, amountPaid: number): Promise<boolean> {
     const payment = await this.getById(id)
 
     if (!payment) {
@@ -192,11 +179,7 @@ export class GroupPaymentRepository {
       WHERE id = ?
     `
 
-    const [result] = await db.query<ResultSetHeader>(query, [
-      amountPaid,
-      newStatus,
-      id,
-    ])
+    const [result] = await db.query<ResultSetHeader>(query, [amountPaid, newStatus, id])
     return result.affectedRows > 0
   }
 
@@ -204,30 +187,23 @@ export class GroupPaymentRepository {
    * Eliminar pago
    */
   static async delete(id: number): Promise<boolean> {
-    const [result] = await db.query<ResultSetHeader>(
-      'DELETE FROM group_payments WHERE id = ?',
-      [id]
-    )
+    const [result] = await db.query<ResultSetHeader>('DELETE FROM group_payments WHERE id = ?', [
+      id,
+    ])
     return result.affectedRows > 0
   }
 
   /**
    * Recalcular amounts de todos los pagos con porcentaje
    */
-  static async recalculateAmounts(
-    groupId: number,
-    totalAmount: number
-  ): Promise<number> {
+  static async recalculateAmounts(groupId: number, totalAmount: number): Promise<number> {
     const query = `
       UPDATE group_payments 
       SET amount = (? * percentage / 100)
       WHERE group_id = ? AND percentage IS NOT NULL
     `
 
-    const [result] = await db.query<ResultSetHeader>(query, [
-      totalAmount,
-      groupId,
-    ])
+    const [result] = await db.query<ResultSetHeader>(query, [totalAmount, groupId])
     return result.affectedRows
   }
 

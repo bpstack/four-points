@@ -27,10 +27,7 @@ export class CloudinaryService {
    * @param fileBuffer - Buffer del archivo
    * @param filename - Nombre original del archivo
    */
-  static async uploadImage(
-    fileBuffer: Buffer,
-    filename: string
-  ): Promise<CloudinaryUploadResult> {
+  static async uploadImage(fileBuffer: Buffer, filename: string): Promise<CloudinaryUploadResult> {
     return new Promise((resolve, reject) => {
       // Subir usando upload_stream
       const uploadStream = cloudinary.uploader.upload_stream(

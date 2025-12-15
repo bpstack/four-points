@@ -129,10 +129,7 @@ app.use((err: HttpError, _req: Request, res: Response, _next: NextFunction) => {
   console.error('Error global:', err)
 
   res.status(err.status || 500).json({
-    error:
-      process.env.NODE_ENV === 'production'
-        ? 'Error interno del servidor'
-        : err.message,
+    error: process.env.NODE_ENV === 'production' ? 'Error interno del servidor' : err.message,
   })
 })
 

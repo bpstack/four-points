@@ -5,11 +5,7 @@
 // Este archivo centraliza TODAS las configuraciones de reasons.
 // Para añadir un nuevo reason: agregarlo aquí + actualizar types + BD
 
-import type {
-  ReceptionReason,
-  HousekeepingReason,
-  Direction,
-} from './conciliation.model.js'
+import type { ReceptionReason, HousekeepingReason, Direction } from './conciliation.model.js'
 
 // =========================================================
 // CONFIGURACIÓN DE RECEPTION
@@ -29,39 +25,38 @@ export interface ReceptionReasonConfig {
  * Mapa centralizado de configuración de RECEPTION
  * ⚠️ IMPORTANTE: Para añadir nuevo reason, agregarlo aquí
  */
-export const RECEPTION_CONFIG: Record<ReceptionReason, ReceptionReasonConfig> =
-  {
-    base_rooms: {
-      label: 'Número de hab. Facturadas',
-      direction: 'add',
-      order: 1,
-      description: 'Habitaciones facturadas del día anterior',
-    },
-    gratuity: {
-      label: 'Gratuitas',
-      direction: 'add',
-      order: 2,
-      description: 'Habitaciones gratuitas',
-    },
-    no_show: {
-      label: 'NO SHOW',
-      direction: 'subtract',
-      order: 3,
-      description: 'Clientes que no se presentaron',
-    },
-    room_change: {
-      label: 'Hab sucia por cambio hab',
-      direction: 'add',
-      order: 4,
-      description: 'Habitación sucia adicional por cambio',
-    },
-    other: {
-      label: 'Otros',
-      direction: 'add',
-      order: 5,
-      description: 'Otros conceptos',
-    },
-  }
+export const RECEPTION_CONFIG: Record<ReceptionReason, ReceptionReasonConfig> = {
+  base_rooms: {
+    label: 'Número de hab. Facturadas',
+    direction: 'add',
+    order: 1,
+    description: 'Habitaciones facturadas del día anterior',
+  },
+  gratuity: {
+    label: 'Gratuitas',
+    direction: 'add',
+    order: 2,
+    description: 'Habitaciones gratuitas',
+  },
+  no_show: {
+    label: 'NO SHOW',
+    direction: 'subtract',
+    order: 3,
+    description: 'Clientes que no se presentaron',
+  },
+  room_change: {
+    label: 'Hab sucia por cambio hab',
+    direction: 'add',
+    order: 4,
+    description: 'Habitación sucia adicional por cambio',
+  },
+  other: {
+    label: 'Otros',
+    direction: 'add',
+    order: 5,
+    description: 'Otros conceptos',
+  },
+}
 
 // =========================================================
 // CONFIGURACIÓN DE HOUSEKEEPING
@@ -81,10 +76,7 @@ export interface HousekeepingReasonConfig {
  * Mapa centralizado de configuración de HOUSEKEEPING
  * ⚠️ IMPORTANTE: Para añadir nuevo reason, agregarlo aquí
  */
-export const HOUSEKEEPING_CONFIG: Record<
-  HousekeepingReason,
-  HousekeepingReasonConfig
-> = {
+export const HOUSEKEEPING_CONFIG: Record<HousekeepingReason, HousekeepingReasonConfig> = {
   cleaned: {
     label: 'Total hab realmente limpiadas',
     direction: 'add',
@@ -136,24 +128,16 @@ export const HOUSEKEEPING_CONFIG: Record<
 /**
  * Mapa de direction por reason de RECEPTION
  */
-export const RECEPTION_DIRECTION_MAP: Record<ReceptionReason, Direction> =
-  Object.fromEntries(
-    Object.entries(RECEPTION_CONFIG).map(([key, config]) => [
-      key,
-      config.direction,
-    ])
-  ) as Record<ReceptionReason, Direction>
+export const RECEPTION_DIRECTION_MAP: Record<ReceptionReason, Direction> = Object.fromEntries(
+  Object.entries(RECEPTION_CONFIG).map(([key, config]) => [key, config.direction])
+) as Record<ReceptionReason, Direction>
 
 /**
  * Mapa de direction por reason de HOUSEKEEPING
  */
-export const HOUSEKEEPING_DIRECTION_MAP: Record<HousekeepingReason, Direction> =
-  Object.fromEntries(
-    Object.entries(HOUSEKEEPING_CONFIG).map(([key, config]) => [
-      key,
-      config.direction,
-    ])
-  ) as Record<HousekeepingReason, Direction>
+export const HOUSEKEEPING_DIRECTION_MAP: Record<HousekeepingReason, Direction> = Object.fromEntries(
+  Object.entries(HOUSEKEEPING_CONFIG).map(([key, config]) => [key, config.direction])
+) as Record<HousekeepingReason, Direction>
 
 // =========================================================
 // MAPAS DE LABELS (para uso rápido)
@@ -162,21 +146,16 @@ export const HOUSEKEEPING_DIRECTION_MAP: Record<HousekeepingReason, Direction> =
 /**
  * Mapa de labels por reason de RECEPTION
  */
-export const RECEPTION_LABELS: Record<ReceptionReason, string> =
-  Object.fromEntries(
-    Object.entries(RECEPTION_CONFIG).map(([key, config]) => [key, config.label])
-  ) as Record<ReceptionReason, string>
+export const RECEPTION_LABELS: Record<ReceptionReason, string> = Object.fromEntries(
+  Object.entries(RECEPTION_CONFIG).map(([key, config]) => [key, config.label])
+) as Record<ReceptionReason, string>
 
 /**
  * Mapa de labels por reason de HOUSEKEEPING
  */
-export const HOUSEKEEPING_LABELS: Record<HousekeepingReason, string> =
-  Object.fromEntries(
-    Object.entries(HOUSEKEEPING_CONFIG).map(([key, config]) => [
-      key,
-      config.label,
-    ])
-  ) as Record<HousekeepingReason, string>
+export const HOUSEKEEPING_LABELS: Record<HousekeepingReason, string> = Object.fromEntries(
+  Object.entries(HOUSEKEEPING_CONFIG).map(([key, config]) => [key, config.label])
+) as Record<HousekeepingReason, string>
 
 // =========================================================
 // ARRAYS ORDENADOS (para iteraciones en frontend)
@@ -195,10 +174,7 @@ export const RECEPTION_REASONS_ORDERED: ReceptionReason[] = (
  * Array de reasons de HOUSEKEEPING ordenados
  */
 export const HOUSEKEEPING_REASONS_ORDERED: HousekeepingReason[] = (
-  Object.entries(HOUSEKEEPING_CONFIG) as [
-    HousekeepingReason,
-    HousekeepingReasonConfig
-  ][]
+  Object.entries(HOUSEKEEPING_CONFIG) as [HousekeepingReason, HousekeepingReasonConfig][]
 )
   .sort((a, b) => a[1].order - b[1].order)
   .map(([key]) => key)
@@ -239,9 +215,7 @@ export function getReceptionDirection(reason: ReceptionReason): Direction {
 /**
  * Obtener la direction de un reason de HOUSEKEEPING
  */
-export function getHousekeepingDirection(
-  reason: HousekeepingReason
-): Direction {
+export function getHousekeepingDirection(reason: HousekeepingReason): Direction {
   return HOUSEKEEPING_DIRECTION_MAP[reason]
 }
 
@@ -269,17 +243,13 @@ export function getHousekeepingLabel(reason: HousekeepingReason): string {
 /**
  * Obtener la configuración completa de un reason de RECEPTION
  */
-export function getReceptionConfig(
-  reason: ReceptionReason
-): ReceptionReasonConfig {
+export function getReceptionConfig(reason: ReceptionReason): ReceptionReasonConfig {
   return RECEPTION_CONFIG[reason]
 }
 
 /**
  * Obtener la configuración completa de un reason de HOUSEKEEPING
  */
-export function getHousekeepingConfig(
-  reason: HousekeepingReason
-): HousekeepingReasonConfig {
+export function getHousekeepingConfig(reason: HousekeepingReason): HousekeepingReasonConfig {
   return HOUSEKEEPING_CONFIG[reason]
 }

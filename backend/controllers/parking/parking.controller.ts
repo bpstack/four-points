@@ -44,10 +44,7 @@ export const listSpots = async (req: Request, res: Response): Promise<void> => {
 
     // Si viene spot_number + level_code, buscar específica
     if (spot_number && level_code) {
-      const spot = await repo.getSpotByNumberAndLevel(
-        Number(spot_number),
-        level_code as LevelCode
-      )
+      const spot = await repo.getSpotByNumberAndLevel(Number(spot_number), level_code as LevelCode)
       res.json(spot)
       return
     }
@@ -86,17 +83,9 @@ export const manageVehicles = async (req: Request, res: Response): Promise<void>
         return
       }
 
-      const {
-        plate_number: body_plate,
-        owner_name: body_owner,
-        model,
-      } = validation.data
+      const { plate_number: body_plate, owner_name: body_owner, model } = validation.data
 
-      const vehicleId = await repo.registerVehicle(
-        body_plate,
-        body_owner,
-        model
-      )
+      const vehicleId = await repo.registerVehicle(body_plate, body_owner, model)
       res.status(201).json({ id: vehicleId })
       return
     }
@@ -233,8 +222,7 @@ export const deleteVehicle = async (req: Request, res: Response): Promise<void> 
     // Si hay reservas asociadas, MySQL dará error de foreign key
     if (error.code === 'ER_ROW_IS_REFERENCED_2') {
       res.status(409).json({
-        error:
-          'No se puede eliminar el vehículo porque tiene reservas asociadas',
+        error: 'No se puede eliminar el vehículo porque tiene reservas asociadas',
         hint: 'Elimina primero las reservas relacionadas',
       })
       return
@@ -268,10 +256,7 @@ export const getVehicleById = async (req: Request, res: Response): Promise<void>
 /**
  * GET - Obtener vehículo by plate_number
  */
-export const getVehicleByPlateNumber = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
+export const getVehicleByPlateNumber = async (req: Request, res: Response): Promise<void> => {
   try {
     const { plate_number } = req.params
 
@@ -327,10 +312,7 @@ function isValidDate(dateString: string): boolean {
 }
 // -------------------
 
-export const listAvailableSpots = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
+export const listAvailableSpots = async (req: Request, res: Response): Promise<void> => {
   try {
     const { date, start_date, end_date, level } = req.query as {
       date?: string
@@ -424,8 +406,7 @@ export const listAvailableSpots = async (
 
       // Máximo 60 días (evitar queries enormes)
       const days = Math.ceil(
-        (new Date(end_date).getTime() - new Date(start_date).getTime()) /
-          (1000 * 60 * 60 * 24)
+        (new Date(end_date).getTime() - new Date(start_date).getTime()) / (1000 * 60 * 60 * 24)
       )
       if (days > 60) {
         res.status(400).json({
@@ -434,11 +415,7 @@ export const listAvailableSpots = async (
         return
       }
 
-      const spots = await repo.getAvailableSpotsByDateRange(
-        start_date,
-        end_date,
-        level ?? null
-      )
+      const spots = await repo.getAvailableSpotsByDateRange(start_date, end_date, level ?? null)
       res.json({
         start_date,
         end_date,

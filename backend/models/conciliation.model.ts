@@ -12,12 +12,7 @@
  * Reasons para entradas de RECEPCIÓN
  * Para añadir nuevos: agregar aquí + actualizar BD + config
  */
-export type ReceptionReason =
-  | 'base_rooms'
-  | 'no_show'
-  | 'room_change'
-  | 'gratuity'
-  | 'other'
+export type ReceptionReason = 'base_rooms' | 'no_show' | 'room_change' | 'gratuity' | 'other'
 
 /**
  * Reasons para entradas de PISOS (Housekeeping)

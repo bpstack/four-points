@@ -39,10 +39,7 @@ export class CashierDailyRepository {
     const [rows] = await db.query<CashierDaily[]>(query, [date])
 
     console.log('🔍 [getByDate] Input date:', date)
-    console.log(
-      '🔍 [getByDate] Result:',
-      rows.length > 0 ? rows[0].date : 'NOT FOUND'
-    )
+    console.log('🔍 [getByDate] Result:', rows.length > 0 ? rows[0].date : 'NOT FOUND')
 
     return rows[0] || null
   }
@@ -50,28 +47,16 @@ export class CashierDailyRepository {
   /**
    * Obtener día con detalles completos
    */
-  static async getDetailsByDate(
-    date: string
-  ): Promise<CashierDailyDetail | null> {
+  static async getDetailsByDate(date: string): Promise<CashierDailyDetail | null> {
     const daily = await this.getByDate(date)
     if (!daily) return null
 
     // Importar otros repositorios
-    const { CashierShiftRepository } = await import(
-      './cashier-shift-repository.js'
-    )
-    const { CashierVoucherRepository } = await import(
-      './cashier-voucher-repository.js'
-    )
-    const { CashierShiftUserRepository } = await import(
-      './cashier-shift-user-repository.js'
-    )
-    const { CashierDenominationRepository } = await import(
-      './cashier-denomination-repository.js'
-    )
-    const { CashierPaymentRepository } = await import(
-      './cashier-payment-repository.js'
-    )
+    const { CashierShiftRepository } = await import('./cashier-shift-repository.js')
+    const { CashierVoucherRepository } = await import('./cashier-voucher-repository.js')
+    const { CashierShiftUserRepository } = await import('./cashier-shift-user-repository.js')
+    const { CashierDenominationRepository } = await import('./cashier-denomination-repository.js')
+    const { CashierPaymentRepository } = await import('./cashier-payment-repository.js')
 
     // Cargar shifts del día
     const shifts = await CashierShiftRepository.getByDate(date)
@@ -102,8 +87,7 @@ export class CashierDailyRepository {
 
     // Verificar si todos los turnos están cerrados
     const allShiftsClosed =
-      shifts.length === 4 &&
-      shifts.every((s: CashierShift) => s.status === 'closed')
+      shifts.length === 4 && shifts.every((s: CashierShift) => s.status === 'closed')
 
     // Validaciones para cierre
     const validationErrors: string[] = []
@@ -209,11 +193,7 @@ export class CashierDailyRepository {
   /**
    * Cerrar día
    */
-  static async close(
-    date: string,
-    userId: string,
-    data: CloseDailyDTO
-  ): Promise<CashierDaily> {
+  static async close(date: string, userId: string, data: CloseDailyDTO): Promise<CashierDaily> {
     const daily = await this.getByDate(date)
     if (!daily) throw new Error('Día no encontrado')
     if (daily.status === 'closed') throw new Error('El día ya está cerrado')
@@ -242,8 +222,7 @@ export class CashierDailyRepository {
   static async reopen(date: string): Promise<CashierDaily> {
     const daily = await this.getByDate(date)
     if (!daily) throw new Error('Día no encontrado')
-    if (daily.status !== 'closed')
-      throw new Error('Solo se pueden reabrir días cerrados')
+    if (daily.status !== 'closed') throw new Error('Solo se pueden reabrir días cerrados')
 
     const query = `
       UPDATE cashier_daily
@@ -288,10 +267,7 @@ export class CashierDailyRepository {
     return rows[0]?.total || 0
   }
 
-  static async getMonthlySummary(
-    year: number,
-    month: number
-  ): Promise<MonthlyCashierSummary> {
+  static async getMonthlySummary(year: number, month: number): Promise<MonthlyCashierSummary> {
     const startDate = `${year}-${String(month).padStart(2, '0')}-01`
     const endDate = new Date(year, month, 0).toISOString().split('T')[0]
 
@@ -376,9 +352,7 @@ export class CashierDailyRepository {
     const daysClosed = dailyRecords.filter((d) => d.status === 'closed').length
 
     if (daysClosed < daysInMonth) {
-      validationErrors.push(
-        `Faltan ${daysInMonth - daysClosed} días por cerrar`
-      )
+      validationErrors.push(`Faltan ${daysInMonth - daysClosed} días por cerrar`)
     }
 
     return {
@@ -404,8 +378,7 @@ export class CashierDailyRepository {
   static async delete(date: string): Promise<void> {
     const daily = await this.getByDate(date)
     if (!daily) throw new Error('Día no encontrado')
-    if (daily.status === 'closed')
-      throw new Error('No se puede eliminar un día cerrado')
+    if (daily.status === 'closed') throw new Error('No se puede eliminar un día cerrado')
 
     await db.query('DELETE FROM cashier_daily WHERE DATE(date) = ?', [date])
   }

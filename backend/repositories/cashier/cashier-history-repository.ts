@@ -2,11 +2,7 @@
 
 import db from '../../config/db.js'
 import { ResultSetHeader } from 'mysql2'
-import {
-  CashierHistory,
-  CreateHistoryDTO,
-  HistoryFilters,
-} from '../../models/cashier/index.js'
+import { CashierHistory, CreateHistoryDTO, HistoryFilters } from '../../models/cashier/index.js'
 
 export class CashierHistoryRepository {
   /**
@@ -167,10 +163,7 @@ export class CashierHistoryRepository {
   /**
    * Obtener cambios de un campo específico
    */
-  static async getFieldHistory(
-    shiftId: number,
-    fieldName: string
-  ): Promise<CashierHistory[]> {
+  static async getFieldHistory(shiftId: number, fieldName: string): Promise<CashierHistory[]> {
     const query = `
       SELECT * 
       FROM cashier_history 
@@ -185,10 +178,7 @@ export class CashierHistoryRepository {
   /**
    * Obtener última acción de un tipo específico en un turno
    */
-  static async getLastAction(
-    shiftId: number,
-    action: string
-  ): Promise<CashierHistory | null> {
+  static async getLastAction(shiftId: number, action: string): Promise<CashierHistory | null> {
     const query = `
       SELECT * 
       FROM cashier_history 
@@ -211,9 +201,7 @@ export class CashierHistoryRepository {
   /**
    * Obtener actividad reciente (últimas N entradas)
    */
-  static async getRecentActivity(
-    limit: number = 50
-  ): Promise<CashierHistory[]> {
+  static async getRecentActivity(limit: number = 50): Promise<CashierHistory[]> {
     const query = `
       SELECT * 
       FROM cashier_history 

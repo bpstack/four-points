@@ -298,7 +298,7 @@ export class MaintenanceRepository {
       FROM maintenance_reports r
       WHERE 1=1
     `
-    
+
     // Aplicar los mismos filtros al count query
     if (!include_deleted) {
       countQuery += ` AND r.is_deleted = FALSE`
@@ -700,11 +700,7 @@ export class MaintenanceRepository {
   /**
    * Eliminar reporte (soft delete)
    */
-  static async delete(
-    id: string,
-    userId: string,
-    username: string
-  ): Promise<boolean> {
+  static async delete(id: string, userId: string, username: string): Promise<boolean> {
     const current = await this.getById(id)
     if (!current) {
       return false
@@ -804,10 +800,9 @@ export class MaintenanceRepository {
 
     const [result] = await db.query<ResultSetHeader>(query, params)
 
-    const [rows] = await db.query<ImageRow[]>(
-      'SELECT * FROM maintenance_images WHERE id = ?',
-      [result.insertId]
-    )
+    const [rows] = await db.query<ImageRow[]>('SELECT * FROM maintenance_images WHERE id = ?', [
+      result.insertId,
+    ])
 
     return parseImageRow(rows[0])
   }
@@ -828,10 +823,9 @@ export class MaintenanceRepository {
    * Obtener imagen por ID
    */
   static async getImageById(imageId: number): Promise<MaintenanceImage | null> {
-    const [rows] = await db.query<ImageRow[]>(
-      'SELECT * FROM maintenance_images WHERE id = ?',
-      [imageId]
-    )
+    const [rows] = await db.query<ImageRow[]>('SELECT * FROM maintenance_images WHERE id = ?', [
+      imageId,
+    ])
 
     if (rows.length === 0) {
       return null

@@ -61,9 +61,7 @@ export async function addComment(
 // READ
 // ============================================
 
-export async function getById(
-  id: number | string
-): Promise<LogbookCommentRow | undefined> {
+export async function getById(id: number | string): Promise<LogbookCommentRow | undefined> {
   const [rows] = await db.query<LogbookCommentRow[]>(
     'SELECT * FROM logbook_comments WHERE id = ?',
     [id]

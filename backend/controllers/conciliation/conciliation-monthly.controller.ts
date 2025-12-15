@@ -11,10 +11,7 @@ import { conciliationMonthlyRepo } from '../../repositories/conciliation/concili
  * GET /api/conciliations/monthly-summary/:year/:month
  * Obtener resumen mensual completo con totales calculados
  */
-export async function getMonthlySummary(
-  req: Request,
-  res: Response
-): Promise<void> {
+export async function getMonthlySummary(req: Request, res: Response): Promise<void> {
   try {
     const year = Number(req.params.year)
     const month = Number(req.params.month)
@@ -36,10 +33,7 @@ export async function getMonthlySummary(
     }
 
     // Calcular resumen
-    const summary = await conciliationMonthlyRepo.calculateMonthlySummary(
-      year,
-      month
-    )
+    const summary = await conciliationMonthlyRepo.calculateMonthlySummary(year, month)
 
     res.status(200).json(summary)
   } catch (error) {
@@ -52,10 +46,7 @@ export async function getMonthlySummary(
  * GET /api/conciliations/monthly-summary/:year/:month/validation
  * Validar si el resumen mensual puede cerrarse
  */
-export async function validateMonthlySummary(
-  req: Request,
-  res: Response
-): Promise<void> {
+export async function validateMonthlySummary(req: Request, res: Response): Promise<void> {
   try {
     const year = Number(req.params.year)
     const month = Number(req.params.month)
@@ -72,10 +63,7 @@ export async function validateMonthlySummary(
     }
 
     // Validar
-    const validation = await conciliationMonthlyRepo.validateMonthlyClose(
-      year,
-      month
-    )
+    const validation = await conciliationMonthlyRepo.validateMonthlyClose(year, month)
 
     res.status(200).json(validation)
   } catch (error) {
@@ -89,10 +77,7 @@ export async function validateMonthlySummary(
  * Actualizar el estado del resumen mensual
  * Solo ADMIN puede cerrar (status = 'closed')
  */
-export async function updateMonthlySummaryStatus(
-  req: Request,
-  res: Response
-): Promise<void> {
+export async function updateMonthlySummaryStatus(req: Request, res: Response): Promise<void> {
   try {
     const year = Number(req.params.year)
     const month = Number(req.params.month)
@@ -126,12 +111,7 @@ export async function updateMonthlySummaryStatus(
     // }
 
     // Actualizar status (valida automáticamente si es 'closed')
-    await conciliationMonthlyRepo.updateMonthlySummaryStatus(
-      year,
-      month,
-      status,
-      userId
-    )
+    await conciliationMonthlyRepo.updateMonthlySummaryStatus(year, month, status, userId)
 
     res.status(200).json({
       message: `Resumen mensual marcado como ${status}`,
@@ -149,9 +129,7 @@ export async function updateMonthlySummaryStatus(
     }
 
     console.error('Error en updateMonthlySummaryStatus:', error)
-    res
-      .status(500)
-      .json({ error: 'Error al actualizar estado del resumen mensual' })
+    res.status(500).json({ error: 'Error al actualizar estado del resumen mensual' })
   }
 }
 
@@ -159,10 +137,7 @@ export async function updateMonthlySummaryStatus(
  * GET /api/conciliations/monthly-summary/:year/:month/missing-days
  * Obtener lista de días faltantes en el mes
  */
-export async function getMissingDays(
-  req: Request,
-  res: Response
-): Promise<void> {
+export async function getMissingDays(req: Request, res: Response): Promise<void> {
   try {
     const year = Number(req.params.year)
     const month = Number(req.params.month)
@@ -179,10 +154,7 @@ export async function getMissingDays(
     }
 
     // Obtener días faltantes
-    const missingDays = await conciliationMonthlyRepo.getMissingDaysInMonth(
-      year,
-      month
-    )
+    const missingDays = await conciliationMonthlyRepo.getMissingDaysInMonth(year, month)
 
     res.status(200).json({
       year,

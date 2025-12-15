@@ -14,10 +14,7 @@ import {
 // CREATE COMMENT
 // ============================================
 
-export async function createCommentController(
-  req: Request,
-  res: Response
-): Promise<void> {
+export async function createCommentController(req: Request, res: Response): Promise<void> {
   try {
     const { logbookId } = req.params
     const editorId = req.user!.id
@@ -39,10 +36,7 @@ export async function createCommentController(
     })
 
     // Update logbook if department/importance changed
-    if (
-      validatedData.department_id !== undefined ||
-      validatedData.importance_level !== undefined
-    ) {
+    if (validatedData.department_id !== undefined || validatedData.importance_level !== undefined) {
       await logbookRepo.updateLogbook(logbookId, {
         department_id: validatedData.department_id,
         importance_level: validatedData.importance_level,
@@ -88,10 +82,7 @@ export async function createCommentController(
 // UPDATE COMMENT
 // ============================================
 
-export async function updateCommentController(
-  req: Request,
-  res: Response
-): Promise<void> {
+export async function updateCommentController(req: Request, res: Response): Promise<void> {
   try {
     const { logbookId, id: commentId } = req.params
     const editorId = req.user!.id
@@ -105,9 +96,7 @@ export async function updateCommentController(
     }
 
     if (Number(oldComment.logbook_id) !== Number(logbookId)) {
-      res
-        .status(400)
-        .json({ error: 'El comentario no pertenece a este logbook' })
+      res.status(400).json({ error: 'El comentario no pertenece a este logbook' })
       return
     }
 
@@ -125,10 +114,7 @@ export async function updateCommentController(
     }
 
     // Update logbook if department/importance changed
-    if (
-      validatedData.department_id !== undefined ||
-      validatedData.importance_level !== undefined
-    ) {
+    if (validatedData.department_id !== undefined || validatedData.importance_level !== undefined) {
       await logbookRepo.updateLogbook(logbookId, {
         department_id: validatedData.department_id,
         importance_level: validatedData.importance_level,
@@ -166,10 +152,7 @@ export async function updateCommentController(
 // DELETE COMMENT
 // ============================================
 
-export async function deleteCommentController(
-  req: Request,
-  res: Response
-): Promise<void> {
+export async function deleteCommentController(req: Request, res: Response): Promise<void> {
   try {
     const { logbookId, id: commentId } = req.params
     const editorId = req.user!.id
@@ -181,9 +164,7 @@ export async function deleteCommentController(
     }
 
     if (Number(comment.logbook_id) !== Number(logbookId)) {
-      res
-        .status(400)
-        .json({ error: 'El comentario no pertenece a este logbook' })
+      res.status(400).json({ error: 'El comentario no pertenece a este logbook' })
       return
     }
 
@@ -219,10 +200,7 @@ export async function deleteCommentController(
 // GET COMMENTS BY LOGBOOK
 // ============================================
 
-export async function getCommentsByLogbookController(
-  req: Request,
-  res: Response
-): Promise<void> {
+export async function getCommentsByLogbookController(req: Request, res: Response): Promise<void> {
   try {
     const { logbookId } = req.params
     const comments = await commentRepo.getCommentByLogbookId(logbookId)
@@ -237,10 +215,7 @@ export async function getCommentsByLogbookController(
 // GET COMMENT HISTORY
 // ============================================
 
-export async function getCommentHistoryController(
-  req: Request,
-  res: Response
-): Promise<void> {
+export async function getCommentHistoryController(req: Request, res: Response): Promise<void> {
   try {
     const { commentId } = req.params
     const history = await commentHistoryRepo.getHistoryByCommentId(commentId)

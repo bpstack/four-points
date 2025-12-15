@@ -277,7 +277,13 @@ export interface ImageUploadResponse {
 // CONSTANTES
 // ========================================
 
-export const LOCATION_TYPES: LocationType[] = ['room', 'common_area', 'exterior', 'facilities', 'other']
+export const LOCATION_TYPES: LocationType[] = [
+  'room',
+  'common_area',
+  'exterior',
+  'facilities',
+  'other',
+]
 
 export const REPORT_STATUSES: ReportStatus[] = [
   'reported',

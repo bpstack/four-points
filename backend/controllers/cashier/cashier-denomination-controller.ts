@@ -13,13 +13,9 @@ export class CashierDenominationController {
     try {
       const { shiftId } = req.params
 
-      const denominations = await CashierDenominationRepository.getByShift(
-        parseInt(shiftId)
-      )
+      const denominations = await CashierDenominationRepository.getByShift(parseInt(shiftId))
 
-      const totalCash = await CashierDenominationRepository.getTotalCash(
-        parseInt(shiftId)
-      )
+      const totalCash = await CashierDenominationRepository.getTotalCash(parseInt(shiftId))
 
       res.json({
         denominations,
@@ -40,16 +36,11 @@ export class CashierDenominationController {
       const { shiftId } = req.params
       const { denominations } = req.body
 
-      await CashierDenominationRepository.replaceAllForShift(
-        parseInt(shiftId),
-        denominations
-      )
+      await CashierDenominationRepository.replaceAllForShift(parseInt(shiftId), denominations)
 
       const userId = req.user?.id
       if (userId) {
-        const totalCash = await CashierDenominationRepository.getTotalCash(
-          parseInt(shiftId)
-        )
+        const totalCash = await CashierDenominationRepository.getTotalCash(parseInt(shiftId))
 
         await CashierHistoryRepository.create({
           shift_id: parseInt(shiftId),
@@ -60,9 +51,7 @@ export class CashierDenominationController {
         })
       }
 
-      const updated = await CashierDenominationRepository.getByShift(
-        parseInt(shiftId)
-      )
+      const updated = await CashierDenominationRepository.getByShift(parseInt(shiftId))
 
       res.json(updated)
     } catch (error) {
@@ -101,17 +90,12 @@ export class CashierDenominationController {
       const { id } = req.params
       const { quantity } = req.body
 
-      const updated = await CashierDenominationRepository.update(
-        parseInt(id),
-        quantity
-      )
+      const updated = await CashierDenominationRepository.update(parseInt(id), quantity)
 
       res.json(updated)
     } catch (error: any) {
       console.error('Error al actualizar denominación:', error)
-      res
-        .status(500)
-        .json({ error: error.message || 'Error al actualizar denominación' })
+      res.status(500).json({ error: error.message || 'Error al actualizar denominación' })
     }
   }
 

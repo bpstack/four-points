@@ -94,9 +94,7 @@ export class NotificationRepository {
   /**
    * Crear notificación
    */
-  static async create(
-    notificationData: CreateNotificationDTO
-  ): Promise<Notification> {
+  static async create(notificationData: CreateNotificationDTO): Promise<Notification> {
     const {
       module = 'groups',
       group_id,
@@ -141,21 +139,14 @@ export class NotificationRepository {
   /**
    * Actualizar estado de notificación
    */
-  static async updateStatus(
-    id: number,
-    status: NotificationStatus
-  ): Promise<boolean> {
+  static async updateStatus(id: number, status: NotificationStatus): Promise<boolean> {
     const query = `
       UPDATE notifications 
       SET status = ?, sent_at = CASE WHEN ? = 'sent' THEN NOW() ELSE sent_at END
       WHERE id = ?
     `
 
-    const [result] = await db.query<ResultSetHeader>(query, [
-      status,
-      status,
-      id,
-    ])
+    const [result] = await db.query<ResultSetHeader>(query, [status, status, id])
     return result.affectedRows > 0
   }
 
@@ -177,10 +168,7 @@ export class NotificationRepository {
    * Eliminar notificación
    */
   static async delete(id: number): Promise<boolean> {
-    const [result] = await db.query<ResultSetHeader>(
-      'DELETE FROM notifications WHERE id = ?',
-      [id]
-    )
+    const [result] = await db.query<ResultSetHeader>('DELETE FROM notifications WHERE id = ?', [id])
     return result.affectedRows > 0
   }
 
@@ -207,30 +195,21 @@ export class NotificationRepository {
   /**
    * Añadir destinatario a notificación
    */
-  static async addRecipient(
-    notificationId: number,
-    userId: string
-  ): Promise<ResultSetHeader> {
+  static async addRecipient(notificationId: number, userId: string): Promise<ResultSetHeader> {
     const query = `
       INSERT INTO notification_recipients (notification_id, user_id)
       VALUES (?, ?)
       ON DUPLICATE KEY UPDATE notification_id = notification_id
     `
 
-    const [result] = await db.query<ResultSetHeader>(query, [
-      notificationId,
-      userId,
-    ])
+    const [result] = await db.query<ResultSetHeader>(query, [notificationId, userId])
     return result
   }
 
   /**
    * Añadir múltiples destinatarios
    */
-  static async addRecipients(
-    notificationId: number,
-    userIds: string[]
-  ): Promise<void> {
+  static async addRecipients(notificationId: number, userIds: string[]): Promise<void> {
     if (!userIds || userIds.length === 0) return
 
     const values = userIds.map((userId) => [notificationId, userId])
@@ -246,20 +225,14 @@ export class NotificationRepository {
   /**
    * Marcar notificación como leída para un usuario
    */
-  static async markAsRead(
-    notificationId: number,
-    userId: string
-  ): Promise<boolean> {
+  static async markAsRead(notificationId: number, userId: string): Promise<boolean> {
     const query = `
       UPDATE notification_recipients 
       SET is_read = 1, read_at = NOW()
       WHERE notification_id = ? AND user_id = ?
     `
 
-    const [result] = await db.query<ResultSetHeader>(query, [
-      notificationId,
-      userId,
-    ])
+    const [result] = await db.query<ResultSetHeader>(query, [notificationId, userId])
     return result.affectedRows > 0
   }
 
@@ -280,9 +253,7 @@ export class NotificationRepository {
   /**
    * Obtener destinatarios de una notificación
    */
-  static async getRecipients(
-    notificationId: number
-  ): Promise<NotificationWithUser[]> {
+  static async getRecipients(notificationId: number): Promise<NotificationWithUser[]> {
     const query = `
       SELECT 
         nr.*,
@@ -293,9 +264,7 @@ export class NotificationRepository {
       WHERE nr.notification_id = ?
     `
 
-    const [rows] = await db.query<NotificationWithUser[]>(query, [
-      notificationId,
-    ])
+    const [rows] = await db.query<NotificationWithUser[]>(query, [notificationId])
     return rows
   }
 }

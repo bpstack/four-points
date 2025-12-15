@@ -1,21 +1,14 @@
 // repositories/group/group-history-repository.ts
 
 import db from '../../config/db'
-import {
-  GroupHistory,
-  HistoryWithUser,
-  CreateGroupHistoryDTO,
-} from '../../models/group/index'
+import { GroupHistory, HistoryWithUser, CreateGroupHistoryDTO } from '../../models/group/index'
 import { ResultSetHeader } from 'mysql2'
 
 export class GroupHistoryRepository {
   /**
    * Obtener historial de un grupo
    */
-  static async getByGroupId(
-    groupId: number,
-    limit: number = 100
-  ): Promise<HistoryWithUser[]> {
+  static async getByGroupId(groupId: number, limit: number = 100): Promise<HistoryWithUser[]> {
     const query = `
       SELECT 
         gh.*,
@@ -34,9 +27,7 @@ export class GroupHistoryRepository {
   /**
    * Crear registro en historial
    */
-  static async create(
-    historyData: CreateGroupHistoryDTO
-  ): Promise<GroupHistory> {
+  static async create(historyData: CreateGroupHistoryDTO): Promise<GroupHistory> {
     const {
       group_id,
       action,

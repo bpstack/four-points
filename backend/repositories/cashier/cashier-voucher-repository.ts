@@ -173,10 +173,7 @@ export class CashierVoucherRepository {
   /**
    * Actualizar vale
    */
-  static async update(
-    id: number,
-    data: UpdateVoucherDTO
-  ): Promise<CashierVoucher> {
+  static async update(id: number, data: UpdateVoucherDTO): Promise<CashierVoucher> {
     const updates: string[] = []
     const params: any[] = []
 
@@ -220,8 +217,7 @@ export class CashierVoucherRepository {
   static async justify(id: number, shiftId: number): Promise<CashierVoucher> {
     const voucher = await this.getById(id)
     if (!voucher) throw new Error('Vale no encontrado')
-    if (voucher.status === 'justified')
-      throw new Error('El vale ya está justificado')
+    if (voucher.status === 'justified') throw new Error('El vale ya está justificado')
 
     const connection = await db.getConnection()
 
@@ -264,8 +260,7 @@ export class CashierVoucherRepository {
   static async cancel(id: number): Promise<CashierVoucher> {
     const voucher = await this.getById(id)
     if (!voucher) throw new Error('Vale no encontrado')
-    if (voucher.status === 'cancelled')
-      throw new Error('El vale ya está cancelado')
+    if (voucher.status === 'cancelled') throw new Error('El vale ya está cancelado')
 
     const query = `
       UPDATE cashier_vouchers
@@ -276,9 +271,7 @@ export class CashierVoucherRepository {
     await db.query(query, [id])
 
     // Eliminar asociación con turnos si existe
-    await db.query('DELETE FROM cashier_shift_vouchers WHERE voucher_id = ?', [
-      id,
-    ])
+    await db.query('DELETE FROM cashier_shift_vouchers WHERE voucher_id = ?', [id])
 
     const cancelled = await this.getById(id)
     if (!cancelled) throw new Error('Error al recuperar vale cancelado')
@@ -371,10 +364,7 @@ export class CashierVoucherRepository {
   /**
    * Asociar vale existente con un turno
    */
-  static async associateWithShift(
-    voucherId: number,
-    shiftId: number
-  ): Promise<void> {
+  static async associateWithShift(voucherId: number, shiftId: number): Promise<void> {
     // Verificar límite de 5 vales por turno
     const canAdd = await this.canAddVoucherToShift(shiftId)
     if (!canAdd) {
@@ -392,14 +382,11 @@ export class CashierVoucherRepository {
   /**
    * Desasociar vale de un turno
    */
-  static async dissociateFromShift(
-    voucherId: number,
-    shiftId: number
-  ): Promise<void> {
-    await db.query(
-      'DELETE FROM cashier_shift_vouchers WHERE voucher_id = ? AND shift_id = ?',
-      [voucherId, shiftId]
-    )
+  static async dissociateFromShift(voucherId: number, shiftId: number): Promise<void> {
+    await db.query('DELETE FROM cashier_shift_vouchers WHERE voucher_id = ? AND shift_id = ?', [
+      voucherId,
+      shiftId,
+    ])
   }
 
   /**

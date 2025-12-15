@@ -13,10 +13,7 @@ import {
 // CREATE LOGBOOK
 // ============================================
 
-export async function createLogbook(
-  req: Request,
-  res: Response
-): Promise<void> {
+export async function createLogbook(req: Request, res: Response): Promise<void> {
   try {
     const validatedData = createLogbookSchema.parse(req.body)
     const logbook = await logbookRepo.createLogbook(validatedData)
@@ -49,10 +46,7 @@ export async function createLogbook(
 // UPDATE LOGBOOK
 // ============================================
 
-export async function updateLogbookController(
-  req: Request,
-  res: Response
-): Promise<void> {
+export async function updateLogbookController(req: Request, res: Response): Promise<void> {
   try {
     const logbookId = req.params.id
     const editorId = req.user!.id
@@ -88,10 +82,7 @@ export async function updateLogbookController(
 // GET LOGBOOK HISTORY
 // ============================================
 
-export async function getLogbookHistory(
-  req: Request,
-  res: Response
-): Promise<void> {
+export async function getLogbookHistory(req: Request, res: Response): Promise<void> {
   const logbookIdRaw = req.params.logbookId
   const logbookId = Number(logbookIdRaw)
 
@@ -104,9 +95,7 @@ export async function getLogbookHistory(
     const data = await historyRepo.getHistoryByLogbookId(logbookId)
 
     if (!data || !Array.isArray(data.history) || data.history.length === 0) {
-      res
-        .status(404)
-        .json({ error: 'Logbook no encontrado o sin historial' })
+      res.status(404).json({ error: 'Logbook no encontrado o sin historial' })
       return
     }
 
@@ -121,10 +110,7 @@ export async function getLogbookHistory(
 // GET ALL LOGBOOKS
 // ============================================
 
-export async function getAllLogbooks(
-  _req: Request,
-  res: Response
-): Promise<void> {
+export async function getAllLogbooks(_req: Request, res: Response): Promise<void> {
   try {
     const logbooks = await logbookRepo.getAllLogbooks()
     res.json(logbooks)
@@ -138,19 +124,14 @@ export async function getAllLogbooks(
 // GET LOGBOOKS BY DEPARTMENT
 // ============================================
 
-export async function getLogbooksByDepartment(
-  req: Request,
-  res: Response
-): Promise<void> {
+export async function getLogbooksByDepartment(req: Request, res: Response): Promise<void> {
   try {
     const { departmentId } = req.params
     const logbooks = await logbookRepo.getLogbooksByDepartment(departmentId)
     res.json(logbooks)
   } catch (err) {
     console.error('Error al obtener logbooks por departamento:', err)
-    res
-      .status(500)
-      .json({ error: 'Error al obtener logbooks por departamento' })
+    res.status(500).json({ error: 'Error al obtener logbooks por departamento' })
   }
 }
 
@@ -158,10 +139,7 @@ export async function getLogbooksByDepartment(
 // GET LOGBOOKS BY AUTHOR
 // ============================================
 
-export async function getLogbooksByAuthor(
-  req: Request,
-  res: Response
-): Promise<void> {
+export async function getLogbooksByAuthor(req: Request, res: Response): Promise<void> {
   try {
     const { authorId } = req.params
     const logbooks = await logbookRepo.getLogbooksByAuthor(authorId)
@@ -176,18 +154,14 @@ export async function getLogbooksByAuthor(
 // GET LOGBOOKS BY IMPORTANCE
 // ============================================
 
-export async function getLogbooksByImportance(
-  req: Request,
-  res: Response
-): Promise<void> {
+export async function getLogbooksByImportance(req: Request, res: Response): Promise<void> {
   try {
     let importance = req.params.importance.trim().toLowerCase()
 
     const allowedLevels = ['baja', 'media', 'alta', 'urgente']
     if (!allowedLevels.includes(importance)) {
       res.status(400).json({
-        error:
-          'Nivel de importancia inválido. Usa: baja, media, alta o urgente',
+        error: 'Nivel de importancia inválido. Usa: baja, media, alta o urgente',
       })
       return
     }
@@ -204,10 +178,7 @@ export async function getLogbooksByImportance(
 // GET LOGBOOKS BY DAY
 // ============================================
 
-export async function getLogbooksByDay(
-  req: Request,
-  res: Response
-): Promise<void> {
+export async function getLogbooksByDay(req: Request, res: Response): Promise<void> {
   try {
     const { day } = req.params
 
@@ -228,10 +199,7 @@ export async function getLogbooksByDay(
 // DELETE LOGBOOK (soft-delete)
 // ============================================
 
-export async function deleteLogbookController(
-  req: Request,
-  res: Response
-): Promise<void> {
+export async function deleteLogbookController(req: Request, res: Response): Promise<void> {
   try {
     const logbookId = req.params.id
     const editorId = req.user!.id
@@ -243,9 +211,7 @@ export async function deleteLogbookController(
     }
 
     if (logbook.author_id !== editorId) {
-      res
-        .status(403)
-        .json({ error: 'Solo el autor puede eliminar este logbook' })
+      res.status(403).json({ error: 'Solo el autor puede eliminar este logbook' })
       return
     }
 

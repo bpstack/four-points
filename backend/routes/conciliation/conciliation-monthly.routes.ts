@@ -27,21 +27,13 @@ router.get('/:year/:month', authenticateToken, monthlyCtrl.getMonthlySummary)
  * Validar si el resumen mensual puede cerrarse
  * Útil para mostrar warnings/errors en el frontend antes de intentar cerrar
  */
-router.get(
-  '/:year/:month/validation',
-  authenticateToken,
-  monthlyCtrl.validateMonthlySummary
-)
+router.get('/:year/:month/validation', authenticateToken, monthlyCtrl.validateMonthlySummary)
 
 /**
  * GET /api/conciliations/monthly-summary/:year/:month/missing-days
  * Obtener lista de días faltantes en el mes
  */
-router.get(
-  '/:year/:month/missing-days',
-  authenticateToken,
-  monthlyCtrl.getMissingDays
-)
+router.get('/:year/:month/missing-days', authenticateToken, monthlyCtrl.getMissingDays)
 
 // ============================================
 // RUTAS ADMIN (requieren rol administrador)

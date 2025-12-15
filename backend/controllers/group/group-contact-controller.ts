@@ -4,20 +4,14 @@ import { Request, Response } from 'express'
 import { GroupContactRepository } from '../../repositories/group/group-contact-repository'
 import { GroupRepository } from '../../repositories/group/group-repository'
 import { GroupHistoryService } from '../../services/group/group-history-service'
-import {
-  CreateGroupContactDTO,
-  UpdateGroupContactDTO,
-} from '../../models/group/index'
+import { CreateGroupContactDTO, UpdateGroupContactDTO } from '../../models/group/index'
 
 export class GroupContactController {
   /**
    * GET /api/groups/:id/contacts
    * Obtener todos los contactos de un grupo
    */
-  static async getContactsByGroup(
-    req: Request,
-    res: Response
-  ): Promise<Response> {
+  static async getContactsByGroup(req: Request, res: Response): Promise<Response> {
     try {
       const groupId = parseInt(req.params.id)
 
@@ -249,13 +243,7 @@ export class GroupContactController {
         })
       }
 
-      await GroupHistoryService.logDeleted(
-        groupId,
-        userId,
-        'group_contacts',
-        contactId,
-        contact
-      )
+      await GroupHistoryService.logDeleted(groupId, userId, 'group_contacts', contactId, contact)
 
       return res.status(200).json({
         success: true,
@@ -275,10 +263,7 @@ export class GroupContactController {
    * GET /api/groups/:id/contacts/primary
    * Obtener contacto principal de un grupo
    */
-  static async getPrimaryContact(
-    req: Request,
-    res: Response
-  ): Promise<Response> {
+  static async getPrimaryContact(req: Request, res: Response): Promise<Response> {
     try {
       const groupId = parseInt(req.params.id)
 
@@ -289,9 +274,7 @@ export class GroupContactController {
         })
       }
 
-      const primaryContact = await GroupContactRepository.getPrimaryContact(
-        groupId
-      )
+      const primaryContact = await GroupContactRepository.getPrimaryContact(groupId)
 
       if (!primaryContact) {
         return res.status(404).json({

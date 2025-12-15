@@ -8,14 +8,7 @@ import { RowDataPacket, ResultSetHeader } from 'mysql2'
 
 export type ImportanceLevel = 'baja' | 'media' | 'alta' | 'urgente'
 
-export type HistoryAction =
-  | 'create'
-  | 'update'
-  | 'delete'
-  | 'read'
-  | 'unread'
-  | 'solve'
-  | 'reopen'
+export type HistoryAction = 'create' | 'update' | 'delete' | 'read' | 'unread' | 'solve' | 'reopen'
 
 export type HistoryType = 'logbook' | 'comment'
 

@@ -5,20 +5,14 @@ import { GroupPaymentRepository } from '../../repositories/group/group-payment-r
 import { GroupRepository } from '../../repositories/group/group-repository'
 import { PaymentCalculatorService } from '../../services/group/payment-calculator-service'
 import { GroupHistoryService } from '../../services/group/group-history-service'
-import {
-  CreateGroupPaymentDTO,
-  UpdateGroupPaymentDTO,
-} from '../../models/group/index'
+import { CreateGroupPaymentDTO, UpdateGroupPaymentDTO } from '../../models/group/index'
 
 export class GroupPaymentController {
   /**
    * GET /api/groups/:id/payments
    * Obtener todos los pagos de un grupo
    */
-  static async getPaymentsByGroup(
-    req: Request,
-    res: Response
-  ): Promise<Response> {
+  static async getPaymentsByGroup(req: Request, res: Response): Promise<Response> {
     try {
       const groupId = parseInt(req.params.id)
 
@@ -232,10 +226,7 @@ export class GroupPaymentController {
    * PATCH /api/groups/:id/payments/:paymentId/status
    * Actualizar solo el estado del pago
    */
-  static async updatePaymentStatus(
-    req: Request,
-    res: Response
-  ): Promise<Response> {
+  static async updatePaymentStatus(req: Request, res: Response): Promise<Response> {
     try {
       const paymentId = parseInt(req.params.paymentId)
       const userId = req.user?.id
@@ -271,10 +262,7 @@ export class GroupPaymentController {
         })
       }
 
-      const updated = await GroupPaymentRepository.updateStatus(
-        paymentId,
-        status
-      )
+      const updated = await GroupPaymentRepository.updateStatus(paymentId, status)
 
       if (!updated) {
         return res.status(500).json({
@@ -313,10 +301,7 @@ export class GroupPaymentController {
    * PATCH /api/groups/:id/payments/:paymentId/amount-paid
    * Registrar pago parcial o total
    */
-  static async updateAmountPaid(
-    req: Request,
-    res: Response
-  ): Promise<Response> {
+  static async updateAmountPaid(req: Request, res: Response): Promise<Response> {
     try {
       const paymentId = parseInt(req.params.paymentId)
       const userId = req.user?.id
@@ -352,10 +337,7 @@ export class GroupPaymentController {
         })
       }
 
-      const updated = await GroupPaymentRepository.updateAmountPaid(
-        paymentId,
-        amount_paid
-      )
+      const updated = await GroupPaymentRepository.updateAmountPaid(paymentId, amount_paid)
 
       if (!updated) {
         return res.status(500).json({
@@ -439,13 +421,7 @@ export class GroupPaymentController {
         })
       }
 
-      await GroupHistoryService.logDeleted(
-        groupId,
-        userId,
-        'group_payments',
-        paymentId,
-        payment
-      )
+      await GroupHistoryService.logDeleted(groupId, userId, 'group_payments', paymentId, payment)
 
       return res.status(200).json({
         success: true,
@@ -465,10 +441,7 @@ export class GroupPaymentController {
    * GET /api/payments/upcoming
    * Obtener pagos próximos a vencer
    */
-  static async getUpcomingPayments(
-    req: Request,
-    res: Response
-  ): Promise<Response> {
+  static async getUpcomingPayments(req: Request, res: Response): Promise<Response> {
     try {
       const days = req.query.days ? parseInt(req.query.days as string) : 7
 
@@ -494,10 +467,7 @@ export class GroupPaymentController {
    * GET /api/payments/overdue
    * Obtener pagos vencidos
    */
-  static async getOverduePayments(
-    _req: Request,
-    res: Response
-  ): Promise<Response> {
+  static async getOverduePayments(_req: Request, res: Response): Promise<Response> {
     try {
       const payments = await GroupPaymentRepository.getOverdue()
 

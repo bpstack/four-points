@@ -67,8 +67,7 @@ function parseBlacklistRow(row: BlacklistRow): BlacklistEntry {
     reason: row.reason,
     severity: row.severity,
     comments: row.comments,
-    images:
-      typeof row.images === 'string' ? JSON.parse(row.images) : row.images,
+    images: typeof row.images === 'string' ? JSON.parse(row.images) : row.images,
     status: row.status,
     deleted_at: row.deleted_at,
     deleted_by: row.deleted_by,
@@ -76,9 +75,7 @@ function parseBlacklistRow(row: BlacklistRow): BlacklistEntry {
     created_at: row.created_at,
     updated_at: row.updated_at,
     audit_trail:
-      typeof row.audit_trail === 'string'
-        ? JSON.parse(row.audit_trail)
-        : row.audit_trail,
+      typeof row.audit_trail === 'string' ? JSON.parse(row.audit_trail) : row.audit_trail,
     created_by_username: row.created_by_username || undefined,
     deleted_by_username: row.deleted_by_username || undefined,
   }
@@ -161,10 +158,7 @@ export class BlacklistRepository {
     }
 
     // Query para contar total (mismos filtros)
-    const countQuery = query.replace(
-      /SELECT[\s\S]*?FROM/,
-      'SELECT COUNT(*) as total FROM'
-    )
+    const countQuery = query.replace(/SELECT[\s\S]*?FROM/, 'SELECT COUNT(*) as total FROM')
 
     const [countResult] = await db.query<CountRow[]>(countQuery, params)
     const total = countResult[0]?.total || 0
@@ -303,19 +297,13 @@ export class BlacklistRepository {
     const fields: string[] = []
     const values: any[] = []
 
-    if (
-      data.guest_name !== undefined &&
-      data.guest_name !== current.guest_name
-    ) {
+    if (data.guest_name !== undefined && data.guest_name !== current.guest_name) {
       changes.guest_name = { old: current.guest_name, new: data.guest_name }
       fields.push('guest_name = ?')
       values.push(data.guest_name)
     }
 
-    if (
-      data.document_type !== undefined &&
-      data.document_type !== current.document_type
-    ) {
+    if (data.document_type !== undefined && data.document_type !== current.document_type) {
       changes.document_type = {
         old: current.document_type,
         new: data.document_type,
@@ -324,10 +312,7 @@ export class BlacklistRepository {
       values.push(data.document_type)
     }
 
-    if (
-      data.document_number !== undefined &&
-      data.document_number !== current.document_number
-    ) {
+    if (data.document_number !== undefined && data.document_number !== current.document_number) {
       changes.document_number = {
         old: current.document_number,
         new: data.document_number,
@@ -336,10 +321,7 @@ export class BlacklistRepository {
       values.push(data.document_number)
     }
 
-    if (
-      data.check_in_date !== undefined &&
-      data.check_in_date !== current.check_in_date
-    ) {
+    if (data.check_in_date !== undefined && data.check_in_date !== current.check_in_date) {
       changes.check_in_date = {
         old: current.check_in_date,
         new: data.check_in_date,
@@ -348,10 +330,7 @@ export class BlacklistRepository {
       values.push(data.check_in_date)
     }
 
-    if (
-      data.check_out_date !== undefined &&
-      data.check_out_date !== current.check_out_date
-    ) {
+    if (data.check_out_date !== undefined && data.check_out_date !== current.check_out_date) {
       changes.check_out_date = {
         old: current.check_out_date,
         new: data.check_out_date,
@@ -411,9 +390,7 @@ export class BlacklistRepository {
 
     // Ejecutar update
     values.push(id)
-    const query = `UPDATE blacklist_entries SET ${fields.join(
-      ', '
-    )} WHERE id = ?`
+    const query = `UPDATE blacklist_entries SET ${fields.join(', ')} WHERE id = ?`
 
     await db.query<ResultSetHeader>(query, values)
 
@@ -423,11 +400,7 @@ export class BlacklistRepository {
   /**
    * Eliminar registro (soft delete)
    */
-  static async delete(
-    id: number,
-    userId: string,
-    username: string
-  ): Promise<boolean> {
+  static async delete(id: number, userId: string, username: string): Promise<boolean> {
     const current = await this.getById(id)
     if (!current) {
       return false
@@ -460,11 +433,7 @@ export class BlacklistRepository {
       WHERE id = ?
     `
 
-    const [result] = await db.query<ResultSetHeader>(query, [
-      userId,
-      JSON.stringify(newAudit),
-      id,
-    ])
+    const [result] = await db.query<ResultSetHeader>(query, [userId, JSON.stringify(newAudit), id])
 
     return result.affectedRows > 0
   }
@@ -517,10 +486,7 @@ export class BlacklistRepository {
   /**
    * Verificar si existe un documento en blacklist activa
    */
-  static async existsByDocument(
-    documentNumber: string,
-    excludeId?: number
-  ): Promise<boolean> {
+  static async existsByDocument(documentNumber: string, excludeId?: number): Promise<boolean> {
     let query = `
       SELECT COUNT(*) as total
       FROM blacklist_entries
@@ -592,10 +558,7 @@ export class BlacklistRepository {
       total_entries: Number(counts.total),
       active_entries: Number(counts.active),
       deleted_entries: Number(counts.deleted),
-      by_severity: bySeverity as Record<
-        'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL',
-        number
-      >,
+      by_severity: bySeverity as Record<'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL', number>,
       recent_entries: recentResult.map(parseBlacklistRow),
     }
   }

@@ -11,11 +11,7 @@ import { CashierDenominationController } from '../../controllers/cashier/cashier
 import { CashierReportController } from '../../controllers/cashier/cashier-report-controller.js'
 import { CashierHistoryController } from '../../controllers/cashier/cashier-history-controller.js'
 import { authenticateToken } from '../../middlewares/authenticateToken.js'
-import {
-  isAdmin,
-  canManageCashier,
-  canViewReports,
-} from '../../middlewares/roleCheck.js'
+import { isAdmin, canManageCashier, canViewReports } from '../../middlewares/roleCheck.js'
 
 const router = express.Router()
 
@@ -55,22 +51,13 @@ router.patch(
  * PATCH /api/cashier/daily/:date/reopen
  * Reabrir día cerrado (solo admin)
  */
-router.patch(
-  '/daily/:date/reopen',
-  authenticateToken,
-  isAdmin,
-  CashierDailyController.reopenDay
-)
+router.patch('/daily/:date/reopen', authenticateToken, isAdmin, CashierDailyController.reopenDay)
 
 /**
  * GET /api/cashier/daily/:date/summary
  * Obtener resumen de un día
  */
-router.get(
-  '/daily/:date/summary',
-  authenticateToken,
-  CashierDailyController.getSummary
-)
+router.get('/daily/:date/summary', authenticateToken, CashierDailyController.getSummary)
 
 /**
  * GET /api/cashier/daily
@@ -109,66 +96,37 @@ router.get('/shifts/:id', authenticateToken, CashierShiftController.getById)
  * PATCH /api/cashier/shifts/:id
  * Actualizar turno
  */
-router.patch(
-  '/shifts/:id',
-  authenticateToken,
-  canManageCashier,
-  CashierShiftController.update
-)
+router.patch('/shifts/:id', authenticateToken, canManageCashier, CashierShiftController.update)
 
 /**
  * PATCH /api/cashier/shifts/:id/close
  * Cerrar turno
  */
-router.patch(
-  '/shifts/:id/close',
-  authenticateToken,
-  canManageCashier,
-  CashierShiftController.close
-)
+router.patch('/shifts/:id/close', authenticateToken, canManageCashier, CashierShiftController.close)
 
 /**
  * PATCH /api/cashier/shifts/:id/reopen
  * Reabrir turno (solo admin)
  */
-router.patch(
-  '/shifts/:id/reopen',
-  authenticateToken,
-  isAdmin,
-  CashierShiftController.reopen
-)
+router.patch('/shifts/:id/reopen', authenticateToken, isAdmin, CashierShiftController.reopen)
 
 /**
  * PUT /api/cashier/shifts/:id/users
  * Actualizar responsables del turno (solo admin)
  */
-router.put(
-  '/shifts/:id/users',
-  authenticateToken,
-  isAdmin,
-  CashierShiftController.updateUsers
-)
+router.put('/shifts/:id/users', authenticateToken, isAdmin, CashierShiftController.updateUsers)
 
 /**
  * DELETE /api/cashier/shifts/:id
  * Eliminar turno (solo admin, solo si está abierto)
  */
-router.delete(
-  '/shifts/:id',
-  authenticateToken,
-  isAdmin,
-  CashierShiftController.delete
-)
+router.delete('/shifts/:id', authenticateToken, isAdmin, CashierShiftController.delete)
 
 /**
  * GET /api/cashier/shifts/:id/history
  * Obtener historial de un turno
  */
-router.get(
-  '/shifts/:id/history',
-  authenticateToken,
-  CashierShiftController.getHistory
-)
+router.get('/shifts/:id/history', authenticateToken, CashierShiftController.getHistory)
 
 // ============================================
 // 🎫 VOUCHER ROUTES (Vales)
@@ -184,21 +142,13 @@ router.get('/vouchers', authenticateToken, CashierVoucherController.getAll)
  * GET /api/cashier/vouchers/active
  * Obtener vales activos (pendientes)
  */
-router.get(
-  '/vouchers/active',
-  authenticateToken,
-  CashierVoucherController.getActive
-)
+router.get('/vouchers/active', authenticateToken, CashierVoucherController.getActive)
 
 /**
  * GET /api/cashier/vouchers/stats
  * Obtener estadísticas de vales
  */
-router.get(
-  '/vouchers/stats',
-  authenticateToken,
-  CashierVoucherController.getStats
-)
+router.get('/vouchers/stats', authenticateToken, CashierVoucherController.getStats)
 
 /**
  * GET /api/cashier/vouchers/:id
@@ -221,12 +171,7 @@ router.post(
  * PATCH /api/cashier/vouchers/:id
  * Actualizar vale
  */
-router.patch(
-  '/vouchers/:id',
-  authenticateToken,
-  canManageCashier,
-  CashierVoucherController.update
-)
+router.patch('/vouchers/:id', authenticateToken, canManageCashier, CashierVoucherController.update)
 
 /**
  * PATCH /api/cashier/vouchers/:id/justify
@@ -243,23 +188,13 @@ router.patch(
  * PATCH /api/cashier/vouchers/:id/cancel
  * Cancelar vale (solo admin)
  */
-router.patch(
-  '/vouchers/:id/cancel',
-  authenticateToken,
-  isAdmin,
-  CashierVoucherController.cancel
-)
+router.patch('/vouchers/:id/cancel', authenticateToken, isAdmin, CashierVoucherController.cancel)
 
 /**
  * DELETE /api/cashier/vouchers/:id
  * Eliminar vale (solo admin, solo si está pendiente)
  */
-router.delete(
-  '/vouchers/:id',
-  authenticateToken,
-  isAdmin,
-  CashierVoucherController.delete
-)
+router.delete('/vouchers/:id', authenticateToken, isAdmin, CashierVoucherController.delete)
 
 // ============================================
 // 💳 PAYMENT ROUTES (Pagos)
@@ -269,11 +204,7 @@ router.delete(
  * GET /api/cashier/shifts/:shiftId/payments
  * Obtener pagos de un turno
  */
-router.get(
-  '/shifts/:shiftId/payments',
-  authenticateToken,
-  CashierPaymentController.getByShift
-)
+router.get('/shifts/:shiftId/payments', authenticateToken, CashierPaymentController.getByShift)
 
 /**
  * GET /api/cashier/shifts/:shiftId/payments/summary
@@ -311,23 +242,13 @@ router.put(
  * PATCH /api/cashier/payments/:id
  * Actualizar pago
  */
-router.patch(
-  '/payments/:id',
-  authenticateToken,
-  canManageCashier,
-  CashierPaymentController.update
-)
+router.patch('/payments/:id', authenticateToken, canManageCashier, CashierPaymentController.update)
 
 /**
  * DELETE /api/cashier/payments/:id
  * Eliminar pago (solo admin)
  */
-router.delete(
-  '/payments/:id',
-  authenticateToken,
-  isAdmin,
-  CashierPaymentController.delete
-)
+router.delete('/payments/:id', authenticateToken, isAdmin, CashierPaymentController.delete)
 
 // ============================================
 // 💵 DENOMINATION ROUTES (Denominaciones)
@@ -453,23 +374,13 @@ router.get(
  * GET /api/cashier/history
  * Obtener historial con filtros
  */
-router.get(
-  '/history',
-  authenticateToken,
-  canViewReports,
-  CashierHistoryController.getAll
-)
+router.get('/history', authenticateToken, canViewReports, CashierHistoryController.getAll)
 
 /**
  * GET /api/cashier/history/stats
  * Obtener estadísticas de historial
  */
-router.get(
-  '/history/stats',
-  authenticateToken,
-  canViewReports,
-  CashierHistoryController.getStats
-)
+router.get('/history/stats', authenticateToken, canViewReports, CashierHistoryController.getStats)
 
 /**
  * GET /api/cashier/history/shift/:shiftId
@@ -486,11 +397,6 @@ router.get(
  * GET /api/cashier/history/recent
  * Obtener actividad reciente
  */
-router.get(
-  '/history/recent',
-  authenticateToken,
-  canViewReports,
-  CashierHistoryController.getRecent
-)
+router.get('/history/recent', authenticateToken, canViewReports, CashierHistoryController.getRecent)
 
 export default router

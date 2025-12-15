@@ -252,10 +252,7 @@ export async function updateStatus(req: Request, res: Response): Promise<void> {
  * POST /api/conciliations/:id/recalculate
  * Recalcular totales de una conciliación
  */
-export async function recalculateTotals(
-  req: Request,
-  res: Response
-): Promise<void> {
+export async function recalculateTotals(req: Request, res: Response): Promise<void> {
   try {
     const id = Number(req.params.id)
 

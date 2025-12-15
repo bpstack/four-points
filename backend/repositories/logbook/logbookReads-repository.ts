@@ -106,9 +106,7 @@ export async function unmarkLogbookRead({
   }
 }
 
-export async function getUsersWhoReadLogbook(
-  logbookId: number | string
-): Promise<LogbookReader[]> {
+export async function getUsersWhoReadLogbook(logbookId: number | string): Promise<LogbookReader[]> {
   if (logbookId == null) {
     throw new Error('logbookId no puede ser undefined o null')
   }
@@ -226,9 +224,7 @@ export async function markLogbookPending({
   }
 }
 
-export async function getUsersWhoSolvedLogbook(
-  logbookId: number
-): Promise<LogbookSolver[]> {
+export async function getUsersWhoSolvedLogbook(logbookId: number): Promise<LogbookSolver[]> {
   if (logbookId == null) {
     throw new Error('logbookId no puede ser undefined o null')
   }

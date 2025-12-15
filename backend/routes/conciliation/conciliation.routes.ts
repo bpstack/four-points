@@ -63,11 +63,7 @@ router.patch('/:id/status', authenticateToken, conciliationCtrl.updateStatus)
  * POST /api/conciliations/:id/recalculate
  * Recalcular totales de una conciliación
  */
-router.post(
-  '/:id/recalculate',
-  authenticateToken,
-  conciliationCtrl.recalculateTotals
-)
+router.post('/:id/recalculate', authenticateToken, conciliationCtrl.recalculateTotals)
 
 // ============================================
 // RUTAS ADMIN (requieren rol de administrador)

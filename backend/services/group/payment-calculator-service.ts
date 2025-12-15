@@ -8,10 +8,7 @@ export class PaymentCalculatorService {
    * Recalcular amounts de todos los pagos de un grupo
    * Solo actualiza pagos que tienen porcentaje definido
    */
-  static async recalculatePayments(
-    groupId: number,
-    newTotalAmount: number
-  ): Promise<number> {
+  static async recalculatePayments(groupId: number, newTotalAmount: number): Promise<number> {
     try {
       // Verificar que el grupo existe
       const group = await GroupRepository.getById(groupId)
@@ -21,10 +18,7 @@ export class PaymentCalculatorService {
       }
 
       // Recalcular todos los pagos con porcentaje
-      const affectedRows = await GroupPaymentRepository.recalculateAmounts(
-        groupId,
-        newTotalAmount
-      )
+      const affectedRows = await GroupPaymentRepository.recalculateAmounts(groupId, newTotalAmount)
 
       return affectedRows
     } catch (error) {
@@ -66,17 +60,10 @@ export class PaymentCalculatorService {
   }> {
     const payments = await GroupPaymentRepository.getByGroupId(groupId)
 
-    const totalExpected = payments.reduce(
-      (sum, payment) => sum + payment.amount,
-      0
-    )
-    const totalPaid = payments.reduce(
-      (sum, payment) => sum + payment.amount_paid,
-      0
-    )
+    const totalExpected = payments.reduce((sum, payment) => sum + payment.amount, 0)
+    const totalPaid = payments.reduce((sum, payment) => sum + payment.amount_paid, 0)
     const totalPending = totalExpected - totalPaid
-    const percentagePaid =
-      totalExpected > 0 ? (totalPaid / totalExpected) * 100 : 0
+    const percentagePaid = totalExpected > 0 ? (totalPaid / totalExpected) * 100 : 0
 
     return {
       totalExpected: Math.round(totalExpected * 100) / 100,

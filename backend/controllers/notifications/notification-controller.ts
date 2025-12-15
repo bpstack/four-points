@@ -3,20 +3,14 @@
 import { Request, Response } from 'express'
 import { NotificationRepository } from '../../repositories/notifications/notification-repository'
 import { NotificationGeneratorService } from '../../services/notifications/notification-generator-service'
-import {
-  NotificationFilters,
-  NotificationPriority,
-} from '../../models/notifications/index'
+import { NotificationFilters, NotificationPriority } from '../../models/notifications/index'
 
 export class NotificationController {
   /**
    * GET /api/notifications
    * Obtener notificaciones del usuario autenticado
    */
-  static async getUserNotifications(
-    req: Request,
-    res: Response
-  ): Promise<Response> {
+  static async getUserNotifications(req: Request, res: Response): Promise<Response> {
     try {
       const userId = req.user?.id
 
@@ -34,10 +28,7 @@ export class NotificationController {
         limit: req.query.limit ? parseInt(req.query.limit as string) : 50,
       }
 
-      const notifications = await NotificationRepository.getByUserId(
-        userId,
-        filters
-      )
+      const notifications = await NotificationRepository.getByUserId(userId, filters)
 
       return res.status(200).json({
         success: true,
@@ -58,10 +49,7 @@ export class NotificationController {
    * GET /api/notifications/unread
    * Obtener solo notificaciones no leídas del usuario
    */
-  static async getUnreadNotifications(
-    req: Request,
-    res: Response
-  ): Promise<Response> {
+  static async getUnreadNotifications(req: Request, res: Response): Promise<Response> {
     try {
       const userId = req.user?.id
 
@@ -79,10 +67,7 @@ export class NotificationController {
         limit: req.query.limit ? parseInt(req.query.limit as string) : 50,
       }
 
-      const notifications = await NotificationRepository.getByUserId(
-        userId,
-        filters
-      )
+      const notifications = await NotificationRepository.getByUserId(userId, filters)
 
       return res.status(200).json({
         success: true,
@@ -139,10 +124,7 @@ export class NotificationController {
    * POST /api/notifications/check-pending
    * Verificar y procesar notificaciones pendientes (trigger manual)
    */
-  static async checkPendingNotifications(
-    req: Request,
-    res: Response
-  ): Promise<Response> {
+  static async checkPendingNotifications(req: Request, res: Response): Promise<Response> {
     try {
       const userId = req.user?.id
 
@@ -174,10 +156,7 @@ export class NotificationController {
    * GET /api/groups/:id/notifications
    * Obtener notificaciones de un grupo específico
    */
-  static async getGroupNotifications(
-    req: Request,
-    res: Response
-  ): Promise<Response> {
+  static async getGroupNotifications(req: Request, res: Response): Promise<Response> {
     try {
       const groupId = parseInt(req.params.id)
 
@@ -237,10 +216,7 @@ export class NotificationController {
         })
       }
 
-      const marked = await NotificationRepository.markAsRead(
-        notificationId,
-        userId
-      )
+      const marked = await NotificationRepository.markAsRead(notificationId, userId)
 
       if (!marked) {
         return res.status(500).json({
@@ -299,10 +275,7 @@ export class NotificationController {
    * POST /api/groups/:id/notifications
    * Crear notificación manual para un grupo
    */
-  static async createManualNotification(
-    req: Request,
-    res: Response
-  ): Promise<Response> {
+  static async createManualNotification(req: Request, res: Response): Promise<Response> {
     try {
       const groupId = parseInt(req.params.id)
       const userId = req.user?.id
@@ -356,10 +329,7 @@ export class NotificationController {
    * DELETE /api/notifications/:id
    * Eliminar notificación (solo admins)
    */
-  static async deleteNotification(
-    req: Request,
-    res: Response
-  ): Promise<Response> {
+  static async deleteNotification(req: Request, res: Response): Promise<Response> {
     try {
       const notificationId = parseInt(req.params.id)
 

@@ -2,11 +2,7 @@
 
 import { Router } from 'express'
 import { authenticateToken as verifyToken } from '../../middlewares/authenticateToken.js'
-import {
-  canManageGroups,
-  canViewGroups,
-  isAdmin,
-} from '../../middlewares/roleCheck.js'
+import { canManageGroups, canViewGroups, isAdmin } from '../../middlewares/roleCheck.js'
 
 // Controllers
 import { GroupController } from '../../controllers/group/group-controller.js'
@@ -24,19 +20,9 @@ const router = Router()
 // ═══════════════════════════════════════════════════════
 
 // Dashboard
-router.get(
-  '/dashboard/overview',
-  verifyToken,
-  canViewGroups,
-  GroupController.getDashboardOverview
-)
+router.get('/dashboard/overview', verifyToken, canViewGroups, GroupController.getDashboardOverview)
 
-router.get(
-  '/dashboard/timeline',
-  verifyToken,
-  canViewGroups,
-  GroupController.getDashboardTimeline
-)
+router.get('/dashboard/timeline', verifyToken, canViewGroups, GroupController.getDashboardTimeline)
 
 // CRUD de grupos (✅ CAMBIO: eliminar /groups, usar directamente /)
 router.get('/', verifyToken, canViewGroups, GroupController.getAllGroups)
@@ -47,13 +33,7 @@ router.post('/', verifyToken, canManageGroups, GroupController.createGroup)
 
 router.put('/:id', verifyToken, canManageGroups, GroupController.updateGroup)
 
-router.delete(
-  '/:id',
-  verifyToken,
-  canManageGroups,
-  isAdmin,
-  GroupController.deleteGroup
-)
+router.delete('/:id', verifyToken, canManageGroups, isAdmin, GroupController.deleteGroup)
 
 // ═══════════════════════════════════════════════════════
 // RUTAS DE PAGOS
@@ -75,19 +55,9 @@ router.get(
 )
 
 // Pagos de un grupo específico (✅ CAMBIO: ahora es /:id/payments)
-router.get(
-  '/:id/payments',
-  verifyToken,
-  canViewGroups,
-  GroupPaymentController.getPaymentsByGroup
-)
+router.get('/:id/payments', verifyToken, canViewGroups, GroupPaymentController.getPaymentsByGroup)
 
-router.post(
-  '/:id/payments',
-  verifyToken,
-  canManageGroups,
-  GroupPaymentController.createPayment
-)
+router.post('/:id/payments', verifyToken, canManageGroups, GroupPaymentController.createPayment)
 
 router.put(
   '/:id/payments/:paymentId',
@@ -121,19 +91,9 @@ router.delete(
 // RUTAS DE ESTADOS (BOOKING, CONTRACT, ROOMING, BALANCE)
 // ═══════════════════════════════════════════════════════
 
-router.get(
-  '/:id/status',
-  verifyToken,
-  canViewGroups,
-  GroupStatusController.getStatus
-)
+router.get('/:id/status', verifyToken, canViewGroups, GroupStatusController.getStatus)
 
-router.put(
-  '/:id/status/booking',
-  verifyToken,
-  canManageGroups,
-  GroupStatusController.updateBooking
-)
+router.put('/:id/status/booking', verifyToken, canManageGroups, GroupStatusController.updateBooking)
 
 router.put(
   '/:id/status/contract',
@@ -142,62 +102,27 @@ router.put(
   GroupStatusController.updateContract
 )
 
-router.put(
-  '/:id/status/rooming',
-  verifyToken,
-  canManageGroups,
-  GroupStatusController.updateRooming
-)
+router.put('/:id/status/rooming', verifyToken, canManageGroups, GroupStatusController.updateRooming)
 
-router.put(
-  '/:id/status/balance',
-  verifyToken,
-  canManageGroups,
-  GroupStatusController.updateBalance
-)
+router.put('/:id/status/balance', verifyToken, canManageGroups, GroupStatusController.updateBalance)
 
 // ═══════════════════════════════════════════════════════
 // RUTAS DE HABITACIONES
 // ═══════════════════════════════════════════════════════
 
-router.get(
-  '/:id/rooms',
-  verifyToken,
-  canViewGroups,
-  GroupRoomController.getRoomsByGroup
-)
+router.get('/:id/rooms', verifyToken, canViewGroups, GroupRoomController.getRoomsByGroup)
 
-router.post(
-  '/:id/rooms',
-  verifyToken,
-  canManageGroups,
-  GroupRoomController.createOrUpdateRoom
-)
+router.post('/:id/rooms', verifyToken, canManageGroups, GroupRoomController.createOrUpdateRoom)
 
-router.put(
-  '/:id/rooms/:roomId',
-  verifyToken,
-  canManageGroups,
-  GroupRoomController.updateRoom
-)
+router.put('/:id/rooms/:roomId', verifyToken, canManageGroups, GroupRoomController.updateRoom)
 
-router.delete(
-  '/:id/rooms/:roomId',
-  verifyToken,
-  canManageGroups,
-  GroupRoomController.deleteRoom
-)
+router.delete('/:id/rooms/:roomId', verifyToken, canManageGroups, GroupRoomController.deleteRoom)
 
 // ═══════════════════════════════════════════════════════
 // RUTAS DE CONTACTOS
 // ═══════════════════════════════════════════════════════
 
-router.get(
-  '/:id/contacts',
-  verifyToken,
-  canViewGroups,
-  GroupContactController.getContactsByGroup
-)
+router.get('/:id/contacts', verifyToken, canViewGroups, GroupContactController.getContactsByGroup)
 
 router.get(
   '/:id/contacts/primary',
@@ -206,12 +131,7 @@ router.get(
   GroupContactController.getPrimaryContact
 )
 
-router.post(
-  '/:id/contacts',
-  verifyToken,
-  canManageGroups,
-  GroupContactController.createContact
-)
+router.post('/:id/contacts', verifyToken, canManageGroups, GroupContactController.createContact)
 
 router.put(
   '/:id/contacts/:contactId',
@@ -231,12 +151,7 @@ router.delete(
 // RUTAS DE HISTORIAL
 // ═══════════════════════════════════════════════════════
 
-router.get(
-  '/:id/history',
-  verifyToken,
-  canViewGroups,
-  GroupHistoryController.getGroupHistory
-)
+router.get('/:id/history', verifyToken, canViewGroups, GroupHistoryController.getGroupHistory)
 
 // ═══════════════════════════════════════════════════════
 // RUTAS DE NOTIFICACIONES ESPECÍFICAS DE GRUPOS

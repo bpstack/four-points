@@ -12,10 +12,7 @@ import type { UpdateUserDTO } from '../../models/auth/index.js'
  * Devuelve todos los usuarios
  * Solo accesible para administradores
  */
-export const getAllUsers = async (
-  _req: Request,
-  res: Response
-): Promise<void> => {
+export const getAllUsers = async (_req: Request, res: Response): Promise<void> => {
   try {
     const users = await UserRepository.getAll()
     res.status(200).json(users)
@@ -29,10 +26,7 @@ export const getAllUsers = async (
  * Devuelve un usuario por ID
  * Accesible para el propio usuario o administradores
  */
-export const getUserById = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
+export const getUserById = async (req: Request, res: Response): Promise<void> => {
   try {
     const user = await UserRepository.getById(req.params.id)
 
@@ -52,10 +46,7 @@ export const getUserById = async (
  * Devuelve usuarios filtrados por rol
  * Solo accesible para administradores
  */
-export const getUsersByRole = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
+export const getUsersByRole = async (req: Request, res: Response): Promise<void> => {
   try {
     const users = await UserRepository.getByRole(req.params.role)
     res.status(200).json(users)
@@ -69,10 +60,7 @@ export const getUsersByRole = async (
  * Actualiza un usuario por ID
  * Accesible para el propio usuario o administradores
  */
-export const updateUser = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
+export const updateUser = async (req: Request, res: Response): Promise<void> => {
   try {
     const { username, email, role } = req.body as UpdateUserDTO
 
@@ -98,10 +86,7 @@ export const updateUser = async (
  * Elimina un usuario por ID
  * Solo accesible para administradores
  */
-export const deleteUser = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
+export const deleteUser = async (req: Request, res: Response): Promise<void> => {
   try {
     const deleted = await UserRepository.delete(req.params.id)
 

@@ -134,9 +134,7 @@ export class CashierDailyController {
       })
 
       // Registrar en historial del turno de cierre
-      const closingShift = dailyDetail.shifts.find(
-        (s) => s.shift_type === ShiftType.CLOSING
-      )
+      const closingShift = dailyDetail.shifts.find((s) => s.shift_type === ShiftType.CLOSING)
       if (closingShift) {
         await CashierHistoryRepository.create({
           shift_id: closingShift.id,
@@ -174,9 +172,7 @@ export class CashierDailyController {
 
       // Registrar en historial
       const shifts = await CashierShiftRepository.getByDate(date)
-      const closingShift = shifts.find(
-        (s) => s.shift_type === ShiftType.CLOSING
-      )
+      const closingShift = shifts.find((s) => s.shift_type === ShiftType.CLOSING)
 
       if (closingShift) {
         await CashierHistoryRepository.create({
@@ -291,10 +287,7 @@ export class CashierDailyController {
         return
       }
 
-      const summary = await CashierDailyRepository.getMonthlySummary(
-        yearNum,
-        monthNum
-      )
+      const summary = await CashierDailyRepository.getMonthlySummary(yearNum, monthNum)
 
       res.json(summary)
     } catch (error) {

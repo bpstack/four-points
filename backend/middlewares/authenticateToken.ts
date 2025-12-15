@@ -8,11 +8,7 @@ import { verifyToken } from '../services/auth/tokenService.js'
  * ✅ Busca el token en cookies (HttpOnly) o en Authorization header
  * Prioridad: cookies > header (las cookies son más seguras)
  */
-export function authenticateToken(
-  req: Request,
-  res: Response,
-  next: NextFunction
-): void {
+export function authenticateToken(req: Request, res: Response, next: NextFunction): void {
   try {
     let token: string | null = null
 
@@ -30,8 +26,7 @@ export function authenticateToken(
     if (!token) {
       res.status(401).json({
         error: 'No autorizado, falta token',
-        message:
-          'Debes enviar el token en cookies o en el header Authorization',
+        message: 'Debes enviar el token en cookies o en el header Authorization',
       })
       return
     }
@@ -41,9 +36,7 @@ export function authenticateToken(
 
     // Verifica que el payload contenga el id
     if (!decoded?.id) {
-      res
-        .status(401)
-        .json({ error: 'Token inválido: no contiene id de usuario' })
+      res.status(401).json({ error: 'Token inválido: no contiene id de usuario' })
       return
     }
 
@@ -61,10 +54,7 @@ export function authenticateToken(
     let message = 'Token inválido'
 
     if (error instanceof Error) {
-      if (
-        error.message === 'Token expirado' ||
-        error.name === 'TokenExpiredError'
-      ) {
+      if (error.message === 'Token expirado' || error.name === 'TokenExpiredError') {
         message = 'Token expirado'
       } else {
         console.log('[authenticateToken] Token inválido:', error.message)

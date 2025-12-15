@@ -2,10 +2,7 @@
 
 import { Request, Response } from 'express'
 import { UserRepository } from '../../repositories/auth/user-repository.js'
-import {
-  validateUser,
-  getValidationErrors,
-} from '../../validations/auth/user-validation.js'
+import { validateUser, getValidationErrors } from '../../validations/auth/user-validation.js'
 import {
   generateAccessToken,
   generateRefreshToken,

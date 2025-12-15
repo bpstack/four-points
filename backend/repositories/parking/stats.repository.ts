@@ -132,8 +132,7 @@ class ParkingStatsRepository {
     return {
       total_spots: parseInt(String(stats.total_spots)),
       occupied_spots: parseInt(String(stats.occupied_spots)),
-      available_spots:
-        parseInt(String(stats.total_spots)) - parseInt(String(stats.occupied_spots)),
+      available_spots: parseInt(String(stats.total_spots)) - parseInt(String(stats.occupied_spots)),
       total_bookings: parseInt(String(stats.total_bookings)),
       pending_checkins: parseInt(String(stats.pending_checkins)),
       pending_checkouts: parseInt(String(stats.pending_checkouts)),
@@ -153,11 +152,8 @@ class ParkingStatsRepository {
   // ============================================
   // OCCUPANCY - Ocupación por planta
   // ============================================
-  async getOccupancyByLevel(
-    date: Date | string = new Date()
-  ): Promise<OccupancyByLevelResponse> {
-    const targetDate =
-      typeof date === 'string' ? date : new Date().toISOString().split('T')[0]
+  async getOccupancyByLevel(date: Date | string = new Date()): Promise<OccupancyByLevelResponse> {
+    const targetDate = typeof date === 'string' ? date : new Date().toISOString().split('T')[0]
 
     const query = `
     SELECT 
@@ -196,10 +192,9 @@ class ParkingStatsRepository {
       available_spots: parseInt(String(row.total_spots)) - parseInt(String(row.occupied_spots)),
       total_bookings: parseInt(String(row.total_bookings)),
       occupancy_rate: parseFloat(
-        (
-          (parseInt(String(row.occupied_spots)) / parseInt(String(row.total_spots))) *
-          100
-        ).toFixed(2)
+        ((parseInt(String(row.occupied_spots)) / parseInt(String(row.total_spots))) * 100).toFixed(
+          2
+        )
       ),
     }))
 
@@ -458,8 +453,7 @@ class ParkingStatsRepository {
         total_amount: parseFloat(String(row.total_amount || 0)),
         paid_amount: parseFloat(String(row.payment_amount || 0)),
         pending_amount:
-          parseFloat(String(row.total_amount || 0)) -
-          parseFloat(String(row.payment_amount || 0)),
+          parseFloat(String(row.total_amount || 0)) - parseFloat(String(row.payment_amount || 0)),
         method: row.payment_method,
       },
       booking_info: {
@@ -517,12 +511,15 @@ class ParkingStatsRepository {
           reserved_spots: 0,
           occupied_spots: 0,
           occupancy_rate: 0,
-          by_type: {} as Record<SpotType, {
-            total: number
-            available: number
-            reserved: number
-            occupied: number
-          }>,
+          by_type: {} as Record<
+            SpotType,
+            {
+              total: number
+              available: number
+              reserved: number
+              occupied: number
+            }
+          >,
         }
       }
 
@@ -543,10 +540,7 @@ class ParkingStatsRepository {
     const levels = Object.values(levelMap).map((level) => ({
       ...level,
       occupancy_rate: parseFloat(
-        (
-          ((level.reserved_spots + level.occupied_spots) / level.total_spots) *
-          100
-        ).toFixed(2)
+        (((level.reserved_spots + level.occupied_spots) / level.total_spots) * 100).toFixed(2)
       ),
     }))
 
@@ -561,11 +555,7 @@ class ParkingStatsRepository {
     }
 
     summary.occupancy_rate = parseFloat(
-      (
-        ((summary.reserved_spots + summary.occupied_spots) /
-          summary.total_spots) *
-        100
-      ).toFixed(2)
+      (((summary.reserved_spots + summary.occupied_spots) / summary.total_spots) * 100).toFixed(2)
     )
 
     return {
@@ -578,10 +568,7 @@ class ParkingStatsRepository {
   // ============================================
   // STATS - Estadísticas generales del rango
   // ============================================
-  async getStatsByRange(
-    startDate: string,
-    endDate: string
-  ): Promise<{ stats: RangeStats }> {
+  async getStatsByRange(startDate: string, endDate: string): Promise<{ stats: RangeStats }> {
     const query = `
     SELECT 
       -- Total de plazas (constante)

@@ -93,31 +93,16 @@ router.delete('/:id', authenticateToken, deleteLogbookController)
 router.post('/:logbookId/comments', authenticateToken, createCommentController)
 
 // GET - List comments by logbook
-router.get(
-  '/:logbookId/comments',
-  authenticateToken,
-  getCommentsByLogbookController
-)
+router.get('/:logbookId/comments', authenticateToken, getCommentsByLogbookController)
 
 // PUT - Update comment
-router.put(
-  '/:logbookId/comments/:id',
-  authenticateToken,
-  updateCommentController
-)
+router.put('/:logbookId/comments/:id', authenticateToken, updateCommentController)
 
 // DELETE - Soft delete comment
-router.delete(
-  '/:logbookId/comments/:id',
-  authenticateToken,
-  deleteCommentController
-)
+router.delete('/:logbookId/comments/:id', authenticateToken, deleteCommentController)
 
 // GET - Comment history
-router.get(
-  '/:logbookId/comments/:commentId/history',
-  getCommentHistoryController
-)
+router.get('/:logbookId/comments/:commentId/history', getCommentHistoryController)
 
 // ========================================
 // READS & SOLVE ROUTES
@@ -136,11 +121,7 @@ router.put('/:logbookId/solve', authenticateToken, solveLogbookController)
 router.put('/:logbookId/pending', authenticateToken, reopenLogbookController)
 
 // GET - Get readers
-router.get(
-  '/:logbookId/readers',
-  authenticateToken,
-  getLogbookReadersController
-)
+router.get('/:logbookId/readers', authenticateToken, getLogbookReadersController)
 
 // GET - Get solver
 router.get('/:logbookId/solved', authenticateToken, getLogbookSolvedController)

@@ -1,11 +1,7 @@
 // services/group/group-history-service.ts
 
 import { GroupHistoryRepository } from '../../repositories/group/group-history-repository'
-import {
-  CreateGroupHistoryDTO,
-  HistoryAction,
-  GroupHistory,
-} from '../../models/group/index'
+import { CreateGroupHistoryDTO, HistoryAction, GroupHistory } from '../../models/group/index'
 
 export class GroupHistoryService {
   /**

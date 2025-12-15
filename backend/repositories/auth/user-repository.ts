@@ -29,10 +29,9 @@ export class UserRepository {
 
     try {
       // Buscar el ID del rol
-      const [roles] = await db.query<RoleRow[]>(
-        'SELECT id FROM roles WHERE LOWER(name) = ?',
-        [roleToAssign.toLowerCase()]
-      )
+      const [roles] = await db.query<RoleRow[]>('SELECT id FROM roles WHERE LOWER(name) = ?', [
+        roleToAssign.toLowerCase(),
+      ])
 
       let roleId: number
       if (roles.length > 0) {
@@ -306,10 +305,7 @@ export class UserRepository {
       updates.push('updated_at = CURRENT_TIMESTAMP')
       values.push(id) // ← El ID va al final para el WHERE
 
-      await dbConnection.query(
-        `UPDATE users SET ${updates.join(', ')} WHERE id = ?`,
-        values
-      )
+      await dbConnection.query(`UPDATE users SET ${updates.join(', ')} WHERE id = ?`, values)
 
       await dbConnection.commit()
 
@@ -343,10 +339,7 @@ export class UserRepository {
    */
   static async delete(id: string): Promise<boolean> {
     try {
-      const [result] = await db.query<ResultSetHeader>(
-        'DELETE FROM users WHERE id = ?',
-        [id]
-      )
+      const [result] = await db.query<ResultSetHeader>('DELETE FROM users WHERE id = ?', [id])
 
       return result.affectedRows > 0
     } catch (err) {

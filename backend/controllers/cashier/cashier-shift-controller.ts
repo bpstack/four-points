@@ -106,10 +106,7 @@ export class CashierShiftController {
       const { id } = req.params
       const updateData = req.body
 
-      const updated = await CashierShiftRepository.update(
-        parseInt(id),
-        updateData
-      )
+      const updated = await CashierShiftRepository.update(parseInt(id), updateData)
 
       // Registrar en historial
       const userId = req.user?.id
@@ -125,9 +122,7 @@ export class CashierShiftController {
       res.json(updated)
     } catch (error: any) {
       console.error('Error al actualizar turno:', error)
-      res
-        .status(500)
-        .json({ error: error.message || 'Error al actualizar turno' })
+      res.status(500).json({ error: error.message || 'Error al actualizar turno' })
     }
   }
 
@@ -226,9 +221,7 @@ export class CashierShiftController {
         })
       }
 
-      const updated = await CashierShiftRepository.getByIdWithUsers(
-        parseInt(id)
-      )
+      const updated = await CashierShiftRepository.getByIdWithUsers(parseInt(id))
 
       res.json(updated)
     } catch (error) {
@@ -250,9 +243,7 @@ export class CashierShiftController {
       res.json({ message: 'Turno eliminado correctamente' })
     } catch (error: any) {
       console.error('Error al eliminar turno:', error)
-      res
-        .status(500)
-        .json({ error: error.message || 'Error al eliminar turno' })
+      res.status(500).json({ error: error.message || 'Error al eliminar turno' })
     }
   }
 

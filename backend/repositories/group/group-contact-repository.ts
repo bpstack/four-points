@@ -35,16 +35,8 @@ export class GroupContactRepository {
   /**
    * Crear contacto
    */
-  static async create(
-    contactData: CreateGroupContactDTO
-  ): Promise<GroupContact> {
-    const {
-      group_id,
-      contact_name,
-      contact_email,
-      contact_phone,
-      is_primary = false,
-    } = contactData
+  static async create(contactData: CreateGroupContactDTO): Promise<GroupContact> {
+    const { group_id, contact_name, contact_email, contact_phone, is_primary = false } = contactData
 
     const query = `
       INSERT INTO group_contacts (group_id, contact_name, contact_email, contact_phone, is_primary)
@@ -71,10 +63,7 @@ export class GroupContactRepository {
   /**
    * Actualizar contacto
    */
-  static async update(
-    id: number,
-    contactData: UpdateGroupContactDTO
-  ): Promise<boolean> {
+  static async update(id: number, contactData: UpdateGroupContactDTO): Promise<boolean> {
     const fields: string[] = []
     const values: any[] = []
 
@@ -91,9 +80,7 @@ export class GroupContactRepository {
 
     values.push(id)
 
-    const query = `UPDATE group_contacts SET ${fields.join(
-      ', '
-    )}, updated_at = NOW() WHERE id = ?`
+    const query = `UPDATE group_contacts SET ${fields.join(', ')}, updated_at = NOW() WHERE id = ?`
     const [result] = await db.query<ResultSetHeader>(query, values)
 
     return result.affectedRows > 0
@@ -103,19 +90,16 @@ export class GroupContactRepository {
    * Eliminar contacto
    */
   static async delete(id: number): Promise<boolean> {
-    const [result] = await db.query<ResultSetHeader>(
-      'DELETE FROM group_contacts WHERE id = ?',
-      [id]
-    )
+    const [result] = await db.query<ResultSetHeader>('DELETE FROM group_contacts WHERE id = ?', [
+      id,
+    ])
     return result.affectedRows > 0
   }
 
   /**
    * Obtener contacto principal de un grupo
    */
-  static async getPrimaryContact(
-    groupId: number
-  ): Promise<GroupContact | null> {
+  static async getPrimaryContact(groupId: number): Promise<GroupContact | null> {
     const query = `
       SELECT * FROM group_contacts
       WHERE group_id = ? AND is_primary = 1

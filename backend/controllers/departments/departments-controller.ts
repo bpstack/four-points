@@ -11,10 +11,7 @@ interface MySQLError extends Error {
  * Crear un nuevo departamento
  * Solo accesible para administradores
  */
-export const createDepartment = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
+export const createDepartment = async (req: Request, res: Response): Promise<void> => {
   try {
     const { name } = req.body as { name?: string }
 
@@ -45,10 +42,7 @@ export const createDepartment = async (
  * Devuelve todos los departamentos
  * Solo accesible para administradores
  */
-export const getAllDepartments = async (
-  _req: Request,
-  res: Response
-): Promise<void> => {
+export const getAllDepartments = async (_req: Request, res: Response): Promise<void> => {
   try {
     const departments = await DepartmentRepository.getAll()
     res.status(200).json(departments)
@@ -62,10 +56,7 @@ export const getAllDepartments = async (
  * Devuelve un departamento por ID
  * Solo accesible para administradores
  */
-export const getDepartmentById = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
+export const getDepartmentById = async (req: Request, res: Response): Promise<void> => {
   try {
     const department = await DepartmentRepository.getById(req.params.id)
 
@@ -85,10 +76,7 @@ export const getDepartmentById = async (
  * Actualiza un departamento por ID
  * Solo accesible para administradores
  */
-export const updateDepartment = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
+export const updateDepartment = async (req: Request, res: Response): Promise<void> => {
   try {
     const { name } = req.body as { name?: string }
 
@@ -131,10 +119,7 @@ export const updateDepartment = async (
  * Elimina un departamento por ID
  * Solo accesible para administradores
  */
-export const deleteDepartment = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
+export const deleteDepartment = async (req: Request, res: Response): Promise<void> => {
   try {
     const deleted = await DepartmentRepository.delete(req.params.id)
 
