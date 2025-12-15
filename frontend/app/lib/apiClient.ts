@@ -20,7 +20,9 @@ interface FetchOptions extends RequestInit {
 const isDev = process.env.NODE_ENV === 'development'
 const isClient = typeof window !== 'undefined'
 
-const API_BASE_URL = isDev ? 'http://localhost:4000' : 'https://api.four-points.stackbp.es'
+const API_BASE_URL = isDev 
+  ? 'http://localhost:4000' 
+  : (process.env.NEXT_PUBLIC_API_URL || 'https://four-points.onrender.com')
 
 // Cola para manejar refresh concurrente
 let isRefreshing = false
