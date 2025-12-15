@@ -24,7 +24,7 @@ import type {
 // ❌ ELIMINAR TODAS LAS INTERFACES DE AQUÍ - Ya están en types.ts
 // NO debe haber ningún "export interface" en este archivo
 
-const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:4000/api'
+const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:4000'
 
 export const parkingApi = {
   // ============================================
@@ -35,21 +35,21 @@ export const parkingApi = {
    * Obtiene todas las plazas de parking
    */
   getAllSpots: async (): Promise<ParkingSpot[]> => {
-    return apiClient.get(`${API_URL}/parking/spots`)
+    return apiClient.get(`${API_URL}/api/parking/spots`)
   },
 
   /**
    * Obtiene plazas por nivel (-2, -3)
    */
   getSpotsByLevel: async (level: string): Promise<ParkingSpot[]> => {
-    return apiClient.get(`${API_URL}/parking/spots?level=${level}`)
+    return apiClient.get(`${API_URL}/api/parking/spots?level=${level}`)
   },
 
   /**
    * Obtiene plazas por tipo (normal, ancha, etc.)
    */
   getSpotsByType: async (type: string): Promise<ParkingSpot[]> => {
-    return apiClient.get(`${API_URL}/parking/spots?type=${type}`)
+    return apiClient.get(`${API_URL}/api/parking/spots?type=${type}`)
   },
 
   /**
@@ -62,7 +62,7 @@ export const parkingApi = {
     total: number
     spots: AvailableSpot[]
   }> => {
-    return apiClient.get(`${API_URL}/parking/spots/available?date=${date}`)
+    return apiClient.get(`${API_URL}/api/parking/spots/available?date=${date}`)
   },
 
   /**
@@ -85,7 +85,7 @@ export const parkingApi = {
       end_date: params.end_date,
       ...(params.level && { level: params.level }),
     })
-    return apiClient.get(`${API_URL}/parking/spots/available?${query}`)
+    return apiClient.get(`${API_URL}/api/parking/spots/available?${query}`)
   },
 
   /**
@@ -96,7 +96,7 @@ export const parkingApi = {
     total: number
     spots: AvailableSpot[]
   }> => {
-    return apiClient.get(`${API_URL}/parking/spots/available`)
+    return apiClient.get(`${API_URL}/api/parking/spots/available`)
   },
 
   // ============================================
@@ -107,34 +107,34 @@ export const parkingApi = {
    * Crea un nuevo vehículo
    */
   createVehicle: async (data: CreateVehicleDto): Promise<{ id: number; message?: string }> => {
-    return apiClient.post(`${API_URL}/parking/vehicles`, data)
+    return apiClient.post(`${API_URL}/api/parking/vehicles`, data)
   },
 
   /**
    * Obtiene todos los vehículos registrados
    */
   getAllVehicles: async (): Promise<ParkingVehicle[]> => {
-    return apiClient.get(`${API_URL}/parking/vehicles`)
+    return apiClient.get(`${API_URL}/api/parking/vehicles`)
   },
   /**
    * Busca vehículos por matrícula O propietario (parcial)
    */
   searchVehicles: async (searchTerm: string): Promise<ParkingVehicle[]> => {
     if (!searchTerm || searchTerm.length < 2) return []
-    return apiClient.get(`${API_URL}/parking/vehicles/search?q=${encodeURIComponent(searchTerm)}`)
+    return apiClient.get(`${API_URL}/api/parking/vehicles/search?q=${encodeURIComponent(searchTerm)}`)
   },
   /**
    * Busca un vehículo por matrícula
    */
   getVehicleByPlate: async (plate: string): Promise<ParkingVehicle> => {
-    return apiClient.get(`${API_URL}/parking/vehicles?plate_number=${plate}`)
+    return apiClient.get(`${API_URL}/api/parking/vehicles?plate_number=${plate}`)
   },
 
   /**
    * Busca vehículos por propietario
    */
   getVehiclesByOwner: async (owner: string): Promise<ParkingVehicle[]> => {
-    return apiClient.get(`${API_URL}/parking/vehicles?owner_name=${owner}`)
+    return apiClient.get(`${API_URL}/api/parking/vehicles?owner_name=${owner}`)
   },
 
   // ============================================
@@ -146,7 +146,7 @@ export const parkingApi = {
    * ✅ RESPONSE incluye booking_code generado automáticamente
    */
   createBooking: async (data: CreateBookingDto): Promise<BookingResponse> => {
-    return apiClient.post(`${API_URL}/parking/bookings`, data)
+    return apiClient.post(`${API_URL}/api/parking/bookings`, data)
   },
 
   /**
@@ -161,7 +161,7 @@ export const parkingApi = {
     if (filters?.status) query.append('status', filters.status)
     if (filters?.date) query.append('date', filters.date)
     if (filters?.plate_number) query.append('plate_number', filters.plate_number)
-    return apiClient.get(`${API_URL}/parking/bookings?${query}`)
+    return apiClient.get(`${API_URL}/api/parking/bookings?${query}`)
   },
 
   /**
@@ -171,7 +171,7 @@ export const parkingApi = {
   getBookingByCode: async (
     code: string
   ): Promise<{ success: boolean; booking: ParkingBooking }> => {
-    return apiClient.get(`${API_URL}/parking/bookings/${code}`)
+    return apiClient.get(`${API_URL}/api/parking/bookings/${code}`)
   },
 
   /**
@@ -179,7 +179,7 @@ export const parkingApi = {
    * ✅ ACTUALIZADO: Ahora usa código en vez de ID
    */
   updateBooking: async (code: string, data: UpdateBookingDto): Promise<BookingResponse> => {
-    return apiClient.put(`${API_URL}/parking/bookings/${code}`, data)
+    return apiClient.put(`${API_URL}/api/parking/bookings/${code}`, data)
   },
 
   /**
@@ -189,7 +189,7 @@ export const parkingApi = {
   deleteBooking: async (
     code: string
   ): Promise<{ success: boolean; message: string; error?: string }> => {
-    return apiClient.delete(`${API_URL}/parking/bookings/${code}`)
+    return apiClient.delete(`${API_URL}/api/parking/bookings/${code}`)
   },
 
   /**
@@ -197,7 +197,7 @@ export const parkingApi = {
    * ✅ ACTUALIZADO: Ahora usa código en vez de ID
    */
   checkInBooking: async (code: string, data?: CheckInDto): Promise<BookingResponse> => {
-    return apiClient.put(`${API_URL}/parking/bookings/${code}/checkin`, data || {})
+    return apiClient.put(`${API_URL}/api/parking/bookings/${code}/checkin`, data || {})
   },
 
   /**
@@ -205,7 +205,7 @@ export const parkingApi = {
    * ✅ ACTUALIZADO: Ahora usa código en vez de ID
    */
   checkOutBooking: async (code: string, data?: CheckOutDto): Promise<BookingResponse> => {
-    return apiClient.put(`${API_URL}/parking/bookings/${code}/checkout`, data || {})
+    return apiClient.put(`${API_URL}/api/parking/bookings/${code}/checkout`, data || {})
   },
 
   /**
@@ -213,7 +213,7 @@ export const parkingApi = {
    * ✅ ACTUALIZADO: Ahora usa código en vez de ID
    */
   cancelBooking: async (code: string, notes?: string): Promise<BookingResponse> => {
-    return apiClient.put(`${API_URL}/parking/bookings/${code}/cancel`, { notes })
+    return apiClient.put(`${API_URL}/api/parking/bookings/${code}/cancel`, { notes })
   },
 
   /**
@@ -221,7 +221,7 @@ export const parkingApi = {
    * ✅ ACTUALIZADO: Ahora usa código en vez de ID
    */
   markBookingNoShow: async (code: string, notes?: string): Promise<BookingResponse> => {
-    return apiClient.put(`${API_URL}/parking/bookings/${code}/no-show`, { notes })
+    return apiClient.put(`${API_URL}/api/parking/bookings/${code}/no-show`, { notes })
   },
 
   // ============================================
@@ -233,7 +233,7 @@ export const parkingApi = {
    * @param date - Fecha en formato YYYY-MM-DD (opcional, default: hoy)
    */
   getStats: async (date?: string): Promise<StatsResponse> => {
-    const url = date ? `${API_URL}/parking/stats?date=${date}` : `${API_URL}/parking/stats`
+    const url = date ? `${API_URL}/api/parking/stats?date=${date}` : `${API_URL}/api/parking/stats`
     return apiClient.get(url)
   },
 
@@ -243,8 +243,8 @@ export const parkingApi = {
    */
   getOccupancy: async (date?: string): Promise<OccupancyResponse> => {
     const url = date
-      ? `${API_URL}/parking/stats/occupancy?date=${date}`
-      : `${API_URL}/parking/stats/occupancy`
+      ? `${API_URL}/api/parking/stats/occupancy?date=${date}`
+      : `${API_URL}/api/parking/stats/occupancy`
     return apiClient.get(url)
   },
 
@@ -254,8 +254,8 @@ export const parkingApi = {
    */
   getPendingCheckins: async (date?: string): Promise<PendingCheckinsResponse> => {
     const url = date
-      ? `${API_URL}/parking/stats/pending-checkins?date=${date}`
-      : `${API_URL}/parking/stats/pending-checkins`
+      ? `${API_URL}/api/parking/stats/pending-checkins?date=${date}`
+      : `${API_URL}/api/parking/stats/pending-checkins`
     return apiClient.get(url)
   },
 
@@ -265,8 +265,8 @@ export const parkingApi = {
    */
   getPendingCheckouts: async (date?: string): Promise<PendingCheckoutsResponse> => {
     const url = date
-      ? `${API_URL}/parking/stats/pending-checkouts?date=${date}`
-      : `${API_URL}/parking/stats/pending-checkouts`
+      ? `${API_URL}/api/parking/stats/pending-checkouts?date=${date}`
+      : `${API_URL}/api/parking/stats/pending-checkouts`
     return apiClient.get(url)
   },
 
@@ -275,7 +275,7 @@ export const parkingApi = {
    * @param date - Fecha en formato YYYY-MM-DD (opcional, default: hoy)
    */
   getFullStats: async (date?: string): Promise<FullStatsResponse> => {
-    const url = date ? `${API_URL}/parking/stats?date=${date}` : `${API_URL}/parking/stats`
+    const url = date ? `${API_URL}/api/parking/stats?date=${date}` : `${API_URL}/api/parking/stats`
     return apiClient.get(url)
   },
 
@@ -285,7 +285,7 @@ export const parkingApi = {
    * @param endDate - Fecha fin (YYYY-MM-DD)
    */
   getStatsByRange: async (startDate: string, endDate: string): Promise<FullStatsResponse> => {
-    return apiClient.get(`${API_URL}/parking/stats?startDate=${startDate}&endDate=${endDate}`)
+    return apiClient.get(`${API_URL}/api/parking/stats?startDate=${startDate}&endDate=${endDate}`)
   },
 
   /**
@@ -295,6 +295,6 @@ export const parkingApi = {
    * @returns {Promise<OverdueBookingsResponse>} Lista de reservas retrasadas
    */
   getOverdueBookings: async (): Promise<OverdueBookingsResponse> => {
-    return apiClient.get(`${API_URL}/parking/bookings/overdue/list`)
+    return apiClient.get(`${API_URL}/api/parking/bookings/overdue/list`)
   },
 }

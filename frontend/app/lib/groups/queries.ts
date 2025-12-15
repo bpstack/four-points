@@ -31,7 +31,7 @@ import type {
   PaymentStatus,
 } from './types'
 
-const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:4000/api'
+const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:4000'
 
 // =============== GROUPS API ===============
 
@@ -52,7 +52,7 @@ export const groupsApi = {
         }
       })
     }
-    const url = `${API_URL}/groups${params.toString() ? `?${params.toString()}` : ''}`
+    const url = `${API_URL}/api/groups${params.toString() ? `?${params.toString()}` : ''}`
     return apiClient.get(url)
   },
 
@@ -60,7 +60,7 @@ export const groupsApi = {
    * Obtiene un grupo por ID con detalles completos
    */
   getById: async (id: number): Promise<{ success: boolean; data: GroupWithDetails }> => {
-    return apiClient.get(`${API_URL}/groups/${id}`)
+    return apiClient.get(`${API_URL}/api/groups/${id}`)
   },
 
   /**
@@ -69,7 +69,7 @@ export const groupsApi = {
   create: async (
     data: CreateGroupDTO
   ): Promise<{ success: boolean; message: string; data: Group }> => {
-    return apiClient.post(`${API_URL}/groups`, data)
+    return apiClient.post(`${API_URL}/api/groups`, data)
   },
 
   /**
@@ -79,14 +79,14 @@ export const groupsApi = {
     id: number,
     data: UpdateGroupDTO
   ): Promise<{ success: boolean; message: string; data: Group }> => {
-    return apiClient.put(`${API_URL}/groups/${id}`, data)
+    return apiClient.put(`${API_URL}/api/groups/${id}`, data)
   },
 
   /**
    * Elimina un grupo
    */
   delete: async (id: number): Promise<{ success: boolean; message: string }> => {
-    return apiClient.delete(`${API_URL}/groups/${id}`)
+    return apiClient.delete(`${API_URL}/api/groups/${id}`)
   },
 
   // ========== DASHBOARD ==========
@@ -95,7 +95,7 @@ export const groupsApi = {
    * Obtiene resumen del dashboard
    */
   getDashboardOverview: async (): Promise<{ success: boolean; data: DashboardOverview }> => {
-    return apiClient.get(`${API_URL}/groups/dashboard/overview`)
+    return apiClient.get(`${API_URL}/api/groups/dashboard/overview`)
   },
 
   /**
@@ -105,8 +105,8 @@ export const groupsApi = {
     year?: number
   ): Promise<{ success: boolean; data: GroupTimeline[] }> => {
     const url = year
-      ? `${API_URL}/groups/dashboard/timeline?year=${year}`
-      : `${API_URL}/groups/dashboard/timeline`
+      ? `${API_URL}/api/groups/dashboard/timeline?year=${year}`
+      : `${API_URL}/api/groups/dashboard/timeline`
     return apiClient.get(url)
   },
 
@@ -118,7 +118,7 @@ export const groupsApi = {
   getPayments: async (
     groupId: number
   ): Promise<{ success: boolean; data: { payments: GroupPayment[]; balance: PaymentBalance } }> => {
-    return apiClient.get(`${API_URL}/groups/${groupId}/payments`)
+    return apiClient.get(`${API_URL}/api/groups/${groupId}/payments`)
   },
 
   /**
@@ -128,7 +128,7 @@ export const groupsApi = {
     groupId: number,
     data: CreateGroupPaymentDTO
   ): Promise<{ success: boolean; message: string; data: GroupPayment }> => {
-    return apiClient.post(`${API_URL}/groups/${groupId}/payments`, data)
+    return apiClient.post(`${API_URL}/api/groups/${groupId}/payments`, data)
   },
 
   /**
@@ -139,7 +139,7 @@ export const groupsApi = {
     paymentId: number,
     data: UpdateGroupPaymentDTO
   ): Promise<{ success: boolean; message: string; data: GroupPayment }> => {
-    return apiClient.put(`${API_URL}/groups/${groupId}/payments/${paymentId}`, data)
+    return apiClient.put(`${API_URL}/api/groups/${groupId}/payments/${paymentId}`, data)
   },
 
   /**
@@ -150,7 +150,7 @@ export const groupsApi = {
     paymentId: number,
     status: PaymentStatus
   ): Promise<{ success: boolean; message: string }> => {
-    return apiClient.patch(`${API_URL}/groups/${groupId}/payments/${paymentId}/status`, { status })
+    return apiClient.patch(`${API_URL}/api/groups/${groupId}/payments/${paymentId}/status`, { status })
   },
 
   /**
@@ -161,7 +161,7 @@ export const groupsApi = {
     paymentId: number,
     amount_paid: number
   ): Promise<{ success: boolean; message: string }> => {
-    return apiClient.patch(`${API_URL}/groups/${groupId}/payments/${paymentId}/amount-paid`, {
+    return apiClient.patch(`${API_URL}/api/groups/${groupId}/payments/${paymentId}/amount-paid`, {
       amount_paid,
     })
   },
@@ -173,7 +173,7 @@ export const groupsApi = {
     groupId: number,
     paymentId: number
   ): Promise<{ success: boolean; message: string }> => {
-    return apiClient.delete(`${API_URL}/groups/${groupId}/payments/${paymentId}`)
+    return apiClient.delete(`${API_URL}/api/groups/${groupId}/payments/${paymentId}`)
   },
 
   /**
@@ -182,7 +182,7 @@ export const groupsApi = {
   getUpcomingPayments: async (
     days: number = 7
   ): Promise<{ success: boolean; data: PaymentWithGroupInfo[]; count: number; days: number }> => {
-    return apiClient.get(`${API_URL}/groups/payments/upcoming?days=${days}`)
+    return apiClient.get(`${API_URL}/api/groups/payments/upcoming?days=${days}`)
   },
 
   /**
@@ -193,7 +193,7 @@ export const groupsApi = {
     data: PaymentWithGroupInfo[]
     count: number
   }> => {
-    return apiClient.get(`${API_URL}/groups/payments/overdue`)
+    return apiClient.get(`${API_URL}/api/groups/payments/overdue`)
   },
 
   // ========== ESTADOS ==========
@@ -202,7 +202,7 @@ export const groupsApi = {
    * Obtiene el estado completo de un grupo
    */
   getStatus: async (groupId: number): Promise<{ success: boolean; data: GroupStatusRecord }> => {
-    return apiClient.get(`${API_URL}/groups/${groupId}/status`)
+    return apiClient.get(`${API_URL}/api/groups/${groupId}/status`)
   },
 
   /**
@@ -212,7 +212,7 @@ export const groupsApi = {
     groupId: number,
     data: UpdateBookingDTO
   ): Promise<{ success: boolean; message: string }> => {
-    return apiClient.put(`${API_URL}/groups/${groupId}/status/booking`, data)
+    return apiClient.put(`${API_URL}/api/groups/${groupId}/status/booking`, data)
   },
 
   /**
@@ -222,7 +222,7 @@ export const groupsApi = {
     groupId: number,
     data: UpdateContractDTO
   ): Promise<{ success: boolean; message: string }> => {
-    return apiClient.put(`${API_URL}/groups/${groupId}/status/contract`, data)
+    return apiClient.put(`${API_URL}/api/groups/${groupId}/status/contract`, data)
   },
 
   /**
@@ -232,7 +232,7 @@ export const groupsApi = {
     groupId: number,
     data: UpdateRoomingDTO
   ): Promise<{ success: boolean; message: string }> => {
-    return apiClient.put(`${API_URL}/groups/${groupId}/status/rooming`, data)
+    return apiClient.put(`${API_URL}/api/groups/${groupId}/status/rooming`, data)
   },
 
   /**
@@ -242,7 +242,7 @@ export const groupsApi = {
     groupId: number,
     data: UpdateBalanceDTO
   ): Promise<{ success: boolean; message: string }> => {
-    return apiClient.put(`${API_URL}/groups/${groupId}/status/balance`, data)
+    return apiClient.put(`${API_URL}/api/groups/${groupId}/status/balance`, data)
   },
 
   // ========== HABITACIONES ==========
@@ -250,7 +250,7 @@ export const groupsApi = {
   getRooms: async (
     groupId: number
   ): Promise<{ success: boolean; data: { rooms: GroupRoom[]; summary?: any } }> => {
-    return apiClient.get(`${API_URL}/groups/${groupId}/rooms`)
+    return apiClient.get(`${API_URL}/api/groups/${groupId}/rooms`)
   },
 
   /**
@@ -260,7 +260,7 @@ export const groupsApi = {
     groupId: number,
     data: CreateGroupRoomDTO
   ): Promise<{ success: boolean; message: string; data: GroupRoom }> => {
-    return apiClient.post(`${API_URL}/groups/${groupId}/rooms`, data)
+    return apiClient.post(`${API_URL}/api/groups/${groupId}/rooms`, data)
   },
 
   /**
@@ -271,7 +271,7 @@ export const groupsApi = {
     roomId: number,
     data: UpdateGroupRoomDTO
   ): Promise<{ success: boolean; message: string; data: GroupRoom }> => {
-    return apiClient.put(`${API_URL}/groups/${groupId}/rooms/${roomId}`, data)
+    return apiClient.put(`${API_URL}/api/groups/${groupId}/rooms/${roomId}`, data)
   },
 
   /**
@@ -281,7 +281,7 @@ export const groupsApi = {
     groupId: number,
     roomId: number
   ): Promise<{ success: boolean; message: string }> => {
-    return apiClient.delete(`${API_URL}/groups/${groupId}/rooms/${roomId}`)
+    return apiClient.delete(`${API_URL}/api/groups/${groupId}/rooms/${roomId}`)
   },
 
   // ========== CONTACTOS ==========
@@ -290,7 +290,7 @@ export const groupsApi = {
    * Obtiene todos los contactos de un grupo
    */
   getContacts: async (groupId: number): Promise<{ success: boolean; data: GroupContact[] }> => {
-    return apiClient.get(`${API_URL}/groups/${groupId}/contacts`)
+    return apiClient.get(`${API_URL}/api/groups/${groupId}/contacts`)
   },
 
   /**
@@ -299,7 +299,7 @@ export const groupsApi = {
   getPrimaryContact: async (
     groupId: number
   ): Promise<{ success: boolean; data: GroupContact | null }> => {
-    return apiClient.get(`${API_URL}/groups/${groupId}/contacts/primary`)
+    return apiClient.get(`${API_URL}/api/groups/${groupId}/contacts/primary`)
   },
 
   /**
@@ -309,7 +309,7 @@ export const groupsApi = {
     groupId: number,
     data: CreateGroupContactDTO
   ): Promise<{ success: boolean; message: string; data: GroupContact }> => {
-    return apiClient.post(`${API_URL}/groups/${groupId}/contacts`, data)
+    return apiClient.post(`${API_URL}/api/groups/${groupId}/contacts`, data)
   },
 
   /**
@@ -320,7 +320,7 @@ export const groupsApi = {
     contactId: number,
     data: UpdateGroupContactDTO
   ): Promise<{ success: boolean; message: string; data: GroupContact }> => {
-    return apiClient.put(`${API_URL}/groups/${groupId}/contacts/${contactId}`, data)
+    return apiClient.put(`${API_URL}/api/groups/${groupId}/contacts/${contactId}`, data)
   },
 
   /**
@@ -330,7 +330,7 @@ export const groupsApi = {
     groupId: number,
     contactId: number
   ): Promise<{ success: boolean; message: string }> => {
-    return apiClient.delete(`${API_URL}/groups/${groupId}/contacts/${contactId}`)
+    return apiClient.delete(`${API_URL}/api/groups/${groupId}/contacts/${contactId}`)
   },
 
   // ========== HISTORIAL ==========
@@ -343,8 +343,8 @@ export const groupsApi = {
     limit?: number
   ): Promise<{ success: boolean; data: any[] }> => {
     const url = limit
-      ? `${API_URL}/groups/${groupId}/history?limit=${limit}`
-      : `${API_URL}/groups/${groupId}/history`
+      ? `${API_URL}/api/groups/${groupId}/history?limit=${limit}`
+      : `${API_URL}/api/groups/${groupId}/history`
     return apiClient.get(url)
   },
 
@@ -357,7 +357,7 @@ export const groupsApi = {
     groupId: number,
     data: CreateNotificationDTO
   ): Promise<{ success: boolean; message: string; data: GroupNotification }> => {
-    return apiClient.post(`${API_URL}/groups/${groupId}/notifications`, data)
+    return apiClient.post(`${API_URL}/api/groups/${groupId}/notifications`, data)
   },
 
   /**
@@ -366,7 +366,7 @@ export const groupsApi = {
   getNotifications: async (
     groupId: number
   ): Promise<{ success: boolean; data: GroupNotification[] }> => {
-    return apiClient.get(`${API_URL}/groups/${groupId}/notifications`)
+    return apiClient.get(`${API_URL}/api/groups/${groupId}/notifications`)
   },
 }
 
@@ -385,6 +385,6 @@ export const notificationsApi = {
       failed: number
     }
   }> => {
-    return apiClient.post(`${API_URL}/notifications/check-pending`)
+    return apiClient.post(`${API_URL}/api/notifications/check-pending`)
   },
 }

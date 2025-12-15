@@ -4,14 +4,14 @@
 import apiClient from '@/app/lib/apiClient'
 // Types available in ./types if needed: LogbookEntry, LogbookComment
 
-const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:4000/api'
+const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:4000'
 
 // =============== LOGBOOKS API ===============
 
 export const logbooksApi = {
   // Obtener todos los logbooks
   getAllLogbooks: async () => {
-    return apiClient.get(`${API_URL}/logbooks/all`)
+    return apiClient.get(`${API_URL}/api/logbooks/all`)
   },
 
   // Crear un nuevo logbook
@@ -22,7 +22,7 @@ export const logbooksApi = {
     department_id: number
     date?: string
   }) => {
-    return apiClient.post(`${API_URL}/logbooks`, data)
+    return apiClient.post(`${API_URL}/api/logbooks`, data)
   },
 
   // Actualizar un logbook
@@ -34,28 +34,28 @@ export const logbooksApi = {
       department_id?: number
     }
   ) => {
-    return apiClient.put(`${API_URL}/logbooks/${id}`, data)
+    return apiClient.put(`${API_URL}/api/logbooks/${id}`, data)
   },
 
   // Obtener logbooks por prioridad
   getLogbooksByPriority: async (priority: string) => {
-    return apiClient.get(`${API_URL}/logbooks/priority/${priority}`)
+    return apiClient.get(`${API_URL}/api/logbooks/priority/${priority}`)
   },
 
   // Obtener logbooks por departamento
   getLogbooksByDepartment: async (departmentId: number) => {
-    return apiClient.get(`${API_URL}/logbooks/department/${departmentId}`)
+    return apiClient.get(`${API_URL}/api/logbooks/department/${departmentId}`)
   },
 
   // Obtener logbooks por autor
   getLogbooksByAuthor: async (authorId: string) => {
-    return apiClient.get(`${API_URL}/logbooks/author/${authorId}`)
+    return apiClient.get(`${API_URL}/api/logbooks/author/${authorId}`)
   },
 
   // Obtener logbooks por día
   getLogbooksByDay: async (date: string) => {
     try {
-      return await apiClient.get(`${API_URL}/logbooks/day/${date}`)
+      return await apiClient.get(`${API_URL}/api/logbooks/day/${date}`)
     } catch (error) {
       console.error('getLogbooksByDay failed:', error)
       throw error
@@ -64,52 +64,52 @@ export const logbooksApi = {
 
   // Eliminar un logbook (soft-delete)
   deleteLogbook: async (id: number) => {
-    return apiClient.delete(`${API_URL}/logbooks/${id}`)
+    return apiClient.delete(`${API_URL}/api/logbooks/${id}`)
   },
 
   // Listar logbooks eliminados (soft-deleted)
   getTrashedLogbooks: async () => {
-    return apiClient.get(`${API_URL}/logbooks/trashed`)
+    return apiClient.get(`${API_URL}/api/logbooks/trashed`)
   },
 
   // Obtener lectores
   getReaders: async (logbookId: number) => {
-    return apiClient.get(`${API_URL}/logbooks/${logbookId}/readers`)
+    return apiClient.get(`${API_URL}/api/logbooks/${logbookId}/readers`)
   },
 
   // Marcar logbook como leído
   markAsRead: async (logbookId: number) => {
-    return apiClient.post(`${API_URL}/logbooks/${logbookId}/read`)
+    return apiClient.post(`${API_URL}/api/logbooks/${logbookId}/read`)
   },
 
   // Desmarcar como leído
   unmarkAsRead: async (logbookId: number) => {
-    return apiClient.delete(`${API_URL}/logbooks/${logbookId}/read`)
+    return apiClient.delete(`${API_URL}/api/logbooks/${logbookId}/read`)
   },
 
   // Marcar logbook como resuelto
   markAsSolved: async (logbookId: number) => {
-    return apiClient.put(`${API_URL}/logbooks/${logbookId}/solve`)
+    return apiClient.put(`${API_URL}/api/logbooks/${logbookId}/solve`)
   },
 
   // Marcar logbook como pendiente
   markAsPending: async (logbookId: number) => {
-    return apiClient.put(`${API_URL}/logbooks/${logbookId}/pending`)
+    return apiClient.put(`${API_URL}/api/logbooks/${logbookId}/pending`)
   },
 
   // Obtener usuarios que han leído un logbook
   getLogbookReaders: async (logbookId: number) => {
-    return apiClient.get(`${API_URL}/logbooks/${logbookId}/readers`)
+    return apiClient.get(`${API_URL}/api/logbooks/${logbookId}/readers`)
   },
 
   // Obtener usuario que ha resuelto un logbook
   getLogbookSolver: async (logbookId: number) => {
-    return apiClient.get(`${API_URL}/logbooks/${logbookId}/solved`)
+    return apiClient.get(`${API_URL}/api/logbooks/${logbookId}/solved`)
   },
 
   // Obtener historial de un logbook
   getLogbookHistory: async (logbookId: number) => {
-    return apiClient.get(`${API_URL}/logbooks/${logbookId}/history`)
+    return apiClient.get(`${API_URL}/api/logbooks/${logbookId}/history`)
   },
 
   // Funciones para comentarios
@@ -123,12 +123,12 @@ export const logbooksApi = {
         importance_level: string
       }
     ) => {
-      return apiClient.post(`${API_URL}/logbooks/${logbookId}/comments`, data)
+      return apiClient.post(`${API_URL}/api/logbooks/${logbookId}/comments`, data)
     },
 
     // Obtener todos los comentarios de un logbook
     getComments: async (logbookId: number) => {
-      return apiClient.get(`${API_URL}/logbooks/${logbookId}/comments`)
+      return apiClient.get(`${API_URL}/api/logbooks/${logbookId}/comments`)
     },
 
     // Actualizar un comentario
@@ -141,17 +141,17 @@ export const logbooksApi = {
         department_id?: number
       }
     ) => {
-      return apiClient.put(`${API_URL}/logbooks/${logbookId}/comments/${commentId}`, data)
+      return apiClient.put(`${API_URL}/api/logbooks/${logbookId}/comments/${commentId}`, data)
     },
 
     // Eliminar un comentario (soft-delete)
     deleteComment: async (logbookId: number, commentId: number) => {
-      return apiClient.delete(`${API_URL}/logbooks/${logbookId}/comments/${commentId}`)
+      return apiClient.delete(`${API_URL}/api/logbooks/${logbookId}/comments/${commentId}`)
     },
 
     // Obtener historial de un comentario
     getCommentHistory: async (logbookId: number, commentId: number) => {
-      return apiClient.get(`${API_URL}/logbooks/${logbookId}/comments/${commentId}/history`)
+      return apiClient.get(`${API_URL}/api/logbooks/${logbookId}/comments/${commentId}/history`)
     },
   },
 }
