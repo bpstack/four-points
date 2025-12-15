@@ -3,7 +3,7 @@
 // Versión profesional con booking_code
 // ============================================
 import pool from '../../config/db.js'
-import { PoolConnection, ResultSetHeader, RowDataPacket } from 'mysql2/promise'
+import { ResultSetHeader, RowDataPacket } from 'mysql2/promise'
 import type {
   BookingWithDetailsRow,
   OverdueBookingRow,
@@ -14,11 +14,6 @@ import type {
   CreateBookingDTO,
   UpdateBookingDTO,
   CheckoutDTO,
-  LevelCode,
-  SpotType,
-  BookingStatus,
-  BookingSource,
-  PaymentMethod,
 } from '../../models/parking/index.js'
 
 interface SpotIdRow extends RowDataPacket {
@@ -45,16 +40,8 @@ class ParkingBookingsRepository {
     const checkin = new Date(checkinDate)
     const checkout = new Date(checkoutDate)
 
-    const checkinDay = new Date(
-      checkin.getFullYear(),
-      checkin.getMonth(),
-      checkin.getDate()
-    )
-    const checkoutDay = new Date(
-      checkout.getFullYear(),
-      checkout.getMonth(),
-      checkout.getDate()
-    )
+    const checkinDay = new Date(checkin.getFullYear(), checkin.getMonth(), checkin.getDate())
+    const checkoutDay = new Date(checkout.getFullYear(), checkout.getMonth(), checkout.getDate())
 
     const diffTime = checkoutDay.getTime() - checkinDay.getTime()
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
@@ -129,8 +116,7 @@ class ParkingBookingsRepository {
     }
 
     if (filters.date) {
-      query +=
-        ' AND DATE(b.expected_checkin) <= ? AND DATE(b.expected_checkout) > ?'
+      query += ' AND DATE(b.expected_checkin) <= ? AND DATE(b.expected_checkout) > ?'
       params.push(filters.date, filters.date)
     }
 
@@ -262,9 +248,7 @@ class ParkingBookingsRepository {
       )
 
       if (spotRows.length === 0) {
-        throw new Error(
-          `Plaza ${level_code}-${spot_number} no encontrada o inactiva`
-        )
+        throw new Error(`Plaza ${level_code}-${spot_number} no encontrada o inactiva`)
       }
 
       const spot_id = spotRows[0].id
@@ -281,19 +265,14 @@ class ParkingBookingsRepository {
       )
 
       if (availCheck[0].unavailable > 0) {
-        throw new Error(
-          'La plaza no está disponible en las fechas seleccionadas'
-        )
+        throw new Error('La plaza no está disponible en las fechas seleccionadas')
       }
 
       // 3. Calcular precio SOLO si no se proporciona manualmente
       let finalAmount = total_amount
 
       if (!finalAmount) {
-        const days = this._calculateBookingDays(
-          expected_checkin,
-          expected_checkout
-        )
+        const days = this._calculateBookingDays(expected_checkin, expected_checkout)
 
         const [rateRows] = await connection.query<RatePriceRow[]>(
           'SELECT price FROM parking_rates WHERE days = ?',
@@ -340,10 +319,7 @@ class ParkingBookingsRepository {
   // ============================================
   // CHECK-IN
   // ============================================
-  async checkIn(
-    id: number,
-    actual_checkin: Date = new Date()
-  ): Promise<FormattedBooking | null> {
+  async checkIn(id: number, actual_checkin: Date = new Date()): Promise<FormattedBooking | null> {
     const connection = await pool.getConnection()
 
     try {
@@ -359,9 +335,7 @@ class ParkingBookingsRepository {
       }
 
       if (booking[0].status !== 'reserved') {
-        throw new Error(
-          `No se puede hacer check-in: estado actual es '${booking[0].status}'`
-        )
+        throw new Error(`No se puede hacer check-in: estado actual es '${booking[0].status}'`)
       }
 
       const [occupied] = await connection.query<OccupiedCountRow[]>(
@@ -397,10 +371,7 @@ class ParkingBookingsRepository {
   // ============================================
   // CHECK-OUT
   // ============================================
-  async checkOut(
-    id: number,
-    checkoutData: CheckoutDTO
-  ): Promise<FormattedBooking | null> {
+  async checkOut(id: number, checkoutData: CheckoutDTO): Promise<FormattedBooking | null> {
     const {
       actual_checkout = new Date(),
       payment_amount = null,
@@ -423,9 +394,7 @@ class ParkingBookingsRepository {
       }
 
       if (booking[0].status !== 'checked_in') {
-        throw new Error(
-          `No se puede hacer check-out: estado actual es '${booking[0].status}'`
-        )
+        throw new Error(`No se puede hacer check-out: estado actual es '${booking[0].status}'`)
       }
 
       const payment_date = payment_amount ? new Date() : null
@@ -481,9 +450,7 @@ class ParkingBookingsRepository {
       }
 
       if (!['reserved', 'checked_in'].includes(booking[0].status)) {
-        throw new Error(
-          `No se puede cancelar: estado actual es '${booking[0].status}'`
-        )
+        throw new Error(`No se puede cancelar: estado actual es '${booking[0].status}'`)
       }
 
       await connection.query(
@@ -521,9 +488,7 @@ class ParkingBookingsRepository {
       }
 
       if (booking[0].status !== 'reserved') {
-        throw new Error(
-          `No se puede marcar como no-show: estado actual es '${booking[0].status}'`
-        )
+        throw new Error(`No se puede marcar como no-show: estado actual es '${booking[0].status}'`)
       }
 
       await connection.query(
@@ -545,10 +510,7 @@ class ParkingBookingsRepository {
   // ============================================
   // UPDATE BOOKING
   // ============================================
-  async update(
-    id: number,
-    updateData: UpdateBookingDTO
-  ): Promise<FormattedBooking | null> {
+  async update(id: number, updateData: UpdateBookingDTO): Promise<FormattedBooking | null> {
     const connection = await pool.getConnection()
 
     try {
@@ -575,9 +537,7 @@ class ParkingBookingsRepository {
         )
 
         if (spotRows.length === 0) {
-          throw new Error(
-            `Plaza ${levelCode}-${spotNum} no encontrada o inactiva`
-          )
+          throw new Error(`Plaza ${levelCode}-${spotNum} no encontrada o inactiva`)
         }
 
         spot_id = spotRows[0].id
@@ -600,9 +560,7 @@ class ParkingBookingsRepository {
           )
 
           if (availCheck[0].unavailable > 0) {
-            throw new Error(
-              'La nueva plaza no está disponible en las fechas seleccionadas'
-            )
+            throw new Error('La nueva plaza no está disponible en las fechas seleccionadas')
           }
         }
       }
@@ -772,8 +730,7 @@ class ParkingBookingsRepository {
         total_amount: parseFloat(String(row.total_amount || 0)),
         paid_amount: parseFloat(String(row.payment_amount || 0)),
         pending_amount:
-          parseFloat(String(row.total_amount || 0)) -
-          parseFloat(String(row.payment_amount || 0)),
+          parseFloat(String(row.total_amount || 0)) - parseFloat(String(row.payment_amount || 0)),
         method: row.payment_method,
         reference: row.payment_reference,
         date: row.payment_date,

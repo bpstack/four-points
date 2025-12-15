@@ -7,13 +7,6 @@
 import { Request, Response } from 'express'
 import ParkingStatsRepository from '../../repositories/parking/stats.repository.js'
 import { getNowMadrid } from '../../config/date-utils.js'
-import type { RangeStats } from '../../models/parking/index.js'
-
-interface TrendData {
-  min_occupied?: number
-  max_occupied?: number
-  occupied_spots?: number
-}
 
 interface DiffResult {
   absolute: number
@@ -42,10 +35,7 @@ class ParkingAnalyticsController {
       const formattedStart = startDate.format('YYYY-MM-DD')
       const formattedEnd = endDate.format('YYYY-MM-DD')
 
-      const result = await ParkingStatsRepository.getOccupancyByRange(
-        formattedStart,
-        formattedEnd
-      )
+      const result = await ParkingStatsRepository.getOccupancyByRange(formattedStart, formattedEnd)
 
       // Análisis adicional
       const analysis = {
@@ -94,8 +84,7 @@ class ParkingAnalyticsController {
       if (!period1Start || !period1End || !period2Start || !period2End) {
         res.status(400).json({
           success: false,
-          message:
-            'Se requieren 4 fechas: period1Start, period1End, period2Start, period2End',
+          message: 'Se requieren 4 fechas: period1Start, period1End, period2Start, period2End',
         })
         return
       }
@@ -126,14 +115,8 @@ class ParkingAnalyticsController {
             period1.stats.completed_today,
             period2.stats.completed_today
           ),
-          no_shows: this._calculateDiff(
-            period1.stats.no_shows_today,
-            period2.stats.no_shows_today
-          ),
-          canceled: this._calculateDiff(
-            period1.stats.canceled_today,
-            period2.stats.canceled_today
-          ),
+          no_shows: this._calculateDiff(period1.stats.no_shows_today, period2.stats.no_shows_today),
+          canceled: this._calculateDiff(period1.stats.canceled_today, period2.stats.canceled_today),
         },
         insights: {
           performance: 'stable' as const,
@@ -180,9 +163,7 @@ class ParkingAnalyticsController {
       )
 
       // Ordenar por ocupación
-      const levelsRanked = [...result.data].sort(
-        (a, b) => b.total_occupied - a.total_occupied
-      )
+      const levelsRanked = [...result.data].sort((a, b) => b.total_occupied - a.total_occupied)
 
       const performance = {
         period: { startDate, endDate },
@@ -239,8 +220,7 @@ class ParkingAnalyticsController {
       const stats = result.stats
 
       // Calcular métricas
-      const totalEvents =
-        stats.completed_today + stats.canceled_today + stats.no_shows_today
+      const totalEvents = stats.completed_today + stats.canceled_today + stats.no_shows_today
 
       const analysis = {
         period: { startDate, endDate },
@@ -251,15 +231,18 @@ class ParkingAnalyticsController {
           no_shows: stats.no_shows_today,
         },
         conversion_rates: {
-          completion_rate: totalEvents > 0 ? parseFloat(
-            ((stats.completed_today / totalEvents) * 100).toFixed(2)
-          ) : 0,
-          cancellation_rate: totalEvents > 0 ? parseFloat(
-            ((stats.canceled_today / totalEvents) * 100).toFixed(2)
-          ) : 0,
-          no_show_rate: totalEvents > 0 ? parseFloat(
-            ((stats.no_shows_today / totalEvents) * 100).toFixed(2)
-          ) : 0,
+          completion_rate:
+            totalEvents > 0
+              ? parseFloat(((stats.completed_today / totalEvents) * 100).toFixed(2))
+              : 0,
+          cancellation_rate:
+            totalEvents > 0
+              ? parseFloat(((stats.canceled_today / totalEvents) * 100).toFixed(2))
+              : 0,
+          no_show_rate:
+            totalEvents > 0
+              ? parseFloat(((stats.no_shows_today / totalEvents) * 100).toFixed(2))
+              : 0,
         },
         health_status: this._getBookingHealth(
           stats.completed_today,
@@ -319,8 +302,7 @@ class ParkingAnalyticsController {
 
   _calculateDiff(value1: number, value2: number): DiffResult {
     const diff = value1 - value2
-    const percentDiff =
-      value2 !== 0 ? parseFloat(((diff / value2) * 100).toFixed(2)) : 0
+    const percentDiff = value2 !== 0 ? parseFloat(((diff / value2) * 100).toFixed(2)) : 0
 
     return {
       absolute: diff,
@@ -348,11 +330,7 @@ class ParkingAnalyticsController {
     return 'poor'
   }
 
-  _getBookingRecommendations(
-    canceled: number,
-    noShows: number,
-    total: number
-  ): Recommendation[] {
+  _getBookingRecommendations(canceled: number, noShows: number, total: number): Recommendation[] {
     const recommendations: Recommendation[] = []
 
     if (total === 0) {
@@ -388,8 +366,7 @@ class ParkingAnalyticsController {
     if (recommendations.length === 0) {
       recommendations.push({
         type: 'healthy',
-        message:
-          'Comportamiento de reservas saludable. Continuar con las prácticas actuales.',
+        message: 'Comportamiento de reservas saludable. Continuar con las prácticas actuales.',
         priority: 'info',
       })
     }

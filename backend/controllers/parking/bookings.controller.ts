@@ -32,8 +32,7 @@ class ParkingBookingsController {
       if (req.query.status) filters.status = req.query.status as BookingFilters['status']
       if (req.query.date) filters.date = String(req.query.date)
       if (req.query.spot_id) filters.spot_id = parseInt(String(req.query.spot_id))
-      if (req.query.vehicle_id)
-        filters.vehicle_id = parseInt(String(req.query.vehicle_id))
+      if (req.query.vehicle_id) filters.vehicle_id = parseInt(String(req.query.vehicle_id))
       if (req.query.plate_number) filters.plate_number = String(req.query.plate_number)
       if (req.query.owner_name) filters.owner_name = String(req.query.owner_name)
       if (req.query.booking_source)
@@ -148,14 +147,19 @@ class ParkingBookingsController {
         spot_number: data.spot_number,
         level_code: data.level_code as '-2' | '-3',
         vehicle_id: data.vehicle_id,
-        operator_id: req.user!.id,
+        operator_id: parseInt(req.user!.id),
         expected_checkin: data.expected_checkin,
         expected_checkout: data.expected_checkout,
         total_amount: data.total_amount,
-        booking_source: data.booking_source as 'direct' | 'booking.com' | 'expedia' | 'other' | undefined,
+        booking_source: data.booking_source as
+          | 'direct'
+          | 'booking.com'
+          | 'expedia'
+          | 'other'
+          | undefined,
         external_booking_id: data.external_booking_id,
         notes: data.notes,
-        created_by: req.user!.id,
+        created_by: parseInt(req.user!.id),
       }
 
       const booking = await ParkingBookingsRepository.create(bookingData)
@@ -169,10 +173,7 @@ class ParkingBookingsController {
       console.error('Error en createBooking:', error)
       const errorMessage = (error as Error).message
 
-      if (
-        errorMessage.includes('no encontrada') ||
-        errorMessage.includes('no está disponible')
-      ) {
+      if (errorMessage.includes('no encontrada') || errorMessage.includes('no está disponible')) {
         res.status(400).json({
           success: false,
           message: errorMessage,
@@ -209,9 +210,7 @@ class ParkingBookingsController {
       // Convertir code → id
       const id = await this._getBookingIdFromCode(code)
 
-      const checkinDate = actual_checkin
-        ? new Date(actual_checkin)
-        : getNowMadrid().toDate()
+      const checkinDate = actual_checkin ? new Date(actual_checkin) : getNowMadrid().toDate()
 
       if (actual_checkin && isNaN(checkinDate.getTime())) {
         res.status(400).json({
@@ -226,7 +225,7 @@ class ParkingBookingsController {
       if (notes && booking) {
         await ParkingBookingsRepository.update(id, {
           notes,
-          updated_by: req.user!.id,
+          updated_by: parseInt(req.user!.id),
         })
       }
 
@@ -270,13 +269,7 @@ class ParkingBookingsController {
   checkOut = async (req: Request, res: Response): Promise<void> => {
     try {
       const { code } = req.params
-      const {
-        actual_checkout,
-        payment_amount,
-        payment_method,
-        payment_reference,
-        notes,
-      } = req.body
+      const { actual_checkout, payment_amount, payment_method, payment_reference, notes } = req.body
 
       if (!/^PK-\d{8}-\d{4}$/.test(code)) {
         res.status(400).json({
@@ -288,9 +281,7 @@ class ParkingBookingsController {
 
       const id = await this._getBookingIdFromCode(code)
 
-      const checkoutDate = actual_checkout
-        ? new Date(actual_checkout)
-        : getNowMadrid().toDate()
+      const checkoutDate = actual_checkout ? new Date(actual_checkout) : getNowMadrid().toDate()
 
       if (actual_checkout && isNaN(checkoutDate.getTime())) {
         res.status(400).json({
@@ -310,7 +301,7 @@ class ParkingBookingsController {
       if (notes && booking) {
         await ParkingBookingsRepository.update(id, {
           notes,
-          updated_by: req.user!.id,
+          updated_by: parseInt(req.user!.id),
         })
       }
 
@@ -371,7 +362,7 @@ class ParkingBookingsController {
       if (notes && booking) {
         await ParkingBookingsRepository.update(id, {
           notes,
-          updated_by: req.user!.id,
+          updated_by: parseInt(req.user!.id),
         })
       }
 
@@ -432,7 +423,7 @@ class ParkingBookingsController {
       if (notes && booking) {
         await ParkingBookingsRepository.update(id, {
           notes,
-          updated_by: req.user!.id,
+          updated_by: parseInt(req.user!.id),
         })
       }
 
@@ -508,9 +499,7 @@ class ParkingBookingsController {
         return
       }
 
-      if (
-        ['completed', 'canceled', 'no_show'].includes(existingBooking.status)
-      ) {
+      if (['completed', 'canceled', 'no_show'].includes(existingBooking.status)) {
         res.status(400).json({
           success: false,
           message: `No se puede actualizar una reserva con estado '${existingBooking.status}'`,
@@ -562,14 +551,12 @@ class ParkingBookingsController {
       if (spot_number) updateData.spot_number = spot_number
       if (level_code) updateData.level_code = level_code
       if (vehicle_id !== undefined) updateData.vehicle_id = vehicle_id
-      if (total_amount !== undefined)
-        updateData.total_amount = parseFloat(total_amount)
+      if (total_amount !== undefined) updateData.total_amount = parseFloat(total_amount)
       if (booking_source) updateData.booking_source = booking_source
-      if (external_booking_id !== undefined)
-        updateData.external_booking_id = external_booking_id
+      if (external_booking_id !== undefined) updateData.external_booking_id = external_booking_id
       if (notes !== undefined) updateData.notes = notes
 
-      updateData.updated_by = req.user!.id
+      updateData.updated_by = parseInt(req.user!.id)
 
       if (Object.keys(updateData).length === 1) {
         res.status(400).json({
@@ -656,8 +643,7 @@ class ParkingBookingsController {
       if (now >= checkin) {
         res.status(400).json({
           success: false,
-          message:
-            'No se puede eliminar una reserva que ya debería haber comenzado',
+          message: 'No se puede eliminar una reserva que ya debería haber comenzado',
         })
         return
       }
@@ -683,7 +669,7 @@ class ParkingBookingsController {
   // GET /parking/bookings/overdue/list
   // Reservas retrasadas
   // ============================================
-  getOverdueCheckins = async (req: Request, res: Response): Promise<void> => {
+  getOverdueCheckins = async (_req: Request, res: Response): Promise<void> => {
     try {
       const bookings = await ParkingBookingsRepository.findOverdue()
 

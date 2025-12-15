@@ -350,7 +350,7 @@ export interface CashierHistoryWithUser extends CashierHistory {
 export interface HistoryWithDetails extends CashierHistory {
   shift_date?: string
   shift_type?: string
-  username?: string
+  username?: string | null
   shift_status?: string
 }
 

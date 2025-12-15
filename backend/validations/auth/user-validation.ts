@@ -5,29 +5,14 @@ import type { ValidationErrors } from '../../models/auth/index.js'
 
 // Esquema de validación para un nuevo usuario
 const userSchema = z.object({
-  username: z
-    .string({
-      required_error: 'Username is required',
-      invalid_type_error: 'Username must be a string',
-    })
-    .min(3, 'Username must be at least 3 characters long'),
-  email: z
-    .string({
-      required_error: 'Email is required',
-      invalid_type_error: 'Email must be a string',
-    })
-    .email('Invalid email address'),
-  password: z
-    .string({
-      required_error: 'Password is required',
-      invalid_type_error: 'Password must be a string',
-    })
-    .min(6, 'Password must be at least 6 characters long'),
+  username: z.string().min(3, 'Username must be at least 3 characters long'),
+  email: z.string().email('Invalid email address'),
+  password: z.string().min(6, 'Password must be at least 6 characters long'),
   role: z.string().optional(),
 })
 
 export type UserInput = z.infer<typeof userSchema>
-export type UserValidationResult = z.SafeParseReturnType<UserInput, UserInput>
+export type UserValidationResult = ReturnType<typeof userSchema.safeParse>
 
 // ✔️ Validación completa para creación de usuario
 export function validateUser(input: unknown): UserValidationResult {
@@ -52,17 +37,10 @@ export function getValidationErrors(result: UserValidationResult): ValidationErr
 // 🔍 Validaciones individuales por campo
 export const Validation = {
   username: (value: unknown): string =>
-    z
-      .string()
-      .min(3, 'Username must be at least 3 characters long')
-      .parse(value),
+    z.string().min(3, 'Username must be at least 3 characters long').parse(value),
 
   password: (value: unknown): string =>
-    z
-      .string()
-      .min(6, 'Password must be at least 6 characters long')
-      .parse(value),
+    z.string().min(6, 'Password must be at least 6 characters long').parse(value),
 
-  role: (value: unknown): string | undefined => 
-    z.string().optional().parse(value),
+  role: (value: unknown): string | undefined => z.string().optional().parse(value),
 }

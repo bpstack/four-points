@@ -8,12 +8,7 @@ import { RowDataPacket, ResultSetHeader } from 'mysql2'
 
 export type SpotType = 'standard' | 'large' | 'handicapped' | 'electric'
 export type LevelCode = '-2' | '-3'
-export type BookingStatus =
-  | 'reserved'
-  | 'checked_in'
-  | 'completed'
-  | 'canceled'
-  | 'no_show'
+export type BookingStatus = 'reserved' | 'checked_in' | 'completed' | 'canceled' | 'no_show'
 export type BookingSource = 'direct' | 'booking.com' | 'expedia' | 'other'
 export type PaymentMethod = 'cash' | 'card' | 'transfer' | 'pending'
 
@@ -422,7 +417,7 @@ export interface LevelOccupancy {
 
 export interface OccupancyByLevelResponse {
   levels: LevelOccupancy[]
-  summary: LevelOccupancy & { level: 'TOTAL' }
+  summary: Omit<LevelOccupancy, 'level'> & { level: 'TOTAL' }
 }
 
 export interface FormattedPendingCheckin {
