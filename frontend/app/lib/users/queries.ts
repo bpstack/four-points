@@ -1,6 +1,6 @@
 // app/lib/users/queries.ts
 
-import type { User, LoginCredentials, RegisterData, UpdateUserData, AuthResponse } from './types'
+import type { LoginCredentials, RegisterData, UpdateUserData, AuthResponse } from './types'
 
 const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:4000'
 

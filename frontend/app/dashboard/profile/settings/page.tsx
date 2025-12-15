@@ -13,7 +13,6 @@ import {
   FiUsers,
   FiBell,
   FiShield,
-  FiUser,
   FiEdit2,
   FiTrash2,
   FiArrowLeft,

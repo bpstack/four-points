@@ -12,18 +12,18 @@
 
 ### Rutas de Logbooks - Estado actual
 
-| Ruta | Método | ¿Protegida? | Estado |
-|------|--------|-------------|--------|
-| `/` | POST (crear) | **NO** | ⚠️ VULNERABLE |
-| `/all` | GET | **NO** | ⚠️ VULNERABLE |
-| `/department/:id` | GET | **NO** | ⚠️ VULNERABLE |
-| `/author/:id` | GET | **NO** | ⚠️ VULNERABLE |
-| `/priority/:importance` | GET | **NO** | ⚠️ VULNERABLE |
-| `/day/:day` | GET | **NO** | ⚠️ VULNERABLE |
-| `/:id/history` | GET | **NO** | ⚠️ VULNERABLE |
-| `/trashed` | GET | **SÍ** | ✅ OK |
-| `/:id` | PUT (editar) | **SÍ** | ✅ OK |
-| `/:id` | DELETE | **SÍ** | ✅ OK |
+| Ruta                    | Método       | ¿Protegida? | Estado        |
+| ----------------------- | ------------ | ----------- | ------------- |
+| `/`                     | POST (crear) | **NO**      | ⚠️ VULNERABLE |
+| `/all`                  | GET          | **NO**      | ⚠️ VULNERABLE |
+| `/department/:id`       | GET          | **NO**      | ⚠️ VULNERABLE |
+| `/author/:id`           | GET          | **NO**      | ⚠️ VULNERABLE |
+| `/priority/:importance` | GET          | **NO**      | ⚠️ VULNERABLE |
+| `/day/:day`             | GET          | **NO**      | ⚠️ VULNERABLE |
+| `/:id/history`          | GET          | **NO**      | ⚠️ VULNERABLE |
+| `/trashed`              | GET          | **SÍ**      | ✅ OK         |
+| `/:id`                  | PUT (editar) | **SÍ**      | ✅ OK         |
+| `/:id`                  | DELETE       | **SÍ**      | ✅ OK         |
 
 ### Rutas de Maintenance y Blacklist
 
@@ -31,7 +31,7 @@ Ambos módulos usan `router.use(authenticateToken)` que protege **TODAS** las ru
 
 ```typescript
 // maintenance-routes.ts y blacklist-routes.ts
-router.use(authenticateToken)  // ← Protege TODO
+router.use(authenticateToken); // ← Protege TODO
 ```
 
 **Por eso cualquier request sin token válido → 401 "Token expirado"**
@@ -42,11 +42,11 @@ router.use(authenticateToken)  // ← Protege TODO
 
 ### 2.1 Inconsistencia de TTL (Time To Live)
 
-| Ubicación | Access Token TTL | Refresh Token TTL |
-|-----------|------------------|-------------------|
-| Backend (real) | 15 minutos | 8 horas |
-| Frontend cookies | **7 días** ❌ | **30 días** ❌ |
-| localStorage | Indefinido | Indefinido |
+| Ubicación        | Access Token TTL | Refresh Token TTL |
+| ---------------- | ---------------- | ----------------- |
+| Backend (real)   | 15 minutos       | 8 horas           |
+| Frontend cookies | **7 días** ❌    | **30 días** ❌    |
+| localStorage     | Indefinido       | Indefinido        |
 
 **Problema:** El frontend guarda cookies con TTL mucho mayor que la validez real del token, causando que se envíen tokens expirados constantemente.
 
@@ -56,7 +56,7 @@ router.use(authenticateToken)  // ← Protege TODO
 frontend/middleware.ts.disabled
 ```
 
-El archivo tiene un comentario: *"LOL he puesto esto aqui para saltarme todo esto"*
+El archivo tiene un comentario: _"LOL he puesto esto aqui para saltarme todo esto"_
 
 **Impacto:** No hay protección de rutas a nivel de Next.js.
 
@@ -65,13 +65,14 @@ El archivo tiene un comentario: *"LOL he puesto esto aqui para saltarme todo est
 ```javascript
 // auth-controllers.js
 cookieOptions = {
-  httpOnly: IN_DEV_MODE ? false : true,  // ❌ Expone tokens a XSS en dev
-}
+  httpOnly: IN_DEV_MODE ? false : true, // ❌ Expone tokens a XSS en dev
+};
 ```
 
 ### 2.4 Almacenamiento dual de tokens
 
 El frontend guarda tokens en AMBOS lugares:
+
 - `localStorage`
 - Cookies
 
@@ -127,22 +128,22 @@ El logout actual solo limpia cookies del cliente, pero el token sigue siendo vá
 
 ### Backend
 
-| Archivo | Función |
-|---------|---------|
-| `middlewares/authenticateToken.js` | Valida tokens en cada request |
-| `services/tokenService.js` | Genera y verifica tokens JWT |
-| `controllers/auth/auth-controllers.js` | Login, logout, refresh, me |
-| `routes/auth/auth-routes.js` | Define rutas de auth |
-| `middlewares/roleCheck.js` | Control de acceso por rol |
+| Archivo                                | Función                       |
+| -------------------------------------- | ----------------------------- |
+| `middlewares/authenticateToken.js`     | Valida tokens en cada request |
+| `services/tokenService.js`             | Genera y verifica tokens JWT  |
+| `controllers/auth/auth-controllers.js` | Login, logout, refresh, me    |
+| `routes/auth/auth-routes.js`           | Define rutas de auth          |
+| `middlewares/roleCheck.js`             | Control de acceso por rol     |
 
 ### Frontend
 
-| Archivo | Función |
-|---------|---------|
-| `app/lib/apiClient.ts` | HTTP client con auto-refresh |
-| `app/lib/auth/authService.ts` | Funciones login/logout/me |
-| `app/lib/auth/useAuth.tsx` | Context provider de auth |
-| `middleware.ts.disabled` | Protección de rutas (DESACTIVADO) |
+| Archivo                       | Función                           |
+| ----------------------------- | --------------------------------- |
+| `app/lib/apiClient.ts`        | HTTP client con auto-refresh      |
+| `app/lib/auth/authService.ts` | Funciones login/logout/me         |
+| `app/lib/auth/useAuth.tsx`    | Context provider de auth          |
+| `middleware.ts.disabled`      | Protección de rutas (DESACTIVADO) |
 
 ---
 
@@ -157,14 +158,14 @@ El logout actual solo limpia cookies del cliente, pero el token sigue siendo vá
 
 ### Comparativa
 
-| Aspecto | JWT Actual | Sessions |
-|---------|------------|----------|
-| Código | ~830 líneas | ~240 líneas (-71%) |
-| Logout real | ❌ Token sigue válido | ✅ Instantáneo |
-| Panel admin sesiones | ❌ Complejo | ✅ SELECT * FROM sessions |
-| Auto-refresh | ✅ Necesario pero complejo | ❌ No necesario |
-| Escalabilidad | ✅ Stateless | ⚠️ Requiere store (MySQL) |
-| Apps móviles | ✅ Fácil | ⚠️ Más complejo |
+| Aspecto              | JWT Actual                 | Sessions                   |
+| -------------------- | -------------------------- | -------------------------- |
+| Código               | ~830 líneas                | ~240 líneas (-71%)         |
+| Logout real          | ❌ Token sigue válido      | ✅ Instantáneo             |
+| Panel admin sesiones | ❌ Complejo                | ✅ SELECT \* FROM sessions |
+| Auto-refresh         | ✅ Necesario pero complejo | ❌ No necesario            |
+| Escalabilidad        | ✅ Stateless               | ⚠️ Requiere store (MySQL)  |
+| Apps móviles         | ✅ Fácil                   | ⚠️ Más complejo            |
 
 ### Ventajas de Sessions para tu caso
 
@@ -203,12 +204,12 @@ Hotel interno + 10-20 usuarios + Solo web + Multi-hotel separado
 **Solución:** Añadir `router.use(authenticateToken)` al inicio:
 
 ```javascript
-import { authenticateToken } from '../../middlewares/authenticateToken.js'
+import { authenticateToken } from "../../middlewares/authenticateToken.js";
 
-const router = Router()
+const router = Router();
 
 // Proteger TODAS las rutas
-router.use(authenticateToken)
+router.use(authenticateToken);
 
 // ... resto de rutas
 ```
@@ -225,21 +226,21 @@ router.use(authenticateToken)
 
 ### Opción A: Arreglar primero, migrar después (RECOMENDADO)
 
-| Paso | Tarea | Tiempo |
-|------|-------|--------|
-| 1 | Proteger rutas de logbooks | 30 min |
-| 2 | Verificar que el problema se resuelve | 15 min |
-| 3 | Planificar migración a sessions | Próxima semana |
-| 4 | Ejecutar migración siguiendo `authSystemMigration.md` | 2-3 hrs |
+| Paso | Tarea                                                 | Tiempo         |
+| ---- | ----------------------------------------------------- | -------------- |
+| 1    | Proteger rutas de logbooks                            | 30 min         |
+| 2    | Verificar que el problema se resuelve                 | 15 min         |
+| 3    | Planificar migración a sessions                       | Próxima semana |
+| 4    | Ejecutar migración siguiendo `authSystemMigration.md` | 2-3 hrs        |
 
 ### Opción B: Migrar directamente
 
-| Paso | Tarea | Tiempo |
-|------|-------|--------|
-| 1 | Crear branch de migración | 5 min |
-| 2 | Seguir FASE 1-7 del documento | 2-3 hrs |
-| 3 | Testing completo | 30 min |
-| 4 | Deploy | Variable |
+| Paso | Tarea                         | Tiempo   |
+| ---- | ----------------------------- | -------- |
+| 1    | Crear branch de migración     | 5 min    |
+| 2    | Seguir FASE 1-7 del documento | 2-3 hrs  |
+| 3    | Testing completo              | 30 min   |
+| 4    | Deploy                        | Variable |
 
 ---
 

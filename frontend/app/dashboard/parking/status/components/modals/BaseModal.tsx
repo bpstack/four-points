@@ -48,13 +48,13 @@ const colorClasses = {
 
 export default function BaseModal({
   isOpen,
-  onClose,
+  onClose: _onClose,
   title,
   icon,
   children,
   footer,
   colorScheme,
-  loading = false,
+  loading: _loading = false,
 }: BaseModalProps) {
   if (!isOpen) return null
 

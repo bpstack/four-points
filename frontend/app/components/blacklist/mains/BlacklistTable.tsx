@@ -9,13 +9,13 @@
  * - Badges de severidad y estado
  */
 
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { IoEyeOutline, IoWarning } from 'react-icons/io5'
 import { Badge } from '@/app/components/blacklist/ui/Badge'
 import { Button } from '@/app/components/blacklist/ui/Button'
 import type { BlacklistEntry } from '@/app/lib/blacklist/types'
-import { SEVERITY_LEVELS, SEVERITY_COLORS, STATUS_COLORS } from '@/app/lib/blacklist/types'
+import { SEVERITY_LEVELS } from '@/app/lib/blacklist/types'
 import { formatDate, highlightMatches, truncateText } from '@/app/lib/blacklist/blacklistUtils'
 
 interface BlacklistTableProps {

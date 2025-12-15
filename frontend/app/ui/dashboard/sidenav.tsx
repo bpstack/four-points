@@ -13,13 +13,9 @@ interface SideNavProps {
 }
 
 export default function SideNav({ onClose }: SideNavProps) {
-  const { user, logout } = useAuth()
-  const router = useRouter()
-
-  const handleLogout = async () => {
-    await logout()
-    router.push('/login')
-  }
+  // Auth context available for future use (user info display, logout button)
+  const _auth = useAuth()
+  const _router = useRouter()
 
   return (
     <div className="flex h-full flex-col bg-white dark:bg-[#0d1117]">

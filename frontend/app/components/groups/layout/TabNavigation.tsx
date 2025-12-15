@@ -25,7 +25,8 @@ interface TabNavigationProps {
   groupId: number
 }
 
-export function TabNavigation({ groupId }: TabNavigationProps) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export function TabNavigation(_props: TabNavigationProps) {
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()

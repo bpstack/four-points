@@ -57,7 +57,7 @@ export default function NewCommentEntry({
         department_id: department,
       })
       onClose()
-    } catch (e) {
+    } catch {
       // toast/parent error handling expected outside
     } finally {
       setIsSubmitting(false)

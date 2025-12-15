@@ -49,7 +49,8 @@ export function useNotifications() {
       const data = await apiClient.get(`${API_URL}/api/notifications/unread`)
       setNotifications(data.data || [])
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Error al cargar notificaciones no leídas'
+      const message =
+        err instanceof Error ? err.message : 'Error al cargar notificaciones no leídas'
       setError(message)
       console.error('Error fetching unread notifications:', err)
     } finally {

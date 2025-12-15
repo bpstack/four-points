@@ -2,7 +2,7 @@
 
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { maintenanceApi } from '@/app/lib/maintenance/maintenanceApi'
 import type { MaintenanceReport, ReportFilters } from '@/app/lib/maintenance/maintenance'

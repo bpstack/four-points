@@ -11,7 +11,6 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  Legend,
 } from 'recharts'
 import type { MonthlyReport } from '@/app/lib/cashier/types'
 
@@ -41,24 +40,28 @@ const COLORS = {
 
 export default function PaymentChart({ report, viewMode = 'pie' }: PaymentChartProps) {
   const totals = {
-    grand_total: typeof report.totals.grand_total === 'string' 
-      ? parseFloat(report.totals.grand_total) 
-      : report.totals.grand_total || 0,
-    total_days: typeof report.period.total_days === 'string'
-      ? parseInt(report.period.total_days)
-      : report.period.total_days || 1,
+    grand_total:
+      typeof report.totals.grand_total === 'string'
+        ? parseFloat(report.totals.grand_total)
+        : report.totals.grand_total || 0,
+    total_days:
+      typeof report.period.total_days === 'string'
+        ? parseInt(report.period.total_days)
+        : report.period.total_days || 1,
   }
 
   // Filtrar métodos con valor > 0 para el gráfico
   const chartData: ChartDataItem[] = report.payment_methods_breakdown
     .map((method) => {
-      const totalAmount = typeof method.total_amount === 'string'
-        ? parseFloat(method.total_amount)
-        : method.total_amount || 0
-      const percentage = typeof method.percentage === 'string'
-        ? parseFloat(method.percentage)
-        : method.percentage || 0
-      
+      const totalAmount =
+        typeof method.total_amount === 'string'
+          ? parseFloat(method.total_amount)
+          : method.total_amount || 0
+      const percentage =
+        typeof method.percentage === 'string'
+          ? parseFloat(method.percentage)
+          : method.percentage || 0
+
       return {
         name: method.method_name,
         value: totalAmount,

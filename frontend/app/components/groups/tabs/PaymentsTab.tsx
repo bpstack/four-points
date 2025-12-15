@@ -14,7 +14,7 @@ import { FiPlus, FiDollarSign, FiFileText, FiChevronDown, FiChevronUp } from 're
 export function PaymentsTab() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { currentGroup, payments, isLoadingPayments, refreshPayments, openPanel } = useGroupStore()
+  const { currentGroup, payments, isLoadingPayments, refreshPayments } = useGroupStore()
 
   const [balance, setBalance] = useState({
     total_amount: 0,

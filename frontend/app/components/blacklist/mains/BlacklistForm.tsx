@@ -22,7 +22,7 @@ import { TextArea } from '@/app/components/blacklist/ui/TextArea'
 import { Select } from '@/app/components/blacklist/ui/Select'
 import { Button } from '@/app/components/blacklist/ui/Button'
 import { ImageUploader } from '@/app/components/blacklist/ui/ImageUploader'
-import { blacklistSchema, blacklistEditSchema } from '@/app/lib/blacklist/blacklistSchema'
+import { blacklistSchema } from '@/app/lib/blacklist/blacklistSchema'
 import { blacklistApi } from '@/app/lib/blacklist/blacklistApi'
 import { createBlacklist, updateBlacklist } from '@/app/dashboard/blacklist/actions'
 
@@ -93,7 +93,8 @@ export function BlacklistForm({ mode, initialData, onSuccess }: BlacklistFormPro
           },
   })
 
-  const images = watch('images')
+  // Watch images for display purposes (currently used in ImageUploader)
+  watch('images')
 
   // ========================================
   // SUBMIT HANDLER

@@ -2,7 +2,7 @@
 // ✅ USA apiClient con auto-refresh automático
 
 import apiClient from '@/app/lib/apiClient'
-import type { LogbookEntry, LogbookComment } from './types'
+// Types available in ./types if needed: LogbookEntry, LogbookComment
 
 const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:4000/api'
 

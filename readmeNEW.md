@@ -3,7 +3,9 @@
 README profesional para la plataforma **Four Points Hotel Logbook**: API REST de gestión hotelera (logbook, usuarios, parking, caja, grupos y conciliación) construida con **Node.js + Express + MySQL**, autenticación **JWT con access + refresh token**, control de roles y clientes web en Next.js.
 
 ---
+
 ## Índice
+
 - [Descripción general](#descripción-general)
 - [Tecnologías usadas](#tecnologías-usadas)
 - [Diagrama del flujo de autenticación](#diagrama-del-flujo-de-autenticación)
@@ -20,8 +22,11 @@ README profesional para la plataforma **Four Points Hotel Logbook**: API REST de
 - [Créditos](#créditos)
 
 ---
+
 ## Descripción general
+
 API REST para operaciones hoteleras:
+
 - **Auth**: login, registro, refresh, logout, sesión actual.
 - **Usuarios**: CRUD protegido por roles gerenciales.
 - **Logbook**: crear, leer, marcar como leído, resolver, historial, comentarios y borrado por autor.
@@ -34,7 +39,9 @@ API REST para operaciones hoteleras:
 Incluye control de roles (General Manager, Front Office Manager, Recepcionist) y cookies de sesión con JWT.
 
 ---
+
 ## Tecnologías usadas
+
 - **Backend**: Node.js (ESM), Express 5, MySQL2 (pool async), JWT, bcrypt, cookie-parser, cors, dotenv, zod, dayjs.
 - **Seguridad**: JWT (access 15m, refresh 8h), cookies HttpOnly, middlewares de autenticación y roles.
 - **Frontend**: Next.js 15, React 19, NextAuth (en beta), TailwindCSS, TanStack Query, Zustand, Heroicons, NextUI.
@@ -42,7 +49,9 @@ Incluye control de roles (General Manager, Front Office Manager, Recepcionist) y
 - **Base de datos**: scripts SQL en `backend/db-mysql` (tablas core, logbook, parking, conciliación, caja, grupos).
 
 ---
+
 ## Diagrama del flujo de autenticación
+
 ```
 Cliente → POST /api/auth/login (user+pass)
         ↳ genera access_token (15m) + refresh_token (8h) en cookies HttpOnly
@@ -58,7 +67,9 @@ Logout → POST /api/auth/logout (protegido)
 ```
 
 ---
+
 ## Arquitectura del proyecto
+
 - **`index.js`**: arranque de Express, CORS, JSON, cookies y montaje de rutas.
 - **`config/`**: configuración de puerto/JWT (`config.js`), conexión MySQL (`db.ts`), utilidades de fecha.
 - **`middlewares/`**: `authenticateToken` (JWT en cookie/header) y `roleCheck` (isAdmin, isOwnerOrAdmin, etc.).
@@ -70,8 +81,11 @@ Logout → POST /api/auth/logout (protegido)
 - **Frontend (`frontend/`)**: app Next.js con stores Zustand, componentes UI y capa de llamadas a la API.
 
 ---
+
 ## Árbol de carpetas
+
 Resumen de alto nivel (backend y frontend):
+
 ```
 backend/
   index.js
@@ -92,46 +106,55 @@ frontend/
 ```
 
 ---
+
 ## Variables de entorno
+
 ### Backend (`backend/.env.example`)
-| Variable | Descripción |
-| --- | --- |
-| `PORT` | Puerto HTTP del API (por defecto 4000). |
-| `NODE_ENV` | `development` o `production`. |
-| `SECRET_JWT_KEY` | Clave para firmar JWT (obligatoria). |
-| `SALT_ROUNDS` | Rondas de bcrypt (default 10). |
-| `LOCAL_DB_HOST` | Host MySQL local. |
-| `LOCAL_DB_PORT` | Puerto MySQL local (3306). |
-| `LOCAL_DB_USER` | Usuario MySQL local. |
-| `LOCAL_DB_PASSWORD` | Password MySQL local. |
-| `LOCAL_DB_NAME` | Base de datos local. |
-| `AIVEN_DB_HOST` | Host MySQL en Aiven. |
-| `AIVEN_DB_PORT` | Puerto MySQL Aiven. |
-| `AIVEN_DB_USER` | Usuario MySQL Aiven. |
-| `AIVEN_PASSWORD` | Password MySQL Aiven. |
-| `AIVEN_DB_NAME` | Base de datos Aiven. |
-| `DB_ENVIRONMENT` | `local` o `aiven` (selecciona preset de conexión). |
-| `SESSION_SECRET` | (para migración a express-session, si se habilita). |
+
+| Variable            | Descripción                                         |
+| ------------------- | --------------------------------------------------- |
+| `PORT`              | Puerto HTTP del API (por defecto 4000).             |
+| `NODE_ENV`          | `development` o `production`.                       |
+| `SECRET_JWT_KEY`    | Clave para firmar JWT (obligatoria).                |
+| `SALT_ROUNDS`       | Rondas de bcrypt (default 10).                      |
+| `LOCAL_DB_HOST`     | Host MySQL local.                                   |
+| `LOCAL_DB_PORT`     | Puerto MySQL local (3306).                          |
+| `LOCAL_DB_USER`     | Usuario MySQL local.                                |
+| `LOCAL_DB_PASSWORD` | Password MySQL local.                               |
+| `LOCAL_DB_NAME`     | Base de datos local.                                |
+| `AIVEN_DB_HOST`     | Host MySQL en Aiven.                                |
+| `AIVEN_DB_PORT`     | Puerto MySQL Aiven.                                 |
+| `AIVEN_DB_USER`     | Usuario MySQL Aiven.                                |
+| `AIVEN_PASSWORD`    | Password MySQL Aiven.                               |
+| `AIVEN_DB_NAME`     | Base de datos Aiven.                                |
+| `DB_ENVIRONMENT`    | `local` o `aiven` (selecciona preset de conexión).  |
+| `SESSION_SECRET`    | (para migración a express-session, si se habilita). |
 
 ### Frontend (`frontend/.env.example`)
-| Variable | Descripción |
-| --- | --- |
-| `NEXT_PUBLIC_APP_NAME` | Nombre de la app. |
-| `NEXT_PUBLIC_API_URL` | URL base de la API (ej. http://localhost:4000). |
-| `DATABASE_URL` | Conexión temporal (no usada en prod). |
-| `DB_HOST/DB_PORT/DB_USER/DB_PASSWORD/DB_NAME` | Parámetros MySQL usados en local. |
-| `NEXTAUTH_URL` / `NEXTAUTH_SECRET` | Configuración NextAuth. |
-| `JWT_SECRET` | Secreto JWT para NextAuth. |
-| `STRIPE_*`, `SENDGRID_API_KEY`, `SENTRY_DSN`, `AWS_*` | Servicios externos (opcionales). |
+
+| Variable                                              | Descripción                                     |
+| ----------------------------------------------------- | ----------------------------------------------- |
+| `NEXT_PUBLIC_APP_NAME`                                | Nombre de la app.                               |
+| `NEXT_PUBLIC_API_URL`                                 | URL base de la API (ej. http://localhost:4000). |
+| `DATABASE_URL`                                        | Conexión temporal (no usada en prod).           |
+| `DB_HOST/DB_PORT/DB_USER/DB_PASSWORD/DB_NAME`         | Parámetros MySQL usados en local.               |
+| `NEXTAUTH_URL` / `NEXTAUTH_SECRET`                    | Configuración NextAuth.                         |
+| `JWT_SECRET`                                          | Secreto JWT para NextAuth.                      |
+| `STRIPE_*`, `SENDGRID_API_KEY`, `SENTRY_DSN`, `AWS_*` | Servicios externos (opcionales).                |
 
 ---
+
 ## Instalación paso a paso
-1) **Clonar repositorio**
+
+1. **Clonar repositorio**
+
 ```bash
 git clone <repo>
 cd Four-Points
 ```
-2) **Backend**
+
+2. **Backend**
+
 ```bash
 cd backend
 pnpm install
@@ -139,29 +162,40 @@ cp .env.example .env   # rellena valores reales
 pnpm build              # opcional, genera dist
 pnpm dev                # o pnpm dev:local / dev:aiven según DB_ENVIRONMENT
 ```
-3) **Base de datos**
+
+3. **Base de datos**
+
 - Crea la base y ejecuta los scripts en `backend/db-mysql/` en orden (`MASTER_INSTALL.sql` o los numerados 01..11 + 99).
 - Verifica conectividad con `test_db_conection.js` si lo usas.
-4) **Frontend**
+
+4. **Frontend**
+
 ```bash
 cd ../frontend
 pnpm install
 cp .env.example .env    # apunta NEXT_PUBLIC_API_URL al backend
 pnpm dev                 # arranca Next.js (por defecto 3000)
 ```
-5) **Acceso**
+
+5. **Acceso**
+
 - API: `http://localhost:4000` (según `PORT`).
 - Front: `http://localhost:3000`.
 
 ---
+
 ## Uso de la API
+
 - Enviar credenciales con JSON y **cookies habilitadas** desde el cliente (CORS permite `credentials: true`).
 - Tokens se sirven en cookies `access_token` (15m) y `refresh_token` (8h). En desarrollo, también puede usarse header `Authorization: Bearer <token>`.
 - Para rutas protegidas: siempre pasar cookies o header Bearer.
 
 ---
+
 ## Endpoints principales
+
 **Auth** (`/api/auth`)
+
 - `POST /login` — login con cookies de tokens.
 - `POST /register` — crear usuario.
 - `POST /refresh-token` — renovar tokens (cookies o Bearer).
@@ -169,19 +203,23 @@ pnpm dev                 # arranca Next.js (por defecto 3000)
 - `POST /logout` — limpia cookies (protegido).
 
 **Users** (`/api/users`) — protegido + solo managers (General Manager / Front Office Manager):
+
 - `GET /` listar, `GET /role/:role`, `GET /:id`, `PUT /:id`, `DELETE /:id`.
 
 **Logbook** (`/api/logbooks`)
+
 - `POST /` crear; `PUT /:id` actualizar (protegido);
 - `GET /all`, `/department/:departmentId`, `/author/:authorId`, `/priority/:importance`, `/day/:day`, `/trashed`;
 - `DELETE /:id` solo autor; comentarios (`/:logbookId/comments` CRUD), reads/solve (`/:logbookId/read|solve|pending|readers|solved`).
 
 **Parking**
+
 - Plazas/Vehículos (`/api/parking/spots`, `/spots/available`, `/vehicles`, `/vehicles/search`, `/vehicles/:id`).
 - Reservas (`/api/parking/bookings`): listar con filtros, crear, obtener/actualizar/borrar por `:code`, checkin/checkout/cancel/no-show.
 - Stats (`/api/parking/stats` + subrutas pending-checkins/checkout) y analytics (`/api/parking/stats/analytics/*`).
 
 **Cashier** (`/api/cashier`)
+
 - Daily: `/daily/:date` (get/init/close/reopen/summary/list, monthly report).
 - Shifts: `/shifts` CRUD, close/reopen, users, history.
 - Vouchers: `/vouchers` CRUD, justify/cancel, stats, active.
@@ -191,17 +229,22 @@ pnpm dev                 # arranca Next.js (por defecto 3000)
 - History: `/history`, `/history/stats`, `/history/shift/:shiftId`, `/history/recent`.
 
 **Conciliation** (`/api/conciliations`)
+
 - Listar (`/`), por día (`/day/:date`), por id (`/:id`), crear, actualizar formulario (`/:id/form`), cambiar estado (`/:id/status`), recalcular (`/:id/recalculate`), borrar (`DELETE /:id` admin). Sub-ruta mensual: `/monthly-summary/*`.
 
 **Groups** (`/api/groups`)
+
 - Dashboard overview/timeline; CRUD de grupos; pagos (`/:id/payments`), estados (`/:id/status/*`), rooms (`/:id/rooms/*`), contacts (`/:id/contacts/*`), history (`/:id/history`), notificaciones del grupo (`/:id/notifications`).
 
 **Departments / Notifications**
+
 - `GET /api/departments` y CRUD según implementación.
 - `GET/POST /api/notifications` (rutas en `notifications-routes.ts`).
 
 ---
+
 ## Control de roles
+
 - Roles principales: **General Manager**, **Front Office Manager**, **Recepcionist**.
 - Middleware `authenticateToken` exige JWT válido.
 - Middleware `roleCheck` implementa reglas:
@@ -211,8 +254,11 @@ pnpm dev                 # arranca Next.js (por defecto 3000)
 - Política clave: **solo managers** pueden leer/actualizar usuarios; **logbooks** solo pueden ser eliminados por su autor.
 
 ---
+
 ## Ejemplos de solicitudes y respuestas
+
 ### Login
+
 ```http
 POST /api/auth/login
 Content-Type: application/json
@@ -222,7 +268,9 @@ Content-Type: application/json
   "password": "Secret123"
 }
 ```
+
 Respuesta 200 (cookies set):
+
 ```json
 {
   "success": true,
@@ -233,13 +281,16 @@ Respuesta 200 (cookies set):
 ```
 
 ### Refresh token
+
 ```http
 POST /api/auth/refresh-token
 Authorization: Bearer <refresh_token>
 ```
+
 Respuesta 200: nuevos tokens en cookies y body.
 
 ### Crear logbook
+
 ```http
 POST /api/logbooks
 Content-Type: application/json
@@ -254,13 +305,16 @@ Authorization: Bearer <access>
 ```
 
 ### Eliminar logbook (solo autor)
+
 ```http
 DELETE /api/logbooks/123
 Authorization: Bearer <access>
 ```
+
 Respuesta 200: `{"message":"Logbook eliminado (soft‑delete) correctamente"}`
 
 ### Crear booking de parking
+
 ```http
 POST /api/parking/bookings
 Authorization: Bearer <access>
@@ -273,10 +327,13 @@ Content-Type: application/json
   "booking_source": "direct"
 }
 ```
+
 Respuesta: incluye `booking_code` generado.
 
 ---
+
 ## Notas de seguridad
+
 - Tokens solo en **cookies HttpOnly** en producción; en dev se permite Bearer para debug.
 - Access token 15m + refresh 8h (rotación en refresh-token).
 - CORS configurado con `credentials: true` y origen explícito (`http://localhost:3000` por defecto).
@@ -286,7 +343,9 @@ Respuesta: incluye `booking_code` generado.
 - Control de roles centralizado en middlewares; auditar rutas nuevas para requerir `authenticateToken` + rol correcto.
 
 ---
+
 ## Mejoras futuras
+
 - Migrar a **express-session** con store MySQL (documentación ya incluida en `backend/README.md`) para invalidación de sesión server-side.
 - Tests automatizados de integración (auth/logbook/parking) y cobertura en `node --test`.
 - Endpoints de auditoría y dashboards de sesiones activas.
@@ -294,7 +353,9 @@ Respuesta: incluye `booking_code` generado.
 - Observabilidad: logs estructurados + métricas.
 
 ---
+
 ## Créditos
+
 - Equipo Four Points Hotel Logbook.
 - Desarrollo backend: Node.js/Express/MySQL.
 - Desarrollo frontend: Next.js/Tailwind/NextUI.

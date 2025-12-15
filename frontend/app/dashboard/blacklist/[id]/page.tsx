@@ -11,7 +11,7 @@
 
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { IoChevronBack, IoCreateOutline, IoTrashOutline } from 'react-icons/io5'
+import { IoChevronBack, IoCreateOutline } from 'react-icons/io5'
 import { Card } from '@/app/components/blacklist/ui/Card'
 import { Button } from '@/app/components/blacklist/ui/Button'
 import { Badge } from '@/app/components/blacklist/ui/Badge'
@@ -46,7 +46,7 @@ export default async function BlacklistDetailPage({ params }: PageProps) {
 
   try {
     data = await getBlacklistById(id)
-  } catch (error) {
+  } catch {
     notFound()
   }
 

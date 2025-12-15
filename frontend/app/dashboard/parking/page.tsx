@@ -56,7 +56,7 @@ export default function ParkingDashboard() {
     occupancy_rate: 0,
   })
 
-  const [occupancy, setOccupancy] = useState<any>(null)
+  const [_occupancy, setOccupancy] = useState<any>(null)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {

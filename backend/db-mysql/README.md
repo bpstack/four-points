@@ -47,30 +47,34 @@ cat 01_*.sql 02_*.sql 03_*.sql 04_*.sql 05_*.sql 06_*.sql 07_*.sql | mysql -u dz
 ### Características principales
 
 ✅ **Gestión automática de disponibilidad**
+
 - Los triggers mantienen sincronizada la disponibilidad
 - Bloqueo/liberación automático de fechas
 
 ✅ **Códigos de reserva únicos**
+
 - Formato: `PK-YYYYMMDD-0001`
 - Generación automática vía trigger
 
 ✅ **Control de solapamientos**
+
 - Validación antes de insertar reservas
 - Imposible hacer doble reserva
 
 ✅ **Auditoría completa**
+
 - `created_by`, `updated_by` en cada reserva
 - Historial de cambios
 
 ### Tablas principales
 
-| Tabla | Descripción |
-|-------|-------------|
-| `parking_spots` | 20 plazas (10 en planta -2, 10 en planta -3) |
-| `parking_vehicles` | Vehículos registrados |
-| `parking_rates` | Tarifas por día (1-30 días) |
-| `parking_bookings` | Reservas con booking_code |
-| `parking_availability` | Disponibilidad diaria (365 días) |
+| Tabla                  | Descripción                                  |
+| ---------------------- | -------------------------------------------- |
+| `parking_spots`        | 20 plazas (10 en planta -2, 10 en planta -3) |
+| `parking_vehicles`     | Vehículos registrados                        |
+| `parking_rates`        | Tarifas por día (1-30 días)                  |
+| `parking_bookings`     | Reservas con booking_code                    |
+| `parking_availability` | Disponibilidad diaria (365 días)             |
 
 ### Funciones disponibles
 
@@ -156,6 +160,7 @@ WHERE id = 1;
 ### Sincronización diaria automática
 
 **Opción 1: Evento MySQL**
+
 ```sql
 SET GLOBAL event_scheduler = ON;
 
@@ -167,6 +172,7 @@ DO
 ```
 
 **Opción 2: Cron (Linux/Mac)**
+
 ```bash
 # Ejecutar a las 3:00 AM diariamente
 0 3 * * * mysql -u dz -p'password' hotel_db -e "CALL daily_parking_maintenance();"
@@ -191,14 +197,14 @@ mysql -u dz -p < 99_verification.sql
 ✅ No permite reservas en fechas ocupadas (trigger)  
 ✅ Genera booking_code único automáticamente (trigger)  
 ✅ Actualiza disponibilidad al crear/modificar reservas (trigger)  
-✅ Libera disponibilidad al cancelar/completar (trigger)  
+✅ Libera disponibilidad al cancelar/completar (trigger)
 
 ## 📈 Estadísticas
 
 ### Ocupación actual
 
 ```sql
-SELECT 
+SELECT
     COUNT(CASE WHEN is_available = TRUE THEN 1 END) AS disponibles,
     COUNT(CASE WHEN is_available = FALSE THEN 1 END) AS ocupadas,
     CONCAT(ROUND(COUNT(CASE WHEN is_available = FALSE THEN 1 END) * 100.0 / COUNT(*), 2), '%') AS ocupacion
@@ -209,7 +215,7 @@ WHERE date = CURDATE();
 ### Ingresos del mes
 
 ```sql
-SELECT 
+SELECT
     SUM(total_amount) AS ingresos_totales,
     COUNT(*) AS total_reservas,
     AVG(total_amount) AS precio_promedio

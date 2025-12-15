@@ -12,7 +12,12 @@ import type {
   ReservationData,
   BookingWizardProps,
 } from '../types'
-import type { ParkingSpot, ParkingVehicle, ParkingBooking, CreateBookingDto } from '@/app/lib/parking/types'
+import type {
+  ParkingSpot,
+  ParkingVehicle,
+  ParkingBooking,
+  CreateBookingDto,
+} from '@/app/lib/parking/types'
 import { formatDateForInput } from '@/app/lib/helpers/date'
 
 const initialVehicleData: VehicleData = {

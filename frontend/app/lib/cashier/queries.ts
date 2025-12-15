@@ -4,15 +4,11 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import apiClient from '@/app/lib/apiClient'
 import type {
-  CashierDaily,
-  CashierShift,
-  CashierVoucher,
   InitializeDayDTO,
   UpdateShiftDTO,
   DenominationInput,
   PaymentInput,
   CreateVoucherDTO,
-  VoucherStats,
 } from './types'
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'

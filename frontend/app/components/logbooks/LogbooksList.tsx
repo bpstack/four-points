@@ -184,7 +184,7 @@ export default function LogbooksList({
     'baja'
   )
   const [commentDepartment, setCommentDepartment] = useState<number>(1)
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [, setIsSubmitting] = useState(false)
 
   // Edit logbook modal state
   const [editModalOpen, setEditModalOpen] = useState<number | null>(null)
@@ -341,7 +341,7 @@ export default function LogbooksList({
       setNewComment('')
       toast.success('Comentario anadido correctamente')
       if (onCommentAdded) onCommentAdded()
-    } catch (error) {
+    } catch {
       toast.error('Error al crear el comentario')
     } finally {
       setIsSubmitting(false)
@@ -455,7 +455,7 @@ export default function LogbooksList({
             : entry
         )
       )
-    } catch (error) {
+    } catch {
       toast.error('Error al cambiar el estado')
     }
   }
@@ -491,7 +491,7 @@ export default function LogbooksList({
         }))
         toast.success('Marcado como leido')
       }
-    } catch (error) {
+    } catch {
       toast.error('Error al cambiar el estado de lectura')
     }
   }
@@ -663,7 +663,9 @@ export default function LogbooksList({
                               {formatUsername(comment.author_name)}
                             </span>
                             <span>·</span>
-                            <span>{formatEditTimestamp(comment.created_at || new Date().toISOString())}</span>
+                            <span>
+                              {formatEditTimestamp(comment.created_at || new Date().toISOString())}
+                            </span>
                             {comment.updated_at && comment.updated_at !== comment.created_at && (
                               <>
                                 <span>·</span>
@@ -756,7 +758,9 @@ export default function LogbooksList({
                         <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
                           <span className="font-medium">{formatUsername(comment.author_name)}</span>
                           <span>·</span>
-                          <span>{formatEditTimestamp(comment.created_at || new Date().toISOString())}</span>
+                          <span>
+                            {formatEditTimestamp(comment.created_at || new Date().toISOString())}
+                          </span>
                         </div>
                         {user?.id === comment.user_id && (
                           <div className="flex items-center gap-1">

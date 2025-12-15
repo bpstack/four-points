@@ -5,7 +5,7 @@
 import { GroupWithDetails } from '@/app/lib/groups'
 import { StatusBadge } from '../shared/StatusBadge'
 import { formatDate, formatCurrency, daysBetween } from '@/app/lib/helpers/utils'
-import { FiCalendar, FiDollarSign, FiEdit, FiTrash2, FiUsers } from 'react-icons/fi'
+import { FiCalendar, FiDollarSign, FiEdit, FiUsers } from 'react-icons/fi'
 
 interface GroupHeaderProps {
   group: GroupWithDetails
@@ -13,7 +13,7 @@ interface GroupHeaderProps {
   onDelete?: () => void
 }
 
-export function GroupHeader({ group, onEdit, onDelete }: GroupHeaderProps) {
+export function GroupHeader({ group, onEdit }: GroupHeaderProps) {
   const nights = daysBetween(group.arrival_date, group.departure_date)
 
   return (

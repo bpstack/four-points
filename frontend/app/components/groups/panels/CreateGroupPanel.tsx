@@ -6,7 +6,7 @@ import { useEffect, Fragment, useState } from 'react'
 import { Dialog, Transition } from '@headlessui/react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useRouter } from 'next/navigation'
+// useRouter removed - using window.location.href for navigation after group creation
 import { groupSchema, type GroupFormData } from '@/app/lib/schemas/group-schemas'
 import { groupsApi, GroupStatus } from '@/app/lib/groups'
 import { FiX, FiSave, FiCalendar } from 'react-icons/fi'
@@ -20,7 +20,6 @@ interface CreateGroupPanelProps {
 }
 
 export function CreateGroupPanel({ isOpen, onClose }: CreateGroupPanelProps) {
-  const router = useRouter()
   const [showArrivalCalendar, setShowArrivalCalendar] = useState(false)
   const [showDepartureCalendar, setShowDepartureCalendar] = useState(false)
 

@@ -31,7 +31,7 @@ import { useEffect, useState } from 'react'
 import styles from '@/app/ui/home.module.css'
 
 const SetThemeButton = () => {
-  const { theme, setTheme, resolvedTheme } = useTheme()
+  const { setTheme, resolvedTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
 
   // Evitar hidratación hasta que el componente esté montado en el cliente
@@ -69,7 +69,7 @@ const SetThemeButton = () => {
 export default SetThemeButton
 
 export const SimpleThemeButton = () => {
-  const { theme, setTheme, resolvedTheme } = useTheme()
+  const { setTheme, resolvedTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {

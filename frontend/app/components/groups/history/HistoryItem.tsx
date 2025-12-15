@@ -197,7 +197,7 @@ export function HistoryItem({ record }: HistoryItemProps) {
       }
 
       return changes.length > 0 ? changes : null
-    } catch (error) {
+    } catch {
       return null
     }
   }

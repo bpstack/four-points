@@ -11,8 +11,8 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useDebounce } from 'use-debounce'
-import { IoSearch, IoClose, IoFunnel, IoCalendarOutline } from 'react-icons/io5'
-import { SEVERITY_LEVELS, DOCUMENT_TYPES } from '@/app/lib/blacklist/types'
+import { IoSearch, IoClose, IoFunnel } from 'react-icons/io5'
+import { SEVERITY_LEVELS } from '@/app/lib/blacklist/types'
 
 interface SearchBarProps {
   totalResults?: number

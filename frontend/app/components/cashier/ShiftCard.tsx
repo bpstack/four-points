@@ -4,7 +4,13 @@
 import { useState } from 'react'
 import { FiDollarSign, FiUsers, FiEdit2, FiSave, FiX, FiCheckCircle } from 'react-icons/fi'
 import { useShiftDetails, useUpdateShift, useDailyDetails } from '@/app/lib/cashier/queries'
-import type { ShiftType, CashierShiftUser, CashierVoucher, CashierDenomination, CashierPayment } from '@/app/lib/cashier/types'
+import type {
+  ShiftType,
+  CashierShiftUser,
+  CashierVoucher,
+  CashierDenomination,
+  CashierPayment,
+} from '@/app/lib/cashier/types'
 import { toast } from 'react-hot-toast'
 import DenominationForm from './DenominationForm'
 import PaymentForm from './PaymentForm'
@@ -337,7 +343,7 @@ export default function ShiftCard({ shiftId, shiftType }: ShiftCardProps) {
           ) : (
             <div className="text-center py-8 text-gray-400 dark:text-gray-500 text-sm">
               <p>Sin conteo registrado</p>
-              <p className="text-xs mt-1">Haz clic en "Editar" para agregar</p>
+              <p className="text-xs mt-1">Haz clic en &quot;Editar&quot; para agregar</p>
             </div>
           )}
         </div>
@@ -412,7 +418,7 @@ export default function ShiftCard({ shiftId, shiftType }: ShiftCardProps) {
           ) : (
             <div className="text-center py-8 text-gray-400 dark:text-gray-500 text-sm">
               <p>Sin pagos registrados</p>
-              <p className="text-xs mt-1">Haz clic en "Editar" para agregar</p>
+              <p className="text-xs mt-1">Haz clic en &quot;Editar&quot; para agregar</p>
             </div>
           )}
         </div>

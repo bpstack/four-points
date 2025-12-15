@@ -55,12 +55,18 @@ interface ConciliationFormProps {
 
 function parseRooms(roomString: string): string[] {
   if (!roomString.trim()) return []
-  return roomString.split(',').map((r) => r.trim()).filter((r) => r.length > 0)
+  return roomString
+    .split(',')
+    .map((r) => r.trim())
+    .filter((r) => r.length > 0)
 }
 
 function parseNotes(noteString: string): string[] {
   if (!noteString.trim()) return []
-  return noteString.split(',').map((n) => n.trim()).filter((n) => n.length > 0)
+  return noteString
+    .split(',')
+    .map((n) => n.trim())
+    .filter((n) => n.length > 0)
 }
 
 export default function ConciliationForm({
@@ -70,7 +76,7 @@ export default function ConciliationForm({
   onUpdate,
 }: ConciliationFormProps) {
   const { user } = useAuth()
-  
+
   const [receptionForm, setReceptionForm] = useState<Record<ReceptionReason, EntryForm>>(
     {} as Record<ReceptionReason, EntryForm>
   )
@@ -119,23 +125,27 @@ export default function ConciliationForm({
           if (Array.isArray(parsedNotes)) {
             setNotes(parsedNotes)
           } else {
-            setNotes([{
-              id: Date.now().toString(),
-              text: conciliation.notes,
-              author: 'Sistema',
-              timestamp: new Date().toISOString(),
-              author_id: 'system',
-            }])
+            setNotes([
+              {
+                id: Date.now().toString(),
+                text: conciliation.notes,
+                author: 'Sistema',
+                timestamp: new Date().toISOString(),
+                author_id: 'system',
+              },
+            ])
           }
         } catch {
           if (conciliation.notes.trim()) {
-            setNotes([{
-              id: Date.now().toString(),
-              text: conciliation.notes,
-              author: 'Sistema',
-              timestamp: new Date().toISOString(),
-              author_id: 'system',
-            }])
+            setNotes([
+              {
+                id: Date.now().toString(),
+                text: conciliation.notes,
+                author: 'Sistema',
+                timestamp: new Date().toISOString(),
+                author_id: 'system',
+              },
+            ])
           } else {
             setNotes([])
           }
@@ -173,14 +183,22 @@ export default function ConciliationForm({
   const totals = calculateTotals()
 
   // Actualizar valores
-  const updateReceptionValue = (reason: ReceptionReason, field: keyof EntryForm, value: string | number) => {
+  const updateReceptionValue = (
+    reason: ReceptionReason,
+    field: keyof EntryForm,
+    value: string | number
+  ) => {
     setReceptionForm((prev) => ({
       ...prev,
       [reason]: { ...prev[reason], [field]: value },
     }))
   }
 
-  const updateHousekeepingValue = (reason: HousekeepingReason, field: keyof EntryForm, value: string | number) => {
+  const updateHousekeepingValue = (
+    reason: HousekeepingReason,
+    field: keyof EntryForm,
+    value: string | number
+  ) => {
     setHousekeepingForm((prev) => ({
       ...prev,
       [reason]: { ...prev[reason], [field]: value },
@@ -188,7 +206,11 @@ export default function ConciliationForm({
   }
 
   // Room popover handlers
-  const handleRoomClick = (type: 'reception' | 'housekeeping', reason: string, roomString: string) => {
+  const handleRoomClick = (
+    type: 'reception' | 'housekeeping',
+    reason: string,
+    roomString: string
+  ) => {
     setRoomPopover({ type, reason, rooms: parseRooms(roomString) })
   }
 
@@ -226,7 +248,11 @@ export default function ConciliationForm({
   }
 
   // Note popover handlers
-  const handleNoteClick = (type: 'reception' | 'housekeeping', reason: string, noteString: string) => {
+  const handleNoteClick = (
+    type: 'reception' | 'housekeeping',
+    reason: string,
+    noteString: string
+  ) => {
     setNotePopover({ type, reason, notes: parseNotes(noteString) })
   }
 
@@ -440,8 +466,12 @@ export default function ConciliationForm({
             config={HOUSEKEEPING_CONFIG}
             form={housekeepingForm}
             onUpdateValue={updateHousekeepingValue}
-            onRoomClick={(reason, roomString) => handleRoomClick('housekeeping', reason, roomString)}
-            onNoteClick={(reason, noteString) => handleNoteClick('housekeeping', reason, noteString)}
+            onRoomClick={(reason, roomString) =>
+              handleRoomClick('housekeeping', reason, roomString)
+            }
+            onNoteClick={(reason, noteString) =>
+              handleNoteClick('housekeeping', reason, noteString)
+            }
             isReadOnly={isReadOnly}
             total={totals.totalHousekeeping}
             colorScheme="purple"

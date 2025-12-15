@@ -722,7 +722,7 @@ Si tu backend usa las tablas antiguas, necesitarás actualizar:
 ```javascript
 const [sessions] = await db.execute(
   'SELECT * FROM parking_sessions WHERE status = ?',
-  ['active']
+  ['active'],
 )
 ```
 
@@ -731,7 +731,7 @@ const [sessions] = await db.execute(
 ```javascript
 const [bookings] = await db.execute(
   'SELECT * FROM parking_bookings WHERE status = ?',
-  ['checked_in']
+  ['checked_in'],
 )
 ```
 
@@ -770,7 +770,7 @@ await db.execute('INSERT INTO parking_bookings (...) VALUES (...)')
 // Tabla separada parking_payments
 await db.execute(
   'INSERT INTO parking_payments (session_id, amount, method) VALUES (?, ?, ?)',
-  [sessionId, amount, method]
+  [sessionId, amount, method],
 )
 ```
 
@@ -780,7 +780,7 @@ await db.execute(
 // Campos integrados en booking
 await db.execute(
   'UPDATE parking_bookings SET payment_amount = ?, payment_method = ?, payment_date = NOW() WHERE id = ?',
-  [amount, method, bookingId]
+  [amount, method, bookingId],
 )
 ```
 

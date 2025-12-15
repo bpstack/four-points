@@ -51,7 +51,6 @@ export function GroupDetailClient({ initialGroup }: GroupDetailClientProps) {
     setHighlight,
     refreshGroup,
     refreshStatus, // ← Usar esto para refrescar después de editar
-    isLoadingGroup,
   } = useGroupStore()
 
   // Inicializar grupo en el store

@@ -299,7 +299,9 @@ export const conciliationApi = {
     year: number,
     month: number
   ): Promise<{ can_close: boolean; errors: string[] }> {
-    return apiClient.get(`${API_BASE}/api/conciliations/monthly-summary/${year}/${month}/validation`)
+    return apiClient.get(
+      `${API_BASE}/api/conciliations/monthly-summary/${year}/${month}/validation`
+    )
   },
 
   async getMissingDays(year: number, month: number): Promise<string[]> {
@@ -313,8 +315,11 @@ export const conciliationApi = {
     month: number,
     status: ConciliationStatus
   ): Promise<{ success: boolean }> {
-    return apiClient.patch(`${API_BASE}/api/conciliations/monthly-summary/${year}/${month}/status`, {
-      status,
-    })
+    return apiClient.patch(
+      `${API_BASE}/api/conciliations/monthly-summary/${year}/${month}/status`,
+      {
+        status,
+      }
+    )
   },
 }

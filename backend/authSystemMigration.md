@@ -282,9 +282,7 @@ app.use(session(sessionConfig))
 // Debugging middleware (opcional, quitar en producción)
 app.use((req, res, next) => {
   if (req.session && req.session.user) {
-    console.log(
-      `[Session] Usuario: ${req.session.user.username}, Session ID: ${req.sessionID}`
-    )
+    console.log(`[Session] Usuario: ${req.session.user.username}, Session ID: ${req.sessionID}`)
   }
   next()
 })
@@ -349,10 +347,7 @@ DESC sessions;
 ```javascript
 // controllers/auth-controllers-sessions.js
 import { UserRepository } from '../../repositories/auth/user-repository.js'
-import {
-  validateUser,
-  getValidationErrors,
-} from '../../validations/auth/user-validation.js'
+import { validateUser, getValidationErrors } from '../../validations/auth/user-validation.js'
 
 /**
  * ✅ LOGIN CON SESSIONS
@@ -389,9 +384,7 @@ export const login = async (req, res) => {
     // Eliminar contraseña de la respuesta
     const { password: _, ...userWithoutPassword } = user
 
-    console.log(
-      `[Login] Usuario ${user.username} autenticado. Session ID: ${req.sessionID}`
-    )
+    console.log(`[Login] Usuario ${user.username} autenticado. Session ID: ${req.sessionID}`)
 
     res.status(200).json({
       success: true,
@@ -429,9 +422,7 @@ export const logout = (req, res) => {
       sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
     })
 
-    console.log(
-      `[Logout] Usuario ${username} cerró sesión. Session ID: ${sessionId}`
-    )
+    console.log(`[Logout] Usuario ${username} cerró sesión. Session ID: ${sessionId}`)
 
     res.status(200).json({
       success: true,
@@ -520,21 +511,17 @@ export const logoutAll = async (req, res) => {
     const username = req.session.user.username
 
     // Importar el pool de MySQL
-    import('../../repositories/auth/user-repository.js').then(
-      async ({ pool }) => {
-        // Eliminar todas las sesiones de este usuario
-        await pool.query(`DELETE FROM sessions WHERE data LIKE ?`, [
-          `%"id":"${userId}"%`,
-        ])
+    import('../../repositories/auth/user-repository.js').then(async ({ pool }) => {
+      // Eliminar todas las sesiones de este usuario
+      await pool.query(`DELETE FROM sessions WHERE data LIKE ?`, [`%"id":"${userId}"%`])
 
-        console.log(`[LogoutAll] Todas las sesiones de ${username} eliminadas`)
+      console.log(`[LogoutAll] Todas las sesiones de ${username} eliminadas`)
 
-        res.json({
-          success: true,
-          message: 'Todas las sesiones cerradas en todos los dispositivos',
-        })
-      }
-    )
+      res.json({
+        success: true,
+        message: 'Todas las sesiones cerradas en todos los dispositivos',
+      })
+    })
   } catch (error) {
     console.error('[LogoutAll] Error:', error)
     res.status(500).json({ error: 'Error al cerrar sesiones' })
@@ -607,18 +594,12 @@ export function checkInactivity(maxInactiveMinutes = 30) {
       return next()
     }
 
-    const lastActivity = new Date(
-      req.session.lastActivity || req.session.loginAt
-    )
+    const lastActivity = new Date(req.session.lastActivity || req.session.loginAt)
     const now = new Date()
     const minutesInactive = (now - lastActivity) / 1000 / 60
 
     if (minutesInactive > maxInactiveMinutes) {
-      console.log(
-        `[Auth] Sesión inactiva (${minutesInactive.toFixed(
-          1
-        )} min). Cerrando...`
-      )
+      console.log(`[Auth] Sesión inactiva (${minutesInactive.toFixed(1)} min). Cerrando...`)
 
       req.session.destroy((err) => {
         if (err) console.error('[Auth] Error al destruir sesión inactiva:', err)
@@ -873,14 +854,7 @@ mv app/lib/auth/api.ts app/lib/auth/api-JWT-BACKUP.ts
 // app/lib/login/useAuth.tsx
 'use client'
 
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-  useCallback,
-  ReactNode,
-} from 'react'
+import { createContext, useContext, useEffect, useState, useCallback, ReactNode } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { authLogin } from './authLogin'
 import type { User } from '@/app/lib/logbooks/types'
@@ -1070,10 +1044,7 @@ export function middleware(request: NextRequest) {
   }
 
   // 🚫 EVITAR QUE USUARIOS AUTENTICADOS VEAN LOGIN/REGISTER
-  if (
-    authRoutes.some((route) => pathname.startsWith(route)) &&
-    isAuthenticated
-  ) {
+  if (authRoutes.some((route) => pathname.startsWith(route)) && isAuthenticated) {
     return NextResponse.redirect(new URL('/dashboard', request.url))
   }
 
@@ -1907,10 +1878,9 @@ export const killSession = async (req, res) => {
     const { sessionId } = req.params
 
     // Obtener info de la sesión antes de eliminarla (para logs)
-    const [sessions] = await pool.query(
-      'SELECT data FROM sessions WHERE session_id = ?',
-      [sessionId]
-    )
+    const [sessions] = await pool.query('SELECT data FROM sessions WHERE session_id = ?', [
+      sessionId,
+    ])
 
     if (sessions.length === 0) {
       return res.status(404).json({ error: 'Sesión no encontrada' })
@@ -1926,12 +1896,8 @@ export const killSession = async (req, res) => {
     // Eliminar la sesión
     await pool.query('DELETE FROM sessions WHERE session_id = ?', [sessionId])
 
-    console.log(
-      `[Sessions] Sesión ${sessionId} cerrada por ${req.user.username}`
-    )
-    console.log(
-      `[Sessions] Usuario afectado: ${userData.user?.username || 'Unknown'}`
-    )
+    console.log(`[Sessions] Sesión ${sessionId} cerrada por ${req.user.username}`)
+    console.log(`[Sessions] Usuario afectado: ${userData.user?.username || 'Unknown'}`)
 
     res.json({
       success: true,
@@ -1967,9 +1933,7 @@ export const killUserSessions = async (req, res) => {
     }
 
     // Eliminar todas las sesiones del usuario
-    await pool.query(`DELETE FROM sessions WHERE data LIKE ?`, [
-      `%"id":"${userId}"%`,
-    ])
+    await pool.query(`DELETE FROM sessions WHERE data LIKE ?`, [`%"id":"${userId}"%`])
 
     console.log(
       `[Sessions] ${sessionCount} sesiones de usuario ${userId} cerradas por ${req.user.username}`
@@ -1991,13 +1955,9 @@ export const killUserSessions = async (req, res) => {
  */
 export const cleanExpiredSessions = async (req, res) => {
   try {
-    const [result] = await pool.query(
-      'DELETE FROM sessions WHERE expires < UNIX_TIMESTAMP()'
-    )
+    const [result] = await pool.query('DELETE FROM sessions WHERE expires < UNIX_TIMESTAMP()')
 
-    console.log(
-      `[Sessions] ${result.affectedRows} sesiones expiradas limpiadas`
-    )
+    console.log(`[Sessions] ${result.affectedRows} sesiones expiradas limpiadas`)
 
     res.json({
       success: true,
@@ -2078,47 +2038,17 @@ import { isAdmin } from '../middleware/roleCheck.js'
 const router = Router()
 
 // ✅ TODAS las rutas requieren autenticación + rol admin
-router.get(
-  '/',
-  authenticateSession,
-  isAdmin,
-  sessionController.getAllActiveSessions
-)
+router.get('/', authenticateSession, isAdmin, sessionController.getAllActiveSessions)
 
-router.get(
-  '/stats',
-  authenticateSession,
-  isAdmin,
-  sessionController.getSessionStats
-)
+router.get('/stats', authenticateSession, isAdmin, sessionController.getSessionStats)
 
-router.get(
-  '/user/:userId',
-  authenticateSession,
-  isAdmin,
-  sessionController.getUserSessions
-)
+router.get('/user/:userId', authenticateSession, isAdmin, sessionController.getUserSessions)
 
-router.delete(
-  '/:sessionId',
-  authenticateSession,
-  isAdmin,
-  sessionController.killSession
-)
+router.delete('/:sessionId', authenticateSession, isAdmin, sessionController.killSession)
 
-router.delete(
-  '/user/:userId/all',
-  authenticateSession,
-  isAdmin,
-  sessionController.killUserSessions
-)
+router.delete('/user/:userId/all', authenticateSession, isAdmin, sessionController.killUserSessions)
 
-router.post(
-  '/cleanup',
-  authenticateSession,
-  isAdmin,
-  sessionController.cleanExpiredSessions
-)
+router.post('/cleanup', authenticateSession, isAdmin, sessionController.cleanExpiredSessions)
 
 export default router
 ```
@@ -2208,13 +2138,10 @@ export default function SessionsPage() {
     if (!confirm('¿Cerrar esta sesión?')) return
 
     try {
-      const res = await fetch(
-        `http://localhost:4000/api/sessions/${sessionId}`,
-        {
-          method: 'DELETE',
-          credentials: 'include',
-        }
-      )
+      const res = await fetch(`http://localhost:4000/api/sessions/${sessionId}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      })
 
       if (!res.ok) throw new Error('Error al cerrar sesión')
 
@@ -2230,13 +2157,10 @@ export default function SessionsPage() {
     if (!confirm(`¿Cerrar TODAS las sesiones de ${username}?`)) return
 
     try {
-      const res = await fetch(
-        `http://localhost:4000/api/sessions/user/${userId}/all`,
-        {
-          method: 'DELETE',
-          credentials: 'include',
-        }
-      )
+      const res = await fetch(`http://localhost:4000/api/sessions/user/${userId}/all`, {
+        method: 'DELETE',
+        credentials: 'include',
+      })
 
       if (!res.ok) throw new Error('Error al cerrar sesiones')
 
@@ -2321,32 +2245,20 @@ export default function SessionsPage() {
       {stats && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
           <div className="bg-blue-100 p-6 rounded-lg">
-            <h3 className="text-lg font-semibold text-blue-800">
-              Sesiones Activas
-            </h3>
-            <p className="text-3xl font-bold text-blue-900">
-              {stats.totalActiveSessions}
-            </p>
+            <h3 className="text-lg font-semibold text-blue-800">Sesiones Activas</h3>
+            <p className="text-3xl font-bold text-blue-900">{stats.totalActiveSessions}</p>
           </div>
 
           <div className="bg-green-100 p-6 rounded-lg">
-            <h3 className="text-lg font-semibold text-green-800">
-              Usuarios Conectados
-            </h3>
-            <p className="text-3xl font-bold text-green-900">
-              {stats.byUser.length}
-            </p>
+            <h3 className="text-lg font-semibold text-green-800">Usuarios Conectados</h3>
+            <p className="text-3xl font-bold text-green-900">{stats.byUser.length}</p>
           </div>
 
           <div className="bg-purple-100 p-6 rounded-lg">
-            <h3 className="text-lg font-semibold text-purple-800">
-              Admins / Recepcionistas
-            </h3>
+            <h3 className="text-lg font-semibold text-purple-800">Admins / Recepcionistas</h3>
             <p className="text-3xl font-bold text-purple-900">
-              {stats.byRole.find((r) => r.role === 'admin')?.sessionCount || 0}{' '}
-              /{' '}
-              {stats.byRole.find((r) => r.role === 'recepcionista')
-                ?.sessionCount || 0}
+              {stats.byRole.find((r) => r.role === 'admin')?.sessionCount || 0} /{' '}
+              {stats.byRole.find((r) => r.role === 'recepcionista')?.sessionCount || 0}
             </p>
           </div>
         </div>
@@ -2401,9 +2313,7 @@ export default function SessionsPage() {
               <tr key={session.sessionId} className="hover:bg-gray-50">
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center">
-                    <div className="text-sm font-medium text-gray-900">
-                      {session.username}
-                    </div>
+                    <div className="text-sm font-medium text-gray-900">{session.username}</div>
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
@@ -2428,17 +2338,11 @@ export default function SessionsPage() {
                   {session.ipAddress}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {session.loginAt
-                    ? new Date(session.loginAt).toLocaleTimeString('es-ES')
-                    : '-'}
+                  {session.loginAt ? new Date(session.loginAt).toLocaleTimeString('es-ES') : '-'}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                   <span
-                    className={
-                      session.minutesUntilExpiry < 30
-                        ? 'text-red-600 font-semibold'
-                        : ''
-                    }
+                    className={session.minutesUntilExpiry < 30 ? 'text-red-600 font-semibold' : ''}
                   >
                     {session.minutesUntilExpiry} min
                   </span>
@@ -2451,9 +2355,7 @@ export default function SessionsPage() {
                     ❌ Cerrar
                   </button>
                   <button
-                    onClick={() =>
-                      killUserSessions(session.userId, session.username)
-                    }
+                    onClick={() => killUserSessions(session.userId, session.username)}
                     className="text-orange-600 hover:text-orange-900"
                   >
                     🗑️ Cerrar Todas
@@ -2466,9 +2368,7 @@ export default function SessionsPage() {
       </div>
 
       {sessions.length === 0 && (
-        <div className="text-center py-8 text-gray-500">
-          No hay sesiones activas
-        </div>
+        <div className="text-center py-8 text-gray-500">No hay sesiones activas</div>
       )}
     </div>
   )

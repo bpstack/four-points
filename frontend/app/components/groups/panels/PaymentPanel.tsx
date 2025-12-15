@@ -80,7 +80,6 @@ export function PaymentPanel({
   })
 
   const percentage = watch('percentage')
-  const amount = watch('amount')
   const due_date = watch('due_date')
 
   // Resetear y cargar datos cuando cambia el payment o isOpen

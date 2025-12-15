@@ -111,7 +111,14 @@ async function fetchWithRefresh(url: string, options: FetchOptions = {}): Promis
   const REFRESH_DISABLED = true
 
   // Auto-refresh solo en cliente
-  if (!REFRESH_DISABLED && isClient && response.status === 401 && !skipRefresh && requiresAuth && hasRefreshToken()) {
+  if (
+    !REFRESH_DISABLED &&
+    isClient &&
+    response.status === 401 &&
+    !skipRefresh &&
+    requiresAuth &&
+    hasRefreshToken()
+  ) {
     console.log('[apiClient] 🔄 Token expirado, intentando refresh...')
 
     // Si ya hay refresh en curso, encolar

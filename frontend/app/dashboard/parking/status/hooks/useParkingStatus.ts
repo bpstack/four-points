@@ -126,7 +126,8 @@ export function useParkingStatus(selectedDate: string) {
       setSpots(spotsWithStatus)
     } catch (error) {
       console.error('Error loading parking data:', error)
-      const message = error instanceof Error ? error.message : 'Error al cargar los datos del parking'
+      const message =
+        error instanceof Error ? error.message : 'Error al cargar los datos del parking'
       setError(message)
       toast.error('Error al cargar el estado del parking')
     } finally {

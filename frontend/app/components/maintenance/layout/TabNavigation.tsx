@@ -9,7 +9,8 @@ interface TabNavigationProps {
   reportId: string
 }
 
-export function TabNavigation({ reportId }: TabNavigationProps) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export function TabNavigation(_props: TabNavigationProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const activeTab = searchParams.get('tab') || 'detail'

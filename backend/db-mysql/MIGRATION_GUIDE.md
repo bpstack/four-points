@@ -7,36 +7,43 @@ Esta guía te permite reconstruir completamente la base de datos en cualquier mo
 Ejecuta los scripts **en este orden exacto**:
 
 ### 1. Base de datos
+
 ```bash
 mysql -u dz -p < 01_create_database.sql
 ```
 
 ### 2. Tablas core (roles, users, departments)
+
 ```bash
 mysql -u dz -p < 02_core_tables.sql
 ```
 
 ### 3. Sistema de logbook
+
 ```bash
 mysql -u dz -p < 03_logbook_tables.sql
 ```
 
 ### 4. Tablas de parking
+
 ```bash
 mysql -u dz -p < 04_parking_tables.sql
 ```
 
 ### 5. Funciones y Triggers
+
 ```bash
 mysql -u dz -p < 05_parking_functions_triggers.sql
 ```
 
 ### 6. Procedimientos almacenados
+
 ```bash
 mysql -u dz -p < 06_parking_procedures.sql
 ```
 
 ### 7. Datos iniciales
+
 ```bash
 mysql -u dz -p < 07_parking_initial_data.sql
 ```
@@ -66,24 +73,24 @@ SELECT COUNT(*) AS total_disponibilidad FROM parking_availability;
 -- Debe devolver: ~7300 (20 plazas × 365 días)
 
 -- Verificar funciones
-SELECT ROUTINE_NAME 
-FROM information_schema.ROUTINES 
-WHERE ROUTINE_SCHEMA = 'hotel_db' 
+SELECT ROUTINE_NAME
+FROM information_schema.ROUTINES
+WHERE ROUTINE_SCHEMA = 'hotel_db'
   AND ROUTINE_TYPE = 'FUNCTION';
 -- Debe mostrar: check_availability, get_total_availability
 
 -- Verificar procedimientos
-SELECT ROUTINE_NAME 
-FROM information_schema.ROUTINES 
-WHERE ROUTINE_SCHEMA = 'hotel_db' 
+SELECT ROUTINE_NAME
+FROM information_schema.ROUTINES
+WHERE ROUTINE_SCHEMA = 'hotel_db'
   AND ROUTINE_TYPE = 'PROCEDURE';
--- Debe mostrar: generate_availability, get_available_spots, 
---                get_pending_checkins, sync_parking_availability, 
+-- Debe mostrar: generate_availability, get_available_spots,
+--                get_pending_checkins, sync_parking_availability,
 --                daily_parking_maintenance
 
 -- Verificar triggers
-SELECT TRIGGER_NAME 
-FROM information_schema.TRIGGERS 
+SELECT TRIGGER_NAME
+FROM information_schema.TRIGGERS
 WHERE TRIGGER_SCHEMA = 'hotel_db';
 -- Debe mostrar: 5 triggers (booking_code, availability updates, validation)
 ```
@@ -115,6 +122,7 @@ mysql -u dz -p < 07_parking_initial_data.sql
 ### Sincronización diaria automática
 
 Añade a cron (Linux/Mac):
+
 ```bash
 crontab -e
 
@@ -123,6 +131,7 @@ crontab -e
 ```
 
 O crea un evento en MySQL:
+
 ```sql
 USE hotel_db;
 
@@ -138,6 +147,7 @@ DO
 ### Sincronización manual
 
 Si necesitas sincronizar manualmente:
+
 ```sql
 CALL sync_parking_availability();
 ```
@@ -162,16 +172,19 @@ CALL sync_parking_availability();
 ## 🎯 CARACTERÍSTICAS DEL SISTEMA
 
 ### Generación automática de booking_code
+
 - Formato: `PK-YYYYMMDD-0001`
 - Se genera automáticamente al insertar una reserva
 - Único por día
 
 ### Control de disponibilidad
+
 - Los triggers mantienen sincronizada la tabla `parking_availability`
 - Al crear/actualizar reservas, se actualizan las fechas bloqueadas
 - Al cancelar/completar, se liberan las fechas
 
 ### Integridad referencial flexible
+
 - `spot_id`: RESTRICT (no se puede borrar plaza con reservas)
 - `vehicle_id`, `operator_id`, `created_by`, `updated_by`: SET NULL (preserva historial)
 
@@ -180,18 +193,22 @@ CALL sync_parking_availability();
 ## 🆘 TROUBLESHOOTING
 
 ### Error: "Foreign key constraint fails"
+
 - Asegúrate de ejecutar los scripts en orden
 - Verifica que la tabla `users` existe antes de crear `parking_bookings`
 
 ### Error: "Trigger already exists"
+
 - Los scripts incluyen `DROP TRIGGER IF EXISTS`
 - Si persiste, ejecuta manualmente: `DROP TRIGGER nombre_trigger;`
 
 ### Error: "Function does not exist"
+
 - Verifica que ejecutaste `05_parking_functions_triggers.sql`
 - Si falla, ejecuta manualmente cada función
 
 ### Disponibilidad no se actualiza
+
 ```sql
 -- Sincronizar manualmente
 CALL sync_parking_availability();

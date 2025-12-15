@@ -57,9 +57,7 @@ export default function NotificationItem({
             </h3>
           </div>
           {notification.message && (
-            <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">
-              {notification.message}
-            </p>
+            <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">{notification.message}</p>
           )}
           <div className="flex items-center gap-2 text-xs text-gray-500">
             {notification.group_name && (

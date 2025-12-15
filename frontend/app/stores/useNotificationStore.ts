@@ -4,7 +4,12 @@ import { create } from 'zustand'
 import type { Notification } from '@/app/lib/notifications/types'
 
 // Re-export types for convenience
-export type { Notification, NotificationPriority, NotificationModule, NotificationRelatedTo } from '@/app/lib/notifications/types'
+export type {
+  Notification,
+  NotificationPriority,
+  NotificationModule,
+  NotificationRelatedTo,
+} from '@/app/lib/notifications/types'
 
 interface NotificationStore {
   notifications: Notification[]

@@ -24,7 +24,7 @@ export default function TimePicker({
   // Genera intervalos de 30 minutos
   const times: string[] = []
   for (let h = 0; h < 24; h++) {
-    for (let m of [0, 30]) {
+    for (const m of [0, 30]) {
       const hh = String(h).padStart(2, '0')
       const mm = String(m).padStart(2, '0')
       times.push(`${hh}:${mm}`)

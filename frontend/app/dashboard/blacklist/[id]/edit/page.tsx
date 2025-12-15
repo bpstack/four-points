@@ -7,7 +7,6 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { IoChevronBack } from 'react-icons/io5'
-import { Card } from '@/app/components/blacklist/ui/Card'
 import { BlacklistForm } from '@/app/components/blacklist/mains/BlacklistForm'
 import { getBlacklistById } from '../../actions'
 
@@ -26,7 +25,7 @@ export default async function EditBlacklistPage({ params }: PageProps) {
 
   try {
     data = await getBlacklistById(id)
-  } catch (error) {
+  } catch {
     notFound()
   }
 

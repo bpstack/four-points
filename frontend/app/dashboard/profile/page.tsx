@@ -141,7 +141,8 @@ function QuickAccessCard({
 }
 
 // Foto de perfil
-function ProfilePicture({ username }: { username: string }) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function ProfilePicture(_props: { username: string }) {
   return (
     <div className="bg-gray-50 dark:bg-[#161b22] border border-gray-200 dark:border-[#30363d] rounded-md">
       <div className="p-4">

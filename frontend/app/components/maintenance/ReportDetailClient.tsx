@@ -25,8 +25,7 @@ export function ReportDetailClient({ initialReport }: ReportDetailClientProps) {
   const searchParams = useSearchParams()
   const activeTab = searchParams.get('tab') || 'detail'
 
-  const { currentReport, setCurrentReport, setActiveTab, isLoadingReport, refreshReport } =
-    useMaintenanceStore()
+  const { currentReport, setCurrentReport, setActiveTab, refreshReport } = useMaintenanceStore()
 
   // Estados para editar y eliminar
   const [isEditPanelOpen, setIsEditPanelOpen] = useState(false)

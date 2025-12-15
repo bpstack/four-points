@@ -47,7 +47,7 @@ interface AuditItemProps {
 }
 
 function AuditItem({ entry, isLast }: AuditItemProps) {
-  const { icon, iconColor, bgColor, action, actionText } = getAuditConfig(entry.action)
+  const { icon, bgColor, actionText } = getAuditConfig(entry.action)
 
   return (
     <div className="relative pb-6">
@@ -123,8 +123,8 @@ function AuditItem({ entry, isLast }: AuditItemProps) {
 
 interface FieldChangeProps {
   field: string
-  oldValue: any
-  newValue: any
+  oldValue: unknown
+  newValue: unknown
 }
 
 function FieldChange({ field, oldValue, newValue }: FieldChangeProps) {
@@ -220,7 +220,7 @@ function getFieldLabel(field: string): string {
   return labels[field] || field
 }
 
-function formatValue(value: any): string {
+function formatValue(value: unknown): string {
   if (value === null || value === undefined) {
     return '(vacío)'
   }
@@ -265,7 +265,8 @@ function formatValue(value: any): string {
     OTHER: 'Otro',
   }
 
-  return translations[value] || String(value)
+  const stringValue = String(value)
+  return translations[stringValue] || stringValue
 }
 
 // ✅ Features del AuditTrail:

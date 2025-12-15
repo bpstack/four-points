@@ -4,7 +4,6 @@
  * Página para crear nuevo registro en Blacklist
  */
 
-import { Card } from '@/app/components/blacklist/ui/Card'
 import { BlacklistForm } from '@/app/components/blacklist/mains/BlacklistForm'
 import Link from 'next/link'
 import { IoChevronBack } from 'react-icons/io5'

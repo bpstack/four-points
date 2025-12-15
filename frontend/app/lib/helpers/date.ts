@@ -117,9 +117,6 @@ export const getCurrentMonthRange = () => {
   const year = madridNow.getFullYear()
   const month = madridNow.getMonth()
 
-  // First day of month
-  const firstDay = new Date(year, month, 1)
-
   // Last day of month (day 0 of next month = last day of current month)
   const lastDay = new Date(year, month + 1, 0)
 

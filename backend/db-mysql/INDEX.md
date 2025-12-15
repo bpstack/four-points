@@ -4,25 +4,25 @@
 
 ### Scripts de Instalación (Orden de ejecución)
 
-| # | Archivo | Descripción | Obligatorio |
-|---|---------|-------------|-------------|
-| 1 | `01_create_database.sql` | Crea la base de datos con UTF-8 | ✅ SÍ |
-| 2 | `02_core_tables.sql` | Crea tablas core (users, roles, departments) | ✅ SÍ |
-| 3 | `03_logbook_tables.sql` | Crea sistema de bitácora | ✅ SÍ |
-| 4 | `04_parking_tables.sql` | Crea tablas del sistema parking | ✅ SÍ |
-| 5 | `05_parking_functions_procedures.sql` | Crea funciones y procedimientos | ✅ SÍ |
-| 6 | `06_parking_triggers.sql` | Crea triggers automáticos | ✅ SÍ |
-| 7 | `07_parking_initial_data.sql` | Inserta plazas, tarifas y disponibilidad | ✅ SÍ |
-| 8 | `08_parking_sample_data.sql` | Inserta datos de ejemplo (vehículos, reservas) | ⚠️ OPCIONAL |
+| #   | Archivo                               | Descripción                                    | Obligatorio |
+| --- | ------------------------------------- | ---------------------------------------------- | ----------- |
+| 1   | `01_create_database.sql`              | Crea la base de datos con UTF-8                | ✅ SÍ       |
+| 2   | `02_core_tables.sql`                  | Crea tablas core (users, roles, departments)   | ✅ SÍ       |
+| 3   | `03_logbook_tables.sql`               | Crea sistema de bitácora                       | ✅ SÍ       |
+| 4   | `04_parking_tables.sql`               | Crea tablas del sistema parking                | ✅ SÍ       |
+| 5   | `05_parking_functions_procedures.sql` | Crea funciones y procedimientos                | ✅ SÍ       |
+| 6   | `06_parking_triggers.sql`             | Crea triggers automáticos                      | ✅ SÍ       |
+| 7   | `07_parking_initial_data.sql`         | Inserta plazas, tarifas y disponibilidad       | ✅ SÍ       |
+| 8   | `08_parking_sample_data.sql`          | Inserta datos de ejemplo (vehículos, reservas) | ⚠️ OPCIONAL |
 
 ### Scripts Auxiliares
 
-| Archivo | Descripción | Cuándo usar |
-|---------|-------------|-------------|
+| Archivo              | Descripción                        | Cuándo usar                     |
+| -------------------- | ---------------------------------- | ------------------------------- |
 | `MASTER_INSTALL.sql` | Ejecuta todos los scripts en orden | Instalación completa automática |
-| `RESET_DATABASE.sql` | Elimina toda la base de datos | Empezar desde cero |
-| `VERIFY_SYSTEM.sql` | Verifica que todo esté correcto | Después de la instalación |
-| `README.md` | Documentación completa | Consulta y referencia |
+| `RESET_DATABASE.sql` | Elimina toda la base de datos      | Empezar desde cero              |
+| `VERIFY_SYSTEM.sql`  | Verifica que todo esté correcto    | Después de la instalación       |
+| `README.md`          | Documentación completa             | Consulta y referencia           |
 
 ---
 
@@ -75,17 +75,20 @@ mysql -u TU_USUARIO -p < VERIFY_SYSTEM.sql
 ## 📊 Estructura de la Base de Datos
 
 ### Tablas Core
+
 - `roles` - Roles de usuario
 - `departments` - Departamentos
 - `users` - Usuarios del sistema
 
 ### Tablas Logbook
+
 - `logbooks` - Entradas de bitácora
 - `logbook_comments` - Comentarios
 - `logbook_reads` - Lecturas
 - `logbook_history` - Historial de cambios
 
 ### Tablas Parking
+
 - `parking_spots` - Plazas físicas (20 plazas: 10 en -2, 10 en -3)
 - `parking_vehicles` - Vehículos registrados
 - `parking_rates` - Tarifas (1-30 días)
@@ -93,16 +96,19 @@ mysql -u TU_USUARIO -p < VERIFY_SYSTEM.sql
 - `parking_availability` - Disponibilidad diaria
 
 ### Funciones
+
 - `check_availability(spot_id, date_from, date_to)` - Verifica disponibilidad
 - `get_total_availability(date)` - Cuenta plazas libres
 
 ### Procedimientos
+
 - `generate_availability()` - Genera disponibilidad 365 días
 - `get_available_spots(date_from, date_to, level_code)` - Lista plazas disponibles
 - `get_pending_checkins(date)` - Check-ins pendientes
 - `sync_parking_availability()` - Sincroniza disponibilidad
 
 ### Triggers
+
 - `trg_generate_booking_code` - Genera código PK-YYYYMMDD-####
 - `trg_update_availability_on_booking` - Bloquea disponibilidad al reservar
 - `trg_free_availability_on_status_change` - Libera al completar/cancelar
@@ -114,17 +120,20 @@ mysql -u TU_USUARIO -p < VERIFY_SYSTEM.sql
 ## ✅ Checklist de Instalación
 
 ### Antes de empezar
+
 - [ ] MySQL/MariaDB instalado y funcionando
 - [ ] Credenciales de acceso disponibles
 - [ ] Todos los archivos .sql descargados
 - [ ] Backup de datos existentes (si aplica)
 
 ### Durante la instalación
+
 - [ ] Ejecutar scripts en orden correcto
 - [ ] Verificar que no hay errores en cada paso
 - [ ] Confirmar que las tablas se crean correctamente
 
 ### Después de la instalación
+
 - [ ] Ejecutar `VERIFY_SYSTEM.sql`
 - [ ] Verificar que todos los componentes están ✅
 - [ ] Crear al menos un usuario en la tabla `users`
@@ -135,19 +144,25 @@ mysql -u TU_USUARIO -p < VERIFY_SYSTEM.sql
 ## 🆘 Resolución de Problemas
 
 ### Error: "Access denied"
+
 **Solución**: Verifica usuario y contraseña de MySQL
 
 ### Error: "Database already exists"
+
 **Solución**: Ejecuta `RESET_DATABASE.sql` primero
 
 ### Error: "Foreign key constraint fails"
+
 **Solución**: Los scripts están en orden incorrecto. Reinicia con `RESET_DATABASE.sql`
 
 ### Error: "Trigger already exists"
+
 **Solución**: Ejecuta `RESET_DATABASE.sql` para limpiar triggers anteriores
 
 ### Disponibilidad desincronizada
+
 **Solución**:
+
 ```sql
 CALL sync_parking_availability();
 ```
@@ -176,7 +191,7 @@ CALL sync_parking_availability();
 
 **Versión**: 1.0  
 **Fecha**: 28 de octubre de 2025  
-**Autor**: Sistema de Gestión Hotel  
+**Autor**: Sistema de Gestión Hotel
 
 ---
 
@@ -184,11 +199,11 @@ CALL sync_parking_availability();
 
 ```sql
 -- Ver plazas disponibles hoy
-SELECT COUNT(*) FROM parking_availability 
+SELECT COUNT(*) FROM parking_availability
 WHERE date = CURDATE() AND is_available = TRUE;
 
 -- Ver reservas activas
-SELECT * FROM parking_bookings 
+SELECT * FROM parking_bookings
 WHERE status IN ('reserved', 'checked_in');
 
 -- Verificar sistema

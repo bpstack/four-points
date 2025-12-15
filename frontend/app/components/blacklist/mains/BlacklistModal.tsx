@@ -22,7 +22,6 @@ import type { BlacklistEntry, AuditEntry } from '@/app/lib/blacklist/types'
 import { DOCUMENT_TYPES, SEVERITY_LEVELS } from '@/app/lib/blacklist/types'
 import { formatDate, formatDateTime, calculateStayDays } from '@/app/lib/blacklist/blacklistUtils'
 import {
-  IoClose,
   IoCreateOutline,
   IoTrashOutline,
   IoRefreshOutline,
@@ -81,9 +80,9 @@ export function BlacklistModal({ isOpen, onClose, entry, auditTrail }: Blacklist
       } else {
         toast.error(result.error || 'Error al eliminar el registro')
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast.dismiss()
-      toast.error(error.message || 'Error al eliminar')
+      toast.error(error instanceof Error ? error.message : 'Error al eliminar')
     } finally {
       setIsDeleting(false)
     }
@@ -112,9 +111,9 @@ export function BlacklistModal({ isOpen, onClose, entry, auditTrail }: Blacklist
       } else {
         toast.error(result.error || 'Error al restaurar el registro')
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast.dismiss()
-      toast.error(error.message || 'Error al restaurar')
+      toast.error(error instanceof Error ? error.message : 'Error al restaurar')
     } finally {
       setIsRestoring(false)
     }

@@ -4,7 +4,12 @@
 import React from 'react'
 import { FiCheckCircle, FiLogOut, FiAlertCircle } from 'react-icons/fi'
 import { MdLocalParking } from 'react-icons/md'
-import type { AvailabilityData, ParkingSpotDisplay, OverdueBooking, ParkingBooking } from '@/app/lib/parking/types'
+import type {
+  AvailabilityData,
+  ParkingSpotDisplay,
+  OverdueBooking,
+  ParkingBooking,
+} from '@/app/lib/parking/types'
 
 interface StatusPanelsProps {
   availabilityData: AvailabilityData | null
