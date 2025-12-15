@@ -135,3 +135,47 @@ export const canViewReports: RoleCheckMiddleware = (req, res, next) => {
     })
   }
 }
+
+/**
+ * Verifica que el usuario pueda acceder al módulo de mantenimiento
+ * Uso: Para rutas de creación/edición/consulta de reportes de mantenimiento
+ * Nota: TODOS los roles pueden acceder a mantenimiento
+ */
+export const canAccessMaintenance: RoleCheckMiddleware = (req, res, next) => {
+  const allowedRoles = ['admin', 'recepcionista', 'group-admin', 'mantenimiento']
+
+  if (!req.user?.role) {
+    res.status(403).json({ error: 'No se pudo verificar el rol del usuario' })
+    return
+  }
+
+  if (allowedRoles.includes(req.user.role.toLowerCase())) {
+    next()
+  } else {
+    res.status(403).json({
+      error: 'Acceso denegado. No tienes permisos para acceder a mantenimiento',
+    })
+  }
+}
+
+/**
+ * Excluye al rol mantenimiento de acceder a módulos generales
+ * Uso: Para rutas de logbook, parking, blacklist, etc.
+ * El rol mantenimiento SOLO puede acceder a /api/maintenance
+ */
+export const excludeMantenimiento: RoleCheckMiddleware = (req, res, next) => {
+  const blockedRoles = ['mantenimiento']
+
+  if (!req.user?.role) {
+    res.status(403).json({ error: 'No se pudo verificar el rol del usuario' })
+    return
+  }
+
+  if (blockedRoles.includes(req.user.role.toLowerCase())) {
+    res.status(403).json({
+      error: 'Acceso denegado. Tu rol solo tiene acceso al módulo de mantenimiento',
+    })
+  } else {
+    next()
+  }
+}

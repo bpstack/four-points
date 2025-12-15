@@ -21,11 +21,16 @@ import type {
 
 const IN_DEV_MODE = process.env.NODE_ENV !== 'production'
 
+// Dominio para cookies en producción (funciona en subdominios)
+const COOKIE_DOMAIN = process.env.COOKIE_DOMAIN || '.four-points.stackbp.es'
+
 const cookieOptions: CookieOptions = {
-  httpOnly: IN_DEV_MODE ? false : true,
-  secure: process.env.NODE_ENV === 'production',
-  sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+  httpOnly: true, // Siempre HttpOnly para seguridad
+  secure: process.env.NODE_ENV === 'production', // HTTPS en producción
+  sameSite: 'lax', // Protección CSRF
   path: '/',
+  // Domain solo en producción (permite compartir entre subdominios)
+  ...(IN_DEV_MODE ? {} : { domain: COOKIE_DOMAIN }),
 }
 
 // ============================================
@@ -69,7 +74,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
 
     res.cookie('refresh_token', refreshToken, {
       ...cookieOptions,
-      maxAge: 8 * 60 * 60 * 1000, // 8 hours
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 días (debe coincidir con tokenService.ts)
     })
 
     // Remove password from response
@@ -81,7 +86,8 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       success: true,
       user: userWithoutPassword,
       token: accessToken,
-      refreshToken: IN_DEV_MODE ? refreshToken : undefined,
+      // Siempre enviar refreshToken - el proxy de Next.js lo necesita para crear cookies HttpOnly
+      refreshToken: refreshToken,
     })
   } catch (error) {
     const err = error as Error
@@ -173,14 +179,15 @@ export const refreshToken = (req: Request, res: Response): void => {
 
     res.cookie('refresh_token', newRefreshToken, {
       ...cookieOptions,
-      maxAge: 8 * 60 * 60 * 1000,
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 días (debe coincidir con tokenService.ts)
     })
 
-    // Return tokens in body as well (for localStorage)
+    // Return tokens in body as well (for localStorage and Next.js proxy)
     res.status(200).json({
       success: true,
       token: newAccessToken,
-      refreshToken: IN_DEV_MODE ? newRefreshToken : undefined,
+      // Siempre enviar refreshToken - el proxy de Next.js lo necesita para crear cookies HttpOnly
+      refreshToken: newRefreshToken,
     })
   } catch {
     res.clearCookie('access_token', cookieOptions)

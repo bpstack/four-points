@@ -6,7 +6,7 @@ import { RowDataPacket } from 'mysql2'
 // ENUMS
 // ============================================
 
-export type UserRole = 'admin' | 'recepcionista' | 'group-admin'
+export type UserRole = 'admin' | 'recepcionista' | 'group-admin' | 'mantenimiento'
 
 // ============================================
 // DATABASE MODELS

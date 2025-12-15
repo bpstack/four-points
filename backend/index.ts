@@ -32,9 +32,27 @@ const app = express()
 app.disable('x-powered-by')
 
 // CORS (antes de todo)
+const allowedOrigins = [
+  'http://localhost:3000',
+  'https://four-points.stackbp.es',
+  process.env.FRONTEND_URL, // URL adicional si es necesario
+].filter(Boolean) as string[]
+
 app.use(
   cors({
-    origin: 'http://localhost:3000',
+    origin: (origin, callback) => {
+      // Permitir requests sin origin (Postman, server-to-server, mobile apps)
+      if (!origin) {
+        callback(null, true)
+        return
+      }
+      if (allowedOrigins.includes(origin)) {
+        callback(null, true)
+      } else {
+        console.warn(`[CORS] Blocked origin: ${origin}`)
+        callback(new Error('Not allowed by CORS'))
+      }
+    },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],

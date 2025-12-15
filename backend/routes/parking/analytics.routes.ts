@@ -7,13 +7,16 @@
 import { Router } from 'express'
 import ParkingAnalyticsController from '../../controllers/parking/analytics.controller.js'
 import { authenticateToken } from '../../middlewares/authenticateToken.js'
+import { excludeMantenimiento } from '../../middlewares/roleCheck.js'
 
 const router = Router()
 
 // ============================================
 // TODAS LAS RUTAS REQUIEREN AUTENTICACIÓN
+// El rol mantenimiento NO tiene acceso a este módulo
 // ============================================
 router.use(authenticateToken)
+router.use(excludeMantenimiento)
 
 // ============================================
 // ENDPOINTS DE ANÁLISIS

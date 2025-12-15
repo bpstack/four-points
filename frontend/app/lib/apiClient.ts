@@ -1,27 +1,30 @@
 // app/lib/apiClient.ts
-// ❌ SIN 'use client' - debe funcionar en cliente Y servidor
 
 /**
- * Cliente API isomórfico con auto-refresh
+ * Cliente API con auto-refresh de JWT
  *
- * ✅ Funciona en:
- * - Client Components (con localStorage)
- * - Server Components (con cookies)
- * - Route Handlers (con cookies)
+ * ARQUITECTURA SIMPLIFICADA (subdominios):
+ * - Frontend: four-points.stackbp.es (Vercel)
+ * - Backend:  api.four-points.stackbp.es (Render)
+ * - Cookies:  domain=.four-points.stackbp.es (compartidas)
  *
- * DESARROLLO: localStorage + fetch directo
- * PRODUCCIÓN: Cookies HTTP-only + proxies Next.js
+ * En desarrollo: localhost + localStorage
+ * En producción: subdominios + HttpOnly cookies
  */
 
 interface FetchOptions extends RequestInit {
   skipRefresh?: boolean
 }
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'
+// URLs según entorno
 const isDev = process.env.NODE_ENV === 'development'
 const isClient = typeof window !== 'undefined'
 
-// Cola para manejar refresh concurrente (solo cliente)
+const API_BASE_URL = isDev
+  ? 'http://localhost:4000'
+  : 'https://api.four-points.stackbp.es'
+
+// Cola para manejar refresh concurrente
 let isRefreshing = false
 let failedQueue: Array<{
   resolve: (value?: unknown) => void
@@ -44,19 +47,19 @@ const processQueue = (error: any = null) => {
 // ========================================
 
 /**
- * Obtiene headers de autenticación según el entorno
+ * Obtiene headers de autenticación
+ * - Desarrollo: Bearer token desde localStorage
+ * - Producción: cookies se envían automáticamente (no necesita header)
  */
 function getAuthHeaders(): Record<string, string> {
-  // En servidor: las cookies se envían automáticamente
   if (!isClient) return {}
 
-  // En desarrollo cliente: usar localStorage
   if (isDev) {
     const token = localStorage.getItem('access_token')
     return token ? { Authorization: `Bearer ${token}` } : {}
   }
 
-  // En producción cliente: cookies manejadas por el navegador
+  // Producción: cookies HttpOnly se envían con credentials: 'include'
   return {}
 }
 
@@ -66,14 +69,13 @@ function getAuthHeaders(): Record<string, string> {
 function hasRefreshToken(): boolean {
   if (!isClient) return false
 
-  // En desarrollo: verificar localStorage
   if (isDev) {
     return !!localStorage.getItem('refresh_token')
   }
 
-  // En producción: verificar cookies
-  const cookies = document.cookie.split(';')
-  return cookies.some((cookie) => cookie.trim().startsWith('refresh_token='))
+  // En producción las cookies HttpOnly no son visibles desde JS
+  // pero el backend las recibirá si existen
+  return true
 }
 
 // ========================================
@@ -90,38 +92,31 @@ async function fetchWithRefresh(url: string, options: FetchOptions = {}): Promis
       ...getAuthHeaders(),
       ...fetchOptions.headers,
     },
-    // En producción: siempre incluir cookies
-    credentials: isDev ? 'omit' : 'include',
+    credentials: 'include', // Siempre enviar cookies
   }
 
   console.log(`[apiClient] ${options.method || 'GET'} ${url}`)
   let response = await fetch(url, finalOptions)
   console.log(`[apiClient] Response: ${response.status}`)
 
-  // Detectar si la ruta requiere autenticación
-  const requiresAuth =
-    !url.includes('/auth/login') &&
-    !url.includes('/auth/logout') &&
-    !url.includes('/auth/refresh') &&
-    !url.includes('/auth/register')
+  // Rutas que no requieren autenticación
+  const isAuthRoute =
+    url.includes('/auth/login') ||
+    url.includes('/auth/logout') ||
+    url.includes('/auth/refresh') ||
+    url.includes('/auth/register')
 
-  // Auto-refresh DESHABILITADO temporalmente - access token dura 8h
-  // TODO: Arreglar lógica de refresh token (causa loops infinitos)
-  // Ver: docs/PRODUCTION_AUTH_SETUP.md
-  const REFRESH_DISABLED = true
-
-  // Auto-refresh solo en cliente
+  // Auto-refresh cuando recibimos 401
   if (
-    !REFRESH_DISABLED &&
     isClient &&
     response.status === 401 &&
     !skipRefresh &&
-    requiresAuth &&
+    !isAuthRoute &&
     hasRefreshToken()
   ) {
     console.log('[apiClient] 🔄 Token expirado, intentando refresh...')
 
-    // Si ya hay refresh en curso, encolar
+    // Si ya hay refresh en curso, encolar este request
     if (isRefreshing) {
       console.log('[apiClient] ⏳ Refresh en curso, encolando...')
       return new Promise((resolve, reject) => {
@@ -133,60 +128,61 @@ async function fetchWithRefresh(url: string, options: FetchOptions = {}): Promis
     }
 
     isRefreshing = true
-    console.log('[apiClient] 🚀 Iniciando refresh...')
 
     try {
-      let refreshResponse: Response
+      const refreshUrl = `${API_BASE_URL}/api/auth/refresh-token`
+      console.log('[apiClient] Enviando refresh token...')
 
+      const refreshOptions: RequestInit = {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+      }
+
+      // En desarrollo, añadir Bearer token
       if (isDev) {
-        // DESARROLLO: Llamar a backend con refresh token de localStorage
         const refreshToken = localStorage.getItem('refresh_token')
         if (!refreshToken) throw new Error('No refresh token')
+        ;(refreshOptions.headers as Record<string, string>)['Authorization'] = `Bearer ${refreshToken}`
+      }
 
-        refreshResponse = await fetch(`${API_BASE_URL}/api/auth/refresh-token`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${refreshToken}`,
-          },
-        })
+      const refreshResponse = await fetch(refreshUrl, refreshOptions)
+      console.log('[apiClient] Refresh response:', refreshResponse.status)
 
-        if (refreshResponse.ok) {
-          const data = await refreshResponse.json()
-          if (data.token) {
-            localStorage.setItem('access_token', data.token)
-          }
-          if (data.refreshToken) {
-            localStorage.setItem('refresh_token', data.refreshToken)
-          }
+      if (!refreshResponse.ok) {
+        throw new Error(`Refresh failed: ${refreshResponse.status}`)
+      }
+
+      const data = await refreshResponse.json()
+
+      // En desarrollo, guardar tokens en localStorage
+      if (isDev && data.token) {
+        localStorage.setItem('access_token', data.token)
+        if (data.refreshToken) {
+          localStorage.setItem('refresh_token', data.refreshToken)
         }
-      } else {
-        // PRODUCCIÓN: Usar proxy Next.js (cookies automáticas)
-        refreshResponse = await fetch('/api/auth/refresh', {
-          method: 'POST',
-          credentials: 'include',
-        })
+      }
+      // En producción, las cookies se actualizan automáticamente por el backend
+
+      console.log('[apiClient] ✅ Token refrescado')
+      isRefreshing = false
+      processQueue()
+
+      // Reintentar request original
+      const retryOptions: RequestInit = {
+        ...fetchOptions,
+        headers: {
+          'Content-Type': 'application/json',
+          ...getAuthHeaders(),
+          ...fetchOptions.headers,
+        },
+        credentials: 'include',
       }
 
-      console.log('[apiClient] Refresh status:', refreshResponse.status)
+      console.log('[apiClient] Reintentando request original...')
+      response = await fetch(url, retryOptions)
+      console.log(`[apiClient] Reintento: ${response.status}`)
 
-      if (refreshResponse.ok) {
-        console.log('[apiClient] ✅ Token refrescado')
-        isRefreshing = false
-        processQueue()
-
-        // Reintentar request original
-        response = await fetch(url, {
-          ...finalOptions,
-          headers: {
-            ...finalOptions.headers,
-            ...getAuthHeaders(), // Headers actualizados
-          },
-        })
-        console.log(`[apiClient] Reintento: ${response.status}`)
-      } else {
-        throw new Error('Refresh failed')
-      }
     } catch (error) {
       console.error('[apiClient] ❌ Error en refresh:', error)
       isRefreshing = false
@@ -199,9 +195,11 @@ async function fetchWithRefresh(url: string, options: FetchOptions = {}): Promis
       }
 
       // Redirigir a login
-      setTimeout(() => {
-        window.location.href = '/login'
-      }, 100)
+      if (isClient) {
+        setTimeout(() => {
+          window.location.href = '/login'
+        }, 100)
+      }
 
       throw error
     }
@@ -209,20 +207,20 @@ async function fetchWithRefresh(url: string, options: FetchOptions = {}): Promis
     isClient &&
     response.status === 401 &&
     !skipRefresh &&
-    requiresAuth &&
-    !hasRefreshToken()
+    !isAuthRoute
   ) {
-    console.log('[apiClient] ❌ 401 sin refresh token, redirigiendo...')
+    console.log('[apiClient] ❌ 401 sin posibilidad de refresh')
 
     if (isDev) {
-      localStorage.clear()
+      localStorage.removeItem('access_token')
+      localStorage.removeItem('refresh_token')
     }
 
     setTimeout(() => {
       window.location.href = '/login'
     }, 100)
 
-    throw new Error('No authentication token')
+    throw new Error('No authentication')
   }
 
   return response
@@ -325,6 +323,50 @@ export const apiClient = {
     }
 
     return { success: true, message: 'Deleted successfully' }
+  },
+
+  /**
+   * POST con FormData (para subir archivos)
+   */
+  postFormData: async (url: string, formData: FormData, options?: FetchOptions) => {
+    const response = await fetch(url, {
+      method: 'POST',
+      body: formData,
+      credentials: 'include',
+      headers: {
+        ...getAuthHeaders(),
+        ...options?.headers,
+      },
+    })
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({
+        error: `HTTP ${response.status}: ${response.statusText}`,
+      }))
+      throw new Error(errorData.error || errorData.message || `Request failed: ${response.status}`)
+    }
+
+    return response.json()
+  },
+
+  /**
+   * GET que retorna Blob (para descargar archivos)
+   */
+  getBlob: async (url: string, options?: FetchOptions) => {
+    const response = await fetch(url, {
+      method: 'GET',
+      credentials: 'include',
+      headers: {
+        ...getAuthHeaders(),
+        ...options?.headers,
+      },
+    })
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+    }
+
+    return response.blob()
   },
 }
 

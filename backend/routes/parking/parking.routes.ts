@@ -5,6 +5,7 @@
 import { Router } from 'express'
 
 import { authenticateToken } from '../../middlewares/authenticateToken.js'
+import { isAdmin, excludeMantenimiento } from '../../middlewares/roleCheck.js'
 import {
   listSpots,
   listAvailableSpots,
@@ -14,30 +15,32 @@ import {
   searchVehicles,
 } from '../../controllers/parking/parking.controller.js'
 
-import { isAdmin } from '../../middlewares/roleCheck.js'
-
 const router = Router()
 
-//
-// Solo una ruta para todo
-router.get('/spots', authenticateToken, listSpots)
+// =========================================================
+// TODAS LAS RUTAS REQUIEREN AUTENTICACIÓN
+// El rol mantenimiento NO tiene acceso a este módulo
+// =========================================================
+router.use(authenticateToken)
+router.use(excludeMantenimiento)
 
-//
-// Solo una ruta para todo
-router.get('/spots/available', authenticateToken, listAvailableSpots)
+// =========================================================
+// RUTAS DE PARKING
+// =========================================================
 
-//
-// Solo una ruta para todo
+router.get('/spots', listSpots)
+
+router.get('/spots/available', listAvailableSpots)
+
 router
   .route('/vehicles')
-  .get(authenticateToken, manageVehicles) // GET /vehicles
-  .post(authenticateToken, manageVehicles) // POST /vehicles
+  .get(manageVehicles) // GET /vehicles
+  .post(manageVehicles) // POST /vehicles
 
-// Añadir ANTES de la ruta /:id
 router.get('/vehicles/search', searchVehicles)
 
-router.put('/vehicles/:id', authenticateToken, updateVehicle) // PUT /vehicles/:id
+router.put('/vehicles/:id', updateVehicle) // PUT /vehicles/:id
 
-router.delete('/vehicles/:id', authenticateToken, isAdmin, deleteVehicle) // DELETE /vehicles/:id
+router.delete('/vehicles/:id', isAdmin, deleteVehicle) // DELETE /vehicles/:id
 
 export default router

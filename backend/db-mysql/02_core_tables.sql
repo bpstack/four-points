@@ -34,10 +34,21 @@ CREATE TABLE users (
 
 SELECT 'Tablas core creadas: roles, departments, users (con role_id)' AS resultado;
 
--- Recordatorio de cambio realizado el 12/11/25
+-- =========================================================
+-- DATOS INICIALES: Roles
+-- Orden basado en la estructura actual de la BD en Aiven:
+--   1 = recepcionista (default para nuevos usuarios)
+--   2 = admin
+--   3 = mantenimiento
+--   6 = group-admin
+-- =========================================================
 
 USE hotel_db;
 
-INSERT INTO roles (name) VALUES ('group-admin');
+INSERT INTO roles (id, name) VALUES 
+  (1, 'recepcionista'),
+  (2, 'admin'),
+  (3, 'mantenimiento'),
+  (6, 'group-admin');
 
 SELECT * FROM roles;

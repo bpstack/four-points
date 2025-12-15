@@ -4,10 +4,10 @@ import jwt from 'jsonwebtoken'
 import { SECRET_JWT_KEY } from '../../config/config.js'
 import type { TokenPayload } from '../../models/auth/index.js'
 
-// ✅ TEMPORALMENTE: Access token de 8h para evitar problemas con refresh
-// TODO: Cuando se arregle el refresh token, volver a '15m'
-const ACCESS_TOKEN_EXPIRY = '8h'
-const REFRESH_TOKEN_EXPIRY = '8h'
+// Access token: 15 minutos
+// Refresh token: 7 días
+const ACCESS_TOKEN_EXPIRY = '15m'
+const REFRESH_TOKEN_EXPIRY = '7d'
 
 interface UserForToken {
   id: string

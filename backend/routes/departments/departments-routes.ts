@@ -10,14 +10,16 @@ import {
 } from '../../controllers/departments/departments-controller.js'
 
 import { authenticateToken } from '../../middlewares/authenticateToken.js'
-import { isAdmin } from '../../middlewares/roleCheck.js'
+import { isAdmin, excludeMantenimiento } from '../../middlewares/roleCheck.js'
 
 const router = Router()
 
 // ========================================
 // TODAS las rutas requieren autenticación
+// El rol mantenimiento NO tiene acceso a este módulo
 // ========================================
 router.use(authenticateToken)
+router.use(excludeMantenimiento)
 
 // ========================================
 // RUTAS

@@ -8,6 +8,7 @@ import { Router } from 'express'
 import multer from 'multer'
 import { BlacklistController } from '../../controllers/blacklist/blacklist-controller.js'
 import { authenticateToken } from '../../middlewares/authenticateToken.js'
+import { excludeMantenimiento } from '../../middlewares/roleCheck.js'
 
 const router = Router()
 
@@ -21,8 +22,10 @@ const upload = multer({
 
 // ========================================
 // Todas las rutas requieren autenticación
+// El rol mantenimiento NO tiene acceso a este módulo
 // ========================================
 router.use(authenticateToken)
+router.use(excludeMantenimiento)
 
 // ========================================
 // RUTAS DE IMÁGENES (deben ir ANTES de /:id)

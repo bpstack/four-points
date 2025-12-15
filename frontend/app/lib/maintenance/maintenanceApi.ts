@@ -201,25 +201,7 @@ export const maintenanceApi = {
     const formData = new FormData()
     formData.append('image', file)
 
-    const response = await fetch(url, {
-      method: 'POST',
-      body: formData,
-      credentials: process.env.NODE_ENV === 'development' ? 'omit' : 'include',
-      headers: {
-        ...(process.env.NODE_ENV === 'development' && typeof window !== 'undefined'
-          ? { Authorization: `Bearer ${localStorage.getItem('access_token')}` }
-          : {}),
-      },
-    })
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({
-        error: `HTTP ${response.status}: ${response.statusText}`,
-      }))
-      throw new Error(errorData.error || errorData.message || 'Error al subir imagen')
-    }
-
-    return response.json()
+    return apiClient.postFormData(url, formData)
   },
 
   // ========================================

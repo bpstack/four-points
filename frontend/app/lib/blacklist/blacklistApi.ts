@@ -113,31 +113,10 @@ export const blacklistApi = {
   uploadImage: async (file: File): Promise<ImageUploadResponse> => {
     const url = `${API_BASE}/api/blacklist/upload`
 
-    // Crear FormData para enviar archivo
     const formData = new FormData()
     formData.append('image', file)
 
-    // ⚠️ IMPORTANTE: No establecer Content-Type, fetch lo hace automáticamente con boundary
-    const response = await fetch(url, {
-      method: 'POST',
-      body: formData,
-      credentials: process.env.NODE_ENV === 'development' ? 'omit' : 'include',
-      headers: {
-        // Authorization se agrega automáticamente por apiClient en desarrollo
-        ...(process.env.NODE_ENV === 'development' && typeof window !== 'undefined'
-          ? { Authorization: `Bearer ${localStorage.getItem('access_token')}` }
-          : {}),
-      },
-    })
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({
-        error: `HTTP ${response.status}: ${response.statusText}`,
-      }))
-      throw new Error(errorData.error || errorData.message || 'Error al subir imagen')
-    }
-
-    return response.json()
+    return apiClient.postFormData(url, formData)
   },
 
   // ========================================
@@ -171,21 +150,7 @@ export const blacklistApi = {
 
     const url = `${API_BASE}/api/blacklist/export?${params.toString()}`
 
-    const response = await fetch(url, {
-      method: 'GET',
-      credentials: process.env.NODE_ENV === 'development' ? 'omit' : 'include',
-      headers: {
-        ...(process.env.NODE_ENV === 'development' && typeof window !== 'undefined'
-          ? { Authorization: `Bearer ${localStorage.getItem('access_token')}` }
-          : {}),
-      },
-    })
-
-    if (!response.ok) {
-      throw new Error('Error al exportar a Excel')
-    }
-
-    return response.blob()
+    return apiClient.getBlob(url)
   },
 
   // ========================================

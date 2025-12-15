@@ -34,6 +34,7 @@ import {
 
 // Middlewares
 import { authenticateToken } from '../../middlewares/authenticateToken.js'
+import { excludeMantenimiento } from '../../middlewares/roleCheck.js'
 
 // Repository (for trashed route)
 import * as logbookRepo from '../../repositories/logbook/logbook-repository.js'
@@ -41,10 +42,18 @@ import * as logbookRepo from '../../repositories/logbook/logbook-repository.js'
 const router: Router = express.Router()
 
 // ========================================
+// APLICAR MIDDLEWARES A TODAS LAS RUTAS
+// - authenticateToken: verificar JWT
+// - excludeMantenimiento: bloquear rol mantenimiento
+// ========================================
+router.use(authenticateToken)
+router.use(excludeMantenimiento)
+
+// ========================================
 // SPECIAL ROUTES (before :id params)
 // ========================================
 
-router.get('/trashed', authenticateToken, async (_req: Request, res: Response) => {
+router.get('/trashed', async (_req: Request, res: Response) => {
   try {
     const trashed = await logbookRepo.getAllTrashedLogbooks()
     res.json(trashed)
@@ -62,7 +71,7 @@ router.get('/trashed', authenticateToken, async (_req: Request, res: Response) =
 router.post('/', createLogbook)
 
 // PUT - Update logbook
-router.put('/:id', authenticateToken, updateLogbookController)
+router.put('/:id', updateLogbookController)
 
 // GET - Logbook history
 router.get('/:logbookId/history', getLogbookHistory)
@@ -83,23 +92,23 @@ router.get('/priority/:importance', getLogbooksByImportance)
 router.get('/day/:day', getLogbooksByDay)
 
 // DELETE - Soft delete
-router.delete('/:id', authenticateToken, deleteLogbookController)
+router.delete('/:id', deleteLogbookController)
 
 // ========================================
 // COMMENT ROUTES
 // ========================================
 
 // POST - Create comment
-router.post('/:logbookId/comments', authenticateToken, createCommentController)
+router.post('/:logbookId/comments', createCommentController)
 
 // GET - List comments by logbook
-router.get('/:logbookId/comments', authenticateToken, getCommentsByLogbookController)
+router.get('/:logbookId/comments', getCommentsByLogbookController)
 
 // PUT - Update comment
-router.put('/:logbookId/comments/:id', authenticateToken, updateCommentController)
+router.put('/:logbookId/comments/:id', updateCommentController)
 
 // DELETE - Soft delete comment
-router.delete('/:logbookId/comments/:id', authenticateToken, deleteCommentController)
+router.delete('/:logbookId/comments/:id', deleteCommentController)
 
 // GET - Comment history
 router.get('/:logbookId/comments/:commentId/history', getCommentHistoryController)
@@ -109,21 +118,21 @@ router.get('/:logbookId/comments/:commentId/history', getCommentHistoryControlle
 // ========================================
 
 // POST - Mark as read
-router.post('/:logbookId/read', authenticateToken, readLogbookController)
+router.post('/:logbookId/read', readLogbookController)
 
 // DELETE - Unmark as read
-router.delete('/:logbookId/read', authenticateToken, unreadLogbookController)
+router.delete('/:logbookId/read', unreadLogbookController)
 
 // PUT - Mark as solved
-router.put('/:logbookId/solve', authenticateToken, solveLogbookController)
+router.put('/:logbookId/solve', solveLogbookController)
 
 // PUT - Mark as pending (reopen)
-router.put('/:logbookId/pending', authenticateToken, reopenLogbookController)
+router.put('/:logbookId/pending', reopenLogbookController)
 
 // GET - Get readers
-router.get('/:logbookId/readers', authenticateToken, getLogbookReadersController)
+router.get('/:logbookId/readers', getLogbookReadersController)
 
 // GET - Get solver
-router.get('/:logbookId/solved', authenticateToken, getLogbookSolvedController)
+router.get('/:logbookId/solved', getLogbookSolvedController)
 
 export default router

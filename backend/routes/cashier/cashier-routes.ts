@@ -1,7 +1,5 @@
 // routes/cashier-routes.ts
 
-// routes/cashier-routes.ts
-
 import express from 'express'
 import { CashierDailyController } from '../../controllers/cashier/cashier-daily-controller.js'
 import { CashierShiftController } from '../../controllers/cashier/cashier-shift-controller.js'
@@ -11,9 +9,21 @@ import { CashierDenominationController } from '../../controllers/cashier/cashier
 import { CashierReportController } from '../../controllers/cashier/cashier-report-controller.js'
 import { CashierHistoryController } from '../../controllers/cashier/cashier-history-controller.js'
 import { authenticateToken } from '../../middlewares/authenticateToken.js'
-import { isAdmin, canManageCashier, canViewReports } from '../../middlewares/roleCheck.js'
+import {
+  isAdmin,
+  canManageCashier,
+  canViewReports,
+  excludeMantenimiento,
+} from '../../middlewares/roleCheck.js'
 
 const router = express.Router()
+
+// ============================================
+// TODAS LAS RUTAS REQUIEREN AUTENTICACIÓN
+// El rol mantenimiento NO tiene acceso a este módulo
+// ============================================
+router.use(authenticateToken)
+router.use(excludeMantenimiento)
 
 // ============================================
 // 📅 DAILY ROUTES (Agregados Diarios)

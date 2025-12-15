@@ -5,14 +5,19 @@
 // =========================================================
 
 import { Router } from 'express'
-import { authenticateToken } from '../../middlewares/authenticateToken.js'
 import { isAdmin } from '../../middlewares/roleCheck.js'
 import * as monthlyCtrl from '../../controllers/conciliation/conciliation-monthly.controller.js'
 
 const router = Router()
 
 // ============================================
-// RUTAS PÚBLICAS (requieren autenticación)
+// NOTA: Este router se monta DESPUÉS de que
+// conciliation.routes.ts ya aplicó authenticateToken
+// y excludeMantenimiento, por lo que hereda esos middlewares
+// ============================================
+
+// ============================================
+// RUTAS PÚBLICAS (autenticación heredada del router padre)
 // ============================================
 
 /**
@@ -20,20 +25,20 @@ const router = Router()
  * Obtener resumen mensual completo
  * Cualquier usuario autenticado puede consultar
  */
-router.get('/:year/:month', authenticateToken, monthlyCtrl.getMonthlySummary)
+router.get('/:year/:month', monthlyCtrl.getMonthlySummary)
 
 /**
  * GET /api/conciliations/monthly-summary/:year/:month/validation
  * Validar si el resumen mensual puede cerrarse
  * Útil para mostrar warnings/errors en el frontend antes de intentar cerrar
  */
-router.get('/:year/:month/validation', authenticateToken, monthlyCtrl.validateMonthlySummary)
+router.get('/:year/:month/validation', monthlyCtrl.validateMonthlySummary)
 
 /**
  * GET /api/conciliations/monthly-summary/:year/:month/missing-days
  * Obtener lista de días faltantes en el mes
  */
-router.get('/:year/:month/missing-days', authenticateToken, monthlyCtrl.getMissingDays)
+router.get('/:year/:month/missing-days', monthlyCtrl.getMissingDays)
 
 // ============================================
 // RUTAS ADMIN (requieren rol administrador)
@@ -44,11 +49,6 @@ router.get('/:year/:month/missing-days', authenticateToken, monthlyCtrl.getMissi
  * Actualizar el estado del resumen mensual
  * Solo admin puede marcar como 'closed'
  */
-router.patch(
-  '/:year/:month/status',
-  authenticateToken,
-  isAdmin,
-  monthlyCtrl.updateMonthlySummaryStatus
-)
+router.patch('/:year/:month/status', isAdmin, monthlyCtrl.updateMonthlySummaryStatus)
 
 export default router

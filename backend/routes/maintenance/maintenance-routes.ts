@@ -8,6 +8,7 @@ import { Router } from 'express'
 import multer from 'multer'
 import { MaintenanceController } from '../../controllers/maintenance/maintenance-controller.js'
 import { authenticateToken } from '../../middlewares/authenticateToken.js'
+import { canAccessMaintenance } from '../../middlewares/roleCheck.js'
 
 const router = Router()
 
@@ -19,8 +20,9 @@ const upload = multer({
   },
 })
 
-// Aplicar autenticación a todas las rutas
+// Aplicar autenticación y verificación de rol a todas las rutas
 router.use(authenticateToken)
+router.use(canAccessMaintenance)
 
 // ========================================
 // RUTAS DE REPORTES
