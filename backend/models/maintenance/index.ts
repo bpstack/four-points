@@ -221,6 +221,7 @@ export interface ReportFilters {
   created_by?: string
   room_number?: string
   search?: string // Búsqueda en title, description, location
+  date?: string // YYYY-MM-DD (single day filter)
   date_from?: string // YYYY-MM-DD
   date_to?: string // YYYY-MM-DD
   include_deleted?: boolean

@@ -53,9 +53,12 @@ router.use(excludeMantenimiento)
 // SPECIAL ROUTES (before :id params)
 // ========================================
 
-router.get('/trashed', async (_req: Request, res: Response) => {
+router.get('/trashed', async (req: Request, res: Response) => {
   try {
-    const trashed = await logbookRepo.getAllTrashedLogbooks()
+    const limit = req.query.limit ? parseInt(req.query.limit as string) : undefined
+    const offset = req.query.offset ? parseInt(req.query.offset as string) : undefined
+    
+    const trashed = await logbookRepo.getAllTrashedLogbooks({ limit, offset })
     res.json(trashed)
   } catch (err) {
     console.error(err)

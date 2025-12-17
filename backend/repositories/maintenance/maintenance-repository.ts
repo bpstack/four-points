@@ -213,6 +213,7 @@ export class MaintenanceRepository {
       created_by,
       room_number,
       search,
+      date,
       date_from,
       date_to,
       include_deleted = false,
@@ -282,12 +283,18 @@ export class MaintenanceRepository {
       params.push(searchPattern, searchPattern, searchPattern, searchPattern)
     }
 
-    // Filtro por rango de fechas
-    if (date_from) {
+    // Filtro por fecha específica (single day)
+    if (date) {
+      query += ` AND DATE(r.report_date) = ?`
+      params.push(date)
+    }
+
+    // Filtro por rango de fechas (backwards compatible)
+    if (date_from && !date) {
       query += ` AND DATE(r.report_date) >= ?`
       params.push(date_from)
     }
-    if (date_to) {
+    if (date_to && !date) {
       query += ` AND DATE(r.report_date) <= ?`
       params.push(date_to)
     }
@@ -324,10 +331,13 @@ export class MaintenanceRepository {
     if (search) {
       countQuery += ` AND (r.title LIKE ? OR r.description LIKE ? OR r.location_description LIKE ? OR r.room_number LIKE ?)`
     }
-    if (date_from) {
+    if (date) {
+      countQuery += ` AND DATE(r.report_date) = ?`
+    }
+    if (date_from && !date) {
       countQuery += ` AND DATE(r.report_date) >= ?`
     }
-    if (date_to) {
+    if (date_to && !date) {
       countQuery += ` AND DATE(r.report_date) <= ?`
     }
 

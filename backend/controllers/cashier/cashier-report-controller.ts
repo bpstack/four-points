@@ -165,6 +165,26 @@ export class CashierReportController {
         })
       }
 
+      // Validar rango máximo de 31 días
+      const MAX_DAYS = 31
+      const startDate = new Date(from_date as string)
+      const endDate = new Date(to_date as string)
+      const daysDiff = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24))
+      
+      if (daysDiff > MAX_DAYS) {
+        return res.status(400).json({
+          success: false,
+          error: `Rango máximo permitido: ${MAX_DAYS} días. Solicitado: ${daysDiff} días`,
+        })
+      }
+
+      if (daysDiff < 0) {
+        return res.status(400).json({
+          success: false,
+          error: 'La fecha de inicio debe ser anterior a la fecha de fin',
+        })
+      }
+
       // Obtener todos los turnos del período
       const shifts = await CashierShiftRepository.getAll({
         from_date: from_date as string,
@@ -191,21 +211,21 @@ export class CashierReportController {
       const uniqueDates = [...new Set(shifts.map((s) => s.shift_date))]
       const averageDailyCash = uniqueDates.length > 0 ? totalCash / uniqueDates.length : 0
 
-      // ✅ CORREGIDO: Calcular resumen por método de pago manualmente
+      // ✅ OPTIMIZADO: Batch query para payments (evita N+1)
+      const shiftIds = shifts.map(s => s.id)
+      const allPayments = await CashierPaymentRepository.getByShifts(shiftIds)
+      
+      // Agrupar payments por método de pago
       const paymentsMap = new Map<number, { name: string; total: number }>()
-
-      for (const shift of shifts) {
-        const payments = await CashierPaymentRepository.getByShift(shift.id)
-        for (const payment of payments) {
-          const key = payment.payment_method_id
-          if (paymentsMap.has(key)) {
-            paymentsMap.get(key)!.total += payment.amount
-          } else {
-            paymentsMap.set(key, {
-              name: payment.method_name || 'Desconocido',
-              total: payment.amount,
-            })
-          }
+      for (const payment of allPayments) {
+        const key = payment.payment_method_id
+        if (paymentsMap.has(key)) {
+          paymentsMap.get(key)!.total += payment.amount
+        } else {
+          paymentsMap.set(key, {
+            name: payment.method_name || 'Desconocido',
+            total: payment.amount,
+          })
         }
       }
 
@@ -267,13 +287,17 @@ export class CashierReportController {
    */
   static async getVouchersHistory(req: Request, res: Response): Promise<Response> {
     try {
-      const { status, from_date, to_date, limit = '1000' } = req.query
+      const { status, from_date, to_date, limit = '100' } = req.query
+      
+      // Limitar a máximo 500 registros
+      const MAX_LIMIT = 500
+      const requestedLimit = Math.min(parseInt(limit as string) || 100, MAX_LIMIT)
 
       const vouchers = await CashierVoucherRepository.getAll({
-        status: status && status !== 'all' ? (status as any) : undefined, // ✅ Filtrar status correctamente
+        status: status && status !== 'all' ? (status as any) : undefined,
         from_date: from_date as string,
         to_date: to_date as string,
-        limit: parseInt(limit as string),
+        limit: requestedLimit,
         sort: 'created_at',
         order: 'DESC',
       })

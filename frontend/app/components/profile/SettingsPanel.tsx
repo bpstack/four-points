@@ -21,7 +21,9 @@ import {
   FiCheck,
   FiX,
   FiChevronDown,
+  FiFileText,
 } from 'react-icons/fi'
+import { ReportsTab } from './reports'
 
 // Types
 interface User {
@@ -33,7 +35,7 @@ interface User {
   updated_at?: string
 }
 
-type SettingsTab = 'users' | 'notifications' | 'security'
+type SettingsTab = 'users' | 'notifications' | 'security' | 'reports'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'
 
@@ -64,6 +66,7 @@ const tabs: { id: SettingsTab; label: string; icon: React.ReactNode; adminOnly?:
   { id: 'users', label: 'Usuarios', icon: <FiUsers className="w-4 h-4" />, adminOnly: true },
   { id: 'notifications', label: 'Notificaciones', icon: <FiBell className="w-4 h-4" /> },
   { id: 'security', label: 'Seguridad', icon: <FiShield className="w-4 h-4" /> },
+  { id: 'reports', label: 'Reportes', icon: <FiFileText className="w-4 h-4" />, adminOnly: true },
 ]
 
 export function SettingsPanel() {
@@ -222,6 +225,7 @@ export function SettingsPanel() {
         )}
         {activeTab === 'notifications' && <NotificationsSettings />}
         {activeTab === 'security' && <SecuritySettings />}
+        {activeTab === 'reports' && isUserAdmin && <ReportsTab />}
       </div>
 
       {/* Modal */}

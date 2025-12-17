@@ -234,6 +234,12 @@ export const reportFiltersSchema = z.object({
   created_by: z.string().uuid('created_by debe ser un UUID válido').optional(),
   room_number: z.string().max(10).optional(),
   search: z.string().max(255).optional(),
+  // Single date filter (for a specific day)
+  date: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, 'date debe tener formato YYYY-MM-DD')
+    .optional(),
+  // Range filters (keep for backwards compatibility)
   date_from: z
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/, 'date_from debe tener formato YYYY-MM-DD')

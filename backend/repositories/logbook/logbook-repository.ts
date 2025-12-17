@@ -11,6 +11,22 @@ import type {
 } from '../../models/logbook/index.js'
 
 // ============================================
+// PAGINATION DEFAULTS
+// ============================================
+const DEFAULT_LIMIT = 100
+const MAX_LIMIT = 500
+
+interface PaginationOptions {
+  limit?: number
+  offset?: number
+}
+
+function sanitizeLimit(limit?: number): number {
+  if (!limit || limit < 1) return DEFAULT_LIMIT
+  return Math.min(limit, MAX_LIMIT)
+}
+
+// ============================================
 // CREATE
 // ============================================
 
@@ -65,7 +81,10 @@ export async function getById(id: number | string): Promise<LogbookWithAuthor | 
   return rows[0]
 }
 
-export async function getAllLogbooks(): Promise<LogbookWithAuthor[]> {
+export async function getAllLogbooks(options: PaginationOptions = {}): Promise<LogbookWithAuthor[]> {
+  const limit = sanitizeLimit(options.limit)
+  const offset = options.offset || 0
+  
   const [rows] = await db.query<LogbookWithAuthor[]>(
     `SELECT 
       l.*,
@@ -74,14 +93,20 @@ export async function getAllLogbooks(): Promise<LogbookWithAuthor[]> {
     FROM logbooks l
     LEFT JOIN users u ON l.author_id = u.id
     WHERE l.deleted_at IS NULL 
-    ORDER BY l.created_at DESC`
+    ORDER BY l.created_at DESC
+    LIMIT ? OFFSET ?`,
+    [limit, offset]
   )
   return rows
 }
 
 export async function getLogbooksByDepartment(
-  departmentId: number | string
+  departmentId: number | string,
+  options: PaginationOptions = {}
 ): Promise<LogbookWithAuthor[]> {
+  const limit = sanitizeLimit(options.limit)
+  const offset = options.offset || 0
+  
   const [rows] = await db.query<LogbookWithAuthor[]>(
     `SELECT 
       l.*,
@@ -90,13 +115,20 @@ export async function getLogbooksByDepartment(
     FROM logbooks l
     LEFT JOIN users u ON l.author_id = u.id
     WHERE l.department_id = ? AND l.deleted_at IS NULL 
-    ORDER BY l.created_at DESC`,
-    [departmentId]
+    ORDER BY l.created_at DESC
+    LIMIT ? OFFSET ?`,
+    [departmentId, limit, offset]
   )
   return rows
 }
 
-export async function getLogbooksByAuthor(authorId: string): Promise<LogbookWithAuthor[]> {
+export async function getLogbooksByAuthor(
+  authorId: string,
+  options: PaginationOptions = {}
+): Promise<LogbookWithAuthor[]> {
+  const limit = sanitizeLimit(options.limit)
+  const offset = options.offset || 0
+  
   const [rows] = await db.query<LogbookWithAuthor[]>(
     `SELECT 
       l.*,
@@ -105,17 +137,24 @@ export async function getLogbooksByAuthor(authorId: string): Promise<LogbookWith
     FROM logbooks l
     LEFT JOIN users u ON l.author_id = u.id
     WHERE l.author_id = ? AND l.deleted_at IS NULL 
-    ORDER BY l.created_at DESC`,
-    [authorId]
+    ORDER BY l.created_at DESC
+    LIMIT ? OFFSET ?`,
+    [authorId, limit, offset]
   )
   return rows
 }
 
-export async function getLogbooksByImportance(importance: string): Promise<LogbookWithAuthor[]> {
+export async function getLogbooksByImportance(
+  importance: string,
+  options: PaginationOptions = {}
+): Promise<LogbookWithAuthor[]> {
   const allowed = ['baja', 'media', 'alta', 'urgente']
   if (!allowed.includes(importance)) {
     throw new Error('Nivel de importancia no válido')
   }
+
+  const limit = sanitizeLimit(options.limit)
+  const offset = options.offset || 0
 
   const [rows] = await db.query<LogbookWithAuthor[]>(
     `SELECT 
@@ -125,13 +164,20 @@ export async function getLogbooksByImportance(importance: string): Promise<Logbo
     FROM logbooks l
     LEFT JOIN users u ON l.author_id = u.id
     WHERE l.importance_level = ? AND l.deleted_at IS NULL 
-    ORDER BY l.created_at DESC`,
-    [importance]
+    ORDER BY l.created_at DESC
+    LIMIT ? OFFSET ?`,
+    [importance, limit, offset]
   )
   return rows
 }
 
-export async function getLogbooksByDay(day: string): Promise<LogbookWithAuthor[]> {
+export async function getLogbooksByDay(
+  day: string,
+  options: PaginationOptions = {}
+): Promise<LogbookWithAuthor[]> {
+  const limit = sanitizeLimit(options.limit)
+  const offset = options.offset || 0
+  
   const [rows] = await db.query<LogbookWithAuthor[]>(
     `SELECT 
       l.*,
@@ -141,13 +187,17 @@ export async function getLogbooksByDay(day: string): Promise<LogbookWithAuthor[]
     LEFT JOIN users u ON l.author_id = u.id
     WHERE (l.date = ? OR (l.date IS NULL AND DATE(l.created_at) = ?))
       AND l.deleted_at IS NULL
-    ORDER BY l.created_at DESC`,
-    [day, day]
+    ORDER BY l.created_at DESC
+    LIMIT ? OFFSET ?`,
+    [day, day, limit, offset]
   )
   return rows
 }
 
-export async function getAllTrashedLogbooks(): Promise<LogbookWithAuthor[]> {
+export async function getAllTrashedLogbooks(options: PaginationOptions = {}): Promise<LogbookWithAuthor[]> {
+  const limit = sanitizeLimit(options.limit)
+  const offset = options.offset || 0
+  
   const [rows] = await db.query<LogbookWithAuthor[]>(
     `SELECT 
       l.*,
@@ -156,7 +206,9 @@ export async function getAllTrashedLogbooks(): Promise<LogbookWithAuthor[]> {
     FROM logbooks l
     LEFT JOIN users u ON l.author_id = u.id
     WHERE l.deleted_at IS NOT NULL 
-    ORDER BY l.deleted_at DESC`
+    ORDER BY l.deleted_at DESC
+    LIMIT ? OFFSET ?`,
+    [limit, offset]
   )
   return rows
 }

@@ -14,6 +14,7 @@ export class ActivityController {
    *  - limit: número de resultados (default: 5, max: 50)
    *  - source: filtrar por fuente específica (cashier|groups|logbook|maintenance)
    *  - user_id: filtrar por usuario específico
+   *  - date: filtrar por fecha de actividad (formato: YYYY-MM-DD)
    */
   static async getRecentActivity(req: Request, res: Response): Promise<void> {
     try {
@@ -23,22 +24,37 @@ export class ActivityController {
 
       const source = req.query.source as ActivitySource | undefined
       const userId = req.query.user_id as string | undefined
+      const date = req.query.date as string | undefined
+
+      // Validar source si está presente
+      const validSources: ActivitySource[] = ['cashier', 'groups', 'logbook', 'maintenance']
+      if (source && !validSources.includes(source)) {
+        res.status(400).json({
+          success: false,
+          error: `Fuente inválida. Valores permitidos: ${validSources.join(', ')}`,
+        })
+        return
+      }
+
+      // Validar formato de fecha si está presente
+      if (date && !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+        res.status(400).json({
+          success: false,
+          error: 'Formato de fecha inválido. Use YYYY-MM-DD',
+        })
+        return
+      }
 
       let activities
 
       // Aplicar filtros según parámetros
-      if (userId) {
+      // Prioridad: date > user_id > source > all
+      if (date) {
+        // Filtro por fecha (puede combinarse con source)
+        activities = await ActivityRepository.getActivityByDate(date, limit, source)
+      } else if (userId) {
         activities = await ActivityRepository.getActivityByUser(userId, limit)
       } else if (source) {
-        // Validar source
-        const validSources: ActivitySource[] = ['cashier', 'groups', 'logbook', 'maintenance']
-        if (!validSources.includes(source)) {
-          res.status(400).json({
-            success: false,
-            error: `Fuente inválida. Valores permitidos: ${validSources.join(', ')}`,
-          })
-          return
-        }
         activities = await ActivityRepository.getActivityBySource(source, limit)
       } else {
         activities = await ActivityRepository.getRecentActivity(limit)
@@ -53,6 +69,7 @@ export class ActivityController {
           filters: {
             source: source || null,
             user_id: userId || null,
+            date: date || null,
           },
         },
       })

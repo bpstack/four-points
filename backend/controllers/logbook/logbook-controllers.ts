@@ -110,9 +110,12 @@ export async function getLogbookHistory(req: Request, res: Response): Promise<vo
 // GET ALL LOGBOOKS
 // ============================================
 
-export async function getAllLogbooks(_req: Request, res: Response): Promise<void> {
+export async function getAllLogbooks(req: Request, res: Response): Promise<void> {
   try {
-    const logbooks = await logbookRepo.getAllLogbooks()
+    const limit = req.query.limit ? parseInt(req.query.limit as string) : undefined
+    const offset = req.query.offset ? parseInt(req.query.offset as string) : undefined
+    
+    const logbooks = await logbookRepo.getAllLogbooks({ limit, offset })
     res.json(logbooks)
   } catch (err) {
     console.error('Error al obtener logbooks:', err)
@@ -127,7 +130,10 @@ export async function getAllLogbooks(_req: Request, res: Response): Promise<void
 export async function getLogbooksByDepartment(req: Request, res: Response): Promise<void> {
   try {
     const { departmentId } = req.params
-    const logbooks = await logbookRepo.getLogbooksByDepartment(departmentId)
+    const limit = req.query.limit ? parseInt(req.query.limit as string) : undefined
+    const offset = req.query.offset ? parseInt(req.query.offset as string) : undefined
+    
+    const logbooks = await logbookRepo.getLogbooksByDepartment(departmentId, { limit, offset })
     res.json(logbooks)
   } catch (err) {
     console.error('Error al obtener logbooks por departamento:', err)
@@ -142,7 +148,10 @@ export async function getLogbooksByDepartment(req: Request, res: Response): Prom
 export async function getLogbooksByAuthor(req: Request, res: Response): Promise<void> {
   try {
     const { authorId } = req.params
-    const logbooks = await logbookRepo.getLogbooksByAuthor(authorId)
+    const limit = req.query.limit ? parseInt(req.query.limit as string) : undefined
+    const offset = req.query.offset ? parseInt(req.query.offset as string) : undefined
+    
+    const logbooks = await logbookRepo.getLogbooksByAuthor(authorId, { limit, offset })
     res.json(logbooks)
   } catch (err) {
     console.error('Error al obtener logbooks por autor:', err)
@@ -166,7 +175,10 @@ export async function getLogbooksByImportance(req: Request, res: Response): Prom
       return
     }
 
-    const logbooks = await logbookRepo.getLogbooksByImportance(importance)
+    const limit = req.query.limit ? parseInt(req.query.limit as string) : undefined
+    const offset = req.query.offset ? parseInt(req.query.offset as string) : undefined
+
+    const logbooks = await logbookRepo.getLogbooksByImportance(importance, { limit, offset })
     res.json(logbooks)
   } catch (err) {
     console.error('Error al obtener logbooks por importancia:', err)
@@ -187,7 +199,10 @@ export async function getLogbooksByDay(req: Request, res: Response): Promise<voi
       return
     }
 
-    const logbooks = await logbookRepo.getLogbooksByDay(day)
+    const limit = req.query.limit ? parseInt(req.query.limit as string) : undefined
+    const offset = req.query.offset ? parseInt(req.query.offset as string) : undefined
+
+    const logbooks = await logbookRepo.getLogbooksByDay(day, { limit, offset })
     res.json(logbooks)
   } catch (err) {
     console.error('Error al obtener logbooks por día:', err)

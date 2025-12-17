@@ -55,7 +55,7 @@ export default function ProfileDropdown() {
 
   const handleMessages = () => {
     setIsOpen(false)
-    router.push('/dashboard/profile/messages')
+    router.push('/dashboard/profile?panel=messages')
   }
 
   const handleNotifications = () => {

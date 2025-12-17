@@ -183,4 +183,25 @@ export class CashierPaymentRepository {
     const [rows] = await db.query<any[]>(query, [shiftId])
     return (rows[0]?.count || 0) > 0
   }
+
+  /**
+   * Obtener pagos de múltiples turnos (batch query para evitar N+1)
+   */
+  static async getByShifts(shiftIds: number[]): Promise<CashierPayment[]> {
+    if (shiftIds.length === 0) return []
+    
+    const placeholders = shiftIds.map(() => '?').join(',')
+    const query = `
+      SELECT 
+        cp.*,
+        pm.name as method_name
+      FROM cashier_payments cp
+      INNER JOIN payment_methods pm ON cp.payment_method_id = pm.id
+      WHERE cp.shift_id IN (${placeholders})
+      ORDER BY cp.shift_id ASC, pm.id ASC
+    `
+
+    const [rows] = await db.query<CashierPayment[]>(query, shiftIds)
+    return rows
+  }
 }
