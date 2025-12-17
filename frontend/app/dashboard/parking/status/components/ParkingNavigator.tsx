@@ -105,7 +105,7 @@ export default function ParkingNavigator() {
   return (
     <>
       {/* Header sticky principal */}
-      <div className="sticky top-0 z-30 bg-white dark:bg-[#010409] shadow-sm">
+      <div className="sticky top-0 z-40 bg-white dark:bg-[#010409] shadow-sm">
         <div className="px-3 py-2 md:px-4 md:py-3 border-b border-gray-200 dark:border-gray-800">
           {/* Desktop */}
           <div className="hidden md:flex items-center gap-3 justify-between">
@@ -231,7 +231,8 @@ export default function ParkingNavigator() {
       </div>
 
       {/* Paginación sticky - Selector de días */}
-      <div className="sticky top-[64px] z-30">
+      {/* Mobile: ~120px (two rows + padding), Desktop: ~64px (single row) */}
+      <div className="sticky top-[116px] md:top-[64px] z-30">
         <HorizontalDatePicker
           currentDate={currentDate}
           selectedDay={selectedDay}

@@ -348,6 +348,22 @@ export const useBookingWizard = ({
       return
     }
 
+    // Validar spot_number antes de enviar
+    const spotNumber = parseInt(state.reservationData.spot_number)
+    if (isNaN(spotNumber)) {
+      setError('Número de plaza inválido')
+      return
+    }
+
+    // Validar total_amount si existe
+    const totalAmount = state.reservationData.total_amount
+      ? parseFloat(state.reservationData.total_amount)
+      : undefined
+    if (totalAmount !== undefined && isNaN(totalAmount)) {
+      setError('Monto total inválido')
+      return
+    }
+
     updateState({ loading: true, error: '' })
 
     try {
@@ -355,15 +371,13 @@ export const useBookingWizard = ({
       const checkoutISO = `${state.reservationData.expected_checkout_date} ${state.reservationData.expected_checkout_time}`
 
       const payload: CreateBookingDto = {
-        spot_number: parseInt(state.reservationData.spot_number),
+        spot_number: spotNumber,
         level_code: state.reservationData.level_code,
         vehicle_id: state.vehicleId ?? undefined,
         expected_checkin: checkinISO,
         expected_checkout: checkoutISO,
         source: state.reservationData.booking_source || 'direct',
-        total_amount: state.reservationData.total_amount
-          ? parseFloat(state.reservationData.total_amount)
-          : undefined,
+        total_amount: totalAmount,
         external_id: state.reservationData.external_booking_id || undefined,
         notes: state.reservationData.notes || undefined,
       }

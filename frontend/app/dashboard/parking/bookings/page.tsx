@@ -253,11 +253,10 @@ export default function BookingsPage() {
 
   // Estados de UI
   const [showBasicFilters, setShowBasicFilters] = useState(false)
-  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false)
   const [showCalendar, setShowCalendar] = useState(false)
 
   const basicRef = useRef<HTMLDivElement>(null)
-  const advancedRef = useRef<HTMLDivElement>(null)
+  const calendarRef = useRef<HTMLDivElement>(null)
 
   // Estados de modales
   const [selectedBooking, setSelectedBooking] = useState<ParkingBooking | null>(null)
@@ -285,9 +284,6 @@ export default function BookingsPage() {
     const handleClickOutside = (event: MouseEvent) => {
       if (basicRef.current && !basicRef.current.contains(event.target as Node)) {
         setShowBasicFilters(false)
-      }
-      if (advancedRef.current && !advancedRef.current.contains(event.target as Node)) {
-        setShowAdvancedFilters(false)
       }
     }
 
@@ -530,326 +526,337 @@ export default function BookingsPage() {
   }
 
   return (
-    <div className="w-full min-h-screen bg-gray-50 dark:bg-[#010409]">
+    <div className="min-h-screen bg-white dark:bg-[#010409] p-4 md:p-6">
       {/* HEADER */}
-      <div className="w-full border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-[#010409]">
-        <div className="w-full px-4 sm:px-6 lg:px-8 py-6">
-          {/* Título + Botones */}
-          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
+      <div className="max-w-[1600px] space-y-5">
+        <div className="mb-4 sm:mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
-              <h1 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">
+              <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">
                 Reservas de Parking
               </h1>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-0.5">
                 Gestión completa de reservas
               </p>
             </div>
-            <div className="flex items-center gap-3">
-              {/* Control de Parking - Icono discreto con tooltip */}
-              <div className="relative group">
-                <Link
-                  href="/dashboard/parking/status"
-                  className="inline-flex items-center justify-center w-9 h-9 text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-all"
-                  title="Control de Parking"
-                >
-                  <FaParking className="w-5 h-5" />
-                </Link>
-                {/* Tooltip */}
-                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-gray-900 dark:bg-gray-700 text-white text-xs rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity shadow-lg">
-                  Control de Parking
-                  <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1 border-4 border-transparent border-t-gray-900 dark:border-t-gray-700"></div>
-                </div>
-              </div>
+            <div className="flex items-center gap-2">
+              {/* Control de Parking */}
+              <Link
+                href="/dashboard/parking/status"
+                className="inline-flex items-center justify-center w-8 h-8 text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md transition-colors"
+                title="Control de Parking"
+              >
+                <FaParking className="w-4 h-4" />
+              </Link>
               {/* Nueva Reserva */}
               <Link
                 href="/dashboard/parking/bookings/new"
-                className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 text-white text-sm font-medium rounded-lg transition-colors shadow-sm"
+                className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-green-600 dark:bg-green-700 text-white text-xs font-medium rounded-md hover:bg-green-700 dark:hover:bg-green-800 transition-colors"
               >
-                <FaPlus className="w-4 h-4" />
+                <FaPlus className="w-3.5 h-3.5" />
                 Nueva Reserva
               </Link>
             </div>
           </div>
+        </div>
 
-          {/* Buscador + Filtros - Misma línea en desktop */}
-          <div className="flex flex-col lg:flex-row lg:items-center gap-4">
-            {/* Buscador compacto */}
-            <div className="w-full lg:w-auto lg:flex-1 lg:max-w-md">
-              <div className="relative">
-                <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 w-4 h-4" />
-                <input
-                  type="text"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="Buscar por código, cliente, matrícula, plaza..."
-                  className="w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent placeholder-gray-500 dark:placeholder-gray-500 text-sm"
-                />
-              </div>
-            </div>
-
-            {/* Filtros - Responsive: vertical en mobile, horizontal en desktop */}
-            <div className="flex flex-col md:flex-row md:flex-wrap md:items-center gap-2">
-              {/* Filtros Básicos */}
-              <div className="relative" ref={basicRef}>
-                <button
-                  onClick={() => setShowBasicFilters(!showBasicFilters)}
-                  className={`w-full md:w-auto px-3 py-2 text-sm font-medium rounded-lg transition-colors flex items-center justify-between md:justify-center gap-2 ${
-                    showBasicFilters || quickDateFilter
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
-                  }`}
-                >
-                  Filtros rápidos
-                  <FaChevronDown className="w-3 h-3" />
-                </button>
-
-                {showBasicFilters && (
-                  <div className="absolute top-full left-0 mt-1 w-full md:w-44 bg-white dark:bg-[#161b22] border border-gray-200 dark:border-[#30363d] rounded-lg shadow-xl z-50 overflow-hidden">
-                    <button
-                      onClick={() => {
-                        setQuickDateFilter(quickDateFilter === 'yesterday' ? null : 'yesterday')
-                        setShowBasicFilters(false)
-                      }}
-                      className={`w-full px-4 py-2.5 text-left text-sm hover:bg-gray-50 dark:hover:bg-[#1c2128] transition-colors ${
-                        quickDateFilter === 'yesterday'
-                          ? 'text-blue-600 dark:text-blue-400 font-medium'
-                          : 'text-gray-700 dark:text-gray-300'
-                      }`}
-                    >
-                      Ayer
-                    </button>
-                    <button
-                      onClick={() => {
-                        setQuickDateFilter(quickDateFilter === 'today' ? null : 'today')
-                        setShowBasicFilters(false)
-                      }}
-                      className={`w-full px-4 py-2.5 text-left text-sm hover:bg-gray-50 dark:hover:bg-[#1c2128] transition-colors ${
-                        quickDateFilter === 'today'
-                          ? 'text-blue-600 dark:text-blue-400 font-medium'
-                          : 'text-gray-700 dark:text-gray-300'
-                      }`}
-                    >
-                      Hoy
-                    </button>
-                    <button
-                      onClick={() => {
-                        setQuickDateFilter(quickDateFilter === 'tomorrow' ? null : 'tomorrow')
-                        setShowBasicFilters(false)
-                      }}
-                      className={`w-full px-4 py-2.5 text-left text-sm hover:bg-gray-50 dark:hover:bg-[#1c2128] transition-colors ${
-                        quickDateFilter === 'tomorrow'
-                          ? 'text-blue-600 dark:text-blue-400 font-medium'
-                          : 'text-gray-700 dark:text-gray-300'
-                      }`}
-                    >
-                      Mañana
-                    </button>
-                  </div>
-                )}
-              </div>
-
-              {/* Filtros Avanzados */}
-              <div className="relative" ref={advancedRef}>
-                <button
-                  onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-                  className={`w-full md:w-auto px-3 py-2 text-sm font-medium rounded-lg transition-colors flex items-center justify-between md:justify-center gap-2 ${
-                    showAdvancedFilters || statusFilter !== 'all' || dateFilter
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
-                  }`}
-                >
-                  Filtros avanzados
-                  <FaChevronDown className="w-3 h-3" />
-                </button>
-
-                {showAdvancedFilters && (
-                  <div className="absolute top-full left-0 mt-1 w-full md:w-64 bg-white dark:bg-[#161b22] border border-gray-200 dark:border-[#30363d] rounded-lg shadow-xl z-50 p-4 space-y-4">
-                    {/* Estado */}
-                    <div>
-                      <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-                        Estado
-                      </label>
-                      <select
-                        value={statusFilter}
-                        onChange={(e) => setStatusFilter(e.target.value as any)}
-                        className="w-full px-3 py-2 text-sm bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600"
-                      >
-                        <option value="all">Todas las reservas</option>
-                        <option value="reserved">Reservado</option>
-                        <option value="completed">Completado</option>
-                        <option value="canceled">Cancelado</option>
-                        <option value="no_show">No Show</option>
-                      </select>
-                    </div>
-
-                    {/* Calendario */}
-                    <div className="relative">
-                      <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-                        Fecha específica
-                      </label>
-                      <button
-                        onClick={() => setShowCalendar(!showCalendar)}
-                        className="w-full px-3 py-2 text-sm bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-700 rounded-md hover:border-gray-400 dark:hover:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 text-left flex items-center justify-between"
-                      >
-                        <span className={dateFilter ? '' : 'text-gray-500 dark:text-gray-500'}>
-                          {dateFilter
-                            ? dateFilter.toLocaleDateString('es-ES')
-                            : 'Seleccionar fecha'}
-                        </span>
-                        <FaCalendarAlt className="w-3.5 h-3.5 text-gray-400" />
-                      </button>
-
-                      {showCalendar && (
-                        <div className="absolute top-full left-0 mt-1 z-50">
-                          <SimpleCalendar
-                            selectedDate={dateFilter}
-                            onSelect={(date) => {
-                              setDateFilter(date ?? undefined)
-                              setShowCalendar(false) // ✅ Cierra automáticamente
-                            }}
-                            onClose={() => setShowCalendar(false)}
-                          />
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Botón reset */}
-              {hasActiveFilters && (
-                <button
-                  onClick={resetFilters}
-                  className="w-full md:w-auto px-3 py-2 text-sm font-medium rounded-lg transition-colors bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30 flex items-center justify-center gap-2"
-                >
-                  <FaTimes className="w-3 h-3" />
-                  Limpiar filtros
-                </button>
-              )}
+        {/* Filters */}
+        <div className="mb-4 space-y-2">
+          <div className="flex flex-col sm:flex-row gap-2">
+            <div className="relative flex-1">
+              <FaSearch className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 dark:text-gray-500" />
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Buscar por código, cliente, matrícula, plaza..."
+                className="w-full pl-8 pr-3 py-1.5 text-xs border border-gray-300 dark:border-gray-700 dark:bg-[#151b23] dark:text-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent"
+              />
             </div>
           </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            {/* Filtros Básicos */}
+            <div className="relative" ref={basicRef}>
+              <button
+                onClick={() => setShowBasicFilters(!showBasicFilters)}
+                className={`w-full px-3 py-1.5 text-xs font-medium rounded-md transition-colors flex items-center justify-between gap-2 ${
+                  showBasicFilters || quickDateFilter
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-white dark:bg-[#151b23] text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800'
+                }`}
+              >
+                <span>Filtros rápidos</span>
+                <FaChevronDown className="w-3 h-3" />
+              </button>
+
+              {showBasicFilters && (
+                <div className="absolute top-full left-0 mt-1 w-full bg-white dark:bg-[#161b22] border border-gray-200 dark:border-[#30363d] rounded-lg shadow-xl z-50 overflow-hidden">
+                  <button
+                    onClick={() => {
+                      setQuickDateFilter(quickDateFilter === 'yesterday' ? null : 'yesterday')
+                      setShowBasicFilters(false)
+                    }}
+                    className={`w-full px-4 py-2.5 text-left text-xs hover:bg-gray-50 dark:hover:bg-[#1c2128] transition-colors ${
+                      quickDateFilter === 'yesterday'
+                        ? 'text-blue-600 dark:text-blue-400 font-medium'
+                        : 'text-gray-700 dark:text-gray-300'
+                    }`}
+                  >
+                    Ayer
+                  </button>
+                  <button
+                    onClick={() => {
+                      setQuickDateFilter(quickDateFilter === 'today' ? null : 'today')
+                      setShowBasicFilters(false)
+                    }}
+                    className={`w-full px-4 py-2.5 text-left text-xs hover:bg-gray-50 dark:hover:bg-[#1c2128] transition-colors ${
+                      quickDateFilter === 'today'
+                        ? 'text-blue-600 dark:text-blue-400 font-medium'
+                        : 'text-gray-700 dark:text-gray-300'
+                    }`}
+                  >
+                    Hoy
+                  </button>
+                  <button
+                    onClick={() => {
+                      setQuickDateFilter(quickDateFilter === 'tomorrow' ? null : 'tomorrow')
+                      setShowBasicFilters(false)
+                    }}
+                    className={`w-full px-4 py-2.5 text-left text-xs hover:bg-gray-50 dark:hover:bg-[#1c2128] transition-colors ${
+                      quickDateFilter === 'tomorrow'
+                        ? 'text-blue-600 dark:text-blue-400 font-medium'
+                        : 'text-gray-700 dark:text-gray-300'
+                    }`}
+                  >
+                    Mañana
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Estado */}
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value as any)}
+              className="w-full px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent bg-white dark:bg-[#151b23] dark:text-gray-200"
+            >
+              <option value="all">Todos los estados</option>
+              <option value="reserved">Reservado</option>
+              <option value="completed">Completado</option>
+              <option value="canceled">Cancelado</option>
+              <option value="no_show">No Show</option>
+            </select>
+
+            {/* Fecha específica */}
+            <div className="relative" ref={calendarRef}>
+              <button
+                onClick={() => setShowCalendar(!showCalendar)}
+                className={`w-full px-3 py-1.5 text-xs font-medium rounded-md transition-colors flex items-center justify-between gap-2 ${
+                  dateFilter
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-white dark:bg-[#151b23] text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800'
+                }`}
+              >
+                <span>{dateFilter ? dateFilter.toLocaleDateString('es-ES') : 'Fecha'}</span>
+                <FaCalendarAlt className="w-3 h-3" />
+              </button>
+
+              {showCalendar && (
+                <div className="absolute top-full left-0 mt-1 z-50">
+                  <SimpleCalendar
+                    selectedDate={dateFilter}
+                    onSelect={(date) => {
+                      setDateFilter(date ?? undefined)
+                      setShowCalendar(false)
+                    }}
+                    onClose={() => setShowCalendar(false)}
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* Limpiar filtros */}
+            {hasActiveFilters && (
+              <button
+                onClick={resetFilters}
+                className="px-3 py-1.5 text-xs font-medium text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors flex items-center justify-center gap-1"
+              >
+                <FaTimes className="w-3 h-3" />
+                Limpiar
+              </button>
+            )}
+          </div>
         </div>
-      </div>
 
-      {/* TABLA */}
-      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="bg-white dark:bg-[#010409] border border-gray-200 dark:border-gray-800 rounded-lg overflow-hidden shadow-sm">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="bg-gray-50 dark:bg-[#161b22] border-b border-gray-200 dark:border-gray-800">
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                    Referencia
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                    Cliente
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                    Entrada
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                    Salida
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                    Estado
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                    Creación
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                    Plaza
-                  </th>
-                  <th className="px-4 py-3 text-right text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                    Acciones
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
-                {filteredBookings.length === 0 ? (
+        {/* CONTENIDO PRINCIPAL */}
+        <div className="space-y-4">
+          {/* Table - Desktop */}
+          <div className="hidden md:block bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50 dark:bg-[#0d1117] border-b border-gray-200 dark:border-gray-800">
                   <tr>
-                    <td
-                      colSpan={8}
-                      className="px-4 py-12 text-center text-sm text-gray-500 dark:text-gray-400"
-                    >
-                      No hay reservas para mostrar
-                    </td>
+                    <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                      Referencia
+                    </th>
+                    <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                      Cliente
+                    </th>
+                    <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                      Entrada
+                    </th>
+                    <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                      Salida
+                    </th>
+                    <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                      Estado
+                    </th>
+                    <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                      Plaza
+                    </th>
+                    <th className="px-3 py-2 text-right text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                      Acciones
+                    </th>
                   </tr>
-                ) : (
-                  filteredBookings.map((booking) => (
-                    <tr
-                      key={booking.id}
-                      onClick={() => handleRowClick(booking.booking_code)}
-                      className="hover:bg-gray-50 dark:hover:bg-[#161b22] transition-colors cursor-pointer group"
-                    >
-                      <td className="px-4 py-3.5">
-                        <span className="text-sm font-medium text-blue-600 dark:text-blue-400 group-hover:underline">
-                          {booking.booking_code}
-                        </span>
-                      </td>
-
-                      <td className="px-4 py-3.5">
-                        <div className="flex flex-col">
-                          <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                            {booking.vehicle?.owner || 'Sin propietario'}
-                          </span>
-                          <span className="text-xs text-gray-500 dark:text-gray-400">
-                            {booking.vehicle?.model && `${booking.vehicle.model} · `}
-                            {booking.vehicle?.plate || 'Sin matrícula'}
-                          </span>
-                        </div>
-                      </td>
-
-                      <td className="px-4 py-3.5">
-                        <div className="flex flex-col">
-                          <span className="text-sm text-gray-900 dark:text-gray-100">
-                            {formatDate(booking.schedule.expected_checkin)}
-                          </span>
-                          <span className="text-xs text-gray-500 dark:text-gray-400">
-                            {formatTime(booking.schedule.expected_checkin)}
-                          </span>
-                        </div>
-                      </td>
-
-                      <td className="px-4 py-3.5">
-                        <div className="flex flex-col">
-                          <span className="text-sm text-gray-900 dark:text-gray-100">
-                            {formatDate(booking.schedule.expected_checkout)}
-                          </span>
-                          <span className="text-xs text-gray-500 dark:text-gray-400">
-                            {formatTime(booking.schedule.expected_checkout)}
-                          </span>
-                        </div>
-                      </td>
-
-                      <td className="px-4 py-3.5">
-                        <StatusBadge status={booking.status} />
-                      </td>
-
-                      <td className="px-4 py-3.5">
-                        <div className="flex flex-col">
-                          <span className="text-sm text-gray-900 dark:text-gray-100">
-                            {formatDate(booking.timestamps.created_at)}
-                          </span>
-                          <span className="text-xs text-gray-500 dark:text-gray-400">
-                            {formatTime(booking.timestamps.created_at)}
-                          </span>
-                        </div>
-                      </td>
-
-                      <td className="px-4 py-3.5">
-                        <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                          {booking.spot.level}-{booking.spot.number}
-                        </span>
-                      </td>
-
-                      <td className="px-4 py-3.5 text-right">
-                        <ActionDropdown booking={booking} onAction={handleAction} />
+                </thead>
+                <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
+                  {filteredBookings.length === 0 ? (
+                    <tr>
+                      <td
+                        colSpan={7}
+                        className="px-3 py-8 text-center text-xs text-gray-500 dark:text-gray-400"
+                      >
+                        No hay reservas para mostrar
                       </td>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+                  ) : (
+                    filteredBookings.map((booking) => (
+                      <tr
+                        key={booking.id}
+                        onClick={() => handleRowClick(booking.booking_code)}
+                        className="hover:bg-gray-50 dark:hover:bg-[#0d1117] transition-colors cursor-pointer"
+                      >
+                        <td className="px-3 py-2">
+                          <span className="text-xs font-medium text-blue-600 dark:text-blue-400 hover:underline">
+                            {booking.booking_code}
+                          </span>
+                        </td>
+
+                        <td className="px-3 py-2">
+                          <div>
+                            <div className="text-xs font-medium text-gray-900 dark:text-gray-100">
+                              {booking.vehicle?.owner || 'Sin propietario'}
+                            </div>
+                            <div className="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">
+                              {booking.vehicle?.plate || 'Sin matrícula'}
+                            </div>
+                          </div>
+                        </td>
+
+                        <td className="px-3 py-2">
+                          <div className="text-xs text-gray-900 dark:text-gray-100">
+                            {formatDate(booking.schedule.expected_checkin)}
+                          </div>
+                          <div className="text-[10px] text-gray-500 dark:text-gray-400">
+                            {formatTime(booking.schedule.expected_checkin)}
+                          </div>
+                        </td>
+
+                        <td className="px-3 py-2">
+                          <div className="text-xs text-gray-900 dark:text-gray-100">
+                            {formatDate(booking.schedule.expected_checkout)}
+                          </div>
+                          <div className="text-[10px] text-gray-500 dark:text-gray-400">
+                            {formatTime(booking.schedule.expected_checkout)}
+                          </div>
+                        </td>
+
+                        <td className="px-3 py-2">
+                          <StatusBadge status={booking.status} />
+                        </td>
+
+                        <td className="px-3 py-2">
+                          <span className="text-xs font-medium text-gray-900 dark:text-gray-100">
+                            {booking.spot.level}-{booking.spot.number}
+                          </span>
+                        </td>
+
+                        <td className="px-3 py-2 text-right">
+                          <ActionDropdown booking={booking} onAction={handleAction} />
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Cards - Mobile */}
+          <div className="md:hidden space-y-2">
+            {filteredBookings.length === 0 ? (
+              <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-6 text-center">
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  No hay reservas para mostrar
+                </p>
+              </div>
+            ) : (
+              filteredBookings.map((booking) => (
+                <div
+                  key={booking.id}
+                  onClick={() => handleRowClick(booking.booking_code)}
+                  className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-3 hover:shadow-md dark:hover:shadow-gray-900/50 transition-shadow cursor-pointer"
+                >
+                  {/* Header: Código + Estado + Acciones */}
+                  <div className="flex items-start justify-between mb-2">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-semibold text-blue-600 dark:text-blue-400">
+                          {booking.booking_code}
+                        </span>
+                        <StatusBadge status={booking.status} />
+                      </div>
+                      <p className="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">
+                        Plaza {booking.spot.level}-{booking.spot.number}
+                      </p>
+                    </div>
+                    <div onClick={(e) => e.stopPropagation()}>
+                      <ActionDropdown booking={booking} onAction={handleAction} />
+                    </div>
+                  </div>
+
+                  {/* Cliente */}
+                  <div className="mb-2">
+                    <p className="text-xs font-medium text-gray-900 dark:text-gray-100">
+                      {booking.vehicle?.owner || 'Sin propietario'}
+                    </p>
+                    <p className="text-[10px] text-gray-500 dark:text-gray-400">
+                      {booking.vehicle?.model && `${booking.vehicle.model} · `}
+                      {booking.vehicle?.plate || 'Sin matrícula'}
+                    </p>
+                  </div>
+
+                  {/* Fechas */}
+                  <div className="flex items-center justify-between text-[10px]">
+                    <div>
+                      <span className="text-gray-500 dark:text-gray-400">Entrada: </span>
+                      <span className="text-gray-900 dark:text-gray-100">
+                        {formatDate(booking.schedule.expected_checkin)}{' '}
+                        {formatTime(booking.schedule.expected_checkin)}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-gray-500 dark:text-gray-400">Salida: </span>
+                      <span className="text-gray-900 dark:text-gray-100">
+                        {formatDate(booking.schedule.expected_checkout)}{' '}
+                        {formatTime(booking.schedule.expected_checkout)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
       </div>
