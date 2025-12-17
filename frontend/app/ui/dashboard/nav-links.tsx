@@ -70,7 +70,7 @@ export default function NavLinks({ onClose, currentUserRole }: NavLinksProps) {
         href={link.href}
         onClick={onClose}
         className={`
-          flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200
+          flex items-center gap-2 md:gap-3 px-2.5 md:px-3 py-1.5 md:py-2 rounded-lg text-[11px] md:text-sm font-medium transition-all duration-200
           ${
             isActive
               ? 'bg-blue-50 dark:bg-gray-800 text-blue-700 dark:text-white border-l-4 border-blue-600 dark:border-blue-400'
@@ -78,7 +78,7 @@ export default function NavLinks({ onClose, currentUserRole }: NavLinksProps) {
           }
         `}
       >
-        <LinkIcon className="w-5 h-5 flex-shrink-0" />
+        <LinkIcon className="w-4 h-4 md:w-5 md:h-5 flex-shrink-0" />
         <span>{link.name}</span>
       </Link>
     )
@@ -125,7 +125,7 @@ export default function NavLinks({ onClose, currentUserRole }: NavLinksProps) {
           <button
             onClick={() => setIsCashierOpen(!isCashierOpen)}
             className={`
-              w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200
+              w-full flex items-center gap-2 md:gap-3 px-2.5 md:px-3 py-1.5 md:py-2 rounded-lg text-[11px] md:text-sm font-medium transition-all duration-200
               ${
                 isCashierActive
                   ? 'bg-blue-50 dark:bg-gray-800 text-blue-700 dark:text-white border-l-4 border-blue-600 dark:border-blue-400'
@@ -133,7 +133,7 @@ export default function NavLinks({ onClose, currentUserRole }: NavLinksProps) {
               }
             `}
           >
-            <MdPointOfSale className="w-5 h-5 flex-shrink-0" />
+            <MdPointOfSale className="w-4 h-4 md:w-5 md:h-5 flex-shrink-0" />
             <span className="flex-1 text-left">Cashier</span>
             {isCashierOpen ? (
               <ChevronDownIcon className="w-4 h-4 flex-shrink-0 transition-transform duration-200" />
@@ -159,7 +159,7 @@ export default function NavLinks({ onClose, currentUserRole }: NavLinksProps) {
                     href={subLink.href}
                     onClick={onClose}
                     className={`
-                      block px-3 py-2 rounded-md text-sm transition-all duration-200
+                      block px-2.5 md:px-3 py-1 md:py-2 rounded-md text-[11px] md:text-sm transition-all duration-200
                       ${
                         isSubActive
                           ? 'bg-blue-100 dark:bg-gray-700 text-blue-700 dark:text-blue-300 font-medium'

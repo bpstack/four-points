@@ -162,7 +162,7 @@ export default function ParkingDashboard() {
 
   return (
     <div className="min-h-screen bg-white dark:bg-[#010409] p-4 md:p-6">
-      <div className="max-w-[1600px] mx-auto space-y-5">
+      <div className="max-w-[1600px] space-y-5">
         {/* Header */}
         <div className="mb-6">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">

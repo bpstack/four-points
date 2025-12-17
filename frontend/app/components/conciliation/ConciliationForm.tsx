@@ -404,7 +404,7 @@ export default function ConciliationForm({
   const isReadOnly = conciliation.status === 'closed'
 
   return (
-    <div className="max-w-[1280px] mx-auto space-y-6 relative">
+    <div className="space-y-6 relative">
       {/* Popovers */}
       {roomPopover && (
         <RoomPopover
@@ -426,13 +426,6 @@ export default function ConciliationForm({
         />
       )}
 
-      {/* Totales */}
-      <TotalsCards
-        totalReception={totals.totalReception}
-        totalHousekeeping={totals.totalHousekeeping}
-        difference={totals.difference}
-      />
-
       {/* Botones de accion */}
       <ActionButtons
         status={conciliation.status}
@@ -443,10 +436,19 @@ export default function ConciliationForm({
         onClose={handleClose}
       />
 
-      {/* Grid principal */}
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 xl:items-start">
-        {/* Columna izquierda */}
-        <div className="xl:col-span-2 space-y-6">
+      {/* Totales - Mobile/Tablet (hidden on >= 1400px) */}
+      <div className="min-[1400px]:hidden">
+        <TotalsCards
+          totalReception={totals.totalReception}
+          totalHousekeeping={totals.totalHousekeeping}
+          difference={totals.difference}
+        />
+      </div>
+
+      {/* Main Grid Layout */}
+      <div className="grid grid-cols-1 min-[1400px]:grid-cols-4 gap-6">
+        {/* Left Column - Main Content */}
+        <div className="min-[1400px]:col-span-3 space-y-6">
           <ConciliationTable
             title="Recepcion"
             reasons={RECEPTION_REASONS_ORDERED}
@@ -488,13 +490,32 @@ export default function ConciliationForm({
           />
         </div>
 
-        {/* Columna derecha */}
-        <div className="xl:col-span-1">
-          <DaySummary
-            conciliation={conciliation}
-            baseRooms={receptionForm['base_rooms']?.value || 0}
-          />
+        {/* Right Column - Totals & Summary */}
+        <div className="hidden min-[1400px]:block space-y-4">
+          <div className="sticky top-4 space-y-4">
+            {/* Totals Cards - Desktop */}
+            <TotalsCards
+              totalReception={totals.totalReception}
+              totalHousekeeping={totals.totalHousekeeping}
+              difference={totals.difference}
+              layout="vertical"
+            />
+
+            {/* Day Summary */}
+            <DaySummary
+              conciliation={conciliation}
+              baseRooms={receptionForm['base_rooms']?.value || 0}
+            />
+          </div>
         </div>
+      </div>
+
+      {/* Day Summary - Mobile/Tablet (shown below main content) */}
+      <div className="min-[1400px]:hidden">
+        <DaySummary
+          conciliation={conciliation}
+          baseRooms={receptionForm['base_rooms']?.value || 0}
+        />
       </div>
     </div>
   )

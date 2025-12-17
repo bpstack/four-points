@@ -2,7 +2,7 @@
 
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { parkingApi } from '@/app/lib/parking'
 import { toast } from 'react-hot-toast'
 import type {
@@ -49,8 +49,8 @@ export function useParkingStatus(selectedDate: string) {
 
   const [actionLoading, setActionLoading] = useState(false)
 
-  // Cargar datos del parking
-  const loadParkingData = async () => {
+  // Cargar datos del parking - memoizado para evitar loops
+  const loadParkingData = useCallback(async () => {
     setLoading(true)
     setError(null)
 
@@ -133,7 +133,7 @@ export function useParkingStatus(selectedDate: string) {
     } finally {
       setLoading(false)
     }
-  }
+  }, [selectedDate])
 
   // Check-in
   const handleCheckIn = async (booking: ParkingBooking) => {
@@ -247,7 +247,7 @@ export function useParkingStatus(selectedDate: string) {
   // Cargar datos cuando cambia la fecha
   useEffect(() => {
     loadParkingData()
-  }, [selectedDate])
+  }, [loadParkingData])
 
   return {
     // Data

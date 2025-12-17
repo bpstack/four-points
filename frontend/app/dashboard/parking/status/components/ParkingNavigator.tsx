@@ -5,7 +5,7 @@
 // app/dashboard/parking/status/components/ParkingNavigator.tsx
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { FiChevronLeft, FiChevronRight, FiCalendar, FiPlus } from 'react-icons/fi'
 import { MdLocalParking } from 'react-icons/md'
@@ -26,27 +26,41 @@ export default function ParkingNavigator() {
   const [currentDate, setCurrentDate] = useState<Date | null>(null)
   const [selectedDay, setSelectedDay] = useState<number | null>(null)
   const [isClient, setIsClient] = useState(false)
+  const isInitialMount = useRef(true)
 
   const selectedLevel = searchParams?.get('level') || 'all'
 
   // Inicialización del cliente
   useEffect(() => {
     setIsClient(true)
-    const today = new Date()
-    setCurrentDate(today)
-    setSelectedDay(today.getDate())
-  }, [])
+    const dateFromUrl = searchParams?.get('date')
+    if (dateFromUrl) {
+      const [year, month, day] = dateFromUrl.split('-').map(Number)
+      setCurrentDate(new Date(year, month - 1, day))
+      setSelectedDay(day)
+    } else {
+      const today = new Date()
+      setCurrentDate(today)
+      setSelectedDay(today.getDate())
+    }
+  }, []) // Solo ejecutar una vez al montar
 
-  // Actualizar URL cuando cambia la fecha o día seleccionado
+  // Actualizar URL cuando cambia la fecha o día seleccionado (pero no en el primer render)
   useEffect(() => {
     if (!isClient || !currentDate || selectedDay === null) return
+    
+    // Saltar la primera ejecución para evitar push innecesario
+    if (isInitialMount.current) {
+      isInitialMount.current = false
+      return
+    }
 
     const dateStr = getLocalDateString(
       new Date(currentDate.getFullYear(), currentDate.getMonth(), selectedDay)
     )
     const currentLevel = searchParams?.get('level') || 'all'
     router.push(`?date=${dateStr}&level=${currentLevel}`, { scroll: false })
-  }, [currentDate, selectedDay, isClient, router, searchParams])
+  }, [currentDate, selectedDay]) // Solo depender de currentDate y selectedDay
 
   if (!isClient || !currentDate || selectedDay === null) {
     return (

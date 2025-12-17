@@ -19,6 +19,7 @@ import notificationRoutes from './routes/notifications/notifications-routes.js'
 import cashierRoutes from './routes/cashier/cashier-routes.js'
 import blacklistRoutes from './routes/blacklist/blacklist-routes.js'
 import maintenanceRoutes from './routes/maintenance/maintenance-routes.js'
+import activityRoutes from './routes/activity/activity-routes.js'
 
 // ============================================
 // EXPRESS APP
@@ -128,6 +129,9 @@ app.use('/api/blacklist', blacklistRoutes)
 
 // Rutas de maintenance
 app.use('/api/maintenance', maintenanceRoutes)
+
+// Rutas de actividad (dashboard)
+app.use('/api/activity', activityRoutes)
 
 // ========================================
 // MANEJO DE ERRORES

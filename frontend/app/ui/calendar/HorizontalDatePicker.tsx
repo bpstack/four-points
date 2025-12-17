@@ -20,7 +20,7 @@ export interface HorizontalDatePickerProps {
   className?: string
   /** Size variant */
   size?: 'sm' | 'md'
-  /** Number of days to show on mobile (default: 7) */
+  /** Number of days to show on mobile (default: 5) */
   mobileDaysVisible?: number
 }
 
@@ -31,7 +31,7 @@ export default function HorizontalDatePicker({
   locale = 'es-ES',
   className = '',
   size = 'md',
-  mobileDaysVisible = 7,
+  mobileDaysVisible = 5,
 }: HorizontalDatePickerProps) {
   const scrollContainerRef = useRef<HTMLDivElement>(null)
   const selectedDayRef = useRef<HTMLButtonElement>(null)
@@ -123,16 +123,16 @@ export default function HorizontalDatePicker({
   // Size classes
   const sizeClasses = {
     sm: {
-      container: 'gap-1 px-2 py-2 md:px-3 md:py-2',
-      button: 'w-10 h-10 md:w-11 md:h-11',
-      weekday: 'text-[8px] md:text-[9px]',
-      day: 'text-xs md:text-sm',
+      container: 'gap-0.5 px-1 py-2 md:gap-1 md:px-3 md:py-2',
+      button: 'w-9 h-10 md:w-9 md:h-10',
+      weekday: 'text-[7px] md:text-[8px]',
+      day: 'text-[11px] md:text-xs',
     },
     md: {
-      container: 'gap-1.5 md:gap-2 px-3 py-3 md:px-4 md:py-3',
-      button: 'w-11 h-11 md:w-12 md:h-12',
-      weekday: 'text-[9px] md:text-[10px]',
-      day: 'text-sm md:text-base',
+      container: 'gap-0.5 px-1 py-2 md:gap-1.5 md:px-3 md:py-2',
+      button: 'w-10 h-11 md:w-10 md:h-11',
+      weekday: 'text-[8px] md:text-[9px]',
+      day: 'text-xs md:text-sm',
     },
   }
 
@@ -148,14 +148,14 @@ export default function HorizontalDatePicker({
           <button
             onClick={() => navigateDays('back')}
             disabled={!canGoBack}
-            className={`flex-shrink-0 p-1.5 rounded-lg transition-colors ${
+            className={`flex-shrink-0 p-1 rounded-lg transition-colors ${
               canGoBack
                 ? 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
                 : 'text-gray-300 dark:text-gray-700 cursor-not-allowed'
             }`}
             aria-label="Días anteriores"
           >
-            <FiChevronLeft className="w-5 h-5" />
+            <FiChevronLeft className="w-4 h-4" />
           </button>
         )}
 
@@ -203,14 +203,14 @@ export default function HorizontalDatePicker({
           <button
             onClick={() => navigateDays('forward')}
             disabled={!canGoForward}
-            className={`flex-shrink-0 p-1.5 rounded-lg transition-colors ${
+            className={`flex-shrink-0 p-1 rounded-lg transition-colors ${
               canGoForward
                 ? 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
                 : 'text-gray-300 dark:text-gray-700 cursor-not-allowed'
             }`}
             aria-label="Días siguientes"
           >
-            <FiChevronRight className="w-5 h-5" />
+            <FiChevronRight className="w-4 h-4" />
           </button>
         )}
       </div>

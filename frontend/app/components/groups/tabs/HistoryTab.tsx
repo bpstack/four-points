@@ -37,11 +37,6 @@ export function HistoryTab() {
     try {
       setIsLoading(true)
       const response = await groupsApi.getHistory(currentGroup.id)
-
-      // ← AÑADIR ESTO
-      console.log('🔍 DEBUG History records:', response.data)
-      console.log('🔍 First record:', response.data?.[0])
-
       setHistory(response.data || [])
     } catch (error) {
       console.error('Error loading history:', error)
@@ -114,7 +109,7 @@ export function HistoryTab() {
       {history.length > 0 && (
         <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
           <p className="text-xs text-blue-800 dark:text-blue-300">
-            📊 <strong>Total de cambios:</strong> {history.length} registros
+            Total de cambios: {history.length} registros
             {filter !== 'all' && ` (${filteredHistory.length} filtrados)`}
           </p>
         </div>

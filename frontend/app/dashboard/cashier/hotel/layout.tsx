@@ -70,7 +70,7 @@ export default function CashierLayout({ children }: { children: ReactNode }) {
       />
 
       {/* Contenido dinámico */}
-      <div className="max-w-[1280px] mx-auto">{children}</div>
+      <div className="max-w-[1400px] px-4 md:px-6">{children}</div>
     </div>
   )
 }

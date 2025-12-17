@@ -78,8 +78,8 @@ export const SimpleThemeButton = () => {
 
   if (!mounted) {
     return (
-      <button className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 p-2">
-        <div className="w-5 h-5"></div>
+      <button className="flex items-center justify-center w-7 h-7 md:w-10 md:h-10 p-1 md:p-2">
+        <div className="w-4 h-4 md:w-5 md:h-5"></div>
       </button>
     )
   }
@@ -89,9 +89,9 @@ export const SimpleThemeButton = () => {
   return (
     <button
       onClick={() => setTheme(isDark ? 'light' : 'dark')}
-      className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-yellow-400 p-2 transition-transform duration-300 hover:scale-110"
+      className="flex items-center justify-center w-7 h-7 md:w-10 md:h-10 text-gray-600 dark:text-yellow-400 p-1 md:p-2 transition-transform duration-300 hover:scale-110"
     >
-      {isDark ? <FiSun className="w-5 h-5" /> : <FiMoon className="w-5 h-5" />}
+      {isDark ? <FiSun className="w-4 h-4 md:w-5 md:h-5" /> : <FiMoon className="w-4 h-4 md:w-5 md:h-5" />}
     </button>
   )
 }

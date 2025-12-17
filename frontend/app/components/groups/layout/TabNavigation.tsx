@@ -42,8 +42,8 @@ export function TabNavigation(_props: TabNavigationProps) {
   }
 
   return (
-    <div className="border-b border-gray-200 dark:border-gray-800">
-      <nav className="-mb-px flex space-x-4 px-4 sm:px-6 overflow-x-auto">
+    <div className="border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-[#010409]">
+      <nav className="max-w-[1400px] -mb-px flex space-x-4 px-4 md:px-6 overflow-x-auto">
         {tabs.map((tab) => {
           const isActive = activeTab === tab.id
 

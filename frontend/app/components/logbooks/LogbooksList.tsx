@@ -539,7 +539,7 @@ export default function LogbooksList({
   // =============================================
 
   return (
-    <div className="max-w-[1280px] mx-auto space-y-3">
+    <div className="max-w-[1600px] space-y-3">
       {/* Header - Desktop only */}
       {localEntries.length > 0 && (
         <div className="hidden md:block sticky top-[115px] z-20 border border-gray-200 dark:border-gray-800 rounded-lg bg-white dark:bg-[#0d1117] shadow-sm overflow-hidden mb-3">

@@ -97,8 +97,8 @@ export default function ConciliationClient() {
   }, [currentDate, currentYear, selectedDay, loadConciliation])
 
   return (
-    <div className="space-y-6">
-      {/* Header sticky principal */}
+    <div className="min-h-screen bg-white dark:bg-[#010409]">
+      {/* Header sticky principal - Full width */}
       <div className="sticky top-0 z-30 bg-white dark:bg-[#010409] shadow-sm">
         <div className="px-3 py-2 md:px-4 md:py-3 border-b border-gray-200 dark:border-gray-800">
           {/* Desktop */}
@@ -197,7 +197,7 @@ export default function ConciliationClient() {
         </div>
       </div>
 
-      {/* Calendario de dias */}
+      {/* Calendario de dias - Full width */}
       <div className="sticky top-[64px] z-30">
         <HorizontalDatePicker
           currentDate={currentDate}
@@ -207,13 +207,17 @@ export default function ConciliationClient() {
         />
       </div>
 
-      {/* Formulario */}
-      <ConciliationForm
-        conciliation={selectedConciliation}
-        loading={loading}
-        dayStatusMessage={dayStatusMessage}
-        onUpdate={() => loadConciliation(currentYear, currentDate.getMonth() + 1, selectedDay)}
-      />
+      {/* Formulario - Constrained width */}
+      <div className="p-4 md:p-6">
+        <div className="max-w-[1400px]">
+          <ConciliationForm
+            conciliation={selectedConciliation}
+            loading={loading}
+            dayStatusMessage={dayStatusMessage}
+            onUpdate={() => loadConciliation(currentYear, currentDate.getMonth() + 1, selectedDay)}
+          />
+        </div>
+      </div>
     </div>
   )
 }

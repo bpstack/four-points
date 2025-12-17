@@ -4,51 +4,99 @@ interface TotalsCardsProps {
   totalReception: number
   totalHousekeeping: number
   difference: number
+  layout?: 'horizontal' | 'vertical'
 }
 
 export default function TotalsCards({
   totalReception,
   totalHousekeeping,
   difference,
+  layout = 'horizontal',
 }: TotalsCardsProps) {
+  const isVertical = layout === 'vertical'
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-      <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-        <div className="text-sm text-blue-600 dark:text-blue-400 font-medium">Recepcion</div>
-        <div className="text-2xl font-bold text-blue-700 dark:text-blue-300 mt-1">
-          {totalReception}
+    <div className={isVertical ? 'space-y-3' : 'grid grid-cols-1 md:grid-cols-3 gap-4'}>
+      {isVertical && (
+        <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Totales</h3>
+      )}
+      <div className="bg-white dark:bg-[#0D1117] border border-[#d0d7de] dark:border-[#30363d] rounded-xl shadow-sm p-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="text-xs text-blue-600 dark:text-blue-400 font-medium">Recepcion</div>
+            <div className="text-xl font-bold text-gray-900 dark:text-gray-100 mt-0.5">
+              {totalReception}
+            </div>
+          </div>
+          <div className="p-2 bg-blue-100 dark:bg-blue-900/20 rounded-lg">
+            <div className="w-5 h-5 flex items-center justify-center text-blue-600 dark:text-blue-400 font-bold text-sm">
+              R
+            </div>
+          </div>
         </div>
       </div>
-      <div className="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg p-4">
-        <div className="text-sm text-purple-600 dark:text-purple-400 font-medium">Housekeeping</div>
-        <div className="text-2xl font-bold text-purple-700 dark:text-purple-300 mt-1">
-          {totalHousekeeping}
+      <div className="bg-white dark:bg-[#0D1117] border border-[#d0d7de] dark:border-[#30363d] rounded-xl shadow-sm p-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="text-xs text-purple-600 dark:text-purple-400 font-medium">
+              Housekeeping
+            </div>
+            <div className="text-xl font-bold text-gray-900 dark:text-gray-100 mt-0.5">
+              {totalHousekeeping}
+            </div>
+          </div>
+          <div className="p-2 bg-purple-100 dark:bg-purple-900/20 rounded-lg">
+            <div className="w-5 h-5 flex items-center justify-center text-purple-600 dark:text-purple-400 font-bold text-sm">
+              H
+            </div>
+          </div>
         </div>
       </div>
       <div
-        className={`border rounded-lg p-4 ${
+        className={`bg-white dark:bg-[#0D1117] border rounded-xl shadow-sm p-4 ${
           difference === 0
-            ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800'
-            : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'
+            ? 'border-green-300 dark:border-green-800'
+            : 'border-red-300 dark:border-red-800'
         }`}
       >
-        <div
-          className={`text-sm font-medium ${
-            difference === 0
-              ? 'text-green-600 dark:text-green-400'
-              : 'text-red-600 dark:text-red-400'
-          }`}
-        >
-          Descuadre
-        </div>
-        <div
-          className={`text-2xl font-bold mt-1 ${
-            difference === 0
-              ? 'text-green-700 dark:text-green-300'
-              : 'text-red-700 dark:text-red-300'
-          }`}
-        >
-          {difference}
+        <div className="flex items-center justify-between">
+          <div>
+            <div
+              className={`text-xs font-medium ${
+                difference === 0
+                  ? 'text-green-600 dark:text-green-400'
+                  : 'text-red-600 dark:text-red-400'
+              }`}
+            >
+              Descuadre
+            </div>
+            <div
+              className={`text-xl font-bold mt-0.5 ${
+                difference === 0
+                  ? 'text-green-700 dark:text-green-300'
+                  : 'text-red-700 dark:text-red-300'
+              }`}
+            >
+              {difference}
+            </div>
+          </div>
+          <div
+            className={`p-2 rounded-lg ${
+              difference === 0
+                ? 'bg-green-100 dark:bg-green-900/20'
+                : 'bg-red-100 dark:bg-red-900/20'
+            }`}
+          >
+            <div
+              className={`w-5 h-5 flex items-center justify-center font-bold text-sm ${
+                difference === 0
+                  ? 'text-green-600 dark:text-green-400'
+                  : 'text-red-600 dark:text-red-400'
+              }`}
+            >
+              {difference === 0 ? '✓' : '!'}
+            </div>
+          </div>
         </div>
       </div>
     </div>

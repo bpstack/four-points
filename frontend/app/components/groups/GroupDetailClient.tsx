@@ -18,6 +18,7 @@ import { useGroupStore } from '@/app/stores/useGroupStore'
 import { GroupWithDetails } from '@/app/lib/groups'
 import { GroupHeader } from './layout/GroupHeader'
 import { TabNavigation } from './layout/TabNavigation'
+import { GroupDetailSummaryPanel } from './layout/GroupDetailSummaryPanel'
 import { OverviewTab } from './tabs/OverviewTab'
 import { PaymentsTab } from './tabs/PaymentsTab'
 import { ContactsTab } from './tabs/ContactsTab'
@@ -27,7 +28,7 @@ import { HistoryTab } from './tabs/HistoryTab'
 import { PaymentPanel } from './panels/PaymentPanel'
 import { ContactPanel } from './panels/ContactPanel'
 import { RoomPanel } from './panels/RoomPanel'
-import { EditGroupPanel } from './panels/EditGroupPanel' // ← NUEVO IMPORT
+import { EditGroupPanel } from './panels/EditGroupPanel'
 import { LoadingSpinner } from './shared/LoadingSpinner'
 
 interface GroupDetailClientProps {
@@ -50,7 +51,7 @@ export function GroupDetailClient({ initialGroup }: GroupDetailClientProps) {
     setActiveTab,
     setHighlight,
     refreshGroup,
-    refreshStatus, // ← Usar esto para refrescar después de editar
+    refreshStatus,
   } = useGroupStore()
 
   // Inicializar grupo en el store
@@ -72,29 +73,16 @@ export function GroupDetailClient({ initialGroup }: GroupDetailClientProps) {
     }
   }, [highlightId, setHighlight])
 
-  const handleEdit = () => {
-    // ✅ CAMBIO: Abrir panel de edición
-    const params = new URLSearchParams(searchParams.toString())
-    params.set('panel', 'edit-group')
-    router.push(`?${params.toString()}`, { scroll: false })
-  }
-
-  const handleDelete = () => {
-    // TODO: Abrir modal de confirmación
-    console.log('Delete group:', currentGroup?.id)
-  }
-
   const handleClosePanel = () => {
     const params = new URLSearchParams(searchParams.toString())
     params.delete('panel')
     router.push(`?${params.toString()}`, { scroll: false })
   }
 
-  // ✅ NUEVO: Refrescar grupo después de editar
   const handleEditSuccess = async () => {
     if (currentGroup) {
       await refreshGroup(currentGroup.id)
-      await refreshStatus(currentGroup.id) // ← Esto debe estar
+      await refreshStatus(currentGroup.id)
     }
   }
 
@@ -125,7 +113,7 @@ export function GroupDetailClient({ initialGroup }: GroupDetailClientProps) {
     : null
   const editingRoom = editingRoomId ? rooms.find((r) => r.id === editingRoomId) : undefined
 
-  // ✅ NUEVO: Edit Group Panel Logic
+  // Edit Group Panel Logic
   const isEditGroupPanelOpen = panel === 'edit-group'
 
   if (!currentGroup) {
@@ -137,18 +125,29 @@ export function GroupDetailClient({ initialGroup }: GroupDetailClientProps) {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-[#010409]">
-      <GroupHeader group={currentGroup} onEdit={handleEdit} onDelete={handleDelete} />
+    <div className="min-h-screen bg-white dark:bg-[#010409]">
+      <GroupHeader group={currentGroup} />
 
       <TabNavigation groupId={currentGroup.id} />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
-        {activeTab === 'overview' && <OverviewTab />}
-        {activeTab === 'payments' && <PaymentsTab />}
-        {activeTab === 'contacts' && <ContactsTab />}
-        {activeTab === 'rooms' && <RoomsTab />}
-        {activeTab === 'status' && <StatusTab />}
-        {activeTab === 'history' && <HistoryTab />}
+      <div className="max-w-[1400px] px-4 md:px-6 py-6">
+        {/* Main Grid Layout */}
+        <div className="grid grid-cols-1 min-[1400px]:grid-cols-4 gap-6">
+          {/* Left Column - Main Content (Tabs) */}
+          <div className="min-[1400px]:col-span-3">
+            {activeTab === 'overview' && <OverviewTab />}
+            {activeTab === 'payments' && <PaymentsTab />}
+            {activeTab === 'contacts' && <ContactsTab />}
+            {activeTab === 'rooms' && <RoomsTab />}
+            {activeTab === 'status' && <StatusTab />}
+            {activeTab === 'history' && <HistoryTab />}
+          </div>
+
+          {/* Right Column - Summary Panel (visible on >= 1400px) */}
+          <div className="hidden min-[1400px]:block">
+            <GroupDetailSummaryPanel />
+          </div>
+        </div>
       </div>
 
       {/* Payment Panel */}
@@ -176,7 +175,7 @@ export function GroupDetailClient({ initialGroup }: GroupDetailClientProps) {
         groupId={currentGroup.id}
       />
 
-      {/* ✅ NUEVO: Edit Group Panel */}
+      {/* Edit Group Panel */}
       <EditGroupPanel
         isOpen={isEditGroupPanelOpen}
         onClose={handleClosePanel}

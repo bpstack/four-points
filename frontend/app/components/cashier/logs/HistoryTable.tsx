@@ -52,22 +52,22 @@ export default function HistoryTable({
       voucher_created: {
         bg: 'bg-yellow-100 dark:bg-yellow-900/30',
         text: 'text-yellow-700 dark:text-yellow-400',
-        label: 'Vale Creado',
+        label: 'Vale',
       },
       voucher_repaid: {
         bg: 'bg-teal-100 dark:bg-teal-900/30',
         text: 'text-teal-700 dark:text-teal-400',
-        label: 'Vale Justificado',
+        label: 'Justificado',
       },
       daily_closed: {
         bg: 'bg-indigo-100 dark:bg-indigo-900/30',
         text: 'text-indigo-700 dark:text-indigo-400',
-        label: 'Día Cerrado',
+        label: 'Cerrado',
       },
       daily_reopened: {
         bg: 'bg-pink-100 dark:bg-pink-900/30',
         text: 'text-pink-700 dark:text-pink-400',
-        label: 'Día Reabierto',
+        label: 'Reabierto',
       },
     }
 
@@ -79,7 +79,7 @@ export default function HistoryTable({
 
     return (
       <span
-        className={`inline-flex px-2 py-0.5 text-xs font-medium rounded ${badge.bg} ${badge.text}`}
+        className={`inline-flex px-1.5 py-0.5 text-[10px] font-medium rounded ${badge.bg} ${badge.text}`}
       >
         {badge.label}
       </span>
@@ -99,11 +99,11 @@ export default function HistoryTable({
 
   if (isLoading) {
     return (
-      <div className="bg-white dark:bg-[#0d1117] border border-gray-200 dark:border-gray-800 rounded-lg p-12">
+      <div className="bg-white dark:bg-[#151b23] border border-gray-200 dark:border-gray-800 rounded-md p-8">
         <div className="flex items-center justify-center">
           <div className="text-center">
-            <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-            <p className="text-sm text-gray-500 dark:text-gray-400">Cargando historial...</p>
+            <div className="inline-block h-8 w-8 animate-spin rounded-full border-[3px] border-solid border-blue-600 dark:border-blue-500 border-r-transparent"></div>
+            <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">Cargando historial...</p>
           </div>
         </div>
       </div>
@@ -112,48 +112,41 @@ export default function HistoryTable({
 
   if (!logs || logs.length === 0) {
     return (
-      <div className="bg-white dark:bg-[#0d1117] border border-gray-200 dark:border-gray-800 rounded-lg p-12">
+      <div className="bg-white dark:bg-[#151b23] border border-gray-200 dark:border-gray-800 rounded-md p-8">
         <div className="text-center">
-          <FiAlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-          <p className="text-gray-600 dark:text-gray-400">No se encontraron registros</p>
+          <FiAlertCircle className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+          <p className="text-xs text-gray-600 dark:text-gray-400">No se encontraron registros</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="bg-white dark:bg-[#0d1117] border border-gray-200 dark:border-gray-800 rounded-lg overflow-hidden">
-      {/* Header */}
-      <div className="p-4 border-b border-gray-200 dark:border-gray-800">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-          📋 Registro de Cambios
-        </h3>
-      </div>
-
+    <div className="bg-white dark:bg-[#151b23] border border-gray-200 dark:border-gray-800 rounded-md shadow-sm overflow-hidden">
       {/* Tabla */}
       <div className="overflow-x-auto">
         <table className="w-full">
-          <thead className="bg-gray-50 dark:bg-gray-800/50">
+          <thead className="bg-gray-50 dark:bg-[#0d1117] border-b border-gray-200 dark:border-gray-800">
             <tr>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+              <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                 Fecha/Hora
               </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+              <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                 Acción
               </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+              <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                 Turno
               </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+              <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                 Usuario
               </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+              <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                 Campo
               </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+              <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                 Cambio
               </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+              <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                 Notas
               </th>
             </tr>
@@ -162,82 +155,81 @@ export default function HistoryTable({
             {logs.map((log) => (
               <tr
                 key={log.id}
-                className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
+                className="hover:bg-gray-50 dark:hover:bg-[#0d1117] transition-colors"
               >
                 {/* Fecha/Hora */}
-                <td className="px-4 py-3 text-sm text-gray-900 dark:text-white whitespace-nowrap">
+                <td className="px-3 py-2 text-xs text-gray-900 dark:text-white whitespace-nowrap">
                   <div>
-                    <div className="font-medium">
+                    <div className="font-medium text-[11px]">
                       {new Date(log.changed_at).toLocaleDateString('es-ES', {
                         day: '2-digit',
                         month: '2-digit',
                         year: 'numeric',
                       })}
                     </div>
-                    <div className="text-xs text-gray-500 dark:text-gray-400">
+                    <div className="text-[10px] text-gray-500 dark:text-gray-400">
                       {new Date(log.changed_at).toLocaleTimeString('es-ES', {
                         hour: '2-digit',
                         minute: '2-digit',
-                        second: '2-digit',
                       })}
                     </div>
                   </div>
                 </td>
 
                 {/* Acción */}
-                <td className="px-4 py-3 text-sm">{getActionBadge(log.action)}</td>
+                <td className="px-3 py-2">{getActionBadge(log.action)}</td>
 
                 {/* Turno */}
-                <td className="px-4 py-3 text-sm text-gray-900 dark:text-white">
+                <td className="px-3 py-2 text-xs text-gray-900 dark:text-white">
                   {log.shift_date && log.shift_type ? (
                     <div>
-                      <div className="font-medium">
+                      <div className="text-[11px] font-medium">
                         {new Date(log.shift_date).toLocaleDateString('es-ES', {
                           day: '2-digit',
                           month: '2-digit',
                         })}
                       </div>
-                      <div className="text-xs text-gray-500 dark:text-gray-400">
+                      <div className="text-[10px] text-gray-500 dark:text-gray-400">
                         {formatShiftType(log.shift_type)}
                       </div>
                     </div>
                   ) : (
-                    <span className="text-gray-400">-</span>
+                    <span className="text-gray-400 text-[10px]">-</span>
                   )}
                 </td>
 
                 {/* Usuario */}
-                <td className="px-4 py-3 text-sm text-gray-900 dark:text-white">
-                  {log.username || <span className="text-gray-400 italic">Sistema</span>}
+                <td className="px-3 py-2 text-xs text-gray-900 dark:text-white">
+                  {log.username || <span className="text-gray-400 italic text-[10px]">Sistema</span>}
                 </td>
 
                 {/* Campo */}
-                <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">
+                <td className="px-3 py-2 text-[10px] text-gray-600 dark:text-gray-400">
                   {log.field_changed || <span className="text-gray-400">-</span>}
                 </td>
 
                 {/* Cambio */}
-                <td className="px-4 py-3 text-sm">
+                <td className="px-3 py-2">
                   {log.old_value || log.new_value ? (
-                    <div className="max-w-xs">
+                    <div className="max-w-[120px]">
                       {log.old_value && (
-                        <div className="text-red-600 dark:text-red-400 text-xs mb-1">
-                          <span className="font-medium">Antes:</span> {log.old_value}
+                        <div className="text-red-600 dark:text-red-400 text-[10px] truncate">
+                          <span className="font-medium">-</span> {log.old_value}
                         </div>
                       )}
                       {log.new_value && (
-                        <div className="text-green-600 dark:text-green-400 text-xs">
-                          <span className="font-medium">Después:</span> {log.new_value}
+                        <div className="text-green-600 dark:text-green-400 text-[10px] truncate">
+                          <span className="font-medium">+</span> {log.new_value}
                         </div>
                       )}
                     </div>
                   ) : (
-                    <span className="text-gray-400">-</span>
+                    <span className="text-gray-400 text-[10px]">-</span>
                   )}
                 </td>
 
                 {/* Notas */}
-                <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400 max-w-xs">
+                <td className="px-3 py-2 text-[10px] text-gray-600 dark:text-gray-400 max-w-[100px]">
                   {log.notes ? (
                     <span className="truncate block" title={log.notes}>
                       {log.notes}
@@ -253,26 +245,26 @@ export default function HistoryTable({
       </div>
 
       {/* Paginación */}
-      <div className="p-4 border-t border-gray-200 dark:border-gray-800 flex items-center justify-between">
-        <div className="text-sm text-gray-600 dark:text-gray-400">
-          Mostrando {offset + 1} - {offset + logs.length} de {offset + logs.length}
+      <div className="px-3 py-2 border-t border-gray-200 dark:border-gray-800 flex items-center justify-between bg-gray-50 dark:bg-[#0d1117]">
+        <div className="text-[10px] text-gray-600 dark:text-gray-400">
+          {offset + 1} - {offset + logs.length}
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5">
           <button
             onClick={onPreviousPage}
             disabled={offset === 0}
-            className="px-3 py-1.5 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+            className="px-2 py-1 text-[10px] border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-0.5"
           >
-            <FiChevronLeft className="w-4 h-4" />
-            Anterior
+            <FiChevronLeft className="w-3 h-3" />
+            Ant
           </button>
           <button
             onClick={onNextPage}
             disabled={logs.length < limit}
-            className="px-3 py-1.5 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+            className="px-2 py-1 text-[10px] border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-0.5"
           >
-            Siguiente
-            <FiChevronRight className="w-4 h-4" />
+            Sig
+            <FiChevronRight className="w-3 h-3" />
           </button>
         </div>
       </div>

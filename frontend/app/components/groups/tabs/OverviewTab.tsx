@@ -3,12 +3,15 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useGroupStore } from '@/app/stores/useGroupStore'
 import { formatCurrency, formatDate } from '@/app/lib/helpers/utils'
-import { FiFileText, FiCheckCircle, FiClock, FiDollarSign, FiBell } from 'react-icons/fi'
+import { FiFileText, FiCheckCircle, FiClock, FiDollarSign, FiBell, FiEdit } from 'react-icons/fi'
 import { NotificationModal } from '../modal/NotificationModal'
 
 export function OverviewTab() {
+  const router = useRouter()
+  const searchParams = useSearchParams()
   const { currentGroup, payments, refreshPayments } = useGroupStore()
   const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false)
 
@@ -49,25 +52,41 @@ export function OverviewTab() {
     })
   }, [payments, currentGroup])
 
+  const handleEditGroup = () => {
+    const params = new URLSearchParams(searchParams.toString())
+    params.set('panel', 'edit-group')
+    router.push(`?${params.toString()}`, { scroll: false })
+  }
+
   if (!currentGroup) return null
 
   return (
     <div className="space-y-6">
       {/* Info Card */}
       <div className="bg-white dark:bg-[#0D1117] rounded-lg border border-gray-200 dark:border-gray-800 p-4 sm:p-6">
-        {/* Header con botón discreto */}
+        {/* Header con botones */}
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">
             Información General
           </h2>
-          <button
-            onClick={() => setIsNotificationModalOpen(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-[#21262d] hover:bg-gray-200 dark:hover:bg-[#30363d] border border-gray-300 dark:border-gray-700 rounded-md transition-colors"
-            title="Crear notificación"
-          >
-            <FiBell className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Notificación</span>
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setIsNotificationModalOpen(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-[#21262d] hover:bg-gray-200 dark:hover:bg-[#30363d] border border-gray-300 dark:border-gray-700 rounded-md transition-colors"
+              title="Crear notificación"
+            >
+              <FiBell className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Notificación</span>
+            </button>
+            <button
+              onClick={handleEditGroup}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-[#21262d] hover:bg-gray-200 dark:hover:bg-[#30363d] border border-gray-300 dark:border-gray-700 rounded-md transition-colors"
+              title="Editar grupo"
+            >
+              <FiEdit className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Editar</span>
+            </button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

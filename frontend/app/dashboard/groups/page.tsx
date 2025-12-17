@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { groupsApi, Group, GroupStatus } from '@/app/lib/groups'
 import { CreateGroupPanel } from '@/app/components/groups/panels/CreateGroupPanel'
-import { FiPlus, FiSearch, FiCalendar, FiDollarSign, FiEye, FiUser } from 'react-icons/fi'
+import { FiPlus, FiSearch, FiCalendar, FiDollarSign, FiEye, FiUsers, FiCheckCircle, FiClock } from 'react-icons/fi'
 
 export default function GroupsPage() {
   const router = useRouter()
@@ -59,7 +59,10 @@ export default function GroupsPage() {
     return matchesSearch
   })
 
-  // Calcular ingresos totales excluyendo cancelados
+  // Stats calculations
+  const totalGroups = groups.length
+  const confirmedGroups = groups.filter((g) => g.status === 'confirmed').length
+  const inProgressGroups = groups.filter((g) => g.status === 'in_progress').length
   const totalRevenue = groups
     .filter((g) => g.status !== 'cancelled')
     .reduce((sum, g) => {
@@ -123,7 +126,7 @@ export default function GroupsPage() {
         <div className="text-center">
           <div className="inline-block h-10 w-10 animate-spin rounded-full border-[3px] border-solid border-blue-600 dark:border-blue-500 border-r-transparent"></div>
           <p className="mt-3 text-xs text-gray-600 dark:text-gray-400">
-            Cargando grupos (AQUI TENGO QUE METER EL SKELETON)...
+            Cargando grupos...
           </p>
         </div>
       </div>
@@ -132,8 +135,8 @@ export default function GroupsPage() {
 
   return (
     <>
-      <div className="min-h-screen bg-white dark:bg-[#010409]">
-        <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-6">
+      <div className="min-h-screen bg-white dark:bg-[#010409] p-4 md:p-6">
+        <div className="max-w-[1400px] space-y-5">
           {/* Header */}
           <div className="mb-4 sm:mb-6">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -155,247 +158,325 @@ export default function GroupsPage() {
             </div>
           </div>
 
-          {/* Filters */}
-          <div className="mb-4 flex flex-col sm:flex-row gap-2">
-            <div className="relative flex-1">
-              <FiSearch className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 dark:text-gray-500" />
-              <input
-                type="text"
-                placeholder="Buscar por nombre o agencia..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-8 pr-3 py-1.5 text-xs border border-gray-300 dark:border-gray-700 dark:bg-[#151b23] dark:text-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent"
-              />
-            </div>
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value as GroupStatus | 'all')}
-              className="w-full sm:w-auto sm:min-w-[180px] px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent bg-white dark:bg-[#151b23] dark:text-gray-200"
-            >
-              <option value="all">Todos los estados</option>
-              <option value="pending">Pendiente</option>
-              <option value="confirmed">Confirmado</option>
-              <option value="in_progress">En curso</option>
-              <option value="completed">Completado</option>
-              <option value="cancelled">Cancelado</option>
-            </select>
-          </div>
-
-          {/* Stats */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 mb-4">
-            <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-3 hover:shadow-md dark:hover:shadow-gray-900/50 transition-shadow">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 font-medium">
-                    Total Grupos
-                  </p>
-                  <p className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 mt-0.5">
-                    {groups.length}
-                  </p>
+          {/* Main Grid Layout */}
+          <div className="grid grid-cols-1 min-[1400px]:grid-cols-4 gap-5">
+            {/* Left Column - Main Content */}
+            <div className="min-[1400px]:col-span-3 space-y-4">
+              {/* Stats - Mobile/Tablet (hidden on >= 1400px) */}
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 min-[1400px]:hidden">
+                <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-3 hover:shadow-md dark:hover:shadow-gray-900/50 transition-shadow">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 font-medium">
+                        Total Grupos
+                      </p>
+                      <p className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 mt-0.5">
+                        {totalGroups}
+                      </p>
+                    </div>
+                    <FiUsers className="w-5 h-5 sm:w-6 sm:h-6 text-blue-500 dark:text-blue-400" />
+                  </div>
                 </div>
-                <FiUser className="w-5 h-5 sm:w-6 sm:h-6 text-blue-500 dark:text-blue-400" />
-              </div>
-            </div>
 
-            <div className="dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-3 hover:shadow-md dark:hover:shadow-gray-900/50 transition-shadow">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 font-medium">
-                    Confirmados
-                  </p>
-                  <p className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 mt-0.5">
-                    {groups.filter((g) => g.status === 'confirmed').length}
-                  </p>
+                <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-3 hover:shadow-md dark:hover:shadow-gray-900/50 transition-shadow">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 font-medium">
+                        Confirmados
+                      </p>
+                      <p className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 mt-0.5">
+                        {confirmedGroups}
+                      </p>
+                    </div>
+                    <FiCheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-green-500 dark:text-green-400" />
+                  </div>
                 </div>
-                <FiCalendar className="w-5 h-5 sm:w-6 sm:h-6 text-green-500 dark:text-green-400" />
-              </div>
-            </div>
 
-            <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-3 hover:shadow-md dark:hover:shadow-gray-900/50 transition-shadow">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 font-medium">
-                    En Curso
-                  </p>
-                  <p className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 mt-0.5">
-                    {groups.filter((g) => g.status === 'in_progress').length}
-                  </p>
+                <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-3 hover:shadow-md dark:hover:shadow-gray-900/50 transition-shadow">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 font-medium">
+                        En Curso
+                      </p>
+                      <p className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 mt-0.5">
+                        {inProgressGroups}
+                      </p>
+                    </div>
+                    <FiClock className="w-5 h-5 sm:w-6 sm:h-6 text-orange-500 dark:text-orange-400" />
+                  </div>
                 </div>
-                <FiCalendar className="w-5 h-5 sm:w-6 sm:h-6 text-orange-500 dark:text-orange-400" />
-              </div>
-            </div>
 
-            <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-3 hover:shadow-md dark:hover:shadow-gray-900/50 transition-shadow col-span-2 lg:col-span-1">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 font-medium">
-                    Ingresos Totales
-                  </p>
-                  <p className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 mt-0.5">
-                    {formatCurrency(totalRevenue)}
-                  </p>
+                <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-3 hover:shadow-md dark:hover:shadow-gray-900/50 transition-shadow col-span-2 lg:col-span-1">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 font-medium">
+                        Ingresos Totales
+                      </p>
+                      <p className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 mt-0.5">
+                        {formatCurrency(totalRevenue)}
+                      </p>
+                    </div>
+                    <FiDollarSign className="w-5 h-5 sm:w-6 sm:h-6 text-purple-500 dark:text-purple-400" />
+                  </div>
                 </div>
-                <FiDollarSign className="w-5 h-5 sm:w-6 sm:h-6 text-purple-500 dark:text-purple-400" />
               </div>
-            </div>
-          </div>
 
-          {/* Table - Desktop */}
-          <div className="hidden md:block bg-blue-50 dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-50 dark:bg-[#0d1117] border-b border-gray-200 dark:border-gray-800">
-                  <tr>
-                    <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                      Nombre
-                    </th>
-                    <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                      Agencia
-                    </th>
-                    <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                      Llegada
-                    </th>
-                    <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                      Salida
-                    </th>
-                    <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                      Estado
-                    </th>
-                    <th className="px-3 py-2 text-right text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                      Importe
-                    </th>
-                    <th className="px-3 py-2 text-right text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                      Acciones
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
-                  {filteredGroups.length === 0 ? (
-                    <tr>
-                      <td
-                        colSpan={7}
-                        className="px-3 py-8 text-center text-xs text-gray-500 dark:text-gray-400"
+              {/* Filters */}
+              <div className="mb-4 flex flex-col sm:flex-row gap-2">
+                <div className="relative flex-1">
+                  <FiSearch className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 dark:text-gray-500" />
+                  <input
+                    type="text"
+                    placeholder="Buscar por nombre o agencia..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full pl-8 pr-3 py-1.5 text-xs border border-gray-300 dark:border-gray-700 dark:bg-[#151b23] dark:text-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent"
+                  />
+                </div>
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value as GroupStatus | 'all')}
+                  className="w-full sm:w-auto sm:min-w-[180px] px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent bg-white dark:bg-[#151b23] dark:text-gray-200"
+                >
+                  <option value="all">Todos los estados</option>
+                  <option value="pending">Pendiente</option>
+                  <option value="confirmed">Confirmado</option>
+                  <option value="in_progress">En curso</option>
+                  <option value="completed">Completado</option>
+                  <option value="cancelled">Cancelado</option>
+                </select>
+              </div>
+
+              {/* Table - Desktop */}
+              <div className="hidden md:block bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="bg-gray-50 dark:bg-[#0d1117] border-b border-gray-200 dark:border-gray-800">
+                      <tr>
+                        <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                          Nombre
+                        </th>
+                        <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                          Agencia
+                        </th>
+                        <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                          Llegada
+                        </th>
+                        <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                          Salida
+                        </th>
+                        <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                          Estado
+                        </th>
+                        <th className="px-3 py-2 text-right text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                          Importe
+                        </th>
+                        <th className="px-3 py-2 text-right text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                          Acciones
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
+                      {filteredGroups.length === 0 ? (
+                        <tr>
+                          <td
+                            colSpan={7}
+                            className="px-3 py-8 text-center text-xs text-gray-500 dark:text-gray-400"
+                          >
+                            {searchTerm
+                              ? 'No se encontraron grupos con esos criterios'
+                              : 'No hay grupos registrados'}
+                          </td>
+                        </tr>
+                      ) : (
+                        filteredGroups.map((group) => {
+                          const statusConfig = getStatusConfig(group.status)
+                          return (
+                            <tr
+                              key={group.id}
+                              onClick={() => handleViewGroup(group.id)}
+                              className="hover:bg-gray-50 dark:hover:bg-[#0d1117] transition-colors cursor-pointer"
+                            >
+                              <td className="px-3 py-2 text-xs font-medium text-gray-900 dark:text-gray-100">
+                                {group.name}
+                              </td>
+                              <td className="px-3 py-2 text-xs text-gray-600 dark:text-gray-400">
+                                {group.agency || '-'}
+                              </td>
+                              <td className="px-3 py-2 text-xs text-gray-600 dark:text-gray-400">
+                                {formatDate(group.arrival_date)}
+                              </td>
+                              <td className="px-3 py-2 text-xs text-gray-600 dark:text-gray-400">
+                                {formatDate(group.departure_date)}
+                              </td>
+                              <td className="px-3 py-2">
+                                <span
+                                  className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium ${statusConfig.color}`}
+                                >
+                                  {statusConfig.label}
+                                </span>
+                              </td>
+                              <td className="px-3 py-2 text-xs text-right font-medium text-gray-900 dark:text-gray-100">
+                                {formatCurrency(group.total_amount)}
+                              </td>
+                              <td className="px-3 py-2 text-right">
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    handleViewGroup(group.id)
+                                  }}
+                                  className="inline-flex items-center justify-center w-7 h-7 text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors"
+                                >
+                                  <FiEye className="w-3.5 h-3.5" />
+                                </button>
+                              </td>
+                            </tr>
+                          )
+                        })
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Cards - Mobile */}
+              <div className="md:hidden space-y-2">
+                {filteredGroups.length === 0 ? (
+                  <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-6 text-center">
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                      {searchTerm
+                        ? 'No se encontraron grupos con esos criterios'
+                        : 'No hay grupos registrados'}
+                    </p>
+                  </div>
+                ) : (
+                  filteredGroups.map((group) => {
+                    const statusConfig = getStatusConfig(group.status)
+                    return (
+                      <div
+                        key={group.id}
+                        onClick={() => handleViewGroup(group.id)}
+                        className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-3 hover:shadow-md dark:hover:shadow-gray-900/50 transition-shadow cursor-pointer"
                       >
-                        {searchTerm
-                          ? 'No se encontraron grupos con esos criterios'
-                          : 'No hay grupos registrados'}
-                      </td>
-                    </tr>
-                  ) : (
-                    filteredGroups.map((group) => {
-                      const statusConfig = getStatusConfig(group.status)
-                      return (
-                        <tr
-                          key={group.id}
-                          onClick={() => handleViewGroup(group.id)}
-                          className="hover:bg-gray-50 dark:hover:bg-[#0d1117] transition-colors cursor-pointer"
-                        >
-                          <td className="px-3 py-2 text-xs font-medium text-gray-900 dark:text-gray-100">
-                            {group.name}
-                          </td>
-                          <td className="px-3 py-2 text-xs text-gray-600 dark:text-gray-400">
-                            {group.agency || '-'}
-                          </td>
-                          <td className="px-3 py-2 text-xs text-gray-600 dark:text-gray-400">
-                            {formatDate(group.arrival_date)}
-                          </td>
-                          <td className="px-3 py-2 text-xs text-gray-600 dark:text-gray-400">
-                            {formatDate(group.departure_date)}
-                          </td>
-                          <td className="px-3 py-2">
+                        <div className="flex items-start justify-between mb-2">
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-semibold text-xs text-gray-900 dark:text-gray-100 truncate">
+                              {group.name}
+                            </h3>
+                            {group.agency && (
+                              <p className="text-[10px] text-gray-600 dark:text-gray-400 mt-0.5">
+                                {group.agency}
+                              </p>
+                            )}
+                          </div>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handleViewGroup(group.id)
+                            }}
+                            className="ml-2 flex-shrink-0 inline-flex items-center justify-center w-6 h-6 text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors"
+                          >
+                            <FiEye className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+
+                        <div className="space-y-1.5 text-[10px]">
+                          <div className="flex items-center text-gray-600 dark:text-gray-400">
+                            <FiCalendar className="w-3 h-3 mr-1.5 flex-shrink-0" />
+                            <span>
+                              {formatDate(group.arrival_date)} - {formatDate(group.departure_date)}
+                            </span>
+                          </div>
+
+                          <div className="flex items-center justify-between">
                             <span
                               className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium ${statusConfig.color}`}
                             >
                               {statusConfig.label}
                             </span>
-                          </td>
-                          <td className="px-3 py-2 text-xs text-right font-medium text-gray-900 dark:text-gray-100">
-                            {formatCurrency(group.total_amount)}
-                          </td>
-                          <td className="px-3 py-2 text-right">
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                handleViewGroup(group.id)
-                              }}
-                              className="inline-flex items-center justify-center w-7 h-7 text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors"
-                            >
-                              <FiEye className="w-3.5 h-3.5" />
-                            </button>
-                          </td>
-                        </tr>
-                      )
-                    })
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          {/* Cards - Mobile */}
-          <div className="md:hidden space-y-2">
-            {filteredGroups.length === 0 ? (
-              <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-6 text-center">
-                <p className="text-xs text-gray-500 dark:text-gray-400">
-                  {searchTerm
-                    ? 'No se encontraron grupos con esos criterios'
-                    : 'No hay grupos registrados'}
-                </p>
+                            <span className="font-semibold text-xs text-gray-900 dark:text-gray-100">
+                              {formatCurrency(group.total_amount)}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  })
+                )}
               </div>
-            ) : (
-              filteredGroups.map((group) => {
-                const statusConfig = getStatusConfig(group.status)
-                return (
-                  <div
-                    key={group.id}
-                    onClick={() => handleViewGroup(group.id)}
-                    className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-3 hover:shadow-md dark:hover:shadow-gray-900/50 transition-shadow cursor-pointer"
-                  >
-                    <div className="flex items-start justify-between mb-2">
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-xs text-gray-900 dark:text-gray-100 truncate">
-                          {group.name}
-                        </h3>
-                        {group.agency && (
-                          <p className="text-[10px] text-gray-600 dark:text-gray-400 mt-0.5">
-                            {group.agency}
-                          </p>
-                        )}
-                      </div>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          handleViewGroup(group.id)
-                        }}
-                        className="ml-2 flex-shrink-0 inline-flex items-center justify-center w-6 h-6 text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors"
-                      >
-                        <FiEye className="w-3.5 h-3.5" />
-                      </button>
+            </div>
+            {/* End Main Content */}
+
+            {/* Right Column - Stats Sidebar (visible on >= 1400px) */}
+            <div className="hidden min-[1400px]:block space-y-4">
+              <div className="sticky top-4 space-y-3">
+                <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">
+                  Resumen
+                </h3>
+
+                <div className="bg-white dark:bg-[#0D1117] border border-[#d0d7de] dark:border-[#30363d] rounded-xl shadow-sm p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">
+                        Total Grupos
+                      </p>
+                      <p className="text-xl font-bold text-gray-900 dark:text-gray-100 mt-0.5">
+                        {totalGroups}
+                      </p>
                     </div>
-
-                    <div className="space-y-1.5 text-[10px]">
-                      <div className="flex items-center text-gray-600 dark:text-gray-400">
-                        <FiCalendar className="w-3 h-3 mr-1.5 flex-shrink-0" />
-                        <span>
-                          {formatDate(group.arrival_date)} - {formatDate(group.departure_date)}
-                        </span>
-                      </div>
-
-                      <div className="flex items-center justify-between">
-                        <span
-                          className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium ${statusConfig.color}`}
-                        >
-                          {statusConfig.label}
-                        </span>
-                        <span className="font-semibold text-xs text-gray-900 dark:text-gray-100">
-                          {formatCurrency(group.total_amount)}
-                        </span>
-                      </div>
+                    <div className="p-2 bg-blue-100 dark:bg-blue-900/20 rounded-lg">
+                      <FiUsers className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                     </div>
                   </div>
-                )
-              })
-            )}
+                </div>
+
+                <div className="bg-white dark:bg-[#0D1117] border border-[#d0d7de] dark:border-[#30363d] rounded-xl shadow-sm p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">Confirmados</p>
+                      <p className="text-xl font-bold text-gray-900 dark:text-gray-100 mt-0.5">
+                        {confirmedGroups}
+                      </p>
+                    </div>
+                    <div className="p-2 bg-green-100 dark:bg-green-900/20 rounded-lg">
+                      <FiCheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white dark:bg-[#0D1117] border border-[#d0d7de] dark:border-[#30363d] rounded-xl shadow-sm p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">
+                        En Curso
+                      </p>
+                      <p className="text-xl font-bold text-gray-900 dark:text-gray-100 mt-0.5">
+                        {inProgressGroups}
+                      </p>
+                    </div>
+                    <div className="p-2 bg-orange-100 dark:bg-orange-900/20 rounded-lg">
+                      <FiClock className="w-5 h-5 text-orange-600 dark:text-orange-400" />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white dark:bg-[#0D1117] border border-[#d0d7de] dark:border-[#30363d] rounded-xl shadow-sm p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">
+                        Ingresos Totales
+                      </p>
+                      <p className="text-xl font-bold text-gray-900 dark:text-gray-100 mt-0.5">
+                        {formatCurrency(totalRevenue)}
+                      </p>
+                    </div>
+                    <div className="p-2 bg-purple-100 dark:bg-purple-900/20 rounded-lg">
+                      <FiDollarSign className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>

@@ -18,15 +18,17 @@ interface StatusPanelsProps {
   onCheckIn: (booking: ParkingBooking) => void
   onCheckOut: (booking: ParkingBooking) => void
   onOverdueClick: (booking: OverdueBooking) => void
+  layout?: 'horizontal' | 'vertical'
 }
 
 export default function StatusPanels({
   availabilityData,
-  spots = [], // ✅ Default value
-  overdueBookings = [], // ✅ Default value
+  spots = [],
+  overdueBookings = [],
   onCheckIn,
   onCheckOut,
   onOverdueClick,
+  layout = 'vertical',
 }: StatusPanelsProps) {
   const reservedSpots = spots.filter((s) => s.status === 'reserved')
 
@@ -39,6 +41,58 @@ export default function StatusPanels({
     return checkoutDate.getTime() === today.getTime()
   })
 
+  // Layout horizontal: solo mostrar tarjetas de resumen compactas
+  if (layout === 'horizontal') {
+    return (
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {/* Total Plazas */}
+        <div className="bg-white dark:bg-[#0d1117] border border-gray-200 dark:border-[#30363d] rounded-xl p-4">
+          <div className="flex items-center gap-2 mb-1">
+            <MdLocalParking className="w-4 h-4 text-indigo-500" />
+            <span className="text-xs font-medium text-gray-500 dark:text-gray-400">Total</span>
+          </div>
+          <p className="text-2xl font-bold text-gray-900 dark:text-white">
+            {availabilityData?.summary.total_spots || 0}
+          </p>
+        </div>
+
+        {/* Disponibles */}
+        <div className="bg-white dark:bg-[#0d1117] border border-emerald-200 dark:border-emerald-800/30 rounded-xl p-4">
+          <div className="flex items-center gap-2 mb-1">
+            <FiCheckCircle className="w-4 h-4 text-emerald-500" />
+            <span className="text-xs font-medium text-gray-500 dark:text-gray-400">Disponibles</span>
+          </div>
+          <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
+            {availabilityData?.summary.available_spots || 0}
+          </p>
+        </div>
+
+        {/* Check-ins Pendientes */}
+        <div className="bg-white dark:bg-[#0d1117] border border-amber-200 dark:border-amber-800/30 rounded-xl p-4">
+          <div className="flex items-center gap-2 mb-1">
+            <FiCheckCircle className="w-4 h-4 text-amber-500" />
+            <span className="text-xs font-medium text-gray-500 dark:text-gray-400">Pendientes</span>
+          </div>
+          <p className="text-2xl font-bold text-amber-600 dark:text-amber-400">
+            {reservedSpots.length}
+          </p>
+        </div>
+
+        {/* Retrasadas */}
+        <div className="bg-white dark:bg-[#0d1117] border border-orange-200 dark:border-orange-800/30 rounded-xl p-4">
+          <div className="flex items-center gap-2 mb-1">
+            <FiAlertCircle className="w-4 h-4 text-orange-500" />
+            <span className="text-xs font-medium text-gray-500 dark:text-gray-400">Retrasadas</span>
+          </div>
+          <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">
+            {overdueBookings.length}
+          </p>
+        </div>
+      </div>
+    )
+  }
+
+  // Layout vertical: paneles completos con listas
   return (
     <div className="space-y-6">
       {/* Resumen General */}
