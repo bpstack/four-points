@@ -205,10 +205,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             {/* Theme Toggle */}
             <SimpleThemeButton />
 
-            {/* Notifications */}
-            <div className="hidden md:block">
-              <NotificationBell />
-            </div>
+            {/* Notifications - Always visible */}
+            <NotificationBell />
 
             {/* User Avatar - Always visible */}
             <ProfileDropdown />

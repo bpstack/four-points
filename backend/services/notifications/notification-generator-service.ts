@@ -411,18 +411,39 @@ export class NotificationGeneratorService {
       // 3. VERIFICAR ROOMING LISTS PENDIENTES
       // ═══════════════════════════════════════════════════════
 
-      // TODO: Implementar cuando tengas método para obtener rooming lists pendientes
-      // const pendingRoomingLists = await GroupRepository.getRoomingListsPending()
+      for (const days of NOTIFICATION_CONFIG.rooming_list) {
+        const pendingRoomingLists = await GroupRepository.getPendingRoomingLists(days)
+
+        for (const group of pendingRoomingLists) {
+          // Verificar si ya existe notificación para este grupo y días
+          const existingNotification = await this.checkIfRoomingNotificationExists(group.id, days)
+
+          if (!existingNotification) {
+            await this.generateRoomingListReminder(group.id, days)
+            roomingLists++
+            console.log(`📋 Notificación de rooming list creada: ${group.name} (${days} días)`)
+          }
+        }
+      }
 
       // ═══════════════════════════════════════════════════════
       // 4. VERIFICAR LLEGADAS PRÓXIMAS
       // ═══════════════════════════════════════════════════════
 
-      // TODO: Implementar verificación de llegadas próximas
-      // for (const days of NOTIFICATION_CONFIG.arrival) {
-      //   const upcomingArrivals = await GroupRepository.getUpcomingArrivals(days)
-      //   // Generar notificaciones de llegada...
-      // }
+      for (const days of NOTIFICATION_CONFIG.arrival) {
+        const upcomingArrivals = await GroupRepository.getUpcomingArrivals(days)
+
+        for (const group of upcomingArrivals) {
+          // Verificar si ya existe notificación para este grupo y días
+          const existingNotification = await this.checkIfArrivalNotificationExists(group.id, days)
+
+          if (!existingNotification) {
+            await this.generateArrivalReminder(group.id, days)
+            arrivals++
+            console.log(`🛬 Notificación de llegada creada: ${group.name} (${days} días)`)
+          }
+        }
+      }
 
       console.log('✅ Verificación completada:', {
         paymentsUpcoming,
@@ -481,6 +502,62 @@ export class NotificationGeneratorService {
       return exists
     } catch (error) {
       console.error('Error verificando duplicado:', error)
+      return false
+    }
+  }
+
+  /**
+   * Verificar si ya existe notificación de rooming list para un grupo
+   */
+  private static async checkIfRoomingNotificationExists(
+    groupId: number,
+    _daysOffset: number
+  ): Promise<boolean> {
+    try {
+      const notifications = await NotificationRepository.getByGroupId(groupId)
+      const twoDaysAgo = new Date(Date.now() - 48 * 60 * 60 * 1000)
+
+      const exists = notifications.some((n) => {
+        const isRooming = n.related_to === NotificationRelatedTo.ROOMING
+        const isRecent = new Date(n.created_at) > twoDaysAgo
+        return isRooming && isRecent && n.title?.toLowerCase().includes('rooming')
+      })
+
+      if (exists) {
+        console.log(`⏭️  Notificación de rooming duplicada evitada: grupo ${groupId}`)
+      }
+
+      return exists
+    } catch (error) {
+      console.error('Error verificando duplicado de rooming:', error)
+      return false
+    }
+  }
+
+  /**
+   * Verificar si ya existe notificación de llegada para un grupo
+   */
+  private static async checkIfArrivalNotificationExists(
+    groupId: number,
+    daysOffset: number
+  ): Promise<boolean> {
+    try {
+      const notifications = await NotificationRepository.getByGroupId(groupId)
+      const twoDaysAgo = new Date(Date.now() - 48 * 60 * 60 * 1000)
+
+      const exists = notifications.some((n) => {
+        const isArrival = n.related_to === NotificationRelatedTo.ARRIVAL
+        const isRecent = new Date(n.created_at) > twoDaysAgo
+        return isArrival && isRecent && n.title?.includes(`${daysOffset} días`)
+      })
+
+      if (exists) {
+        console.log(`⏭️  Notificación de llegada duplicada evitada: grupo ${groupId}`)
+      }
+
+      return exists
+    } catch (error) {
+      console.error('Error verificando duplicado de llegada:', error)
       return false
     }
   }

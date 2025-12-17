@@ -46,7 +46,7 @@ const cashierLinks = [
 
 const profileLinks = [
   { name: 'Profile', href: '/dashboard/profile', icon: UserIcon },
-  { name: 'Settings', href: '/dashboard/profile/settings', icon: Cog6ToothIcon },
+  { name: 'Settings', href: '/dashboard/profile?panel=settings', icon: Cog6ToothIcon },
 ]
 
 interface NavLinksProps {

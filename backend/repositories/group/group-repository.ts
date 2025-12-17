@@ -309,4 +309,52 @@ export class GroupRepository {
     const [rows] = await db.query<GroupTimeline[]>(query, [year])
     return rows
   }
+
+  // ═══════════════════════════════════════════════════════
+  // MÉTODOS PARA NOTIFICACIONES AUTOMÁTICAS
+  // ═══════════════════════════════════════════════════════
+
+  /**
+   * Obtener grupos con llegada próxima (en X días)
+   * Solo grupos confirmados o en progreso que no estén cancelados
+   */
+  static async getUpcomingArrivals(days: number = 3): Promise<GroupWithDetails[]> {
+    const query = `
+      SELECT 
+        g.*,
+        gs.rooming_status,
+        gs.rooming_received_date,
+        DATEDIFF(g.arrival_date, CURDATE()) as days_until_arrival
+      FROM hotel_groups g
+      LEFT JOIN group_status gs ON g.id = gs.group_id
+      WHERE g.status IN ('confirmed', 'in_progress')
+      AND g.arrival_date = DATE_ADD(CURDATE(), INTERVAL ? DAY)
+      ORDER BY g.arrival_date ASC
+    `
+
+    const [rows] = await db.query<GroupWithDetails[]>(query, [days])
+    return rows
+  }
+
+  /**
+   * Obtener grupos con rooming list pendiente
+   * Grupos confirmados donde rooming_status != 'received' y llegada próxima
+   */
+  static async getPendingRoomingLists(daysBeforeArrival: number = 15): Promise<GroupWithDetails[]> {
+    const query = `
+      SELECT 
+        g.*,
+        gs.rooming_status,
+        DATEDIFF(g.arrival_date, CURDATE()) as days_until_arrival
+      FROM hotel_groups g
+      LEFT JOIN group_status gs ON g.id = gs.group_id
+      WHERE g.status IN ('confirmed', 'in_progress')
+      AND (gs.rooming_status IS NULL OR gs.rooming_status != 'received')
+      AND g.arrival_date BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL ? DAY)
+      ORDER BY g.arrival_date ASC
+    `
+
+    const [rows] = await db.query<GroupWithDetails[]>(query, [daysBeforeArrival])
+    return rows
+  }
 }

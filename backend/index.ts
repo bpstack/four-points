@@ -5,6 +5,7 @@ import cookieParser from 'cookie-parser'
 import cors from 'cors'
 import { PORT } from './config/config.js'
 
+import { CronService } from './services/cron/cron-service.js'
 import authRoutes from './routes/auth/auth-routes.js'
 import userRoutes from './routes/auth/user-routes.js'
 import logbookRoutes from './routes/logbook/logbook-routes.js'
@@ -168,4 +169,7 @@ app.use((err: HttpError, _req: Request, res: Response, _next: NextFunction) => {
 app.listen(PORT, () => {
   console.log(`🚀 Server running at http://localhost:${PORT}`)
   console.log(`📝 Environment: ${process.env.NODE_ENV || 'development'}`)
+
+  // Iniciar cron jobs
+  CronService.start()
 })

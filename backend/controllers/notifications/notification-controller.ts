@@ -117,8 +117,8 @@ export class NotificationController {
     }
   }
 
-  //TODO Futuro (cuando despliegues):
-  // Añadir cron job (node-cron, Vercel Cron, etc.) que llame processPendingNotifications() cada 6/12/24 horas.
+  //  Cron job implementado en services/cron/cron-service.ts
+  // Se ejecuta automáticamente todos los días a las 7:00 AM
 
   /**
    * POST /api/notifications/check-pending
@@ -135,12 +135,20 @@ export class NotificationController {
         })
       }
 
+      const startTime = Date.now()
+
       // Procesar notificaciones programadas + verificar eventos
-      await NotificationGeneratorService.processPendingNotifications()
+      const results = await NotificationGeneratorService.checkAndGenerateNotifications()
+
+      const duration = Date.now() - startTime
 
       return res.status(200).json({
         success: true,
         message: 'Notificaciones verificadas y procesadas correctamente',
+        data: {
+          ...results,
+          duration: `${duration}ms`,
+        },
       })
     } catch (error: any) {
       console.error('Error en checkPendingNotifications:', error)

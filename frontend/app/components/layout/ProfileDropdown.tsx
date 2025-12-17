@@ -65,7 +65,7 @@ export default function ProfileDropdown() {
 
   const handleSettings = () => {
     setIsOpen(false)
-    router.push('/dashboard/profile/settings')
+    router.push('/dashboard/profile?panel=settings')
   }
 
   return (
