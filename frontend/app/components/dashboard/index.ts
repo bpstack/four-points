@@ -1,6 +1,7 @@
 // app/components/dashboard/index.ts
 
 export { DashboardHeader } from './DashboardHeader'
+export { DashboardSkeleton } from './DashboardSkeleton'
 export { QuickActionsCard } from './QuickActionsCard'
 export { GlobalStatusGrid } from './GlobalStatusGrid'
 export { ContextualHelpCard } from './ContextualHelpCard'

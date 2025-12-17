@@ -10,6 +10,62 @@ interface DashboardHeaderProps {
 }
 
 export function DashboardHeader({ selectedPeriod, onPeriodChange }: DashboardHeaderProps) {
+  // Genera el texto de fecha según el período seleccionado
+  const getDateRangeText = (): string => {
+    const today = new Date()
+
+    if (selectedPeriod === 'today') {
+      return today.toLocaleDateString('es-ES', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      })
+    }
+
+    if (selectedPeriod === 'week') {
+      const weekStart = new Date(today)
+      weekStart.setDate(today.getDate() - 6)
+
+      const startDay = weekStart.getDate()
+      const endDay = today.getDate()
+      const startMonth = weekStart.toLocaleDateString('es-ES', { month: 'long' })
+      const endMonth = today.toLocaleDateString('es-ES', { month: 'long' })
+      const year = today.getFullYear()
+
+      // Si es el mismo mes: "11 - 17 de diciembre de 2025"
+      // Si son meses diferentes: "28 de noviembre - 4 de diciembre de 2025"
+      if (startMonth === endMonth) {
+        return `${startDay} - ${endDay} de ${endMonth} de ${year}`
+      } else {
+        return `${startDay} de ${startMonth} - ${endDay} de ${endMonth} de ${year}`
+      }
+    }
+
+    // month
+    const monthStart = new Date(today)
+    monthStart.setDate(today.getDate() - 29)
+
+    const startDay = monthStart.getDate()
+    const endDay = today.getDate()
+    const startMonth = monthStart.toLocaleDateString('es-ES', { month: 'long' })
+    const endMonth = today.toLocaleDateString('es-ES', { month: 'long' })
+    const startYear = monthStart.getFullYear()
+    const endYear = today.getFullYear()
+
+    // Si es el mismo año
+    if (startYear === endYear) {
+      if (startMonth === endMonth) {
+        return `${startDay} - ${endDay} de ${endMonth} de ${endYear}`
+      } else {
+        return `${startDay} de ${startMonth} - ${endDay} de ${endMonth} de ${endYear}`
+      }
+    } else {
+      // Años diferentes (ej: diciembre 2024 - enero 2025)
+      return `${startDay} de ${startMonth} de ${startYear} - ${endDay} de ${endMonth} de ${endYear}`
+    }
+  }
+
   return (
     <div className="mb-8">
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
@@ -23,12 +79,7 @@ export function DashboardHeader({ selectedPeriod, onPeriodChange }: DashboardHea
             </h1>
           </div>
           <p className="text-sm text-[#57606a] dark:text-[#8b949e] ml-14 font-medium">
-            {new Date().toLocaleDateString('es-ES', {
-              weekday: 'long',
-              year: 'numeric',
-              month: 'long',
-              day: 'numeric',
-            })}
+            {getDateRangeText()}
           </p>
         </div>
 

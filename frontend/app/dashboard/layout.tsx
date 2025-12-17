@@ -11,6 +11,7 @@ import { SimpleThemeButton } from '@/app/components/theme/SetThemeButton'
 import { useAuth } from '@/app/lib/auth/useAuth'
 import ProfileDropdown from '@/app/components/layout/ProfileDropdown'
 import { NotificationBell } from '@/app/components/notifications'
+import { DashboardSkeleton } from '@/app/components/dashboard'
 // Iconos para breadcrumb mobile
 import {
   DocumentDuplicateIcon,
@@ -97,29 +98,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   const breadcrumbs = generateBreadcrumbs()
 
-  // ✅ Mostrar loading mientras se carga el usuario
+  // ✅ Mostrar skeleton mientras se carga el usuario
   if (!mounted || loading) {
-    return (
-      <div className="flex h-screen items-center justify-center bg-white dark:bg-[#0d1117]">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-2 border-gray-300 dark:border-gray-700 border-t-gray-700 dark:border-t-gray-300 mx-auto"></div>
-          <p className="mt-4 text-gray-600 dark:text-gray-400">Cargando...</p>
-        </div>
-      </div>
-    )
+    return <DashboardSkeleton />
   }
 
-  // ✅ Si no hay usuario después de cargar, mostrar loading
+  // ✅ Si no hay usuario después de cargar, mostrar skeleton
   // (el middleware redirigirá si es necesario)
   if (!user) {
-    return (
-      <div className="flex h-screen items-center justify-center bg-white dark:bg-[#0d1117]">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-2 border-gray-300 dark:border-gray-700 border-t-gray-700 dark:border-t-gray-300 mx-auto"></div>
-          <p className="mt-4 text-gray-600 dark:text-gray-400">Verificando sesión...</p>
-        </div>
-      </div>
-    )
+    return <DashboardSkeleton />
   }
 
   return (

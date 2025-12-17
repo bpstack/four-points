@@ -2,8 +2,10 @@
 
 'use client'
 
+import { useState, useRef, useEffect } from 'react'
 import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 import { cn } from '@/app/lib/helpers/utils'
+import { FiChevronDown, FiCheck } from 'react-icons/fi'
 
 type Tab = 'overview' | 'payments' | 'contacts' | 'rooms' | 'status' | 'history'
 
@@ -31,6 +33,22 @@ export function TabNavigation(_props: TabNavigationProps) {
   const pathname = usePathname()
   const searchParams = useSearchParams()
   const activeTab = (searchParams.get('tab') || 'overview') as Tab
+  const [isOpen, setIsOpen] = useState(false)
+  const dropdownRef = useRef<HTMLDivElement>(null)
+
+  const activeTabConfig = tabs.find((t) => t.id === activeTab) || tabs[0]
+
+  // Cerrar dropdown al hacer click fuera
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
 
   const handleTabChange = (tab: Tab) => {
     const params = new URLSearchParams(searchParams.toString())
@@ -39,11 +57,56 @@ export function TabNavigation(_props: TabNavigationProps) {
     params.delete('panel')
     params.delete('highlight')
     router.push(`${pathname}?${params.toString()}`, { scroll: false })
+    setIsOpen(false)
   }
 
   return (
     <div className="border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-[#010409]">
-      <nav className="max-w-[1400px] -mb-px flex space-x-4 px-4 md:px-6 overflow-x-auto">
+      {/* Mobile: Dropdown */}
+      <div className="md:hidden px-4 py-2" ref={dropdownRef}>
+        <div className="relative w-fit">
+          <button
+            onClick={() => setIsOpen(!isOpen)}
+            className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-900 dark:text-white bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+          >
+            <span>{activeTabConfig.label}</span>
+            <FiChevronDown
+              className={cn(
+                'w-4 h-4 text-gray-500 transition-transform duration-200',
+                isOpen && 'rotate-180'
+              )}
+            />
+          </button>
+
+          {/* Dropdown Menu */}
+          {isOpen && (
+            <div className="absolute left-0 mt-1 w-44 bg-white dark:bg-[#161b22] border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-50 overflow-hidden">
+              {tabs.map((tab) => {
+                const isActive = activeTab === tab.id
+
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => handleTabChange(tab.id)}
+                    className={cn(
+                      'w-full flex items-center justify-between px-3 py-2 text-sm transition-colors',
+                      isActive
+                        ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
+                        : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800'
+                    )}
+                  >
+                    <span>{tab.label}</span>
+                    {isActive && <FiCheck className="w-4 h-4" />}
+                  </button>
+                )
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Desktop: Tabs tradicionales */}
+      <nav className="hidden md:flex max-w-[1400px] -mb-px space-x-4 px-4 md:px-6">
         {tabs.map((tab) => {
           const isActive = activeTab === tab.id
 
