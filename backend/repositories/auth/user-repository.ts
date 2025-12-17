@@ -13,7 +13,20 @@ import type {
   CreateUserDTO,
   UpdateUserDTO,
   LoginDTO,
+  UpdateProfileDTO,
+  UpdatePasswordDTO,
 } from '../../models/auth/index.js'
+
+/**
+ * Sanitize username to prevent XSS attacks
+ * Only allows alphanumeric characters and underscores
+ */
+function sanitizeUsername(username: string): string {
+  // Remove any characters that aren't alphanumeric or underscore
+  const sanitized = username.replace(/[^a-zA-Z0-9_]/g, '')
+  // Limit length
+  return sanitized.slice(0, 50)
+}
 
 export class UserRepository {
   /**
@@ -22,6 +35,9 @@ export class UserRepository {
   static async create({ username, email, password, role }: CreateUserDTO): Promise<User> {
     const DEFAULT_ROLE = 'recepcionista'
     const roleToAssign = role || DEFAULT_ROLE
+
+    // Sanitize username for XSS prevention
+    const sanitizedUsername = sanitizeUsername(username)
 
     const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS)
     const uuid = crypto.randomUUID()
@@ -53,7 +69,7 @@ export class UserRepository {
       await db.query(
         `INSERT INTO users (id, username, email, password, role_id, created_at, is_active)
       VALUES (?, ?, ?, ?, ?, ?, 1)`,
-        [uuid, username, email, hashedPassword, roleId, createdAt]
+        [uuid, sanitizedUsername, email, hashedPassword, roleId, createdAt]
       )
 
       // ✅ Si es admin o group-admin, asignar notificaciones existentes
@@ -63,7 +79,7 @@ export class UserRepository {
 
       return {
         id: uuid,
-        username,
+        username: sanitizedUsername,
         email,
         role: roleToAssign,
         created_at: new Date(createdAt),
@@ -107,6 +123,7 @@ export class UserRepository {
 
   /**
    * Login con JOIN directo
+   * Uses timing-safe comparison to prevent timing attacks
    */
   static async login({ username, password }: LoginDTO): Promise<User> {
     try {
@@ -132,15 +149,30 @@ export class UserRepository {
     )
 
     const user = rows[0]
-    if (!user) throw new Error('Usuario no encontrado')
+    
+    // Always perform password comparison to prevent timing attacks
+    // Even if user doesn't exist, we compare against a dummy hash
+    const DUMMY_HASH = '$2b$10$dummyhashfortimingatttacksprevent'
+    const passwordToCompare = user?.password || DUMMY_HASH
+    const isPasswordValid = await bcrypt.compare(password, passwordToCompare)
+    
+    // Now check if user exists (after timing-safe comparison)
+    if (!user) {
+      console.warn(`[SECURITY] Login failed - user not found: ${username}`)
+      throw new Error('Credenciales inválidas')
+    }
 
     if (!user.is_active) {
+      console.warn(`[SECURITY] Login failed - inactive user: ${username}`)
       throw new Error('Usuario inactivo')
     }
 
-    const isPasswordValid = await bcrypt.compare(password, user.password || '')
-    if (!isPasswordValid) throw new Error('Contraseña incorrecta')
+    if (!isPasswordValid) {
+      console.warn(`[SECURITY] Login failed - invalid password for user: ${username}`)
+      throw new Error('Credenciales inválidas')
+    }
 
+    console.info(`[AUTH] User logged in successfully: ${username}`)
     const { password: _pw, ...userWithoutPassword } = user
     return userWithoutPassword as User
   }
@@ -346,5 +378,154 @@ export class UserRepository {
       console.error('Error al eliminar usuario:', err)
       throw new Error('Error al eliminar el usuario')
     }
+  }
+
+  /**
+   * Actualizar perfil (username) - requiere contraseña actual
+   */
+  static async updateProfile(
+    userId: string,
+    { username, currentPassword }: UpdateProfileDTO
+  ): Promise<User> {
+    const dbConnection = await db.getConnection()
+    
+    // Sanitize username for XSS prevention
+    const sanitizedUsername = sanitizeUsername(username)
+    
+    try {
+      await dbConnection.beginTransaction()
+
+      // 1. Obtener usuario actual con contraseña
+      const [users] = await dbConnection.query<UserWithRole[]>(
+        `SELECT u.id, u.username, u.email, u.password, u.is_active, r.name AS role
+        FROM users u
+        INNER JOIN roles r ON r.id = u.role_id
+        WHERE u.id = ?`,
+        [userId]
+      )
+
+      if (users.length === 0) {
+        throw new Error('Usuario no encontrado')
+      }
+
+      const user = users[0]
+
+      // 2. Verificar contraseña actual
+      const isPasswordValid = await bcrypt.compare(currentPassword, user.password || '')
+      if (!isPasswordValid) {
+        console.warn(`[SECURITY] Profile update failed - invalid password for user ID: ${userId}`)
+        throw new Error('Contraseña actual incorrecta')
+      }
+
+      // 3. Verificar que el nuevo username no exista (si es diferente)
+      if (sanitizedUsername !== user.username) {
+        const [existing] = await dbConnection.query<UserWithRole[]>(
+          'SELECT id FROM users WHERE username = ? AND id != ?',
+          [sanitizedUsername, userId]
+        )
+
+        if (existing.length > 0) {
+          throw new Error('El nombre de usuario ya está en uso')
+        }
+      }
+
+      // 4. Actualizar username
+      await dbConnection.query(
+        'UPDATE users SET username = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
+        [sanitizedUsername, userId]
+      )
+
+      await dbConnection.commit()
+
+      console.info(`[AUTH] Profile updated for user ID: ${userId} (new username: ${sanitizedUsername})`)
+
+      // 5. Devolver usuario actualizado
+      const updatedUser = await this.getById(userId)
+      if (!updatedUser) {
+        throw new Error('Error al obtener usuario actualizado')
+      }
+
+      return updatedUser
+    } catch (error: any) {
+      await dbConnection.rollback()
+      console.error('Error en updateProfile:', error)
+      throw error
+    } finally {
+      dbConnection.release()
+    }
+  }
+
+  /**
+   * Actualizar contraseña - requiere contraseña actual
+   * Devuelve true si se actualizó correctamente
+   */
+  static async updatePassword(
+    userId: string,
+    { currentPassword, newPassword }: UpdatePasswordDTO
+  ): Promise<boolean> {
+    const dbConnection = await db.getConnection()
+    try {
+      await dbConnection.beginTransaction()
+
+      // 1. Obtener usuario actual con contraseña
+      const [users] = await dbConnection.query<UserWithRole[]>(
+        'SELECT id, password FROM users WHERE id = ?',
+        [userId]
+      )
+
+      if (users.length === 0) {
+        throw new Error('Usuario no encontrado')
+      }
+
+      const user = users[0]
+
+      // 2. Verificar contraseña actual
+      const isPasswordValid = await bcrypt.compare(currentPassword, user.password || '')
+      if (!isPasswordValid) {
+        console.warn(`[SECURITY] Password change failed - invalid current password for user ID: ${userId}`)
+        throw new Error('Contraseña actual incorrecta')
+      }
+
+      // 3. Verificar que la nueva contraseña sea diferente a la actual
+      if (currentPassword === newPassword) {
+        throw new Error('La nueva contraseña debe ser diferente a la actual')
+      }
+
+      // 4. Hashear nueva contraseña
+      const hashedPassword = await bcrypt.hash(newPassword, SALT_ROUNDS)
+
+      // 5. Actualizar contraseña
+      await dbConnection.query(
+        'UPDATE users SET password = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
+        [hashedPassword, userId]
+      )
+
+      await dbConnection.commit()
+
+      console.info(`[AUTH] Password changed successfully for user ID: ${userId}`)
+
+      return true
+    } catch (error: any) {
+      await dbConnection.rollback()
+      console.error('Error en updatePassword:', error)
+      throw error
+    } finally {
+      dbConnection.release()
+    }
+  }
+
+  /**
+   * Verificar contraseña de un usuario
+   */
+  static async verifyPassword(userId: string, password: string): Promise<boolean> {
+    const [users] = await db.query<UserWithRole[]>('SELECT password FROM users WHERE id = ?', [
+      userId,
+    ])
+
+    if (users.length === 0) {
+      return false
+    }
+
+    return bcrypt.compare(password, users[0].password || '')
   }
 }

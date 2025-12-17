@@ -2,7 +2,12 @@
 
 import { Request, Response } from 'express'
 import { UserRepository } from '../../repositories/auth/user-repository.js'
-import { validateUser, getValidationErrors } from '../../validations/auth/user-validation.js'
+import {
+  validateUser,
+  validateUpdateProfile,
+  validateUpdatePassword,
+  getValidationErrors,
+} from '../../validations/auth/user-validation.js'
 import {
   generateAccessToken,
   generateRefreshToken,
@@ -13,6 +18,8 @@ import type {
   TokenPayload,
   UserWithRole,
   LoginDTO,
+  UpdateProfileDTO,
+  UpdatePasswordDTO,
 } from '../../models/auth/index.js'
 
 // ============================================
@@ -238,6 +245,137 @@ export const me = async (req: Request, res: Response): Promise<void> => {
     })
   } catch (error) {
     console.error('Error en /me:', error)
+    res.status(500).json({ error: 'Error interno del servidor' })
+  }
+}
+
+/**
+ * Actualizar perfil (username) del usuario autenticado
+ * Requiere contraseña actual para confirmar identidad
+ */
+export const updateProfile = async (req: Request, res: Response): Promise<void> => {
+  try {
+    // Validar entrada
+    const validationResult = validateUpdateProfile(req.body)
+    if (!validationResult.success) {
+      res.status(400).json({ errors: getValidationErrors(validationResult) })
+      return
+    }
+
+    const { username, currentPassword } = req.body as UpdateProfileDTO
+    const userId = req.user!.id
+
+    // Actualizar perfil
+    const updatedUser = await UserRepository.updateProfile(userId, {
+      username,
+      currentPassword,
+    })
+
+    // Generar nuevos tokens con el username actualizado
+    const tokenPayload: TokenPayload = {
+      id: updatedUser.id,
+      username: updatedUser.username,
+      role: updatedUser.role,
+    }
+
+    const accessToken = generateAccessToken(tokenPayload)
+    const refreshToken = generateRefreshToken(tokenPayload)
+
+    // Actualizar cookies
+    res.cookie('access_token', accessToken, {
+      ...cookieOptions,
+      maxAge: 15 * 60 * 1000,
+    })
+
+    res.cookie('refresh_token', refreshToken, {
+      ...cookieOptions,
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    })
+
+    res.status(200).json({
+      success: true,
+      message: 'Perfil actualizado correctamente',
+      user: updatedUser,
+      token: accessToken,
+      refreshToken: refreshToken,
+    })
+  } catch (error) {
+    const err = error as Error
+    console.error('Error en updateProfile:', err.message)
+
+    // Errores conocidos
+    if (err.message === 'Contraseña actual incorrecta') {
+      res.status(401).json({ error: err.message })
+      return
+    }
+
+    if (err.message === 'El nombre de usuario ya está en uso') {
+      res.status(409).json({ error: err.message })
+      return
+    }
+
+    if (err.message === 'Usuario no encontrado') {
+      res.status(404).json({ error: err.message })
+      return
+    }
+
+    res.status(500).json({ error: 'Error interno del servidor' })
+  }
+}
+
+/**
+ * Actualizar contraseña del usuario autenticado
+ * Requiere contraseña actual para confirmar identidad
+ * Invalida sesiones actuales (requiere re-login)
+ */
+export const updatePassword = async (req: Request, res: Response): Promise<void> => {
+  try {
+    // Validar entrada
+    const validationResult = validateUpdatePassword(req.body)
+    if (!validationResult.success) {
+      res.status(400).json({ errors: getValidationErrors(validationResult) })
+      return
+    }
+
+    const { currentPassword, newPassword } = req.body as UpdatePasswordDTO & { confirmPassword: string }
+    const userId = req.user!.id
+
+    // Actualizar contraseña
+    await UserRepository.updatePassword(userId, {
+      currentPassword,
+      newPassword,
+    })
+
+    // Invalidar sesiones actuales limpiando las cookies
+    // El usuario deberá iniciar sesión nuevamente con la nueva contraseña
+    res.clearCookie('access_token', cookieOptions)
+    res.clearCookie('refresh_token', cookieOptions)
+
+    res.status(200).json({
+      success: true,
+      message: 'Contraseña actualizada correctamente. Por seguridad, debes iniciar sesión nuevamente.',
+      requiresRelogin: true,
+    })
+  } catch (error) {
+    const err = error as Error
+    console.error('Error en updatePassword:', err.message)
+
+    // Errores conocidos
+    if (err.message === 'Contraseña actual incorrecta') {
+      res.status(401).json({ error: err.message })
+      return
+    }
+
+    if (err.message === 'La nueva contraseña debe ser diferente a la actual') {
+      res.status(400).json({ error: err.message })
+      return
+    }
+
+    if (err.message === 'Usuario no encontrado') {
+      res.status(404).json({ error: err.message })
+      return
+    }
+
     res.status(500).json({ error: 'Error interno del servidor' })
   }
 }

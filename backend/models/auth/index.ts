@@ -75,6 +75,16 @@ export interface LoginDTO {
   password: string
 }
 
+export interface UpdateProfileDTO {
+  username: string
+  currentPassword: string
+}
+
+export interface UpdatePasswordDTO {
+  currentPassword: string
+  newPassword: string
+}
+
 // ============================================
 // AUTH RESPONSE TYPES
 // ============================================

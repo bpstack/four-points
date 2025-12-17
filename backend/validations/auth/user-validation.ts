@@ -11,17 +11,58 @@ const userSchema = z.object({
   role: z.string().optional(),
 })
 
+// Esquema para actualizar perfil (username)
+const updateProfileSchema = z.object({
+  username: z
+    .string()
+    .min(3, 'El nombre de usuario debe tener al menos 3 caracteres')
+    .max(50, 'El nombre de usuario no puede exceder 50 caracteres')
+    .regex(/^[a-zA-Z0-9_]+$/, 'El nombre de usuario solo puede contener letras, números y guiones bajos'),
+  currentPassword: z.string().min(1, 'La contraseña actual es requerida'),
+})
+
+// Esquema para actualizar contraseña
+const updatePasswordSchema = z.object({
+  currentPassword: z.string().min(1, 'La contraseña actual es requerida'),
+  newPassword: z
+    .string()
+    .min(6, 'La nueva contraseña debe tener al menos 6 caracteres')
+    .max(100, 'La contraseña no puede exceder 100 caracteres'),
+  confirmPassword: z.string().min(1, 'Confirma la nueva contraseña'),
+}).refine((data) => data.newPassword === data.confirmPassword, {
+  message: 'Las contraseñas no coinciden',
+  path: ['confirmPassword'],
+}).refine((data) => data.currentPassword !== data.newPassword, {
+  message: 'La nueva contraseña debe ser diferente a la actual',
+  path: ['newPassword'],
+})
+
 export type UserInput = z.infer<typeof userSchema>
 export type UserValidationResult = ReturnType<typeof userSchema.safeParse>
+export type UpdateProfileInput = z.infer<typeof updateProfileSchema>
+export type UpdateProfileValidationResult = ReturnType<typeof updateProfileSchema.safeParse>
+export type UpdatePasswordInput = z.infer<typeof updatePasswordSchema>
+export type UpdatePasswordValidationResult = ReturnType<typeof updatePasswordSchema.safeParse>
 
 // ✔️ Validación completa para creación de usuario
 export function validateUser(input: unknown): UserValidationResult {
   return userSchema.safeParse(input)
 }
 
+// ✔️ Validación para actualizar perfil
+export function validateUpdateProfile(input: unknown): UpdateProfileValidationResult {
+  return updateProfileSchema.safeParse(input)
+}
+
+// ✔️ Validación para actualizar contraseña
+export function validateUpdatePassword(input: unknown): UpdatePasswordValidationResult {
+  return updatePasswordSchema.safeParse(input)
+}
+
 // ❌ Formatea errores de validación en un objeto plano
-export function getValidationErrors(result: UserValidationResult): ValidationErrors | null {
+export function getValidationErrors(result: { success: boolean; error?: z.ZodError }): ValidationErrors | null {
   if (result.success) return null
+  if (!result.error) return null
 
   const errors: ValidationErrors = {}
   for (const issue of result.error.issues) {

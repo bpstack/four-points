@@ -1,7 +1,7 @@
-// app/lib/login/useAuth.tsx
+// app/lib/auth/useAuth.tsx
 'use client'
 
-import { createContext, useContext, useEffect, useState, useCallback, ReactNode } from 'react'
+import { createContext, useContext, useEffect, useState, useCallback, useMemo, ReactNode } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { authLogin } from './authService'
 import type { User } from '@/app/lib/logbooks/types'
@@ -41,7 +41,7 @@ interface AuthContextType {
   isAuthenticated: boolean
   login: (username: string, password: string) => Promise<void>
   logout: () => Promise<void>
-  checkSession: () => Promise<void>
+  refreshUser: () => Promise<void>
 }
 
 // ========================================
@@ -58,60 +58,56 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter()
   const pathname = usePathname()
 
-  // 🔍 Verificar sesión
-  const checkSession = useCallback(async () => {
-    // ✅ CRÍTICO: En rutas públicas, NO verificar sesión
-    // Esto evita llamadas innecesarias a /api/auth/me que causan el loop
-    if (PUBLIC_ROUTES.includes(pathname)) {
-      console.log('[useAuth] Ruta pública, saltando verificación:', pathname)
-      setLoading(false)
-      return
-    }
-
-    console.log('[useAuth] Verificando sesión en:', pathname)
-
+  /**
+   * Función interna para obtener datos del usuario desde el backend
+   * Reutilizada por checkSession y refreshUser
+   */
+  const fetchUserData = useCallback(async (): Promise<User | null> => {
     if (DEV_MODE) {
-      console.log('[useAuth] Modo DEV activado')
-      setUser(DEV_USER)
-      setLoading(false)
-      return
+      return DEV_USER
     }
 
     try {
       const me = await authLogin.me()
-      console.log('[useAuth] Sesión válida:', me.username)
-
-      const formattedUser: User = {
+      return {
         ...me,
         username: formatUsername(me.username),
       }
-
-      setUser(formattedUser)
     } catch (error: any) {
-      console.log('[useAuth] No hay sesión activa:', error?.message)
-      setUser(null)
+      console.log('[useAuth] Error obteniendo usuario:', error?.message)
+      return null
+    }
+  }, [])
 
-      // ✅ CRÍTICO: NO redirigir aquí, el middleware ya maneja esto
-      // Solo limpiar el estado del usuario
-    } finally {
+  /**
+   * Verificar sesión al inicializar o cambiar de ruta
+   * Solo se ejecuta en rutas protegidas
+   */
+  useEffect(() => {
+    const checkSession = async () => {
+      // En rutas públicas, no verificar sesión
+      if (PUBLIC_ROUTES.includes(pathname)) {
+        setLoading(false)
+        return
+      }
+
+      const userData = await fetchUserData()
+      setUser(userData)
       setLoading(false)
     }
-  }, [pathname])
 
-  // 🚀 Inicialización
-  useEffect(() => {
     checkSession()
-  }, [pathname, checkSession])
+  }, [pathname, fetchUserData])
 
-  // 🔐 Login
+  /**
+   * Login de usuario
+   */
   const login = useCallback(
     async (username: string, password: string) => {
-      console.log('[useAuth] Iniciando login para:', username)
       setLoading(true)
 
       try {
         if (DEV_MODE) {
-          console.log('[useAuth] Login DEV exitoso')
           setUser(DEV_USER)
           setLoading(false)
           router.push('/dashboard')
@@ -119,23 +115,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
 
         const data = await authLogin.login(username, password)
-        console.log('[useAuth] Login exitoso:', data.user.username)
 
-        const formattedUser: User = {
+        setUser({
           ...data.user,
           username: formatUsername(data.user.username),
-        }
-
-        setUser(formattedUser)
+        })
         setLoading(false)
 
         const searchParams = new URLSearchParams(window.location.search)
         const callbackUrl = searchParams.get('callbackUrl') || '/dashboard'
-
-        console.log('[useAuth] Redirigiendo a:', callbackUrl)
         router.push(callbackUrl)
       } catch (error) {
-        console.error('[useAuth] Error en login:', error)
         setLoading(false)
         throw error
       }
@@ -143,54 +133,64 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [router]
   )
 
-  // 🚪 Logout
+  /**
+   * Logout de usuario
+   */
   const logout = useCallback(async () => {
-    console.log('[useAuth] Cerrando sesión...')
     setLoading(true)
 
     try {
-      if (DEV_MODE) {
-        console.log('[useAuth] Logout DEV')
-        setUser(null)
-      } else {
+      if (!DEV_MODE) {
         await authLogin.logout()
-        setUser(null)
       }
-
-      console.log('[useAuth] Sesión cerrada, redirigiendo a /')
-      setLoading(false)
-      router.replace('/')
     } catch (error) {
       console.error('[useAuth] Error en logout:', error)
+    } finally {
       setUser(null)
       setLoading(false)
       router.replace('/')
     }
   }, [router])
 
-  const value = {
-    user,
-    loading,
-    isAuthenticated: !!user,
-    login,
-    logout,
-    checkSession,
-  }
+  /**
+   * Refrescar datos del usuario actual
+   * Útil después de actualizar el perfil
+   */
+  const refreshUser = useCallback(async () => {
+    const userData = await fetchUserData()
+    if (userData) {
+      setUser(userData)
+    }
+  }, [fetchUserData])
+
+  // Memoizar el value para evitar re-renders innecesarios
+  const value = useMemo(
+    () => ({
+      user,
+      loading,
+      isAuthenticated: !!user,
+      login,
+      logout,
+      refreshUser,
+    }),
+    [user, loading, login, logout, refreshUser]
+  )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
 
 // ========================================
-// HOOKS EXPORTADOS
+// HOOK
 // ========================================
-export function useAuthContext() {
+export function useAuth() {
   const context = useContext(AuthContext)
 
   if (!context) {
-    throw new Error('useAuthContext debe ser usado dentro de AuthProvider')
+    throw new Error('useAuth debe ser usado dentro de AuthProvider')
   }
 
   return context
 }
 
-export const useAuth = useAuthContext
+// Alias para compatibilidad
+export const useAuthContext = useAuth
