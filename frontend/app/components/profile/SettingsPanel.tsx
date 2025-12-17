@@ -141,7 +141,7 @@ export function SettingsPanel() {
   }
 
   return (
-    <div className="h-full">
+    <div className="h-full max-w-[1400px]">
       {/* Header */}
       <div className="mb-6">
         <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Configuracion</h2>
@@ -354,43 +354,43 @@ function UserTable({ users, onDelete }: { users: User[]; onDelete: (id: string) 
             className="bg-gray-50 dark:bg-[#0d1117] border border-gray-200 dark:border-[#30363d] rounded-lg p-3"
           >
             {isEditing ? (
-              <div className="space-y-3">
+              <div className="space-y-3 md:space-y-0 md:flex md:items-center md:gap-3">
                 <input
                   type="text"
                   value={editForm.username || ''}
                   onChange={(e) => setEditForm({ ...editForm, username: e.target.value })}
                   placeholder="Username"
-                  className="w-full px-3 py-1.5 text-sm border border-gray-300 dark:border-[#30363d] rounded-lg bg-white dark:bg-[#0d1117] text-gray-900 dark:text-white"
+                  className="w-full md:w-40 px-3 py-1.5 text-sm border border-gray-300 dark:border-[#30363d] rounded-lg bg-white dark:bg-[#0d1117] text-gray-900 dark:text-white"
                 />
                 <input
                   type="email"
                   value={editForm.email || ''}
                   onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
                   placeholder="Email"
-                  className="w-full px-3 py-1.5 text-sm border border-gray-300 dark:border-[#30363d] rounded-lg bg-white dark:bg-[#0d1117] text-gray-900 dark:text-white"
+                  className="w-full md:flex-1 px-3 py-1.5 text-sm border border-gray-300 dark:border-[#30363d] rounded-lg bg-white dark:bg-[#0d1117] text-gray-900 dark:text-white"
                 />
                 <select
                   value={editForm.role || ''}
                   onChange={(e) => setEditForm({ ...editForm, role: e.target.value })}
-                  className="w-full px-3 py-1.5 text-sm border border-gray-300 dark:border-[#30363d] rounded-lg bg-white dark:bg-[#0d1117] text-gray-900 dark:text-white"
+                  className="w-full md:w-40 px-3 py-1.5 text-sm border border-gray-300 dark:border-[#30363d] rounded-lg bg-white dark:bg-[#0d1117] text-gray-900 dark:text-white"
                 >
                   <option value="recepcionista">Receptionist</option>
                   <option value="admin">Administrator</option>
                   <option value="group-admin">Group Admin</option>
                   <option value="mantenimiento">Maintenance</option>
                 </select>
-                <div className="flex gap-2">
+                <div className="flex gap-2 md:flex-shrink-0">
                   <button
                     onClick={() => handleSave(user.id)}
                     disabled={savingId === user.id}
-                    className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-green-600 hover:bg-green-700 disabled:opacity-50 rounded-lg"
+                    className="flex-1 md:flex-none inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-green-600 hover:bg-green-700 disabled:opacity-50 rounded-lg"
                   >
                     <FiCheck className="w-3.5 h-3.5" />
                     {savingId === user.id ? 'Saving...' : 'Save'}
                   </button>
                   <button
                     onClick={handleCancel}
-                    className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-[#0d1117] border border-gray-300 dark:border-[#30363d] rounded-lg"
+                    className="flex-1 md:flex-none inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-[#0d1117] border border-gray-300 dark:border-[#30363d] rounded-lg"
                   >
                     <FiX className="w-3.5 h-3.5" />
                     Cancel
@@ -398,19 +398,33 @@ function UserTable({ users, onDelete }: { users: User[]; onDelete: (id: string) 
                 </div>
               </div>
             ) : (
-              <div className="flex items-start justify-between gap-2">
-                <div className="flex items-start gap-3 min-w-0 flex-1">
+              <div className="flex items-center justify-between gap-3">
+                {/* Avatar + Info */}
+                <div className="flex items-center gap-3 min-w-0 flex-1">
                   <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-xs font-medium flex-shrink-0">
                     {user.username.charAt(0).toUpperCase()}
                   </div>
-                  <div className="min-w-0 flex-1">
+                  
+                  {/* Mobile: stacked layout */}
+                  <div className="min-w-0 flex-1 md:hidden">
                     <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{user.username}</p>
                     <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{user.email}</p>
                     <span className={cn('inline-flex mt-1 px-2 py-0.5 rounded-full text-xs font-medium border', roleConfig.color, roleConfig.borderColor)}>
                       {roleConfig.label}
                     </span>
                   </div>
+
+                  {/* Desktop: horizontal layout */}
+                  <div className="hidden md:flex md:items-center md:gap-4 md:flex-1 min-w-0">
+                    <p className="text-sm font-medium text-gray-900 dark:text-white truncate w-32 flex-shrink-0">{user.username}</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 truncate flex-1">{user.email}</p>
+                    <span className={cn('inline-flex px-2 py-0.5 rounded-full text-xs font-medium border flex-shrink-0', roleConfig.color, roleConfig.borderColor)}>
+                      {roleConfig.label}
+                    </span>
+                  </div>
                 </div>
+
+                {/* Actions */}
                 <div className="flex items-center gap-1 flex-shrink-0">
                   <button
                     onClick={() => handleEdit(user)}
