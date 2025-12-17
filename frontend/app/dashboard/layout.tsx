@@ -6,11 +6,58 @@ import { useEffect, useState } from 'react'
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 import SideNav from '@/app/ui/dashboard/sidenav'
-import { FiSearch, FiMenu, FiX, FiChevronRight } from 'react-icons/fi'
+import { FiSearch, FiMenu, FiX, FiChevronRight, FiHome } from 'react-icons/fi'
 import { SimpleThemeButton } from '@/app/components/theme/SetThemeButton'
 import { useAuth } from '@/app/lib/auth/useAuth'
 import ProfileDropdown from '@/app/components/layout/ProfileDropdown'
 import { NotificationBell } from '@/app/components/notifications'
+// Iconos para breadcrumb mobile
+import {
+  DocumentDuplicateIcon,
+  UserGroupIcon,
+  Cog6ToothIcon,
+  UserIcon,
+  HomeModernIcon,
+} from '@heroicons/react/24/outline'
+import { SlBookOpen } from 'react-icons/sl'
+import { LiaParkingSolid } from 'react-icons/lia'
+import { GiOfficeChair } from 'react-icons/gi'
+import { CgDanger } from 'react-icons/cg'
+import { MdPointOfSale } from 'react-icons/md'
+import { IoIosRestaurant } from 'react-icons/io'
+import { IconType } from 'react-icons'
+
+// Mapeo de rutas a iconos (para breadcrumb mobile)
+const routeIcons: Record<string, IconType | React.ComponentType<{ className?: string }>> = {
+  // Main
+  logbooks: SlBookOpen,
+  parking: LiaParkingSolid,
+  maintenance: Cog6ToothIcon,
+  restaurant: IoIosRestaurant,
+  conciliation: HomeModernIcon,
+  groups: UserGroupIcon,
+  blacklist: CgDanger,
+  // Back office
+  bo: GiOfficeChair,
+  invoices: DocumentDuplicateIcon,
+  departments: UserGroupIcon,
+  // Cashier
+  cashier: MdPointOfSale,
+  hotel: MdPointOfSale,
+  reports: DocumentDuplicateIcon,
+  logs: DocumentDuplicateIcon,
+  // Profile
+  profile: UserIcon,
+  settings: Cog6ToothIcon,
+  notifications: UserIcon,
+  messages: UserIcon,
+  // Parking subrutas
+  bookings: LiaParkingSolid,
+  status: LiaParkingSolid,
+  // Acciones comunes
+  new: DocumentDuplicateIcon,
+  edit: Cog6ToothIcon,
+}
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth()
@@ -110,25 +157,47 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
             {/* Breadcrumb Navigation */}
             <nav className="flex items-center gap-1 overflow-x-auto scrollbar-hide min-w-0">
-              {breadcrumbs.map((crumb, index) => (
-                <div key={crumb.href} className="flex items-center gap-1 flex-shrink-0">
-                  {index > 0 && (
-                    <FiChevronRight className="h-4 w-4 text-gray-400 dark:text-gray-600 flex-shrink-0" />
-                  )}
-                  {crumb.isLast ? (
-                    <span className="text-sm font-medium text-gray-900 dark:text-white px-2 py-1 truncate">
-                      {crumb.label}
-                    </span>
-                  ) : (
-                    <Link
-                      href={crumb.href}
-                      className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white px-2 py-1 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors truncate"
-                    >
-                      {crumb.label}
-                    </Link>
-                  )}
-                </div>
-              ))}
+              {breadcrumbs.map((crumb, index) => {
+                const isDashboard = crumb.label.toLowerCase() === 'dashboard'
+                // Obtener el segmento de ruta para buscar el icono
+                const pathSegment = crumb.href.split('/').filter(Boolean).pop() || ''
+                const RouteIcon = routeIcons[pathSegment.toLowerCase()]
+
+                return (
+                  <div key={crumb.href} className="flex items-center gap-1 flex-shrink-0">
+                    {index > 0 && (
+                      <FiChevronRight className="h-4 w-4 text-gray-400 dark:text-gray-600 flex-shrink-0" />
+                    )}
+                    {isDashboard ? (
+                      <Link
+                        href={crumb.href}
+                        className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white px-2 py-1 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                      >
+                        {/* Mobile: icono home, Desktop: texto */}
+                        <FiHome className="h-4 w-4 md:hidden" />
+                        <span className="hidden md:inline">{crumb.label}</span>
+                      </Link>
+                    ) : crumb.isLast ? (
+                      <span
+                        className={`text-sm font-medium text-gray-900 dark:text-white px-2 py-1 truncate ${RouteIcon ? 'flex items-center gap-1' : ''}`}
+                      >
+                        {/* Mobile: icono si existe, Desktop: solo texto */}
+                        {RouteIcon && <RouteIcon className="h-5 w-5 md:hidden" />}
+                        <span className={RouteIcon ? 'hidden md:inline' : ''}>{crumb.label}</span>
+                      </span>
+                    ) : (
+                      <Link
+                        href={crumb.href}
+                        className={`text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white px-2 py-1 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors truncate ${RouteIcon ? 'flex items-center gap-1' : ''}`}
+                      >
+                        {/* Mobile: icono si existe, Desktop: texto */}
+                        {RouteIcon && <RouteIcon className="h-4 w-4 md:hidden" />}
+                        <span className={RouteIcon ? 'hidden md:inline' : ''}>{crumb.label}</span>
+                      </Link>
+                    )}
+                  </div>
+                )
+              })}
             </nav>
           </div>
 

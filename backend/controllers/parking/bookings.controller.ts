@@ -147,7 +147,7 @@ class ParkingBookingsController {
         spot_number: data.spot_number,
         level_code: data.level_code as '-2' | '-3',
         vehicle_id: data.vehicle_id,
-        operator_id: parseInt(req.user!.id),
+        operator_id: req.user!.id, // UUID string, no parseInt
         expected_checkin: data.expected_checkin,
         expected_checkout: data.expected_checkout,
         total_amount: data.total_amount,
@@ -159,7 +159,7 @@ class ParkingBookingsController {
           | undefined,
         external_booking_id: data.external_booking_id,
         notes: data.notes,
-        created_by: parseInt(req.user!.id),
+        created_by: req.user!.id, // UUID string, no parseInt
       }
 
       const booking = await ParkingBookingsRepository.create(bookingData)
@@ -225,7 +225,7 @@ class ParkingBookingsController {
       if (notes && booking) {
         await ParkingBookingsRepository.update(id, {
           notes,
-          updated_by: parseInt(req.user!.id),
+          updated_by: req.user!.id,
         })
       }
 
@@ -301,7 +301,7 @@ class ParkingBookingsController {
       if (notes && booking) {
         await ParkingBookingsRepository.update(id, {
           notes,
-          updated_by: parseInt(req.user!.id),
+          updated_by: req.user!.id,
         })
       }
 
@@ -362,7 +362,7 @@ class ParkingBookingsController {
       if (notes && booking) {
         await ParkingBookingsRepository.update(id, {
           notes,
-          updated_by: parseInt(req.user!.id),
+          updated_by: req.user!.id,
         })
       }
 
@@ -423,7 +423,7 @@ class ParkingBookingsController {
       if (notes && booking) {
         await ParkingBookingsRepository.update(id, {
           notes,
-          updated_by: parseInt(req.user!.id),
+          updated_by: req.user!.id,
         })
       }
 
@@ -556,7 +556,7 @@ class ParkingBookingsController {
       if (external_booking_id !== undefined) updateData.external_booking_id = external_booking_id
       if (notes !== undefined) updateData.notes = notes
 
-      updateData.updated_by = parseInt(req.user!.id)
+      updateData.updated_by = req.user!.id
 
       if (Object.keys(updateData).length === 1) {
         res.status(400).json({

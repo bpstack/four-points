@@ -240,14 +240,14 @@ export interface CreateBookingDTO {
   spot_number: number
   level_code: LevelCode
   vehicle_id?: number | null
-  operator_id?: number
+  operator_id?: string // UUID string
   expected_checkin: string
   expected_checkout: string
   total_amount?: number | null
   booking_source?: BookingSource
   external_booking_id?: string | null
   notes?: string | null
-  created_by?: number | null
+  created_by?: string | null // UUID string
 }
 
 export interface UpdateBookingDTO {
@@ -260,7 +260,7 @@ export interface UpdateBookingDTO {
   booking_source?: BookingSource
   external_booking_id?: string | null
   notes?: string | null
-  updated_by?: number | null
+  updated_by?: string | null // UUID string
 }
 
 export interface CheckoutDTO {
