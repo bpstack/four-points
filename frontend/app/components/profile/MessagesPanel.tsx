@@ -363,6 +363,10 @@ export function MessagesPanel() {
     const date = new Date(dateStr)
     const now = new Date()
     const diff = now.getTime() - date.getTime()
+    
+    // Si la fecha es futura o inválida, mostrar vacío
+    if (diff < 0 || isNaN(diff)) return ''
+    
     const minutes = Math.floor(diff / 1000 / 60)
     const hours = Math.floor(minutes / 60)
     const days = Math.floor(hours / 24)
@@ -512,11 +516,11 @@ export function MessagesPanel() {
                           <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
                             {conv.last_message || 'Sin mensajes'}
                           </p>
-                          {(conv.unread_count || 0) > 0 && (
+                          {Number(conv.unread_count) > 0 ? (
                             <span className="px-1.5 py-0.5 bg-blue-600 text-white text-xs font-medium rounded-full flex-shrink-0">
                               {conv.unread_count}
                             </span>
-                          )}
+                          ) : null}
                         </div>
                       </div>
                     </div>
@@ -689,7 +693,7 @@ export function MessagesPanel() {
                             isOwn ? 'text-blue-200' : 'text-gray-400'
                           )}
                         >
-                          {msg.is_edited && <span className="text-xs italic">editado</span>}
+                          {!!msg.is_edited && <span className="text-xs italic">editado</span>}
                           <span className="text-xs">{formatTime(msg.created_at)}</span>
                           {isOwn && <FiCheckCircle className="w-3 h-3" />}
                         </div>
@@ -747,12 +751,12 @@ export function MessagesPanel() {
                   <button
                     onClick={handleSendMessage}
                     disabled={!newMessage.trim() || sending}
-                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white rounded-lg transition-colors"
+                    className="p-1.5 md:px-4 md:py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 disabled:opacity-50 text-white rounded-md md:rounded-lg transition-colors"
                   >
                     {sending ? (
-                      <FiLoader className="w-4 h-4 animate-spin" />
+                      <FiLoader className="w-3.5 h-3.5 md:w-4 md:h-4 animate-spin" />
                     ) : (
-                      <FiSend className="w-4 h-4" />
+                      <FiSend className="w-3.5 h-3.5 md:w-4 md:h-4" />
                     )}
                   </button>
                 </div>

@@ -2,14 +2,17 @@
 
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { apiClient } from '@/app/lib/apiClient'
 import { useAuth } from '@/app/lib/auth/useAuth'
 import NewUserModal from '@/app/components/auth/NewUserModal'
 import { UsersTableSkeleton } from '@/app/ui/skeletons'
 import { notificationsApi } from '@/app/lib/groups'
+import { departmentsApi } from '@/app/lib/departments'
+import { formatDepartmentName } from '@/app/lib/logbooks/hooks/useDepartments'
 import { cn } from '@/app/lib/helpers/utils'
+import { toast } from 'react-hot-toast'
 import {
   FiUsers,
   FiBell,
@@ -22,8 +25,16 @@ import {
   FiX,
   FiChevronDown,
   FiFileText,
+  FiGrid,
+  FiPlus,
 } from 'react-icons/fi'
 import { ReportsTab } from './reports'
+import {
+  CenterModal,
+  CenterModalFooterButtons,
+  FormField,
+  inputClassName,
+} from '@/app/ui/panels'
 
 // Types
 interface User {
@@ -35,7 +46,16 @@ interface User {
   updated_at?: string
 }
 
-type SettingsTab = 'users' | 'notifications' | 'security' | 'reports'
+interface Department {
+  id: number
+  name: string
+}
+
+interface FormattedDepartment extends Department {
+  displayName: string
+}
+
+type SettingsTab = 'users' | 'notifications' | 'security' | 'reports' | 'departments'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'
 
@@ -64,6 +84,7 @@ const ROLE_CONFIG = {
 
 const tabs: { id: SettingsTab; label: string; icon: React.ReactNode; adminOnly?: boolean }[] = [
   { id: 'users', label: 'Usuarios', icon: <FiUsers className="w-4 h-4" />, adminOnly: true },
+  { id: 'departments', label: 'Departamentos', icon: <FiGrid className="w-4 h-4" />, adminOnly: true },
   { id: 'notifications', label: 'Notificaciones', icon: <FiBell className="w-4 h-4" /> },
   { id: 'security', label: 'Seguridad', icon: <FiShield className="w-4 h-4" /> },
   { id: 'reports', label: 'Reportes', icon: <FiFileText className="w-4 h-4" />, adminOnly: true },
@@ -167,26 +188,41 @@ export function SettingsPanel() {
         </button>
         
         {isDropdownOpen && (
-          <div className="absolute left-4 right-4 mt-1 bg-white dark:bg-[#161b22] border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-50 overflow-hidden">
-            {availableTabs.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => handleTabChange(tab.id)}
-                className={cn(
-                  'w-full flex items-center justify-between px-4 py-2.5 text-sm transition-colors',
-                  activeTab === tab.id
-                    ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
-                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800'
-                )}
-              >
-                <span className="flex items-center gap-2">
-                  {tab.icon}
-                  {tab.label}
-                </span>
-                {activeTab === tab.id && <FiCheck className="w-4 h-4" />}
-              </button>
-            ))}
-          </div>
+          <>
+            {/* Backdrop */}
+            <div 
+              className="fixed inset-0 bg-black/50 z-40"
+              onClick={() => setIsDropdownOpen(false)}
+            />
+            {/* Centered Modal */}
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+              <div className="w-full max-w-sm bg-white dark:bg-[#161b22] border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl overflow-hidden">
+                <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
+                  <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Seleccionar seccion</h3>
+                </div>
+                <div className="py-1">
+                  {availableTabs.map((tab) => (
+                    <button
+                      key={tab.id}
+                      onClick={() => handleTabChange(tab.id)}
+                      className={cn(
+                        'w-full flex items-center justify-between px-4 py-3 text-sm transition-colors',
+                        activeTab === tab.id
+                          ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
+                          : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800'
+                      )}
+                    >
+                      <span className="flex items-center gap-2">
+                        {tab.icon}
+                        {tab.label}
+                      </span>
+                      {activeTab === tab.id && <FiCheck className="w-4 h-4" />}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </>
         )}
       </div>
 
@@ -223,6 +259,7 @@ export function SettingsPanel() {
             onOpenModal={() => setIsModalOpen(true)}
           />
         )}
+        {activeTab === 'departments' && isUserAdmin && <DepartmentsTab />}
         {activeTab === 'notifications' && <NotificationsSettings />}
         {activeTab === 'security' && <SecuritySettings />}
         {activeTab === 'reports' && isUserAdmin && <ReportsTab />}
@@ -240,7 +277,312 @@ export function SettingsPanel() {
   )
 }
 
-// User Management Component
+// =====================================================
+// DEPARTMENTS TAB
+// =====================================================
+
+function DepartmentsTab() {
+  const [departments, setDepartments] = useState<FormattedDepartment[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false)
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [selectedDepartment, setSelectedDepartment] = useState<FormattedDepartment | null>(null)
+
+  const loadDepartments = useCallback(async () => {
+    try {
+      setIsLoading(true)
+      const data = await departmentsApi.getAll()
+      const formatted: FormattedDepartment[] = data.map((dept) => ({
+        ...dept,
+        displayName: formatDepartmentName(dept.name),
+      }))
+      formatted.sort((a, b) =>
+        a.displayName.localeCompare(b.displayName, 'es', { sensitivity: 'base' })
+      )
+      setDepartments(formatted)
+    } catch (err) {
+      console.error('Error loading departments:', err)
+      toast.error('Error al cargar departamentos')
+    } finally {
+      setIsLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    loadDepartments()
+  }, [loadDepartments])
+
+  const handleDelete = async (id: number, displayName: string) => {
+    if (!confirm(`Eliminar el departamento "${displayName}"?`)) return
+    try {
+      await departmentsApi.delete(id)
+      toast.success('Departamento eliminado')
+      loadDepartments()
+    } catch (err: any) {
+      console.error('Error deleting department:', err)
+      toast.error(err?.response?.data?.error || 'Error al eliminar')
+    }
+  }
+
+  const handleEdit = (department: FormattedDepartment) => {
+    setSelectedDepartment(department)
+    setIsEditModalOpen(true)
+  }
+
+  return (
+    <div className="bg-white dark:bg-[#161b22] rounded-lg border border-gray-200 dark:border-[#30363d]">
+      <div className="px-4 py-3 border-b border-gray-200 dark:border-[#30363d]">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div>
+            <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Gestion de Departamentos</h3>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+              Administra los departamentos del hotel ({departments.length} total)
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setIsAddModalOpen(true)}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors"
+            >
+              <FiPlus className="w-3.5 h-3.5" />
+              Nuevo
+            </button>
+            <button
+              onClick={loadDepartments}
+              disabled={isLoading}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-[#0d1117] border border-gray-300 dark:border-[#30363d] hover:bg-gray-50 dark:hover:bg-[#21262d] rounded-lg transition-colors disabled:opacity-50"
+            >
+              <FiRefreshCw className={cn('w-3.5 h-3.5', isLoading && 'animate-spin')} />
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div className="p-4">
+        {isLoading && (
+          <div className="animate-pulse space-y-2">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-12 bg-gray-200 dark:bg-gray-800 rounded-lg" />
+            ))}
+          </div>
+        )}
+
+        {!isLoading && departments.length === 0 && (
+          <div className="text-center py-8">
+            <FiGrid className="w-10 h-10 text-gray-400 mx-auto mb-2" />
+            <p className="text-sm text-gray-500">No hay departamentos</p>
+          </div>
+        )}
+
+        {!isLoading && departments.length > 0 && (
+          <div className="space-y-2">
+            {departments.map((dept) => (
+              <div
+                key={dept.id}
+                className="flex items-center justify-between p-3 bg-gray-50 dark:bg-[#0d1117] border border-gray-200 dark:border-[#30363d] rounded-lg"
+              >
+                <div className="flex items-center gap-3">
+                  <span className="text-xs text-gray-500 dark:text-gray-400 font-mono">#{dept.id}</span>
+                  <span className="text-sm font-medium text-gray-900 dark:text-white">{dept.displayName}</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => handleEdit(dept)}
+                    className="p-1.5 text-gray-500 hover:text-blue-600 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                    title="Editar"
+                  >
+                    <FiEdit2 className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    onClick={() => handleDelete(dept.id, dept.displayName)}
+                    className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                    title="Eliminar"
+                  >
+                    <FiTrash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Add Modal */}
+      <AddDepartmentModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        onSuccess={loadDepartments}
+      />
+
+      {/* Edit Modal */}
+      {selectedDepartment && (
+        <EditDepartmentModal
+          isOpen={isEditModalOpen}
+          onClose={() => {
+            setIsEditModalOpen(false)
+            setSelectedDepartment(null)
+          }}
+          onSuccess={loadDepartments}
+          department={selectedDepartment}
+        />
+      )}
+    </div>
+  )
+}
+
+// =====================================================
+// DEPARTMENT MODALS (usando CenterModal)
+// =====================================================
+
+function AddDepartmentModal({
+  isOpen,
+  onClose,
+  onSuccess,
+}: {
+  isOpen: boolean
+  onClose: () => void
+  onSuccess: () => void
+}) {
+  const [name, setName] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  useEffect(() => {
+    if (isOpen) {
+      setName('')
+    }
+  }, [isOpen])
+
+  const handleSubmit = async () => {
+    if (name.trim().length < 2) {
+      toast.error('El nombre debe tener al menos 2 caracteres')
+      return
+    }
+
+    setIsSubmitting(true)
+    try {
+      await departmentsApi.create({ name: name.trim().toLowerCase() })
+      toast.success('Departamento creado')
+      setName('')
+      onSuccess()
+      onClose()
+    } catch (err: any) {
+      toast.error(err?.message || 'Error al crear departamento')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  return (
+    <CenterModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Nuevo Departamento"
+      size="sm"
+      headerIcon={<FiGrid className="w-5 h-5 text-green-600 dark:text-green-400" />}
+      footer={
+        <CenterModalFooterButtons
+          onCancel={onClose}
+          onSubmit={handleSubmit}
+          cancelText="Cancelar"
+          submitText="Crear"
+          isSubmitting={isSubmitting}
+          submitDisabled={name.trim().length < 2}
+          submitVariant="success"
+        />
+      }
+    >
+      <FormField label="Nombre del Departamento" required hint='Se guardara en minusculas. Ejemplo: "backoffice" se mostrara como "Back Office"'>
+        <input
+          type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          className={inputClassName}
+          placeholder="Ej: Recursos Humanos"
+          disabled={isSubmitting}
+          autoFocus
+        />
+      </FormField>
+    </CenterModal>
+  )
+}
+
+function EditDepartmentModal({
+  isOpen,
+  onClose,
+  onSuccess,
+  department,
+}: {
+  isOpen: boolean
+  onClose: () => void
+  onSuccess: () => void
+  department: FormattedDepartment
+}) {
+  const [name, setName] = useState(department.name)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  useEffect(() => {
+    if (isOpen) {
+      setName(department.name)
+    }
+  }, [isOpen, department.name])
+
+  const handleSubmit = async () => {
+    if (name.trim().length < 2) {
+      toast.error('El nombre debe tener al menos 2 caracteres')
+      return
+    }
+
+    setIsSubmitting(true)
+    try {
+      await departmentsApi.update(department.id, { name: name.trim().toLowerCase() })
+      toast.success('Departamento actualizado')
+      onSuccess()
+      onClose()
+    } catch (err: any) {
+      toast.error(err?.message || 'Error al actualizar')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  return (
+    <CenterModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Editar Departamento"
+      size="sm"
+      headerIcon={<FiEdit2 className="w-5 h-5 text-blue-600 dark:text-blue-400" />}
+      footer={
+        <CenterModalFooterButtons
+          onCancel={onClose}
+          onSubmit={handleSubmit}
+          cancelText="Cancelar"
+          submitText="Guardar"
+          isSubmitting={isSubmitting}
+          submitDisabled={name.trim().length < 2}
+          submitVariant="primary"
+        />
+      }
+    >
+      <FormField label="Nombre del Departamento" required hint="Se guardara en minusculas para consistencia">
+        <input
+          type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          className={inputClassName}
+          placeholder="Ej: Recursos Humanos"
+          disabled={isSubmitting}
+          autoFocus
+        />
+      </FormField>
+    </CenterModal>
+  )
+}
+
+// =====================================================
+// USER MANAGEMENT
+// =====================================================
+
 function UserManagement({
   users,
   loading,
@@ -451,6 +793,10 @@ function UserTable({ users, onDelete }: { users: User[]; onDelete: (id: string) 
     </div>
   )
 }
+
+// =====================================================
+// NOTIFICATIONS & SECURITY SETTINGS
+// =====================================================
 
 function NotificationsSettings() {
   const [checkingNotifications, setCheckingNotifications] = useState(false)

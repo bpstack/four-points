@@ -27,6 +27,15 @@ export function EditBookingModal({ booking, onClose, onConfirm }: EditBookingMod
   const [loading, setLoading] = useState(false)
   const [activeTab, setActiveTab] = useState<'general' | 'spot' | 'vehicle'>('general')
 
+  // Determinar si la reserva ya tiene check-in realizado
+  const isCheckedIn = booking.status === 'checked_in'
+
+  // Verificar si la fecha de check-in está en el pasado
+  const checkinDate = new Date(booking.schedule.expected_checkin)
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const isCheckinInPast = checkinDate < today
+
   // Form data
   const [data, setData] = useState({
     expected_checkin: formatDateTimeLocal(new Date(booking.schedule.expected_checkin)),
@@ -66,7 +75,10 @@ export function EditBookingModal({ booking, onClose, onConfirm }: EditBookingMod
   const loadAvailableSpots = async () => {
     setLoadingSpots(true)
     try {
-      const startDate = data.expected_checkin.split('T')[0]
+      // Si la fecha de entrada está en el pasado, usar hoy como start_date
+      const startDate = isCheckinInPast 
+        ? new Date().toISOString().split('T')[0]
+        : data.expected_checkin.split('T')[0]
       const endDate = data.expected_checkout.split('T')[0]
       const result = await parkingApi.getAvailableSpotsByRange({
         start_date: startDate,
@@ -198,6 +210,15 @@ export function EditBookingModal({ booking, onClose, onConfirm }: EditBookingMod
           {/* General Tab */}
           {activeTab === 'general' && (
             <div className="space-y-4">
+              {/* Aviso si la reserva ya tiene check-in */}
+              {isCheckedIn && (
+                <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3">
+                  <p className="text-sm text-amber-700 dark:text-amber-300">
+                    Esta reserva ya tiene check-in realizado. La fecha de entrada no se puede modificar.
+                  </p>
+                </div>
+              )}
+
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -207,8 +228,12 @@ export function EditBookingModal({ booking, onClose, onConfirm }: EditBookingMod
                     type="datetime-local"
                     value={data.expected_checkin}
                     onChange={(e) => setData({ ...data, expected_checkin: e.target.value })}
-                    className="w-full px-3 py-2 bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                    disabled={isCheckedIn || isCheckinInPast}
+                    className="w-full px-3 py-2 bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm disabled:bg-gray-100 dark:disabled:bg-gray-800 disabled:text-gray-500 disabled:cursor-not-allowed"
                   />
+                  {isCheckinInPast && !isCheckedIn && (
+                    <p className="text-xs text-gray-500 mt-1">Fecha en el pasado - no editable</p>
+                  )}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">

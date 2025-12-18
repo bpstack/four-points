@@ -5,7 +5,7 @@ import { FaCalendar, FaSpinner, FaArrowLeft } from 'react-icons/fa'
 import { formatDateLocal, formatDateForInput } from '@/app/lib/helpers/date'
 import SimpleCalendar from '@/app/ui/calendar/simplecalendar'
 import TimePicker from '@/app/ui/calendar/timepicker'
-import { getStyles } from '../variants'
+import { inputClassName, selectClassName, textareaClassName } from '@/app/ui/panels'
 import type { BookingWizardState, BookingWizardActions } from '../types'
 
 interface DateSpotStepProps {
@@ -13,8 +13,28 @@ interface DateSpotStepProps {
   actions: BookingWizardActions
 }
 
+// GitHub-style for full variant
+const styles = {
+  card: 'bg-[#f6f8fa] dark:bg-[#161b22] border border-[#d0d7de] dark:border-[#30363d] rounded-md p-4 sm:p-5',
+  sectionTitle: 'text-lg font-medium text-[#24292f] dark:text-[#f0f6fc]',
+  label: 'block text-sm font-medium text-[#24292f] dark:text-[#c9d1d9] mb-1',
+  input:
+    'w-full px-3 py-2 bg-white dark:bg-[#0d1117] border border-[#d0d7de] dark:border-[#30363d] rounded-md text-[#24292f] dark:text-[#c9d1d9] placeholder-[#57606a] dark:placeholder-[#8b949e] focus:outline-none focus:ring-1 focus:ring-[#0969da] dark:focus:ring-[#1f6feb] text-sm',
+  buttonPrimary:
+    'px-4 py-2 bg-[#0969da] hover:bg-[#0550ae] dark:bg-[#1f6feb] dark:hover:bg-[#1158c7] disabled:bg-[#d0d7de] dark:disabled:bg-[#30363d] disabled:text-[#8c959f] text-white rounded-md font-medium transition text-sm',
+  buttonSecondary:
+    'px-4 py-2 bg-[#f6f8fa] hover:bg-[#eaeef2] dark:bg-[#21262d] dark:hover:bg-[#30363d] text-[#24292f] dark:text-[#c9d1d9] rounded-md font-medium transition text-sm',
+  spotGrid:
+    'grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 max-h-64 overflow-y-auto p-2 bg-[#f6f8fa] dark:bg-[#0d1117] border border-[#d0d7de] dark:border-[#30363d] rounded-md',
+  spotCard: (isSelected: boolean) =>
+    `p-2 sm:p-3 rounded-md border-2 transition text-center cursor-pointer ${
+      isSelected
+        ? 'bg-[#ddf4ff] dark:bg-[#051d30] border-[#0969da] dark:border-[#1f6feb]'
+        : 'bg-white dark:bg-[#161b22] border-[#d0d7de] dark:border-[#30363d] hover:border-[#0969da] dark:hover:border-[#58a6ff]'
+    }`,
+}
+
 export default function DateSpotStep({ state, actions }: DateSpotStepProps) {
-  const styles = getStyles('full')
   const checkinRef = useRef<HTMLDivElement>(null)
   const checkoutRef = useRef<HTMLDivElement>(null)
 
@@ -33,6 +53,8 @@ export default function DateSpotStep({ state, actions }: DateSpotStepProps) {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [actions])
 
+  const normalizeLevel = (levelCode: string) => levelCode.replace('-', '')
+
   return (
     <div className={styles.card}>
       <div className="flex gap-2 items-center mb-4">
@@ -41,8 +63,8 @@ export default function DateSpotStep({ state, actions }: DateSpotStepProps) {
       </div>
 
       <div className="space-y-4">
-        {/* Fechas */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Fechas - RESPONSIVE */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {/* Check-in */}
           <div className="relative" ref={checkinRef}>
             <label className={styles.label}>
@@ -71,7 +93,7 @@ export default function DateSpotStep({ state, actions }: DateSpotStepProps) {
             </button>
 
             {state.showCheckinCalendar && (
-              <div className="absolute z-40 mt-2 left-0 w-full md:w-[290px] md:left-0">
+              <div className="absolute z-40 mt-2 left-0 right-0 sm:right-auto sm:w-[290px]">
                 <SimpleCalendar
                   selectedDate={
                     state.reservationData.expected_checkin_date
@@ -89,7 +111,7 @@ export default function DateSpotStep({ state, actions }: DateSpotStepProps) {
               </div>
             )}
 
-            <div className="mt-2">
+            <div className="mt-2 w-full sm:w-auto">
               <TimePicker
                 value={state.reservationData.expected_checkin_time}
                 onChange={(t) => actions.setReservationData({ expected_checkin_time: t })}
@@ -127,7 +149,7 @@ export default function DateSpotStep({ state, actions }: DateSpotStepProps) {
             </button>
 
             {state.showCheckoutCalendar && (
-              <div className="absolute z-40 mt-2 left-0 w-full md:w-[290px] md:right-0 md:left-auto">
+              <div className="absolute z-40 mt-2 left-0 right-0 sm:left-auto sm:right-0 sm:w-[290px]">
                 <SimpleCalendar
                   selectedDate={
                     state.reservationData.expected_checkout_date
@@ -145,7 +167,7 @@ export default function DateSpotStep({ state, actions }: DateSpotStepProps) {
               </div>
             )}
 
-            <div className="mt-2 md:ml-auto">
+            <div className="mt-2 w-full sm:w-auto sm:ml-auto">
               <TimePicker
                 value={state.reservationData.expected_checkout_time}
                 onChange={(t) => actions.setReservationData({ expected_checkout_time: t })}
@@ -189,39 +211,36 @@ export default function DateSpotStep({ state, actions }: DateSpotStepProps) {
           )}
         </button>
 
-        {/* Grid de plazas */}
+        {/* Grid de plazas - RESPONSIVE */}
         {state.availableSpots.length > 0 && (
           <div>
             <h3 className="text-sm font-medium text-[#24292f] dark:text-[#c9d1d9] mb-2">
               Plazas disponibles ({state.availableSpots.length})
             </h3>
             <div className={styles.spotGrid}>
-              {state.availableSpots.map((spot) => {
-                const normalizeLevel = (levelCode: string) => levelCode.replace('-', '')
-                return (
-                  <button
-                    key={spot.id}
-                    onClick={() => actions.handleSelectSpot(spot)}
-                    className={styles.spotCard(state.selectedSpot?.id === spot.id)}
-                  >
-                    <div className="text-sm font-semibold text-[#24292f] dark:text-[#f0f6fc] mb-1">
-                      Planta {normalizeLevel(spot.level_code)}
-                    </div>
-                    <div className="text-lg font-bold text-[#0969da] dark:text-[#58a6ff]">
-                      Nº {spot.spot_number}
-                    </div>
-                    <div className="text-xs text-[#57606a] dark:text-[#8b949e] capitalize mt-1">
-                      {spot.spot_type.replace('_', ' ')}
-                    </div>
-                  </button>
-                )
-              })}
+              {state.availableSpots.map((spot) => (
+                <button
+                  key={spot.id}
+                  onClick={() => actions.handleSelectSpot(spot)}
+                  className={styles.spotCard(state.selectedSpot?.id === spot.id)}
+                >
+                  <div className="text-xs sm:text-sm font-semibold text-[#24292f] dark:text-[#f0f6fc] mb-1">
+                    Planta {normalizeLevel(spot.level_code)}
+                  </div>
+                  <div className="text-base sm:text-lg font-bold text-[#0969da] dark:text-[#58a6ff]">
+                    Nº {spot.spot_number}
+                  </div>
+                  <div className="text-xs text-[#57606a] dark:text-[#8b949e] capitalize mt-1 hidden sm:block">
+                    {spot.spot_type.replace('_', ' ')}
+                  </div>
+                </button>
+              ))}
             </div>
           </div>
         )}
 
-        {/* Campos adicionales */}
-        <div className="grid grid-cols-2 gap-3 pt-2">
+        {/* Campos adicionales - RESPONSIVE */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
           <div>
             <label className={styles.label}>Precio Manual (opcional)</label>
             <input
@@ -268,22 +287,22 @@ export default function DateSpotStep({ state, actions }: DateSpotStepProps) {
             onChange={(e) => actions.setReservationData({ notes: e.target.value })}
             rows={3}
             placeholder="Información adicional sobre la reserva..."
-            className={styles.input}
+            className={styles.input + ' resize-none'}
           />
         </div>
 
-        {/* Botones */}
-        <div className="flex gap-2 pt-2">
+        {/* Botones - RESPONSIVE */}
+        <div className="flex flex-col sm:flex-row gap-2 pt-2">
           <button
             onClick={actions.prevStep}
-            className={styles.buttonSecondary + ' flex-1 flex items-center justify-center gap-2'}
+            className={styles.buttonSecondary + ' flex-1 flex items-center justify-center gap-2 order-2 sm:order-1'}
           >
             <FaArrowLeft className="w-3 h-3" /> Atrás
           </button>
           <button
             onClick={actions.nextStep}
             disabled={!state.selectedSpot}
-            className={styles.buttonPrimary + ' flex-1'}
+            className={styles.buttonPrimary + ' flex-1 order-1 sm:order-2'}
           >
             Continuar
           </button>

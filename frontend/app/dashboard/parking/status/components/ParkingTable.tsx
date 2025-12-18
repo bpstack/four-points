@@ -4,7 +4,6 @@
 import React from 'react'
 import { FiEdit2, FiXCircle, FiPlus } from 'react-icons/fi'
 import { MdLocalParking } from 'react-icons/md'
-import { toast } from 'react-hot-toast'
 import type { ParkingSpotDisplay, ParkingBooking } from '@/app/lib/parking/types'
 import { getStatusBadge } from '../utils/statusBadges'
 
@@ -15,6 +14,7 @@ interface ParkingTableProps {
   onCheckOut: (booking: ParkingBooking) => void
   onCancel: (booking: ParkingBooking) => void
   onCreateBooking: (spot: ParkingSpotDisplay) => void
+  onEdit: (booking: ParkingBooking) => void
 }
 
 // Helper para determinar si el checkout es hoy
@@ -34,6 +34,7 @@ function SpotActions({
   onCheckOut,
   onCancel,
   onCreateBooking,
+  onEdit,
   variant = 'default',
 }: {
   spot: ParkingSpotDisplay
@@ -41,6 +42,7 @@ function SpotActions({
   onCheckOut: (booking: ParkingBooking) => void
   onCancel: (booking: ParkingBooking) => void
   onCreateBooking: (spot: ParkingSpotDisplay) => void
+  onEdit: (booking: ParkingBooking) => void
   variant?: 'default' | 'mobile'
 }) {
   const isMobile = variant === 'mobile'
@@ -53,7 +55,7 @@ function SpotActions({
         <button
           onClick={(e) => {
             e.stopPropagation()
-            toast('Función de modificar (próximamente)', { icon: 'ℹ️' })
+            onEdit(spot.booking!)
           }}
           className="p-2 text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-md transition-colors"
           title="Modificar"
@@ -94,7 +96,7 @@ function SpotActions({
         <button
           onClick={(e) => {
             e.stopPropagation()
-            toast('Función de modificar (próximamente)', { icon: 'ℹ️' })
+            onEdit(spot.booking!)
           }}
           className="p-2 text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-md transition-colors"
           title="Modificar"
@@ -151,6 +153,7 @@ export default function ParkingTable({
   onCheckOut,
   onCancel,
   onCreateBooking,
+  onEdit,
 }: ParkingTableProps) {
   return (
     <>
@@ -261,6 +264,7 @@ export default function ParkingTable({
                             onCheckOut={onCheckOut}
                             onCancel={onCancel}
                             onCreateBooking={onCreateBooking}
+                            onEdit={onEdit}
                           />
                         </td>
                       </tr>
@@ -361,6 +365,7 @@ export default function ParkingTable({
                     onCheckOut={onCheckOut}
                     onCancel={onCancel}
                     onCreateBooking={onCreateBooking}
+                    onEdit={onEdit}
                     variant="mobile"
                   />
                 </div>

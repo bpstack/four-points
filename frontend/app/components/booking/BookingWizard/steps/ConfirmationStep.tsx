@@ -2,7 +2,6 @@
 
 import { FaArrowLeft, FaSpinner, FaCar } from 'react-icons/fa'
 import { MdLocalParking } from 'react-icons/md'
-import { getStyles } from '../variants'
 import type { BookingWizardState, BookingWizardActions, WizardVariant } from '../types'
 
 interface ConfirmationStepProps {
@@ -11,24 +10,45 @@ interface ConfirmationStepProps {
   actions: BookingWizardActions
 }
 
+// GitHub-style for full variant
+const fullStyles = {
+  card: 'bg-[#f6f8fa] dark:bg-[#161b22] border border-[#d0d7de] dark:border-[#30363d] rounded-md p-4 sm:p-5',
+  sectionTitle: 'text-lg font-medium text-[#24292f] dark:text-[#f0f6fc]',
+  buttonSuccess:
+    'px-4 py-2 bg-[#1a7f37] hover:bg-[#116329] dark:bg-[#238636] dark:hover:bg-[#2ea043] disabled:bg-[#d0d7de] dark:disabled:bg-[#30363d] disabled:text-[#8c959f] text-white rounded-md font-medium transition text-sm',
+  buttonSecondary:
+    'px-4 py-2 bg-[#f6f8fa] hover:bg-[#eaeef2] dark:bg-[#21262d] dark:hover:bg-[#30363d] text-[#24292f] dark:text-[#c9d1d9] rounded-md font-medium transition text-sm',
+}
+
+// Modern indigo for modal variant
+const modalStyles = {
+  card: 'space-y-4 sm:space-y-5',
+  title: 'text-base font-semibold text-gray-900 dark:text-gray-100 mb-1',
+  subtitle: 'text-sm text-gray-600 dark:text-gray-400',
+  buttonSuccess:
+    'flex-1 px-4 sm:px-5 py-2.5 sm:py-3 text-sm font-medium text-white bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 rounded-lg sm:rounded-xl transition-all duration-200 shadow-lg shadow-emerald-500/20 disabled:opacity-50 disabled:cursor-not-allowed',
+  buttonSecondary:
+    'px-4 sm:px-5 py-2.5 sm:py-3 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 rounded-lg sm:rounded-xl transition-all duration-200',
+}
+
 export default function ConfirmationStep({ variant, state, actions }: ConfirmationStepProps) {
-  const styles = getStyles(variant)
+  const normalizeLevel = (levelCode: string) => levelCode.replace('-', '')
 
   if (variant === 'full') {
     return (
-      <div className={styles.card}>
-        <h2 className={styles.sectionTitle}>Confirmar Reserva</h2>
+      <div className={fullStyles.card}>
+        <h2 className={fullStyles.sectionTitle}>Confirmar Reserva</h2>
 
-        <div className="space-y-2 p-4 bg-[#f6f8fa] dark:bg-[#0d1117] border border-[#d0d7de] dark:border-[#30363d] rounded-md text-sm">
+        <div className="space-y-2 p-3 sm:p-4 bg-[#f6f8fa] dark:bg-[#0d1117] border border-[#d0d7de] dark:border-[#30363d] rounded-md text-sm">
           {state.vehicleId && (
             <>
-              <div className="flex justify-between">
+              <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-0">
                 <span className="text-[#57606a] dark:text-[#8b949e]">Vehículo:</span>
                 <span className="font-medium text-[#24292f] dark:text-[#f0f6fc]">
                   {state.vehicleData.plate_number} - {state.vehicleData.model}
                 </span>
               </div>
-              <div className="flex justify-between">
+              <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-0">
                 <span className="text-[#57606a] dark:text-[#8b949e]">Propietario:</span>
                 <span className="font-medium text-[#24292f] dark:text-[#f0f6fc]">
                   {state.vehicleData.owner_name}
@@ -41,35 +61,35 @@ export default function ConfirmationStep({ variant, state, actions }: Confirmati
               Sin vehículo asociado
             </div>
           )}
-          <div className="flex justify-between pt-2 border-t border-[#d0d7de] dark:border-[#30363d]">
+          <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-0 pt-2 border-t border-[#d0d7de] dark:border-[#30363d]">
             <span className="text-[#57606a] dark:text-[#8b949e]">Plaza:</span>
             <span className="font-medium text-[#24292f] dark:text-[#f0f6fc]">
-              Planta {state.reservationData.level_code.replace('-', '')} - Nº{' '}
+              Planta {normalizeLevel(state.reservationData.level_code)} - Nº{' '}
               {state.reservationData.spot_number}
             </span>
           </div>
-          <div className="flex justify-between">
+          <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-0">
             <span className="text-[#57606a] dark:text-[#8b949e]">Check-in:</span>
             <span className="font-medium text-[#24292f] dark:text-[#f0f6fc]">
               {state.reservationData.expected_checkin_date}{' '}
               {state.reservationData.expected_checkin_time}
             </span>
           </div>
-          <div className="flex justify-between">
+          <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-0">
             <span className="text-[#57606a] dark:text-[#8b949e]">Check-out:</span>
             <span className="font-medium text-[#24292f] dark:text-[#f0f6fc]">
               {state.reservationData.expected_checkout_date}{' '}
               {state.reservationData.expected_checkout_time}
             </span>
           </div>
-          <div className="flex justify-between">
+          <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-0">
             <span className="text-[#57606a] dark:text-[#8b949e]">Días:</span>
             <span className="font-medium text-[#24292f] dark:text-[#f0f6fc]">
               {actions.calculateDays()}
             </span>
           </div>
           {state.reservationData.total_amount && (
-            <div className="flex justify-between pt-2 border-t border-[#d0d7de] dark:border-[#30363d]">
+            <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-0 pt-2 border-t border-[#d0d7de] dark:border-[#30363d]">
               <span className="font-medium text-[#24292f] dark:text-[#c9d1d9]">Precio:</span>
               <span className="font-bold text-[#1a7f37] dark:text-[#3fb950]">
                 €{parseFloat(state.reservationData.total_amount).toFixed(2)}
@@ -83,17 +103,18 @@ export default function ConfirmationStep({ variant, state, actions }: Confirmati
           )}
         </div>
 
-        <div className="flex gap-2 mt-4">
+        {/* Botones - RESPONSIVE */}
+        <div className="flex flex-col sm:flex-row gap-2 mt-4">
           <button
             onClick={actions.prevStep}
-            className={styles.buttonSecondary + ' flex-1 flex items-center justify-center gap-2'}
+            className={fullStyles.buttonSecondary + ' flex-1 flex items-center justify-center gap-2 order-2 sm:order-1'}
           >
             <FaArrowLeft className="w-3 h-3" /> Atrás
           </button>
           <button
             onClick={actions.handleCreateReservation}
             disabled={state.loading}
-            className={styles.buttonSuccess + ' flex-1 flex items-center justify-center gap-2'}
+            className={fullStyles.buttonSuccess + ' flex-1 flex items-center justify-center gap-2 order-1 sm:order-2'}
           >
             {state.loading ? (
               <>
@@ -109,31 +130,32 @@ export default function ConfirmationStep({ variant, state, actions }: Confirmati
     )
   }
 
-  // Variant modal
+  // Modal variant
   return (
-    <div className={styles.card}>
+    <div className={modalStyles.card}>
       <div>
-        <h3 className={styles.title}>Confirmar Reserva</h3>
-        <p className={styles.subtitle}>Revisa los detalles antes de confirmar</p>
+        <h3 className={modalStyles.title}>Confirmar Reserva</h3>
+        <p className={modalStyles.subtitle}>Revisa los detalles antes de confirmar</p>
       </div>
 
-      <div className="space-y-4 p-5 bg-gradient-to-br from-gray-50 to-slate-50 dark:from-slate-800/60 dark:to-slate-900/60 rounded-xl border border-gray-100 dark:border-slate-700/50">
+      <div className="space-y-4 p-4 sm:p-5 bg-gradient-to-br from-gray-50 to-slate-50 dark:from-slate-800/60 dark:to-slate-900/60 rounded-lg sm:rounded-xl border border-gray-100 dark:border-slate-700/50">
+        {/* Vehículo */}
         {state.vehicleId && (
-          <div className="space-y-3 pb-4 border-b border-gray-200 dark:border-gray-700">
+          <div className="space-y-2 sm:space-y-3 pb-3 sm:pb-4 border-b border-gray-200 dark:border-gray-700">
             <div className="flex items-center gap-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
               <FaCar className="w-4 h-4" />
               Vehículo
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
               <div>
                 <span className="text-xs text-gray-600 dark:text-gray-400">Matrícula:</span>
-                <p className="font-mono font-semibold text-gray-900 dark:text-gray-100">
-                  {state.vehicleData.plate_number} - {state.vehicleData.model}
+                <p className="font-mono font-semibold text-gray-900 dark:text-gray-100 text-sm sm:text-base">
+                  {state.vehicleData.plate_number} {state.vehicleData.model && `- ${state.vehicleData.model}`}
                 </p>
               </div>
               <div>
                 <span className="text-xs text-gray-600 dark:text-gray-400">Propietario:</span>
-                <p className="font-semibold text-gray-900 dark:text-gray-100">
+                <p className="font-semibold text-gray-900 dark:text-gray-100 text-sm sm:text-base">
                   {state.vehicleData.owner_name}
                 </p>
               </div>
@@ -147,28 +169,29 @@ export default function ConfirmationStep({ variant, state, actions }: Confirmati
             </p>
           </div>
         )}
-        <div className="space-y-3">
+
+        {/* Reserva */}
+        <div className="space-y-2 sm:space-y-3">
           <div className="flex items-center gap-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
             <MdLocalParking className="w-4 h-4" />
             Reserva
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-2 sm:gap-3">
             <div>
               <span className="text-xs text-gray-600 dark:text-gray-400">Plaza:</span>
-              <p className="font-semibold text-gray-900 dark:text-gray-100">
-                {state.reservationData.level_code.replace('-', '')} ·{' '}
-                {state.reservationData.spot_number}
+              <p className="font-semibold text-gray-900 dark:text-gray-100 text-sm sm:text-base">
+                {normalizeLevel(state.reservationData.level_code)} · {state.reservationData.spot_number}
               </p>
             </div>
             <div>
               <span className="text-xs text-gray-600 dark:text-gray-400">Días:</span>
-              <p className="font-semibold text-gray-900 dark:text-gray-100">
+              <p className="font-semibold text-gray-900 dark:text-gray-100 text-sm sm:text-base">
                 {actions.calculateDays()}
               </p>
             </div>
             <div>
               <span className="text-xs text-gray-600 dark:text-gray-400">Entrada:</span>
-              <p className="font-semibold text-gray-900 dark:text-gray-100">
+              <p className="font-semibold text-gray-900 dark:text-gray-100 text-sm sm:text-base">
                 {new Date(
                   `${state.reservationData.expected_checkin_date}T${state.reservationData.expected_checkin_time}`
                 ).toLocaleString('es-ES', {
@@ -181,7 +204,7 @@ export default function ConfirmationStep({ variant, state, actions }: Confirmati
             </div>
             <div>
               <span className="text-xs text-gray-600 dark:text-gray-400">Salida:</span>
-              <p className="font-semibold text-gray-900 dark:text-gray-100">
+              <p className="font-semibold text-gray-900 dark:text-gray-100 text-sm sm:text-base">
                 {new Date(
                   `${state.reservationData.expected_checkout_date}T${state.reservationData.expected_checkout_time}`
                 ).toLocaleString('es-ES', {
@@ -194,13 +217,15 @@ export default function ConfirmationStep({ variant, state, actions }: Confirmati
             </div>
           </div>
         </div>
+
+        {/* Precio */}
         {state.reservationData.total_amount && (
-          <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
+          <div className="pt-3 sm:pt-4 border-t border-gray-200 dark:border-gray-700">
             <div className="flex justify-between items-center">
               <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
                 Precio Total:
               </span>
-              <span className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">
+              <span className="text-xl sm:text-2xl font-bold text-indigo-600 dark:text-indigo-400">
                 €{parseFloat(state.reservationData.total_amount).toFixed(2)}
               </span>
             </div>
@@ -208,18 +233,19 @@ export default function ConfirmationStep({ variant, state, actions }: Confirmati
         )}
       </div>
 
-      <div className="flex gap-3 pt-4">
-        <button onClick={actions.prevStep} className={styles.buttonSecondary}>
+      {/* Botones - RESPONSIVE */}
+      <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-2 sm:pt-4">
+        <button onClick={actions.prevStep} className={`${modalStyles.buttonSecondary} order-2 sm:order-1`}>
           Atrás
         </button>
         <button
           onClick={actions.handleCreateReservation}
           disabled={state.loading}
-          className={styles.buttonSuccess}
+          className={`${modalStyles.buttonSuccess} order-1 sm:order-2`}
         >
           {state.loading ? (
             <span className="flex items-center justify-center gap-2">
-              <FaSpinner className="w-4 h-4 text-gray-500 dark:text-gray-400 animate-spin" />
+              <FaSpinner className="w-4 h-4 animate-spin" />
               Creando...
             </span>
           ) : (

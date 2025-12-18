@@ -3,8 +3,15 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { FiSend, FiX, FiMessageSquare } from 'react-icons/fi'
+import { FiSend, FiMessageSquare } from 'react-icons/fi'
 import { useDepartments } from '@/app/lib/logbooks/hooks/useDepartments'
+import {
+  SlidePanel,
+  SlidePanelFooterButtons,
+  FormField,
+  selectClassName,
+  textareaClassName,
+} from '@/app/ui/panels'
 
 type ImportanceLevel = 'baja' | 'media' | 'alta' | 'urgente'
 
@@ -64,141 +71,87 @@ export default function NewCommentEntry({
     }
   }
 
-  if (!isOpen) return null
-
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-start">
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative h-full w-full max-w-[1024px] bg-white dark:bg-[#0d1117] border-r border-gray-200 dark:border-[#30363d] shadow-2xl overflow-y-auto animate-slide-in-left">
-        <div className="sticky top-0 bg-white/95 dark:bg-[#0d1117]/95 backdrop-blur-sm border-b border-gray-200 dark:border-[#30363d] p-6 flex items-center justify-between z-10">
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-              <FiMessageSquare className="w-5 h-5 text-blue-600 dark:text-[#1f6feb]" />
-              {title}
-            </h3>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-              Add a comment to this entry
-            </p>
-          </div>
-          <button
-            onClick={onClose}
-            className="p-2 hover:bg-gray-100 dark:hover:bg-[#21262d] rounded-md transition-colors"
+    <SlidePanel
+      isOpen={isOpen}
+      onClose={onClose}
+      title={title}
+      subtitle="Add a comment to this entry"
+      size="xl"
+      position="left"
+      headerIcon={<FiMessageSquare className="w-5 h-5 text-blue-600 dark:text-blue-400" />}
+      footer={
+        <SlidePanelFooterButtons
+          onCancel={onClose}
+          onSubmit={handleSave}
+          cancelText="Cancel"
+          submitText="Add Comment"
+          submitIcon={<FiSend className="w-4 h-4" />}
+          isSubmitting={isSubmitting}
+          submitDisabled={!comment.trim()}
+          submitVariant="success"
+        />
+      }
+    >
+      <form
+        onSubmit={(e) => {
+          e.preventDefault()
+          if (!isSubmitting) void handleSave()
+        }}
+        className="space-y-5"
+      >
+        <FormField label="Comment" required>
+          <textarea
+            value={comment}
+            onChange={(e) => setComment(e.target.value)}
+            className={textareaClassName}
+            rows={4}
+            placeholder="Add your comment..."
+            required
+            minLength={3}
             disabled={isSubmitting}
-          >
-            <FiX className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-          </button>
-        </div>
+          />
+        </FormField>
 
-        <form
-          onSubmit={(e) => {
-            e.preventDefault()
-            if (!isSubmitting) void handleSave()
-          }}
-          className="p-6 space-y-5"
-        >
-          <div>
-            <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              <FiMessageSquare className="w-4 h-4 text-gray-400 dark:text-gray-500" />
-              Comment <span className="text-red-500">*</span>
-            </label>
-            <textarea
-              value={comment}
-              onChange={(e) => setComment(e.target.value)}
-              className="w-full px-4 py-2.5 bg-white dark:bg-[#0d1117] border border-gray-300 dark:border-[#30363d] rounded-md text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-600 dark:focus:ring-[#1f6feb] focus:border-transparent transition-all"
-              rows={4}
-              placeholder="Add your comment..."
-              required
-              minLength={3}
-              disabled={isSubmitting}
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Priority
-              </label>
-              <select
-                value={priority}
-                onChange={(e) => setPriority(e.target.value as ImportanceLevel)}
-                className="w-full px-4 py-2.5 bg-white dark:bg-[#0d1117] border border-gray-300 dark:border-[#30363d] rounded-md text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-600 dark:focus:ring-[#1f6feb] focus:border-transparent transition-all"
-                disabled={isSubmitting}
-              >
-                <option value="baja">Low</option>
-                <option value="media">Medium</option>
-                <option value="alta">High</option>
-                <option value="urgente">Critical</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Department
-              </label>
-              <select
-                value={department}
-                onChange={(e) => setDepartment(Number(e.target.value))}
-                className="w-full px-4 py-2.5 bg-white dark:bg-[#0d1117] border border-gray-300 dark:border-[#30363d] rounded-md text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-600 dark:focus:ring-[#1f6feb] focus:border-transparent transition-all"
-                disabled={isSubmitting}
-              >
-                {departments.length > 0 ? (
-                  departments.map((dept) => (
-                    <option key={dept.id} value={dept.id}>
-                      {dept.name}
-                    </option>
-                  ))
-                ) : (
-                  <>
-                    <option value={1}>Recepción</option>
-                    <option value={2}>Housekeeping</option>
-                    <option value={3}>Mantenimiento</option>
-                  </>
-                )}
-              </select>
-            </div>
-          </div>
-
-          <div className="pt-2 flex gap-3">
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex-1 px-4 py-2.5 bg-gray-100 hover:bg-gray-200 dark:bg-[#21262d] dark:hover:bg-[#30363d] text-gray-700 dark:text-gray-300 rounded-md font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        <div className="grid grid-cols-2 gap-4">
+          <FormField label="Priority">
+            <select
+              value={priority}
+              onChange={(e) => setPriority(e.target.value as ImportanceLevel)}
+              className={selectClassName}
               disabled={isSubmitting}
             >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="flex-1 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 dark:bg-[#1f6feb] dark:hover:bg-[#1a5ecf] text-white rounded-md font-medium transition-colors shadow-lg shadow-blue-500/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-              disabled={isSubmitting || !comment.trim()}
+              <option value="baja">Low</option>
+              <option value="media">Medium</option>
+              <option value="alta">High</option>
+              <option value="urgente">Critical</option>
+            </select>
+          </FormField>
+
+          <FormField label="Department">
+            <select
+              value={department}
+              onChange={(e) => setDepartment(Number(e.target.value))}
+              className={selectClassName}
+              disabled={isSubmitting}
             >
-              {isSubmitting ? (
-                'Saving...'
+              {departments.length > 0 ? (
+                departments.map((dept) => (
+                  <option key={dept.id} value={dept.id}>
+                    {dept.name}
+                  </option>
+                ))
               ) : (
                 <>
-                  <FiSend className="w-4 h-4" /> Add Comment
+                  <option value={1}>Recepción</option>
+                  <option value={2}>Housekeeping</option>
+                  <option value={3}>Mantenimiento</option>
                 </>
               )}
-            </button>
-          </div>
-        </form>
-
-        <style jsx>{`
-          @keyframes slide-in-left {
-            from {
-              transform: translateX(-100%);
-              opacity: 0;
-            }
-            to {
-              transform: translateX(0);
-              opacity: 1;
-            }
-          }
-          .animate-slide-in-left {
-            animation: slide-in-left 0.3s ease-out;
-          }
-        `}</style>
-      </div>
-    </div>
+            </select>
+          </FormField>
+        </div>
+      </form>
+    </SlidePanel>
   )
 }

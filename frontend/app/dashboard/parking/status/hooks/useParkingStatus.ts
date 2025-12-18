@@ -47,6 +47,11 @@ export function useParkingStatus(selectedDate: string) {
     spot: ParkingSpotDisplay | null
   }>({ isOpen: false, spot: null })
 
+  const [editModal, setEditModal] = useState<{
+    isOpen: boolean
+    booking: ParkingBooking | null
+  }>({ isOpen: false, booking: null })
+
   const [actionLoading, setActionLoading] = useState(false)
 
   // Cargar datos del parking - memoizado para evitar loops
@@ -209,6 +214,40 @@ export function useParkingStatus(selectedDate: string) {
     setCreateModal({ isOpen: true, spot })
   }
 
+  // Editar reserva
+  const handleEditBooking = (booking: ParkingBooking) => {
+    setEditModal({ isOpen: true, booking })
+  }
+
+  const confirmEditBooking = async (data: {
+    expected_checkin?: string
+    expected_checkout?: string
+    spot_number?: number
+    level_code?: string
+    vehicle_id?: number
+    total_amount?: number
+    booking_source?: string
+    external_booking_id?: string
+    notes?: string
+  }) => {
+    if (!editModal.booking) return
+
+    try {
+      setActionLoading(true)
+      await parkingApi.updateBooking(editModal.booking.booking_code, data)
+      toast.success('Reserva actualizada correctamente')
+      setEditModal({ isOpen: false, booking: null })
+      await loadParkingData()
+    } catch (error) {
+      console.error('Error updating booking:', error)
+      const message = error instanceof Error ? error.message : 'Error al actualizar la reserva'
+      toast.error(message)
+      throw error
+    } finally {
+      setActionLoading(false)
+    }
+  }
+
   // Gestionar overdue
   const handleOverdueAction = async (action: 'checkout' | 'no-show' | 'cancel' | 'delete') => {
     if (!overdueModal.booking) return
@@ -264,6 +303,7 @@ export function useParkingStatus(selectedDate: string) {
     cancelModal,
     overdueModal,
     createModal,
+    editModal,
     actionLoading,
 
     // Setters ✅ AÑADIDOS
@@ -272,6 +312,7 @@ export function useParkingStatus(selectedDate: string) {
     setCancelModal,
     setOverdueModal,
     setCreateModal,
+    setEditModal,
 
     // Actions
     handleCheckIn,
@@ -281,6 +322,8 @@ export function useParkingStatus(selectedDate: string) {
     handleCancelBooking,
     confirmCancelBooking,
     handleCreateBooking,
+    handleEditBooking,
+    confirmEditBooking,
     handleOverdueAction,
     loadParkingData,
   }

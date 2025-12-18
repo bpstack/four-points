@@ -4,14 +4,32 @@
 
 import { useRouter } from 'next/navigation'
 import { FaExclamationCircle, FaCheck } from 'react-icons/fa'
-import { FiPlus, FiX } from 'react-icons/fi'
+import { FiPlus } from 'react-icons/fi'
 import { useBookingWizard } from './hooks/useBookingWizard'
-import { getStyles } from './variants'
+import {
+  SlidePanel,
+  SlidePanelFooterButtons,
+  StepIndicator,
+  Alert,
+} from '@/app/ui/panels'
 import VehicleStep from './steps/VehicleStep'
 import DateSpotStep from './steps/DateSpotStep'
 import DateOnlyStep from './steps/DateOnlyStep'
 import ConfirmationStep from './steps/ConfirmationStep'
 import type { BookingWizardProps } from './types'
+
+// Progress bar styles for full variant
+const progressBarClass = (isActive: boolean) =>
+  `h-0.5 flex-1 rounded-full transition-colors ${
+    isActive ? 'bg-[#0969da] dark:bg-[#1f6feb]' : 'bg-[#d0d7de] dark:bg-[#30363d]'
+  }`
+
+// Steps configuration for SlidePanel wizard
+const wizardSteps = [
+  { number: 1, label: 'Vehículo' },
+  { number: 2, label: 'Fechas' },
+  { number: 3, label: 'Confirmar' },
+]
 
 export default function BookingWizard({
   variant = 'full',
@@ -29,13 +47,11 @@ export default function BookingWizard({
     onCancel,
   })
 
-  const styles = getStyles(variant)
-
   // Success screen (solo para variant='full')
   if (variant === 'full' && state.step === 4 && state.success) {
     return (
-      <div className={styles.container}>
-        <div className={styles.wrapper}>
+      <div className="min-h-screen bg-white dark:bg-[#010409] p-4 sm:p-6">
+        <div className="max-w-3xl mx-auto">
           <div className="bg-white dark:bg-[#161b22] border border-[#d0d7de] dark:border-[#30363d] rounded-md p-6 text-center">
             <div className="w-16 h-16 bg-[#ddf4ff] dark:bg-[#051d30] rounded-full flex items-center justify-center mx-auto mb-4">
               <FaCheck className="w-8 h-8 text-[#0969da] dark:text-[#58a6ff]" />
@@ -77,36 +93,44 @@ export default function BookingWizard({
     )
   }
 
-  // Render wizard según variante
+  // Render full page variant
   if (variant === 'full') {
     return (
-      <div className={styles.container}>
-        <div className={styles.wrapper}>
+      <div className="min-h-screen bg-white dark:bg-[#010409] p-4 sm:p-6">
+        <div className="max-w-3xl mx-auto">
           {/* Header */}
           <div className="mb-6">
-            <h1 className={styles.title}>Nueva Reserva</h1>
-            <p className={styles.subtitle}>Paso {state.step} de 3</p>
+            <h1 className="text-3xl font-semibold text-[#24292f] dark:text-[#f0f6fc] mb-4">
+              Nueva Reserva
+            </h1>
+            <p className="text-sm text-[#57606a] dark:text-[#8b949e]">
+              Paso {state.step} de 3
+            </p>
 
-            <div className={styles.progressContainer}>
+            <div className="mt-3 flex gap-1">
               {[1, 2, 3].map((s) => (
-                <div key={s} className={styles.progressBar(s <= state.step)} />
+                <div key={s} className={progressBarClass(s <= state.step)} />
               ))}
             </div>
           </div>
 
           {/* Alertas */}
           {state.error && (
-            <div className={styles.alertError}>
-              <FaExclamationCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
-              <p>{state.error}</p>
-            </div>
+            <Alert variant="warning" className="mb-4">
+              <div className="flex gap-2">
+                <FaExclamationCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                <p>{state.error}</p>
+              </div>
+            </Alert>
           )}
 
           {state.success && (
-            <div className={styles.alertSuccess}>
-              <FaCheck className="w-4 h-4 flex-shrink-0 mt-0.5" />
-              <p>¡Reserva creada exitosamente!</p>
-            </div>
+            <Alert variant="success" className="mb-4">
+              <div className="flex gap-2">
+                <FaCheck className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                <p>¡Reserva creada exitosamente!</p>
+              </div>
+            </Alert>
           )}
 
           {/* Steps */}
@@ -129,87 +153,93 @@ export default function BookingWizard({
     )
   }
 
-  // Variant modal - AGREGAR EL WRAPPER DEL MODAL AQUÍ
+  // Variant modal - using SlidePanel (same as CreateGroupPanel, CreateReportPanel)
   if (variant === 'modal') {
+    const subtitle = preSelectedSpot
+      ? `Plaza ${preSelectedSpot.level_code.replace('-', '')} · Nº ${preSelectedSpot.spot_number}`
+      : 'Completa los datos para crear una reserva'
+
+    // Determine footer buttons based on current step
+    const getFooterButtons = () => {
+      if (state.step === 1) {
+        return (
+          <SlidePanelFooterButtons
+            onCancel={onCancel || (() => {})}
+            onSubmit={actions.handleCreateVehicle}
+            cancelText="Cancelar"
+            submitText={state.loading ? 'Creando...' : 'Continuar'}
+            isSubmitting={state.loading}
+            submitDisabled={!state.vehicleData.plate_number || !state.vehicleData.owner_name}
+            submitVariant="primary"
+          />
+        )
+      }
+
+      if (state.step === 2) {
+        return (
+          <SlidePanelFooterButtons
+            onCancel={onCancel || (() => {})}
+            onBack={actions.prevStep}
+            onSubmit={actions.nextStep}
+            cancelText="Cancelar"
+            submitText="Continuar"
+            submitDisabled={
+              !state.reservationData.expected_checkin_date ||
+              !state.reservationData.expected_checkout_date
+            }
+            submitVariant="primary"
+          />
+        )
+      }
+
+      if (state.step === 3) {
+        return (
+          <SlidePanelFooterButtons
+            onCancel={onCancel || (() => {})}
+            onBack={actions.prevStep}
+            onSubmit={actions.handleCreateReservation}
+            cancelText="Cancelar"
+            submitText={state.loading ? 'Creando...' : 'Confirmar Reserva'}
+            isSubmitting={state.loading}
+            submitVariant="success"
+          />
+        )
+      }
+
+      return null
+    }
+
     return (
-      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div className="w-full max-w-3xl bg-[#f6f8fa] dark:bg-[#0d1117] rounded-2xl shadow-2xl border border-indigo-200/50 dark:border-indigo-800/30 overflow-hidden">
-          {/* Header del modal */}
-          <div className="px-6 py-4 bg-gradient-to-r from-indigo-50 to-blue-50 dark:from-indigo-950/20 dark:to-blue-950/20 border-b border-indigo-100 dark:border-indigo-900/30 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg">
-                <FiPlus className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
-              </div>
-              <div>
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                  Nueva Reserva
-                </h2>
-                {preSelectedSpot && (
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    Plaza {preSelectedSpot.level_code.replace('-', '')} ·{' '}
-                    {preSelectedSpot.spot_number}
-                  </p>
-                )}
-              </div>
-            </div>
-            <button
-              onClick={onCancel}
-              className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"
-            >
-              <FiX className="w-5 h-5" />
-            </button>
-          </div>
+      <SlidePanel
+        isOpen={true}
+        onClose={onCancel || (() => {})}
+        title="Nueva Reserva"
+        subtitle={subtitle}
+        size="lg"
+        headerIcon={<FiPlus className="w-5 h-5 text-blue-600 dark:text-blue-400" />}
+        steps={wizardSteps}
+        currentStep={state.step}
+        closeOnBackdrop={false}
+        footer={getFooterButtons()}
+      >
+        {/* Error alert */}
+        {state.error && (
+          <Alert variant="error" className="mb-4">
+            <p>{state.error}</p>
+          </Alert>
+        )}
 
-          {/* Progress indicator */}
-          <div className="px-6 py-4 bg-gray-50/50 dark:bg-slate-900/50 border-b border-gray-100 dark:border-slate-800">
-            <div className="flex items-center justify-between max-w-md mx-auto">
-              {[1, 2, 3].map((num) => (
-                <div key={num} className="flex items-center">
-                  <div
-                    className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold transition-all duration-200 ${
-                      num <= state.step
-                        ? 'bg-gradient-to-br from-indigo-600 to-blue-600 text-white shadow-lg shadow-indigo-500/30'
-                        : 'bg-gray-200 dark:bg-slate-800 text-gray-500 dark:text-gray-400'
-                    }`}
-                  >
-                    {num}
-                  </div>
-                  {num < 3 && (
-                    <div
-                      className={`w-16 h-1 mx-2 rounded transition-all duration-200 ${
-                        num < state.step
-                          ? 'bg-gradient-to-r from-indigo-600 to-blue-600'
-                          : 'bg-gray-200 dark:bg-slate-800'
-                      }`}
-                    />
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
+        {/* Steps content */}
+        {state.step === 1 && (
+          <VehicleStep variant={variant} state={state} actions={actions} />
+        )}
 
-          {/* Content container */}
-          <div className={styles.container}>
-            {/* Error alert */}
-            {state.error && (
-              <div className={styles.alertError}>
-                <p>{state.error}</p>
-              </div>
-            )}
+        {state.step === 2 && <DateOnlyStep state={state} actions={actions} />}
 
-            {/* Steps */}
-            {state.step === 1 && (
-              <VehicleStep variant={variant} state={state} actions={actions} onCancel={onCancel} />
-            )}
-
-            {state.step === 2 && <DateOnlyStep state={state} actions={actions} />}
-
-            {state.step === 3 && (
-              <ConfirmationStep variant={variant} state={state} actions={actions} />
-            )}
-          </div>
-        </div>
-      </div>
+        {state.step === 3 && (
+          <ConfirmationStep variant={variant} state={state} actions={actions} />
+        )}
+      </SlidePanel>
     )
   }
 

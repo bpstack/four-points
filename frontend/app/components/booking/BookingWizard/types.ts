@@ -2,6 +2,7 @@
 
 import type { ParkingBooking } from '@/app/lib/parking/types'
 
+/** Wizard display variant: 'full' for full page, 'modal' for CenterModal */
 export type WizardVariant = 'full' | 'modal'
 
 export interface ParkingSpotDisplay {

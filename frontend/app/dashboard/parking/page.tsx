@@ -648,7 +648,7 @@ function QuickActionCard({
     red: 'from-red-500 to-red-600 hover:border-red-500',
   }
 
-  const className = `group p-3 bg-gradient-to-br from-[#f6f8fa] to-white dark:from-[#0d1117] dark:to-[#0D1117] border border-[#d0d7de] dark:border-[#21262d] rounded-lg ${colorClasses[color as keyof typeof colorClasses]} hover:shadow-lg transition-all duration-300 transform hover:-translate-y-0.5`
+  const className = `group p-3 bg-white dark:bg-gradient-to-br dark:from-[#0d1117] dark:to-[#0D1117] border border-[#d0d7de] dark:border-[#21262d] rounded-lg ${colorClasses[color as keyof typeof colorClasses]} hover:shadow-lg transition-all duration-300 transform hover:-translate-y-0.5`
 
   const content = (
     <div className="flex flex-col items-center text-center space-y-2">

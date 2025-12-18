@@ -41,7 +41,6 @@ const routeIcons: Record<string, IconType | React.ComponentType<{ className?: st
   // Back office
   bo: GiOfficeChair,
   invoices: DocumentDuplicateIcon,
-  departments: UserGroupIcon,
   // Cashier
   cashier: MdPointOfSale,
   hotel: MdPointOfSale,

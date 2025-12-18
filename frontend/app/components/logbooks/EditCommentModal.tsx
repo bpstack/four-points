@@ -1,8 +1,15 @@
 // app/components/logbooks/EditCommentModal.tsx
 'use client'
 
-import { FiX, FiSave } from 'react-icons/fi'
+import { FiSave, FiMessageSquare } from 'react-icons/fi'
 import { useDepartments } from '@/app/lib/logbooks/hooks/useDepartments'
+import {
+  CenterModal,
+  CenterModalFooterButtons,
+  FormField,
+  selectClassName,
+  textareaClassName,
+} from '@/app/ui/panels'
 
 export interface EditCommentModalProps {
   isOpen: boolean
@@ -31,111 +38,77 @@ export default function EditCommentModal({
 }: EditCommentModalProps) {
   const { departments, loading: departmentsLoading } = useDepartments()
 
-  if (!isOpen) return null
-
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-[#0d1117] rounded-lg w-full max-w-lg shadow-2xl border border-gray-200 dark:border-gray-800">
-        <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-800">
-          <h3 className="text-xl font-semibold text-gray-900 dark:text-white">Edit Comment</h3>
-          <button
-            onClick={onClose}
-            className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+    <CenterModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Edit Comment"
+      size="lg"
+      headerIcon={<FiMessageSquare className="w-5 h-5 text-blue-600 dark:text-blue-400" />}
+      footer={
+        <CenterModalFooterButtons
+          onCancel={onClose}
+          onSubmit={onSave}
+          cancelText="Cancel"
+          submitText="Save Changes"
+          submitIcon={<FiSave className="w-4 h-4" />}
+          isSubmitting={isSubmitting}
+          submitDisabled={!comment.trim() || comment.trim().length < 3}
+          submitVariant="primary"
+        />
+      }
+    >
+      <div className="space-y-4">
+        <FormField label="Comment" required hint="Minimum 3 characters">
+          <textarea
+            value={comment}
+            onChange={(e) => setComment(e.target.value)}
+            className={textareaClassName}
+            rows={4}
+            placeholder="Edit your comment..."
             disabled={isSubmitting}
-          >
-            <FiX className="w-5 h-5" />
-          </button>
-        </div>
+          />
+        </FormField>
 
-        <div className="p-6 space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Comment <span className="text-red-500">*</span>
-            </label>
-            <textarea
-              value={comment}
-              onChange={(e) => setComment(e.target.value)}
-              className="w-full border border-gray-300 dark:border-gray-700 dark:bg-[#151b23] dark:text-white rounded-lg p-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-              rows={4}
-              placeholder="Edit your comment..."
+        <div className="grid grid-cols-2 gap-4">
+          <FormField label="Priority">
+            <select
+              value={priority}
+              onChange={(e) =>
+                setPriority(e.target.value as 'baja' | 'media' | 'alta' | 'urgente')
+              }
+              className={selectClassName}
               disabled={isSubmitting}
-            />
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Minimum 3 characters</p>
-          </div>
+            >
+              <option value="baja">Low</option>
+              <option value="media">Medium</option>
+              <option value="alta">High</option>
+              <option value="urgente">Critical</option>
+            </select>
+          </FormField>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Priority
-              </label>
-              <select
-                value={priority}
-                onChange={(e) =>
-                  setPriority(e.target.value as 'baja' | 'media' | 'alta' | 'urgente')
-                }
-                className="w-full px-4 py-2.5 bg-white dark:bg-[#0d1117] border border-gray-300 dark:border-[#30363d] rounded-md text-gray-900 dark:text-white"
-                disabled={isSubmitting}
-              >
-                <option value="baja">Low</option>
-                <option value="media">Medium</option>
-                <option value="alta">High</option>
-                <option value="urgente">Critical</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Department
-              </label>
-              <select
-                value={department}
-                onChange={(e) => setDepartment(Number(e.target.value))}
-                className="w-full px-4 py-2.5 bg-white dark:bg-[#0d1117] border border-gray-300 dark:border-[#30363d] rounded-md text-gray-900 dark:text-white"
-                disabled={isSubmitting || departmentsLoading}
-              >
-                {departmentsLoading ? (
-                  <option>Cargando...</option>
-                ) : departments.length > 0 ? (
-                  departments.map((dept) => (
-                    <option key={dept.id} value={dept.id}>
-                      {dept.displayName}
-                    </option>
-                  ))
-                ) : (
-                  <option value={department}>No hay departamentos</option>
-                )}
-              </select>
-            </div>
-          </div>
-        </div>
-
-        <div className="flex justify-end gap-3 p-6 border-t border-gray-200 dark:border-gray-800">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-            disabled={isSubmitting}
-          >
-            Cancel
-          </button>
-          <button
-            onClick={onSave}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-            disabled={isSubmitting || !comment.trim() || comment.trim().length < 3}
-          >
-            {isSubmitting ? (
-              <>
-                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                Updating...
-              </>
-            ) : (
-              <>
-                <FiSave className="w-4 h-4" />
-                Save Changes
-              </>
-            )}
-          </button>
+          <FormField label="Department">
+            <select
+              value={department}
+              onChange={(e) => setDepartment(Number(e.target.value))}
+              className={selectClassName}
+              disabled={isSubmitting || departmentsLoading}
+            >
+              {departmentsLoading ? (
+                <option>Loading...</option>
+              ) : departments.length > 0 ? (
+                departments.map((dept) => (
+                  <option key={dept.id} value={dept.id}>
+                    {dept.displayName}
+                  </option>
+                ))
+              ) : (
+                <option value={department}>No departments</option>
+              )}
+            </select>
+          </FormField>
         </div>
       </div>
-    </div>
+    </CenterModal>
   )
 }

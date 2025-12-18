@@ -315,3 +315,31 @@ export function formatDateForInput(date: Date = new Date()): string {
 export function parseInputDate(dateString: string): Date {
   return new Date(dateString + 'T12:00:00') // Mediodía para evitar problemas de timezone
 }
+
+// ============================================
+// FUNCIONES PARA PANELES (SlidePanel, CenterModal)
+// ============================================
+
+/**
+ * Format date for display in panels with short month
+ * Format: DD MMM YYYY (e.g., "28 oct 2025")
+ *
+ * Accepts both Date objects and YYYY-MM-DD strings.
+ * Returns empty string for undefined/null/empty values.
+ *
+ * @example
+ * formatDateDisplayShort('2025-10-28') // "28 oct 2025"
+ * formatDateDisplayShort(new Date()) // "18 dic 2025"
+ * formatDateDisplayShort(undefined) // ""
+ */
+export function formatDateDisplayShort(date: Date | string | null | undefined): string {
+  if (!date) return ''
+
+  const dateObj = typeof date === 'string' ? parseInputDate(date) : date
+
+  return dateObj.toLocaleDateString('es-ES', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  })
+}

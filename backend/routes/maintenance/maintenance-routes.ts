@@ -86,12 +86,12 @@ router.patch('/:id/status', MaintenanceController.updateStatus)
 router.patch('/:id/priority', MaintenanceController.updatePriority)
 
 /**
- * @route   POST /api/maintenance/:id/resolution-notes
+ * @route   PATCH /api/maintenance/:id/resolution-notes
  * @desc    Agregar notas de resolución
  * @access  Private
  * @body    notes
  */
-router.post('/:id/resolution-notes', MaintenanceController.addResolutionNotes)
+router.patch('/:id/resolution-notes', MaintenanceController.addResolutionNotes)
 
 /**
  * @route   PATCH /api/maintenance/:id/assign
