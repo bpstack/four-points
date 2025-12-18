@@ -17,6 +17,7 @@ import {
   FiArrowUp,
   FiActivity,
   FiRefreshCw,
+  FiSearch,
 } from 'react-icons/fi'
 import Link from 'next/link'
 import {
@@ -24,6 +25,7 @@ import {
   getCurrentWeekRange,
   getCurrentMonthRange,
 } from '@/app/lib/helpers/date'
+import { VehicleSearchModal } from '@/app/components/parking/VehicleSearchModal'
 
 interface ParkingStats {
   total_spots: number
@@ -42,6 +44,7 @@ interface ParkingStats {
 export default function ParkingDashboard() {
   const [selectedPeriod, setSelectedPeriod] = useState('today')
   const [loading, setLoading] = useState(true)
+  const [showVehicleSearch, setShowVehicleSearch] = useState(false)
   const [stats, setStats] = useState<ParkingStats>({
     total_spots: 0,
     occupied_spots: 0,
@@ -257,19 +260,19 @@ export default function ParkingDashboard() {
                       label="En espera"
                       value={stats.pending_checkins}
                       loading={loading}
-                      href="/dashboard/parking/bookings?status=reserved"
+                      href="/dashboard/parking/bookings?filter=arrivals_pending"
                     />
                     <StatLink
                       label="Dentro"
                       value={stats.active_bookings}
                       loading={loading}
-                      href="/dashboard/parking/bookings?status=checked_in"
+                      href="/dashboard/parking/bookings?filter=arrivals_inside"
                     />
                     <StatLink
                       label="Total"
                       value={arrivalsTotal}
                       loading={loading}
-                      href="/dashboard/parking/bookings"
+                      href="/dashboard/parking/bookings?filter=arrivals_total"
                     />
                   </div>
                 </div>
@@ -289,19 +292,19 @@ export default function ParkingDashboard() {
                       label="En espera"
                       value={stats.pending_checkouts}
                       loading={loading}
-                      href="/dashboard/parking/bookings?status=checked_in"
+                      href="/dashboard/parking/bookings?filter=departures_pending"
                     />
                     <StatLink
                       label="Completadas"
                       value={stats.completed_today}
                       loading={loading}
-                      href="/dashboard/parking/bookings?status=completed"
+                      href="/dashboard/parking/bookings?filter=departures_completed"
                     />
                     <StatLink
                       label="Total"
                       value={departuresTotal}
                       loading={loading}
-                      href="/dashboard/parking/bookings"
+                      href="/dashboard/parking/bookings?filter=departures_total"
                     />
                   </div>
                 </div>
@@ -487,15 +490,15 @@ export default function ParkingDashboard() {
                   color="purple"
                 />
                 <QuickActionCard
-                  label="Disponibilidad"
+                  label="Control de Parking"
                   icon={FiMapPin}
-                  href="/dashboard/parking/availability"
+                  href="/dashboard/parking/status"
                   color="green"
                 />
                 <QuickActionCard
-                  label="Vehículos"
-                  icon={FaCar}
-                  href="/dashboard/parking/vehicles"
+                  label="Buscar Vehículo"
+                  icon={FiSearch}
+                  onClick={() => setShowVehicleSearch(true)}
                   color="orange"
                 />
                 <QuickActionCard
@@ -581,6 +584,12 @@ export default function ParkingDashboard() {
           </div>
         </div>
       </div>
+
+      {/* Vehicle Search Modal */}
+      <VehicleSearchModal
+        isOpen={showVehicleSearch}
+        onClose={() => setShowVehicleSearch(false)}
+      />
     </div>
   )
 }
@@ -622,11 +631,13 @@ function QuickActionCard({
   icon: Icon,
   href,
   color,
+  onClick,
 }: {
   label: string
   icon: React.ComponentType<{ className?: string }>
-  href: string
+  href?: string
   color: string
+  onClick?: () => void
 }) {
   const colorClasses = {
     blue: 'from-blue-500 to-blue-600 hover:border-blue-500',
@@ -637,21 +648,32 @@ function QuickActionCard({
     red: 'from-red-500 to-red-600 hover:border-red-500',
   }
 
-  return (
-    <Link
-      href={href}
-      className={`group p-3 bg-gradient-to-br from-[#f6f8fa] to-white dark:from-[#0d1117] dark:to-[#0D1117] border border-[#d0d7de] dark:border-[#21262d] rounded-lg ${colorClasses[color as keyof typeof colorClasses]} hover:shadow-lg transition-all duration-300 transform hover:-translate-y-0.5`}
-    >
-      <div className="flex flex-col items-center text-center space-y-2">
-        <div
-          className={`p-2 bg-gradient-to-br ${colorClasses[color as keyof typeof colorClasses].split(' ')[0]} rounded-lg shadow-md group-hover:scale-110 transition-transform duration-300`}
-        >
-          <Icon className="w-3.5 h-3.5 text-white" />
-        </div>
-        <span className="text-[10px] font-bold text-[#24292f] dark:text-[#c9d1d9] leading-tight">
-          {label}
-        </span>
+  const className = `group p-3 bg-gradient-to-br from-[#f6f8fa] to-white dark:from-[#0d1117] dark:to-[#0D1117] border border-[#d0d7de] dark:border-[#21262d] rounded-lg ${colorClasses[color as keyof typeof colorClasses]} hover:shadow-lg transition-all duration-300 transform hover:-translate-y-0.5`
+
+  const content = (
+    <div className="flex flex-col items-center text-center space-y-2">
+      <div
+        className={`p-2 bg-gradient-to-br ${colorClasses[color as keyof typeof colorClasses].split(' ')[0]} rounded-lg shadow-md group-hover:scale-110 transition-transform duration-300`}
+      >
+        <Icon className="w-3.5 h-3.5 text-white" />
       </div>
+      <span className="text-[10px] font-bold text-[#24292f] dark:text-[#c9d1d9] leading-tight">
+        {label}
+      </span>
+    </div>
+  )
+
+  if (onClick) {
+    return (
+      <button onClick={onClick} className={className}>
+        {content}
+      </button>
+    )
+  }
+
+  return (
+    <Link href={href || '#'} className={className}>
+      {content}
     </Link>
   )
 }

@@ -49,18 +49,26 @@ export default function BookingWizard({
               La reserva se ha creado exitosamente y está lista para su uso.
             </p>
 
-            <div className="flex gap-2">
+            <div className="flex flex-col gap-2">
+              <div className="flex gap-2">
+                <button
+                  onClick={() => router.push('/dashboard/parking/bookings')}
+                  className="flex-1 px-4 py-2 bg-[#0969da] hover:bg-[#0550ae] dark:bg-[#1f6feb] dark:hover:bg-[#1158c7] text-white rounded-md font-medium transition text-sm"
+                >
+                  Ver Todas las Reservas
+                </button>
+                <button
+                  onClick={() => router.refresh()}
+                  className="flex-1 px-4 py-2 bg-[#f6f8fa] hover:bg-[#eaeef2] dark:bg-[#21262d] dark:hover:bg-[#30363d] text-[#24292f] dark:text-[#c9d1d9] rounded-md font-medium transition text-sm"
+                >
+                  Crear Otra Reserva
+                </button>
+              </div>
               <button
-                onClick={() => router.push('/dashboard/parking/bookings')}
-                className="flex-1 px-4 py-2 bg-[#0969da] hover:bg-[#0550ae] dark:bg-[#1f6feb] dark:hover:bg-[#1158c7] text-white rounded-md font-medium transition text-sm"
+                onClick={() => router.push('/dashboard/parking/status')}
+                className="w-full px-4 py-2 bg-[#f6f8fa] hover:bg-[#eaeef2] dark:bg-[#21262d] dark:hover:bg-[#30363d] text-[#24292f] dark:text-[#c9d1d9] rounded-md font-medium transition text-sm"
               >
-                Ver Todas las Reservas
-              </button>
-              <button
-                onClick={() => router.refresh()}
-                className="flex-1 px-4 py-2 bg-[#f6f8fa] hover:bg-[#eaeef2] dark:bg-[#21262d] dark:hover:bg-[#30363d] text-[#24292f] dark:text-[#c9d1d9] rounded-md font-medium transition text-sm"
-              >
-                Crear Otra Reserva
+                Ir al Control de Parking
               </button>
             </div>
           </div>
