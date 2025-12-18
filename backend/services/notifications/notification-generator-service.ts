@@ -254,15 +254,20 @@ export class NotificationGeneratorService {
 
   /**
    * Generar notificación manual
+   * Si scheduled_for es proporcionado, la notificación no será visible hasta esa fecha
    */
   static async generateManualNotification(
     groupId: number,
     title: string,
     message: string,
     priority: NotificationPriority = NotificationPriority.MEDIUM,
-    userIds?: string[]
+    userIds?: string[],
+    scheduledFor?: Date
   ): Promise<void> {
     try {
+      // Si es programada para el futuro, usar status 'pending', si no 'sent'
+      const isScheduledForFuture = scheduledFor && scheduledFor > new Date()
+      
       const notificationData: CreateNotificationDTO = {
         module: NotificationModule.GROUPS,
         group_id: groupId,
@@ -271,8 +276,8 @@ export class NotificationGeneratorService {
         title,
         message,
         priority,
-        status: NotificationStatus.PENDING,
-        scheduled_for: new Date(),
+        status: isScheduledForFuture ? NotificationStatus.PENDING : NotificationStatus.SENT,
+        scheduled_for: scheduledFor || new Date(),
       }
 
       const notification = await NotificationRepository.create(notificationData)
@@ -284,6 +289,61 @@ export class NotificationGeneratorService {
       }
     } catch (error) {
       console.error('Error generando notificación manual:', error)
+      throw error
+    }
+  }
+
+  /**
+   * Generar notificación general (sin grupo específico)
+   * Permite enviar notificaciones a cualquier sección de la app
+   */
+  static async generateGeneralNotification(params: {
+    title: string
+    message: string
+    priority?: NotificationPriority
+    module?: string
+    directLink?: string
+    scheduledFor?: Date
+    userIds?: string[]
+  }): Promise<void> {
+    try {
+      const {
+        title,
+        message,
+        priority = NotificationPriority.MEDIUM,
+        module = 'system',
+        directLink,
+        scheduledFor,
+        userIds,
+      } = params
+
+      // Si es programada para el futuro, usar status 'pending', si no 'sent'
+      const isScheduledForFuture = scheduledFor && scheduledFor > new Date()
+
+      const notificationData: CreateNotificationDTO = {
+        module: module as NotificationModule,
+        group_id: undefined, // Sin grupo específico
+        related_to: NotificationRelatedTo.GENERAL,
+        direct_link: directLink || '/dashboard',
+        title,
+        message,
+        priority,
+        status: isScheduledForFuture ? NotificationStatus.PENDING : NotificationStatus.SENT,
+        scheduled_for: scheduledFor || new Date(),
+      }
+
+      const notification = await NotificationRepository.create(notificationData)
+
+      if (userIds && userIds.length > 0) {
+        await NotificationRepository.addRecipients(notification.id, userIds)
+      } else {
+        // Por defecto, enviar a todos los admins y group-admins
+        await this.addGroupAdminRecipients(notification.id)
+      }
+
+      console.log(`✅ Notificación general creada: "${title}" -> ${directLink || '/dashboard'}`)
+    } catch (error) {
+      console.error('Error generando notificación general:', error)
       throw error
     }
   }

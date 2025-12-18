@@ -1,22 +1,40 @@
 'use client'
 
-// Las notificaciones programadas funcionan correctamente:
-// - Se guardan con scheduled_for en la BD
-// - No se muestran hasta que llegue la hora programada
-// - Al hacer refresh después de la hora, aparecen automáticamente
-
 import { useState, useRef, useEffect, useMemo } from 'react'
-import { FiBell, FiX, FiCalendar, FiClock, FiAlertCircle } from 'react-icons/fi'
-import { groupsApi, type CreateNotificationDTO, NotificationPriority } from '@/app/lib/groups'
+import { FiBell, FiX, FiCalendar, FiClock, FiAlertCircle, FiLink } from 'react-icons/fi'
+import { apiClient } from '@/app/lib/apiClient'
 import SimpleCalendarCompact from '@/app/ui/calendar/SimpleCalendarCompact'
 import TimePicker from '@/app/ui/calendar/timepicker'
+import { toast } from 'react-hot-toast'
 
-interface NotificationModalProps {
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'
+
+interface GlobalNotificationModalProps {
   isOpen: boolean
   onClose: () => void
-  groupId: number
-  groupName: string
+  onSuccess?: () => void
 }
+
+// Secciones disponibles en la app
+const APP_SECTIONS = [
+  { value: '/dashboard', label: 'Dashboard', module: 'system' },
+  { value: '/dashboard/groups', label: 'Grupos', module: 'groups' },
+  { value: '/dashboard/parking', label: 'Parking', module: 'parking' },
+  { value: '/dashboard/parking/bookings', label: 'Parking - Reservas', module: 'parking' },
+  { value: '/dashboard/parking/status', label: 'Parking - Estado', module: 'parking' },
+  { value: '/dashboard/logbooks', label: 'Logbooks', module: 'logbooks' },
+  { value: '/dashboard/maintenance', label: 'Mantenimiento', module: 'system' },
+  { value: '/dashboard/blacklist', label: 'Blacklist', module: 'system' },
+  { value: '/dashboard/cashier/hotel', label: 'Caja Hotel', module: 'system' },
+  { value: '/dashboard/cashier/logs', label: 'Caja - Registros', module: 'system' },
+  { value: '/dashboard/cashier/reports', label: 'Caja - Reportes', module: 'system' },
+  { value: '/dashboard/conciliation', label: 'Conciliacion', module: 'system' },
+  { value: '/dashboard/invoices', label: 'Facturas', module: 'system' },
+  { value: '/dashboard/profile', label: 'Perfil', module: 'system' },
+  { value: '/dashboard/profile?panel=settings', label: 'Configuracion', module: 'system' },
+] as const
+
+type Priority = 'low' | 'medium' | 'high'
 
 // Helper: obtener hora redondeada al siguiente intervalo de 30 min + 30 min extra
 function getSmartDefaultTime(): string {
@@ -24,25 +42,22 @@ function getSmartDefaultTime(): string {
   const minutes = now.getMinutes()
   const hours = now.getHours()
 
-  // Redondear al siguiente bloque de 30 + 30 min extra de margen
   let nextMinutes: number
   let nextHours = hours
 
   if (minutes < 30) {
-    nextMinutes = 30 // siguiente :30
+    nextMinutes = 30
   } else {
-    nextMinutes = 0 // siguiente :00
+    nextMinutes = 0
     nextHours += 1
   }
 
-  // Añadir 30 min extra de margen
   nextMinutes += 30
   if (nextMinutes >= 60) {
     nextMinutes -= 60
     nextHours += 1
   }
 
-  // Si pasa de las 24h, ajustar
   if (nextHours >= 24) {
     nextHours = nextHours - 24
   }
@@ -50,10 +65,10 @@ function getSmartDefaultTime(): string {
   return `${String(nextHours).padStart(2, '0')}:${String(nextMinutes).padStart(2, '0')}`
 }
 
-// Helper: obtener hora mínima para hoy (ahora + 5 min, redondeado)
+// Helper: obtener hora mínima para hoy
 function getMinTimeForToday(): string {
   const now = new Date()
-  now.setMinutes(now.getMinutes() + 10) // 10 min de margen
+  now.setMinutes(now.getMinutes() + 10)
 
   const hours = now.getHours()
   const minutes = now.getMinutes() < 30 ? 30 : 0
@@ -62,18 +77,17 @@ function getMinTimeForToday(): string {
   return `${String(adjustedHours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`
 }
 
-export function NotificationModal({ isOpen, onClose, groupId, groupName }: NotificationModalProps) {
+export function GlobalNotificationModal({ isOpen, onClose, onSuccess }: GlobalNotificationModalProps) {
   const [title, setTitle] = useState('')
   const [message, setMessage] = useState('')
-  const [priority, setPriority] = useState<'low' | 'medium' | 'high'>('medium')
+  const [priority, setPriority] = useState<Priority>('medium')
+  const [selectedSection, setSelectedSection] = useState<string>(APP_SECTIONS[0].value)
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
   const [selectedTime, setSelectedTime] = useState('09:00')
   const [scheduleType, setScheduleType] = useState<'now' | 'scheduled'>('now')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
-
-  // Estados para controlar dropdowns
   const [showCalendar, setShowCalendar] = useState(false)
 
   const calendarRef = useRef<HTMLDivElement>(null)
@@ -117,7 +131,7 @@ export function NotificationModal({ isOpen, onClose, groupId, groupName }: Notif
       date.getFullYear() === tomorrow.getFullYear()
 
     if (isToday) return 'Hoy'
-    if (isTomorrow) return 'Mañana'
+    if (isTomorrow) return 'Manana'
 
     return date.toLocaleDateString('es-ES', {
       weekday: 'short',
@@ -136,14 +150,14 @@ export function NotificationModal({ isOpen, onClose, groupId, groupName }: Notif
     return dateTime
   }, [scheduleType, selectedDate, selectedTime])
 
-  // Validar que la fecha/hora sea válida (al menos 5 minutos en el futuro)
+  // Validar fecha/hora
   const validationResult = useMemo(() => {
     if (scheduleType === 'now') return { valid: true, message: null }
     if (!selectedDate) return { valid: false, message: 'Selecciona una fecha' }
-    if (!scheduledDateTime) return { valid: false, message: 'Fecha/hora inválida' }
+    if (!scheduledDateTime) return { valid: false, message: 'Fecha/hora invalida' }
 
     const now = new Date()
-    const minDateTime = new Date(now.getTime() + 5 * 60000) // +5 minutos
+    const minDateTime = new Date(now.getTime() + 5 * 60000)
 
     if (scheduledDateTime < minDateTime) {
       return {
@@ -154,6 +168,12 @@ export function NotificationModal({ isOpen, onClose, groupId, groupName }: Notif
 
     return { valid: true, message: null }
   }, [scheduleType, selectedDate, scheduledDateTime])
+
+  // Obtener el módulo basado en la sección seleccionada
+  const getModuleForSection = (sectionValue: string) => {
+    const section = APP_SECTIONS.find((s) => s.value === sectionValue)
+    return section?.module || 'system'
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -167,26 +187,42 @@ export function NotificationModal({ isOpen, onClose, groupId, groupName }: Notif
     setError(null)
 
     try {
-      const data: CreateNotificationDTO = {
+      const data: {
+        title: string
+        message: string
+        priority: Priority
+        module: string
+        direct_link: string
+        scheduled_for?: string
+      } = {
         title,
         message,
-        priority: priority as NotificationPriority,
+        priority,
+        module: getModuleForSection(selectedSection),
+        direct_link: selectedSection,
       }
 
-      // Construir scheduled_for si es programada
       if (scheduleType === 'scheduled' && scheduledDateTime) {
         data.scheduled_for = scheduledDateTime.toISOString()
       }
 
-      await groupsApi.createNotification(groupId, data)
+      await apiClient.post(`${API_URL}/api/notifications`, data)
 
       setSuccess(true)
+      toast.success(
+        scheduleType === 'now'
+          ? 'Notificacion enviada'
+          : `Notificacion programada para ${scheduledDateTime?.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })} a las ${selectedTime}`
+      )
+
       setTimeout(() => {
         handleClose()
-      }, 1500)
+        onSuccess?.()
+      }, 1000)
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Error al crear la notificación'
+      const errorMessage = err instanceof Error ? err.message : 'Error al crear la notificacion'
       setError(errorMessage)
+      toast.error(errorMessage)
     } finally {
       setLoading(false)
     }
@@ -196,6 +232,7 @@ export function NotificationModal({ isOpen, onClose, groupId, groupName }: Notif
     setTitle('')
     setMessage('')
     setPriority('medium')
+    setSelectedSection(APP_SECTIONS[0].value)
     setSelectedDate(null)
     setSelectedTime('09:00')
     setScheduleType('now')
@@ -208,6 +245,7 @@ export function NotificationModal({ isOpen, onClose, groupId, groupName }: Notif
   if (!isOpen) return null
 
   const today = new Date()
+  const selectedSectionLabel = APP_SECTIONS.find((s) => s.value === selectedSection)?.label || 'Dashboard'
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
@@ -217,7 +255,7 @@ export function NotificationModal({ isOpen, onClose, groupId, groupName }: Notif
           <div className="flex items-center gap-2">
             <FiBell className="w-4 h-4 text-blue-600 dark:text-blue-400" />
             <h2 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-              Crear Notificación
+              Nueva Notificacion
             </h2>
           </div>
           <button
@@ -230,10 +268,26 @@ export function NotificationModal({ isOpen, onClose, groupId, groupName }: Notif
 
         {/* Body */}
         <form onSubmit={handleSubmit} className="p-3 space-y-3">
-          {/* Group Info */}
-          <div className="bg-blue-50 dark:bg-blue-900/20 rounded-md p-2">
-            <p className="text-[10px] text-gray-600 dark:text-gray-400">Grupo:</p>
-            <p className="text-xs font-medium text-gray-900 dark:text-gray-100">{groupName}</p>
+          {/* Section Selector */}
+          <div>
+            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <FiLink className="inline w-3 h-3 mr-1" />
+              Enlace de destino *
+            </label>
+            <select
+              value={selectedSection}
+              onChange={(e) => setSelectedSection(e.target.value)}
+              className="w-full px-2.5 py-1.5 text-xs border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              {APP_SECTIONS.map((section) => (
+                <option key={section.value} value={section.value}>
+                  {section.label}
+                </option>
+              ))}
+            </select>
+            <p className="text-[10px] text-gray-500 mt-0.5">
+              Al hacer click en la notificacion, se redirigira a: <code className="bg-gray-100 dark:bg-gray-800 px-1 rounded">{selectedSection}</code>
+            </p>
           </div>
 
           {/* Title */}
@@ -242,7 +296,7 @@ export function NotificationModal({ isOpen, onClose, groupId, groupName }: Notif
               htmlFor="title"
               className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1"
             >
-              Título *
+              Titulo *
             </label>
             <input
               type="text"
@@ -251,7 +305,7 @@ export function NotificationModal({ isOpen, onClose, groupId, groupName }: Notif
               onChange={(e) => setTitle(e.target.value)}
               required
               maxLength={100}
-              placeholder="Ej: Recordatorio de pago"
+              placeholder="Ej: Revision de parking necesaria"
               className="w-full px-2.5 py-1.5 text-xs border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
@@ -271,7 +325,7 @@ export function NotificationModal({ isOpen, onClose, groupId, groupName }: Notif
               required
               rows={3}
               maxLength={500}
-              placeholder="Describe la notificación..."
+              placeholder="Describe la notificacion..."
               className="w-full px-2.5 py-1.5 text-xs border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
             />
             <p className="text-[10px] text-gray-400 mt-0.5 text-right">{message.length}/500</p>
@@ -307,7 +361,7 @@ export function NotificationModal({ isOpen, onClose, groupId, groupName }: Notif
           {/* Schedule Type */}
           <div>
             <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-              Programación
+              Programacion
             </label>
             <div className="grid grid-cols-2 gap-2">
               <button
@@ -337,11 +391,11 @@ export function NotificationModal({ isOpen, onClose, groupId, groupName }: Notif
             </div>
           </div>
 
-          {/* Scheduled DateTime (solo si es programada) */}
+          {/* Scheduled DateTime */}
           {scheduleType === 'scheduled' && (
             <div className="space-y-2 p-2.5 bg-gray-50 dark:bg-gray-900/50 rounded-md border border-gray-200 dark:border-gray-800">
               <div className="grid grid-cols-2 gap-2">
-                {/* Fecha con Calendario */}
+                {/* Fecha */}
                 <div className="relative" ref={calendarRef}>
                   <label className="block text-[10px] font-medium text-gray-500 dark:text-gray-400 mb-1">
                     Fecha
@@ -355,7 +409,6 @@ export function NotificationModal({ isOpen, onClose, groupId, groupName }: Notif
                     <FiCalendar className="w-3 h-3 text-gray-400 flex-shrink-0" />
                   </button>
 
-                  {/* Calendario hacia arriba */}
                   {showCalendar && (
                     <div className="absolute z-20 bottom-full mb-1 left-0">
                       <SimpleCalendarCompact
@@ -364,7 +417,6 @@ export function NotificationModal({ isOpen, onClose, groupId, groupName }: Notif
                         onSelect={(date) => {
                           setSelectedDate(date)
                           setShowCalendar(false)
-                          // Si cambia a hoy, ajustar la hora si es necesario
                           if (date) {
                             const isToday =
                               date.getDate() === today.getDate() &&
@@ -400,12 +452,12 @@ export function NotificationModal({ isOpen, onClose, groupId, groupName }: Notif
                 </div>
               </div>
 
-              {/* Preview de la fecha/hora programada */}
+              {/* Preview */}
               {scheduledDateTime && validationResult.valid && (
                 <div className="flex items-center gap-1.5 text-[10px] text-green-600 dark:text-green-400">
                   <FiClock className="w-3 h-3" />
                   <span>
-                    Se enviará el{' '}
+                    Se enviara el{' '}
                     {scheduledDateTime.toLocaleDateString('es-ES', {
                       weekday: 'long',
                       day: 'numeric',
@@ -416,7 +468,7 @@ export function NotificationModal({ isOpen, onClose, groupId, groupName }: Notif
                 </div>
               )}
 
-              {/* Warning si la hora no es válida */}
+              {/* Warning */}
               {!validationResult.valid && validationResult.message && (
                 <div className="flex items-center gap-1.5 text-[10px] text-amber-600 dark:text-amber-400">
                   <FiAlertCircle className="w-3 h-3" />
@@ -437,9 +489,7 @@ export function NotificationModal({ isOpen, onClose, groupId, groupName }: Notif
           {success && (
             <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-md p-2">
               <p className="text-xs text-green-600 dark:text-green-400">
-                {scheduleType === 'now'
-                  ? '✓ Notificación enviada exitosamente'
-                  : `✓ Notificación programada para ${scheduledDateTime?.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })} a las ${selectedTime}`}
+                Notificacion {scheduleType === 'now' ? 'enviada' : 'programada'} correctamente
               </p>
             </div>
           )}
@@ -456,13 +506,13 @@ export function NotificationModal({ isOpen, onClose, groupId, groupName }: Notif
             </button>
             <button
               type="submit"
-              disabled={loading || success || !validationResult.valid}
+              disabled={loading || success || !validationResult.valid || !title || !message}
               className="flex-1 px-3 py-2 text-xs font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-1.5"
             >
               {loading ? (
                 'Creando...'
               ) : success ? (
-                '✓ Creada'
+                'Creada'
               ) : scheduleType === 'now' ? (
                 <>
                   <FiBell className="w-3 h-3" />

@@ -212,9 +212,9 @@ export default function ParkingDashboard() {
         )}
 
         {/* Main Grid Layout */}
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-5">
-          {/* Left Column - Main Stats */}
-          <div className="xl:col-span-2 space-y-5">
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
+          {/* Left Column - Reservas + Control de Parking */}
+          <div className="space-y-5">
             {/* Reservations Section */}
             <div className="bg-white dark:bg-[#0D1117] border border-[#d0d7de] dark:border-[#30363d] rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200 p-5">
               <div className="mb-5">
@@ -239,8 +239,8 @@ export default function ParkingDashboard() {
                   </button>
                 </div>
                 <p className="text-[11px] text-[#57606a] dark:text-[#8b949e] leading-relaxed">
-                  Toda la información sobre vehículos que llegan y salen, incluyendo todos los
-                  vehículos estacionados y los pendientes por diversas razones.
+                  Toda la informacion sobre vehiculos que llegan y salen, incluyendo todos los
+                  vehiculos estacionados y los pendientes por diversas razones.
                 </p>
               </div>
 
@@ -311,6 +311,57 @@ export default function ParkingDashboard() {
               </div>
             </div>
 
+            {/* Acciones Rápidas - Mobile only (after Reservas) */}
+            <div className="xl:hidden bg-white dark:bg-[#0D1117] border border-[#d0d7de] dark:border-[#30363d] rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200 p-5">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="p-1 bg-orange-100 dark:bg-orange-900/20 rounded-lg">
+                  <FiZap className="w-3.5 h-3.5 text-orange-600 dark:text-orange-400" />
+                </div>
+                <h2 className="text-base font-bold text-[#24292f] dark:text-[#f0f6fc]">
+                  Acciones Rapidas
+                </h2>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2.5">
+                <QuickActionCard
+                  label="Nueva Reserva"
+                  icon={FiCalendar}
+                  href="/dashboard/parking/bookings/new"
+                  color="blue"
+                />
+                <QuickActionCard
+                  label="Todas las Reservas"
+                  icon={FiGrid}
+                  href="/dashboard/parking/bookings"
+                  color="purple"
+                />
+                <QuickActionCard
+                  label="Control de Parking"
+                  icon={FiMapPin}
+                  href="/dashboard/parking/status"
+                  color="green"
+                />
+                <QuickActionCard
+                  label="Buscar Vehiculo"
+                  icon={FiSearch}
+                  onClick={() => setShowVehicleSearch(true)}
+                  color="orange"
+                />
+                <QuickActionCard
+                  label="Check-Ins"
+                  icon={FiLogIn}
+                  href="/dashboard/parking/bookings?status=reserved"
+                  color="teal"
+                />
+                <QuickActionCard
+                  label="Check-Outs"
+                  icon={FiLogOut}
+                  href="/dashboard/parking/bookings?status=checked_in"
+                  color="red"
+                />
+              </div>
+            </div>
+
             {/* Control de Parking */}
             <div className="bg-white dark:bg-[#0D1117] border border-[#d0d7de] dark:border-[#30363d] rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200 p-5">
               <div className="flex items-center gap-2 mb-4">
@@ -323,7 +374,7 @@ export default function ParkingDashboard() {
               </div>
 
               <div className="grid grid-cols-2 gap-4">
-                {/* Occupancy - ADAPTADO PARA PERÍODO */}
+                {/* Occupancy */}
                 <Link
                   href="/dashboard/parking/status"
                   className="group p-4 bg-white dark:bg-[#161B22] border border-[#d0d7de] dark:border-[#21262d] rounded-xl hover:border-purple-500 dark:hover:border-purple-500 hover:shadow-lg transition-all duration-300 transform hover:-translate-y-0.5"
@@ -332,7 +383,7 @@ export default function ParkingDashboard() {
                     <div>
                       <div className="text-[10px] font-bold text-[#57606a] dark:text-[#8b949e] mb-1.5 uppercase tracking-wide">
                         {selectedPeriod === 'today'
-                          ? 'Ocupación Actual'
+                          ? 'Ocupacion Actual'
                           : selectedPeriod === 'week'
                             ? 'Ocupaciones Semanales'
                             : 'Ocupaciones Mensuales'}
@@ -372,16 +423,20 @@ export default function ParkingDashboard() {
                   </div>
                 </Link>
 
-                {/* Occupancy Rate - ADAPTADO PARA PERÍODO */}
+                {/* Occupancy Rate */}
                 <Link
                   href="/dashboard/parking/status"
-                  className="group p-4 bg-white dark:bg-[#161B22]  border border-[#d0d7de] dark:border-[#21262d] rounded-xl hover:border-blue-500 dark:hover:border-blue-500 hover:shadow-lg transition-all duration-300 transform hover:-translate-y-0.5"
+                  className={`group p-4 bg-white dark:bg-[#161B22] border rounded-xl hover:shadow-lg transition-all duration-300 transform hover:-translate-y-0.5 ${
+                    stats.occupancy_rate >= 100
+                      ? 'border-green-500 animate-pulse-green'
+                      : 'border-[#d0d7de] dark:border-[#21262d] hover:border-blue-500 dark:hover:border-blue-500'
+                  }`}
                 >
                   <div className="flex items-start justify-between mb-3">
                     <div>
                       <div className="text-[10px] font-bold text-[#57606a] dark:text-[#8b949e] mb-1.5 uppercase tracking-wide">
                         {selectedPeriod === 'today'
-                          ? 'Tasa de Ocupación'
+                          ? 'Tasa de Ocupacion'
                           : selectedPeriod === 'week'
                             ? 'Tasa Media Semanal'
                             : 'Tasa Media Mensual'}
@@ -411,26 +466,80 @@ export default function ParkingDashboard() {
                   </div>
                   {selectedPeriod !== 'today' && (
                     <div className="text-[9px] text-[#57606a] dark:text-[#8b949e] mt-1.5 font-medium">
-                      Capacidad máxima {selectedPeriod === 'week' ? 'semanal' : 'mensual'}:{' '}
-                      {stats.total_spots * (selectedPeriod === 'week' ? 7 : 30)} plaza-días
+                      Capacidad maxima {selectedPeriod === 'week' ? 'semanal' : 'mensual'}:{' '}
+                      {stats.total_spots * (selectedPeriod === 'week' ? 7 : 30)} plaza-dias
                     </div>
                   )}
                 </Link>
               </div>
             </div>
+          </div>
+
+          {/* Right Column - Acciones Rápidas (Desktop) + Resumen Diario */}
+          <div className="space-y-5">
+            {/* Acciones Rápidas - Desktop only */}
+            <div className="hidden xl:block bg-white dark:bg-[#0D1117] border border-[#d0d7de] dark:border-[#30363d] rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200 p-5">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="p-1 bg-orange-100 dark:bg-orange-900/20 rounded-lg">
+                  <FiZap className="w-3.5 h-3.5 text-orange-600 dark:text-orange-400" />
+                </div>
+                <h2 className="text-base font-bold text-[#24292f] dark:text-[#f0f6fc]">
+                  Acciones Rapidas
+                </h2>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2.5">
+                <QuickActionCard
+                  label="Nueva Reserva"
+                  icon={FiCalendar}
+                  href="/dashboard/parking/bookings/new"
+                  color="blue"
+                />
+                <QuickActionCard
+                  label="Todas las Reservas"
+                  icon={FiGrid}
+                  href="/dashboard/parking/bookings"
+                  color="purple"
+                />
+                <QuickActionCard
+                  label="Control de Parking"
+                  icon={FiMapPin}
+                  href="/dashboard/parking/status"
+                  color="green"
+                />
+                <QuickActionCard
+                  label="Buscar Vehiculo"
+                  icon={FiSearch}
+                  onClick={() => setShowVehicleSearch(true)}
+                  color="orange"
+                />
+                <QuickActionCard
+                  label="Check-Ins"
+                  icon={FiLogIn}
+                  href="/dashboard/parking/bookings?status=reserved"
+                  color="teal"
+                />
+                <QuickActionCard
+                  label="Check-Outs"
+                  icon={FiLogOut}
+                  href="/dashboard/parking/bookings?status=checked_in"
+                  color="red"
+                />
+              </div>
+            </div>
 
             {/* Resumen del Período */}
-            <div className="bg-white dark:bg-[#0D1117] border border-[#d0d7de] dark:border-[#303d] rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200 p-5">
+            <div className="bg-white dark:bg-[#0D1117] border border-[#d0d7de] dark:border-[#30363d] rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200 p-5">
               <div className="flex items-center gap-2 mb-4">
                 <div className="p-1 bg-gray-100 dark:bg-gray-900/20 rounded-lg">
                   <FiFileText className="w-3.5 h-3.5 text-gray-600 dark:text-gray-400" />
                 </div>
                 <h2 className="text-base font-bold text-[#24292f] dark:text-[#f0f6fc]">
-                  {selectedPeriod === 'today' ? 'Resumen Diario' : 'Resumen del Período'}
+                  {selectedPeriod === 'today' ? 'Resumen Diario' : 'Resumen del Periodo'}
                 </h2>
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-4 xl:grid-cols-2 gap-3">
                 <SummaryCard
                   label="Completadas"
                   value={stats.completed_today}
@@ -462,124 +571,63 @@ export default function ParkingDashboard() {
               </div>
             </div>
           </div>
+        </div>
 
-          {/* Right Column - Actions & Help */}
-          <div className="space-y-5">
-            {/* Acciones Rápidas */}
-            <div className="bg-white dark:bg-[#0D1117] border border-[#d0d7de] dark:border-[#30363d] rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200 p-5">
-              <div className="flex items-center gap-2 mb-4">
-                <div className="p-1 bg-orange-100 dark:bg-orange-900/20 rounded-lg">
-                  <FiZap className="w-3.5 h-3.5 text-orange-600 dark:text-orange-400" />
-                </div>
-                <h2 className="text-base font-bold text-[#24292f] dark:text-[#f0f6fc]">
-                  Acciones Rápidas
-                </h2>
-              </div>
+        {/* Ayuda Contextual - Full width at bottom */}
+        <div className="bg-gradient-to-br from-[#ddf4ff] to-[#b6e3ff] dark:from-[#051d30] dark:to-[#0a2540] border border-[#9cd7ff] dark:border-[#1f6feb] rounded-xl p-5 shadow-sm">
+          <div className="flex items-start gap-2 mb-3">
+            <div className="p-1.5 bg-blue-600 dark:bg-blue-500 rounded-lg shadow-lg">
+              <FiAlertCircle className="w-4 h-4 text-white" />
+            </div>
+            <h3 className="text-sm font-bold text-[#24292f] dark:text-[#f0f6fc]">
+              Ayuda Contextual
+            </h3>
+          </div>
 
-              <div className="grid grid-cols-2 gap-2.5">
-                <QuickActionCard
-                  label="Nueva Reserva"
-                  icon={FiCalendar}
-                  href="/dashboard/parking/bookings/new"
-                  color="blue"
-                />
-                <QuickActionCard
-                  label="Todas las Reservas"
-                  icon={FiGrid}
-                  href="/dashboard/parking/bookings"
-                  color="purple"
-                />
-                <QuickActionCard
-                  label="Control de Parking"
-                  icon={FiMapPin}
-                  href="/dashboard/parking/status"
-                  color="green"
-                />
-                <QuickActionCard
-                  label="Buscar Vehículo"
-                  icon={FiSearch}
-                  onClick={() => setShowVehicleSearch(true)}
-                  color="orange"
-                />
-                <QuickActionCard
-                  label="Check-Ins"
-                  icon={FiLogIn}
-                  href="/dashboard/parking/bookings?status=reserved"
-                  color="teal"
-                />
-                <QuickActionCard
-                  label="Check-Outs"
-                  icon={FiLogOut}
-                  href="/dashboard/parking/bookings?status=checked_in"
-                  color="red"
-                />
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-3 text-xs text-[#24292f] dark:text-[#c9d1d9] leading-relaxed">
+            <div className="space-y-1.5 p-3 bg-white/50 dark:bg-black/20 rounded-lg">
+              <div className="font-bold text-blue-600 dark:text-blue-400 text-[11px]">
+                📊 Reservas
               </div>
+              <p>
+                Vista completa del flujo de vehiculos. Rastrea vehiculos entrantes, estacionados y salientes.
+              </p>
             </div>
 
-            {/* Ayuda Contextual */}
-            <div className="bg-gradient-to-br from-[#ddf4ff] to-[#b6e3ff] dark:from-[#051d30] dark:to-[#0a2540] border border-[#9cd7ff] dark:border-[#1f6feb] rounded-xl p-5 shadow-sm">
-              <div className="flex items-start gap-2 mb-3">
-                <div className="p-1.5 bg-blue-600 dark:bg-blue-500 rounded-lg shadow-lg">
-                  <FiAlertCircle className="w-4 h-4 text-white" />
-                </div>
-                <h3 className="text-sm font-bold text-[#24292f] dark:text-[#f0f6fc]">
-                  Ayuda Contextual
-                </h3>
+            <div className="space-y-1.5 p-3 bg-white/50 dark:bg-black/20 rounded-lg">
+              <div className="font-bold text-green-600 dark:text-green-400 text-[11px]">
+                📥 Llegadas - En espera
               </div>
+              <p>
+                Vehiculos con reservas confirmadas pendientes de check-in.
+              </p>
+            </div>
 
-              <div className="space-y-3 text-xs text-[#24292f] dark:text-[#c9d1d9] leading-relaxed">
-                <div className="space-y-1.5 p-3 bg-white/50 dark:bg-black/20 rounded-lg">
-                  <div className="font-bold text-blue-600 dark:text-blue-400 text-[11px]">
-                    📊 Reservas
-                  </div>
-                  <p>
-                    Vista completa del flujo de vehículos. Rastrea vehículos entrantes (Llegadas),
-                    vehículos actualmente estacionados (Dentro), vehículos salientes (Salidas), y
-                    todos los datos históricos del período seleccionado.
-                  </p>
-                </div>
-
-                <div className="space-y-1.5 p-3 bg-white/50 dark:bg-black/20 rounded-lg">
-                  <div className="font-bold text-green-600 dark:text-green-400 text-[11px]">
-                    📥 Llegadas - En espera
-                  </div>
-                  <p>
-                    Vehículos con reservas confirmadas que aún no han entrado al parking. Están
-                    pendientes de check-in y requieren acceso por barrera o registro manual.
-                  </p>
-                </div>
-
-                <div className="space-y-1.5 p-3 bg-white/50 dark:bg-black/20 rounded-lg">
-                  <div className="font-bold text-green-600 dark:text-green-400 text-[11px]">
-                    ✅ Llegadas - Dentro
-                  </div>
-                  <p>
-                    Vehículos actualmente estacionados en las instalaciones. Han completado el
-                    check-in y ocupan plazas físicas hasta el check-out.
-                  </p>
-                </div>
-
-                <div className="space-y-1.5 p-3 bg-white/50 dark:bg-black/20 rounded-lg">
-                  <div className="font-bold text-red-600 dark:text-red-400 text-[11px]">
-                    📤 Salidas - En espera
-                  </div>
-                  <p>
-                    Vehículos actualmente estacionados que necesitan salir. Están listos para el
-                    procesamiento de check-out y deberían desocupar sus plazas pronto.
-                  </p>
-                </div>
-
-                <div className="space-y-1.5 p-3 bg-white/50 dark:bg-black/20 rounded-lg">
-                  <div className="font-bold text-purple-600 dark:text-purple-400 text-[11px]">
-                    🚗 Control de Parking
-                  </div>
-                  <p>
-                    Monitoreo en tiempo real de la capacidad física del parking. Muestra la
-                    ocupación actual (plazas ocupadas vs total), espacios disponibles, y porcentaje
-                    de ocupación para gestionar efectivamente el flujo del parking.
-                  </p>
-                </div>
+            <div className="space-y-1.5 p-3 bg-white/50 dark:bg-black/20 rounded-lg">
+              <div className="font-bold text-green-600 dark:text-green-400 text-[11px]">
+                ✅ Llegadas - Dentro
               </div>
+              <p>
+                Vehiculos actualmente estacionados que han completado el check-in.
+              </p>
+            </div>
+
+            <div className="space-y-1.5 p-3 bg-white/50 dark:bg-black/20 rounded-lg">
+              <div className="font-bold text-red-600 dark:text-red-400 text-[11px]">
+                📤 Salidas - En espera
+              </div>
+              <p>
+                Vehiculos estacionados listos para el procesamiento de check-out.
+              </p>
+            </div>
+
+            <div className="space-y-1.5 p-3 bg-white/50 dark:bg-black/20 rounded-lg">
+              <div className="font-bold text-purple-600 dark:text-purple-400 text-[11px]">
+                🚗 Control de Parking
+              </div>
+              <p>
+                Monitoreo en tiempo real de ocupacion y capacidad del parking.
+              </p>
             </div>
           </div>
         </div>

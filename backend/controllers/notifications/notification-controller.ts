@@ -302,7 +302,7 @@ export class NotificationController {
         })
       }
 
-      const { title, message, priority, userIds } = req.body
+      const { title, message, priority, userIds, scheduled_for } = req.body
 
       if (!title || !message) {
         return res.status(400).json({
@@ -311,12 +311,25 @@ export class NotificationController {
         })
       }
 
+      // Parsear scheduled_for si existe
+      let scheduledDate: Date | undefined
+      if (scheduled_for) {
+        scheduledDate = new Date(scheduled_for)
+        if (isNaN(scheduledDate.getTime())) {
+          return res.status(400).json({
+            success: false,
+            error: 'Formato de fecha inválido para scheduled_for',
+          })
+        }
+      }
+
       await NotificationGeneratorService.generateManualNotification(
         groupId,
         title,
         message,
         priority as NotificationPriority,
-        userIds
+        userIds,
+        scheduledDate
       )
 
       return res.status(201).json({
@@ -325,6 +338,76 @@ export class NotificationController {
       })
     } catch (error: any) {
       console.error('Error en createManualNotification:', error)
+      return res.status(500).json({
+        success: false,
+        error: 'Error al crear notificación',
+        message: error.message,
+      })
+    }
+  }
+
+  /**
+   * POST /api/notifications
+   * Crear notificación general (sin grupo específico)
+   * Permite enviar a cualquier sección de la app
+   */
+  static async createGeneralNotification(req: Request, res: Response): Promise<Response> {
+    try {
+      const userId = req.user?.id
+
+      if (!userId) {
+        return res.status(401).json({
+          success: false,
+          error: 'Usuario no autenticado',
+        })
+      }
+
+      const { title, message, priority, module, direct_link, scheduled_for, userIds } = req.body
+
+      if (!title || !message) {
+        return res.status(400).json({
+          success: false,
+          error: 'Faltan campos obligatorios: title, message',
+        })
+      }
+
+      // Validar module si se proporciona
+      const validModules = ['groups', 'parking', 'logbooks', 'system']
+      if (module && !validModules.includes(module)) {
+        return res.status(400).json({
+          success: false,
+          error: `Módulo inválido. Valores permitidos: ${validModules.join(', ')}`,
+        })
+      }
+
+      // Parsear scheduled_for si existe
+      let scheduledDate: Date | undefined
+      if (scheduled_for) {
+        scheduledDate = new Date(scheduled_for)
+        if (isNaN(scheduledDate.getTime())) {
+          return res.status(400).json({
+            success: false,
+            error: 'Formato de fecha inválido para scheduled_for',
+          })
+        }
+      }
+
+      await NotificationGeneratorService.generateGeneralNotification({
+        title,
+        message,
+        priority: priority as NotificationPriority,
+        module: module || 'system',
+        directLink: direct_link,
+        scheduledFor: scheduledDate,
+        userIds,
+      })
+
+      return res.status(201).json({
+        success: true,
+        message: 'Notificación creada correctamente',
+      })
+    } catch (error: any) {
+      console.error('Error en createGeneralNotification:', error)
       return res.status(500).json({
         success: false,
         error: 'Error al crear notificación',

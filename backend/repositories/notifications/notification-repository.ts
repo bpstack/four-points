@@ -14,6 +14,9 @@ import { ResultSetHeader } from 'mysql2'
 export class NotificationRepository {
   /**
    * Obtener notificaciones de un usuario
+   * Solo muestra notificaciones que:
+   * - Ya fueron enviadas (status = 'sent')
+   * - O están programadas para ahora o antes (scheduled_for <= NOW())
    */
   static async getByUserId(
     userId: string,
@@ -29,6 +32,10 @@ export class NotificationRepository {
       INNER JOIN notification_recipients nr ON n.id = nr.notification_id
       LEFT JOIN hotel_groups g ON n.group_id = g.id
       WHERE nr.user_id = ?
+      AND (
+        n.status = 'sent' 
+        OR (n.status = 'pending' AND n.scheduled_for <= NOW())
+      )
     `
 
     const params: any[] = [userId]

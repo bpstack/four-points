@@ -45,6 +45,19 @@ const config: Config = {
         shimmer: {
           '100%': { transform: 'translateX(100%)' },
         },
+        'pulse-green': {
+          '0%, 100%': { 
+            borderColor: 'rgb(34 197 94)', // green-500
+            boxShadow: '0 0 0 0 rgba(34, 197, 94, 0)',
+          },
+          '50%': { 
+            borderColor: 'rgb(22 163 74)', // green-600
+            boxShadow: '0 0 8px 2px rgba(34, 197, 94, 0.3)',
+          },
+        },
+      },
+      animation: {
+        'pulse-green': 'pulse-green 2s ease-in-out infinite',
       },
     },
   },

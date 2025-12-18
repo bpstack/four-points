@@ -88,15 +88,25 @@ export default function DashboardHome() {
           endTimestamp = weekEnd.getTime()
           dates = generateDateRange(6)
         } else {
-          const monthStart = new Date(today)
-          monthStart.setDate(today.getDate() - 29)
+          // month - mes calendario actual (día 1 hasta último día del mes)
+          const year = today.getFullYear()
+          const month = today.getMonth()
+          const lastDayOfMonth = new Date(year, month + 1, 0).getDate()
+          
+          const monthStart = new Date(year, month, 1)
           monthStart.setHours(0, 0, 0, 0)
-          const monthEnd = new Date(today)
+          const monthEnd = new Date(year, month, lastDayOfMonth)
           monthEnd.setHours(23, 59, 59, 999)
 
           startTimestamp = monthStart.getTime()
           endTimestamp = monthEnd.getTime()
-          dates = generateDateRange(29)
+          
+          // Generar todas las fechas del mes actual
+          dates = []
+          for (let day = 1; day <= lastDayOfMonth; day++) {
+            const date = new Date(year, month, day)
+            dates.push(getLocalDateString(date))
+          }
         }
 
         const responses = await Promise.all(

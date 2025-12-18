@@ -20,6 +20,9 @@ router.get('/unread', verifyToken, canViewGroups, NotificationController.getUnre
 // Obtener contador de no leídas (para badge)
 router.get('/unread/count', verifyToken, canViewGroups, NotificationController.getUnreadCount)
 
+// Crear notificación general (sin grupo específico)
+router.post('/', verifyToken, isAdmin, NotificationController.createGeneralNotification)
+
 // Verificar notificaciones pendientes (trigger manual)
 router.post(
   '/check-pending',

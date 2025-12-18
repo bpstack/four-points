@@ -36,6 +36,7 @@ import {
   FormField,
   inputClassName,
 } from '@/app/ui/panels'
+import { GlobalNotificationModal } from '@/app/components/notifications/GlobalNotificationModal'
 
 // Types
 interface User {
@@ -808,6 +809,7 @@ function UserTable({ users, onDelete }: { users: User[]; onDelete: (id: string) 
 function NotificationsSettings() {
   const [checkingNotifications, setCheckingNotifications] = useState(false)
   const [notificationResult, setNotificationResult] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
+  const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false)
 
   const handleCheckNotifications = async () => {
     setCheckingNotifications(true)
@@ -830,46 +832,64 @@ function NotificationsSettings() {
   }
 
   return (
-    <div className="bg-white dark:bg-[#161b22] rounded-lg border border-gray-200 dark:border-[#30363d]">
-      <div className="px-4 py-3 border-b border-gray-200 dark:border-[#30363d]">
-        <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Notificaciones</h3>
-        <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-          Configura como recibes las notificaciones
-        </p>
-      </div>
-      <div className="p-4 space-y-3">
-        <SettingRow label="Notificaciones por email" description="Recibir actualizaciones via email" defaultChecked />
-        
-        <div className="py-3 border-t border-gray-200 dark:border-[#30363d]">
-          <div className="flex items-center justify-between mb-2">
+    <>
+      <div className="bg-white dark:bg-[#161b22] rounded-lg border border-gray-200 dark:border-[#30363d]">
+        <div className="px-4 py-3 border-b border-gray-200 dark:border-[#30363d]">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
-              <p className="text-sm font-medium text-gray-900 dark:text-white">Push notifications</p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">Verificar y enviar pendientes</p>
+              <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Notificaciones</h3>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                Configura como recibes las notificaciones
+              </p>
             </div>
             <button
-              onClick={handleCheckNotifications}
-              disabled={checkingNotifications}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 rounded-lg transition-colors"
+              onClick={() => setIsNotificationModalOpen(true)}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors"
             >
-              <FiRefreshCw className={cn('w-3.5 h-3.5', checkingNotifications && 'animate-spin')} />
-              {checkingNotifications ? 'Checking...' : 'Update'}
+              <FiPlus className="w-3.5 h-3.5" />
+              Crear Notificacion
             </button>
           </div>
-          {notificationResult && (
-            <div className={cn(
-              'p-2 rounded-lg text-xs',
-              notificationResult.type === 'success'
-                ? 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400'
-                : 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400'
-            )}>
-              {notificationResult.message}
-            </div>
-          )}
         </div>
+        <div className="p-4 space-y-3">
+          <SettingRow label="Notificaciones por email" description="Recibir actualizaciones via email" defaultChecked />
+          
+          <div className="py-3 border-t border-gray-200 dark:border-[#30363d]">
+            <div className="flex items-center justify-between mb-2">
+              <div>
+                <p className="text-sm font-medium text-gray-900 dark:text-white">Push notifications</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Verificar y enviar pendientes</p>
+              </div>
+              <button
+                onClick={handleCheckNotifications}
+                disabled={checkingNotifications}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 rounded-lg transition-colors"
+              >
+                <FiRefreshCw className={cn('w-3.5 h-3.5', checkingNotifications && 'animate-spin')} />
+                {checkingNotifications ? 'Checking...' : 'Update'}
+              </button>
+            </div>
+            {notificationResult && (
+              <div className={cn(
+                'p-2 rounded-lg text-xs',
+                notificationResult.type === 'success'
+                  ? 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400'
+                  : 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400'
+              )}>
+                {notificationResult.message}
+              </div>
+            )}
+          </div>
 
-        <SettingRow label="Alertas del sistema" description="Actualizaciones importantes" defaultChecked />
+          <SettingRow label="Alertas del sistema" description="Actualizaciones importantes" defaultChecked />
+        </div>
       </div>
-    </div>
+
+      <GlobalNotificationModal
+        isOpen={isNotificationModalOpen}
+        onClose={() => setIsNotificationModalOpen(false)}
+      />
+    </>
   )
 }
 

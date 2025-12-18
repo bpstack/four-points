@@ -7,12 +7,14 @@ interface SimpleCalendarCompactProps {
   selectedDate?: Date | null
   onSelect?: (date: Date | null) => void
   onClose?: () => void
+  minDate?: Date | null // Nueva prop para bloquear fechas anteriores
 }
 
 export default function SimpleCalendarCompact({
   selectedDate,
   onSelect,
   onClose,
+  minDate,
 }: SimpleCalendarCompactProps) {
   const [currentMonth, setCurrentMonth] = useState(selectedDate || new Date())
 
@@ -61,6 +63,14 @@ export default function SimpleCalendarCompact({
     return isSameDay(date, today)
   }
 
+  // Verificar si una fecha es anterior a minDate
+  const isBeforeMinDate = (date: Date) => {
+    if (!minDate) return false
+    const d = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0)
+    const min = new Date(minDate.getFullYear(), minDate.getMonth(), minDate.getDate(), 0, 0, 0)
+    return d < min
+  }
+
   const renderDays = () => {
     const days = []
     const totalDays = daysInMonth(currentMonth)
@@ -77,23 +87,29 @@ export default function SimpleCalendarCompact({
       const date = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day, 12, 0, 0)
       const isSelected = selectedDate && isSameDay(date, selectedDate)
       const isTodayDate = isToday(date)
+      const isDisabled = isBeforeMinDate(date)
 
       days.push(
         <button
           key={day}
           type="button"
+          disabled={isDisabled}
           onClick={() => {
-            onSelect?.(date)
-            onClose?.()
+            if (!isDisabled) {
+              onSelect?.(date)
+              onClose?.()
+            }
           }}
           className={`
             h-10 text-xs rounded transition-colors
             ${
-              isSelected
-                ? 'bg-blue-600 text-white font-semibold'
-                : isTodayDate
-                  ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-medium'
-                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
+              isDisabled
+                ? 'text-gray-300 dark:text-gray-600 cursor-not-allowed'
+                : isSelected
+                  ? 'bg-blue-600 text-white font-semibold'
+                  : isTodayDate
+                    ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-medium'
+                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
             }
           `}
         >

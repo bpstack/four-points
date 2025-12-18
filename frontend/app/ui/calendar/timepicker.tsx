@@ -1,7 +1,7 @@
 //app/ui/calendar/timepicker.tsx
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { FiClock } from 'react-icons/fi'
 
 interface TimePickerProps {
@@ -9,7 +9,9 @@ interface TimePickerProps {
   onChange: (time: string) => void
   openTo?: 'right' | 'left'
   label?: string
-  openDirection?: 'up' | 'down' // Nueva prop
+  openDirection?: 'up' | 'down'
+  minTime?: string // Nueva prop: hora mínima (formato HH:mm)
+  forDate?: Date | null // Nueva prop: fecha seleccionada (para validar si es hoy)
 }
 
 export default function TimePicker({
@@ -17,9 +19,26 @@ export default function TimePicker({
   onChange,
   openTo = 'right',
   label,
-  openDirection = 'down', // Default down para no romper otros usos
+  openDirection = 'down',
+  minTime,
+  forDate,
 }: TimePickerProps) {
   const [open, setOpen] = useState(false)
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  // Cerrar al hacer click fuera
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        setOpen(false)
+      }
+    }
+
+    if (open) {
+      document.addEventListener('mousedown', handleClickOutside)
+    }
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [open])
 
   // Genera intervalos de 30 minutos
   const times: string[] = []
@@ -31,8 +50,23 @@ export default function TimePicker({
     }
   }
 
+  // Verificar si una hora está deshabilitada
+  const isTimeDisabled = (time: string): boolean => {
+    if (!minTime || !forDate) return false
+    
+    // Solo aplicar restricción si la fecha es hoy
+    const today = new Date()
+    const isToday = forDate.getFullYear() === today.getFullYear() &&
+                    forDate.getMonth() === today.getMonth() &&
+                    forDate.getDate() === today.getDate()
+    
+    if (!isToday) return false
+    
+    return time < minTime
+  }
+
   return (
-    <div className="relative">
+    <div className="relative" ref={containerRef}>
       {label && (
         <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
           {label}
@@ -58,23 +92,31 @@ export default function TimePicker({
         >
           <div className="p-2 max-h-48 overflow-y-auto">
             <div className="grid grid-cols-4 sm:grid-cols-2 gap-1">
-              {times.map((time) => (
-                <button
-                  key={time}
-                  type="button"
-                  onClick={() => {
-                    onChange(time)
-                    setOpen(false)
-                  }}
-                  className={`px-2 py-1.5 text-xs rounded-md transition-colors ${
-                    time === value
-                      ? 'bg-blue-600 text-white font-medium'
-                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
-                  }`}
-                >
-                  {time}
-                </button>
-              ))}
+              {times.map((time) => {
+                const disabled = isTimeDisabled(time)
+                return (
+                  <button
+                    key={time}
+                    type="button"
+                    disabled={disabled}
+                    onClick={() => {
+                      if (!disabled) {
+                        onChange(time)
+                        setOpen(false)
+                      }
+                    }}
+                    className={`px-2 py-1.5 text-xs rounded-md transition-colors ${
+                      disabled
+                        ? 'text-gray-300 dark:text-gray-600 cursor-not-allowed'
+                        : time === value
+                          ? 'bg-blue-600 text-white font-medium'
+                          : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
+                    }`}
+                  >
+                    {time}
+                  </button>
+                )
+              })}
             </div>
           </div>
         </div>

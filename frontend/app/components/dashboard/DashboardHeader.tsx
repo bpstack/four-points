@@ -42,28 +42,13 @@ export function DashboardHeader({ selectedPeriod, onPeriodChange }: DashboardHea
       }
     }
 
-    // month
-    const monthStart = new Date(today)
-    monthStart.setDate(today.getDate() - 29)
+    // month - mes calendario actual (1 - último día del mes)
+    const year = today.getFullYear()
+    const month = today.getMonth()
+    const lastDayOfMonth = new Date(year, month + 1, 0).getDate()
+    const monthName = today.toLocaleDateString('es-ES', { month: 'long' })
 
-    const startDay = monthStart.getDate()
-    const endDay = today.getDate()
-    const startMonth = monthStart.toLocaleDateString('es-ES', { month: 'long' })
-    const endMonth = today.toLocaleDateString('es-ES', { month: 'long' })
-    const startYear = monthStart.getFullYear()
-    const endYear = today.getFullYear()
-
-    // Si es el mismo año
-    if (startYear === endYear) {
-      if (startMonth === endMonth) {
-        return `${startDay} - ${endDay} de ${endMonth} de ${endYear}`
-      } else {
-        return `${startDay} de ${startMonth} - ${endDay} de ${endMonth} de ${endYear}`
-      }
-    } else {
-      // Años diferentes (ej: diciembre 2024 - enero 2025)
-      return `${startDay} de ${startMonth} de ${startYear} - ${endDay} de ${endMonth} de ${endYear}`
-    }
+    return `1 - ${lastDayOfMonth} de ${monthName} de ${year}`
   }
 
   return (
