@@ -163,17 +163,6 @@ export const maintenanceApi = {
   },
 
   // ========================================
-  // AGREGAR IMÁGENES
-  // ========================================
-  addImages: async (
-    reportId: string,
-    images: Array<{ file_name: string; file_path: string; file_size: number; mime_type: string }>
-  ): Promise<{ success: boolean; data: MaintenanceImage[] }> => {
-    const url = `${API_BASE}/api/maintenance/${reportId}/images`
-    return apiClient.post(url, { images })
-  },
-
-  // ========================================
   // ELIMINAR IMAGEN
   // ========================================
   deleteImage: async (
@@ -193,10 +182,13 @@ export const maintenanceApi = {
   },
 
   // ========================================
-  // SUBIR IMAGEN (a Cloudinary si está configurado)
+  // SUBIR IMAGEN A UN REPORTE (via Cloudinary)
   // ========================================
-  uploadImage: async (file: File): Promise<{ url: string; public_id: string }> => {
-    const url = `${API_BASE}/api/maintenance/upload`
+  uploadImage: async (
+    reportId: string,
+    file: File
+  ): Promise<{ message: string; image: MaintenanceImage }> => {
+    const url = `${API_BASE}/api/maintenance/${reportId}/images`
 
     const formData = new FormData()
     formData.append('image', file)
@@ -205,10 +197,13 @@ export const maintenanceApi = {
   },
 
   // ========================================
-  // SUBIR MÚLTIPLES IMÁGENES
+  // SUBIR MÚLTIPLES IMÁGENES A UN REPORTE
   // ========================================
-  uploadImages: async (files: File[]): Promise<Array<{ url: string; public_id: string }>> => {
-    const uploadPromises = files.map((file) => maintenanceApi.uploadImage(file))
+  uploadImages: async (
+    reportId: string,
+    files: File[]
+  ): Promise<Array<{ message: string; image: MaintenanceImage }>> => {
+    const uploadPromises = files.map((file) => maintenanceApi.uploadImage(reportId, file))
     return Promise.all(uploadPromises)
   },
 }

@@ -26,15 +26,20 @@ export class CloudinaryService {
    * Subir imagen a Cloudinary
    * @param fileBuffer - Buffer del archivo
    * @param filename - Nombre original del archivo
+   * @param folder - Carpeta destino en Cloudinary (default: 'blacklist')
    */
-  static async uploadImage(fileBuffer: Buffer, filename: string): Promise<CloudinaryUploadResult> {
+  static async uploadImage(
+    fileBuffer: Buffer,
+    filename: string,
+    folder: string = 'blacklist'
+  ): Promise<CloudinaryUploadResult> {
     return new Promise((resolve, reject) => {
       // Subir usando upload_stream
       const uploadStream = cloudinary.uploader.upload_stream(
         {
-          folder: 'blacklist',
+          folder: folder,
           resource_type: 'image',
-          public_id: `blacklist_${Date.now()}_${filename.split('.')[0]}`,
+          public_id: `${folder}_${Date.now()}_${filename.split('.')[0]}`,
           transformation: [
             { width: 1200, height: 1200, crop: 'limit' }, // Limitar tamaño máximo
             { quality: 'auto:good' }, // Optimizar calidad
@@ -85,12 +90,14 @@ export class CloudinaryService {
   /**
    * Extraer public_id de una URL de Cloudinary
    * @param url - URL completa de Cloudinary
+   * @param folder - Carpeta a buscar (default: 'blacklist')
    */
-  static extractPublicId(url: string): string | null {
+  static extractPublicId(url: string, folder: string = 'blacklist'): string | null {
     try {
       // URL format: https://res.cloudinary.com/{cloud}/image/upload/v{version}/{folder}/{public_id}.{format}
-      const matches = url.match(/\/blacklist\/([^.]+)/)
-      return matches ? `blacklist/${matches[1]}` : null
+      const regex = new RegExp(`\\/${folder}\\/([^.]+)`)
+      const matches = url.match(regex)
+      return matches ? `${folder}/${matches[1]}` : null
     } catch {
       return null
     }

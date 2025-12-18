@@ -17,6 +17,7 @@ import {
   FiEdit2,
   FiCheck,
   FiX,
+  FiMaximize2,
 } from 'react-icons/fi'
 import toast from 'react-hot-toast'
 
@@ -29,6 +30,7 @@ export function DetailTab() {
   const [isSaving, setIsSaving] = useState(false)
   const [showNotesInput, setShowNotesInput] = useState(false)
   const [resolutionNotes, setResolutionNotes] = useState('')
+  const [expandedImage, setExpandedImage] = useState<string | null>(null)
 
   if (isLoadingReport) {
     return (
@@ -519,15 +521,43 @@ export function DetailTab() {
           </h3>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             {images.map((image) => (
-              <div key={image.id} className="relative group">
+              <div
+                key={image.id}
+                className="relative group cursor-pointer"
+                onClick={() => setExpandedImage(image.file_path)}
+              >
                 <img
                   src={image.file_path}
                   alt={image.file_name}
-                  className="w-full h-32 object-cover rounded-md border border-gray-300 dark:border-gray-700"
+                  className="w-full h-40 object-contain bg-gray-100 dark:bg-gray-900 rounded-md border border-gray-300 dark:border-gray-700"
                 />
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors rounded-md flex items-center justify-center">
+                  <FiMaximize2 className="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                </div>
               </div>
             ))}
           </div>
+        </div>
+      )}
+
+      {/* Image Lightbox */}
+      {expandedImage && (
+        <div
+          className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4"
+          onClick={() => setExpandedImage(null)}
+        >
+          <button
+            onClick={() => setExpandedImage(null)}
+            className="absolute top-4 right-4 p-2 text-white hover:bg-white/20 rounded-full transition-colors"
+          >
+            <FiX className="w-6 h-6" />
+          </button>
+          <img
+            src={expandedImage}
+            alt="Imagen ampliada"
+            className="max-w-full max-h-[90vh] object-contain rounded-lg"
+            onClick={(e) => e.stopPropagation()}
+          />
         </div>
       )}
 

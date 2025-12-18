@@ -122,26 +122,22 @@ export function CreateReportPanel({ isOpen, onClose }: CreateReportPanelProps) {
   const onSubmit = async (data: ReportFormData) => {
     try {
       const response = await maintenanceApi.create(data)
+      const reportId = response.report.id.toString()
 
-      // Upload images if any
+      // Upload images to Cloudinary if any
       if (imageFiles.length > 0) {
         try {
-          const imageData = previewImages.map((preview, index) => ({
-            file_name: imageFiles[index]?.name || `image-${index}.jpg`,
-            file_path: preview,
-            file_size: imageFiles[index]?.size || 0,
-            mime_type: imageFiles[index]?.type || 'image/jpeg',
-          }))
-
-          await maintenanceApi.addImages(response.report.id, imageData)
+          toast.loading('Subiendo imagenes...', { id: 'upload-images' })
+          await maintenanceApi.uploadImages(reportId, imageFiles)
+          toast.success('Imagenes subidas correctamente', { id: 'upload-images' })
         } catch (imgError) {
-          console.error('Error subiendo imágenes:', imgError)
-          toast.error('Reporte creado pero hubo error al subir imágenes')
+          console.error('Error subiendo imagenes:', imgError)
+          toast.error('Reporte creado pero hubo error al subir imagenes', { id: 'upload-images' })
         }
       }
 
       toast.success('Reporte creado correctamente')
-      router.push(`/dashboard/maintenance/${response.report.id}`)
+      router.push(`/dashboard/maintenance/${reportId}`)
       onClose()
       reset()
       setPreviewImages([])

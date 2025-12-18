@@ -36,3 +36,7 @@ Thumbs.db
 # Ignorar archivos exportados o descargados del navegador
 public/*Claude*
 public/*.descarga
+
+# Registros demo
+registrosDemo.md
+registrosDemo.csv

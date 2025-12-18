@@ -616,7 +616,8 @@ export class MaintenanceController {
       // Subir a Cloudinary
       const cloudinaryResult = await CloudinaryService.uploadImage(
         req.file.buffer,
-        req.file.originalname
+        req.file.originalname,
+        'maintenance'
       )
 
       // Guardar en BD
