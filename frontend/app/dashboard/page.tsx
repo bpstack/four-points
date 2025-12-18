@@ -3,6 +3,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '@/app/lib/auth/useAuth'
+import { isAdminRole } from '@/app/lib/helpers/utils'
 import {
   DashboardHeader,
   QuickActionsCard,
@@ -23,7 +24,7 @@ export default function DashboardHome() {
   const [loadingLogbooks, setLoadingLogbooks] = useState(true)
   const [loadingActivity, setLoadingActivity] = useState(true)
 
-  const isUserAdmin = currentUser?.role?.toLowerCase().trim() === 'admin'
+  const isUserAdmin = isAdminRole(currentUser?.role)
 
   // ========================================
   // DATE HELPERS

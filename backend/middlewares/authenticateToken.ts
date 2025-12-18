@@ -2,11 +2,15 @@
 
 import { Request, Response, NextFunction } from 'express'
 import { verifyToken } from '../services/auth/tokenService.js'
+import { demoRestriction } from './demoRestriction.js'
 
 /**
  * Middleware para verificar el token de acceso JWT.
  * ✅ Busca el token en cookies (HttpOnly) o en Authorization header
  * Prioridad: cookies > header (las cookies son más seguras)
+ * 
+ * DEMO: Después de autenticar, también verifica restricciones demo.
+ * Para eliminar esta funcionalidad, quitar la llamada a demoRestriction().
  */
 export function authenticateToken(req: Request, res: Response, next: NextFunction): void {
   try {
@@ -48,7 +52,9 @@ export function authenticateToken(req: Request, res: Response, next: NextFunctio
       role: decoded.role,
     }
 
-    next()
+    // ✅ DEMO: Verificar restricciones de usuario demo
+    // Para eliminar: quitar esta línea y el import de demoRestriction
+    demoRestriction(req, res, next)
   } catch (error) {
     // Diferencia entre token expirado y token inválido
     let message = 'Token inválido'

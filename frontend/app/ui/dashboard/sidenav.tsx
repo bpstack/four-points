@@ -13,8 +13,7 @@ interface SideNavProps {
 }
 
 export default function SideNav({ onClose }: SideNavProps) {
-  // Auth context available for future use (user info display, logout button)
-  const _auth = useAuth()
+  const { user } = useAuth()
   const _router = useRouter()
 
   return (
@@ -42,7 +41,7 @@ export default function SideNav({ onClose }: SideNavProps) {
       {/* Navigation Links */}
       <nav className="flex-1 overflow-y-auto py-4">
         <div className="px-3 space-y-1">
-          <NavLinks onClose={onClose} />
+          <NavLinks onClose={onClose} currentUserRole={user?.role} />
         </div>
       </nav>
     </div>

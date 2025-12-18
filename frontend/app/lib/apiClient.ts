@@ -12,6 +12,8 @@
  * En producción: subdominios + HttpOnly cookies
  */
 
+import toast from 'react-hot-toast'
+
 interface FetchOptions extends RequestInit {
   skipRefresh?: boolean
 }
@@ -216,6 +218,66 @@ async function fetchWithRefresh(url: string, options: FetchOptions = {}): Promis
 }
 
 // ========================================
+// MANEJO DE ERRORES
+// ========================================
+
+/**
+ * Error personalizado para respuestas de API
+ * - demo: true indica restricción de modo demo (toast ya mostrado)
+ */
+export class ApiError extends Error {
+  demo: boolean
+  status: number
+
+  constructor(message: string, status: number, demo: boolean = false) {
+    super(message)
+    this.name = 'ApiError'
+    this.status = status
+    this.demo = demo
+  }
+}
+
+/**
+ * Procesa errores de API.
+ * - Para errores demo: muestra toast y hace throw con demo=true
+ * - Para otros errores: hace throw normal
+ * 
+ * Nota: En desarrollo, Next.js muestra estos errores en el overlay.
+ * Esto es solo informativo y no afecta producción.
+ */
+async function handleApiError(response: Response): Promise<never> {
+  const errorData = await response.json().catch(() => ({
+    error: `HTTP ${response.status}: ${response.statusText}`,
+  }))
+
+  const message = errorData.error || errorData.message || `Request failed: ${response.status}`
+  const isDemo = errorData.demo === true
+
+  // Para errores demo: mostrar toast especial
+  if (isDemo && isClient) {
+    toast('Modo Demo: Esta acción no está disponible', {
+      duration: 4000,
+      icon: '🔒',
+      style: {
+        background: '#FEF3C7',
+        color: '#92400E',
+        border: '1px solid #F59E0B',
+      },
+    })
+  }
+
+  throw new ApiError(message, response.status, isDemo)
+}
+
+/**
+ * Helper para verificar si un error es de tipo demo.
+ * Útil en catch blocks para evitar mostrar doble toast.
+ */
+export function isDemoError(error: unknown): boolean {
+  return error instanceof ApiError && error.demo === true
+}
+
+// ========================================
 // API CLIENT PÚBLICO
 // ========================================
 
@@ -224,10 +286,7 @@ export const apiClient = {
     const response = await fetchWithRefresh(url, { ...options, method: 'GET' })
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({
-        error: `HTTP ${response.status}: ${response.statusText}`,
-      }))
-      throw new Error(errorData.error || errorData.message || `Request failed: ${response.status}`)
+      await handleApiError(response)
     }
 
     return response.json()
@@ -241,10 +300,7 @@ export const apiClient = {
     })
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({
-        error: `HTTP ${response.status}: ${response.statusText}`,
-      }))
-      throw new Error(errorData.error || errorData.message || `Request failed: ${response.status}`)
+      await handleApiError(response)
     }
 
     return response.json()
@@ -258,10 +314,7 @@ export const apiClient = {
     })
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({
-        error: `HTTP ${response.status}: ${response.statusText}`,
-      }))
-      throw new Error(errorData.error || errorData.message || `Request failed: ${response.status}`)
+      await handleApiError(response)
     }
 
     return response.json()
@@ -275,10 +328,7 @@ export const apiClient = {
     })
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({
-        error: `HTTP ${response.status}: ${response.statusText}`,
-      }))
-      throw new Error(errorData.error || errorData.message || `Request failed: ${response.status}`)
+      await handleApiError(response)
     }
 
     return response.json()
@@ -288,18 +338,7 @@ export const apiClient = {
     const response = await fetchWithRefresh(url, { ...options, method: 'DELETE' })
 
     if (!response.ok) {
-      const contentType = response.headers.get('content-type')
-      let errorData
-
-      if (contentType?.includes('application/json')) {
-        errorData = await response.json().catch(() => ({
-          error: `HTTP ${response.status}: ${response.statusText}`,
-        }))
-      } else {
-        errorData = { error: `HTTP ${response.status}: ${response.statusText}` }
-      }
-
-      throw new Error(errorData.error || errorData.message || `Request failed: ${response.status}`)
+      await handleApiError(response)
     }
 
     const contentType = response.headers.get('content-type')
@@ -329,10 +368,7 @@ export const apiClient = {
     })
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({
-        error: `HTTP ${response.status}: ${response.statusText}`,
-      }))
-      throw new Error(errorData.error || errorData.message || `Request failed: ${response.status}`)
+      await handleApiError(response)
     }
 
     return response.json()

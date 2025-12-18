@@ -7,9 +7,10 @@ type RoleCheckMiddleware = (req: Request, res: Response, next: NextFunction) => 
 /**
  * Verifica que el usuario tenga rol de administrador
  * Uso: Para rutas que SOLO admins pueden acceder
+ * Nota: demo-admin tiene acceso visual pero sus escrituras están limitadas por demoRestriction
  */
 export const isAdmin: RoleCheckMiddleware = (req, res, next) => {
-  const allowedRoles = ['admin']
+  const allowedRoles = ['admin', 'demo-admin']
 
   if (!req.user?.role) {
     res.status(403).json({ error: 'No se pudo verificar el rol del usuario' })
@@ -28,14 +29,15 @@ export const isAdmin: RoleCheckMiddleware = (req, res, next) => {
 /**
  * Verifica que el usuario sea el dueño del recurso O sea administrador
  * Uso: Para rutas donde un usuario puede ver/editar SU propio perfil
+ * Nota: demo-admin tiene acceso visual como admin
  */
 export const isOwnerOrAdmin: RoleCheckMiddleware = (req, res, next) => {
   const resourceUserId = req.params.id // ID del usuario en la URL
   const requestingUserId = req.user?.id // ID del usuario autenticado
   const userRole = req.user?.role?.toLowerCase()
 
-  // Si es admin, tiene acceso total
-  if (userRole === 'admin') {
+  // Si es admin o demo-admin, tiene acceso total
+  if (userRole === 'admin' || userRole === 'demo-admin') {
     next()
     return
   }
@@ -55,9 +57,10 @@ export const isOwnerOrAdmin: RoleCheckMiddleware = (req, res, next) => {
 /**
  * Verifica que el usuario pueda gestionar grupos
  * Uso: Para rutas de creación/edición/eliminación de grupos
+ * Nota: demo-admin incluido para acceso visual
  */
 export const canManageGroups: RoleCheckMiddleware = (req, res, next) => {
-  const allowedRoles = ['admin', 'group-admin']
+  const allowedRoles = ['admin', 'group-admin', 'demo-admin']
 
   if (!req.user?.role) {
     res.status(403).json({ error: 'No se pudo verificar el rol del usuario' })
@@ -76,9 +79,10 @@ export const canManageGroups: RoleCheckMiddleware = (req, res, next) => {
 /**
  * Verifica que el usuario pueda ver grupos
  * Uso: Para rutas de consulta/lectura de grupos
+ * Nota: demo-admin incluido para acceso visual
  */
 export const canViewGroups: RoleCheckMiddleware = (req, res, next) => {
-  const allowedRoles = ['admin', 'recepcionista', 'group-admin']
+  const allowedRoles = ['admin', 'recepcionista', 'group-admin', 'demo-admin']
 
   if (!req.user?.role) {
     res.status(403).json({ error: 'No se pudo verificar el rol del usuario' })
@@ -97,9 +101,10 @@ export const canViewGroups: RoleCheckMiddleware = (req, res, next) => {
 /**
  * Verifica que el usuario pueda gestionar caja
  * Uso: Para crear, editar, cerrar turnos, vales, etc.
+ * Nota: demo-admin incluido para acceso visual
  */
 export const canManageCashier: RoleCheckMiddleware = (req, res, next) => {
-  const allowedRoles = ['admin', 'recepcionista', 'group-admin']
+  const allowedRoles = ['admin', 'recepcionista', 'group-admin', 'demo-admin']
 
   if (!req.user?.role) {
     res.status(403).json({ error: 'No se pudo verificar el rol del usuario' })
@@ -118,9 +123,10 @@ export const canManageCashier: RoleCheckMiddleware = (req, res, next) => {
 /**
  * Verifica que el usuario pueda ver reportes de caja
  * Uso: Para reportes, estadísticas, históricos completos
+ * Nota: demo-admin incluido para acceso visual
  */
 export const canViewReports: RoleCheckMiddleware = (req, res, next) => {
-  const allowedRoles = ['admin']
+  const allowedRoles = ['admin', 'demo-admin']
 
   if (!req.user?.role) {
     res.status(403).json({ error: 'No se pudo verificar el rol del usuario' })
@@ -139,10 +145,10 @@ export const canViewReports: RoleCheckMiddleware = (req, res, next) => {
 /**
  * Verifica que el usuario pueda acceder al módulo de mantenimiento
  * Uso: Para rutas de creación/edición/consulta de reportes de mantenimiento
- * Nota: TODOS los roles pueden acceder a mantenimiento
+ * Nota: TODOS los roles pueden acceder a mantenimiento (incluido demo-admin)
  */
 export const canAccessMaintenance: RoleCheckMiddleware = (req, res, next) => {
-  const allowedRoles = ['admin', 'recepcionista', 'group-admin', 'mantenimiento']
+  const allowedRoles = ['admin', 'recepcionista', 'group-admin', 'mantenimiento', 'demo-admin']
 
   if (!req.user?.role) {
     res.status(403).json({ error: 'No se pudo verificar el rol del usuario' })

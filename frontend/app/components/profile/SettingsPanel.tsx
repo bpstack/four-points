@@ -4,7 +4,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
-import { apiClient } from '@/app/lib/apiClient'
+import { apiClient, isDemoError } from '@/app/lib/apiClient'
 import { useAuth } from '@/app/lib/auth/useAuth'
 import NewUserModal from '@/app/components/auth/NewUserModal'
 import { UsersTableSkeleton } from '@/app/ui/skeletons'
@@ -12,6 +12,7 @@ import { notificationsApi } from '@/app/lib/groups'
 import { departmentsApi } from '@/app/lib/departments'
 import { formatDepartmentName } from '@/app/lib/logbooks/hooks/useDepartments'
 import { cn } from '@/app/lib/helpers/utils'
+import { isAdminRole } from '@/app/lib/helpers/utils'
 import { toast } from 'react-hot-toast'
 import {
   FiUsers,
@@ -94,7 +95,7 @@ export function SettingsPanel() {
   const { user: currentUser } = useAuth()
   const router = useRouter()
   const searchParams = useSearchParams()
-  const isUserAdmin = currentUser?.role?.toLowerCase().trim() === 'admin'
+  const isUserAdmin = isAdminRole(currentUser?.role)
   
   const activeTab = (searchParams.get('tab') as SettingsTab) || (isUserAdmin ? 'users' : 'notifications')
   
@@ -320,7 +321,9 @@ function DepartmentsTab() {
       loadDepartments()
     } catch (err: any) {
       console.error('Error deleting department:', err)
-      toast.error(err?.response?.data?.error || 'Error al eliminar')
+      if (!isDemoError(err)) {
+        toast.error(err?.response?.data?.error || 'Error al eliminar')
+      }
     }
   }
 
@@ -466,7 +469,9 @@ function AddDepartmentModal({
       onSuccess()
       onClose()
     } catch (err: any) {
-      toast.error(err?.message || 'Error al crear departamento')
+      if (!isDemoError(err)) {
+        toast.error(err?.message || 'Error al crear departamento')
+      }
     } finally {
       setIsSubmitting(false)
     }
@@ -539,7 +544,9 @@ function EditDepartmentModal({
       onSuccess()
       onClose()
     } catch (err: any) {
-      toast.error(err?.message || 'Error al actualizar')
+      if (!isDemoError(err)) {
+        toast.error(err?.message || 'Error al actualizar')
+      }
     } finally {
       setIsSubmitting(false)
     }

@@ -21,6 +21,7 @@ import { CgDanger } from 'react-icons/cg'
 import { MdPointOfSale } from 'react-icons/md'
 import { useState } from 'react'
 import { IoIosRestaurant } from 'react-icons/io'
+import { isAdminRole } from '@/app/lib/helpers/utils'
 
 const mainLinks = [
   { name: 'Dashboard', href: '/dashboard', icon: HomeIcon },
@@ -113,8 +114,8 @@ export default function NavLinks({ onClose, currentUserRole }: NavLinksProps) {
         </h3>
 
         {backOfficeLinks.map((link) => {
-          // Solo mostrar Back Office si es admin
-          if (link.adminOnly && currentUserRole !== 'admin') {
+          // Solo mostrar Back Office si es admin o demo-admin
+          if (link.adminOnly && !isAdminRole(currentUserRole)) {
             return null
           }
           return renderLink(link)
