@@ -185,3 +185,49 @@ export const excludeMantenimiento: RoleCheckMiddleware = (req, res, next) => {
     next()
   }
 }
+
+/**
+ * Verifica que el usuario pueda acceder al módulo de backoffice
+ * Uso: Para rutas de facturas, proveedores, etc.
+ * SOLO admin y demo-admin pueden acceder
+ */
+export const canAccessBackoffice: RoleCheckMiddleware = (req, res, next) => {
+  const allowedRoles = ['admin', 'demo-admin']
+
+  if (!req.user?.role) {
+    res.status(403).json({ error: 'No se pudo verificar el rol del usuario' })
+    return
+  }
+
+  if (allowedRoles.includes(req.user.role.toLowerCase())) {
+    next()
+  } else {
+    res.status(403).json({
+      error: 'Acceso denegado. Se requiere rol de administrador para acceder al backoffice',
+    })
+  }
+}
+
+/**
+ * Verifica que el usuario sea admin real (NO demo-admin)
+ * Uso: Para operaciones de escritura en backoffice
+ * demo-admin tiene acceso de solo lectura
+ */
+export const isRealAdmin: RoleCheckMiddleware = (req, res, next) => {
+  if (!req.user?.role) {
+    res.status(403).json({ error: 'No se pudo verificar el rol del usuario' })
+    return
+  }
+
+  if (req.user.role.toLowerCase() === 'admin') {
+    next()
+  } else if (req.user.role.toLowerCase() === 'demo-admin') {
+    res.status(403).json({
+      error: 'Acceso de solo lectura. El rol demo-admin no puede realizar modificaciones',
+    })
+  } else {
+    res.status(403).json({
+      error: 'Acceso denegado. Se requiere rol de administrador',
+    })
+  }
+}

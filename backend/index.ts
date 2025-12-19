@@ -22,6 +22,7 @@ import blacklistRoutes from './routes/blacklist/blacklist-routes.js'
 import maintenanceRoutes from './routes/maintenance/maintenance-routes.js'
 import activityRoutes from './routes/activity/activity-routes.js'
 import messagesRoutes from './routes/messages/messages-routes.js'
+import backofficeRoutes from './routes/backoffice/backoffice-routes.js'
 
 // ============================================
 // EXPRESS APP
@@ -137,6 +138,9 @@ app.use('/api/activity', activityRoutes)
 
 // Rutas de mensajeria interna
 app.use('/api/messages', messagesRoutes)
+
+// Rutas de backoffice (facturas, proveedores)
+app.use('/api/backoffice', backofficeRoutes)
 
 // ========================================
 // MANEJO DE ERRORES
