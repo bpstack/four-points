@@ -2,7 +2,7 @@
 'use server'
 
 import { cookies } from 'next/headers'
-import type { ParkingBooking } from './types'
+import type { ParkingBooking, PaginationInfo } from './types'
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'
 
@@ -18,6 +18,7 @@ export interface BookingFilters {
 export interface BookingsListResponse {
   success: boolean
   total: number
+  pagination: PaginationInfo
   bookings: ParkingBooking[]
   filters_applied?: Record<string, any>
 }
@@ -39,6 +40,10 @@ export async function getBookings(filters?: BookingFilters): Promise<BookingsLis
     }
     if (filters?.date) params.append('date', filters.date)
     if (filters?.search) params.append('q', filters.search)
+
+    // Pagination params
+    if (filters?.page) params.append('page', String(filters.page))
+    if (filters?.limit) params.append('limit', String(filters.limit))
 
     const url = `${API_BASE}/api/parking/bookings?${params.toString()}`
 

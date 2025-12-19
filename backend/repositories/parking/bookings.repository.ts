@@ -14,7 +14,12 @@ import type {
   CreateBookingDTO,
   UpdateBookingDTO,
   CheckoutDTO,
+  PaginatedBookingsResult,
 } from '../../models/parking/index.js'
+
+interface CountRow extends RowDataPacket {
+  total: number
+}
 
 interface SpotIdRow extends RowDataPacket {
   id: number
@@ -50,10 +55,72 @@ class ParkingBookingsRepository {
   }
 
   // ============================================
-  // GET ALL BOOKINGS (con filtros opcionales)
+  // GET ALL BOOKINGS (con filtros opcionales y paginación)
   // ============================================
-  async findAll(filters: BookingFilters = {}): Promise<FormattedBooking[]> {
-    let query = `
+  async findAll(filters: BookingFilters = {}): Promise<PaginatedBookingsResult> {
+    // Extract pagination params
+    const page = filters.page && filters.page > 0 ? filters.page : 1
+    const limit = filters.limit && filters.limit > 0 ? Math.min(filters.limit, 500) : 50
+    const offset = (page - 1) * limit
+
+    // Build WHERE conditions
+    let whereClause = 'WHERE 1=1'
+    const params: (string | number)[] = []
+
+    if (filters.id) {
+      whereClause += ' AND b.id = ?'
+      params.push(filters.id)
+    }
+
+    if (filters.status) {
+      whereClause += ' AND b.status = ?'
+      params.push(filters.status)
+    }
+
+    if (filters.date) {
+      whereClause += ' AND DATE(b.expected_checkin) <= ? AND DATE(b.expected_checkout) > ?'
+      params.push(filters.date, filters.date)
+    }
+
+    if (filters.spot_id) {
+      whereClause += ' AND b.spot_id = ?'
+      params.push(filters.spot_id)
+    }
+
+    if (filters.vehicle_id) {
+      whereClause += ' AND b.vehicle_id = ?'
+      params.push(filters.vehicle_id)
+    }
+
+    if (filters.plate_number) {
+      whereClause += ' AND v.plate_number LIKE ?'
+      params.push(`%${filters.plate_number}%`)
+    }
+
+    if (filters.owner_name) {
+      whereClause += ' AND v.owner_name LIKE ?'
+      params.push(`%${filters.owner_name}%`)
+    }
+
+    if (filters.booking_source) {
+      whereClause += ' AND b.booking_source = ?'
+      params.push(filters.booking_source)
+    }
+
+    // Count total records
+    const countQuery = `
+      SELECT COUNT(*) AS total
+      FROM parking_bookings b
+      INNER JOIN parking_spots ps ON b.spot_id = ps.id
+      LEFT JOIN parking_vehicles v ON b.vehicle_id = v.id
+      ${whereClause}
+    `
+    const [countResult] = await pool.query<CountRow[]>(countQuery, params)
+    const total = countResult[0]?.total || 0
+    const totalPages = Math.ceil(total / limit)
+
+    // Main query with pagination
+    const query = `
       SELECT 
         b.id,
         b.booking_code,
@@ -100,64 +167,30 @@ class ParkingBookingsRepository {
       LEFT JOIN users u ON b.operator_id = u.id
       LEFT JOIN users creator ON b.created_by = creator.id
       LEFT JOIN users updater ON b.updated_by = updater.id
-      WHERE 1=1
+      ${whereClause}
+      ORDER BY b.expected_checkin DESC, b.created_at DESC
+      LIMIT ? OFFSET ?
     `
 
-    const params: (string | number)[] = []
+    const [rows] = await pool.query<BookingWithDetailsRow[]>(query, [...params, limit, offset])
 
-    if (filters.id) {
-      query += ' AND b.id = ?'
-      params.push(filters.id)
+    return {
+      bookings: rows.map((row) => this._formatBooking(row)),
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages,
+      },
     }
-
-    if (filters.status) {
-      query += ' AND b.status = ?'
-      params.push(filters.status)
-    }
-
-    if (filters.date) {
-      query += ' AND DATE(b.expected_checkin) <= ? AND DATE(b.expected_checkout) > ?'
-      params.push(filters.date, filters.date)
-    }
-
-    if (filters.spot_id) {
-      query += ' AND b.spot_id = ?'
-      params.push(filters.spot_id)
-    }
-
-    if (filters.vehicle_id) {
-      query += ' AND b.vehicle_id = ?'
-      params.push(filters.vehicle_id)
-    }
-
-    if (filters.plate_number) {
-      query += ' AND v.plate_number LIKE ?'
-      params.push(`%${filters.plate_number}%`)
-    }
-
-    if (filters.owner_name) {
-      query += ' AND v.owner_name LIKE ?'
-      params.push(`%${filters.owner_name}%`)
-    }
-
-    if (filters.booking_source) {
-      query += ' AND b.booking_source = ?'
-      params.push(filters.booking_source)
-    }
-
-    query += ' ORDER BY b.expected_checkin DESC, b.created_at DESC'
-
-    const [rows] = await pool.query<BookingWithDetailsRow[]>(query, params)
-
-    return rows.map((row) => this._formatBooking(row))
   }
 
   // ============================================
   // GET BOOKING BY ID (interno)
   // ============================================
   async findById(id: number): Promise<FormattedBooking | null> {
-    const bookings = await this.findAll({ id })
-    return bookings.length > 0 ? bookings[0] : null
+    const result = await this.findAll({ id, limit: 1 })
+    return result.bookings.length > 0 ? result.bookings[0] : null
   }
 
   // ============================================

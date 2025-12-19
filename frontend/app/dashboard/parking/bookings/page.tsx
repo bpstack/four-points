@@ -15,6 +15,7 @@ interface PageProps {
 
 export default async function BookingsPage({ searchParams }: PageProps) {
   const params = await searchParams
+  const currentPage = params.page ? parseInt(params.page) : 1
 
   // Construir filtros desde URL
   const filters = {
@@ -22,7 +23,7 @@ export default async function BookingsPage({ searchParams }: PageProps) {
     date: params.date,
     dateFilter: params.dateFilter as any,
     search: params.search,
-    page: params.page ? parseInt(params.page) : 1,
+    page: currentPage,
     limit: 50,
   }
 
@@ -49,6 +50,10 @@ export default async function BookingsPage({ searchParams }: PageProps) {
   }
 
   return (
-    <BookingsListClient initialBookings={data?.bookings || []} initialTotal={data?.total || 0} />
+    <BookingsListClient
+      initialBookings={data?.bookings || []}
+      initialTotal={data?.total || 0}
+      initialPagination={data?.pagination || { page: 1, limit: 50, total: 0, totalPages: 0 }}
+    />
   )
 }

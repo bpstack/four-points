@@ -121,7 +121,9 @@ export const parkingApi = {
    */
   searchVehicles: async (searchTerm: string): Promise<ParkingVehicle[]> => {
     if (!searchTerm || searchTerm.length < 2) return []
-    return apiClient.get(`${API_URL}/api/parking/vehicles/search?q=${encodeURIComponent(searchTerm)}`)
+    return apiClient.get(
+      `${API_URL}/api/parking/vehicles/search?q=${encodeURIComponent(searchTerm)}`
+    )
   },
   /**
    * Busca un vehículo por matrícula
@@ -150,17 +152,21 @@ export const parkingApi = {
   },
 
   /**
-   * Obtiene todas las reservas con filtros opcionales
+   * Obtiene todas las reservas con filtros opcionales y paginación
    */
   getAllBookings: async (filters?: {
     status?: string
     date?: string
     plate_number?: string
+    page?: number
+    limit?: number
   }): Promise<BookingsResponse> => {
     const query = new URLSearchParams()
     if (filters?.status) query.append('status', filters.status)
     if (filters?.date) query.append('date', filters.date)
     if (filters?.plate_number) query.append('plate_number', filters.plate_number)
+    if (filters?.page) query.append('page', String(filters.page))
+    if (filters?.limit) query.append('limit', String(filters.limit))
     return apiClient.get(`${API_URL}/api/parking/bookings?${query}`)
   },
 

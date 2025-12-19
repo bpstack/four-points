@@ -236,6 +236,13 @@ export interface ParkingSpotDisplay {
 }
 
 // ========== RESPONSE TYPES ==========
+export interface PaginationInfo {
+  page: number
+  limit: number
+  total: number
+  totalPages: number
+}
+
 export interface OverdueBookingsResponse {
   success: boolean
   total: number
@@ -245,6 +252,7 @@ export interface OverdueBookingsResponse {
 export interface BookingsResponse {
   success: boolean
   total: number
+  pagination?: PaginationInfo
   bookings: ParkingBooking[]
 }
 
