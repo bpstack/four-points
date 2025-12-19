@@ -278,8 +278,9 @@ export async function getPendingInvoices(page = 1, limit = 50): Promise<{
 /**
  * Fetch paid invoices specifically
  * Convenience function for the paid tab
+ * Default limit of 100 for better UX with monthly filtering
  */
-export async function getPaidInvoices(page = 1, limit = 50): Promise<{
+export async function getPaidInvoices(page = 1, limit = 100): Promise<{
   invoices: InvoiceWithDetails[]
   pagination: {
     page: number

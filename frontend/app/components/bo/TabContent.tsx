@@ -7,7 +7,8 @@
 
 'use client'
 
-import { useSearchParams } from 'next/navigation'
+import { useSearchParams, useRouter, usePathname } from 'next/navigation'
+import { useCallback } from 'react'
 import type { TabType } from './TabsNavigation'
 import type { InvoiceWithDetails, SupplierWithStats, Category, Asset } from '@/app/lib/backoffice/types'
 
@@ -39,7 +40,17 @@ export function TabContent({
   paidPagination,
 }: TabContentProps) {
   const searchParams = useSearchParams()
+  const router = useRouter()
+  const pathname = usePathname()
   const currentTab = (searchParams.get('tab') as TabType) || 'pending'
+
+  // Handle page change for paid invoices
+  const handlePaidPageChange = useCallback((newPage: number) => {
+    const params = new URLSearchParams(searchParams.toString())
+    params.set('tab', 'paid')
+    params.set('paidPage', newPage.toString())
+    router.push(`${pathname}?${params.toString()}`)
+  }, [searchParams, router, pathname])
 
   return (
     <div className="mt-4">
@@ -56,6 +67,7 @@ export function TabContent({
           initialInvoices={paidInvoices}
           categories={categories}
           pagination={paidPagination}
+          onPageChange={handlePaidPageChange}
         />
       )}
       {currentTab === 'suppliers' && (

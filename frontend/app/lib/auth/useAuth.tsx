@@ -73,8 +73,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         ...me,
         username: formatUsername(me.username),
       }
-    } catch (error: any) {
-      console.log('[useAuth] Error obteniendo usuario:', error?.message)
+    } catch {
       return null
     }
   }, [])
@@ -84,20 +83,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
    * Solo se ejecuta en rutas protegidas
    */
   useEffect(() => {
+    let isMounted = true
+    
     const checkSession = async () => {
       // En rutas públicas, no verificar sesión
       if (PUBLIC_ROUTES.includes(pathname)) {
-        setLoading(false)
+        if (isMounted) setLoading(false)
+        return
+      }
+
+      // Si ya tenemos usuario, no volver a verificar
+      if (user) {
+        if (isMounted) setLoading(false)
         return
       }
 
       const userData = await fetchUserData()
+      
+      // Solo actualizar estado si el componente sigue montado
+      if (!isMounted) {
+        return
+      }
+      
       setUser(userData)
       setLoading(false)
     }
 
     checkSession()
-  }, [pathname, fetchUserData])
+    
+    return () => {
+      isMounted = false
+    }
+  }, [pathname, fetchUserData, user])
 
   /**
    * Login de usuario

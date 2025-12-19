@@ -22,7 +22,15 @@ import { TabContent } from '@/app/components/bo/TabContent'
 // Force dynamic rendering since we're fetching user-specific data
 export const dynamic = 'force-dynamic'
 
-export default async function BackOfficePage() {
+interface PageProps {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
+}
+
+export default async function BackOfficePage({ searchParams }: PageProps) {
+  // Await searchParams as per Next.js 15 requirements
+  const params = await searchParams
+  const paidPage = params.paidPage ? parseInt(params.paidPage as string, 10) : 1
+
   // Fetch all data in parallel on the server
   const [
     stats,
@@ -35,7 +43,7 @@ export default async function BackOfficePage() {
     getStats(),
     getCategories(),
     getPendingInvoices(),
-    getPaidInvoices(),
+    getPaidInvoices(paidPage, 100),
     getSuppliers(),
     getAssets(),
   ])

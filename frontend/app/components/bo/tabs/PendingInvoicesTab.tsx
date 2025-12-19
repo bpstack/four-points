@@ -21,6 +21,8 @@ import {
   FiX,
   FiRotateCcw,
   FiDollarSign,
+  FiFile,
+  FiGrid,
 } from 'react-icons/fi'
 import type { InvoiceWithDetails, Category, SupplierWithStats } from '@/app/lib/backoffice/types'
 import {
@@ -38,6 +40,7 @@ import {
   ConfirmDialog,
 } from '@/app/components/bo/modals'
 import { backofficeApi } from '@/app/lib/backoffice'
+import { exportToExcel, exportToPdf } from '@/app/lib/backoffice/export-utils'
 import toast from 'react-hot-toast'
 import { useRouter } from 'next/navigation'
 
@@ -412,25 +415,25 @@ export function PendingInvoicesTab({
     <div className="space-y-4">
       {/* Action Bar */}
       <div className="flex flex-col lg:flex-row gap-3">
-        {/* Search */}
-        <div className="relative flex-1">
+        {/* Search - reduced width */}
+        <div className="relative w-full lg:w-48">
           <FiSearch className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 dark:text-gray-500" />
           <input
             type="text"
-            placeholder="Buscar por proveedor o nº factura..."
+            placeholder="Buscar..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full pl-8 pr-3 py-1.5 text-xs border border-gray-300 dark:border-gray-700 dark:bg-[#151b23] dark:text-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent"
           />
         </div>
 
-        {/* Category Filter */}
+        {/* Category Filter - expanded width */}
         <select
           value={categoryFilter}
           onChange={(e) =>
             setCategoryFilter(e.target.value === 'all' ? 'all' : Number(e.target.value))
           }
-          className="px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent bg-white dark:bg-[#151b23] dark:text-gray-200"
+          className="flex-1 min-w-[280px] px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent bg-white dark:bg-[#151b23] dark:text-gray-200"
         >
           <option value="all">Todas las categorías</option>
           {categories.map((cat) => (
@@ -440,13 +443,13 @@ export function PendingInvoicesTab({
           ))}
         </select>
 
-        {/* Payment Method Filter */}
+        {/* Payment Method Filter - slightly wider */}
         <select
           value={paymentMethodFilter}
           onChange={(e) =>
             setPaymentMethodFilter(e.target.value as 'all' | 'transfer' | 'direct_debit')
           }
-          className="px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent bg-white dark:bg-[#151b23] dark:text-gray-200"
+          className="w-full lg:w-36 px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent bg-white dark:bg-[#151b23] dark:text-gray-200"
         >
           <option value="all">Todos los pagos</option>
           <option value="transfer">Transferencia</option>
@@ -666,10 +669,48 @@ export function PendingInvoicesTab({
           </table>
         </div>
 
-        {/* Pagination info */}
+        {/* Pagination info and Export buttons */}
         {pagination.total > 0 && (
-          <div className="px-3 py-2 border-t border-gray-200 dark:border-gray-800 text-xs text-gray-500 dark:text-gray-400">
-            Mostrando {filteredInvoices.length} de {pagination.total} facturas
+          <div className="px-3 py-2 border-t border-gray-200 dark:border-gray-800 flex items-center justify-between">
+            <span className="text-xs text-gray-500 dark:text-gray-400">
+              Mostrando {filteredInvoices.length} de {pagination.total} facturas
+            </span>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={async () => {
+                  try {
+                    await exportToExcel(filteredInvoices)
+                    toast.success('Excel exportado correctamente')
+                  } catch (error) {
+                    console.error('[exportToExcel] Error:', error)
+                    toast.error('Error al exportar a Excel')
+                  }
+                }}
+                disabled={filteredInvoices.length === 0}
+                title="Exportar a Excel"
+                className="inline-flex items-center gap-1 px-2 py-1 text-[10px] font-medium text-green-700 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 border border-green-300 dark:border-green-700 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <FiGrid className="w-3 h-3" />
+                Excel
+              </button>
+              <button
+                onClick={async () => {
+                  try {
+                    await exportToPdf(filteredInvoices)
+                    toast.success('PDF exportado correctamente')
+                  } catch (error) {
+                    console.error('[exportToPdf] Error:', error)
+                    toast.error('Error al exportar a PDF')
+                  }
+                }}
+                disabled={filteredInvoices.length === 0}
+                title="Exportar a PDF"
+                className="inline-flex items-center gap-1 px-2 py-1 text-[10px] font-medium text-red-700 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 border border-red-300 dark:border-red-700 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <FiFile className="w-3 h-3" />
+                PDF
+              </button>
+            </div>
           </div>
         )}
       </div>

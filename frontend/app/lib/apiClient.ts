@@ -97,9 +97,7 @@ async function fetchWithRefresh(url: string, options: FetchOptions = {}): Promis
     credentials: 'include', // Siempre enviar cookies
   }
 
-  console.log(`[apiClient] ${options.method || 'GET'} ${url}`)
   let response = await fetch(url, finalOptions)
-  console.log(`[apiClient] Response: ${response.status}`)
 
   // Rutas que no requieren autenticación
   const isAuthRoute =
@@ -110,15 +108,11 @@ async function fetchWithRefresh(url: string, options: FetchOptions = {}): Promis
 
   // Auto-refresh cuando recibimos 401
   if (isClient && response.status === 401 && !skipRefresh && !isAuthRoute && hasRefreshToken()) {
-    console.log('[apiClient] 🔄 Token expirado, intentando refresh...')
-
     // Si ya hay refresh en curso, encolar este request
     if (isRefreshing) {
-      console.log('[apiClient] ⏳ Refresh en curso, encolando...')
       return new Promise((resolve, reject) => {
         failedQueue.push({ resolve, reject })
       }).then(() => {
-        console.log('[apiClient] 🔄 Reintentando después de refresh...')
         return fetchWithRefresh(url, { ...options, skipRefresh: true })
       })
     }
@@ -127,7 +121,6 @@ async function fetchWithRefresh(url: string, options: FetchOptions = {}): Promis
 
     try {
       const refreshUrl = `${API_BASE_URL}/api/auth/refresh-token`
-      console.log('[apiClient] Enviando refresh token...')
 
       const refreshOptions: RequestInit = {
         method: 'POST',
@@ -144,7 +137,6 @@ async function fetchWithRefresh(url: string, options: FetchOptions = {}): Promis
       }
 
       const refreshResponse = await fetch(refreshUrl, refreshOptions)
-      console.log('[apiClient] Refresh response:', refreshResponse.status)
 
       if (!refreshResponse.ok) {
         throw new Error(`Refresh failed: ${refreshResponse.status}`)
@@ -155,7 +147,7 @@ async function fetchWithRefresh(url: string, options: FetchOptions = {}): Promis
       // En desarrollo, guardar tokens en localStorage Y cookies
       if (isDev && data.token) {
         localStorage.setItem('access_token', data.token)
-        // Also set cookie for Server Components
+        // Also set cookie for Server Components (15 min = 900 seconds)
         document.cookie = `access_token=${data.token}; path=/; max-age=900; samesite=lax`
         
         if (data.refreshToken) {
@@ -165,7 +157,6 @@ async function fetchWithRefresh(url: string, options: FetchOptions = {}): Promis
       }
       // En producción, las cookies se actualizan automáticamente por el backend
 
-      console.log('[apiClient] ✅ Token refrescado')
       isRefreshing = false
       processQueue()
 
@@ -180,11 +171,8 @@ async function fetchWithRefresh(url: string, options: FetchOptions = {}): Promis
         credentials: 'include',
       }
 
-      console.log('[apiClient] Reintentando request original...')
       response = await fetch(url, retryOptions)
-      console.log(`[apiClient] Reintento: ${response.status}`)
     } catch (error) {
-      console.error('[apiClient] ❌ Error en refresh:', error)
       isRefreshing = false
       processQueue(error)
 
@@ -207,8 +195,6 @@ async function fetchWithRefresh(url: string, options: FetchOptions = {}): Promis
       throw error
     }
   } else if (isClient && response.status === 401 && !skipRefresh && !isAuthRoute) {
-    console.log('[apiClient] ❌ 401 sin posibilidad de refresh')
-
     if (isDev) {
       localStorage.removeItem('access_token')
       localStorage.removeItem('refresh_token')
@@ -380,21 +366,15 @@ export const apiClient = {
       },
     }
 
-    console.log(`[apiClient] POST FormData ${url}`)
     let response = await fetch(url, finalOptions)
-    console.log(`[apiClient] Response: ${response.status}`)
 
     // Auto-refresh cuando recibimos 401 (mismo patrón que fetchWithRefresh)
     if (isClient && response.status === 401 && !skipRefresh && hasRefreshToken()) {
-      console.log('[apiClient] 🔄 Token expirado en FormData, intentando refresh...')
-
       // Si ya hay refresh en curso, encolar
       if (isRefreshing) {
-        console.log('[apiClient] ⏳ Refresh en curso, encolando FormData request...')
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject })
         }).then(() => {
-          console.log('[apiClient] 🔄 Reintentando FormData después de refresh...')
           return apiClient.postFormData(url, formData, { ...options, skipRefresh: true })
         })
       }
@@ -431,7 +411,6 @@ export const apiClient = {
           }
         }
 
-        console.log('[apiClient] ✅ Token refrescado para FormData')
         isRefreshing = false
         processQueue()
 
@@ -447,9 +426,7 @@ export const apiClient = {
         }
 
         response = await fetch(url, retryOptions)
-        console.log(`[apiClient] FormData reintento: ${response.status}`)
       } catch (error) {
-        console.error('[apiClient] ❌ Error en refresh para FormData:', error)
         isRefreshing = false
         processQueue(error)
 
@@ -497,8 +474,6 @@ export const apiClient = {
 
     // Auto-refresh cuando recibimos 401
     if (isClient && response.status === 401 && !skipRefresh && hasRefreshToken()) {
-      console.log('[apiClient] 🔄 Token expirado en getBlob, intentando refresh...')
-
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject })

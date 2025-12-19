@@ -109,9 +109,7 @@ export function SuppliersTab({ initialSuppliers, categories }: SuppliersTabProps
 
   // Summary stats
   const totalYTD = filteredSuppliers.reduce((sum, s) => sum + (s.ytd_total || 0), 0)
-  const domiciledCount = filteredSuppliers.filter(
-    (s) => s.payment_method === 'direct_debit'
-  ).length
+  const domiciledCount = filteredSuppliers.filter((s) => s.payment_method === 'direct_debit').length
 
   return (
     <div className="space-y-4">
@@ -138,9 +136,9 @@ export function SuppliersTab({ initialSuppliers, categories }: SuppliersTabProps
       </div>
 
       {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-3">
+      <div className="flex flex-col sm:flex-row gap-3 flex-wrap">
         {/* Search */}
-        <div className="relative flex-1">
+        <div className="relative w-full sm:w-48">
           <FiSearch className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 dark:text-gray-500" />
           <input
             type="text"
@@ -157,7 +155,7 @@ export function SuppliersTab({ initialSuppliers, categories }: SuppliersTabProps
           onChange={(e) =>
             setCategoryFilter(e.target.value === 'all' ? 'all' : Number(e.target.value))
           }
-          className="px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent bg-white dark:bg-[#151b23] dark:text-gray-200"
+          className="flex-1 min-w-[180px] px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent bg-white dark:bg-[#151b23] dark:text-gray-200"
         >
           <option value="all">Todas las categorías</option>
           {categories.map((cat) => (
@@ -171,7 +169,7 @@ export function SuppliersTab({ initialSuppliers, categories }: SuppliersTabProps
         <select
           value={periodicityFilter}
           onChange={(e) => setPeriodicityFilter(e.target.value)}
-          className="px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent bg-white dark:bg-[#151b23] dark:text-gray-200"
+          className="w-full sm:w-52 px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent bg-white dark:bg-[#151b23] dark:text-gray-200"
         >
           <option value="all">Todas las periodicidades</option>
           <option value="monthly">Mensual</option>
@@ -424,7 +422,7 @@ export function SuppliersTab({ initialSuppliers, categories }: SuppliersTabProps
 
                 {/* Actions */}
                 <div className="pt-3 flex gap-2">
-                  <button 
+                  <button
                     onClick={() => setInvoicesModalOpen(true)}
                     className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-blue-600 dark:bg-blue-700 text-white text-xs font-medium rounded-md hover:bg-blue-700 dark:hover:bg-blue-800 transition-colors"
                   >

@@ -64,6 +64,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const pathname = usePathname()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [mounted, setMounted] = useState(false)
+  const [redirecting, setRedirecting] = useState(false)
 
   // ✅ Manejar mount para evitar hydration errors
   useEffect(() => {
@@ -71,6 +72,28 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     // Limpiar atributos de extensiones que causan hydration errors
     document.body.removeAttribute('cz-shortcut-listen')
   }, [])
+
+  // ✅ Manejar redirección cuando no hay usuario (con delay para evitar race conditions)
+  useEffect(() => {
+    // Solo verificar después de montar y cuando loading haya terminado
+    if (!mounted || loading || redirecting) return
+    
+    // Si no hay usuario después de cargar, esperar un momento y verificar tokens
+    if (!user) {
+      const hasTokens = localStorage.getItem('access_token') || localStorage.getItem('refresh_token')
+      
+      if (hasTokens) {
+        // Hay tokens pero no usuario - probablemente race condition, esperar
+        console.log('[DashboardLayout] No user but tokens exist, waiting...')
+        return
+      }
+      
+      // No hay tokens, redirigir al login
+      console.log('[DashboardLayout] ❌ No user and no tokens, redirecting to login')
+      setRedirecting(true)
+      window.location.href = '/login'
+    }
+  }, [mounted, loading, user, redirecting])
 
   // ❌ REMOVIDO: No necesitamos redirigir aquí, el middleware ya lo hace
   // El middleware se encarga de proteger /dashboard
@@ -102,8 +125,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     return <DashboardSkeleton />
   }
 
-  // ✅ Si no hay usuario después de cargar, mostrar skeleton
-  // (el middleware redirigirá si es necesario)
+  // ✅ Si no hay usuario después de cargar, mostrar skeleton (el useEffect manejará la redirección)
   if (!user) {
     return <DashboardSkeleton />
   }
