@@ -44,8 +44,8 @@ const allowedOrigins = [
   process.env.FRONTEND_URL, // URL adicional si es necesario
 ].filter(Boolean) as string[]
 
-// Patrón para permitir todos los previews de Vercel
-const vercelPreviewPattern = /^https:\/\/four-points.*\.vercel\.app$/
+// Patrón para permitir todos los previews de Vercel (cualquier subdominio)
+const vercelPreviewPattern = /\.vercel\.app$/
 
 app.use(
   cors({
