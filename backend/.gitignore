@@ -1,47 +1,42 @@
-# ========================================
-# 🔒 VARIABLES DE ENTORNO Y SECRETOS
-# ========================================
+# ============================================
+# BACKEND GITIGNORE - Node.js / Express / TypeScript
+# ============================================
+
+# --------------------------------------------
+# Dependencies
+# --------------------------------------------
+node_modules/
+.pnp
+.pnp.js
+.pnpm-store/
+.npm/
+.yarn/
+
+# --------------------------------------------
+# Environment Variables & Secrets
+# --------------------------------------------
 .env
 .env.local
 .env.*.local
-.env.development.local
-.env.test.local
-.env.production.local
-
-# Claves privadas y certificados privados
 *.key
 *-key.pem
 *.p12
 *.pfx
 client-cert.pem
-
-# Credenciales y configuraciones sensibles
 config/secrets.js
 secrets.json
 
-# ========================================
-# 📦 NODE / NPM / PNPM / YARN
-# ========================================
-node_modules/
-.pnp
-.pnp.js
+# --------------------------------------------
+# Build & Compilation
+# --------------------------------------------
+dist/
+build/
+out/
+*.tsbuildinfo
 
-# Lockfiles (opcional: algunos proyectos sí los suben)
-# pnpm-lock.yaml
-# package-lock.json
-# yarn.lock
-
-# Caché de pnpm/npm/yarn
-.pnpm-store/
-.npm/
-.yarn/cache
-.yarn/unplugged
-.yarn/build-state.yml
-.yarn/install-state.gz
-
-# ========================================
-# 📝 LOGS Y DEBUG
-# ========================================
+# --------------------------------------------
+# Logs
+# --------------------------------------------
 logs/
 *.log
 npm-debug.log*
@@ -49,170 +44,86 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
-
-# Logs de PM2 (si usas PM2 en producción)
 pm2-logs/
 *.pm2
 
-# ========================================
-# 🏗️ COMPILACIÓN Y BUILD
-# ========================================
-dist/
-build/
-out/
-.next/
-.nuxt/
-.cache/
-
-# TypeScript
-*.tsbuildinfo
-
-# ========================================
-# 🗄️ BASES DE DATOS
-# ========================================
-# Backups locales de MySQL (pueden contener datos sensibles)
-#*.sql
-#backup*.sql
-#dump*.sql
-#db-backup/
-
-# Archivos de bases de datos SQLite
-*.sqlite
-*.sqlite3
-*.db
-
-# ========================================
-# 🧪 TESTING Y COBERTURA
-# ========================================
+# --------------------------------------------
+# Testing & Coverage
+# --------------------------------------------
 coverage/
 .nyc_output/
 *.lcov
 .jest/
 
-# ========================================
-# 💻 SISTEMA OPERATIVO
-# ========================================
+# --------------------------------------------
+# Database Files
+# --------------------------------------------
+*.sqlite
+*.sqlite3
+*.db
+
+# --------------------------------------------
+# Cache
+# --------------------------------------------
+.cache/
+*.cache
+*.tmp
+*.temp
+*.bak
+
+# --------------------------------------------
+# IDE & Editors
+# --------------------------------------------
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.idea/
+*.iml
+*.ipr
+*.iws
+*.sublime-project
+*.sublime-workspace
+*.code-workspace
+
+# --------------------------------------------
+# OS Generated Files
+# --------------------------------------------
 # macOS
 .DS_Store
 .AppleDouble
 .LSOverride
-Icon
 ._*
-.DocumentRevisions-V100
-.fseventsd
-.Spotlight-V100
-.TemporaryItems
-.Trashes
-.VolumeIcon.icns
-.com.apple.timemachine.donotpresent
 
 # Windows
 Thumbs.db
-Thumbs.db:encryptable
 ehthumbs.db
-ehthumbs_vista.db
-*.stackdump
 [Dd]esktop.ini
 $RECYCLE.BIN/
 *.lnk
 
 # Linux
 *~
-.fuse_hidden*
 .directory
 .Trash-*
-.nfs*
 
-# ========================================
-# 🛠️ IDEs Y EDITORES
-# ========================================
-# VSCode
-.vscode/
-.vscode/*
-!.vscode/settings.json
-!.vscode/tasks.json
-!.vscode/launch.json
-!.vscode/extensions.json
-*.code-workspace
-
-# IntelliJ IDEA / WebStorm
-.idea/
-*.iml
-*.ipr
-*.iws
-out/
-
-# Sublime Text
-*.sublime-project
-*.sublime-workspace
-*.tmlanguage.cache
-*.tmPreferences.cache
-*.stTheme.cache
-*.sublime-workspace
-
-# Vim
-[._]*.s[a-v][a-z]
-[._]*.sw[a-p]
-[._]s[a-rt-v][a-z]
-[._]ss[a-gi-z]
-[._]sw[a-p]
-Session.vim
-Sessionx.vim
-.netrwhist
-
-# Emacs
-*~
-\#*\#
-/.emacs.desktop
-/.emacs.desktop.lock
-*.elc
-auto-save-list
-tramp
-.\#*
-
-# ========================================
-# 📱 ARCHIVOS TEMPORALES Y CACHÉ
-# ========================================
-*.tmp
-*.temp
-*.swp
-*.swo
-*.bak
-*.cache
-.cache/
-
-# Thumbnails
-._*
-
-# ========================================
-# 🚀 DEPLOYMENT Y CI/CD
-# ========================================
+# --------------------------------------------
+# Deployment
+# --------------------------------------------
 .vercel
 .netlify
 .serverless/
 
-# ========================================
-# 📚 DOCUMENTACIÓN
-# ========================================
-# Excluir documentación generada automáticamente
-docs/_build/
-site/
+# --------------------------------------------
+# Documentation (local only)
+# --------------------------------------------
+docs/
 
-# ========================================
-# 🎨 ASSETS Y MEDIA (opcional)
-# ========================================
-# Descomentar si no quieres subir uploads de usuarios
-# uploads/
-# public/uploads/
-# static/uploads/
-
-# ========================================
-# 🔧 OTROS
-# ========================================
-# Archivos de configuración local de desarrolladores
+# --------------------------------------------
+# Local Config
+# --------------------------------------------
 .local
 local.js
 local.json
-
-# Archivos de sistema
 *.orig
