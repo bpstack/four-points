@@ -1,7 +1,8 @@
 -- =========================================================
--- 02_core_tables.sql
--- ✅ CORREGIDO: Sistema de roles unificado
+-- 02_core_tables.sql (AIVEN)
+-- Sistema de roles unificado
 -- Tablas principales: roles, departments, users
+-- Collation: utf8mb4_0900_ai_ci (Aiven/MySQL 8.0)
 -- =========================================================
 USE hotel_db;
 
@@ -9,13 +10,13 @@ USE hotel_db;
 CREATE TABLE roles (
   id   INT AUTO_INCREMENT PRIMARY KEY,
   name VARCHAR(50) NOT NULL UNIQUE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- Departamentos
 CREATE TABLE departments (
   id   INT AUTO_INCREMENT PRIMARY KEY,
   name VARCHAR(255) NOT NULL UNIQUE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- Usuarios con role_id integrado
 CREATE TABLE users (
@@ -30,6 +31,25 @@ CREATE TABLE users (
   
   CONSTRAINT fk_user_role FOREIGN KEY (role_id) 
     REFERENCES roles(id) ON DELETE RESTRICT
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 SELECT 'Tablas core creadas: roles, departments, users (con role_id)' AS resultado;
+
+-- =========================================================
+-- DATOS INICIALES: Roles
+-- Orden basado en la estructura actual de la BD en Aiven:
+--   1 = recepcionista (default para nuevos usuarios)
+--   2 = admin
+--   3 = mantenimiento
+--   6 = group-admin
+-- =========================================================
+
+USE hotel_db;
+
+INSERT INTO roles (id, name) VALUES 
+  (1, 'recepcionista'),
+  (2, 'admin'),
+  (3, 'mantenimiento'),
+  (6, 'group-admin');
+
+SELECT * FROM roles;

@@ -1,6 +1,7 @@
 -- =========================================================
--- 03_logbook_tables.sql
+-- 03_logbook_tables.sql (AIVEN)
 -- Sistema de logbook (bitácora)
+-- Collation: utf8mb4_0900_ai_ci (Aiven/MySQL 8.0)
 -- =========================================================
 USE hotel_db;
 
@@ -21,7 +22,7 @@ CREATE TABLE logbooks (
   CONSTRAINT fk_logbooks_author     FOREIGN KEY (author_id)     REFERENCES users(id)       ON DELETE SET NULL,
   CONSTRAINT fk_logbooks_department FOREIGN KEY (department_id) REFERENCES departments(id) ON DELETE SET NULL,
   CONSTRAINT fk_logbooks_solved_by  FOREIGN KEY (solved_by)     REFERENCES users(id)       ON DELETE SET NULL
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 CREATE INDEX idx_logbooks_author     ON logbooks(author_id);
 CREATE INDEX idx_logbooks_department ON logbooks(department_id);
@@ -42,7 +43,7 @@ CREATE TABLE logbook_comments (
   deleted_at       DATETIME NULL,
   CONSTRAINT fk_comments_logbook FOREIGN KEY (logbook_id) REFERENCES logbooks(id) ON DELETE CASCADE,
   CONSTRAINT fk_comments_user    FOREIGN KEY (user_id)    REFERENCES users(id)    ON DELETE SET NULL
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 CREATE INDEX idx_logbook_comments_user       ON logbook_comments(user_id);
 CREATE INDEX idx_logbook_comments_logbook    ON logbook_comments(logbook_id);
@@ -57,7 +58,7 @@ CREATE TABLE logbook_reads (
   PRIMARY KEY (logbook_id, user_id),
   CONSTRAINT fk_reads_logbook FOREIGN KEY (logbook_id) REFERENCES logbooks(id) ON DELETE CASCADE,
   CONSTRAINT fk_reads_user    FOREIGN KEY (user_id)    REFERENCES users(id)    ON DELETE CASCADE
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- Historial de cambios
 CREATE TABLE logbook_history (
@@ -75,6 +76,6 @@ CREATE TABLE logbook_history (
   CONSTRAINT fk_history_user       FOREIGN KEY (editor_id)     REFERENCES users(id)             ON DELETE SET NULL,
   CONSTRAINT fk_history_comment    FOREIGN KEY (comment_id)    REFERENCES logbook_comments(id)  ON DELETE SET NULL,
   CONSTRAINT fk_history_department FOREIGN KEY (department_id) REFERENCES departments(id)       ON DELETE SET NULL
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 SELECT 'Tablas logbook creadas: logbooks, logbook_comments, logbook_reads, logbook_history' AS resultado;
