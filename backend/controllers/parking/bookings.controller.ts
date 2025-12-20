@@ -22,7 +22,7 @@ class ParkingBookingsController {
 
   // ============================================
   // GET /parking/bookings
-  // Listar reservas con filtros opcionales
+  // Listar reservas con filtros opcionales y paginación
   // ============================================
   getBookings = async (req: Request, res: Response): Promise<void> => {
     try {
@@ -38,13 +38,20 @@ class ParkingBookingsController {
       if (req.query.booking_source)
         filters.booking_source = req.query.booking_source as BookingFilters['booking_source']
 
-      const bookings = await ParkingBookingsRepository.findAll(filters)
+      // Pagination params
+      if (req.query.page) filters.page = parseInt(String(req.query.page))
+      if (req.query.limit) filters.limit = parseInt(String(req.query.limit))
+
+      const result = await ParkingBookingsRepository.findAll(filters)
 
       res.status(200).json({
         success: true,
-        total: bookings.length,
-        filters: Object.keys(filters).length > 0 ? filters : null,
-        bookings,
+        total: result.pagination.total,
+        pagination: result.pagination,
+        filters: Object.keys(filters).filter(k => !['page', 'limit'].includes(k)).length > 0 
+          ? Object.fromEntries(Object.entries(filters).filter(([k]) => !['page', 'limit'].includes(k)))
+          : null,
+        bookings: result.bookings,
       })
     } catch (error) {
       console.error('Error en getBookings:', error)

@@ -4,7 +4,7 @@
 import apiClient from '@/app/lib/apiClient'
 // Types available in ./types if needed: LogbookEntry, LogbookComment
 
-const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:4000'
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'
 
 // =============== LOGBOOKS API ===============
 

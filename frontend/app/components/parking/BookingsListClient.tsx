@@ -7,7 +7,7 @@ import { createPortal } from 'react-dom'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { parkingApi } from '@/app/lib/parking'
-import type { ParkingBooking } from '@/app/lib/parking/types'
+import type { ParkingBooking, PaginationInfo } from '@/app/lib/parking/types'
 import { toast } from 'react-hot-toast'
 import {
   FiPlus,
@@ -18,6 +18,8 @@ import {
   FiX,
   FiArrowLeft,
   FiChevronDown,
+  FiChevronLeft,
+  FiChevronRight,
 } from 'react-icons/fi'
 import { FaParking } from 'react-icons/fa'
 
@@ -44,6 +46,7 @@ type QuickFilter =
 interface BookingsListClientProps {
   initialBookings: ParkingBooking[]
   initialTotal: number
+  initialPagination: PaginationInfo
 }
 
 // Dropdown personalizado para Vista Rápida
@@ -60,21 +63,27 @@ function QuickFilterDropdown({
   const dropdownRef = useRef<HTMLDivElement>(null)
 
   const options = [
-    { group: 'Llegadas', items: [
-      { value: 'arrivals_pending', label: 'En espera (hoy)' },
-      { value: 'arrivals_inside', label: 'Dentro' },
-      { value: 'arrivals_total', label: 'Total llegadas' },
-    ]},
-    { group: 'Salidas', items: [
-      { value: 'departures_pending', label: 'En espera (hoy)' },
-      { value: 'departures_completed', label: 'Completadas (hoy)' },
-      { value: 'departures_total', label: 'Total salidas' },
-    ]},
+    {
+      group: 'Llegadas',
+      items: [
+        { value: 'arrivals_pending', label: 'En espera (hoy)' },
+        { value: 'arrivals_inside', label: 'Dentro' },
+        { value: 'arrivals_total', label: 'Total llegadas' },
+      ],
+    },
+    {
+      group: 'Salidas',
+      items: [
+        { value: 'departures_pending', label: 'En espera (hoy)' },
+        { value: 'departures_completed', label: 'Completadas (hoy)' },
+        { value: 'departures_total', label: 'Total salidas' },
+      ],
+    },
   ]
 
   const getLabel = () => {
     for (const group of options) {
-      const found = group.items.find(item => item.value === value)
+      const found = group.items.find((item) => item.value === value)
       if (found) return found.label
     }
     return 'Vista rápida'
@@ -135,7 +144,7 @@ function QuickFilterDropdown({
         Vista rápida
       </button>
       <div className="h-px bg-gray-200 dark:bg-[#30363d]" />
-      
+
       {options.map((group, idx) => (
         <div key={group.group}>
           {idx > 0 && <div className="h-px bg-gray-200 dark:bg-[#30363d]" />}
@@ -168,7 +177,9 @@ function QuickFilterDropdown({
         }`}
       >
         <span className="truncate">{getLabel()}</span>
-        <FiChevronDown className={`w-3 h-3 flex-shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+        <FiChevronDown
+          className={`w-3 h-3 flex-shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+        />
       </button>
 
       {isOpen && typeof document !== 'undefined' && createPortal(dropdownContent, document.body)}
@@ -181,7 +192,8 @@ function QuickFilterDropdown({
 // ============================================
 export function BookingsListClient({
   initialBookings = [],
-  initialTotal,
+  initialTotal: _initialTotal,
+  initialPagination,
 }: BookingsListClientProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -190,6 +202,7 @@ export function BookingsListClient({
   const [bookings, setBookings] = useState<ParkingBooking[]>(initialBookings)
   const [filteredBookings, setFilteredBookings] = useState<ParkingBooking[]>(initialBookings)
   const [loading, setLoading] = useState(false)
+  const [pagination, setPagination] = useState<PaginationInfo>(initialPagination)
 
   // Leer filtros desde URL - usar valores directamente de searchParams
   const searchTermFromUrl = searchParams.get('search') || ''
@@ -197,6 +210,7 @@ export function BookingsListClient({
   const dateQuickFilter = (searchParams.get('dateFilter') as DateQuickFilter) || null
   const specificDate = searchParams.get('date') || ''
   const quickFilter = (searchParams.get('filter') as QuickFilter) || null
+  const currentPage = searchParams.get('page') ? parseInt(searchParams.get('page')!) : 1
 
   // Estado local para el input de búsqueda (para evitar lag al escribir)
   const [searchInputValue, setSearchInputValue] = useState(searchTermFromUrl)
@@ -238,6 +252,7 @@ export function BookingsListClient({
       dateFilter?: DateQuickFilter
       date?: string
       filter?: QuickFilter
+      page?: number
     }) => {
       const params = new URLSearchParams()
       if (newFilters.search) params.set('search', newFilters.search)
@@ -245,6 +260,7 @@ export function BookingsListClient({
       if (newFilters.dateFilter) params.set('dateFilter', newFilters.dateFilter)
       if (newFilters.date) params.set('date', newFilters.date)
       if (newFilters.filter) params.set('filter', newFilters.filter)
+      if (newFilters.page && newFilters.page > 1) params.set('page', String(newFilters.page))
 
       const queryString = params.toString()
       router.push(queryString ? `?${queryString}` : '/dashboard/parking/bookings', {
@@ -254,22 +270,30 @@ export function BookingsListClient({
     [router]
   )
 
-  // Cargar bookings
-  const loadBookings = useCallback(async () => {
-    try {
-      setLoading(true)
-      const response = await parkingApi.getAllBookings({
-        status: statusFilter !== 'all' ? statusFilter : undefined,
-        date: specificDate || undefined,
-      })
-      setBookings(response.bookings)
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Error desconocido'
-      toast.error('Error al cargar reservas: ' + message)
-    } finally {
-      setLoading(false)
-    }
-  }, [statusFilter, specificDate])
+  // Cargar bookings con paginación
+  const loadBookings = useCallback(
+    async (page: number = 1) => {
+      try {
+        setLoading(true)
+        const response = await parkingApi.getAllBookings({
+          status: statusFilter !== 'all' ? statusFilter : undefined,
+          date: specificDate || undefined,
+          page,
+          limit: 50,
+        })
+        setBookings(response.bookings)
+        if (response.pagination) {
+          setPagination(response.pagination)
+        }
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Error desconocido'
+        toast.error('Error al cargar reservas: ' + message)
+      } finally {
+        setLoading(false)
+      }
+    },
+    [statusFilter, specificDate]
+  )
 
   // Aplicar filtros locales
   useEffect(() => {
@@ -391,6 +415,7 @@ export function BookingsListClient({
       dateFilter: dateQuickFilter,
       date: specificDate,
       filter: quickFilter,
+      page: 1, // Reset to page 1 on search
     })
   }
 
@@ -401,8 +426,9 @@ export function BookingsListClient({
       dateFilter: dateQuickFilter,
       date: specificDate,
       filter: null, // Limpiar quickFilter al cambiar status
+      page: 1, // Reset to page 1
     })
-    loadBookings()
+    loadBookings(1)
   }
 
   const handleDateQuickFilterChange = (value: DateQuickFilter) => {
@@ -412,6 +438,7 @@ export function BookingsListClient({
       dateFilter: value,
       date: '',
       filter: null, // Limpiar quickFilter al cambiar fecha
+      page: 1, // Reset to page 1
     })
   }
 
@@ -423,16 +450,31 @@ export function BookingsListClient({
       dateFilter: null,
       date: '',
       filter: value,
+      page: 1, // Reset to page 1
     })
+  }
+
+  const handlePageChange = (newPage: number) => {
+    if (newPage < 1 || newPage > pagination.totalPages) return
+    updateUrlWithFilters({
+      search: searchTermFromUrl,
+      status: statusFilter,
+      dateFilter: dateQuickFilter,
+      date: specificDate,
+      filter: quickFilter,
+      page: newPage,
+    })
+    loadBookings(newPage)
   }
 
   const handleClearFilters = () => {
     setSearchInputValue('')
     router.push('/dashboard/parking/bookings', { scroll: false })
-    loadBookings()
+    loadBookings(1)
   }
 
-  const hasActiveFilters = searchTermFromUrl || statusFilter !== 'all' || dateQuickFilter || specificDate || quickFilter
+  const hasActiveFilters =
+    searchTermFromUrl || statusFilter !== 'all' || dateQuickFilter || specificDate || quickFilter
 
   // ============================================
   // HANDLERS DE ACCIONES
@@ -484,7 +526,7 @@ export function BookingsListClient({
       toast.success('Check-in realizado correctamente')
       setShowCheckInModal(false)
       setCheckInData({ actual_checkin: '', notes: '' })
-      loadBookings()
+      loadBookings(currentPage)
     } catch (error) {
       toast.error(
         'Error al realizar check-in: ' + (error instanceof Error ? error.message : 'Error')
@@ -508,7 +550,7 @@ export function BookingsListClient({
         payment_reference: '',
         notes: '',
       })
-      loadBookings()
+      loadBookings(currentPage)
     } catch (error) {
       toast.error(
         'Error al realizar check-out: ' + (error instanceof Error ? error.message : 'Error')
@@ -528,7 +570,7 @@ export function BookingsListClient({
       toast.success('Reserva actualizada correctamente')
       setShowUpdateModal(false)
       setUpdateData({ expected_checkin: '', expected_checkout: '', total_amount: '', notes: '' })
-      loadBookings()
+      loadBookings(currentPage)
     } catch (error) {
       toast.error(
         'Error al actualizar reserva: ' + (error instanceof Error ? error.message : 'Error')
@@ -540,7 +582,7 @@ export function BookingsListClient({
     try {
       await parkingApi.cancelBooking(booking.booking_code)
       toast.success('Reserva cancelada')
-      loadBookings()
+      loadBookings(currentPage)
     } catch (error) {
       toast.error('Error al cancelar: ' + (error instanceof Error ? error.message : 'Error'))
     }
@@ -550,7 +592,7 @@ export function BookingsListClient({
     try {
       await parkingApi.markBookingNoShow(booking.booking_code)
       toast.success('Marcada como No presentado')
-      loadBookings()
+      loadBookings(currentPage)
     } catch (error) {
       toast.error('Error: ' + (error instanceof Error ? error.message : 'Error'))
     }
@@ -916,6 +958,67 @@ export function BookingsListClient({
                   ))
                 )}
               </div>
+
+              {/* Pagination Controls */}
+              {pagination.totalPages > 1 && (
+                <div className="mt-4 bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 px-4 py-3">
+                  <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+                    <div className="text-xs text-gray-600 dark:text-gray-400">
+                      Mostrando {(pagination.page - 1) * pagination.limit + 1} -{' '}
+                      {Math.min(pagination.page * pagination.limit, pagination.total)} de{' '}
+                      {pagination.total} reservas
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => handlePageChange(pagination.page - 1)}
+                        disabled={pagination.page <= 1 || loading}
+                        className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      >
+                        <FiChevronLeft className="w-3.5 h-3.5" />
+                        Anterior
+                      </button>
+                      <div className="flex items-center gap-1">
+                        {/* Show page numbers */}
+                        {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
+                          // Calculate which pages to show
+                          let pageNum: number
+                          if (pagination.totalPages <= 5) {
+                            pageNum = i + 1
+                          } else if (pagination.page <= 3) {
+                            pageNum = i + 1
+                          } else if (pagination.page >= pagination.totalPages - 2) {
+                            pageNum = pagination.totalPages - 4 + i
+                          } else {
+                            pageNum = pagination.page - 2 + i
+                          }
+                          return (
+                            <button
+                              key={pageNum}
+                              onClick={() => handlePageChange(pageNum)}
+                              disabled={loading}
+                              className={`w-8 h-8 text-xs font-medium rounded-md transition-colors ${
+                                pageNum === pagination.page
+                                  ? 'bg-blue-600 text-white'
+                                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
+                              }`}
+                            >
+                              {pageNum}
+                            </button>
+                          )
+                        })}
+                      </div>
+                      <button
+                        onClick={() => handlePageChange(pagination.page + 1)}
+                        disabled={pagination.page >= pagination.totalPages || loading}
+                        className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      >
+                        Siguiente
+                        <FiChevronRight className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
             {/* End Main Content */}
 

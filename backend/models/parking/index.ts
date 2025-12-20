@@ -295,6 +295,19 @@ export interface BookingFilters {
   plate_number?: string
   owner_name?: string
   booking_source?: BookingSource
+  // Pagination
+  page?: number
+  limit?: number
+}
+
+export interface PaginatedBookingsResult {
+  bookings: FormattedBooking[]
+  pagination: {
+    page: number
+    limit: number
+    total: number
+    totalPages: number
+  }
 }
 
 // ============================================
