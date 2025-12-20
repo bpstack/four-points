@@ -24,7 +24,7 @@ import type {
 // ❌ ELIMINAR TODAS LAS INTERFACES DE AQUÍ - Ya están en types.ts
 // NO debe haber ningún "export interface" en este archivo
 
-const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:4000'
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'
 
 export const parkingApi = {
   // ============================================
