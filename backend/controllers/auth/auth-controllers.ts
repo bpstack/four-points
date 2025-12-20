@@ -26,18 +26,12 @@ import type {
 // COOKIE CONFIGURATION
 // ============================================
 
-const IN_DEV_MODE = process.env.NODE_ENV !== 'production'
-
-// Dominio para cookies en producción (funciona en subdominios)
-const COOKIE_DOMAIN = process.env.COOKIE_DOMAIN || '.four-points.stackbp.es'
-
 const cookieOptions: CookieOptions = {
   httpOnly: true, // Siempre HttpOnly para seguridad
   secure: process.env.NODE_ENV === 'production', // HTTPS en producción
-  sameSite: 'lax', // Protección CSRF
+  sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', // 'none' permite cross-site en producción (necesario para Vercel previews)
   path: '/',
-  // Domain solo en producción (permite compartir entre subdominios)
-  ...(IN_DEV_MODE ? {} : { domain: COOKIE_DOMAIN }),
+  // No usar domain fijo para que funcione en cualquier dominio (producción + previews de Vercel)
 }
 
 // ============================================

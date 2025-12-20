@@ -40,3 +40,6 @@ public/*.descarga
 # Registros demo
 registrosDemo.md
 registrosDemo.csv
+
+# docs folder - documentación interna (no subir al repo)
+docs/

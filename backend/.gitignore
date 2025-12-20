@@ -198,6 +198,9 @@ tramp
 docs/_build/
 site/
 
+# Documentación interna de configuración (no subir a repo)
+docs/COOKIE_CONFIG.md
+
 # ========================================
 # 🎨 ASSETS Y MEDIA (opcional)
 # ========================================
