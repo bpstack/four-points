@@ -1226,9 +1226,14 @@ export class BackofficeController {
         throw lastError || new Error('No se pudo descargar el PDF')
       }
 
+      // Generar nombre de archivo descriptivo
+      // Formato: factura_NUMERO_TIPO.pdf (ej: factura_FV202312001_original.pdf)
+      const safeInvoiceNumber = invoice.invoice_number.replace(/[/\\?%*:|"<>]/g, '-')
+      const filename = `factura_${safeInvoiceNumber}_${type}.pdf`
+      
       // Enviar el PDF al cliente
       res.setHeader('Content-Type', 'application/pdf')
-      res.setHeader('Content-Disposition', `inline; filename="${invoice.invoice_number.replace(/[/\\?%*:|"<>]/g, '-')}.pdf"`)
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`)
       res.setHeader('Content-Length', pdfBuffer.length)
       res.send(pdfBuffer)
     } catch (error: any) {

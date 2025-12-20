@@ -8,14 +8,14 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { FiX, FiChevronDown, FiChevronRight, FiFileText, FiCheck, FiClock, FiDollarSign, FiTrash2, FiAlertTriangle } from 'react-icons/fi'
+import { FiX, FiChevronDown, FiChevronRight, FiFileText, FiCheck, FiClock, FiDollarSign, FiTrash2, FiAlertTriangle, FiCheckCircle } from 'react-icons/fi'
 import type { InvoiceWithDetails, SupplierWithStats, InvoiceStatus } from '@/app/lib/backoffice/types'
 import {
   formatCurrency,
   INVOICE_STATUS_LABELS,
   INVOICE_STATUS_COLORS,
 } from '@/app/lib/backoffice/types'
-// import { backofficeApi } from '@/app/lib/backoffice/backofficeApi'
+import { backofficeApi } from '@/app/lib/backoffice/backofficeApi'
 import toast from 'react-hot-toast'
 
 interface SupplierInvoicesModalProps {
@@ -125,17 +125,50 @@ export function SupplierInvoicesModal({ isOpen, onClose, supplier, onInvoiceDele
     }
   }, [isOpen, supplier])
 
+  // Download PDF using proxy endpoint (ensures correct filename with .pdf extension)
+  const handleDownloadPdf = async (invoiceId: number, type: 'original' | 'validated', invoiceNumber: string) => {
+    try {
+      // En desarrollo usa localStorage, en producción usa cookies HttpOnly
+      const isDev = process.env.NODE_ENV === 'development'
+      const token = isDev ? localStorage.getItem('access_token') : null
+      const url = backofficeApi.getInvoicePdfDownloadUrl(invoiceId, type)
+      
+      // Fetch the PDF blob
+      const response = await fetch(url, {
+        headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+        credentials: 'include', // Siempre incluir cookies (producción usa HttpOnly cookies)
+      })
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Error desconocido' }))
+        throw new Error(errorData.error || `Error ${response.status}`)
+      }
+      
+      // Create blob and trigger download
+      const blob = await response.blob()
+      const blobUrl = URL.createObjectURL(blob)
+      
+      // Create temporary link to trigger download with correct filename
+      const link = document.createElement('a')
+      link.href = blobUrl
+      link.download = `factura_${invoiceNumber.replace(/[/\\?%*:|"<>]/g, '-')}_${type}.pdf`
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      
+      // Cleanup blob URL
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 1000)
+    } catch (err: any) {
+      toast.error(err.message || `Error al descargar PDF ${type}`)
+    }
+  }
+
   const fetchInvoices = async () => {
     setLoading(true)
     setError(null)
     try {
-      // TODO: Descomentar cuando quieras usar la API real
-      // const response = await backofficeApi.getSupplierById(supplier.id)
-      // setInvoices(response.invoices || [])
-      
-      // MOCK DATA - Simular delay de red
-      await new Promise(resolve => setTimeout(resolve, 500))
-      setInvoices(generateMockInvoices(supplier.name))
+      const response = await backofficeApi.getSupplierById(supplier.id)
+      setInvoices(response.invoices || [])
       
       // Auto-expand current month
       const now = new Date()
@@ -229,11 +262,7 @@ export function SupplierInvoicesModal({ isOpen, onClose, supplier, onInvoiceDele
     
     setIsDeleting(true)
     try {
-      // TODO: Descomentar cuando conectes con API real
-      // await backofficeApi.deleteInvoice(deletingInvoice.id)
-      
-      // MOCK - Simular eliminación
-      await new Promise(resolve => setTimeout(resolve, 500))
+      await backofficeApi.deleteInvoice(deletingInvoice.id)
       setInvoices(prev => prev.filter(i => i.id !== deletingInvoice.id))
       
       toast.success(`Factura ${deletingInvoice.invoice_number} eliminada`)
@@ -422,6 +451,41 @@ export function SupplierInvoicesModal({ isOpen, onClose, supplier, onInvoiceDele
                                 <span className="text-xs font-medium text-gray-900 dark:text-gray-100 min-w-[80px] text-right">
                                   {formatCurrency(invoice.amount_with_vat)}
                                 </span>
+                                {/* PDF Download Links */}
+                                <div className="flex items-center gap-1">
+                                  {invoice.original_pdf_url ? (
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation()
+                                        handleDownloadPdf(invoice.id, 'original', invoice.invoice_number)
+                                      }}
+                                      className="p-1.5 text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors"
+                                      title="Descargar PDF Original"
+                                    >
+                                      <FiFileText className="w-3.5 h-3.5" />
+                                    </button>
+                                  ) : (
+                                    <span className="p-1.5 text-gray-300 dark:text-gray-600 cursor-not-allowed" title="Sin PDF Original">
+                                      <FiFileText className="w-3.5 h-3.5" />
+                                    </span>
+                                  )}
+                                  {invoice.validated_pdf_url ? (
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation()
+                                        handleDownloadPdf(invoice.id, 'validated', invoice.invoice_number)
+                                      }}
+                                      className="p-1.5 text-green-500 hover:text-green-600 dark:text-green-400 dark:hover:text-green-300 hover:bg-green-50 dark:hover:bg-green-900/20 rounded transition-colors"
+                                      title="Descargar PDF Validado"
+                                    >
+                                      <FiCheckCircle className="w-3.5 h-3.5" />
+                                    </button>
+                                  ) : (
+                                    <span className="p-1.5 text-gray-300 dark:text-gray-600 cursor-not-allowed" title="Sin PDF Validado">
+                                      <FiCheckCircle className="w-3.5 h-3.5" />
+                                    </span>
+                                  )}
+                                </div>
                                 <button
                                   onClick={(e) => {
                                     e.stopPropagation()

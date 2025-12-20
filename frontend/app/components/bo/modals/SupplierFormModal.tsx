@@ -109,11 +109,13 @@ export function SupplierFormModal({
       newErrors.name = 'El nombre es requerido'
     }
 
-    // Validate CIF format if provided (Spanish tax ID)
+    // Validate tax ID format if provided (CIF español o VAT extranjero)
+    // Acepta: CIF español (B12345678), VAT europeo (DE123456789, FR12345678901), o genérico (5-20 alfanuméricos)
     if (formData.cif && formData.cif.trim()) {
-      const cifRegex = /^[A-Za-z]\d{7}[A-Za-z0-9]$/
-      if (!cifRegex.test(formData.cif.trim())) {
-        newErrors.cif = 'Formato de CIF inválido (ej: B12345678)'
+      const taxIdRegex = /^[A-Za-z0-9]{5,20}$/
+      const cleanedTaxId = formData.cif.replace(/[\s\-\.]/g, '').toUpperCase()
+      if (!taxIdRegex.test(cleanedTaxId)) {
+        newErrors.cif = 'Formato inválido (5-20 caracteres alfanuméricos)'
       }
     }
 
@@ -125,12 +127,12 @@ export function SupplierFormModal({
       }
     }
 
-    // Validate IBAN format if provided
+    // Validate IBAN format if provided (universal format: 2 letters + 2 digits + 11-30 alphanumeric)
     if (formData.bank_account && formData.bank_account.trim()) {
-      const ibanRegex = /^[A-Z]{2}\d{2}[A-Z0-9]{4}\d{7}([A-Z0-9]?){0,16}$/
+      const ibanRegex = /^[A-Z]{2}\d{2}[A-Z0-9]{11,30}$/
       const cleanedIban = formData.bank_account.replace(/\s/g, '').toUpperCase()
       if (!ibanRegex.test(cleanedIban)) {
-        newErrors.bank_account = 'Formato de IBAN inválido'
+        newErrors.bank_account = 'Formato de IBAN inválido (ej: ES9121000418450200051332)'
       }
     }
 
