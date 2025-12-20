@@ -77,6 +77,11 @@ SOURCE local/14_messages.sql;
 -- SOURCE local/15_demo_user.sql;  -- Descomentar para usuario demo
 
 -- ============================================
+-- PASO 16: BACKOFFICE
+-- ============================================
+SOURCE local/16_backoffice.sql;
+
+-- ============================================
 -- PASO 17: NOTIFICATIONS
 -- ============================================
 SOURCE local/17_notifications.sql;

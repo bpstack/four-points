@@ -77,6 +77,11 @@ SOURCE aiven/14_messages.sql;
 -- SOURCE aiven/15_demo_user.sql;  -- Descomentar para usuario demo
 
 -- ============================================
+-- PASO 16: BACKOFFICE
+-- ============================================
+SOURCE aiven/16_backoffice.sql;
+
+-- ============================================
 -- PASO 17: NOTIFICATIONS
 -- ============================================
 SOURCE aiven/17_notifications.sql;

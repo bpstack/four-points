@@ -20,6 +20,7 @@ db-mysql/
 │   ├── 13_maintenance.sql
 │   ├── 14_messages.sql
 │   ├── 15_demo_user.sql
+│   ├── 16_backoffice.sql
 │   ├── 17_notifications.sql
 │   └── 99_verification.sql
 │
@@ -39,6 +40,7 @@ db-mysql/
 │   ├── 13_maintenance.sql
 │   ├── 14_messages.sql
 │   ├── 15_demo_user.sql
+│   ├── 16_backoffice.sql
 │   ├── 17_notifications.sql
 │   ├── 99_verification.sql
 │   ├── aiven-conexion.md
@@ -89,6 +91,7 @@ db-mysql/
 | 13 | `13_maintenance.sql` | Mantenimiento | `maintenance_*` (3 tablas) |
 | 14 | `14_messages.sql` | Mensajería | `conversations`, `conversation_participants`, `messages` |
 | 15 | `15_demo_user.sql` | Usuario demo | Rol `demo-admin` (id=7) + usuario `demo` |
+| 16 | `16_backoffice.sql` | Backoffice | `bo_categories`, `bo_suppliers`, `bo_invoices`, `bo_invoice_history`, `bo_assets` + 3 vistas |
 | 17 | `17_notifications.sql` | Notificaciones | `notifications`, `notification_recipients` |
 
 ### Verificación (99)
@@ -162,5 +165,5 @@ mysql -h HOST -P PORT -u USER -p --ssl-ca=aiven/ca-certificate.pem < MASTER_INST
 
 ---
 
-**Versión**: 2.1  
+**Versión**: 2.2  
 **Fecha**: Diciembre 2025
