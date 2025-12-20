@@ -125,7 +125,7 @@ async function serverFetch<T>(
 export async function getStats(): Promise<SummaryStats> {
   return serverFetch<SummaryStats>('/api/backoffice/stats', {
     cache: 'no-store',
-    tags: ['backoffice-stats'],
+    // Note: tags are not used with cache: 'no-store' since there's no cache to invalidate
   })
 }
 
@@ -249,7 +249,7 @@ export async function getInvoices(filters?: InvoiceFilters): Promise<{
 
   const response = await serverFetch<InvoicesResponse>(endpoint, {
     cache: 'no-store', // Always fetch fresh data - critical for validated_pdf_url
-    tags: ['backoffice-invoices'],
+    // Note: tags are not used with cache: 'no-store' since there's no cache to invalidate
   })
 
   return {

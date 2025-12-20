@@ -8,7 +8,7 @@
 
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState } from 'react'
 import {
   FiSearch,
   FiPlus,
@@ -41,7 +41,6 @@ export function SuppliersTab({ initialSuppliers, categories }: SuppliersTabProps
   const [categoryFilter, setCategoryFilter] = useState<number | 'all'>('all')
   const [periodicityFilter, setPeriodicityFilter] = useState<string>('all')
   const [selectedSupplier, setSelectedSupplier] = useState<SupplierWithStats | null>(null)
-  const [isPending, startTransition] = useTransition()
 
   // Modal states
   const [supplierModalOpen, setSupplierModalOpen] = useState(false)

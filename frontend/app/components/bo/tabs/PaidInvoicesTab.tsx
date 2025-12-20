@@ -52,7 +52,7 @@ const MOCK_INVOICES = [
 
 const MOCK_PAGINATION = { page: 2, total: 250, totalPages: 3 }
 
-const USE_MOCK_DATA = true // SET TO FALSE FOR PRODUCTION
+const USE_MOCK_DATA = false // SET TO FALSE FOR PRODUCTION
 // ============================================
 // END MOCK DATA
 // ============================================

@@ -286,8 +286,8 @@ export const backofficeApi = {
   downloadValidatedInvoicesZip: async (invoiceIds: number[]): Promise<Blob> => {
     const url = `${API_BASE}/api/backoffice/invoices/download-zip`
     
-    // Get auth token
-    const token = typeof window !== 'undefined' ? localStorage.getItem('authToken') : null
+    // Get auth token (key is 'access_token' in this project)
+    const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null
     
     const response = await fetch(url, {
       method: 'POST',

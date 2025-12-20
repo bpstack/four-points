@@ -4,7 +4,7 @@
  *
  * Interactive table with filtering, selection, and actions.
  * Receives initial data from server, handles client-side filtering.
- * Uses Server Actions for mutations.
+ * Uses backofficeApi for mutations (client-side auth).
  */
 
 'use client'
@@ -30,8 +30,6 @@ import {
   INVOICE_STATUS_COLORS,
   INVOICE_STATUS_LABELS,
 } from '@/app/lib/backoffice/types'
-// Server actions no longer used - using backofficeApi for client-side auth
-// import { rejectInvoice, unvalidateInvoice } from '@/app/dashboard/bo/actions/invoices'
 import {
   InvoiceFormModal,
   PdfUploadModal,
