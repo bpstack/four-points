@@ -2,7 +2,6 @@
 -- MASTER_INSTALL_AIVEN.sql
 -- Instalación completa del sistema hotel_db (Aiven/Prod)
 -- Collation: utf8mb4_0900_ai_ci
--- NOTA: No incluye Parking (solo disponible en local)
 -- =========================================================
 
 -- ============================================
@@ -34,9 +33,13 @@ SOURCE aiven/02_core_tables.sql;
 SOURCE aiven/03_logbook_tables.sql;
 
 -- ============================================
--- PARKING: NO DISPONIBLE EN AIVEN
--- Los scripts 04-08 son solo para desarrollo local
+-- PASO 4-8: PARKING
 -- ============================================
+SOURCE aiven/04_parking_tables.sql;
+SOURCE aiven/05_parking_functions_triggers.sql;
+SOURCE aiven/06_parking_procedures.sql;
+SOURCE aiven/07_parking_initial_data.sql;
+-- SOURCE aiven/08_parking_sample_data.sql;  -- Descomentar para datos de prueba
 
 -- ============================================
 -- PASO 9: CONCILIACIÓN BANCARIA
@@ -67,6 +70,11 @@ SOURCE aiven/13_maintenance.sql;
 -- PASO 14: MESSAGES
 -- ============================================
 SOURCE aiven/14_messages.sql;
+
+-- ============================================
+-- PASO 15: DEMO USER (OPCIONAL)
+-- ============================================
+-- SOURCE aiven/15_demo_user.sql;  -- Descomentar para usuario demo
 
 -- ============================================
 -- PASO 17: NOTIFICATIONS
