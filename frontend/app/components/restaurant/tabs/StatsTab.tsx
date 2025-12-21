@@ -150,9 +150,7 @@ export function StatsTab() {
         <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-3">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-[10px] text-gray-600 dark:text-gray-400 font-medium">
-                Margen
-              </p>
+              <p className="text-[10px] text-gray-600 dark:text-gray-400 font-medium">Margen</p>
               <p className="text-lg font-bold text-gray-900 dark:text-gray-100 mt-0.5">
                 {profitMargin}%
               </p>

@@ -1,12 +1,8 @@
 // app/lib/activity/queries.ts
 
 import { apiClient } from '../apiClient'
+import { API_BASE_URL } from '@/app/lib/env'
 import type { ActivityResponse, ActivityFilters, UnifiedActivity } from './types'
-
-const API_BASE_URL =
-  process.env.NODE_ENV === 'development'
-    ? 'http://localhost:4000'
-    : process.env.NEXT_PUBLIC_API_URL || 'https://four-points.onrender.com'
 
 /**
  * Obtiene actividad reciente unificada

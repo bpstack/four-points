@@ -68,7 +68,7 @@ export function daysUntil(date: string | Date): number {
 /**
  * Verifica si el usuario tiene rol de administrador (incluye demo-admin)
  * Usado para mostrar/ocultar elementos de UI admin-only
- * 
+ *
  * NOTA: demo-admin puede VER todo pero sus escrituras están limitadas
  * por el middleware demoRestriction en el backend.
  */

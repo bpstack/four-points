@@ -107,14 +107,20 @@ export default function ConfirmationStep({ variant, state, actions }: Confirmati
         <div className="flex flex-col sm:flex-row gap-2 mt-4">
           <button
             onClick={actions.prevStep}
-            className={fullStyles.buttonSecondary + ' flex-1 flex items-center justify-center gap-2 order-2 sm:order-1'}
+            className={
+              fullStyles.buttonSecondary +
+              ' flex-1 flex items-center justify-center gap-2 order-2 sm:order-1'
+            }
           >
             <FaArrowLeft className="w-3 h-3" /> Atrás
           </button>
           <button
             onClick={actions.handleCreateReservation}
             disabled={state.loading}
-            className={fullStyles.buttonSuccess + ' flex-1 flex items-center justify-center gap-2 order-1 sm:order-2'}
+            className={
+              fullStyles.buttonSuccess +
+              ' flex-1 flex items-center justify-center gap-2 order-1 sm:order-2'
+            }
           >
             {state.loading ? (
               <>
@@ -150,7 +156,8 @@ export default function ConfirmationStep({ variant, state, actions }: Confirmati
               <div>
                 <span className="text-xs text-gray-600 dark:text-gray-400">Matrícula:</span>
                 <p className="font-mono font-semibold text-gray-900 dark:text-gray-100 text-sm sm:text-base">
-                  {state.vehicleData.plate_number} {state.vehicleData.model && `- ${state.vehicleData.model}`}
+                  {state.vehicleData.plate_number}{' '}
+                  {state.vehicleData.model && `- ${state.vehicleData.model}`}
                 </p>
               </div>
               <div>
@@ -180,7 +187,8 @@ export default function ConfirmationStep({ variant, state, actions }: Confirmati
             <div>
               <span className="text-xs text-gray-600 dark:text-gray-400">Plaza:</span>
               <p className="font-semibold text-gray-900 dark:text-gray-100 text-sm sm:text-base">
-                {normalizeLevel(state.reservationData.level_code)} · {state.reservationData.spot_number}
+                {normalizeLevel(state.reservationData.level_code)} ·{' '}
+                {state.reservationData.spot_number}
               </p>
             </div>
             <div>
@@ -235,7 +243,10 @@ export default function ConfirmationStep({ variant, state, actions }: Confirmati
 
       {/* Botones - RESPONSIVE */}
       <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-2 sm:pt-4">
-        <button onClick={actions.prevStep} className={`${modalStyles.buttonSecondary} order-2 sm:order-1`}>
+        <button
+          onClick={actions.prevStep}
+          className={`${modalStyles.buttonSecondary} order-2 sm:order-1`}
+        >
           Atrás
         </button>
         <button

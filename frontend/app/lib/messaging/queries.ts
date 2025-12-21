@@ -1,6 +1,7 @@
 // app/lib/messaging/queries.ts
 
 import { apiClient } from '../apiClient'
+import { API_BASE_URL } from '@/app/lib/env'
 import type {
   Conversation,
   ConversationWithParticipants,
@@ -15,7 +16,7 @@ import type {
   UnreadCountResponse,
 } from './types'
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'
+const API_URL = API_BASE_URL
 
 // ===============================================
 // CONVERSATIONS
@@ -57,10 +58,7 @@ export async function createConversation(
 /**
  * Actualizar conversacion (nombre del grupo)
  */
-export async function updateConversation(
-  id: number,
-  name: string
-): Promise<Conversation> {
+export async function updateConversation(id: number, name: string): Promise<Conversation> {
   const response: ApiResponse<Conversation> = await apiClient.patch(
     `${API_URL}/api/messages/conversations/${id}`,
     { name }
@@ -100,19 +98,13 @@ export async function addParticipants(
   conversationId: number,
   data: AddParticipantsRequest
 ): Promise<void> {
-  await apiClient.post(
-    `${API_URL}/api/messages/conversations/${conversationId}/participants`,
-    data
-  )
+  await apiClient.post(`${API_URL}/api/messages/conversations/${conversationId}/participants`, data)
 }
 
 /**
  * Remover participante de un grupo
  */
-export async function removeParticipant(
-  conversationId: number,
-  userId: string
-): Promise<void> {
+export async function removeParticipant(conversationId: number, userId: string): Promise<void> {
   await apiClient.delete(
     `${API_URL}/api/messages/conversations/${conversationId}/participants/${userId}`
   )
@@ -158,10 +150,7 @@ export async function sendMessage(
 /**
  * Editar mensaje
  */
-export async function editMessage(
-  messageId: number,
-  data: UpdateMessageRequest
-): Promise<Message> {
+export async function editMessage(messageId: number, data: UpdateMessageRequest): Promise<Message> {
   const response: ApiResponse<Message> = await apiClient.patch(
     `${API_URL}/api/messages/${messageId}`,
     data
@@ -184,19 +173,14 @@ export async function deleteMessage(messageId: number): Promise<void> {
  * Obtener contador de no leidos
  */
 export async function getUnreadCount(): Promise<UnreadCountResponse['data']> {
-  const response: UnreadCountResponse = await apiClient.get(
-    `${API_URL}/api/messages/unread-count`
-  )
+  const response: UnreadCountResponse = await apiClient.get(`${API_URL}/api/messages/unread-count`)
   return response.data
 }
 
 /**
  * Buscar en mensajes
  */
-export async function searchMessages(
-  query: string,
-  limit?: number
-): Promise<Message[]> {
+export async function searchMessages(query: string, limit?: number): Promise<Message[]> {
   const params = new URLSearchParams({ q: query })
   if (limit) params.append('limit', limit.toString())
 

@@ -1,9 +1,10 @@
 // app/lib/users/queries.ts
 
 import { apiClient } from '@/app/lib/apiClient'
+import { API_BASE_URL } from '@/app/lib/env'
 import type { LoginCredentials, RegisterData, UpdateUserData, AuthResponse } from './types'
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'
+const API_URL = API_BASE_URL
 
 // =============== USERS API ===============
 

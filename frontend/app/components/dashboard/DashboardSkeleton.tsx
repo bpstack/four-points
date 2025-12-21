@@ -34,12 +34,12 @@ function SidebarSkeleton() {
         {/* Main Links */}
         <div className="space-y-1 mb-4">
           {mainLinkWidths.map((width, i) => (
-            <div
-              key={i}
-              className="flex items-center gap-3 px-3 py-2 rounded-lg"
-            >
+            <div key={i} className="flex items-center gap-3 px-3 py-2 rounded-lg">
               <div className="w-5 h-5 bg-gray-200 dark:bg-gray-800 rounded animate-pulse" />
-              <div className="h-4 bg-gray-200 dark:bg-gray-800 rounded animate-pulse" style={{ width }} />
+              <div
+                className="h-4 bg-gray-200 dark:bg-gray-800 rounded animate-pulse"
+                style={{ width }}
+              />
             </div>
           ))}
         </div>
@@ -53,12 +53,12 @@ function SidebarSkeleton() {
         </div>
         <div className="space-y-1 mb-4">
           {backOfficeWidths.map((width, i) => (
-            <div
-              key={i}
-              className="flex items-center gap-3 px-3 py-2 rounded-lg"
-            >
+            <div key={i} className="flex items-center gap-3 px-3 py-2 rounded-lg">
               <div className="w-5 h-5 bg-gray-200 dark:bg-gray-800 rounded animate-pulse" />
-              <div className="h-4 bg-gray-200 dark:bg-gray-800 rounded animate-pulse" style={{ width }} />
+              <div
+                className="h-4 bg-gray-200 dark:bg-gray-800 rounded animate-pulse"
+                style={{ width }}
+              />
             </div>
           ))}
         </div>
@@ -69,12 +69,12 @@ function SidebarSkeleton() {
         {/* Profile Section */}
         <div className="space-y-1">
           {profileWidths.map((width, i) => (
-            <div
-              key={i}
-              className="flex items-center gap-3 px-3 py-2 rounded-lg"
-            >
+            <div key={i} className="flex items-center gap-3 px-3 py-2 rounded-lg">
               <div className="w-5 h-5 bg-gray-200 dark:bg-gray-800 rounded animate-pulse" />
-              <div className="h-4 bg-gray-200 dark:bg-gray-800 rounded animate-pulse" style={{ width }} />
+              <div
+                className="h-4 bg-gray-200 dark:bg-gray-800 rounded animate-pulse"
+                style={{ width }}
+              />
             </div>
           ))}
         </div>
@@ -173,13 +173,15 @@ export function DashboardSkeleton() {
                         Iniciando servidor...
                       </h3>
                       <p className="text-sm text-amber-700 dark:text-amber-400">
-                        El backend de esta aplicación está alojado en Render (plan gratuito para demo), 
-                        el cual entra en modo de reposo tras periodos de inactividad. 
-                        La primera conexión puede demorar aproximadamente 60 segundos.
+                        El backend de esta aplicación está alojado en Render (plan gratuito para
+                        demo), el cual entra en modo de reposo tras periodos de inactividad. La
+                        primera conexión puede demorar aproximadamente 60 segundos.
                       </p>
                       <div className="mt-3 flex items-center gap-2">
                         <div className="animate-spin rounded-full h-4 w-4 border-2 border-amber-300 dark:border-amber-700 border-t-amber-600 dark:border-t-amber-400" />
-                        <span className="text-xs text-amber-600 dark:text-amber-500">Conectando...</span>
+                        <span className="text-xs text-amber-600 dark:text-amber-500">
+                          Conectando...
+                        </span>
                       </div>
                     </div>
                   </div>

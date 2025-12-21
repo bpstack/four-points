@@ -14,7 +14,12 @@ import { AuditTrail } from '@/app/components/blacklist/mains/AuditTrail'
 import { BlacklistDetailSummaryPanel } from '@/app/components/blacklist/layout/BlacklistDetailSummaryPanel'
 import { EditBlacklistPanel } from '@/app/components/blacklist/panels/EditBlacklistPanel'
 import { DeleteButton } from '@/app/components/blacklist/mains/DeleteButton'
-import { DOCUMENT_TYPES, SEVERITY_LEVELS, BlacklistEntry, AuditEntry } from '@/app/lib/blacklist/types'
+import {
+  DOCUMENT_TYPES,
+  SEVERITY_LEVELS,
+  BlacklistEntry,
+  AuditEntry,
+} from '@/app/lib/blacklist/types'
 import { formatDate, formatDateTime, calculateStayDays } from '@/app/lib/blacklist/blacklistUtils'
 import {
   IoDocumentTextOutline,
@@ -29,12 +34,15 @@ interface BlacklistDetailClientProps {
   audit_trail: AuditEntry[]
 }
 
-export function BlacklistDetailClient({ entry: initialEntry, audit_trail }: BlacklistDetailClientProps) {
+export function BlacklistDetailClient({
+  entry: initialEntry,
+  audit_trail,
+}: BlacklistDetailClientProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const panel = searchParams.get('panel')
 
-  const [entry, setEntry] = useState(initialEntry)
+  const [entry] = useState(initialEntry)
   const stayDays = calculateStayDays(entry.check_in_date, entry.check_out_date)
 
   const handleOpenEditPanel = () => {
@@ -118,21 +126,31 @@ export function BlacklistDetailClient({ entry: initialEntry, audit_trail }: Blac
                 <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 font-medium">
                   Gravedad
                 </p>
-                <p className={`text-sm sm:text-base font-bold mt-0.5 ${
-                  entry.severity === 'CRITICAL' ? 'text-red-600 dark:text-red-400' :
-                  entry.severity === 'HIGH' ? 'text-orange-600 dark:text-orange-400' :
-                  entry.severity === 'MEDIUM' ? 'text-blue-600 dark:text-blue-400' :
-                  'text-gray-600 dark:text-gray-400'
-                }`}>
+                <p
+                  className={`text-sm sm:text-base font-bold mt-0.5 ${
+                    entry.severity === 'CRITICAL'
+                      ? 'text-red-600 dark:text-red-400'
+                      : entry.severity === 'HIGH'
+                        ? 'text-orange-600 dark:text-orange-400'
+                        : entry.severity === 'MEDIUM'
+                          ? 'text-blue-600 dark:text-blue-400'
+                          : 'text-gray-600 dark:text-gray-400'
+                  }`}
+                >
                   {SEVERITY_LEVELS[entry.severity]}
                 </p>
               </div>
-              <FiAlertTriangle className={`w-5 h-5 sm:w-6 sm:h-6 ${
-                entry.severity === 'CRITICAL' ? 'text-red-500' :
-                entry.severity === 'HIGH' ? 'text-orange-500' :
-                entry.severity === 'MEDIUM' ? 'text-blue-500' :
-                'text-gray-500'
-              }`} />
+              <FiAlertTriangle
+                className={`w-5 h-5 sm:w-6 sm:h-6 ${
+                  entry.severity === 'CRITICAL'
+                    ? 'text-red-500'
+                    : entry.severity === 'HIGH'
+                      ? 'text-orange-500'
+                      : entry.severity === 'MEDIUM'
+                        ? 'text-blue-500'
+                        : 'text-gray-500'
+                }`}
+              />
             </div>
           </div>
 
@@ -243,7 +261,9 @@ export function BlacklistDetailClient({ entry: initialEntry, audit_trail }: Blac
                 <IoWarningOutline size={18} />
                 Motivo del incidente
               </h3>
-              <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">{entry.reason}</p>
+              <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
+                {entry.reason}
+              </p>
             </Card>
 
             {/* Comentarios */}

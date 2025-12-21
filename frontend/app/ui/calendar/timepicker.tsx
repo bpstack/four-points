@@ -53,15 +53,16 @@ export default function TimePicker({
   // Verificar si una hora está deshabilitada
   const isTimeDisabled = (time: string): boolean => {
     if (!minTime || !forDate) return false
-    
+
     // Solo aplicar restricción si la fecha es hoy
     const today = new Date()
-    const isToday = forDate.getFullYear() === today.getFullYear() &&
-                    forDate.getMonth() === today.getMonth() &&
-                    forDate.getDate() === today.getDate()
-    
+    const isToday =
+      forDate.getFullYear() === today.getFullYear() &&
+      forDate.getMonth() === today.getMonth() &&
+      forDate.getDate() === today.getDate()
+
     if (!isToday) return false
-    
+
     return time < minTime
   }
 

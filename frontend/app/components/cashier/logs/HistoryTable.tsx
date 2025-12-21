@@ -200,7 +200,9 @@ export default function HistoryTable({
 
                 {/* Usuario */}
                 <td className="px-3 py-2 text-xs text-gray-900 dark:text-white">
-                  {log.username || <span className="text-gray-400 italic text-[10px]">Sistema</span>}
+                  {log.username || (
+                    <span className="text-gray-400 italic text-[10px]">Sistema</span>
+                  )}
                 </td>
 
                 {/* Campo */}

@@ -12,7 +12,11 @@ interface DateFilterProps {
   label?: string
 }
 
-export default function DateFilter({ selectedDate, onDateChange, label = 'Filtrar por fecha' }: DateFilterProps) {
+export default function DateFilter({
+  selectedDate,
+  onDateChange,
+  label = 'Filtrar por fecha',
+}: DateFilterProps) {
   const [showCalendar, setShowCalendar] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
 
@@ -73,9 +77,10 @@ export default function DateFilter({ selectedDate, onDateChange, label = 'Filtra
           onClick={() => setShowCalendar(!showCalendar)}
           className={`
             inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-lg border transition-colors
-            ${selectedDate 
-              ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 rounded-r-none border-r-0' 
-              : 'bg-white dark:bg-[#21262d] border-gray-300 dark:border-[#30363d] text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#30363d]'
+            ${
+              selectedDate
+                ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 rounded-r-none border-r-0'
+                : 'bg-white dark:bg-[#21262d] border-gray-300 dark:border-[#30363d] text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#30363d]'
             }
           `}
         >

@@ -108,7 +108,9 @@ const mockOrders: Order[] = [
     orderDate: '2025-12-12',
     expectedDate: '2025-12-14',
     status: 'cancelled',
-    items: [{ productName: 'Cerveza Estrella Galicia', quantity: 120, unit: 'uds', unitPrice: 0.75 }],
+    items: [
+      { productName: 'Cerveza Estrella Galicia', quantity: 120, unit: 'uds', unitPrice: 0.75 },
+    ],
     total: 90.0,
     notes: 'Cancelado por falta de stock del proveedor',
   },
@@ -143,38 +145,39 @@ export function OrdersTab() {
   }
 
   const getStatusConfig = (status: OrderStatus) => {
-    const configs: Record<OrderStatus, { color: string; label: string; icon: React.ElementType }> = {
-      pending: {
-        color:
-          'bg-yellow-50 text-yellow-700 border border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-400 dark:border-yellow-800',
-        label: 'Pendiente',
-        icon: FiClock,
-      },
-      confirmed: {
-        color:
-          'bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-800',
-        label: 'Confirmado',
-        icon: FiCheck,
-      },
-      shipped: {
-        color:
-          'bg-purple-50 text-purple-700 border border-purple-200 dark:bg-purple-900/20 dark:text-purple-400 dark:border-purple-800',
-        label: 'En Camino',
-        icon: FiTruck,
-      },
-      delivered: {
-        color:
-          'bg-green-50 text-green-700 border border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800',
-        label: 'Entregado',
-        icon: FiCheck,
-      },
-      cancelled: {
-        color:
-          'bg-red-50 text-red-700 border border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800',
-        label: 'Cancelado',
-        icon: FiX,
-      },
-    }
+    const configs: Record<OrderStatus, { color: string; label: string; icon: React.ElementType }> =
+      {
+        pending: {
+          color:
+            'bg-yellow-50 text-yellow-700 border border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-400 dark:border-yellow-800',
+          label: 'Pendiente',
+          icon: FiClock,
+        },
+        confirmed: {
+          color:
+            'bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-800',
+          label: 'Confirmado',
+          icon: FiCheck,
+        },
+        shipped: {
+          color:
+            'bg-purple-50 text-purple-700 border border-purple-200 dark:bg-purple-900/20 dark:text-purple-400 dark:border-purple-800',
+          label: 'En Camino',
+          icon: FiTruck,
+        },
+        delivered: {
+          color:
+            'bg-green-50 text-green-700 border border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800',
+          label: 'Entregado',
+          icon: FiCheck,
+        },
+        cancelled: {
+          color:
+            'bg-red-50 text-red-700 border border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800',
+          label: 'Cancelado',
+          icon: FiX,
+        },
+      }
     return configs[status]
   }
 
@@ -299,7 +302,8 @@ export function OrdersTab() {
                           {formatDate(order.orderDate)}
                         </span>
                         <span>
-                          Entrega: <span className="font-medium">{formatDate(order.expectedDate)}</span>
+                          Entrega:{' '}
+                          <span className="font-medium">{formatDate(order.expectedDate)}</span>
                         </span>
                       </div>
                     </div>
@@ -319,7 +323,10 @@ export function OrdersTab() {
                   {/* Items preview */}
                   <div className="mt-2 text-[10px] text-gray-500 dark:text-gray-500">
                     {order.items.length} producto{order.items.length !== 1 ? 's' : ''} ·{' '}
-                    {order.items.slice(0, 2).map((i) => i.productName).join(', ')}
+                    {order.items
+                      .slice(0, 2)
+                      .map((i) => i.productName)
+                      .join(', ')}
                     {order.items.length > 2 && ` y ${order.items.length - 2} más`}
                   </div>
                 </div>
@@ -356,7 +363,10 @@ export function OrdersTab() {
                       </tbody>
                       <tfoot>
                         <tr className="font-semibold">
-                          <td colSpan={3} className="pt-2 text-right text-gray-700 dark:text-gray-300">
+                          <td
+                            colSpan={3}
+                            className="pt-2 text-right text-gray-700 dark:text-gray-300"
+                          >
                             Total:
                           </td>
                           <td className="pt-2 text-right text-gray-900 dark:text-gray-100">

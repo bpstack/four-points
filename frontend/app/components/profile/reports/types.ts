@@ -50,11 +50,11 @@ export interface LogbookEntry {
   id: number
   message: string
   author_id: string
-  author_name?: string  // Backend returns author_name from JOIN
+  author_name?: string // Backend returns author_name from JOIN
   importance_level: 'baja' | 'media' | 'alta' | 'urgente'
   department_id: number
   department_name?: string
-  is_solved: number | boolean  // Backend returns 0/1, frontend may convert to boolean
+  is_solved: number | boolean // Backend returns 0/1, frontend may convert to boolean
   solved_by?: string
   solved_at?: string
   date: string
@@ -74,7 +74,7 @@ export interface MaintenanceHistoryEntry {
   old_value: string | null
   new_value: string | null
   changed_by: string
-  user_name?: string  // Backend returns user_name from JOIN
+  user_name?: string // Backend returns user_name from JOIN
   changed_at: string
 }
 
@@ -88,7 +88,7 @@ export interface MaintenanceReport {
   status: string
   priority: string
   created_by: string
-  created_by_name?: string  // Backend returns this from JOIN
+  created_by_name?: string // Backend returns this from JOIN
   created_at: string
   deleted_at: string | null
 }

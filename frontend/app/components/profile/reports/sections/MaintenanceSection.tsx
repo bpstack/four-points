@@ -5,6 +5,7 @@
 import { useState, useCallback } from 'react'
 import { apiClient } from '@/app/lib/apiClient'
 import { cn } from '@/app/lib/helpers/utils'
+import { API_BASE_URL } from '@/app/lib/env'
 import {
   FiTool,
   FiLoader,
@@ -23,7 +24,7 @@ import {
 import type { MaintenanceReport, MaintenanceHistoryEntry } from '../types'
 import DateFilter from '../DateFilter'
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'
+const API_URL = API_BASE_URL
 
 // Límite de registros por defecto
 const DEFAULT_LIMIT = 50
@@ -33,18 +34,41 @@ const DEFAULT_LIMIT = 50
 // ═══════════════════════════════════════════════════════
 
 const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
-  reported: { label: 'Reportado', color: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400' },
-  pending: { label: 'Pendiente', color: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400' },
-  in_progress: { label: 'En Progreso', color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' },
-  resolved: { label: 'Resuelto', color: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' },
-  closed: { label: 'Cerrado', color: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300' },
+  reported: {
+    label: 'Reportado',
+    color: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
+  },
+  pending: {
+    label: 'Pendiente',
+    color: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
+  },
+  in_progress: {
+    label: 'En Progreso',
+    color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
+  },
+  resolved: {
+    label: 'Resuelto',
+    color: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
+  },
+  closed: {
+    label: 'Cerrado',
+    color: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300',
+  },
 }
 
 const PRIORITY_CONFIG: Record<string, { label: string; color: string; icon: React.ReactNode }> = {
   low: { label: 'Baja', color: 'text-gray-500', icon: null },
   medium: { label: 'Media', color: 'text-blue-500', icon: null },
-  high: { label: 'Alta', color: 'text-orange-500', icon: <FiAlertTriangle className="w-3.5 h-3.5" /> },
-  urgent: { label: 'Urgente', color: 'text-red-500', icon: <FiAlertCircle className="w-3.5 h-3.5" /> },
+  high: {
+    label: 'Alta',
+    color: 'text-orange-500',
+    icon: <FiAlertTriangle className="w-3.5 h-3.5" />,
+  },
+  urgent: {
+    label: 'Urgente',
+    color: 'text-red-500',
+    icon: <FiAlertCircle className="w-3.5 h-3.5" />,
+  },
 }
 
 // ═══════════════════════════════════════════════════════
@@ -56,13 +80,13 @@ export default function MaintenanceSection() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [loaded, setLoaded] = useState(false)
-  
+
   // Filters
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [priorityFilter, setPriorityFilter] = useState<string>('all')
   const [dateFilter, setDateFilter] = useState<string | null>(null)
   const [includeDeleted, setIncludeDeleted] = useState(false)
-  
+
   // History expansion
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [history, setHistory] = useState<MaintenanceHistoryEntry[]>([])
@@ -78,7 +102,7 @@ export default function MaintenanceSection() {
       if (includeDeleted) params.set('include_deleted', 'true')
       if (dateFilter) params.set('date', dateFilter)
       params.set('limit', DEFAULT_LIMIT.toString())
-      
+
       const response = await apiClient.get(`${API_URL}/api/maintenance?${params.toString()}`)
       const data = response.data?.reports || response.reports || response || []
       // Limit to DEFAULT_LIMIT
@@ -91,24 +115,27 @@ export default function MaintenanceSection() {
     }
   }, [statusFilter, priorityFilter, includeDeleted, dateFilter])
 
-  const fetchHistory = useCallback(async (reportId: string) => {
-    if (expandedId === reportId) {
-      setExpandedId(null)
-      return
-    }
-    
-    setHistoryLoading(true)
-    setExpandedId(reportId)
-    try {
-      const response = await apiClient.get(`${API_URL}/api/maintenance/${reportId}/history`)
-      setHistory(response.data?.history || response.history || response.data || response || [])
-    } catch (err: any) {
-      console.error('Error fetching history:', err)
-      setHistory([])
-    } finally {
-      setHistoryLoading(false)
-    }
-  }, [expandedId])
+  const fetchHistory = useCallback(
+    async (reportId: string) => {
+      if (expandedId === reportId) {
+        setExpandedId(null)
+        return
+      }
+
+      setHistoryLoading(true)
+      setExpandedId(reportId)
+      try {
+        const response = await apiClient.get(`${API_URL}/api/maintenance/${reportId}/history`)
+        setHistory(response.data?.history || response.history || response.data || response || [])
+      } catch (err: any) {
+        console.error('Error fetching history:', err)
+        setHistory([])
+      } finally {
+        setHistoryLoading(false)
+      }
+    },
+    [expandedId]
+  )
 
   const handleDateChange = (date: string | null) => {
     setDateFilter(date)
@@ -155,14 +182,14 @@ export default function MaintenanceSection() {
       <div className="flex items-center justify-between gap-4 pb-4 border-b border-gray-200 dark:border-[#30363d]">
         <div className="flex items-center gap-2 flex-wrap">
           <FiFilter className="w-4 h-4 text-gray-400" />
-          
+
           {/* Date Filter */}
           <DateFilter
             selectedDate={dateFilter}
             onDateChange={handleDateChange}
             label="Fecha reporte"
           />
-          
+
           {/* Status Filter */}
           <select
             value={statusFilter}
@@ -235,7 +262,7 @@ export default function MaintenanceSection() {
             const statusConfig = STATUS_CONFIG[report.status] || STATUS_CONFIG.pending
             const priorityConfig = PRIORITY_CONFIG[report.priority] || PRIORITY_CONFIG.medium
             const isExpanded = expandedId === report.id
-            
+
             return (
               <div
                 key={report.id}
@@ -246,10 +273,20 @@ export default function MaintenanceSection() {
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-2 flex-wrap">
-                        <span className={cn('px-2 py-0.5 rounded-full text-xs font-medium', statusConfig.color)}>
+                        <span
+                          className={cn(
+                            'px-2 py-0.5 rounded-full text-xs font-medium',
+                            statusConfig.color
+                          )}
+                        >
                           {statusConfig.label}
                         </span>
-                        <span className={cn('inline-flex items-center gap-1 text-xs font-medium', priorityConfig.color)}>
+                        <span
+                          className={cn(
+                            'inline-flex items-center gap-1 text-xs font-medium',
+                            priorityConfig.color
+                          )}
+                        >
                           {priorityConfig.icon}
                           {priorityConfig.label}
                         </span>
@@ -259,9 +296,11 @@ export default function MaintenanceSection() {
                             Eliminado
                           </span>
                         )}
-                        <span className="text-xs text-gray-400 font-mono">#{report.id.slice(0, 8)}</span>
+                        <span className="text-xs text-gray-400 font-mono">
+                          #{report.id.slice(0, 8)}
+                        </span>
                       </div>
-                      
+
                       <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-1">
                         {report.title}
                       </h4>
@@ -270,7 +309,7 @@ export default function MaintenanceSection() {
                           {report.description}
                         </p>
                       )}
-                      
+
                       <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400 flex-wrap">
                         <span className="inline-flex items-center gap-1">
                           <FiUser className="w-3.5 h-3.5" />
@@ -287,7 +326,7 @@ export default function MaintenanceSection() {
                         </span>
                       </div>
                     </div>
-                    
+
                     {/* Expand History Button */}
                     <button
                       onClick={() => fetchHistory(report.id)}
@@ -303,7 +342,7 @@ export default function MaintenanceSection() {
                     </button>
                   </div>
                 </div>
-                
+
                 {/* History Panel */}
                 {isExpanded && (
                   <div className="border-t border-gray-200 dark:border-[#30363d] bg-gray-50 dark:bg-[#161b22] p-4">
@@ -375,7 +414,8 @@ export default function MaintenanceSection() {
       {/* Count */}
       {!loading && reports.length > 0 && (
         <div className="text-xs text-gray-500 dark:text-gray-400 text-right">
-          Mostrando {reports.length} reportes {dateFilter ? `del ${dateFilter}` : `(máx. ${DEFAULT_LIMIT})`}
+          Mostrando {reports.length} reportes{' '}
+          {dateFilter ? `del ${dateFilter}` : `(máx. ${DEFAULT_LIMIT})`}
         </div>
       )}
     </div>

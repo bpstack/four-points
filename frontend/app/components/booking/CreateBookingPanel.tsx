@@ -51,12 +51,12 @@ export function CreateBookingPanel({
   const [ownerName, setOwnerName] = useState('')
   const [vehicleModel, setVehicleModel] = useState('')
   const [vehicleId, setVehicleId] = useState<number | null>(null)
-  
+
   const [checkinDate, setCheckinDate] = useState(selectedDate || '')
   const [checkinTime, setCheckinTime] = useState('15:00')
   const [checkoutDate, setCheckoutDate] = useState('')
   const [checkoutTime, setCheckoutTime] = useState('12:00')
-  
+
   const [totalAmount, setTotalAmount] = useState('')
   const [bookingSource, setBookingSource] = useState('direct')
   const [notes, setNotes] = useState('')
@@ -432,19 +432,11 @@ export function CreateBookingPanel({
         {/* Time Pickers */}
         <div className="grid grid-cols-2 gap-3">
           <FormField label="Hora de Entrada">
-            <TimePicker
-              value={checkinTime}
-              onChange={setCheckinTime}
-              openTo="right"
-            />
+            <TimePicker value={checkinTime} onChange={setCheckinTime} openTo="right" />
           </FormField>
 
           <FormField label="Hora de Salida">
-            <TimePicker
-              value={checkoutTime}
-              onChange={setCheckoutTime}
-              openTo="left"
-            />
+            <TimePicker value={checkoutTime} onChange={setCheckoutTime} openTo="left" />
           </FormField>
         </div>
 

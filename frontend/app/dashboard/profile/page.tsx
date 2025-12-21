@@ -57,11 +57,7 @@ function ProfileContent() {
         </aside>
 
         {/* Right Panel - Dynamic Content */}
-        {rightPanel && (
-          <main className="flex-1 min-w-0">
-            {rightPanel}
-          </main>
-        )}
+        {rightPanel && <main className="flex-1 min-w-0">{rightPanel}</main>}
 
         {/* Empty state when no panel selected (desktop only) */}
         {!rightPanel && (

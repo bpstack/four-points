@@ -4,7 +4,13 @@
 import { useState, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { FiX } from 'react-icons/fi'
-import { FaSignInAlt, FaSignOutAlt, FaEdit, FaExclamationTriangle, FaEllipsisV } from 'react-icons/fa'
+import {
+  FaSignInAlt,
+  FaSignOutAlt,
+  FaEdit,
+  FaExclamationTriangle,
+  FaEllipsisV,
+} from 'react-icons/fa'
 import type { ParkingBooking } from '@/app/lib/parking/types'
 
 interface ActionDropdownProps {

@@ -4,6 +4,7 @@
 
 import { useEffect } from 'react'
 import { useGroupStore } from '@/app/stores/useGroupStore'
+import { useGroupStatus } from '@/app/lib/groups'
 import { LoadingSpinner } from '../shared/LoadingSpinner'
 import { EmptyState } from '../shared/EmptyState'
 import { StatusTimeline } from '../status/StatusTimeline'
@@ -14,15 +15,13 @@ import { BalanceCard } from '../status/BalanceCard'
 import { FiActivity } from 'react-icons/fi'
 
 export function StatusTab() {
-  const { currentGroup, status, isLoadingStatus, refreshStatus } = useGroupStore()
+  const { currentGroup } = useGroupStore()
 
-  useEffect(() => {
-    if (currentGroup) {
-      refreshStatus(currentGroup.id)
-    }
-  }, [currentGroup, refreshStatus])
+  const groupId = currentGroup?.id
+  const { data: statusData, isLoading } = useGroupStatus(groupId)
+  const status = statusData?.status ?? statusData
 
-  if (isLoadingStatus) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
         <LoadingSpinner size="md" message="Cargando estados..." />

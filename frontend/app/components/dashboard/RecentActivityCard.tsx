@@ -117,49 +117,49 @@ const SourceIcon: React.FC<{ source: ActivitySource; className?: string }> = ({
 const formatTimestamp = (timestamp: string) => {
   const date = new Date(timestamp)
   const now = new Date()
-  
+
   // Verificar si la fecha es válida
   if (isNaN(date.getTime())) {
     return timestamp // Retornar el timestamp original si no es válido
   }
-  
+
   const time = date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })
-  
+
   // Normalizar fechas a medianoche en zona local para comparación correcta
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
   const targetDate = new Date(date.getFullYear(), date.getMonth(), date.getDate())
   const diffTime = today.getTime() - targetDate.getTime()
   const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24))
-  
+
   // Si es hoy
   if (diffDays === 0) {
     return `Hoy, ${time}`
   }
-  
+
   // Si es ayer
   if (diffDays === 1) {
     return `Ayer, ${time}`
   }
-  
+
   // Si es dentro de la última semana (2-6 días atrás)
   if (diffDays >= 2 && diffDays < 7) {
     const dayName = date.toLocaleDateString('es-ES', { weekday: 'long' })
     const capitalizedDay = dayName.charAt(0).toUpperCase() + dayName.slice(1)
     return `${capitalizedDay}, ${time}`
   }
-  
+
   // Datos para fecha más antigua
   const day = date.getDate()
   const month = date.toLocaleDateString('es-ES', { month: 'short' })
   const capitalizedMonth = month.charAt(0).toUpperCase() + month.slice(1)
   const year = date.getFullYear()
   const currentYear = now.getFullYear()
-  
+
   // Si es de este año, mostrar día y mes
   if (year === currentYear) {
     return `${day} ${capitalizedMonth}, ${time}`
   }
-  
+
   // Si es de otro año, incluir el año
   return `${day} ${capitalizedMonth} ${year}, ${time}`
 }

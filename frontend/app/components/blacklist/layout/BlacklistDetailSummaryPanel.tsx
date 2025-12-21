@@ -2,14 +2,7 @@
 
 'use client'
 
-import { 
-  FiCalendar, 
-  FiLogIn, 
-  FiLogOut,
-  FiClock,
-  FiAlertTriangle,
-  FiUser
-} from 'react-icons/fi'
+import { FiLogIn, FiLogOut, FiClock, FiAlertTriangle, FiUser } from 'react-icons/fi'
 import { BlacklistEntry } from '@/app/lib/blacklist/types'
 import { SEVERITY_LEVELS } from '@/app/lib/blacklist/types'
 import { formatDate, formatDateTime, calculateStayDays } from '@/app/lib/blacklist/blacklistUtils'
@@ -56,11 +49,13 @@ export function BlacklistDetailSummaryPanel({ entry }: BlacklistDetailSummaryPan
       </h3>
 
       {/* Gravedad */}
-      <div className={`bg-white dark:bg-[#0D1117] border rounded-xl shadow-sm p-4 ${
-        entry.severity === 'CRITICAL' 
-          ? 'border-red-200 dark:border-red-800/30' 
-          : 'border-[#d0d7de] dark:border-[#30363d]'
-      }`}>
+      <div
+        className={`bg-white dark:bg-[#0D1117] border rounded-xl shadow-sm p-4 ${
+          entry.severity === 'CRITICAL'
+            ? 'border-red-200 dark:border-red-800/30'
+            : 'border-[#d0d7de] dark:border-[#30363d]'
+        }`}
+      >
         <div className="flex items-center justify-between">
           <div>
             <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">
@@ -80,9 +75,7 @@ export function BlacklistDetailSummaryPanel({ entry }: BlacklistDetailSummaryPan
       <div className="bg-white dark:bg-[#0D1117] border border-[#d0d7de] dark:border-[#30363d] rounded-xl shadow-sm p-4">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">
-              Fecha de Entrada
-            </p>
+            <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">Fecha de Entrada</p>
             <p className="text-sm font-bold text-gray-900 dark:text-gray-100 mt-0.5">
               {formatDate(entry.check_in_date)}
             </p>
@@ -97,9 +90,7 @@ export function BlacklistDetailSummaryPanel({ entry }: BlacklistDetailSummaryPan
       <div className="bg-white dark:bg-[#0D1117] border border-[#d0d7de] dark:border-[#30363d] rounded-xl shadow-sm p-4">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">
-              Fecha de Salida
-            </p>
+            <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">Fecha de Salida</p>
             <p className="text-sm font-bold text-gray-900 dark:text-gray-100 mt-0.5">
               {formatDate(entry.check_out_date)}
             </p>
@@ -114,11 +105,12 @@ export function BlacklistDetailSummaryPanel({ entry }: BlacklistDetailSummaryPan
       <div className="bg-white dark:bg-[#0D1117] border border-[#d0d7de] dark:border-[#30363d] rounded-xl shadow-sm p-4">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">
-              Estancia
-            </p>
+            <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">Estancia</p>
             <p className="text-xl font-bold text-gray-900 dark:text-gray-100 mt-0.5">
-              {stayDays} <span className="text-sm font-normal text-gray-500">{stayDays === 1 ? 'dia' : 'dias'}</span>
+              {stayDays}{' '}
+              <span className="text-sm font-normal text-gray-500">
+                {stayDays === 1 ? 'dia' : 'dias'}
+              </span>
             </p>
           </div>
           <div className="p-2 bg-blue-100 dark:bg-blue-900/20 rounded-lg">
@@ -131,9 +123,7 @@ export function BlacklistDetailSummaryPanel({ entry }: BlacklistDetailSummaryPan
       <div className="bg-white dark:bg-[#0D1117] border border-[#d0d7de] dark:border-[#30363d] rounded-xl shadow-sm p-4">
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">
-              Registrado por
-            </p>
+            <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">Registrado por</p>
             <div className="p-2 bg-purple-100 dark:bg-purple-900/20 rounded-lg">
               <FiUser className="w-5 h-5 text-purple-600 dark:text-purple-400" />
             </div>
@@ -146,9 +136,7 @@ export function BlacklistDetailSummaryPanel({ entry }: BlacklistDetailSummaryPan
           </p>
           {entry.updated_at && (
             <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
-              <p className="text-[10px] text-gray-500 dark:text-gray-400">
-                Ultima modificacion:
-              </p>
+              <p className="text-[10px] text-gray-500 dark:text-gray-400">Ultima modificacion:</p>
               <p className="text-xs text-gray-600 dark:text-gray-400">
                 {formatDateTime(entry.updated_at)}
               </p>
@@ -158,20 +146,24 @@ export function BlacklistDetailSummaryPanel({ entry }: BlacklistDetailSummaryPan
       </div>
 
       {/* Estado */}
-      <div className={`bg-white dark:bg-[#0D1117] border rounded-xl shadow-sm p-4 ${
-        entry.status === 'ACTIVE' 
-          ? 'border-green-200 dark:border-green-800/30' 
-          : 'border-gray-200 dark:border-gray-800'
-      }`}>
+      <div
+        className={`bg-white dark:bg-[#0D1117] border rounded-xl shadow-sm p-4 ${
+          entry.status === 'ACTIVE'
+            ? 'border-green-200 dark:border-green-800/30'
+            : 'border-gray-200 dark:border-gray-800'
+        }`}
+      >
         <div className="flex items-center justify-between">
           <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">
             Estado del Registro
           </p>
-          <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
-            entry.status === 'ACTIVE' 
-              ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' 
-              : 'bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400'
-          }`}>
+          <span
+            className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
+              entry.status === 'ACTIVE'
+                ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                : 'bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400'
+            }`}
+          >
             {entry.status === 'ACTIVE' ? 'Activo' : 'Eliminado'}
           </span>
         </div>

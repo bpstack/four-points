@@ -6,12 +6,7 @@ import { useRouter } from 'next/navigation'
 import { FaExclamationCircle, FaCheck } from 'react-icons/fa'
 import { FiPlus } from 'react-icons/fi'
 import { useBookingWizard } from './hooks/useBookingWizard'
-import {
-  SlidePanel,
-  SlidePanelFooterButtons,
-  StepIndicator,
-  Alert,
-} from '@/app/ui/panels'
+import { SlidePanel, SlidePanelFooterButtons, StepIndicator, Alert } from '@/app/ui/panels'
 import VehicleStep from './steps/VehicleStep'
 import DateSpotStep from './steps/DateSpotStep'
 import DateOnlyStep from './steps/DateOnlyStep'
@@ -103,9 +98,7 @@ export default function BookingWizard({
             <h1 className="text-3xl font-semibold text-[#24292f] dark:text-[#f0f6fc] mb-4">
               Nueva Reserva
             </h1>
-            <p className="text-sm text-[#57606a] dark:text-[#8b949e]">
-              Paso {state.step} de 3
-            </p>
+            <p className="text-sm text-[#57606a] dark:text-[#8b949e]">Paso {state.step} de 3</p>
 
             <div className="mt-3 flex gap-1">
               {[1, 2, 3].map((s) => (
@@ -230,15 +223,11 @@ export default function BookingWizard({
         )}
 
         {/* Steps content */}
-        {state.step === 1 && (
-          <VehicleStep variant={variant} state={state} actions={actions} />
-        )}
+        {state.step === 1 && <VehicleStep variant={variant} state={state} actions={actions} />}
 
         {state.step === 2 && <DateOnlyStep state={state} actions={actions} />}
 
-        {state.step === 3 && (
-          <ConfirmationStep variant={variant} state={state} actions={actions} />
-        )}
+        {state.step === 3 && <ConfirmationStep variant={variant} state={state} actions={actions} />}
       </SlidePanel>
     )
   }

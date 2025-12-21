@@ -15,9 +15,7 @@ interface StatusBadgeProps {
 export function StatusBadge({ status, size = 'sm' }: StatusBadgeProps) {
   const config = STATUS_CONFIG[status as BookingStatus] || STATUS_CONFIG.reserved
 
-  const sizeClasses = size === 'sm' 
-    ? 'px-2 py-0.5 text-[10px]' 
-    : 'px-2.5 py-0.5 text-xs'
+  const sizeClasses = size === 'sm' ? 'px-2 py-0.5 text-[10px]' : 'px-2.5 py-0.5 text-xs'
 
   return (
     <span

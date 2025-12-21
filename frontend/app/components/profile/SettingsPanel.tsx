@@ -5,6 +5,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { apiClient, isDemoError } from '@/app/lib/apiClient'
+import { API_BASE_URL } from '@/app/lib/env'
 import { useAuth } from '@/app/lib/auth/useAuth'
 import NewUserModal from '@/app/components/auth/NewUserModal'
 import { UsersTableSkeleton } from '@/app/ui/skeletons'
@@ -30,12 +31,7 @@ import {
   FiPlus,
 } from 'react-icons/fi'
 import { ReportsTab } from './reports'
-import {
-  CenterModal,
-  CenterModalFooterButtons,
-  FormField,
-  inputClassName,
-} from '@/app/ui/panels'
+import { CenterModal, CenterModalFooterButtons, FormField, inputClassName } from '@/app/ui/panels'
 import { GlobalNotificationModal } from '@/app/components/notifications/GlobalNotificationModal'
 
 // Types
@@ -59,7 +55,7 @@ interface FormattedDepartment extends Department {
 
 type SettingsTab = 'users' | 'notifications' | 'security' | 'reports' | 'departments'
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'
+const API_URL = API_BASE_URL
 
 const ROLE_CONFIG = {
   admin: {
@@ -86,7 +82,12 @@ const ROLE_CONFIG = {
 
 const tabs: { id: SettingsTab; label: string; icon: React.ReactNode; adminOnly?: boolean }[] = [
   { id: 'users', label: 'Usuarios', icon: <FiUsers className="w-4 h-4" />, adminOnly: true },
-  { id: 'departments', label: 'Departamentos', icon: <FiGrid className="w-4 h-4" />, adminOnly: true },
+  {
+    id: 'departments',
+    label: 'Departamentos',
+    icon: <FiGrid className="w-4 h-4" />,
+    adminOnly: true,
+  },
   { id: 'notifications', label: 'Notificaciones', icon: <FiBell className="w-4 h-4" /> },
   { id: 'security', label: 'Seguridad', icon: <FiShield className="w-4 h-4" /> },
   { id: 'reports', label: 'Reportes', icon: <FiFileText className="w-4 h-4" />, adminOnly: true },
@@ -97,9 +98,10 @@ export function SettingsPanel() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const isUserAdmin = isAdminRole(currentUser?.role)
-  
-  const activeTab = (searchParams.get('tab') as SettingsTab) || (isUserAdmin ? 'users' : 'notifications')
-  
+
+  const activeTab =
+    (searchParams.get('tab') as SettingsTab) || (isUserAdmin ? 'users' : 'notifications')
+
   const [users, setUsers] = useState<User[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -109,8 +111,8 @@ export function SettingsPanel() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
 
-  const availableTabs = tabs.filter(tab => !tab.adminOnly || isUserAdmin)
-  const activeTabConfig = availableTabs.find(t => t.id === activeTab) || availableTabs[0]
+  const availableTabs = tabs.filter((tab) => !tab.adminOnly || isUserAdmin)
+  const activeTabConfig = availableTabs.find((t) => t.id === activeTab) || availableTabs[0]
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -186,13 +188,15 @@ export function SettingsPanel() {
             {activeTabConfig.icon}
             {activeTabConfig.label}
           </span>
-          <FiChevronDown className={cn('w-4 h-4 transition-transform', isDropdownOpen && 'rotate-180')} />
+          <FiChevronDown
+            className={cn('w-4 h-4 transition-transform', isDropdownOpen && 'rotate-180')}
+          />
         </button>
-        
+
         {isDropdownOpen && (
           <>
             {/* Backdrop */}
-            <div 
+            <div
               className="fixed inset-0 bg-black/50 z-40"
               onClick={() => setIsDropdownOpen(false)}
             />
@@ -200,7 +204,9 @@ export function SettingsPanel() {
             <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
               <div className="w-full max-w-sm bg-white dark:bg-[#161b22] border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl overflow-hidden">
                 <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
-                  <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Seleccionar seccion</h3>
+                  <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
+                    Seleccionar seccion
+                  </h3>
                 </div>
                 <div className="py-1">
                   {availableTabs.map((tab) => (
@@ -338,7 +344,9 @@ function DepartmentsTab() {
       <div className="px-4 py-3 border-b border-gray-200 dark:border-[#30363d]">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
-            <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Gestion de Departamentos</h3>
+            <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
+              Gestion de Departamentos
+            </h3>
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
               Administra los departamentos del hotel ({departments.length} total)
             </p>
@@ -386,8 +394,12 @@ function DepartmentsTab() {
                 className="flex items-center justify-between p-3 bg-gray-50 dark:bg-[#0d1117] border border-gray-200 dark:border-[#30363d] rounded-lg"
               >
                 <div className="flex items-center gap-3">
-                  <span className="text-xs text-gray-500 dark:text-gray-400 font-mono">#{dept.id}</span>
-                  <span className="text-sm font-medium text-gray-900 dark:text-white">{dept.displayName}</span>
+                  <span className="text-xs text-gray-500 dark:text-gray-400 font-mono">
+                    #{dept.id}
+                  </span>
+                  <span className="text-sm font-medium text-gray-900 dark:text-white">
+                    {dept.displayName}
+                  </span>
                 </div>
                 <div className="flex items-center gap-1">
                   <button
@@ -497,7 +509,11 @@ function AddDepartmentModal({
         />
       }
     >
-      <FormField label="Nombre del Departamento" required hint='Se guardara en minusculas. Ejemplo: "backoffice" se mostrara como "Back Office"'>
+      <FormField
+        label="Nombre del Departamento"
+        required
+        hint='Se guardara en minusculas. Ejemplo: "backoffice" se mostrara como "Back Office"'
+      >
         <input
           type="text"
           value={name}
@@ -572,7 +588,11 @@ function EditDepartmentModal({
         />
       }
     >
-      <FormField label="Nombre del Departamento" required hint="Se guardara en minusculas para consistencia">
+      <FormField
+        label="Nombre del Departamento"
+        required
+        hint="Se guardara en minusculas para consistencia"
+      >
         <input
           type="text"
           value={name}
@@ -611,7 +631,9 @@ function UserManagement({
       <div className="px-4 py-3 border-b border-gray-200 dark:border-[#30363d]">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
-            <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Gestion de Usuarios</h3>
+            <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
+              Gestion de Usuarios
+            </h3>
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
               Administra usuarios y roles del sistema
             </p>
@@ -637,7 +659,7 @@ function UserManagement({
 
       <div className="p-4">
         {loading && <UsersTableSkeleton />}
-        
+
         {error && (
           <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
             <p className="text-xs text-red-600 dark:text-red-400">{error}</p>
@@ -651,9 +673,7 @@ function UserManagement({
           </div>
         )}
 
-        {!loading && !error && users.length > 0 && (
-          <UserTable users={users} onDelete={onDelete} />
-        )}
+        {!loading && !error && users.length > 0 && <UserTable users={users} onDelete={onDelete} />}
       </div>
     </div>
   )
@@ -758,21 +778,41 @@ function UserTable({ users, onDelete }: { users: User[]; onDelete: (id: string) 
                   <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-xs font-medium flex-shrink-0">
                     {user.username.charAt(0).toUpperCase()}
                   </div>
-                  
+
                   {/* Mobile: stacked layout */}
                   <div className="min-w-0 flex-1 md:hidden">
-                    <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{user.username}</p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{user.email}</p>
-                    <span className={cn('inline-flex mt-1 px-2 py-0.5 rounded-full text-xs font-medium border', roleConfig.color, roleConfig.borderColor)}>
+                    <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                      {user.username}
+                    </p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                      {user.email}
+                    </p>
+                    <span
+                      className={cn(
+                        'inline-flex mt-1 px-2 py-0.5 rounded-full text-xs font-medium border',
+                        roleConfig.color,
+                        roleConfig.borderColor
+                      )}
+                    >
                       {roleConfig.label}
                     </span>
                   </div>
 
                   {/* Desktop: horizontal layout */}
                   <div className="hidden md:flex md:items-center md:gap-4 md:flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-900 dark:text-white truncate w-32 flex-shrink-0">{user.username}</p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400 truncate flex-1">{user.email}</p>
-                    <span className={cn('inline-flex px-2 py-0.5 rounded-full text-xs font-medium border flex-shrink-0', roleConfig.color, roleConfig.borderColor)}>
+                    <p className="text-sm font-medium text-gray-900 dark:text-white truncate w-32 flex-shrink-0">
+                      {user.username}
+                    </p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 truncate flex-1">
+                      {user.email}
+                    </p>
+                    <span
+                      className={cn(
+                        'inline-flex px-2 py-0.5 rounded-full text-xs font-medium border flex-shrink-0',
+                        roleConfig.color,
+                        roleConfig.borderColor
+                      )}
+                    >
                       {roleConfig.label}
                     </span>
                   </div>
@@ -808,7 +848,10 @@ function UserTable({ users, onDelete }: { users: User[]; onDelete: (id: string) 
 
 function NotificationsSettings() {
   const [checkingNotifications, setCheckingNotifications] = useState(false)
-  const [notificationResult, setNotificationResult] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
+  const [notificationResult, setNotificationResult] = useState<{
+    type: 'success' | 'error'
+    message: string
+  } | null>(null)
   const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false)
 
   const handleCheckNotifications = async () => {
@@ -824,7 +867,10 @@ function NotificationsSettings() {
       })
       setTimeout(() => setNotificationResult(null), 5000)
     } catch (error: any) {
-      setNotificationResult({ type: 'error', message: error.message || 'Error checking notifications' })
+      setNotificationResult({
+        type: 'error',
+        message: error.message || 'Error checking notifications',
+      })
       setTimeout(() => setNotificationResult(null), 5000)
     } finally {
       setCheckingNotifications(false)
@@ -837,7 +883,9 @@ function NotificationsSettings() {
         <div className="px-4 py-3 border-b border-gray-200 dark:border-[#30363d]">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
-              <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Notificaciones</h3>
+              <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
+                Notificaciones
+              </h3>
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                 Configura como recibes las notificaciones
               </p>
@@ -852,36 +900,52 @@ function NotificationsSettings() {
           </div>
         </div>
         <div className="p-4 space-y-3">
-          <SettingRow label="Notificaciones por email" description="Recibir actualizaciones via email" defaultChecked />
-          
+          <SettingRow
+            label="Notificaciones por email"
+            description="Recibir actualizaciones via email"
+            defaultChecked
+          />
+
           <div className="py-3 border-t border-gray-200 dark:border-[#30363d]">
             <div className="flex items-center justify-between mb-2">
               <div>
-                <p className="text-sm font-medium text-gray-900 dark:text-white">Push notifications</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">Verificar y enviar pendientes</p>
+                <p className="text-sm font-medium text-gray-900 dark:text-white">
+                  Push notifications
+                </p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  Verificar y enviar pendientes
+                </p>
               </div>
               <button
                 onClick={handleCheckNotifications}
                 disabled={checkingNotifications}
                 className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 rounded-lg transition-colors"
               >
-                <FiRefreshCw className={cn('w-3.5 h-3.5', checkingNotifications && 'animate-spin')} />
+                <FiRefreshCw
+                  className={cn('w-3.5 h-3.5', checkingNotifications && 'animate-spin')}
+                />
                 {checkingNotifications ? 'Checking...' : 'Update'}
               </button>
             </div>
             {notificationResult && (
-              <div className={cn(
-                'p-2 rounded-lg text-xs',
-                notificationResult.type === 'success'
-                  ? 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400'
-                  : 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400'
-              )}>
+              <div
+                className={cn(
+                  'p-2 rounded-lg text-xs',
+                  notificationResult.type === 'success'
+                    ? 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400'
+                    : 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400'
+                )}
+              >
                 {notificationResult.message}
               </div>
             )}
           </div>
 
-          <SettingRow label="Alertas del sistema" description="Actualizaciones importantes" defaultChecked />
+          <SettingRow
+            label="Alertas del sistema"
+            description="Actualizaciones importantes"
+            defaultChecked
+          />
         </div>
       </div>
 
@@ -903,12 +967,21 @@ function SecuritySettings() {
         </p>
       </div>
       <div className="p-4 space-y-3">
-        <SettingRow label="Autenticacion de dos factores" description="Anade una capa extra de seguridad" />
+        <SettingRow
+          label="Autenticacion de dos factores"
+          description="Anade una capa extra de seguridad"
+        />
         <SettingRow label="Rotacion de contrasena" description="Requerir cambio cada 90 dias" />
-        <SettingRow label="Alertas de inicio de sesion" description="Notificar nuevos dispositivos" defaultChecked />
+        <SettingRow
+          label="Alertas de inicio de sesion"
+          description="Notificar nuevos dispositivos"
+          defaultChecked
+        />
 
         <div className="pt-4 border-t border-gray-200 dark:border-[#30363d]">
-          <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">Sesiones activas</h4>
+          <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">
+            Sesiones activas
+          </h4>
           <div className="space-y-2">
             <SessionItem device="Desktop - Chrome" location="Barcelona, Spain" active />
             <SessionItem device="Mobile - Safari" location="Barcelona, Spain" />
@@ -919,7 +992,15 @@ function SecuritySettings() {
   )
 }
 
-function SettingRow({ label, description, defaultChecked }: { label: string; description: string; defaultChecked?: boolean }) {
+function SettingRow({
+  label,
+  description,
+  defaultChecked,
+}: {
+  label: string
+  description: string
+  defaultChecked?: boolean
+}) {
   return (
     <div className="flex items-center justify-between py-2">
       <div>
@@ -935,7 +1016,15 @@ function SettingRow({ label, description, defaultChecked }: { label: string; des
   )
 }
 
-function SessionItem({ device, location, active }: { device: string; location: string; active?: boolean }) {
+function SessionItem({
+  device,
+  location,
+  active,
+}: {
+  device: string
+  location: string
+  active?: boolean
+}) {
   return (
     <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-[#0d1117] border border-gray-200 dark:border-[#30363d] rounded-lg">
       <div>

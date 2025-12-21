@@ -148,10 +148,7 @@ export function CenterModal({
 
   return (
     <Transition show={isOpen} as={Fragment}>
-      <Dialog
-        onClose={closeOnBackdrop ? onClose : () => {}}
-        className="relative z-50"
-      >
+      <Dialog onClose={closeOnBackdrop ? onClose : () => {}} className="relative z-50">
         {/* Backdrop */}
         <Transition.Child
           as={Fragment}
@@ -162,10 +159,7 @@ export function CenterModal({
           leaveFrom="opacity-100"
           leaveTo="opacity-0"
         >
-          <div
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm"
-            aria-hidden="true"
-          />
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" aria-hidden="true" />
         </Transition.Child>
 
         {/* Modal container */}
@@ -215,9 +209,7 @@ export function CenterModal({
                         {title}
                       </Dialog.Title>
                       {subtitle && (
-                        <p className="text-sm text-gray-600 dark:text-gray-400">
-                          {subtitle}
-                        </p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">{subtitle}</p>
                       )}
                     </div>
                   </div>
@@ -232,14 +224,10 @@ export function CenterModal({
                 </div>
 
                 {/* Step indicator for wizard mode */}
-                {isWizard && (
-                  <ModalStepIndicator steps={steps} currentStep={currentStep} />
-                )}
+                {isWizard && <ModalStepIndicator steps={steps} currentStep={currentStep} />}
 
                 {/* Body */}
-                <div className="px-6 py-6 max-h-[60vh] overflow-y-auto">
-                  {children}
-                </div>
+                <div className="px-6 py-6 max-h-[60vh] overflow-y-auto">{children}</div>
 
                 {/* Footer */}
                 {footer && (

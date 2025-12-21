@@ -3,7 +3,15 @@
 
 import { useRouter } from 'next/navigation'
 import type { ParkingBooking } from '@/app/lib/parking/types'
-import { FiArrowLeft, FiEdit, FiTrash2, FiLogIn, FiLogOut, FiX, FiAlertTriangle } from 'react-icons/fi'
+import {
+  FiArrowLeft,
+  FiEdit,
+  FiTrash2,
+  FiLogIn,
+  FiLogOut,
+  FiX,
+  FiAlertTriangle,
+} from 'react-icons/fi'
 import { StatusBadge } from '../StatusBadge'
 import { SPOT_TYPES, type BookingStatus } from '../helpers'
 
@@ -59,7 +67,10 @@ export function BookingHeader({
 
             <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-gray-600 dark:text-gray-400">
               <span>
-                Plaza: <span className="font-medium">{booking.spot.level} - {booking.spot.number}</span>
+                Plaza:{' '}
+                <span className="font-medium">
+                  {booking.spot.level} - {booking.spot.number}
+                </span>
               </span>
               <span>•</span>
               <span>{SPOT_TYPES[booking.spot.type] || booking.spot.type}</span>

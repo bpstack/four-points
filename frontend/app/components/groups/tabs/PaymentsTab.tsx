@@ -2,8 +2,9 @@
 
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import { useGroupPayments, useGroup } from '@/app/lib/groups'
 import { useGroupStore } from '@/app/stores/useGroupStore'
 import { PaymentCard } from '../cards/PaymentCard'
 import { EmptyState } from '../shared/EmptyState'
@@ -14,7 +15,22 @@ import { FiPlus, FiDollarSign, FiFileText, FiChevronDown, FiChevronUp } from 're
 export function PaymentsTab() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { currentGroup, payments, isLoadingPayments, refreshPayments } = useGroupStore()
+  const { currentGroup, setCurrentGroup, payments: storePayments } = useGroupStore()
+
+  const groupId = currentGroup?.id
+  const { data: paymentsData, isLoading: isLoadingPayments } = useGroupPayments(groupId)
+  const { data: groupData } = useGroup(groupId)
+
+  useEffect(() => {
+    if (groupData) {
+      setCurrentGroup(groupData)
+    }
+  }, [groupData, setCurrentGroup])
+
+  const payments = useMemo(
+    () => paymentsData?.payments || storePayments || [],
+    [paymentsData, storePayments]
+  )
 
   const [balance, setBalance] = useState({
     total_amount: 0,
@@ -25,43 +41,30 @@ export function PaymentsTab() {
 
   const [showBreakdown, setShowBreakdown] = useState(false)
 
-  useEffect(() => {
-    if (currentGroup) {
-      refreshPayments(currentGroup.id)
-    }
-  }, [currentGroup, refreshPayments])
-
   // Calcular balance - ARREGLADO (parseando strings a números)
   useEffect(() => {
-    // Helper para parsear valores que pueden ser string o number
     const parseAmount = (value: unknown): number => {
       if (typeof value === 'number') return value
       if (typeof value === 'string') return parseFloat(value) || 0
       return 0
     }
 
-    // Calcular total_amount: puede venir de currentGroup o de la suma de pagos
-    const group_total = parseAmount(currentGroup?.total_amount)
+    const group_total = parseAmount(groupData?.total_amount ?? currentGroup?.total_amount)
     const payments_total = payments.reduce((sum, p) => sum + parseAmount(p.amount), 0)
     const final_total_amount = group_total > 0 ? group_total : payments_total
 
-    // Calcular total pagado (parseando strings)
     const total_paid = payments.reduce((sum, p) => sum + parseAmount(p.amount_paid), 0)
-
-    // Calcular remaining
     const remaining = final_total_amount - total_paid
-
-    // Calcular porcentaje pagado (evitar división por 0)
     const percentage_paid =
       final_total_amount > 0 ? Math.round((total_paid / final_total_amount) * 100) : 0
 
     setBalance({
       total_amount: final_total_amount,
       total_paid,
-      remaining: Math.max(remaining, 0), // No permitir negativos
-      percentage_paid: Math.max(0, Math.min(percentage_paid, 100)), // Limitar entre 0-100
+      remaining: Math.max(remaining, 0),
+      percentage_paid: Math.max(0, Math.min(percentage_paid, 100)),
     })
-  }, [payments, currentGroup])
+  }, [payments, groupData, currentGroup])
 
   const handleCreatePayment = () => {
     const params = new URLSearchParams(searchParams.toString())

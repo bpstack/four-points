@@ -295,7 +295,10 @@ export default function DateSpotStep({ state, actions }: DateSpotStepProps) {
         <div className="flex flex-col sm:flex-row gap-2 pt-2">
           <button
             onClick={actions.prevStep}
-            className={styles.buttonSecondary + ' flex-1 flex items-center justify-center gap-2 order-2 sm:order-1'}
+            className={
+              styles.buttonSecondary +
+              ' flex-1 flex items-center justify-center gap-2 order-2 sm:order-1'
+            }
           >
             <FaArrowLeft className="w-3 h-3" /> Atrás
           </button>

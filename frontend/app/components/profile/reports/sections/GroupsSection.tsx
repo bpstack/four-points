@@ -5,6 +5,7 @@
 import { useState, useCallback } from 'react'
 import { apiClient } from '@/app/lib/apiClient'
 import { cn } from '@/app/lib/helpers/utils'
+import { API_BASE_URL } from '@/app/lib/env'
 import {
   FiUsers,
   FiLoader,
@@ -21,7 +22,7 @@ import {
 import type { GroupHistoryEntry } from '../types'
 import DateFilter from '../DateFilter'
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'
+const API_URL = API_BASE_URL
 
 // Límite de registros por defecto
 const DEFAULT_LIMIT = 50
@@ -64,11 +65,26 @@ interface DashboardOverview {
 // ═══════════════════════════════════════════════════════
 
 const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
-  confirmed: { label: 'Confirmado', color: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' },
-  pending: { label: 'Pendiente', color: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400' },
-  tentative: { label: 'Tentativo', color: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400' },
-  cancelled: { label: 'Cancelado', color: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' },
-  completed: { label: 'Completado', color: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300' },
+  confirmed: {
+    label: 'Confirmado',
+    color: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
+  },
+  pending: {
+    label: 'Pendiente',
+    color: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
+  },
+  tentative: {
+    label: 'Tentativo',
+    color: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
+  },
+  cancelled: {
+    label: 'Cancelado',
+    color: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
+  },
+  completed: {
+    label: 'Completado',
+    color: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300',
+  },
 }
 
 // ═══════════════════════════════════════════════════════
@@ -81,11 +97,11 @@ export default function GroupsSection() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [loaded, setLoaded] = useState(false)
-  
+
   // Filters
   const [searchId, setSearchId] = useState('')
   const [dateFilter, setDateFilter] = useState<string | null>(null)
-  
+
   // History expansion
   const [expandedId, setExpandedId] = useState<number | null>(null)
   const [history, setHistory] = useState<GroupHistoryEntry[]>([])
@@ -98,7 +114,7 @@ export default function GroupsSection() {
       // Fetch dashboard overview
       const overviewResponse = await apiClient.get(`${API_URL}/api/groups/dashboard/overview`)
       setOverview(overviewResponse.data || overviewResponse)
-      
+
       // Build params for groups
       const params = new URLSearchParams()
       params.set('limit', DEFAULT_LIMIT.toString())
@@ -106,7 +122,7 @@ export default function GroupsSection() {
         // Filter by arrival_date or created_at
         params.set('arrival_date', dateFilter)
       }
-      
+
       // Fetch groups - backend returns { success, data: [...], count }
       const groupsResponse = await apiClient.get(`${API_URL}/api/groups?${params.toString()}`)
       const data = groupsResponse.data || []
@@ -119,28 +135,31 @@ export default function GroupsSection() {
     }
   }, [dateFilter])
 
-  const fetchHistory = useCallback(async (groupId: number) => {
-    if (expandedId === groupId) {
-      setExpandedId(null)
-      return
-    }
-    
-    setHistoryLoading(true)
-    setExpandedId(groupId)
-    try {
-      const response = await apiClient.get(`${API_URL}/api/groups/${groupId}/history`)
-      setHistory(response.data || response || [])
-    } catch (err: any) {
-      console.error('Error fetching history:', err)
-      setHistory([])
-    } finally {
-      setHistoryLoading(false)
-    }
-  }, [expandedId])
+  const fetchHistory = useCallback(
+    async (groupId: number) => {
+      if (expandedId === groupId) {
+        setExpandedId(null)
+        return
+      }
+
+      setHistoryLoading(true)
+      setExpandedId(groupId)
+      try {
+        const response = await apiClient.get(`${API_URL}/api/groups/${groupId}/history`)
+        setHistory(response.data || response || [])
+      } catch (err: any) {
+        console.error('Error fetching history:', err)
+        setHistory([])
+      } finally {
+        setHistoryLoading(false)
+      }
+    },
+    [expandedId]
+  )
 
   const searchGroupById = useCallback(async () => {
     if (!searchId.trim()) return
-    
+
     setLoading(true)
     setError(null)
     try {
@@ -210,19 +229,27 @@ export default function GroupsSection() {
       {overview && (
         <div className="grid grid-cols-4 gap-4 pb-4 border-b border-gray-200 dark:border-[#30363d]">
           <div className="bg-gray-50 dark:bg-[#161b22] rounded-lg p-3 text-center">
-            <p className="text-2xl font-bold text-gray-900 dark:text-white">{overview.groups.total_groups}</p>
+            <p className="text-2xl font-bold text-gray-900 dark:text-white">
+              {overview.groups.total_groups}
+            </p>
             <p className="text-xs text-gray-500 dark:text-gray-400">Total Grupos</p>
           </div>
           <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-3 text-center">
-            <p className="text-2xl font-bold text-green-600 dark:text-green-400">{overview.groups.confirmed_groups}</p>
+            <p className="text-2xl font-bold text-green-600 dark:text-green-400">
+              {overview.groups.confirmed_groups}
+            </p>
             <p className="text-xs text-gray-500 dark:text-gray-400">Confirmados</p>
           </div>
           <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-lg p-3 text-center">
-            <p className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">{overview.groups.pending_groups}</p>
+            <p className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">
+              {overview.groups.pending_groups}
+            </p>
             <p className="text-xs text-gray-500 dark:text-gray-400">Pendientes</p>
           </div>
           <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-3 text-center">
-            <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">{groups.length}</p>
+            <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">
+              {groups.length}
+            </p>
             <p className="text-xs text-gray-500 dark:text-gray-400">Mostrados</p>
           </div>
         </div>
@@ -232,14 +259,14 @@ export default function GroupsSection() {
       <div className="flex items-center justify-between gap-4 pb-4 border-b border-gray-200 dark:border-[#30363d]">
         <div className="flex items-center gap-2 flex-wrap">
           <FiFilter className="w-4 h-4 text-gray-400" />
-          
+
           {/* Date Filter */}
           <DateFilter
             selectedDate={dateFilter}
             onDateChange={handleDateChange}
             label="Fecha llegada"
           />
-          
+
           {/* Search by ID */}
           <div className="flex items-center gap-1">
             <input
@@ -295,7 +322,7 @@ export default function GroupsSection() {
           {groups.map((group) => {
             const statusConfig = STATUS_CONFIG[group.status] || STATUS_CONFIG.confirmed
             const isExpanded = expandedId === group.id
-            
+
             return (
               <div
                 key={group.id}
@@ -306,12 +333,17 @@ export default function GroupsSection() {
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-2">
-                        <span className={cn('px-2 py-0.5 rounded-full text-xs font-medium', statusConfig.color)}>
+                        <span
+                          className={cn(
+                            'px-2 py-0.5 rounded-full text-xs font-medium',
+                            statusConfig.color
+                          )}
+                        >
                           {statusConfig.label}
                         </span>
                         <span className="text-xs text-gray-400 font-mono">#{group.id}</span>
                       </div>
-                      
+
                       <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-1">
                         {group.name}
                       </h4>
@@ -320,7 +352,7 @@ export default function GroupsSection() {
                           {group.agency}
                         </p>
                       )}
-                      
+
                       <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400 flex-wrap">
                         <span className="inline-flex items-center gap-1">
                           <FiCalendar className="w-3.5 h-3.5" />
@@ -334,7 +366,7 @@ export default function GroupsSection() {
                         )}
                       </div>
                     </div>
-                    
+
                     {/* Expand History Button */}
                     <button
                       onClick={() => fetchHistory(group.id)}
@@ -350,7 +382,7 @@ export default function GroupsSection() {
                     </button>
                   </div>
                 </div>
-                
+
                 {/* History Panel */}
                 {isExpanded && (
                   <div className="border-t border-gray-200 dark:border-[#30363d] bg-gray-50 dark:bg-[#161b22] p-4">
@@ -425,7 +457,8 @@ export default function GroupsSection() {
       {/* Count */}
       {!loading && groups.length > 0 && (
         <div className="text-xs text-gray-500 dark:text-gray-400 text-right">
-          Mostrando {groups.length} grupos {dateFilter ? `del ${dateFilter}` : `(máx. ${DEFAULT_LIMIT})`}
+          Mostrando {groups.length} grupos{' '}
+          {dateFilter ? `del ${dateFilter}` : `(máx. ${DEFAULT_LIMIT})`}
         </div>
       )}
     </div>

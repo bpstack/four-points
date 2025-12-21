@@ -132,8 +132,12 @@ export function EditReportPanel({ isOpen, onClose, report, onSuccess }: EditRepo
       reader.onloadend = () => {
         newPreviews.push(reader.result as string)
         if (newPreviews.length === newFiles.length) {
-          setPreviewImages((prev) => [...prev, ...newPreviews].slice(0, maxImages - existingImages.length))
-          setImageFiles((prev) => [...prev, ...newFiles].slice(0, maxImages - existingImages.length))
+          setPreviewImages((prev) =>
+            [...prev, ...newPreviews].slice(0, maxImages - existingImages.length)
+          )
+          setImageFiles((prev) =>
+            [...prev, ...newFiles].slice(0, maxImages - existingImages.length)
+          )
         }
       }
       reader.readAsDataURL(file)
@@ -171,7 +175,9 @@ export function EditReportPanel({ isOpen, onClose, report, onSuccess }: EditRepo
           toast.success('Imagenes subidas correctamente', { id: 'upload-images' })
         } catch (imgError) {
           console.error('Error subiendo imagenes:', imgError)
-          toast.error('Reporte actualizado pero hubo error al subir imagenes', { id: 'upload-images' })
+          toast.error('Reporte actualizado pero hubo error al subir imagenes', {
+            id: 'upload-images',
+          })
         }
       }
 

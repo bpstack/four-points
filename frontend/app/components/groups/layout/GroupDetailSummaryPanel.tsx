@@ -2,36 +2,19 @@
 
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useMemo } from 'react'
 import { useGroupStore } from '@/app/stores/useGroupStore'
+import { useGroupPayments } from '@/app/lib/groups'
 import { formatCurrency, formatDate } from '@/app/lib/helpers/utils'
-import { 
-  FiCalendar, 
-  FiDollarSign, 
-  FiLogIn, 
-  FiLogOut,
-  FiClock
-} from 'react-icons/fi'
+import { FiCalendar, FiDollarSign, FiLogIn, FiLogOut, FiClock } from 'react-icons/fi'
 
 export function GroupDetailSummaryPanel() {
-  const { currentGroup, payments, refreshPayments } = useGroupStore()
+  const { currentGroup } = useGroupStore()
+  const groupId = currentGroup?.id
+  const { data: paymentsData } = useGroupPayments(groupId)
+  const payments = paymentsData?.payments || []
 
-  const [balanceStatus, setBalanceStatus] = useState({
-    isPaid: false,
-    totalPaid: 0,
-    totalExpected: 0,
-    remaining: 0,
-  })
-
-  // Cargar pagos al montar
-  useEffect(() => {
-    if (currentGroup) {
-      refreshPayments(currentGroup.id)
-    }
-  }, [currentGroup, refreshPayments])
-
-  // Calcular balance status
-  useEffect(() => {
+  const balanceStatus = useMemo(() => {
     const parseAmount = (value: unknown): number => {
       if (typeof value === 'number') return value
       if (typeof value === 'string') return parseFloat(value) || 0
@@ -45,12 +28,12 @@ export function GroupDetailSummaryPanel() {
     const totalPaid = payments.reduce((sum, p) => sum + parseAmount(p.amount_paid), 0)
     const remaining = totalExpected - totalPaid
 
-    setBalanceStatus({
+    return {
       isPaid: remaining <= 0 && totalExpected > 0,
       totalPaid,
       totalExpected,
       remaining: Math.max(remaining, 0),
-    })
+    }
   }, [payments, currentGroup])
 
   if (!currentGroup) return null
@@ -58,7 +41,9 @@ export function GroupDetailSummaryPanel() {
   // Calcular estancia en noches
   const arrivalDate = new Date(currentGroup.arrival_date)
   const departureDate = new Date(currentGroup.departure_date)
-  const stayNights = Math.ceil((departureDate.getTime() - arrivalDate.getTime()) / (1000 * 60 * 60 * 24))
+  const stayNights = Math.ceil(
+    (departureDate.getTime() - arrivalDate.getTime()) / (1000 * 60 * 60 * 24)
+  )
 
   return (
     <div className="sticky top-4 space-y-3">
@@ -70,9 +55,7 @@ export function GroupDetailSummaryPanel() {
       <div className="bg-white dark:bg-[#0D1117] border border-[#d0d7de] dark:border-[#30363d] rounded-xl shadow-sm p-4">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">
-              Llegada
-            </p>
+            <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">Llegada</p>
             <p className="text-sm font-bold text-gray-900 dark:text-gray-100 mt-0.5">
               {formatDate(currentGroup.arrival_date, 'long')}
             </p>
@@ -87,9 +70,7 @@ export function GroupDetailSummaryPanel() {
       <div className="bg-white dark:bg-[#0D1117] border border-[#d0d7de] dark:border-[#30363d] rounded-xl shadow-sm p-4">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">
-              Salida
-            </p>
+            <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">Salida</p>
             <p className="text-sm font-bold text-gray-900 dark:text-gray-100 mt-0.5">
               {formatDate(currentGroup.departure_date, 'long')}
             </p>
@@ -104,9 +85,7 @@ export function GroupDetailSummaryPanel() {
       <div className="bg-white dark:bg-[#0D1117] border border-[#d0d7de] dark:border-[#30363d] rounded-xl shadow-sm p-4">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">
-              Estancia
-            </p>
+            <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">Estancia</p>
             <p className="text-xl font-bold text-gray-900 dark:text-gray-100 mt-0.5">
               {stayNights} <span className="text-sm font-normal text-gray-500">noches</span>
             </p>
@@ -121,9 +100,7 @@ export function GroupDetailSummaryPanel() {
       <div className="bg-white dark:bg-[#0D1117] border border-[#d0d7de] dark:border-[#30363d] rounded-xl shadow-sm p-4">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">
-              Importe Total
-            </p>
+            <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">Importe Total</p>
             <p className="text-xl font-bold text-gray-900 dark:text-gray-100 mt-0.5">
               {formatCurrency(currentGroup.total_amount, currentGroup.currency)}
             </p>
@@ -135,25 +112,27 @@ export function GroupDetailSummaryPanel() {
       </div>
 
       {/* Balance */}
-      <div className={`bg-white dark:bg-[#0D1117] border rounded-xl shadow-sm p-4 ${
-        balanceStatus.isPaid 
-          ? 'border-green-200 dark:border-green-800/30' 
-          : 'border-[#d0d7de] dark:border-[#30363d]'
-      }`}>
+      <div
+        className={`bg-white dark:bg-[#0D1117] border rounded-xl shadow-sm p-4 ${
+          balanceStatus.isPaid
+            ? 'border-green-200 dark:border-green-800/30'
+            : 'border-[#d0d7de] dark:border-[#30363d]'
+        }`}
+      >
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">
-              Estado de Pagos
-            </p>
-            <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
-              balanceStatus.isPaid 
-                ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' 
-                : 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400'
-            }`}>
+            <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">Estado de Pagos</p>
+            <span
+              className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
+                balanceStatus.isPaid
+                  ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                  : 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400'
+              }`}
+            >
               {balanceStatus.isPaid ? 'Pagado' : 'Pendiente'}
             </span>
           </div>
-          
+
           <div className="space-y-1.5">
             <div className="flex justify-between text-xs">
               <span className="text-gray-500 dark:text-gray-400">Pagado:</span>
@@ -174,16 +153,18 @@ export function GroupDetailSummaryPanel() {
           {/* Progress bar */}
           <div className="mt-2">
             <div className="h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-              <div 
+              <div
                 className={`h-full rounded-full transition-all duration-300 ${
-                  balanceStatus.isPaid 
-                    ? 'bg-green-500 dark:bg-green-400' 
+                  balanceStatus.isPaid
+                    ? 'bg-green-500 dark:bg-green-400'
                     : 'bg-orange-500 dark:bg-orange-400'
                 }`}
-                style={{ 
-                  width: `${balanceStatus.totalExpected > 0 
-                    ? Math.min((balanceStatus.totalPaid / balanceStatus.totalExpected) * 100, 100) 
-                    : 0}%` 
+                style={{
+                  width: `${
+                    balanceStatus.totalExpected > 0
+                      ? Math.min((balanceStatus.totalPaid / balanceStatus.totalExpected) * 100, 100)
+                      : 0
+                  }%`,
                 }}
               />
             </div>

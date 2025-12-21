@@ -115,7 +115,7 @@ export function MessagesPanel() {
     try {
       setLoadingMessages(true)
       const response = await getMessages(conversationId, { before, limit: 50 })
-      
+
       if (before) {
         // Prepend older messages
         setMessages((prev) => [...response.data, ...prev])
@@ -143,9 +143,7 @@ export function MessagesPanel() {
 
       // Update unread count locally
       setConversations((prev) =>
-        prev.map((c) =>
-          c.id === selectedConversation.id ? { ...c, unread_count: 0 } : c
-        )
+        prev.map((c) => (c.id === selectedConversation.id ? { ...c, unread_count: 0 } : c))
       )
 
       // Reset participants dropdown
@@ -291,7 +289,8 @@ export function MessagesPanel() {
 
   const handleDeleteConversation = async () => {
     if (!selectedConversation) return
-    if (!confirm('¿Eliminar esta conversación? Se borrarán todos los mensajes permanentemente.')) return
+    if (!confirm('¿Eliminar esta conversación? Se borrarán todos los mensajes permanentemente.'))
+      return
 
     try {
       await deleteConversation(selectedConversation.id)
@@ -363,10 +362,10 @@ export function MessagesPanel() {
     const date = new Date(dateStr)
     const now = new Date()
     const diff = now.getTime() - date.getTime()
-    
+
     // Si la fecha es futura o inválida, mostrar vacío
     if (diff < 0 || isNaN(diff)) return ''
-    
+
     const minutes = Math.floor(diff / 1000 / 60)
     const hours = Math.floor(minutes / 60)
     const days = Math.floor(hours / 24)
@@ -582,15 +581,13 @@ export function MessagesPanel() {
                       className="text-xs text-gray-500 hover:text-blue-500 hover:underline transition-colors flex items-center gap-1"
                       disabled={loadingParticipants}
                     >
-                      {loadingParticipants ? (
-                        <FiLoader className="w-3 h-3 animate-spin" />
-                      ) : null}
+                      {loadingParticipants ? <FiLoader className="w-3 h-3 animate-spin" /> : null}
                       {selectedConversation.participant_count} participantes
                     </button>
                   )}
                 </div>
                 <div className="relative" ref={menuRef}>
-                  <button 
+                  <button
                     onClick={() => setShowConversationMenu(!showConversationMenu)}
                     className="p-1 hover:bg-gray-100 dark:hover:bg-[#21262d] rounded-lg transition-colors"
                   >
@@ -873,7 +870,9 @@ export function MessagesPanel() {
                           </p>
                           <p className="text-xs text-gray-500 truncate">{u.email}</p>
                         </div>
-                        <span className={cn('px-2 py-0.5 rounded text-xs', getRoleColor(u.role_name))}>
+                        <span
+                          className={cn('px-2 py-0.5 rounded text-xs', getRoleColor(u.role_name))}
+                        >
                           {u.role_name}
                         </span>
                         {u.existing_dm_id && (
@@ -917,19 +916,17 @@ export function MessagesPanel() {
 
       {/* Participants Modal */}
       {showParticipants && (
-        <div 
+        <div
           className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
           onClick={() => setShowParticipants(false)}
         >
-          <div 
+          <div
             className="bg-white dark:bg-[#161b22] rounded-lg shadow-xl w-full max-w-sm max-h-[60vh] flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Modal Header */}
             <div className="p-4 border-b border-gray-200 dark:border-[#30363d] flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                Participantes
-              </h3>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Participantes</h3>
               <button
                 onClick={() => setShowParticipants(false)}
                 className="p-1 hover:bg-gray-100 dark:hover:bg-[#21262d] rounded-lg transition-colors"
@@ -947,10 +944,7 @@ export function MessagesPanel() {
               ) : (
                 <div className="divide-y divide-gray-200 dark:divide-[#30363d]">
                   {participants.map((p) => (
-                    <div
-                      key={p.user_id}
-                      className="px-4 py-3 flex items-center gap-3"
-                    >
+                    <div key={p.user_id} className="px-4 py-3 flex items-center gap-3">
                       <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-sm font-medium flex-shrink-0">
                         {p.username.charAt(0).toUpperCase()}
                       </div>
@@ -962,7 +956,12 @@ export function MessagesPanel() {
                           )}
                         </p>
                         {p.role_name && (
-                          <span className={cn('px-1.5 py-0.5 rounded text-xs', getRoleColor(p.role_name))}>
+                          <span
+                            className={cn(
+                              'px-1.5 py-0.5 rounded text-xs',
+                              getRoleColor(p.role_name)
+                            )}
+                          >
                             {p.role_name}
                           </span>
                         )}

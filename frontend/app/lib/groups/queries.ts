@@ -1,7 +1,9 @@
 // app/lib/groups/queries.ts
 // ✅ USA apiClient con auto-refresh automático
 
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import apiClient from '@/app/lib/apiClient'
+import { API_BASE_URL } from '@/app/lib/env'
 import type {
   Group,
   GroupWithDetails,
@@ -31,7 +33,7 @@ import type {
   PaymentStatus,
 } from './types'
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'
+const API_URL = API_BASE_URL
 
 // =============== GROUPS API ===============
 
@@ -150,7 +152,9 @@ export const groupsApi = {
     paymentId: number,
     status: PaymentStatus
   ): Promise<{ success: boolean; message: string }> => {
-    return apiClient.patch(`${API_URL}/api/groups/${groupId}/payments/${paymentId}/status`, { status })
+    return apiClient.patch(`${API_URL}/api/groups/${groupId}/payments/${paymentId}/status`, {
+      status,
+    })
   },
 
   /**
@@ -387,4 +391,397 @@ export const notificationsApi = {
   }> => {
     return apiClient.post(`${API_URL}/api/notifications/check-pending`)
   },
+}
+
+export const groupsKeys = {
+  list: (filters?: GroupFilters) => ['groups', 'list', filters ?? {}] as const,
+  detail: (id: number) => ['groups', id] as const,
+  payments: (id: number) => ['groups', id, 'payments'] as const,
+  contacts: (id: number) => ['groups', id, 'contacts'] as const,
+  rooms: (id: number) => ['groups', id, 'rooms'] as const,
+  status: (id: number) => ['groups', id, 'status'] as const,
+  dashboardOverview: () => ['groups', 'dashboard', 'overview'] as const,
+  dashboardTimeline: (year?: number) => ['groups', 'dashboard', 'timeline', year ?? 'all'] as const,
+  upcomingPayments: (days: number) => ['groups', 'payments', 'upcoming', days] as const,
+  overduePayments: () => ['groups', 'payments', 'overdue'] as const,
+  notifications: (id: number) => ['groups', id, 'notifications'] as const,
+}
+
+const defaultQueryOptions = {
+  staleTime: 5 * 60 * 1000,
+  gcTime: 10 * 60 * 1000,
+  refetchOnWindowFocus: false,
+  retry: 0,
+}
+
+export const useGroups = (filters?: GroupFilters) => {
+  return useQuery({
+    queryKey: groupsKeys.list(filters),
+    queryFn: () => groupsApi.getAll(filters),
+    select: (res) => res.data,
+    ...defaultQueryOptions,
+  })
+}
+
+export const useGroup = (id?: number) => {
+  return useQuery({
+    queryKey: id ? groupsKeys.detail(id) : ['groups', 'detail', 'none'],
+    queryFn: () => groupsApi.getById(id as number),
+    select: (res) => res.data,
+    enabled: typeof id === 'number' && !Number.isNaN(id),
+    ...defaultQueryOptions,
+  })
+}
+
+export const useGroupPayments = (id?: number) => {
+  return useQuery({
+    queryKey: id ? groupsKeys.payments(id) : ['groups', 'payments', 'none'],
+    queryFn: () => groupsApi.getPayments(id as number),
+    select: (res) => res.data,
+    enabled: typeof id === 'number' && !Number.isNaN(id),
+    ...defaultQueryOptions,
+  })
+}
+
+export const useGroupContacts = (id?: number) => {
+  return useQuery({
+    queryKey: id ? groupsKeys.contacts(id) : ['groups', 'contacts', 'none'],
+    queryFn: () => groupsApi.getContacts(id as number),
+    select: (res) => res.data,
+    enabled: typeof id === 'number' && !Number.isNaN(id),
+    ...defaultQueryOptions,
+  })
+}
+
+export const useGroupRooms = (id?: number) => {
+  return useQuery({
+    queryKey: id ? groupsKeys.rooms(id) : ['groups', 'rooms', 'none'],
+    queryFn: () => groupsApi.getRooms(id as number),
+    select: (res) => res.data.rooms || [],
+    enabled: typeof id === 'number' && !Number.isNaN(id),
+    ...defaultQueryOptions,
+  })
+}
+
+export const useGroupStatus = (id?: number) => {
+  return useQuery({
+    queryKey: id ? groupsKeys.status(id) : ['groups', 'status', 'none'],
+    queryFn: () => groupsApi.getStatus(id as number),
+    select: (res) => res.data || res,
+    enabled: typeof id === 'number' && !Number.isNaN(id),
+    ...defaultQueryOptions,
+  })
+}
+
+export const useGroupsDashboardOverview = () => {
+  return useQuery({
+    queryKey: groupsKeys.dashboardOverview(),
+    queryFn: () => groupsApi.getDashboardOverview(),
+    select: (res) => res.data,
+    ...defaultQueryOptions,
+  })
+}
+
+export const useGroupsDashboardTimeline = (year?: number) => {
+  return useQuery({
+    queryKey: groupsKeys.dashboardTimeline(year),
+    queryFn: () => groupsApi.getDashboardTimeline(year),
+    select: (res) => res.data,
+    ...defaultQueryOptions,
+  })
+}
+
+export const useUpcomingPayments = (days: number = 7) => {
+  return useQuery({
+    queryKey: groupsKeys.upcomingPayments(days),
+    queryFn: () => groupsApi.getUpcomingPayments(days),
+    select: (res) => res.data,
+    ...defaultQueryOptions,
+  })
+}
+
+export const useOverduePayments = () => {
+  return useQuery({
+    queryKey: groupsKeys.overduePayments(),
+    queryFn: () => groupsApi.getOverduePayments(),
+    select: (res) => res.data,
+    ...defaultQueryOptions,
+  })
+}
+
+export const useGroupNotifications = (id?: number) => {
+  return useQuery({
+    queryKey: id ? groupsKeys.notifications(id) : ['groups', 'notifications', 'none'],
+    queryFn: () => groupsApi.getNotifications(id as number),
+    select: (res) => res.data,
+    enabled: typeof id === 'number' && !Number.isNaN(id),
+    ...defaultQueryOptions,
+  })
+}
+
+// ========================================
+// MUTATIONS
+// ========================================
+
+export const useCreateGroup = () => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (data: CreateGroupDTO) => groupsApi.create(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: groupsKeys.list() })
+      queryClient.invalidateQueries({ queryKey: groupsKeys.dashboardOverview() })
+      queryClient.invalidateQueries({ queryKey: groupsKeys.dashboardTimeline() })
+    },
+  })
+}
+
+export const useUpdateGroup = (id?: number) => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (data: UpdateGroupDTO) => groupsApi.update(id as number, data),
+    onSuccess: (_, variables) => {
+      if (typeof id === 'number') {
+        queryClient.invalidateQueries({ queryKey: groupsKeys.detail(id) })
+        queryClient.invalidateQueries({ queryKey: groupsKeys.dashboardOverview() })
+        queryClient.invalidateQueries({ queryKey: groupsKeys.dashboardTimeline() })
+      }
+      queryClient.invalidateQueries({ queryKey: groupsKeys.list() })
+    },
+    meta: { entity: 'group', action: 'update', id },
+  })
+}
+
+export const useDeleteGroup = () => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (id: number) => groupsApi.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: groupsKeys.list() })
+      queryClient.invalidateQueries({ queryKey: groupsKeys.dashboardOverview() })
+      queryClient.invalidateQueries({ queryKey: groupsKeys.dashboardTimeline() })
+    },
+  })
+}
+
+// Payments
+export const useCreatePayment = (groupId?: number) => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (data: CreateGroupPaymentDTO) => groupsApi.createPayment(groupId as number, data),
+    onSuccess: () => {
+      if (groupId) {
+        queryClient.invalidateQueries({ queryKey: groupsKeys.payments(groupId) })
+        queryClient.invalidateQueries({ queryKey: groupsKeys.detail(groupId) })
+        queryClient.invalidateQueries({ queryKey: groupsKeys.status(groupId) })
+      }
+    },
+  })
+}
+
+export const useUpdatePayment = (groupId?: number, paymentId?: number) => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (data: UpdateGroupPaymentDTO) =>
+      groupsApi.updatePayment(groupId as number, paymentId as number, data),
+    onSuccess: () => {
+      if (groupId) {
+        queryClient.invalidateQueries({ queryKey: groupsKeys.payments(groupId) })
+        queryClient.invalidateQueries({ queryKey: groupsKeys.detail(groupId) })
+        queryClient.invalidateQueries({ queryKey: groupsKeys.status(groupId) })
+      }
+    },
+  })
+}
+
+export const useUpdatePaymentStatus = (groupId?: number, paymentId?: number) => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (status: PaymentStatus) =>
+      groupsApi.updatePaymentStatus(groupId as number, paymentId as number, status),
+    onSuccess: () => {
+      if (groupId) {
+        queryClient.invalidateQueries({ queryKey: groupsKeys.payments(groupId) })
+        queryClient.invalidateQueries({ queryKey: groupsKeys.detail(groupId) })
+        queryClient.invalidateQueries({ queryKey: groupsKeys.status(groupId) })
+      }
+    },
+  })
+}
+
+export const useUpdateAmountPaid = (groupId?: number, paymentId?: number) => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (amount_paid: number) =>
+      groupsApi.updateAmountPaid(groupId as number, paymentId as number, amount_paid),
+    onSuccess: () => {
+      if (groupId) {
+        queryClient.invalidateQueries({ queryKey: groupsKeys.payments(groupId) })
+        queryClient.invalidateQueries({ queryKey: groupsKeys.detail(groupId) })
+        queryClient.invalidateQueries({ queryKey: groupsKeys.status(groupId) })
+      }
+    },
+  })
+}
+
+export const useDeletePayment = (groupId?: number, paymentId?: number) => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: () => groupsApi.deletePayment(groupId as number, paymentId as number),
+    onSuccess: () => {
+      if (groupId) {
+        queryClient.invalidateQueries({ queryKey: groupsKeys.payments(groupId) })
+        queryClient.invalidateQueries({ queryKey: groupsKeys.detail(groupId) })
+        queryClient.invalidateQueries({ queryKey: groupsKeys.status(groupId) })
+      }
+    },
+  })
+}
+
+// Contacts
+export const useCreateContact = (groupId?: number) => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (data: CreateGroupContactDTO) => groupsApi.createContact(groupId as number, data),
+    onSuccess: () => {
+      if (groupId) {
+        queryClient.invalidateQueries({ queryKey: groupsKeys.contacts(groupId) })
+        queryClient.invalidateQueries({ queryKey: groupsKeys.detail(groupId) })
+      }
+    },
+  })
+}
+
+export const useUpdateContact = (groupId?: number, contactId?: number) => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (data: UpdateGroupContactDTO) =>
+      groupsApi.updateContact(groupId as number, contactId as number, data),
+    onSuccess: () => {
+      if (groupId) {
+        queryClient.invalidateQueries({ queryKey: groupsKeys.contacts(groupId) })
+        queryClient.invalidateQueries({ queryKey: groupsKeys.detail(groupId) })
+      }
+    },
+  })
+}
+
+export const useDeleteContact = (groupId?: number, contactId?: number) => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: () => groupsApi.deleteContact(groupId as number, contactId as number),
+    onSuccess: () => {
+      if (groupId) {
+        queryClient.invalidateQueries({ queryKey: groupsKeys.contacts(groupId) })
+        queryClient.invalidateQueries({ queryKey: groupsKeys.detail(groupId) })
+      }
+    },
+  })
+}
+
+// Rooms
+export const useCreateOrUpdateRoom = (groupId?: number) => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (data: CreateGroupRoomDTO) => groupsApi.createOrUpdateRoom(groupId as number, data),
+    onSuccess: () => {
+      if (groupId) {
+        queryClient.invalidateQueries({ queryKey: groupsKeys.rooms(groupId) })
+        queryClient.invalidateQueries({ queryKey: groupsKeys.detail(groupId) })
+      }
+    },
+  })
+}
+
+export const useUpdateRoom = (groupId?: number, roomId?: number) => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (data: UpdateGroupRoomDTO) =>
+      groupsApi.updateRoom(groupId as number, roomId as number, data),
+    onSuccess: () => {
+      if (groupId) {
+        queryClient.invalidateQueries({ queryKey: groupsKeys.rooms(groupId) })
+        queryClient.invalidateQueries({ queryKey: groupsKeys.detail(groupId) })
+      }
+    },
+  })
+}
+
+export const useDeleteRoom = (groupId?: number, roomId?: number) => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: () => groupsApi.deleteRoom(groupId as number, roomId as number),
+    onSuccess: () => {
+      if (groupId) {
+        queryClient.invalidateQueries({ queryKey: groupsKeys.rooms(groupId) })
+        queryClient.invalidateQueries({ queryKey: groupsKeys.detail(groupId) })
+      }
+    },
+  })
+}
+
+// Status updates
+export const useUpdateBooking = (groupId?: number) => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (data: UpdateBookingDTO) => groupsApi.updateBooking(groupId as number, data),
+    onSuccess: () => {
+      if (groupId) {
+        queryClient.invalidateQueries({ queryKey: groupsKeys.status(groupId) })
+        queryClient.invalidateQueries({ queryKey: groupsKeys.detail(groupId) })
+      }
+    },
+  })
+}
+
+export const useUpdateContract = (groupId?: number) => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (data: UpdateContractDTO) => groupsApi.updateContract(groupId as number, data),
+    onSuccess: () => {
+      if (groupId) {
+        queryClient.invalidateQueries({ queryKey: groupsKeys.status(groupId) })
+        queryClient.invalidateQueries({ queryKey: groupsKeys.detail(groupId) })
+      }
+    },
+  })
+}
+
+export const useUpdateRooming = (groupId?: number) => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (data: UpdateRoomingDTO) => groupsApi.updateRooming(groupId as number, data),
+    onSuccess: () => {
+      if (groupId) {
+        queryClient.invalidateQueries({ queryKey: groupsKeys.status(groupId) })
+        queryClient.invalidateQueries({ queryKey: groupsKeys.detail(groupId) })
+      }
+    },
+  })
+}
+
+export const useUpdateBalance = (groupId?: number) => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (data: UpdateBalanceDTO) => groupsApi.updateBalance(groupId as number, data),
+    onSuccess: () => {
+      if (groupId) {
+        queryClient.invalidateQueries({ queryKey: groupsKeys.status(groupId) })
+        queryClient.invalidateQueries({ queryKey: groupsKeys.detail(groupId) })
+      }
+    },
+  })
+}
+
+// Notifications
+export const useCreateGroupNotification = (groupId?: number) => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (data: CreateNotificationDTO) =>
+      groupsApi.createNotification(groupId as number, data),
+    onSuccess: () => {
+      if (groupId) {
+        queryClient.invalidateQueries({ queryKey: groupsKeys.notifications(groupId) })
+      }
+    },
+  })
 }

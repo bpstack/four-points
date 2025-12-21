@@ -9,8 +9,14 @@ import { FiEdit2, FiCalendar } from 'react-icons/fi'
 import toast from 'react-hot-toast'
 
 import { paymentSchema, type PaymentFormData } from '@/app/lib/schemas/group-schemas'
+import {
+  useCreatePayment,
+  useUpdatePayment,
+  useDeletePayment,
+  type GroupPayment,
+  PaymentStatus,
+} from '@/app/lib/groups'
 import { useGroupStore } from '@/app/stores/useGroupStore'
-import { groupsApi, type GroupPayment, PaymentStatus } from '@/app/lib/groups'
 import SimpleCalendarCompact from '@/app/ui/calendar/SimpleCalendarCompact'
 import { formatDateForInput, formatDateDisplayShort, parseInputDate } from '@/app/lib/helpers/date'
 import {
@@ -49,8 +55,13 @@ export function PaymentPanel({
   groupId,
   totalAmount,
 }: PaymentPanelProps) {
-  const { refreshPayments, refreshStatus, deletePayment } = useGroupStore()
+  const { currentGroup } = useGroupStore()
   const isEditing = !!payment
+
+  const effectiveGroupId = currentGroup?.id ?? groupId
+  const createPaymentMutation = useCreatePayment(effectiveGroupId)
+  const updatePaymentMutation = useUpdatePayment(effectiveGroupId, payment?.id)
+  const deletePaymentMutation = useDeletePayment(effectiveGroupId, payment?.id)
 
   // Calendar state
   const [showDueDateCal, setShowDueDateCal] = useState(false)
@@ -161,15 +172,18 @@ export function PaymentPanel({
         notes: data.notes || undefined,
       }
 
+      if (!effectiveGroupId) {
+        throw new Error('Falta el identificador del grupo')
+      }
+
       if (isEditing && payment) {
-        await groupsApi.updatePayment(groupId, payment.id, payload)
+        await updatePaymentMutation.mutateAsync(payload)
         toast.success('Pago actualizado correctamente')
       } else {
-        await groupsApi.createPayment(groupId, payload)
+        await createPaymentMutation.mutateAsync(payload)
         toast.success('Pago creado correctamente')
       }
 
-      await refreshPayments(groupId)
       onClose()
     } catch (error) {
       console.error('Error saving payment:', error)
@@ -182,8 +196,7 @@ export function PaymentPanel({
     if (!payment) return
 
     try {
-      await deletePayment(groupId, payment.id)
-      await refreshStatus(groupId)
+      await deletePaymentMutation.mutateAsync()
       toast.success('Pago eliminado correctamente')
       onClose()
     } catch (error) {
@@ -199,19 +212,24 @@ export function PaymentPanel({
       onClose={onClose}
       title={isEditing ? 'Editar Pago' : 'Nuevo Pago'}
       subtitle={
-        isEditing
-          ? 'Actualiza la información del pago'
-          : 'Completa los datos del nuevo pago'
+        isEditing ? 'Actualiza la información del pago' : 'Completa los datos del nuevo pago'
       }
       size="lg"
-      headerIcon={isEditing ? <FiEdit2 className="w-5 h-5 text-blue-600 dark:text-blue-400" /> : undefined}
+      headerIcon={
+        isEditing ? <FiEdit2 className="w-5 h-5 text-blue-600 dark:text-blue-400" /> : undefined
+      }
       footer={
         isEditing ? (
           <SlidePanelFooterWithDelete
             onCancel={onClose}
             onSubmit={handleSubmit(onSubmit)}
             onDelete={handleDelete}
-            isSubmitting={isSubmitting}
+            isSubmitting={
+              isSubmitting ||
+              updatePaymentMutation.isPending ||
+              deletePaymentMutation.isPending ||
+              createPaymentMutation.isPending
+            }
             submitText="Actualizar"
             deleteText="Eliminar pago"
           />
@@ -219,7 +237,7 @@ export function PaymentPanel({
           <SlidePanelFooterButtons
             onCancel={onClose}
             onSubmit={handleSubmit(onSubmit)}
-            isSubmitting={isSubmitting}
+            isSubmitting={isSubmitting || createPaymentMutation.isPending}
             submitText="Crear Pago"
             submitVariant="primary"
           />
@@ -229,7 +247,8 @@ export function PaymentPanel({
       {isEditing && payment && (
         <Alert variant="info" className="mb-4">
           Editando:{' '}
-          {PAYMENT_ORDER_OPTIONS.find((opt) => opt.value === payment.payment_order)?.label || 'Pago'}{' '}
+          {PAYMENT_ORDER_OPTIONS.find((opt) => opt.value === payment.payment_order)?.label ||
+            'Pago'}{' '}
           - {payment.payment_name}
         </Alert>
       )}

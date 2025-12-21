@@ -378,7 +378,9 @@ export function VehicleSearchModal({ isOpen, onClose }: VehicleSearchModalProps)
         {!selectedVehicle && (
           <div className="px-4 py-2 border-t border-gray-100 dark:border-[#21262d] bg-gray-50 dark:bg-[#0d1117]">
             <p className="text-[10px] text-gray-400 dark:text-gray-500 text-center">
-              Presiona <kbd className="px-1 py-0.5 bg-gray-200 dark:bg-gray-700 rounded text-[9px]">ESC</kbd> para cerrar
+              Presiona{' '}
+              <kbd className="px-1 py-0.5 bg-gray-200 dark:bg-gray-700 rounded text-[9px]">ESC</kbd>{' '}
+              para cerrar
             </p>
           </div>
         )}

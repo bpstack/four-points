@@ -5,6 +5,7 @@
 import { useState, useCallback } from 'react'
 import { apiClient } from '@/app/lib/apiClient'
 import { cn } from '@/app/lib/helpers/utils'
+import { API_BASE_URL } from '@/app/lib/env'
 import {
   FiBook,
   FiLoader,
@@ -22,7 +23,7 @@ import {
 import type { LogbookEntry, LogbookHistoryEntry } from '../types'
 import DateFilter from '../DateFilter'
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'
+const API_URL = API_BASE_URL
 
 // Límite de registros por defecto
 const DEFAULT_LIMIT = 50
@@ -33,9 +34,18 @@ const DEFAULT_LIMIT = 50
 
 const PRIORITY_CONFIG: Record<string, { label: string; color: string }> = {
   baja: { label: 'Baja', color: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300' },
-  media: { label: 'Media', color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' },
-  alta: { label: 'Alta', color: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400' },
-  urgente: { label: 'Urgente', color: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' },
+  media: {
+    label: 'Media',
+    color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
+  },
+  alta: {
+    label: 'Alta',
+    color: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400',
+  },
+  urgente: {
+    label: 'Urgente',
+    color: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
+  },
 }
 
 type ViewMode = 'all' | 'trashed'
@@ -52,7 +62,7 @@ export default function LogbooksSection() {
   const [viewMode, setViewMode] = useState<ViewMode>('all')
   const [priorityFilter, setPriorityFilter] = useState<string>('all')
   const [dateFilter, setDateFilter] = useState<string | null>(null)
-  
+
   // History expansion
   const [expandedId, setExpandedId] = useState<number | null>(null)
   const [history, setHistory] = useState<LogbookHistoryEntry[]>([])
@@ -63,7 +73,7 @@ export default function LogbooksSection() {
     setError(null)
     try {
       let endpoint: string
-      
+
       // Use specific endpoint based on filters
       if (dateFilter) {
         // Use the day-specific endpoint
@@ -75,7 +85,7 @@ export default function LogbooksSection() {
       } else {
         endpoint = `${API_URL}/api/logbooks/all`
       }
-      
+
       const response = await apiClient.get(endpoint)
       const data = response.data || response || []
       // Limit to DEFAULT_LIMIT (backend doesn't support limit param)
@@ -88,25 +98,28 @@ export default function LogbooksSection() {
     }
   }, [viewMode, priorityFilter, dateFilter])
 
-  const fetchHistory = useCallback(async (logbookId: number) => {
-    if (expandedId === logbookId) {
-      setExpandedId(null)
-      return
-    }
-    
-    setHistoryLoading(true)
-    setExpandedId(logbookId)
-    try {
-      const response = await apiClient.get(`${API_URL}/api/logbooks/${logbookId}/history`)
-      // Backend returns { logbookId, history: [...] }
-      setHistory(response.history || response.data?.history || [])
-    } catch (err: any) {
-      console.error('Error fetching history:', err)
-      setHistory([])
-    } finally {
-      setHistoryLoading(false)
-    }
-  }, [expandedId])
+  const fetchHistory = useCallback(
+    async (logbookId: number) => {
+      if (expandedId === logbookId) {
+        setExpandedId(null)
+        return
+      }
+
+      setHistoryLoading(true)
+      setExpandedId(logbookId)
+      try {
+        const response = await apiClient.get(`${API_URL}/api/logbooks/${logbookId}/history`)
+        // Backend returns { logbookId, history: [...] }
+        setHistory(response.history || response.data?.history || [])
+      } catch (err: any) {
+        console.error('Error fetching history:', err)
+        setHistory([])
+      } finally {
+        setHistoryLoading(false)
+      }
+    },
+    [expandedId]
+  )
 
   const handleDateChange = (date: string | null) => {
     setDateFilter(date)
@@ -153,14 +166,14 @@ export default function LogbooksSection() {
       <div className="flex items-center justify-between gap-4 pb-4 border-b border-gray-200 dark:border-[#30363d]">
         <div className="flex items-center gap-2 flex-wrap">
           <FiFilter className="w-4 h-4 text-gray-400" />
-          
+
           {/* Date Filter */}
           <DateFilter
             selectedDate={dateFilter}
             onDateChange={handleDateChange}
             label="Fecha parte"
           />
-          
+
           {/* View Mode */}
           <select
             value={viewMode}
@@ -217,7 +230,7 @@ export default function LogbooksSection() {
           {logbooks.map((logbook) => {
             const priorityConfig = PRIORITY_CONFIG[logbook.importance_level] || PRIORITY_CONFIG.baja
             const isExpanded = expandedId === logbook.id
-            
+
             return (
               <div
                 key={logbook.id}
@@ -228,7 +241,12 @@ export default function LogbooksSection() {
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-2">
-                        <span className={cn('px-2 py-0.5 rounded-full text-xs font-medium', priorityConfig.color)}>
+                        <span
+                          className={cn(
+                            'px-2 py-0.5 rounded-full text-xs font-medium',
+                            priorityConfig.color
+                          )}
+                        >
                           {priorityConfig.label}
                         </span>
                         {!!logbook.is_solved && (
@@ -245,11 +263,11 @@ export default function LogbooksSection() {
                         )}
                         <span className="text-xs text-gray-400 font-mono">#{logbook.id}</span>
                       </div>
-                      
+
                       <p className="text-sm text-gray-900 dark:text-white mb-2 line-clamp-2">
                         {logbook.message}
                       </p>
-                      
+
                       <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
                         <span className="inline-flex items-center gap-1">
                           <FiUser className="w-3.5 h-3.5" />
@@ -260,13 +278,11 @@ export default function LogbooksSection() {
                           {formatDate(logbook.created_at)}
                         </span>
                         {logbook.department_name && (
-                          <span className="text-gray-400">
-                            {logbook.department_name}
-                          </span>
+                          <span className="text-gray-400">{logbook.department_name}</span>
                         )}
                       </div>
                     </div>
-                    
+
                     {/* Expand History Button */}
                     <button
                       onClick={() => fetchHistory(logbook.id)}
@@ -282,7 +298,7 @@ export default function LogbooksSection() {
                     </button>
                   </div>
                 </div>
-                
+
                 {/* History Panel */}
                 {isExpanded && (
                   <div className="border-t border-gray-200 dark:border-[#30363d] bg-gray-50 dark:bg-[#161b22] p-4">
@@ -312,12 +328,16 @@ export default function LogbooksSection() {
                               </div>
                               {entry.previousContent != null && (
                                 <p className="text-gray-500 line-through truncate">
-                                  {typeof entry.previousContent === 'string' ? entry.previousContent : JSON.stringify(entry.previousContent)}
+                                  {typeof entry.previousContent === 'string'
+                                    ? entry.previousContent
+                                    : JSON.stringify(entry.previousContent)}
                                 </p>
                               )}
                               {entry.newContent != null && (
                                 <p className="text-gray-700 dark:text-gray-300 truncate">
-                                  {typeof entry.newContent === 'string' ? entry.newContent : JSON.stringify(entry.newContent)}
+                                  {typeof entry.newContent === 'string'
+                                    ? entry.newContent
+                                    : JSON.stringify(entry.newContent)}
                                 </p>
                               )}
                             </div>
@@ -344,14 +364,18 @@ export default function LogbooksSection() {
       {!loading && !error && logbooks.length === 0 && loaded && (
         <div className="flex flex-col items-center justify-center py-12 text-gray-500">
           <FiBook className="w-10 h-10 mb-2" />
-          <p>No hay logbooks {viewMode === 'trashed' ? 'eliminados' : ''} {dateFilter ? `para ${dateFilter}` : ''}</p>
+          <p>
+            No hay logbooks {viewMode === 'trashed' ? 'eliminados' : ''}{' '}
+            {dateFilter ? `para ${dateFilter}` : ''}
+          </p>
         </div>
       )}
 
       {/* Count */}
       {!loading && logbooks.length > 0 && (
         <div className="text-xs text-gray-500 dark:text-gray-400 text-right">
-          Mostrando {logbooks.length} logbooks {dateFilter ? `del ${dateFilter}` : `(máx. ${DEFAULT_LIMIT})`}
+          Mostrando {logbooks.length} logbooks{' '}
+          {dateFilter ? `del ${dateFilter}` : `(máx. ${DEFAULT_LIMIT})`}
         </div>
       )}
     </div>

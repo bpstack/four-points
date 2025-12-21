@@ -5,6 +5,7 @@
 import { useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useGroupStore } from '@/app/stores/useGroupStore'
+import { useGroupContacts } from '@/app/lib/groups'
 import { ContactCard } from '../cards/ContactCard'
 import { EmptyState } from '../shared/EmptyState'
 import { LoadingSpinner } from '../shared/LoadingSpinner'
@@ -13,13 +14,11 @@ import { FiPlus, FiUsers } from 'react-icons/fi'
 export function ContactsTab() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { currentGroup, contacts, isLoadingContacts, refreshContacts } = useGroupStore()
+  const { currentGroup } = useGroupStore()
 
-  useEffect(() => {
-    if (currentGroup) {
-      refreshContacts(currentGroup.id)
-    }
-  }, [currentGroup, refreshContacts])
+  const groupId = currentGroup?.id
+  const { data: contactsData = [], isLoading } = useGroupContacts(groupId)
+  const contacts = contactsData?.contacts ?? contactsData ?? []
 
   const handleCreateContact = () => {
     const params = new URLSearchParams(searchParams.toString())
@@ -33,7 +32,7 @@ export function ContactsTab() {
     router.push(`?${params.toString()}`, { scroll: false })
   }
 
-  if (isLoadingContacts) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
         <LoadingSpinner size="md" message="Cargando contactos..." />
@@ -41,8 +40,8 @@ export function ContactsTab() {
     )
   }
 
-  const primaryContact = contacts.find((c) => c.is_primary)
-  const otherContacts = contacts.filter((c) => !c.is_primary)
+  const primaryContact = contactsData.find((c) => c.is_primary)
+  const otherContacts = contactsData.filter((c) => !c.is_primary)
 
   return (
     <div className="space-y-6">

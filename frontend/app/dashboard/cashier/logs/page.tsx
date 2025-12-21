@@ -67,7 +67,10 @@ export default function LogsPage() {
 
   // Top stats para mobile
   const topUsers = statsData?.most_active_users?.slice(0, 2) || []
-  const topActions = statsData?.actions_breakdown?.sort((a: { count: number }, b: { count: number }) => b.count - a.count).slice(0, 2) || []
+  const topActions =
+    statsData?.actions_breakdown
+      ?.sort((a: { count: number }, b: { count: number }) => b.count - a.count)
+      .slice(0, 2) || []
 
   return (
     <div className="min-h-screen bg-white dark:bg-[#010409] p-4 md:p-6">

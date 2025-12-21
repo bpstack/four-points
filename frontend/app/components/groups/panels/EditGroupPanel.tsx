@@ -227,7 +227,9 @@ export function EditGroupPanel({ isOpen, onClose, group, onSuccess }: EditGroupP
                   type="text"
                   readOnly
                   disabled={datesLocked}
-                  value={departureDate ? formatDateDisplayShort(parseInputDate(departureDate)!) : ''}
+                  value={
+                    departureDate ? formatDateDisplayShort(parseInputDate(departureDate)!) : ''
+                  }
                   placeholder="Selecciona fecha"
                   onClick={() => {
                     if (!datesLocked) {

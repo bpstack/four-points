@@ -5,6 +5,7 @@
 import { useState, useCallback } from 'react'
 import { apiClient } from '@/app/lib/apiClient'
 import { cn } from '@/app/lib/helpers/utils'
+import { API_BASE_URL } from '@/app/lib/env'
 import {
   FiClock,
   FiUser,
@@ -20,14 +21,17 @@ import {
 import DateFilter from '../DateFilter'
 import type { UnifiedActivity, ActivitySource } from '../types'
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'
+const API_URL = API_BASE_URL
 const DEFAULT_LIMIT = 50
 
 // ═══════════════════════════════════════════════════════
 // SOURCE CONFIG
 // ═══════════════════════════════════════════════════════
 
-const SOURCE_CONFIG: Record<ActivitySource, { label: string; color: string; icon: React.ReactNode }> = {
+const SOURCE_CONFIG: Record<
+  ActivitySource,
+  { label: string; color: string; icon: React.ReactNode }
+> = {
   cashier: {
     label: 'Caja',
     color: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
@@ -93,7 +97,7 @@ export default function OverviewSection() {
       const params = new URLSearchParams({ limit: DEFAULT_LIMIT.toString() })
       if (sourceFilter !== 'all') params.set('source', sourceFilter)
       if (dateFilter) params.set('date', dateFilter)
-      
+
       const response = await apiClient.get(`${API_URL}/api/activity/recent?${params.toString()}`)
       const data = response.data || response || []
       // Ensure limit is applied
@@ -147,7 +151,7 @@ export default function OverviewSection() {
       <div className="flex items-center gap-4 pb-4 border-b border-gray-200 dark:border-[#30363d]">
         <div className="flex items-center gap-2 flex-wrap">
           <FiFilter className="w-4 h-4 text-gray-400" />
-          
+
           <DateFilter
             selectedDate={dateFilter}
             onDateChange={(date) => {
@@ -156,7 +160,7 @@ export default function OverviewSection() {
             }}
             label="Fecha actividad"
           />
-          
+
           <select
             value={sourceFilter}
             onChange={(e) => {
@@ -197,20 +201,38 @@ export default function OverviewSection() {
           <table className="w-full text-sm">
             <thead className="bg-gray-50 dark:bg-[#161b22]">
               <tr>
-                <th className="px-4 py-3 text-left font-medium text-gray-500 dark:text-gray-400">Fuente</th>
-                <th className="px-4 py-3 text-left font-medium text-gray-500 dark:text-gray-400">Accion</th>
-                <th className="px-4 py-3 text-left font-medium text-gray-500 dark:text-gray-400">Usuario</th>
-                <th className="px-4 py-3 text-left font-medium text-gray-500 dark:text-gray-400">Registro</th>
-                <th className="px-4 py-3 text-left font-medium text-gray-500 dark:text-gray-400">Fecha</th>
+                <th className="px-4 py-3 text-left font-medium text-gray-500 dark:text-gray-400">
+                  Fuente
+                </th>
+                <th className="px-4 py-3 text-left font-medium text-gray-500 dark:text-gray-400">
+                  Accion
+                </th>
+                <th className="px-4 py-3 text-left font-medium text-gray-500 dark:text-gray-400">
+                  Usuario
+                </th>
+                <th className="px-4 py-3 text-left font-medium text-gray-500 dark:text-gray-400">
+                  Registro
+                </th>
+                <th className="px-4 py-3 text-left font-medium text-gray-500 dark:text-gray-400">
+                  Fecha
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 dark:divide-[#30363d]">
               {activity.map((item) => {
                 const sourceConfig = SOURCE_CONFIG[item.source]
                 return (
-                  <tr key={item.id} className="hover:bg-gray-50 dark:hover:bg-[#161b22] transition-colors">
+                  <tr
+                    key={item.id}
+                    className="hover:bg-gray-50 dark:hover:bg-[#161b22] transition-colors"
+                  >
                     <td className="px-4 py-3">
-                      <span className={cn('inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium', sourceConfig.color)}>
+                      <span
+                        className={cn(
+                          'inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium',
+                          sourceConfig.color
+                        )}
+                      >
                         {sourceConfig.icon}
                         {sourceConfig.label}
                       </span>

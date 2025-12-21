@@ -77,19 +77,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   useEffect(() => {
     // Solo verificar después de montar y cuando loading haya terminado
     if (!mounted || loading || redirecting) return
-    
+
     // Si no hay usuario después de cargar, esperar un momento y verificar tokens
     if (!user) {
-      const hasTokens = localStorage.getItem('access_token') || localStorage.getItem('refresh_token')
-      
-      if (hasTokens) {
-        // Hay tokens pero no usuario - probablemente race condition, esperar
-        console.log('[DashboardLayout] No user but tokens exist, waiting...')
-        return
-      }
-      
-      // No hay tokens, redirigir al login
-      console.log('[DashboardLayout] ❌ No user and no tokens, redirecting to login')
+      // Sin usuario tras cargar: redirigir al login (middleware protege server-side)
+      console.log('[DashboardLayout] ❌ No user, redirecting to login')
       setRedirecting(true)
       window.location.href = '/login'
     }

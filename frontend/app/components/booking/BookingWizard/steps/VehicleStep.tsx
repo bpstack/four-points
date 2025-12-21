@@ -1,12 +1,7 @@
 // app/components/booking/BookingWizard/steps/VehicleStep.tsx
 
 import { FaSpinner } from 'react-icons/fa'
-import {
-  SlidePanelSection,
-  FormField,
-  inputClassName,
-  Alert,
-} from '@/app/ui/panels'
+import { SlidePanelSection, FormField, inputClassName, Alert } from '@/app/ui/panels'
 import type { BookingWizardState, BookingWizardActions, WizardVariant } from '../types'
 
 interface VehicleStepProps {
@@ -101,7 +96,9 @@ export default function VehicleStep({ variant, state, actions, onCancel }: Vehic
             <input
               type="text"
               value={state.vehicleData.plate_number}
-              onChange={(e) => actions.setVehicleData({ plate_number: e.target.value.toUpperCase() })}
+              onChange={(e) =>
+                actions.setVehicleData({ plate_number: e.target.value.toUpperCase() })
+              }
               className={fullStyles.input + ' uppercase'}
               placeholder="1234ABC"
             />
@@ -137,7 +134,9 @@ export default function VehicleStep({ variant, state, actions, onCancel }: Vehic
           </button>
           <button
             onClick={actions.handleCreateVehicle}
-            disabled={state.loading || !state.vehicleData.plate_number || !state.vehicleData.owner_name}
+            disabled={
+              state.loading || !state.vehicleData.plate_number || !state.vehicleData.owner_name
+            }
             className={fullStyles.buttonPrimary + ' flex items-center justify-center gap-2'}
           >
             {state.loading ? (
@@ -215,7 +214,9 @@ export default function VehicleStep({ variant, state, actions, onCancel }: Vehic
             <input
               type="text"
               value={state.vehicleData.plate_number}
-              onChange={(e) => actions.setVehicleData({ plate_number: e.target.value.toUpperCase() })}
+              onChange={(e) =>
+                actions.setVehicleData({ plate_number: e.target.value.toUpperCase() })
+              }
               className={inputClassName}
               placeholder="1234ABC"
             />

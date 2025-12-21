@@ -5,6 +5,7 @@
 import { useState, useCallback } from 'react'
 import { apiClient } from '@/app/lib/apiClient'
 import { cn } from '@/app/lib/helpers/utils'
+import { API_BASE_URL } from '@/app/lib/env'
 import DateFilter from '../DateFilter'
 import {
   FiDollarSign,
@@ -27,14 +28,14 @@ interface CashierHistoryEntry {
   old_value: string | null
   new_value: string | null
   changed_by: string
-  username?: string  // Backend returns this from JOIN
+  username?: string // Backend returns this from JOIN
   changed_at: string
   shift_date?: string
   shift_type?: string
   shift_status?: string
 }
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'
+const API_URL = API_BASE_URL
 const DEFAULT_LIMIT = 50
 
 // ═══════════════════════════════════════════════════════
@@ -104,10 +105,25 @@ type ViewMode = 'dashboard' | 'vouchers' | 'history'
 // CONFIG
 // ═══════════════════════════════════════════════════════
 
-const VOUCHER_STATUS_CONFIG: Record<string, { label: string; color: string; icon: React.ReactNode }> = {
-  pending: { label: 'Pendiente', color: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400', icon: <FiClock className="w-3 h-3" /> },
-  justified: { label: 'Justificado', color: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400', icon: <FiCheckCircle className="w-3 h-3" /> },
-  cancelled: { label: 'Cancelado', color: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400', icon: <FiXCircle className="w-3 h-3" /> },
+const VOUCHER_STATUS_CONFIG: Record<
+  string,
+  { label: string; color: string; icon: React.ReactNode }
+> = {
+  pending: {
+    label: 'Pendiente',
+    color: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
+    icon: <FiClock className="w-3 h-3" />,
+  },
+  justified: {
+    label: 'Justificado',
+    color: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
+    icon: <FiCheckCircle className="w-3 h-3" />,
+  },
+  cancelled: {
+    label: 'Cancelado',
+    color: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
+    icon: <FiXCircle className="w-3 h-3" />,
+  },
 }
 
 const SHIFT_TYPES: Record<string, string> = {
@@ -129,16 +145,16 @@ export default function CashierSection() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [loaded, setLoaded] = useState(false)
-  
+
   // View mode
   const [viewMode, setViewMode] = useState<ViewMode>('dashboard')
-  
+
   // Voucher filters
   const [voucherStatus, setVoucherStatus] = useState<string>('all')
-  
+
   // Date filter for history view
   const [historyDate, setHistoryDate] = useState<string | null>(null)
-  
+
   // Date filter for dashboard view
   const [dashboardDate, setDashboardDate] = useState<string | null>(null)
 
@@ -149,7 +165,9 @@ export default function CashierSection() {
       if (viewMode === 'dashboard') {
         // If a specific date is selected, use the daily report endpoint
         if (dashboardDate) {
-          const response = await apiClient.get(`${API_URL}/api/cashier/reports/daily/${dashboardDate}`)
+          const response = await apiClient.get(
+            `${API_URL}/api/cashier/reports/daily/${dashboardDate}`
+          )
           setDailyReport(response.data || response)
           setOverview(null)
         } else {
@@ -160,7 +178,9 @@ export default function CashierSection() {
       } else if (viewMode === 'vouchers') {
         const params = new URLSearchParams({ limit: DEFAULT_LIMIT.toString() })
         if (voucherStatus !== 'all') params.set('status', voucherStatus)
-        const response = await apiClient.get(`${API_URL}/api/cashier/reports/vouchers-history?${params.toString()}`)
+        const response = await apiClient.get(
+          `${API_URL}/api/cashier/reports/vouchers-history?${params.toString()}`
+        )
         setVouchers(response.data?.vouchers || response.vouchers || response || [])
       } else if (viewMode === 'history') {
         const params = new URLSearchParams({ limit: DEFAULT_LIMIT.toString() })
@@ -277,7 +297,7 @@ export default function CashierSection() {
             Historial
           </button>
         </div>
-        
+
         {/* Filters - inline with tabs */}
         {viewMode === 'dashboard' && (
           <DateFilter
@@ -289,7 +309,7 @@ export default function CashierSection() {
             label="Fecha reporte"
           />
         )}
-        
+
         {viewMode === 'vouchers' && (
           <select
             value={voucherStatus}
@@ -305,7 +325,7 @@ export default function CashierSection() {
             <option value="cancelled">Cancelados</option>
           </select>
         )}
-        
+
         {viewMode === 'history' && (
           <DateFilter
             selectedDate={historyDate}
@@ -343,11 +363,12 @@ export default function CashierSection() {
             <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-3 flex items-center gap-2">
               <FiCalendar className="w-4 h-4 text-blue-500" />
               Hoy - {formatDate(overview.today.date)}
-              {overview.today.closed_shifts === overview.today.total_shifts && overview.today.total_shifts > 0 && (
-                <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400">
-                  Cerrado
-                </span>
-              )}
+              {overview.today.closed_shifts === overview.today.total_shifts &&
+                overview.today.total_shifts > 0 && (
+                  <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400">
+                    Cerrado
+                  </span>
+                )}
             </h4>
             <div className="grid grid-cols-5 gap-4">
               <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-4 text-center">
@@ -450,11 +471,12 @@ export default function CashierSection() {
             <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-3 flex items-center gap-2">
               <FiCalendar className="w-4 h-4 text-blue-500" />
               {formatDate(dailyReport.date)}
-              {dailyReport.summary.shifts_closed === dailyReport.summary.shifts_count && dailyReport.summary.shifts_count > 0 && (
-                <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400">
-                  Cerrado
-                </span>
-              )}
+              {dailyReport.summary.shifts_closed === dailyReport.summary.shifts_count &&
+                dailyReport.summary.shifts_count > 0 && (
+                  <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400">
+                    Cerrado
+                  </span>
+                )}
             </h4>
             <div className="grid grid-cols-5 gap-4">
               <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-4 text-center">
@@ -485,26 +507,49 @@ export default function CashierSection() {
                 <p className="text-2xl font-bold text-gray-700 dark:text-gray-300">
                   {dailyReport.summary.shifts_count}
                 </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Turnos ({dailyReport.summary.shifts_closed} cerrados)</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  Turnos ({dailyReport.summary.shifts_closed} cerrados)
+                </p>
               </div>
             </div>
           </div>
 
           {/* Difference Alert */}
           {Math.abs(dailyReport.summary.total_difference) > 0.5 && (
-            <div className={cn(
-              "p-4 border rounded-lg",
-              dailyReport.summary.total_difference > 0 
-                ? "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800"
-                : "bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800"
-            )}>
+            <div
+              className={cn(
+                'p-4 border rounded-lg',
+                dailyReport.summary.total_difference > 0
+                  ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800'
+                  : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'
+              )}
+            >
               <div className="flex items-center gap-2">
-                <FiAlertCircle className={cn("w-5 h-5", dailyReport.summary.total_difference > 0 ? "text-green-500" : "text-red-500")} />
+                <FiAlertCircle
+                  className={cn(
+                    'w-5 h-5',
+                    dailyReport.summary.total_difference > 0 ? 'text-green-500' : 'text-red-500'
+                  )}
+                />
                 <div>
-                  <p className={cn("text-sm font-medium", dailyReport.summary.total_difference > 0 ? "text-green-800 dark:text-green-200" : "text-red-800 dark:text-red-200")}>
+                  <p
+                    className={cn(
+                      'text-sm font-medium',
+                      dailyReport.summary.total_difference > 0
+                        ? 'text-green-800 dark:text-green-200'
+                        : 'text-red-800 dark:text-red-200'
+                    )}
+                  >
                     Diferencia: {formatCurrency(dailyReport.summary.total_difference)}
                   </p>
-                  <p className={cn("text-xs", dailyReport.summary.total_difference > 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400")}>
+                  <p
+                    className={cn(
+                      'text-xs',
+                      dailyReport.summary.total_difference > 0
+                        ? 'text-green-600 dark:text-green-400'
+                        : 'text-red-600 dark:text-red-400'
+                    )}
+                  >
                     {dailyReport.summary.total_difference > 0 ? 'Sobrante' : 'Faltante'} en caja
                   </p>
                 </div>
@@ -523,15 +568,26 @@ export default function CashierSection() {
                 <table className="w-full text-sm">
                   <thead className="bg-gray-50 dark:bg-[#161b22]">
                     <tr>
-                      <th className="px-4 py-3 text-left font-medium text-gray-500 dark:text-gray-400">Turno</th>
-                      <th className="px-4 py-3 text-right font-medium text-gray-500 dark:text-gray-400">Ingresos</th>
-                      <th className="px-4 py-3 text-right font-medium text-gray-500 dark:text-gray-400">En Caja</th>
-                      <th className="px-4 py-3 text-center font-medium text-gray-500 dark:text-gray-400">Estado</th>
+                      <th className="px-4 py-3 text-left font-medium text-gray-500 dark:text-gray-400">
+                        Turno
+                      </th>
+                      <th className="px-4 py-3 text-right font-medium text-gray-500 dark:text-gray-400">
+                        Ingresos
+                      </th>
+                      <th className="px-4 py-3 text-right font-medium text-gray-500 dark:text-gray-400">
+                        En Caja
+                      </th>
+                      <th className="px-4 py-3 text-center font-medium text-gray-500 dark:text-gray-400">
+                        Estado
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200 dark:divide-[#30363d]">
                     {dailyReport.shifts.map((shiftData) => (
-                      <tr key={shiftData.shift.id} className="hover:bg-gray-50 dark:hover:bg-[#161b22]">
+                      <tr
+                        key={shiftData.shift.id}
+                        className="hover:bg-gray-50 dark:hover:bg-[#161b22]"
+                      >
                         <td className="px-4 py-3 text-gray-900 dark:text-white font-medium">
                           {SHIFT_TYPES[shiftData.shift.shift_type] || shiftData.shift.shift_type}
                         </td>
@@ -568,8 +624,9 @@ export default function CashierSection() {
       {!loading && !error && viewMode === 'vouchers' && vouchers.length > 0 && (
         <div className="space-y-2">
           {vouchers.map((voucher) => {
-            const statusConfig = VOUCHER_STATUS_CONFIG[voucher.status] || VOUCHER_STATUS_CONFIG.pending
-            
+            const statusConfig =
+              VOUCHER_STATUS_CONFIG[voucher.status] || VOUCHER_STATUS_CONFIG.pending
+
             return (
               <div
                 key={voucher.id}
@@ -578,7 +635,12 @@ export default function CashierSection() {
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-2">
-                      <span className={cn('inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium', statusConfig.color)}>
+                      <span
+                        className={cn(
+                          'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium',
+                          statusConfig.color
+                        )}
+                      >
                         {statusConfig.icon}
                         {statusConfig.label}
                       </span>
@@ -586,14 +648,14 @@ export default function CashierSection() {
                         #{voucher.voucher_number || voucher.id}
                       </span>
                     </div>
-                    
+
                     <p className="text-sm font-medium text-gray-900 dark:text-white mb-1">
                       {voucher.concept}
                     </p>
                     <p className="text-xs text-gray-500 dark:text-gray-400">
                       Para: {voucher.recipient}
                     </p>
-                    
+
                     <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400 mt-2">
                       <span className="inline-flex items-center gap-1">
                         <FiCalendar className="w-3.5 h-3.5" />
@@ -607,7 +669,7 @@ export default function CashierSection() {
                       )}
                     </div>
                   </div>
-                  
+
                   <div className="text-right">
                     <p className="text-lg font-bold text-gray-900 dark:text-white">
                       {formatCurrency(voucher.amount)}
@@ -627,16 +689,29 @@ export default function CashierSection() {
           <table className="w-full text-sm">
             <thead className="bg-gray-50 dark:bg-[#161b22]">
               <tr>
-                <th className="px-4 py-3 text-left font-medium text-gray-500 dark:text-gray-400">Accion</th>
-                <th className="px-4 py-3 text-left font-medium text-gray-500 dark:text-gray-400">Tabla</th>
-                <th className="px-4 py-3 text-left font-medium text-gray-500 dark:text-gray-400">Campo</th>
-                <th className="px-4 py-3 text-left font-medium text-gray-500 dark:text-gray-400">Usuario</th>
-                <th className="px-4 py-3 text-left font-medium text-gray-500 dark:text-gray-400">Fecha</th>
+                <th className="px-4 py-3 text-left font-medium text-gray-500 dark:text-gray-400">
+                  Accion
+                </th>
+                <th className="px-4 py-3 text-left font-medium text-gray-500 dark:text-gray-400">
+                  Tabla
+                </th>
+                <th className="px-4 py-3 text-left font-medium text-gray-500 dark:text-gray-400">
+                  Campo
+                </th>
+                <th className="px-4 py-3 text-left font-medium text-gray-500 dark:text-gray-400">
+                  Usuario
+                </th>
+                <th className="px-4 py-3 text-left font-medium text-gray-500 dark:text-gray-400">
+                  Fecha
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 dark:divide-[#30363d]">
               {historyData.map((entry) => (
-                <tr key={entry.id} className="hover:bg-gray-50 dark:hover:bg-[#161b22] transition-colors">
+                <tr
+                  key={entry.id}
+                  className="hover:bg-gray-50 dark:hover:bg-[#161b22] transition-colors"
+                >
                   <td className="px-4 py-3 text-gray-900 dark:text-white font-medium">
                     {entry.action}
                   </td>

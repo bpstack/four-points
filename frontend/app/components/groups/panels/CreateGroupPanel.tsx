@@ -199,7 +199,9 @@ export function CreateGroupPanel({ isOpen, onClose }: CreateGroupPanelProps) {
                 <input
                   type="text"
                   readOnly
-                  value={departureDate ? formatDateDisplayShort(parseInputDate(departureDate)!) : ''}
+                  value={
+                    departureDate ? formatDateDisplayShort(parseInputDate(departureDate)!) : ''
+                  }
                   placeholder="Selecciona fecha"
                   onClick={() => {
                     setShowDepartureCal(!showDepartureCal)

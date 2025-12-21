@@ -3,11 +3,12 @@
 import { useState, useRef, useEffect, useMemo } from 'react'
 import { FiBell, FiX, FiCalendar, FiClock, FiAlertCircle, FiLink } from 'react-icons/fi'
 import { apiClient } from '@/app/lib/apiClient'
+import { API_BASE_URL } from '@/app/lib/env'
 import SimpleCalendarCompact from '@/app/ui/calendar/SimpleCalendarCompact'
 import TimePicker from '@/app/ui/calendar/timepicker'
 import { toast } from 'react-hot-toast'
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'
+const API_URL = API_BASE_URL
 
 interface GlobalNotificationModalProps {
   isOpen: boolean
@@ -77,7 +78,11 @@ function getMinTimeForToday(): string {
   return `${String(adjustedHours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`
 }
 
-export function GlobalNotificationModal({ isOpen, onClose, onSuccess }: GlobalNotificationModalProps) {
+export function GlobalNotificationModal({
+  isOpen,
+  onClose,
+  onSuccess,
+}: GlobalNotificationModalProps) {
   const [title, setTitle] = useState('')
   const [message, setMessage] = useState('')
   const [priority, setPriority] = useState<Priority>('medium')
@@ -245,7 +250,8 @@ export function GlobalNotificationModal({ isOpen, onClose, onSuccess }: GlobalNo
   if (!isOpen) return null
 
   const today = new Date()
-  const selectedSectionLabel = APP_SECTIONS.find((s) => s.value === selectedSection)?.label || 'Dashboard'
+  const selectedSectionLabel =
+    APP_SECTIONS.find((s) => s.value === selectedSection)?.label || 'Dashboard'
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
@@ -286,7 +292,8 @@ export function GlobalNotificationModal({ isOpen, onClose, onSuccess }: GlobalNo
               ))}
             </select>
             <p className="text-[10px] text-gray-500 mt-0.5">
-              Al hacer click en la notificacion, se redirigira a: <code className="bg-gray-100 dark:bg-gray-800 px-1 rounded">{selectedSection}</code>
+              Al hacer click en la notificacion, se redirigira a:{' '}
+              <code className="bg-gray-100 dark:bg-gray-800 px-1 rounded">{selectedSection}</code>
             </p>
           </div>
 

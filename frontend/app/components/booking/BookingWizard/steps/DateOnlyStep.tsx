@@ -36,7 +36,9 @@ export default function DateOnlyStep({ state, actions }: DateOnlyStepProps) {
                 }}
                 className={`${inputClassName} text-left flex justify-between items-center`}
               >
-                <span className={state.reservationData.expected_checkin_date ? '' : 'text-gray-400'}>
+                <span
+                  className={state.reservationData.expected_checkin_date ? '' : 'text-gray-400'}
+                >
                   {state.reservationData.expected_checkin_date
                     ? formatDateLocal(new Date(state.reservationData.expected_checkin_date))
                     : 'Seleccionar fecha'}
@@ -85,7 +87,9 @@ export default function DateOnlyStep({ state, actions }: DateOnlyStepProps) {
                 }}
                 className={`${inputClassName} text-left flex justify-between items-center`}
               >
-                <span className={state.reservationData.expected_checkout_date ? '' : 'text-gray-400'}>
+                <span
+                  className={state.reservationData.expected_checkout_date ? '' : 'text-gray-400'}
+                >
                   {state.reservationData.expected_checkout_date
                     ? formatDateLocal(new Date(state.reservationData.expected_checkout_date))
                     : 'Seleccionar fecha'}
@@ -128,7 +132,8 @@ export default function DateOnlyStep({ state, actions }: DateOnlyStepProps) {
         {actions.calculateDays() > 0 && (
           <Alert variant="info" className="mt-4">
             <p>
-              Duración de la estancia: <span className="font-semibold">{actions.calculateDays()} día(s)</span>
+              Duración de la estancia:{' '}
+              <span className="font-semibold">{actions.calculateDays()} día(s)</span>
             </p>
           </Alert>
         )}

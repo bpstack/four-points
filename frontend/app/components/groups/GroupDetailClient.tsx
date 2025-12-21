@@ -15,7 +15,15 @@
 import { useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useGroupStore } from '@/app/stores/useGroupStore'
-import { GroupWithDetails } from '@/app/lib/groups'
+import {
+  GroupWithDetails,
+  GroupPayment,
+  GroupRoom,
+  useGroup,
+  useGroupPayments,
+  useGroupContacts,
+  useGroupRooms,
+} from '@/app/lib/groups'
 import { GroupHeader } from './layout/GroupHeader'
 import { TabNavigation } from './layout/TabNavigation'
 import { GroupDetailSummaryPanel } from './layout/GroupDetailSummaryPanel'
@@ -42,17 +50,13 @@ export function GroupDetailClient({ initialGroup }: GroupDetailClientProps) {
   const panel = searchParams.get('panel')
   const highlightId = searchParams.get('highlight')
 
-  const {
-    currentGroup,
-    payments,
-    contacts,
-    rooms,
-    setCurrentGroup,
-    setActiveTab,
-    setHighlight,
-    refreshGroup,
-    refreshStatus,
-  } = useGroupStore()
+  const { currentGroup, setCurrentGroup, setActiveTab, setHighlight } = useGroupStore()
+
+  const { data: groupData } = useGroup(currentGroup?.id)
+  const { data: paymentsData } = useGroupPayments(currentGroup?.id)
+  const payments = paymentsData?.payments ?? []
+  const { data: contacts = [] } = useGroupContacts(currentGroup?.id)
+  const { data: rooms = [] } = useGroupRooms(currentGroup?.id)
 
   // Inicializar grupo en el store
   useEffect(() => {
@@ -79,11 +83,8 @@ export function GroupDetailClient({ initialGroup }: GroupDetailClientProps) {
     router.push(`?${params.toString()}`, { scroll: false })
   }
 
-  const handleEditSuccess = async () => {
-    if (currentGroup) {
-      await refreshGroup(currentGroup.id)
-      await refreshStatus(currentGroup.id)
-    }
+  const handleEditSuccess = () => {
+    // Las mutaciones ya invalidan los queries necesarios vía React Query
   }
 
   // Payment Panel Logic
@@ -93,7 +94,7 @@ export function GroupDetailClient({ initialGroup }: GroupDetailClientProps) {
     ? parseInt(panel.replace('edit-payment-', ''))
     : null
   const editingPayment = editingPaymentId
-    ? payments.find((p) => p.id === editingPaymentId)
+    ? payments.find((p: GroupPayment) => p.id === editingPaymentId)
     : undefined
 
   // Contact Panel Logic
@@ -111,7 +112,9 @@ export function GroupDetailClient({ initialGroup }: GroupDetailClientProps) {
   const editingRoomId = panel?.startsWith('edit-room-')
     ? parseInt(panel.replace('edit-room-', ''))
     : null
-  const editingRoom = editingRoomId ? rooms.find((r) => r.id === editingRoomId) : undefined
+  const editingRoom = editingRoomId
+    ? rooms.find((r: GroupRoom) => r.id === editingRoomId)
+    : undefined
 
   // Edit Group Panel Logic
   const isEditGroupPanelOpen = panel === 'edit-group'

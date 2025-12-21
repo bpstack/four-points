@@ -12,7 +12,16 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { FiPlus, FiSearch, FiAlertTriangle, FiEye, FiShield, FiAlertCircle, FiCheckCircle, FiSlash } from 'react-icons/fi'
+import {
+  FiPlus,
+  FiSearch,
+  FiAlertTriangle,
+  FiEye,
+  FiShield,
+  FiAlertCircle,
+  FiCheckCircle,
+  FiSlash,
+} from 'react-icons/fi'
 import { IoWarning } from 'react-icons/io5'
 import { Badge } from '@/app/components/blacklist/ui/Badge'
 import { CreateBlacklistPanel } from '@/app/components/blacklist/panels/CreateBlacklistPanel'
@@ -93,19 +102,23 @@ export default function BlacklistPage() {
   const getSeverityConfig = (severity: BlacklistEntry['severity']) => {
     const configs = {
       LOW: {
-        color: 'bg-gray-50 text-gray-700 border border-gray-200 dark:bg-gray-900/20 dark:text-gray-400 dark:border-gray-800',
+        color:
+          'bg-gray-50 text-gray-700 border border-gray-200 dark:bg-gray-900/20 dark:text-gray-400 dark:border-gray-800',
         label: 'Bajo',
       },
       MEDIUM: {
-        color: 'bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-800',
+        color:
+          'bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-800',
         label: 'Medio',
       },
       HIGH: {
-        color: 'bg-orange-50 text-orange-700 border border-orange-200 dark:bg-orange-900/20 dark:text-orange-400 dark:border-orange-800',
+        color:
+          'bg-orange-50 text-orange-700 border border-orange-200 dark:bg-orange-900/20 dark:text-orange-400 dark:border-orange-800',
         label: 'Alto',
       },
       CRITICAL: {
-        color: 'bg-red-50 text-red-700 border border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800',
+        color:
+          'bg-red-50 text-red-700 border border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800',
         label: 'Crítico',
       },
     }
@@ -117,9 +130,7 @@ export default function BlacklistPage() {
       <div className="min-h-screen bg-gray-50 dark:bg-[#010409] flex items-center justify-center">
         <div className="text-center">
           <div className="inline-block h-10 w-10 animate-spin rounded-full border-[3px] border-solid border-blue-600 dark:border-blue-500 border-r-transparent"></div>
-          <p className="mt-3 text-xs text-gray-600 dark:text-gray-400">
-            Cargando registros...
-          </p>
+          <p className="mt-3 text-xs text-gray-600 dark:text-gray-400">Cargando registros...</p>
         </div>
       </div>
     )
@@ -346,12 +357,17 @@ export default function BlacklistPage() {
                                 </span>
                               </td>
                               <td className="px-3 py-2">
-                                <Badge variant={entry.status === 'ACTIVE' ? 'success' : 'default'} size="sm">
+                                <Badge
+                                  variant={entry.status === 'ACTIVE' ? 'success' : 'default'}
+                                  size="sm"
+                                >
                                   {entry.status === 'ACTIVE' ? 'Activo' : 'Eliminado'}
                                 </Badge>
                               </td>
                               <td className="px-3 py-2 text-gray-700 dark:text-gray-300">
-                                <div className="text-xs">{entry.created_by_username || 'Desconocido'}</div>
+                                <div className="text-xs">
+                                  {entry.created_by_username || 'Desconocido'}
+                                </div>
                                 <div className="text-[10px] text-gray-500 dark:text-gray-400">
                                   {formatDate(entry.created_at)}
                                 </div>
@@ -441,7 +457,10 @@ export default function BlacklistPage() {
                             >
                               {severityConfig.label}
                             </span>
-                            <Badge variant={entry.status === 'ACTIVE' ? 'success' : 'default'} size="sm">
+                            <Badge
+                              variant={entry.status === 'ACTIVE' ? 'success' : 'default'}
+                              size="sm"
+                            >
                               {entry.status === 'ACTIVE' ? 'Activo' : 'Eliminado'}
                             </Badge>
                           </div>
@@ -483,7 +502,9 @@ export default function BlacklistPage() {
                 <div className="bg-white dark:bg-[#0D1117] border border-[#d0d7de] dark:border-[#30363d] rounded-xl shadow-sm p-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">Críticos</p>
+                      <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">
+                        Críticos
+                      </p>
                       <p className="text-xl font-bold text-gray-900 dark:text-gray-100 mt-0.5">
                         {criticalCount}
                       </p>

@@ -91,7 +91,7 @@ export default function DatePickerInput({
           {label} {required && '*'}
         </label>
       )}
-      
+
       <div ref={containerRef} className="relative">
         {/* Input button */}
         <button
@@ -104,16 +104,21 @@ export default function DatePickerInput({
             dark:bg-[#0d1117] dark:text-gray-200 
             flex items-center justify-between gap-2
             ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
-            ${error 
-              ? 'border-red-500 dark:border-red-500' 
-              : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
+            ${
+              error
+                ? 'border-red-500 dark:border-red-500'
+                : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
             }
           `}
         >
-          <span className={value ? 'text-gray-900 dark:text-gray-100' : 'text-gray-400 dark:text-gray-500'}>
+          <span
+            className={
+              value ? 'text-gray-900 dark:text-gray-100' : 'text-gray-400 dark:text-gray-500'
+            }
+          >
             {value ? formatDisplayDate(value) : placeholder}
           </span>
-          
+
           <div className="flex items-center gap-1">
             {clearable && value && !disabled && (
               <span
@@ -141,9 +146,7 @@ export default function DatePickerInput({
         )}
       </div>
 
-      {error && (
-        <p className="mt-1 text-xs text-red-500">{error}</p>
-      )}
+      {error && <p className="mt-1 text-xs text-red-500">{error}</p>}
     </div>
   )
 }

@@ -3,8 +3,9 @@
 
 import { cookies } from 'next/headers'
 import type { ReportFormData, ReportWithDetails } from '@/app/lib/maintenance/maintenance'
+import { SERVER_API_BASE_URL } from '@/app/lib/env'
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'
+const API_BASE = SERVER_API_BASE_URL
 
 export interface UpdateMaintenanceResponse {
   success: boolean

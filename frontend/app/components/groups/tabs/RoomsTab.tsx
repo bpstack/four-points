@@ -5,6 +5,7 @@
 import { useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useGroupStore } from '@/app/stores/useGroupStore'
+import { useGroupRooms } from '@/app/lib/groups'
 import { RoomCard } from '../cards/RoomCard'
 import { EmptyState } from '../shared/EmptyState'
 import { LoadingSpinner } from '../shared/LoadingSpinner'
@@ -13,13 +14,11 @@ import { FiPlus, FiEdit, FiUsers } from 'react-icons/fi'
 export function RoomsTab() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { currentGroup, rooms, isLoadingRooms, refreshRooms } = useGroupStore()
+  const { currentGroup } = useGroupStore()
 
-  useEffect(() => {
-    if (currentGroup) {
-      refreshRooms(currentGroup.id)
-    }
-  }, [currentGroup, refreshRooms])
+  const groupId = currentGroup?.id
+  const { data: roomsData, isLoading } = useGroupRooms(groupId)
+  const rooms = roomsData?.rooms ?? roomsData ?? []
 
   const handleCreateRoom = () => {
     const params = new URLSearchParams(searchParams.toString())
@@ -33,7 +32,7 @@ export function RoomsTab() {
     router.push(`?${params.toString()}`, { scroll: false })
   }
 
-  if (isLoadingRooms) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
         <LoadingSpinner size="md" message="Cargando habitaciones..." />

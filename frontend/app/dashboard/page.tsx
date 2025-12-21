@@ -92,7 +92,7 @@ export default function DashboardHome() {
           const year = today.getFullYear()
           const month = today.getMonth()
           const lastDayOfMonth = new Date(year, month + 1, 0).getDate()
-          
+
           const monthStart = new Date(year, month, 1)
           monthStart.setHours(0, 0, 0, 0)
           const monthEnd = new Date(year, month, lastDayOfMonth)
@@ -100,7 +100,7 @@ export default function DashboardHome() {
 
           startTimestamp = monthStart.getTime()
           endTimestamp = monthEnd.getTime()
-          
+
           // Generar todas las fechas del mes actual
           dates = []
           for (let day = 1; day <= lastDayOfMonth; day++) {

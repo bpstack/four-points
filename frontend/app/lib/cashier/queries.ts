@@ -3,6 +3,7 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import apiClient from '@/app/lib/apiClient'
+import { API_BASE_URL } from '@/app/lib/env'
 import type {
   InitializeDayDTO,
   UpdateShiftDTO,
@@ -11,7 +12,7 @@ import type {
   CreateVoucherDTO,
 } from './types'
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'
+const API_BASE = API_BASE_URL
 
 export const cashierKeys = {
   all: ['cashier'] as const,

@@ -74,9 +74,7 @@ export default function EditCommentModal({
           <FormField label="Priority">
             <select
               value={priority}
-              onChange={(e) =>
-                setPriority(e.target.value as 'baja' | 'media' | 'alta' | 'urgente')
-              }
+              onChange={(e) => setPriority(e.target.value as 'baja' | 'media' | 'alta' | 'urgente')}
               className={selectClassName}
               disabled={isSubmitting}
             >

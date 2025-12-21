@@ -76,7 +76,7 @@ export function EditBookingModal({ booking, onClose, onConfirm }: EditBookingMod
     setLoadingSpots(true)
     try {
       // Si la fecha de entrada está en el pasado, usar hoy como start_date
-      const startDate = isCheckinInPast 
+      const startDate = isCheckinInPast
         ? new Date().toISOString().split('T')[0]
         : data.expected_checkin.split('T')[0]
       const endDate = data.expected_checkout.split('T')[0]
@@ -119,10 +119,14 @@ export function EditBookingModal({ booking, onClose, onConfirm }: EditBookingMod
       const updateData: Parameters<typeof onConfirm>[0] = {}
 
       // General data
-      if (data.expected_checkin !== formatDateTimeLocal(new Date(booking.schedule.expected_checkin))) {
+      if (
+        data.expected_checkin !== formatDateTimeLocal(new Date(booking.schedule.expected_checkin))
+      ) {
         updateData.expected_checkin = data.expected_checkin
       }
-      if (data.expected_checkout !== formatDateTimeLocal(new Date(booking.schedule.expected_checkout))) {
+      if (
+        data.expected_checkout !== formatDateTimeLocal(new Date(booking.schedule.expected_checkout))
+      ) {
         updateData.expected_checkout = data.expected_checkout
       }
       if (parseFloat(data.total_amount) !== booking.payment.total_amount) {
@@ -175,9 +179,7 @@ export function EditBookingModal({ booking, onClose, onConfirm }: EditBookingMod
               <FiEdit2 className="w-5 h-5 text-blue-600" />
               Editar Reserva
             </h3>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-              {booking.booking_code}
-            </p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{booking.booking_code}</p>
           </div>
           <button
             onClick={onClose}
@@ -214,7 +216,8 @@ export function EditBookingModal({ booking, onClose, onConfirm }: EditBookingMod
               {isCheckedIn && (
                 <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3">
                   <p className="text-sm text-amber-700 dark:text-amber-300">
-                    Esta reserva ya tiene check-in realizado. La fecha de entrada no se puede modificar.
+                    Esta reserva ya tiene check-in realizado. La fecha de entrada no se puede
+                    modificar.
                   </p>
                 </div>
               )}
@@ -316,7 +319,10 @@ export function EditBookingModal({ booking, onClose, onConfirm }: EditBookingMod
             <div className="space-y-4">
               <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
                 <p className="text-sm text-blue-700 dark:text-blue-300">
-                  Plaza actual: <strong>{booking.spot.level} - {booking.spot.number}</strong>
+                  Plaza actual:{' '}
+                  <strong>
+                    {booking.spot.level} - {booking.spot.number}
+                  </strong>
                 </p>
               </div>
 
@@ -345,7 +351,9 @@ export function EditBookingModal({ booking, onClose, onConfirm }: EditBookingMod
                     .map((spot) => (
                       <button
                         key={spot.id}
-                        onClick={() => setSelectedSpot({ ...selectedSpot, spot_number: spot.spot_number })}
+                        onClick={() =>
+                          setSelectedSpot({ ...selectedSpot, spot_number: spot.spot_number })
+                        }
                         className={`p-2 text-sm font-medium rounded-lg border transition-colors ${
                           selectedSpot.spot_number === spot.spot_number
                             ? 'bg-blue-600 text-white border-blue-600'
@@ -358,11 +366,13 @@ export function EditBookingModal({ booking, onClose, onConfirm }: EditBookingMod
                         </span>
                       </button>
                     ))}
-                  {availableSpots.filter((s) => s.level_code === selectedSpot.level_code).length === 0 && !loadingSpots && (
-                    <p className="col-span-4 text-center text-sm text-gray-500 py-4">
-                      No hay plazas disponibles en estas fechas
-                    </p>
-                  )}
+                  {availableSpots.filter((s) => s.level_code === selectedSpot.level_code).length ===
+                    0 &&
+                    !loadingSpots && (
+                      <p className="col-span-4 text-center text-sm text-gray-500 py-4">
+                        No hay plazas disponibles en estas fechas
+                      </p>
+                    )}
                 </div>
               </div>
             </div>
@@ -374,7 +384,8 @@ export function EditBookingModal({ booking, onClose, onConfirm }: EditBookingMod
               {booking.vehicle && (
                 <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-3">
                   <p className="text-sm text-green-700 dark:text-green-300">
-                    Vehiculo actual: <strong>{booking.vehicle.plate}</strong> - {booking.vehicle.owner}
+                    Vehiculo actual: <strong>{booking.vehicle.plate}</strong> -{' '}
+                    {booking.vehicle.owner}
                   </p>
                 </div>
               )}

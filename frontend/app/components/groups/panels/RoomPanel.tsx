@@ -9,8 +9,9 @@ import { FiSave, FiEdit } from 'react-icons/fi'
 import toast from 'react-hot-toast'
 
 import { roomSchema, type RoomFormData } from '@/app/lib/schemas/group-schemas'
+import { useCreateOrUpdateRoom, useUpdateRoom } from '@/app/lib/groups'
 import { useGroupStore } from '@/app/stores/useGroupStore'
-import { groupsApi, type GroupRoom, RoomType } from '@/app/lib/groups'
+import { RoomType, type GroupRoom } from '@/app/lib/groups'
 import {
   SlidePanel,
   SlidePanelSection,
@@ -35,8 +36,12 @@ const ROOM_TYPES = [
 ] as const
 
 export function RoomPanel({ isOpen, onClose, room, groupId }: RoomPanelProps) {
-  const { refreshRooms } = useGroupStore()
+  const { currentGroup } = useGroupStore()
   const isEditing = !!room
+
+  const effectiveGroupId = currentGroup?.id ?? groupId
+  const createOrUpdateRoomMutation = useCreateOrUpdateRoom(effectiveGroupId)
+  const updateRoomMutation = useUpdateRoom(effectiveGroupId, room?.id)
 
   const {
     register,
@@ -82,15 +87,18 @@ export function RoomPanel({ isOpen, onClose, room, groupId }: RoomPanelProps) {
         notes: data.notes || undefined,
       }
 
+      if (!effectiveGroupId) {
+        throw new Error('Falta el identificador del grupo')
+      }
+
       if (isEditing && room) {
-        await groupsApi.updateRoom(groupId, room.id, payload)
+        await updateRoomMutation.mutateAsync(payload)
         toast.success('Habitación actualizada correctamente')
       } else {
-        await groupsApi.createOrUpdateRoom(groupId, payload)
+        await createOrUpdateRoomMutation.mutateAsync(payload)
         toast.success('Habitación creada correctamente')
       }
 
-      await refreshRooms(groupId)
       onClose()
       reset()
     } catch (error) {
@@ -116,7 +124,9 @@ export function RoomPanel({ isOpen, onClose, room, groupId }: RoomPanelProps) {
         <SlidePanelFooterButtons
           onCancel={onClose}
           onSubmit={handleSubmit(onSubmit)}
-          isSubmitting={isSubmitting}
+          isSubmitting={
+            isSubmitting || createOrUpdateRoomMutation.isPending || updateRoomMutation.isPending
+          }
           submitText={isEditing ? 'Actualizar' : 'Crear Habitación'}
           submitIcon={<FiSave className="w-4 h-4" />}
           submitVariant="primary"

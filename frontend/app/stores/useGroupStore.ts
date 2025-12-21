@@ -50,7 +50,7 @@ interface GroupStore {
   refreshContacts: (groupId: number) => Promise<void>
   refreshRooms: (groupId: number) => Promise<void>
   refreshStatus: (groupId: number) => Promise<void>
-  deletePayment: (groupId: number, paymentId: number) => Promise<void> // ← NUEVO
+  deletePayment: (groupId: number, paymentId: number) => Promise<void>
 
   // ========================================
   // ACTIONS - UI
@@ -142,7 +142,7 @@ export const useGroupStore = create<GroupStore>((set, get) => ({
       set({ rooms: response.data.rooms || [] })
     } catch (error) {
       console.error('Error refreshing rooms:', error)
-      set({ rooms: [] }) // ← Asegurar array vacío en caso de error
+      set({ rooms: [] })
     } finally {
       set({ isLoadingRooms: false })
     }
@@ -170,11 +170,10 @@ export const useGroupStore = create<GroupStore>((set, get) => ({
   deletePayment: async (groupId: number, paymentId: number) => {
     try {
       await groupsApi.deletePayment(groupId, paymentId)
-      // Refrescar la lista de pagos después de eliminar
       await get().refreshPayments(groupId)
     } catch (error) {
       console.error('Error deleting payment:', error)
-      throw error // Re-lanzar para que el componente pueda manejarlo
+      throw error
     }
   },
 

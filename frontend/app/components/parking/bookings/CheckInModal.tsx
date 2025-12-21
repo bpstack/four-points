@@ -41,9 +41,7 @@ export function CheckInModal({ booking, onClose, onConfirm }: CheckInModalProps)
               <FiLogIn className="w-5 h-5 text-green-600" />
               Check-in
             </h3>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-              {booking.booking_code}
-            </p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{booking.booking_code}</p>
           </div>
           <button
             onClick={onClose}

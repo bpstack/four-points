@@ -3,14 +3,7 @@
 'use client'
 
 import { useState } from 'react'
-import {
-  FiSearch,
-  FiPlus,
-  FiEdit2,
-  FiTrash2,
-  FiAlertTriangle,
-  FiFilter,
-} from 'react-icons/fi'
+import { FiSearch, FiPlus, FiEdit2, FiTrash2, FiAlertTriangle, FiFilter } from 'react-icons/fi'
 
 // Mock data types
 interface Product {
@@ -388,7 +381,10 @@ export function InventoryTab() {
 
                 <div className="flex items-center justify-between text-[10px] text-gray-600 dark:text-gray-400">
                   <span>
-                    Stock: <span className="font-medium text-gray-900 dark:text-gray-100">{product.stock} {product.unit}</span>
+                    Stock:{' '}
+                    <span className="font-medium text-gray-900 dark:text-gray-100">
+                      {product.stock} {product.unit}
+                    </span>
                   </span>
                   <span className="font-semibold text-xs text-gray-900 dark:text-gray-100">
                     {formatCurrency(product.price)}

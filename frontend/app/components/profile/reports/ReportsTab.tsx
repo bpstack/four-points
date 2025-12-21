@@ -200,9 +200,7 @@ export function ReportsTab() {
 
         {/* Content Area - Suspense para lazy loading */}
         <main className="flex-1 overflow-auto p-6">
-          <Suspense fallback={<SectionSkeleton />}>
-            {renderSection()}
-          </Suspense>
+          <Suspense fallback={<SectionSkeleton />}>{renderSection()}</Suspense>
         </main>
       </div>
     </div>

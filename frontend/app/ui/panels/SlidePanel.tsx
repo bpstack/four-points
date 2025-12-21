@@ -99,9 +99,7 @@ export function StepIndicator({ steps, currentStep, variant = 'default' }: StepI
               <div
                 className={cn(
                   'w-8 h-0.5 mx-1 transition-all duration-200',
-                  step.number < currentStep
-                    ? 'bg-green-500'
-                    : 'bg-gray-200 dark:bg-gray-700'
+                  step.number < currentStep ? 'bg-green-500' : 'bg-gray-200 dark:bg-gray-700'
                 )}
               />
             )}
@@ -126,7 +124,11 @@ export function StepIndicator({ steps, currentStep, variant = 'default' }: StepI
                     : 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400'
               )}
             >
-              {step.number < currentStep ? <FiCheck className="w-5 h-5" /> : step.icon || step.number}
+              {step.number < currentStep ? (
+                <FiCheck className="w-5 h-5" />
+              ) : (
+                step.icon || step.number
+              )}
             </div>
             <span
               className={cn(
@@ -143,9 +145,7 @@ export function StepIndicator({ steps, currentStep, variant = 'default' }: StepI
             <div
               className={cn(
                 'flex-1 h-0.5 mx-4 transition-all duration-200',
-                step.number < currentStep
-                  ? 'bg-green-500'
-                  : 'bg-gray-200 dark:bg-gray-700'
+                step.number < currentStep ? 'bg-green-500' : 'bg-gray-200 dark:bg-gray-700'
               )}
             />
           )}
@@ -180,10 +180,7 @@ export function SlidePanel({
 
   return (
     <Transition show={isOpen} as={Fragment}>
-      <Dialog 
-        onClose={closeOnBackdrop ? onClose : () => {}} 
-        className="relative z-50"
-      >
+      <Dialog onClose={closeOnBackdrop ? onClose : () => {}} className="relative z-50">
         {/* Backdrop - reduced opacity for better visibility */}
         <Transition.Child
           as={Fragment}
@@ -194,19 +191,18 @@ export function SlidePanel({
           leaveFrom="opacity-100"
           leaveTo="opacity-0"
         >
-          <div 
-            className="fixed inset-0 bg-black/20 dark:bg-black/40" 
-            aria-hidden="true" 
-          />
+          <div className="fixed inset-0 bg-black/20 dark:bg-black/40" aria-hidden="true" />
         </Transition.Child>
 
         {/* Panel container */}
         <div className="fixed inset-0 overflow-hidden">
           <div className="absolute inset-0 overflow-hidden">
-            <div className={cn(
-              'pointer-events-none fixed inset-y-0 flex max-w-full',
-              isLeft ? 'left-0 pr-10' : 'right-0 pl-10'
-            )}>
+            <div
+              className={cn(
+                'pointer-events-none fixed inset-y-0 flex max-w-full',
+                isLeft ? 'left-0 pr-10' : 'right-0 pl-10'
+              )}
+            >
               <Transition.Child
                 as={Fragment}
                 enter="transform transition ease-in-out duration-300"
@@ -216,12 +212,8 @@ export function SlidePanel({
                 leaveFrom="translate-x-0"
                 leaveTo={isLeft ? '-translate-x-full' : 'translate-x-full'}
               >
-                <Dialog.Panel 
-                  className={cn(
-                    'pointer-events-auto w-screen',
-                    sizeClasses[size],
-                    className
-                  )}
+                <Dialog.Panel
+                  className={cn('pointer-events-auto w-screen', sizeClasses[size], className)}
                 >
                   <div className="flex h-full flex-col bg-white dark:bg-[#151b23] shadow-xl">
                     {/* Header */}
@@ -265,9 +257,7 @@ export function SlidePanel({
                     </div>
 
                     {/* Body - scrollable */}
-                    <div className="flex-1 overflow-y-auto px-4 py-6 sm:px-6">
-                      {children}
-                    </div>
+                    <div className="flex-1 overflow-y-auto px-4 py-6 sm:px-6">{children}</div>
 
                     {/* Footer - fixed at bottom */}
                     {footer && (
@@ -417,18 +407,14 @@ export function FormField({ label, required, error, children, hint, className }:
         {label} {required && <span className="text-red-500">*</span>}
       </label>
       {children}
-      {hint && !error && (
-        <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">{hint}</p>
-      )}
-      {error && (
-        <p className="mt-1 text-xs text-red-600 dark:text-red-400">{error}</p>
-      )}
+      {hint && !error && <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">{hint}</p>}
+      {error && <p className="mt-1 text-xs text-red-600 dark:text-red-400">{error}</p>}
     </div>
   )
 }
 
 /** Consistent text input styling */
-export const inputClassName = 
+export const inputClassName =
   'w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed'
 
 /** Consistent select styling */
@@ -438,7 +424,7 @@ export const selectClassName = inputClassName
 export const textareaClassName = cn(inputClassName, 'resize-none')
 
 /** Consistent checkbox styling */
-export const checkboxClassName = 
+export const checkboxClassName =
   'h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-[#0d1117]'
 
 // ===============================================
@@ -454,9 +440,12 @@ interface AlertProps {
 export function Alert({ children, variant, className }: AlertProps) {
   const variants = {
     info: 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800 text-blue-800 dark:text-blue-400',
-    warning: 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800 text-yellow-800 dark:text-yellow-400',
-    error: 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 text-red-800 dark:text-red-400',
-    success: 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 text-green-800 dark:text-green-400',
+    warning:
+      'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800 text-yellow-800 dark:text-yellow-400',
+    error:
+      'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 text-red-800 dark:text-red-400',
+    success:
+      'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 text-green-800 dark:text-green-400',
   }
 
   return (

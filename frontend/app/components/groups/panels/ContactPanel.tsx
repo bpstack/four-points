@@ -9,8 +9,8 @@ import { FiSave } from 'react-icons/fi'
 import toast from 'react-hot-toast'
 
 import { contactSchema, type ContactFormData } from '@/app/lib/schemas/group-schemas'
+import { useGroupContacts, useCreateContact, useUpdateContact } from '@/app/lib/groups'
 import { useGroupStore } from '@/app/stores/useGroupStore'
-import { groupsApi, type GroupContact } from '@/app/lib/groups'
 import {
   SlidePanel,
   SlidePanelSection,
@@ -28,8 +28,15 @@ interface ContactPanelProps {
 }
 
 export function ContactPanel({ isOpen, onClose, contact, groupId }: ContactPanelProps) {
-  const { refreshContacts } = useGroupStore()
+  const { currentGroup } = useGroupStore()
   const isEditing = !!contact
+
+  const groupIdFromStore = currentGroup?.id
+  const effectiveGroupId = groupIdFromStore ?? groupId
+
+  const { data: contactsData } = useGroupContacts(effectiveGroupId)
+  const createContactMutation = useCreateContact(effectiveGroupId)
+  const updateContactMutation = useUpdateContact(effectiveGroupId, contact?.id)
 
   const {
     register,
@@ -69,15 +76,18 @@ export function ContactPanel({ isOpen, onClose, contact, groupId }: ContactPanel
         is_primary: data.is_primary ?? false,
       }
 
+      if (!effectiveGroupId) {
+        throw new Error('Falta el identificador del grupo')
+      }
+
       if (isEditing && contact) {
-        await groupsApi.updateContact(groupId, contact.id, payload)
+        await updateContactMutation.mutateAsync(payload)
         toast.success('Contacto actualizado correctamente')
       } else {
-        await groupsApi.createContact(groupId, payload)
+        await createContactMutation.mutateAsync(payload)
         toast.success('Contacto creado correctamente')
       }
 
-      await refreshContacts(groupId)
       onClose()
       reset()
     } catch (error) {
@@ -102,7 +112,9 @@ export function ContactPanel({ isOpen, onClose, contact, groupId }: ContactPanel
         <SlidePanelFooterButtons
           onCancel={onClose}
           onSubmit={handleSubmit(onSubmit)}
-          isSubmitting={isSubmitting}
+          isSubmitting={
+            isSubmitting || createContactMutation.isPending || updateContactMutation.isPending
+          }
           submitText={isEditing ? 'Actualizar' : 'Crear Contacto'}
           submitIcon={<FiSave className="w-4 h-4" />}
           submitVariant="primary"
@@ -148,7 +160,10 @@ export function ContactPanel({ isOpen, onClose, contact, groupId }: ContactPanel
             id="is_primary"
             className={checkboxClassName}
           />
-          <label htmlFor="is_primary" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+          <label
+            htmlFor="is_primary"
+            className="text-sm font-medium text-gray-700 dark:text-gray-300"
+          >
             Marcar como contacto principal
           </label>
         </div>

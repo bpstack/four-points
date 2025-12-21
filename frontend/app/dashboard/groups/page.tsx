@@ -2,38 +2,36 @@
 
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { groupsApi, Group, GroupStatus } from '@/app/lib/groups'
+import { Group, GroupStatus, useGroups, groupsKeys } from '@/app/lib/groups'
 import { CreateGroupPanel } from '@/app/components/groups/panels/CreateGroupPanel'
-import { FiPlus, FiSearch, FiCalendar, FiDollarSign, FiEye, FiUsers, FiCheckCircle, FiClock } from 'react-icons/fi'
+import {
+  FiPlus,
+  FiSearch,
+  FiCalendar,
+  FiDollarSign,
+  FiEye,
+  FiUsers,
+  FiCheckCircle,
+  FiClock,
+} from 'react-icons/fi'
+import { useQueryClient } from '@tanstack/react-query'
 
 export default function GroupsPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const panel = searchParams.get('panel')
+  const queryClient = useQueryClient()
 
-  const [groups, setGroups] = useState<Group[]>([])
-  const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<GroupStatus | 'all'>('all')
 
-  useEffect(() => {
-    loadGroups()
-  }, [statusFilter])
-
-  const loadGroups = async () => {
-    try {
-      setLoading(true)
-      const filters = statusFilter !== 'all' ? { status: statusFilter } : undefined
-      const response = await groupsApi.getAll(filters)
-      setGroups(response.data)
-    } catch (error) {
-      console.error('Error loading groups:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
+  const filters = useMemo(
+    () => (statusFilter !== 'all' ? { status: statusFilter } : undefined),
+    [statusFilter]
+  )
+  const { data: groups = [], isLoading } = useGroups(filters)
 
   const handleCreateGroup = () => {
     const params = new URLSearchParams(searchParams.toString())
@@ -45,7 +43,7 @@ export default function GroupsPage() {
     const params = new URLSearchParams(searchParams.toString())
     params.delete('panel')
     router.push(`?${params.toString()}`, { scroll: false })
-    loadGroups()
+    queryClient.invalidateQueries({ queryKey: groupsKeys.list(filters) })
   }
 
   const handleViewGroup = (groupId: number) => {
@@ -120,14 +118,12 @@ export default function GroupsPage() {
     })
   }
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-[#010409] flex items-center justify-center">
         <div className="text-center">
           <div className="inline-block h-10 w-10 animate-spin rounded-full border-[3px] border-solid border-blue-600 dark:border-blue-500 border-r-transparent"></div>
-          <p className="mt-3 text-xs text-gray-600 dark:text-gray-400">
-            Cargando grupos...
-          </p>
+          <p className="mt-3 text-xs text-gray-600 dark:text-gray-400">Cargando grupos...</p>
         </div>
       </div>
     )
@@ -433,7 +429,9 @@ export default function GroupsPage() {
                 <div className="bg-white dark:bg-[#0D1117] border border-[#d0d7de] dark:border-[#30363d] rounded-xl shadow-sm p-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">Confirmados</p>
+                      <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">
+                        Confirmados
+                      </p>
                       <p className="text-xl font-bold text-gray-900 dark:text-gray-100 mt-0.5">
                         {confirmedGroups}
                       </p>

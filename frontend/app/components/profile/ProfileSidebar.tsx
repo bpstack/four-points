@@ -6,6 +6,7 @@ import { useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '@/app/lib/auth/useAuth'
 import { apiClient } from '@/app/lib/apiClient'
+import { API_BASE_URL } from '@/app/lib/env'
 import {
   FiUser,
   FiLock,
@@ -22,7 +23,7 @@ import {
 } from 'react-icons/fi'
 import { cn } from '@/app/lib/helpers/utils'
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'
+const API_URL = API_BASE_URL
 
 export function ProfileSidebar() {
   const { user, refreshUser } = useAuth()
@@ -61,7 +62,8 @@ export function ProfileSidebar() {
     }
   }
 
-  const formattedUsername = user.username.charAt(0).toUpperCase() + user.username.slice(1).toLowerCase()
+  const formattedUsername =
+    user.username.charAt(0).toUpperCase() + user.username.slice(1).toLowerCase()
 
   // ============================
   // Username Edit Handlers
@@ -112,14 +114,6 @@ export function ProfileSidebar() {
         username: newUsername.trim(),
         currentPassword: usernamePassword,
       })
-
-      // Update tokens in localStorage (development)
-      if (process.env.NODE_ENV === 'development' && response.token) {
-        localStorage.setItem('access_token', response.token)
-        if (response.refreshToken) {
-          localStorage.setItem('refresh_token', response.refreshToken)
-        }
-      }
 
       setUsernameSuccess('Nombre de usuario actualizado correctamente')
       setIsEditingUsername(false)
@@ -196,12 +190,6 @@ export function ProfileSidebar() {
         newPassword,
         confirmPassword,
       })
-
-      // Clear tokens and redirect to login
-      if (process.env.NODE_ENV === 'development') {
-        localStorage.removeItem('access_token')
-        localStorage.removeItem('refresh_token')
-      }
 
       // Redirect to login with message
       router.push('/login?message=password_changed')
@@ -373,7 +361,11 @@ export function ProfileSidebar() {
                     onClick={() => setShowCurrentPassword(!showCurrentPassword)}
                     className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
                   >
-                    {showCurrentPassword ? <FiEyeOff className="w-4 h-4" /> : <FiEye className="w-4 h-4" />}
+                    {showCurrentPassword ? (
+                      <FiEyeOff className="w-4 h-4" />
+                    ) : (
+                      <FiEye className="w-4 h-4" />
+                    )}
                   </button>
                 </div>
               </div>
@@ -397,7 +389,11 @@ export function ProfileSidebar() {
                     onClick={() => setShowNewPassword(!showNewPassword)}
                     className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
                   >
-                    {showNewPassword ? <FiEyeOff className="w-4 h-4" /> : <FiEye className="w-4 h-4" />}
+                    {showNewPassword ? (
+                      <FiEyeOff className="w-4 h-4" />
+                    ) : (
+                      <FiEye className="w-4 h-4" />
+                    )}
                   </button>
                 </div>
               </div>
@@ -421,7 +417,11 @@ export function ProfileSidebar() {
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                     className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
                   >
-                    {showConfirmPassword ? <FiEyeOff className="w-4 h-4" /> : <FiEye className="w-4 h-4" />}
+                    {showConfirmPassword ? (
+                      <FiEyeOff className="w-4 h-4" />
+                    ) : (
+                      <FiEye className="w-4 h-4" />
+                    )}
                   </button>
                 </div>
               </div>
@@ -435,7 +435,8 @@ export function ProfileSidebar() {
 
               <div className="p-2 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
                 <p className="text-xs text-amber-700 dark:text-amber-400">
-                  Al cambiar tu contraseña, se cerrará tu sesión y deberás iniciar sesión nuevamente.
+                  Al cambiar tu contraseña, se cerrará tu sesión y deberás iniciar sesión
+                  nuevamente.
                 </p>
               </div>
 
@@ -509,38 +510,38 @@ function NavButton({
       className={cn(
         'w-full flex items-center justify-between p-3 transition-colors text-left',
         borderTop && 'border-t border-gray-200 dark:border-[#30363d]',
-        active
-          ? 'bg-blue-50 dark:bg-blue-900/20'
-          : 'hover:bg-gray-100 dark:hover:bg-[#21262d]'
+        active ? 'bg-blue-50 dark:bg-blue-900/20' : 'hover:bg-gray-100 dark:hover:bg-[#21262d]'
       )}
     >
       <div className="flex items-center gap-3">
-        <div className={cn(
-          'p-2 rounded-md',
-          active
-            ? 'bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400'
-            : 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400'
-        )}>
+        <div
+          className={cn(
+            'p-2 rounded-md',
+            active
+              ? 'bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400'
+              : 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400'
+          )}
+        >
           {icon}
         </div>
         <div>
-          <p className={cn(
-            'text-sm font-medium',
-            active
-              ? 'text-blue-700 dark:text-blue-400'
-              : 'text-gray-900 dark:text-white'
-          )}>
+          <p
+            className={cn(
+              'text-sm font-medium',
+              active ? 'text-blue-700 dark:text-blue-400' : 'text-gray-900 dark:text-white'
+            )}
+          >
             {label}
           </p>
           <p className="text-xs text-gray-500 dark:text-gray-400">{description}</p>
         </div>
       </div>
-      <FiChevronRight className={cn(
-        'w-4 h-4',
-        active
-          ? 'text-blue-600 dark:text-blue-400'
-          : 'text-gray-400 dark:text-gray-500'
-      )} />
+      <FiChevronRight
+        className={cn(
+          'w-4 h-4',
+          active ? 'text-blue-600 dark:text-blue-400' : 'text-gray-400 dark:text-gray-500'
+        )}
+      />
     </button>
   )
 }

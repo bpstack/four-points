@@ -53,9 +53,7 @@ export function CheckOutModal({ booking, onClose, onConfirm }: CheckOutModalProp
               <FiLogOut className="w-5 h-5 text-blue-600" />
               Check-out
             </h3>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-              {booking.booking_code}
-            </p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{booking.booking_code}</p>
           </div>
           <button
             onClick={onClose}

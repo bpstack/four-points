@@ -139,7 +139,9 @@ export default function MonthlyReport({ year, month }: MonthlyReportProps) {
               key={method.method_name}
               className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-3 border border-gray-200 dark:border-gray-700"
             >
-              <p className="text-[10px] text-gray-600 dark:text-gray-400 mb-1">{method.method_name}</p>
+              <p className="text-[10px] text-gray-600 dark:text-gray-400 mb-1">
+                {method.method_name}
+              </p>
               <p className="text-sm font-bold text-gray-900 dark:text-white">
                 {method.total_amount.toFixed(2)}€
               </p>
@@ -162,9 +164,7 @@ export default function MonthlyReport({ year, month }: MonthlyReportProps) {
       {/* Tabla de Días */}
       <div className="bg-white dark:bg-[#151b23] border border-gray-200 dark:border-gray-800 rounded-md overflow-hidden">
         <div className="flex items-center justify-between px-3 py-2 border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-[#0d1117]">
-          <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
-            Desglose Diario
-          </h3>
+          <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Desglose Diario</h3>
           <button
             className="px-2 py-1 text-[10px] font-medium text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-700 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors flex items-center gap-1"
             onClick={() => {

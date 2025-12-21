@@ -39,9 +39,7 @@ export function InfoRow({ label, value, highlight = false, mono = false }: InfoR
       <span className="text-sm text-gray-600 dark:text-gray-400">{label}</span>
       <span
         className={`text-sm font-medium ${
-          highlight
-            ? 'text-blue-600 dark:text-blue-400'
-            : 'text-gray-900 dark:text-gray-100'
+          highlight ? 'text-blue-600 dark:text-blue-400' : 'text-gray-900 dark:text-gray-100'
         } ${mono ? 'font-mono' : ''}`}
       >
         {value}

@@ -3,8 +3,9 @@
 
 import { cookies } from 'next/headers'
 import { revalidatePath } from 'next/cache'
+import { SERVER_API_BASE_URL } from '@/app/lib/env'
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'
+const API_BASE = SERVER_API_BASE_URL
 
 interface DeleteBlacklistResult {
   success: boolean

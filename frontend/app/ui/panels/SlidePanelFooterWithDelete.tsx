@@ -122,9 +122,7 @@ export function SlidePanelFooterWithDelete({
           </button>
         ) : (
           <div className="flex items-center gap-2 flex-wrap justify-center">
-            <span className="text-xs text-gray-600 dark:text-gray-400">
-              {deleteConfirmText}
-            </span>
+            <span className="text-xs text-gray-600 dark:text-gray-400">{deleteConfirmText}</span>
             <button
               type="button"
               onClick={handleDelete}

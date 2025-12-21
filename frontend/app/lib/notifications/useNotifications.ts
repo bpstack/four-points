@@ -3,8 +3,9 @@
 import { useEffect, useCallback } from 'react'
 import { useNotificationStore } from '@/app/stores/useNotificationStore'
 import { apiClient } from '@/app/lib/apiClient'
+import { API_BASE_URL } from '@/app/lib/env'
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'
+const API_URL = API_BASE_URL
 
 export function useNotifications() {
   const {

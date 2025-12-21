@@ -4,7 +4,9 @@
 import { cookies } from 'next/headers'
 import type { ReportFilters, MaintenanceReport } from '@/app/lib/maintenance/maintenance'
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'
+import { SERVER_API_BASE_URL } from '@/app/lib/env'
+
+const API_BASE = SERVER_API_BASE_URL
 
 export interface MaintenanceListResponse {
   reports: MaintenanceReport[]
