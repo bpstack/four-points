@@ -5,12 +5,38 @@
 
 import { v2 as cloudinary } from 'cloudinary'
 
-// Configurar Cloudinary
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-})
+// Flag para evitar configurar múltiples veces
+let isConfigured = false
+
+/**
+ * Configurar Cloudinary de forma lazy (solo cuando se necesite)
+ * Esto evita problemas de timing con dotenv
+ */
+function ensureConfigured(): void {
+  if (isConfigured) return
+
+  const cloudName = process.env.CLOUDINARY_CLOUD_NAME
+  const apiKey = process.env.CLOUDINARY_API_KEY
+  const apiSecret = process.env.CLOUDINARY_API_SECRET
+
+  if (!cloudName || !apiKey || !apiSecret) {
+    console.error('[CloudinaryService] Missing configuration:', {
+      cloud_name: !!cloudName,
+      api_key: !!apiKey,
+      api_secret: !!apiSecret,
+    })
+    throw new Error('Cloudinary configuration missing. Check CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET')
+  }
+
+  cloudinary.config({
+    cloud_name: cloudName,
+    api_key: apiKey,
+    api_secret: apiSecret,
+  })
+
+  isConfigured = true
+  console.log('[CloudinaryService] Configured successfully for cloud:', cloudName)
+}
 
 export interface CloudinaryUploadResult {
   url: string
@@ -35,6 +61,8 @@ export class CloudinaryService {
     filename: string,
     folder: string = 'blacklist'
   ): Promise<CloudinaryUploadResult> {
+    ensureConfigured()
+    
     return new Promise((resolve, reject) => {
       // Subir usando upload_stream
       const uploadStream = cloudinary.uploader.upload_stream(
@@ -80,6 +108,8 @@ export class CloudinaryService {
    * @param publicId - ID público de la imagen
    */
   static async deleteImage(publicId: string): Promise<boolean> {
+    ensureConfigured()
+    
     try {
       console.log('[CloudinaryService] Attempting to delete image:', publicId)
       
@@ -132,6 +162,8 @@ export class CloudinaryService {
     filename: string,
     folder: string = 'backoffice/invoices'
   ): Promise<CloudinaryUploadResult> {
+    ensureConfigured()
+    
     return new Promise((resolve, reject) => {
       // Generar public_id limpio
       const cleanFilename = filename
@@ -192,6 +224,8 @@ export class CloudinaryService {
    * @param resourceType - Tipo de recurso ('image' o 'raw')
    */
   static async deleteFile(publicId: string, resourceType: 'image' | 'raw' = 'image'): Promise<boolean> {
+    ensureConfigured()
+    
     try {
       const result = await cloudinary.uploader.destroy(publicId, { resource_type: resourceType })
       return result.result === 'ok'
@@ -212,6 +246,8 @@ export class CloudinaryService {
     resourceType: 'image' | 'raw' = 'raw',
     expiresInSeconds: number = 3600
   ): string {
+    ensureConfigured()
+    
     const timestamp = Math.floor(Date.now() / 1000) + expiresInSeconds
 
     const signedUrl = cloudinary.url(publicId, {
