@@ -1,6 +1,6 @@
 // services/blacklist/cloudinary-service.ts
 /**
- * Servicio para subir y eliminar imágenes en Cloudinary
+ * Servicio para subir y eliminar imágenes/archivos en Cloudinary
  */
 
 import { v2 as cloudinary } from 'cloudinary'
@@ -16,9 +16,11 @@ export interface CloudinaryUploadResult {
   url: string
   secure_url: string
   public_id: string
-  width: number
-  height: number
+  width?: number
+  height?: number
   format: string
+  resource_type?: string
+  bytes?: number
 }
 
 export class CloudinaryService {
@@ -100,6 +102,147 @@ export class CloudinaryService {
       return matches ? `${folder}/${matches[1]}` : null
     } catch {
       return null
+    }
+  }
+
+  /**
+   * Subir PDF a Cloudinary como recurso raw con acceso público
+   * @param fileBuffer - Buffer del archivo PDF
+   * @param filename - Nombre original del archivo
+   * @param folder - Carpeta destino en Cloudinary
+   */
+  static async uploadPdf(
+    fileBuffer: Buffer,
+    filename: string,
+    folder: string = 'backoffice/invoices'
+  ): Promise<CloudinaryUploadResult> {
+    return new Promise((resolve, reject) => {
+      // Generar public_id limpio
+      const cleanFilename = filename
+        .replace(/\.[^/.]+$/, '') // Quitar extensión
+        .replace(/[^a-zA-Z0-9_-]/g, '_') // Solo caracteres seguros
+        .substring(0, 50) // Limitar longitud
+      
+      const publicId = `pdf_${Date.now()}_${cleanFilename}`
+
+      // Subir usando upload_stream como raw
+      const uploadStream = cloudinary.uploader.upload_stream(
+        {
+          folder: folder,
+          resource_type: 'raw', // Subir como archivo raw
+          public_id: publicId,
+          type: 'upload',
+          access_mode: 'public', // Acceso público
+          overwrite: true,
+          invalidate: true,
+        },
+        (error, result) => {
+          if (error) {
+            console.error('[CloudinaryService] PDF Upload error:', error)
+            reject(new Error(`Error al subir PDF a Cloudinary: ${error.message}`))
+            return
+          }
+
+          if (!result) {
+            reject(new Error('No se recibió respuesta de Cloudinary'))
+            return
+          }
+
+          console.log('[CloudinaryService] PDF uploaded successfully:')
+          console.log('  - URL:', result.secure_url)
+          console.log('  - Public ID:', result.public_id)
+          console.log('  - Resource Type:', result.resource_type)
+          console.log('  - Format:', result.format)
+
+          resolve({
+            url: result.url,
+            secure_url: result.secure_url,
+            public_id: result.public_id,
+            format: result.format || 'pdf',
+            resource_type: result.resource_type,
+            bytes: result.bytes,
+          })
+        }
+      )
+
+      // Escribir el buffer al stream
+      uploadStream.end(fileBuffer)
+    })
+  }
+
+  /**
+   * Eliminar archivo (imagen o raw) de Cloudinary
+   * @param publicId - ID público del archivo
+   * @param resourceType - Tipo de recurso ('image' o 'raw')
+   */
+  static async deleteFile(publicId: string, resourceType: 'image' | 'raw' = 'image'): Promise<boolean> {
+    try {
+      const result = await cloudinary.uploader.destroy(publicId, { resource_type: resourceType })
+      return result.result === 'ok'
+    } catch (error) {
+      console.error('[CloudinaryService] Delete error:', error)
+      throw new Error('Error al eliminar archivo de Cloudinary')
+    }
+  }
+
+  /**
+   * Generar URL firmada para acceso temporal a un archivo
+   * @param publicId - ID público del archivo
+   * @param resourceType - Tipo de recurso ('image' o 'raw')
+   * @param expiresInSeconds - Tiempo de expiración en segundos (default: 1 hora)
+   */
+  static generateSignedUrl(
+    publicId: string,
+    resourceType: 'image' | 'raw' = 'raw',
+    expiresInSeconds: number = 3600
+  ): string {
+    const timestamp = Math.floor(Date.now() / 1000) + expiresInSeconds
+
+    const signedUrl = cloudinary.url(publicId, {
+      resource_type: resourceType,
+      type: 'upload',
+      sign_url: true,
+      expires_at: timestamp,
+    })
+
+    console.log('[CloudinaryService] Generated signed URL for:', publicId)
+    return signedUrl
+  }
+
+  /**
+   * Generar URL firmada a partir de una URL de Cloudinary
+   * Extrae el public_id de la URL y genera una URL firmada
+   * @param url - URL completa de Cloudinary
+   * @param expiresInSeconds - Tiempo de expiración en segundos (default: 1 hora)
+   */
+  static generateSignedUrlFromUrl(url: string, expiresInSeconds: number = 3600): string {
+    try {
+      // Determinar resource_type desde la URL
+      // URL format: https://res.cloudinary.com/{cloud}/{resource_type}/upload/v{version}/{folder}/{public_id}.{format}
+      let resourceType: 'image' | 'raw' = 'raw'
+      if (url.includes('/image/upload/')) {
+        resourceType = 'image'
+      }
+
+      // Extraer public_id de la URL
+      // Example: https://res.cloudinary.com/xxx/raw/upload/v123/backoffice/invoices/pdf_123_name.pdf
+      const uploadMatch = url.match(/\/upload\/v\d+\/(.+)$/)
+      if (!uploadMatch) {
+        console.error('[CloudinaryService] Could not extract public_id from URL:', url)
+        return url // Devolver URL original si no se puede parsear
+      }
+
+      // El public_id incluye carpetas pero NO la extensión
+      let publicId = uploadMatch[1]
+      // Remover extensión del archivo
+      publicId = publicId.replace(/\.[^/.]+$/, '')
+
+      console.log('[CloudinaryService] Extracted public_id:', publicId, 'resource_type:', resourceType)
+
+      return this.generateSignedUrl(publicId, resourceType, expiresInSeconds)
+    } catch (error) {
+      console.error('[CloudinaryService] Error generating signed URL:', error)
+      return url // Devolver URL original en caso de error
     }
   }
 }

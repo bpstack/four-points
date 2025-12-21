@@ -97,9 +97,7 @@ async function fetchWithRefresh(url: string, options: FetchOptions = {}): Promis
     credentials: 'include', // Siempre enviar cookies
   }
 
-  console.log(`[apiClient] ${options.method || 'GET'} ${url}`)
   let response = await fetch(url, finalOptions)
-  console.log(`[apiClient] Response: ${response.status}`)
 
   // Rutas que no requieren autenticación
   const isAuthRoute =
@@ -110,15 +108,11 @@ async function fetchWithRefresh(url: string, options: FetchOptions = {}): Promis
 
   // Auto-refresh cuando recibimos 401
   if (isClient && response.status === 401 && !skipRefresh && !isAuthRoute && hasRefreshToken()) {
-    console.log('[apiClient] 🔄 Token expirado, intentando refresh...')
-
     // Si ya hay refresh en curso, encolar este request
     if (isRefreshing) {
-      console.log('[apiClient] ⏳ Refresh en curso, encolando...')
       return new Promise((resolve, reject) => {
         failedQueue.push({ resolve, reject })
       }).then(() => {
-        console.log('[apiClient] 🔄 Reintentando después de refresh...')
         return fetchWithRefresh(url, { ...options, skipRefresh: true })
       })
     }
@@ -127,7 +121,6 @@ async function fetchWithRefresh(url: string, options: FetchOptions = {}): Promis
 
     try {
       const refreshUrl = `${API_BASE_URL}/api/auth/refresh-token`
-      console.log('[apiClient] Enviando refresh token...')
 
       const refreshOptions: RequestInit = {
         method: 'POST',
@@ -144,7 +137,6 @@ async function fetchWithRefresh(url: string, options: FetchOptions = {}): Promis
       }
 
       const refreshResponse = await fetch(refreshUrl, refreshOptions)
-      console.log('[apiClient] Refresh response:', refreshResponse.status)
 
       if (!refreshResponse.ok) {
         throw new Error(`Refresh failed: ${refreshResponse.status}`)
@@ -152,16 +144,19 @@ async function fetchWithRefresh(url: string, options: FetchOptions = {}): Promis
 
       const data = await refreshResponse.json()
 
-      // En desarrollo, guardar tokens en localStorage
+      // En desarrollo, guardar tokens en localStorage Y cookies
       if (isDev && data.token) {
         localStorage.setItem('access_token', data.token)
+        // Also set cookie for Server Components (15 min = 900 seconds)
+        document.cookie = `access_token=${data.token}; path=/; max-age=900; samesite=lax`
+        
         if (data.refreshToken) {
           localStorage.setItem('refresh_token', data.refreshToken)
+          document.cookie = `refresh_token=${data.refreshToken}; path=/; max-age=604800; samesite=lax`
         }
       }
       // En producción, las cookies se actualizan automáticamente por el backend
 
-      console.log('[apiClient] ✅ Token refrescado')
       isRefreshing = false
       processQueue()
 
@@ -176,11 +171,8 @@ async function fetchWithRefresh(url: string, options: FetchOptions = {}): Promis
         credentials: 'include',
       }
 
-      console.log('[apiClient] Reintentando request original...')
       response = await fetch(url, retryOptions)
-      console.log(`[apiClient] Reintento: ${response.status}`)
     } catch (error) {
-      console.error('[apiClient] ❌ Error en refresh:', error)
       isRefreshing = false
       processQueue(error)
 
@@ -188,6 +180,9 @@ async function fetchWithRefresh(url: string, options: FetchOptions = {}): Promis
       if (isDev) {
         localStorage.removeItem('access_token')
         localStorage.removeItem('refresh_token')
+        // Also clear cookies
+        document.cookie = 'access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT'
+        document.cookie = 'refresh_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT'
       }
 
       // Redirigir a login
@@ -200,11 +195,11 @@ async function fetchWithRefresh(url: string, options: FetchOptions = {}): Promis
       throw error
     }
   } else if (isClient && response.status === 401 && !skipRefresh && !isAuthRoute) {
-    console.log('[apiClient] ❌ 401 sin posibilidad de refresh')
-
     if (isDev) {
       localStorage.removeItem('access_token')
       localStorage.removeItem('refresh_token')
+      document.cookie = 'access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT'
+      document.cookie = 'refresh_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT'
     }
 
     setTimeout(() => {
@@ -355,17 +350,102 @@ export const apiClient = {
 
   /**
    * POST con FormData (para subir archivos)
+   * Usa fetchWithRefresh para auto-refresh de tokens expirados
    */
-  postFormData: async (url: string, formData: FormData, options?: FetchOptions) => {
-    const response = await fetch(url, {
+  postFormData: async (url: string, formData: FormData, options?: FetchOptions): Promise<any> => {
+    // No incluir Content-Type - el browser lo añade automáticamente con boundary para FormData
+    const { skipRefresh, ...fetchOptions } = options || {}
+    
+    const finalOptions: RequestInit = {
       method: 'POST',
       body: formData,
       credentials: 'include',
       headers: {
         ...getAuthHeaders(),
-        ...options?.headers,
+        ...fetchOptions.headers,
       },
-    })
+    }
+
+    let response = await fetch(url, finalOptions)
+
+    // Auto-refresh cuando recibimos 401 (mismo patrón que fetchWithRefresh)
+    if (isClient && response.status === 401 && !skipRefresh && hasRefreshToken()) {
+      // Si ya hay refresh en curso, encolar
+      if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject })
+        }).then(() => {
+          return apiClient.postFormData(url, formData, { ...options, skipRefresh: true })
+        })
+      }
+
+      isRefreshing = true
+
+      try {
+        const refreshUrl = `${API_BASE_URL}/api/auth/refresh-token`
+        const refreshOptions: RequestInit = {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+        }
+
+        if (isDev) {
+          const refreshToken = localStorage.getItem('refresh_token')
+          if (!refreshToken) throw new Error('No refresh token')
+          ;(refreshOptions.headers as Record<string, string>)['Authorization'] = `Bearer ${refreshToken}`
+        }
+
+        const refreshResponse = await fetch(refreshUrl, refreshOptions)
+        if (!refreshResponse.ok) {
+          throw new Error(`Refresh failed: ${refreshResponse.status}`)
+        }
+
+        const data = await refreshResponse.json()
+
+        if (isDev && data.token) {
+          localStorage.setItem('access_token', data.token)
+          document.cookie = `access_token=${data.token}; path=/; max-age=900; samesite=lax`
+          if (data.refreshToken) {
+            localStorage.setItem('refresh_token', data.refreshToken)
+            document.cookie = `refresh_token=${data.refreshToken}; path=/; max-age=604800; samesite=lax`
+          }
+        }
+
+        isRefreshing = false
+        processQueue()
+
+        // Reintentar con nuevo token
+        const retryOptions: RequestInit = {
+          method: 'POST',
+          body: formData,
+          credentials: 'include',
+          headers: {
+            ...getAuthHeaders(),
+            ...fetchOptions.headers,
+          },
+        }
+
+        response = await fetch(url, retryOptions)
+      } catch (error) {
+        isRefreshing = false
+        processQueue(error)
+
+        if (isDev) {
+          localStorage.removeItem('access_token')
+          localStorage.removeItem('refresh_token')
+          document.cookie = 'access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT'
+          document.cookie = 'refresh_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT'
+        }
+
+        if (isClient) {
+          setTimeout(() => {
+            window.location.href = '/login'
+          }, 100)
+        }
+
+        throw error
+      }
+    }
 
     if (!response.ok) {
       await handleApiError(response)
@@ -376,16 +456,97 @@ export const apiClient = {
 
   /**
    * GET que retorna Blob (para descargar archivos)
+   * Usa auto-refresh para tokens expirados
    */
-  getBlob: async (url: string, options?: FetchOptions) => {
-    const response = await fetch(url, {
+  getBlob: async (url: string, options?: FetchOptions): Promise<Blob> => {
+    const { skipRefresh, ...fetchOptions } = options || {}
+    
+    const finalOptions: RequestInit = {
       method: 'GET',
       credentials: 'include',
       headers: {
         ...getAuthHeaders(),
-        ...options?.headers,
+        ...fetchOptions.headers,
       },
-    })
+    }
+
+    let response = await fetch(url, finalOptions)
+
+    // Auto-refresh cuando recibimos 401
+    if (isClient && response.status === 401 && !skipRefresh && hasRefreshToken()) {
+      if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject })
+        }).then(() => {
+          return apiClient.getBlob(url, { ...options, skipRefresh: true })
+        })
+      }
+
+      isRefreshing = true
+
+      try {
+        const refreshUrl = `${API_BASE_URL}/api/auth/refresh-token`
+        const refreshOptions: RequestInit = {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+        }
+
+        if (isDev) {
+          const refreshToken = localStorage.getItem('refresh_token')
+          if (!refreshToken) throw new Error('No refresh token')
+          ;(refreshOptions.headers as Record<string, string>)['Authorization'] = `Bearer ${refreshToken}`
+        }
+
+        const refreshResponse = await fetch(refreshUrl, refreshOptions)
+        if (!refreshResponse.ok) {
+          throw new Error(`Refresh failed: ${refreshResponse.status}`)
+        }
+
+        const data = await refreshResponse.json()
+
+        if (isDev && data.token) {
+          localStorage.setItem('access_token', data.token)
+          document.cookie = `access_token=${data.token}; path=/; max-age=900; samesite=lax`
+          if (data.refreshToken) {
+            localStorage.setItem('refresh_token', data.refreshToken)
+            document.cookie = `refresh_token=${data.refreshToken}; path=/; max-age=604800; samesite=lax`
+          }
+        }
+
+        isRefreshing = false
+        processQueue()
+
+        const retryOptions: RequestInit = {
+          method: 'GET',
+          credentials: 'include',
+          headers: {
+            ...getAuthHeaders(),
+            ...fetchOptions.headers,
+          },
+        }
+
+        response = await fetch(url, retryOptions)
+      } catch (error) {
+        isRefreshing = false
+        processQueue(error)
+
+        if (isDev) {
+          localStorage.removeItem('access_token')
+          localStorage.removeItem('refresh_token')
+          document.cookie = 'access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT'
+          document.cookie = 'refresh_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT'
+        }
+
+        if (isClient) {
+          setTimeout(() => {
+            window.location.href = '/login'
+          }, 100)
+        }
+
+        throw error
+      }
+    }
 
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}: ${response.statusText}`)

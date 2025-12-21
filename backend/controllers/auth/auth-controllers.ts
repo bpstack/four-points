@@ -26,10 +26,7 @@ import type {
 // COOKIE CONFIGURATION
 // ============================================
 
-const IN_DEV_MODE = process.env.NODE_ENV !== 'production'
-
-// Dominio para cookies en producción (funciona en subdominios)
-const COOKIE_DOMAIN = process.env.COOKIE_DOMAIN || '.four-points.stackbp.es'
+const COOKIE_DOMAIN = '.four-points.stackbp.es'
 
 const cookieOptions: CookieOptions = {
   httpOnly: true, // Siempre HttpOnly para seguridad
@@ -37,7 +34,7 @@ const cookieOptions: CookieOptions = {
   sameSite: 'lax', // Protección CSRF
   path: '/',
   // Domain solo en producción (permite compartir entre subdominios)
-  ...(IN_DEV_MODE ? {} : { domain: COOKIE_DOMAIN }),
+  ...(process.env.NODE_ENV === 'production' ? { domain: COOKIE_DOMAIN } : {}),
 }
 
 // ============================================
