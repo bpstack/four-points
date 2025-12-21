@@ -624,13 +624,39 @@ export class BackofficeController {
 
       const { id } = req.params
 
-      const deleted = await BackofficeRepository.deleteInvoice(Number(id), req.user.id)
-
-      if (!deleted) {
+      // Obtener factura para eliminar PDFs de Cloudinary
+      const invoice = await BackofficeRepository.getInvoicePdfInfo(Number(id))
+      if (!invoice) {
         res.status(404).json({ error: 'Factura no encontrada' })
         return
       }
 
+      console.log('[BackofficeController.deleteInvoice] Deleting invoice:', {
+        id: invoice.id,
+        original_pdf_public_id: invoice.original_pdf_public_id,
+        validated_pdf_public_id: invoice.validated_pdf_public_id,
+      })
+
+      // Eliminar PDFs de Cloudinary (opción estricta: falla todo si Cloudinary falla)
+      if (invoice.original_pdf_public_id) {
+        await CloudinaryService.deleteFile(invoice.original_pdf_public_id, 'raw')
+        console.log('[BackofficeController.deleteInvoice] Original PDF deleted from Cloudinary')
+      }
+
+      if (invoice.validated_pdf_public_id) {
+        await CloudinaryService.deleteFile(invoice.validated_pdf_public_id, 'raw')
+        console.log('[BackofficeController.deleteInvoice] Validated PDF deleted from Cloudinary')
+      }
+
+      // Solo eliminar de BD si Cloudinary fue exitoso
+      const deleted = await BackofficeRepository.deleteInvoice(Number(id), req.user.id)
+
+      if (!deleted) {
+        res.status(500).json({ error: 'Error al eliminar la factura de la base de datos' })
+        return
+      }
+
+      console.log('[BackofficeController.deleteInvoice] Invoice deleted from DB')
       res.json({ message: 'Factura eliminada permanentemente' })
     } catch (error: any) {
       console.error('[BackofficeController.deleteInvoice] Error:', error.message)

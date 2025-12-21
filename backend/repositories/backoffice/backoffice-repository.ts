@@ -736,6 +736,20 @@ export class BackofficeRepository {
   }
 
   /**
+   * Get invoice PDF info for Cloudinary deletion
+   */
+  static async getInvoicePdfInfo(
+    id: number
+  ): Promise<{ id: number; original_pdf_public_id: string | null; validated_pdf_public_id: string | null } | null> {
+    const [rows] = await pool.query<RowDataPacket[]>(
+      `SELECT id, original_pdf_public_id, validated_pdf_public_id FROM bo_invoices WHERE id = ?`,
+      [id]
+    )
+    if (rows.length === 0) return null
+    return rows[0] as { id: number; original_pdf_public_id: string | null; validated_pdf_public_id: string | null }
+  }
+
+  /**
    * Hard delete invoice - permanently removes from database
    * Also deletes associated history records
    */
