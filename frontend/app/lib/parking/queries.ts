@@ -1,6 +1,7 @@
 // app/lib/parking/queries.ts
 
 import apiClient from '@/app/lib/apiClient'
+import { API_BASE_URL } from '@/app/lib/env'
 import type {
   ParkingSpot,
   ParkingVehicle,
@@ -24,7 +25,7 @@ import type {
 // ❌ ELIMINAR TODAS LAS INTERFACES DE AQUÍ - Ya están en types.ts
 // NO debe haber ningún "export interface" en este archivo
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'
+const API_URL = API_BASE_URL
 
 export const parkingApi = {
   // ============================================

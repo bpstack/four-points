@@ -2,7 +2,8 @@
 
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState } from 'react'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { parkingApi } from '@/app/lib/parking'
 import { toast } from 'react-hot-toast'
 import type {
@@ -13,15 +14,64 @@ import type {
   ParkingSpot,
 } from '@/app/lib/parking/types'
 
-export function useParkingStatus(selectedDate: string) {
-  const [spots, setSpots] = useState<ParkingSpotDisplay[]>([])
-  const [availabilityData, setAvailabilityData] = useState<AvailabilityData | null>(null)
-  const [bookings, setBookings] = useState<ParkingBooking[]>([])
-  const [overdueBookings, setOverdueBookings] = useState<OverdueBooking[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+const statsKey = (date: string) => ['parking', 'stats', date] as const
+const bookingsKey = (date: string) => ['parking', 'bookings', date] as const
+const overdueKey = () => ['parking', 'bookings', 'overdue'] as const
+const spotsKey = (date: string) => ['parking', 'spots', date] as const
 
-  // Estados para modales
+function deriveSpots(spots: ParkingSpot[], activeBookings: ParkingBooking[]): ParkingSpotDisplay[] {
+  return spots.map((spot) => {
+    const activeBooking = activeBookings.find((b) => {
+      const matchesSpot =
+        b.spot.id === spot.id ||
+        (b.spot.number === spot.spot_number && b.spot.level === spot.level_code)
+
+      return matchesSpot && ['reserved', 'checked_in'].includes(b.status)
+    })
+
+    let status: 'free' | 'reserved' | 'checked_in' = 'free'
+    if (activeBooking) {
+      status = activeBooking.status === 'checked_in' ? 'checked_in' : 'reserved'
+    }
+
+    return {
+      id: spot.id,
+      level_code: spot.level_code,
+      spot_number: spot.spot_number,
+      spot_type: spot.spot_type,
+      status,
+      booking: activeBooking,
+    }
+  })
+}
+
+function deriveActiveBookings(
+  allBookings: ParkingBooking[],
+  selectedDate: string
+): ParkingBooking[] {
+  const selectedDateObj = new Date(selectedDate)
+  const selected = new Date(
+    selectedDateObj.getFullYear(),
+    selectedDateObj.getMonth(),
+    selectedDateObj.getDate()
+  )
+
+  return allBookings.filter((b) => {
+    if (!['reserved', 'checked_in'].includes(b.status)) return false
+
+    const checkin = new Date(b.schedule.expected_checkin)
+    const checkout = new Date(b.schedule.expected_checkout)
+
+    const checkinDate = new Date(checkin.getFullYear(), checkin.getMonth(), checkin.getDate())
+    const checkoutDate = new Date(checkout.getFullYear(), checkout.getMonth(), checkout.getDate())
+
+    return checkinDate <= selected && selected <= checkoutDate
+  })
+}
+
+export function useParkingStatus(selectedDate: string) {
+  const queryClient = useQueryClient()
+
   const [checkoutModal, setCheckoutModal] = useState<{
     isOpen: boolean
     booking: ParkingBooking | null
@@ -52,169 +102,192 @@ export function useParkingStatus(selectedDate: string) {
     booking: ParkingBooking | null
   }>({ isOpen: false, booking: null })
 
-  const [actionLoading, setActionLoading] = useState(false)
+  // Datos base
+  const {
+    data: statsData,
+    isLoading: statsLoading,
+    error: statsError,
+  } = useQuery({
+    queryKey: statsKey(selectedDate),
+    queryFn: async () => parkingApi.getFullStats(selectedDate),
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: false,
+  })
 
-  // Cargar datos del parking - memoizado para evitar loops
-  const loadParkingData = useCallback(async () => {
-    setLoading(true)
-    setError(null)
+  const {
+    data: bookingsData,
+    isLoading: bookingsLoading,
+    error: bookingsError,
+  } = useQuery({
+    queryKey: bookingsKey(selectedDate),
+    queryFn: async () => parkingApi.getAllBookings({}),
+    staleTime: 60 * 1000,
+    gcTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
+  })
 
-    try {
-      const dashboardData = await parkingApi.getFullStats(selectedDate)
+  const {
+    data: overdueData,
+    isLoading: overdueLoading,
+    error: overdueError,
+  } = useQuery({
+    queryKey: overdueKey(),
+    queryFn: async () => parkingApi.getOverdueBookings(),
+    staleTime: 60 * 1000,
+    gcTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
+  })
 
-      if (dashboardData.success && dashboardData.dashboard.availability) {
-        setAvailabilityData(dashboardData.dashboard.availability)
-      } else {
-        throw new Error('Error al cargar disponibilidad')
-      }
+  const {
+    data: spotsData,
+    isLoading: spotsLoading,
+    error: spotsError,
+  } = useQuery({
+    queryKey: spotsKey(selectedDate),
+    queryFn: async () => parkingApi.getAllSpots(),
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: false,
+  })
 
-      const bookingsResponse = await parkingApi.getAllBookings({})
-      if (!bookingsResponse.success) {
-        throw new Error('Error al cargar reservas')
-      }
+  const availabilityData: AvailabilityData | null = statsData?.dashboard.availability ?? null
+  const allBookings = bookingsData?.bookings ?? []
+  const activeBookings = deriveActiveBookings(allBookings, selectedDate)
+  const overdueBookings = overdueData?.bookings ?? []
+  const spots: ParkingSpotDisplay[] = spotsData ? deriveSpots(spotsData, activeBookings) : []
 
-      const selectedDateObj = new Date(selectedDate)
-      const activeDateBookings = bookingsResponse.bookings.filter((b: ParkingBooking) => {
-        if (!['reserved', 'checked_in'].includes(b.status)) return false
+  const loading = statsLoading || bookingsLoading || spotsLoading || overdueLoading
+  const error =
+    (statsError as Error | undefined)?.message ||
+    (bookingsError as Error | undefined)?.message ||
+    (spotsError as Error | undefined)?.message ||
+    (overdueError as Error | undefined)?.message ||
+    null
 
-        const checkin = new Date(b.schedule.expected_checkin)
-        const checkout = new Date(b.schedule.expected_checkout)
+  // Mutations helpers
+  const invalidateAll = () => {
+    queryClient.invalidateQueries({ queryKey: statsKey(selectedDate) })
+    queryClient.invalidateQueries({ queryKey: bookingsKey(selectedDate) })
+    queryClient.invalidateQueries({ queryKey: spotsKey(selectedDate) })
+    queryClient.invalidateQueries({ queryKey: overdueKey() })
+  }
 
-        const checkinDate = new Date(checkin.getFullYear(), checkin.getMonth(), checkin.getDate())
-        const checkoutDate = new Date(
-          checkout.getFullYear(),
-          checkout.getMonth(),
-          checkout.getDate()
-        )
-        const selected = new Date(
-          selectedDateObj.getFullYear(),
-          selectedDateObj.getMonth(),
-          selectedDateObj.getDate()
-        )
+  const handleMutationError = (err: unknown) => {
+    const message = err instanceof Error ? err.message : 'Error en la operación'
+    toast.error(message)
+  }
 
-        return checkinDate <= selected && selected <= checkoutDate
-      })
+  const checkInMutation = useMutation({
+    mutationFn: (code: string) => parkingApi.checkInBooking(code),
+    onSuccess: () => {
+      toast.success('Check-in realizado correctamente')
+      setCheckinModal({ isOpen: false, booking: null })
+      invalidateAll()
+    },
+    onError: handleMutationError,
+  })
 
-      setBookings(activeDateBookings)
+  const checkOutMutation = useMutation({
+    mutationFn: (code: string) => parkingApi.checkOutBooking(code),
+    onSuccess: () => {
+      toast.success('Check-out realizado correctamente')
+      setCheckoutModal({ isOpen: false, booking: null })
+      invalidateAll()
+    },
+    onError: handleMutationError,
+  })
 
-      const overdueResponse = await parkingApi.getOverdueBookings()
-      if (overdueResponse.success) {
-        setOverdueBookings(overdueResponse.bookings)
-      }
+  const cancelMutation = useMutation({
+    mutationFn: (code: string) => parkingApi.cancelBooking(code),
+    onSuccess: () => {
+      toast.success('Reserva cancelada correctamente')
+      setCancelModal({ isOpen: false, booking: null })
+      invalidateAll()
+    },
+    onError: handleMutationError,
+  })
 
-      const allSpotsData = await parkingApi.getAllSpots()
+  const noShowMutation = useMutation({
+    mutationFn: (code: string) => parkingApi.markBookingNoShow(code),
+    onSuccess: () => {
+      toast.success('Reserva marcada como No-Show')
+      setOverdueModal({ isOpen: false, booking: null })
+      invalidateAll()
+    },
+    onError: handleMutationError,
+  })
 
-      const spotsWithStatus = allSpotsData.map((spot: ParkingSpot) => {
-        const activeBooking = activeDateBookings.find((b: ParkingBooking) => {
-          const matchesSpot =
-            b.spot.id === spot.id ||
-            (b.spot.number === spot.spot_number && b.spot.level === spot.level_code)
+  const deleteMutation = useMutation({
+    mutationFn: (code: string) => parkingApi.deleteBooking(code),
+    onSuccess: () => {
+      toast.success('Reserva eliminada')
+      setOverdueModal({ isOpen: false, booking: null })
+      invalidateAll()
+    },
+    onError: handleMutationError,
+  })
 
-          return matchesSpot && ['reserved', 'checked_in'].includes(b.status)
-        })
-
-        let status: 'free' | 'reserved' | 'checked_in' = 'free'
-        if (activeBooking) {
-          status = activeBooking.status === 'checked_in' ? 'checked_in' : 'reserved'
-        }
-
-        return {
-          id: spot.id,
-          level_code: spot.level_code,
-          spot_number: spot.spot_number,
-          spot_type: spot.spot_type,
-          status,
-          booking: activeBooking,
-        }
-      })
-
-      setSpots(spotsWithStatus)
-    } catch (error) {
-      console.error('Error loading parking data:', error)
-      const message =
-        error instanceof Error ? error.message : 'Error al cargar los datos del parking'
-      setError(message)
-      toast.error('Error al cargar el estado del parking')
-    } finally {
-      setLoading(false)
+  type UpdatePayload = {
+    code: string
+    data: {
+      expected_checkin?: string
+      expected_checkout?: string
+      spot_number?: number
+      level_code?: string
+      vehicle_id?: number
+      total_amount?: number
+      booking_source?: string
+      external_booking_id?: string
+      notes?: string
     }
-  }, [selectedDate])
+  }
 
-  // Check-in
+  const updateMutation = useMutation({
+    mutationFn: ({ code, data }: UpdatePayload) => parkingApi.updateBooking(code, data),
+    onSuccess: () => {
+      toast.success('Reserva actualizada correctamente')
+      setEditModal({ isOpen: false, booking: null })
+      invalidateAll()
+    },
+    onError: handleMutationError,
+  })
+
+  const loadParkingData = () => {
+    invalidateAll()
+  }
+
   const handleCheckIn = async (booking: ParkingBooking) => {
     setCheckinModal({ isOpen: true, booking })
   }
 
   const confirmCheckIn = async () => {
     if (!checkinModal.booking) return
-
-    try {
-      setActionLoading(true)
-      await parkingApi.checkInBooking(checkinModal.booking.booking_code)
-      toast.success('Check-in realizado correctamente')
-      setCheckinModal({ isOpen: false, booking: null })
-      await loadParkingData()
-    } catch (error) {
-      console.error('Error during check-in:', error)
-      const message = error instanceof Error ? error.message : 'Error al realizar el check-in'
-      toast.error(message)
-    } finally {
-      setActionLoading(false)
-    }
+    await checkInMutation.mutateAsync(checkinModal.booking.booking_code)
   }
 
-  // Check-out
   const handleCheckOut = async (booking: ParkingBooking) => {
     setCheckoutModal({ isOpen: true, booking })
   }
 
   const confirmCheckOut = async () => {
     if (!checkoutModal.booking) return
-
-    try {
-      setActionLoading(true)
-      await parkingApi.checkOutBooking(checkoutModal.booking.booking_code)
-      toast.success('Check-out realizado correctamente')
-      setCheckoutModal({ isOpen: false, booking: null })
-      await loadParkingData()
-    } catch (error) {
-      console.error('Error during check-out:', error)
-      const message = error instanceof Error ? error.message : 'Error al realizar el check-out'
-      toast.error(message)
-    } finally {
-      setActionLoading(false)
-    }
+    await checkOutMutation.mutateAsync(checkoutModal.booking.booking_code)
   }
 
-  // Cancelar
   const handleCancelBooking = async (booking: ParkingBooking) => {
     setCancelModal({ isOpen: true, booking })
   }
 
   const confirmCancelBooking = async () => {
     if (!cancelModal.booking) return
-
-    try {
-      setActionLoading(true)
-      await parkingApi.cancelBooking(cancelModal.booking.booking_code)
-      toast.success('Reserva cancelada correctamente')
-      setCancelModal({ isOpen: false, booking: null })
-      await loadParkingData()
-    } catch (error) {
-      console.error('Error cancelling booking:', error)
-      const message = error instanceof Error ? error.message : 'Error al cancelar la reserva'
-      toast.error(message)
-    } finally {
-      setActionLoading(false)
-    }
+    await cancelMutation.mutateAsync(cancelModal.booking.booking_code)
   }
 
-  // Crear reserva
   const handleCreateBooking = (spot: ParkingSpotDisplay) => {
     setCreateModal({ isOpen: true, spot })
   }
 
-  // Editar reserva
   const handleEditBooking = (booking: ParkingBooking) => {
     setEditModal({ isOpen: true, booking })
   }
@@ -231,68 +304,36 @@ export function useParkingStatus(selectedDate: string) {
     notes?: string
   }) => {
     if (!editModal.booking) return
-
-    try {
-      setActionLoading(true)
-      await parkingApi.updateBooking(editModal.booking.booking_code, data)
-      toast.success('Reserva actualizada correctamente')
-      setEditModal({ isOpen: false, booking: null })
-      await loadParkingData()
-    } catch (error) {
-      console.error('Error updating booking:', error)
-      const message = error instanceof Error ? error.message : 'Error al actualizar la reserva'
-      toast.error(message)
-      throw error
-    } finally {
-      setActionLoading(false)
-    }
+    await updateMutation.mutateAsync({ code: editModal.booking.booking_code, data })
   }
 
-  // Gestionar overdue
   const handleOverdueAction = async (action: 'checkout' | 'no-show' | 'cancel' | 'delete') => {
     if (!overdueModal.booking) return
 
-    setActionLoading(true)
-    try {
-      switch (action) {
-        case 'checkout':
-          await parkingApi.checkOutBooking(overdueModal.booking.booking_code)
-          toast.success('Salida registrada correctamente')
-          break
-        case 'no-show':
-          await parkingApi.markBookingNoShow(overdueModal.booking.booking_code)
-          toast.success('Reserva marcada como No-Show')
-          break
-        case 'cancel':
-          await parkingApi.cancelBooking(overdueModal.booking.booking_code)
-          toast.success('Reserva cancelada')
-          break
-        case 'delete':
-          await parkingApi.deleteBooking(overdueModal.booking.booking_code)
-          toast.success('Reserva eliminada')
-          break
-      }
-
-      setOverdueModal({ isOpen: false, booking: null })
-      await loadParkingData()
-    } catch (error) {
-      const message = error instanceof Error ? error.message : `Error al ${action}`
-      toast.error(message)
-    } finally {
-      setActionLoading(false)
+    const code = overdueModal.booking.booking_code
+    switch (action) {
+      case 'checkout':
+        await checkOutMutation.mutateAsync(code)
+        break
+      case 'no-show':
+        await noShowMutation.mutateAsync(code)
+        break
+      case 'cancel':
+        await cancelMutation.mutateAsync(code)
+        break
+      case 'delete':
+        await deleteMutation.mutateAsync(code)
+        break
     }
-  }
 
-  // Cargar datos cuando cambia la fecha
-  useEffect(() => {
-    loadParkingData()
-  }, [loadParkingData])
+    setOverdueModal({ isOpen: false, booking: null })
+  }
 
   return {
     // Data
     spots,
     availabilityData,
-    bookings,
+    bookings: activeBookings,
     overdueBookings,
     loading,
     error,
@@ -304,9 +345,15 @@ export function useParkingStatus(selectedDate: string) {
     overdueModal,
     createModal,
     editModal,
-    actionLoading,
+    actionLoading:
+      checkInMutation.isPending ||
+      checkOutMutation.isPending ||
+      cancelMutation.isPending ||
+      noShowMutation.isPending ||
+      deleteMutation.isPending ||
+      updateMutation.isPending,
 
-    // Setters ✅ AÑADIDOS
+    // Setters
     setCheckoutModal,
     setCheckinModal,
     setCancelModal,
@@ -325,6 +372,5 @@ export function useParkingStatus(selectedDate: string) {
     handleEditBooking,
     confirmEditBooking,
     handleOverdueAction,
-    loadParkingData,
   }
 }

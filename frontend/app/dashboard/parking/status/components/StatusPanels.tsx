@@ -60,7 +60,9 @@ export default function StatusPanels({
         <div className="bg-white dark:bg-[#0d1117] border border-emerald-200 dark:border-emerald-800/30 rounded-xl p-4">
           <div className="flex items-center gap-2 mb-1">
             <FiCheckCircle className="w-4 h-4 text-emerald-500" />
-            <span className="text-xs font-medium text-gray-500 dark:text-gray-400">Disponibles</span>
+            <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
+              Disponibles
+            </span>
           </div>
           <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
             {availabilityData?.summary.available_spots || 0}

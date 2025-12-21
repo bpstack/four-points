@@ -590,7 +590,8 @@ export default function ParkingDashboard() {
                 📊 Reservas
               </div>
               <p>
-                Vista completa del flujo de vehiculos. Rastrea vehiculos entrantes, estacionados y salientes.
+                Vista completa del flujo de vehiculos. Rastrea vehiculos entrantes, estacionados y
+                salientes.
               </p>
             </div>
 
@@ -598,46 +599,35 @@ export default function ParkingDashboard() {
               <div className="font-bold text-green-600 dark:text-green-400 text-[11px]">
                 📥 Llegadas - En espera
               </div>
-              <p>
-                Vehiculos con reservas confirmadas pendientes de check-in.
-              </p>
+              <p>Vehiculos con reservas confirmadas pendientes de check-in.</p>
             </div>
 
             <div className="space-y-1.5 p-3 bg-white/50 dark:bg-black/20 rounded-lg">
               <div className="font-bold text-green-600 dark:text-green-400 text-[11px]">
                 ✅ Llegadas - Dentro
               </div>
-              <p>
-                Vehiculos actualmente estacionados que han completado el check-in.
-              </p>
+              <p>Vehiculos actualmente estacionados que han completado el check-in.</p>
             </div>
 
             <div className="space-y-1.5 p-3 bg-white/50 dark:bg-black/20 rounded-lg">
               <div className="font-bold text-red-600 dark:text-red-400 text-[11px]">
                 📤 Salidas - En espera
               </div>
-              <p>
-                Vehiculos estacionados listos para el procesamiento de check-out.
-              </p>
+              <p>Vehiculos estacionados listos para el procesamiento de check-out.</p>
             </div>
 
             <div className="space-y-1.5 p-3 bg-white/50 dark:bg-black/20 rounded-lg">
               <div className="font-bold text-purple-600 dark:text-purple-400 text-[11px]">
                 🚗 Control de Parking
               </div>
-              <p>
-                Monitoreo en tiempo real de ocupacion y capacidad del parking.
-              </p>
+              <p>Monitoreo en tiempo real de ocupacion y capacidad del parking.</p>
             </div>
           </div>
         </div>
       </div>
 
       {/* Vehicle Search Modal */}
-      <VehicleSearchModal
-        isOpen={showVehicleSearch}
-        onClose={() => setShowVehicleSearch(false)}
-      />
+      <VehicleSearchModal isOpen={showVehicleSearch} onClose={() => setShowVehicleSearch(false)} />
     </div>
   )
 }

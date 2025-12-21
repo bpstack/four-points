@@ -48,7 +48,7 @@ export default function ParkingNavigator() {
   // Actualizar URL cuando cambia la fecha o día seleccionado (pero no en el primer render)
   useEffect(() => {
     if (!isClient || !currentDate || selectedDay === null) return
-    
+
     // Saltar la primera ejecución para evitar push innecesario
     if (isInitialMount.current) {
       isInitialMount.current = false

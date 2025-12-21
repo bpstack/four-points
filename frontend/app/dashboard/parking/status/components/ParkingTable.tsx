@@ -186,7 +186,10 @@ export default function ParkingTable({
             <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
               {spots.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-3 py-8 text-center text-xs text-gray-500 dark:text-gray-400">
+                  <td
+                    colSpan={6}
+                    className="px-3 py-8 text-center text-xs text-gray-500 dark:text-gray-400"
+                  >
                     No hay plazas para mostrar
                   </td>
                 </tr>
@@ -236,10 +239,13 @@ export default function ParkingTable({
                         <td className="px-3 py-2">
                           {spot.booking?.schedule ? (
                             <span className="text-xs text-gray-600 dark:text-gray-400">
-                              {new Date(spot.booking.schedule.expected_checkin).toLocaleDateString('es-ES', {
-                                day: '2-digit',
-                                month: '2-digit',
-                              })}
+                              {new Date(spot.booking.schedule.expected_checkin).toLocaleDateString(
+                                'es-ES',
+                                {
+                                  day: '2-digit',
+                                  month: '2-digit',
+                                }
+                              )}
                             </span>
                           ) : (
                             <span className="text-[10px] text-gray-400">-</span>
@@ -248,10 +254,13 @@ export default function ParkingTable({
                         <td className="px-3 py-2">
                           {spot.booking?.schedule ? (
                             <span className="text-xs text-gray-600 dark:text-gray-400">
-                              {new Date(spot.booking.schedule.expected_checkout).toLocaleDateString('es-ES', {
-                                day: '2-digit',
-                                month: '2-digit',
-                              })}
+                              {new Date(spot.booking.schedule.expected_checkout).toLocaleDateString(
+                                'es-ES',
+                                {
+                                  day: '2-digit',
+                                  month: '2-digit',
+                                }
+                              )}
                             </span>
                           ) : (
                             <span className="text-[10px] text-gray-400">-</span>
@@ -330,7 +339,9 @@ export default function ParkingTable({
                     </div>
                   ) : spot.status !== 'free' ? (
                     <div className="mb-2 pb-2 border-b border-gray-100 dark:border-gray-800">
-                      <p className="text-[10px] text-gray-400 dark:text-gray-500">Sin datos de cliente</p>
+                      <p className="text-[10px] text-gray-400 dark:text-gray-500">
+                        Sin datos de cliente
+                      </p>
                     </div>
                   ) : null}
 
@@ -340,19 +351,25 @@ export default function ParkingTable({
                       <div>
                         <span className="text-gray-500 dark:text-gray-400">Entrada: </span>
                         <span className="text-gray-900 dark:text-gray-100">
-                          {new Date(spot.booking.schedule.expected_checkin).toLocaleDateString('es-ES', {
-                            day: '2-digit',
-                            month: '2-digit',
-                          })}
+                          {new Date(spot.booking.schedule.expected_checkin).toLocaleDateString(
+                            'es-ES',
+                            {
+                              day: '2-digit',
+                              month: '2-digit',
+                            }
+                          )}
                         </span>
                       </div>
                       <div>
                         <span className="text-gray-500 dark:text-gray-400">Salida: </span>
                         <span className="text-gray-900 dark:text-gray-100">
-                          {new Date(spot.booking.schedule.expected_checkout).toLocaleDateString('es-ES', {
-                            day: '2-digit',
-                            month: '2-digit',
-                          })}
+                          {new Date(spot.booking.schedule.expected_checkout).toLocaleDateString(
+                            'es-ES',
+                            {
+                              day: '2-digit',
+                              month: '2-digit',
+                            }
+                          )}
                         </span>
                       </div>
                     </div>
