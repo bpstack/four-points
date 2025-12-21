@@ -6,139 +6,31 @@
 
 import pool from '../../config/db.js'
 import { RowDataPacket, ResultSetHeader } from 'mysql2'
+import {
+  Category,
+  Supplier,
+  SupplierWithStats,
+  SupplierFilters,
+  Invoice,
+  InvoiceWithDetails,
+  InvoiceFilters,
+  InvoiceHistory,
+  Asset,
+  SummaryStats,
+} from '../../models/backoffice/index.js'
 
-// ========================================
-// TIPOS
-// ========================================
-
-export interface Category {
-  id: number
-  cost_center: string
-  department: string
-  description: string | null
-  is_active: boolean
-  created_at: Date
-  updated_at: Date
-}
-
-export interface Supplier {
-  id: number
-  name: string
-  cif: string | null
-  default_category_id: number | null
-  periodicity: 'monthly' | 'bimonthly' | 'quarterly' | 'annual' | 'on_demand'
-  payment_method: 'transfer' | 'direct_debit'
-  bank_account: string | null
-  email: string | null
-  phone: string | null
-  address: string | null
-  notes: string | null
-  is_active: boolean
-  created_by: string | null
-  created_at: Date
-  updated_at: Date
-}
-
-export interface SupplierWithStats extends Supplier {
-  cost_center: string | null
-  department: string | null
-  category_full: string | null
-  total_invoices: number
-  pending_invoices: number
-  paid_invoices: number
-  ytd_total: number
-  last_invoice_date: Date | null
-}
-
-export interface Invoice {
-  id: number
-  invoice_number: string
-  supplier_id: number
-  category_id: number | null
-  amount_without_vat: number
-  amount_with_vat: number
-  vat_percentage: number
-  invoice_date: Date
-  received_date: Date | null
-  billing_period_start: Date | null
-  billing_period_end: Date | null
-  due_date: Date | null
-  paid_date: Date | null
-  status: 'pending' | 'validated' | 'rejected' | 'paid'
-  payment_method: 'transfer' | 'direct_debit'
-  original_pdf_url: string | null
-  original_pdf_public_id: string | null
-  validated_pdf_url: string | null
-  validated_pdf_public_id: string | null
-  validated_by: string | null
-  validated_at: Date | null
-  validation_notes: string | null
-  notes: string | null
-  created_by: string
-  created_at: Date
-  updated_by: string | null
-  updated_at: Date
-  is_deleted: boolean
-}
-
-export interface InvoiceWithDetails extends Invoice {
-  supplier_name: string
-  cost_center: string | null
-  department: string | null
-  category_full: string | null
-  validated_by_name: string | null
-  created_by_name: string | null
-}
-
-export interface Asset {
-  id: number
-  type: 'stamp' | 'signature'
-  name: string
-  cloudinary_url: string
-  cloudinary_public_id: string
-  is_default: boolean
-  created_by: string | null
-  created_at: Date
-}
-
-export interface InvoiceHistory {
-  id: number
-  invoice_id: number
-  action: 'created' | 'updated' | 'validated' | 'rejected' | 'paid' | 'deleted' | 'restored'
-  field_changed: string | null
-  old_value: string | null
-  new_value: string | null
-  notes: string | null
-  changed_by: string
-  changed_at: Date
-}
-
-export interface InvoiceFilters {
-  status?: string
-  supplier_id?: number
-  category_id?: number
-  payment_method?: string
-  date_from?: string
-  date_to?: string
-  search?: string
-  include_deleted?: boolean
-}
-
-export interface SupplierFilters {
-  category_id?: number
-  periodicity?: string
-  payment_method?: string
-  is_active?: boolean
-  search?: string
-}
-
-export interface SummaryStats {
-  pending_count: number
-  pending_total: number
-  paid_this_month: number
-  paid_total_this_month: number
-  overdue_count: number
-  suppliers_count: number
+// Re-exportar tipos para mantener compatibilidad
+export type {
+  Category,
+  Supplier,
+  SupplierWithStats,
+  SupplierFilters,
+  Invoice,
+  InvoiceWithDetails,
+  InvoiceFilters,
+  InvoiceHistory,
+  Asset,
+  SummaryStats,
 }
 
 // ========================================
@@ -158,10 +50,9 @@ export class BackofficeRepository {
   }
 
   static async getCategoryById(id: number): Promise<Category | null> {
-    const [rows] = await pool.query<RowDataPacket[]>(
-      `SELECT * FROM bo_categories WHERE id = ?`,
-      [id]
-    )
+    const [rows] = await pool.query<RowDataPacket[]>(`SELECT * FROM bo_categories WHERE id = ?`, [
+      id,
+    ])
     return rows.length > 0 ? (rows[0] as Category) : null
   }
 
@@ -181,42 +72,58 @@ export class BackofficeRepository {
   // PROVEEDORES
   // ========================================
 
-  static async getAllSuppliers(filters?: SupplierFilters): Promise<SupplierWithStats[]> {
-    let query = `SELECT * FROM v_bo_suppliers_stats WHERE 1=1`
+  static async getAllSuppliers(
+    filters?: SupplierFilters,
+    page: number = 1,
+    limit: number = 100
+  ): Promise<{ suppliers: SupplierWithStats[]; total: number }> {
+    let baseQuery = `FROM v_bo_suppliers_stats WHERE 1=1`
     const params: any[] = []
 
     if (filters?.is_active !== undefined) {
-      query += ` AND is_active = ?`
+      baseQuery += ` AND is_active = ?`
       params.push(filters.is_active)
     } else {
-      query += ` AND is_active = 1`
+      baseQuery += ` AND is_active = 1`
     }
 
     if (filters?.category_id) {
-      query += ` AND default_category_id = ?`
+      baseQuery += ` AND default_category_id = ?`
       params.push(filters.category_id)
     }
 
     if (filters?.periodicity) {
-      query += ` AND periodicity = ?`
+      baseQuery += ` AND periodicity = ?`
       params.push(filters.periodicity)
     }
 
     if (filters?.payment_method) {
-      query += ` AND payment_method = ?`
+      baseQuery += ` AND payment_method = ?`
       params.push(filters.payment_method)
     }
 
     if (filters?.search) {
-      query += ` AND (name LIKE ? OR notes LIKE ?)`
+      baseQuery += ` AND (name LIKE ? OR notes LIKE ?)`
       const search = `%${filters.search}%`
       params.push(search, search)
     }
 
-    query += ` ORDER BY name`
+    // Get total count
+    const [countResult] = await pool.query<RowDataPacket[]>(
+      `SELECT COUNT(*) as total ${baseQuery}`,
+      params
+    )
+    const total = countResult[0].total
 
-    const [rows] = await pool.query<RowDataPacket[]>(query, params)
-    return rows as SupplierWithStats[]
+    // Get paginated results
+    const offset = (page - 1) * limit
+    const query = `SELECT * ${baseQuery} ORDER BY name LIMIT ? OFFSET ?`
+    const [rows] = await pool.query<RowDataPacket[]>(query, [...params, limit, offset])
+
+    return {
+      suppliers: rows as SupplierWithStats[],
+      total,
+    }
   }
 
   static async getSupplierById(id: number): Promise<SupplierWithStats | null> {
@@ -228,10 +135,9 @@ export class BackofficeRepository {
   }
 
   static async getSupplierByName(name: string): Promise<Supplier | null> {
-    const [rows] = await pool.query<RowDataPacket[]>(
-      `SELECT * FROM bo_suppliers WHERE name = ?`,
-      [name]
-    )
+    const [rows] = await pool.query<RowDataPacket[]>(`SELECT * FROM bo_suppliers WHERE name = ?`, [
+      name,
+    ])
     return rows.length > 0 ? (rows[0] as Supplier) : null
   }
 
@@ -251,7 +157,7 @@ export class BackofficeRepository {
     const [result] = await pool.query<ResultSetHeader>(
       `INSERT INTO bo_suppliers 
         (name, cif, default_category_id, periodicity, payment_method, bank_account, email, phone, address, notes, created_by)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         data.name,
         data.cif || null,
@@ -331,7 +237,7 @@ export class BackofficeRepository {
 
     if (filters?.status) {
       // Soporta múltiples estados separados por coma (ej: "pending,validated")
-      const statuses = filters.status.split(',').map(s => s.trim())
+      const statuses = filters.status.split(',').map((s) => s.trim())
       if (statuses.length === 1) {
         whereClause += ` AND status = ?`
         params.push(statuses[0])
@@ -413,7 +319,7 @@ export class BackofficeRepository {
    */
   static async getInvoicesByIds(ids: number[]): Promise<InvoiceWithDetails[]> {
     if (ids.length === 0) return []
-    
+
     const placeholders = ids.map(() => '?').join(',')
     const [rows] = await pool.query<RowDataPacket[]>(
       `SELECT * FROM v_bo_invoices_detail 
@@ -468,7 +374,15 @@ export class BackofficeRepository {
     )
 
     // Registrar en historial
-    await this.addInvoiceHistory(result.insertId, 'created', null, null, null, null, data.created_by)
+    await this.addInvoiceHistory(
+      result.insertId,
+      'created',
+      null,
+      null,
+      null,
+      null,
+      data.created_by
+    )
 
     return result.insertId
   }
@@ -534,7 +448,7 @@ export class BackofficeRepository {
       `validated_by = ?`,
       `validated_at = NOW()`,
       `updated_by = ?`,
-      `updated_at = NOW()`
+      `updated_at = NOW()`,
     ]
     const params: any[] = [userId, userId]
 
@@ -562,7 +476,15 @@ export class BackofficeRepository {
     )
 
     if (result.affectedRows > 0) {
-      await this.addInvoiceHistory(id, 'validated', 'status', 'pending', 'validated', data.validation_notes || null, userId)
+      await this.addInvoiceHistory(
+        id,
+        'validated',
+        'status',
+        'pending',
+        'validated',
+        data.validation_notes || null,
+        userId
+      )
     }
 
     return result.affectedRows > 0
@@ -586,7 +508,11 @@ export class BackofficeRepository {
     return result.affectedRows > 0
   }
 
-  static async unvalidateInvoice(id: number, notes: string | null, userId: string): Promise<boolean> {
+  static async unvalidateInvoice(
+    id: number,
+    notes: string | null,
+    userId: string
+  ): Promise<boolean> {
     const [result] = await pool.query<ResultSetHeader>(
       `UPDATE bo_invoices SET 
         status = 'pending',
@@ -600,7 +526,15 @@ export class BackofficeRepository {
     )
 
     if (result.affectedRows > 0) {
-      await this.addInvoiceHistory(id, 'updated', 'status', 'validated', 'pending', notes || 'Validación revertida', userId)
+      await this.addInvoiceHistory(
+        id,
+        'updated',
+        'status',
+        'validated',
+        'pending',
+        notes || 'Validación revertida',
+        userId
+      )
     }
 
     return result.affectedRows > 0
@@ -627,7 +561,7 @@ export class BackofficeRepository {
   /**
    * Batch mark all validated invoices from a specific month as paid
    * Used by cron job on day 10 to auto-pay previous month's invoices
-   * 
+   *
    * @param year - The year of the invoices to mark as paid
    * @param month - The month (1-12) of the invoices to mark as paid
    * @param userId - The user ID performing the action (system for cron)
@@ -682,7 +616,9 @@ export class BackofficeRepository {
       )
     }
 
-    console.log(`[BackofficeRepository.markValidatedInvoicesAsPaid] Marked ${result.affectedRows} invoices as paid for ${month}/${year}`)
+    console.log(
+      `[BackofficeRepository.markValidatedInvoicesAsPaid] Marked ${result.affectedRows} invoices as paid for ${month}/${year}`
+    )
 
     return { count: result.affectedRows, invoiceIds }
   }
@@ -707,7 +643,7 @@ export class BackofficeRepository {
     )
     return {
       count: rows[0].count,
-      total_amount: Number(rows[0].total_amount)
+      total_amount: Number(rows[0].total_amount),
     }
   }
 
@@ -731,14 +667,14 @@ export class BackofficeRepository {
     )
     return {
       count: rows[0].count,
-      total_amount: Number(rows[0].total_amount)
+      total_amount: Number(rows[0].total_amount),
     }
   }
 
   /**
    * Batch revert all paid invoices from a specific month back to validated
    * This is the reverse of markValidatedInvoicesAsPaid
-   * 
+   *
    * @param year - The year of the invoices to revert
    * @param month - The month (1-12) of the invoices to revert
    * @param userId - The user ID performing the action
@@ -792,7 +728,9 @@ export class BackofficeRepository {
       )
     }
 
-    console.log(`[BackofficeRepository.revertPaidInvoicesToValidated] Reverted ${result.affectedRows} invoices to validated for ${month}/${year}`)
+    console.log(
+      `[BackofficeRepository.revertPaidInvoicesToValidated] Reverted ${result.affectedRows} invoices to validated for ${month}/${year}`
+    )
 
     return { count: result.affectedRows, invoiceIds }
   }
@@ -804,12 +742,9 @@ export class BackofficeRepository {
   static async deleteInvoice(id: number, _userId: string): Promise<boolean> {
     // First delete history records
     await pool.query(`DELETE FROM bo_invoice_history WHERE invoice_id = ?`, [id])
-    
+
     // Then delete the invoice
-    const [result] = await pool.query<ResultSetHeader>(
-      `DELETE FROM bo_invoices WHERE id = ?`,
-      [id]
-    )
+    const [result] = await pool.query<ResultSetHeader>(`DELETE FROM bo_invoices WHERE id = ?`, [id])
 
     console.log(`[BackofficeRepository.deleteInvoice] Hard deleted invoice ${id}`)
 
@@ -890,10 +825,7 @@ export class BackofficeRepository {
   }
 
   static async getAssetById(id: number): Promise<Asset | null> {
-    const [rows] = await pool.query<RowDataPacket[]>(
-      `SELECT * FROM bo_assets WHERE id = ?`,
-      [id]
-    )
+    const [rows] = await pool.query<RowDataPacket[]>(`SELECT * FROM bo_assets WHERE id = ?`, [id])
     return rows.length > 0 ? (rows[0] as Asset) : null
   }
 
@@ -907,25 +839,26 @@ export class BackofficeRepository {
   }): Promise<number> {
     // Si es default, quitar el default de otros del mismo tipo
     if (data.is_default) {
-      await pool.query(
-        `UPDATE bo_assets SET is_default = 0 WHERE type = ?`,
-        [data.type]
-      )
+      await pool.query(`UPDATE bo_assets SET is_default = 0 WHERE type = ?`, [data.type])
     }
 
     const [result] = await pool.query<ResultSetHeader>(
       `INSERT INTO bo_assets (type, name, cloudinary_url, cloudinary_public_id, is_default, created_by)
        VALUES (?, ?, ?, ?, ?, ?)`,
-      [data.type, data.name, data.cloudinary_url, data.cloudinary_public_id, data.is_default || false, data.created_by || null]
+      [
+        data.type,
+        data.name,
+        data.cloudinary_url,
+        data.cloudinary_public_id,
+        data.is_default || false,
+        data.created_by || null,
+      ]
     )
     return result.insertId
   }
 
   static async deleteAsset(id: number): Promise<boolean> {
-    const [result] = await pool.query<ResultSetHeader>(
-      `DELETE FROM bo_assets WHERE id = ?`,
-      [id]
-    )
+    const [result] = await pool.query<ResultSetHeader>(`DELETE FROM bo_assets WHERE id = ?`, [id])
     return result.affectedRows > 0
   }
 
@@ -958,6 +891,13 @@ export class BackofficeRepository {
       [currentMonth]
     )
 
+    // Total histórico de facturas pagadas (all time)
+    const [paidTotal] = await pool.query<RowDataPacket[]>(
+      `SELECT COUNT(*) as count, COALESCE(SUM(amount_with_vat), 0) as total 
+       FROM bo_invoices 
+       WHERE status = 'paid' AND is_deleted = 0`
+    )
+
     const [overdue] = await pool.query<RowDataPacket[]>(
       `SELECT COUNT(*) as count 
        FROM bo_invoices 
@@ -974,6 +914,8 @@ export class BackofficeRepository {
       pending_total: parseFloat(pending[0].total) || 0,
       paid_this_month: paidThisMonth[0].count,
       paid_total_this_month: parseFloat(paidThisMonth[0].total) || 0,
+      paid_count: paidTotal[0].count,
+      paid_total: parseFloat(paidTotal[0].total) || 0,
       overdue_count: overdue[0].count,
       suppliers_count: suppliers[0].count,
     }
