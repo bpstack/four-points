@@ -8,7 +8,7 @@
 
 'use client'
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import {
   FiSearch,
   FiDownload,
@@ -22,9 +22,9 @@ import {
 import type { InvoiceWithDetails, Category } from '@/app/lib/backoffice/types'
 import { formatCurrency, PAYMENT_METHOD_LABELS } from '@/app/lib/backoffice/types'
 import { PdfViewerModal } from '@/app/components/bo/modals'
-import { backofficeApi } from '@/app/lib/backoffice'
+import { backofficeApi } from '@/app/lib/backoffice/backofficeApi'
 import toast from 'react-hot-toast'
-import { useRouter } from 'next/navigation'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 
 // ============================================
 // MOCK DATA - DELETE BEFORE PRODUCTION
@@ -287,12 +287,15 @@ const USE_MOCK_DATA = false // SET TO FALSE FOR PRODUCTION
 // END MOCK DATA
 // ============================================
 
-interface PaidInvoicesTabProps {
+interface PaidInvoicesTabLazyProps {
   initialInvoices: InvoiceWithDetails[]
   categories: Category[]
-  pagination: { page: number; total: number; totalPages: number }
+  pagination: { page: number; total: number; totalPages: number; limit?: number }
   onPageChange?: (page: number) => void
 }
+
+const paidKey = (page: number) => ['backoffice', 'invoices', 'paid', page] as const
+const paidListKey = () => ['backoffice', 'invoices', 'paid'] as const
 
 // Helper function - defined outside component to avoid hoisting issues
 const getSpanishMonthName = (month: number): string => {
@@ -313,18 +316,14 @@ const getSpanishMonthName = (month: number): string => {
   return months[month - 1] || ''
 }
 
-export function PaidInvoicesTab({
+export function PaidInvoicesTabLazy({
   initialInvoices: realInvoices,
   categories: realCategories,
   pagination: realPagination,
   onPageChange,
-}: PaidInvoicesTabProps) {
-  // Use mock data or real data based on flag
-  const initialInvoices = USE_MOCK_DATA ? MOCK_INVOICES : realInvoices
-  const categories = USE_MOCK_DATA ? MOCK_CATEGORIES : realCategories
-  const pagination = USE_MOCK_DATA ? MOCK_PAGINATION : realPagination
+}: PaidInvoicesTabLazyProps) {
+  const queryClient = useQueryClient()
 
-  const router = useRouter()
   const [searchTerm, setSearchTerm] = useState('')
   const [categoryFilter, setCategoryFilter] = useState<number | 'all'>('all')
   const [paymentMethodFilter, setPaymentMethodFilter] = useState<
@@ -335,11 +334,41 @@ export function PaidInvoicesTab({
   )
   const [isExportingZip, setIsExportingZip] = useState(false)
 
+  const { data } = useQuery({
+    queryKey: paidKey(realPagination.page),
+    queryFn: async () => {
+      const response = await backofficeApi.getInvoices({
+        status: 'paid',
+        page: realPagination.page,
+        limit: realPagination.limit ?? 50,
+      })
+      return response
+    },
+    initialData: {
+      invoices: realInvoices,
+      pagination: {
+        ...realPagination,
+        limit: realPagination.limit ?? 50,
+      },
+    },
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    refetchOnMount: false,
+    retry: false,
+    keepPreviousData: true,
+  })
+
+  const invoices = (USE_MOCK_DATA ? MOCK_INVOICES : data?.invoices) ?? []
+  const categories = USE_MOCK_DATA ? MOCK_CATEGORIES : realCategories
+  const pagination = USE_MOCK_DATA ? MOCK_PAGINATION : (data?.pagination ?? realPagination)
+
   // Calculate available months from invoices (needed for initial selectedMonth)
-  const availableMonths = (() => {
+  const availableMonths = useMemo(() => {
     const monthsMap = new Map<string, { year: number; month: number; count: number }>()
 
-    initialInvoices.forEach((invoice) => {
+    invoices.forEach((invoice) => {
       if (invoice.invoice_date) {
         const date = new Date(invoice.invoice_date)
         const year = date.getFullYear()
@@ -365,7 +394,7 @@ export function PaidInvoicesTab({
         label: `${getSpanishMonthName(m.month)} ${m.year} (${m.count})`,
         monthLabel: `${getSpanishMonthName(m.month)} (${m.count})`,
       }))
-  })()
+  }, [invoices, getSpanishMonthName])
 
   // Initialize selectedMonth with the first available month
   const [selectedMonth, setSelectedMonth] = useState<{ year: number; month: number } | null>(() => {
@@ -394,41 +423,50 @@ export function PaidInvoicesTab({
   } | null>(null)
 
   // Client-side filtering
-  // Use initialInvoices directly - it gets updated on router.refresh()
-  const filteredInvoices = initialInvoices.filter((invoice) => {
-    const matchesSearch =
-      invoice.supplier_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      invoice.invoice_number.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesCategory = categoryFilter === 'all' || invoice.category_id === categoryFilter
-    const matchesPaymentMethod =
-      paymentMethodFilter === 'all' || invoice.payment_method === paymentMethodFilter
+  const filteredInvoices = useMemo(
+    () =>
+      invoices.filter((invoice) => {
+        const matchesSearch =
+          invoice.supplier_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          invoice.invoice_number.toLowerCase().includes(searchTerm.toLowerCase())
+        const matchesCategory = categoryFilter === 'all' || invoice.category_id === categoryFilter
+        const matchesPaymentMethod =
+          paymentMethodFilter === 'all' || invoice.payment_method === paymentMethodFilter
 
-    // Date filtering
-    if (dateFilter === 'specific_month' && invoice.invoice_date) {
-      // Filter by specific month (using invoice_date, not paid_date)
-      if (selectedMonth) {
-        const invoiceDate = new Date(invoice.invoice_date)
-        const invoiceYear = invoiceDate.getFullYear()
-        const invoiceMonth = invoiceDate.getMonth() + 1
-        if (invoiceYear !== selectedMonth.year || invoiceMonth !== selectedMonth.month) {
-          return false
+        if (dateFilter === 'specific_month' && invoice.invoice_date) {
+          if (selectedMonth) {
+            const invoiceDate = new Date(invoice.invoice_date)
+            const invoiceYear = invoiceDate.getFullYear()
+            const invoiceMonth = invoiceDate.getMonth() + 1
+            if (invoiceYear !== selectedMonth.year || invoiceMonth !== selectedMonth.month) {
+              return false
+            }
+          }
+        } else if (dateFilter !== 'all' && invoice.paid_date) {
+          const paidDate = new Date(invoice.paid_date)
+          const now = new Date()
+
+          if (dateFilter === 'quarter') {
+            const quarterAgo = new Date(now.getFullYear(), now.getMonth() - 3, now.getDate())
+            if (paidDate < quarterAgo) return false
+          } else if (dateFilter === 'year') {
+            const yearAgo = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate())
+            if (paidDate < yearAgo) return false
+          }
         }
-      }
-    } else if (dateFilter !== 'all' && invoice.paid_date) {
-      const paidDate = new Date(invoice.paid_date)
-      const now = new Date()
 
-      if (dateFilter === 'quarter') {
-        const quarterAgo = new Date(now.getFullYear(), now.getMonth() - 3, now.getDate())
-        if (paidDate < quarterAgo) return false
-      } else if (dateFilter === 'year') {
-        const yearAgo = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate())
-        if (paidDate < yearAgo) return false
-      }
-    }
-
-    return matchesSearch && matchesCategory && matchesPaymentMethod
-  })
+        return matchesSearch && matchesCategory && matchesPaymentMethod
+      }),
+    [
+      invoices,
+      searchTerm,
+      categoryFilter,
+      paymentMethodFilter,
+      dateFilter,
+      selectedMonth,
+      getSpanishMonthName,
+    ]
+  )
 
   const formatDate = (date: string | null) => {
     if (!date) return '-'
@@ -454,15 +492,17 @@ export function PaidInvoicesTab({
   }
 
   // Handle revert batch payment
+  const invalidatePaid = () => {
+    queryClient.invalidateQueries({ queryKey: paidListKey() })
+  }
+
   const handleOpenRevertDialog = async () => {
-    // Get available months from paid invoices
     const months = getAvailableMonths()
     if (months.length === 0) {
       toast.error('No hay facturas pagadas para revertir')
       return
     }
 
-    // Default to most recent month
     const latestMonth = months[0]
     setSelectedMonthYear(latestMonth)
 
@@ -473,9 +513,10 @@ export function PaidInvoicesTab({
       )
       setRevertPreview(preview)
       setRevertDialogOpen(true)
-    } catch (error: any) {
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Error al obtener preview'
       console.error('[handleOpenRevertDialog] Error:', error)
-      toast.error(error.message || 'Error al obtener preview')
+      toast.error(message)
     }
   }
 
@@ -485,9 +526,11 @@ export function PaidInvoicesTab({
     try {
       const preview = await backofficeApi.previewRevertBatchPayment(year, month)
       setRevertPreview(preview)
-    } catch (error: any) {
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Error al obtener preview'
       console.error('[handleRevertMonthChange] Error:', error)
-      toast.error(error.message || 'Error al obtener preview')
+      toast.error(message)
+      throw error
     }
   }
 
@@ -503,12 +546,11 @@ export function PaidInvoicesTab({
       setRevertDialogOpen(false)
       setRevertPreview(null)
       setSelectedMonthYear(null)
-      router.refresh()
-    } catch (error: any) {
+      invalidatePaid()
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Error al revertir pagos'
       console.error('[handleExecuteRevert] Error:', error)
-      toast.error(error.message || 'Error al revertir')
-    } finally {
-      setIsReverting(false)
+      toast.error(message)
     }
   }
 
@@ -516,7 +558,7 @@ export function PaidInvoicesTab({
   const getAvailableMonths = (): { year: number; month: number; label: string }[] => {
     const monthsMap = new Map<string, { year: number; month: number; count: number }>()
 
-    initialInvoices.forEach((invoice) => {
+    invoices.forEach((invoice) => {
       if (invoice.invoice_date) {
         const date = new Date(invoice.invoice_date)
         const year = date.getFullYear()
@@ -659,11 +701,10 @@ export function PaidInvoicesTab({
       document.body.removeChild(a)
 
       toast.success(`${invoicesToExport.length} factura(s) descargada(s) en ZIP`)
-    } catch (error: any) {
-      console.error('[handleExportZip] Error:', error)
-      toast.error(error.message || 'Error al descargar las facturas')
-    } finally {
-      setIsExportingZip(false)
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Error al eliminar la factura'
+      console.error('[handleDelete] Error:', error)
+      toast.error(message)
     }
   }
 

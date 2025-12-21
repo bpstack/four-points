@@ -2,7 +2,7 @@
 /**
  * Server-only data fetching functions for Backoffice module
  * These functions run ONLY on the server and can safely use secrets
- * 
+ *
  * Pattern: Direct fetch to backend API from Server Components
  * - No 'use client' directive
  * - Can use environment variables without NEXT_PUBLIC_ prefix
@@ -20,7 +20,6 @@ import type {
   SupplierWithStats,
   InvoiceWithDetails,
   InvoiceFilters,
-  SupplierFilters,
   CategoriesResponse,
   SuppliersResponse,
   InvoicesResponse,
@@ -40,23 +39,21 @@ const API_BASE = SERVER_API_BASE_URL
 
 async function getAuthHeaders(): Promise<Record<string, string>> {
   const cookieStore = await cookies()
-  
+
   // Try to get the access_token cookie
   const accessToken = cookieStore.get('access_token')?.value
-  
+
   if (accessToken) {
-    return { 'Authorization': `Bearer ${accessToken}` }
+    return { Authorization: `Bearer ${accessToken}` }
   }
-  
+
   // Forward all cookies as a fallback (for HttpOnly cookies)
   const allCookies = cookieStore.getAll()
   if (allCookies.length > 0) {
-    const cookieHeader = allCookies
-      .map(c => `${c.name}=${c.value}`)
-      .join('; ')
-    return { 'Cookie': cookieHeader }
+    const cookieHeader = allCookies.map((c) => `${c.name}=${c.value}`).join('; ')
+    return { Cookie: cookieHeader }
   }
-  
+
   return {}
 }
 
@@ -78,14 +75,11 @@ interface FetchOptions {
   cache?: RequestCache
 }
 
-async function serverFetch<T>(
-  endpoint: string,
-  options: FetchOptions = {}
-): Promise<T> {
+async function serverFetch<T>(endpoint: string, options: FetchOptions = {}): Promise<T> {
   const { revalidate = 60, tags = [], cache } = options
 
   const url = `${API_BASE}${endpoint}`
-  
+
   // Get auth headers from cookies
   const authHeaders = await getAuthHeaders()
 
@@ -167,7 +161,10 @@ export async function getCategories(): Promise<Category[]> {
  * Fetch suppliers with optional filters and pagination
  * Used for initial server render, then client takes over for filtering
  */
-export async function getSuppliers(page = 1, limit = 100): Promise<{
+export async function getSuppliers(
+  page = 1,
+  limit = 100
+): Promise<{
   suppliers: SupplierWithStats[]
   pagination: {
     page: number
@@ -265,7 +262,10 @@ export async function getInvoices(filters?: InvoiceFilters): Promise<{
  * Includes both 'pending' and 'validated' status
  * (validated invoices are pending payment at start of next month)
  */
-export async function getPendingInvoices(page = 1, limit = 50): Promise<{
+export async function getPendingInvoices(
+  page = 1,
+  limit = 50
+): Promise<{
   invoices: InvoiceWithDetails[]
   pagination: {
     page: number
@@ -282,7 +282,10 @@ export async function getPendingInvoices(page = 1, limit = 50): Promise<{
  * Convenience function for the paid tab
  * Default limit of 100 for better UX with monthly filtering
  */
-export async function getPaidInvoices(page = 1, limit = 100): Promise<{
+export async function getPaidInvoices(
+  page = 1,
+  limit = 100
+): Promise<{
   invoices: InvoiceWithDetails[]
   pagination: {
     page: number

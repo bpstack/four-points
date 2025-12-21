@@ -133,7 +133,14 @@ export interface InvoiceFormData {
 // HISTORIAL DE FACTURAS
 // ========================================
 
-export type InvoiceAction = 'created' | 'updated' | 'validated' | 'rejected' | 'paid' | 'deleted' | 'restored'
+export type InvoiceAction =
+  | 'created'
+  | 'updated'
+  | 'validated'
+  | 'rejected'
+  | 'paid'
+  | 'deleted'
+  | 'restored'
 
 export interface InvoiceHistory {
   id: number
@@ -177,7 +184,7 @@ export interface AssetFormData {
 // ========================================
 
 export interface InvoiceFilters {
-  status?: string  // Supports single status or comma-separated (e.g., "pending,validated")
+  status?: string // Supports single status or comma-separated (e.g., "pending,validated")
   supplier_id?: number
   category_id?: number
   payment_method?: PaymentMethod

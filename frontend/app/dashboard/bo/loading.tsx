@@ -33,10 +33,7 @@ export default function BackOfficeLoading() {
         <div className="border-b border-gray-200 dark:border-gray-800">
           <nav className="flex space-x-4 sm:space-x-6">
             {[...Array(3)].map((_, i) => (
-              <div
-                key={i}
-                className="flex items-center gap-1.5 px-1 py-3 animate-pulse"
-              >
+              <div key={i} className="flex items-center gap-1.5 px-1 py-3 animate-pulse">
                 <div className="w-4 h-4 bg-gray-200 dark:bg-gray-700 rounded" />
                 <div className="w-16 h-4 bg-gray-200 dark:bg-gray-700 rounded" />
               </div>

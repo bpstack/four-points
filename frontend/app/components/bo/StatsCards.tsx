@@ -1,7 +1,7 @@
 // app/components/bo/StatsCards.tsx
 /**
  * Server Component - Stats Cards
- * 
+ *
  * Fetches and displays summary statistics.
  * Runs on the server, no JavaScript sent to client.
  */

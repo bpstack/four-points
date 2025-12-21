@@ -8,8 +8,23 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { FiX, FiChevronDown, FiChevronRight, FiFileText, FiCheck, FiClock, FiDollarSign, FiTrash2, FiAlertTriangle, FiCheckCircle } from 'react-icons/fi'
-import type { InvoiceWithDetails, SupplierWithStats, InvoiceStatus } from '@/app/lib/backoffice/types'
+import {
+  FiX,
+  FiChevronDown,
+  FiChevronRight,
+  FiFileText,
+  FiCheck,
+  FiClock,
+  FiDollarSign,
+  FiTrash2,
+  FiAlertTriangle,
+  FiCheckCircle,
+} from 'react-icons/fi'
+import type {
+  InvoiceWithDetails,
+  SupplierWithStats,
+  InvoiceStatus,
+} from '@/app/lib/backoffice/types'
 import {
   formatCurrency,
   INVOICE_STATUS_LABELS,
@@ -37,33 +52,42 @@ interface MonthGroup {
 }
 
 const SPANISH_MONTHS = [
-  'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-  'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+  'Enero',
+  'Febrero',
+  'Marzo',
+  'Abril',
+  'Mayo',
+  'Junio',
+  'Julio',
+  'Agosto',
+  'Septiembre',
+  'Octubre',
+  'Noviembre',
+  'Diciembre',
 ]
 
 // ============================================
 // MOCK DATA - Eliminar cuando conectes con API
 // ============================================
-const generateMockInvoices = (supplierName: string): InvoiceWithDetails[] => {
+const _generateMockInvoices = (supplierName: string): InvoiceWithDetails[] => {
   const mockInvoices: InvoiceWithDetails[] = []
   const statuses: InvoiceStatus[] = ['paid', 'paid', 'paid', 'validated', 'pending']
-  
+
   // Generar facturas para los últimos 6 meses
   for (let monthOffset = 0; monthOffset < 6; monthOffset++) {
     const date = new Date()
     date.setMonth(date.getMonth() - monthOffset)
-    
+
     // 1-3 facturas por mes
     const invoicesThisMonth = Math.floor(Math.random() * 3) + 1
-    
+
     for (let i = 0; i < invoicesThisMonth; i++) {
       const day = Math.floor(Math.random() * 28) + 1
       const invoiceDate = new Date(date.getFullYear(), date.getMonth(), day)
       const amount = Math.floor(Math.random() * 1500) + 100
-      const status = monthOffset === 0 
-        ? statuses[Math.floor(Math.random() * statuses.length)]
-        : 'paid' // Meses anteriores están pagados
-      
+      const status =
+        monthOffset === 0 ? statuses[Math.floor(Math.random() * statuses.length)] : 'paid' // Meses anteriores están pagados
+
       mockInvoices.push({
         id: mockInvoices.length + 1,
         invoice_number: `FV${date.getFullYear()}${String(date.getMonth() + 1).padStart(2, '0')}${String(i + 1).padStart(3, '0')}`,
@@ -102,17 +126,22 @@ const generateMockInvoices = (supplierName: string): InvoiceWithDetails[] => {
       })
     }
   }
-  
+
   return mockInvoices
 }
 // ============================================
 
-export function SupplierInvoicesModal({ isOpen, onClose, supplier, onInvoiceDeleted }: SupplierInvoicesModalProps) {
+export function SupplierInvoicesModal({
+  isOpen,
+  onClose,
+  supplier,
+  onInvoiceDeleted,
+}: SupplierInvoicesModalProps) {
   const [invoices, setInvoices] = useState<InvoiceWithDetails[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [expandedMonths, setExpandedMonths] = useState<Set<string>>(new Set())
-  
+
   // Delete confirmation states (two-step)
   const [deleteStep, setDeleteStep] = useState<1 | 2>(1)
   const [deletingInvoice, setDeletingInvoice] = useState<InvoiceWithDetails | null>(null)
@@ -126,28 +155,28 @@ export function SupplierInvoicesModal({ isOpen, onClose, supplier, onInvoiceDele
   }, [isOpen, supplier])
 
   // Download PDF using proxy endpoint (ensures correct filename with .pdf extension)
-  const handleDownloadPdf = async (invoiceId: number, type: 'original' | 'validated', invoiceNumber: string) => {
+  const handleDownloadPdf = async (
+    invoiceId: number,
+    type: 'original' | 'validated',
+    invoiceNumber: string
+  ) => {
     try {
-      // En desarrollo usa localStorage, en producción usa cookies HttpOnly
-      const isDev = process.env.NODE_ENV === 'development'
-      const token = isDev ? localStorage.getItem('access_token') : null
       const url = backofficeApi.getInvoicePdfDownloadUrl(invoiceId, type)
-      
-      // Fetch the PDF blob
+
+      // Fetch the PDF blob (cookies-only)
       const response = await fetch(url, {
-        headers: token ? { 'Authorization': `Bearer ${token}` } : {},
-        credentials: 'include', // Siempre incluir cookies (producción usa HttpOnly cookies)
+        credentials: 'include', // Siempre incluir cookies (HttpOnly)
       })
-      
+
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({ error: 'Error desconocido' }))
         throw new Error(errorData.error || `Error ${response.status}`)
       }
-      
+
       // Create blob and trigger download
       const blob = await response.blob()
       const blobUrl = URL.createObjectURL(blob)
-      
+
       // Create temporary link to trigger download with correct filename
       const link = document.createElement('a')
       link.href = blobUrl
@@ -155,7 +184,7 @@ export function SupplierInvoicesModal({ isOpen, onClose, supplier, onInvoiceDele
       document.body.appendChild(link)
       link.click()
       document.body.removeChild(link)
-      
+
       // Cleanup blob URL
       setTimeout(() => URL.revokeObjectURL(blobUrl), 1000)
     } catch (err: any) {
@@ -169,7 +198,7 @@ export function SupplierInvoicesModal({ isOpen, onClose, supplier, onInvoiceDele
     try {
       const response = await backofficeApi.getSupplierById(supplier.id)
       setInvoices(response.invoices || [])
-      
+
       // Auto-expand current month
       const now = new Date()
       const currentKey = `${now.getFullYear()}-${now.getMonth() + 1}`
@@ -259,12 +288,12 @@ export function SupplierInvoicesModal({ isOpen, onClose, supplier, onInvoiceDele
 
   const handleDeleteFinalConfirm = async () => {
     if (!deletingInvoice) return
-    
+
     setIsDeleting(true)
     try {
       await backofficeApi.deleteInvoice(deletingInvoice.id)
-      setInvoices(prev => prev.filter(i => i.id !== deletingInvoice.id))
-      
+      setInvoices((prev) => prev.filter((i) => i.id !== deletingInvoice.id))
+
       toast.success(`Factura ${deletingInvoice.invoice_number} eliminada`)
       setDeletingInvoice(null)
       setDeleteStep(1)
@@ -282,10 +311,10 @@ export function SupplierInvoicesModal({ isOpen, onClose, supplier, onInvoiceDele
 
   // Calculate totals
   const totalPaid = invoices
-    .filter(i => i.status === 'paid')
+    .filter((i) => i.status === 'paid')
     .reduce((sum, i) => sum + i.amount_with_vat, 0)
   const totalPending = invoices
-    .filter(i => i.status === 'pending' || i.status === 'validated')
+    .filter((i) => i.status === 'pending' || i.status === 'validated')
     .reduce((sum, i) => sum + i.amount_with_vat, 0)
 
   return (
@@ -318,19 +347,25 @@ export function SupplierInvoicesModal({ isOpen, onClose, supplier, onInvoiceDele
           <div className="px-6 py-3 border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-[#0d1117]">
             <div className="grid grid-cols-3 gap-4">
               <div className="text-center">
-                <p className="text-[10px] text-gray-500 dark:text-gray-400 uppercase tracking-wider">Total Pagado</p>
+                <p className="text-[10px] text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  Total Pagado
+                </p>
                 <p className="text-sm font-bold text-green-600 dark:text-green-400 mt-0.5">
                   {formatCurrency(totalPaid)}
                 </p>
               </div>
               <div className="text-center">
-                <p className="text-[10px] text-gray-500 dark:text-gray-400 uppercase tracking-wider">Pendiente</p>
+                <p className="text-[10px] text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  Pendiente
+                </p>
                 <p className="text-sm font-bold text-yellow-600 dark:text-yellow-400 mt-0.5">
                   {formatCurrency(totalPending)}
                 </p>
               </div>
               <div className="text-center">
-                <p className="text-[10px] text-gray-500 dark:text-gray-400 uppercase tracking-wider">Total YTD</p>
+                <p className="text-[10px] text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  Total YTD
+                </p>
                 <p className="text-sm font-bold text-gray-900 dark:text-gray-100 mt-0.5">
                   {formatCurrency(supplier.ytd_total || 0)}
                 </p>
@@ -385,7 +420,8 @@ export function SupplierInvoicesModal({ isOpen, onClose, supplier, onInvoiceDele
                             {group.monthName} {group.year}
                           </span>
                           <span className="text-xs text-gray-500 dark:text-gray-400">
-                            ({group.invoices.length} factura{group.invoices.length !== 1 ? 's' : ''})
+                            ({group.invoices.length} factura{group.invoices.length !== 1 ? 's' : ''}
+                            )
                           </span>
                         </div>
                         <div className="flex items-center gap-4">
@@ -457,7 +493,11 @@ export function SupplierInvoicesModal({ isOpen, onClose, supplier, onInvoiceDele
                                     <button
                                       onClick={(e) => {
                                         e.stopPropagation()
-                                        handleDownloadPdf(invoice.id, 'original', invoice.invoice_number)
+                                        handleDownloadPdf(
+                                          invoice.id,
+                                          'original',
+                                          invoice.invoice_number
+                                        )
                                       }}
                                       className="p-1.5 text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors"
                                       title="Descargar PDF Original"
@@ -465,7 +505,10 @@ export function SupplierInvoicesModal({ isOpen, onClose, supplier, onInvoiceDele
                                       <FiFileText className="w-3.5 h-3.5" />
                                     </button>
                                   ) : (
-                                    <span className="p-1.5 text-gray-300 dark:text-gray-600 cursor-not-allowed" title="Sin PDF Original">
+                                    <span
+                                      className="p-1.5 text-gray-300 dark:text-gray-600 cursor-not-allowed"
+                                      title="Sin PDF Original"
+                                    >
                                       <FiFileText className="w-3.5 h-3.5" />
                                     </span>
                                   )}
@@ -473,7 +516,11 @@ export function SupplierInvoicesModal({ isOpen, onClose, supplier, onInvoiceDele
                                     <button
                                       onClick={(e) => {
                                         e.stopPropagation()
-                                        handleDownloadPdf(invoice.id, 'validated', invoice.invoice_number)
+                                        handleDownloadPdf(
+                                          invoice.id,
+                                          'validated',
+                                          invoice.invoice_number
+                                        )
                                       }}
                                       className="p-1.5 text-green-500 hover:text-green-600 dark:text-green-400 dark:hover:text-green-300 hover:bg-green-50 dark:hover:bg-green-900/20 rounded transition-colors"
                                       title="Descargar PDF Validado"
@@ -481,7 +528,10 @@ export function SupplierInvoicesModal({ isOpen, onClose, supplier, onInvoiceDele
                                       <FiCheckCircle className="w-3.5 h-3.5" />
                                     </button>
                                   ) : (
-                                    <span className="p-1.5 text-gray-300 dark:text-gray-600 cursor-not-allowed" title="Sin PDF Validado">
+                                    <span
+                                      className="p-1.5 text-gray-300 dark:text-gray-600 cursor-not-allowed"
+                                      title="Sin PDF Validado"
+                                    >
                                       <FiCheckCircle className="w-3.5 h-3.5" />
                                     </span>
                                   )}
@@ -523,7 +573,10 @@ export function SupplierInvoicesModal({ isOpen, onClose, supplier, onInvoiceDele
       {/* Delete Confirmation Dialog - Two Steps */}
       {deletingInvoice && (
         <div className="fixed inset-0 z-[60] overflow-y-auto">
-          <div className="fixed inset-0 bg-black/50 transition-opacity" onClick={handleDeleteCancel} />
+          <div
+            className="fixed inset-0 bg-black/50 transition-opacity"
+            onClick={handleDeleteCancel}
+          />
           <div className="flex min-h-full items-center justify-center p-4">
             <div className="relative w-full max-w-md bg-white dark:bg-[#151b23] rounded-lg shadow-xl">
               <div className="p-6">
@@ -539,9 +592,15 @@ export function SupplierInvoicesModal({ isOpen, onClose, supplier, onInvoiceDele
                       Eliminar Factura
                     </h3>
                     <div className="text-sm text-gray-600 dark:text-gray-400 text-center mb-4 space-y-2">
-                      <p><strong>Factura:</strong> {deletingInvoice.invoice_number}</p>
-                      <p><strong>Importe:</strong> {formatCurrency(deletingInvoice.amount_with_vat)}</p>
-                      <p><strong>Estado:</strong> {INVOICE_STATUS_LABELS[deletingInvoice.status]}</p>
+                      <p>
+                        <strong>Factura:</strong> {deletingInvoice.invoice_number}
+                      </p>
+                      <p>
+                        <strong>Importe:</strong> {formatCurrency(deletingInvoice.amount_with_vat)}
+                      </p>
+                      <p>
+                        <strong>Estado:</strong> {INVOICE_STATUS_LABELS[deletingInvoice.status]}
+                      </p>
                     </div>
                     <p className="text-sm text-gray-500 dark:text-gray-400 text-center mb-6">
                       ¿Estás seguro de que quieres eliminar esta factura?
@@ -569,8 +628,8 @@ export function SupplierInvoicesModal({ isOpen, onClose, supplier, onInvoiceDele
                     </h3>
                     <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md p-3 mb-4">
                       <p className="text-xs text-red-800 dark:text-red-300 text-center">
-                        <strong>ATENCIÓN:</strong> Esta acción es PERMANENTE e IRREVERSIBLE.
-                        La factura <strong>{deletingInvoice.invoice_number}</strong> será eliminada
+                        <strong>ATENCIÓN:</strong> Esta acción es PERMANENTE e IRREVERSIBLE. La
+                        factura <strong>{deletingInvoice.invoice_number}</strong> será eliminada
                         completamente del sistema junto con todo su historial.
                       </p>
                     </div>

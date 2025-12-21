@@ -1,7 +1,7 @@
 // app/components/bo/TabsNavigation.tsx
 /**
  * Client Component - Tab Navigation
- * 
+ *
  * Handles interactive tab switching using URL search params.
  */
 

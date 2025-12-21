@@ -1,12 +1,12 @@
 # Plan de mejoras prioritarias
 
-## Checklist general (orden sugerido)
-1. Unificar variables de entorno (helper + uso único en front/route handlers).
-2. Endurecer Route Handlers (método, cookies requeridas, origen permitido, mensajes claros).
-3. Eliminar `localStorage` del `apiClient` y depender solo de cookies.
-4. Decidir si se activará NextAuth + middleware y planificarlo.
-5. Revisar qué vistas deben prerenderizarse (SSR/SSG) antes de cargar datos pesados en el cliente.
-6. Migrar módulos a React Query, siguiendo el orden de prioridades (grupos → parking → …).
+## Checklist general (estado backup 21-dic-2025)
+1. Unificar variables de entorno — **completado** (helper `env.ts`, `.env.example` simplificado, rutas actualizadas).
+2. Endurecer Route Handlers — **completado** (método, origen permitido, cookies, mensajes claros en auth).
+3. Eliminar `localStorage` del `apiClient` — **completado** (cookies-only para auth y descargas; refresh token vía handler).
+4. NextAuth + middleware — **pendiente** (decidir activación o documentar descarte).
+5. SSR/SSG/prerender — **pendiente** (planificar dashboards críticos; hidratar React Query si aplica).
+6. React Query — **en progreso** (BackOffice tabs lazy + Parking migrado; falta Maintenance y limpieza lint).
 
 ## Resumen “estado actual vs. objetivo”
 | Tema | Cómo está hoy | Objetivo |

@@ -14,8 +14,6 @@ import type {
   Category,
   Periodicity,
   PaymentMethod,
-  PERIODICITY_LABELS,
-  PAYMENT_METHOD_LABELS,
 } from '@/app/lib/backoffice/types'
 import { backofficeApi } from '@/app/lib/backoffice/backofficeApi'
 import toast from 'react-hot-toast'
@@ -113,7 +111,7 @@ export function SupplierFormModal({
     // Acepta: CIF español (B12345678), VAT europeo (DE123456789, FR12345678901), o genérico (5-20 alfanuméricos)
     if (formData.cif && formData.cif.trim()) {
       const taxIdRegex = /^[A-Za-z0-9]{5,20}$/
-      const cleanedTaxId = formData.cif.replace(/[\s\-\.]/g, '').toUpperCase()
+      const cleanedTaxId = formData.cif.replace(/[\s.-]/g, '').toUpperCase()
       if (!taxIdRegex.test(cleanedTaxId)) {
         newErrors.cif = 'Formato inválido (5-20 caracteres alfanuméricos)'
       }
@@ -185,10 +183,7 @@ export function SupplierFormModal({
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
       {/* Backdrop */}
-      <div
-        className="fixed inset-0 bg-black/50 transition-opacity"
-        onClick={onClose}
-      />
+      <div className="fixed inset-0 bg-black/50 transition-opacity" onClick={onClose} />
 
       {/* Modal */}
       <div className="flex min-h-full items-center justify-center p-4">
@@ -225,9 +220,7 @@ export function SupplierFormModal({
                   }`}
                   placeholder="Nombre del proveedor"
                 />
-                {errors.name && (
-                  <p className="mt-1 text-xs text-red-500">{errors.name}</p>
-                )}
+                {errors.name && <p className="mt-1 text-xs text-red-500">{errors.name}</p>}
               </div>
 
               {/* CIF */}
@@ -356,9 +349,7 @@ export function SupplierFormModal({
                 <input
                   type="email"
                   value={formData.email || ''}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, email: e.target.value }))
-                  }
+                  onChange={(e) => setFormData((prev) => ({ ...prev, email: e.target.value }))}
                   className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-[#0d1117] dark:text-gray-200 ${
                     errors.email
                       ? 'border-red-500 dark:border-red-500'
@@ -366,9 +357,7 @@ export function SupplierFormModal({
                   }`}
                   placeholder="proveedor@ejemplo.com"
                 />
-                {errors.email && (
-                  <p className="mt-1 text-xs text-red-500">{errors.email}</p>
-                )}
+                {errors.email && <p className="mt-1 text-xs text-red-500">{errors.email}</p>}
               </div>
 
               {/* Teléfono */}
@@ -379,9 +368,7 @@ export function SupplierFormModal({
                 <input
                   type="tel"
                   value={formData.phone || ''}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, phone: e.target.value }))
-                  }
+                  onChange={(e) => setFormData((prev) => ({ ...prev, phone: e.target.value }))}
                   className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-[#0d1117] dark:text-gray-200"
                   placeholder="+34 912 345 678"
                 />
@@ -395,9 +382,7 @@ export function SupplierFormModal({
                 <input
                   type="text"
                   value={formData.address || ''}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, address: e.target.value }))
-                  }
+                  onChange={(e) => setFormData((prev) => ({ ...prev, address: e.target.value }))}
                   className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-[#0d1117] dark:text-gray-200"
                   placeholder="Calle, número, ciudad, CP"
                 />
@@ -410,9 +395,7 @@ export function SupplierFormModal({
                 </label>
                 <textarea
                   value={formData.notes || ''}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, notes: e.target.value }))
-                  }
+                  onChange={(e) => setFormData((prev) => ({ ...prev, notes: e.target.value }))}
                   rows={2}
                   className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-[#0d1117] dark:text-gray-200 resize-none"
                   placeholder="Observaciones..."

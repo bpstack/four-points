@@ -89,10 +89,7 @@ export function ConfirmDialog({
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
       {/* Backdrop */}
-      <div
-        className="fixed inset-0 bg-black/50 transition-opacity"
-        onClick={onClose}
-      />
+      <div className="fixed inset-0 bg-black/50 transition-opacity" onClick={onClose} />
 
       {/* Dialog */}
       <div className="flex min-h-full items-center justify-center p-4">
@@ -120,9 +117,7 @@ export function ConfirmDialog({
             </h3>
 
             {/* Message */}
-            <p className="text-sm text-gray-600 dark:text-gray-400 text-center mb-6">
-              {message}
-            </p>
+            <p className="text-sm text-gray-600 dark:text-gray-400 text-center mb-6">{message}</p>
 
             {/* Actions */}
             <div className="flex gap-3">

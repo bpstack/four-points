@@ -37,6 +37,7 @@ import {
   PdfEditorModal,
   ConfirmDialog,
 } from '@/app/components/bo/modals'
+
 import { backofficeApi } from '@/app/lib/backoffice'
 import { exportToExcel, exportToPdf } from '@/app/lib/backoffice/export-utils'
 import toast from 'react-hot-toast'
@@ -82,7 +83,6 @@ export function PendingInvoicesTab({
   const [uploadingInvoice, setUploadingInvoice] = useState<InvoiceWithDetails | null>(null)
   const [pdfViewerOpen, setPdfViewerOpen] = useState(false)
   const [viewingPdfInvoice, setViewingPdfInvoice] = useState<InvoiceWithDetails | null>(null)
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [deletingInvoice, setDeletingInvoice] = useState<InvoiceWithDetails | null>(null)
 
   // PDF Editor state
@@ -90,10 +90,10 @@ export function PendingInvoicesTab({
   const [editingPdfInvoice, setEditingPdfInvoice] = useState<InvoiceWithDetails | null>(null)
 
   // Validation confirmation dialog (for invoices without PDF)
-  const [validateDialogOpen, setValidateDialogOpen] = useState(false)
   const [validatingInvoice, setValidatingInvoice] = useState<InvoiceWithDetails | null>(null)
 
   // Client-side filtering (for immediate UX)
+
   // Use initialInvoices directly - it gets updated on router.refresh()
   const filteredInvoices = initialInvoices.filter((invoice) => {
     const matchesSearch =
@@ -172,20 +172,36 @@ export function PendingInvoicesTab({
   }
 
   // Action handlers
-  const handleValidate = async (invoice: InvoiceWithDetails) => {
-    // Si tiene PDF original, abrir el editor para añadir sello/firma
+  const handleValidate = (invoice: InvoiceWithDetails) => {
     if (invoice.original_pdf_url) {
       setEditingPdfInvoice(invoice)
       setPdfEditorOpen(true)
       return
     }
 
-    // Si no tiene PDF, abrir diálogo de confirmación
     setValidatingInvoice(invoice)
-    setValidateDialogOpen(true)
   }
 
-  // Handle validation confirmation (for invoices without PDF)
+  const handleOpenDeleteDialog = (invoice: InvoiceWithDetails) => {
+    setDeletingInvoice(invoice)
+  }
+
+  const handleDelete = async () => {
+    if (!deletingInvoice) return
+
+    startTransition(async () => {
+      try {
+        await backofficeApi.deleteInvoice(deletingInvoice.id)
+        toast.success('Factura eliminada')
+        setDeletingInvoice(null)
+        handleMutationSuccess()
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Error al eliminar la factura'
+        toast.error(message)
+      }
+    })
+  }
+
   const handleConfirmValidate = async () => {
     if (!validatingInvoice) return
 
@@ -193,7 +209,6 @@ export function PendingInvoicesTab({
       try {
         await backofficeApi.validateInvoice(validatingInvoice.id)
         toast.success('Factura validada correctamente')
-        setValidateDialogOpen(false)
         setValidatingInvoice(null)
         handleMutationSuccess()
       } catch (error: any) {
@@ -248,45 +263,23 @@ export function PendingInvoicesTab({
       console.log('[handlePdfEditorSave] Upload result:', uploadResult)
 
       // Mark invoice as validated using client-side API (not server action)
-      // This ensures the auth token from localStorage is used correctly
+      // Uses cookie-based auth handled by apiClient
       console.log('[handlePdfEditorSave] Validating invoice:', editingPdfInvoice.id)
       const validateResult = await backofficeApi.validateInvoice(editingPdfInvoice.id)
       console.log('[handlePdfEditorSave] Validate result:', validateResult)
 
       toast.success('Factura validada con PDF firmado')
       handleMutationSuccess()
-    } catch (error: any) {
+    } catch (error) {
       console.error('[handlePdfEditorSave] Error:', error)
-      toast.error(error.message || 'Error al guardar el PDF validado')
-      throw error
+      const message = error instanceof Error ? error.message : 'Error al guardar el PDF validado'
+      toast.error(message)
     }
-  }
-
-  const handleOpenDeleteDialog = (invoice: InvoiceWithDetails) => {
-    setDeletingInvoice(invoice)
-    setDeleteDialogOpen(true)
-  }
-
-  const handleDelete = async () => {
-    if (!deletingInvoice) return
-
-    startTransition(async () => {
-      try {
-        await backofficeApi.deleteInvoice(deletingInvoice.id)
-        toast.success('Factura eliminada')
-        setDeleteDialogOpen(false)
-        setDeletingInvoice(null)
-        handleMutationSuccess()
-      } catch (error: any) {
-        toast.error(error.message || 'Error al eliminar la factura')
-      }
-    })
   }
 
   const handleBulkValidate = async () => {
     if (selectedInvoices.length === 0) return
 
-    // Para validación masiva, validar directamente sin editor
     startTransition(async () => {
       let successCount = 0
       let errorCount = 0
@@ -295,7 +288,7 @@ export function PendingInvoicesTab({
         try {
           await backofficeApi.validateInvoice(id)
           successCount++
-        } catch (error) {
+        } catch (_err) {
           errorCount++
         }
       }
@@ -500,6 +493,12 @@ export function PendingInvoicesTab({
           </span>
           <div className="flex gap-2">
             <button
+              onClick={handleBulkValidate}
+              className="inline-flex items-center gap-1 px-2 py-1 text-[10px] font-medium text-green-700 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 rounded transition-colors"
+            >
+              <FiCheck className="w-3 h-3" /> Validar
+            </button>
+            <button
               onClick={handleExportZip}
               disabled={isExporting}
               title="Descargar facturas validadas como ZIP"
@@ -641,6 +640,7 @@ export function PendingInvoicesTab({
                               </button>
                             </>
                           )}
+
                           {invoice.status === 'validated' && (
                             <button
                               onClick={() => handleUnvalidate(invoice)}
@@ -815,6 +815,7 @@ export function PendingInvoicesTab({
                         </button>
                       </>
                     )}
+
                     {invoice.status === 'validated' && (
                       <button
                         onClick={() => handleUnvalidate(invoice)}
@@ -901,64 +902,6 @@ export function PendingInvoicesTab({
         />
       )}
 
-      {/* Delete Confirmation Dialog */}
-      {deletingInvoice && (
-        <div className="fixed inset-0 z-50 overflow-y-auto">
-          <div
-            className="fixed inset-0 bg-black/50 transition-opacity"
-            onClick={() => {
-              setDeleteDialogOpen(false)
-              setDeletingInvoice(null)
-            }}
-          />
-          <div className="flex min-h-full items-center justify-center p-4">
-            <div className="relative w-full max-w-md bg-white dark:bg-[#151b23] rounded-lg shadow-xl">
-              <div className="p-6">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
-                  Eliminar Factura
-                </h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
-                  <strong>Factura:</strong> {deletingInvoice.invoice_number}
-                </p>
-                <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
-                  <strong>Proveedor:</strong> {deletingInvoice.supplier_name}
-                </p>
-                <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                  <strong>Importe:</strong> {formatCurrency(deletingInvoice.amount_with_vat)}
-                </p>
-                <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md p-3 mb-4">
-                  <p className="text-xs text-red-800 dark:text-red-300">
-                    <strong>Atención:</strong> Esta acción eliminará la factura permanentemente de
-                    la base de datos. Esta acción no se puede deshacer.
-                  </p>
-                </div>
-                <div className="flex gap-3">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setDeleteDialogOpen(false)
-                      setDeletingInvoice(null)
-                    }}
-                    disabled={isPending}
-                    className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
-                  >
-                    Cancelar
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleDelete}
-                    disabled={isPending}
-                    className="flex-1 px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 transition-colors disabled:opacity-50"
-                  >
-                    {isPending ? 'Procesando...' : 'Eliminar Permanentemente'}
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* PDF Editor Modal */}
       {editingPdfInvoice && (
         <PdfEditorModal
@@ -974,12 +917,11 @@ export function PendingInvoicesTab({
       )}
 
       {/* Validate Confirmation Dialog (for invoices without PDF) */}
-      {validatingInvoice && validateDialogOpen && (
+      {validatingInvoice && (
         <div className="fixed inset-0 z-50 overflow-y-auto">
           <div
             className="fixed inset-0 bg-black/50 transition-opacity"
             onClick={() => {
-              setValidateDialogOpen(false)
               setValidatingInvoice(null)
             }}
           />
@@ -1007,7 +949,6 @@ export function PendingInvoicesTab({
                   <button
                     type="button"
                     onClick={() => {
-                      setValidateDialogOpen(false)
                       setValidatingInvoice(null)
                     }}
                     disabled={isPending}
@@ -1028,6 +969,19 @@ export function PendingInvoicesTab({
             </div>
           </div>
         </div>
+      )}
+
+      {/* Delete Confirmation Dialog */}
+      {deletingInvoice && (
+        <ConfirmDialog
+          isOpen={!!deletingInvoice}
+          title="Eliminar Factura"
+          message={`¿Seguro que deseas eliminar la factura "${deletingInvoice.invoice_number}"? Esta acción no se puede deshacer.`}
+          confirmText="Eliminar"
+          variant="danger"
+          onClose={() => setDeletingInvoice(null)}
+          onConfirm={handleDelete}
+        />
       )}
 
       {/* Batch Payment Dialog */}

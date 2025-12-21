@@ -46,7 +46,7 @@ export function InvoiceFormModal({
 }: InvoiceFormModalProps) {
   const [isPending, startTransition] = useTransition()
   const [errors, setErrors] = useState<Record<string, string>>({})
-  
+
   // Form state
   const [formData, setFormData] = useState<InvoiceFormData>({
     invoice_number: '',
@@ -110,14 +110,14 @@ export function InvoiceFormModal({
   const handleAmountChange = (field: 'amount_without_vat' | 'vat_percentage', value: number) => {
     if (field === 'amount_without_vat') {
       const withVat = applyVat(value, formData.vat_percentage || 21)
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
         amount_without_vat: value,
         amount_with_vat: Math.round(withVat * 100) / 100,
       }))
     } else {
       const withVat = applyVat(formData.amount_without_vat, value)
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
         vat_percentage: value,
         amount_with_vat: Math.round(withVat * 100) / 100,
@@ -127,8 +127,8 @@ export function InvoiceFormModal({
 
   // Auto-fill category when supplier changes
   const handleSupplierChange = (supplierId: number) => {
-    const supplier = suppliers.find(s => s.id === supplierId)
-    setFormData(prev => ({
+    const supplier = suppliers.find((s) => s.id === supplierId)
+    setFormData((prev) => ({
       ...prev,
       supplier_id: supplierId,
       category_id: supplier?.default_category_id || prev.category_id,
@@ -160,7 +160,7 @@ export function InvoiceFormModal({
   // Submit
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (!validate()) return
 
     startTransition(async () => {
@@ -188,10 +188,7 @@ export function InvoiceFormModal({
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
       {/* Backdrop */}
-      <div 
-        className="fixed inset-0 bg-black/50 transition-opacity"
-        onClick={onClose}
-      />
+      <div className="fixed inset-0 bg-black/50 transition-opacity" onClick={onClose} />
 
       {/* Modal */}
       <div className="flex min-h-full items-center justify-center p-4">
@@ -220,10 +217,12 @@ export function InvoiceFormModal({
                 <input
                   type="text"
                   value={formData.invoice_number}
-                  onChange={(e) => setFormData(prev => ({ ...prev, invoice_number: e.target.value }))}
+                  onChange={(e) =>
+                    setFormData((prev) => ({ ...prev, invoice_number: e.target.value }))
+                  }
                   className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-[#0d1117] dark:text-gray-200 ${
-                    errors.invoice_number 
-                      ? 'border-red-500 dark:border-red-500' 
+                    errors.invoice_number
+                      ? 'border-red-500 dark:border-red-500'
                       : 'border-gray-300 dark:border-gray-600'
                   }`}
                   placeholder="FV-2025-001"
@@ -242,8 +241,8 @@ export function InvoiceFormModal({
                   value={formData.supplier_id}
                   onChange={(e) => handleSupplierChange(Number(e.target.value))}
                   className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-[#0d1117] dark:text-gray-200 ${
-                    errors.supplier_id 
-                      ? 'border-red-500 dark:border-red-500' 
+                    errors.supplier_id
+                      ? 'border-red-500 dark:border-red-500'
                       : 'border-gray-300 dark:border-gray-600'
                   }`}
                 >
@@ -266,10 +265,12 @@ export function InvoiceFormModal({
                 </label>
                 <select
                   value={formData.category_id || ''}
-                  onChange={(e) => setFormData(prev => ({ 
-                    ...prev, 
-                    category_id: e.target.value ? Number(e.target.value) : undefined 
-                  }))}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      category_id: e.target.value ? Number(e.target.value) : undefined,
+                    }))
+                  }
                   className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-[#0d1117] dark:text-gray-200"
                 >
                   <option value="">Sin categoría</option>
@@ -286,7 +287,9 @@ export function InvoiceFormModal({
                 <DatePickerInput
                   label="Fecha Factura"
                   value={formData.invoice_date}
-                  onChange={(value) => setFormData(prev => ({ ...prev, invoice_date: value || '' }))}
+                  onChange={(value) =>
+                    setFormData((prev) => ({ ...prev, invoice_date: value || '' }))
+                  }
                   required
                   error={errors.invoice_date}
                   placeholder="Seleccionar fecha"
@@ -303,7 +306,9 @@ export function InvoiceFormModal({
                   step="0.01"
                   min="0"
                   value={formData.amount_without_vat || ''}
-                  onChange={(e) => handleAmountChange('amount_without_vat', parseFloat(e.target.value) || 0)}
+                  onChange={(e) =>
+                    handleAmountChange('amount_without_vat', parseFloat(e.target.value) || 0)
+                  }
                   className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-[#0d1117] dark:text-gray-200"
                   placeholder="0.00"
                 />
@@ -337,13 +342,15 @@ export function InvoiceFormModal({
                   step="0.01"
                   min="0"
                   value={formData.amount_with_vat || ''}
-                  onChange={(e) => setFormData(prev => ({ 
-                    ...prev, 
-                    amount_with_vat: parseFloat(e.target.value) || 0 
-                  }))}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      amount_with_vat: parseFloat(e.target.value) || 0,
+                    }))
+                  }
                   className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-[#0d1117] dark:text-gray-200 ${
-                    errors.amount_with_vat 
-                      ? 'border-red-500 dark:border-red-500' 
+                    errors.amount_with_vat
+                      ? 'border-red-500 dark:border-red-500'
                       : 'border-gray-300 dark:border-gray-600'
                   }`}
                   placeholder="0.00"
@@ -360,10 +367,12 @@ export function InvoiceFormModal({
                 </label>
                 <select
                   value={formData.payment_method}
-                  onChange={(e) => setFormData(prev => ({ 
-                    ...prev, 
-                    payment_method: e.target.value as PaymentMethod 
-                  }))}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      payment_method: e.target.value as PaymentMethod,
+                    }))
+                  }
                   className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-[#0d1117] dark:text-gray-200"
                 >
                   <option value="transfer">Transferencia</option>
@@ -376,7 +385,7 @@ export function InvoiceFormModal({
                 <DatePickerInput
                   label="Fecha Recepción"
                   value={formData.received_date}
-                  onChange={(value) => setFormData(prev => ({ ...prev, received_date: value }))}
+                  onChange={(value) => setFormData((prev) => ({ ...prev, received_date: value }))}
                   placeholder="Seleccionar fecha"
                   clearable
                 />
@@ -387,7 +396,7 @@ export function InvoiceFormModal({
                 <DatePickerInput
                   label="Fecha Vencimiento"
                   value={formData.due_date}
-                  onChange={(value) => setFormData(prev => ({ ...prev, due_date: value }))}
+                  onChange={(value) => setFormData((prev) => ({ ...prev, due_date: value }))}
                   placeholder="Seleccionar fecha"
                   clearable
                 />
@@ -398,7 +407,9 @@ export function InvoiceFormModal({
                 <DatePickerInput
                   label="Periodo Inicio"
                   value={formData.billing_period_start}
-                  onChange={(value) => setFormData(prev => ({ ...prev, billing_period_start: value }))}
+                  onChange={(value) =>
+                    setFormData((prev) => ({ ...prev, billing_period_start: value }))
+                  }
                   placeholder="Seleccionar fecha"
                   clearable
                 />
@@ -409,9 +420,15 @@ export function InvoiceFormModal({
                 <DatePickerInput
                   label="Periodo Fin"
                   value={formData.billing_period_end}
-                  onChange={(value) => setFormData(prev => ({ ...prev, billing_period_end: value }))}
+                  onChange={(value) =>
+                    setFormData((prev) => ({ ...prev, billing_period_end: value }))
+                  }
                   placeholder="Seleccionar fecha"
-                  minDate={formData.billing_period_start ? new Date(formData.billing_period_start + 'T12:00:00') : null}
+                  minDate={
+                    formData.billing_period_start
+                      ? new Date(formData.billing_period_start + 'T12:00:00')
+                      : null
+                  }
                   clearable
                 />
               </div>
@@ -423,7 +440,7 @@ export function InvoiceFormModal({
                 </label>
                 <textarea
                   value={formData.notes || ''}
-                  onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, notes: e.target.value }))}
                   rows={2}
                   className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-[#0d1117] dark:text-gray-200 resize-none"
                   placeholder="Observaciones..."

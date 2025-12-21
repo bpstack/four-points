@@ -7,11 +7,9 @@
 import { apiClient } from '@/app/lib/apiClient'
 import type {
   Category,
-  Supplier,
   SupplierWithStats,
   SupplierFormData,
   SupplierFilters,
-  Invoice,
   InvoiceWithDetails,
   InvoiceFormData,
   InvoiceFilters,
@@ -19,14 +17,12 @@ import type {
   Asset,
   AssetType,
   SummaryStats,
-  MonthlySummary,
   CategoriesResponse,
   SuppliersResponse,
   SupplierDetailResponse,
   InvoicesResponse,
   InvoiceDetailResponse,
   AssetsResponse,
-  MonthlySummaryResponse,
 } from './types'
 
 import { API_BASE_URL } from '@/app/lib/env'
@@ -103,7 +99,9 @@ export const backofficeApi = {
   /**
    * Crear nuevo proveedor
    */
-  createSupplier: async (data: SupplierFormData): Promise<{ message: string; supplier: SupplierWithStats }> => {
+  createSupplier: async (
+    data: SupplierFormData
+  ): Promise<{ message: string; supplier: SupplierWithStats }> => {
     const url = `${API_BASE}/api/backoffice/suppliers`
     return apiClient.post(url, data)
   },
@@ -171,7 +169,9 @@ export const backofficeApi = {
   /**
    * Crear nueva factura
    */
-  createInvoice: async (data: InvoiceFormData): Promise<{ message: string; invoice: InvoiceWithDetails }> => {
+  createInvoice: async (
+    data: InvoiceFormData
+  ): Promise<{ message: string; invoice: InvoiceWithDetails }> => {
     const url = `${API_BASE}/api/backoffice/invoices`
     return apiClient.post(url, data)
   },
@@ -205,7 +205,10 @@ export const backofficeApi = {
   /**
    * Rechazar factura
    */
-  rejectInvoice: async (id: number, notes: string): Promise<{ message: string; invoice: InvoiceWithDetails }> => {
+  rejectInvoice: async (
+    id: number,
+    notes: string
+  ): Promise<{ message: string; invoice: InvoiceWithDetails }> => {
     const url = `${API_BASE}/api/backoffice/invoices/${id}/reject`
     return apiClient.post(url, { notes })
   },
@@ -213,7 +216,10 @@ export const backofficeApi = {
   /**
    * Revertir validación (validated -> pending)
    */
-  unvalidateInvoice: async (id: number, notes?: string): Promise<{ message: string; invoice: InvoiceWithDetails }> => {
+  unvalidateInvoice: async (
+    id: number,
+    notes?: string
+  ): Promise<{ message: string; invoice: InvoiceWithDetails }> => {
     const url = `${API_BASE}/api/backoffice/invoices/${id}/unvalidate`
     return apiClient.post(url, { notes: notes || null })
   },
@@ -289,15 +295,48 @@ export const backofficeApi = {
    */
   downloadValidatedInvoicesZip: async (invoiceIds: number[]): Promise<Blob> => {
     const url = `${API_BASE}/api/backoffice/invoices/download-zip`
-    
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ invoice_ids: invoiceIds }),
-      credentials: 'include',
-    })
+
+    const makeRequest = async (): Promise<Response> =>
+      fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ invoice_ids: invoiceIds }),
+        credentials: 'include',
+      })
+
+    let response = await makeRequest()
+
+    if (typeof window !== 'undefined' && response.status === 401) {
+      try {
+        const refreshResponse = await fetch(`${API_BASE}/api/auth/refresh`, {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          cache: 'no-store',
+        })
+
+        if (!refreshResponse.ok) {
+          throw new Error(`Refresh failed: ${refreshResponse.status}`)
+        }
+
+        await refreshResponse.json().catch(() => null)
+
+        response = await makeRequest()
+      } catch (error) {
+        if (typeof window !== 'undefined') {
+          document.cookie = 'access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT'
+          document.cookie = 'refresh_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT'
+
+          setTimeout(() => {
+            window.location.href = '/login'
+          }, 100)
+        }
+
+        throw error
+      }
+    }
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({ error: 'Error desconocido' }))
@@ -388,7 +427,10 @@ export const backofficeApi = {
    * @param year - Año objetivo (opcional, default: mes anterior)
    * @param month - Mes objetivo 1-12 (opcional, default: mes anterior)
    */
-  previewBatchPayment: async (year?: number, month?: number): Promise<{
+  previewBatchPayment: async (
+    year?: number,
+    month?: number
+  ): Promise<{
     message: string
     year: number
     month: number
@@ -398,7 +440,7 @@ export const backofficeApi = {
     const params = new URLSearchParams()
     if (year) params.append('year', year.toString())
     if (month) params.append('month', month.toString())
-    
+
     const queryString = params.toString()
     const url = `${API_BASE}/api/backoffice/invoices/batch-pay/preview${queryString ? `?${queryString}` : ''}`
     return apiClient.get(url)
@@ -409,7 +451,10 @@ export const backofficeApi = {
    * @param year - Año objetivo (opcional, default: mes anterior)
    * @param month - Mes objetivo 1-12 (opcional, default: mes anterior)
    */
-  executeBatchPayment: async (year?: number, month?: number): Promise<{
+  executeBatchPayment: async (
+    year?: number,
+    month?: number
+  ): Promise<{
     message: string
     success: boolean
     count: number
@@ -427,7 +472,10 @@ export const backofficeApi = {
    * @param year - Año objetivo (requerido)
    * @param month - Mes objetivo 1-12 (requerido)
    */
-  previewRevertBatchPayment: async (year: number, month: number): Promise<{
+  previewRevertBatchPayment: async (
+    year: number,
+    month: number
+  ): Promise<{
     message: string
     year: number
     month: number
@@ -443,7 +491,10 @@ export const backofficeApi = {
    * @param year - Año objetivo (requerido)
    * @param month - Mes objetivo 1-12 (requerido)
    */
-  revertBatchPayment: async (year: number, month: number): Promise<{
+  revertBatchPayment: async (
+    year: number,
+    month: number
+  ): Promise<{
     message: string
     success: boolean
     count: number

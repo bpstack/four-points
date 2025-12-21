@@ -6,17 +6,17 @@
 
 ---
 
-## Resumen Ejecutivo
+## Resumen Ejecutivo (backup 21-dic-2025)
 
 | Métrica | Valor |
 |---------|-------|
-| Commits en `improve` (vs main) | 2 |
-| Archivos modificados sin commitear | 127 |
-| Archivos nuevos sin trackear | 5 |
-| Líneas añadidas (sin commitear) | ~3,848 |
-| Líneas eliminadas (sin commitear) | ~2,672 |
+| Commits en `improve` (vs main) | 3 |
+| Archivos modificados sin commitear | 120+ |
+| Archivos nuevos sin trackear | 4 |
+| Líneas añadidas (sin commitear) | ~3,800 |
+| Líneas eliminadas (sin commitear) | ~2,600 |
 
-**Problema principal:** Solo hay 2 commits con cambios mínimos, pero existen **127 archivos modificados** sin commitear que contienen el grueso del trabajo realizado.
+**Problema principal:** gran volumen de trabajo sin commitear (más de 120 archivos) que mezcla varias features y refactors. Se necesitan commits atómicos y push a remoto para respaldo.
 
 ---
 

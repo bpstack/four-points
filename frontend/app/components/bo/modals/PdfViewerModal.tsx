@@ -47,7 +47,7 @@ export function PdfViewerModal({
   const [hasValidatedPdf, setHasValidatedPdf] = useState(initialHasValidated)
   const [invoiceStatus, setInvoiceStatus] = useState(initialStatus)
   const [loadingInvoice, setLoadingInvoice] = useState(false)
-  
+
   const [activePdfType, setActivePdfType] = useState<'original' | 'validated'>('original')
   const [pdfBlobUrl, setPdfBlobUrl] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
@@ -68,26 +68,26 @@ export function PdfViewerModal({
     const fetchInvoiceData = async () => {
       setLoadingInvoice(true)
       setError(null)
-      
+
       try {
         // Get fresh invoice data from server
         const { invoice } = await backofficeApi.getInvoiceById(invoiceId)
-        
+
         console.log('[PdfViewerModal] Fresh invoice data:', {
           id: invoice.id,
           original_pdf_url: invoice.original_pdf_url,
           validated_pdf_url: invoice.validated_pdf_url,
-          status: invoice.status
+          status: invoice.status,
         })
-        
+
         const freshHasOriginal = !!invoice.original_pdf_url
         const freshHasValidated = !!invoice.validated_pdf_url
         const freshStatus = invoice.status
-        
+
         setHasOriginalPdf(freshHasOriginal)
         setHasValidatedPdf(freshHasValidated)
         setInvoiceStatus(freshStatus)
-        
+
         // Determine initial PDF type based on fresh data
         let initialType: 'original' | 'validated' = 'original'
         if ((freshStatus === 'validated' || freshStatus === 'paid') && freshHasValidated) {
@@ -97,15 +97,15 @@ export function PdfViewerModal({
         } else if (freshHasValidated) {
           initialType = 'validated'
         }
-        
+
         setActivePdfType(initialType)
-      } catch (err: any) {
+      } catch (err) {
         console.error('[PdfViewerModal] Error fetching invoice:', err)
         // Fall back to initial props if fetch fails
         setHasOriginalPdf(initialHasOriginal)
         setHasValidatedPdf(initialHasValidated)
         setInvoiceStatus(initialStatus)
-        
+
         // Set initial type based on props
         if ((initialStatus === 'validated' || initialStatus === 'paid') && initialHasValidated) {
           setActivePdfType('validated')
@@ -137,12 +137,7 @@ export function PdfViewerModal({
     const fetchPdf = async () => {
       setLoading(true)
       setError(null)
-
-      // Cleanup previous blob URL
-      if (pdfBlobUrl) {
-        URL.revokeObjectURL(pdfBlobUrl)
-        setPdfBlobUrl(null)
-      }
+      setPdfBlobUrl(null)
 
       try {
         // Use the backend proxy endpoint to get the PDF
@@ -151,23 +146,25 @@ export function PdfViewerModal({
         )
         const url = URL.createObjectURL(blob)
         setPdfBlobUrl(url)
-      } catch (err: any) {
+      } catch (err) {
         console.error('Error fetching PDF:', err)
-        setError(err.message || 'Error al obtener el PDF')
+        const message = err instanceof Error ? err.message : 'Error al obtener el PDF'
+        setError(message)
       } finally {
         setLoading(false)
       }
     }
 
     fetchPdf()
-
-    // Cleanup on unmount
-    return () => {
-      if (pdfBlobUrl) {
-        URL.revokeObjectURL(pdfBlobUrl)
-      }
-    }
   }, [isOpen, invoiceId, activePdfType, hasOriginalPdf, hasValidatedPdf, loadingInvoice])
+
+  useEffect(() => {
+    if (!pdfBlobUrl) return
+
+    return () => {
+      URL.revokeObjectURL(pdfBlobUrl)
+    }
+  }, [pdfBlobUrl])
 
   if (!isOpen) return null
 
@@ -207,10 +204,7 @@ export function PdfViewerModal({
   return (
     <div className="fixed inset-0 z-50 overflow-hidden">
       {/* Backdrop */}
-      <div
-        className="fixed inset-0 bg-black/60 transition-opacity"
-        onClick={onClose}
-      />
+      <div className="fixed inset-0 bg-black/60 transition-opacity" onClick={onClose} />
 
       {/* Modal - Full screen on mobile, large on desktop */}
       <div className="flex min-h-full items-center justify-center p-2 sm:p-4">

@@ -1,35 +1,44 @@
-// app/components/bo/tabs/SettingsTab.tsx
+// app/components/bo/tabs/SettingsTabLazy.tsx
 /**
- * Pestaña de Configuración del Back Office
- * Gestión de sellos y firmas para validación de facturas
+ * Settings Tab (Assets) - React Query + invalidación
+ *
+ * - Hidrata assets iniciales desde el server.
+ * - Usa React Query para refrescar tras mutaciones sin router.refresh().
  */
 
 'use client'
 
-import { useEffect, useState, useRef } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useState, useRef } from 'react'
 import { FiUpload, FiTrash2, FiStar, FiLoader, FiImage, FiAlertCircle } from 'react-icons/fi'
 import { toast } from 'react-hot-toast'
 import { backofficeApi, type Asset, ASSET_TYPE_LABELS } from '@/app/lib/backoffice'
 import { ConfirmDialog } from '../modals/ConfirmDialog'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 
-interface SettingsTabProps {
+interface SettingsTabLazyProps {
   initialAssets: Asset[]
 }
 
-export function SettingsTab({ initialAssets }: SettingsTabProps) {
-  const [assets, setAssets] = useState<Asset[]>(initialAssets)
+const assetsKey = ['backoffice', 'assets'] as const
 
-  useQuery({
-    queryKey: ['backoffice', 'assets'],
-    queryFn: () => backofficeApi.getAssets().then((r) => r.assets),
-    initialData: initialAssets,
-    onSuccess: (data) => setAssets(data),
+export function SettingsTabLazy({ initialAssets }: SettingsTabLazyProps) {
+  const queryClient = useQueryClient()
+
+  const { data } = useQuery({
+    queryKey: assetsKey,
+    queryFn: async () => {
+      const response = await backofficeApi.getAssets()
+      return response
+    },
+    initialData: { assets: initialAssets },
+    select: (resp) => resp.assets,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    retry: false,
   })
 
-  useEffect(() => {
-    setAssets(initialAssets)
-  }, [initialAssets])
   const [uploading, setUploading] = useState(false)
   const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; asset: Asset | null }>({
     open: false,
@@ -41,24 +50,24 @@ export function SettingsTab({ initialAssets }: SettingsTabProps) {
   const [newAssetName, setNewAssetName] = useState('')
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
-
   const fileInputRef = useRef<HTMLInputElement>(null)
 
+  const assets = data || []
   const stamps = assets.filter((a) => a.type === 'stamp')
   const signatures = assets.filter((a) => a.type === 'signature')
+
+  const invalidateAssets = () => queryClient.invalidateQueries({ queryKey: assetsKey })
 
   // Handle file selection
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
 
-    // Validate file type
     if (!['image/png', 'image/webp'].includes(file.type)) {
       toast.error('Solo se permiten imágenes PNG o WebP')
       return
     }
 
-    // Validate file size (max 2MB)
     if (file.size > 2 * 1024 * 1024) {
       toast.error('El archivo es demasiado grande. Máximo 2MB')
       return
@@ -66,7 +75,6 @@ export function SettingsTab({ initialAssets }: SettingsTabProps) {
 
     setSelectedFile(file)
 
-    // Create preview
     const reader = new FileReader()
     reader.onloadend = () => {
       setPreviewUrl(reader.result as string)
@@ -83,17 +91,16 @@ export function SettingsTab({ initialAssets }: SettingsTabProps) {
 
     setUploading(true)
     try {
-      const response = await backofficeApi.createAsset({
+      await backofficeApi.createAsset({
         type: newAssetType,
         name: newAssetName.trim(),
         image: selectedFile,
         is_default: assets.filter((a) => a.type === newAssetType).length === 0,
       })
 
-      setAssets((prev) => [...prev, response.asset])
       toast.success(`${ASSET_TYPE_LABELS[newAssetType]} creado correctamente`)
+      invalidateAssets()
 
-      // Reset form
       setNewAssetName('')
       setSelectedFile(null)
       setPreviewUrl(null)
@@ -114,8 +121,8 @@ export function SettingsTab({ initialAssets }: SettingsTabProps) {
 
     try {
       await backofficeApi.deleteAsset(deleteDialog.asset.id)
-      setAssets((prev) => prev.filter((a) => a.id !== deleteDialog.asset!.id))
       toast.success('Eliminado correctamente')
+      invalidateAssets()
     } catch (error: any) {
       console.error('Error deleting asset:', error)
       toast.error(error.message || 'Error al eliminar')
@@ -128,20 +135,14 @@ export function SettingsTab({ initialAssets }: SettingsTabProps) {
   const handleSetDefault = async (asset: Asset) => {
     try {
       await backofficeApi.setDefaultAsset(asset.id)
-      setAssets((prev) =>
-        prev.map((a) => ({
-          ...a,
-          is_default: a.type === asset.type ? a.id === asset.id : a.is_default,
-        }))
-      )
       toast.success(`${asset.name} establecido como predeterminado`)
+      invalidateAssets()
     } catch (error: any) {
       console.error('Error setting default:', error)
       toast.error(error.message || 'Error al establecer como predeterminado')
     }
   }
 
-  // Render asset grid
   const renderAssetGrid = (assetList: Asset[], type: 'stamp' | 'signature') => {
     if (assetList.length === 0) {
       return (
@@ -166,7 +167,6 @@ export function SettingsTab({ initialAssets }: SettingsTabProps) {
             : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
         }`}
       >
-        {/* Default badge */}
         {asset.is_default && (
           <div className="absolute -top-2 -right-2 px-2 py-0.5 bg-yellow-100 dark:bg-yellow-900/50 text-yellow-700 dark:text-yellow-400 text-[10px] font-medium rounded-full flex items-center gap-1">
             <FiStar className="w-3 h-3" />
@@ -174,7 +174,6 @@ export function SettingsTab({ initialAssets }: SettingsTabProps) {
           </div>
         )}
 
-        {/* Image */}
         <div
           className={`${type === 'stamp' ? 'aspect-square' : 'aspect-video'} mb-3 flex items-center justify-center`}
         >
@@ -185,12 +184,10 @@ export function SettingsTab({ initialAssets }: SettingsTabProps) {
           />
         </div>
 
-        {/* Name */}
         <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate text-center">
           {asset.name}
         </p>
 
-        {/* Actions */}
         <div className="mt-3 flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
           {!asset.is_default && (
             <button
@@ -222,9 +219,7 @@ export function SettingsTab({ initialAssets }: SettingsTabProps) {
         </h3>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Left: Form */}
           <div className="space-y-4">
-            {/* Type selector */}
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Tipo
@@ -255,7 +250,6 @@ export function SettingsTab({ initialAssets }: SettingsTabProps) {
               </div>
             </div>
 
-            {/* Name input */}
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Nombre
@@ -269,7 +263,6 @@ export function SettingsTab({ initialAssets }: SettingsTabProps) {
               />
             </div>
 
-            {/* File input */}
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Imagen
@@ -296,7 +289,6 @@ export function SettingsTab({ initialAssets }: SettingsTabProps) {
               </p>
             </div>
 
-            {/* Upload button */}
             <button
               onClick={handleUpload}
               disabled={uploading || !selectedFile || !newAssetName.trim()}
@@ -316,7 +308,6 @@ export function SettingsTab({ initialAssets }: SettingsTabProps) {
             </button>
           </div>
 
-          {/* Right: Preview */}
           <div className="flex items-center justify-center p-8 bg-gray-50 dark:bg-[#0d1117] rounded-lg border border-gray-200 dark:border-gray-700">
             {previewUrl ? (
               <img src={previewUrl} alt="Preview" className="max-w-full max-h-48 object-contain" />
@@ -330,7 +321,6 @@ export function SettingsTab({ initialAssets }: SettingsTabProps) {
         </div>
       </div>
 
-      {/* Stamps Section */}
       <div>
         <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
           Sellos
@@ -343,7 +333,6 @@ export function SettingsTab({ initialAssets }: SettingsTabProps) {
         </div>
       </div>
 
-      {/* Signatures Section */}
       <div>
         <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
           Firmas
@@ -356,20 +345,17 @@ export function SettingsTab({ initialAssets }: SettingsTabProps) {
         </div>
       </div>
 
-      {/* Info box */}
       <div className="flex items-start gap-3 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
         <FiAlertCircle className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" />
         <div className="text-sm text-blue-700 dark:text-blue-300">
           <p className="font-medium mb-1">Información</p>
           <p className="text-blue-600 dark:text-blue-400">
-            Los sellos y firmas se utilizan para validar facturas. Al validar una factura con PDF,
-            podrás añadir estos elementos sobre el documento. El elemento marcado como
-            &quot;Default&quot; será sugerido automáticamente.
+            Los sellos y firmas se utilizan para validar facturas. El elemento marcado como
+            &quot;Default&quot; se sugiere automáticamente.
           </p>
         </div>
       </div>
 
-      {/* Delete confirmation dialog */}
       <ConfirmDialog
         isOpen={deleteDialog.open}
         onClose={() => setDeleteDialog({ open: false, asset: null })}

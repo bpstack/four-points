@@ -24,12 +24,12 @@ Estado actual: ramas creadas (`improve`), pendientes de ejecutar tareas.
 7) NextAuth/middleware — **[pendiente]**
 - Decidir activación o documentar pasos si se descarta.
 
-## Siguientes pasos concretos
+## Siguientes pasos concretos (backup 21-dic-2025)
 - [x] Crear `env.ts` y sustituir referencias en `frontend/app/lib/apiClient.ts`, `backofficeApi.ts`, `maintenanceApi.ts`, y Route Handlers.
 - [x] Añadir validaciones en Route Handlers de auth (método, cookies, errores claros).
 - [x] Limpiar `apiClient` y `downloadValidatedInvoicesZip` para cookies-only.
 - [x] Diseñar migración Back Office a React Query (claves, queries por tab, invalidaciones) y aplicar al menos a tab pendiente (ahora tabs lazy).
-- [ ] Finalizar lint/QA de tabs Back Office y parking.
+- [ ] Finalizar lint/QA de tabs Back Office y parking (hay 30 errores/99 warnings pendientes en lint).
 - [ ] Migrar Maintenance a React Query siguiendo patrón de parking.
 - [ ] Planificar/implementar SSR o prerender en dashboards seleccionados.
 - [ ] Evaluar NextAuth/middleware y documentar decisión.

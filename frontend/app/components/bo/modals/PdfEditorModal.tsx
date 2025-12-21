@@ -87,11 +87,11 @@ export function PdfEditorModal({
   const [textInput, setTextInput] = useState('')
   const [textFontSize, setTextFontSize] = useState(12)
   const [highlightColor, setHighlightColor] = useState('#ffff00')
-  
+
   // Undo history (max 5 states)
   const [undoHistory, setUndoHistory] = useState<PlacedElement[][]>([])
   const MAX_UNDO_HISTORY = 5
-  
+
   // Refs
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
@@ -140,7 +140,7 @@ export function PdfEditorModal({
     const fetchData = async () => {
       setLoading(true)
       setError(null)
-      
+
       try {
         // Fetch assets
         const assetsResponse = await backofficeApi.getAssets()
@@ -148,20 +148,18 @@ export function PdfEditorModal({
 
         // Fetch PDF via backend proxy (avoids CORS issues)
         const pdfDownloadUrl = backofficeApi.getInvoicePdfDownloadUrl(invoiceId, 'original')
-        
-        // Need to include auth token (use 'access_token' - consistent with apiClient)
-        const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null
+
+        // Auth handled via cookies via apiClient session
         const pdfFetchResponse = await fetch(pdfDownloadUrl, {
-          headers: token ? { 'Authorization': `Bearer ${token}` } : {},
           credentials: 'include',
         })
-        
+
         if (!pdfFetchResponse.ok) {
           console.error('PDF fetch failed:', pdfFetchResponse.status, pdfFetchResponse.statusText)
           throw new Error(`Error al descargar el PDF: ${pdfFetchResponse.status}`)
         }
         const bytes = await pdfFetchResponse.arrayBuffer()
-        
+
         // Store a copy to prevent ArrayBuffer detachment issues
         setPdfBytes(bytes.slice(0))
       } catch (err: any) {
@@ -199,14 +197,14 @@ export function PdfEditorModal({
 
         // Check if aborted before continuing
         if (isAborted) return
-        
+
         const page = await pdfDocRef.current.getPage(currentPage)
-        
+
         // Check if aborted after async operation
         if (isAborted) return
 
         const viewport = page.getViewport({ scale })
-        
+
         const canvas = canvasRef.current
         if (!canvas || isAborted) return
 
@@ -215,11 +213,11 @@ export function PdfEditorModal({
 
         // Clear canvas before setting new dimensions (prevents "canvas in use" error)
         context.clearRect(0, 0, canvas.width, canvas.height)
-        
+
         // Set canvas dimensions
         canvas.height = viewport.height
         canvas.width = viewport.width
-        
+
         setPdfDimensions({ width: viewport.width, height: viewport.height })
 
         // Final abort check before render
@@ -258,31 +256,34 @@ export function PdfEditorModal({
 
   // Zoom controls
   const handleZoomIn = useCallback(() => {
-    setScale(prev => Math.min(3, prev + 0.25))
+    setScale((prev) => Math.min(3, prev + 0.25))
   }, [])
 
   const handleZoomOut = useCallback(() => {
-    setScale(prev => Math.max(0.5, prev - 0.25))
+    setScale((prev) => Math.max(0.5, prev - 0.25))
   }, [])
 
   // Undo functionality
-  const saveToHistory = useCallback((currentElements: PlacedElement[]) => {
-    setUndoHistory(prev => {
-      const newHistory = [...prev, JSON.parse(JSON.stringify(currentElements))]
-      // Keep only last MAX_UNDO_HISTORY states
-      if (newHistory.length > MAX_UNDO_HISTORY) {
-        return newHistory.slice(-MAX_UNDO_HISTORY)
-      }
-      return newHistory
-    })
-  }, [MAX_UNDO_HISTORY])
+  const saveToHistory = useCallback(
+    (currentElements: PlacedElement[]) => {
+      setUndoHistory((prev) => {
+        const newHistory = [...prev, JSON.parse(JSON.stringify(currentElements))]
+        // Keep only last MAX_UNDO_HISTORY states
+        if (newHistory.length > MAX_UNDO_HISTORY) {
+          return newHistory.slice(-MAX_UNDO_HISTORY)
+        }
+        return newHistory
+      })
+    },
+    [MAX_UNDO_HISTORY]
+  )
 
   const handleUndo = useCallback(() => {
     if (undoHistory.length === 0) return
-    
+
     const newHistory = [...undoHistory]
     const previousState = newHistory.pop()
-    
+
     setUndoHistory(newHistory)
     if (previousState !== undefined) {
       setPlacedElements(previousState)
@@ -300,19 +301,19 @@ export function PdfEditorModal({
         // Don't trigger if user is typing in an input/textarea
         const target = e.target as HTMLElement
         if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') return
-        
+
         e.preventDefault()
         saveToHistory(placedElements)
-        setPlacedElements(prev => prev.filter(el => el.id !== selectedElement))
+        setPlacedElements((prev) => prev.filter((el) => el.id !== selectedElement))
         setSelectedElement(null)
       }
-      
+
       // Ctrl+Z to undo
       if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
         // Don't trigger if user is typing in an input/textarea
         const target = e.target as HTMLElement
         if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') return
-        
+
         e.preventDefault()
         handleUndo()
       }
@@ -323,151 +324,167 @@ export function PdfEditorModal({
   }, [isOpen, selectedElement, placedElements, saveToHistory, handleUndo])
 
   // Handle drag start
-  const handleDragStart = useCallback((e: React.MouseEvent, elementId: string) => {
-    if (activeTool !== 'select') return
-    
-    e.preventDefault()
-    e.stopPropagation()
-    
-    const element = placedElements.find(el => el.id === elementId)
-    if (!element) return
-    
-    setSelectedElement(elementId)
-    saveToHistory(placedElements) // Save before moving
-    
-    dragRef.current = {
-      elementId,
-      startX: e.clientX,
-      startY: e.clientY,
-      elementStartX: element.x,
-      elementStartY: element.y,
-    }
-  }, [placedElements, activeTool, saveToHistory])
+  const handleDragStart = useCallback(
+    (e: React.MouseEvent, elementId: string) => {
+      if (activeTool !== 'select') return
+
+      e.preventDefault()
+      e.stopPropagation()
+
+      const element = placedElements.find((el) => el.id === elementId)
+      if (!element) return
+
+      setSelectedElement(elementId)
+      saveToHistory(placedElements) // Save before moving
+
+      dragRef.current = {
+        elementId,
+        startX: e.clientX,
+        startY: e.clientY,
+        elementStartX: element.x,
+        elementStartY: element.y,
+      }
+    },
+    [placedElements, activeTool, saveToHistory]
+  )
 
   // Handle resize start
-  const handleResizeStart = useCallback((e: React.MouseEvent, elementId: string, handle: 'nw' | 'ne' | 'sw' | 'se') => {
-    if (activeTool !== 'select') return
-    
-    e.preventDefault()
-    e.stopPropagation()
-    
-    const element = placedElements.find(el => el.id === elementId)
-    if (!element) return
-    
-    setSelectedElement(elementId)
-    saveToHistory(placedElements) // Save before resizing
-    
-    resizeRef.current = {
-      elementId,
-      handle,
-      startX: e.clientX,
-      startY: e.clientY,
-      elementStartX: element.x,
-      elementStartY: element.y,
-      elementStartWidth: element.width,
-      elementStartHeight: element.height,
-    }
-  }, [placedElements, activeTool, saveToHistory])
+  const handleResizeStart = useCallback(
+    (e: React.MouseEvent, elementId: string, handle: 'nw' | 'ne' | 'sw' | 'se') => {
+      if (activeTool !== 'select') return
+
+      e.preventDefault()
+      e.stopPropagation()
+
+      const element = placedElements.find((el) => el.id === elementId)
+      if (!element) return
+
+      setSelectedElement(elementId)
+      saveToHistory(placedElements) // Save before resizing
+
+      resizeRef.current = {
+        elementId,
+        handle,
+        startX: e.clientX,
+        startY: e.clientY,
+        elementStartX: element.x,
+        elementStartY: element.y,
+        elementStartWidth: element.width,
+        elementStartHeight: element.height,
+      }
+    },
+    [placedElements, activeTool, saveToHistory]
+  )
 
   // Handle drag/resize move
-  const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    if (!containerRef.current) return
+  const handleMouseMove = useCallback(
+    (e: React.MouseEvent) => {
+      if (!containerRef.current) return
 
-    const rect = containerRef.current.getBoundingClientRect()
-    const currentX = (e.clientX - rect.left) / scale
-    const currentY = (e.clientY - rect.top) / scale
+      const rect = containerRef.current.getBoundingClientRect()
+      const currentX = (e.clientX - rect.left) / scale
+      const currentY = (e.clientY - rect.top) / scale
 
-    // Handle highlight drawing
-    if (highlightDrawRef.current) {
-      const { startX, startY, currentId } = highlightDrawRef.current
-      
-      // Calculate bounds (support drawing in any direction)
-      const x = Math.min(startX, currentX)
-      const y = Math.min(startY, currentY)
-      const width = Math.abs(currentX - startX)
-      const height = Math.max(14, Math.abs(currentY - startY)) // Minimum height of 14px
-      
-      setPlacedElements(prev => prev.map(el => {
-        if (el.id === currentId) {
-          return { ...el, x, y, width, height }
-        }
-        return el
-      }))
-      return
-    }
+      // Handle highlight drawing
+      if (highlightDrawRef.current) {
+        const { startX, startY, currentId } = highlightDrawRef.current
 
-    // Handle resize
-    if (resizeRef.current) {
-      const deltaX = (e.clientX - resizeRef.current.startX) / scale
-      const deltaY = (e.clientY - resizeRef.current.startY) / scale
-      const { handle, elementStartX, elementStartY, elementStartWidth, elementStartHeight } = resizeRef.current
-      const minSize = 20 // Minimum size in pixels
+        // Calculate bounds (support drawing in any direction)
+        const x = Math.min(startX, currentX)
+        const y = Math.min(startY, currentY)
+        const width = Math.abs(currentX - startX)
+        const height = Math.max(14, Math.abs(currentY - startY)) // Minimum height of 14px
 
-      setPlacedElements(prev => prev.map(el => {
-        if (el.id === resizeRef.current!.elementId) {
-          let newX = elementStartX
-          let newY = elementStartY
-          let newWidth = elementStartWidth
-          let newHeight = elementStartHeight
-
-          // Calculate new dimensions based on which handle is being dragged
-          switch (handle) {
-            case 'se': // Bottom-right
-              newWidth = Math.max(minSize, elementStartWidth + deltaX)
-              newHeight = Math.max(minSize, elementStartHeight + deltaY)
-              break
-            case 'sw': // Bottom-left
-              newWidth = Math.max(minSize, elementStartWidth - deltaX)
-              newHeight = Math.max(minSize, elementStartHeight + deltaY)
-              newX = elementStartX + (elementStartWidth - newWidth)
-              break
-            case 'ne': // Top-right
-              newWidth = Math.max(minSize, elementStartWidth + deltaX)
-              newHeight = Math.max(minSize, elementStartHeight - deltaY)
-              newY = elementStartY + (elementStartHeight - newHeight)
-              break
-            case 'nw': // Top-left
-              newWidth = Math.max(minSize, elementStartWidth - deltaX)
-              newHeight = Math.max(minSize, elementStartHeight - deltaY)
-              newX = elementStartX + (elementStartWidth - newWidth)
-              newY = elementStartY + (elementStartHeight - newHeight)
-              break
-          }
-
-          // Clamp to PDF boundaries
-          const maxX = (pdfDimensions.width / scale)
-          const maxY = (pdfDimensions.height / scale)
-          newX = Math.max(0, Math.min(newX, maxX - minSize))
-          newY = Math.max(0, Math.min(newY, maxY - minSize))
-          newWidth = Math.min(newWidth, maxX - newX)
-          newHeight = Math.min(newHeight, maxY - newY)
-
-          return { ...el, x: newX, y: newY, width: newWidth, height: newHeight }
-        }
-        return el
-      }))
-      return
-    }
-    
-    // Handle drag
-    if (!dragRef.current) return
-    
-    const deltaX = (e.clientX - dragRef.current.startX) / scale
-    const deltaY = (e.clientY - dragRef.current.startY) / scale
-    
-    setPlacedElements(prev => prev.map(el => {
-      if (el.id === dragRef.current!.elementId) {
-        const maxX = (pdfDimensions.width / scale) - el.width
-        const maxY = (pdfDimensions.height / scale) - el.height
-        return {
-          ...el,
-          x: Math.max(0, Math.min(maxX, dragRef.current!.elementStartX + deltaX)),
-          y: Math.max(0, Math.min(maxY, dragRef.current!.elementStartY + deltaY)),
-        }
+        setPlacedElements((prev) =>
+          prev.map((el) => {
+            if (el.id === currentId) {
+              return { ...el, x, y, width, height }
+            }
+            return el
+          })
+        )
+        return
       }
-      return el
-    }))
-  }, [scale, pdfDimensions])
+
+      // Handle resize
+      if (resizeRef.current) {
+        const deltaX = (e.clientX - resizeRef.current.startX) / scale
+        const deltaY = (e.clientY - resizeRef.current.startY) / scale
+        const { handle, elementStartX, elementStartY, elementStartWidth, elementStartHeight } =
+          resizeRef.current
+        const minSize = 20 // Minimum size in pixels
+
+        setPlacedElements((prev) =>
+          prev.map((el) => {
+            if (el.id === resizeRef.current!.elementId) {
+              let newX = elementStartX
+              let newY = elementStartY
+              let newWidth = elementStartWidth
+              let newHeight = elementStartHeight
+
+              // Calculate new dimensions based on which handle is being dragged
+              switch (handle) {
+                case 'se': // Bottom-right
+                  newWidth = Math.max(minSize, elementStartWidth + deltaX)
+                  newHeight = Math.max(minSize, elementStartHeight + deltaY)
+                  break
+                case 'sw': // Bottom-left
+                  newWidth = Math.max(minSize, elementStartWidth - deltaX)
+                  newHeight = Math.max(minSize, elementStartHeight + deltaY)
+                  newX = elementStartX + (elementStartWidth - newWidth)
+                  break
+                case 'ne': // Top-right
+                  newWidth = Math.max(minSize, elementStartWidth + deltaX)
+                  newHeight = Math.max(minSize, elementStartHeight - deltaY)
+                  newY = elementStartY + (elementStartHeight - newHeight)
+                  break
+                case 'nw': // Top-left
+                  newWidth = Math.max(minSize, elementStartWidth - deltaX)
+                  newHeight = Math.max(minSize, elementStartHeight - deltaY)
+                  newX = elementStartX + (elementStartWidth - newWidth)
+                  newY = elementStartY + (elementStartHeight - newHeight)
+                  break
+              }
+
+              // Clamp to PDF boundaries
+              const maxX = pdfDimensions.width / scale
+              const maxY = pdfDimensions.height / scale
+              newX = Math.max(0, Math.min(newX, maxX - minSize))
+              newY = Math.max(0, Math.min(newY, maxY - minSize))
+              newWidth = Math.min(newWidth, maxX - newX)
+              newHeight = Math.min(newHeight, maxY - newY)
+
+              return { ...el, x: newX, y: newY, width: newWidth, height: newHeight }
+            }
+            return el
+          })
+        )
+        return
+      }
+
+      // Handle drag
+      if (!dragRef.current) return
+
+      const deltaX = (e.clientX - dragRef.current.startX) / scale
+      const deltaY = (e.clientY - dragRef.current.startY) / scale
+
+      setPlacedElements((prev) =>
+        prev.map((el) => {
+          if (el.id === dragRef.current!.elementId) {
+            const maxX = pdfDimensions.width / scale - el.width
+            const maxY = pdfDimensions.height / scale - el.height
+            return {
+              ...el,
+              x: Math.max(0, Math.min(maxX, dragRef.current!.elementStartX + deltaX)),
+              y: Math.max(0, Math.min(maxY, dragRef.current!.elementStartY + deltaY)),
+            }
+          }
+          return el
+        })
+      )
+    },
+    [scale, pdfDimensions]
+  )
 
   // Handle drag/resize end
   const handleMouseUp = useCallback(() => {
@@ -475,115 +492,124 @@ export function PdfEditorModal({
     if (highlightDrawRef.current) {
       const elementId = highlightDrawRef.current.currentId
       // Remove highlight if too small (accidental click)
-      setPlacedElements(prev => {
-        const element = prev.find(el => el.id === elementId)
+      setPlacedElements((prev) => {
+        const element = prev.find((el) => el.id === elementId)
         if (element && (element.width < 10 || element.height < 5)) {
-          return prev.filter(el => el.id !== elementId)
+          return prev.filter((el) => el.id !== elementId)
         }
         return prev
       })
       highlightDrawRef.current = null
     }
-    
+
     dragRef.current = null
     resizeRef.current = null
   }, [])
 
   // Handle canvas mousedown for tools (highlight draw, text placement)
-  const handleCanvasMouseDown = useCallback((e: React.MouseEvent) => {
-    if (!containerRef.current) return
-    
-    const rect = containerRef.current.getBoundingClientRect()
-    const x = (e.clientX - rect.left) / scale
-    const y = (e.clientY - rect.top) / scale
+  const handleCanvasMouseDown = useCallback(
+    (e: React.MouseEvent) => {
+      if (!containerRef.current) return
 
-    if (activeTool === 'highlight') {
-      e.preventDefault()
-      saveToHistory(placedElements) // Save before creating highlight
-      const newId = `highlight-${Date.now()}`
-      const newElement: PlacedElement = {
-        id: newId,
-        type: 'highlight',
-        x,
-        y,
-        width: 1,
-        height: 14, // Default height for text-like highlight
-        page: currentPage,
-        highlightColor,
+      const rect = containerRef.current.getBoundingClientRect()
+      const x = (e.clientX - rect.left) / scale
+      const y = (e.clientY - rect.top) / scale
+
+      if (activeTool === 'highlight') {
+        e.preventDefault()
+        saveToHistory(placedElements) // Save before creating highlight
+        const newId = `highlight-${Date.now()}`
+        const newElement: PlacedElement = {
+          id: newId,
+          type: 'highlight',
+          x,
+          y,
+          width: 1,
+          height: 14, // Default height for text-like highlight
+          page: currentPage,
+          highlightColor,
+        }
+        setPlacedElements((prev) => [...prev, newElement])
+        setSelectedElement(newId)
+        highlightDrawRef.current = {
+          startX: x,
+          startY: y,
+          currentId: newId,
+        }
       }
-      setPlacedElements(prev => [...prev, newElement])
-      setSelectedElement(newId)
-      highlightDrawRef.current = {
-        startX: x,
-        startY: y,
-        currentId: newId,
-      }
-    }
-  }, [activeTool, highlightColor, currentPage, scale, placedElements, saveToHistory])
+    },
+    [activeTool, highlightColor, currentPage, scale, placedElements, saveToHistory]
+  )
 
   // Handle canvas click for text tool and deselection
-  const handleCanvasClick = useCallback((e: React.MouseEvent) => {
-    if (!containerRef.current) return
-    
-    const rect = containerRef.current.getBoundingClientRect()
-    const x = (e.clientX - rect.left) / scale
-    const y = (e.clientY - rect.top) / scale
+  const handleCanvasClick = useCallback(
+    (e: React.MouseEvent) => {
+      if (!containerRef.current) return
 
-    if (activeTool === 'text' && textInput.trim()) {
-      const lines = textInput.split('\n')
-      const lineHeight = textFontSize * 1.2 // Line height factor
-      const newElement: PlacedElement = {
-        id: `text-${Date.now()}`,
-        type: 'text',
-        x,
-        y,
-        width: 200,
-        height: (lines.length * lineHeight) + 8,
-        page: currentPage,
-        text: textInput,
-        fontSize: textFontSize,
-        color: '#000000',
+      const rect = containerRef.current.getBoundingClientRect()
+      const x = (e.clientX - rect.left) / scale
+      const y = (e.clientY - rect.top) / scale
+
+      if (activeTool === 'text' && textInput.trim()) {
+        const lines = textInput.split('\n')
+        const lineHeight = textFontSize * 1.2 // Line height factor
+        const newElement: PlacedElement = {
+          id: `text-${Date.now()}`,
+          type: 'text',
+          x,
+          y,
+          width: 200,
+          height: lines.length * lineHeight + 8,
+          page: currentPage,
+          text: textInput,
+          fontSize: textFontSize,
+          color: '#000000',
+        }
+        saveToHistory(placedElements) // Save before adding
+        setPlacedElements((prev) => [...prev, newElement])
+        setSelectedElement(newElement.id)
+        setTextInput('')
+        setActiveTool('select')
+      } else if (activeTool === 'select') {
+        setSelectedElement(null)
       }
-      saveToHistory(placedElements) // Save before adding
-      setPlacedElements(prev => [...prev, newElement])
-      setSelectedElement(newElement.id)
-      setTextInput('')
-      setActiveTool('select')
-    } else if (activeTool === 'select') {
-      setSelectedElement(null)
-    }
-  }, [activeTool, textInput, textFontSize, currentPage, scale, placedElements, saveToHistory])
+    },
+    [activeTool, textInput, textFontSize, currentPage, scale, placedElements, saveToHistory]
+  )
 
   // Add element from asset
-  const handleAddAsset = useCallback((asset: Asset) => {
-    const newElement: PlacedElement = {
-      id: `${asset.type}-${Date.now()}`,
-      type: asset.type as ElementType,
-      asset,
-      x: 50,
-      y: 50,
-      width: asset.type === 'stamp' ? 120 : 100,
-      height: asset.type === 'stamp' ? 120 : 50,
-      page: currentPage,
-    }
-    saveToHistory(placedElements) // Save before adding
-    setPlacedElements(prev => [...prev, newElement])
-    setSelectedElement(newElement.id)
-    setActiveTool('select')
-  }, [currentPage, placedElements, saveToHistory])
+  const handleAddAsset = useCallback(
+    (asset: Asset) => {
+      const newElement: PlacedElement = {
+        id: `${asset.type}-${Date.now()}`,
+        type: asset.type as ElementType,
+        asset,
+        x: 50,
+        y: 50,
+        width: asset.type === 'stamp' ? 120 : 100,
+        height: asset.type === 'stamp' ? 120 : 50,
+        page: currentPage,
+      }
+      saveToHistory(placedElements) // Save before adding
+      setPlacedElements((prev) => [...prev, newElement])
+      setSelectedElement(newElement.id)
+      setActiveTool('select')
+    },
+    [currentPage, placedElements, saveToHistory]
+  )
 
   // Remove selected element
   const handleRemoveElement = useCallback(() => {
     if (!selectedElement) return
     saveToHistory(placedElements) // Save before removing
-    setPlacedElements(prev => prev.filter(el => el.id !== selectedElement))
+    setPlacedElements((prev) => prev.filter((el) => el.id !== selectedElement))
     setSelectedElement(null)
   }, [selectedElement, placedElements, saveToHistory])
 
   // Save PDF with elements
   const handleSave = async () => {
     if (!pdfBytes) return
-    
+
     setSaving(true)
     try {
       // Use a copy to prevent ArrayBuffer detachment issues
@@ -592,11 +618,14 @@ export function PdfEditorModal({
       const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica)
 
       // Group elements by page
-      const elementsByPage = placedElements.reduce((acc, el) => {
-        if (!acc[el.page]) acc[el.page] = []
-        acc[el.page].push(el)
-        return acc
-      }, {} as Record<number, PlacedElement[]>)
+      const elementsByPage = placedElements.reduce(
+        (acc, el) => {
+          if (!acc[el.page]) acc[el.page] = []
+          acc[el.page].push(el)
+          return acc
+        },
+        {} as Record<number, PlacedElement[]>
+      )
 
       // Add elements to each page
       for (const [pageNum, elements] of Object.entries(elementsByPage)) {
@@ -612,26 +641,31 @@ export function PdfEditorModal({
               const fontSize = element.fontSize || 12
               const lineHeight = fontSize * 1.2
               const maxWidth = element.width
-              
+
               // Function to wrap text to fit within maxWidth
-              const wrapText = (text: string, font: typeof helveticaFont, size: number, maxW: number): string[] => {
+              const wrapText = (
+                text: string,
+                font: typeof helveticaFont,
+                size: number,
+                maxW: number
+              ): string[] => {
                 const wrappedLines: string[] = []
                 // First split by explicit line breaks
                 const paragraphs = text.split('\n')
-                
+
                 for (const paragraph of paragraphs) {
                   if (!paragraph.trim()) {
                     wrappedLines.push('') // Preserve empty lines
                     continue
                   }
-                  
+
                   const words = paragraph.split(' ')
                   let currentLine = ''
-                  
+
                   for (const word of words) {
                     const testLine = currentLine ? `${currentLine} ${word}` : word
                     const testWidth = font.widthOfTextAtSize(testLine, size)
-                    
+
                     if (testWidth <= maxW) {
                       currentLine = testLine
                     } else {
@@ -642,21 +676,21 @@ export function PdfEditorModal({
                       currentLine = word
                     }
                   }
-                  
+
                   if (currentLine) {
                     wrappedLines.push(currentLine)
                   }
                 }
-                
+
                 return wrappedLines
               }
-              
+
               const lines = wrapText(element.text, helveticaFont, fontSize, maxWidth)
-              
+
               lines.forEach((line, idx) => {
                 page.drawText(line, {
                   x: element.x,
-                  y: pageHeight - element.y - fontSize - (idx * lineHeight),
+                  y: pageHeight - element.y - fontSize - idx * lineHeight,
                   size: fontSize,
                   font: helveticaFont,
                   color: rgb(0, 0, 0),
@@ -668,7 +702,7 @@ export function PdfEditorModal({
               const r = parseInt(hexColor.substr(0, 2), 16) / 255
               const g = parseInt(hexColor.substr(2, 2), 16) / 255
               const b = parseInt(hexColor.substr(4, 2), 16) / 255
-              
+
               page.drawRectangle({
                 x: element.x,
                 y: pageHeight - element.y - element.height,
@@ -681,7 +715,7 @@ export function PdfEditorModal({
               // Add stamp/signature image
               const imageResponse = await fetch(element.asset.cloudinary_url)
               const imageBytes = await imageResponse.arrayBuffer()
-              
+
               let image
               const url = element.asset.cloudinary_url.toLowerCase()
               if (url.includes('.png') || url.includes('png')) {
@@ -713,7 +747,7 @@ export function PdfEditorModal({
       const modifiedPdfBytes = await pdfDoc.save()
       // Convert Uint8Array to ArrayBuffer for Blob compatibility
       const blob = new Blob([modifiedPdfBytes.buffer as ArrayBuffer], { type: 'application/pdf' })
-      
+
       await onSave(blob)
       toast.success('PDF validado correctamente')
       onClose()
@@ -727,9 +761,9 @@ export function PdfEditorModal({
 
   if (!isOpen) return null
 
-  const stamps = assets.filter(a => a.type === 'stamp')
-  const signatures = assets.filter(a => a.type === 'signature')
-  const currentPageElements = placedElements.filter(el => el.page === currentPage)
+  const stamps = assets.filter((a) => a.type === 'stamp')
+  const signatures = assets.filter((a) => a.type === 'signature')
+  const currentPageElements = placedElements.filter((el) => el.page === currentPage)
 
   return (
     <div className="fixed inset-0 z-50 overflow-hidden bg-black/70">
@@ -832,12 +866,14 @@ export function PdfEditorModal({
                     className="w-8 h-8 rounded cursor-pointer"
                   />
                   <div className="flex gap-1">
-                    {['#ffff00', '#00ff00', '#ff9999', '#99ccff'].map(color => (
+                    {['#ffff00', '#00ff00', '#ff9999', '#99ccff'].map((color) => (
                       <button
                         key={color}
                         onClick={() => setHighlightColor(color)}
                         className={`w-6 h-6 rounded border-2 ${
-                          highlightColor === color ? 'border-gray-900 dark:border-white' : 'border-transparent'
+                          highlightColor === color
+                            ? 'border-gray-900 dark:border-white'
+                            : 'border-transparent'
                         }`}
                         style={{ backgroundColor: color }}
                       />
@@ -864,7 +900,7 @@ export function PdfEditorModal({
                 </p>
               ) : (
                 <div className="grid grid-cols-2 gap-2">
-                  {stamps.map(stamp => (
+                  {stamps.map((stamp) => (
                     <button
                       key={stamp.id}
                       onClick={() => handleAddAsset(stamp)}
@@ -893,7 +929,7 @@ export function PdfEditorModal({
                 </p>
               ) : (
                 <div className="grid grid-cols-2 gap-2">
-                  {signatures.map(sig => (
+                  {signatures.map((sig) => (
                     <button
                       key={sig.id}
                       onClick={() => handleAddAsset(sig)}
@@ -939,7 +975,7 @@ export function PdfEditorModal({
             <p className="text-[10px] text-gray-500 dark:text-gray-400 text-center">
               Elementos: {placedElements.length} | Página actual: {currentPageElements.length}
             </p>
-            
+
             {/* Primary save button - with elements */}
             <button
               onClick={handleSave}
@@ -958,7 +994,7 @@ export function PdfEditorModal({
                 </>
               )}
             </button>
-            
+
             {/* Secondary option - validate without modifications */}
             {placedElements.length === 0 && (
               <button
@@ -987,9 +1023,9 @@ export function PdfEditorModal({
               >
                 <FiRotateCcw className="w-4 h-4" />
               </button>
-              
+
               <div className="w-px h-6 bg-gray-600 mx-1" />
-              
+
               {/* Zoom controls */}
               <button
                 onClick={handleZoomOut}
@@ -1015,7 +1051,7 @@ export function PdfEditorModal({
             {/* Page navigation */}
             <div className="flex items-center gap-2">
               <button
-                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                 disabled={currentPage <= 1}
                 className="p-2 text-gray-400 hover:text-white hover:bg-gray-700 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
@@ -1025,7 +1061,7 @@ export function PdfEditorModal({
                 Página {currentPage} de {totalPages}
               </span>
               <button
-                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                 disabled={currentPage >= totalPages}
                 className="p-2 text-gray-400 hover:text-white hover:bg-gray-700 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
@@ -1073,13 +1109,15 @@ export function PdfEditorModal({
                 <canvas ref={canvasRef} className="block" />
 
                 {/* Placed Elements Overlay */}
-                {currentPageElements.map(element => (
+                {currentPageElements.map((element) => (
                   <div
                     key={element.id}
                     className={`absolute ${activeTool === 'select' ? 'cursor-move' : 'pointer-events-none'} ${
                       selectedElement === element.id
                         ? 'ring-2 ring-blue-500 ring-offset-2'
-                        : activeTool === 'select' ? 'hover:ring-2 hover:ring-blue-300' : ''
+                        : activeTool === 'select'
+                          ? 'hover:ring-2 hover:ring-blue-300'
+                          : ''
                     }`}
                     style={{
                       left: element.x * scale,
@@ -1101,7 +1139,7 @@ export function PdfEditorModal({
                   >
                     {/* Highlight background */}
                     {element.type === 'highlight' && (
-                      <div 
+                      <div
                         className="absolute inset-0 pointer-events-none"
                         style={{
                           backgroundColor: element.highlightColor,
@@ -1112,7 +1150,7 @@ export function PdfEditorModal({
                     {element.type === 'text' && element.text && (
                       <div
                         className="pointer-events-none select-none text-black w-full h-full overflow-hidden"
-                        style={{ 
+                        style={{
                           fontSize: (element.fontSize || 12) * scale,
                           lineHeight: 1.2,
                           wordWrap: 'break-word',

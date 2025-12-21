@@ -136,10 +136,7 @@ export function PdfUploadModal({
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
       {/* Backdrop */}
-      <div
-        className="fixed inset-0 bg-black/50 transition-opacity"
-        onClick={handleClose}
-      />
+      <div className="fixed inset-0 bg-black/50 transition-opacity" onClick={handleClose} />
 
       {/* Modal */}
       <div className="flex min-h-full items-center justify-center p-4">
@@ -168,8 +165,8 @@ export function PdfUploadModal({
             {existingPdfUrl && (
               <div className="mb-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-md">
                 <p className="text-xs text-yellow-800 dark:text-yellow-300">
-                  Ya existe un PDF {type === 'original' ? 'original' : 'validado'}. 
-                  Subir uno nuevo reemplazará el anterior.
+                  Ya existe un PDF {type === 'original' ? 'original' : 'validado'}. Subir uno nuevo
+                  reemplazará el anterior.
                 </p>
               </div>
             )}
@@ -184,8 +181,8 @@ export function PdfUploadModal({
                 dragActive
                   ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
                   : file
-                  ? 'border-green-500 bg-green-50 dark:bg-green-900/20'
-                  : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
+                    ? 'border-green-500 bg-green-50 dark:bg-green-900/20'
+                    : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
               }`}
             >
               <input
@@ -229,17 +226,13 @@ export function PdfUploadModal({
                       o haz clic para seleccionar
                     </p>
                   </div>
-                  <p className="text-xs text-gray-400 dark:text-gray-500">
-                    Máximo 10MB
-                  </p>
+                  <p className="text-xs text-gray-400 dark:text-gray-500">Máximo 10MB</p>
                 </div>
               )}
             </div>
 
             {/* Error */}
-            {error && (
-              <p className="mt-2 text-xs text-red-500 text-center">{error}</p>
-            )}
+            {error && <p className="mt-2 text-xs text-red-500 text-center">{error}</p>}
 
             {/* Actions */}
             <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
