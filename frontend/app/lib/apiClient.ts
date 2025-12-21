@@ -8,8 +8,7 @@
  * - Backend:  api.four-points.stackbp.es (Render)
  * - Cookies:  domain=.four-points.stackbp.es (compartidas)
  *
- * En desarrollo: localhost + localStorage
- * En producción: subdominios + HttpOnly cookies
+ * En desarrollo y producción: cookies HttpOnly; sin estado duplicado (no localStorage)
  */
 
 import toast from 'react-hot-toast'
@@ -19,19 +18,20 @@ interface FetchOptions extends RequestInit {
 }
 
 // URLs según entorno
-const isDev = process.env.NODE_ENV === 'development'
 const isClient = typeof window !== 'undefined'
 
 import { API_BASE_URL } from '@/app/lib/env'
 
 // Cola para manejar refresh concurrente
 let isRefreshing = false
-let failedQueue: Array<{
+type Deferred = {
   resolve: (value?: unknown) => void
-  reject: (reason?: any) => void
-}> = []
+  reject: (reason?: unknown) => void
+}
 
-const processQueue = (error: any = null) => {
+let failedQueue: Deferred[] = []
+
+const processQueue = (error: unknown = null) => {
   failedQueue.forEach((promise) => {
     if (error) {
       promise.reject(error)
@@ -48,13 +48,10 @@ const processQueue = (error: any = null) => {
 
 /**
  * Obtiene headers de autenticación
- * - Desarrollo: Bearer token desde localStorage
- * - Producción: cookies se envían automáticamente (no necesita header)
+ * Las cookies HttpOnly viajan con `credentials: 'include'`; no se añaden tokens manualmente
  */
 function getAuthHeaders(): Record<string, string> {
   if (!isClient) return {}
-
-  // Siempre confiar en cookies HttpOnly; no usar localStorage
   return {}
 }
 
@@ -63,7 +60,37 @@ function getAuthHeaders(): Record<string, string> {
  */
 function hasRefreshToken(): boolean {
   if (!isClient) return false
-  return true
+  return document.cookie.includes('refresh_token=')
+}
+
+function clearAuthCookiesAndRedirect(): void {
+  if (!isClient) return
+
+  document.cookie = 'access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT'
+  document.cookie = 'refresh_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT'
+
+  setTimeout(() => {
+    window.location.href = '/login'
+  }, 100)
+}
+
+async function refreshSession(): Promise<void> {
+  const refreshUrl = `${API_BASE_URL}/api/auth/refresh`
+
+  const refreshOptions: RequestInit = {
+    method: 'POST',
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+    cache: 'no-store',
+  }
+
+  const refreshResponse = await fetch(refreshUrl, refreshOptions)
+
+  if (!refreshResponse.ok) {
+    throw new Error(`Refresh failed: ${refreshResponse.status}`)
+  }
+
+  await refreshResponse.json().catch(() => null)
 }
 
 // ========================================
@@ -90,7 +117,8 @@ async function fetchWithRefresh(url: string, options: FetchOptions = {}): Promis
     url.includes('/auth/login') ||
     url.includes('/auth/logout') ||
     url.includes('/auth/refresh') ||
-    url.includes('/auth/register')
+    url.includes('/auth/register') ||
+    url.includes('/auth/me')
 
   // Auto-refresh cuando recibimos 401
   if (isClient && response.status === 401 && !skipRefresh && !isAuthRoute && hasRefreshToken()) {
@@ -106,34 +134,11 @@ async function fetchWithRefresh(url: string, options: FetchOptions = {}): Promis
     isRefreshing = true
 
     try {
-      const refreshUrl = `${API_BASE_URL}/api/auth/refresh-token`
-
-      const refreshOptions: RequestInit = {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-      }
-
-      const refreshResponse = await fetch(refreshUrl, refreshOptions)
-
-      if (!refreshResponse.ok) {
-        throw new Error(`Refresh failed: ${refreshResponse.status}`)
-      }
-
-      const data = await refreshResponse.json()
-
-      // Las cookies se actualizan vía backend; no usar localStorage
-      if (isClient && data.token) {
-        document.cookie = `access_token=${data.token}; path=/; max-age=900; samesite=lax`
-        if (data.refreshToken) {
-          document.cookie = `refresh_token=${data.refreshToken}; path=/; max-age=604800; samesite=lax`
-        }
-      }
+      await refreshSession()
 
       isRefreshing = false
       processQueue()
 
-      // Reintentar request original
       const retryOptions: RequestInit = {
         ...fetchOptions,
         headers: {
@@ -148,31 +153,12 @@ async function fetchWithRefresh(url: string, options: FetchOptions = {}): Promis
     } catch (error) {
       isRefreshing = false
       processQueue(error)
-
-      // Limpiar cookies
-      if (isClient) {
-        document.cookie = 'access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT'
-        document.cookie = 'refresh_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT'
-      }
-
-      // Redirigir a login
-      if (isClient) {
-        setTimeout(() => {
-          window.location.href = '/login'
-        }, 100)
-      }
+      clearAuthCookiesAndRedirect()
 
       throw error
     }
   } else if (isClient && response.status === 401 && !skipRefresh && !isAuthRoute) {
-    if (isClient) {
-      document.cookie = 'access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT'
-      document.cookie = 'refresh_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT'
-    }
-
-    setTimeout(() => {
-      window.location.href = '/login'
-    }, 100)
+    clearAuthCookiesAndRedirect()
 
     throw new Error('No authentication')
   }
@@ -204,7 +190,7 @@ export class ApiError extends Error {
  * Procesa errores de API.
  * - Para errores demo: muestra toast y hace throw con demo=true
  * - Para otros errores: hace throw normal
- * 
+ *
  * Nota: En desarrollo, Next.js muestra estos errores en el overlay.
  * Esto es solo informativo y no afecta producción.
  */
@@ -245,7 +231,7 @@ export function isDemoError(error: unknown): boolean {
 // ========================================
 
 export const apiClient = {
-  get: async (url: string, options?: FetchOptions) => {
+  get: async (url: string, options?: FetchOptions): Promise<unknown> => {
     const response = await fetchWithRefresh(url, { ...options, method: 'GET' })
 
     if (!response.ok) {
@@ -255,7 +241,7 @@ export const apiClient = {
     return response.json()
   },
 
-  post: async (url: string, data?: any, options?: FetchOptions) => {
+  post: async (url: string, data?: unknown, options?: FetchOptions): Promise<unknown> => {
     const response = await fetchWithRefresh(url, {
       ...options,
       method: 'POST',
@@ -269,7 +255,7 @@ export const apiClient = {
     return response.json()
   },
 
-  patch: async (url: string, data?: any, options?: FetchOptions) => {
+  patch: async (url: string, data?: unknown, options?: FetchOptions): Promise<unknown> => {
     const response = await fetchWithRefresh(url, {
       ...options,
       method: 'PATCH',
@@ -283,7 +269,7 @@ export const apiClient = {
     return response.json()
   },
 
-  put: async (url: string, data?: any, options?: FetchOptions) => {
+  put: async (url: string, data?: unknown, options?: FetchOptions): Promise<unknown> => {
     const response = await fetchWithRefresh(url, {
       ...options,
       method: 'PUT',
@@ -297,7 +283,7 @@ export const apiClient = {
     return response.json()
   },
 
-  delete: async (url: string, options?: FetchOptions) => {
+  delete: async (url: string, options?: FetchOptions): Promise<unknown> => {
     const response = await fetchWithRefresh(url, { ...options, method: 'DELETE' })
 
     if (!response.ok) {
@@ -320,10 +306,13 @@ export const apiClient = {
    * POST con FormData (para subir archivos)
    * Usa fetchWithRefresh para auto-refresh de tokens expirados
    */
-  postFormData: async (url: string, formData: FormData, options?: FetchOptions): Promise<any> => {
-    // No incluir Content-Type - el browser lo añade automáticamente con boundary para FormData
+  postFormData: async (
+    url: string,
+    formData: FormData,
+    options?: FetchOptions
+  ): Promise<unknown> => {
     const { skipRefresh, ...fetchOptions } = options || {}
-    
+
     const finalOptions: RequestInit = {
       method: 'POST',
       body: formData,
@@ -350,34 +339,7 @@ export const apiClient = {
       isRefreshing = true
 
       try {
-        const refreshUrl = `${API_BASE_URL}/api/auth/refresh-token`
-        const refreshOptions: RequestInit = {
-          method: 'POST',
-          credentials: 'include',
-          headers: { 'Content-Type': 'application/json' },
-        }
-
-        if (isDev) {
-          const refreshToken = localStorage.getItem('refresh_token')
-          if (!refreshToken) throw new Error('No refresh token')
-          ;(refreshOptions.headers as Record<string, string>)['Authorization'] = `Bearer ${refreshToken}`
-        }
-
-        const refreshResponse = await fetch(refreshUrl, refreshOptions)
-        if (!refreshResponse.ok) {
-          throw new Error(`Refresh failed: ${refreshResponse.status}`)
-        }
-
-        const data = await refreshResponse.json()
-
-        if (isDev && data.token) {
-          localStorage.setItem('access_token', data.token)
-          document.cookie = `access_token=${data.token}; path=/; max-age=900; samesite=lax`
-          if (data.refreshToken) {
-            localStorage.setItem('refresh_token', data.refreshToken)
-            document.cookie = `refresh_token=${data.refreshToken}; path=/; max-age=604800; samesite=lax`
-          }
-        }
+        await refreshSession()
 
         isRefreshing = false
         processQueue()
@@ -397,19 +359,7 @@ export const apiClient = {
       } catch (error) {
         isRefreshing = false
         processQueue(error)
-
-        if (isDev) {
-          localStorage.removeItem('access_token')
-          localStorage.removeItem('refresh_token')
-          document.cookie = 'access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT'
-          document.cookie = 'refresh_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT'
-        }
-
-        if (isClient) {
-          setTimeout(() => {
-            window.location.href = '/login'
-          }, 100)
-        }
+        clearAuthCookiesAndRedirect()
 
         throw error
       }
@@ -428,7 +378,7 @@ export const apiClient = {
    */
   getBlob: async (url: string, options?: FetchOptions): Promise<Blob> => {
     const { skipRefresh, ...fetchOptions } = options || {}
-    
+
     const finalOptions: RequestInit = {
       method: 'GET',
       credentials: 'include',
@@ -453,34 +403,7 @@ export const apiClient = {
       isRefreshing = true
 
       try {
-        const refreshUrl = `${API_BASE_URL}/api/auth/refresh-token`
-        const refreshOptions: RequestInit = {
-          method: 'POST',
-          credentials: 'include',
-          headers: { 'Content-Type': 'application/json' },
-        }
-
-        if (isDev) {
-          const refreshToken = localStorage.getItem('refresh_token')
-          if (!refreshToken) throw new Error('No refresh token')
-          ;(refreshOptions.headers as Record<string, string>)['Authorization'] = `Bearer ${refreshToken}`
-        }
-
-        const refreshResponse = await fetch(refreshUrl, refreshOptions)
-        if (!refreshResponse.ok) {
-          throw new Error(`Refresh failed: ${refreshResponse.status}`)
-        }
-
-        const data = await refreshResponse.json()
-
-        if (isDev && data.token) {
-          localStorage.setItem('access_token', data.token)
-          document.cookie = `access_token=${data.token}; path=/; max-age=900; samesite=lax`
-          if (data.refreshToken) {
-            localStorage.setItem('refresh_token', data.refreshToken)
-            document.cookie = `refresh_token=${data.refreshToken}; path=/; max-age=604800; samesite=lax`
-          }
-        }
+        await refreshSession()
 
         isRefreshing = false
         processQueue()
@@ -498,19 +421,7 @@ export const apiClient = {
       } catch (error) {
         isRefreshing = false
         processQueue(error)
-
-        if (isDev) {
-          localStorage.removeItem('access_token')
-          localStorage.removeItem('refresh_token')
-          document.cookie = 'access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT'
-          document.cookie = 'refresh_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT'
-        }
-
-        if (isClient) {
-          setTimeout(() => {
-            window.location.href = '/login'
-          }, 100)
-        }
+        clearAuthCookiesAndRedirect()
 
         throw error
       }

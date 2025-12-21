@@ -15,6 +15,16 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Método no permitido' }, { status: 405 })
   }
 
+  const origin = req.headers.get('origin')
+  const allowedOrigins = [
+    process.env.NEXT_PUBLIC_APP_URL,
+    process.env.NEXTAUTH_URL,
+    'http://localhost:3000',
+  ].filter(Boolean)
+  if (origin && !allowedOrigins.some((o) => o && origin.startsWith(o))) {
+    return NextResponse.json({ error: 'Origen no permitido' }, { status: 403 })
+  }
+
   try {
     const accessToken = req.cookies.get('access_token')?.value
 
@@ -29,12 +39,17 @@ export async function GET(req: NextRequest) {
       },
     })
 
+    const data = await backendRes.json().catch(() => null)
+
     if (!backendRes.ok) {
-      const errorData = await backendRes.json().catch(() => ({}))
-      return NextResponse.json(errorData, { status: backendRes.status })
+      const message = data?.error ?? data?.message ?? 'No autenticado'
+      return NextResponse.json({ error: message }, { status: backendRes.status })
     }
 
-    const data = await backendRes.json()
+    if (!data?.user) {
+      return NextResponse.json({ error: 'Respuesta inválida del backend' }, { status: 502 })
+    }
+
     return NextResponse.json(data)
   } catch (error) {
     console.error('[/api/auth/me] Error:', error)

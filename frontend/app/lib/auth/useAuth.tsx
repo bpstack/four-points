@@ -1,7 +1,15 @@
 // app/lib/auth/useAuth.tsx
 'use client'
 
-import { createContext, useContext, useEffect, useState, useCallback, useMemo, ReactNode } from 'react'
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useCallback,
+  useMemo,
+  ReactNode,
+} from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { authLogin } from './authService'
 import type { User } from '@/app/lib/logbooks/types'
@@ -84,7 +92,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
    */
   useEffect(() => {
     let isMounted = true
-    
+
     const checkSession = async () => {
       // En rutas públicas, no verificar sesión
       if (PUBLIC_ROUTES.includes(pathname)) {
@@ -99,18 +107,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       const userData = await fetchUserData()
-      
+
       // Solo actualizar estado si el componente sigue montado
       if (!isMounted) {
         return
       }
-      
+
       setUser(userData)
       setLoading(false)
     }
 
     checkSession()
-    
+
     return () => {
       isMounted = false
     }

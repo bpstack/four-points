@@ -10,10 +10,24 @@ import { NextRequest, NextResponse } from 'next/server'
 import { SERVER_API_BASE_URL } from '@/app/lib/env'
 
 const BACKEND_URL = SERVER_API_BASE_URL
+const ALLOWED_ORIGINS = [
+  process.env.NEXT_PUBLIC_APP_URL,
+  process.env.NEXTAUTH_URL,
+  'http://localhost:3000',
+].filter(Boolean)
+
+const isAllowedOrigin = (origin: string | null) => {
+  if (!origin) return true
+  return ALLOWED_ORIGINS.some((allowed) => allowed && origin.startsWith(allowed))
+}
 
 export async function POST(req: NextRequest) {
   if (req.method !== 'POST') {
     return NextResponse.json({ error: 'Método no permitido' }, { status: 405 })
+  }
+
+  if (!isAllowedOrigin(req.headers.get('origin'))) {
+    return NextResponse.json({ error: 'Origen no permitido' }, { status: 403 })
   }
 
   try {
@@ -29,17 +43,29 @@ export async function POST(req: NextRequest) {
         Authorization: `Bearer ${refreshToken}`,
         'Content-Type': 'application/json',
       },
+      credentials: 'include',
+      cache: 'no-store',
     })
 
+    const data = await backendRes.json().catch(() => null)
+
     if (!backendRes.ok) {
-      // Refresh fallo - limpiar cookies
-      const response = NextResponse.json({ error: 'Sesion expirada' }, { status: 401 })
+      const message = data?.error ?? data?.message ?? 'Sesion expirada'
+      const response = NextResponse.json({ error: message }, { status: 401 })
       response.cookies.delete('access_token')
       response.cookies.delete('refresh_token')
       return response
     }
 
-    const data = await backendRes.json()
+    if (!data?.token) {
+      const response = NextResponse.json(
+        { error: 'Respuesta inválida del backend' },
+        { status: 502 }
+      )
+      response.cookies.delete('access_token')
+      response.cookies.delete('refresh_token')
+      return response
+    }
 
     const response = NextResponse.json({ success: true })
 

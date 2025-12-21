@@ -9,10 +9,24 @@ import { NextRequest, NextResponse } from 'next/server'
 import { SERVER_API_BASE_URL } from '@/app/lib/env'
 
 const BACKEND_URL = SERVER_API_BASE_URL
+const ALLOWED_ORIGINS = [
+  process.env.NEXT_PUBLIC_APP_URL,
+  process.env.NEXTAUTH_URL,
+  'http://localhost:3000',
+].filter(Boolean)
+
+const isAllowedOrigin = (origin: string | null) => {
+  if (!origin) return true
+  return ALLOWED_ORIGINS.some((allowed) => allowed && origin.startsWith(allowed))
+}
 
 export async function POST(req: NextRequest) {
   if (req.method !== 'POST') {
     return NextResponse.json({ error: 'Método no permitido' }, { status: 405 })
+  }
+
+  if (!isAllowedOrigin(req.headers.get('origin'))) {
+    return NextResponse.json({ error: 'Origen no permitido' }, { status: 403 })
   }
 
   try {
@@ -29,9 +43,11 @@ export async function POST(req: NextRequest) {
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },
+        credentials: 'include',
+        cache: 'no-store',
       })
-    } catch {
-      // Ignorar errores del backend en logout
+    } catch (notifyError) {
+      console.warn('[/api/auth/logout] Backend logout fallo (ignorado):', notifyError)
     }
 
     // Siempre limpiar cookies locales
