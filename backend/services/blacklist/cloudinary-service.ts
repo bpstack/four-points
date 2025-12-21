@@ -81,11 +81,27 @@ export class CloudinaryService {
    */
   static async deleteImage(publicId: string): Promise<boolean> {
     try {
-      const result = await cloudinary.uploader.destroy(publicId)
-      return result.result === 'ok'
-    } catch (error) {
-      console.error('[CloudinaryService] Delete error:', error)
-      throw new Error('Error al eliminar imagen de Cloudinary')
+      console.log('[CloudinaryService] Attempting to delete image:', publicId)
+      
+      const result = await cloudinary.uploader.destroy(publicId, {
+        resource_type: 'image',
+        invalidate: true,
+      })
+      
+      console.log('[CloudinaryService] Delete result:', result)
+      
+      // 'ok' = eliminado exitosamente, 'not found' = ya no existe (también consideramos éxito)
+      if (result.result === 'ok' || result.result === 'not found') {
+        return true
+      }
+      
+      // Si el resultado es diferente, logueamos y lanzamos error
+      console.error('[CloudinaryService] Unexpected delete result:', result)
+      throw new Error(`Cloudinary delete returned: ${result.result}`)
+    } catch (error: any) {
+      console.error('[CloudinaryService] Delete error:', error.message || error)
+      console.error('[CloudinaryService] Delete error details:', JSON.stringify(error, null, 2))
+      throw new Error(`Error al eliminar imagen de Cloudinary: ${error.message || 'Unknown error'}`)
     }
   }
 

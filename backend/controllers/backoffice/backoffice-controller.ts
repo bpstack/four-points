@@ -860,13 +860,21 @@ export class BackofficeController {
         return
       }
 
-      // Eliminar de Cloudinary
+      console.log('[BackofficeController.deleteAsset] Deleting asset:', {
+        id: asset.id,
+        name: asset.name,
+        cloudinary_public_id: asset.cloudinary_public_id,
+      })
+
+      // Eliminar de Cloudinary primero (opción estricta: falla todo si Cloudinary falla)
       if (asset.cloudinary_public_id) {
         await CloudinaryService.deleteImage(asset.cloudinary_public_id)
+        console.log('[BackofficeController.deleteAsset] Cloudinary image deleted successfully')
       }
 
-      // Eliminar de BD
+      // Solo eliminar de BD si Cloudinary fue exitoso
       await BackofficeRepository.deleteAsset(Number(id))
+      console.log('[BackofficeController.deleteAsset] Asset deleted from DB')
 
       res.json({ message: 'Asset eliminado correctamente' })
     } catch (error: any) {
