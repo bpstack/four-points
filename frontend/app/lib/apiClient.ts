@@ -22,9 +22,7 @@ interface FetchOptions extends RequestInit {
 const isDev = process.env.NODE_ENV === 'development'
 const isClient = typeof window !== 'undefined'
 
-const API_BASE_URL = isDev 
-  ? 'http://localhost:4000' 
-  : (process.env.NEXT_PUBLIC_API_URL || 'https://four-points.onrender.com')
+import { API_BASE_URL } from '@/app/lib/env'
 
 // Cola para manejar refresh concurrente
 let isRefreshing = false
@@ -56,12 +54,7 @@ const processQueue = (error: any = null) => {
 function getAuthHeaders(): Record<string, string> {
   if (!isClient) return {}
 
-  if (isDev) {
-    const token = localStorage.getItem('access_token')
-    return token ? { Authorization: `Bearer ${token}` } : {}
-  }
-
-  // Producción: cookies HttpOnly se envían con credentials: 'include'
+  // Siempre confiar en cookies HttpOnly; no usar localStorage
   return {}
 }
 
@@ -70,13 +63,6 @@ function getAuthHeaders(): Record<string, string> {
  */
 function hasRefreshToken(): boolean {
   if (!isClient) return false
-
-  if (isDev) {
-    return !!localStorage.getItem('refresh_token')
-  }
-
-  // En producción las cookies HttpOnly no son visibles desde JS
-  // pero el backend las recibirá si existen
   return true
 }
 
@@ -128,14 +114,6 @@ async function fetchWithRefresh(url: string, options: FetchOptions = {}): Promis
         headers: { 'Content-Type': 'application/json' },
       }
 
-      // En desarrollo, añadir Bearer token
-      if (isDev) {
-        const refreshToken = localStorage.getItem('refresh_token')
-        if (!refreshToken) throw new Error('No refresh token')
-        ;(refreshOptions.headers as Record<string, string>)['Authorization'] =
-          `Bearer ${refreshToken}`
-      }
-
       const refreshResponse = await fetch(refreshUrl, refreshOptions)
 
       if (!refreshResponse.ok) {
@@ -144,18 +122,13 @@ async function fetchWithRefresh(url: string, options: FetchOptions = {}): Promis
 
       const data = await refreshResponse.json()
 
-      // En desarrollo, guardar tokens en localStorage Y cookies
-      if (isDev && data.token) {
-        localStorage.setItem('access_token', data.token)
-        // Also set cookie for Server Components (15 min = 900 seconds)
+      // Las cookies se actualizan vía backend; no usar localStorage
+      if (isClient && data.token) {
         document.cookie = `access_token=${data.token}; path=/; max-age=900; samesite=lax`
-        
         if (data.refreshToken) {
-          localStorage.setItem('refresh_token', data.refreshToken)
           document.cookie = `refresh_token=${data.refreshToken}; path=/; max-age=604800; samesite=lax`
         }
       }
-      // En producción, las cookies se actualizan automáticamente por el backend
 
       isRefreshing = false
       processQueue()
@@ -176,11 +149,8 @@ async function fetchWithRefresh(url: string, options: FetchOptions = {}): Promis
       isRefreshing = false
       processQueue(error)
 
-      // Limpiar tokens
-      if (isDev) {
-        localStorage.removeItem('access_token')
-        localStorage.removeItem('refresh_token')
-        // Also clear cookies
+      // Limpiar cookies
+      if (isClient) {
         document.cookie = 'access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT'
         document.cookie = 'refresh_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT'
       }
@@ -195,9 +165,7 @@ async function fetchWithRefresh(url: string, options: FetchOptions = {}): Promis
       throw error
     }
   } else if (isClient && response.status === 401 && !skipRefresh && !isAuthRoute) {
-    if (isDev) {
-      localStorage.removeItem('access_token')
-      localStorage.removeItem('refresh_token')
+    if (isClient) {
       document.cookie = 'access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT'
       document.cookie = 'refresh_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT'
     }

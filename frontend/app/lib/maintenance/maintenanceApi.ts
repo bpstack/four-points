@@ -6,6 +6,7 @@
  */
 
 import { apiClient } from '@/app/lib/apiClient'
+import { API_BASE_URL } from '@/app/lib/env'
 import type {
   MaintenanceReport,
   ReportWithDetails,
@@ -16,7 +17,7 @@ import type {
   MaintenanceImage,
 } from './maintenance'
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'
+const API_BASE = API_BASE_URL
 
 // ========================================
 // TIPOS DE RESPUESTA

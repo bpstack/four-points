@@ -29,7 +29,9 @@ import type {
   MonthlySummaryResponse,
 } from './types'
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'
+import { API_BASE_URL } from '@/app/lib/env'
+
+const API_BASE = API_BASE_URL
 
 // ========================================
 // API CLIENT
@@ -288,14 +290,10 @@ export const backofficeApi = {
   downloadValidatedInvoicesZip: async (invoiceIds: number[]): Promise<Blob> => {
     const url = `${API_BASE}/api/backoffice/invoices/download-zip`
     
-    // Get auth token (key is 'access_token' in this project)
-    const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null
-    
     const response = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
       },
       body: JSON.stringify({ invoice_ids: invoiceIds }),
       credentials: 'include',

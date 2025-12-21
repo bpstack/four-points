@@ -1,9 +1,15 @@
 // app/api/auth/register/route.ts
 import { NextRequest, NextResponse } from 'next/server'
 
-const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:4000'
+import { SERVER_API_BASE_URL } from '@/app/lib/env'
+
+const BACKEND_URL = SERVER_API_BASE_URL
 
 export async function POST(req: NextRequest) {
+  if (req.method !== 'POST') {
+    return NextResponse.json({ error: 'Método no permitido' }, { status: 405 })
+  }
+
   try {
     const body = await req.json()
     console.log('[POST /api/auth/register] Usuario:', body.username)

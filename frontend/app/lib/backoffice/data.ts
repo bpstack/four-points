@@ -30,7 +30,9 @@ import type {
 } from './types'
 
 // Server-side API URL (can use non-public env var)
-const API_BASE = process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'
+import { SERVER_API_BASE_URL } from '@/app/lib/env'
+
+const API_BASE = SERVER_API_BASE_URL
 
 // ========================================
 // HELPER: Get auth headers from cookies
