@@ -99,6 +99,7 @@ export function ReportDetailClient({ initialReport }: ReportDetailClientProps) {
         isOpen={isEditPanelOpen}
         onClose={handleCloseEditPanel}
         report={currentReport}
+        onSuccess={() => refreshReport(currentReport.id)}
       />
 
       {/* Diálogo de confirmación de eliminación */}

@@ -58,11 +58,13 @@ export function PendingInvoicesTab({
   const router = useRouter()
   const [searchTerm, setSearchTerm] = useState('')
   const [categoryFilter, setCategoryFilter] = useState<number | 'all'>('all')
-  const [paymentMethodFilter, setPaymentMethodFilter] = useState<'all' | 'transfer' | 'direct_debit'>('all')
+  const [paymentMethodFilter, setPaymentMethodFilter] = useState<
+    'all' | 'transfer' | 'direct_debit'
+  >('all')
   const [selectedInvoices, setSelectedInvoices] = useState<number[]>([])
   const [isPending, startTransition] = useTransition()
   const [isExporting, setIsExporting] = useState(false)
-  
+
   // Batch payment states
   const [batchPayDialogOpen, setBatchPayDialogOpen] = useState(false)
   const [batchPayPreview, setBatchPayPreview] = useState<{
@@ -82,11 +84,11 @@ export function PendingInvoicesTab({
   const [viewingPdfInvoice, setViewingPdfInvoice] = useState<InvoiceWithDetails | null>(null)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [deletingInvoice, setDeletingInvoice] = useState<InvoiceWithDetails | null>(null)
-  
+
   // PDF Editor state
   const [pdfEditorOpen, setPdfEditorOpen] = useState(false)
   const [editingPdfInvoice, setEditingPdfInvoice] = useState<InvoiceWithDetails | null>(null)
-  
+
   // Validation confirmation dialog (for invoices without PDF)
   const [validateDialogOpen, setValidateDialogOpen] = useState(false)
   const [validatingInvoice, setValidatingInvoice] = useState<InvoiceWithDetails | null>(null)
@@ -97,8 +99,7 @@ export function PendingInvoicesTab({
     const matchesSearch =
       invoice.supplier_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       invoice.invoice_number.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesCategory =
-      categoryFilter === 'all' || invoice.category_id === categoryFilter
+    const matchesCategory = categoryFilter === 'all' || invoice.category_id === categoryFilter
     const matchesPaymentMethod =
       paymentMethodFilter === 'all' || invoice.payment_method === paymentMethodFilter
     return matchesSearch && matchesCategory && matchesPaymentMethod
@@ -150,7 +151,7 @@ export function PendingInvoicesTab({
   const handleOpenPdfViewer = (invoice: InvoiceWithDetails) => {
     const hasValidated = !!invoice.validated_pdf_url
     const hasOriginal = !!invoice.original_pdf_url
-    
+
     console.log('[handleOpenPdfViewer] Invoice data:', {
       id: invoice.id,
       invoice_number: invoice.invoice_number,
@@ -158,14 +159,14 @@ export function PendingInvoicesTab({
       original_pdf_url: invoice.original_pdf_url,
       validated_pdf_url: invoice.validated_pdf_url,
       hasOriginal,
-      hasValidated
+      hasValidated,
     })
-    
+
     if (!hasValidated && !hasOriginal) {
       toast.error('Esta factura no tiene PDF adjunto')
       return
     }
-    
+
     setViewingPdfInvoice(invoice)
     setPdfViewerOpen(true)
   }
@@ -178,16 +179,16 @@ export function PendingInvoicesTab({
       setPdfEditorOpen(true)
       return
     }
-    
+
     // Si no tiene PDF, abrir diálogo de confirmación
     setValidatingInvoice(invoice)
     setValidateDialogOpen(true)
   }
-  
+
   // Handle validation confirmation (for invoices without PDF)
   const handleConfirmValidate = async () => {
     if (!validatingInvoice) return
-    
+
     startTransition(async () => {
       try {
         await backofficeApi.validateInvoice(validatingInvoice.id)
@@ -200,15 +201,15 @@ export function PendingInvoicesTab({
       }
     })
   }
-  
+
   // Handle unvalidate (revert validation)
   const handleUnvalidate = async (invoice: InvoiceWithDetails) => {
     console.log('[handleUnvalidate] Invoice:', {
       id: invoice.id,
       invoice_number: invoice.invoice_number,
-      status: invoice.status
+      status: invoice.status,
     })
-    
+
     startTransition(async () => {
       try {
         const result = await backofficeApi.unvalidateInvoice(invoice.id)
@@ -221,37 +222,37 @@ export function PendingInvoicesTab({
       }
     })
   }
-  
+
   // Handle PDF editor save - upload validated PDF and mark as validated
   const handlePdfEditorSave = async (pdfBlob: Blob) => {
     if (!editingPdfInvoice) return
-    
+
     try {
       // Create File from Blob
       const fileName = `${editingPdfInvoice.invoice_number.replace(/[/\\?%*:|"<>]/g, '-')}_validado.pdf`
-      const file = new File(
-        [pdfBlob],
-        fileName,
-        { type: 'application/pdf' }
-      )
-      
+      const file = new File([pdfBlob], fileName, { type: 'application/pdf' })
+
       console.log('[handlePdfEditorSave] Uploading validated PDF:', {
         invoiceId: editingPdfInvoice.id,
         fileName,
         fileSize: file.size,
-        fileType: file.type
+        fileType: file.type,
       })
-      
+
       // Upload as validated PDF
-      const uploadResult = await backofficeApi.uploadInvoicePdf(editingPdfInvoice.id, file, 'validated')
+      const uploadResult = await backofficeApi.uploadInvoicePdf(
+        editingPdfInvoice.id,
+        file,
+        'validated'
+      )
       console.log('[handlePdfEditorSave] Upload result:', uploadResult)
-      
+
       // Mark invoice as validated using client-side API (not server action)
       // This ensures the auth token from localStorage is used correctly
       console.log('[handlePdfEditorSave] Validating invoice:', editingPdfInvoice.id)
       const validateResult = await backofficeApi.validateInvoice(editingPdfInvoice.id)
       console.log('[handlePdfEditorSave] Validate result:', validateResult)
-      
+
       toast.success('Factura validada con PDF firmado')
       handleMutationSuccess()
     } catch (error: any) {
@@ -324,24 +325,29 @@ export function PendingInvoicesTab({
     }
 
     // Get selected invoices data
-    const selectedInvoicesData = filteredInvoices.filter(inv => selectedInvoices.includes(inv.id))
-    
+    const selectedInvoicesData = filteredInvoices.filter((inv) => selectedInvoices.includes(inv.id))
+
     // Check all are validated with validated_pdf_url
     const invalidInvoices = selectedInvoicesData.filter(
-      inv => inv.status !== 'validated' || !inv.validated_pdf_url
+      (inv) => inv.status !== 'validated' || !inv.validated_pdf_url
     )
 
     if (invalidInvoices.length > 0) {
-      const invalidNames = invalidInvoices.slice(0, 3).map(inv => inv.invoice_number).join(', ')
+      const invalidNames = invalidInvoices
+        .slice(0, 3)
+        .map((inv) => inv.invoice_number)
+        .join(', ')
       const moreText = invalidInvoices.length > 3 ? ` y ${invalidInvoices.length - 3} más` : ''
-      toast.error(`Las siguientes facturas no están validadas o no tienen PDF validado: ${invalidNames}${moreText}`)
+      toast.error(
+        `Las siguientes facturas no están validadas o no tienen PDF validado: ${invalidNames}${moreText}`
+      )
       return
     }
 
     setIsExporting(true)
     try {
       const blob = await backofficeApi.downloadValidatedInvoicesZip(selectedInvoices)
-      
+
       // Create download link
       const url = window.URL.createObjectURL(blob)
       const a = document.createElement('a')
@@ -352,7 +358,7 @@ export function PendingInvoicesTab({
       a.click()
       window.URL.revokeObjectURL(url)
       document.body.removeChild(a)
-      
+
       toast.success(`${selectedInvoices.length} factura(s) descargada(s)`)
       setSelectedInvoices([])
     } catch (error: any) {
@@ -378,14 +384,14 @@ export function PendingInvoicesTab({
   // Execute batch payment
   const handleExecuteBatchPayment = async () => {
     if (!batchPayPreview) return
-    
+
     setIsBatchPaying(true)
     try {
       const result = await backofficeApi.executeBatchPayment(
         batchPayPreview.year,
         batchPayPreview.month
       )
-      
+
       toast.success(result.message)
       setBatchPayDialogOpen(false)
       setBatchPayPreview(null)
@@ -400,8 +406,20 @@ export function PendingInvoicesTab({
 
   // Get Spanish month name
   const getSpanishMonthName = (month: number): string => {
-    const months = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-      'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
+    const months = [
+      'Enero',
+      'Febrero',
+      'Marzo',
+      'Abril',
+      'Mayo',
+      'Junio',
+      'Julio',
+      'Agosto',
+      'Septiembre',
+      'Octubre',
+      'Noviembre',
+      'Diciembre',
+    ]
     return months[month - 1] || ''
   }
 
@@ -413,8 +431,8 @@ export function PendingInvoicesTab({
     <div className="space-y-4">
       {/* Action Bar */}
       <div className="flex flex-col lg:flex-row gap-3">
-        {/* Search - reduced width */}
-        <div className="relative w-full lg:w-48">
+        {/* Search */}
+        <div className="relative w-full lg:w-64">
           <FiSearch className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 dark:text-gray-500" />
           <input
             type="text"
@@ -425,7 +443,7 @@ export function PendingInvoicesTab({
           />
         </div>
 
-        {/* Category Filter - expanded width */}
+        {/* Category Filter */}
         <select
           value={categoryFilter}
           onChange={(e) =>
@@ -441,13 +459,13 @@ export function PendingInvoicesTab({
           ))}
         </select>
 
-        {/* Payment Method Filter - slightly wider */}
+        {/* Payment Method Filter */}
         <select
           value={paymentMethodFilter}
           onChange={(e) =>
             setPaymentMethodFilter(e.target.value as 'all' | 'transfer' | 'direct_debit')
           }
-          className="w-full lg:w-36 px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent bg-white dark:bg-[#151b23] dark:text-gray-200"
+          className="w-full lg:w-40 px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent bg-white dark:bg-[#151b23] dark:text-gray-200"
         >
           <option value="all">Todos los pagos</option>
           <option value="transfer">Transferencia</option>
@@ -606,7 +624,9 @@ export function PendingInvoicesTab({
                               <button
                                 onClick={() => handleValidate(invoice)}
                                 disabled={isPending}
-                                title={invoice.original_pdf_url ? "Validar con sello/firma" : "Validar"}
+                                title={
+                                  invoice.original_pdf_url ? 'Validar con sello/firma' : 'Validar'
+                                }
                                 className="inline-flex items-center justify-center w-7 h-7 text-gray-600 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors disabled:opacity-50"
                               >
                                 <FiCheck className="w-3.5 h-3.5" />
@@ -717,9 +737,7 @@ export function PendingInvoicesTab({
       <div className="lg:hidden space-y-2">
         {filteredInvoices.length === 0 ? (
           <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-6 text-center">
-            <p className="text-xs text-gray-500 dark:text-gray-400">
-              No se encontraron facturas
-            </p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">No se encontraron facturas</p>
           </div>
         ) : (
           filteredInvoices.map((invoice) => {
@@ -910,8 +928,8 @@ export function PendingInvoicesTab({
                 </p>
                 <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md p-3 mb-4">
                   <p className="text-xs text-red-800 dark:text-red-300">
-                    <strong>Atención:</strong> Esta acción eliminará la factura permanentemente de la base de datos. 
-                    Esta acción no se puede deshacer.
+                    <strong>Atención:</strong> Esta acción eliminará la factura permanentemente de
+                    la base de datos. Esta acción no se puede deshacer.
                   </p>
                 </div>
                 <div className="flex gap-3">
@@ -1030,10 +1048,11 @@ export function PendingInvoicesTab({
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
                   Cerrar Mes - Marcar como Pagadas
                 </h3>
-                
+
                 <div className="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-md p-4 mb-4">
                   <p className="text-sm text-purple-800 dark:text-purple-300 mb-2">
-                    <strong>Mes:</strong> {getSpanishMonthName(batchPayPreview.month)} {batchPayPreview.year}
+                    <strong>Mes:</strong> {getSpanishMonthName(batchPayPreview.month)}{' '}
+                    {batchPayPreview.year}
                   </p>
                   <p className="text-sm text-purple-800 dark:text-purple-300 mb-2">
                     <strong>Facturas validadas:</strong> {batchPayPreview.count}
@@ -1052,8 +1071,9 @@ export function PendingInvoicesTab({
                 ) : (
                   <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-md p-3 mb-4">
                     <p className="text-xs text-blue-800 dark:text-blue-300">
-                      Esta acción marcará todas las facturas validadas de {getSpanishMonthName(batchPayPreview.month)} como pagadas.
-                      La fecha de pago será la fecha de cada factura.
+                      Esta acción marcará todas las facturas validadas de{' '}
+                      {getSpanishMonthName(batchPayPreview.month)} como pagadas. La fecha de pago
+                      será la fecha de cada factura.
                     </p>
                   </div>
                 )}
@@ -1076,7 +1096,9 @@ export function PendingInvoicesTab({
                     disabled={isBatchPaying || batchPayPreview.count === 0}
                     className="flex-1 px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded-md hover:bg-purple-700 transition-colors disabled:opacity-50"
                   >
-                    {isBatchPaying ? 'Procesando...' : `Marcar ${batchPayPreview.count} como Pagadas`}
+                    {isBatchPaying
+                      ? 'Procesando...'
+                      : `Marcar ${batchPayPreview.count} como Pagadas`}
                   </button>
                 </div>
               </div>

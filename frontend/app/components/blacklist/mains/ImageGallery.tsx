@@ -103,8 +103,8 @@ export function ImageGallery({ images, alt = 'Imagen de evidencia' }: ImageGalle
       <div
         className={clsx(
           'grid gap-3',
-          images.length === 1 && 'grid-cols-1',
-          images.length === 2 && 'grid-cols-2',
+          images.length === 1 && 'grid-cols-2 sm:grid-cols-3',
+          images.length === 2 && 'grid-cols-2 sm:grid-cols-3',
           images.length >= 3 && 'grid-cols-2 sm:grid-cols-3'
         )}
       >
@@ -112,7 +112,7 @@ export function ImageGallery({ images, alt = 'Imagen de evidencia' }: ImageGalle
           <button
             key={`${imageUrl}-${index}`}
             onClick={() => openLightbox(index)}
-            className="relative aspect-square group overflow-hidden rounded-lg border border-gray-200 dark:border-gray-800 bg-gray-100 dark:bg-gray-800 hover:border-blue-500 dark:hover:border-blue-500 transition-all"
+            className="relative aspect-square group overflow-hidden rounded-lg border border-gray-200 dark:border-gray-800 bg-gray-100 dark:bg-gray-800 hover:border-blue-500 dark:hover:border-blue-500 transition-all max-w-[200px]"
           >
             <Image
               src={imageUrl}
