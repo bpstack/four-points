@@ -14,6 +14,7 @@ import {
   FiPlus,
   FiEdit2,
   FiChevronRight,
+  FiChevronLeft,
   FiFileText,
   FiCalendar,
   FiDollarSign,
@@ -33,9 +34,16 @@ import toast from 'react-hot-toast'
 interface SuppliersTabProps {
   initialSuppliers: SupplierWithStats[]
   categories: Category[]
+  pagination: { page: number; total: number; totalPages: number }
+  onPageChange?: (page: number) => void
 }
 
-export function SuppliersTab({ initialSuppliers, categories }: SuppliersTabProps) {
+export function SuppliersTab({ 
+  initialSuppliers, 
+  categories, 
+  pagination,
+  onPageChange,
+}: SuppliersTabProps) {
   const router = useRouter()
   const [searchTerm, setSearchTerm] = useState('')
   const [categoryFilter, setCategoryFilter] = useState<number | 'all'>('all')
@@ -271,6 +279,36 @@ export function SuppliersTab({ initialSuppliers, categories }: SuppliersTabProps
               </tbody>
             </table>
           </div>
+
+          {/* Pagination */}
+          {pagination.total > 0 && (
+            <div className="px-3 py-2 border-t border-gray-200 dark:border-gray-800 flex items-center justify-between">
+              <span className="text-xs text-gray-500 dark:text-gray-400">
+                Mostrando {filteredSuppliers.length} de {pagination.total} proveedores
+                {pagination.totalPages > 1 && ` (Página ${pagination.page} de ${pagination.totalPages})`}
+              </span>
+              {pagination.totalPages > 1 && onPageChange && (
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => onPageChange(pagination.page - 1)}
+                    disabled={pagination.page <= 1}
+                    className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    <FiChevronLeft className="w-3.5 h-3.5" />
+                    Anterior
+                  </button>
+                  <button
+                    onClick={() => onPageChange(pagination.page + 1)}
+                    disabled={pagination.page >= pagination.totalPages}
+                    className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    Siguiente
+                    <FiChevronRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Supplier Detail Panel */}

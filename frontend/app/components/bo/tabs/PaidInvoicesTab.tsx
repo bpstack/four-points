@@ -64,6 +64,13 @@ interface PaidInvoicesTabProps {
   onPageChange?: (page: number) => void
 }
 
+// Helper function - defined outside component to avoid hoisting issues
+const getSpanishMonthName = (month: number): string => {
+  const months = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+    'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
+  return months[month - 1] || ''
+}
+
 export function PaidInvoicesTab({
   initialInvoices: realInvoices,
   categories: realCategories,
@@ -80,8 +87,47 @@ export function PaidInvoicesTab({
   const [categoryFilter, setCategoryFilter] = useState<number | 'all'>('all')
   const [paymentMethodFilter, setPaymentMethodFilter] = useState<'all' | 'transfer' | 'direct_debit'>('all')
   const [dateFilter, setDateFilter] = useState<'specific_month' | 'quarter' | 'year' | 'all'>('specific_month')
-  const [selectedMonth, setSelectedMonth] = useState<{ year: number; month: number } | null>(null)
   const [isExportingZip, setIsExportingZip] = useState(false)
+
+  // Calculate available months from invoices (needed for initial selectedMonth)
+  const availableMonths = (() => {
+    const monthsMap = new Map<string, { year: number; month: number; count: number }>()
+    
+    initialInvoices.forEach((invoice) => {
+      if (invoice.invoice_date) {
+        const date = new Date(invoice.invoice_date)
+        const year = date.getFullYear()
+        const month = date.getMonth() + 1
+        const key = `${year}-${month}`
+        
+        if (!monthsMap.has(key)) {
+          monthsMap.set(key, { year, month, count: 0 })
+        }
+        monthsMap.get(key)!.count++
+      }
+    })
+    
+    return Array.from(monthsMap.values())
+      .sort((a, b) => {
+        if (a.year !== b.year) return b.year - a.year
+        return b.month - a.month
+      })
+      .map((m) => ({
+        year: m.year,
+        month: m.month,
+        count: m.count,
+        label: `${getSpanishMonthName(m.month)} ${m.year} (${m.count})`,
+        monthLabel: `${getSpanishMonthName(m.month)} (${m.count})`,
+      }))
+  })()
+
+  // Initialize selectedMonth with the first available month
+  const [selectedMonth, setSelectedMonth] = useState<{ year: number; month: number } | null>(() => {
+    if (availableMonths.length > 0) {
+      return { year: availableMonths[0].year, month: availableMonths[0].month }
+    }
+    return null
+  })
 
   // Modal states
   const [pdfViewerOpen, setPdfViewerOpen] = useState(false)
@@ -250,18 +296,24 @@ export function PaidInvoicesTab({
     return months
   }
 
-  // Get Spanish month name
-  const getSpanishMonthName = (month: number): string => {
-    const months = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-      'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
-    return months[month - 1] || ''
+  // Helper to safely format numbers
+  const safeToFixed = (value: number | string | null | undefined, decimals: number = 2): string => {
+    if (value === null || value === undefined) return '0.00'
+    const num = typeof value === 'string' ? parseFloat(value) : value
+    return isNaN(num) ? '0.00' : num.toFixed(decimals)
   }
 
-  // Export to CSV
+  // Export to CSV (max 50 entries)
   const handleExport = () => {
     if (filteredInvoices.length === 0) {
       toast.error('No hay facturas para exportar')
       return
+    }
+
+    // Limit to 50 entries
+    const invoicesToExport = filteredInvoices.slice(0, 50)
+    if (filteredInvoices.length > 50) {
+      toast('Exportando las primeras 50 facturas. Usa filtros para reducir la selección.', { icon: '⚠️' })
     }
 
     // Create CSV content
@@ -278,15 +330,15 @@ export function PaidInvoicesTab({
       'Departamento',
     ]
 
-    const rows = filteredInvoices.map((invoice) => [
-      invoice.supplier_name,
-      invoice.invoice_number,
-      invoice.invoice_date,
+    const rows = invoicesToExport.map((invoice) => [
+      invoice.supplier_name || '',
+      invoice.invoice_number || '',
+      invoice.invoice_date || '',
       invoice.paid_date || '',
-      invoice.amount_without_vat.toFixed(2),
-      invoice.amount_with_vat.toFixed(2),
-      invoice.vat_percentage.toString(),
-      PAYMENT_METHOD_LABELS[invoice.payment_method],
+      safeToFixed(invoice.amount_without_vat),
+      safeToFixed(invoice.amount_with_vat),
+      (invoice.vat_percentage ?? 0).toString(),
+      PAYMENT_METHOD_LABELS[invoice.payment_method] || '',
       invoice.cost_center || '',
       invoice.department || '',
     ])
@@ -310,32 +362,33 @@ export function PaidInvoicesTab({
     toast.success(`${filteredInvoices.length} facturas exportadas`)
   }
 
-  // Export to ZIP (validated PDFs only, max 100)
+  // Export to ZIP (validated PDFs only, max 50)
   const handleExportZip = async () => {
     if (filteredInvoices.length === 0) {
       toast.error('No hay facturas para exportar')
       return
     }
 
-    if (filteredInvoices.length > 100) {
-      toast.error('Máximo 100 facturas por descarga ZIP. Usa los filtros para reducir la selección.')
-      return
-    }
-
-    // Check all have validated_pdf_url
+    // Check all have validated_pdf_url first
     const invoicesWithPdf = filteredInvoices.filter(inv => inv.validated_pdf_url)
     const invoicesWithoutPdf = filteredInvoices.filter(inv => !inv.validated_pdf_url)
 
     if (invoicesWithoutPdf.length > 0) {
       const names = invoicesWithoutPdf.slice(0, 3).map(inv => inv.invoice_number).join(', ')
       const moreText = invoicesWithoutPdf.length > 3 ? ` y ${invoicesWithoutPdf.length - 3} más` : ''
-      toast.error(`Las siguientes facturas no tienen PDF validado: ${names}${moreText}`)
+      toast.error(`Facturas sin PDF validado: ${names}${moreText}`)
       return
+    }
+
+    // Limit to 50 entries
+    const invoicesToExport = invoicesWithPdf.slice(0, 50)
+    if (invoicesWithPdf.length > 50) {
+      toast('Descargando las primeras 50 facturas. Usa filtros para reducir la selección.', { icon: '⚠️' })
     }
 
     setIsExportingZip(true)
     try {
-      const invoiceIds = filteredInvoices.map(inv => inv.id)
+      const invoiceIds = invoicesToExport.map(inv => inv.id)
       const blob = await backofficeApi.downloadValidatedInvoicesZip(invoiceIds)
       
       // Create download link
@@ -349,7 +402,7 @@ export function PaidInvoicesTab({
       window.URL.revokeObjectURL(url)
       document.body.removeChild(a)
       
-      toast.success(`${filteredInvoices.length} factura(s) descargada(s) en ZIP`)
+      toast.success(`${invoicesToExport.length} factura(s) descargada(s) en ZIP`)
     } catch (error: any) {
       console.error('[handleExportZip] Error:', error)
       toast.error(error.message || 'Error al descargar las facturas')
@@ -358,60 +411,42 @@ export function PaidInvoicesTab({
     }
   }
 
-  // Get available months for month selector
-  const availableMonths = (() => {
-    const monthsMap = new Map<string, { year: number; month: number; count: number }>()
-    
-    initialInvoices.forEach((invoice) => {
-      if (invoice.invoice_date) {
-        const date = new Date(invoice.invoice_date)
-        const year = date.getFullYear()
-        const month = date.getMonth() + 1
-        const key = `${year}-${month}`
-        
-        if (!monthsMap.has(key)) {
-          monthsMap.set(key, { year, month, count: 0 })
-        }
-        monthsMap.get(key)!.count++
-      }
-    })
-    
-    return Array.from(monthsMap.values())
-      .sort((a, b) => {
-        if (a.year !== b.year) return b.year - a.year
-        return b.month - a.month
-      })
-      .map((m) => ({
-        year: m.year,
-        month: m.month,
-        count: m.count,
-        label: `${getSpanishMonthName(m.month)} ${m.year} (${m.count})`,
-        monthLabel: `${getSpanishMonthName(m.month)} (${m.count})`,
-      }))
-  })()
-
   // Initialize selectedMonth if not set and we have available months
   if (!selectedMonth && availableMonths.length > 0 && dateFilter === 'specific_month') {
     setSelectedMonth({ year: availableMonths[0].year, month: availableMonths[0].month })
   }
 
-  // Calculate totals
-  const totalPaid = filteredInvoices.reduce((sum, i) => sum + i.amount_with_vat, 0)
+  // Helper to safely parse amount (handles string, number, null, undefined)
+  const safeAmount = (value: number | string | null | undefined): number => {
+    if (value === null || value === undefined) return 0
+    const num = typeof value === 'string' ? parseFloat(value) : value
+    return isNaN(num) ? 0 : num
+  }
+
+  // Calculate totals for filtered invoices
+  const totalMonthFiltered = filteredInvoices.reduce((sum, i) => sum + safeAmount(i.amount_with_vat), 0)
   const byDirectDebit = filteredInvoices
     .filter((i) => i.payment_method === 'direct_debit')
-    .reduce((sum, i) => sum + i.amount_with_vat, 0)
+    .reduce((sum, i) => sum + safeAmount(i.amount_with_vat), 0)
   const byTransfer = filteredInvoices
     .filter((i) => i.payment_method === 'transfer')
-    .reduce((sum, i) => sum + i.amount_with_vat, 0)
+    .reduce((sum, i) => sum + safeAmount(i.amount_with_vat), 0)
+
+  // Get month label for display
+  const selectedMonthLabel = selectedMonth 
+    ? `${getSpanishMonthName(selectedMonth.month)} ${selectedMonth.year}`
+    : 'Mes'
 
   return (
     <div className="space-y-4">
-      {/* Summary */}
+      {/* Summary - Only show filtered totals (global stats are in the header) */}
       <div className="grid grid-cols-3 gap-2 sm:gap-3">
         <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-3">
-          <p className="text-[10px] text-gray-600 dark:text-gray-400 font-medium">Total Pagado</p>
+          <p className="text-[10px] text-gray-600 dark:text-gray-400 font-medium">
+            {dateFilter === 'specific_month' ? `Total ${selectedMonthLabel}` : 'Total Filtrado'}
+          </p>
           <p className="text-sm sm:text-base font-bold text-green-600 dark:text-green-400 mt-0.5">
-            {formatCurrency(totalPaid)}
+            {formatCurrency(totalMonthFiltered)}
           </p>
         </div>
         <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-3">
@@ -536,7 +571,7 @@ export function PaidInvoicesTab({
           <button
             onClick={handleExportZip}
             disabled={isExportingZip}
-            title="Exportar PDFs validados como ZIP (máx. 100)"
+            title="Exportar PDFs validados como ZIP (máx. 50)"
             className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 text-xs font-medium rounded-md hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors disabled:opacity-50"
           >
             <FiPackage className="w-3.5 h-3.5" />

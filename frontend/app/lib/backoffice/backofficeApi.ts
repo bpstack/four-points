@@ -73,7 +73,7 @@ export const backofficeApi = {
   // ========================================
 
   /**
-   * Obtener todos los proveedores con filtros
+   * Obtener todos los proveedores con filtros y paginación
    */
   getSuppliers: async (filters?: SupplierFilters): Promise<SuppliersResponse> => {
     const params = new URLSearchParams()
@@ -83,6 +83,8 @@ export const backofficeApi = {
     if (filters?.payment_method) params.append('payment_method', filters.payment_method)
     if (filters?.is_active !== undefined) params.append('is_active', filters.is_active.toString())
     if (filters?.search) params.append('search', filters.search)
+    if (filters?.page) params.append('page', filters.page.toString())
+    if (filters?.limit) params.append('limit', filters.limit.toString())
 
     const url = `${API_BASE}/api/backoffice/suppliers?${params.toString()}`
     return apiClient.get(url)

@@ -162,23 +162,23 @@ export async function getCategories(): Promise<Category[]> {
 // ========================================
 
 /**
- * Fetch suppliers with optional filters
+ * Fetch suppliers with optional filters and pagination
  * Used for initial server render, then client takes over for filtering
  */
-export async function getSuppliers(filters?: SupplierFilters): Promise<{
+export async function getSuppliers(page = 1, limit = 100): Promise<{
   suppliers: SupplierWithStats[]
-  total: number
+  pagination: {
+    page: number
+    limit: number
+    total: number
+    totalPages: number
+  }
 }> {
   const params = new URLSearchParams()
+  params.append('page', page.toString())
+  params.append('limit', limit.toString())
 
-  if (filters?.category_id) params.append('category_id', filters.category_id.toString())
-  if (filters?.periodicity) params.append('periodicity', filters.periodicity)
-  if (filters?.payment_method) params.append('payment_method', filters.payment_method)
-  if (filters?.is_active !== undefined) params.append('is_active', filters.is_active.toString())
-  if (filters?.search) params.append('search', filters.search)
-
-  const queryString = params.toString()
-  const endpoint = `/api/backoffice/suppliers${queryString ? `?${queryString}` : ''}`
+  const endpoint = `/api/backoffice/suppliers?${params.toString()}`
 
   const response = await serverFetch<SuppliersResponse>(endpoint, {
     revalidate: 60,
@@ -187,7 +187,7 @@ export async function getSuppliers(filters?: SupplierFilters): Promise<{
 
   return {
     suppliers: response.suppliers,
-    total: response.total,
+    pagination: response.pagination,
   }
 }
 

@@ -195,6 +195,8 @@ export interface SupplierFilters {
   payment_method?: PaymentMethod
   is_active?: boolean
   search?: string
+  page?: number
+  limit?: number
 }
 
 // ========================================
@@ -206,6 +208,8 @@ export interface SummaryStats {
   pending_total: number
   paid_this_month: number
   paid_total_this_month: number
+  paid_count: number
+  paid_total: number
   overdue_count: number
   suppliers_count: number
 }
@@ -229,7 +233,12 @@ export interface CategoriesResponse {
 
 export interface SuppliersResponse {
   suppliers: SupplierWithStats[]
-  total: number
+  pagination: {
+    page: number
+    limit: number
+    total: number
+    totalPages: number
+  }
 }
 
 export interface SupplierDetailResponse {

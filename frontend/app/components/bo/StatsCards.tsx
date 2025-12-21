@@ -82,7 +82,7 @@ export async function StatsCards() {
         </div>
       </div>
 
-      {/* Total Pagado */}
+      {/* Total Pagado (Histórico) */}
       <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-3 hover:shadow-md dark:hover:shadow-gray-900/50 transition-shadow">
         <div className="flex items-center justify-between">
           <div>
@@ -90,7 +90,7 @@ export async function StatsCards() {
               Total Pagado
             </p>
             <p className="text-lg sm:text-xl font-bold text-green-600 dark:text-green-400 mt-0.5">
-              {formatCurrency(stats.paid_total_this_month)}
+              {formatCurrency(stats.paid_total)}
             </p>
           </div>
           <FiTrendingUp className="w-5 h-5 sm:w-6 sm:h-6 text-green-500 dark:text-green-400" />

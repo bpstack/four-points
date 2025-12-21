@@ -28,6 +28,7 @@ interface TabContentProps {
   // Pagination info
   pendingPagination: { page: number; total: number; totalPages: number }
   paidPagination: { page: number; total: number; totalPages: number }
+  suppliersPagination: { page: number; total: number; totalPages: number }
 }
 
 export function TabContent({
@@ -38,6 +39,7 @@ export function TabContent({
   assets,
   pendingPagination,
   paidPagination,
+  suppliersPagination,
 }: TabContentProps) {
   const searchParams = useSearchParams()
   const router = useRouter()
@@ -49,6 +51,14 @@ export function TabContent({
     const params = new URLSearchParams(searchParams.toString())
     params.set('tab', 'paid')
     params.set('paidPage', newPage.toString())
+    router.push(`${pathname}?${params.toString()}`)
+  }, [searchParams, router, pathname])
+
+  // Handle page change for suppliers
+  const handleSuppliersPageChange = useCallback((newPage: number) => {
+    const params = new URLSearchParams(searchParams.toString())
+    params.set('tab', 'suppliers')
+    params.set('suppliersPage', newPage.toString())
     router.push(`${pathname}?${params.toString()}`)
   }, [searchParams, router, pathname])
 
@@ -74,6 +84,8 @@ export function TabContent({
         <SuppliersTab
           initialSuppliers={suppliers}
           categories={categories}
+          pagination={suppliersPagination}
+          onPageChange={handleSuppliersPageChange}
         />
       )}
       {currentTab === 'settings' && (

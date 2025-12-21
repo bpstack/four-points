@@ -106,7 +106,7 @@ export class BackofficeController {
 
   /**
    * GET /api/backoffice/suppliers
-   * Obtener todos los proveedores con filtros
+   * Obtener todos los proveedores con filtros y paginación
    */
   static async getSuppliers(req: Request, res: Response): Promise<void> {
     try {
@@ -118,11 +118,20 @@ export class BackofficeController {
         search: req.query.search as string,
       }
 
-      const suppliers = await BackofficeRepository.getAllSuppliers(filters)
+      // Pagination: default 100 per page, max 100
+      const page = req.query.page ? Math.max(1, Number(req.query.page)) : 1
+      const limit = req.query.limit ? Math.min(Number(req.query.limit), 100) : 100
+
+      const { suppliers, total } = await BackofficeRepository.getAllSuppliers(filters, page, limit)
 
       res.json({
         suppliers,
-        total: suppliers.length,
+        pagination: {
+          page,
+          limit,
+          total,
+          totalPages: Math.ceil(total / limit),
+        },
       })
     } catch (error: any) {
       console.error('[BackofficeController.getSuppliers] Error:', error.message)
@@ -910,7 +919,7 @@ export class BackofficeController {
    * 
    * Rules:
    * - Max 100 invoices per ZIP
-   * - All invoices must be validated (status = 'validated')
+   * - All invoices must be validated or paid (status = 'validated' or 'paid')
    * - All invoices must have validated_pdf_url
    * - Filename format: {SupplierName}_{InvoiceNumber}_{InvoiceMonth}_validado.pdf
    */
@@ -949,14 +958,15 @@ export class BackofficeController {
         return
       }
 
-      // Check all invoices are validated and have validated_pdf_url
+      // Check all invoices are validated or paid and have validated_pdf_url
+      // Note: 'paid' invoices were previously validated, so they should also be allowed
       const invalidInvoices = invoices.filter(
-        inv => inv.status !== 'validated' || !inv.validated_pdf_url
+        inv => (inv.status !== 'validated' && inv.status !== 'paid') || !inv.validated_pdf_url
       )
 
       if (invalidInvoices.length > 0) {
         res.status(400).json({
-          error: 'Todas las facturas deben estar validadas y tener PDF validado',
+          error: 'Todas las facturas deben estar validadas o pagadas y tener PDF validado',
           invalid_invoices: invalidInvoices.map(inv => ({
             id: inv.id,
             invoice_number: inv.invoice_number,

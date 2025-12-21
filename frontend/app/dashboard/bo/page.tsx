@@ -30,6 +30,7 @@ export default async function BackOfficePage({ searchParams }: PageProps) {
   // Await searchParams as per Next.js 15 requirements
   const params = await searchParams
   const paidPage = params.paidPage ? parseInt(params.paidPage as string, 10) : 1
+  const suppliersPage = params.suppliersPage ? parseInt(params.suppliersPage as string, 10) : 1
 
   // Fetch all data in parallel on the server
   const [
@@ -43,8 +44,8 @@ export default async function BackOfficePage({ searchParams }: PageProps) {
     getStats(),
     getCategories(),
     getPendingInvoices(),
-    getPaidInvoices(paidPage, 100),
-    getSuppliers(),
+    getPaidInvoices(paidPage, 50),
+    getSuppliers(suppliersPage, 100),
     getAssets(),
   ])
 
@@ -85,6 +86,7 @@ export default async function BackOfficePage({ searchParams }: PageProps) {
             assets={assets}
             pendingPagination={pendingData.pagination}
             paidPagination={paidData.pagination}
+            suppliersPagination={suppliersData.pagination}
           />
         </Suspense>
       </div>
