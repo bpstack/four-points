@@ -17,6 +17,7 @@ import type {
 } from '@/app/lib/backoffice/types'
 import { applyVat } from '@/app/lib/backoffice/types'
 import { backofficeApi } from '@/app/lib/backoffice/backofficeApi'
+import DatePickerInput from '@/app/ui/calendar/DatePickerInput'
 import toast from 'react-hot-toast'
 
 interface InvoiceFormModalProps {
@@ -282,22 +283,14 @@ export function InvoiceFormModal({
 
               {/* Fecha factura */}
               <div>
-                <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Fecha Factura *
-                </label>
-                <input
-                  type="date"
+                <DatePickerInput
+                  label="Fecha Factura"
                   value={formData.invoice_date}
-                  onChange={(e) => setFormData(prev => ({ ...prev, invoice_date: e.target.value }))}
-                  className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-[#0d1117] dark:text-gray-200 ${
-                    errors.invoice_date 
-                      ? 'border-red-500 dark:border-red-500' 
-                      : 'border-gray-300 dark:border-gray-600'
-                  }`}
+                  onChange={(value) => setFormData(prev => ({ ...prev, invoice_date: value || '' }))}
+                  required
+                  error={errors.invoice_date}
+                  placeholder="Seleccionar fecha"
                 />
-                {errors.invoice_date && (
-                  <p className="mt-1 text-xs text-red-500">{errors.invoice_date}</p>
-                )}
               </div>
 
               {/* Importe sin IVA */}
@@ -380,65 +373,46 @@ export function InvoiceFormModal({
 
               {/* Fecha recepción */}
               <div>
-                <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Fecha Recepción
-                </label>
-                <input
-                  type="date"
-                  value={formData.received_date || ''}
-                  onChange={(e) => setFormData(prev => ({ 
-                    ...prev, 
-                    received_date: e.target.value || undefined 
-                  }))}
-                  className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-[#0d1117] dark:text-gray-200"
+                <DatePickerInput
+                  label="Fecha Recepción"
+                  value={formData.received_date}
+                  onChange={(value) => setFormData(prev => ({ ...prev, received_date: value }))}
+                  placeholder="Seleccionar fecha"
+                  clearable
                 />
               </div>
 
               {/* Fecha vencimiento */}
               <div>
-                <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Fecha Vencimiento
-                </label>
-                <input
-                  type="date"
-                  value={formData.due_date || ''}
-                  onChange={(e) => setFormData(prev => ({ 
-                    ...prev, 
-                    due_date: e.target.value || undefined 
-                  }))}
-                  className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-[#0d1117] dark:text-gray-200"
+                <DatePickerInput
+                  label="Fecha Vencimiento"
+                  value={formData.due_date}
+                  onChange={(value) => setFormData(prev => ({ ...prev, due_date: value }))}
+                  placeholder="Seleccionar fecha"
+                  clearable
                 />
               </div>
 
               {/* Periodo facturación inicio */}
               <div>
-                <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Periodo Inicio
-                </label>
-                <input
-                  type="date"
-                  value={formData.billing_period_start || ''}
-                  onChange={(e) => setFormData(prev => ({ 
-                    ...prev, 
-                    billing_period_start: e.target.value || undefined 
-                  }))}
-                  className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-[#0d1117] dark:text-gray-200"
+                <DatePickerInput
+                  label="Periodo Inicio"
+                  value={formData.billing_period_start}
+                  onChange={(value) => setFormData(prev => ({ ...prev, billing_period_start: value }))}
+                  placeholder="Seleccionar fecha"
+                  clearable
                 />
               </div>
 
               {/* Periodo facturación fin */}
               <div>
-                <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Periodo Fin
-                </label>
-                <input
-                  type="date"
-                  value={formData.billing_period_end || ''}
-                  onChange={(e) => setFormData(prev => ({ 
-                    ...prev, 
-                    billing_period_end: e.target.value || undefined 
-                  }))}
-                  className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-[#0d1117] dark:text-gray-200"
+                <DatePickerInput
+                  label="Periodo Fin"
+                  value={formData.billing_period_end}
+                  onChange={(value) => setFormData(prev => ({ ...prev, billing_period_end: value }))}
+                  placeholder="Seleccionar fecha"
+                  minDate={formData.billing_period_start ? new Date(formData.billing_period_start + 'T12:00:00') : null}
+                  clearable
                 />
               </div>
 
