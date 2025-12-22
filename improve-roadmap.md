@@ -27,8 +27,10 @@ Estado actual: rama `improve` con correcciones aplicadas, lista para continuar.
 - Mutations: create, update, updateStatus, updatePriority, delete, restore con invalidaciones.
 - Store Zustand se mantiene para vista de detalle (ReportDetailClient).
 
-7) SSR/Prerender — **[pendiente]** ← SIGUIENTE
+7) SSR/Prerender — **[en progreso]** ← ACTUAL
 - Planear prerender para dashboards críticos (parking, grupos) y pasar `dehydratedState`.
+- ✅ Groups migrado a SSR: Server Action + Client Component con initialData.
+- ✅ Parking Dashboard migrado a SSR: Server Action + Client Component con React Query.
 
 8) NextAuth/middleware — **[pendiente]**
 - Decidir activación o documentar pasos si se descarta.
@@ -45,7 +47,14 @@ Estado actual: rama `improve` con correcciones aplicadas, lista para continuar.
   - Creado `useMaintenanceList.ts` con query + mutations.
   - Refactorizado `MaintenanceListClient.tsx` para usar el hook.
   - Eliminado estado local `useState/loadReports` reemplazado por React Query.
-- [ ] Planificar/implementar SSR o prerender en dashboards seleccionados.
+- [x] **SSR Groups** - Server Component con Server Action `getGroups`.
+  - Creado `frontend/app/dashboard/groups/actions/getGroups.ts`.
+  - Creado `frontend/app/components/groups/GroupsListClient.tsx` con React Query + initialData.
+  - Refactorizado `groups/page.tsx` a Server Component.
+- [x] **SSR Parking Dashboard** - Server Component con Server Action.
+  - Creado `frontend/app/dashboard/parking/actions/getParkingDashboardStats.ts`.
+  - Creado `frontend/app/dashboard/parking/components/ParkingDashboardClient.tsx` (~780 líneas).
+  - Refactorizado `parking/page.tsx` a Server Component (pre-fetch "today" stats).
 - [ ] Evaluar NextAuth/middleware y documentar decisión.
 
 ## Maintenance – plan React Query (completado)
@@ -66,3 +75,5 @@ Estado actual: rama `improve` con correcciones aplicadas, lista para continuar.
 - Estrategia: primero base (env, auth handlers, cookies-only) luego optimización de fetch (React Query/lazy).
 - 22-dic: Bugs críticos corregidos, CRLF normalizado, listo para migrar Maintenance.
 - 22-dic: Maintenance lista migrada a React Query. Store Zustand se mantiene para detalle.
+- 22-dic: Groups migrado a SSR con Server Action + Client Component.
+- 22-dic: Parking Dashboard migrado a SSR con Server Action + Client Component + React Query.
