@@ -273,7 +273,7 @@ export interface AssetsResponse {
   assets: Asset[]
 }
 
-export interface StatsResponse extends SummaryStats {}
+export type StatsResponse = SummaryStats
 
 export interface MonthlySummaryResponse {
   summary: MonthlySummary[]

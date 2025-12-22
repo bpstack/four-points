@@ -2,7 +2,6 @@
 
 'use client'
 
-import { useEffect } from 'react'
 import { useGroupStore } from '@/app/stores/useGroupStore'
 import { useGroupStatus } from '@/app/lib/groups'
 import { LoadingSpinner } from '../shared/LoadingSpinner'

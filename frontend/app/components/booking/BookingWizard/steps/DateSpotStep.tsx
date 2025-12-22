@@ -5,7 +5,7 @@ import { FaCalendar, FaSpinner, FaArrowLeft } from 'react-icons/fa'
 import { formatDateLocal, formatDateForInput } from '@/app/lib/helpers/date'
 import SimpleCalendar from '@/app/ui/calendar/simplecalendar'
 import TimePicker from '@/app/ui/calendar/timepicker'
-import { inputClassName, selectClassName, textareaClassName } from '@/app/ui/panels'
+// inputClassName, selectClassName, textareaClassName available from '@/app/ui/panels' if needed
 import type { BookingWizardState, BookingWizardActions } from '../types'
 
 interface DateSpotStepProps {

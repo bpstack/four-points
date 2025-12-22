@@ -110,7 +110,7 @@ export function ProfileSidebar() {
     setUsernameError(null)
 
     try {
-      const response = await apiClient.patch(`${API_URL}/api/auth/me/profile`, {
+      await apiClient.patch(`${API_URL}/api/auth/me/profile`, {
         username: newUsername.trim(),
         currentPassword: usernamePassword,
       })

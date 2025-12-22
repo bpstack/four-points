@@ -2,7 +2,7 @@
 
 'use client'
 
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import Link from 'next/link'
 import { FiSearch, FiX, FiClock, FiCalendar } from 'react-icons/fi'
@@ -111,7 +111,7 @@ export function VehicleSearchModal({ isOpen, onClose }: VehicleSearchModalProps)
     })
   }
 
-  const formatTime = (date: string) => {
+  const _formatTime = (date: string) => {
     return new Date(date).toLocaleTimeString('es-ES', {
       hour: '2-digit',
       minute: '2-digit',

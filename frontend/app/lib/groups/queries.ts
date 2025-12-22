@@ -539,7 +539,7 @@ export const useUpdateGroup = (id?: number) => {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (data: UpdateGroupDTO) => groupsApi.update(id as number, data),
-    onSuccess: (_, variables) => {
+    onSuccess: () => {
       if (typeof id === 'number') {
         queryClient.invalidateQueries({ queryKey: groupsKeys.detail(id) })
         queryClient.invalidateQueries({ queryKey: groupsKeys.dashboardOverview() })

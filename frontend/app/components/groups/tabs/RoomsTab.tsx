@@ -2,7 +2,6 @@
 
 'use client'
 
-import { useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useGroupStore } from '@/app/stores/useGroupStore'
 import { useGroupRooms } from '@/app/lib/groups'

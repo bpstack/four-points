@@ -3,7 +3,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import { FiPlus, FiAlertCircle, FiCalendar, FiAlertTriangle, FiSend } from 'react-icons/fi'
+import { FiAlertCircle, FiCalendar, FiAlertTriangle, FiSend } from 'react-icons/fi'
 import { useDepartments } from '@/app/lib/logbooks/hooks/useDepartments'
 import { formatDateLocal, formatDateForInput } from '@/app/lib/helpers/date'
 import SimpleCalendar from '@/app/ui/calendar/simplecalendar'

@@ -3,14 +3,7 @@
 'use client'
 
 import { useState } from 'react'
-import {
-  FiTrendingUp,
-  FiTrendingDown,
-  FiDollarSign,
-  FiShoppingCart,
-  FiPackage,
-  FiCalendar,
-} from 'react-icons/fi'
+import { FiTrendingUp, FiDollarSign, FiShoppingCart, FiPackage } from 'react-icons/fi'
 
 // Mock data
 const monthlyData = [

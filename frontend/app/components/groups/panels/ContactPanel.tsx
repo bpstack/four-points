@@ -34,7 +34,7 @@ export function ContactPanel({ isOpen, onClose, contact, groupId }: ContactPanel
   const groupIdFromStore = currentGroup?.id
   const effectiveGroupId = groupIdFromStore ?? groupId
 
-  const { data: contactsData } = useGroupContacts(effectiveGroupId)
+  const { data: _contactsData } = useGroupContacts(effectiveGroupId)
   const createContactMutation = useCreateContact(effectiveGroupId)
   const updateContactMutation = useUpdateContact(effectiveGroupId, contact?.id)
 

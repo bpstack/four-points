@@ -250,7 +250,7 @@ export function GlobalNotificationModal({
   if (!isOpen) return null
 
   const today = new Date()
-  const selectedSectionLabel =
+  const _selectedSectionLabel =
     APP_SECTIONS.find((s) => s.value === selectedSection)?.label || 'Dashboard'
 
   return (

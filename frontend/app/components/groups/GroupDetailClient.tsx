@@ -52,7 +52,7 @@ export function GroupDetailClient({ initialGroup }: GroupDetailClientProps) {
 
   const { currentGroup, setCurrentGroup, setActiveTab, setHighlight } = useGroupStore()
 
-  const { data: groupData } = useGroup(currentGroup?.id)
+  const { data: _groupData } = useGroup(currentGroup?.id)
   const { data: paymentsData } = useGroupPayments(currentGroup?.id)
   const payments = paymentsData?.payments ?? []
   const { data: contacts = [] } = useGroupContacts(currentGroup?.id)

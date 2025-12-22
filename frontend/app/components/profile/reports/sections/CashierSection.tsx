@@ -87,7 +87,7 @@ interface Voucher {
   justified_by: string | null
 }
 
-interface Shift {
+interface _Shift {
   id: number
   daily_id: number
   shift_type: string

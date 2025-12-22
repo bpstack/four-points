@@ -37,7 +37,7 @@ export function GroupsListClient({ initialGroups, initialStatus = 'all' }: Group
     [statusFilter]
   )
 
-  const { data: groups = [], isLoading, isFetching } = useQuery({
+  const { data: groups = [], isLoading } = useQuery({
     queryKey: groupsKeys.list(filters),
     queryFn: () => groupsApi.getAll(filters),
     select: (res) => res.data,

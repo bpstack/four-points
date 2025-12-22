@@ -38,7 +38,7 @@ export function BookingDetailClient({ code }: BookingDetailClientProps) {
   const router = useRouter()
   const [booking, setBooking] = useState<ParkingBooking | null>(null)
   const [loading, setLoading] = useState(true)
-  const [refreshing, setRefreshing] = useState(false)
+  const [_refreshing, setRefreshing] = useState(false)
 
   // Modals
   const [showCheckInModal, setShowCheckInModal] = useState(false)

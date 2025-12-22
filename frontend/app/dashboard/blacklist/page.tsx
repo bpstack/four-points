@@ -11,7 +11,6 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import Link from 'next/link'
 import {
   FiPlus,
   FiSearch,
@@ -20,13 +19,11 @@ import {
   FiShield,
   FiAlertCircle,
   FiCheckCircle,
-  FiSlash,
 } from 'react-icons/fi'
 import { IoWarning } from 'react-icons/io5'
 import { Badge } from '@/app/components/blacklist/ui/Badge'
 import { CreateBlacklistPanel } from '@/app/components/blacklist/panels/CreateBlacklistPanel'
 import type { BlacklistEntry, BlacklistFilters } from '@/app/lib/blacklist/types'
-import { SEVERITY_LEVELS } from '@/app/lib/blacklist/types'
 import { formatDate, highlightMatches, truncateText } from '@/app/lib/blacklist/blacklistUtils'
 import { blacklistApi } from '@/app/lib/blacklist/blacklistApi'
 
@@ -94,7 +91,7 @@ export default function BlacklistPage() {
   }
 
   // Stats calculations
-  const totalEntries = entries.length
+  const _totalEntries = entries.length
   const criticalCount = entries.filter((e) => e.severity === 'CRITICAL').length
   const highCount = entries.filter((e) => e.severity === 'HIGH').length
   const activeCount = entries.filter((e) => e.status === 'ACTIVE').length

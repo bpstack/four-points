@@ -6,7 +6,7 @@ import { useMemo } from 'react'
 import { useGroupStore } from '@/app/stores/useGroupStore'
 import { useGroupPayments } from '@/app/lib/groups'
 import { formatCurrency, formatDate } from '@/app/lib/helpers/utils'
-import { FiCalendar, FiDollarSign, FiLogIn, FiLogOut, FiClock } from 'react-icons/fi'
+import { FiDollarSign, FiLogIn, FiLogOut, FiClock } from 'react-icons/fi'
 
 export function GroupDetailSummaryPanel() {
   const { currentGroup } = useGroupStore()

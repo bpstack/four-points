@@ -3,7 +3,7 @@
 'use client'
 
 import { useState } from 'react'
-import { FiSearch, FiPlus, FiEdit2, FiTrash2, FiAlertTriangle, FiFilter } from 'react-icons/fi'
+import { FiSearch, FiPlus, FiEdit2, FiTrash2, FiAlertTriangle } from 'react-icons/fi'
 
 // Mock data types
 interface Product {
