@@ -10,11 +10,11 @@
 
 | Métrica | Valor |
 |---------|-------|
-| Commits en `improve` (vs main) | 10 |
-| Archivos modificados | ~150 |
+| Commits en `improve` (vs main) | 14 |
+| Archivos modificados | ~180 |
 | Estado | Listo para continuar |
 
-**Estado:** Todos los cambios están commiteados. Migración React Query completada para BackOffice, Parking y Maintenance. SSR implementado para Groups y Parking Dashboard.
+**Estado:** Todos los cambios están commiteados. Migración React Query completada para BackOffice, Parking y Maintenance. SSR implementado para Groups y Parking Dashboard. Lint cleanup realizado (de 35 errores a 0, de 92 warnings a 20).
 
 ---
 
@@ -32,6 +32,9 @@
 | 8 | `5467003` | fix: critical bugs and normalize CRLF to LF | Bugs corregidos, CRLF normalizado |
 | 9 | `104f997` | feat: migrate maintenance list to react query | Maintenance con React Query |
 | 10 | `04f8835` | feat: migrate Groups and Parking Dashboard to SSR | SSR con Server Actions |
+| 11 | `8742c15` | docs: update resume with SSR migrations progress | Actualización documentación |
+| 12 | `36fa4c5` | fix: resolve all 35 lint errors (unused vars, CRLF, prettier) | Lint cleanup - errores |
+| 13 | `7c01056` | fix: resolve lint warnings (exhaustive-deps, no-explicit-any) | Lint cleanup - warnings |
 
 ---
 
@@ -146,16 +149,26 @@ Los siguientes bugs fueron identificados y corregidos:
 
 ## Lint Status
 
-- **35 errores**: Todos son `@typescript-eslint/no-unused-vars` (deuda técnica preexistente)
-- **92 warnings**: Mayormente `<img>` sin next/image, tipos `any`, deps faltantes en hooks
+| Tipo | Antes | Después | Cambio |
+|------|-------|---------|--------|
+| Errores | 35 | 0 | ✅ Todos corregidos |
+| Warnings | 92 | 20 | ✅ 72 corregidos |
 
-No hay errores nuevos introducidos por la migración.
+### Warnings Restantes (20)
+- 16 `@next/next/no-img-element` - Requiere migración de `<img>` a `<Image/>` con análisis de dimensiones
+- 4 `@typescript-eslint/no-explicit-any` - En PdfEditorModal.tsx (componente pdf-lib complejo)
+
+### Correcciones Realizadas (Commits 12-13)
+- Variables no usadas eliminadas
+- Tipos `any` reemplazados por `unknown` con type guards
+- `react-hooks/exhaustive-deps` warnings corregidos
+- 37 archivos modificados en el cleanup
 
 ---
 
 ## Próximos Pasos
 
-1. **Lint cleanup** - Resolver los 35 errores de variables no usadas
+1. **no-img-element warnings** - Migrar `<img>` a `<Image/>` de next/image (requiere análisis)
 2. **NextAuth/middleware** - Decidir si activar o documentar el descarte
 3. **Migración React Query** - Continuar con Logbooks, Notificaciones, etc.
 4. **SSR adicional** - Evaluar otros dashboards para SSR
