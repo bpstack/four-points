@@ -60,9 +60,19 @@ interface DashboardOverview {
   }
 }
 
+interface DailyReportShift {
+  shift: {
+    id: number
+    shift_type: string
+  }
+  total_income: number
+  expected_in_box: number
+  is_balanced: boolean
+}
+
 interface DailyReport {
   date: string
-  shifts: unknown[]
+  shifts: DailyReportShift[]
   summary: {
     total_cash: number
     total_payments: number
@@ -168,11 +178,13 @@ export default function CashierSection() {
           const response = await apiClient.get(
             `${API_URL}/api/cashier/reports/daily/${dashboardDate}`
           )
-          setDailyReport(response.data || response)
+          const data = response as { data?: DailyReport } | DailyReport
+          setDailyReport((data as { data?: DailyReport }).data || (data as DailyReport))
           setOverview(null)
         } else {
           const response = await apiClient.get(`${API_URL}/api/cashier/reports/dashboard`)
-          setOverview(response.data || response)
+          const data = response as { data?: DashboardOverview } | DashboardOverview
+          setOverview((data as { data?: DashboardOverview }).data || (data as DashboardOverview))
           setDailyReport(null)
         }
       } else if (viewMode === 'vouchers') {
@@ -181,7 +193,12 @@ export default function CashierSection() {
         const response = await apiClient.get(
           `${API_URL}/api/cashier/reports/vouchers-history?${params.toString()}`
         )
-        setVouchers(response.data?.vouchers || response.vouchers || response || [])
+        const data = response as { data?: { vouchers?: Voucher[] }; vouchers?: Voucher[] } | Voucher[]
+        if (Array.isArray(data)) {
+          setVouchers(data)
+        } else {
+          setVouchers(data.data?.vouchers || data.vouchers || [])
+        }
       } else if (viewMode === 'history') {
         const params = new URLSearchParams({ limit: DEFAULT_LIMIT.toString() })
         if (historyDate) {
@@ -189,7 +206,16 @@ export default function CashierSection() {
           params.set('to_date', historyDate)
         }
         const response = await apiClient.get(`${API_URL}/api/cashier/history?${params.toString()}`)
-        setHistoryData(response.data?.data || response.data || response || [])
+        const data = response as
+          | { data?: { data?: CashierHistoryEntry[] } | CashierHistoryEntry[] }
+          | CashierHistoryEntry[]
+        if (Array.isArray(data)) {
+          setHistoryData(data)
+        } else if (Array.isArray(data.data)) {
+          setHistoryData(data.data)
+        } else {
+          setHistoryData((data.data as { data?: CashierHistoryEntry[] })?.data || [])
+        }
       }
       setLoaded(true)
     } catch (err: unknown) {

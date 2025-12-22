@@ -1,7 +1,7 @@
 // app/components/logbooks/LogbooksList.tsx
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import {
   FiClock,
   FiAlertCircle,
@@ -23,6 +23,7 @@ import { toast } from 'react-hot-toast'
 import { useDepartments } from '@/app/lib/logbooks/hooks/useDepartments'
 import { updateLogbookSchema, updateCommentSchema } from '@/app/lib/logbooks/validations'
 import { formatEditTimestamp, formatMadridDate } from '@/app/lib/helpers/date'
+import { UseMutationResult, UseQueryResult } from '@tanstack/react-query'
 import NewCommentEntry from './NewCommentEntry'
 import EditLogbookModal from './EditLogbookModal'
 import EditCommentModal from './EditCommentModal'
@@ -86,6 +87,21 @@ function getPriorityBackground(priority: string) {
   }
 }
 
+function mapPriorityToBackend(
+  priority: 'low' | 'medium' | 'high' | 'critical'
+): 'baja' | 'media' | 'alta' | 'urgente' {
+  switch (priority) {
+    case 'critical':
+      return 'urgente'
+    case 'high':
+      return 'alta'
+    case 'medium':
+      return 'media'
+    default:
+      return 'baja'
+  }
+}
+
 // =============================================
 // INTERFACES
 // =============================================
@@ -96,10 +112,72 @@ interface ReadByUser {
   read_at: string
 }
 
+// Type for mutations passed from parent
+interface LogbookMutations {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  updateLogbook: UseMutationResult<
+    any,
+    Error,
+    {
+      id: number
+      data: {
+        message?: string
+        importance_level?: 'baja' | 'media' | 'alta' | 'urgente'
+        department_id?: number
+      }
+    },
+    unknown
+  >
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  deleteLogbook: UseMutationResult<any, Error, number, unknown>
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  toggleStatus: UseMutationResult<
+    any,
+    Error,
+    { id: number; currentStatus: 'pending' | 'resolved' },
+    unknown
+  >
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  toggleRead: UseMutationResult<any, Error, { id: number; isRead: boolean }, unknown>
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  createComment: UseMutationResult<
+    any,
+    Error,
+    {
+      logbookId: number
+      data: {
+        comment: string
+        department_id: number
+        importance_level: 'baja' | 'media' | 'alta' | 'urgente'
+      }
+    },
+    unknown
+  >
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  updateComment: UseMutationResult<
+    any,
+    Error,
+    {
+      logbookId: number
+      commentId: number
+      data: {
+        comment?: string
+        importance_level?: 'baja' | 'media' | 'alta' | 'urgente'
+        department_id?: number
+      }
+    },
+    unknown
+  >
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  deleteComment: UseMutationResult<any, Error, { logbookId: number; commentId: number }, unknown>
+}
+
 export interface LogbooksListProps {
   entries: LogEntry[]
   dayStatusMessage?: string
-  onCommentAdded?: () => void
+  mutations: LogbookMutations
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  useReaders: (logbookId: number) => UseQueryResult<any, Error>
 }
 
 // =============================================
@@ -160,6 +238,36 @@ function ReadByAvatars({ users, maxVisible = 8 }: { users: ReadByUser[]; maxVisi
   )
 }
 
+// Component to fetch and display readers for a single entry
+function EntryReaders({
+  entryId,
+  useReaders,
+  userId,
+  onToggleRead,
+}: {
+  entryId: number
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  useReaders: (logbookId: number) => UseQueryResult<any, Error>
+  userId?: string
+  onToggleRead: (isRead: boolean) => void
+}) {
+  const { data: readers = [] } = useReaders(entryId)
+  const isRead = userId ? readers.some((r: ReadByUser) => r.user_id === userId) : false
+
+  return (
+    <>
+      <ReadByAvatars users={readers} />
+      <button
+        onClick={() => onToggleRead(isRead)}
+        className="flex items-center gap-1.5 text-xs text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors mt-2"
+      >
+        <FiEye className="w-4 h-4" />
+        <span>{isRead ? 'Unmark' : 'Mark'}</span>
+      </button>
+    </>
+  )
+}
+
 // =============================================
 // MAIN COMPONENT
 // =============================================
@@ -167,15 +275,11 @@ function ReadByAvatars({ users, maxVisible = 8 }: { users: ReadByUser[]; maxVisi
 export default function LogbooksList({
   entries = [],
   dayStatusMessage = '',
-  onCommentAdded,
+  mutations,
+  useReaders,
 }: LogbooksListProps) {
   const { user } = useAuth()
   const { getDepartmentName } = useDepartments()
-
-  // Local state
-  const [localEntries, setLocalEntries] = useState<LogEntry[]>([])
-  const [readByUsers, setReadByUsers] = useState<Record<number, ReadByUser[]>>({})
-  const [loadingReaders, setLoadingReaders] = useState<Record<number, boolean>>({})
 
   // Comment modal state
   const [commentModalOpen, setCommentModalOpen] = useState<number | null>(null)
@@ -184,14 +288,12 @@ export default function LogbooksList({
     'baja'
   )
   const [commentDepartment, setCommentDepartment] = useState<number>(1)
-  const [, setIsSubmitting] = useState(false)
 
   // Edit logbook modal state
   const [editModalOpen, setEditModalOpen] = useState<number | null>(null)
   const [editMessage, setEditMessage] = useState('')
   const [editPriority, setEditPriority] = useState<'baja' | 'media' | 'alta' | 'urgente'>('baja')
   const [editDepartment, setEditDepartment] = useState<number>(1)
-  const [isEditSubmitting, setIsEditSubmitting] = useState(false)
 
   // Edit comment modal state
   const [editCommentModalOpen, setEditCommentModalOpen] = useState<{
@@ -203,35 +305,13 @@ export default function LogbooksList({
     'baja' | 'media' | 'alta' | 'urgente'
   >('baja')
   const [editCommentDepartment, setEditCommentDepartment] = useState<number>(1)
-  const [isEditCommentSubmitting, setIsEditCommentSubmitting] = useState(false)
-
-  // Load readers
-  const loadReaders = async (entryId: number) => {
-    if (loadingReaders[entryId]) return
-    setLoadingReaders((prev) => ({ ...prev, [entryId]: true }))
-    try {
-      const { logbooksApi } = await import('@/app/lib/logbooks')
-      const readers = await logbooksApi.getReaders(entryId)
-      setReadByUsers((prev) => ({ ...prev, [entryId]: readers }))
-    } catch (error) {
-      console.error('Error loading readers:', error)
-    } finally {
-      setLoadingReaders((prev) => ({ ...prev, [entryId]: false }))
-    }
-  }
-
-  useEffect(() => {
-    setLocalEntries(entries ?? [])
-    entries.forEach((entry) => loadReaders(entry.id))
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [entries])
 
   // =============================================
   // HANDLERS - EDIT LOGBOOK
   // =============================================
 
   const handleEdit = (entryId: number) => {
-    const entry = localEntries.find((e) => e.id === entryId)
+    const entry = entries.find((e) => e.id === entryId)
     if (!entry) return
 
     if (user?.id !== entry.author_id) {
@@ -239,13 +319,8 @@ export default function LogbooksList({
       return
     }
 
-    let backendPriority: 'baja' | 'media' | 'alta' | 'urgente' = 'baja'
-    if (entry.priority === 'critical') backendPriority = 'urgente'
-    else if (entry.priority === 'high') backendPriority = 'alta'
-    else if (entry.priority === 'medium') backendPriority = 'media'
-
     setEditMessage(entry.description)
-    setEditPriority(backendPriority)
+    setEditPriority(mapPriorityToBackend(entry.priority || 'low'))
     setEditDepartment(entry.department_id || 1)
     setEditModalOpen(entryId)
   }
@@ -262,46 +337,16 @@ export default function LogbooksList({
       return
     }
 
-    setIsEditSubmitting(true)
-    try {
-      const { logbooksApi } = await import('@/app/lib/logbooks')
-      await logbooksApi.updateLogbook(editModalOpen!, {
+    await mutations.updateLogbook.mutateAsync({
+      id: editModalOpen!,
+      data: {
         message: editMessage.trim(),
         importance_level: editPriority,
         department_id: editDepartment,
-      })
+      },
+    })
 
-      setLocalEntries((prev) =>
-        prev.map((entry) => {
-          if (entry.id === editModalOpen) {
-            let priority: 'low' | 'medium' | 'high' | 'critical' = 'low'
-            if (editPriority === 'urgente') priority = 'critical'
-            else if (editPriority === 'alta') priority = 'high'
-            else if (editPriority === 'media') priority = 'medium'
-
-            return {
-              ...entry,
-              description: editMessage.trim(),
-              priority,
-              department: getDepartmentName(editDepartment),
-              department_id: editDepartment,
-              updated_at: new Date().toISOString(),
-              is_edited: true,
-            }
-          }
-          return entry
-        })
-      )
-
-      setEditModalOpen(null)
-      toast.success('Entrada actualizada correctamente')
-      if (onCommentAdded) onCommentAdded()
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Error al actualizar la entrada'
-      toast.error(message)
-    } finally {
-      setIsEditSubmitting(false)
-    }
+    setEditModalOpen(null)
   }
 
   // =============================================
@@ -329,24 +374,17 @@ export default function LogbooksList({
 
     if (!commentText.trim()) return
 
-    setIsSubmitting(true)
-    try {
-      const { logbooksApi } = await import('@/app/lib/logbooks')
-      await logbooksApi.comments.createComment(entryId, {
+    await mutations.createComment.mutateAsync({
+      logbookId: entryId,
+      data: {
         comment: commentText.trim(),
         department_id: deptId,
         importance_level: priorityLevel,
-      })
+      },
+    })
 
-      setCommentModalOpen(null)
-      setNewComment('')
-      toast.success('Comentario anadido correctamente')
-      if (onCommentAdded) onCommentAdded()
-    } catch {
-      toast.error('Error al crear el comentario')
-    } finally {
-      setIsSubmitting(false)
-    }
+    setCommentModalOpen(null)
+    setNewComment('')
   }
 
   // =============================================
@@ -354,7 +392,7 @@ export default function LogbooksList({
   // =============================================
 
   const handleEditComment = (entryId: number, commentId: number) => {
-    const entry = localEntries.find((e) => e.id === entryId)
+    const entry = entries.find((e) => e.id === entryId)
     const comment = entry?.comments?.find((c) => c.id === commentId)
 
     if (!comment) return
@@ -364,13 +402,8 @@ export default function LogbooksList({
       return
     }
 
-    let backendPriority: 'baja' | 'media' | 'alta' | 'urgente' = 'baja'
-    if (comment.importance_level === 'urgente') backendPriority = 'urgente'
-    else if (comment.importance_level === 'alta') backendPriority = 'alta'
-    else if (comment.importance_level === 'media') backendPriority = 'media'
-
     setEditCommentText(comment.comment)
-    setEditCommentPriority(backendPriority)
+    setEditCommentPriority(comment.importance_level || 'baja')
     setEditCommentDepartment(comment.department_id || 1)
     setEditCommentModalOpen({ entryId, commentId })
   }
@@ -387,50 +420,17 @@ export default function LogbooksList({
       return
     }
 
-    setIsEditCommentSubmitting(true)
-    try {
-      const { logbooksApi } = await import('@/app/lib/logbooks')
-      await logbooksApi.comments.updateComment(
-        editCommentModalOpen!.entryId,
-        editCommentModalOpen!.commentId,
-        {
-          comment: editCommentText.trim(),
-          importance_level: editCommentPriority,
-          department_id: editCommentDepartment,
-        }
-      )
+    await mutations.updateComment.mutateAsync({
+      logbookId: editCommentModalOpen!.entryId,
+      commentId: editCommentModalOpen!.commentId,
+      data: {
+        comment: editCommentText.trim(),
+        importance_level: editCommentPriority,
+        department_id: editCommentDepartment,
+      },
+    })
 
-      setLocalEntries((prev) =>
-        prev.map((entry) => {
-          if (entry.id === editCommentModalOpen!.entryId) {
-            return {
-              ...entry,
-              comments: entry.comments?.map((c) =>
-                c.id === editCommentModalOpen!.commentId
-                  ? {
-                      ...c,
-                      comment: editCommentText.trim(),
-                      importance_level: editCommentPriority,
-                      department_id: editCommentDepartment,
-                      updated_at: new Date().toISOString(),
-                    }
-                  : c
-              ),
-            }
-          }
-          return entry
-        })
-      )
-
-      setEditCommentModalOpen(null)
-      toast.success('Comentario actualizado correctamente')
-      if (onCommentAdded) onCommentAdded()
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Error al actualizar el comentario'
-      toast.error(message)
-    } finally {
-      setIsEditCommentSubmitting(false)
-    }
+    setEditCommentModalOpen(null)
   }
 
   // =============================================
@@ -438,101 +438,28 @@ export default function LogbooksList({
   // =============================================
 
   const handleToggleStatus = async (entryId: number, currentStatus: string) => {
-    try {
-      const { logbooksApi } = await import('@/app/lib/logbooks')
-
-      if (currentStatus === 'resolved') {
-        await logbooksApi.markAsPending(entryId)
-        toast.success('Estado cambiado a pendiente')
-      } else {
-        await logbooksApi.markAsSolved(entryId)
-        toast.success('Estado cambiado a resuelto')
-      }
-
-      setLocalEntries((prevEntries) =>
-        prevEntries.map((entry) =>
-          entry.id === entryId
-            ? { ...entry, status: currentStatus === 'resolved' ? 'pending' : 'resolved' }
-            : entry
-        )
-      )
-    } catch {
-      toast.error('Error al cambiar el estado')
-    }
+    await mutations.toggleStatus.mutateAsync({
+      id: entryId,
+      currentStatus: currentStatus as 'pending' | 'resolved',
+    })
   }
 
-  const handleToggleRead = async (entryId: number) => {
-    if (!user?.id || !user?.username) {
+  const handleToggleRead = async (entryId: number, isRead: boolean) => {
+    if (!user?.id) {
       toast.error('Usuario no autenticado')
       return
     }
-
-    try {
-      const { logbooksApi } = await import('@/app/lib/logbooks')
-      const currentReaders = readByUsers[entryId] || []
-      const alreadyRead = currentReaders.some((reader) => reader.user_id === user.id)
-
-      if (alreadyRead) {
-        await logbooksApi.unmarkAsRead(entryId)
-        setReadByUsers((prev) => ({
-          ...prev,
-          [entryId]: currentReaders.filter((reader) => reader.user_id !== user.id),
-        }))
-        toast.success('Desmarcado como leido')
-      } else {
-        await logbooksApi.markAsRead(entryId)
-        const newReader: ReadByUser = {
-          user_id: user.id,
-          username: user.username,
-          read_at: new Date().toISOString(),
-        }
-        setReadByUsers((prev) => ({
-          ...prev,
-          [entryId]: [...currentReaders, newReader],
-        }))
-        toast.success('Marcado como leido')
-      }
-    } catch {
-      toast.error('Error al cambiar el estado de lectura')
-    }
+    await mutations.toggleRead.mutateAsync({ id: entryId, isRead })
   }
 
   const handleDeleteEntry = async (entryId: number) => {
     if (!window.confirm('Estas seguro de que quieres eliminar esta entrada?')) return
-
-    try {
-      const { logbooksApi } = await import('@/app/lib/logbooks')
-      await logbooksApi.deleteLogbook(entryId)
-      setLocalEntries((prev) => prev.filter((e) => e.id !== entryId))
-      toast.success('Entrada eliminada correctamente')
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Error al eliminar la entrada'
-      toast.error(message)
-    }
+    await mutations.deleteLogbook.mutateAsync(entryId)
   }
 
   const handleDeleteComment = async (entryId: number, commentId: number) => {
     if (!window.confirm('Estas seguro de que quieres eliminar este comentario?')) return
-
-    try {
-      const { logbooksApi } = await import('@/app/lib/logbooks')
-      await logbooksApi.comments.deleteComment(entryId, commentId)
-      setLocalEntries((prev) =>
-        prev.map((entry) => {
-          if (entry.id === entryId) {
-            return {
-              ...entry,
-              comments: entry.comments?.filter((c) => c.id !== commentId),
-            }
-          }
-          return entry
-        })
-      )
-      toast.success('Comentario eliminado correctamente')
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Error al eliminar el comentario'
-      toast.error(message)
-    }
+    await mutations.deleteComment.mutateAsync({ logbookId: entryId, commentId })
   }
 
   // =============================================
@@ -542,7 +469,7 @@ export default function LogbooksList({
   return (
     <div className="max-w-[1600px] space-y-3">
       {/* Header - Desktop only */}
-      {localEntries.length > 0 && (
+      {entries.length > 0 && (
         <div className="hidden md:block sticky top-[115px] z-20 border border-gray-200 dark:border-gray-800 rounded-lg bg-white dark:bg-[#0d1117] shadow-sm overflow-hidden mb-3">
           <div className="flex items-center justify-between px-3 py-2 border-b border-gray-200 dark:border-gray-800 bg-gradient-to-r from-blue-50 to-gray-50 dark:from-blue-950/20 dark:to-gray-900/30">
             <div className="flex items-center gap-2">
@@ -602,7 +529,7 @@ export default function LogbooksList({
       )}
 
       {/* Entries */}
-      {localEntries.map((entry) => (
+      {entries.map((entry) => (
         <div
           key={entry.id}
           className={`border rounded-lg hover:shadow-md transition-shadow ${
@@ -725,8 +652,13 @@ export default function LogbooksList({
               </span>
             </div>
 
-            <div className="w-40 flex-shrink-0 pl-3 flex items-start">
-              <ReadByAvatars users={readByUsers[entry.id] || []} />
+            <div className="w-40 flex-shrink-0 pl-3 flex flex-col items-start">
+              <EntryReaders
+                entryId={entry.id}
+                useReaders={useReaders}
+                userId={user?.id}
+                onToggleRead={(isRead) => handleToggleRead(entry.id, isRead)}
+              />
             </div>
           </div>
 
@@ -792,7 +724,12 @@ export default function LogbooksList({
             )}
             <div className="flex items-center gap-2 pt-2 border-t border-gray-200 dark:border-gray-700">
               <span className="text-xs text-gray-500 dark:text-gray-400">Read by:</span>
-              <ReadByAvatars users={readByUsers[entry.id] || []} />
+              <EntryReaders
+                entryId={entry.id}
+                useReaders={useReaders}
+                userId={user?.id}
+                onToggleRead={(isRead) => handleToggleRead(entry.id, isRead)}
+              />
             </div>
           </div>
 
@@ -821,6 +758,7 @@ export default function LogbooksList({
 
                 <button
                   onClick={() => handleToggleStatus(entry.id, entry.status || 'pending')}
+                  disabled={mutations.toggleStatus.isPending}
                   className={`flex items-center gap-1.5 text-xs transition-colors ${
                     entry.status === 'resolved'
                       ? 'text-green-600 dark:text-green-400 hover:text-green-700'
@@ -846,6 +784,7 @@ export default function LogbooksList({
                       e.stopPropagation()
                       handleDeleteEntry(entry.id)
                     }}
+                    disabled={mutations.deleteLogbook.isPending}
                     className="flex items-center gap-1.5 text-xs text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-500 transition-colors"
                   >
                     <FiTrash2 className="w-4 h-4" />
@@ -868,16 +807,7 @@ export default function LogbooksList({
 
               <div className="w-32 flex-shrink-0 px-3 border-r border-slate-200 dark:border-slate-700" />
               <div className="w-28 flex-shrink-0 px-3 border-r border-slate-200 dark:border-slate-700" />
-
-              <div className="w-40 flex-shrink-0 pl-3">
-                <button
-                  onClick={() => handleToggleRead(entry.id)}
-                  className="flex items-center gap-1.5 text-xs text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-                >
-                  <FiEye className="w-4 h-4" />
-                  <span>Mark</span>
-                </button>
-              </div>
+              <div className="w-40 flex-shrink-0 pl-3" />
             </div>
 
             {/* Footer Mobile */}
@@ -933,20 +863,12 @@ export default function LogbooksList({
                   <span>Delete</span>
                 </button>
               )}
-
-              <button
-                onClick={() => handleToggleRead(entry.id)}
-                className="flex items-center gap-1.5 text-xs text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-              >
-                <FiEye className="w-4 h-4" />
-                <span>Mark</span>
-              </button>
             </div>
           </div>
         </div>
       ))}
 
-      {localEntries.length === 0 && (
+      {entries.length === 0 && (
         <div className="bg-white dark:bg-[#151b23] border border-gray-200 dark:border-gray-800 rounded-lg p-8 text-center">
           <p className="text-sm text-gray-500 dark:text-gray-400">
             {dayStatusMessage || 'No entries for this day yet'}
@@ -979,7 +901,7 @@ export default function LogbooksList({
         setPriority={setEditPriority}
         department={editDepartment}
         setDepartment={setEditDepartment}
-        isSubmitting={isEditSubmitting}
+        isSubmitting={mutations.updateLogbook.isPending}
       />
 
       <EditCommentModal
@@ -992,7 +914,7 @@ export default function LogbooksList({
         setPriority={setEditCommentPriority}
         department={editCommentDepartment}
         setDepartment={setEditCommentDepartment}
-        isSubmitting={isEditCommentSubmitting}
+        isSubmitting={mutations.updateComment.isPending}
       />
     </div>
   )

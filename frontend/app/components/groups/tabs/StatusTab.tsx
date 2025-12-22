@@ -17,8 +17,7 @@ export function StatusTab() {
   const { currentGroup } = useGroupStore()
 
   const groupId = currentGroup?.id
-  const { data: statusData, isLoading } = useGroupStatus(groupId)
-  const status = statusData?.status ?? statusData
+  const { data: status, isLoading } = useGroupStatus(groupId)
 
   if (isLoading) {
     return (

@@ -10,11 +10,11 @@
 
 | Métrica | Valor |
 |---------|-------|
-| Commits en `improve` (vs main) | 15 |
-| Archivos modificados | ~180 |
-| Estado | Listo para continuar |
+| Commits en `improve` (vs main) | 17 |
+| Archivos modificados | ~200 |
+| Estado | En progreso - fixes de tipos pendientes |
 
-**Estado:** Todos los cambios están commiteados. Migración React Query completada para BackOffice, Parking y Maintenance. SSR implementado para Groups y Parking Dashboard. **Lint completamente limpio (0 errores, 0 warnings).**
+**Estado:** Middleware de auth activado. Logbooks migrado a React Query (hook creado). apiClient tipado con genéricos. Múltiples fixes de tipos en progreso - **BUILD NO PASA AÚN**.
 
 ---
 
@@ -37,53 +37,87 @@
 | 13 | `7c01056` | fix: resolve lint warnings (exhaustive-deps, no-explicit-any) | Lint cleanup - warnings |
 | 14 | `1315c93` | docs: update resume with lint cleanup progress | Actualización documentación |
 | 15 | `cdc179f` | fix: suppress no-img-element warnings and fix remaining any types | Lint cleanup - final |
+| 16 | `74d92f9` | feat: enable auth middleware for route protection | Middleware activado |
+| 17 | PENDIENTE | feat: migrate logbooks to react query + type fixes | Logbooks + fixes tipos |
 
 ---
 
-## Cumplimiento del Plan (`improve-roadmap.md`)
+## Sesión Actual (22-dic-2025 noche)
 
-### Prioridades Completadas
+### Completado
+1. **Middleware de Auth Activado**
+   - Renombrado `middleware.ts.disabled` → `middleware.ts`
+   - Quitado bypass `return NextResponse.next()`
+   - Commit: `74d92f9`
 
-| # | Tarea | Estado | Commit |
-|---|-------|--------|--------|
-| 1 | Unificar variables de entorno | **Completado** | `3d3c14a` |
-| 2 | Endurecer Route Handlers de auth | **Completado** | `07b32c8` |
-| 3 | Estrategia de tokens (cookies-only) | **Completado** | `07b32c8` |
-| 4 | Back Office - React Query/lazy | **Completado** | `bdede77` |
-| 5 | Parking - React Query | **Completado** | `8d5584b` |
-| 6 | Maintenance - React Query | **Completado** | `104f997` |
-| 7 | SSR/Prerender (parcial) | **En progreso** | `04f8835` |
+2. **Logbooks - Hook React Query Creado**
+   - Nuevo: `frontend/app/lib/logbooks/hooks/useLogbooks.ts`
+   - Queries: entries por fecha, readers por entrada
+   - Mutations: create, update, delete, toggleStatus, toggleRead, createComment, updateComment, deleteComment
+   - Modificado: `LogbooksContainer.tsx` para usar el hook
+   - Modificado: `LogbooksList.tsx` para recibir mutations como props
 
-### SSR Implementado
+3. **apiClient Tipado con Genéricos**
+   - `get<T>`, `post<T>`, `patch<T>`, `put<T>`, `delete<T>`, `postFormData<T>`
+   - Elimina necesidad de type assertions en cada llamada
 
-| Módulo | Server Action | Client Component | Estado |
-|--------|---------------|------------------|--------|
-| Groups | `getGroups.ts` | `GroupsListClient.tsx` | **Completado** |
-| Parking Dashboard | `getParkingDashboardStats.ts` | `ParkingDashboardClient.tsx` | **Completado** |
-| Parking Status | `getParkingStatus.ts` | `ParkingStatusClient.tsx` | **Completado** (anterior) |
-| Parking Bookings | `getBookings.ts` | Ya existía | **Completado** (anterior) |
+### En Progreso - FIXES DE TIPOS PENDIENTES
 
-### Prioridades Pendientes
+El build expuso múltiples errores de tipos que necesitan corrección:
 
-| # | Tarea | Estado | Notas |
-|---|-------|--------|-------|
-| 8 | NextAuth/middleware | Pendiente | Decidir si activar o documentar descarte |
+| Archivo | Error | Estado |
+|---------|-------|--------|
+| `PaidInvoicesTabLazy.tsx` | `filters_applied` faltante, `keepPreviousData` deprecado | Corregido |
+| `SettingsTab.tsx` | `onSuccess` deprecado en RQ v5, refactorizado a mutations | Corregido |
+| `cashier/queries.ts` | Hooks sin tipado (`useShiftDetails`, `useDailyDetails`, `useVouchersHistory`) | Corregido |
+| `cashier/types.ts` | `VouchersHistoryResponse` tipo añadido, `payment_method_name` requerido | Corregido |
+| `groups/panels/ContactPanel.tsx` | Import `GroupContact` faltante | Corregido |
+| `groups/tabs/ContactsTab.tsx` | Acceso incorrecto a `contactsData.contacts` | Corregido |
+| `groups/tabs/RoomsTab.tsx` | Acceso incorrecto a `roomsData.rooms` | Corregido |
+| `groups/tabs/StatusTab.tsx` | Acceso incorrecto a `statusData.status` | Corregido |
+| `profile/reports/sections/CashierSection.tsx` | Tipos de respuesta API | Corregido |
+| `profile/reports/sections/GroupsSection.tsx` | Tipos de respuesta API | Corregido |
+| `profile/SettingsPanel.tsx` | `err?.message` y `err?.response` sin tipo | Corregido |
+| `parking/ParkingDashboardClient.tsx` | `FullStatsResponse` import + initialData tipo | Corregido |
+| `parking/status/ParkingStatusClient.tsx` | `loadParkingData` no existe en hook | Corregido |
+| `parking/status/hooks/useParkingStatus.ts` | `availabilityData` tipo incompatible | Corregido |
+| `backoffice/backofficeApi.ts` | `MonthlySummaryResponse` import faltante | Corregido |
+| `blacklist/blacklistApi.ts` | `toISOString` en tipo `unknown` | Corregido |
+| `ui/dashboard/nav-links.tsx` | `LinkIcon` tipo incorrecto | Corregido |
+
+### Archivos Modificados (sin commit)
+
+```
+frontend/app/components/bo/tabs/PaidInvoicesTabLazy.tsx
+frontend/app/components/bo/tabs/SettingsTab.tsx
+frontend/app/components/groups/panels/ContactPanel.tsx
+frontend/app/components/groups/tabs/ContactsTab.tsx
+frontend/app/components/groups/tabs/RoomsTab.tsx
+frontend/app/components/groups/tabs/StatusTab.tsx
+frontend/app/components/logbooks/LogbooksContainer.tsx
+frontend/app/components/logbooks/LogbooksList.tsx
+frontend/app/components/profile/SettingsPanel.tsx
+frontend/app/components/profile/reports/sections/CashierSection.tsx
+frontend/app/components/profile/reports/sections/GroupsSection.tsx
+frontend/app/dashboard/parking/components/ParkingDashboardClient.tsx
+frontend/app/dashboard/parking/status/components/ParkingStatusClient.tsx
+frontend/app/dashboard/parking/status/hooks/useParkingStatus.ts
+frontend/app/lib/apiClient.ts
+frontend/app/lib/backoffice/backofficeApi.ts
+frontend/app/lib/blacklist/blacklistApi.ts
+frontend/app/lib/cashier/queries.ts
+frontend/app/lib/cashier/types.ts
+frontend/app/lib/logbooks/hooks/useLogbooks.ts (NUEVO)
+```
 
 ---
 
-## Errores Corregidos (Commit 8 - `5467003`)
+## Para Continuar
 
-Los siguientes bugs fueron identificados y corregidos:
-
-| Severidad | Descripción | Estado |
-|-----------|-------------|--------|
-| CRÍTICO | `handlePdfEditorSave` con código copiado incorrectamente | Corregido |
-| ERROR | Logout retornaba 401 sin limpiar cookies | Corregido |
-| LIMPIEZA | ~260 líneas de MOCK_DATA en producción | Eliminado |
-| MENOR | Dependencia `getSpanishMonthName` innecesaria en useMemo | Corregido |
-| MENOR | Variable `loadParkingData` no usada | Eliminada |
-| MENOR | Validación de método redundante en Route Handlers | Eliminada |
-| FORMATO | Archivos con CRLF en lugar de LF | Normalizado |
+1. **Corregir error en `nav-links.tsx`** - `LinkIcon` tipo incorrecto
+2. **Ejecutar build** hasta que pase
+3. **Probar manualmente** logbooks en navegador
+4. **Hacer commit** con todos los cambios
 
 ---
 
@@ -91,86 +125,22 @@ Los siguientes bugs fueron identificados y corregidos:
 
 ### Módulos Migrados
 
-| Módulo | Hook | Query Keys | Mutations |
-|--------|------|------------|-----------|
-| BackOffice | Tabs Lazy | `['backoffice', 'invoices', ...]` | create, update, delete, validate |
-| Parking | `useParkingStatus` | `['parking', 'stats', date]` | checkIn, checkOut, cancel, noShow |
-| Maintenance | `useMaintenanceList` | `['maintenance', 'list', filters]` | create, update, updateStatus, delete |
-| Groups | `GroupsListClient` | `['groups', 'list']` | - (via initialData) |
-| Parking Dashboard | `ParkingDashboardClient` | `['parking', 'dashboard', period]` | - (via initialData) |
+| Módulo | Hook | Estado |
+|--------|------|--------|
+| BackOffice | Tabs Lazy | Completado |
+| Parking | `useParkingStatus` | Completado |
+| Maintenance | `useMaintenanceList` | Completado |
+| Groups | SSR + initialData | Completado |
+| Parking Dashboard | SSR + React Query | Completado |
+| **Logbooks** | `useLogbooks` | **En progreso** |
 
-### Configuración Estándar
-- `staleTime: 2-5 min`
-- `gcTime: 5-10 min`
-- `refetchOnWindowFocus: false`
-- Invalidación automática tras mutations
-
-### Módulos Pendientes de React Query
-- Logbooks
-- Notificaciones
-- Mensajería
-- Actividad
-- Usuarios
+### Módulos Pendientes
+- Messages (Alta complejidad)
+- Dashboard
+- Notifications
+- Conciliation
+- Departments
 
 ---
 
-## Archivos Clave Modificados
-
-### Core Auth/API
-| Archivo | Cambio |
-|---------|--------|
-| `frontend/app/lib/env.ts` | **Nuevo** - Helper de URLs |
-| `frontend/app/lib/apiClient.ts` | Simplificado, cookies-only |
-| `frontend/app/api/auth/*/route.ts` | Validaciones añadidas, bugs corregidos |
-
-### React Query Migrations
-| Archivo | Cambio |
-|---------|--------|
-| `useParkingStatus.ts` | Migrado a React Query |
-| `*TabLazy.tsx` (4 archivos) | **Nuevos** - BackOffice con RQ |
-| `useMaintenanceList.ts` | **Nuevo** - Maintenance con RQ |
-| `MaintenanceListClient.tsx` | Refactorizado para usar hook |
-
-### SSR Migrations (Commit 10)
-| Archivo | Cambio |
-|---------|--------|
-| `frontend/app/dashboard/groups/actions/getGroups.ts` | **Nuevo** - Server Action |
-| `frontend/app/components/groups/GroupsListClient.tsx` | **Nuevo** - Client Component |
-| `frontend/app/dashboard/groups/page.tsx` | Refactorizado a Server Component |
-| `frontend/app/dashboard/parking/actions/getParkingDashboardStats.ts` | **Nuevo** - Server Action |
-| `frontend/app/dashboard/parking/components/ParkingDashboardClient.tsx` | **Nuevo** - Client Component (~780 líneas) |
-| `frontend/app/dashboard/parking/page.tsx` | Refactorizado a Server Component |
-
-### Normalización
-| Archivo | Cambio |
-|---------|--------|
-| `.editorconfig` | **Nuevo** - Configuración de editores |
-| `.gitattributes` | **Nuevo** - Normalización de line endings |
-
----
-
-## Lint Status
-
-| Tipo | Antes | Después | Cambio |
-|------|-------|---------|--------|
-| Errores | 35 | 0 | ✅ Todos corregidos |
-| Warnings | 92 | 0 | ✅ Todos corregidos |
-
-### Correcciones Realizadas (Commits 12-15)
-- Variables no usadas eliminadas
-- Tipos `any` reemplazados por `unknown` con type guards
-- `react-hooks/exhaustive-deps` warnings corregidos
-- `@next/next/no-img-element` warnings suprimidos (imágenes dinámicas con blob URLs)
-- 46 archivos modificados en el cleanup total
-
----
-
-## Próximos Pasos
-
-1. **NextAuth/middleware** - Decidir si activar o documentar el descarte
-2. **Migración React Query** - Continuar con Logbooks, Notificaciones, etc.
-3. **SSR adicional** - Evaluar otros dashboards para SSR
-
----
-
-*Última actualización: 22 de Diciembre 2025*
+*Última actualización: 22 de Diciembre 2025 - Sesión nocturna*

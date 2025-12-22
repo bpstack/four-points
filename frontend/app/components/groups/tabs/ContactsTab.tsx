@@ -16,8 +16,7 @@ export function ContactsTab() {
   const { currentGroup } = useGroupStore()
 
   const groupId = currentGroup?.id
-  const { data: contactsData = [], isLoading } = useGroupContacts(groupId)
-  const contacts = contactsData?.contacts ?? contactsData ?? []
+  const { data: contacts = [], isLoading } = useGroupContacts(groupId)
 
   const handleCreateContact = () => {
     const params = new URLSearchParams(searchParams.toString())
@@ -39,8 +38,8 @@ export function ContactsTab() {
     )
   }
 
-  const primaryContact = contactsData.find((c) => c.is_primary)
-  const otherContacts = contactsData.filter((c) => !c.is_primary)
+  const primaryContact = contacts.find((c) => c.is_primary)
+  const otherContacts = contacts.filter((c) => !c.is_primary)
 
   return (
     <div className="space-y-6">

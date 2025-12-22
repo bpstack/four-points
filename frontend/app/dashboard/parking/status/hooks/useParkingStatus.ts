@@ -151,7 +151,8 @@ export function useParkingStatus(selectedDate: string) {
     refetchOnWindowFocus: false,
   })
 
-  const availabilityData: AvailabilityData | null = statsData?.dashboard.availability ?? null
+  const availabilityData: AvailabilityData | null =
+    (statsData?.dashboard.availability as AvailabilityData | null) ?? null
   const allBookings = bookingsData?.bookings ?? []
   const activeBookings = deriveActiveBookings(allBookings, selectedDate)
   const overdueBookings = overdueData?.bookings ?? []

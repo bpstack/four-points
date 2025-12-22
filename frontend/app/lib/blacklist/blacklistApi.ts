@@ -83,10 +83,10 @@ export const blacklistApi = {
     // Convertir fechas si están presentes
     const payload: Record<string, unknown> = { ...data }
     if (payload.check_in_date && typeof payload.check_in_date !== 'string') {
-      payload.check_in_date = payload.check_in_date.toISOString()
+      payload.check_in_date = (payload.check_in_date as Date).toISOString()
     }
     if (payload.check_out_date && typeof payload.check_out_date !== 'string') {
-      payload.check_out_date = payload.check_out_date.toISOString()
+      payload.check_out_date = (payload.check_out_date as Date).toISOString()
     }
 
     return apiClient.patch(url, payload)

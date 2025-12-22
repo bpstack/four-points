@@ -1,11 +1,9 @@
 // app/components/logbooks/LogbooksContainer.tsx
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useMemo } from 'react'
 import { FiChevronLeft, FiChevronRight, FiCalendar, FiPlus } from 'react-icons/fi'
-import { logbooksApi } from '@/app/lib/logbooks'
-import { LogEntry, LogbookEntry } from '@/app/lib/logbooks/types'
-import { useDepartments } from '@/app/lib/logbooks/hooks/useDepartments'
+import { useLogbooks } from '@/app/lib/logbooks/hooks/useLogbooks'
 import { useAuth } from '@/app/lib/auth/useAuth'
 import HorizontalDatePicker from '@/app/ui/calendar/HorizontalDatePicker'
 import LogbooksList from './LogbooksList'
@@ -14,82 +12,32 @@ import NewLogbookEntry from './NewLogbookEntry'
 export default function LogbooksContainer() {
   const [currentDate, setCurrentDate] = useState(new Date())
   const [selectedDay, setSelectedDay] = useState(new Date().getDate())
-  const [dayStatusMessage, setDayStatusMessage] = useState<string>('')
-  const [logbookEntries, setLogbookEntries] = useState<LogEntry[]>([])
   const [showNewEntryModal, setShowNewEntryModal] = useState(false)
-  const { getDepartmentName } = useDepartments()
   const { user } = useAuth()
 
   const currentMonth = currentDate.toLocaleString('es-ES', { month: 'long' })
   const currentYear = currentDate.getFullYear()
 
-  const loadEntries = async (year: number, month: number, day: number) => {
-    const dateString = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
-    try {
-      const data = await logbooksApi.getLogbooksByDay(dateString)
-      if (Array.isArray(data) && data.length > 0) {
-        const entriesWithComments = await Promise.all(
-          data.map(async (entry: LogbookEntry) => {
-            try {
-              const res = await logbooksApi.comments.getComments(entry.id)
-              const comments = Array.isArray(res.comments) ? res.comments : []
+  // Build date string for the query
+  const dateString = useMemo(() => {
+    const month = currentDate.getMonth() + 1
+    return `${currentYear}-${String(month).padStart(2, '0')}-${String(selectedDay).padStart(2, '0')}`
+  }, [currentYear, currentDate, selectedDay])
 
-              let priority: 'low' | 'medium' | 'high' | 'critical' = 'low'
-              if (entry.importance_level === 'urgente') priority = 'critical'
-              else if (entry.importance_level === 'alta') priority = 'high'
-              else if (entry.importance_level === 'media') priority = 'medium'
-
-              return {
-                id: entry.id,
-                timestamp: entry.created_at || new Date().toISOString(),
-                description: entry.message,
-                department: getDepartmentName(entry.department_id),
-                department_id: entry.department_id,
-                priority,
-                readBy: [],
-                status: (entry.is_solved === 1 ? 'resolved' : 'pending') as 'pending' | 'resolved',
-                comments: comments || [],
-                author_id: entry.author_id || 'unknown',
-                author_name: entry.author_name || 'Unknown',
-                updated_at: entry.updated_at,
-                is_edited: !!(entry.updated_at && entry.updated_at !== entry.created_at),
-              }
-            } catch {
-              let priority: 'low' | 'medium' | 'high' | 'critical' = 'low'
-              if (entry.importance_level === 'urgente') priority = 'critical'
-              else if (entry.importance_level === 'alta') priority = 'high'
-              else if (entry.importance_level === 'media') priority = 'medium'
-
-              return {
-                id: entry.id,
-                timestamp: entry.created_at || new Date().toISOString(),
-                description: entry.message,
-                department: getDepartmentName(entry.department_id),
-                department_id: entry.department_id,
-                priority,
-                readBy: [],
-                status: (entry.is_solved === 1 ? 'resolved' : 'pending') as 'pending' | 'resolved',
-                comments: [],
-                author_id: entry.author_id || 'unknown',
-                author_name: entry.author_name || 'Unknown',
-                updated_at: entry.updated_at,
-                is_edited: !!(entry.updated_at && entry.updated_at !== entry.created_at),
-              }
-            }
-          })
-        )
-        setLogbookEntries(entriesWithComments)
-        setDayStatusMessage('')
-      } else {
-        setLogbookEntries([])
-        setDayStatusMessage('No hay registros para este día.')
-      }
-    } catch (error) {
-      console.error('Error loading logbooks:', error)
-      setLogbookEntries([])
-      setDayStatusMessage('Error cargando registros.')
-    }
-  }
+  // Use React Query hook
+  const {
+    entries,
+    isLoading,
+    createLogbook,
+    updateLogbook,
+    deleteLogbook,
+    toggleStatus,
+    toggleRead,
+    createComment,
+    updateComment,
+    deleteComment,
+    useReaders,
+  } = useLogbooks({ date: dateString })
 
   const handleSubmitNewEntry = async (payload: {
     message: string
@@ -102,7 +50,7 @@ export default function LogbooksContainer() {
       return
     }
 
-    await logbooksApi.createLogbook({
+    await createLogbook.mutateAsync({
       author_id: user.id,
       message: payload.message,
       importance_level: payload.importance_level,
@@ -115,7 +63,6 @@ export default function LogbooksContainer() {
     const entryDate = new Date(year, month - 1, day)
     setCurrentDate(entryDate)
     setSelectedDay(day)
-    await loadEntries(year, month, day)
   }
 
   const goToPreviousMonth = () => {
@@ -136,22 +83,25 @@ export default function LogbooksContainer() {
     const today = new Date()
     setCurrentDate(today)
     setSelectedDay(today.getDate())
-    loadEntries(today.getFullYear(), today.getMonth() + 1, today.getDate())
   }
 
-  const checkDayEntries = (day: number) => {
+  const handleSelectDay = (day: number) => {
     setSelectedDay(day)
-    loadEntries(currentYear, currentDate.getMonth() + 1, day)
   }
 
-  useEffect(() => {
-    checkDayEntries(selectedDay)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentDate])
-
-  const orderedEntries = [...logbookEntries].sort(
-    (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+  const orderedEntries = useMemo(
+    () =>
+      [...entries].sort(
+        (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+      ),
+    [entries]
   )
+
+  const dayStatusMessage = isLoading
+    ? 'Cargando...'
+    : entries.length === 0
+      ? 'No hay registros para este día.'
+      : ''
 
   return (
     <div className="space-y-6">
@@ -241,7 +191,7 @@ export default function LogbooksContainer() {
         <HorizontalDatePicker
           currentDate={currentDate}
           selectedDay={selectedDay}
-          onSelectDay={checkDayEntries}
+          onSelectDay={handleSelectDay}
           locale="en-US"
         />
       </div>
@@ -250,7 +200,16 @@ export default function LogbooksContainer() {
       <LogbooksList
         entries={orderedEntries}
         dayStatusMessage={dayStatusMessage}
-        onCommentAdded={() => loadEntries(currentYear, currentDate.getMonth() + 1, selectedDay)}
+        mutations={{
+          updateLogbook,
+          deleteLogbook,
+          toggleStatus,
+          toggleRead,
+          createComment,
+          updateComment,
+          deleteComment,
+        }}
+        useReaders={useReaders}
       />
 
       {/* New Entry Modal */}
@@ -259,7 +218,7 @@ export default function LogbooksContainer() {
           isOpen={showNewEntryModal}
           onClose={() => setShowNewEntryModal(false)}
           onSubmit={handleSubmitNewEntry}
-          defaultDate={`${currentYear}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(selectedDay).padStart(2, '0')}`}
+          defaultDate={dateString}
           title="New Logbook Entry"
         />
       )}

@@ -16,8 +16,7 @@ export function RoomsTab() {
   const { currentGroup } = useGroupStore()
 
   const groupId = currentGroup?.id
-  const { data: roomsData, isLoading } = useGroupRooms(groupId)
-  const rooms = roomsData?.rooms ?? roomsData ?? []
+  const { data: rooms = [], isLoading } = useGroupRooms(groupId)
 
   const handleCreateRoom = () => {
     const params = new URLSearchParams(searchParams.toString())

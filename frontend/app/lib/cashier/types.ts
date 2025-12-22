@@ -113,7 +113,7 @@ export interface CashierPayment {
   id: number
   shift_id: number
   payment_method_id: number
-  payment_method_name?: string // ✅ Renombrado para consistencia
+  payment_method_name: string
   amount: string
 }
 
@@ -215,6 +215,15 @@ export interface DashboardOverview {
 export interface VoucherHistoryItem extends CashierVoucher {
   shift_date?: string
   shift_type?: string
+}
+
+export interface VouchersHistoryResponse {
+  vouchers: VoucherHistoryItem[]
+  pagination?: {
+    total: number
+    page: number
+    limit: number
+  }
 }
 
 // ═══════════════════════════════════════════════════════

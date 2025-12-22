@@ -28,7 +28,7 @@ import {
   getCurrentMonthRange,
 } from '@/app/lib/helpers/date'
 import { VehicleSearchModal } from '@/app/components/parking/VehicleSearchModal'
-import { parkingApi } from '@/app/lib/parking'
+import { parkingApi, type FullStatsResponse } from '@/app/lib/parking'
 import type { ParkingStats, ParkingDashboardResponse } from '../actions/getParkingDashboardStats'
 
 // Query keys
@@ -81,17 +81,20 @@ export default function ParkingDashboardClient({
     },
     initialData:
       selectedPeriod === 'today' && initialStats
-        ? {
+        ? ({
             success: true,
             period: { type: 'today' },
             dashboard: {
               stats: initialStats,
-              occupancy: { levels: [], summary: {} as Record<string, unknown> },
+              occupancy: {
+                levels: [],
+                summary: { level: '', total_spots: 0, occupied_spots: 0, available_spots: 0, occupancy_rate: 0 },
+              },
               pending_checkins: null,
               pending_checkouts: null,
               availability: null,
             },
-          }
+          } as FullStatsResponse)
         : undefined,
     staleTime: 2 * 60 * 1000, // 2 minutos
     gcTime: 5 * 60 * 1000,

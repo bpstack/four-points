@@ -86,7 +86,7 @@ export default function NavLinks({ onClose, currentUserRole }: NavLinksProps) {
           }
         `}
       >
-        <LinkIcon className="w-4 h-4 md:w-5 md:h-5 flex-shrink-0" />
+        {LinkIcon && <LinkIcon className="w-4 h-4 md:w-5 md:h-5 flex-shrink-0" />}
         <span>{link.name}</span>
       </Link>
     )

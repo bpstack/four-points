@@ -230,8 +230,9 @@ export function isDemoError(error: unknown): boolean {
 // API CLIENT PÚBLICO
 // ========================================
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const apiClient = {
-  get: async (url: string, options?: FetchOptions): Promise<unknown> => {
+  get: async <T = any>(url: string, options?: FetchOptions): Promise<T> => {
     const response = await fetchWithRefresh(url, { ...options, method: 'GET' })
 
     if (!response.ok) {
@@ -241,7 +242,7 @@ export const apiClient = {
     return response.json()
   },
 
-  post: async (url: string, data?: unknown, options?: FetchOptions): Promise<unknown> => {
+  post: async <T = any>(url: string, data?: unknown, options?: FetchOptions): Promise<T> => {
     const response = await fetchWithRefresh(url, {
       ...options,
       method: 'POST',
@@ -255,7 +256,7 @@ export const apiClient = {
     return response.json()
   },
 
-  patch: async (url: string, data?: unknown, options?: FetchOptions): Promise<unknown> => {
+  patch: async <T = any>(url: string, data?: unknown, options?: FetchOptions): Promise<T> => {
     const response = await fetchWithRefresh(url, {
       ...options,
       method: 'PATCH',
@@ -269,7 +270,7 @@ export const apiClient = {
     return response.json()
   },
 
-  put: async (url: string, data?: unknown, options?: FetchOptions): Promise<unknown> => {
+  put: async <T = any>(url: string, data?: unknown, options?: FetchOptions): Promise<T> => {
     const response = await fetchWithRefresh(url, {
       ...options,
       method: 'PUT',
@@ -283,7 +284,7 @@ export const apiClient = {
     return response.json()
   },
 
-  delete: async (url: string, options?: FetchOptions): Promise<unknown> => {
+  delete: async <T = any>(url: string, options?: FetchOptions): Promise<T> => {
     const response = await fetchWithRefresh(url, { ...options, method: 'DELETE' })
 
     if (!response.ok) {
@@ -295,22 +296,22 @@ export const apiClient = {
       try {
         return await response.json()
       } catch {
-        return { success: true, message: 'Deleted successfully' }
+        return { success: true, message: 'Deleted successfully' } as T
       }
     }
 
-    return { success: true, message: 'Deleted successfully' }
+    return { success: true, message: 'Deleted successfully' } as T
   },
 
   /**
    * POST con FormData (para subir archivos)
    * Usa fetchWithRefresh para auto-refresh de tokens expirados
    */
-  postFormData: async (
+  postFormData: async <T = any>(
     url: string,
     formData: FormData,
     options?: FetchOptions
-  ): Promise<unknown> => {
+  ): Promise<T> => {
     const { skipRefresh, ...fetchOptions } = options || {}
 
     const finalOptions: RequestInit = {

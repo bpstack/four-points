@@ -23,6 +23,7 @@ import type {
   InvoicesResponse,
   InvoiceDetailResponse,
   AssetsResponse,
+  MonthlySummaryResponse,
 } from './types'
 
 import { API_BASE_URL } from '@/app/lib/env'

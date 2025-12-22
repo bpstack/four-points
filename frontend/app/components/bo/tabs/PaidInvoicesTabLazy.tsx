@@ -89,6 +89,7 @@ export function PaidInvoicesTabLazy({
         ...realPagination,
         limit: realPagination.limit ?? 50,
       },
+      filters_applied: {},
     },
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
@@ -96,7 +97,7 @@ export function PaidInvoicesTabLazy({
     refetchOnReconnect: false,
     refetchOnMount: false,
     retry: false,
-    keepPreviousData: true,
+    placeholderData: (previousData) => previousData,
   })
 
   const invoices = useMemo(() => data?.invoices ?? [], [data?.invoices])

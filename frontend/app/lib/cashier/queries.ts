@@ -10,6 +10,9 @@ import type {
   DenominationInput,
   PaymentInput,
   CreateVoucherDTO,
+  VouchersHistoryResponse,
+  CashierShift,
+  CashierDaily,
 } from './types'
 
 const API_BASE = API_BASE_URL
@@ -28,13 +31,13 @@ export const cashierKeys = {
 // ═══════════════════════════════════════════════════════
 
 export function useDailyDetails(date: string) {
-  return useQuery({
+  return useQuery<CashierDaily | null>({
     queryKey: cashierKeys.daily(date),
     queryFn: async () => {
       try {
         const response = await apiClient.get(`${API_BASE}/api/cashier/daily/${date}`)
         console.log('✅ Daily details response:', response)
-        return response
+        return response as CashierDaily
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error)
 
@@ -66,13 +69,13 @@ export function useDailyDetails(date: string) {
 export function useShiftDetails(shiftId: number) {
   console.log('🔍 [useShiftDetails] Query initiated for shiftId:', shiftId)
 
-  return useQuery({
+  return useQuery<CashierShift>({
     queryKey: cashierKeys.shift(shiftId),
     queryFn: async () => {
       console.log('🔍 [useShiftDetails] Fetching shift:', shiftId)
       const response = await apiClient.get(`${API_BASE}/api/cashier/shifts/${shiftId}`)
       console.log('✅ [useShiftDetails] Response:', response)
-      return response
+      return response as CashierShift
     },
     staleTime: 30 * 1000,
   })
@@ -266,7 +269,7 @@ export function useVouchersHistory(filters?: {
   to_date?: string
   limit?: number
 }) {
-  return useQuery({
+  return useQuery<VouchersHistoryResponse>({
     queryKey: ['cashier', 'reports', 'vouchers-history', filters],
     queryFn: async () => {
       const params = new URLSearchParams()
@@ -278,8 +281,7 @@ export function useVouchersHistory(filters?: {
       const response = await apiClient.get(
         `${API_BASE}/api/cashier/reports/vouchers-history?${params}`
       )
-      // ✅ Retornar la respuesta directamente (ya viene parseada por apiClient)
-      return response
+      return response as VouchersHistoryResponse
     },
     staleTime: 2 * 60 * 1000, // 2 minutos
   })

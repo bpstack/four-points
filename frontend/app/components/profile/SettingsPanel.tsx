@@ -329,7 +329,8 @@ function DepartmentsTab() {
     } catch (err: unknown) {
       console.error('Error deleting department:', err)
       if (!isDemoError(err)) {
-        toast.error(err?.response?.data?.error || 'Error al eliminar')
+        const error = err as { response?: { data?: { error?: string } } }
+        toast.error(error?.response?.data?.error || 'Error al eliminar')
       }
     }
   }
@@ -483,7 +484,7 @@ function AddDepartmentModal({
       onClose()
     } catch (err: unknown) {
       if (!isDemoError(err)) {
-        toast.error(err?.message || 'Error al crear departamento')
+        toast.error(err instanceof Error ? err.message : 'Error al crear departamento')
       }
     } finally {
       setIsSubmitting(false)
@@ -562,7 +563,7 @@ function EditDepartmentModal({
       onClose()
     } catch (err: unknown) {
       if (!isDemoError(err)) {
-        toast.error(err?.message || 'Error al actualizar')
+        toast.error(err instanceof Error ? err.message : 'Error al actualizar')
       }
     } finally {
       setIsSubmitting(false)

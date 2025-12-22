@@ -57,7 +57,6 @@ export default function ParkingStatusClient({
     handleEditBooking,
     confirmEditBooking,
     handleOverdueAction,
-    loadParkingData,
   } = useParkingStatus(selectedDate)
 
   const filteredSpots =
@@ -268,7 +267,6 @@ export default function ParkingStatusClient({
           selectedDate={selectedDate}
           onSuccess={() => {
             setCreateModal({ isOpen: false, spot: null })
-            loadParkingData()
           }}
           onCancel={() => setCreateModal({ isOpen: false, spot: null })}
         />

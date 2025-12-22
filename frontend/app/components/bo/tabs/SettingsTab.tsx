@@ -6,8 +6,8 @@
 
 'use client'
 
-import { useEffect, useState, useRef } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useState, useRef } from 'react'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { FiUpload, FiTrash2, FiStar, FiLoader, FiImage, FiAlertCircle } from 'react-icons/fi'
 import { toast } from 'react-hot-toast'
 import { backofficeApi, type Asset, ASSET_TYPE_LABELS } from '@/app/lib/backoffice'
@@ -17,20 +17,17 @@ interface SettingsTabProps {
   initialAssets: Asset[]
 }
 
-export function SettingsTab({ initialAssets }: SettingsTabProps) {
-  const [assets, setAssets] = useState<Asset[]>(initialAssets)
+const assetsQueryKey = ['backoffice', 'assets']
 
-  useQuery({
-    queryKey: ['backoffice', 'assets'],
+export function SettingsTab({ initialAssets }: SettingsTabProps) {
+  const queryClient = useQueryClient()
+
+  const { data: assets = initialAssets } = useQuery({
+    queryKey: assetsQueryKey,
     queryFn: () => backofficeApi.getAssets().then((r) => r.assets),
     initialData: initialAssets,
-    onSuccess: (data) => setAssets(data),
   })
 
-  useEffect(() => {
-    setAssets(initialAssets)
-  }, [initialAssets])
-  const [uploading, setUploading] = useState(false)
   const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; asset: Asset | null }>({
     open: false,
     asset: null,
@@ -46,6 +43,60 @@ export function SettingsTab({ initialAssets }: SettingsTabProps) {
 
   const stamps = assets.filter((a) => a.type === 'stamp')
   const signatures = assets.filter((a) => a.type === 'signature')
+
+  // Mutations
+  const createAssetMutation = useMutation({
+    mutationFn: (data: { type: 'stamp' | 'signature'; name: string; image: File; is_default: boolean }) =>
+      backofficeApi.createAsset(data),
+    onSuccess: (response) => {
+      queryClient.setQueryData<Asset[]>(assetsQueryKey, (old) => [...(old ?? []), response.asset])
+      toast.success(`${ASSET_TYPE_LABELS[newAssetType]} creado correctamente`)
+      // Reset form
+      setNewAssetName('')
+      setSelectedFile(null)
+      setPreviewUrl(null)
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ''
+      }
+    },
+    onError: (error: Error) => {
+      console.error('Error uploading asset:', error)
+      toast.error(error.message || 'Error al subir el archivo')
+    },
+  })
+
+  const deleteAssetMutation = useMutation({
+    mutationFn: (assetId: number) => backofficeApi.deleteAsset(assetId),
+    onSuccess: (_, assetId) => {
+      queryClient.setQueryData<Asset[]>(assetsQueryKey, (old) =>
+        (old ?? []).filter((a) => a.id !== assetId)
+      )
+      toast.success('Eliminado correctamente')
+      setDeleteDialog({ open: false, asset: null })
+    },
+    onError: (error: Error) => {
+      console.error('Error deleting asset:', error)
+      toast.error(error.message || 'Error al eliminar')
+      setDeleteDialog({ open: false, asset: null })
+    },
+  })
+
+  const setDefaultMutation = useMutation({
+    mutationFn: (asset: Asset) => backofficeApi.setDefaultAsset(asset.id).then(() => asset),
+    onSuccess: (asset) => {
+      queryClient.setQueryData<Asset[]>(assetsQueryKey, (old) =>
+        (old ?? []).map((a) => ({
+          ...a,
+          is_default: a.type === asset.type ? a.id === asset.id : a.is_default,
+        }))
+      )
+      toast.success(`${asset.name} establecido como predeterminado`)
+    },
+    onError: (error: Error) => {
+      console.error('Error setting default:', error)
+      toast.error(error.message || 'Error al establecer como predeterminado')
+    },
+  })
 
   // Handle file selection
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -75,74 +126,29 @@ export function SettingsTab({ initialAssets }: SettingsTabProps) {
   }
 
   // Upload new asset
-  const handleUpload = async () => {
+  const handleUpload = () => {
     if (!selectedFile || !newAssetName.trim()) {
       toast.error('Selecciona un archivo y escribe un nombre')
       return
     }
 
-    setUploading(true)
-    try {
-      const response = await backofficeApi.createAsset({
-        type: newAssetType,
-        name: newAssetName.trim(),
-        image: selectedFile,
-        is_default: assets.filter((a) => a.type === newAssetType).length === 0,
-      })
-
-      setAssets((prev) => [...prev, response.asset])
-      toast.success(`${ASSET_TYPE_LABELS[newAssetType]} creado correctamente`)
-
-      // Reset form
-      setNewAssetName('')
-      setSelectedFile(null)
-      setPreviewUrl(null)
-      if (fileInputRef.current) {
-        fileInputRef.current.value = ''
-      }
-    } catch (error: unknown) {
-      console.error('Error uploading asset:', error)
-      const message = error instanceof Error ? error.message : 'Error al subir el archivo'
-      toast.error(message)
-    } finally {
-      setUploading(false)
-    }
+    createAssetMutation.mutate({
+      type: newAssetType,
+      name: newAssetName.trim(),
+      image: selectedFile,
+      is_default: assets.filter((a) => a.type === newAssetType).length === 0,
+    })
   }
 
   // Delete asset
-  const handleDelete = async () => {
+  const handleDelete = () => {
     if (!deleteDialog.asset) return
-
-    try {
-      await backofficeApi.deleteAsset(deleteDialog.asset.id)
-      setAssets((prev) => prev.filter((a) => a.id !== deleteDialog.asset!.id))
-      toast.success('Eliminado correctamente')
-    } catch (error: unknown) {
-      console.error('Error deleting asset:', error)
-      const message = error instanceof Error ? error.message : 'Error al eliminar'
-      toast.error(message)
-    } finally {
-      setDeleteDialog({ open: false, asset: null })
-    }
+    deleteAssetMutation.mutate(deleteDialog.asset.id)
   }
 
   // Set as default
-  const handleSetDefault = async (asset: Asset) => {
-    try {
-      await backofficeApi.setDefaultAsset(asset.id)
-      setAssets((prev) =>
-        prev.map((a) => ({
-          ...a,
-          is_default: a.type === asset.type ? a.id === asset.id : a.is_default,
-        }))
-      )
-      toast.success(`${asset.name} establecido como predeterminado`)
-    } catch (error: unknown) {
-      console.error('Error setting default:', error)
-      const message =
-        error instanceof Error ? error.message : 'Error al establecer como predeterminado'
-      toast.error(message)
-    }
+  const handleSetDefault = (asset: Asset) => {
+    setDefaultMutation.mutate(asset)
   }
 
   // Render asset grid
@@ -304,10 +310,10 @@ export function SettingsTab({ initialAssets }: SettingsTabProps) {
             {/* Upload button */}
             <button
               onClick={handleUpload}
-              disabled={uploading || !selectedFile || !newAssetName.trim()}
+              disabled={createAssetMutation.isPending || !selectedFile || !newAssetName.trim()}
               className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {uploading ? (
+              {createAssetMutation.isPending ? (
                 <>
                   <FiLoader className="w-4 h-4 animate-spin" />
                   Subiendo...
