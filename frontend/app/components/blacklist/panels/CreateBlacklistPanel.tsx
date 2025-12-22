@@ -382,6 +382,7 @@ export function CreateBlacklistPanel({ isOpen, onClose }: CreateBlacklistPanelPr
                     key={index}
                     className="relative w-16 h-16 rounded-md overflow-hidden border border-gray-200 dark:border-gray-700 group"
                   >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={URL.createObjectURL(file)}
                       alt={`Preview ${index + 1}`}

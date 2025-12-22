@@ -179,6 +179,7 @@ export function SettingsTabLazy({ initialAssets }: SettingsTabLazyProps) {
         <div
           className={`${type === 'stamp' ? 'aspect-square' : 'aspect-video'} mb-3 flex items-center justify-center`}
         >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={asset.cloudinary_url}
             alt={asset.name}
@@ -312,6 +313,7 @@ export function SettingsTabLazy({ initialAssets }: SettingsTabLazyProps) {
 
           <div className="flex items-center justify-center p-8 bg-gray-50 dark:bg-[#0d1117] rounded-lg border border-gray-200 dark:border-gray-700">
             {previewUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
               <img src={previewUrl} alt="Preview" className="max-w-full max-h-48 object-contain" />
             ) : (
               <div className="text-center text-gray-400 dark:text-gray-500">

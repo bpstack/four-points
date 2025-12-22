@@ -311,6 +311,7 @@ export function CreateReportPanel({ isOpen, onClose }: CreateReportPanelProps) {
           <div className="grid grid-cols-3 gap-2">
             {previewImages.map((preview, index) => (
               <div key={index} className="relative group">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={preview}
                   alt={`Preview ${index + 1}`}

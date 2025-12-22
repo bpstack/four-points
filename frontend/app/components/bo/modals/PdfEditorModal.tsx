@@ -96,7 +96,7 @@ export function PdfEditorModal({
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const pdfDocRef = useRef<pdfjsLib.PDFDocumentProxy | null>(null)
-  const renderTaskRef = useRef<any>(null)
+  const renderTaskRef = useRef<ReturnType<pdfjsLib.PDFPageProxy['render']> | null>(null)
   const dragRef = useRef<{
     elementId: string
     startX: number
@@ -162,9 +162,9 @@ export function PdfEditorModal({
 
         // Store a copy to prevent ArrayBuffer detachment issues
         setPdfBytes(bytes.slice(0))
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error('Error loading PDF editor:', err)
-        setError(err.message || 'Error al cargar el editor')
+        setError(err instanceof Error ? err.message : 'Error al cargar el editor')
       } finally {
         setLoading(false)
       }
@@ -232,9 +232,9 @@ export function PdfEditorModal({
 
         await renderTaskRef.current.promise
         renderTaskRef.current = null
-      } catch (err: any) {
+      } catch (err: unknown) {
         // Ignore cancel errors and aborted renders
-        if (err?.name === 'RenderingCancelledException' || isAborted) {
+        if ((err instanceof Error && err.name === 'RenderingCancelledException') || isAborted) {
           return
         }
         console.error('Error rendering PDF:', err)
@@ -751,9 +751,9 @@ export function PdfEditorModal({
       await onSave(blob)
       toast.success('PDF validado correctamente')
       onClose()
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error saving PDF:', err)
-      toast.error(err.message || 'Error al guardar el PDF')
+      toast.error(err instanceof Error ? err.message : 'Error al guardar el PDF')
     } finally {
       setSaving(false)
     }
@@ -907,6 +907,7 @@ export function PdfEditorModal({
                       className="aspect-square p-2 border border-gray-200 dark:border-gray-700 rounded-lg hover:border-blue-500 dark:hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
                       title={stamp.name}
                     >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={stamp.cloudinary_url}
                         alt={stamp.name}
@@ -936,6 +937,7 @@ export function PdfEditorModal({
                       className="aspect-video p-2 border border-gray-200 dark:border-gray-700 rounded-lg hover:border-blue-500 dark:hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
                       title={sig.name}
                     >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={sig.cloudinary_url}
                         alt={sig.name}
@@ -1162,6 +1164,7 @@ export function PdfEditorModal({
                       </div>
                     )}
                     {element.asset && (
+                      // eslint-disable-next-line @next/next/no-img-element
                       <img
                         src={element.asset.cloudinary_url}
                         alt={element.asset.name}

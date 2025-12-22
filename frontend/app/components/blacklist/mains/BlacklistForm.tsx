@@ -368,6 +368,7 @@ export function BlacklistForm({ mode, initialData, onSuccess }: BlacklistFormPro
                   key={url}
                   className="relative aspect-square rounded-lg overflow-hidden border border-gray-200 dark:border-gray-800"
                 >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={url}
                     alt={`Imagen existente ${index + 1}`}

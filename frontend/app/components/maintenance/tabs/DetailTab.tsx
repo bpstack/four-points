@@ -526,6 +526,7 @@ export function DetailTab() {
                 className="relative group cursor-pointer"
                 onClick={() => setExpandedImage(image.file_path)}
               >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={image.file_path}
                   alt={image.file_name}
@@ -552,6 +553,7 @@ export function DetailTab() {
           >
             <FiX className="w-6 h-6" />
           </button>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={expandedImage}
             alt="Imagen ampliada"

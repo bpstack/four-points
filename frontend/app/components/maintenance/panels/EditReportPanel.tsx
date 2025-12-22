@@ -334,6 +334,7 @@ export function EditReportPanel({ isOpen, onClose, report, onSuccess }: EditRepo
             <div className="grid grid-cols-3 gap-2">
               {existingImages.map((image) => (
                 <div key={image.id} className="relative group">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={image.file_path}
                     alt={image.file_name}
@@ -400,6 +401,7 @@ export function EditReportPanel({ isOpen, onClose, report, onSuccess }: EditRepo
             <div className="grid grid-cols-3 gap-2">
               {previewImages.map((preview, index) => (
                 <div key={index} className="relative group">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={preview}
                     alt={`Preview ${index + 1}`}

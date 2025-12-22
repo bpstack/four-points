@@ -476,6 +476,7 @@ export function EditBlacklistPanel({ isOpen, onClose, entry, onSuccess }: EditBl
                   key={index}
                   className="relative w-16 h-16 rounded-md overflow-hidden border border-gray-200 dark:border-gray-700"
                 >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={url}
                     alt={`Imagen ${index + 1}`}
@@ -529,6 +530,7 @@ export function EditBlacklistPanel({ isOpen, onClose, entry, onSuccess }: EditBl
                     key={index}
                     className="relative w-14 h-14 rounded-md overflow-hidden border border-gray-200 dark:border-gray-700 group"
                   >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={URL.createObjectURL(file)}
                       alt={`Preview ${index + 1}`}
