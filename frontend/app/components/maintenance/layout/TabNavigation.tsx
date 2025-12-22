@@ -28,7 +28,7 @@ export function TabNavigation(_props: TabNavigationProps) {
 
   return (
     <div className="bg-white dark:bg-[#010409]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6">
+      <div className="max-w-[1400px] px-4 md:px-6 py-6">
         <nav className="flex gap-4 sm:gap-6" aria-label="Tabs">
           {tabs.map((tab) => {
             const isActive = activeTab === tab.id

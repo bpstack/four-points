@@ -159,6 +159,9 @@ export const parkingApi = {
     status?: string
     date?: string
     plate_number?: string
+    quickFilter?: string
+    startDate?: string
+    endDate?: string
     page?: number
     limit?: number
   }): Promise<BookingsResponse> => {
@@ -166,6 +169,9 @@ export const parkingApi = {
     if (filters?.status) query.append('status', filters.status)
     if (filters?.date) query.append('date', filters.date)
     if (filters?.plate_number) query.append('plate_number', filters.plate_number)
+    if (filters?.quickFilter) query.append('quickFilter', filters.quickFilter)
+    if (filters?.startDate) query.append('startDate', filters.startDate)
+    if (filters?.endDate) query.append('endDate', filters.endDate)
     if (filters?.page) query.append('page', String(filters.page))
     if (filters?.limit) query.append('limit', String(filters.limit))
     return apiClient.get(`${API_URL}/api/parking/bookings?${query}`)

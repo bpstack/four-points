@@ -60,7 +60,7 @@ export function ReportHeader({ report, onEdit, onDelete }: ReportHeaderProps) {
 
   return (
     <div className="bg-white dark:bg-[#010409] border-b border-gray-200 dark:border-gray-800">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4">
+      <div className="max-w-[1400px] px-4 md:px-6 py-6">
         {/* Back button */}
         <button
           onClick={() => router.push('/dashboard/maintenance')}

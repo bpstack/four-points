@@ -286,6 +286,14 @@ export interface CreateReservationDTO {
 // BOOKING FILTERS
 // ============================================
 
+export type QuickFilterType =
+  | 'arrivals_pending'    // reserved + entrada hoy
+  | 'arrivals_inside'     // checked_in (todos)
+  | 'arrivals_total'      // reserved entrada hoy + checked_in
+  | 'departures_pending'  // checked_in + salida hoy
+  | 'departures_completed'// completed hoy
+  | 'departures_total'    // checked_in salida hoy + completed hoy
+
 export interface BookingFilters {
   id?: number
   status?: BookingStatus
@@ -296,6 +304,20 @@ export interface BookingFilters {
   owner_name?: string
   booking_source?: BookingSource
   // Pagination
+  page?: number
+  limit?: number
+}
+
+export interface QuickFilterParams {
+  quickFilter: QuickFilterType
+  page?: number
+  limit?: number
+}
+
+export interface DateFilterParams {
+  startDate: string           // Fecha entrada (requerido) - YYYY-MM-DD
+  endDate?: string            // Fecha salida (opcional) - YYYY-MM-DD
+  status?: BookingStatus      // Filtro de estado opcional
   page?: number
   limit?: number
 }

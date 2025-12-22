@@ -1,39 +1,9 @@
 // app/ui/fonts-design/fonts.ts
 
-import { Source_Sans_3, Montserrat, Inter, Roboto, Open_Sans, Poppins } from 'next/font/google'
+import { Poppins } from 'next/font/google'
 
-// ============= DEFINICIÓN DE FUENTES (Google Fonts) =============
-
-export const sourceSansPro = Source_Sans_3({
-  subsets: ['latin'],
-  variable: '--font-source-sans',
-  display: 'swap',
-})
-
-export const montserrat = Montserrat({
-  subsets: ['latin'],
-  variable: '--font-montserrat',
-  display: 'swap',
-})
-
-export const inter = Inter({
-  subsets: ['latin'],
-  variable: '--font-inter',
-  display: 'swap',
-})
-
-export const roboto = Roboto({
-  subsets: ['latin'],
-  weight: ['400', '500', '700'],
-  variable: '--font-roboto',
-  display: 'swap',
-})
-
-export const openSans = Open_Sans({
-  subsets: ['latin'],
-  variable: '--font-open-sans',
-  display: 'swap',
-})
+// ============= FUENTES ACTIVAS (Google Fonts) =============
+// Solo importa las fuentes que realmente usas para evitar precargas innecesarias
 
 export const poppins = Poppins({
   subsets: ['latin'],
@@ -45,10 +15,12 @@ export const poppins = Poppins({
 // ============= FUENTES DEL SISTEMA =============
 // Fuentes nativas del sistema operativo (sin cargar desde Google Fonts)
 
-/**
- * Para usar fuentes del sistema, crea objetos con esta estructura:
- * { variable: '--font-nombre', className: 'font-nombre' }
- */
+// Ubuntu (Linux)
+export const ubuntu = {
+  variable: '--font-ubuntu',
+  className: 'font-ubuntu',
+  style: { fontFamily: 'Ubuntu, -apple-system, "Segoe UI", sans-serif' },
+}
 
 // Fuente del sistema de Apple
 export const appleSystem = {
@@ -62,13 +34,6 @@ export const arial = {
   variable: '--font-arial',
   className: 'font-arial',
   style: { fontFamily: 'Arial, Helvetica, sans-serif' },
-}
-
-// Ubuntu (Linux)
-export const ubuntu = {
-  variable: '--font-ubuntu',
-  className: 'font-ubuntu',
-  style: { fontFamily: 'Ubuntu, -apple-system, "Segoe UI", sans-serif' },
 }
 
 // Segoe UI (Windows)
@@ -94,3 +59,53 @@ export const emojiFont = {
   className: 'font-emoji',
   style: { fontFamily: '"Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif' },
 }
+
+// ============= GOOGLE FONTS OPCIONALES =============
+// IMPORTANTE: Cada fuente añade ~20-50kb de descarga
+//
+// CÓMO ACTIVAR UNA FUENTE:
+// 1. Descomenta el import y export de la fuente que quieras (ej: Montserrat)
+// 2. Ve a fonts.helper.ts y añádela al import:
+//    import { poppins, ubuntu, montserrat } from './fonts'
+// 3. Úsala en ACTIVE_FONTS:
+//    export const ACTIVE_FONTS = {
+//      primary: poppins,
+//      display: montserrat,  // <-- aquí
+//    }
+// 4. Reinicia el servidor de desarrollo
+
+// import { Source_Sans_3 } from 'next/font/google'
+// export const sourceSansPro = Source_Sans_3({
+//   subsets: ['latin'],
+//   variable: '--font-source-sans',
+//   display: 'swap',
+// })
+
+// import { Montserrat } from 'next/font/google'
+// export const montserrat = Montserrat({
+//   subsets: ['latin'],
+//   variable: '--font-montserrat',
+//   display: 'swap',
+// })
+
+// import { Inter } from 'next/font/google'
+// export const inter = Inter({
+//   subsets: ['latin'],
+//   variable: '--font-inter',
+//   display: 'swap',
+// })
+
+// import { Roboto } from 'next/font/google'
+// export const roboto = Roboto({
+//   subsets: ['latin'],
+//   weight: ['400', '500', '700'],
+//   variable: '--font-roboto',
+//   display: 'swap',
+// })
+
+// import { Open_Sans } from 'next/font/google'
+// export const openSans = Open_Sans({
+//   subsets: ['latin'],
+//   variable: '--font-open-sans',
+//   display: 'swap',
+// })

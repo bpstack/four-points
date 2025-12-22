@@ -69,19 +69,19 @@ export default function CashierCalendarNav({
 
         {/* Mobile */}
         <div className="md:hidden flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1">
             <h1 className="text-base font-semibold text-gray-900 dark:text-white capitalize whitespace-nowrap w-20">
               {currentMonth.slice(0, 3)} {currentYear}
             </h1>
             <button
               onClick={onPreviousMonth}
-              className="p-2.5 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+              className="p-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md transition-colors"
             >
               <FiChevronLeft className="w-4 h-4" />
             </button>
             <button
               onClick={onNextMonth}
-              className="p-2.5 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+              className="p-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md transition-colors"
             >
               <FiChevronRight className="w-4 h-4" />
             </button>
@@ -89,9 +89,9 @@ export default function CashierCalendarNav({
 
           <button
             onClick={onToday}
-            className="px-2.5 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors flex items-center gap-1 flex-shrink-0"
+            className="px-2 py-1 text-xs font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md transition-colors"
           >
-            <FiCalendar className="w-3.5 h-3.5" /> Today
+            Hoy
           </button>
         </div>
       </div>

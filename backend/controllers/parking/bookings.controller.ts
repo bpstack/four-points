@@ -26,6 +26,67 @@ class ParkingBookingsController {
   // ============================================
   getBookings = async (req: Request, res: Response): Promise<void> => {
     try {
+      const page = req.query.page ? parseInt(String(req.query.page)) : 1
+      const limit = req.query.limit ? parseInt(String(req.query.limit)) : 50
+
+      // Priority 1: quickFilter (filtros compuestos del dashboard)
+      if (req.query.quickFilter) {
+        const quickFilter = String(req.query.quickFilter)
+
+        const result = await ParkingBookingsRepository.findByQuickFilter(quickFilter, page, limit)
+
+        res.status(200).json({
+          success: true,
+          total: result.pagination.total,
+          pagination: result.pagination,
+          quickFilter,
+          bookings: result.bookings,
+        })
+        return
+      }
+
+      // Priority 2: dateFilter (filtro por rango de fechas)
+      if (req.query.startDate) {
+        const startDate = String(req.query.startDate)
+        const endDate = req.query.endDate ? String(req.query.endDate) : undefined
+        const status = req.query.status as BookingFilters['status'] | undefined
+
+        // Validar formato de fechas (YYYY-MM-DD)
+        const dateRegex = /^\d{4}-\d{2}-\d{2}$/
+        if (!dateRegex.test(startDate)) {
+          res.status(400).json({
+            success: false,
+            message: 'startDate debe tener formato YYYY-MM-DD',
+          })
+          return
+        }
+        if (endDate && !dateRegex.test(endDate)) {
+          res.status(400).json({
+            success: false,
+            message: 'endDate debe tener formato YYYY-MM-DD',
+          })
+          return
+        }
+
+        const result = await ParkingBookingsRepository.findByDateFilter(
+          startDate,
+          endDate,
+          status,
+          page,
+          limit
+        )
+
+        res.status(200).json({
+          success: true,
+          total: result.pagination.total,
+          pagination: result.pagination,
+          dateFilter: { startDate, endDate: endDate || null, status: status || null },
+          bookings: result.bookings,
+        })
+        return
+      }
+
+      // Priority 3: Standard filters (findAll)
       const filters: BookingFilters = {}
 
       if (req.query.id) filters.id = parseInt(String(req.query.id))
@@ -39,8 +100,8 @@ class ParkingBookingsController {
         filters.booking_source = req.query.booking_source as BookingFilters['booking_source']
 
       // Pagination params
-      if (req.query.page) filters.page = parseInt(String(req.query.page))
-      if (req.query.limit) filters.limit = parseInt(String(req.query.limit))
+      filters.page = page
+      filters.limit = limit
 
       const result = await ParkingBookingsRepository.findAll(filters)
 

@@ -82,12 +82,10 @@ class ParkingStatsRepository {
         AND DATE(expected_checkout) = ?
       ) AS pending_checkouts,
       
-      -- Reservas activas (reserved + checked_in)
+      -- Vehículos DENTRO del parking (solo checked_in)
       (SELECT COUNT(*) 
       FROM parking_bookings 
-      WHERE status IN ('reserved', 'checked_in')
-        AND DATE(expected_checkin) <= ?
-        AND DATE(expected_checkout) > ?
+      WHERE status = 'checked_in'
       ) AS active_bookings,
       
       -- Completadas hoy
@@ -115,13 +113,11 @@ class ParkingStatsRepository {
     const [rows] = await pool.query<DailyStatsRow[]>(query, [
       targetDate, // para occupied_spots (checkin)
       targetDate, // para occupied_spots (checkout)
-      targetDate, // occupied_spots (desde availability)
-      targetDate,
-      targetDate, // total_bookings
+      targetDate, // total_bookings (checkin)
+      targetDate, // total_bookings (checkout)
       targetDate, // pending_checkins
       targetDate, // pending_checkouts
-      targetDate,
-      targetDate, // active_bookings
+      // active_bookings ya no necesita parámetros (cuenta todos los checked_in)
       targetDate, // completed_today
       targetDate, // canceled_today
       targetDate, // no_shows_today

@@ -26,13 +26,13 @@ import { FaParking } from 'react-icons/fa'
 // Importar componentes y helpers compartidos
 import { StatusBadge } from './StatusBadge'
 import { ActionDropdown } from './ActionDropdown'
-import { formatDateShort, formatTime, formatDateTimeLocal, isSameDay } from './helpers'
+import { formatDateShort, formatTime, formatDateTimeLocal } from './helpers'
+import DatePickerInput from '@/app/ui/calendar/DatePickerInput'
 
 // ============================================
 // TIPOS E INTERFACES
 // ============================================
 type StatusFilter = 'all' | 'reserved' | 'checked_in' | 'completed' | 'canceled' | 'no_show'
-type DateQuickFilter = 'yesterday' | 'today' | 'tomorrow' | null
 // Filtros compuestos para el dashboard (combinan estado + fecha)
 type QuickFilter =
   | 'arrivals_pending' // Llegadas en espera: reserved + entrada hoy
@@ -207,8 +207,8 @@ export function BookingsListClient({
   // Leer filtros desde URL - usar valores directamente de searchParams
   const searchTermFromUrl = searchParams.get('search') || ''
   const statusFilter = (searchParams.get('status') as StatusFilter) || 'all'
-  const dateQuickFilter = (searchParams.get('dateFilter') as DateQuickFilter) || null
-  const specificDate = searchParams.get('date') || ''
+  const startDate = searchParams.get('startDate') || ''
+  const endDate = searchParams.get('endDate') || ''
   const quickFilter = (searchParams.get('filter') as QuickFilter) || null
   const currentPage = searchParams.get('page') ? parseInt(searchParams.get('page')!) : 1
 
@@ -249,16 +249,16 @@ export function BookingsListClient({
     (newFilters: {
       search?: string
       status?: StatusFilter
-      dateFilter?: DateQuickFilter
-      date?: string
+      startDate?: string
+      endDate?: string
       filter?: QuickFilter
       page?: number
     }) => {
       const params = new URLSearchParams()
       if (newFilters.search) params.set('search', newFilters.search)
       if (newFilters.status && newFilters.status !== 'all') params.set('status', newFilters.status)
-      if (newFilters.dateFilter) params.set('dateFilter', newFilters.dateFilter)
-      if (newFilters.date) params.set('date', newFilters.date)
+      if (newFilters.startDate) params.set('startDate', newFilters.startDate)
+      if (newFilters.endDate) params.set('endDate', newFilters.endDate)
       if (newFilters.filter) params.set('filter', newFilters.filter)
       if (newFilters.page && newFilters.page > 1) params.set('page', String(newFilters.page))
 
@@ -271,19 +271,63 @@ export function BookingsListClient({
   )
 
   // Cargar bookings con paginación
+  // Acepta parámetros opcionales para sobrescribir los valores de URL
   const loadBookings = useCallback(
-    async (page: number = 1) => {
+    async (
+      page: number = 1,
+      overrides?: {
+        startDate?: string
+        endDate?: string
+        quickFilter?: QuickFilter
+        status?: StatusFilter
+      }
+    ) => {
       try {
         setLoading(true)
-        const response = await parkingApi.getAllBookings({
-          status: statusFilter !== 'all' ? statusFilter : undefined,
-          date: specificDate || undefined,
-          page,
-          limit: 50,
-        })
-        setBookings(response.bookings)
-        if (response.pagination) {
-          setPagination(response.pagination)
+
+        // Usar overrides si se proporcionan, sino usar valores de URL
+        const effectiveStartDate = overrides?.startDate ?? startDate
+        const effectiveEndDate = overrides?.endDate ?? endDate
+        const effectiveQuickFilter = overrides?.quickFilter !== undefined ? overrides.quickFilter : quickFilter
+        const effectiveStatus = overrides?.status ?? statusFilter
+
+        // Prioridad 1: quickFilter (filtros del dashboard)
+        if (effectiveQuickFilter) {
+          const response = await parkingApi.getAllBookings({
+            quickFilter: effectiveQuickFilter,
+            page,
+            limit: 50,
+          })
+          setBookings(response.bookings)
+          if (response.pagination) {
+            setPagination(response.pagination)
+          }
+        }
+        // Prioridad 2: dateFilter (rango de fechas)
+        else if (effectiveStartDate) {
+          const response = await parkingApi.getAllBookings({
+            startDate: effectiveStartDate,
+            endDate: effectiveEndDate || undefined,
+            status: effectiveStatus !== 'all' ? effectiveStatus : undefined,
+            page,
+            limit: 50,
+          })
+          setBookings(response.bookings)
+          if (response.pagination) {
+            setPagination(response.pagination)
+          }
+        }
+        // Prioridad 3: filtros estándar
+        else {
+          const response = await parkingApi.getAllBookings({
+            status: effectiveStatus !== 'all' ? effectiveStatus : undefined,
+            page,
+            limit: 50,
+          })
+          setBookings(response.bookings)
+          if (response.pagination) {
+            setPagination(response.pagination)
+          }
         }
       } catch (error) {
         const message = error instanceof Error ? error.message : 'Error desconocido'
@@ -292,104 +336,25 @@ export function BookingsListClient({
         setLoading(false)
       }
     },
-    [statusFilter, specificDate]
+    [statusFilter, startDate, endDate, quickFilter]
   )
 
-  // Aplicar filtros locales
+  // Cuando hay filtros especiales desde URL, cargar datos frescos
+  // porque el SSR inicial no incluye estos filtros
+  const initialLoadDone = useRef(false)
+  useEffect(() => {
+    if ((quickFilter || startDate) && !initialLoadDone.current) {
+      initialLoadDone.current = true
+      loadBookings(1)
+    }
+  }, [quickFilter, startDate, loadBookings])
+
+  // Aplicar filtros locales (solo búsqueda por texto)
+  // Los filtros de fecha, estado y quickFilter ya vienen del backend
   useEffect(() => {
     let filtered = [...bookings]
 
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-    const tomorrow = new Date(today)
-    tomorrow.setDate(today.getDate() + 1)
-
-    // Si hay un filtro compuesto (quickFilter), aplicarlo primero
-    if (quickFilter) {
-      switch (quickFilter) {
-        case 'arrivals_pending':
-          // Llegadas en espera: reserved + entrada hoy
-          filtered = filtered.filter((b) => {
-            if (b.status !== 'reserved') return false
-            const checkinDate = new Date(b.schedule.expected_checkin)
-            return checkinDate >= today && checkinDate < tomorrow
-          })
-          break
-        case 'arrivals_inside':
-          // Dentro: todos los checked_in
-          filtered = filtered.filter((b) => b.status === 'checked_in')
-          break
-        case 'arrivals_total':
-          // Total llegadas: reserved entrada hoy + checked_in
-          filtered = filtered.filter((b) => {
-            if (b.status === 'checked_in') return true
-            if (b.status === 'reserved') {
-              const checkinDate = new Date(b.schedule.expected_checkin)
-              return checkinDate >= today && checkinDate < tomorrow
-            }
-            return false
-          })
-          break
-        case 'departures_pending':
-          // Salidas en espera: checked_in + salida hoy
-          filtered = filtered.filter((b) => {
-            if (b.status !== 'checked_in') return false
-            const checkoutDate = new Date(b.schedule.expected_checkout)
-            return checkoutDate >= today && checkoutDate < tomorrow
-          })
-          break
-        case 'departures_completed':
-          // Completadas hoy
-          filtered = filtered.filter((b) => {
-            if (b.status !== 'completed') return false
-            // Si tiene checkout real, usar esa fecha
-            if (b.schedule.actual_checkout) {
-              const actualCheckout = new Date(b.schedule.actual_checkout)
-              return actualCheckout >= today && actualCheckout < tomorrow
-            }
-            return false
-          })
-          break
-        case 'departures_total':
-          // Total salidas: checked_in salida hoy + completed hoy
-          filtered = filtered.filter((b) => {
-            if (b.status === 'checked_in') {
-              const checkoutDate = new Date(b.schedule.expected_checkout)
-              return checkoutDate >= today && checkoutDate < tomorrow
-            }
-            if (b.status === 'completed') {
-              if (b.schedule.actual_checkout) {
-                const actualCheckout = new Date(b.schedule.actual_checkout)
-                return actualCheckout >= today && actualCheckout < tomorrow
-              }
-            }
-            return false
-          })
-          break
-      }
-    } else {
-      // Filtros normales si no hay quickFilter
-
-      // Filtro de estado
-      if (statusFilter !== 'all') {
-        filtered = filtered.filter((b) => b.status === statusFilter)
-      }
-
-      // Filtro rápido de fecha
-      if (dateQuickFilter) {
-        const targetDate = new Date(today)
-        if (dateQuickFilter === 'yesterday') targetDate.setDate(today.getDate() - 1)
-        if (dateQuickFilter === 'tomorrow') targetDate.setDate(today.getDate() + 1)
-
-        filtered = filtered.filter((b) => {
-          const checkinDate = new Date(b.schedule.expected_checkin)
-          const checkoutDate = new Date(b.schedule.expected_checkout)
-          return isSameDay(checkinDate, targetDate) || isSameDay(checkoutDate, targetDate)
-        })
-      }
-    }
-
-    // Filtro de búsqueda (siempre se aplica)
+    // Filtro de búsqueda (siempre se aplica localmente)
     if (searchTermFromUrl) {
       const term = searchTermFromUrl.toLowerCase()
       filtered = filtered.filter(
@@ -402,7 +367,7 @@ export function BookingsListClient({
     }
 
     setFilteredBookings(filtered)
-  }, [bookings, searchTermFromUrl, statusFilter, dateQuickFilter, quickFilter])
+  }, [bookings, searchTermFromUrl])
 
   // ============================================
   // HANDLERS DE FILTROS
@@ -412,10 +377,10 @@ export function BookingsListClient({
     updateUrlWithFilters({
       search: value,
       status: statusFilter,
-      dateFilter: dateQuickFilter,
-      date: specificDate,
+      startDate,
+      endDate,
       filter: quickFilter,
-      page: 1, // Reset to page 1 on search
+      page: 1,
     })
   }
 
@@ -423,35 +388,53 @@ export function BookingsListClient({
     updateUrlWithFilters({
       search: searchTermFromUrl,
       status: value,
-      dateFilter: dateQuickFilter,
-      date: specificDate,
+      startDate,
+      endDate,
       filter: null, // Limpiar quickFilter al cambiar status
-      page: 1, // Reset to page 1
+      page: 1,
     })
-    loadBookings(1)
+    loadBookings(1, { status: value, quickFilter: null })
   }
 
-  const handleDateQuickFilterChange = (value: DateQuickFilter) => {
+  const handleStartDateChange = (value: string) => {
     updateUrlWithFilters({
       search: searchTermFromUrl,
       status: statusFilter,
-      dateFilter: value,
-      date: '',
-      filter: null, // Limpiar quickFilter al cambiar fecha
-      page: 1, // Reset to page 1
+      startDate: value,
+      endDate,
+      filter: null, // Limpiar quickFilter al usar fechas
+      page: 1,
     })
+    // Cargar con el nuevo valor de startDate
+    loadBookings(1, { startDate: value, quickFilter: null })
+  }
+
+  const handleEndDateChange = (value: string) => {
+    updateUrlWithFilters({
+      search: searchTermFromUrl,
+      status: statusFilter,
+      startDate,
+      endDate: value,
+      filter: null, // Limpiar quickFilter al usar fechas
+      page: 1,
+    })
+    // Solo cargar si hay startDate
+    if (startDate) {
+      loadBookings(1, { endDate: value, quickFilter: null })
+    }
   }
 
   const handleQuickFilterChange = (value: QuickFilter) => {
-    // Limpiar otros filtros cuando se usa un filtro compuesto
+    // Limpiar filtros de fecha cuando se usa quickFilter
     updateUrlWithFilters({
       search: searchTermFromUrl,
       status: 'all',
-      dateFilter: null,
-      date: '',
+      startDate: '',
+      endDate: '',
       filter: value,
-      page: 1, // Reset to page 1
+      page: 1,
     })
+    loadBookings(1, { quickFilter: value, startDate: '', endDate: '', status: 'all' })
   }
 
   const handlePageChange = (newPage: number) => {
@@ -459,8 +442,8 @@ export function BookingsListClient({
     updateUrlWithFilters({
       search: searchTermFromUrl,
       status: statusFilter,
-      dateFilter: dateQuickFilter,
-      date: specificDate,
+      startDate,
+      endDate,
       filter: quickFilter,
       page: newPage,
     })
@@ -470,11 +453,12 @@ export function BookingsListClient({
   const handleClearFilters = () => {
     setSearchInputValue('')
     router.push('/dashboard/parking/bookings', { scroll: false })
-    loadBookings(1)
+    // Pasar overrides explícitos para limpiar todos los filtros
+    loadBookings(1, { startDate: '', endDate: '', quickFilter: null, status: 'all' })
   }
 
   const hasActiveFilters =
-    searchTermFromUrl || statusFilter !== 'all' || dateQuickFilter || specificDate || quickFilter
+    searchTermFromUrl || statusFilter !== 'all' || startDate || endDate || quickFilter
 
   // ============================================
   // HANDLERS DE ACCIONES
@@ -752,19 +736,25 @@ export function BookingsListClient({
                   {/* Vista rápida (filtros compuestos del dashboard) */}
                   <QuickFilterDropdown value={quickFilter} onChange={handleQuickFilterChange} />
 
-                  {/* Filtro de fecha rápida */}
-                  <select
-                    value={dateQuickFilter || ''}
-                    onChange={(e) =>
-                      handleDateQuickFilterChange((e.target.value as DateQuickFilter) || null)
-                    }
-                    className="w-full px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent bg-white dark:bg-[#151b23] dark:text-gray-200"
-                  >
-                    <option value="">Fecha</option>
-                    <option value="yesterday">Ayer</option>
-                    <option value="today">Hoy</option>
-                    <option value="tomorrow">Mañana</option>
-                  </select>
+                  {/* Fecha de entrada */}
+                  <DatePickerInput
+                    value={startDate || undefined}
+                    onChange={(value) => handleStartDateChange(value || '')}
+                    placeholder="Entrada"
+                    clearable={true}
+                    size="sm"
+                  />
+
+                  {/* Fecha de salida (opcional) */}
+                  <DatePickerInput
+                    value={endDate || undefined}
+                    onChange={(value) => handleEndDateChange(value || '')}
+                    placeholder="Salida"
+                    disabled={!startDate}
+                    minDate={startDate ? new Date(startDate + 'T00:00:00') : null}
+                    clearable={true}
+                    size="sm"
+                  />
 
                   {/* Filtro de estado */}
                   <select
@@ -779,9 +769,6 @@ export function BookingsListClient({
                     <option value="canceled">Cancelado</option>
                     <option value="no_show">No presentado</option>
                   </select>
-
-                  {/* Placeholder para mantener el grid */}
-                  <div className="hidden sm:block"></div>
 
                   {/* Limpiar filtros */}
                   {hasActiveFilters && (
@@ -959,15 +946,30 @@ export function BookingsListClient({
                 )}
               </div>
 
-              {/* Pagination Controls */}
-              {pagination.totalPages > 1 && (
-                <div className="mt-4 bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 px-4 py-3">
-                  <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
-                    <div className="text-xs text-gray-600 dark:text-gray-400">
-                      Mostrando {(pagination.page - 1) * pagination.limit + 1} -{' '}
-                      {Math.min(pagination.page * pagination.limit, pagination.total)} de{' '}
-                      {pagination.total} reservas
-                    </div>
+              {/* Results Info & Pagination Controls */}
+              <div className="mt-4 bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 px-4 py-3">
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+                  {/* Results info */}
+                  <div className="text-xs text-gray-600 dark:text-gray-400">
+                    {filteredBookings.length === 0 ? (
+                      <span>Sin resultados</span>
+                    ) : (
+                      <span>
+                        <span className="font-medium text-gray-900 dark:text-gray-100">
+                          {filteredBookings.length}
+                        </span>
+                        {' '}reserva{filteredBookings.length !== 1 ? 's' : ''}
+                        {pagination.totalPages > 1 && (
+                          <span className="text-gray-400 dark:text-gray-500">
+                            {' '}(pag. {pagination.page} de {pagination.totalPages})
+                          </span>
+                        )}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Pagination buttons */}
+                  {pagination.totalPages > 1 && (
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => handlePageChange(pagination.page - 1)}
@@ -1016,9 +1018,9 @@ export function BookingsListClient({
                         <FiChevronRight className="w-3.5 h-3.5" />
                       </button>
                     </div>
-                  </div>
+                  )}
                 </div>
-              )}
+              </div>
             </div>
             {/* End Main Content */}
 

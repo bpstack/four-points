@@ -88,7 +88,7 @@ export function ReportDetailClient({ initialReport }: ReportDetailClientProps) {
 
         <TabNavigation reportId={currentReport.id} />
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
+        <div className="max-w-[1400px] px-4 md:px-6 py-6">
           {activeTab === 'detail' && <DetailTab />}
           {activeTab === 'history' && <HistoryTab />}
         </div>

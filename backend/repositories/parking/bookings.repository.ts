@@ -15,6 +15,7 @@ import type {
   UpdateBookingDTO,
   CheckoutDTO,
   PaginatedBookingsResult,
+  BookingStatus,
 } from '../../models/parking/index.js'
 
 interface CountRow extends RowDataPacket {
@@ -680,6 +681,257 @@ class ParkingBookingsRepository {
       throw error
     } finally {
       connection.release()
+    }
+  }
+
+  // ============================================
+  // FIND BY QUICK FILTER (Dashboard filters)
+  // Método aislado para filtros compuestos del dashboard
+  // ============================================
+  async findByQuickFilter(
+    quickFilter: string,
+    page: number = 1,
+    limit: number = 50
+  ): Promise<PaginatedBookingsResult> {
+    const safeLimit = Math.min(limit, 500)
+    const offset = (page - 1) * safeLimit
+
+    // Build WHERE clause based on quickFilter type
+    let whereClause = ''
+    const params: (string | number)[] = []
+
+    switch (quickFilter) {
+      case 'arrivals_pending':
+        // Llegadas en espera: reserved + entrada hoy
+        whereClause = `WHERE b.status = 'reserved' AND DATE(b.expected_checkin) = CURDATE()`
+        break
+
+      case 'arrivals_inside':
+        // Dentro: todos los checked_in
+        whereClause = `WHERE b.status = 'checked_in'`
+        break
+
+      case 'arrivals_total':
+        // Total llegadas: reserved entrada hoy + checked_in
+        whereClause = `WHERE (
+          b.status = 'checked_in' 
+          OR (b.status = 'reserved' AND DATE(b.expected_checkin) = CURDATE())
+        )`
+        break
+
+      case 'departures_pending':
+        // Salidas en espera: checked_in + salida hoy
+        whereClause = `WHERE b.status = 'checked_in' AND DATE(b.expected_checkout) = CURDATE()`
+        break
+
+      case 'departures_completed':
+        // Completadas hoy (por fecha de checkout real)
+        whereClause = `WHERE b.status = 'completed' AND DATE(b.actual_checkout) = CURDATE()`
+        break
+
+      case 'departures_total':
+        // Total salidas: checked_in salida hoy + completed hoy
+        whereClause = `WHERE (
+          (b.status = 'checked_in' AND DATE(b.expected_checkout) = CURDATE())
+          OR (b.status = 'completed' AND DATE(b.actual_checkout) = CURDATE())
+        )`
+        break
+
+      default:
+        throw new Error(`QuickFilter no válido: ${quickFilter}`)
+    }
+
+    // Count query
+    const countQuery = `
+      SELECT COUNT(*) AS total
+      FROM parking_bookings b
+      INNER JOIN parking_spots ps ON b.spot_id = ps.id
+      LEFT JOIN parking_vehicles v ON b.vehicle_id = v.id
+      ${whereClause}
+    `
+    const [countResult] = await pool.query<CountRow[]>(countQuery, params)
+    const total = countResult[0]?.total || 0
+    const totalPages = Math.ceil(total / safeLimit)
+
+    // Main query
+    const query = `
+      SELECT 
+        b.id,
+        b.booking_code,
+        b.spot_id,
+        ps.spot_number,
+        ps.level_code,
+        ps.spot_type,
+        b.vehicle_id,
+        v.plate_number,
+        v.owner_name,
+        v.model AS vehicle_model,
+        b.operator_id,
+        u.username AS operator_name,
+        b.expected_checkin,
+        b.expected_checkout,
+        b.actual_checkin,
+        b.actual_checkout,
+        b.status,
+        b.total_amount,
+        b.payment_amount,
+        b.payment_method,
+        b.payment_reference,
+        b.payment_date,
+        b.booking_source,
+        b.external_booking_id,
+        b.notes,
+        b.created_at,
+        b.updated_at,
+        b.created_by,
+        b.updated_by,
+        creator.username AS created_by_name,
+        updater.username AS updated_by_name,
+        DATEDIFF(DATE(b.expected_checkout), DATE(b.expected_checkin)) AS planned_days,
+        CASE 
+          WHEN b.actual_checkin IS NOT NULL AND b.actual_checkout IS NOT NULL 
+          THEN DATEDIFF(DATE(b.actual_checkout), DATE(b.actual_checkin))
+          WHEN b.actual_checkin IS NOT NULL 
+          THEN DATEDIFF(CURDATE(), DATE(b.actual_checkin))
+          ELSE NULL
+        END AS actual_days
+      FROM parking_bookings b
+      INNER JOIN parking_spots ps ON b.spot_id = ps.id
+      LEFT JOIN parking_vehicles v ON b.vehicle_id = v.id
+      LEFT JOIN users u ON b.operator_id = u.id
+      LEFT JOIN users creator ON b.created_by = creator.id
+      LEFT JOIN users updater ON b.updated_by = updater.id
+      ${whereClause}
+      ORDER BY b.expected_checkin DESC, b.created_at DESC
+      LIMIT ? OFFSET ?
+    `
+
+    const [rows] = await pool.query<BookingWithDetailsRow[]>(query, [...params, safeLimit, offset])
+
+    return {
+      bookings: rows.map((row) => this._formatBooking(row)),
+      pagination: {
+        page,
+        limit: safeLimit,
+        total,
+        totalPages,
+      },
+    }
+  }
+
+  // ============================================
+  // FIND BY DATE FILTER (Rango de fechas)
+  // Filtra reservas por fecha de entrada y opcionalmente salida
+  // IMPORTANTE: Las fechas en BD están en hora local (Madrid), no UTC
+  // Por eso comparamos directamente con DATE()
+  // ============================================
+  async findByDateFilter(
+    startDate: string,
+    endDate?: string,
+    status?: BookingStatus,
+    page: number = 1,
+    limit: number = 50
+  ): Promise<PaginatedBookingsResult> {
+    const safeLimit = Math.min(limit, 500)
+    const offset = (page - 1) * safeLimit
+
+    // Build WHERE clause
+    // Las fechas se almacenan como DATETIME en hora local de Madrid
+    // Comparamos directamente el DATE de expected_checkin
+    let whereClause = ''
+    const params: (string | number)[] = []
+
+    if (endDate) {
+      // Ambas fechas: checkin EXACTO en startDate Y checkout EXACTO en endDate
+      whereClause = `WHERE DATE(b.expected_checkin) = ? AND DATE(b.expected_checkout) = ?`
+      params.push(startDate, endDate)
+    } else {
+      // Solo fecha entrada: checkin EXACTO en startDate
+      whereClause = `WHERE DATE(b.expected_checkin) = ?`
+      params.push(startDate)
+    }
+
+    // Añadir filtro de estado si se proporciona
+    if (status) {
+      whereClause += ` AND b.status = ?`
+      params.push(status)
+    }
+
+    // Count query
+    const countQuery = `
+      SELECT COUNT(*) AS total
+      FROM parking_bookings b
+      INNER JOIN parking_spots ps ON b.spot_id = ps.id
+      LEFT JOIN parking_vehicles v ON b.vehicle_id = v.id
+      ${whereClause}
+    `
+    const [countResult] = await pool.query<CountRow[]>(countQuery, params)
+    const total = countResult[0]?.total || 0
+    const totalPages = Math.ceil(total / safeLimit)
+
+    // Main query
+    const query = `
+      SELECT 
+        b.id,
+        b.booking_code,
+        b.spot_id,
+        ps.spot_number,
+        ps.level_code,
+        ps.spot_type,
+        b.vehicle_id,
+        v.plate_number,
+        v.owner_name,
+        v.model AS vehicle_model,
+        b.operator_id,
+        u.username AS operator_name,
+        b.expected_checkin,
+        b.expected_checkout,
+        b.actual_checkin,
+        b.actual_checkout,
+        b.status,
+        b.total_amount,
+        b.payment_amount,
+        b.payment_method,
+        b.payment_reference,
+        b.payment_date,
+        b.booking_source,
+        b.external_booking_id,
+        b.notes,
+        b.created_at,
+        b.updated_at,
+        b.created_by,
+        b.updated_by,
+        creator.username AS created_by_name,
+        updater.username AS updated_by_name,
+        DATEDIFF(DATE(b.expected_checkout), DATE(b.expected_checkin)) AS planned_days,
+        CASE 
+          WHEN b.actual_checkin IS NOT NULL AND b.actual_checkout IS NOT NULL 
+          THEN DATEDIFF(DATE(b.actual_checkout), DATE(b.actual_checkin))
+          WHEN b.actual_checkin IS NOT NULL 
+          THEN DATEDIFF(CURDATE(), DATE(b.actual_checkin))
+          ELSE NULL
+        END AS actual_days
+      FROM parking_bookings b
+      INNER JOIN parking_spots ps ON b.spot_id = ps.id
+      LEFT JOIN parking_vehicles v ON b.vehicle_id = v.id
+      LEFT JOIN users u ON b.operator_id = u.id
+      LEFT JOIN users creator ON b.created_by = creator.id
+      LEFT JOIN users updater ON b.updated_by = updater.id
+      ${whereClause}
+      ORDER BY b.expected_checkin DESC, b.created_at DESC
+      LIMIT ? OFFSET ?
+    `
+
+    const [rows] = await pool.query<BookingWithDetailsRow[]>(query, [...params, safeLimit, offset])
+
+    return {
+      bookings: rows.map((row) => this._formatBooking(row)),
+      pagination: {
+        page,
+        limit: safeLimit,
+        total,
+        totalPages,
+      },
     }
   }
 

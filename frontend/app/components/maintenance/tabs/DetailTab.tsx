@@ -200,346 +200,434 @@ export function DetailTab() {
   ]
 
   return (
-    <div className="space-y-6">
-      {/* Status & Priority */}
-      <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-4">
-        <div className="flex items-center justify-between gap-4">
-          {/* Estado */}
-          <div className="flex-1">
-            <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Estado</p>
-            {isEditingStatus ? (
-              <div className="flex items-center gap-2">
-                <select
-                  value={selectedStatus || currentReport.status}
-                  onChange={(e) => setSelectedStatus(e.target.value as ReportStatus)}
-                  disabled={isSaving}
-                  className="flex-1 px-2 py-1 text-xs border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  {statusOptions.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-                <button
-                  onClick={handleStatusChange}
-                  disabled={isSaving}
-                  className="p-1 text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 rounded disabled:opacity-50"
-                >
-                  <FiCheck className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => {
-                    setIsEditingStatus(false)
-                    setSelectedStatus(null)
-                  }}
-                  disabled={isSaving}
-                  className="p-1 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded"
-                >
-                  <FiX className="w-4 h-4" />
-                </button>
+    <>
+      {/* Desktop: 2 columns layout (info left 2/3, images right 1/3) */}
+      {/* Mobile: single column vertical */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Left Column - Main Information */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Status & Priority */}
+          <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-4">
+            <div className="flex items-center justify-between gap-4">
+              {/* Estado */}
+              <div className="flex-1">
+                <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Estado</p>
+                {isEditingStatus ? (
+                  <div className="flex items-center gap-2">
+                    <select
+                      value={selectedStatus || currentReport.status}
+                      onChange={(e) => setSelectedStatus(e.target.value as ReportStatus)}
+                      disabled={isSaving}
+                      className="flex-1 px-2 py-1 text-xs border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      {statusOptions.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                    <button
+                      onClick={handleStatusChange}
+                      disabled={isSaving}
+                      className="p-1 text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 rounded disabled:opacity-50"
+                    >
+                      <FiCheck className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => {
+                        setIsEditingStatus(false)
+                        setSelectedStatus(null)
+                      }}
+                      disabled={isSaving}
+                      className="p-1 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded"
+                    >
+                      <FiX className="w-4 h-4" />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${statusConfig.color}`}
+                    >
+                      {statusConfig.label}
+                    </span>
+                    <button
+                      onClick={() => setIsEditingStatus(true)}
+                      className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded"
+                    >
+                      <FiEdit2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                )}
               </div>
-            ) : (
-              <div className="flex items-center gap-2">
-                <span
-                  className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${statusConfig.color}`}
-                >
-                  {statusConfig.label}
-                </span>
-                <button
-                  onClick={() => setIsEditingStatus(true)}
-                  className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded"
-                >
-                  <FiEdit2 className="w-3.5 h-3.5" />
-                </button>
+
+              {/* Prioridad */}
+              <div className="flex-1">
+                <p className="text-xs text-gray-500 dark:text-gray-400 mb-1 text-right">
+                  Prioridad
+                </p>
+                {isEditingPriority ? (
+                  <div className="flex items-center justify-end gap-2">
+                    <button
+                      onClick={() => {
+                        setIsEditingPriority(false)
+                        setSelectedPriority(null)
+                      }}
+                      disabled={isSaving}
+                      className="p-1 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded"
+                    >
+                      <FiX className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={handlePriorityChange}
+                      disabled={isSaving}
+                      className="p-1 text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 rounded disabled:opacity-50"
+                    >
+                      <FiCheck className="w-4 h-4" />
+                    </button>
+                    <select
+                      value={selectedPriority || currentReport.priority}
+                      onChange={(e) => setSelectedPriority(e.target.value as ReportPriority)}
+                      disabled={isSaving}
+                      className="flex-1 px-2 py-1 text-xs border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      {priorityOptions.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-end gap-2">
+                    <button
+                      onClick={() => setIsEditingPriority(true)}
+                      className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded"
+                    >
+                      <FiEdit2 className="w-3.5 h-3.5" />
+                    </button>
+                    <span className={`text-sm font-semibold ${priorityConfig.color}`}>
+                      {priorityConfig.label}
+                    </span>
+                  </div>
+                )}
               </div>
-            )}
-          </div>
-
-          {/* Prioridad */}
-          <div className="flex-1">
-            <p className="text-xs text-gray-500 dark:text-gray-400 mb-1 text-right">Prioridad</p>
-            {isEditingPriority ? (
-              <div className="flex items-center justify-end gap-2">
-                <button
-                  onClick={() => {
-                    setIsEditingPriority(false)
-                    setSelectedPriority(null)
-                  }}
-                  disabled={isSaving}
-                  className="p-1 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded"
-                >
-                  <FiX className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={handlePriorityChange}
-                  disabled={isSaving}
-                  className="p-1 text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 rounded disabled:opacity-50"
-                >
-                  <FiCheck className="w-4 h-4" />
-                </button>
-                <select
-                  value={selectedPriority || currentReport.priority}
-                  onChange={(e) => setSelectedPriority(e.target.value as ReportPriority)}
-                  disabled={isSaving}
-                  className="flex-1 px-2 py-1 text-xs border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  {priorityOptions.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            ) : (
-              <div className="flex items-center justify-end gap-2">
-                <button
-                  onClick={() => setIsEditingPriority(true)}
-                  className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded"
-                >
-                  <FiEdit2 className="w-3.5 h-3.5" />
-                </button>
-                <span className={`text-sm font-semibold ${priorityConfig.color}`}>
-                  {priorityConfig.label}
-                </span>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* ✅ NUEVO: Quick Actions */}
-      {/* <QuickActions /> */}
-
-      {/* Main Info */}
-      <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-4">
-        <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2 mb-4">
-          <FiFileText className="w-4 h-4" />
-          Información del Reporte
-        </h3>
-
-        <div className="space-y-3">
-          <div>
-            <label className="text-xs text-gray-500 dark:text-gray-400">Título</label>
-            <p className="text-sm text-gray-900 dark:text-gray-100 mt-1">{currentReport.title}</p>
-          </div>
-
-          <div>
-            <label className="text-xs text-gray-500 dark:text-gray-400">Descripción</label>
-            <p className="text-sm text-gray-900 dark:text-gray-100 mt-1 whitespace-pre-wrap">
-              {currentReport.description}
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Location */}
-      <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-4">
-        <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2 mb-4">
-          <FiMapPin className="w-4 h-4" />
-          Ubicación
-        </h3>
-
-        <div className="space-y-3">
-          <div>
-            <label className="text-xs text-gray-500 dark:text-gray-400">Tipo</label>
-            <p className="text-sm text-gray-900 dark:text-gray-100 mt-1">
-              {getLocationTypeLabel(currentReport.location_type)}
-            </p>
-          </div>
-
-          {currentReport.room_number && (
-            <div>
-              <label className="text-xs text-gray-500 dark:text-gray-400">Habitación</label>
-              <p className="text-sm text-gray-900 dark:text-gray-100 mt-1">
-                {currentReport.room_number}
-              </p>
             </div>
-          )}
-
-          <div>
-            <label className="text-xs text-gray-500 dark:text-gray-400">Descripción</label>
-            <p className="text-sm text-gray-900 dark:text-gray-100 mt-1">
-              {currentReport.location_description}
-            </p>
           </div>
 
-          {currentReport.room_out_of_service && (
-            <div className="pt-2">
-              <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded text-xs font-medium bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400">
-                <FiAlertCircle className="w-3.5 h-3.5" />
-                Habitación fuera de servicio
-              </span>
-            </div>
-          )}
-        </div>
-      </div>
+          {/* Main Info */}
+          <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-4">
+            <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2 mb-4">
+              <FiFileText className="w-4 h-4" />
+              Información del Reporte
+            </h3>
 
-      {/* Assignment */}
-      <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-4">
-        <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2 mb-4">
-          <FiUser className="w-4 h-4" />
-          Asignación
-        </h3>
-
-        <div className="space-y-3">
-          {currentReport.assigned_type === 'internal' && (
-            <div>
-              <label className="text-xs text-gray-500 dark:text-gray-400">Personal Interno</label>
-              <p className="text-sm text-gray-900 dark:text-gray-100 mt-1">
-                {currentReport.assigned_to_name || 'Usuario asignado'}
-              </p>
-            </div>
-          )}
-
-          {currentReport.assigned_type === 'external' && (
-            <>
+            <div className="space-y-3">
               <div>
-                <label className="text-xs text-gray-500 dark:text-gray-400">Empresa Externa</label>
+                <label className="text-xs text-gray-500 dark:text-gray-400">Título</label>
                 <p className="text-sm text-gray-900 dark:text-gray-100 mt-1">
-                  {currentReport.external_company_name || '-'}
+                  {currentReport.title}
                 </p>
               </div>
-              {currentReport.external_contact && (
+
+              <div>
+                <label className="text-xs text-gray-500 dark:text-gray-400">Descripción</label>
+                <p className="text-sm text-gray-900 dark:text-gray-100 mt-1 whitespace-pre-wrap">
+                  {currentReport.description}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Location */}
+          <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-4">
+            <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2 mb-4">
+              <FiMapPin className="w-4 h-4" />
+              Ubicación
+            </h3>
+
+            <div className="space-y-3">
+              <div>
+                <label className="text-xs text-gray-500 dark:text-gray-400">Tipo</label>
+                <p className="text-sm text-gray-900 dark:text-gray-100 mt-1">
+                  {getLocationTypeLabel(currentReport.location_type)}
+                </p>
+              </div>
+
+              {currentReport.room_number && (
                 <div>
-                  <label className="text-xs text-gray-500 dark:text-gray-400">Contacto</label>
+                  <label className="text-xs text-gray-500 dark:text-gray-400">Habitación</label>
                   <p className="text-sm text-gray-900 dark:text-gray-100 mt-1">
-                    {currentReport.external_contact}
+                    {currentReport.room_number}
                   </p>
                 </div>
               )}
-            </>
-          )}
 
-          {!currentReport.assigned_type && (
-            <p className="text-sm text-gray-500 dark:text-gray-400">Sin asignar</p>
-          )}
-        </div>
-      </div>
+              <div>
+                <label className="text-xs text-gray-500 dark:text-gray-400">Descripción</label>
+                <p className="text-sm text-gray-900 dark:text-gray-100 mt-1">
+                  {currentReport.location_description}
+                </p>
+              </div>
 
-      {/* Timestamps */}
-      <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-4">
-        <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2 mb-4">
-          <FiClock className="w-4 h-4" />
-          Fechas
-        </h3>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div>
-            <label className="text-xs text-gray-500 dark:text-gray-400">Reportado</label>
-            <p className="text-sm text-gray-900 dark:text-gray-100 mt-1">
-              {formatDateTime(currentReport.report_date)}
-            </p>
-          </div>
-
-          {currentReport.started_at && (
-            <div>
-              <label className="text-xs text-gray-500 dark:text-gray-400">Iniciado</label>
-              <p className="text-sm text-gray-900 dark:text-gray-100 mt-1">
-                {formatDateTime(currentReport.started_at)}
-              </p>
-            </div>
-          )}
-
-          {currentReport.resolved_at && (
-            <div>
-              <label className="text-xs text-gray-500 dark:text-gray-400">Resuelto</label>
-              <p className="text-sm text-gray-900 dark:text-gray-100 mt-1">
-                {formatDateTime(currentReport.resolved_at)}
-              </p>
-            </div>
-          )}
-
-          {currentReport.closed_at && (
-            <div>
-              <label className="text-xs text-gray-500 dark:text-gray-400">Cerrado</label>
-              <p className="text-sm text-gray-900 dark:text-gray-100 mt-1">
-                {formatDateTime(currentReport.closed_at)}
-              </p>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Resolution Notes */}
-      <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-4">
-        <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">
-          Notas de Resolución
-        </h3>
-        {currentReport.resolution_notes ? (
-          <p className="text-sm text-gray-900 dark:text-gray-100 whitespace-pre-wrap">
-            {currentReport.resolution_notes}
-          </p>
-        ) : showNotesInput ? (
-          <div className="space-y-2">
-            <textarea
-              value={resolutionNotes}
-              onChange={(e) => setResolutionNotes(e.target.value)}
-              placeholder="Describe cómo se resolvió el problema..."
-              rows={4}
-              className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 resize-none"
-            />
-            <div className="flex gap-2">
-              <button
-                onClick={handleSaveNotes}
-                disabled={isSaving || !resolutionNotes.trim()}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-green-600 rounded-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <FiCheck className="w-3.5 h-3.5" />
-                Guardar
-              </button>
-              <button
-                onClick={() => {
-                  setShowNotesInput(false)
-                  setResolutionNotes('')
-                }}
-                disabled={isSaving}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700"
-              >
-                <FiX className="w-3.5 h-3.5" />
-                Cancelar
-              </button>
+              {currentReport.room_out_of_service && (
+                <div className="pt-2">
+                  <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded text-xs font-medium bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400">
+                    <FiAlertCircle className="w-3.5 h-3.5" />
+                    Habitación fuera de servicio
+                  </span>
+                </div>
+              )}
             </div>
           </div>
-        ) : (
-          <button
-            onClick={() => setShowNotesInput(true)}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-          >
-            <FiEdit2 className="w-3.5 h-3.5" />
-            Añadir Notas de Resolución
-          </button>
-        )}
-      </div>
 
-      {/* Images */}
-      {images.length > 0 && (
-        <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-4">
-          <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2 mb-4">
-            <FiImage className="w-4 h-4" />
-            Imágenes ({images.length})
-          </h3>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-            {images.map((image) => (
-              <div
-                key={image.id}
-                className="relative group cursor-pointer"
-                onClick={() => setExpandedImage(image.file_path)}
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={image.file_path}
-                  alt={image.file_name}
-                  className="w-full h-40 object-contain bg-gray-100 dark:bg-gray-900 rounded-md border border-gray-300 dark:border-gray-700"
+          {/* Assignment */}
+          <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-4">
+            <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2 mb-4">
+              <FiUser className="w-4 h-4" />
+              Asignación
+            </h3>
+
+            <div className="space-y-3">
+              {currentReport.assigned_type === 'internal' && (
+                <div>
+                  <label className="text-xs text-gray-500 dark:text-gray-400">
+                    Personal Interno
+                  </label>
+                  <p className="text-sm text-gray-900 dark:text-gray-100 mt-1">
+                    {currentReport.assigned_to_name || 'Usuario asignado'}
+                  </p>
+                </div>
+              )}
+
+              {currentReport.assigned_type === 'external' && (
+                <>
+                  <div>
+                    <label className="text-xs text-gray-500 dark:text-gray-400">
+                      Empresa Externa
+                    </label>
+                    <p className="text-sm text-gray-900 dark:text-gray-100 mt-1">
+                      {currentReport.external_company_name || '-'}
+                    </p>
+                  </div>
+                  {currentReport.external_contact && (
+                    <div>
+                      <label className="text-xs text-gray-500 dark:text-gray-400">Contacto</label>
+                      <p className="text-sm text-gray-900 dark:text-gray-100 mt-1">
+                        {currentReport.external_contact}
+                      </p>
+                    </div>
+                  )}
+                </>
+              )}
+
+              {!currentReport.assigned_type && (
+                <p className="text-sm text-gray-500 dark:text-gray-400">Sin asignar</p>
+              )}
+            </div>
+          </div>
+
+          {/* Timestamps */}
+          <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-4">
+            <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2 mb-4">
+              <FiClock className="w-4 h-4" />
+              Fechas
+            </h3>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs text-gray-500 dark:text-gray-400">Reportado</label>
+                <p className="text-sm text-gray-900 dark:text-gray-100 mt-1">
+                  {formatDateTime(currentReport.report_date)}
+                </p>
+              </div>
+
+              {currentReport.started_at && (
+                <div>
+                  <label className="text-xs text-gray-500 dark:text-gray-400">Iniciado</label>
+                  <p className="text-sm text-gray-900 dark:text-gray-100 mt-1">
+                    {formatDateTime(currentReport.started_at)}
+                  </p>
+                </div>
+              )}
+
+              {currentReport.resolved_at && (
+                <div>
+                  <label className="text-xs text-gray-500 dark:text-gray-400">Resuelto</label>
+                  <p className="text-sm text-gray-900 dark:text-gray-100 mt-1">
+                    {formatDateTime(currentReport.resolved_at)}
+                  </p>
+                </div>
+              )}
+
+              {currentReport.closed_at && (
+                <div>
+                  <label className="text-xs text-gray-500 dark:text-gray-400">Cerrado</label>
+                  <p className="text-sm text-gray-900 dark:text-gray-100 mt-1">
+                    {formatDateTime(currentReport.closed_at)}
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Resolution Notes */}
+          <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-4">
+            <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">
+              Notas de Resolución
+            </h3>
+            {currentReport.resolution_notes ? (
+              <p className="text-sm text-gray-900 dark:text-gray-100 whitespace-pre-wrap">
+                {currentReport.resolution_notes}
+              </p>
+            ) : showNotesInput ? (
+              <div className="space-y-2">
+                <textarea
+                  value={resolutionNotes}
+                  onChange={(e) => setResolutionNotes(e.target.value)}
+                  placeholder="Describe cómo se resolvió el problema..."
+                  rows={4}
+                  className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 resize-none"
                 />
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors rounded-md flex items-center justify-center">
-                  <FiMaximize2 className="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                <div className="flex gap-2">
+                  <button
+                    onClick={handleSaveNotes}
+                    disabled={isSaving || !resolutionNotes.trim()}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-green-600 rounded-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <FiCheck className="w-3.5 h-3.5" />
+                    Guardar
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowNotesInput(false)
+                      setResolutionNotes('')
+                    }}
+                    disabled={isSaving}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700"
+                  >
+                    <FiX className="w-3.5 h-3.5" />
+                    Cancelar
+                  </button>
                 </div>
               </div>
-            ))}
+            ) : (
+              <button
+                onClick={() => setShowNotesInput(true)}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+              >
+                <FiEdit2 className="w-3.5 h-3.5" />
+                Añadir Notas de Resolución
+              </button>
+            )}
+          </div>
+
+          {/* Metadata */}
+          <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-4">
+            <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">
+              Información del Sistema
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+              <div>
+                <label className="text-gray-500 dark:text-gray-400">Creado por</label>
+                <p className="text-gray-900 dark:text-gray-100 mt-1">
+                  {currentReport.created_by_name || currentReport.created_by}
+                </p>
+              </div>
+              <div>
+                <label className="text-gray-500 dark:text-gray-400">Fecha creación</label>
+                <p className="text-gray-900 dark:text-gray-100 mt-1">
+                  {formatDateTime(currentReport.created_at)}
+                </p>
+              </div>
+              <div>
+                <label className="text-gray-500 dark:text-gray-400">ID Reporte</label>
+                <p className="text-gray-900 dark:text-gray-100 mt-1 font-mono text-[10px]">
+                  {currentReport.id}
+                </p>
+              </div>
+              <div>
+                <label className="text-gray-500 dark:text-gray-400">Última actualización</label>
+                <p className="text-gray-900 dark:text-gray-100 mt-1">
+                  {formatDateTime(currentReport.updated_at)}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Mobile Only: Images Section */}
+          {images.length > 0 && (
+            <div className="lg:hidden bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-4">
+              <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2 mb-4">
+                <FiImage className="w-4 h-4" />
+                Imágenes ({images.length})
+              </h3>
+              <div className="grid grid-cols-2 gap-3">
+                {images.map((image) => (
+                  <div
+                    key={image.id}
+                    className="relative group cursor-pointer"
+                    onClick={() => setExpandedImage(image.file_path)}
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={image.file_path}
+                      alt={image.file_name}
+                      className="w-full h-32 object-contain bg-gray-100 dark:bg-gray-900 rounded-md border border-gray-300 dark:border-gray-700"
+                    />
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors rounded-md flex items-center justify-center">
+                      <FiMaximize2 className="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Right Column - Images (Desktop only) */}
+        <div className="hidden lg:block lg:col-span-1">
+          <div className="sticky top-4 space-y-4">
+            {images.length > 0 ? (
+              <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-4">
+                <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2 mb-4">
+                  <FiImage className="w-4 h-4" />
+                  Imágenes ({images.length})
+                </h3>
+                <div className="space-y-3">
+                  {images.map((image) => (
+                    <div
+                      key={image.id}
+                      className="relative group cursor-pointer"
+                      onClick={() => setExpandedImage(image.file_path)}
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={image.file_path}
+                        alt={image.file_name}
+                        className="w-full h-48 object-contain bg-gray-100 dark:bg-gray-900 rounded-md border border-gray-300 dark:border-gray-700"
+                      />
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors rounded-md flex items-center justify-center">
+                        <FiMaximize2 className="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-4">
+                <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2 mb-4">
+                  <FiImage className="w-4 h-4" />
+                  Imágenes
+                </h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-8">
+                  Sin imágenes adjuntas
+                </p>
+              </div>
+            )}
           </div>
         </div>
-      )}
+      </div>
 
       {/* Image Lightbox */}
       {expandedImage && (
@@ -562,39 +650,6 @@ export function DetailTab() {
           />
         </div>
       )}
-
-      {/* Metadata */}
-      <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-4">
-        <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">
-          Información del Sistema
-        </h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-          <div>
-            <label className="text-gray-500 dark:text-gray-400">Creado por</label>
-            <p className="text-gray-900 dark:text-gray-100 mt-1">
-              {currentReport.created_by_name || currentReport.created_by}
-            </p>
-          </div>
-          <div>
-            <label className="text-gray-500 dark:text-gray-400">Fecha creación</label>
-            <p className="text-gray-900 dark:text-gray-100 mt-1">
-              {formatDateTime(currentReport.created_at)}
-            </p>
-          </div>
-          <div>
-            <label className="text-gray-500 dark:text-gray-400">ID Reporte</label>
-            <p className="text-gray-900 dark:text-gray-100 mt-1 font-mono text-[10px]">
-              {currentReport.id}
-            </p>
-          </div>
-          <div>
-            <label className="text-gray-500 dark:text-gray-400">Última actualización</label>
-            <p className="text-gray-900 dark:text-gray-100 mt-1">
-              {formatDateTime(currentReport.updated_at)}
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
+    </>
   )
 }

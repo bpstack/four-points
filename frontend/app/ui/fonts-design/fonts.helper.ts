@@ -8,16 +8,22 @@
  */
 
 import {
-  inter,
-  montserrat,
-  roboto,
-  sourceSansPro,
-  openSans,
   poppins,
-  // Fuentes del sistema (sin cargar desde Google)
+  ubuntu,
+  // Fuentes del sistema adicionales (no añaden peso de descarga)
   appleSystem,
   arial,
+  segoeUI,
+  systemUI,
+  emojiFont,
+} from './fonts'
+
+// Re-export para uso en otros lugares si es necesario
+export {
+  poppins,
   ubuntu,
+  appleSystem,
+  arial,
   segoeUI,
   systemUI,
   emojiFont,
@@ -35,44 +41,16 @@ export const ACTIVE_FONTS = {
 } as const
 
 // ============= 📋 FUENTES DISPONIBLES =============
-// Catálogo de todas las fuentes cargadas
+// Catálogo de fuentes cargadas actualmente
 
 export const AVAILABLE_FONTS = {
-  // Google Fonts
-  inter: {
-    name: 'Inter',
-    font: inter,
+  // Google Fonts (activas)
+  poppins: {
+    name: 'Poppins',
+    font: poppins,
     type: 'google',
-    description: 'Moderna y legible, ideal para UIs',
-    bestFor: 'Texto principal, interfaces limpias',
-  },
-  montserrat: {
-    name: 'Montserrat',
-    font: montserrat,
-    type: 'google',
-    description: 'Geométrica y elegante',
-    bestFor: 'Títulos, headings, branding',
-  },
-  roboto: {
-    name: 'Roboto',
-    font: roboto,
-    type: 'google',
-    description: 'Neutral y versátil de Google',
-    bestFor: 'Apps corporativas, dashboards',
-  },
-  sourceSans: {
-    name: 'Source Sans Pro',
-    font: sourceSansPro,
-    type: 'google',
-    description: 'Humanista y profesional de Adobe',
-    bestFor: 'Contenido editorial, blogs',
-  },
-  openSans: {
-    name: 'Open Sans',
-    font: openSans,
-    type: 'google',
-    description: 'Amigable y altamente legible',
-    bestFor: 'Sitios de contenido, e-commerce',
+    description: 'Geométrica y moderna',
+    bestFor: 'UI, headings, texto general',
   },
 
   // Fuentes del Sistema (sin carga externa)
@@ -123,38 +101,14 @@ export const AVAILABLE_FONTS = {
 // ============= 🎨 COMBINACIONES RECOMENDADAS =============
 
 export const FONT_COMBINATIONS = {
-  modern: {
-    name: 'Moderna & Limpia',
-    primary: inter,
-    display: montserrat,
-    description: 'Perfecta para startups y apps modernas',
-  },
-  professional: {
-    name: 'Profesional',
-    primary: sourceSansPro,
-    display: roboto,
-    description: 'Ideal para dashboards corporativos',
-  },
-  friendly: {
-    name: 'Amigable',
-    primary: openSans,
-    display: montserrat,
-    description: 'Cálida y accesible para usuarios',
-  },
-  editorial: {
-    name: 'Editorial',
-    primary: sourceSansPro,
-    display: sourceSansPro,
-    description: 'Una sola fuente para contenido largo',
-  },
-  techie: {
-    name: 'Tech',
-    primary: roboto,
-    display: roboto,
-    description: 'Estilo Google Material Design',
+  current: {
+    name: 'Actual (Poppins + Ubuntu)',
+    primary: poppins,
+    display: ubuntu,
+    description: 'Configuración actual del proyecto',
   },
 
-  // Combinaciones con fuentes del sistema
+  // Combinaciones con fuentes del sistema (sin descarga adicional)
   native: {
     name: 'Nativa del Sistema',
     primary: systemUI,
@@ -180,10 +134,10 @@ export const FONT_COMBINATIONS = {
     description: '📜 Arial en todo el sistema',
   },
   hybrid: {
-    name: 'Híbrida (Sistema + Google)',
-    primary: systemUI,
-    display: montserrat,
-    description: '🔥 Rendimiento + Estilo',
+    name: 'Híbrida (Poppins + Sistema)',
+    primary: poppins,
+    display: systemUI,
+    description: '🔥 Google Font + Sistema nativo',
   },
 } as const
 
@@ -200,7 +154,7 @@ export function getFontVariables(): string {
  * Aplica una combinación predefinida
  * @example
  * // En fonts.helper.ts:
- * export const ACTIVE_FONTS = applyFontCombination('modern')
+ * export const ACTIVE_FONTS = applyFontCombination('current')
  */
 export function applyFontCombination(combination: keyof typeof FONT_COMBINATIONS) {
   const combo = FONT_COMBINATIONS[combination]
@@ -233,36 +187,24 @@ export function getCurrentFontConfig() {
  *
  * 1. Modifica ACTIVE_FONTS arriba:
  *    export const ACTIVE_FONTS = {
- *      primary: ubuntu,       // ← Fuente del sistema
- *      display: montserrat,   // ← Google Font
+ *      primary: poppins,    // ← Google Font activa
+ *      display: ubuntu,     // ← Fuente del sistema
  *    }
  *
  * 2. O usa una combinación predefinida:
- *    export const ACTIVE_FONTS = applyFontCombination('linux')
+ *    export const ACTIVE_FONTS = applyFontCombination('native')
  *
  * 3. Reinicia el servidor de desarrollo
  *
- * 4. Visita /fonts-test para ver los cambios
+ * 💡 PARA AÑADIR MÁS GOOGLE FONTS:
  *
- * 💡 FUENTES DEL SISTEMA vs GOOGLE FONTS:
- *
- * Fuentes del Sistema (ubuntu, arial, appleSystem, etc.):
- * ✅ Carga instantánea (0ms)
- * ✅ No requieren descarga
- * ✅ Look nativo del sistema operativo
- * ❌ Pueden verse diferentes en cada OS
- *
- * Google Fonts (inter, montserrat, roboto, etc.):
- * ✅ Look consistente en todos los navegadores
- * ✅ Más opciones de estilo
- * ❌ Requieren descarga (~20-50kb por fuente)
- *
- * 🔥 COMBINACIÓN HÍBRIDA (recomendada):
- * primary: systemUI    → Texto rápido y nativo
- * display: montserrat  → Títulos con personalidad
+ * 1. Ve a fonts.ts
+ * 2. Descomenta la fuente que necesitas (ej: inter, montserrat)
+ * 3. Añádela a los imports en este archivo
+ * 4. Úsala en ACTIVE_FONTS
  *
  * ⚠️ IMPORTANTE:
- * - NO necesitas tocar design-system.ts
- * - NO necesitas tocar tailwind.config.ts
- * - Las clases font-sans y font-montserrat se actualizan automáticamente
+ * - Cada Google Font añade ~20-50kb de descarga
+ * - Las fuentes del sistema (ubuntu, arial, etc.) NO añaden peso
+ * - NO necesitas tocar design-system.ts ni tailwind.config.ts
  */

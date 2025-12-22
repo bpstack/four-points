@@ -178,55 +178,60 @@ export default function ParkingNavigator() {
 
           {/* Mobile */}
           <div className="md:hidden space-y-2">
-            <div className="flex items-center justify-between gap-2">
+            {/* Fila 1: Icono + Mes + Navegación mes */}
+            <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <div className="p-1.5 bg-blue-100 dark:bg-blue-900/30 rounded-md">
                   <MdLocalParking className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                 </div>
-                <h1 className="text-base font-semibold text-gray-900 dark:text-white capitalize whitespace-nowrap w-20">
+                <h1 className="text-sm font-semibold text-gray-900 dark:text-white capitalize">
                   {currentMonth.slice(0, 3)} {currentYear}
                 </h1>
-                <button
-                  onClick={goToPreviousMonth}
-                  className="p-2.5 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-                >
-                  <FiChevronLeft className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={goToNextMonth}
-                  className="p-2.5 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-                >
-                  <FiChevronRight className="w-4 h-4" />
-                </button>
+                <div className="flex items-center">
+                  <button
+                    onClick={goToPreviousMonth}
+                    className="p-1.5 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors"
+                  >
+                    <FiChevronLeft className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={goToNextMonth}
+                    className="p-1.5 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors"
+                  >
+                    <FiChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
 
-              <button
-                onClick={goToToday}
-                className="px-2.5 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors flex items-center gap-1 flex-shrink-0"
-              >
-                <FiCalendar className="w-3.5 h-3.5" /> Hoy
-              </button>
-
-              <Link href="/dashboard/parking/bookings/new">
-                <button className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 rounded-lg transition-colors whitespace-nowrap flex-shrink-0">
-                  <FiPlus className="w-3.5 h-3.5" /> Nuevo
+              {/* Acciones: Hoy + Nueva */}
+              <div className="flex items-center gap-1.5">
+                <button
+                  onClick={goToToday}
+                  className="px-2 py-1 text-xs font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors"
+                >
+                  Hoy
                 </button>
-              </Link>
+                <Link href="/dashboard/parking/bookings/new">
+                  <button className="p-1.5 text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 rounded-md transition-colors">
+                    <FiPlus className="w-4 h-4" />
+                  </button>
+                </Link>
+              </div>
             </div>
 
-            {/* Filtros de nivel mobile */}
-            <div className="flex items-center gap-2">
+            {/* Fila 2: Filtros de nivel */}
+            <div className="flex items-center gap-1.5">
               {['all', '-2', '-3'].map((level) => (
                 <button
                   key={`mobile-level-${level}`}
                   onClick={() => selectLevel(level)}
-                  className={`flex-1 px-3 py-2 text-xs font-medium rounded-md transition-colors ${
+                  className={`flex-1 px-2 py-1.5 text-xs font-medium rounded-md transition-colors ${
                     selectedLevel === level
                       ? 'bg-blue-600 text-white'
-                      : 'text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800'
+                      : 'text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700'
                   }`}
                 >
-                  {level === 'all' ? 'Todas' : `Planta ${level.replace('-', '')}`}
+                  {level === 'all' ? 'Todos' : `Planta ${level.replace('-', '')}`}
                 </button>
               ))}
             </div>
@@ -235,8 +240,8 @@ export default function ParkingNavigator() {
       </div>
 
       {/* Paginación sticky - Selector de días */}
-      {/* Mobile: ~120px (two rows + padding), Desktop: ~64px (single row) */}
-      <div className="sticky top-[116px] md:top-[64px] z-30">
+      {/* Mobile: ~88px (header compacto), Desktop: ~64px (single row) */}
+      <div className="sticky top-[88px] md:top-[64px] z-30">
         <HorizontalDatePicker
           currentDate={currentDate}
           selectedDay={selectedDay}

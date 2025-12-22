@@ -21,6 +21,7 @@ interface DatePickerInputProps {
   disabled?: boolean
   clearable?: boolean
   className?: string
+  size?: 'sm' | 'md' // sm para filtros, md por defecto
 }
 
 export default function DatePickerInput({
@@ -34,9 +35,12 @@ export default function DatePickerInput({
   disabled = false,
   clearable = true,
   className = '',
+  size = 'md',
 }: DatePickerInputProps) {
   const [isOpen, setIsOpen] = useState(false)
+  const [alignRight, setAlignRight] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
+  const buttonRef = useRef<HTMLButtonElement>(null)
 
   // Convertir string YYYY-MM-DD a Date
   const selectedDate = value ? new Date(value + 'T12:00:00') : null
@@ -67,6 +71,22 @@ export default function DatePickerInput({
     onChange(undefined)
   }
 
+  // Calcular si el calendario debe alinearse a la derecha
+  const handleOpen = () => {
+    if (disabled) return
+    
+    if (buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect()
+      const calendarWidth = 224 // w-56 = 14rem = 224px
+      const spaceOnRight = window.innerWidth - rect.left
+      
+      // Si no hay espacio suficiente a la derecha, alinear a la derecha
+      setAlignRight(spaceOnRight < calendarWidth + 16) // 16px de margen
+    }
+    
+    setIsOpen(!isOpen)
+  }
+
   // Cerrar al hacer clic fuera
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -95,19 +115,23 @@ export default function DatePickerInput({
       <div ref={containerRef} className="relative">
         {/* Input button */}
         <button
+          ref={buttonRef}
           type="button"
-          onClick={() => !disabled && setIsOpen(!isOpen)}
+          onClick={handleOpen}
           disabled={disabled}
           className={`
-            w-full px-3 py-2 text-sm text-left border rounded-md 
+            w-full text-left border rounded-md 
             focus:outline-none focus:ring-2 focus:ring-blue-500
-            dark:bg-[#0d1117] dark:text-gray-200 
+            bg-white dark:bg-[#151b23] dark:text-gray-200 
             flex items-center justify-between gap-2
+            ${size === 'sm' ? 'px-3 py-1.5 text-xs' : 'px-3 py-2 text-sm'}
             ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
             ${
               error
                 ? 'border-red-500 dark:border-red-500'
-                : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
+                : value
+                  ? 'border-blue-400 dark:border-blue-600 bg-blue-50 dark:bg-blue-900/20'
+                  : 'border-gray-300 dark:border-gray-700 hover:border-gray-400 dark:hover:border-gray-500'
             }
           `}
         >
@@ -126,16 +150,16 @@ export default function DatePickerInput({
                 onClick={handleClear}
                 className="p-0.5 hover:bg-gray-200 dark:hover:bg-gray-700 rounded"
               >
-                <FiX className="w-3.5 h-3.5 text-gray-400" />
+                <FiX className={size === 'sm' ? 'w-3 h-3 text-gray-400' : 'w-3.5 h-3.5 text-gray-400'} />
               </span>
             )}
-            <FiCalendar className="w-4 h-4 text-gray-400" />
+            <FiCalendar className={size === 'sm' ? 'w-3.5 h-3.5 text-gray-400' : 'w-4 h-4 text-gray-400'} />
           </div>
         </button>
 
         {/* Calendar dropdown */}
         {isOpen && (
-          <div className="absolute z-50 mt-1 left-0">
+          <div className={`absolute z-50 mt-1 ${alignRight ? 'right-0' : 'left-0'}`}>
             <SimpleCalendarCompact
               selectedDate={selectedDate}
               onSelect={handleSelect}
