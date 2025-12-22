@@ -1,149 +1,74 @@
 // lib/notifications/useNotifications.ts
+// Wrapper hook that combines React Query with a simple interface
 
-import { useEffect, useCallback } from 'react'
-import { useNotificationStore, type Notification } from '@/app/stores/useNotificationStore'
-import { apiClient } from '@/app/lib/apiClient'
-import { API_BASE_URL } from '@/app/lib/env'
-
-const API_URL = API_BASE_URL
+import { useCallback } from 'react'
+import {
+  useNotificationsQuery,
+  useUnreadCountQuery,
+  useMarkAsReadMutation,
+  useMarkAllAsReadMutation,
+  useDeleteNotificationMutation,
+} from './queries'
 
 export function useNotifications() {
+  // Queries
   const {
-    notifications,
-    unreadCount,
-    loading,
-    error,
-    setNotifications,
-    setUnreadCount,
-    setLoading,
-    setError,
-    markAsRead: markAsReadStore,
-    markAllAsRead: markAllAsReadStore,
-    removeNotification: removeNotificationStore,
-  } = useNotificationStore()
+    data: notifications = [],
+    isLoading: loading,
+    error: queryError,
+    refetch: fetchNotifications,
+  } = useNotificationsQuery()
 
-  /**
-   * Obtener todas las notificaciones del usuario
-   */
-  const fetchNotifications = useCallback(async () => {
-    setLoading(true)
-    setError(null)
-    try {
-      const data = await apiClient.get<{ data?: Notification[] }>(`${API_URL}/api/notifications`)
-      setNotifications(data.data || [])
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Error al cargar notificaciones'
-      setError(message)
-      console.error('Error fetching notifications:', err)
-    } finally {
-      setLoading(false)
-    }
-  }, [setLoading, setError, setNotifications])
+  const { data: unreadCount = 0, refetch: fetchUnreadCount } = useUnreadCountQuery()
 
-  /**
-   * Obtener solo notificaciones no leídas
-   */
-  const fetchUnreadNotifications = useCallback(async () => {
-    setLoading(true)
-    setError(null)
-    try {
-      const data = await apiClient.get<{ data?: Notification[] }>(
-        `${API_URL}/api/notifications/unread`
-      )
-      setNotifications(data.data || [])
-    } catch (err) {
-      const message =
-        err instanceof Error ? err.message : 'Error al cargar notificaciones no leídas'
-      setError(message)
-      console.error('Error fetching unread notifications:', err)
-    } finally {
-      setLoading(false)
-    }
-  }, [setLoading, setError, setNotifications])
+  // Mutations
+  const markAsReadMutation = useMarkAsReadMutation()
+  const markAllAsReadMutation = useMarkAllAsReadMutation()
+  const deleteNotificationMutation = useDeleteNotificationMutation()
 
-  /**
-   * Obtener contador de no leídas
-   */
-  const fetchUnreadCount = useCallback(async () => {
-    try {
-      const data = await apiClient.get<{ count?: number }>(
-        `${API_URL}/api/notifications/unread/count`
-      )
-      setUnreadCount(data.count || 0)
-    } catch (err) {
-      console.error('Error fetching unread count:', err)
-    }
-  }, [setUnreadCount])
-
-  /**
-   * Marcar como leída
-   */
+  // Wrap mutations in callbacks for consistent API
   const markAsRead = useCallback(
     async (id: number) => {
-      try {
-        await apiClient.patch(`${API_URL}/api/notifications/${id}/read`)
-        markAsReadStore(id)
-        await fetchUnreadCount() // Actualizar contador
-      } catch (err) {
-        const message = err instanceof Error ? err.message : 'Error al marcar como leída'
-        setError(message)
-        console.error('Error marking as read:', err)
-      }
+      await markAsReadMutation.mutateAsync(id)
     },
-    [markAsReadStore, fetchUnreadCount, setError]
+    [markAsReadMutation]
   )
 
-  /**
-   * Marcar todas como leídas
-   */
   const markAllAsRead = useCallback(async () => {
-    try {
-      await apiClient.patch(`${API_URL}/api/notifications/read-all`)
-      markAllAsReadStore()
-      setUnreadCount(0)
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Error al marcar todas como leídas'
-      setError(message)
-      console.error('Error marking all as read:', err)
-    }
-  }, [markAllAsReadStore, setUnreadCount, setError])
+    await markAllAsReadMutation.mutateAsync()
+  }, [markAllAsReadMutation])
 
-  /**
-   * Eliminar notificación (solo admin)
-   */
   const deleteNotification = useCallback(
     async (id: number) => {
-      try {
-        await apiClient.delete(`${API_URL}/api/notifications/${id}`)
-        removeNotificationStore(id)
-        await fetchUnreadCount() // Actualizar contador
-      } catch (err) {
-        const message = err instanceof Error ? err.message : 'Error al eliminar notificación'
-        setError(message)
-        console.error('Error deleting notification:', err)
-      }
+      await deleteNotificationMutation.mutateAsync(id)
     },
-    [removeNotificationStore, fetchUnreadCount, setError]
+    [deleteNotificationMutation]
   )
 
-  /**
-   * Auto-fetch al montar el componente
-   */
-  useEffect(() => {
-    fetchNotifications()
-    fetchUnreadCount()
-  }, [fetchNotifications, fetchUnreadCount])
+  // Error handling
+  const error = queryError
+    ? queryError instanceof Error
+      ? queryError.message
+      : 'Error al cargar notificaciones'
+    : null
 
   return {
+    // Data
     notifications,
     unreadCount,
     loading,
     error,
+
+    // Actions
     fetchNotifications,
-    fetchUnreadNotifications,
     fetchUnreadCount,
     markAsRead,
     markAllAsRead,
     deleteNotification,
+
+    // Mutation states (for UI feedback)
+    isMarkingAsRead: markAsReadMutation.isPending,
+    isMarkingAllAsRead: markAllAsReadMutation.isPending,
+    isDeleting: deleteNotificationMutation.isPending,
   }
 }
