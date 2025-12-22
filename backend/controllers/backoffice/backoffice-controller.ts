@@ -708,12 +708,18 @@ export class BackofficeController {
         return
       }
 
-      // Verificar que la factura existe
+      // Verificar que la factura existe y obtener public_id anterior
       const invoice = await BackofficeRepository.getInvoiceById(Number(id))
       if (!invoice) {
         res.status(404).json({ error: 'Factura no encontrada' })
         return
       }
+
+      // Obtener los public_ids para poder borrar el anterior después
+      const pdfInfo = await BackofficeRepository.getInvoicePdfInfo(Number(id))
+      const previousPublicId = type === 'original' 
+        ? pdfInfo?.original_pdf_public_id 
+        : pdfInfo?.validated_pdf_public_id
 
       if (!req.file) {
         res.status(400).json({ error: 'No se envió ningún archivo' })
@@ -757,6 +763,18 @@ export class BackofficeController {
         req.user.id
       )
       console.log('[BackofficeController.uploadInvoicePdf] DB update result:', updateResult)
+
+      // Borrar el archivo anterior de Cloudinary (solo si había uno y el upload fue exitoso)
+      if (previousPublicId && updateResult) {
+        try {
+          console.log('[BackofficeController.uploadInvoicePdf] Deleting previous PDF:', previousPublicId)
+          await CloudinaryService.deleteFile(previousPublicId, 'raw')
+          console.log('[BackofficeController.uploadInvoicePdf] Previous PDF deleted successfully')
+        } catch (deleteError: any) {
+          // Log pero no fallar - el nuevo archivo ya está subido
+          console.warn('[BackofficeController.uploadInvoicePdf] Failed to delete previous PDF:', deleteError.message)
+        }
+      }
 
       const updatedInvoice = await BackofficeRepository.getInvoiceById(Number(id))
       console.log('[BackofficeController.uploadInvoicePdf] Updated invoice:', {

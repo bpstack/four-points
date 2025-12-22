@@ -101,7 +101,7 @@ export function PendingInvoicesTabLazy({
     queryKey: pendingKey(pagination.page),
     queryFn: async () => {
       const response = await backofficeApi.getInvoices({
-        status: 'pending',
+        status: 'pending,validated',
         page: pagination.page,
         limit: pagination.limit ?? 50,
       })
@@ -163,7 +163,7 @@ export function PendingInvoicesTabLazy({
   }
 
   const invalidatePending = () => {
-    queryClient.invalidateQueries({ queryKey: pendingListKey() })
+    queryClient.invalidateQueries({ queryKey: pendingListKey(), refetchType: 'active' })
   }
 
   // Modal handlers
@@ -312,12 +312,17 @@ export function PendingInvoicesTabLazy({
       console.log('[handlePdfEditorSave] Validate result:', validateResult)
 
       toast.success('Factura validada con PDF firmado')
-      invalidatePending()
+
+      // Close modal first, then refresh data
+      setPdfEditorOpen(false)
+      setEditingPdfInvoice(null)
+
+      // Refetch after modal is closed (use pendingListKey as prefix matcher)
+      await queryClient.refetchQueries({ queryKey: pendingListKey(), exact: false })
     } catch (error: unknown) {
       console.error('[handlePdfEditorSave] Error:', error)
       const message = error instanceof Error ? error.message : 'Error al guardar PDF validado'
       toast.error(message)
-    } finally {
       setPdfEditorOpen(false)
       setEditingPdfInvoice(null)
     }

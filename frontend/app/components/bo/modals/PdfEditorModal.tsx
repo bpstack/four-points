@@ -408,15 +408,16 @@ export function PdfEditorModal({
 
       // Handle resize
       if (resizeRef.current) {
-        const deltaX = (e.clientX - resizeRef.current.startX) / scale
-        const deltaY = (e.clientY - resizeRef.current.startY) / scale
+        const currentResize = resizeRef.current
+        const deltaX = (e.clientX - currentResize.startX) / scale
+        const deltaY = (e.clientY - currentResize.startY) / scale
         const { handle, elementStartX, elementStartY, elementStartWidth, elementStartHeight } =
-          resizeRef.current
+          currentResize
         const minSize = 20 // Minimum size in pixels
 
         setPlacedElements((prev) =>
           prev.map((el) => {
-            if (el.id === resizeRef.current!.elementId) {
+            if (el.id === currentResize.elementId) {
               let newX = elementStartX
               let newY = elementStartY
               let newWidth = elementStartWidth
@@ -465,18 +466,19 @@ export function PdfEditorModal({
       // Handle drag
       if (!dragRef.current) return
 
-      const deltaX = (e.clientX - dragRef.current.startX) / scale
-      const deltaY = (e.clientY - dragRef.current.startY) / scale
+      const currentDrag = dragRef.current
+      const deltaX = (e.clientX - currentDrag.startX) / scale
+      const deltaY = (e.clientY - currentDrag.startY) / scale
 
       setPlacedElements((prev) =>
         prev.map((el) => {
-          if (el.id === dragRef.current!.elementId) {
+          if (el.id === currentDrag.elementId) {
             const maxX = pdfDimensions.width / scale - el.width
             const maxY = pdfDimensions.height / scale - el.height
             return {
               ...el,
-              x: Math.max(0, Math.min(maxX, dragRef.current!.elementStartX + deltaX)),
-              y: Math.max(0, Math.min(maxY, dragRef.current!.elementStartY + deltaY)),
+              x: Math.max(0, Math.min(maxX, currentDrag.elementStartX + deltaX)),
+              y: Math.max(0, Math.min(maxY, currentDrag.elementStartY + deltaY)),
             }
           }
           return el

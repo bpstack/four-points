@@ -17,7 +17,10 @@ import {
   FiChevronRight,
   FiChevronLeft,
   FiFileText,
+  FiCalendar,
+  FiDollarSign,
   FiTrash2,
+  FiX,
 } from 'react-icons/fi'
 import type { SupplierWithStats, Category } from '@/app/lib/backoffice/types'
 import {
@@ -148,8 +151,8 @@ export function SuppliersTabLazy({
   }
 
   // Summary stats
-  const totalYTD = filteredSuppliers.reduce((sum, s) => sum + (s.ytd_total || 0), 0)
   const domiciledCount = filteredSuppliers.filter((s) => s.payment_method === 'direct_debit').length
+  const transferCount = filteredSuppliers.filter((s) => s.payment_method === 'transfer').length
 
   return (
     <div className="space-y-4">
@@ -168,9 +171,9 @@ export function SuppliersTabLazy({
           </p>
         </div>
         <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-3">
-          <p className="text-[10px] text-gray-600 dark:text-gray-400 font-medium">Total YTD</p>
-          <p className="text-sm sm:text-base font-bold text-gray-900 dark:text-gray-100 mt-0.5">
-            {formatCurrency(totalYTD)}
+          <p className="text-[10px] text-gray-600 dark:text-gray-400 font-medium">Transferencias</p>
+          <p className="text-sm sm:text-base font-bold text-blue-600 dark:text-blue-400 mt-0.5">
+            {transferCount}
           </p>
         </div>
       </div>
@@ -354,89 +357,168 @@ export function SuppliersTabLazy({
                   <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
                     {selectedSupplier.name}
                   </h3>
-                  <p className="text-[11px] text-gray-500 dark:text-gray-400">
-                    {selectedSupplier.payment_method === 'direct_debit'
-                      ? 'Domiciliado'
-                      : PAYMENT_METHOD_LABELS[selectedSupplier.payment_method] || 'N/D'}
-                  </p>
-                  <p className="text-[11px] text-gray-500 dark:text-gray-400">
-                    {selectedSupplier.department || '-'}
+                  <p className="text-[10px] text-gray-500 dark:text-gray-500 mt-0.5">
+                    {selectedSupplier.cost_center || 'Sin categoría'}
                   </p>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex items-center gap-1">
                   <button
                     onClick={() => handleOpenEditSupplier(selectedSupplier)}
-                    className="p-2 text-gray-500 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors"
-                    title="Editar proveedor"
+                    className="inline-flex items-center justify-center w-7 h-7 text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors"
+                    title="Editar"
                   >
-                    <FiEdit2 className="w-4 h-4" />
+                    <FiEdit2 className="w-3.5 h-3.5" />
                   </button>
                   <button
                     onClick={() => handleOpenDeleteDialog(selectedSupplier)}
-                    className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors"
-                    title="Eliminar proveedor"
+                    className="inline-flex items-center justify-center w-7 h-7 text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors"
+                    title="Eliminar"
                   >
-                    <FiTrash2 className="w-4 h-4" />
+                    <FiTrash2 className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    onClick={() => setSelectedSupplier(null)}
+                    className="inline-flex items-center justify-center w-7 h-7 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors"
+                    title="Cerrar"
+                  >
+                    <FiX className="w-3.5 h-3.5" />
                   </button>
                 </div>
               </div>
 
-              <div className="space-y-3 text-xs text-gray-600 dark:text-gray-400">
-                <div className="flex items-center justify-between">
-                  <span className="text-[11px] text-gray-500 dark:text-gray-500">Total YTD</span>
-                  <span className="font-semibold text-gray-900 dark:text-gray-100">
-                    {formatCurrency(selectedSupplier.ytd_total || 0)}
-                  </span>
+              <div className="space-y-3">
+                {/* Stats */}
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="bg-gray-50 dark:bg-[#0d1117] rounded p-2">
+                    <p className="text-[10px] text-gray-500 dark:text-gray-500">Total YTD</p>
+                    <p className="text-sm font-bold text-gray-900 dark:text-gray-100">
+                      {formatCurrency(selectedSupplier.ytd_total || 0)}
+                    </p>
+                  </div>
+                  <div className="bg-gray-50 dark:bg-[#0d1117] rounded p-2">
+                    <p className="text-[10px] text-gray-500 dark:text-gray-500">Facturas</p>
+                    <p className="text-sm font-bold text-gray-900 dark:text-gray-100">
+                      {selectedSupplier.total_invoices || 0}
+                    </p>
+                  </div>
                 </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-[11px] text-gray-500 dark:text-gray-500">Facturas</span>
-                  <span className="font-semibold text-gray-900 dark:text-gray-100">
-                    {selectedSupplier.total_invoices || 0}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-[11px] text-gray-500 dark:text-gray-500">Periodicidad</span>
-                  <span className="font-semibold text-gray-900 dark:text-gray-100">
-                    {PERIODICITY_LABELS[selectedSupplier.periodicity]}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-[11px] text-gray-500 dark:text-gray-500">Categoría</span>
-                  <span className="font-semibold text-gray-900 dark:text-gray-100">
-                    {categories.find((c) => c.id === selectedSupplier.default_category_id)
-                      ?.department || '-'}
-                  </span>
-                </div>
-                <div className="flex items-center justify_between">
-                  <span className="text-[11px] text-gray-500 dark:text-gray-500">
-                    Última factura
-                  </span>
-                  <span className="font-semibold text-gray-900 dark:text-gray-100">
-                    {formatDate(selectedSupplier.last_invoice_date)}
-                  </span>
-                </div>
-              </div>
 
-              <div className="flex gap-2 mt-4">
-                <button
-                  onClick={() => setInvoicesModalOpen(true)}
-                  className="flex-1 inline-flex items-center justify-center gap-2 px-3 py-2 text-xs font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 rounded-md hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
-                >
-                  <FiFileText className="w-4 h-4" />
-                  Ver facturas
-                </button>
-                <button
-                  onClick={() => setSelectedSupplier(null)}
-                  className="inline-flex items-center justify-center px-3 py-2 text-xs font-medium text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-                >
-                  <FiChevronLeft className="w-4 h-4" />
-                  Volver
-                </button>
+                {/* Stats detail */}
+                <div className="grid grid-cols-2 gap-2 text-[10px]">
+                  <div className="flex items-center gap-1 text-yellow-600 dark:text-yellow-400">
+                    <span>Pendientes:</span>
+                    <span className="font-medium">{selectedSupplier.pending_invoices || 0}</span>
+                  </div>
+                  <div className="flex items-center gap-1 text-green-600 dark:text-green-400">
+                    <span>Pagadas:</span>
+                    <span className="font-medium">{selectedSupplier.paid_invoices || 0}</span>
+                  </div>
+                </div>
+
+                {/* Details */}
+                <div className="space-y-2 text-xs">
+                  <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
+                    <FiCalendar className="w-3.5 h-3.5 text-gray-400" />
+                    <span>Última factura:</span>
+                    <span className="text-gray-900 dark:text-gray-100">
+                      {formatDate(selectedSupplier.last_invoice_date)}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
+                    <FiDollarSign className="w-3.5 h-3.5 text-gray-400" />
+                    <span>Periodicidad:</span>
+                    <span className="text-gray-900 dark:text-gray-100">
+                      {PERIODICITY_LABELS[selectedSupplier.periodicity]}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
+                    <FiFileText className="w-3.5 h-3.5 text-gray-400" />
+                    <span>Forma de pago:</span>
+                    <span className="text-gray-900 dark:text-gray-100">
+                      {PAYMENT_METHOD_LABELS[selectedSupplier.payment_method]}
+                    </span>
+                  </div>
+                </div>
+
+                {/* CIF */}
+                {selectedSupplier.cif && (
+                  <div className="pt-2 border-t border-gray-100 dark:border-gray-800">
+                    <p className="text-[10px] text-gray-500 dark:text-gray-500 mb-1">CIF</p>
+                    <p className="text-xs text-gray-700 dark:text-gray-300 font-mono">
+                      {selectedSupplier.cif}
+                    </p>
+                  </div>
+                )}
+
+                {/* Bank Account */}
+                {selectedSupplier.bank_account && (
+                  <div className="pt-2 border-t border-gray-100 dark:border-gray-800">
+                    <p className="text-[10px] text-gray-500 dark:text-gray-500 mb-1">
+                      Cuenta Bancaria
+                    </p>
+                    <p className="text-xs text-gray-700 dark:text-gray-300 font-mono break-all">
+                      {selectedSupplier.bank_account}
+                    </p>
+                  </div>
+                )}
+
+                {/* Notes */}
+                {selectedSupplier.notes && (
+                  <div className="pt-2 border-t border-gray-100 dark:border-gray-800">
+                    <p className="text-[10px] text-gray-500 dark:text-gray-500 mb-1">
+                      Observaciones
+                    </p>
+                    <p className="text-xs text-gray-700 dark:text-gray-300">
+                      {selectedSupplier.notes}
+                    </p>
+                  </div>
+                )}
+
+                {/* Contact info */}
+                {(selectedSupplier.email || selectedSupplier.phone) && (
+                  <div className="pt-2 border-t border-gray-100 dark:border-gray-800 space-y-1">
+                    <p className="text-[10px] text-gray-500 dark:text-gray-500 mb-1">Contacto</p>
+                    {selectedSupplier.email && (
+                      <p className="text-xs text-gray-600 dark:text-gray-400">
+                        {selectedSupplier.email}
+                      </p>
+                    )}
+                    {selectedSupplier.phone && (
+                      <p className="text-xs text-gray-600 dark:text-gray-400">
+                        {selectedSupplier.phone}
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                {/* Address */}
+                {selectedSupplier.address && (
+                  <div className="pt-2 border-t border-gray-100 dark:border-gray-800">
+                    <p className="text-[10px] text-gray-500 dark:text-gray-500 mb-1">Dirección</p>
+                    <p className="text-xs text-gray-700 dark:text-gray-300">
+                      {selectedSupplier.address}
+                    </p>
+                  </div>
+                )}
+
+                {/* Actions */}
+                <div className="pt-3 flex gap-2">
+                  <button
+                    onClick={() => setInvoicesModalOpen(true)}
+                    className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-blue-600 dark:bg-blue-700 text-white text-xs font-medium rounded-md hover:bg-blue-700 dark:hover:bg-blue-800 transition-colors"
+                  >
+                    <FiFileText className="w-3.5 h-3.5" />
+                    Ver Facturas
+                  </button>
+                </div>
               </div>
             </div>
           ) : (
-            <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-6 text-center text-xs text-gray-500 dark:text-gray-400">
-              Selecciona un proveedor para ver detalles
+            <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-6 text-center">
+              <FiFileText className="w-8 h-8 text-gray-300 dark:text-gray-600 mx-auto mb-2" />
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                Selecciona un proveedor para ver sus detalles
+              </p>
             </div>
           )}
         </div>

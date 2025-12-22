@@ -54,6 +54,9 @@ Estado actual: rama `improve` con correcciones aplicadas, lista para continuar.
 - Refactor ligero: extraídos hooks `useConversations`, `useChat`, `useUserSearch`.
 - Componente `MessagesPanel` simplificado de 985 a ~850 líneas con mejor separación.
 
+13) Dashboard principal — **[completado]**
+- Evaluado: React Query no justificado (solo 2 queries simples, lógica de fechas compleja bien encapsulada).
+
 ## Siguientes pasos concretos
 - [x] Crear `env.ts` y sustituir referencias.
 - [x] Añadir validaciones en Route Handlers de auth.
@@ -71,7 +74,7 @@ Estado actual: rama `improve` con correcciones aplicadas, lista para continuar.
 - [x] Actualizar baseline-browser-mapping.
 - [x] Migrar Notifications a React Query con optimistic updates.
 - [x] Refactor Messages: extraer hooks useConversations, useChat, useUserSearch.
-- [ ] Migrar Dashboard principal a React Query (si aplica).
+- [x] Dashboard principal: evaluado, no necesario (2 queries simples, lógica de fechas compleja).
 
 ## Notas rápidas
 - `.editorconfig` y `.gitattributes` añadidos para prevenir CRLF futuros.
