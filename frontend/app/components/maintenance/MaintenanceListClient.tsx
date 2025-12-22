@@ -2,25 +2,17 @@
 
 'use client'
 
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { maintenanceApi } from '@/app/lib/maintenance/maintenanceApi'
 import type { MaintenanceReport, ReportFilters } from '@/app/lib/maintenance/maintenance'
+import type { MaintenanceListResponse } from '@/app/lib/maintenance/maintenanceApi'
+import { useMaintenanceList } from './hooks/useMaintenanceList'
 import { CreateReportPanel } from './panels/CreateReportPanel'
 import { FiPlus, FiSearch, FiAlertCircle, FiTool, FiCheckCircle, FiClock } from 'react-icons/fi'
 
-interface Pagination {
-  total: number
-  page: number
-  limit: number
-  total_pages: number
-  has_next: boolean
-  has_prev: boolean
-}
-
 interface MaintenanceListClientProps {
   initialReports: MaintenanceReport[]
-  initialPagination?: Pagination
+  initialPagination?: MaintenanceListResponse['pagination']
 }
 
 export function MaintenanceListClient({
@@ -31,79 +23,82 @@ export function MaintenanceListClient({
   const searchParams = useSearchParams()
   const panel = searchParams.get('panel')
 
-  const [reports, setReports] = useState<MaintenanceReport[]>(initialReports || [])
-  const [pagination, setPagination] = useState<Pagination | undefined>(initialPagination)
-  const [loading, setLoading] = useState(false)
   const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '')
+  const [currentPage, setCurrentPage] = useState(1)
   const [filters, setFilters] = useState<ReportFilters>({
-    status: (searchParams.get('status') as any) || undefined,
-    priority: (searchParams.get('priority') as any) || undefined,
-    location_type: (searchParams.get('location_type') as any) || undefined,
+    status: (searchParams.get('status') as ReportFilters['status']) || undefined,
+    priority: (searchParams.get('priority') as ReportFilters['priority']) || undefined,
+    location_type:
+      (searchParams.get('location_type') as ReportFilters['location_type']) || undefined,
+    search: searchParams.get('search') || undefined,
   })
 
-  // Cargar reportes cuando cambien los filtros
-  const loadReports = async (newFilters?: ReportFilters, page?: number) => {
-    try {
-      setLoading(true)
-      const response = await maintenanceApi.getAll({
-        ...filters,
-        ...newFilters,
-        search: searchTerm || undefined,
-        page: page || 1,
-        limit: 20,
-      })
-      setReports(response.reports || [])
-      setPagination(response.pagination)
-    } catch (error) {
-      console.error('Error loading reports:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
+  // React Query hook
+  const { reports, pagination, isLoading, isFetching, refetch } = useMaintenanceList({
+    filters,
+    page: currentPage,
+    limit: 20,
+    initialData: initialPagination
+      ? { reports: initialReports, pagination: initialPagination }
+      : undefined,
+  })
+
+  const loading = isLoading || isFetching
 
   // Actualizar URL con filtros
-  const updateUrlWithFilters = (newFilters: ReportFilters, search?: string) => {
-    const params = new URLSearchParams()
-    if (newFilters.status) params.set('status', newFilters.status)
-    if (newFilters.priority) params.set('priority', newFilters.priority)
-    if (newFilters.location_type) params.set('location_type', newFilters.location_type)
-    if (search) params.set('search', search)
+  const updateUrlWithFilters = useCallback(
+    (newFilters: ReportFilters, search?: string) => {
+      const params = new URLSearchParams()
+      if (newFilters.status) params.set('status', newFilters.status)
+      if (newFilters.priority) params.set('priority', newFilters.priority)
+      if (newFilters.location_type) params.set('location_type', newFilters.location_type)
+      if (search) params.set('search', search)
 
-    const queryString = params.toString()
-    router.push(queryString ? `?${queryString}` : '/dashboard/maintenance', { scroll: false })
-  }
+      const queryString = params.toString()
+      router.push(queryString ? `?${queryString}` : '/dashboard/maintenance', { scroll: false })
+    },
+    [router]
+  )
 
-  const handleSearch = () => {
-    updateUrlWithFilters(filters, searchTerm)
-    loadReports(filters)
-  }
-
-  const handleFilterChange = (newFilters: ReportFilters) => {
+  const handleSearch = useCallback(() => {
+    const newFilters = { ...filters, search: searchTerm || undefined }
     setFilters(newFilters)
-    updateUrlWithFilters(newFilters, searchTerm)
-    loadReports(newFilters)
-  }
+    setCurrentPage(1)
+    updateUrlWithFilters(filters, searchTerm)
+  }, [filters, searchTerm, updateUrlWithFilters])
 
-  const handleCreateReport = () => {
+  const handleFilterChange = useCallback(
+    (newFilters: ReportFilters) => {
+      setFilters({ ...newFilters, search: searchTerm || undefined })
+      setCurrentPage(1)
+      updateUrlWithFilters(newFilters, searchTerm)
+    },
+    [searchTerm, updateUrlWithFilters]
+  )
+
+  const handleCreateReport = useCallback(() => {
     const params = new URLSearchParams(searchParams.toString())
     params.set('panel', 'create-report')
     router.push(`?${params.toString()}`, { scroll: false })
-  }
+  }, [router, searchParams])
 
-  const handleClosePanel = () => {
+  const handleClosePanel = useCallback(() => {
     const params = new URLSearchParams(searchParams.toString())
     params.delete('panel')
     router.push(`?${params.toString()}`, { scroll: false })
-    loadReports() // Recargar después de cerrar panel
-  }
+    refetch() // Refetch via React Query
+  }, [router, searchParams, refetch])
 
-  const handleViewReport = (reportId: string) => {
-    router.push(`/dashboard/maintenance/${reportId}`)
-  }
+  const handleViewReport = useCallback(
+    (reportId: string) => {
+      router.push(`/dashboard/maintenance/${reportId}`)
+    },
+    [router]
+  )
 
-  const handlePageChange = (newPage: number) => {
-    loadReports(filters, newPage)
-  }
+  const handlePageChange = useCallback((newPage: number) => {
+    setCurrentPage(newPage)
+  }, [])
 
   const getStatusConfig = (status: MaintenanceReport['status']) => {
     const configs = {
@@ -323,7 +318,7 @@ export function MaintenanceListClient({
                     onChange={(e) =>
                       handleFilterChange({
                         ...filters,
-                        status: (e.target.value as any) || undefined,
+                        status: (e.target.value as ReportFilters['status']) || undefined,
                       })
                     }
                     className="w-full px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent bg-white dark:bg-[#151b23] dark:text-gray-200"
@@ -343,7 +338,7 @@ export function MaintenanceListClient({
                     onChange={(e) =>
                       handleFilterChange({
                         ...filters,
-                        priority: (e.target.value as any) || undefined,
+                        priority: (e.target.value as ReportFilters['priority']) || undefined,
                       })
                     }
                     className="w-full px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent bg-white dark:bg-[#151b23] dark:text-gray-200"
@@ -360,7 +355,8 @@ export function MaintenanceListClient({
                     onChange={(e) =>
                       handleFilterChange({
                         ...filters,
-                        location_type: (e.target.value as any) || undefined,
+                        location_type:
+                          (e.target.value as ReportFilters['location_type']) || undefined,
                       })
                     }
                     className="w-full px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent bg-white dark:bg-[#151b23] dark:text-gray-200"
@@ -377,8 +373,8 @@ export function MaintenanceListClient({
                     onClick={() => {
                       setFilters({})
                       setSearchTerm('')
+                      setCurrentPage(1)
                       router.push('/dashboard/maintenance', { scroll: false })
-                      loadReports({})
                     }}
                     className="px-3 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                   >

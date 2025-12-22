@@ -1,12 +1,12 @@
 # Plan de mejoras prioritarias
 
-## Checklist general (estado backup 21-dic-2025)
+## Checklist general (estado 22-dic-2025)
 1. Unificar variables de entorno — **completado** (helper `env.ts`, `.env.example` simplificado, rutas actualizadas).
 2. Endurecer Route Handlers — **completado** (método, origen permitido, cookies, mensajes claros en auth).
 3. Eliminar `localStorage` del `apiClient` — **completado** (cookies-only para auth y descargas; refresh token vía handler).
 4. NextAuth + middleware — **pendiente** (decidir activación o documentar descarte).
 5. SSR/SSG/prerender — **pendiente** (planificar dashboards críticos; hidratar React Query si aplica).
-6. React Query — **en progreso** (BackOffice tabs lazy + Parking migrado; falta Maintenance y limpieza lint).
+6. React Query — **completado** (BackOffice tabs lazy + Parking + Maintenance migrados).
 
 ## Resumen “estado actual vs. objetivo”
 | Tema | Cómo está hoy | Objetivo |
@@ -121,8 +121,9 @@
   - Mejor control de `unreadCount` con revalidaciones automáticas.
 
 ### 6. Otros módulos (actividad, usuarios, mantenimiento)
-- **Patrón actual**: funciones async similares; carecen de cache y repiten manejo de estados.
-- **Beneficio**: estandarizar el acceso a datos y facilitar SSR/Hydration en el futuro.
+- **Mantenimiento:** ✅ Migrado a React Query con `useMaintenanceList` hook.
+- **Actividad/Usuarios:** funciones async similares; carecen de cache y repiten manejo de estados.
+- **Beneficio restante**: estandarizar actividad/usuarios y facilitar SSR/Hydration.
 
 ## Beneficios generales de migrar a React Query
 - Cache y sincronización automática: evita refrescos manuales y mantiene vistas coherentes.
@@ -136,9 +137,12 @@
 ## Plan sugerido de adopción
 1. **Configurar provider global**: asegurar `QueryClientProvider`, `Hydrate` y, opcionalmente, `ReactQueryDevtools` en `app/layout.tsx`.
 2. **Migrar por dominio** (alto ROI primero):
-   - Grupos → Parking → Logbooks → Notificaciones → Mensajería → Resto (actividad, usuarios, mantenimiento).
+   - ✅ BackOffice (tabs lazy)
+   - ✅ Parking (`useParkingStatus`)
+   - ✅ Maintenance (`useMaintenanceList`)
+   - Pendiente: Grupos, Logbooks, Notificaciones, Mensajería, Actividad, Usuarios
 3. **Patrón de migración**:
-   - Definir `queryKeys` por dominio (similar a `conciliationKeys`).
+   - Definir `queryKeys` por dominio (similar a `maintenanceKeys`).
    - Convertir funciones `api` en hooks `useXQuery`/`useXMutation`.
    - Sustituir `useEffect` + estado remoto por llamadas a hooks React Query.
    - Mantener Zustand solo para estado UI.
