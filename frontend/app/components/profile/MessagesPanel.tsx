@@ -2,7 +2,7 @@
 
 'use client'
 
-import { useState, useRef, useEffect, useCallback } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { useAuth } from '@/app/lib/auth/useAuth'
 import { cn } from '@/app/lib/helpers/utils'
@@ -22,29 +22,15 @@ import {
   FiX,
   FiLoader,
 } from 'react-icons/fi'
-import {
-  getConversations,
-  getMessages,
-  sendMessage,
-  createConversation,
-  markConversationAsRead,
-  searchUsers,
-  editMessage,
-  deleteMessage,
-  deleteConversation,
-  leaveConversation,
-  getConversation,
-} from '@/app/lib/messaging/queries'
+import { useConversations, useChat, useUserSearch } from '@/app/lib/messaging/hooks'
 import type {
   Conversation,
   ConversationWithParticipants,
-  Message,
-  UserSearchResult,
   ConversationType,
 } from '@/app/lib/messaging/types'
 
 // ===============================================
-// COMPONENT
+// MAIN COMPONENT
 // ===============================================
 
 export function MessagesPanel() {
@@ -52,274 +38,78 @@ export function MessagesPanel() {
   const searchParams = useSearchParams()
   const chatParam = searchParams.get('chat')
 
-  // State
-  const [conversations, setConversations] = useState<Conversation[]>([])
-  const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null)
-  const [messages, setMessages] = useState<Message[]>([])
-  const [newMessage, setNewMessage] = useState('')
+  // Hooks
+  const conversations = useConversations({
+    initialConversationId: chatParam ? parseInt(chatParam) : null,
+  })
+
+  const chat = useChat({
+    conversationId: conversations.selectedConversation?.id ?? null,
+    onMessageSent: (message) => {
+      // Update conversation preview
+      conversations.updateConversationLocal(message.conversation_id, {
+        last_message: message.content,
+        last_message_at: new Date().toISOString(),
+      })
+    },
+  })
+
+  const userSearch = useUserSearch({
+    enabled: false, // Manual control
+  })
+
+  // Local UI state
   const [searchQuery, setSearchQuery] = useState('')
-  const [loading, setLoading] = useState(true)
-  const [loadingMessages, setLoadingMessages] = useState(false)
-  const [sending, setSending] = useState(false)
-  const [hasMoreMessages, setHasMoreMessages] = useState(false)
+  const [newMessage, setNewMessage] = useState('')
   const [notify, setNotify] = useState(false)
-
-  // New conversation modal
   const [showNewConversation, setShowNewConversation] = useState(false)
-  const [userSearchQuery, setUserSearchQuery] = useState('')
-  const [searchResults, setSearchResults] = useState<UserSearchResult[]>([])
-  const [searchingUsers, setSearchingUsers] = useState(false)
-  const [selectedUsers, setSelectedUsers] = useState<UserSearchResult[]>([])
-  const [groupName, setGroupName] = useState('')
-  const [creatingConversation, setCreatingConversation] = useState(false)
-
-  // Edit/Delete
-  const [editingMessageId, setEditingMessageId] = useState<number | null>(null)
-  const [editContent, setEditContent] = useState('')
-
-  // Conversation menu
   const [showConversationMenu, setShowConversationMenu] = useState(false)
-
-  // Participants dropdown
   const [showParticipants, setShowParticipants] = useState(false)
   const [participants, setParticipants] = useState<ConversationWithParticipants['participants']>([])
   const [loadingParticipants, setLoadingParticipants] = useState(false)
+  const [groupName, setGroupName] = useState('')
+  const [creatingConversation, setCreatingConversation] = useState(false)
 
-  const messagesEndRef = useRef<HTMLDivElement>(null)
-  const messagesContainerRef = useRef<HTMLDivElement>(null)
   const menuRef = useRef<HTMLDivElement>(null)
 
   // ===============================================
-  // DATA FETCHING
+  // EFFECTS
   // ===============================================
 
-  const fetchConversations = useCallback(async () => {
-    try {
-      setLoading(true)
-      const data = await getConversations()
-      setConversations(data)
-
-      // Si hay chat param, seleccionar esa conversacion
-      if (chatParam) {
-        const conv = data.find((c) => c.id === parseInt(chatParam))
-        if (conv) setSelectedConversation(conv)
-      }
-    } catch (error) {
-      console.error('Error fetching conversations:', error)
-    } finally {
-      setLoading(false)
-    }
-  }, [chatParam])
-
-  const fetchMessages = useCallback(async (conversationId: number, before?: number) => {
-    try {
-      setLoadingMessages(true)
-      const response = await getMessages(conversationId, { before, limit: 50 })
-
-      if (before) {
-        // Prepend older messages
-        setMessages((prev) => [...response.data, ...prev])
-      } else {
-        setMessages(response.data)
-      }
-      setHasMoreMessages(response.has_more)
-    } catch (error) {
-      console.error('Error fetching messages:', error)
-    } finally {
-      setLoadingMessages(false)
-    }
-  }, [])
-
-  // Initial load
+  // Mark as read when selecting conversation
   useEffect(() => {
-    fetchConversations()
-  }, [fetchConversations])
-
-  // Load messages when conversation changes
-  useEffect(() => {
-    if (selectedConversation) {
-      fetchMessages(selectedConversation.id)
-      markConversationAsRead(selectedConversation.id).catch(console.error)
-
-      // Update unread count locally
-      setConversations((prev) =>
-        prev.map((c) => (c.id === selectedConversation.id ? { ...c, unread_count: 0 } : c))
-      )
-
-      // Reset participants dropdown
+    if (conversations.selectedConversation) {
+      conversations.markAsRead(conversations.selectedConversation.id)
       setShowParticipants(false)
       setParticipants([])
     }
-  }, [selectedConversation, fetchMessages])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [conversations.selectedConversation?.id])
 
-  // Search users for new conversation
+  // Enable user search when modal opens
+  useEffect(() => {
+    if (showNewConversation) {
+      userSearch.search()
+    } else {
+      userSearch.reset()
+      setGroupName('')
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showNewConversation])
+
+  // Debounced user search
   useEffect(() => {
     if (!showNewConversation) return
 
-    const searchUsersDebounced = async () => {
-      setSearchingUsers(true)
-      try {
-        const results = await searchUsers(userSearchQuery || undefined)
-        setSearchResults(results)
-      } catch (error) {
-        console.error('Error searching users:', error)
-      } finally {
-        setSearchingUsers(false)
-      }
-    }
+    const timer = setTimeout(() => {
+      userSearch.search(userSearch.query || undefined)
+    }, 300)
 
-    const timer = setTimeout(searchUsersDebounced, 300)
     return () => clearTimeout(timer)
-  }, [userSearchQuery, showNewConversation])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userSearch.query, showNewConversation])
 
-  // ===============================================
-  // HANDLERS
-  // ===============================================
-
-  const handleSendMessage = async () => {
-    if (!newMessage.trim() || !selectedConversation || !user || sending) return
-
-    try {
-      setSending(true)
-      const message = await sendMessage(selectedConversation.id, {
-        content: newMessage.trim(),
-        notify,
-      })
-
-      setMessages((prev) => [...prev, message])
-      setConversations((prev) =>
-        prev.map((c) =>
-          c.id === selectedConversation.id
-            ? { ...c, last_message: newMessage.trim(), last_message_at: new Date().toISOString() }
-            : c
-        )
-      )
-      setNewMessage('')
-      setNotify(false)
-    } catch (error) {
-      console.error('Error sending message:', error)
-    } finally {
-      setSending(false)
-    }
-  }
-
-  const handleCreateConversation = async () => {
-    if (selectedUsers.length === 0 || creatingConversation) return
-
-    const type: ConversationType = selectedUsers.length === 1 ? 'dm' : 'group'
-    if (type === 'group' && !groupName.trim()) {
-      alert('Los grupos necesitan un nombre')
-      return
-    }
-
-    try {
-      setCreatingConversation(true)
-      const { conversation, existing } = await createConversation({
-        type,
-        name: type === 'group' ? groupName.trim() : undefined,
-        participant_ids: selectedUsers.map((u) => u.id),
-      })
-
-      if (!existing) {
-        setConversations((prev) => [conversation, ...prev])
-      }
-
-      setSelectedConversation(conversation)
-      setShowNewConversation(false)
-      setSelectedUsers([])
-      setGroupName('')
-      setUserSearchQuery('')
-    } catch (error) {
-      console.error('Error creating conversation:', error)
-    } finally {
-      setCreatingConversation(false)
-    }
-  }
-
-  const handleEditMessage = async (messageId: number) => {
-    if (!editContent.trim()) return
-
-    try {
-      const updated = await editMessage(messageId, { content: editContent.trim() })
-      setMessages((prev) => prev.map((m) => (m.id === messageId ? updated : m)))
-      setEditingMessageId(null)
-      setEditContent('')
-    } catch (error) {
-      console.error('Error editing message:', error)
-    }
-  }
-
-  const handleDeleteMessage = async (messageId: number) => {
-    if (!confirm('¿Eliminar este mensaje?')) return
-
-    try {
-      await deleteMessage(messageId)
-      setMessages((prev) => prev.filter((m) => m.id !== messageId))
-    } catch (error) {
-      console.error('Error deleting message:', error)
-    }
-  }
-
-  const handleLoadMore = () => {
-    if (messages.length > 0 && hasMoreMessages && selectedConversation) {
-      fetchMessages(selectedConversation.id, messages[0].id)
-    }
-  }
-
-  const handleShowParticipants = async () => {
-    if (!selectedConversation || selectedConversation.type !== 'group') return
-
-    // Toggle off if already showing
-    if (showParticipants) {
-      setShowParticipants(false)
-      return
-    }
-
-    try {
-      setLoadingParticipants(true)
-      const data = await getConversation(selectedConversation.id)
-      setParticipants(data?.participants || [])
-      setShowParticipants(true)
-    } catch (error) {
-      console.error('Error loading participants:', error)
-    } finally {
-      setLoadingParticipants(false)
-    }
-  }
-
-  const handleDeleteConversation = async () => {
-    if (!selectedConversation) return
-    if (!confirm('¿Eliminar esta conversación? Se borrarán todos los mensajes permanentemente.'))
-      return
-
-    try {
-      await deleteConversation(selectedConversation.id)
-      setConversations((prev) => prev.filter((c) => c.id !== selectedConversation.id))
-      setSelectedConversation(null)
-      setMessages([])
-      setShowConversationMenu(false)
-    } catch (error) {
-      console.error('Error deleting conversation:', error)
-      alert('No tienes permisos para eliminar esta conversación')
-    }
-  }
-
-  const handleLeaveConversation = async () => {
-    if (!selectedConversation) return
-    if (!confirm('¿Salir de esta conversación?')) return
-
-    try {
-      await leaveConversation(selectedConversation.id)
-      setConversations((prev) => prev.filter((c) => c.id !== selectedConversation.id))
-      setSelectedConversation(null)
-      setMessages([])
-      setShowConversationMenu(false)
-    } catch (error) {
-      console.error('Error leaving conversation:', error)
-    }
-  }
-
-  // Close menu when clicking outside
+  // Close menu on outside click
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
@@ -333,24 +123,124 @@ export function MessagesPanel() {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [showConversationMenu])
 
-  const toggleUserSelection = (userResult: UserSearchResult) => {
-    // Si tiene DM existente, abrir directamente
-    if (userResult.existing_dm_id) {
-      const existingConv = conversations.find((c) => c.id === userResult.existing_dm_id)
+  // ===============================================
+  // HANDLERS
+  // ===============================================
+
+  const handleSendMessage = async () => {
+    if (!newMessage.trim() || chat.sending) return
+
+    try {
+      await chat.send(newMessage.trim(), notify)
+      setNewMessage('')
+      setNotify(false)
+    } catch (error) {
+      console.error('Error sending message:', error)
+    }
+  }
+
+  const handleCreateConversation = async () => {
+    if (!userSearch.canCreate || creatingConversation) return
+
+    const type: ConversationType = userSearch.isGroup ? 'group' : 'dm'
+    if (type === 'group' && !groupName.trim()) {
+      alert('Los grupos necesitan un nombre')
+      return
+    }
+
+    try {
+      setCreatingConversation(true)
+      await conversations.create({
+        type,
+        name: type === 'group' ? groupName.trim() : undefined,
+        participant_ids: userSearch.selectedUsers.map((u) => u.id),
+      })
+      setShowNewConversation(false)
+    } catch (error) {
+      console.error('Error creating conversation:', error)
+    } finally {
+      setCreatingConversation(false)
+    }
+  }
+
+  const handleEditMessage = async () => {
+    if (!chat.editingMessageId || !chat.editContent.trim()) return
+
+    try {
+      await chat.edit(chat.editingMessageId, chat.editContent)
+    } catch (error) {
+      console.error('Error editing message:', error)
+    }
+  }
+
+  const handleDeleteMessage = async (messageId: number) => {
+    if (!confirm('¿Eliminar este mensaje?')) return
+
+    try {
+      await chat.remove(messageId)
+    } catch (error) {
+      console.error('Error deleting message:', error)
+    }
+  }
+
+  const handleShowParticipants = async () => {
+    if (!conversations.selectedConversation || conversations.selectedConversation.type !== 'group')
+      return
+
+    if (showParticipants) {
+      setShowParticipants(false)
+      return
+    }
+
+    try {
+      setLoadingParticipants(true)
+      const data = await conversations.getConversationDetails(conversations.selectedConversation.id)
+      setParticipants(data?.participants || [])
+      setShowParticipants(true)
+    } catch (error) {
+      console.error('Error loading participants:', error)
+    } finally {
+      setLoadingParticipants(false)
+    }
+  }
+
+  const handleDeleteConversation = async () => {
+    if (!conversations.selectedConversation) return
+    if (!confirm('¿Eliminar esta conversación? Se borrarán todos los mensajes permanentemente.'))
+      return
+
+    try {
+      await conversations.remove(conversations.selectedConversation.id)
+      setShowConversationMenu(false)
+    } catch (error) {
+      console.error('Error deleting conversation:', error)
+      alert('No tienes permisos para eliminar esta conversación')
+    }
+  }
+
+  const handleLeaveConversation = async () => {
+    if (!conversations.selectedConversation) return
+    if (!confirm('¿Salir de esta conversación?')) return
+
+    try {
+      await conversations.leave(conversations.selectedConversation.id)
+      setShowConversationMenu(false)
+    } catch (error) {
+      console.error('Error leaving conversation:', error)
+    }
+  }
+
+  const handleUserSelect = (user: (typeof userSearch.results)[0]) => {
+    // If has existing DM, open it directly
+    if (user.existing_dm_id) {
+      const existingConv = conversations.conversations.find((c) => c.id === user.existing_dm_id)
       if (existingConv) {
-        setSelectedConversation(existingConv)
+        conversations.select(existingConv)
         setShowNewConversation(false)
         return
       }
     }
-
-    setSelectedUsers((prev) => {
-      const exists = prev.find((u) => u.id === userResult.id)
-      if (exists) {
-        return prev.filter((u) => u.id !== userResult.id)
-      }
-      return [...prev, userResult]
-    })
+    userSearch.toggleUser(user)
   }
 
   // ===============================================
@@ -363,7 +253,6 @@ export function MessagesPanel() {
     const now = new Date()
     const diff = now.getTime() - date.getTime()
 
-    // Si la fecha es futura o inválida, mostrar vacío
     if (diff < 0 || isNaN(diff)) return ''
 
     const minutes = Math.floor(diff / 1000 / 60)
@@ -400,18 +289,16 @@ export function MessagesPanel() {
     return name.charAt(0).toUpperCase()
   }
 
-  const filteredConversations = conversations.filter((conv) => {
+  const filteredConversations = conversations.conversations.filter((conv) => {
     const name = getConversationName(conv).toLowerCase()
     return name.includes(searchQuery.toLowerCase())
   })
-
-  const totalUnread = conversations.reduce((acc, conv) => acc + (conv.unread_count || 0), 0)
 
   // ===============================================
   // RENDER
   // ===============================================
 
-  if (loading) {
+  if (conversations.loading) {
     return (
       <div className="h-full flex items-center justify-center">
         <FiLoader className="w-8 h-8 animate-spin text-blue-500" />
@@ -427,7 +314,9 @@ export function MessagesPanel() {
           <div>
             <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Mensajes</h2>
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              {totalUnread > 0 ? `${totalUnread} sin leer` : 'Todas las conversaciones leidas'}
+              {conversations.totalUnread > 0
+                ? `${conversations.totalUnread} sin leer`
+                : 'Todas las conversaciones leidas'}
             </p>
           </div>
           <button
@@ -446,7 +335,7 @@ export function MessagesPanel() {
         <div
           className={cn(
             'w-full md:w-80 flex-shrink-0 flex flex-col bg-gray-50 dark:bg-[#161b22] border border-gray-200 dark:border-[#30363d] rounded-lg overflow-hidden',
-            selectedConversation && 'hidden md:flex'
+            conversations.selectedConversation && 'hidden md:flex'
           )}
         >
           {/* Search */}
@@ -481,10 +370,11 @@ export function MessagesPanel() {
                 {filteredConversations.map((conv) => (
                   <button
                     key={conv.id}
-                    onClick={() => setSelectedConversation(conv)}
+                    onClick={() => conversations.select(conv)}
                     className={cn(
                       'w-full p-3 text-left hover:bg-gray-100 dark:hover:bg-[#21262d] transition-colors',
-                      selectedConversation?.id === conv.id && 'bg-gray-100 dark:bg-[#21262d]'
+                      conversations.selectedConversation?.id === conv.id &&
+                        'bg-gray-100 dark:bg-[#21262d]'
                     )}
                   >
                     <div className="flex items-start gap-3">
@@ -534,15 +424,15 @@ export function MessagesPanel() {
         <div
           className={cn(
             'flex-1 flex flex-col bg-gray-50 dark:bg-[#161b22] border border-gray-200 dark:border-[#30363d] rounded-lg overflow-hidden',
-            !selectedConversation && 'hidden md:flex'
+            !conversations.selectedConversation && 'hidden md:flex'
           )}
         >
-          {selectedConversation ? (
+          {conversations.selectedConversation ? (
             <>
               {/* Chat Header */}
               <div className="px-4 py-3 border-b border-gray-200 dark:border-[#30363d] flex items-center gap-3">
                 <button
-                  onClick={() => setSelectedConversation(null)}
+                  onClick={() => conversations.select(null)}
                   className="md:hidden p-1 hover:bg-gray-100 dark:hover:bg-[#21262d] rounded-lg transition-colors"
                 >
                   <FiArrowLeft className="w-5 h-5 text-gray-500" />
@@ -550,39 +440,40 @@ export function MessagesPanel() {
                 <div
                   className={cn(
                     'w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-medium',
-                    selectedConversation.type === 'group'
+                    conversations.selectedConversation.type === 'group'
                       ? 'bg-gradient-to-br from-green-500 to-teal-600'
                       : 'bg-gradient-to-br from-blue-500 to-purple-600'
                   )}
                 >
-                  {selectedConversation.type === 'group' ? (
+                  {conversations.selectedConversation.type === 'group' ? (
                     <FiUsers className="w-4 h-4" />
                   ) : (
-                    getConversationInitial(selectedConversation)
+                    getConversationInitial(conversations.selectedConversation)
                   )}
                 </div>
                 <div className="flex-1">
                   <p className="text-sm font-medium text-gray-900 dark:text-white">
-                    {getConversationName(selectedConversation)}
+                    {getConversationName(conversations.selectedConversation)}
                   </p>
-                  {selectedConversation.type === 'dm' && selectedConversation.other_role && (
-                    <span
-                      className={cn(
-                        'px-1.5 py-0.5 rounded text-xs font-medium',
-                        getRoleColor(selectedConversation.other_role)
-                      )}
-                    >
-                      {selectedConversation.other_role}
-                    </span>
-                  )}
-                  {selectedConversation.type === 'group' && (
+                  {conversations.selectedConversation.type === 'dm' &&
+                    conversations.selectedConversation.other_role && (
+                      <span
+                        className={cn(
+                          'px-1.5 py-0.5 rounded text-xs font-medium',
+                          getRoleColor(conversations.selectedConversation.other_role)
+                        )}
+                      >
+                        {conversations.selectedConversation.other_role}
+                      </span>
+                    )}
+                  {conversations.selectedConversation.type === 'group' && (
                     <button
                       onClick={handleShowParticipants}
                       className="text-xs text-gray-500 hover:text-blue-500 hover:underline transition-colors flex items-center gap-1"
                       disabled={loadingParticipants}
                     >
                       {loadingParticipants ? <FiLoader className="w-3 h-3 animate-spin" /> : null}
-                      {selectedConversation.participant_count} participantes
+                      {conversations.selectedConversation.participant_count} participantes
                     </button>
                   )}
                 </div>
@@ -594,10 +485,9 @@ export function MessagesPanel() {
                     <FiMoreVertical className="w-4 h-4 text-gray-500" />
                   </button>
 
-                  {/* Dropdown Menu */}
                   {showConversationMenu && (
                     <div className="absolute right-0 top-full mt-1 w-48 bg-white dark:bg-[#21262d] border border-gray-200 dark:border-[#30363d] rounded-lg shadow-lg py-1 z-50">
-                      {selectedConversation.type === 'group' && (
+                      {conversations.selectedConversation.type === 'group' && (
                         <button
                           onClick={handleLeaveConversation}
                           className="w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#30363d] flex items-center gap-2"
@@ -619,22 +509,22 @@ export function MessagesPanel() {
               </div>
 
               {/* Messages */}
-              <div ref={messagesContainerRef} className="flex-1 overflow-y-auto p-4 space-y-3">
-                {hasMoreMessages && (
+              <div ref={chat.containerRef} className="flex-1 overflow-y-auto p-4 space-y-3">
+                {chat.hasMore && (
                   <div className="text-center">
                     <button
-                      onClick={handleLoadMore}
-                      disabled={loadingMessages}
+                      onClick={chat.loadMore}
+                      disabled={chat.loading}
                       className="text-sm text-blue-500 hover:underline disabled:opacity-50"
                     >
-                      {loadingMessages ? 'Cargando...' : 'Cargar mensajes anteriores'}
+                      {chat.loading ? 'Cargando...' : 'Cargar mensajes anteriores'}
                     </button>
                   </div>
                 )}
 
-                {messages.map((msg) => {
+                {chat.messages.map((msg) => {
                   const isOwn = msg.sender_id === user?.id
-                  const isEditing = editingMessageId === msg.id
+                  const isEditing = chat.editingMessageId === msg.id
 
                   return (
                     <div
@@ -649,7 +539,7 @@ export function MessagesPanel() {
                             : 'bg-white dark:bg-[#0d1117] border border-gray-200 dark:border-[#30363d] text-gray-900 dark:text-white'
                         )}
                       >
-                        {!isOwn && selectedConversation.type === 'group' && (
+                        {!isOwn && conversations.selectedConversation?.type === 'group' && (
                           <p className="text-xs font-medium mb-1 text-blue-500">
                             {msg.sender_username}
                           </p>
@@ -659,24 +549,15 @@ export function MessagesPanel() {
                           <div className="flex gap-2">
                             <input
                               type="text"
-                              value={editContent}
-                              onChange={(e) => setEditContent(e.target.value)}
+                              value={chat.editContent}
+                              onChange={(e) => chat.setEditContent(e.target.value)}
                               className="flex-1 px-2 py-1 text-sm bg-white dark:bg-[#21262d] border rounded text-gray-900 dark:text-white"
                               autoFocus
                             />
-                            <button
-                              onClick={() => handleEditMessage(msg.id)}
-                              className="text-green-500"
-                            >
+                            <button onClick={handleEditMessage} className="text-green-500">
                               <FiCheck className="w-4 h-4" />
                             </button>
-                            <button
-                              onClick={() => {
-                                setEditingMessageId(null)
-                                setEditContent('')
-                              }}
-                              className="text-red-500"
-                            >
+                            <button onClick={chat.cancelEdit} className="text-red-500">
                               <FiX className="w-4 h-4" />
                             </button>
                           </div>
@@ -695,14 +576,10 @@ export function MessagesPanel() {
                           {isOwn && <FiCheckCircle className="w-3 h-3" />}
                         </div>
 
-                        {/* Edit/Delete buttons */}
                         {isOwn && !isEditing && (
                           <div className="absolute -top-2 -right-2 hidden group-hover:flex gap-1">
                             <button
-                              onClick={() => {
-                                setEditingMessageId(msg.id)
-                                setEditContent(msg.content)
-                              }}
+                              onClick={() => chat.startEdit(msg)}
                               className="p-1 bg-white dark:bg-[#21262d] border border-gray-200 dark:border-[#30363d] rounded shadow-sm hover:bg-gray-100 dark:hover:bg-[#30363d]"
                             >
                               <FiEdit2 className="w-3 h-3 text-gray-600 dark:text-gray-400" />
@@ -719,7 +596,7 @@ export function MessagesPanel() {
                     </div>
                   )
                 })}
-                <div ref={messagesEndRef} />
+                <div ref={chat.messagesEndRef} />
               </div>
 
               {/* Input */}
@@ -747,10 +624,10 @@ export function MessagesPanel() {
                   />
                   <button
                     onClick={handleSendMessage}
-                    disabled={!newMessage.trim() || sending}
+                    disabled={!newMessage.trim() || chat.sending}
                     className="p-1.5 md:px-4 md:py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 disabled:opacity-50 text-white rounded-md md:rounded-lg transition-colors"
                   >
-                    {sending ? (
+                    {chat.sending ? (
                       <FiLoader className="w-3.5 h-3.5 md:w-4 md:h-4 animate-spin" />
                     ) : (
                       <FiSend className="w-3.5 h-3.5 md:w-4 md:h-4" />
@@ -784,11 +661,7 @@ export function MessagesPanel() {
                 Nueva conversacion
               </h3>
               <button
-                onClick={() => {
-                  setShowNewConversation(false)
-                  setSelectedUsers([])
-                  setGroupName('')
-                }}
+                onClick={() => setShowNewConversation(false)}
                 className="p-1 hover:bg-gray-100 dark:hover:bg-[#21262d] rounded-lg transition-colors"
               >
                 <FiX className="w-5 h-5 text-gray-500" />
@@ -796,22 +669,22 @@ export function MessagesPanel() {
             </div>
 
             {/* Selected Users */}
-            {selectedUsers.length > 0 && (
+            {userSearch.selectedUsers.length > 0 && (
               <div className="p-3 border-b border-gray-200 dark:border-[#30363d]">
                 <div className="flex flex-wrap gap-2">
-                  {selectedUsers.map((u) => (
+                  {userSearch.selectedUsers.map((u) => (
                     <span
                       key={u.id}
                       className="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 text-sm rounded-full flex items-center gap-1"
                     >
                       {u.username}
-                      <button onClick={() => toggleUserSelection(u)}>
+                      <button onClick={() => userSearch.toggleUser(u)}>
                         <FiX className="w-3 h-3" />
                       </button>
                     </span>
                   ))}
                 </div>
-                {selectedUsers.length > 1 && (
+                {userSearch.isGroup && (
                   <input
                     type="text"
                     placeholder="Nombre del grupo..."
@@ -830,8 +703,8 @@ export function MessagesPanel() {
                 <input
                   type="text"
                   placeholder="Buscar usuarios..."
-                  value={userSearchQuery}
-                  onChange={(e) => setUserSearchQuery(e.target.value)}
+                  value={userSearch.query}
+                  onChange={(e) => userSearch.setQuery(e.target.value)}
                   className="w-full pl-9 pr-3 py-2 text-sm bg-gray-50 dark:bg-[#0d1117] border border-gray-200 dark:border-[#30363d] rounded-lg text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500"
                 />
               </div>
@@ -839,23 +712,23 @@ export function MessagesPanel() {
 
             {/* User List */}
             <div className="flex-1 overflow-y-auto">
-              {searchingUsers ? (
+              {userSearch.loading ? (
                 <div className="flex items-center justify-center py-8">
                   <FiLoader className="w-6 h-6 animate-spin text-blue-500" />
                 </div>
-              ) : searchResults.length === 0 ? (
+              ) : userSearch.results.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-8 text-gray-500">
                   <FiUser className="w-8 h-8 mb-2 opacity-50" />
                   <p className="text-sm">No se encontraron usuarios</p>
                 </div>
               ) : (
                 <div className="divide-y divide-gray-200 dark:divide-[#30363d]">
-                  {searchResults.map((u) => {
-                    const isSelected = selectedUsers.some((su) => su.id === u.id)
+                  {userSearch.results.map((u) => {
+                    const isSelected = userSearch.isSelected(u.id)
                     return (
                       <button
                         key={u.id}
-                        onClick={() => toggleUserSelection(u)}
+                        onClick={() => handleUserSelect(u)}
                         className={cn(
                           'w-full p-3 text-left hover:bg-gray-100 dark:hover:bg-[#21262d] transition-colors flex items-center gap-3',
                           isSelected && 'bg-blue-50 dark:bg-blue-900/20'
@@ -889,7 +762,7 @@ export function MessagesPanel() {
             <div className="p-4 border-t border-gray-200 dark:border-[#30363d]">
               <button
                 onClick={handleCreateConversation}
-                disabled={selectedUsers.length === 0 || creatingConversation}
+                disabled={!userSearch.canCreate || creatingConversation}
                 className="w-full py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-lg transition-colors flex items-center justify-center gap-2"
               >
                 {creatingConversation ? (
@@ -897,7 +770,7 @@ export function MessagesPanel() {
                     <FiLoader className="w-4 h-4 animate-spin" />
                     Creando...
                   </>
-                ) : selectedUsers.length > 1 ? (
+                ) : userSearch.isGroup ? (
                   <>
                     <FiUsers className="w-4 h-4" />
                     Crear grupo

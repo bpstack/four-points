@@ -49,6 +49,11 @@ Estado actual: rama `improve` con correcciones aplicadas, lista para continuar.
 - Mutations con optimistic updates: `markAsRead`, `markAllAsRead`, `deleteNotification`.
 - Store Zustand simplificado a solo UI state.
 
+12) Messages — **[completado]**
+- Evaluado: React Query no justificado (paginación cursor, mucho estado UI).
+- Refactor ligero: extraídos hooks `useConversations`, `useChat`, `useUserSearch`.
+- Componente `MessagesPanel` simplificado de 985 a ~850 líneas con mejor separación.
+
 ## Siguientes pasos concretos
 - [x] Crear `env.ts` y sustituir referencias.
 - [x] Añadir validaciones en Route Handlers de auth.
@@ -65,7 +70,8 @@ Estado actual: rama `improve` con correcciones aplicadas, lista para continuar.
 - [x] Migrar middleware.ts a proxy.ts (Next.js 16).
 - [x] Actualizar baseline-browser-mapping.
 - [x] Migrar Notifications a React Query con optimistic updates.
-- [ ] Migrar módulos restantes a React Query: Messages, Dashboard principal.
+- [x] Refactor Messages: extraer hooks useConversations, useChat, useUserSearch.
+- [ ] Migrar Dashboard principal a React Query (si aplica).
 
 ## Notas rápidas
 - `.editorconfig` y `.gitattributes` añadidos para prevenir CRLF futuros.
@@ -83,3 +89,4 @@ Estado actual: rama `improve` con correcciones aplicadas, lista para continuar.
 - 22-dic: apiClient tipado con `unknown` en lugar de `any`, todos los consumidores actualizados.
 - 22-dic: Migrado middleware.ts → proxy.ts para cumplir con Next.js 16 convention.
 - 22-dic: Notifications migrado a React Query con optimistic updates.
+- 22-dic: Messages refactorizado con hooks separados (sin React Query, evaluado como no necesario).
