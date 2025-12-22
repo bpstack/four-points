@@ -10,11 +10,11 @@
 
 | Métrica | Valor |
 |---------|-------|
-| Commits en `improve` (vs main) | 9 |
-| Archivos modificados | ~145 |
+| Commits en `improve` (vs main) | 10 |
+| Archivos modificados | ~150 |
 | Estado | Listo para continuar |
 
-**Estado:** Todos los cambios están commiteados. Migración React Query completada para BackOffice, Parking y Maintenance.
+**Estado:** Todos los cambios están commiteados. Migración React Query completada para BackOffice, Parking y Maintenance. SSR implementado para Groups y Parking Dashboard.
 
 ---
 
@@ -30,7 +30,8 @@
 | 6 | `bdede77` | feat: migrate backoffice tabs to react query lazy | BackOffice tabs lazy + React Query |
 | 7 | `416892e` | refactor: ui and data layer cleanups across modules | Limpieza general |
 | 8 | `5467003` | fix: critical bugs and normalize CRLF to LF | Bugs corregidos, CRLF normalizado |
-| 9 | (pending) | feat: migrate maintenance list to react query | Maintenance con React Query |
+| 9 | `104f997` | feat: migrate maintenance list to react query | Maintenance con React Query |
+| 10 | `04f8835` | feat: migrate Groups and Parking Dashboard to SSR | SSR con Server Actions |
 
 ---
 
@@ -45,13 +46,22 @@
 | 3 | Estrategia de tokens (cookies-only) | **Completado** | `07b32c8` |
 | 4 | Back Office - React Query/lazy | **Completado** | `bdede77` |
 | 5 | Parking - React Query | **Completado** | `8d5584b` |
-| 6 | Maintenance - React Query | **Completado** | (pending) |
+| 6 | Maintenance - React Query | **Completado** | `104f997` |
+| 7 | SSR/Prerender (parcial) | **En progreso** | `04f8835` |
+
+### SSR Implementado
+
+| Módulo | Server Action | Client Component | Estado |
+|--------|---------------|------------------|--------|
+| Groups | `getGroups.ts` | `GroupsListClient.tsx` | **Completado** |
+| Parking Dashboard | `getParkingDashboardStats.ts` | `ParkingDashboardClient.tsx` | **Completado** |
+| Parking Status | `getParkingStatus.ts` | `ParkingStatusClient.tsx` | **Completado** (anterior) |
+| Parking Bookings | `getBookings.ts` | Ya existía | **Completado** (anterior) |
 
 ### Prioridades Pendientes
 
 | # | Tarea | Estado | Notas |
 |---|-------|--------|-------|
-| 7 | SSR/Prerender | Pendiente | Planear para dashboards críticos |
 | 8 | NextAuth/middleware | Pendiente | Decidir si activar o documentar descarte |
 
 ---
@@ -62,13 +72,13 @@ Los siguientes bugs fueron identificados y corregidos:
 
 | Severidad | Descripción | Estado |
 |-----------|-------------|--------|
-| CRÍTICO | `handlePdfEditorSave` con código copiado incorrectamente | ✅ Corregido |
-| ERROR | Logout retornaba 401 sin limpiar cookies | ✅ Corregido |
-| LIMPIEZA | ~260 líneas de MOCK_DATA en producción | ✅ Eliminado |
-| MENOR | Dependencia `getSpanishMonthName` innecesaria en useMemo | ✅ Corregido |
-| MENOR | Variable `loadParkingData` no usada | ✅ Eliminada |
-| MENOR | Validación de método redundante en Route Handlers | ✅ Eliminada |
-| FORMATO | Archivos con CRLF en lugar de LF | ✅ Normalizado |
+| CRÍTICO | `handlePdfEditorSave` con código copiado incorrectamente | Corregido |
+| ERROR | Logout retornaba 401 sin limpiar cookies | Corregido |
+| LIMPIEZA | ~260 líneas de MOCK_DATA en producción | Eliminado |
+| MENOR | Dependencia `getSpanishMonthName` innecesaria en useMemo | Corregido |
+| MENOR | Variable `loadParkingData` no usada | Eliminada |
+| MENOR | Validación de método redundante en Route Handlers | Eliminada |
+| FORMATO | Archivos con CRLF en lugar de LF | Normalizado |
 
 ---
 
@@ -81,6 +91,8 @@ Los siguientes bugs fueron identificados y corregidos:
 | BackOffice | Tabs Lazy | `['backoffice', 'invoices', ...]` | create, update, delete, validate |
 | Parking | `useParkingStatus` | `['parking', 'stats', date]` | checkIn, checkOut, cancel, noShow |
 | Maintenance | `useMaintenanceList` | `['maintenance', 'list', filters]` | create, update, updateStatus, delete |
+| Groups | `GroupsListClient` | `['groups', 'list']` | - (via initialData) |
+| Parking Dashboard | `ParkingDashboardClient` | `['parking', 'dashboard', period]` | - (via initialData) |
 
 ### Configuración Estándar
 - `staleTime: 2-5 min`
@@ -88,8 +100,7 @@ Los siguientes bugs fueron identificados y corregidos:
 - `refetchOnWindowFocus: false`
 - Invalidación automática tras mutations
 
-### Módulos Pendientes
-- Grupos
+### Módulos Pendientes de React Query
 - Logbooks
 - Notificaciones
 - Mensajería
@@ -115,6 +126,16 @@ Los siguientes bugs fueron identificados y corregidos:
 | `useMaintenanceList.ts` | **Nuevo** - Maintenance con RQ |
 | `MaintenanceListClient.tsx` | Refactorizado para usar hook |
 
+### SSR Migrations (Commit 10)
+| Archivo | Cambio |
+|---------|--------|
+| `frontend/app/dashboard/groups/actions/getGroups.ts` | **Nuevo** - Server Action |
+| `frontend/app/components/groups/GroupsListClient.tsx` | **Nuevo** - Client Component |
+| `frontend/app/dashboard/groups/page.tsx` | Refactorizado a Server Component |
+| `frontend/app/dashboard/parking/actions/getParkingDashboardStats.ts` | **Nuevo** - Server Action |
+| `frontend/app/dashboard/parking/components/ParkingDashboardClient.tsx` | **Nuevo** - Client Component (~780 líneas) |
+| `frontend/app/dashboard/parking/page.tsx` | Refactorizado a Server Component |
+
 ### Normalización
 | Archivo | Cambio |
 |---------|--------|
@@ -125,8 +146,8 @@ Los siguientes bugs fueron identificados y corregidos:
 
 ## Lint Status
 
-- **34 errores**: Todos son `@typescript-eslint/no-unused-vars` (deuda técnica preexistente)
-- **99 warnings**: Mayormente `<img>` sin next/image, tipos `any`, deps faltantes en hooks
+- **35 errores**: Todos son `@typescript-eslint/no-unused-vars` (deuda técnica preexistente)
+- **92 warnings**: Mayormente `<img>` sin next/image, tipos `any`, deps faltantes en hooks
 
 No hay errores nuevos introducidos por la migración.
 
@@ -134,10 +155,10 @@ No hay errores nuevos introducidos por la migración.
 
 ## Próximos Pasos
 
-1. **SSR/Prerender** - Planear prerender para dashboards críticos (parking, grupos)
+1. **Lint cleanup** - Resolver los 35 errores de variables no usadas
 2. **NextAuth/middleware** - Decidir si activar o documentar el descarte
-3. **Migración React Query** - Continuar con Grupos, Logbooks, etc.
-4. **Lint cleanup** - Resolver deuda técnica de variables no usadas
+3. **Migración React Query** - Continuar con Logbooks, Notificaciones, etc.
+4. **SSR adicional** - Evaluar otros dashboards para SSR
 
 ---
 
