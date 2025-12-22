@@ -34,20 +34,23 @@ export function ImageUploader({
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   // Validar archivo individual
-  const validateFile = (file: File): string | null => {
-    // Validar tipo
-    if (!acceptedFormats.includes(file.type)) {
-      return `${file.name}: Formato no permitido. Solo JPG, PNG o WebP.`
-    }
+  const validateFile = useCallback(
+    (file: File): string | null => {
+      // Validar tipo
+      if (!acceptedFormats.includes(file.type)) {
+        return `${file.name}: Formato no permitido. Solo JPG, PNG o WebP.`
+      }
 
-    // Validar tamaño
-    const sizeMB = file.size / (1024 * 1024)
-    if (sizeMB > maxSizeMB) {
-      return `${file.name}: Excede el tamaño máximo de ${maxSizeMB}MB (${sizeMB.toFixed(2)}MB).`
-    }
+      // Validar tamaño
+      const sizeMB = file.size / (1024 * 1024)
+      if (sizeMB > maxSizeMB) {
+        return `${file.name}: Excede el tamaño máximo de ${maxSizeMB}MB (${sizeMB.toFixed(2)}MB).`
+      }
 
-    return null
-  }
+      return null
+    },
+    [acceptedFormats, maxSizeMB]
+  )
 
   // Manejar archivos seleccionados
   const handleFiles = useCallback(
@@ -76,7 +79,7 @@ export function ImageUploader({
       // Agregar archivos válidos
       onChange([...value, ...validFiles])
     },
-    [value, maxFiles, onChange]
+    [value, maxFiles, onChange, validateFile]
   )
 
   // Evento: Click en botón

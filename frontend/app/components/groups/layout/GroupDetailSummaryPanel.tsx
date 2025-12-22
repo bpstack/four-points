@@ -12,7 +12,7 @@ export function GroupDetailSummaryPanel() {
   const { currentGroup } = useGroupStore()
   const groupId = currentGroup?.id
   const { data: paymentsData } = useGroupPayments(groupId)
-  const payments = paymentsData?.payments || []
+  const payments = useMemo(() => paymentsData?.payments || [], [paymentsData?.payments])
 
   const balanceStatus = useMemo(() => {
     const parseAmount = (value: unknown): number => {

@@ -108,8 +108,8 @@ export default function MaintenanceSection() {
       // Limit to DEFAULT_LIMIT
       setReports(Array.isArray(data) ? data.slice(0, DEFAULT_LIMIT) : [])
       setLoaded(true)
-    } catch (err: any) {
-      setError(err.message || 'Error cargando reportes de mantenimiento')
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Error cargando reportes de mantenimiento')
     } finally {
       setLoading(false)
     }
@@ -127,7 +127,7 @@ export default function MaintenanceSection() {
       try {
         const response = await apiClient.get(`${API_URL}/api/maintenance/${reportId}/history`)
         setHistory(response.data?.history || response.history || response.data || response || [])
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error('Error fetching history:', err)
         setHistory([])
       } finally {

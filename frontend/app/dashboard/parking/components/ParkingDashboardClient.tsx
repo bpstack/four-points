@@ -86,7 +86,7 @@ export default function ParkingDashboardClient({
             period: { type: 'today' },
             dashboard: {
               stats: initialStats,
-              occupancy: { levels: [], summary: {} as any },
+              occupancy: { levels: [], summary: {} as Record<string, unknown> },
               pending_checkins: null,
               pending_checkouts: null,
               availability: null,

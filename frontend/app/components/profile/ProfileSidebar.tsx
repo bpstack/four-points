@@ -127,9 +127,11 @@ export function ProfileSidebar() {
 
       // Clear success message after 3 seconds
       setTimeout(() => setUsernameSuccess(null), 3000)
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error updating username:', error)
-      setUsernameError(error.message || 'Error al actualizar el nombre de usuario')
+      setUsernameError(
+        error instanceof Error ? error.message : 'Error al actualizar el nombre de usuario'
+      )
     } finally {
       setUsernameLoading(false)
     }
@@ -193,9 +195,9 @@ export function ProfileSidebar() {
 
       // Redirect to login with message
       router.push('/login?message=password_changed')
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error updating password:', error)
-      setPasswordError(error.message || 'Error al actualizar la contraseña')
+      setPasswordError(error instanceof Error ? error.message : 'Error al actualizar la contraseña')
       setPasswordLoading(false)
     }
   }

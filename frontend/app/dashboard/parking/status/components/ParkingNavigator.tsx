@@ -30,7 +30,9 @@ export default function ParkingNavigator() {
 
   const selectedLevel = searchParams?.get('level') || 'all'
 
-  // Inicialización del cliente
+  // Inicialización del cliente - solo ejecutar una vez al montar
+  // searchParams intentionally excluded - we only want to read it once on mount
+  /* eslint-disable react-hooks/exhaustive-deps */
   useEffect(() => {
     setIsClient(true)
     const dateFromUrl = searchParams?.get('date')
@@ -43,7 +45,8 @@ export default function ParkingNavigator() {
       setCurrentDate(today)
       setSelectedDay(today.getDate())
     }
-  }, []) // Solo ejecutar una vez al montar
+  }, [])
+  /* eslint-enable react-hooks/exhaustive-deps */
 
   // Actualizar URL cuando cambia la fecha o día seleccionado (pero no en el primer render)
   useEffect(() => {
@@ -60,6 +63,7 @@ export default function ParkingNavigator() {
     )
     const currentLevel = searchParams?.get('level') || 'all'
     router.push(`?date=${dateStr}&level=${currentLevel}`, { scroll: false })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentDate, selectedDay]) // Solo depender de currentDate y selectedDay
 
   if (!isClient || !currentDate || selectedDay === null) {

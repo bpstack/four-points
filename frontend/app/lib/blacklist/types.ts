@@ -38,7 +38,7 @@ export interface AuditEntry {
   action: 'CREATE' | 'UPDATE' | 'DELETE' | 'RESTORE'
   changed_by: string // ID usuario
   changed_by_username: string // Username para mostrar
-  changed_fields?: Record<string, { old: any; new: any }> // Campos modificados
+  changed_fields?: Record<string, { old: unknown; new: unknown }> // Campos modificados
   timestamp: string // ISO string
   ip_address?: string // IP del usuario
 }

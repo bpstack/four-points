@@ -223,6 +223,7 @@ export default function LogbooksList({
   useEffect(() => {
     setLocalEntries(entries ?? [])
     entries.forEach((entry) => loadReaders(entry.id))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [entries])
 
   // =============================================

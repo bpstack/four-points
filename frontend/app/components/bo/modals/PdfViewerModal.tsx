@@ -55,13 +55,17 @@ export function PdfViewerModal({
   const [downloading, setDownloading] = useState(false)
 
   // Fetch fresh invoice data when modal opens
+  // pdfBlobUrl intentionally not in deps - we only want cleanup when isOpen changes to false
   useEffect(() => {
     if (!isOpen) {
       // Cleanup blob URL when modal closes
-      if (pdfBlobUrl) {
-        URL.revokeObjectURL(pdfBlobUrl)
-        setPdfBlobUrl(null)
-      }
+      // Using current value at cleanup time, not at render time
+      setPdfBlobUrl((currentUrl) => {
+        if (currentUrl) {
+          URL.revokeObjectURL(currentUrl)
+        }
+        return null
+      })
       return
     }
 
@@ -158,11 +162,13 @@ export function PdfViewerModal({
     fetchPdf()
   }, [isOpen, invoiceId, activePdfType, hasOriginalPdf, hasValidatedPdf, loadingInvoice])
 
+  // Cleanup blob URL when it changes - capture current value for cleanup
   useEffect(() => {
-    if (!pdfBlobUrl) return
-
+    const currentUrl = pdfBlobUrl
     return () => {
-      URL.revokeObjectURL(pdfBlobUrl)
+      if (currentUrl) {
+        URL.revokeObjectURL(currentUrl)
+      }
     }
   }, [pdfBlobUrl])
 

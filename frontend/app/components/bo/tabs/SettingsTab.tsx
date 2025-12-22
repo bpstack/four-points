@@ -100,9 +100,10 @@ export function SettingsTab({ initialAssets }: SettingsTabProps) {
       if (fileInputRef.current) {
         fileInputRef.current.value = ''
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error uploading asset:', error)
-      toast.error(error.message || 'Error al subir el archivo')
+      const message = error instanceof Error ? error.message : 'Error al subir el archivo'
+      toast.error(message)
     } finally {
       setUploading(false)
     }
@@ -116,9 +117,10 @@ export function SettingsTab({ initialAssets }: SettingsTabProps) {
       await backofficeApi.deleteAsset(deleteDialog.asset.id)
       setAssets((prev) => prev.filter((a) => a.id !== deleteDialog.asset!.id))
       toast.success('Eliminado correctamente')
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error deleting asset:', error)
-      toast.error(error.message || 'Error al eliminar')
+      const message = error instanceof Error ? error.message : 'Error al eliminar'
+      toast.error(message)
     } finally {
       setDeleteDialog({ open: false, asset: null })
     }
@@ -135,9 +137,11 @@ export function SettingsTab({ initialAssets }: SettingsTabProps) {
         }))
       )
       toast.success(`${asset.name} establecido como predeterminado`)
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error setting default:', error)
-      toast.error(error.message || 'Error al establecer como predeterminado')
+      const message =
+        error instanceof Error ? error.message : 'Error al establecer como predeterminado'
+      toast.error(message)
     }
   }
 

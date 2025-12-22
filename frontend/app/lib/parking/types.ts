@@ -314,7 +314,7 @@ export interface FullStatsResponse {
       total: number
       items: PendingCheckout[]
     } | null
-    availability: any
+    availability: Record<string, unknown> | null
     note?: string
   }
 }

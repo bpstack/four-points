@@ -43,6 +43,7 @@ export function SearchBar({ totalResults }: SearchBarProps) {
   // ========================================
   useEffect(() => {
     applyFilters()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [debouncedSearchTerm])
 
   // ========================================

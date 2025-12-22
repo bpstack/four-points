@@ -62,7 +62,7 @@ interface DashboardOverview {
 
 interface DailyReport {
   date: string
-  shifts: any[]
+  shifts: unknown[]
   summary: {
     total_cash: number
     total_payments: number
@@ -192,8 +192,8 @@ export default function CashierSection() {
         setHistoryData(response.data?.data || response.data || response || [])
       }
       setLoaded(true)
-    } catch (err: any) {
-      setError(err.message || 'Error cargando datos de caja')
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Error cargando datos de caja')
     } finally {
       setLoading(false)
     }

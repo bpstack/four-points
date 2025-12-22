@@ -2,6 +2,7 @@
 
 import { getMaintenance } from './actions'
 import { MaintenanceListClient } from '@/app/components/maintenance/MaintenanceListClient'
+import type { ReportFilters } from '@/app/lib/maintenance/maintenance'
 
 interface PageProps {
   searchParams: Promise<{
@@ -18,9 +19,9 @@ export default async function MaintenancePage({ searchParams }: PageProps) {
 
   // Construir filtros desde URL
   const filters = {
-    status: params.status as any,
-    priority: params.priority as any,
-    location_type: params.location_type as any,
+    status: params.status as ReportFilters['status'],
+    priority: params.priority as ReportFilters['priority'],
+    location_type: params.location_type as ReportFilters['location_type'],
     search: params.search,
     page: params.page ? parseInt(params.page) : 1,
     limit: 20,

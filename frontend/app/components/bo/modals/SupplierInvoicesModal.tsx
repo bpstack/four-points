@@ -152,6 +152,7 @@ export function SupplierInvoicesModal({
     if (isOpen && supplier) {
       fetchInvoices()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, supplier])
 
   // Download PDF using proxy endpoint (ensures correct filename with .pdf extension)
@@ -187,8 +188,8 @@ export function SupplierInvoicesModal({
 
       // Cleanup blob URL
       setTimeout(() => URL.revokeObjectURL(blobUrl), 1000)
-    } catch (err: any) {
-      toast.error(err.message || `Error al descargar PDF ${type}`)
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : `Error al descargar PDF ${type}`)
     }
   }
 
@@ -203,8 +204,8 @@ export function SupplierInvoicesModal({
       const now = new Date()
       const currentKey = `${now.getFullYear()}-${now.getMonth() + 1}`
       setExpandedMonths(new Set([currentKey]))
-    } catch (err: any) {
-      setError(err.message || 'Error al cargar las facturas')
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Error al cargar las facturas')
     } finally {
       setLoading(false)
     }
@@ -298,8 +299,8 @@ export function SupplierInvoicesModal({
       setDeletingInvoice(null)
       setDeleteStep(1)
       onInvoiceDeleted?.()
-    } catch (err: any) {
-      toast.error(err.message || 'Error al eliminar la factura')
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Error al eliminar la factura')
     } finally {
       setIsDeleting(false)
     }

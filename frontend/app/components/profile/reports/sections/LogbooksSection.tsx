@@ -91,8 +91,8 @@ export default function LogbooksSection() {
       // Limit to DEFAULT_LIMIT (backend doesn't support limit param)
       setLogbooks(Array.isArray(data) ? data.slice(0, DEFAULT_LIMIT) : [])
       setLoaded(true)
-    } catch (err: any) {
-      setError(err.message || 'Error cargando logbooks')
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Error cargando logbooks')
     } finally {
       setLoading(false)
     }
@@ -111,7 +111,7 @@ export default function LogbooksSection() {
         const response = await apiClient.get(`${API_URL}/api/logbooks/${logbookId}/history`)
         // Backend returns { logbookId, history: [...] }
         setHistory(response.history || response.data?.history || [])
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error('Error fetching history:', err)
         setHistory([])
       } finally {

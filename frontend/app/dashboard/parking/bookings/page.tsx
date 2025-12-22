@@ -1,6 +1,6 @@
 // app/dashboard/parking/bookings/page.tsx
 
-import { getBookings } from '@/app/lib/parking'
+import { getBookings, type BookingFilters } from '@/app/lib/parking'
 import { BookingsListClient } from '@/app/components/parking'
 
 interface PageProps {
@@ -19,9 +19,9 @@ export default async function BookingsPage({ searchParams }: PageProps) {
 
   // Construir filtros desde URL
   const filters = {
-    status: params.status as any,
+    status: params.status as BookingFilters['status'],
     date: params.date,
-    dateFilter: params.dateFilter as any,
+    dateFilter: params.dateFilter as BookingFilters['dateFilter'],
     search: params.search,
     page: currentPage,
     limit: 50,

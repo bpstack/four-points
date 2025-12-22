@@ -21,7 +21,7 @@ export interface BookingsListResponse {
   total: number
   pagination: PaginationInfo
   bookings: ParkingBooking[]
-  filters_applied?: Record<string, any>
+  filters_applied?: Record<string, unknown>
 }
 
 export async function getBookings(filters?: BookingFilters): Promise<BookingsListResponse> {

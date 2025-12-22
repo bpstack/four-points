@@ -23,7 +23,14 @@ import { useState } from 'react'
 import { IoIosRestaurant } from 'react-icons/io'
 import { isAdminRole } from '@/app/lib/helpers/utils'
 
-const mainLinks = [
+interface NavLink {
+  name: string
+  href: string
+  icon?: React.ComponentType<{ className?: string }>
+  adminOnly?: boolean
+}
+
+const mainLinks: NavLink[] = [
   { name: 'Dashboard', href: '/dashboard', icon: HomeIcon },
   { name: 'Logbook', href: '/dashboard/logbooks', icon: SlBookOpen },
   { name: 'Parking', href: '/dashboard/parking', icon: LiaParkingSolid },
@@ -34,18 +41,18 @@ const mainLinks = [
   { name: 'Blacklist', href: '/dashboard/blacklist', icon: CgDanger },
 ]
 
-const backOfficeLinks = [
+const backOfficeLinks: NavLink[] = [
   { name: 'Back Office', href: '/dashboard/bo', icon: GiOfficeChair, adminOnly: true },
   { name: 'Invoices', href: '/dashboard/invoices', icon: DocumentDuplicateIcon },
 ]
 
-const cashierLinks = [
+const cashierLinks: Omit<NavLink, 'icon'>[] = [
   { name: 'Hotel Cashier', href: '/dashboard/cashier/hotel' },
   { name: 'Cashier Reports', href: '/dashboard/cashier/reports' },
   { name: 'Cashier Logs', href: '/dashboard/cashier/logs' },
 ]
 
-const profileLinks = [
+const profileLinks: NavLink[] = [
   { name: 'Profile', href: '/dashboard/profile', icon: UserIcon },
   { name: 'Settings', href: '/dashboard/profile?panel=settings', icon: Cog6ToothIcon },
 ]
@@ -61,7 +68,7 @@ export default function NavLinks({ onClose, currentUserRole }: NavLinksProps) {
 
   const isCashierActive = pathname.startsWith('/dashboard/cashier')
 
-  const renderLink = (link: any) => {
+  const renderLink = (link: NavLink) => {
     const LinkIcon = link.icon
     const isActive = pathname === link.href
 

@@ -70,6 +70,7 @@ export function EditBookingModal({ booking, onClose, onConfirm }: EditBookingMod
     if (data.expected_checkin && data.expected_checkout) {
       loadAvailableSpots()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data.expected_checkin, data.expected_checkout])
 
   const loadAvailableSpots = async () => {
@@ -99,6 +100,7 @@ export function EditBookingModal({ booking, onClose, onConfirm }: EditBookingMod
     } else {
       setVehicles([])
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [vehicleSearch])
 
   const searchVehicles = async () => {

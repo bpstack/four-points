@@ -128,8 +128,8 @@ export default function GroupsSection() {
       const data = groupsResponse.data || []
       setGroups(Array.isArray(data) ? data.slice(0, DEFAULT_LIMIT) : [])
       setLoaded(true)
-    } catch (err: any) {
-      setError(err.message || 'Error cargando grupos')
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Error cargando grupos')
     } finally {
       setLoading(false)
     }
@@ -147,7 +147,7 @@ export default function GroupsSection() {
       try {
         const response = await apiClient.get(`${API_URL}/api/groups/${groupId}/history`)
         setHistory(response.data || response || [])
-      } catch (_err: any) {
+      } catch (_err: unknown) {
         console.error('Error fetching history:', _err)
         setHistory([])
       } finally {
@@ -168,7 +168,7 @@ export default function GroupsSection() {
       if (group) {
         setGroups([group])
       }
-    } catch (_err: any) {
+    } catch (_err: unknown) {
       setError(`Grupo #${searchId} no encontrado`)
       setGroups([])
     } finally {

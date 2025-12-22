@@ -109,7 +109,7 @@ export default function OverdueModal({
           {actions.map((action) => (
             <button
               key={action.id}
-              onClick={() => onAction(action.id as any)}
+              onClick={() => onAction(action.id as 'checkout' | 'no-show' | 'cancel' | 'delete')}
               disabled={loading}
               className="w-full p-4 text-left border-2 border-gray-100 dark:border-gray-800 rounded-xl hover:border-gray-300 dark:hover:border-gray-700 hover:bg-gray-50 dark:hover:bg-slate-800/50 transition-all duration-200 disabled:opacity-50 group"
             >

@@ -473,9 +473,9 @@ export function PaidInvoicesTab({
       )
       setRevertPreview(preview)
       setRevertDialogOpen(true)
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('[handleOpenRevertDialog] Error:', error)
-      toast.error(error.message || 'Error al obtener preview')
+      toast.error(error instanceof Error ? error.message : 'Error al obtener preview')
     }
   }
 
@@ -485,9 +485,9 @@ export function PaidInvoicesTab({
     try {
       const preview = await backofficeApi.previewRevertBatchPayment(year, month)
       setRevertPreview(preview)
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('[handleRevertMonthChange] Error:', error)
-      toast.error(error.message || 'Error al obtener preview')
+      toast.error(error instanceof Error ? error.message : 'Error al obtener preview')
     }
   }
 
@@ -504,9 +504,9 @@ export function PaidInvoicesTab({
       setRevertPreview(null)
       setSelectedMonthYear(null)
       router.refresh()
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('[handleExecuteRevert] Error:', error)
-      toast.error(error.message || 'Error al revertir')
+      toast.error(error instanceof Error ? error.message : 'Error al revertir')
     } finally {
       setIsReverting(false)
     }
@@ -659,9 +659,9 @@ export function PaidInvoicesTab({
       document.body.removeChild(a)
 
       toast.success(`${invoicesToExport.length} factura(s) descargada(s) en ZIP`)
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('[handleExportZip] Error:', error)
-      toast.error(error.message || 'Error al descargar las facturas')
+      toast.error(error instanceof Error ? error.message : 'Error al descargar las facturas')
     } finally {
       setIsExportingZip(false)
     }

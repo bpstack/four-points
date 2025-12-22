@@ -20,7 +20,13 @@ interface ActionDropdownProps {
 
 const ACTIONS_BY_STATUS: Record<
   string,
-  Array<{ id: string; label: string; icon: any; color: string; divider?: boolean }>
+  Array<{
+    id: string
+    label: string
+    icon: React.ComponentType<{ className?: string }>
+    color: string
+    divider?: boolean
+  }>
 > = {
   reserved: [
     {

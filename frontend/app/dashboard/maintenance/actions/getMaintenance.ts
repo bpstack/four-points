@@ -18,7 +18,7 @@ export interface MaintenanceListResponse {
     has_next: boolean
     has_prev: boolean
   }
-  filters_applied?: Record<string, any>
+  filters_applied?: Record<string, unknown>
 }
 
 export async function getMaintenance(

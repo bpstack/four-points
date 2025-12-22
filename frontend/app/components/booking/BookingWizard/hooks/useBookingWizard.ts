@@ -193,6 +193,35 @@ export const useBookingWizard = ({
   }, [state.vehicleData, updateState, setError])
 
   // ============ PLAZAS Y DISPONIBILIDAD ============
+  const validateDates = useCallback(() => {
+    if (
+      !state.reservationData.expected_checkin_date ||
+      !state.reservationData.expected_checkout_date
+    )
+      return false
+
+    const checkin = new Date(
+      `${state.reservationData.expected_checkin_date}T${state.reservationData.expected_checkin_time}`
+    )
+    const checkout = new Date(
+      `${state.reservationData.expected_checkout_date}T${state.reservationData.expected_checkout_time}`
+    )
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+
+    if (checkout <= checkin) {
+      setError('Fecha de salida debe ser posterior a entrada')
+      return false
+    }
+
+    if (checkin < today) {
+      setError('Fecha de entrada no puede ser en el pasado')
+      return false
+    }
+
+    return true
+  }, [state.reservationData, setError])
+
   const handleLoadAvailability = useCallback(async () => {
     if (
       !state.reservationData.expected_checkin_date ||
@@ -261,7 +290,7 @@ export const useBookingWizard = ({
       setError(message)
       toast.error('Error al cargar plazas')
     }
-  }, [state.reservationData, updateState, setError])
+  }, [state.reservationData, updateState, setError, validateDates])
 
   const handleSelectSpot = useCallback((spot: ParkingSpotDisplay) => {
     const normalizeLevel = (levelCode: string) => levelCode.replace('-', '')
@@ -304,35 +333,6 @@ export const useBookingWizard = ({
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
     return diffDays
   }, [state.reservationData])
-
-  const validateDates = useCallback(() => {
-    if (
-      !state.reservationData.expected_checkin_date ||
-      !state.reservationData.expected_checkout_date
-    )
-      return false
-
-    const checkin = new Date(
-      `${state.reservationData.expected_checkin_date}T${state.reservationData.expected_checkin_time}`
-    )
-    const checkout = new Date(
-      `${state.reservationData.expected_checkout_date}T${state.reservationData.expected_checkout_time}`
-    )
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-
-    if (checkout <= checkin) {
-      setError('Fecha de salida debe ser posterior a entrada')
-      return false
-    }
-
-    if (checkin < today) {
-      setError('Fecha de entrada no puede ser en el pasado')
-      return false
-    }
-
-    return true
-  }, [state.reservationData, setError])
 
   const handleCreateReservation = useCallback(async () => {
     if (!state.selectedSpot) {

@@ -29,6 +29,7 @@ export function HistoryTab() {
     if (currentGroup) {
       loadHistory()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentGroup])
 
   const loadHistory = async () => {

@@ -211,8 +211,8 @@ export function PendingInvoicesTab({
         toast.success('Factura validada correctamente')
         setValidatingInvoice(null)
         handleMutationSuccess()
-      } catch (error: any) {
-        toast.error(error.message || 'Error al validar la factura')
+      } catch (error: unknown) {
+        toast.error(error instanceof Error ? error.message : 'Error al validar la factura')
       }
     })
   }
@@ -231,9 +231,9 @@ export function PendingInvoicesTab({
         console.log('[handleUnvalidate] Result:', result)
         toast.success('Validación revertida correctamente')
         handleMutationSuccess()
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error('[handleUnvalidate] Error:', error)
-        toast.error(error.message || 'Error al revertir la validación')
+        toast.error(error instanceof Error ? error.message : 'Error al revertir la validación')
       }
     })
   }
@@ -354,9 +354,9 @@ export function PendingInvoicesTab({
 
       toast.success(`${selectedInvoices.length} factura(s) descargada(s)`)
       setSelectedInvoices([])
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('[handleExportZip] Error:', error)
-      toast.error(error.message || 'Error al descargar las facturas')
+      toast.error(error instanceof Error ? error.message : 'Error al descargar las facturas')
     } finally {
       setIsExporting(false)
     }
@@ -368,9 +368,9 @@ export function PendingInvoicesTab({
       const preview = await backofficeApi.previewBatchPayment()
       setBatchPayPreview(preview)
       setBatchPayDialogOpen(true)
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('[handleOpenBatchPayDialog] Error:', error)
-      toast.error(error.message || 'Error al obtener preview')
+      toast.error(error instanceof Error ? error.message : 'Error al obtener preview')
     }
   }
 
@@ -389,9 +389,9 @@ export function PendingInvoicesTab({
       setBatchPayDialogOpen(false)
       setBatchPayPreview(null)
       handleMutationSuccess()
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('[handleExecuteBatchPayment] Error:', error)
-      toast.error(error.message || 'Error al ejecutar batch payment')
+      toast.error(error instanceof Error ? error.message : 'Error al ejecutar batch payment')
     } finally {
       setIsBatchPaying(false)
     }

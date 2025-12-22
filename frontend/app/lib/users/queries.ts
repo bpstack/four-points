@@ -13,10 +13,11 @@ export const usersApi = {
   getAllUsers: async () => {
     try {
       return await apiClient.get(`${API_URL}/api/users`)
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error en getAllUsers:', err)
+      const errorMessage = err instanceof Error ? err.message : String(err)
       const message =
-        err.message?.includes('401') || err.message?.includes('403')
+        errorMessage.includes('401') || errorMessage.includes('403')
           ? 'Failed to fetch users. This option is only available for administrators.'
           : 'Error fetching users. Please try again later.'
       return { error: message }

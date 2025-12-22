@@ -103,8 +103,8 @@ export default function OverviewSection() {
       // Ensure limit is applied
       setActivity(Array.isArray(data) ? data.slice(0, DEFAULT_LIMIT) : [])
       setLoaded(true)
-    } catch (err: any) {
-      setError(err.message || 'Error cargando actividad')
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Error cargando actividad')
     } finally {
       setLoading(false)
     }

@@ -149,9 +149,9 @@ export function SettingsPanel() {
         return
       }
       setUsers(usersList)
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error fetching users:', err)
-      setError(err.message || 'Error loading users')
+      setError(err instanceof Error ? err.message : 'Error loading users')
       setUsers([])
     } finally {
       setLoading(false)
@@ -163,8 +163,8 @@ export function SettingsPanel() {
     try {
       await apiClient.delete(`${API_URL}/api/users/${id}`)
       setUsers(users.filter((u) => u.id !== id))
-    } catch (err: any) {
-      alert(err.message || 'Error deleting user')
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : 'Error deleting user')
     }
   }
 
@@ -326,7 +326,7 @@ function DepartmentsTab() {
       await departmentsApi.delete(id)
       toast.success('Departamento eliminado')
       loadDepartments()
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error deleting department:', err)
       if (!isDemoError(err)) {
         toast.error(err?.response?.data?.error || 'Error al eliminar')
@@ -481,7 +481,7 @@ function AddDepartmentModal({
       setName('')
       onSuccess()
       onClose()
-    } catch (err: any) {
+    } catch (err: unknown) {
       if (!isDemoError(err)) {
         toast.error(err?.message || 'Error al crear departamento')
       }
@@ -560,7 +560,7 @@ function EditDepartmentModal({
       toast.success('Departamento actualizado')
       onSuccess()
       onClose()
-    } catch (err: any) {
+    } catch (err: unknown) {
       if (!isDemoError(err)) {
         toast.error(err?.message || 'Error al actualizar')
       }
@@ -700,8 +700,8 @@ function UserTable({ users, onDelete }: { users: User[]; onDelete: (id: string) 
       setEditingId(null)
       setEditForm({})
       window.location.reload()
-    } catch (err: any) {
-      alert(err.message || 'Error updating user')
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : 'Error updating user')
     } finally {
       setSavingId(null)
     }
@@ -866,10 +866,10 @@ function NotificationsSettings() {
           : response.message,
       })
       setTimeout(() => setNotificationResult(null), 5000)
-    } catch (error: any) {
+    } catch (error: unknown) {
       setNotificationResult({
         type: 'error',
-        message: error.message || 'Error checking notifications',
+        message: error instanceof Error ? error.message : 'Error checking notifications',
       })
       setTimeout(() => setNotificationResult(null), 5000)
     } finally {

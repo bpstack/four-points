@@ -107,9 +107,9 @@ export function SettingsTabLazy({ initialAssets }: SettingsTabLazyProps) {
       if (fileInputRef.current) {
         fileInputRef.current.value = ''
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error uploading asset:', error)
-      toast.error(error.message || 'Error al subir el archivo')
+      toast.error(error instanceof Error ? error.message : 'Error al subir el archivo')
     } finally {
       setUploading(false)
     }
@@ -123,9 +123,9 @@ export function SettingsTabLazy({ initialAssets }: SettingsTabLazyProps) {
       await backofficeApi.deleteAsset(deleteDialog.asset.id)
       toast.success('Eliminado correctamente')
       invalidateAssets()
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error deleting asset:', error)
-      toast.error(error.message || 'Error al eliminar')
+      toast.error(error instanceof Error ? error.message : 'Error al eliminar')
     } finally {
       setDeleteDialog({ open: false, asset: null })
     }
@@ -137,9 +137,11 @@ export function SettingsTabLazy({ initialAssets }: SettingsTabLazyProps) {
       await backofficeApi.setDefaultAsset(asset.id)
       toast.success(`${asset.name} establecido como predeterminado`)
       invalidateAssets()
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error setting default:', error)
-      toast.error(error.message || 'Error al establecer como predeterminado')
+      toast.error(
+        error instanceof Error ? error.message : 'Error al establecer como predeterminado'
+      )
     }
   }
 

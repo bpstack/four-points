@@ -99,7 +99,7 @@ export function PaidInvoicesTabLazy({
     keepPreviousData: true,
   })
 
-  const invoices = data?.invoices ?? []
+  const invoices = useMemo(() => data?.invoices ?? [], [data?.invoices])
   const categories = realCategories
   const pagination = data?.pagination ?? realPagination
 

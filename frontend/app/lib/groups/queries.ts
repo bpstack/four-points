@@ -31,6 +31,7 @@ import type {
   UpdateGroupRoomDTO,
   CreateNotificationDTO,
   PaymentStatus,
+  GroupHistoryRecord,
 } from './types'
 
 const API_URL = API_BASE_URL
@@ -253,7 +254,10 @@ export const groupsApi = {
 
   getRooms: async (
     groupId: number
-  ): Promise<{ success: boolean; data: { rooms: GroupRoom[]; summary?: any } }> => {
+  ): Promise<{
+    success: boolean
+    data: { rooms: GroupRoom[]; summary?: Record<string, unknown> }
+  }> => {
     return apiClient.get(`${API_URL}/api/groups/${groupId}/rooms`)
   },
 
@@ -345,7 +349,7 @@ export const groupsApi = {
   getHistory: async (
     groupId: number,
     limit?: number
-  ): Promise<{ success: boolean; data: any[] }> => {
+  ): Promise<{ success: boolean; data: GroupHistoryRecord[] }> => {
     const url = limit
       ? `${API_URL}/api/groups/${groupId}/history?limit=${limit}`
       : `${API_URL}/api/groups/${groupId}/history`

@@ -81,7 +81,7 @@ export const blacklistApi = {
     const url = `${API_BASE}/api/blacklist/${id}`
 
     // Convertir fechas si están presentes
-    const payload: any = { ...data }
+    const payload: Record<string, unknown> = { ...data }
     if (payload.check_in_date && typeof payload.check_in_date !== 'string') {
       payload.check_in_date = payload.check_in_date.toISOString()
     }
