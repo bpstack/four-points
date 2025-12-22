@@ -1,4 +1,4 @@
-// middleware.ts
+// proxy.ts - Route protection (Next.js 16+)
 
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
@@ -6,7 +6,7 @@ import type { NextRequest } from 'next/server'
 const protectedRoutes = ['/dashboard', '/profile', '/settings', '/admin']
 const authRoutes = ['/login', '/register', '/forgot-password']
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   // Skip internal routes and static assets

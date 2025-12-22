@@ -39,9 +39,10 @@ Estado actual: rama `improve` con correcciones aplicadas, lista para continuar.
 - Genéricos cambiados de `<T = any>` a `<T = unknown>` para type-safety.
 - Todos los consumidores actualizados con tipos explícitos.
 
-10) NextAuth/middleware — **[en progreso]** ← ACTUAL
+10) NextAuth/proxy — **[completado]**
 - Middleware activado para protección de rutas.
-- Warning de Next.js 16: "middleware" convention deprecated, evaluar migración a "proxy".
+- Migrado de `middleware.ts` a `proxy.ts` (Next.js 16 convention).
+- `baseline-browser-mapping` actualizado a última versión.
 
 ## Siguientes pasos concretos
 - [x] Crear `env.ts` y sustituir referencias.
@@ -56,7 +57,8 @@ Estado actual: rama `improve` con correcciones aplicadas, lista para continuar.
 - [x] SSR Parking Dashboard - Server Component con Server Action.
 - [x] Migrar Logbooks a React Query.
 - [x] Tipar apiClient con genéricos `unknown` y actualizar consumidores.
-- [ ] Evaluar warning de middleware deprecated y documentar decisión.
+- [x] Migrar middleware.ts a proxy.ts (Next.js 16).
+- [x] Actualizar baseline-browser-mapping.
 - [ ] Migrar módulos restantes a React Query: Messages, Notifications, Dashboard principal.
 
 ## Notas rápidas
@@ -73,3 +75,4 @@ Estado actual: rama `improve` con correcciones aplicadas, lista para continuar.
 - 22-dic: Groups y Parking Dashboard migrados a SSR.
 - 22-dic: Logbooks migrado a React Query con hook `useLogbooks`.
 - 22-dic: apiClient tipado con `unknown` en lugar de `any`, todos los consumidores actualizados.
+- 22-dic: Migrado middleware.ts → proxy.ts para cumplir con Next.js 16 convention.
