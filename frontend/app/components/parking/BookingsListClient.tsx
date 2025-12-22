@@ -288,7 +288,8 @@ export function BookingsListClient({
         // Usar overrides si se proporcionan, sino usar valores de URL
         const effectiveStartDate = overrides?.startDate ?? startDate
         const effectiveEndDate = overrides?.endDate ?? endDate
-        const effectiveQuickFilter = overrides?.quickFilter !== undefined ? overrides.quickFilter : quickFilter
+        const effectiveQuickFilter =
+          overrides?.quickFilter !== undefined ? overrides.quickFilter : quickFilter
         const effectiveStatus = overrides?.status ?? statusFilter
 
         // Prioridad 1: quickFilter (filtros del dashboard)
@@ -957,11 +958,12 @@ export function BookingsListClient({
                       <span>
                         <span className="font-medium text-gray-900 dark:text-gray-100">
                           {filteredBookings.length}
-                        </span>
-                        {' '}reserva{filteredBookings.length !== 1 ? 's' : ''}
+                        </span>{' '}
+                        reserva{filteredBookings.length !== 1 ? 's' : ''}
                         {pagination.totalPages > 1 && (
                           <span className="text-gray-400 dark:text-gray-500">
-                            {' '}(pag. {pagination.page} de {pagination.totalPages})
+                            {' '}
+                            (pag. {pagination.page} de {pagination.totalPages})
                           </span>
                         )}
                       </span>

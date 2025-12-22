@@ -21,6 +21,8 @@ export interface UserRow extends RowDataPacket {
   is_active: number | boolean
   created_at: Date
   updated_at: Date | null
+  avatar_url: string | null
+  avatar_public_id: string | null
 }
 
 export interface UserWithRole extends RowDataPacket {
@@ -32,6 +34,8 @@ export interface UserWithRole extends RowDataPacket {
   is_active: number | boolean
   created_at: Date
   updated_at?: Date | null
+  avatar_url?: string | null
+  avatar_public_id?: string | null
 }
 
 export interface RoleRow extends RowDataPacket {
@@ -51,6 +55,7 @@ export interface User {
   is_active: number | boolean
   created_at: Date
   updated_at?: Date | null
+  avatar_url?: string | null
 }
 
 // ============================================

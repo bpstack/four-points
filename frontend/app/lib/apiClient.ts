@@ -132,8 +132,14 @@ async function fetchWithRefresh(url: string, options: FetchOptions = {}): Promis
   // El backend/proxy tiene acceso a la cookie y determina si es válida.
   // Si el refresh falla, entonces sí redirigimos al login.
   if (isClient && response.status === 401 && !skipRefresh && !isAuthRoute) {
-    console.log('[apiClient] 🔑 Recibido 401, intentando refresh... (intento', refreshAttempts + 1, 'de', MAX_REFRESH_ATTEMPTS, ')')
-    
+    console.log(
+      '[apiClient] 🔑 Recibido 401, intentando refresh... (intento',
+      refreshAttempts + 1,
+      'de',
+      MAX_REFRESH_ATTEMPTS,
+      ')'
+    )
+
     // Circuit breaker: si ya intentamos demasiadas veces, redirigir al login
     if (refreshAttempts >= MAX_REFRESH_ATTEMPTS) {
       console.log('[apiClient] ⛔ Máximo de intentos de refresh alcanzado, redirigiendo a login')
@@ -141,7 +147,7 @@ async function fetchWithRefresh(url: string, options: FetchOptions = {}): Promis
       clearAuthCookiesAndRedirect()
       throw new Error('Max refresh attempts reached')
     }
-    
+
     refreshAttempts++
     // Si ya hay refresh en curso, encolar este request
     if (isRefreshing) {

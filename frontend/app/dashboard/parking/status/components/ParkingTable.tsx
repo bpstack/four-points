@@ -313,78 +313,70 @@ export default function ParkingTable({
 
                 <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-3 hover:shadow-md dark:hover:shadow-gray-900/50 transition-shadow">
                   {/* Header: Plaza + Estado */}
-                  <div className="flex items-start justify-between mb-2">
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs font-semibold text-gray-900 dark:text-gray-100">
-                          {spot.level_code.replace('-', '')} · {spot.spot_number}
-                        </span>
-                        {getStatusBadge(spot.status)}
-                      </div>
-                      <p className="text-[10px] text-gray-500 dark:text-gray-400 capitalize mt-0.5">
-                        {spot.spot_type.replace('_', ' ')}
-                      </p>
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-bold text-gray-900 dark:text-gray-100">
+                        {spot.level_code.replace('-', '')} · {spot.spot_number}
+                      </span>
+                      {getStatusBadge(spot.status)}
                     </div>
+                    <span className="text-[10px] text-gray-400 dark:text-gray-500 capitalize">
+                      {spot.spot_type.replace('_', ' ')}
+                    </span>
                   </div>
 
-                  {/* Cliente/Vehículo */}
-                  {spot.booking?.vehicle ? (
-                    <div className="mb-2 pb-2 border-b border-gray-100 dark:border-gray-800">
-                      <p className="text-xs font-medium text-gray-900 dark:text-gray-100">
-                        {spot.booking.vehicle.owner}
-                      </p>
-                      <p className="text-[10px] text-gray-500 dark:text-gray-400">
-                        {spot.booking.vehicle.model} · {spot.booking.vehicle.plate}
-                      </p>
-                    </div>
-                  ) : spot.status !== 'free' ? (
-                    <div className="mb-2 pb-2 border-b border-gray-100 dark:border-gray-800">
-                      <p className="text-[10px] text-gray-400 dark:text-gray-500">
-                        Sin datos de cliente
-                      </p>
-                    </div>
-                  ) : null}
-
-                  {/* Fechas */}
-                  {spot.booking?.schedule && (
-                    <div className="flex items-center gap-4 mb-3 text-[10px]">
-                      <div>
-                        <span className="text-gray-500 dark:text-gray-400">Entrada: </span>
-                        <span className="text-gray-900 dark:text-gray-100">
-                          {new Date(spot.booking.schedule.expected_checkin).toLocaleDateString(
-                            'es-ES',
-                            {
-                              day: '2-digit',
-                              month: '2-digit',
-                            }
-                          )}
-                        </span>
+                  {/* Cliente/Vehículo - Solo si hay booking */}
+                  {spot.booking?.vehicle && (
+                    <div className="flex items-center justify-between py-2 border-t border-gray-100 dark:border-gray-800">
+                      <div className="min-w-0 flex-1">
+                        <p className="text-xs font-medium text-gray-900 dark:text-gray-100 truncate">
+                          {spot.booking.vehicle.owner}
+                        </p>
+                        <p className="text-[10px] text-gray-500 dark:text-gray-400">
+                          {spot.booking.vehicle.model} · {spot.booking.vehicle.plate}
+                        </p>
                       </div>
-                      <div>
-                        <span className="text-gray-500 dark:text-gray-400">Salida: </span>
-                        <span className="text-gray-900 dark:text-gray-100">
-                          {new Date(spot.booking.schedule.expected_checkout).toLocaleDateString(
-                            'es-ES',
-                            {
-                              day: '2-digit',
-                              month: '2-digit',
-                            }
-                          )}
-                        </span>
-                      </div>
+                      {/* Fechas inline */}
+                      {spot.booking?.schedule && (
+                        <div className="text-right text-[10px] ml-3 flex-shrink-0">
+                          <div className="text-gray-500 dark:text-gray-400">
+                            <span className="text-gray-900 dark:text-gray-200 font-medium">
+                              {new Date(spot.booking.schedule.expected_checkin).toLocaleDateString(
+                                'es-ES',
+                                { day: '2-digit', month: '2-digit' }
+                              )}
+                            </span>
+                            {' → '}
+                            <span className="text-gray-900 dark:text-gray-200 font-medium">
+                              {new Date(spot.booking.schedule.expected_checkout).toLocaleDateString(
+                                'es-ES',
+                                { day: '2-digit', month: '2-digit' }
+                              )}
+                            </span>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )}
 
                   {/* Acciones */}
-                  <SpotActions
-                    spot={spot}
-                    onCheckIn={onCheckIn}
-                    onCheckOut={onCheckOut}
-                    onCancel={onCancel}
-                    onCreateBooking={onCreateBooking}
-                    onEdit={onEdit}
-                    variant="mobile"
-                  />
+                  <div
+                    className={
+                      spot.booking?.vehicle
+                        ? 'pt-2 border-t border-gray-100 dark:border-gray-800'
+                        : ''
+                    }
+                  >
+                    <SpotActions
+                      spot={spot}
+                      onCheckIn={onCheckIn}
+                      onCheckOut={onCheckOut}
+                      onCancel={onCancel}
+                      onCreateBooking={onCreateBooking}
+                      onEdit={onEdit}
+                      variant="mobile"
+                    />
+                  </div>
                 </div>
               </React.Fragment>
             )

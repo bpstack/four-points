@@ -13,6 +13,7 @@ import {
   generateRefreshToken,
   verifyToken,
 } from '../../services/auth/tokenService.js'
+import { CloudinaryService } from '../../services/blacklist/cloudinary-service.js'
 import type {
   CookieOptions,
   TokenPayload,
@@ -374,5 +375,103 @@ export const updatePassword = async (req: Request, res: Response): Promise<void>
     }
 
     res.status(500).json({ error: 'Error interno del servidor' })
+  }
+}
+
+/**
+ * Subir/actualizar avatar del usuario autenticado
+ * Máximo 2MB, solo imágenes
+ */
+export const uploadAvatar = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const userId = req.user!.id
+
+    if (!req.file) {
+      res.status(400).json({ error: 'No se proporcionó ninguna imagen' })
+      return
+    }
+
+    // Validar tipo de archivo
+    const allowedMimes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
+    if (!allowedMimes.includes(req.file.mimetype)) {
+      res.status(400).json({
+        error: 'Tipo de archivo no válido. Solo se permiten: JPEG, PNG, WebP, GIF',
+      })
+      return
+    }
+
+    // Obtener el public_id del avatar anterior (si existe) para eliminarlo después
+    const previousPublicId = await UserRepository.getAvatarPublicId(userId)
+    console.log(`[AUTH] Previous avatar public_id for user ${userId}:`, previousPublicId)
+
+    // Subir nueva imagen a Cloudinary (método optimizado para avatares)
+    const uploadResult = await CloudinaryService.uploadAvatar(
+      req.file.buffer,
+      req.file.originalname,
+      'avatars' // Carpeta en Cloudinary
+    )
+    console.log(`[AUTH] New avatar uploaded:`, uploadResult.public_id)
+
+    // Actualizar usuario con nuevo avatar
+    const updatedUser = await UserRepository.updateAvatar(
+      userId,
+      uploadResult.secure_url,
+      uploadResult.public_id
+    )
+
+    // Eliminar avatar anterior de Cloudinary (si existía)
+    if (previousPublicId) {
+      try {
+        await CloudinaryService.deleteImage(previousPublicId)
+        console.info(`[AUTH] Previous avatar deleted: ${previousPublicId}`)
+      } catch (error) {
+        // No bloquear si falla la eliminación del anterior
+        console.error('[AUTH] Failed to delete previous avatar:', error)
+      }
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Avatar actualizado correctamente',
+      user: updatedUser,
+    })
+  } catch (error) {
+    console.error('Error en uploadAvatar:', error)
+    res.status(500).json({ error: 'Error al subir avatar' })
+  }
+}
+
+/**
+ * Eliminar avatar del usuario autenticado
+ */
+export const deleteAvatar = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const userId = req.user!.id
+
+    // Obtener public_id para eliminar de Cloudinary
+    const publicId = await UserRepository.deleteAvatar(userId)
+
+    // Eliminar de Cloudinary si existe
+    if (publicId) {
+      try {
+        await CloudinaryService.deleteImage(publicId)
+        console.info(`[AUTH] Avatar deleted from Cloudinary: ${publicId}`)
+      } catch (error) {
+        // No bloquear si falla la eliminación de Cloudinary
+        console.error('[AUTH] Failed to delete avatar from Cloudinary:', error)
+      }
+    }
+
+    // Obtener usuario actualizado
+    const updatedUser = await UserRepository.getById(userId)
+
+    res.status(200).json({
+      success: true,
+      message: 'Avatar eliminado correctamente',
+      user: updatedUser,
+    })
+  } catch (error) {
+    console.error('Error en deleteAvatar:', error)
+    res.status(500).json({ error: 'Error al eliminar avatar' })
   }
 }

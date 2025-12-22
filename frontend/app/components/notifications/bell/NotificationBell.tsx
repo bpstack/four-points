@@ -52,13 +52,13 @@ export default function NotificationBell() {
       {/* Bell Button con Badge */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="relative p-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+        className="relative p-1.5 md:p-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
       >
-        <FiBell className="w-5 h-5" />
+        <FiBell className="w-4 h-4 md:w-5 md:h-5" />
 
         {/* Badge contador */}
         {unreadCount > 0 && (
-          <span className="absolute -top-1 -right-1 min-w-[20px] h-5 px-1 bg-red-600 text-white text-xs font-bold rounded-full flex items-center justify-center">
+          <span className="absolute -top-0.5 -right-0.5 md:-top-1 md:-right-1 min-w-[16px] md:min-w-[20px] h-4 md:h-5 px-1 bg-red-600 text-white text-[10px] md:text-xs font-bold rounded-full flex items-center justify-center">
             {unreadCount > 9 ? '9+' : unreadCount}
           </span>
         )}

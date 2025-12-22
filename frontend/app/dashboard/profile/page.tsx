@@ -2,9 +2,10 @@
 
 'use client'
 
-import { Suspense } from 'react'
+import { Suspense, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { useAuth } from '@/app/lib/auth/useAuth'
+import { cn } from '@/app/lib/helpers/utils'
 import { ProfileSidebar, SettingsPanel, MessagesPanel } from '@/app/components/profile'
 
 // Skeleton for loading state
@@ -21,6 +22,12 @@ function ProfileContent() {
   const { user, loading } = useAuth()
   const searchParams = useSearchParams()
   const activePanel = searchParams.get('panel') // 'settings' | 'messages' | null
+
+  // Track if a conversation is selected in messages panel
+  const [hasActiveConversation, setHasActiveConversation] = useState(false)
+
+  // Hide sidebar when viewing a conversation in messages
+  const shouldHideSidebar = activePanel === 'messages' && hasActiveConversation
 
   if (loading) {
     return <ProfileSkeleton />
@@ -40,7 +47,7 @@ function ProfileContent() {
       case 'settings':
         return <SettingsPanel />
       case 'messages':
-        return <MessagesPanel />
+        return <MessagesPanel onConversationSelect={setHasActiveConversation} />
       default:
         return null
     }
@@ -51,13 +58,21 @@ function ProfileContent() {
   return (
     <div className="h-full min-h-screen bg-white dark:bg-[#010409]">
       <div className="h-full flex flex-col lg:flex-row gap-6 p-4 md:p-6">
-        {/* Left Panel - Profile Sidebar */}
-        <aside className="w-full lg:w-72 xl:w-80 flex-shrink-0">
-          <ProfileSidebar />
-        </aside>
+        {/* Left Panel - Profile Sidebar (hidden when conversation is active) */}
+        {!shouldHideSidebar && (
+          <aside className="w-full lg:w-72 xl:w-80 flex-shrink-0">
+            <ProfileSidebar />
+          </aside>
+        )}
 
         {/* Right Panel - Dynamic Content */}
-        {rightPanel && <main className="flex-1 min-w-0">{rightPanel}</main>}
+        {rightPanel && (
+          <main
+            className={cn('flex-1 min-w-0', activePanel === 'messages' && 'max-w-[1600px] w-full')}
+          >
+            {rightPanel}
+          </main>
+        )}
 
         {/* Empty state when no panel selected (desktop only) */}
         {!rightPanel && (

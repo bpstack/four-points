@@ -68,6 +68,7 @@ export interface User {
   username: string
   email?: string
   role?: string
+  avatar_url?: string | null
 }
 
 // ========== HISTORIAL ==========

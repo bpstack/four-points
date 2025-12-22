@@ -104,6 +104,59 @@ export class CloudinaryService {
   }
 
   /**
+   * Subir avatar a Cloudinary con mejor calidad
+   * Optimizado para fotos de perfil: cuadrado, alta calidad
+   * @param fileBuffer - Buffer del archivo
+   * @param filename - Nombre original del archivo
+   * @param folder - Carpeta destino en Cloudinary (default: 'avatars')
+   */
+  static async uploadAvatar(
+    fileBuffer: Buffer,
+    filename: string,
+    folder: string = 'avatars'
+  ): Promise<CloudinaryUploadResult> {
+    ensureConfigured()
+    
+    return new Promise((resolve, reject) => {
+      const uploadStream = cloudinary.uploader.upload_stream(
+        {
+          folder: folder,
+          resource_type: 'image',
+          public_id: `avatar_${Date.now()}_${filename.split('.')[0]}`,
+          transformation: [
+            { width: 400, height: 400, crop: 'fill', gravity: 'face' }, // Cuadrado, centrado en cara
+            { quality: 95 }, // Alta calidad
+            { format: 'webp' }, // Formato moderno y eficiente
+          ],
+        },
+        (error, result) => {
+          if (error) {
+            console.error('[CloudinaryService] Avatar upload error:', error)
+            reject(new Error('Error al subir avatar a Cloudinary'))
+            return
+          }
+
+          if (!result) {
+            reject(new Error('No se recibió respuesta de Cloudinary'))
+            return
+          }
+
+          resolve({
+            url: result.url,
+            secure_url: result.secure_url,
+            public_id: result.public_id,
+            width: result.width,
+            height: result.height,
+            format: result.format,
+          })
+        }
+      )
+
+      uploadStream.end(fileBuffer)
+    })
+  }
+
+  /**
    * Eliminar imagen de Cloudinary
    * @param publicId - ID público de la imagen
    */

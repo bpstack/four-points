@@ -74,16 +74,16 @@ export default function DatePickerInput({
   // Calcular si el calendario debe alinearse a la derecha
   const handleOpen = () => {
     if (disabled) return
-    
+
     if (buttonRef.current) {
       const rect = buttonRef.current.getBoundingClientRect()
       const calendarWidth = 224 // w-56 = 14rem = 224px
       const spaceOnRight = window.innerWidth - rect.left
-      
+
       // Si no hay espacio suficiente a la derecha, alinear a la derecha
       setAlignRight(spaceOnRight < calendarWidth + 16) // 16px de margen
     }
-    
+
     setIsOpen(!isOpen)
   }
 
@@ -150,10 +150,14 @@ export default function DatePickerInput({
                 onClick={handleClear}
                 className="p-0.5 hover:bg-gray-200 dark:hover:bg-gray-700 rounded"
               >
-                <FiX className={size === 'sm' ? 'w-3 h-3 text-gray-400' : 'w-3.5 h-3.5 text-gray-400'} />
+                <FiX
+                  className={size === 'sm' ? 'w-3 h-3 text-gray-400' : 'w-3.5 h-3.5 text-gray-400'}
+                />
               </span>
             )}
-            <FiCalendar className={size === 'sm' ? 'w-3.5 h-3.5 text-gray-400' : 'w-4 h-4 text-gray-400'} />
+            <FiCalendar
+              className={size === 'sm' ? 'w-3.5 h-3.5 text-gray-400' : 'w-4 h-4 text-gray-400'}
+            />
           </div>
         </button>
 

@@ -21,6 +21,7 @@ const DEV_USER: User = {
   username: 'Dev-user',
   email: 'dev@example.com',
   role: 'developer',
+  avatar_url: null,
 }
 
 const PUBLIC_ROUTES = [

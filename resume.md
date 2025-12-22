@@ -264,4 +264,66 @@ router.post('/refresh-token', refreshToken)
 
 ---
 
+## Funcionalidad Avatar de Perfil (22-dic-2025)
+
+### Implementación Completada
+
+Se añadió la funcionalidad para que los usuarios puedan subir, cambiar y eliminar su foto de perfil (avatar).
+
+### Archivos Creados
+
+| Archivo | Descripción |
+|---------|-------------|
+| `backend/db-mysql/aiven/18_user_avatar.sql` | Migración SQL para añadir campos avatar_url y avatar_public_id |
+| `backend/db-mysql/local/18_user_avatar.sql` | Misma migración para entorno local |
+
+### Archivos Modificados
+
+#### Backend
+
+| Archivo | Cambios |
+|---------|---------|
+| `backend/models/auth/index.ts` | Añadidos campos `avatar_url` y `avatar_public_id` a tipos User, UserRow, UserWithRole |
+| `backend/repositories/auth/user-repository.ts` | Añadido `avatar_url` a todas las queries SELECT; nuevos métodos: `updateAvatar()`, `deleteAvatar()`, `getAvatarPublicId()` |
+| `backend/controllers/auth/auth-controllers.ts` | Nuevos controllers: `uploadAvatar`, `deleteAvatar`; importado CloudinaryService |
+| `backend/routes/auth/auth-routes.ts` | Nuevas rutas: `POST /me/avatar` y `DELETE /me/avatar`; configuración multer (máx 2MB) |
+
+#### Frontend
+
+| Archivo | Cambios |
+|---------|---------|
+| `frontend/app/lib/logbooks/types.ts` | Añadido `avatar_url?: string \| null` al tipo User |
+| `frontend/app/lib/auth/useAuth.tsx` | Añadido `avatar_url: null` al DEV_USER |
+| `frontend/app/components/profile/ProfileSidebar.tsx` | UI completa para subir/cambiar/eliminar avatar con preview y menú dropdown |
+| `frontend/app/components/layout/ProfileDropdown.tsx` | Muestra avatar en el header si existe |
+
+### Endpoints API
+
+| Método | Ruta | Descripción |
+|--------|------|-------------|
+| POST | `/api/auth/me/avatar` | Subir/actualizar avatar (multipart/form-data) |
+| DELETE | `/api/auth/me/avatar` | Eliminar avatar |
+
+### Características
+
+- **Límite de tamaño**: 2MB máximo
+- **Formatos soportados**: JPEG, PNG, WebP, GIF
+- **Almacenamiento**: Cloudinary (carpeta `avatars/`)
+- **Optimización**: Cloudinary aplica compresión automática y límite de 1200x1200px
+- **Limpieza automática**: Al cambiar avatar, se elimina el anterior de Cloudinary
+
+### Para Desplegar
+
+1. Ejecutar migración SQL en la base de datos:
+   ```sql
+   -- Ejecutar en MySQL
+   ALTER TABLE users
+     ADD COLUMN avatar_url VARCHAR(500) NULL DEFAULT NULL,
+     ADD COLUMN avatar_public_id VARCHAR(255) NULL DEFAULT NULL;
+   ```
+
+2. Reiniciar backend para cargar los nuevos endpoints
+
+---
+
 *Última actualización: 22 de Diciembre 2025*

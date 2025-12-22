@@ -19,15 +19,7 @@ import {
 } from './fonts'
 
 // Re-export para uso en otros lugares si es necesario
-export {
-  poppins,
-  ubuntu,
-  appleSystem,
-  arial,
-  segoeUI,
-  systemUI,
-  emojiFont,
-} from './fonts'
+export { poppins, ubuntu, appleSystem, arial, segoeUI, systemUI, emojiFont } from './fonts'
 
 // ============= 🎯 FUENTES ACTIVAS =============
 // ✨ Cambia aquí para probar diferentes combinaciones

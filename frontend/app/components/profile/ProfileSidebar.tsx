@@ -2,7 +2,8 @@
 
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
+import Image from 'next/image'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '@/app/lib/auth/useAuth'
 import { apiClient } from '@/app/lib/apiClient'
@@ -20,10 +21,13 @@ import {
   FiEye,
   FiEyeOff,
   FiAlertCircle,
+  FiTrash2,
+  FiUpload,
 } from 'react-icons/fi'
 import { cn } from '@/app/lib/helpers/utils'
 
 const API_URL = API_BASE_URL
+const MAX_FILE_SIZE = 2 * 1024 * 1024 // 2MB
 
 export function ProfileSidebar() {
   const { user, refreshUser } = useAuth()
@@ -51,6 +55,12 @@ export function ProfileSidebar() {
   const [showCurrentPassword, setShowCurrentPassword] = useState(false)
   const [showNewPassword, setShowNewPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+
+  // Form states - Avatar
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const [avatarLoading, setAvatarLoading] = useState(false)
+  const [avatarError, setAvatarError] = useState<string | null>(null)
+  const [showAvatarMenu, setShowAvatarMenu] = useState(false)
 
   if (!user) return null
 
@@ -202,18 +212,146 @@ export function ProfileSidebar() {
     }
   }
 
+  // ============================
+  // Avatar Handlers
+  // ============================
+  const handleAvatarClick = () => {
+    setShowAvatarMenu(!showAvatarMenu)
+    setAvatarError(null)
+  }
+
+  const handleUploadClick = () => {
+    setShowAvatarMenu(false)
+    fileInputRef.current?.click()
+  }
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    // Reset input
+    e.target.value = ''
+
+    // Validate file type
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
+    if (!allowedTypes.includes(file.type)) {
+      setAvatarError('Solo se permiten imágenes JPEG, PNG, WebP o GIF')
+      return
+    }
+
+    // Validate file size
+    if (file.size > MAX_FILE_SIZE) {
+      setAvatarError('La imagen no puede superar los 2MB')
+      return
+    }
+
+    setAvatarLoading(true)
+    setAvatarError(null)
+
+    try {
+      const formData = new FormData()
+      formData.append('avatar', file)
+
+      await apiClient.postFormData(`${API_URL}/api/auth/me/avatar`, formData)
+
+      // Refresh user data to get new avatar URL
+      if (refreshUser) {
+        await refreshUser()
+      }
+    } catch (error: unknown) {
+      console.error('Error uploading avatar:', error)
+      setAvatarError(error instanceof Error ? error.message : 'Error al subir la imagen')
+    } finally {
+      setAvatarLoading(false)
+    }
+  }
+
+  const handleDeleteAvatar = async () => {
+    setShowAvatarMenu(false)
+    setAvatarLoading(true)
+    setAvatarError(null)
+
+    try {
+      await apiClient.delete(`${API_URL}/api/auth/me/avatar`)
+
+      // Refresh user data
+      if (refreshUser) {
+        await refreshUser()
+      }
+    } catch (error: unknown) {
+      console.error('Error deleting avatar:', error)
+      setAvatarError(error instanceof Error ? error.message : 'Error al eliminar la imagen')
+    } finally {
+      setAvatarLoading(false)
+    }
+  }
+
   return (
     <div className="space-y-4">
+      {/* Hidden file input */}
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleFileChange}
+        accept="image/jpeg,image/png,image/webp,image/gif"
+        className="hidden"
+      />
+
       {/* Profile Header */}
       <div className="bg-gray-50 dark:bg-[#161b22] border border-gray-200 dark:border-[#30363d] rounded-lg p-4">
-        <div className="flex items-center gap-3 mb-4">
+        <div className="flex items-center gap-4 mb-4">
           <div className="relative group flex-shrink-0">
-            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-xl font-semibold">
-              {user.username.charAt(0).toUpperCase()}
-            </div>
-            <button className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-40 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
-              <FiCamera className="w-4 h-4 text-white" />
+            {/* Avatar */}
+            {user.avatar_url ? (
+              <Image
+                src={user.avatar_url}
+                alt={user.username}
+                width={96}
+                height={96}
+                className="w-20 h-20 rounded-full object-cover ring-2 ring-gray-200 dark:ring-gray-700"
+                quality={90}
+                priority
+              />
+            ) : (
+              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-2xl font-semibold ring-2 ring-gray-200 dark:ring-gray-700">
+                {user.username.charAt(0).toUpperCase()}
+              </div>
+            )}
+
+            {/* Avatar Overlay Button */}
+            <button
+              onClick={handleAvatarClick}
+              disabled={avatarLoading}
+              className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-40 rounded-full opacity-0 group-hover:opacity-100 transition-opacity disabled:cursor-not-allowed"
+            >
+              {avatarLoading ? (
+                <span className="animate-spin h-6 w-6 border-2 border-white border-t-transparent rounded-full" />
+              ) : (
+                <FiCamera className="w-6 h-6 text-white" />
+              )}
             </button>
+
+            {/* Avatar Menu Dropdown */}
+            {showAvatarMenu && (
+              <div className="absolute left-0 top-full mt-1 z-10 w-36 py-1 bg-white dark:bg-[#161b22] border border-gray-200 dark:border-[#30363d] rounded-lg shadow-lg">
+                <button
+                  onClick={handleUploadClick}
+                  className="w-full flex items-center gap-2 px-3 py-2 text-xs text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#21262d]"
+                >
+                  <FiUpload className="w-3.5 h-3.5" />
+                  {user.avatar_url ? 'Cambiar foto' : 'Subir foto'}
+                </button>
+                {user.avatar_url && (
+                  <button
+                    onClick={handleDeleteAvatar}
+                    className="w-full flex items-center gap-2 px-3 py-2 text-xs text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-[#21262d]"
+                  >
+                    <FiTrash2 className="w-3.5 h-3.5" />
+                    Eliminar foto
+                  </button>
+                )}
+              </div>
+            )}
           </div>
           <div className="flex-1 min-w-0">
             <h2 className="text-sm font-semibold text-gray-900 dark:text-white truncate">
@@ -227,6 +365,20 @@ export function ProfileSidebar() {
             </span>
           </div>
         </div>
+
+        {/* Avatar Error Message */}
+        {avatarError && (
+          <div className="flex items-center gap-2 p-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+            <FiAlertCircle className="w-3.5 h-3.5 text-red-600 dark:text-red-400 flex-shrink-0" />
+            <p className="text-xs text-red-700 dark:text-red-400">{avatarError}</p>
+            <button
+              onClick={() => setAvatarError(null)}
+              className="ml-auto p-0.5 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/40 rounded"
+            >
+              <FiX className="w-3 h-3" />
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Success Message */}

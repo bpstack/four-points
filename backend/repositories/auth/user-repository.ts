@@ -141,6 +141,7 @@ export class UserRepository {
         u.password,
         u.is_active,
         u.created_at,
+        u.avatar_url,
         r.name AS role
       FROM users u
       INNER JOIN roles r ON r.id = u.role_id
@@ -189,6 +190,7 @@ export class UserRepository {
           u.email,
           u.created_at,
           u.is_active,
+          u.avatar_url,
           r.name AS role
         FROM users u
         INNER JOIN roles r ON r.id = u.role_id
@@ -214,6 +216,7 @@ export class UserRepository {
           u.created_at,
           u.is_active,
           u.updated_at,
+          u.avatar_url,
           r.name AS role
         FROM users u
         INNER JOIN roles r ON r.id = u.role_id
@@ -239,6 +242,7 @@ export class UserRepository {
           u.email,
           u.created_at,
           u.is_active,
+          u.avatar_url,
           r.name AS role
         FROM users u
         INNER JOIN roles r ON r.id = u.role_id
@@ -264,6 +268,7 @@ export class UserRepository {
           u.email,
           u.created_at,
           u.is_active,
+          u.avatar_url,
           r.name AS role
         FROM users u
         INNER JOIN roles r ON r.id = u.role_id
@@ -527,5 +532,71 @@ export class UserRepository {
     }
 
     return bcrypt.compare(password, users[0].password || '')
+  }
+
+  /**
+   * Actualizar avatar del usuario
+   */
+  static async updateAvatar(
+    userId: string,
+    avatarUrl: string,
+    avatarPublicId: string
+  ): Promise<User | null> {
+    try {
+      await db.query(
+        'UPDATE users SET avatar_url = ?, avatar_public_id = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
+        [avatarUrl, avatarPublicId, userId]
+      )
+
+      console.info(`[AUTH] Avatar updated for user ID: ${userId}`)
+      return this.getById(userId)
+    } catch (error) {
+      console.error('Error en updateAvatar:', error)
+      throw new Error('Error interno al actualizar avatar')
+    }
+  }
+
+  /**
+   * Eliminar avatar del usuario
+   * Devuelve el public_id anterior para poder eliminarlo de Cloudinary
+   */
+  static async deleteAvatar(userId: string): Promise<string | null> {
+    try {
+      // Obtener public_id actual antes de eliminar
+      const [users] = await db.query<UserWithRole[]>(
+        'SELECT avatar_public_id FROM users WHERE id = ?',
+        [userId]
+      )
+
+      if (users.length === 0) {
+        throw new Error('Usuario no encontrado')
+      }
+
+      const previousPublicId = users[0].avatar_public_id || null
+
+      // Limpiar campos de avatar
+      await db.query(
+        'UPDATE users SET avatar_url = NULL, avatar_public_id = NULL, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
+        [userId]
+      )
+
+      console.info(`[AUTH] Avatar deleted for user ID: ${userId}`)
+      return previousPublicId
+    } catch (error) {
+      console.error('Error en deleteAvatar:', error)
+      throw new Error('Error interno al eliminar avatar')
+    }
+  }
+
+  /**
+   * Obtener public_id del avatar actual
+   */
+  static async getAvatarPublicId(userId: string): Promise<string | null> {
+    const [users] = await db.query<UserWithRole[]>(
+      'SELECT avatar_public_id FROM users WHERE id = ?',
+      [userId]
+    )
+
+    return users[0]?.avatar_public_id || null
   }
 }

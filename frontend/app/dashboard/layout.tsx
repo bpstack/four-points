@@ -156,7 +156,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </button>
 
             {/* Breadcrumb Navigation */}
-            <nav className="flex items-center gap-1 overflow-x-auto scrollbar-hide min-w-0">
+            <nav className="flex items-center gap-0.5 md:gap-1 overflow-x-auto scrollbar-hide min-w-0">
               {breadcrumbs.map((crumb, index) => {
                 const isDashboard = crumb.label.toLowerCase() === 'dashboard'
                 // Obtener el segmento de ruta para buscar el icono
@@ -164,34 +164,37 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 const RouteIcon = routeIcons[pathSegment.toLowerCase()]
 
                 return (
-                  <div key={crumb.href} className="flex items-center gap-1 flex-shrink-0">
+                  <div
+                    key={crumb.href}
+                    className="flex items-center gap-0.5 md:gap-1 flex-shrink-0"
+                  >
                     {index > 0 && (
-                      <FiChevronRight className="h-4 w-4 text-gray-400 dark:text-gray-600 flex-shrink-0" />
+                      <FiChevronRight className="h-3 w-3 md:h-4 md:w-4 text-gray-400 dark:text-gray-600 flex-shrink-0" />
                     )}
                     {isDashboard ? (
                       <Link
                         href={crumb.href}
-                        className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white px-2 py-1 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                        className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white px-1.5 md:px-2 py-1 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                       >
                         {/* Mobile: icono home, Desktop: texto */}
-                        <FiHome className="h-4 w-4 md:hidden" />
+                        <FiHome className="h-3.5 w-3.5 md:hidden" />
                         <span className="hidden md:inline">{crumb.label}</span>
                       </Link>
                     ) : crumb.isLast ? (
                       <span
-                        className={`text-sm font-medium text-gray-900 dark:text-white px-2 py-1 truncate ${RouteIcon ? 'flex items-center gap-1' : ''}`}
+                        className={`text-sm font-medium text-gray-900 dark:text-white px-1.5 md:px-2 py-1 truncate ${RouteIcon ? 'flex items-center gap-1' : ''}`}
                       >
                         {/* Mobile: icono si existe, Desktop: solo texto */}
-                        {RouteIcon && <RouteIcon className="h-5 w-5 md:hidden" />}
+                        {RouteIcon && <RouteIcon className="h-4 w-4 md:h-5 md:w-5 md:hidden" />}
                         <span className={RouteIcon ? 'hidden md:inline' : ''}>{crumb.label}</span>
                       </span>
                     ) : (
                       <Link
                         href={crumb.href}
-                        className={`text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white px-2 py-1 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors truncate ${RouteIcon ? 'flex items-center gap-1' : ''}`}
+                        className={`text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white px-1.5 md:px-2 py-1 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors truncate ${RouteIcon ? 'flex items-center gap-1' : ''}`}
                       >
                         {/* Mobile: icono si existe, Desktop: texto */}
-                        {RouteIcon && <RouteIcon className="h-4 w-4 md:hidden" />}
+                        {RouteIcon && <RouteIcon className="h-3.5 w-3.5 md:h-4 md:w-4 md:hidden" />}
                         <span className={RouteIcon ? 'hidden md:inline' : ''}>{crumb.label}</span>
                       </Link>
                     )}
@@ -202,7 +205,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </div>
 
           {/* Right Section */}
-          <div className="flex items-center gap-2 md:gap-3 flex-shrink-0">
+          <div className="flex items-center gap-1 md:gap-3 flex-shrink-0">
             {/* Search Bar - Hidden on mobile, visible on md+ */}
             <div className="hidden md:block">
               <div className="relative">

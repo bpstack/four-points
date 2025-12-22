@@ -33,7 +33,11 @@ import type {
 // MAIN COMPONENT
 // ===============================================
 
-export function MessagesPanel() {
+interface MessagesPanelProps {
+  onConversationSelect?: (hasSelection: boolean) => void
+}
+
+export function MessagesPanel({ onConversationSelect }: MessagesPanelProps) {
   const { user } = useAuth()
   const searchParams = useSearchParams()
   const chatParam = searchParams.get('chat')
@@ -83,6 +87,8 @@ export function MessagesPanel() {
       setShowParticipants(false)
       setParticipants([])
     }
+    // Notify parent about selection state
+    onConversationSelect?.(!!conversations.selectedConversation)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [conversations.selectedConversation?.id])
 
@@ -97,17 +103,17 @@ export function MessagesPanel() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showNewConversation])
 
-  // Debounced user search
+  // Debounced user search (only when query changes, not on initial open)
   useEffect(() => {
-    if (!showNewConversation) return
+    if (!showNewConversation || userSearch.query === '') return
 
     const timer = setTimeout(() => {
-      userSearch.search(userSearch.query || undefined)
+      userSearch.search(userSearch.query)
     }, 300)
 
     return () => clearTimeout(timer)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userSearch.query, showNewConversation])
+  }, [userSearch.query])
 
   // Close menu on outside click
   useEffect(() => {
@@ -309,23 +315,37 @@ export function MessagesPanel() {
   return (
     <div className="h-full flex flex-col">
       {/* Header */}
-      <div className="mb-4">
+      <div className="mb-2 md:mb-4">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Mensajes</h2>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
+            <h2 className="text-base md:text-xl font-semibold text-gray-900 dark:text-white">
+              Mensajes
+            </h2>
+            <p className="text-xs md:text-sm text-gray-600 dark:text-gray-400">
               {conversations.totalUnread > 0
                 ? `${conversations.totalUnread} sin leer`
                 : 'Todas las conversaciones leidas'}
             </p>
           </div>
-          <button
-            onClick={() => setShowNewConversation(true)}
-            className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg flex items-center gap-1.5 transition-colors"
-          >
-            <FiPlus className="w-4 h-4" />
-            Nuevo
-          </button>
+          <div className="flex items-center gap-1.5 md:gap-2">
+            {/* Back to profile button - only visible when conversation is selected */}
+            {conversations.selectedConversation && (
+              <button
+                onClick={() => conversations.select(null)}
+                className="p-1.5 md:p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                title="Volver al perfil"
+              >
+                <FiX className="w-4 h-4" />
+              </button>
+            )}
+            <button
+              onClick={() => setShowNewConversation(true)}
+              className="px-2 py-1 md:px-3 md:py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs md:text-sm rounded-lg flex items-center gap-1 md:gap-1.5 transition-colors"
+            >
+              <FiPlus className="w-3.5 h-3.5 md:w-4 md:h-4" />
+              <span className="hidden sm:inline">Nuevo</span>
+            </button>
+          </div>
         </div>
       </div>
 

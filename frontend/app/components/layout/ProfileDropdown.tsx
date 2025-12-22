@@ -2,6 +2,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
+import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import {
   FiUser,
@@ -73,11 +74,21 @@ export default function ProfileDropdown() {
       {/* Botón de perfil */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 px-3 py-2 rounded-lg transition-colors duration-200 hover:bg-gray-200 dark:hover:bg-gray-700"
+        className="flex items-center gap-1 md:gap-2 px-1.5 md:px-3 py-1.5 md:py-2 rounded-lg transition-colors duration-200 hover:bg-gray-200 dark:hover:bg-gray-700"
       >
-        <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 text-white font-semibold">
-          {user.username.charAt(0).toUpperCase()}
-        </div>
+        {user.avatar_url ? (
+          <Image
+            src={user.avatar_url}
+            alt={user.username}
+            width={32}
+            height={32}
+            className="w-7 h-7 md:w-8 md:h-8 rounded-full object-cover"
+          />
+        ) : (
+          <div className="flex items-center justify-center w-7 h-7 md:w-8 md:h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 text-white text-sm md:text-base font-semibold">
+            {user.username.charAt(0).toUpperCase()}
+          </div>
+        )}
         <div className="hidden md:block text-left">
           <p className="text-sm font-medium text-gray-900 dark:text-white">{user.username}</p>
           {user.role && (
@@ -85,7 +96,7 @@ export default function ProfileDropdown() {
           )}
         </div>
         <FiChevronDown
-          className={`h-4 w-4 text-gray-500 dark:text-gray-400 transition-transform duration-200 ${
+          className={`h-3 w-3 md:h-4 md:w-4 text-gray-500 dark:text-gray-400 transition-transform duration-200 ${
             isOpen ? 'rotate-180' : ''
           }`}
         />
