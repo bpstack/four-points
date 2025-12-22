@@ -26,267 +26,6 @@ import { backofficeApi } from '@/app/lib/backoffice/backofficeApi'
 import toast from 'react-hot-toast'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 
-// ============================================
-// MOCK DATA - DELETE BEFORE PRODUCTION
-// ============================================
-const MOCK_CATEGORIES = [
-  { id: 1, cost_center: 'HOTEL', department: 'Mantenimiento', is_active: true },
-  { id: 2, cost_center: 'HOTEL', department: 'Limpieza', is_active: true },
-  { id: 3, cost_center: 'RESTAURANTE', department: 'Cocina', is_active: true },
-  { id: 4, cost_center: 'RESTAURANTE', department: 'Sala', is_active: true },
-  { id: 5, cost_center: 'ADMINISTRACIÓN', department: 'Contabilidad', is_active: true },
-] as Category[]
-
-const MOCK_INVOICES = [
-  // Diciembre 2025
-  {
-    id: 1,
-    supplier_id: 1,
-    supplier_name: 'Iberdrola S.A.',
-    invoice_number: 'IBE-2025-001',
-    invoice_date: '2025-12-05',
-    amount_without_vat: 1250.0,
-    vat_percentage: 21,
-    amount_with_vat: 1512.5,
-    payment_method: 'direct_debit',
-    status: 'paid',
-    paid_date: '2025-12-15',
-    category_id: 1,
-    cost_center: 'HOTEL',
-    department: 'Mantenimiento',
-    original_pdf_url: null,
-    validated_pdf_url: '/test.pdf',
-  },
-  {
-    id: 2,
-    supplier_id: 2,
-    supplier_name: 'Endesa Energía',
-    invoice_number: 'END-2025-042',
-    invoice_date: '2025-12-08',
-    amount_without_vat: 890.0,
-    vat_percentage: 21,
-    amount_with_vat: 1076.9,
-    payment_method: 'transfer',
-    status: 'paid',
-    paid_date: '2025-12-18',
-    category_id: 2,
-    cost_center: 'HOTEL',
-    department: 'Limpieza',
-    original_pdf_url: '/orig.pdf',
-    validated_pdf_url: '/test.pdf',
-  },
-  {
-    id: 3,
-    supplier_id: 3,
-    supplier_name: 'Makro Cash & Carry',
-    invoice_number: 'MAK-121545',
-    invoice_date: '2025-12-10',
-    amount_without_vat: 2340.5,
-    vat_percentage: 10,
-    amount_with_vat: 2574.55,
-    payment_method: 'transfer',
-    status: 'paid',
-    paid_date: '2025-12-20',
-    category_id: 3,
-    cost_center: 'RESTAURANTE',
-    department: 'Cocina',
-    original_pdf_url: null,
-    validated_pdf_url: '/test.pdf',
-  },
-  // Noviembre 2025
-  {
-    id: 4,
-    supplier_id: 4,
-    supplier_name: 'Telefónica España',
-    invoice_number: 'TEL-2025-11-001',
-    invoice_date: '2025-11-02',
-    amount_without_vat: 456.0,
-    vat_percentage: 21,
-    amount_with_vat: 551.76,
-    payment_method: 'direct_debit',
-    status: 'paid',
-    paid_date: '2025-11-10',
-    category_id: 5,
-    cost_center: 'ADMINISTRACIÓN',
-    department: 'Contabilidad',
-    original_pdf_url: '/orig.pdf',
-    validated_pdf_url: '/test.pdf',
-  },
-  {
-    id: 5,
-    supplier_id: 5,
-    supplier_name: 'Aguas de Barcelona',
-    invoice_number: 'AGBAR-2025-8542',
-    invoice_date: '2025-11-15',
-    amount_without_vat: 320.0,
-    vat_percentage: 10,
-    amount_with_vat: 352.0,
-    payment_method: 'direct_debit',
-    status: 'paid',
-    paid_date: '2025-11-25',
-    category_id: 1,
-    cost_center: 'HOTEL',
-    department: 'Mantenimiento',
-    original_pdf_url: null,
-    validated_pdf_url: null,
-  },
-  {
-    id: 6,
-    supplier_id: 6,
-    supplier_name: 'Distribuciones García S.L.',
-    invoice_number: 'DG-2025-0891',
-    invoice_date: '2025-11-18',
-    amount_without_vat: 1890.0,
-    vat_percentage: 21,
-    amount_with_vat: 2286.9,
-    payment_method: 'transfer',
-    status: 'paid',
-    paid_date: '2025-11-28',
-    category_id: 3,
-    cost_center: 'RESTAURANTE',
-    department: 'Cocina',
-    original_pdf_url: '/orig.pdf',
-    validated_pdf_url: '/test.pdf',
-  },
-  // Octubre 2025
-  {
-    id: 7,
-    supplier_id: 1,
-    supplier_name: 'Iberdrola S.A.',
-    invoice_number: 'IBE-2025-OCT',
-    invoice_date: '2025-10-05',
-    amount_without_vat: 1180.0,
-    vat_percentage: 21,
-    amount_with_vat: 1427.8,
-    payment_method: 'direct_debit',
-    status: 'paid',
-    paid_date: '2025-10-15',
-    category_id: 1,
-    cost_center: 'HOTEL',
-    department: 'Mantenimiento',
-    original_pdf_url: null,
-    validated_pdf_url: '/test.pdf',
-  },
-  {
-    id: 8,
-    supplier_id: 7,
-    supplier_name: 'Limpieza Industrial BCN',
-    invoice_number: 'LIB-2025-456',
-    invoice_date: '2025-10-12',
-    amount_without_vat: 750.0,
-    vat_percentage: 21,
-    amount_with_vat: 907.5,
-    payment_method: 'transfer',
-    status: 'paid',
-    paid_date: '2025-10-22',
-    category_id: 2,
-    cost_center: 'HOTEL',
-    department: 'Limpieza',
-    original_pdf_url: '/orig.pdf',
-    validated_pdf_url: '/test.pdf',
-  },
-  // Septiembre 2025
-  {
-    id: 9,
-    supplier_id: 8,
-    supplier_name: 'Repsol Butano',
-    invoice_number: 'REP-2025-09-123',
-    invoice_date: '2025-09-08',
-    amount_without_vat: 560.0,
-    vat_percentage: 21,
-    amount_with_vat: 677.6,
-    payment_method: 'transfer',
-    status: 'paid',
-    paid_date: '2025-09-18',
-    category_id: 3,
-    cost_center: 'RESTAURANTE',
-    department: 'Cocina',
-    original_pdf_url: null,
-    validated_pdf_url: '/test.pdf',
-  },
-  {
-    id: 10,
-    supplier_id: 9,
-    supplier_name: 'Seguros Mapfre',
-    invoice_number: 'MAP-2025-ANUAL',
-    invoice_date: '2025-09-01',
-    amount_without_vat: 3200.0,
-    vat_percentage: 0,
-    amount_with_vat: 3200.0,
-    payment_method: 'direct_debit',
-    status: 'paid',
-    paid_date: '2025-09-05',
-    category_id: 5,
-    cost_center: 'ADMINISTRACIÓN',
-    department: 'Contabilidad',
-    original_pdf_url: '/orig.pdf',
-    validated_pdf_url: '/test.pdf',
-  },
-  // Diciembre 2024
-  {
-    id: 11,
-    supplier_id: 1,
-    supplier_name: 'Iberdrola S.A.',
-    invoice_number: 'IBE-2024-DIC',
-    invoice_date: '2024-12-05',
-    amount_without_vat: 1100.0,
-    vat_percentage: 21,
-    amount_with_vat: 1331.0,
-    payment_method: 'direct_debit',
-    status: 'paid',
-    paid_date: '2024-12-15',
-    category_id: 1,
-    cost_center: 'HOTEL',
-    department: 'Mantenimiento',
-    original_pdf_url: null,
-    validated_pdf_url: '/test.pdf',
-  },
-  {
-    id: 12,
-    supplier_id: 3,
-    supplier_name: 'Makro Cash & Carry',
-    invoice_number: 'MAK-2024-FINAL',
-    invoice_date: '2024-12-20',
-    amount_without_vat: 4500.0,
-    vat_percentage: 10,
-    amount_with_vat: 4950.0,
-    payment_method: 'transfer',
-    status: 'paid',
-    paid_date: '2024-12-28',
-    category_id: 3,
-    cost_center: 'RESTAURANTE',
-    department: 'Cocina',
-    original_pdf_url: '/orig.pdf',
-    validated_pdf_url: '/test.pdf',
-  },
-  // Noviembre 2024
-  {
-    id: 13,
-    supplier_id: 4,
-    supplier_name: 'Telefónica España',
-    invoice_number: 'TEL-2024-11',
-    invoice_date: '2024-11-02',
-    amount_without_vat: 420.0,
-    vat_percentage: 21,
-    amount_with_vat: 508.2,
-    payment_method: 'direct_debit',
-    status: 'paid',
-    paid_date: '2024-11-12',
-    category_id: 5,
-    cost_center: 'ADMINISTRACIÓN',
-    department: 'Contabilidad',
-    original_pdf_url: null,
-    validated_pdf_url: '/test.pdf',
-  },
-] as InvoiceWithDetails[]
-
-const MOCK_PAGINATION = { page: 2, total: 250, totalPages: 3 }
-
-const USE_MOCK_DATA = false // SET TO FALSE FOR PRODUCTION
-// ============================================
-// END MOCK DATA
-// ============================================
-
 interface PaidInvoicesTabLazyProps {
   initialInvoices: InvoiceWithDetails[]
   categories: Category[]
@@ -360,9 +99,9 @@ export function PaidInvoicesTabLazy({
     keepPreviousData: true,
   })
 
-  const invoices = (USE_MOCK_DATA ? MOCK_INVOICES : data?.invoices) ?? []
-  const categories = USE_MOCK_DATA ? MOCK_CATEGORIES : realCategories
-  const pagination = USE_MOCK_DATA ? MOCK_PAGINATION : (data?.pagination ?? realPagination)
+  const invoices = data?.invoices ?? []
+  const categories = realCategories
+  const pagination = data?.pagination ?? realPagination
 
   // Calculate available months from invoices (needed for initial selectedMonth)
   const availableMonths = useMemo(() => {
@@ -394,7 +133,7 @@ export function PaidInvoicesTabLazy({
         label: `${getSpanishMonthName(m.month)} ${m.year} (${m.count})`,
         monthLabel: `${getSpanishMonthName(m.month)} (${m.count})`,
       }))
-  }, [invoices, getSpanishMonthName])
+  }, [invoices])
 
   // Initialize selectedMonth with the first available month
   const [selectedMonth, setSelectedMonth] = useState<{ year: number; month: number } | null>(() => {
@@ -457,15 +196,7 @@ export function PaidInvoicesTabLazy({
 
         return matchesSearch && matchesCategory && matchesPaymentMethod
       }),
-    [
-      invoices,
-      searchTerm,
-      categoryFilter,
-      paymentMethodFilter,
-      dateFilter,
-      selectedMonth,
-      getSpanishMonthName,
-    ]
+    [invoices, searchTerm, categoryFilter, paymentMethodFilter, dateFilter, selectedMonth]
   )
 
   const formatDate = (date: string | null) => {

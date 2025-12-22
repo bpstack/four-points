@@ -22,10 +22,6 @@ const isAllowedOrigin = (origin: string | null) => {
 }
 
 export async function POST(req: NextRequest) {
-  if (req.method !== 'POST') {
-    return NextResponse.json({ error: 'Método no permitido' }, { status: 405 })
-  }
-
   if (!isAllowedOrigin(req.headers.get('origin'))) {
     return NextResponse.json({ error: 'Origen no permitido' }, { status: 403 })
   }

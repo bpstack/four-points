@@ -314,11 +314,12 @@ export function PendingInvoicesTabLazy({
       toast.success('Factura validada con PDF firmado')
       invalidatePending()
     } catch (error: unknown) {
-      console.error('[handleExecuteBatchPayment] Error:', error)
-      const message = error instanceof Error ? error.message : 'Error al obtener preview'
+      console.error('[handlePdfEditorSave] Error:', error)
+      const message = error instanceof Error ? error.message : 'Error al guardar PDF validado'
       toast.error(message)
     } finally {
-      setIsBatchPaying(false)
+      setPdfEditorOpen(false)
+      setEditingPdfInvoice(null)
     }
   }
 

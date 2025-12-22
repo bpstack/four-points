@@ -11,10 +11,6 @@ import { SERVER_API_BASE_URL } from '@/app/lib/env'
 const BACKEND_URL = SERVER_API_BASE_URL
 
 export async function GET(req: NextRequest) {
-  if (req.method !== 'GET') {
-    return NextResponse.json({ error: 'Método no permitido' }, { status: 405 })
-  }
-
   const origin = req.headers.get('origin')
   const allowedOrigins = [
     process.env.NEXT_PUBLIC_APP_URL,

@@ -21,56 +21,38 @@ const isAllowedOrigin = (origin: string | null) => {
 }
 
 export async function POST(req: NextRequest) {
-  if (req.method !== 'POST') {
-    return NextResponse.json({ error: 'Método no permitido' }, { status: 405 })
-  }
-
   if (!isAllowedOrigin(req.headers.get('origin'))) {
     return NextResponse.json({ error: 'Origen no permitido' }, { status: 403 })
   }
 
-  try {
-    const accessToken = req.cookies.get('access_token')?.value
+  const accessToken = req.cookies.get('access_token')?.value
 
-    if (!accessToken) {
-      return NextResponse.json({ error: 'No autenticado' }, { status: 401 })
-    }
+  // Siempre limpiar cookies locales aunque no haya token
+  const response = NextResponse.json({
+    success: true,
+    message: 'Sesion cerrada',
+  })
 
-    // Notificar al backend (opcional, puede fallar)
-    try {
-      await fetch(`${BACKEND_URL}/api/auth/logout`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-        credentials: 'include',
-        cache: 'no-store',
-      })
-    } catch (notifyError) {
-      console.warn('[/api/auth/logout] Backend logout fallo (ignorado):', notifyError)
-    }
+  response.cookies.delete('access_token')
+  response.cookies.delete('refresh_token')
 
-    // Siempre limpiar cookies locales
-    const response = NextResponse.json({
-      success: true,
-      message: 'Sesion cerrada',
-    })
-
-    response.cookies.delete('access_token')
-    response.cookies.delete('refresh_token')
-
-    return response
-  } catch (error) {
-    console.error('[/api/auth/logout] Error:', error)
-
-    // Incluso con error, limpiar cookies
-    const response = NextResponse.json(
-      { success: true, message: 'Sesion cerrada' },
-      { status: 200 }
-    )
-    response.cookies.delete('access_token')
-    response.cookies.delete('refresh_token')
-
+  if (!accessToken) {
     return response
   }
+
+  // Notificar al backend (opcional, puede fallar)
+  try {
+    await fetch(`${BACKEND_URL}/api/auth/logout`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+      credentials: 'include',
+      cache: 'no-store',
+    })
+  } catch (notifyError) {
+    console.warn('[/api/auth/logout] Backend logout fallo (ignorado):', notifyError)
+  }
+
+  return response
 }

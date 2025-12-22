@@ -253,10 +253,6 @@ export function useParkingStatus(selectedDate: string) {
     onError: handleMutationError,
   })
 
-  const loadParkingData = () => {
-    invalidateAll()
-  }
-
   const handleCheckIn = async (booking: ParkingBooking) => {
     setCheckinModal({ isOpen: true, booking })
   }
