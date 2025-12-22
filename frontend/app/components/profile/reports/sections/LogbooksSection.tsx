@@ -86,8 +86,8 @@ export default function LogbooksSection() {
         endpoint = `${API_URL}/api/logbooks/all`
       }
 
-      const response = await apiClient.get(endpoint)
-      const data = response.data || response || []
+      const response = await apiClient.get<{ data?: LogbookEntry[] } | LogbookEntry[]>(endpoint)
+      const data = (response as { data?: LogbookEntry[] }).data || response || []
       // Limit to DEFAULT_LIMIT (backend doesn't support limit param)
       setLogbooks(Array.isArray(data) ? data.slice(0, DEFAULT_LIMIT) : [])
       setLoaded(true)
@@ -108,7 +108,10 @@ export default function LogbooksSection() {
       setHistoryLoading(true)
       setExpandedId(logbookId)
       try {
-        const response = await apiClient.get(`${API_URL}/api/logbooks/${logbookId}/history`)
+        const response = await apiClient.get<{
+          history?: LogbookHistoryEntry[]
+          data?: { history?: LogbookHistoryEntry[] }
+        }>(`${API_URL}/api/logbooks/${logbookId}/history`)
         // Backend returns { logbookId, history: [...] }
         setHistory(response.history || response.data?.history || [])
       } catch (err: unknown) {

@@ -114,9 +114,8 @@ interface ReadByUser {
 
 // Type for mutations passed from parent
 interface LogbookMutations {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   updateLogbook: UseMutationResult<
-    any,
+    unknown,
     Error,
     {
       id: number
@@ -128,20 +127,16 @@ interface LogbookMutations {
     },
     unknown
   >
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  deleteLogbook: UseMutationResult<any, Error, number, unknown>
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  deleteLogbook: UseMutationResult<unknown, Error, number, unknown>
   toggleStatus: UseMutationResult<
-    any,
+    unknown,
     Error,
     { id: number; currentStatus: 'pending' | 'resolved' },
     unknown
   >
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  toggleRead: UseMutationResult<any, Error, { id: number; isRead: boolean }, unknown>
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  toggleRead: UseMutationResult<unknown, Error, { id: number; isRead: boolean }, unknown>
   createComment: UseMutationResult<
-    any,
+    unknown,
     Error,
     {
       logbookId: number
@@ -153,9 +148,8 @@ interface LogbookMutations {
     },
     unknown
   >
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   updateComment: UseMutationResult<
-    any,
+    unknown,
     Error,
     {
       logbookId: number
@@ -168,16 +162,19 @@ interface LogbookMutations {
     },
     unknown
   >
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  deleteComment: UseMutationResult<any, Error, { logbookId: number; commentId: number }, unknown>
+  deleteComment: UseMutationResult<
+    unknown,
+    Error,
+    { logbookId: number; commentId: number },
+    unknown
+  >
 }
 
 export interface LogbooksListProps {
   entries: LogEntry[]
   dayStatusMessage?: string
   mutations: LogbookMutations
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  useReaders: (logbookId: number) => UseQueryResult<any, Error>
+  useReaders: (logbookId: number) => UseQueryResult<ReadByUser[] | undefined, Error>
 }
 
 // =============================================

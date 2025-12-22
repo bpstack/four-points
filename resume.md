@@ -10,11 +10,11 @@
 
 | Métrica | Valor |
 |---------|-------|
-| Commits en `improve` (vs main) | 17 |
-| Archivos modificados | ~200 |
-| Estado | En progreso - fixes de tipos pendientes |
+| Commits en `improve` (vs main) | 18+ |
+| Archivos modificados | ~170 |
+| Estado | **BUILD PASA, LINT LIMPIO** |
 
-**Estado:** Middleware de auth activado. Logbooks migrado a React Query (hook creado). apiClient tipado con genéricos. Múltiples fixes de tipos en progreso - **BUILD NO PASA AÚN**.
+**Estado:** Middleware de auth activado. Logbooks migrado a React Query. apiClient tipado con genéricos `unknown`. Todos los errores de TypeScript corregidos.
 
 ---
 
@@ -38,86 +38,44 @@
 | 14 | `1315c93` | docs: update resume with lint cleanup progress | Actualización documentación |
 | 15 | `cdc179f` | fix: suppress no-img-element warnings and fix remaining any types | Lint cleanup - final |
 | 16 | `74d92f9` | feat: enable auth middleware for route protection | Middleware activado |
-| 17 | PENDIENTE | feat: migrate logbooks to react query + type fixes | Logbooks + fixes tipos |
+| 17 | `7baa8cd` | feat: migrate logbooks to react query + fix typescript errors | Logbooks + fixes tipos |
+| 18 | PENDIENTE | fix: strict typing for apiClient and fix all type errors | apiClient `unknown` + todos los fixes |
 
 ---
 
-## Sesión Actual (22-dic-2025 noche)
+## Sesión Actual (22-dic-2025)
 
-### Completado
-1. **Middleware de Auth Activado**
-   - Renombrado `middleware.ts.disabled` → `middleware.ts`
-   - Quitado bypass `return NextResponse.next()`
-   - Commit: `74d92f9`
+### Completado en esta sesión
 
-2. **Logbooks - Hook React Query Creado**
-   - Nuevo: `frontend/app/lib/logbooks/hooks/useLogbooks.ts`
-   - Queries: entries por fecha, readers por entrada
-   - Mutations: create, update, delete, toggleStatus, toggleRead, createComment, updateComment, deleteComment
-   - Modificado: `LogbooksContainer.tsx` para usar el hook
-   - Modificado: `LogbooksList.tsx` para recibir mutations como props
+1. **Corrección de errores de Prettier** (13 errores → 0)
+   - Archivos formateados automáticamente con `pnpm lint --fix`
 
-3. **apiClient Tipado con Genéricos**
-   - `get<T>`, `post<T>`, `patch<T>`, `put<T>`, `delete<T>`, `postFormData<T>`
-   - Elimina necesidad de type assertions en cada llamada
+2. **Tipado estricto del apiClient**
+   - Cambiado genéricos de `<T = any>` a `<T = unknown>`
+   - Elimina warnings de `@typescript-eslint/no-explicit-any`
 
-### En Progreso - FIXES DE TIPOS PENDIENTES
+3. **Actualización de todos los consumidores del apiClient**
+   - `LogbooksList.tsx`: Mutations tipadas con `unknown`
+   - `useLogbooks.ts`: Query de readers tipada
+   - `LogbooksSection.tsx`: Tipos explícitos en respuestas
+   - `MaintenanceSection.tsx`: Tipos explícitos en respuestas
+   - `OverviewSection.tsx`: Tipos explícitos en respuestas
+   - `SettingsPanel.tsx`: Tipos explícitos para usuarios
+   - `cashier/queries.ts`: Queries tipadas (history, stats, monthly, dashboard)
+   - `MonthlyReport.tsx`: Cast a `unknown` para tipos internos
+   - `authService.ts`: Tipo explícito para `/me`
+   - `conciliation/queries.ts`: Queries y mutations tipadas
+   - `messaging/queries.ts`: createConversation tipada
+   - `notifications/useNotifications.ts`: Tipos de Notification importados
 
-El build expuso múltiples errores de tipos que necesitan corrección:
+### Estado Final
 
-| Archivo | Error | Estado |
-|---------|-------|--------|
-| `PaidInvoicesTabLazy.tsx` | `filters_applied` faltante, `keepPreviousData` deprecado | Corregido |
-| `SettingsTab.tsx` | `onSuccess` deprecado en RQ v5, refactorizado a mutations | Corregido |
-| `cashier/queries.ts` | Hooks sin tipado (`useShiftDetails`, `useDailyDetails`, `useVouchersHistory`) | Corregido |
-| `cashier/types.ts` | `VouchersHistoryResponse` tipo añadido, `payment_method_name` requerido | Corregido |
-| `groups/panels/ContactPanel.tsx` | Import `GroupContact` faltante | Corregido |
-| `groups/tabs/ContactsTab.tsx` | Acceso incorrecto a `contactsData.contacts` | Corregido |
-| `groups/tabs/RoomsTab.tsx` | Acceso incorrecto a `roomsData.rooms` | Corregido |
-| `groups/tabs/StatusTab.tsx` | Acceso incorrecto a `statusData.status` | Corregido |
-| `profile/reports/sections/CashierSection.tsx` | Tipos de respuesta API | Corregido |
-| `profile/reports/sections/GroupsSection.tsx` | Tipos de respuesta API | Corregido |
-| `profile/SettingsPanel.tsx` | `err?.message` y `err?.response` sin tipo | Corregido |
-| `parking/ParkingDashboardClient.tsx` | `FullStatsResponse` import + initialData tipo | Corregido |
-| `parking/status/ParkingStatusClient.tsx` | `loadParkingData` no existe en hook | Corregido |
-| `parking/status/hooks/useParkingStatus.ts` | `availabilityData` tipo incompatible | Corregido |
-| `backoffice/backofficeApi.ts` | `MonthlySummaryResponse` import faltante | Corregido |
-| `blacklist/blacklistApi.ts` | `toISOString` en tipo `unknown` | Corregido |
-| `ui/dashboard/nav-links.tsx` | `LinkIcon` tipo incorrecto | Corregido |
-
-### Archivos Modificados (sin commit)
-
-```
-frontend/app/components/bo/tabs/PaidInvoicesTabLazy.tsx
-frontend/app/components/bo/tabs/SettingsTab.tsx
-frontend/app/components/groups/panels/ContactPanel.tsx
-frontend/app/components/groups/tabs/ContactsTab.tsx
-frontend/app/components/groups/tabs/RoomsTab.tsx
-frontend/app/components/groups/tabs/StatusTab.tsx
-frontend/app/components/logbooks/LogbooksContainer.tsx
-frontend/app/components/logbooks/LogbooksList.tsx
-frontend/app/components/profile/SettingsPanel.tsx
-frontend/app/components/profile/reports/sections/CashierSection.tsx
-frontend/app/components/profile/reports/sections/GroupsSection.tsx
-frontend/app/dashboard/parking/components/ParkingDashboardClient.tsx
-frontend/app/dashboard/parking/status/components/ParkingStatusClient.tsx
-frontend/app/dashboard/parking/status/hooks/useParkingStatus.ts
-frontend/app/lib/apiClient.ts
-frontend/app/lib/backoffice/backofficeApi.ts
-frontend/app/lib/blacklist/blacklistApi.ts
-frontend/app/lib/cashier/queries.ts
-frontend/app/lib/cashier/types.ts
-frontend/app/lib/logbooks/hooks/useLogbooks.ts (NUEVO)
-```
-
----
-
-## Para Continuar
-
-1. **Corregir error en `nav-links.tsx`** - `LinkIcon` tipo incorrecto
-2. **Ejecutar build** hasta que pase
-3. **Probar manualmente** logbooks en navegador
-4. **Hacer commit** con todos los cambios
+| Aspecto | Estado |
+|---------|--------|
+| Build | ✅ Pasa |
+| TypeScript | ✅ Sin errores |
+| Lint | ✅ 0 errores, 0 warnings |
+| Rutas dinámicas | ✅ Correctamente marcadas (`ƒ`) |
 
 ---
 
@@ -127,20 +85,61 @@ frontend/app/lib/logbooks/hooks/useLogbooks.ts (NUEVO)
 
 | Módulo | Hook | Estado |
 |--------|------|--------|
-| BackOffice | Tabs Lazy | Completado |
-| Parking | `useParkingStatus` | Completado |
-| Maintenance | `useMaintenanceList` | Completado |
-| Groups | SSR + initialData | Completado |
-| Parking Dashboard | SSR + React Query | Completado |
-| **Logbooks** | `useLogbooks` | **En progreso** |
+| BackOffice | Tabs Lazy | ✅ Completado |
+| Parking | `useParkingStatus` | ✅ Completado |
+| Maintenance | `useMaintenanceList` | ✅ Completado |
+| Groups | SSR + initialData | ✅ Completado |
+| Parking Dashboard | SSR + React Query | ✅ Completado |
+| Logbooks | `useLogbooks` | ✅ Completado |
+| Cashier | Queries tipadas | ✅ Completado |
+| Conciliation | Queries tipadas | ✅ Completado |
 
 ### Módulos Pendientes
-- Messages (Alta complejidad)
-- Dashboard
-- Notifications
-- Conciliation
-- Departments
+- Messages (Alta complejidad - considerar para siguiente fase)
+- Notifications (Migrar a React Query)
+- Dashboard principal
 
 ---
 
-*Última actualización: 22 de Diciembre 2025 - Sesión nocturna*
+## Archivos Modificados (esta sesión)
+
+```
+frontend/app/components/bo/tabs/SettingsTab.tsx
+frontend/app/components/cashier/reports/MonthlyReport.tsx
+frontend/app/components/groups/panels/ContactPanel.tsx
+frontend/app/components/logbooks/LogbooksList.tsx
+frontend/app/components/profile/SettingsPanel.tsx
+frontend/app/components/profile/reports/sections/CashierSection.tsx
+frontend/app/components/profile/reports/sections/GroupsSection.tsx
+frontend/app/components/profile/reports/sections/LogbooksSection.tsx
+frontend/app/components/profile/reports/sections/MaintenanceSection.tsx
+frontend/app/components/profile/reports/sections/OverviewSection.tsx
+frontend/app/dashboard/parking/components/ParkingDashboardClient.tsx
+frontend/app/lib/apiClient.ts
+frontend/app/lib/auth/authService.ts
+frontend/app/lib/cashier/queries.ts
+frontend/app/lib/conciliation/queries.ts
+frontend/app/lib/logbooks/hooks/useLogbooks.ts
+frontend/app/lib/messaging/queries.ts
+frontend/app/lib/notifications/useNotifications.ts
+```
+
+---
+
+## Warnings de Build (no bloqueantes)
+
+1. **middleware deprecated**: Next.js 16 recomienda usar "proxy" en lugar de "middleware"
+2. **baseline-browser-mapping**: Datos de más de 2 meses, actualizar con `npm i baseline-browser-mapping@latest -D`
+3. **SSR cookies**: Las rutas `/dashboard/groups` y `/dashboard/parking` usan cookies y se marcan como dinámicas (comportamiento esperado)
+
+---
+
+## Para Continuar
+
+1. ✅ Hacer commit de los cambios actuales
+2. Evaluar el warning de middleware deprecated
+3. Migrar Messages/Notifications a React Query (siguiente fase)
+
+---
+
+*Última actualización: 22 de Diciembre 2025*

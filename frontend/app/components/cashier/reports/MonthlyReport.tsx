@@ -93,7 +93,7 @@ export default function MonthlyReport({ year, month }: MonthlyReportProps) {
 
   if (!reportData) return null
 
-  const rawReport = reportData as RawReport
+  const rawReport = reportData as unknown as RawReport
 
   // PARSEO SIMPLE - Backend ya envía valores correctos
   const report = {

@@ -13,6 +13,10 @@ import type {
   VouchersHistoryResponse,
   CashierShift,
   CashierDaily,
+  HistoryWithDetails,
+  HistoryStats,
+  MonthlyReport,
+  DashboardOverview,
 } from './types'
 
 const API_BASE = API_BASE_URL
@@ -247,17 +251,25 @@ export function useReopenDay() {
 // ═══════════════════════════════════════════════════════
 
 export function useMonthlyReport(year: number, month: number) {
-  return useQuery({
+  return useQuery<MonthlyReport>({
     queryKey: ['cashier', 'reports', 'monthly', year, month],
-    queryFn: () => apiClient.get(`${API_BASE}/api/cashier/reports/monthly/${year}/${month}`),
+    queryFn: async () => {
+      const response = await apiClient.get(
+        `${API_BASE}/api/cashier/reports/monthly/${year}/${month}`
+      )
+      return response as MonthlyReport
+    },
     staleTime: 5 * 60 * 1000, // 5 minutos
   })
 }
 
 export function useDashboardOverview() {
-  return useQuery({
+  return useQuery<DashboardOverview>({
     queryKey: ['cashier', 'reports', 'dashboard'],
-    queryFn: () => apiClient.get(`${API_BASE}/api/cashier/reports/dashboard`),
+    queryFn: async () => {
+      const response = await apiClient.get(`${API_BASE}/api/cashier/reports/dashboard`)
+      return response as DashboardOverview
+    },
     staleTime: 1 * 60 * 1000, // 1 minuto
   })
 }
@@ -300,9 +312,9 @@ export function useHistoryLogs(filters?: {
   limit?: number
   offset?: number
 }) {
-  return useQuery({
+  return useQuery<{ data: HistoryWithDetails[]; total?: number }>({
     queryKey: ['cashier', 'history', filters],
-    queryFn: () => {
+    queryFn: async () => {
       const params = new URLSearchParams()
       if (filters?.shift_id) params.append('shift_id', filters.shift_id.toString())
       if (filters?.action) params.append('action', filters.action)
@@ -312,21 +324,23 @@ export function useHistoryLogs(filters?: {
       if (filters?.limit) params.append('limit', filters.limit.toString())
       if (filters?.offset) params.append('offset', filters.offset.toString())
 
-      return apiClient.get(`${API_BASE}/api/cashier/history?${params}`)
+      const response = await apiClient.get(`${API_BASE}/api/cashier/history?${params}`)
+      return response as { data: HistoryWithDetails[]; total?: number }
     },
     staleTime: 30 * 1000, // 30 segundos
   })
 }
 
 export function useHistoryStats(filters?: { from_date?: string; to_date?: string }) {
-  return useQuery({
+  return useQuery<{ data: HistoryStats }>({
     queryKey: ['cashier', 'history', 'stats', filters],
-    queryFn: () => {
+    queryFn: async () => {
       const params = new URLSearchParams()
       if (filters?.from_date) params.append('from_date', filters.from_date)
       if (filters?.to_date) params.append('to_date', filters.to_date)
 
-      return apiClient.get(`${API_BASE}/api/cashier/history/stats?${params}`)
+      const response = await apiClient.get(`${API_BASE}/api/cashier/history/stats?${params}`)
+      return response as { data: HistoryStats }
     },
     staleTime: 1 * 60 * 1000, // 1 minuto
   })

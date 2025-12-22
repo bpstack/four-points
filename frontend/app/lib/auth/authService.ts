@@ -55,7 +55,9 @@ export const authLogin = {
     console.log(`[authLogin.me] Obteniendo usuario actual... (${isDev ? 'DEV' : 'PROD'})`)
 
     // Usa apiClient con auto-refresh (cookies HttpOnly)
-    const data = await apiClient.get(`${API_BASE}/me`)
+    const data = await apiClient.get<{ user: { username: string; id: string; role: string } }>(
+      `${API_BASE}/me`
+    )
     console.log('[authLogin.me] Usuario obtenido:', data.user.username)
     return data.user
   },

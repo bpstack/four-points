@@ -1,7 +1,7 @@
 // lib/notifications/useNotifications.ts
 
 import { useEffect, useCallback } from 'react'
-import { useNotificationStore } from '@/app/stores/useNotificationStore'
+import { useNotificationStore, type Notification } from '@/app/stores/useNotificationStore'
 import { apiClient } from '@/app/lib/apiClient'
 import { API_BASE_URL } from '@/app/lib/env'
 
@@ -29,7 +29,7 @@ export function useNotifications() {
     setLoading(true)
     setError(null)
     try {
-      const data = await apiClient.get(`${API_URL}/api/notifications`)
+      const data = await apiClient.get<{ data?: Notification[] }>(`${API_URL}/api/notifications`)
       setNotifications(data.data || [])
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Error al cargar notificaciones'
@@ -47,7 +47,9 @@ export function useNotifications() {
     setLoading(true)
     setError(null)
     try {
-      const data = await apiClient.get(`${API_URL}/api/notifications/unread`)
+      const data = await apiClient.get<{ data?: Notification[] }>(
+        `${API_URL}/api/notifications/unread`
+      )
       setNotifications(data.data || [])
     } catch (err) {
       const message =
@@ -64,7 +66,9 @@ export function useNotifications() {
    */
   const fetchUnreadCount = useCallback(async () => {
     try {
-      const data = await apiClient.get(`${API_URL}/api/notifications/unread/count`)
+      const data = await apiClient.get<{ count?: number }>(
+        `${API_URL}/api/notifications/unread/count`
+      )
       setUnreadCount(data.count || 0)
     } catch (err) {
       console.error('Error fetching unread count:', err)

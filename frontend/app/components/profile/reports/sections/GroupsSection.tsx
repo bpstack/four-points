@@ -112,9 +112,9 @@ export default function GroupsSection() {
     setError(null)
     try {
       // Fetch dashboard overview
-      const overviewResponse = (await apiClient.get(
-        `${API_URL}/api/groups/dashboard/overview`
-      )) as { data?: DashboardOverview } | DashboardOverview
+      const overviewResponse = (await apiClient.get(`${API_URL}/api/groups/dashboard/overview`)) as
+        | { data?: DashboardOverview }
+        | DashboardOverview
       setOverview(
         (overviewResponse as { data?: DashboardOverview }).data ||
           (overviewResponse as DashboardOverview)
@@ -129,9 +129,9 @@ export default function GroupsSection() {
       }
 
       // Fetch groups - backend returns { success, data: [...], count }
-      const groupsResponse = (await apiClient.get(
-        `${API_URL}/api/groups?${params.toString()}`
-      )) as { data?: Group[] } | Group[]
+      const groupsResponse = (await apiClient.get(`${API_URL}/api/groups?${params.toString()}`)) as
+        | { data?: Group[] }
+        | Group[]
       const data = (groupsResponse as { data?: Group[] }).data || []
       setGroups(Array.isArray(data) ? data.slice(0, DEFAULT_LIMIT) : [])
       setLoaded(true)
@@ -152,9 +152,9 @@ export default function GroupsSection() {
       setHistoryLoading(true)
       setExpandedId(groupId)
       try {
-        const response = (await apiClient.get(
-          `${API_URL}/api/groups/${groupId}/history`
-        )) as { data?: GroupHistoryEntry[] } | GroupHistoryEntry[]
+        const response = (await apiClient.get(`${API_URL}/api/groups/${groupId}/history`)) as
+          | { data?: GroupHistoryEntry[] }
+          | GroupHistoryEntry[]
         const data = (response as { data?: GroupHistoryEntry[] }).data || response
         setHistory(Array.isArray(data) ? data : [])
       } catch (_err: unknown) {
@@ -173,9 +173,9 @@ export default function GroupsSection() {
     setLoading(true)
     setError(null)
     try {
-      const response = (await apiClient.get(
-        `${API_URL}/api/groups/${searchId}`
-      )) as { data?: Group } | Group
+      const response = (await apiClient.get(`${API_URL}/api/groups/${searchId}`)) as
+        | { data?: Group }
+        | Group
       const group = (response as { data?: Group }).data || (response as Group)
       if (group) {
         setGroups([group])

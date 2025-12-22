@@ -88,7 +88,13 @@ export default function ParkingDashboardClient({
               stats: initialStats,
               occupancy: {
                 levels: [],
-                summary: { level: '', total_spots: 0, occupied_spots: 0, available_spots: 0, occupancy_rate: 0 },
+                summary: {
+                  level: '',
+                  total_spots: 0,
+                  occupied_spots: 0,
+                  available_spots: 0,
+                  occupancy_rate: 0,
+                },
               },
               pending_checkins: null,
               pending_checkouts: null,

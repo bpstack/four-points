@@ -98,8 +98,10 @@ export default function OverviewSection() {
       if (sourceFilter !== 'all') params.set('source', sourceFilter)
       if (dateFilter) params.set('date', dateFilter)
 
-      const response = await apiClient.get(`${API_URL}/api/activity/recent?${params.toString()}`)
-      const data = response.data || response || []
+      const response = await apiClient.get<{ data?: UnifiedActivity[] } | UnifiedActivity[]>(
+        `${API_URL}/api/activity/recent?${params.toString()}`
+      )
+      const data = (response as { data?: UnifiedActivity[] }).data || response || []
       // Ensure limit is applied
       setActivity(Array.isArray(data) ? data.slice(0, DEFAULT_LIMIT) : [])
       setLoaded(true)

@@ -27,53 +27,49 @@ Estado actual: rama `improve` con correcciones aplicadas, lista para continuar.
 - Mutations: create, update, updateStatus, updatePriority, delete, restore con invalidaciones.
 - Store Zustand se mantiene para vista de detalle (ReportDetailClient).
 
-7) SSR/Prerender — **[en progreso]** ← ACTUAL
-- Planear prerender para dashboards críticos (parking, grupos) y pasar `dehydratedState`.
+7) SSR/Prerender — **[completado]**
 - ✅ Groups migrado a SSR: Server Action + Client Component con initialData.
 - ✅ Parking Dashboard migrado a SSR: Server Action + Client Component con React Query.
 
-8) NextAuth/middleware — **[pendiente]**
-- Decidir activación o documentar pasos si se descarta.
+8) Logbooks — **[completado]**
+- Migrado a React Query con `useLogbooks` hook.
+- Queries con claves por fecha, mutations para CRUD de entries y comments.
 
-## Siguientes pasos concretos (22-dic-2025)
-- [x] Crear `env.ts` y sustituir referencias en `frontend/app/lib/apiClient.ts`, `backofficeApi.ts`, `maintenanceApi.ts`, y Route Handlers.
-- [x] Añadir validaciones en Route Handlers de auth (origen, cookies, errores claros).
-- [x] Limpiar `apiClient` y `downloadValidatedInvoicesZip` para cookies-only.
-- [x] Migrar Back Office a React Query (tabs lazy con initialData, staleTime, invalidaciones).
+9) Tipado estricto apiClient — **[completado]**
+- Genéricos cambiados de `<T = any>` a `<T = unknown>` para type-safety.
+- Todos los consumidores actualizados con tipos explícitos.
+
+10) NextAuth/middleware — **[en progreso]** ← ACTUAL
+- Middleware activado para protección de rutas.
+- Warning de Next.js 16: "middleware" convention deprecated, evaluar migración a "proxy".
+
+## Siguientes pasos concretos
+- [x] Crear `env.ts` y sustituir referencias.
+- [x] Añadir validaciones en Route Handlers de auth.
+- [x] Limpiar `apiClient` para cookies-only.
+- [x] Migrar Back Office a React Query.
 - [x] Migrar Parking a React Query.
 - [x] Normalizar CRLF→LF y añadir `.editorconfig`/`.gitattributes`.
 - [x] Corregir bugs: handlePdfEditorSave, logout cookies, MOCK_DATA, useMemo deps.
-- [x] **Migrar Maintenance a React Query** siguiendo patrón de parking.
-  - Creado `useMaintenanceList.ts` con query + mutations.
-  - Refactorizado `MaintenanceListClient.tsx` para usar el hook.
-  - Eliminado estado local `useState/loadReports` reemplazado por React Query.
-- [x] **SSR Groups** - Server Component con Server Action `getGroups`.
-  - Creado `frontend/app/dashboard/groups/actions/getGroups.ts`.
-  - Creado `frontend/app/components/groups/GroupsListClient.tsx` con React Query + initialData.
-  - Refactorizado `groups/page.tsx` a Server Component.
-- [x] **SSR Parking Dashboard** - Server Component con Server Action.
-  - Creado `frontend/app/dashboard/parking/actions/getParkingDashboardStats.ts`.
-  - Creado `frontend/app/dashboard/parking/components/ParkingDashboardClient.tsx` (~780 líneas).
-  - Refactorizado `parking/page.tsx` a Server Component (pre-fetch "today" stats).
-- [ ] Evaluar NextAuth/middleware y documentar decisión.
-
-## Maintenance – plan React Query (completado)
-- ✅ Creado hook `useMaintenanceList` en `app/components/maintenance/hooks/useMaintenanceList.ts`.
-- ✅ Query keys factory: `maintenanceKeys.list(filters)`, `maintenanceKeys.detail(id)`.
-- ✅ Mutations con invalidación: create, update, updateStatus, updatePriority, delete, restore.
-- ✅ `staleTime: 2min`, `gcTime: 5min`, `refetchOnWindowFocus: false`.
-- ✅ `MaintenanceListClient.tsx` refactorizado para usar el hook con `initialData` de SSR.
-- Nota: Store Zustand permanece para vista de detalle individual (scope separado).
+- [x] Migrar Maintenance a React Query.
+- [x] SSR Groups - Server Component con Server Action.
+- [x] SSR Parking Dashboard - Server Component con Server Action.
+- [x] Migrar Logbooks a React Query.
+- [x] Tipar apiClient con genéricos `unknown` y actualizar consumidores.
+- [ ] Evaluar warning de middleware deprecated y documentar decisión.
+- [ ] Migrar módulos restantes a React Query: Messages, Notifications, Dashboard principal.
 
 ## Notas rápidas
 - `.editorconfig` y `.gitattributes` añadidos para prevenir CRLF futuros.
-- Lint: 34 errores de variables no usadas (deuda técnica preexistente), 99 warnings.
+- Lint: 0 errores, 0 warnings (limpio).
+- Build: pasa correctamente, rutas dinámicas correctamente marcadas.
 - Handlers legacy en `app/api/auth/_backup_httponly_cookies/*` se mantienen solo como referencia.
 
 ## Log de decisiones
 - Rama de trabajo: `improve`.
 - Estrategia: primero base (env, auth handlers, cookies-only) luego optimización de fetch (React Query/lazy).
-- 22-dic: Bugs críticos corregidos, CRLF normalizado, listo para migrar Maintenance.
-- 22-dic: Maintenance lista migrada a React Query. Store Zustand se mantiene para detalle.
-- 22-dic: Groups migrado a SSR con Server Action + Client Component.
-- 22-dic: Parking Dashboard migrado a SSR con Server Action + Client Component + React Query.
+- 22-dic: Bugs críticos corregidos, CRLF normalizado.
+- 22-dic: Maintenance lista migrada a React Query.
+- 22-dic: Groups y Parking Dashboard migrados a SSR.
+- 22-dic: Logbooks migrado a React Query con hook `useLogbooks`.
+- 22-dic: apiClient tipado con `unknown` en lugar de `any`, todos los consumidores actualizados.

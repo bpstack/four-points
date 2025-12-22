@@ -48,7 +48,10 @@ export async function getConversation(id: number): Promise<ConversationWithParti
 export async function createConversation(
   data: CreateConversationRequest
 ): Promise<{ conversation: Conversation; existing?: boolean }> {
-  const response = await apiClient.post(`${API_URL}/api/messages/conversations`, data)
+  const response = await apiClient.post<{ data: Conversation; existing?: boolean }>(
+    `${API_URL}/api/messages/conversations`,
+    data
+  )
   return {
     conversation: response.data,
     existing: response.existing || false,

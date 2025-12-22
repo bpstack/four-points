@@ -125,9 +125,12 @@ export function useLogbooks({ date, enabled = true }: UseLogbooksOptions) {
   // QUERY: Get readers for a logbook
   // ============================================
   const useReaders = (logbookId: number) => {
-    return useQuery({
+    return useQuery<{ user_id: string; username: string; read_at: string }[]>({
       queryKey: logbookKeys.readers(logbookId),
-      queryFn: () => logbooksApi.getReaders(logbookId),
+      queryFn: () =>
+        logbooksApi.getReaders(logbookId) as Promise<
+          { user_id: string; username: string; read_at: string }[]
+        >,
       staleTime: 30 * 1000, // 30 seconds
       enabled: logbookId > 0,
     })

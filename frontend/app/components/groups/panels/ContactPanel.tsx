@@ -9,7 +9,12 @@ import { FiSave } from 'react-icons/fi'
 import toast from 'react-hot-toast'
 
 import { contactSchema, type ContactFormData } from '@/app/lib/schemas/group-schemas'
-import { useGroupContacts, useCreateContact, useUpdateContact, type GroupContact } from '@/app/lib/groups'
+import {
+  useGroupContacts,
+  useCreateContact,
+  useUpdateContact,
+  type GroupContact,
+} from '@/app/lib/groups'
 import { useGroupStore } from '@/app/stores/useGroupStore'
 import {
   SlidePanel,

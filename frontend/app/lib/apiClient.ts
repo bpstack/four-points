@@ -230,9 +230,8 @@ export function isDemoError(error: unknown): boolean {
 // API CLIENT PÚBLICO
 // ========================================
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const apiClient = {
-  get: async <T = any>(url: string, options?: FetchOptions): Promise<T> => {
+  get: async <T = unknown>(url: string, options?: FetchOptions): Promise<T> => {
     const response = await fetchWithRefresh(url, { ...options, method: 'GET' })
 
     if (!response.ok) {
@@ -242,7 +241,7 @@ export const apiClient = {
     return response.json()
   },
 
-  post: async <T = any>(url: string, data?: unknown, options?: FetchOptions): Promise<T> => {
+  post: async <T = unknown>(url: string, data?: unknown, options?: FetchOptions): Promise<T> => {
     const response = await fetchWithRefresh(url, {
       ...options,
       method: 'POST',
@@ -256,7 +255,7 @@ export const apiClient = {
     return response.json()
   },
 
-  patch: async <T = any>(url: string, data?: unknown, options?: FetchOptions): Promise<T> => {
+  patch: async <T = unknown>(url: string, data?: unknown, options?: FetchOptions): Promise<T> => {
     const response = await fetchWithRefresh(url, {
       ...options,
       method: 'PATCH',
@@ -270,7 +269,7 @@ export const apiClient = {
     return response.json()
   },
 
-  put: async <T = any>(url: string, data?: unknown, options?: FetchOptions): Promise<T> => {
+  put: async <T = unknown>(url: string, data?: unknown, options?: FetchOptions): Promise<T> => {
     const response = await fetchWithRefresh(url, {
       ...options,
       method: 'PUT',
@@ -284,7 +283,7 @@ export const apiClient = {
     return response.json()
   },
 
-  delete: async <T = any>(url: string, options?: FetchOptions): Promise<T> => {
+  delete: async <T = unknown>(url: string, options?: FetchOptions): Promise<T> => {
     const response = await fetchWithRefresh(url, { ...options, method: 'DELETE' })
 
     if (!response.ok) {
@@ -307,7 +306,7 @@ export const apiClient = {
    * POST con FormData (para subir archivos)
    * Usa fetchWithRefresh para auto-refresh de tokens expirados
    */
-  postFormData: async <T = any>(
+  postFormData: async <T = unknown>(
     url: string,
     formData: FormData,
     options?: FetchOptions

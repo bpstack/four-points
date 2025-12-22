@@ -141,8 +141,12 @@ export function SettingsPanel() {
     setLoading(true)
     setError(null)
     try {
-      const data = await apiClient.get(`${API_URL}/api/users`)
-      const usersList = Array.isArray(data) ? data : data.users || data.data || []
+      const data = await apiClient.get<User[] | { users?: User[]; data?: User[] }>(
+        `${API_URL}/api/users`
+      )
+      const usersList = Array.isArray(data)
+        ? data
+        : (data as { users?: User[] }).users || (data as { data?: User[] }).data || []
       if (!Array.isArray(usersList)) {
         setError('Invalid server response format')
         setUsers([])

@@ -103,8 +103,18 @@ export default function MaintenanceSection() {
       if (dateFilter) params.set('date', dateFilter)
       params.set('limit', DEFAULT_LIMIT.toString())
 
-      const response = await apiClient.get(`${API_URL}/api/maintenance?${params.toString()}`)
-      const data = response.data?.reports || response.reports || response || []
+      const response = await apiClient.get<
+        | {
+            data?: { reports?: MaintenanceReport[] }
+            reports?: MaintenanceReport[]
+          }
+        | MaintenanceReport[]
+      >(`${API_URL}/api/maintenance?${params.toString()}`)
+      const data =
+        (response as { data?: { reports?: MaintenanceReport[] } }).data?.reports ||
+        (response as { reports?: MaintenanceReport[] }).reports ||
+        response ||
+        []
       // Limit to DEFAULT_LIMIT
       setReports(Array.isArray(data) ? data.slice(0, DEFAULT_LIMIT) : [])
       setLoaded(true)
@@ -125,8 +135,18 @@ export default function MaintenanceSection() {
       setHistoryLoading(true)
       setExpandedId(reportId)
       try {
-        const response = await apiClient.get(`${API_URL}/api/maintenance/${reportId}/history`)
-        setHistory(response.data?.history || response.history || response.data || response || [])
+        const response = await apiClient.get<
+          | {
+              data?: { history?: MaintenanceHistoryEntry[] }
+              history?: MaintenanceHistoryEntry[]
+            }
+          | MaintenanceHistoryEntry[]
+        >(`${API_URL}/api/maintenance/${reportId}/history`)
+        const historyData =
+          (response as { data?: { history?: MaintenanceHistoryEntry[] } }).data?.history ||
+          (response as { history?: MaintenanceHistoryEntry[] }).history ||
+          (Array.isArray(response) ? response : [])
+        setHistory(historyData)
       } catch (err: unknown) {
         console.error('Error fetching history:', err)
         setHistory([])

@@ -46,8 +46,12 @@ export function SettingsTab({ initialAssets }: SettingsTabProps) {
 
   // Mutations
   const createAssetMutation = useMutation({
-    mutationFn: (data: { type: 'stamp' | 'signature'; name: string; image: File; is_default: boolean }) =>
-      backofficeApi.createAsset(data),
+    mutationFn: (data: {
+      type: 'stamp' | 'signature'
+      name: string
+      image: File
+      is_default: boolean
+    }) => backofficeApi.createAsset(data),
     onSuccess: (response) => {
       queryClient.setQueryData<Asset[]>(assetsQueryKey, (old) => [...(old ?? []), response.asset])
       toast.success(`${ASSET_TYPE_LABELS[newAssetType]} creado correctamente`)
