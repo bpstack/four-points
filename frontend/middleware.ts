@@ -1,4 +1,4 @@
-// middleware.ts.disabled
+// middleware.ts
 
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
@@ -8,8 +8,8 @@ const authRoutes = ['/login', '/register', '/forgot-password']
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
-  return NextResponse.next() // LOL he puesto esto aqui para saltarme todo esto y ha entrado sin problemas XDDDDDD
-  // ⛔️ No aplicar lógica a rutas internas o APIs
+
+  // Skip internal routes and static assets
   if (
     pathname.startsWith('/api/') ||
     pathname.startsWith('/_next/') ||
