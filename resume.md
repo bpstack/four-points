@@ -142,4 +142,126 @@ frontend/app/lib/notifications/useNotifications.ts
 
 ---
 
+## Bug Crítico Solucionado: Loop Infinito en Refresh Token
+
+**Fecha de resolución:** 22 de Diciembre 2025  
+**Tiempo de investigación:** Prolongado  
+**Severidad:** Crítica (bloqueaba la aplicación)
+
+### Síntomas
+
+- La aplicación entraba en un loop infinito de requests
+- El navegador se quedaba colgado haciendo llamadas continuas al servidor
+- Ocurría cuando el access token expiraba y se intentaba renovar
+
+### Causa Raíz
+
+El problema tenía **dos causas combinadas**:
+
+#### 1. Discrepancia en la ruta del endpoint
+
+| Componente | Ruta configurada | Ruta correcta |
+|------------|------------------|---------------|
+| Backend | `/api/auth/refresh-token` | - |
+| Frontend (apiClient) | `/api/auth/refresh` | `/api/auth/refresh-token` |
+
+El frontend llamaba a `/api/auth/refresh` que **no existía** en el backend. Esto retornaba un error (404 o 401), lo que disparaba otro intento de refresh, creando el loop.
+
+#### 2. Sin mecanismo de circuit breaker
+
+No había límite de reintentos. Cada fallo de refresh disparaba otro intento indefinidamente.
+
+#### 3. Verificación incorrecta de cookies HttpOnly
+
+Se usaba `hasRefreshToken()` que verificaba `document.cookie`, pero las **cookies HttpOnly NO son visibles desde JavaScript**. Esto causaba comportamiento impredecible.
+
+### Solución Implementada
+
+**Archivo modificado:** `frontend/app/lib/apiClient.ts`
+
+#### 1. Corrección de la ruta
+
+```typescript
+// ANTES (incorrecto)
+const refreshUrl = `${API_BASE_URL}/api/auth/refresh`
+
+// DESPUÉS (correcto)
+const refreshUrl = `${API_BASE_URL}/api/auth/refresh-token`
+```
+
+#### 2. Circuit breaker con contador de intentos
+
+```typescript
+let refreshAttempts = 0
+const MAX_REFRESH_ATTEMPTS = 3
+
+const resetRefreshAttempts = () => {
+  refreshAttempts = 0
+}
+
+// En el handler de 401:
+if (refreshAttempts >= MAX_REFRESH_ATTEMPTS) {
+  console.log('[apiClient] ⛔ Máximo de intentos de refresh alcanzado')
+  refreshAttempts = 0
+  clearAuthCookiesAndRedirect()
+  throw new Error('Max refresh attempts reached')
+}
+
+refreshAttempts++
+```
+
+#### 3. Reset del contador en refresh exitoso
+
+```typescript
+await refreshSession()
+resetRefreshAttempts() // Reset counter on success
+```
+
+#### 4. Eliminación de hasRefreshToken()
+
+```typescript
+// ANTES: Verificaba cookies que no podía ver
+if (isClient && response.status === 401 && !skipRefresh && hasRefreshToken()) {
+
+// DESPUÉS: Siempre intenta refresh, el backend valida la cookie
+if (isClient && response.status === 401 && !skipRefresh && !isAuthRoute) {
+```
+
+#### 5. Actualización de rutas excluidas del auto-refresh
+
+```typescript
+// ANTES
+url.includes('/auth/refresh')
+
+// DESPUÉS
+url.includes('/auth/refresh-token')
+```
+
+#### 6. Logging para debugging
+
+```typescript
+console.log('[apiClient] 🔄 Intentando refresh token...')
+console.log('[apiClient] 🔑 Recibido 401, intentando refresh... (intento', refreshAttempts + 1, 'de', MAX_REFRESH_ATTEMPTS, ')')
+console.log('[apiClient] ✅ Refresh exitoso')
+console.log('[apiClient] ❌ Refresh falló:', refreshResponse.status)
+```
+
+### Lecciones Aprendidas
+
+1. **Verificar siempre la consistencia de rutas** entre frontend y backend
+2. **Las cookies HttpOnly no son accesibles desde JavaScript** - no intentar verificarlas con `document.cookie`
+3. **Siempre implementar circuit breakers** en operaciones que pueden fallar y reintentar
+4. **Agregar logging detallado** en flujos de autenticación para facilitar debugging
+5. **El refresh token debe manejarse de forma defensiva** - asumir que puede fallar
+
+### Verificación de la Solución
+
+La ruta correcta del backend se puede confirmar en:
+```
+backend/routes/auth/auth-routes.ts:28
+router.post('/refresh-token', refreshToken)
+```
+
+---
+
 *Última actualización: 22 de Diciembre 2025*

@@ -28,8 +28,16 @@ export async function POST(req: NextRequest) {
 
   try {
     const refreshToken = req.cookies.get('refresh_token')?.value
+    const accessToken = req.cookies.get('access_token')?.value
+
+    console.log('[/api/auth/refresh] Cookies recibidas:', {
+      hasRefreshToken: !!refreshToken,
+      hasAccessToken: !!accessToken,
+      refreshTokenLength: refreshToken?.length || 0,
+    })
 
     if (!refreshToken) {
+      console.log('[/api/auth/refresh] ❌ No hay refresh_token en cookies')
       return NextResponse.json({ error: 'No hay refresh token' }, { status: 401 })
     }
 
@@ -44,6 +52,12 @@ export async function POST(req: NextRequest) {
     })
 
     const data = await backendRes.json().catch(() => null)
+
+    console.log('[/api/auth/refresh] Backend response:', {
+      status: backendRes.status,
+      hasToken: !!data?.token,
+      hasRefreshToken: !!data?.refreshToken,
+    })
 
     if (!backendRes.ok) {
       const message = data?.error ?? data?.message ?? 'Sesion expirada'

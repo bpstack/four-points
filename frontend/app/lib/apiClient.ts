@@ -24,6 +24,9 @@ import { API_BASE_URL } from '@/app/lib/env'
 
 // Cola para manejar refresh concurrente
 let isRefreshing = false
+let refreshAttempts = 0 // Circuit breaker para evitar loops infinitos
+const MAX_REFRESH_ATTEMPTS = 3
+
 type Deferred = {
   resolve: (value?: unknown) => void
   reject: (reason?: unknown) => void
@@ -42,6 +45,11 @@ const processQueue = (error: unknown = null) => {
   failedQueue = []
 }
 
+// Reset refresh attempts después de un refresh exitoso o después de un tiempo
+const resetRefreshAttempts = () => {
+  refreshAttempts = 0
+}
+
 // ========================================
 // HELPERS DE AUTENTICACIÓN
 // ========================================
@@ -53,14 +61,6 @@ const processQueue = (error: unknown = null) => {
 function getAuthHeaders(): Record<string, string> {
   if (!isClient) return {}
   return {}
-}
-
-/**
- * Verifica si hay refresh token disponible
- */
-function hasRefreshToken(): boolean {
-  if (!isClient) return false
-  return document.cookie.includes('refresh_token=')
 }
 
 function clearAuthCookiesAndRedirect(): void {
@@ -75,7 +75,9 @@ function clearAuthCookiesAndRedirect(): void {
 }
 
 async function refreshSession(): Promise<void> {
-  const refreshUrl = `${API_BASE_URL}/api/auth/refresh`
+  const refreshUrl = `${API_BASE_URL}/api/auth/refresh-token`
+
+  console.log('[apiClient] 🔄 Intentando refresh token...')
 
   const refreshOptions: RequestInit = {
     method: 'POST',
@@ -87,9 +89,11 @@ async function refreshSession(): Promise<void> {
   const refreshResponse = await fetch(refreshUrl, refreshOptions)
 
   if (!refreshResponse.ok) {
+    console.log('[apiClient] ❌ Refresh falló:', refreshResponse.status)
     throw new Error(`Refresh failed: ${refreshResponse.status}`)
   }
 
+  console.log('[apiClient] ✅ Refresh exitoso')
   await refreshResponse.json().catch(() => null)
 }
 
@@ -112,16 +116,33 @@ async function fetchWithRefresh(url: string, options: FetchOptions = {}): Promis
 
   let response = await fetch(url, finalOptions)
 
-  // Rutas que no requieren autenticación
+  console.log(`[apiClient] ${finalOptions.method || 'GET'} ${url} → ${response.status}`)
+
+  // Rutas que no deben intentar auto-refresh de token
+  // NOTA: /auth/me SÍ debe hacer refresh ya que es usada para validar sesión
   const isAuthRoute =
     url.includes('/auth/login') ||
     url.includes('/auth/logout') ||
-    url.includes('/auth/refresh') ||
-    url.includes('/auth/register') ||
-    url.includes('/auth/me')
+    url.includes('/auth/refresh-token') ||
+    url.includes('/auth/register')
 
   // Auto-refresh cuando recibimos 401
-  if (isClient && response.status === 401 && !skipRefresh && !isAuthRoute && hasRefreshToken()) {
+  // IMPORTANTE: Siempre intentamos refresh sin verificar hasRefreshToken()
+  // porque las cookies HttpOnly NO son visibles desde JavaScript (document.cookie).
+  // El backend/proxy tiene acceso a la cookie y determina si es válida.
+  // Si el refresh falla, entonces sí redirigimos al login.
+  if (isClient && response.status === 401 && !skipRefresh && !isAuthRoute) {
+    console.log('[apiClient] 🔑 Recibido 401, intentando refresh... (intento', refreshAttempts + 1, 'de', MAX_REFRESH_ATTEMPTS, ')')
+    
+    // Circuit breaker: si ya intentamos demasiadas veces, redirigir al login
+    if (refreshAttempts >= MAX_REFRESH_ATTEMPTS) {
+      console.log('[apiClient] ⛔ Máximo de intentos de refresh alcanzado, redirigiendo a login')
+      refreshAttempts = 0
+      clearAuthCookiesAndRedirect()
+      throw new Error('Max refresh attempts reached')
+    }
+    
+    refreshAttempts++
     // Si ya hay refresh en curso, encolar este request
     if (isRefreshing) {
       return new Promise((resolve, reject) => {
@@ -136,6 +157,8 @@ async function fetchWithRefresh(url: string, options: FetchOptions = {}): Promis
     try {
       await refreshSession()
 
+      console.log('[apiClient] ✅ Refresh exitoso')
+      resetRefreshAttempts() // Reset counter on success
       isRefreshing = false
       processQueue()
 
@@ -151,16 +174,13 @@ async function fetchWithRefresh(url: string, options: FetchOptions = {}): Promis
 
       response = await fetch(url, retryOptions)
     } catch (error) {
+      console.log('[apiClient] ❌ Refresh falló, redirigiendo a login...', error)
       isRefreshing = false
       processQueue(error)
       clearAuthCookiesAndRedirect()
 
       throw error
     }
-  } else if (isClient && response.status === 401 && !skipRefresh && !isAuthRoute) {
-    clearAuthCookiesAndRedirect()
-
-    throw new Error('No authentication')
   }
 
   return response
@@ -326,7 +346,8 @@ export const apiClient = {
     let response = await fetch(url, finalOptions)
 
     // Auto-refresh cuando recibimos 401 (mismo patrón que fetchWithRefresh)
-    if (isClient && response.status === 401 && !skipRefresh && hasRefreshToken()) {
+    // IMPORTANTE: No verificamos hasRefreshToken() - las cookies HttpOnly no son visibles en JS
+    if (isClient && response.status === 401 && !skipRefresh) {
       // Si ya hay refresh en curso, encolar
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
@@ -391,7 +412,8 @@ export const apiClient = {
     let response = await fetch(url, finalOptions)
 
     // Auto-refresh cuando recibimos 401
-    if (isClient && response.status === 401 && !skipRefresh && hasRefreshToken()) {
+    // IMPORTANTE: No verificamos hasRefreshToken() - las cookies HttpOnly no son visibles en JS
+    if (isClient && response.status === 401 && !skipRefresh) {
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject })
