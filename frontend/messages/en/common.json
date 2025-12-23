@@ -98,5 +98,12 @@
   "panels": {
     "closePanel": "Close panel",
     "deleteConfirm": "Are you sure you want to delete?"
+  },
+  "errors": {
+    "operationError": "Operation error",
+    "loadError": "Error loading data",
+    "saveError": "Error saving",
+    "deleteError": "Error deleting",
+    "networkError": "Connection error"
   }
 }

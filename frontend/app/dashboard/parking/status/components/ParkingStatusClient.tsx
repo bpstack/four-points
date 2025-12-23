@@ -5,9 +5,9 @@
 // app/dashboard/parking/status/components/ParkingStatusClient.tsx
 'use client'
 
-import React from 'react'
+import React, { useMemo } from 'react'
 import { useTranslations } from 'next-intl'
-import { useParkingStatus } from '../hooks/useParkingStatus'
+import { useParkingStatus, type ParkingStatusMessages } from '../hooks/useParkingStatus'
 import ParkingTable from './ParkingTable'
 import StatusPanels from './StatusPanels'
 import { CheckInModal, CheckOutModal, CancelModal, OverdueModal } from './modals'
@@ -24,6 +24,22 @@ export default function ParkingStatusClient({
   levelFromUrl,
 }: ParkingStatusClientProps) {
   const t = useTranslations('parking')
+  const tCommon = useTranslations('common')
+
+  // Memoize messages object to prevent unnecessary re-renders
+  const messages: ParkingStatusMessages = useMemo(
+    () => ({
+      operationError: tCommon('errors.operationError'),
+      checkInSuccess: t('messages.checkInSuccess'),
+      checkOutSuccess: t('messages.checkOutSuccess'),
+      cancelSuccess: t('modals.cancelBooking.success'),
+      noShowSuccess: t('modals.noShow.success'),
+      deleteSuccess: t('bookingDetail.toasts.deleteSuccess'),
+      updateSuccess: t('messages.updateSuccess'),
+    }),
+    [t, tCommon]
+  )
+
   const {
     // Data
     spots,
@@ -59,7 +75,7 @@ export default function ParkingStatusClient({
     handleEditBooking,
     confirmEditBooking,
     handleOverdueAction,
-  } = useParkingStatus(selectedDate)
+  } = useParkingStatus(selectedDate, messages)
 
   const filteredSpots =
     levelFromUrl === 'all' ? spots : spots.filter((s) => s.level_code === levelFromUrl)

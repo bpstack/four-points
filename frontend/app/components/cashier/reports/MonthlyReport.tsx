@@ -97,6 +97,25 @@ export default function MonthlyReport({ year, month }: MonthlyReportProps) {
 
   const rawReport = reportData as unknown as RawReport
 
+  // Verificación defensiva - si no hay datos de totals, mostrar mensaje
+  if (!rawReport.totals) {
+    return (
+      <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
+        <div className="flex items-start gap-2">
+          <FiAlertCircle className="w-4 h-4 text-yellow-600 dark:text-yellow-400 flex-shrink-0 mt-0.5" />
+          <div>
+            <h3 className="font-medium text-yellow-800 dark:text-yellow-300 text-sm mb-1">
+              {t('reports.noDataForPeriod')}
+            </h3>
+            <p className="text-xs text-yellow-700 dark:text-yellow-400">
+              {t('reports.noDataDescription')}
+            </p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   // PARSEO SIMPLE - Backend ya envía valores correctos
   const report = {
     period: rawReport.period,
@@ -109,14 +128,14 @@ export default function MonthlyReport({ year, month }: MonthlyReportProps) {
       total_transfer: parseFloat(String(rawReport.totals.total_transfer)) || 0,
       total_other: parseFloat(String(rawReport.totals.total_other)) || 0,
     },
-    payment_methods_breakdown: rawReport.payment_methods_breakdown.map(
+    payment_methods_breakdown: (rawReport.payment_methods_breakdown || []).map(
       (method: RawMethod): ParsedMethod => ({
         method_name: method.method_name,
         total_amount: parseFloat(String(method.total_amount)) || 0,
         percentage: parseFloat(String(method.percentage)) || 0,
       })
     ),
-    daily_breakdown: rawReport.daily_breakdown.map(
+    daily_breakdown: (rawReport.daily_breakdown || []).map(
       (day: RawDay): ParsedDay => ({
         date: day.date,
         status: day.status,

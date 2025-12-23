@@ -3,7 +3,7 @@
 
 import { useState, useMemo } from 'react'
 import { FiChevronLeft, FiChevronRight, FiCalendar, FiPlus } from 'react-icons/fi'
-import { useLogbooks } from '@/app/lib/logbooks/hooks/useLogbooks'
+import { useLogbooks, type LogbookMessages } from '@/app/lib/logbooks/hooks/useLogbooks'
 import { useAuth } from '@/app/lib/auth/useAuth'
 import HorizontalDatePicker from '@/app/ui/calendar/HorizontalDatePicker'
 import LogbooksList from './LogbooksList'
@@ -16,7 +16,34 @@ export default function LogbooksContainer() {
   const [showNewEntryModal, setShowNewEntryModal] = useState(false)
   const { user } = useAuth()
   const t = useTranslations('logbooks')
+  const tLogbook = useTranslations('logbook')
   const locale = useLocale()
+
+  // Memoize messages for the hook
+  const messages: LogbookMessages = useMemo(
+    () => ({
+      entryCreated: tLogbook('toast.entryCreated'),
+      entryCreateError: tLogbook('toast.entryCreateError'),
+      entryUpdated: tLogbook('toast.entryUpdated'),
+      entryUpdateError: tLogbook('toast.entryUpdateError'),
+      entryDeleted: tLogbook('toast.entryDeleted'),
+      entryDeleteError: tLogbook('toast.entryDeleteError'),
+      statusResolved: tLogbook('toast.statusResolved'),
+      statusPending: tLogbook('toast.statusPending'),
+      statusChangedTo: (status: string) => tLogbook('toast.statusChangedTo', { status }),
+      statusChangeError: tLogbook('toast.statusChangeError'),
+      markedAsRead: tLogbook('toast.markedAsRead'),
+      unmarkedAsRead: tLogbook('toast.unmarkedAsRead'),
+      readStatusError: tLogbook('toast.readStatusError'),
+      commentAdded: tLogbook('toast.commentAdded'),
+      commentAddError: tLogbook('toast.commentAddError'),
+      commentUpdated: tLogbook('toast.commentUpdated'),
+      commentUpdateError: tLogbook('toast.commentUpdateError'),
+      commentDeleted: tLogbook('toast.commentDeleted'),
+      commentDeleteError: tLogbook('toast.commentDeleteError'),
+    }),
+    [tLogbook]
+  )
 
   const currentMonth = currentDate.toLocaleString(locale, { month: 'long' })
   const currentYear = currentDate.getFullYear()
@@ -40,7 +67,7 @@ export default function LogbooksContainer() {
     updateComment,
     deleteComment,
     useReaders,
-  } = useLogbooks({ date: dateString })
+  } = useLogbooks({ date: dateString, messages })
 
   const handleSubmitNewEntry = async (payload: {
     message: string

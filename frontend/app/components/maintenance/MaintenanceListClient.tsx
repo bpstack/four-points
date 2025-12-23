@@ -2,12 +2,12 @@
 
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import type { MaintenanceReport, ReportFilters } from '@/app/lib/maintenance/maintenance'
 import type { MaintenanceListResponse } from '@/app/lib/maintenance/maintenanceApi'
-import { useMaintenanceList } from './hooks/useMaintenanceList'
+import { useMaintenanceList, type MaintenanceMessages } from './hooks/useMaintenanceList'
 import { CreateReportPanel } from './panels/CreateReportPanel'
 import { FiPlus, FiSearch, FiAlertCircle, FiTool, FiCheckCircle, FiClock } from 'react-icons/fi'
 
@@ -24,6 +24,21 @@ export function MaintenanceListClient({
   const searchParams = useSearchParams()
   const panel = searchParams.get('panel')
   const t = useTranslations('maintenance')
+  const tCommon = useTranslations('common')
+
+  // Memoize messages for the hook
+  const messages: MaintenanceMessages = useMemo(
+    () => ({
+      operationError: tCommon('errors.operationError'),
+      reportCreated: t('panels.create.toast.reportCreated'),
+      reportUpdated: t('panels.edit.toast.reportUpdated'),
+      statusUpdated: t('detail.toast.statusUpdated'),
+      priorityUpdated: t('detail.toast.priorityUpdated'),
+      reportDeleted: t('detail.toast.reportDeleted'),
+      reportRestored: t('panels.edit.toast.reportUpdated'), // Using same as updated for restore
+    }),
+    [t, tCommon]
+  )
 
   const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '')
   const [currentPage, setCurrentPage] = useState(1)
@@ -43,6 +58,7 @@ export function MaintenanceListClient({
     initialData: initialPagination
       ? { reports: initialReports, pagination: initialPagination }
       : undefined,
+    messages,
   })
 
   const loading = isLoading || isFetching

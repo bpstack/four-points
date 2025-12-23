@@ -14,6 +14,16 @@ import type {
   ParkingSpot,
 } from '@/app/lib/parking/types'
 
+export interface ParkingStatusMessages {
+  operationError: string
+  checkInSuccess: string
+  checkOutSuccess: string
+  cancelSuccess: string
+  noShowSuccess: string
+  deleteSuccess: string
+  updateSuccess: string
+}
+
 const statsKey = (date: string) => ['parking', 'stats', date] as const
 const bookingsKey = (date: string) => ['parking', 'bookings', date] as const
 const overdueKey = () => ['parking', 'bookings', 'overdue'] as const
@@ -69,7 +79,7 @@ function deriveActiveBookings(
   })
 }
 
-export function useParkingStatus(selectedDate: string) {
+export function useParkingStatus(selectedDate: string, messages: ParkingStatusMessages) {
   const queryClient = useQueryClient()
 
   const [checkoutModal, setCheckoutModal] = useState<{
@@ -175,14 +185,14 @@ export function useParkingStatus(selectedDate: string) {
   }
 
   const handleMutationError = (err: unknown) => {
-    const message = err instanceof Error ? err.message : 'Error en la operación'
+    const message = err instanceof Error ? err.message : messages.operationError
     toast.error(message)
   }
 
   const checkInMutation = useMutation({
     mutationFn: (code: string) => parkingApi.checkInBooking(code),
     onSuccess: () => {
-      toast.success('Check-in realizado correctamente')
+      toast.success(messages.checkInSuccess)
       setCheckinModal({ isOpen: false, booking: null })
       invalidateAll()
     },
@@ -192,7 +202,7 @@ export function useParkingStatus(selectedDate: string) {
   const checkOutMutation = useMutation({
     mutationFn: (code: string) => parkingApi.checkOutBooking(code),
     onSuccess: () => {
-      toast.success('Check-out realizado correctamente')
+      toast.success(messages.checkOutSuccess)
       setCheckoutModal({ isOpen: false, booking: null })
       invalidateAll()
     },
@@ -202,7 +212,7 @@ export function useParkingStatus(selectedDate: string) {
   const cancelMutation = useMutation({
     mutationFn: (code: string) => parkingApi.cancelBooking(code),
     onSuccess: () => {
-      toast.success('Reserva cancelada correctamente')
+      toast.success(messages.cancelSuccess)
       setCancelModal({ isOpen: false, booking: null })
       invalidateAll()
     },
@@ -212,7 +222,7 @@ export function useParkingStatus(selectedDate: string) {
   const noShowMutation = useMutation({
     mutationFn: (code: string) => parkingApi.markBookingNoShow(code),
     onSuccess: () => {
-      toast.success('Reserva marcada como No-Show')
+      toast.success(messages.noShowSuccess)
       setOverdueModal({ isOpen: false, booking: null })
       invalidateAll()
     },
@@ -222,7 +232,7 @@ export function useParkingStatus(selectedDate: string) {
   const deleteMutation = useMutation({
     mutationFn: (code: string) => parkingApi.deleteBooking(code),
     onSuccess: () => {
-      toast.success('Reserva eliminada')
+      toast.success(messages.deleteSuccess)
       setOverdueModal({ isOpen: false, booking: null })
       invalidateAll()
     },
@@ -247,7 +257,7 @@ export function useParkingStatus(selectedDate: string) {
   const updateMutation = useMutation({
     mutationFn: ({ code, data }: UpdatePayload) => parkingApi.updateBooking(code, data),
     onSuccess: () => {
-      toast.success('Reserva actualizada correctamente')
+      toast.success(messages.updateSuccess)
       setEditModal({ isOpen: false, booking: null })
       invalidateAll()
     },

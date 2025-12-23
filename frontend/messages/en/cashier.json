@@ -277,7 +277,9 @@
     "periodWarnings": "Period warnings",
     "detailedBreakdown": "Detailed breakdown",
     "averagePerDay": "Average/Day",
-    "distributionByPaymentMethod": "Distribution by Payment Method"
+    "distributionByPaymentMethod": "Distribution by Payment Method",
+    "noDataForPeriod": "No data for this period",
+    "noDataDescription": "There are no cash records for the selected month. Initialize days in this period to view the report."
   },
   "vouchersHistory": {
     "totalVouchers": "Total Vouchers",

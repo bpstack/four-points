@@ -277,7 +277,9 @@
     "periodWarnings": "Advertencias del periodo",
     "detailedBreakdown": "Desglose detallado",
     "averagePerDay": "Promedio/Dia",
-    "distributionByPaymentMethod": "Distribucion por Metodo de Pago"
+    "distributionByPaymentMethod": "Distribucion por Metodo de Pago",
+    "noDataForPeriod": "Sin datos para este periodo",
+    "noDataDescription": "No hay registros de caja para el mes seleccionado. Inicializa dias en este periodo para ver el reporte."
   },
   "vouchersHistory": {
     "totalVouchers": "Total Vales",
