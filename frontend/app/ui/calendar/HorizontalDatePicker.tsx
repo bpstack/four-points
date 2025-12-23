@@ -4,7 +4,7 @@
 
 'use client'
 
-import { useRef, useEffect, useState } from 'react'
+import { useRef, useEffect, useState, useCallback } from 'react'
 import { FiChevronLeft, FiChevronRight } from 'react-icons/fi'
 
 export interface HorizontalDatePickerProps {
@@ -33,9 +33,9 @@ export default function HorizontalDatePicker({
   size = 'md',
   mobileDaysVisible = 5,
 }: HorizontalDatePickerProps) {
-  const scrollContainerRef = useRef<HTMLDivElement>(null)
-  const selectedDayRef = useRef<HTMLButtonElement>(null)
-  const [isMobile, setIsMobile] = useState(false)
+  const containerRef = useRef<HTMLDivElement>(null)
+  const [visibleCount, setVisibleCount] = useState(31) // Default to all days
+  const [startIndex, setStartIndex] = useState(0)
 
   // Calculate days in month
   const currentYear = currentDate.getFullYear()
@@ -43,38 +43,71 @@ export default function HorizontalDatePicker({
   const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate()
   const allDays = Array.from({ length: daysInMonth }, (_, i) => i + 1)
 
-  // Detect mobile
-  useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768)
-    checkMobile()
-    window.addEventListener('resize', checkMobile)
-    return () => window.removeEventListener('resize', checkMobile)
-  }, [])
-
-  // Calculate visible days for mobile (7 days centered on selected)
-  const getVisibleDays = () => {
-    if (!isMobile) return allDays
-
-    const halfVisible = Math.floor(mobileDaysVisible / 2) // 3 days each side
-    let start = selectedDay - halfVisible
-    let end = selectedDay + halfVisible
-
-    // Adjust if we're near the beginning of the month
-    if (start < 1) {
-      start = 1
-      end = Math.min(mobileDaysVisible, daysInMonth)
-    }
-
-    // Adjust if we're near the end of the month
-    if (end > daysInMonth) {
-      end = daysInMonth
-      start = Math.max(1, daysInMonth - mobileDaysVisible + 1)
-    }
-
-    return allDays.slice(start - 1, end)
+  // Size classes
+  const sizeClasses = {
+    sm: {
+      container: 'gap-0.5 px-1 py-2 md:gap-1 md:px-2 md:py-2',
+      button: 'w-9 h-10 md:w-9 md:h-10',
+      weekday: 'text-[7px] md:text-[8px]',
+      day: 'text-[11px] md:text-xs',
+      buttonWidth: 36, // w-9 = 36px
+      gap: 4, // gap-1 = 4px
+    },
+    md: {
+      container: 'gap-0.5 px-1 py-2 md:gap-1.5 md:px-2 md:py-2',
+      button: 'w-10 h-11 md:w-10 md:h-11',
+      weekday: 'text-[8px] md:text-[9px]',
+      day: 'text-xs md:text-sm',
+      buttonWidth: 40, // w-10 = 40px
+      gap: 6, // gap-1.5 = 6px
+    },
   }
 
-  const visibleDays = getVisibleDays()
+  const sizes = sizeClasses[size]
+
+  // Calculate how many days can fit in the container
+  const calculateVisibleCount = useCallback(() => {
+    if (!containerRef.current) return
+
+    const containerWidth = containerRef.current.offsetWidth
+    // Account for arrow buttons (32px each + padding) on both sides
+    const arrowsWidth = 80
+    const availableWidth = containerWidth - arrowsWidth
+    const dayWidth = sizes.buttonWidth + sizes.gap
+    const count = Math.floor(availableWidth / dayWidth)
+
+    setVisibleCount(Math.max(3, Math.min(count, daysInMonth)))
+  }, [daysInMonth, sizes.buttonWidth, sizes.gap])
+
+  // Recalculate on resize
+  useEffect(() => {
+    calculateVisibleCount()
+    window.addEventListener('resize', calculateVisibleCount)
+    return () => window.removeEventListener('resize', calculateVisibleCount)
+  }, [calculateVisibleCount])
+
+  // Recalculate when month changes
+  useEffect(() => {
+    calculateVisibleCount()
+  }, [currentDate, calculateVisibleCount])
+
+  // Adjust startIndex when selected day changes to keep it visible
+  useEffect(() => {
+    const selectedIndex = selectedDay - 1
+    if (selectedIndex < startIndex) {
+      setStartIndex(selectedIndex)
+    } else if (selectedIndex >= startIndex + visibleCount) {
+      setStartIndex(selectedIndex - visibleCount + 1)
+    }
+  }, [selectedDay, startIndex, visibleCount])
+
+  // Reset startIndex when month changes
+  useEffect(() => {
+    setStartIndex(0)
+  }, [currentMonth, currentYear])
+
+  // Get visible days based on startIndex and visibleCount
+  const visibleDays = allDays.slice(startIndex, startIndex + visibleCount)
 
   // Check if a day is today
   const isToday = (day: number) => {
@@ -86,83 +119,47 @@ export default function HorizontalDatePicker({
     )
   }
 
-  // Check if we can navigate (mobile only)
-  const canGoBack = isMobile && visibleDays[0] > 1
-  const canGoForward = isMobile && visibleDays[visibleDays.length - 1] < daysInMonth
+  // Navigation
+  const canGoBack = startIndex > 0
+  const canGoForward = startIndex + visibleCount < daysInMonth
 
-  // Navigate days on mobile
   const navigateDays = (direction: 'back' | 'forward') => {
-    const step = Math.floor(mobileDaysVisible / 2)
+    const step = Math.max(1, Math.floor(visibleCount / 2))
     if (direction === 'back') {
-      const newDay = Math.max(1, selectedDay - step)
-      onSelectDay(newDay)
+      setStartIndex(Math.max(0, startIndex - step))
     } else {
-      const newDay = Math.min(daysInMonth, selectedDay + step)
-      onSelectDay(newDay)
+      setStartIndex(Math.min(daysInMonth - visibleCount, startIndex + step))
     }
   }
 
-  // Auto-scroll to selected day (desktop only)
-  useEffect(() => {
-    if (!isMobile && selectedDayRef.current && scrollContainerRef.current) {
-      const container = scrollContainerRef.current
-      const button = selectedDayRef.current
-      const containerWidth = container.offsetWidth
-      const buttonLeft = button.offsetLeft
-      const buttonWidth = button.offsetWidth
-
-      const scrollPosition = buttonLeft - containerWidth / 2 + buttonWidth / 2
-
-      container.scrollTo({
-        left: Math.max(0, scrollPosition),
-        behavior: 'smooth',
-      })
-    }
-  }, [selectedDay, currentDate, isMobile])
-
-  // Size classes
-  const sizeClasses = {
-    sm: {
-      container: 'gap-0.5 px-1 py-2 md:gap-1 md:px-3 md:py-2',
-      button: 'w-9 h-10 md:w-9 md:h-10',
-      weekday: 'text-[7px] md:text-[8px]',
-      day: 'text-[11px] md:text-xs',
-    },
-    md: {
-      container: 'gap-0.5 px-1 py-2 md:gap-1.5 md:px-3 md:py-2',
-      button: 'w-10 h-11 md:w-10 md:h-11',
-      weekday: 'text-[8px] md:text-[9px]',
-      day: 'text-xs md:text-sm',
-    },
-  }
-
-  const sizes = sizeClasses[size]
+  // Check if we need navigation arrows (not all days fit)
+  const needsNavigation = daysInMonth > visibleCount
 
   return (
     <div
+      ref={containerRef}
       className={`bg-white dark:bg-[#010409] border border-gray-200 dark:border-gray-800 rounded-lg shadow-sm overflow-hidden ${className}`}
     >
       <div className={`flex items-center ${sizes.container}`}>
-        {/* Mobile: Back arrow */}
-        {isMobile && (
+        {/* Back arrow - show only when needed */}
+        {needsNavigation && (
           <button
             onClick={() => navigateDays('back')}
             disabled={!canGoBack}
-            className={`flex-shrink-0 p-1 rounded-lg transition-colors ${
+            className={`flex-shrink-0 p-1.5 rounded-lg transition-colors ${
               canGoBack
                 ? 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
                 : 'text-gray-300 dark:text-gray-700 cursor-not-allowed'
             }`}
             aria-label="Días anteriores"
           >
-            <FiChevronLeft className="w-4 h-4" />
+            <FiChevronLeft className="w-5 h-5" />
           </button>
         )}
 
         {/* Days container */}
         <div
-          ref={scrollContainerRef}
-          className={`flex flex-1 justify-center md:justify-start md:overflow-x-auto scrollbar-none md:scrollbar-thin md:scrollbar-thumb-gray-300 md:dark:scrollbar-thumb-gray-700 scroll-smooth ${isMobile ? 'gap-1' : 'gap-1.5 md:gap-2'}`}
+          className={`flex flex-1 justify-center overflow-hidden ${needsNavigation ? 'gap-1 md:gap-1.5' : 'gap-1.5 md:gap-2'}`}
         >
           {visibleDays.map((day) => {
             const date = new Date(currentYear, currentMonth, day)
@@ -173,7 +170,6 @@ export default function HorizontalDatePicker({
             return (
               <button
                 key={`day-${currentYear}-${currentMonth}-${day}`}
-                ref={isSelected ? selectedDayRef : null}
                 onClick={() => onSelectDay(day)}
                 className={`
                   flex-shrink-0 rounded-lg font-medium flex flex-col items-center justify-center transition-colors
@@ -198,19 +194,19 @@ export default function HorizontalDatePicker({
           })}
         </div>
 
-        {/* Mobile: Forward arrow */}
-        {isMobile && (
+        {/* Forward arrow - show only when needed */}
+        {needsNavigation && (
           <button
             onClick={() => navigateDays('forward')}
             disabled={!canGoForward}
-            className={`flex-shrink-0 p-1 rounded-lg transition-colors ${
+            className={`flex-shrink-0 p-1.5 rounded-lg transition-colors ${
               canGoForward
                 ? 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
                 : 'text-gray-300 dark:text-gray-700 cursor-not-allowed'
             }`}
             aria-label="Días siguientes"
           >
-            <FiChevronRight className="w-4 h-4" />
+            <FiChevronRight className="w-5 h-5" />
           </button>
         )}
       </div>

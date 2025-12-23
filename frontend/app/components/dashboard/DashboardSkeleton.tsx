@@ -2,7 +2,7 @@
 'use client'
 
 import React from 'react'
-import { FiZap, FiServer, FiSearch, FiMenu } from 'react-icons/fi'
+import { FiServer, FiSearch, FiMenu } from 'react-icons/fi'
 import { Fa4 } from 'react-icons/fa6'
 import { TbTransformPointTopLeft } from 'react-icons/tb'
 
@@ -131,135 +131,105 @@ export function DashboardSkeleton() {
 
         {/* Content Area */}
         <main className="flex-1 overflow-y-auto bg-white dark:bg-[#010409]">
-          <div className="w-full p-4 md:p-6">
-            <div className="min-h-screen bg-white dark:bg-[#010409] p-4 md:p-6 lg:p-8">
-              <div className="max-w-[1600px] space-y-6">
-                {/* Header Skeleton */}
-                <div className="mb-8">
-                  <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-3">
-                        <div className="p-2 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg shadow-lg shadow-blue-500/20">
-                          <FiZap className="w-5 h-5 text-white" />
-                        </div>
-                        <h1 className="text-3xl font-bold bg-gradient-to-r from-[#24292f] to-[#57606a] dark:from-[#f0f6fc] dark:to-[#c9d1d9] bg-clip-text text-transparent">
-                          Dashboard
-                        </h1>
-                      </div>
-                      {/* Skeleton para la fecha */}
-                      <div className="ml-14 h-5 w-64 bg-gray-200 dark:bg-gray-800 rounded animate-pulse" />
+          <div className="min-h-screen bg-white dark:bg-[#010409] px-4 md:px-5 lg:px-6 pt-4 md:pt-4 pb-4">
+            <div className="max-w-[1600px] space-y-4">
+              {/* Backend Wake-up Notice */}
+              <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
+                <div className="flex items-start gap-3">
+                  <div className="p-2 bg-amber-100 dark:bg-amber-900/40 rounded-lg flex-shrink-0">
+                    <FiServer className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-amber-800 dark:text-amber-300 mb-1">
+                      Iniciando servidor...
+                    </h3>
+                    <p className="text-sm text-amber-700 dark:text-amber-400">
+                      El backend de esta aplicación está alojado en Render (plan gratuito para
+                      demo), el cual entra en modo de reposo tras periodos de inactividad. La
+                      primera conexión puede demorar aproximadamente 60 segundos.
+                    </p>
+                    <div className="mt-3 flex items-center gap-2">
+                      <div className="animate-spin rounded-full h-4 w-4 border-2 border-amber-300 dark:border-amber-700 border-t-amber-600 dark:border-t-amber-400" />
+                      <span className="text-xs text-amber-600 dark:text-amber-500">
+                        Conectando...
+                      </span>
                     </div>
+                  </div>
+                </div>
+              </div>
 
-                    {/* Period Selector Skeleton */}
-                    <div className="flex items-center gap-1 bg-white dark:bg-[#161b22] p-1.5 rounded-lg border border-[#d0d7de] dark:border-[#30363d] shadow-sm">
+              {/* Main Grid Layout Skeleton */}
+              <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+                {/* Left Column */}
+                <div className="xl:col-span-2 space-y-6">
+                  {/* Quick Actions Skeleton */}
+                  <div className="bg-white dark:bg-[#0d1117] border border-gray-200 dark:border-gray-800 rounded-xl p-6">
+                    <div className="h-6 w-32 bg-gray-200 dark:bg-gray-800 rounded animate-pulse mb-4" />
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      {[1, 2, 3, 4].map((i) => (
+                        <div
+                          key={i}
+                          className="h-24 bg-gray-100 dark:bg-gray-800/50 rounded-lg animate-pulse"
+                        />
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Global Status Skeleton */}
+                  <div className="bg-white dark:bg-[#0d1117] border border-gray-200 dark:border-gray-800 rounded-xl p-6">
+                    <div className="h-6 w-40 bg-gray-200 dark:bg-gray-800 rounded animate-pulse mb-4" />
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      {[1, 2, 3, 4].map((i) => (
+                        <div
+                          key={i}
+                          className="h-20 bg-gray-100 dark:bg-gray-800/50 rounded-lg animate-pulse"
+                        />
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Contextual Help Skeleton */}
+                  <div className="bg-white dark:bg-[#0d1117] border border-gray-200 dark:border-gray-800 rounded-xl p-6">
+                    <div className="h-6 w-36 bg-gray-200 dark:bg-gray-800 rounded animate-pulse mb-4" />
+                    <div className="space-y-3">
                       {[1, 2, 3].map((i) => (
                         <div
                           key={i}
-                          className="px-5 py-2 w-20 h-9 bg-gray-200 dark:bg-gray-800 rounded-md animate-pulse"
+                          className="h-12 bg-gray-100 dark:bg-gray-800/50 rounded-lg animate-pulse"
                         />
                       ))}
                     </div>
                   </div>
                 </div>
 
-                {/* Backend Wake-up Notice */}
-                <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
-                  <div className="flex items-start gap-3">
-                    <div className="p-2 bg-amber-100 dark:bg-amber-900/40 rounded-lg flex-shrink-0">
-                      <FiServer className="w-5 h-5 text-amber-600 dark:text-amber-400" />
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-amber-800 dark:text-amber-300 mb-1">
-                        Iniciando servidor...
-                      </h3>
-                      <p className="text-sm text-amber-700 dark:text-amber-400">
-                        El backend de esta aplicación está alojado en Render (plan gratuito para
-                        demo), el cual entra en modo de reposo tras periodos de inactividad. La
-                        primera conexión puede demorar aproximadamente 60 segundos.
-                      </p>
-                      <div className="mt-3 flex items-center gap-2">
-                        <div className="animate-spin rounded-full h-4 w-4 border-2 border-amber-300 dark:border-amber-700 border-t-amber-600 dark:border-t-amber-400" />
-                        <span className="text-xs text-amber-600 dark:text-amber-500">
-                          Conectando...
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Main Grid Layout Skeleton */}
-                <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-                  {/* Left Column */}
-                  <div className="xl:col-span-2 space-y-6">
-                    {/* Quick Actions Skeleton */}
-                    <div className="bg-white dark:bg-[#0d1117] border border-gray-200 dark:border-gray-800 rounded-xl p-6">
-                      <div className="h-6 w-32 bg-gray-200 dark:bg-gray-800 rounded animate-pulse mb-4" />
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        {[1, 2, 3, 4].map((i) => (
-                          <div
-                            key={i}
-                            className="h-24 bg-gray-100 dark:bg-gray-800/50 rounded-lg animate-pulse"
-                          />
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Global Status Skeleton */}
-                    <div className="bg-white dark:bg-[#0d1117] border border-gray-200 dark:border-gray-800 rounded-xl p-6">
-                      <div className="h-6 w-40 bg-gray-200 dark:bg-gray-800 rounded animate-pulse mb-4" />
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        {[1, 2, 3, 4].map((i) => (
-                          <div
-                            key={i}
-                            className="h-20 bg-gray-100 dark:bg-gray-800/50 rounded-lg animate-pulse"
-                          />
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Contextual Help Skeleton */}
-                    <div className="bg-white dark:bg-[#0d1117] border border-gray-200 dark:border-gray-800 rounded-xl p-6">
-                      <div className="h-6 w-36 bg-gray-200 dark:bg-gray-800 rounded animate-pulse mb-4" />
-                      <div className="space-y-3">
-                        {[1, 2, 3].map((i) => (
-                          <div
-                            key={i}
-                            className="h-12 bg-gray-100 dark:bg-gray-800/50 rounded-lg animate-pulse"
-                          />
-                        ))}
-                      </div>
+                {/* Right Column */}
+                <div className="space-y-6">
+                  {/* Important Logbooks Skeleton */}
+                  <div className="bg-white dark:bg-[#0d1117] border border-gray-200 dark:border-gray-800 rounded-xl p-6">
+                    <div className="h-6 w-44 bg-gray-200 dark:bg-gray-800 rounded animate-pulse mb-4" />
+                    <div className="space-y-3">
+                      {[1, 2, 3, 4].map((i) => (
+                        <div
+                          key={i}
+                          className="h-16 bg-gray-100 dark:bg-gray-800/50 rounded-lg animate-pulse"
+                        />
+                      ))}
                     </div>
                   </div>
 
-                  {/* Right Column */}
-                  <div className="space-y-6">
-                    {/* Important Logbooks Skeleton */}
-                    <div className="bg-white dark:bg-[#0d1117] border border-gray-200 dark:border-gray-800 rounded-xl p-6">
-                      <div className="h-6 w-44 bg-gray-200 dark:bg-gray-800 rounded animate-pulse mb-4" />
-                      <div className="space-y-3">
-                        {[1, 2, 3, 4].map((i) => (
-                          <div
-                            key={i}
-                            className="h-16 bg-gray-100 dark:bg-gray-800/50 rounded-lg animate-pulse"
-                          />
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Recent Activity Skeleton */}
-                    <div className="bg-white dark:bg-[#0d1117] border border-gray-200 dark:border-gray-800 rounded-xl p-6">
-                      <div className="h-6 w-36 bg-gray-200 dark:bg-gray-800 rounded animate-pulse mb-4" />
-                      <div className="space-y-3">
-                        {[1, 2, 3, 4, 5].map((i) => (
-                          <div key={i} className="flex items-center gap-3">
-                            <div className="w-8 h-8 bg-gray-200 dark:bg-gray-800 rounded-full animate-pulse flex-shrink-0" />
-                            <div className="flex-1 space-y-2">
-                              <div className="h-4 bg-gray-200 dark:bg-gray-800 rounded animate-pulse w-3/4" />
-                              <div className="h-3 bg-gray-100 dark:bg-gray-800/50 rounded animate-pulse w-1/2" />
-                            </div>
+                  {/* Recent Activity Skeleton */}
+                  <div className="bg-white dark:bg-[#0d1117] border border-gray-200 dark:border-gray-800 rounded-xl p-6">
+                    <div className="h-6 w-36 bg-gray-200 dark:bg-gray-800 rounded animate-pulse mb-4" />
+                    <div className="space-y-3">
+                      {[1, 2, 3, 4, 5].map((i) => (
+                        <div key={i} className="flex items-center gap-3">
+                          <div className="w-8 h-8 bg-gray-200 dark:bg-gray-800 rounded-full animate-pulse flex-shrink-0" />
+                          <div className="flex-1 space-y-2">
+                            <div className="h-4 bg-gray-200 dark:bg-gray-800 rounded animate-pulse w-3/4" />
+                            <div className="h-3 bg-gray-100 dark:bg-gray-800/50 rounded animate-pulse w-1/2" />
                           </div>
-                        ))}
-                      </div>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 </div>

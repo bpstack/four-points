@@ -326,4 +326,97 @@ Se añadió la funcionalidad para que los usuarios puedan subir, cambiar y elimi
 
 ---
 
-*Última actualización: 22 de Diciembre 2025*
+*Última actualización: 23 de Diciembre 2025*
+
+---
+
+## Sesión 23-dic-2025: Departments + Payment System + Backend Fixes
+
+### 1. Payment System para Parking Bookings (Completado)
+
+Se implementó la capacidad de registrar pagos en cualquier momento, no solo durante checkout.
+
+#### Archivos Modificados
+
+| Archivo | Cambios |
+|---------|---------|
+| `backend/models/parking/index.ts` | Añadidos `payment_amount`, `payment_method`, `payment_reference` a `UpdateBookingDTO` |
+| `backend/repositories/parking/bookings.repository.ts` | Manejo de campos de pago en método `update()` |
+| `backend/controllers/parking/bookings.controller.ts` | Lógica de validación de pagos |
+| `frontend/app/lib/parking/types.ts` | Actualizado `UpdateBookingDto` |
+| `frontend/app/components/parking/bookings/PaymentModal.tsx` | **NUEVO** - Modal para registrar pagos |
+| `frontend/app/components/parking/bookings/BookingDetailClient.tsx` | Integración de PaymentModal con botón "Registrar Pago" |
+
+### 2. Sistema de Departments Dinámico (Completado)
+
+Se corrigió que los departamentos creados en Settings aparezcan automáticamente en todos los módulos.
+
+#### Problema Detectado
+
+Los departamentos se guardaban correctamente en la BD, pero algunos componentes:
+- Usaban departamento `1` como default (no existe necesariamente)
+- No validaban selección de departamento
+- Mostraban `Dept ${id}` en lugar del nombre real
+
+#### Archivos Frontend Corregidos
+
+| Archivo | Cambios |
+|---------|---------|
+| `NewLogbookEntry.tsx` | Default `null`, opción "Elegir departamento...", usa `displayName`, validación |
+| `NewCommentEntry.tsx` | Mismos cambios |
+| `LogbooksList.tsx` | `commentDepartment` ahora es `number \| null`, hereda dept del logbook padre |
+| `dashboard/page.tsx` | Usa `useDepartments()` y `getDepartmentName()` |
+| `EditLogbookModal.tsx` | Ya correcto |
+| `EditCommentModal.tsx` | Ya correcto |
+
+#### Backend: JOIN con departments table
+
+Se modificó `backend/repositories/logbook/logbook-repository.ts` para incluir `department_name` en todas las queries:
+
+**Funciones modificadas:**
+- `getById()`
+- `getAllLogbooks()`
+- `getLogbooksByDepartment()`
+- `getLogbooksByAuthor()`
+- `getLogbooksByImportance()`
+- `getLogbooksByDay()`
+- `getAllTrashedLogbooks()`
+
+**Ejemplo del cambio:**
+```sql
+-- ANTES
+SELECT l.*, u.username as author_name, u.email as author_email
+FROM logbooks l
+LEFT JOIN users u ON l.author_id = u.id
+
+-- DESPUÉS
+SELECT l.*, u.username as author_name, u.email as author_email, d.name as department_name
+FROM logbooks l
+LEFT JOIN users u ON l.author_id = u.id
+LEFT JOIN departments d ON l.department_id = d.id
+```
+
+**Tipo actualizado:**
+```typescript
+// backend/models/logbook/index.ts
+export interface LogbookWithAuthor extends LogbookRow {
+  author_name: string
+  author_email: string
+  department_name?: string  // NUEVO
+}
+```
+
+### 3. Otros Fixes
+
+| Fix | Archivo |
+|-----|---------|
+| Variable no usada `isPaymentOnlyUpdate` | `backend/controllers/parking/bookings.controller.ts` |
+
+### Estado TypeScript
+
+| Proyecto | Estado |
+|----------|--------|
+| Frontend | ✅ Sin errores |
+| Backend | ✅ Sin errores |
+
+---

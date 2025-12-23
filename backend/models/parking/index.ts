@@ -261,6 +261,10 @@ export interface UpdateBookingDTO {
   external_booking_id?: string | null
   notes?: string | null
   updated_by?: string | null // UUID string
+  // Payment fields - can be updated at any time (except canceled/no_show)
+  payment_amount?: number | null
+  payment_method?: PaymentMethod | null
+  payment_reference?: string | null
 }
 
 export interface CheckoutDTO {

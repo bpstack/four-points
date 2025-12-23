@@ -341,6 +341,10 @@ export interface UpdateBookingDto {
   total_amount?: number
   booking_source?: string
   notes?: string
+  // Payment fields - can be updated at any time
+  payment_amount?: number | null
+  payment_method?: 'cash' | 'card' | 'transfer' | 'agency' | null
+  payment_reference?: string | null
 }
 
 export interface CreateVehicleDto {

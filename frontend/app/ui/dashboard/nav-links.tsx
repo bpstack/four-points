@@ -3,14 +3,12 @@
 
 import {
   HomeIcon,
-  DocumentDuplicateIcon,
   UserGroupIcon,
   Cog6ToothIcon,
   UserIcon,
   ChevronDownIcon,
   ChevronRightIcon,
   HomeModernIcon,
-  XMarkIcon, // ✅ Añadir este import
 } from '@heroicons/react/24/outline'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
@@ -43,7 +41,6 @@ const mainLinks: NavLink[] = [
 
 const backOfficeLinks: NavLink[] = [
   { name: 'Back Office', href: '/dashboard/bo', icon: GiOfficeChair, adminOnly: true },
-  { name: 'Invoices', href: '/dashboard/invoices', icon: DocumentDuplicateIcon },
 ]
 
 const cashierLinks: Omit<NavLink, 'icon'>[] = [
@@ -78,7 +75,7 @@ export default function NavLinks({ onClose, currentUserRole }: NavLinksProps) {
         href={link.href}
         onClick={onClose}
         className={`
-          flex items-center gap-2 md:gap-3 px-2.5 md:px-3 py-3 md:py-2 rounded-lg text-[11px] md:text-sm font-medium transition-all duration-200
+          flex items-center gap-2 md:gap-3 px-2.5 md:px-3 py-3 md:py-2 rounded-lg text-sm font-medium transition-all duration-200
           ${
             isActive
               ? 'bg-blue-50 dark:bg-gray-800 text-blue-700 dark:text-white border-l-4 border-blue-600 dark:border-blue-400'
@@ -86,7 +83,7 @@ export default function NavLinks({ onClose, currentUserRole }: NavLinksProps) {
           }
         `}
       >
-        {LinkIcon && <LinkIcon className="w-4 h-4 md:w-5 md:h-5 flex-shrink-0" />}
+        {LinkIcon && <LinkIcon className="w-5 h-5 flex-shrink-0" />}
         <span>{link.name}</span>
       </Link>
     )
@@ -94,20 +91,6 @@ export default function NavLinks({ onClose, currentUserRole }: NavLinksProps) {
 
   return (
     <div className="flex flex-col gap-4">
-      {/* ✅ Botón de cierre (solo mobile) */}
-      {onClose && (
-        <div className="flex items-center justify-between px-3 pb-2 border-b border-gray-200 dark:border-gray-700 md:hidden">
-          <h2 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Menu</h2>
-          <button
-            onClick={onClose}
-            className="p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100 transition-colors duration-150"
-            aria-label="Close menu"
-          >
-            <XMarkIcon className="w-5 h-5" />
-          </button>
-        </div>
-      )}
-
       {/* Main Navigation Group */}
       <div className="flex flex-col gap-1">{mainLinks.map((link) => renderLink(link))}</div>
 
@@ -133,7 +116,7 @@ export default function NavLinks({ onClose, currentUserRole }: NavLinksProps) {
           <button
             onClick={() => setIsCashierOpen(!isCashierOpen)}
             className={`
-              w-full flex items-center gap-2 md:gap-3 px-2.5 md:px-3 py-3 md:py-2 rounded-lg text-[11px] md:text-sm font-medium transition-all duration-200
+              w-full flex items-center gap-2 md:gap-3 px-2.5 md:px-3 py-3 md:py-2 rounded-lg text-sm font-medium transition-all duration-200
               ${
                 isCashierActive
                   ? 'bg-blue-50 dark:bg-gray-800 text-blue-700 dark:text-white border-l-4 border-blue-600 dark:border-blue-400'
@@ -141,7 +124,7 @@ export default function NavLinks({ onClose, currentUserRole }: NavLinksProps) {
               }
             `}
           >
-            <MdPointOfSale className="w-4 h-4 md:w-5 md:h-5 flex-shrink-0" />
+            <MdPointOfSale className="w-5 h-5 flex-shrink-0" />
             <span className="flex-1 text-left">Cashier</span>
             {isCashierOpen ? (
               <ChevronDownIcon className="w-4 h-4 flex-shrink-0 transition-transform duration-200" />
@@ -167,7 +150,7 @@ export default function NavLinks({ onClose, currentUserRole }: NavLinksProps) {
                     href={subLink.href}
                     onClick={onClose}
                     className={`
-                      block px-2.5 md:px-3 py-2.5 md:py-2 rounded-md text-[11px] md:text-sm transition-all duration-200
+                      block px-2.5 md:px-3 py-2.5 md:py-2 rounded-md text-sm transition-all duration-200
                       ${
                         isSubActive
                           ? 'bg-blue-100 dark:bg-gray-700 text-blue-700 dark:text-blue-300 font-medium'

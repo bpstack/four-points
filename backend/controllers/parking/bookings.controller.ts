@@ -545,6 +545,10 @@ class ParkingBookingsController {
         booking_source,
         external_booking_id,
         notes,
+        // Payment fields
+        payment_amount,
+        payment_method,
+        payment_reference,
       } = req.body
 
       if (!/^PK-\d{8}-\d{4}$/.test(code)) {
@@ -567,13 +571,27 @@ class ParkingBookingsController {
         return
       }
 
-      if (['completed', 'canceled', 'no_show'].includes(existingBooking.status)) {
+      const hasOtherUpdates =
+        expected_checkin ||
+        expected_checkout ||
+        spot_number ||
+        level_code ||
+        vehicle_id !== undefined ||
+        total_amount !== undefined ||
+        booking_source ||
+        external_booking_id !== undefined ||
+        notes !== undefined
+
+      // For non-payment updates, restrict to reserved/checked_in status
+      if (hasOtherUpdates && ['completed', 'canceled', 'no_show'].includes(existingBooking.status)) {
         res.status(400).json({
           success: false,
           message: `No se puede actualizar una reserva con estado '${existingBooking.status}'`,
         })
         return
       }
+
+      // Payment updates are allowed in ALL statuses (reserved, checked_in, completed, canceled, no_show)
 
       // Validar fechas si se proporcionan
       if (expected_checkin || expected_checkout) {
@@ -623,6 +641,13 @@ class ParkingBookingsController {
       if (booking_source) updateData.booking_source = booking_source
       if (external_booking_id !== undefined) updateData.external_booking_id = external_booking_id
       if (notes !== undefined) updateData.notes = notes
+
+      // Payment fields
+      if (payment_amount !== undefined) {
+        updateData.payment_amount = payment_amount !== null ? parseFloat(payment_amount) : null
+      }
+      if (payment_method !== undefined) updateData.payment_method = payment_method
+      if (payment_reference !== undefined) updateData.payment_reference = payment_reference
 
       updateData.updated_by = req.user!.id
 

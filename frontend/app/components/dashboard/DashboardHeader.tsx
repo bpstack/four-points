@@ -52,29 +52,29 @@ export function DashboardHeader({ selectedPeriod, onPeriodChange }: DashboardHea
   }
 
   return (
-    <div className="mb-8">
-      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-        <div className="space-y-2">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg shadow-lg shadow-blue-500/20">
-              <FiZap className="w-5 h-5 text-white" />
-            </div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-[#24292f] to-[#57606a] dark:from-[#f0f6fc] dark:to-[#c9d1d9] bg-clip-text text-transparent">
-              Dashboard
-            </h1>
+    <div className="mb-4">
+      {/* Row: Title + Buttons (always same line) */}
+      <div className="flex items-center justify-between gap-3">
+        {/* Left: Icon + Title + Date (date only on desktop) */}
+        <div className="flex items-center gap-3">
+          <div className="p-1.5 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg shadow-lg shadow-blue-500/20">
+            <FiZap className="w-4 h-4 text-white" />
           </div>
-          <p className="text-sm text-[#57606a] dark:text-[#8b949e] ml-14 font-medium">
+          <h1 className="text-xl font-bold bg-gradient-to-r from-[#24292f] to-[#57606a] dark:from-[#f0f6fc] dark:to-[#c9d1d9] bg-clip-text text-transparent">
+            Dashboard
+          </h1>
+          <span className="text-xs text-[#57606a] dark:text-[#8b949e] font-medium hidden sm:inline">
             {getDateRangeText()}
-          </p>
+          </span>
         </div>
 
-        {/* Period Selector */}
-        <div className="flex items-center gap-1 bg-white dark:bg-[#161b22] p-1.5 rounded-lg border border-[#d0d7de] dark:border-[#30363d] shadow-sm">
+        {/* Right: Period Selector */}
+        <div className="flex items-center gap-0.5 bg-white dark:bg-[#161b22] p-1 rounded-lg border border-[#d0d7de] dark:border-[#30363d] shadow-sm">
           {(['today', 'week', 'month'] as const).map((period) => (
             <button
               key={period}
               onClick={() => onPeriodChange(period)}
-              className={`px-5 py-2 text-sm font-semibold rounded-md transition-all duration-200 capitalize ${
+              className={`px-2 sm:px-3 py-1 text-xs font-semibold rounded-md transition-all duration-200 capitalize ${
                 selectedPeriod === period
                   ? 'bg-gradient-to-r from-[#0969da] to-[#0550ae] dark:from-[#1f6feb] dark:to-[#1a5ecf] text-white shadow-md'
                   : 'text-[#24292f] dark:text-[#c9d1d9] hover:bg-[#f6f8fa] dark:hover:bg-[#21262d]'
@@ -85,6 +85,11 @@ export function DashboardHeader({ selectedPeriod, onPeriodChange }: DashboardHea
           ))}
         </div>
       </div>
+      
+      {/* Date on mobile (below title row) */}
+      <p className="text-xs text-[#57606a] dark:text-[#8b949e] font-medium mt-2 sm:hidden">
+        {getDateRangeText()}
+      </p>
     </div>
   )
 }

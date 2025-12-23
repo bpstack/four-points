@@ -559,6 +559,9 @@ class ParkingBookingsRepository {
         throw new Error('Reserva no encontrada')
       }
 
+      // Payment can be updated in any status (reserved, checked_in, completed, canceled, no_show)
+      // No status restriction for payment fields
+
       let spot_id = booking[0].spot_id
 
       if (updateData.spot_number || updateData.level_code) {
@@ -637,6 +640,24 @@ class ParkingBookingsRepository {
       if (updateData.updated_by) {
         fields.push('updated_by = ?')
         values.push(updateData.updated_by)
+      }
+
+      // Payment fields
+      if (updateData.payment_amount !== undefined) {
+        fields.push('payment_amount = ?')
+        values.push(updateData.payment_amount)
+        // Auto-set payment_date when payment is registered
+        if (updateData.payment_amount !== null && updateData.payment_amount > 0) {
+          fields.push('payment_date = CURRENT_TIMESTAMP')
+        }
+      }
+      if (updateData.payment_method !== undefined) {
+        fields.push('payment_method = ?')
+        values.push(updateData.payment_method)
+      }
+      if (updateData.payment_reference !== undefined) {
+        fields.push('payment_reference = ?')
+        values.push(updateData.payment_reference)
       }
 
       if (fields.length === 0) {

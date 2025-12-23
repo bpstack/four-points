@@ -72,9 +72,11 @@ export async function getById(id: number | string): Promise<LogbookWithAuthor | 
     `SELECT 
       l.*,
       u.username as author_name,
-      u.email as author_email
+      u.email as author_email,
+      d.name as department_name
     FROM logbooks l
     LEFT JOIN users u ON l.author_id = u.id
+    LEFT JOIN departments d ON l.department_id = d.id
     WHERE l.id = ? AND l.deleted_at IS NULL`,
     [id]
   )
@@ -89,9 +91,11 @@ export async function getAllLogbooks(options: PaginationOptions = {}): Promise<L
     `SELECT 
       l.*,
       u.username as author_name,
-      u.email as author_email
+      u.email as author_email,
+      d.name as department_name
     FROM logbooks l
     LEFT JOIN users u ON l.author_id = u.id
+    LEFT JOIN departments d ON l.department_id = d.id
     WHERE l.deleted_at IS NULL 
     ORDER BY l.created_at DESC
     LIMIT ? OFFSET ?`,
@@ -111,9 +115,11 @@ export async function getLogbooksByDepartment(
     `SELECT 
       l.*,
       u.username as author_name,
-      u.email as author_email
+      u.email as author_email,
+      d.name as department_name
     FROM logbooks l
     LEFT JOIN users u ON l.author_id = u.id
+    LEFT JOIN departments d ON l.department_id = d.id
     WHERE l.department_id = ? AND l.deleted_at IS NULL 
     ORDER BY l.created_at DESC
     LIMIT ? OFFSET ?`,
@@ -133,9 +139,11 @@ export async function getLogbooksByAuthor(
     `SELECT 
       l.*,
       u.username as author_name,
-      u.email as author_email
+      u.email as author_email,
+      d.name as department_name
     FROM logbooks l
     LEFT JOIN users u ON l.author_id = u.id
+    LEFT JOIN departments d ON l.department_id = d.id
     WHERE l.author_id = ? AND l.deleted_at IS NULL 
     ORDER BY l.created_at DESC
     LIMIT ? OFFSET ?`,
@@ -160,9 +168,11 @@ export async function getLogbooksByImportance(
     `SELECT 
       l.*,
       u.username as author_name,
-      u.email as author_email
+      u.email as author_email,
+      d.name as department_name
     FROM logbooks l
     LEFT JOIN users u ON l.author_id = u.id
+    LEFT JOIN departments d ON l.department_id = d.id
     WHERE l.importance_level = ? AND l.deleted_at IS NULL 
     ORDER BY l.created_at DESC
     LIMIT ? OFFSET ?`,
@@ -182,9 +192,11 @@ export async function getLogbooksByDay(
     `SELECT 
       l.*,
       u.username as author_name,
-      u.email as author_email
+      u.email as author_email,
+      d.name as department_name
     FROM logbooks l
     LEFT JOIN users u ON l.author_id = u.id
+    LEFT JOIN departments d ON l.department_id = d.id
     WHERE (l.date = ? OR (l.date IS NULL AND DATE(l.created_at) = ?))
       AND l.deleted_at IS NULL
     ORDER BY l.created_at DESC
@@ -202,9 +214,11 @@ export async function getAllTrashedLogbooks(options: PaginationOptions = {}): Pr
     `SELECT 
       l.*,
       u.username as author_name,
-      u.email as author_email
+      u.email as author_email,
+      d.name as department_name
     FROM logbooks l
     LEFT JOIN users u ON l.author_id = u.id
+    LEFT JOIN departments d ON l.department_id = d.id
     WHERE l.deleted_at IS NOT NULL 
     ORDER BY l.deleted_at DESC
     LIMIT ? OFFSET ?`,

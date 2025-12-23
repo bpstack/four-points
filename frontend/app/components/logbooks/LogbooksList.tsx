@@ -284,7 +284,7 @@ export default function LogbooksList({
   const [commentPriority, setCommentPriority] = useState<'baja' | 'media' | 'alta' | 'urgente'>(
     'baja'
   )
-  const [commentDepartment, setCommentDepartment] = useState<number>(1)
+  const [commentDepartment, setCommentDepartment] = useState<number | null>(null)
 
   // Edit logbook modal state
   const [editModalOpen, setEditModalOpen] = useState<number | null>(null)
@@ -351,10 +351,11 @@ export default function LogbooksList({
   // =============================================
 
   const handleOpenCommentModal = (entryId: number) => {
+    const entry = entries.find((e) => e.id === entryId)
     setCommentModalOpen(entryId)
     setNewComment('')
     setCommentPriority('baja')
-    setCommentDepartment(1)
+    setCommentDepartment(entry?.department_id ?? null)
   }
 
   const handleSaveComment = async (
@@ -370,6 +371,7 @@ export default function LogbooksList({
     const priorityLevel = payload?.importance_level ?? commentPriority
 
     if (!commentText.trim()) return
+    if (deptId === null) return
 
     await mutations.createComment.mutateAsync({
       logbookId: entryId,

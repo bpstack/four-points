@@ -2,7 +2,7 @@
 'use client'
 
 import React from 'react'
-import { FiZap, FiBook, FiFileText, FiUsers } from 'react-icons/fi'
+import { FiZap, FiBook, FiTool, FiUsers } from 'react-icons/fi'
 import { FaCar } from 'react-icons/fa'
 import { IconType } from 'react-icons'
 
@@ -27,10 +27,10 @@ const quickActions: QuickAction[] = [
     color: 'from-purple-500 to-purple-600',
   },
   {
-    label: 'Imprimir Factura',
-    icon: FiFileText,
-    href: '/dashboard/parking/invoice',
-    color: 'from-green-500 to-green-600',
+    label: 'Mantenimiento',
+    icon: FiTool,
+    href: '/dashboard/maintenance',
+    color: 'from-yellow-500 to-yellow-600',
   },
   {
     label: 'Reserva Nuevo Grupo',

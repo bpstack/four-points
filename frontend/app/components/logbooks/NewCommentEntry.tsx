@@ -28,7 +28,7 @@ export default function NewCommentEntry({
   title = 'Add Comment',
   initialComment = '',
   initialPriority = 'baja',
-  initialDepartment = 1,
+  initialDepartment,
 }: {
   isOpen: boolean
   onClose: () => void
@@ -36,11 +36,11 @@ export default function NewCommentEntry({
   title?: string
   initialComment?: string
   initialPriority?: ImportanceLevel
-  initialDepartment?: number
+  initialDepartment?: number | null
 }) {
   const [comment, setComment] = useState<string>(initialComment)
   const [priority, setPriority] = useState<ImportanceLevel>(initialPriority)
-  const [department, setDepartment] = useState<number>(initialDepartment)
+  const [department, setDepartment] = useState<number | null>(initialDepartment ?? null)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const { departments } = useDepartments()
@@ -49,13 +49,14 @@ export default function NewCommentEntry({
     if (isOpen) {
       setComment(initialComment)
       setPriority(initialPriority)
-      setDepartment(initialDepartment)
+      setDepartment(initialDepartment ?? null)
       setIsSubmitting(false)
     }
   }, [isOpen, initialComment, initialPriority, initialDepartment])
 
   const handleSave = async () => {
     if (!comment.trim()) return
+    if (department === null) return
     setIsSubmitting(true)
     try {
       await onSubmit({
@@ -88,7 +89,7 @@ export default function NewCommentEntry({
           submitText="Add Comment"
           submitIcon={<FiSend className="w-4 h-4" />}
           isSubmitting={isSubmitting}
-          submitDisabled={!comment.trim()}
+          submitDisabled={!comment.trim() || department === null}
           submitVariant="success"
         />
       }
@@ -130,20 +131,21 @@ export default function NewCommentEntry({
 
           <FormField label="Department">
             <select
-              value={department}
-              onChange={(e) => setDepartment(Number(e.target.value))}
+              value={department ?? ''}
+              onChange={(e) => setDepartment(e.target.value ? Number(e.target.value) : null)}
               className={selectClassName}
               disabled={isSubmitting}
             >
+              <option value="">Elegir departamento...</option>
               {departments.length > 0 ? (
                 departments.map((dept) => (
                   <option key={dept.id} value={dept.id}>
-                    {dept.name}
+                    {dept.displayName}
                   </option>
                 ))
               ) : (
                 <>
-                  <option value={1}>Recepción</option>
+                  <option value={1}>Recepcion</option>
                   <option value={2}>Housekeeping</option>
                   <option value={3}>Mantenimiento</option>
                 </>

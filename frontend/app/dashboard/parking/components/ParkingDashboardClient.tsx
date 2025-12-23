@@ -166,17 +166,18 @@ export default function ParkingDashboardClient({
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white dark:bg-[#010409] p-4 md:p-6">
+      <div className="min-h-screen bg-white dark:bg-[#010409] px-4 md:px-5 lg:px-6 pt-4 md:-mt-2 md:pt-0 pb-4">
         <div className="max-w-[1600px] space-y-5">
           {/* Skeleton Header */}
-          <div className="mb-6">
-            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-              <div className="space-y-2">
-                <div className="h-8 w-48 bg-gray-200 dark:bg-[#21262d] rounded animate-pulse"></div>
-                <div className="h-4 w-64 bg-gray-200 dark:bg-[#21262d] rounded animate-pulse"></div>
+          <div className="mb-4">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="h-7 w-7 bg-gray-200 dark:bg-[#21262d] rounded-lg animate-pulse"></div>
+                <div className="h-6 w-40 bg-gray-200 dark:bg-[#21262d] rounded animate-pulse"></div>
               </div>
-              <div className="h-10 w-48 bg-gray-200 dark:bg-[#21262d] rounded animate-pulse"></div>
+              <div className="h-8 w-36 bg-gray-200 dark:bg-[#21262d] rounded-lg animate-pulse"></div>
             </div>
+            <div className="h-3 w-48 bg-gray-200 dark:bg-[#21262d] rounded animate-pulse mt-2 sm:hidden"></div>
           </div>
 
           {/* Skeleton Grid */}
@@ -196,35 +197,35 @@ export default function ParkingDashboardClient({
   }
 
   return (
-    <div className="min-h-screen bg-white dark:bg-[#010409] p-4 md:p-6">
+    <div className="min-h-screen bg-white dark:bg-[#010409] px-4 md:px-5 lg:px-6 pt-4 md:-mt-2 md:pt-0 pb-4">
       <div className="max-w-[1600px] space-y-5">
         {/* Header */}
-        <div className="mb-6">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-            <div className="space-y-1">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg shadow-md">
-                  <FaCar className="w-4 h-4 text-white" />
-                </div>
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-[#24292f] to-[#57606a] dark:from-[#f0f6fc] dark:to-[#c9d1d9] bg-clip-text text-transparent">
-                  Parking Dashboard
-                </h1>
+        <div className="mb-4">
+          {/* Row: Title + Buttons (always same line) */}
+          <div className="flex items-center justify-between gap-3">
+            {/* Left: Icon + Title + Date (date only on desktop) */}
+            <div className="flex items-center gap-3">
+              <div className="p-1.5 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg shadow-lg shadow-purple-500/20">
+                <FaCar className="w-4 h-4 text-white" />
               </div>
-              <p className="text-xs text-[#57606a] dark:text-[#8b949e] ml-11 font-medium">
+              <h1 className="text-xl font-bold bg-gradient-to-r from-[#24292f] to-[#57606a] dark:from-[#f0f6fc] dark:to-[#c9d1d9] bg-clip-text text-transparent">
+                Parking
+              </h1>
+              <span className="text-xs text-[#57606a] dark:text-[#8b949e] font-medium hidden sm:inline">
                 {selectedPeriod === 'today' ? 'Hoy, ' : ''}
                 {getPeriodLabel()}
-              </p>
+              </span>
             </div>
 
-            {/* Period Selector */}
-            <div className="flex items-center gap-1 bg-white dark:bg-[#0D1117] p-1 rounded-lg border border-[#d0d7de] dark:border-[#30363d] shadow-sm">
+            {/* Right: Period Selector */}
+            <div className="flex items-center gap-0.5 bg-white dark:bg-[#161b22] p-1 rounded-lg border border-[#d0d7de] dark:border-[#30363d] shadow-sm">
               {(['today', 'week', 'month'] as const).map((period) => (
                 <button
                   key={period}
                   onClick={() => setSelectedPeriod(period)}
-                  className={`px-4 py-1.5 text-xs font-semibold rounded-md transition-all duration-200 capitalize ${
+                  className={`px-2 sm:px-3 py-1 text-xs font-semibold rounded-md transition-all duration-200 capitalize ${
                     selectedPeriod === period
-                      ? 'bg-gradient-to-r from-purple-600 to-purple-700 text-white shadow-sm'
+                      ? 'bg-gradient-to-r from-purple-600 to-purple-700 text-white shadow-md'
                       : 'text-[#24292f] dark:text-[#c9d1d9] hover:bg-[#f6f8fa] dark:hover:bg-[#21262d]'
                   }`}
                 >
@@ -233,6 +234,12 @@ export default function ParkingDashboardClient({
               ))}
             </div>
           </div>
+
+          {/* Date on mobile (below title row) */}
+          <p className="text-xs text-[#57606a] dark:text-[#8b949e] font-medium mt-2 sm:hidden">
+            {selectedPeriod === 'today' ? 'Hoy, ' : ''}
+            {getPeriodLabel()}
+          </p>
         </div>
 
         {/* Error Alert */}
@@ -250,14 +257,14 @@ export default function ParkingDashboardClient({
           {/* Left Column - Reservas + Control de Parking */}
           <div className="space-y-5">
             {/* Reservations Section */}
-            <div className="bg-white dark:bg-[#0D1117] border border-[#d0d7de] dark:border-[#30363d] rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200 p-5">
-              <div className="mb-5">
-                <div className="flex items-center justify-between mb-2">
+            <div className="bg-white dark:bg-[#0D1117] border border-[#d0d7de] dark:border-[#30363d] rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200 p-4">
+              <div className="mb-3">
+                <div className="flex items-center justify-between mb-1">
                   <div className="flex items-center gap-2">
                     <div className="p-1 bg-blue-100 dark:bg-blue-900/20 rounded-lg">
                       <FiCalendar className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
                     </div>
-                    <h2 className="text-base font-bold text-[#24292f] dark:text-[#f0f6fc]">
+                    <h2 className="text-sm font-bold text-[#24292f] dark:text-[#f0f6fc]">
                       Reservas
                     </h2>
                   </div>
@@ -272,16 +279,15 @@ export default function ParkingDashboardClient({
                     />
                   </button>
                 </div>
-                <p className="text-[11px] text-[#57606a] dark:text-[#8b949e] leading-relaxed">
-                  Toda la informacion sobre vehiculos que llegan y salen, incluyendo todos los
-                  vehiculos estacionados y los pendientes por diversas razones.
+                <p className="text-[10px] text-[#57606a] dark:text-[#8b949e] leading-relaxed">
+                  Flujo de vehículos: llegadas, estacionados y salidas.
                 </p>
               </div>
 
-              <div className="space-y-5">
+              <div className="space-y-3">
                 {/* Arrivals */}
                 <div>
-                  <div className="flex items-center gap-2 mb-3 pb-2 border-b border-[#d0d7de] dark:border-[#21262d]">
+                  <div className="flex items-center gap-2 mb-2 pb-1.5 border-b border-[#d0d7de] dark:border-[#21262d]">
                     <div className="p-0.5 bg-green-100 dark:bg-green-900/20 rounded">
                       <FiArrowDown className="w-3 h-3 text-green-600 dark:text-green-400" />
                     </div>
@@ -289,7 +295,7 @@ export default function ParkingDashboardClient({
                       Llegadas
                     </h3>
                   </div>
-                  <div className="grid grid-cols-3 gap-3">
+                  <div className="grid grid-cols-3 gap-2">
                     <StatLink
                       label="En espera"
                       value={stats.pending_checkins}
@@ -313,7 +319,7 @@ export default function ParkingDashboardClient({
 
                 {/* Departures */}
                 <div>
-                  <div className="flex items-center gap-2 mb-3 pb-2 border-b border-[#d0d7de] dark:border-[#21262d]">
+                  <div className="flex items-center gap-2 mb-2 pb-1.5 border-b border-[#d0d7de] dark:border-[#21262d]">
                     <div className="p-0.5 bg-red-100 dark:bg-red-900/20 rounded">
                       <FiArrowUp className="w-3 h-3 text-red-600 dark:text-red-400" />
                     </div>
@@ -321,7 +327,7 @@ export default function ParkingDashboardClient({
                       Salidas
                     </h3>
                   </div>
-                  <div className="grid grid-cols-3 gap-3">
+                  <div className="grid grid-cols-3 gap-2">
                     <StatLink
                       label="En espera"
                       value={stats.pending_checkouts}
@@ -522,7 +528,7 @@ export default function ParkingDashboardClient({
                 </h2>
               </div>
 
-              <div className="grid grid-cols-2 gap-2.5">
+              <div className="grid grid-cols-3 gap-2.5">
                 <QuickActionCard
                   label="Nueva Reserva"
                   icon={FiCalendar}
@@ -573,7 +579,7 @@ export default function ParkingDashboardClient({
                 </h2>
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-4 xl:grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 xl:grid-cols-4 gap-2.5">
                 <SummaryCard
                   label="Completadas"
                   value={stats.completed_today}
@@ -684,14 +690,14 @@ function StatLink({
   return (
     <Link
       href={href}
-      className="group text-center py-3 px-2 rounded-lg hover:bg-[#f6f8fa] dark:hover:bg-[#0d1117] border border-transparent hover:border-[#d0d7de] dark:hover:border-[#30363d] transition-all duration-200"
+      className="group text-center py-2 px-2 rounded-lg hover:bg-[#f6f8fa] dark:hover:bg-[#0d1117] border border-transparent hover:border-[#d0d7de] dark:hover:border-[#30363d] transition-all duration-200"
     >
       {loading ? (
-        <div className="h-7 bg-[#d0d7de] dark:bg-[#30363d] rounded-lg animate-pulse mb-1.5"></div>
+        <div className="h-6 bg-[#d0d7de] dark:bg-[#30363d] rounded-lg animate-pulse mb-1"></div>
       ) : (
-        <div className="text-2xl font-bold text-[#24292f] dark:text-[#f0f6fc] mb-1">{value}</div>
+        <div className="text-xl font-bold text-[#24292f] dark:text-[#f0f6fc] mb-0.5">{value}</div>
       )}
-      <div className="text-[10px] font-semibold text-[#57606a] dark:text-[#8b949e] uppercase tracking-wide">
+      <div className="text-[9px] font-semibold text-[#57606a] dark:text-[#8b949e] uppercase tracking-wide">
         {label}
       </div>
     </Link>
@@ -711,28 +717,64 @@ function QuickActionCard({
   color: string
   onClick?: () => void
 }) {
-  const colorClasses = {
-    blue: 'from-blue-500 to-blue-600 hover:border-blue-500',
-    purple: 'from-purple-500 to-purple-600 hover:border-purple-500',
-    green: 'from-green-500 to-green-600 hover:border-green-500',
-    orange: 'from-orange-500 to-orange-600 hover:border-orange-500',
-    teal: 'from-teal-500 to-teal-600 hover:border-teal-500',
-    red: 'from-red-500 to-red-600 hover:border-red-500',
+  const colorConfig = {
+    blue: {
+      gradient: 'from-blue-500 to-blue-600',
+      border: 'hover:border-blue-400 dark:hover:border-blue-500',
+      bg: 'bg-blue-50 dark:bg-blue-950/30',
+      iconBg: 'bg-blue-100 dark:bg-blue-900/40',
+      iconColor: 'text-blue-600 dark:text-blue-400',
+    },
+    purple: {
+      gradient: 'from-purple-500 to-purple-600',
+      border: 'hover:border-purple-400 dark:hover:border-purple-500',
+      bg: 'bg-purple-50 dark:bg-purple-950/30',
+      iconBg: 'bg-purple-100 dark:bg-purple-900/40',
+      iconColor: 'text-purple-600 dark:text-purple-400',
+    },
+    green: {
+      gradient: 'from-green-500 to-green-600',
+      border: 'hover:border-green-400 dark:hover:border-green-500',
+      bg: 'bg-green-50 dark:bg-green-950/30',
+      iconBg: 'bg-green-100 dark:bg-green-900/40',
+      iconColor: 'text-green-600 dark:text-green-400',
+    },
+    orange: {
+      gradient: 'from-orange-500 to-orange-600',
+      border: 'hover:border-orange-400 dark:hover:border-orange-500',
+      bg: 'bg-orange-50 dark:bg-orange-950/30',
+      iconBg: 'bg-orange-100 dark:bg-orange-900/40',
+      iconColor: 'text-orange-600 dark:text-orange-400',
+    },
+    teal: {
+      gradient: 'from-teal-500 to-teal-600',
+      border: 'hover:border-teal-400 dark:hover:border-teal-500',
+      bg: 'bg-teal-50 dark:bg-teal-950/30',
+      iconBg: 'bg-teal-100 dark:bg-teal-900/40',
+      iconColor: 'text-teal-600 dark:text-teal-400',
+    },
+    red: {
+      gradient: 'from-red-500 to-red-600',
+      border: 'hover:border-red-400 dark:hover:border-red-500',
+      bg: 'bg-red-50 dark:bg-red-950/30',
+      iconBg: 'bg-red-100 dark:bg-red-900/40',
+      iconColor: 'text-red-600 dark:text-red-400',
+    },
   }
 
-  const className = `group p-3 bg-white dark:bg-gradient-to-br dark:from-[#0d1117] dark:to-[#0D1117] border border-[#d0d7de] dark:border-[#21262d] rounded-lg ${colorClasses[color as keyof typeof colorClasses]} hover:shadow-lg transition-all duration-300 transform hover:-translate-y-0.5`
+  const config = colorConfig[color as keyof typeof colorConfig]
+
+  const className = `group flex items-center gap-3 p-3 bg-white dark:bg-[#0d1117] border border-[#d0d7de] dark:border-[#21262d] rounded-xl ${config.border} hover:shadow-md transition-all duration-200`
 
   const content = (
-    <div className="flex flex-col items-center text-center space-y-2">
+    <>
       <div
-        className={`p-2 bg-gradient-to-br ${colorClasses[color as keyof typeof colorClasses].split(' ')[0]} rounded-lg shadow-md group-hover:scale-110 transition-transform duration-300`}
+        className={`flex-shrink-0 p-2.5 ${config.iconBg} rounded-xl group-hover:scale-105 transition-transform duration-200`}
       >
-        <Icon className="w-3.5 h-3.5 text-white" />
+        <Icon className={`w-5 h-5 ${config.iconColor}`} />
       </div>
-      <span className="text-[10px] font-bold text-[#24292f] dark:text-[#c9d1d9] leading-tight">
-        {label}
-      </span>
-    </div>
+      <span className="text-xs font-semibold text-[#24292f] dark:text-[#c9d1d9]">{label}</span>
+    </>
   )
 
   if (onClick) {
@@ -763,30 +805,42 @@ function SummaryCard({
   icon: string
   color: string
 }) {
-  const colorClasses = {
-    green: 'bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400',
-    red: 'bg-red-100 dark:bg-red-900/20 text-red-700 dark:text-red-400',
-    yellow: 'bg-yellow-100 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-400',
-    blue: 'bg-blue-100 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400',
+  const colorConfig = {
+    green: {
+      iconBg: 'bg-green-100 dark:bg-green-900/30',
+      iconColor: 'text-green-600 dark:text-green-400',
+    },
+    red: {
+      iconBg: 'bg-red-100 dark:bg-red-900/30',
+      iconColor: 'text-red-600 dark:text-red-400',
+    },
+    yellow: {
+      iconBg: 'bg-yellow-100 dark:bg-yellow-900/30',
+      iconColor: 'text-yellow-600 dark:text-yellow-400',
+    },
+    blue: {
+      iconBg: 'bg-blue-100 dark:bg-blue-900/30',
+      iconColor: 'text-blue-600 dark:text-blue-400',
+    },
   }
 
+  const config = colorConfig[color as keyof typeof colorConfig]
+
   return (
-    <div className="p-3 bg-gradient-to-br from-[#f6f8fa] to-white dark:from-[#0d1117] dark:to-[#0D1117] border border-[#d0d7de] dark:border-[#21262d] rounded-lg text-center hover:shadow-md transition-shadow duration-200">
-      <div className="flex items-center justify-center gap-1.5 mb-2">
-        <span
-          className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${colorClasses[color as keyof typeof colorClasses]}`}
-        >
-          {icon}
-        </span>
-        <div className="text-[10px] font-bold text-[#57606a] dark:text-[#8b949e] uppercase tracking-wide">
+    <div className="flex items-center gap-3 p-3 bg-white dark:bg-[#0d1117] border border-[#d0d7de] dark:border-[#21262d] rounded-xl hover:shadow-md transition-shadow duration-200">
+      <div className={`flex-shrink-0 w-10 h-10 ${config.iconBg} rounded-xl flex items-center justify-center`}>
+        <span className={`text-base font-bold ${config.iconColor}`}>{icon}</span>
+      </div>
+      <div className="min-w-0">
+        <div className="text-[10px] font-semibold text-[#57606a] dark:text-[#8b949e] uppercase tracking-wide mb-0.5">
           {label}
         </div>
+        {loading ? (
+          <div className="h-5 w-8 bg-[#d0d7de] dark:bg-[#30363d] rounded animate-pulse"></div>
+        ) : (
+          <div className="text-lg font-bold text-[#24292f] dark:text-[#f0f6fc]">{value}</div>
+        )}
       </div>
-      {loading ? (
-        <div className="h-6 bg-[#d0d7de] dark:bg-[#30363d] rounded-lg animate-pulse"></div>
-      ) : (
-        <div className="text-xl font-bold text-[#24292f] dark:text-[#f0f6fc]">{value}</div>
-      )}
     </div>
   )
 }

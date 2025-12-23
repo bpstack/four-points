@@ -34,6 +34,7 @@ export interface LogbookRow extends RowDataPacket {
 export interface LogbookWithAuthor extends LogbookRow {
   author_name: string
   author_email: string
+  department_name?: string
 }
 
 export interface LogbookCommentRow extends RowDataPacket {

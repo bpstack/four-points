@@ -53,7 +53,7 @@ export default function NewLogbookEntry({
   const [message, setMessage] = useState('')
   const [date, setDate] = useState<string>(defaultDate || getLocalDateString())
   const [priority, setPriority] = useState<ImportanceLevel>('baja')
-  const [department, setDepartment] = useState<number>(1)
+  const [department, setDepartment] = useState<number | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string>('')
   const [showCalendar, setShowCalendar] = useState(false)
@@ -69,7 +69,7 @@ export default function NewLogbookEntry({
     if (isOpen) {
       setMessage('')
       setPriority('baja')
-      setDepartment(1)
+      setDepartment(null)
       setDate(defaultDate || getLocalDateString())
       setError('')
       setIsSubmitting(false)
@@ -84,6 +84,10 @@ export default function NewLogbookEntry({
     }
     if (message.trim().length < 3) {
       setError('El mensaje debe tener al menos 3 caracteres')
+      return
+    }
+    if (department === null) {
+      setError('Debes seleccionar un departamento')
       return
     }
     setIsSubmitting(true)
@@ -226,20 +230,21 @@ export default function NewLogbookEntry({
 
           <FormField label="Department">
             <select
-              value={department}
-              onChange={(e) => setDepartment(Number(e.target.value))}
+              value={department ?? ''}
+              onChange={(e) => setDepartment(e.target.value ? Number(e.target.value) : null)}
               className={selectClassName}
               disabled={isSubmitting}
             >
+              <option value="">Elegir departamento...</option>
               {departments.length > 0 ? (
                 departments.map((dept) => (
                   <option key={dept.id} value={dept.id}>
-                    {dept.name}
+                    {dept.displayName}
                   </option>
                 ))
               ) : (
                 <>
-                  <option value={1}>Recepción</option>
+                  <option value={1}>Recepcion</option>
                   <option value={2}>Housekeeping</option>
                   <option value={3}>Mantenimiento</option>
                 </>

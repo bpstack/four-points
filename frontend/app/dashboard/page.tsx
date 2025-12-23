@@ -4,6 +4,7 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '@/app/lib/auth/useAuth'
 import { isAdminRole } from '@/app/lib/helpers/utils'
+import { useDepartments } from '@/app/lib/logbooks/hooks/useDepartments'
 import {
   DashboardHeader,
   QuickActionsCard,
@@ -19,6 +20,7 @@ import { activityApi } from '@/app/lib/activity'
 export default function DashboardHome() {
   const [selectedPeriod, setSelectedPeriod] = useState<'today' | 'week' | 'month'>('today')
   const { user: currentUser } = useAuth()
+  const { getDepartmentName } = useDepartments()
   const [logbookEntries, setLogbookEntries] = useState<LogbookEntryDisplay[]>([])
   const [recentActivity, setRecentActivity] = useState<UnifiedActivity[]>([])
   const [loadingLogbooks, setLoadingLogbooks] = useState(true)
@@ -146,7 +148,7 @@ export default function DashboardHome() {
             description: entry.message,
             priority,
             status: (entry.is_solved === 1 ? 'resolved' : 'pending') as 'resolved' | 'pending',
-            department: `Dept ${entry.department_id}`,
+            department: getDepartmentName(entry.department_id),
           }
         })
 
@@ -170,7 +172,7 @@ export default function DashboardHome() {
         setLoadingLogbooks(false)
       }
     },
-    [generateDateRange, getLocalDateString]
+    [generateDateRange, getLocalDateString, getDepartmentName]
   )
 
   // ========================================
@@ -223,8 +225,8 @@ export default function DashboardHome() {
   // ========================================
 
   return (
-    <div className="min-h-screen bg-white dark:bg-[#010409] p-4 md:p-6 lg:p-8">
-      <div className="max-w-[1600px] max-w-none space-y-6">
+    <div className="min-h-screen bg-white dark:bg-[#010409] px-4 md:px-5 lg:px-6 pt-4 md:-mt-2 md:pt-0 pb-4">
+      <div className="max-w-[1600px] space-y-4">
         {/* Header with Period Selector */}
         <DashboardHeader selectedPeriod={selectedPeriod} onPeriodChange={handlePeriodChange} />
 

@@ -5,19 +5,31 @@ import { ReactNode } from 'react'
 
 interface InfoCardProps {
   title: string
-  icon: ReactNode
+  icon?: ReactNode
   children: ReactNode
   className?: string
+  variant?: 'default' | 'highlighted'
 }
 
-export function InfoCard({ title, icon, children, className = '' }: InfoCardProps) {
+export function InfoCard({
+  title,
+  icon,
+  children,
+  className = '',
+  variant = 'default',
+}: InfoCardProps) {
+  const bgClass =
+    variant === 'highlighted'
+      ? 'bg-[#f6f8fa] dark:bg-[#0d1117]'
+      : 'bg-white dark:bg-[#151b23]'
+
   return (
     <div
-      className={`bg-white dark:bg-[#151b23] border border-gray-200 dark:border-gray-800 rounded-md ${className}`}
+      className={`${bgClass} border border-[#d0d7de] dark:border-[#30363d] rounded-md ${className}`}
     >
-      <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-800">
-        <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
-          <span className="text-gray-600 dark:text-gray-400">{icon}</span>
+      <div className="px-4 py-3 border-b border-[#d0d7de] dark:border-[#30363d]">
+        <h3 className="text-sm font-semibold text-[#24292f] dark:text-[#f0f6fc] flex items-center gap-2">
+          {icon && <span className="text-[#57606a] dark:text-[#8b949e]">{icon}</span>}
           {title}
         </h3>
       </div>
@@ -35,11 +47,13 @@ interface InfoRowProps {
 
 export function InfoRow({ label, value, highlight = false, mono = false }: InfoRowProps) {
   return (
-    <div className="flex items-center justify-between py-2 border-b border-gray-100 dark:border-gray-800 last:border-0">
-      <span className="text-sm text-gray-600 dark:text-gray-400">{label}</span>
+    <div className="flex items-center justify-between py-2 border-b border-[#d0d7de]/50 dark:border-[#30363d]/50 last:border-0">
+      <span className="text-xs text-[#57606a] dark:text-[#8b949e]">{label}</span>
       <span
         className={`text-sm font-medium ${
-          highlight ? 'text-blue-600 dark:text-blue-400' : 'text-gray-900 dark:text-gray-100'
+          highlight
+            ? 'text-[#0969da] dark:text-[#58a6ff]'
+            : 'text-[#24292f] dark:text-[#f0f6fc]'
         } ${mono ? 'font-mono' : ''}`}
       >
         {value}

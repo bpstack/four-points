@@ -2,10 +2,11 @@
 'use client'
 
 import React from 'react'
-import { FiGrid, FiDollarSign, FiBriefcase, FiTool } from 'react-icons/fi'
+import { FiGrid, FiDollarSign, FiBriefcase, FiMessageSquare } from 'react-icons/fi'
 import { FaCar } from 'react-icons/fa'
 import { IoIosRestaurant } from 'react-icons/io'
 import { HiOutlineDocumentCheck } from 'react-icons/hi2'
+import { CgDanger } from 'react-icons/cg'
 import { IconType } from 'react-icons'
 
 interface StatusItem {
@@ -36,20 +37,20 @@ const statusItems: StatusItem[] = [
     bgColor: 'bg-orange-50 dark:bg-orange-900/10',
   },
   {
-    label: 'Mantenimiento',
-    icon: FiTool,
-    href: '/dashboard/maintenance',
-    id: 'maintenance',
-    color: 'from-yellow-500 to-yellow-600',
-    bgColor: 'bg-yellow-50 dark:bg-yellow-900/10',
+    label: 'Blacklist',
+    icon: CgDanger,
+    href: '/dashboard/blacklist',
+    id: 'blacklist',
+    color: 'from-red-600 to-red-700',
+    bgColor: 'bg-red-50 dark:bg-red-900/10',
   },
   {
     label: 'Restaurante',
     icon: IoIosRestaurant,
     href: '/dashboard/restaurant',
     id: 'restaurant',
-    color: 'from-red-500 to-red-600',
-    bgColor: 'bg-red-50 dark:bg-red-900/10',
+    color: 'from-amber-500 to-amber-600',
+    bgColor: 'bg-amber-50 dark:bg-amber-900/10',
   },
   {
     label: 'Conciliación',
@@ -68,12 +69,12 @@ const statusItems: StatusItem[] = [
     bgColor: 'bg-emerald-50 dark:bg-emerald-900/10',
   },
   {
-    label: 'Caja Parking',
-    icon: FiDollarSign,
-    href: '/dashboard/cashier/parking',
-    id: 'parking-cashier',
-    color: 'from-teal-500 to-teal-600',
-    bgColor: 'bg-teal-50 dark:bg-teal-900/10',
+    label: 'Mensajes',
+    icon: FiMessageSquare,
+    href: '/dashboard/profile?panel=messages',
+    id: 'messages',
+    color: 'from-blue-500 to-blue-600',
+    bgColor: 'bg-blue-50 dark:bg-blue-900/10',
   },
   {
     label: 'Back Office',

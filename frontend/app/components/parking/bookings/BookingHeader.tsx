@@ -13,7 +13,7 @@ import {
   FiAlertTriangle,
 } from 'react-icons/fi'
 import { StatusBadge } from '../StatusBadge'
-import { SPOT_TYPES, type BookingStatus } from '../helpers'
+import { type BookingStatus } from '../helpers'
 
 interface BookingHeaderProps {
   booking: ParkingBooking
@@ -44,41 +44,29 @@ export function BookingHeader({
   const canDelete = ['reserved', 'canceled'].includes(booking.status)
 
   return (
-    <div className="bg-white dark:bg-[#010409] border-b border-gray-200 dark:border-gray-800">
+    <div className="border-b border-[#d0d7de] dark:border-[#30363d] bg-white dark:bg-[#010409]">
       <div className="max-w-[1400px] px-4 md:px-6 py-4">
         {/* Back button */}
         <button
           onClick={() => router.push('/dashboard/parking/bookings')}
-          className="inline-flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 mb-4 transition-colors"
+          className="inline-flex items-center gap-1.5 text-xs text-[#57606a] dark:text-[#8b949e] hover:text-[#24292f] dark:hover:text-[#f0f6fc] mb-4 transition-colors"
         >
-          <FiArrowLeft className="w-4 h-4" />
+          <FiArrowLeft className="w-3.5 h-3.5" />
           Volver al listado
         </button>
 
         {/* Header content */}
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-3 mb-2">
-              <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100 truncate">
-                {booking.booking_code}
-              </h1>
+            <h1 className="text-xl sm:text-2xl font-bold text-[#24292f] dark:text-[#f0f6fc]">
+              {booking.booking_code}
+            </h1>
+            <div className="flex flex-wrap items-center gap-2 mt-1.5">
               <StatusBadge status={booking.status as BookingStatus} />
-            </div>
-
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-gray-600 dark:text-gray-400">
-              <span>
-                Plaza:{' '}
-                <span className="font-medium">
-                  {booking.spot.level} - {booking.spot.number}
-                </span>
-              </span>
-              <span>•</span>
-              <span>{SPOT_TYPES[booking.spot.type] || booking.spot.type}</span>
               {booking.vehicle && (
-                <>
-                  <span>•</span>
-                  <span className="font-mono">{booking.vehicle.plate}</span>
-                </>
+                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-mono font-medium bg-[#ddf4ff] dark:bg-[#388bfd26] text-[#0969da] dark:text-[#58a6ff] border border-[#54aeff66] dark:border-[#388bfd66]">
+                  {booking.vehicle.plate}
+                </span>
               )}
             </div>
           </div>
@@ -88,7 +76,7 @@ export function BookingHeader({
             {canCheckIn && (
               <button
                 onClick={onCheckIn}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-green-600 hover:bg-green-700 rounded-md transition-colors"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-[#1a7f37] hover:bg-[#116329] border border-[#1a7f37] hover:border-[#116329] rounded-md transition-colors"
               >
                 <FiLogIn className="w-3.5 h-3.5" />
                 Check-in
@@ -98,7 +86,7 @@ export function BookingHeader({
             {canCheckOut && (
               <button
                 onClick={onCheckOut}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-[#0969da] hover:bg-[#0860CA] border border-[#0969da] hover:border-[#0860CA] rounded-md transition-colors"
               >
                 <FiLogOut className="w-3.5 h-3.5" />
                 Check-out
@@ -108,7 +96,7 @@ export function BookingHeader({
             {canEdit && (
               <button
                 onClick={onEdit}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[#24292f] dark:text-[#c9d1d9] bg-[#f6f8fa] dark:bg-[#21262d] border border-[#d0d7de] dark:border-[#30363d] rounded-md hover:bg-[#f3f4f6] dark:hover:bg-[#30363d] hover:border-[#1b1f2426] dark:hover:border-[#8b949e] transition-colors"
               >
                 <FiEdit className="w-3.5 h-3.5" />
                 Editar
@@ -118,7 +106,7 @@ export function BookingHeader({
             {canCancel && (
               <button
                 onClick={onCancel}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-red-700 dark:text-red-400 bg-white dark:bg-gray-800 border border-red-300 dark:border-red-800 rounded-md hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[#cf222e] dark:text-[#f85149] bg-[#f6f8fa] dark:bg-[#21262d] border border-[#d0d7de] dark:border-[#30363d] rounded-md hover:bg-[#ffebe9] dark:hover:bg-[#490202] hover:border-[#cf222e] dark:hover:border-[#f85149] transition-colors"
               >
                 <FiX className="w-3.5 h-3.5" />
                 Cancelar
@@ -128,7 +116,7 @@ export function BookingHeader({
             {canNoShow && (
               <button
                 onClick={onNoShow}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-orange-700 dark:text-orange-400 bg-white dark:bg-gray-800 border border-orange-300 dark:border-orange-800 rounded-md hover:bg-orange-50 dark:hover:bg-orange-900/20 transition-colors"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[#9a6700] dark:text-[#d29922] bg-[#f6f8fa] dark:bg-[#21262d] border border-[#d0d7de] dark:border-[#30363d] rounded-md hover:bg-[#fff8c5] dark:hover:bg-[#3d2c00] hover:border-[#9a6700] dark:hover:border-[#d29922] transition-colors"
                 title="Marcar como No-show"
               >
                 <FiAlertTriangle className="w-3.5 h-3.5" />
@@ -139,7 +127,7 @@ export function BookingHeader({
             {canDelete && (
               <button
                 onClick={onDelete}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-red-700 dark:text-red-400 bg-white dark:bg-gray-800 border border-red-300 dark:border-red-800 rounded-md hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[#cf222e] dark:text-[#f85149] bg-[#f6f8fa] dark:bg-[#21262d] border border-[#d0d7de] dark:border-[#30363d] rounded-md hover:bg-[#ffebe9] dark:hover:bg-[#490202] hover:border-[#cf222e] dark:hover:border-[#f85149] transition-colors"
               >
                 <FiTrash2 className="w-3.5 h-3.5" />
                 Eliminar
@@ -150,8 +138,8 @@ export function BookingHeader({
 
         {/* Payment warning */}
         {booking.payment.pending_amount > 0 && booking.status === 'checked_in' && (
-          <div className="mt-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-md">
-            <p className="text-sm text-yellow-800 dark:text-yellow-400 font-medium">
+          <div className="mt-4 p-3 bg-[#fff8c5] dark:bg-[#3d2c00] border border-[#d4a72c66] dark:border-[#d29922] rounded-md">
+            <p className="text-xs font-medium text-[#9a6700] dark:text-[#d29922]">
               Pago pendiente: {booking.payment.pending_amount.toFixed(2)} EUR
             </p>
           </div>
