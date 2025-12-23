@@ -87,6 +87,14 @@
     "hours": "horas",
     "days": "días"
   },
+  "calendar": {
+    "months": ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"],
+    "monthsShort": ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"],
+    "weekdays": ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"],
+    "weekdaysShort": ["L", "M", "X", "J", "V", "S", "D"],
+    "selectDate": "Seleccionar fecha",
+    "close": "Cerrar"
+  },
   "panels": {
     "closePanel": "Cerrar panel",
     "deleteConfirm": "¿Seguro que quieres eliminar?"

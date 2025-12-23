@@ -1,5 +1,11 @@
 {
   "title": "Notifications",
+  "list": {
+    "all": "All ({count})",
+    "unread": "Unread ({count})",
+    "noUnread": "No unread notifications",
+    "noNotifications": "No notifications"
+  },
   "modal": {
     "title": "New Notification",
     "destinationLink": "Destination link *",

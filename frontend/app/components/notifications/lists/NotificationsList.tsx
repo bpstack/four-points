@@ -6,10 +6,12 @@ import { useState } from 'react'
 import { FiBell } from 'react-icons/fi'
 import { useNotifications } from '@/app/lib/notifications/useNotifications'
 import NotificationItem from '../items/NotificationItem'
+import { useTranslations } from 'next-intl'
 
 type FilterType = 'all' | 'unread'
 
 export default function NotificationsList() {
+  const t = useTranslations('notifications')
   const { notifications, loading, markAsRead, deleteNotification } = useNotifications()
   const [filter, setFilter] = useState<FilterType>('all')
 
@@ -38,7 +40,7 @@ export default function NotificationsList() {
               : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-[#21262d] dark:text-gray-300 dark:hover:bg-[#30363d]'
           }`}
         >
-          Todas ({notifications.length})
+          {t('list.all', { count: notifications.length })}
         </button>
         <button
           onClick={() => setFilter('unread')}
@@ -48,7 +50,7 @@ export default function NotificationsList() {
               : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-[#21262d] dark:text-gray-300 dark:hover:bg-[#30363d]'
           }`}
         >
-          Sin leer ({unreadCount})
+          {t('list.unread', { count: unreadCount })}
         </button>
       </div>
 
@@ -58,7 +60,7 @@ export default function NotificationsList() {
           <div className="p-8 text-center">
             <FiBell className="w-12 h-12 mx-auto text-gray-300 dark:text-gray-600 mb-2" />
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              {filter === 'unread' ? 'No hay notificaciones sin leer' : 'No hay notificaciones'}
+              {filter === 'unread' ? t('list.noUnread') : t('list.noNotifications')}
             </p>
           </div>
         ) : (

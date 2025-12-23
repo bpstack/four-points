@@ -9,6 +9,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { FiCalendar, FiX } from 'react-icons/fi'
 import SimpleCalendarCompact from './SimpleCalendarCompact'
+import { useTranslations } from 'next-intl'
 
 interface DatePickerInputProps {
   value?: string // formato YYYY-MM-DD
@@ -28,7 +29,7 @@ export default function DatePickerInput({
   value,
   onChange,
   label,
-  placeholder = 'Seleccionar fecha',
+  placeholder,
   required = false,
   error,
   minDate,
@@ -37,10 +38,13 @@ export default function DatePickerInput({
   className = '',
   size = 'md',
 }: DatePickerInputProps) {
+  const t = useTranslations('common')
   const [isOpen, setIsOpen] = useState(false)
   const [alignRight, setAlignRight] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
   const buttonRef = useRef<HTMLButtonElement>(null)
+  
+  const defaultPlaceholder = placeholder ?? t('calendar.selectDate')
 
   // Convertir string YYYY-MM-DD a Date
   const selectedDate = value ? new Date(value + 'T12:00:00') : null
@@ -140,7 +144,7 @@ export default function DatePickerInput({
               value ? 'text-gray-900 dark:text-gray-100' : 'text-gray-400 dark:text-gray-500'
             }
           >
-            {value ? formatDisplayDate(value) : placeholder}
+            {value ? formatDisplayDate(value) : defaultPlaceholder}
           </span>
 
           <div className="flex items-center gap-1">

@@ -1,5 +1,11 @@
 {
   "title": "Notificaciones",
+  "list": {
+    "all": "Todas ({count})",
+    "unread": "Sin leer ({count})",
+    "noUnread": "No hay notificaciones sin leer",
+    "noNotifications": "No hay notificaciones"
+  },
   "modal": {
     "title": "Nueva Notificacion",
     "destinationLink": "Enlace de destino *",

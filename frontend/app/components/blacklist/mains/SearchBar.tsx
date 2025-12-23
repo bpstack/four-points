@@ -13,7 +13,6 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { useDebounce } from 'use-debounce'
 import { IoSearch, IoClose, IoFunnel } from 'react-icons/io5'
-import { SEVERITY_LEVELS } from '@/app/lib/blacklist/types'
 
 interface SearchBarProps {
   totalResults?: number
@@ -237,10 +236,10 @@ export function SearchBar({ totalResults }: SearchBarProps) {
                 className="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-[#0D1117] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors text-sm"
               >
                 <option value="">{t('filters.all')}</option>
-                <option value="LOW">{SEVERITY_LEVELS.LOW}</option>
-                <option value="MEDIUM">{SEVERITY_LEVELS.MEDIUM}</option>
-                <option value="HIGH">{SEVERITY_LEVELS.HIGH}</option>
-                <option value="CRITICAL">{SEVERITY_LEVELS.CRITICAL}</option>
+                <option value="LOW">{t('severity.low')}</option>
+                <option value="MEDIUM">{t('severity.medium')}</option>
+                <option value="HIGH">{t('severity.high')}</option>
+                <option value="CRITICAL">{t('severity.critical')}</option>
               </select>
             </div>
 
