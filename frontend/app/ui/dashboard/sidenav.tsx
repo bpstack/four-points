@@ -39,7 +39,7 @@ export default function SideNav({ onClose }: SideNavProps) {
             </span>
           </div>
         </Link>
-        
+
         {/* Close button - mobile only */}
         {onClose && (
           <button

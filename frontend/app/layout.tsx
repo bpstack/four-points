@@ -2,6 +2,60 @@
 import './ui/global.css'
 import { ACTIVE_FONTS as activeFonts } from './ui/fonts-design/fonts.helper'
 import Providers from './lib/theme/ThemeProvider'
+import type { Metadata, Viewport } from 'next'
+
+export const metadata: Metadata = {
+  title: {
+    default: 'Four Points - Hotel PMS',
+    template: '%s | Four Points',
+  },
+  description: 'Sistema de gestión hotelera Four Points - Property Management System',
+  applicationName: 'Four Points',
+  keywords: ['hotel', 'pms', 'property management', 'four points', 'gestión hotelera'],
+  authors: [{ name: 'Four Points Team' }],
+  creator: 'Four Points',
+  publisher: 'Four Points',
+  manifest: '/manifest.json',
+  icons: {
+    icon: [
+      { url: '/favicon.svg', type: 'image/svg+xml' },
+      { url: '/favicon.ico', sizes: '32x32' },
+      { url: '/icons/favicon-96x96.png', sizes: '96x96', type: 'image/png' },
+    ],
+    apple: [{ url: '/icons/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],
+    other: [{ rel: 'mask-icon', url: '/favicon.svg', color: '#6366f1' }],
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'Four Points',
+  },
+  formatDetection: {
+    telephone: false,
+    date: false,
+    email: false,
+    address: false,
+  },
+  openGraph: {
+    type: 'website',
+    siteName: 'Four Points',
+    title: 'Four Points - Hotel PMS',
+    description: 'Sistema de gestión hotelera Four Points',
+    locale: 'es_ES',
+  },
+}
+
+export const viewport: Viewport = {
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#ffffff' },
+    { media: '(prefers-color-scheme: dark)', color: '#010409' },
+  ],
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  viewportFit: 'cover',
+}
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   const fontVars: Record<string, string> = {}
@@ -23,7 +77,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       style={Object.keys(fontVars).length > 0 ? (fontVars as React.CSSProperties) : undefined}
     >
       <head>
-        <meta name="format-detection" content="telephone=no, date=no, email=no, address=no" />
         {(needsPrimaryAlias || needsDisplayAlias) && (
           <style>{`
             :root {

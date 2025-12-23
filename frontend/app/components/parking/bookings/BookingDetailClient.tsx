@@ -292,7 +292,8 @@ export function BookingDetailClient({ code }: BookingDetailClientProps) {
                   Duracion
                 </p>
                 <p className="text-sm sm:text-base font-bold text-[#24292f] dark:text-[#f0f6fc] mt-0.5">
-                  {booking.schedule.planned_days} {booking.schedule.planned_days === 1 ? 'dia' : 'dias'}
+                  {booking.schedule.planned_days}{' '}
+                  {booking.schedule.planned_days === 1 ? 'dia' : 'dias'}
                 </p>
               </div>
               <FiClock className="w-5 h-5 sm:w-6 sm:h-6 text-[#8250df] dark:text-[#a371f7]" />
@@ -473,9 +474,7 @@ export function BookingDetailClient({ code }: BookingDetailClientProps) {
                   </h3>
                   <span
                     className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-                      isPaid
-                        ? 'bg-[#1a7f37] text-white'
-                        : 'bg-[#9a6700] text-white'
+                      isPaid ? 'bg-[#1a7f37] text-white' : 'bg-[#9a6700] text-white'
                     }`}
                   >
                     {isPaid ? 'Pagado' : `${paymentPercentage}%`}

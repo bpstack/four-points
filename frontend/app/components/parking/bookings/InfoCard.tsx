@@ -19,9 +19,7 @@ export function InfoCard({
   variant = 'default',
 }: InfoCardProps) {
   const bgClass =
-    variant === 'highlighted'
-      ? 'bg-[#f6f8fa] dark:bg-[#0d1117]'
-      : 'bg-white dark:bg-[#151b23]'
+    variant === 'highlighted' ? 'bg-[#f6f8fa] dark:bg-[#0d1117]' : 'bg-white dark:bg-[#151b23]'
 
   return (
     <div
@@ -51,9 +49,7 @@ export function InfoRow({ label, value, highlight = false, mono = false }: InfoR
       <span className="text-xs text-[#57606a] dark:text-[#8b949e]">{label}</span>
       <span
         className={`text-sm font-medium ${
-          highlight
-            ? 'text-[#0969da] dark:text-[#58a6ff]'
-            : 'text-[#24292f] dark:text-[#f0f6fc]'
+          highlight ? 'text-[#0969da] dark:text-[#58a6ff]' : 'text-[#24292f] dark:text-[#f0f6fc]'
         } ${mono ? 'font-mono' : ''}`}
       >
         {value}

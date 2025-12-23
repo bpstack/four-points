@@ -227,8 +227,11 @@ export default function LoginPage() {
 
           <p className="mt-4 text-center text-sm text-gray-600 dark:text-gray-400">
             Don&apos;t have an account?{' '}
-            <Link href="/" className="text-blue-600 dark:text-blue-400 hover:underline">
-              Ask to the managers
+            <Link
+              href="https://www.stackbp.es/"
+              className="text-blue-600 dark:text-blue-400 hover:underline"
+            >
+              Live demo →
             </Link>
           </p>
         </form>

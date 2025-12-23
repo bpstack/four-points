@@ -53,7 +53,9 @@ export function PaymentModal({ booking, onClose, onConfirm }: PaymentModalProps)
               <FiDollarSign className="w-5 h-5 text-[#1a7f37] dark:text-[#3fb950]" />
               Registrar Pago
             </h3>
-            <p className="text-sm text-[#57606a] dark:text-[#8b949e] mt-1">{booking.booking_code}</p>
+            <p className="text-sm text-[#57606a] dark:text-[#8b949e] mt-1">
+              {booking.booking_code}
+            </p>
           </div>
           <button
             onClick={onClose}
@@ -75,7 +77,8 @@ export function PaymentModal({ booking, onClose, onConfirm }: PaymentModalProps)
                     No se puede registrar pago
                   </p>
                   <p className="text-sm text-[#cf222e] dark:text-[#f85149] mt-1">
-                    Esta reserva no tiene un precio establecido. Edita la reserva primero para asignar un precio.
+                    Esta reserva no tiene un precio establecido. Edita la reserva primero para
+                    asignar un precio.
                   </p>
                 </div>
               </div>
@@ -123,7 +126,9 @@ export function PaymentModal({ booking, onClose, onConfirm }: PaymentModalProps)
                     </span>
                   </div>
                   <div className="flex justify-between pt-2 border-t border-[#d0d7de] dark:border-[#30363d]">
-                    <span className="font-medium text-[#57606a] dark:text-[#8b949e]">Pendiente</span>
+                    <span className="font-medium text-[#57606a] dark:text-[#8b949e]">
+                      Pendiente
+                    </span>
                     <span
                       className={`font-bold ${
                         booking.payment.pending_amount > 0
