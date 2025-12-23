@@ -1,4 +1,10 @@
 // app/api/auth/register/route.ts
+/**
+ * API Route Proxy para registrar nuevos usuarios
+ * PROTEGIDO: Solo admins pueden crear usuarios
+ * Lee el access_token de cookies y lo reenvía al backend
+ */
+
 import { NextRequest, NextResponse } from 'next/server'
 
 import { SERVER_API_BASE_URL } from '@/app/lib/env'
@@ -21,6 +27,13 @@ export async function POST(req: NextRequest) {
   }
 
   try {
+    // Obtener token de autenticación (requerido - solo admins)
+    const accessToken = req.cookies.get('access_token')?.value
+
+    if (!accessToken) {
+      return NextResponse.json({ error: 'No autorizado, falta token' }, { status: 401 })
+    }
+
     const contentType = req.headers.get('content-type') || ''
     if (!contentType.includes('application/json')) {
       return NextResponse.json({ error: 'Content-Type debe ser application/json' }, { status: 400 })
@@ -30,13 +43,15 @@ export async function POST(req: NextRequest) {
     if (!body?.username || !body?.password) {
       return NextResponse.json({ error: 'Datos incompletos' }, { status: 400 })
     }
-    console.log('[POST /api/auth/register] Usuario:', body.username)
+    console.log('[POST /api/auth/register] Admin creando usuario:', body.username)
 
     const backendRes = await fetch(`${BACKEND_URL}/api/auth/register`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${accessToken}`,
+      },
       body: JSON.stringify(body),
-      credentials: 'include',
       cache: 'no-store',
     })
 

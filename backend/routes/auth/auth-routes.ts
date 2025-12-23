@@ -19,6 +19,7 @@ import {
   passwordChangeLimiter,
   profileUpdateLimiter,
 } from '../../middlewares/rateLimiter.js'
+import { isRealAdmin } from '../../middlewares/roleCheck.js'
 
 const router: Router = express.Router()
 
@@ -43,8 +44,14 @@ const avatarUpload = multer({
 // ========================================
 
 router.post('/login', loginLimiter, login)
-router.post('/register', register)
 router.post('/refresh-token', refreshToken)
+
+// ========================================
+// ADMIN ONLY ROUTES
+// ========================================
+
+// Solo admins reales pueden crear usuarios (no demo-admin)
+router.post('/register', authenticateToken, isRealAdmin, register)
 
 // ========================================
 // PROTECTED ROUTES (require authentication)
