@@ -3,6 +3,7 @@
 import { Request, Response } from 'express'
 import { GroupHistoryService } from '../../services/group/group-history-service'
 import { GroupRepository } from '../../repositories/group/group-repository'
+import { ERROR_CODES } from '../../config/error-codes.js'
 
 export class GroupHistoryController {
   /**
@@ -17,7 +18,8 @@ export class GroupHistoryController {
       if (isNaN(groupId)) {
         return res.status(400).json({
           success: false,
-          error: 'ID de grupo inválido',
+          error: ERROR_CODES.GROUP_INVALID_ID,
+          code: ERROR_CODES.GROUP_INVALID_ID,
         })
       }
 
@@ -26,7 +28,8 @@ export class GroupHistoryController {
       if (!group) {
         return res.status(404).json({
           success: false,
-          error: 'Grupo no encontrado',
+          error: ERROR_CODES.GROUP_NOT_FOUND,
+          code: ERROR_CODES.GROUP_NOT_FOUND,
         })
       }
 
@@ -41,8 +44,8 @@ export class GroupHistoryController {
       console.error('Error en getGroupHistory:', error)
       return res.status(500).json({
         success: false,
-        error: 'Error al obtener historial',
-        message: error.message,
+        error: ERROR_CODES.GROUP_HISTORY_FETCH_ERROR,
+        code: ERROR_CODES.GROUP_HISTORY_FETCH_ERROR,
       })
     }
   }

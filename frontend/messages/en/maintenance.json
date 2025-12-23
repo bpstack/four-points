@@ -3,6 +3,9 @@
   "subtitle": "Maintenance reports management",
   "newReport": "New Report",
   "loading": "Loading reports...",
+  "loadingReport": "Loading report...",
+  "reportNotFound": "Report not found",
+  "backToList": "Back to list",
   "status": {
     "reported": "Reported",
     "assigned": "Assigned",
@@ -125,6 +128,9 @@
         "updateError": "Error updating the report"
       }
     }
+  },
+  "error": {
+    "loadingReport": "Error loading the report"
   },
   "detail": {
     "backToList": "Back to list",

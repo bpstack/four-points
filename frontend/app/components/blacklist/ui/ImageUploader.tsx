@@ -5,6 +5,7 @@ import { useState, useRef, useCallback } from 'react'
 import { IoCloudUploadOutline, IoClose, IoImageOutline, IoWarning } from 'react-icons/io5'
 import { clsx } from 'clsx'
 import Image from 'next/image'
+import { useTranslations } from 'next-intl'
 
 interface ImageUploaderProps {
   label?: string
@@ -29,6 +30,7 @@ export function ImageUploader({
   onChange,
   required,
 }: ImageUploaderProps) {
+  const t = useTranslations('blacklist')
   const [isDragging, setIsDragging] = useState(false)
   const [validationError, setValidationError] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -38,18 +40,22 @@ export function ImageUploader({
     (file: File): string | null => {
       // Validar tipo
       if (!acceptedFormats.includes(file.type)) {
-        return `${file.name}: Formato no permitido. Solo JPG, PNG o WebP.`
+        return t('ui.imageUploader.formatNotAllowed', { fileName: file.name })
       }
 
       // Validar tamaño
       const sizeMB = file.size / (1024 * 1024)
       if (sizeMB > maxSizeMB) {
-        return `${file.name}: Excede el tamaño máximo de ${maxSizeMB}MB (${sizeMB.toFixed(2)}MB).`
+        return t('ui.imageUploader.exceedsMaxSize', {
+          fileName: file.name,
+          maxSize: maxSizeMB,
+          actualSize: sizeMB.toFixed(2),
+        })
       }
 
       return null
     },
-    [acceptedFormats, maxSizeMB]
+    [acceptedFormats, maxSizeMB, t]
   )
 
   // Manejar archivos seleccionados
@@ -61,7 +67,7 @@ export function ImageUploader({
 
       // Validar cantidad máxima
       if (value.length + filesArray.length > maxFiles) {
-        setValidationError(`Solo puedes subir un máximo de ${maxFiles} imágenes.`)
+        setValidationError(t('ui.imageUploader.maxImagesError', { maxFiles }))
         return
       }
 
@@ -176,15 +182,15 @@ export function ImageUploader({
         <div className="text-center">
           <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
             {isDragging
-              ? 'Suelta las imágenes aquí'
-              : 'Arrastra imágenes o haz click para seleccionar'}
+              ? t('ui.imageUploader.dropImagesHere')
+              : t('ui.imageUploader.dragOrClick')}
           </p>
           <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
-            {acceptedFormats.map((f) => f.split('/')[1].toUpperCase()).join(', ')} - Máx.{' '}
-            {maxSizeMB}MB por archivo
+            {acceptedFormats.map((f) => f.split('/')[1].toUpperCase()).join(', ')} -{' '}
+            {t('ui.imageUploader.maxPerFile', { maxSize: maxSizeMB })}
           </p>
           <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
-            {value.length} de {maxFiles} imágenes
+            {t('ui.imageUploader.imagesCount', { current: value.length, max: maxFiles })}
           </p>
         </div>
       </div>

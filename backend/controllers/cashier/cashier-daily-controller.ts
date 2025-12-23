@@ -5,6 +5,7 @@ import { CashierDailyRepository } from '../../repositories/cashier/cashier-daily
 import { CashierShiftRepository } from '../../repositories/cashier/cashier-shift-repository.js'
 import { CashierHistoryRepository } from '../../repositories/cashier/cashier-history-repository.js'
 import { ShiftType } from '../../models/cashier/index.js'
+import { ERROR_CODES, SUCCESS_CODES } from '../../config/error-codes.js'
 
 export class CashierDailyController {
   /**
@@ -18,14 +19,22 @@ export class CashierDailyController {
       const dailyDetail = await CashierDailyRepository.getDetailsByDate(date)
 
       if (!dailyDetail) {
-        res.status(404).json({ error: 'Día no encontrado' })
+        res.status(404).json({
+          success: false,
+          error: ERROR_CODES.CASHIER_DAY_NOT_FOUND,
+          code: ERROR_CODES.CASHIER_DAY_NOT_FOUND,
+        })
         return
       }
 
-      res.json(dailyDetail)
+      res.json({ success: true, data: dailyDetail })
     } catch (error) {
       console.error('Error al obtener día:', error)
-      res.status(500).json({ error: 'Error al obtener día' })
+      res.status(500).json({
+        success: false,
+        error: ERROR_CODES.CASHIER_FETCH_DAY_ERROR,
+        code: ERROR_CODES.CASHIER_FETCH_DAY_ERROR,
+      })
     }
   }
 
@@ -41,14 +50,22 @@ export class CashierDailyController {
       // Verificar si el día ya existe
       const existingDaily = await CashierDailyRepository.getByDate(date)
       if (existingDaily) {
-        res.status(400).json({ error: 'El día ya está inicializado' })
+        res.status(400).json({
+          success: false,
+          error: ERROR_CODES.CASHIER_DAY_ALREADY_INITIALIZED,
+          code: ERROR_CODES.CASHIER_DAY_ALREADY_INITIALIZED,
+        })
         return
       }
 
       // Verificar si ya existen turnos para esta fecha
       const existingShifts = await CashierShiftRepository.getByDate(date)
       if (existingShifts.length > 0) {
-        res.status(400).json({ error: 'Ya existen turnos para esta fecha' })
+        res.status(400).json({
+          success: false,
+          error: ERROR_CODES.CASHIER_SHIFTS_ALREADY_EXIST,
+          code: ERROR_CODES.CASHIER_SHIFTS_ALREADY_EXIST,
+        })
         return
       }
 
@@ -87,12 +104,18 @@ export class CashierDailyController {
       const dailyDetail = await CashierDailyRepository.getDetailsByDate(date)
 
       res.status(201).json({
-        message: 'Día inicializado correctamente',
+        success: true,
+        message: SUCCESS_CODES.CASHIER_DAY_INITIALIZED,
+        code: SUCCESS_CODES.CASHIER_DAY_INITIALIZED,
         data: dailyDetail,
       })
     } catch (error) {
       console.error('Error al inicializar día:', error)
-      res.status(500).json({ error: 'Error al inicializar día' })
+      res.status(500).json({
+        success: false,
+        error: ERROR_CODES.CASHIER_INIT_DAY_ERROR,
+        code: ERROR_CODES.CASHIER_INIT_DAY_ERROR,
+      })
     }
   }
 
@@ -107,7 +130,11 @@ export class CashierDailyController {
       const userId = req.user?.id // Asumiendo que viene del middleware de auth
 
       if (!userId) {
-        res.status(401).json({ error: 'Usuario no autenticado' })
+        res.status(401).json({
+          success: false,
+          error: ERROR_CODES.AUTH_USER_NOT_AUTHENTICATED,
+          code: ERROR_CODES.AUTH_USER_NOT_AUTHENTICATED,
+        })
         return
       }
 
@@ -115,14 +142,20 @@ export class CashierDailyController {
       const dailyDetail = await CashierDailyRepository.getDetailsByDate(date)
 
       if (!dailyDetail) {
-        res.status(404).json({ error: 'Día no encontrado' })
+        res.status(404).json({
+          success: false,
+          error: ERROR_CODES.CASHIER_DAY_NOT_FOUND,
+          code: ERROR_CODES.CASHIER_DAY_NOT_FOUND,
+        })
         return
       }
 
       // Validar que se pueda cerrar
       if (!dailyDetail.can_close) {
         res.status(400).json({
-          error: 'No se puede cerrar el día',
+          success: false,
+          error: ERROR_CODES.CASHIER_DAY_CANNOT_CLOSE,
+          code: ERROR_CODES.CASHIER_DAY_CANNOT_CLOSE,
           validation_errors: dailyDetail.validation_errors,
         })
         return
@@ -145,12 +178,18 @@ export class CashierDailyController {
       }
 
       res.json({
-        message: 'Día cerrado correctamente',
+        success: true,
+        message: SUCCESS_CODES.CASHIER_DAY_CLOSED,
+        code: SUCCESS_CODES.CASHIER_DAY_CLOSED,
         data: closedDaily,
       })
     } catch (error: any) {
       console.error('Error al cerrar día:', error)
-      res.status(500).json({ error: error.message || 'Error al cerrar día' })
+      res.status(500).json({
+        success: false,
+        error: ERROR_CODES.CASHIER_CLOSE_DAY_ERROR,
+        code: ERROR_CODES.CASHIER_CLOSE_DAY_ERROR,
+      })
     }
   }
 
@@ -164,7 +203,11 @@ export class CashierDailyController {
       const userId = req.user?.id
 
       if (!userId) {
-        res.status(401).json({ error: 'Usuario no autenticado' })
+        res.status(401).json({
+          success: false,
+          error: ERROR_CODES.AUTH_USER_NOT_AUTHENTICATED,
+          code: ERROR_CODES.AUTH_USER_NOT_AUTHENTICATED,
+        })
         return
       }
 
@@ -184,12 +227,18 @@ export class CashierDailyController {
       }
 
       res.json({
-        message: 'Día reabierto correctamente',
+        success: true,
+        message: SUCCESS_CODES.CASHIER_DAY_REOPENED,
+        code: SUCCESS_CODES.CASHIER_DAY_REOPENED,
         data: reopened,
       })
     } catch (error: any) {
       console.error('Error al reabrir día:', error)
-      res.status(500).json({ error: error.message || 'Error al reabrir día' })
+      res.status(500).json({
+        success: false,
+        error: ERROR_CODES.CASHIER_REOPEN_DAY_ERROR,
+        code: ERROR_CODES.CASHIER_REOPEN_DAY_ERROR,
+      })
     }
   }
 
@@ -204,7 +253,11 @@ export class CashierDailyController {
       const daily = await CashierDailyRepository.getByDate(date)
 
       if (!daily) {
-        res.status(404).json({ error: 'Día no encontrado' })
+        res.status(404).json({
+          success: false,
+          error: ERROR_CODES.CASHIER_DAY_NOT_FOUND,
+          code: ERROR_CODES.CASHIER_DAY_NOT_FOUND,
+        })
         return
       }
 
@@ -220,10 +273,14 @@ export class CashierDailyController {
         closed_by: daily.closed_by,
       }
 
-      res.json(summary)
+      res.json({ success: true, data: summary })
     } catch (error) {
       console.error('Error al obtener resumen:', error)
-      res.status(500).json({ error: 'Error al obtener resumen' })
+      res.status(500).json({
+        success: false,
+        error: ERROR_CODES.CASHIER_FETCH_SUMMARY_ERROR,
+        code: ERROR_CODES.CASHIER_FETCH_SUMMARY_ERROR,
+      })
     }
   }
 
@@ -259,6 +316,7 @@ export class CashierDailyController {
       ])
 
       res.json({
+        success: true,
         data,
         total,
         page: Math.floor(filters.offset / filters.limit) + 1,
@@ -267,7 +325,11 @@ export class CashierDailyController {
       })
     } catch (error) {
       console.error('Error al obtener días:', error)
-      res.status(500).json({ error: 'Error al obtener días' })
+      res.status(500).json({
+        success: false,
+        error: ERROR_CODES.CASHIER_FETCH_DAYS_ERROR,
+        code: ERROR_CODES.CASHIER_FETCH_DAYS_ERROR,
+      })
     }
   }
 
@@ -283,16 +345,24 @@ export class CashierDailyController {
       const monthNum = parseInt(month)
 
       if (isNaN(yearNum) || isNaN(monthNum) || monthNum < 1 || monthNum > 12) {
-        res.status(400).json({ error: 'Año o mes inválido' })
+        res.status(400).json({
+          success: false,
+          error: ERROR_CODES.CASHIER_INVALID_YEAR_MONTH,
+          code: ERROR_CODES.CASHIER_INVALID_YEAR_MONTH,
+        })
         return
       }
 
       const summary = await CashierDailyRepository.getMonthlySummary(yearNum, monthNum)
 
-      res.json(summary)
+      res.json({ success: true, data: summary })
     } catch (error) {
       console.error('Error al obtener resumen mensual:', error)
-      res.status(500).json({ error: 'Error al obtener resumen mensual' })
+      res.status(500).json({
+        success: false,
+        error: ERROR_CODES.CASHIER_FETCH_MONTHLY_SUMMARY_ERROR,
+        code: ERROR_CODES.CASHIER_FETCH_MONTHLY_SUMMARY_ERROR,
+      })
     }
   }
 }

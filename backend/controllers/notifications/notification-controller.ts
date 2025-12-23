@@ -4,6 +4,7 @@ import { Request, Response } from 'express'
 import { NotificationRepository } from '../../repositories/notifications/notification-repository'
 import { NotificationGeneratorService } from '../../services/notifications/notification-generator-service'
 import { NotificationFilters, NotificationPriority } from '../../models/notifications/index'
+import { ERROR_CODES, SUCCESS_CODES } from '../../config/error-codes.js'
 
 export class NotificationController {
   /**
@@ -17,7 +18,8 @@ export class NotificationController {
       if (!userId) {
         return res.status(401).json({
           success: false,
-          error: 'Usuario no autenticado',
+          error: ERROR_CODES.AUTH_USER_NOT_AUTHENTICATED,
+          code: ERROR_CODES.AUTH_USER_NOT_AUTHENTICATED,
         })
       }
 
@@ -39,7 +41,8 @@ export class NotificationController {
       console.error('Error en getUserNotifications:', error)
       return res.status(500).json({
         success: false,
-        error: 'Error al obtener notificaciones',
+        error: ERROR_CODES.NOTIFICATIONS_FETCH_ERROR,
+        code: ERROR_CODES.NOTIFICATIONS_FETCH_ERROR,
         message: error.message,
       })
     }
@@ -56,7 +59,8 @@ export class NotificationController {
       if (!userId) {
         return res.status(401).json({
           success: false,
-          error: 'Usuario no autenticado',
+          error: ERROR_CODES.AUTH_USER_NOT_AUTHENTICATED,
+          code: ERROR_CODES.AUTH_USER_NOT_AUTHENTICATED,
         })
       }
 
@@ -78,7 +82,8 @@ export class NotificationController {
       console.error('Error en getUnreadNotifications:', error)
       return res.status(500).json({
         success: false,
-        error: 'Error al obtener notificaciones no leídas',
+        error: ERROR_CODES.NOTIFICATIONS_FETCH_UNREAD_ERROR,
+        code: ERROR_CODES.NOTIFICATIONS_FETCH_UNREAD_ERROR,
         message: error.message,
       })
     }
@@ -95,7 +100,8 @@ export class NotificationController {
       if (!userId) {
         return res.status(401).json({
           success: false,
-          error: 'Usuario no autenticado',
+          error: ERROR_CODES.AUTH_USER_NOT_AUTHENTICATED,
+          code: ERROR_CODES.AUTH_USER_NOT_AUTHENTICATED,
         })
       }
 
@@ -111,7 +117,8 @@ export class NotificationController {
       console.error('Error en getUnreadCount:', error)
       return res.status(500).json({
         success: false,
-        error: 'Error al obtener contador de notificaciones',
+        error: ERROR_CODES.NOTIFICATIONS_FETCH_COUNT_ERROR,
+        code: ERROR_CODES.NOTIFICATIONS_FETCH_COUNT_ERROR,
         message: error.message,
       })
     }
@@ -131,7 +138,8 @@ export class NotificationController {
       if (!userId) {
         return res.status(401).json({
           success: false,
-          error: 'Usuario no autenticado',
+          error: ERROR_CODES.AUTH_USER_NOT_AUTHENTICATED,
+          code: ERROR_CODES.AUTH_USER_NOT_AUTHENTICATED,
         })
       }
 
@@ -144,7 +152,8 @@ export class NotificationController {
 
       return res.status(200).json({
         success: true,
-        message: 'Notificaciones verificadas y procesadas correctamente',
+        message: SUCCESS_CODES.NOTIFICATIONS_PROCESSED,
+        code: SUCCESS_CODES.NOTIFICATIONS_PROCESSED,
         data: {
           ...results,
           duration: `${duration}ms`,
@@ -154,7 +163,8 @@ export class NotificationController {
       console.error('Error en checkPendingNotifications:', error)
       return res.status(500).json({
         success: false,
-        error: 'Error al procesar notificaciones pendientes',
+        error: ERROR_CODES.NOTIFICATIONS_PROCESS_ERROR,
+        code: ERROR_CODES.NOTIFICATIONS_PROCESS_ERROR,
         message: error.message,
       })
     }
@@ -171,7 +181,8 @@ export class NotificationController {
       if (isNaN(groupId)) {
         return res.status(400).json({
           success: false,
-          error: 'ID de grupo inválido',
+          error: ERROR_CODES.NOTIFICATIONS_INVALID_GROUP_ID,
+          code: ERROR_CODES.NOTIFICATIONS_INVALID_GROUP_ID,
         })
       }
 
@@ -186,7 +197,8 @@ export class NotificationController {
       console.error('Error en getGroupNotifications:', error)
       return res.status(500).json({
         success: false,
-        error: 'Error al obtener notificaciones del grupo',
+        error: ERROR_CODES.NOTIFICATIONS_FETCH_GROUP_ERROR,
+        code: ERROR_CODES.NOTIFICATIONS_FETCH_GROUP_ERROR,
         message: error.message,
       })
     }
@@ -204,14 +216,16 @@ export class NotificationController {
       if (isNaN(notificationId)) {
         return res.status(400).json({
           success: false,
-          error: 'ID de notificación inválido',
+          error: ERROR_CODES.NOTIFICATIONS_INVALID_ID,
+          code: ERROR_CODES.NOTIFICATIONS_INVALID_ID,
         })
       }
 
       if (!userId) {
         return res.status(401).json({
           success: false,
-          error: 'Usuario no autenticado',
+          error: ERROR_CODES.AUTH_USER_NOT_AUTHENTICATED,
+          code: ERROR_CODES.AUTH_USER_NOT_AUTHENTICATED,
         })
       }
 
@@ -220,7 +234,8 @@ export class NotificationController {
       if (!notification) {
         return res.status(404).json({
           success: false,
-          error: 'Notificación no encontrada',
+          error: ERROR_CODES.NOTIFICATIONS_NOT_FOUND,
+          code: ERROR_CODES.NOTIFICATIONS_NOT_FOUND,
         })
       }
 
@@ -229,19 +244,22 @@ export class NotificationController {
       if (!marked) {
         return res.status(500).json({
           success: false,
-          error: 'Error al marcar notificación como leída',
+          error: ERROR_CODES.NOTIFICATIONS_MARK_ERROR,
+          code: ERROR_CODES.NOTIFICATIONS_MARK_ERROR,
         })
       }
 
       return res.status(200).json({
         success: true,
-        message: 'Notificación marcada como leída',
+        message: SUCCESS_CODES.NOTIFICATIONS_MARKED_READ,
+        code: SUCCESS_CODES.NOTIFICATIONS_MARKED_READ,
       })
     } catch (error: any) {
       console.error('Error en markAsRead:', error)
       return res.status(500).json({
         success: false,
-        error: 'Error al marcar notificación',
+        error: ERROR_CODES.NOTIFICATIONS_MARK_READ_ERROR,
+        code: ERROR_CODES.NOTIFICATIONS_MARK_READ_ERROR,
         message: error.message,
       })
     }
@@ -258,7 +276,8 @@ export class NotificationController {
       if (!userId) {
         return res.status(401).json({
           success: false,
-          error: 'Usuario no autenticado',
+          error: ERROR_CODES.AUTH_USER_NOT_AUTHENTICATED,
+          code: ERROR_CODES.AUTH_USER_NOT_AUTHENTICATED,
         })
       }
 
@@ -266,14 +285,16 @@ export class NotificationController {
 
       return res.status(200).json({
         success: true,
-        message: 'Todas las notificaciones marcadas como leídas',
+        message: SUCCESS_CODES.NOTIFICATIONS_ALL_MARKED_READ,
+        code: SUCCESS_CODES.NOTIFICATIONS_ALL_MARKED_READ,
         count,
       })
     } catch (error: any) {
       console.error('Error en markAllAsRead:', error)
       return res.status(500).json({
         success: false,
-        error: 'Error al marcar todas las notificaciones',
+        error: ERROR_CODES.NOTIFICATIONS_MARK_ALL_ERROR,
+        code: ERROR_CODES.NOTIFICATIONS_MARK_ALL_ERROR,
         message: error.message,
       })
     }
@@ -291,14 +312,16 @@ export class NotificationController {
       if (isNaN(groupId)) {
         return res.status(400).json({
           success: false,
-          error: 'ID de grupo inválido',
+          error: ERROR_CODES.NOTIFICATIONS_INVALID_GROUP_ID,
+          code: ERROR_CODES.NOTIFICATIONS_INVALID_GROUP_ID,
         })
       }
 
       if (!userId) {
         return res.status(401).json({
           success: false,
-          error: 'Usuario no autenticado',
+          error: ERROR_CODES.AUTH_USER_NOT_AUTHENTICATED,
+          code: ERROR_CODES.AUTH_USER_NOT_AUTHENTICATED,
         })
       }
 
@@ -307,7 +330,8 @@ export class NotificationController {
       if (!title || !message) {
         return res.status(400).json({
           success: false,
-          error: 'Faltan campos obligatorios: title, message',
+          error: ERROR_CODES.NOTIFICATIONS_MISSING_REQUIRED_FIELDS,
+          code: ERROR_CODES.NOTIFICATIONS_MISSING_REQUIRED_FIELDS,
         })
       }
 
@@ -318,7 +342,8 @@ export class NotificationController {
         if (isNaN(scheduledDate.getTime())) {
           return res.status(400).json({
             success: false,
-            error: 'Formato de fecha inválido para scheduled_for',
+            error: ERROR_CODES.NOTIFICATIONS_INVALID_SCHEDULED_DATE,
+            code: ERROR_CODES.NOTIFICATIONS_INVALID_SCHEDULED_DATE,
           })
         }
       }
@@ -334,13 +359,15 @@ export class NotificationController {
 
       return res.status(201).json({
         success: true,
-        message: 'Notificación creada correctamente',
+        message: SUCCESS_CODES.NOTIFICATIONS_CREATED,
+        code: SUCCESS_CODES.NOTIFICATIONS_CREATED,
       })
     } catch (error: any) {
       console.error('Error en createManualNotification:', error)
       return res.status(500).json({
         success: false,
-        error: 'Error al crear notificación',
+        error: ERROR_CODES.NOTIFICATIONS_CREATE_ERROR,
+        code: ERROR_CODES.NOTIFICATIONS_CREATE_ERROR,
         message: error.message,
       })
     }
@@ -358,7 +385,8 @@ export class NotificationController {
       if (!userId) {
         return res.status(401).json({
           success: false,
-          error: 'Usuario no autenticado',
+          error: ERROR_CODES.AUTH_USER_NOT_AUTHENTICATED,
+          code: ERROR_CODES.AUTH_USER_NOT_AUTHENTICATED,
         })
       }
 
@@ -367,7 +395,8 @@ export class NotificationController {
       if (!title || !message) {
         return res.status(400).json({
           success: false,
-          error: 'Faltan campos obligatorios: title, message',
+          error: ERROR_CODES.NOTIFICATIONS_MISSING_REQUIRED_FIELDS,
+          code: ERROR_CODES.NOTIFICATIONS_MISSING_REQUIRED_FIELDS,
         })
       }
 
@@ -376,7 +405,8 @@ export class NotificationController {
       if (module && !validModules.includes(module)) {
         return res.status(400).json({
           success: false,
-          error: `Módulo inválido. Valores permitidos: ${validModules.join(', ')}`,
+          error: ERROR_CODES.NOTIFICATIONS_INVALID_MODULE,
+          code: ERROR_CODES.NOTIFICATIONS_INVALID_MODULE,
         })
       }
 
@@ -387,7 +417,8 @@ export class NotificationController {
         if (isNaN(scheduledDate.getTime())) {
           return res.status(400).json({
             success: false,
-            error: 'Formato de fecha inválido para scheduled_for',
+            error: ERROR_CODES.NOTIFICATIONS_INVALID_SCHEDULED_DATE,
+            code: ERROR_CODES.NOTIFICATIONS_INVALID_SCHEDULED_DATE,
           })
         }
       }
@@ -404,13 +435,15 @@ export class NotificationController {
 
       return res.status(201).json({
         success: true,
-        message: 'Notificación creada correctamente',
+        message: SUCCESS_CODES.NOTIFICATIONS_CREATED,
+        code: SUCCESS_CODES.NOTIFICATIONS_CREATED,
       })
     } catch (error: any) {
       console.error('Error en createGeneralNotification:', error)
       return res.status(500).json({
         success: false,
-        error: 'Error al crear notificación',
+        error: ERROR_CODES.NOTIFICATIONS_CREATE_ERROR,
+        code: ERROR_CODES.NOTIFICATIONS_CREATE_ERROR,
         message: error.message,
       })
     }
@@ -427,7 +460,8 @@ export class NotificationController {
       if (isNaN(notificationId)) {
         return res.status(400).json({
           success: false,
-          error: 'ID de notificación inválido',
+          error: ERROR_CODES.NOTIFICATIONS_INVALID_ID,
+          code: ERROR_CODES.NOTIFICATIONS_INVALID_ID,
         })
       }
 
@@ -436,7 +470,8 @@ export class NotificationController {
       if (!notification) {
         return res.status(404).json({
           success: false,
-          error: 'Notificación no encontrada',
+          error: ERROR_CODES.NOTIFICATIONS_NOT_FOUND,
+          code: ERROR_CODES.NOTIFICATIONS_NOT_FOUND,
         })
       }
 
@@ -445,19 +480,22 @@ export class NotificationController {
       if (!deleted) {
         return res.status(500).json({
           success: false,
-          error: 'Error al eliminar notificación',
+          error: ERROR_CODES.NOTIFICATIONS_DELETE_ERROR,
+          code: ERROR_CODES.NOTIFICATIONS_DELETE_ERROR,
         })
       }
 
       return res.status(200).json({
         success: true,
-        message: 'Notificación eliminada correctamente',
+        message: SUCCESS_CODES.NOTIFICATIONS_DELETED,
+        code: SUCCESS_CODES.NOTIFICATIONS_DELETED,
       })
     } catch (error: any) {
       console.error('Error en deleteNotification:', error)
       return res.status(500).json({
         success: false,
-        error: 'Error al eliminar notificación',
+        error: ERROR_CODES.NOTIFICATIONS_DELETE_ERROR,
+        code: ERROR_CODES.NOTIFICATIONS_DELETE_ERROR,
         message: error.message,
       })
     }

@@ -28,7 +28,7 @@
     "newBooking": "New Booking",
     "allBookings": "All Bookings",
     "parkingControl": "Parking Control",
-    "searchVehicle": "Search Vehicle",
+    "searchVehicle": "Search Boooking",
     "checkIns": "Check-Ins",
     "checkOuts": "Check-Outs"
   },
@@ -58,7 +58,7 @@
   "help": {
     "title": "Contextual Help",
     "reservations": {
-      "title": "Reservations",
+      "title": "Parking Bookings",
       "description": "Complete view of vehicle flow. Track incoming, parked, and outgoing vehicles."
     },
     "arrivalsWaiting": {

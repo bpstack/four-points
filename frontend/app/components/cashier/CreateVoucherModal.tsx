@@ -32,19 +32,19 @@ export default function CreateVoucherModal({
 
     // Verificar que hay usuario autenticado
     if (!user?.id) {
-      toast.error('Usuario no autenticado')
+      toast.error(t('error.userNotAuthenticated'))
       return
     }
 
     // Validaciones
     const amountNum = parseFloat(amount)
     if (isNaN(amountNum) || amountNum <= 0) {
-      toast.error('El monto debe ser mayor a 0')
+      toast.error(t('error.amountMustBeGreater'))
       return
     }
 
     if (reason.trim().length < 5) {
-      toast.error('La razón debe tener al menos 5 caracteres')
+      toast.error(t('error.reasonMinLength'))
       return
     }
 
@@ -69,7 +69,7 @@ export default function CreateVoucherModal({
       onClose()
     } catch (error) {
       console.error('Error creando vale:', error)
-      const errorMessage = error instanceof Error ? error.message : 'Error al crear vale'
+      const errorMessage = error instanceof Error ? error.message : t('error.createVoucherError')
       toast.error(errorMessage)
     }
   }

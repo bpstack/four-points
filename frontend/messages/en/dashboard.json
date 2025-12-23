@@ -122,7 +122,12 @@
         "updated": "Entry edited",
         "deleted": "Entry deleted",
         "solved": "Marked resolved",
+        "solve": "Marked resolved",
         "unsolved": "Marked pending",
+        "unsolve": "Marked pending",
+        "read": "Marked as read",
+        "unread": "Marked as unread",
+        "reopen": "Entry reopened",
         "comment_added": "Comment added",
         "comment_edited": "Comment edited",
         "default": "Logbook action"

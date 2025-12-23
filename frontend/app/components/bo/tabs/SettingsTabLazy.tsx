@@ -87,7 +87,7 @@ export function SettingsTabLazy({ initialAssets }: SettingsTabLazyProps) {
   // Upload new asset
   const handleUpload = async () => {
     if (!selectedFile || !newAssetName.trim()) {
-      toast.error('Selecciona un archivo y escribe un nombre')
+      toast.error(t('toast.selectFileAndName'))
       return
     }
 
@@ -100,7 +100,7 @@ export function SettingsTabLazy({ initialAssets }: SettingsTabLazyProps) {
         is_default: assets.filter((a) => a.type === newAssetType).length === 0,
       })
 
-      toast.success(`${ASSET_TYPE_LABELS[newAssetType]} creado correctamente`)
+      toast.success(t('toast.assetCreated', { type: newAssetType === 'stamp' ? t('settings.stamp') : t('settings.signature') }))
       invalidateAssets()
 
       setNewAssetName('')
@@ -111,7 +111,7 @@ export function SettingsTabLazy({ initialAssets }: SettingsTabLazyProps) {
       }
     } catch (error: unknown) {
       console.error('Error uploading asset:', error)
-      toast.error(error instanceof Error ? error.message : 'Error al subir el archivo')
+      toast.error(error instanceof Error ? error.message : t('toast.uploadError'))
     } finally {
       setUploading(false)
     }
@@ -123,11 +123,11 @@ export function SettingsTabLazy({ initialAssets }: SettingsTabLazyProps) {
 
     try {
       await backofficeApi.deleteAsset(deleteDialog.asset.id)
-      toast.success('Eliminado correctamente')
+      toast.success(t('toast.assetDeleted'))
       invalidateAssets()
     } catch (error: unknown) {
       console.error('Error deleting asset:', error)
-      toast.error(error instanceof Error ? error.message : 'Error al eliminar')
+      toast.error(error instanceof Error ? error.message : t('toast.assetDeleteError'))
     } finally {
       setDeleteDialog({ open: false, asset: null })
     }
@@ -137,12 +137,12 @@ export function SettingsTabLazy({ initialAssets }: SettingsTabLazyProps) {
   const handleSetDefault = async (asset: Asset) => {
     try {
       await backofficeApi.setDefaultAsset(asset.id)
-      toast.success(`${asset.name} establecido como predeterminado`)
+      toast.success(t('toast.assetSetDefault', { name: asset.name }))
       invalidateAssets()
     } catch (error: unknown) {
       console.error('Error setting default:', error)
       toast.error(
-        error instanceof Error ? error.message : 'Error al establecer como predeterminado'
+        error instanceof Error ? error.message : t('toast.assetSetDefaultError')
       )
     }
   }
@@ -153,10 +153,10 @@ export function SettingsTabLazy({ initialAssets }: SettingsTabLazyProps) {
         <div className="col-span-full py-8 text-center">
           <FiImage className="w-12 h-12 mx-auto text-gray-300 dark:text-gray-600 mb-3" />
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            No hay {type === 'stamp' ? 'sellos' : 'firmas'} disponibles
+            {type === 'stamp' ? t('settings.noStamps') : t('settings.noSignatures')}
           </p>
           <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
-            Sube uno usando el formulario de arriba
+            {t('settings.uploadHint')}
           </p>
         </div>
       )
@@ -174,7 +174,7 @@ export function SettingsTabLazy({ initialAssets }: SettingsTabLazyProps) {
         {asset.is_default && (
           <div className="absolute -top-2 -right-2 px-2 py-0.5 bg-yellow-100 dark:bg-yellow-900/50 text-yellow-700 dark:text-yellow-400 text-[10px] font-medium rounded-full flex items-center gap-1">
             <FiStar className="w-3 h-3" />
-            Default
+            {t('settings.default')}
           </div>
         )}
 
@@ -198,7 +198,7 @@ export function SettingsTabLazy({ initialAssets }: SettingsTabLazyProps) {
             <button
               onClick={() => handleSetDefault(asset)}
               className="p-2 text-yellow-600 dark:text-yellow-400 hover:bg-yellow-50 dark:hover:bg-yellow-900/20 rounded-lg transition-colors"
-              title="Establecer como predeterminado"
+              title={t('settings.setAsDefault')}
             >
               <FiStar className="w-4 h-4" />
             </button>
@@ -206,7 +206,7 @@ export function SettingsTabLazy({ initialAssets }: SettingsTabLazyProps) {
           <button
             onClick={() => setDeleteDialog({ open: true, asset })}
             className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-            title="Eliminar"
+            title={t('actions.delete')}
           >
             <FiTrash2 className="w-4 h-4" />
           </button>
@@ -220,14 +220,14 @@ export function SettingsTabLazy({ initialAssets }: SettingsTabLazyProps) {
       {/* Upload Form */}
       <div className="bg-white dark:bg-[#151b23] border border-gray-200 dark:border-gray-700 rounded-xl p-6">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
-          Subir nuevo sello o firma
+          {t('settings.uploadTitle')}
         </h3>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Tipo
+                {t('settings.type')}
               </label>
               <div className="flex gap-4">
                 <label className="flex items-center gap-2 cursor-pointer">
@@ -239,7 +239,7 @@ export function SettingsTabLazy({ initialAssets }: SettingsTabLazyProps) {
                     onChange={() => setNewAssetType('stamp')}
                     className="text-blue-600"
                   />
-                  <span className="text-sm text-gray-700 dark:text-gray-300">Sello</span>
+                  <span className="text-sm text-gray-700 dark:text-gray-300">{t('settings.stamp')}</span>
                 </label>
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
@@ -250,27 +250,27 @@ export function SettingsTabLazy({ initialAssets }: SettingsTabLazyProps) {
                     onChange={() => setNewAssetType('signature')}
                     className="text-blue-600"
                   />
-                  <span className="text-sm text-gray-700 dark:text-gray-300">Firma</span>
+                  <span className="text-sm text-gray-700 dark:text-gray-300">{t('settings.signature')}</span>
                 </label>
               </div>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Nombre
+                {t('settings.name')}
               </label>
               <input
                 type="text"
                 value={newAssetName}
                 onChange={(e) => setNewAssetName(e.target.value)}
-                placeholder={newAssetType === 'stamp' ? 'Ej: Sello empresa' : 'Ej: Firma Director'}
+                placeholder={newAssetType === 'stamp' ? t('settings.namePlaceholder.stamp') : t('settings.namePlaceholder.signature')}
                 className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Imagen
+                {t('settings.image')}
               </label>
               <input
                 ref={fileInputRef}
@@ -286,11 +286,11 @@ export function SettingsTabLazy({ initialAssets }: SettingsTabLazyProps) {
               >
                 <FiUpload className="w-5 h-5 mx-auto mb-1" />
                 <span className="text-sm">
-                  {selectedFile ? selectedFile.name : 'Seleccionar archivo PNG o WebP'}
+                  {selectedFile ? selectedFile.name : t('settings.selectFile')}
                 </span>
               </button>
               <p className="text-xs text-gray-400 dark:text-gray-500 mt-2">
-                Recomendado: PNG con fondo transparente. Máx 2MB.
+                {t('settings.recommendation')}
               </p>
             </div>
 
@@ -302,12 +302,12 @@ export function SettingsTabLazy({ initialAssets }: SettingsTabLazyProps) {
               {uploading ? (
                 <>
                   <FiLoader className="w-4 h-4 animate-spin" />
-                  Subiendo...
+                  {t('actions.uploading')}
                 </>
               ) : (
                 <>
                   <FiUpload className="w-4 h-4" />
-                  Subir {newAssetType === 'stamp' ? 'Sello' : 'Firma'}
+                  {newAssetType === 'stamp' ? t('settings.uploadButton.stamp') : t('settings.uploadButton.signature')}
                 </>
               )}
             </button>
@@ -320,7 +320,7 @@ export function SettingsTabLazy({ initialAssets }: SettingsTabLazyProps) {
             ) : (
               <div className="text-center text-gray-400 dark:text-gray-500">
                 <FiImage className="w-16 h-16 mx-auto mb-2 opacity-50" />
-                <p className="text-sm">Vista previa</p>
+                <p className="text-sm">{t('settings.preview')}</p>
               </div>
             )}
           </div>
@@ -329,7 +329,7 @@ export function SettingsTabLazy({ initialAssets }: SettingsTabLazyProps) {
 
       <div>
         <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
-          Sellos
+          {t('settings.stamps')}
           <span className="text-sm font-normal text-gray-500 dark:text-gray-400">
             ({stamps.length})
           </span>
@@ -341,7 +341,7 @@ export function SettingsTabLazy({ initialAssets }: SettingsTabLazyProps) {
 
       <div>
         <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
-          Firmas
+          {t('settings.signatures')}
           <span className="text-sm font-normal text-gray-500 dark:text-gray-400">
             ({signatures.length})
           </span>
@@ -354,10 +354,9 @@ export function SettingsTabLazy({ initialAssets }: SettingsTabLazyProps) {
       <div className="flex items-start gap-3 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
         <FiAlertCircle className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" />
         <div className="text-sm text-blue-700 dark:text-blue-300">
-          <p className="font-medium mb-1">Información</p>
+          <p className="font-medium mb-1">{t('settings.info.title')}</p>
           <p className="text-blue-600 dark:text-blue-400">
-            Los sellos y firmas se utilizan para validar facturas. El elemento marcado como
-            &quot;Default&quot; se sugiere automáticamente.
+            {t('settings.info.description')}
           </p>
         </div>
       </div>
@@ -366,9 +365,9 @@ export function SettingsTabLazy({ initialAssets }: SettingsTabLazyProps) {
         isOpen={deleteDialog.open}
         onClose={() => setDeleteDialog({ open: false, asset: null })}
         onConfirm={handleDelete}
-        title="Eliminar elemento"
-        message={`¿Estás seguro de que quieres eliminar "${deleteDialog.asset?.name}"? Esta acción no se puede deshacer.`}
-        confirmText="Eliminar"
+        title={t('modals.deleteElement.title')}
+        message={t('modals.deleteElement.message', { name: deleteDialog.asset?.name ?? '' })}
+        confirmText={t('modals.deleteElement.confirmButton')}
         variant="danger"
       />
     </div>

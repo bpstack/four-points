@@ -504,6 +504,22 @@
     "fileTooLarge": "File is too large. Maximum 2MB",
     "loadError": "Error loading invoices",
     "pdfValidatedSuccess": "PDF validated successfully",
-    "pdfSaveError": "Error saving PDF"
+    "pdfSaveError": "Error saving PDF",
+    "previewError": "Error getting preview",
+    "revertPaymentsError": "Error reverting payments",
+    "unknownError": "Unknown error",
+    "downloadPdfError": "Error downloading PDF"
+  },
+  "csvHeaders": {
+    "supplier": "Supplier",
+    "invoiceNumber": "Invoice Number",
+    "invoiceDate": "Invoice Date",
+    "paymentDate": "Payment Date",
+    "amountWithoutVat": "Amount without VAT",
+    "amountWithVat": "Amount with VAT",
+    "vatPercentage": "% VAT",
+    "paymentMethod": "Payment Method",
+    "costCenter": "Cost Center",
+    "department": "Department"
   }
 }

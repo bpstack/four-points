@@ -74,7 +74,7 @@ export default function ShiftCard({ shiftId, shiftType }: ShiftCardProps) {
       setIsEditingIncome(false)
     } catch (error) {
       console.error('Error actualizando ingresos:', error)
-      const errorMessage = error instanceof Error ? error.message : 'Error al actualizar ingresos'
+      const errorMessage = error instanceof Error ? error.message : t('error.updateIncome')
       toast.error(errorMessage)
     }
   }
@@ -90,7 +90,7 @@ export default function ShiftCard({ shiftId, shiftType }: ShiftCardProps) {
       toast.success(t('shiftCard.voucherJustified'))
     } catch (error) {
       console.error('Error justificando vale:', error)
-      const errorMessage = error instanceof Error ? error.message : 'Error al justificar vale'
+      const errorMessage = error instanceof Error ? error.message : t('error.justifyVoucher')
       toast.error(errorMessage)
     }
   }

@@ -10,6 +10,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { useDebounce } from 'use-debounce'
 import { IoSearch, IoClose, IoFunnel } from 'react-icons/io5'
 import { SEVERITY_LEVELS } from '@/app/lib/blacklist/types'
@@ -19,6 +20,7 @@ interface SearchBarProps {
 }
 
 export function SearchBar({ totalResults }: SearchBarProps) {
+  const t = useTranslations('blacklist')
   const router = useRouter()
   const searchParams = useSearchParams()
 
@@ -141,7 +143,7 @@ export function SearchBar({ totalResults }: SearchBarProps) {
           </div>
           <input
             type="text"
-            placeholder="Buscar por nombre, documento..."
+            placeholder={t('filters.searchPlaceholder')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full pl-10 pr-10 py-2.5 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-[#161B22] text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors text-sm"
@@ -170,7 +172,7 @@ export function SearchBar({ totalResults }: SearchBarProps) {
         >
           <span className="flex items-center gap-2">
             <IoFunnel size={16} />
-            Filtros
+            {t('filters.filters')}
           </span>
           {getActiveFiltersCount() > 0 && (
             <span className="absolute -top-1 -right-1 flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-red-500 rounded-full">
@@ -186,7 +188,7 @@ export function SearchBar({ totalResults }: SearchBarProps) {
             className="px-4 py-2.5 rounded-md font-medium text-sm transition-colors bg-gray-100 dark:bg-[#161B22] text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-[#1c2128] border border-gray-300 dark:border-gray-700 flex items-center gap-2"
           >
             <IoClose size={16} />
-            Limpiar
+            {t('filters.clear')}
           </button>
         )}
       </div>
@@ -195,11 +197,12 @@ export function SearchBar({ totalResults }: SearchBarProps) {
       {totalResults !== undefined && (
         <div className="text-sm text-gray-600 dark:text-gray-400">
           {totalResults === 0 ? (
-            <span>No se encontraron resultados</span>
+            <span>{t('filters.noResults')}</span>
           ) : (
             <span>
-              {totalResults} {totalResults === 1 ? 'resultado' : 'resultados'} encontrado
-              {totalResults === 1 ? '' : 's'}
+              {totalResults === 1
+                ? t('filters.resultsSingle', { count: totalResults })
+                : t('filters.resultsPlural', { count: totalResults })}
             </span>
           )}
         </div>
@@ -212,11 +215,11 @@ export function SearchBar({ totalResults }: SearchBarProps) {
             {/* Filtro: Documento */}
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-                Documento
+                {t('filters.document')}
               </label>
               <input
                 type="text"
-                placeholder="DNI, Pasaporte..."
+                placeholder={t('filters.documentPlaceholder')}
                 value={documentFilter}
                 onChange={(e) => setDocumentFilter(e.target.value.toUpperCase())}
                 className="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-[#0D1117] text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors text-sm"
@@ -226,14 +229,14 @@ export function SearchBar({ totalResults }: SearchBarProps) {
             {/* Filtro: Severidad */}
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-                Gravedad
+                {t('filters.severity')}
               </label>
               <select
                 value={severityFilter}
                 onChange={(e) => setSeverityFilter(e.target.value)}
                 className="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-[#0D1117] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors text-sm"
               >
-                <option value="">Todas</option>
+                <option value="">{t('filters.all')}</option>
                 <option value="LOW">{SEVERITY_LEVELS.LOW}</option>
                 <option value="MEDIUM">{SEVERITY_LEVELS.MEDIUM}</option>
                 <option value="HIGH">{SEVERITY_LEVELS.HIGH}</option>
@@ -244,23 +247,23 @@ export function SearchBar({ totalResults }: SearchBarProps) {
             {/* Filtro: Estado */}
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-                Estado
+                {t('filters.status')}
               </label>
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
                 className="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-[#0D1117] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors text-sm"
               >
-                <option value="ACTIVE">Activos</option>
-                <option value="DELETED">Eliminados</option>
-                <option value="ALL">Todos</option>
+                <option value="ACTIVE">{t('filters.active')}</option>
+                <option value="DELETED">{t('filters.deleted')}</option>
+                <option value="ALL">{t('filters.allStatuses')}</option>
               </select>
             </div>
 
             {/* Filtro: Fecha desde */}
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-                Fecha desde
+                {t('filters.dateFrom')}
               </label>
               <input
                 type="date"
@@ -273,7 +276,7 @@ export function SearchBar({ totalResults }: SearchBarProps) {
             {/* Filtro: Fecha hasta */}
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-                Fecha hasta
+                {t('filters.dateTo')}
               </label>
               <input
                 type="date"
@@ -290,7 +293,7 @@ export function SearchBar({ totalResults }: SearchBarProps) {
               onClick={applyFilters}
               className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm font-medium"
             >
-              Aplicar filtros
+              {t('filters.applyFilters')}
             </button>
           </div>
         </div>

@@ -5,6 +5,7 @@
 import { useRouter } from 'next/navigation'
 import { FaExclamationCircle, FaCheck } from 'react-icons/fa'
 import { FiPlus } from 'react-icons/fi'
+import { useTranslations } from 'next-intl'
 import { useBookingWizard } from './hooks/useBookingWizard'
 import { SlidePanel, SlidePanelFooterButtons, Alert } from '@/app/ui/panels'
 import VehicleStep from './steps/VehicleStep'
@@ -19,13 +20,6 @@ const progressBarClass = (isActive: boolean) =>
     isActive ? 'bg-[#0969da] dark:bg-[#1f6feb]' : 'bg-[#d0d7de] dark:bg-[#30363d]'
   }`
 
-// Steps configuration for SlidePanel wizard
-const wizardSteps = [
-  { number: 1, label: 'Vehículo' },
-  { number: 2, label: 'Fechas' },
-  { number: 3, label: 'Confirmar' },
-]
-
 export default function BookingWizard({
   variant = 'full',
   preSelectedSpot,
@@ -34,6 +28,7 @@ export default function BookingWizard({
   onCancel,
 }: BookingWizardProps) {
   const router = useRouter()
+  const t = useTranslations('booking')
   const { state, actions } = useBookingWizard({
     variant,
     preSelectedSpot,
@@ -41,6 +36,13 @@ export default function BookingWizard({
     onSuccess,
     onCancel,
   })
+
+  // Steps configuration for SlidePanel wizard
+  const wizardSteps = [
+    { number: 1, label: t('wizard.steps.vehicle') },
+    { number: 2, label: t('wizard.steps.dates') },
+    { number: 3, label: t('wizard.steps.confirm') },
+  ]
 
   // Success screen (solo para variant='full')
   if (variant === 'full' && state.step === 4 && state.success) {
@@ -53,11 +55,11 @@ export default function BookingWizard({
             </div>
 
             <h2 className="text-xl font-semibold text-[#24292f] dark:text-[#f0f6fc] mb-2">
-              ¡Reserva Creada!
+              {t('success.title')}
             </h2>
 
             <p className="text-sm text-[#57606a] dark:text-[#8b949e] mb-6">
-              La reserva se ha creado exitosamente y está lista para su uso.
+              {t('success.message')}
             </p>
 
             <div className="flex flex-col gap-2">
@@ -66,20 +68,20 @@ export default function BookingWizard({
                   onClick={() => router.push('/dashboard/parking/bookings')}
                   className="flex-1 px-4 py-2 bg-[#0969da] hover:bg-[#0550ae] dark:bg-[#1f6feb] dark:hover:bg-[#1158c7] text-white rounded-md font-medium transition text-sm"
                 >
-                  Ver Todas las Reservas
+                  {t('success.viewAll')}
                 </button>
                 <button
                   onClick={() => router.refresh()}
                   className="flex-1 px-4 py-2 bg-[#f6f8fa] hover:bg-[#eaeef2] dark:bg-[#21262d] dark:hover:bg-[#30363d] text-[#24292f] dark:text-[#c9d1d9] rounded-md font-medium transition text-sm"
                 >
-                  Crear Otra Reserva
+                  {t('success.createAnother')}
                 </button>
               </div>
               <button
                 onClick={() => router.push('/dashboard/parking/status')}
                 className="w-full px-4 py-2 bg-[#f6f8fa] hover:bg-[#eaeef2] dark:bg-[#21262d] dark:hover:bg-[#30363d] text-[#24292f] dark:text-[#c9d1d9] rounded-md font-medium transition text-sm"
               >
-                Ir al Control de Parking
+                {t('success.goToParking')}
               </button>
             </div>
           </div>
@@ -96,9 +98,11 @@ export default function BookingWizard({
           {/* Header */}
           <div className="mb-6">
             <h1 className="text-3xl font-semibold text-[#24292f] dark:text-[#f0f6fc] mb-4">
-              Nueva Reserva
+              {t('wizard.title')}
             </h1>
-            <p className="text-sm text-[#57606a] dark:text-[#8b949e]">Paso {state.step} de 3</p>
+            <p className="text-sm text-[#57606a] dark:text-[#8b949e]">
+              {t('wizard.step', { current: state.step, total: 3 })}
+            </p>
 
             <div className="mt-3 flex gap-1">
               {[1, 2, 3].map((s) => (
@@ -121,7 +125,7 @@ export default function BookingWizard({
             <Alert variant="success" className="mb-4">
               <div className="flex gap-2">
                 <FaCheck className="w-4 h-4 flex-shrink-0 mt-0.5" />
-                <p>¡Reserva creada exitosamente!</p>
+                <p>{t('success.alertMessage')}</p>
               </div>
             </Alert>
           )}
@@ -149,8 +153,8 @@ export default function BookingWizard({
   // Variant modal - using SlidePanel (same as CreateGroupPanel, CreateReportPanel)
   if (variant === 'modal') {
     const subtitle = preSelectedSpot
-      ? `Plaza ${preSelectedSpot.level_code.replace('-', '')} · Nº ${preSelectedSpot.spot_number}`
-      : 'Completa los datos para crear una reserva'
+      ? t('wizard.spotSubtitle', { level: preSelectedSpot.level_code.replace('-', ''), spot: preSelectedSpot.spot_number })
+      : t('wizard.subtitle')
 
     // Determine footer buttons based on current step
     const getFooterButtons = () => {
@@ -159,8 +163,8 @@ export default function BookingWizard({
           <SlidePanelFooterButtons
             onCancel={onCancel || (() => {})}
             onSubmit={actions.handleCreateVehicle}
-            cancelText="Cancelar"
-            submitText={state.loading ? 'Creando...' : 'Continuar'}
+            cancelText={t('actions.cancel')}
+            submitText={state.loading ? t('actions.creating') : t('actions.continue')}
             isSubmitting={state.loading}
             submitDisabled={!state.vehicleData.plate_number || !state.vehicleData.owner_name}
             submitVariant="primary"
@@ -174,8 +178,8 @@ export default function BookingWizard({
             onCancel={onCancel || (() => {})}
             onBack={actions.prevStep}
             onSubmit={actions.nextStep}
-            cancelText="Cancelar"
-            submitText="Continuar"
+            cancelText={t('actions.cancel')}
+            submitText={t('actions.continue')}
             submitDisabled={
               !state.reservationData.expected_checkin_date ||
               !state.reservationData.expected_checkout_date
@@ -191,8 +195,8 @@ export default function BookingWizard({
             onCancel={onCancel || (() => {})}
             onBack={actions.prevStep}
             onSubmit={actions.handleCreateReservation}
-            cancelText="Cancelar"
-            submitText={state.loading ? 'Creando...' : 'Confirmar Reserva'}
+            cancelText={t('actions.cancel')}
+            submitText={state.loading ? t('actions.creating') : t('actions.confirmBooking')}
             isSubmitting={state.loading}
             submitVariant="success"
           />
@@ -206,7 +210,7 @@ export default function BookingWizard({
       <SlidePanel
         isOpen={true}
         onClose={onCancel || (() => {})}
-        title="Nueva Reserva"
+        title={t('wizard.title')}
         subtitle={subtitle}
         size="lg"
         headerIcon={<FiPlus className="w-5 h-5 text-blue-600 dark:text-blue-400" />}

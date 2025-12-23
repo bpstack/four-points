@@ -89,7 +89,7 @@ export default function CloseDayModal({
       onClose()
     } catch (error) {
       console.error('Error cerrando día:', error)
-      const errorMessage = error instanceof Error ? error.message : 'Error al cerrar día'
+      const errorMessage = error instanceof Error ? error.message : t('error.closeDay')
       toast.error(errorMessage)
     }
   }

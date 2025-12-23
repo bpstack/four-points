@@ -6,6 +6,7 @@ import { Request, Response } from 'express'
 import ParkingBookingsRepository from '../../repositories/parking/bookings.repository.js'
 import { createBookingSchema } from '../../validations/parking/booking-validation.js'
 import { getNowMadrid } from '../../config/date-utils.js'
+import { ERROR_CODES, SUCCESS_CODES } from '../../config/error-codes.js'
 import type { BookingFilters, UpdateBookingDTO } from '../../models/parking/index.js'
 
 class ParkingBookingsController {
@@ -15,7 +16,7 @@ class ParkingBookingsController {
   _getBookingIdFromCode = async (code: string): Promise<number> => {
     const booking = await ParkingBookingsRepository.findByCode(code)
     if (!booking) {
-      throw new Error('Reserva no encontrada')
+      throw new Error(ERROR_CODES.PARKING_BOOKING_NOT_FOUND)
     }
     return booking.id
   }
@@ -56,14 +57,16 @@ class ParkingBookingsController {
         if (!dateRegex.test(startDate)) {
           res.status(400).json({
             success: false,
-            message: 'startDate debe tener formato YYYY-MM-DD',
+            error: ERROR_CODES.PARKING_INVALID_START_DATE,
+            code: ERROR_CODES.PARKING_INVALID_START_DATE,
           })
           return
         }
         if (endDate && !dateRegex.test(endDate)) {
           res.status(400).json({
             success: false,
-            message: 'endDate debe tener formato YYYY-MM-DD',
+            error: ERROR_CODES.PARKING_INVALID_END_DATE,
+            code: ERROR_CODES.PARKING_INVALID_END_DATE,
           })
           return
         }
@@ -118,8 +121,8 @@ class ParkingBookingsController {
       console.error('Error en getBookings:', error)
       res.status(500).json({
         success: false,
-        message: 'Error al obtener reservas',
-        error: (error as Error).message,
+        error: ERROR_CODES.PARKING_FETCH_BOOKINGS_ERROR,
+        code: ERROR_CODES.PARKING_FETCH_BOOKINGS_ERROR,
       })
     }
   }
@@ -136,8 +139,8 @@ class ParkingBookingsController {
       if (!/^PK-\d{8}-\d{4}$/.test(code)) {
         res.status(400).json({
           success: false,
-          message: 'Formato de código inválido. Debe ser: PK-YYYYMMDD-####',
-          example: 'PK-20251024-0001',
+          error: ERROR_CODES.PARKING_INVALID_CODE_FORMAT,
+          code: ERROR_CODES.PARKING_INVALID_CODE_FORMAT,
         })
         return
       }
@@ -147,7 +150,8 @@ class ParkingBookingsController {
       if (!booking) {
         res.status(404).json({
           success: false,
-          message: 'Reserva no encontrada',
+          error: ERROR_CODES.PARKING_BOOKING_NOT_FOUND,
+          code: ERROR_CODES.PARKING_BOOKING_NOT_FOUND,
         })
         return
       }
@@ -160,8 +164,8 @@ class ParkingBookingsController {
       console.error('Error en getBookingByCode:', error)
       res.status(500).json({
         success: false,
-        message: 'Error al obtener reserva',
-        error: (error as Error).message,
+        error: ERROR_CODES.PARKING_FETCH_BOOKING_ERROR,
+        code: ERROR_CODES.PARKING_FETCH_BOOKING_ERROR,
       })
     }
   }
@@ -234,7 +238,8 @@ class ParkingBookingsController {
 
       res.status(201).json({
         success: true,
-        message: 'Reserva creada exitosamente',
+        message: SUCCESS_CODES.PARKING_BOOKING_CREATED,
+        code: SUCCESS_CODES.PARKING_BOOKING_CREATED,
         booking,
       })
     } catch (error) {
@@ -244,15 +249,15 @@ class ParkingBookingsController {
       if (errorMessage.includes('no encontrada') || errorMessage.includes('no está disponible')) {
         res.status(400).json({
           success: false,
-          message: errorMessage,
+          error: errorMessage,
         })
         return
       }
 
       res.status(500).json({
         success: false,
-        message: 'Error al crear reserva',
-        error: errorMessage,
+        error: ERROR_CODES.PARKING_CREATE_BOOKING_ERROR,
+        code: ERROR_CODES.PARKING_CREATE_BOOKING_ERROR,
       })
     }
   }
@@ -270,7 +275,8 @@ class ParkingBookingsController {
       if (!/^PK-\d{8}-\d{4}$/.test(code)) {
         res.status(400).json({
           success: false,
-          message: 'Formato de código inválido',
+          error: ERROR_CODES.PARKING_INVALID_CODE_FORMAT,
+          code: ERROR_CODES.PARKING_INVALID_CODE_FORMAT,
         })
         return
       }
@@ -283,7 +289,8 @@ class ParkingBookingsController {
       if (actual_checkin && isNaN(checkinDate.getTime())) {
         res.status(400).json({
           success: false,
-          message: 'Formato de fecha inválido',
+          error: ERROR_CODES.PARKING_INVALID_DATE_FORMAT,
+          code: ERROR_CODES.PARKING_INVALID_DATE_FORMAT,
         })
         return
       }
@@ -299,17 +306,19 @@ class ParkingBookingsController {
 
       res.status(200).json({
         success: true,
-        message: 'Check-in realizado exitosamente',
+        message: SUCCESS_CODES.PARKING_CHECKIN_SUCCESS,
+        code: SUCCESS_CODES.PARKING_CHECKIN_SUCCESS,
         booking,
       })
     } catch (error) {
       console.error('Error en checkIn:', error)
       const errorMessage = (error as Error).message
 
-      if (errorMessage.includes('no encontrada')) {
+      if (errorMessage === ERROR_CODES.PARKING_BOOKING_NOT_FOUND) {
         res.status(404).json({
           success: false,
-          message: errorMessage,
+          error: ERROR_CODES.PARKING_BOOKING_NOT_FOUND,
+          code: ERROR_CODES.PARKING_BOOKING_NOT_FOUND,
         })
         return
       }
@@ -317,15 +326,15 @@ class ParkingBookingsController {
       if (errorMessage.includes('No se puede hacer check-in')) {
         res.status(400).json({
           success: false,
-          message: errorMessage,
+          error: errorMessage,
         })
         return
       }
 
       res.status(500).json({
         success: false,
-        message: 'Error al realizar check-in',
-        error: errorMessage,
+        error: ERROR_CODES.PARKING_CHECKIN_ERROR,
+        code: ERROR_CODES.PARKING_CHECKIN_ERROR,
       })
     }
   }
@@ -342,7 +351,8 @@ class ParkingBookingsController {
       if (!/^PK-\d{8}-\d{4}$/.test(code)) {
         res.status(400).json({
           success: false,
-          message: 'Formato de código inválido',
+          error: ERROR_CODES.PARKING_INVALID_CODE_FORMAT,
+          code: ERROR_CODES.PARKING_INVALID_CODE_FORMAT,
         })
         return
       }
@@ -354,7 +364,8 @@ class ParkingBookingsController {
       if (actual_checkout && isNaN(checkoutDate.getTime())) {
         res.status(400).json({
           success: false,
-          message: 'Formato de fecha inválido',
+          error: ERROR_CODES.PARKING_INVALID_DATE_FORMAT,
+          code: ERROR_CODES.PARKING_INVALID_DATE_FORMAT,
         })
         return
       }
@@ -375,17 +386,19 @@ class ParkingBookingsController {
 
       res.status(200).json({
         success: true,
-        message: 'Check-out realizado exitosamente',
+        message: SUCCESS_CODES.PARKING_CHECKOUT_SUCCESS,
+        code: SUCCESS_CODES.PARKING_CHECKOUT_SUCCESS,
         booking,
       })
     } catch (error) {
       console.error('Error en checkOut:', error)
       const errorMessage = (error as Error).message
 
-      if (errorMessage.includes('no encontrada')) {
+      if (errorMessage === ERROR_CODES.PARKING_BOOKING_NOT_FOUND) {
         res.status(404).json({
           success: false,
-          message: errorMessage,
+          error: ERROR_CODES.PARKING_BOOKING_NOT_FOUND,
+          code: ERROR_CODES.PARKING_BOOKING_NOT_FOUND,
         })
         return
       }
@@ -393,15 +406,15 @@ class ParkingBookingsController {
       if (errorMessage.includes('No se puede hacer check-out')) {
         res.status(400).json({
           success: false,
-          message: errorMessage,
+          error: errorMessage,
         })
         return
       }
 
       res.status(500).json({
         success: false,
-        message: 'Error al realizar check-out',
-        error: errorMessage,
+        error: ERROR_CODES.PARKING_CHECKOUT_ERROR,
+        code: ERROR_CODES.PARKING_CHECKOUT_ERROR,
       })
     }
   }
@@ -418,7 +431,8 @@ class ParkingBookingsController {
       if (!/^PK-\d{8}-\d{4}$/.test(code)) {
         res.status(400).json({
           success: false,
-          message: 'Formato de código inválido',
+          error: ERROR_CODES.PARKING_INVALID_CODE_FORMAT,
+          code: ERROR_CODES.PARKING_INVALID_CODE_FORMAT,
         })
         return
       }
@@ -436,17 +450,19 @@ class ParkingBookingsController {
 
       res.status(200).json({
         success: true,
-        message: 'Reserva cancelada exitosamente',
+        message: SUCCESS_CODES.PARKING_BOOKING_CANCELLED,
+        code: SUCCESS_CODES.PARKING_BOOKING_CANCELLED,
         booking,
       })
     } catch (error) {
       console.error('Error en cancelBooking:', error)
       const errorMessage = (error as Error).message
 
-      if (errorMessage.includes('no encontrada')) {
+      if (errorMessage === ERROR_CODES.PARKING_BOOKING_NOT_FOUND) {
         res.status(404).json({
           success: false,
-          message: errorMessage,
+          error: ERROR_CODES.PARKING_BOOKING_NOT_FOUND,
+          code: ERROR_CODES.PARKING_BOOKING_NOT_FOUND,
         })
         return
       }
@@ -454,15 +470,15 @@ class ParkingBookingsController {
       if (errorMessage.includes('No se puede cancelar')) {
         res.status(400).json({
           success: false,
-          message: errorMessage,
+          error: errorMessage,
         })
         return
       }
 
       res.status(500).json({
         success: false,
-        message: 'Error al cancelar reserva',
-        error: errorMessage,
+        error: ERROR_CODES.PARKING_CANCEL_ERROR,
+        code: ERROR_CODES.PARKING_CANCEL_ERROR,
       })
     }
   }
@@ -479,7 +495,8 @@ class ParkingBookingsController {
       if (!/^PK-\d{8}-\d{4}$/.test(code)) {
         res.status(400).json({
           success: false,
-          message: 'Formato de código inválido',
+          error: ERROR_CODES.PARKING_INVALID_CODE_FORMAT,
+          code: ERROR_CODES.PARKING_INVALID_CODE_FORMAT,
         })
         return
       }
@@ -497,17 +514,19 @@ class ParkingBookingsController {
 
       res.status(200).json({
         success: true,
-        message: 'Reserva marcada como no-show exitosamente',
+        message: SUCCESS_CODES.PARKING_NOSHOW_SUCCESS,
+        code: SUCCESS_CODES.PARKING_NOSHOW_SUCCESS,
         booking,
       })
     } catch (error) {
       console.error('Error en markNoShow:', error)
       const errorMessage = (error as Error).message
 
-      if (errorMessage.includes('no encontrada')) {
+      if (errorMessage === ERROR_CODES.PARKING_BOOKING_NOT_FOUND) {
         res.status(404).json({
           success: false,
-          message: errorMessage,
+          error: ERROR_CODES.PARKING_BOOKING_NOT_FOUND,
+          code: ERROR_CODES.PARKING_BOOKING_NOT_FOUND,
         })
         return
       }
@@ -515,15 +534,15 @@ class ParkingBookingsController {
       if (errorMessage.includes('No se puede marcar')) {
         res.status(400).json({
           success: false,
-          message: errorMessage,
+          error: errorMessage,
         })
         return
       }
 
       res.status(500).json({
         success: false,
-        message: 'Error al marcar como no-show',
-        error: errorMessage,
+        error: ERROR_CODES.PARKING_NOSHOW_ERROR,
+        code: ERROR_CODES.PARKING_NOSHOW_ERROR,
       })
     }
   }
@@ -554,7 +573,8 @@ class ParkingBookingsController {
       if (!/^PK-\d{8}-\d{4}$/.test(code)) {
         res.status(400).json({
           success: false,
-          message: 'Formato de código inválido',
+          error: ERROR_CODES.PARKING_INVALID_CODE_FORMAT,
+          code: ERROR_CODES.PARKING_INVALID_CODE_FORMAT,
         })
         return
       }
@@ -566,7 +586,8 @@ class ParkingBookingsController {
       if (!existingBooking) {
         res.status(404).json({
           success: false,
-          message: 'Reserva no encontrada',
+          error: ERROR_CODES.PARKING_BOOKING_NOT_FOUND,
+          code: ERROR_CODES.PARKING_BOOKING_NOT_FOUND,
         })
         return
       }
@@ -586,7 +607,8 @@ class ParkingBookingsController {
       if (hasOtherUpdates && ['completed', 'canceled', 'no_show'].includes(existingBooking.status)) {
         res.status(400).json({
           success: false,
-          message: `No se puede actualizar una reserva con estado '${existingBooking.status}'`,
+          error: ERROR_CODES.PARKING_CANNOT_UPDATE_STATUS,
+          code: ERROR_CODES.PARKING_CANNOT_UPDATE_STATUS,
         })
         return
       }
@@ -605,7 +627,8 @@ class ParkingBookingsController {
         if (isNaN(checkin.getTime()) || isNaN(checkout.getTime())) {
           res.status(400).json({
             success: false,
-            message: 'Formato de fecha inválido',
+            error: ERROR_CODES.PARKING_INVALID_DATE_FORMAT,
+            code: ERROR_CODES.PARKING_INVALID_DATE_FORMAT,
           })
           return
         }
@@ -613,7 +636,8 @@ class ParkingBookingsController {
         if (checkout <= checkin) {
           res.status(400).json({
             success: false,
-            message: 'La fecha de salida debe ser posterior a la de entrada',
+            error: ERROR_CODES.PARKING_END_BEFORE_START,
+            code: ERROR_CODES.PARKING_END_BEFORE_START,
           })
           return
         }
@@ -625,7 +649,8 @@ class ParkingBookingsController {
       ) {
         res.status(400).json({
           success: false,
-          message: 'total_amount debe ser un número válido y mayor o igual a 0',
+          error: ERROR_CODES.PARKING_INVALID_AMOUNT,
+          code: ERROR_CODES.PARKING_INVALID_AMOUNT,
         })
         return
       }
@@ -654,7 +679,8 @@ class ParkingBookingsController {
       if (Object.keys(updateData).length === 1) {
         res.status(400).json({
           success: false,
-          message: 'No se proporcionaron campos para actualizar',
+          error: ERROR_CODES.PARKING_NO_FIELDS_TO_UPDATE,
+          code: ERROR_CODES.PARKING_NO_FIELDS_TO_UPDATE,
         })
         return
       }
@@ -663,17 +689,19 @@ class ParkingBookingsController {
 
       res.status(200).json({
         success: true,
-        message: 'Reserva actualizada exitosamente',
+        message: SUCCESS_CODES.PARKING_BOOKING_UPDATED,
+        code: SUCCESS_CODES.PARKING_BOOKING_UPDATED,
         booking,
       })
     } catch (error) {
       console.error('Error en updateBooking:', error)
       const errorMessage = (error as Error).message
 
-      if (errorMessage.includes('no encontrada')) {
+      if (errorMessage === ERROR_CODES.PARKING_BOOKING_NOT_FOUND) {
         res.status(404).json({
           success: false,
-          message: errorMessage,
+          error: ERROR_CODES.PARKING_BOOKING_NOT_FOUND,
+          code: ERROR_CODES.PARKING_BOOKING_NOT_FOUND,
         })
         return
       }
@@ -681,15 +709,15 @@ class ParkingBookingsController {
       if (errorMessage.includes('no está disponible')) {
         res.status(400).json({
           success: false,
-          message: errorMessage,
+          error: errorMessage,
         })
         return
       }
 
       res.status(500).json({
         success: false,
-        message: 'Error al actualizar reserva',
-        error: errorMessage,
+        error: ERROR_CODES.PARKING_UPDATE_BOOKING_ERROR,
+        code: ERROR_CODES.PARKING_UPDATE_BOOKING_ERROR,
       })
     }
   }
@@ -705,7 +733,8 @@ class ParkingBookingsController {
       if (!/^PK-\d{8}-\d{4}$/.test(code)) {
         res.status(400).json({
           success: false,
-          message: 'Formato de código inválido',
+          error: ERROR_CODES.PARKING_INVALID_CODE_FORMAT,
+          code: ERROR_CODES.PARKING_INVALID_CODE_FORMAT,
         })
         return
       }
@@ -717,7 +746,8 @@ class ParkingBookingsController {
       if (!booking) {
         res.status(404).json({
           success: false,
-          message: 'Reserva no encontrada',
+          error: ERROR_CODES.PARKING_BOOKING_NOT_FOUND,
+          code: ERROR_CODES.PARKING_BOOKING_NOT_FOUND,
         })
         return
       }
@@ -725,7 +755,8 @@ class ParkingBookingsController {
       if (booking.status !== 'reserved') {
         res.status(400).json({
           success: false,
-          message: `No se puede eliminar una reserva con estado '${booking.status}'. Use cancelar en su lugar.`,
+          error: ERROR_CODES.PARKING_CANNOT_DELETE_STATUS,
+          code: ERROR_CODES.PARKING_CANNOT_DELETE_STATUS,
         })
         return
       }
@@ -736,7 +767,8 @@ class ParkingBookingsController {
       if (now >= checkin) {
         res.status(400).json({
           success: false,
-          message: 'No se puede eliminar una reserva que ya debería haber comenzado',
+          error: ERROR_CODES.PARKING_CANNOT_DELETE_STARTED,
+          code: ERROR_CODES.PARKING_CANNOT_DELETE_STARTED,
         })
         return
       }
@@ -745,15 +777,26 @@ class ParkingBookingsController {
 
       res.status(200).json({
         success: true,
-        message: 'Reserva eliminada exitosamente',
+        message: SUCCESS_CODES.PARKING_BOOKING_DELETED,
+        code: SUCCESS_CODES.PARKING_BOOKING_DELETED,
       })
     } catch (error) {
       console.error('Error en deleteBooking:', error)
+      const errorMessage = (error as Error).message
+
+      if (errorMessage === ERROR_CODES.PARKING_BOOKING_NOT_FOUND) {
+        res.status(404).json({
+          success: false,
+          error: ERROR_CODES.PARKING_BOOKING_NOT_FOUND,
+          code: ERROR_CODES.PARKING_BOOKING_NOT_FOUND,
+        })
+        return
+      }
 
       res.status(500).json({
         success: false,
-        message: 'Error al eliminar reserva',
-        error: (error as Error).message,
+        error: ERROR_CODES.PARKING_DELETE_BOOKING_ERROR,
+        code: ERROR_CODES.PARKING_DELETE_BOOKING_ERROR,
       })
     }
   }
@@ -775,8 +818,8 @@ class ParkingBookingsController {
       console.error('Error en getOverdueCheckins:', error)
       res.status(500).json({
         success: false,
-        message: 'Error al obtener reservas retrasadas',
-        error: (error as Error).message,
+        error: ERROR_CODES.PARKING_FETCH_DELAYED_ERROR,
+        code: ERROR_CODES.PARKING_FETCH_DELAYED_ERROR,
       })
     }
   }

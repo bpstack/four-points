@@ -14,11 +14,23 @@
     "active": "Activos"
   },
   "filters": {
-    "searchPlaceholder": "Buscar por nombre o documento...",
+    "searchPlaceholder": "Buscar por nombre, documento...",
     "severity": "Gravedad",
     "allStatuses": "Todos",
     "active": "Activos",
-    "deleted": "Eliminados"
+    "deleted": "Eliminados",
+    "filters": "Filtros",
+    "clear": "Limpiar",
+    "applyFilters": "Aplicar filtros",
+    "document": "Documento",
+    "documentPlaceholder": "DNI, Pasaporte...",
+    "status": "Estado",
+    "dateFrom": "Fecha desde",
+    "dateTo": "Fecha hasta",
+    "all": "Todas",
+    "noResults": "No se encontraron resultados",
+    "resultsSingle": "{count} resultado encontrado",
+    "resultsPlural": "{count} resultados encontrados"
   },
   "table": {
     "guest": "Huesped",
@@ -55,6 +67,7 @@
     "unknown": "Desconocido",
     "registrationDate": "Fecha de registro",
     "lastModification": "Ultima modificacion",
+    "deletionDate": "Fecha de eliminacion",
     "recordStatus": "Estado del Registro",
     "documentInfo": "Informacion del documento",
     "documentType": "Tipo de documento",
@@ -125,8 +138,16 @@
     "deleting": "Eliminando registro...",
     "success": "Registro eliminado correctamente",
     "error": "Error al eliminar el registro",
+    "genericError": "Error al eliminar",
     "yes": "Si",
     "no": "No"
+  },
+  "restore": {
+    "confirm": "Deseas restaurar este registro?",
+    "restoring": "Restaurando registro...",
+    "success": "Registro restaurado correctamente",
+    "error": "Error al restaurar el registro",
+    "genericError": "Error al restaurar"
   },
   "audit": {
     "noHistory": "No hay historial de cambios disponible",
@@ -196,5 +217,35 @@
     "PASSPORT": "Pasaporte",
     "NIE": "NIE",
     "OTHER": "Otro"
+  },
+  "modal": {
+    "title": "Detalles del registro",
+    "tabs": {
+      "details": "Detalles",
+      "images": "Imagenes",
+      "history": "Historial"
+    },
+    "close": "Cerrar",
+    "edit": "Editar",
+    "restore": "Restaurar"
+  },
+  "ui": {
+    "loading": "Cargando...",
+    "noImages": "No hay imagenes disponibles",
+    "imageOf": "Imagen {current} de {total}",
+    "downloadImage": "Descargar imagen",
+    "closeEsc": "Cerrar (ESC)",
+    "previousArrow": "Anterior",
+    "nextArrow": "Siguiente",
+    "keyboardNav": "Use las flechas para navegar - ESC para cerrar",
+    "imageUploader": {
+      "formatNotAllowed": "{fileName}: Formato no permitido. Solo JPG, PNG o WebP.",
+      "exceedsMaxSize": "{fileName}: Excede el tamaño maximo de {maxSize}MB ({actualSize}MB).",
+      "maxImagesError": "Solo puedes subir un maximo de {maxFiles} imagenes.",
+      "dropImagesHere": "Suelta las imagenes aqui",
+      "dragOrClick": "Arrastra imagenes o haz click para seleccionar",
+      "maxPerFile": "Max. {maxSize}MB por archivo",
+      "imagesCount": "{current} de {max} imagenes"
+    }
   }
 }

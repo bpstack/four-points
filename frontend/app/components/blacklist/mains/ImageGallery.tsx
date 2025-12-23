@@ -22,6 +22,7 @@ import {
   IoExpandOutline,
 } from 'react-icons/io5'
 import { clsx } from 'clsx'
+import { useTranslations } from 'next-intl'
 
 interface ImageGalleryProps {
   images: string[] // URLs de Cloudinary
@@ -29,6 +30,8 @@ interface ImageGalleryProps {
 }
 
 export function ImageGallery({ images, alt = 'Imagen de evidencia' }: ImageGalleryProps) {
+  const t = useTranslations('blacklist')
+  const tCommon = useTranslations('common')
   const [lightboxOpen, setLightboxOpen] = useState(false)
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
 
@@ -92,7 +95,7 @@ export function ImageGallery({ images, alt = 'Imagen de evidencia' }: ImageGalle
   if (images.length === 0) {
     return (
       <div className="flex items-center justify-center h-48 bg-gray-100 dark:bg-gray-800 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-700">
-        <p className="text-gray-500 dark:text-gray-400 text-sm">No hay imágenes disponibles</p>
+        <p className="text-gray-500 dark:text-gray-400 text-sm">{t('ui.noImages')}</p>
       </div>
     )
   }

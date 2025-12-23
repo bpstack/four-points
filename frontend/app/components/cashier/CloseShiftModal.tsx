@@ -61,7 +61,7 @@ export default function CloseShiftModal({
       onClose()
     } catch (error) {
       console.error('Error cerrando turno:', error)
-      const errorMessage = error instanceof Error ? error.message : 'Error al cerrar turno'
+      const errorMessage = error instanceof Error ? error.message : t('error.closeShift')
       toast.error(errorMessage)
     }
   }

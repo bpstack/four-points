@@ -3,6 +3,9 @@
   "subtitle": "Gestión de reportes de mantenimiento",
   "newReport": "Nuevo Reporte",
   "loading": "Cargando reportes...",
+  "loadingReport": "Cargando reporte...",
+  "reportNotFound": "Reporte no encontrado",
+  "backToList": "Volver al listado",
   "status": {
     "reported": "Reportado",
     "assigned": "Asignado",
@@ -125,6 +128,9 @@
         "updateError": "Error al actualizar el reporte"
       }
     }
+  },
+  "error": {
+    "loadingReport": "Error al cargar el reporte"
   },
   "detail": {
     "backToList": "Volver al listado",

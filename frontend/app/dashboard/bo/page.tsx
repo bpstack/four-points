@@ -16,7 +16,8 @@ import {
   getSuppliers,
   getAssets,
 } from '@/app/lib/backoffice/data'
-import { StatsCards, StatsCardsSkeleton } from '@/app/components/bo/StatsCards'
+import { StatsCards } from '@/app/components/bo/StatsCards'
+import { StatsCardsSkeleton } from '@/app/components/bo/StatsCardsSkeleton'
 import { TabsNavigation } from '@/app/components/bo/TabsNavigation'
 import { TabContent } from '@/app/components/bo/TabContent'
 

@@ -31,7 +31,7 @@ export default function ReopenDayModal({ isOpen, onClose, selectedDate }: Reopen
       onClose()
     } catch (error) {
       console.error('Error reabriendo día:', error)
-      const errorMessage = error instanceof Error ? error.message : 'Error al reabrir día'
+      const errorMessage = error instanceof Error ? error.message : t('error.reopenDay')
       toast.error(errorMessage)
     }
   }

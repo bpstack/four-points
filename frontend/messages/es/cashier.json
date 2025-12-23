@@ -206,7 +206,18 @@
   "error": {
     "title": "Error al cargar datos",
     "loadingReport": "Error al cargar reporte",
-    "loadingVouchers": "Error al cargar historico de vales"
+    "loadingVouchers": "Error al cargar historico de vales",
+    "userNotAuthenticated": "Usuario no autenticado",
+    "amountMustBeGreater": "El monto debe ser mayor a 0",
+    "reasonMinLength": "La razon debe tener al menos 5 caracteres",
+    "initializeDayError": "Error al inicializar el dia",
+    "createVoucherError": "Error al crear vale",
+    "saveError": "Error al guardar",
+    "closeDay": "Error al cerrar dia",
+    "closeShift": "Error al cerrar turno",
+    "updateIncome": "Error al actualizar ingresos",
+    "justifyVoucher": "Error al justificar vale",
+    "reopenDay": "Error al reabrir dia"
   },
   "logs": {
     "pageTitle": "Historial y Auditoria",

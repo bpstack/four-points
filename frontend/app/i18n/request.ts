@@ -68,9 +68,13 @@ async function loadMessages(locale: Locale) {
     'backoffice',
     'messages',
     'profile',
+    'conciliation',
     'auth',
     'errors',
     'validation',
+    'restaurant',
+    'booking',
+    'notifications',
   ]
 
   const allMessages: Record<string, Record<string, unknown>> = {}

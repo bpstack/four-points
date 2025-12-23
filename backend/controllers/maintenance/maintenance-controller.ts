@@ -18,6 +18,7 @@ import {
   assignReportSchema,
 } from '../../validations/maintenance/schemas.js'
 import type { ReportFilters } from '../../models/maintenance/index.js'
+import { ERROR_CODES, SUCCESS_CODES } from '../../config/error-codes.js'
 
 // ========================================
 // CONTROLLER
@@ -38,7 +39,9 @@ export class MaintenanceController {
 
       if (!parseResult.success) {
         res.status(400).json({
-          error: 'Parámetros de búsqueda inválidos',
+          success: false,
+          error: ERROR_CODES.MAINTENANCE_INVALID_SEARCH_PARAMS,
+          code: ERROR_CODES.MAINTENANCE_INVALID_SEARCH_PARAMS,
           details: parseResult.error.flatten().fieldErrors,
         })
         return
@@ -49,15 +52,17 @@ export class MaintenanceController {
       const { reports, pagination } = await MaintenanceRepository.getAll(filters)
 
       res.json({
-        reports,
+        success: true,
+        data: reports,
         pagination,
         filters_applied: filters,
       })
     } catch (error: any) {
       console.error('[MaintenanceController.getAll] Error:', error.message)
       res.status(500).json({
-        error: 'Error al obtener los reportes',
-        message: error.message,
+        success: false,
+        error: ERROR_CODES.MAINTENANCE_FETCH_REPORTS_ERROR,
+        code: ERROR_CODES.MAINTENANCE_FETCH_REPORTS_ERROR,
       })
     }
   }
@@ -72,7 +77,9 @@ export class MaintenanceController {
 
       if (!parseResult.success) {
         res.status(400).json({
-          error: 'ID inválido',
+          success: false,
+          error: ERROR_CODES.INVALID_ID,
+          code: ERROR_CODES.INVALID_ID,
           details: parseResult.error.flatten().fieldErrors,
         })
         return
@@ -84,17 +91,20 @@ export class MaintenanceController {
 
       if (!report) {
         res.status(404).json({
-          error: 'Reporte no encontrado',
+          success: false,
+          error: ERROR_CODES.MAINTENANCE_REPORT_NOT_FOUND,
+          code: ERROR_CODES.MAINTENANCE_REPORT_NOT_FOUND,
         })
         return
       }
 
-      res.json({ report })
+      res.json({ success: true, data: report })
     } catch (error: any) {
       console.error('[MaintenanceController.getById] Error:', error.message)
       res.status(500).json({
-        error: 'Error al obtener el reporte',
-        message: error.message,
+        success: false,
+        error: ERROR_CODES.MAINTENANCE_FETCH_REPORT_ERROR,
+        code: ERROR_CODES.MAINTENANCE_FETCH_REPORT_ERROR,
       })
     }
   }
@@ -106,7 +116,11 @@ export class MaintenanceController {
   static async create(req: Request, res: Response): Promise<void> {
     try {
       if (!req.user?.id || !req.user?.username) {
-        res.status(401).json({ error: 'No autorizado' })
+        res.status(401).json({
+          success: false,
+          error: ERROR_CODES.UNAUTHORIZED,
+          code: ERROR_CODES.UNAUTHORIZED,
+        })
         return
       }
 
@@ -114,7 +128,9 @@ export class MaintenanceController {
 
       if (!parseResult.success) {
         res.status(400).json({
-          error: 'Datos inválidos',
+          success: false,
+          error: ERROR_CODES.INVALID_DATA,
+          code: ERROR_CODES.INVALID_DATA,
           details: parseResult.error.flatten().fieldErrors,
         })
         return
@@ -125,14 +141,17 @@ export class MaintenanceController {
       const report = await MaintenanceRepository.create(data, req.user.id, req.user.username)
 
       res.status(201).json({
-        message: 'Reporte creado correctamente',
-        report,
+        success: true,
+        message: SUCCESS_CODES.MAINTENANCE_REPORT_CREATED,
+        code: SUCCESS_CODES.MAINTENANCE_REPORT_CREATED,
+        data: report,
       })
     } catch (error: any) {
       console.error('[MaintenanceController.create] Error:', error.message)
       res.status(500).json({
-        error: 'Error al crear el reporte',
-        message: error.message,
+        success: false,
+        error: ERROR_CODES.MAINTENANCE_CREATE_REPORT_ERROR,
+        code: ERROR_CODES.MAINTENANCE_CREATE_REPORT_ERROR,
       })
     }
   }
@@ -144,14 +163,20 @@ export class MaintenanceController {
   static async update(req: Request, res: Response): Promise<void> {
     try {
       if (!req.user?.id || !req.user?.username) {
-        res.status(401).json({ error: 'No autorizado' })
+        res.status(401).json({
+          success: false,
+          error: ERROR_CODES.UNAUTHORIZED,
+          code: ERROR_CODES.UNAUTHORIZED,
+        })
         return
       }
 
       const idResult = idParamSchema.safeParse(req.params)
       if (!idResult.success) {
         res.status(400).json({
-          error: 'ID inválido',
+          success: false,
+          error: ERROR_CODES.INVALID_ID,
+          code: ERROR_CODES.INVALID_ID,
           details: idResult.error.flatten().fieldErrors,
         })
         return
@@ -160,7 +185,9 @@ export class MaintenanceController {
       const bodyResult = updateReportSchema.safeParse(req.body)
       if (!bodyResult.success) {
         res.status(400).json({
-          error: 'Datos inválidos',
+          success: false,
+          error: ERROR_CODES.INVALID_DATA,
+          code: ERROR_CODES.INVALID_DATA,
           details: bodyResult.error.flatten().fieldErrors,
         })
         return
@@ -172,25 +199,36 @@ export class MaintenanceController {
       const report = await MaintenanceRepository.update(id, data, req.user.id, req.user.username)
 
       if (!report) {
-        res.status(404).json({ error: 'Reporte no encontrado' })
+        res.status(404).json({
+          success: false,
+          error: ERROR_CODES.MAINTENANCE_REPORT_NOT_FOUND,
+          code: ERROR_CODES.MAINTENANCE_REPORT_NOT_FOUND,
+        })
         return
       }
 
       res.json({
-        message: 'Reporte actualizado correctamente',
-        report,
+        success: true,
+        message: SUCCESS_CODES.MAINTENANCE_REPORT_UPDATED,
+        code: SUCCESS_CODES.MAINTENANCE_REPORT_UPDATED,
+        data: report,
       })
     } catch (error: any) {
       console.error('[MaintenanceController.update] Error:', error.message)
 
       if (error.message.includes('eliminado')) {
-        res.status(400).json({ error: error.message })
+        res.status(400).json({
+          success: false,
+          error: ERROR_CODES.MAINTENANCE_REPORT_NOT_FOUND,
+          code: ERROR_CODES.MAINTENANCE_REPORT_NOT_FOUND,
+        })
         return
       }
 
       res.status(500).json({
-        error: 'Error al actualizar el reporte',
-        message: error.message,
+        success: false,
+        error: ERROR_CODES.MAINTENANCE_UPDATE_REPORT_ERROR,
+        code: ERROR_CODES.MAINTENANCE_UPDATE_REPORT_ERROR,
       })
     }
   }
@@ -202,14 +240,20 @@ export class MaintenanceController {
   static async updateStatus(req: Request, res: Response): Promise<void> {
     try {
       if (!req.user?.id || !req.user?.username) {
-        res.status(401).json({ error: 'No autorizado' })
+        res.status(401).json({
+          success: false,
+          error: ERROR_CODES.UNAUTHORIZED,
+          code: ERROR_CODES.UNAUTHORIZED,
+        })
         return
       }
 
       const idResult = idParamSchema.safeParse(req.params)
       if (!idResult.success) {
         res.status(400).json({
-          error: 'ID inválido',
+          success: false,
+          error: ERROR_CODES.INVALID_ID,
+          code: ERROR_CODES.INVALID_ID,
           details: idResult.error.flatten().fieldErrors,
         })
         return
@@ -218,7 +262,9 @@ export class MaintenanceController {
       const bodyResult = updateStatusSchema.safeParse(req.body)
       if (!bodyResult.success) {
         res.status(400).json({
-          error: 'Datos inválidos',
+          success: false,
+          error: ERROR_CODES.INVALID_DATA,
+          code: ERROR_CODES.INVALID_DATA,
           details: bodyResult.error.flatten().fieldErrors,
         })
         return
@@ -236,19 +282,26 @@ export class MaintenanceController {
       )
 
       if (!report) {
-        res.status(404).json({ error: 'Reporte no encontrado' })
+        res.status(404).json({
+          success: false,
+          error: ERROR_CODES.MAINTENANCE_REPORT_NOT_FOUND,
+          code: ERROR_CODES.MAINTENANCE_REPORT_NOT_FOUND,
+        })
         return
       }
 
       res.json({
-        message: 'Estado actualizado correctamente',
-        report,
+        success: true,
+        message: SUCCESS_CODES.MAINTENANCE_STATUS_UPDATED,
+        code: SUCCESS_CODES.MAINTENANCE_STATUS_UPDATED,
+        data: report,
       })
     } catch (error: any) {
       console.error('[MaintenanceController.updateStatus] Error:', error.message)
       res.status(500).json({
-        error: 'Error al actualizar el estado',
-        message: error.message,
+        success: false,
+        error: ERROR_CODES.MAINTENANCE_UPDATE_STATUS_ERROR,
+        code: ERROR_CODES.MAINTENANCE_UPDATE_STATUS_ERROR,
       })
     }
   }
@@ -260,14 +313,20 @@ export class MaintenanceController {
   static async updatePriority(req: Request, res: Response): Promise<void> {
     try {
       if (!req.user?.id || !req.user?.username) {
-        res.status(401).json({ error: 'No autorizado' })
+        res.status(401).json({
+          success: false,
+          error: ERROR_CODES.UNAUTHORIZED,
+          code: ERROR_CODES.UNAUTHORIZED,
+        })
         return
       }
 
       const idResult = idParamSchema.safeParse(req.params)
       if (!idResult.success) {
         res.status(400).json({
-          error: 'ID inválido',
+          success: false,
+          error: ERROR_CODES.INVALID_ID,
+          code: ERROR_CODES.INVALID_ID,
           details: idResult.error.flatten().fieldErrors,
         })
         return
@@ -276,7 +335,9 @@ export class MaintenanceController {
       const bodyResult = updatePrioritySchema.safeParse(req.body)
       if (!bodyResult.success) {
         res.status(400).json({
-          error: 'Datos inválidos',
+          success: false,
+          error: ERROR_CODES.INVALID_DATA,
+          code: ERROR_CODES.INVALID_DATA,
           details: bodyResult.error.flatten().fieldErrors,
         })
         return
@@ -293,19 +354,26 @@ export class MaintenanceController {
       )
 
       if (!report) {
-        res.status(404).json({ error: 'Reporte no encontrado' })
+        res.status(404).json({
+          success: false,
+          error: ERROR_CODES.MAINTENANCE_REPORT_NOT_FOUND,
+          code: ERROR_CODES.MAINTENANCE_REPORT_NOT_FOUND,
+        })
         return
       }
 
       res.json({
-        message: 'Prioridad actualizada correctamente',
-        report,
+        success: true,
+        message: SUCCESS_CODES.MAINTENANCE_PRIORITY_UPDATED,
+        code: SUCCESS_CODES.MAINTENANCE_PRIORITY_UPDATED,
+        data: report,
       })
     } catch (error: any) {
       console.error('[MaintenanceController.updatePriority] Error:', error.message)
       res.status(500).json({
-        error: 'Error al actualizar la prioridad',
-        message: error.message,
+        success: false,
+        error: ERROR_CODES.MAINTENANCE_UPDATE_PRIORITY_ERROR,
+        code: ERROR_CODES.MAINTENANCE_UPDATE_PRIORITY_ERROR,
       })
     }
   }
@@ -317,14 +385,20 @@ export class MaintenanceController {
   static async addResolutionNotes(req: Request, res: Response): Promise<void> {
     try {
       if (!req.user?.id || !req.user?.username) {
-        res.status(401).json({ error: 'No autorizado' })
+        res.status(401).json({
+          success: false,
+          error: ERROR_CODES.UNAUTHORIZED,
+          code: ERROR_CODES.UNAUTHORIZED,
+        })
         return
       }
 
       const idResult = idParamSchema.safeParse(req.params)
       if (!idResult.success) {
         res.status(400).json({
-          error: 'ID inválido',
+          success: false,
+          error: ERROR_CODES.INVALID_ID,
+          code: ERROR_CODES.INVALID_ID,
           details: idResult.error.flatten().fieldErrors,
         })
         return
@@ -333,7 +407,9 @@ export class MaintenanceController {
       const bodyResult = addResolutionNotesSchema.safeParse(req.body)
       if (!bodyResult.success) {
         res.status(400).json({
-          error: 'Datos inválidos',
+          success: false,
+          error: ERROR_CODES.INVALID_DATA,
+          code: ERROR_CODES.INVALID_DATA,
           details: bodyResult.error.flatten().fieldErrors,
         })
         return
@@ -350,19 +426,26 @@ export class MaintenanceController {
       )
 
       if (!report) {
-        res.status(404).json({ error: 'Reporte no encontrado' })
+        res.status(404).json({
+          success: false,
+          error: ERROR_CODES.MAINTENANCE_REPORT_NOT_FOUND,
+          code: ERROR_CODES.MAINTENANCE_REPORT_NOT_FOUND,
+        })
         return
       }
 
       res.json({
-        message: 'Notas agregadas correctamente',
-        report,
+        success: true,
+        message: SUCCESS_CODES.MAINTENANCE_NOTES_ADDED,
+        code: SUCCESS_CODES.MAINTENANCE_NOTES_ADDED,
+        data: report,
       })
     } catch (error: any) {
       console.error('[MaintenanceController.addResolutionNotes] Error:', error.message)
       res.status(500).json({
-        error: 'Error al agregar las notas',
-        message: error.message,
+        success: false,
+        error: ERROR_CODES.MAINTENANCE_ADD_NOTES_ERROR,
+        code: ERROR_CODES.MAINTENANCE_ADD_NOTES_ERROR,
       })
     }
   }
@@ -374,14 +457,20 @@ export class MaintenanceController {
   static async assignReport(req: Request, res: Response): Promise<void> {
     try {
       if (!req.user?.id || !req.user?.username) {
-        res.status(401).json({ error: 'No autorizado' })
+        res.status(401).json({
+          success: false,
+          error: ERROR_CODES.UNAUTHORIZED,
+          code: ERROR_CODES.UNAUTHORIZED,
+        })
         return
       }
 
       const idResult = idParamSchema.safeParse(req.params)
       if (!idResult.success) {
         res.status(400).json({
-          error: 'ID inválido',
+          success: false,
+          error: ERROR_CODES.INVALID_ID,
+          code: ERROR_CODES.INVALID_ID,
           details: idResult.error.flatten().fieldErrors,
         })
         return
@@ -390,7 +479,9 @@ export class MaintenanceController {
       const bodyResult = assignReportSchema.safeParse(req.body)
       if (!bodyResult.success) {
         res.status(400).json({
-          error: 'Datos inválidos',
+          success: false,
+          error: ERROR_CODES.INVALID_DATA,
+          code: ERROR_CODES.INVALID_DATA,
           details: bodyResult.error.flatten().fieldErrors,
         })
         return
@@ -414,19 +505,26 @@ export class MaintenanceController {
       )
 
       if (!report) {
-        res.status(404).json({ error: 'Reporte no encontrado' })
+        res.status(404).json({
+          success: false,
+          error: ERROR_CODES.MAINTENANCE_REPORT_NOT_FOUND,
+          code: ERROR_CODES.MAINTENANCE_REPORT_NOT_FOUND,
+        })
         return
       }
 
       res.json({
-        message: 'Reporte asignado correctamente',
-        report,
+        success: true,
+        message: SUCCESS_CODES.MAINTENANCE_REPORT_ASSIGNED,
+        code: SUCCESS_CODES.MAINTENANCE_REPORT_ASSIGNED,
+        data: report,
       })
     } catch (error: any) {
       console.error('[MaintenanceController.assignReport] Error:', error.message)
       res.status(500).json({
-        error: 'Error al asignar el reporte',
-        message: error.message,
+        success: false,
+        error: ERROR_CODES.MAINTENANCE_ASSIGN_ERROR,
+        code: ERROR_CODES.MAINTENANCE_ASSIGN_ERROR,
       })
     }
   }
@@ -438,14 +536,20 @@ export class MaintenanceController {
   static async delete(req: Request, res: Response): Promise<void> {
     try {
       if (!req.user?.id || !req.user?.username) {
-        res.status(401).json({ error: 'No autorizado' })
+        res.status(401).json({
+          success: false,
+          error: ERROR_CODES.UNAUTHORIZED,
+          code: ERROR_CODES.UNAUTHORIZED,
+        })
         return
       }
 
       const parseResult = idParamSchema.safeParse(req.params)
       if (!parseResult.success) {
         res.status(400).json({
-          error: 'ID inválido',
+          success: false,
+          error: ERROR_CODES.INVALID_ID,
+          code: ERROR_CODES.INVALID_ID,
           details: parseResult.error.flatten().fieldErrors,
         })
         return
@@ -456,22 +560,35 @@ export class MaintenanceController {
       const deleted = await MaintenanceRepository.delete(id, req.user.id, req.user.username)
 
       if (!deleted) {
-        res.status(404).json({ error: 'Reporte no encontrado' })
+        res.status(404).json({
+          success: false,
+          error: ERROR_CODES.MAINTENANCE_REPORT_NOT_FOUND,
+          code: ERROR_CODES.MAINTENANCE_REPORT_NOT_FOUND,
+        })
         return
       }
 
-      res.json({ message: 'Reporte eliminado correctamente' })
+      res.json({
+        success: true,
+        message: SUCCESS_CODES.MAINTENANCE_REPORT_DELETED,
+        code: SUCCESS_CODES.MAINTENANCE_REPORT_DELETED,
+      })
     } catch (error: any) {
       console.error('[MaintenanceController.delete] Error:', error.message)
 
       if (error.message.includes('ya está eliminado')) {
-        res.status(400).json({ error: error.message })
+        res.status(400).json({
+          success: false,
+          error: ERROR_CODES.MAINTENANCE_REPORT_NOT_FOUND,
+          code: ERROR_CODES.MAINTENANCE_REPORT_NOT_FOUND,
+        })
         return
       }
 
       res.status(500).json({
-        error: 'Error al eliminar el reporte',
-        message: error.message,
+        success: false,
+        error: ERROR_CODES.MAINTENANCE_DELETE_REPORT_ERROR,
+        code: ERROR_CODES.MAINTENANCE_DELETE_REPORT_ERROR,
       })
     }
   }
@@ -483,14 +600,20 @@ export class MaintenanceController {
   static async restore(req: Request, res: Response): Promise<void> {
     try {
       if (!req.user?.id || !req.user?.username) {
-        res.status(401).json({ error: 'No autorizado' })
+        res.status(401).json({
+          success: false,
+          error: ERROR_CODES.UNAUTHORIZED,
+          code: ERROR_CODES.UNAUTHORIZED,
+        })
         return
       }
 
       const parseResult = idParamSchema.safeParse(req.params)
       if (!parseResult.success) {
         res.status(400).json({
-          error: 'ID inválido',
+          success: false,
+          error: ERROR_CODES.INVALID_ID,
+          code: ERROR_CODES.INVALID_ID,
           details: parseResult.error.flatten().fieldErrors,
         })
         return
@@ -501,25 +624,36 @@ export class MaintenanceController {
       const report = await MaintenanceRepository.restore(id, req.user.id, req.user.username)
 
       if (!report) {
-        res.status(404).json({ error: 'Reporte no encontrado' })
+        res.status(404).json({
+          success: false,
+          error: ERROR_CODES.MAINTENANCE_REPORT_NOT_FOUND,
+          code: ERROR_CODES.MAINTENANCE_REPORT_NOT_FOUND,
+        })
         return
       }
 
       res.json({
-        message: 'Reporte restaurado correctamente',
-        report,
+        success: true,
+        message: SUCCESS_CODES.MAINTENANCE_REPORT_RESTORED,
+        code: SUCCESS_CODES.MAINTENANCE_REPORT_RESTORED,
+        data: report,
       })
     } catch (error: any) {
       console.error('[MaintenanceController.restore] Error:', error.message)
 
       if (error.message.includes('no está eliminado')) {
-        res.status(400).json({ error: error.message })
+        res.status(400).json({
+          success: false,
+          error: ERROR_CODES.MAINTENANCE_REPORT_NOT_FOUND,
+          code: ERROR_CODES.MAINTENANCE_REPORT_NOT_FOUND,
+        })
         return
       }
 
       res.status(500).json({
-        error: 'Error al restaurar el reporte',
-        message: error.message,
+        success: false,
+        error: ERROR_CODES.MAINTENANCE_RESTORE_REPORT_ERROR,
+        code: ERROR_CODES.MAINTENANCE_RESTORE_REPORT_ERROR,
       })
     }
   }
@@ -537,7 +671,9 @@ export class MaintenanceController {
       const parseResult = idParamSchema.safeParse(req.params)
       if (!parseResult.success) {
         res.status(400).json({
-          error: 'ID inválido',
+          success: false,
+          error: ERROR_CODES.INVALID_ID,
+          code: ERROR_CODES.INVALID_ID,
           details: parseResult.error.flatten().fieldErrors,
         })
         return
@@ -547,12 +683,13 @@ export class MaintenanceController {
 
       const images = await MaintenanceRepository.getImagesByReportId(id)
 
-      res.json({ images })
+      res.json({ success: true, data: images })
     } catch (error: any) {
       console.error('[MaintenanceController.getImages] Error:', error.message)
       res.status(500).json({
-        error: 'Error al obtener las imágenes',
-        message: error.message,
+        success: false,
+        error: ERROR_CODES.MAINTENANCE_FETCH_IMAGES_ERROR,
+        code: ERROR_CODES.MAINTENANCE_FETCH_IMAGES_ERROR,
       })
     }
   }
@@ -564,14 +701,20 @@ export class MaintenanceController {
   static async uploadImage(req: Request, res: Response): Promise<void> {
     try {
       if (!req.user?.id) {
-        res.status(401).json({ error: 'No autorizado' })
+        res.status(401).json({
+          success: false,
+          error: ERROR_CODES.UNAUTHORIZED,
+          code: ERROR_CODES.UNAUTHORIZED,
+        })
         return
       }
 
       const parseResult = idParamSchema.safeParse(req.params)
       if (!parseResult.success) {
         res.status(400).json({
-          error: 'ID inválido',
+          success: false,
+          error: ERROR_CODES.INVALID_ID,
+          code: ERROR_CODES.INVALID_ID,
           details: parseResult.error.flatten().fieldErrors,
         })
         return
@@ -582,18 +725,30 @@ export class MaintenanceController {
       // Verificar que el reporte existe
       const report = await MaintenanceRepository.getById(id)
       if (!report) {
-        res.status(404).json({ error: 'Reporte no encontrado' })
+        res.status(404).json({
+          success: false,
+          error: ERROR_CODES.MAINTENANCE_REPORT_NOT_FOUND,
+          code: ERROR_CODES.MAINTENANCE_REPORT_NOT_FOUND,
+        })
         return
       }
 
       // Verificar límite de imágenes
       if (report.images.length >= 5) {
-        res.status(400).json({ error: 'El reporte ya tiene el máximo de 5 imágenes' })
+        res.status(400).json({
+          success: false,
+          error: ERROR_CODES.MAINTENANCE_MAX_IMAGES_REACHED,
+          code: ERROR_CODES.MAINTENANCE_MAX_IMAGES_REACHED,
+        })
         return
       }
 
       if (!req.file) {
-        res.status(400).json({ error: 'No se envió ninguna imagen' })
+        res.status(400).json({
+          success: false,
+          error: ERROR_CODES.MAINTENANCE_NO_IMAGE_SENT,
+          code: ERROR_CODES.MAINTENANCE_NO_IMAGE_SENT,
+        })
         return
       }
 
@@ -601,7 +756,9 @@ export class MaintenanceController {
       const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
       if (!allowedTypes.includes(req.file.mimetype)) {
         res.status(400).json({
-          error: 'Tipo de archivo no permitido. Solo se permiten: JPG, PNG, WebP, GIF',
+          success: false,
+          error: ERROR_CODES.MAINTENANCE_INVALID_FILE_TYPE,
+          code: ERROR_CODES.MAINTENANCE_INVALID_FILE_TYPE,
         })
         return
       }
@@ -609,7 +766,11 @@ export class MaintenanceController {
       // Validar tamaño (máx 5MB)
       const maxSize = 5 * 1024 * 1024
       if (req.file.size > maxSize) {
-        res.status(400).json({ error: 'El archivo es demasiado grande. Máximo 5MB' })
+        res.status(400).json({
+          success: false,
+          error: ERROR_CODES.MAINTENANCE_FILE_TOO_LARGE,
+          code: ERROR_CODES.MAINTENANCE_FILE_TOO_LARGE,
+        })
         return
       }
 
@@ -634,14 +795,17 @@ export class MaintenanceController {
       )
 
       res.status(201).json({
-        message: 'Imagen subida correctamente',
-        image,
+        success: true,
+        message: SUCCESS_CODES.MAINTENANCE_IMAGE_UPLOADED,
+        code: SUCCESS_CODES.MAINTENANCE_IMAGE_UPLOADED,
+        data: image,
       })
     } catch (error: any) {
       console.error('[MaintenanceController.uploadImage] Error:', error.message)
       res.status(500).json({
-        error: 'Error al subir la imagen',
-        message: error.message,
+        success: false,
+        error: ERROR_CODES.MAINTENANCE_UPLOAD_IMAGE_ERROR,
+        code: ERROR_CODES.MAINTENANCE_UPLOAD_IMAGE_ERROR,
       })
     }
   }
@@ -653,27 +817,43 @@ export class MaintenanceController {
   static async deleteImage(req: Request, res: Response): Promise<void> {
     try {
       if (!req.user?.id) {
-        res.status(401).json({ error: 'No autorizado' })
+        res.status(401).json({
+          success: false,
+          error: ERROR_CODES.UNAUTHORIZED,
+          code: ERROR_CODES.UNAUTHORIZED,
+        })
         return
       }
 
       const { id, imageId } = req.params
 
       if (!id || !imageId) {
-        res.status(400).json({ error: 'ID de reporte e imagen son requeridos' })
+        res.status(400).json({
+          success: false,
+          error: ERROR_CODES.MAINTENANCE_REPORT_IMAGE_REQUIRED,
+          code: ERROR_CODES.MAINTENANCE_REPORT_IMAGE_REQUIRED,
+        })
         return
       }
 
       // Obtener imagen
       const image = await MaintenanceRepository.getImageById(Number(imageId))
       if (!image) {
-        res.status(404).json({ error: 'Imagen no encontrada' })
+        res.status(404).json({
+          success: false,
+          error: ERROR_CODES.MAINTENANCE_IMAGE_NOT_FOUND,
+          code: ERROR_CODES.MAINTENANCE_IMAGE_NOT_FOUND,
+        })
         return
       }
 
       // Verificar que pertenece al reporte
       if (image.report_id !== id) {
-        res.status(400).json({ error: 'La imagen no pertenece a este reporte' })
+        res.status(400).json({
+          success: false,
+          error: ERROR_CODES.MAINTENANCE_IMAGE_NOT_IN_REPORT,
+          code: ERROR_CODES.MAINTENANCE_IMAGE_NOT_IN_REPORT,
+        })
         return
       }
 
@@ -685,12 +865,17 @@ export class MaintenanceController {
       // Eliminar de BD
       await MaintenanceRepository.deleteImage(Number(imageId))
 
-      res.json({ message: 'Imagen eliminada correctamente' })
+      res.json({
+        success: true,
+        message: SUCCESS_CODES.MAINTENANCE_IMAGE_DELETED,
+        code: SUCCESS_CODES.MAINTENANCE_IMAGE_DELETED,
+      })
     } catch (error: any) {
       console.error('[MaintenanceController.deleteImage] Error:', error.message)
       res.status(500).json({
-        error: 'Error al eliminar la imagen',
-        message: error.message,
+        success: false,
+        error: ERROR_CODES.MAINTENANCE_DELETE_IMAGE_ERROR,
+        code: ERROR_CODES.MAINTENANCE_DELETE_IMAGE_ERROR,
       })
     }
   }
@@ -708,7 +893,9 @@ export class MaintenanceController {
       const parseResult = idParamSchema.safeParse(req.params)
       if (!parseResult.success) {
         res.status(400).json({
-          error: 'ID inválido',
+          success: false,
+          error: ERROR_CODES.INVALID_ID,
+          code: ERROR_CODES.INVALID_ID,
           details: parseResult.error.flatten().fieldErrors,
         })
         return
@@ -718,12 +905,13 @@ export class MaintenanceController {
 
       const history = await MaintenanceRepository.getHistoryByReportId(id)
 
-      res.json({ history })
+      res.json({ success: true, data: history })
     } catch (error: any) {
       console.error('[MaintenanceController.getHistory] Error:', error.message)
       res.status(500).json({
-        error: 'Error al obtener el historial',
-        message: error.message,
+        success: false,
+        error: ERROR_CODES.MAINTENANCE_FETCH_HISTORY_ERROR,
+        code: ERROR_CODES.MAINTENANCE_FETCH_HISTORY_ERROR,
       })
     }
   }
@@ -740,12 +928,13 @@ export class MaintenanceController {
     try {
       const stats = await MaintenanceRepository.getStats()
 
-      res.json(stats)
+      res.json({ success: true, data: stats })
     } catch (error: any) {
       console.error('[MaintenanceController.getStats] Error:', error.message)
       res.status(500).json({
-        error: 'Error al obtener estadísticas',
-        message: error.message,
+        success: false,
+        error: ERROR_CODES.MAINTENANCE_FETCH_STATS_ERROR,
+        code: ERROR_CODES.MAINTENANCE_FETCH_STATS_ERROR,
       })
     }
   }

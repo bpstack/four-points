@@ -14,11 +14,23 @@
     "active": "Active"
   },
   "filters": {
-    "searchPlaceholder": "Search by name or document...",
+    "searchPlaceholder": "Search by name, document...",
     "severity": "Severity",
     "allStatuses": "All",
     "active": "Active",
-    "deleted": "Deleted"
+    "deleted": "Deleted",
+    "filters": "Filters",
+    "clear": "Clear",
+    "applyFilters": "Apply filters",
+    "document": "Document",
+    "documentPlaceholder": "ID, Passport...",
+    "status": "Status",
+    "dateFrom": "Date from",
+    "dateTo": "Date to",
+    "all": "All",
+    "noResults": "No results found",
+    "resultsSingle": "{count} result found",
+    "resultsPlural": "{count} results found"
   },
   "table": {
     "guest": "Guest",
@@ -55,6 +67,7 @@
     "unknown": "Unknown",
     "registrationDate": "Registration date",
     "lastModification": "Last modification",
+    "deletionDate": "Deletion date",
     "recordStatus": "Record Status",
     "documentInfo": "Document information",
     "documentType": "Document type",
@@ -125,8 +138,16 @@
     "deleting": "Deleting entry...",
     "success": "Entry deleted successfully",
     "error": "Error deleting entry",
+    "genericError": "Error deleting",
     "yes": "Yes",
     "no": "No"
+  },
+  "restore": {
+    "confirm": "Do you want to restore this entry?",
+    "restoring": "Restoring entry...",
+    "success": "Entry restored successfully",
+    "error": "Error restoring entry",
+    "genericError": "Error restoring"
   },
   "audit": {
     "noHistory": "No change history available",
@@ -196,5 +217,35 @@
     "PASSPORT": "Passport",
     "NIE": "NIE",
     "OTHER": "Other"
+  },
+  "modal": {
+    "title": "Entry details",
+    "tabs": {
+      "details": "Details",
+      "images": "Images",
+      "history": "History"
+    },
+    "close": "Close",
+    "edit": "Edit",
+    "restore": "Restore"
+  },
+  "ui": {
+    "loading": "Loading...",
+    "noImages": "No images available",
+    "imageOf": "Image {current} of {total}",
+    "downloadImage": "Download image",
+    "closeEsc": "Close (ESC)",
+    "previousArrow": "Previous",
+    "nextArrow": "Next",
+    "keyboardNav": "Use arrow keys to navigate - ESC to close",
+    "imageUploader": {
+      "formatNotAllowed": "{fileName}: Format not allowed. Only JPG, PNG or WebP.",
+      "exceedsMaxSize": "{fileName}: Exceeds maximum size of {maxSize}MB ({actualSize}MB).",
+      "maxImagesError": "You can only upload a maximum of {maxFiles} images.",
+      "dropImagesHere": "Drop images here",
+      "dragOrClick": "Drag images or click to select",
+      "maxPerFile": "Max. {maxSize}MB per file",
+      "imagesCount": "{current} of {max} images"
+    }
   }
 }

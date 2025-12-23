@@ -504,6 +504,22 @@
     "fileTooLarge": "El archivo es demasiado grande. Maximo 2MB",
     "loadError": "Error al cargar las facturas",
     "pdfValidatedSuccess": "PDF validado correctamente",
-    "pdfSaveError": "Error al guardar el PDF"
+    "pdfSaveError": "Error al guardar el PDF",
+    "previewError": "Error al obtener preview",
+    "revertPaymentsError": "Error al revertir pagos",
+    "unknownError": "Error desconocido",
+    "downloadPdfError": "Error al descargar PDF"
+  },
+  "csvHeaders": {
+    "supplier": "Proveedor",
+    "invoiceNumber": "N Factura",
+    "invoiceDate": "Fecha Factura",
+    "paymentDate": "Fecha Pago",
+    "amountWithoutVat": "Importe sin IVA",
+    "amountWithVat": "Importe con IVA",
+    "vatPercentage": "% IVA",
+    "paymentMethod": "Metodo de Pago",
+    "costCenter": "Centro de Coste",
+    "department": "Departamento"
   }
 }

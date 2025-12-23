@@ -181,7 +181,7 @@ export function SupplierInvoicesModal({
       })
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: 'Error desconocido' }))
+        const errorData = await response.json().catch(() => ({ error: t('toast.unknownError') }))
         throw new Error(errorData.error || `Error ${response.status}`)
       }
 
@@ -200,7 +200,7 @@ export function SupplierInvoicesModal({
       // Cleanup blob URL
       setTimeout(() => URL.revokeObjectURL(blobUrl), 1000)
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : `Error al descargar PDF ${type}`)
+      toast.error(err instanceof Error ? err.message : t('toast.downloadPdfError'))
     }
   }
 

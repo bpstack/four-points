@@ -2,6 +2,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { AtSymbolIcon, KeyIcon, CheckCircleIcon } from '@heroicons/react/24/outline'
 import { ArrowRightIcon } from '@heroicons/react/20/solid'
 import { Fa4 } from 'react-icons/fa6'
@@ -11,6 +12,7 @@ import { useAuth } from '@/app/lib/auth/useAuth'
 import Link from 'next/link'
 
 export default function LoginPage() {
+  const t = useTranslations('auth')
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -23,7 +25,7 @@ export default function LoginPage() {
     if (value.length < 3) {
       setFieldErrors((prev) => ({
         ...prev,
-        username: 'Username must be at least 3 characters long',
+        username: t('errors.usernameMinLength'),
       }))
     } else {
       setFieldErrors((prev) => ({ ...prev, username: '' }))
@@ -35,7 +37,7 @@ export default function LoginPage() {
     if (value.length < 6) {
       setFieldErrors((prev) => ({
         ...prev,
-        password: 'Password must be at least 6 characters long',
+        password: t('errors.passwordMinLength'),
       }))
     } else {
       setFieldErrors((prev) => ({ ...prev, password: '' }))
@@ -55,7 +57,7 @@ export default function LoginPage() {
       if (error.errors && typeof error.errors === 'object') {
         setFieldErrors(error.errors)
       } else {
-        setError(error.message || 'Invalid credentials')
+        setError(error.message || t('errors.invalidCredentials'))
       }
     }
   }
@@ -92,7 +94,7 @@ export default function LoginPage() {
           className="w-full max-w-md rounded-2xl bg-white dark:bg-[#0d1117] px-6 pb-6 pt-8 shadow-lg border border-gray-200 dark:border-neutral-800"
         >
           <h1 className="mb-6 text-2xl font-semibold text-gray-900 dark:text-gray-100">
-            Sign in to 4 Points
+            {t('login.titleFourPoints')}
           </h1>
 
           {/* Mensaje de éxito */}
@@ -101,10 +103,10 @@ export default function LoginPage() {
               <CheckCircleIcon className="h-5 w-5 text-green-600 dark:text-green-400 flex-shrink-0" />
               <div className="flex-1">
                 <p className="text-sm font-medium text-green-800 dark:text-green-300">
-                  Login successful!
+                  {t('login.loginSuccess')}
                 </p>
                 <p className="text-xs text-green-700 dark:text-green-400 mt-1">
-                  Redirecting to dashboard...
+                  {t('login.redirecting')}
                 </p>
               </div>
             </div>
@@ -123,13 +125,13 @@ export default function LoginPage() {
               htmlFor="username"
               className="mb-2 block text-xs font-medium text-gray-700 dark:text-[#c9d1d9]"
             >
-              Username
+              {t('login.username')}
             </label>
             <div className="relative">
               <input
                 id="username"
                 type="text"
-                placeholder="Username must be at least 3 characters long"
+                placeholder={t('login.usernamePlaceholder')}
                 value={username}
                 onChange={(e) => {
                   setUsername(e.target.value)
@@ -172,13 +174,13 @@ export default function LoginPage() {
               htmlFor="password"
               className="mb-2 block text-xs font-medium text-gray-700 dark:text-[#c9d1d9]"
             >
-              Password
+              {t('login.password')}
             </label>
             <div className="relative">
               <input
                 id="password"
                 type="password"
-                placeholder="Password must be at least 6 characters long"
+                placeholder={t('login.passwordMinHint')}
                 value={password}
                 onChange={(e) => {
                   setPassword(e.target.value)
@@ -221,14 +223,14 @@ export default function LoginPage() {
             disabled={loading || success}
             className="mt-6 flex w-full items-center justify-center rounded-md bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition-colors duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? 'Signing in...' : success ? 'Success!' : 'Sign in'}
+            {loading ? t('login.submitting') : success ? t('login.success') : t('login.submit')}
             {!loading && !success && <ArrowRightIcon className="ml-2 h-5 w-5" />}
           </button>
 
           <p className="mt-4 text-center text-sm text-gray-600 dark:text-gray-400">
-            Don&apos;t have an account?{' '}
+            {t('login.noAccount')}{' '}
             <Link href="/" className="text-blue-600 dark:text-blue-400 hover:underline">
-              Ask to the managers
+              {t('login.askManagers')}
             </Link>
           </p>
         </form>

@@ -199,16 +199,19 @@ async function fetchWithRefresh(url: string, options: FetchOptions = {}): Promis
 /**
  * Error personalizado para respuestas de API
  * - demo: true indica restricción de modo demo (toast ya mostrado)
+ * - code: código de error del backend para i18n (ej: 'AUTH_INVALID_CREDENTIALS')
  */
 export class ApiError extends Error {
   demo: boolean
   status: number
+  code?: string
 
-  constructor(message: string, status: number, demo: boolean = false) {
+  constructor(message: string, status: number, demo: boolean = false, code?: string) {
     super(message)
     this.name = 'ApiError'
     this.status = status
     this.demo = demo
+    this.code = code
   }
 }
 
@@ -216,6 +219,7 @@ export class ApiError extends Error {
  * Procesa errores de API.
  * - Para errores demo: muestra toast y hace throw con demo=true
  * - Para otros errores: hace throw normal
+ * - Captura el código de error del backend para traducción i18n
  *
  * Nota: En desarrollo, Next.js muestra estos errores en el overlay.
  * Esto es solo informativo y no afecta producción.
@@ -227,6 +231,7 @@ async function handleApiError(response: Response): Promise<never> {
 
   const message = errorData.error || errorData.message || `Request failed: ${response.status}`
   const isDemo = errorData.demo === true
+  const errorCode = errorData.code // Capture error code for i18n
 
   // Para errores demo: mostrar toast especial
   if (isDemo && isClient) {
@@ -241,7 +246,7 @@ async function handleApiError(response: Response): Promise<never> {
     })
   }
 
-  throw new ApiError(message, response.status, isDemo)
+  throw new ApiError(message, response.status, isDemo, errorCode)
 }
 
 /**

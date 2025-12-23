@@ -33,6 +33,7 @@
     "edit": "Edit",
     "create": "Create",
     "search": "Search",
+    "searchPlaceholder": "Search...",
     "filter": "Filter",
     "export": "Export",
     "import": "Import",
@@ -46,7 +47,13 @@
     "loading": "Loading...",
     "view": "View",
     "download": "Download",
-    "print": "Print"
+    "print": "Print",
+    "update": "Update",
+    "saving": "Saving...",
+    "processing": "Processing...",
+    "deleting": "Deleting...",
+    "yes": "Yes",
+    "no": "No"
   },
   "status": {
     "active": "Active",
@@ -79,5 +86,9 @@
     "minutes": "minutes",
     "hours": "hours",
     "days": "days"
+  },
+  "panels": {
+    "closePanel": "Close panel",
+    "deleteConfirm": "Are you sure you want to delete?"
   }
 }

@@ -29,7 +29,7 @@ export default function InitializeDayModal({
     e.preventDefault()
 
     if (!user?.id) {
-      toast.error('Usuario no autenticado')
+      toast.error(t('error.userNotAuthenticated'))
       return
     }
 
@@ -47,7 +47,7 @@ export default function InitializeDayModal({
       onClose()
     } catch (error) {
       console.error('Error inicializando día:', error)
-      const errorMessage = error instanceof Error ? error.message : 'Error al inicializar el día'
+      const errorMessage = error instanceof Error ? error.message : t('error.initializeDayError')
       toast.error(errorMessage)
     }
   }

@@ -4,6 +4,7 @@
 
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense } from 'react'
+import { useTranslations } from 'next-intl'
 import {
   FiPackage,
   FiShoppingCart,
@@ -19,12 +20,6 @@ import { StatsTab } from '@/app/components/restaurant/tabs/StatsTab'
 
 type TabType = 'inventory' | 'orders' | 'stats'
 
-const tabs: { id: TabType; label: string; icon: React.ElementType }[] = [
-  { id: 'inventory', label: 'Inventario', icon: FiPackage },
-  { id: 'orders', label: 'Pedidos', icon: FiShoppingCart },
-  { id: 'stats', label: 'Estadísticas', icon: FiBarChart2 },
-]
-
 // Mock summary stats
 const summaryStats = {
   totalProducts: 156,
@@ -34,9 +29,16 @@ const summaryStats = {
 }
 
 function RestaurantContent() {
+  const t = useTranslations('restaurant')
   const router = useRouter()
   const searchParams = useSearchParams()
   const currentTab = (searchParams.get('tab') as TabType) || 'inventory'
+
+  const tabs: { id: TabType; labelKey: 'inventory' | 'orders' | 'stats'; icon: React.ElementType }[] = [
+    { id: 'inventory', labelKey: 'inventory', icon: FiPackage },
+    { id: 'orders', labelKey: 'orders', icon: FiShoppingCart },
+    { id: 'stats', labelKey: 'stats', icon: FiBarChart2 },
+  ]
 
   const handleTabChange = (tab: TabType) => {
     const params = new URLSearchParams(searchParams.toString())
@@ -52,10 +54,10 @@ function RestaurantContent() {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
               <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">
-                Restaurante
+                {t('page.title')}
               </h1>
               <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-0.5">
-                Gestión de inventario, pedidos y estadísticas
+                {t('page.subtitle')}
               </p>
             </div>
           </div>
@@ -67,7 +69,7 @@ function RestaurantContent() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 font-medium">
-                  Total Productos
+                  {t('stats.totalProducts')}
                 </p>
                 <p className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 mt-0.5">
                   {summaryStats.totalProducts}
@@ -81,7 +83,7 @@ function RestaurantContent() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 font-medium">
-                  Stock Bajo
+                  {t('stats.lowStock')}
                 </p>
                 <p className="text-lg sm:text-xl font-bold text-orange-600 dark:text-orange-400 mt-0.5">
                   {summaryStats.lowStock}
@@ -95,7 +97,7 @@ function RestaurantContent() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 font-medium">
-                  Pedidos Pendientes
+                  {t('stats.pendingOrders')}
                 </p>
                 <p className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 mt-0.5">
                   {summaryStats.pendingOrders}
@@ -109,7 +111,7 @@ function RestaurantContent() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 font-medium">
-                  Gastos Mensuales
+                  {t('stats.monthlyExpenses')}
                 </p>
                 <p className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 mt-0.5">
                   {new Intl.NumberFormat('es-ES', {
@@ -140,7 +142,7 @@ function RestaurantContent() {
                   }`}
                 >
                   <Icon className="w-4 h-4" />
-                  {tab.label}
+                  {t(`tabs.${tab.labelKey}`)}
                 </button>
               )
             })}
@@ -158,18 +160,21 @@ function RestaurantContent() {
   )
 }
 
+function LoadingFallback() {
+  const t = useTranslations('restaurant')
+  return (
+    <div className="min-h-screen bg-gray-50 dark:bg-[#010409] flex items-center justify-center">
+      <div className="text-center">
+        <div className="inline-block h-10 w-10 animate-spin rounded-full border-[3px] border-solid border-blue-600 dark:border-blue-500 border-r-transparent"></div>
+        <p className="mt-3 text-xs text-gray-600 dark:text-gray-400">{t('page.loading')}</p>
+      </div>
+    </div>
+  )
+}
+
 export default function RestaurantPage() {
   return (
-    <Suspense
-      fallback={
-        <div className="min-h-screen bg-gray-50 dark:bg-[#010409] flex items-center justify-center">
-          <div className="text-center">
-            <div className="inline-block h-10 w-10 animate-spin rounded-full border-[3px] border-solid border-blue-600 dark:border-blue-500 border-r-transparent"></div>
-            <p className="mt-3 text-xs text-gray-600 dark:text-gray-400">Cargando...</p>
-          </div>
-        </div>
-      }
-    >
+    <Suspense fallback={<LoadingFallback />}>
       <RestaurantContent />
     </Suspense>
   )

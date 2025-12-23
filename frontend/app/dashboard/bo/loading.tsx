@@ -9,7 +9,7 @@
 'use client'
 
 import { useTranslations } from 'next-intl'
-import { StatsCardsSkeleton } from '@/app/components/bo/StatsCards'
+import { StatsCardsSkeleton } from '@/app/components/bo/StatsCardsSkeleton'
 
 export default function BackOfficeLoading() {
   const t = useTranslations('backoffice')

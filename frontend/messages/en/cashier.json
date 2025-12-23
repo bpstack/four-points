@@ -206,7 +206,18 @@
   "error": {
     "title": "Error loading data",
     "loadingReport": "Error loading report",
-    "loadingVouchers": "Error loading voucher history"
+    "loadingVouchers": "Error loading voucher history",
+    "userNotAuthenticated": "User not authenticated",
+    "amountMustBeGreater": "Amount must be greater than 0",
+    "reasonMinLength": "Reason must be at least 5 characters",
+    "initializeDayError": "Error initializing day",
+    "createVoucherError": "Error creating voucher",
+    "saveError": "Error saving",
+    "closeDay": "Error closing day",
+    "closeShift": "Error closing shift",
+    "updateIncome": "Error updating income",
+    "justifyVoucher": "Error justifying voucher",
+    "reopenDay": "Error reopening day"
   },
   "logs": {
     "pageTitle": "History and Audit",

@@ -71,7 +71,7 @@ export default function PaymentForm({
       toast.success(t('payment.paymentsSaved'))
       setTimeout(() => onSave(), 100)
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Error al guardar'
+      const errorMessage = error instanceof Error ? error.message : t('error.saveError')
       toast.error(errorMessage)
     }
   }

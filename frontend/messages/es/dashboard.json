@@ -122,7 +122,12 @@
         "updated": "Entrada editada",
         "deleted": "Entrada eliminada",
         "solved": "Marcada resuelta",
+        "solve": "Marcada resuelta",
         "unsolved": "Marcada pendiente",
+        "unsolve": "Marcada pendiente",
+        "read": "Marcada como leida",
+        "unread": "Marcada como no leida",
+        "reopen": "Entrada reabierta",
         "comment_added": "Comentario anadido",
         "comment_edited": "Comentario editado",
         "default": "Accion en consigna"
