@@ -8,6 +8,7 @@
 'use client'
 
 import { useRouter, useSearchParams } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { FiClock, FiCheckCircle, FiUsers, FiSettings } from 'react-icons/fi'
 
 export type TabType = 'pending' | 'paid' | 'suppliers' | 'settings'
@@ -16,17 +17,18 @@ interface TabsNavigationProps {
   pendingCount?: number
 }
 
-const tabs: { id: TabType; label: string; icon: React.ElementType }[] = [
-  { id: 'pending', label: 'Pendientes', icon: FiClock },
-  { id: 'paid', label: 'Pagadas', icon: FiCheckCircle },
-  { id: 'suppliers', label: 'Proveedores', icon: FiUsers },
-  { id: 'settings', label: 'Configuración', icon: FiSettings },
+const tabIds: { id: TabType; icon: React.ElementType }[] = [
+  { id: 'pending', icon: FiClock },
+  { id: 'paid', icon: FiCheckCircle },
+  { id: 'suppliers', icon: FiUsers },
+  { id: 'settings', icon: FiSettings },
 ]
 
 export function TabsNavigation({ pendingCount = 0 }: TabsNavigationProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const currentTab = (searchParams.get('tab') as TabType) || 'pending'
+  const t = useTranslations('backoffice')
 
   const handleTabChange = (tab: TabType) => {
     const params = new URLSearchParams(searchParams.toString())
@@ -37,7 +39,7 @@ export function TabsNavigation({ pendingCount = 0 }: TabsNavigationProps) {
   return (
     <div className="border-b border-gray-200 dark:border-gray-800">
       <nav className="flex space-x-4 sm:space-x-6 overflow-x-auto" aria-label="Tabs">
-        {tabs.map((tab) => {
+        {tabIds.map((tab) => {
           const Icon = tab.icon
           const isActive = currentTab === tab.id
           return (
@@ -51,7 +53,7 @@ export function TabsNavigation({ pendingCount = 0 }: TabsNavigationProps) {
               }`}
             >
               <Icon className="w-4 h-4" />
-              {tab.label}
+              {t(`tabs.${tab.id}`)}
               {tab.id === 'pending' && pendingCount > 0 && (
                 <span className="ml-1 px-1.5 py-0.5 text-[10px] font-medium bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 rounded-full">
                   {pendingCount}

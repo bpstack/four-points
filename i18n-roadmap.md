@@ -23,12 +23,12 @@ Implementing internationalization (i18n) for Four Points Hotel PMS using `next-i
 | Create branch `languagesystem` | ✅ | - |
 | Create language.md with decisions | ✅ | - |
 | Create roadmap.md | ✅ | - |
-| Install next-intl | ⬜ | |
-| Create i18n config files | ⬜ | |
-| Create messages folder structure | ⬜ | |
-| Update middleware.ts for locale | ⬜ | |
-| Create LanguageSwitcher component | ⬜ | |
-| Add switcher to ProfileDropdown | ⬜ | |
+| Install next-intl | ✅ | |
+| Create i18n config files | ✅ | |
+| Create messages folder structure | ✅ | |
+| Update layout.tsx with NextIntlClientProvider | ✅ | |
+| Create LanguageSwitcher component | ✅ | |
+| Add switcher to ProfileDropdown | ✅ | |
 
 ---
 
@@ -36,8 +36,8 @@ Implementing internationalization (i18n) for Four Points Hotel PMS using `next-i
 
 | Task | Status | Commit |
 |------|--------|--------|
-| Extract common.json (ES) | ⬜ | |
-| Translate common.json (EN) | ⬜ | |
+| Extract common.json (ES) | ✅ | |
+| Translate common.json (EN) | ✅ | |
 | Migrate nav-links.tsx | ⬜ | |
 | Migrate sidenav.tsx | ⬜ | |
 | Migrate ProfileDropdown.tsx | ⬜ | |
@@ -64,14 +64,28 @@ Implementing internationalization (i18n) for Four Points Hotel PMS using `next-i
 
 | Task | Status | Commit |
 |------|--------|--------|
-| Extract parking.json (ES) | ⬜ | |
-| Translate parking.json (EN) | ⬜ | |
-| Migrate ParkingDashboardClient.tsx | ⬜ | |
-| Migrate BookingsListClient.tsx | ⬜ | |
-| Migrate BookingDetailClient.tsx | ⬜ | |
-| Migrate PaymentModal.tsx | ⬜ | |
-| Migrate VehicleSearchModal.tsx | ⬜ | |
-| Migrate ParkingStatusClient.tsx | ⬜ | |
+| Extract parking.json (ES) | ✅ | |
+| Translate parking.json (EN) | ✅ | |
+| Migrate ParkingDashboardClient.tsx | ✅ | |
+| Migrate BookingsListClient.tsx | ✅ | |
+| Migrate BookingDetailClient.tsx | ✅ | |
+| Migrate BookingHeader.tsx | ✅ | |
+| Migrate PaymentModal.tsx | ✅ | |
+| Migrate VehicleSearchModal.tsx | ✅ | |
+| Migrate ParkingStatusClient.tsx | ✅ | |
+| Migrate StatusPanels.tsx | ✅ | |
+| Migrate ParkingTable.tsx | ✅ | |
+| Migrate ParkingNavigator.tsx | ✅ | |
+| Migrate StatusBadge.tsx | ✅ | |
+| Migrate ActionDropdown.tsx | ✅ | |
+| Migrate CheckInModal.tsx (status) | ✅ | |
+| Migrate CheckOutModal.tsx (status) | ✅ | |
+| Migrate CancelModal.tsx (status) | ✅ | |
+| Migrate OverdueModal.tsx (status) | ✅ | |
+| Migrate CheckInModal.tsx (bookings) | ✅ | |
+| Migrate CheckOutModal.tsx (bookings) | ✅ | |
+| Migrate EditBookingModal.tsx | ✅ | |
+| Update statusBadges utility | ✅ | |
 
 ---
 
@@ -79,8 +93,8 @@ Implementing internationalization (i18n) for Four Points Hotel PMS using `next-i
 
 | Task | Status | Commit |
 |------|--------|--------|
-| Extract logbooks.json (ES) | ⬜ | |
-| Translate logbooks.json (EN) | ⬜ | |
+| Extract logbooks.json (ES) | ✅ | |
+| Translate logbooks.json (EN) | ✅ | |
 | Migrate LogbooksList.tsx | ⬜ | |
 | Migrate NewLogbookEntry.tsx | ⬜ | |
 | Migrate NewCommentEntry.tsx | ⬜ | |
@@ -103,27 +117,78 @@ Implementing internationalization (i18n) for Four Points Hotel PMS using `next-i
 ---
 
 ## Phase 7: Cashier Module
-
+ 
 | Task | Status | Commit |
 |------|--------|--------|
-| Extract cashier.json (ES) | ⬜ | |
-| Translate cashier.json (EN) | ⬜ | |
-| Migrate CashierDashboard.tsx | ⬜ | |
-| Migrate ShiftManager.tsx | ⬜ | |
-| Migrate MonthlyReport.tsx | ⬜ | |
+| Extract cashier.json (ES) | ✅ | |
+| Translate cashier.json (EN) | ✅ | |
+| Migrate hotel/page.tsx | ✅ | |
+| Migrate logs/page.tsx | ✅ | |
+| Migrate reports/page.tsx | ✅ | |
+| Migrate CashierCalendarNav.tsx | ✅ | |
+| Migrate CloseDayModal.tsx | ✅ | |
+| Migrate CloseShiftModal.tsx | ✅ | |
+| Migrate CreateVoucherModal.tsx | ✅ | |
+| Migrate DateNavigator.tsx | ✅ | |
+| Migrate DenominationForm.tsx | ✅ | |
+| Migrate ErrorState.tsx | ✅ | |
+| Migrate LoadingState.tsx | ✅ | |
+| Migrate InitializeDayModal.tsx | ✅ | |
+| Migrate PaymentForm.tsx | ✅ | |
+| Migrate ReopenDayModal.tsx | ✅ | |
+| Migrate ShiftCard.tsx | ✅ | |
+| Migrate ShiftTabs.tsx | ✅ | |
+| Migrate UninitializedDayState.tsx | ✅ | |
+| Migrate VoucherList.tsx | ✅ | |
+| Migrate LogsSummarySidebar.tsx | ✅ | |
+| Migrate ReportsSummarySidebar.tsx | ✅ | |
+| Migrate HistoryFilters.tsx | ✅ | |
+| Migrate HistoryStats.tsx | ✅ | |
+| Migrate HistoryTable.tsx | ✅ | |
+| Migrate MonthlyReport.tsx | ✅ | |
+| Migrate PaymentChart.tsx | ✅ | |
+| Migrate VouchersHistory.tsx | ✅ | |
 
 ---
 
 ## Phase 8: Other Modules
 
+### Blacklist Module ✅
+
+| Task | Status | Commit |
+|------|--------|--------|
+| Extract blacklist.json (ES) | ✅ | |
+| Translate blacklist.json (EN) | ✅ | |
+| Migrate page.tsx (main list) | ✅ | |
+| Migrate new/page.tsx | ✅ | |
+| Migrate [id]/edit/page.tsx | ✅ | |
+| Migrate not-found.tsx (both) | ✅ | |
+| Migrate BlacklistDetailClient.tsx | ✅ | |
+| Migrate BlacklistForm.tsx | ✅ | |
+| Migrate CreateBlacklistPanel.tsx | ✅ | |
+| Migrate EditBlacklistPanel.tsx | ✅ | |
+| Migrate AuditTrail.tsx | ✅ | |
+| Migrate BlacklistDetailSummaryPanel.tsx | ✅ | |
+| Migrate DeleteButton.tsx | ✅ | |
+
+### Maintenance Module
+
 | Task | Status | Commit |
 |------|--------|--------|
 | Extract maintenance.json (ES/EN) | ⬜ | |
 | Migrate MaintenanceListClient.tsx | ⬜ | |
-| Extract blacklist.json (ES/EN) | ⬜ | |
-| Migrate BlacklistForm.tsx | ⬜ | |
+
+### Backoffice Module
+
+| Task | Status | Commit |
+|------|--------|--------|
 | Extract backoffice.json (ES/EN) | ⬜ | |
 | Migrate BackOffice tabs | ⬜ | |
+
+### Messages Module
+
+| Task | Status | Commit |
+|------|--------|--------|
 | Extract messages.json (ES/EN) | ⬜ | |
 | Migrate MessagesClient.tsx | ⬜ | |
 
@@ -202,4 +267,4 @@ Implementing internationalization (i18n) for Four Points Hotel PMS using `next-i
 
 ---
 
-*Last updated: 23-dic-2025*
+*Last updated: 23-dic-2025 (Cashier module completed)*

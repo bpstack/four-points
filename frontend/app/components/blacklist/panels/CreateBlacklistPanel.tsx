@@ -5,6 +5,7 @@
 import { useEffect, useState } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useTranslations } from 'next-intl'
 import { blacklistSchema } from '@/app/lib/blacklist/blacklistSchema'
 import { blacklistApi } from '@/app/lib/blacklist/blacklistApi'
 import { createBlacklist } from '@/app/dashboard/blacklist/actions'
@@ -40,6 +41,7 @@ type BlacklistFormValues = {
 }
 
 export function CreateBlacklistPanel({ isOpen, onClose }: CreateBlacklistPanelProps) {
+  const t = useTranslations('blacklist')
   const [showCheckInCalendar, setShowCheckInCalendar] = useState(false)
   const [showCheckOutCalendar, setShowCheckOutCalendar] = useState(false)
   const [uploadingImages, setUploadingImages] = useState(false)
@@ -100,7 +102,7 @@ export function CreateBlacklistPanel({ isOpen, onClose }: CreateBlacklistPanelPr
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || [])
     if (files.length > 5) {
-      toast.error('Maximo 5 imagenes permitidas')
+      toast.error(t('form.maxImages'))
       return
     }
     setSelectedImages(files)
@@ -120,13 +122,13 @@ export function CreateBlacklistPanel({ isOpen, onClose }: CreateBlacklistPanelPr
       // Upload images if any
       if (selectedImages.length > 0) {
         setUploadingImages(true)
-        toast.loading('Subiendo imagenes...')
+        toast.loading(t('messages.uploadingImages'))
 
         const uploadedImages = await blacklistApi.uploadImages(selectedImages)
         imageUrls = uploadedImages.map((img) => img.secure_url)
 
         toast.dismiss()
-        toast.success(`${imageUrls.length} imagenes subidas correctamente`)
+        toast.success(t('messages.imagesUploaded', { count: imageUrls.length }))
       }
 
       setUploadingImages(false)
@@ -144,20 +146,20 @@ export function CreateBlacklistPanel({ isOpen, onClose }: CreateBlacklistPanelPr
         images: imageUrls,
       }
 
-      toast.loading('Creando registro...')
+      toast.loading(t('messages.creatingEntry'))
       const result = await createBlacklist(payload)
       toast.dismiss()
 
       if (result.success) {
-        toast.success('Registro creado exitosamente')
+        toast.success(t('messages.createSuccess'))
         onClose()
         reset()
         setSelectedImages([])
       } else {
-        toast.error(result.error || 'Error al crear el registro')
+        toast.error(result.error || t('messages.saveError'))
       }
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Error al procesar el formulario'
+      const message = error instanceof Error ? error.message : t('messages.formError')
       console.error('Error en submit:', message)
       toast.dismiss()
       toast.error(message)
@@ -179,33 +181,33 @@ export function CreateBlacklistPanel({ isOpen, onClose }: CreateBlacklistPanelPr
     <SlidePanel
       isOpen={isOpen}
       onClose={onClose}
-      title="Nuevo Registro Blacklist"
-      subtitle="Registra un nuevo huesped en la lista negra"
+      title={t('panels.createTitle')}
+      subtitle={t('panels.createSubtitle')}
       size="lg"
       footer={
         <SlidePanelFooterButtons
           onCancel={onClose}
           onSubmit={handleSubmit(onSubmit)}
           isSubmitting={isSubmitting || uploadingImages}
-          submitText={uploadingImages ? 'Subiendo...' : 'Crear Registro'}
+          submitText={uploadingImages ? t('form.uploadingImages') : t('panels.createButton')}
           submitIcon={<FiSave className="w-4 h-4" />}
           submitVariant="success"
         />
       }
     >
       {/* Guest Information */}
-      <SlidePanelSection title="Informacion del huesped">
-        <FormField label="Nombre completo" required error={errors.guest_name?.message}>
+      <SlidePanelSection title={t('form.guestInfo')}>
+        <FormField label={t('form.fullName')} required error={errors.guest_name?.message}>
           <input
             {...register('guest_name')}
             type="text"
-            placeholder="Nombre y apellidos del huesped"
+            placeholder={t('form.fullNamePlaceholder')}
             className={inputClassName}
           />
         </FormField>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <FormField label="Tipo de documento" required error={errors.document_type?.message}>
+          <FormField label={t('form.documentType')} required error={errors.document_type?.message}>
             <select {...register('document_type')} className={selectClassName}>
               {Object.entries(DOCUMENT_TYPES).map(([value, label]) => (
                 <option key={value} value={value}>
@@ -215,11 +217,11 @@ export function CreateBlacklistPanel({ isOpen, onClose }: CreateBlacklistPanelPr
             </select>
           </FormField>
 
-          <FormField label="Numero de documento" required error={errors.document_number?.message}>
+          <FormField label={t('form.documentNumber')} required error={errors.document_number?.message}>
             <input
               {...register('document_number')}
               type="text"
-              placeholder="12345678A"
+              placeholder={t('form.documentPlaceholder')}
               className={inputClassName}
             />
           </FormField>
@@ -227,11 +229,11 @@ export function CreateBlacklistPanel({ isOpen, onClose }: CreateBlacklistPanelPr
       </SlidePanelSection>
 
       {/* Stay Dates */}
-      <SlidePanelSection title="Fechas de hospedaje">
+      <SlidePanelSection title={t('form.stayDates')}>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {/* Check-in Date */}
           <div className="relative calendar-container">
-            <FormField label="Fecha de entrada" required error={errors.check_in_date?.message}>
+            <FormField label={t('form.checkInDate')} required error={errors.check_in_date?.message}>
               <div className="relative">
                 <Controller
                   name="check_in_date"
@@ -241,7 +243,7 @@ export function CreateBlacklistPanel({ isOpen, onClose }: CreateBlacklistPanelPr
                       type="text"
                       value={formatDateDisplay(field.value)}
                       readOnly
-                      placeholder="Selecciona fecha"
+                      placeholder={t('form.selectDate')}
                       onClick={(e) => {
                         e.stopPropagation()
                         setShowCheckOutCalendar(false)
@@ -273,7 +275,7 @@ export function CreateBlacklistPanel({ isOpen, onClose }: CreateBlacklistPanelPr
 
           {/* Check-out Date */}
           <div className="relative calendar-container">
-            <FormField label="Fecha de salida" required error={errors.check_out_date?.message}>
+            <FormField label={t('form.checkOutDate')} required error={errors.check_out_date?.message}>
               <div className="relative">
                 <Controller
                   name="check_out_date"
@@ -283,7 +285,7 @@ export function CreateBlacklistPanel({ isOpen, onClose }: CreateBlacklistPanelPr
                       type="text"
                       value={formatDateDisplay(field.value)}
                       readOnly
-                      placeholder="Selecciona fecha"
+                      placeholder={t('form.selectDate')}
                       onClick={(e) => {
                         e.stopPropagation()
                         setShowCheckInCalendar(false)
@@ -319,8 +321,8 @@ export function CreateBlacklistPanel({ isOpen, onClose }: CreateBlacklistPanelPr
       </SlidePanelSection>
 
       {/* Incident Details */}
-      <SlidePanelSection title="Detalles del incidente">
-        <FormField label="Nivel de gravedad" required error={errors.severity?.message}>
+      <SlidePanelSection title={t('form.incidentDetails')}>
+        <FormField label={t('form.severityLevel')} required error={errors.severity?.message}>
           <select {...register('severity')} className={selectClassName}>
             {Object.entries(SEVERITY_LEVELS).map(([value, label]) => (
               <option key={value} value={value}>
@@ -330,34 +332,34 @@ export function CreateBlacklistPanel({ isOpen, onClose }: CreateBlacklistPanelPr
           </select>
         </FormField>
 
-        <FormField label="Motivo de inclusion" required error={errors.reason?.message}>
+        <FormField label={t('form.inclusionReason')} required error={errors.reason?.message}>
           <textarea
             {...register('reason')}
             rows={3}
-            placeholder="Describe el motivo por el cual se incluye al huesped en la lista negra..."
+            placeholder={t('form.inclusionReasonPlaceholder')}
             className={textareaClassName}
           />
         </FormField>
 
-        <FormField label="Comentarios adicionales" required error={errors.comments?.message}>
+        <FormField label={t('form.additionalComments')} required error={errors.comments?.message}>
           <textarea
             {...register('comments')}
             rows={3}
-            placeholder="Agrega cualquier informacion adicional relevante..."
+            placeholder={t('form.additionalCommentsPlaceholder')}
             className={textareaClassName}
           />
         </FormField>
       </SlidePanelSection>
 
       {/* Evidence Photos */}
-      <SlidePanelSection title="Evidencia fotografica">
-        <FormField label="Subir imagenes" hint="Maximo 5 imagenes (PNG, JPG, WEBP - max 5MB c/u)">
+      <SlidePanelSection title={t('form.photoEvidence')}>
+        <FormField label={t('form.uploadImages')} hint={t('form.imageHint')}>
           <div className="flex items-center justify-center w-full">
             <label className="flex flex-col items-center justify-center w-full h-24 border-2 border-gray-300 dark:border-gray-700 border-dashed rounded-lg cursor-pointer bg-white dark:bg-[#0d1117] hover:bg-gray-50 dark:hover:bg-[#161B22] transition-colors">
               <div className="flex flex-col items-center justify-center pt-3 pb-4">
                 <FiUpload className="w-6 h-6 mb-2 text-gray-400" />
                 <p className="text-xs text-gray-500 dark:text-gray-400">
-                  <span className="font-semibold">Click para subir</span> o arrastra las imagenes
+                  <span className="font-semibold">{t('form.clickToUpload')}</span> {t('form.dragImages')}
                 </p>
               </div>
               <input
@@ -374,7 +376,7 @@ export function CreateBlacklistPanel({ isOpen, onClose }: CreateBlacklistPanelPr
           {selectedImages.length > 0 && (
             <div className="mt-3">
               <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">
-                {selectedImages.length} imagen(es) seleccionada(s):
+                {t('form.imagesSelected', { count: selectedImages.length })}
               </p>
               <div className="flex flex-wrap gap-2">
                 {selectedImages.map((file, index) => (

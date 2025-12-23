@@ -11,6 +11,7 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import {
   FiPlus,
   FiSearch,
@@ -31,6 +32,7 @@ type SeverityFilter = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL' | 'all'
 type StatusFilter = 'ACTIVE' | 'DELETED' | 'all'
 
 export default function BlacklistPage() {
+  const t = useTranslations('blacklist')
   const router = useRouter()
   const searchParams = useSearchParams()
   const panel = searchParams.get('panel')
@@ -101,22 +103,22 @@ export default function BlacklistPage() {
       LOW: {
         color:
           'bg-gray-50 text-gray-700 border border-gray-200 dark:bg-gray-900/20 dark:text-gray-400 dark:border-gray-800',
-        label: 'Bajo',
+        label: t('severity.low'),
       },
       MEDIUM: {
         color:
           'bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-800',
-        label: 'Medio',
+        label: t('severity.medium'),
       },
       HIGH: {
         color:
           'bg-orange-50 text-orange-700 border border-orange-200 dark:bg-orange-900/20 dark:text-orange-400 dark:border-orange-800',
-        label: 'Alto',
+        label: t('severity.high'),
       },
       CRITICAL: {
         color:
           'bg-red-50 text-red-700 border border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800',
-        label: 'Crítico',
+        label: t('severity.critical'),
       },
     }
     return configs[severity]
@@ -127,7 +129,7 @@ export default function BlacklistPage() {
       <div className="min-h-screen bg-gray-50 dark:bg-[#010409] flex items-center justify-center">
         <div className="text-center">
           <div className="inline-block h-10 w-10 animate-spin rounded-full border-[3px] border-solid border-blue-600 dark:border-blue-500 border-r-transparent"></div>
-          <p className="mt-3 text-xs text-gray-600 dark:text-gray-400">Cargando registros...</p>
+          <p className="mt-3 text-xs text-gray-600 dark:text-gray-400">{t('page.loading')}</p>
         </div>
       </div>
     )
@@ -142,10 +144,10 @@ export default function BlacklistPage() {
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div>
                 <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">
-                  Blacklist de Huéspedes
+                  {t('page.title')}
                 </h1>
                 <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-0.5">
-                  Gestión de huéspedes con mala conducta
+                  {t('page.subtitle')}
                 </p>
               </div>
               <button
@@ -153,7 +155,7 @@ export default function BlacklistPage() {
                 className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-green-600 dark:bg-green-700 text-white text-xs font-medium rounded-md hover:bg-green-700 dark:hover:bg-green-800 transition-colors"
               >
                 <FiPlus className="w-3.5 h-3.5" />
-                Nuevo Registro
+                {t('page.newEntry')}
               </button>
             </div>
           </div>
@@ -168,7 +170,7 @@ export default function BlacklistPage() {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 font-medium">
-                        Total Registros
+                        {t('stats.totalEntries')}
                       </p>
                       <p className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 mt-0.5">
                         {pagination.total_entries}
@@ -182,7 +184,7 @@ export default function BlacklistPage() {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 font-medium">
-                        Críticos
+                        {t('stats.critical')}
                       </p>
                       <p className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 mt-0.5">
                         {criticalCount}
@@ -196,7 +198,7 @@ export default function BlacklistPage() {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 font-medium">
-                        Alto Riesgo
+                        {t('stats.highRisk')}
                       </p>
                       <p className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 mt-0.5">
                         {highCount}
@@ -210,7 +212,7 @@ export default function BlacklistPage() {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 font-medium">
-                        Activos
+                        {t('stats.active')}
                       </p>
                       <p className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 mt-0.5">
                         {activeCount}
@@ -227,7 +229,7 @@ export default function BlacklistPage() {
                   <FiSearch className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 dark:text-gray-500" />
                   <input
                     type="text"
-                    placeholder="Buscar por nombre o documento..."
+                    placeholder={t('filters.searchPlaceholder')}
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="w-full pl-8 pr-3 py-1.5 text-xs border border-gray-300 dark:border-gray-700 dark:bg-[#151b23] dark:text-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent"
@@ -238,20 +240,20 @@ export default function BlacklistPage() {
                   onChange={(e) => setSeverityFilter(e.target.value as SeverityFilter)}
                   className="w-full sm:w-auto sm:min-w-[140px] px-3 py-1.5 pr-8 text-xs border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent bg-white dark:bg-[#151b23] dark:text-gray-200"
                 >
-                  <option value="all">Gravedad</option>
-                  <option value="CRITICAL">Crítico</option>
-                  <option value="HIGH">Alto</option>
-                  <option value="MEDIUM">Medio</option>
-                  <option value="LOW">Bajo</option>
+                  <option value="all">{t('filters.severity')}</option>
+                  <option value="CRITICAL">{t('severity.critical')}</option>
+                  <option value="HIGH">{t('severity.high')}</option>
+                  <option value="MEDIUM">{t('severity.medium')}</option>
+                  <option value="LOW">{t('severity.low')}</option>
                 </select>
                 <select
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
                   className="w-full sm:w-auto sm:min-w-[120px] px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent bg-white dark:bg-[#151b23] dark:text-gray-200"
                 >
-                  <option value="ACTIVE">Activos</option>
-                  <option value="DELETED">Eliminados</option>
-                  <option value="all">Todos</option>
+                  <option value="ACTIVE">{t('filters.active')}</option>
+                  <option value="DELETED">{t('filters.deleted')}</option>
+                  <option value="all">{t('filters.allStatuses')}</option>
                 </select>
               </div>
 
@@ -262,25 +264,25 @@ export default function BlacklistPage() {
                     <thead className="bg-gray-50 dark:bg-[#0d1117] border-b border-gray-200 dark:border-gray-800">
                       <tr>
                         <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                          Huésped
+                          {t('table.guest')}
                         </th>
                         <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                          Documento
+                          {t('table.document')}
                         </th>
                         <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                          Fechas
+                          {t('table.dates')}
                         </th>
                         <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                          Gravedad
+                          {t('table.severity')}
                         </th>
                         <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                          Estado
+                          {t('table.status')}
                         </th>
                         <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                          Registrado
+                          {t('table.registeredBy')}
                         </th>
                         <th className="px-3 py-2 text-right text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                          Acciones
+                          {t('table.actions')}
                         </th>
                       </tr>
                     </thead>
@@ -292,8 +294,8 @@ export default function BlacklistPage() {
                             className="px-3 py-8 text-center text-xs text-gray-500 dark:text-gray-400"
                           >
                             {searchTerm
-                              ? 'No se encontraron registros con esos criterios'
-                              : 'No hay registros en la blacklist'}
+                              ? t('table.noResultsSearch')
+                              : t('table.noEntries')}
                           </td>
                         </tr>
                       ) : (
@@ -358,12 +360,12 @@ export default function BlacklistPage() {
                                   variant={entry.status === 'ACTIVE' ? 'success' : 'default'}
                                   size="sm"
                                 >
-                                  {entry.status === 'ACTIVE' ? 'Activo' : 'Eliminado'}
+                                  {entry.status === 'ACTIVE' ? t('status.active') : t('status.deleted')}
                                 </Badge>
                               </td>
                               <td className="px-3 py-2 text-gray-700 dark:text-gray-300">
                                 <div className="text-xs">
-                                  {entry.created_by_username || 'Desconocido'}
+                                  {entry.created_by_username || t('detail.unknown')}
                                 </div>
                                 <div className="text-[10px] text-gray-500 dark:text-gray-400">
                                   {formatDate(entry.created_at)}
@@ -395,8 +397,8 @@ export default function BlacklistPage() {
                   <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-6 text-center">
                     <p className="text-xs text-gray-500 dark:text-gray-400">
                       {searchTerm
-                        ? 'No se encontraron registros con esos criterios'
-                        : 'No hay registros en la blacklist'}
+                        ? t('table.noResultsSearch')
+                        : t('table.noEntries')}
                     </p>
                   </div>
                 ) : (
@@ -458,7 +460,7 @@ export default function BlacklistPage() {
                               variant={entry.status === 'ACTIVE' ? 'success' : 'default'}
                               size="sm"
                             >
-                              {entry.status === 'ACTIVE' ? 'Activo' : 'Eliminado'}
+                              {entry.status === 'ACTIVE' ? t('status.active') : t('status.deleted')}
                             </Badge>
                           </div>
                           <span className="text-[10px] text-gray-500 dark:text-gray-400">
@@ -477,14 +479,14 @@ export default function BlacklistPage() {
             <div className="hidden min-[1400px]:block space-y-4">
               <div className="sticky top-4 space-y-3">
                 <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">
-                  Resumen
+                  {t('stats.summary')}
                 </h3>
 
                 <div className="bg-white dark:bg-[#0D1117] border border-[#d0d7de] dark:border-[#30363d] rounded-xl shadow-sm p-4">
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">
-                        Total Registros
+                        {t('stats.totalEntries')}
                       </p>
                       <p className="text-xl font-bold text-gray-900 dark:text-gray-100 mt-0.5">
                         {pagination.total_entries}
@@ -500,7 +502,7 @@ export default function BlacklistPage() {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">
-                        Críticos
+                        {t('stats.critical')}
                       </p>
                       <p className="text-xl font-bold text-gray-900 dark:text-gray-100 mt-0.5">
                         {criticalCount}
@@ -516,7 +518,7 @@ export default function BlacklistPage() {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">
-                        Alto Riesgo
+                        {t('stats.highRisk')}
                       </p>
                       <p className="text-xl font-bold text-gray-900 dark:text-gray-100 mt-0.5">
                         {highCount}
@@ -532,7 +534,7 @@ export default function BlacklistPage() {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">
-                        Activos
+                        {t('stats.active')}
                       </p>
                       <p className="text-xl font-bold text-gray-900 dark:text-gray-100 mt-0.5">
                         {activeCount}

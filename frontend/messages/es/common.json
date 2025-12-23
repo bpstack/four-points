@@ -1,0 +1,83 @@
+{
+  "language": {
+    "label": "Idioma",
+    "spanish": "Español",
+    "english": "English",
+    "switchTo": "Cambiar a {language}"
+  },
+  "navigation": {
+    "dashboard": "Panel",
+    "parking": "Parking",
+    "logbooks": "Libro de Consignas",
+    "groups": "Grupos",
+    "cashier": "Caja",
+    "maintenance": "Mantenimiento",
+    "blacklist": "blacklist",
+    "backoffice": "Backoffice",
+    "messages": "Mensajes",
+    "profile": "Perfil",
+    "settings": "Configuración",
+    "notifications": "Notificaciones",
+    "logout": "Cerrar Sesión",
+    "restaurant": "Restaurante",
+    "conciliation": "Conciliación",
+    "backofficeTasks": "Tareas de backoffice",
+    "hotelCashier": "Caja Hotel",
+    "cashierReports": "Reportes de Caja",
+    "cashierLogs": "Registros de Caja"
+  },
+  "actions": {
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "create": "Crear",
+    "search": "Buscar",
+    "filter": "Filtrar",
+    "export": "Exportar",
+    "import": "Importar",
+    "refresh": "Actualizar",
+    "close": "Cerrar",
+    "confirm": "Confirmar",
+    "back": "Volver",
+    "next": "Siguiente",
+    "previous": "Anterior",
+    "submit": "Enviar",
+    "loading": "Cargando...",
+    "view": "Ver",
+    "download": "Descargar",
+    "print": "Imprimir"
+  },
+  "status": {
+    "active": "Activo",
+    "inactive": "Inactivo",
+    "pending": "Pendiente",
+    "completed": "Completado",
+    "cancelled": "Cancelado",
+    "error": "Error",
+    "success": "Éxito"
+  },
+  "table": {
+    "noResults": "No se encontraron resultados",
+    "showing": "Mostrando",
+    "of": "de",
+    "entries": "registros",
+    "rowsPerPage": "Filas por página"
+  },
+  "profile": {
+    "myProfile": "Mi Perfil",
+    "messages": "Mensajes",
+    "notifications": "Notificaciones",
+    "settings": "Configuración",
+    "logout": "Cerrar Sesión"
+  },
+  "time": {
+    "today": "Hoy",
+    "yesterday": "Ayer",
+    "tomorrow": "Mañana",
+    "now": "Ahora",
+    "minutes": "minutos",
+    "hours": "horas",
+    "days": "días"
+  }
+}

@@ -3,6 +3,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
+import { useTranslations } from 'next-intl'
 import { FiX } from 'react-icons/fi'
 import {
   FaSignInAlt,
@@ -18,11 +19,12 @@ interface ActionDropdownProps {
   onAction: (action: string, booking: ParkingBooking) => void
 }
 
-const ACTIONS_BY_STATUS: Record<
+// Configuración de acciones con las claves de traducción
+const ACTIONS_CONFIG: Record<
   string,
   Array<{
     id: string
-    label: string
+    translationKey: string
     icon: React.ComponentType<{ className?: string }>
     color: string
     divider?: boolean
@@ -31,26 +33,26 @@ const ACTIONS_BY_STATUS: Record<
   reserved: [
     {
       id: 'checkin',
-      label: 'Realizar Check-in',
+      translationKey: 'actions.checkIn',
       icon: FaSignInAlt,
       color: 'text-green-600 dark:text-green-500',
     },
     {
       id: 'edit',
-      label: 'Modificar reserva',
+      translationKey: 'actions.edit',
       icon: FaEdit,
       color: 'text-blue-600 dark:text-blue-500',
     },
     {
       id: 'cancel',
-      label: 'Cancelar reserva',
+      translationKey: 'actions.cancel',
       icon: FiX,
       color: 'text-red-600 dark:text-red-500',
       divider: true,
     },
     {
       id: 'noshow',
-      label: 'Marcar como No presentado',
+      translationKey: 'actions.noShow',
       icon: FaExclamationTriangle,
       color: 'text-orange-600 dark:text-orange-500',
     },
@@ -58,13 +60,13 @@ const ACTIONS_BY_STATUS: Record<
   checked_in: [
     {
       id: 'checkout',
-      label: 'Realizar Check-out',
+      translationKey: 'actions.checkOut',
       icon: FaSignOutAlt,
       color: 'text-blue-600 dark:text-blue-500',
     },
     {
       id: 'cancel',
-      label: 'Cancelar reserva',
+      translationKey: 'actions.cancel',
       icon: FiX,
       color: 'text-red-600 dark:text-red-500',
     },
@@ -76,6 +78,7 @@ const ACTIONS_BY_STATUS: Record<
  * Usa Portal para evitar problemas de overflow en tablas
  */
 export function ActionDropdown({ booking, onAction }: ActionDropdownProps) {
+  const t = useTranslations('parking')
   const [isOpen, setIsOpen] = useState(false)
   const [position, setPosition] = useState({ top: 0, left: 0, openUpward: false })
   const buttonRef = useRef<HTMLButtonElement>(null)
@@ -119,7 +122,7 @@ export function ActionDropdown({ booking, onAction }: ActionDropdownProps) {
     setIsOpen(!isOpen)
   }
 
-  const availableActions = ACTIONS_BY_STATUS[booking.status] || []
+  const availableActions = ACTIONS_CONFIG[booking.status] || []
 
   if (availableActions.length === 0) {
     return <span className="text-xs text-gray-400 dark:text-gray-600">-</span>
@@ -153,7 +156,7 @@ export function ActionDropdown({ booking, onAction }: ActionDropdownProps) {
             >
               <Icon className={`w-4 h-4 ${action.color}`} />
               <span className="text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-gray-100">
-                {action.label}
+                {t(action.translationKey)}
               </span>
             </button>
           </div>
@@ -168,7 +171,7 @@ export function ActionDropdown({ booking, onAction }: ActionDropdownProps) {
         ref={buttonRef}
         onClick={handleToggle}
         className="p-1.5 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md transition-colors"
-        title="Acciones"
+        title={t('actions.title')}
       >
         <FaEllipsisV className="w-4 h-4" />
       </button>

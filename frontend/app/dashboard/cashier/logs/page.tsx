@@ -1,6 +1,7 @@
 // app/dashboard/cashier/logs/page.tsx
 'use client'
 
+import { useTranslations } from 'next-intl'
 import { useCashierStore, useLogsFilters } from '@/app/stores/useCashierStore'
 import DateNavigator from '@/app/components/cashier/DateNavigator'
 import HistoryTable from '@/app/components/cashier/logs/HistoryTable'
@@ -10,6 +11,8 @@ import { useHistoryLogs, useHistoryStats } from '@/app/lib/cashier/queries'
 import { FiActivity, FiUsers, FiList } from 'react-icons/fi'
 
 export default function LogsPage() {
+  const t = useTranslations('cashier')
+
   // Zustand store
   const {
     logsDate,
@@ -52,15 +55,15 @@ export default function LogsPage() {
   // Helper para labels de acciones
   const getActionLabel = (action: string): string => {
     const labels: Record<string, string> = {
-      created: 'Creado',
-      updated: 'Actualizado',
-      deleted: 'Eliminado',
-      status_changed: 'Cambio Estado',
-      adjustment: 'Ajuste',
-      voucher_created: 'Vale Creado',
-      voucher_repaid: 'Vale Justificado',
-      daily_closed: 'Día Cerrado',
-      daily_reopened: 'Día Reabierto',
+      created: t('actions.created'),
+      updated: t('actions.updated'),
+      deleted: t('actions.deleted'),
+      status_changed: t('actions.status_changed'),
+      adjustment: t('actions.adjustment'),
+      voucher_created: t('actions.voucher_created'),
+      voucher_repaid: t('actions.voucher_repaid'),
+      daily_closed: t('actions.daily_closed'),
+      daily_reopened: t('actions.daily_reopened'),
     }
     return labels[action] || action
   }
@@ -79,10 +82,10 @@ export default function LogsPage() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
           <div>
             <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
-              Historial y Auditoría
+              {t('logs.pageTitle')}
             </h1>
             <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-0.5">
-              Registro completo de cambios y acciones
+              {t('logs.pageSubtitle')}
             </p>
           </div>
 
@@ -106,7 +109,7 @@ export default function LogsPage() {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 font-medium">
-                        Total Registros
+                        {t('logs.totalRecords')}
                       </p>
                       <p className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 mt-0.5">
                         {statsData.total_entries}
@@ -121,7 +124,7 @@ export default function LogsPage() {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 font-medium">
-                        Usuarios Activos
+                        {t('logs.activeUsers')}
                       </p>
                       <p className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 mt-0.5">
                         {topUsers.length}
@@ -136,7 +139,7 @@ export default function LogsPage() {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 font-medium">
-                        Acción Frecuente
+                        {t('logs.frequentAction')}
                       </p>
                       <p className="text-sm sm:text-base font-bold text-gray-900 dark:text-gray-100 mt-0.5">
                         {topActions[0] ? getActionLabel(topActions[0].action) : '-'}

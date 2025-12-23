@@ -6,6 +6,7 @@
 'use client'
 
 import React from 'react'
+import { useTranslations } from 'next-intl'
 import { useParkingStatus } from '../hooks/useParkingStatus'
 import ParkingTable from './ParkingTable'
 import StatusPanels from './StatusPanels'
@@ -22,6 +23,7 @@ export default function ParkingStatusClient({
   selectedDate,
   levelFromUrl,
 }: ParkingStatusClientProps) {
+  const t = useTranslations('parking')
   const {
     // Data
     spots,
@@ -176,14 +178,14 @@ export default function ParkingStatusClient({
               <div className="bg-[#f6f8fa] dark:bg-[#0d1117] border-2 border-gray-200 dark:border-gray-800 rounded-2xl p-5 shadow-sm">
                 <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">
                   {levelFromUrl === 'all'
-                    ? 'Todas las Plantas'
-                    : `Planta ${levelFromUrl.replace('-', '')}`}
+                    ? t('statusPage.allLevels')
+                    : t('statusPage.level', { level: levelFromUrl.replace('-', '') })}
                 </h2>
                 <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
                   <div className="flex items-center gap-2">
                     <div className="w-3 h-3 bg-indigo-500 rounded-full" />
                     <span>
-                      Ocupación:{' '}
+                      {t('statusPage.occupancy')}:{' '}
                       <span className="font-semibold text-gray-900 dark:text-gray-100">
                         {Math.round(selectedLevelData.occupancy_rate)}%
                       </span>
@@ -191,7 +193,7 @@ export default function ParkingStatusClient({
                   </div>
                   <div className="w-px h-2 bg-gray-300 dark:bg-gray-700" />
                   <span>
-                    Disponibles:{' '}
+                    {t('statusPage.available')}:{' '}
                     <span className="font-semibold text-emerald-600 dark:text-emerald-400">
                       {selectedLevelData.available_spots}
                     </span>

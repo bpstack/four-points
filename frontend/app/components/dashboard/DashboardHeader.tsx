@@ -2,6 +2,7 @@
 'use client'
 
 import React from 'react'
+import { useTranslations, useLocale } from 'next-intl'
 import { FiZap } from 'react-icons/fi'
 
 interface DashboardHeaderProps {
@@ -10,12 +11,17 @@ interface DashboardHeaderProps {
 }
 
 export function DashboardHeader({ selectedPeriod, onPeriodChange }: DashboardHeaderProps) {
-  // Genera el texto de fecha según el período seleccionado
+  const t = useTranslations('dashboard.header')
+  const locale = useLocale()
+
+  const localeCode = locale === 'es' ? 'es-ES' : 'en-US'
+
+  // Genera el texto de fecha segun el periodo seleccionado
   const getDateRangeText = (): string => {
     const today = new Date()
 
     if (selectedPeriod === 'today') {
-      return today.toLocaleDateString('es-ES', {
+      return today.toLocaleDateString(localeCode, {
         weekday: 'long',
         year: 'numeric',
         month: 'long',
@@ -29,26 +35,34 @@ export function DashboardHeader({ selectedPeriod, onPeriodChange }: DashboardHea
 
       const startDay = weekStart.getDate()
       const endDay = today.getDate()
-      const startMonth = weekStart.toLocaleDateString('es-ES', { month: 'long' })
-      const endMonth = today.toLocaleDateString('es-ES', { month: 'long' })
+      const startMonth = weekStart.toLocaleDateString(localeCode, { month: 'long' })
+      const endMonth = today.toLocaleDateString(localeCode, { month: 'long' })
       const year = today.getFullYear()
 
-      // Si es el mismo mes: "11 - 17 de diciembre de 2025"
-      // Si son meses diferentes: "28 de noviembre - 4 de diciembre de 2025"
+      // Si es el mismo mes
       if (startMonth === endMonth) {
-        return `${startDay} - ${endDay} de ${endMonth} de ${year}`
+        if (locale === 'es') {
+          return `${startDay} - ${endDay} de ${endMonth} de ${year}`
+        }
+        return `${startDay} - ${endDay} ${endMonth} ${year}`
       } else {
-        return `${startDay} de ${startMonth} - ${endDay} de ${endMonth} de ${year}`
+        if (locale === 'es') {
+          return `${startDay} de ${startMonth} - ${endDay} de ${endMonth} de ${year}`
+        }
+        return `${startDay} ${startMonth} - ${endDay} ${endMonth} ${year}`
       }
     }
 
-    // month - mes calendario actual (1 - último día del mes)
+    // month - mes calendario actual (1 - ultimo dia del mes)
     const year = today.getFullYear()
     const month = today.getMonth()
     const lastDayOfMonth = new Date(year, month + 1, 0).getDate()
-    const monthName = today.toLocaleDateString('es-ES', { month: 'long' })
+    const monthName = today.toLocaleDateString(localeCode, { month: 'long' })
 
-    return `1 - ${lastDayOfMonth} de ${monthName} de ${year}`
+    if (locale === 'es') {
+      return `1 - ${lastDayOfMonth} de ${monthName} de ${year}`
+    }
+    return `1 - ${lastDayOfMonth} ${monthName} ${year}`
   }
 
   return (
@@ -61,7 +75,7 @@ export function DashboardHeader({ selectedPeriod, onPeriodChange }: DashboardHea
             <FiZap className="w-4 h-4 text-white" />
           </div>
           <h1 className="text-xl font-bold bg-gradient-to-r from-[#24292f] to-[#57606a] dark:from-[#f0f6fc] dark:to-[#c9d1d9] bg-clip-text text-transparent">
-            Dashboard
+            {t('title')}
           </h1>
           <span className="text-xs text-[#57606a] dark:text-[#8b949e] font-medium hidden sm:inline">
             {getDateRangeText()}
@@ -80,12 +94,12 @@ export function DashboardHeader({ selectedPeriod, onPeriodChange }: DashboardHea
                   : 'text-[#24292f] dark:text-[#c9d1d9] hover:bg-[#f6f8fa] dark:hover:bg-[#21262d]'
               }`}
             >
-              {period === 'today' ? 'Hoy' : period === 'week' ? 'Semana' : 'Mes'}
+              {t(`periods.${period}`)}
             </button>
           ))}
         </div>
       </div>
-      
+
       {/* Date on mobile (below title row) */}
       <p className="text-xs text-[#57606a] dark:text-[#8b949e] font-medium mt-2 sm:hidden">
         {getDateRangeText()}

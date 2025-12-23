@@ -2,6 +2,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { FiX, FiAlertCircle } from 'react-icons/fi'
 import { useReopenDay } from '@/app/lib/cashier/queries'
 import { toast } from 'react-hot-toast'
@@ -13,18 +14,19 @@ interface ReopenDayModalProps {
 }
 
 export default function ReopenDayModal({ isOpen, onClose, selectedDate }: ReopenDayModalProps) {
+  const t = useTranslations('cashier')
   const [reason, setReason] = useState('')
   const reopenDayMutation = useReopenDay()
 
   const handleReopen = async () => {
     if (!reason.trim()) {
-      toast.error('Debes proporcionar una razón para reabrir el día')
+      toast.error(t('reopenDay.mustProvideReason'))
       return
     }
 
     try {
       await reopenDayMutation.mutateAsync({ date: selectedDate, reason })
-      toast.success('Día reabierto correctamente')
+      toast.success(t('reopenDay.dayReopened'))
       setReason('')
       onClose()
     } catch (error) {
@@ -45,7 +47,7 @@ export default function ReopenDayModal({ isOpen, onClose, selectedDate }: Reopen
         <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-800">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
             <FiAlertCircle className="w-5 h-5 text-orange-600" />
-            Reabrir Día
+            {t('reopenDay.title')}
           </h3>
           <button
             onClick={onClose}
@@ -61,7 +63,7 @@ export default function ReopenDayModal({ isOpen, onClose, selectedDate }: Reopen
           {/* Fecha */}
           <div className="text-center p-3 bg-orange-50 dark:bg-orange-900/20 rounded-lg border border-orange-200 dark:border-orange-800">
             <p className="text-sm text-orange-700 dark:text-orange-300 mb-1">
-              Reabriendo día cerrado
+              {t('reopenDay.reopeningClosedDay')}
             </p>
             <p className="text-lg font-bold text-orange-900 dark:text-orange-100">
               {new Date(selectedDate).toLocaleDateString('es-ES', {
@@ -77,10 +79,9 @@ export default function ReopenDayModal({ isOpen, onClose, selectedDate }: Reopen
           <div className="p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg flex items-start gap-2">
             <FiAlertCircle className="w-5 h-5 text-yellow-600 dark:text-yellow-400 flex-shrink-0 mt-0.5" />
             <div className="text-sm text-yellow-700 dark:text-yellow-300">
-              <p className="font-medium">⚠️ Atención</p>
+              <p className="font-medium">⚠️ {t('reopenDay.attention')}</p>
               <p className="text-xs mt-1">
-                Reabrir un día cerrado permite hacer correcciones, pero debe tener una justificación
-                válida.
+                {t('reopenDay.warningMessage')}
               </p>
             </div>
           </div>
@@ -88,12 +89,12 @@ export default function ReopenDayModal({ isOpen, onClose, selectedDate }: Reopen
           {/* Razón */}
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Razón para reabrir <span className="text-red-500">*</span>
+              {t('reopenDay.reopenReason')} <span className="text-red-500">{t('common.required')}</span>
             </label>
             <textarea
               value={reason}
               onChange={(e) => setReason(e.target.value)}
-              placeholder="Ejemplo: Error en el conteo de efectivo del turno de mañana"
+              placeholder={t('reopenDay.reasonPlaceholder')}
               disabled={isLoading}
               rows={3}
               className="w-full px-4 py-2 text-sm text-gray-900 dark:text-white bg-gray-50 dark:bg-[#151b23] border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed resize-none"
@@ -101,7 +102,7 @@ export default function ReopenDayModal({ isOpen, onClose, selectedDate }: Reopen
               minLength={10}
             />
             <div className="mt-1 flex items-center justify-between text-xs">
-              <span className="text-gray-500 dark:text-gray-400">Mínimo 10 caracteres</span>
+              <span className="text-gray-500 dark:text-gray-400">{t('reopenDay.minCharacters')}</span>
               <span
                 className={`font-medium ${
                   reason.length < 10
@@ -111,7 +112,7 @@ export default function ReopenDayModal({ isOpen, onClose, selectedDate }: Reopen
                       : 'text-green-600 dark:text-green-400'
                 }`}
               >
-                {reason.length} caracteres
+                {reason.length} {t('reopenDay.characters')}
               </span>
             </div>
           </div>
@@ -124,7 +125,7 @@ export default function ReopenDayModal({ isOpen, onClose, selectedDate }: Reopen
             disabled={isLoading}
             className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-[#0d1117] border border-gray-300 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Cancelar
+            {t('reopenDay.cancel')}
           </button>
           <button
             onClick={handleReopen}
@@ -134,12 +135,12 @@ export default function ReopenDayModal({ isOpen, onClose, selectedDate }: Reopen
             {isLoading ? (
               <>
                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                Reabriendo...
+                {t('reopenDay.reopening')}
               </>
             ) : (
               <>
                 <FiAlertCircle className="w-4 h-4" />
-                Reabrir Día
+                {t('reopenDay.reopen')}
               </>
             )}
           </button>

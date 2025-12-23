@@ -1,6 +1,7 @@
 // app/dashboard/cashier/reports/page.tsx
 'use client'
 
+import { useTranslations } from 'next-intl'
 import {
   useCashierStore,
   useReportsDate,
@@ -15,13 +16,15 @@ import ReportsSummarySidebar from '@/app/components/cashier/layout/ReportsSummar
 import { useMonthlyReport } from '@/app/lib/cashier/queries'
 import { FiTrendingUp, FiDollarSign, FiCreditCard, FiCheckCircle } from 'react-icons/fi'
 
-const TAB_CONFIG: { id: 'summary' | 'payments' | 'vouchers'; label: string }[] = [
-  { id: 'summary', label: 'Resumen Mensual' },
-  { id: 'payments', label: 'Métodos de Pago' },
-  { id: 'vouchers', label: 'Histórico de Vales' },
-]
-
 export default function ReportsPage() {
+  const t = useTranslations('cashier')
+
+  const TAB_CONFIG: { id: 'summary' | 'payments' | 'vouchers'; label: string }[] = [
+    { id: 'summary', label: t('reports.monthlySummary') },
+    { id: 'payments', label: t('reports.paymentMethods') },
+    { id: 'vouchers', label: t('reports.vouchersHistory') },
+  ]
+
   // Zustand store
   const {
     getReportsDisplayLabel,
@@ -65,10 +68,10 @@ export default function ReportsPage() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
           <div>
             <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
-              Reportes y Estadísticas
+              {t('reports.pageTitle')}
             </h1>
             <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-0.5">
-              Análisis detallado de caja por periodo
+              {t('reports.pageSubtitle')}
             </p>
           </div>
 
@@ -92,7 +95,7 @@ export default function ReportsPage() {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-[10px] sm:text-xs text-green-700 dark:text-green-300 font-medium">
-                        Gran Total
+                        {t('reports.grandTotal')}
                       </p>
                       <p className="text-lg sm:text-xl font-bold text-green-900 dark:text-green-100 mt-0.5">
                         {parsedReport.grandTotal.toFixed(2)}€
@@ -106,7 +109,7 @@ export default function ReportsPage() {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 font-medium">
-                        Efectivo
+                        {t('reports.cash')}
                       </p>
                       <p className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 mt-0.5">
                         {parsedReport.totalCash.toFixed(2)}€
@@ -120,7 +123,7 @@ export default function ReportsPage() {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 font-medium">
-                        Electrónicos
+                        {t('reports.electronic')}
                       </p>
                       <p className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 mt-0.5">
                         {parsedReport.electronicPayments.toFixed(2)}€
@@ -134,7 +137,7 @@ export default function ReportsPage() {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 font-medium">
-                        Días Cerrados
+                        {t('reports.daysClosed')}
                       </p>
                       <p className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 mt-0.5">
                         {parsedReport.daysClosed}/{parsedReport.totalDays}
@@ -182,7 +185,7 @@ export default function ReportsPage() {
                             : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
                         }`}
                       >
-                        Pastel
+                        {t('reports.pie')}
                       </button>
                       <button
                         onClick={() => setChartViewMode('bar')}
@@ -192,7 +195,7 @@ export default function ReportsPage() {
                             : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
                         }`}
                       >
-                        Barras
+                        {t('reports.bar')}
                       </button>
                     </div>
                   </div>

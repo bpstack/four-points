@@ -1,4 +1,4 @@
-// app/components/bo/tabs/PendingInvoicesTab.tsx
+// app/components/bo/tabs/PendingInvoicesTabLazy.tsx
 /**
  * Client Component - Pending Invoices Tab
  *
@@ -10,6 +10,7 @@
 'use client'
 
 import React, { useMemo, useState, useTransition } from 'react'
+import { useTranslations } from 'next-intl'
 import {
   FiSearch,
   FiPlus,
@@ -58,6 +59,7 @@ export function PendingInvoicesTabLazy({
   suppliers,
   pagination,
 }: PendingInvoicesTabLazyProps): React.JSX.Element {
+  const t = useTranslations('backoffice')
   const queryClient = useQueryClient()
 
   const [searchTerm, setSearchTerm] = useState('')
@@ -197,7 +199,7 @@ export function PendingInvoicesTabLazy({
     })
 
     if (!hasValidated && !hasOriginal) {
-      toast.error('Esta factura no tiene PDF adjunto')
+      toast.error(t('toast.noPdfAttached'))
       return
     }
 
@@ -230,12 +232,12 @@ export function PendingInvoicesTabLazy({
     startTransition(async () => {
       try {
         await backofficeApi.deleteInvoice(deletingInvoice.id)
-        toast.success('Factura eliminada')
+        toast.success(t('toast.invoiceDeleted'))
         setDeletingInvoice(null)
         setDeleteDialogOpen(false)
         invalidatePending()
       } catch (error) {
-        const message = error instanceof Error ? error.message : 'Error al eliminar la factura'
+        const message = error instanceof Error ? error.message : t('toast.invoiceDeleteError')
         toast.error(message)
       }
     })
@@ -248,12 +250,12 @@ export function PendingInvoicesTabLazy({
     startTransition(async () => {
       try {
         await backofficeApi.validateInvoice(validatingInvoice.id)
-        toast.success('Factura validada correctamente')
+        toast.success(t('toast.invoiceValidated'))
         setValidateDialogOpen(false)
         setValidatingInvoice(null)
         invalidatePending()
       } catch (error: unknown) {
-        const message = error instanceof Error ? error.message : 'Error al validar la factura'
+        const message = error instanceof Error ? error.message : t('toast.invoiceValidateError')
         toast.error(message)
       }
     })
@@ -271,11 +273,11 @@ export function PendingInvoicesTabLazy({
       try {
         const result = await backofficeApi.unvalidateInvoice(invoice.id)
         console.log('[handleUnvalidate] Result:', result)
-        toast.success('Validación revertida correctamente')
+        toast.success(t('toast.validationReverted'))
         invalidatePending()
       } catch (error: unknown) {
         console.error('[handleUnvalidate] Error:', error)
-        const message = error instanceof Error ? error.message : 'Error al revertir la validación'
+        const message = error instanceof Error ? error.message : t('toast.validationRevertError')
         toast.error(message)
       }
     })
@@ -311,7 +313,7 @@ export function PendingInvoicesTabLazy({
       const validateResult = await backofficeApi.validateInvoice(editingPdfInvoice.id)
       console.log('[handlePdfEditorSave] Validate result:', validateResult)
 
-      toast.success('Factura validada con PDF firmado')
+      toast.success(t('toast.pdfValidatedWithStamp'))
 
       // Close modal first, then refresh data
       setPdfEditorOpen(false)
@@ -321,7 +323,7 @@ export function PendingInvoicesTabLazy({
       await queryClient.refetchQueries({ queryKey: pendingListKey(), exact: false })
     } catch (error: unknown) {
       console.error('[handlePdfEditorSave] Error:', error)
-      const message = error instanceof Error ? error.message : 'Error al guardar PDF validado'
+      const message = error instanceof Error ? error.message : t('toast.pdfValidatedSaveError')
       toast.error(message)
       setPdfEditorOpen(false)
       setEditingPdfInvoice(null)
@@ -345,10 +347,10 @@ export function PendingInvoicesTabLazy({
       }
 
       if (successCount > 0) {
-        toast.success(`${successCount} factura(s) validada(s)`)
+        toast.success(t('toast.invoicesValidated', { count: successCount }))
       }
       if (errorCount > 0) {
-        toast.error(`${errorCount} factura(s) con error`)
+        toast.error(t('toast.invoicesValidatedError', { count: errorCount }))
       }
 
       setSelectedInvoices([])
@@ -451,23 +453,13 @@ export function PendingInvoicesTabLazy({
     }
   }
 
-  // Get Spanish month name
-  const getSpanishMonthName = (month: number): string => {
-    const months = [
-      'Enero',
-      'Febrero',
-      'Marzo',
-      'Abril',
-      'Mayo',
-      'Junio',
-      'Julio',
-      'Agosto',
-      'Septiembre',
-      'Octubre',
-      'Noviembre',
-      'Diciembre',
+  // Get month name from translations
+  const getMonthName = (month: number): string => {
+    const monthKeys = [
+      'january', 'february', 'march', 'april', 'may', 'june',
+      'july', 'august', 'september', 'october', 'november', 'december'
     ]
-    return months[month - 1] || ''
+    return t(`months.${monthKeys[month - 1]}`)
   }
 
   const totalSelected = filteredInvoices
@@ -483,7 +475,7 @@ export function PendingInvoicesTabLazy({
           <FiSearch className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 dark:text-gray-500" />
           <input
             type="text"
-            placeholder="Buscar..."
+            placeholder={t('filters.search')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full pl-8 pr-3 py-1.5 text-xs border border-gray-300 dark:border-gray-700 dark:bg-[#151b23] dark:text-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent"
@@ -498,7 +490,7 @@ export function PendingInvoicesTabLazy({
           }
           className="flex-1 min-w-[280px] px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent bg-white dark:bg-[#151b23] dark:text-gray-200"
         >
-          <option value="all">Todas las categorías</option>
+          <option value="all">{t('filters.allCategories')}</option>
           {categories.map((cat) => (
             <option key={cat.id} value={cat.id}>
               {cat.cost_center} - {cat.department}
@@ -514,9 +506,9 @@ export function PendingInvoicesTabLazy({
           }
           className="w-full lg:w-40 px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent bg-white dark:bg-[#151b23] dark:text-gray-200"
         >
-          <option value="all">Todos los pagos</option>
-          <option value="transfer">Transferencia</option>
-          <option value="direct_debit">Domiciliación</option>
+          <option value="all">{t('filters.allPayments')}</option>
+          <option value="transfer">{t('filters.transfer')}</option>
+          <option value="direct_debit">{t('filters.directDebit')}</option>
         </select>
 
         {/* Actions */}
@@ -1065,7 +1057,7 @@ export function PendingInvoicesTabLazy({
 
                 <div className="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-md p-4 mb-4">
                   <p className="text-sm text-purple-800 dark:text-purple-300 mb-2">
-                    <strong>Mes:</strong> {getSpanishMonthName(batchPayPreview.month)}{' '}
+                    <strong>Mes:</strong> {getMonthName(batchPayPreview.month)}{' '}
                     {batchPayPreview.year}
                   </p>
                   <p className="text-sm text-purple-800 dark:text-purple-300 mb-2">
@@ -1086,7 +1078,7 @@ export function PendingInvoicesTabLazy({
                   <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-md p-3 mb-4">
                     <p className="text-xs text-blue-800 dark:text-blue-300">
                       Esta acción marcará todas las facturas validadas de{' '}
-                      {getSpanishMonthName(batchPayPreview.month)} como pagadas. La fecha de pago
+                      {getMonthName(batchPayPreview.month)} como pagadas. La fecha de pago
                       será la fecha de cada factura.
                     </p>
                   </div>

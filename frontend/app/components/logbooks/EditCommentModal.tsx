@@ -10,6 +10,7 @@ import {
   selectClassName,
   textareaClassName,
 } from '@/app/ui/panels'
+import { useTranslations } from 'next-intl'
 
 export interface EditCommentModalProps {
   isOpen: boolean
@@ -37,20 +38,21 @@ export default function EditCommentModal({
   isSubmitting,
 }: EditCommentModalProps) {
   const { departments, loading: departmentsLoading } = useDepartments()
+  const t = useTranslations('logbooks')
 
   return (
     <CenterModal
       isOpen={isOpen}
       onClose={onClose}
-      title="Edit Comment"
+      title={t('modals.editComment.title')}
       size="lg"
       headerIcon={<FiMessageSquare className="w-5 h-5 text-blue-600 dark:text-blue-400" />}
       footer={
         <CenterModalFooterButtons
           onCancel={onClose}
           onSubmit={onSave}
-          cancelText="Cancel"
-          submitText="Save Changes"
+          cancelText={t('modals.editComment.footer.cancel')}
+          submitText={t('modals.editComment.footer.submit')}
           submitIcon={<FiSave className="w-4 h-4" />}
           isSubmitting={isSubmitting}
           submitDisabled={!comment.trim() || comment.trim().length < 3}
@@ -59,33 +61,33 @@ export default function EditCommentModal({
       }
     >
       <div className="space-y-4">
-        <FormField label="Comment" required hint="Minimum 3 characters">
+        <FormField label={t('modals.editComment.fields.comment')} required hint={t('modals.editComment.hint')}>
           <textarea
             value={comment}
             onChange={(e) => setComment(e.target.value)}
             className={textareaClassName}
             rows={4}
-            placeholder="Edit your comment..."
+            placeholder={t('modals.editComment.placeholders.comment')}
             disabled={isSubmitting}
           />
         </FormField>
 
         <div className="grid grid-cols-2 gap-4">
-          <FormField label="Priority">
+          <FormField label={t('modals.editComment.fields.priority')}>
             <select
               value={priority}
               onChange={(e) => setPriority(e.target.value as 'baja' | 'media' | 'alta' | 'urgente')}
               className={selectClassName}
               disabled={isSubmitting}
             >
-              <option value="baja">Low</option>
-              <option value="media">Medium</option>
-              <option value="alta">High</option>
-              <option value="urgente">Critical</option>
+              <option value="baja">{t('priorities.low')}</option>
+              <option value="media">{t('priorities.medium')}</option>
+              <option value="alta">{t('priorities.high')}</option>
+              <option value="urgente">{t('priorities.critical')}</option>
             </select>
           </FormField>
 
-          <FormField label="Department">
+          <FormField label={t('modals.editComment.fields.department')}>
             <select
               value={department}
               onChange={(e) => setDepartment(Number(e.target.value))}
@@ -93,7 +95,7 @@ export default function EditCommentModal({
               disabled={isSubmitting || departmentsLoading}
             >
               {departmentsLoading ? (
-                <option>Loading...</option>
+                <option>{t('modals.common.loading')}</option>
               ) : departments.length > 0 ? (
                 departments.map((dept) => (
                   <option key={dept.id} value={dept.id}>
@@ -101,7 +103,7 @@ export default function EditCommentModal({
                   </option>
                 ))
               ) : (
-                <option value={department}>No departments</option>
+                <option value={department}>{t('modals.common.noDepartments')}</option>
               )}
             </select>
           </FormField>

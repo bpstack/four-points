@@ -7,6 +7,7 @@ import { useForm, type Resolver } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { FiSave, FiEdit } from 'react-icons/fi'
 import toast from 'react-hot-toast'
+import { useTranslations } from 'next-intl'
 
 import { roomSchema, type RoomFormData } from '@/app/lib/schemas/group-schemas'
 import { useCreateOrUpdateRoom, useUpdateRoom } from '@/app/lib/groups'
@@ -29,15 +30,16 @@ interface RoomPanelProps {
   groupId: number
 }
 
-const ROOM_TYPES = [
-  { value: RoomType.SINGLE, label: 'Individual', icon: '1' },
-  { value: RoomType.DOUBLE_BED, label: 'Doble (1 cama)', icon: '2' },
-  { value: RoomType.TWIN_BEDS, label: 'Doble (2 camas)', icon: '2+' },
-] as const
-
 export function RoomPanel({ isOpen, onClose, room, groupId }: RoomPanelProps) {
+  const t = useTranslations('groups')
   const { currentGroup } = useGroupStore()
   const isEditing = !!room
+
+  const ROOM_TYPES = [
+    { value: RoomType.SINGLE, label: t('roomPanel.single'), icon: '1' },
+    { value: RoomType.DOUBLE_BED, label: t('roomPanel.doubleBed'), icon: '2' },
+    { value: RoomType.TWIN_BEDS, label: t('roomPanel.twinBeds'), icon: '2+' },
+  ] as const
 
   const effectiveGroupId = currentGroup?.id ?? groupId
   const createOrUpdateRoomMutation = useCreateOrUpdateRoom(effectiveGroupId)
@@ -88,22 +90,22 @@ export function RoomPanel({ isOpen, onClose, room, groupId }: RoomPanelProps) {
       }
 
       if (!effectiveGroupId) {
-        throw new Error('Falta el identificador del grupo')
+        throw new Error(t('roomPanel.missingGroupId'))
       }
 
       if (isEditing && room) {
         await updateRoomMutation.mutateAsync(payload)
-        toast.success('Habitación actualizada correctamente')
+        toast.success(t('roomPanel.updateSuccess'))
       } else {
         await createOrUpdateRoomMutation.mutateAsync(payload)
-        toast.success('Habitación creada correctamente')
+        toast.success(t('roomPanel.createSuccess'))
       }
 
       onClose()
       reset()
     } catch (error) {
       console.error('Error saving room:', error)
-      const message = error instanceof Error ? error.message : 'Error al guardar la habitación'
+      const message = error instanceof Error ? error.message : t('roomPanel.error')
       toast.error(message)
     }
   }
@@ -112,12 +114,8 @@ export function RoomPanel({ isOpen, onClose, room, groupId }: RoomPanelProps) {
     <SlidePanel
       isOpen={isOpen}
       onClose={onClose}
-      title={isEditing ? 'Editar Habitación' : 'Nueva Habitación'}
-      subtitle={
-        isEditing
-          ? 'Actualiza los datos de la habitación'
-          : 'Agrega un nuevo tipo de habitación al grupo'
-      }
+      title={isEditing ? t('roomPanel.editRoom') : t('roomPanel.newRoom')}
+      subtitle={isEditing ? t('roomPanel.editSubtitle') : t('roomPanel.subtitle')}
       size="md"
       headerIcon={<FiEdit className="w-5 h-5 text-blue-600 dark:text-blue-400" />}
       footer={
@@ -127,7 +125,7 @@ export function RoomPanel({ isOpen, onClose, room, groupId }: RoomPanelProps) {
           isSubmitting={
             isSubmitting || createOrUpdateRoomMutation.isPending || updateRoomMutation.isPending
           }
-          submitText={isEditing ? 'Actualizar' : 'Crear Habitación'}
+          submitText={isEditing ? t('roomPanel.updateRoom') : t('roomPanel.createRoom')}
           submitIcon={<FiSave className="w-4 h-4" />}
           submitVariant="primary"
         />
@@ -135,7 +133,7 @@ export function RoomPanel({ isOpen, onClose, room, groupId }: RoomPanelProps) {
     >
       <SlidePanelSection>
         {/* Room Type */}
-        <FormField label="Tipo de Habitación" required error={errors.room_type?.message}>
+        <FormField label={t('roomPanel.roomType')} required error={errors.room_type?.message}>
           <div className="grid grid-cols-1 gap-2">
             {ROOM_TYPES.map((type) => (
               <label
@@ -160,24 +158,24 @@ export function RoomPanel({ isOpen, onClose, room, groupId }: RoomPanelProps) {
         </FormField>
 
         {/* Quantity */}
-        <FormField label="Cantidad de Habitaciones" required error={errors.quantity?.message}>
+        <FormField label={t('roomPanel.quantity')} required error={errors.quantity?.message}>
           <input
             {...register('quantity', { valueAsNumber: true })}
             type="number"
             min="1"
-            placeholder="Ej: 10"
+            placeholder={t('roomPanel.quantityPlaceholder')}
             className={inputClassName}
           />
         </FormField>
 
         {/* Guests per Room */}
-        <FormField label="Personas por Habitación" required error={errors.guests_per_room?.message}>
+        <FormField label={t('roomPanel.guestsPerRoom')} required error={errors.guests_per_room?.message}>
           <input
             {...register('guests_per_room', { valueAsNumber: true })}
             type="number"
             min="1"
             max="10"
-            placeholder="Ej: 2"
+            placeholder={t('roomPanel.guestsPerRoomPlaceholder')}
             className={inputClassName}
           />
         </FormField>
@@ -186,22 +184,21 @@ export function RoomPanel({ isOpen, onClose, room, groupId }: RoomPanelProps) {
         {quantity > 0 && guestsPerRoom > 0 && (
           <Alert variant="info">
             <div className="flex items-center justify-between">
-              <span className="font-medium">Total de Huéspedes:</span>
+              <span className="font-medium">{t('roomPanel.totalGuests')}</span>
               <span className="text-lg font-bold">{totalGuests}</span>
             </div>
             <p className="text-xs mt-1 opacity-80">
-              {quantity} habitación{quantity !== 1 && 'es'} × {guestsPerRoom} persona
-              {guestsPerRoom !== 1 && 's'}
+              {quantity} {quantity !== 1 ? t('roomPanel.roomsCalcPlural') : t('roomPanel.roomsCalc')} × {guestsPerRoom} {guestsPerRoom !== 1 ? t('roomPanel.personsCalc') : t('roomPanel.personCalc')}
             </p>
           </Alert>
         )}
 
         {/* Notes */}
-        <FormField label="Notas" error={errors.notes?.message}>
+        <FormField label={t('roomPanel.notes')} error={errors.notes?.message}>
           <textarea
             {...register('notes')}
             rows={3}
-            placeholder="Observaciones sobre estas habitaciones..."
+            placeholder={t('roomPanel.notesPlaceholder')}
             className={textareaClassName}
           />
         </FormField>

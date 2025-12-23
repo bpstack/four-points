@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { blacklistEditSchema } from '@/app/lib/blacklist/blacklistSchema'
 import { blacklistApi } from '@/app/lib/blacklist/blacklistApi'
 import { updateBlacklist, deleteBlacklist } from '@/app/dashboard/blacklist/actions'
@@ -43,6 +44,7 @@ type BlacklistEditFormValues = {
 }
 
 export function EditBlacklistPanel({ isOpen, onClose, entry, onSuccess }: EditBlacklistPanelProps) {
+  const t = useTranslations('blacklist')
   const router = useRouter()
   const [showCheckInCalendar, setShowCheckInCalendar] = useState(false)
   const [showCheckOutCalendar, setShowCheckOutCalendar] = useState(false)
@@ -120,7 +122,7 @@ export function EditBlacklistPanel({ isOpen, onClose, entry, onSuccess }: EditBl
     const files = Array.from(e.target.files || [])
     const existingCount = entry.images?.length || 0
     if (files.length + existingCount > 5) {
-      toast.error(`Maximo 5 imagenes en total. Ya tienes ${existingCount} imagenes.`)
+      toast.error(t('form.maxImagesEdit', { count: existingCount }))
       return
     }
     setSelectedImages(files)
@@ -140,14 +142,14 @@ export function EditBlacklistPanel({ isOpen, onClose, entry, onSuccess }: EditBl
       // Upload new images if any
       if (selectedImages.length > 0) {
         setUploadingImages(true)
-        toast.loading('Subiendo imagenes...')
+        toast.loading(t('messages.uploadingImages'))
 
         const uploadedImages = await blacklistApi.uploadImages(selectedImages)
         const newImageUrls = uploadedImages.map((img) => img.secure_url)
         imageUrls = [...imageUrls, ...newImageUrls]
 
         toast.dismiss()
-        toast.success(`${newImageUrls.length} imagenes subidas correctamente`)
+        toast.success(t('messages.newImagesUploaded', { count: newImageUrls.length }))
       }
 
       setUploadingImages(false)
@@ -165,19 +167,19 @@ export function EditBlacklistPanel({ isOpen, onClose, entry, onSuccess }: EditBl
         images: imageUrls,
       }
 
-      toast.loading('Actualizando registro...')
+      toast.loading(t('messages.updatingEntry'))
       const result = await updateBlacklist(entry.id, payload)
       toast.dismiss()
 
       if (result.success) {
-        toast.success('Registro actualizado exitosamente')
+        toast.success(t('messages.updateSuccess'))
         onSuccess()
         onClose()
       } else {
-        toast.error(result.error || 'Error al actualizar el registro')
+        toast.error(result.error || t('messages.saveError'))
       }
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Error al procesar el formulario'
+      const message = error instanceof Error ? error.message : t('messages.formError')
       console.error('Error en submit:', message)
       toast.dismiss()
       toast.error(message)
@@ -189,20 +191,20 @@ export function EditBlacklistPanel({ isOpen, onClose, entry, onSuccess }: EditBl
   const handleDelete = async () => {
     setIsDeleting(true)
     try {
-      toast.loading('Eliminando registro...')
+      toast.loading(t('delete.deleting'))
       const result = await deleteBlacklist(entry.id)
       toast.dismiss()
 
       if (result.success) {
-        toast.success('Registro eliminado correctamente')
+        toast.success(t('delete.success'))
         onClose()
         router.push('/dashboard/blacklist')
       } else {
-        toast.error(result.error || 'Error al eliminar el registro')
+        toast.error(result.error || t('delete.error'))
       }
     } catch (error) {
       console.error('Error deleting entry:', error)
-      const message = error instanceof Error ? error.message : 'Error al eliminar el registro'
+      const message = error instanceof Error ? error.message : t('delete.error')
       toast.dismiss()
       toast.error(message)
     } finally {
@@ -231,7 +233,7 @@ export function EditBlacklistPanel({ isOpen, onClose, entry, onSuccess }: EditBl
           disabled={isSubmitting || uploadingImages || isDeleting}
           className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 transition-colors"
         >
-          Cancelar
+          {t('form.cancel')}
         </button>
         <button
           type="button"
@@ -247,12 +249,12 @@ export function EditBlacklistPanel({ isOpen, onClose, entry, onSuccess }: EditBl
           {isSubmitting || uploadingImages ? (
             <>
               <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              {uploadingImages ? 'Subiendo...' : 'Actualizando...'}
+              {uploadingImages ? t('form.uploadingImages') : t('panels.updating')}
             </>
           ) : (
             <>
               <FiSave className="w-4 h-4" />
-              Actualizar Registro
+              {t('panels.updateButton')}
             </>
           )}
         </button>
@@ -268,12 +270,12 @@ export function EditBlacklistPanel({ isOpen, onClose, entry, onSuccess }: EditBl
             className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 focus:outline-none focus:text-red-600 dark:focus:text-red-400 disabled:opacity-50 transition-colors"
           >
             <FiTrash2 className="w-3.5 h-3.5" />
-            Eliminar registro
+            {t('delete.deleteEntry')}
           </button>
         ) : (
           <div className="flex items-center gap-2">
             <span className="text-xs text-gray-600 dark:text-gray-400">
-              ¿Seguro que quieres eliminar este registro?
+              {t('delete.confirmTitle')}
             </span>
             <button
               type="button"
@@ -281,7 +283,7 @@ export function EditBlacklistPanel({ isOpen, onClose, entry, onSuccess }: EditBl
               disabled={isDeleting}
               className="px-2.5 py-1 text-xs font-medium text-white bg-red-600 rounded hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-50"
             >
-              {isDeleting ? 'Eliminando...' : 'Si'}
+              {isDeleting ? t('delete.deleting') : t('delete.yes')}
             </button>
             <button
               type="button"
@@ -289,7 +291,7 @@ export function EditBlacklistPanel({ isOpen, onClose, entry, onSuccess }: EditBl
               disabled={isDeleting}
               className="px-2.5 py-1 text-xs font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 focus:outline-none disabled:opacity-50"
             >
-              No
+              {t('delete.no')}
             </button>
           </div>
         )}
@@ -301,24 +303,24 @@ export function EditBlacklistPanel({ isOpen, onClose, entry, onSuccess }: EditBl
     <SlidePanel
       isOpen={isOpen}
       onClose={onClose}
-      title="Editar Registro Blacklist"
-      subtitle="Actualiza la informacion del registro"
+      title={t('panels.editTitle')}
+      subtitle={t('panels.editSubtitle')}
       size="lg"
       footer={renderFooter()}
     >
       {/* Guest Information */}
-      <SlidePanelSection title="Informacion del huesped">
-        <FormField label="Nombre completo" required error={errors.guest_name?.message}>
+      <SlidePanelSection title={t('form.guestInfo')}>
+        <FormField label={t('form.fullName')} required error={errors.guest_name?.message}>
           <input
             {...register('guest_name')}
             type="text"
-            placeholder="Nombre y apellidos del huesped"
+            placeholder={t('form.fullNamePlaceholder')}
             className={inputClassName}
           />
         </FormField>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <FormField label="Tipo de documento" required error={errors.document_type?.message}>
+          <FormField label={t('form.documentType')} required error={errors.document_type?.message}>
             <select {...register('document_type')} className={selectClassName}>
               {Object.entries(DOCUMENT_TYPES).map(([value, label]) => (
                 <option key={value} value={value}>
@@ -328,11 +330,11 @@ export function EditBlacklistPanel({ isOpen, onClose, entry, onSuccess }: EditBl
             </select>
           </FormField>
 
-          <FormField label="Numero de documento" required error={errors.document_number?.message}>
+          <FormField label={t('form.documentNumber')} required error={errors.document_number?.message}>
             <input
               {...register('document_number')}
               type="text"
-              placeholder="12345678A"
+              placeholder={t('form.documentPlaceholder')}
               className={inputClassName}
             />
           </FormField>
@@ -340,11 +342,11 @@ export function EditBlacklistPanel({ isOpen, onClose, entry, onSuccess }: EditBl
       </SlidePanelSection>
 
       {/* Stay Dates */}
-      <SlidePanelSection title="Fechas de hospedaje">
+      <SlidePanelSection title={t('form.stayDates')}>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {/* Check-in Date */}
           <div className="relative calendar-container">
-            <FormField label="Fecha de entrada" required error={errors.check_in_date?.message}>
+            <FormField label={t('form.checkInDate')} required error={errors.check_in_date?.message}>
               <div className="relative">
                 <Controller
                   name="check_in_date"
@@ -354,7 +356,7 @@ export function EditBlacklistPanel({ isOpen, onClose, entry, onSuccess }: EditBl
                       type="text"
                       value={formatDateDisplay(field.value)}
                       readOnly
-                      placeholder="Selecciona fecha"
+                      placeholder={t('form.selectDate')}
                       onClick={(e) => {
                         e.stopPropagation()
                         setShowCheckOutCalendar(false)
@@ -386,7 +388,7 @@ export function EditBlacklistPanel({ isOpen, onClose, entry, onSuccess }: EditBl
 
           {/* Check-out Date */}
           <div className="relative calendar-container">
-            <FormField label="Fecha de salida" required error={errors.check_out_date?.message}>
+            <FormField label={t('form.checkOutDate')} required error={errors.check_out_date?.message}>
               <div className="relative">
                 <Controller
                   name="check_out_date"
@@ -396,7 +398,7 @@ export function EditBlacklistPanel({ isOpen, onClose, entry, onSuccess }: EditBl
                       type="text"
                       value={formatDateDisplay(field.value)}
                       readOnly
-                      placeholder="Selecciona fecha"
+                      placeholder={t('form.selectDate')}
                       onClick={(e) => {
                         e.stopPropagation()
                         setShowCheckInCalendar(false)
@@ -432,8 +434,8 @@ export function EditBlacklistPanel({ isOpen, onClose, entry, onSuccess }: EditBl
       </SlidePanelSection>
 
       {/* Incident Details */}
-      <SlidePanelSection title="Detalles del incidente">
-        <FormField label="Nivel de gravedad" required error={errors.severity?.message}>
+      <SlidePanelSection title={t('form.incidentDetails')}>
+        <FormField label={t('form.severityLevel')} required error={errors.severity?.message}>
           <select {...register('severity')} className={selectClassName}>
             {Object.entries(SEVERITY_LEVELS).map(([value, label]) => (
               <option key={value} value={value}>
@@ -443,32 +445,32 @@ export function EditBlacklistPanel({ isOpen, onClose, entry, onSuccess }: EditBl
           </select>
         </FormField>
 
-        <FormField label="Motivo de inclusion" required error={errors.reason?.message}>
+        <FormField label={t('form.inclusionReason')} required error={errors.reason?.message}>
           <textarea
             {...register('reason')}
             rows={3}
-            placeholder="Describe el motivo por el cual se incluye al huesped en la lista negra..."
+            placeholder={t('form.inclusionReasonPlaceholder')}
             className={textareaClassName}
           />
         </FormField>
 
-        <FormField label="Comentarios adicionales" required error={errors.comments?.message}>
+        <FormField label={t('form.additionalComments')} required error={errors.comments?.message}>
           <textarea
             {...register('comments')}
             rows={3}
-            placeholder="Agrega cualquier informacion adicional relevante..."
+            placeholder={t('form.additionalCommentsPlaceholder')}
             className={textareaClassName}
           />
         </FormField>
       </SlidePanelSection>
 
       {/* Evidence Photos */}
-      <SlidePanelSection title="Evidencia fotografica">
+      <SlidePanelSection title={t('form.photoEvidence')}>
         {/* Existing Images */}
         {entry.images && entry.images.length > 0 && (
           <div className="mb-4">
             <p className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Imagenes actuales ({entry.images.length}):
+              {t('form.currentImages')} ({entry.images.length}):
             </p>
             <div className="flex flex-wrap gap-2">
               {entry.images.map((url, index) => (
@@ -490,8 +492,8 @@ export function EditBlacklistPanel({ isOpen, onClose, entry, onSuccess }: EditBl
 
         {/* Add New Images */}
         <FormField
-          label="Agregar nuevas imagenes"
-          hint={`Maximo ${5 - (entry.images?.length || 0)} mas (PNG, JPG, WEBP - max 5MB c/u)`}
+          label={t('form.addNewImages')}
+          hint={t('form.imageHintEdit', { count: 5 - (entry.images?.length || 0) })}
         >
           <div className="flex items-center justify-center w-full">
             <label
@@ -504,7 +506,7 @@ export function EditBlacklistPanel({ isOpen, onClose, entry, onSuccess }: EditBl
               <div className="flex flex-col items-center justify-center pt-2 pb-3">
                 <FiUpload className="w-5 h-5 mb-1 text-gray-400" />
                 <p className="text-xs text-gray-500 dark:text-gray-400">
-                  <span className="font-semibold">Click para subir</span>
+                  <span className="font-semibold">{t('form.clickToUpload')}</span>
                 </p>
               </div>
               <input
@@ -522,7 +524,7 @@ export function EditBlacklistPanel({ isOpen, onClose, entry, onSuccess }: EditBl
           {selectedImages.length > 0 && (
             <div className="mt-3">
               <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">
-                {selectedImages.length} imagen(es) nueva(s):
+                {t('form.newImagesSelected', { count: selectedImages.length })}
               </p>
               <div className="flex flex-wrap gap-2">
                 {selectedImages.map((file, index) => (

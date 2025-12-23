@@ -2,8 +2,13 @@
 import './ui/global.css'
 import { ACTIVE_FONTS as activeFonts } from './ui/fonts-design/fonts.helper'
 import Providers from './lib/theme/ThemeProvider'
+import { NextIntlClientProvider } from 'next-intl'
+import { getLocale, getMessages } from 'next-intl/server'
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const locale = await getLocale()
+  const messages = await getMessages()
+
   const fontVars: Record<string, string> = {}
   if (activeFonts.primary.style?.fontFamily) {
     fontVars['--font-primary'] = activeFonts.primary.style.fontFamily
@@ -17,7 +22,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
   return (
     <html
-      lang="es"
+      lang={locale}
       suppressHydrationWarning
       className={`${activeFonts.primary.variable} ${activeFonts.display.variable}`}
       style={Object.keys(fontVars).length > 0 ? (fontVars as React.CSSProperties) : undefined}
@@ -37,7 +42,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         className="antialiased font-sans bg-white dark:bg-[#010409]"
         suppressHydrationWarning={true}
       >
-        <Providers>{children}</Providers>
+        <NextIntlClientProvider messages={messages}>
+          <Providers>{children}</Providers>
+        </NextIntlClientProvider>
       </body>
     </html>
   )

@@ -19,6 +19,7 @@ import {
   FiFileText,
   FiCheck,
 } from 'react-icons/fi'
+import { useTranslations } from 'next-intl'
 import { backofficeApi } from '@/app/lib/backoffice/backofficeApi'
 import toast from 'react-hot-toast'
 
@@ -42,6 +43,7 @@ export function PdfViewerModal({
   hasValidatedPdf: initialHasValidated,
   invoiceStatus: initialStatus,
 }: PdfViewerModalProps) {
+  const t = useTranslations('backoffice')
   // Fresh data from server (overrides initial props)
   const [hasOriginalPdf, setHasOriginalPdf] = useState(initialHasOriginal)
   const [hasValidatedPdf, setHasValidatedPdf] = useState(initialHasValidated)
@@ -133,7 +135,7 @@ export function PdfViewerModal({
     // Check if we have the selected PDF type
     const hasPdf = activePdfType === 'original' ? hasOriginalPdf : hasValidatedPdf
     if (!hasPdf) {
-      setError(`No hay PDF ${activePdfType === 'original' ? 'original' : 'validado'} disponible`)
+      setError(activePdfType === 'original' ? 'noOriginalAvailable' : 'noValidatedAvailable')
       setPdfBlobUrl(null)
       return
     }
@@ -152,8 +154,7 @@ export function PdfViewerModal({
         setPdfBlobUrl(url)
       } catch (err) {
         console.error('Error fetching PDF:', err)
-        const message = err instanceof Error ? err.message : 'Error al obtener el PDF'
-        setError(message)
+        setError('errorLoading')
       } finally {
         setLoading(false)
       }
@@ -194,10 +195,10 @@ export function PdfViewerModal({
       document.body.appendChild(link)
       link.click()
       document.body.removeChild(link)
-      toast.success('PDF descargado')
+      toast.success(t('modals.pdfViewer.pdfDownloaded'))
     } catch (error) {
       console.error('Download error:', error)
-      toast.error('Error al descargar el PDF')
+      toast.error(t('modals.pdfViewer.downloadError'))
     } finally {
       setDownloading(false)
     }
@@ -226,11 +227,11 @@ export function PdfViewerModal({
                   {invoiceNumber}
                 </h2>
                 <p className="text-xs text-gray-500 dark:text-gray-400">
-                  {activePdfType === 'validated' ? 'PDF Validado' : 'PDF Original'}
+                  {activePdfType === 'validated' ? t('modals.pdfViewer.validatedPdf') : t('modals.pdfViewer.originalPdf')}
                   {invoiceStatus === 'validated' && activePdfType === 'validated' && (
                     <span className="inline-flex items-center gap-1 ml-2 text-green-600 dark:text-green-400">
                       <FiCheck className="w-3 h-3" />
-                      Validado
+                      {t('modals.pdfViewer.validated')}
                     </span>
                   )}
                 </p>
@@ -244,30 +245,30 @@ export function PdfViewerModal({
                   <button
                     onClick={handleOpenInNewTab}
                     className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-                    title="Abrir en nueva pestaña"
+                    title={t('modals.pdfViewer.openNewTab')}
                   >
                     <FiExternalLink className="w-3.5 h-3.5" />
-                    <span className="hidden md:inline">Nueva pestaña</span>
+                    <span className="hidden md:inline">{t('modals.pdfViewer.newTab')}</span>
                   </button>
                   <button
                     onClick={handleDownload}
                     disabled={downloading}
                     className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50"
-                    title="Descargar PDF"
+                    title={t('modals.pdfViewer.downloadPdf')}
                   >
                     {downloading ? (
                       <FiLoader className="w-3.5 h-3.5 animate-spin" />
                     ) : (
                       <FiDownload className="w-3.5 h-3.5" />
                     )}
-                    <span className="hidden md:inline">Descargar</span>
+                    <span className="hidden md:inline">{t('modals.pdfViewer.download')}</span>
                   </button>
                 </>
               )}
               <button
                 onClick={onClose}
                 className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded transition-colors"
-                title="Cerrar"
+                title={t('modals.pdfViewer.close')}
               >
                 <FiX className="w-5 h-5" />
               </button>
@@ -285,7 +286,7 @@ export function PdfViewerModal({
                     : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
                 }`}
               >
-                Original
+                {t('modals.pdfViewer.originalTab')}
               </button>
               <button
                 onClick={() => setActivePdfType('validated')}
@@ -296,7 +297,7 @@ export function PdfViewerModal({
                 }`}
               >
                 <FiCheck className="w-3.5 h-3.5" />
-                Validado
+                {t('modals.pdfViewer.validatedTab')}
               </button>
             </div>
           )}
@@ -306,18 +307,18 @@ export function PdfViewerModal({
             {isLoadingInitial ? (
               <div className="flex flex-col items-center justify-center h-full text-gray-500 dark:text-gray-400">
                 <FiLoader className="w-12 h-12 animate-spin mb-4" />
-                <p className="text-sm">Cargando datos de factura...</p>
+                <p className="text-sm">{t('modals.pdfViewer.loadingInvoice')}</p>
               </div>
             ) : loading ? (
               <div className="flex flex-col items-center justify-center h-full text-gray-500 dark:text-gray-400">
                 <FiLoader className="w-12 h-12 animate-spin mb-4" />
-                <p className="text-sm">Cargando PDF...</p>
+                <p className="text-sm">{t('modals.pdfViewer.loadingPdf')}</p>
               </div>
             ) : error ? (
               <div className="flex flex-col items-center justify-center h-full text-red-500">
                 <FiAlertCircle className="w-12 h-12 mb-4" />
-                <p className="font-medium">Error al cargar el PDF</p>
-                <p className="text-sm mt-1 text-gray-500 dark:text-gray-400">{error}</p>
+                <p className="font-medium">{t('modals.pdfViewer.errorLoading')}</p>
+                <p className="text-sm mt-1 text-gray-500 dark:text-gray-400">{t(`modals.pdfViewer.${error}`)}</p>
                 <button
                   onClick={() => {
                     setError(null)
@@ -328,12 +329,12 @@ export function PdfViewerModal({
                         const url = URL.createObjectURL(blob)
                         setPdfBlobUrl(url)
                       })
-                      .catch((err) => setError(err.message || 'Error al obtener el PDF'))
+                      .catch(() => setError('errorLoading'))
                       .finally(() => setLoading(false))
                   }}
                   className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
                 >
-                  Reintentar
+                  {t('modals.pdfViewer.retry')}
                 </button>
               </div>
             ) : pdfBlobUrl ? (
@@ -345,7 +346,7 @@ export function PdfViewerModal({
             ) : (
               <div className="flex flex-col items-center justify-center h-full text-gray-500 dark:text-gray-400">
                 <FiFileText className="w-12 h-12 mb-4" />
-                <p className="text-sm">No hay PDF disponible</p>
+                <p className="text-sm">{t('modals.pdfViewer.noPdfAvailable')}</p>
               </div>
             )}
           </div>
@@ -358,7 +359,7 @@ export function PdfViewerModal({
                 className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
               >
                 <FiExternalLink className="w-4 h-4" />
-                Nueva pestaña
+                {t('modals.pdfViewer.newTab')}
               </button>
               <button
                 onClick={handleDownload}
@@ -370,7 +371,7 @@ export function PdfViewerModal({
                 ) : (
                   <FiDownload className="w-4 h-4" />
                 )}
-                Descargar
+                {t('modals.pdfViewer.download')}
               </button>
             </div>
           )}

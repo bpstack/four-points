@@ -7,6 +7,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { FiChevronLeft, FiChevronRight, FiCalendar, FiPlus } from 'react-icons/fi'
 import { MdLocalParking } from 'react-icons/md'
 import Link from 'next/link'
@@ -20,6 +21,7 @@ const getLocalDateString = (date: Date = new Date()): string => {
 }
 
 export default function ParkingNavigator() {
+  const t = useTranslations('parking')
   const router = useRouter()
   const searchParams = useSearchParams()
 
@@ -69,7 +71,7 @@ export default function ParkingNavigator() {
   if (!isClient || !currentDate || selectedDay === null) {
     return (
       <div className="flex items-center justify-center min-h-[200px]">
-        <div className="text-gray-500 dark:text-gray-400">Cargando calendario...</div>
+        <div className="text-gray-500 dark:text-gray-400">{t('statusPageNav.loadingCalendar')}</div>
       </div>
     )
   }
@@ -119,7 +121,7 @@ export default function ParkingNavigator() {
                   <MdLocalParking className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                 </div>
                 <h1 className="text-base font-semibold text-gray-900 dark:text-white">
-                  Control de Parking
+                  {t('statusPageNav.title')}
                 </h1>
               </div>
 
@@ -148,7 +150,7 @@ export default function ParkingNavigator() {
                 onClick={goToToday}
                 className="ml-3 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-700 rounded-md hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors flex items-center gap-1"
               >
-                <FiCalendar className="w-4 h-4" /> Hoy
+                <FiCalendar className="w-4 h-4" /> {t('statusPageNav.today')}
               </button>
 
               {/* Filtros de nivel */}
@@ -163,7 +165,7 @@ export default function ParkingNavigator() {
                         : 'text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800'
                     }`}
                   >
-                    {level === 'all' ? 'Todas' : `Planta ${level.replace('-', '')}`}
+                    {level === 'all' ? t('statusPageNav.allLevels') : t('statusPageNav.level', { level: level.replace('-', '') })}
                   </button>
                 ))}
               </div>
@@ -171,7 +173,7 @@ export default function ParkingNavigator() {
 
             <Link href="/dashboard/parking/bookings/new">
               <button className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 rounded-md transition-colors">
-                <FiPlus className="w-4 h-4" /> Nueva Reserva
+                <FiPlus className="w-4 h-4" /> {t('statusPageNav.newBooking')}
               </button>
             </Link>
           </div>
@@ -209,7 +211,7 @@ export default function ParkingNavigator() {
                   onClick={goToToday}
                   className="px-2 py-1 text-xs font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors"
                 >
-                  Hoy
+                  {t('statusPageNav.today')}
                 </button>
                 <Link href="/dashboard/parking/bookings/new">
                   <button className="p-1.5 text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 rounded-md transition-colors">
@@ -231,7 +233,7 @@ export default function ParkingNavigator() {
                       : 'text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700'
                   }`}
                 >
-                  {level === 'all' ? 'Todos' : `Planta ${level.replace('-', '')}`}
+                  {level === 'all' ? t('statusPageNav.allLevelsMobile') : t('statusPageNav.level', { level: level.replace('-', '') })}
                 </button>
               ))}
             </div>

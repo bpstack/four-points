@@ -1,6 +1,7 @@
 // app/components/cashier/CashierCalendarNav.tsx
 'use client'
 
+import { useTranslations } from 'next-intl'
 import { FiChevronLeft, FiChevronRight, FiCalendar } from 'react-icons/fi'
 
 interface CashierCalendarNavProps {
@@ -22,6 +23,8 @@ export default function CashierCalendarNav({
   onNextMonth,
   onToday,
 }: CashierCalendarNavProps) {
+  const t = useTranslations('cashier')
+
   return (
     <div className="sticky top-0 z-30 bg-white dark:bg-[#010409] shadow-sm">
       <div className="px-3 py-2 md:px-4 md:py-3 border-b border-gray-200 dark:border-gray-800">
@@ -53,18 +56,18 @@ export default function CashierCalendarNav({
               onClick={onToday}
               className="ml-3 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-700 rounded-md hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors flex items-center gap-1"
             >
-              <FiCalendar className="w-4 h-4" /> Today
+              <FiCalendar className="w-4 h-4" /> {t('calendar.today')}
             </button>
 
             <div className="ml-4 text-sm text-gray-700 dark:text-gray-400 flex-shrink-0">
-              Usuario:{' '}
+              {t('calendar.user')}:{' '}
               <span className="font-medium text-gray-900 dark:text-gray-200">
                 {username || 'N/A'}
               </span>
             </div>
           </div>
 
-          <div className="text-xs text-gray-500 dark:text-gray-400">Fecha: {selectedDate}</div>
+          <div className="text-xs text-gray-500 dark:text-gray-400">{t('calendar.date')}: {selectedDate}</div>
         </div>
 
         {/* Mobile */}
@@ -91,7 +94,7 @@ export default function CashierCalendarNav({
             onClick={onToday}
             className="px-2 py-1 text-xs font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md transition-colors"
           >
-            Hoy
+            {t('calendar.today')}
           </button>
         </div>
       </div>

@@ -2,6 +2,7 @@
 'use client'
 
 import { FiChevronLeft, FiChevronRight, FiCalendar } from 'react-icons/fi'
+import { useTranslations } from 'next-intl'
 
 interface DateNavigatorProps {
   /** Display label (formatted date or month/year) */
@@ -12,7 +13,7 @@ interface DateNavigatorProps {
   onNext: () => void
   /** Callback for "today" button */
   onToday: () => void
-  /** Label for today button */
+  /** Label for today button (overrides translation) */
   todayLabel?: string
   /** Minimum width for the label container */
   labelMinWidth?: string
@@ -23,9 +24,11 @@ export default function DateNavigator({
   onPrevious,
   onNext,
   onToday,
-  todayLabel = 'Hoy',
+  todayLabel,
   labelMinWidth = '120px',
 }: DateNavigatorProps) {
+  const t = useTranslations('cashier')
+  const displayTodayLabel = todayLabel || t('calendar.today')
   return (
     <div className="flex items-center gap-3">
       <button
@@ -56,7 +59,7 @@ export default function DateNavigator({
         onClick={onToday}
         className="px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors font-medium"
       >
-        {todayLabel}
+        {displayTodayLabel}
       </button>
     </div>
   )

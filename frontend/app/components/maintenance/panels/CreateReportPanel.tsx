@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { reportSchema, type ReportFormData } from '@/app/lib/maintenance/maintenance-schemas'
 import { maintenanceApi } from '@/app/lib/maintenance/maintenanceApi'
 import { FiSave, FiUpload, FiX, FiTool } from 'react-icons/fi'
@@ -28,6 +29,7 @@ interface CreateReportPanelProps {
 
 export function CreateReportPanel({ isOpen, onClose }: CreateReportPanelProps) {
   const router = useRouter()
+  const t = useTranslations('maintenance')
   const [previewImages, setPreviewImages] = useState<string[]>([])
   const [imageFiles, setImageFiles] = useState<File[]>([])
 
@@ -91,12 +93,12 @@ export function CreateReportPanel({ isOpen, onClose }: CreateReportPanelProps) {
 
     Array.from(files).forEach((file) => {
       if (previewImages.length + newPreviews.length >= 5) {
-        toast.error('Máximo 5 imágenes permitidas')
+        toast.error(t('panels.create.toast.maxImages'))
         return
       }
 
       if (file.size > 5 * 1024 * 1024) {
-        toast.error(`${file.name} excede 5MB`)
+        toast.error(t('panels.create.toast.fileTooLarge', { fileName: file.name }))
         return
       }
 
@@ -127,16 +129,16 @@ export function CreateReportPanel({ isOpen, onClose }: CreateReportPanelProps) {
       // Upload images to Cloudinary if any
       if (imageFiles.length > 0) {
         try {
-          toast.loading('Subiendo imagenes...', { id: 'upload-images' })
+          toast.loading(t('panels.create.toast.uploadingImages'), { id: 'upload-images' })
           await maintenanceApi.uploadImages(reportId, imageFiles)
-          toast.success('Imagenes subidas correctamente', { id: 'upload-images' })
+          toast.success(t('panels.create.toast.imagesUploaded'), { id: 'upload-images' })
         } catch (imgError) {
           console.error('Error subiendo imagenes:', imgError)
-          toast.error('Reporte creado pero hubo error al subir imagenes', { id: 'upload-images' })
+          toast.error(t('panels.create.toast.imagesUploadError'), { id: 'upload-images' })
         }
       }
 
-      toast.success('Reporte creado correctamente')
+      toast.success(t('panels.create.toast.reportCreated'))
       router.push(`/dashboard/maintenance/${reportId}`)
       onClose()
       reset()
@@ -144,7 +146,7 @@ export function CreateReportPanel({ isOpen, onClose }: CreateReportPanelProps) {
       setImageFiles([])
     } catch (error) {
       console.error('Error creating report:', error)
-      const message = error instanceof Error ? error.message : 'Error al crear el reporte'
+      const message = error instanceof Error ? error.message : t('panels.create.toast.createError')
       toast.error(message)
     }
   }
@@ -153,8 +155,8 @@ export function CreateReportPanel({ isOpen, onClose }: CreateReportPanelProps) {
     <SlidePanel
       isOpen={isOpen}
       onClose={onClose}
-      title="Nuevo Reporte de Mantenimiento"
-      subtitle="Completa los datos del reporte de mantenimiento"
+      title={t('panels.create.title')}
+      subtitle={t('panels.create.subtitle')}
       size="lg"
       headerIcon={<FiTool className="w-5 h-5 text-blue-600 dark:text-blue-400" />}
       footer={
@@ -162,7 +164,7 @@ export function CreateReportPanel({ isOpen, onClose }: CreateReportPanelProps) {
           onCancel={onClose}
           onSubmit={handleSubmit(onSubmit)}
           isSubmitting={isSubmitting}
-          submitText="Crear Reporte"
+          submitText={t('panels.create.submitText')}
           submitIcon={<FiSave className="w-4 h-4" />}
           submitVariant="success"
         />
@@ -170,23 +172,23 @@ export function CreateReportPanel({ isOpen, onClose }: CreateReportPanelProps) {
     >
       <SlidePanelSection>
         {/* Location Type */}
-        <FormField label="Tipo de Ubicación" required error={errors.location_type?.message}>
+        <FormField label={t('panels.create.fields.locationType')} required error={errors.location_type?.message}>
           <select {...register('location_type')} className={selectClassName}>
-            <option value="room">Habitación</option>
-            <option value="common_area">Área Común</option>
-            <option value="exterior">Exterior</option>
-            <option value="facilities">Instalaciones</option>
-            <option value="other">Otro</option>
+            <option value="room">{t('locationType.room')}</option>
+            <option value="common_area">{t('locationType.commonArea')}</option>
+            <option value="exterior">{t('locationType.exterior')}</option>
+            <option value="facilities">{t('locationType.facilities')}</option>
+            <option value="other">{t('locationType.other')}</option>
           </select>
         </FormField>
 
         {/* Room Number */}
         {locationType === 'room' && (
-          <FormField label="Número de Habitación" required error={errors.room_number?.message}>
+          <FormField label={t('panels.create.fields.roomNumber')} required error={errors.room_number?.message}>
             <input
               {...register('room_number')}
               type="text"
-              placeholder="Ej: 305"
+              placeholder={t('panels.create.placeholders.roomNumber')}
               className={inputClassName}
             />
           </FormField>
@@ -194,45 +196,45 @@ export function CreateReportPanel({ isOpen, onClose }: CreateReportPanelProps) {
 
         {/* Location Description */}
         <FormField
-          label="Descripción de Ubicación"
+          label={t('panels.create.fields.locationDescription')}
           required
           error={errors.location_description?.message}
         >
           <input
             {...register('location_description')}
             type="text"
-            placeholder="Ej: Baño principal, grifo del lavabo"
+            placeholder={t('panels.create.placeholders.locationDescription')}
             className={inputClassName}
           />
         </FormField>
 
         {/* Title */}
-        <FormField label="Título del Reporte" required error={errors.title?.message}>
+        <FormField label={t('panels.create.fields.reportTitle')} required error={errors.title?.message}>
           <input
             {...register('title')}
             type="text"
-            placeholder="Ej: Fuga de agua en grifo"
+            placeholder={t('panels.create.placeholders.reportTitle')}
             className={inputClassName}
           />
         </FormField>
 
         {/* Description */}
-        <FormField label="Descripción Detallada" required error={errors.description?.message}>
+        <FormField label={t('panels.create.fields.description')} required error={errors.description?.message}>
           <textarea
             {...register('description')}
             rows={4}
-            placeholder="Describe el problema en detalle..."
+            placeholder={t('panels.create.placeholders.description')}
             className={textareaClassName}
           />
         </FormField>
 
         {/* Priority */}
-        <FormField label="Prioridad">
+        <FormField label={t('panels.create.fields.priority')}>
           <select {...register('priority')} className={selectClassName}>
-            <option value="low">Baja</option>
-            <option value="medium">Media</option>
-            <option value="high">Alta</option>
-            <option value="urgent">Urgente</option>
+            <option value="low">{t('priority.low')}</option>
+            <option value="medium">{t('priority.medium')}</option>
+            <option value="high">{t('priority.high')}</option>
+            <option value="urgent">{t('priority.urgent')}</option>
           </select>
         </FormField>
 
@@ -245,37 +247,37 @@ export function CreateReportPanel({ isOpen, onClose }: CreateReportPanelProps) {
               className={checkboxClassName}
             />
             <label className="ml-2 text-sm text-gray-700 dark:text-gray-300">
-              Habitación fuera de servicio
+              {t('panels.create.fields.roomOutOfService')}
             </label>
           </div>
         )}
 
         {/* Assigned Type */}
-        <FormField label="Asignación">
+        <FormField label={t('panels.create.fields.assignment')}>
           <select {...register('assigned_type')} className={selectClassName}>
-            <option value="">Sin asignar</option>
-            <option value="internal">Personal interno</option>
-            <option value="external">Empresa externa</option>
+            <option value="">{t('panels.create.assignment.unassigned')}</option>
+            <option value="internal">{t('panels.create.assignment.internal')}</option>
+            <option value="external">{t('panels.create.assignment.external')}</option>
           </select>
         </FormField>
 
         {/* External Company */}
         {assignedType === 'external' && (
           <>
-            <FormField label="Nombre de Empresa">
+            <FormField label={t('panels.create.fields.companyName')}>
               <input
                 {...register('external_company_name')}
                 type="text"
-                placeholder="Ej: Fontanería García S.L."
+                placeholder={t('panels.create.placeholders.companyName')}
                 className={inputClassName}
               />
             </FormField>
 
-            <FormField label="Contacto Empresa">
+            <FormField label={t('panels.create.fields.companyContact')}>
               <input
                 {...register('external_contact')}
                 type="text"
-                placeholder="Ej: +34 600 123 456 - Juan García"
+                placeholder={t('panels.create.placeholders.companyContact')}
                 className={inputClassName}
               />
             </FormField>
@@ -283,17 +285,17 @@ export function CreateReportPanel({ isOpen, onClose }: CreateReportPanelProps) {
         )}
 
         {/* Images Upload */}
-        <FormField label="Imágenes (máx. 5, 5MB cada una)">
+        <FormField label={t('panels.create.fields.images')}>
           <label className="flex items-center justify-center w-full px-4 py-6 border-2 border-gray-300 dark:border-gray-700 border-dashed rounded-md cursor-pointer hover:border-gray-400 dark:hover:border-gray-600 transition-colors">
             <div className="space-y-1 text-center">
               <FiUpload className="mx-auto h-8 w-8 text-gray-400" />
               <div className="text-xs text-gray-600 dark:text-gray-400">
                 <span className="font-medium text-blue-600 dark:text-blue-400">
-                  Haz clic para subir
+                  {t('panels.create.images.clickToUpload')}
                 </span>{' '}
-                o arrastra imágenes
+                {t('panels.create.images.dragImages')}
               </div>
-              <p className="text-[10px] text-gray-500">PNG, JPG, WEBP hasta 5MB</p>
+              <p className="text-[10px] text-gray-500">{t('panels.create.images.formats')}</p>
             </div>
             <input
               type="file"

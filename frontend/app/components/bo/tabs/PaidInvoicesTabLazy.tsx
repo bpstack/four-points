@@ -9,6 +9,7 @@
 'use client'
 
 import { useMemo, useState } from 'react'
+import { useTranslations } from 'next-intl'
 import {
   FiSearch,
   FiDownload,
@@ -36,32 +37,23 @@ interface PaidInvoicesTabLazyProps {
 const paidKey = (page: number) => ['backoffice', 'invoices', 'paid', page] as const
 const paidListKey = () => ['backoffice', 'invoices', 'paid'] as const
 
-// Helper function - defined outside component to avoid hoisting issues
-const getSpanishMonthName = (month: number): string => {
-  const months = [
-    'Enero',
-    'Febrero',
-    'Marzo',
-    'Abril',
-    'Mayo',
-    'Junio',
-    'Julio',
-    'Agosto',
-    'Septiembre',
-    'Octubre',
-    'Noviembre',
-    'Diciembre',
-  ]
-  return months[month - 1] || ''
-}
-
 export function PaidInvoicesTabLazy({
   initialInvoices: realInvoices,
   categories: realCategories,
   pagination: realPagination,
   onPageChange,
 }: PaidInvoicesTabLazyProps) {
+  const t = useTranslations('backoffice')
   const queryClient = useQueryClient()
+
+  // Helper function for month names
+  const getMonthName = (month: number): string => {
+    const monthKeys = [
+      'january', 'february', 'march', 'april', 'may', 'june',
+      'july', 'august', 'september', 'october', 'november', 'december'
+    ]
+    return t(`months.${monthKeys[month - 1]}`)
+  }
 
   const [searchTerm, setSearchTerm] = useState('')
   const [categoryFilter, setCategoryFilter] = useState<number | 'all'>('all')
@@ -131,8 +123,8 @@ export function PaidInvoicesTabLazy({
         year: m.year,
         month: m.month,
         count: m.count,
-        label: `${getSpanishMonthName(m.month)} ${m.year} (${m.count})`,
-        monthLabel: `${getSpanishMonthName(m.month)} (${m.count})`,
+        label: `${getMonthName(m.month)} ${m.year} (${m.count})`,
+        monthLabel: `${getMonthName(m.month)} (${m.count})`,
       }))
   }, [invoices])
 
@@ -215,7 +207,7 @@ export function PaidInvoicesTabLazy({
     const hasOriginal = !!invoice.original_pdf_url
 
     if (!hasValidated && !hasOriginal) {
-      toast.error('Esta factura no tiene PDF adjunto')
+      toast.error(t('toast.noPdfAttached'))
       return
     }
 
@@ -231,7 +223,7 @@ export function PaidInvoicesTabLazy({
   const handleOpenRevertDialog = async () => {
     const months = getAvailableMonths()
     if (months.length === 0) {
-      toast.error('No hay facturas pagadas para revertir')
+      toast.error(t('toast.noPaidInvoicesToRevert'))
       return
     }
 
@@ -312,7 +304,7 @@ export function PaidInvoicesTabLazy({
       .map((m) => ({
         year: m.year,
         month: m.month,
-        label: `${getSpanishMonthName(m.month)} ${m.year} (${m.count})`,
+        label: `${getMonthName(m.month)} ${m.year} (${m.count})`,
       }))
 
     return months

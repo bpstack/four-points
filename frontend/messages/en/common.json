@@ -1,0 +1,83 @@
+{
+  "language": {
+    "label": "Language",
+    "spanish": "Español",
+    "english": "English",
+    "switchTo": "Switch to {language}"
+  },
+  "navigation": {
+    "dashboard": "Dashboard",
+    "parking": "Parking",
+    "logbooks": "Logbooks",
+    "groups": "Groups",
+    "cashier": "Cashier",
+    "maintenance": "Maintenance",
+    "blacklist": "Blacklist",
+    "backoffice": "Backoffice",
+    "messages": "Messages",
+    "profile": "Profile",
+    "settings": "Settings",
+    "notifications": "Notifications",
+    "logout": "Log Out",
+    "restaurant": "Restaurant",
+    "conciliation": "Conciliation",
+    "backofficeTasks": "Back office tasks",
+    "hotelCashier": "Hotel Cashier",
+    "cashierReports": "Cashier Reports",
+    "cashierLogs": "Cashier Logs"
+  },
+  "actions": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "search": "Search",
+    "filter": "Filter",
+    "export": "Export",
+    "import": "Import",
+    "refresh": "Refresh",
+    "close": "Close",
+    "confirm": "Confirm",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "submit": "Submit",
+    "loading": "Loading...",
+    "view": "View",
+    "download": "Download",
+    "print": "Print"
+  },
+  "status": {
+    "active": "Active",
+    "inactive": "Inactive",
+    "pending": "Pending",
+    "completed": "Completed",
+    "cancelled": "Cancelled",
+    "error": "Error",
+    "success": "Success"
+  },
+  "table": {
+    "noResults": "No results found",
+    "showing": "Showing",
+    "of": "of",
+    "entries": "entries",
+    "rowsPerPage": "Rows per page"
+  },
+  "profile": {
+    "myProfile": "My Profile",
+    "messages": "Messages",
+    "notifications": "Notifications",
+    "settings": "Settings",
+    "logout": "Log Out"
+  },
+  "time": {
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "tomorrow": "Tomorrow",
+    "now": "Now",
+    "minutes": "minutes",
+    "hours": "hours",
+    "days": "days"
+  }
+}

@@ -13,12 +13,15 @@ import {
   FiBell,
 } from 'react-icons/fi'
 import { useAuth } from '@/app/lib/auth/useAuth'
-import { useNotifications } from '@/app/lib/notifications/useNotifications' // ← AÑADIR
+import { useNotifications } from '@/app/lib/notifications/useNotifications'
+import { useTranslations } from 'next-intl'
+import LanguageSwitcher from './LanguageSwitcher'
 
 export default function ProfileDropdown() {
   const [isOpen, setIsOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const router = useRouter()
+  const t = useTranslations('common.profile')
 
   const { user, logout } = useAuth()
   const { unreadCount } = useNotifications()
@@ -120,7 +123,7 @@ export default function ProfileDropdown() {
               className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
             >
               <FiUser className="h-4 w-4" />
-              <span>Mi Perfil</span>
+              <span>{t('myProfile')}</span>
             </button>
 
             <button
@@ -128,10 +131,9 @@ export default function ProfileDropdown() {
               className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
             >
               <FiMessageSquare className="h-4 w-4" />
-              <span>Mensajes</span>
+              <span>{t('messages')}</span>
             </button>
 
-            {/* ✅ CAMBIO: Notificaciones con badge */}
             <button
               onClick={handleNotifications}
               className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
@@ -144,7 +146,7 @@ export default function ProfileDropdown() {
                   </span>
                 )}
               </div>
-              <span>Notificaciones</span>
+              <span>{t('notifications')}</span>
               {unreadCount > 0 && (
                 <span className="ml-auto text-xs font-semibold text-red-600 dark:text-red-400">
                   {unreadCount}
@@ -157,8 +159,13 @@ export default function ProfileDropdown() {
               className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
             >
               <FiSettings className="h-4 w-4" />
-              <span>Configuración</span>
+              <span>{t('settings')}</span>
             </button>
+          </div>
+
+          {/* Language Switcher */}
+          <div className="border-t border-gray-200 dark:border-gray-700 py-1">
+            <LanguageSwitcher />
           </div>
 
           {/* Logout */}
@@ -168,7 +175,7 @@ export default function ProfileDropdown() {
               className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
             >
               <FiLogOut className="h-4 w-4" />
-              <span>Cerrar Sesión</span>
+              <span>{t('logout')}</span>
             </button>
           </div>
         </div>

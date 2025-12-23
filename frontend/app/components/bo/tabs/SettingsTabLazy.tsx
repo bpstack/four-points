@@ -11,7 +11,8 @@
 import { useState, useRef } from 'react'
 import { FiUpload, FiTrash2, FiStar, FiLoader, FiImage, FiAlertCircle } from 'react-icons/fi'
 import { toast } from 'react-hot-toast'
-import { backofficeApi, type Asset, ASSET_TYPE_LABELS } from '@/app/lib/backoffice'
+import { useTranslations } from 'next-intl'
+import { backofficeApi, type Asset } from '@/app/lib/backoffice'
 import { ConfirmDialog } from '../modals/ConfirmDialog'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 
@@ -22,6 +23,7 @@ interface SettingsTabLazyProps {
 const assetsKey = ['backoffice', 'assets'] as const
 
 export function SettingsTabLazy({ initialAssets }: SettingsTabLazyProps) {
+  const t = useTranslations('backoffice')
   const queryClient = useQueryClient()
 
   const { data } = useQuery({
@@ -64,12 +66,12 @@ export function SettingsTabLazy({ initialAssets }: SettingsTabLazyProps) {
     if (!file) return
 
     if (!['image/png', 'image/webp'].includes(file.type)) {
-      toast.error('Solo se permiten imágenes PNG o WebP')
+      toast.error(t('toast.onlyPngWebp'))
       return
     }
 
     if (file.size > 2 * 1024 * 1024) {
-      toast.error('El archivo es demasiado grande. Máximo 2MB')
+      toast.error(t('toast.fileTooLarge'))
       return
     }
 

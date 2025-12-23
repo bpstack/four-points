@@ -5,6 +5,7 @@
 import { useState, useRef } from 'react'
 import Image from 'next/image'
 import { useRouter, useSearchParams } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { useAuth } from '@/app/lib/auth/useAuth'
 import { apiClient } from '@/app/lib/apiClient'
 import { API_BASE_URL } from '@/app/lib/env'
@@ -30,6 +31,7 @@ const API_URL = API_BASE_URL
 const MAX_FILE_SIZE = 2 * 1024 * 1024 // 2MB
 
 export function ProfileSidebar() {
+  const t = useTranslations('profile.sidebar')
   const { user, refreshUser } = useAuth()
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -97,22 +99,22 @@ export function ProfileSidebar() {
   const handleSaveUsername = async () => {
     // Validations
     if (!newUsername.trim()) {
-      setUsernameError('El nombre de usuario es requerido')
+      setUsernameError(t('validation.usernameRequired'))
       return
     }
 
     if (newUsername.trim().length < 3) {
-      setUsernameError('El nombre de usuario debe tener al menos 3 caracteres')
+      setUsernameError(t('validation.usernameMinLength'))
       return
     }
 
     if (!/^[a-zA-Z0-9_]+$/.test(newUsername.trim())) {
-      setUsernameError('Solo se permiten letras, números y guiones bajos')
+      setUsernameError(t('validation.usernameChars'))
       return
     }
 
     if (!usernamePassword) {
-      setUsernameError('Ingresa tu contraseña actual para confirmar')
+      setUsernameError(t('validation.enterCurrentPassword'))
       return
     }
 
@@ -125,7 +127,7 @@ export function ProfileSidebar() {
         currentPassword: usernamePassword,
       })
 
-      setUsernameSuccess('Nombre de usuario actualizado correctamente')
+      setUsernameSuccess(t('success.usernameUpdated'))
       setIsEditingUsername(false)
       setNewUsername('')
       setUsernamePassword('')
@@ -140,7 +142,7 @@ export function ProfileSidebar() {
     } catch (error: unknown) {
       console.error('Error updating username:', error)
       setUsernameError(
-        error instanceof Error ? error.message : 'Error al actualizar el nombre de usuario'
+        error instanceof Error ? error.message : t('errors.updateUsername')
       )
     } finally {
       setUsernameLoading(false)
@@ -169,27 +171,27 @@ export function ProfileSidebar() {
   const handleSavePassword = async () => {
     // Validations
     if (!currentPassword) {
-      setPasswordError('Ingresa tu contraseña actual')
+      setPasswordError(t('validation.enterPassword'))
       return
     }
 
     if (!newPassword) {
-      setPasswordError('Ingresa la nueva contraseña')
+      setPasswordError(t('validation.enterNewPassword'))
       return
     }
 
     if (newPassword.length < 6) {
-      setPasswordError('La nueva contraseña debe tener al menos 6 caracteres')
+      setPasswordError(t('validation.passwordMinLength'))
       return
     }
 
     if (newPassword !== confirmPassword) {
-      setPasswordError('Las contraseñas no coinciden')
+      setPasswordError(t('validation.passwordsNoMatch'))
       return
     }
 
     if (currentPassword === newPassword) {
-      setPasswordError('La nueva contraseña debe ser diferente a la actual')
+      setPasswordError(t('validation.passwordMustDiffer'))
       return
     }
 
@@ -207,7 +209,7 @@ export function ProfileSidebar() {
       router.push('/login?message=password_changed')
     } catch (error: unknown) {
       console.error('Error updating password:', error)
-      setPasswordError(error instanceof Error ? error.message : 'Error al actualizar la contraseña')
+      setPasswordError(error instanceof Error ? error.message : t('errors.updatePassword'))
       setPasswordLoading(false)
     }
   }
@@ -235,13 +237,13 @@ export function ProfileSidebar() {
     // Validate file type
     const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
     if (!allowedTypes.includes(file.type)) {
-      setAvatarError('Solo se permiten imágenes JPEG, PNG, WebP o GIF')
+      setAvatarError(t('avatar.allowedTypes'))
       return
     }
 
     // Validate file size
     if (file.size > MAX_FILE_SIZE) {
-      setAvatarError('La imagen no puede superar los 2MB')
+      setAvatarError(t('avatar.maxSize'))
       return
     }
 
@@ -260,7 +262,7 @@ export function ProfileSidebar() {
       }
     } catch (error: unknown) {
       console.error('Error uploading avatar:', error)
-      setAvatarError(error instanceof Error ? error.message : 'Error al subir la imagen')
+      setAvatarError(error instanceof Error ? error.message : t('errors.uploadImage'))
     } finally {
       setAvatarLoading(false)
     }
@@ -280,7 +282,7 @@ export function ProfileSidebar() {
       }
     } catch (error: unknown) {
       console.error('Error deleting avatar:', error)
-      setAvatarError(error instanceof Error ? error.message : 'Error al eliminar la imagen')
+      setAvatarError(error instanceof Error ? error.message : t('errors.deleteImage'))
     } finally {
       setAvatarLoading(false)
     }
@@ -339,7 +341,7 @@ export function ProfileSidebar() {
                   className="w-full flex items-center gap-2 px-3 py-2 text-xs text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#21262d]"
                 >
                   <FiUpload className="w-3.5 h-3.5" />
-                  {user.avatar_url ? 'Cambiar foto' : 'Subir foto'}
+                  {user.avatar_url ? t('avatar.changePhoto') : t('avatar.uploadPhoto')}
                 </button>
                 {user.avatar_url && (
                   <button
@@ -347,7 +349,7 @@ export function ProfileSidebar() {
                     className="w-full flex items-center gap-2 px-3 py-2 text-xs text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-[#21262d]"
                   >
                     <FiTrash2 className="w-3.5 h-3.5" />
-                    Eliminar foto
+                    {t('avatar.deletePhoto')}
                   </button>
                 )}
               </div>
@@ -358,7 +360,7 @@ export function ProfileSidebar() {
               {formattedUsername}
             </h2>
             <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-              {user.email || 'No email'}
+              {user.email || t('noEmail')}
             </p>
             <span className="inline-flex items-center px-2 py-0.5 mt-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">
               {user.role}
@@ -395,13 +397,13 @@ export function ProfileSidebar() {
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">
               <FiUser className="w-4 h-4 text-gray-400" />
-              <span className="text-xs font-medium text-gray-600 dark:text-gray-400">Username</span>
+              <span className="text-xs font-medium text-gray-600 dark:text-gray-400">{t('username.label')}</span>
             </div>
             {!isEditingUsername && (
               <button
                 onClick={handleStartEditUsername}
                 className="p-1 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors"
-                title="Editar username"
+                title={t('username.editTitle')}
               >
                 <FiEdit2 className="w-3.5 h-3.5" />
               </button>
@@ -414,26 +416,26 @@ export function ProfileSidebar() {
             <div className="space-y-3">
               <div>
                 <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
-                  Nuevo nombre de usuario
+                  {t('username.newUsername')}
                 </label>
                 <input
                   type="text"
                   value={newUsername}
                   onChange={(e) => setNewUsername(e.target.value)}
-                  placeholder="Nuevo username"
+                  placeholder={t('username.placeholder')}
                   className="w-full px-3 py-2 text-sm bg-white dark:bg-[#0d1117] border border-gray-300 dark:border-[#30363d] rounded-lg text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                   disabled={usernameLoading}
                 />
               </div>
               <div>
                 <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
-                  Contraseña actual (para confirmar)
+                  {t('username.currentPasswordConfirm')}
                 </label>
                 <input
                   type="password"
                   value={usernamePassword}
                   onChange={(e) => setUsernamePassword(e.target.value)}
-                  placeholder="Tu contraseña actual"
+                  placeholder={t('username.passwordPlaceholder')}
                   className="w-full px-3 py-2 text-sm bg-white dark:bg-[#0d1117] border border-gray-300 dark:border-[#30363d] rounded-lg text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                   disabled={usernameLoading}
                 />
@@ -457,7 +459,7 @@ export function ProfileSidebar() {
                   ) : (
                     <FiCheck className="w-3.5 h-3.5" />
                   )}
-                  {usernameLoading ? 'Guardando...' : 'Guardar'}
+                  {usernameLoading ? t('buttons.saving') : t('buttons.save')}
                 </button>
                 <button
                   onClick={handleCancelEditUsername}
@@ -465,7 +467,7 @@ export function ProfileSidebar() {
                   className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-[#0d1117] border border-gray-300 dark:border-[#30363d] hover:bg-gray-50 dark:hover:bg-[#21262d] disabled:opacity-50 rounded-lg transition-colors"
                 >
                   <FiX className="w-3.5 h-3.5" />
-                  Cancelar
+                  {t('buttons.cancel')}
                 </button>
               </div>
             </div>
@@ -479,13 +481,13 @@ export function ProfileSidebar() {
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">
               <FiLock className="w-4 h-4 text-gray-400" />
-              <span className="text-xs font-medium text-gray-600 dark:text-gray-400">Password</span>
+              <span className="text-xs font-medium text-gray-600 dark:text-gray-400">{t('password.label')}</span>
             </div>
             {!isEditingPassword && (
               <button
                 onClick={handleStartEditPassword}
                 className="p-1 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors"
-                title="Cambiar contraseña"
+                title={t('password.changeTitle')}
               >
                 <FiEdit2 className="w-3.5 h-3.5" />
               </button>
@@ -499,14 +501,14 @@ export function ProfileSidebar() {
               {/* Current Password */}
               <div>
                 <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
-                  Contraseña actual
+                  {t('password.current')}
                 </label>
                 <div className="relative">
                   <input
                     type={showCurrentPassword ? 'text' : 'password'}
                     value={currentPassword}
                     onChange={(e) => setCurrentPassword(e.target.value)}
-                    placeholder="Contraseña actual"
+                    placeholder={t('password.currentPlaceholder')}
                     className="w-full px-3 py-2 pr-10 text-sm bg-white dark:bg-[#0d1117] border border-gray-300 dark:border-[#30363d] rounded-lg text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                     disabled={passwordLoading}
                   />
@@ -527,14 +529,14 @@ export function ProfileSidebar() {
               {/* New Password */}
               <div>
                 <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
-                  Nueva contraseña
+                  {t('password.new')}
                 </label>
                 <div className="relative">
                   <input
                     type={showNewPassword ? 'text' : 'password'}
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
-                    placeholder="Mínimo 6 caracteres"
+                    placeholder={t('password.minChars')}
                     className="w-full px-3 py-2 pr-10 text-sm bg-white dark:bg-[#0d1117] border border-gray-300 dark:border-[#30363d] rounded-lg text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                     disabled={passwordLoading}
                   />
@@ -555,14 +557,14 @@ export function ProfileSidebar() {
               {/* Confirm Password */}
               <div>
                 <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
-                  Confirmar nueva contraseña
+                  {t('password.confirm')}
                 </label>
                 <div className="relative">
                   <input
                     type={showConfirmPassword ? 'text' : 'password'}
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    placeholder="Repite la nueva contraseña"
+                    placeholder={t('password.repeatPlaceholder')}
                     className="w-full px-3 py-2 pr-10 text-sm bg-white dark:bg-[#0d1117] border border-gray-300 dark:border-[#30363d] rounded-lg text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                     disabled={passwordLoading}
                   />
@@ -589,8 +591,7 @@ export function ProfileSidebar() {
 
               <div className="p-2 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
                 <p className="text-xs text-amber-700 dark:text-amber-400">
-                  Al cambiar tu contraseña, se cerrará tu sesión y deberás iniciar sesión
-                  nuevamente.
+                  {t('password.warning')}
                 </p>
               </div>
 
@@ -605,7 +606,7 @@ export function ProfileSidebar() {
                   ) : (
                     <FiCheck className="w-3.5 h-3.5" />
                   )}
-                  {passwordLoading ? 'Actualizando...' : 'Actualizar'}
+                  {passwordLoading ? t('buttons.updating') : t('buttons.update')}
                 </button>
                 <button
                   onClick={handleCancelEditPassword}
@@ -613,7 +614,7 @@ export function ProfileSidebar() {
                   className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-[#0d1117] border border-gray-300 dark:border-[#30363d] hover:bg-gray-50 dark:hover:bg-[#21262d] disabled:opacity-50 rounded-lg transition-colors"
                 >
                   <FiX className="w-3.5 h-3.5" />
-                  Cancelar
+                  {t('buttons.cancel')}
                 </button>
               </div>
             </div>
@@ -625,15 +626,15 @@ export function ProfileSidebar() {
       <div className="bg-gray-50 dark:bg-[#161b22] border border-gray-200 dark:border-[#30363d] rounded-lg overflow-hidden">
         <NavButton
           icon={<FiMessageSquare className="w-4 h-4" />}
-          label="Mensajes"
-          description="Comunicaciones internas"
+          label={t('navigation.messages')}
+          description={t('navigation.messagesDesc')}
           active={activePanel === 'messages'}
           onClick={() => handleNavigate('messages')}
         />
         <NavButton
           icon={<FiSettings className="w-4 h-4" />}
-          label="Configuracion"
-          description="Ajustes de cuenta"
+          label={t('navigation.settings')}
+          description={t('navigation.settingsDesc')}
           active={activePanel === 'settings'}
           onClick={() => handleNavigate('settings')}
           borderTop

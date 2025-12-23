@@ -14,6 +14,7 @@
 
 import { useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { useGroupStore } from '@/app/stores/useGroupStore'
 import {
   GroupWithDetails,
@@ -49,6 +50,7 @@ export function GroupDetailClient({ initialGroup }: GroupDetailClientProps) {
   const activeTab = searchParams.get('tab') || 'overview'
   const panel = searchParams.get('panel')
   const highlightId = searchParams.get('highlight')
+  const t = useTranslations('groups')
 
   const { currentGroup, setCurrentGroup, setActiveTab, setHighlight } = useGroupStore()
 
@@ -122,7 +124,7 @@ export function GroupDetailClient({ initialGroup }: GroupDetailClientProps) {
   if (!currentGroup) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-[#0d1117] flex items-center justify-center">
-        <LoadingSpinner size="lg" message="Cargando grupo..." />
+        <LoadingSpinner size="lg" message={t('loadingGroup')} />
       </div>
     )
   }

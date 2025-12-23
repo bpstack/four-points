@@ -7,6 +7,7 @@
 'use client'
 
 import { useTransition } from 'react'
+import { useTranslations } from 'next-intl'
 import { FiX, FiLoader, FiAlertTriangle, FiCheckCircle, FiInfo } from 'react-icons/fi'
 
 type ConfirmDialogVariant = 'danger' | 'warning' | 'success' | 'info'
@@ -69,14 +70,19 @@ export function ConfirmDialog({
   onConfirm,
   title,
   message,
-  confirmText = 'Confirmar',
-  cancelText = 'Cancelar',
+  confirmText,
+  cancelText,
   variant = 'danger',
   disableConfirm = false,
 }: ConfirmDialogProps) {
+  const t = useTranslations('backoffice')
   const [isPending, startTransition] = useTransition()
   const styles = variantStyles[variant]
   const Icon = styles.icon
+
+  // Use translation defaults if not provided
+  const finalConfirmText = confirmText || t('modals.confirm.confirm')
+  const finalCancelText = cancelText || t('modals.confirm.cancel')
 
   const handleConfirm = () => {
     startTransition(async () => {
@@ -127,7 +133,7 @@ export function ConfirmDialog({
                 disabled={isPending}
                 className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
               >
-                {cancelText}
+                {finalCancelText}
               </button>
               <button
                 type="button"
@@ -138,10 +144,10 @@ export function ConfirmDialog({
                 {isPending ? (
                   <>
                     <FiLoader className="w-4 h-4 animate-spin" />
-                    Procesando...
+                    {t('modals.confirm.processing')}
                   </>
                 ) : (
-                  confirmText
+                  finalConfirmText
                 )}
               </button>
             </div>

@@ -8,14 +8,17 @@ import { useAuth } from '@/app/lib/auth/useAuth'
 import HorizontalDatePicker from '@/app/ui/calendar/HorizontalDatePicker'
 import LogbooksList from './LogbooksList'
 import NewLogbookEntry from './NewLogbookEntry'
+import { useLocale, useTranslations } from 'next-intl'
 
 export default function LogbooksContainer() {
   const [currentDate, setCurrentDate] = useState(new Date())
   const [selectedDay, setSelectedDay] = useState(new Date().getDate())
   const [showNewEntryModal, setShowNewEntryModal] = useState(false)
   const { user } = useAuth()
+  const t = useTranslations('logbooks')
+  const locale = useLocale()
 
-  const currentMonth = currentDate.toLocaleString('es-ES', { month: 'long' })
+  const currentMonth = currentDate.toLocaleString(locale, { month: 'long' })
   const currentYear = currentDate.getFullYear()
 
   // Build date string for the query
@@ -98,9 +101,9 @@ export default function LogbooksContainer() {
   )
 
   const dayStatusMessage = isLoading
-    ? 'Cargando...'
+    ? t('list.loading')
     : entries.length === 0
-      ? 'No hay registros para este día.'
+      ? t('list.empty')
       : ''
 
   return (
@@ -130,25 +133,23 @@ export default function LogbooksContainer() {
                   <FiChevronRight className="w-4 h-4" />
                 </button>
               </div>
-              <button
-                onClick={goToToday}
-                className="ml-3 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-700 rounded-md hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors flex items-center gap-1"
-              >
-                <FiCalendar className="w-4 h-4" /> Today
-              </button>
-              <div className="ml-4 text-sm text-gray-700 dark:text-gray-400 flex-shrink-0">
-                Daily Entries:{' '}
-                <span className="font-medium text-gray-900 dark:text-gray-200">
-                  {orderedEntries.length}
-                </span>
-              </div>
-            </div>
-            <button
-              onClick={() => setShowNewEntryModal(true)}
-              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 rounded-md transition-colors"
-            >
-              <FiPlus className="w-4 h-4" /> New Entry
-            </button>
+               <button
+                 onClick={goToToday}
+                 className="ml-3 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-700 rounded-md hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors flex items-center gap-1"
+               >
+                 <FiCalendar className="w-4 h-4" /> {t('container.today')}
+               </button>
+               <div className="ml-4 text-sm text-gray-700 dark:text-gray-400 flex-shrink-0">
+                 {t('container.dailyEntries', { count: orderedEntries.length })}
+               </div>
+             </div>
+             <button
+               onClick={() => setShowNewEntryModal(true)}
+               className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 rounded-md transition-colors"
+             >
+               <FiPlus className="w-4 h-4" /> {t('container.newEntry')}
+             </button>
+
           </div>
 
           {/* Mobile */}
@@ -179,7 +180,7 @@ export default function LogbooksContainer() {
                 onClick={goToToday}
                 className="px-2 py-1 text-xs font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors"
               >
-                Hoy
+                {t('container.today')}
               </button>
               <button
                 onClick={() => setShowNewEntryModal(true)}
@@ -225,7 +226,7 @@ export default function LogbooksContainer() {
           onClose={() => setShowNewEntryModal(false)}
           onSubmit={handleSubmitNewEntry}
           defaultDate={dateString}
-          title="New Logbook Entry"
+          title={t('modals.newEntry.title')}
         />
       )}
     </div>

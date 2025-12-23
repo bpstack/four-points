@@ -3,6 +3,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { useGroupStore } from '@/app/stores/useGroupStore'
 import { groupsApi, GroupHistoryRecord, HistoryAction } from '@/app/lib/groups'
 import { HistoryItem } from '../history/HistoryItem'
@@ -10,20 +11,21 @@ import { EmptyState } from '../shared/EmptyState'
 import { LoadingSpinner } from '../shared/LoadingSpinner'
 import { FiClock, FiFilter } from 'react-icons/fi'
 
-const ACTION_FILTERS = [
-  { value: 'all', label: 'Todos' },
-  { value: HistoryAction.CREATED, label: 'Creados' },
-  { value: HistoryAction.UPDATED, label: 'Actualizados' },
-  { value: HistoryAction.DELETED, label: 'Eliminados' },
-  { value: HistoryAction.STATUS_CHANGED, label: 'Estados' },
-  { value: HistoryAction.PAYMENT_UPDATED, label: 'Pagos' },
-]
-
 export function HistoryTab() {
   const { currentGroup } = useGroupStore()
   const [history, setHistory] = useState<GroupHistoryRecord[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [filter, setFilter] = useState<string>('all')
+  const t = useTranslations('groups')
+
+  const ACTION_FILTERS = [
+    { value: 'all', label: t('history.filterAll') },
+    { value: HistoryAction.CREATED, label: t('history.filterCreated') },
+    { value: HistoryAction.UPDATED, label: t('history.filterUpdated') },
+    { value: HistoryAction.DELETED, label: t('history.filterDeleted') },
+    { value: HistoryAction.STATUS_CHANGED, label: t('history.filterStatus') },
+    { value: HistoryAction.PAYMENT_UPDATED, label: t('history.filterPayments') },
+  ]
 
   useEffect(() => {
     if (currentGroup) {
@@ -50,7 +52,7 @@ export function HistoryTab() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <LoadingSpinner size="md" message="Cargando historial..." />
+        <LoadingSpinner size="md" message={t('history.loadingHistory')} />
       </div>
     )
   }
@@ -65,10 +67,10 @@ export function HistoryTab() {
         <div>
           <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
             <FiClock className="w-4 h-4" />
-            Historial de Cambios
+            {t('history.historyTitle')}
           </h3>
           <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-            Registro de todas las modificaciones del grupo
+            {t('history.historySubtitle')}
           </p>
         </div>
 
@@ -93,9 +95,9 @@ export function HistoryTab() {
       {filteredHistory.length === 0 ? (
         <EmptyState
           icon={<FiClock className="w-12 h-12" />}
-          title={filter === 'all' ? 'No hay historial registrado' : 'No hay cambios de este tipo'}
+          title={filter === 'all' ? t('history.noHistory') : t('history.noChangesOfType')}
           description={
-            filter === 'all' ? 'Los cambios del grupo aparecerán aquí' : 'Intenta con otro filtro'
+            filter === 'all' ? t('history.noHistoryDesc') : t('history.tryAnotherFilter')
           }
         />
       ) : (
@@ -110,8 +112,8 @@ export function HistoryTab() {
       {history.length > 0 && (
         <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
           <p className="text-xs text-blue-800 dark:text-blue-300">
-            Total de cambios: {history.length} registros
-            {filter !== 'all' && ` (${filteredHistory.length} filtrados)`}
+            {t('history.totalChanges')} {history.length} {t('history.records')}
+            {filter !== 'all' && ` (${filteredHistory.length} ${t('history.filtered')})`}
           </p>
         </div>
       )}

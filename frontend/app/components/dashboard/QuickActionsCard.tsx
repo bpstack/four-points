@@ -1,39 +1,40 @@
 // app/components/dashboard/QuickActionsCard.tsx
 'use client'
 
-import React from 'react'
+import React, { useMemo } from 'react'
+import { useTranslations } from 'next-intl'
 import { FiZap, FiBook, FiTool, FiUsers } from 'react-icons/fi'
 import { FaCar } from 'react-icons/fa'
 import { IconType } from 'react-icons'
 
 interface QuickAction {
-  label: string
+  labelKey: string
   icon: IconType
   href: string
   color: string
 }
 
-const quickActions: QuickAction[] = [
+const quickActionsConfig: QuickAction[] = [
   {
-    label: 'Nueva Entrada Consigna',
+    labelKey: 'newLogbook',
     icon: FiBook,
     href: '/dashboard/logbooks',
     color: 'from-blue-500 to-blue-600',
   },
   {
-    label: 'Reservar Plaza Parking',
+    labelKey: 'newParking',
     icon: FaCar,
     href: '/dashboard/parking/bookings/new',
     color: 'from-purple-500 to-purple-600',
   },
   {
-    label: 'Mantenimiento',
+    labelKey: 'maintenance',
     icon: FiTool,
     href: '/dashboard/maintenance',
     color: 'from-yellow-500 to-yellow-600',
   },
   {
-    label: 'Reserva Nuevo Grupo',
+    labelKey: 'newGroup',
     icon: FiUsers,
     href: '/dashboard/groups?panel=create-group',
     color: 'from-orange-500 to-orange-600',
@@ -41,17 +42,28 @@ const quickActions: QuickAction[] = [
 ]
 
 export function QuickActionsCard() {
+  const t = useTranslations('dashboard.quickActions')
+
+  const quickActions = useMemo(
+    () =>
+      quickActionsConfig.map((action) => ({
+        ...action,
+        label: t(action.labelKey),
+      })),
+    [t]
+  )
+
   return (
     <div className="bg-white dark:bg-[#0D1117] border border-[#d0d7de] dark:border-[#30363d] rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200 p-6">
       <div className="flex items-center gap-2 mb-5">
         <FiZap className="w-5 h-5 text-[#0969da] dark:text-[#58a6ff]" />
-        <h2 className="text-lg font-bold text-[#24292f] dark:text-[#f0f6fc]">Acciones Rápidas</h2>
+        <h2 className="text-lg font-bold text-[#24292f] dark:text-[#f0f6fc]">{t('title')}</h2>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {quickActions.map((action) => (
           <a
-            key={action.label}
+            key={action.labelKey}
             href={action.href}
             className="group relative overflow-hidden p-5 bg-gradient-to-br from-[#f6f8fa] to-white dark:from-[#161B22] dark:to-[#161b22] border border-[#d0d7de] dark:border-[#21262d] rounded-xl hover:border-[#0969da] dark:hover:border-[#58a6ff] hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1"
           >

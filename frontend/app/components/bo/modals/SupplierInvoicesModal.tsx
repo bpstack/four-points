@@ -20,6 +20,7 @@ import {
   FiAlertTriangle,
   FiCheckCircle,
 } from 'react-icons/fi'
+import { useTranslations } from 'next-intl'
 import type {
   InvoiceWithDetails,
   SupplierWithStats,
@@ -27,7 +28,6 @@ import type {
 } from '@/app/lib/backoffice/types'
 import {
   formatCurrency,
-  INVOICE_STATUS_LABELS,
   INVOICE_STATUS_COLORS,
 } from '@/app/lib/backoffice/types'
 import { backofficeApi } from '@/app/lib/backoffice/backofficeApi'
@@ -51,20 +51,21 @@ interface MonthGroup {
   validatedCount: number
 }
 
-const SPANISH_MONTHS = [
-  'Enero',
-  'Febrero',
-  'Marzo',
-  'Abril',
-  'Mayo',
-  'Junio',
-  'Julio',
-  'Agosto',
-  'Septiembre',
-  'Octubre',
-  'Noviembre',
-  'Diciembre',
-]
+// Month keys for translation lookup
+const MONTH_KEYS = [
+  'january',
+  'february',
+  'march',
+  'april',
+  'may',
+  'june',
+  'july',
+  'august',
+  'september',
+  'october',
+  'november',
+  'december',
+] as const
 
 // ============================================
 // MOCK DATA - Eliminar cuando conectes con API
@@ -137,6 +138,7 @@ export function SupplierInvoicesModal({
   supplier,
   onInvoiceDeleted,
 }: SupplierInvoicesModalProps) {
+  const t = useTranslations('backoffice')
   const [invoices, setInvoices] = useState<InvoiceWithDetails[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -146,6 +148,15 @@ export function SupplierInvoicesModal({
   const [deleteStep, setDeleteStep] = useState<1 | 2>(1)
   const [deletingInvoice, setDeletingInvoice] = useState<InvoiceWithDetails | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
+
+  // Helper functions for translations
+  const getMonthName = (month: number): string => {
+    return t(`months.${MONTH_KEYS[month - 1]}`)
+  }
+
+  const getStatusLabel = (status: InvoiceStatus): string => {
+    return t(`status.${status}`)
+  }
 
   // Fetch invoices when modal opens
   useEffect(() => {
@@ -205,7 +216,7 @@ export function SupplierInvoicesModal({
       const currentKey = `${now.getFullYear()}-${now.getMonth() + 1}`
       setExpandedMonths(new Set([currentKey]))
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Error al cargar las facturas')
+      setError(err instanceof Error ? err.message : t('toast.loadError'))
     } finally {
       setLoading(false)
     }
@@ -225,7 +236,7 @@ export function SupplierInvoicesModal({
         groups.set(key, {
           year,
           month,
-          monthName: SPANISH_MONTHS[month - 1],
+          monthName: getMonthName(month),
           invoices: [],
           totalAmount: 0,
           paidCount: 0,
@@ -295,12 +306,12 @@ export function SupplierInvoicesModal({
       await backofficeApi.deleteInvoice(deletingInvoice.id)
       setInvoices((prev) => prev.filter((i) => i.id !== deletingInvoice.id))
 
-      toast.success(`Factura ${deletingInvoice.invoice_number} eliminada`)
+      toast.success(t('toast.invoiceDeleted'))
       setDeletingInvoice(null)
       setDeleteStep(1)
       onInvoiceDeleted?.()
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : 'Error al eliminar la factura')
+      toast.error(err instanceof Error ? err.message : t('toast.invoiceDeleteError'))
     } finally {
       setIsDeleting(false)
     }
@@ -330,10 +341,10 @@ export function SupplierInvoicesModal({
           <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-800">
             <div>
               <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                Facturas de {supplier.name}
+                {t('modals.supplierInvoices.title', { name: supplier.name })}
               </h2>
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                {invoices.length} facturas en total
+                {t('modals.supplierInvoices.totalInvoices', { count: invoices.length })}
               </p>
             </div>
             <button
@@ -349,7 +360,7 @@ export function SupplierInvoicesModal({
             <div className="grid grid-cols-3 gap-4">
               <div className="text-center">
                 <p className="text-[10px] text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  Total Pagado
+                  {t('modals.supplierInvoices.stats.totalPaid')}
                 </p>
                 <p className="text-sm font-bold text-green-600 dark:text-green-400 mt-0.5">
                   {formatCurrency(totalPaid)}
@@ -357,7 +368,7 @@ export function SupplierInvoicesModal({
               </div>
               <div className="text-center">
                 <p className="text-[10px] text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  Pendiente
+                  {t('modals.supplierInvoices.stats.pending')}
                 </p>
                 <p className="text-sm font-bold text-yellow-600 dark:text-yellow-400 mt-0.5">
                   {formatCurrency(totalPending)}
@@ -365,7 +376,7 @@ export function SupplierInvoicesModal({
               </div>
               <div className="text-center">
                 <p className="text-[10px] text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  Total YTD
+                  {t('modals.supplierInvoices.stats.totalYtd')}
                 </p>
                 <p className="text-sm font-bold text-gray-900 dark:text-gray-100 mt-0.5">
                   {formatCurrency(supplier.ytd_total || 0)}
@@ -387,14 +398,14 @@ export function SupplierInvoicesModal({
                   onClick={fetchInvoices}
                   className="mt-2 text-xs text-blue-600 dark:text-blue-400 hover:underline"
                 >
-                  Reintentar
+                  {t('actions.retry')}
                 </button>
               </div>
             ) : monthGroups.length === 0 ? (
               <div className="text-center py-12">
                 <FiFileText className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
                 <p className="text-sm text-gray-500 dark:text-gray-400">
-                  No hay facturas para este proveedor
+                  {t('empty.noInvoicesForSupplier')}
                 </p>
               </div>
             ) : (
@@ -421,7 +432,10 @@ export function SupplierInvoicesModal({
                             {group.monthName} {group.year}
                           </span>
                           <span className="text-xs text-gray-500 dark:text-gray-400">
-                            ({group.invoices.length} factura{group.invoices.length !== 1 ? 's' : ''}
+                            ({group.invoices.length}{' '}
+                            {group.invoices.length !== 1
+                              ? t('modals.supplierInvoices.invoices')
+                              : t('modals.supplierInvoices.invoice')}
                             )
                           </span>
                         </div>
@@ -471,7 +485,7 @@ export function SupplierInvoicesModal({
                                     {formatDate(invoice.invoice_date)}
                                     {invoice.paid_date && (
                                       <span className="ml-2">
-                                        Pagada: {formatDate(invoice.paid_date)}
+                                        {t('modals.supplierInvoices.paidDate')} {formatDate(invoice.paid_date)}
                                       </span>
                                     )}
                                   </p>
@@ -483,7 +497,7 @@ export function SupplierInvoicesModal({
                                     INVOICE_STATUS_COLORS[invoice.status]
                                   }`}
                                 >
-                                  {INVOICE_STATUS_LABELS[invoice.status]}
+                                  {getStatusLabel(invoice.status)}
                                 </span>
                                 <span className="text-xs font-medium text-gray-900 dark:text-gray-100 min-w-[80px] text-right">
                                   {formatCurrency(invoice.amount_with_vat)}
@@ -501,14 +515,14 @@ export function SupplierInvoicesModal({
                                         )
                                       }}
                                       className="p-1.5 text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors"
-                                      title="Descargar PDF Original"
+                                      title={t('modals.supplierInvoices.downloadOriginal')}
                                     >
                                       <FiFileText className="w-3.5 h-3.5" />
                                     </button>
                                   ) : (
                                     <span
                                       className="p-1.5 text-gray-300 dark:text-gray-600 cursor-not-allowed"
-                                      title="Sin PDF Original"
+                                      title={t('modals.supplierInvoices.noOriginalPdf')}
                                     >
                                       <FiFileText className="w-3.5 h-3.5" />
                                     </span>
@@ -524,14 +538,14 @@ export function SupplierInvoicesModal({
                                         )
                                       }}
                                       className="p-1.5 text-green-500 hover:text-green-600 dark:text-green-400 dark:hover:text-green-300 hover:bg-green-50 dark:hover:bg-green-900/20 rounded transition-colors"
-                                      title="Descargar PDF Validado"
+                                      title={t('modals.supplierInvoices.downloadValidated')}
                                     >
                                       <FiCheckCircle className="w-3.5 h-3.5" />
                                     </button>
                                   ) : (
                                     <span
                                       className="p-1.5 text-gray-300 dark:text-gray-600 cursor-not-allowed"
-                                      title="Sin PDF Validado"
+                                      title={t('modals.supplierInvoices.noValidatedPdf')}
                                     >
                                       <FiCheckCircle className="w-3.5 h-3.5" />
                                     </span>
@@ -543,7 +557,7 @@ export function SupplierInvoicesModal({
                                     handleDeleteClick(invoice)
                                   }}
                                   className="p-1.5 text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors"
-                                  title="Eliminar factura"
+                                  title={t('modals.supplierInvoices.deleteInvoice')}
                                 >
                                   <FiTrash2 className="w-3.5 h-3.5" />
                                 </button>
@@ -565,7 +579,7 @@ export function SupplierInvoicesModal({
               onClick={onClose}
               className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
             >
-              Cerrar
+              {t('actions.close')}
             </button>
           </div>
         </div>
@@ -590,34 +604,34 @@ export function SupplierInvoicesModal({
                   <>
                     {/* Step 1: First confirmation */}
                     <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 text-center mb-2">
-                      Eliminar Factura
+                      {t('modals.supplierInvoices.deleteConfirm.step1.title')}
                     </h3>
                     <div className="text-sm text-gray-600 dark:text-gray-400 text-center mb-4 space-y-2">
                       <p>
-                        <strong>Factura:</strong> {deletingInvoice.invoice_number}
+                        <strong>{t('modals.supplierInvoices.deleteConfirm.step1.invoice')}</strong> {deletingInvoice.invoice_number}
                       </p>
                       <p>
-                        <strong>Importe:</strong> {formatCurrency(deletingInvoice.amount_with_vat)}
+                        <strong>{t('modals.supplierInvoices.deleteConfirm.step1.amount')}</strong> {formatCurrency(deletingInvoice.amount_with_vat)}
                       </p>
                       <p>
-                        <strong>Estado:</strong> {INVOICE_STATUS_LABELS[deletingInvoice.status]}
+                        <strong>{t('modals.supplierInvoices.deleteConfirm.step1.status')}</strong> {getStatusLabel(deletingInvoice.status)}
                       </p>
                     </div>
                     <p className="text-sm text-gray-500 dark:text-gray-400 text-center mb-6">
-                      ¿Estás seguro de que quieres eliminar esta factura?
+                      {t('modals.supplierInvoices.deleteConfirm.step1.question')}
                     </p>
                     <div className="flex gap-3">
                       <button
                         onClick={handleDeleteCancel}
                         className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                       >
-                        Cancelar
+                        {t('actions.cancel')}
                       </button>
                       <button
                         onClick={handleDeleteStep1Confirm}
                         className="flex-1 px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 transition-colors"
                       >
-                        Sí, eliminar
+                        {t('modals.supplierInvoices.deleteConfirm.step1.confirm')}
                       </button>
                     </div>
                   </>
@@ -625,27 +639,25 @@ export function SupplierInvoicesModal({
                   <>
                     {/* Step 2: Final confirmation */}
                     <h3 className="text-lg font-semibold text-red-600 dark:text-red-400 text-center mb-2">
-                      CONFIRMACIÓN FINAL
+                      {t('modals.supplierInvoices.deleteConfirm.step2.title')}
                     </h3>
                     <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md p-3 mb-4">
                       <p className="text-xs text-red-800 dark:text-red-300 text-center">
-                        <strong>ATENCIÓN:</strong> Esta acción es PERMANENTE e IRREVERSIBLE. La
-                        factura <strong>{deletingInvoice.invoice_number}</strong> será eliminada
-                        completamente del sistema junto con todo su historial.
+                        {t('modals.supplierInvoices.deleteConfirm.step2.warning', { number: deletingInvoice.invoice_number })}
                       </p>
                     </div>
                     <p className="text-sm text-gray-600 dark:text-gray-400 text-center mb-6">
-                      Escribe <strong className="text-red-600">ELIMINAR</strong> para confirmar:
+                      {t('modals.supplierInvoices.deleteConfirm.step2.instruction')}
                     </p>
                     <input
                       type="text"
                       id="delete-confirm-input"
-                      placeholder="Escribe ELIMINAR"
+                      placeholder={t('modals.supplierInvoices.deleteConfirm.step2.placeholder')}
                       className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md mb-4 focus:outline-none focus:ring-2 focus:ring-red-500 dark:bg-gray-800 dark:text-gray-100"
                       onChange={(e) => {
                         const btn = document.getElementById('final-delete-btn') as HTMLButtonElement
                         if (btn) {
-                          btn.disabled = e.target.value !== 'ELIMINAR'
+                          btn.disabled = e.target.value !== 'DELETE' && e.target.value !== 'ELIMINAR'
                         }
                       }}
                     />
@@ -655,7 +667,7 @@ export function SupplierInvoicesModal({
                         disabled={isDeleting}
                         className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
                       >
-                        Cancelar
+                        {t('actions.cancel')}
                       </button>
                       <button
                         id="final-delete-btn"
@@ -663,7 +675,7 @@ export function SupplierInvoicesModal({
                         disabled={true}
                         className="flex-1 px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        {isDeleting ? 'Eliminando...' : 'ELIMINAR PERMANENTEMENTE'}
+                        {isDeleting ? t('modals.supplierInvoices.deleteConfirm.step2.deleting') : t('modals.supplierInvoices.deleteConfirm.step2.confirm')}
                       </button>
                     </div>
                   </>
