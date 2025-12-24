@@ -3,6 +3,7 @@
 'use client'
 
 import { useState, useCallback, useMemo } from 'react'
+import { useSearchParams, useRouter, usePathname } from 'next/navigation'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { schedulingApi, schedulingKeys } from '@/app/lib/scheduling'
 import { ApiError } from '@/app/lib/apiClient'
@@ -38,9 +39,46 @@ interface SelectedCell {
 
 export function SchedulingClient() {
   const queryClient = useQueryClient()
-  const [selectedMonthId, setSelectedMonthId] = useState<number | null>(null)
-  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear())
+  const router = useRouter()
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
+  
+  // Get year and monthId from URL params
+  const currentYear = new Date().getFullYear()
+  const yearParam = searchParams.get('year')
+  const monthIdParam = searchParams.get('month')
+  
+  const selectedYear = yearParam ? parseInt(yearParam, 10) : currentYear
+  const selectedMonthId = monthIdParam ? parseInt(monthIdParam, 10) : null
+  
+  // Local state for cell selection (doesn't need URL persistence)
   const [selectedCell, setSelectedCell] = useState<SelectedCell | null>(null)
+  
+  // Update URL when year changes
+  const setSelectedYear = useCallback((year: number) => {
+    const params = new URLSearchParams(searchParams.toString())
+    if (year === currentYear) {
+      params.delete('year')
+    } else {
+      params.set('year', String(year))
+    }
+    // Clear month selection when year changes
+    params.delete('month')
+    const query = params.toString()
+    router.push(`${pathname}${query ? `?${query}` : ''}`, { scroll: false })
+  }, [router, pathname, searchParams, currentYear])
+  
+  // Update URL when month selection changes
+  const setSelectedMonthId = useCallback((monthId: number | null) => {
+    const params = new URLSearchParams(searchParams.toString())
+    if (monthId === null) {
+      params.delete('month')
+    } else {
+      params.set('month', String(monthId))
+    }
+    const query = params.toString()
+    router.push(`${pathname}${query ? `?${query}` : ''}`, { scroll: false })
+  }, [router, pathname, searchParams])
 
   // Fetch all months for the selector
   const { data: monthsData, isLoading: loadingMonths } = useQuery({
@@ -110,6 +148,8 @@ export function SchedulingClient() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: schedulingKeys.month(selectedMonthId!) })
       queryClient.invalidateQueries({ queryKey: schedulingKeys.months() })
+      // Invalidate annual totals when publishing (totals only count published months)
+      queryClient.invalidateQueries({ queryKey: schedulingKeys.annualTotals(selectedYear) })
       toast.success('Estado actualizado')
     },
     onError: () => {
@@ -123,6 +163,8 @@ export function SchedulingClient() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: schedulingKeys.month(selectedMonthId!) })
       queryClient.invalidateQueries({ queryKey: schedulingKeys.months() })
+      // Invalidate annual totals when unpublishing (totals only count published months)
+      queryClient.invalidateQueries({ queryKey: schedulingKeys.annualTotals(selectedYear) })
       toast.success('Mes revertido a estado generado')
     },
     onError: () => {

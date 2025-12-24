@@ -1,4 +1,15 @@
 // models/scheduling/index.ts
+//
+// NOTE: Some types are duplicated between frontend and backend:
+// - Backend: backend/models/scheduling/index.ts (this file)
+// - Frontend: frontend/app/lib/scheduling/types.ts
+//
+// Duplicated types include:
+// - EmployeeStats, EmployeeAnnualTotals, DailyStats, SchedulingConfigMap
+// - ConstraintType, EmployeeRuleType, MonthStatus, etc.
+//
+// TODO: Consider generating frontend types from backend or using a shared package
+// to avoid maintenance burden of keeping both in sync.
 
 import { RowDataPacket, ResultSetHeader } from 'mysql2'
 
@@ -511,6 +522,138 @@ export interface SchedulingConfigMap {
   maxMonthlyLibre: number      // 12 - Máximo libres al mes
   maxConsecutiveWorkDays: number // 6 - Máximo días consecutivos de trabajo
   minConsecutiveLibre: number  // 2 - Mínimo días libres consecutivos por semana
+}
+
+// ============================================
+// EMPLOYEE CONTRACTS (Convenio anual por empleado)
+// ============================================
+
+// scheduling_employee_contracts
+export interface SchedulingEmployeeContractRow extends RowDataPacket {
+  id: number
+  employee_id: string
+  year: number
+  dias_trabajo: number
+  horas_anuales: number
+  dias_vacaciones: number
+  dias_libre_semanal: number
+  dias_bonificables: number
+  dias_it: number
+  dias_laborables_ano: number
+  observaciones: string | null
+  created_by: string | null
+  created_at: Date
+  updated_at: Date
+}
+
+export interface SchedulingEmployeeContractWithEmployee extends SchedulingEmployeeContractRow {
+  employee_name: string
+}
+
+// DTOs for contracts
+export interface CreateEmployeeContractDTO {
+  employee_id: string
+  year: number
+  dias_trabajo?: number
+  horas_anuales?: number
+  dias_vacaciones?: number
+  dias_libre_semanal?: number
+  dias_bonificables?: number
+  dias_it?: number
+  dias_laborables_ano?: number
+  observaciones?: string | null
+  created_by?: string
+}
+
+export interface UpdateEmployeeContractDTO {
+  dias_trabajo?: number
+  horas_anuales?: number
+  dias_vacaciones?: number
+  dias_libre_semanal?: number
+  dias_bonificables?: number
+  dias_it?: number
+  dias_laborables_ano?: number
+  observaciones?: string | null
+}
+
+// Response types for frontend
+export interface EmployeeContract {
+  id: number
+  employeeId: string
+  employeeName: string
+  year: number
+  diasTrabajo: number
+  horasAnuales: number
+  diasVacaciones: number
+  diasLibreSemanal: number
+  diasBonificables: number
+  diasIt: number
+  diasLaborablesAno: number
+  observaciones: string | null
+}
+
+// ============================================
+// ANNUAL TOTALS (Resumen anual calculado)
+// ============================================
+
+export interface EmployeeAnnualTotals {
+  employeeId: string
+  employeeName: string
+  year: number
+  
+  // Datos de convenio (lo que debería trabajar)
+  convenio: {
+    diasTrabajo: number
+    horasAnuales: number
+    diasVacaciones: number
+    diasLibreSemanal: number
+    diasBonificables: number
+    diasIt: number
+    diasLaborablesAno: number
+    observaciones: string | null
+  }
+  
+  // Disfrutados (lo que ya ha trabajado/disfrutado)
+  disfrutados: {
+    diasTrabajados: number
+    horasTrabajadas: number
+    diasVacaciones: number
+    diasLibreSemanal: number
+    diasIt: number
+    diasBonificables: number
+    total: number
+    // Desglose por turno
+    M: number
+    T: number
+    N: number
+    PI: number
+    P: number
+    FO: number
+    E: number
+    A: number
+  }
+  
+  // Pendiente hasta final de año
+  pendiente: {
+    diasATrabaja: number
+    horasATrabaja: number
+    diasVacaciones: number
+    diasLibreSemanal: number
+    diasIt: number
+    diasBonificables: number
+    total: number
+  }
+  
+  // Meses incluidos en el cálculo
+  mesesIncluidos: number
+  ultimoMesCalculado: { year: number; month: number } | null
+}
+
+export interface AnnualTotalsResponse {
+  year: number
+  employees: EmployeeAnnualTotals[]
+  totalMesesPublicados: number
+  fechaCalculo: string
 }
 
 // ============================================

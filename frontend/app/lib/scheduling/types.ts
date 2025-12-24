@@ -1,5 +1,16 @@
 // app/lib/scheduling/types.ts
 // Types for the scheduling module
+//
+// NOTE: Some types are duplicated between frontend and backend:
+// - Backend: backend/models/scheduling/index.ts
+// - Frontend: frontend/app/lib/scheduling/types.ts
+//
+// Duplicated types include:
+// - EmployeeStats, EmployeeAnnualTotals, DailyStats, SchedulingConfigMap
+// - ConstraintType, EmployeeRuleType, MonthStatus, etc.
+//
+// TODO: Consider generating frontend types from backend or using a shared package
+// to avoid maintenance burden of keeping both in sync.
 
 // ============================================
 // ENUMS & CONSTANTS
@@ -363,4 +374,109 @@ export interface RulesResponse {
 export interface HistoryResponse {
   history: SchedulingHistory[]
   total: number
+}
+
+// ============================================
+// EMPLOYEE CONTRACTS (Annual contract data)
+// ============================================
+
+export interface EmployeeContract {
+  id: number
+  employeeId: string
+  employeeName: string
+  year: number
+  diasTrabajo: number
+  horasAnuales: number
+  diasVacaciones: number
+  diasLibreSemanal: number
+  diasBonificables: number
+  diasIt: number
+  diasLaborablesAno: number
+  observaciones: string | null
+}
+
+export interface CreateContractDto {
+  employee_id: string
+  year: number
+  dias_trabajo?: number
+  horas_anuales?: number
+  dias_vacaciones?: number
+  dias_libre_semanal?: number
+  dias_bonificables?: number
+  dias_it?: number
+  dias_laborables_ano?: number
+  observaciones?: string | null
+}
+
+export interface UpdateContractDto {
+  dias_trabajo?: number
+  horas_anuales?: number
+  dias_vacaciones?: number
+  dias_libre_semanal?: number
+  dias_bonificables?: number
+  dias_it?: number
+  dias_laborables_ano?: number
+  observaciones?: string | null
+}
+
+// ============================================
+// ANNUAL TOTALS (Calculated from published months)
+// ============================================
+
+export interface ConvenioData {
+  diasTrabajo: number
+  horasAnuales: number
+  diasVacaciones: number
+  diasLibreSemanal: number
+  diasBonificables: number
+  diasIt: number
+  diasLaborablesAno: number
+  observaciones: string | null
+}
+
+export interface DisfrutadosData {
+  diasTrabajados: number
+  horasTrabajadas: number
+  diasVacaciones: number
+  diasLibreSemanal: number
+  diasIt: number
+  diasBonificables: number
+  total: number
+  // Breakdown by shift
+  M: number
+  T: number
+  N: number
+  PI: number
+  P: number
+  FO: number
+  E: number
+  A: number
+}
+
+export interface PendienteData {
+  diasATrabaja: number
+  horasATrabaja: number
+  diasVacaciones: number
+  diasLibreSemanal: number
+  diasIt: number
+  diasBonificables: number
+  total: number
+}
+
+export interface EmployeeAnnualTotals {
+  employeeId: string
+  employeeName: string
+  year: number
+  convenio: ConvenioData
+  disfrutados: DisfrutadosData
+  pendiente: PendienteData
+  mesesIncluidos: number
+  ultimoMesCalculado: { year: number; month: number } | null
+}
+
+export interface AnnualTotalsResponse {
+  year: number
+  employees: EmployeeAnnualTotals[]
+  totalMesesPublicados: number
+  fechaCalculo: string
 }

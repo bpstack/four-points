@@ -15,6 +15,8 @@ import type {
   SchedulingEmployeeRuleRow,
   SchedulingEmployeeRuleWithEmployee,
   SchedulingHistoryRow,
+  SchedulingEmployeeContractRow,
+  SchedulingEmployeeContractWithEmployee,
   CreateMonthDTO,
   UpdateMonthDTO,
   CreateDayDTO,
@@ -26,11 +28,14 @@ import type {
   UpdateConstraintDTO,
   CreateEmployeeRuleDTO,
   UpdateEmployeeRuleDTO,
+  CreateEmployeeContractDTO,
+  UpdateEmployeeContractDTO,
   UpdateConfigDTO,
   ResultSetHeader,
   SchedulingConfigMap,
   DayOfWeek,
   HistoryAction,
+  EmployeeAnnualTotals,
 } from '../../models/scheduling/index.js'
 
 // ============================================
@@ -558,19 +563,33 @@ export async function updateAssignment(id: number, data: UpdateAssignmentDTO): P
 }
 
 export async function upsertAssignment(data: CreateAssignmentDTO): Promise<number> {
-  // Check if exists
-  const existing = await getAssignmentByDayEmployee(data.day_id, data.employee_id)
-  
-  if (existing) {
-    await updateAssignment(existing.id, {
-      shift_code: data.shift_code,
-      is_manual: data.is_manual,
-      notes: data.notes,
-    })
-    return existing.id
-  } else {
-    return createAssignment(data)
+  // Use INSERT ... ON DUPLICATE KEY UPDATE for better performance
+  // Avoids extra SELECT query before INSERT/UPDATE
+  const [result] = await db.execute<ResultSetHeader>(
+    `INSERT INTO scheduling_assignments 
+     (month_id, day_id, employee_id, shift_code, is_manual, notes, created_at, updated_at)
+     VALUES (?, ?, ?, ?, ?, ?, NOW(), NOW())
+     ON DUPLICATE KEY UPDATE 
+       shift_code = VALUES(shift_code),
+       is_manual = VALUES(is_manual),
+       notes = VALUES(notes),
+       updated_at = NOW()`,
+    [
+      data.month_id,
+      data.day_id,
+      data.employee_id,
+      data.shift_code,
+      data.is_manual ? 1 : 0,
+      data.notes ?? null,
+    ]
+  )
+  // insertId is the new ID on insert, or 0 on update
+  // For updates, we need to fetch the existing ID
+  if (result.insertId === 0) {
+    const existing = await getAssignmentByDayEmployee(data.day_id, data.employee_id)
+    return existing?.id ?? 0
   }
+  return result.insertId
 }
 
 export async function deleteAllAssignmentsByMonth(monthId: number): Promise<void> {
@@ -945,6 +964,538 @@ export async function setSchedulableEmployees(employeeIds: string[], addedBy?: s
       `INSERT INTO scheduling_employees (employee_id, added_by) VALUES ?`,
       [values]
     )
+  }
+}
+
+// ============================================
+// EMPLOYEE CONTRACTS
+// ============================================
+
+export async function getContractsByYear(year: number): Promise<SchedulingEmployeeContractWithEmployee[]> {
+  const [rows] = await db.query<SchedulingEmployeeContractWithEmployee[]>(
+    `SELECT c.*, u.username as employee_name
+     FROM scheduling_employee_contracts c
+     JOIN users u ON c.employee_id = u.id
+     JOIN scheduling_employees se ON c.employee_id = se.employee_id
+     WHERE c.year = ?
+     ORDER BY u.username`,
+    [year]
+  )
+  return rows
+}
+
+export async function getContractByEmployeeYear(
+  employeeId: string,
+  year: number
+): Promise<SchedulingEmployeeContractRow | undefined> {
+  const [rows] = await db.execute<SchedulingEmployeeContractRow[]>(
+    'SELECT * FROM scheduling_employee_contracts WHERE employee_id = ? AND year = ?',
+    [employeeId, year]
+  )
+  return rows[0]
+}
+
+export async function getContractById(id: number): Promise<SchedulingEmployeeContractWithEmployee | undefined> {
+  const [rows] = await db.execute<SchedulingEmployeeContractWithEmployee[]>(
+    `SELECT c.*, u.username as employee_name
+     FROM scheduling_employee_contracts c
+     JOIN users u ON c.employee_id = u.id
+     WHERE c.id = ?`,
+    [id]
+  )
+  return rows[0]
+}
+
+export async function createContract(data: CreateEmployeeContractDTO): Promise<number> {
+  const [result] = await db.execute<ResultSetHeader>(
+    `INSERT INTO scheduling_employee_contracts 
+     (employee_id, year, dias_trabajo, horas_anuales, dias_vacaciones, 
+      dias_libre_semanal, dias_bonificables, dias_it, dias_laborables_ano, 
+      observaciones, created_by, created_at, updated_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())`,
+    [
+      data.employee_id,
+      data.year,
+      data.dias_trabajo ?? 225,
+      data.horas_anuales ?? 1800,
+      data.dias_vacaciones ?? 30,
+      data.dias_libre_semanal ?? 90,
+      data.dias_bonificables ?? 20,
+      data.dias_it ?? 0,
+      data.dias_laborables_ano ?? 365,
+      data.observaciones ?? null,
+      data.created_by ?? null,
+    ]
+  )
+  return result.insertId
+}
+
+export async function updateContract(id: number, data: UpdateEmployeeContractDTO): Promise<boolean> {
+  const fields: string[] = []
+  const params: (string | number | null)[] = []
+
+  if (data.dias_trabajo !== undefined) {
+    fields.push('dias_trabajo = ?')
+    params.push(data.dias_trabajo)
+  }
+  if (data.horas_anuales !== undefined) {
+    fields.push('horas_anuales = ?')
+    params.push(data.horas_anuales)
+  }
+  if (data.dias_vacaciones !== undefined) {
+    fields.push('dias_vacaciones = ?')
+    params.push(data.dias_vacaciones)
+  }
+  if (data.dias_libre_semanal !== undefined) {
+    fields.push('dias_libre_semanal = ?')
+    params.push(data.dias_libre_semanal)
+  }
+  if (data.dias_bonificables !== undefined) {
+    fields.push('dias_bonificables = ?')
+    params.push(data.dias_bonificables)
+  }
+  if (data.dias_it !== undefined) {
+    fields.push('dias_it = ?')
+    params.push(data.dias_it)
+  }
+  if (data.dias_laborables_ano !== undefined) {
+    fields.push('dias_laborables_ano = ?')
+    params.push(data.dias_laborables_ano)
+  }
+  if (data.observaciones !== undefined) {
+    fields.push('observaciones = ?')
+    params.push(data.observaciones ?? null)
+  }
+
+  if (fields.length === 0) return false
+
+  fields.push('updated_at = NOW()')
+  params.push(id)
+
+  const [result] = await db.execute<ResultSetHeader>(
+    `UPDATE scheduling_employee_contracts SET ${fields.join(', ')} WHERE id = ?`,
+    params
+  )
+  return result.affectedRows > 0
+}
+
+export async function upsertContract(data: CreateEmployeeContractDTO): Promise<number> {
+  // Use INSERT ... ON DUPLICATE KEY UPDATE for better performance
+  // Avoids extra SELECT query before INSERT/UPDATE
+  const [result] = await db.execute<ResultSetHeader>(
+    `INSERT INTO scheduling_employee_contracts 
+     (employee_id, year, dias_trabajo, horas_anuales, dias_vacaciones, 
+      dias_libre_semanal, dias_bonificables, dias_it, dias_laborables_ano, 
+      observaciones, created_by, created_at, updated_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
+     ON DUPLICATE KEY UPDATE 
+       dias_trabajo = VALUES(dias_trabajo),
+       horas_anuales = VALUES(horas_anuales),
+       dias_vacaciones = VALUES(dias_vacaciones),
+       dias_libre_semanal = VALUES(dias_libre_semanal),
+       dias_bonificables = VALUES(dias_bonificables),
+       dias_it = VALUES(dias_it),
+       dias_laborables_ano = VALUES(dias_laborables_ano),
+       observaciones = VALUES(observaciones),
+       updated_at = NOW()`,
+    [
+      data.employee_id,
+      data.year,
+      data.dias_trabajo ?? 225,
+      data.horas_anuales ?? 1800,
+      data.dias_vacaciones ?? 30,
+      data.dias_libre_semanal ?? 90,
+      data.dias_bonificables ?? 20,
+      data.dias_it ?? 0,
+      data.dias_laborables_ano ?? 365,
+      data.observaciones ?? null,
+      data.created_by ?? null,
+    ]
+  )
+  // insertId is the new ID on insert, or 0 on update
+  if (result.insertId === 0) {
+    const existing = await getContractByEmployeeYear(data.employee_id, data.year)
+    return existing?.id ?? 0
+  }
+  return result.insertId
+}
+
+export async function deleteContract(id: number): Promise<boolean> {
+  const [result] = await db.execute<ResultSetHeader>(
+    'DELETE FROM scheduling_employee_contracts WHERE id = ?',
+    [id]
+  )
+  return result.affectedRows > 0
+}
+
+/**
+ * Calculate proportional contract values based on start date
+ * @param year The contract year
+ * @param startDate The employee's start date (YYYY-MM-DD format)
+ * @returns Proportional values for the contract
+ */
+export function calculateProportionalContract(year: number, startDate: string): {
+  diasTrabajo: number
+  horasAnuales: number
+  diasVacaciones: number
+  diasLibreSemanal: number
+  diasBonificables: number
+  diasLaborablesAno: number
+} {
+  // Default full-year values
+  const fullYear = {
+    diasTrabajo: 225,
+    horasAnuales: 1800,
+    diasVacaciones: 30,
+    diasLibreSemanal: 90,
+    diasBonificables: 20,
+    diasLaborablesAno: 365,
+  }
+
+  // Parse start date
+  const start = new Date(startDate)
+  const yearStart = new Date(year, 0, 1) // January 1st of the year
+  const yearEnd = new Date(year, 11, 31) // December 31st of the year
+
+  // If start date is before year start, use full year values
+  if (start <= yearStart) {
+    return fullYear
+  }
+
+  // If start date is after year end, return zeros
+  if (start > yearEnd) {
+    return {
+      diasTrabajo: 0,
+      horasAnuales: 0,
+      diasVacaciones: 0,
+      diasLibreSemanal: 0,
+      diasBonificables: 0,
+      diasLaborablesAno: 0,
+    }
+  }
+
+  // Calculate days from year start to start date (exclusive)
+  const daysBeforeStart = Math.floor((start.getTime() - yearStart.getTime()) / (1000 * 60 * 60 * 24))
+  
+  // Calculate remaining days in the year
+  const remainingDays = 365 - daysBeforeStart
+  
+  // Calculate proportion (remaining days / total days)
+  const proportion = remainingDays / 365
+
+  // Calculate proportional values (rounded to nearest integer)
+  return {
+    diasTrabajo: Math.round(fullYear.diasTrabajo * proportion),
+    horasAnuales: Math.round(fullYear.horasAnuales * proportion),
+    diasVacaciones: Math.round(fullYear.diasVacaciones * proportion),
+    diasLibreSemanal: Math.round(fullYear.diasLibreSemanal * proportion),
+    diasBonificables: Math.round(fullYear.diasBonificables * proportion),
+    diasLaborablesAno: remainingDays,
+  }
+}
+
+/**
+ * Initialize a single contract for an employee with optional start date
+ * @param employeeId The employee ID
+ * @param year The contract year
+ * @param startDate Optional start date for proportional calculation (YYYY-MM-DD)
+ * @param createdBy User who created the contract
+ * @returns The created contract ID or null if already exists
+ */
+export async function initializeContractForEmployee(
+  employeeId: string,
+  year: number,
+  startDate?: string,
+  createdBy?: string
+): Promise<number | null> {
+  const existing = await getContractByEmployeeYear(employeeId, year)
+  if (existing) {
+    return null // Already exists
+  }
+
+  // Calculate values based on start date
+  const values = startDate 
+    ? calculateProportionalContract(year, startDate)
+    : {
+        dias_trabajo: 225,
+        horas_anuales: 1800,
+        dias_vacaciones: 30,
+        dias_libre_semanal: 90,
+        dias_bonificables: 20,
+        dias_laborables_ano: 365,
+      }
+
+  // Build observaciones with start date info
+  const observaciones = startDate 
+    ? `Inicio: ${startDate}` 
+    : null
+
+  return await createContract({
+    employee_id: employeeId,
+    year,
+    dias_trabajo: 'diasTrabajo' in values ? values.diasTrabajo : values.dias_trabajo,
+    horas_anuales: 'horasAnuales' in values ? values.horasAnuales : values.horas_anuales,
+    dias_vacaciones: 'diasVacaciones' in values ? values.diasVacaciones : values.dias_vacaciones,
+    dias_libre_semanal: 'diasLibreSemanal' in values ? values.diasLibreSemanal : values.dias_libre_semanal,
+    dias_bonificables: 'diasBonificables' in values ? values.diasBonificables : values.dias_bonificables,
+    dias_laborables_ano: 'diasLaborablesAno' in values ? values.diasLaborablesAno : values.dias_laborables_ano,
+    observaciones,
+    created_by: createdBy,
+  })
+}
+
+/**
+ * Initialize default contracts for all schedulable employees for a given year
+ * Only creates contracts if they don't already exist
+ */
+export async function initializeContractsForYear(year: number, createdBy?: string): Promise<number> {
+  const schedulableEmployees = await getSchedulableEmployees()
+  let created = 0
+  
+  for (const emp of schedulableEmployees) {
+    const existing = await getContractByEmployeeYear(emp.id, year)
+    if (!existing) {
+      await createContract({
+        employee_id: emp.id,
+        year,
+        created_by: createdBy,
+      })
+      created++
+    }
+  }
+  
+  return created
+}
+
+// ============================================
+// ANNUAL TOTALS CALCULATION
+// ============================================
+
+/**
+ * Get shift hours from the shifts table
+ */
+async function getShiftHoursMap(): Promise<Record<string, number>> {
+  const shifts = await getAllShifts()
+  const map: Record<string, number> = {}
+  shifts.forEach(s => {
+    map[s.code] = s.hours
+  })
+  return map
+}
+
+/**
+ * Calculate annual totals for all employees for a given year
+ * Only considers PUBLISHED months
+ */
+export async function calculateAnnualTotals(year: number): Promise<EmployeeAnnualTotals[]> {
+  // Get published months for this year
+  const publishedMonths = await getAllMonths({ year, status: 'published' })
+  
+  if (publishedMonths.length === 0) {
+    // Return empty totals with just contract data
+    const contracts = await getContractsByYear(year)
+    return contracts.map(c => createEmptyTotals(c, year))
+  }
+  
+  // Get contracts for the year
+  const contracts = await getContractsByYear(year)
+  const contractMap = new Map(contracts.map(c => [c.employee_id, c]))
+  
+  // Get shift hours
+  const shiftHours = await getShiftHoursMap()
+  
+  // Get all schedulable employees
+  const employees = await getSchedulableEmployees()
+  
+  // Calculate totals per employee
+  const results: EmployeeAnnualTotals[] = []
+  
+  for (const emp of employees) {
+    const contract = contractMap.get(emp.id)
+    
+    // Initialize disfrutados counters
+    const disfrutados = {
+      diasTrabajados: 0,
+      horasTrabajadas: 0,
+      diasVacaciones: 0,
+      diasLibreSemanal: 0,
+      diasIt: 0,
+      diasBonificables: 0,
+      total: 0,
+      M: 0,
+      T: 0,
+      N: 0,
+      PI: 0,
+      P: 0,
+      FO: 0,
+      E: 0,
+      A: 0,
+    }
+    
+    // Aggregate from all published months
+    for (const month of publishedMonths) {
+      const assignments = await getAssignmentsByEmployee(month.id, emp.id)
+      
+      for (const a of assignments) {
+        const code = a.shift_code
+        const hours = shiftHours[code] || 0
+        
+        // Count by shift type
+        switch (code) {
+          case 'M':
+            disfrutados.M++
+            disfrutados.diasTrabajados++
+            disfrutados.horasTrabajadas += hours
+            break
+          case 'T':
+            disfrutados.T++
+            disfrutados.diasTrabajados++
+            disfrutados.horasTrabajadas += hours
+            break
+          case 'N':
+            disfrutados.N++
+            disfrutados.diasTrabajados++
+            disfrutados.horasTrabajadas += hours
+            break
+          case 'PI':
+            disfrutados.PI++
+            disfrutados.diasTrabajados++
+            disfrutados.horasTrabajadas += hours
+            break
+          case 'P':
+            disfrutados.P++
+            disfrutados.diasTrabajados++
+            disfrutados.horasTrabajadas += hours
+            break
+          case 'FO':
+            disfrutados.FO++
+            disfrutados.horasTrabajadas += hours
+            break
+          case 'V':
+            disfrutados.diasVacaciones++
+            break
+          case 'L':
+            disfrutados.diasLibreSemanal++
+            break
+          case 'B':
+            disfrutados.diasBonificables++
+            break
+          case 'IT':
+            disfrutados.diasIt++
+            break
+          case 'E':
+            disfrutados.E++
+            break
+          case 'A':
+            disfrutados.A++
+            break
+        }
+      }
+    }
+    
+    // Calculate total disfrutados
+    disfrutados.total = 
+      disfrutados.diasTrabajados + 
+      disfrutados.diasVacaciones + 
+      disfrutados.diasLibreSemanal + 
+      disfrutados.diasIt + 
+      disfrutados.diasBonificables
+    
+    // Build convenio from contract (or defaults)
+    const convenio = contract ? {
+      diasTrabajo: contract.dias_trabajo,
+      horasAnuales: contract.horas_anuales,
+      diasVacaciones: contract.dias_vacaciones,
+      diasLibreSemanal: contract.dias_libre_semanal,
+      diasBonificables: contract.dias_bonificables,
+      diasIt: contract.dias_it,
+      diasLaborablesAno: contract.dias_laborables_ano,
+      observaciones: contract.observaciones,
+    } : {
+      diasTrabajo: 225,
+      horasAnuales: 1800,
+      diasVacaciones: 30,
+      diasLibreSemanal: 90,
+      diasBonificables: 20,
+      diasIt: 0,
+      diasLaborablesAno: 365,
+      observaciones: null,
+    }
+    
+    // Calculate pendiente (remaining until year end)
+    // IMPORTANT: IT days reduce the required work days
+    // If someone has 225 work days by contract and 2 IT days, they only need to work 223 days
+    const diasTrabajoAjustado = convenio.diasTrabajo - disfrutados.diasIt
+    const horasAnualesAjustadas = convenio.horasAnuales - (disfrutados.diasIt * 8) // Assuming 8h per IT day
+    
+    const pendiente = {
+      diasATrabaja: diasTrabajoAjustado - disfrutados.diasTrabajados,
+      horasATrabaja: horasAnualesAjustadas - disfrutados.horasTrabajadas,
+      diasVacaciones: convenio.diasVacaciones - disfrutados.diasVacaciones,
+      diasLibreSemanal: convenio.diasLibreSemanal - disfrutados.diasLibreSemanal,
+      diasIt: convenio.diasIt - disfrutados.diasIt, // This will typically be negative (IT days taken beyond expected)
+      diasBonificables: convenio.diasBonificables - disfrutados.diasBonificables,
+      total: convenio.diasLaborablesAno - disfrutados.total,
+    }
+    
+    // Get last published month
+    const lastMonth = publishedMonths.reduce((latest, m) => {
+      if (!latest) return m
+      if (m.year > latest.year || (m.year === latest.year && m.month > latest.month)) return m
+      return latest
+    }, publishedMonths[0])
+    
+    results.push({
+      employeeId: emp.id,
+      employeeName: emp.username,
+      year,
+      convenio,
+      disfrutados,
+      pendiente,
+      mesesIncluidos: publishedMonths.length,
+      ultimoMesCalculado: lastMonth ? { year: lastMonth.year, month: lastMonth.month } : null,
+    })
+  }
+  
+  return results
+}
+
+function createEmptyTotals(contract: SchedulingEmployeeContractWithEmployee, year: number): EmployeeAnnualTotals {
+  return {
+    employeeId: contract.employee_id,
+    employeeName: contract.employee_name,
+    year,
+    convenio: {
+      diasTrabajo: contract.dias_trabajo,
+      horasAnuales: contract.horas_anuales,
+      diasVacaciones: contract.dias_vacaciones,
+      diasLibreSemanal: contract.dias_libre_semanal,
+      diasBonificables: contract.dias_bonificables,
+      diasIt: contract.dias_it,
+      diasLaborablesAno: contract.dias_laborables_ano,
+      observaciones: contract.observaciones,
+    },
+    disfrutados: {
+      diasTrabajados: 0,
+      horasTrabajadas: 0,
+      diasVacaciones: 0,
+      diasLibreSemanal: 0,
+      diasIt: 0,
+      diasBonificables: 0,
+      total: 0,
+      M: 0, T: 0, N: 0, PI: 0, P: 0, FO: 0, E: 0, A: 0,
+    },
+    pendiente: {
+      diasATrabaja: contract.dias_trabajo,
+      horasATrabaja: contract.horas_anuales,
+      diasVacaciones: contract.dias_vacaciones,
+      diasLibreSemanal: contract.dias_libre_semanal,
+      diasIt: contract.dias_it,
+      diasBonificables: contract.dias_bonificables,
+      total: contract.dias_laborables_ano,
+    },
+    mesesIncluidos: 0,
+    ultimoMesCalculado: null,
   }
 }
 

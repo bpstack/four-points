@@ -18,6 +18,7 @@ DROP TABLE IF EXISTS scheduling_constraints;
 DROP TABLE IF EXISTS scheduling_days;
 DROP TABLE IF EXISTS scheduling_months;
 DROP TABLE IF EXISTS scheduling_employee_rules;
+DROP TABLE IF EXISTS scheduling_employee_contracts;
 DROP TABLE IF EXISTS scheduling_employees;
 DROP TABLE IF EXISTS scheduling_shifts;
 DROP TABLE IF EXISTS scheduling_config;
@@ -83,7 +84,44 @@ CREATE TABLE scheduling_employees (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Empleados que participan en horarios';
 
 -- =========================================================
--- TABLA 4: scheduling_employee_rules
+-- TABLA 4: scheduling_employee_contracts
+-- Datos de convenio/contrato por empleado y año
+-- Permite definir días de trabajo, vacaciones, libres, etc. por empleado
+-- =========================================================
+CREATE TABLE scheduling_employee_contracts (
+  id INT NOT NULL AUTO_INCREMENT,
+  employee_id CHAR(36) COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT 'ID del empleado (users.id)',
+  year INT NOT NULL COMMENT 'Año del contrato',
+  
+  -- Datos de convenio (lo que corresponde trabajar)
+  dias_trabajo INT NOT NULL DEFAULT 225 COMMENT 'Días de trabajo anuales según convenio',
+  horas_anuales INT NOT NULL DEFAULT 1800 COMMENT 'Horas a trabajar anuales (dias_trabajo * 8)',
+  dias_vacaciones INT NOT NULL DEFAULT 30 COMMENT 'Días de vacaciones anuales',
+  dias_libre_semanal INT NOT NULL DEFAULT 90 COMMENT 'Días de libre semanal anuales (~2 por semana)',
+  dias_bonificables INT NOT NULL DEFAULT 20 COMMENT 'Días bonificables/festivos anuales',
+  dias_it INT NOT NULL DEFAULT 0 COMMENT 'Días de IT previstos (normalmente 0)',
+  
+  -- Total días año (para validación: trabajo + vac + libre + bonif = ~365)
+  dias_laborables_ano INT NOT NULL DEFAULT 365 COMMENT 'Total días laborables del año',
+  
+  -- Observaciones especiales (ej: "2 LI ENERO", "3 LI ABRIL // 3 LI SEPT")
+  observaciones TEXT COLLATE utf8mb4_0900_ai_ci DEFAULT NULL COMMENT 'Observaciones especiales del convenio',
+  
+  -- Metadata
+  created_by CHAR(36) COLLATE utf8mb4_0900_ai_ci DEFAULT NULL COMMENT 'Usuario que creó',
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  
+  PRIMARY KEY (id),
+  UNIQUE KEY uk_employee_year (employee_id, year),
+  KEY idx_year (year),
+  KEY idx_employee_id (employee_id),
+  CONSTRAINT fk_sched_contract_employee FOREIGN KEY (employee_id) REFERENCES users (id) ON DELETE CASCADE,
+  CONSTRAINT fk_sched_contract_created_by FOREIGN KEY (created_by) REFERENCES users (id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Datos de convenio/contrato por empleado y año';
+
+-- =========================================================
+-- TABLA 5: scheduling_employee_rules
 -- Reglas específicas por empleado (Salvador, Andrés, Ana R, etc.)
 -- =========================================================
 CREATE TABLE scheduling_employee_rules (
@@ -105,7 +143,7 @@ CREATE TABLE scheduling_employee_rules (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Reglas específicas por empleado';
 
 -- =========================================================
--- TABLA 5: scheduling_months
+-- TABLA 6: scheduling_months
 -- Planning mensual (un registro por mes/año)
 -- =========================================================
 CREATE TABLE scheduling_months (
@@ -133,7 +171,7 @@ CREATE TABLE scheduling_months (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Planning mensual';
 
 -- =========================================================
--- TABLA 6: scheduling_days
+-- TABLA 7: scheduling_days
 -- Días del mes con información adicional (festivos, ocupación, etc.)
 -- =========================================================
 CREATE TABLE scheduling_days (
@@ -162,7 +200,7 @@ CREATE TABLE scheduling_days (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Días del planning con información adicional';
 
 -- =========================================================
--- TABLA 7: scheduling_assignments
+-- TABLA 8: scheduling_assignments
 -- Asignación de turnos (empleado × día = turno)
 -- =========================================================
 CREATE TABLE scheduling_assignments (
@@ -189,7 +227,7 @@ CREATE TABLE scheduling_assignments (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Asignación de turnos por empleado y día';
 
 -- =========================================================
--- TABLA 8: scheduling_constraints
+-- TABLA 9: scheduling_constraints
 -- Restricciones variables (vacaciones, peticiones, bajas, etc.)
 -- =========================================================
 CREATE TABLE scheduling_constraints (
@@ -225,7 +263,7 @@ CREATE TABLE scheduling_constraints (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Restricciones y peticiones de empleados';
 
 -- =========================================================
--- TABLA 9: scheduling_history
+-- TABLA 10: scheduling_history
 -- Historial de cambios para auditoría
 -- =========================================================
 CREATE TABLE scheduling_history (
@@ -293,6 +331,25 @@ INSERT INTO scheduling_shifts (code, name, start_time, end_time, hours, color, i
 ('IT', 'Incapacidad Temporal', NULL, NULL, 0.00, '#FED7AA', 0, 1, 10),
 ('E', 'Enfermedad', NULL, NULL, 0.00, '#FECDD3', 0, 1, 11),
 ('A', 'Ausencia Injustificada', NULL, NULL, 0.00, '#FCA5A5', 0, 0, 12);
+
+-- =========================================================
+-- NOTA: DATOS INICIALES DE CONTRATOS
+-- Los contratos de empleados se insertan después de que 
+-- los usuarios estén creados en la tabla users.
+-- Ejemplo de inserción para 2025:
+-- =========================================================
+-- INSERT INTO scheduling_employee_contracts 
+--   (employee_id, year, dias_trabajo, horas_anuales, dias_vacaciones, 
+--    dias_libre_semanal, dias_bonificables, dias_laborables_ano, observaciones)
+-- VALUES
+--   ('uuid-ana-r', 2025, 223, 1784, 30, 90, 20, 363, '2 LI ENERO'),
+--   ('uuid-hugo', 2025, 225, 1800, 30, 90, 20, 365, NULL),
+--   ('uuid-irene', 2025, 225, 1800, 30, 90, 20, 365, NULL),
+--   ('uuid-salvador', 2025, 219, 1752, 30, 90, 20, 359, '3 LI ABRIL // 3 LI SEPT'),
+--   ('uuid-pablo', 2025, 222, 1776, 30, 90, 20, 362, '3 LI ABRIL'),
+--   ('uuid-elena', 2025, 225, 1800, 30, 90, 20, 365, NULL),
+--   ('uuid-Clara', 2025, 225, 1800, 30, 90, 20, 365, NULL),
+--   ('uuid-andres', 2025, 225, 1800, 30, 90, 20, 365, NULL);
 
 -- =========================================================
 -- VERIFICACIÓN

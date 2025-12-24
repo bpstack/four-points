@@ -45,6 +45,17 @@ import {
   addSchedulableEmployee,
   removeSchedulableEmployee,
   setSchedulableEmployees,
+  // Contracts
+  getContractsByYear,
+  getContractByEmployeeYear,
+  createContract,
+  updateContract,
+  deleteContract,
+  initializeContractsForYear,
+  initializeContractForEmployee,
+  calculateProportionalContract,
+  // Annual Totals
+  getAnnualTotals,
 } from '../../controllers/scheduling/scheduling-controller.js'
 
 // Middlewares
@@ -193,5 +204,40 @@ router.delete('/employees/:employeeId', isAdmin, removeSchedulableEmployee)
 
 // PUT - Set all schedulable employees (replaces list) (admin only)
 router.put('/employees', isAdmin, setSchedulableEmployees)
+
+// ========================================
+// CONTRACTS ROUTES
+// ========================================
+
+// GET - Get all contracts for a year
+router.get('/contracts/:year', getContractsByYear)
+
+// GET - Get contract for specific employee and year
+router.get('/contracts/:year/:employeeId', getContractByEmployeeYear)
+
+// GET - Calculate proportional contract values (preview)
+router.get('/contracts/:year/calculate', calculateProportionalContract)
+
+// POST - Create contract (admin only)
+router.post('/contracts', isAdmin, createContract)
+
+// POST - Initialize contracts for all schedulable employees for a year (admin only)
+router.post('/contracts/:year/initialize', isAdmin, initializeContractsForYear)
+
+// POST - Initialize single contract with optional start date (admin only)
+router.post('/contracts/:year/employee/:employeeId', isAdmin, initializeContractForEmployee)
+
+// PUT - Update contract (admin only)
+router.put('/contracts/:id', isAdmin, updateContract)
+
+// DELETE - Delete contract (admin only)
+router.delete('/contracts/:id', isAdmin, deleteContract)
+
+// ========================================
+// ANNUAL TOTALS ROUTES
+// ========================================
+
+// GET - Get annual totals for a year (calculated from published months)
+router.get('/totals/:year', getAnnualTotals)
 
 export default router

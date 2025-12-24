@@ -22,6 +22,10 @@ import type {
   CreateEmployeeRuleDto,
   UpdateEmployeeRuleDto,
   GenerationResult,
+  EmployeeContract,
+  CreateContractDto,
+  UpdateContractDto,
+  AnnualTotalsResponse,
 } from './types'
 
 const API_URL = API_BASE_URL
@@ -45,6 +49,9 @@ export const schedulingKeys = {
   history: (monthId: number) => [...schedulingKeys.all, 'history', monthId] as const,
   employees: () => [...schedulingKeys.all, 'employees'] as const,
   employeesAll: () => [...schedulingKeys.all, 'employees', 'all'] as const,
+  contracts: (year: number) => [...schedulingKeys.all, 'contracts', year] as const,
+  contractByEmployee: (year: number, employeeId: string) => [...schedulingKeys.contracts(year), employeeId] as const,
+  annualTotals: (year: number) => [...schedulingKeys.all, 'totals', year] as const,
 }
 
 // ============================================
@@ -358,5 +365,91 @@ export const schedulingApi = {
    */
   setSchedulableEmployees: async (employeeIds: string[]): Promise<{ success: boolean }> => {
     return apiClient.put(`${API_URL}/api/scheduling/employees`, { employeeIds })
+  },
+
+  // ============================================
+  // CONTRACTS
+  // ============================================
+
+  /**
+   * Get all contracts for a year
+   */
+  getContractsByYear: async (year: number): Promise<EmployeeContract[]> => {
+    return apiClient.get(`${API_URL}/api/scheduling/contracts/${year}`)
+  },
+
+  /**
+   * Get contract for specific employee and year
+   */
+  getContractByEmployeeYear: async (year: number, employeeId: string): Promise<EmployeeContract> => {
+    return apiClient.get(`${API_URL}/api/scheduling/contracts/${year}/${employeeId}`)
+  },
+
+  /**
+   * Create a new contract
+   */
+  createContract: async (data: CreateContractDto): Promise<EmployeeContract> => {
+    return apiClient.post(`${API_URL}/api/scheduling/contracts`, data)
+  },
+
+  /**
+   * Initialize contracts for all schedulable employees for a year
+   */
+  initializeContractsForYear: async (year: number): Promise<{ success: boolean; created: number }> => {
+    return apiClient.post(`${API_URL}/api/scheduling/contracts/${year}/initialize`)
+  },
+
+  /**
+   * Initialize a single contract for an employee with optional start date
+   */
+  initializeContractForEmployee: async (
+    year: number, 
+    employeeId: string, 
+    startDate?: string
+  ): Promise<{ success: boolean; message: string; contract: EmployeeContract | null }> => {
+    return apiClient.post(`${API_URL}/api/scheduling/contracts/${year}/employee/${employeeId}`, { startDate })
+  },
+
+  /**
+   * Calculate proportional contract values (preview without creating)
+   */
+  calculateProportionalContract: async (year: number, startDate: string): Promise<{
+    year: number
+    startDate: string
+    values: {
+      diasTrabajo: number
+      horasAnuales: number
+      diasVacaciones: number
+      diasLibreSemanal: number
+      diasBonificables: number
+      diasLaborablesAno: number
+    }
+  }> => {
+    return apiClient.get(`${API_URL}/api/scheduling/contracts/${year}/calculate?startDate=${startDate}`)
+  },
+
+  /**
+   * Update a contract
+   */
+  updateContract: async (contractId: number, data: UpdateContractDto): Promise<EmployeeContract> => {
+    return apiClient.put(`${API_URL}/api/scheduling/contracts/${contractId}`, data)
+  },
+
+  /**
+   * Delete a contract
+   */
+  deleteContract: async (contractId: number): Promise<{ success: boolean; message: string }> => {
+    return apiClient.delete(`${API_URL}/api/scheduling/contracts/${contractId}`)
+  },
+
+  // ============================================
+  // ANNUAL TOTALS
+  // ============================================
+
+  /**
+   * Get annual totals for a year (calculated from published months)
+   */
+  getAnnualTotals: async (year: number): Promise<AnnualTotalsResponse> => {
+    return apiClient.get(`${API_URL}/api/scheduling/totals/${year}`)
   },
 }

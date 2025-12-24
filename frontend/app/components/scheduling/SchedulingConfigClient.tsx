@@ -2,7 +2,8 @@
 
 'use client'
 
-import { useState } from 'react'
+import { useState, useCallback, useEffect } from 'react'
+import { useSearchParams, useRouter, usePathname } from 'next/navigation'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { schedulingApi, schedulingKeys } from '@/app/lib/scheduling'
 import type { 
@@ -13,6 +14,7 @@ import type {
   UpdateEmployeeRuleDto,
   EmployeeRuleType
 } from '@/app/lib/scheduling'
+import { getShiftClasses } from '@/app/lib/scheduling'
 import toast from 'react-hot-toast'
 import Link from 'next/link'
 import {
@@ -28,9 +30,13 @@ import {
   FiCheck,
   FiUserCheck,
   FiCalendar as FiCalendarOff,
+  FiBarChart2,
 } from 'react-icons/fi'
+import { EmployeeTotals } from './EmployeeTotals'
 
-type TabType = 'employees' | 'general' | 'shifts' | 'rules' | 'requests'
+type TabType = 'employees' | 'totals' | 'general' | 'shifts' | 'rules' | 'requests'
+
+const VALID_TABS: TabType[] = ['employees', 'totals', 'general', 'shifts', 'rules', 'requests']
 
 interface Employee {
   id: string
@@ -39,7 +45,27 @@ interface Employee {
 
 export function SchedulingConfigClient() {
   const queryClient = useQueryClient()
-  const [activeTab, setActiveTab] = useState<TabType>('employees')
+  const router = useRouter()
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
+  
+  // Get active tab from URL, default to 'employees'
+  const tabParam = searchParams.get('tab')
+  const activeTab: TabType = VALID_TABS.includes(tabParam as TabType) 
+    ? (tabParam as TabType) 
+    : 'employees'
+  
+  // Update URL when tab changes
+  const setActiveTab = useCallback((tab: TabType) => {
+    const params = new URLSearchParams(searchParams.toString())
+    if (tab === 'employees') {
+      params.delete('tab') // Default tab, no need in URL
+    } else {
+      params.set('tab', tab)
+    }
+    const query = params.toString()
+    router.push(`${pathname}${query ? `?${query}` : ''}`, { scroll: false })
+  }, [router, pathname, searchParams])
   
   // Fetch configuration
   const { data: config, isLoading: loadingConfig } = useQuery({
@@ -63,6 +89,7 @@ export function SchedulingConfigClient() {
   
   const tabs = [
     { id: 'employees' as TabType, label: 'Empleados', icon: FiUserCheck },
+    { id: 'totals' as TabType, label: 'Totales', icon: FiBarChart2 },
     { id: 'general' as TabType, label: 'Configuracion General', icon: FiSettings },
     { id: 'shifts' as TabType, label: 'Turnos', icon: FiCalendar },
     { id: 'rules' as TabType, label: 'Reglas', icon: FiUsers },
@@ -124,6 +151,7 @@ export function SchedulingConfigClient() {
           ) : (
             <>
               {activeTab === 'employees' && <EmployeesTab />}
+              {activeTab === 'totals' && <TotalsTab />}
               {activeTab === 'general' && config && <GeneralConfigTab config={config} />}
               {activeTab === 'shifts' && <ShiftsTab shifts={shifts} />}
               {activeTab === 'rules' && <RulesTab rules={rules} />}
@@ -156,32 +184,23 @@ function EmployeesTab() {
     queryFn: schedulingApi.getAllEmployeesWithStatus,
   })
   
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  const [selectedIds, setSelectedIds] = useState<Set<string> | null>(null)
   const [hasChanges, setHasChanges] = useState(false)
   
   // Initialize selected IDs when data loads
-  useState(() => {
-    const initialSelected = new Set(
-      employees.filter(e => e.is_schedulable).map(e => e.id)
-    )
-    setSelectedIds(initialSelected)
-  })
-  
-  // Update selected when employees load
-  const scheduledCount = employees.filter(e => e.is_schedulable).length
-  
-  // Sync state when employees change
-  if (employees.length > 0 && selectedIds.size === 0 && !hasChanges) {
-    const initialSelected = new Set(
-      employees.filter(e => e.is_schedulable).map(e => e.id)
-    )
-    if (initialSelected.size > 0) {
+  useEffect(() => {
+    if (employees.length > 0 && selectedIds === null) {
+      const initialSelected = new Set(
+        employees.filter(e => e.is_schedulable).map(e => e.id)
+      )
       setSelectedIds(initialSelected)
     }
-  }
+  }, [employees, selectedIds])
+  
+  const currentSelected = selectedIds ?? new Set<string>()
   
   const toggleEmployee = (id: string) => {
-    const newSelected = new Set(selectedIds)
+    const newSelected = new Set(currentSelected)
     if (newSelected.has(id)) {
       newSelected.delete(id)
     } else {
@@ -206,6 +225,8 @@ function EmployeesTab() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: schedulingKeys.employeesAll() })
       queryClient.invalidateQueries({ queryKey: schedulingKeys.employees() })
+      // Invalidar contratos y totales para que se actualicen con los nuevos empleados
+      queryClient.invalidateQueries({ queryKey: schedulingKeys.all })
       toast.success('Empleados actualizados')
       setHasChanges(false)
     },
@@ -215,10 +236,10 @@ function EmployeesTab() {
   })
   
   const handleSave = () => {
-    saveMutation.mutate(Array.from(selectedIds))
+    saveMutation.mutate(Array.from(currentSelected))
   }
   
-  if (isLoading) {
+  if (isLoading || selectedIds === null) {
     return (
       <div className="p-12 text-center">
         <div className="inline-block h-8 w-8 animate-spin rounded-full border-[3px] border-solid border-blue-600 dark:border-blue-500 border-r-transparent"></div>
@@ -240,7 +261,7 @@ function EmployeesTab() {
         </div>
         <div className="flex items-center gap-2">
           <span className="text-xs text-gray-500 dark:text-gray-400">
-            {selectedIds.size} de {employees.length} seleccionados
+            {currentSelected.size} de {employees.length} seleccionados
           </span>
           <button
             onClick={selectAll}
@@ -270,7 +291,7 @@ function EmployeesTab() {
             >
               <input
                 type="checkbox"
-                checked={selectedIds.has(employee.id)}
+                checked={currentSelected.has(employee.id)}
                 onChange={() => toggleEmployee(employee.id)}
                 className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500 dark:bg-gray-800"
               />
@@ -357,73 +378,179 @@ function GeneralConfigTab({ config }: GeneralConfigTabProps) {
   
   const hasChanges = Object.keys(editedConfig).length > 0
   
-  const configSections = [
-    {
-      title: 'Dotacion de Personal',
-      description: 'Numero de empleados requeridos por turno',
-      fields: [
-        { key: 'min_morning_staff', label: 'Minimo manana', value: config.minMorningStaff },
-        { key: 'pref_morning_staff', label: 'Preferido manana', value: config.prefMorningStaff },
-        { key: 'min_afternoon_staff', label: 'Minimo tarde', value: config.minAfternoonStaff },
-        { key: 'pref_afternoon_staff', label: 'Preferido tarde', value: config.prefAfternoonStaff },
-        { key: 'min_night_staff', label: 'Minimo noche', value: config.minNightStaff },
-        { key: 'max_night_staff', label: 'Maximo noche', value: config.maxNightStaff },
-      ],
-    },
-    {
-      title: 'Limites Semanales',
-      description: 'Restricciones de turnos por semana',
-      fields: [
-        { key: 'max_weekly_shifts', label: 'Max turnos/semana', value: config.maxWeeklyShifts },
-        { key: 'pref_weekly_shifts', label: 'Turnos preferidos/semana', value: config.prefWeeklyShifts },
-        { key: 'min_rest_hours', label: 'Horas descanso minimo', value: config.minRestHours },
-      ],
-    },
-    {
-      title: 'Bloques de Noche',
-      description: 'Configuracion de turnos nocturnos consecutivos',
-      fields: [
-        { key: 'min_night_block', label: 'Minimo noches consecutivas', value: config.minNightBlock },
-        { key: 'max_night_block', label: 'Maximo noches consecutivas', value: config.maxNightBlock },
-        { key: 'pref_night_block', label: 'Noches preferidas', value: config.prefNightBlock },
-      ],
-    },
-    {
-      title: 'Cuotas Anuales',
-      description: 'Dias de descanso y vacaciones anuales',
-      fields: [
-        { key: 'annual_vacation_days', label: 'Dias vacaciones/ano', value: config.annualVacationDays },
-        { key: 'annual_holidays', label: 'Festivos/ano', value: config.annualHolidays },
-        { key: 'annual_free_days', label: 'Dias libres totales/ano', value: config.annualFreeDays },
-      ],
-    },
-  ]
+  const getValue = (key: string, defaultValue: number) => {
+    return editedConfig[key] ?? defaultValue
+  }
+  
+  const handleChange = (key: string, value: string) => {
+    setEditedConfig({ ...editedConfig, [key]: value })
+  }
   
   return (
     <div className="p-4 space-y-6">
-      {configSections.map((section) => (
-        <div key={section.title} className="space-y-3">
-          <div>
-            <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">{section.title}</h3>
-            <p className="text-xs text-gray-500 dark:text-gray-400">{section.description}</p>
-          </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-            {section.fields.map((field) => (
-              <div key={field.key}>
-                <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  {field.label}
-                </label>
+      {/* DOTACIÓN POR TURNO */}
+      <div>
+        <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">
+          Dotacion por Turno
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Mañana */}
+          <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="w-8 h-8 rounded-full bg-amber-500 text-white flex items-center justify-center text-sm font-bold">M</span>
+              <span className="text-sm font-medium text-amber-800 dark:text-amber-300">Turno Mañana</span>
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-gray-600 dark:text-gray-400">Minimo</span>
                 <input
                   type="number"
-                  value={editedConfig[field.key] ?? field.value}
-                  onChange={(e) => setEditedConfig({ ...editedConfig, [field.key]: e.target.value })}
-                  className="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                  value={getValue('min_morning_staff', config.minMorningStaff)}
+                  onChange={(e) => handleChange('min_morning_staff', e.target.value)}
+                  className="w-16 px-2 py-1 text-sm text-center border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
                 />
               </div>
-            ))}
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-gray-600 dark:text-gray-400">Preferido</span>
+                <input
+                  type="number"
+                  value={getValue('pref_morning_staff', config.prefMorningStaff)}
+                  onChange={(e) => handleChange('pref_morning_staff', e.target.value)}
+                  className="w-16 px-2 py-1 text-sm text-center border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
+                />
+              </div>
+            </div>
+          </div>
+          
+          {/* Tarde */}
+          <div className="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="w-8 h-8 rounded-full bg-orange-500 text-white flex items-center justify-center text-sm font-bold">T</span>
+              <span className="text-sm font-medium text-orange-800 dark:text-orange-300">Turno Tarde</span>
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-gray-600 dark:text-gray-400">Minimo</span>
+                <input
+                  type="number"
+                  value={getValue('min_afternoon_staff', config.minAfternoonStaff)}
+                  onChange={(e) => handleChange('min_afternoon_staff', e.target.value)}
+                  className="w-16 px-2 py-1 text-sm text-center border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
+                />
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-gray-600 dark:text-gray-400">Preferido</span>
+                <input
+                  type="number"
+                  value={getValue('pref_afternoon_staff', config.prefAfternoonStaff)}
+                  onChange={(e) => handleChange('pref_afternoon_staff', e.target.value)}
+                  className="w-16 px-2 py-1 text-sm text-center border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
+                />
+              </div>
+            </div>
+          </div>
+          
+          {/* Noche */}
+          <div className="bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 rounded-lg p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="w-8 h-8 rounded-full bg-indigo-600 text-white flex items-center justify-center text-sm font-bold">N</span>
+              <span className="text-sm font-medium text-indigo-800 dark:text-indigo-300">Turno Noche</span>
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-gray-600 dark:text-gray-400">Minimo</span>
+                <input
+                  type="number"
+                  value={getValue('min_night_staff', config.minNightStaff)}
+                  onChange={(e) => handleChange('min_night_staff', e.target.value)}
+                  className="w-16 px-2 py-1 text-sm text-center border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
+                />
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-gray-600 dark:text-gray-400">Maximo</span>
+                <input
+                  type="number"
+                  value={getValue('max_night_staff', config.maxNightStaff)}
+                  onChange={(e) => handleChange('max_night_staff', e.target.value)}
+                  className="w-16 px-2 py-1 text-sm text-center border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
+                />
+              </div>
+            </div>
           </div>
         </div>
-      ))}
+      </div>
+      
+      {/* LÍMITES Y RESTRICCIONES */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Limites Semanales */}
+        <div className="bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+          <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-3">Limites Semanales</h4>
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-gray-600 dark:text-gray-400">Max turnos/semana</span>
+              <input
+                type="number"
+                value={getValue('max_weekly_shifts', config.maxWeeklyShifts)}
+                onChange={(e) => handleChange('max_weekly_shifts', e.target.value)}
+                className="w-16 px-2 py-1 text-sm text-center border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
+              />
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-gray-600 dark:text-gray-400">Turnos preferidos/semana</span>
+              <input
+                type="number"
+                value={getValue('pref_weekly_shifts', config.prefWeeklyShifts)}
+                onChange={(e) => handleChange('pref_weekly_shifts', e.target.value)}
+                className="w-16 px-2 py-1 text-sm text-center border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
+              />
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-gray-600 dark:text-gray-400">Horas descanso minimo</span>
+              <input
+                type="number"
+                value={getValue('min_rest_hours', config.minRestHours)}
+                onChange={(e) => handleChange('min_rest_hours', e.target.value)}
+                className="w-16 px-2 py-1 text-sm text-center border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
+              />
+            </div>
+          </div>
+        </div>
+        
+        {/* Bloques de Noche */}
+        <div className="bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+          <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-3">Bloques de Noche</h4>
+          <p className="text-[10px] text-gray-500 dark:text-gray-400 mb-3">Noches consecutivas permitidas</p>
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-gray-600 dark:text-gray-400">Minimo consecutivas</span>
+              <input
+                type="number"
+                value={getValue('min_night_block', config.minNightBlock)}
+                onChange={(e) => handleChange('min_night_block', e.target.value)}
+                className="w-16 px-2 py-1 text-sm text-center border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
+              />
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-gray-600 dark:text-gray-400">Maximo consecutivas</span>
+              <input
+                type="number"
+                value={getValue('max_night_block', config.maxNightBlock)}
+                onChange={(e) => handleChange('max_night_block', e.target.value)}
+                className="w-16 px-2 py-1 text-sm text-center border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
+              />
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-gray-600 dark:text-gray-400">Preferido</span>
+              <input
+                type="number"
+                value={getValue('pref_night_block', config.prefNightBlock)}
+                onChange={(e) => handleChange('pref_night_block', e.target.value)}
+                className="w-16 px-2 py-1 text-sm text-center border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
       
       {/* AI Provider */}
       <div className="space-y-3 pt-4 border-t border-gray-200 dark:border-gray-700">
@@ -493,11 +620,7 @@ function ShiftsTab({ shifts }: ShiftsTabProps) {
               <tr key={shift.id} className="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50">
                 <td className="py-2 px-3">
                   <span
-                    className="inline-flex items-center justify-center w-8 h-6 rounded text-xs font-bold"
-                    style={{ 
-                      backgroundColor: shift.color,
-                      color: getContrastColor(shift.color)
-                    }}
+                    className={`inline-flex items-center justify-center w-8 h-6 rounded text-xs font-bold border ${getShiftClasses(shift.code)}`}
                   >
                     {shift.code}
                   </span>
@@ -714,14 +837,10 @@ function AddRuleModal({ onClose }: AddRuleModalProps) {
   const [ruleValue, setRuleValue] = useState('')
   const [notes, setNotes] = useState('')
   
-  // Fetch employees for dropdown
+  // Fetch employees for dropdown - use apiClient via schedulingApi
   const { data: employees = [] } = useQuery<Employee[]>({
-    queryKey: ['schedulable-employees'],
-    queryFn: async () => {
-      const response = await fetch('/api/scheduling/employees')
-      if (!response.ok) throw new Error('Failed to fetch')
-      return response.json()
-    },
+    queryKey: schedulingKeys.employees(),
+    queryFn: schedulingApi.getSchedulableEmployees,
   })
   
   const createMutation = useMutation({
@@ -1233,6 +1352,49 @@ function AddRequestModal({ monthId, onClose }: AddRequestModalProps) {
 }
 
 // ============================================
+// TOTALS TAB
+// ============================================
+
+function TotalsTab() {
+  const currentYear = new Date().getFullYear()
+  const [selectedYear, setSelectedYear] = useState(currentYear)
+  
+  // Generate year options (current year and 2 years back)
+  const yearOptions = [currentYear, currentYear - 1, currentYear - 2]
+  
+  return (
+    <div className="p-4">
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+            Totales Anuales por Empleado
+          </h3>
+          <p className="text-xs text-gray-500 dark:text-gray-400">
+            Resumen de dias trabajados, vacaciones y pendientes (solo meses publicados)
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <label className="text-xs text-gray-600 dark:text-gray-400">Año:</label>
+          <select
+            value={selectedYear}
+            onChange={(e) => setSelectedYear(Number(e.target.value))}
+            className="px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 focus:ring-1 focus:ring-blue-500"
+          >
+            {yearOptions.map((year) => (
+              <option key={year} value={year}>
+                {year}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+      
+      <EmployeeTotals year={selectedYear} />
+    </div>
+  )
+}
+
+// ============================================
 // HELPERS
 // ============================================
 
@@ -1276,13 +1438,4 @@ function getRuleHelp(ruleType: EmployeeRuleType): string {
     case 'no_weekends': return 'true = no trabaja fines de semana'
     default: return ''
   }
-}
-
-function getContrastColor(hex: string): string {
-  const num = parseInt(hex.replace('#', ''), 16)
-  const r = (num >> 16) & 255
-  const g = (num >> 8) & 255
-  const b = num & 255
-  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255
-  return luminance > 0.6 ? '#1f2937' : '#ffffff'
 }

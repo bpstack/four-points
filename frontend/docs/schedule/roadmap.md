@@ -508,3 +508,124 @@ El generador produce logs detallados:
 **Sesión:** Optimización de bloques de trabajo pequeños
 **Resultado:** Reducción de 27 a 15 violaciones con 7 empleados
 **Próxima sesión:** Continuar reduciendo violaciones hasta llegar a 0
+
+---
+
+## AUDITORÍA TÉCNICA - Diciembre 2024
+
+### 11. PROBLEMAS DE RENDIMIENTO IDENTIFICADOS
+
+#### 11.1 Queries N+1 (CRÍTICO)
+
+| Prioridad | Problema | Ubicación | Impacto |
+|-----------|----------|-----------|---------|
+| **CRÍTICO** | N+1 en `calculateAnnualTotals` - loop de queries por empleado/mes | `scheduling-repository.ts:1278-1360` | 120+ queries con 10 empleados × 12 meses |
+| **ALTO** | `bulkUpdateAssignments` llama `upsertAssignment` en loop | `scheduling-controller.ts:526-534` | N queries por operación bulk |
+| **ALTO** | `initializeContractsForYear` consulta contrato por cada empleado | `scheduling-repository.ts:1217-1234` | N queries innecesarios |
+| **MEDIO** | `upsertAssignment` hace SELECT antes de INSERT/UPDATE | `scheduling-repository.ts:565-579` | Query extra por cada asignación |
+| **MEDIO** | Frontend `EmployeeTotals` hace 3 queries que podrían ser 1 | `EmployeeTotals.tsx:39-63` | 3 llamadas API redundantes |
+| **MEDIO** | `getAnnualTotals` consulta `publishedMonths` dos veces | `scheduling-controller.ts:1432` | Query duplicada |
+
+#### 11.2 Código Duplicado
+
+| Ubicación | Duplicación |
+|-----------|-------------|
+| Controller + Repository | Lógica de conteo de turnos (switch/case para M, T, N, V, etc.) |
+| Backend + Frontend | Tipos: `EmployeeStats`, `EmployeeAnnualTotals`, `DailyStats`, `SchedulingConfigMap` |
+| Controller línea 220-221 | Fórmula `presencias * 8` asume 8h, pero turnos tienen horas variables |
+
+#### 11.3 Índices de BD Recomendados
+
+| Tabla | Índice Sugerido |
+|-------|-----------------|
+| `scheduling_months` | `(year, month)` |
+| `scheduling_assignments` | `(month_id, employee_id)` |
+| `scheduling_employee_contracts` | `(employee_id, year)` |
+
+---
+
+### 12. EDGE CASES Y BUGS POTENCIALES
+
+#### 12.1 Integridad de Datos (REVISAR LÓGICA DE NEGOCIO)
+
+- [ ] **CASCADE DELETE** en empleados/turnos borra historial al eliminar
+- [ ] Sin soft-delete para preservar datos históricos  
+- [ ] Contratos se pueden borrar perdiendo referencia en meses publicados
+
+#### 12.2 Concurrencia (REVISAR LÓGICA DE NEGOCIO)
+
+- [ ] **Sin bloqueo optimista** - dos admins editando el mismo mes se sobrescriben
+- [ ] Publicar mientras otro edita no da advertencia
+
+#### 12.3 Cálculos (REVISAR LÓGICA DE NEGOCIO)
+
+- [ ] **División por cero** si `dias_trabajo = 0` en contrato
+- [ ] Valores negativos en "pendiente" no generan alertas
+- [ ] Fórmula de horas usa 8h fijo en vez de `shift.hours`
+
+#### 12.4 Fechas/Timezone (REVISAR LÓGICA DE NEGOCIO)
+
+- [ ] Ajuste de 12 horas puede fallar en límites de año
+- [ ] Año nuevo sin contratos definidos muestra errores
+
+#### 12.5 Negocio (REVISAR LÓGICA DE NEGOCIO)
+
+- [ ] Empleado que empieza el 31 de diciembre tiene contrato irrealizable
+- [ ] Todos los empleados pueden pedir el mismo día libre (sin mínimo de personal)
+- [ ] Sin integración con sistema de vacaciones/HR
+
+---
+
+### 13. MEJORAS DE RENDIMIENTO IMPLEMENTADAS ✅
+
+#### 13.1 Optimización de lookups O(n) → O(1)
+- [x] Usar `Map` en lugar de `array.find()` en controller `getMonthById`
+
+#### 13.2 Optimización de upserts
+- [x] Usar `INSERT ... ON DUPLICATE KEY UPDATE` en `upsertAssignment`
+- [x] Usar `INSERT ... ON DUPLICATE KEY UPDATE` en `upsertContract`
+
+#### 13.3 Código limpio
+- [x] Corregir `AddRuleModal` que usaba `fetch` directo en vez de `apiClient`
+
+---
+
+### 14. MEJORAS PENDIENTES (LÓGICA DE NEGOCIO - Análisis requerido)
+
+#### Prioridad Alta
+- [ ] Validar `dias_trabajo > 0` en contratos
+- [ ] Proteger contra división por cero en cálculos
+- [ ] Validar formato de códigos de turno (solo alfanuméricos)
+
+#### Prioridad Media
+- [ ] Cambiar CASCADE a RESTRICT en FK de turnos/empleados
+- [ ] Implementar soft delete para empleados/turnos
+- [ ] Agregar bloqueo optimista para edición concurrente
+- [ ] Consolidar queries en `calculateAnnualTotals` con JOINs
+
+#### Prioridad Baja
+- [ ] Unificar endpoint `getAnnualTotals` para devolver todo
+- [ ] Agregar auditoría de cambios en horarios
+- [ ] Virtualización para grids con 50+ empleados
+
+---
+
+### 15. CHECKLIST DE PRUEBAS RECOMENDADAS
+
+#### Critical Path
+- [ ] Crear schedule para mes con 28, 29, 30, 31 días
+- [ ] Agregar empleado mid-month y verificar cálculos prorrateados
+- [ ] Remover empleado y verificar preservación de datos
+- [ ] Dos usuarios editan mismo schedule simultáneamente
+- [ ] Publicar mientras otro usuario está editando
+- [ ] Generar schedule para grupo con 50+ empleados
+- [ ] Year rollover (asignaciones Diciembre → Enero)
+
+#### Edge Cases
+- [ ] Empleado con contrato de 0 días
+- [ ] Todos los empleados piden el mismo día libre
+- [ ] Código de turno con caracteres especiales
+- [ ] Observaciones con 5000+ caracteres
+- [ ] Mes vacío (sin empleados asignados)
+- [ ] Febrero año bisiesto
+- [ ] Casos de timezone (server UTC, client local)

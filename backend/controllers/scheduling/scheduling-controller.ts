@@ -29,6 +29,8 @@ import type {
   SchedulingConstraint,
   SchedulingShift,
   CreateDayDTO,
+  EmployeeContract,
+  AnnualTotalsResponse,
 } from '../../models/scheduling/index.js'
 
 // ============================================
@@ -154,6 +156,9 @@ export async function getMonthById(req: Request, res: Response): Promise<void> {
       repo.getConstraintsByMonth(monthId),
     ])
 
+    // Create Map for O(1) day lookups instead of O(n) array.find()
+    const daysById = new Map(days.map(d => [d.id, d]))
+
     // Get unique employees from assignments
     const employeeMap = new Map<string, { id: string; name: string }>()
     assignments.forEach((a) => {
@@ -170,7 +175,7 @@ export async function getMonthById(req: Request, res: Response): Promise<void> {
       // Build assignments as object keyed by day number (frontend expects this format)
       const assignmentsMap: { [dayNumber: number]: { id: number; shiftCode: string; isManual: boolean; notes: string | null } } = {}
       empAssignments.forEach((a) => {
-        const day = days.find((d) => d.id === a.day_id)
+        const day = daysById.get(a.day_id) // O(1) lookup
         if (day) {
           assignmentsMap[day.day_number] = {
             id: a.id,
@@ -226,17 +231,25 @@ export async function getMonthById(req: Request, res: Response): Promise<void> {
       })
     })
 
-    // Calculate daily stats
+    // Calculate daily stats - pre-group assignments by day_id for O(1) lookup
+    const assignmentsByDayId = new Map<number, typeof assignments>()
+    assignments.forEach((a) => {
+      const dayAssignments = assignmentsByDayId.get(a.day_id) || []
+      dayAssignments.push(a)
+      assignmentsByDayId.set(a.day_id, dayAssignments)
+    })
+
     const dailyStats: DailyStats[] = days.map((d) => {
-      const dayAssignments = assignments.filter((a) => a.day_id === d.id)
-      return {
-        day: d.day_number,
-        M: dayAssignments.filter((a) => a.shift_code === 'M').length,
-        T: dayAssignments.filter((a) => a.shift_code === 'T').length,
-        N: dayAssignments.filter((a) => a.shift_code === 'N').length,
-        PI: dayAssignments.filter((a) => a.shift_code === 'PI').length,
-        P: dayAssignments.filter((a) => a.shift_code === 'P').length,
-      }
+      const dayAssignments = assignmentsByDayId.get(d.id) || []
+      let M = 0, T = 0, N = 0, PI = 0, P = 0
+      dayAssignments.forEach((a) => {
+        if (a.shift_code === 'M') M++
+        else if (a.shift_code === 'T') T++
+        else if (a.shift_code === 'N') N++
+        else if (a.shift_code === 'PI') PI++
+        else if (a.shift_code === 'P') P++
+      })
+      return { day: d.day_number, M, T, N, PI, P }
     })
 
     // Format constraints
@@ -1087,5 +1100,358 @@ export async function setSchedulableEmployees(req: Request, res: Response): Prom
   } catch (err) {
     console.error('Error setting schedulable employees:', err)
     res.status(500).json({ error: 'Error al configurar empleados' })
+  }
+}
+
+// ============================================
+// EMPLOYEE CONTRACTS
+// ============================================
+
+export async function getContractsByYear(req: Request, res: Response): Promise<void> {
+  try {
+    const year = parseInt(req.params.year)
+    if (isNaN(year)) {
+      res.status(400).json({ error: 'Año inválido' })
+      return
+    }
+
+    const contracts = await repo.getContractsByYear(year)
+    
+    // Transform to camelCase for frontend
+    const formatted: EmployeeContract[] = contracts.map((c) => ({
+      id: c.id,
+      employeeId: c.employee_id,
+      employeeName: c.employee_name,
+      year: c.year,
+      diasTrabajo: c.dias_trabajo,
+      horasAnuales: c.horas_anuales,
+      diasVacaciones: c.dias_vacaciones,
+      diasLibreSemanal: c.dias_libre_semanal,
+      diasBonificables: c.dias_bonificables,
+      diasIt: c.dias_it,
+      diasLaborablesAno: c.dias_laborables_ano,
+      observaciones: c.observaciones,
+    }))
+    
+    res.json(formatted)
+  } catch (err) {
+    console.error('Error getting contracts:', err)
+    res.status(500).json({ error: 'Error al obtener contratos' })
+  }
+}
+
+export async function getContractByEmployeeYear(req: Request, res: Response): Promise<void> {
+  try {
+    const { employeeId } = req.params
+    const year = parseInt(req.params.year)
+    
+    if (isNaN(year)) {
+      res.status(400).json({ error: 'Año inválido' })
+      return
+    }
+
+    const contract = await repo.getContractByEmployeeYear(employeeId, year)
+    
+    if (!contract) {
+      res.status(404).json({ error: 'Contrato no encontrado' })
+      return
+    }
+    
+    res.json({
+      id: contract.id,
+      employeeId: contract.employee_id,
+      year: contract.year,
+      diasTrabajo: contract.dias_trabajo,
+      horasAnuales: contract.horas_anuales,
+      diasVacaciones: contract.dias_vacaciones,
+      diasLibreSemanal: contract.dias_libre_semanal,
+      diasBonificables: contract.dias_bonificables,
+      diasIt: contract.dias_it,
+      diasLaborablesAno: contract.dias_laborables_ano,
+      observaciones: contract.observaciones,
+    })
+  } catch (err) {
+    console.error('Error getting contract:', err)
+    res.status(500).json({ error: 'Error al obtener contrato' })
+  }
+}
+
+export async function createContract(req: Request, res: Response): Promise<void> {
+  try {
+    const userId = req.user?.id
+    const { 
+      employee_id, 
+      year, 
+      dias_trabajo,
+      horas_anuales,
+      dias_vacaciones,
+      dias_libre_semanal,
+      dias_bonificables,
+      dias_it,
+      dias_laborables_ano,
+      observaciones,
+    } = req.body
+
+    if (!employee_id || !year) {
+      res.status(400).json({ error: 'employee_id y year son requeridos' })
+      return
+    }
+
+    // Check if already exists
+    const existing = await repo.getContractByEmployeeYear(employee_id, year)
+    if (existing) {
+      res.status(409).json({ error: 'Ya existe un contrato para este empleado y año' })
+      return
+    }
+
+    const contractId = await repo.createContract({
+      employee_id,
+      year,
+      dias_trabajo,
+      horas_anuales,
+      dias_vacaciones,
+      dias_libre_semanal,
+      dias_bonificables,
+      dias_it,
+      dias_laborables_ano,
+      observaciones,
+      created_by: userId,
+    })
+
+    const contract = await repo.getContractById(contractId)
+    res.status(201).json(contract)
+  } catch (err) {
+    console.error('Error creating contract:', err)
+    res.status(500).json({ error: 'Error al crear contrato' })
+  }
+}
+
+export async function updateContract(req: Request, res: Response): Promise<void> {
+  try {
+    const contractId = parseInt(req.params.id)
+    if (isNaN(contractId)) {
+      res.status(400).json({ error: 'ID de contrato inválido' })
+      return
+    }
+
+    const existing = await repo.getContractById(contractId)
+    if (!existing) {
+      res.status(404).json({ error: 'Contrato no encontrado' })
+      return
+    }
+
+    const { 
+      dias_trabajo,
+      horas_anuales,
+      dias_vacaciones,
+      dias_libre_semanal,
+      dias_bonificables,
+      dias_it,
+      dias_laborables_ano,
+      observaciones,
+    } = req.body
+
+    await repo.updateContract(contractId, {
+      dias_trabajo,
+      horas_anuales,
+      dias_vacaciones,
+      dias_libre_semanal,
+      dias_bonificables,
+      dias_it,
+      dias_laborables_ano,
+      observaciones,
+    })
+
+    const contract = await repo.getContractById(contractId)
+    res.json(contract)
+  } catch (err) {
+    console.error('Error updating contract:', err)
+    res.status(500).json({ error: 'Error al actualizar contrato' })
+  }
+}
+
+export async function deleteContract(req: Request, res: Response): Promise<void> {
+  try {
+    const contractId = parseInt(req.params.id)
+    if (isNaN(contractId)) {
+      res.status(400).json({ error: 'ID de contrato inválido' })
+      return
+    }
+
+    const existing = await repo.getContractById(contractId)
+    if (!existing) {
+      res.status(404).json({ error: 'Contrato no encontrado' })
+      return
+    }
+
+    await repo.deleteContract(contractId)
+    res.json({ message: 'Contrato eliminado correctamente' })
+  } catch (err) {
+    console.error('Error deleting contract:', err)
+    res.status(500).json({ error: 'Error al eliminar contrato' })
+  }
+}
+
+export async function initializeContractsForYear(req: Request, res: Response): Promise<void> {
+  try {
+    const year = parseInt(req.params.year)
+    if (isNaN(year)) {
+      res.status(400).json({ error: 'Año inválido' })
+      return
+    }
+
+    const userId = req.user?.id
+    const created = await repo.initializeContractsForYear(year, userId)
+    
+    res.json({ 
+      success: true, 
+      message: `${created} contratos creados con valores por defecto`,
+      created 
+    })
+  } catch (err) {
+    console.error('Error initializing contracts:', err)
+    res.status(500).json({ error: 'Error al inicializar contratos' })
+  }
+}
+
+/**
+ * Initialize a single contract for an employee with optional start date
+ * POST /api/scheduling/contracts/:year/employee/:employeeId
+ */
+export async function initializeContractForEmployee(req: Request, res: Response): Promise<void> {
+  try {
+    const year = parseInt(req.params.year)
+    const employeeId = req.params.employeeId
+    const { startDate } = req.body // Optional: YYYY-MM-DD format
+    const userId = req.user?.id
+
+    if (isNaN(year)) {
+      res.status(400).json({ error: 'Año inválido' })
+      return
+    }
+
+    if (!employeeId) {
+      res.status(400).json({ error: 'ID de empleado requerido' })
+      return
+    }
+
+    // Validate startDate format if provided
+    if (startDate) {
+      const dateRegex = /^\d{4}-\d{2}-\d{2}$/
+      if (!dateRegex.test(startDate)) {
+        res.status(400).json({ error: 'Formato de fecha inválido. Use YYYY-MM-DD' })
+        return
+      }
+    }
+
+    const contractId = await repo.initializeContractForEmployee(employeeId, year, startDate, userId)
+
+    if (contractId === null) {
+      res.status(409).json({ error: 'El empleado ya tiene un contrato para este año' })
+      return
+    }
+
+    // Get the created contract to return it
+    const contract = await repo.getContractById(contractId)
+
+    res.status(201).json({
+      success: true,
+      message: startDate 
+        ? `Contrato creado con valores proporcionales desde ${startDate}`
+        : 'Contrato creado con valores completos',
+      contract: contract ? {
+        id: contract.id,
+        employeeId: contract.employee_id,
+        employeeName: contract.employee_name,
+        year: contract.year,
+        diasTrabajo: contract.dias_trabajo,
+        horasAnuales: contract.horas_anuales,
+        diasVacaciones: contract.dias_vacaciones,
+        diasLibreSemanal: contract.dias_libre_semanal,
+        diasBonificables: contract.dias_bonificables,
+        diasIt: contract.dias_it,
+        diasLaborablesAno: contract.dias_laborables_ano,
+        observaciones: contract.observaciones,
+      } : null,
+    })
+  } catch (err) {
+    console.error('Error initializing contract for employee:', err)
+    res.status(500).json({ error: 'Error al inicializar contrato' })
+  }
+}
+
+/**
+ * Calculate proportional contract values (preview without creating)
+ * GET /api/scheduling/contracts/:year/calculate?startDate=YYYY-MM-DD
+ */
+export async function calculateProportionalContract(req: Request, res: Response): Promise<void> {
+  try {
+    const year = parseInt(req.params.year)
+    const startDate = req.query.startDate as string
+
+    if (isNaN(year)) {
+      res.status(400).json({ error: 'Año inválido' })
+      return
+    }
+
+    if (!startDate) {
+      res.status(400).json({ error: 'startDate es requerido' })
+      return
+    }
+
+    const dateRegex = /^\d{4}-\d{2}-\d{2}$/
+    if (!dateRegex.test(startDate)) {
+      res.status(400).json({ error: 'Formato de fecha inválido. Use YYYY-MM-DD' })
+      return
+    }
+
+    const values = repo.calculateProportionalContract(year, startDate)
+
+    res.json({
+      year,
+      startDate,
+      values: {
+        diasTrabajo: values.diasTrabajo,
+        horasAnuales: values.horasAnuales,
+        diasVacaciones: values.diasVacaciones,
+        diasLibreSemanal: values.diasLibreSemanal,
+        diasBonificables: values.diasBonificables,
+        diasLaborablesAno: values.diasLaborablesAno,
+      },
+    })
+  } catch (err) {
+    console.error('Error calculating proportional contract:', err)
+    res.status(500).json({ error: 'Error al calcular valores proporcionales' })
+  }
+}
+
+// ============================================
+// ANNUAL TOTALS
+// ============================================
+
+export async function getAnnualTotals(req: Request, res: Response): Promise<void> {
+  try {
+    const year = parseInt(req.params.year)
+    if (isNaN(year)) {
+      res.status(400).json({ error: 'Año inválido' })
+      return
+    }
+
+    const totals = await repo.calculateAnnualTotals(year)
+    
+    // Get count of published months for this year
+    const publishedMonths = await repo.getAllMonths({ year, status: 'published' })
+    
+    const response: AnnualTotalsResponse = {
+      year,
+      employees: totals,
+      totalMesesPublicados: publishedMonths.length,
+      fechaCalculo: new Date().toISOString(),
+    }
+    
+    res.json(response)
+  } catch (err) {
+    console.error('Error getting annual totals:', err)
+    res.status(500).json({ error: 'Error al obtener totales anuales' })
   }
 }
