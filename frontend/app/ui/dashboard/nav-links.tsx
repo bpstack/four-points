@@ -16,7 +16,7 @@ import { SlBookOpen } from 'react-icons/sl'
 import { LiaParkingSolid } from 'react-icons/lia'
 import { GiOfficeChair } from 'react-icons/gi'
 import { CgDanger } from 'react-icons/cg'
-import { MdPointOfSale } from 'react-icons/md'
+import { MdPointOfSale, MdSchedule } from 'react-icons/md'
 import { useState } from 'react'
 import { IoIosRestaurant } from 'react-icons/io'
 import { isAdminRole } from '@/app/lib/helpers/utils'
@@ -41,6 +41,7 @@ const mainLinks: NavLink[] = [
 
 const backOfficeLinks: NavLink[] = [
   { name: 'Back Office', href: '/dashboard/bo', icon: GiOfficeChair, adminOnly: true },
+  { name: 'Scheduling', href: '/dashboard/scheduling', icon: MdSchedule, adminOnly: true },
 ]
 
 const cashierLinks: Omit<NavLink, 'icon'>[] = [
