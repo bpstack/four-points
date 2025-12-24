@@ -18,7 +18,7 @@ export interface LogbookEntryDisplay {
   description: string
   priority: 'critical' | 'high' | 'medium' | 'low'
   status: 'pending' | 'resolved'
-  department: string
+  department_id: number
 }
 
 interface ImportantLogbooksCardProps {

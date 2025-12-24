@@ -102,6 +102,11 @@ export function useParkingStatus(selectedDate: string) {
     booking: ParkingBooking | null
   }>({ isOpen: false, booking: null })
 
+  const [paymentModal, setPaymentModal] = useState<{
+    isOpen: boolean
+    booking: ParkingBooking | null
+  }>({ isOpen: false, booking: null })
+
   // Datos base
   const {
     data: statsData,
@@ -244,11 +249,30 @@ export function useParkingStatus(selectedDate: string) {
     }
   }
 
+  type PaymentPayload = {
+    code: string
+    data: {
+      payment_amount: number
+      payment_method: 'cash' | 'card' | 'transfer' | 'agency'
+      payment_reference?: string
+    }
+  }
+
   const updateMutation = useMutation({
     mutationFn: ({ code, data }: UpdatePayload) => parkingApi.updateBooking(code, data),
     onSuccess: () => {
       toast.success('Reserva actualizada correctamente')
       setEditModal({ isOpen: false, booking: null })
+      invalidateAll()
+    },
+    onError: handleMutationError,
+  })
+
+  const paymentMutation = useMutation({
+    mutationFn: ({ code, data }: PaymentPayload) => parkingApi.updateBooking(code, data),
+    onSuccess: () => {
+      toast.success('Pago registrado correctamente')
+      setPaymentModal({ isOpen: false, booking: null })
       invalidateAll()
     },
     onError: handleMutationError,
@@ -304,6 +328,32 @@ export function useParkingStatus(selectedDate: string) {
     await updateMutation.mutateAsync({ code: editModal.booking.booking_code, data })
   }
 
+  const handlePaymentBooking = (booking: ParkingBooking) => {
+    setPaymentModal({ isOpen: true, booking })
+  }
+
+  const confirmPayment = async (data: {
+    payment_amount: number
+    payment_method: 'cash' | 'card' | 'transfer' | 'agency'
+    payment_reference?: string
+  }) => {
+    if (!paymentModal.booking) return
+    await paymentMutation.mutateAsync({ code: paymentModal.booking.booking_code, data })
+  }
+
+  // Direct actions from EditBookingModal (without going through CancelModal)
+  const confirmCancelFromEdit = async () => {
+    if (!editModal.booking) return
+    await cancelMutation.mutateAsync(editModal.booking.booking_code)
+    setEditModal({ isOpen: false, booking: null })
+  }
+
+  const confirmNoShowFromEdit = async () => {
+    if (!editModal.booking) return
+    await noShowMutation.mutateAsync(editModal.booking.booking_code)
+    setEditModal({ isOpen: false, booking: null })
+  }
+
   const handleOverdueAction = async (action: 'checkout' | 'no-show' | 'cancel' | 'delete') => {
     if (!overdueModal.booking) return
 
@@ -342,13 +392,15 @@ export function useParkingStatus(selectedDate: string) {
     overdueModal,
     createModal,
     editModal,
+    paymentModal,
     actionLoading:
       checkInMutation.isPending ||
       checkOutMutation.isPending ||
       cancelMutation.isPending ||
       noShowMutation.isPending ||
       deleteMutation.isPending ||
-      updateMutation.isPending,
+      updateMutation.isPending ||
+      paymentMutation.isPending,
 
     // Setters
     setCheckoutModal,
@@ -357,6 +409,7 @@ export function useParkingStatus(selectedDate: string) {
     setOverdueModal,
     setCreateModal,
     setEditModal,
+    setPaymentModal,
 
     // Actions
     handleCheckIn,
@@ -368,6 +421,10 @@ export function useParkingStatus(selectedDate: string) {
     handleCreateBooking,
     handleEditBooking,
     confirmEditBooking,
+    confirmCancelFromEdit,
+    confirmNoShowFromEdit,
+    handlePaymentBooking,
+    confirmPayment,
     handleOverdueAction,
   }
 }

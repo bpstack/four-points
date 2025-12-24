@@ -109,7 +109,7 @@ export default function LogbooksContainer() {
       <div className="sticky top-0 z-30 bg-white dark:bg-[#010409] shadow-sm">
         <div className="px-3 py-2 md:px-4 md:py-3 border-b border-gray-200 dark:border-gray-800">
           {/* Desktop */}
-          <div className="hidden md:flex items-center gap-3 justify-between">
+          <div className="hidden md:flex items-center gap-3 justify-between max-w-[1600px]">
             <div className="flex items-center gap-3 flex-1 min-w-0">
               <div className="w-56 flex-shrink-0">
                 <h1 className="text-base font-semibold text-gray-900 dark:text-white capitalize truncate">
@@ -136,10 +136,16 @@ export default function LogbooksContainer() {
               >
                 <FiCalendar className="w-4 h-4" /> Today
               </button>
-              <div className="ml-4 text-sm text-gray-700 dark:text-gray-400 flex-shrink-0">
-                Daily Entries:{' '}
-                <span className="font-medium text-gray-900 dark:text-gray-200">
-                  {orderedEntries.length}
+              <div className="ml-4 flex items-center gap-4 text-sm text-gray-700 dark:text-gray-400 flex-shrink-0">
+                <span>
+                  Daily Entries:{' '}
+                  <span className="font-medium text-gray-900 dark:text-gray-200">
+                    {orderedEntries.length}
+                  </span>
+                </span>
+                <span className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">
+                  <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
+                  Ultima actualizacion: hoy
                 </span>
               </div>
             </div>

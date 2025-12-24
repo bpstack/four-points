@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react'
 import type { ParkingBooking, ParkingVehicle, AvailableSpot } from '@/app/lib/parking/types'
 import { parkingApi } from '@/app/lib/parking'
 import { formatDateTimeLocal, BOOKING_SOURCES, SPOT_TYPES } from '../helpers'
-import { FiEdit2, FiX, FiSearch, FiMapPin, FiTruck } from 'react-icons/fi'
+import { FiEdit2, FiX, FiSearch, FiMapPin, FiTruck, FiSlash, FiUserX } from 'react-icons/fi'
 
 interface EditBookingModalProps {
   booking: ParkingBooking
@@ -21,9 +21,11 @@ interface EditBookingModalProps {
     external_booking_id?: string
     notes?: string
   }) => Promise<void>
+  onCancel?: () => Promise<void>
+  onNoShow?: () => Promise<void>
 }
 
-export function EditBookingModal({ booking, onClose, onConfirm }: EditBookingModalProps) {
+export function EditBookingModal({ booking, onClose, onConfirm, onCancel, onNoShow }: EditBookingModalProps) {
   const [loading, setLoading] = useState(false)
   const [activeTab, setActiveTab] = useState<'general' | 'spot' | 'vehicle'>('general')
 
@@ -74,20 +76,29 @@ export function EditBookingModal({ booking, onClose, onConfirm }: EditBookingMod
   }, [data.expected_checkin, data.expected_checkout])
 
   const loadAvailableSpots = async () => {
+    // Si la fecha de entrada está en el pasado, usar hoy como start_date
+    const startDate = isCheckinInPast
+      ? new Date().toISOString().split('T')[0]
+      : data.expected_checkin.split('T')[0]
+    const endDate = data.expected_checkout.split('T')[0]
+
+    // Validar que start_date < end_date antes de hacer la llamada
+    if (startDate >= endDate) {
+      // Fechas inválidas - no cargar plazas disponibles
+      setAvailableSpots([])
+      return
+    }
+
     setLoadingSpots(true)
     try {
-      // Si la fecha de entrada está en el pasado, usar hoy como start_date
-      const startDate = isCheckinInPast
-        ? new Date().toISOString().split('T')[0]
-        : data.expected_checkin.split('T')[0]
-      const endDate = data.expected_checkout.split('T')[0]
       const result = await parkingApi.getAvailableSpotsByRange({
         start_date: startDate,
         end_date: endDate,
       })
       setAvailableSpots(result.spots || [])
-    } catch (error) {
-      console.error('Error loading spots:', error)
+    } catch {
+      // Error silenciado - fechas pueden ser inválidas o API no disponible
+      setAvailableSpots([])
     } finally {
       setLoadingSpots(false)
     }
@@ -181,7 +192,12 @@ export function EditBookingModal({ booking, onClose, onConfirm }: EditBookingMod
               <FiEdit2 className="w-5 h-5 text-blue-600" />
               Editar Reserva
             </h3>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{booking.booking_code}</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+              {booking.booking_code}
+              {booking.vehicle?.owner && (
+                <span className="text-gray-700 dark:text-gray-300"> - {booking.vehicle.owner}</span>
+              )}
+            </p>
           </div>
           <button
             onClick={onClose}
@@ -300,6 +316,53 @@ export function EditBookingModal({ booking, onClose, onConfirm }: EditBookingMod
                   />
                 </div>
               </div>
+
+              {/* Quick actions: No Show & Cancel */}
+              {(onNoShow || onCancel) && booking.status !== 'completed' && booking.status !== 'canceled' && booking.status !== 'no_show' && (
+                <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
+                  <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">Acciones rapidas</p>
+                  <div className="flex gap-2">
+                    {onNoShow && booking.status === 'reserved' && (
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          setLoading(true)
+                          try {
+                            await onNoShow()
+                            onClose()
+                          } finally {
+                            setLoading(false)
+                          }
+                        }}
+                        disabled={loading}
+                        className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-400 border border-orange-200 dark:border-orange-800 rounded-lg hover:bg-orange-100 dark:hover:bg-orange-900/30 transition-colors text-sm disabled:opacity-50"
+                      >
+                        <FiUserX className="w-4 h-4" />
+                        <span className="font-medium">No Show</span>
+                      </button>
+                    )}
+                    {onCancel && (
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          setLoading(true)
+                          try {
+                            await onCancel()
+                            onClose()
+                          } finally {
+                            setLoading(false)
+                          }
+                        }}
+                        disabled={loading}
+                        className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-800 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors text-sm disabled:opacity-50"
+                      >
+                        <FiSlash className="w-4 h-4" />
+                        <span className="font-medium">Cancelar Reserva</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">

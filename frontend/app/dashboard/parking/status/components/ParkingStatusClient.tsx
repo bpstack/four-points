@@ -11,6 +11,7 @@ import ParkingTable from './ParkingTable'
 import StatusPanels from './StatusPanels'
 import { CheckInModal, CheckOutModal, CancelModal, OverdueModal } from './modals'
 import { EditBookingModal } from '@/app/components/parking/bookings/EditBookingModal'
+import { PaymentModal } from '@/app/components/parking/bookings/PaymentModal'
 import BookingWizard from '@/app/components/booking/BookingWizard'
 
 interface ParkingStatusClientProps {
@@ -36,6 +37,7 @@ export default function ParkingStatusClient({
     overdueModal,
     createModal,
     editModal,
+    paymentModal,
     actionLoading,
 
     // Setters
@@ -45,6 +47,7 @@ export default function ParkingStatusClient({
     setOverdueModal,
     setCreateModal,
     setEditModal,
+    setPaymentModal,
 
     // Actions
     handleCheckIn,
@@ -56,6 +59,10 @@ export default function ParkingStatusClient({
     handleCreateBooking,
     handleEditBooking,
     confirmEditBooking,
+    confirmCancelFromEdit,
+    confirmNoShowFromEdit,
+    handlePaymentBooking,
+    confirmPayment,
     handleOverdueAction,
   } = useParkingStatus(selectedDate)
 
@@ -209,6 +216,7 @@ export default function ParkingStatusClient({
               onCancel={handleCancelBooking}
               onCreateBooking={handleCreateBooking}
               onEdit={handleEditBooking}
+              onPayment={handlePaymentBooking}
             />
           </div>
 
@@ -277,6 +285,16 @@ export default function ParkingStatusClient({
           booking={editModal.booking}
           onClose={() => setEditModal({ isOpen: false, booking: null })}
           onConfirm={confirmEditBooking}
+          onCancel={confirmCancelFromEdit}
+          onNoShow={confirmNoShowFromEdit}
+        />
+      )}
+
+      {paymentModal.isOpen && paymentModal.booking && (
+        <PaymentModal
+          booking={paymentModal.booking}
+          onClose={() => setPaymentModal({ isOpen: false, booking: null })}
+          onConfirm={confirmPayment}
         />
       )}
     </div>

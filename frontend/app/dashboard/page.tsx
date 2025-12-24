@@ -1,7 +1,7 @@
 // app/dashboard/page.tsx
 'use client'
 
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import { useAuth } from '@/app/lib/auth/useAuth'
 import { isAdminRole } from '@/app/lib/helpers/utils'
 import { useDepartments } from '@/app/lib/logbooks/hooks/useDepartments'
@@ -148,7 +148,8 @@ export default function DashboardHome() {
             description: entry.message,
             priority,
             status: (entry.is_solved === 1 ? 'resolved' : 'pending') as 'resolved' | 'pending',
-            department: getDepartmentName(entry.department_id),
+            // Store department_id, we'll resolve the name at render time
+            department_id: entry.department_id,
           }
         })
 
@@ -172,7 +173,7 @@ export default function DashboardHome() {
         setLoadingLogbooks(false)
       }
     },
-    [generateDateRange, getLocalDateString, getDepartmentName]
+    [generateDateRange, getLocalDateString]
   )
 
   // ========================================
