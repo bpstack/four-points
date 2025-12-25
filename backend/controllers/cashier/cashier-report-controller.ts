@@ -307,10 +307,10 @@ export class CashierReportController {
       return res.json({
         vouchers,
         summary: {
-          total_active: stats.pending_count.toString(),
-          total_active_amount: stats.pending_amount.toString(),
-          total_repaid: stats.justified_amount.toString(),
-          total_cancelled: stats.cancelled_amount.toString(),
+          total_active: (stats?.pending_count ?? 0).toString(),
+          total_active_amount: (stats?.pending_amount ?? 0).toString(),
+          total_repaid: (stats?.justified_amount ?? 0).toString(),
+          total_cancelled: (stats?.cancelled_amount ?? 0).toString(),
         },
       })
     } catch (error: any) {

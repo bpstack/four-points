@@ -44,17 +44,17 @@ export default function PaymentChart({ report, viewMode = 'pie' }: PaymentChartP
 
   const totals = {
     grand_total:
-      typeof report.totals.grand_total === 'string'
+      typeof report?.totals?.grand_total === 'string'
         ? parseFloat(report.totals.grand_total)
-        : report.totals.grand_total || 0,
+        : report?.totals?.grand_total || 0,
     total_days:
-      typeof report.period.total_days === 'string'
+      typeof report?.period?.total_days === 'string'
         ? parseInt(report.period.total_days)
-        : report.period.total_days || 1,
+        : report?.period?.total_days || 1,
   }
 
   // Filtrar métodos con valor > 0 para el gráfico
-  const chartData: ChartDataItem[] = report.payment_methods_breakdown
+  const chartData: ChartDataItem[] = (report?.payment_methods_breakdown || [])
     .map((method) => {
       const totalAmount =
         typeof method.total_amount === 'string'
