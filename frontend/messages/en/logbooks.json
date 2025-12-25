@@ -24,7 +24,7 @@
     "readers": {
       "label": "Read by:",
       "none": "No readers yet",
-      "more": "+{count} more",
+      "moreTemplate": "+__count__ more",
       "mark": "Mark",
       "unmark": "Unmark"
     },

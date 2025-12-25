@@ -24,7 +24,7 @@
     "readers": {
       "label": "Leído por:",
       "none": "Nadie aún",
-      "more": "+{count} más",
+      "moreTemplate": "+__count__ más",
       "mark": "Marcar",
       "unmark": "Desmarcar"
     },

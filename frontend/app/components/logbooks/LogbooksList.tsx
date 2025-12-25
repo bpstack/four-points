@@ -170,15 +170,17 @@ function ReadByAvatars({
   users, 
   maxVisible = 8,
   noneLabel = 'None',
-  moreLabel = '+{count} more'
+  moreLabel = '+__count__ more'
 }: { 
   users: ReadByUser[]
   maxVisible?: number
   noneLabel?: string
   moreLabel?: string
 }) {
-  const visibleUsers = users.slice(0, maxVisible)
-  const remainingCount = users.length - maxVisible
+  // Ensure users is an array
+  const safeUsers = Array.isArray(users) ? users : []
+  const visibleUsers = safeUsers.slice(0, maxVisible)
+  const remainingCount = safeUsers.length - maxVisible
 
   const colors = [
     'bg-blue-500',
@@ -198,7 +200,7 @@ function ReadByAvatars({
     rows.push(visibleUsers.slice(i, i + 4))
   }
 
-  if (users.length === 0) {
+  if (safeUsers.length === 0) {
     return <span className="text-xs text-gray-400 dark:text-gray-500 italic">{noneLabel}</span>
   }
 
@@ -223,7 +225,7 @@ function ReadByAvatars({
       ))}
       {remainingCount > 0 && (
         <div className="text-[10px] text-gray-500 dark:text-gray-400 ml-1">
-          {moreLabel.replace('{count}', String(remainingCount))}
+          {moreLabel.replace('__count__', String(remainingCount))}
         </div>
       )}
     </div>
@@ -256,7 +258,9 @@ function useReadStatus(
   userId?: string
 ): boolean {
   const { data: readers = [] } = useReaders(entryId)
-  return userId ? readers.some((r: ReadByUser) => r.user_id === userId) : false
+  // Ensure readers is an array before calling .some()
+  const safeReaders = Array.isArray(readers) ? readers : []
+  return userId ? safeReaders.some((r: ReadByUser) => r.user_id === userId) : false
 }
 
 // Toggle read button component
@@ -673,7 +677,7 @@ export default function LogbooksList({
                 entryId={entry.id} 
                 useReaders={useReaders}
                 noneLabel={t('list.readers.none')}
-                moreLabel={t('list.readers.more')}
+                moreLabel={t('list.readers.moreTemplate')}
               />
             </div>
           </div>
@@ -744,7 +748,7 @@ export default function LogbooksList({
                 entryId={entry.id} 
                 useReaders={useReaders}
                 noneLabel={t('list.readers.none')}
-                moreLabel={t('list.readers.more')}
+                moreLabel={t('list.readers.moreTemplate')}
               />
             </div>
           </div>
