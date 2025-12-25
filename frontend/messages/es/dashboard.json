@@ -15,9 +15,13 @@
   "quickActions": {
     "title": "Acciones Rapidas",
     "newLogbook": "Nueva Entrada Consigna",
+    "newLogbookShort": "Consigna",
     "newParking": "Reservar Plaza Parking",
+    "newParkingShort": "Parking",
     "maintenance": "Mantenimiento",
-    "newGroup": "Reserva Nuevo Grupo"
+    "maintenanceShort": "Manten.",
+    "newGroup": "Reserva Nuevo Grupo",
+    "newGroupShort": "Grupo"
   },
   "globalStatus": {
     "title": "Estatus Global",

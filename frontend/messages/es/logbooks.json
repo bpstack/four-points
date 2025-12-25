@@ -3,7 +3,8 @@
   "container": {
     "today": "Hoy",
     "dailyEntries": "Entradas diarias: {count}",
-    "newEntry": "Nueva entrada"
+    "newEntry": "Nueva entrada",
+    "lastUpdate": "Actualizado"
   },
   "list": {
     "loading": "Cargando...",

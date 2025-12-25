@@ -15,9 +15,13 @@
   "quickActions": {
     "title": "Quick Actions",
     "newLogbook": "New Logbook Entry",
+    "newLogbookShort": "Logbook",
     "newParking": "Book Parking Spot",
+    "newParkingShort": "Parking",
     "maintenance": "Maintenance",
-    "newGroup": "Book New Group"
+    "maintenanceShort": "Maintenance",
+    "newGroup": "Book New Group",
+    "newGroupShort": "Group"
   },
   "globalStatus": {
     "title": "Global Status",

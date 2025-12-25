@@ -3,7 +3,8 @@
   "container": {
     "today": "Today",
     "dailyEntries": "Daily entries: {count}",
-    "newEntry": "New entry"
+    "newEntry": "New entry",
+    "lastUpdate": "Updated"
   },
   "list": {
     "loading": "Loading...",
