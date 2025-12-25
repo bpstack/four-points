@@ -9,6 +9,7 @@
 import { useRouter, useSearchParams } from 'next/navigation'
 import { IoChevronBack, IoChevronForward } from 'react-icons/io5'
 import { clsx } from 'clsx'
+import { useTranslations } from 'next-intl'
 
 interface PaginationProps {
   currentPage: number
@@ -29,6 +30,7 @@ export function Pagination({
 }: PaginationProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const t = useTranslations('common.pagination')
 
   // ========================================
   // NAVEGAR A PÁGINA
@@ -97,9 +99,9 @@ export function Pagination({
     <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-6 py-4 bg-white dark:bg-[#161B22] border-t border-gray-200 dark:border-gray-700">
       {/* Info de registros */}
       <div className="text-sm text-gray-700 dark:text-gray-300">
-        Mostrando <span className="font-medium">{start}</span> a{' '}
-        <span className="font-medium">{end}</span> de{' '}
-        <span className="font-medium">{totalEntries}</span> registros
+        {t('showing')} <span className="font-medium">{start}</span> {t('to')}{' '}
+        <span className="font-medium">{end}</span> {t('of')}{' '}
+        <span className="font-medium">{totalEntries}</span> {t('records')}
       </div>
 
       {/* Controles de navegación */}
@@ -116,7 +118,7 @@ export function Pagination({
           )}
         >
           <IoChevronBack size={16} />
-          <span className="hidden sm:inline">Anterior</span>
+          <span className="hidden sm:inline">{t('previous')}</span>
         </button>
 
         {/* Números de página */}
@@ -157,14 +159,14 @@ export function Pagination({
               : 'text-gray-400 dark:text-gray-600 cursor-not-allowed'
           )}
         >
-          <span className="hidden sm:inline">Siguiente</span>
+          <span className="hidden sm:inline">{t('next')}</span>
           <IoChevronForward size={16} />
         </button>
       </div>
 
       {/* Info adicional - mobile */}
       <div className="sm:hidden text-xs text-gray-600 dark:text-gray-400">
-        Página {currentPage} de {totalPages}
+        {t('page')} {currentPage} {t('pageOf')} {totalPages}
       </div>
     </div>
   )

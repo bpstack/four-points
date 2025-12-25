@@ -105,5 +105,20 @@
     "saveError": "Error al guardar",
     "deleteError": "Error al eliminar",
     "networkError": "Error de conexión"
+  },
+  "pagination": {
+    "showing": "Mostrando",
+    "to": "a",
+    "of": "de",
+    "records": "registros",
+    "previous": "Anterior",
+    "next": "Siguiente",
+    "page": "Página",
+    "pageOf": "de"
+  },
+  "skeleton": {
+    "serverStarting": "Iniciando servidor...",
+    "serverMessage": "El backend de esta aplicación está alojado en Render (plan gratuito para demo), el cual entra en modo de reposo tras periodos de inactividad. La primera conexión puede demorar aproximadamente 60 segundos.",
+    "connecting": "Conectando..."
   }
 }

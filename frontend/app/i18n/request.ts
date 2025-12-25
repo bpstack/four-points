@@ -6,8 +6,10 @@ import { cookies, headers } from 'next/headers'
 import { defaultLocale, locales, LOCALE_COOKIE, type Locale } from './config'
 
 export default getRequestConfig(async () => {
-  // 1. Try to get locale from cookie
   const cookieStore = await cookies()
+  const headerStore = await headers()
+
+  // 1. Try to get locale from cookie (user preference)
   const cookieLocale = cookieStore.get(LOCALE_COOKIE)?.value as Locale | undefined
 
   if (cookieLocale && locales.includes(cookieLocale)) {
@@ -15,20 +17,63 @@ export default getRequestConfig(async () => {
     return { locale: cookieLocale, messages }
   }
 
-  // 2. Try to detect from Accept-Language header
-  const headerStore = await headers()
-  const acceptLanguage = headerStore.get('accept-language')
-  const detectedLocale = detectLocaleFromHeader(acceptLanguage)
+  // 2. Try to detect from Vercel geolocation header (country-based)
+  const country = headerStore.get('x-vercel-ip-country')
+  const geoLocale = detectLocaleFromCountry(country)
 
-  if (detectedLocale) {
-    const messages = await loadMessages(detectedLocale)
-    return { locale: detectedLocale, messages }
+  if (geoLocale) {
+    const messages = await loadMessages(geoLocale)
+    return { locale: geoLocale, messages }
   }
 
-  // 3. Fall back to default locale
+  // 3. Try to detect from Accept-Language header (browser preference)
+  const acceptLanguage = headerStore.get('accept-language')
+  const browserLocale = detectLocaleFromHeader(acceptLanguage)
+
+  if (browserLocale) {
+    const messages = await loadMessages(browserLocale)
+    return { locale: browserLocale, messages }
+  }
+
+  // 4. Fall back to default locale
   const messages = await loadMessages(defaultLocale)
   return { locale: defaultLocale, messages }
 })
+
+/**
+ * Detect locale from Vercel's x-vercel-ip-country header
+ * Spanish-speaking countries → 'es', others → 'en'
+ */
+function detectLocaleFromCountry(country: string | null): Locale | null {
+  if (!country) return null
+
+  // Spanish-speaking countries (ISO 3166-1 alpha-2)
+  const spanishCountries = [
+    'ES', // Spain
+    'MX', // Mexico
+    'AR', // Argentina
+    'CO', // Colombia
+    'PE', // Peru
+    'VE', // Venezuela
+    'CL', // Chile
+    'EC', // Ecuador
+    'GT', // Guatemala
+    'CU', // Cuba
+    'BO', // Bolivia
+    'DO', // Dominican Republic
+    'HN', // Honduras
+    'PY', // Paraguay
+    'SV', // El Salvador
+    'NI', // Nicaragua
+    'CR', // Costa Rica
+    'PA', // Panama
+    'UY', // Uruguay
+    'PR', // Puerto Rico
+    'GQ', // Equatorial Guinea
+  ]
+
+  return spanishCountries.includes(country.toUpperCase()) ? 'es' : 'en'
+}
 
 /**
  * Detect locale from Accept-Language header
@@ -61,6 +106,7 @@ async function loadMessages(locale: Locale) {
     'dashboard',
     'parking',
     'logbooks',
+    'logbook', // Singular namespace for LogbooksContainer hook messages
     'groups',
     'cashier',
     'maintenance',

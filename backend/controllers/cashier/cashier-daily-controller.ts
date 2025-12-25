@@ -27,7 +27,7 @@ export class CashierDailyController {
         return
       }
 
-      res.json({ success: true, data: dailyDetail })
+      res.json(dailyDetail)
     } catch (error) {
       console.error('Error al obtener día:', error)
       res.status(500).json({

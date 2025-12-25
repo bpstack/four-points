@@ -1673,7 +1673,6 @@ export class BackofficeController {
 
       if (result.success) {
         res.json({
-          success: true,
           ...result,
         })
       } else {

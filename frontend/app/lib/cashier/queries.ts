@@ -49,7 +49,8 @@ export function useDailyDetails(date: string) {
         if (
           errorMessage.includes('404') ||
           errorMessage.includes('not found') ||
-          errorMessage.includes('Día no encontrado')
+          errorMessage.includes('Día no encontrado') ||
+          errorMessage.includes('CASHIER_DAY_NOT_FOUND')
         ) {
           console.log('ℹ️ Día no inicializado, mostrando opción de inicializar')
           return null

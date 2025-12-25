@@ -105,5 +105,20 @@
     "saveError": "Error saving",
     "deleteError": "Error deleting",
     "networkError": "Connection error"
+  },
+  "pagination": {
+    "showing": "Showing",
+    "to": "to",
+    "of": "of",
+    "records": "records",
+    "previous": "Previous",
+    "next": "Next",
+    "page": "Page",
+    "pageOf": "of"
+  },
+  "skeleton": {
+    "serverStarting": "Starting server...",
+    "serverMessage": "The backend of this application is hosted on Render (free tier for demo), which goes into sleep mode after periods of inactivity. The first connection may take approximately 60 seconds.",
+    "connecting": "Connecting..."
   }
 }

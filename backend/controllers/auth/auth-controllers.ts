@@ -101,8 +101,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       // Siempre enviar refreshToken - el proxy de Next.js lo necesita para crear cookies HttpOnly
       refreshToken: refreshToken,
     })
-  } catch (error) {
-    const err = error as Error
+  } catch {
     res.status(401).json({
       error: ERROR_CODES.AUTH_INVALID_CREDENTIALS,
       code: ERROR_CODES.AUTH_INVALID_CREDENTIALS,
