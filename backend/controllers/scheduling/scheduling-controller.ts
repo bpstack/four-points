@@ -78,6 +78,34 @@ export async function updateConfig(req: Request, res: Response): Promise<void> {
     const { key } = req.params
     const data = updateConfigSchema.parse(req.body)
 
+    // Validate ai_provider selection
+    if (key === 'ai_provider') {
+      const provider = data.config_value
+      const isProduction = process.env.NODE_ENV === 'production'
+      
+      // Ollama only works locally (requires Docker)
+      if (provider === 'ollama' && isProduction) {
+        res.status(400).json({ 
+          error: 'Ollama solo funciona en desarrollo local. En producción usa Claude o Gemini.' 
+        })
+        return
+      }
+      
+      // Validate API key exists for cloud providers
+      if (provider === 'claude' && !process.env.CLAUDE_API_KEY) {
+        res.status(400).json({ 
+          error: 'CLAUDE_API_KEY no está configurada en el servidor.' 
+        })
+        return
+      }
+      if (provider === 'gemini' && !process.env.GEMINI_API_KEY) {
+        res.status(400).json({ 
+          error: 'GEMINI_API_KEY no está configurada en el servidor.' 
+        })
+        return
+      }
+    }
+
     const updated = await repo.updateConfig(key, data)
     if (!updated) {
       res.status(404).json({ error: 'Configuración no encontrada' })
@@ -116,6 +144,151 @@ export async function getAllShifts(_req: Request, res: Response): Promise<void> 
   } catch (err) {
     console.error('Error getting shifts:', err)
     res.status(500).json({ error: 'Error al obtener los turnos' })
+  }
+}
+
+export async function getShiftById(req: Request, res: Response): Promise<void> {
+  try {
+    const shiftId = parseInt(req.params.id)
+    if (isNaN(shiftId)) {
+      res.status(400).json({ error: 'ID inválido' })
+      return
+    }
+
+    const shift = await repo.getShiftById(shiftId)
+    if (!shift) {
+      res.status(404).json({ error: 'Turno no encontrado' })
+      return
+    }
+
+    res.json({
+      id: shift.id,
+      code: shift.code,
+      name: shift.name,
+      startTime: shift.start_time,
+      endTime: shift.end_time,
+      hours: shift.hours,
+      color: shift.color,
+      isWorkShift: shift.is_work_shift === 1,
+      isPaid: shift.is_paid === 1,
+      displayOrder: shift.display_order,
+      isActive: shift.is_active === 1,
+    })
+  } catch (err) {
+    console.error('Error getting shift:', err)
+    res.status(500).json({ error: 'Error al obtener el turno' })
+  }
+}
+
+export async function createShift(req: Request, res: Response): Promise<void> {
+  try {
+    const { code, name, startTime, endTime, hours, color, isWorkShift, isPaid, displayOrder } = req.body
+
+    if (!code || !name || hours === undefined) {
+      res.status(400).json({ error: 'Código, nombre y horas son requeridos' })
+      return
+    }
+
+    // Check if code already exists
+    const existing = await repo.getShiftByCode(code)
+    if (existing) {
+      res.status(400).json({ error: 'Ya existe un turno con ese código' })
+      return
+    }
+
+    const shiftId = await repo.createShift({
+      code,
+      name,
+      start_time: startTime || null,
+      end_time: endTime || null,
+      hours,
+      color: color || '#6b7280',
+      is_work_shift: isWorkShift ?? false,
+      is_paid: isPaid ?? false,
+      display_order: displayOrder ?? 99,
+    })
+
+    res.status(201).json({ id: shiftId, message: 'Turno creado correctamente' })
+  } catch (err) {
+    console.error('Error creating shift:', err)
+    res.status(500).json({ error: 'Error al crear el turno' })
+  }
+}
+
+export async function updateShift(req: Request, res: Response): Promise<void> {
+  try {
+    const shiftId = parseInt(req.params.id)
+    if (isNaN(shiftId)) {
+      res.status(400).json({ error: 'ID inválido' })
+      return
+    }
+
+    const shift = await repo.getShiftById(shiftId)
+    if (!shift) {
+      res.status(404).json({ error: 'Turno no encontrado' })
+      return
+    }
+
+    const { code, name, startTime, endTime, hours, color, isWorkShift, isPaid, displayOrder, isActive } = req.body
+
+    // If changing code, check it doesn't conflict with another shift
+    if (code && code !== shift.code) {
+      const existing = await repo.getShiftByCode(code)
+      if (existing && existing.id !== shiftId) {
+        res.status(400).json({ error: 'Ya existe otro turno con ese código' })
+        return
+      }
+    }
+
+    const updated = await repo.updateShift(shiftId, {
+      code,
+      name,
+      start_time: startTime,
+      end_time: endTime,
+      hours,
+      color,
+      is_work_shift: isWorkShift,
+      is_paid: isPaid,
+      display_order: displayOrder,
+      is_active: isActive,
+    })
+
+    if (updated) {
+      res.json({ message: 'Turno actualizado correctamente' })
+    } else {
+      res.status(400).json({ error: 'No se realizaron cambios' })
+    }
+  } catch (err) {
+    console.error('Error updating shift:', err)
+    res.status(500).json({ error: 'Error al actualizar el turno' })
+  }
+}
+
+export async function deleteShift(req: Request, res: Response): Promise<void> {
+  try {
+    const shiftId = parseInt(req.params.id)
+    if (isNaN(shiftId)) {
+      res.status(400).json({ error: 'ID inválido' })
+      return
+    }
+
+    const shift = await repo.getShiftById(shiftId)
+    if (!shift) {
+      res.status(404).json({ error: 'Turno no encontrado' })
+      return
+    }
+
+    // Soft delete (marks as inactive)
+    const deleted = await repo.deleteShift(shiftId)
+
+    if (deleted) {
+      res.json({ message: 'Turno eliminado correctamente' })
+    } else {
+      res.status(400).json({ error: 'No se pudo eliminar el turno' })
+    }
+  } catch (err) {
+    console.error('Error deleting shift:', err)
+    res.status(500).json({ error: 'Error al eliminar el turno' })
   }
 }
 
@@ -874,8 +1047,12 @@ export async function generateSchedule(req: Request, res: Response): Promise<voi
     }
     console.log('[generateSchedule] Generator V2 created, running generate()...')
 
-    // Generate schedule with timeout (30 seconds max)
-    const GENERATION_TIMEOUT_MS = 30000
+    // Generate schedule with timeout
+    // 180 seconds for Ollama (local models are slower), 30 seconds for cloud APIs
+    const configMap = await repo.getConfigMap()
+    const aiProvider = (configMap.aiProvider || 'none').toLowerCase()
+    const GENERATION_TIMEOUT_MS = aiProvider === 'ollama' ? 180000 : 30000
+    console.log(`[generateSchedule] AI Provider: "${aiProvider}", Timeout: ${GENERATION_TIMEOUT_MS}ms`)
     
     const timeoutPromise = new Promise<never>((_, reject) => {
       setTimeout(() => {
@@ -1453,5 +1630,161 @@ export async function getAnnualTotals(req: Request, res: Response): Promise<void
   } catch (err) {
     console.error('Error getting annual totals:', err)
     res.status(500).json({ error: 'Error al obtener totales anuales' })
+  }
+}
+
+// ============================================
+// AI STATUS & TEST
+// ============================================
+
+import { AIClient, createAIClient } from '../../services/scheduling/ai/ai-client.js'
+import type { AIProviderType } from '../../services/scheduling/ai/types.js'
+import { PROVIDER_DEFAULTS } from '../../services/scheduling/ai/types.js'
+
+/**
+ * GET /scheduling/ai/status
+ * Returns AI configuration status
+ */
+export async function getAIStatus(_req: Request, res: Response): Promise<void> {
+  try {
+    const aiEnabled = process.env.AI_ENABLED?.toLowerCase() === 'true' || process.env.AI_ENABLED === '1'
+    
+    // Get configured provider from DB config or default
+    const configMap = await repo.getConfigMap()
+    const configuredProvider = (configMap.aiProvider as AIProviderType) || 'none'
+    
+    // Check which providers have API keys configured
+    const providers = {
+      claude: {
+        configured: !!process.env.CLAUDE_API_KEY,
+        model: PROVIDER_DEFAULTS.claude.model,
+      },
+      gemini: {
+        configured: !!process.env.GEMINI_API_KEY,
+        model: PROVIDER_DEFAULTS.gemini.model,
+      },
+      openai: {
+        configured: !!process.env.OPENAI_API_KEY,
+        model: PROVIDER_DEFAULTS.openai.model,
+      },
+      ollama: {
+        configured: true, // Ollama doesn't need API key, always "configured" if selected
+        model: PROVIDER_DEFAULTS.ollama.model,
+        baseUrl: process.env.OLLAMA_BASE_URL || 'http://localhost:11434',
+        requiresDocker: true, // Indicates this needs Docker/local service running
+      },
+    }
+
+    // Create client to test current configuration
+    const client = new AIClient()
+    const isAvailable = client.isAvailable()
+    const activeProvider = client.getProviderName()
+
+    // Check environment
+    const isProduction = process.env.NODE_ENV === 'production'
+
+    res.json({
+      enabled: aiEnabled,
+      configuredProvider,
+      activeProvider,
+      isAvailable,
+      isProduction,
+      providers,
+    })
+  } catch (err) {
+    console.error('Error getting AI status:', err)
+    res.status(500).json({ error: 'Error al obtener estado de IA' })
+  }
+}
+
+/**
+ * POST /scheduling/ai/test
+ * Test AI connection with a simple prompt
+ */
+export async function testAIConnection(req: Request, res: Response): Promise<void> {
+  try {
+    const { provider } = req.body as { provider?: AIProviderType }
+    
+    // Check if AI is enabled
+    const aiEnabled = process.env.AI_ENABLED?.toLowerCase() === 'true' || process.env.AI_ENABLED === '1'
+    if (!aiEnabled) {
+      res.status(400).json({ 
+        success: false, 
+        error: 'AI está desactivado. Configure AI_ENABLED=true en el servidor.' 
+      })
+      return
+    }
+
+    // Create client (use specified provider or auto-detect)
+    const client = provider ? createAIClient(provider) : new AIClient()
+    
+    if (!client.isAvailable()) {
+      res.status(400).json({ 
+        success: false, 
+        error: `Proveedor ${provider || 'auto'} no disponible. Verifique la API key.` 
+      })
+      return
+    }
+
+    // Test with a simple optimization context
+    const testContext: import('../../services/scheduling/ai/types.js').AIContext = {
+      constraints: {
+        minMorningStaff: 1,
+        minAfternoonStaff: 1,
+        minNightStaff: 1,
+        minNightBlock: 3,
+        maxNightBlock: 6,
+        minRestHours: 48,
+        maxConsecutiveWorkDays: 6,
+        minMonthlyLibre: 8,
+        maxMonthlyLibre: 12,
+      },
+      employees: [{
+        id: '1',
+        name: 'Test Employee',
+        rules: 'Sin reglas especiales',
+        stats: {
+          M: 0,
+          T: 0,
+          N: 0,
+          L: 0,
+          presencias: 0,
+        },
+      }],
+      matrix: 'Empleado 1: [L] [L] [L]... (test)',
+      warnings: [{
+        type: 'test',
+        message: 'Test de conexión AI',
+        severity: 'info',
+        employeeId: '1',
+        day: 1,
+      }],
+      monthInfo: {
+        year: new Date().getFullYear(),
+        month: new Date().getMonth() + 1,
+        totalDays: 30,
+      },
+    }
+
+    const startTime = Date.now()
+    const result = await client.optimize(testContext)
+    const elapsed = Date.now() - startTime
+
+    res.json({
+      success: true,
+      provider: client.getProviderName(),
+      responseTime: elapsed,
+      model: client.getConfig().model,
+      testResult: {
+        hasAnalysis: !!result.analysis,
+        confidence: result.confidence,
+      },
+    })
+  } catch (err) {
+    console.error('Error testing AI connection:', err)
+    res.status(500).json({ 
+      success: false, 
+      error: err instanceof Error ? err.message : 'Error al probar conexión IA' 
+    })
   }
 }

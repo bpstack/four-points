@@ -21,6 +21,8 @@ import type {
   ApproveConstraintDto,
   CreateEmployeeRuleDto,
   UpdateEmployeeRuleDto,
+  CreateShiftDto,
+  UpdateShiftDto,
   GenerationResult,
   EmployeeContract,
   CreateContractDto,
@@ -39,6 +41,7 @@ export const schedulingKeys = {
   config: () => [...schedulingKeys.all, 'config'] as const,
   configMap: () => [...schedulingKeys.all, 'config', 'map'] as const,
   shifts: () => [...schedulingKeys.all, 'shifts'] as const,
+  shift: (id: number) => [...schedulingKeys.shifts(), id] as const,
   months: () => [...schedulingKeys.all, 'months'] as const,
   monthsList: (filters?: { year?: number; status?: string }) =>
     [...schedulingKeys.months(), 'list', filters] as const,
@@ -52,6 +55,7 @@ export const schedulingKeys = {
   contracts: (year: number) => [...schedulingKeys.all, 'contracts', year] as const,
   contractByEmployee: (year: number, employeeId: string) => [...schedulingKeys.contracts(year), employeeId] as const,
   annualTotals: (year: number) => [...schedulingKeys.all, 'totals', year] as const,
+  aiStatus: () => [...schedulingKeys.all, 'ai', 'status'] as const,
 }
 
 // ============================================
@@ -93,6 +97,34 @@ export const schedulingApi = {
    */
   getAllShifts: async (): Promise<SchedulingShift[]> => {
     return apiClient.get(`${API_URL}/api/scheduling/shifts`)
+  },
+
+  /**
+   * Get a single shift by ID
+   */
+  getShiftById: async (id: number): Promise<SchedulingShift> => {
+    return apiClient.get(`${API_URL}/api/scheduling/shifts/${id}`)
+  },
+
+  /**
+   * Create a new shift
+   */
+  createShift: async (data: CreateShiftDto): Promise<{ id: number; message: string }> => {
+    return apiClient.post(`${API_URL}/api/scheduling/shifts`, data)
+  },
+
+  /**
+   * Update a shift
+   */
+  updateShift: async (id: number, data: UpdateShiftDto): Promise<{ message: string }> => {
+    return apiClient.put(`${API_URL}/api/scheduling/shifts/${id}`, data)
+  },
+
+  /**
+   * Delete a shift (soft delete - sets is_active = false)
+   */
+  deleteShift: async (id: number): Promise<{ message: string }> => {
+    return apiClient.delete(`${API_URL}/api/scheduling/shifts/${id}`)
   },
 
   // ============================================
@@ -451,5 +483,41 @@ export const schedulingApi = {
    */
   getAnnualTotals: async (year: number): Promise<AnnualTotalsResponse> => {
     return apiClient.get(`${API_URL}/api/scheduling/totals/${year}`)
+  },
+
+  // ============================================
+  // AI
+  // ============================================
+
+  /**
+   * Get AI status and configuration
+   */
+  getAIStatus: async (): Promise<{
+    enabled: boolean
+    configuredProvider: string
+    activeProvider: string
+    isAvailable: boolean
+    providers: {
+      claude: { configured: boolean; model: string }
+      gemini: { configured: boolean; model: string }
+      openai: { configured: boolean; model: string }
+      ollama: { configured: boolean; model: string; host: string }
+    }
+  }> => {
+    return apiClient.get(`${API_URL}/api/scheduling/ai/status`)
+  },
+
+  /**
+   * Test AI connection
+   */
+  testAIConnection: async (provider?: string): Promise<{
+    success: boolean
+    provider?: string
+    responseTime?: number
+    model?: string
+    testResult?: { hasAnalysis: boolean; confidence: number }
+    error?: string
+  }> => {
+    return apiClient.post(`${API_URL}/api/scheduling/ai/test`, { provider })
   },
 }

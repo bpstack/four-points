@@ -14,12 +14,21 @@ export type {
   AIValidationResult,
   AIRejectedChange,
   AIConfig,
+  // New multi-provider types
+  AIProviderType,
+  AIProviderConfig,
+  IAIProvider,
 } from './types.js'
 
-export { DEFAULT_AI_CONFIG } from './types.js'
+export { DEFAULT_AI_CONFIG, PROVIDER_DEFAULTS } from './types.js'
 
 // Client
-export { AIClient } from './ai-client.js'
+export { AIClient, createAIClient } from './ai-client.js'
+
+// Providers
+export { createProvider, getProviderConfigFromEnv } from './providers/index.js'
+export { ClaudeProvider } from './providers/claude-provider.js'
+export { GeminiProvider } from './providers/gemini-provider.js'
 
 // Builders
 export { buildAIContext } from './ai-context-builder.js'

@@ -140,14 +140,57 @@ export interface AIRejectedChange {
 }
 
 // ============================================
+// PROVIDER TYPES
+// ============================================
+
+/**
+ * Supported AI providers
+ */
+export type AIProviderType = 'none' | 'claude' | 'gemini' | 'openai' | 'ollama'
+
+/**
+ * Provider-specific configuration
+ */
+export interface AIProviderConfig {
+  /** Provider type */
+  provider: AIProviderType
+  /** API key (for cloud providers) */
+  apiKey?: string
+  /** Model name */
+  model: string
+  /** Temperature (0-1, lower = more consistent) */
+  temperature: number
+  /** Max tokens in response */
+  maxTokens: number
+  /** Timeout in ms */
+  timeout: number
+  /** Max retry attempts */
+  maxRetries: number
+  /** Base URL (for Ollama or custom endpoints) */
+  baseUrl?: string
+}
+
+/**
+ * Provider interface - all providers must implement this
+ */
+export interface IAIProvider {
+  /** Provider name for logging */
+  readonly name: string
+  /** Check if provider is available (has API key, etc.) */
+  isAvailable(): boolean
+  /** Send prompt and get response */
+  sendPrompt(prompt: string): Promise<string>
+}
+
+// ============================================
 // CONFIG
 // ============================================
 
 /**
- * AI configuration
+ * AI configuration (legacy - kept for compatibility)
  */
 export interface AIConfig {
-  /** Claude model to use */
+  /** Model to use */
   model: string
   /** Temperature (0-1, lower = more consistent) */
   temperature: number
@@ -162,7 +205,54 @@ export interface AIConfig {
 }
 
 /**
- * Default AI configuration
+ * Default configurations per provider
+ */
+export const PROVIDER_DEFAULTS: Record<AIProviderType, Partial<AIProviderConfig>> = {
+  none: {
+    provider: 'none',
+    model: '',
+    temperature: 0,
+    maxTokens: 0,
+    timeout: 0,
+    maxRetries: 0,
+  },
+  claude: {
+    provider: 'claude',
+    model: 'claude-sonnet-4-20250514',
+    temperature: 0.1,
+    maxTokens: 2000,
+    timeout: 30000,
+    maxRetries: 3,
+  },
+  gemini: {
+    provider: 'gemini',
+    model: 'gemini-2.0-flash',
+    temperature: 0.1,
+    maxTokens: 2000,
+    timeout: 30000,
+    maxRetries: 3,
+  },
+  openai: {
+    provider: 'openai',
+    model: 'gpt-4o-mini',
+    temperature: 0.1,
+    maxTokens: 2000,
+    timeout: 30000,
+    maxRetries: 3,
+  },
+  ollama: {
+    provider: 'ollama',
+    model: 'llama2:latest',
+    temperature: 0.1,
+    maxTokens: 2000,
+    timeout: 180000, // 3 minutos - modelos locales son más lentos
+    maxRetries: 2,
+    baseUrl: 'http://localhost:11434',
+  },
+}
+
+/**
+ * Default AI configuration (legacy)
  */
 export const DEFAULT_AI_CONFIG: AIConfig = {
   model: 'claude-sonnet-4-20250514',

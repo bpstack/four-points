@@ -343,6 +343,31 @@ export interface UpdateEmployeeRuleDto {
   notes?: string | null
 }
 
+export interface CreateShiftDto {
+  code: string
+  name: string
+  startTime?: string | null
+  endTime?: string | null
+  hours: number
+  color?: string
+  isWorkShift?: boolean
+  isPaid?: boolean
+  displayOrder?: number
+}
+
+export interface UpdateShiftDto {
+  code?: string
+  name?: string
+  startTime?: string | null
+  endTime?: string | null
+  hours?: number
+  color?: string
+  isWorkShift?: boolean
+  isPaid?: boolean
+  displayOrder?: number
+  isActive?: boolean
+}
+
 // ============================================
 // API RESPONSES
 // ============================================

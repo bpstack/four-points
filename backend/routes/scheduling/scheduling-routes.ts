@@ -10,6 +10,10 @@ import {
   updateConfig,
   // Shifts
   getAllShifts,
+  getShiftById,
+  createShift,
+  updateShift,
+  deleteShift,
   // Months
   getAllMonths,
   getMonthById,
@@ -56,6 +60,9 @@ import {
   calculateProportionalContract,
   // Annual Totals
   getAnnualTotals,
+  // AI
+  getAIStatus,
+  testAIConnection,
 } from '../../controllers/scheduling/scheduling-controller.js'
 
 // Middlewares
@@ -91,6 +98,18 @@ router.put('/config/:key', isAdmin, updateConfig)
 
 // GET - Get all shifts
 router.get('/shifts', getAllShifts)
+
+// GET - Get shift by ID
+router.get('/shifts/:id', getShiftById)
+
+// POST - Create shift (admin only)
+router.post('/shifts', isAdmin, createShift)
+
+// PUT - Update shift (admin only)
+router.put('/shifts/:id', isAdmin, updateShift)
+
+// DELETE - Delete shift (admin only)
+router.delete('/shifts/:id', isAdmin, deleteShift)
 
 // ========================================
 // MONTHS ROUTES
@@ -239,5 +258,15 @@ router.delete('/contracts/:id', isAdmin, deleteContract)
 
 // GET - Get annual totals for a year (calculated from published months)
 router.get('/totals/:year', getAnnualTotals)
+
+// ========================================
+// AI ROUTES
+// ========================================
+
+// GET - Get AI status and configuration
+router.get('/ai/status', getAIStatus)
+
+// POST - Test AI connection (admin only)
+router.post('/ai/test', isAdmin, testAIConnection)
 
 export default router

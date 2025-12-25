@@ -1,22 +1,12 @@
 // services/scheduling/ai/ai-client.ts
-// Claude AI client for schedule optimization
+// Multi-provider AI client for schedule optimization
 
-import Anthropic from '@anthropic-ai/sdk'
-import type { AIContext, AIProposal } from './types.js'
+import type { AIContext, AIProposal, AIProviderConfig, AIProviderType, IAIProvider } from './types.js'
+import { PROVIDER_DEFAULTS } from './types.js'
 import { buildPrompt } from './ai-prompt-builder.js'
 import { validateProposalStructure } from './ai-proposal-validator.js'
 import { AILogger } from './ai-logger.js'
-
-/**
- * AI Client configuration
- */
-const AI_CONFIG = {
-  model: process.env.CLAUDE_MODEL || 'claude-sonnet-4-20250514',
-  temperature: 0.1,
-  maxTokens: 2000,
-  timeout: 30000,
-  maxRetries: 3,
-}
+import { createProvider, getProviderConfigFromEnv } from './providers/index.js'
 
 /**
  * Check if AI is enabled via environment variable
@@ -27,37 +17,72 @@ function isAIEnabled(): boolean {
 }
 
 /**
- * Client for Claude AI optimization
+ * Multi-provider AI Client for schedule optimization
  */
 export class AIClient {
-  private client: Anthropic | null = null
+  private provider: IAIProvider | null = null
+  private config: AIProviderConfig
   private enabled: boolean = false
 
-  constructor() {
+  constructor(providerType?: AIProviderType, customConfig?: Partial<AIProviderConfig>) {
     // Check if AI is enabled first
     if (!isAIEnabled()) {
+      this.config = { ...PROVIDER_DEFAULTS.none } as AIProviderConfig
       return
     }
 
-    const apiKey = process.env.CLAUDE_API_KEY
-    if (apiKey) {
-      this.client = new Anthropic({ apiKey })
-      this.enabled = true
+    // Determine provider type
+    const type = providerType || this.getDefaultProviderType()
+    
+    // Get config from env and merge with custom config
+    const envConfig = getProviderConfigFromEnv(type)
+    this.config = {
+      ...envConfig,
+      ...customConfig,
     }
+
+    // Create provider
+    this.provider = createProvider(this.config)
+    this.enabled = this.provider?.isAvailable() ?? false
+  }
+
+  /**
+   * Get default provider type from environment
+   */
+  private getDefaultProviderType(): AIProviderType {
+    // Check for specific API keys to determine default provider
+    if (process.env.CLAUDE_API_KEY) return 'claude'
+    if (process.env.GEMINI_API_KEY) return 'gemini'
+    if (process.env.OPENAI_API_KEY) return 'openai'
+    return 'none'
   }
 
   /**
    * Check if AI client is available
    */
   isAvailable(): boolean {
-    return this.enabled && this.client !== null
+    return this.enabled && this.provider !== null
+  }
+
+  /**
+   * Get current provider name
+   */
+  getProviderName(): string {
+    return this.provider?.name || 'None'
+  }
+
+  /**
+   * Get current configuration
+   */
+  getConfig(): AIProviderConfig {
+    return { ...this.config }
   }
 
   /**
    * Optimize schedule using AI
    */
   async optimize(context: AIContext, retryCount = 0): Promise<AIProposal> {
-    if (!this.client) {
+    if (!this.provider || !this.enabled) {
       return this.unavailableProposal()
     }
 
@@ -67,19 +92,11 @@ export class AIClient {
     try {
       const prompt = buildPrompt(context)
 
-      // Call Claude with timeout
-      const response = await Promise.race([
-        this.client.messages.create({
-          model: AI_CONFIG.model,
-          max_tokens: AI_CONFIG.maxTokens,
-          temperature: AI_CONFIG.temperature,
-          messages: [{ role: 'user', content: prompt }],
-        }),
-        this.timeout(AI_CONFIG.timeout),
-      ])
+      // Send to provider
+      const responseText = await this.provider.sendPrompt(prompt)
 
       // Parse response
-      const proposal = this.parseResponse(response as Anthropic.Message)
+      const proposal = this.parseResponse(responseText)
 
       // Validate structure
       const validation = validateProposalStructure(proposal)
@@ -94,8 +111,8 @@ export class AIClient {
       AILogger.logError(`Attempt ${retryCount + 1} failed`, error)
 
       // Retry if under limit
-      if (retryCount < AI_CONFIG.maxRetries) {
-        AILogger.logRetry(retryCount + 1, AI_CONFIG.maxRetries)
+      if (retryCount < this.config.maxRetries) {
+        AILogger.logRetry(retryCount + 1, this.config.maxRetries)
         await this.delay(2000 * (retryCount + 1)) // Exponential backoff
         return this.optimize(context, retryCount + 1)
       }
@@ -106,25 +123,21 @@ export class AIClient {
   }
 
   /**
-   * Parse Claude's response to extract JSON
+   * Parse AI response to extract JSON
    */
-  private parseResponse(response: Anthropic.Message): AIProposal {
-    const content = response.content[0]
-    if (content.type !== 'text') {
-      throw new Error('Unexpected response type from Claude')
-    }
-
-    const text = content.text.trim()
+  private parseResponse(text: string): AIProposal {
+    const trimmed = text.trim()
 
     // Try to find JSON in response
     // First try: direct parse
     try {
-      return JSON.parse(text)
+      return JSON.parse(trimmed)
     } catch {
-      // Second try: find JSON object in text
-      const jsonMatch = text.match(/\{[\s\S]*\}/)
+      // Second try: find JSON object in text (handle markdown code blocks)
+      const jsonMatch = trimmed.match(/```(?:json)?\s*([\s\S]*?)```/) || trimmed.match(/(\{[\s\S]*\})/)
       if (jsonMatch) {
-        return JSON.parse(jsonMatch[0])
+        const jsonStr = jsonMatch[1] || jsonMatch[0]
+        return JSON.parse(jsonStr.trim())
       }
       throw new Error('No valid JSON found in response')
     }
@@ -135,11 +148,11 @@ export class AIClient {
    */
   private unavailableProposal(): AIProposal {
     return {
-      analysis: 'AI optimization unavailable (no API key configured)',
+      analysis: 'AI optimization unavailable (no API key configured or AI disabled)',
       changes: [],
       confidence: 0,
       cannotResolve: true,
-      reasoning: 'CLAUDE_API_KEY environment variable is not set',
+      reasoning: 'No AI provider is available. Check AI_ENABLED and API key configuration.',
     }
   }
 
@@ -149,7 +162,7 @@ export class AIClient {
   private fallbackProposal(error: unknown): AIProposal {
     const message = error instanceof Error ? error.message : 'Unknown error'
     return {
-      analysis: `AI optimization failed after ${AI_CONFIG.maxRetries} retries`,
+      analysis: `AI optimization failed after ${this.config.maxRetries} retries`,
       changes: [],
       confidence: 0,
       cannotResolve: true,
@@ -158,18 +171,29 @@ export class AIClient {
   }
 
   /**
-   * Create a timeout promise
-   */
-  private timeout(ms: number): Promise<never> {
-    return new Promise((_, reject) => {
-      setTimeout(() => reject(new Error(`AI request timeout after ${ms}ms`)), ms)
-    })
-  }
-
-  /**
    * Delay helper
    */
   private delay(ms: number): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, ms))
   }
+}
+
+/**
+ * Create AI client with specific provider
+ */
+export function createAIClient(
+  providerType: AIProviderType,
+  apiKey?: string,
+  model?: string
+): AIClient {
+  const customConfig: Partial<AIProviderConfig> = {}
+  
+  if (apiKey) {
+    customConfig.apiKey = apiKey
+  }
+  if (model) {
+    customConfig.model = model
+  }
+
+  return new AIClient(providerType, customConfig)
 }

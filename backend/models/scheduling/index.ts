@@ -463,7 +463,7 @@ export interface FullMonthResponse {
 export interface GenerationOptions {
   useAI?: boolean
   forceRegenerate?: boolean
-  aiProvider?: 'none' | 'claude' | 'ollama' | 'openai'
+  aiProvider?: 'none' | 'claude' | 'gemini' | 'ollama' | 'openai'
 }
 
 export interface GenerationWarning {
@@ -516,7 +516,7 @@ export interface SchedulingConfigMap {
   annualVacationDays: number
   annualHolidays: number
   annualFreeDays: number
-  aiProvider: 'none' | 'claude' | 'ollama' | 'openai'
+  aiProvider: 'none' | 'claude' | 'gemini' | 'ollama' | 'openai'
   // New validations
   minMonthlyLibre: number      // 8 - Mínimo libres al mes
   maxMonthlyLibre: number      // 12 - Máximo libres al mes

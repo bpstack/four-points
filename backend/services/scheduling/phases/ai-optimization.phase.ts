@@ -6,6 +6,7 @@ import type { GeneratorContext, PhaseResult, GenerationWarning } from '../types/
 import { AIClient } from '../ai/ai-client.js'
 import { buildAIContext } from '../ai/ai-context-builder.js'
 import { validateProposalStructure, validateAndApplyChanges } from '../ai/ai-proposal-validator.js'
+import type { AIProviderType } from '../ai/types.js'
 
 /**
  * Phase 95: AI Optimization
@@ -14,18 +15,17 @@ export class AIOptimizationPhase extends BasePhase {
   readonly name = 'AIOptimization'
   readonly order = 95
 
-  private aiClient: AIClient
-
-  constructor() {
-    super()
-    this.aiClient = new AIClient()
-  }
+  private aiClient: AIClient | null = null
 
   async execute(context: GeneratorContext): Promise<PhaseResult> {
     // Check if AI is enabled in config
     if (context.config.aiProvider === 'none') {
       return this.success('AI disabled in config')
     }
+
+    // Create AI client with the configured provider
+    const providerType = context.config.aiProvider as AIProviderType
+    this.aiClient = new AIClient(providerType)
 
     // Check if AI client is available (API key set + AI_ENABLED=true)
     if (!this.aiClient.isAvailable()) {
@@ -38,8 +38,12 @@ export class AIOptimizationPhase extends BasePhase {
       return this.success('No errors to optimize')
     }
 
+    const providerName = this.aiClient.getProviderName()
+    const model = this.aiClient.getConfig().model
+
     console.log(`\n[AI] ════════════════════════════════════════`)
     console.log(`[AI] 🤖 Starting optimization`)
+    console.log(`[AI] 🔌 Provider: ${providerName} (${model})`)
     console.log(`[AI] 📊 Errors to resolve: ${errorsBefore.length}`)
     console.log(`[AI] ────────────────────────────────────────`)
 
@@ -49,7 +53,7 @@ export class AIOptimizationPhase extends BasePhase {
 
       // Get AI proposal
       const startTime = Date.now()
-      console.log(`[AI] 📤 Sending request to Claude...`)
+      console.log(`[AI] 📤 Sending request to ${providerName}...`)
       const proposal = await this.aiClient.optimize(aiContext)
       const elapsed = Date.now() - startTime
 

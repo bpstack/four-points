@@ -4,6 +4,7 @@ import express, { Request, Response, NextFunction } from 'express'
 import cookieParser from 'cookie-parser'
 import cors from 'cors'
 import { PORT } from './config/config.js'
+import { logServerInfo, logAIStatus } from './config/startup-logger.js'
 
 import { CronService } from './services/cron/cron-service.js'
 import authRoutes from './routes/auth/auth-routes.js'
@@ -178,16 +179,8 @@ app.use((err: HttpError, _req: Request, res: Response, _next: NextFunction) => {
 // ========================================
 // INICIAR SERVIDOR
 // ========================================
-app.listen(PORT, () => {
-  console.log(`🚀 Server running at http://localhost:${PORT}`)
-  console.log(`📝 Environment: ${process.env.NODE_ENV || 'development'}`)
-
-  // Log AI status
-  const aiEnabled = process.env.AI_ENABLED?.toLowerCase() === 'true' || process.env.AI_ENABLED === '1'
-  const aiKey = process.env.CLAUDE_API_KEY ? '✅ configured' : '❌ missing'
-  const aiModel = process.env.CLAUDE_MODEL || 'claude-sonnet-4-20250514'
-  console.log(`🤖 AI Integration: ${aiEnabled ? '✅ enabled' : '❌ disabled'} | Key: ${aiKey} | Model: ${aiModel}`)
-
-  // Iniciar cron jobs
+app.listen(PORT, async () => {
+  logServerInfo(PORT)
+  await logAIStatus()
   CronService.start()
 })

@@ -12,7 +12,9 @@ import type {
   SchedulingEmployeeRule,
   CreateEmployeeRuleDto,
   UpdateEmployeeRuleDto,
-  EmployeeRuleType
+  EmployeeRuleType,
+  CreateShiftDto,
+  UpdateShiftDto,
 } from '@/app/lib/scheduling'
 import { getShiftClasses } from '@/app/lib/scheduling'
 import toast from 'react-hot-toast'
@@ -85,6 +87,13 @@ export function SchedulingConfigClient() {
     queryFn: schedulingApi.getAllRules,
   })
   
+  // Fetch AI status (for isProduction flag)
+  const { data: aiStatus } = useQuery({
+    queryKey: schedulingKeys.aiStatus(),
+    queryFn: schedulingApi.getAIStatus,
+    refetchOnWindowFocus: false,
+  })
+  
   const rules = rulesData?.rules || []
   
   const tabs = [
@@ -151,7 +160,7 @@ export function SchedulingConfigClient() {
             <>
               {activeTab === 'employees' && <EmployeesTab />}
               {activeTab === 'totals' && <TotalsTab />}
-              {activeTab === 'general' && config && <GeneralConfigTab config={config} shifts={shifts} />}
+              {activeTab === 'general' && config && <GeneralConfigTab config={config} shifts={shifts} isProduction={aiStatus?.isProduction ?? false} />}
               {activeTab === 'rules' && <RulesTab rules={rules} />}
               {activeTab === 'requests' && <RequestsTab />}
             </>
@@ -344,9 +353,164 @@ function EmployeesTab() {
 interface GeneralConfigTabProps {
   config: SchedulingConfigMap
   shifts: SchedulingShift[]
+  isProduction: boolean
 }
 
-function GeneralConfigTab({ config, shifts }: GeneralConfigTabProps) {
+// ============================================
+// AI STATUS PANEL
+// ============================================
+
+interface AIStatusPanelProps {
+  selectedProvider: string
+}
+
+function AIStatusPanel({ selectedProvider }: AIStatusPanelProps) {
+  const [testing, setTesting] = useState(false)
+  const [testResult, setTestResult] = useState<{
+    success: boolean
+    provider?: string
+    responseTime?: number
+    model?: string
+    error?: string
+  } | null>(null)
+
+  // Fetch AI status
+  const { data: aiStatus, isLoading } = useQuery({
+    queryKey: schedulingKeys.aiStatus(),
+    queryFn: schedulingApi.getAIStatus,
+    refetchOnWindowFocus: false,
+  })
+
+  const handleTestConnection = async () => {
+    setTesting(true)
+    setTestResult(null)
+    try {
+      const result = await schedulingApi.testAIConnection(selectedProvider)
+      setTestResult(result)
+      if (result.success) {
+        toast.success(`Conexion exitosa con ${result.provider}`)
+      } else {
+        toast.error(result.error || 'Error de conexion')
+      }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Error al probar conexion'
+      setTestResult({ success: false, error: message })
+      toast.error(message)
+    } finally {
+      setTesting(false)
+    }
+  }
+
+  const providerInfo = aiStatus?.providers?.[selectedProvider as keyof typeof aiStatus.providers]
+  const isOllama = selectedProvider === 'ollama'
+  const isConfigured = providerInfo?.configured ?? false
+
+  // For Ollama, we always show as "configured" but need Docker running
+  const statusText = isLoading
+    ? 'Verificando...'
+    : isOllama
+      ? 'Requiere Docker ejecutandose'
+      : isConfigured
+        ? 'API Key configurada'
+        : 'API Key no configurada'
+
+  const statusColor = isLoading
+    ? 'bg-gray-400'
+    : isOllama
+      ? 'bg-blue-500'
+      : isConfigured
+        ? 'bg-green-500'
+        : 'bg-yellow-500'
+
+  return (
+    <div className="bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg p-4 space-y-3 max-w-2xl">
+      {/* Status Row */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className={`w-2 h-2 rounded-full ${statusColor}`} />
+          <span className="text-sm text-gray-700 dark:text-gray-300">
+            {statusText}
+          </span>
+        </div>
+        {providerInfo && 'model' in providerInfo && (
+          <span className="text-xs text-gray-500 dark:text-gray-400">
+            Modelo: {providerInfo.model}
+          </span>
+        )}
+      </div>
+
+      {/* Server Status */}
+      {aiStatus && (
+        <div className="text-xs text-gray-500 dark:text-gray-400 space-y-1">
+          <div className="flex items-center gap-2">
+            <span className={`w-1.5 h-1.5 rounded-full ${aiStatus.enabled ? 'bg-green-500' : 'bg-red-500'}`} />
+            <span>AI_ENABLED: {aiStatus.enabled ? 'true' : 'false'}</span>
+          </div>
+          {aiStatus.activeProvider !== 'None' && (
+            <div>Proveedor activo: {aiStatus.activeProvider}</div>
+          )}
+        </div>
+      )}
+
+      {/* Warning/Info for configuration */}
+      {!isLoading && (
+        <>
+          {isOllama ? (
+            <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-md p-3">
+              <p className="text-xs text-amber-700 dark:text-amber-300 leading-relaxed">
+                <strong>Solo para testing:</strong> Ollama responde rapido (~4s) pero los modelos locales no tienen capacidad suficiente para optimizar horarios de forma efectiva. Para uso real, usa Claude o Gemini.
+              </p>
+              <p className="text-xs text-amber-600 dark:text-amber-400 mt-2">
+                Requiere Ollama corriendo en <code className="px-1.5 py-0.5 bg-amber-100 dark:bg-amber-900 rounded text-[11px]">{providerInfo && 'baseUrl' in providerInfo ? providerInfo.baseUrl : 'http://localhost:11434'}</code>
+              </p>
+            </div>
+          ) : !isConfigured && (
+            <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-md p-2">
+              <p className="text-xs text-yellow-700 dark:text-yellow-300">
+                Configure la variable de entorno correspondiente en el servidor:
+                {selectedProvider === 'claude' && <code className="ml-1 px-1 bg-yellow-100 dark:bg-yellow-900 rounded">CLAUDE_API_KEY</code>}
+                {selectedProvider === 'gemini' && <code className="ml-1 px-1 bg-yellow-100 dark:bg-yellow-900 rounded">GEMINI_API_KEY</code>}
+                {selectedProvider === 'openai' && <code className="ml-1 px-1 bg-yellow-100 dark:bg-yellow-900 rounded">OPENAI_API_KEY</code>}
+              </p>
+            </div>
+          )}
+        </>
+      )}
+
+      {/* Test Button */}
+      <div className="flex items-center gap-3">
+        <button
+          onClick={handleTestConnection}
+          disabled={testing || !isConfigured || !aiStatus?.enabled}
+          className="px-3 py-1.5 text-xs font-medium rounded-md bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        >
+          {testing ? 'Probando...' : 'Probar Conexion'}
+        </button>
+        
+        {testResult && (
+          <div className={`text-xs ${testResult.success ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+            {testResult.success 
+              ? `OK - ${testResult.responseTime}ms (${testResult.model})`
+              : testResult.error
+            }
+          </div>
+        )}
+      </div>
+
+      {/* Info */}
+      <div className="text-xs text-gray-500 dark:text-gray-400 pt-2 border-t border-gray-200 dark:border-gray-700">
+        <strong>IA habilitada:</strong> Despues de generar el horario base, la IA analizara los errores 
+        y propondra cambios para optimizar el resultado.
+      </div>
+    </div>
+  )
+}
+
+// ============================================
+// GENERAL CONFIG TAB
+// ============================================
+
+function GeneralConfigTab({ config, shifts, isProduction }: GeneralConfigTabProps) {
   const queryClient = useQueryClient()
   const [editedConfig, setEditedConfig] = useState<Partial<Record<string, string>>>({})
   const [saving, setSaving] = useState(false)
@@ -569,12 +733,14 @@ function GeneralConfigTab({ config, shifts }: GeneralConfigTabProps) {
           <select
             value={editedConfig['ai_provider'] ?? config.aiProvider}
             onChange={(e) => setEditedConfig({ ...editedConfig, ['ai_provider']: e.target.value })}
-            className="w-56 px-3 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+            className="w-72 px-3 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
           >
             <option value="none">Desactivado</option>
             <option value="claude">Claude (Anthropic)</option>
-            <option value="openai">OpenAI</option>
-            <option value="ollama">Ollama (Local)</option>
+            <option value="gemini">Gemini (Google)</option>
+            {!isProduction && (
+              <option value="ollama">Ollama (Local - Solo desarrollo)</option>
+            )}
           </select>
           {(editedConfig['ai_provider'] ?? config.aiProvider) === 'none' && (
             <span className="text-xs text-gray-500 dark:text-gray-400">
@@ -583,71 +749,12 @@ function GeneralConfigTab({ config, shifts }: GeneralConfigTabProps) {
           )}
         </div>
         {(editedConfig['ai_provider'] ?? config.aiProvider) !== 'none' && (
-          <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-md p-3">
-            <p className="text-xs text-blue-700 dark:text-blue-300">
-              <strong>IA habilitada:</strong> Despues de generar el horario base, la IA analizara los errores 
-              y propondra cambios para optimizar el resultado. Requiere API key configurada en el servidor.
-            </p>
-          </div>
+          <AIStatusPanel selectedProvider={editedConfig['ai_provider'] ?? config.aiProvider} />
         )}
       </div>
       
       {/* Shifts Section */}
-      <div className="space-y-3 pt-4 border-t border-gray-200 dark:border-gray-700">
-        <div>
-          <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Tipos de Turno</h3>
-          <p className="text-xs text-gray-500 dark:text-gray-400">Turnos disponibles en el sistema (solo lectura)</p>
-        </div>
-        <div className="overflow-x-auto border border-gray-200 dark:border-gray-700 rounded-md">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="bg-gray-50 dark:bg-[#0d1117] border-b border-gray-200 dark:border-gray-700">
-                <th className="text-left py-2 px-3 text-xs font-semibold text-gray-600 dark:text-gray-400">Codigo</th>
-                <th className="text-left py-2 px-3 text-xs font-semibold text-gray-600 dark:text-gray-400">Nombre</th>
-                <th className="text-left py-2 px-3 text-xs font-semibold text-gray-600 dark:text-gray-400">Horario</th>
-                <th className="text-left py-2 px-3 text-xs font-semibold text-gray-600 dark:text-gray-400">Horas</th>
-                <th className="text-center py-2 px-3 text-xs font-semibold text-gray-600 dark:text-gray-400">Trabajo</th>
-                <th className="text-center py-2 px-3 text-xs font-semibold text-gray-600 dark:text-gray-400">Pagado</th>
-              </tr>
-            </thead>
-            <tbody>
-              {shifts.map((shift) => (
-                <tr key={shift.id} className="border-b border-gray-100 dark:border-gray-800 last:border-b-0">
-                  <td className="py-2 px-3">
-                    <span
-                      className={`inline-flex items-center justify-center w-8 h-6 rounded text-xs font-bold border ${getShiftClasses(shift.code)}`}
-                    >
-                      {shift.code}
-                    </span>
-                  </td>
-                  <td className="py-2 px-3 text-gray-900 dark:text-gray-100">{shift.name}</td>
-                  <td className="py-2 px-3 text-gray-600 dark:text-gray-400">
-                    {shift.startTime && shift.endTime 
-                      ? `${shift.startTime} - ${shift.endTime}` 
-                      : '-'
-                    }
-                  </td>
-                  <td className="py-2 px-3 text-gray-600 dark:text-gray-400">{shift.hours}h</td>
-                  <td className="py-2 px-3 text-center">
-                    {shift.isWorkShift ? (
-                      <FiCheck className="w-4 h-4 text-green-500 mx-auto" />
-                    ) : (
-                      <FiX className="w-4 h-4 text-gray-400 mx-auto" />
-                    )}
-                  </td>
-                  <td className="py-2 px-3 text-center">
-                    {shift.isPaid ? (
-                      <FiCheck className="w-4 h-4 text-green-500 mx-auto" />
-                    ) : (
-                      <FiX className="w-4 h-4 text-gray-400 mx-auto" />
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      <ShiftsSection shifts={shifts} />
       
       {/* Save Button */}
       {hasChanges && (
@@ -662,6 +769,361 @@ function GeneralConfigTab({ config, shifts }: GeneralConfigTabProps) {
           </button>
         </div>
       )}
+    </div>
+  )
+}
+
+// ============================================
+// SHIFTS SECTION (within General Config Tab)
+// ============================================
+
+interface ShiftsSectionProps {
+  shifts: SchedulingShift[]
+}
+
+function ShiftsSection({ shifts }: ShiftsSectionProps) {
+  const queryClient = useQueryClient()
+  const [showAddModal, setShowAddModal] = useState(false)
+  const [editingShift, setEditingShift] = useState<SchedulingShift | null>(null)
+  
+  const deleteMutation = useMutation({
+    mutationFn: (shiftId: number) => schedulingApi.deleteShift(shiftId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: schedulingKeys.shifts() })
+      toast.success('Turno eliminado')
+    },
+    onError: () => {
+      toast.error('Error al eliminar turno')
+    },
+  })
+  
+  const handleDelete = (shift: SchedulingShift) => {
+    if (confirm(`¿Eliminar turno "${shift.name}" (${shift.code})?`)) {
+      deleteMutation.mutate(shift.id)
+    }
+  }
+  
+  return (
+    <div className="space-y-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Tipos de Turno</h3>
+          <p className="text-xs text-gray-500 dark:text-gray-400">Configura los turnos disponibles en el sistema</p>
+        </div>
+        <button
+          onClick={() => setShowAddModal(true)}
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded-md hover:bg-blue-700 transition-colors"
+        >
+          <FiPlus className="w-3.5 h-3.5" />
+          Agregar turno
+        </button>
+      </div>
+      
+      <div className="overflow-x-auto border border-gray-200 dark:border-gray-700 rounded-md">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="bg-gray-50 dark:bg-[#0d1117] border-b border-gray-200 dark:border-gray-700">
+              <th className="text-left py-2 px-3 text-xs font-semibold text-gray-600 dark:text-gray-400">Codigo</th>
+              <th className="text-left py-2 px-3 text-xs font-semibold text-gray-600 dark:text-gray-400">Nombre</th>
+              <th className="text-left py-2 px-3 text-xs font-semibold text-gray-600 dark:text-gray-400">Horario</th>
+              <th className="text-left py-2 px-3 text-xs font-semibold text-gray-600 dark:text-gray-400">Horas</th>
+              <th className="text-center py-2 px-3 text-xs font-semibold text-gray-600 dark:text-gray-400">Trabajo</th>
+              <th className="text-center py-2 px-3 text-xs font-semibold text-gray-600 dark:text-gray-400">Pagado</th>
+              <th className="text-right py-2 px-3 text-xs font-semibold text-gray-600 dark:text-gray-400">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {shifts.map((shift) => (
+              <tr key={shift.id} className="border-b border-gray-100 dark:border-gray-800 last:border-b-0 hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                <td className="py-2 px-3">
+                  <span
+                    className={`inline-flex items-center justify-center w-8 h-6 rounded text-xs font-bold border ${getShiftClasses(shift.code)}`}
+                  >
+                    {shift.code}
+                  </span>
+                </td>
+                <td className="py-2 px-3 text-gray-900 dark:text-gray-100">{shift.name}</td>
+                <td className="py-2 px-3 text-gray-600 dark:text-gray-400">
+                  {shift.startTime && shift.endTime 
+                    ? `${shift.startTime} - ${shift.endTime}` 
+                    : '-'
+                  }
+                </td>
+                <td className="py-2 px-3 text-gray-600 dark:text-gray-400">{shift.hours}h</td>
+                <td className="py-2 px-3 text-center">
+                  {shift.isWorkShift ? (
+                    <FiCheck className="w-4 h-4 text-green-500 mx-auto" />
+                  ) : (
+                    <FiX className="w-4 h-4 text-gray-400 mx-auto" />
+                  )}
+                </td>
+                <td className="py-2 px-3 text-center">
+                  {shift.isPaid ? (
+                    <FiCheck className="w-4 h-4 text-green-500 mx-auto" />
+                  ) : (
+                    <FiX className="w-4 h-4 text-gray-400 mx-auto" />
+                  )}
+                </td>
+                <td className="py-2 px-3">
+                  <div className="flex items-center justify-end gap-1">
+                    <button
+                      onClick={() => setEditingShift(shift)}
+                      className="p-1 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded"
+                      title="Editar"
+                    >
+                      <FiEdit2 className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(shift)}
+                      className="p-1 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded"
+                      title="Eliminar"
+                    >
+                      <FiTrash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      
+      {shifts.length === 0 && (
+        <div className="text-center py-8">
+          <FiCalendar className="w-10 h-10 mx-auto text-gray-400 mb-3" />
+          <p className="text-sm text-gray-600 dark:text-gray-400">No hay turnos configurados</p>
+        </div>
+      )}
+      
+      {/* Add/Edit Shift Modal */}
+      {(showAddModal || editingShift) && (
+        <ShiftModal
+          shift={editingShift}
+          onClose={() => {
+            setShowAddModal(false)
+            setEditingShift(null)
+          }}
+        />
+      )}
+    </div>
+  )
+}
+
+// ============================================
+// SHIFT MODAL (Create/Edit)
+// ============================================
+
+interface ShiftModalProps {
+  shift: SchedulingShift | null
+  onClose: () => void
+}
+
+function ShiftModal({ shift, onClose }: ShiftModalProps) {
+  const queryClient = useQueryClient()
+  const isEditing = !!shift
+  
+  const [code, setCode] = useState(shift?.code || '')
+  const [name, setName] = useState(shift?.name || '')
+  const [startTime, setStartTime] = useState(shift?.startTime || '')
+  const [endTime, setEndTime] = useState(shift?.endTime || '')
+  const [hours, setHours] = useState(shift?.hours ? String(shift.hours) : '8')
+  const [isWorkShift, setIsWorkShift] = useState(shift?.isWorkShift ?? true)
+  const [isPaid, setIsPaid] = useState(shift?.isPaid ?? true)
+  const [displayOrder, setDisplayOrder] = useState(shift?.displayOrder ? String(shift.displayOrder) : '10')
+  
+  const createMutation = useMutation({
+    mutationFn: (data: CreateShiftDto) => schedulingApi.createShift(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: schedulingKeys.shifts() })
+      toast.success('Turno creado')
+      onClose()
+    },
+    onError: () => {
+      toast.error('Error al crear turno')
+    },
+  })
+  
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: number; data: UpdateShiftDto }) => schedulingApi.updateShift(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: schedulingKeys.shifts() })
+      toast.success('Turno actualizado')
+      onClose()
+    },
+    onError: () => {
+      toast.error('Error al actualizar turno')
+    },
+  })
+  
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    
+    if (!code || !name) {
+      toast.error('Codigo y nombre son requeridos')
+      return
+    }
+    
+    const data = {
+      code: code.toUpperCase(),
+      name,
+      startTime: startTime || null,
+      endTime: endTime || null,
+      hours: parseFloat(hours) || 0,
+      isWorkShift,
+      isPaid,
+      displayOrder: parseInt(displayOrder) || 10,
+    }
+    
+    if (isEditing && shift) {
+      updateMutation.mutate({ id: shift.id, data })
+    } else {
+      createMutation.mutate(data)
+    }
+  }
+  
+  const isPending = createMutation.isPending || updateMutation.isPending
+  
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+      <div className="bg-white dark:bg-[#151b23] rounded-lg shadow-xl w-full max-w-md mx-4">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700">
+          <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+            {isEditing ? 'Editar Turno' : 'Nuevo Turno'}
+          </h3>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+            <FiX className="w-5 h-5" />
+          </button>
+        </div>
+        
+        <form onSubmit={handleSubmit} className="p-4 space-y-4">
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Codigo *
+              </label>
+              <input
+                type="text"
+                value={code}
+                onChange={(e) => setCode(e.target.value.toUpperCase())}
+                maxLength={3}
+                placeholder="M, T, N..."
+                className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 uppercase"
+                required
+                disabled={isEditing} // No permitir cambiar codigo en edicion
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Horas *
+              </label>
+              <input
+                type="number"
+                value={hours}
+                onChange={(e) => setHours(e.target.value)}
+                step="0.5"
+                min="0"
+                max="24"
+                className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100"
+                required
+              />
+            </div>
+          </div>
+          
+          <div>
+            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Nombre *
+            </label>
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Turno Manana, Turno Tarde..."
+              className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100"
+              required
+            />
+          </div>
+          
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Hora inicio
+              </label>
+              <input
+                type="time"
+                value={startTime}
+                onChange={(e) => setStartTime(e.target.value)}
+                className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Hora fin
+              </label>
+              <input
+                type="time"
+                value={endTime}
+                onChange={(e) => setEndTime(e.target.value)}
+                className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100"
+              />
+            </div>
+          </div>
+          
+          <div>
+            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Orden de visualizacion
+            </label>
+            <input
+              type="number"
+              value={displayOrder}
+              onChange={(e) => setDisplayOrder(e.target.value)}
+              min="1"
+              max="99"
+              className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100"
+            />
+            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+              Menor numero = aparece primero en listas
+            </p>
+          </div>
+          
+          <div className="flex items-center gap-6">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={isWorkShift}
+                onChange={(e) => setIsWorkShift(e.target.checked)}
+                className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500 dark:bg-gray-800"
+              />
+              <span className="text-sm text-gray-700 dark:text-gray-300">Es turno de trabajo</span>
+            </label>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={isPaid}
+                onChange={(e) => setIsPaid(e.target.checked)}
+                className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500 dark:bg-gray-800"
+              />
+              <span className="text-sm text-gray-700 dark:text-gray-300">Es pagado</span>
+            </label>
+          </div>
+          
+          <div className="flex justify-end gap-2 pt-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md transition-colors"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              disabled={isPending}
+              className="px-4 py-2 text-sm bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 disabled:opacity-50 transition-colors"
+            >
+              {isPending ? 'Guardando...' : (isEditing ? 'Guardar' : 'Crear turno')}
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   )
 }

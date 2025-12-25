@@ -108,7 +108,7 @@ export async function getConfigMap(): Promise<SchedulingConfigMap> {
     annualVacationDays: parseInt(map['annual_vacation_days'] || '30'),
     annualHolidays: parseInt(map['annual_holidays'] || '14'),
     annualFreeDays: parseInt(map['annual_free_days'] || '95'),
-    aiProvider: (map['ai_provider'] as 'none' | 'claude' | 'ollama' | 'openai') || 'none',
+    aiProvider: (map['ai_provider'] as 'none' | 'claude' | 'gemini' | 'ollama' | 'openai') || 'none',
     // New validations with defaults from business rules
     minMonthlyLibre: parseInt(map['min_monthly_libre'] || '8'),
     maxMonthlyLibre: parseInt(map['max_monthly_libre'] || '12'),
@@ -134,6 +134,124 @@ export async function getShiftByCode(code: string): Promise<SchedulingShiftRow |
     [code]
   )
   return rows[0]
+}
+
+export async function getShiftById(id: number): Promise<SchedulingShiftRow | undefined> {
+  const [rows] = await db.execute<SchedulingShiftRow[]>(
+    'SELECT * FROM scheduling_shifts WHERE id = ?',
+    [id]
+  )
+  return rows[0]
+}
+
+export interface CreateShiftDTO {
+  code: string
+  name: string
+  start_time?: string | null
+  end_time?: string | null
+  hours: number
+  color?: string
+  is_work_shift?: boolean
+  is_paid?: boolean
+  display_order?: number
+}
+
+export async function createShift(data: CreateShiftDTO): Promise<number> {
+  const [result] = await db.execute<ResultSetHeader>(
+    `INSERT INTO scheduling_shifts (code, name, start_time, end_time, hours, color, is_work_shift, is_paid, display_order, is_active)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1)`,
+    [
+      data.code,
+      data.name,
+      data.start_time ?? null,
+      data.end_time ?? null,
+      data.hours,
+      data.color ?? '#6b7280',
+      data.is_work_shift ? 1 : 0,
+      data.is_paid ? 1 : 0,
+      data.display_order ?? 99,
+    ]
+  )
+  return result.insertId
+}
+
+export interface UpdateShiftDTO {
+  code?: string
+  name?: string
+  start_time?: string | null
+  end_time?: string | null
+  hours?: number
+  color?: string
+  is_work_shift?: boolean
+  is_paid?: boolean
+  display_order?: number
+  is_active?: boolean
+}
+
+export async function updateShift(id: number, data: UpdateShiftDTO): Promise<boolean> {
+  const fields: string[] = []
+  const values: (string | number | null)[] = []
+
+  if (data.code !== undefined) {
+    fields.push('code = ?')
+    values.push(data.code)
+  }
+  if (data.name !== undefined) {
+    fields.push('name = ?')
+    values.push(data.name)
+  }
+  if (data.start_time !== undefined) {
+    fields.push('start_time = ?')
+    values.push(data.start_time)
+  }
+  if (data.end_time !== undefined) {
+    fields.push('end_time = ?')
+    values.push(data.end_time)
+  }
+  if (data.hours !== undefined) {
+    fields.push('hours = ?')
+    values.push(data.hours)
+  }
+  if (data.color !== undefined) {
+    fields.push('color = ?')
+    values.push(data.color)
+  }
+  if (data.is_work_shift !== undefined) {
+    fields.push('is_work_shift = ?')
+    values.push(data.is_work_shift ? 1 : 0)
+  }
+  if (data.is_paid !== undefined) {
+    fields.push('is_paid = ?')
+    values.push(data.is_paid ? 1 : 0)
+  }
+  if (data.display_order !== undefined) {
+    fields.push('display_order = ?')
+    values.push(data.display_order)
+  }
+  if (data.is_active !== undefined) {
+    fields.push('is_active = ?')
+    values.push(data.is_active ? 1 : 0)
+  }
+
+  if (fields.length === 0) return false
+
+  fields.push('updated_at = NOW()')
+  values.push(id)
+
+  const [result] = await db.execute<ResultSetHeader>(
+    `UPDATE scheduling_shifts SET ${fields.join(', ')} WHERE id = ?`,
+    values
+  )
+  return result.affectedRows > 0
+}
+
+export async function deleteShift(id: number): Promise<boolean> {
+  // Soft delete - just mark as inactive
+  const [result] = await db.execute<ResultSetHeader>(
+    'UPDATE scheduling_shifts SET is_active = 0, updated_at = NOW() WHERE id = ?',
+    [id]
+  )
+  return result.affectedRows > 0
 }
 
 // ============================================
