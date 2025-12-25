@@ -31,7 +31,7 @@ export default function HorizontalDatePicker({
   locale = 'es-ES',
   className = '',
   size = 'md',
-  mobileDaysVisible = 5,
+  mobileDaysVisible: _mobileDaysVisible = 5,
 }: HorizontalDatePickerProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const [visibleCount, setVisibleCount] = useState(31) // Default to all days
@@ -159,7 +159,7 @@ export default function HorizontalDatePicker({
 
         {/* Days container */}
         <div
-          className={`flex flex-1 justify-center overflow-hidden ${needsNavigation ? 'gap-1 md:gap-1.5' : 'gap-1.5 md:gap-2'}`}
+          className={`flex flex-1 justify-start overflow-hidden ${needsNavigation ? 'gap-1 md:gap-1.5' : 'gap-1.5 md:gap-2'}`}
         >
           {visibleDays.map((day) => {
             const date = new Date(currentYear, currentMonth, day)

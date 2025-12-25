@@ -139,7 +139,7 @@ export default function LogbooksContainer() {
       <div className="sticky top-0 z-30 bg-white dark:bg-[#010409] shadow-sm">
         <div className="px-3 py-2 md:px-4 md:py-3 border-b border-gray-200 dark:border-gray-800">
           {/* Desktop */}
-          <div className="hidden md:flex items-center gap-3 justify-between">
+          <div className="hidden md:flex items-center gap-3 justify-between max-w-[1600px]">
             <div className="flex items-center gap-3 flex-1 min-w-0">
               <div className="w-56 flex-shrink-0">
                 <h1 className="text-base font-semibold text-gray-900 dark:text-white capitalize truncate">
@@ -160,22 +160,28 @@ export default function LogbooksContainer() {
                   <FiChevronRight className="w-4 h-4" />
                 </button>
               </div>
-               <button
-                 onClick={goToToday}
-                 className="ml-3 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-700 rounded-md hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors flex items-center gap-1"
-               >
-                 <FiCalendar className="w-4 h-4" /> {t('container.today')}
-               </button>
-               <div className="ml-4 text-sm text-gray-700 dark:text-gray-400 flex-shrink-0">
-                 {t('container.dailyEntries', { count: orderedEntries.length })}
-               </div>
-             </div>
-             <button
-               onClick={() => setShowNewEntryModal(true)}
-               className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 rounded-md transition-colors"
-             >
-               <FiPlus className="w-4 h-4" /> {t('container.newEntry')}
-             </button>
+              <button
+                onClick={goToToday}
+                className="ml-3 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-700 rounded-md hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors flex items-center gap-1"
+              >
+                <FiCalendar className="w-4 h-4" /> {t('container.today')}
+              </button>
+              <div className="ml-4 flex items-center gap-4 text-sm text-gray-700 dark:text-gray-400 flex-shrink-0">
+                <span>
+                  {t('container.dailyEntries', { count: orderedEntries.length })}
+                </span>
+                <span className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">
+                  <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
+                  {t('container.lastUpdate')}
+                </span>
+              </div>
+            </div>
+            <button
+              onClick={() => setShowNewEntryModal(true)}
+              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 rounded-md transition-colors"
+            >
+              <FiPlus className="w-4 h-4" /> {t('container.newEntry')}
+            </button>
 
           </div>
 

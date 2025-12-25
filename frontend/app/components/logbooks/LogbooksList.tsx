@@ -15,7 +15,6 @@ import {
   FiUsers,
   FiTag,
 } from 'react-icons/fi'
-import { HiOutlineClipboardList } from 'react-icons/hi'
 import { SlBookOpen } from 'react-icons/sl'
 import { LogEntry, Comment } from '@/app/lib/logbooks/types'
 import { useAuth } from '@/app/lib/auth/useAuth'
@@ -170,13 +169,13 @@ export interface LogbooksListProps {
 function ReadByAvatars({ 
   users, 
   maxVisible = 8,
-  noneLabel,
-  moreLabel 
+  noneLabel = 'None',
+  moreLabel = '+{count} more'
 }: { 
   users: ReadByUser[]
   maxVisible?: number
-  noneLabel: string
-  moreLabel: string
+  noneLabel?: string
+  moreLabel?: string
 }) {
   const visibleUsers = users.slice(0, maxVisible)
   const remainingCount = users.length - maxVisible
@@ -235,40 +234,65 @@ function ReadByAvatars({
 function EntryReaders({
   entryId,
   useReaders,
+  noneLabel,
+  moreLabel,
+}: {
+  entryId: number
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  useReaders: (logbookId: number) => UseQueryResult<any, Error>
+  noneLabel?: string
+  moreLabel?: string
+}) {
+  const { data: readers = [] } = useReaders(entryId)
+
+  return <ReadByAvatars users={readers} noneLabel={noneLabel} moreLabel={moreLabel} />
+}
+
+// Hook to get read status for toggle button
+function useReadStatus(
+  entryId: number,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  useReaders: (logbookId: number) => UseQueryResult<any, Error>,
+  userId?: string
+): boolean {
+  const { data: readers = [] } = useReaders(entryId)
+  return userId ? readers.some((r: ReadByUser) => r.user_id === userId) : false
+}
+
+// Toggle read button component
+function ReadToggleButton({
+  entryId,
+  useReaders,
   userId,
   onToggleRead,
-  labels,
+  isPending,
+  markLabel = 'Mark read',
+  unmarkLabel = 'Unmark',
 }: {
   entryId: number
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   useReaders: (logbookId: number) => UseQueryResult<any, Error>
   userId?: string
-  onToggleRead: (isRead: boolean) => void
-  labels: {
-    none: string
-    more: string
-    mark: string
-    unmark: string
-  }
+  onToggleRead: (entryId: number, isRead: boolean) => void
+  isPending?: boolean
+  markLabel?: string
+  unmarkLabel?: string
 }) {
-  const { data: readers = [] } = useReaders(entryId)
-  const isRead = userId ? readers.some((r: ReadByUser) => r.user_id === userId) : false
+  const isRead = useReadStatus(entryId, useReaders, userId)
 
   return (
-    <>
-      <ReadByAvatars 
-        users={readers} 
-        noneLabel={labels.none}
-        moreLabel={labels.more}
-      />
-      <button
-        onClick={() => onToggleRead(isRead)}
-        className="flex items-center gap-1.5 text-xs text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors mt-2"
-      >
-        <FiEye className="w-4 h-4" />
-        <span>{isRead ? labels.unmark : labels.mark}</span>
-      </button>
-    </>
+    <button
+      onClick={() => onToggleRead(entryId, isRead)}
+      disabled={isPending}
+      className={`flex items-center gap-1.5 text-xs transition-colors ${
+        isRead
+          ? 'text-indigo-600 dark:text-indigo-400 hover:text-indigo-700'
+          : 'text-gray-600 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400'
+      }`}
+    >
+      <FiEye className="w-4 h-4" />
+      <span>{isRead ? unmarkLabel : markLabel}</span>
+    </button>
   )
 }
 
@@ -478,21 +502,6 @@ export default function LogbooksList({
       {/* Header - Desktop only */}
       {entries.length > 0 && (
         <div className="hidden md:block sticky top-[115px] z-20 border border-gray-200 dark:border-gray-800 rounded-lg bg-white dark:bg-[#0d1117] shadow-sm overflow-hidden mb-3">
-          <div className="flex items-center justify-between px-3 py-2 border-b border-gray-200 dark:border-gray-800 bg-gradient-to-r from-blue-50 to-gray-50 dark:from-blue-950/20 dark:to-gray-900/30">
-            <div className="flex items-center gap-2">
-              <div className="p-1.5 bg-blue-100 dark:bg-blue-900/30 rounded-md">
-                <HiOutlineClipboardList className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-              </div>
-              <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-                {t('list.headerTitle')}
-              </span>
-            </div>
-            <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
-              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-              <span>{t('list.lastUpdate', { date: t('container.today').toLowerCase() })}</span>
-            </div>
-          </div>
-
           <div className="flex px-3 py-2.5 bg-gray-50/50 dark:bg-gray-900/20">
             <div className="w-24 flex-shrink-0 border-r border-gray-200 dark:border-gray-700 pr-3">
               <h3 className="text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide">
@@ -660,17 +669,11 @@ export default function LogbooksList({
             </div>
 
             <div className="w-40 flex-shrink-0 pl-3 flex flex-col items-start">
-              <EntryReaders
-                entryId={entry.id}
+              <EntryReaders 
+                entryId={entry.id} 
                 useReaders={useReaders}
-                userId={user?.id}
-                onToggleRead={(isRead) => handleToggleRead(entry.id, isRead)}
-                labels={{
-                  none: t('list.readers.none'),
-                  more: t('list.readers.more'),
-                  mark: t('list.readers.mark'),
-                  unmark: t('list.readers.unmark'),
-                }}
+                noneLabel={t('list.readers.none')}
+                moreLabel={t('list.readers.more')}
               />
             </div>
           </div>
@@ -737,17 +740,11 @@ export default function LogbooksList({
             )}
             <div className="flex items-center gap-2 pt-2 border-t border-gray-200 dark:border-gray-700">
               <span className="text-xs text-gray-500 dark:text-gray-400">{t('list.readers.label')}</span>
-              <EntryReaders
-                entryId={entry.id}
+              <EntryReaders 
+                entryId={entry.id} 
                 useReaders={useReaders}
-                userId={user?.id}
-                onToggleRead={(isRead) => handleToggleRead(entry.id, isRead)}
-                labels={{
-                  none: t('list.readers.none'),
-                  more: t('list.readers.more'),
-                  mark: t('list.readers.mark'),
-                  unmark: t('list.readers.unmark'),
-                }}
+                noneLabel={t('list.readers.none')}
+                moreLabel={t('list.readers.more')}
               />
             </div>
           </div>
@@ -826,62 +823,84 @@ export default function LogbooksList({
 
               <div className="w-32 flex-shrink-0 px-3 border-r border-slate-200 dark:border-slate-700" />
               <div className="w-28 flex-shrink-0 px-3 border-r border-slate-200 dark:border-slate-700" />
-              <div className="w-40 flex-shrink-0 pl-3" />
+              <div className="w-40 flex-shrink-0 pl-3">
+                <ReadToggleButton
+                  entryId={entry.id}
+                  useReaders={useReaders}
+                  userId={user?.id}
+                  onToggleRead={handleToggleRead}
+                  isPending={mutations.toggleRead.isPending}
+                  markLabel={t('list.readers.mark')}
+                  unmarkLabel={t('list.readers.unmark')}
+                />
+              </div>
             </div>
 
             {/* Footer Mobile */}
-            <div className="md:hidden flex items-center gap-4 flex-wrap">
-              {user?.id === entry.author_id && (
+            <div className="md:hidden flex items-center justify-between">
+              <div className="flex items-center gap-4 flex-wrap">
+                {user?.id === entry.author_id && (
+                  <button
+                    onClick={() => handleEdit(entry.id)}
+                    className="flex items-center gap-1.5 text-xs text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                  >
+                    <FiEdit2 className="w-4 h-4" />
+                    <span>{t('list.actions.edit')}</span>
+                  </button>
+                )}
+
                 <button
-                  onClick={() => handleEdit(entry.id)}
+                  onClick={() => handleOpenCommentModal(entry.id)}
                   className="flex items-center gap-1.5 text-xs text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                 >
-                  <FiEdit2 className="w-4 h-4" />
-                  <span>{t('list.actions.edit')}</span>
+                  <FiMessageSquare className="w-4 h-4" />
+                  <span>{t('list.actions.comment')}</span>
                 </button>
-              )}
 
-              <button
-                onClick={() => handleOpenCommentModal(entry.id)}
-                className="flex items-center gap-1.5 text-xs text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-              >
-                <FiMessageSquare className="w-4 h-4" />
-                <span>{t('list.actions.comment')}</span>
-              </button>
-
-              <button
-                onClick={() => handleToggleStatus(entry.id, entry.status || 'pending')}
-                className={`flex items-center gap-1.5 text-xs transition-colors ${
-                  entry.status === 'resolved'
-                    ? 'text-green-600 dark:text-green-400'
-                    : 'text-yellow-600 dark:text-yellow-400'
-                }`}
-              >
-                {entry.status === 'resolved' ? (
-                  <>
-                    <FiCheckCircle className="w-4 h-4" />
-                    <span>{t('list.actions.resolved')}</span>
-                  </>
-                ) : (
-                  <>
-                    <FiPending className="w-4 h-4" />
-                    <span>{t('list.actions.pending')}</span>
-                  </>
-                )}
-              </button>
-
-              {user?.id === entry.author_id && (
                 <button
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    handleDeleteEntry(entry.id)
-                  }}
-                  className="flex items-center gap-1.5 text-xs text-red-600 dark:text-red-400 hover:text-red-700 transition-colors"
+                  onClick={() => handleToggleStatus(entry.id, entry.status || 'pending')}
+                  className={`flex items-center gap-1.5 text-xs transition-colors ${
+                    entry.status === 'resolved'
+                      ? 'text-green-600 dark:text-green-400'
+                      : 'text-yellow-600 dark:text-yellow-400'
+                  }`}
                 >
-                  <FiTrash2 className="w-4 h-4" />
-                  <span>{t('list.actions.delete')}</span>
+                  {entry.status === 'resolved' ? (
+                    <>
+                      <FiCheckCircle className="w-4 h-4" />
+                      <span>{t('list.actions.resolved')}</span>
+                    </>
+                  ) : (
+                    <>
+                      <FiPending className="w-4 h-4" />
+                      <span>{t('list.actions.pending')}</span>
+                    </>
+                  )}
                 </button>
-              )}
+
+                {user?.id === entry.author_id && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      handleDeleteEntry(entry.id)
+                    }}
+                    className="flex items-center gap-1.5 text-xs text-red-600 dark:text-red-400 hover:text-red-700 transition-colors"
+                  >
+                    <FiTrash2 className="w-4 h-4" />
+                    <span>{t('list.actions.delete')}</span>
+                  </button>
+                )}
+              </div>
+
+              <ReadToggleButton
+                entryId={entry.id}
+                useReaders={useReaders}
+                userId={user?.id}
+                onToggleRead={handleToggleRead}
+                isPending={mutations.toggleRead.isPending}
+                markLabel={t('list.readers.mark')}
+                unmarkLabel={t('list.readers.unmark')}
+              />
             </div>
           </div>
         </div>

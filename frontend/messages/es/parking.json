@@ -438,7 +438,8 @@
     "cancel": "Cancelar",
     "checkOut": "Salida",
     "checkIn": "Entrada",
-    "reserve": "Reservar"
+    "reserve": "Reservar",
+    "registerPayment": "Registrar Pago"
   },
   "statusModals": {
     "confirmCheckIn": "Confirmar Check-In",

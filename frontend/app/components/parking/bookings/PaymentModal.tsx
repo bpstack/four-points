@@ -54,7 +54,12 @@ export function PaymentModal({ booking, onClose, onConfirm }: PaymentModalProps)
               <FiDollarSign className="w-5 h-5 text-[#1a7f37] dark:text-[#3fb950]" />
               {t('paymentModal.title')}
             </h3>
-            <p className="text-sm text-[#57606a] dark:text-[#8b949e] mt-1">{booking.booking_code}</p>
+            <p className="text-sm text-[#57606a] dark:text-[#8b949e] mt-1">
+              {booking.booking_code}
+              {booking.vehicle?.owner && (
+                <span className="text-[#24292f] dark:text-[#c9d1d9]"> - {booking.vehicle.owner}</span>
+              )}
+            </p>
           </div>
           <button
             onClick={onClose}

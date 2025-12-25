@@ -473,9 +473,7 @@ export function BookingDetailClient({ code }: BookingDetailClientProps) {
                   </h3>
                   <span
                     className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-                      isPaid
-                        ? 'bg-[#1a7f37] text-white'
-                        : 'bg-[#9a6700] text-white'
+                      isPaid ? 'bg-[#1a7f37] text-white' : 'bg-[#9a6700] text-white'
                     }`}
                   >
                     {isPaid ? t('bookingDetail.payment.paid') : `${paymentPercentage}%`}

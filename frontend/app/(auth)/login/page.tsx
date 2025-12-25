@@ -229,8 +229,11 @@ export default function LoginPage() {
 
           <p className="mt-4 text-center text-sm text-gray-600 dark:text-gray-400">
             {t('login.noAccount')}{' '}
-            <Link href="/" className="text-blue-600 dark:text-blue-400 hover:underline">
-              {t('login.askManagers')}
+            <Link
+              href="https://www.stackbp.es/"
+              className="text-blue-600 dark:text-blue-400 hover:underline"
+            >
+              {t('login.liveDemo')}
             </Link>
           </p>
         </form>

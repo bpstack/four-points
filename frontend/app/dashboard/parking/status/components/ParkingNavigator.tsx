@@ -114,7 +114,7 @@ export default function ParkingNavigator() {
       <div className="sticky top-0 z-40 bg-white dark:bg-[#010409] shadow-sm">
         <div className="px-3 py-2 md:px-4 md:py-3 border-b border-gray-200 dark:border-gray-800">
           {/* Desktop */}
-          <div className="hidden md:flex items-center gap-3 justify-between">
+          <div className="hidden md:flex items-center gap-3 justify-between max-w-[1400px]">
             <div className="flex items-center gap-3 flex-1 min-w-0">
               <div className="flex items-center gap-2">
                 <div className="p-1.5 bg-blue-100 dark:bg-blue-900/30 rounded-md">

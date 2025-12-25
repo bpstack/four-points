@@ -25,7 +25,9 @@ import { API_BASE_URL } from '@/app/lib/env'
 // Cola para manejar refresh concurrente
 let isRefreshing = false
 let refreshAttempts = 0 // Circuit breaker para evitar loops infinitos
+let lastRefreshTime = 0 // Timestamp del ultimo refresh exitoso
 const MAX_REFRESH_ATTEMPTS = 3
+const REFRESH_COOLDOWN_MS = 5000 // 5 segundos entre reseteos de intentos
 
 type Deferred = {
   resolve: (value?: unknown) => void
@@ -45,9 +47,15 @@ const processQueue = (error: unknown = null) => {
   failedQueue = []
 }
 
-// Reset refresh attempts después de un refresh exitoso o después de un tiempo
+// Reset refresh attempts después de un refresh exitoso
 const resetRefreshAttempts = () => {
   refreshAttempts = 0
+  lastRefreshTime = Date.now()
+}
+
+// Verificar si debemos resetear el contador (ha pasado suficiente tiempo)
+const shouldResetAttempts = () => {
+  return Date.now() - lastRefreshTime > REFRESH_COOLDOWN_MS
 }
 
 // ========================================
@@ -66,12 +74,22 @@ function getAuthHeaders(): Record<string, string> {
 function clearAuthCookiesAndRedirect(): void {
   if (!isClient) return
 
+  // Evitar multiples redirects simultaneos
+  if ((window as unknown as { __redirectingToLogin?: boolean }).__redirectingToLogin) {
+    return
+  }
+  ;(window as unknown as { __redirectingToLogin?: boolean }).__redirectingToLogin = true
+
   document.cookie = 'access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT'
   document.cookie = 'refresh_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT'
 
-  setTimeout(() => {
-    window.location.href = '/login'
-  }, 100)
+  // Reset estado del modulo
+  isRefreshing = false
+  refreshAttempts = 0
+  failedQueue = []
+
+  // Usar replace para no agregar al historial
+  window.location.replace('/login')
 }
 
 async function refreshSession(): Promise<void> {
@@ -132,6 +150,11 @@ async function fetchWithRefresh(url: string, options: FetchOptions = {}): Promis
   // El backend/proxy tiene acceso a la cookie y determina si es válida.
   // Si el refresh falla, entonces sí redirigimos al login.
   if (isClient && response.status === 401 && !skipRefresh && !isAuthRoute) {
+    // Resetear contador si ha pasado suficiente tiempo desde el ultimo refresh
+    if (shouldResetAttempts()) {
+      refreshAttempts = 0
+    }
+
     console.log(
       '[apiClient] 🔑 Recibido 401, intentando refresh... (intento',
       refreshAttempts + 1,
@@ -143,7 +166,6 @@ async function fetchWithRefresh(url: string, options: FetchOptions = {}): Promis
     // Circuit breaker: si ya intentamos demasiadas veces, redirigir al login
     if (refreshAttempts >= MAX_REFRESH_ATTEMPTS) {
       console.log('[apiClient] ⛔ Máximo de intentos de refresh alcanzado, redirigiendo a login')
-      refreshAttempts = 0
       clearAuthCookiesAndRedirect()
       throw new Error('Max refresh attempts reached')
     }

@@ -127,10 +127,10 @@ export default function Page() {
             </Link>
 
             <Link
-              href="/register"
+              href="https://www.stackbp.es/"
               className="px-8 py-4 bg-white dark:bg-gray-800 text-gray-900 dark:text-white font-semibold rounded-xl border-2 border-gray-300 dark:border-gray-700 hover:border-blue-500 dark:hover:border-blue-500 transition-all transform hover:scale-105"
             >
-              Create Account →
+              Live demo →
             </Link>
           </div>
         </div>
@@ -218,8 +218,8 @@ export default function Page() {
                 Mobile-First Design
               </h2>
               <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-                Manage your hotel on the go with our intuitive mobile application. All features,
-                anywhere.
+                Mobile application for hotel operations management. Full feature access from any
+                location.
               </p>
             </div>
           </div>
@@ -270,16 +270,17 @@ export default function Page() {
       <section className="relative py-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-6">
-            Ready to customize your hotel app?
+            Project overview & Source Code
           </h2>
           <p className="text-xl text-gray-600 dark:text-gray-400 mb-8">
-            Ask for your special plan tailored to your needs.
+            Including design methodology and implementation details. Private backend repository,
+            public frontend.
           </p>
           <Link
-            href="/register"
+            href="/https://github.com/bpstack"
             className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-xl hover:shadow-2xl hover:shadow-blue-500/50 dark:hover:shadow-blue-400/30 transition-all transform hover:scale-105"
           >
-            Start Free Trial
+            Source code available on GitHub
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path
                 strokeLinecap="round"
