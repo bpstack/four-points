@@ -182,6 +182,12 @@ app.listen(PORT, () => {
   console.log(`🚀 Server running at http://localhost:${PORT}`)
   console.log(`📝 Environment: ${process.env.NODE_ENV || 'development'}`)
 
+  // Log AI status
+  const aiEnabled = process.env.AI_ENABLED?.toLowerCase() === 'true' || process.env.AI_ENABLED === '1'
+  const aiKey = process.env.CLAUDE_API_KEY ? '✅ configured' : '❌ missing'
+  const aiModel = process.env.CLAUDE_MODEL || 'claude-sonnet-4-20250514'
+  console.log(`🤖 AI Integration: ${aiEnabled ? '✅ enabled' : '❌ disabled'} | Key: ${aiKey} | Model: ${aiModel}`)
+
   // Iniciar cron jobs
   CronService.start()
 })

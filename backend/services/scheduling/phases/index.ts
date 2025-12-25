@@ -19,6 +19,7 @@ export { RepairSmallBlocksPhase } from './repair-small-blocks.phase.js'
 export { ValidateFixCoveragePhase } from './validate-fix-coverage.phase.js'
 export { AssignPISupportPhase } from './assign-pi-support.phase.js'
 export { FinalValidationPhase } from './final-validation.phase.js'
+export { AIOptimizationPhase } from './ai-optimization.phase.js'
 
 // Re-export types for convenience
 export type { IPhase, PhaseResult } from '../types/index.js'
@@ -35,10 +36,12 @@ import { RepairSmallBlocksPhase } from './repair-small-blocks.phase.js'
 import { ValidateFixCoveragePhase } from './validate-fix-coverage.phase.js'
 import { AssignPISupportPhase } from './assign-pi-support.phase.js'
 import { FinalValidationPhase } from './final-validation.phase.js'
+import { AIOptimizationPhase } from './ai-optimization.phase.js'
 import { PhaseRegistry } from './registry.js'
 
 /**
  * Create a phase registry with all default phases pre-registered
+ * NOTE: This registry does NOT include AI phase - AI runs separately after the loop
  *
  * Phase execution order:
  * 1. InitializeMatrix (10) - Create empty schedule matrix
@@ -56,7 +59,7 @@ import { PhaseRegistry } from './registry.js'
 export function createDefaultPhaseRegistry(): PhaseRegistry {
   const registry = new PhaseRegistry()
 
-  // Register all phases in order
+  // Register all phases in order (NO AI - it runs separately)
   registry.register(new InitializeMatrixPhase())
   registry.register(new ApplyConstraintsPhase())
   registry.register(new ApplyEmployeeRulesPhase())
@@ -68,6 +71,17 @@ export function createDefaultPhaseRegistry(): PhaseRegistry {
   registry.register(new ValidateFixCoveragePhase())
   registry.register(new AssignPISupportPhase())
   registry.register(new FinalValidationPhase())
+  // AIOptimizationPhase is NOT included here - it runs ONCE after the best attempt is found
 
+  return registry
+}
+
+/**
+ * Create an AI-only phase registry for post-generation optimization
+ * This runs ONCE after the best attempt is found, not in the loop
+ */
+export function createAIPhaseRegistry(): PhaseRegistry {
+  const registry = new PhaseRegistry()
+  registry.register(new AIOptimizationPhase())
   return registry
 }

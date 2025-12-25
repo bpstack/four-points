@@ -23,7 +23,7 @@ import type {
   PreviousMonthHistory,
 } from './types/index.js'
 
-import { createDefaultPhaseRegistry } from './phases/index.js'
+import { createDefaultPhaseRegistry, createAIPhaseRegistry, FinalValidationPhase } from './phases/index.js'
 import { createDefaultConstraintRegistry } from './constraints/index.js'
 import { countShiftOnDay } from './utils/matrix.js'
 
@@ -47,6 +47,8 @@ export class ScheduleGeneratorV2 {
   private employees: Employee[]
   private constraints: SchedulingConstraintWithDetails[]
   private previousMonthHistory: PreviousMonthHistory | null = null
+  // Store last generated context for getAssignments()
+  private lastContext: GeneratorContext | null = null
 
   constructor(
     monthId: number,
@@ -115,8 +117,6 @@ export class ScheduleGeneratorV2 {
 
     this.employees = employees
     this.constraints = constraints
-
-    console.log(`[ScheduleGeneratorV2] Initialized for month ${monthId}`)
   }
 
   /**
@@ -126,12 +126,9 @@ export class ScheduleGeneratorV2 {
     const prevAssignments = await repo.getPreviousMonthEndAssignments(this.year, this.month, 7)
 
     if (prevAssignments.length === 0) {
-      console.log(`[ScheduleGeneratorV2] No previous month history found`)
       this.previousMonthHistory = null
       return
     }
-
-    console.log(`[ScheduleGeneratorV2] Loaded ${prevAssignments.length} assignments from previous month`)
 
     const history: PreviousMonthHistory = {
       lastShifts: new Map(),
@@ -171,9 +168,6 @@ export class ScheduleGeneratorV2 {
         const minBlock = this.config.minNightBlock || 4
         if (consecutiveNights < minBlock) {
           history.incompleteNightBlocks.set(empId, consecutiveNights)
-          console.log(
-            `[ScheduleGeneratorV2] ${empId} has incomplete night block: ${consecutiveNights} nights (needs ${minBlock - consecutiveNights} more)`
-          )
         }
       } else {
         history.endedWithNight.set(empId, false)
@@ -197,32 +191,33 @@ export class ScheduleGeneratorV2 {
 
   async generate(): Promise<GenerationResult> {
     const maxAttempts = 50
-    let bestResult: GenerationResult | null = null
+    let bestContext: GeneratorContext | null = null
     let bestErrorCount = Infinity
+    let bestAttempt = 0
+    const generationStart = Date.now()
 
-    console.log(`[ScheduleGeneratorV2] Starting generation with up to ${maxAttempts} attempts`)
+    console.log(`[Schedule] Starting generation (${maxAttempts} max attempts)`)
 
     // Load previous month history once
     await this.loadPreviousMonthHistory()
 
-    // Create registries
+    // Create registries (NO AI in default registry - AI runs separately)
     const phaseRegistry = createDefaultPhaseRegistry()
     const constraintRegistry = createDefaultConstraintRegistry()
 
-    console.log(`[ScheduleGeneratorV2] Using ${phaseRegistry.count} phases and ${constraintRegistry.count} constraints`)
-
+    // ============================================
+    // PHASE 1: Run 50 attempts WITHOUT AI
+    // ============================================
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       const startTime = Date.now()
 
       // Create fresh context for this attempt
       const context = this.createContext()
 
-      // Execute all phases
-      console.log(`[ScheduleGeneratorV2] Attempt ${attempt}: executing phases...`)
-      phaseRegistry.executeAll(context)
+      // Execute all phases (NO AI)
+      await phaseRegistry.executeAll(context)
 
       // Run constraint validation
-      console.log(`[ScheduleGeneratorV2] Attempt ${attempt}: validating constraints...`)
       const constraintResult = constraintRegistry.checkAll(context)
 
       // Merge warnings from constraints into context
@@ -232,55 +227,107 @@ export class ScheduleGeneratorV2 {
       const errorCount = context.warnings.filter((w) => w.severity === 'error').length
       const endTime = Date.now()
 
-      console.log(
-        `[ScheduleGeneratorV2] Attempt ${attempt}: ${errorCount} errors, ${context.warnings.length} total warnings (${endTime - startTime}ms)`
-      )
-
-      // If no errors, we're done!
-      if (errorCount === 0) {
-        console.log(`[ScheduleGeneratorV2] Success on attempt ${attempt}!`)
-        const assignments = this.matrixToAssignments(context)
-        const stats = this.calculateStats(context)
-
-        return {
-          success: true,
-          monthId: this.monthId,
-          assignmentsCount: assignments.length,
-          generationTimeMs: endTime - startTime,
-          warnings: context.warnings,
-          stats,
-          attempt,
-        }
-      }
+      console.log(`[Schedule] Attempt ${attempt}: ${errorCount} errors (${endTime - startTime}ms)`)
 
       // Keep track of best result (fewest errors)
       if (errorCount < bestErrorCount) {
         bestErrorCount = errorCount
-        bestResult = {
-          success: false,
-          monthId: this.monthId,
-          assignmentsCount: 0,
-          generationTimeMs: endTime - startTime,
-          warnings: [...context.warnings],
-          stats: this.calculateStats(context),
-          attempt,
-        }
+        bestContext = context
+        bestAttempt = attempt
+      }
+
+      // If no errors, stop early
+      if (errorCount === 0) {
+        console.log(`[Schedule] ✅ Perfect schedule on attempt ${attempt}`)
+        break
       }
     }
 
-    // All attempts failed - return the best result we got
-    console.log(`[ScheduleGeneratorV2] All ${maxAttempts} attempts failed. Best had ${bestErrorCount} errors.`)
+    // ============================================
+    // PHASE 2: Run AI optimization ONCE on best result
+    // ============================================
+    const aiEnabled = process.env.AI_ENABLED === 'true'
+    const aiProvider = this.config.aiProvider
+    
+    console.log(`[Schedule] AI config: provider="${aiProvider}", env_enabled=${aiEnabled}`)
+    
+    if (!aiEnabled) {
+      console.log(`[Schedule] ⚠️ AI disabled via .env (AI_ENABLED=false)`)
+    } else if (aiProvider === 'none') {
+      console.log(`[Schedule] ⚠️ AI disabled via DB (ai_provider=none)`)
+    }
+    
+    if (bestContext && aiEnabled && aiProvider !== 'none') {
+      console.log(`[Schedule] 🤖 Running AI optimization on best result (${bestErrorCount} errors)...`)
+      
+      const aiRegistry = createAIPhaseRegistry()
+      const aiStartTime = Date.now()
+      
+      // Run AI phase on the best context
+      await aiRegistry.executeAll(bestContext)
+      
+      const aiEndTime = Date.now()
+      console.log(`[Schedule] 🤖 AI optimization completed in ${aiEndTime - aiStartTime}ms`)
+      
+      // Re-run final validation after AI changes
+      console.log(`[Schedule] Re-validating after AI changes...`)
+      const finalValidation = new FinalValidationPhase()
+      
+      // Clear previous warnings before re-validation (keep only non-error warnings from AI)
+      const aiWarnings = bestContext.warnings.filter(w => w.message.includes('[AI]'))
+      bestContext.warnings = aiWarnings
+      
+      // Run final validation
+      await finalValidation.execute(bestContext)
+      
+      // Re-run constraint validation
+      const constraintResult = constraintRegistry.checkAll(bestContext)
+      bestContext.warnings.push(...constraintResult.violations)
+      
+      // Update error count after AI
+      const newErrorCount = bestContext.warnings.filter((w) => w.severity === 'error').length
+      const improvement = bestErrorCount - newErrorCount
+      const emoji = improvement > 0 ? '✅' : improvement < 0 ? '❌' : '✖'
+      console.log(`[Schedule] After AI: ${newErrorCount} errors (was ${bestErrorCount}) ${emoji} ${improvement > 0 ? `+${improvement} fixed` : improvement < 0 ? `${improvement} worse` : 'no change'}`)
+      
+      bestErrorCount = newErrorCount
+    }
 
-    if (bestResult) {
-      return bestResult
+    // ============================================
+    // PHASE 3: Return final result
+    // ============================================
+    const totalTime = Date.now() - generationStart
+
+    if (bestContext) {
+      this.lastContext = bestContext
+      const assignments = this.matrixToAssignments(bestContext)
+      const stats = this.calculateStats(bestContext)
+      const success = bestErrorCount === 0
+
+      if (success) {
+        console.log(`[Schedule] ✅ Success (${totalTime}ms total)`)
+      } else {
+        console.log(`[Schedule] ❌ Completed with ${bestErrorCount} errors (${totalTime}ms total)`)
+      }
+
+      return {
+        success,
+        monthId: this.monthId,
+        assignmentsCount: assignments.length,
+        generationTimeMs: totalTime,
+        warnings: bestContext.warnings,
+        stats,
+        attempt: bestAttempt,
+      }
     }
 
     // Fallback (shouldn't happen)
+    console.log(`[Schedule] ❌ No valid context generated`)
     return {
       success: false,
       monthId: this.monthId,
       assignmentsCount: 0,
-      generationTimeMs: 0,
+      generationTimeMs: totalTime,
       warnings: [],
       stats: { byEmployee: [], byDay: [] },
     }
@@ -417,11 +464,11 @@ export class ScheduleGeneratorV2 {
   // ============================================
 
   getAssignments(): BulkAssignmentDTO[] {
-    // This method requires generate() to be called first
-    // For now, create an empty context - in practice, the controller should
-    // call generate() which returns the result directly
-    console.warn('[ScheduleGeneratorV2] getAssignments() called without generate() - returning empty')
-    return []
+    if (!this.lastContext) {
+      console.warn('[ScheduleGeneratorV2] getAssignments() called without generate() - returning empty')
+      return []
+    }
+    return this.matrixToAssignments(this.lastContext)
   }
 
   /**
@@ -507,13 +554,6 @@ export async function createScheduleGeneratorV2(monthId: number): Promise<Schedu
 
     return employee
   })
-
-  // Log for debugging
-  console.log(`[ScheduleGeneratorV2] Creating generator for month ${monthId}:`)
-  console.log(`  - ${employees.length} schedulable employees`)
-  console.log(`  - ${days.length} days in month`)
-  console.log(`  - ${constraints.length} approved constraints`)
-  console.log(`  - ${allRules.length} employee rules`)
 
   return new ScheduleGeneratorV2(monthId, month.year, month.month, config, shifts, days, employees, constraints)
 }

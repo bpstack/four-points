@@ -15,11 +15,7 @@ export class PhaseRegistry {
    * Register a phase
    */
   register(phase: BasePhase): void {
-    if (this.phases.has(phase.name)) {
-      console.warn(`[PhaseRegistry] Overwriting existing phase: ${phase.name}`)
-    }
     this.phases.set(phase.name, phase)
-    console.log(`[PhaseRegistry] Registered phase: ${phase.name} (order: ${phase.order})`)
   }
 
   /**
@@ -69,38 +65,28 @@ export class PhaseRegistry {
    * Execute all enabled phases in order
    * @returns Combined result with all warnings
    */
-  executeAll(context: GeneratorContext): PhaseResult {
+  async executeAll(context: GeneratorContext): Promise<PhaseResult> {
     const allWarnings: GenerationWarning[] = []
     let allSuccess = true
 
     const phases = this.getEnabled()
-    console.log(`[PhaseRegistry] Executing ${phases.length} phases`)
 
     for (const phase of phases) {
-      console.log(`[PhaseRegistry] Starting phase: ${phase.name}`)
-      const startTime = Date.now()
-
       try {
-        const result = phase.execute(context)
+        const result = await phase.execute(context)
 
         if (!result.success) {
           allSuccess = false
-          console.log(`[PhaseRegistry] Phase ${phase.name} failed: ${result.message || 'no message'}`)
         }
 
         allWarnings.push(...result.warnings)
         
         // Also add warnings to context so they accumulate
         context.warnings.push(...result.warnings)
-
-        const duration = Date.now() - startTime
-        console.log(
-          `[PhaseRegistry] Completed phase: ${phase.name} (${duration}ms, ${result.warnings.length} warnings)`
-        )
       } catch (error) {
         allSuccess = false
         const errorMessage = error instanceof Error ? error.message : String(error)
-        console.error(`[PhaseRegistry] Phase ${phase.name} threw error: ${errorMessage}`)
+        console.error(`[Schedule] Phase ${phase.name} error: ${errorMessage}`)
         
         allWarnings.push({
           type: 'validation',

@@ -212,7 +212,7 @@ export interface IPhase {
   /** Phase order (lower = earlier) */
   order: number
   /** Execute the phase */
-  execute(context: GeneratorContext): PhaseResult
+  execute(context: GeneratorContext): PhaseResult | Promise<PhaseResult>
 }
 
 // ============================================

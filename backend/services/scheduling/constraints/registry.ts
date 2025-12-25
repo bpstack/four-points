@@ -15,11 +15,7 @@ export class ConstraintRegistry {
    * Register a constraint
    */
   register(constraint: BaseConstraint): void {
-    if (this.constraints.has(constraint.name)) {
-      console.warn(`[ConstraintRegistry] Overwriting existing constraint: ${constraint.name}`)
-    }
     this.constraints.set(constraint.name, constraint)
-    console.log(`[ConstraintRegistry] Registered constraint: ${constraint.name} (priority: ${constraint.priority})`)
   }
 
   /**

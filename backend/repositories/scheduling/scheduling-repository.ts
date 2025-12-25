@@ -108,7 +108,7 @@ export async function getConfigMap(): Promise<SchedulingConfigMap> {
     annualVacationDays: parseInt(map['annual_vacation_days'] || '30'),
     annualHolidays: parseInt(map['annual_holidays'] || '14'),
     annualFreeDays: parseInt(map['annual_free_days'] || '95'),
-    aiProvider: (map['ai_provider'] as 'none' | 'ollama' | 'openai') || 'none',
+    aiProvider: (map['ai_provider'] as 'none' | 'claude' | 'ollama' | 'openai') || 'none',
     // New validations with defaults from business rules
     minMonthlyLibre: parseInt(map['min_monthly_libre'] || '8'),
     maxMonthlyLibre: parseInt(map['max_monthly_libre'] || '12'),

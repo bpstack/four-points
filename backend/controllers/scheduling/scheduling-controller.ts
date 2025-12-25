@@ -862,17 +862,17 @@ export async function generateSchedule(req: Request, res: Response): Promise<voi
     console.log('[generateSchedule] Deleting existing assignments before generation')
     await repo.deleteAllAssignmentsByMonth(monthId)
 
-    // Import and create generator
-    console.log('[generateSchedule] Creating generator...')
-    const { createScheduleGenerator } = await import('../../services/scheduling/schedule-generator.js')
-    const generator = await createScheduleGenerator(monthId)
+    // Import and create generator V2
+    console.log('[generateSchedule] Creating generator V2...')
+    const { createScheduleGeneratorV2 } = await import('../../services/scheduling/schedule-generator-v2.js')
+    const generator = await createScheduleGeneratorV2(monthId)
 
     if (!generator) {
       console.log('[generateSchedule] Generator is null!')
       res.status(500).json({ error: 'Error al inicializar el generador' })
       return
     }
-    console.log('[generateSchedule] Generator created, running generate()...')
+    console.log('[generateSchedule] Generator V2 created, running generate()...')
 
     // Generate schedule with timeout (30 seconds max)
     const GENERATION_TIMEOUT_MS = 30000

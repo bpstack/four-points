@@ -169,7 +169,6 @@ export class RotationContinuityConstraint extends BaseConstraint {
         if (prevShift === 'T' && currShift === 'M') {
           empMatrix[currDay] = 'T'
           fixed = true
-          console.log(`[RotationContinuity] Fixed T->M transition for ${employee.name} day ${currDay}: M -> T`)
         }
       }
     }

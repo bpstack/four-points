@@ -22,7 +22,7 @@ export abstract class BasePhase {
    * @param context Generator context with matrix and config
    * @returns Result with success status and any warnings
    */
-  abstract execute(context: GeneratorContext): PhaseResult
+  abstract execute(context: GeneratorContext): PhaseResult | Promise<PhaseResult>
 
   /**
    * Helper to create a successful result
@@ -96,9 +96,11 @@ export abstract class BasePhase {
   }
 
   /**
-   * Log a message with phase name prefix
+   * Log a message with phase name prefix (silent by default)
+   * Only logs in debug mode
    */
-  protected log(message: string): void {
-    console.log(`[${this.name}] ${message}`)
+  protected log(_message: string): void {
+    // Silent by default - uncomment for debugging
+    // console.log(`[${this.name}] ${message}`)
   }
 }

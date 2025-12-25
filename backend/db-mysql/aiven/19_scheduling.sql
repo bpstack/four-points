@@ -313,7 +313,7 @@ INSERT INTO scheduling_config (config_key, config_value, description) VALUES
 ('annual_vacation_days', '30', 'Días de vacaciones anuales'),
 ('annual_holidays', '14', 'Festivos anuales'),
 ('annual_free_days', '95', 'Libres semanales anuales'),
-('ai_provider', 'none', 'Proveedor IA: none, ollama, openai');
+('ai_provider', 'claude', 'Proveedor IA: none, claude, ollama, openai');
 
 -- =========================================================
 -- DATOS INICIALES: Tipos de turno

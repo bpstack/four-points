@@ -23,6 +23,7 @@
   "license": "ISC",
   "packageManager": "pnpm@10.13.1",
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.71.2",
     "archiver": "^7.0.1",
     "axios": "^1.12.2",
     "bcrypt": "6.0.0",
