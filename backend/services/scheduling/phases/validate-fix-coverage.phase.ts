@@ -5,8 +5,6 @@ import { BasePhase } from './base-phase.js'
 import type { GeneratorContext, PhaseResult, GenerationWarning, DayInfo, Employee } from '../types/index.js'
 import {
   shuffle,
-  randomInt,
-  randomChance,
   isLibreShift,
   countShiftOnDay,
   countWeekWorkDays,
@@ -18,6 +16,7 @@ import {
   isAdjacentToAny,
   getDaysInWeek,
 } from '../utils/index.js'
+import { selectBestCandidate } from '../scoring/index.js'
 
 /**
  * Phase 7: Validate and Fix Coverage
@@ -214,11 +213,13 @@ export class ValidateFixCoveragePhase extends BasePhase {
       return true
     })
 
-    // Shuffle to add randomness
+    // Shuffle to add randomness, then use scoring for selection
     const shuffled = shuffle(moveCandidates)
 
     if (shuffled.length > 0) {
-      const emp = shuffled[0]
+      // Use scoring to select the best candidate to move
+      const selectionResult = selectBestCandidate(shuffled, day, toShift, context)
+      const emp = selectionResult.selected || shuffled[0]
       context.matrix[emp.id][day.dayNumber] = toShift
       return true
     }
@@ -320,20 +321,12 @@ export class ValidateFixCoveragePhase extends BasePhase {
 
         return true
       })
-      .sort((a, b) => {
-        const weekWorkA = countWeekWorkDays(context.matrix, context.days, a.id, day.weekNumber)
-        const weekWorkB = countWeekWorkDays(context.matrix, context.days, b.id, day.weekNumber)
-        // RANDOMIZATION: Add small random factor to sorting
-        return weekWorkA - weekWorkB + (Math.random() - 0.5) * 2
-      })
 
     if (availableCandidates.length > 0) {
-      // RANDOMIZATION: Sometimes pick from top candidates instead of always first
-      let emp = availableCandidates[0]
-      if (availableCandidates.length > 1 && randomChance(0.3)) {
-        const topCount = Math.min(3, availableCandidates.length)
-        emp = availableCandidates[randomInt(0, topCount - 1)]
-      }
+      // Use scoring to select the best candidate
+      const selectionResult = selectBestCandidate(availableCandidates, day, targetShift, context)
+      const emp = selectionResult.selected || availableCandidates[0]
+      
       context.matrix[emp.id][day.dayNumber] = targetShift
 
       if (targetShift === 'N') {

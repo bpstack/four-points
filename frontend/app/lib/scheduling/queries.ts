@@ -497,11 +497,12 @@ export const schedulingApi = {
     configuredProvider: string
     activeProvider: string
     isAvailable: boolean
+    isProduction: boolean
     providers: {
       claude: { configured: boolean; model: string }
       gemini: { configured: boolean; model: string }
       openai: { configured: boolean; model: string }
-      ollama: { configured: boolean; model: string; host: string }
+      ollama: { configured: boolean; model: string; host?: string; baseUrl?: string; requiresDocker?: boolean }
     }
   }> => {
     return apiClient.get(`${API_URL}/api/scheduling/ai/status`)

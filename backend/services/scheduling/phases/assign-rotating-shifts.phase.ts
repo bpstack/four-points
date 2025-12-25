@@ -10,6 +10,7 @@ import {
   getDaysInWeek,
   wouldExceedConsecutiveWork,
 } from '../utils/index.js'
+import { calculateEmployeeScore } from '../scoring/index.js'
 
 /**
  * Phase 5: Assign Rotating Shifts
@@ -235,9 +236,25 @@ export class AssignRotatingShiftsPhase extends BasePhase {
       }
     }
 
-    // RANDOMIZATION: For employees without priority, randomly choose M or T
-    // with some balancing logic
+    // RANDOMIZATION: For employees without priority, use scoring to decide
+    // Compare scores for M vs T assignment
 
+    // Get the first available day in this week to calculate score
+    const firstAvailableDay = context.days.find(d => d.weekNumber === weekNumber)
+    
+    if (firstAvailableDay) {
+      const scoreM = calculateEmployeeScore(employee, firstAvailableDay, 'M', context)
+      const scoreT = calculateEmployeeScore(employee, firstAvailableDay, 'T', context)
+      
+      // Use the shift type with better score
+      if (scoreM.totalScore > scoreT.totalScore + 10) {
+        return 'M'
+      } else if (scoreT.totalScore > scoreM.totalScore + 10) {
+        return 'T'
+      }
+    }
+
+    // If scores are close, use balance-based logic with some randomness
     // If heavily imbalanced, correct it (but with some randomness)
     if (mCount > tCount + 5) {
       // 90% chance to correct imbalance, 10% to let it slide

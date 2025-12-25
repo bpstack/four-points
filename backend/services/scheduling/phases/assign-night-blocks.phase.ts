@@ -13,6 +13,7 @@ import {
   areConsecutive,
   isAdjacentToAny,
 } from '../utils/index.js'
+import { selectBestCandidate } from '../scoring/index.js'
 
 /**
  * Phase 4: Assign Night Blocks
@@ -287,8 +288,26 @@ export class AssignNightBlocksPhase extends BasePhase {
         break
       }
 
-      // Pick a random employee for this block
-      const employee = employeesToUse[randomInt(0, employeesToUse.length - 1)]
+      // Use scoring system to pick the best employee for this night block
+      const currentDayInfo = sortedDays[dayIndex]
+      const selectionResult = selectBestCandidate(employeesToUse, currentDayInfo, 'N', context)
+      
+      if (!selectionResult.selected) {
+        this.log(`No employee selected by scoring at day index ${dayIndex}`)
+        break
+      }
+      
+      const employee = selectionResult.selected
+      
+      // Log top 3 candidates for debugging
+      if (selectionResult.candidates.length > 1) {
+        this.log(`Scoring for day ${currentDayInfo.dayNumber} (N):`)
+        selectionResult.candidates.slice(0, 3).forEach((c, i) => {
+          const marker = i === 0 ? '>>>' : '   '
+          this.log(`  ${marker} ${c.employeeName}: ${c.totalScore.toFixed(1)}`)
+        })
+      }
+      
       const currentNights = this.employeeNights.get(employee.id)!.length
       const remainingCapacity = maxBlock - currentNights
       const remainingDays = sortedDays.length - dayIndex
@@ -423,17 +442,12 @@ export class AssignNightBlocksPhase extends BasePhase {
 
               return true
             })
-            // Prefer employees with NO nights (fresh blocks)
-            .sort((a, b) => {
-              const aNights = this.employeeNights.get(a.id)!.length
-              const bNights = this.employeeNights.get(b.id)!.length
-              if (aNights === 0 && bNights > 0) return -1
-              if (bNights === 0 && aNights > 0) return 1
-              return aNights - bNights
-            })
 
           if (candidates.length > 0) {
-            const chosen = candidates[0]
+            // Use scoring to select the best candidate
+            const selectionResult = selectBestCandidate(candidates, segment[0], 'N', context)
+            const chosen = selectionResult.selected || candidates[0]
+            
             for (const day of segment) {
               context.matrix[chosen.id][day.dayNumber] = 'N'
               this.employeeNights.get(chosen.id)!.push(day.dayNumber)
@@ -549,7 +563,10 @@ export class AssignNightBlocksPhase extends BasePhase {
     })
 
     if (freshCandidates.length > 0) {
-      const chosen = freshCandidates[0]
+      // Use scoring to select the best fresh candidate
+      const selectionResult = selectBestCandidate(freshCandidates, segment[0], 'N', context)
+      const chosen = selectionResult.selected || freshCandidates[0]
+      
       for (const day of segment) {
         context.matrix[chosen.id][day.dayNumber] = 'N'
         this.employeeNights.get(chosen.id)!.push(day.dayNumber)

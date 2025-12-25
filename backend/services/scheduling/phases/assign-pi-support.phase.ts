@@ -2,10 +2,10 @@
 // Phase 8: Assign PI (intervention support) shifts
 
 import { BasePhase } from './base-phase.js'
-import type { GeneratorContext, PhaseResult } from '../types/index.js'
+import type { GeneratorContext, PhaseResult, DayInfo } from '../types/index.js'
 import { countShiftOnDay, isWorkShift, countWeekWorkDays } from '../utils/matrix.js'
-import { shuffle } from '../utils/randomization.js'
 import { getDaysInWeek } from '../utils/day-helpers.js'
+import { selectBestCandidate } from '../scoring/index.js'
 
 // Interface for constraints (simplified)
 interface SchedulingConstraint {
@@ -79,9 +79,8 @@ export class AssignPISupportPhase extends BasePhase {
       // 1. Only 1 person in morning or afternoon, OR
       // 2. Day was marked as needing PI (3-4 available staff)
       if (morningCount === 1 || afternoonCount === 1 || needsPI) {
-        // Find someone available for PI
-        const shuffledEmployees = shuffle(employees)
-        const available = shuffledEmployees.find((e) => {
+        // Build list of available candidates for PI
+        const availableCandidates = employees.filter((e) => {
           if (e.rules.fixedShift) return false
 
           const shift = matrix[e.id][day.dayNumber]
@@ -118,19 +117,26 @@ export class AssignPISupportPhase extends BasePhase {
             }
           }
 
+          // Check weekly shift limit
+          const weekWorkDays = countWeekWorkDays(matrix, days, e.id, day.weekNumber)
+          if (weekWorkDays >= (config.maxWeeklyShifts || 6)) {
+            return false
+          }
+
           return true
         })
 
-        if (available) {
-          // Only assign if they don't already have too many shifts this week
-          const weekWorkDays = countWeekWorkDays(matrix, days, available.id, day.weekNumber)
-          if (weekWorkDays < (config.maxWeeklyShifts || 6)) {
-            matrix[available.id][day.dayNumber] = 'PI'
-            piAssigned++
+        if (availableCandidates.length > 0) {
+          // Use scoring to select the best candidate for PI
+          const selectionResult = selectBestCandidate(availableCandidates, day as DayInfo, 'PI', context)
+          const selected = selectionResult.selected || availableCandidates[0]
+          
+          matrix[selected.id][day.dayNumber] = 'PI'
+          piAssigned++
 
-            if (needsPI) {
-              this.log(`Day ${day.dayNumber}: ${available.name} -> PI (marked as needing reinforcement)`)
-            }
+          if (needsPI) {
+            const topScore = selectionResult.candidates[0]?.totalScore
+            this.log(`Day ${day.dayNumber}: ${selected.name} -> PI (score: ${topScore?.toFixed(1) || 'N/A'})`)
           }
         } else if (needsPI) {
           this.log(`Day ${day.dayNumber} needs PI but no one available`)
