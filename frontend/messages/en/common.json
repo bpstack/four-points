@@ -91,7 +91,7 @@
     "months": ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
     "monthsShort": ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
     "weekdays": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
-    "weekdaysShort": ["M", "T", "W", "T", "F", "S", "S"],
+    "weekdaysShort": ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"],
     "selectDate": "Select date",
     "close": "Close"
   },

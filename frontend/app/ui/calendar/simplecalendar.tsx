@@ -108,9 +108,9 @@ export default function SimpleCalendar({ selectedDate, onSelect, onClose }: Simp
       </div>
 
       <div className="grid grid-cols-7 gap-2 mb-3">
-        {dayNames.map((day) => (
+        {dayNames.map((day, index) => (
           <div
-            key={day}
+            key={index}
             className="h-9 w-9 flex items-center justify-center text-xs font-semibold text-gray-500 dark:text-gray-400"
           >
             {day}

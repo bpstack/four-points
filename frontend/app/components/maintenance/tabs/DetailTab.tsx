@@ -2,7 +2,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useTranslations } from 'next-intl'
+import { useTranslations, useLocale } from 'next-intl'
 import { useMaintenanceStore } from '@/app/stores/useMaintenanceStore'
 import { maintenanceApi } from '@/app/lib/maintenance/maintenanceApi'
 import type { ReportStatus, ReportPriority } from '@/app/lib/maintenance/maintenance'
@@ -24,6 +24,7 @@ import toast from 'react-hot-toast'
 
 export function DetailTab() {
   const t = useTranslations('maintenance')
+  const locale = useLocale()
   const { currentReport, images, isLoadingReport, refreshReport } = useMaintenanceStore()
   const [isEditingStatus, setIsEditingStatus] = useState(false)
   const [isEditingPriority, setIsEditingPriority] = useState(false)
@@ -172,7 +173,7 @@ export function DetailTab() {
   }
 
   const formatDateTime = (date: string) => {
-    return new Date(date).toLocaleDateString('es-ES', {
+    return new Date(date).toLocaleDateString(locale, {
       day: '2-digit',
       month: 'long',
       year: 'numeric',

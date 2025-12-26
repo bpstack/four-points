@@ -28,8 +28,8 @@ interface CreateReportPanelProps {
 }
 
 export function CreateReportPanel({ isOpen, onClose }: CreateReportPanelProps) {
-  const router = useRouter()
   const t = useTranslations('maintenance')
+  const router = useRouter()
   const [previewImages, setPreviewImages] = useState<string[]>([])
   const [imageFiles, setImageFiles] = useState<File[]>([])
 

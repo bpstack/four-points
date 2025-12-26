@@ -3,7 +3,7 @@
 'use client'
 
 import { useEffect } from 'react'
-import { useTranslations } from 'next-intl'
+import { useTranslations, useLocale } from 'next-intl'
 import { useMaintenanceStore } from '@/app/stores/useMaintenanceStore'
 import { LoadingSpinner } from '../shared/LoadingSpinner'
 import { EmptyState } from '../shared/EmptyState'
@@ -11,6 +11,7 @@ import { FiClock, FiUser, FiEdit, FiAlertCircle } from 'react-icons/fi'
 
 export function HistoryTab() {
   const t = useTranslations('maintenance')
+  const locale = useLocale()
   const { currentReport, history, isLoadingHistory, refreshHistory } = useMaintenanceStore()
 
   useEffect(() => {
@@ -84,7 +85,7 @@ export function HistoryTab() {
   }
 
   const formatDateTime = (date: string) => {
-    return new Date(date).toLocaleDateString('es-ES', {
+    return new Date(date).toLocaleDateString(locale, {
       day: '2-digit',
       month: 'short',
       year: 'numeric',

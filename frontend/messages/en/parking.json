@@ -379,6 +379,7 @@
   "spotTypes": {
     "standard": "Standard",
     "large": "Large",
+    "mas_ancha": "Extra Wide",
     "handicapped": "Handicapped",
     "motorcycle": "Motorcycle",
     "electric": "Electric"

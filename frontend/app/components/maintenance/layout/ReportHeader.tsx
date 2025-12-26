@@ -3,7 +3,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { useTranslations } from 'next-intl'
+import { useTranslations, useLocale } from 'next-intl'
 import type { ReportWithDetails } from '@/app/lib/maintenance/maintenance'
 import { FiArrowLeft, FiEdit, FiTrash2 } from 'react-icons/fi'
 
@@ -16,6 +16,7 @@ interface ReportHeaderProps {
 export function ReportHeader({ report, onEdit, onDelete }: ReportHeaderProps) {
   const router = useRouter()
   const t = useTranslations('maintenance')
+  const locale = useLocale()
 
   const getStatusConfig = (status: typeof report.status) => {
     const configs = {
@@ -91,7 +92,7 @@ export function ReportHeader({ report, onEdit, onDelete }: ReportHeaderProps) {
               <span>•</span>
               <span>
                 {t('detail.reported')}{' '}
-                {new Date(report.report_date).toLocaleDateString('es-ES', {
+                {new Date(report.report_date).toLocaleDateString(locale, {
                   day: '2-digit',
                   month: 'short',
                   year: 'numeric',

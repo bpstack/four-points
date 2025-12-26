@@ -130,7 +130,9 @@
     }
   },
   "error": {
-    "loadingReport": "Error loading the report"
+    "loadingReport": "Error loading the report",
+    "unknown": "Unknown error",
+    "title": "Error"
   },
   "detail": {
     "backToList": "Back to list",

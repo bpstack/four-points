@@ -314,7 +314,7 @@ class ParkingBookingsController {
       console.error('Error en checkIn:', error)
       const errorMessage = (error as Error).message
 
-      if (errorMessage === ERROR_CODES.PARKING_BOOKING_NOT_FOUND) {
+      if (errorMessage === ERROR_CODES.PARKING_BOOKING_NOT_FOUND || errorMessage === 'Reserva no encontrada') {
         res.status(404).json({
           success: false,
           error: ERROR_CODES.PARKING_BOOKING_NOT_FOUND,
@@ -323,18 +323,35 @@ class ParkingBookingsController {
         return
       }
 
-      if (errorMessage.includes('No se puede hacer check-in')) {
+      if (errorMessage.includes('No se puede hacer check-in') || errorMessage.includes('estado actual es')) {
         res.status(400).json({
           success: false,
           error: errorMessage,
+          code: 'PARKING_CHECKIN_INVALID_STATUS',
         })
         return
       }
+
+      if (errorMessage.includes('plaza ya está ocupada')) {
+        res.status(409).json({
+          success: false,
+          error: errorMessage,
+          code: 'PARKING_SPOT_OCCUPIED',
+        })
+        return
+      }
+
+      // Log detallado para debugging
+      console.error('Error no manejado en checkIn:', {
+        message: errorMessage,
+        stack: (error as Error).stack,
+      })
 
       res.status(500).json({
         success: false,
         error: ERROR_CODES.PARKING_CHECKIN_ERROR,
         code: ERROR_CODES.PARKING_CHECKIN_ERROR,
+        debug: process.env.NODE_ENV === 'development' ? errorMessage : undefined,
       })
     }
   }

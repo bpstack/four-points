@@ -4,7 +4,7 @@
 
 import { useState, useCallback, useMemo } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useTranslations } from 'next-intl'
+import { useTranslations, useLocale } from 'next-intl'
 import type { MaintenanceReport, ReportFilters } from '@/app/lib/maintenance/maintenance'
 import type { MaintenanceListResponse } from '@/app/lib/maintenance/maintenanceApi'
 import { useMaintenanceList, type MaintenanceMessages } from './hooks/useMaintenanceList'
@@ -25,6 +25,7 @@ export function MaintenanceListClient({
   const panel = searchParams.get('panel')
   const t = useTranslations('maintenance')
   const tCommon = useTranslations('common')
+  const locale = useLocale()
 
   // Memoize messages for the hook
   const messages: MaintenanceMessages = useMemo(
@@ -193,7 +194,7 @@ export function MaintenanceListClient({
   }
 
   const formatDate = (date: string) => {
-    return new Date(date).toLocaleDateString('es-ES', {
+    return new Date(date).toLocaleDateString(locale, {
       day: '2-digit',
       month: 'short',
       year: 'numeric',
