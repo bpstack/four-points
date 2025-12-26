@@ -277,7 +277,7 @@ export default function Page() {
             public frontend.
           </p>
           <Link
-            href="/https://github.com/bpstack"
+            href="https://github.com/bpstack"
             className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-xl hover:shadow-2xl hover:shadow-blue-500/50 dark:hover:shadow-blue-400/30 transition-all transform hover:scale-105"
           >
             Source code available on GitHub

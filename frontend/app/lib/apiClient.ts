@@ -3,11 +3,7 @@
 /**
  * Cliente API con auto-refresh de JWT
  *
- * ARQUITECTURA SIMPLIFICADA (subdominios):
- * - Frontend: four-points.stackbp.es (Vercel)
- * - Backend:  api.four-points.stackbp.es (Render)
- * - Cookies:  domain=.four-points.stackbp.es (compartidas)
- *
+ * Estrategia de autenticación:
  * En desarrollo y producción: cookies HttpOnly; sin estado duplicado (no localStorage)
  */
 
