@@ -1,6 +1,6 @@
 -- =========================================================
 -- 15_demo_user.sql (AIVEN)
--- Usuario demo para demostrar la aplicación
+-- Usuario demo para demostrar la aplicación / demo / demo987654
 -- Collation: utf8mb4_0900_ai_ci (Aiven/MySQL 8.0)
 -- =========================================================
 USE hotel_db;
