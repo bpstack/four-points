@@ -29,6 +29,9 @@ import {
   FiFileText,
   FiGrid,
   FiPlus,
+  FiKey,
+  FiEye,
+  FiEyeOff,
 } from 'react-icons/fi'
 import { ReportsTab } from './reports'
 import { CenterModal, CenterModalFooterButtons, FormField, inputClassName } from '@/app/ui/panels'
@@ -688,6 +691,14 @@ function UserTable({ users, onDelete }: { users: User[]; onDelete: (id: string) 
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editForm, setEditForm] = useState<Partial<User>>({})
   const [savingId, setSavingId] = useState<string | null>(null)
+  const [resetPasswordModal, setResetPasswordModal] = useState<{
+    userId: string
+    username: string
+  } | null>(null)
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
+  const [resettingPassword, setResettingPassword] = useState(false)
 
   const handleEdit = (user: User) => {
     setEditingId(user.id)
@@ -715,6 +726,33 @@ function UserTable({ users, onDelete }: { users: User[]; onDelete: (id: string) 
   const handleCancel = () => {
     setEditingId(null)
     setEditForm({})
+  }
+
+  const handleResetPassword = async () => {
+    if (!resetPasswordModal || !newPassword) return
+    if (newPassword.length < 6) {
+      toast.error('La contraseña debe tener al menos 6 caracteres')
+      return
+    }
+    if (newPassword !== confirmPassword) {
+      toast.error('Las contraseñas no coinciden')
+      return
+    }
+
+    setResettingPassword(true)
+    try {
+      await apiClient.post(`${API_URL}/api/users/${resetPasswordModal.userId}/reset-password`, {
+        newPassword,
+      })
+      toast.success(`Contraseña de ${resetPasswordModal.username} actualizada`)
+      setResetPasswordModal(null)
+      setNewPassword('')
+      setConfirmPassword('')
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Error al resetear contraseña')
+    } finally {
+      setResettingPassword(false)
+    }
   }
 
   const getRoleConfig = (role: string) => {
@@ -826,6 +864,15 @@ function UserTable({ users, onDelete }: { users: User[]; onDelete: (id: string) 
                 {/* Actions */}
                 <div className="flex items-center gap-1 flex-shrink-0">
                   <button
+                    onClick={() =>
+                      setResetPasswordModal({ userId: user.id, username: user.username })
+                    }
+                    className="p-1.5 text-gray-500 hover:text-orange-600 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                    title="Reset password"
+                  >
+                    <FiKey className="w-3.5 h-3.5" />
+                  </button>
+                  <button
                     onClick={() => handleEdit(user)}
                     className="p-1.5 text-gray-500 hover:text-blue-600 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
                   >
@@ -843,6 +890,79 @@ function UserTable({ users, onDelete }: { users: User[]; onDelete: (id: string) 
           </div>
         )
       })}
+
+      {/* Reset Password Modal */}
+      <CenterModal
+        isOpen={!!resetPasswordModal}
+        onClose={() => {
+          setResetPasswordModal(null)
+          setNewPassword('')
+          setConfirmPassword('')
+          setShowPassword(false)
+        }}
+        title={`Resetear contraseña de ${resetPasswordModal?.username}`}
+        size="sm"
+        headerIcon={<FiKey className="w-5 h-5 text-orange-600 dark:text-orange-400" />}
+        footer={
+          <CenterModalFooterButtons
+            onCancel={() => {
+              setResetPasswordModal(null)
+              setNewPassword('')
+              setConfirmPassword('')
+              setShowPassword(false)
+            }}
+            onSubmit={handleResetPassword}
+            submitText={resettingPassword ? 'Guardando...' : 'Guardar'}
+            submitDisabled={
+              resettingPassword || newPassword.length < 6 || newPassword !== confirmPassword
+            }
+            isSubmitting={resettingPassword}
+          />
+        }
+      >
+        <div className="space-y-4">
+          <FormField label="Nueva contraseña" required>
+            <div className="relative">
+              <input
+                type={showPassword ? 'text' : 'password'}
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="Mínimo 6 caracteres"
+                className={inputClassName}
+                autoFocus
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+              >
+                {showPassword ? <FiEyeOff className="w-4 h-4" /> : <FiEye className="w-4 h-4" />}
+              </button>
+            </div>
+          </FormField>
+          <FormField label="Confirmar contraseña" required>
+            <div className="relative">
+              <input
+                type={showPassword ? 'text' : 'password'}
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="Repetir contraseña"
+                className={inputClassName}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+              >
+                {showPassword ? <FiEyeOff className="w-4 h-4" /> : <FiEye className="w-4 h-4" />}
+              </button>
+            </div>
+            {confirmPassword && newPassword !== confirmPassword && (
+              <p className="mt-1 text-xs text-red-500">Las contraseñas no coinciden</p>
+            )}
+          </FormField>
+        </div>
+      </CenterModal>
     </div>
   )
 }

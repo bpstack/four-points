@@ -180,6 +180,7 @@ export class UserRepository {
 
   /**
    * Obtener todos con JOIN directo
+   * Solo devuelve usuarios activos (no soft-deleted)
    */
   static async getAll(): Promise<User[]> {
     try {
@@ -194,6 +195,7 @@ export class UserRepository {
           r.name AS role
         FROM users u
         INNER JOIN roles r ON r.id = u.role_id
+        WHERE u.is_active = 1
         ORDER BY u.username
       `)
       return rows as User[]
@@ -258,6 +260,7 @@ export class UserRepository {
 
   /**
    * Obtener por role
+   * Solo devuelve usuarios activos
    */
   static async getByRole(role: string): Promise<User[]> {
     try {
@@ -272,7 +275,7 @@ export class UserRepository {
           r.name AS role
         FROM users u
         INNER JOIN roles r ON r.id = u.role_id
-        WHERE LOWER(r.name) = LOWER(?)`,
+        WHERE LOWER(r.name) = LOWER(?) AND u.is_active = 1`,
         [role]
       )
       return rows as User[]
@@ -372,16 +375,59 @@ export class UserRepository {
   }
 
   /**
-   * Eliminar usuario
+   * Soft delete de usuario
+   * En lugar de eliminar, marca como inactivo y renombra username para liberar el nombre
+   * Formato: username_deleted_timestamp
    */
   static async delete(id: string): Promise<boolean> {
+    const dbConnection = await db.getConnection()
     try {
-      const [result] = await db.query<ResultSetHeader>('DELETE FROM users WHERE id = ?', [id])
+      await dbConnection.beginTransaction()
+
+      // Verificar que el usuario existe y obtener su username
+      const [users] = await dbConnection.query<UserWithRole[]>(
+        'SELECT id, username, is_active FROM users WHERE id = ?',
+        [id]
+      )
+
+      if (users.length === 0) {
+        await dbConnection.rollback()
+        return false
+      }
+
+      const user = users[0]
+
+      // Si ya está eliminado (inactivo con sufijo), no hacer nada
+      if (!user.is_active && user.username.includes('_deleted_')) {
+        await dbConnection.rollback()
+        return false
+      }
+
+      // Generar nuevo username con sufijo único
+      const timestamp = Date.now()
+      const deletedUsername = `${user.username}_deleted_${timestamp}`
+
+      // Actualizar: marcar como inactivo y renombrar username
+      const [result] = await dbConnection.query<ResultSetHeader>(
+        `UPDATE users 
+         SET is_active = 0, 
+             username = ?, 
+             updated_at = CURRENT_TIMESTAMP 
+         WHERE id = ?`,
+        [deletedUsername, id]
+      )
+
+      await dbConnection.commit()
+
+      console.info(`[AUTH] User soft deleted: ${user.username} -> ${deletedUsername}`)
 
       return result.affectedRows > 0
     } catch (err) {
+      await dbConnection.rollback()
       console.error('Error al eliminar usuario:', err)
       throw new Error('Error al eliminar el usuario')
+    } finally {
+      dbConnection.release()
     }
   }
 
@@ -516,6 +562,36 @@ export class UserRepository {
       throw error
     } finally {
       dbConnection.release()
+    }
+  }
+
+  /**
+   * Reset de contraseña por admin (no requiere contraseña actual)
+   */
+  static async resetPassword(userId: string, newPassword: string): Promise<boolean> {
+    try {
+      // Verificar que el usuario existe
+      const [users] = await db.query<UserWithRole[]>('SELECT id FROM users WHERE id = ?', [userId])
+
+      if (users.length === 0) {
+        throw new Error('Usuario no encontrado')
+      }
+
+      // Hashear nueva contraseña
+      const hashedPassword = await bcrypt.hash(newPassword, SALT_ROUNDS)
+
+      // Actualizar contraseña
+      await db.query(
+        'UPDATE users SET password = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
+        [hashedPassword, userId]
+      )
+
+      console.info(`[AUTH] Password reset by admin for user ID: ${userId}`)
+
+      return true
+    } catch (error: any) {
+      console.error('Error en resetPassword:', error)
+      throw error
     }
   }
 

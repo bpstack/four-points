@@ -78,11 +78,11 @@ export const canManageGroups: RoleCheckMiddleware = (req, res, next) => {
 
 /**
  * Verifica que el usuario pueda ver grupos
- * Uso: Para rutas de consulta/lectura de grupos
- * Nota: demo-admin incluido para acceso visual
+ * Uso: Para rutas de consulta/lectura de grupos y notificaciones
+ * Nota: mantenimiento incluido para acceso a notificaciones del profile
  */
 export const canViewGroups: RoleCheckMiddleware = (req, res, next) => {
-  const allowedRoles = ['admin', 'recepcionista', 'group-admin', 'demo-admin']
+  const allowedRoles = ['admin', 'recepcionista', 'group-admin', 'mantenimiento', 'demo-admin']
 
   if (!req.user?.role) {
     res.status(403).json({ error: 'No se pudo verificar el rol del usuario' })

@@ -7,6 +7,7 @@ import {
   getUsersByRole,
   updateUser,
   deleteUser,
+  resetUserPassword,
 } from '../../controllers/auth/user-controllers.js'
 
 import { authenticateToken } from '../../middlewares/authenticateToken.js'
@@ -26,6 +27,7 @@ router.use(authenticateToken)
 router.get('/', isAdmin, getAllUsers)
 router.get('/role/:role', isAdmin, getUsersByRole)
 router.delete('/:id', isAdmin, deleteUser)
+router.post('/:id/reset-password', isAdmin, resetUserPassword)
 
 // ========================================
 // OWNER OR ADMIN ROUTES

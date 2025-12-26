@@ -1,10 +1,9 @@
 // app/dashboard/page.tsx
 'use client'
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '@/app/lib/auth/useAuth'
 import { isAdminRole } from '@/app/lib/helpers/utils'
-import { useDepartments } from '@/app/lib/logbooks/hooks/useDepartments'
 import {
   DashboardHeader,
   QuickActionsCard,
@@ -20,7 +19,6 @@ import { activityApi } from '@/app/lib/activity'
 export default function DashboardHome() {
   const [selectedPeriod, setSelectedPeriod] = useState<'today' | 'week' | 'month'>('today')
   const { user: currentUser } = useAuth()
-  const { getDepartmentName } = useDepartments()
   const [logbookEntries, setLogbookEntries] = useState<LogbookEntryDisplay[]>([])
   const [recentActivity, setRecentActivity] = useState<UnifiedActivity[]>([])
   const [loadingLogbooks, setLoadingLogbooks] = useState(true)

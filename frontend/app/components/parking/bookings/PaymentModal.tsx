@@ -56,7 +56,10 @@ export function PaymentModal({ booking, onClose, onConfirm }: PaymentModalProps)
             <p className="text-sm text-[#57606a] dark:text-[#8b949e] mt-1">
               {booking.booking_code}
               {booking.vehicle?.owner && (
-                <span className="text-[#24292f] dark:text-[#c9d1d9]"> - {booking.vehicle.owner}</span>
+                <span className="text-[#24292f] dark:text-[#c9d1d9]">
+                  {' '}
+                  - {booking.vehicle.owner}
+                </span>
               )}
             </p>
           </div>
