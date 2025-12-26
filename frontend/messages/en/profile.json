@@ -34,6 +34,8 @@
     "navigation": {
       "messages": "Messages",
       "messagesDesc": "Internal communications",
+      "notifications": "Notifications",
+      "notificationsDesc": "View your notifications",
       "settings": "Settings",
       "settingsDesc": "Account settings"
     },

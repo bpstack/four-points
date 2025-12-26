@@ -7,7 +7,7 @@ import { useSearchParams } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { useAuth } from '@/app/lib/auth/useAuth'
 import { cn } from '@/app/lib/helpers/utils'
-import { ProfileSidebar, SettingsPanel, MessagesPanel } from '@/app/components/profile'
+import { ProfileSidebar, SettingsPanel, MessagesPanel, NotificationsPanel } from '@/app/components/profile'
 
 // Skeleton for loading state
 function ProfileSkeleton() {
@@ -50,6 +50,8 @@ function ProfileContent() {
         return <SettingsPanel />
       case 'messages':
         return <MessagesPanel onConversationSelect={setHasActiveConversation} />
+      case 'notifications':
+        return <NotificationsPanel />
       default:
         return null
     }

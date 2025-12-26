@@ -64,7 +64,7 @@ export default function ProfileDropdown() {
 
   const handleNotifications = () => {
     setIsOpen(false)
-    router.push('/dashboard/profile/notifications')
+    router.push('/dashboard/profile?panel=notifications')
   }
 
   const handleSettings = () => {

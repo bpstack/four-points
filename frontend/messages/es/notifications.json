@@ -1,5 +1,11 @@
 {
   "title": "Notificaciones",
+  "panel": {
+    "title": "Notificaciones",
+    "unreadCount": "{count} sin leer",
+    "allRead": "Todas las notificaciones leidas",
+    "markAll": "Marcar todo leido"
+  },
   "list": {
     "all": "Todas ({count})",
     "unread": "Sin leer ({count})",

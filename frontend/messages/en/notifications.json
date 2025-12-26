@@ -1,5 +1,11 @@
 {
   "title": "Notifications",
+  "panel": {
+    "title": "Notifications",
+    "unreadCount": "{count} unread",
+    "allRead": "All notifications read",
+    "markAll": "Mark all read"
+  },
   "list": {
     "all": "All ({count})",
     "unread": "Unread ({count})",

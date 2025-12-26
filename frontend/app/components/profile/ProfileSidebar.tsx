@@ -15,6 +15,7 @@ import {
   FiCamera,
   FiMessageSquare,
   FiSettings,
+  FiBell,
   FiChevronRight,
   FiEdit2,
   FiCheck,
@@ -630,6 +631,14 @@ export function ProfileSidebar() {
           description={t('navigation.messagesDesc')}
           active={activePanel === 'messages'}
           onClick={() => handleNavigate('messages')}
+        />
+        <NavButton
+          icon={<FiBell className="w-4 h-4" />}
+          label={t('navigation.notifications')}
+          description={t('navigation.notificationsDesc')}
+          active={activePanel === 'notifications'}
+          onClick={() => handleNavigate('notifications')}
+          borderTop
         />
         <NavButton
           icon={<FiSettings className="w-4 h-4" />}
