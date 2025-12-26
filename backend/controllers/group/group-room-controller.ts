@@ -5,6 +5,7 @@ import { GroupRoomRepository } from '../../repositories/group/group-room-reposit
 import { GroupRepository } from '../../repositories/group/group-repository'
 import { GroupHistoryService } from '../../services/group/group-history-service'
 import { CreateGroupRoomDTO, UpdateGroupRoomDTO } from '../../models/group/index'
+import { ERROR_CODES, SUCCESS_CODES } from '../../config/error-codes.js'
 
 export class GroupRoomController {
   /**
@@ -18,7 +19,8 @@ export class GroupRoomController {
       if (isNaN(groupId)) {
         return res.status(400).json({
           success: false,
-          error: 'ID de grupo inválido',
+          error: ERROR_CODES.GROUP_INVALID_ID,
+          code: ERROR_CODES.GROUP_INVALID_ID,
         })
       }
 
@@ -27,7 +29,8 @@ export class GroupRoomController {
       if (!group) {
         return res.status(404).json({
           success: false,
-          error: 'Grupo no encontrado',
+          error: ERROR_CODES.GROUP_NOT_FOUND,
+          code: ERROR_CODES.GROUP_NOT_FOUND,
         })
       }
 
@@ -45,8 +48,8 @@ export class GroupRoomController {
       console.error('Error en getRoomsByGroup:', error)
       return res.status(500).json({
         success: false,
-        error: 'Error al obtener habitaciones',
-        message: error.message,
+        error: ERROR_CODES.GROUP_ROOM_FETCH_ERROR,
+        code: ERROR_CODES.GROUP_ROOM_FETCH_ERROR,
       })
     }
   }
@@ -63,14 +66,16 @@ export class GroupRoomController {
       if (isNaN(groupId)) {
         return res.status(400).json({
           success: false,
-          error: 'ID de grupo inválido',
+          error: ERROR_CODES.GROUP_INVALID_ID,
+          code: ERROR_CODES.GROUP_INVALID_ID,
         })
       }
 
       if (!userId) {
         return res.status(401).json({
           success: false,
-          error: 'Usuario no autenticado',
+          error: ERROR_CODES.UNAUTHORIZED,
+          code: ERROR_CODES.UNAUTHORIZED,
         })
       }
 
@@ -79,7 +84,8 @@ export class GroupRoomController {
       if (!group) {
         return res.status(404).json({
           success: false,
-          error: 'Grupo no encontrado',
+          error: ERROR_CODES.GROUP_NOT_FOUND,
+          code: ERROR_CODES.GROUP_NOT_FOUND,
         })
       }
 
@@ -94,7 +100,8 @@ export class GroupRoomController {
       if (!roomData.room_type || !roomData.quantity) {
         return res.status(400).json({
           success: false,
-          error: 'Faltan campos obligatorios: room_type, quantity',
+          error: ERROR_CODES.GROUP_ROOM_MISSING_FIELDS,
+          code: ERROR_CODES.GROUP_ROOM_MISSING_FIELDS,
         })
       }
 
@@ -114,14 +121,15 @@ export class GroupRoomController {
 
       return res.status(201).json({
         success: true,
-        message: 'Habitación guardada correctamente',
+        message: SUCCESS_CODES.GROUP_ROOM_SAVED,
+        code: SUCCESS_CODES.GROUP_ROOM_SAVED,
       })
     } catch (error: any) {
       console.error('Error en createOrUpdateRoom:', error)
       return res.status(500).json({
         success: false,
-        error: 'Error al guardar habitación',
-        message: error.message,
+        error: ERROR_CODES.GROUP_ROOM_SAVE_ERROR,
+        code: ERROR_CODES.GROUP_ROOM_SAVE_ERROR,
       })
     }
   }
@@ -139,14 +147,16 @@ export class GroupRoomController {
       if (isNaN(groupId) || isNaN(roomId)) {
         return res.status(400).json({
           success: false,
-          error: 'IDs inválidos',
+          error: ERROR_CODES.INVALID_ID,
+          code: ERROR_CODES.INVALID_ID,
         })
       }
 
       if (!userId) {
         return res.status(401).json({
           success: false,
-          error: 'Usuario no autenticado',
+          error: ERROR_CODES.UNAUTHORIZED,
+          code: ERROR_CODES.UNAUTHORIZED,
         })
       }
 
@@ -155,14 +165,16 @@ export class GroupRoomController {
       if (!oldRoom) {
         return res.status(404).json({
           success: false,
-          error: 'Habitación no encontrada',
+          error: ERROR_CODES.GROUP_ROOM_NOT_FOUND,
+          code: ERROR_CODES.GROUP_ROOM_NOT_FOUND,
         })
       }
 
       if (oldRoom.group_id !== groupId) {
         return res.status(400).json({
           success: false,
-          error: 'La habitación no pertenece a este grupo',
+          error: ERROR_CODES.GROUP_ROOM_NOT_IN_GROUP,
+          code: ERROR_CODES.GROUP_ROOM_NOT_IN_GROUP,
         })
       }
 
@@ -173,7 +185,8 @@ export class GroupRoomController {
       if (!updated) {
         return res.status(500).json({
           success: false,
-          error: 'Error al actualizar habitación',
+          error: ERROR_CODES.GROUP_ROOM_UPDATE_ERROR,
+          code: ERROR_CODES.GROUP_ROOM_UPDATE_ERROR,
         })
       }
 
@@ -191,14 +204,15 @@ export class GroupRoomController {
 
       return res.status(200).json({
         success: true,
-        message: 'Habitación actualizada correctamente',
+        message: SUCCESS_CODES.GROUP_ROOM_UPDATED,
+        code: SUCCESS_CODES.GROUP_ROOM_UPDATED,
       })
     } catch (error: any) {
       console.error('Error en updateRoom:', error)
       return res.status(500).json({
         success: false,
-        error: 'Error al actualizar habitación',
-        message: error.message,
+        error: ERROR_CODES.GROUP_ROOM_UPDATE_ERROR,
+        code: ERROR_CODES.GROUP_ROOM_UPDATE_ERROR,
       })
     }
   }
@@ -216,14 +230,16 @@ export class GroupRoomController {
       if (isNaN(groupId) || isNaN(roomId)) {
         return res.status(400).json({
           success: false,
-          error: 'IDs inválidos',
+          error: ERROR_CODES.INVALID_ID,
+          code: ERROR_CODES.INVALID_ID,
         })
       }
 
       if (!userId) {
         return res.status(401).json({
           success: false,
-          error: 'Usuario no autenticado',
+          error: ERROR_CODES.UNAUTHORIZED,
+          code: ERROR_CODES.UNAUTHORIZED,
         })
       }
 
@@ -232,14 +248,16 @@ export class GroupRoomController {
       if (!room) {
         return res.status(404).json({
           success: false,
-          error: 'Habitación no encontrada',
+          error: ERROR_CODES.GROUP_ROOM_NOT_FOUND,
+          code: ERROR_CODES.GROUP_ROOM_NOT_FOUND,
         })
       }
 
       if (room.group_id !== groupId) {
         return res.status(400).json({
           success: false,
-          error: 'La habitación no pertenece a este grupo',
+          error: ERROR_CODES.GROUP_ROOM_NOT_IN_GROUP,
+          code: ERROR_CODES.GROUP_ROOM_NOT_IN_GROUP,
         })
       }
 
@@ -248,7 +266,8 @@ export class GroupRoomController {
       if (!deleted) {
         return res.status(500).json({
           success: false,
-          error: 'Error al eliminar habitación',
+          error: ERROR_CODES.GROUP_ROOM_DELETE_ERROR,
+          code: ERROR_CODES.GROUP_ROOM_DELETE_ERROR,
         })
       }
 
@@ -256,14 +275,15 @@ export class GroupRoomController {
 
       return res.status(200).json({
         success: true,
-        message: 'Habitación eliminada correctamente',
+        message: SUCCESS_CODES.GROUP_ROOM_DELETED,
+        code: SUCCESS_CODES.GROUP_ROOM_DELETED,
       })
     } catch (error: any) {
       console.error('Error en deleteRoom:', error)
       return res.status(500).json({
         success: false,
-        error: 'Error al eliminar habitación',
-        message: error.message,
+        error: ERROR_CODES.GROUP_ROOM_DELETE_ERROR,
+        code: ERROR_CODES.GROUP_ROOM_DELETE_ERROR,
       })
     }
   }

@@ -22,6 +22,7 @@ import {
   IoExpandOutline,
 } from 'react-icons/io5'
 import { clsx } from 'clsx'
+import { useTranslations } from 'next-intl'
 
 interface ImageGalleryProps {
   images: string[] // URLs de Cloudinary
@@ -29,6 +30,8 @@ interface ImageGalleryProps {
 }
 
 export function ImageGallery({ images, alt = 'Imagen de evidencia' }: ImageGalleryProps) {
+  const t = useTranslations('blacklist')
+  const tCommon = useTranslations('common')
   const [lightboxOpen, setLightboxOpen] = useState(false)
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
 
@@ -92,7 +95,7 @@ export function ImageGallery({ images, alt = 'Imagen de evidencia' }: ImageGalle
   if (images.length === 0) {
     return (
       <div className="flex items-center justify-center h-48 bg-gray-100 dark:bg-gray-800 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-700">
-        <p className="text-gray-500 dark:text-gray-400 text-sm">No hay imágenes disponibles</p>
+        <p className="text-gray-500 dark:text-gray-400 text-sm">{t('ui.noImages')}</p>
       </div>
     )
   }
@@ -153,7 +156,7 @@ export function ImageGallery({ images, alt = 'Imagen de evidencia' }: ImageGalle
             {/* Header */}
             <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between p-4 bg-gradient-to-b from-black/50 to-transparent">
               <div className="text-white text-sm">
-                Imagen {currentImageIndex + 1} de {images.length}
+                {t('ui.imageOf', { current: currentImageIndex + 1, total: images.length })}
               </div>
 
               <div className="flex items-center gap-2">
@@ -167,7 +170,7 @@ export function ImageGallery({ images, alt = 'Imagen de evidencia' }: ImageGalle
                     )
                   }}
                   className="p-2 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-colors"
-                  title="Descargar imagen"
+                  title={t('ui.downloadImage')}
                 >
                   <IoDownloadOutline size={24} />
                 </button>
@@ -176,7 +179,7 @@ export function ImageGallery({ images, alt = 'Imagen de evidencia' }: ImageGalle
                 <button
                   onClick={closeLightbox}
                   className="p-2 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-colors"
-                  title="Cerrar (ESC)"
+                  title={t('ui.closeEsc')}
                 >
                   <IoClose size={24} />
                 </button>
@@ -216,7 +219,7 @@ export function ImageGallery({ images, alt = 'Imagen de evidencia' }: ImageGalle
                     goToPrevious()
                   }}
                   className="absolute left-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors backdrop-blur-sm"
-                  title="Anterior (←)"
+                  title={t('ui.previousArrow')}
                 >
                   <IoChevronBack size={28} />
                 </button>
@@ -228,7 +231,7 @@ export function ImageGallery({ images, alt = 'Imagen de evidencia' }: ImageGalle
                     goToNext()
                   }}
                   className="absolute right-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors backdrop-blur-sm"
-                  title="Siguiente (→)"
+                  title={t('ui.nextArrow')}
                 >
                   <IoChevronForward size={28} />
                 </button>
@@ -268,7 +271,7 @@ export function ImageGallery({ images, alt = 'Imagen de evidencia' }: ImageGalle
 
             {/* Instrucciones de teclado */}
             <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-white/60 text-xs hidden md:block">
-              Use ← → para navegar • ESC para cerrar
+              {t('ui.keyboardNav')}
             </div>
           </motion.div>
         )}

@@ -7,6 +7,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { FiEdit2, FiCalendar } from 'react-icons/fi'
 import toast from 'react-hot-toast'
+import { useTranslations } from 'next-intl'
 
 import { paymentSchema, type PaymentFormData } from '@/app/lib/schemas/group-schemas'
 import {
@@ -39,15 +40,6 @@ interface PaymentPanelProps {
   totalAmount: number
 }
 
-const PAYMENT_ORDER_OPTIONS = [
-  { value: 1, label: 'Primer Pago' },
-  { value: 2, label: 'Segundo Pago' },
-  { value: 3, label: 'Tercer Pago' },
-  { value: 4, label: 'Cuarto Pago' },
-  { value: 5, label: 'Quinto Pago' },
-  { value: 99, label: 'Pago Final' },
-]
-
 export function PaymentPanel({
   isOpen,
   onClose,
@@ -55,8 +47,18 @@ export function PaymentPanel({
   groupId,
   totalAmount,
 }: PaymentPanelProps) {
+  const t = useTranslations('groups')
   const { currentGroup } = useGroupStore()
   const isEditing = !!payment
+
+  const PAYMENT_ORDER_OPTIONS = [
+    { value: 1, label: t('paymentPanel.firstPayment') },
+    { value: 2, label: t('paymentPanel.secondPayment') },
+    { value: 3, label: t('paymentPanel.thirdPayment') },
+    { value: 4, label: t('paymentPanel.fourthPayment') },
+    { value: 5, label: t('paymentPanel.fifthPayment') },
+    { value: 99, label: t('paymentPanel.finalPayment') },
+  ]
 
   const effectiveGroupId = currentGroup?.id ?? groupId
   const createPaymentMutation = useCreatePayment(effectiveGroupId)
@@ -173,21 +175,21 @@ export function PaymentPanel({
       }
 
       if (!effectiveGroupId) {
-        throw new Error('Falta el identificador del grupo')
+        throw new Error(t('paymentPanel.missingGroupId'))
       }
 
       if (isEditing && payment) {
         await updatePaymentMutation.mutateAsync(payload)
-        toast.success('Pago actualizado correctamente')
+        toast.success(t('paymentPanel.updateSuccess'))
       } else {
         await createPaymentMutation.mutateAsync(payload)
-        toast.success('Pago creado correctamente')
+        toast.success(t('paymentPanel.createSuccess'))
       }
 
       onClose()
     } catch (error) {
       console.error('Error saving payment:', error)
-      const message = error instanceof Error ? error.message : 'Error al guardar el pago'
+      const message = error instanceof Error ? error.message : t('paymentPanel.error')
       toast.error(message)
     }
   }
@@ -197,11 +199,11 @@ export function PaymentPanel({
 
     try {
       await deletePaymentMutation.mutateAsync()
-      toast.success('Pago eliminado correctamente')
+      toast.success(t('paymentPanel.deleteSuccess'))
       onClose()
     } catch (error) {
       console.error('Error deleting payment:', error)
-      const message = error instanceof Error ? error.message : 'Error al eliminar el pago'
+      const message = error instanceof Error ? error.message : t('paymentPanel.deleteError')
       toast.error(message)
     }
   }
@@ -210,10 +212,8 @@ export function PaymentPanel({
     <SlidePanel
       isOpen={isOpen}
       onClose={onClose}
-      title={isEditing ? 'Editar Pago' : 'Nuevo Pago'}
-      subtitle={
-        isEditing ? 'Actualiza la información del pago' : 'Completa los datos del nuevo pago'
-      }
+      title={isEditing ? t('paymentPanel.editPayment') : t('paymentPanel.newPayment')}
+      subtitle={isEditing ? t('paymentPanel.editSubtitle') : t('paymentPanel.subtitle')}
       size="lg"
       headerIcon={
         isEditing ? <FiEdit2 className="w-5 h-5 text-blue-600 dark:text-blue-400" /> : undefined
@@ -230,15 +230,15 @@ export function PaymentPanel({
               deletePaymentMutation.isPending ||
               createPaymentMutation.isPending
             }
-            submitText="Actualizar"
-            deleteText="Eliminar pago"
+            submitText={t('paymentPanel.updatePayment')}
+            deleteText={t('paymentPanel.deletePayment')}
           />
         ) : (
           <SlidePanelFooterButtons
             onCancel={onClose}
             onSubmit={handleSubmit(onSubmit)}
             isSubmitting={isSubmitting || createPaymentMutation.isPending}
-            submitText="Crear Pago"
+            submitText={t('paymentPanel.createPayment')}
             submitVariant="primary"
           />
         )
@@ -246,26 +246,26 @@ export function PaymentPanel({
     >
       {isEditing && payment && (
         <Alert variant="info" className="mb-4">
-          Editando:{' '}
+          {t('paymentPanel.editing')}{' '}
           {PAYMENT_ORDER_OPTIONS.find((opt) => opt.value === payment.payment_order)?.label ||
-            'Pago'}{' '}
+            t('paymentPanel.payment')}{' '}
           - {payment.payment_name}
         </Alert>
       )}
 
       <SlidePanelSection>
         {/* Payment Name */}
-        <FormField label="Nombre del Pago" required error={errors.payment_name?.message}>
+        <FormField label={t('paymentPanel.paymentName')} required error={errors.payment_name?.message}>
           <input
             {...register('payment_name')}
             type="text"
-            placeholder="Ej: Anticipo 30%"
+            placeholder={t('paymentPanel.paymentNamePlaceholder')}
             className={inputClassName}
           />
         </FormField>
 
         {/* Payment Order */}
-        <FormField label="Orden del Pago" error={errors.payment_order?.message}>
+        <FormField label={t('paymentPanel.paymentOrder')} error={errors.payment_order?.message}>
           <select
             {...register('payment_order', { valueAsNumber: true })}
             className={selectClassName}
@@ -280,7 +280,7 @@ export function PaymentPanel({
 
         {/* Percentage and Amount - Grid */}
         <div className="grid grid-cols-2 gap-3">
-          <FormField label="Porcentaje (%)" error={errors.percentage?.message}>
+          <FormField label={t('paymentPanel.percentage')} error={errors.percentage?.message}>
             <input
               {...register('percentage', {
                 setValueAs: (v) => (v === '' ? undefined : parseFloat(v)),
@@ -294,7 +294,7 @@ export function PaymentPanel({
             />
           </FormField>
 
-          <FormField label="Monto" required error={errors.amount?.message}>
+          <FormField label={t('paymentPanel.amount')} required error={errors.amount?.message}>
             <input
               {...register('amount', {
                 setValueAs: (v) => (v === '' ? undefined : parseFloat(v)),
@@ -309,11 +309,11 @@ export function PaymentPanel({
         </div>
 
         <p className="text-xs text-gray-500 dark:text-gray-400">
-          Si ingresas el porcentaje, el monto se calcula automáticamente
+          {t('paymentPanel.percentageHint')}
         </p>
 
         {/* Amount Paid */}
-        <FormField label="Monto Pagado" error={errors.amount_paid?.message}>
+        <FormField label={t('paymentPanel.amountPaid')} error={errors.amount_paid?.message}>
           <input
             {...register('amount_paid', {
               setValueAs: (v) => (v === '' ? undefined : parseFloat(v)),
@@ -328,13 +328,13 @@ export function PaymentPanel({
 
         {/* Due Date with Calendar */}
         <div className="relative" ref={dueDateCalRef}>
-          <FormField label="Fecha de Vencimiento" required error={errors.due_date?.message}>
+          <FormField label={t('paymentPanel.dueDate')} required error={errors.due_date?.message}>
             <div className="relative">
               <input
                 type="text"
                 readOnly
                 value={due_date ? formatDateDisplayShort(parseInputDate(due_date)!) : ''}
-                placeholder="Selecciona fecha"
+                placeholder={t('createPanel.selectDate')}
                 onClick={() => setShowDueDateCal(!showDueDateCal)}
                 className={`${inputClassName} pr-10 cursor-pointer`}
               />
@@ -353,21 +353,21 @@ export function PaymentPanel({
         </div>
 
         {/* Status */}
-        <FormField label="Estado" error={errors.status?.message}>
+        <FormField label={t('paymentPanel.paymentStatus')} error={errors.status?.message}>
           <select {...register('status')} className={selectClassName}>
-            <option value="pending">Pendiente</option>
-            <option value="requested">Solicitado</option>
-            <option value="partial">Parcial</option>
-            <option value="paid">Pagado</option>
+            <option value="pending">{t('paymentPanel.statusPending')}</option>
+            <option value="requested">{t('paymentPanel.statusRequested')}</option>
+            <option value="partial">{t('paymentPanel.statusPartial')}</option>
+            <option value="paid">{t('paymentPanel.statusPaid')}</option>
           </select>
         </FormField>
 
         {/* Notes */}
-        <FormField label="Notas" error={errors.notes?.message}>
+        <FormField label={t('paymentPanel.notes')} error={errors.notes?.message}>
           <textarea
             {...register('notes')}
             rows={3}
-            placeholder="Notas adicionales..."
+            placeholder={t('paymentPanel.notesPlaceholder')}
             className={textareaClassName}
           />
         </FormField>

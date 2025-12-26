@@ -7,6 +7,28 @@ import { LogbookEntry, LogEntry, Comment } from '../types'
 import { useDepartments } from './useDepartments'
 import toast from 'react-hot-toast'
 
+export interface LogbookMessages {
+  entryCreated: string
+  entryCreateError: string
+  entryUpdated: string
+  entryUpdateError: string
+  entryDeleted: string
+  entryDeleteError: string
+  statusResolved: string
+  statusPending: string
+  statusChangedTo: (status: string) => string
+  statusChangeError: string
+  markedAsRead: string
+  unmarkedAsRead: string
+  readStatusError: string
+  commentAdded: string
+  commentAddError: string
+  commentUpdated: string
+  commentUpdateError: string
+  commentDeleted: string
+  commentDeleteError: string
+}
+
 // ============================================
 // QUERY KEYS
 // ============================================
@@ -59,9 +81,10 @@ function mapPriorityToBackend(
 interface UseLogbooksOptions {
   date: string // format: YYYY-MM-DD
   enabled?: boolean
+  messages: LogbookMessages
 }
 
-export function useLogbooks({ date, enabled = true }: UseLogbooksOptions) {
+export function useLogbooks({ date, enabled = true, messages }: UseLogbooksOptions) {
   const queryClient = useQueryClient()
   const { getDepartmentName } = useDepartments()
 
@@ -152,10 +175,10 @@ export function useLogbooks({ date, enabled = true }: UseLogbooksOptions) {
     onSuccess: (_, variables) => {
       // Invalidate the list for the date of the new entry
       queryClient.invalidateQueries({ queryKey: logbookKeys.list(variables.date) })
-      toast.success('Entrada creada correctamente')
+      toast.success(messages.entryCreated)
     },
     onError: (error) => {
-      const message = error instanceof Error ? error.message : 'Error al crear la entrada'
+      const message = error instanceof Error ? error.message : messages.entryCreateError
       toast.error(message)
     },
   })
@@ -179,10 +202,10 @@ export function useLogbooks({ date, enabled = true }: UseLogbooksOptions) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: logbookKeys.list(date) })
-      toast.success('Entrada actualizada correctamente')
+      toast.success(messages.entryUpdated)
     },
     onError: (error) => {
-      const message = error instanceof Error ? error.message : 'Error al actualizar la entrada'
+      const message = error instanceof Error ? error.message : messages.entryUpdateError
       toast.error(message)
     },
   })
@@ -196,10 +219,10 @@ export function useLogbooks({ date, enabled = true }: UseLogbooksOptions) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: logbookKeys.list(date) })
-      toast.success('Entrada eliminada correctamente')
+      toast.success(messages.entryDeleted)
     },
     onError: (error) => {
-      const message = error instanceof Error ? error.message : 'Error al eliminar la entrada'
+      const message = error instanceof Error ? error.message : messages.entryDeleteError
       toast.error(message)
     },
   })
@@ -222,11 +245,12 @@ export function useLogbooks({ date, enabled = true }: UseLogbooksOptions) {
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: logbookKeys.list(date) })
-      const newStatus = variables.currentStatus === 'resolved' ? 'pendiente' : 'resuelto'
-      toast.success(`Estado cambiado a ${newStatus}`)
+      const newStatus =
+        variables.currentStatus === 'resolved' ? messages.statusPending : messages.statusResolved
+      toast.success(messages.statusChangedTo(newStatus))
     },
     onError: () => {
-      toast.error('Error al cambiar el estado')
+      toast.error(messages.statusChangeError)
     },
   })
 
@@ -242,11 +266,10 @@ export function useLogbooks({ date, enabled = true }: UseLogbooksOptions) {
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: logbookKeys.readers(variables.id) })
-      const action = variables.isRead ? 'Desmarcado' : 'Marcado'
-      toast.success(`${action} como leído`)
+      toast.success(variables.isRead ? messages.unmarkedAsRead : messages.markedAsRead)
     },
     onError: () => {
-      toast.error('Error al cambiar el estado de lectura')
+      toast.error(messages.readStatusError)
     },
   })
 
@@ -269,10 +292,10 @@ export function useLogbooks({ date, enabled = true }: UseLogbooksOptions) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: logbookKeys.list(date) })
-      toast.success('Comentario añadido correctamente')
+      toast.success(messages.commentAdded)
     },
     onError: () => {
-      toast.error('Error al crear el comentario')
+      toast.error(messages.commentAddError)
     },
   })
 
@@ -297,10 +320,10 @@ export function useLogbooks({ date, enabled = true }: UseLogbooksOptions) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: logbookKeys.list(date) })
-      toast.success('Comentario actualizado correctamente')
+      toast.success(messages.commentUpdated)
     },
     onError: (error) => {
-      const message = error instanceof Error ? error.message : 'Error al actualizar el comentario'
+      const message = error instanceof Error ? error.message : messages.commentUpdateError
       toast.error(message)
     },
   })
@@ -314,10 +337,10 @@ export function useLogbooks({ date, enabled = true }: UseLogbooksOptions) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: logbookKeys.list(date) })
-      toast.success('Comentario eliminado correctamente')
+      toast.success(messages.commentDeleted)
     },
     onError: (error) => {
-      const message = error instanceof Error ? error.message : 'Error al eliminar el comentario'
+      const message = error instanceof Error ? error.message : messages.commentDeleteError
       toast.error(message)
     },
   })

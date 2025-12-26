@@ -5,6 +5,7 @@
 import { useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 import { IoChevronBack, IoCreateOutline } from 'react-icons/io5'
 import { Card } from '@/app/components/blacklist/ui/Card'
 import { Button } from '@/app/components/blacklist/ui/Button'
@@ -38,6 +39,7 @@ export function BlacklistDetailClient({
   entry: initialEntry,
   audit_trail,
 }: BlacklistDetailClientProps) {
+  const t = useTranslations('blacklist')
   const router = useRouter()
   const searchParams = useSearchParams()
   const panel = searchParams.get('panel')
@@ -72,7 +74,7 @@ export function BlacklistDetailClient({
             className="inline-flex items-center gap-1.5 text-xs text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 mb-4 transition-colors"
           >
             <IoChevronBack size={14} />
-            Volver a la lista
+            {t('detail.backToList')}
           </Link>
 
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -95,7 +97,7 @@ export function BlacklistDetailClient({
                   {SEVERITY_LEVELS[entry.severity]}
                 </Badge>
                 <Badge variant={entry.status === 'ACTIVE' ? 'success' : 'default'}>
-                  {entry.status === 'ACTIVE' ? 'Activo' : 'Eliminado'}
+                  {entry.status === 'ACTIVE' ? t('status.active') : t('status.deleted')}
                 </Badge>
               </div>
             </div>
@@ -107,7 +109,7 @@ export function BlacklistDetailClient({
                   leftIcon={<IoCreateOutline size={16} />}
                   onClick={handleOpenEditPanel}
                 >
-                  Editar
+                  {t('detail.edit')}
                 </Button>
                 <DeleteButton entryId={entry.id} />
               </div>
@@ -124,7 +126,7 @@ export function BlacklistDetailClient({
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 font-medium">
-                  Gravedad
+                  {t('detail.severityLevel')}
                 </p>
                 <p
                   className={`text-sm sm:text-base font-bold mt-0.5 ${
@@ -158,7 +160,7 @@ export function BlacklistDetailClient({
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 font-medium">
-                  Entrada
+                  {t('detail.entry')}
                 </p>
                 <p className="text-sm sm:text-base font-bold text-gray-900 dark:text-gray-100 mt-0.5">
                   {formatDate(entry.check_in_date)}
@@ -172,7 +174,7 @@ export function BlacklistDetailClient({
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 font-medium">
-                  Salida
+                  {t('detail.exit')}
                 </p>
                 <p className="text-sm sm:text-base font-bold text-gray-900 dark:text-gray-100 mt-0.5">
                   {formatDate(entry.check_out_date)}
@@ -186,10 +188,10 @@ export function BlacklistDetailClient({
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 font-medium">
-                  Estancia
+                  {t('detail.stay')}
                 </p>
                 <p className="text-sm sm:text-base font-bold text-gray-900 dark:text-gray-100 mt-0.5">
-                  {stayDays} {stayDays === 1 ? 'dia' : 'dias'}
+                  {stayDays} {stayDays === 1 ? t('detail.day') : t('detail.days')}
                 </p>
               </div>
               <FiClock className="w-5 h-5 sm:w-6 sm:h-6 text-blue-500 dark:text-blue-400" />
@@ -205,12 +207,12 @@ export function BlacklistDetailClient({
             <Card className="bg-gray-50 dark:bg-[#0D1117] border-gray-200 dark:border-gray-800">
               <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
                 <IoDocumentTextOutline size={18} />
-                Informacion del documento
+                {t('detail.documentInfo')}
               </h3>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">
-                    Tipo de documento
+                    {t('detail.documentType')}
                   </div>
                   <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
                     {DOCUMENT_TYPES[entry.document_type]}
@@ -218,7 +220,7 @@ export function BlacklistDetailClient({
                 </div>
                 <div>
                   <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">
-                    Numero de documento
+                    {t('detail.documentNumber')}
                   </div>
                   <div className="text-sm font-medium text-gray-900 dark:text-gray-100 font-mono">
                     {entry.document_number}
@@ -231,25 +233,25 @@ export function BlacklistDetailClient({
             <Card className="dark:bg-[#0D1117] border-gray-200 dark:border-gray-800 min-[1400px]:hidden">
               <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
                 <IoCalendarOutline size={18} />
-                Fechas de hospedaje
+                {t('detail.stayDates')}
               </h3>
               <div className="grid grid-cols-3 gap-4">
                 <div>
-                  <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">Entrada</div>
+                  <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">{t('detail.entry')}</div>
                   <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
                     {formatDate(entry.check_in_date)}
                   </div>
                 </div>
                 <div>
-                  <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">Salida</div>
+                  <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">{t('detail.exit')}</div>
                   <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
                     {formatDate(entry.check_out_date)}
                   </div>
                 </div>
                 <div>
-                  <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">Estancia</div>
+                  <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">{t('detail.stay')}</div>
                   <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                    {stayDays} {stayDays === 1 ? 'dia' : 'dias'}
+                    {stayDays} {stayDays === 1 ? t('detail.day') : t('detail.days')}
                   </div>
                 </div>
               </div>
@@ -259,7 +261,7 @@ export function BlacklistDetailClient({
             <Card className="dark:bg-[#0D1117] border-gray-200 dark:border-gray-800">
               <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
                 <IoWarningOutline size={18} />
-                Motivo del incidente
+                {t('detail.incidentReason')}
               </h3>
               <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
                 {entry.reason}
@@ -269,7 +271,7 @@ export function BlacklistDetailClient({
             {/* Comentarios */}
             <Card className="dark:bg-[#0D1117] border-gray-200 dark:border-gray-800">
               <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-4">
-                Comentarios adicionales
+                {t('detail.additionalComments')}
               </h3>
               <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
                 {entry.comments}
@@ -279,7 +281,7 @@ export function BlacklistDetailClient({
             {/* Imagenes */}
             <Card className="dark:bg-[#0D1117] border-gray-200 dark:border-gray-800">
               <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-4">
-                Evidencia fotografica ({entry.images.length})
+                {t('detail.photoEvidence')} ({entry.images.length})
               </h3>
               <ImageGallery images={entry.images} alt={`Evidencia de ${entry.guest_name}`} />
             </Card>
@@ -288,20 +290,20 @@ export function BlacklistDetailClient({
             <Card className="dark:bg-[#0D1117] border-gray-200 dark:border-gray-800 min-[1400px]:hidden">
               <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
                 <IoPersonOutline size={18} />
-                Informacion del registro
+                {t('detail.recordInfo')}
               </h3>
               <div className="space-y-3">
                 <div>
                   <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">
-                    Registrado por
+                    {t('detail.registeredBy')}
                   </div>
                   <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                    {entry.created_by_username || 'Desconocido'}
+                    {entry.created_by_username || t('detail.unknown')}
                   </div>
                 </div>
                 <div>
                   <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">
-                    Fecha de registro
+                    {t('detail.registrationDate')}
                   </div>
                   <div className="text-xs text-gray-900 dark:text-gray-100">
                     {formatDateTime(entry.created_at)}
@@ -310,7 +312,7 @@ export function BlacklistDetailClient({
                 {entry.updated_at && (
                   <div>
                     <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">
-                      Ultima modificacion
+                      {t('detail.lastModification')}
                     </div>
                     <div className="text-xs text-gray-900 dark:text-gray-100">
                       {formatDateTime(entry.updated_at)}
@@ -323,7 +325,7 @@ export function BlacklistDetailClient({
             {/* Historial */}
             <Card className="dark:bg-[#0D1117] border-gray-200 dark:border-gray-800">
               <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-4">
-                Historial de cambios
+                {t('detail.changeHistory')}
               </h3>
               <AuditTrail entries={audit_trail} />
             </Card>

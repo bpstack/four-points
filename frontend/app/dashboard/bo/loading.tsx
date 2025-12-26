@@ -6,9 +6,14 @@
  * Next.js automatically wraps page.tsx in a Suspense boundary with this fallback.
  */
 
-import { StatsCardsSkeleton } from '@/app/components/bo/StatsCards'
+'use client'
+
+import { useTranslations } from 'next-intl'
+import { StatsCardsSkeleton } from '@/app/components/bo/StatsCardsSkeleton'
 
 export default function BackOfficeLoading() {
+  const t = useTranslations('backoffice')
+
   return (
     <div className="min-h-screen bg-white dark:bg-[#010409] p-4 md:p-6">
       <div className="max-w-[1600px] space-y-5">
@@ -17,10 +22,10 @@ export default function BackOfficeLoading() {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
               <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">
-                Back Office
+                {t('loading.title')}
               </h1>
               <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-0.5">
-                Gestión de facturas y proveedores
+                {t('loading.subtitle')}
               </p>
             </div>
           </div>

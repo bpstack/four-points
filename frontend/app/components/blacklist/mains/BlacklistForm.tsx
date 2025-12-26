@@ -10,12 +10,11 @@
  * - Estados de loading y errores
  */
 
-'use client'
-
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useTranslations } from 'next-intl'
 import toast from 'react-hot-toast'
 import { Input } from '@/app/components/blacklist/ui/Input'
 import { TextArea } from '@/app/components/blacklist/ui/TextArea'
@@ -52,6 +51,7 @@ interface BlacklistFormProps {
 }
 
 export function BlacklistForm({ mode, initialData, onSuccess }: BlacklistFormProps) {
+  const t = useTranslations('blacklist')
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [uploadingImages, setUploadingImages] = useState(false)
@@ -110,13 +110,13 @@ export function BlacklistForm({ mode, initialData, onSuccess }: BlacklistFormPro
       if (mode === 'create') {
         if (formImages.length > 0) {
           setUploadingImages(true)
-          toast.loading('Subiendo imágenes...')
+          toast.loading(t('messages.uploadingImages'))
 
           const uploadedImages = await blacklistApi.uploadImages(formImages)
           imageUrls = uploadedImages.map((img) => img.secure_url)
 
           toast.dismiss()
-          toast.success(`${imageUrls.length} imágenes subidas correctamente`)
+          toast.success(t('messages.imagesUploaded', { count: imageUrls.length }))
         }
       }
       // 2. MODO EDITAR: Mantener existentes + nuevas
@@ -127,14 +127,14 @@ export function BlacklistForm({ mode, initialData, onSuccess }: BlacklistFormPro
         // Si hay nuevas imágenes, subirlas
         if (formImages.length > 0) {
           setUploadingImages(true)
-          toast.loading('Subiendo nuevas imágenes...')
+          toast.loading(t('messages.uploadingImages'))
 
           const uploadedImages = await blacklistApi.uploadImages(formImages)
           const newImageUrls = uploadedImages.map((img) => img.secure_url)
           imageUrls = [...imageUrls, ...newImageUrls]
 
           toast.dismiss()
-          toast.success(`${newImageUrls.length} nuevas imágenes subidas`)
+          toast.success(t('messages.newImagesUploaded', { count: newImageUrls.length }))
         }
       }
 
@@ -157,10 +157,10 @@ export function BlacklistForm({ mode, initialData, onSuccess }: BlacklistFormPro
       let result
 
       if (mode === 'create') {
-        toast.loading('Creando registro...')
+        toast.loading(t('messages.creatingEntry'))
         result = await createBlacklist(payload)
       } else {
-        toast.loading('Actualizando registro...')
+        toast.loading(t('messages.updatingEntry'))
         result = await updateBlacklist(initialData!.id, payload)
       }
 
@@ -168,7 +168,7 @@ export function BlacklistForm({ mode, initialData, onSuccess }: BlacklistFormPro
 
       if (result.success) {
         toast.success(
-          mode === 'create' ? 'Registro creado exitosamente' : 'Registro actualizado exitosamente'
+          mode === 'create' ? t('messages.createSuccess') : t('messages.updateSuccess')
         )
 
         if (onSuccess) {
@@ -177,10 +177,10 @@ export function BlacklistForm({ mode, initialData, onSuccess }: BlacklistFormPro
           router.push('/dashboard/blacklist')
         }
       } else {
-        toast.error(result.error || 'Error al guardar el registro')
+        toast.error(result.error || t('messages.saveError'))
       }
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Error al procesar el formulario'
+      const message = error instanceof Error ? error.message : t('messages.formError')
       console.error('Error en submit:', message)
       toast.dismiss()
       toast.error(message)
@@ -191,7 +191,7 @@ export function BlacklistForm({ mode, initialData, onSuccess }: BlacklistFormPro
   }
 
   const handleCancel = () => {
-    if (confirm('¿Estás seguro de cancelar? Se perderán los cambios no guardados.')) {
+    if (confirm(t('form.cancelConfirm'))) {
       router.back()
     }
   }
@@ -201,14 +201,14 @@ export function BlacklistForm({ mode, initialData, onSuccess }: BlacklistFormPro
       {/* Información del huésped */}
       <div className="bg-gray-50 dark:bg-[#0D1117] border border-gray-200 dark:border-gray-800 rounded-lg p-6">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
-          Información del huésped
+          {t('form.guestInfo')}
         </h3>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="md:col-span-2">
             <Input
-              label="Nombre completo"
-              placeholder="Nombre y apellidos del huésped"
+              label={t('form.fullName')}
+              placeholder={t('form.fullNamePlaceholder')}
               {...register('guest_name')}
               error={errors.guest_name?.message}
               required
@@ -216,7 +216,7 @@ export function BlacklistForm({ mode, initialData, onSuccess }: BlacklistFormPro
           </div>
 
           <Select
-            label="Tipo de documento"
+            label={t('form.documentType')}
             {...register('document_type')}
             error={errors.document_type?.message}
             options={Object.entries(DOCUMENT_TYPES).map(([value, label]) => ({
@@ -227,8 +227,8 @@ export function BlacklistForm({ mode, initialData, onSuccess }: BlacklistFormPro
           />
 
           <Input
-            label="Número de documento"
-            placeholder="12345678A"
+            label={t('form.documentNumber')}
+            placeholder={t('form.documentPlaceholder')}
             {...register('document_number')}
             error={errors.document_number?.message}
             required
@@ -239,7 +239,7 @@ export function BlacklistForm({ mode, initialData, onSuccess }: BlacklistFormPro
       {/* Fechas de hospedaje */}
       <div className="bg-gray-100 dark:bg-[#0D1117] border border-gray-200 dark:border-gray-800 rounded-lg p-6">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
-          Fechas de hospedaje
+          {t('form.stayDates')}
         </h3>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -249,7 +249,7 @@ export function BlacklistForm({ mode, initialData, onSuccess }: BlacklistFormPro
             render={({ field }) => (
               <div>
                 <label className="block text-sm font-medium text-gray-900 dark:text-gray-100 mb-1.5">
-                  Fecha de entrada <span className="text-red-500">*</span>
+                  {t('form.checkInDate')} <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="date"
@@ -272,7 +272,7 @@ export function BlacklistForm({ mode, initialData, onSuccess }: BlacklistFormPro
             render={({ field }) => (
               <div>
                 <label className="block text-sm font-medium text-gray-900 dark:text-gray-100 mb-1.5">
-                  Fecha de salida <span className="text-red-500">*</span>
+                  {t('form.checkOutDate')} <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="date"
@@ -294,12 +294,12 @@ export function BlacklistForm({ mode, initialData, onSuccess }: BlacklistFormPro
       {/* Motivo y gravedad */}
       <div className="bg-gray-50 dark:bg-[#0D1117] border border-gray-200 dark:border-gray-800 rounded-lg p-6">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
-          Detalles del incidente
+          {t('form.incidentDetails')}
         </h3>
 
         <div className="space-y-4">
           <Select
-            label="Nivel de gravedad"
+            label={t('form.severityLevel')}
             {...register('severity')}
             error={errors.severity?.message}
             options={Object.entries(SEVERITY_LEVELS).map(([value, label]) => ({
@@ -310,8 +310,8 @@ export function BlacklistForm({ mode, initialData, onSuccess }: BlacklistFormPro
           />
 
           <TextArea
-            label="Motivo de inclusión en blacklist"
-            placeholder="Describe el motivo por el cual se incluye al huésped en la lista negra..."
+            label={t('form.inclusionReasonFull')}
+            placeholder={t('form.inclusionReasonPlaceholder')}
             {...register('reason')}
             error={errors.reason?.message}
             rows={4}
@@ -319,8 +319,8 @@ export function BlacklistForm({ mode, initialData, onSuccess }: BlacklistFormPro
           />
 
           <TextArea
-            label="Comentarios adicionales del recepcionista"
-            placeholder="Agrega cualquier información adicional relevante..."
+            label={t('form.additionalCommentsReceptionist')}
+            placeholder={t('form.additionalCommentsPlaceholder')}
             {...register('comments')}
             error={errors.comments?.message}
             rows={4}
@@ -332,7 +332,7 @@ export function BlacklistForm({ mode, initialData, onSuccess }: BlacklistFormPro
       {/* Imágenes */}
       <div className="bg-gray-50 dark:bg-[#0D1117] border border-gray-200 dark:border-gray-800 rounded-lg p-6">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
-          Evidencia fotográfica
+          {t('form.photoEvidence')}
         </h3>
 
         <Controller
@@ -340,14 +340,14 @@ export function BlacklistForm({ mode, initialData, onSuccess }: BlacklistFormPro
           control={control}
           render={({ field }) => (
             <ImageUploader
-              label={mode === 'create' ? 'Subir imágenes' : 'Agregar nuevas imágenes'}
+              label={mode === 'create' ? t('form.uploadImages') : t('form.addNewImages')}
               value={field.value}
               onChange={field.onChange}
               error={errors.images?.message}
               helperText={
                 mode === 'create'
-                  ? 'Sube entre 1 y 5 imágenes como evidencia del incidente (máx. 5MB cada una)'
-                  : 'Puedes agregar más imágenes al registro existente'
+                  ? t('form.uploadHint')
+                  : t('form.uploadHintEdit')
               }
               maxFiles={5}
               maxSizeMB={5}
@@ -360,7 +360,7 @@ export function BlacklistForm({ mode, initialData, onSuccess }: BlacklistFormPro
         {mode === 'edit' && initialData?.images && initialData.images.length > 0 && (
           <div className="mt-4">
             <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Imágenes actuales ({initialData.images.length}):
+              {t('form.currentImages')} ({initialData.images.length}):
             </p>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
               {initialData.images.map((url, index) => (
@@ -384,7 +384,7 @@ export function BlacklistForm({ mode, initialData, onSuccess }: BlacklistFormPro
       {/* Botones de acción */}
       <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-800">
         <Button type="button" variant="ghost" onClick={handleCancel} disabled={isSubmitting}>
-          Cancelar
+          {t('form.cancel')}
         </Button>
 
         <Button
@@ -395,11 +395,11 @@ export function BlacklistForm({ mode, initialData, onSuccess }: BlacklistFormPro
         >
           {isSubmitting || uploadingImages
             ? uploadingImages
-              ? 'Subiendo imágenes...'
-              : 'Guardando...'
+              ? t('form.uploadingImages')
+              : t('form.saving')
             : mode === 'create'
-              ? 'Crear registro'
-              : 'Guardar cambios'}
+              ? t('form.createEntry')
+              : t('form.saveChanges')}
         </Button>
       </div>
     </form>

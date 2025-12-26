@@ -3,11 +3,13 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { FiChevronLeft, FiChevronRight, FiCalendar, FiPlus } from 'react-icons/fi'
+import { useTranslations } from 'next-intl'
 import { conciliationApi, type ConciliationDetail } from '@/app/lib/conciliation'
 import HorizontalDatePicker from '@/app/ui/calendar/HorizontalDatePicker'
 import ConciliationForm from './ConciliationForm'
 
 export default function ConciliationClient() {
+  const t = useTranslations('conciliation')
   const [currentDate, setCurrentDate] = useState(new Date())
   const [selectedDay, setSelectedDay] = useState(new Date().getDate())
   const [selectedConciliation, setSelectedConciliation] = useState<ConciliationDetail | null>(null)
@@ -31,12 +33,12 @@ export default function ConciliationClient() {
         setDayStatusMessage('')
       } else {
         setSelectedConciliation(null)
-        setDayStatusMessage('No hay conciliacion para este dia.')
+        setDayStatusMessage(t('page.noConciliation'))
       }
     } catch (error: unknown) {
       console.error('Error loading conciliation:', error)
       setSelectedConciliation(null)
-      setDayStatusMessage('Error cargando conciliacion.')
+      setDayStatusMessage(t('page.errorLoading'))
     } finally {
       setLoading(false)
     }
@@ -58,10 +60,10 @@ export default function ConciliationClient() {
       console.error('Error creating conciliation:', error)
       const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
       if (errorMessage.includes('Ya existe')) {
-        setDayStatusMessage('Ya existe una conciliacion para esta fecha')
+        setDayStatusMessage(t('page.alreadyExists'))
         await loadConciliation(currentYear, currentDate.getMonth() + 1, selectedDay)
       } else {
-        setDayStatusMessage('Error al crear conciliacion')
+        setDayStatusMessage(t('page.errorCreating'))
       }
     }
   }
@@ -127,11 +129,11 @@ export default function ConciliationClient() {
                 onClick={goToToday}
                 className="ml-3 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-700 rounded-md hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors flex items-center gap-1"
               >
-                <FiCalendar className="w-4 h-4" /> Hoy
+                <FiCalendar className="w-4 h-4" /> {t('header.today')}
               </button>
               {selectedConciliation && (
                 <div className="ml-4 text-sm text-gray-700 dark:text-gray-400 flex-shrink-0">
-                  Estado:{' '}
+                  {t('header.status')}:{' '}
                   <span
                     className={`font-medium px-2 py-0.5 rounded ${
                       selectedConciliation.status === 'draft'
@@ -142,10 +144,10 @@ export default function ConciliationClient() {
                     }`}
                   >
                     {selectedConciliation.status === 'draft'
-                      ? 'Borrador'
+                      ? t('status.draft')
                       : selectedConciliation.status === 'confirmed'
-                        ? 'Confirmado'
-                        : 'Cerrado'}
+                        ? t('status.confirmed')
+                        : t('status.closed')}
                   </span>
                 </div>
               )}
@@ -155,7 +157,7 @@ export default function ConciliationClient() {
                 onClick={handleCreateConciliation}
                 className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 rounded-md transition-colors"
               >
-                <FiPlus className="w-4 h-4" /> Nueva Conciliacion
+                <FiPlus className="w-4 h-4" /> {t('header.newConciliation')}
               </button>
             )}
           </div>
@@ -183,14 +185,14 @@ export default function ConciliationClient() {
               onClick={goToToday}
               className="px-2.5 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors flex items-center gap-1 flex-shrink-0"
             >
-              <FiCalendar className="w-3.5 h-3.5" /> Hoy
+              <FiCalendar className="w-3.5 h-3.5" /> {t('header.today')}
             </button>
             {!selectedConciliation && (
               <button
                 onClick={handleCreateConciliation}
                 className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 rounded-lg transition-colors whitespace-nowrap flex-shrink-0"
               >
-                <FiPlus className="w-3.5 h-3.5" /> Nueva
+                <FiPlus className="w-3.5 h-3.5" /> {t('header.newMobile')}
               </button>
             )}
           </div>

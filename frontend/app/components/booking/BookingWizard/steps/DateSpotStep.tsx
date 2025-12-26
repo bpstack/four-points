@@ -2,6 +2,7 @@
 
 import { useRef, useEffect } from 'react'
 import { FaCalendar, FaSpinner, FaArrowLeft } from 'react-icons/fa'
+import { useTranslations } from 'next-intl'
 import { formatDateLocal, formatDateForInput } from '@/app/lib/helpers/date'
 import SimpleCalendar from '@/app/ui/calendar/simplecalendar'
 import TimePicker from '@/app/ui/calendar/timepicker'
@@ -35,6 +36,7 @@ const styles = {
 }
 
 export default function DateSpotStep({ state, actions }: DateSpotStepProps) {
+  const t = useTranslations('booking')
   const checkinRef = useRef<HTMLDivElement>(null)
   const checkoutRef = useRef<HTMLDivElement>(null)
 
@@ -59,7 +61,7 @@ export default function DateSpotStep({ state, actions }: DateSpotStepProps) {
     <div className={styles.card}>
       <div className="flex gap-2 items-center mb-4">
         <FaCalendar className="w-5 h-5 text-[#0969da] dark:text-[#58a6ff]" />
-        <h2 className={styles.sectionTitle}>Fechas y Plaza</h2>
+        <h2 className={styles.sectionTitle}>{t('dates.title')}</h2>
       </div>
 
       <div className="space-y-4">
@@ -68,7 +70,7 @@ export default function DateSpotStep({ state, actions }: DateSpotStepProps) {
           {/* Check-in */}
           <div className="relative" ref={checkinRef}>
             <label className={styles.label}>
-              Check-in <span className="text-[#cf222e] dark:text-[#f85149]">*</span>
+              {t('dates.checkin')} <span className="text-[#cf222e] dark:text-[#f85149]">*</span>
             </label>
             <button
               type="button"
@@ -87,7 +89,7 @@ export default function DateSpotStep({ state, actions }: DateSpotStepProps) {
               >
                 {state.reservationData.expected_checkin_date
                   ? formatDateLocal(new Date(state.reservationData.expected_checkin_date))
-                  : 'Seleccionar fecha'}
+                  : t('dates.selectDate')}
               </span>
               <FaCalendar className="w-4 h-4 text-[#57606a] dark:text-[#8b949e]" />
             </button>
@@ -116,7 +118,7 @@ export default function DateSpotStep({ state, actions }: DateSpotStepProps) {
                 value={state.reservationData.expected_checkin_time}
                 onChange={(t) => actions.setReservationData({ expected_checkin_time: t })}
                 openTo="right"
-                label="Hora Entrada"
+                label={t('dates.entryTime')}
               />
             </div>
           </div>
@@ -124,7 +126,7 @@ export default function DateSpotStep({ state, actions }: DateSpotStepProps) {
           {/* Check-out */}
           <div className="relative" ref={checkoutRef}>
             <label className={styles.label}>
-              Check-out <span className="text-[#cf222e] dark:text-[#f85149]">*</span>
+              {t('dates.checkout')} <span className="text-[#cf222e] dark:text-[#f85149]">*</span>
             </label>
             <button
               type="button"
@@ -143,7 +145,7 @@ export default function DateSpotStep({ state, actions }: DateSpotStepProps) {
               >
                 {state.reservationData.expected_checkout_date
                   ? formatDateLocal(new Date(state.reservationData.expected_checkout_date))
-                  : 'Seleccionar fecha'}
+                  : t('dates.selectDate')}
               </span>
               <FaCalendar className="w-4 h-4 text-[#57606a] dark:text-[#8b949e]" />
             </button>
@@ -172,7 +174,7 @@ export default function DateSpotStep({ state, actions }: DateSpotStepProps) {
                 value={state.reservationData.expected_checkout_time}
                 onChange={(t) => actions.setReservationData({ expected_checkout_time: t })}
                 openTo="left"
-                label="Hora Salida"
+                label={t('dates.exitTime')}
               />
             </div>
           </div>
@@ -182,7 +184,7 @@ export default function DateSpotStep({ state, actions }: DateSpotStepProps) {
         {state.reservationData.expected_checkin_date &&
           state.reservationData.expected_checkout_date && (
             <div className="p-2 bg-[#f6f8fa] dark:bg-[#0d1117] border border-[#d0d7de] dark:border-[#30363d] rounded text-sm text-[#57606a] dark:text-[#8b949e]">
-              <strong>{actions.calculateDays()}</strong> día(s) de estancia
+              <strong>{actions.calculateDays()}</strong> {t('dates.daysStay')}
             </div>
           )}
 
@@ -204,10 +206,10 @@ export default function DateSpotStep({ state, actions }: DateSpotStepProps) {
           {state.loading ? (
             <>
               <FaSpinner className="w-4 h-4 animate-spin" />
-              Buscando...
+              {t('dates.searchingSpots')}
             </>
           ) : (
-            'Buscar Plazas Disponibles'
+            t('dates.searchSpotsButton')
           )}
         </button>
 
@@ -215,7 +217,7 @@ export default function DateSpotStep({ state, actions }: DateSpotStepProps) {
         {state.availableSpots.length > 0 && (
           <div>
             <h3 className="text-sm font-medium text-[#24292f] dark:text-[#c9d1d9] mb-2">
-              Plazas disponibles ({state.availableSpots.length})
+              {t('dates.availableSpots', { count: state.availableSpots.length })}
             </h3>
             <div className={styles.spotGrid}>
               {state.availableSpots.map((spot) => (
@@ -225,10 +227,10 @@ export default function DateSpotStep({ state, actions }: DateSpotStepProps) {
                   className={styles.spotCard(state.selectedSpot?.id === spot.id)}
                 >
                   <div className="text-xs sm:text-sm font-semibold text-[#24292f] dark:text-[#f0f6fc] mb-1">
-                    Planta {normalizeLevel(spot.level_code)}
+                    {t('dates.floor', { level: normalizeLevel(spot.level_code) })}
                   </div>
                   <div className="text-base sm:text-lg font-bold text-[#0969da] dark:text-[#58a6ff]">
-                    Nº {spot.spot_number}
+                    {t('dates.spotNumber', { number: spot.spot_number })}
                   </div>
                   <div className="text-xs text-[#57606a] dark:text-[#8b949e] capitalize mt-1 hidden sm:block">
                     {spot.spot_type.replace('_', ' ')}
@@ -242,51 +244,51 @@ export default function DateSpotStep({ state, actions }: DateSpotStepProps) {
         {/* Campos adicionales - RESPONSIVE */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
           <div>
-            <label className={styles.label}>Precio Manual (opcional)</label>
+            <label className={styles.label}>{t('details.priceManual')}</label>
             <input
               type="number"
               step="0.01"
               value={state.reservationData.total_amount}
               onChange={(e) => actions.setReservationData({ total_amount: e.target.value })}
-              placeholder="Dejar vacío = auto"
+              placeholder={t('details.pricePlaceholder')}
               className={styles.input}
             />
           </div>
 
           <div>
-            <label className={styles.label}>Fuente</label>
+            <label className={styles.label}>{t('details.source')}</label>
             <select
               value={state.reservationData.booking_source}
               onChange={(e) => actions.setReservationData({ booking_source: e.target.value })}
               className={styles.input}
             >
-              <option value="direct">Directo</option>
-              <option value="booking_com">Booking.com</option>
-              <option value="airbnb">Airbnb</option>
-              <option value="expedia">Expedia</option>
-              <option value="agency_other">Otra Agencia</option>
+              <option value="direct">{t('sources.direct')}</option>
+              <option value="booking_com">{t('sources.booking_com')}</option>
+              <option value="airbnb">{t('sources.airbnb')}</option>
+              <option value="expedia">{t('sources.expedia')}</option>
+              <option value="agency_other">{t('sources.agency_other')}</option>
             </select>
           </div>
         </div>
 
         <div>
-          <label className={styles.label}>Código Externo (opcional)</label>
+          <label className={styles.label}>{t('details.externalCode')}</label>
           <input
             type="text"
             value={state.reservationData.external_booking_id}
             onChange={(e) => actions.setReservationData({ external_booking_id: e.target.value })}
-            placeholder="BK123456, AIR789..."
+            placeholder={t('details.externalCodePlaceholder')}
             className={styles.input}
           />
         </div>
 
         <div>
-          <label className={styles.label}>Notas (opcional)</label>
+          <label className={styles.label}>{t('details.notesOptional')}</label>
           <textarea
             value={state.reservationData.notes}
             onChange={(e) => actions.setReservationData({ notes: e.target.value })}
             rows={3}
-            placeholder="Información adicional sobre la reserva..."
+            placeholder={t('details.notesPlaceholder')}
             className={styles.input + ' resize-none'}
           />
         </div>
@@ -300,14 +302,14 @@ export default function DateSpotStep({ state, actions }: DateSpotStepProps) {
               ' flex-1 flex items-center justify-center gap-2 order-2 sm:order-1'
             }
           >
-            <FaArrowLeft className="w-3 h-3" /> Atrás
+            <FaArrowLeft className="w-3 h-3" /> {t('actions.back')}
           </button>
           <button
             onClick={actions.nextStep}
             disabled={!state.selectedSpot}
             className={styles.buttonPrimary + ' flex-1 order-1 sm:order-2'}
           >
-            Continuar
+            {t('actions.continue')}
           </button>
         </div>
       </div>

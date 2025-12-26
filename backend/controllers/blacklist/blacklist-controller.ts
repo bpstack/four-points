@@ -14,6 +14,7 @@ import {
   idParamSchema,
 } from '../../validations/blacklist/schemas.js'
 import type { BlacklistFilters } from '../../models/blacklist/index.js'
+import { ERROR_CODES, SUCCESS_CODES } from '../../config/error-codes.js'
 
 // ========================================
 // CONTROLLER
@@ -31,7 +32,9 @@ export class BlacklistController {
 
       if (!parseResult.success) {
         res.status(400).json({
-          error: 'Parámetros de búsqueda inválidos',
+          success: false,
+          error: ERROR_CODES.BLACKLIST_INVALID_SEARCH_PARAMS,
+          code: ERROR_CODES.BLACKLIST_INVALID_SEARCH_PARAMS,
           details: parseResult.error.flatten().fieldErrors,
         })
         return
@@ -42,6 +45,7 @@ export class BlacklistController {
       const { entries, pagination } = await BlacklistRepository.getAll(filters)
 
       res.json({
+        success: true,
         entries,
         pagination,
         filters_applied: filters,
@@ -49,8 +53,9 @@ export class BlacklistController {
     } catch (error: any) {
       console.error('[BlacklistController.getAll] Error:', error.message)
       res.status(500).json({
-        error: 'Error al obtener los registros',
-        message: error.message,
+        success: false,
+        error: ERROR_CODES.BLACKLIST_FETCH_RECORDS_ERROR,
+        code: ERROR_CODES.BLACKLIST_FETCH_RECORDS_ERROR,
       })
     }
   }
@@ -66,7 +71,9 @@ export class BlacklistController {
 
       if (!parseResult.success) {
         res.status(400).json({
-          error: 'ID inválido',
+          success: false,
+          error: ERROR_CODES.INVALID_ID,
+          code: ERROR_CODES.INVALID_ID,
           details: parseResult.error.flatten().fieldErrors,
         })
         return
@@ -78,20 +85,24 @@ export class BlacklistController {
 
       if (!entry) {
         res.status(404).json({
-          error: 'Registro no encontrado',
+          success: false,
+          error: ERROR_CODES.BLACKLIST_RECORD_NOT_FOUND,
+          code: ERROR_CODES.BLACKLIST_RECORD_NOT_FOUND,
         })
         return
       }
 
       res.json({
+        success: true,
         entry,
         audit_trail: entry.audit_trail || [],
       })
     } catch (error: any) {
       console.error('[BlacklistController.getById] Error:', error.message)
       res.status(500).json({
-        error: 'Error al obtener el registro',
-        message: error.message,
+        success: false,
+        error: ERROR_CODES.BLACKLIST_FETCH_RECORD_ERROR,
+        code: ERROR_CODES.BLACKLIST_FETCH_RECORD_ERROR,
       })
     }
   }
@@ -105,7 +116,9 @@ export class BlacklistController {
       // Verificar autenticación
       if (!req.user?.id || !req.user?.username) {
         res.status(401).json({
-          error: 'No autorizado',
+          success: false,
+          error: ERROR_CODES.UNAUTHORIZED,
+          code: ERROR_CODES.UNAUTHORIZED,
         })
         return
       }
@@ -115,7 +128,9 @@ export class BlacklistController {
 
       if (!parseResult.success) {
         res.status(400).json({
-          error: 'Datos inválidos',
+          success: false,
+          error: ERROR_CODES.INVALID_DATA,
+          code: ERROR_CODES.INVALID_DATA,
           details: parseResult.error.flatten().fieldErrors,
         })
         return
@@ -127,8 +142,9 @@ export class BlacklistController {
       const exists = await BlacklistRepository.existsByDocument(data.document_number)
       if (exists) {
         res.status(409).json({
-          error: 'Documento ya registrado',
-          message: `El documento ${data.document_number} ya existe en la blacklist activa`,
+          success: false,
+          error: ERROR_CODES.BLACKLIST_DOCUMENT_EXISTS,
+          code: ERROR_CODES.BLACKLIST_DOCUMENT_EXISTS,
         })
         return
       }
@@ -137,14 +153,17 @@ export class BlacklistController {
       const entry = await BlacklistRepository.create(data, req.user.id, req.user.username)
 
       res.status(201).json({
-        message: 'Registro creado correctamente',
+        success: true,
+        message: SUCCESS_CODES.BLACKLIST_RECORD_CREATED,
+        code: SUCCESS_CODES.BLACKLIST_RECORD_CREATED,
         entry,
       })
     } catch (error: any) {
       console.error('[BlacklistController.create] Error:', error.message)
       res.status(500).json({
-        error: 'Error al crear el registro',
-        message: error.message,
+        success: false,
+        error: ERROR_CODES.BLACKLIST_CREATE_RECORD_ERROR,
+        code: ERROR_CODES.BLACKLIST_CREATE_RECORD_ERROR,
       })
     }
   }
@@ -158,7 +177,9 @@ export class BlacklistController {
       // Verificar autenticación
       if (!req.user?.id || !req.user?.username) {
         res.status(401).json({
-          error: 'No autorizado',
+          success: false,
+          error: ERROR_CODES.UNAUTHORIZED,
+          code: ERROR_CODES.UNAUTHORIZED,
         })
         return
       }
@@ -167,7 +188,9 @@ export class BlacklistController {
       const idResult = idParamSchema.safeParse(req.params)
       if (!idResult.success) {
         res.status(400).json({
-          error: 'ID inválido',
+          success: false,
+          error: ERROR_CODES.INVALID_ID,
+          code: ERROR_CODES.INVALID_ID,
           details: idResult.error.flatten().fieldErrors,
         })
         return
@@ -177,7 +200,9 @@ export class BlacklistController {
       const bodyResult = updateBlacklistSchema.safeParse(req.body)
       if (!bodyResult.success) {
         res.status(400).json({
-          error: 'Datos inválidos',
+          success: false,
+          error: ERROR_CODES.INVALID_DATA,
+          code: ERROR_CODES.INVALID_DATA,
           details: bodyResult.error.flatten().fieldErrors,
         })
         return
@@ -191,8 +216,9 @@ export class BlacklistController {
         const exists = await BlacklistRepository.existsByDocument(data.document_number, id)
         if (exists) {
           res.status(409).json({
-            error: 'Documento ya registrado',
-            message: `El documento ${data.document_number} ya existe en otro registro de la blacklist`,
+            success: false,
+            error: ERROR_CODES.BLACKLIST_DOCUMENT_EXISTS,
+            code: ERROR_CODES.BLACKLIST_DOCUMENT_EXISTS,
           })
           return
         }
@@ -203,29 +229,25 @@ export class BlacklistController {
 
       if (!entry) {
         res.status(404).json({
-          error: 'Registro no encontrado',
+          success: false,
+          error: ERROR_CODES.BLACKLIST_RECORD_NOT_FOUND,
+          code: ERROR_CODES.BLACKLIST_RECORD_NOT_FOUND,
         })
         return
       }
 
       res.json({
-        message: 'Registro actualizado correctamente',
+        success: true,
+        message: SUCCESS_CODES.BLACKLIST_RECORD_UPDATED,
+        code: SUCCESS_CODES.BLACKLIST_RECORD_UPDATED,
         entry,
       })
     } catch (error: any) {
       console.error('[BlacklistController.update] Error:', error.message)
-
-      // Manejar error de registro eliminado
-      if (error.message.includes('eliminado')) {
-        res.status(400).json({
-          error: error.message,
-        })
-        return
-      }
-
       res.status(500).json({
-        error: 'Error al actualizar el registro',
-        message: error.message,
+        success: false,
+        error: ERROR_CODES.BLACKLIST_UPDATE_RECORD_ERROR,
+        code: ERROR_CODES.BLACKLIST_UPDATE_RECORD_ERROR,
       })
     }
   }
@@ -239,7 +261,9 @@ export class BlacklistController {
       // Verificar autenticación
       if (!req.user?.id || !req.user?.username) {
         res.status(401).json({
-          error: 'No autorizado',
+          success: false,
+          error: ERROR_CODES.UNAUTHORIZED,
+          code: ERROR_CODES.UNAUTHORIZED,
         })
         return
       }
@@ -248,7 +272,9 @@ export class BlacklistController {
       const parseResult = idParamSchema.safeParse(req.params)
       if (!parseResult.success) {
         res.status(400).json({
-          error: 'ID inválido',
+          success: false,
+          error: ERROR_CODES.INVALID_ID,
+          code: ERROR_CODES.INVALID_ID,
           details: parseResult.error.flatten().fieldErrors,
         })
         return
@@ -260,28 +286,24 @@ export class BlacklistController {
 
       if (!deleted) {
         res.status(404).json({
-          error: 'Registro no encontrado',
+          success: false,
+          error: ERROR_CODES.BLACKLIST_RECORD_NOT_FOUND,
+          code: ERROR_CODES.BLACKLIST_RECORD_NOT_FOUND,
         })
         return
       }
 
       res.json({
-        message: 'Registro eliminado correctamente',
+        success: true,
+        message: SUCCESS_CODES.BLACKLIST_RECORD_DELETED,
+        code: SUCCESS_CODES.BLACKLIST_RECORD_DELETED,
       })
     } catch (error: any) {
       console.error('[BlacklistController.delete] Error:', error.message)
-
-      // Manejar error de registro ya eliminado
-      if (error.message.includes('ya está eliminado')) {
-        res.status(400).json({
-          error: error.message,
-        })
-        return
-      }
-
       res.status(500).json({
-        error: 'Error al eliminar el registro',
-        message: error.message,
+        success: false,
+        error: ERROR_CODES.BLACKLIST_DELETE_RECORD_ERROR,
+        code: ERROR_CODES.BLACKLIST_DELETE_RECORD_ERROR,
       })
     }
   }
@@ -295,7 +317,9 @@ export class BlacklistController {
       // Verificar autenticación
       if (!req.user?.id || !req.user?.username) {
         res.status(401).json({
-          error: 'No autorizado',
+          success: false,
+          error: ERROR_CODES.UNAUTHORIZED,
+          code: ERROR_CODES.UNAUTHORIZED,
         })
         return
       }
@@ -304,7 +328,9 @@ export class BlacklistController {
       const parseResult = idParamSchema.safeParse(req.params)
       if (!parseResult.success) {
         res.status(400).json({
-          error: 'ID inválido',
+          success: false,
+          error: ERROR_CODES.INVALID_ID,
+          code: ERROR_CODES.INVALID_ID,
           details: parseResult.error.flatten().fieldErrors,
         })
         return
@@ -316,29 +342,25 @@ export class BlacklistController {
 
       if (!entry) {
         res.status(404).json({
-          error: 'Registro no encontrado',
+          success: false,
+          error: ERROR_CODES.BLACKLIST_RECORD_NOT_FOUND,
+          code: ERROR_CODES.BLACKLIST_RECORD_NOT_FOUND,
         })
         return
       }
 
       res.json({
-        message: 'Registro restaurado correctamente',
+        success: true,
+        message: SUCCESS_CODES.BLACKLIST_RECORD_RESTORED,
+        code: SUCCESS_CODES.BLACKLIST_RECORD_RESTORED,
         entry,
       })
     } catch (error: any) {
       console.error('[BlacklistController.restore] Error:', error.message)
-
-      // Manejar error de registro ya activo
-      if (error.message.includes('ya está activo')) {
-        res.status(400).json({
-          error: error.message,
-        })
-        return
-      }
-
       res.status(500).json({
-        error: 'Error al restaurar el registro',
-        message: error.message,
+        success: false,
+        error: ERROR_CODES.BLACKLIST_RESTORE_RECORD_ERROR,
+        code: ERROR_CODES.BLACKLIST_RESTORE_RECORD_ERROR,
       })
     }
   }
@@ -351,12 +373,13 @@ export class BlacklistController {
     try {
       const stats = await BlacklistRepository.getStats()
 
-      res.json(stats)
+      res.json({ success: true, ...stats })
     } catch (error: any) {
       console.error('[BlacklistController.getStats] Error:', error.message)
       res.status(500).json({
-        error: 'Error al obtener estadísticas',
-        message: error.message,
+        success: false,
+        error: ERROR_CODES.BLACKLIST_FETCH_STATS_ERROR,
+        code: ERROR_CODES.BLACKLIST_FETCH_STATS_ERROR,
       })
     }
   }
@@ -370,7 +393,9 @@ export class BlacklistController {
       // Verificar autenticación
       if (!req.user?.id) {
         res.status(401).json({
-          error: 'No autorizado',
+          success: false,
+          error: ERROR_CODES.UNAUTHORIZED,
+          code: ERROR_CODES.UNAUTHORIZED,
         })
         return
       }
@@ -378,7 +403,9 @@ export class BlacklistController {
       // Verificar que se envió un archivo
       if (!req.file) {
         res.status(400).json({
-          error: 'No se envió ninguna imagen',
+          success: false,
+          error: ERROR_CODES.BLACKLIST_NO_IMAGE_SENT,
+          code: ERROR_CODES.BLACKLIST_NO_IMAGE_SENT,
         })
         return
       }
@@ -387,7 +414,9 @@ export class BlacklistController {
       const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
       if (!allowedTypes.includes(req.file.mimetype)) {
         res.status(400).json({
-          error: 'Tipo de archivo no permitido. Solo se permiten: JPG, PNG, WebP, GIF',
+          success: false,
+          error: ERROR_CODES.BLACKLIST_INVALID_FILE_TYPE,
+          code: ERROR_CODES.BLACKLIST_INVALID_FILE_TYPE,
         })
         return
       }
@@ -396,7 +425,9 @@ export class BlacklistController {
       const maxSize = 5 * 1024 * 1024
       if (req.file.size > maxSize) {
         res.status(400).json({
-          error: 'El archivo es demasiado grande. Máximo 5MB',
+          success: false,
+          error: ERROR_CODES.BLACKLIST_FILE_TOO_LARGE,
+          code: ERROR_CODES.BLACKLIST_FILE_TOO_LARGE,
         })
         return
       }
@@ -407,6 +438,7 @@ export class BlacklistController {
       console.log('[BlacklistController.uploadImage] Imagen subida:', result.public_id)
 
       res.status(201).json({
+        success: true,
         url: result.url,
         secure_url: result.secure_url,
         public_id: result.public_id,
@@ -417,8 +449,9 @@ export class BlacklistController {
     } catch (error: any) {
       console.error('[BlacklistController.uploadImage] Error:', error.message)
       res.status(500).json({
-        error: 'Error al subir imagen',
-        message: error.message,
+        success: false,
+        error: ERROR_CODES.BLACKLIST_UPLOAD_IMAGE_ERROR,
+        code: ERROR_CODES.BLACKLIST_UPLOAD_IMAGE_ERROR,
       })
     }
   }
@@ -432,7 +465,9 @@ export class BlacklistController {
       // Verificar autenticación
       if (!req.user?.id) {
         res.status(401).json({
-          error: 'No autorizado',
+          success: false,
+          error: ERROR_CODES.UNAUTHORIZED,
+          code: ERROR_CODES.UNAUTHORIZED,
         })
         return
       }
@@ -441,7 +476,9 @@ export class BlacklistController {
 
       if (!publicId) {
         res.status(400).json({
-          error: 'public_id no proporcionado',
+          success: false,
+          error: ERROR_CODES.BLACKLIST_PUBLIC_ID_MISSING,
+          code: ERROR_CODES.BLACKLIST_PUBLIC_ID_MISSING,
         })
         return
       }
@@ -453,7 +490,9 @@ export class BlacklistController {
 
       if (!deleted) {
         res.status(404).json({
-          error: 'Imagen no encontrada o ya eliminada',
+          success: false,
+          error: ERROR_CODES.BLACKLIST_IMAGE_NOT_FOUND,
+          code: ERROR_CODES.BLACKLIST_IMAGE_NOT_FOUND,
         })
         return
       }
@@ -461,13 +500,16 @@ export class BlacklistController {
       console.log('[BlacklistController.deleteImage] Imagen eliminada:', decodedPublicId)
 
       res.json({
-        message: 'Imagen eliminada correctamente',
+        success: true,
+        message: SUCCESS_CODES.BLACKLIST_IMAGE_DELETED,
+        code: SUCCESS_CODES.BLACKLIST_IMAGE_DELETED,
       })
     } catch (error: any) {
       console.error('[BlacklistController.deleteImage] Error:', error.message)
       res.status(500).json({
-        error: 'Error al eliminar imagen',
-        message: error.message,
+        success: false,
+        error: ERROR_CODES.BLACKLIST_DELETE_IMAGE_ERROR,
+        code: ERROR_CODES.BLACKLIST_DELETE_IMAGE_ERROR,
       })
     }
   }

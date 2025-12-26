@@ -10,6 +10,7 @@ import { groupsApi, GroupStatus, type GroupWithDetails } from '@/app/lib/groups'
 import { FiCalendar } from 'react-icons/fi'
 import toast from 'react-hot-toast'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import SimpleCalendarCompact from '@/app/ui/calendar/SimpleCalendarCompact'
 import { formatDateForInput, formatDateDisplayShort, parseInputDate } from '@/app/lib/helpers/date'
 import {
@@ -32,6 +33,7 @@ interface EditGroupPanelProps {
 
 export function EditGroupPanel({ isOpen, onClose, group, onSuccess }: EditGroupPanelProps) {
   const router = useRouter()
+  const t = useTranslations('groups')
   const datesLocked = group.status === 'in_progress' || group.status === 'completed'
 
   // Calendar state
@@ -113,19 +115,19 @@ export function EditGroupPanel({ isOpen, onClose, group, onSuccess }: EditGroupP
       }
 
       await groupsApi.update(group.id, payload)
-      toast.success('Grupo actualizado correctamente')
+      toast.success(t('editPanel.success'))
       onSuccess()
       onClose()
     } catch (error) {
       console.error('Error updating group:', error)
-      const message = error instanceof Error ? error.message : 'Error al actualizar el grupo'
+      const message = error instanceof Error ? error.message : t('editPanel.error')
       toast.error(message)
     }
   }
 
   const handleDelete = async () => {
     await groupsApi.delete(group.id)
-    toast.success('Grupo eliminado correctamente')
+    toast.success(t('toasts.groupDeleted'))
     onClose()
     router.push('/dashboard/groups')
   }
@@ -148,8 +150,8 @@ export function EditGroupPanel({ isOpen, onClose, group, onSuccess }: EditGroupP
     <SlidePanel
       isOpen={isOpen}
       onClose={onClose}
-      title="Editar Grupo"
-      subtitle="Actualiza la información del grupo"
+      title={t('editPanel.title')}
+      subtitle={t('editPanel.subtitle')}
       size="lg"
       footer={
         <SlidePanelFooterWithDelete
@@ -157,30 +159,30 @@ export function EditGroupPanel({ isOpen, onClose, group, onSuccess }: EditGroupP
           onSubmit={handleSubmit(onSubmit)}
           onDelete={handleDelete}
           isSubmitting={isSubmitting}
-          submitText="Actualizar Grupo"
+          submitText={t('editPanel.updateGroup')}
           submitDisabled={!isDirty}
-          deleteText="Eliminar grupo"
-          deleteConfirmText="Esto eliminará todo: pagos, contactos, habitaciones. ¿Continuar?"
+          deleteText={t('editPanel.deleteGroup')}
+          deleteConfirmText={t('editPanel.deleteConfirm')}
         />
       }
     >
       <SlidePanelSection>
         {/* Name */}
-        <FormField label="Nombre del Grupo" required error={errors.name?.message}>
+        <FormField label={t('createPanel.groupName')} required error={errors.name?.message}>
           <input
             {...register('name')}
             type="text"
-            placeholder="Ej: Grupo Turístico ABC"
+            placeholder={t('createPanel.groupNamePlaceholder')}
             className={inputClassName}
           />
         </FormField>
 
         {/* Agency */}
-        <FormField label="Agencia" error={errors.agency?.message}>
+        <FormField label={t('createPanel.agency')} error={errors.agency?.message}>
           <input
             {...register('agency')}
             type="text"
-            placeholder="Ej: Viajes Globales S.L."
+            placeholder={t('createPanel.agencyPlaceholder')}
             className={inputClassName}
           />
         </FormField>
@@ -189,14 +191,14 @@ export function EditGroupPanel({ isOpen, onClose, group, onSuccess }: EditGroupP
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {/* Arrival Date */}
           <div className="relative" ref={arrivalCalRef}>
-            <FormField label="Fecha de Llegada" required error={errors.arrival_date?.message}>
+            <FormField label={t('createPanel.arrivalDate')} required error={errors.arrival_date?.message}>
               <div className="relative">
                 <input
                   type="text"
                   readOnly
                   disabled={datesLocked}
                   value={arrivalDate ? formatDateDisplayShort(parseInputDate(arrivalDate)!) : ''}
-                  placeholder="Selecciona fecha"
+                  placeholder={t('createPanel.selectDate')}
                   onClick={() => {
                     if (!datesLocked) {
                       setShowArrivalCal(!showArrivalCal)
@@ -221,7 +223,7 @@ export function EditGroupPanel({ isOpen, onClose, group, onSuccess }: EditGroupP
 
           {/* Departure Date */}
           <div className="relative" ref={departureCalRef}>
-            <FormField label="Fecha de Salida" required error={errors.departure_date?.message}>
+            <FormField label={t('createPanel.departureDate')} required error={errors.departure_date?.message}>
               <div className="relative">
                 <input
                   type="text"
@@ -230,7 +232,7 @@ export function EditGroupPanel({ isOpen, onClose, group, onSuccess }: EditGroupP
                   value={
                     departureDate ? formatDateDisplayShort(parseInputDate(departureDate)!) : ''
                   }
-                  placeholder="Selecciona fecha"
+                  placeholder={t('createPanel.selectDate')}
                   onClick={() => {
                     if (!datesLocked) {
                       setShowDepartureCal(!showDepartureCal)
@@ -256,23 +258,23 @@ export function EditGroupPanel({ isOpen, onClose, group, onSuccess }: EditGroupP
 
         {datesLocked && (
           <Alert variant="warning">
-            Las fechas no se pueden modificar para grupos en curso o completados
+            {t('editPanel.datesLocked')}
           </Alert>
         )}
 
         {/* Status */}
-        <FormField label="Estado" error={errors.status?.message}>
+        <FormField label={t('createPanel.status')} error={errors.status?.message}>
           <select {...register('status')} className={selectClassName}>
-            <option value={GroupStatus.PENDING}>Pendiente</option>
-            <option value={GroupStatus.CONFIRMED}>Confirmado</option>
-            <option value={GroupStatus.IN_PROGRESS}>En Curso</option>
-            <option value={GroupStatus.COMPLETED}>Completado</option>
-            <option value={GroupStatus.CANCELLED}>Cancelado</option>
+            <option value={GroupStatus.PENDING}>{t('status.pending')}</option>
+            <option value={GroupStatus.CONFIRMED}>{t('status.confirmed')}</option>
+            <option value={GroupStatus.IN_PROGRESS}>{t('status.in_progress')}</option>
+            <option value={GroupStatus.COMPLETED}>{t('status.completed')}</option>
+            <option value={GroupStatus.CANCELLED}>{t('status.cancelled')}</option>
           </select>
         </FormField>
 
         {/* Total Amount */}
-        <FormField label="Importe Total (€)" error={errors.total_amount?.message}>
+        <FormField label={t('createPanel.totalAmount')} error={errors.total_amount?.message}>
           <input
             {...register('total_amount', { valueAsNumber: true })}
             type="number"
@@ -284,11 +286,11 @@ export function EditGroupPanel({ isOpen, onClose, group, onSuccess }: EditGroupP
         </FormField>
 
         {/* Notes */}
-        <FormField label="Notas" error={errors.notes?.message}>
+        <FormField label={t('createPanel.notes')} error={errors.notes?.message}>
           <textarea
             {...register('notes')}
             rows={4}
-            placeholder="Notas adicionales sobre el grupo..."
+            placeholder={t('createPanel.notesPlaceholder')}
             className={textareaClassName}
           />
         </FormField>

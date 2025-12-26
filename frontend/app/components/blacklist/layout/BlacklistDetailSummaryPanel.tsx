@@ -2,6 +2,7 @@
 
 'use client'
 
+import { useTranslations } from 'next-intl'
 import { FiLogIn, FiLogOut, FiClock, FiAlertTriangle, FiUser } from 'react-icons/fi'
 import { BlacklistEntry } from '@/app/lib/blacklist/types'
 import { SEVERITY_LEVELS } from '@/app/lib/blacklist/types'
@@ -12,6 +13,7 @@ interface BlacklistDetailSummaryPanelProps {
 }
 
 export function BlacklistDetailSummaryPanel({ entry }: BlacklistDetailSummaryPanelProps) {
+  const t = useTranslations('blacklist')
   const stayDays = calculateStayDays(entry.check_in_date, entry.check_out_date)
 
   const getSeverityConfig = (severity: BlacklistEntry['severity']) => {
@@ -45,7 +47,7 @@ export function BlacklistDetailSummaryPanel({ entry }: BlacklistDetailSummaryPan
   return (
     <div className="sticky top-4 space-y-3">
       <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">
-        Resumen del Registro
+        {t('detail.summaryTitle')}
       </h3>
 
       {/* Gravedad */}
@@ -59,7 +61,7 @@ export function BlacklistDetailSummaryPanel({ entry }: BlacklistDetailSummaryPan
         <div className="flex items-center justify-between">
           <div>
             <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">
-              Nivel de Gravedad
+              {t('detail.severityLevel')}
             </p>
             <p className={`text-lg font-bold mt-0.5 ${severityConfig.text}`}>
               {SEVERITY_LEVELS[entry.severity]}
@@ -75,7 +77,7 @@ export function BlacklistDetailSummaryPanel({ entry }: BlacklistDetailSummaryPan
       <div className="bg-white dark:bg-[#0D1117] border border-[#d0d7de] dark:border-[#30363d] rounded-xl shadow-sm p-4">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">Fecha de Entrada</p>
+            <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">{t('detail.checkInDate')}</p>
             <p className="text-sm font-bold text-gray-900 dark:text-gray-100 mt-0.5">
               {formatDate(entry.check_in_date)}
             </p>
@@ -90,7 +92,7 @@ export function BlacklistDetailSummaryPanel({ entry }: BlacklistDetailSummaryPan
       <div className="bg-white dark:bg-[#0D1117] border border-[#d0d7de] dark:border-[#30363d] rounded-xl shadow-sm p-4">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">Fecha de Salida</p>
+            <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">{t('detail.checkOutDate')}</p>
             <p className="text-sm font-bold text-gray-900 dark:text-gray-100 mt-0.5">
               {formatDate(entry.check_out_date)}
             </p>
@@ -105,11 +107,11 @@ export function BlacklistDetailSummaryPanel({ entry }: BlacklistDetailSummaryPan
       <div className="bg-white dark:bg-[#0D1117] border border-[#d0d7de] dark:border-[#30363d] rounded-xl shadow-sm p-4">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">Estancia</p>
+            <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">{t('detail.stay')}</p>
             <p className="text-xl font-bold text-gray-900 dark:text-gray-100 mt-0.5">
               {stayDays}{' '}
               <span className="text-sm font-normal text-gray-500">
-                {stayDays === 1 ? 'dia' : 'dias'}
+                {stayDays === 1 ? t('detail.day') : t('detail.days')}
               </span>
             </p>
           </div>
@@ -123,20 +125,20 @@ export function BlacklistDetailSummaryPanel({ entry }: BlacklistDetailSummaryPan
       <div className="bg-white dark:bg-[#0D1117] border border-[#d0d7de] dark:border-[#30363d] rounded-xl shadow-sm p-4">
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">Registrado por</p>
+            <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">{t('detail.registeredBy')}</p>
             <div className="p-2 bg-purple-100 dark:bg-purple-900/20 rounded-lg">
               <FiUser className="w-5 h-5 text-purple-600 dark:text-purple-400" />
             </div>
           </div>
           <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-            {entry.created_by_username || 'Desconocido'}
+            {entry.created_by_username || t('detail.unknown')}
           </p>
           <p className="text-xs text-gray-500 dark:text-gray-400">
             {formatDateTime(entry.created_at)}
           </p>
           {entry.updated_at && (
             <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
-              <p className="text-[10px] text-gray-500 dark:text-gray-400">Ultima modificacion:</p>
+              <p className="text-[10px] text-gray-500 dark:text-gray-400">{t('detail.lastModification')}:</p>
               <p className="text-xs text-gray-600 dark:text-gray-400">
                 {formatDateTime(entry.updated_at)}
               </p>
@@ -155,7 +157,7 @@ export function BlacklistDetailSummaryPanel({ entry }: BlacklistDetailSummaryPan
       >
         <div className="flex items-center justify-between">
           <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">
-            Estado del Registro
+            {t('detail.recordStatus')}
           </p>
           <span
             className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
@@ -164,7 +166,7 @@ export function BlacklistDetailSummaryPanel({ entry }: BlacklistDetailSummaryPan
                 : 'bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400'
             }`}
           >
-            {entry.status === 'ACTIVE' ? 'Activo' : 'Eliminado'}
+            {entry.status === 'ACTIVE' ? t('status.active') : t('status.deleted')}
           </span>
         </div>
       </div>

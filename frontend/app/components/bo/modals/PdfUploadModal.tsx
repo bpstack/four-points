@@ -7,6 +7,7 @@
 'use client'
 
 import { useState, useCallback, useTransition } from 'react'
+import { useTranslations } from 'next-intl'
 import { FiX, FiUpload, FiLoader, FiFile, FiTrash2 } from 'react-icons/fi'
 import { backofficeApi } from '@/app/lib/backoffice/backofficeApi'
 import toast from 'react-hot-toast'
@@ -32,6 +33,7 @@ export function PdfUploadModal({
   type,
   existingPdfUrl,
 }: PdfUploadModalProps) {
+  const t = useTranslations('backoffice')
   const [isPending, startTransition] = useTransition()
   const [file, setFile] = useState<File | null>(null)
   const [dragActive, setDragActive] = useState(false)
@@ -56,13 +58,13 @@ export function PdfUploadModal({
 
     // Validate file type
     if (selectedFile.type !== 'application/pdf') {
-      setError('Solo se permiten archivos PDF')
+      setError(t('modals.pdfUpload.errors.onlyPdf'))
       return
     }
 
     // Validate file size
     if (selectedFile.size > MAX_FILE_SIZE) {
-      setError('El archivo no puede superar 10MB')
+      setError(t('modals.pdfUpload.errors.maxSize'))
       return
     }
 
@@ -103,7 +105,7 @@ export function PdfUploadModal({
     e.preventDefault()
 
     if (!file) {
-      setError('Selecciona un archivo PDF')
+      setError(t('modals.pdfUpload.errors.selectFile'))
       return
     }
 
@@ -112,13 +114,13 @@ export function PdfUploadModal({
         await backofficeApi.uploadInvoicePdf(invoiceId, file, type)
         toast.success(
           type === 'original'
-            ? 'PDF original subido correctamente'
-            : 'PDF validado subido correctamente'
+            ? t('toast.pdfOriginalUploaded')
+            : t('toast.pdfValidatedUploaded')
         )
         onSuccess()
         handleClose()
       } catch (error) {
-        const message = error instanceof Error ? error.message : 'Error al subir el PDF'
+        const message = error instanceof Error ? error.message : t('toast.pdfUploadError')
         toast.error(message)
       }
     })
@@ -145,10 +147,10 @@ export function PdfUploadModal({
           <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700">
             <div>
               <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                {type === 'original' ? 'Subir PDF Original' : 'Subir PDF Validado'}
+                {type === 'original' ? t('modals.pdfUpload.originalTitle') : t('modals.pdfUpload.validatedTitle')}
               </h2>
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                Factura: {invoiceNumber}
+                {t('modals.pdfUpload.invoice')} {invoiceNumber}
               </p>
             </div>
             <button
@@ -165,8 +167,9 @@ export function PdfUploadModal({
             {existingPdfUrl && (
               <div className="mb-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-md">
                 <p className="text-xs text-yellow-800 dark:text-yellow-300">
-                  Ya existe un PDF {type === 'original' ? 'original' : 'validado'}. Subir uno nuevo
-                  reemplazará el anterior.
+                  {type === 'original' 
+                    ? t('modals.pdfUpload.existingWarning.original') 
+                    : t('modals.pdfUpload.existingWarning.validated')}
                 </p>
               </div>
             )}
@@ -212,7 +215,7 @@ export function PdfUploadModal({
                     className="inline-flex items-center gap-1 text-xs text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300"
                   >
                     <FiTrash2 className="w-3 h-3" />
-                    Eliminar
+                    {t('modals.pdfUpload.buttons.remove')}
                   </button>
                 </div>
               ) : (
@@ -220,13 +223,13 @@ export function PdfUploadModal({
                   <FiUpload className="w-10 h-10 mx-auto text-gray-400" />
                   <div>
                     <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                      Arrastra un archivo PDF aquí
+                      {t('modals.pdfUpload.dropzone.drag')}
                     </p>
                     <p className="text-xs text-gray-500 dark:text-gray-400">
-                      o haz clic para seleccionar
+                      {t('modals.pdfUpload.dropzone.click')}
                     </p>
                   </div>
-                  <p className="text-xs text-gray-400 dark:text-gray-500">Máximo 10MB</p>
+                  <p className="text-xs text-gray-400 dark:text-gray-500">{t('modals.pdfUpload.dropzone.maxSize')}</p>
                 </div>
               )}
             </div>
@@ -242,7 +245,7 @@ export function PdfUploadModal({
                 disabled={isPending}
                 className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
               >
-                Cancelar
+                {t('actions.cancel')}
               </button>
               <button
                 type="submit"
@@ -252,12 +255,12 @@ export function PdfUploadModal({
                 {isPending ? (
                   <>
                     <FiLoader className="w-4 h-4 animate-spin" />
-                    Subiendo...
+                    {t('actions.uploading')}
                   </>
                 ) : (
                   <>
                     <FiUpload className="w-4 h-4" />
-                    Subir PDF
+                    {t('modals.pdfUpload.buttons.upload')}
                   </>
                 )}
               </button>

@@ -5,6 +5,7 @@ import React from 'react'
 import { FiServer, FiSearch, FiMenu } from 'react-icons/fi'
 import { Fa4 } from 'react-icons/fa6'
 import { TbTransformPointTopLeft } from 'react-icons/tb'
+import { useTranslations } from 'next-intl'
 
 // Anchos predefinidos para evitar hydration mismatch
 const mainLinkWidths = ['70%', '55%', '60%', '75%', '65%', '80%', '50%', '72%']
@@ -119,6 +120,8 @@ function HeaderSkeleton() {
 }
 
 export function DashboardSkeleton() {
+  const t = useTranslations('common.skeleton')
+  
   return (
     <div className="flex h-screen bg-white dark:bg-[#010409] antialiased">
       {/* Sidebar */}
@@ -141,17 +144,15 @@ export function DashboardSkeleton() {
                   </div>
                   <div className="flex-1">
                     <h3 className="font-semibold text-amber-800 dark:text-amber-300 mb-1">
-                      Iniciando servidor...
+                      {t('serverStarting')}
                     </h3>
                     <p className="text-sm text-amber-700 dark:text-amber-400">
-                      El backend de esta aplicación está alojado en Render (plan gratuito para
-                      demo), el cual entra en modo de reposo tras periodos de inactividad. La
-                      primera conexión puede demorar aproximadamente 60 segundos.
+                      {t('serverMessage')}
                     </p>
                     <div className="mt-3 flex items-center gap-2">
                       <div className="animate-spin rounded-full h-4 w-4 border-2 border-amber-300 dark:border-amber-700 border-t-amber-600 dark:border-t-amber-400" />
                       <span className="text-xs text-amber-600 dark:text-amber-500">
-                        Conectando...
+                        {t('connecting')}
                       </span>
                     </div>
                   </div>

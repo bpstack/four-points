@@ -6,6 +6,7 @@ import { Fragment, ReactNode } from 'react'
 import { Dialog, Transition } from '@headlessui/react'
 import { FiX, FiCheck } from 'react-icons/fi'
 import { cn } from '@/app/lib/helpers/utils'
+import { useTranslations } from 'next-intl'
 import type { StepConfig } from './SlidePanel'
 
 // ===============================================
@@ -264,15 +265,20 @@ interface CenterModalFooterButtonsProps {
 export function CenterModalFooterButtons({
   onCancel,
   onSubmit,
-  cancelText = 'Cancelar',
-  submitText = 'Confirmar',
+  cancelText,
+  submitText,
   submitIcon,
   isSubmitting = false,
   submitDisabled = false,
   submitVariant = 'primary',
   onBack,
-  backText = 'Atrás',
+  backText,
 }: CenterModalFooterButtonsProps) {
+  const t = useTranslations('common')
+  const resolvedCancelText = cancelText ?? t('actions.cancel')
+  const resolvedSubmitText = submitText ?? t('actions.confirm')
+  const resolvedBackText = backText ?? t('actions.back')
+  
   const variantClasses = {
     primary: 'bg-blue-600 hover:bg-blue-700 focus:ring-blue-500',
     success: 'bg-green-600 hover:bg-green-700 focus:ring-green-500',
@@ -288,7 +294,7 @@ export function CenterModalFooterButtons({
           disabled={isSubmitting}
           className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 transition-colors"
         >
-          {backText}
+          {resolvedBackText}
         </button>
       )}
       <button
@@ -297,7 +303,7 @@ export function CenterModalFooterButtons({
         disabled={isSubmitting}
         className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 transition-colors"
       >
-        {cancelText}
+        {resolvedCancelText}
       </button>
       {onSubmit && (
         <button
@@ -312,12 +318,12 @@ export function CenterModalFooterButtons({
           {isSubmitting ? (
             <>
               <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              Procesando...
+              {t('actions.processing')}
             </>
           ) : (
             <>
               {submitIcon}
-              {submitText}
+              {resolvedSubmitText}
             </>
           )}
         </button>

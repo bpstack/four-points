@@ -3,6 +3,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { FiCalendar } from 'react-icons/fi'
+import { useTranslations } from 'next-intl'
 import { conciliationApi, type ConciliationDetail } from '@/app/lib/conciliation'
 
 interface MonthlySummaryItem {
@@ -59,6 +60,7 @@ function getPreviousDay(dateString: string): number {
 }
 
 export default function DaySummary({ conciliation, baseRooms }: DaySummaryProps) {
+  const t = useTranslations('conciliation')
   const [monthlySummary, setMonthlySummary] = useState<MonthlySummary | null>(null)
   const [loadingMonthlySummary, setLoadingMonthlySummary] = useState(false)
 
@@ -93,7 +95,7 @@ export default function DaySummary({ conciliation, baseRooms }: DaySummaryProps)
   const SignatureSection = () => (
     <div>
       <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-2">
-        Firma Recepcion
+        {t('daySummary.signatureReception')}
       </h4>
       <div className="h-40 border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-lg" />
     </div>
@@ -104,16 +106,16 @@ export default function DaySummary({ conciliation, baseRooms }: DaySummaryProps)
     <div className="space-y-3">
       <div className="flex items-center gap-2 text-sm">
         <FiCalendar className="w-4 h-4 text-gray-500" />
-        <span className="font-medium text-gray-700 dark:text-gray-300">Fecha:</span>
+        <span className="font-medium text-gray-700 dark:text-gray-300">{t('daySummary.date')}:</span>
         <span className="text-gray-900 dark:text-gray-100">{formatDate(conciliation.date)}</span>
       </div>
 
       <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
         <p className="text-xs text-blue-600 dark:text-blue-400 font-medium mb-1">
-          FACTURACION DIA {getPreviousDay(conciliation.date)}:
+          {t('daySummary.billingDay')} {getPreviousDay(conciliation.date)}:
         </p>
         <p className="text-lg font-bold text-blue-700 dark:text-blue-300">
-          Total {baseRooms} habitaciones
+          {t('daySummary.totalRooms', { count: baseRooms })}
         </p>
       </div>
     </div>
@@ -123,7 +125,7 @@ export default function DaySummary({ conciliation, baseRooms }: DaySummaryProps)
     <div className="border border-gray-200 dark:border-gray-800 rounded-lg overflow-hidden flex flex-col xl:sticky xl:top-6">
       <div className="bg-gray-100 dark:bg-gray-800 px-4 py-3 border-b border-gray-200 dark:border-gray-700">
         <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-          {showMonthlySummary ? 'Resumen Mensual' : 'Informacion del Dia'}
+          {showMonthlySummary ? t('daySummary.monthlySummary') : t('daySummary.dayInfo')}
         </h3>
       </div>
 
@@ -135,23 +137,23 @@ export default function DaySummary({ conciliation, baseRooms }: DaySummaryProps)
             <div>
               {loadingMonthlySummary ? (
                 <div className="text-center py-8 text-gray-500 dark:text-gray-400 text-sm">
-                  Cargando resumen...
+                  {t('daySummary.loadingSummary')}
                 </div>
               ) : monthlySummary ? (
                 <div className="space-y-4">
                   {/* Info del periodo */}
                   <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-3 text-xs">
                     <p className="text-gray-600 dark:text-gray-400 mb-1">
-                      Periodo: {formatDate(monthlySummary.period.start)} -{' '}
+                      {t('daySummary.period')}: {formatDate(monthlySummary.period.start)} -{' '}
                       {formatDate(monthlySummary.period.end)}
                     </p>
                     <p className="text-gray-600 dark:text-gray-400">
-                      Dias: {monthlySummary.period.conciliations_count} /{' '}
+                      {t('daySummary.days')}: {monthlySummary.period.conciliations_count} /{' '}
                       {monthlySummary.period.total_days}
                     </p>
                     {monthlySummary.period.missing_days > 0 && (
                       <p className="text-red-600 dark:text-red-400 mt-1 font-medium">
-                        Faltan {monthlySummary.period.missing_days} dia(s)
+                        {t('daySummary.missingDays', { count: monthlySummary.period.missing_days })}
                       </p>
                     )}
                   </div>
@@ -160,7 +162,7 @@ export default function DaySummary({ conciliation, baseRooms }: DaySummaryProps)
                   <div className="space-y-3">
                     <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
                       <p className="text-xs text-blue-600 dark:text-blue-400 font-medium">
-                        Total Recepcion
+                        {t('daySummary.totalReception')}
                       </p>
                       <p className="text-2xl font-bold text-blue-700 dark:text-blue-300">
                         {monthlySummary.totals.total_reception}
@@ -169,7 +171,7 @@ export default function DaySummary({ conciliation, baseRooms }: DaySummaryProps)
 
                     <div className="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg p-3">
                       <p className="text-xs text-purple-600 dark:text-purple-400 font-medium">
-                        Total Housekeeping
+                        {t('daySummary.totalHousekeeping')}
                       </p>
                       <p className="text-2xl font-bold text-purple-700 dark:text-purple-300">
                         {monthlySummary.totals.total_housekeeping}
@@ -190,7 +192,7 @@ export default function DaySummary({ conciliation, baseRooms }: DaySummaryProps)
                             : 'text-red-600 dark:text-red-400'
                         }`}
                       >
-                        Descuadre Total
+                        {t('daySummary.totalDiscrepancy')}
                       </p>
                       <p
                         className={`text-2xl font-bold ${
@@ -209,7 +211,7 @@ export default function DaySummary({ conciliation, baseRooms }: DaySummaryProps)
                     {/* Recepcion */}
                     <div>
                       <h5 className="text-xs font-semibold text-blue-700 dark:text-blue-400 mb-2">
-                        Recepcion
+                        {t('table.reception')}
                       </h5>
                       <div className="space-y-1">
                         {monthlySummary.reception_summary.map((item) => (
@@ -231,7 +233,7 @@ export default function DaySummary({ conciliation, baseRooms }: DaySummaryProps)
                     {/* Housekeeping */}
                     <div>
                       <h5 className="text-xs font-semibold text-purple-700 dark:text-purple-400 mb-2">
-                        Housekeeping
+                        {t('table.housekeeping')}
                       </h5>
                       <div className="space-y-1">
                         {monthlySummary.housekeeping_summary.map((item) => (
@@ -255,7 +257,7 @@ export default function DaySummary({ conciliation, baseRooms }: DaySummaryProps)
                   {monthlySummary.validation_errors.length > 0 && (
                     <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3">
                       <p className="text-xs font-semibold text-red-700 dark:text-red-400 mb-2">
-                        No se puede cerrar el mes:
+                        {t('daySummary.cannotCloseMonth')}
                       </p>
                       <ul className="text-xs text-red-600 dark:text-red-400 space-y-1">
                         {monthlySummary.validation_errors.map((error, index) => (
@@ -267,7 +269,7 @@ export default function DaySummary({ conciliation, baseRooms }: DaySummaryProps)
                 </div>
               ) : (
                 <div className="text-center py-8 text-gray-500 dark:text-gray-400 text-sm">
-                  No se pudo cargar el resumen mensual
+                  {t('daySummary.couldNotLoad')}
                 </div>
               )}
             </div>
@@ -278,7 +280,7 @@ export default function DaySummary({ conciliation, baseRooms }: DaySummaryProps)
             {/* Informacion del Dia (debajo del resumen mensual) */}
             <div>
               <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">
-                Informacion del Dia
+                {t('daySummary.dayInfo')}
               </h4>
               <div className="space-y-4">
                 <SignatureSection />

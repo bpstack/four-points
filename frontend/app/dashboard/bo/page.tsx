@@ -7,6 +7,7 @@
  */
 
 import { Suspense } from 'react'
+import { getTranslations } from 'next-intl/server'
 import {
   getStats,
   getCategories,
@@ -15,7 +16,8 @@ import {
   getSuppliers,
   getAssets,
 } from '@/app/lib/backoffice/data'
-import { StatsCards, StatsCardsSkeleton } from '@/app/components/bo/StatsCards'
+import { StatsCards } from '@/app/components/bo/StatsCards'
+import { StatsCardsSkeleton } from '@/app/components/bo/StatsCardsSkeleton'
 import { TabsNavigation } from '@/app/components/bo/TabsNavigation'
 import { TabContent } from '@/app/components/bo/TabContent'
 
@@ -33,13 +35,14 @@ export default async function BackOfficePage({ searchParams }: PageProps) {
   const suppliersPage = params.suppliersPage ? parseInt(params.suppliersPage as string, 10) : 1
 
   // Fetch all data in parallel on the server
-  const [stats, categories, pendingData, paidData, suppliersData, assets] = await Promise.all([
+  const [stats, categories, pendingData, paidData, suppliersData, assets, t] = await Promise.all([
     getStats(),
     getCategories(),
     getPendingInvoices(),
     getPaidInvoices(paidPage, 50),
     getSuppliers(suppliersPage, 100),
     getAssets(),
+    getTranslations('backoffice'),
   ])
 
   return (
@@ -50,10 +53,10 @@ export default async function BackOfficePage({ searchParams }: PageProps) {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
               <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">
-                Back Office
+                {t('title')}
               </h1>
               <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-0.5">
-                Gestión de facturas y proveedores
+                {t('subtitle')}
               </p>
             </div>
           </div>

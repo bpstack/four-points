@@ -1,7 +1,8 @@
 // app/components/dashboard/GlobalStatusGrid.tsx
 'use client'
 
-import React from 'react'
+import React, { useMemo } from 'react'
+import { useTranslations } from 'next-intl'
 import { FiGrid, FiDollarSign, FiBriefcase, FiMessageSquare } from 'react-icons/fi'
 import { FaCar } from 'react-icons/fa'
 import { IoIosRestaurant } from 'react-icons/io'
@@ -19,84 +20,89 @@ interface StatusItem {
   adminOnly?: boolean
 }
 
-const statusItems: StatusItem[] = [
-  {
-    label: 'Control de Parking',
-    icon: FaCar,
-    href: '/dashboard/parking',
-    id: 'parking-mgmt',
-    color: 'from-purple-500 to-purple-600',
-    bgColor: 'bg-purple-50 dark:bg-purple-900/10',
-  },
-  {
-    label: 'Gestión de Grupos',
-    icon: FiGrid,
-    href: '/dashboard/groups',
-    id: 'group-mgmt',
-    color: 'from-orange-500 to-orange-600',
-    bgColor: 'bg-orange-50 dark:bg-orange-900/10',
-  },
-  {
-    label: 'Blacklist',
-    icon: CgDanger,
-    href: '/dashboard/blacklist',
-    id: 'blacklist',
-    color: 'from-red-600 to-red-700',
-    bgColor: 'bg-red-50 dark:bg-red-900/10',
-  },
-  {
-    label: 'Restaurante',
-    icon: IoIosRestaurant,
-    href: '/dashboard/restaurant',
-    id: 'restaurant',
-    color: 'from-amber-500 to-amber-600',
-    bgColor: 'bg-amber-50 dark:bg-amber-900/10',
-  },
-  {
-    label: 'Conciliación',
-    icon: HiOutlineDocumentCheck,
-    href: '/dashboard/conciliation',
-    id: 'conciliation',
-    color: 'from-cyan-500 to-cyan-600',
-    bgColor: 'bg-cyan-50 dark:bg-cyan-900/10',
-  },
-  {
-    label: 'Caja Hotel',
-    icon: FiDollarSign,
-    href: '/dashboard/cashier/hotel',
-    id: 'hotel-cashier',
-    color: 'from-emerald-500 to-emerald-600',
-    bgColor: 'bg-emerald-50 dark:bg-emerald-900/10',
-  },
-  {
-    label: 'Mensajes',
-    icon: FiMessageSquare,
-    href: '/dashboard/profile?panel=messages',
-    id: 'messages',
-    color: 'from-blue-500 to-blue-600',
-    bgColor: 'bg-blue-50 dark:bg-blue-900/10',
-  },
-  {
-    label: 'Back Office',
-    icon: FiBriefcase,
-    href: '/dashboard/bo',
-    adminOnly: true,
-    id: 'back-office',
-    color: 'from-indigo-500 to-indigo-600',
-    bgColor: 'bg-indigo-50 dark:bg-indigo-900/10',
-  },
-]
-
 interface GlobalStatusGridProps {
   isUserAdmin: boolean
 }
 
 export function GlobalStatusGrid({ isUserAdmin }: GlobalStatusGridProps) {
+  const t = useTranslations('dashboard.globalStatus')
+
+  const statusItems: StatusItem[] = useMemo(
+    () => [
+      {
+        label: t('parking'),
+        icon: FaCar,
+        href: '/dashboard/parking',
+        id: 'parking-mgmt',
+        color: 'from-purple-500 to-purple-600',
+        bgColor: 'bg-purple-50 dark:bg-purple-900/10',
+      },
+      {
+        label: t('groups'),
+        icon: FiGrid,
+        href: '/dashboard/groups',
+        id: 'group-mgmt',
+        color: 'from-orange-500 to-orange-600',
+        bgColor: 'bg-orange-50 dark:bg-orange-900/10',
+      },
+      {
+        label: t('blacklist'),
+        icon: CgDanger,
+        href: '/dashboard/blacklist',
+        id: 'blacklist',
+        color: 'from-red-600 to-red-700',
+        bgColor: 'bg-red-50 dark:bg-red-900/10',
+      },
+      {
+        label: t('restaurant'),
+        icon: IoIosRestaurant,
+        href: '/dashboard/restaurant',
+        id: 'restaurant',
+        color: 'from-amber-500 to-amber-600',
+        bgColor: 'bg-amber-50 dark:bg-amber-900/10',
+      },
+      {
+        label: t('conciliation'),
+        icon: HiOutlineDocumentCheck,
+        href: '/dashboard/conciliation',
+        id: 'conciliation',
+        color: 'from-cyan-500 to-cyan-600',
+        bgColor: 'bg-cyan-50 dark:bg-cyan-900/10',
+      },
+      {
+        label: t('cashier'),
+        icon: FiDollarSign,
+        href: '/dashboard/cashier/hotel',
+        id: 'hotel-cashier',
+        color: 'from-emerald-500 to-emerald-600',
+        bgColor: 'bg-emerald-50 dark:bg-emerald-900/10',
+      },
+      {
+        label: t('messages'),
+        icon: FiMessageSquare,
+        href: '/dashboard/profile?panel=messages',
+        id: 'messages',
+        color: 'from-blue-500 to-blue-600',
+        bgColor: 'bg-blue-50 dark:bg-blue-900/10',
+      },
+      {
+        label: t('backoffice'),
+        icon: FiBriefcase,
+        href: '/dashboard/bo',
+        adminOnly: true,
+        id: 'back-office',
+        color: 'from-indigo-500 to-indigo-600',
+        bgColor: 'bg-indigo-50 dark:bg-indigo-900/10',
+      },
+    ],
+    [t]
+  )
+
   return (
     <div className="bg-white dark:bg-[#0D1117] border border-[#d0d7de] dark:border-[#30363d] rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200 p-6">
       <div className="flex items-center gap-2 mb-5">
         <FiGrid className="w-5 h-5 text-[#0969da] dark:text-[#58a6ff]" />
-        <h2 className="text-lg font-bold text-[#24292f] dark:text-[#f0f6fc]">Estatus Global</h2>
+        <h2 className="text-lg font-bold text-[#24292f] dark:text-[#f0f6fc]">{t('title')}</h2>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">

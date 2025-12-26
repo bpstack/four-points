@@ -2,6 +2,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { FiDollarSign, FiUsers, FiEdit2, FiSave, FiX, FiCheckCircle } from 'react-icons/fi'
 import { useShiftDetails, useUpdateShift, useDailyDetails } from '@/app/lib/cashier/queries'
 import type {
@@ -24,7 +25,15 @@ interface ShiftCardProps {
   shiftType: ShiftType
 }
 
+const SHIFT_EMOJIS: Record<ShiftType, string> = {
+  night: '🌙',
+  morning: '☀️',
+  afternoon: '🌅',
+  closing: '🔒',
+}
+
 export default function ShiftCard({ shiftId, shiftType }: ShiftCardProps) {
+  const t = useTranslations('cashier')
   const [isEditingIncome, setIsEditingIncome] = useState(false)
   const [incomeInput, setIncomeInput] = useState('')
   const [isEditingDenominations, setIsEditingDenominations] = useState(false)
@@ -47,36 +56,6 @@ export default function ShiftCard({ shiftId, shiftType }: ShiftCardProps) {
 
   const updateShiftMutation = useUpdateShift()
 
-  const getShiftEmoji = (type: ShiftType) => {
-    switch (type) {
-      case 'night':
-        return '🌙'
-      case 'morning':
-        return '☀️'
-      case 'afternoon':
-        return '🌅'
-      case 'closing':
-        return '🔒'
-      default:
-        return '💼'
-    }
-  }
-
-  const getShiftName = (type: ShiftType) => {
-    switch (type) {
-      case 'night':
-        return 'Turno Noche'
-      case 'morning':
-        return 'Turno Mañana'
-      case 'afternoon':
-        return 'Turno Tarde'
-      case 'closing':
-        return 'Turno Cierre'
-      default:
-        return 'Turno'
-    }
-  }
-
   const handleEditIncome = () => {
     setIncomeInput(shift?.income || '0')
     setIsEditingIncome(true)
@@ -91,11 +70,11 @@ export default function ShiftCard({ shiftId, shiftType }: ShiftCardProps) {
         },
       })
 
-      toast.success('Ingresos actualizados correctamente')
+      toast.success(t('shiftCard.incomeUpdated'))
       setIsEditingIncome(false)
     } catch (error) {
       console.error('Error actualizando ingresos:', error)
-      const errorMessage = error instanceof Error ? error.message : 'Error al actualizar ingresos'
+      const errorMessage = error instanceof Error ? error.message : t('error.updateIncome')
       toast.error(errorMessage)
     }
   }
@@ -108,10 +87,10 @@ export default function ShiftCard({ shiftId, shiftType }: ShiftCardProps) {
   const handleJustifyVoucher = async (voucherId: number) => {
     try {
       await justifyVoucherMutation.mutateAsync({ voucherId, shiftId })
-      toast.success('Vale justificado correctamente')
+      toast.success(t('shiftCard.voucherJustified'))
     } catch (error) {
       console.error('Error justificando vale:', error)
-      const errorMessage = error instanceof Error ? error.message : 'Error al justificar vale'
+      const errorMessage = error instanceof Error ? error.message : t('error.justifyVoucher')
       toast.error(errorMessage)
     }
   }
@@ -119,7 +98,7 @@ export default function ShiftCard({ shiftId, shiftType }: ShiftCardProps) {
   if (isLoading) {
     return (
       <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-        <p className="text-sm">Cargando turno...</p>
+        <p className="text-sm">{t('page.loadingShift')}</p>
       </div>
     )
   }
@@ -127,7 +106,7 @@ export default function ShiftCard({ shiftId, shiftType }: ShiftCardProps) {
   if (!shift) {
     return (
       <div className="text-center py-8 text-gray-400 dark:text-gray-500">
-        <p>Turno no encontrado</p>
+        <p>{t('page.shiftNotFound')}</p>
       </div>
     )
   }
@@ -150,22 +129,22 @@ export default function ShiftCard({ shiftId, shiftType }: ShiftCardProps) {
       <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
-            <span className="text-2xl">{getShiftEmoji(shiftType)}</span>
+            <span className="text-2xl">{SHIFT_EMOJIS[shiftType] || '💼'}</span>
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-              {getShiftName(shiftType)}
+              {t(`shifts.${shiftType}Full`)}
             </h3>
           </div>
           <div className="flex items-center gap-2">
             {shift.status === 'closed' && (
               <span className="px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs font-medium rounded-full flex items-center gap-1">
                 <FiCheckCircle className="w-3 h-3" />
-                Cerrado
+                {t('summary.closed')}
               </span>
             )}
             {shift.status === 'open' && (
               <span className="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 text-xs font-medium rounded-full flex items-center gap-1">
                 <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
-                Abierto
+                {t('summary.open')}
               </span>
             )}
           </div>
@@ -174,7 +153,7 @@ export default function ShiftCard({ shiftId, shiftType }: ShiftCardProps) {
         {shift.users && shift.users.length > 0 && (
           <div className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
             <FiUsers className="w-4 h-4" />
-            <span className="font-medium">Responsables:</span>
+            <span className="font-medium">{t('shiftCard.responsible')}:</span>
             <div className="flex items-center gap-2">
               {shift.users.map((user: CashierShiftUser) => (
                 <span
@@ -186,7 +165,7 @@ export default function ShiftCard({ shiftId, shiftType }: ShiftCardProps) {
                   }`}
                 >
                   {user.username}
-                  {user.is_primary === 1 && ' (Principal)'}
+                  {user.is_primary === 1 && ` (${t('shiftCard.primary')})`}
                 </span>
               ))}
             </div>
@@ -197,7 +176,7 @@ export default function ShiftCard({ shiftId, shiftType }: ShiftCardProps) {
       {/* Grid de métricas */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="bg-white dark:bg-[#0d1117] border border-gray-200 dark:border-gray-800 rounded-lg p-4">
-          <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Fondo Inicial</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">{t('shiftCard.initialFund')}</p>
           <p className="text-xl font-bold text-gray-900 dark:text-white">
             {parseFloat(shift.initial_fund || '0').toFixed(2)}€
           </p>
@@ -205,12 +184,12 @@ export default function ShiftCard({ shiftId, shiftType }: ShiftCardProps) {
 
         <div className="bg-white dark:bg-[#0d1117] border border-gray-200 dark:border-gray-800 rounded-lg p-4">
           <div className="flex items-center justify-between mb-1">
-            <p className="text-xs text-gray-500 dark:text-gray-400">Ingresos del Turno</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">{t('shiftCard.shiftIncome')}</p>
             {!isEditingIncome && shift.status === 'open' && (
               <button
                 onClick={handleEditIncome}
                 className="p-1 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded transition-colors"
-                title="Editar ingresos"
+                title={t('shiftCard.edit')}
               >
                 <FiEdit2 className="w-3 h-3" />
               </button>
@@ -250,14 +229,14 @@ export default function ShiftCard({ shiftId, shiftType }: ShiftCardProps) {
         </div>
 
         <div className="bg-white dark:bg-[#0d1117] border border-gray-200 dark:border-gray-800 rounded-lg p-4">
-          <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Efectivo Contado</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">{t('shiftCard.cashCounted')}</p>
           <p className="text-xl font-bold text-blue-600 dark:text-blue-400">
             {parseFloat(shift.cash_counted || '0').toFixed(2)}€
           </p>
         </div>
 
         <div className="bg-white dark:bg-[#0d1117] border border-gray-200 dark:border-gray-800 rounded-lg p-4">
-          <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Descuadre</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">{t('shiftCard.discrepancy')}</p>
           <p
             className={`text-xl font-bold ${
               parseFloat(shift.difference || '0') === 0
@@ -277,14 +256,14 @@ export default function ShiftCard({ shiftId, shiftType }: ShiftCardProps) {
           <div className="flex items-center justify-between mb-3">
             <h4 className="font-medium text-gray-900 dark:text-white flex items-center gap-2">
               <FiDollarSign className="w-4 h-4 text-green-600" />
-              Conteo de Efectivo
+              {t('shiftCard.cashCount')}
             </h4>
             {!isEditingDenominations && shift.status === 'open' && (
               <button
                 onClick={() => setIsEditingDenominations(true)}
                 className="text-xs text-blue-600 hover:text-blue-700 dark:text-blue-400 font-medium"
               >
-                Editar
+                {t('shiftCard.edit')}
               </button>
             )}
           </div>
@@ -330,7 +309,7 @@ export default function ShiftCard({ shiftId, shiftType }: ShiftCardProps) {
 
               <div className="flex items-center justify-between p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border-2 border-green-200 dark:border-green-800">
                 <span className="text-sm font-semibold text-green-700 dark:text-green-300">
-                  Total Efectivo Contado
+                  {t('shiftCard.totalCashCounted')}
                 </span>
                 <span className="text-xl font-bold text-green-600 dark:text-green-400">
                   {shift.denominations
@@ -342,8 +321,8 @@ export default function ShiftCard({ shiftId, shiftType }: ShiftCardProps) {
             </div>
           ) : (
             <div className="text-center py-8 text-gray-400 dark:text-gray-500 text-sm">
-              <p>Sin conteo registrado</p>
-              <p className="text-xs mt-1">Haz clic en &quot;Editar&quot; para agregar</p>
+              <p>{t('shiftCard.noCashCount')}</p>
+              <p className="text-xs mt-1">{t('shiftCard.edit')}</p>
             </div>
           )}
         </div>
@@ -352,14 +331,14 @@ export default function ShiftCard({ shiftId, shiftType }: ShiftCardProps) {
         <div className="bg-white dark:bg-[#0d1117] border border-gray-200 dark:border-gray-800 rounded-lg p-4">
           <div className="flex items-center justify-between mb-3">
             <h4 className="font-medium text-gray-900 dark:text-white flex items-center gap-2">
-              💳 Pagos Electrónicos
+              💳 {t('shiftCard.electronicPayments')}
             </h4>
             {!isEditingPayments && shift.status === 'open' && (
               <button
                 onClick={() => setIsEditingPayments(true)}
                 className="text-xs text-blue-600 hover:text-blue-700 dark:text-blue-400 font-medium"
               >
-                Editar
+                {t('shiftCard.edit')}
               </button>
             )}
           </div>
@@ -405,7 +384,7 @@ export default function ShiftCard({ shiftId, shiftType }: ShiftCardProps) {
 
               <div className="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border-2 border-blue-200 dark:border-blue-800 mt-2">
                 <span className="text-sm font-semibold text-blue-700 dark:text-blue-300">
-                  Total Pagos Electrónicos
+                  {t('shiftCard.totalElectronicPayments')}
                 </span>
                 <span className="text-xl font-bold text-blue-600 dark:text-blue-400">
                   {shift.payments
@@ -417,8 +396,8 @@ export default function ShiftCard({ shiftId, shiftType }: ShiftCardProps) {
             </div>
           ) : (
             <div className="text-center py-8 text-gray-400 dark:text-gray-500 text-sm">
-              <p>Sin pagos registrados</p>
-              <p className="text-xs mt-1">Haz clic en &quot;Editar&quot; para agregar</p>
+              <p>{t('shiftCard.noPayments')}</p>
+              <p className="text-xs mt-1">{t('shiftCard.edit')}</p>
             </div>
           )}
         </div>
@@ -428,7 +407,7 @@ export default function ShiftCard({ shiftId, shiftType }: ShiftCardProps) {
       <div className="bg-white dark:bg-[#0d1117] border border-gray-200 dark:border-gray-800 rounded-lg p-4">
         <div className="flex items-center justify-between mb-3">
           <h4 className="font-medium text-gray-900 dark:text-white flex items-center gap-2">
-            📝 {shiftType === 'closing' ? 'Vales Pendientes del Día' : 'Vales del Turno'}
+            📝 {shiftType === 'closing' ? t('shiftCard.pendingDayVouchers') : t('shiftCard.shiftVouchers')}
             <span className="text-xs text-gray-500 dark:text-gray-400">({vouchersCount})</span>
           </h4>
           {shift.status === 'open' &&
@@ -438,7 +417,7 @@ export default function ShiftCard({ shiftId, shiftType }: ShiftCardProps) {
                 onClick={() => setShowCreateVoucherModal(true)}
                 className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded transition-colors"
               >
-                + Nuevo Vale
+                {t('shiftCard.newVoucher')}
               </button>
             )}
         </div>
@@ -466,7 +445,7 @@ export default function ShiftCard({ shiftId, shiftType }: ShiftCardProps) {
             className="px-6 py-2.5 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-colors flex items-center gap-2"
           >
             <FiCheckCircle className="w-4 h-4" />
-            Cerrar Turno
+            {t('shiftCard.closeShift')}
           </button>
         </div>
       )}

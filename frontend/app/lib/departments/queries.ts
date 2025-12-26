@@ -9,33 +9,42 @@ const API_URL = API_BASE_URL
 
 // =============== API CLIENT ===============
 
+interface ApiResponse<T> {
+  success: boolean
+  data: T
+}
+
 export const departmentsApi = {
   /**
    * Obtiene todos los departamentos
    */
   getAll: async (): Promise<Department[]> => {
-    return apiClient.get(`${API_URL}/api/departments`)
+    const response = await apiClient.get<ApiResponse<Department[]>>(`${API_URL}/api/departments`)
+    return response.data
   },
 
   /**
    * Obtiene un departamento por ID
    */
   getById: async (id: number): Promise<Department> => {
-    return apiClient.get(`${API_URL}/api/departments/${id}`)
+    const response = await apiClient.get<ApiResponse<Department>>(`${API_URL}/api/departments/${id}`)
+    return response.data
   },
 
   /**
    * Crea un nuevo departamento
    */
   create: async (data: { name: string }): Promise<Department> => {
-    return apiClient.post(`${API_URL}/api/departments`, data)
+    const response = await apiClient.post<ApiResponse<Department>>(`${API_URL}/api/departments`, data)
+    return response.data
   },
 
   /**
    * Actualiza un departamento existente
    */
   update: async (id: number, data: { name: string }): Promise<Department> => {
-    return apiClient.put(`${API_URL}/api/departments/${id}`, data)
+    const response = await apiClient.put<ApiResponse<Department>>(`${API_URL}/api/departments/${id}`, data)
+    return response.data
   },
 
   /**

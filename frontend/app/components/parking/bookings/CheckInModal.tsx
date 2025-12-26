@@ -2,6 +2,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 import type { ParkingBooking } from '@/app/lib/parking/types'
 import { formatDateTimeLocal } from '../helpers'
 import { FiLogIn, FiX } from 'react-icons/fi'
@@ -13,6 +14,7 @@ interface CheckInModalProps {
 }
 
 export function CheckInModal({ booking, onClose, onConfirm }: CheckInModalProps) {
+  const t = useTranslations('parking')
   const [loading, setLoading] = useState(false)
   const [data, setData] = useState({
     actual_checkin: formatDateTimeLocal(new Date(booking.schedule.expected_checkin)),
@@ -39,7 +41,7 @@ export function CheckInModal({ booking, onClose, onConfirm }: CheckInModalProps)
           <div>
             <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
               <FiLogIn className="w-5 h-5 text-green-600" />
-              Check-in
+              {t('checkInModal.title')}
             </h3>
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{booking.booking_code}</p>
           </div>
@@ -55,7 +57,7 @@ export function CheckInModal({ booking, onClose, onConfirm }: CheckInModalProps)
         <div className="px-6 py-4 space-y-4">
           {/* Info de plaza */}
           <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-3">
-            <p className="text-sm text-gray-600 dark:text-gray-400">Plaza</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">{t('checkInModal.spot')}</p>
             <p className="text-lg font-semibold text-gray-900 dark:text-gray-100">
               {booking.spot.level} - {booking.spot.number}
             </p>
@@ -63,7 +65,7 @@ export function CheckInModal({ booking, onClose, onConfirm }: CheckInModalProps)
 
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Fecha y hora de entrada
+              {t('checkInModal.dateTime')}
             </label>
             <input
               type="datetime-local"
@@ -75,14 +77,14 @@ export function CheckInModal({ booking, onClose, onConfirm }: CheckInModalProps)
 
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Notas (opcional)
+              {t('checkInModal.notes')}
             </label>
             <textarea
               value={data.notes}
               onChange={(e) => setData({ ...data, notes: e.target.value })}
               rows={3}
               className="w-full px-3 py-2 bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 resize-none"
-              placeholder="Observaciones del check-in..."
+              placeholder={t('checkInModal.notesPlaceholder')}
             />
           </div>
         </div>
@@ -94,7 +96,7 @@ export function CheckInModal({ booking, onClose, onConfirm }: CheckInModalProps)
             disabled={loading}
             className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
           >
-            Cancelar
+            {t('checkInModal.cancel')}
           </button>
           <button
             onClick={handleSubmit}
@@ -106,7 +108,7 @@ export function CheckInModal({ booking, onClose, onConfirm }: CheckInModalProps)
             ) : (
               <>
                 <FiLogIn className="w-4 h-4" />
-                Confirmar Check-in
+                {t('checkInModal.confirm')}
               </>
             )}
           </button>

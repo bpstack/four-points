@@ -3,6 +3,7 @@
 
 import { useState } from 'react'
 import { FaChevronLeft, FaChevronRight } from 'react-icons/fa'
+import { useTranslations } from 'next-intl'
 
 interface SimpleCalendarProps {
   selectedDate?: Date | null | undefined
@@ -11,6 +12,7 @@ interface SimpleCalendarProps {
 }
 
 export default function SimpleCalendar({ selectedDate, onSelect, onClose }: SimpleCalendarProps) {
+  const t = useTranslations('common')
   const [currentMonth, setCurrentMonth] = useState(selectedDate || new Date())
 
   const daysInMonth = (date: Date) => {
@@ -22,22 +24,9 @@ export default function SimpleCalendar({ selectedDate, onSelect, onClose }: Simp
     return day === 0 ? 6 : day - 1
   }
 
-  const monthNames = [
-    'Enero',
-    'Febrero',
-    'Marzo',
-    'Abril',
-    'Mayo',
-    'Junio',
-    'Julio',
-    'Agosto',
-    'Septiembre',
-    'Octubre',
-    'Noviembre',
-    'Diciembre',
-  ]
-
-  const dayNames = ['L', 'M', 'X', 'J', 'V', 'S', 'D']
+  // Get month names from translations - returns array
+  const monthNames = t.raw('calendar.months') as string[]
+  const dayNames = t.raw('calendar.weekdaysShort') as string[]
 
   const previousMonth = () => {
     setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1))
@@ -119,9 +108,9 @@ export default function SimpleCalendar({ selectedDate, onSelect, onClose }: Simp
       </div>
 
       <div className="grid grid-cols-7 gap-2 mb-3">
-        {dayNames.map((day) => (
+        {dayNames.map((day, index) => (
           <div
-            key={day}
+            key={index}
             className="h-9 w-9 flex items-center justify-center text-xs font-semibold text-gray-500 dark:text-gray-400"
           >
             {day}
@@ -137,7 +126,7 @@ export default function SimpleCalendar({ selectedDate, onSelect, onClose }: Simp
             onClick={onClose}
             className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
           >
-            Cerrar
+            {t('calendar.close')}
           </button>
         </div>
       )}

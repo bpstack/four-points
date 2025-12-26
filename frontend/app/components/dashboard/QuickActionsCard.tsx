@@ -1,44 +1,45 @@
 // app/components/dashboard/QuickActionsCard.tsx
 'use client'
 
-import React from 'react'
+import React, { useMemo } from 'react'
+import { useTranslations } from 'next-intl'
 import { FiZap, FiBook, FiTool, FiUsers } from 'react-icons/fi'
 import { FaCar } from 'react-icons/fa'
 import { IconType } from 'react-icons'
 
 interface QuickAction {
-  label: string
-  shortLabel: string
+  labelKey: string
+  shortLabelKey: string
   icon: IconType
   href: string
   color: string
 }
 
-const quickActions: QuickAction[] = [
+const quickActionsConfig: QuickAction[] = [
   {
-    label: 'Nueva Entrada Consigna',
-    shortLabel: 'Consigna',
+    labelKey: 'newLogbook',
+    shortLabelKey: 'newLogbookShort',
     icon: FiBook,
     href: '/dashboard/logbooks',
     color: 'from-blue-500 to-blue-600',
   },
   {
-    label: 'Reservar Plaza Parking',
-    shortLabel: 'Parking',
+    labelKey: 'newParking',
+    shortLabelKey: 'newParkingShort',
     icon: FaCar,
     href: '/dashboard/parking/bookings/new',
     color: 'from-purple-500 to-purple-600',
   },
   {
-    label: 'Mantenimiento',
-    shortLabel: 'Mantenim.',
+    labelKey: 'maintenance',
+    shortLabelKey: 'maintenanceShort',
     icon: FiTool,
     href: '/dashboard/maintenance',
     color: 'from-yellow-500 to-yellow-600',
   },
   {
-    label: 'Reserva Nuevo Grupo',
-    shortLabel: 'Grupos',
+    labelKey: 'newGroup',
+    shortLabelKey: 'newGroupShort',
     icon: FiUsers,
     href: '/dashboard/groups?panel=create-group',
     color: 'from-orange-500 to-orange-600',
@@ -46,19 +47,31 @@ const quickActions: QuickAction[] = [
 ]
 
 export function QuickActionsCard() {
+  const t = useTranslations('dashboard.quickActions')
+
+  const quickActions = useMemo(
+    () =>
+      quickActionsConfig.map((action) => ({
+        ...action,
+        label: t(action.labelKey),
+        shortLabel: t(action.shortLabelKey),
+      })),
+    [t]
+  )
+
   return (
     <div className="bg-white dark:bg-[#0D1117] border border-[#d0d7de] dark:border-[#30363d] rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200 p-4 sm:p-6">
       <div className="flex items-center gap-2 mb-3 sm:mb-5">
         <FiZap className="w-4 h-4 sm:w-5 sm:h-5 text-[#0969da] dark:text-[#58a6ff]" />
         <h2 className="text-sm sm:text-lg font-bold text-[#24292f] dark:text-[#f0f6fc]">
-          Acciones Rápidas
+          {t('title')}
         </h2>
       </div>
 
       <div className="grid grid-cols-4 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
         {quickActions.map((action) => (
           <a
-            key={action.label}
+            key={action.labelKey}
             href={action.href}
             className="group relative overflow-hidden p-2 sm:p-5 bg-gradient-to-br from-[#f6f8fa] to-white dark:from-[#161B22] dark:to-[#161b22] border border-[#d0d7de] dark:border-[#21262d] rounded-xl hover:border-[#0969da] dark:hover:border-[#58a6ff] hover:shadow-lg transition-all duration-300 sm:transform sm:hover:-translate-y-1"
           >

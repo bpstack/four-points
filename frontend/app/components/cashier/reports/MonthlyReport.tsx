@@ -1,5 +1,6 @@
 'use client'
 
+import { useTranslations } from 'next-intl'
 import { FiAlertCircle, FiCheckCircle, FiClock, FiDownload } from 'react-icons/fi'
 import { useMonthlyReport } from '@/app/lib/cashier/queries'
 
@@ -62,6 +63,7 @@ interface RawReport {
 }
 
 export default function MonthlyReport({ year, month }: MonthlyReportProps) {
+  const t = useTranslations('cashier')
   const { data: reportData, isLoading, error } = useMonthlyReport(year, month)
 
   if (isLoading) {
@@ -69,7 +71,7 @@ export default function MonthlyReport({ year, month }: MonthlyReportProps) {
       <div className="flex items-center justify-center py-12">
         <div className="text-center">
           <div className="inline-block h-8 w-8 animate-spin rounded-full border-[3px] border-solid border-blue-600 dark:border-blue-500 border-r-transparent"></div>
-          <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">Cargando reporte...</p>
+          <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">{t('page.loadingReport')}</p>
         </div>
       </div>
     )
@@ -82,7 +84,7 @@ export default function MonthlyReport({ year, month }: MonthlyReportProps) {
           <FiAlertCircle className="w-4 h-4 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
           <div>
             <h3 className="font-medium text-red-800 dark:text-red-300 text-sm mb-1">
-              Error al cargar reporte
+              {t('error.loadingReport')}
             </h3>
             <p className="text-xs text-red-700 dark:text-red-400">{(error as Error).message}</p>
           </div>
@@ -94,6 +96,25 @@ export default function MonthlyReport({ year, month }: MonthlyReportProps) {
   if (!reportData) return null
 
   const rawReport = reportData as unknown as RawReport
+
+  // Verificación defensiva - si no hay datos de totals, mostrar mensaje
+  if (!rawReport.totals) {
+    return (
+      <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
+        <div className="flex items-start gap-2">
+          <FiAlertCircle className="w-4 h-4 text-yellow-600 dark:text-yellow-400 flex-shrink-0 mt-0.5" />
+          <div>
+            <h3 className="font-medium text-yellow-800 dark:text-yellow-300 text-sm mb-1">
+              {t('reports.noDataForPeriod')}
+            </h3>
+            <p className="text-xs text-yellow-700 dark:text-yellow-400">
+              {t('reports.noDataDescription')}
+            </p>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   // PARSEO SIMPLE - Backend ya envía valores correctos
   const report = {
@@ -107,14 +128,14 @@ export default function MonthlyReport({ year, month }: MonthlyReportProps) {
       total_transfer: parseFloat(String(rawReport.totals.total_transfer)) || 0,
       total_other: parseFloat(String(rawReport.totals.total_other)) || 0,
     },
-    payment_methods_breakdown: rawReport.payment_methods_breakdown.map(
+    payment_methods_breakdown: (rawReport.payment_methods_breakdown || []).map(
       (method: RawMethod): ParsedMethod => ({
         method_name: method.method_name,
         total_amount: parseFloat(String(method.total_amount)) || 0,
         percentage: parseFloat(String(method.percentage)) || 0,
       })
     ),
-    daily_breakdown: rawReport.daily_breakdown.map(
+    daily_breakdown: (rawReport.daily_breakdown || []).map(
       (day: RawDay): ParsedDay => ({
         date: day.date,
         status: day.status,
@@ -131,7 +152,7 @@ export default function MonthlyReport({ year, month }: MonthlyReportProps) {
       {/* Desglose por Método de Pago */}
       <div className="bg-white dark:bg-[#151b23] border border-gray-200 dark:border-gray-800 rounded-md p-4">
         <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
-          Desglose por Método de Pago
+          {t('reports.paymentMethodBreakdown')}
         </h3>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
           {report.payment_methods_breakdown.map((method: ParsedMethod) => (
@@ -164,7 +185,7 @@ export default function MonthlyReport({ year, month }: MonthlyReportProps) {
       {/* Tabla de Días */}
       <div className="bg-white dark:bg-[#151b23] border border-gray-200 dark:border-gray-800 rounded-md overflow-hidden">
         <div className="flex items-center justify-between px-3 py-2 border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-[#0d1117]">
-          <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Desglose Diario</h3>
+          <h3 className="text-sm font-semibold text-gray-900 dark:text-white">{t('reports.dailyBreakdown')}</h3>
           <button
             className="px-2 py-1 text-[10px] font-medium text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-700 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors flex items-center gap-1"
             onClick={() => {
@@ -172,7 +193,7 @@ export default function MonthlyReport({ year, month }: MonthlyReportProps) {
             }}
           >
             <FiDownload className="w-3 h-3" />
-            Exportar
+            {t('reports.export')}
           </button>
         </div>
 
@@ -181,19 +202,19 @@ export default function MonthlyReport({ year, month }: MonthlyReportProps) {
             <thead className="bg-gray-50 dark:bg-[#0d1117]">
               <tr>
                 <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                  Fecha
+                  {t('reports.dateCol')}
                 </th>
                 <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                  Estado
+                  {t('reports.statusCol')}
                 </th>
                 <th className="px-3 py-2 text-right text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                  Efectivo
+                  {t('reports.cashCol')}
                 </th>
                 <th className="px-3 py-2 text-right text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                  Total
+                  {t('reports.totalCol')}
                 </th>
                 <th className="px-3 py-2 text-center text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                  Valid.
+                  {t('reports.validCol')}
                 </th>
               </tr>
             </thead>
@@ -220,12 +241,12 @@ export default function MonthlyReport({ year, month }: MonthlyReportProps) {
                       {day.status === 'closed' ? (
                         <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-[9px] font-medium rounded">
                           <FiCheckCircle className="w-2.5 h-2.5" />
-                          Cerrado
+                          {t('summary.closed')}
                         </span>
                       ) : (
                         <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 text-[9px] font-medium rounded">
                           <FiClock className="w-2.5 h-2.5" />
-                          Abierto
+                          {t('summary.open')}
                         </span>
                       )}
                     </td>
@@ -253,7 +274,7 @@ export default function MonthlyReport({ year, month }: MonthlyReportProps) {
             <tfoot className="bg-gray-50 dark:bg-[#0d1117] font-bold border-t border-gray-200 dark:border-gray-800">
               <tr>
                 <td colSpan={2} className="px-3 py-2 text-[11px] text-gray-900 dark:text-white">
-                  TOTAL DEL MES
+                  {t('reports.monthTotal')}
                 </td>
                 <td className="px-3 py-2 text-[11px] text-right text-gray-900 dark:text-white">
                   {report.totals.total_cash.toFixed(2)}€
@@ -275,7 +296,7 @@ export default function MonthlyReport({ year, month }: MonthlyReportProps) {
             <FiAlertCircle className="w-4 h-4 text-yellow-600 dark:text-yellow-400 flex-shrink-0 mt-0.5" />
             <div>
               <h4 className="font-medium text-yellow-800 dark:text-yellow-300 text-xs mb-1">
-                Advertencias del periodo
+                {t('reports.periodWarnings')}
               </h4>
               <ul className="list-disc list-inside space-y-0.5 text-[11px] text-yellow-700 dark:text-yellow-400">
                 {report.validation_errors.map((error: string, idx: number) => (

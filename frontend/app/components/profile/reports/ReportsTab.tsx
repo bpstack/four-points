@@ -2,7 +2,8 @@
 
 'use client'
 
-import { useState, useCallback, lazy, Suspense } from 'react'
+import { useState, useCallback, lazy, Suspense, useMemo } from 'react'
+import { useTranslations } from 'next-intl'
 import { cn } from '@/app/lib/helpers/utils'
 import {
   FiActivity,
@@ -28,57 +29,17 @@ const GroupsSection = lazy(() => import('./sections/GroupsSection'))
 const CashierSection = lazy(() => import('./sections/CashierSection'))
 
 // ═══════════════════════════════════════════════════════
-// SECTION CONFIG
-// ═══════════════════════════════════════════════════════
-
-const SECTIONS: {
-  id: ReportSection
-  label: string
-  description: string
-  icon: React.ReactNode
-}[] = [
-  {
-    id: 'overview',
-    label: 'Actividad General',
-    description: 'Vista unificada de toda la actividad',
-    icon: <FiActivity className="w-5 h-5" />,
-  },
-  {
-    id: 'logbooks',
-    label: 'Logbooks',
-    description: 'Historial de partes y comentarios',
-    icon: <FiBook className="w-5 h-5" />,
-  },
-  {
-    id: 'maintenance',
-    label: 'Mantenimiento',
-    description: 'Reportes e historial de incidencias',
-    icon: <FiTool className="w-5 h-5" />,
-  },
-  {
-    id: 'groups',
-    label: 'Grupos',
-    description: 'Historial de grupos y pagos',
-    icon: <FiUsers className="w-5 h-5" />,
-  },
-  {
-    id: 'cashier',
-    label: 'Caja',
-    description: 'Turnos, vales y cierres diarios',
-    icon: <FiDollarSign className="w-5 h-5" />,
-  },
-]
-
-// ═══════════════════════════════════════════════════════
 // LOADING FALLBACK
 // ═══════════════════════════════════════════════════════
 
 function SectionSkeleton() {
+  const t = useTranslations('profile.reports')
+  
   return (
     <div className="flex items-center justify-center h-64">
       <div className="flex flex-col items-center gap-3 text-gray-400">
         <FiLoader className="w-8 h-8 animate-spin" />
-        <span className="text-sm">Cargando seccion...</span>
+        <span className="text-sm">{t('loadingSection')}</span>
       </div>
     </div>
   )
@@ -89,8 +50,48 @@ function SectionSkeleton() {
 // ═══════════════════════════════════════════════════════
 
 export function ReportsTab() {
+  const t = useTranslations('profile.reports')
   const [activeSection, setActiveSection] = useState<ReportSection>('overview')
   const [refreshKey, setRefreshKey] = useState(0)
+
+  // Section config with translations (inside component to access t())
+  const SECTIONS: {
+    id: ReportSection
+    label: string
+    description: string
+    icon: React.ReactNode
+  }[] = useMemo(() => [
+    {
+      id: 'overview',
+      label: t('sections.overview'),
+      description: t('sections.overviewDesc'),
+      icon: <FiActivity className="w-5 h-5" />,
+    },
+    {
+      id: 'logbooks',
+      label: t('sections.logbooks'),
+      description: t('sections.logbooksDesc'),
+      icon: <FiBook className="w-5 h-5" />,
+    },
+    {
+      id: 'maintenance',
+      label: t('sections.maintenance'),
+      description: t('sections.maintenanceDesc'),
+      icon: <FiTool className="w-5 h-5" />,
+    },
+    {
+      id: 'groups',
+      label: t('sections.groups'),
+      description: t('sections.groupsDesc'),
+      icon: <FiUsers className="w-5 h-5" />,
+    },
+    {
+      id: 'cashier',
+      label: t('sections.cashier'),
+      description: t('sections.cashierDesc'),
+      icon: <FiDollarSign className="w-5 h-5" />,
+    },
+  ], [t])
 
   const handleRefresh = useCallback(() => {
     setRefreshKey((k) => k + 1)
@@ -124,10 +125,10 @@ export function ReportsTab() {
         <div className="p-4 border-b border-gray-200 dark:border-[#30363d]">
           <h3 className="text-sm font-semibold text-gray-900 dark:text-white flex items-center gap-2">
             <FiActivity className="w-4 h-4 text-blue-500" />
-            System Reports
+            {t('title')}
           </h3>
           <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-            Logs y actividad del sistema
+            {t('subtitle')}
           </p>
         </div>
 
@@ -171,7 +172,7 @@ export function ReportsTab() {
         <div className="p-3 border-t border-gray-200 dark:border-[#30363d]">
           <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
             <FiAlertCircle className="w-3.5 h-3.5" />
-            <span>Solo visible para admins</span>
+            <span>{t('adminOnly')}</span>
           </div>
         </div>
       </aside>
@@ -194,7 +195,7 @@ export function ReportsTab() {
             className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-[#21262d] border border-gray-300 dark:border-[#30363d] hover:bg-gray-50 dark:hover:bg-[#30363d] rounded-lg transition-colors"
           >
             <FiRefreshCw className="w-3.5 h-3.5" />
-            Refresh
+            {t('refresh')}
           </button>
         </header>
 

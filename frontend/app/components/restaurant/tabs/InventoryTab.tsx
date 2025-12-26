@@ -3,6 +3,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { FiSearch, FiPlus, FiEdit2, FiTrash2, FiAlertTriangle } from 'react-icons/fi'
 
 // Mock data types
@@ -149,9 +150,21 @@ const mockProducts: Product[] = [
 ]
 
 export function InventoryTab() {
+  const t = useTranslations('restaurant')
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('all')
   const [showLowStockOnly, setShowLowStockOnly] = useState(false)
+
+  // Categories with translation keys
+  const categories = [
+    { id: 'all', labelKey: 'inventory.categories.all', count: 156 },
+    { id: 'bebidas', labelKey: 'inventory.categories.beverages', count: 42 },
+    { id: 'carnes', labelKey: 'inventory.categories.meats', count: 28 },
+    { id: 'lacteos', labelKey: 'inventory.categories.dairy', count: 18 },
+    { id: 'frutas', labelKey: 'inventory.categories.produce', count: 35 },
+    { id: 'panaderia', labelKey: 'inventory.categories.bakery', count: 15 },
+    { id: 'limpieza', labelKey: 'inventory.categories.cleaning', count: 18 },
+  ]
 
   const filteredProducts = mockProducts.filter((product) => {
     const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -178,19 +191,24 @@ export function InventoryTab() {
     if (stock < minStock) {
       return {
         color: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
-        label: 'Bajo',
+        labelKey: 'inventory.stockStatus.low',
       }
     }
     if (stock < minStock * 1.5) {
       return {
         color: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
-        label: 'Medio',
+        labelKey: 'inventory.stockStatus.medium',
       }
     }
     return {
       color: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
-      label: 'OK',
+      labelKey: 'inventory.stockStatus.ok',
     }
+  }
+
+  const getCategoryLabel = (categoryId: string) => {
+    const cat = categories.find((c) => c.id === categoryId)
+    return cat ? t(cat.labelKey) : categoryId
   }
 
   return (
@@ -202,7 +220,7 @@ export function InventoryTab() {
           <FiSearch className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 dark:text-gray-500" />
           <input
             type="text"
-            placeholder="Buscar productos..."
+            placeholder={t('inventory.searchPlaceholder')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full pl-8 pr-3 py-1.5 text-xs border border-gray-300 dark:border-gray-700 dark:bg-[#151b23] dark:text-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent"
@@ -215,9 +233,9 @@ export function InventoryTab() {
           onChange={(e) => setSelectedCategory(e.target.value)}
           className="px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent bg-white dark:bg-[#151b23] dark:text-gray-200"
         >
-          {mockCategories.map((cat) => (
+          {categories.map((cat) => (
             <option key={cat.id} value={cat.id}>
-              {cat.name} ({cat.count})
+              {t(cat.labelKey)} ({cat.count})
             </option>
           ))}
         </select>
@@ -232,13 +250,13 @@ export function InventoryTab() {
           }`}
         >
           <FiAlertTriangle className="w-3.5 h-3.5" />
-          Stock Bajo
+          {t('inventory.lowStockFilter')}
         </button>
 
         {/* Add Product Button */}
         <button className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-green-600 dark:bg-green-700 text-white text-xs font-medium rounded-md hover:bg-green-700 dark:hover:bg-green-800 transition-colors">
           <FiPlus className="w-3.5 h-3.5" />
-          Añadir Producto
+          {t('inventory.addProduct')}
         </button>
       </div>
 
@@ -249,28 +267,28 @@ export function InventoryTab() {
             <thead className="bg-gray-50 dark:bg-[#0d1117] border-b border-gray-200 dark:border-gray-800">
               <tr>
                 <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                  Producto
+                  {t('inventory.table.product')}
                 </th>
                 <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                  Categoría
+                  {t('inventory.table.category')}
                 </th>
                 <th className="px-3 py-2 text-center text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                  Stock
+                  {t('inventory.table.stock')}
                 </th>
                 <th className="px-3 py-2 text-center text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                  Estado
+                  {t('inventory.table.status')}
                 </th>
                 <th className="px-3 py-2 text-right text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                  Precio
+                  {t('inventory.table.price')}
                 </th>
                 <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                  Proveedor
+                  {t('inventory.table.supplier')}
                 </th>
                 <th className="px-3 py-2 text-center text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                  Actualizado
+                  {t('inventory.table.updated')}
                 </th>
                 <th className="px-3 py-2 text-right text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                  Acciones
+                  {t('inventory.table.actions')}
                 </th>
               </tr>
             </thead>
@@ -281,7 +299,7 @@ export function InventoryTab() {
                     colSpan={8}
                     className="px-3 py-8 text-center text-xs text-gray-500 dark:text-gray-400"
                   >
-                    No se encontraron productos
+                    {t('inventory.noProducts')}
                   </td>
                 </tr>
               ) : (
@@ -303,8 +321,7 @@ export function InventoryTab() {
                         </div>
                       </td>
                       <td className="px-3 py-2 text-xs text-gray-600 dark:text-gray-400 capitalize">
-                        {mockCategories.find((c) => c.id === product.category)?.name ||
-                          product.category}
+                        {getCategoryLabel(product.category)}
                       </td>
                       <td className="px-3 py-2 text-xs text-center text-gray-900 dark:text-gray-100">
                         {product.stock} {product.unit}
@@ -313,7 +330,7 @@ export function InventoryTab() {
                         <span
                           className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium ${stockStatus.color}`}
                         >
-                          {stockStatus.label}
+                          {t(stockStatus.labelKey)}
                         </span>
                       </td>
                       <td className="px-3 py-2 text-xs text-right font-medium text-gray-900 dark:text-gray-100">
@@ -348,7 +365,7 @@ export function InventoryTab() {
       <div className="md:hidden space-y-2">
         {filteredProducts.length === 0 ? (
           <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-6 text-center">
-            <p className="text-xs text-gray-500 dark:text-gray-400">No se encontraron productos</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">{t('inventory.noProducts')}</p>
           </div>
         ) : (
           filteredProducts.map((product) => {
@@ -369,19 +386,19 @@ export function InventoryTab() {
                       </h3>
                     </div>
                     <p className="text-[10px] text-gray-600 dark:text-gray-400 mt-0.5 capitalize">
-                      {mockCategories.find((c) => c.id === product.category)?.name}
+                      {getCategoryLabel(product.category)}
                     </p>
                   </div>
                   <span
                     className={`ml-2 flex-shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium ${stockStatus.color}`}
                   >
-                    {stockStatus.label}
+                    {t(stockStatus.labelKey)}
                   </span>
                 </div>
 
                 <div className="flex items-center justify-between text-[10px] text-gray-600 dark:text-gray-400">
                   <span>
-                    Stock:{' '}
+                    {t('inventory.stock')}{' '}
                     <span className="font-medium text-gray-900 dark:text-gray-100">
                       {product.stock} {product.unit}
                     </span>

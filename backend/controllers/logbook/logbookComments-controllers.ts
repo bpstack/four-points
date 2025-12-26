@@ -9,6 +9,7 @@ import {
   createCommentSchema,
   updateCommentSchema,
 } from '../../validations/logbook/logbook-schemas.js'
+import { ERROR_CODES, SUCCESS_CODES } from '../../config/error-codes.js'
 
 // ============================================
 // CREATE COMMENT
@@ -23,7 +24,11 @@ export async function createCommentController(req: Request, res: Response): Prom
 
     const logbook = await logbookRepo.getById(logbookId)
     if (!logbook) {
-      res.status(404).json({ error: 'Logbook no encontrado' })
+      res.status(404).json({
+        success: false,
+        error: ERROR_CODES.LOGBOOK_NOT_FOUND,
+        code: ERROR_CODES.LOGBOOK_NOT_FOUND,
+      })
       return
     }
 
@@ -67,14 +72,20 @@ export async function createCommentController(req: Request, res: Response): Prom
     const error = err as Error & { name?: string; issues?: unknown[] }
     if (error.name === 'ZodError') {
       res.status(400).json({
-        error: 'Datos inválidos',
+        success: false,
+        error: ERROR_CODES.INVALID_DATA,
+        code: ERROR_CODES.INVALID_DATA,
         details: error.issues,
       })
       return
     }
 
     console.error(err)
-    res.status(500).json({ error: 'Error al crear el comentario' })
+    res.status(500).json({
+      success: false,
+      error: ERROR_CODES.LOGBOOK_COMMENT_CREATE_ERROR,
+      code: ERROR_CODES.LOGBOOK_COMMENT_CREATE_ERROR,
+    })
   }
 }
 
@@ -91,25 +102,41 @@ export async function updateCommentController(req: Request, res: Response): Prom
 
     const oldComment = await commentRepo.getById(commentId)
     if (!oldComment) {
-      res.status(404).json({ error: 'Comentario no encontrado' })
+      res.status(404).json({
+        success: false,
+        error: ERROR_CODES.LOGBOOK_COMMENT_NOT_FOUND,
+        code: ERROR_CODES.LOGBOOK_COMMENT_NOT_FOUND,
+      })
       return
     }
 
     if (Number(oldComment.logbook_id) !== Number(logbookId)) {
-      res.status(400).json({ error: 'El comentario no pertenece a este logbook' })
+      res.status(400).json({
+        success: false,
+        error: ERROR_CODES.LOGBOOK_COMMENT_NOT_IN_LOGBOOK,
+        code: ERROR_CODES.LOGBOOK_COMMENT_NOT_IN_LOGBOOK,
+      })
       return
     }
 
     // Check permissions
     const isAdmin = (req.user as { isAdmin?: boolean })?.isAdmin
     if (oldComment.user_id !== editorId && !isAdmin) {
-      res.status(403).json({ error: 'No tienes permiso' })
+      res.status(403).json({
+        success: false,
+        error: ERROR_CODES.LOGBOOK_COMMENT_NO_PERMISSION,
+        code: ERROR_CODES.LOGBOOK_COMMENT_NO_PERMISSION,
+      })
       return
     }
 
     const updated = await commentRepo.updateComment(commentId, validatedData)
     if (!updated) {
-      res.status(500).json({ error: 'Error al actualizar' })
+      res.status(500).json({
+        success: false,
+        error: ERROR_CODES.LOGBOOK_COMMENT_UPDATE_ERROR,
+        code: ERROR_CODES.LOGBOOK_COMMENT_UPDATE_ERROR,
+      })
       return
     }
 
@@ -132,19 +159,30 @@ export async function updateCommentController(req: Request, res: Response): Prom
       current_content: newComment || null,
     })
 
-    res.json({ message: 'Comentario actualizado', newComment })
+    res.json({
+      success: true,
+      message: SUCCESS_CODES.LOGBOOK_COMMENT_UPDATED,
+      code: SUCCESS_CODES.LOGBOOK_COMMENT_UPDATED,
+      newComment,
+    })
   } catch (err) {
     const error = err as Error & { name?: string; issues?: unknown[] }
     if (error.name === 'ZodError') {
       res.status(400).json({
-        error: 'Datos inválidos',
+        success: false,
+        error: ERROR_CODES.INVALID_DATA,
+        code: ERROR_CODES.INVALID_DATA,
         details: error.issues,
       })
       return
     }
 
     console.error(err)
-    res.status(500).json({ error: 'Error al actualizar comentario' })
+    res.status(500).json({
+      success: false,
+      error: ERROR_CODES.LOGBOOK_COMMENT_UPDATE_ERROR,
+      code: ERROR_CODES.LOGBOOK_COMMENT_UPDATE_ERROR,
+    })
   }
 }
 
@@ -159,24 +197,40 @@ export async function deleteCommentController(req: Request, res: Response): Prom
 
     const comment = await commentRepo.getById(commentId)
     if (!comment) {
-      res.status(404).json({ error: 'Comentario no encontrado' })
+      res.status(404).json({
+        success: false,
+        error: ERROR_CODES.LOGBOOK_COMMENT_NOT_FOUND,
+        code: ERROR_CODES.LOGBOOK_COMMENT_NOT_FOUND,
+      })
       return
     }
 
     if (Number(comment.logbook_id) !== Number(logbookId)) {
-      res.status(400).json({ error: 'El comentario no pertenece a este logbook' })
+      res.status(400).json({
+        success: false,
+        error: ERROR_CODES.LOGBOOK_COMMENT_NOT_IN_LOGBOOK,
+        code: ERROR_CODES.LOGBOOK_COMMENT_NOT_IN_LOGBOOK,
+      })
       return
     }
 
     const isAdmin = (req.user as { isAdmin?: boolean })?.isAdmin
     if (comment.user_id !== editorId && !isAdmin) {
-      res.status(403).json({ error: 'No tienes permiso' })
+      res.status(403).json({
+        success: false,
+        error: ERROR_CODES.LOGBOOK_COMMENT_NO_PERMISSION,
+        code: ERROR_CODES.LOGBOOK_COMMENT_NO_PERMISSION,
+      })
       return
     }
 
     const deleted = await commentRepo.softDeleteComment(commentId)
     if (!deleted) {
-      res.status(500).json({ error: 'Error al eliminar' })
+      res.status(500).json({
+        success: false,
+        error: ERROR_CODES.LOGBOOK_COMMENT_DELETE_ERROR,
+        code: ERROR_CODES.LOGBOOK_COMMENT_DELETE_ERROR,
+      })
       return
     }
 
@@ -189,10 +243,18 @@ export async function deleteCommentController(req: Request, res: Response): Prom
       current_content: null,
     })
 
-    res.json({ message: 'Comentario eliminado' })
+    res.json({
+      success: true,
+      message: SUCCESS_CODES.LOGBOOK_COMMENT_DELETED,
+      code: SUCCESS_CODES.LOGBOOK_COMMENT_DELETED,
+    })
   } catch (err) {
     console.error(err)
-    res.status(500).json({ error: 'Error al eliminar comentario' })
+    res.status(500).json({
+      success: false,
+      error: ERROR_CODES.LOGBOOK_COMMENT_DELETE_ERROR,
+      code: ERROR_CODES.LOGBOOK_COMMENT_DELETE_ERROR,
+    })
   }
 }
 
@@ -207,7 +269,11 @@ export async function getCommentsByLogbookController(req: Request, res: Response
     res.json({ logbookId, comments })
   } catch (err) {
     console.error(err)
-    res.status(500).json({ error: (err as Error).message })
+    res.status(500).json({
+      success: false,
+      error: ERROR_CODES.LOGBOOK_FETCH_ERROR,
+      code: ERROR_CODES.LOGBOOK_FETCH_ERROR,
+    })
   }
 }
 
@@ -222,6 +288,10 @@ export async function getCommentHistoryController(req: Request, res: Response): 
     res.json({ commentId, history })
   } catch (err) {
     console.error(err)
-    res.status(500).json({ error: (err as Error).message })
+    res.status(500).json({
+      success: false,
+      error: ERROR_CODES.LOGBOOK_FETCH_ERROR,
+      code: ERROR_CODES.LOGBOOK_FETCH_ERROR,
+    })
   }
 }

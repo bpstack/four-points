@@ -5,6 +5,7 @@
 import { useMemo, useState, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useTranslations } from 'next-intl'
 import { Group, GroupStatus, groupsKeys, groupsApi } from '@/app/lib/groups'
 import { CreateGroupPanel } from '@/app/components/groups/panels/CreateGroupPanel'
 import {
@@ -28,6 +29,7 @@ export function GroupsListClient({ initialGroups, initialStatus = 'all' }: Group
   const searchParams = useSearchParams()
   const panel = searchParams.get('panel')
   const queryClient = useQueryClient()
+  const t = useTranslations('groups')
 
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<GroupStatus | 'all'>(initialStatus)
@@ -99,27 +101,27 @@ export function GroupsListClient({ initialGroups, initialStatus = 'all' }: Group
       pending: {
         color:
           'bg-yellow-50 text-yellow-700 border border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-400 dark:border-yellow-800',
-        label: 'Pendiente',
+        label: t('status.pending'),
       },
       confirmed: {
         color:
           'bg-green-50 text-green-700 border border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800',
-        label: 'Confirmado',
+        label: t('status.confirmed'),
       },
       in_progress: {
         color:
           'bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-800',
-        label: 'En curso',
+        label: t('status.in_progress'),
       },
       completed: {
         color:
           'bg-purple-50 text-purple-700 border border-purple-200 dark:bg-purple-900/20 dark:text-purple-400 dark:border-purple-800',
-        label: 'Completado',
+        label: t('status.completed'),
       },
       cancelled: {
         color:
           'bg-red-50 text-red-700 border border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800',
-        label: 'Cancelado',
+        label: t('status.cancelled'),
       },
     }
     return configs[status]
@@ -148,7 +150,7 @@ export function GroupsListClient({ initialGroups, initialStatus = 'all' }: Group
       <div className="min-h-screen bg-gray-50 dark:bg-[#010409] flex items-center justify-center">
         <div className="text-center">
           <div className="inline-block h-10 w-10 animate-spin rounded-full border-[3px] border-solid border-blue-600 dark:border-blue-500 border-r-transparent"></div>
-          <p className="mt-3 text-xs text-gray-600 dark:text-gray-400">Cargando grupos...</p>
+          <p className="mt-3 text-xs text-gray-600 dark:text-gray-400">{t('loading')}</p>
         </div>
       </div>
     )
@@ -163,10 +165,10 @@ export function GroupsListClient({ initialGroups, initialStatus = 'all' }: Group
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div>
                 <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">
-                  Grupos
+                  {t('title')}
                 </h1>
                 <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-0.5">
-                  Gestiona los grupos de hotel
+                  {t('subtitle')}
                 </p>
               </div>
               <button
@@ -174,7 +176,7 @@ export function GroupsListClient({ initialGroups, initialStatus = 'all' }: Group
                 className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-green-600 dark:bg-green-700 text-white text-xs font-medium rounded-md hover:bg-green-700 dark:hover:bg-green-800 transition-colors"
               >
                 <FiPlus className="w-3.5 h-3.5" />
-                Nuevo Grupo
+                {t('newGroup')}
               </button>
             </div>
           </div>
@@ -189,7 +191,7 @@ export function GroupsListClient({ initialGroups, initialStatus = 'all' }: Group
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 font-medium">
-                        Total Grupos
+                        {t('stats.totalGroups')}
                       </p>
                       <p className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 mt-0.5">
                         {totalGroups}
@@ -203,7 +205,7 @@ export function GroupsListClient({ initialGroups, initialStatus = 'all' }: Group
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 font-medium">
-                        Confirmados
+                        {t('stats.confirmed')}
                       </p>
                       <p className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 mt-0.5">
                         {confirmedGroups}
@@ -217,7 +219,7 @@ export function GroupsListClient({ initialGroups, initialStatus = 'all' }: Group
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 font-medium">
-                        En Curso
+                        {t('stats.inProgress')}
                       </p>
                       <p className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 mt-0.5">
                         {inProgressGroups}
@@ -231,7 +233,7 @@ export function GroupsListClient({ initialGroups, initialStatus = 'all' }: Group
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 font-medium">
-                        Ingresos Totales
+                        {t('stats.totalRevenue')}
                       </p>
                       <p className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 mt-0.5">
                         {formatCurrency(totalRevenue)}
@@ -248,7 +250,7 @@ export function GroupsListClient({ initialGroups, initialStatus = 'all' }: Group
                   <FiSearch className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 dark:text-gray-500" />
                   <input
                     type="text"
-                    placeholder="Buscar por nombre o agencia..."
+                    placeholder={t('filters.searchPlaceholder')}
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="w-full pl-8 pr-3 py-1.5 text-xs border border-gray-300 dark:border-gray-700 dark:bg-[#151b23] dark:text-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent"
@@ -259,12 +261,12 @@ export function GroupsListClient({ initialGroups, initialStatus = 'all' }: Group
                   onChange={(e) => setStatusFilter(e.target.value as GroupStatus | 'all')}
                   className="w-full sm:w-auto sm:min-w-[180px] px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent bg-white dark:bg-[#151b23] dark:text-gray-200"
                 >
-                  <option value="all">Todos los estados</option>
-                  <option value="pending">Pendiente</option>
-                  <option value="confirmed">Confirmado</option>
-                  <option value="in_progress">En curso</option>
-                  <option value="completed">Completado</option>
-                  <option value="cancelled">Cancelado</option>
+                  <option value="all">{t('filters.allStatuses')}</option>
+                  <option value="pending">{t('status.pending')}</option>
+                  <option value="confirmed">{t('status.confirmed')}</option>
+                  <option value="in_progress">{t('status.in_progress')}</option>
+                  <option value="completed">{t('status.completed')}</option>
+                  <option value="cancelled">{t('status.cancelled')}</option>
                 </select>
               </div>
 
@@ -275,25 +277,25 @@ export function GroupsListClient({ initialGroups, initialStatus = 'all' }: Group
                     <thead className="bg-gray-50 dark:bg-[#0d1117] border-b border-gray-200 dark:border-gray-800">
                       <tr>
                         <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                          Nombre
+                          {t('table.name')}
                         </th>
                         <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                          Agencia
+                          {t('table.agency')}
                         </th>
                         <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                          Llegada
+                          {t('table.arrival')}
                         </th>
                         <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                          Salida
+                          {t('table.departure')}
                         </th>
                         <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                          Estado
+                          {t('table.status')}
                         </th>
                         <th className="px-3 py-2 text-right text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                          Importe
+                          {t('table.amount')}
                         </th>
                         <th className="px-3 py-2 text-right text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                          Acciones
+                          {t('table.actions')}
                         </th>
                       </tr>
                     </thead>
@@ -305,8 +307,8 @@ export function GroupsListClient({ initialGroups, initialStatus = 'all' }: Group
                             className="px-3 py-8 text-center text-xs text-gray-500 dark:text-gray-400"
                           >
                             {searchTerm
-                              ? 'No se encontraron grupos con esos criterios'
-                              : 'No hay grupos registrados'}
+                              ? t('table.noResults')
+                              : t('table.noGroups')}
                           </td>
                         </tr>
                       ) : (
@@ -366,8 +368,8 @@ export function GroupsListClient({ initialGroups, initialStatus = 'all' }: Group
                   <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-6 text-center">
                     <p className="text-xs text-gray-500 dark:text-gray-400">
                       {searchTerm
-                        ? 'No se encontraron grupos con esos criterios'
-                        : 'No hay grupos registrados'}
+                        ? t('table.noResults')
+                        : t('table.noGroups')}
                     </p>
                   </div>
                 ) : (
@@ -432,14 +434,14 @@ export function GroupsListClient({ initialGroups, initialStatus = 'all' }: Group
             <div className="hidden min-[1400px]:block space-y-4">
               <div className="sticky top-4 space-y-3">
                 <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">
-                  Resumen
+                  {t('stats.summary')}
                 </h3>
 
                 <div className="bg-white dark:bg-[#0D1117] border border-[#d0d7de] dark:border-[#30363d] rounded-xl shadow-sm p-4">
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">
-                        Total Grupos
+                        {t('stats.totalGroups')}
                       </p>
                       <p className="text-xl font-bold text-gray-900 dark:text-gray-100 mt-0.5">
                         {totalGroups}
@@ -455,7 +457,7 @@ export function GroupsListClient({ initialGroups, initialStatus = 'all' }: Group
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">
-                        Confirmados
+                        {t('stats.confirmed')}
                       </p>
                       <p className="text-xl font-bold text-gray-900 dark:text-gray-100 mt-0.5">
                         {confirmedGroups}
@@ -471,7 +473,7 @@ export function GroupsListClient({ initialGroups, initialStatus = 'all' }: Group
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">
-                        En Curso
+                        {t('stats.inProgress')}
                       </p>
                       <p className="text-xl font-bold text-gray-900 dark:text-gray-100 mt-0.5">
                         {inProgressGroups}
@@ -487,7 +489,7 @@ export function GroupsListClient({ initialGroups, initialStatus = 'all' }: Group
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">
-                        Ingresos Totales
+                        {t('stats.totalRevenue')}
                       </p>
                       <p className="text-xl font-bold text-gray-900 dark:text-gray-100 mt-0.5">
                         {formatCurrency(totalRevenue)}

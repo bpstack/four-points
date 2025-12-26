@@ -1,4 +1,4 @@
-// app/components/bo/tabs/PendingInvoicesTab.tsx
+// app/components/bo/tabs/PendingInvoicesTabLazy.tsx
 /**
  * Client Component - Pending Invoices Tab
  *
@@ -10,6 +10,7 @@
 'use client'
 
 import React, { useMemo, useState, useTransition } from 'react'
+import { useTranslations } from 'next-intl'
 import {
   FiSearch,
   FiPlus,
@@ -58,6 +59,7 @@ export function PendingInvoicesTabLazy({
   suppliers,
   pagination,
 }: PendingInvoicesTabLazyProps): React.JSX.Element {
+  const t = useTranslations('backoffice')
   const queryClient = useQueryClient()
 
   const [searchTerm, setSearchTerm] = useState('')
@@ -197,7 +199,7 @@ export function PendingInvoicesTabLazy({
     })
 
     if (!hasValidated && !hasOriginal) {
-      toast.error('Esta factura no tiene PDF adjunto')
+      toast.error(t('toast.noPdfAttached'))
       return
     }
 
@@ -230,12 +232,12 @@ export function PendingInvoicesTabLazy({
     startTransition(async () => {
       try {
         await backofficeApi.deleteInvoice(deletingInvoice.id)
-        toast.success('Factura eliminada')
+        toast.success(t('toast.invoiceDeleted'))
         setDeletingInvoice(null)
         setDeleteDialogOpen(false)
         invalidatePending()
       } catch (error) {
-        const message = error instanceof Error ? error.message : 'Error al eliminar la factura'
+        const message = error instanceof Error ? error.message : t('toast.invoiceDeleteError')
         toast.error(message)
       }
     })
@@ -248,12 +250,12 @@ export function PendingInvoicesTabLazy({
     startTransition(async () => {
       try {
         await backofficeApi.validateInvoice(validatingInvoice.id)
-        toast.success('Factura validada correctamente')
+        toast.success(t('toast.invoiceValidated'))
         setValidateDialogOpen(false)
         setValidatingInvoice(null)
         invalidatePending()
       } catch (error: unknown) {
-        const message = error instanceof Error ? error.message : 'Error al validar la factura'
+        const message = error instanceof Error ? error.message : t('toast.invoiceValidateError')
         toast.error(message)
       }
     })
@@ -271,11 +273,11 @@ export function PendingInvoicesTabLazy({
       try {
         const result = await backofficeApi.unvalidateInvoice(invoice.id)
         console.log('[handleUnvalidate] Result:', result)
-        toast.success('Validación revertida correctamente')
+        toast.success(t('toast.validationReverted'))
         invalidatePending()
       } catch (error: unknown) {
         console.error('[handleUnvalidate] Error:', error)
-        const message = error instanceof Error ? error.message : 'Error al revertir la validación'
+        const message = error instanceof Error ? error.message : t('toast.validationRevertError')
         toast.error(message)
       }
     })
@@ -311,7 +313,7 @@ export function PendingInvoicesTabLazy({
       const validateResult = await backofficeApi.validateInvoice(editingPdfInvoice.id)
       console.log('[handlePdfEditorSave] Validate result:', validateResult)
 
-      toast.success('Factura validada con PDF firmado')
+      toast.success(t('toast.pdfValidatedWithStamp'))
 
       // Close modal first, then refresh data
       setPdfEditorOpen(false)
@@ -321,7 +323,7 @@ export function PendingInvoicesTabLazy({
       await queryClient.refetchQueries({ queryKey: pendingListKey(), exact: false })
     } catch (error: unknown) {
       console.error('[handlePdfEditorSave] Error:', error)
-      const message = error instanceof Error ? error.message : 'Error al guardar PDF validado'
+      const message = error instanceof Error ? error.message : t('toast.pdfValidatedSaveError')
       toast.error(message)
       setPdfEditorOpen(false)
       setEditingPdfInvoice(null)
@@ -345,10 +347,10 @@ export function PendingInvoicesTabLazy({
       }
 
       if (successCount > 0) {
-        toast.success(`${successCount} factura(s) validada(s)`)
+        toast.success(t('toast.invoicesValidated', { count: successCount }))
       }
       if (errorCount > 0) {
-        toast.error(`${errorCount} factura(s) con error`)
+        toast.error(t('toast.invoicesValidatedError', { count: errorCount }))
       }
 
       setSelectedInvoices([])
@@ -359,12 +361,12 @@ export function PendingInvoicesTabLazy({
   // Handle export validated invoices as ZIP
   const handleExportZip = async () => {
     if (selectedInvoices.length === 0) {
-      toast.error('Selecciona al menos una factura')
+      toast.error(t('toast.selectAtLeastOne'))
       return
     }
 
     if (selectedInvoices.length > 100) {
-      toast.error('Máximo 100 facturas por descarga')
+      toast.error(t('toast.maxInvoicesDownload'))
       return
     }
 
@@ -381,10 +383,8 @@ export function PendingInvoicesTabLazy({
         .slice(0, 3)
         .map((inv) => inv.invoice_number)
         .join(', ')
-      const moreText = invalidInvoices.length > 3 ? ` y ${invalidInvoices.length - 3} más` : ''
-      toast.error(
-        `Las siguientes facturas no están validadas o no tienen PDF validado: ${invalidNames}${moreText}`
-      )
+      const moreText = invalidInvoices.length > 3 ? ` (+${invalidInvoices.length - 3})` : ''
+      toast.error(t('toast.invoicesNotValidated', { names: `${invalidNames}${moreText}` }))
       return
     }
 
@@ -403,11 +403,11 @@ export function PendingInvoicesTabLazy({
       window.URL.revokeObjectURL(url)
       document.body.removeChild(a)
 
-      toast.success(`${selectedInvoices.length} factura(s) descargada(s)`)
+      toast.success(t('toast.invoicesDownloaded', { count: selectedInvoices.length }))
       setSelectedInvoices([])
     } catch (error: unknown) {
       console.error('[handleExportZip] Error:', error)
-      const message = error instanceof Error ? error.message : 'Error al descargar las facturas'
+      const message = error instanceof Error ? error.message : t('toast.downloadError')
       toast.error(message)
     } finally {
       setIsExporting(false)
@@ -422,7 +422,7 @@ export function PendingInvoicesTabLazy({
       setBatchPayDialogOpen(true)
     } catch (error: unknown) {
       console.error('[handleOpenBatchPayDialog] Error:', error)
-      const message = error instanceof Error ? error.message : 'Error al obtener preview'
+      const message = error instanceof Error ? error.message : t('toast.exportError')
       toast.error(message)
     }
   }
@@ -444,30 +444,20 @@ export function PendingInvoicesTabLazy({
       invalidatePending()
     } catch (error: unknown) {
       console.error('[handleExecuteBatchPayment] Error:', error)
-      const message = error instanceof Error ? error.message : 'Error al ejecutar batch payment'
+      const message = error instanceof Error ? error.message : t('toast.batchPaymentError')
       toast.error(message)
     } finally {
       setIsBatchPaying(false)
     }
   }
 
-  // Get Spanish month name
-  const getSpanishMonthName = (month: number): string => {
-    const months = [
-      'Enero',
-      'Febrero',
-      'Marzo',
-      'Abril',
-      'Mayo',
-      'Junio',
-      'Julio',
-      'Agosto',
-      'Septiembre',
-      'Octubre',
-      'Noviembre',
-      'Diciembre',
+  // Get month name from translations
+  const getMonthName = (month: number): string => {
+    const monthKeys = [
+      'january', 'february', 'march', 'april', 'may', 'june',
+      'july', 'august', 'september', 'october', 'november', 'december'
     ]
-    return months[month - 1] || ''
+    return t(`months.${monthKeys[month - 1]}`)
   }
 
   const totalSelected = filteredInvoices
@@ -483,7 +473,7 @@ export function PendingInvoicesTabLazy({
           <FiSearch className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 dark:text-gray-500" />
           <input
             type="text"
-            placeholder="Buscar..."
+            placeholder={t('filters.search')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full pl-8 pr-3 py-1.5 text-xs border border-gray-300 dark:border-gray-700 dark:bg-[#151b23] dark:text-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent"
@@ -498,7 +488,7 @@ export function PendingInvoicesTabLazy({
           }
           className="flex-1 min-w-[280px] px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent bg-white dark:bg-[#151b23] dark:text-gray-200"
         >
-          <option value="all">Todas las categorías</option>
+          <option value="all">{t('filters.allCategories')}</option>
           {categories.map((cat) => (
             <option key={cat.id} value={cat.id}>
               {cat.cost_center} - {cat.department}
@@ -514,9 +504,9 @@ export function PendingInvoicesTabLazy({
           }
           className="w-full lg:w-40 px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent bg-white dark:bg-[#151b23] dark:text-gray-200"
         >
-          <option value="all">Todos los pagos</option>
-          <option value="transfer">Transferencia</option>
-          <option value="direct_debit">Domiciliación</option>
+          <option value="all">{t('filters.allPayments')}</option>
+          <option value="transfer">{t('filters.transfer')}</option>
+          <option value="direct_debit">{t('filters.directDebit')}</option>
         </select>
 
         {/* Actions */}
@@ -526,15 +516,15 @@ export function PendingInvoicesTabLazy({
             className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-green-600 dark:bg-green-700 text-white text-xs font-medium rounded-md hover:bg-green-700 dark:hover:bg-green-800 transition-colors"
           >
             <FiPlus className="w-3.5 h-3.5" />
-            Nueva Factura
+            {t('actions.newInvoice')}
           </button>
           <button
             onClick={handleOpenBatchPayDialog}
-            title="Marcar facturas validadas del mes anterior como pagadas"
+            title={t('modals.batchPayment.title')}
             className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-purple-600 dark:bg-purple-700 text-white text-xs font-medium rounded-md hover:bg-purple-700 dark:hover:bg-purple-800 transition-colors"
           >
             <FiDollarSign className="w-3.5 h-3.5" />
-            Cerrar Mes
+            {t('actions.closeMonth')}
           </button>
         </div>
       </div>
@@ -543,23 +533,23 @@ export function PendingInvoicesTabLazy({
       {selectedInvoices.length > 0 && (
         <div className="flex items-center justify-between bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-md px-3 py-2">
           <span className="text-xs text-blue-700 dark:text-blue-400">
-            {selectedInvoices.length} seleccionada(s) · Total: {formatCurrency(totalSelected)}
+            {t('selection.selected', { count: selectedInvoices.length, amount: formatCurrency(totalSelected) })}
           </span>
           <div className="flex gap-2">
             <button
               onClick={handleBulkValidate}
               className="inline-flex items-center gap-1 px-2 py-1 text-[10px] font-medium text-green-700 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 rounded transition-colors"
             >
-              <FiCheck className="w-3 h-3" /> Validar
+              <FiCheck className="w-3 h-3" /> {t('actions.validate')}
             </button>
             <button
               onClick={handleExportZip}
               disabled={isExporting}
-              title="Descargar facturas validadas como ZIP"
+              title={t('actions.exportZip')}
               className="inline-flex items-center gap-1 px-2 py-1 text-[10px] font-medium text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors disabled:opacity-50"
             >
               <FiDownload className="w-3 h-3" />
-              {isExporting ? 'Descargando...' : 'Exportar ZIP'}
+              {isExporting ? t('actions.downloading') : t('actions.exportZip')}
             </button>
           </div>
         </div>
@@ -583,28 +573,28 @@ export function PendingInvoicesTabLazy({
                   />
                 </th>
                 <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                  Proveedor
+                  {t('table.supplier')}
                 </th>
                 <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                  Nº Factura
+                  {t('table.invoiceNumber')}
                 </th>
                 <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                  Fecha
+                  {t('table.date')}
                 </th>
                 <th className="px-3 py-2 text-right text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                  Sin IVA
+                  {t('table.withoutVat')}
                 </th>
                 <th className="px-3 py-2 text-right text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                  Con IVA
+                  {t('table.withVat')}
                 </th>
                 <th className="px-3 py-2 text-center text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                  Estado
+                  {t('table.status')}
                 </th>
                 <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                  Categoría
+                  {t('table.category')}
                 </th>
                 <th className="px-3 py-2 text-right text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                  Acciones
+                  {t('table.actions')}
                 </th>
               </tr>
             </thead>
@@ -615,7 +605,7 @@ export function PendingInvoicesTabLazy({
                     colSpan={9}
                     className="px-3 py-8 text-center text-xs text-gray-500 dark:text-gray-400"
                   >
-                    No se encontraron facturas
+                    {t('empty.noInvoices')}
                   </td>
                 </tr>
               ) : (
@@ -677,9 +667,9 @@ export function PendingInvoicesTabLazy({
                               <button
                                 onClick={() => handleValidate(invoice)}
                                 disabled={isSubmitting}
-                                title={
-                                  invoice.original_pdf_url ? 'Validar con sello/firma' : 'Validar'
-                                }
+                              title={
+                                invoice.original_pdf_url ? t('pending.validateWithStamp') : t('actions.validate')
+                              }
                                 className="inline-flex items-center justify-center w-7 h-7 text-gray-600 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors disabled:opacity-50"
                               >
                                 <FiCheck className="w-3.5 h-3.5" />
@@ -687,7 +677,7 @@ export function PendingInvoicesTabLazy({
                               <button
                                 onClick={() => handleOpenDeleteDialog(invoice)}
                                 disabled={isSubmitting}
-                                title="Eliminar"
+                                title={t('actions.delete')}
                                 className="inline-flex items-center justify-center w-7 h-7 text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors disabled:opacity-50"
                               >
                                 <FiX className="w-3.5 h-3.5" />
@@ -699,7 +689,7 @@ export function PendingInvoicesTabLazy({
                             <button
                               onClick={() => handleUnvalidate(invoice)}
                               disabled={isSubmitting}
-                              title="Revertir validación"
+                              title={t('pending.revertValidation')}
                               className="inline-flex items-center justify-center w-7 h-7 text-gray-600 dark:text-gray-400 hover:text-orange-600 dark:hover:text-orange-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors disabled:opacity-50"
                             >
                               <FiRotateCcw className="w-3.5 h-3.5" />
@@ -707,21 +697,21 @@ export function PendingInvoicesTabLazy({
                           )}
                           <button
                             onClick={() => handleOpenEditInvoice(invoice)}
-                            title="Editar"
+                            title={t('actions.edit')}
                             className="inline-flex items-center justify-center w-7 h-7 text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors"
                           >
                             <FiEdit2 className="w-3.5 h-3.5" />
                           </button>
                           <button
                             onClick={() => handleOpenPdfUpload(invoice)}
-                            title="Subir PDF"
+                            title={t('actions.uploadPdf')}
                             className="inline-flex items-center justify-center w-7 h-7 text-gray-600 dark:text-gray-400 hover:text-orange-600 dark:hover:text-orange-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors"
                           >
                             <FiUpload className="w-3.5 h-3.5" />
                           </button>
                           <button
                             onClick={() => handleOpenPdfViewer(invoice)}
-                            title={hasPdf ? 'Ver PDF' : 'Sin PDF'}
+                            title={hasPdf ? t('actions.viewPdf') : t('pending.noPdf')}
                             disabled={!hasPdf}
                             className={`inline-flex items-center justify-center w-7 h-7 rounded transition-colors ${
                               hasPdf
@@ -745,21 +735,21 @@ export function PendingInvoicesTabLazy({
         {pagination.total > 0 && (
           <div className="px-3 py-2 border-t border-gray-200 dark:border-gray-800 flex items-center justify-between">
             <span className="text-xs text-gray-500 dark:text-gray-400">
-              Mostrando {filteredInvoices.length} de {pagination.total} facturas
+              {t('pagination.showing', { count: filteredInvoices.length, total: pagination.total })}
             </span>
             <div className="flex items-center gap-2">
               <button
                 onClick={async () => {
                   try {
                     await exportToExcel(filteredInvoices)
-                    toast.success('Excel exportado correctamente')
+                    toast.success(t('toast.excelExported'))
                   } catch (error) {
                     console.error('[exportToExcel] Error:', error)
-                    toast.error('Error al exportar a Excel')
+                    toast.error(t('toast.excelExportError'))
                   }
                 }}
                 disabled={filteredInvoices.length === 0}
-                title="Exportar a Excel"
+                title="Excel"
                 className="inline-flex items-center gap-1 px-2 py-1 text-[10px] font-medium text-green-700 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 border border-green-300 dark:border-green-700 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <FiGrid className="w-3 h-3" />
@@ -769,14 +759,14 @@ export function PendingInvoicesTabLazy({
                 onClick={async () => {
                   try {
                     await exportToPdf(filteredInvoices)
-                    toast.success('PDF exportado correctamente')
+                    toast.success(t('toast.pdfExported'))
                   } catch (error) {
                     console.error('[exportToPdf] Error:', error)
-                    toast.error('Error al exportar a PDF')
+                    toast.error(t('toast.pdfExportError'))
                   }
                 }}
                 disabled={filteredInvoices.length === 0}
-                title="Exportar a PDF"
+                title="PDF"
                 className="inline-flex items-center gap-1 px-2 py-1 text-[10px] font-medium text-red-700 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 border border-red-300 dark:border-red-700 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <FiFile className="w-3 h-3" />
@@ -791,7 +781,7 @@ export function PendingInvoicesTabLazy({
       <div className="lg:hidden space-y-2">
         {filteredInvoices.length === 0 ? (
           <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-6 text-center">
-            <p className="text-xs text-gray-500 dark:text-gray-400">No se encontraron facturas</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">{t('empty.noInvoices')}</p>
           </div>
         ) : (
           filteredInvoices.map((invoice) => {
@@ -833,13 +823,13 @@ export function PendingInvoicesTabLazy({
 
                 <div className="grid grid-cols-2 gap-2 text-[10px] mb-2">
                   <div>
-                    <span className="text-gray-500 dark:text-gray-500">Fecha:</span>
+                    <span className="text-gray-500 dark:text-gray-500">{t('table.date')}:</span>
                     <span className="ml-1 text-gray-900 dark:text-gray-100">
                       {formatDate(invoice.invoice_date)}
                     </span>
                   </div>
                   <div className="text-right">
-                    <span className="text-gray-500 dark:text-gray-500">Con IVA:</span>
+                    <span className="text-gray-500 dark:text-gray-500">{t('table.withVat')}:</span>
                     <span className="ml-1 font-semibold text-gray-900 dark:text-gray-100">
                       {formatCurrency(invoice.amount_with_vat)}
                     </span>
@@ -856,7 +846,7 @@ export function PendingInvoicesTabLazy({
                         <button
                           onClick={() => handleValidate(invoice)}
                           disabled={isSubmitting}
-                          title={invoice.original_pdf_url ? 'Validar con sello/firma' : 'Validar'}
+                          title={invoice.original_pdf_url ? t('pending.validateWithStamp') : t('actions.validate')}
                           className="inline-flex items-center justify-center w-7 h-7 text-gray-600 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors disabled:opacity-50"
                         >
                           <FiCheck className="w-3.5 h-3.5" />
@@ -864,7 +854,7 @@ export function PendingInvoicesTabLazy({
                         <button
                           onClick={() => handleOpenDeleteDialog(invoice)}
                           disabled={isSubmitting}
-                          title="Eliminar"
+                          title={t('actions.delete')}
                           className="inline-flex items-center justify-center w-7 h-7 text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors disabled:opacity-50"
                         >
                           <FiX className="w-3.5 h-3.5" />
@@ -876,7 +866,7 @@ export function PendingInvoicesTabLazy({
                       <button
                         onClick={() => handleUnvalidate(invoice)}
                         disabled={isSubmitting}
-                        title="Revertir validación"
+                        title={t('pending.revertValidation')}
                         className="inline-flex items-center justify-center w-6 h-6 text-gray-600 dark:text-gray-400 hover:text-orange-600 dark:hover:text-orange-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors"
                       >
                         <FiRotateCcw className="w-3 h-3" />
@@ -981,9 +971,9 @@ export function PendingInvoicesTabLazy({
           setDeletingInvoice(null)
         }}
         onConfirm={handleDelete}
-        title="Eliminar factura"
-        message={`¿Estás seguro de eliminar la factura "${deletingInvoice?.invoice_number}"? Esta acción no se puede deshacer.`}
-        confirmText="Eliminar"
+        title={t('modals.deleteInvoice.title')}
+        message={t('modals.deleteInvoice.message', { number: deletingInvoice?.invoice_number ?? '' })}
+        confirmText={t('modals.deleteInvoice.confirmButton')}
         variant="danger"
       />
 
@@ -1001,20 +991,20 @@ export function PendingInvoicesTabLazy({
             <div className="relative w-full max-w-md bg-white dark:bg-[#151b23] rounded-lg shadow-xl">
               <div className="p-6">
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
-                  Validar Factura
+                  {t('modals.validateInvoice.title')}
                 </h3>
                 <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
-                  <strong>Factura:</strong> {validatingInvoice.invoice_number}
+                  <strong>{t('modals.validateInvoice.invoice')}</strong> {validatingInvoice.invoice_number}
                 </p>
                 <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
-                  <strong>Proveedor:</strong> {validatingInvoice.supplier_name}
+                  <strong>{t('modals.validateInvoice.supplier')}</strong> {validatingInvoice.supplier_name}
                 </p>
                 <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                  <strong>Importe:</strong> {formatCurrency(validatingInvoice.amount_with_vat)}
+                  <strong>{t('modals.validateInvoice.amount')}</strong> {formatCurrency(validatingInvoice.amount_with_vat)}
                 </p>
                 <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-md p-3 mb-4">
                   <p className="text-xs text-yellow-800 dark:text-yellow-300">
-                    Esta factura no tiene PDF adjunto. Se validará sin sello/firma.
+                    {t('modals.validateInvoice.noPdfWarning')}
                   </p>
                 </div>
                 <div className="flex gap-3">
@@ -1027,7 +1017,7 @@ export function PendingInvoicesTabLazy({
                     disabled={isSubmitting}
                     className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
                   >
-                    Cancelar
+                    {t('actions.cancel')}
                   </button>
                   <button
                     type="button"
@@ -1035,7 +1025,7 @@ export function PendingInvoicesTabLazy({
                     disabled={isSubmitting}
                     className="flex-1 px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700 transition-colors disabled:opacity-50"
                   >
-                    {isSubmitting ? 'Procesando...' : 'Validar'}
+                    {isSubmitting ? t('actions.processing') : t('modals.validateInvoice.confirmButton')}
                   </button>
                 </div>
               </div>
@@ -1060,34 +1050,32 @@ export function PendingInvoicesTabLazy({
             <div className="relative w-full max-w-md bg-white dark:bg-[#151b23] rounded-lg shadow-xl">
               <div className="p-6">
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
-                  Cerrar Mes - Marcar como Pagadas
+                  {t('modals.batchPayment.title')}
                 </h3>
 
                 <div className="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-md p-4 mb-4">
                   <p className="text-sm text-purple-800 dark:text-purple-300 mb-2">
-                    <strong>Mes:</strong> {getSpanishMonthName(batchPayPreview.month)}{' '}
+                    <strong>{t('modals.batchPayment.month')}</strong> {getMonthName(batchPayPreview.month)}{' '}
                     {batchPayPreview.year}
                   </p>
                   <p className="text-sm text-purple-800 dark:text-purple-300 mb-2">
-                    <strong>Facturas validadas:</strong> {batchPayPreview.count}
+                    <strong>{t('modals.batchPayment.validatedInvoices')}</strong> {batchPayPreview.count}
                   </p>
                   <p className="text-sm text-purple-800 dark:text-purple-300">
-                    <strong>Importe total:</strong> {formatCurrency(batchPayPreview.total_amount)}
+                    <strong>{t('modals.batchPayment.totalAmount')}</strong> {formatCurrency(batchPayPreview.total_amount)}
                   </p>
                 </div>
 
                 {batchPayPreview.count === 0 ? (
                   <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-md p-3 mb-4">
                     <p className="text-xs text-yellow-800 dark:text-yellow-300">
-                      No hay facturas validadas para este mes.
+                      {t('modals.batchPayment.noInvoices')}
                     </p>
                   </div>
                 ) : (
                   <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-md p-3 mb-4">
                     <p className="text-xs text-blue-800 dark:text-blue-300">
-                      Esta acción marcará todas las facturas validadas de{' '}
-                      {getSpanishMonthName(batchPayPreview.month)} como pagadas. La fecha de pago
-                      será la fecha de cada factura.
+                      {t('modals.batchPayment.description', { month: getMonthName(batchPayPreview.month) })}
                     </p>
                   </div>
                 )}
@@ -1102,7 +1090,7 @@ export function PendingInvoicesTabLazy({
                     disabled={isBatchPaying}
                     className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
                   >
-                    Cancelar
+                    {t('actions.cancel')}
                   </button>
                   <button
                     type="button"
@@ -1111,8 +1099,8 @@ export function PendingInvoicesTabLazy({
                     className="flex-1 px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded-md hover:bg-purple-700 transition-colors disabled:opacity-50"
                   >
                     {isBatchPaying
-                      ? 'Procesando...'
-                      : `Marcar ${batchPayPreview.count} como Pagadas`}
+                      ? t('actions.processing')
+                      : t('modals.batchPayment.confirmButton', { count: batchPayPreview.count })}
                   </button>
                 </div>
               </div>

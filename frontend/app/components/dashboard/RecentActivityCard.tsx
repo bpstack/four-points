@@ -1,7 +1,8 @@
 // app/components/dashboard/RecentActivityCard.tsx
 'use client'
 
-import React from 'react'
+import React, { useMemo, useCallback } from 'react'
+import { useTranslations, useLocale } from 'next-intl'
 import { FiActivity, FiRefreshCw } from 'react-icons/fi'
 import { FaCar } from 'react-icons/fa'
 import { FiUsers, FiBook, FiTool } from 'react-icons/fi'
@@ -22,70 +23,6 @@ interface RecentActivityCardProps {
   activities: UnifiedActivity[]
   loading: boolean
   onRefresh?: () => void
-}
-
-// Traducciones de acciones por fuente
-const actionTranslations: Record<ActivitySource, Record<string, string>> = {
-  cashier: {
-    create: 'Turno creado',
-    created: 'Turno creado',
-    updated: 'Turno actualizado',
-    shift_opened: 'Turno abierto',
-    shift_closed: 'Turno cerrado',
-    status_changed: 'Estado cambiado',
-    day_initialized: 'Día inicializado',
-    day_closed: 'Día cerrado',
-    payment_added: 'Pago añadido',
-    payment_deleted: 'Pago eliminado',
-    voucher_created: 'Voucher creado',
-    voucher_deleted: 'Voucher eliminado',
-    denomination_updated: 'Denominación actualizada',
-    default: 'Acción en caja',
-  },
-  groups: {
-    create: 'Grupo creado',
-    created: 'Grupo creado',
-    updated: 'Grupo actualizado',
-    deleted: 'Grupo eliminado',
-    status_changed: 'Estado cambiado',
-    contact_added: 'Contacto añadido',
-    room_added: 'Habitación añadida',
-    payment_added: 'Pago registrado',
-    default: 'Acción en grupos',
-  },
-  logbook: {
-    create: 'Entrada creada',
-    created: 'Entrada creada',
-    edited: 'Entrada editada',
-    updated: 'Entrada editada',
-    deleted: 'Entrada eliminada',
-    solved: 'Marcada resuelta',
-    unsolved: 'Marcada pendiente',
-    comment_added: 'Comentario añadido',
-    comment_edited: 'Comentario editado',
-    default: 'Acción en consigna',
-  },
-  maintenance: {
-    create: 'Reporte creado',
-    created: 'Reporte creado',
-    updated: 'Reporte actualizado',
-    status_changed: 'Estado cambiado',
-    assigned: 'Asignación cambiada',
-    resolved: 'Reporte resuelto',
-    closed: 'Reporte cerrado',
-    deleted: 'Reporte eliminado',
-    restored: 'Reporte restaurado',
-    priority_changed: 'Prioridad cambiada',
-    default: 'Acción en mantenimiento',
-  },
-}
-
-// Nombres de fuentes en español
-const sourceNames: Record<ActivitySource, string> = {
-  cashier: 'Caja',
-  groups: 'Grupos',
-  logbook: 'Consigna',
-  maintenance: 'Mantenimiento',
 }
 
 // Colores por fuente
@@ -114,62 +51,89 @@ const SourceIcon: React.FC<{ source: ActivitySource; className?: string }> = ({
   }
 }
 
-const formatTimestamp = (timestamp: string) => {
-  const date = new Date(timestamp)
-  const now = new Date()
-
-  // Verificar si la fecha es válida
-  if (isNaN(date.getTime())) {
-    return timestamp // Retornar el timestamp original si no es válido
-  }
-
-  const time = date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })
-
-  // Normalizar fechas a medianoche en zona local para comparación correcta
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-  const targetDate = new Date(date.getFullYear(), date.getMonth(), date.getDate())
-  const diffTime = today.getTime() - targetDate.getTime()
-  const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24))
-
-  // Si es hoy
-  if (diffDays === 0) {
-    return `Hoy, ${time}`
-  }
-
-  // Si es ayer
-  if (diffDays === 1) {
-    return `Ayer, ${time}`
-  }
-
-  // Si es dentro de la última semana (2-6 días atrás)
-  if (diffDays >= 2 && diffDays < 7) {
-    const dayName = date.toLocaleDateString('es-ES', { weekday: 'long' })
-    const capitalizedDay = dayName.charAt(0).toUpperCase() + dayName.slice(1)
-    return `${capitalizedDay}, ${time}`
-  }
-
-  // Datos para fecha más antigua
-  const day = date.getDate()
-  const month = date.toLocaleDateString('es-ES', { month: 'short' })
-  const capitalizedMonth = month.charAt(0).toUpperCase() + month.slice(1)
-  const year = date.getFullYear()
-  const currentYear = now.getFullYear()
-
-  // Si es de este año, mostrar día y mes
-  if (year === currentYear) {
-    return `${day} ${capitalizedMonth}, ${time}`
-  }
-
-  // Si es de otro año, incluir el año
-  return `${day} ${capitalizedMonth} ${year}, ${time}`
-}
-
-const translateAction = (source: ActivitySource, action: string): string => {
-  const translations = actionTranslations[source]
-  return translations[action] || translations['default'] || action
-}
-
 export function RecentActivityCard({ activities, loading, onRefresh }: RecentActivityCardProps) {
+  const t = useTranslations('dashboard.recentActivity')
+  const locale = useLocale()
+  const localeCode = locale === 'es' ? 'es-ES' : 'en-US'
+
+  const sourceNames = useMemo(
+    () => ({
+      cashier: t('sources.cashier'),
+      groups: t('sources.groups'),
+      logbook: t('sources.logbook'),
+      maintenance: t('sources.maintenance'),
+    }),
+    [t]
+  )
+
+  const translateAction = useCallback(
+    (source: ActivitySource, action: string): string => {
+      // Try to get the specific action translation, fall back to default
+      const key = `actions.${source}.${action}`
+      const defaultKey = `actions.${source}.default`
+      const translation = t(key as never)
+      // If translation equals the key, it means it wasn't found
+      if (translation === key || translation.startsWith('actions.')) {
+        return t(defaultKey as never)
+      }
+      return translation
+    },
+    [t]
+  )
+
+  const formatTimestamp = useCallback(
+    (timestamp: string) => {
+      const date = new Date(timestamp)
+      const now = new Date()
+
+      // Verificar si la fecha es válida
+      if (isNaN(date.getTime())) {
+        return timestamp // Retornar el timestamp original si no es válido
+      }
+
+      const time = date.toLocaleTimeString(localeCode, { hour: '2-digit', minute: '2-digit' })
+
+      // Normalizar fechas a medianoche en zona local para comparación correcta
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+      const targetDate = new Date(date.getFullYear(), date.getMonth(), date.getDate())
+      const diffTime = today.getTime() - targetDate.getTime()
+      const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24))
+
+      // Si es hoy
+      if (diffDays === 0) {
+        return `${t('time.today')}, ${time}`
+      }
+
+      // Si es ayer
+      if (diffDays === 1) {
+        return `${t('time.yesterday')}, ${time}`
+      }
+
+      // Si es dentro de la última semana (2-6 días atrás)
+      if (diffDays >= 2 && diffDays < 7) {
+        const dayName = date.toLocaleDateString(localeCode, { weekday: 'long' })
+        const capitalizedDay = dayName.charAt(0).toUpperCase() + dayName.slice(1)
+        return `${capitalizedDay}, ${time}`
+      }
+
+      // Datos para fecha más antigua
+      const day = date.getDate()
+      const month = date.toLocaleDateString(localeCode, { month: 'short' })
+      const capitalizedMonth = month.charAt(0).toUpperCase() + month.slice(1)
+      const year = date.getFullYear()
+      const currentYear = now.getFullYear()
+
+      // Si es de este año, mostrar día y mes
+      if (year === currentYear) {
+        return `${day} ${capitalizedMonth}, ${time}`
+      }
+
+      // Si es de otro año, incluir el año
+      return `${day} ${capitalizedMonth} ${year}, ${time}`
+    },
+    [localeCode, t]
+  )
+
   return (
     <div className="bg-white dark:bg-[#0D1117] border border-[#d0d7de] dark:border-[#30363d] rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200 p-5">
       <div className="flex items-center justify-between mb-4">
@@ -177,16 +141,14 @@ export function RecentActivityCard({ activities, loading, onRefresh }: RecentAct
           <div className="p-1.5 bg-green-100 dark:bg-green-900/20 rounded-lg">
             <FiActivity className="w-4 h-4 text-green-600 dark:text-green-400" />
           </div>
-          <h2 className="text-sm font-bold text-[#24292f] dark:text-[#f0f6fc]">
-            Actividad Reciente
-          </h2>
+          <h2 className="text-sm font-bold text-[#24292f] dark:text-[#f0f6fc]">{t('title')}</h2>
         </div>
         {onRefresh && (
           <button
             onClick={onRefresh}
             disabled={loading}
             className="p-2 rounded-lg hover:bg-[#f6f8fa] dark:hover:bg-[#21262d] transition-colors disabled:opacity-50"
-            title="Refresh"
+            title={t('refresh')}
           >
             <FiRefreshCw
               className={`w-4 h-4 text-[#57606a] dark:text-[#8b949e] ${loading ? 'animate-spin' : ''}`}
@@ -210,7 +172,7 @@ export function RecentActivityCard({ activities, loading, onRefresh }: RecentAct
       ) : activities.length === 0 ? (
         <div className="text-center py-8">
           <p className="text-sm font-medium text-[#57606a] dark:text-[#8b949e]">
-            No hay actividad reciente
+            {t('noActivity')}
           </p>
         </div>
       ) : (

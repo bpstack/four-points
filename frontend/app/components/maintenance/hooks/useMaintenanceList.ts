@@ -13,6 +13,16 @@ import type {
 } from '@/app/lib/maintenance/maintenance'
 import { toast } from 'react-hot-toast'
 
+export interface MaintenanceMessages {
+  operationError: string
+  reportCreated: string
+  reportUpdated: string
+  statusUpdated: string
+  priorityUpdated: string
+  reportDeleted: string
+  reportRestored: string
+}
+
 // Query keys factory
 export const maintenanceKeys = {
   all: ['maintenance'] as const,
@@ -29,6 +39,7 @@ interface UseMaintenanceListOptions {
   page?: number
   limit?: number
   initialData?: MaintenanceListResponse
+  messages: MaintenanceMessages
 }
 
 export function useMaintenanceList({
@@ -36,6 +47,7 @@ export function useMaintenanceList({
   page = 1,
   limit = 20,
   initialData,
+  messages,
 }: UseMaintenanceListOptions) {
   const queryClient = useQueryClient()
 
@@ -60,7 +72,7 @@ export function useMaintenanceList({
   }
 
   const handleMutationError = (err: unknown) => {
-    const message = err instanceof Error ? err.message : 'Error en la operación'
+    const message = err instanceof Error ? err.message : messages.operationError
     toast.error(message)
   }
 
@@ -68,7 +80,7 @@ export function useMaintenanceList({
   const createMutation = useMutation({
     mutationFn: (data: ReportFormData) => maintenanceApi.create(data),
     onSuccess: () => {
-      toast.success('Reporte creado correctamente')
+      toast.success(messages.reportCreated)
       invalidateList()
     },
     onError: handleMutationError,
@@ -79,7 +91,7 @@ export function useMaintenanceList({
     mutationFn: ({ id, data }: { id: string; data: Partial<ReportFormData> }) =>
       maintenanceApi.update(id, data),
     onSuccess: (_, variables) => {
-      toast.success('Reporte actualizado correctamente')
+      toast.success(messages.reportUpdated)
       invalidateList()
       queryClient.invalidateQueries({ queryKey: maintenanceKeys.detail(variables.id) })
     },
@@ -91,7 +103,7 @@ export function useMaintenanceList({
     mutationFn: ({ id, status, notes }: { id: string; status: ReportStatus; notes?: string }) =>
       maintenanceApi.updateStatus(id, status, notes),
     onSuccess: (_, variables) => {
-      toast.success('Estado actualizado correctamente')
+      toast.success(messages.statusUpdated)
       invalidateList()
       queryClient.invalidateQueries({ queryKey: maintenanceKeys.detail(variables.id) })
     },
@@ -103,7 +115,7 @@ export function useMaintenanceList({
     mutationFn: ({ id, priority }: { id: string; priority: ReportPriority }) =>
       maintenanceApi.updatePriority(id, priority),
     onSuccess: (_, variables) => {
-      toast.success('Prioridad actualizada correctamente')
+      toast.success(messages.priorityUpdated)
       invalidateList()
       queryClient.invalidateQueries({ queryKey: maintenanceKeys.detail(variables.id) })
     },
@@ -114,7 +126,7 @@ export function useMaintenanceList({
   const deleteMutation = useMutation({
     mutationFn: (id: string) => maintenanceApi.delete(id),
     onSuccess: () => {
-      toast.success('Reporte eliminado correctamente')
+      toast.success(messages.reportDeleted)
       invalidateList()
     },
     onError: handleMutationError,
@@ -124,7 +136,7 @@ export function useMaintenanceList({
   const restoreMutation = useMutation({
     mutationFn: (id: string) => maintenanceApi.restore(id),
     onSuccess: (_, id) => {
-      toast.success('Reporte restaurado correctamente')
+      toast.success(messages.reportRestored)
       invalidateList()
       queryClient.invalidateQueries({ queryKey: maintenanceKeys.detail(id) })
     },

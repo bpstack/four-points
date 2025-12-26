@@ -2,6 +2,7 @@
 
 'use client'
 
+import { useTranslations } from 'next-intl'
 import { FiSearch, FiDownload } from 'react-icons/fi'
 import type { HistoryAction } from '@/app/lib/cashier/types'
 
@@ -20,17 +21,19 @@ export default function HistoryFilters({
   onUserFilterChange,
   onExport,
 }: HistoryFiltersProps) {
+  const t = useTranslations('cashier')
+
   const actions: Array<{ value: HistoryAction | 'all'; label: string }> = [
-    { value: 'all', label: 'Acción' },
-    { value: 'created', label: 'Creado' },
-    { value: 'updated', label: 'Actualizado' },
-    { value: 'deleted', label: 'Eliminado' },
-    { value: 'status_changed', label: 'Cambio Estado' },
-    { value: 'adjustment', label: 'Ajuste' },
-    { value: 'voucher_created', label: 'Vale Creado' },
-    { value: 'voucher_repaid', label: 'Vale Justificado' },
-    { value: 'daily_closed', label: 'Día Cerrado' },
-    { value: 'daily_reopened', label: 'Día Reabierto' },
+    { value: 'all', label: t('logs.action') },
+    { value: 'created', label: t('actions.created') },
+    { value: 'updated', label: t('actions.updated') },
+    { value: 'deleted', label: t('actions.deleted') },
+    { value: 'status_changed', label: t('actions.status_changed') },
+    { value: 'adjustment', label: t('actions.adjustment') },
+    { value: 'voucher_created', label: t('actions.voucher_created') },
+    { value: 'voucher_repaid', label: t('actions.voucher_repaid') },
+    { value: 'daily_closed', label: t('actions.daily_closed') },
+    { value: 'daily_reopened', label: t('actions.daily_reopened') },
   ]
 
   return (
@@ -40,7 +43,7 @@ export default function HistoryFilters({
         <FiSearch className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 dark:text-gray-500" />
         <input
           type="text"
-          placeholder="Buscar por usuario..."
+          placeholder={t('logs.searchByUser')}
           value={userFilter}
           onChange={(e) => onUserFilterChange(e.target.value)}
           className="w-full pl-8 pr-3 py-1.5 text-xs border border-gray-300 dark:border-gray-700 dark:bg-[#151b23] dark:text-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent"
@@ -66,7 +69,7 @@ export default function HistoryFilters({
         className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-[#151b23] text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
       >
         <FiDownload className="w-3.5 h-3.5" />
-        Exportar
+        {t('logs.export')}
       </button>
     </div>
   )

@@ -8,6 +8,7 @@ import {
   createLogbookSchema,
   updateLogbookSchema,
 } from '../../validations/logbook/logbook-schemas.js'
+import { ERROR_CODES, SUCCESS_CODES } from '../../config/error-codes.js'
 
 // ============================================
 // CREATE LOGBOOK
@@ -31,14 +32,20 @@ export async function createLogbook(req: Request, res: Response): Promise<void> 
     const error = err as Error & { name?: string; issues?: unknown[] }
     if (error.name === 'ZodError') {
       res.status(400).json({
-        error: 'Datos inválidos',
+        success: false,
+        error: ERROR_CODES.INVALID_DATA,
+        code: ERROR_CODES.INVALID_DATA,
         details: error.issues,
       })
       return
     }
 
     console.error(err)
-    res.status(500).json({ error: 'Error al crear el logbook' })
+    res.status(500).json({
+      success: false,
+      error: ERROR_CODES.LOGBOOK_CREATE_ERROR,
+      code: ERROR_CODES.LOGBOOK_CREATE_ERROR,
+    })
   }
 }
 
@@ -60,21 +67,29 @@ export async function updateLogbookController(req: Request, res: Response): Prom
     )
 
     res.status(200).json({
-      message: 'Logbook actualizado correctamente',
+      success: true,
+      message: SUCCESS_CODES.LOGBOOK_UPDATED,
+      code: SUCCESS_CODES.LOGBOOK_UPDATED,
       history: historyRecord,
     })
   } catch (err) {
     const error = err as Error & { name?: string; issues?: unknown[] }
     if (error.name === 'ZodError') {
       res.status(400).json({
-        error: 'Datos inválidos',
+        success: false,
+        error: ERROR_CODES.INVALID_DATA,
+        code: ERROR_CODES.INVALID_DATA,
         details: error.issues,
       })
       return
     }
 
     console.error('Error updating logbook:', error)
-    res.status(500).json({ error: error.message })
+    res.status(500).json({
+      success: false,
+      error: ERROR_CODES.LOGBOOK_FETCH_ERROR,
+      code: ERROR_CODES.LOGBOOK_FETCH_ERROR,
+    })
   }
 }
 
@@ -87,7 +102,11 @@ export async function getLogbookHistory(req: Request, res: Response): Promise<vo
   const logbookId = Number(logbookIdRaw)
 
   if (!Number.isInteger(logbookId)) {
-    res.status(400).json({ error: 'ID inválido' })
+    res.status(400).json({
+      success: false,
+      error: ERROR_CODES.INVALID_ID,
+      code: ERROR_CODES.INVALID_ID,
+    })
     return
   }
 
@@ -95,14 +114,22 @@ export async function getLogbookHistory(req: Request, res: Response): Promise<vo
     const data = await historyRepo.getHistoryByLogbookId(logbookId)
 
     if (!data || !Array.isArray(data.history) || data.history.length === 0) {
-      res.status(404).json({ error: 'Logbook no encontrado o sin historial' })
+      res.status(404).json({
+        success: false,
+        error: ERROR_CODES.LOGBOOK_NOT_FOUND,
+        code: ERROR_CODES.LOGBOOK_NOT_FOUND,
+      })
       return
     }
 
     res.json(data)
   } catch (err) {
     console.error(err)
-    res.status(500).json({ error: (err as Error).message })
+    res.status(500).json({
+      success: false,
+      error: ERROR_CODES.LOGBOOK_FETCH_ERROR,
+      code: ERROR_CODES.LOGBOOK_FETCH_ERROR,
+    })
   }
 }
 
@@ -119,7 +146,11 @@ export async function getAllLogbooks(req: Request, res: Response): Promise<void>
     res.json(logbooks)
   } catch (err) {
     console.error('Error al obtener logbooks:', err)
-    res.status(500).json({ error: 'Error al obtener logbooks' })
+    res.status(500).json({
+      success: false,
+      error: ERROR_CODES.LOGBOOK_FETCH_ERROR,
+      code: ERROR_CODES.LOGBOOK_FETCH_ERROR,
+    })
   }
 }
 
@@ -137,7 +168,11 @@ export async function getLogbooksByDepartment(req: Request, res: Response): Prom
     res.json(logbooks)
   } catch (err) {
     console.error('Error al obtener logbooks por departamento:', err)
-    res.status(500).json({ error: 'Error al obtener logbooks por departamento' })
+    res.status(500).json({
+      success: false,
+      error: ERROR_CODES.LOGBOOK_FETCH_BY_DEPARTMENT_ERROR,
+      code: ERROR_CODES.LOGBOOK_FETCH_BY_DEPARTMENT_ERROR,
+    })
   }
 }
 
@@ -155,7 +190,11 @@ export async function getLogbooksByAuthor(req: Request, res: Response): Promise<
     res.json(logbooks)
   } catch (err) {
     console.error('Error al obtener logbooks por autor:', err)
-    res.status(500).json({ error: 'Error al obtener logbooks por autor' })
+    res.status(500).json({
+      success: false,
+      error: ERROR_CODES.LOGBOOK_FETCH_BY_AUTHOR_ERROR,
+      code: ERROR_CODES.LOGBOOK_FETCH_BY_AUTHOR_ERROR,
+    })
   }
 }
 
@@ -170,7 +209,9 @@ export async function getLogbooksByImportance(req: Request, res: Response): Prom
     const allowedLevels = ['baja', 'media', 'alta', 'urgente']
     if (!allowedLevels.includes(importance)) {
       res.status(400).json({
-        error: 'Nivel de importancia inválido. Usa: baja, media, alta o urgente',
+        success: false,
+        error: ERROR_CODES.LOGBOOK_INVALID_IMPORTANCE,
+        code: ERROR_CODES.LOGBOOK_INVALID_IMPORTANCE,
       })
       return
     }
@@ -182,7 +223,11 @@ export async function getLogbooksByImportance(req: Request, res: Response): Prom
     res.json(logbooks)
   } catch (err) {
     console.error('Error al obtener logbooks por importancia:', err)
-    res.status(500).json({ error: 'Error al obtener logbooks por importancia' })
+    res.status(500).json({
+      success: false,
+      error: ERROR_CODES.LOGBOOK_FETCH_BY_IMPORTANCE_ERROR,
+      code: ERROR_CODES.LOGBOOK_FETCH_BY_IMPORTANCE_ERROR,
+    })
   }
 }
 
@@ -195,7 +240,11 @@ export async function getLogbooksByDay(req: Request, res: Response): Promise<voi
     const { day } = req.params
 
     if (!/^\d{4}-\d{2}-\d{2}$/.test(day)) {
-      res.status(400).json({ error: 'Formato de fecha inválido' })
+      res.status(400).json({
+        success: false,
+        error: ERROR_CODES.INVALID_DATE_FORMAT,
+        code: ERROR_CODES.INVALID_DATE_FORMAT,
+      })
       return
     }
 
@@ -206,7 +255,11 @@ export async function getLogbooksByDay(req: Request, res: Response): Promise<voi
     res.json(logbooks)
   } catch (err) {
     console.error('Error al obtener logbooks por día:', err)
-    res.status(500).json({ error: 'Error al obtener logbooks por día' })
+    res.status(500).json({
+      success: false,
+      error: ERROR_CODES.LOGBOOK_FETCH_BY_DAY_ERROR,
+      code: ERROR_CODES.LOGBOOK_FETCH_BY_DAY_ERROR,
+    })
   }
 }
 
@@ -221,12 +274,20 @@ export async function deleteLogbookController(req: Request, res: Response): Prom
 
     const logbook = await logbookRepo.getById(logbookId)
     if (!logbook) {
-      res.status(404).json({ error: 'Logbook no encontrado' })
+      res.status(404).json({
+        success: false,
+        error: ERROR_CODES.LOGBOOK_NOT_FOUND,
+        code: ERROR_CODES.LOGBOOK_NOT_FOUND,
+      })
       return
     }
 
     if (logbook.author_id !== editorId) {
-      res.status(403).json({ error: 'Solo el autor puede eliminar este logbook' })
+      res.status(403).json({
+        success: false,
+        error: ERROR_CODES.LOGBOOK_ONLY_AUTHOR_DELETE,
+        code: ERROR_CODES.LOGBOOK_ONLY_AUTHOR_DELETE,
+      })
       return
     }
 
@@ -239,16 +300,26 @@ export async function deleteLogbookController(req: Request, res: Response): Prom
 
     const deleted = await logbookRepo.softDeleteLogbook(logbookId)
     if (!deleted) {
-      res.status(500).json({ error: 'Error al marcar como eliminado' })
+      res.status(500).json({
+        success: false,
+        error: ERROR_CODES.LOGBOOK_DELETE_ERROR,
+        code: ERROR_CODES.LOGBOOK_DELETE_ERROR,
+      })
       return
     }
 
     res.status(200).json({
-      message: 'Logbook eliminado (soft-delete) correctamente',
+      success: true,
+      message: SUCCESS_CODES.LOGBOOK_DELETED,
+      code: SUCCESS_CODES.LOGBOOK_DELETED,
       history: historyRecord,
     })
   } catch (err) {
     console.error('Delete Logbook error:', err)
-    res.status(500).json({ error: (err as Error).message })
+    res.status(500).json({
+      success: false,
+      error: ERROR_CODES.LOGBOOK_DELETE_ERROR,
+      code: ERROR_CODES.LOGBOOK_DELETE_ERROR,
+    })
   }
 }

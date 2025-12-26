@@ -3,6 +3,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { FiAlertCircle } from 'react-icons/fi'
+import { useTranslations } from 'next-intl'
 import {
   conciliationApi,
   RECEPTION_REASONS_ORDERED,
@@ -76,6 +77,7 @@ export default function ConciliationForm({
   onUpdate,
 }: ConciliationFormProps) {
   const { user } = useAuth()
+  const t = useTranslations('conciliation')
 
   const [receptionForm, setReceptionForm] = useState<Record<ReceptionReason, EntryForm>>(
     {} as Record<ReceptionReason, EntryForm>
@@ -219,7 +221,7 @@ export default function ConciliationForm({
     const trimmed = newRoom.trim()
     if (!trimmed || roomPopover.rooms.includes(trimmed)) return
     if (roomPopover.rooms.length >= 15) {
-      alert('Maximo 15 habitaciones')
+      alert(t('alerts.maxRooms'))
       return
     }
 
@@ -261,11 +263,11 @@ export default function ConciliationForm({
     const trimmed = newNote.trim()
     if (!trimmed || notePopover.notes.includes(trimmed)) return
     if (trimmed.length > 200) {
-      alert('La nota no puede superar 200 caracteres')
+      alert(t('alerts.maxNoteLength'))
       return
     }
     if (notePopover.notes.length >= 10) {
-      alert('Maximo 10 notas')
+      alert(t('alerts.maxNotes'))
       return
     }
 
@@ -309,7 +311,7 @@ export default function ConciliationForm({
 
   const deleteGeneralNote = (noteId: string, authorId: string) => {
     if (user?.id !== authorId) {
-      alert('Solo el autor puede eliminar esta nota')
+      alert(t('alerts.onlyAuthorCanDelete'))
       return
     }
     setNotes((prev) => prev.filter((n) => n.id !== noteId))
@@ -339,7 +341,7 @@ export default function ConciliationForm({
       onUpdate()
     } catch (error) {
       console.error('Error saving:', error)
-      alert('Error al guardar')
+      alert(t('alerts.errorSaving'))
     } finally {
       setSaving(false)
     }
@@ -353,7 +355,7 @@ export default function ConciliationForm({
       onUpdate()
     } catch (error) {
       console.error('Error confirming:', error)
-      alert('Error al confirmar')
+      alert(t('alerts.errorConfirming'))
     }
   }
 
@@ -364,19 +366,19 @@ export default function ConciliationForm({
       onUpdate()
     } catch (error) {
       console.error('Error reopening:', error)
-      alert('Error al reabrir')
+      alert(t('alerts.errorReopening'))
     }
   }
 
   const handleClose = async () => {
     if (!conciliation) return
-    if (!confirm('Cerrar conciliacion? No se podra modificar despues.')) return
+    if (!confirm(t('alerts.confirmClose'))) return
     try {
       await conciliationApi.updateStatus(conciliation.id!, 'closed')
       onUpdate()
     } catch (error) {
       console.error('Error closing:', error)
-      alert('Error al cerrar')
+      alert(t('alerts.errorClosing'))
     }
   }
 
@@ -384,7 +386,7 @@ export default function ConciliationForm({
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-gray-500 dark:text-gray-400">Cargando...</div>
+        <div className="text-gray-500 dark:text-gray-400">{t('page.loading')}</div>
       </div>
     )
   }
@@ -395,7 +397,7 @@ export default function ConciliationForm({
       <div className="flex flex-col items-center justify-center h-64 space-y-4">
         <FiAlertCircle className="w-12 h-12 text-gray-400" />
         <p className="text-gray-600 dark:text-gray-400">
-          {dayStatusMessage || 'Selecciona un dia'}
+          {dayStatusMessage || t('page.selectDay')}
         </p>
       </div>
     )
@@ -450,7 +452,7 @@ export default function ConciliationForm({
         {/* Left Column - Main Content */}
         <div className="min-[1400px]:col-span-3 space-y-6">
           <ConciliationTable
-            title="Recepcion"
+            title={t('table.reception')}
             reasons={RECEPTION_REASONS_ORDERED}
             config={RECEPTION_CONFIG}
             form={receptionForm}
@@ -463,7 +465,7 @@ export default function ConciliationForm({
           />
 
           <ConciliationTable
-            title="Housekeeping"
+            title={t('table.housekeeping')}
             reasons={HOUSEKEEPING_REASONS_ORDERED}
             config={HOUSEKEEPING_CONFIG}
             form={housekeepingForm}

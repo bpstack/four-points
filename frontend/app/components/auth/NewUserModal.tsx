@@ -3,6 +3,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { FiUser, FiAlertCircle, FiUserPlus } from 'react-icons/fi'
 import { toast } from 'react-hot-toast'
 import {
@@ -21,6 +22,7 @@ interface NewUserModalProps {
 }
 
 export default function NewUserModal({ isOpen, onClose, onSuccess }: NewUserModalProps) {
+  const t = useTranslations('auth')
   const [formData, setFormData] = useState({
     username: '',
     email: '',
@@ -46,16 +48,16 @@ export default function NewUserModal({ isOpen, onClose, onSuccess }: NewUserModa
       const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(data.error || 'Error creating user')
+        throw new Error(data.error || t('errors.errorCreating'))
       }
 
       // Success
-      toast.success('User created successfully')
+      toast.success(t('newUser.success'))
       setFormData({ username: '', email: '', password: '', role: 'recepcionista' })
       onSuccess()
       onClose()
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Error creating user'
+      const message = err instanceof Error ? err.message : t('errors.errorCreating')
       setError(message)
       toast.error(message)
     } finally {
@@ -80,8 +82,8 @@ export default function NewUserModal({ isOpen, onClose, onSuccess }: NewUserModa
     <SlidePanel
       isOpen={isOpen}
       onClose={onClose}
-      title="Create New Account"
-      subtitle="Add a new user to the system"
+      title={t('newUser.title')}
+      subtitle={t('newUser.subtitle')}
       size="lg"
       position="right"
       headerIcon={<FiUser className="w-5 h-5 text-blue-600 dark:text-blue-400" />}
@@ -89,8 +91,8 @@ export default function NewUserModal({ isOpen, onClose, onSuccess }: NewUserModa
         <SlidePanelFooterButtons
           onCancel={onClose}
           onSubmit={handleSubmit}
-          cancelText="Cancel"
-          submitText={loading ? 'Creating...' : 'Create Account'}
+          cancelText={t('newUser.cancel')}
+          submitText={loading ? t('newUser.creating') : t('newUser.createAccount')}
           submitIcon={<FiUserPlus className="w-4 h-4" />}
           isSubmitting={loading}
           submitDisabled={!isFormValid}
@@ -116,13 +118,13 @@ export default function NewUserModal({ isOpen, onClose, onSuccess }: NewUserModa
         )}
 
         {/* Username */}
-        <FormField label="Username" required>
+        <FormField label={t('newUser.username')} required>
           <input
             type="text"
             name="username"
             value={formData.username}
             onChange={handleChange}
-            placeholder="johndoe"
+            placeholder={t('newUser.usernamePlaceholder')}
             required
             className={inputClassName}
             disabled={loading}
@@ -130,13 +132,13 @@ export default function NewUserModal({ isOpen, onClose, onSuccess }: NewUserModa
         </FormField>
 
         {/* Email */}
-        <FormField label="Email" required>
+        <FormField label={t('newUser.email')} required>
           <input
             type="email"
             name="email"
             value={formData.email}
             onChange={handleChange}
-            placeholder="user@example.com"
+            placeholder={t('newUser.emailPlaceholder')}
             required
             className={inputClassName}
             disabled={loading}
@@ -144,13 +146,13 @@ export default function NewUserModal({ isOpen, onClose, onSuccess }: NewUserModa
         </FormField>
 
         {/* Password */}
-        <FormField label="Password" required hint="Minimum 6 characters">
+        <FormField label={t('newUser.password')} required hint={t('newUser.passwordHint')}>
           <input
             type="password"
             name="password"
             value={formData.password}
             onChange={handleChange}
-            placeholder="••••••••"
+            placeholder={t('newUser.passwordPlaceholder')}
             required
             minLength={6}
             className={inputClassName}
@@ -159,7 +161,7 @@ export default function NewUserModal({ isOpen, onClose, onSuccess }: NewUserModa
         </FormField>
 
         {/* Role */}
-        <FormField label="Role" required>
+        <FormField label={t('newUser.role')} required>
           <select
             name="role"
             value={formData.role}
@@ -168,10 +170,10 @@ export default function NewUserModal({ isOpen, onClose, onSuccess }: NewUserModa
             className={selectClassName}
             disabled={loading}
           >
-            <option value="recepcionista">Receptionist</option>
-            <option value="admin">Admin</option>
-            <option value="group-admin">Group Admin</option>
-            <option value="mantenimiento">Maintenance</option>
+            <option value="recepcionista">{t('newUser.roles.receptionist')}</option>
+            <option value="admin">{t('newUser.roles.admin')}</option>
+            <option value="group-admin">{t('newUser.roles.groupAdmin')}</option>
+            <option value="mantenimiento">{t('newUser.roles.maintenance')}</option>
           </select>
         </FormField>
       </form>

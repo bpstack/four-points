@@ -1,6 +1,7 @@
 // app/components/cashier/CloseShiftModal.tsx
 'use client'
 
+import { useTranslations } from 'next-intl'
 import { FiX, FiCheckCircle, FiAlertCircle, FiDollarSign } from 'react-icons/fi'
 import { useCloseShift } from '@/app/lib/cashier/queries'
 import { toast } from 'react-hot-toast'
@@ -19,6 +20,7 @@ export default function CloseShiftModal({
   shift,
   shiftType,
 }: CloseShiftModalProps) {
+  const t = useTranslations('cashier')
   const closeShiftMutation = useCloseShift()
 
   // Calcular total de vales
@@ -49,17 +51,17 @@ export default function CloseShiftModal({
 
   const handleClose = async () => {
     if (!canClose) {
-      toast.error('No se cumplen todos los requisitos para cerrar el turno')
+      toast.error(t('closeShift.requirementsNotMet'))
       return
     }
 
     try {
       await closeShiftMutation.mutateAsync(shift.id)
-      toast.success('Turno cerrado correctamente')
+      toast.success(t('closeShift.shiftClosed'))
       onClose()
     } catch (error) {
       console.error('Error cerrando turno:', error)
-      const errorMessage = error instanceof Error ? error.message : 'Error al cerrar turno'
+      const errorMessage = error instanceof Error ? error.message : t('error.closeShift')
       toast.error(errorMessage)
     }
   }
@@ -75,7 +77,7 @@ export default function CloseShiftModal({
         <div className="sticky top-0 bg-white dark:bg-[#0d1117] flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-800">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
             <FiCheckCircle className="w-5 h-5 text-green-600" />
-            Cerrar Turno {shiftType}
+            {t('closeShift.title')} {shiftType}
           </h3>
           <button
             onClick={onClose}
@@ -91,7 +93,7 @@ export default function CloseShiftModal({
           {/* Validaciones */}
           <div className="space-y-2">
             <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
-              Validaciones:
+              {t('closeShift.validations')}:
             </h4>
 
             {/* Denominaciones */}
@@ -115,8 +117,8 @@ export default function CloseShiftModal({
                 }`}
               >
                 {validations.hasDenominations
-                  ? 'Conteo de efectivo completado'
-                  : 'Falta conteo de efectivo'}
+                  ? t('closeShift.cashCountCompleted')
+                  : t('closeShift.cashCountMissing')}
               </span>
             </div>
 
@@ -141,8 +143,8 @@ export default function CloseShiftModal({
                 }`}
               >
                 {validations.hasPayments
-                  ? 'Pagos electrónicos registrados'
-                  : 'Faltan pagos electrónicos'}
+                  ? t('closeShift.electronicPaymentsRegistered')
+                  : t('closeShift.electronicPaymentsMissing')}
               </span>
             </div>
 
@@ -152,10 +154,10 @@ export default function CloseShiftModal({
                 <FiAlertCircle className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                 <div className="flex-1">
                   <span className="text-sm font-medium text-blue-700 dark:text-blue-300">
-                    {pendingVouchersCount} vale(s) pendiente(s)
+                    {pendingVouchersCount} {t('closeShift.pendingVouchers')}
                   </span>
                   <p className="text-xs text-blue-600 dark:text-blue-400 mt-0.5">
-                    Se pueden justificar después del cierre
+                    {t('closeShift.canJustifyAfterClose')}
                   </p>
                 </div>
               </div>
@@ -165,18 +167,18 @@ export default function CloseShiftModal({
           {/* Resumen financiero */}
           <div className="space-y-3">
             <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
-              Resumen Financiero:
+              {t('closeShift.financialSummary')}:
             </h4>
 
             <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-4 space-y-2">
               <div className="flex justify-between text-sm">
-                <span className="text-gray-600 dark:text-gray-400">Fondo Inicial:</span>
+                <span className="text-gray-600 dark:text-gray-400">{t('closeShift.initialFund')}:</span>
                 <span className="font-semibold text-gray-900 dark:text-white">
                   {parseFloat(shift.initial_fund).toFixed(2)}€
                 </span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-gray-600 dark:text-gray-400">Ingresos del Turno:</span>
+                <span className="text-gray-600 dark:text-gray-400">{t('closeShift.shiftIncome')}:</span>
                 <span className="font-semibold text-green-600 dark:text-green-400">
                   +{parseFloat(shift.income).toFixed(2)}€
                 </span>
@@ -185,7 +187,7 @@ export default function CloseShiftModal({
               {totalVouchers > 0 && (
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600 dark:text-gray-400">
-                    Vales del Turno ({shift.vouchers?.length || 0}):
+                    {t('closeShift.shiftVouchers')} ({shift.vouchers?.length || 0}):
                   </span>
                   <span className="font-semibold text-orange-600 dark:text-orange-400">
                     -{totalVouchers.toFixed(2)}€
@@ -194,13 +196,13 @@ export default function CloseShiftModal({
               )}
 
               <div className="flex justify-between text-sm pt-2 border-t border-gray-200 dark:border-gray-700">
-                <span className="text-gray-600 dark:text-gray-400">Efectivo Esperado:</span>
+                <span className="text-gray-600 dark:text-gray-400">{t('closeShift.expectedCash')}:</span>
                 <span className="font-semibold text-gray-900 dark:text-white">
                   {cashExpected.toFixed(2)}€
                 </span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-gray-600 dark:text-gray-400">Efectivo Contado:</span>
+                <span className="text-gray-600 dark:text-gray-400">{t('closeShift.countedCash')}:</span>
                 <span className="font-semibold text-blue-600 dark:text-blue-400">
                   {cashCounted.toFixed(2)}€
                 </span>
@@ -212,26 +214,26 @@ export default function CloseShiftModal({
                     : 'text-red-600 dark:text-red-400'
                 }`}
               >
-                <span className="font-semibold">Descuadre:</span>
+                <span className="font-semibold">{t('closeShift.discrepancy')}:</span>
                 <span className="font-bold">{difference.toFixed(2)}€</span>
               </div>
             </div>
 
             <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
               <div className="flex justify-between text-sm mb-1">
-                <span className="text-blue-700 dark:text-blue-300">Efectivo:</span>
+                <span className="text-blue-700 dark:text-blue-300">{t('closeShift.cash')}:</span>
                 <span className="font-semibold text-blue-900 dark:text-blue-100">
                   {cashCounted.toFixed(2)}€
                 </span>
               </div>
               <div className="flex justify-between text-sm mb-2">
-                <span className="text-blue-700 dark:text-blue-300">Pagos Electrónicos:</span>
+                <span className="text-blue-700 dark:text-blue-300">{t('closeShift.electronicPayments')}:</span>
                 <span className="font-semibold text-blue-900 dark:text-blue-100">
                   {totalPayments.toFixed(2)}€
                 </span>
               </div>
               <div className="flex justify-between text-lg pt-2 border-t-2 border-blue-200 dark:border-blue-800">
-                <span className="font-bold text-blue-900 dark:text-blue-100">Gran Total:</span>
+                <span className="font-bold text-blue-900 dark:text-blue-100">{t('closeShift.grandTotal')}:</span>
                 <span className="font-bold text-blue-600 dark:text-blue-400">
                   {grandTotal.toFixed(2)}€
                 </span>
@@ -245,10 +247,10 @@ export default function CloseShiftModal({
               <FiAlertCircle className="w-5 h-5 text-yellow-600 dark:text-yellow-400 flex-shrink-0 mt-0.5" />
               <div className="text-sm text-yellow-700 dark:text-yellow-300">
                 <p className="font-medium">
-                  Hay un descuadre de {Math.abs(difference).toFixed(2)}€
+                  {t('closeShift.hasDiscrepancy')} {Math.abs(difference).toFixed(2)}€
                 </p>
                 <p className="text-xs mt-1">
-                  {difference > 0 ? 'Sobra efectivo en caja' : 'Falta efectivo en caja'}
+                  {difference > 0 ? t('closeShift.extraCash') : t('closeShift.missingCash')}
                 </p>
               </div>
             </div>
@@ -259,10 +261,9 @@ export default function CloseShiftModal({
             <div className="p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg flex items-start gap-2">
               <FiDollarSign className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
               <div className="text-sm text-blue-700 dark:text-blue-300">
-                <p className="font-medium">Vales del turno</p>
+                <p className="font-medium">{t('closeShift.shiftVouchersInfo')}</p>
                 <p className="text-xs mt-1">
-                  Los vales se justificarán en el turno de Cierre. Total: {totalVouchers.toFixed(2)}
-                  €
+                  {t('closeShift.vouchersJustifiedInClosing')} {totalVouchers.toFixed(2)}€
                 </p>
               </div>
             </div>
@@ -276,7 +277,7 @@ export default function CloseShiftModal({
             disabled={isLoading}
             className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-[#0d1117] border border-gray-300 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Cancelar
+            {t('closeShift.cancel')}
           </button>
           <button
             onClick={handleClose}
@@ -286,12 +287,12 @@ export default function CloseShiftModal({
             {isLoading ? (
               <>
                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                Cerrando...
+                {t('closeShift.closing')}
               </>
             ) : (
               <>
                 <FiCheckCircle className="w-4 h-4" />
-                Cerrar Turno
+                {t('closeShift.close')}
               </>
             )}
           </button>

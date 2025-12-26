@@ -2,9 +2,10 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useTranslations } from 'next-intl'
 import type { ParkingBooking, ParkingVehicle, AvailableSpot } from '@/app/lib/parking/types'
 import { parkingApi } from '@/app/lib/parking'
-import { formatDateTimeLocal, BOOKING_SOURCES, SPOT_TYPES } from '../helpers'
+import { formatDateTimeLocal } from '../helpers'
 import { FiEdit2, FiX, FiSearch, FiMapPin, FiTruck, FiSlash, FiUserX } from 'react-icons/fi'
 
 interface EditBookingModalProps {
@@ -32,6 +33,7 @@ export function EditBookingModal({
   onCancel,
   onNoShow,
 }: EditBookingModalProps) {
+  const t = useTranslations('parking')
   const [loading, setLoading] = useState(false)
   const [activeTab, setActiveTab] = useState<'general' | 'spot' | 'vehicle'>('general')
 
@@ -183,9 +185,9 @@ export function EditBookingModal({
   }
 
   const tabs = [
-    { id: 'general', label: 'General', icon: FiEdit2 },
-    { id: 'spot', label: 'Plaza', icon: FiMapPin },
-    { id: 'vehicle', label: 'Vehiculo', icon: FiTruck },
+    { id: 'general', label: t('editModal.tabs.general'), icon: FiEdit2 },
+    { id: 'spot', label: t('editModal.tabs.spot'), icon: FiMapPin },
+    { id: 'vehicle', label: t('editModal.tabs.vehicle'), icon: FiTruck },
   ] as const
 
   return (
@@ -196,7 +198,7 @@ export function EditBookingModal({
           <div>
             <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
               <FiEdit2 className="w-5 h-5 text-blue-600" />
-              Editar Reserva
+              {t('editModal.title')}
             </h3>
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
               {booking.booking_code}
@@ -240,8 +242,7 @@ export function EditBookingModal({
               {isCheckedIn && (
                 <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3">
                   <p className="text-sm text-amber-700 dark:text-amber-300">
-                    Esta reserva ya tiene check-in realizado. La fecha de entrada no se puede
-                    modificar.
+                    {t('editModal.checkedInWarning')}
                   </p>
                 </div>
               )}
@@ -249,7 +250,7 @@ export function EditBookingModal({
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Check-in esperado
+                    {t('editModal.expectedCheckIn')}
                   </label>
                   <input
                     type="datetime-local"
@@ -259,12 +260,12 @@ export function EditBookingModal({
                     className="w-full px-3 py-2 bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm disabled:bg-gray-100 dark:disabled:bg-gray-800 disabled:text-gray-500 disabled:cursor-not-allowed"
                   />
                   {isCheckinInPast && !isCheckedIn && (
-                    <p className="text-xs text-gray-500 mt-1">Fecha en el pasado - no editable</p>
+                    <p className="text-xs text-gray-500 mt-1">{t('editModal.pastDateWarning')}</p>
                   )}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Check-out esperado
+                    {t('editModal.expectedCheckOut')}
                   </label>
                   <input
                     type="datetime-local"
@@ -277,7 +278,7 @@ export function EditBookingModal({
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Importe total
+                  {t('editModal.totalAmount')}
                 </label>
                 <div className="relative">
                   <input
@@ -295,30 +296,33 @@ export function EditBookingModal({
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Origen de reserva
+                    {t('editModal.bookingSource')}
                   </label>
                   <select
                     value={data.booking_source}
                     onChange={(e) => setData({ ...data, booking_source: e.target.value })}
                     className="w-full px-3 py-2 bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
-                    {Object.entries(BOOKING_SOURCES).map(([value, label]) => (
-                      <option key={value} value={value}>
-                        {label}
-                      </option>
-                    ))}
+                    <option value="direct">{t('bookingSources.direct')}</option>
+                    <option value="booking_com">{t('bookingSources.booking_com')}</option>
+                    <option value="expedia">{t('bookingSources.expedia')}</option>
+                    <option value="airbnb">{t('bookingSources.airbnb')}</option>
+                    <option value="phone">{t('bookingSources.phone')}</option>
+                    <option value="email">{t('bookingSources.email')}</option>
+                    <option value="walkin">{t('bookingSources.walkin')}</option>
+                    <option value="other">{t('bookingSources.other')}</option>
                   </select>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    ID Externo
+                    {t('editModal.externalId')}
                   </label>
                   <input
                     type="text"
                     value={data.external_booking_id}
                     onChange={(e) => setData({ ...data, external_booking_id: e.target.value })}
                     className="w-full px-3 py-2 bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="BK-123456"
+                    placeholder={t('editModal.externalIdPlaceholder')}
                   />
                 </div>
               </div>
@@ -330,7 +334,7 @@ export function EditBookingModal({
                 booking.status !== 'no_show' && (
                   <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
                     <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">
-                      Acciones rapidas
+                      {t('editModal.quickActions')}
                     </p>
                     <div className="flex gap-2">
                       {onNoShow && booking.status === 'reserved' && (
@@ -349,7 +353,7 @@ export function EditBookingModal({
                           className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-400 border border-orange-200 dark:border-orange-800 rounded-lg hover:bg-orange-100 dark:hover:bg-orange-900/30 transition-colors text-sm disabled:opacity-50"
                         >
                           <FiUserX className="w-4 h-4" />
-                          <span className="font-medium">No Show</span>
+                          <span className="font-medium">{t('editModal.noShow')}</span>
                         </button>
                       )}
                       {onCancel && (
@@ -368,7 +372,7 @@ export function EditBookingModal({
                           className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-800 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors text-sm disabled:opacity-50"
                         >
                           <FiSlash className="w-4 h-4" />
-                          <span className="font-medium">Cancelar Reserva</span>
+                          <span className="font-medium">{t('editModal.cancelBooking')}</span>
                         </button>
                       )}
                     </div>
@@ -377,14 +381,14 @@ export function EditBookingModal({
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Notas
+                  {t('editModal.notes')}
                 </label>
                 <textarea
                   value={data.notes}
                   onChange={(e) => setData({ ...data, notes: e.target.value })}
                   rows={3}
                   className="w-full px-3 py-2 bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-                  placeholder="Notas adicionales..."
+                  placeholder={t('editModal.notesPlaceholder')}
                 />
               </div>
             </div>
@@ -395,7 +399,7 @@ export function EditBookingModal({
             <div className="space-y-4">
               <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
                 <p className="text-sm text-blue-700 dark:text-blue-300">
-                  Plaza actual:{' '}
+                  {t('editModal.currentSpot')}{' '}
                   <strong>
                     {booking.spot.level} - {booking.spot.number}
                   </strong>
@@ -404,22 +408,22 @@ export function EditBookingModal({
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Planta
+                  {t('editModal.level')}
                 </label>
                 <select
                   value={selectedSpot.level_code}
                   onChange={(e) => setSelectedSpot({ ...selectedSpot, level_code: e.target.value })}
                   className="w-full px-3 py-2 bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
-                  <option value="-2">Planta -2</option>
-                  <option value="-3">Planta -3</option>
+                  <option value="-2">{t('editModal.levelOption', { level: '-2' })}</option>
+                  <option value="-3">{t('editModal.levelOption', { level: '-3' })}</option>
                 </select>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Plazas disponibles
-                  {loadingSpots && <span className="ml-2 text-gray-400">(cargando...)</span>}
+                  {t('editModal.availableSpots')}
+                  {loadingSpots && <span className="ml-2 text-gray-400">{t('editModal.loadingSpots')}</span>}
                 </label>
                 <div className="grid grid-cols-4 gap-2 max-h-48 overflow-y-auto p-2 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
                   {availableSpots
@@ -438,7 +442,7 @@ export function EditBookingModal({
                       >
                         {spot.spot_number}
                         <span className="block text-xs opacity-70">
-                          {SPOT_TYPES[spot.spot_type] || spot.spot_type}
+                          {t(`spotTypes.${spot.spot_type}` as const) || spot.spot_type}
                         </span>
                       </button>
                     ))}
@@ -446,7 +450,7 @@ export function EditBookingModal({
                     0 &&
                     !loadingSpots && (
                       <p className="col-span-4 text-center text-sm text-gray-500 py-4">
-                        No hay plazas disponibles en estas fechas
+                        {t('editModal.noSpotsAvailable')}
                       </p>
                     )}
                 </div>
@@ -460,7 +464,7 @@ export function EditBookingModal({
               {booking.vehicle && (
                 <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-3">
                   <p className="text-sm text-green-700 dark:text-green-300">
-                    Vehiculo actual: <strong>{booking.vehicle.plate}</strong> -{' '}
+                    {t('editModal.currentVehicle')} <strong>{booking.vehicle.plate}</strong> -{' '}
                     {booking.vehicle.owner}
                   </p>
                 </div>
@@ -468,7 +472,7 @@ export function EditBookingModal({
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Buscar vehiculo
+                  {t('editModal.searchVehicle')}
                 </label>
                 <div className="relative">
                   <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -477,7 +481,7 @@ export function EditBookingModal({
                     value={vehicleSearch}
                     onChange={(e) => setVehicleSearch(e.target.value)}
                     className="w-full pl-10 pr-3 py-2 bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="Buscar por matricula o propietario..."
+                    placeholder={t('editModal.searchVehiclePlaceholder')}
                   />
                 </div>
               </div>
@@ -523,7 +527,7 @@ export function EditBookingModal({
                   onClick={() => setSelectedVehicle(null)}
                   className="text-sm text-red-600 hover:text-red-700 dark:text-red-400"
                 >
-                  Quitar vehiculo asignado
+                  {t('editModal.removeVehicle')}
                 </button>
               )}
             </div>
@@ -537,7 +541,7 @@ export function EditBookingModal({
             disabled={loading}
             className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
           >
-            Cancelar
+            {t('editModal.cancel')}
           </button>
           <button
             onClick={handleSubmit}
@@ -549,7 +553,7 @@ export function EditBookingModal({
             ) : (
               <>
                 <FiEdit2 className="w-4 h-4" />
-                Guardar Cambios
+                {t('editModal.save')}
               </>
             )}
           </button>

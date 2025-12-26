@@ -1,4 +1,7 @@
 // app/components/conciliation/TotalsCards.tsx
+'use client'
+
+import { useTranslations } from 'next-intl'
 
 interface TotalsCardsProps {
   totalReception: number
@@ -13,17 +16,18 @@ export default function TotalsCards({
   difference,
   layout = 'horizontal',
 }: TotalsCardsProps) {
+  const t = useTranslations('conciliation')
   const isVertical = layout === 'vertical'
 
   return (
     <div className={isVertical ? 'space-y-3' : 'grid grid-cols-1 md:grid-cols-3 gap-4'}>
       {isVertical && (
-        <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Totales</h3>
+        <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">{t('totals.title')}</h3>
       )}
       <div className="bg-white dark:bg-[#0D1117] border border-[#d0d7de] dark:border-[#30363d] rounded-xl shadow-sm p-4">
         <div className="flex items-center justify-between">
           <div>
-            <div className="text-xs text-blue-600 dark:text-blue-400 font-medium">Recepcion</div>
+            <div className="text-xs text-blue-600 dark:text-blue-400 font-medium">{t('totals.reception')}</div>
             <div className="text-xl font-bold text-gray-900 dark:text-gray-100 mt-0.5">
               {totalReception}
             </div>
@@ -39,7 +43,7 @@ export default function TotalsCards({
         <div className="flex items-center justify-between">
           <div>
             <div className="text-xs text-purple-600 dark:text-purple-400 font-medium">
-              Housekeeping
+              {t('totals.housekeeping')}
             </div>
             <div className="text-xl font-bold text-gray-900 dark:text-gray-100 mt-0.5">
               {totalHousekeeping}
@@ -68,7 +72,7 @@ export default function TotalsCards({
                   : 'text-red-600 dark:text-red-400'
               }`}
             >
-              Descuadre
+              {t('totals.discrepancy')}
             </div>
             <div
               className={`text-xl font-bold mt-0.5 ${

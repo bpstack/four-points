@@ -3,6 +3,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { Button } from '@/app/components/blacklist/ui/Button'
 import { deleteBlacklist } from '@/app/dashboard/blacklist/actions/deleteBlacklist'
 import { IoTrashOutline } from 'react-icons/io5'
@@ -13,20 +14,17 @@ interface DeleteButtonProps {
 }
 
 export function DeleteButton({ entryId }: DeleteButtonProps) {
+  const t = useTranslations('blacklist')
   const router = useRouter()
   const [isDeleting, setIsDeleting] = useState(false)
 
   const handleDelete = async () => {
-    if (
-      !confirm(
-        '¿Estás seguro de eliminar este registro? Esta acción marcará el registro como eliminado pero podrá ser restaurado posteriormente.'
-      )
-    ) {
+    if (!confirm(t('delete.confirmMessage'))) {
       return
     }
 
     setIsDeleting(true)
-    toast.loading('Eliminando registro...')
+    toast.loading(t('delete.deleting'))
 
     try {
       const result = await deleteBlacklist(entryId)
@@ -34,15 +32,15 @@ export function DeleteButton({ entryId }: DeleteButtonProps) {
       toast.dismiss()
 
       if (result.success) {
-        toast.success('Registro eliminado correctamente')
+        toast.success(t('delete.success'))
         router.push('/dashboard/blacklist')
         router.refresh()
       } else {
-        toast.error(result.error || 'Error al eliminar el registro')
+        toast.error(result.error || t('delete.error'))
       }
     } catch (error) {
       toast.dismiss()
-      const message = error instanceof Error ? error.message : 'Error al eliminar'
+      const message = error instanceof Error ? error.message : t('delete.error')
       toast.error(message)
     } finally {
       setIsDeleting(false)
@@ -56,7 +54,7 @@ export function DeleteButton({ entryId }: DeleteButtonProps) {
       isLoading={isDeleting}
       leftIcon={<IoTrashOutline size={18} />}
     >
-      Eliminar
+      {t('delete.button')}
     </Button>
   )
 }

@@ -9,6 +9,7 @@
 'use client'
 
 import { useEffect } from 'react'
+import { useTranslations } from 'next-intl'
 import { FiAlertTriangle, FiRefreshCw } from 'react-icons/fi'
 
 interface ErrorProps {
@@ -17,6 +18,8 @@ interface ErrorProps {
 }
 
 export default function BackOfficeError({ error, reset }: ErrorProps) {
+  const t = useTranslations('backoffice')
+
   useEffect(() => {
     // Log error to monitoring service
     console.error('Back Office error:', error)
@@ -30,10 +33,10 @@ export default function BackOfficeError({ error, reset }: ErrorProps) {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
               <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">
-                Back Office
+                {t('error.title')}
               </h1>
               <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-0.5">
-                Gestión de facturas y proveedores
+                {t('error.subtitle')}
               </p>
             </div>
           </div>
@@ -47,19 +50,18 @@ export default function BackOfficeError({ error, reset }: ErrorProps) {
             </div>
 
             <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
-              Error al cargar datos
+              {t('error.errorTitle')}
             </h2>
 
             <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
-              No se pudieron cargar los datos del Back Office. Esto puede deberse a un problema de
-              conexión con el servidor.
+              {t('error.errorDescription')}
             </p>
 
             {/* Error details (dev only) */}
             {process.env.NODE_ENV === 'development' && (
               <details className="mb-6 text-left">
                 <summary className="text-xs text-gray-500 dark:text-gray-500 cursor-pointer hover:text-gray-700 dark:hover:text-gray-300">
-                  Detalles del error
+                  {t('error.errorDetails')}
                 </summary>
                 <pre className="mt-2 p-3 bg-gray-100 dark:bg-gray-800 rounded text-xs text-red-600 dark:text-red-400 overflow-x-auto">
                   {error.message}
@@ -74,22 +76,21 @@ export default function BackOfficeError({ error, reset }: ErrorProps) {
                 className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 dark:bg-blue-700 text-white text-sm font-medium rounded-md hover:bg-blue-700 dark:hover:bg-blue-800 transition-colors"
               >
                 <FiRefreshCw className="w-4 h-4" />
-                Reintentar
+                {t('error.retry')}
               </button>
 
               <a
                 href="/dashboard"
                 className="inline-flex items-center justify-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
               >
-                Volver al Dashboard
+                {t('error.backToDashboard')}
               </a>
             </div>
           </div>
 
           {/* Help text */}
           <p className="mt-6 text-xs text-gray-500 dark:text-gray-500 text-center max-w-md">
-            Si el problema persiste, verifica que el servidor backend esté funcionando correctamente
-            o contacta al administrador del sistema.
+            {t('error.helpText')}
           </p>
         </div>
       </div>

@@ -2,8 +2,8 @@
 'use client'
 
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 import type { ParkingBooking } from '@/app/lib/parking/types'
-import { PAYMENT_METHODS } from '../helpers'
 import { FiDollarSign, FiX, FiCheck, FiAlertCircle } from 'react-icons/fi'
 
 interface PaymentModalProps {
@@ -17,6 +17,7 @@ interface PaymentModalProps {
 }
 
 export function PaymentModal({ booking, onClose, onConfirm }: PaymentModalProps) {
+  const t = useTranslations('parking')
   const [loading, setLoading] = useState(false)
   const [data, setData] = useState({
     payment_amount: booking.payment.total_amount.toString(),
@@ -51,7 +52,7 @@ export function PaymentModal({ booking, onClose, onConfirm }: PaymentModalProps)
           <div>
             <h3 className="text-lg font-semibold text-[#24292f] dark:text-[#f0f6fc] flex items-center gap-2">
               <FiDollarSign className="w-5 h-5 text-[#1a7f37] dark:text-[#3fb950]" />
-              Registrar Pago
+              {t('paymentModal.title')}
             </h3>
             <p className="text-sm text-[#57606a] dark:text-[#8b949e] mt-1">
               {booking.booking_code}
@@ -80,11 +81,10 @@ export function PaymentModal({ booking, onClose, onConfirm }: PaymentModalProps)
                 <FiAlertCircle className="w-5 h-5 text-[#cf222e] dark:text-[#f85149] flex-shrink-0 mt-0.5" />
                 <div>
                   <p className="font-medium text-[#cf222e] dark:text-[#f85149]">
-                    No se puede registrar pago
+                    {t('paymentModal.cannotPay')}
                   </p>
                   <p className="text-sm text-[#cf222e] dark:text-[#f85149] mt-1">
-                    Esta reserva no tiene un precio establecido. Edita la reserva primero para
-                    asignar un precio.
+                    {t('paymentModal.noPriceSet')}
                   </p>
                 </div>
               </div>
@@ -98,10 +98,10 @@ export function PaymentModal({ booking, onClose, onConfirm }: PaymentModalProps)
                 <FiCheck className="w-5 h-5 text-[#1a7f37] dark:text-[#3fb950] flex-shrink-0 mt-0.5" />
                 <div>
                   <p className="font-medium text-[#1a7f37] dark:text-[#3fb950]">
-                    Reserva ya pagada
+                    {t('paymentModal.alreadyPaid')}
                   </p>
                   <p className="text-sm text-[#1a7f37] dark:text-[#3fb950] mt-1">
-                    Puedes modificar el pago si es necesario.
+                    {t('paymentModal.canModify')}
                   </p>
                 </div>
               </div>
@@ -115,26 +115,24 @@ export function PaymentModal({ booking, onClose, onConfirm }: PaymentModalProps)
                 <div className="flex items-center gap-2 mb-3">
                   <FiDollarSign className="w-4 h-4 text-[#57606a] dark:text-[#8b949e]" />
                   <span className="font-medium text-[#24292f] dark:text-[#f0f6fc] text-sm">
-                    Resumen
+                    {t('paymentModal.summary')}
                   </span>
                 </div>
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-[#57606a] dark:text-[#8b949e]">Total reserva</span>
+                    <span className="text-[#57606a] dark:text-[#8b949e]">{t('paymentModal.totalBooking')}</span>
                     <span className="font-semibold text-[#24292f] dark:text-[#f0f6fc]">
                       {booking.payment.total_amount.toFixed(2)} €
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-[#57606a] dark:text-[#8b949e]">Ya pagado</span>
+                    <span className="text-[#57606a] dark:text-[#8b949e]">{t('paymentModal.alreadyPaidAmount')}</span>
                     <span className="text-[#1a7f37] dark:text-[#3fb950]">
                       {booking.payment.paid_amount.toFixed(2)} €
                     </span>
                   </div>
                   <div className="flex justify-between pt-2 border-t border-[#d0d7de] dark:border-[#30363d]">
-                    <span className="font-medium text-[#57606a] dark:text-[#8b949e]">
-                      Pendiente
-                    </span>
+                    <span className="font-medium text-[#57606a] dark:text-[#8b949e]">{t('paymentModal.pending')}</span>
                     <span
                       className={`font-bold ${
                         booking.payment.pending_amount > 0
@@ -150,7 +148,7 @@ export function PaymentModal({ booking, onClose, onConfirm }: PaymentModalProps)
 
               <div>
                 <label className="block text-sm font-medium text-[#24292f] dark:text-[#f0f6fc] mb-1">
-                  Importe a registrar
+                  {t('paymentModal.amountToRegister')}
                 </label>
                 <div className="relative">
                   <input
@@ -169,7 +167,7 @@ export function PaymentModal({ booking, onClose, onConfirm }: PaymentModalProps)
 
               <div>
                 <label className="block text-sm font-medium text-[#24292f] dark:text-[#f0f6fc] mb-1">
-                  Metodo de pago
+                  {t('paymentModal.paymentMethod')}
                 </label>
                 <select
                   value={data.payment_method}
@@ -181,24 +179,23 @@ export function PaymentModal({ booking, onClose, onConfirm }: PaymentModalProps)
                   }
                   className="w-full px-3 py-2 bg-white dark:bg-[#0d1117] text-[#24292f] dark:text-[#f0f6fc] border border-[#d0d7de] dark:border-[#30363d] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0969da] focus:border-[#0969da]"
                 >
-                  {Object.entries(PAYMENT_METHODS).map(([value, label]) => (
-                    <option key={value} value={value}>
-                      {label}
-                    </option>
-                  ))}
+                  <option value="cash">{t('paymentMethods.cash')}</option>
+                  <option value="card">{t('paymentMethods.card')}</option>
+                  <option value="transfer">{t('paymentMethods.transfer')}</option>
+                  <option value="other">{t('paymentMethods.other')}</option>
                 </select>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-[#24292f] dark:text-[#f0f6fc] mb-1">
-                  Referencia (opcional)
+                  {t('paymentModal.reference')}
                 </label>
                 <input
                   type="text"
                   value={data.payment_reference}
                   onChange={(e) => setData({ ...data, payment_reference: e.target.value })}
                   className="w-full px-3 py-2 bg-white dark:bg-[#0d1117] text-[#24292f] dark:text-[#f0f6fc] border border-[#d0d7de] dark:border-[#30363d] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0969da] focus:border-[#0969da]"
-                  placeholder="Numero de operacion, recibo..."
+                  placeholder={t('paymentModal.referencePlaceholder')}
                 />
               </div>
             </>
@@ -212,7 +209,7 @@ export function PaymentModal({ booking, onClose, onConfirm }: PaymentModalProps)
             disabled={loading}
             className="flex-1 px-4 py-2 text-sm font-medium text-[#24292f] dark:text-[#c9d1d9] bg-[#f6f8fa] dark:bg-[#21262d] border border-[#d0d7de] dark:border-[#30363d] rounded-lg hover:bg-[#f3f4f6] dark:hover:bg-[#30363d] transition-colors disabled:opacity-50"
           >
-            Cancelar
+            {t('paymentModal.cancel')}
           </button>
           {canPay && (
             <button
@@ -225,7 +222,7 @@ export function PaymentModal({ booking, onClose, onConfirm }: PaymentModalProps)
               ) : (
                 <>
                   <FiCheck className="w-4 h-4" />
-                  Registrar Pago
+                  {t('paymentModal.register')}
                 </>
               )}
             </button>

@@ -7,6 +7,7 @@ import { useForm, type Resolver } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { FiSave } from 'react-icons/fi'
 import toast from 'react-hot-toast'
+import { useTranslations } from 'next-intl'
 
 import { contactSchema, type ContactFormData } from '@/app/lib/schemas/group-schemas'
 import {
@@ -33,6 +34,7 @@ interface ContactPanelProps {
 }
 
 export function ContactPanel({ isOpen, onClose, contact, groupId }: ContactPanelProps) {
+  const t = useTranslations('groups')
   const { currentGroup } = useGroupStore()
   const isEditing = !!contact
 
@@ -82,22 +84,22 @@ export function ContactPanel({ isOpen, onClose, contact, groupId }: ContactPanel
       }
 
       if (!effectiveGroupId) {
-        throw new Error('Falta el identificador del grupo')
+        throw new Error(t('contactPanel.missingGroupId'))
       }
 
       if (isEditing && contact) {
         await updateContactMutation.mutateAsync(payload)
-        toast.success('Contacto actualizado correctamente')
+        toast.success(t('contactPanel.updateSuccess'))
       } else {
         await createContactMutation.mutateAsync(payload)
-        toast.success('Contacto creado correctamente')
+        toast.success(t('contactPanel.createSuccess'))
       }
 
       onClose()
       reset()
     } catch (error) {
       console.error('Error saving contact:', error)
-      const message = error instanceof Error ? error.message : 'Error al guardar el contacto'
+      const message = error instanceof Error ? error.message : t('contactPanel.error')
       toast.error(message)
     }
   }
@@ -106,12 +108,8 @@ export function ContactPanel({ isOpen, onClose, contact, groupId }: ContactPanel
     <SlidePanel
       isOpen={isOpen}
       onClose={onClose}
-      title={isEditing ? 'Editar Contacto' : 'Nuevo Contacto'}
-      subtitle={
-        isEditing
-          ? 'Actualiza la información del contacto'
-          : 'Completa los datos del nuevo contacto'
-      }
+      title={isEditing ? t('contactPanel.editContact') : t('contactPanel.newContact')}
+      subtitle={isEditing ? t('contactPanel.editSubtitle') : t('contactPanel.subtitle')}
       size="md"
       footer={
         <SlidePanelFooterButtons
@@ -120,7 +118,7 @@ export function ContactPanel({ isOpen, onClose, contact, groupId }: ContactPanel
           isSubmitting={
             isSubmitting || createContactMutation.isPending || updateContactMutation.isPending
           }
-          submitText={isEditing ? 'Actualizar' : 'Crear Contacto'}
+          submitText={isEditing ? t('contactPanel.updateContact') : t('contactPanel.createContact')}
           submitIcon={<FiSave className="w-4 h-4" />}
           submitVariant="primary"
         />
@@ -128,31 +126,31 @@ export function ContactPanel({ isOpen, onClose, contact, groupId }: ContactPanel
     >
       <SlidePanelSection>
         {/* Contact Name */}
-        <FormField label="Nombre del Contacto" required error={errors.contact_name?.message}>
+        <FormField label={t('contactPanel.name')} required error={errors.contact_name?.message}>
           <input
             {...register('contact_name')}
             type="text"
-            placeholder="Ej: Juan Pérez"
+            placeholder={t('contactPanel.namePlaceholder')}
             className={inputClassName}
           />
         </FormField>
 
         {/* Contact Email */}
-        <FormField label="Email" error={errors.contact_email?.message}>
+        <FormField label={t('contactPanel.email')} error={errors.contact_email?.message}>
           <input
             {...register('contact_email')}
             type="email"
-            placeholder="ejemplo@correo.com"
+            placeholder={t('contactPanel.emailPlaceholder')}
             className={inputClassName}
           />
         </FormField>
 
         {/* Contact Phone */}
-        <FormField label="Teléfono" error={errors.contact_phone?.message}>
+        <FormField label={t('contactPanel.phone')} error={errors.contact_phone?.message}>
           <input
             {...register('contact_phone')}
             type="tel"
-            placeholder="+52 123 456 7890"
+            placeholder={t('contactPanel.phonePlaceholder')}
             className={inputClassName}
           />
         </FormField>
@@ -169,12 +167,12 @@ export function ContactPanel({ isOpen, onClose, contact, groupId }: ContactPanel
             htmlFor="is_primary"
             className="text-sm font-medium text-gray-700 dark:text-gray-300"
           >
-            Marcar como contacto principal
+            {t('contactPanel.isPrimary')}
           </label>
         </div>
 
         <p className="text-xs text-gray-500 dark:text-gray-400">
-          El contacto principal será usado para comunicaciones importantes del grupo
+          {t('contactPanel.isPrimaryHint')}
         </p>
       </SlidePanelSection>
     </SlidePanel>

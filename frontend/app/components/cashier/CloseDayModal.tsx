@@ -1,6 +1,7 @@
 // app/components/cashier/CloseDayModal.tsx
 'use client'
 
+import { useTranslations } from 'next-intl'
 import { FiX, FiCheckCircle, FiAlertCircle, FiCalendar } from 'react-icons/fi'
 import { useCloseDay } from '@/app/lib/cashier/queries'
 import { toast } from 'react-hot-toast'
@@ -19,6 +20,7 @@ export default function CloseDayModal({
   dailyData,
   selectedDate,
 }: CloseDayModalProps) {
+  const t = useTranslations('cashier')
   const closeDayMutation = useCloseDay()
 
   // ✅ Validaciones: Solo turnos, no vales
@@ -77,17 +79,17 @@ export default function CloseDayModal({
 
   const handleClose = async () => {
     if (!canClose) {
-      toast.error('No se cumplen todos los requisitos para cerrar el día')
+      toast.error(t('closeDay.requirementsNotMet'))
       return
     }
 
     try {
       await closeDayMutation.mutateAsync({ date: selectedDate })
-      toast.success('Día cerrado correctamente')
+      toast.success(t('closeDay.dayClosed'))
       onClose()
     } catch (error) {
       console.error('Error cerrando día:', error)
-      const errorMessage = error instanceof Error ? error.message : 'Error al cerrar día'
+      const errorMessage = error instanceof Error ? error.message : t('error.closeDay')
       toast.error(errorMessage)
     }
   }
@@ -103,7 +105,7 @@ export default function CloseDayModal({
         <div className="sticky top-0 bg-white dark:bg-[#0d1117] flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-800 z-10">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
             <FiCalendar className="w-5 h-5 text-green-600" />
-            Cerrar Día Completo
+            {t('closeDay.title')}
           </h3>
           <button
             onClick={onClose}
@@ -118,7 +120,7 @@ export default function CloseDayModal({
         <div className="p-6 space-y-6">
           {/* Fecha */}
           <div className="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-            <p className="text-sm text-blue-700 dark:text-blue-300 mb-1">Fecha del día</p>
+            <p className="text-sm text-blue-700 dark:text-blue-300 mb-1">{t('closeDay.dateOfDay')}</p>
             <p className="text-2xl font-bold text-blue-900 dark:text-blue-100">
               {new Date(selectedDate).toLocaleDateString('es-ES', {
                 weekday: 'long',
@@ -132,7 +134,7 @@ export default function CloseDayModal({
           {/* Validaciones */}
           <div className="space-y-2">
             <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
-              Validaciones:
+              {t('closeDay.validations')}:
             </h4>
 
             {/* 4 Turnos */}
@@ -156,8 +158,8 @@ export default function CloseDayModal({
                 }`}
               >
                 {validations.hasFourShifts
-                  ? '4 turnos creados'
-                  : `Solo ${dailyData.shifts?.length || 0} de 4 turnos creados`}
+                  ? t('closeDay.fourShiftsCreated')
+                  : t('closeDay.shiftsCreatedOf4', { count: dailyData.shifts?.length || 0 })}
               </span>
             </div>
 
@@ -182,8 +184,8 @@ export default function CloseDayModal({
                 }`}
               >
                 {validations.allShiftsClosed
-                  ? 'Todos los turnos están cerrados'
-                  : 'Faltan turnos por cerrar'}
+                  ? t('closeDay.allShiftsClosed')
+                  : t('closeDay.shiftsMissingClose')}
               </span>
             </div>
 
@@ -193,12 +195,12 @@ export default function CloseDayModal({
               <div className="flex-1">
                 <span className="text-sm font-medium text-blue-700 dark:text-blue-300">
                   {pendingVouchersCount === 0
-                    ? 'Sin vales pendientes'
-                    : `${pendingVouchersCount} vale(s) pendiente(s)`}
+                    ? t('closeDay.noPendingVouchers')
+                    : t('closeDay.pendingVouchers', { count: pendingVouchersCount })}
                 </span>
                 {pendingVouchersCount > 0 && (
                   <p className="text-xs text-blue-600 dark:text-blue-400 mt-0.5">
-                    Se pueden justificar después del cierre
+                    {t('closeDay.canJustifyAfterClose')}
                   </p>
                 )}
               </div>
@@ -208,7 +210,7 @@ export default function CloseDayModal({
           {/* Estado de turnos */}
           <div className="space-y-2">
             <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
-              Estado de Turnos:
+              {t('closeDay.shiftStatus')}:
             </h4>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               {['night', 'morning', 'afternoon', 'closing'].map((shiftType) => {
@@ -219,12 +221,6 @@ export default function CloseDayModal({
                   morning: '☀️',
                   afternoon: '🌅',
                   closing: '🔒',
-                }
-                const names = {
-                  night: 'Noche',
-                  morning: 'Mañana',
-                  afternoon: 'Tarde',
-                  closing: 'Cierre',
                 }
 
                 return (
@@ -238,14 +234,14 @@ export default function CloseDayModal({
                   >
                     <div className="text-2xl mb-1">{icons[shiftType as keyof typeof icons]}</div>
                     <p className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      {names[shiftType as keyof typeof names]}
+                      {t(`shifts.${shiftType}`)}
                     </p>
                     {isClosed ? (
                       <span className="text-xs text-green-600 dark:text-green-400 font-medium">
-                        ✓ Cerrado
+                        ✓ {t('summary.closed')}
                       </span>
                     ) : (
-                      <span className="text-xs text-gray-500 dark:text-gray-400">Abierto</span>
+                      <span className="text-xs text-gray-500 dark:text-gray-400">{t('summary.open')}</span>
                     )}
                   </div>
                 )
@@ -256,13 +252,13 @@ export default function CloseDayModal({
           {/* Resumen Financiero */}
           <div className="space-y-3">
             <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
-              Resumen Financiero del Día:
+              {t('closeDay.financialSummary')}:
             </h4>
 
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
               <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
                 <p className="text-xs text-green-700 dark:text-green-300 mb-1">
-                  Efectivo (Ingresos)
+                  {t('closeDay.cashIncome')}
                 </p>
                 <p className="text-xl font-bold text-green-600 dark:text-green-400">
                   {totals.cash.toFixed(2)}€
@@ -270,35 +266,35 @@ export default function CloseDayModal({
               </div>
 
               <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-                <p className="text-xs text-blue-700 dark:text-blue-300 mb-1">Tarjeta</p>
+                <p className="text-xs text-blue-700 dark:text-blue-300 mb-1">{t('closeDay.card')}</p>
                 <p className="text-xl font-bold text-blue-600 dark:text-blue-400">
                   {totals.card.toFixed(2)}€
                 </p>
               </div>
 
               <div className="p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-200 dark:border-purple-800">
-                <p className="text-xs text-purple-700 dark:text-purple-300 mb-1">BACS</p>
+                <p className="text-xs text-purple-700 dark:text-purple-300 mb-1">{t('closeDay.bacs')}</p>
                 <p className="text-xl font-bold text-purple-600 dark:text-purple-400">
                   {totals.bacs.toFixed(2)}€
                 </p>
               </div>
 
               <div className="p-3 bg-orange-50 dark:bg-orange-900/20 rounded-lg border border-orange-200 dark:border-orange-800">
-                <p className="text-xs text-orange-700 dark:text-orange-300 mb-1">Web Payment</p>
+                <p className="text-xs text-orange-700 dark:text-orange-300 mb-1">{t('closeDay.webPayment')}</p>
                 <p className="text-xl font-bold text-orange-600 dark:text-orange-400">
                   {totals.webPayment.toFixed(2)}€
                 </p>
               </div>
 
               <div className="p-3 bg-pink-50 dark:bg-pink-900/20 rounded-lg border border-pink-200 dark:border-pink-800">
-                <p className="text-xs text-pink-700 dark:text-pink-300 mb-1">Transferencia</p>
+                <p className="text-xs text-pink-700 dark:text-pink-300 mb-1">{t('closeDay.transfer')}</p>
                 <p className="text-xl font-bold text-pink-600 dark:text-pink-400">
                   {totals.transfer.toFixed(2)}€
                 </p>
               </div>
 
               <div className="p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700">
-                <p className="text-xs text-gray-700 dark:text-gray-300 mb-1">Otros</p>
+                <p className="text-xs text-gray-700 dark:text-gray-300 mb-1">{t('closeDay.others')}</p>
                 <p className="text-xl font-bold text-gray-600 dark:text-gray-400">
                   {totals.other.toFixed(2)}€
                 </p>
@@ -309,7 +305,7 @@ export default function CloseDayModal({
             <div className="p-4 bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-900/20 dark:to-blue-900/20 rounded-lg border-2 border-green-300 dark:border-green-700">
               <div className="flex justify-between items-center">
                 <span className="text-lg font-bold text-gray-900 dark:text-white">
-                  Gran Total del Día
+                  {t('closeDay.grandTotalDay')}
                 </span>
                 <span className="text-3xl font-bold text-green-600 dark:text-green-400">
                   {grandTotal.toFixed(2)}€
@@ -326,7 +322,7 @@ export default function CloseDayModal({
             disabled={isLoading}
             className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-[#0d1117] border border-gray-300 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Cancelar
+            {t('closeDay.cancel')}
           </button>
           <button
             onClick={handleClose}
@@ -336,12 +332,12 @@ export default function CloseDayModal({
             {isLoading ? (
               <>
                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                Cerrando Día...
+                {t('closeDay.closingDay')}
               </>
             ) : (
               <>
                 <FiCheckCircle className="w-4 h-4" />
-                Cerrar Día Completo
+                {t('closeDay.closeDayComplete')}
               </>
             )}
           </button>

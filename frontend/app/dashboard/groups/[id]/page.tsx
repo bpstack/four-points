@@ -3,6 +3,7 @@
 'use client'
 
 import { useParams, useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { GroupDetailClient } from '@/app/components/groups/GroupDetailClient'
 import { LoadingSpinner } from '@/app/components/groups/shared/LoadingSpinner'
 import { useGroup } from '@/app/lib/groups'
@@ -10,6 +11,7 @@ import { useGroup } from '@/app/lib/groups'
 export default function GroupDetailPage() {
   const params = useParams()
   const router = useRouter()
+  const t = useTranslations('groups')
   const groupId = parseInt(params.id as string)
 
   const { data: group, isLoading, isError } = useGroup(groupId)
@@ -19,12 +21,12 @@ export default function GroupDetailPage() {
       <div className="min-h-screen bg-gray-50 dark:bg-[#010409] flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">Error</h1>
-          <p className="text-sm text-gray-600 dark:text-gray-400">ID de grupo inválido</p>
+          <p className="text-sm text-gray-600 dark:text-gray-400">{t('invalidGroupId')}</p>
           <button
             onClick={() => router.push('/dashboard/groups')}
             className="inline-block mt-4 px-4 py-2 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 transition-colors"
           >
-            Volver a la lista
+            {t('backToList')}
           </button>
         </div>
       </div>
@@ -34,7 +36,7 @@ export default function GroupDetailPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-[#010409] flex items-center justify-center">
-        <LoadingSpinner size="lg" message="Cargando grupo..." />
+        <LoadingSpinner size="lg" message={t('loadingGroup')} />
       </div>
     )
   }
@@ -44,12 +46,12 @@ export default function GroupDetailPage() {
       <div className="min-h-screen bg-gray-50 dark:bg-[#010409] flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">Error</h1>
-          <p className="text-sm text-gray-600 dark:text-gray-400">Grupo no encontrado</p>
+          <p className="text-sm text-gray-600 dark:text-gray-400">{t('groupNotFound')}</p>
           <button
             onClick={() => router.push('/dashboard/groups')}
             className="inline-block mt-4 px-4 py-2 bg-blue-600 text-white text-sm rounded-md hoverbg-blue-700 transition-colors"
           >
-            Volver a la lista
+            {t('backToList')}
           </button>
         </div>
       </div>

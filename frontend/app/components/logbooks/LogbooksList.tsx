@@ -26,13 +26,14 @@ import { UseMutationResult, UseQueryResult } from '@tanstack/react-query'
 import NewCommentEntry from './NewCommentEntry'
 import EditLogbookModal from './EditLogbookModal'
 import EditCommentModal from './EditCommentModal'
+import { useTranslations } from 'next-intl'
 
 // =============================================
 // HELPER FUNCTIONS
 // =============================================
 
-function formatUsername(username: string | undefined | null): string {
-  if (!username) return 'Unknown'
+function formatUsername(username: string | undefined | null, unknownLabel: string = 'Unknown'): string {
+  if (!username) return unknownLabel
   return username.charAt(0).toUpperCase() + username.slice(1).toLowerCase()
 }
 
@@ -43,21 +44,6 @@ function getInitials(username: string): string {
     return (parts[0][0] + parts[1][0]).toUpperCase()
   }
   return username.substring(0, 2).toUpperCase()
-}
-
-function getPriorityLabel(priority: string) {
-  switch (priority) {
-    case 'critical':
-      return 'Critical'
-    case 'high':
-      return 'High'
-    case 'medium':
-      return 'Medium'
-    case 'low':
-      return 'Low'
-    default:
-      return priority
-  }
 }
 
 function getPriorityColor(priority: string) {
@@ -180,9 +166,21 @@ export interface LogbooksListProps {
 // SUB-COMPONENTS
 // =============================================
 
-function ReadByAvatars({ users, maxVisible = 8 }: { users: ReadByUser[]; maxVisible?: number }) {
-  const visibleUsers = users.slice(0, maxVisible)
-  const remainingCount = users.length - maxVisible
+function ReadByAvatars({ 
+  users, 
+  maxVisible = 8,
+  noneLabel = 'None',
+  moreLabel = '+__count__ more'
+}: { 
+  users: ReadByUser[]
+  maxVisible?: number
+  noneLabel?: string
+  moreLabel?: string
+}) {
+  // Ensure users is an array
+  const safeUsers = Array.isArray(users) ? users : []
+  const visibleUsers = safeUsers.slice(0, maxVisible)
+  const remainingCount = safeUsers.length - maxVisible
 
   const colors = [
     'bg-blue-500',
@@ -202,8 +200,8 @@ function ReadByAvatars({ users, maxVisible = 8 }: { users: ReadByUser[]; maxVisi
     rows.push(visibleUsers.slice(i, i + 4))
   }
 
-  if (users.length === 0) {
-    return <span className="text-xs text-gray-400 dark:text-gray-500 italic">Nadie aun</span>
+  if (safeUsers.length === 0) {
+    return <span className="text-xs text-gray-400 dark:text-gray-500 italic">{noneLabel}</span>
   }
 
   return (
@@ -227,7 +225,7 @@ function ReadByAvatars({ users, maxVisible = 8 }: { users: ReadByUser[]; maxVisi
       ))}
       {remainingCount > 0 && (
         <div className="text-[10px] text-gray-500 dark:text-gray-400 ml-1">
-          +{remainingCount} mas
+          {moreLabel.replace('__count__', String(remainingCount))}
         </div>
       )}
     </div>
@@ -238,14 +236,18 @@ function ReadByAvatars({ users, maxVisible = 8 }: { users: ReadByUser[]; maxVisi
 function EntryReaders({
   entryId,
   useReaders,
+  noneLabel,
+  moreLabel,
 }: {
   entryId: number
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   useReaders: (logbookId: number) => UseQueryResult<any, Error>
+  noneLabel?: string
+  moreLabel?: string
 }) {
   const { data: readers = [] } = useReaders(entryId)
 
-  return <ReadByAvatars users={readers} />
+  return <ReadByAvatars users={readers} noneLabel={noneLabel} moreLabel={moreLabel} />
 }
 
 // Hook to get read status for toggle button
@@ -256,7 +258,9 @@ function useReadStatus(
   userId?: string
 ): boolean {
   const { data: readers = [] } = useReaders(entryId)
-  return userId ? readers.some((r: ReadByUser) => r.user_id === userId) : false
+  // Ensure readers is an array before calling .some()
+  const safeReaders = Array.isArray(readers) ? readers : []
+  return userId ? safeReaders.some((r: ReadByUser) => r.user_id === userId) : false
 }
 
 // Toggle read button component
@@ -266,6 +270,8 @@ function ReadToggleButton({
   userId,
   onToggleRead,
   isPending,
+  markLabel = 'Mark read',
+  unmarkLabel = 'Unmark',
 }: {
   entryId: number
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -273,6 +279,8 @@ function ReadToggleButton({
   userId?: string
   onToggleRead: (entryId: number, isRead: boolean) => void
   isPending?: boolean
+  markLabel?: string
+  unmarkLabel?: string
 }) {
   const isRead = useReadStatus(entryId, useReaders, userId)
 
@@ -287,7 +295,7 @@ function ReadToggleButton({
       }`}
     >
       <FiEye className="w-4 h-4" />
-      <span>{isRead ? 'Unmark' : 'Mark read'}</span>
+      <span>{isRead ? unmarkLabel : markLabel}</span>
     </button>
   )
 }
@@ -304,6 +312,7 @@ export default function LogbooksList({
 }: LogbooksListProps) {
   const { user } = useAuth()
   const { getDepartmentName } = useDepartments()
+  const t = useTranslations('logbooks')
 
   // Comment modal state
   const [commentModalOpen, setCommentModalOpen] = useState<number | null>(null)
@@ -339,7 +348,7 @@ export default function LogbooksList({
     if (!entry) return
 
     if (user?.id !== entry.author_id) {
-      toast.error('Solo el autor puede editar esta entrada')
+      toast.error(t('list.alerts.entryAuthorOnly'))
       return
     }
 
@@ -424,7 +433,7 @@ export default function LogbooksList({
     if (!comment) return
 
     if (user?.id !== comment.user_id) {
-      toast.error('Solo el autor puede editar este comentario')
+      toast.error(t('list.alerts.commentAuthorOnly'))
       return
     }
 
@@ -472,19 +481,19 @@ export default function LogbooksList({
 
   const handleToggleRead = async (entryId: number, isRead: boolean) => {
     if (!user?.id) {
-      toast.error('Usuario no autenticado')
+      toast.error(t('list.alerts.unauthenticated'))
       return
     }
     await mutations.toggleRead.mutateAsync({ id: entryId, isRead })
   }
 
   const handleDeleteEntry = async (entryId: number) => {
-    if (!window.confirm('Estas seguro de que quieres eliminar esta entrada?')) return
+    if (!window.confirm(t('list.confirm.deleteEntry'))) return
     await mutations.deleteLogbook.mutateAsync(entryId)
   }
 
   const handleDeleteComment = async (entryId: number, commentId: number) => {
-    if (!window.confirm('Estas seguro de que quieres eliminar este comentario?')) return
+    if (!window.confirm(t('list.confirm.deleteComment'))) return
     await mutations.deleteComment.mutateAsync({ logbookId: entryId, commentId })
   }
 
@@ -500,14 +509,14 @@ export default function LogbooksList({
           <div className="flex px-3 py-2.5 bg-gray-50/50 dark:bg-gray-900/20">
             <div className="w-24 flex-shrink-0 border-r border-gray-200 dark:border-gray-700 pr-3">
               <h3 className="text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide">
-                Time/Author
+                {t('list.columns.timeAuthor')}
               </h3>
             </div>
             <div className="flex-1 px-4 border-r border-gray-200 dark:border-gray-700">
               <div className="flex items-center gap-1.5">
                 <SlBookOpen className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
                 <h3 className="text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide">
-                  Logbook Entries
+                  {t('list.columns.entries')}
                 </h3>
               </div>
             </div>
@@ -515,7 +524,7 @@ export default function LogbooksList({
               <div className="flex items-center gap-1.5">
                 <FiUsers className="w-3.5 h-3.5 text-green-600 dark:text-green-400" />
                 <h3 className="text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide">
-                  Department
+                  {t('list.columns.department')}
                 </h3>
               </div>
             </div>
@@ -523,7 +532,7 @@ export default function LogbooksList({
               <div className="flex items-center gap-1.5">
                 <FiTag className="w-3.5 h-3.5 text-orange-600 dark:text-orange-400" />
                 <h3 className="text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide">
-                  Priority
+                  {t('list.columns.priority')}
                 </h3>
               </div>
             </div>
@@ -531,7 +540,7 @@ export default function LogbooksList({
               <div className="flex items-center gap-1.5">
                 <FiEye className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
                 <h3 className="text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide">
-                  Read by
+                  {t('list.columns.readBy')}
                 </h3>
               </div>
             </div>
@@ -566,7 +575,7 @@ export default function LogbooksList({
                 <div className="flex items-center gap-2">
                   <FiUser className="w-3.5 h-3.5 text-gray-400 dark:text-gray-500 flex-shrink-0" />
                   <span className="text-xs text-gray-600 dark:text-gray-400 truncate">
-                    {formatUsername(entry.author_name)}
+                    {formatUsername(entry.author_name, t('list.unknownUser'))}
                   </span>
                 </div>
               </div>
@@ -599,7 +608,7 @@ export default function LogbooksList({
                         <div className="flex items-center justify-between gap-2 mt-1">
                           <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
                             <span className="font-medium">
-                              {formatUsername(comment.author_name)}
+                              {formatUsername(comment.author_name, t('list.unknownUser'))}
                             </span>
                             <span>·</span>
                             <span>
@@ -610,9 +619,9 @@ export default function LogbooksList({
                                 <span>·</span>
                                 <span
                                   className="italic"
-                                  title={`Editado el ${formatEditTimestamp(comment.updated_at)}`}
+                                  title={t('list.comment.editedTooltip', { date: formatEditTimestamp(comment.updated_at) })}
                                 >
-                                  editado
+                                  {t('list.comment.edited')}
                                 </span>
                               </>
                             )}
@@ -625,7 +634,7 @@ export default function LogbooksList({
                                   handleEditComment(entry.id, comment.id)
                                 }}
                                 className="p-1 text-blue-600 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded transition-colors"
-                                title="Editar comentario"
+                                title={t('list.tooltips.editComment')}
                               >
                                 <FiEdit2 className="w-3 h-3" />
                               </button>
@@ -635,7 +644,7 @@ export default function LogbooksList({
                                   handleDeleteComment(entry.id, comment.id)
                                 }}
                                 className="p-1 text-red-600 hover:bg-red-100 dark:hover:bg-red-900/30 rounded transition-colors"
-                                title="Eliminar comentario"
+                                title={t('list.tooltips.deleteComment')}
                               >
                                 <FiTrash2 className="w-3 h-3" />
                               </button>
@@ -659,12 +668,17 @@ export default function LogbooksList({
                 className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-semibold border ${getPriorityColor(entry.priority ?? 'low')}`}
               >
                 {entry.priority === 'critical' && <FiAlertCircle className="w-3 h-3" />}
-                {getPriorityLabel(entry.priority ?? 'low')}
+                {t(`priorities.${entry.priority ?? 'low'}`)}
               </span>
             </div>
 
             <div className="w-40 flex-shrink-0 pl-3 flex flex-col items-start">
-              <EntryReaders entryId={entry.id} useReaders={useReaders} />
+              <EntryReaders 
+                entryId={entry.id} 
+                useReaders={useReaders}
+                noneLabel={t('list.readers.none')}
+                moreLabel={t('list.readers.moreTemplate')}
+              />
             </div>
           </div>
 
@@ -695,7 +709,7 @@ export default function LogbooksList({
                       </p>
                       <div className="flex items-center justify-between gap-2 mt-1">
                         <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
-                          <span className="font-medium">{formatUsername(comment.author_name)}</span>
+                          <span className="font-medium">{formatUsername(comment.author_name, t('list.unknownUser'))}</span>
                           <span>·</span>
                           <span>
                             {formatEditTimestamp(comment.created_at || new Date().toISOString())}
@@ -729,8 +743,13 @@ export default function LogbooksList({
               </div>
             )}
             <div className="flex items-center gap-2 pt-2 border-t border-gray-200 dark:border-gray-700">
-              <span className="text-xs text-gray-500 dark:text-gray-400">Read by:</span>
-              <EntryReaders entryId={entry.id} useReaders={useReaders} />
+              <span className="text-xs text-gray-500 dark:text-gray-400">{t('list.readers.label')}</span>
+              <EntryReaders 
+                entryId={entry.id} 
+                useReaders={useReaders}
+                noneLabel={t('list.readers.none')}
+                moreLabel={t('list.readers.moreTemplate')}
+              />
             </div>
           </div>
 
@@ -745,7 +764,7 @@ export default function LogbooksList({
                     className="flex items-center gap-1.5 text-xs text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                   >
                     <FiEdit2 className="w-4 h-4" />
-                    <span>Edit</span>
+                    <span>{t('list.actions.edit')}</span>
                   </button>
                 )}
 
@@ -754,7 +773,7 @@ export default function LogbooksList({
                   className="flex items-center gap-1.5 text-xs text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                 >
                   <FiMessageSquare className="w-4 h-4" />
-                  <span>Comment</span>
+                  <span>{t('list.actions.comment')}</span>
                 </button>
 
                 <button
@@ -769,12 +788,12 @@ export default function LogbooksList({
                   {entry.status === 'resolved' ? (
                     <>
                       <FiCheckCircle className="w-4 h-4" />
-                      <span>Resolved</span>
+                      <span>{t('list.actions.resolved')}</span>
                     </>
                   ) : (
                     <>
                       <FiPending className="w-4 h-4" />
-                      <span>Pending</span>
+                      <span>{t('list.actions.pending')}</span>
                     </>
                   )}
                 </button>
@@ -789,18 +808,18 @@ export default function LogbooksList({
                     className="flex items-center gap-1.5 text-xs text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-500 transition-colors"
                   >
                     <FiTrash2 className="w-4 h-4" />
-                    <span>Delete</span>
+                    <span>{t('list.actions.delete')}</span>
                   </button>
                 )}
 
                 {entry.updated_at && entry.updated_at !== entry.timestamp && (
                   <div
                     className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400 ml-auto"
-                    title={`Editado el ${formatEditTimestamp(entry.updated_at)}`}
+                    title={t('list.badges.lastEditedTooltip', { date: formatEditTimestamp(entry.updated_at) })}
                   >
                     <FiEdit2 className="w-3 h-3 flex-shrink-0" />
                     <span className="whitespace-nowrap">
-                      Editado: {formatEditTimestamp(entry.updated_at)}
+                      {t('list.badges.lastEdited', { date: formatEditTimestamp(entry.updated_at) })}
                     </span>
                   </div>
                 )}
@@ -815,6 +834,8 @@ export default function LogbooksList({
                   userId={user?.id}
                   onToggleRead={handleToggleRead}
                   isPending={mutations.toggleRead.isPending}
+                  markLabel={t('list.readers.mark')}
+                  unmarkLabel={t('list.readers.unmark')}
                 />
               </div>
             </div>
@@ -828,7 +849,7 @@ export default function LogbooksList({
                     className="flex items-center gap-1.5 text-xs text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                   >
                     <FiEdit2 className="w-4 h-4" />
-                    <span>Edit</span>
+                    <span>{t('list.actions.edit')}</span>
                   </button>
                 )}
 
@@ -837,7 +858,7 @@ export default function LogbooksList({
                   className="flex items-center gap-1.5 text-xs text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                 >
                   <FiMessageSquare className="w-4 h-4" />
-                  <span>Comment</span>
+                  <span>{t('list.actions.comment')}</span>
                 </button>
 
                 <button
@@ -851,12 +872,12 @@ export default function LogbooksList({
                   {entry.status === 'resolved' ? (
                     <>
                       <FiCheckCircle className="w-4 h-4" />
-                      <span>Resolved</span>
+                      <span>{t('list.actions.resolved')}</span>
                     </>
                   ) : (
                     <>
                       <FiPending className="w-4 h-4" />
-                      <span>Pending</span>
+                      <span>{t('list.actions.pending')}</span>
                     </>
                   )}
                 </button>
@@ -870,7 +891,7 @@ export default function LogbooksList({
                     className="flex items-center gap-1.5 text-xs text-red-600 dark:text-red-400 hover:text-red-700 transition-colors"
                   >
                     <FiTrash2 className="w-4 h-4" />
-                    <span>Delete</span>
+                    <span>{t('list.actions.delete')}</span>
                   </button>
                 )}
               </div>
@@ -881,6 +902,8 @@ export default function LogbooksList({
                 userId={user?.id}
                 onToggleRead={handleToggleRead}
                 isPending={mutations.toggleRead.isPending}
+                markLabel={t('list.readers.mark')}
+                unmarkLabel={t('list.readers.unmark')}
               />
             </div>
           </div>
@@ -890,7 +913,7 @@ export default function LogbooksList({
       {entries.length === 0 && (
         <div className="bg-white dark:bg-[#151b23] border border-gray-200 dark:border-gray-800 rounded-lg p-8 text-center">
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            {dayStatusMessage || 'No entries for this day yet'}
+            {dayStatusMessage || t('list.emptyState')}
           </p>
         </div>
       )}
@@ -903,7 +926,7 @@ export default function LogbooksList({
           onSubmit={async (payload) => {
             await handleSaveComment(commentModalOpen, payload)
           }}
-          title="Add Comment"
+          title={t('modals.newComment.title')}
           initialComment={newComment}
           initialPriority={commentPriority}
           initialDepartment={commentDepartment}

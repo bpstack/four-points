@@ -6,6 +6,7 @@ import { Fragment, ReactNode } from 'react'
 import { Dialog, Transition } from '@headlessui/react'
 import { FiX, FiCheck } from 'react-icons/fi'
 import { cn } from '@/app/lib/helpers/utils'
+import { useTranslations } from 'next-intl'
 
 // ===============================================
 // TYPES
@@ -175,6 +176,7 @@ export function SlidePanel({
   headerIcon,
   position = 'right',
 }: SlidePanelProps) {
+  const t = useTranslations('common')
   const isWizard = steps && steps.length > 0 && currentStep !== undefined
   const isLeft = position === 'left'
 
@@ -242,7 +244,7 @@ export function SlidePanel({
                             onClick={onClose}
                             className="rounded-md text-gray-400 hover:text-gray-500 dark:hover:text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                           >
-                            <span className="sr-only">Cerrar panel</span>
+                            <span className="sr-only">{t('panels.closePanel')}</span>
                             <FiX className="h-6 w-6" />
                           </button>
                         )}
@@ -320,16 +322,21 @@ interface SlidePanelFooterButtonsProps {
 export function SlidePanelFooterButtons({
   onCancel,
   onSubmit,
-  cancelText = 'Cancelar',
-  submitText = 'Guardar',
+  cancelText,
+  submitText,
   submitIcon,
   isSubmitting = false,
   submitDisabled = false,
   submitVariant = 'success',
   onBack,
-  backText = 'Atrás',
+  backText,
   leftContent,
 }: SlidePanelFooterButtonsProps) {
+  const t = useTranslations('common')
+  const resolvedCancelText = cancelText ?? t('actions.cancel')
+  const resolvedSubmitText = submitText ?? t('actions.save')
+  const resolvedBackText = backText ?? t('actions.back')
+  
   const variantClasses = {
     primary: 'bg-blue-600 hover:bg-blue-700 focus:ring-blue-500',
     success: 'bg-green-600 hover:bg-green-700 focus:ring-green-500',
@@ -347,7 +354,7 @@ export function SlidePanelFooterButtons({
             disabled={isSubmitting}
             className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 transition-colors"
           >
-            {backText}
+            {resolvedBackText}
           </button>
         )}
         <button
@@ -356,7 +363,7 @@ export function SlidePanelFooterButtons({
           disabled={isSubmitting}
           className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 transition-colors"
         >
-          {cancelText}
+          {resolvedCancelText}
         </button>
         {onSubmit && (
           <button
@@ -371,12 +378,12 @@ export function SlidePanelFooterButtons({
             {isSubmitting ? (
               <>
                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                Guardando...
+                {t('actions.saving')}
               </>
             ) : (
               <>
                 {submitIcon}
-                {submitText}
+                {resolvedSubmitText}
               </>
             )}
           </button>
