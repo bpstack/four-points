@@ -17,6 +17,30 @@ function isAIEnabled(): boolean {
 }
 
 /**
+ * Check if a specific provider is enabled via environment variable
+ * Uses PROVIDER_ENABLED (e.g., CLAUDE_ENABLED, GEMINI_ENABLED)
+ * If not set, defaults to true (enabled) - the API key check handles availability
+ */
+function isProviderEnabled(provider: AIProviderType): boolean {
+  const envVarMap: Record<AIProviderType, string> = {
+    claude: 'CLAUDE_ENABLED',
+    gemini: 'GEMINI_ENABLED',
+    openai: 'OPENAI_ENABLED',
+    ollama: 'OLLAMA_ENABLED',
+    none: '',
+  }
+  
+  const envVar = envVarMap[provider]
+  if (!envVar) return false
+  
+  const value = process.env[envVar]
+  // If not set, default to true (provider is enabled by default)
+  if (value === undefined) return true
+  // Explicitly disabled
+  return value.toLowerCase() === 'true' || value === '1'
+}
+
+/**
  * Multi-provider AI Client for schedule optimization
  */
 export class AIClient {
@@ -48,12 +72,14 @@ export class AIClient {
 
   /**
    * Get default provider type from environment
+   * Checks both API key existence AND if the provider is enabled
    */
   private getDefaultProviderType(): AIProviderType {
-    // Check for specific API keys to determine default provider
-    if (process.env.CLAUDE_API_KEY) return 'claude'
-    if (process.env.GEMINI_API_KEY) return 'gemini'
-    if (process.env.OPENAI_API_KEY) return 'openai'
+    // Check for specific API keys AND if provider is enabled
+    if (process.env.CLAUDE_API_KEY && isProviderEnabled('claude')) return 'claude'
+    if (process.env.GEMINI_API_KEY && isProviderEnabled('gemini')) return 'gemini'
+    if (process.env.OPENAI_API_KEY && isProviderEnabled('openai')) return 'openai'
+    if (isProviderEnabled('ollama')) return 'ollama'
     return 'none'
   }
 

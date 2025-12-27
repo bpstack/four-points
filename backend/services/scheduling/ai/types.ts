@@ -49,13 +49,25 @@ export interface AIContext {
   constraints: AIConstraints
   /** Employees with their stats */
   employees: AIEmployee[]
-  /** Schedule matrix in readable format */
-  matrix: string
+  /** Schedule matrix as JSON: { employeeName: { "day": "shiftCode" } } */
+  matrix: AIMatrix
   /** Current warnings/errors to resolve */
   warnings: AIWarning[]
   /** Month information */
   monthInfo: AIMonthInfo
+  /** Daily coverage analysis */
+  coverage: AICoverage
+  /** Employee workload balance */
+  balance: AIBalance
+  /** Holidays in this month */
+  holidays: number[]
 }
+
+/**
+ * Schedule matrix for AI - JSON format to avoid parsing issues with 2-char shifts
+ * Format: { "employeeName (employeeId)": { "1": "M", "2": "T", ... } }
+ */
+export type AIMatrix = Record<string, Record<string, string>>
 
 /**
  * System constraints for AI to respect
@@ -80,8 +92,25 @@ export interface AIEmployee {
   name: string
   /** Formatted rules string */
   rules: string
+  /** Raw rules object for detailed access */
+  rulesRaw: AIEmployeeRulesRaw
   /** Current month statistics */
   stats: AIEmployeeStats
+  /** Is this employee overworked compared to average */
+  overworked: boolean
+  /** Is this employee underworked compared to average */
+  underworked: boolean
+}
+
+/**
+ * Raw employee rules for AI
+ */
+export interface AIEmployeeRulesRaw {
+  shiftPriority?: string
+  fixedShift?: string
+  fixedDays?: number[]
+  noWeekends?: boolean
+  maxShiftPerMonth?: Record<string, number>
 }
 
 /**
@@ -113,6 +142,36 @@ export interface AIMonthInfo {
   year: number
   month: number
   totalDays: number
+}
+
+/**
+ * Daily coverage analysis for AI
+ */
+export interface AICoverage {
+  /** Days with insufficient morning coverage */
+  underCoveredMorning: number[]
+  /** Days with insufficient afternoon coverage */
+  underCoveredAfternoon: number[]
+  /** Days with insufficient night coverage */
+  underCoveredNight: number[]
+  /** Days with excess staff (potential for optimization) */
+  overCovered: number[]
+}
+
+/**
+ * Employee workload balance for AI
+ */
+export interface AIBalance {
+  /** Average presencias across all employees */
+  avgPresencias: number
+  /** Standard deviation of presencias */
+  stdDevPresencias: number
+  /** Most overworked employee ID */
+  mostOverworked?: string
+  /** Most underworked employee ID */
+  mostUnderworked?: string
+  /** Balance score 0-1 (1 = perfectly balanced) */
+  balanceScore: number
 }
 
 // ============================================

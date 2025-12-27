@@ -160,7 +160,7 @@ export function SchedulingConfigClient() {
             <>
               {activeTab === 'employees' && <EmployeesTab />}
               {activeTab === 'totals' && <TotalsTab />}
-              {activeTab === 'general' && config && <GeneralConfigTab config={config} shifts={shifts} isProduction={aiStatus?.isProduction ?? false} />}
+              {activeTab === 'general' && config && <GeneralConfigTab config={config} shifts={shifts} isProduction={aiStatus?.isProduction ?? false} aiEnabled={aiStatus?.enabled ?? false} />}
               {activeTab === 'rules' && <RulesTab rules={rules} />}
               {activeTab === 'requests' && <RequestsTab />}
             </>
@@ -354,6 +354,7 @@ interface GeneralConfigTabProps {
   config: SchedulingConfigMap
   shifts: SchedulingShift[]
   isProduction: boolean
+  aiEnabled: boolean
 }
 
 // ============================================
@@ -404,23 +405,28 @@ function AIStatusPanel({ selectedProvider }: AIStatusPanelProps) {
   const providerInfo = aiStatus?.providers?.[selectedProvider as keyof typeof aiStatus.providers]
   const isOllama = selectedProvider === 'ollama'
   const isConfigured = providerInfo?.configured ?? false
+  const isProviderEnabled = (providerInfo as { enabled?: boolean })?.enabled ?? true
 
   // For Ollama, we always show as "configured" but need Docker running
   const statusText = isLoading
     ? 'Verificando...'
-    : isOllama
-      ? 'Requiere Docker ejecutandose'
-      : isConfigured
-        ? 'API Key configurada'
-        : 'API Key no configurada'
+    : !isProviderEnabled
+      ? 'Deshabilitado en servidor'
+      : isOllama
+        ? 'Requiere Docker ejecutandose'
+        : isConfigured
+          ? 'API Key configurada'
+          : 'API Key no configurada'
 
   const statusColor = isLoading
     ? 'bg-gray-400'
-    : isOllama
-      ? 'bg-blue-500'
-      : isConfigured
-        ? 'bg-green-500'
-        : 'bg-yellow-500'
+    : !isProviderEnabled
+      ? 'bg-red-500'
+      : isOllama
+        ? 'bg-blue-500'
+        : isConfigured
+          ? 'bg-green-500'
+          : 'bg-yellow-500'
 
   return (
     <div className="bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg p-4 space-y-3 max-w-2xl">
@@ -455,7 +461,13 @@ function AIStatusPanel({ selectedProvider }: AIStatusPanelProps) {
       {/* Warning/Info for configuration */}
       {!isLoading && (
         <>
-          {isOllama ? (
+          {!isProviderEnabled ? (
+            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md p-2">
+              <p className="text-xs text-red-700 dark:text-red-300">
+                Este proveedor esta deshabilitado en el servidor. Configure <code className="ml-1 px-1 bg-red-100 dark:bg-red-900 rounded">{selectedProvider.toUpperCase()}_ENABLED=true</code> en el archivo .env
+              </p>
+            </div>
+          ) : isOllama ? (
             <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-md p-3">
               <p className="text-xs text-amber-700 dark:text-amber-300 leading-relaxed">
                 <strong>Solo para testing:</strong> Ollama responde rapido (~4s) pero los modelos locales no tienen capacidad suficiente para optimizar horarios de forma efectiva. Para uso real, usa Claude o Gemini.
@@ -481,7 +493,7 @@ function AIStatusPanel({ selectedProvider }: AIStatusPanelProps) {
       <div className="flex items-center gap-3">
         <button
           onClick={handleTestConnection}
-          disabled={testing || !isConfigured || !aiStatus?.enabled}
+          disabled={testing || !isConfigured || !aiStatus?.enabled || !isProviderEnabled}
           className="px-3 py-1.5 text-xs font-medium rounded-md bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
           {testing ? 'Probando...' : 'Probar Conexion'}
@@ -510,7 +522,7 @@ function AIStatusPanel({ selectedProvider }: AIStatusPanelProps) {
 // GENERAL CONFIG TAB
 // ============================================
 
-function GeneralConfigTab({ config, shifts, isProduction }: GeneralConfigTabProps) {
+function GeneralConfigTab({ config, shifts, isProduction, aiEnabled }: GeneralConfigTabProps) {
   const queryClient = useQueryClient()
   const [editedConfig, setEditedConfig] = useState<Partial<Record<string, string>>>({})
   const [saving, setSaving] = useState(false)
@@ -723,9 +735,13 @@ function GeneralConfigTab({ config, shifts, isProduction }: GeneralConfigTabProp
             <p className="text-xs text-gray-500 dark:text-gray-400">Asistente de inteligencia artificial para optimizacion de horarios</p>
           </div>
           {(editedConfig['ai_provider'] ?? config.aiProvider) !== 'none' && (
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
-              <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
-              IA Activa
+            <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${
+              aiEnabled 
+                ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+            }`}>
+              <span className={`w-1.5 h-1.5 rounded-full ${aiEnabled ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}></span>
+              {aiEnabled ? 'IA Activa' : 'IA Desactivada'}
             </span>
           )}
         </div>

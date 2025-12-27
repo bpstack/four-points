@@ -1653,22 +1653,35 @@ export async function getAIStatus(_req: Request, res: Response): Promise<void> {
     const configMap = await repo.getConfigMap()
     const configuredProvider = (configMap.aiProvider as AIProviderType) || 'none'
     
-    // Check which providers have API keys configured
+    // Helper to check if a provider is enabled (PROVIDER_ENABLED env var)
+    const isProviderEnabled = (provider: string): boolean => {
+      const envVar = `${provider.toUpperCase()}_ENABLED`
+      const value = process.env[envVar]
+      // If not set, default to true
+      if (value === undefined) return true
+      return value.toLowerCase() === 'true' || value === '1'
+    }
+
+    // Check which providers have API keys configured AND are enabled
     const providers = {
       claude: {
         configured: !!process.env.CLAUDE_API_KEY,
+        enabled: isProviderEnabled('claude'),
         model: PROVIDER_DEFAULTS.claude.model,
       },
       gemini: {
         configured: !!process.env.GEMINI_API_KEY,
+        enabled: isProviderEnabled('gemini'),
         model: PROVIDER_DEFAULTS.gemini.model,
       },
       openai: {
         configured: !!process.env.OPENAI_API_KEY,
+        enabled: isProviderEnabled('openai'),
         model: PROVIDER_DEFAULTS.openai.model,
       },
       ollama: {
         configured: true, // Ollama doesn't need API key, always "configured" if selected
+        enabled: isProviderEnabled('ollama'),
         model: PROVIDER_DEFAULTS.ollama.model,
         baseUrl: process.env.OLLAMA_BASE_URL || 'http://localhost:11434',
         requiresDocker: true, // Indicates this needs Docker/local service running
@@ -1715,6 +1728,20 @@ export async function testAIConnection(req: Request, res: Response): Promise<voi
       return
     }
 
+    // Check if specific provider is enabled
+    if (provider && provider !== 'none') {
+      const providerEnabledVar = `${provider.toUpperCase()}_ENABLED`
+      const providerEnabled = process.env[providerEnabledVar]
+      // If explicitly set to false, reject
+      if (providerEnabled !== undefined && providerEnabled.toLowerCase() !== 'true' && providerEnabled !== '1') {
+        res.status(400).json({ 
+          success: false, 
+          error: `Proveedor ${provider} está deshabilitado. Configure ${providerEnabledVar}=true en el servidor.` 
+        })
+        return
+      }
+    }
+
     // Create client (use specified provider or auto-detect)
     const client = provider ? createAIClient(provider) : new AIClient()
     
@@ -1743,6 +1770,13 @@ export async function testAIConnection(req: Request, res: Response): Promise<voi
         id: '1',
         name: 'Test Employee',
         rules: 'Sin reglas especiales',
+        rulesRaw: {
+          shiftPriority: undefined,
+          fixedShift: undefined,
+          fixedDays: undefined,
+          noWeekends: undefined,
+          maxShiftPerMonth: undefined,
+        },
         stats: {
           M: 0,
           T: 0,
@@ -1750,8 +1784,12 @@ export async function testAIConnection(req: Request, res: Response): Promise<voi
           L: 0,
           presencias: 0,
         },
+        overworked: false,
+        underworked: false,
       }],
-      matrix: 'Empleado 1: [L] [L] [L]... (test)',
+      matrix: {
+        'Test Employee (1)': { '1': 'L', '2': 'L', '3': 'L' }
+      },
       warnings: [{
         type: 'test',
         message: 'Test de conexión AI',
@@ -1764,6 +1802,18 @@ export async function testAIConnection(req: Request, res: Response): Promise<voi
         month: new Date().getMonth() + 1,
         totalDays: 30,
       },
+      coverage: {
+        underCoveredMorning: [],
+        underCoveredAfternoon: [],
+        underCoveredNight: [],
+        overCovered: [],
+      },
+      balance: {
+        avgPresencias: 0,
+        stdDevPresencias: 0,
+        balanceScore: 1,
+      },
+      holidays: [],
     }
 
     const startTime = Date.now()

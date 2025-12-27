@@ -91,6 +91,10 @@ export class ApplyConstraintsPhase extends BasePhase {
         for (const employee of context.employees) {
           // Skip if employee has special fixed shift
           if (!employee.rules.fixedShift) {
+            // Ensure employee entry exists in matrix
+            if (!context.matrix[employee.id]) {
+              context.matrix[employee.id] = {}
+            }
             context.matrix[employee.id][day.dayNumber] = 'B'
           }
         }
@@ -109,6 +113,12 @@ export class ApplyConstraintsPhase extends BasePhase {
   private applyIndividualConstraints(context: GeneratorContext, constraints: SchedulingConstraint[], _warnings: GenerationWarning[]): void {
     for (const constraint of constraints) {
       if (constraint.status !== 'approved') continue
+
+      // Ensure employee entry exists in matrix
+      if (!context.matrix[constraint.employee_id]) {
+        this.log(`Warning: Employee ${constraint.employee_id} not found in matrix, skipping constraint`)
+        continue
+      }
 
       // Extract day numbers from constraint dates
       // MySQL DATE columns return dates at midnight UTC, adjusting for timezone
@@ -180,6 +190,10 @@ export class ApplyConstraintsPhase extends BasePhase {
       const unavailableNames: string[] = []
 
       for (const employee of context.employees) {
+        // Ensure employee entry exists
+        if (!context.matrix[employee.id]) {
+          context.matrix[employee.id] = {}
+        }
         const assignment = context.matrix[employee.id][day.dayNumber]
         if (
           assignment === 'REQUEST_OFF' ||
@@ -203,7 +217,7 @@ export class ApplyConstraintsPhase extends BasePhase {
         )
 
         const requestOffEmployees = context.employees.filter(
-          (e) => context.matrix[e.id][day.dayNumber] === 'REQUEST_OFF'
+          (e) => context.matrix[e.id] && context.matrix[e.id][day.dayNumber] === 'REQUEST_OFF'
         )
 
         if (requestOffEmployees.length > 0) {
@@ -229,6 +243,7 @@ export class ApplyConstraintsPhase extends BasePhase {
 
             const employee = context.employees.find((e) => e.id === constraint.employee_id)
             if (!employee) continue
+            if (!context.matrix[employee.id]) continue
 
             // Clear the REQUEST_OFF - they will be assigned a shift
             context.matrix[employee.id][day.dayNumber] = ''

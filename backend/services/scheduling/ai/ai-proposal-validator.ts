@@ -10,6 +10,7 @@ import {
   countConsecutiveWorkDays,
   hasConsecutiveLibreDays,
 } from '../utils/matrix.js'
+import { AILogger } from './ai-logger.js'
 
 /** Shifts that cannot be modified by AI */
 const PROTECTED_SHIFTS = ['V', 'B', 'IT', 'E', 'FO']
@@ -149,6 +150,8 @@ function validateSingleChange(
   const normalizedTo = normalizeShiftCode(change.to)
 
   if (normalizedCurrent !== normalizedFrom) {
+    // Log mismatch for debugging
+    AILogger.logMatrixMismatch(change.employeeId, change.day, change.from, current)
     return { valid: false, reason: `Current shift is ${current}, not ${change.from}` }
   }
 
@@ -465,8 +468,8 @@ function checkNightBlockRules(
 
 /**
  * Check 48h post-night rest rule:
- * - Day after last night must be L (libre)
- * - Day after that cannot be M (morning starts at 7am, only 24h rest)
+ * - Day after night shift MUST be L (libre) - NO work shifts allowed
+ * - Day after that also should be L (48h = 2 full days of rest)
  */
 function checkPostNightRest(
   context: GeneratorContext,
@@ -477,7 +480,7 @@ function checkPostNightRest(
   const employeeId = change.employeeId
   const dayNum = change.day
 
-  // Case 1: Changing TO a work shift - check if previous day was end of night block
+  // Case 1: Changing TO a work shift - check if previous days had night shift
   if (isWorkShift(toShift)) {
     const dayBefore = dayNum - 1
     const twoDaysBefore = dayNum - 2
@@ -485,20 +488,24 @@ function checkPostNightRest(
     const shiftBefore = context.matrix[employeeId]?.[dayBefore]
     const shiftTwoDaysBefore = context.matrix[employeeId]?.[twoDaysBefore]
 
-    // If day before was N, this day MUST be L (48h rest start)
+    // If day before was N, this day MUST be L - NO exceptions
     if (shiftBefore === 'N') {
       return {
         valid: false,
-        reason: `Day ${dayNum} must be libre (L) - 48h rest required after night shift`,
+        reason: `Day ${dayNum} must be libre (L) - 48h rest required after night shift. Cannot assign ${toShift} after N.`,
       }
     }
 
-    // If two days before was N and day before was L, this day cannot be M
-    if (shiftTwoDaysBefore === 'N' && isLibreShift(shiftBefore) && toShift === 'M') {
-      return {
-        valid: false,
-        reason: `Cannot assign morning (M) on day ${dayNum} - only 32h after night block (need 48h for M)`,
+    // If two days before was N and day before was L, this day should also be L (48h = 2 days)
+    // But at minimum, cannot be M (morning starts at 7am, only 32h rest)
+    if (shiftTwoDaysBefore === 'N' && isLibreShift(shiftBefore)) {
+      if (toShift === 'M') {
+        return {
+          valid: false,
+          reason: `Cannot assign morning (M) on day ${dayNum} - only 32h after night block (need 48h for M)`,
+        }
       }
+      // T and PI are allowed on day 2 after N (at least 32h rest, T starts at 15:00 = 40h rest)
     }
   }
 
@@ -511,7 +518,7 @@ function checkPostNightRest(
     if (shiftBefore === 'N') {
       return {
         valid: false,
-        reason: `Cannot convert libre on day ${dayNum} to work - it's the mandatory 48h rest after night shift`,
+        reason: `Cannot convert libre on day ${dayNum} to ${toShift} - it's the mandatory rest after night shift`,
       }
     }
   }
