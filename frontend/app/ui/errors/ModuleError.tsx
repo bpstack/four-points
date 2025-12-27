@@ -76,9 +76,9 @@ export function ModuleError({
         </div>
 
         {/* Error Card */}
-        <div className="flex flex-col items-center justify-center py-16 px-4">
-          <div className="bg-white dark:bg-[#151b23] rounded-lg border border-red-200 dark:border-red-800/50 shadow-sm p-8 max-w-md w-full text-center">
-            <div className="inline-flex items-center justify-center w-14 h-14 bg-red-100 dark:bg-red-900/30 rounded-full mb-4">
+        <div className="py-16">
+          <div className="bg-white dark:bg-[#151b23] rounded-lg border border-red-200 dark:border-red-800/50 shadow-sm p-8 max-w-md">
+            <div className="flex items-center justify-center w-14 h-14 bg-red-100 dark:bg-red-900/30 rounded-full mb-4">
               <FiAlertTriangle className="w-7 h-7 text-red-600 dark:text-red-400" />
             </div>
 
@@ -103,7 +103,7 @@ export function ModuleError({
               </details>
             )}
 
-            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <div className="flex flex-col sm:flex-row gap-3">
               <button
                 onClick={reset}
                 className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 dark:bg-blue-700 text-white text-sm font-medium rounded-md hover:bg-blue-700 dark:hover:bg-blue-800 transition-colors"
@@ -122,7 +122,7 @@ export function ModuleError({
           </div>
 
           {/* Help text */}
-          <p className="mt-6 text-xs text-gray-500 dark:text-gray-500 text-center max-w-md">
+          <p className="mt-6 text-xs text-gray-500 dark:text-gray-500 max-w-md">
             {t('error.helpText')}
           </p>
         </div>

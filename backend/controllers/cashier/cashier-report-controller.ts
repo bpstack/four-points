@@ -30,10 +30,30 @@ export class CashierReportController {
       const openShifts = todayShifts.filter((s) => s.status === ShiftStatus.OPEN).length
       const closedShifts = todayShifts.filter((s) => s.status === ShiftStatus.CLOSED).length
 
-      // Calcular totales de hoy
-      const totalCashToday = todayShifts.reduce((sum, s) => sum + s.income, 0)
-      const totalPaymentsToday = todayShifts.reduce((sum, s) => sum + s.payments_total, 0)
-      const grandTotalToday = todayShifts.reduce((sum, s) => sum + s.grand_total, 0)
+      // Calcular totales de hoy desde las tablas relacionadas
+      // Solo contar turnos que tengan datos (denominaciones o pagos registrados)
+      let totalCashToday = 0
+      let totalPaymentsToday = 0
+
+      for (const shift of todayShifts) {
+        // Obtener total de denominaciones (efectivo contado)
+        const cashCounted = await CashierDenominationRepository.getTotalCash(shift.id)
+        // Obtener total de pagos electrónicos
+        const payments = await CashierPaymentRepository.getByShift(shift.id)
+        const paymentsTotal = payments.reduce((sum, p) => sum + Number(p.amount), 0)
+        
+        // Solo calcular si hay denominaciones o pagos registrados
+        // (evita valores negativos de turnos vacíos con solo fondo inicial)
+        if (cashCounted > 0 || paymentsTotal > 0) {
+          const initialFund = Number(shift.initial_fund) || 0
+          const income = cashCounted - initialFund
+          
+          totalCashToday += income
+          totalPaymentsToday += paymentsTotal
+        }
+      }
+
+      const grandTotalToday = totalCashToday + totalPaymentsToday
 
       // ✅ CORREGIDO: Usar getStats() en lugar de getSummary()
       const vouchersStats = await CashierVoucherRepository.getStats()

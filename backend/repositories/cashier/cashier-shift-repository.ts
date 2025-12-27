@@ -511,4 +511,177 @@ export class CashierShiftRepository {
       }
     )
   }
+
+  /**
+   * Recalcular totales del turno basándose en denominaciones y pagos
+   * Se llama después de actualizar denominaciones o pagos
+   * También actualiza cashier_daily con los totales del día
+   */
+  static async recalculateTotals(shiftId: number): Promise<CashierShift> {
+    // Obtener turno actual
+    const shift = await this.getById(shiftId)
+    if (!shift) throw new Error('Turno no encontrado')
+
+    // Calcular total de denominaciones (efectivo contado)
+    const [denomRows] = await db.query<any[]>(
+      'SELECT COALESCE(SUM(total), 0) as total FROM cashier_denominations WHERE shift_id = ?',
+      [shiftId]
+    )
+    const cashCounted = Number(denomRows[0]?.total) || 0
+
+    // Calcular total de pagos electrónicos por método
+    const [paymentRows] = await db.query<any[]>(
+      `SELECT 
+        pm.name as method_name,
+        COALESCE(SUM(cp.amount), 0) as total
+      FROM cashier_payments cp
+      JOIN payment_methods pm ON cp.payment_method_id = pm.id
+      WHERE cp.shift_id = ?
+      GROUP BY cp.payment_method_id, pm.name`,
+      [shiftId]
+    )
+
+    // Mapear pagos por método
+    let totalCard = 0
+    let totalBacs = 0
+    let totalWebPayment = 0
+    let totalTransfer = 0
+    let totalOther = 0
+
+    for (const row of paymentRows) {
+      const methodName = (row.method_name || '').toUpperCase()
+      const amount = Number(row.total) || 0
+
+      if (methodName.includes('TARJETA') || methodName.includes('CARD') || methodName.includes('CRÉDITO') || methodName.includes('DÉBITO')) {
+        totalCard += amount
+      } else if (methodName.includes('BACS')) {
+        totalBacs += amount
+      } else if (methodName.includes('WEB')) {
+        totalWebPayment += amount
+      } else if (methodName.includes('TRANSFER')) {
+        totalTransfer += amount
+      } else {
+        totalOther += amount
+      }
+    }
+
+    const paymentsTotal = totalCard + totalBacs + totalWebPayment + totalTransfer + totalOther
+
+    // Calcular valores
+    const initialFund = Number(shift.initial_fund) || 0
+    const income = cashCounted - initialFund // Ingresos = Efectivo contado - Fondo inicial
+    const cashExpected = initialFund + income // Efectivo esperado = Fondo + Ingresos
+    const difference = cashCounted - cashExpected // Descuadre
+    const grandTotal = income + paymentsTotal // Gran total = Ingresos efectivo + Pagos electrónicos
+
+    // Actualizar turno
+    const updateQuery = `
+      UPDATE cashier_shifts 
+      SET 
+        cash_counted = ?,
+        cash_expected = ?,
+        income = ?,
+        difference = ?,
+        payments_total = ?,
+        grand_total = ?,
+        updated_at = NOW()
+      WHERE id = ?
+    `
+
+    await db.query(updateQuery, [
+      cashCounted,
+      cashExpected,
+      income,
+      difference,
+      paymentsTotal,
+      grandTotal,
+      shiftId,
+    ])
+
+    // Actualizar cashier_daily con los totales del día
+    await this.updateDailyTotals(shift.shift_date)
+
+    const updated = await this.getById(shiftId)
+    if (!updated) throw new Error('Error al recuperar turno actualizado')
+
+    return updated
+  }
+
+  /**
+   * Actualizar totales de cashier_daily sumando todos los turnos del día
+   */
+  static async updateDailyTotals(shiftDate: string): Promise<void> {
+    // Obtener todos los turnos del día
+    const shifts = await this.getByDate(shiftDate)
+
+    // Calcular totales desde denominaciones y pagos de cada turno
+    let totalCash = 0
+    let totalCard = 0
+    let totalBacs = 0
+    let totalWebPayment = 0
+    let totalTransfer = 0
+    let totalOther = 0
+
+    for (const shift of shifts) {
+      // Efectivo (income = cash_counted - initial_fund)
+      const [denomRows] = await db.query<any[]>(
+        'SELECT COALESCE(SUM(total), 0) as total FROM cashier_denominations WHERE shift_id = ?',
+        [shift.id]
+      )
+      const cashCounted = Number(denomRows[0]?.total) || 0
+      const initialFund = Number(shift.initial_fund) || 0
+      
+      // Solo sumar si hay datos registrados
+      if (cashCounted > 0) {
+        totalCash += (cashCounted - initialFund)
+      }
+
+      // Pagos por método
+      const [paymentRows] = await db.query<any[]>(
+        `SELECT 
+          pm.name as method_name,
+          COALESCE(SUM(cp.amount), 0) as total
+        FROM cashier_payments cp
+        JOIN payment_methods pm ON cp.payment_method_id = pm.id
+        WHERE cp.shift_id = ?
+        GROUP BY cp.payment_method_id, pm.name`,
+        [shift.id]
+      )
+
+      for (const row of paymentRows) {
+        const methodName = (row.method_name || '').toUpperCase()
+        const amount = Number(row.total) || 0
+
+        if (methodName.includes('TARJETA') || methodName.includes('CARD') || methodName.includes('CRÉDITO') || methodName.includes('DÉBITO')) {
+          totalCard += amount
+        } else if (methodName.includes('BACS')) {
+          totalBacs += amount
+        } else if (methodName.includes('WEB')) {
+          totalWebPayment += amount
+        } else if (methodName.includes('TRANSFER')) {
+          totalTransfer += amount
+        } else {
+          totalOther += amount
+        }
+      }
+    }
+
+    const grandTotal = totalCash + totalCard + totalBacs + totalWebPayment + totalTransfer + totalOther
+
+    // Actualizar cashier_daily
+    await db.query(
+      `UPDATE cashier_daily 
+       SET 
+         total_cash = ?,
+         total_card = ?,
+         total_bacs = ?,
+         total_web_payment = ?,
+         total_transfer = ?,
+         total_other = ?,
+         grand_total = ?,
+         updated_at = NOW()
+       WHERE DATE(date) = ?`,
+      [totalCash, totalCard, totalBacs, totalWebPayment, totalTransfer, totalOther, grandTotal, shiftDate]
+    )
+  }
 }

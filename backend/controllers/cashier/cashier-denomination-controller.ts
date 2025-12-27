@@ -3,6 +3,7 @@
 import { Request, Response } from 'express'
 import { CashierDenominationRepository } from '../../repositories/cashier/cashier-denomination-repository.js'
 import { CashierHistoryRepository } from '../../repositories/cashier/cashier-history-repository.js'
+import { CashierShiftRepository } from '../../repositories/cashier/cashier-shift-repository.js'
 
 export class CashierDenominationController {
   /**
@@ -37,6 +38,9 @@ export class CashierDenominationController {
       const { denominations } = req.body
 
       await CashierDenominationRepository.replaceAllForShift(parseInt(shiftId), denominations)
+
+      // Recalcular totales del turno
+      await CashierShiftRepository.recalculateTotals(parseInt(shiftId))
 
       const userId = req.user?.id
       if (userId) {
