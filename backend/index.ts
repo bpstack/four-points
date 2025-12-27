@@ -23,6 +23,7 @@ import maintenanceRoutes from './routes/maintenance/maintenance-routes.js'
 import activityRoutes from './routes/activity/activity-routes.js'
 import messagesRoutes from './routes/messages/messages-routes.js'
 import backofficeRoutes from './routes/backoffice/backoffice-routes.js'
+import searchRoutes from './routes/search/search-routes.js'
 
 // ============================================
 // EXPRESS APP
@@ -145,6 +146,9 @@ app.use('/api/messages', messagesRoutes)
 
 // Rutas de backoffice (facturas, proveedores)
 app.use('/api/backoffice', backofficeRoutes)
+
+// Rutas de búsqueda global
+app.use('/api/search', searchRoutes)
 
 // ========================================
 // MANEJO DE ERRORES
