@@ -1,4 +1,14 @@
 {
+  "error": {
+    "title": "Caja",
+    "subtitle": "Ha ocurrido un error al cargar la caja",
+    "errorTitle": "Error al cargar",
+    "errorDescription": "No se pudieron cargar los datos de caja. Por favor, intenta de nuevo.",
+    "errorDetails": "Detalles técnicos",
+    "retry": "Reintentar",
+    "backToDashboard": "Volver al Dashboard",
+    "helpText": "Si el problema persiste, contacta al soporte técnico o intenta más tarde."
+  },
   "page": {
     "loading": "Cargando datos del dia...",
     "loadingShift": "Cargando turno...",
