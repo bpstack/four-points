@@ -64,7 +64,9 @@ export default function DaySummary({ conciliation, baseRooms }: DaySummaryProps)
     <div className="space-y-3">
       <div className="flex items-center gap-2 text-sm">
         <FiCalendar className="w-4 h-4 text-gray-500" />
-        <span className="font-medium text-gray-700 dark:text-gray-300">{t('daySummary.date')}:</span>
+        <span className="font-medium text-gray-700 dark:text-gray-300">
+          {t('daySummary.date')}:
+        </span>
         <span className="text-gray-900 dark:text-gray-100">{formatDate(conciliation.date)}</span>
       </div>
 

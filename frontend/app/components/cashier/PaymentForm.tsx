@@ -44,6 +44,7 @@ export default function PaymentForm({
       initialValues[method.id] = existing ? parseFloat(existing.amount).toFixed(2) : '0.00'
     })
     setPayments(initialValues)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialPayments])
 
   const totalPayments = Object.values(payments).reduce(

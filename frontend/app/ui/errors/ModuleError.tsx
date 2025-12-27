@@ -1,17 +1,17 @@
 // app/ui/errors/ModuleError.tsx
 /**
  * Reusable Error Boundary Component for Dashboard Modules
- * 
+ *
  * Usage in any module's error.tsx:
  * ```tsx
  * 'use client'
  * import { ModuleError } from '@/app/ui/errors/ModuleError'
- * 
+ *
  * export default function MyModuleError({ error, reset }: ErrorProps) {
  *   return <ModuleError error={error} reset={reset} translationNamespace="myModule" />
  * }
  * ```
- * 
+ *
  * Requires translations in messages/{locale}/{namespace}.json:
  * ```json
  * {
@@ -44,12 +44,7 @@ export interface ModuleErrorProps {
   moduleName?: string
 }
 
-export function ModuleError({ 
-  error, 
-  reset, 
-  translationNamespace,
-  moduleName 
-}: ModuleErrorProps) {
+export function ModuleError({ error, reset, translationNamespace, moduleName }: ModuleErrorProps) {
   const t = useTranslations(translationNamespace)
   const logName = moduleName || translationNamespace
 
