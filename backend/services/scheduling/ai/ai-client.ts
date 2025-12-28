@@ -27,6 +27,7 @@ function isProviderEnabled(provider: AIProviderType): boolean {
     gemini: 'GEMINI_ENABLED',
     openai: 'OPENAI_ENABLED',
     ollama: 'OLLAMA_ENABLED',
+    groq: 'GROQ_ENABLED',
     none: '',
   }
   

@@ -2,12 +2,13 @@
 
 ## Estado Actual
 
-| Proveedor              | Estado          | Archivo              | Uso recomendado |
-| ---------------------- | --------------- | -------------------- | --------------- |
-| **Claude** (Anthropic) | Funcional       | `claude-provider.ts` | Producción      |
-| **Gemini** (Google)    | Funcional       | `gemini-provider.ts` | Producción      |
-| **Ollama** (Local)     | Funcional       | `ollama-provider.ts` | Solo testing    |
-| OpenAI                 | No implementado | -                    | -               |
+| Proveedor              | Estado          | Archivo              | Uso recomendado       |
+| ---------------------- | --------------- | -------------------- | --------------------- |
+| **Claude** (Anthropic) | Funcional       | `claude-provider.ts` | Producción            |
+| **Gemini** (Google)    | Funcional       | `gemini-provider.ts` | Producción            |
+| **Groq**               | Funcional       | `groq-provider.ts`   | Producción (Gratuito) |
+| **Ollama** (Local)     | Funcional       | `ollama-provider.ts` | Solo testing          |
+| OpenAI                 | No implementado | -                    | -                     |
 
 ---
 
@@ -22,6 +23,18 @@ Al iniciar el backend (`pnpm run dev:aiven`), verás estos logs:
    ⚡ Active: CLAUDE
    📦 Claude: ✅ claude-sonnet-4-20250514
    📦 Gemini: ✅ gemini-2.0-flash
+   📦 Groq: ✅ llama-3.1-70b-versatile
+   📦 Ollama: ✅ llama2:latest @ http://localhost:11434
+```
+
+### Con Groq activo (recomendado para desarrollo)
+
+```
+🤖 AI Integration: ✅ enabled
+   ⚡ Active: GROQ
+   📦 Claude: ❌ no key
+   📦 Gemini: ❌ no key
+   📦 Groq: ✅ llama-3.1-70b-versatile
    📦 Ollama: ✅ llama2:latest @ http://localhost:11434
 ```
 
@@ -32,6 +45,7 @@ Al iniciar el backend (`pnpm run dev:aiven`), verás estos logs:
    ⚡ Active: OLLAMA
    📦 Claude: ❌ no key
    📦 Gemini: ❌ no key
+   📦 Groq: ❌ no key
    📦 Ollama: ✅ llama2:latest @ http://localhost:11434
 ```
 
@@ -42,16 +56,17 @@ Al iniciar el backend (`pnpm run dev:aiven`), verás estos logs:
    ⚡ Active: NONE
    📦 Claude: ✅ claude-sonnet-4-20250514
    📦 Gemini: ❌ no key
+   📦 Groq: ✅ llama-3.1-70b-versatile
    📦 Ollama: ✅ llama2:latest @ http://localhost:11434
 ```
 
 ### Leyenda
 
-| Línea | Significado |
-|-------|-------------|
-| `AI Integration` | Si `AI_ENABLED=true` en `.env` |
-| `⚡ Active` | Proveedor activo en DB (`scheduling_config.ai_provider`) |
-| `📦 Provider` | Si tiene API key configurada (o disponible para Ollama) |
+| Línea            | Significado                                              |
+| ---------------- | -------------------------------------------------------- |
+| `AI Integration` | Si `AI_ENABLED=true` en `.env`                           |
+| `⚡ Active`      | Proveedor activo en DB (`scheduling_config.ai_provider`) |
+| `📦 Provider`    | Si tiene API key configurada (o disponible para Ollama)  |
 
 > **Nota:** El proveedor **activo** se configura en la base de datos, no en `.env`. Usa el frontend (Configuración > IA) o SQL directo para cambiarlo.
 
@@ -155,6 +170,83 @@ const response = await fetch(url, {
 
 ---
 
+## Groq
+
+Groq es un proveedor gratuito con inferencia extremadamente rápida, ideal para desarrollo y producción con presupuesto limitado.
+
+### Configuración
+
+| Parámetro   | Valor por defecto         | Variable de entorno |
+| ----------- | ------------------------- | ------------------- |
+| Modelo      | `llama-3.1-70b-versatile` | `GROQ_MODEL`        |
+| Base URL    | `https://api.groq.com`    | `GROQ_BASE_URL`     |
+| Temperature | `0.3`                     | -                   |
+| Max tokens  | `4096`                    | -                   |
+| Timeout     | `30000ms`                 | -                   |
+| Reintentos  | `3`                       | -                   |
+
+### API Key
+
+```env
+GROQ_API_KEY=gsk_...
+```
+
+Obtener en: https://console.groq.com/keys
+
+### Implementación
+
+Usa la API compatible con OpenAI:
+
+```typescript
+const url = `${baseUrl}/v1/chat/completions`
+
+const response = await fetch(url, {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${apiKey}`,
+  },
+  body: JSON.stringify({
+    model: 'llama-3.1-70b-versatile',
+    messages: [{ role: 'user', content: prompt }],
+    temperature: 0.3,
+    max_tokens: 4096,
+  }),
+})
+```
+
+### Modelos Disponibles
+
+| Modelo                    | Velocidad      | Calidad | Costo      | Límite de tokens |
+| ------------------------- | -------------- | ------- | ---------- | ---------------- |
+| `llama-3.1-70b-versatile` | **Muy rápido** | Alta    | **Gratis** | 4096 (generoso)  |
+| `llama-3.1-8b-instant`    | **Muy rápido** | Media   | **Gratis** | 4096             |
+| `mixtral-8x7b-32768`      | Rápido         | Alta    | **Gratis** | 32768            |
+| `gemma-7b-it`             | Muy rápido     | Media   | **Gratis** | 4096             |
+
+### Ventajas
+
+- **Gratis**: Sin costos de API (con límites generosos en free tier)
+- **Extremadamente rápido**: Inferencia más rápida que otros proveedores
+- **Alto límite de tokens**: 4096 tokens por defecto (hasta 32768 con algunos modelos)
+- **Buena calidad**: Respuestas precisas y consistentes
+- **Compatible con OpenAI**: Fácil migración si es necesario
+- **Sin tarjeta de crédito**: No requiere tarjeta para el free tier
+
+### Limitaciones
+
+- Límites de rate en free tier (pero generosos)
+- Requiere conexión a internet
+
+### Recomendado para
+
+- Desarrollo y testing
+- Producción con presupuesto limitado
+- Aplicaciones que necesitan respuestas rápidas
+- Chat y documentación que requieren respuestas largas
+
+---
+
 ## Ollama (Local) - Solo Testing
 
 > ⚠️ **Nota importante**: Ollama está diseñado solo para **testing y desarrollo**. Los modelos locales no tienen la capacidad suficiente para optimizar horarios de forma efectiva. Para uso real, usa Claude o Gemini.
@@ -210,15 +302,16 @@ const response = await fetch(url, {
 
 ### Modelos Probados
 
-| Modelo           | RAM Necesaria | Velocidad | Calidad para Scheduling |
-| ---------------- | ------------- | --------- | ----------------------- |
-| `llama2:latest`  | ~8GB          | Rápido (~4s) | ❌ Baja (no entiende bien el prompt) |
-| `deepseek-r1:8b` | ~8GB          | Muy lento (2+ min) | ⚠️ Media (timeout frecuente) |
-| `gemma3:12b`     | ~12GB         | Lento     | ⚠️ Media |
+| Modelo           | RAM Necesaria | Velocidad          | Calidad para Scheduling              |
+| ---------------- | ------------- | ------------------ | ------------------------------------ |
+| `llama2:latest`  | ~8GB          | Rápido (~4s)       | ❌ Baja (no entiende bien el prompt) |
+| `deepseek-r1:8b` | ~8GB          | Muy lento (2+ min) | ⚠️ Media (timeout frecuente)         |
+| `gemma3:12b`     | ~12GB         | Lento              | ⚠️ Media                             |
 
 ### Resultado de pruebas
 
 Con `llama2:latest`:
+
 - **Tiempo de respuesta**: ~4 segundos ✅
 - **Calidad de respuesta**: Baja ❌
 - El modelo no interpreta correctamente los IDs de empleados
@@ -258,6 +351,7 @@ curl http://localhost:11434/api/generate -d '{
 ### Troubleshooting
 
 **Error "model not found"**: El modelo no está descargado. Ejecuta:
+
 ```bash
 ollama pull llama2:latest
 ```
@@ -364,15 +458,15 @@ Ollama tiene más tiempo porque los modelos locales son más lentos que las APIs
 
 ## Comparativa de Proveedores
 
-| Aspecto            | Claude   | Gemini           | Ollama                    |
-| ------------------ | -------- | ---------------- | ------------------------- |
-| **Costo**          | Pago     | Pago (free tier) | Gratis                    |
-| **Velocidad**      | ~10-30s  | ~5-15s           | ~4s (llama2)              |
-| **Privacidad**     | Cloud    | Cloud            | Local (100% privado)      |
-| **Disponibilidad** | 24/7     | 24/7             | Solo con PC encendido     |
+| Aspecto            | Claude   | Gemini           | Ollama                       |
+| ------------------ | -------- | ---------------- | ---------------------------- |
+| **Costo**          | Pago     | Pago (free tier) | Gratis                       |
+| **Velocidad**      | ~10-30s  | ~5-15s           | ~4s (llama2)                 |
+| **Privacidad**     | Cloud    | Cloud            | Local (100% privado)         |
+| **Disponibilidad** | 24/7     | 24/7             | Solo con PC encendido        |
 | **Calidad**        | Muy alta | Alta             | Baja (no entiende el prompt) |
-| **Rate limits**    | Sí       | Sí               | No                        |
-| **Producción**     | ✅ Sí    | ✅ Sí            | ❌ Solo testing           |
+| **Rate limits**    | Sí       | Sí               | No                           |
+| **Producción**     | ✅ Sí    | ✅ Sí            | ❌ Solo testing              |
 
 ### Recomendaciones
 
@@ -389,6 +483,7 @@ Ollama tiene más tiempo porque los modelos locales son más lentos que las APIs
 Solo **Claude** y **Gemini** funcionan en producción (servidores cloud).
 
 **Ollama NO funciona en producción** porque:
+
 - Requiere que Ollama esté corriendo en la misma máquina
 - Conecta a `localhost:11434`
 - Los servidores cloud (Vercel, Railway, etc.) no tienen Ollama disponible
@@ -396,6 +491,7 @@ Solo **Claude** y **Gemini** funcionan en producción (servidores cloud).
 ### Protecciones implementadas
 
 1. **Backend**: Si intentas seleccionar Ollama con `NODE_ENV=production`, devuelve error 400:
+
    ```
    "Ollama solo funciona en desarrollo local. En producción usa Claude o Gemini."
    ```

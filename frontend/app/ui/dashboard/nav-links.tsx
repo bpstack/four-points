@@ -9,6 +9,7 @@ import {
   ChevronDownIcon,
   ChevronRightIcon,
   HomeModernIcon,
+  SparklesIcon,
 } from '@heroicons/react/24/outline'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
@@ -20,6 +21,7 @@ import { MdPointOfSale, MdSchedule } from 'react-icons/md'
 import { useState } from 'react'
 import { IoIosRestaurant } from 'react-icons/io'
 import { isAdminRole } from '@/app/lib/helpers/utils'
+import { HelpChatModal } from '@/app/components/chat/HelpChatModal'
 
 interface NavLink {
   name: string
@@ -63,6 +65,7 @@ interface NavLinksProps {
 export default function NavLinks({ onClose, currentUserRole }: NavLinksProps) {
   const pathname = usePathname()
   const [isCashierOpen, setIsCashierOpen] = useState(false)
+  const [isHelpChatOpen, setIsHelpChatOpen] = useState(false)
 
   const isCashierActive = pathname.startsWith('/dashboard/cashier')
 
@@ -172,7 +175,21 @@ export default function NavLinks({ onClose, currentUserRole }: NavLinksProps) {
       <div className="border-t border-gray-200 dark:border-gray-700" />
 
       {/* Profile Group */}
-      <div className="flex flex-col gap-1">{profileLinks.map((link) => renderLink(link))}</div>
+      <div className="flex flex-col gap-1">
+        {profileLinks.map((link) => renderLink(link))}
+
+        {/* AI Help Button */}
+        <button
+          onClick={() => setIsHelpChatOpen(true)}
+          className="flex items-center gap-2 md:gap-3 px-2.5 md:px-3 py-3 md:py-2 rounded-lg text-sm font-medium transition-all duration-200 text-gray-700 dark:text-gray-300 hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 dark:hover:from-blue-900/20 dark:hover:to-indigo-900/20 hover:text-blue-700 dark:hover:text-blue-300 border-l-4 border-transparent"
+        >
+          <SparklesIcon className="w-5 h-5 flex-shrink-0" />
+          <span>Ayuda IA</span>
+        </button>
+      </div>
+
+      {/* Help Chat Modal */}
+      <HelpChatModal isOpen={isHelpChatOpen} onClose={() => setIsHelpChatOpen(false)} />
     </div>
   )
 }

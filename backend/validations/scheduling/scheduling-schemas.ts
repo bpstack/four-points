@@ -238,7 +238,7 @@ export const updateConfigSchema = z.object({
 export const generateScheduleSchema = z.object({
   useAI: z.boolean().default(false),
   forceRegenerate: z.boolean().default(false),
-  aiProvider: z.enum(['none', 'claude', 'gemini', 'ollama', 'openai']).default('none'),
+  aiProvider: z.enum(['none', 'claude', 'gemini', 'ollama', 'openai', 'groq']).default('none'),
 }).default({ useAI: false, forceRegenerate: false, aiProvider: 'none' })
 
 // ============================================

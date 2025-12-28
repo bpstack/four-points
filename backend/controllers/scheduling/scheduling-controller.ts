@@ -1674,6 +1674,11 @@ export async function getAIStatus(_req: Request, res: Response): Promise<void> {
         enabled: isProviderEnabled('gemini'),
         model: PROVIDER_DEFAULTS.gemini.model,
       },
+      groq: {
+        configured: !!process.env.GROQ_API_KEY,
+        enabled: isProviderEnabled('groq'),
+        model: PROVIDER_DEFAULTS.groq.model,
+      },
       openai: {
         configured: !!process.env.OPENAI_API_KEY,
         enabled: isProviderEnabled('openai'),

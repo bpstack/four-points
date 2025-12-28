@@ -205,7 +205,7 @@ export interface AIRejectedChange {
 /**
  * Supported AI providers
  */
-export type AIProviderType = 'none' | 'claude' | 'gemini' | 'openai' | 'ollama'
+export type AIProviderType = 'none' | 'claude' | 'gemini' | 'openai' | 'ollama' | 'groq'
 
 /**
  * Provider-specific configuration
@@ -307,6 +307,15 @@ export const PROVIDER_DEFAULTS: Record<AIProviderType, Partial<AIProviderConfig>
     timeout: 180000, // 3 minutos - modelos locales son más lentos
     maxRetries: 2,
     baseUrl: 'http://localhost:11434',
+  },
+  groq: {
+    provider: 'groq',
+    model: 'llama-3.3-70b-versatile',
+    temperature: 0.3,
+    maxTokens: 4096,
+    timeout: 30000,
+    maxRetries: 3,
+    baseUrl: 'https://api.groq.com/openai/v1',
   },
 }
 

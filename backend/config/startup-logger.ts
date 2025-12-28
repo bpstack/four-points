@@ -46,6 +46,7 @@ export function logServerInfo(port: number): void {
  * Proveedores soportados:
  * - Claude (Anthropic) - Requiere CLAUDE_API_KEY
  * - Gemini (Google) - Requiere GEMINI_API_KEY
+ * - Groq - Requiere GROQ_API_KEY (gratis, muy rápido)
  * - Ollama (Local) - No requiere key, usa OLLAMA_BASE_URL
  */
 export async function logAIStatus(): Promise<void> {
@@ -67,17 +68,20 @@ export async function logAIStatus(): Promise<void> {
   // Detectar providers disponibles por sus API keys
   const claudeKey = process.env.CLAUDE_API_KEY
   const geminiKey = process.env.GEMINI_API_KEY
+  const groqKey = process.env.GROQ_API_KEY
   const ollamaUrl = process.env.OLLAMA_BASE_URL || 'http://localhost:11434'
   const ollamaModel = process.env.OLLAMA_MODEL || 'llama2:latest'
 
   // Modelos por defecto
   const claudeModel = process.env.CLAUDE_MODEL || 'claude-sonnet-4-20250514'
   const geminiModel = process.env.GEMINI_MODEL || 'gemini-2.0-flash'
+  const groqModel = process.env.GROQ_MODEL || 'llama-3.3-70b-versatile'
 
   // Log del estado
   console.log(`🤖 AI Integration: ${aiEnabled ? '✅ enabled' : '❌ disabled'}`)
   console.log(`   ⚡ Active: ${activeProvider.toUpperCase()}`)
   console.log(`   📦 Claude: ${claudeKey ? '✅ ' + claudeModel : '❌ no key'}`)
   console.log(`   📦 Gemini: ${geminiKey ? '✅ ' + geminiModel : '❌ no key'}`)
+  console.log(`   📦 Groq: ${groqKey ? '✅ ' + groqModel : '❌ no key'}`)
   console.log(`   📦 Ollama: ✅ ${ollamaModel} @ ${ollamaUrl}`)
 }

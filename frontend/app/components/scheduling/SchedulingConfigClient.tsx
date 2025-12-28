@@ -754,6 +754,7 @@ function GeneralConfigTab({ config, shifts, isProduction, aiEnabled }: GeneralCo
             <option value="none">Desactivado</option>
             <option value="claude">Claude (Anthropic)</option>
             <option value="gemini">Gemini (Google)</option>
+            <option value="groq">Groq (Gratuito, muy rápido)</option>
             {!isProduction && (
               <option value="ollama">Ollama (Local - Solo desarrollo)</option>
             )}
