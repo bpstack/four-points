@@ -10,13 +10,7 @@
  */
 
 import { Request, Response, NextFunction } from 'express'
-import fs from 'fs'
-import path from 'path'
-import { fileURLToPath } from 'url'
-
-// Para ES modules
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
+import { DemoActivityRepository } from '../repositories/demo/demo-activity-repository.js'
 
 // Rol del usuario demo
 const DEMO_ROLE = 'demo-admin'
@@ -52,31 +46,24 @@ function isAllowedForDemo(method: string, originalUrl: string): boolean {
 }
 
 /**
- * Registra intentos bloqueados en registrosDemo.md
+ * Registra intentos bloqueados en la base de datos
+ * Ejecuta de forma asíncrona sin bloquear la respuesta
  */
-function logBlockedAttempt(req: Request, username: string, fullPath: string): void {
-  try {
-    const logPath = path.join(__dirname, '..', '..', 'registrosDemo.md')
-    const timestamp = new Date().toISOString()
-    const logEntry = `| ${timestamp} | ${username} | ${req.method} | ${fullPath} | ${JSON.stringify(req.body).substring(0, 100)} |\n`
-
-    // Crear archivo con header si no existe
-    if (!fs.existsSync(logPath)) {
-      const header = `# Registro de Intentos Demo Bloqueados
-
-Este archivo registra los intentos de escritura bloqueados para usuarios demo.
-
-| Timestamp | Usuario | Método | Ruta | Body (truncado) |
-|-----------|---------|--------|------|-----------------|
-`
-      fs.writeFileSync(logPath, header)
-    }
-
-    fs.appendFileSync(logPath, logEntry)
-  } catch (error) {
+function logBlockedAttempt(req: Request, userId: string | undefined, username: string, fullPath: string): void {
+  // Ejecutar sin await para no bloquear la respuesta
+  DemoActivityRepository.logActivity({
+    user_id: userId || null,
+    username: username,
+    method: req.method,
+    route: fullPath,
+    body_preview: JSON.stringify(req.body).substring(0, 500),
+    ip_address: req.ip || req.socket.remoteAddress || null,
+    user_agent: req.get('user-agent') || null,
+    blocked: true,
+  }).catch((error) => {
     // No fallar silenciosamente, pero tampoco bloquear el request
-    console.error('[demoRestriction] Error logging blocked attempt:', error)
-  }
+    console.error('[demoRestriction] Error logging blocked attempt to DB:', error)
+  })
 }
 
 /**
@@ -110,8 +97,8 @@ export function demoRestriction(req: Request, res: Response, next: NextFunction)
     return
   }
 
-  // Bloquear y registrar
-  logBlockedAttempt(req, req.user.username || 'demo-user', req.originalUrl)
+  // Bloquear y registrar en BD
+  logBlockedAttempt(req, req.user.id, req.user.username || 'demo-user', req.originalUrl)
 
   res.status(403).json({
     success: false,
