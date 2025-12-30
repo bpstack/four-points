@@ -14,7 +14,7 @@ export function ScheduleStats({ monthData }: ScheduleStatsProps) {
 
   // Calculate totals
   const totalEmployees = employees.length
-  const totalWorkDays = monthData.days.filter((d) => !d.isHoliday).length
+  const _totalWorkDays = monthData.days.filter((d) => !d.isHoliday).length
 
   // Sum up shifts across all days
   const totalM = dailyStats.reduce((sum, d) => sum + d.M, 0)
@@ -26,7 +26,8 @@ export function ScheduleStats({ monthData }: ScheduleStatsProps) {
   const daysWithoutAfternoon = dailyStats.filter((d) => d.T === 0).length
   const daysWithoutNight = dailyStats.filter((d) => d.N === 0).length
 
-  const hasCoverageIssues = daysWithoutMorning > 0 || daysWithoutAfternoon > 0 || daysWithoutNight > 0
+  const hasCoverageIssues =
+    daysWithoutMorning > 0 || daysWithoutAfternoon > 0 || daysWithoutNight > 0
 
   return (
     <div className="grid grid-cols-2 lg:grid-cols-5 gap-2 sm:gap-3">
@@ -106,29 +107,35 @@ export function ScheduleStats({ monthData }: ScheduleStatsProps) {
       </div>
 
       {/* Coverage Status */}
-      <div className={`col-span-2 lg:col-span-1 rounded-md border p-3 hover:shadow-md dark:hover:shadow-gray-900/50 transition-shadow ${
-        hasCoverageIssues
-          ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'
-          : 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800'
-      }`}>
+      <div
+        className={`col-span-2 lg:col-span-1 rounded-md border p-3 hover:shadow-md dark:hover:shadow-gray-900/50 transition-shadow ${
+          hasCoverageIssues
+            ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'
+            : 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800'
+        }`}
+      >
         <div className="flex items-center justify-between">
           <div>
             <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 font-medium">
               Cobertura
             </p>
-            <p className={`text-sm sm:text-base font-bold mt-0.5 ${
-              hasCoverageIssues
-                ? 'text-red-700 dark:text-red-400'
-                : 'text-green-700 dark:text-green-400'
-            }`}>
+            <p
+              className={`text-sm sm:text-base font-bold mt-0.5 ${
+                hasCoverageIssues
+                  ? 'text-red-700 dark:text-red-400'
+                  : 'text-green-700 dark:text-green-400'
+              }`}
+            >
               {hasCoverageIssues ? 'Incompleta' : 'Completa'}
             </p>
           </div>
-          <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-            hasCoverageIssues
-              ? 'bg-red-100 dark:bg-red-900/40'
-              : 'bg-green-100 dark:bg-green-900/40'
-          }`}>
+          <div
+            className={`w-8 h-8 rounded-full flex items-center justify-center ${
+              hasCoverageIssues
+                ? 'bg-red-100 dark:bg-red-900/40'
+                : 'bg-green-100 dark:bg-green-900/40'
+            }`}
+          >
             {hasCoverageIssues ? (
               <span className="text-red-600 dark:text-red-400 text-lg">!</span>
             ) : (

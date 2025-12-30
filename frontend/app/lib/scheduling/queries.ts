@@ -24,6 +24,7 @@ import type {
   CreateShiftDto,
   UpdateShiftDto,
   GenerationResult,
+  ValidationResult,
   EmployeeContract,
   CreateContractDto,
   UpdateContractDto,
@@ -46,6 +47,7 @@ export const schedulingKeys = {
   monthsList: (filters?: { year?: number; status?: string }) =>
     [...schedulingKeys.months(), 'list', filters] as const,
   month: (id: number) => [...schedulingKeys.months(), id] as const,
+  monthValidation: (id: number) => [...schedulingKeys.months(), id, 'validation'] as const,
   constraints: (monthId: number) => [...schedulingKeys.all, 'constraints', monthId] as const,
   rules: () => [...schedulingKeys.all, 'rules'] as const,
   rulesByEmployee: (employeeId: string) => [...schedulingKeys.rules(), employeeId] as const,
@@ -53,7 +55,8 @@ export const schedulingKeys = {
   employees: () => [...schedulingKeys.all, 'employees'] as const,
   employeesAll: () => [...schedulingKeys.all, 'employees', 'all'] as const,
   contracts: (year: number) => [...schedulingKeys.all, 'contracts', year] as const,
-  contractByEmployee: (year: number, employeeId: string) => [...schedulingKeys.contracts(year), employeeId] as const,
+  contractByEmployee: (year: number, employeeId: string) =>
+    [...schedulingKeys.contracts(year), employeeId] as const,
   annualTotals: (year: number) => [...schedulingKeys.all, 'totals', year] as const,
   aiStatus: () => [...schedulingKeys.all, 'ai', 'status'] as const,
 }
@@ -184,14 +187,17 @@ export const schedulingApi = {
   /**
    * Generate schedule for a month
    */
-  generateSchedule: async (monthId: number): Promise<{ success: boolean; result: GenerationResult }> => {
+  generateSchedule: async (
+    monthId: number
+  ): Promise<{ success: boolean; result: GenerationResult }> => {
     return apiClient.post(`${API_URL}/api/scheduling/months/${monthId}/generate`)
   },
 
   /**
-   * Validate schedule without saving
+   * Validate schedule and recalculate warnings
+   * Used to update warnings after manual edits without regenerating
    */
-  validateSchedule: async (monthId: number): Promise<{ success: boolean; result: GenerationResult }> => {
+  validateSchedule: async (monthId: number): Promise<ValidationResult> => {
     return apiClient.post(`${API_URL}/api/scheduling/months/${monthId}/validate`)
   },
 
@@ -199,7 +205,9 @@ export const schedulingApi = {
    * Unpublish a month - revert from 'published' to 'generated' status
    * This allows continuing to edit/regenerate the schedule
    */
-  unpublishMonth: async (monthId: number): Promise<{ success: boolean; message: string; month: SchedulingMonth }> => {
+  unpublishMonth: async (
+    monthId: number
+  ): Promise<{ success: boolean; message: string; month: SchedulingMonth }> => {
     return apiClient.post(`${API_URL}/api/scheduling/months/${monthId}/unpublish`)
   },
 
@@ -210,7 +218,11 @@ export const schedulingApi = {
   /**
    * Update a day (mark as holiday, add notes, etc.)
    */
-  updateDay: async (monthId: number, dayId: number, data: UpdateDayDto): Promise<{ success: boolean }> => {
+  updateDay: async (
+    monthId: number,
+    dayId: number,
+    data: UpdateDayDto
+  ): Promise<{ success: boolean }> => {
     return apiClient.put(`${API_URL}/api/scheduling/months/${monthId}/days/${dayId}`, data)
   },
 
@@ -221,7 +233,10 @@ export const schedulingApi = {
   /**
    * Update a single assignment
    */
-  updateAssignment: async (assignmentId: number, data: UpdateAssignmentDto): Promise<{ success: boolean }> => {
+  updateAssignment: async (
+    assignmentId: number,
+    data: UpdateAssignmentDto
+  ): Promise<{ success: boolean }> => {
     // Transform camelCase to snake_case for backend
     const payload = {
       shift_code: data.shiftCode,
@@ -233,7 +248,10 @@ export const schedulingApi = {
   /**
    * Bulk update assignments for a month
    */
-  bulkUpdateAssignments: async (monthId: number, assignments: BulkAssignmentDto[]): Promise<{ success: boolean; count: number }> => {
+  bulkUpdateAssignments: async (
+    monthId: number,
+    assignments: BulkAssignmentDto[]
+  ): Promise<{ success: boolean; count: number }> => {
     return apiClient.put(`${API_URL}/api/scheduling/months/${monthId}/assignments`, { assignments })
   },
 
@@ -252,7 +270,9 @@ export const schedulingApi = {
     if (filters?.status) query.append('status', filters.status)
     if (filters?.employeeId) query.append('employeeId', filters.employeeId)
     const queryString = query.toString()
-    return apiClient.get(`${API_URL}/api/scheduling/months/${monthId}/constraints${queryString ? `?${queryString}` : ''}`)
+    return apiClient.get(
+      `${API_URL}/api/scheduling/months/${monthId}/constraints${queryString ? `?${queryString}` : ''}`
+    )
   },
 
   /**
@@ -276,7 +296,10 @@ export const schedulingApi = {
   /**
    * Update a constraint
    */
-  updateConstraint: async (constraintId: number, data: UpdateConstraintDto): Promise<SchedulingConstraint> => {
+  updateConstraint: async (
+    constraintId: number,
+    data: UpdateConstraintDto
+  ): Promise<SchedulingConstraint> => {
     // Transform camelCase to snake_case for backend
     const payload: Record<string, unknown> = {}
     if (data.constraintType !== undefined) payload.constraint_type = data.constraintType
@@ -291,14 +314,19 @@ export const schedulingApi = {
   /**
    * Approve or reject a constraint
    */
-  approveConstraint: async (constraintId: number, data: ApproveConstraintDto): Promise<SchedulingConstraint> => {
+  approveConstraint: async (
+    constraintId: number,
+    data: ApproveConstraintDto
+  ): Promise<SchedulingConstraint> => {
     return apiClient.put(`${API_URL}/api/scheduling/constraints/${constraintId}/approve`, data)
   },
 
   /**
    * Delete a constraint
    */
-  deleteConstraint: async (constraintId: number): Promise<{ success: boolean; message: string }> => {
+  deleteConstraint: async (
+    constraintId: number
+  ): Promise<{ success: boolean; message: string }> => {
     return apiClient.delete(`${API_URL}/api/scheduling/constraints/${constraintId}`)
   },
 
@@ -316,7 +344,9 @@ export const schedulingApi = {
   /**
    * Get rules for a specific employee
    */
-  getRulesByEmployee: async (employeeId: string): Promise<{ rules: SchedulingEmployeeRule[]; total: number }> => {
+  getRulesByEmployee: async (
+    employeeId: string
+  ): Promise<{ rules: SchedulingEmployeeRule[]; total: number }> => {
     return apiClient.get(`${API_URL}/api/scheduling/rules/employee/${employeeId}`)
   },
 
@@ -330,7 +360,10 @@ export const schedulingApi = {
   /**
    * Update an employee rule
    */
-  updateRule: async (ruleId: number, data: UpdateEmployeeRuleDto): Promise<SchedulingEmployeeRule> => {
+  updateRule: async (
+    ruleId: number,
+    data: UpdateEmployeeRuleDto
+  ): Promise<SchedulingEmployeeRule> => {
     return apiClient.put(`${API_URL}/api/scheduling/rules/${ruleId}`, data)
   },
 
@@ -357,7 +390,9 @@ export const schedulingApi = {
     if (filters?.limit) query.append('limit', String(filters.limit))
     if (filters?.offset) query.append('offset', String(filters.offset))
     const queryString = query.toString()
-    return apiClient.get(`${API_URL}/api/scheduling/months/${monthId}/history${queryString ? `?${queryString}` : ''}`)
+    return apiClient.get(
+      `${API_URL}/api/scheduling/months/${monthId}/history${queryString ? `?${queryString}` : ''}`
+    )
   },
 
   // ============================================
@@ -367,14 +402,18 @@ export const schedulingApi = {
   /**
    * Get employees selected for scheduling
    */
-  getSchedulableEmployees: async (): Promise<{ id: string; username: string; role_id: number }[]> => {
+  getSchedulableEmployees: async (): Promise<
+    { id: string; username: string; role_id: number }[]
+  > => {
     return apiClient.get(`${API_URL}/api/scheduling/employees`)
   },
 
   /**
    * Get all employees with their schedulable status
    */
-  getAllEmployeesWithStatus: async (): Promise<{ id: string; username: string; role_id: number; is_schedulable: boolean }[]> => {
+  getAllEmployeesWithStatus: async (): Promise<
+    { id: string; username: string; role_id: number; is_schedulable: boolean }[]
+  > => {
     return apiClient.get(`${API_URL}/api/scheduling/employees/all`)
   },
 
@@ -413,7 +452,10 @@ export const schedulingApi = {
   /**
    * Get contract for specific employee and year
    */
-  getContractByEmployeeYear: async (year: number, employeeId: string): Promise<EmployeeContract> => {
+  getContractByEmployeeYear: async (
+    year: number,
+    employeeId: string
+  ): Promise<EmployeeContract> => {
     return apiClient.get(`${API_URL}/api/scheduling/contracts/${year}/${employeeId}`)
   },
 
@@ -427,7 +469,9 @@ export const schedulingApi = {
   /**
    * Initialize contracts for all schedulable employees for a year
    */
-  initializeContractsForYear: async (year: number): Promise<{ success: boolean; created: number }> => {
+  initializeContractsForYear: async (
+    year: number
+  ): Promise<{ success: boolean; created: number }> => {
     return apiClient.post(`${API_URL}/api/scheduling/contracts/${year}/initialize`)
   },
 
@@ -435,17 +479,22 @@ export const schedulingApi = {
    * Initialize a single contract for an employee with optional start date
    */
   initializeContractForEmployee: async (
-    year: number, 
-    employeeId: string, 
+    year: number,
+    employeeId: string,
     startDate?: string
   ): Promise<{ success: boolean; message: string; contract: EmployeeContract | null }> => {
-    return apiClient.post(`${API_URL}/api/scheduling/contracts/${year}/employee/${employeeId}`, { startDate })
+    return apiClient.post(`${API_URL}/api/scheduling/contracts/${year}/employee/${employeeId}`, {
+      startDate,
+    })
   },
 
   /**
    * Calculate proportional contract values (preview without creating)
    */
-  calculateProportionalContract: async (year: number, startDate: string): Promise<{
+  calculateProportionalContract: async (
+    year: number,
+    startDate: string
+  ): Promise<{
     year: number
     startDate: string
     values: {
@@ -457,13 +506,18 @@ export const schedulingApi = {
       diasLaborablesAno: number
     }
   }> => {
-    return apiClient.get(`${API_URL}/api/scheduling/contracts/${year}/calculate?startDate=${startDate}`)
+    return apiClient.get(
+      `${API_URL}/api/scheduling/contracts/${year}/calculate?startDate=${startDate}`
+    )
   },
 
   /**
    * Update a contract
    */
-  updateContract: async (contractId: number, data: UpdateContractDto): Promise<EmployeeContract> => {
+  updateContract: async (
+    contractId: number,
+    data: UpdateContractDto
+  ): Promise<EmployeeContract> => {
     return apiClient.put(`${API_URL}/api/scheduling/contracts/${contractId}`, data)
   },
 
@@ -502,7 +556,13 @@ export const schedulingApi = {
       claude: { configured: boolean; model: string }
       gemini: { configured: boolean; model: string }
       openai: { configured: boolean; model: string }
-      ollama: { configured: boolean; model: string; host?: string; baseUrl?: string; requiresDocker?: boolean }
+      ollama: {
+        configured: boolean
+        model: string
+        host?: string
+        baseUrl?: string
+        requiresDocker?: boolean
+      }
     }
   }> => {
     return apiClient.get(`${API_URL}/api/scheduling/ai/status`)
@@ -511,7 +571,9 @@ export const schedulingApi = {
   /**
    * Test AI connection
    */
-  testAIConnection: async (provider?: string): Promise<{
+  testAIConnection: async (
+    provider?: string
+  ): Promise<{
     success: boolean
     provider?: string
     responseTime?: number

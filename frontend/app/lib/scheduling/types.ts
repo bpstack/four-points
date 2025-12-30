@@ -245,9 +245,27 @@ export interface SchedulingMonthFull extends SchedulingMonth {
 // GENERATION RESULT
 // ============================================
 
+/**
+ * Warning/error severity levels
+ * Synced from: backend/services/scheduling/types/index.ts
+ */
+export type WarningSeverity = 'info' | 'warning' | 'error'
+
+/**
+ * Warning/error types for categorization
+ * Synced from: backend/services/scheduling/types/index.ts
+ */
+export type WarningType =
+  | 'coverage'
+  | 'night_block'
+  | 'rest'
+  | 'hours'
+  | 'constraint'
+  | 'validation'
+
 export interface GenerationWarning {
-  severity: 'info' | 'warning' | 'error'
-  code: string
+  type: WarningType
+  severity: WarningSeverity
   message: string
   day?: number
   employeeId?: string
@@ -263,6 +281,21 @@ export interface GenerationResult {
   stats: {
     byEmployee: EmployeeStats[]
     byDay: DailyStats[]
+  }
+}
+
+// ============================================
+// VALIDATION RESULT
+// ============================================
+
+export interface ValidationResult {
+  isValid: boolean
+  errors: GenerationWarning[]
+  warnings: GenerationWarning[]
+  stats: {
+    totalErrors: number
+    totalWarnings: number
+    byType: Record<string, number>
   }
 }
 

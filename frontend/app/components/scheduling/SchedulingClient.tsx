@@ -5,21 +5,21 @@
 import { useState, useCallback, useMemo } from 'react'
 import { useSearchParams, useRouter, usePathname } from 'next/navigation'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { schedulingApi, schedulingKeys } from '@/app/lib/scheduling'
+import { schedulingApi, schedulingKeys, downloadSchedulePdf } from '@/app/lib/scheduling'
 import { ApiError } from '@/app/lib/apiClient'
-import type { SchedulingMonthFull, SchedulingShift, MonthStatus } from '@/app/lib/scheduling'
+import type { SchedulingShift, MonthStatus, GenerationWarning } from '@/app/lib/scheduling'
 import { ScheduleGrid } from './ScheduleGrid'
 import { MonthSelector } from './MonthSelector'
 import { ScheduleStats } from './ScheduleStats'
 import { ShiftLegend } from './ShiftLegend'
 import { ShiftSelector } from './ShiftSelector'
+import { GenerationWarnings } from './GenerationWarnings'
 import toast from 'react-hot-toast'
 import Link from 'next/link'
 import {
   FiCalendar,
   FiPlay,
   FiCheck,
-  FiPlus,
   FiSettings,
   FiDownload,
   FiRefreshCw,
@@ -42,43 +42,55 @@ export function SchedulingClient() {
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
-  
+
   // Get year and monthId from URL params
   const currentYear = new Date().getFullYear()
   const yearParam = searchParams.get('year')
   const monthIdParam = searchParams.get('month')
-  
+
   const selectedYear = yearParam ? parseInt(yearParam, 10) : currentYear
   const selectedMonthId = monthIdParam ? parseInt(monthIdParam, 10) : null
-  
+
   // Local state for cell selection (doesn't need URL persistence)
   const [selectedCell, setSelectedCell] = useState<SelectedCell | null>(null)
-  
+
+  // State for generation warnings
+  const [generationWarnings, setGenerationWarnings] = useState<{
+    warnings: GenerationWarning[]
+    generationTimeMs: number
+  } | null>(null)
+
   // Update URL when year changes
-  const setSelectedYear = useCallback((year: number) => {
-    const params = new URLSearchParams(searchParams.toString())
-    if (year === currentYear) {
-      params.delete('year')
-    } else {
-      params.set('year', String(year))
-    }
-    // Clear month selection when year changes
-    params.delete('month')
-    const query = params.toString()
-    router.push(`${pathname}${query ? `?${query}` : ''}`, { scroll: false })
-  }, [router, pathname, searchParams, currentYear])
-  
-  // Update URL when month selection changes
-  const setSelectedMonthId = useCallback((monthId: number | null) => {
-    const params = new URLSearchParams(searchParams.toString())
-    if (monthId === null) {
+  const setSelectedYear = useCallback(
+    (year: number) => {
+      const params = new URLSearchParams(searchParams.toString())
+      if (year === currentYear) {
+        params.delete('year')
+      } else {
+        params.set('year', String(year))
+      }
+      // Clear month selection when year changes
       params.delete('month')
-    } else {
-      params.set('month', String(monthId))
-    }
-    const query = params.toString()
-    router.push(`${pathname}${query ? `?${query}` : ''}`, { scroll: false })
-  }, [router, pathname, searchParams])
+      const query = params.toString()
+      router.push(`${pathname}${query ? `?${query}` : ''}`, { scroll: false })
+    },
+    [router, pathname, searchParams, currentYear]
+  )
+
+  // Update URL when month selection changes
+  const setSelectedMonthId = useCallback(
+    (monthId: number | null) => {
+      const params = new URLSearchParams(searchParams.toString())
+      if (monthId === null) {
+        params.delete('month')
+      } else {
+        params.set('month', String(monthId))
+      }
+      const query = params.toString()
+      router.push(`${pathname}${query ? `?${query}` : ''}`, { scroll: false })
+    },
+    [router, pathname, searchParams]
+  )
 
   // Fetch all months for the selector
   const { data: monthsData, isLoading: loadingMonths } = useQuery({
@@ -130,14 +142,38 @@ export function SchedulingClient() {
     mutationFn: (monthId: number) => schedulingApi.generateSchedule(monthId),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: schedulingKeys.month(selectedMonthId!) })
+
+      // Store warnings for display
+      if (data.result.warnings && data.result.warnings.length > 0) {
+        setGenerationWarnings({
+          warnings: data.result.warnings,
+          generationTimeMs: data.result.generationTimeMs,
+        })
+      } else {
+        setGenerationWarnings(null)
+      }
+
       if (data.result.success) {
-        toast.success(`Horarios generados: ${data.result.assignmentsCount} asignaciones`)
+        const errorCount = data.result.warnings?.filter((w) => w.severity === 'error').length || 0
+        const warningCount =
+          data.result.warnings?.filter((w) => w.severity === 'warning').length || 0
+
+        if (errorCount > 0) {
+          toast.error(`Horarios generados con ${errorCount} error${errorCount > 1 ? 'es' : ''}`)
+        } else if (warningCount > 0) {
+          toast.success(
+            `Horarios generados: ${data.result.assignmentsCount} asignaciones (${warningCount} advertencia${warningCount > 1 ? 's' : ''})`
+          )
+        } else {
+          toast.success(`Horarios generados: ${data.result.assignmentsCount} asignaciones`)
+        }
       } else {
         toast.error('Generación completada con errores')
       }
     },
     onError: () => {
       toast.error('Error al generar horarios')
+      setGenerationWarnings(null)
     },
   })
 
@@ -176,10 +212,33 @@ export function SchedulingClient() {
   const updateAssignmentMutation = useMutation({
     mutationFn: ({ assignmentId, shiftCode }: { assignmentId: number; shiftCode: string }) =>
       schedulingApi.updateAssignment(assignmentId, { shiftCode }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: schedulingKeys.month(selectedMonthId!) })
+    onSuccess: async () => {
+      // First, wait for the cache to be invalidated and refetched
+      await queryClient.invalidateQueries({ queryKey: schedulingKeys.month(selectedMonthId!) })
       setSelectedCell(null)
       toast.success('Turno actualizado')
+
+      // Then revalidate schedule to update warnings after manual edit
+      // Small delay to ensure DB write is committed
+      if (selectedMonthId) {
+        setTimeout(async () => {
+          try {
+            const validationResult = await schedulingApi.validateSchedule(selectedMonthId)
+            const allWarnings = [...validationResult.errors, ...validationResult.warnings]
+            if (allWarnings.length > 0) {
+              setGenerationWarnings({
+                warnings: allWarnings,
+                generationTimeMs: 0, // Not from generation
+              })
+            } else {
+              setGenerationWarnings(null)
+            }
+          } catch (err) {
+            // Validation failed silently - warnings will be stale but UI still works
+            console.warn('Failed to revalidate schedule after edit:', err)
+          }
+        }, 100)
+      }
     },
     onError: () => {
       toast.error('Error al actualizar turno')
@@ -268,19 +327,23 @@ export function SchedulingClient() {
   const getStatusConfig = (status: MonthStatus) => {
     const configs: Record<MonthStatus, { color: string; label: string }> = {
       draft: {
-        color: 'bg-gray-100 text-gray-700 border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700',
+        color:
+          'bg-gray-100 text-gray-700 border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700',
         label: 'Borrador',
       },
       generated: {
-        color: 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-800',
+        color:
+          'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-800',
         label: 'Generado',
       },
       published: {
-        color: 'bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800',
+        color:
+          'bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800',
         label: 'Publicado',
       },
       archived: {
-        color: 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-900/20 dark:text-purple-400 dark:border-purple-800',
+        color:
+          'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-900/20 dark:text-purple-400 dark:border-purple-800',
         label: 'Archivado',
       },
     }
@@ -375,6 +438,13 @@ export function SchedulingClient() {
                       Regenerar
                     </button>
                     <button
+                      onClick={() => monthData && downloadSchedulePdf(monthData)}
+                      className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-gray-700 dark:text-gray-300 text-xs font-medium rounded-md border border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                    >
+                      <FiDownload className="w-3.5 h-3.5" />
+                      Exportar PDF
+                    </button>
+                    <button
                       onClick={handlePublish}
                       disabled={updateStatusMutation.isPending}
                       className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-green-600 dark:bg-green-700 text-white text-xs font-medium rounded-md hover:bg-green-700 dark:hover:bg-green-800 transition-colors disabled:opacity-50"
@@ -396,11 +466,11 @@ export function SchedulingClient() {
                       {unpublishMutation.isPending ? 'Revertiendo...' : 'Revertir'}
                     </button>
                     <button
-                      onClick={() => {}}
+                      onClick={() => monthData && downloadSchedulePdf(monthData)}
                       className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-gray-700 dark:text-gray-300 text-xs font-medium rounded-md border border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                     >
                       <FiDownload className="w-3.5 h-3.5" />
-                      Exportar
+                      Exportar PDF
                     </button>
                   </>
                 )}
@@ -427,6 +497,15 @@ export function SchedulingClient() {
           </div>
         ) : monthData ? (
           <div className="space-y-4">
+            {/* Generation Warnings */}
+            {generationWarnings && generationWarnings.warnings.length > 0 && (
+              <GenerationWarnings
+                warnings={generationWarnings.warnings}
+                generationTimeMs={generationWarnings.generationTimeMs}
+                onDismiss={() => setGenerationWarnings(null)}
+              />
+            )}
+
             {/* Stats Summary */}
             <ScheduleStats monthData={monthData} />
 

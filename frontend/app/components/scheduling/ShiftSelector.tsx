@@ -4,7 +4,7 @@
 
 import { useEffect, useRef } from 'react'
 import type { SchedulingShift } from '@/app/lib/scheduling'
-import { getShiftClasses, EMPTY_SHIFT_STYLE } from '@/app/lib/scheduling'
+import { getShiftClasses } from '@/app/lib/scheduling'
 import { FiX } from 'react-icons/fi'
 
 interface ShiftSelectorProps {
@@ -80,9 +80,7 @@ export function ShiftSelector({
       {/* Header */}
       <div className="px-2.5 py-1.5 bg-gray-50 dark:bg-[#151b23] border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
         <div>
-          <p className="text-xs font-medium text-gray-900 dark:text-gray-100">
-            {employeeName}
-          </p>
+          <p className="text-xs font-medium text-gray-900 dark:text-gray-100">{employeeName}</p>
           <p className="text-[10px] text-gray-500 dark:text-gray-400">Día {dayNumber}</p>
         </div>
         <button

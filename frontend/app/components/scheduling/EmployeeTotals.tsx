@@ -30,7 +30,9 @@ interface EditableConvenio {
 
 export function EmployeeTotals({ year }: EmployeeTotalsProps) {
   const queryClient = useQueryClient()
-  const [editedContracts, setEditedContracts] = useState<Record<number, Partial<EditableConvenio>>>({})
+  const [editedContracts, setEditedContracts] = useState<Record<number, Partial<EditableConvenio>>>(
+    {}
+  )
   const [hasChanges, setHasChanges] = useState(false)
   // State for start dates per employee (for new contracts)
   const [startDates, setStartDates] = useState<Record<string, string>>({})
@@ -77,7 +79,7 @@ export function EmployeeTotals({ year }: EmployeeTotalsProps) {
 
   // Initialize SINGLE contract mutation (with optional start date)
   const initSingleContractMutation = useMutation({
-    mutationFn: ({ employeeId, startDate }: { employeeId: string; startDate?: string }) => 
+    mutationFn: ({ employeeId, startDate }: { employeeId: string; startDate?: string }) =>
       schedulingApi.initializeContractForEmployee(year, employeeId, startDate),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: schedulingKeys.contracts(year) })
@@ -106,8 +108,10 @@ export function EmployeeTotals({ year }: EmployeeTotalsProps) {
   const totalMesesPublicados = totalsData?.totalMesesPublicados || 0
 
   // Check if there are employees without contracts
-  const employeesWithContracts = new Set(contracts.map(c => c.employeeId))
-  const employeesWithoutContracts = schedulableEmployees.filter(e => !employeesWithContracts.has(e.id))
+  const employeesWithContracts = new Set(contracts.map((c) => c.employeeId))
+  const employeesWithoutContracts = schedulableEmployees.filter(
+    (e) => !employeesWithContracts.has(e.id)
+  )
   const hasEmployeesWithoutContracts = employeesWithoutContracts.length > 0
 
   // Get current value (edited or original)
@@ -121,14 +125,22 @@ export function EmployeeTotals({ year }: EmployeeTotalsProps) {
 
   // Handle input change
   const handleChange = (contractId: number, field: keyof EditableConvenio, value: string) => {
-    const numericFields = ['diasTrabajo', 'horasAnuales', 'diasVacaciones', 'diasLibreSemanal', 'diasIt', 'diasBonificables', 'diasLaborablesAno']
-    
-    setEditedContracts(prev => ({
+    const numericFields = [
+      'diasTrabajo',
+      'horasAnuales',
+      'diasVacaciones',
+      'diasLibreSemanal',
+      'diasIt',
+      'diasBonificables',
+      'diasLaborablesAno',
+    ]
+
+    setEditedContracts((prev) => ({
       ...prev,
       [contractId]: {
         ...prev[contractId],
         [field]: numericFields.includes(field) ? (value === '' ? 0 : parseInt(value, 10)) : value,
-      }
+      },
     }))
     setHasChanges(true)
   }
@@ -143,7 +155,8 @@ export function EmployeeTotals({ year }: EmployeeTotalsProps) {
       if (changes.diasLibreSemanal !== undefined) data.dias_libre_semanal = changes.diasLibreSemanal
       if (changes.diasIt !== undefined) data.dias_it = changes.diasIt
       if (changes.diasBonificables !== undefined) data.dias_bonificables = changes.diasBonificables
-      if (changes.diasLaborablesAno !== undefined) data.dias_laborables_ano = changes.diasLaborablesAno
+      if (changes.diasLaborablesAno !== undefined)
+        data.dias_laborables_ano = changes.diasLaborablesAno
       if (changes.observaciones !== undefined) data.observaciones = changes.observaciones || null
 
       return updateContractMutation.mutateAsync({ id: parseInt(id), data })
@@ -195,7 +208,10 @@ export function EmployeeTotals({ year }: EmployeeTotalsProps) {
             </button>
           )}
           <button
-            onClick={() => { refetchContracts(); refetchTotals(); }}
+            onClick={() => {
+              refetchContracts()
+              refetchTotals()
+            }}
             className="p-1.5 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors"
             title="Actualizar"
           >
@@ -221,11 +237,12 @@ export function EmployeeTotals({ year }: EmployeeTotalsProps) {
             </button>
           </div>
           <p className="text-xs text-amber-700 dark:text-amber-400 mb-3">
-            Selecciona la fecha de inicio para calcular valores proporcionales, o deja en blanco para año completo.
+            Selecciona la fecha de inicio para calcular valores proporcionales, o deja en blanco
+            para año completo.
           </p>
           <div className="space-y-2">
             {employeesWithoutContracts.map((emp) => (
-              <div 
+              <div
                 key={emp.id}
                 className="flex items-center gap-3 bg-white dark:bg-gray-900 rounded px-3 py-2"
               >
@@ -238,7 +255,9 @@ export function EmployeeTotals({ year }: EmployeeTotalsProps) {
                     <input
                       type="date"
                       value={startDates[emp.id] || ''}
-                      onChange={(e) => setStartDates(prev => ({ ...prev, [emp.id]: e.target.value }))}
+                      onChange={(e) =>
+                        setStartDates((prev) => ({ ...prev, [emp.id]: e.target.value }))
+                      }
                       min={`${year}-01-01`}
                       max={`${year}-12-31`}
                       className="pl-7 pr-2 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
@@ -270,20 +289,39 @@ export function EmployeeTotals({ year }: EmployeeTotalsProps) {
             <thead className="bg-gray-100 dark:bg-gray-800">
               <tr>
                 <th className="px-3 py-2 text-left font-medium text-gray-700 dark:text-gray-300 min-w-[100px]"></th>
-                <th className="px-2 py-2 text-center font-medium text-gray-700 dark:text-gray-300 min-w-[80px]">DÍAS DE TRABAJO</th>
-                <th className="px-2 py-2 text-center font-medium text-gray-700 dark:text-gray-300 min-w-[80px]">HORAS A TRABAJAR</th>
-                <th className="px-2 py-2 text-center font-medium text-gray-700 dark:text-gray-300 min-w-[80px]">DÍAS VACACIONES</th>
-                <th className="px-2 py-2 text-center font-medium text-gray-700 dark:text-gray-300 min-w-[80px]">LIBRE SEMANAL</th>
-                <th className="px-2 py-2 text-center font-medium text-gray-700 dark:text-gray-300 min-w-[50px]">IT</th>
-                <th className="px-2 py-2 text-center font-medium text-gray-700 dark:text-gray-300 min-w-[80px]">DÍAS BONIFICABLES</th>
-                <th className="px-2 py-2 text-center font-medium text-gray-700 dark:text-gray-300 min-w-[80px]">DÍAS LABORABLES AÑO</th>
-                <th className="px-2 py-2 text-left font-medium text-gray-700 dark:text-gray-300 min-w-[150px]">OBSERVACIONES</th>
+                <th className="px-2 py-2 text-center font-medium text-gray-700 dark:text-gray-300 min-w-[80px]">
+                  DÍAS DE TRABAJO
+                </th>
+                <th className="px-2 py-2 text-center font-medium text-gray-700 dark:text-gray-300 min-w-[80px]">
+                  HORAS A TRABAJAR
+                </th>
+                <th className="px-2 py-2 text-center font-medium text-gray-700 dark:text-gray-300 min-w-[80px]">
+                  DÍAS VACACIONES
+                </th>
+                <th className="px-2 py-2 text-center font-medium text-gray-700 dark:text-gray-300 min-w-[80px]">
+                  LIBRE SEMANAL
+                </th>
+                <th className="px-2 py-2 text-center font-medium text-gray-700 dark:text-gray-300 min-w-[50px]">
+                  IT
+                </th>
+                <th className="px-2 py-2 text-center font-medium text-gray-700 dark:text-gray-300 min-w-[80px]">
+                  DÍAS BONIFICABLES
+                </th>
+                <th className="px-2 py-2 text-center font-medium text-gray-700 dark:text-gray-300 min-w-[80px]">
+                  DÍAS LABORABLES AÑO
+                </th>
+                <th className="px-2 py-2 text-left font-medium text-gray-700 dark:text-gray-300 min-w-[150px]">
+                  OBSERVACIONES
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
               {contracts.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="px-3 py-4 text-center text-gray-500 dark:text-gray-400">
+                  <td
+                    colSpan={9}
+                    className="px-3 py-4 text-center text-gray-500 dark:text-gray-400"
+                  >
                     No hay contratos. Crea contratos para los empleados en la seccion de arriba.
                   </td>
                 </tr>
@@ -313,7 +351,9 @@ export function EmployeeTotals({ year }: EmployeeTotalsProps) {
                       <input
                         type="number"
                         value={getValue(contract, 'diasVacaciones')}
-                        onChange={(e) => handleChange(contract.id, 'diasVacaciones', e.target.value)}
+                        onChange={(e) =>
+                          handleChange(contract.id, 'diasVacaciones', e.target.value)
+                        }
                         className="w-full px-2 py-1 text-center text-xs border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                       />
                     </td>
@@ -321,7 +361,9 @@ export function EmployeeTotals({ year }: EmployeeTotalsProps) {
                       <input
                         type="number"
                         value={getValue(contract, 'diasLibreSemanal')}
-                        onChange={(e) => handleChange(contract.id, 'diasLibreSemanal', e.target.value)}
+                        onChange={(e) =>
+                          handleChange(contract.id, 'diasLibreSemanal', e.target.value)
+                        }
                         className="w-full px-2 py-1 text-center text-xs border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                       />
                     </td>
@@ -337,7 +379,9 @@ export function EmployeeTotals({ year }: EmployeeTotalsProps) {
                       <input
                         type="number"
                         value={getValue(contract, 'diasBonificables')}
-                        onChange={(e) => handleChange(contract.id, 'diasBonificables', e.target.value)}
+                        onChange={(e) =>
+                          handleChange(contract.id, 'diasBonificables', e.target.value)
+                        }
                         className="w-full px-2 py-1 text-center text-xs border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                       />
                     </td>
@@ -345,7 +389,9 @@ export function EmployeeTotals({ year }: EmployeeTotalsProps) {
                       <input
                         type="number"
                         value={getValue(contract, 'diasLaborablesAno')}
-                        onChange={(e) => handleChange(contract.id, 'diasLaborablesAno', e.target.value)}
+                        onChange={(e) =>
+                          handleChange(contract.id, 'diasLaborablesAno', e.target.value)
+                        }
                         className="w-full px-2 py-1 text-center text-xs border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                       />
                     </td>
@@ -376,33 +422,66 @@ export function EmployeeTotals({ year }: EmployeeTotalsProps) {
             <thead className="bg-gray-100 dark:bg-gray-800">
               <tr>
                 <th className="px-3 py-2 text-left font-medium text-gray-700 dark:text-gray-300 min-w-[100px]"></th>
-                <th className="px-3 py-2 text-center font-medium text-gray-700 dark:text-gray-300">DÍAS TRABAJADOS</th>
-                <th className="px-3 py-2 text-center font-medium text-gray-700 dark:text-gray-300">HORAS TRABAJADAS</th>
-                <th className="px-3 py-2 text-center font-medium text-gray-700 dark:text-gray-300">DÍAS VACACIONES</th>
-                <th className="px-3 py-2 text-center font-medium text-gray-700 dark:text-gray-300">LIBRE SEMANAL</th>
-                <th className="px-3 py-2 text-center font-medium text-gray-700 dark:text-gray-300">IT</th>
-                <th className="px-3 py-2 text-center font-medium text-gray-700 dark:text-gray-300">DÍAS BONIFICABLES</th>
-                <th className="px-3 py-2 text-center font-medium text-gray-700 dark:text-gray-300">TOTAL</th>
+                <th className="px-3 py-2 text-center font-medium text-gray-700 dark:text-gray-300">
+                  DÍAS TRABAJADOS
+                </th>
+                <th className="px-3 py-2 text-center font-medium text-gray-700 dark:text-gray-300">
+                  HORAS TRABAJADAS
+                </th>
+                <th className="px-3 py-2 text-center font-medium text-gray-700 dark:text-gray-300">
+                  DÍAS VACACIONES
+                </th>
+                <th className="px-3 py-2 text-center font-medium text-gray-700 dark:text-gray-300">
+                  LIBRE SEMANAL
+                </th>
+                <th className="px-3 py-2 text-center font-medium text-gray-700 dark:text-gray-300">
+                  IT
+                </th>
+                <th className="px-3 py-2 text-center font-medium text-gray-700 dark:text-gray-300">
+                  DÍAS BONIFICABLES
+                </th>
+                <th className="px-3 py-2 text-center font-medium text-gray-700 dark:text-gray-300">
+                  TOTAL
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
               {employees.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="px-3 py-4 text-center text-gray-500 dark:text-gray-400">
+                  <td
+                    colSpan={8}
+                    className="px-3 py-4 text-center text-gray-500 dark:text-gray-400"
+                  >
                     Sin datos
                   </td>
                 </tr>
               ) : (
                 employees.map((emp) => (
                   <tr key={emp.employeeId} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
-                    <td className="px-3 py-2 font-medium text-gray-900 dark:text-gray-100">{emp.employeeName}</td>
-                    <td className="px-3 py-2 text-center text-gray-700 dark:text-gray-300">{emp.disfrutados.diasTrabajados}</td>
-                    <td className="px-3 py-2 text-center text-gray-700 dark:text-gray-300">{emp.disfrutados.horasTrabajadas}</td>
-                    <td className="px-3 py-2 text-center text-gray-700 dark:text-gray-300">{emp.disfrutados.diasVacaciones}</td>
-                    <td className="px-3 py-2 text-center text-gray-700 dark:text-gray-300">{emp.disfrutados.diasLibreSemanal}</td>
-                    <td className="px-3 py-2 text-center text-gray-700 dark:text-gray-300">{emp.disfrutados.diasIt}</td>
-                    <td className="px-3 py-2 text-center text-gray-700 dark:text-gray-300">{emp.disfrutados.diasBonificables}</td>
-                    <td className="px-3 py-2 text-center font-bold text-gray-900 dark:text-gray-100">{emp.disfrutados.total}</td>
+                    <td className="px-3 py-2 font-medium text-gray-900 dark:text-gray-100">
+                      {emp.employeeName}
+                    </td>
+                    <td className="px-3 py-2 text-center text-gray-700 dark:text-gray-300">
+                      {emp.disfrutados.diasTrabajados}
+                    </td>
+                    <td className="px-3 py-2 text-center text-gray-700 dark:text-gray-300">
+                      {emp.disfrutados.horasTrabajadas}
+                    </td>
+                    <td className="px-3 py-2 text-center text-gray-700 dark:text-gray-300">
+                      {emp.disfrutados.diasVacaciones}
+                    </td>
+                    <td className="px-3 py-2 text-center text-gray-700 dark:text-gray-300">
+                      {emp.disfrutados.diasLibreSemanal}
+                    </td>
+                    <td className="px-3 py-2 text-center text-gray-700 dark:text-gray-300">
+                      {emp.disfrutados.diasIt}
+                    </td>
+                    <td className="px-3 py-2 text-center text-gray-700 dark:text-gray-300">
+                      {emp.disfrutados.diasBonificables}
+                    </td>
+                    <td className="px-3 py-2 text-center font-bold text-gray-900 dark:text-gray-100">
+                      {emp.disfrutados.total}
+                    </td>
                   </tr>
                 ))
               )}
@@ -421,45 +500,78 @@ export function EmployeeTotals({ year }: EmployeeTotalsProps) {
             <thead className="bg-gray-100 dark:bg-gray-800">
               <tr>
                 <th className="px-3 py-2 text-left font-medium text-gray-700 dark:text-gray-300 min-w-[100px]"></th>
-                <th className="px-3 py-2 text-center font-medium text-gray-700 dark:text-gray-300">DÍAS A TRABAJAR</th>
-                <th className="px-3 py-2 text-center font-medium text-gray-700 dark:text-gray-300">HORAS A TRABAJAR</th>
-                <th className="px-3 py-2 text-center font-medium text-gray-700 dark:text-gray-300">DÍAS VACACIONES</th>
-                <th className="px-3 py-2 text-center font-medium text-gray-700 dark:text-gray-300">LIBRE SEMANAL</th>
-                <th className="px-3 py-2 text-center font-medium text-gray-700 dark:text-gray-300">IT</th>
-                <th className="px-3 py-2 text-center font-medium text-gray-700 dark:text-gray-300">DÍAS BONIFICABLES</th>
-                <th className="px-3 py-2 text-center font-medium text-gray-700 dark:text-gray-300">TOTAL</th>
+                <th className="px-3 py-2 text-center font-medium text-gray-700 dark:text-gray-300">
+                  DÍAS A TRABAJAR
+                </th>
+                <th className="px-3 py-2 text-center font-medium text-gray-700 dark:text-gray-300">
+                  HORAS A TRABAJAR
+                </th>
+                <th className="px-3 py-2 text-center font-medium text-gray-700 dark:text-gray-300">
+                  DÍAS VACACIONES
+                </th>
+                <th className="px-3 py-2 text-center font-medium text-gray-700 dark:text-gray-300">
+                  LIBRE SEMANAL
+                </th>
+                <th className="px-3 py-2 text-center font-medium text-gray-700 dark:text-gray-300">
+                  IT
+                </th>
+                <th className="px-3 py-2 text-center font-medium text-gray-700 dark:text-gray-300">
+                  DÍAS BONIFICABLES
+                </th>
+                <th className="px-3 py-2 text-center font-medium text-gray-700 dark:text-gray-300">
+                  TOTAL
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
               {employees.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="px-3 py-4 text-center text-gray-500 dark:text-gray-400">
+                  <td
+                    colSpan={8}
+                    className="px-3 py-4 text-center text-gray-500 dark:text-gray-400"
+                  >
                     Sin datos
                   </td>
                 </tr>
               ) : (
                 employees.map((emp) => (
                   <tr key={emp.employeeId} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
-                    <td className="px-3 py-2 font-medium text-gray-900 dark:text-gray-100">{emp.employeeName}</td>
-                    <td className={`px-3 py-2 text-center ${emp.pendiente.diasATrabaja < 0 ? 'text-red-600 dark:text-red-400' : 'text-gray-700 dark:text-gray-300'}`}>
+                    <td className="px-3 py-2 font-medium text-gray-900 dark:text-gray-100">
+                      {emp.employeeName}
+                    </td>
+                    <td
+                      className={`px-3 py-2 text-center ${emp.pendiente.diasATrabaja < 0 ? 'text-red-600 dark:text-red-400' : 'text-gray-700 dark:text-gray-300'}`}
+                    >
                       {emp.pendiente.diasATrabaja}
                     </td>
-                    <td className={`px-3 py-2 text-center ${emp.pendiente.horasATrabaja < 0 ? 'text-red-600 dark:text-red-400' : 'text-gray-700 dark:text-gray-300'}`}>
+                    <td
+                      className={`px-3 py-2 text-center ${emp.pendiente.horasATrabaja < 0 ? 'text-red-600 dark:text-red-400' : 'text-gray-700 dark:text-gray-300'}`}
+                    >
                       {emp.pendiente.horasATrabaja}
                     </td>
-                    <td className={`px-3 py-2 text-center ${emp.pendiente.diasVacaciones < 0 ? 'text-red-600 dark:text-red-400' : 'text-gray-700 dark:text-gray-300'}`}>
+                    <td
+                      className={`px-3 py-2 text-center ${emp.pendiente.diasVacaciones < 0 ? 'text-red-600 dark:text-red-400' : 'text-gray-700 dark:text-gray-300'}`}
+                    >
                       {emp.pendiente.diasVacaciones}
                     </td>
-                    <td className={`px-3 py-2 text-center ${emp.pendiente.diasLibreSemanal < 0 ? 'text-red-600 dark:text-red-400' : 'text-gray-700 dark:text-gray-300'}`}>
+                    <td
+                      className={`px-3 py-2 text-center ${emp.pendiente.diasLibreSemanal < 0 ? 'text-red-600 dark:text-red-400' : 'text-gray-700 dark:text-gray-300'}`}
+                    >
                       {emp.pendiente.diasLibreSemanal}
                     </td>
-                    <td className={`px-3 py-2 text-center ${emp.pendiente.diasIt < 0 ? 'text-red-600 dark:text-red-400' : 'text-gray-700 dark:text-gray-300'}`}>
+                    <td
+                      className={`px-3 py-2 text-center ${emp.pendiente.diasIt < 0 ? 'text-red-600 dark:text-red-400' : 'text-gray-700 dark:text-gray-300'}`}
+                    >
                       {emp.pendiente.diasIt}
                     </td>
-                    <td className={`px-3 py-2 text-center ${emp.pendiente.diasBonificables < 0 ? 'text-red-600 dark:text-red-400' : 'text-gray-700 dark:text-gray-300'}`}>
+                    <td
+                      className={`px-3 py-2 text-center ${emp.pendiente.diasBonificables < 0 ? 'text-red-600 dark:text-red-400' : 'text-gray-700 dark:text-gray-300'}`}
+                    >
                       {emp.pendiente.diasBonificables}
                     </td>
-                    <td className={`px-3 py-2 text-center font-bold ${emp.pendiente.total < 0 ? 'text-red-600 dark:text-red-400' : 'text-gray-900 dark:text-gray-100'}`}>
+                    <td
+                      className={`px-3 py-2 text-center font-bold ${emp.pendiente.total < 0 ? 'text-red-600 dark:text-red-400' : 'text-gray-900 dark:text-gray-100'}`}
+                    >
                       {emp.pendiente.total}
                     </td>
                   </tr>

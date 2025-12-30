@@ -4,11 +4,11 @@
 
 /**
  * Tailwind CSS classes for each shift code
- * 
+ *
  * Pattern:
  * - Light: bg-{color}-100 border-{color}-300 text-{color}-800
  * - Dark: bg-{color}-900/30 border-{color}-700 text-{color}-400
- * 
+ *
  * If you add a new shift to the database, add its styles here.
  */
 export const SHIFT_STYLES: Record<string, string> = {
@@ -30,7 +30,8 @@ export const SHIFT_STYLES: Record<string, string> = {
 }
 
 /** Default style for empty cells or unknown shift codes */
-export const EMPTY_SHIFT_STYLE = 'bg-gray-50 border-gray-200 text-gray-400 dark:bg-gray-800/50 dark:border-gray-600 dark:text-gray-500'
+export const EMPTY_SHIFT_STYLE =
+  'bg-gray-50 border-gray-200 text-gray-400 dark:bg-gray-800/50 dark:border-gray-600 dark:text-gray-500'
 
 /**
  * Get the CSS classes for a shift code

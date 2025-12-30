@@ -4,7 +4,7 @@
 
 import { useMemo } from 'react'
 import type { SchedulingMonth } from '@/app/lib/scheduling'
-import { FiChevronLeft, FiChevronRight, FiPlus } from 'react-icons/fi'
+import { FiChevronLeft, FiChevronRight } from 'react-icons/fi'
 
 interface MonthSelectorProps {
   months: SchedulingMonth[]
@@ -17,13 +17,33 @@ interface MonthSelectorProps {
 }
 
 const MONTH_NAMES = [
-  'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-  'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+  'Enero',
+  'Febrero',
+  'Marzo',
+  'Abril',
+  'Mayo',
+  'Junio',
+  'Julio',
+  'Agosto',
+  'Septiembre',
+  'Octubre',
+  'Noviembre',
+  'Diciembre',
 ]
 
 const MONTH_NAMES_SHORT = [
-  'Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun',
-  'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'
+  'Ene',
+  'Feb',
+  'Mar',
+  'Abr',
+  'May',
+  'Jun',
+  'Jul',
+  'Ago',
+  'Sep',
+  'Oct',
+  'Nov',
+  'Dic',
 ]
 
 export function MonthSelector({
@@ -95,9 +115,10 @@ export function MonthSelector({
                 disabled={loading}
                 className={`
                   relative px-2.5 py-1.5 text-xs font-medium rounded-md transition-colors
-                  ${isSelected
-                    ? 'bg-blue-600 text-white dark:bg-blue-700'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'
+                  ${
+                    isSelected
+                      ? 'bg-blue-600 text-white dark:bg-blue-700'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'
                   }
                   disabled:opacity-50
                 `}

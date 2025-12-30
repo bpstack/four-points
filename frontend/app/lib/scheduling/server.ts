@@ -2,11 +2,7 @@
 // Server-side data fetching for scheduling module (SSR)
 
 import { serverFetch } from '@/app/lib/serverFetch'
-import type {
-  SchedulingShift,
-  SchedulingMonth,
-  SchedulingMonthFull,
-} from './types'
+import type { SchedulingShift, SchedulingMonth, SchedulingMonthFull } from './types'
 
 /**
  * Fetch shifts (server-side)
@@ -32,19 +28,14 @@ export async function getMonthsServer(year: number): Promise<{
 /**
  * Fetch full month data (server-side)
  */
-export async function getMonthByIdServer(
-  monthId: number
-): Promise<SchedulingMonthFull | null> {
+export async function getMonthByIdServer(monthId: number): Promise<SchedulingMonthFull | null> {
   return serverFetch<SchedulingMonthFull>(`/api/scheduling/months/${monthId}`)
 }
 
 /**
  * Find current or most recent month ID for a year
  */
-export function findCurrentMonthId(
-  months: SchedulingMonth[],
-  year: number
-): number | null {
+export function findCurrentMonthId(months: SchedulingMonth[], year: number): number | null {
   if (months.length === 0) return null
 
   const currentMonth = new Date().getMonth() + 1
@@ -66,10 +57,7 @@ export function findCurrentMonthId(
  */
 export async function getSchedulingInitialData(year: number) {
   // Parallel fetch for better performance
-  const [shifts, monthsData] = await Promise.all([
-    getShiftsServer(),
-    getMonthsServer(year),
-  ])
+  const [shifts, monthsData] = await Promise.all([getShiftsServer(), getMonthsServer(year)])
 
   // Find default month to load
   const defaultMonthId = findCurrentMonthId(monthsData.months, year)

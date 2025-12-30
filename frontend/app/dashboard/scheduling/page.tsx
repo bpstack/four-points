@@ -31,7 +31,10 @@ function SchedulingSkeleton() {
               <div className="h-9 w-24 bg-gray-200 dark:bg-gray-800 rounded animate-pulse" />
               <div className="flex gap-1">
                 {Array.from({ length: 12 }).map((_, i) => (
-                  <div key={i} className="h-8 w-8 bg-gray-200 dark:bg-gray-800 rounded animate-pulse" />
+                  <div
+                    key={i}
+                    className="h-8 w-8 bg-gray-200 dark:bg-gray-800 rounded animate-pulse"
+                  />
                 ))}
               </div>
             </div>

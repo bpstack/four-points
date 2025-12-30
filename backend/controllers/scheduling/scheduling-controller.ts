@@ -4,6 +4,7 @@ console.log('>>> SCHEDULING CONTROLLER LOADED <<<')
 
 import { Request, Response } from 'express'
 import * as repo from '../../repositories/scheduling/scheduling-repository.js'
+import { validateSchedule as validateScheduleService } from '../../services/scheduling/schedule-validator.js'
 import {
   createMonthSchema,
   updateMonthSchema,
@@ -1152,12 +1153,20 @@ export async function validateSchedule(req: Request, res: Response): Promise<voi
       return
     }
 
-    // TODO: Implement validation service
-    res.json({
-      isValid: true,
-      errors: [],
-      warnings: [],
-    })
+    // Use the validation service
+    const result = await validateScheduleService(monthId)
+    
+    if (!result) {
+      res.status(500).json({ error: 'Error al crear el validador' })
+      return
+    }
+
+    console.log(`[ValidateSchedule] Month ${monthId}: ${result.stats.totalErrors} errors, ${result.stats.totalWarnings} warnings`)
+    if (result.errors.length > 0) {
+      console.log(`[ValidateSchedule] Errors:`, result.errors.map(e => e.message).slice(0, 5))
+    }
+
+    res.json(result)
   } catch (err) {
     console.error('Error validating schedule:', err)
     res.status(500).json({ error: 'Error al validar el horario' })

@@ -4,3 +4,4 @@
 export * from './types'
 export * from './queries'
 export * from './shift-styles'
+export * from './export-pdf'

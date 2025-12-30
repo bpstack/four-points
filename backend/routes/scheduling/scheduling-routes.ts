@@ -135,6 +135,7 @@ router.delete('/months/:id', isAdmin, deleteMonth)
 // ========================================
 
 // POST - Generate schedule (admin only)
+// TODO: Add rate limiting in production (e.g., 5 requests/hour per user)
 router.post('/months/:id/generate', isAdmin, generateSchedule)
 
 // POST - Validate schedule

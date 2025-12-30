@@ -9,7 +9,12 @@ import { getShiftClasses } from '@/app/lib/scheduling'
 interface ScheduleGridProps {
   monthData: SchedulingMonthFull
   shiftsMap: Record<string, SchedulingShift>
-  onCellClick?: (employeeId: string, dayId: number, currentShift: string | null, event: React.MouseEvent) => void
+  onCellClick?: (
+    employeeId: string,
+    dayId: number,
+    currentShift: string | null,
+    event: React.MouseEvent
+  ) => void
   editable?: boolean
 }
 
@@ -33,11 +38,16 @@ const STATS_COLUMNS = [
   { key: 'B', label: 'B', color: 'text-rose-600 dark:text-rose-400' },
 ] as const
 
-export function ScheduleGrid({ monthData, shiftsMap, onCellClick, editable = false }: ScheduleGridProps) {
+export function ScheduleGrid({
+  monthData,
+  shiftsMap,
+  onCellClick,
+  editable = false,
+}: ScheduleGridProps) {
   const { days, employees, dailyStats } = monthData
 
-  // Group days by week
-  const weeks = useMemo(() => {
+  // Group days by week (reserved for future week view)
+  const _weeks = useMemo(() => {
     const grouped: { weekNumber: number; days: typeof days }[] = []
     let currentWeek: typeof days = []
     let currentWeekNumber = 0
@@ -85,7 +95,9 @@ export function ScheduleGrid({ monthData, shiftsMap, onCellClick, editable = fal
                     <span className={day.isHoliday ? 'text-red-600 dark:text-red-400' : ''}>
                       {DAY_NAMES[day.dayOfWeek]}
                     </span>
-                    <span className={`text-[11px] font-bold ${day.isHoliday ? 'text-red-600 dark:text-red-400' : ''}`}>
+                    <span
+                      className={`text-[11px] font-bold ${day.isHoliday ? 'text-red-600 dark:text-red-400' : ''}`}
+                    >
                       {day.dayNumber}
                     </span>
                   </div>
@@ -126,7 +138,9 @@ export function ScheduleGrid({ monthData, shiftsMap, onCellClick, editable = fal
                   <tr
                     key={employee.id}
                     className={`${
-                      empIndex % 2 === 0 ? 'bg-white dark:bg-[#151b23]' : 'bg-gray-50/50 dark:bg-[#0d1117]/50'
+                      empIndex % 2 === 0
+                        ? 'bg-white dark:bg-[#151b23]'
+                        : 'bg-gray-50/50 dark:bg-[#0d1117]/50'
                     } hover:bg-blue-50/50 dark:hover:bg-blue-900/10 transition-colors`}
                   >
                     {/* Employee Name */}
@@ -148,7 +162,9 @@ export function ScheduleGrid({ monthData, shiftsMap, onCellClick, editable = fal
                           }`}
                         >
                           <button
-                            onClick={(e) => editable && onCellClick?.(employee.id, day.id, shiftCode, e)}
+                            onClick={(e) =>
+                              editable && onCellClick?.(employee.id, day.id, shiftCode, e)
+                            }
                             disabled={!editable}
                             className={`
                               w-8 h-6 rounded text-[10px] font-bold border transition-all
@@ -191,7 +207,9 @@ export function ScheduleGrid({ monthData, shiftsMap, onCellClick, editable = fal
                   </td>
                   {dailyStats.map((stat, i) => (
                     <td key={i} className="px-0.5 py-1 text-center">
-                      <span className={`text-[10px] font-bold ${stat.M === 0 ? 'text-red-500 dark:text-red-600' : 'text-amber-600 dark:text-amber-600/90'}`}>
+                      <span
+                        className={`text-[10px] font-bold ${stat.M === 0 ? 'text-red-500 dark:text-red-600' : 'text-amber-600 dark:text-amber-600/90'}`}
+                      >
                         {stat.M}
                       </span>
                     </td>
@@ -207,7 +225,9 @@ export function ScheduleGrid({ monthData, shiftsMap, onCellClick, editable = fal
                   </td>
                   {dailyStats.map((stat, i) => (
                     <td key={i} className="px-0.5 py-1 text-center">
-                      <span className={`text-[10px] font-bold ${stat.T === 0 ? 'text-red-500 dark:text-red-600' : 'text-orange-600 dark:text-orange-600/90'}`}>
+                      <span
+                        className={`text-[10px] font-bold ${stat.T === 0 ? 'text-red-500 dark:text-red-600' : 'text-orange-600 dark:text-orange-600/90'}`}
+                      >
                         {stat.T}
                       </span>
                     </td>
@@ -222,7 +242,9 @@ export function ScheduleGrid({ monthData, shiftsMap, onCellClick, editable = fal
                   </td>
                   {dailyStats.map((stat, i) => (
                     <td key={i} className="px-0.5 py-1 text-center">
-                      <span className={`text-[10px] font-bold ${stat.N === 0 ? 'text-red-500 dark:text-red-600' : 'text-indigo-600 dark:text-indigo-500/90'}`}>
+                      <span
+                        className={`text-[10px] font-bold ${stat.N === 0 ? 'text-red-500 dark:text-red-600' : 'text-indigo-600 dark:text-indigo-500/90'}`}
+                      >
                         {stat.N}
                       </span>
                     </td>
@@ -237,7 +259,9 @@ export function ScheduleGrid({ monthData, shiftsMap, onCellClick, editable = fal
                   </td>
                   {dailyStats.map((stat, i) => (
                     <td key={i} className="px-0.5 py-1 text-center">
-                      <span className={`text-[10px] font-bold ${(stat.PI || 0) === 0 ? 'text-gray-400 dark:text-gray-600' : 'text-cyan-600 dark:text-cyan-600/90'}`}>
+                      <span
+                        className={`text-[10px] font-bold ${(stat.PI || 0) === 0 ? 'text-gray-400 dark:text-gray-600' : 'text-cyan-600 dark:text-cyan-600/90'}`}
+                      >
                         {stat.PI || 0}
                       </span>
                     </td>
@@ -252,7 +276,9 @@ export function ScheduleGrid({ monthData, shiftsMap, onCellClick, editable = fal
                   </td>
                   {dailyStats.map((stat, i) => (
                     <td key={i} className="px-0.5 py-1 text-center">
-                      <span className={`text-[10px] font-bold ${(stat.P || 0) === 0 ? 'text-gray-400 dark:text-gray-600' : 'text-teal-600 dark:text-teal-600/90'}`}>
+                      <span
+                        className={`text-[10px] font-bold ${(stat.P || 0) === 0 ? 'text-gray-400 dark:text-gray-600' : 'text-teal-600 dark:text-teal-600/90'}`}
+                      >
                         {stat.P || 0}
                       </span>
                     </td>
@@ -269,14 +295,19 @@ export function ScheduleGrid({ monthData, shiftsMap, onCellClick, editable = fal
                     const total = stat.M + stat.T + stat.N + (stat.PI || 0) + (stat.P || 0)
                     return (
                       <td key={i} className="px-0.5 py-1 text-center">
-                        <span className={`text-[10px] font-bold ${total < 3 ? 'text-red-600 dark:text-red-600' : total < 5 ? 'text-amber-600 dark:text-amber-600/90' : 'text-green-600 dark:text-green-600/90'}`}>
+                        <span
+                          className={`text-[10px] font-bold ${total < 3 ? 'text-red-600 dark:text-red-600' : total < 5 ? 'text-amber-600 dark:text-amber-600/90' : 'text-green-600 dark:text-green-600/90'}`}
+                        >
                           {total}
                         </span>
                       </td>
                     )
                   })}
                   <td className="px-2 py-1 text-center text-[10px] font-bold text-gray-700 dark:text-gray-400 border-l border-gray-200 dark:border-gray-700">
-                    {dailyStats.reduce((sum, s) => sum + s.M + s.T + s.N + (s.PI || 0) + (s.P || 0), 0)}
+                    {dailyStats.reduce(
+                      (sum, s) => sum + s.M + s.T + s.N + (s.PI || 0) + (s.P || 0),
+                      0
+                    )}
                   </td>
                 </tr>
               </>
