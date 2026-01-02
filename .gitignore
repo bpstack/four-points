@@ -50,6 +50,7 @@ build/
 # Documentation (local only)
 # --------------------------------------------
 **/docs/
+CLAUDE.md
 
 # --------------------------------------------
 # Local Scripts
