@@ -4,8 +4,8 @@ import { Suspense } from 'react'
 import { SchedulingConfigClient } from '@/app/components/scheduling/SchedulingConfigClient'
 
 export const metadata = {
-  title: 'Configuracion de Horarios | Four Points',
-  description: 'Configuracion del sistema de planificacion de horarios',
+  title: 'Schedule Configuration | Four Points',
+  description: 'Global parameters, shifts and employee rules',
 }
 
 function ConfigSkeleton() {
