@@ -6,6 +6,7 @@
 
 import { Request, Response } from 'express'
 import { conciliationMonthlyRepo } from '../../repositories/conciliation/conciliation-monthly.repository.js'
+import { ERROR_CODES } from '../../config/error-codes.js'
 
 /**
  * GET /api/conciliations/monthly-summary/:year/:month
@@ -18,27 +19,43 @@ export async function getMonthlySummary(req: Request, res: Response): Promise<vo
 
     // Validar parámetros
     if (isNaN(year) || isNaN(month)) {
-      res.status(400).json({ error: 'Año y mes deben ser números válidos' })
+      res.status(400).json({
+        success: false,
+        error: ERROR_CODES.CONCILIATION_INVALID_YEAR_MONTH,
+        code: ERROR_CODES.CONCILIATION_INVALID_YEAR_MONTH,
+      })
       return
     }
 
     if (year < 2000 || year > 2100) {
-      res.status(400).json({ error: 'Año inválido' })
+      res.status(400).json({
+        success: false,
+        error: ERROR_CODES.CONCILIATION_INVALID_YEAR,
+        code: ERROR_CODES.CONCILIATION_INVALID_YEAR,
+      })
       return
     }
 
     if (month < 1 || month > 12) {
-      res.status(400).json({ error: 'Mes debe estar entre 1 y 12' })
+      res.status(400).json({
+        success: false,
+        error: ERROR_CODES.CONCILIATION_INVALID_MONTH,
+        code: ERROR_CODES.CONCILIATION_INVALID_MONTH,
+      })
       return
     }
 
     // Calcular resumen
     const summary = await conciliationMonthlyRepo.calculateMonthlySummary(year, month)
 
-    res.status(200).json(summary)
+    res.status(200).json({ success: true, data: summary })
   } catch (error) {
     console.error('Error en getMonthlySummary:', error)
-    res.status(500).json({ error: 'Error al obtener resumen mensual' })
+    res.status(500).json({
+      success: false,
+      error: ERROR_CODES.CONCILIATION_MONTHLY_FETCH_ERROR,
+      code: ERROR_CODES.CONCILIATION_MONTHLY_FETCH_ERROR,
+    })
   }
 }
 
@@ -53,22 +70,34 @@ export async function validateMonthlySummary(req: Request, res: Response): Promi
 
     // Validar parámetros
     if (isNaN(year) || isNaN(month)) {
-      res.status(400).json({ error: 'Año y mes deben ser números válidos' })
+      res.status(400).json({
+        success: false,
+        error: ERROR_CODES.CONCILIATION_INVALID_YEAR_MONTH,
+        code: ERROR_CODES.CONCILIATION_INVALID_YEAR_MONTH,
+      })
       return
     }
 
     if (month < 1 || month > 12) {
-      res.status(400).json({ error: 'Mes debe estar entre 1 y 12' })
+      res.status(400).json({
+        success: false,
+        error: ERROR_CODES.CONCILIATION_INVALID_MONTH,
+        code: ERROR_CODES.CONCILIATION_INVALID_MONTH,
+      })
       return
     }
 
     // Validar
     const validation = await conciliationMonthlyRepo.validateMonthlyClose(year, month)
 
-    res.status(200).json(validation)
+    res.status(200).json({ success: true, data: validation })
   } catch (error) {
     console.error('Error en validateMonthlySummary:', error)
-    res.status(500).json({ error: 'Error al validar resumen mensual' })
+    res.status(500).json({
+      success: false,
+      error: ERROR_CODES.CONCILIATION_MONTHLY_VALIDATE_ERROR,
+      code: ERROR_CODES.CONCILIATION_MONTHLY_VALIDATE_ERROR,
+    })
   }
 }
 
@@ -86,18 +115,28 @@ export async function updateMonthlySummaryStatus(req: Request, res: Response): P
 
     // Validar parámetros
     if (isNaN(year) || isNaN(month)) {
-      res.status(400).json({ error: 'Año y mes deben ser números válidos' })
+      res.status(400).json({
+        success: false,
+        error: ERROR_CODES.CONCILIATION_INVALID_YEAR_MONTH,
+        code: ERROR_CODES.CONCILIATION_INVALID_YEAR_MONTH,
+      })
       return
     }
 
     if (month < 1 || month > 12) {
-      res.status(400).json({ error: 'Mes debe estar entre 1 y 12' })
+      res.status(400).json({
+        success: false,
+        error: ERROR_CODES.CONCILIATION_INVALID_MONTH,
+        code: ERROR_CODES.CONCILIATION_INVALID_MONTH,
+      })
       return
     }
 
     if (!status || !['draft', 'confirmed', 'closed'].includes(status)) {
       res.status(400).json({
-        error: 'Status inválido. Debe ser: draft, confirmed o closed',
+        success: false,
+        error: ERROR_CODES.CONCILIATION_INVALID_STATUS,
+        code: ERROR_CODES.CONCILIATION_INVALID_STATUS,
       })
       return
     }
@@ -114,7 +153,7 @@ export async function updateMonthlySummaryStatus(req: Request, res: Response): P
     await conciliationMonthlyRepo.updateMonthlySummaryStatus(year, month, status, userId)
 
     res.status(200).json({
-      message: `Resumen mensual marcado como ${status}`,
+      success: true,
       year,
       month,
       status,
@@ -123,13 +162,19 @@ export async function updateMonthlySummaryStatus(req: Request, res: Response): P
     // Error de validación al intentar cerrar
     if (error.message?.includes('No se puede cerrar')) {
       res.status(400).json({
-        error: error.message,
+        success: false,
+        error: ERROR_CODES.CONCILIATION_CLOSED_CANNOT_MODIFY,
+        code: ERROR_CODES.CONCILIATION_CLOSED_CANNOT_MODIFY,
       })
       return
     }
 
     console.error('Error en updateMonthlySummaryStatus:', error)
-    res.status(500).json({ error: 'Error al actualizar estado del resumen mensual' })
+    res.status(500).json({
+      success: false,
+      error: ERROR_CODES.CONCILIATION_MONTHLY_UPDATE_STATUS_ERROR,
+      code: ERROR_CODES.CONCILIATION_MONTHLY_UPDATE_STATUS_ERROR,
+    })
   }
 }
 
@@ -144,12 +189,20 @@ export async function getMissingDays(req: Request, res: Response): Promise<void>
 
     // Validar parámetros
     if (isNaN(year) || isNaN(month)) {
-      res.status(400).json({ error: 'Año y mes deben ser números válidos' })
+      res.status(400).json({
+        success: false,
+        error: ERROR_CODES.CONCILIATION_INVALID_YEAR_MONTH,
+        code: ERROR_CODES.CONCILIATION_INVALID_YEAR_MONTH,
+      })
       return
     }
 
     if (month < 1 || month > 12) {
-      res.status(400).json({ error: 'Mes debe estar entre 1 y 12' })
+      res.status(400).json({
+        success: false,
+        error: ERROR_CODES.CONCILIATION_INVALID_MONTH,
+        code: ERROR_CODES.CONCILIATION_INVALID_MONTH,
+      })
       return
     }
 
@@ -157,13 +210,20 @@ export async function getMissingDays(req: Request, res: Response): Promise<void>
     const missingDays = await conciliationMonthlyRepo.getMissingDaysInMonth(year, month)
 
     res.status(200).json({
-      year,
-      month,
-      missing_days: missingDays,
-      count: missingDays.length,
+      success: true,
+      data: {
+        year,
+        month,
+        missing_days: missingDays,
+        count: missingDays.length,
+      },
     })
   } catch (error) {
     console.error('Error en getMissingDays:', error)
-    res.status(500).json({ error: 'Error al obtener días faltantes' })
+    res.status(500).json({
+      success: false,
+      error: ERROR_CODES.CONCILIATION_MONTHLY_MISSING_DAYS_ERROR,
+      code: ERROR_CODES.CONCILIATION_MONTHLY_MISSING_DAYS_ERROR,
+    })
   }
 }

@@ -2,6 +2,7 @@
 
 'use client'
 
+import { useTranslations } from 'next-intl'
 import { FiActivity, FiUsers, FiList } from 'react-icons/fi'
 import type { HistoryStats as HistoryStatsType } from '@/app/lib/cashier/types'
 
@@ -10,6 +11,8 @@ interface HistoryStatsProps {
 }
 
 export default function HistoryStats({ stats }: HistoryStatsProps) {
+  const t = useTranslations('cashier')
+
   // ✅ Validar que stats y sus propiedades existan
   if (!stats || !stats.most_active_users || !stats.actions_breakdown || !stats.recent_activity) {
     return null
@@ -23,15 +26,15 @@ export default function HistoryStats({ stats }: HistoryStatsProps) {
 
   const getActionLabel = (action: string): string => {
     const labels: Record<string, string> = {
-      created: 'Creado',
-      updated: 'Actualizado',
-      deleted: 'Eliminado',
-      status_changed: 'Cambio Estado',
-      adjustment: 'Ajuste',
-      voucher_created: 'Vale Creado',
-      voucher_repaid: 'Vale Justificado',
-      daily_closed: 'Día Cerrado',
-      daily_reopened: 'Día Reabierto',
+      created: t('actions.created'),
+      updated: t('actions.updated'),
+      deleted: t('actions.deleted'),
+      status_changed: t('actions.status_changed'),
+      adjustment: t('actions.adjustment'),
+      voucher_created: t('actions.voucher_created'),
+      voucher_repaid: t('actions.voucher_repaid'),
+      daily_closed: t('actions.daily_closed'),
+      daily_reopened: t('actions.daily_reopened'),
     }
     return labels[action] || action
   }
@@ -42,7 +45,7 @@ export default function HistoryStats({ stats }: HistoryStatsProps) {
       <div className="bg-white dark:bg-[#0d1117] border border-gray-200 dark:border-gray-800 rounded-lg p-6">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400">
-            Total de Registros
+            {t('logs.totalRecords')}
           </h3>
           <FiActivity className="w-5 h-5 text-blue-600 dark:text-blue-400" />
         </div>
@@ -65,7 +68,7 @@ export default function HistoryStats({ stats }: HistoryStatsProps) {
       <div className="bg-white dark:bg-[#0d1117] border border-gray-200 dark:border-gray-800 rounded-lg p-6">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400">
-            Usuarios Más Activos
+            {t('logs.activeUsers')}
           </h3>
           <FiUsers className="w-5 h-5 text-green-600 dark:text-green-400" />
         </div>
@@ -81,14 +84,14 @@ export default function HistoryStats({ stats }: HistoryStatsProps) {
                     {user.username}
                   </p>
                   <p className="text-xs text-gray-500 dark:text-gray-400">
-                    {user.actions_count} acciones
+                    {user.actions_count} {t('logs.action').toLowerCase()}
                   </p>
                 </div>
               </div>
             ))
           ) : (
             <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">
-              Sin actividad
+              {t('logs.noActivity')}
             </p>
           )}
         </div>
@@ -98,7 +101,7 @@ export default function HistoryStats({ stats }: HistoryStatsProps) {
       <div className="bg-white dark:bg-[#0d1117] border border-gray-200 dark:border-gray-800 rounded-lg p-6">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400">
-            Actividad Reciente
+            {t('logs.recentActivity')}
           </h3>
           <FiList className="w-5 h-5 text-purple-600 dark:text-purple-400" />
         </div>
@@ -117,7 +120,7 @@ export default function HistoryStats({ stats }: HistoryStatsProps) {
                 </span>
               </div>
               <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
-                {activity.username || 'Sistema'}
+                {activity.username || t('logs.system')}
               </p>
             </div>
           ))}

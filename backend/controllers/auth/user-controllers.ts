@@ -101,3 +101,34 @@ export const deleteUser = async (req: Request, res: Response): Promise<void> => 
     res.status(500).json({ error: 'Error al eliminar usuario' })
   }
 }
+
+/**
+ * Reset de contraseña por admin
+ * Solo accesible para administradores
+ */
+export const resetUserPassword = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { newPassword } = req.body
+
+    if (!newPassword || newPassword.length < 6) {
+      res.status(400).json({ error: 'La contraseña debe tener al menos 6 caracteres' })
+      return
+    }
+
+    const success = await UserRepository.resetPassword(req.params.id, newPassword)
+
+    if (!success) {
+      res.status(404).json({ error: 'Usuario no encontrado' })
+      return
+    }
+
+    res.status(200).json({ message: 'Contraseña actualizada correctamente' })
+  } catch (error: any) {
+    console.error('Error resetUserPassword:', error)
+    if (error.message === 'Usuario no encontrado') {
+      res.status(404).json({ error: error.message })
+      return
+    }
+    res.status(500).json({ error: 'Error al resetear contraseña' })
+  }
+}

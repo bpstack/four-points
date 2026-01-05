@@ -16,6 +16,7 @@ import {
   selectClassName,
   textareaClassName,
 } from '@/app/ui/panels'
+import { useTranslations } from 'next-intl'
 
 type ImportanceLevel = 'baja' | 'media' | 'alta' | 'urgente'
 
@@ -31,7 +32,7 @@ export default function NewLogbookEntry({
   onClose,
   onSubmit,
   defaultDate,
-  title = 'New Logbook Entry',
+  title,
 }: {
   isOpen: boolean
   onClose: () => void
@@ -40,6 +41,7 @@ export default function NewLogbookEntry({
   title?: string
 }) {
   const { departments } = useDepartments()
+  const t = useTranslations('logbooks')
 
   const getLocalDateString = useMemo(() => {
     return (date: Date = new Date()): string => {
@@ -79,15 +81,15 @@ export default function NewLogbookEntry({
 
   const handleSave = async () => {
     if (!message.trim()) {
-      setError('El mensaje es obligatorio')
+      setError(t('modals.newEntry.errors.requiredMessage'))
       return
     }
     if (message.trim().length < 3) {
-      setError('El mensaje debe tener al menos 3 caracteres')
+      setError(t('modals.newEntry.errors.minChars'))
       return
     }
     if (department === null) {
-      setError('Debes seleccionar un departamento')
+      setError(t('modals.newEntry.errors.department'))
       return
     }
     setIsSubmitting(true)
@@ -101,7 +103,7 @@ export default function NewLogbookEntry({
       })
       onClose()
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Error al crear la entrada'
+      const message = err instanceof Error ? err.message : t('modals.newEntry.errors.generic')
       setError(message)
     } finally {
       setIsSubmitting(false)
@@ -120,8 +122,8 @@ export default function NewLogbookEntry({
     <SlidePanel
       isOpen={isOpen}
       onClose={onClose}
-      title={title}
-      subtitle="Create a new logbook entry"
+      title={title || t('modals.newEntry.title')}
+      subtitle={t('modals.newEntry.subtitle')}
       size="xl"
       position="right"
       headerIcon={<FiAlertTriangle className="w-5 h-5 text-blue-600 dark:text-blue-400" />}
@@ -129,8 +131,8 @@ export default function NewLogbookEntry({
         <SlidePanelFooterButtons
           onCancel={onClose}
           onSubmit={handleSave}
-          cancelText="Cancel"
-          submitText="Save Entry"
+          cancelText={t('modals.newEntry.footer.cancel')}
+          submitText={t('modals.newEntry.footer.submit')}
           submitIcon={<FiSend className="w-4 h-4" />}
           isSubmitting={isSubmitting}
           submitDisabled={!message.trim()}
@@ -154,13 +156,13 @@ export default function NewLogbookEntry({
           </Alert>
         )}
 
-        <FormField label="Message" required>
+        <FormField label={t('modals.newEntry.fields.message')} required>
           <textarea
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             className={textareaClassName}
             rows={6}
-            placeholder="Describe the issue or event..."
+            placeholder={t('modals.newEntry.placeholders.message')}
             required
             minLength={3}
             disabled={isSubmitting}
@@ -169,7 +171,7 @@ export default function NewLogbookEntry({
 
         {/* Date field with calendar */}
         <div className="relative">
-          <FormField label="Date">
+          <FormField label={t('modals.newEntry.fields.date')}>
             <div className="flex gap-2">
               {/* Date input (readonly, display only) */}
               <div className="flex-1 relative">
@@ -179,7 +181,7 @@ export default function NewLogbookEntry({
                   readOnly
                   onClick={() => setShowCalendar(!showCalendar)}
                   className={`${inputClassName} cursor-pointer pr-10`}
-                  placeholder="Select a date..."
+                  placeholder={t('modals.newEntry.placeholders.date')}
                   disabled={isSubmitting}
                 />
                 <FiCalendar className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
@@ -196,7 +198,7 @@ export default function NewLogbookEntry({
                 className="px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-md font-medium transition-colors text-sm"
                 disabled={isSubmitting}
               >
-                Today
+                {t('modals.newEntry.fields.today')}
               </button>
             </div>
           </FormField>
@@ -214,28 +216,28 @@ export default function NewLogbookEntry({
         </div>
 
         <div className="grid grid-cols-2 gap-4">
-          <FormField label="Priority">
+          <FormField label={t('modals.newEntry.fields.priority')}>
             <select
               value={priority}
               onChange={(e) => setPriority(e.target.value as ImportanceLevel)}
               className={selectClassName}
               disabled={isSubmitting}
             >
-              <option value="baja">Low</option>
-              <option value="media">Medium</option>
-              <option value="alta">High</option>
-              <option value="urgente">Critical</option>
+              <option value="baja">{t('priorities.low')}</option>
+              <option value="media">{t('priorities.medium')}</option>
+              <option value="alta">{t('priorities.high')}</option>
+              <option value="urgente">{t('priorities.critical')}</option>
             </select>
           </FormField>
 
-          <FormField label="Department">
+          <FormField label={t('modals.newEntry.fields.department')}>
             <select
               value={department ?? ''}
               onChange={(e) => setDepartment(e.target.value ? Number(e.target.value) : null)}
               className={selectClassName}
               disabled={isSubmitting}
             >
-              <option value="">Elegir departamento...</option>
+              <option value="">{t('modals.newEntry.departmentPlaceholder')}</option>
               {departments.length > 0 ? (
                 departments.map((dept) => (
                   <option key={dept.id} value={dept.id}>
@@ -244,9 +246,9 @@ export default function NewLogbookEntry({
                 ))
               ) : (
                 <>
-                  <option value={1}>Recepcion</option>
-                  <option value={2}>Housekeeping</option>
-                  <option value={3}>Mantenimiento</option>
+                  <option value={1}>{t('departments.reception')}</option>
+                  <option value={2}>{t('departments.housekeeping')}</option>
+                  <option value={3}>{t('departments.maintenance')}</option>
                 </>
               )}
             </select>

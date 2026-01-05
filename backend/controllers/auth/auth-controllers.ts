@@ -14,6 +14,7 @@ import {
   verifyToken,
 } from '../../services/auth/tokenService.js'
 import { CloudinaryService } from '../../services/blacklist/cloudinary-service.js'
+import { ERROR_CODES, SUCCESS_CODES } from '../../config/error-codes.js'
 import type {
   CookieOptions,
   TokenPayload,
@@ -51,14 +52,20 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     const { username, password } = req.body as LoginDTO
 
     if (!username || !password) {
-      res.status(400).json({ error: 'Username and password are required' })
+      res.status(400).json({
+        error: ERROR_CODES.AUTH_CREDENTIALS_REQUIRED,
+        code: ERROR_CODES.AUTH_CREDENTIALS_REQUIRED,
+      })
       return
     }
 
     const user = await UserRepository.login({ username, password })
 
     if (!user) {
-      res.status(401).json({ error: 'Invalid credentials' })
+      res.status(401).json({
+        error: ERROR_CODES.AUTH_INVALID_CREDENTIALS,
+        code: ERROR_CODES.AUTH_INVALID_CREDENTIALS,
+      })
       return
     }
 
@@ -94,10 +101,10 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       // Siempre enviar refreshToken - el proxy de Next.js lo necesita para crear cookies HttpOnly
       refreshToken: refreshToken,
     })
-  } catch (error) {
-    const err = error as Error
+  } catch {
     res.status(401).json({
-      error: err.message || 'Invalid credentials',
+      error: ERROR_CODES.AUTH_INVALID_CREDENTIALS,
+      code: ERROR_CODES.AUTH_INVALID_CREDENTIALS,
     })
   }
 }
@@ -157,7 +164,10 @@ export const refreshToken = (req: Request, res: Response): void => {
   }
 
   if (!token) {
-    res.status(401).json({ error: 'Refresh token no proporcionado' })
+    res.status(401).json({
+      error: ERROR_CODES.AUTH_REFRESH_TOKEN_MISSING,
+      code: ERROR_CODES.AUTH_REFRESH_TOKEN_MISSING,
+    })
     return
   }
 
@@ -199,7 +209,8 @@ export const refreshToken = (req: Request, res: Response): void => {
     res.clearCookie('refresh_token', cookieOptions)
 
     res.status(403).json({
-      error: 'Refresh token inválido o expirado',
+      error: ERROR_CODES.AUTH_REFRESH_TOKEN_INVALID,
+      code: ERROR_CODES.AUTH_REFRESH_TOKEN_INVALID,
     })
   }
 }
@@ -213,7 +224,8 @@ export const logout = (_req: Request, res: Response): void => {
 
   res.status(200).json({
     success: true,
-    message: 'Sesión cerrada correctamente',
+    message: SUCCESS_CODES.AUTH_LOGOUT_SUCCESS,
+    code: SUCCESS_CODES.AUTH_LOGOUT_SUCCESS,
   })
 }
 
@@ -228,7 +240,10 @@ export const me = async (req: Request, res: Response): Promise<void> => {
     const user = await UserRepository.getById(req.user!.id)
 
     if (!user) {
-      res.status(404).json({ error: 'Usuario no encontrado' })
+      res.status(404).json({
+        error: ERROR_CODES.AUTH_USER_NOT_FOUND,
+        code: ERROR_CODES.AUTH_USER_NOT_FOUND,
+      })
       return
     }
 
@@ -243,7 +258,10 @@ export const me = async (req: Request, res: Response): Promise<void> => {
     })
   } catch (error) {
     console.error('Error en /me:', error)
-    res.status(500).json({ error: 'Error interno del servidor' })
+    res.status(500).json({
+      error: ERROR_CODES.INTERNAL_ERROR,
+      code: ERROR_CODES.INTERNAL_ERROR,
+    })
   }
 }
 
@@ -292,7 +310,8 @@ export const updateProfile = async (req: Request, res: Response): Promise<void> 
 
     res.status(200).json({
       success: true,
-      message: 'Perfil actualizado correctamente',
+      message: SUCCESS_CODES.AUTH_PROFILE_UPDATED,
+      code: SUCCESS_CODES.AUTH_PROFILE_UPDATED,
       user: updatedUser,
       token: accessToken,
       refreshToken: refreshToken,
@@ -303,7 +322,10 @@ export const updateProfile = async (req: Request, res: Response): Promise<void> 
 
     // Errores conocidos
     if (err.message === 'Contraseña actual incorrecta') {
-      res.status(401).json({ error: err.message })
+      res.status(401).json({
+        error: ERROR_CODES.AUTH_CURRENT_PASSWORD_INCORRECT,
+        code: ERROR_CODES.AUTH_CURRENT_PASSWORD_INCORRECT,
+      })
       return
     }
 
@@ -313,11 +335,17 @@ export const updateProfile = async (req: Request, res: Response): Promise<void> 
     }
 
     if (err.message === 'Usuario no encontrado') {
-      res.status(404).json({ error: err.message })
+      res.status(404).json({
+        error: ERROR_CODES.AUTH_USER_NOT_FOUND,
+        code: ERROR_CODES.AUTH_USER_NOT_FOUND,
+      })
       return
     }
 
-    res.status(500).json({ error: 'Error interno del servidor' })
+    res.status(500).json({
+      error: ERROR_CODES.INTERNAL_ERROR,
+      code: ERROR_CODES.INTERNAL_ERROR,
+    })
   }
 }
 
@@ -351,7 +379,8 @@ export const updatePassword = async (req: Request, res: Response): Promise<void>
 
     res.status(200).json({
       success: true,
-      message: 'Contraseña actualizada correctamente. Por seguridad, debes iniciar sesión nuevamente.',
+      message: SUCCESS_CODES.AUTH_PASSWORD_UPDATED,
+      code: SUCCESS_CODES.AUTH_PASSWORD_UPDATED,
       requiresRelogin: true,
     })
   } catch (error) {
@@ -360,7 +389,10 @@ export const updatePassword = async (req: Request, res: Response): Promise<void>
 
     // Errores conocidos
     if (err.message === 'Contraseña actual incorrecta') {
-      res.status(401).json({ error: err.message })
+      res.status(401).json({
+        error: ERROR_CODES.AUTH_CURRENT_PASSWORD_INCORRECT,
+        code: ERROR_CODES.AUTH_CURRENT_PASSWORD_INCORRECT,
+      })
       return
     }
 
@@ -370,11 +402,17 @@ export const updatePassword = async (req: Request, res: Response): Promise<void>
     }
 
     if (err.message === 'Usuario no encontrado') {
-      res.status(404).json({ error: err.message })
+      res.status(404).json({
+        error: ERROR_CODES.AUTH_USER_NOT_FOUND,
+        code: ERROR_CODES.AUTH_USER_NOT_FOUND,
+      })
       return
     }
 
-    res.status(500).json({ error: 'Error interno del servidor' })
+    res.status(500).json({
+      error: ERROR_CODES.INTERNAL_ERROR,
+      code: ERROR_CODES.INTERNAL_ERROR,
+    })
   }
 }
 
@@ -387,7 +425,10 @@ export const uploadAvatar = async (req: Request, res: Response): Promise<void> =
     const userId = req.user!.id
 
     if (!req.file) {
-      res.status(400).json({ error: 'No se proporcionó ninguna imagen' })
+      res.status(400).json({
+        error: ERROR_CODES.AUTH_NO_IMAGE_PROVIDED,
+        code: ERROR_CODES.AUTH_NO_IMAGE_PROVIDED,
+      })
       return
     }
 
@@ -395,7 +436,8 @@ export const uploadAvatar = async (req: Request, res: Response): Promise<void> =
     const allowedMimes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
     if (!allowedMimes.includes(req.file.mimetype)) {
       res.status(400).json({
-        error: 'Tipo de archivo no válido. Solo se permiten: JPEG, PNG, WebP, GIF',
+        error: ERROR_CODES.AUTH_INVALID_FILE_TYPE,
+        code: ERROR_CODES.AUTH_INVALID_FILE_TYPE,
       })
       return
     }
@@ -432,12 +474,16 @@ export const uploadAvatar = async (req: Request, res: Response): Promise<void> =
 
     res.status(200).json({
       success: true,
-      message: 'Avatar actualizado correctamente',
+      message: SUCCESS_CODES.AUTH_AVATAR_UPDATED,
+      code: SUCCESS_CODES.AUTH_AVATAR_UPDATED,
       user: updatedUser,
     })
   } catch (error) {
     console.error('Error en uploadAvatar:', error)
-    res.status(500).json({ error: 'Error al subir avatar' })
+    res.status(500).json({
+      error: ERROR_CODES.AUTH_UPLOAD_AVATAR_ERROR,
+      code: ERROR_CODES.AUTH_UPLOAD_AVATAR_ERROR,
+    })
   }
 }
 
@@ -467,11 +513,15 @@ export const deleteAvatar = async (req: Request, res: Response): Promise<void> =
 
     res.status(200).json({
       success: true,
-      message: 'Avatar eliminado correctamente',
+      message: SUCCESS_CODES.AUTH_AVATAR_DELETED,
+      code: SUCCESS_CODES.AUTH_AVATAR_DELETED,
       user: updatedUser,
     })
   } catch (error) {
     console.error('Error en deleteAvatar:', error)
-    res.status(500).json({ error: 'Error al eliminar avatar' })
+    res.status(500).json({
+      error: ERROR_CODES.AUTH_DELETE_AVATAR_ERROR,
+      code: ERROR_CODES.AUTH_DELETE_AVATAR_ERROR,
+    })
   }
 }

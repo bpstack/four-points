@@ -17,6 +17,7 @@ import { Button } from '@/app/components/blacklist/ui/Button'
 import type { BlacklistEntry } from '@/app/lib/blacklist/types'
 import { SEVERITY_LEVELS } from '@/app/lib/blacklist/types'
 import { formatDate, highlightMatches, truncateText } from '@/app/lib/blacklist/blacklistUtils'
+import { useTranslations } from 'next-intl'
 
 interface BlacklistTableProps {
   entries: BlacklistEntry[]
@@ -25,6 +26,7 @@ interface BlacklistTableProps {
 
 export function BlacklistTable({ entries, searchTerm }: BlacklistTableProps) {
   const router = useRouter()
+  const t = useTranslations('blacklist')
 
   // ========================================
   // MANEJAR CLICK EN FILA
@@ -35,7 +37,7 @@ export function BlacklistTable({ entries, searchTerm }: BlacklistTableProps) {
 
   // Si no hay resultados
   if (entries.length === 0) {
-    return <EmptyState />
+    return <EmptyState t={t} />
   }
 
   return (
@@ -46,25 +48,25 @@ export function BlacklistTable({ entries, searchTerm }: BlacklistTableProps) {
           <thead className="bg-gray-50 dark:bg-[#0D1117] border-b border-gray-200 dark:border-gray-800">
             <tr>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                Huésped
+                {t('table.guest')}
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                Documento
+                {t('table.document')}
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                Fechas
+                {t('table.dates')}
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                Gravedad
+                {t('table.severity')}
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                Estado
+                {t('table.status')}
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                Registrado por
+                {t('table.registeredBy')}
               </th>
               <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                Acciones
+                {t('table.actions')}
               </th>
             </tr>
           </thead>
@@ -142,13 +144,13 @@ export function BlacklistTable({ entries, searchTerm }: BlacklistTableProps) {
                 {/* Estado */}
                 <td className="px-6 py-4">
                   <Badge variant={entry.status === 'ACTIVE' ? 'success' : 'default'}>
-                    {entry.status === 'ACTIVE' ? 'Activo' : 'Eliminado'}
+                    {entry.status === 'ACTIVE' ? t('status.active') : t('status.deleted')}
                   </Badge>
                 </td>
 
                 {/* Autor */}
                 <td className="px-6 py-4 text-gray-700 dark:text-gray-300">
-                  <div className="text-sm">{entry.created_by_username || 'Desconocido'}</div>
+                  <div className="text-sm">{entry.created_by_username || t('detail.unknown')}</div>
                   <div className="text-xs text-gray-500 dark:text-gray-400">
                     {formatDate(entry.created_at)}
                   </div>
@@ -162,7 +164,7 @@ export function BlacklistTable({ entries, searchTerm }: BlacklistTableProps) {
                     className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-medium transition-colors"
                   >
                     <IoEyeOutline size={18} />
-                    <span>Ver</span>
+                    <span>{t('modal.edit')}</span>
                   </Link>
                 </td>
               </tr>
@@ -174,7 +176,7 @@ export function BlacklistTable({ entries, searchTerm }: BlacklistTableProps) {
       {/* MOBILE: Cards */}
       <div className="md:hidden space-y-4 p-4">
         {entries.map((entry) => (
-          <BlacklistCard key={entry.id} entry={entry} searchTerm={searchTerm} />
+          <BlacklistCard key={entry.id} entry={entry} searchTerm={searchTerm} t={t} />
         ))}
       </div>
     </>
@@ -188,9 +190,10 @@ export function BlacklistTable({ entries, searchTerm }: BlacklistTableProps) {
 interface BlacklistCardProps {
   entry: BlacklistEntry
   searchTerm?: string
+  t: ReturnType<typeof useTranslations<'blacklist'>>
 }
 
-function BlacklistCard({ entry, searchTerm }: BlacklistCardProps) {
+function BlacklistCard({ entry, searchTerm, t }: BlacklistCardProps) {
   return (
     <Link
       href={`/dashboard/blacklist/${entry.id}`}
@@ -238,7 +241,7 @@ function BlacklistCard({ entry, searchTerm }: BlacklistCardProps) {
             {SEVERITY_LEVELS[entry.severity]}
           </Badge>
           <Badge variant={entry.status === 'ACTIVE' ? 'success' : 'default'} size="sm">
-            {entry.status === 'ACTIVE' ? 'Activo' : 'Eliminado'}
+            {entry.status === 'ACTIVE' ? t('status.active') : t('status.deleted')}
           </Badge>
         </div>
       </div>
@@ -256,7 +259,8 @@ function BlacklistCard({ entry, searchTerm }: BlacklistCardProps) {
       {/* Footer */}
       <div className="flex items-center justify-between pt-3 border-t border-gray-200 dark:border-gray-700">
         <div className="text-xs text-gray-500 dark:text-gray-400">
-          Por: <span className="font-medium">{entry.created_by_username || 'Desconocido'}</span>
+          Por:{' '}
+          <span className="font-medium">{entry.created_by_username || t('detail.unknown')}</span>
         </div>
         <div className="text-xs text-gray-500 dark:text-gray-400">
           {formatDate(entry.created_at)}
@@ -270,21 +274,24 @@ function BlacklistCard({ entry, searchTerm }: BlacklistCardProps) {
 // COMPONENTE: Estado vacío
 // ========================================
 
-function EmptyState() {
+interface EmptyStateProps {
+  t: ReturnType<typeof useTranslations<'blacklist'>>
+}
+
+function EmptyState({ t }: EmptyStateProps) {
   return (
     <div className="flex flex-col items-center justify-center py-16 px-4">
       <div className="w-16 h-16 bg-gray-100 dark:bg-[#161B22] rounded-full flex items-center justify-center mb-4">
         <IoWarning className="text-gray-400 dark:text-gray-600" size={32} />
       </div>
       <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
-        No se encontraron registros
+        {t('table.noEntries')}
       </h3>
       <p className="text-sm text-gray-600 dark:text-gray-400 text-center max-w-md mb-6">
-        No hay registros que coincidan con los filtros aplicados. Intenta ajustar tu búsqueda o
-        limpia los filtros.
+        {t('table.noResultsSearch')}
       </p>
       <Link href="/dashboard/blacklist/new">
-        <Button variant="primary">Crear nuevo registro</Button>
+        <Button variant="primary">{t('page.newEntry')}</Button>
       </Link>
     </div>
   )

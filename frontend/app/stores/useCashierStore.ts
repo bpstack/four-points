@@ -48,10 +48,10 @@ interface CashierStore {
   // ========================================
   // COMPUTED (derivado de currentDate)
   // ========================================
-  getCurrentMonth: () => string
+  getCurrentMonth: (locale?: string) => string
   getCurrentYear: () => number
-  getLogsFormattedDate: () => string
-  getReportsDisplayLabel: () => string
+  getLogsFormattedDate: (locale?: string) => string
+  getReportsDisplayLabel: (locale?: string) => string
 
   // ========================================
   // HOTEL - DATE ACTIONS
@@ -98,23 +98,17 @@ interface CashierStore {
 }
 
 // ═══════════════════════════════════════════════════════
-// CONSTANTS
+// HELPERS
 // ═══════════════════════════════════════════════════════
 
-const MONTH_NAMES = [
-  'Enero',
-  'Febrero',
-  'Marzo',
-  'Abril',
-  'Mayo',
-  'Junio',
-  'Julio',
-  'Agosto',
-  'Septiembre',
-  'Octubre',
-  'Noviembre',
-  'Diciembre',
-]
+/**
+ * Get localized month name using Intl.DateTimeFormat
+ * Falls back to the provided locale or 'es-ES'
+ */
+function getLocalizedMonthName(month: number, locale: string = 'es-ES'): string {
+  const date = new Date(2000, month - 1, 1) // month is 1-indexed
+  return date.toLocaleString(locale, { month: 'long' })
+}
 
 // ═══════════════════════════════════════════════════════
 // INITIAL STATE
@@ -154,25 +148,28 @@ export const useCashierStore = create<CashierStore>((set, get) => ({
   // ========================================
   // COMPUTED
   // ========================================
-  getCurrentMonth: () => {
-    return get().currentDate.toLocaleString('es-ES', { month: 'long' })
+  getCurrentMonth: (locale = 'es-ES') => {
+    return get().currentDate.toLocaleString(locale, { month: 'long' })
   },
 
   getCurrentYear: () => {
     return get().currentDate.getFullYear()
   },
 
-  getLogsFormattedDate: () => {
-    return new Date(get().logsDate).toLocaleDateString('es-ES', {
+  getLogsFormattedDate: (locale = 'es-ES') => {
+    return new Date(get().logsDate).toLocaleDateString(locale, {
       day: '2-digit',
       month: 'long',
       year: 'numeric',
     })
   },
 
-  getReportsDisplayLabel: () => {
+  getReportsDisplayLabel: (locale = 'es-ES') => {
     const { reportsMonth, reportsYear } = get()
-    return `${MONTH_NAMES[reportsMonth - 1]} ${reportsYear}`
+    const monthName = getLocalizedMonthName(reportsMonth, locale)
+    // Capitalize first letter
+    const capitalizedMonth = monthName.charAt(0).toUpperCase() + monthName.slice(1)
+    return `${capitalizedMonth} ${reportsYear}`
   },
 
   // ========================================

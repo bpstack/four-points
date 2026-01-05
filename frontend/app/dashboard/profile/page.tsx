@@ -4,9 +4,15 @@
 
 import { Suspense, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { useAuth } from '@/app/lib/auth/useAuth'
 import { cn } from '@/app/lib/helpers/utils'
-import { ProfileSidebar, SettingsPanel, MessagesPanel } from '@/app/components/profile'
+import {
+  ProfileSidebar,
+  SettingsPanel,
+  MessagesPanel,
+  NotificationsPanel,
+} from '@/app/components/profile'
 
 // Skeleton for loading state
 function ProfileSkeleton() {
@@ -22,6 +28,7 @@ function ProfileContent() {
   const { user, loading } = useAuth()
   const searchParams = useSearchParams()
   const activePanel = searchParams.get('panel') // 'settings' | 'messages' | null
+  const t = useTranslations('profile.page')
 
   // Track if a conversation is selected in messages panel
   const [hasActiveConversation, setHasActiveConversation] = useState(false)
@@ -36,7 +43,7 @@ function ProfileContent() {
   if (!user) {
     return (
       <div className="flex items-center justify-center h-full">
-        <p className="text-xs text-gray-500 dark:text-gray-400">Unable to load profile</p>
+        <p className="text-xs text-gray-500 dark:text-gray-400">{t('unableToLoad')}</p>
       </div>
     )
   }
@@ -48,6 +55,8 @@ function ProfileContent() {
         return <SettingsPanel />
       case 'messages':
         return <MessagesPanel onConversationSelect={setHasActiveConversation} />
+      case 'notifications':
+        return <NotificationsPanel />
       default:
         return null
     }
@@ -94,11 +103,9 @@ function ProfileContent() {
                 </svg>
               </div>
               <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-1">
-                Selecciona una opcion
+                {t('selectOption')}
               </h3>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
-                Usa el menu de la izquierda para navegar
-              </p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">{t('useLeftMenu')}</p>
             </div>
           </main>
         )}

@@ -5,6 +5,7 @@
 
 import { Request, Response } from 'express'
 import { ActivityRepository, ActivitySource } from '../../repositories/activity/activity-repository.js'
+import { ERROR_CODES } from '../../config/error-codes.js'
 
 export class ActivityController {
   /**
@@ -31,7 +32,8 @@ export class ActivityController {
       if (source && !validSources.includes(source)) {
         res.status(400).json({
           success: false,
-          error: `Fuente inválida. Valores permitidos: ${validSources.join(', ')}`,
+          error: ERROR_CODES.ACTIVITY_INVALID_SOURCE,
+          code: ERROR_CODES.ACTIVITY_INVALID_SOURCE,
         })
         return
       }
@@ -40,7 +42,8 @@ export class ActivityController {
       if (date && !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
         res.status(400).json({
           success: false,
-          error: 'Formato de fecha inválido. Use YYYY-MM-DD',
+          error: ERROR_CODES.ACTIVITY_INVALID_DATE_FORMAT,
+          code: ERROR_CODES.ACTIVITY_INVALID_DATE_FORMAT,
         })
         return
       }
@@ -77,7 +80,8 @@ export class ActivityController {
       console.error('[ActivityController] Error en getRecentActivity:', error)
       res.status(500).json({
         success: false,
-        error: 'Error al obtener actividad reciente',
+        error: ERROR_CODES.ACTIVITY_FETCH_ERROR,
+        code: ERROR_CODES.ACTIVITY_FETCH_ERROR,
       })
     }
   }

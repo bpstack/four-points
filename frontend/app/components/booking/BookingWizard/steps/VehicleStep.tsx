@@ -1,6 +1,7 @@
 // app/components/booking/BookingWizard/steps/VehicleStep.tsx
 
 import { FaSpinner } from 'react-icons/fa'
+import { useTranslations } from 'next-intl'
 import { SlidePanelSection, FormField, inputClassName, Alert } from '@/app/ui/panels'
 import type { BookingWizardState, BookingWizardActions, WizardVariant } from '../types'
 
@@ -25,25 +26,27 @@ const fullStyles = {
 }
 
 export default function VehicleStep({ variant, state, actions, onCancel }: VehicleStepProps) {
+  const t = useTranslations('booking')
+
   // Full variant - mantiene estilos GitHub originales con botones
   if (variant === 'full') {
     return (
       <div className={fullStyles.card}>
         <div className="flex gap-2 items-center mb-4">
-          <h2 className={fullStyles.sectionTitle}>Datos del Vehículo</h2>
+          <h2 className={fullStyles.sectionTitle}>{t('vehicle.title')}</h2>
         </div>
 
         <Alert variant="info" className="mb-4">
-          <p>Tienes que crear la reserva con un vehículo asociado, puedes modificarlo después.</p>
+          <p>{t('vehicle.infoAlert')}</p>
         </Alert>
 
         {/* Búsqueda de vehículos existentes */}
         <div className="mb-3 sm:mb-4">
-          <label className={fullStyles.label}>Buscar Vehículo Existente</label>
+          <label className={fullStyles.label}>{t('vehicle.searchLabel')}</label>
           <div className="relative">
             <input
               type="text"
-              placeholder="Buscar por matrícula o propietario..."
+              placeholder={t('vehicle.searchPlaceholder')}
               onChange={(e) => actions.handleSearchVehicles(e.target.value)}
               className={fullStyles.input}
             />
@@ -73,7 +76,7 @@ export default function VehicleStep({ variant, state, actions, onCancel }: Vehic
             )}
           </div>
           <p className="text-xs text-[#57606a] dark:text-[#8b949e] mt-1">
-            O crea uno nuevo a continuación
+            {t('vehicle.searchHint')}
           </p>
         </div>
 
@@ -84,7 +87,7 @@ export default function VehicleStep({ variant, state, actions, onCancel }: Vehic
           </div>
           <div className="relative flex justify-center text-xs">
             <span className="bg-[#f6f8fa] dark:bg-[#161b22] px-2 text-[#57606a] dark:text-[#8b949e]">
-              Nuevo Vehículo
+              {t('vehicle.newVehicleTitle')}
             </span>
           </div>
         </div>
@@ -92,7 +95,7 @@ export default function VehicleStep({ variant, state, actions, onCancel }: Vehic
         {/* Formulario nuevo vehículo */}
         <div className="space-y-3">
           <div>
-            <label className={fullStyles.label}>Matrícula</label>
+            <label className={fullStyles.label}>{t('vehicle.plateNumber')}</label>
             <input
               type="text"
               value={state.vehicleData.plate_number}
@@ -100,29 +103,29 @@ export default function VehicleStep({ variant, state, actions, onCancel }: Vehic
                 actions.setVehicleData({ plate_number: e.target.value.toUpperCase() })
               }
               className={fullStyles.input + ' uppercase'}
-              placeholder="1234ABC"
+              placeholder={t('vehicle.platePlaceholder')}
             />
           </div>
 
           <div>
-            <label className={fullStyles.label}>Propietario</label>
+            <label className={fullStyles.label}>{t('vehicle.owner')}</label>
             <input
               type="text"
               value={state.vehicleData.owner_name}
               onChange={(e) => actions.setVehicleData({ owner_name: e.target.value })}
               className={fullStyles.input}
-              placeholder="Juan García"
+              placeholder={t('vehicle.ownerPlaceholder')}
             />
           </div>
 
           <div>
-            <label className={fullStyles.label}>Modelo (opcional)</label>
+            <label className={fullStyles.label}>{t('vehicle.modelOptional')}</label>
             <input
               type="text"
               value={state.vehicleData.model}
               onChange={(e) => actions.setVehicleData({ model: e.target.value })}
               className={fullStyles.input}
-              placeholder="BMW X5, Tesla Model 3..."
+              placeholder={t('vehicle.modelPlaceholder')}
             />
           </div>
         </div>
@@ -130,7 +133,7 @@ export default function VehicleStep({ variant, state, actions, onCancel }: Vehic
         {/* Botones - solo para full variant */}
         <div className="grid grid-cols-2 gap-2 pt-3">
           <button onClick={onCancel} className={fullStyles.buttonSecondary}>
-            Cancelar
+            {t('actions.cancel')}
           </button>
           <button
             onClick={actions.handleCreateVehicle}
@@ -142,10 +145,10 @@ export default function VehicleStep({ variant, state, actions, onCancel }: Vehic
             {state.loading ? (
               <>
                 <FaSpinner className="w-4 h-4 animate-spin" />
-                Creando...
+                {t('actions.creating')}
               </>
             ) : (
-              'Crear y Continuar'
+              t('actions.createAndContinue')
             )}
           </button>
         </div>
@@ -157,11 +160,11 @@ export default function VehicleStep({ variant, state, actions, onCancel }: Vehic
   return (
     <div className="space-y-6">
       {/* Búsqueda de vehículos existentes */}
-      <SlidePanelSection title="Buscar vehículo existente">
+      <SlidePanelSection title={t('vehicle.searchTitle')}>
         <div className="relative">
           <input
             type="text"
-            placeholder="Buscar por matrícula o propietario..."
+            placeholder={t('vehicle.searchPlaceholder')}
             onChange={(e) => actions.handleSearchVehicles(e.target.value)}
             className={inputClassName}
           />
@@ -190,9 +193,7 @@ export default function VehicleStep({ variant, state, actions, onCancel }: Vehic
             </div>
           )}
         </div>
-        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-          O crea uno nuevo a continuación
-        </p>
+        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{t('vehicle.searchHint')}</p>
       </SlidePanelSection>
 
       {/* Separador */}
@@ -202,15 +203,15 @@ export default function VehicleStep({ variant, state, actions, onCancel }: Vehic
         </div>
         <div className="relative flex justify-center text-xs">
           <span className="bg-white dark:bg-[#151b23] px-2 text-gray-500 dark:text-gray-400">
-            Nuevo vehículo
+            {t('vehicle.newVehicle')}
           </span>
         </div>
       </div>
 
       {/* Formulario nuevo vehículo */}
-      <SlidePanelSection title="Datos del vehículo">
+      <SlidePanelSection title={t('vehicle.dataTitle')}>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <FormField label="Matrícula" required>
+          <FormField label={t('vehicle.plateNumber')} required>
             <input
               type="text"
               value={state.vehicleData.plate_number}
@@ -218,27 +219,27 @@ export default function VehicleStep({ variant, state, actions, onCancel }: Vehic
                 actions.setVehicleData({ plate_number: e.target.value.toUpperCase() })
               }
               className={inputClassName}
-              placeholder="1234ABC"
+              placeholder={t('vehicle.platePlaceholder')}
             />
           </FormField>
 
-          <FormField label="Propietario" required>
+          <FormField label={t('vehicle.owner')} required>
             <input
               type="text"
               value={state.vehicleData.owner_name}
               onChange={(e) => actions.setVehicleData({ owner_name: e.target.value })}
               className={inputClassName}
-              placeholder="Nombre del propietario"
+              placeholder={t('vehicle.ownerPlaceholder')}
             />
           </FormField>
 
-          <FormField label="Modelo" className="sm:col-span-2">
+          <FormField label={t('vehicle.model')} className="sm:col-span-2">
             <input
               type="text"
               value={state.vehicleData.model}
               onChange={(e) => actions.setVehicleData({ model: e.target.value })}
               className={inputClassName}
-              placeholder="BMW X5, Tesla Model 3..."
+              placeholder={t('vehicle.modelPlaceholder')}
             />
           </FormField>
         </div>

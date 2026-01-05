@@ -22,6 +22,8 @@ import { FiCalendar, FiEdit2, FiSave, FiX, FiCheckCircle } from 'react-icons/fi'
 import { formatDateForInput, parseInputDate } from '@/app/lib/helpers/date'
 import SimpleCalendarCompact from '@/app/ui/calendar/SimpleCalendarCompact'
 import toast from 'react-hot-toast'
+import { useTranslations } from 'next-intl'
+import { useLocale } from 'next-intl'
 
 interface BookingCardProps {
   status: GroupStatusRecord
@@ -29,6 +31,8 @@ interface BookingCardProps {
 }
 
 export function BookingCard({ status, groupId }: BookingCardProps) {
+  const t = useTranslations('groups')
+  const locale = useLocale()
   const [isEditing, setIsEditing] = useState(false)
   const [showCalendar, setShowCalendar] = useState(false)
   const { refreshStatus, refreshGroup } = useGroupStore()
@@ -70,7 +74,7 @@ export function BookingCard({ status, groupId }: BookingCardProps) {
   const onSubmit = async (data: BookingFormData) => {
     try {
       await groupsApi.updateBooking(groupId, data)
-      toast.success('Booking actualizado correctamente')
+      toast.success(t('statusCards.bookingUpdateSuccess'))
 
       await Promise.all([refreshStatus(groupId), refreshGroup(groupId)])
 
@@ -78,7 +82,7 @@ export function BookingCard({ status, groupId }: BookingCardProps) {
       setShowCalendar(false)
     } catch (error) {
       console.error('Error updating booking:', error)
-      const message = error instanceof Error ? error.message : 'Error al actualizar el booking'
+      const message = error instanceof Error ? error.message : t('statusCards.bookingUpdateError')
       toast.error(message)
     }
   }
@@ -92,7 +96,7 @@ export function BookingCard({ status, groupId }: BookingCardProps) {
   const formatDateDisplay = (dateString: string) => {
     if (!dateString) return ''
     const date = parseInputDate(dateString)
-    return date.toLocaleDateString('es-ES', {
+    return date.toLocaleDateString(locale === 'es' ? 'es-ES' : 'en-US', {
       day: '2-digit',
       month: 'short',
       year: 'numeric',
@@ -108,7 +112,7 @@ export function BookingCard({ status, groupId }: BookingCardProps) {
             <FiCalendar className="w-4 h-4 text-blue-600 dark:text-blue-400" />
           </div>
           <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-            Booking / Confirmación
+            {t('statusCards.booking')}
           </h4>
         </div>
 
@@ -137,21 +141,21 @@ export function BookingCard({ status, groupId }: BookingCardProps) {
               htmlFor="booking_confirmed"
               className="text-sm font-medium text-gray-700 dark:text-gray-300"
             >
-              Booking confirmado
+              {t('statusCards.bookingConfirmedLabel')}
             </label>
           </div>
 
           {/* Date con Calendar */}
           <div className="relative calendar-container">
             <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Fecha de confirmación
+              {t('statusCards.confirmationDate')}
             </label>
             <div className="relative">
               <input
                 type="text"
                 value={formatDateDisplay(dateValue)}
                 readOnly
-                placeholder="Selecciona fecha"
+                placeholder={t('statusCards.selectDate')}
                 onClick={(e) => {
                   e.stopPropagation()
                   setShowCalendar(!showCalendar)
@@ -212,11 +216,11 @@ export function BookingCard({ status, groupId }: BookingCardProps) {
             {status.booking_confirmed ? (
               <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-800 rounded-md text-xs font-medium">
                 <FiCheckCircle className="w-3.5 h-3.5" />
-                Confirmado
+                {t('statusCards.confirmed')}
               </span>
             ) : (
               <span className="inline-flex items-center gap-1 px-2 py-1 bg-yellow-50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-400 border border-yellow-200 dark:border-yellow-800 rounded-md text-xs font-medium">
-                Pendiente
+                {t('statusCards.pending')}
               </span>
             )}
           </div>
@@ -224,12 +228,15 @@ export function BookingCard({ status, groupId }: BookingCardProps) {
           {/* Date */}
           {status.booking_confirmed_date && (
             <p className="text-xs text-gray-600 dark:text-gray-400">
-              Confirmado el{' '}
-              {new Date(status.booking_confirmed_date).toLocaleDateString('es-ES', {
-                day: '2-digit',
-                month: 'long',
-                year: 'numeric',
-              })}
+              {t('statusCards.confirmedOn')}{' '}
+              {new Date(status.booking_confirmed_date).toLocaleDateString(
+                locale === 'es' ? 'es-ES' : 'en-US',
+                {
+                  day: '2-digit',
+                  month: 'long',
+                  year: 'numeric',
+                }
+              )}
             </p>
           )}
         </div>

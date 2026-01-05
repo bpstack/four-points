@@ -2,8 +2,9 @@
 
 'use client'
 
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { apiClient, isDemoError } from '@/app/lib/apiClient'
 import { API_BASE_URL } from '@/app/lib/env'
 import { useAuth } from '@/app/lib/auth/useAuth'
@@ -29,6 +30,9 @@ import {
   FiFileText,
   FiGrid,
   FiPlus,
+  FiKey,
+  FiEye,
+  FiEyeOff,
 } from 'react-icons/fi'
 import { ReportsTab } from './reports'
 import { CenterModal, CenterModalFooterButtons, FormField, inputClassName } from '@/app/ui/panels'
@@ -57,47 +61,66 @@ type SettingsTab = 'users' | 'notifications' | 'security' | 'reports' | 'departm
 
 const API_URL = API_BASE_URL
 
-const ROLE_CONFIG = {
+// Role colors (labels are added dynamically with translations)
+const ROLE_COLORS = {
   admin: {
-    label: 'Administrator',
     color: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
     borderColor: 'border-purple-200 dark:border-purple-800',
   },
   'group-admin': {
-    label: 'Group Admin',
     color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
     borderColor: 'border-blue-200 dark:border-blue-800',
   },
   recepcionista: {
-    label: 'Receptionist',
     color: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
     borderColor: 'border-green-200 dark:border-green-800',
   },
   mantenimiento: {
-    label: 'Maintenance',
     color: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400',
     borderColor: 'border-orange-200 dark:border-orange-800',
   },
 }
 
-const tabs: { id: SettingsTab; label: string; icon: React.ReactNode; adminOnly?: boolean }[] = [
-  { id: 'users', label: 'Usuarios', icon: <FiUsers className="w-4 h-4" />, adminOnly: true },
-  {
-    id: 'departments',
-    label: 'Departamentos',
-    icon: <FiGrid className="w-4 h-4" />,
-    adminOnly: true,
-  },
-  { id: 'notifications', label: 'Notificaciones', icon: <FiBell className="w-4 h-4" /> },
-  { id: 'security', label: 'Seguridad', icon: <FiShield className="w-4 h-4" /> },
-  { id: 'reports', label: 'Reportes', icon: <FiFileText className="w-4 h-4" />, adminOnly: true },
-]
+// Tab definitions moved inside component to use translations
 
 export function SettingsPanel() {
   const { user: currentUser } = useAuth()
   const router = useRouter()
   const searchParams = useSearchParams()
   const isUserAdmin = isAdminRole(currentUser?.role)
+  const t = useTranslations('profile.settings')
+
+  // Define tabs with translations (inside component to access t())
+  const tabs: { id: SettingsTab; label: string; icon: React.ReactNode; adminOnly?: boolean }[] =
+    useMemo(
+      () => [
+        {
+          id: 'users',
+          label: t('tabs.users'),
+          icon: <FiUsers className="w-4 h-4" />,
+          adminOnly: true,
+        },
+        {
+          id: 'departments',
+          label: t('tabs.departments'),
+          icon: <FiGrid className="w-4 h-4" />,
+          adminOnly: true,
+        },
+        {
+          id: 'notifications',
+          label: t('tabs.notifications'),
+          icon: <FiBell className="w-4 h-4" />,
+        },
+        { id: 'security', label: t('tabs.security'), icon: <FiShield className="w-4 h-4" /> },
+        {
+          id: 'reports',
+          label: t('tabs.reports'),
+          icon: <FiFileText className="w-4 h-4" />,
+          adminOnly: true,
+        },
+      ],
+      [t]
+    )
 
   const activeTab =
     (searchParams.get('tab') as SettingsTab) || (isUserAdmin ? 'users' : 'notifications')
@@ -128,6 +151,7 @@ export function SettingsPanel() {
     if (activeTab === 'users' && isUserAdmin) {
       fetchUsers()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, isUserAdmin])
 
   const handleTabChange = (tab: SettingsTab) => {
@@ -148,14 +172,14 @@ export function SettingsPanel() {
         ? data
         : (data as { users?: User[] }).users || (data as { data?: User[] }).data || []
       if (!Array.isArray(usersList)) {
-        setError('Invalid server response format')
+        setError(t('users.errorLoading'))
         setUsers([])
         return
       }
       setUsers(usersList)
     } catch (err: unknown) {
       console.error('Error fetching users:', err)
-      setError(err instanceof Error ? err.message : 'Error loading users')
+      setError(err instanceof Error ? err.message : t('users.errorLoading'))
       setUsers([])
     } finally {
       setLoading(false)
@@ -163,12 +187,12 @@ export function SettingsPanel() {
   }
 
   const handleDeleteUser = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this user?')) return
+    if (!confirm(t('users.confirmDelete'))) return
     try {
       await apiClient.delete(`${API_URL}/api/users/${id}`)
       setUsers(users.filter((u) => u.id !== id))
     } catch (err: unknown) {
-      alert(err instanceof Error ? err.message : 'Error deleting user')
+      alert(err instanceof Error ? err.message : t('users.errorDeleting'))
     }
   }
 
@@ -176,10 +200,8 @@ export function SettingsPanel() {
     <div className="h-full max-w-[1400px]">
       {/* Header */}
       <div className="mb-6">
-        <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Configuracion</h2>
-        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-          Gestiona tu cuenta y preferencias del sistema
-        </p>
+        <h2 className="text-xl font-semibold text-gray-900 dark:text-white">{t('title')}</h2>
+        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{t('subtitle')}</p>
       </div>
 
       {/* Tabs - Mobile Dropdown */}
@@ -209,7 +231,7 @@ export function SettingsPanel() {
               <div className="w-full max-w-sm bg-white dark:bg-[#161b22] border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl overflow-hidden">
                 <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
                   <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
-                    Seleccionar seccion
+                    {t('selectSection')}
                   </h3>
                 </div>
                 <div className="py-1">
@@ -294,6 +316,7 @@ export function SettingsPanel() {
 // =====================================================
 
 function DepartmentsTab() {
+  const t = useTranslations('profile.settings.departments')
   const [departments, setDepartments] = useState<FormattedDepartment[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
@@ -314,27 +337,27 @@ function DepartmentsTab() {
       setDepartments(formatted)
     } catch (err) {
       console.error('Error loading departments:', err)
-      toast.error('Error al cargar departamentos')
+      toast.error(t('errorLoading'))
     } finally {
       setIsLoading(false)
     }
-  }, [])
+  }, [t])
 
   useEffect(() => {
     loadDepartments()
   }, [loadDepartments])
 
   const handleDelete = async (id: number, displayName: string) => {
-    if (!confirm(`Eliminar el departamento "${displayName}"?`)) return
+    if (!confirm(t('confirmDelete', { name: displayName }))) return
     try {
       await departmentsApi.delete(id)
-      toast.success('Departamento eliminado')
+      toast.success(t('deleted'))
       loadDepartments()
     } catch (err: unknown) {
       console.error('Error deleting department:', err)
       if (!isDemoError(err)) {
         const error = err as { response?: { data?: { error?: string } } }
-        toast.error(error?.response?.data?.error || 'Error al eliminar')
+        toast.error(error?.response?.data?.error || t('errorDeleting'))
       }
     }
   }
@@ -349,11 +372,9 @@ function DepartmentsTab() {
       <div className="px-4 py-3 border-b border-gray-200 dark:border-[#30363d]">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
-            <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
-              Gestion de Departamentos
-            </h3>
+            <h3 className="text-sm font-semibold text-gray-900 dark:text-white">{t('title')}</h3>
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-              Administra los departamentos del hotel ({departments.length} total)
+              {t('subtitle')} ({departments.length} {t('total')})
             </p>
           </div>
           <div className="flex gap-2">
@@ -362,7 +383,7 @@ function DepartmentsTab() {
               className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors"
             >
               <FiPlus className="w-3.5 h-3.5" />
-              Nuevo
+              {t('new')}
             </button>
             <button
               onClick={loadDepartments}
@@ -387,7 +408,7 @@ function DepartmentsTab() {
         {!isLoading && departments.length === 0 && (
           <div className="text-center py-8">
             <FiGrid className="w-10 h-10 text-gray-400 mx-auto mb-2" />
-            <p className="text-sm text-gray-500">No hay departamentos</p>
+            <p className="text-sm text-gray-500">{t('noDepartments')}</p>
           </div>
         )}
 
@@ -464,6 +485,8 @@ function AddDepartmentModal({
   onClose: () => void
   onSuccess: () => void
 }) {
+  const t = useTranslations('profile.settings.departments')
+  const tButtons = useTranslations('profile.sidebar.buttons')
   const [name, setName] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -475,20 +498,20 @@ function AddDepartmentModal({
 
   const handleSubmit = async () => {
     if (name.trim().length < 2) {
-      toast.error('El nombre debe tener al menos 2 caracteres')
+      toast.error(t('nameMinLength'))
       return
     }
 
     setIsSubmitting(true)
     try {
       await departmentsApi.create({ name: name.trim().toLowerCase() })
-      toast.success('Departamento creado')
+      toast.success(t('created'))
       setName('')
       onSuccess()
       onClose()
     } catch (err: unknown) {
       if (!isDemoError(err)) {
-        toast.error(err instanceof Error ? err.message : 'Error al crear departamento')
+        toast.error(err instanceof Error ? err.message : t('errorCreating'))
       }
     } finally {
       setIsSubmitting(false)
@@ -499,32 +522,28 @@ function AddDepartmentModal({
     <CenterModal
       isOpen={isOpen}
       onClose={onClose}
-      title="Nuevo Departamento"
+      title={t('newDepartment')}
       size="sm"
       headerIcon={<FiGrid className="w-5 h-5 text-green-600 dark:text-green-400" />}
       footer={
         <CenterModalFooterButtons
           onCancel={onClose}
           onSubmit={handleSubmit}
-          cancelText="Cancelar"
-          submitText="Crear"
+          cancelText={tButtons('cancel')}
+          submitText={t('create')}
           isSubmitting={isSubmitting}
           submitDisabled={name.trim().length < 2}
           submitVariant="success"
         />
       }
     >
-      <FormField
-        label="Nombre del Departamento"
-        required
-        hint='Se guardara en minusculas. Ejemplo: "backoffice" se mostrara como "Back Office"'
-      >
+      <FormField label={t('departmentName')} required hint={t('saveHint')}>
         <input
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
           className={inputClassName}
-          placeholder="Ej: Recursos Humanos"
+          placeholder={t('placeholder')}
           disabled={isSubmitting}
           autoFocus
         />
@@ -544,6 +563,8 @@ function EditDepartmentModal({
   onSuccess: () => void
   department: FormattedDepartment
 }) {
+  const t = useTranslations('profile.settings.departments')
+  const tButtons = useTranslations('profile.sidebar.buttons')
   const [name, setName] = useState(department.name)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -555,19 +576,19 @@ function EditDepartmentModal({
 
   const handleSubmit = async () => {
     if (name.trim().length < 2) {
-      toast.error('El nombre debe tener al menos 2 caracteres')
+      toast.error(t('nameMinLength'))
       return
     }
 
     setIsSubmitting(true)
     try {
       await departmentsApi.update(department.id, { name: name.trim().toLowerCase() })
-      toast.success('Departamento actualizado')
+      toast.success(t('updated'))
       onSuccess()
       onClose()
     } catch (err: unknown) {
       if (!isDemoError(err)) {
-        toast.error(err instanceof Error ? err.message : 'Error al actualizar')
+        toast.error(err instanceof Error ? err.message : t('errorUpdating'))
       }
     } finally {
       setIsSubmitting(false)
@@ -578,32 +599,28 @@ function EditDepartmentModal({
     <CenterModal
       isOpen={isOpen}
       onClose={onClose}
-      title="Editar Departamento"
+      title={t('editDepartment')}
       size="sm"
       headerIcon={<FiEdit2 className="w-5 h-5 text-blue-600 dark:text-blue-400" />}
       footer={
         <CenterModalFooterButtons
           onCancel={onClose}
           onSubmit={handleSubmit}
-          cancelText="Cancelar"
-          submitText="Guardar"
+          cancelText={tButtons('cancel')}
+          submitText={tButtons('save')}
           isSubmitting={isSubmitting}
           submitDisabled={name.trim().length < 2}
           submitVariant="primary"
         />
       }
     >
-      <FormField
-        label="Nombre del Departamento"
-        required
-        hint="Se guardara en minusculas para consistencia"
-      >
+      <FormField label={t('departmentName')} required hint={t('editHint')}>
         <input
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
           className={inputClassName}
-          placeholder="Ej: Recursos Humanos"
+          placeholder={t('placeholder')}
           disabled={isSubmitting}
           autoFocus
         />
@@ -631,17 +648,15 @@ function UserManagement({
   onRefresh: () => void
   onOpenModal: () => void
 }) {
+  const t = useTranslations('profile.settings.users')
+
   return (
     <div className="bg-white dark:bg-[#161b22] rounded-lg border border-gray-200 dark:border-[#30363d]">
       <div className="px-4 py-3 border-b border-gray-200 dark:border-[#30363d]">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
-            <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
-              Gestion de Usuarios
-            </h3>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-              Administra usuarios y roles del sistema
-            </p>
+            <h3 className="text-sm font-semibold text-gray-900 dark:text-white">{t('title')}</h3>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{t('subtitle')}</p>
           </div>
           <div className="flex gap-2">
             <button
@@ -649,7 +664,7 @@ function UserManagement({
               className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
             >
               <FiUserPlus className="w-3.5 h-3.5" />
-              Nuevo
+              {t('new')}
             </button>
             <button
               onClick={onRefresh}
@@ -674,7 +689,7 @@ function UserManagement({
         {!loading && !error && users.length === 0 && (
           <div className="text-center py-8">
             <FiUsers className="w-10 h-10 text-gray-400 mx-auto mb-2" />
-            <p className="text-sm text-gray-500">No hay usuarios</p>
+            <p className="text-sm text-gray-500">{t('noUsers')}</p>
           </div>
         )}
 
@@ -685,9 +700,42 @@ function UserManagement({
 }
 
 function UserTable({ users, onDelete }: { users: User[]; onDelete: (id: string) => void }) {
+  const t = useTranslations('profile.settings')
+  const tButtons = useTranslations('profile.sidebar.buttons')
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editForm, setEditForm] = useState<Partial<User>>({})
   const [savingId, setSavingId] = useState<string | null>(null)
+  const [resetPasswordModal, setResetPasswordModal] = useState<{
+    userId: string
+    username: string
+  } | null>(null)
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
+  const [resettingPassword, setResettingPassword] = useState(false)
+
+  // Role config with translations
+  const ROLE_CONFIG = useMemo(
+    () => ({
+      admin: {
+        label: t('roles.admin'),
+        ...ROLE_COLORS.admin,
+      },
+      'group-admin': {
+        label: t('roles.groupAdmin'),
+        ...ROLE_COLORS['group-admin'],
+      },
+      recepcionista: {
+        label: t('roles.receptionist'),
+        ...ROLE_COLORS.recepcionista,
+      },
+      mantenimiento: {
+        label: t('roles.maintenance'),
+        ...ROLE_COLORS.mantenimiento,
+      },
+    }),
+    [t]
+  )
 
   const handleEdit = (user: User) => {
     setEditingId(user.id)
@@ -696,7 +744,7 @@ function UserTable({ users, onDelete }: { users: User[]; onDelete: (id: string) 
 
   const handleSave = async (id: string) => {
     if (!editForm.username || !editForm.email || !editForm.role) {
-      alert('All fields are required')
+      alert(t('users.allFieldsRequired'))
       return
     }
     setSavingId(id)
@@ -706,7 +754,7 @@ function UserTable({ users, onDelete }: { users: User[]; onDelete: (id: string) 
       setEditForm({})
       window.location.reload()
     } catch (err: unknown) {
-      alert(err instanceof Error ? err.message : 'Error updating user')
+      alert(err instanceof Error ? err.message : t('users.errorUpdating'))
     } finally {
       setSavingId(null)
     }
@@ -715,6 +763,33 @@ function UserTable({ users, onDelete }: { users: User[]; onDelete: (id: string) 
   const handleCancel = () => {
     setEditingId(null)
     setEditForm({})
+  }
+
+  const handleResetPassword = async () => {
+    if (!resetPasswordModal || !newPassword) return
+    if (newPassword.length < 6) {
+      toast.error('La contraseña debe tener al menos 6 caracteres')
+      return
+    }
+    if (newPassword !== confirmPassword) {
+      toast.error('Las contraseñas no coinciden')
+      return
+    }
+
+    setResettingPassword(true)
+    try {
+      await apiClient.post(`${API_URL}/api/users/${resetPasswordModal.userId}/reset-password`, {
+        newPassword,
+      })
+      toast.success(`Contraseña de ${resetPasswordModal.username} actualizada`)
+      setResetPasswordModal(null)
+      setNewPassword('')
+      setConfirmPassword('')
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Error al resetear contraseña')
+    } finally {
+      setResettingPassword(false)
+    }
   }
 
   const getRoleConfig = (role: string) => {
@@ -753,10 +828,10 @@ function UserTable({ users, onDelete }: { users: User[]; onDelete: (id: string) 
                   onChange={(e) => setEditForm({ ...editForm, role: e.target.value })}
                   className="w-full md:w-40 px-3 py-1.5 text-sm border border-gray-300 dark:border-[#30363d] rounded-lg bg-white dark:bg-[#0d1117] text-gray-900 dark:text-white"
                 >
-                  <option value="recepcionista">Receptionist</option>
-                  <option value="admin">Administrator</option>
-                  <option value="group-admin">Group Admin</option>
-                  <option value="mantenimiento">Maintenance</option>
+                  <option value="recepcionista">{t('roles.receptionist')}</option>
+                  <option value="admin">{t('roles.admin')}</option>
+                  <option value="group-admin">{t('roles.groupAdmin')}</option>
+                  <option value="mantenimiento">{t('roles.maintenance')}</option>
                 </select>
                 <div className="flex gap-2 md:flex-shrink-0">
                   <button
@@ -765,14 +840,14 @@ function UserTable({ users, onDelete }: { users: User[]; onDelete: (id: string) 
                     className="flex-1 md:flex-none inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-green-600 hover:bg-green-700 disabled:opacity-50 rounded-lg"
                   >
                     <FiCheck className="w-3.5 h-3.5" />
-                    {savingId === user.id ? 'Saving...' : 'Save'}
+                    {savingId === user.id ? tButtons('saving') : tButtons('save')}
                   </button>
                   <button
                     onClick={handleCancel}
                     className="flex-1 md:flex-none inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-[#0d1117] border border-gray-300 dark:border-[#30363d] rounded-lg"
                   >
                     <FiX className="w-3.5 h-3.5" />
-                    Cancel
+                    {tButtons('cancel')}
                   </button>
                 </div>
               </div>
@@ -826,6 +901,15 @@ function UserTable({ users, onDelete }: { users: User[]; onDelete: (id: string) 
                 {/* Actions */}
                 <div className="flex items-center gap-1 flex-shrink-0">
                   <button
+                    onClick={() =>
+                      setResetPasswordModal({ userId: user.id, username: user.username })
+                    }
+                    className="p-1.5 text-gray-500 hover:text-orange-600 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                    title="Reset password"
+                  >
+                    <FiKey className="w-3.5 h-3.5" />
+                  </button>
+                  <button
                     onClick={() => handleEdit(user)}
                     className="p-1.5 text-gray-500 hover:text-blue-600 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
                   >
@@ -843,6 +927,79 @@ function UserTable({ users, onDelete }: { users: User[]; onDelete: (id: string) 
           </div>
         )
       })}
+
+      {/* Reset Password Modal */}
+      <CenterModal
+        isOpen={!!resetPasswordModal}
+        onClose={() => {
+          setResetPasswordModal(null)
+          setNewPassword('')
+          setConfirmPassword('')
+          setShowPassword(false)
+        }}
+        title={`Resetear contraseña de ${resetPasswordModal?.username}`}
+        size="sm"
+        headerIcon={<FiKey className="w-5 h-5 text-orange-600 dark:text-orange-400" />}
+        footer={
+          <CenterModalFooterButtons
+            onCancel={() => {
+              setResetPasswordModal(null)
+              setNewPassword('')
+              setConfirmPassword('')
+              setShowPassword(false)
+            }}
+            onSubmit={handleResetPassword}
+            submitText={resettingPassword ? 'Guardando...' : 'Guardar'}
+            submitDisabled={
+              resettingPassword || newPassword.length < 6 || newPassword !== confirmPassword
+            }
+            isSubmitting={resettingPassword}
+          />
+        }
+      >
+        <div className="space-y-4">
+          <FormField label="Nueva contraseña" required>
+            <div className="relative">
+              <input
+                type={showPassword ? 'text' : 'password'}
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="Mínimo 6 caracteres"
+                className={inputClassName}
+                autoFocus
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+              >
+                {showPassword ? <FiEyeOff className="w-4 h-4" /> : <FiEye className="w-4 h-4" />}
+              </button>
+            </div>
+          </FormField>
+          <FormField label="Confirmar contraseña" required>
+            <div className="relative">
+              <input
+                type={showPassword ? 'text' : 'password'}
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="Repetir contraseña"
+                className={inputClassName}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+              >
+                {showPassword ? <FiEyeOff className="w-4 h-4" /> : <FiEye className="w-4 h-4" />}
+              </button>
+            </div>
+            {confirmPassword && newPassword !== confirmPassword && (
+              <p className="mt-1 text-xs text-red-500">Las contraseñas no coinciden</p>
+            )}
+          </FormField>
+        </div>
+      </CenterModal>
     </div>
   )
 }
@@ -852,6 +1009,7 @@ function UserTable({ users, onDelete }: { users: User[]; onDelete: (id: string) 
 // =====================================================
 
 function NotificationsSettings() {
+  const t = useTranslations('profile.settings.notifications')
   const [checkingNotifications, setCheckingNotifications] = useState(false)
   const [notificationResult, setNotificationResult] = useState<{
     type: 'success' | 'error'
@@ -867,14 +1025,14 @@ function NotificationsSettings() {
       setNotificationResult({
         type: 'success',
         message: response.data
-          ? `Verificados: ${response.data.checked}, Enviados: ${response.data.sent}, Fallidos: ${response.data.failed}`
+          ? `${t('verified')}: ${response.data.checked}, ${t('sent')}: ${response.data.sent}, ${t('failed')}: ${response.data.failed}`
           : response.message,
       })
       setTimeout(() => setNotificationResult(null), 5000)
     } catch (error: unknown) {
       setNotificationResult({
         type: 'error',
-        message: error instanceof Error ? error.message : 'Error checking notifications',
+        message: error instanceof Error ? error.message : t('errorChecking'),
       })
       setTimeout(() => setNotificationResult(null), 5000)
     } finally {
@@ -888,38 +1046,28 @@ function NotificationsSettings() {
         <div className="px-4 py-3 border-b border-gray-200 dark:border-[#30363d]">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
-              <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
-                Notificaciones
-              </h3>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                Configura como recibes las notificaciones
-              </p>
+              <h3 className="text-sm font-semibold text-gray-900 dark:text-white">{t('title')}</h3>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{t('subtitle')}</p>
             </div>
             <button
               onClick={() => setIsNotificationModalOpen(true)}
               className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors"
             >
               <FiPlus className="w-3.5 h-3.5" />
-              Crear Notificacion
+              {t('createNotification')}
             </button>
           </div>
         </div>
         <div className="p-4 space-y-3">
-          <SettingRow
-            label="Notificaciones por email"
-            description="Recibir actualizaciones via email"
-            defaultChecked
-          />
+          <SettingRow label={t('emailNotifications')} description={t('emailDesc')} defaultChecked />
 
           <div className="py-3 border-t border-gray-200 dark:border-[#30363d]">
             <div className="flex items-center justify-between mb-2">
               <div>
                 <p className="text-sm font-medium text-gray-900 dark:text-white">
-                  Push notifications
+                  {t('pushNotifications')}
                 </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
-                  Verificar y enviar pendientes
-                </p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">{t('pushDesc')}</p>
               </div>
               <button
                 onClick={handleCheckNotifications}
@@ -929,7 +1077,7 @@ function NotificationsSettings() {
                 <FiRefreshCw
                   className={cn('w-3.5 h-3.5', checkingNotifications && 'animate-spin')}
                 />
-                {checkingNotifications ? 'Checking...' : 'Update'}
+                {checkingNotifications ? t('checking') : t('pushNotifications')}
               </button>
             </div>
             {notificationResult && (
@@ -947,8 +1095,8 @@ function NotificationsSettings() {
           </div>
 
           <SettingRow
-            label="Alertas del sistema"
-            description="Actualizaciones importantes"
+            label={t('systemAlerts')}
+            description={t('systemAlertsDesc')}
             defaultChecked
           />
         </div>
@@ -963,32 +1111,30 @@ function NotificationsSettings() {
 }
 
 function SecuritySettings() {
+  const t = useTranslations('profile.settings.security')
+
   return (
     <div className="bg-white dark:bg-[#161b22] rounded-lg border border-gray-200 dark:border-[#30363d]">
       <div className="px-4 py-3 border-b border-gray-200 dark:border-[#30363d]">
-        <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Seguridad</h3>
-        <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-          Gestiona la seguridad de tu cuenta
-        </p>
+        <h3 className="text-sm font-semibold text-gray-900 dark:text-white">{t('title')}</h3>
+        <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{t('subtitle')}</p>
       </div>
       <div className="p-4 space-y-3">
-        <SettingRow
-          label="Autenticacion de dos factores"
-          description="Anade una capa extra de seguridad"
-        />
-        <SettingRow label="Rotacion de contrasena" description="Requerir cambio cada 90 dias" />
-        <SettingRow
-          label="Alertas de inicio de sesion"
-          description="Notificar nuevos dispositivos"
-          defaultChecked
-        />
+        <SettingRow label={t('twoFactor')} description={t('twoFactorDesc')} />
+        <SettingRow label={t('passwordRotation')} description={t('passwordRotationDesc')} />
+        <SettingRow label={t('loginAlerts')} description={t('loginAlertsDesc')} defaultChecked />
 
         <div className="pt-4 border-t border-gray-200 dark:border-[#30363d]">
           <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">
-            Sesiones activas
+            {t('activeSessions')}
           </h4>
           <div className="space-y-2">
-            <SessionItem device="Desktop - Chrome" location="Barcelona, Spain" active />
+            <SessionItem
+              device="Desktop - Chrome"
+              location="Barcelona, Spain"
+              active
+              activeLabel={t('active')}
+            />
             <SessionItem device="Mobile - Safari" location="Barcelona, Spain" />
           </div>
         </div>
@@ -1025,10 +1171,12 @@ function SessionItem({
   device,
   location,
   active,
+  activeLabel,
 }: {
   device: string
   location: string
   active?: boolean
+  activeLabel?: string
 }) {
   return (
     <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-[#0d1117] border border-gray-200 dark:border-[#30363d] rounded-lg">
@@ -1038,7 +1186,7 @@ function SessionItem({
       </div>
       {active && (
         <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
-          Activa
+          {activeLabel || 'Active'}
         </span>
       )}
     </div>

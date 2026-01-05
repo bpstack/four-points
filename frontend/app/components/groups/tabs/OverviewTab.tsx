@@ -4,6 +4,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { useGroupStore } from '@/app/stores/useGroupStore'
 import { formatCurrency, formatDate } from '@/app/lib/helpers/utils'
 import { FiFileText, FiCheckCircle, FiClock, FiDollarSign, FiBell, FiEdit } from 'react-icons/fi'
@@ -14,6 +15,7 @@ export function OverviewTab() {
   const searchParams = useSearchParams()
   const { currentGroup, payments, refreshPayments } = useGroupStore()
   const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false)
+  const t = useTranslations('groups')
 
   const [balanceStatus, setBalanceStatus] = useState({
     isPaid: false,
@@ -67,24 +69,24 @@ export function OverviewTab() {
         {/* Header con botones */}
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">
-            Información General
+            {t('overview.generalInfo')}
           </h2>
           <div className="flex items-center gap-2">
             <button
               onClick={() => setIsNotificationModalOpen(true)}
               className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-[#21262d] hover:bg-gray-200 dark:hover:bg-[#30363d] border border-gray-300 dark:border-gray-700 rounded-md transition-colors"
-              title="Crear notificación"
+              title={t('overview.notification')}
             >
               <FiBell className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Notificación</span>
+              <span className="hidden sm:inline">{t('overview.notification')}</span>
             </button>
             <button
               onClick={handleEditGroup}
               className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-[#21262d] hover:bg-gray-200 dark:hover:bg-[#30363d] border border-gray-300 dark:border-gray-700 rounded-md transition-colors"
-              title="Editar grupo"
+              title={t('overview.edit')}
             >
               <FiEdit className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Editar</span>
+              <span className="hidden sm:inline">{t('overview.edit')}</span>
             </button>
           </div>
         </div>
@@ -93,7 +95,7 @@ export function OverviewTab() {
           {/* Nombre */}
           <div>
             <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
-              Nombre del Grupo
+              {t('overview.groupName')}
             </label>
             <p className="text-sm text-gray-900 dark:text-gray-100">{currentGroup.name}</p>
           </div>
@@ -101,7 +103,7 @@ export function OverviewTab() {
           {/* Agencia */}
           <div>
             <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
-              Agencia
+              {t('overview.agency')}
             </label>
             <p className="text-sm text-gray-900 dark:text-gray-100">{currentGroup.agency || '-'}</p>
           </div>
@@ -109,7 +111,7 @@ export function OverviewTab() {
           {/* Llegada */}
           <div>
             <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
-              Fecha de Llegada
+              {t('overview.arrivalDate')}
             </label>
             <p className="text-sm text-gray-900 dark:text-gray-100">
               {formatDate(currentGroup.arrival_date, 'long')}
@@ -119,7 +121,7 @@ export function OverviewTab() {
           {/* Salida */}
           <div>
             <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
-              Fecha de Salida
+              {t('overview.departureDate')}
             </label>
             <p className="text-sm text-gray-900 dark:text-gray-100">
               {formatDate(currentGroup.departure_date, 'long')}
@@ -129,7 +131,7 @@ export function OverviewTab() {
           {/* Importe */}
           <div>
             <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
-              Importe Total
+              {t('overview.totalAmount')}
             </label>
             <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">
               {formatCurrency(currentGroup.total_amount, currentGroup.currency)}
@@ -139,7 +141,7 @@ export function OverviewTab() {
           {/* Moneda */}
           <div>
             <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
-              Moneda
+              {t('overview.currency')}
             </label>
             <p className="text-sm text-gray-900 dark:text-gray-100">{currentGroup.currency}</p>
           </div>
@@ -149,7 +151,7 @@ export function OverviewTab() {
         {currentGroup.notes && (
           <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-800">
             <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
-              Notas
+              {t('overview.notes')}
             </label>
             <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
               {currentGroup.notes}
@@ -169,9 +171,11 @@ export function OverviewTab() {
               <FiClock className="w-8 h-8 text-yellow-500 dark:text-yellow-400 flex-shrink-0" />
             )}
             <div className="flex-1 min-w-0">
-              <p className="text-xs text-gray-500 dark:text-gray-400">Reserva</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">{t('overview.booking')}</p>
               <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                {currentGroup.booking_confirmed ? 'Confirmada' : 'Pendiente'}
+                {currentGroup.booking_confirmed
+                  ? t('overview.bookingConfirmed')
+                  : t('overview.bookingPending')}
               </p>
               {currentGroup.booking_confirmed_date && (
                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
@@ -191,9 +195,11 @@ export function OverviewTab() {
               <FiClock className="w-8 h-8 text-yellow-500 dark:text-yellow-400 flex-shrink-0" />
             )}
             <div className="flex-1 min-w-0">
-              <p className="text-xs text-gray-500 dark:text-gray-400">Contrato</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">{t('overview.contract')}</p>
               <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                {currentGroup.contract_signed ? 'Firmado' : 'Pendiente'}
+                {currentGroup.contract_signed
+                  ? t('overview.contractSigned')
+                  : t('overview.contractPending')}
               </p>
               {currentGroup.contract_signed_date && (
                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
@@ -215,13 +221,15 @@ export function OverviewTab() {
               <FiFileText className="w-8 h-8 text-gray-400 dark:text-gray-500 flex-shrink-0" />
             )}
             <div className="flex-1 min-w-0">
-              <p className="text-xs text-gray-500 dark:text-gray-400">Rooming List</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                {t('overview.roomingList')}
+              </p>
               <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
                 {currentGroup.rooming_status === 'received'
-                  ? 'Recibida'
+                  ? t('overview.roomingReceived')
                   : currentGroup.rooming_status === 'requested'
-                    ? 'Solicitada'
-                    : 'Pendiente'}
+                    ? t('overview.roomingRequested')
+                    : t('overview.roomingPending')}
               </p>
               {currentGroup.rooming_received_date && (
                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
@@ -241,13 +249,14 @@ export function OverviewTab() {
               <FiDollarSign className="w-8 h-8 text-orange-500 dark:text-orange-400 flex-shrink-0" />
             )}
             <div className="flex-1 min-w-0">
-              <p className="text-xs text-gray-500 dark:text-gray-400">Balance</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">{t('overview.balance')}</p>
               <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                {balanceStatus.isPaid ? 'Pagado' : 'Pendiente'}
+                {balanceStatus.isPaid ? t('overview.balancePaid') : t('overview.balancePending')}
               </p>
               {!balanceStatus.isPaid && balanceStatus.remaining > 0 && (
                 <p className="text-xs text-orange-600 dark:text-orange-400 mt-0.5 font-medium">
-                  {formatCurrency(balanceStatus.remaining, currentGroup.currency)} rest.
+                  {formatCurrency(balanceStatus.remaining, currentGroup.currency)}{' '}
+                  {t('overview.remaining')}
                 </p>
               )}
               {balanceStatus.isPaid && (
@@ -263,17 +272,17 @@ export function OverviewTab() {
       {/* Metadata */}
       <div className="bg-white dark:bg-[#0D1117] rounded-lg border border-gray-200 dark:border-gray-800 p-4">
         <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">
-          Información del Sistema
+          {t('overview.systemInfo')}
         </h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
           <div>
-            <span className="text-gray-500 dark:text-gray-400">Creado por:</span>{' '}
+            <span className="text-gray-500 dark:text-gray-400">{t('overview.createdBy')}</span>{' '}
             <span className="text-gray-900 dark:text-gray-100">
               {currentGroup.created_by_username || currentGroup.created_by || '-'}
             </span>
           </div>
           <div>
-            <span className="text-gray-500 dark:text-gray-400">Fecha de creación:</span>{' '}
+            <span className="text-gray-500 dark:text-gray-400">{t('overview.createdAt')}</span>{' '}
             <span className="text-gray-900 dark:text-gray-100">
               {formatDate(currentGroup.created_at, 'long')}
             </span>
@@ -281,13 +290,13 @@ export function OverviewTab() {
           {currentGroup.updated_by && (
             <>
               <div>
-                <span className="text-gray-500 dark:text-gray-400">Actualizado por:</span>{' '}
+                <span className="text-gray-500 dark:text-gray-400">{t('overview.updatedBy')}</span>{' '}
                 <span className="text-gray-900 dark:text-gray-100">
                   {currentGroup.updated_by_username || currentGroup.updated_by}
                 </span>
               </div>
               <div>
-                <span className="text-gray-500 dark:text-gray-400">Última actualización:</span>{' '}
+                <span className="text-gray-500 dark:text-gray-400">{t('overview.updatedAt')}</span>{' '}
                 <span className="text-gray-900 dark:text-gray-100">
                   {formatDate(currentGroup.updated_at, 'long')}
                 </span>

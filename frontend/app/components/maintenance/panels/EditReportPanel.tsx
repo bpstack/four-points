@@ -5,6 +5,7 @@
 import { useEffect, useState } from 'react'
 import { useForm, SubmitHandler } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useTranslations } from 'next-intl'
 import { reportSchema, type ReportFormData } from '@/app/lib/maintenance/maintenance-schemas'
 import { maintenanceApi } from '@/app/lib/maintenance/maintenanceApi'
 import type { ReportWithDetails, MaintenanceImage } from '@/app/lib/maintenance/maintenance'
@@ -29,6 +30,7 @@ interface EditReportPanelProps {
 }
 
 export function EditReportPanel({ isOpen, onClose, report, onSuccess }: EditReportPanelProps) {
+  const t = useTranslations('maintenance')
   // State for new images to upload
   const [previewImages, setPreviewImages] = useState<string[]>([])
   const [imageFiles, setImageFiles] = useState<File[]>([])
@@ -117,12 +119,12 @@ export function EditReportPanel({ isOpen, onClose, report, onSuccess }: EditRepo
 
     Array.from(files).forEach((file) => {
       if (totalImages + newPreviews.length >= maxImages) {
-        toast.error(`Maximo ${maxImages} imagenes permitidas`)
+        toast.error(t('panels.edit.toast.maxImages', { max: maxImages }))
         return
       }
 
       if (file.size > 5 * 1024 * 1024) {
-        toast.error(`${file.name} excede 5MB`)
+        toast.error(t('panels.edit.toast.fileTooLarge', { fileName: file.name }))
         return
       }
 
@@ -154,10 +156,10 @@ export function EditReportPanel({ isOpen, onClose, report, onSuccess }: EditRepo
       setDeletingImageId(imageId)
       await maintenanceApi.deleteImage(report.id, imageId)
       setExistingImages((prev) => prev.filter((img) => img.id !== imageId))
-      toast.success('Imagen eliminada')
+      toast.success(t('panels.edit.toast.imageDeleted'))
     } catch (error) {
       console.error('Error deleting image:', error)
-      toast.error('Error al eliminar la imagen')
+      toast.error(t('panels.edit.toast.imageDeleteError'))
     } finally {
       setDeletingImageId(null)
     }
@@ -170,23 +172,23 @@ export function EditReportPanel({ isOpen, onClose, report, onSuccess }: EditRepo
       // Upload new images if any
       if (imageFiles.length > 0) {
         try {
-          toast.loading('Subiendo imagenes...', { id: 'upload-images' })
+          toast.loading(t('panels.edit.toast.uploadingImages'), { id: 'upload-images' })
           await maintenanceApi.uploadImages(report.id, imageFiles)
-          toast.success('Imagenes subidas correctamente', { id: 'upload-images' })
+          toast.success(t('panels.edit.toast.imagesUploaded'), { id: 'upload-images' })
         } catch (imgError) {
           console.error('Error subiendo imagenes:', imgError)
-          toast.error('Reporte actualizado pero hubo error al subir imagenes', {
+          toast.error(t('panels.edit.toast.imagesUploadError'), {
             id: 'upload-images',
           })
         }
       }
 
-      toast.success('Reporte actualizado correctamente')
+      toast.success(t('panels.edit.toast.reportUpdated'))
       onSuccess?.()
       onClose()
     } catch (error) {
       console.error('Error updating report:', error)
-      const message = error instanceof Error ? error.message : 'Error al actualizar el reporte'
+      const message = error instanceof Error ? error.message : t('panels.edit.toast.updateError')
       toast.error(message)
     }
   }
@@ -198,7 +200,7 @@ export function EditReportPanel({ isOpen, onClose, report, onSuccess }: EditRepo
     <SlidePanel
       isOpen={isOpen}
       onClose={onClose}
-      title="Editar Reporte"
+      title={t('panels.edit.title')}
       subtitle={`ID: ${report.id}`}
       size="lg"
       headerIcon={<FiTool className="w-5 h-5 text-blue-600 dark:text-blue-400" />}
@@ -208,7 +210,7 @@ export function EditReportPanel({ isOpen, onClose, report, onSuccess }: EditRepo
           onSubmit={handleSubmit(onSubmit)}
           isSubmitting={isSubmitting}
           submitDisabled={!hasPendingChanges}
-          submitText="Guardar Cambios"
+          submitText={t('panels.edit.submitText')}
           submitIcon={<FiSave className="w-4 h-4" />}
           submitVariant="primary"
         />
@@ -216,23 +218,31 @@ export function EditReportPanel({ isOpen, onClose, report, onSuccess }: EditRepo
     >
       <SlidePanelSection>
         {/* Location Type */}
-        <FormField label="Tipo de Ubicacion" required error={errors.location_type?.message}>
+        <FormField
+          label={t('panels.create.fields.locationType')}
+          required
+          error={errors.location_type?.message}
+        >
           <select {...register('location_type')} className={selectClassName}>
-            <option value="room">Habitacion</option>
-            <option value="common_area">Area Comun</option>
-            <option value="exterior">Exterior</option>
-            <option value="facilities">Instalaciones</option>
-            <option value="other">Otro</option>
+            <option value="room">{t('locationType.room')}</option>
+            <option value="common_area">{t('locationType.commonArea')}</option>
+            <option value="exterior">{t('locationType.exterior')}</option>
+            <option value="facilities">{t('locationType.facilities')}</option>
+            <option value="other">{t('locationType.other')}</option>
           </select>
         </FormField>
 
         {/* Room Number */}
         {locationType === 'room' && (
-          <FormField label="Numero de Habitacion" required error={errors.room_number?.message}>
+          <FormField
+            label={t('panels.create.fields.roomNumber')}
+            required
+            error={errors.room_number?.message}
+          >
             <input
               {...register('room_number')}
               type="text"
-              placeholder="Ej: 305"
+              placeholder={t('panels.create.placeholders.roomNumber')}
               className={inputClassName}
             />
           </FormField>
@@ -240,45 +250,53 @@ export function EditReportPanel({ isOpen, onClose, report, onSuccess }: EditRepo
 
         {/* Location Description */}
         <FormField
-          label="Descripcion de Ubicacion"
+          label={t('panels.create.fields.locationDescription')}
           required
           error={errors.location_description?.message}
         >
           <input
             {...register('location_description')}
             type="text"
-            placeholder="Ej: Bano principal, grifo del lavabo"
+            placeholder={t('panels.create.placeholders.locationDescription')}
             className={inputClassName}
           />
         </FormField>
 
         {/* Title */}
-        <FormField label="Titulo del Reporte" required error={errors.title?.message}>
+        <FormField
+          label={t('panels.create.fields.reportTitle')}
+          required
+          error={errors.title?.message}
+        >
           <input
             {...register('title')}
             type="text"
-            placeholder="Ej: Fuga de agua en grifo"
+            placeholder={t('panels.create.placeholders.reportTitle')}
             className={inputClassName}
           />
         </FormField>
 
         {/* Description */}
-        <FormField label="Descripcion Detallada" required error={errors.description?.message}>
+        <FormField
+          label={t('panels.create.fields.description')}
+          required
+          error={errors.description?.message}
+        >
           <textarea
             {...register('description')}
             rows={4}
-            placeholder="Describe el problema en detalle..."
+            placeholder={t('panels.create.placeholders.description')}
             className={textareaClassName}
           />
         </FormField>
 
         {/* Priority */}
-        <FormField label="Prioridad">
+        <FormField label={t('panels.create.fields.priority')}>
           <select {...register('priority')} className={selectClassName}>
-            <option value="low">Baja</option>
-            <option value="medium">Media</option>
-            <option value="high">Alta</option>
-            <option value="urgent">Urgente</option>
+            <option value="low">{t('priority.low')}</option>
+            <option value="medium">{t('priority.medium')}</option>
+            <option value="high">{t('priority.high')}</option>
+            <option value="urgent">{t('priority.urgent')}</option>
           </select>
         </FormField>
 
@@ -291,37 +309,37 @@ export function EditReportPanel({ isOpen, onClose, report, onSuccess }: EditRepo
               className={checkboxClassName}
             />
             <label className="ml-2 text-sm text-gray-700 dark:text-gray-300">
-              Habitacion fuera de servicio
+              {t('panels.create.fields.roomOutOfService')}
             </label>
           </div>
         )}
 
         {/* Assigned Type */}
-        <FormField label="Asignacion">
+        <FormField label={t('panels.create.fields.assignment')}>
           <select {...register('assigned_type')} className={selectClassName}>
-            <option value="">Sin asignar</option>
-            <option value="internal">Personal interno</option>
-            <option value="external">Empresa externa</option>
+            <option value="">{t('panels.create.assignment.unassigned')}</option>
+            <option value="internal">{t('panels.create.assignment.internal')}</option>
+            <option value="external">{t('panels.create.assignment.external')}</option>
           </select>
         </FormField>
 
         {/* External Company */}
         {assignedType === 'external' && (
           <>
-            <FormField label="Nombre de Empresa">
+            <FormField label={t('panels.create.fields.companyName')}>
               <input
                 {...register('external_company_name')}
                 type="text"
-                placeholder="Ej: Fontaneria Garcia S.L."
+                placeholder={t('panels.create.placeholders.companyName')}
                 className={inputClassName}
               />
             </FormField>
 
-            <FormField label="Contacto Empresa">
+            <FormField label={t('panels.create.fields.companyContact')}>
               <input
                 {...register('external_contact')}
                 type="text"
-                placeholder="Ej: +34 600 123 456 - Juan Garcia"
+                placeholder={t('panels.create.placeholders.companyContact')}
                 className={inputClassName}
               />
             </FormField>
@@ -330,7 +348,7 @@ export function EditReportPanel({ isOpen, onClose, report, onSuccess }: EditRepo
 
         {/* Existing Images */}
         {existingImages.length > 0 && (
-          <FormField label={`Imagenes actuales (${existingImages.length})`}>
+          <FormField label={t('panels.edit.currentImages', { count: existingImages.length })}>
             <div className="grid grid-cols-3 gap-2">
               {existingImages.map((image) => (
                 <div key={image.id} className="relative group">
@@ -345,7 +363,7 @@ export function EditReportPanel({ isOpen, onClose, report, onSuccess }: EditRepo
                     onClick={() => deleteExistingImage(image.id)}
                     disabled={deletingImageId === image.id}
                     className="absolute top-1 right-1 p-1 bg-red-600 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50"
-                    title="Eliminar imagen"
+                    title={t('panels.edit.deleteImageTooltip')}
                   >
                     {deletingImageId === image.id ? (
                       <div className="w-3 h-3 border border-white border-t-transparent rounded-full animate-spin" />
@@ -360,7 +378,7 @@ export function EditReportPanel({ isOpen, onClose, report, onSuccess }: EditRepo
         )}
 
         {/* New Images Upload */}
-        <FormField label={`Anadir imagenes (${totalImages}/${maxImages})`}>
+        <FormField label={t('panels.edit.addImages', { current: totalImages, max: maxImages })}>
           <label
             className={`flex items-center justify-center w-full px-4 py-6 border-2 border-gray-300 dark:border-gray-700 border-dashed rounded-md transition-colors ${
               canAddMoreImages
@@ -374,15 +392,15 @@ export function EditReportPanel({ isOpen, onClose, report, onSuccess }: EditRepo
                 {canAddMoreImages ? (
                   <>
                     <span className="font-medium text-blue-600 dark:text-blue-400">
-                      Haz clic para subir
+                      {t('panels.create.images.clickToUpload')}
                     </span>{' '}
-                    o arrastra imagenes
+                    {t('panels.create.images.dragImages')}
                   </>
                 ) : (
-                  <span>Limite de imagenes alcanzado</span>
+                  <span>{t('panels.edit.imageLimitReached')}</span>
                 )}
               </div>
-              <p className="text-[10px] text-gray-500">PNG, JPG, WEBP hasta 5MB</p>
+              <p className="text-[10px] text-gray-500">{t('panels.create.images.formats')}</p>
             </div>
             <input
               type="file"
@@ -397,7 +415,7 @@ export function EditReportPanel({ isOpen, onClose, report, onSuccess }: EditRepo
 
         {/* Preview New Images */}
         {previewImages.length > 0 && (
-          <FormField label={`Nuevas imagenes (${previewImages.length})`}>
+          <FormField label={t('panels.edit.newImages', { count: previewImages.length })}>
             <div className="grid grid-cols-3 gap-2">
               {previewImages.map((preview, index) => (
                 <div key={index} className="relative group">
@@ -415,7 +433,7 @@ export function EditReportPanel({ isOpen, onClose, report, onSuccess }: EditRepo
                     <FiX className="w-3 h-3" />
                   </button>
                   <div className="absolute bottom-1 left-1 px-1 py-0.5 bg-blue-600 text-white text-[8px] rounded">
-                    Nueva
+                    {t('panels.edit.newBadge')}
                   </div>
                 </div>
               ))}

@@ -12,6 +12,8 @@ import { FiFileText, FiEdit2, FiSave, FiX, FiCheckCircle, FiCalendar } from 'rea
 import { formatDateForInput, parseInputDate } from '@/app/lib/helpers/date'
 import SimpleCalendarCompact from '@/app/ui/calendar/SimpleCalendarCompact'
 import toast from 'react-hot-toast'
+import { useTranslations } from 'next-intl'
+import { useLocale } from 'next-intl'
 
 interface ContractCardProps {
   status: GroupStatusRecord
@@ -19,9 +21,11 @@ interface ContractCardProps {
 }
 
 export function ContractCard({ status, groupId }: ContractCardProps) {
+  const t = useTranslations('groups')
+  const locale = useLocale()
   const [isEditing, setIsEditing] = useState(false)
   const [showCalendar, setShowCalendar] = useState(false)
-  const { refreshStatus, refreshGroup } = useGroupStore() // ✅ Añadir refreshGroup
+  const { refreshStatus, refreshGroup } = useGroupStore()
 
   const {
     register,
@@ -60,16 +64,15 @@ export function ContractCard({ status, groupId }: ContractCardProps) {
   const onSubmit = async (data: ContractFormData) => {
     try {
       await groupsApi.updateContract(groupId, data)
-      toast.success('Contrato actualizado correctamente')
+      toast.success(t('statusCards.contractUpdateSuccess'))
 
-      // ✅ Refrescar tanto status como el grupo completo
       await Promise.all([refreshStatus(groupId), refreshGroup(groupId)])
 
       setIsEditing(false)
       setShowCalendar(false)
     } catch (error) {
       console.error('Error updating contract:', error)
-      const message = error instanceof Error ? error.message : 'Error al actualizar el contrato'
+      const message = error instanceof Error ? error.message : t('statusCards.contractUpdateError')
       toast.error(message)
     }
   }
@@ -83,7 +86,7 @@ export function ContractCard({ status, groupId }: ContractCardProps) {
   const formatDateDisplay = (dateString: string) => {
     if (!dateString) return ''
     const date = parseInputDate(dateString)
-    return date.toLocaleDateString('es-ES', {
+    return date.toLocaleDateString(locale === 'es' ? 'es-ES' : 'en-US', {
       day: '2-digit',
       month: 'short',
       year: 'numeric',
@@ -98,7 +101,9 @@ export function ContractCard({ status, groupId }: ContractCardProps) {
           <div className="w-8 h-8 bg-purple-100 dark:bg-purple-900/20 rounded-lg flex items-center justify-center">
             <FiFileText className="w-4 h-4 text-purple-600 dark:text-purple-400" />
           </div>
-          <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Contrato</h4>
+          <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+            {t('statusCards.contract')}
+          </h4>
         </div>
 
         {!isEditing && (
@@ -126,21 +131,21 @@ export function ContractCard({ status, groupId }: ContractCardProps) {
               htmlFor="contract_signed"
               className="text-sm font-medium text-gray-700 dark:text-gray-300"
             >
-              Contrato firmado
+              {t('statusCards.contractSignedLabel')}
             </label>
           </div>
 
           {/* Date con Calendar */}
           <div className="relative calendar-container">
             <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Fecha de firma
+              {t('statusCards.signDate')}
             </label>
             <div className="relative">
               <input
                 type="text"
                 value={formatDateDisplay(dateValue)}
                 readOnly
-                placeholder="Selecciona fecha"
+                placeholder={t('statusCards.selectDate')}
                 onClick={(e) => {
                   e.stopPropagation()
                   setShowCalendar(!showCalendar)
@@ -201,11 +206,11 @@ export function ContractCard({ status, groupId }: ContractCardProps) {
             {status.contract_signed ? (
               <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-800 rounded-md text-xs font-medium">
                 <FiCheckCircle className="w-3.5 h-3.5" />
-                Firmado
+                {t('statusCards.signed')}
               </span>
             ) : (
               <span className="inline-flex items-center gap-1 px-2 py-1 bg-yellow-50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-400 border border-yellow-200 dark:border-yellow-800 rounded-md text-xs font-medium">
-                Pendiente
+                {t('statusCards.pending')}
               </span>
             )}
           </div>
@@ -213,12 +218,15 @@ export function ContractCard({ status, groupId }: ContractCardProps) {
           {/* Date */}
           {status.contract_signed_date && (
             <p className="text-xs text-gray-600 dark:text-gray-400">
-              Firmado el{' '}
-              {new Date(status.contract_signed_date).toLocaleDateString('es-ES', {
-                day: '2-digit',
-                month: 'long',
-                year: 'numeric',
-              })}
+              {t('statusCards.signedOn')}{' '}
+              {new Date(status.contract_signed_date).toLocaleDateString(
+                locale === 'es' ? 'es-ES' : 'en-US',
+                {
+                  day: '2-digit',
+                  month: 'long',
+                  year: 'numeric',
+                }
+              )}
             </p>
           )}
         </div>

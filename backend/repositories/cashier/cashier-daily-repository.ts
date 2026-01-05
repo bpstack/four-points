@@ -271,80 +271,166 @@ export class CashierDailyRepository {
     const startDate = `${year}-${String(month).padStart(2, '0')}-01`
     const endDate = new Date(year, month, 0).toISOString().split('T')[0]
 
-    // ✅ USAR QUERY DIRECTA con SUM en MySQL en lugar de sumar en JS
-    const query = `
-    SELECT 
-      COALESCE(SUM(total_cash), 0) as total_cash,
-      COALESCE(SUM(total_card), 0) as total_card,
-      COALESCE(SUM(total_bacs), 0) as total_bacs,
-      COALESCE(SUM(total_web_payment), 0) as total_web_payment,
-      COALESCE(SUM(total_transfer), 0) as total_transfer,
-      COALESCE(SUM(total_other), 0) as total_other,
-      COALESCE(SUM(grand_total), 0) as grand_total
-    FROM cashier_daily
-    WHERE date >= ? AND date <= ?
-  `
+    // ✅ CALCULAR TOTALES DESDE TABLAS FUENTE (cashier_denominations y cashier_payments)
+    // en lugar de leer de cashier_daily que puede tener datos desactualizados
 
-    const [totalsRows] = await db.query<any[]>(query, [startDate, endDate])
-    const totals = {
-      total_cash: parseFloat(totalsRows[0].total_cash) || 0,
-      total_card: parseFloat(totalsRows[0].total_card) || 0,
-      total_bacs: parseFloat(totalsRows[0].total_bacs) || 0,
-      total_web_payment: parseFloat(totalsRows[0].total_web_payment) || 0,
-      total_transfer: parseFloat(totalsRows[0].total_transfer) || 0,
-      total_other: parseFloat(totalsRows[0].total_other) || 0,
-      grand_total: parseFloat(totalsRows[0].grand_total) || 0,
+    // 1. Obtener todos los turnos del periodo
+    const [shiftsRows] = await db.query<any[]>(
+      `SELECT id, DATE_FORMAT(shift_date, '%Y-%m-%d') as shift_date, initial_fund
+       FROM cashier_shifts 
+       WHERE DATE(shift_date) >= ? AND DATE(shift_date) <= ?`,
+      [startDate, endDate]
+    )
+
+    // 2. Calcular efectivo desde denominaciones
+    let totalCash = 0
+    for (const shift of shiftsRows) {
+      const [denomRows] = await db.query<any[]>(
+        'SELECT COALESCE(SUM(total), 0) as total FROM cashier_denominations WHERE shift_id = ?',
+        [shift.id]
+      )
+      const cashCounted = Number(denomRows[0]?.total) || 0
+      const initialFund = Number(shift.initial_fund) || 0
+      
+      // income = cash_counted - initial_fund
+      if (cashCounted > 0) {
+        totalCash += (cashCounted - initialFund)
+      }
     }
 
-    // Obtener días para daily_breakdown
+    // 3. Calcular pagos electrónicos desde cashier_payments
+    const [paymentsQuery] = await db.query<any[]>(
+      `SELECT 
+        pm.name as method_name,
+        COALESCE(SUM(cp.amount), 0) as total
+      FROM cashier_payments cp
+      JOIN payment_methods pm ON cp.payment_method_id = pm.id
+      JOIN cashier_shifts cs ON cp.shift_id = cs.id
+      WHERE DATE(cs.shift_date) >= ? AND DATE(cs.shift_date) <= ?
+      GROUP BY pm.name`,
+      [startDate, endDate]
+    )
+
+    // Mapear pagos por método
+    let totalCard = 0
+    let totalBacs = 0
+    let totalWebPayment = 0
+    let totalTransfer = 0
+    let totalOther = 0
+
+    for (const row of paymentsQuery) {
+      const methodName = (row.method_name || '').toUpperCase()
+      const amount = Number(row.total) || 0
+
+      if (methodName.includes('TARJETA') || methodName.includes('CARD') || methodName.includes('CRÉDITO') || methodName.includes('DÉBITO')) {
+        totalCard += amount
+      } else if (methodName.includes('BACS')) {
+        totalBacs += amount
+      } else if (methodName.includes('WEB')) {
+        totalWebPayment += amount
+      } else if (methodName.includes('TRANSFER')) {
+        totalTransfer += amount
+      } else {
+        totalOther += amount
+      }
+    }
+
+    const grandTotal = totalCash + totalCard + totalBacs + totalWebPayment + totalTransfer + totalOther
+
+    const totals = {
+      total_cash: totalCash,
+      total_card: totalCard,
+      total_bacs: totalBacs,
+      total_web_payment: totalWebPayment,
+      total_transfer: totalTransfer,
+      total_other: totalOther,
+      grand_total: grandTotal,
+    }
+
+    // Obtener días para daily_breakdown (todavía desde cashier_daily para la lista)
     const dailyRecords = await this.getAll({
       from_date: startDate,
       to_date: endDate,
     })
 
     // Desglose por método de pago
-    const grandTotal = totals.grand_total || 1
+    const grandTotalForPercentage = grandTotal || 1
     const paymentMethodsBreakdown = [
       {
         method_name: 'EFECTIVO',
         total_amount: totals.total_cash,
-        percentage: (totals.total_cash / grandTotal) * 100,
+        percentage: (totals.total_cash / grandTotalForPercentage) * 100,
       },
       {
         method_name: 'TARJETA CRÉDITO O DÉBITO',
         total_amount: totals.total_card,
-        percentage: (totals.total_card / grandTotal) * 100,
+        percentage: (totals.total_card / grandTotalForPercentage) * 100,
       },
       {
         method_name: 'BACS',
         total_amount: totals.total_bacs,
-        percentage: (totals.total_bacs / grandTotal) * 100,
+        percentage: (totals.total_bacs / grandTotalForPercentage) * 100,
       },
       {
         method_name: 'WEB PAYMENT',
         total_amount: totals.total_web_payment,
-        percentage: (totals.total_web_payment / grandTotal) * 100,
+        percentage: (totals.total_web_payment / grandTotalForPercentage) * 100,
       },
       {
         method_name: 'TRANSFERENCIA',
         total_amount: totals.total_transfer,
-        percentage: (totals.total_transfer / grandTotal) * 100,
+        percentage: (totals.total_transfer / grandTotalForPercentage) * 100,
       },
       {
         method_name: 'OTROS',
         total_amount: totals.total_other,
-        percentage: (totals.total_other / grandTotal) * 100,
+        percentage: (totals.total_other / grandTotalForPercentage) * 100,
       },
     ]
 
-    // Daily breakdown
-    const dailyBreakdown = dailyRecords.map((day) => ({
-      date: day.date,
-      status: day.status,
-      total_cash: parseFloat(day.total_cash as any) || 0,
-      grand_total: parseFloat(day.grand_total as any) || 0,
-      has_discrepancy: false,
-    }))
+    // Daily breakdown - calculado desde tablas fuente por cada día
+    const dailyBreakdown = await Promise.all(
+      dailyRecords.map(async (day) => {
+        // Obtener turnos del día
+        const [dayShifts] = await db.query<any[]>(
+          `SELECT id, initial_fund FROM cashier_shifts WHERE DATE(shift_date) = ?`,
+          [day.date]
+        )
+
+        // Calcular efectivo del día
+        let dayCash = 0
+        for (const shift of dayShifts) {
+          const [denomRows] = await db.query<any[]>(
+            'SELECT COALESCE(SUM(total), 0) as total FROM cashier_denominations WHERE shift_id = ?',
+            [shift.id]
+          )
+          const cashCounted = Number(denomRows[0]?.total) || 0
+          const initialFund = Number(shift.initial_fund) || 0
+          if (cashCounted > 0) {
+            dayCash += (cashCounted - initialFund)
+          }
+        }
+
+        // Calcular pagos del día
+        const shiftIds = dayShifts.map((s: any) => s.id)
+        let dayPayments = 0
+        if (shiftIds.length > 0) {
+          const [payRows] = await db.query<any[]>(
+            `SELECT COALESCE(SUM(amount), 0) as total FROM cashier_payments WHERE shift_id IN (?)`,
+            [shiftIds]
+          )
+          dayPayments = Number(payRows[0]?.total) || 0
+        }
+
+        return {
+          date: day.date,
+          status: day.status,
+          total_cash: dayCash,
+          grand_total: dayCash + dayPayments,
+          has_discrepancy: false,
+        }
+      })
+    )
 
     // Validaciones
     const validationErrors: string[] = []

@@ -1,5 +1,6 @@
 // app/dashboard/maintenance/page.tsx
 
+import { getTranslations } from 'next-intl/server'
 import { getMaintenance } from './actions'
 import { MaintenanceListClient } from '@/app/components/maintenance/MaintenanceListClient'
 import type { ReportFilters } from '@/app/lib/maintenance/maintenance'
@@ -16,6 +17,7 @@ interface PageProps {
 
 export default async function MaintenancePage({ searchParams }: PageProps) {
   const params = await searchParams
+  const t = await getTranslations('maintenance')
 
   // Construir filtros desde URL
   const filters = {
@@ -33,7 +35,7 @@ export default async function MaintenancePage({ searchParams }: PageProps) {
   try {
     data = await getMaintenance(filters)
   } catch (err) {
-    const message = err instanceof Error ? err.message : 'Error desconocido'
+    const message = err instanceof Error ? err.message : t('error.unknown')
     console.error('[MaintenancePage] Error:', message)
     error = message
   }
@@ -42,7 +44,9 @@ export default async function MaintenancePage({ searchParams }: PageProps) {
     return (
       <div className="min-h-screen bg-white dark:bg-[#010409] flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">Error</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+            {t('error.title')}
+          </h1>
           <p className="text-sm text-gray-600 dark:text-gray-400">{error}</p>
         </div>
       </div>

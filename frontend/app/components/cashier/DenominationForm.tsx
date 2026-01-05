@@ -2,6 +2,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useTranslations } from 'next-intl'
 import { FiSave, FiX } from 'react-icons/fi'
 import { useUpdateDenominations } from '@/app/lib/cashier/queries'
 import { toast } from 'react-hot-toast'
@@ -26,6 +27,7 @@ export default function DenominationForm({
   onSave,
   onCancel,
 }: DenominationFormProps) {
+  const t = useTranslations('cashier')
   const [quantities, setQuantities] = useState<Record<number, number>>({})
   const [cashCounted, setCashCounted] = useState(0)
 
@@ -66,11 +68,11 @@ export default function DenominationForm({
         denominations,
       })
 
-      toast.success('Conteo guardado')
+      toast.success(t('denomination.countSaved'))
       setTimeout(() => onSave(), 100)
     } catch (error) {
       console.error('Error guardando denominaciones:', error)
-      const errorMessage = error instanceof Error ? error.message : 'Error al guardar'
+      const errorMessage = error instanceof Error ? error.message : t('error.saveError')
       toast.error(errorMessage)
     }
   }
@@ -83,13 +85,17 @@ export default function DenominationForm({
       <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border border-green-200 dark:border-green-800 rounded-lg p-2.5">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-[10px] text-gray-600 dark:text-gray-400 mb-0.5">Efectivo Contado</p>
+            <p className="text-[10px] text-gray-600 dark:text-gray-400 mb-0.5">
+              {t('denomination.cashCounted')}
+            </p>
             <p className="text-xl font-bold text-green-600 dark:text-green-400">
               {cashCounted.toFixed(2)}€
             </p>
           </div>
           <div className="text-right">
-            <p className="text-[9px] text-gray-500 dark:text-gray-400 mb-0.5">Completados</p>
+            <p className="text-[9px] text-gray-500 dark:text-gray-400 mb-0.5">
+              {t('denomination.completed')}
+            </p>
             <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">
               {completedCount}/{EURO_DENOMINATIONS.length}
             </p>
@@ -124,12 +130,12 @@ export default function DenominationForm({
                     {/* Badge Billete/Moneda */}
                     {denom >= 5 && (
                       <span className="text-[11px] px-1 py-0.5 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 rounded font-medium">
-                        Billete
+                        {t('denomination.bill')}
                       </span>
                     )}
                     {denom < 5 && (
                       <span className="text-[11px] px-1 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded font-medium">
-                        Moneda
+                        {t('denomination.coin')}
                       </span>
                     )}
                   </div>
@@ -164,7 +170,7 @@ export default function DenominationForm({
           className="px-3 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-[#0d1117] border border-gray-300 dark:border-gray-700 rounded hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50 flex items-center gap-1.5"
         >
           <FiX className="w-3 h-3" />
-          Cancelar
+          {t('common.cancel')}
         </button>
         <button
           onClick={handleSave}
@@ -174,12 +180,12 @@ export default function DenominationForm({
           {isLoading ? (
             <>
               <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              Guardando...
+              {t('common.saving')}
             </>
           ) : (
             <>
               <FiSave className="w-3 h-3" />
-              Guardar
+              {t('common.save')}
             </>
           )}
         </button>

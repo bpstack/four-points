@@ -8,6 +8,7 @@
 'use client'
 
 import { useEffect, useState, useRef, useCallback } from 'react'
+import { useTranslations } from 'next-intl'
 import {
   FiX,
   FiLoader,
@@ -71,6 +72,8 @@ export function PdfEditorModal({
   invoiceId,
   invoiceNumber,
 }: PdfEditorModalProps) {
+  const t = useTranslations('backoffice')
+
   // State
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -156,7 +159,7 @@ export function PdfEditorModal({
 
         if (!pdfFetchResponse.ok) {
           console.error('PDF fetch failed:', pdfFetchResponse.status, pdfFetchResponse.statusText)
-          throw new Error(`Error al descargar el PDF: ${pdfFetchResponse.status}`)
+          throw new Error(`errorDownloadingPdf:${pdfFetchResponse.status}`)
         }
         const bytes = await pdfFetchResponse.arrayBuffer()
 
@@ -164,7 +167,8 @@ export function PdfEditorModal({
         setPdfBytes(bytes.slice(0))
       } catch (err: unknown) {
         console.error('Error loading PDF editor:', err)
-        setError(err instanceof Error ? err.message : 'Error al cargar el editor')
+        const errorMessage = err instanceof Error ? err.message : 'errorLoadingEditor'
+        setError(errorMessage)
       } finally {
         setLoading(false)
       }
@@ -238,7 +242,7 @@ export function PdfEditorModal({
           return
         }
         console.error('Error rendering PDF:', err)
-        setError('Error al renderizar el PDF')
+        setError('errorRenderingPdf')
       }
     }
 
@@ -751,11 +755,11 @@ export function PdfEditorModal({
       const blob = new Blob([modifiedPdfBytes.buffer as ArrayBuffer], { type: 'application/pdf' })
 
       await onSave(blob)
-      toast.success('PDF validado correctamente')
+      toast.success(t('toast.pdfValidatedSuccess'))
       onClose()
     } catch (err: unknown) {
       console.error('Error saving PDF:', err)
-      toast.error(err instanceof Error ? err.message : 'Error al guardar el PDF')
+      toast.error(err instanceof Error ? err.message : t('toast.pdfSaveError'))
     } finally {
       setSaving(false)
     }
@@ -776,7 +780,7 @@ export function PdfEditorModal({
           {/* Header */}
           <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
             <h2 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-              Validar Factura
+              {t('modals.pdfEditor.title')}
             </h2>
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 truncate">
               {invoiceNumber}
@@ -786,7 +790,7 @@ export function PdfEditorModal({
           {/* Tools Section */}
           <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
             <h3 className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2 uppercase tracking-wide">
-              Herramientas
+              {t('modals.pdfEditor.tools')}
             </h3>
             <div className="flex gap-2">
               <button
@@ -796,7 +800,7 @@ export function PdfEditorModal({
                     ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
                     : 'hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400'
                 }`}
-                title="Seleccionar y mover"
+                title={t('modals.pdfEditor.selectAndMove')}
               >
                 <FiMove className="w-5 h-5" />
               </button>
@@ -807,7 +811,7 @@ export function PdfEditorModal({
                     ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
                     : 'hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400'
                 }`}
-                title="Añadir texto"
+                title={t('modals.pdfEditor.addText')}
               >
                 <FiType className="w-5 h-5" />
               </button>
@@ -818,7 +822,7 @@ export function PdfEditorModal({
                     ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
                     : 'hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400'
                 }`}
-                title="Subrayar"
+                title={t('modals.pdfEditor.highlight')}
               >
                 <FiEdit3 className="w-5 h-5" />
               </button>
@@ -830,12 +834,14 @@ export function PdfEditorModal({
                 <textarea
                   value={textInput}
                   onChange={(e) => setTextInput(e.target.value)}
-                  placeholder="Escribe el texto...&#10;(Enter para nueva línea)"
+                  placeholder={t('modals.pdfEditor.textPlaceholder')}
                   rows={3}
                   className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 resize-none"
                 />
                 <div className="flex items-center gap-2">
-                  <label className="text-xs text-gray-500 dark:text-gray-400">Tamaño:</label>
+                  <label className="text-xs text-gray-500 dark:text-gray-400">
+                    {t('modals.pdfEditor.fontSize')}
+                  </label>
                   <select
                     value={textFontSize}
                     onChange={(e) => setTextFontSize(Number(e.target.value))}
@@ -851,7 +857,7 @@ export function PdfEditorModal({
                   </select>
                 </div>
                 <p className="text-[10px] text-gray-400 dark:text-gray-500">
-                  Haz clic en el PDF para añadir el texto
+                  {t('modals.pdfEditor.clickToAddText')}
                 </p>
               </div>
             )}
@@ -860,7 +866,9 @@ export function PdfEditorModal({
             {activeTool === 'highlight' && (
               <div className="mt-3 space-y-2">
                 <div className="flex items-center gap-2">
-                  <label className="text-xs text-gray-500 dark:text-gray-400">Color:</label>
+                  <label className="text-xs text-gray-500 dark:text-gray-400">
+                    {t('modals.pdfEditor.highlightColor')}
+                  </label>
                   <input
                     type="color"
                     value={highlightColor}
@@ -883,7 +891,7 @@ export function PdfEditorModal({
                   </div>
                 </div>
                 <p className="text-[10px] text-gray-400 dark:text-gray-500">
-                  Click y arrastra sobre el texto para subrayar
+                  {t('modals.pdfEditor.clickAndDragToHighlight')}
                 </p>
               </div>
             )}
@@ -894,11 +902,11 @@ export function PdfEditorModal({
             {/* Stamps */}
             <div>
               <h3 className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2 uppercase tracking-wide">
-                Sellos
+                {t('modals.pdfEditor.stamps')}
               </h3>
               {stamps.length === 0 ? (
                 <p className="text-xs text-gray-400 dark:text-gray-500 italic">
-                  No hay sellos disponibles. Súbelos desde la pestaña Configuración.
+                  {t('modals.pdfEditor.noStampsAvailable')}
                 </p>
               ) : (
                 <div className="grid grid-cols-2 gap-2">
@@ -924,11 +932,11 @@ export function PdfEditorModal({
             {/* Signatures */}
             <div>
               <h3 className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2 uppercase tracking-wide">
-                Firmas
+                {t('modals.pdfEditor.signatures')}
               </h3>
               {signatures.length === 0 ? (
                 <p className="text-xs text-gray-400 dark:text-gray-500 italic">
-                  No hay firmas disponibles. Súbelas desde la pestaña Configuración.
+                  {t('modals.pdfEditor.noSignaturesAvailable')}
                 </p>
               ) : (
                 <div className="grid grid-cols-2 gap-2">
@@ -957,18 +965,18 @@ export function PdfEditorModal({
             <div className="px-4 py-3 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0d1117]">
               <div className="flex items-center justify-between">
                 <span className="text-xs text-gray-600 dark:text-gray-400">
-                  Elemento seleccionado
+                  {t('modals.pdfEditor.selectedElement')}
                 </span>
                 <button
                   onClick={handleRemoveElement}
                   className="p-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors"
-                  title="Eliminar"
+                  title={t('modals.pdfEditor.deleteElement')}
                 >
                   <FiTrash2 className="w-4 h-4" />
                 </button>
               </div>
               <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-1">
-                Arrastra para mover
+                {t('modals.pdfEditor.dragToMove')}
               </p>
             </div>
           )}
@@ -977,7 +985,10 @@ export function PdfEditorModal({
           <div className="px-4 py-3 border-t border-gray-200 dark:border-gray-700 space-y-2">
             {/* Debug info */}
             <p className="text-[10px] text-gray-500 dark:text-gray-400 text-center">
-              Elementos: {placedElements.length} | Página actual: {currentPageElements.length}
+              {t('modals.pdfEditor.elementsCount', {
+                count: placedElements.length,
+                pageCount: currentPageElements.length,
+              })}
             </p>
 
             {/* Primary save button - with elements */}
@@ -989,12 +1000,12 @@ export function PdfEditorModal({
               {saving ? (
                 <>
                   <FiLoader className="w-4 h-4 animate-spin" />
-                  Guardando...
+                  {t('modals.pdfEditor.saving')}
                 </>
               ) : (
                 <>
                   <FiCheck className="w-4 h-4" />
-                  Guardar y Validar
+                  {t('modals.pdfEditor.saveAndValidate')}
                 </>
               )}
             </button>
@@ -1007,7 +1018,7 @@ export function PdfEditorModal({
                 className="w-full flex items-center justify-center gap-2 px-3 py-2 text-xs text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
               >
                 <FiCheck className="w-3.5 h-3.5" />
-                Validar sin modificar
+                {t('modals.pdfEditor.validateWithoutModify')}
               </button>
             )}
           </div>
@@ -1023,7 +1034,7 @@ export function PdfEditorModal({
                 onClick={handleUndo}
                 disabled={undoHistory.length === 0}
                 className="p-2 text-gray-400 hover:text-white hover:bg-gray-700 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                title={`Deshacer (${undoHistory.length})`}
+                title={t('modals.pdfEditor.undoCount', { count: undoHistory.length })}
               >
                 <FiRotateCcw className="w-4 h-4" />
               </button>
@@ -1035,7 +1046,7 @@ export function PdfEditorModal({
                 onClick={handleZoomOut}
                 disabled={scale <= 0.5}
                 className="p-2 text-gray-400 hover:text-white hover:bg-gray-700 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                title="Alejar"
+                title={t('modals.pdfEditor.zoomOut')}
               >
                 <FiZoomOut className="w-4 h-4" />
               </button>
@@ -1046,7 +1057,7 @@ export function PdfEditorModal({
                 onClick={handleZoomIn}
                 disabled={scale >= 3}
                 className="p-2 text-gray-400 hover:text-white hover:bg-gray-700 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                title="Acercar"
+                title={t('modals.pdfEditor.zoomIn')}
               >
                 <FiZoomIn className="w-4 h-4" />
               </button>
@@ -1062,7 +1073,7 @@ export function PdfEditorModal({
                 <FiChevronLeft className="w-4 h-4" />
               </button>
               <span className="text-xs text-gray-400">
-                Página {currentPage} de {totalPages}
+                {t('modals.pdfEditor.page', { current: currentPage, total: totalPages })}
               </span>
               <button
                 onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
@@ -1077,7 +1088,7 @@ export function PdfEditorModal({
             <button
               onClick={onClose}
               className="p-2 text-gray-400 hover:text-white hover:bg-gray-700 rounded transition-colors"
-              title="Cerrar"
+              title={t('modals.pdfEditor.close')}
             >
               <FiX className="w-5 h-5" />
             </button>
@@ -1088,13 +1099,17 @@ export function PdfEditorModal({
             {loading ? (
               <div className="flex flex-col items-center text-gray-400">
                 <FiLoader className="w-10 h-10 animate-spin mb-4" />
-                <p>Cargando PDF...</p>
+                <p>{t('modals.pdfEditor.loadingPdf')}</p>
               </div>
             ) : error ? (
               <div className="flex flex-col items-center text-red-400">
                 <FiAlertCircle className="w-10 h-10 mb-4" />
-                <p className="font-medium">Error al cargar el PDF</p>
-                <p className="text-sm mt-1 text-gray-400">{error}</p>
+                <p className="font-medium">{t('modals.pdfEditor.errorLoadingPdf')}</p>
+                <p className="text-sm mt-1 text-gray-400">
+                  {error.startsWith('errorDownloadingPdf:')
+                    ? t('modals.pdfEditor.errorDownloadingPdf', { status: error.split(':')[1] })
+                    : t(`modals.pdfEditor.${error}`)}
+                </p>
               </div>
             ) : (
               <div
@@ -1203,7 +1218,7 @@ export function PdfEditorModal({
                     {selectedElement === element.id && activeTool === 'select' && (
                       <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-blue-500 text-white text-[10px] px-2 py-0.5 rounded flex items-center gap-1 whitespace-nowrap">
                         <FiMove className="w-3 h-3" />
-                        Arrastra | Esquinas: redimensionar
+                        {t('modals.pdfEditor.moveAndResize')}
                       </div>
                     )}
                   </div>

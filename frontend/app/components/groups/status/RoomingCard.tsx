@@ -17,35 +17,39 @@ import { FiUsers, FiEdit2, FiSave, FiX, FiCalendar } from 'react-icons/fi'
 import { formatDateForInput, parseInputDate } from '@/app/lib/helpers/date'
 import SimpleCalendarCompact from '@/app/ui/calendar/SimpleCalendarCompact'
 import toast from 'react-hot-toast'
+import { useTranslations } from 'next-intl'
+import { useLocale } from 'next-intl'
 
 interface RoomingCardProps {
   status: GroupStatusRecord
   groupId: number
 }
 
-const ROOMING_STATUS_CONFIG = {
-  [RoomingStatus.PENDING]: {
-    label: 'Pendiente',
-    color:
-      'bg-gray-50 dark:bg-gray-900/20 text-gray-700 dark:text-gray-400 border-gray-200 dark:border-gray-800',
-  },
-  [RoomingStatus.REQUESTED]: {
-    label: 'Solicitado',
-    color:
-      'bg-yellow-50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-400 border-yellow-200 dark:border-yellow-800',
-  },
-  [RoomingStatus.RECEIVED]: {
-    label: 'Recibido',
-    color:
-      'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800',
-  },
-}
-
 export function RoomingCard({ status, groupId }: RoomingCardProps) {
+  const t = useTranslations('groups')
+  const locale = useLocale()
   const [isEditing, setIsEditing] = useState(false)
   const [showRequestedCalendar, setShowRequestedCalendar] = useState(false)
   const [showReceivedCalendar, setShowReceivedCalendar] = useState(false)
   const { refreshStatus, refreshGroup } = useGroupStore()
+
+  const ROOMING_STATUS_CONFIG = {
+    [RoomingStatus.PENDING]: {
+      label: t('statusCards.roomingPending'),
+      color:
+        'bg-gray-50 dark:bg-gray-900/20 text-gray-700 dark:text-gray-400 border-gray-200 dark:border-gray-800',
+    },
+    [RoomingStatus.REQUESTED]: {
+      label: t('statusCards.roomingRequested'),
+      color:
+        'bg-yellow-50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-400 border-yellow-200 dark:border-yellow-800',
+    },
+    [RoomingStatus.RECEIVED]: {
+      label: t('statusCards.roomingReceived'),
+      color:
+        'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800',
+    },
+  }
 
   const {
     register,
@@ -104,9 +108,8 @@ export function RoomingCard({ status, groupId }: RoomingCardProps) {
       }
 
       await groupsApi.updateRooming(groupId, payload)
-      toast.success('Rooming actualizado correctamente')
+      toast.success(t('statusCards.roomingUpdateSuccess'))
 
-      // ✅ CAMBIO: Refrescar tanto status como el grupo completo
       await Promise.all([refreshStatus(groupId), refreshGroup(groupId)])
 
       setIsEditing(false)
@@ -114,7 +117,7 @@ export function RoomingCard({ status, groupId }: RoomingCardProps) {
       setShowReceivedCalendar(false)
     } catch (error) {
       console.error('Error updating rooming:', error)
-      const message = error instanceof Error ? error.message : 'Error al actualizar el rooming'
+      const message = error instanceof Error ? error.message : t('statusCards.roomingUpdateError')
       toast.error(message)
     }
   }
@@ -129,7 +132,7 @@ export function RoomingCard({ status, groupId }: RoomingCardProps) {
   const formatDateDisplay = (dateString: string) => {
     if (!dateString) return ''
     const date = parseInputDate(dateString)
-    return date.toLocaleDateString('es-ES', {
+    return date.toLocaleDateString(locale === 'es' ? 'es-ES' : 'en-US', {
       day: '2-digit',
       month: 'short',
       year: 'numeric',
@@ -146,7 +149,9 @@ export function RoomingCard({ status, groupId }: RoomingCardProps) {
           <div className="w-8 h-8 bg-orange-100 dark:bg-orange-900/20 rounded-lg flex items-center justify-center">
             <FiUsers className="w-4 h-4 text-orange-600 dark:text-orange-400" />
           </div>
-          <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Rooming List</h4>
+          <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+            {t('statusCards.rooming')}
+          </h4>
         </div>
 
         {!isEditing && (
@@ -165,15 +170,15 @@ export function RoomingCard({ status, groupId }: RoomingCardProps) {
           {/* Status Select */}
           <div>
             <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Estado
+              {t('statusCards.statusLabel')}
             </label>
             <select
               {...register('rooming_status')}
               className="w-full px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              <option value="pending">Pendiente</option>
-              <option value="requested">Solicitado</option>
-              <option value="received">Recibido</option>
+              <option value="pending">{t('statusCards.roomingPending')}</option>
+              <option value="requested">{t('statusCards.roomingRequested')}</option>
+              <option value="received">{t('statusCards.roomingReceived')}</option>
             </select>
           </div>
 
@@ -181,14 +186,14 @@ export function RoomingCard({ status, groupId }: RoomingCardProps) {
           {roomingStatus !== RoomingStatus.PENDING && (
             <div className="relative calendar-container">
               <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Fecha de solicitud
+                {t('statusCards.requestDate')}
               </label>
               <div className="relative">
                 <input
                   type="text"
                   value={formatDateDisplay(requestedDate)}
                   readOnly
-                  placeholder="Selecciona fecha"
+                  placeholder={t('statusCards.selectDate')}
                   onClick={(e) => {
                     e.stopPropagation()
                     setShowReceivedCalendar(false)
@@ -226,14 +231,14 @@ export function RoomingCard({ status, groupId }: RoomingCardProps) {
           {roomingStatus === RoomingStatus.RECEIVED && (
             <div className="relative calendar-container">
               <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Fecha de recepción
+                {t('statusCards.receiveDate')}
               </label>
               <div className="relative">
                 <input
                   type="text"
                   value={formatDateDisplay(receivedDate)}
                   readOnly
-                  placeholder="Selecciona fecha"
+                  placeholder={t('statusCards.selectDate')}
                   onClick={(e) => {
                     e.stopPropagation()
                     setShowRequestedCalendar(false)
@@ -305,11 +310,19 @@ export function RoomingCard({ status, groupId }: RoomingCardProps) {
           <div className="space-y-1 text-xs text-gray-600 dark:text-gray-400">
             {status.rooming_requested_date && (
               <p>
-                Solicitado: {new Date(status.rooming_requested_date).toLocaleDateString('es-ES')}
+                {t('statusCards.requested')}{' '}
+                {new Date(status.rooming_requested_date).toLocaleDateString(
+                  locale === 'es' ? 'es-ES' : 'en-US'
+                )}
               </p>
             )}
             {status.rooming_received_date && (
-              <p>Recibido: {new Date(status.rooming_received_date).toLocaleDateString('es-ES')}</p>
+              <p>
+                {t('statusCards.received')}{' '}
+                {new Date(status.rooming_received_date).toLocaleDateString(
+                  locale === 'es' ? 'es-ES' : 'en-US'
+                )}
+              </p>
             )}
           </div>
         </div>

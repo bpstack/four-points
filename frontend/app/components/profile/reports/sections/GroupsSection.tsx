@@ -2,7 +2,8 @@
 
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useMemo } from 'react'
+import { useTranslations, useLocale } from 'next-intl'
 import { apiClient } from '@/app/lib/apiClient'
 import { cn } from '@/app/lib/helpers/utils'
 import { API_BASE_URL } from '@/app/lib/env'
@@ -61,30 +62,15 @@ interface DashboardOverview {
 }
 
 // ═══════════════════════════════════════════════════════
-// CONFIG
+// CONFIG (colors only - labels moved inside component for i18n)
 // ═══════════════════════════════════════════════════════
 
-const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
-  confirmed: {
-    label: 'Confirmado',
-    color: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
-  },
-  pending: {
-    label: 'Pendiente',
-    color: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
-  },
-  tentative: {
-    label: 'Tentativo',
-    color: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
-  },
-  cancelled: {
-    label: 'Cancelado',
-    color: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
-  },
-  completed: {
-    label: 'Completado',
-    color: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300',
-  },
+const STATUS_COLORS: Record<string, string> = {
+  confirmed: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
+  pending: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
+  tentative: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
+  cancelled: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
+  completed: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300',
 }
 
 // ═══════════════════════════════════════════════════════
@@ -92,6 +78,21 @@ const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
 // ═══════════════════════════════════════════════════════
 
 export default function GroupsSection() {
+  const t = useTranslations('profile.reports.groups')
+  const locale = useLocale()
+
+  // Status labels with translations
+  const STATUS_LABELS = useMemo(
+    () => ({
+      confirmed: t('status.confirmed'),
+      pending: t('status.pending'),
+      tentative: t('status.tentative'),
+      cancelled: t('status.cancelled'),
+      completed: t('status.completed'),
+    }),
+    [t]
+  )
+
   const [groups, setGroups] = useState<Group[]>([])
   const [overview, setOverview] = useState<DashboardOverview | null>(null)
   const [loading, setLoading] = useState(false)
@@ -136,10 +137,11 @@ export default function GroupsSection() {
       setGroups(Array.isArray(data) ? data.slice(0, DEFAULT_LIMIT) : [])
       setLoaded(true)
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Error cargando grupos')
+      setError(err instanceof Error ? err.message : t('errorLoading'))
     } finally {
       setLoading(false)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dateFilter])
 
   const fetchHistory = useCallback(
@@ -181,11 +183,12 @@ export default function GroupsSection() {
         setGroups([group])
       }
     } catch (_err: unknown) {
-      setError(`Grupo #${searchId} no encontrado`)
+      setError(t('notFound', { id: searchId }))
       setGroups([])
     } finally {
       setLoading(false)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchId])
 
   const handleDateChange = (date: string | null) => {
@@ -194,7 +197,7 @@ export default function GroupsSection() {
   }
 
   const formatDate = (dateStr: string) => {
-    return new Intl.DateTimeFormat('es-ES', {
+    return new Intl.DateTimeFormat(locale === 'es' ? 'es-ES' : 'en-US', {
       day: '2-digit',
       month: 'short',
       year: 'numeric',
@@ -202,7 +205,7 @@ export default function GroupsSection() {
   }
 
   const formatDateTime = (dateStr: string) => {
-    return new Intl.DateTimeFormat('es-ES', {
+    return new Intl.DateTimeFormat(locale === 'es' ? 'es-ES' : 'en-US', {
       day: '2-digit',
       month: 'short',
       year: 'numeric',
@@ -217,11 +220,9 @@ export default function GroupsSection() {
       <div className="flex flex-col items-center justify-center h-64 gap-4">
         <div className="text-center">
           <FiUsers className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
-          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-1">
-            Historial de Grupos
-          </h3>
+          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-1">{t('title')}</h3>
           <p className="text-sm text-gray-500 dark:text-gray-400 max-w-md">
-            Consulta los últimos {DEFAULT_LIMIT} grupos o filtra por fecha de llegada.
+            {t('description', { count: DEFAULT_LIMIT })}
           </p>
         </div>
         <button
@@ -229,7 +230,7 @@ export default function GroupsSection() {
           className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
         >
           <FiRefreshCw className="w-4 h-4" />
-          Cargar Grupos
+          {t('loadHistory')}
         </button>
       </div>
     )
@@ -244,25 +245,25 @@ export default function GroupsSection() {
             <p className="text-2xl font-bold text-gray-900 dark:text-white">
               {overview.groups.total_groups}
             </p>
-            <p className="text-xs text-gray-500 dark:text-gray-400">Total Grupos</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">{t('stats.total')}</p>
           </div>
           <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-3 text-center">
             <p className="text-2xl font-bold text-green-600 dark:text-green-400">
               {overview.groups.confirmed_groups}
             </p>
-            <p className="text-xs text-gray-500 dark:text-gray-400">Confirmados</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">{t('stats.confirmed')}</p>
           </div>
           <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-lg p-3 text-center">
             <p className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">
               {overview.groups.pending_groups}
             </p>
-            <p className="text-xs text-gray-500 dark:text-gray-400">Pendientes</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">{t('stats.pending')}</p>
           </div>
           <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-3 text-center">
             <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">
               {groups.length}
             </p>
-            <p className="text-xs text-gray-500 dark:text-gray-400">Mostrados</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">{t('stats.shown')}</p>
           </div>
         </div>
       )}
@@ -276,7 +277,7 @@ export default function GroupsSection() {
           <DateFilter
             selectedDate={dateFilter}
             onDateChange={handleDateChange}
-            label="Fecha llegada"
+            label={t('arrivalDate')}
           />
 
           {/* Search by ID */}
@@ -286,7 +287,7 @@ export default function GroupsSection() {
               value={searchId}
               onChange={(e) => setSearchId(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && searchGroupById()}
-              placeholder="Buscar ID..."
+              placeholder={t('searchId')}
               className="text-sm border border-gray-300 dark:border-[#30363d] rounded-lg px-3 py-1.5 bg-white dark:bg-[#0d1117] text-gray-900 dark:text-white w-24"
             />
             <button
@@ -306,7 +307,7 @@ export default function GroupsSection() {
             }}
             className="text-xs text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
           >
-            Ver todos
+            {t('viewAll')}
           </button>
         </div>
       </div>
@@ -332,7 +333,9 @@ export default function GroupsSection() {
       {!loading && !error && groups.length > 0 && (
         <div className="space-y-2">
           {groups.map((group) => {
-            const statusConfig = STATUS_CONFIG[group.status] || STATUS_CONFIG.confirmed
+            const statusLabel =
+              STATUS_LABELS[group.status as keyof typeof STATUS_LABELS] || STATUS_LABELS.confirmed
+            const statusColor = STATUS_COLORS[group.status] || STATUS_COLORS.confirmed
             const isExpanded = expandedId === group.id
 
             return (
@@ -348,10 +351,10 @@ export default function GroupsSection() {
                         <span
                           className={cn(
                             'px-2 py-0.5 rounded-full text-xs font-medium',
-                            statusConfig.color
+                            statusColor
                           )}
                         >
-                          {statusConfig.label}
+                          {statusLabel}
                         </span>
                         <span className="text-xs text-gray-400 font-mono">#{group.id}</span>
                       </div>
@@ -385,7 +388,7 @@ export default function GroupsSection() {
                       className="flex items-center gap-1 px-2 py-1 text-xs font-medium text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-[#21262d] rounded transition-colors"
                     >
                       <FiClock className="w-3.5 h-3.5" />
-                      Historial
+                      {t('history.title')}
                       {isExpanded ? (
                         <FiChevronDown className="w-3.5 h-3.5" />
                       ) : (
@@ -405,7 +408,7 @@ export default function GroupsSection() {
                     ) : history.length > 0 ? (
                       <div className="space-y-2">
                         <h4 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3">
-                          Historial de cambios
+                          {t('history.changes')}
                         </h4>
                         {history.map((entry) => (
                           <div
@@ -423,7 +426,7 @@ export default function GroupsSection() {
                                 {entry.field_changed && (
                                   <span className="text-blue-500">{entry.field_changed}</span>
                                 )}
-                                <span className="text-gray-400">por</span>
+                                <span className="text-gray-400">{t('history.by')}</span>
                                 <span className="text-gray-700 dark:text-gray-300">
                                   {entry.changed_by_username || entry.changed_by}
                                 </span>
@@ -447,7 +450,7 @@ export default function GroupsSection() {
                       </div>
                     ) : (
                       <p className="text-sm text-gray-500 text-center py-4">
-                        No hay historial disponible
+                        {t('history.noHistory')}
                       </p>
                     )}
                   </div>
@@ -462,15 +465,17 @@ export default function GroupsSection() {
       {!loading && !error && groups.length === 0 && loaded && (
         <div className="flex flex-col items-center justify-center py-12 text-gray-500">
           <FiUsers className="w-10 h-10 mb-2" />
-          <p>No hay grupos {dateFilter ? `para ${dateFilter}` : ''}</p>
+          <p>
+            {t('noData')} {dateFilter ? `(${dateFilter})` : ''}
+          </p>
         </div>
       )}
 
       {/* Count */}
       {!loading && groups.length > 0 && (
         <div className="text-xs text-gray-500 dark:text-gray-400 text-right">
-          Mostrando {groups.length} grupos{' '}
-          {dateFilter ? `del ${dateFilter}` : `(máx. ${DEFAULT_LIMIT})`}
+          {t('showing', { count: groups.length })}
+          {dateFilter ? ` (${dateFilter})` : ` (max. ${DEFAULT_LIMIT})`}
         </div>
       )}
     </div>

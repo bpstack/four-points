@@ -3,6 +3,7 @@
 'use client'
 
 import { useMemo } from 'react'
+import { useTranslations } from 'next-intl'
 import { useGroupStore } from '@/app/stores/useGroupStore'
 import { useGroupPayments } from '@/app/lib/groups'
 import { formatCurrency, formatDate } from '@/app/lib/helpers/utils'
@@ -13,6 +14,7 @@ export function GroupDetailSummaryPanel() {
   const groupId = currentGroup?.id
   const { data: paymentsData } = useGroupPayments(groupId)
   const payments = useMemo(() => paymentsData?.payments || [], [paymentsData?.payments])
+  const t = useTranslations('groups')
 
   const balanceStatus = useMemo(() => {
     const parseAmount = (value: unknown): number => {
@@ -48,14 +50,16 @@ export function GroupDetailSummaryPanel() {
   return (
     <div className="sticky top-4 space-y-3">
       <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">
-        Resumen del Grupo
+        {t('stats.summary')}
       </h3>
 
       {/* Llegada */}
       <div className="bg-white dark:bg-[#0D1117] border border-[#d0d7de] dark:border-[#30363d] rounded-xl shadow-sm p-4">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">Llegada</p>
+            <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">
+              {t('table.arrival')}
+            </p>
             <p className="text-sm font-bold text-gray-900 dark:text-gray-100 mt-0.5">
               {formatDate(currentGroup.arrival_date, 'long')}
             </p>
@@ -70,7 +74,9 @@ export function GroupDetailSummaryPanel() {
       <div className="bg-white dark:bg-[#0D1117] border border-[#d0d7de] dark:border-[#30363d] rounded-xl shadow-sm p-4">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">Salida</p>
+            <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">
+              {t('table.departure')}
+            </p>
             <p className="text-sm font-bold text-gray-900 dark:text-gray-100 mt-0.5">
               {formatDate(currentGroup.departure_date, 'long')}
             </p>
@@ -85,9 +91,12 @@ export function GroupDetailSummaryPanel() {
       <div className="bg-white dark:bg-[#0D1117] border border-[#d0d7de] dark:border-[#30363d] rounded-xl shadow-sm p-4">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">Estancia</p>
+            <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">
+              {t('summaryPanel.stay')}
+            </p>
             <p className="text-xl font-bold text-gray-900 dark:text-gray-100 mt-0.5">
-              {stayNights} <span className="text-sm font-normal text-gray-500">noches</span>
+              {stayNights}{' '}
+              <span className="text-sm font-normal text-gray-500">{t('summaryPanel.nights')}</span>
             </p>
           </div>
           <div className="p-2 bg-blue-100 dark:bg-blue-900/20 rounded-lg">
@@ -100,7 +109,9 @@ export function GroupDetailSummaryPanel() {
       <div className="bg-white dark:bg-[#0D1117] border border-[#d0d7de] dark:border-[#30363d] rounded-xl shadow-sm p-4">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">Importe Total</p>
+            <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">
+              {t('overview.totalAmount')}
+            </p>
             <p className="text-xl font-bold text-gray-900 dark:text-gray-100 mt-0.5">
               {formatCurrency(currentGroup.total_amount, currentGroup.currency)}
             </p>
@@ -121,7 +132,9 @@ export function GroupDetailSummaryPanel() {
       >
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">Estado de Pagos</p>
+            <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">
+              {t('statusTab.paymentStatus')}
+            </p>
             <span
               className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
                 balanceStatus.isPaid
@@ -129,20 +142,20 @@ export function GroupDetailSummaryPanel() {
                   : 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400'
               }`}
             >
-              {balanceStatus.isPaid ? 'Pagado' : 'Pendiente'}
+              {balanceStatus.isPaid ? t('overview.balancePaid') : t('overview.balancePending')}
             </span>
           </div>
 
           <div className="space-y-1.5">
             <div className="flex justify-between text-xs">
-              <span className="text-gray-500 dark:text-gray-400">Pagado:</span>
+              <span className="text-gray-500 dark:text-gray-400">{t('payments.paid')}:</span>
               <span className="font-medium text-green-600 dark:text-green-400">
                 {formatCurrency(balanceStatus.totalPaid, currentGroup.currency)}
               </span>
             </div>
             {!balanceStatus.isPaid && balanceStatus.remaining > 0 && (
               <div className="flex justify-between text-xs">
-                <span className="text-gray-500 dark:text-gray-400">Pendiente:</span>
+                <span className="text-gray-500 dark:text-gray-400">{t('payments.pending')}:</span>
                 <span className="font-medium text-orange-600 dark:text-orange-400">
                   {formatCurrency(balanceStatus.remaining, currentGroup.currency)}
                 </span>

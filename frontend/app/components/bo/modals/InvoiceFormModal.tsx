@@ -7,6 +7,7 @@
 'use client'
 
 import { useState, useEffect, useTransition } from 'react'
+import { useTranslations } from 'next-intl'
 import { FiX, FiSave, FiLoader } from 'react-icons/fi'
 import type {
   InvoiceWithDetails,
@@ -29,13 +30,6 @@ interface InvoiceFormModalProps {
   suppliers: SupplierWithStats[]
 }
 
-const VAT_OPTIONS = [
-  { value: 21, label: '21% (General)' },
-  { value: 10, label: '10% (Reducido)' },
-  { value: 4, label: '4% (Superreducido)' },
-  { value: 0, label: '0% (Exento)' },
-]
-
 export function InvoiceFormModal({
   isOpen,
   onClose,
@@ -44,8 +38,17 @@ export function InvoiceFormModal({
   categories,
   suppliers,
 }: InvoiceFormModalProps) {
+  const t = useTranslations('backoffice')
   const [isPending, startTransition] = useTransition()
   const [errors, setErrors] = useState<Record<string, string>>({})
+
+  // VAT options with translations
+  const VAT_OPTIONS = [
+    { value: 21, label: t('modals.invoice.vat.general') },
+    { value: 10, label: t('modals.invoice.vat.reduced') },
+    { value: 4, label: t('modals.invoice.vat.superReduced') },
+    { value: 0, label: t('modals.invoice.vat.exempt') },
+  ]
 
   // Form state
   const [formData, setFormData] = useState<InvoiceFormData>({
@@ -141,16 +144,16 @@ export function InvoiceFormModal({
     const newErrors: Record<string, string> = {}
 
     if (!formData.invoice_number.trim()) {
-      newErrors.invoice_number = 'El número de factura es requerido'
+      newErrors.invoice_number = t('modals.invoice.validation.invoiceNumberRequired')
     }
     if (!formData.supplier_id) {
-      newErrors.supplier_id = 'Debe seleccionar un proveedor'
+      newErrors.supplier_id = t('modals.invoice.validation.supplierRequired')
     }
     if (!formData.amount_with_vat || formData.amount_with_vat <= 0) {
-      newErrors.amount_with_vat = 'El importe debe ser mayor a 0'
+      newErrors.amount_with_vat = t('modals.invoice.validation.amountRequired')
     }
     if (!formData.invoice_date) {
-      newErrors.invoice_date = 'La fecha de factura es requerida'
+      newErrors.invoice_date = t('modals.invoice.validation.dateRequired')
     }
 
     setErrors(newErrors)
@@ -168,16 +171,16 @@ export function InvoiceFormModal({
         if (invoice) {
           // Update existing invoice
           await backofficeApi.updateInvoice(invoice.id, formData)
-          toast.success('Factura actualizada correctamente')
+          toast.success(t('toast.invoiceUpdated'))
         } else {
           // Create new invoice
           await backofficeApi.createInvoice(formData)
-          toast.success('Factura creada correctamente')
+          toast.success(t('toast.invoiceCreated'))
         }
         onSuccess()
         onClose()
       } catch (error) {
-        const message = error instanceof Error ? error.message : 'Error al guardar la factura'
+        const message = error instanceof Error ? error.message : t('toast.invoiceSaveError')
         toast.error(message)
       }
     })
@@ -196,7 +199,7 @@ export function InvoiceFormModal({
           {/* Header */}
           <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-              {invoice ? 'Editar Factura' : 'Nueva Factura'}
+              {invoice ? t('modals.invoice.editTitle') : t('modals.invoice.createTitle')}
             </h2>
             <button
               onClick={onClose}
@@ -212,7 +215,7 @@ export function InvoiceFormModal({
               {/* Número de factura */}
               <div>
                 <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Nº Factura *
+                  {t('modals.invoice.fields.invoiceNumber')} *
                 </label>
                 <input
                   type="text"
@@ -225,7 +228,7 @@ export function InvoiceFormModal({
                       ? 'border-red-500 dark:border-red-500'
                       : 'border-gray-300 dark:border-gray-600'
                   }`}
-                  placeholder="FV-2025-001"
+                  placeholder={t('modals.invoice.placeholders.invoiceNumber')}
                 />
                 {errors.invoice_number && (
                   <p className="mt-1 text-xs text-red-500">{errors.invoice_number}</p>
@@ -235,7 +238,7 @@ export function InvoiceFormModal({
               {/* Proveedor */}
               <div>
                 <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Proveedor *
+                  {t('modals.invoice.fields.supplier')} *
                 </label>
                 <select
                   value={formData.supplier_id}
@@ -246,7 +249,7 @@ export function InvoiceFormModal({
                       : 'border-gray-300 dark:border-gray-600'
                   }`}
                 >
-                  <option value={0}>Seleccionar proveedor...</option>
+                  <option value={0}>{t('modals.invoice.placeholders.selectSupplier')}</option>
                   {suppliers.map((supplier) => (
                     <option key={supplier.id} value={supplier.id}>
                       {supplier.name}
@@ -261,7 +264,7 @@ export function InvoiceFormModal({
               {/* Categoría */}
               <div>
                 <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Categoría
+                  {t('modals.invoice.fields.category')}
                 </label>
                 <select
                   value={formData.category_id || ''}
@@ -273,7 +276,7 @@ export function InvoiceFormModal({
                   }
                   className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-[#0d1117] dark:text-gray-200"
                 >
-                  <option value="">Sin categoría</option>
+                  <option value="">{t('modals.invoice.placeholders.noCategory')}</option>
                   {categories.map((cat) => (
                     <option key={cat.id} value={cat.id}>
                       {cat.cost_center} - {cat.department}
@@ -285,21 +288,21 @@ export function InvoiceFormModal({
               {/* Fecha factura */}
               <div>
                 <DatePickerInput
-                  label="Fecha Factura"
+                  label={t('modals.invoice.fields.invoiceDate')}
                   value={formData.invoice_date}
                   onChange={(value) =>
                     setFormData((prev) => ({ ...prev, invoice_date: value || '' }))
                   }
                   required
                   error={errors.invoice_date}
-                  placeholder="Seleccionar fecha"
+                  placeholder={t('modals.invoice.placeholders.selectDate')}
                 />
               </div>
 
               {/* Importe sin IVA */}
               <div>
                 <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Importe sin IVA
+                  {t('modals.invoice.fields.amountWithoutVat')}
                 </label>
                 <input
                   type="number"
@@ -317,7 +320,7 @@ export function InvoiceFormModal({
               {/* % IVA */}
               <div>
                 <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  % IVA
+                  {t('modals.invoice.fields.vatPercentage')}
                 </label>
                 <select
                   value={formData.vat_percentage}
@@ -335,7 +338,7 @@ export function InvoiceFormModal({
               {/* Importe con IVA */}
               <div>
                 <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Importe con IVA *
+                  {t('modals.invoice.fields.amountWithVat')} *
                 </label>
                 <input
                   type="number"
@@ -363,7 +366,7 @@ export function InvoiceFormModal({
               {/* Método de pago */}
               <div>
                 <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Método de Pago
+                  {t('modals.invoice.fields.paymentMethod')}
                 </label>
                 <select
                   value={formData.payment_method}
@@ -375,18 +378,20 @@ export function InvoiceFormModal({
                   }
                   className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-[#0d1117] dark:text-gray-200"
                 >
-                  <option value="transfer">Transferencia</option>
-                  <option value="direct_debit">Domiciliado</option>
+                  <option value="transfer">{t('modals.invoice.paymentMethods.transfer')}</option>
+                  <option value="direct_debit">
+                    {t('modals.invoice.paymentMethods.directDebit')}
+                  </option>
                 </select>
               </div>
 
               {/* Fecha recepción */}
               <div>
                 <DatePickerInput
-                  label="Fecha Recepción"
+                  label={t('modals.invoice.fields.receivedDate')}
                   value={formData.received_date}
                   onChange={(value) => setFormData((prev) => ({ ...prev, received_date: value }))}
-                  placeholder="Seleccionar fecha"
+                  placeholder={t('modals.invoice.placeholders.selectDate')}
                   clearable
                 />
               </div>
@@ -394,10 +399,10 @@ export function InvoiceFormModal({
               {/* Fecha vencimiento */}
               <div>
                 <DatePickerInput
-                  label="Fecha Vencimiento"
+                  label={t('modals.invoice.fields.dueDate')}
                   value={formData.due_date}
                   onChange={(value) => setFormData((prev) => ({ ...prev, due_date: value }))}
-                  placeholder="Seleccionar fecha"
+                  placeholder={t('modals.invoice.placeholders.selectDate')}
                   clearable
                 />
               </div>
@@ -405,12 +410,12 @@ export function InvoiceFormModal({
               {/* Periodo facturación inicio */}
               <div>
                 <DatePickerInput
-                  label="Periodo Inicio"
+                  label={t('modals.invoice.fields.periodStart')}
                   value={formData.billing_period_start}
                   onChange={(value) =>
                     setFormData((prev) => ({ ...prev, billing_period_start: value }))
                   }
-                  placeholder="Seleccionar fecha"
+                  placeholder={t('modals.invoice.placeholders.selectDate')}
                   clearable
                 />
               </div>
@@ -418,12 +423,12 @@ export function InvoiceFormModal({
               {/* Periodo facturación fin */}
               <div>
                 <DatePickerInput
-                  label="Periodo Fin"
+                  label={t('modals.invoice.fields.periodEnd')}
                   value={formData.billing_period_end}
                   onChange={(value) =>
                     setFormData((prev) => ({ ...prev, billing_period_end: value }))
                   }
-                  placeholder="Seleccionar fecha"
+                  placeholder={t('modals.invoice.placeholders.selectDate')}
                   minDate={
                     formData.billing_period_start
                       ? new Date(formData.billing_period_start + 'T12:00:00')
@@ -436,14 +441,14 @@ export function InvoiceFormModal({
               {/* Notas - Full width */}
               <div className="md:col-span-2">
                 <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Notas
+                  {t('modals.invoice.fields.notes')}
                 </label>
                 <textarea
                   value={formData.notes || ''}
                   onChange={(e) => setFormData((prev) => ({ ...prev, notes: e.target.value }))}
                   rows={2}
                   className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-[#0d1117] dark:text-gray-200 resize-none"
-                  placeholder="Observaciones..."
+                  placeholder={t('modals.invoice.placeholders.notes')}
                 />
               </div>
             </div>
@@ -456,7 +461,7 @@ export function InvoiceFormModal({
                 disabled={isPending}
                 className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
               >
-                Cancelar
+                {t('actions.cancel')}
               </button>
               <button
                 type="submit"
@@ -466,12 +471,14 @@ export function InvoiceFormModal({
                 {isPending ? (
                   <>
                     <FiLoader className="w-4 h-4 animate-spin" />
-                    Guardando...
+                    {t('actions.saving')}
                   </>
                 ) : (
                   <>
                     <FiSave className="w-4 h-4" />
-                    {invoice ? 'Actualizar' : 'Crear Factura'}
+                    {invoice
+                      ? t('modals.invoice.buttons.update')
+                      : t('modals.invoice.buttons.create')}
                   </>
                 )}
               </button>

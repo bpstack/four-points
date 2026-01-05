@@ -5,6 +5,7 @@
 import { useEffect, useState, useRef } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useTranslations } from 'next-intl'
 import { groupSchema, type GroupFormData } from '@/app/lib/schemas/group-schemas'
 import { groupsApi, GroupStatus } from '@/app/lib/groups'
 import { FiSave, FiCalendar } from 'react-icons/fi'
@@ -27,6 +28,8 @@ interface CreateGroupPanelProps {
 }
 
 export function CreateGroupPanel({ isOpen, onClose }: CreateGroupPanelProps) {
+  const t = useTranslations('groups')
+
   // Calendar state
   const [showArrivalCal, setShowArrivalCal] = useState(false)
   const [showDepartureCal, setShowDepartureCal] = useState(false)
@@ -97,13 +100,13 @@ export function CreateGroupPanel({ isOpen, onClose }: CreateGroupPanelProps) {
       }
 
       const response = await groupsApi.create(payload)
-      toast.success('Grupo creado correctamente')
+      toast.success(t('createPanel.success'))
       window.location.href = `/dashboard/groups/${response.data.id}`
       onClose()
       reset()
     } catch (error) {
       console.error('Error creating group:', error)
-      const message = error instanceof Error ? error.message : 'Error al crear el grupo'
+      const message = error instanceof Error ? error.message : t('createPanel.error')
       toast.error(message)
     }
   }
@@ -126,15 +129,15 @@ export function CreateGroupPanel({ isOpen, onClose }: CreateGroupPanelProps) {
     <SlidePanel
       isOpen={isOpen}
       onClose={onClose}
-      title="Nuevo Grupo"
-      subtitle="Completa los datos del nuevo grupo"
+      title={t('createPanel.title')}
+      subtitle={t('createPanel.subtitle')}
       size="lg"
       footer={
         <SlidePanelFooterButtons
           onCancel={onClose}
           onSubmit={handleSubmit(onSubmit)}
           isSubmitting={isSubmitting}
-          submitText="Crear Grupo"
+          submitText={t('createPanel.createGroup')}
           submitIcon={<FiSave className="w-4 h-4" />}
           submitVariant="success"
         />
@@ -142,21 +145,21 @@ export function CreateGroupPanel({ isOpen, onClose }: CreateGroupPanelProps) {
     >
       <SlidePanelSection>
         {/* Name */}
-        <FormField label="Nombre del Grupo" required error={errors.name?.message}>
+        <FormField label={t('createPanel.groupName')} required error={errors.name?.message}>
           <input
             {...register('name')}
             type="text"
-            placeholder="Ej: Grupo Turístico ABC"
+            placeholder={t('createPanel.groupNamePlaceholder')}
             className={inputClassName}
           />
         </FormField>
 
         {/* Agency */}
-        <FormField label="Agencia" error={errors.agency?.message}>
+        <FormField label={t('createPanel.agency')} error={errors.agency?.message}>
           <input
             {...register('agency')}
             type="text"
-            placeholder="Ej: Viajes Globales S.L."
+            placeholder={t('createPanel.agencyPlaceholder')}
             className={inputClassName}
           />
         </FormField>
@@ -165,13 +168,17 @@ export function CreateGroupPanel({ isOpen, onClose }: CreateGroupPanelProps) {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {/* Arrival Date */}
           <div className="relative" ref={arrivalCalRef}>
-            <FormField label="Fecha de Llegada" required error={errors.arrival_date?.message}>
+            <FormField
+              label={t('createPanel.arrivalDate')}
+              required
+              error={errors.arrival_date?.message}
+            >
               <div className="relative">
                 <input
                   type="text"
                   readOnly
                   value={arrivalDate ? formatDateDisplayShort(parseInputDate(arrivalDate)!) : ''}
-                  placeholder="Selecciona fecha"
+                  placeholder={t('createPanel.selectDate')}
                   onClick={() => {
                     setShowArrivalCal(!showArrivalCal)
                     setShowDepartureCal(false)
@@ -194,7 +201,11 @@ export function CreateGroupPanel({ isOpen, onClose }: CreateGroupPanelProps) {
 
           {/* Departure Date */}
           <div className="relative" ref={departureCalRef}>
-            <FormField label="Fecha de Salida" required error={errors.departure_date?.message}>
+            <FormField
+              label={t('createPanel.departureDate')}
+              required
+              error={errors.departure_date?.message}
+            >
               <div className="relative">
                 <input
                   type="text"
@@ -202,7 +213,7 @@ export function CreateGroupPanel({ isOpen, onClose }: CreateGroupPanelProps) {
                   value={
                     departureDate ? formatDateDisplayShort(parseInputDate(departureDate)!) : ''
                   }
-                  placeholder="Selecciona fecha"
+                  placeholder={t('createPanel.selectDate')}
                   onClick={() => {
                     setShowDepartureCal(!showDepartureCal)
                     setShowArrivalCal(false)
@@ -225,21 +236,21 @@ export function CreateGroupPanel({ isOpen, onClose }: CreateGroupPanelProps) {
         </div>
 
         {/* Status */}
-        <FormField label="Estado" error={errors.status?.message}>
+        <FormField label={t('createPanel.status')} error={errors.status?.message}>
           <select {...register('status')} className={selectClassName}>
-            <option value={GroupStatus.PENDING}>Pendiente</option>
-            <option value={GroupStatus.CONFIRMED}>Confirmado</option>
-            <option value={GroupStatus.IN_PROGRESS}>En Curso</option>
-            <option value={GroupStatus.COMPLETED}>Completado</option>
-            <option value={GroupStatus.CANCELLED}>Cancelado</option>
+            <option value={GroupStatus.PENDING}>{t('status.pending')}</option>
+            <option value={GroupStatus.CONFIRMED}>{t('status.confirmed')}</option>
+            <option value={GroupStatus.IN_PROGRESS}>{t('status.in_progress')}</option>
+            <option value={GroupStatus.COMPLETED}>{t('status.completed')}</option>
+            <option value={GroupStatus.CANCELLED}>{t('status.cancelled')}</option>
           </select>
         </FormField>
 
         {/* Total Amount */}
         <FormField
-          label="Importe Total (€)"
+          label={t('createPanel.totalAmount')}
           error={errors.total_amount?.message}
-          hint="Puedes dejarlo vacío y añadirlo después"
+          hint={t('createPanel.totalAmountHint')}
         >
           <input
             {...register('total_amount', { valueAsNumber: true })}
@@ -252,11 +263,11 @@ export function CreateGroupPanel({ isOpen, onClose }: CreateGroupPanelProps) {
         </FormField>
 
         {/* Notes */}
-        <FormField label="Notas" error={errors.notes?.message}>
+        <FormField label={t('createPanel.notes')} error={errors.notes?.message}>
           <textarea
             {...register('notes')}
             rows={4}
-            placeholder="Notas adicionales sobre el grupo..."
+            placeholder={t('createPanel.notesPlaceholder')}
             className={textareaClassName}
           />
         </FormField>

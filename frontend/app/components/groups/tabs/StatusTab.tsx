@@ -2,6 +2,7 @@
 
 'use client'
 
+import { useTranslations } from 'next-intl'
 import { useGroupStore } from '@/app/stores/useGroupStore'
 import { useGroupStatus } from '@/app/lib/groups'
 import { LoadingSpinner } from '../shared/LoadingSpinner'
@@ -15,6 +16,7 @@ import { FiActivity } from 'react-icons/fi'
 
 export function StatusTab() {
   const { currentGroup } = useGroupStore()
+  const t = useTranslations('groups')
 
   const groupId = currentGroup?.id
   const { data: status, isLoading } = useGroupStatus(groupId)
@@ -22,7 +24,7 @@ export function StatusTab() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <LoadingSpinner size="md" message="Cargando estados..." />
+        <LoadingSpinner size="md" message={t('statusTab.loadingStatus')} />
       </div>
     )
   }
@@ -31,8 +33,8 @@ export function StatusTab() {
     return (
       <EmptyState
         icon={<FiActivity className="w-12 h-12" />}
-        title="No se pudo cargar el estado"
-        description="Intenta recargar la página"
+        title={t('statusTab.couldNotLoad')}
+        description={t('statusTab.tryReload')}
       />
     )
   }
@@ -43,10 +45,10 @@ export function StatusTab() {
       <div>
         <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
           <FiActivity className="w-4 h-4" />
-          Estado del Grupo
+          {t('statusTab.groupStatus')}
         </h3>
         <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-          Seguimiento del progreso administrativo
+          {t('statusTab.trackingProgress')}
         </p>
       </div>
 
@@ -63,10 +65,7 @@ export function StatusTab() {
 
       {/* Info Box */}
       <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-        <p className="text-xs text-blue-800 dark:text-blue-300">
-          💡 <strong>Edición inline:</strong> Haz clic en el icono de editar para actualizar cada
-          estado de forma rápida.
-        </p>
+        <p className="text-xs text-blue-800 dark:text-blue-300">{t('statusTab.inlineEditTip')}</p>
       </div>
     </div>
   )

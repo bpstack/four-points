@@ -7,6 +7,7 @@
 import { Request, Response } from 'express'
 import { conciliationRepo } from '../../repositories/conciliation/conciliation.repository.js'
 import { IUpdateFormRequest } from '../../models/conciliation.model.js'
+import { ERROR_CODES, SUCCESS_CODES } from '../../config/error-codes.js'
 
 /**
  * GET /api/conciliations
@@ -15,10 +16,14 @@ import { IUpdateFormRequest } from '../../models/conciliation.model.js'
 export async function getAll(_req: Request, res: Response): Promise<void> {
   try {
     const conciliations = await conciliationRepo.getAll()
-    res.status(200).json(conciliations)
+    res.status(200).json({ success: true, data: conciliations })
   } catch (error) {
     console.error('Error en getAll conciliations:', error)
-    res.status(500).json({ error: 'Error al obtener conciliaciones' })
+    res.status(500).json({
+      success: false,
+      error: ERROR_CODES.CONCILIATION_FETCH_ERROR,
+      code: ERROR_CODES.CONCILIATION_FETCH_ERROR,
+    })
   }
 }
 
@@ -31,19 +36,31 @@ export async function getById(req: Request, res: Response): Promise<void> {
     const id = Number(req.params.id)
 
     if (isNaN(id)) {
-      res.status(400).json({ error: 'ID inválido' })
+      res.status(400).json({
+        success: false,
+        error: ERROR_CODES.INVALID_ID,
+        code: ERROR_CODES.INVALID_ID,
+      })
       return
     }
 
     const conciliation = await conciliationRepo.getById(id)
-    res.status(200).json(conciliation)
+    res.status(200).json({ success: true, data: conciliation })
   } catch (error: any) {
     if (error.message === 'Conciliación no encontrada') {
-      res.status(404).json({ error: error.message })
+      res.status(404).json({
+        success: false,
+        error: ERROR_CODES.CONCILIATION_NOT_FOUND,
+        code: ERROR_CODES.CONCILIATION_NOT_FOUND,
+      })
       return
     }
     console.error('Error en getById conciliation:', error)
-    res.status(500).json({ error: 'Error al obtener conciliación' })
+    res.status(500).json({
+      success: false,
+      error: ERROR_CODES.CONCILIATION_FETCH_ONE_ERROR,
+      code: ERROR_CODES.CONCILIATION_FETCH_ONE_ERROR,
+    })
   }
 }
 
@@ -56,7 +73,11 @@ export async function getByDay(req: Request, res: Response): Promise<void> {
     const { date } = req.params
 
     if (!date) {
-      res.status(400).json({ error: 'Fecha requerida' })
+      res.status(400).json({
+        success: false,
+        error: ERROR_CODES.CONCILIATION_DATE_REQUIRED,
+        code: ERROR_CODES.CONCILIATION_DATE_REQUIRED,
+      })
       return
     }
 
@@ -65,16 +86,20 @@ export async function getByDay(req: Request, res: Response): Promise<void> {
 
     if (!summary || !summary.id) {
       // ✅ NO es un error, simplemente no existe todavía
-      res.status(200).json(null)
+      res.status(200).json({ success: true, data: null })
       return
     }
 
     // Obtener detalles completos con entries
     const conciliation = await conciliationRepo.getById(summary.id)
-    res.status(200).json(conciliation)
+    res.status(200).json({ success: true, data: conciliation })
   } catch (error) {
     console.error('Error en getByDay conciliation:', error)
-    res.status(500).json({ error: 'Error al obtener conciliación' })
+    res.status(500).json({
+      success: false,
+      error: ERROR_CODES.CONCILIATION_FETCH_ONE_ERROR,
+      code: ERROR_CODES.CONCILIATION_FETCH_ONE_ERROR,
+    })
   }
 }
 
@@ -88,7 +113,11 @@ export async function create(req: Request, res: Response): Promise<void> {
     const userId = req.user?.id
 
     if (!date) {
-      res.status(400).json({ error: 'La fecha es obligatoria' })
+      res.status(400).json({
+        success: false,
+        error: ERROR_CODES.CONCILIATION_DATE_REQUIRED,
+        code: ERROR_CODES.CONCILIATION_DATE_REQUIRED,
+      })
       return
     }
 
@@ -96,7 +125,9 @@ export async function create(req: Request, res: Response): Promise<void> {
     const existing = await conciliationRepo.getByDate(date)
     if (existing) {
       res.status(409).json({
-        error: 'Ya existe una conciliación para esta fecha',
+        success: false,
+        error: ERROR_CODES.CONCILIATION_ALREADY_EXISTS,
+        code: ERROR_CODES.CONCILIATION_ALREADY_EXISTS,
         data: existing,
       })
       return
@@ -111,13 +142,18 @@ export async function create(req: Request, res: Response): Promise<void> {
     })
 
     res.status(201).json({
-      message: 'Conciliación creada exitosamente',
-      id: conciliation.id,
-      conciliation,
+      success: true,
+      message: SUCCESS_CODES.CONCILIATION_CREATED,
+      code: SUCCESS_CODES.CONCILIATION_CREATED,
+      data: conciliation,
     })
   } catch (error) {
     console.error('Error en create conciliation:', error)
-    res.status(500).json({ error: 'Error al crear conciliación' })
+    res.status(500).json({
+      success: false,
+      error: ERROR_CODES.CONCILIATION_CREATE_ERROR,
+      code: ERROR_CODES.CONCILIATION_CREATE_ERROR,
+    })
   }
 }
 
@@ -132,14 +168,20 @@ export async function updateForm(req: Request, res: Response): Promise<void> {
     const userId = req.user?.id
 
     if (isNaN(id)) {
-      res.status(400).json({ error: 'ID inválido' })
+      res.status(400).json({
+        success: false,
+        error: ERROR_CODES.INVALID_ID,
+        code: ERROR_CODES.INVALID_ID,
+      })
       return
     }
 
     // Validar que vengan los datos requeridos
     if (!formData.reception || !formData.housekeeping) {
       res.status(400).json({
-        error: 'Datos incompletos. Se requieren reception y housekeeping',
+        success: false,
+        error: ERROR_CODES.CONCILIATION_INCOMPLETE_DATA,
+        code: ERROR_CODES.CONCILIATION_INCOMPLETE_DATA,
       })
       return
     }
@@ -147,14 +189,18 @@ export async function updateForm(req: Request, res: Response): Promise<void> {
     // Validar que vengan todas las entries (5 reception + 7 housekeeping)
     if (formData.reception.length !== 5) {
       res.status(400).json({
-        error: 'Se requieren exactamente 5 entries de recepción',
+        success: false,
+        error: ERROR_CODES.CONCILIATION_INVALID_RECEPTION_ENTRIES,
+        code: ERROR_CODES.CONCILIATION_INVALID_RECEPTION_ENTRIES,
       })
       return
     }
 
     if (formData.housekeeping.length !== 7) {
       res.status(400).json({
-        error: 'Se requieren exactamente 7 entries de pisos',
+        success: false,
+        error: ERROR_CODES.CONCILIATION_INVALID_HOUSEKEEPING_ENTRIES,
+        code: ERROR_CODES.CONCILIATION_INVALID_HOUSEKEEPING_ENTRIES,
       })
       return
     }
@@ -163,7 +209,9 @@ export async function updateForm(req: Request, res: Response): Promise<void> {
     const conciliation = await conciliationRepo.getById(id)
     if (conciliation.status === 'closed') {
       res.status(403).json({
-        error: 'No se puede modificar una conciliación cerrada',
+        success: false,
+        error: ERROR_CODES.CONCILIATION_CLOSED_CANNOT_MODIFY,
+        code: ERROR_CODES.CONCILIATION_CLOSED_CANNOT_MODIFY,
       })
       return
     }
@@ -175,8 +223,10 @@ export async function updateForm(req: Request, res: Response): Promise<void> {
     const updated = await conciliationRepo.getById(id)
 
     res.status(200).json({
-      message: 'Formulario actualizado exitosamente',
-      totals: {
+      success: true,
+      message: SUCCESS_CODES.CONCILIATION_FORM_UPDATED,
+      code: SUCCESS_CODES.CONCILIATION_FORM_UPDATED,
+      data: {
         total_reception: updated.total_reception,
         total_housekeeping: updated.total_housekeeping,
         difference: updated.difference,
@@ -184,11 +234,19 @@ export async function updateForm(req: Request, res: Response): Promise<void> {
     })
   } catch (error: any) {
     if (error.message === 'Conciliación no encontrada') {
-      res.status(404).json({ error: error.message })
+      res.status(404).json({
+        success: false,
+        error: ERROR_CODES.CONCILIATION_NOT_FOUND,
+        code: ERROR_CODES.CONCILIATION_NOT_FOUND,
+      })
       return
     }
     console.error('Error en updateForm:', error)
-    res.status(500).json({ error: 'Error al actualizar formulario' })
+    res.status(500).json({
+      success: false,
+      error: ERROR_CODES.CONCILIATION_UPDATE_FORM_ERROR,
+      code: ERROR_CODES.CONCILIATION_UPDATE_FORM_ERROR,
+    })
   }
 }
 
@@ -204,13 +262,19 @@ export async function updateStatus(req: Request, res: Response): Promise<void> {
     const userRole = req.user?.role?.toLowerCase()
 
     if (isNaN(id)) {
-      res.status(400).json({ error: 'ID inválido' })
+      res.status(400).json({
+        success: false,
+        error: ERROR_CODES.INVALID_ID,
+        code: ERROR_CODES.INVALID_ID,
+      })
       return
     }
 
     if (!status || !['draft', 'confirmed', 'closed'].includes(status)) {
       res.status(400).json({
-        error: 'Status inválido. Debe ser: draft, confirmed o closed',
+        success: false,
+        error: ERROR_CODES.CONCILIATION_INVALID_STATUS,
+        code: ERROR_CODES.CONCILIATION_INVALID_STATUS,
       })
       return
     }
@@ -220,7 +284,9 @@ export async function updateStatus(req: Request, res: Response): Promise<void> {
     // Solo admin puede marcar como 'closed'
     if (status === 'closed' && userRole !== 'admin') {
       res.status(403).json({
-        error: 'Solo administradores pueden cerrar conciliaciones',
+        success: false,
+        error: ERROR_CODES.CONCILIATION_ADMIN_ONLY_CLOSE,
+        code: ERROR_CODES.CONCILIATION_ADMIN_ONLY_CLOSE,
       })
       return
     }
@@ -228,7 +294,9 @@ export async function updateStatus(req: Request, res: Response): Promise<void> {
     // No se puede modificar una conciliación cerrada (excepto admin)
     if (conciliation.status === 'closed' && userRole !== 'admin') {
       res.status(403).json({
-        error: 'No se puede modificar una conciliación cerrada',
+        success: false,
+        error: ERROR_CODES.CONCILIATION_CLOSED_CANNOT_MODIFY,
+        code: ERROR_CODES.CONCILIATION_CLOSED_CANNOT_MODIFY,
       })
       return
     }
@@ -236,15 +304,24 @@ export async function updateStatus(req: Request, res: Response): Promise<void> {
     await conciliationRepo.updateStatus(id, status, userId)
 
     res.status(200).json({
-      message: `Conciliación marcada como ${status}`,
+      success: true,
+      status,
     })
   } catch (error: any) {
     if (error.message === 'Conciliación no encontrada') {
-      res.status(404).json({ error: error.message })
+      res.status(404).json({
+        success: false,
+        error: ERROR_CODES.CONCILIATION_NOT_FOUND,
+        code: ERROR_CODES.CONCILIATION_NOT_FOUND,
+      })
       return
     }
     console.error('Error en updateStatus:', error)
-    res.status(500).json({ error: 'Error al actualizar estado' })
+    res.status(500).json({
+      success: false,
+      error: ERROR_CODES.CONCILIATION_UPDATE_STATUS_ERROR,
+      code: ERROR_CODES.CONCILIATION_UPDATE_STATUS_ERROR,
+    })
   }
 }
 
@@ -257,7 +334,11 @@ export async function recalculateTotals(req: Request, res: Response): Promise<vo
     const id = Number(req.params.id)
 
     if (isNaN(id)) {
-      res.status(400).json({ error: 'ID inválido' })
+      res.status(400).json({
+        success: false,
+        error: ERROR_CODES.INVALID_ID,
+        code: ERROR_CODES.INVALID_ID,
+      })
       return
     }
 
@@ -265,7 +346,9 @@ export async function recalculateTotals(req: Request, res: Response): Promise<vo
     const conciliation = await conciliationRepo.getById(id)
     if (conciliation.status === 'closed') {
       res.status(403).json({
-        error: 'No se puede modificar una conciliación cerrada',
+        success: false,
+        error: ERROR_CODES.CONCILIATION_CLOSED_CANNOT_MODIFY,
+        code: ERROR_CODES.CONCILIATION_CLOSED_CANNOT_MODIFY,
       })
       return
     }
@@ -276,8 +359,10 @@ export async function recalculateTotals(req: Request, res: Response): Promise<vo
     const updated = await conciliationRepo.getById(id)
 
     res.status(200).json({
-      message: 'Totales recalculados exitosamente',
-      totals: {
+      success: true,
+      message: SUCCESS_CODES.CONCILIATION_TOTALS_RECALCULATED,
+      code: SUCCESS_CODES.CONCILIATION_TOTALS_RECALCULATED,
+      data: {
         total_reception: updated.total_reception,
         total_housekeeping: updated.total_housekeeping,
         difference: updated.difference,
@@ -285,11 +370,19 @@ export async function recalculateTotals(req: Request, res: Response): Promise<vo
     })
   } catch (error: any) {
     if (error.message === 'Conciliación no encontrada') {
-      res.status(404).json({ error: error.message })
+      res.status(404).json({
+        success: false,
+        error: ERROR_CODES.CONCILIATION_NOT_FOUND,
+        code: ERROR_CODES.CONCILIATION_NOT_FOUND,
+      })
       return
     }
     console.error('Error en recalculateTotals:', error)
-    res.status(500).json({ error: 'Error al recalcular totales' })
+    res.status(500).json({
+      success: false,
+      error: ERROR_CODES.CONCILIATION_RECALCULATE_ERROR,
+      code: ERROR_CODES.CONCILIATION_RECALCULATE_ERROR,
+    })
   }
 }
 
@@ -303,7 +396,11 @@ export async function remove(req: Request, res: Response): Promise<void> {
     const id = Number(req.params.id)
 
     if (isNaN(id)) {
-      res.status(400).json({ error: 'ID inválido' })
+      res.status(400).json({
+        success: false,
+        error: ERROR_CODES.INVALID_ID,
+        code: ERROR_CODES.INVALID_ID,
+      })
       return
     }
 
@@ -313,14 +410,24 @@ export async function remove(req: Request, res: Response): Promise<void> {
     await conciliationRepo.delete(id)
 
     res.status(200).json({
-      message: 'Conciliación eliminada exitosamente',
+      success: true,
+      message: SUCCESS_CODES.CONCILIATION_DELETED,
+      code: SUCCESS_CODES.CONCILIATION_DELETED,
     })
   } catch (error: any) {
     if (error.message === 'Conciliación no encontrada') {
-      res.status(404).json({ error: error.message })
+      res.status(404).json({
+        success: false,
+        error: ERROR_CODES.CONCILIATION_NOT_FOUND,
+        code: ERROR_CODES.CONCILIATION_NOT_FOUND,
+      })
       return
     }
     console.error('Error en delete conciliation:', error)
-    res.status(500).json({ error: 'Error al eliminar conciliación' })
+    res.status(500).json({
+      success: false,
+      error: ERROR_CODES.CONCILIATION_DELETE_ERROR,
+      code: ERROR_CODES.CONCILIATION_DELETE_ERROR,
+    })
   }
 }

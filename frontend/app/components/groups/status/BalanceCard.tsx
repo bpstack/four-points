@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react'
 import { useGroupStore } from '@/app/stores/useGroupStore'
 import { formatCurrency } from '@/app/lib/helpers/utils'
 import { FiDollarSign, FiCheckCircle, FiAlertCircle, FiClock } from 'react-icons/fi'
+import { useTranslations } from 'next-intl'
 
 interface BalanceCardProps {
   groupId: number
@@ -20,6 +21,7 @@ interface BalanceState {
 }
 
 export function BalanceCard({ groupId }: BalanceCardProps) {
+  const t = useTranslations('groups')
   const { currentGroup, payments, refreshPayments } = useGroupStore()
 
   const [balance, setBalance] = useState<BalanceState>({
@@ -75,7 +77,7 @@ export function BalanceCard({ groupId }: BalanceCardProps) {
       case 'paid':
         return {
           icon: FiCheckCircle,
-          label: 'Pagado',
+          label: t('statusCards.paid'),
           color:
             'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800',
           iconColor: 'text-green-600 dark:text-green-400',
@@ -84,7 +86,7 @@ export function BalanceCard({ groupId }: BalanceCardProps) {
       case 'partial':
         return {
           icon: FiAlertCircle,
-          label: 'Pago Parcial',
+          label: t('statusCards.partialPayment'),
           color:
             'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-800',
           iconColor: 'text-blue-600 dark:text-blue-400',
@@ -94,7 +96,7 @@ export function BalanceCard({ groupId }: BalanceCardProps) {
       default:
         return {
           icon: FiClock,
-          label: 'Pendiente',
+          label: t('statusCards.pending'),
           color:
             'bg-yellow-50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-400 border-yellow-200 dark:border-yellow-800',
           iconColor: 'text-yellow-600 dark:text-yellow-400',
@@ -117,7 +119,7 @@ export function BalanceCard({ groupId }: BalanceCardProps) {
             <FiDollarSign className={`w-4 h-4 ${statusConfig.iconColor}`} />
           </div>
           <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-            Balance de Pagos
+            {t('statusCards.balance')}
           </h4>
         </div>
       </div>
@@ -156,13 +158,17 @@ export function BalanceCard({ groupId }: BalanceCardProps) {
         {/* Amounts */}
         <div className="grid grid-cols-2 gap-3 pt-2 border-t border-gray-200 dark:border-gray-800">
           <div>
-            <p className="text-[10px] text-gray-500 dark:text-gray-400 mb-0.5">Total Esperado</p>
+            <p className="text-[10px] text-gray-500 dark:text-gray-400 mb-0.5">
+              {t('statusCards.totalExpected')}
+            </p>
             <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">
               {formatCurrency(balance.totalExpected, currentGroup?.currency)}
             </p>
           </div>
           <div>
-            <p className="text-[10px] text-gray-500 dark:text-gray-400 mb-0.5">Pagado</p>
+            <p className="text-[10px] text-gray-500 dark:text-gray-400 mb-0.5">
+              {t('statusCards.paidAmount')}
+            </p>
             <p className="text-sm font-semibold text-green-600 dark:text-green-400">
               {formatCurrency(balance.totalPaid, currentGroup?.currency)}
             </p>
@@ -172,7 +178,9 @@ export function BalanceCard({ groupId }: BalanceCardProps) {
         {/* Remaining Amount (solo si hay pendiente) */}
         {balance.remaining > 0 && (
           <div className="pt-2 border-t border-gray-200 dark:border-gray-800">
-            <p className="text-[10px] text-gray-500 dark:text-gray-400 mb-0.5">Pendiente de Pago</p>
+            <p className="text-[10px] text-gray-500 dark:text-gray-400 mb-0.5">
+              {t('statusCards.pendingPayment')}
+            </p>
             <p className="text-sm font-semibold text-orange-600 dark:text-orange-400">
               {formatCurrency(balance.remaining, currentGroup?.currency)}
             </p>
@@ -182,7 +190,7 @@ export function BalanceCard({ groupId }: BalanceCardProps) {
         {/* Info Helper */}
         <div className="pt-2 border-t border-gray-200 dark:border-gray-800">
           <p className="text-[10px] text-gray-500 dark:text-gray-400 italic">
-            💡 El balance se calcula automáticamente desde los pagos registrados
+            {t('statusCards.balanceHint')}
           </p>
         </div>
       </div>

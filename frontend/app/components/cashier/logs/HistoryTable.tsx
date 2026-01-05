@@ -2,6 +2,7 @@
 
 'use client'
 
+import { useTranslations } from 'next-intl'
 import { FiChevronLeft, FiChevronRight, FiAlertCircle } from 'react-icons/fi'
 import type { HistoryWithDetails } from '@/app/lib/cashier/types'
 
@@ -22,66 +23,70 @@ export default function HistoryTable({
   onNextPage,
   onPreviousPage,
 }: HistoryTableProps) {
+  const t = useTranslations('cashier')
+
   const getActionBadge = (action: string) => {
-    const badges: Record<string, { bg: string; text: string; label: string }> = {
+    const badges: Record<string, { bg: string; text: string; labelKey: string }> = {
       created: {
         bg: 'bg-green-100 dark:bg-green-900/30',
         text: 'text-green-700 dark:text-green-400',
-        label: 'Creado',
+        labelKey: 'actions.created',
       },
       updated: {
         bg: 'bg-blue-100 dark:bg-blue-900/30',
         text: 'text-blue-700 dark:text-blue-400',
-        label: 'Actualizado',
+        labelKey: 'actions.updated',
       },
       deleted: {
         bg: 'bg-red-100 dark:bg-red-900/30',
         text: 'text-red-700 dark:text-red-400',
-        label: 'Eliminado',
+        labelKey: 'actions.deleted',
       },
       status_changed: {
         bg: 'bg-purple-100 dark:bg-purple-900/30',
         text: 'text-purple-700 dark:text-purple-400',
-        label: 'Estado',
+        labelKey: 'actions.estado',
       },
       adjustment: {
         bg: 'bg-orange-100 dark:bg-orange-900/30',
         text: 'text-orange-700 dark:text-orange-400',
-        label: 'Ajuste',
+        labelKey: 'actions.adjustment',
       },
       voucher_created: {
         bg: 'bg-yellow-100 dark:bg-yellow-900/30',
         text: 'text-yellow-700 dark:text-yellow-400',
-        label: 'Vale',
+        labelKey: 'voucher.newVoucher',
       },
       voucher_repaid: {
         bg: 'bg-teal-100 dark:bg-teal-900/30',
         text: 'text-teal-700 dark:text-teal-400',
-        label: 'Justificado',
+        labelKey: 'voucher.justified',
       },
       daily_closed: {
         bg: 'bg-indigo-100 dark:bg-indigo-900/30',
         text: 'text-indigo-700 dark:text-indigo-400',
-        label: 'Cerrado',
+        labelKey: 'summary.closed',
       },
       daily_reopened: {
         bg: 'bg-pink-100 dark:bg-pink-900/30',
         text: 'text-pink-700 dark:text-pink-400',
-        label: 'Reabierto',
+        labelKey: 'reopenDay.title',
       },
     }
 
     const badge = badges[action] || {
       bg: 'bg-gray-100 dark:bg-gray-900/30',
       text: 'text-gray-700 dark:text-gray-400',
-      label: action,
+      labelKey: '',
     }
+
+    const label = badge.labelKey ? t(badge.labelKey) : action
 
     return (
       <span
         className={`inline-flex px-1.5 py-0.5 text-[10px] font-medium rounded ${badge.bg} ${badge.text}`}
       >
-        {badge.label}
+        {label}
       </span>
     )
   }
@@ -89,10 +94,10 @@ export default function HistoryTable({
   const formatShiftType = (type?: string) => {
     if (!type) return '-'
     const types: Record<string, string> = {
-      night: 'Noche',
-      morning: 'Mañana',
-      afternoon: 'Tarde',
-      closing: 'Cierre',
+      night: t('shifts.night'),
+      morning: t('shifts.morning'),
+      afternoon: t('shifts.afternoon'),
+      closing: t('shifts.closing'),
     }
     return types[type] || type
   }
@@ -103,7 +108,9 @@ export default function HistoryTable({
         <div className="flex items-center justify-center">
           <div className="text-center">
             <div className="inline-block h-8 w-8 animate-spin rounded-full border-[3px] border-solid border-blue-600 dark:border-blue-500 border-r-transparent"></div>
-            <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">Cargando historial...</p>
+            <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+              {t('page.loadingHistory')}
+            </p>
           </div>
         </div>
       </div>
@@ -115,7 +122,7 @@ export default function HistoryTable({
       <div className="bg-white dark:bg-[#151b23] border border-gray-200 dark:border-gray-800 rounded-md p-8">
         <div className="text-center">
           <FiAlertCircle className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-          <p className="text-xs text-gray-600 dark:text-gray-400">No se encontraron registros</p>
+          <p className="text-xs text-gray-600 dark:text-gray-400">{t('page.noRecords')}</p>
         </div>
       </div>
     )
@@ -129,25 +136,25 @@ export default function HistoryTable({
           <thead className="bg-gray-50 dark:bg-[#0d1117] border-b border-gray-200 dark:border-gray-800">
             <tr>
               <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                Fecha/Hora
+                {t('logs.dateTime')}
               </th>
               <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                Acción
+                {t('logs.action')}
               </th>
               <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                Turno
+                {t('logs.shift')}
               </th>
               <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                Usuario
+                {t('logs.user')}
               </th>
               <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                Campo
+                {t('logs.field')}
               </th>
               <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                Cambio
+                {t('logs.change')}
               </th>
               <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                Notas
+                {t('logs.notes')}
               </th>
             </tr>
           </thead>
@@ -201,7 +208,7 @@ export default function HistoryTable({
                 {/* Usuario */}
                 <td className="px-3 py-2 text-xs text-gray-900 dark:text-white">
                   {log.username || (
-                    <span className="text-gray-400 italic text-[10px]">Sistema</span>
+                    <span className="text-gray-400 italic text-[10px]">{t('logs.system')}</span>
                   )}
                 </td>
 
@@ -258,14 +265,14 @@ export default function HistoryTable({
             className="px-2 py-1 text-[10px] border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-0.5"
           >
             <FiChevronLeft className="w-3 h-3" />
-            Ant
+            {t('logs.previous')}
           </button>
           <button
             onClick={onNextPage}
             disabled={logs.length < limit}
             className="px-2 py-1 text-[10px] border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-0.5"
           >
-            Sig
+            {t('logs.next')}
             <FiChevronRight className="w-3 h-3" />
           </button>
         </div>

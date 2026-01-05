@@ -9,6 +9,7 @@ import {
   UpdateRoomingRequest,
   UpdateBalanceRequest,
 } from '../../models/group/index'
+import { ERROR_CODES, SUCCESS_CODES } from '../../config/error-codes.js'
 
 export class GroupStatusController {
   /**
@@ -22,14 +23,22 @@ export class GroupStatusController {
       const status = await GroupStatusRepository.getByGroupId(groupId)
 
       if (!status) {
-        res.status(404).json({ error: 'Estado no encontrado' })
+        res.status(404).json({
+          success: false,
+          error: ERROR_CODES.GROUP_STATUS_NOT_FOUND,
+          code: ERROR_CODES.GROUP_STATUS_NOT_FOUND,
+        })
         return
       }
 
       res.json(status)
     } catch (error) {
       console.error('Error al obtener estado:', error)
-      res.status(500).json({ error: 'Error al obtener el estado del grupo' })
+      res.status(500).json({
+        success: false,
+        error: ERROR_CODES.GROUP_STATUS_FETCH_ERROR,
+        code: ERROR_CODES.GROUP_STATUS_FETCH_ERROR,
+      })
     }
   }
 
@@ -44,12 +53,20 @@ export class GroupStatusController {
       const { confirmed, date }: UpdateBookingRequest = req.body
 
       if (!userId) {
-        res.status(401).json({ error: 'Usuario no autenticado' })
+        res.status(401).json({
+          success: false,
+          error: ERROR_CODES.UNAUTHORIZED,
+          code: ERROR_CODES.UNAUTHORIZED,
+        })
         return
       }
 
       if (confirmed === undefined) {
-        res.status(400).json({ error: 'El campo "confirmed" es requerido' })
+        res.status(400).json({
+          success: false,
+          error: ERROR_CODES.GROUP_STATUS_CONFIRMED_REQUIRED,
+          code: ERROR_CODES.GROUP_STATUS_CONFIRMED_REQUIRED,
+        })
         return
       }
 
@@ -63,7 +80,11 @@ export class GroupStatusController {
       })
 
       if (!updated) {
-        res.status(404).json({ error: 'Grupo no encontrado' })
+        res.status(404).json({
+          success: false,
+          error: ERROR_CODES.GROUP_NOT_FOUND,
+          code: ERROR_CODES.GROUP_NOT_FOUND,
+        })
         return
       }
 
@@ -78,11 +99,16 @@ export class GroupStatusController {
 
       res.json({
         success: true,
-        message: 'Booking actualizado correctamente',
+        message: SUCCESS_CODES.GROUP_BOOKING_UPDATED,
+        code: SUCCESS_CODES.GROUP_BOOKING_UPDATED,
       })
     } catch (error) {
       console.error('Error al actualizar booking:', error)
-      res.status(500).json({ error: 'Error al actualizar el booking' })
+      res.status(500).json({
+        success: false,
+        error: ERROR_CODES.GROUP_STATUS_UPDATE_BOOKING_ERROR,
+        code: ERROR_CODES.GROUP_STATUS_UPDATE_BOOKING_ERROR,
+      })
     }
   }
 
@@ -97,12 +123,20 @@ export class GroupStatusController {
       const { signed, date }: UpdateContractRequest = req.body
 
       if (!userId) {
-        res.status(401).json({ error: 'Usuario no autenticado' })
+        res.status(401).json({
+          success: false,
+          error: ERROR_CODES.UNAUTHORIZED,
+          code: ERROR_CODES.UNAUTHORIZED,
+        })
         return
       }
 
       if (signed === undefined) {
-        res.status(400).json({ error: 'El campo "signed" es requerido' })
+        res.status(400).json({
+          success: false,
+          error: ERROR_CODES.GROUP_STATUS_SIGNED_REQUIRED,
+          code: ERROR_CODES.GROUP_STATUS_SIGNED_REQUIRED,
+        })
         return
       }
 
@@ -116,7 +150,11 @@ export class GroupStatusController {
       })
 
       if (!updated) {
-        res.status(404).json({ error: 'Grupo no encontrado' })
+        res.status(404).json({
+          success: false,
+          error: ERROR_CODES.GROUP_NOT_FOUND,
+          code: ERROR_CODES.GROUP_NOT_FOUND,
+        })
         return
       }
 
@@ -131,11 +169,16 @@ export class GroupStatusController {
 
       res.json({
         success: true,
-        message: 'Contrato actualizado correctamente',
+        message: SUCCESS_CODES.GROUP_CONTRACT_UPDATED,
+        code: SUCCESS_CODES.GROUP_CONTRACT_UPDATED,
       })
     } catch (error) {
       console.error('Error al actualizar contrato:', error)
-      res.status(500).json({ error: 'Error al actualizar el contrato' })
+      res.status(500).json({
+        success: false,
+        error: ERROR_CODES.GROUP_STATUS_UPDATE_CONTRACT_ERROR,
+        code: ERROR_CODES.GROUP_STATUS_UPDATE_CONTRACT_ERROR,
+      })
     }
   }
 
@@ -150,7 +193,11 @@ export class GroupStatusController {
       const roomingData: UpdateRoomingRequest = req.body
 
       if (!userId) {
-        res.status(401).json({ error: 'Usuario no autenticado' })
+        res.status(401).json({
+          success: false,
+          error: ERROR_CODES.UNAUTHORIZED,
+          code: ERROR_CODES.UNAUTHORIZED,
+        })
         return
       }
 
@@ -161,7 +208,11 @@ export class GroupStatusController {
       const updated = await GroupStatusRepository.updateRooming(groupId, roomingData)
 
       if (!updated) {
-        res.status(404).json({ error: 'Grupo no encontrado' })
+        res.status(404).json({
+          success: false,
+          error: ERROR_CODES.GROUP_NOT_FOUND,
+          code: ERROR_CODES.GROUP_NOT_FOUND,
+        })
         return
       }
 
@@ -178,11 +229,16 @@ export class GroupStatusController {
 
       res.json({
         success: true,
-        message: 'Rooming list actualizada correctamente',
+        message: SUCCESS_CODES.GROUP_ROOMING_UPDATED,
+        code: SUCCESS_CODES.GROUP_ROOMING_UPDATED,
       })
     } catch (error) {
       console.error('Error al actualizar rooming:', error)
-      res.status(500).json({ error: 'Error al actualizar la rooming list' })
+      res.status(500).json({
+        success: false,
+        error: ERROR_CODES.GROUP_STATUS_UPDATE_ROOMING_ERROR,
+        code: ERROR_CODES.GROUP_STATUS_UPDATE_ROOMING_ERROR,
+      })
     }
   }
 
@@ -197,7 +253,11 @@ export class GroupStatusController {
       const balanceData: UpdateBalanceRequest = req.body
 
       if (!userId) {
-        res.status(401).json({ error: 'Usuario no autenticado' })
+        res.status(401).json({
+          success: false,
+          error: ERROR_CODES.UNAUTHORIZED,
+          code: ERROR_CODES.UNAUTHORIZED,
+        })
         return
       }
 
@@ -208,7 +268,11 @@ export class GroupStatusController {
       const updated = await GroupStatusRepository.updateBalance(groupId, balanceData)
 
       if (!updated) {
-        res.status(404).json({ error: 'Grupo no encontrado' })
+        res.status(404).json({
+          success: false,
+          error: ERROR_CODES.GROUP_NOT_FOUND,
+          code: ERROR_CODES.GROUP_NOT_FOUND,
+        })
         return
       }
 
@@ -225,11 +289,16 @@ export class GroupStatusController {
 
       res.json({
         success: true,
-        message: 'Balance actualizado correctamente',
+        message: SUCCESS_CODES.GROUP_BALANCE_UPDATED,
+        code: SUCCESS_CODES.GROUP_BALANCE_UPDATED,
       })
     } catch (error) {
       console.error('Error al actualizar balance:', error)
-      res.status(500).json({ error: 'Error al actualizar el balance' })
+      res.status(500).json({
+        success: false,
+        error: ERROR_CODES.GROUP_STATUS_UPDATE_BALANCE_ERROR,
+        code: ERROR_CODES.GROUP_STATUS_UPDATE_BALANCE_ERROR,
+      })
     }
   }
 }

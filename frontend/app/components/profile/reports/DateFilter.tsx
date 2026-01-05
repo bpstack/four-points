@@ -3,6 +3,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
+import { useTranslations, useLocale } from 'next-intl'
 import { FiCalendar, FiX } from 'react-icons/fi'
 import SimpleCalendar from '@/app/ui/calendar/simplecalendar'
 
@@ -12,13 +13,13 @@ interface DateFilterProps {
   label?: string
 }
 
-export default function DateFilter({
-  selectedDate,
-  onDateChange,
-  label = 'Filtrar por fecha',
-}: DateFilterProps) {
+export default function DateFilter({ selectedDate, onDateChange, label }: DateFilterProps) {
+  const t = useTranslations('profile.reports.common')
+  const locale = useLocale()
   const [showCalendar, setShowCalendar] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
+
+  const defaultLabel = label || t('filterByDate')
 
   // Close calendar when clicking outside
   useEffect(() => {
@@ -43,7 +44,7 @@ export default function DateFilter({
   // Format date for display
   const formatDisplayDate = (dateStr: string) => {
     const date = new Date(dateStr + 'T00:00:00')
-    return new Intl.DateTimeFormat('es-ES', {
+    return new Intl.DateTimeFormat(locale === 'es' ? 'es-ES' : 'en-US', {
       day: '2-digit',
       month: 'short',
       year: 'numeric',
@@ -85,7 +86,7 @@ export default function DateFilter({
           `}
         >
           <FiCalendar className="w-4 h-4" />
-          <span>{selectedDate ? formatDisplayDate(selectedDate) : label}</span>
+          <span>{selectedDate ? formatDisplayDate(selectedDate) : defaultLabel}</span>
         </button>
         {selectedDate && (
           <button

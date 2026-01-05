@@ -1,9 +1,35 @@
 -- =========================================================
 -- 15_demo_user.sql (AIVEN)
--- Usuario demo para demostrar la aplicación
+-- Usuario demo para demostrar la aplicación / demo / demo987654
 -- Collation: utf8mb4_0900_ai_ci (Aiven/MySQL 8.0)
 -- =========================================================
 USE hotel_db;
+
+-- =========================================================
+-- TABLA: demo_activity_log
+-- Registra intentos de escritura bloqueados de usuarios demo
+-- =========================================================
+CREATE TABLE IF NOT EXISTS demo_activity_log (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+  user_id VARCHAR(36),
+  username VARCHAR(100),
+  method VARCHAR(10) NOT NULL,
+  route VARCHAR(255) NOT NULL,
+  body_preview TEXT,
+  ip_address VARCHAR(45),
+  user_agent TEXT,
+  blocked BOOLEAN DEFAULT TRUE,
+  INDEX idx_demo_log_timestamp (timestamp),
+  INDEX idx_demo_log_username (username),
+  INDEX idx_demo_log_route (route)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+SELECT 'Tabla demo_activity_log creada' AS resultado;
+
+-- =========================================================
+-- ROLES Y USUARIOS DEMO
+-- =========================================================
 
 -- 1. Agregar rol demo-admin
 INSERT INTO roles (id, name) VALUES (7, 'demo-admin')

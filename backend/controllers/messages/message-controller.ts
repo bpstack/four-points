@@ -5,6 +5,7 @@ import { ConversationRepository } from '../../repositories/messages/conversation
 import { MessageRepository } from '../../repositories/messages/message-repository.js'
 import { NotificationRepository } from '../../repositories/notifications/notification-repository.js'
 import { MESSAGE_CONSTANTS } from '../../models/messages/index.js'
+import { ERROR_CODES, SUCCESS_CODES } from '../../config/error-codes.js'
 
 export class MessageController {
   /**
@@ -19,14 +20,16 @@ export class MessageController {
       if (!userId) {
         return res.status(401).json({
           success: false,
-          error: 'Usuario no autenticado',
+          error: ERROR_CODES.AUTH_USER_NOT_AUTHENTICATED,
+          code: ERROR_CODES.AUTH_USER_NOT_AUTHENTICATED,
         })
       }
 
       if (isNaN(conversationId)) {
         return res.status(400).json({
           success: false,
-          error: 'ID de conversacion invalido',
+          error: ERROR_CODES.MESSAGES_INVALID_CONVERSATION_ID,
+          code: ERROR_CODES.MESSAGES_INVALID_CONVERSATION_ID,
         })
       }
 
@@ -37,7 +40,8 @@ export class MessageController {
       if (!isParticipant && !isSystemAdmin) {
         return res.status(403).json({
           success: false,
-          error: 'No tienes acceso a esta conversacion',
+          error: ERROR_CODES.MESSAGES_NO_ACCESS,
+          code: ERROR_CODES.MESSAGES_NO_ACCESS,
         })
       }
 
@@ -69,8 +73,8 @@ export class MessageController {
       console.error('Error en getMessages:', error)
       return res.status(500).json({
         success: false,
-        error: 'Error al obtener mensajes',
-        message: error.message,
+        error: ERROR_CODES.MESSAGES_FETCH_MESSAGES_ERROR,
+        code: ERROR_CODES.MESSAGES_FETCH_MESSAGES_ERROR,
       })
     }
   }
@@ -89,28 +93,32 @@ export class MessageController {
       if (!userId) {
         return res.status(401).json({
           success: false,
-          error: 'Usuario no autenticado',
+          error: ERROR_CODES.AUTH_USER_NOT_AUTHENTICATED,
+          code: ERROR_CODES.AUTH_USER_NOT_AUTHENTICATED,
         })
       }
 
       if (isNaN(conversationId)) {
         return res.status(400).json({
           success: false,
-          error: 'ID de conversacion invalido',
+          error: ERROR_CODES.MESSAGES_INVALID_CONVERSATION_ID,
+          code: ERROR_CODES.MESSAGES_INVALID_CONVERSATION_ID,
         })
       }
 
       if (!content || content.trim().length === 0) {
         return res.status(400).json({
           success: false,
-          error: 'El mensaje no puede estar vacio',
+          error: ERROR_CODES.MESSAGES_EMPTY_MESSAGE,
+          code: ERROR_CODES.MESSAGES_EMPTY_MESSAGE,
         })
       }
 
       if (content.length > MESSAGE_CONSTANTS.MAX_CONTENT_LENGTH) {
         return res.status(400).json({
           success: false,
-          error: `El mensaje no puede superar ${MESSAGE_CONSTANTS.MAX_CONTENT_LENGTH} caracteres`,
+          error: ERROR_CODES.MESSAGES_MESSAGE_TOO_LONG,
+          code: ERROR_CODES.MESSAGES_MESSAGE_TOO_LONG,
         })
       }
 
@@ -119,7 +127,8 @@ export class MessageController {
       if (!isParticipant) {
         return res.status(403).json({
           success: false,
-          error: 'No eres participante de esta conversacion',
+          error: ERROR_CODES.MESSAGES_NOT_PARTICIPANT,
+          code: ERROR_CODES.MESSAGES_NOT_PARTICIPANT,
         })
       }
 
@@ -148,14 +157,15 @@ export class MessageController {
       return res.status(201).json({
         success: true,
         data: messageWithSender,
-        message: 'Mensaje enviado',
+        message: SUCCESS_CODES.MESSAGES_SENT,
+        code: SUCCESS_CODES.MESSAGES_SENT,
       })
     } catch (error: any) {
       console.error('Error en sendMessage:', error)
       return res.status(500).json({
         success: false,
-        error: 'Error al enviar mensaje',
-        message: error.message,
+        error: ERROR_CODES.MESSAGES_SEND_MESSAGE_ERROR,
+        code: ERROR_CODES.MESSAGES_SEND_MESSAGE_ERROR,
       })
     }
   }
@@ -173,28 +183,32 @@ export class MessageController {
       if (!userId) {
         return res.status(401).json({
           success: false,
-          error: 'Usuario no autenticado',
+          error: ERROR_CODES.AUTH_USER_NOT_AUTHENTICATED,
+          code: ERROR_CODES.AUTH_USER_NOT_AUTHENTICATED,
         })
       }
 
       if (isNaN(messageId)) {
         return res.status(400).json({
           success: false,
-          error: 'ID de mensaje invalido',
+          error: ERROR_CODES.MESSAGES_INVALID_MESSAGE_ID,
+          code: ERROR_CODES.MESSAGES_INVALID_MESSAGE_ID,
         })
       }
 
       if (!content || content.trim().length === 0) {
         return res.status(400).json({
           success: false,
-          error: 'El mensaje no puede estar vacio',
+          error: ERROR_CODES.MESSAGES_EMPTY_MESSAGE,
+          code: ERROR_CODES.MESSAGES_EMPTY_MESSAGE,
         })
       }
 
       if (content.length > MESSAGE_CONSTANTS.MAX_CONTENT_LENGTH) {
         return res.status(400).json({
           success: false,
-          error: `El mensaje no puede superar ${MESSAGE_CONSTANTS.MAX_CONTENT_LENGTH} caracteres`,
+          error: ERROR_CODES.MESSAGES_MESSAGE_TOO_LONG,
+          code: ERROR_CODES.MESSAGES_MESSAGE_TOO_LONG,
         })
       }
 
@@ -203,7 +217,8 @@ export class MessageController {
       if (!isSender) {
         return res.status(403).json({
           success: false,
-          error: 'Solo puedes editar tus propios mensajes',
+          error: ERROR_CODES.MESSAGES_ONLY_OWN_EDIT,
+          code: ERROR_CODES.MESSAGES_ONLY_OWN_EDIT,
         })
       }
 
@@ -211,7 +226,8 @@ export class MessageController {
       if (!updated) {
         return res.status(404).json({
           success: false,
-          error: 'Mensaje no encontrado o ya eliminado',
+          error: ERROR_CODES.MESSAGES_MESSAGE_NOT_FOUND,
+          code: ERROR_CODES.MESSAGES_MESSAGE_NOT_FOUND,
         })
       }
 
@@ -220,14 +236,15 @@ export class MessageController {
       return res.status(200).json({
         success: true,
         data: message,
-        message: 'Mensaje editado',
+        message: SUCCESS_CODES.MESSAGES_EDITED,
+        code: SUCCESS_CODES.MESSAGES_EDITED,
       })
     } catch (error: any) {
       console.error('Error en editMessage:', error)
       return res.status(500).json({
         success: false,
-        error: 'Error al editar mensaje',
-        message: error.message,
+        error: ERROR_CODES.MESSAGES_EDIT_MESSAGE_ERROR,
+        code: ERROR_CODES.MESSAGES_EDIT_MESSAGE_ERROR,
       })
     }
   }
@@ -245,14 +262,16 @@ export class MessageController {
       if (!userId) {
         return res.status(401).json({
           success: false,
-          error: 'Usuario no autenticado',
+          error: ERROR_CODES.AUTH_USER_NOT_AUTHENTICATED,
+          code: ERROR_CODES.AUTH_USER_NOT_AUTHENTICATED,
         })
       }
 
       if (isNaN(messageId)) {
         return res.status(400).json({
           success: false,
-          error: 'ID de mensaje invalido',
+          error: ERROR_CODES.MESSAGES_INVALID_MESSAGE_ID,
+          code: ERROR_CODES.MESSAGES_INVALID_MESSAGE_ID,
         })
       }
 
@@ -263,7 +282,8 @@ export class MessageController {
       if (!isSender && !isSystemAdmin) {
         return res.status(403).json({
           success: false,
-          error: 'Solo puedes eliminar tus propios mensajes',
+          error: ERROR_CODES.MESSAGES_ONLY_OWN_DELETE,
+          code: ERROR_CODES.MESSAGES_ONLY_OWN_DELETE,
         })
       }
 
@@ -271,20 +291,22 @@ export class MessageController {
       if (!deleted) {
         return res.status(404).json({
           success: false,
-          error: 'Mensaje no encontrado',
+          error: ERROR_CODES.MESSAGES_MESSAGE_NOT_FOUND,
+          code: ERROR_CODES.MESSAGES_MESSAGE_NOT_FOUND,
         })
       }
 
       return res.status(200).json({
         success: true,
-        message: 'Mensaje eliminado',
+        message: SUCCESS_CODES.MESSAGES_DELETED,
+        code: SUCCESS_CODES.MESSAGES_DELETED,
       })
     } catch (error: any) {
       console.error('Error en deleteMessage:', error)
       return res.status(500).json({
         success: false,
-        error: 'Error al eliminar mensaje',
-        message: error.message,
+        error: ERROR_CODES.MESSAGES_DELETE_MESSAGE_ERROR,
+        code: ERROR_CODES.MESSAGES_DELETE_MESSAGE_ERROR,
       })
     }
   }
@@ -300,7 +322,8 @@ export class MessageController {
       if (!userId) {
         return res.status(401).json({
           success: false,
-          error: 'Usuario no autenticado',
+          error: ERROR_CODES.AUTH_USER_NOT_AUTHENTICATED,
+          code: ERROR_CODES.AUTH_USER_NOT_AUTHENTICATED,
         })
       }
 
@@ -318,8 +341,8 @@ export class MessageController {
       console.error('Error en getUnreadCount:', error)
       return res.status(500).json({
         success: false,
-        error: 'Error al obtener contador de no leidos',
-        message: error.message,
+        error: ERROR_CODES.MESSAGES_FETCH_UNREAD_ERROR,
+        code: ERROR_CODES.MESSAGES_FETCH_UNREAD_ERROR,
       })
     }
   }
@@ -336,14 +359,16 @@ export class MessageController {
       if (!userId) {
         return res.status(401).json({
           success: false,
-          error: 'Usuario no autenticado',
+          error: ERROR_CODES.AUTH_USER_NOT_AUTHENTICATED,
+          code: ERROR_CODES.AUTH_USER_NOT_AUTHENTICATED,
         })
       }
 
       if (!searchTerm || searchTerm.trim().length < 2) {
         return res.status(400).json({
           success: false,
-          error: 'El termino de busqueda debe tener al menos 2 caracteres',
+          error: ERROR_CODES.MESSAGES_SEARCH_MIN_LENGTH,
+          code: ERROR_CODES.MESSAGES_SEARCH_MIN_LENGTH,
         })
       }
 
@@ -367,8 +392,8 @@ export class MessageController {
       console.error('Error en searchMessages:', error)
       return res.status(500).json({
         success: false,
-        error: 'Error al buscar mensajes',
-        message: error.message,
+        error: ERROR_CODES.MESSAGES_SEARCH_MESSAGES_ERROR,
+        code: ERROR_CODES.MESSAGES_SEARCH_MESSAGES_ERROR,
       })
     }
   }

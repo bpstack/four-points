@@ -26,6 +26,8 @@ import messagesRoutes from './routes/messages/messages-routes.js'
 import backofficeRoutes from './routes/backoffice/backoffice-routes.js'
 import schedulingRoutes from './routes/scheduling/scheduling-routes.js'
 import chatRoutes from './routes/chat/chat-routes.js'
+import searchRoutes from './routes/search/search-routes.js'
+import demoActivityRoutes from './routes/demo/demo-activity-routes.js'
 
 // ============================================
 // EXPRESS APP
@@ -154,6 +156,12 @@ app.use('/api/scheduling', schedulingRoutes)
 
 // Rutas de chat con IA (asistente de ayuda)
 app.use('/api/chat', chatRoutes)
+
+// Rutas de búsqueda global
+app.use('/api/search', searchRoutes)
+
+// Rutas de actividad demo (solo admin)
+app.use('/api/demo-activity', demoActivityRoutes)
 
 // ========================================
 // MANEJO DE ERRORES

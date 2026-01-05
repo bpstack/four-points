@@ -2,8 +2,9 @@
 'use client'
 
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 import type { ParkingBooking } from '@/app/lib/parking/types'
-import { formatDateTimeLocal, PAYMENT_METHODS } from '../helpers'
+import { formatDateTimeLocal } from '../helpers'
 import { FiLogOut, FiX, FiDollarSign } from 'react-icons/fi'
 
 interface CheckOutModalProps {
@@ -19,6 +20,7 @@ interface CheckOutModalProps {
 }
 
 export function CheckOutModal({ booking, onClose, onConfirm }: CheckOutModalProps) {
+  const t = useTranslations('parking')
   const [loading, setLoading] = useState(false)
   const [data, setData] = useState({
     actual_checkout: formatDateTimeLocal(new Date()),
@@ -51,7 +53,7 @@ export function CheckOutModal({ booking, onClose, onConfirm }: CheckOutModalProp
           <div>
             <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
               <FiLogOut className="w-5 h-5 text-blue-600" />
-              Check-out
+              {t('checkOutModal.title')}
             </h3>
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{booking.booking_code}</p>
           </div>
@@ -69,23 +71,31 @@ export function CheckOutModal({ booking, onClose, onConfirm }: CheckOutModalProp
           <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
             <div className="flex items-center gap-2 mb-3">
               <FiDollarSign className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-              <span className="font-medium text-blue-900 dark:text-blue-100">Resumen de Pago</span>
+              <span className="font-medium text-blue-900 dark:text-blue-100">
+                {t('checkOutModal.paymentSummary')}
+              </span>
             </div>
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
-                <span className="text-blue-700 dark:text-blue-300">Total reserva</span>
+                <span className="text-blue-700 dark:text-blue-300">
+                  {t('checkOutModal.totalBooking')}
+                </span>
                 <span className="font-semibold text-blue-900 dark:text-blue-100">
                   {booking.payment.total_amount.toFixed(2)}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-blue-700 dark:text-blue-300">Ya pagado</span>
+                <span className="text-blue-700 dark:text-blue-300">
+                  {t('checkOutModal.alreadyPaid')}
+                </span>
                 <span className="text-blue-900 dark:text-blue-100">
                   {booking.payment.paid_amount.toFixed(2)}
                 </span>
               </div>
               <div className="flex justify-between pt-2 border-t border-blue-200 dark:border-blue-700">
-                <span className="font-medium text-blue-700 dark:text-blue-300">Pendiente</span>
+                <span className="font-medium text-blue-700 dark:text-blue-300">
+                  {t('checkOutModal.pending')}
+                </span>
                 <span className="font-bold text-blue-900 dark:text-blue-100">
                   {booking.payment.pending_amount.toFixed(2)}
                 </span>
@@ -95,7 +105,7 @@ export function CheckOutModal({ booking, onClose, onConfirm }: CheckOutModalProp
 
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Fecha y hora de salida
+              {t('checkOutModal.dateTime')}
             </label>
             <input
               type="datetime-local"
@@ -107,7 +117,7 @@ export function CheckOutModal({ booking, onClose, onConfirm }: CheckOutModalProp
 
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Importe a cobrar
+              {t('checkOutModal.amountToCharge')}
             </label>
             <div className="relative">
               <input
@@ -124,44 +134,43 @@ export function CheckOutModal({ booking, onClose, onConfirm }: CheckOutModalProp
 
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Metodo de pago
+              {t('checkOutModal.paymentMethod')}
             </label>
             <select
               value={data.payment_method}
               onChange={(e) => setData({ ...data, payment_method: e.target.value })}
               className="w-full px-3 py-2 bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              {Object.entries(PAYMENT_METHODS).map(([value, label]) => (
-                <option key={value} value={value}>
-                  {label}
-                </option>
-              ))}
+              <option value="cash">{t('paymentMethods.cash')}</option>
+              <option value="card">{t('paymentMethods.card')}</option>
+              <option value="transfer">{t('paymentMethods.transfer')}</option>
+              <option value="other">{t('paymentMethods.other')}</option>
             </select>
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Referencia de pago (opcional)
+              {t('checkOutModal.reference')}
             </label>
             <input
               type="text"
               value={data.payment_reference}
               onChange={(e) => setData({ ...data, payment_reference: e.target.value })}
               className="w-full px-3 py-2 bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Numero de operacion, recibo..."
+              placeholder={t('checkOutModal.referencePlaceholder')}
             />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Notas (opcional)
+              {t('checkOutModal.notes')}
             </label>
             <textarea
               value={data.notes}
               onChange={(e) => setData({ ...data, notes: e.target.value })}
               rows={2}
               className="w-full px-3 py-2 bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-              placeholder="Observaciones..."
+              placeholder={t('checkOutModal.notesPlaceholder')}
             />
           </div>
         </div>
@@ -173,7 +182,7 @@ export function CheckOutModal({ booking, onClose, onConfirm }: CheckOutModalProp
             disabled={loading}
             className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
           >
-            Cancelar
+            {t('checkOutModal.cancel')}
           </button>
           <button
             onClick={handleSubmit}
@@ -185,7 +194,7 @@ export function CheckOutModal({ booking, onClose, onConfirm }: CheckOutModalProp
             ) : (
               <>
                 <FiLogOut className="w-4 h-4" />
-                Confirmar Check-out
+                {t('checkOutModal.confirm')}
               </>
             )}
           </button>

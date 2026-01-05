@@ -2,6 +2,7 @@
 'use client'
 
 import { Fragment } from 'react'
+import { useTranslations } from 'next-intl'
 import { Dialog, Transition } from '@headlessui/react'
 import { FiAlertTriangle, FiX } from 'react-icons/fi'
 
@@ -23,11 +24,15 @@ export function ConfirmDialog({
   onConfirm,
   title,
   message,
-  confirmText = 'Confirmar',
-  cancelText = 'Cancelar',
+  confirmText,
+  cancelText,
   confirmVariant = 'primary',
   isLoading = false,
 }: ConfirmDialogProps) {
+  const t = useTranslations('maintenance')
+
+  const resolvedConfirmText = confirmText ?? t('confirm.confirm')
+  const resolvedCancelText = cancelText ?? t('confirm.cancel')
   const getConfirmButtonClasses = () => {
     switch (confirmVariant) {
       case 'danger':
@@ -110,7 +115,7 @@ export function ConfirmDialog({
                   disabled={isLoading}
                   className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 disabled:opacity-50"
                 >
-                  {cancelText}
+                  {resolvedCancelText}
                 </button>
                 <button
                   type="button"
@@ -121,10 +126,10 @@ export function ConfirmDialog({
                   {isLoading ? (
                     <>
                       <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      Procesando...
+                      {t('confirm.processing')}
                     </>
                   ) : (
-                    confirmText
+                    resolvedConfirmText
                   )}
                 </button>
               </div>

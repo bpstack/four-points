@@ -4,24 +4,11 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { useRouter, usePathname, useSearchParams } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { cn } from '@/app/lib/helpers/utils'
 import { FiChevronDown, FiCheck } from 'react-icons/fi'
 
 type Tab = 'overview' | 'payments' | 'contacts' | 'rooms' | 'status' | 'history'
-
-interface TabConfig {
-  id: Tab
-  label: string
-}
-
-const tabs: TabConfig[] = [
-  { id: 'overview', label: 'Resumen' },
-  { id: 'payments', label: 'Pagos' },
-  { id: 'contacts', label: 'Contactos' },
-  { id: 'rooms', label: 'Habitaciones' },
-  { id: 'status', label: 'Estado' },
-  { id: 'history', label: 'Historial' },
-]
 
 interface TabNavigationProps {
   groupId: number
@@ -35,8 +22,18 @@ export function TabNavigation(_props: TabNavigationProps) {
   const activeTab = (searchParams.get('tab') || 'overview') as Tab
   const [isOpen, setIsOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
+  const t = useTranslations('groups')
 
-  const activeTabConfig = tabs.find((t) => t.id === activeTab) || tabs[0]
+  const tabs: { id: Tab; label: string }[] = [
+    { id: 'overview', label: t('tabs.overview') },
+    { id: 'payments', label: t('tabs.payments') },
+    { id: 'contacts', label: t('tabs.contacts') },
+    { id: 'rooms', label: t('tabs.rooms') },
+    { id: 'status', label: t('tabs.status') },
+    { id: 'history', label: t('tabs.history') },
+  ]
+
+  const activeTabConfig = tabs.find((tab) => tab.id === activeTab) || tabs[0]
 
   // Cerrar dropdown al hacer click fuera
   useEffect(() => {

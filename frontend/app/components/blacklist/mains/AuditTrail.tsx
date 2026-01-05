@@ -10,6 +10,7 @@
  * - Timestamps
  */
 
+import { useTranslations } from 'next-intl'
 import { IoPersonOutline, IoCreateOutline, IoTrashOutline, IoRefreshOutline } from 'react-icons/io5'
 import type { AuditEntry } from '@/app/lib/blacklist/types'
 import { formatDateTime } from '@/app/lib/blacklist/blacklistUtils'
@@ -20,10 +21,12 @@ interface AuditTrailProps {
 }
 
 export function AuditTrail({ entries }: AuditTrailProps) {
+  const t = useTranslations('blacklist')
+
   if (entries.length === 0) {
     return (
       <div className="text-center py-8 text-gray-500 dark:text-gray-400 text-sm">
-        No hay historial de cambios disponible
+        {t('audit.noHistory')}
       </div>
     )
   }
@@ -47,7 +50,8 @@ interface AuditItemProps {
 }
 
 function AuditItem({ entry, isLast }: AuditItemProps) {
-  const { icon, bgColor, actionText } = getAuditConfig(entry.action)
+  const t = useTranslations('blacklist')
+  const { icon, bgColor, actionKey } = getAuditConfig(entry.action)
 
   return (
     <div className="relative pb-6">
@@ -73,10 +77,12 @@ function AuditItem({ entry, isLast }: AuditItemProps) {
           {/* Header */}
           <div className="flex items-start justify-between gap-4 mb-2">
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{actionText}</p>
+              <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                {t(`audit.actions.${actionKey}`)}
+              </p>
               <div className="flex items-center gap-2 mt-1">
                 <span className="text-xs text-gray-600 dark:text-gray-400">
-                  Por: <span className="font-medium">{entry.changed_by_username}</span>
+                  {t('audit.by')} <span className="font-medium">{entry.changed_by_username}</span>
                 </span>
                 {entry.ip_address && (
                   <>
@@ -99,7 +105,7 @@ function AuditItem({ entry, isLast }: AuditItemProps) {
       {entry.action === 'UPDATE' && entry.changed_fields && (
         <div className="bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-800 rounded-md p-3 mt-3">
           <p className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Campos modificados:
+            {t('audit.fieldsModified')}
           </p>
           <div className="space-y-2">
             {Object.entries(entry.changed_fields).map(([field, changes]) => (
@@ -128,7 +134,8 @@ interface FieldChangeProps {
 }
 
 function FieldChange({ field, oldValue, newValue }: FieldChangeProps) {
-  const fieldLabel = getFieldLabel(field)
+  const t = useTranslations('blacklist')
+  const fieldLabel = t(`audit.fields.${field}`)
 
   return (
     <div className="text-xs">
@@ -137,17 +144,21 @@ function FieldChange({ field, oldValue, newValue }: FieldChangeProps) {
       <div className="space-y-1 pl-2">
         {/* Valor anterior */}
         <div className="flex items-start gap-2">
-          <div className="text-[10px] text-gray-500 dark:text-gray-500 min-w-[45px]">Antes:</div>
+          <div className="text-[10px] text-gray-500 dark:text-gray-500 min-w-[45px]">
+            {t('audit.before')}
+          </div>
           <div className="bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 px-2 py-0.5 rounded text-[11px] border border-red-200 dark:border-red-800 flex-1 min-w-0 break-all">
-            {formatValue(oldValue)}
+            {formatValue(oldValue, t)}
           </div>
         </div>
 
         {/* Valor nuevo */}
         <div className="flex items-start gap-2">
-          <div className="text-[10px] text-gray-500 dark:text-gray-500 min-w-[45px]">Después:</div>
+          <div className="text-[10px] text-gray-500 dark:text-gray-500 min-w-[45px]">
+            {t('audit.after')}
+          </div>
           <div className="bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 px-2 py-0.5 rounded text-[11px] border border-green-200 dark:border-green-800 flex-1 min-w-0 break-all">
-            {formatValue(newValue)}
+            {formatValue(newValue, t)}
           </div>
         </div>
       </div>
@@ -166,71 +177,53 @@ function getAuditConfig(action: AuditEntry['action']) {
         icon: <IoCreateOutline className="text-green-600 dark:text-green-400" size={18} />,
         iconColor: 'text-green-600',
         bgColor: 'bg-green-100 dark:bg-green-900/30',
-        action: 'create',
-        actionText: 'Registro creado',
+        actionKey: 'create',
       }
     case 'UPDATE':
       return {
         icon: <IoRefreshOutline className="text-blue-600 dark:text-blue-400" size={18} />,
         iconColor: 'text-blue-600',
         bgColor: 'bg-blue-100 dark:bg-blue-900/30',
-        action: 'update',
-        actionText: 'Registro actualizado',
+        actionKey: 'update',
       }
     case 'DELETE':
       return {
         icon: <IoTrashOutline className="text-red-600 dark:text-red-400" size={18} />,
         iconColor: 'text-red-600',
         bgColor: 'bg-red-100 dark:bg-red-900/30',
-        action: 'delete',
-        actionText: 'Registro eliminado',
+        actionKey: 'delete',
       }
     case 'RESTORE':
       return {
         icon: <IoRefreshOutline className="text-green-600 dark:text-green-400" size={18} />,
         iconColor: 'text-green-600',
         bgColor: 'bg-green-100 dark:bg-green-900/30',
-        action: 'restore',
-        actionText: 'Registro restaurado',
+        actionKey: 'restore',
       }
     default:
       return {
         icon: <IoPersonOutline className="text-gray-600 dark:text-gray-400" size={18} />,
         iconColor: 'text-gray-600',
         bgColor: 'bg-gray-100 dark:bg-gray-800',
-        action: 'unknown',
-        actionText: 'Acción desconocida',
+        actionKey: 'unknown',
       }
   }
 }
 
-function getFieldLabel(field: string): string {
-  const labels: Record<string, string> = {
-    guest_name: 'Nombre del huésped',
-    document_type: 'Tipo de documento',
-    document_number: 'Número de documento',
-    check_in_date: 'Fecha de entrada',
-    check_out_date: 'Fecha de salida',
-    reason: 'Motivo',
-    severity: 'Gravedad',
-    comments: 'Comentarios',
-    images: 'Imágenes',
-    status: 'Estado',
-  }
-  return labels[field] || field
-}
-
-function formatValue(value: unknown): string {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function formatValue(value: unknown, t: any): string {
   if (value === null || value === undefined) {
-    return '(vacío)'
+    return t('audit.values.empty')
   }
 
   if (typeof value === 'boolean') {
-    return value ? 'Sí' : 'No'
+    return value ? t('audit.values.yes') : t('audit.values.no')
   }
 
   if (Array.isArray(value)) {
-    return value.length > 0 ? `${value.length} elementos` : '(vacío)'
+    return value.length > 0
+      ? t('audit.values.elements', { count: value.length })
+      : t('audit.values.empty')
   }
 
   if (typeof value === 'object') {

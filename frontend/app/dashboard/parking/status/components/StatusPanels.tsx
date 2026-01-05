@@ -2,6 +2,7 @@
 'use client'
 
 import React from 'react'
+import { useTranslations } from 'next-intl'
 import { FiCheckCircle, FiLogOut, FiAlertCircle } from 'react-icons/fi'
 import { MdLocalParking } from 'react-icons/md'
 import type {
@@ -30,6 +31,7 @@ export default function StatusPanels({
   onOverdueClick,
   layout = 'vertical',
 }: StatusPanelsProps) {
+  const t = useTranslations('parking')
   const reservedSpots = spots.filter((s) => s.status === 'reserved')
 
   const checkoutTodaySpots = spots.filter((s) => {
@@ -49,7 +51,9 @@ export default function StatusPanels({
         <div className="bg-white dark:bg-[#0d1117] border border-gray-200 dark:border-[#30363d] rounded-xl p-4">
           <div className="flex items-center gap-2 mb-1">
             <MdLocalParking className="w-4 h-4 text-indigo-500" />
-            <span className="text-xs font-medium text-gray-500 dark:text-gray-400">Total</span>
+            <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
+              {t('statusPanels.total')}
+            </span>
           </div>
           <p className="text-2xl font-bold text-gray-900 dark:text-white">
             {availabilityData?.summary.total_spots || 0}
@@ -61,7 +65,7 @@ export default function StatusPanels({
           <div className="flex items-center gap-2 mb-1">
             <FiCheckCircle className="w-4 h-4 text-emerald-500" />
             <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
-              Disponibles
+              {t('statusPanels.available')}
             </span>
           </div>
           <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
@@ -73,7 +77,9 @@ export default function StatusPanels({
         <div className="bg-white dark:bg-[#0d1117] border border-amber-200 dark:border-amber-800/30 rounded-xl p-4">
           <div className="flex items-center gap-2 mb-1">
             <FiCheckCircle className="w-4 h-4 text-amber-500" />
-            <span className="text-xs font-medium text-gray-500 dark:text-gray-400">Pendientes</span>
+            <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
+              {t('statusPanels.pending')}
+            </span>
           </div>
           <p className="text-2xl font-bold text-amber-600 dark:text-amber-400">
             {reservedSpots.length}
@@ -84,7 +90,9 @@ export default function StatusPanels({
         <div className="bg-white dark:bg-[#0d1117] border border-orange-200 dark:border-orange-800/30 rounded-xl p-4">
           <div className="flex items-center gap-2 mb-1">
             <FiAlertCircle className="w-4 h-4 text-orange-500" />
-            <span className="text-xs font-medium text-gray-500 dark:text-gray-400">Retrasadas</span>
+            <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
+              {t('statusPanels.overdue')}
+            </span>
           </div>
           <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">
             {overdueBookings.length}
@@ -105,36 +113,46 @@ export default function StatusPanels({
               <MdLocalParking className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
             </div>
             <h3 className="text-base font-bold text-gray-900 dark:text-gray-100">
-              Resumen General
+              {t('statusPanels.generalSummary')}
             </h3>
           </div>
           <div className="space-y-3 text-sm">
             <div className="flex justify-between items-center">
-              <span className="text-gray-600 dark:text-gray-400 font-medium">Total plazas:</span>
+              <span className="text-gray-600 dark:text-gray-400 font-medium">
+                {t('statusPanels.totalSpots')}:
+              </span>
               <span className="font-bold text-gray-900 dark:text-gray-100 text-lg">
                 {availabilityData.summary.total_spots}
               </span>
             </div>
             <div className="flex justify-between items-center p-2 bg-emerald-50 dark:bg-emerald-950/20 rounded-lg">
-              <span className="text-gray-600 dark:text-gray-400 font-medium">Disponibles:</span>
+              <span className="text-gray-600 dark:text-gray-400 font-medium">
+                {t('statusPanels.available')}:
+              </span>
               <span className="font-bold text-emerald-600 dark:text-emerald-400 text-lg">
                 {availabilityData.summary.available_spots}
               </span>
             </div>
             <div className="flex justify-between items-center p-2 bg-amber-50 dark:bg-amber-950/20 rounded-lg">
-              <span className="text-gray-600 dark:text-gray-400 font-medium">Reservadas:</span>
+              <span className="text-gray-600 dark:text-gray-400 font-medium">
+                {t('statusPanels.reserved')}:
+              </span>
               <span className="font-bold text-amber-600 dark:text-amber-400 text-lg">
                 {availabilityData.summary.reserved_spots}
               </span>
             </div>
             <div className="flex justify-between items-center p-2 bg-rose-50 dark:bg-rose-950/20 rounded-lg">
-              <span className="text-gray-600 dark:text-gray-400 font-medium">Ocupadas:</span>
+              <span className="text-gray-600 dark:text-gray-400 font-medium">
+                {t('statusPanels.occupied')}:
+              </span>
               <span className="font-bold text-rose-600 dark:text-rose-400 text-lg">
                 {availabilityData.summary.occupied_spots}
               </span>
             </div>
             <div className="flex justify-between items-center pt-3 mt-3 border-t-2 border-indigo-100 dark:border-indigo-900/30">
-              <span className="text-gray-700 dark:text-gray-300 font-semibold">Ocupación:</span>
+              <span className="text-gray-700 dark:text-gray-300 font-semibold">
+                {t('statusPanels.occupancy')}:
+              </span>
               <span className="font-bold text-indigo-600 dark:text-indigo-400 text-xl">
                 {Math.round(availabilityData.summary.occupancy_rate)}%
               </span>
@@ -151,7 +169,7 @@ export default function StatusPanels({
               <FiCheckCircle className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
             </div>
             <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100">
-              Check-Ins Pendientes
+              {t('statusPanels.pendingCheckIns')}
             </h3>
           </div>
           <span className="px-3 py-1 text-sm font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg">
@@ -166,18 +184,18 @@ export default function StatusPanels({
             >
               <div className="flex items-center justify-between gap-2 mb-2">
                 <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate">
-                  {spot.booking?.vehicle?.owner || 'Sin cliente'}
+                  {spot.booking?.vehicle?.owner || t('statusPanels.noClient')}
                 </p>
                 <button
                   onClick={() => spot.booking && onCheckIn(spot.booking)}
                   className="px-3 py-1.5 text-xs font-semibold text-white bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 rounded-lg transition-all duration-200 shadow-sm"
                   disabled={!spot.booking}
                 >
-                  Entrada
+                  {t('statusPanels.entry')}
                 </button>
               </div>
               <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">
-                Plaza {spot.spot_number} • {spot.spot_type.replace('_', ' ')}
+                {t('statusPanels.spot')} {spot.spot_number} • {spot.spot_type.replace('_', ' ')}
               </p>
               {spot.booking?.vehicle && (
                 <p className="text-xs font-mono text-gray-500 dark:text-gray-400 mt-1">
@@ -189,7 +207,7 @@ export default function StatusPanels({
           {reservedSpots.length === 0 && (
             <div className="p-8 text-center">
               <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">
-                No hay check-ins pendientes
+                {t('statusPanels.noPendingCheckIns')}
               </p>
             </div>
           )}
@@ -204,7 +222,7 @@ export default function StatusPanels({
               <FiLogOut className="w-4 h-4 text-amber-600 dark:text-amber-400" />
             </div>
             <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100">
-              Check-Outs Pendientes
+              {t('statusPanels.pendingCheckOuts')}
             </h3>
           </div>
           <span className="px-3 py-1 text-sm font-bold text-amber-700 dark:text-amber-300 bg-amber-100 dark:bg-amber-900/30 rounded-lg">
@@ -231,7 +249,7 @@ export default function StatusPanels({
               >
                 <div className="flex items-center justify-between gap-2 mb-2">
                   <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate">
-                    {spot.booking?.vehicle?.owner || 'Sin cliente'}
+                    {spot.booking?.vehicle?.owner || t('statusPanels.noClient')}
                   </p>
                   <button
                     onClick={() => spot.booking && onCheckOut(spot.booking)}
@@ -242,11 +260,11 @@ export default function StatusPanels({
                     }`}
                     disabled={!spot.booking}
                   >
-                    Salida
+                    {t('statusPanels.exit')}
                   </button>
                 </div>
                 <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">
-                  Plaza {spot.spot_number} • {spot.spot_type.replace('_', ' ')}
+                  {t('statusPanels.spot')} {spot.spot_number} • {spot.spot_type.replace('_', ' ')}
                 </p>
                 {spot.booking?.vehicle && (
                   <p className="text-xs font-mono text-gray-500 dark:text-gray-400 mt-1">
@@ -259,7 +277,7 @@ export default function StatusPanels({
           {checkoutTodaySpots.length === 0 && (
             <div className="p-8 text-center">
               <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">
-                No hay check-outs pendientes para hoy
+                {t('statusPanels.noPendingCheckOuts')}
               </p>
             </div>
           )}
@@ -274,7 +292,7 @@ export default function StatusPanels({
               <FiAlertCircle className="w-4 h-4 text-orange-600 dark:text-orange-400" />
             </div>
             <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100">
-              Reservas Retrasadas
+              {t('statusPanels.overdueBookings')}
             </h3>
           </div>
           <span className="px-3 py-1 text-sm font-bold text-orange-700 dark:text-orange-300 bg-orange-100 dark:bg-orange-900/30 rounded-lg">
@@ -289,11 +307,11 @@ export default function StatusPanels({
             >
               <div className="flex items-center justify-between gap-2 mb-2">
                 <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate">
-                  {booking.vehicle?.owner || 'Sin datos de cliente'}
+                  {booking.vehicle?.owner || t('statusPanels.noClient')}
                 </p>
                 <div className="text-right">
                   <p className="text-sm font-bold text-orange-700 dark:text-orange-300 bg-orange-100 dark:bg-orange-900/30 px-2 py-0.5 rounded">
-                    {booking.horas_retraso}h
+                    {t('statusPanels.delayHours', { hours: booking.horas_retraso })}
                   </p>
                 </div>
               </div>
@@ -304,13 +322,13 @@ export default function StatusPanels({
                 <p className="text-xs font-mono text-gray-500 dark:text-gray-400 truncate">
                   {booking.vehicle
                     ? `${booking.vehicle.plate} • ${booking.vehicle.model}`
-                    : 'Sin datos de vehículo'}
+                    : t('statusPanels.noClient')}
                 </p>
                 <button
                   onClick={() => onOverdueClick(booking)}
                   className="px-3 py-1.5 text-xs font-semibold text-white bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 rounded-lg transition-all duration-200 shadow-sm"
                 >
-                  Gestionar
+                  {t('statusPanels.manage')}
                 </button>
               </div>
             </div>
@@ -318,7 +336,7 @@ export default function StatusPanels({
           {overdueBookings.length === 0 && (
             <div className="p-8 text-center">
               <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">
-                No hay reservas retrasadas
+                {t('statusPanels.noOverdueBookings')}
               </p>
             </div>
           )}

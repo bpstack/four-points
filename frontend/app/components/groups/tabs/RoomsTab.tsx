@@ -3,6 +3,7 @@
 'use client'
 
 import { useRouter, useSearchParams } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { useGroupStore } from '@/app/stores/useGroupStore'
 import { useGroupRooms } from '@/app/lib/groups'
 import { RoomCard } from '../cards/RoomCard'
@@ -14,6 +15,7 @@ export function RoomsTab() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { currentGroup } = useGroupStore()
+  const t = useTranslations('groups')
 
   const groupId = currentGroup?.id
   const { data: rooms = [], isLoading } = useGroupRooms(groupId)
@@ -33,7 +35,7 @@ export function RoomsTab() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <LoadingSpinner size="md" message="Cargando habitaciones..." />
+        <LoadingSpinner size="md" message={t('rooms.loadingRooms')} />
       </div>
     )
   }
@@ -53,12 +55,15 @@ export function RoomsTab() {
         <div>
           <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
             <FiEdit className="w-4 h-4" />
-            Habitaciones del Grupo
+            {t('rooms.groupRooms')}
           </h3>
           {roomsArray.length > 0 && (
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-              {totalRooms} {totalRooms === 1 ? 'habitación' : 'habitaciones'} · {totalGuests}{' '}
-              {totalGuests === 1 ? 'huésped' : 'huéspedes'}
+              {totalRooms}{' '}
+              {totalRooms === 1
+                ? t('rooms.totalRooms').toLowerCase()
+                : t('rooms.totalRooms').toLowerCase()}{' '}
+              · {totalGuests} {totalGuests === 1 ? t('cards.guest') : t('cards.guests')}
             </p>
           )}
         </div>
@@ -67,7 +72,7 @@ export function RoomsTab() {
           className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-green-600 dark:bg-green-700 text-white text-xs font-medium rounded-md hover:bg-green-700 dark:hover:bg-green-800 transition-colors"
         >
           <FiPlus className="w-3.5 h-3.5" />
-          Nueva Habitación
+          {t('rooms.newRoom')}
         </button>
       </div>
 
@@ -75,15 +80,15 @@ export function RoomsTab() {
       {roomsArray.length === 0 ? (
         <EmptyState
           icon={<FiEdit className="w-12 h-12" />}
-          title="No hay habitaciones registradas"
-          description="Añade las habitaciones que necesita este grupo"
+          title={t('rooms.noRooms')}
+          description={t('rooms.addFirstRoom')}
           action={
             <button
               onClick={handleCreateRoom}
               className="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors"
             >
               <FiPlus className="w-4 h-4" />
-              Crear Primera Habitación
+              {t('rooms.createFirst')}
             </button>
           }
         />
@@ -104,14 +109,14 @@ export function RoomsTab() {
                 <FiUsers className="w-5 h-5 text-white" />
               </div>
               <div>
-                <p className="text-xs text-gray-600 dark:text-gray-400">Capacidad Total</p>
+                <p className="text-xs text-gray-600 dark:text-gray-400">{t('rooms.totalGuests')}</p>
                 <p className="text-lg font-bold text-gray-900 dark:text-gray-100">
-                  {totalGuests} {totalGuests === 1 ? 'huésped' : 'huéspedes'}
+                  {totalGuests} {totalGuests === 1 ? t('cards.guest') : t('cards.guests')}
                 </p>
               </div>
             </div>
             <div className="text-right">
-              <p className="text-xs text-gray-600 dark:text-gray-400">Habitaciones</p>
+              <p className="text-xs text-gray-600 dark:text-gray-400">{t('rooms.totalRooms')}</p>
               <p className="text-lg font-bold text-gray-900 dark:text-gray-100">{totalRooms}</p>
             </div>
           </div>
@@ -120,10 +125,7 @@ export function RoomsTab() {
 
       {/* Info Box */}
       <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-        <p className="text-xs text-blue-800 dark:text-blue-300">
-          💡 <strong>Tipos de habitación:</strong> Puedes tener un registro de cada tipo
-          (Individual, Doble 1 cama, Doble 2 camas).
-        </p>
+        <p className="text-xs text-blue-800 dark:text-blue-300">{t('rooms.infoTip')}</p>
       </div>
     </div>
   )

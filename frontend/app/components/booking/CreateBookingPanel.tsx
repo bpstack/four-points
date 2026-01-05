@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react'
 import { FiSave, FiCalendar } from 'react-icons/fi'
 import { FaSpinner } from 'react-icons/fa'
 import toast from 'react-hot-toast'
+import { useTranslations } from 'next-intl'
 import { parkingApi } from '@/app/lib/parking'
 import type { ParkingSpotDisplay, ParkingVehicle } from '@/app/lib/parking/types'
 import SimpleCalendarCompact from '@/app/ui/calendar/SimpleCalendarCompact'
@@ -46,6 +47,8 @@ export function CreateBookingPanel({
   preSelectedSpot,
   selectedDate,
 }: CreateBookingPanelProps) {
+  const t = useTranslations('booking')
+
   // Form state
   const [plateNumber, setPlateNumber] = useState('')
   const [ownerName, setOwnerName] = useState('')
@@ -146,7 +149,7 @@ export function CreateBookingPanel({
     setVehicleId(vehicle.id)
     setShowVehicleSearch(false)
     setVehicleSearchResults([])
-    toast.success(`Vehículo ${vehicle.plate_number} seleccionado`)
+    toast.success(t('toast.vehicleSelected', { plate: vehicle.plate_number }))
   }
 
   // Format date for display
@@ -175,17 +178,17 @@ export function CreateBookingPanel({
 
     // Validation
     if (!plateNumber || !ownerName) {
-      setError('Matrícula y propietario son obligatorios')
+      setError(t('errors.plateOwnerRequired'))
       return
     }
 
     if (!preSelectedSpot) {
-      setError('No hay plaza seleccionada')
+      setError(t('errors.noSpotSelected'))
       return
     }
 
     if (!checkinDate || !checkoutDate) {
-      setError('Las fechas de entrada y salida son obligatorias')
+      setError(t('errors.datesRequired'))
       return
     }
 
@@ -193,7 +196,7 @@ export function CreateBookingPanel({
     const checkout = new Date(`${checkoutDate}T${checkoutTime}`)
 
     if (checkout <= checkin) {
-      setError('La fecha de salida debe ser posterior a la entrada')
+      setError(t('errors.checkoutBeforeCheckin'))
       return
     }
 
@@ -209,7 +212,7 @@ export function CreateBookingPanel({
           model: vehicleModel || undefined,
         })
         finalVehicleId = vehicleResult.id
-        toast.success('Vehículo creado')
+        toast.success(t('toast.vehicleCreated'))
       }
 
       // Create booking
@@ -225,11 +228,11 @@ export function CreateBookingPanel({
       }
 
       await parkingApi.createBooking(payload)
-      toast.success('¡Reserva creada correctamente!')
+      toast.success(t('toast.bookingCreated'))
       onSuccess?.()
       onClose()
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Error al crear la reserva'
+      const message = err instanceof Error ? err.message : t('errors.createError')
       setError(message)
       toast.error(message)
     } finally {
@@ -245,15 +248,15 @@ export function CreateBookingPanel({
     <SlidePanel
       isOpen={isOpen}
       onClose={onClose}
-      title="Nueva Reserva"
-      subtitle={spotLabel || 'Completa los datos de la reserva'}
+      title={t('wizard.title')}
+      subtitle={spotLabel || t('wizard.subtitle')}
       size="lg"
       footer={
         <SlidePanelFooterButtons
           onCancel={onClose}
           onSubmit={handleSubmit}
           isSubmitting={isSubmitting}
-          submitText="Crear Reserva"
+          submitText={t('actions.createBooking')}
           submitIcon={<FiSave className="w-4 h-4" />}
           submitVariant="success"
         />
@@ -267,11 +270,11 @@ export function CreateBookingPanel({
 
       <SlidePanelSection>
         {/* Vehicle Search */}
-        <FormField label="Buscar Vehículo Existente">
+        <FormField label={t('vehicle.searchLabel')}>
           <div className="relative">
             <input
               type="text"
-              placeholder="Buscar por matrícula o propietario..."
+              placeholder={t('vehicle.searchPlaceholder')}
               onChange={(e) => handleSearchVehicles(e.target.value)}
               className={inputClassName}
             />
@@ -310,14 +313,14 @@ export function CreateBookingPanel({
           </div>
           <div className="relative flex justify-center text-xs">
             <span className="bg-white dark:bg-[#151b23] px-2 text-gray-500 dark:text-gray-400">
-              o introduce los datos
+              {t('details.orEnterData')}
             </span>
           </div>
         </div>
 
         {/* Vehicle Data */}
         <div className="grid grid-cols-2 gap-3">
-          <FormField label="Matrícula" required>
+          <FormField label={t('vehicle.plateNumber')} required>
             <input
               type="text"
               value={plateNumber}
@@ -325,12 +328,12 @@ export function CreateBookingPanel({
                 setPlateNumber(e.target.value.toUpperCase())
                 setVehicleId(null) // Reset vehicle ID when manually editing
               }}
-              placeholder="1234ABC"
+              placeholder={t('vehicle.platePlaceholder')}
               className={inputClassName}
             />
           </FormField>
 
-          <FormField label="Propietario" required>
+          <FormField label={t('vehicle.owner')} required>
             <input
               type="text"
               value={ownerName}
@@ -338,18 +341,18 @@ export function CreateBookingPanel({
                 setOwnerName(e.target.value)
                 setVehicleId(null)
               }}
-              placeholder="Nombre del propietario"
+              placeholder={t('vehicle.ownerPlaceholder')}
               className={inputClassName}
             />
           </FormField>
         </div>
 
-        <FormField label="Modelo del Vehículo" hint="Opcional">
+        <FormField label={t('vehicle.modelOptional')}>
           <input
             type="text"
             value={vehicleModel}
             onChange={(e) => setVehicleModel(e.target.value)}
-            placeholder="BMW X5, Tesla Model 3..."
+            placeholder={t('vehicle.modelPlaceholder')}
             className={inputClassName}
           />
         </FormField>
@@ -358,7 +361,7 @@ export function CreateBookingPanel({
         <div className="grid grid-cols-2 gap-3">
           {/* Check-in Date */}
           <div className="relative calendar-container">
-            <FormField label="Fecha de Entrada" required>
+            <FormField label={t('dates.checkinDate')} required>
               <div className="relative">
                 <input
                   type="text"
@@ -394,7 +397,7 @@ export function CreateBookingPanel({
 
           {/* Check-out Date */}
           <div className="relative calendar-container">
-            <FormField label="Fecha de Salida" required>
+            <FormField label={t('dates.checkoutDate')} required>
               <div className="relative">
                 <input
                   type="text"
@@ -431,11 +434,11 @@ export function CreateBookingPanel({
 
         {/* Time Pickers */}
         <div className="grid grid-cols-2 gap-3">
-          <FormField label="Hora de Entrada">
+          <FormField label={t('dates.checkinTime')}>
             <TimePicker value={checkinTime} onChange={setCheckinTime} openTo="right" />
           </FormField>
 
-          <FormField label="Hora de Salida">
+          <FormField label={t('dates.checkoutTime')}>
             <TimePicker value={checkoutTime} onChange={setCheckoutTime} openTo="left" />
           </FormField>
         </div>
@@ -443,13 +446,14 @@ export function CreateBookingPanel({
         {/* Duration Info */}
         {calculateDays() > 0 && (
           <Alert variant="info">
-            Duración de la estancia: <strong>{calculateDays()} día(s)</strong>
+            {t('dates.duration')}{' '}
+            <strong>{t('dates.durationDays', { count: calculateDays() })}</strong>
           </Alert>
         )}
 
         {/* Amount and Source */}
         <div className="grid grid-cols-2 gap-3">
-          <FormField label="Importe Total (€)" hint="Opcional, se calcula automáticamente">
+          <FormField label={t('details.totalAmount')} hint={t('details.totalAmountHint')}>
             <input
               type="number"
               min="0"
@@ -461,30 +465,30 @@ export function CreateBookingPanel({
             />
           </FormField>
 
-          <FormField label="Origen de Reserva">
+          <FormField label={t('details.bookingSource')}>
             <select
               value={bookingSource}
               onChange={(e) => setBookingSource(e.target.value)}
               className={selectClassName}
             >
-              <option value="direct">Directo</option>
-              <option value="booking_com">Booking.com</option>
-              <option value="airbnb">Airbnb</option>
-              <option value="expedia">Expedia</option>
-              <option value="phone">Teléfono</option>
-              <option value="email">Email</option>
-              <option value="walkin">Walk-in</option>
+              <option value="direct">{t('sources.direct')}</option>
+              <option value="booking_com">{t('sources.booking_com')}</option>
+              <option value="airbnb">{t('sources.airbnb')}</option>
+              <option value="expedia">{t('sources.expedia')}</option>
+              <option value="phone">{t('sources.phone')}</option>
+              <option value="email">{t('sources.email')}</option>
+              <option value="walkin">{t('sources.walkin')}</option>
             </select>
           </FormField>
         </div>
 
         {/* Notes */}
-        <FormField label="Notas">
+        <FormField label={t('details.notes')}>
           <textarea
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             rows={3}
-            placeholder="Notas adicionales sobre la reserva..."
+            placeholder={t('details.notesAltPlaceholder')}
             className={textareaClassName}
           />
         </FormField>

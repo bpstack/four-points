@@ -12,6 +12,7 @@ import {
   selectClassName,
   textareaClassName,
 } from '@/app/ui/panels'
+import { useTranslations } from 'next-intl'
 
 type ImportanceLevel = 'baja' | 'media' | 'alta' | 'urgente'
 
@@ -25,7 +26,7 @@ export default function NewCommentEntry({
   isOpen,
   onClose,
   onSubmit,
-  title = 'Add Comment',
+  title,
   initialComment = '',
   initialPriority = 'baja',
   initialDepartment,
@@ -44,6 +45,7 @@ export default function NewCommentEntry({
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const { departments } = useDepartments()
+  const t = useTranslations('logbooks')
 
   useEffect(() => {
     if (isOpen) {
@@ -76,8 +78,8 @@ export default function NewCommentEntry({
     <SlidePanel
       isOpen={isOpen}
       onClose={onClose}
-      title={title}
-      subtitle="Add a comment to this entry"
+      title={title || t('modals.newComment.title')}
+      subtitle={t('modals.newComment.subtitle')}
       size="xl"
       position="left"
       headerIcon={<FiMessageSquare className="w-5 h-5 text-blue-600 dark:text-blue-400" />}
@@ -85,8 +87,8 @@ export default function NewCommentEntry({
         <SlidePanelFooterButtons
           onCancel={onClose}
           onSubmit={handleSave}
-          cancelText="Cancel"
-          submitText="Add Comment"
+          cancelText={t('modals.newComment.footer.cancel')}
+          submitText={t('modals.newComment.footer.submit')}
           submitIcon={<FiSend className="w-4 h-4" />}
           isSubmitting={isSubmitting}
           submitDisabled={!comment.trim() || department === null}
@@ -101,13 +103,13 @@ export default function NewCommentEntry({
         }}
         className="space-y-5"
       >
-        <FormField label="Comment" required>
+        <FormField label={t('modals.newComment.fields.comment')} required>
           <textarea
             value={comment}
             onChange={(e) => setComment(e.target.value)}
             className={textareaClassName}
             rows={4}
-            placeholder="Add your comment..."
+            placeholder={t('modals.newComment.placeholders.comment')}
             required
             minLength={3}
             disabled={isSubmitting}
@@ -115,28 +117,28 @@ export default function NewCommentEntry({
         </FormField>
 
         <div className="grid grid-cols-2 gap-4">
-          <FormField label="Priority">
+          <FormField label={t('modals.newComment.fields.priority')}>
             <select
               value={priority}
               onChange={(e) => setPriority(e.target.value as ImportanceLevel)}
               className={selectClassName}
               disabled={isSubmitting}
             >
-              <option value="baja">Low</option>
-              <option value="media">Medium</option>
-              <option value="alta">High</option>
-              <option value="urgente">Critical</option>
+              <option value="baja">{t('priorities.low')}</option>
+              <option value="media">{t('priorities.medium')}</option>
+              <option value="alta">{t('priorities.high')}</option>
+              <option value="urgente">{t('priorities.critical')}</option>
             </select>
           </FormField>
 
-          <FormField label="Department">
+          <FormField label={t('modals.newComment.fields.department')}>
             <select
               value={department ?? ''}
               onChange={(e) => setDepartment(e.target.value ? Number(e.target.value) : null)}
               className={selectClassName}
               disabled={isSubmitting}
             >
-              <option value="">Elegir departamento...</option>
+              <option value="">{t('modals.newComment.departmentPlaceholder')}</option>
               {departments.length > 0 ? (
                 departments.map((dept) => (
                   <option key={dept.id} value={dept.id}>
@@ -145,9 +147,9 @@ export default function NewCommentEntry({
                 ))
               ) : (
                 <>
-                  <option value={1}>Recepcion</option>
-                  <option value={2}>Housekeeping</option>
-                  <option value={3}>Mantenimiento</option>
+                  <option value={1}>{t('departments.reception')}</option>
+                  <option value={2}>{t('departments.housekeeping')}</option>
+                  <option value={3}>{t('departments.maintenance')}</option>
                 </>
               )}
             </select>

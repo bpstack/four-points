@@ -2,6 +2,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { FiX, FiDollarSign, FiLoader } from 'react-icons/fi'
 import { useAuth } from '@/app/lib/auth/useAuth'
 import { useInitializeDay } from '@/app/lib/cashier/queries'
@@ -18,6 +19,7 @@ export default function InitializeDayModal({
   onClose,
   selectedDate,
 }: InitializeDayModalProps) {
+  const t = useTranslations('cashier')
   const { user } = useAuth()
   const [initialFund, setInitialFund] = useState('200')
 
@@ -27,7 +29,7 @@ export default function InitializeDayModal({
     e.preventDefault()
 
     if (!user?.id) {
-      toast.error('Usuario no autenticado')
+      toast.error(t('error.userNotAuthenticated'))
       return
     }
 
@@ -41,11 +43,11 @@ export default function InitializeDayModal({
         },
       })
 
-      toast.success('Día inicializado correctamente')
+      toast.success(t('initializeDay.dayInitialized'))
       onClose()
     } catch (error) {
       console.error('Error inicializando día:', error)
-      const errorMessage = error instanceof Error ? error.message : 'Error al inicializar el día'
+      const errorMessage = error instanceof Error ? error.message : t('error.initializeDayError')
       toast.error(errorMessage)
     }
   }
@@ -59,7 +61,9 @@ export default function InitializeDayModal({
         <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-800">
           <div className="flex items-center gap-2">
             <FiDollarSign className="w-5 h-5 text-blue-600" />
-            <h3 className="text-xl font-semibold text-gray-900 dark:text-white">Inicializar Día</h3>
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+              {t('initializeDay.title')}
+            </h3>
           </div>
           <button
             onClick={onClose}
@@ -75,19 +79,19 @@ export default function InitializeDayModal({
           <div className="p-6 space-y-4">
             <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
               <p className="text-sm text-blue-800 dark:text-blue-300">
-                Se crearán automáticamente los 4 turnos del día:
+                {t('initializeDay.shiftsWillBeCreated')}
               </p>
               <ul className="mt-2 space-y-1 text-xs text-blue-700 dark:text-blue-400">
-                <li>🌙 Turno Noche</li>
-                <li>☀️ Turno Mañana</li>
-                <li>🌅 Turno Tarde</li>
-                <li>🔒 Turno Cierre</li>
+                <li>🌙 {t('shifts.nightFull')}</li>
+                <li>☀️ {t('shifts.morningFull')}</li>
+                <li>🌅 {t('shifts.afternoonFull')}</li>
+                <li>🔒 {t('shifts.closingFull')}</li>
               </ul>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Fecha
+                {t('initializeDay.date')}
               </label>
               <input
                 type="text"
@@ -99,7 +103,7 @@ export default function InitializeDayModal({
 
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Fondo Inicial (€)
+                {t('initializeDay.initialFund')} (€)
               </label>
               <input
                 type="number"
@@ -111,13 +115,13 @@ export default function InitializeDayModal({
                 disabled={initializeMutation.isPending}
               />
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                Cantidad de efectivo inicial en caja (por defecto 200€)
+                {t('initializeDay.initialFundHint')}
               </p>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Responsable
+                {t('initializeDay.responsible')}
               </label>
               <input
                 type="text"
@@ -136,7 +140,7 @@ export default function InitializeDayModal({
               className="px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
               disabled={initializeMutation.isPending}
             >
-              Cancelar
+              {t('initializeDay.cancel')}
             </button>
             <button
               type="submit"
@@ -146,12 +150,12 @@ export default function InitializeDayModal({
               {initializeMutation.isPending ? (
                 <>
                   <FiLoader className="w-4 h-4 animate-spin" />
-                  Inicializando...
+                  {t('initializeDay.initializing')}
                 </>
               ) : (
                 <>
                   <FiDollarSign className="w-4 h-4" />
-                  Inicializar Día
+                  {t('initializeDay.initialize')}
                 </>
               )}
             </button>

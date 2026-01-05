@@ -3,6 +3,7 @@
 'use client'
 
 import { useRouter, useSearchParams } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { FiFileText, FiClock } from 'react-icons/fi'
 
 interface TabNavigationProps {
@@ -11,6 +12,7 @@ interface TabNavigationProps {
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function TabNavigation(_props: TabNavigationProps) {
+  const t = useTranslations('maintenance')
   const router = useRouter()
   const searchParams = useSearchParams()
   const activeTab = searchParams.get('tab') || 'detail'
@@ -22,8 +24,8 @@ export function TabNavigation(_props: TabNavigationProps) {
   }
 
   const tabs = [
-    { id: 'detail', label: 'Detalle', icon: <FiFileText className="w-4 h-4" /> },
-    { id: 'history', label: 'Historial', icon: <FiClock className="w-4 h-4" /> },
+    { id: 'detail', label: t('tabs.detail'), icon: <FiFileText className="w-4 h-4" /> },
+    { id: 'history', label: t('tabs.history'), icon: <FiClock className="w-4 h-4" /> },
   ]
 
   return (

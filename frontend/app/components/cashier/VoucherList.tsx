@@ -2,6 +2,7 @@
 'use client'
 
 import { FiCheckCircle, FiXCircle, FiClock } from 'react-icons/fi'
+import { useTranslations } from 'next-intl'
 import type { CashierVoucher } from '@/app/lib/cashier/types'
 
 interface VoucherListProps {
@@ -17,10 +18,12 @@ export default function VoucherList({
   onJustify,
   onCancel,
 }: VoucherListProps) {
+  const t = useTranslations('cashier')
+
   if (vouchers.length === 0) {
     return (
       <div className="text-center py-4 text-gray-400 dark:text-gray-500 text-xs">
-        <p>Sin vales</p>
+        <p>{t('voucher.noVouchers')}</p>
       </div>
     )
   }
@@ -29,17 +32,17 @@ export default function VoucherList({
     const badges = {
       pending: {
         icon: FiClock,
-        text: 'Pendiente',
+        text: t('voucher.pending'),
         class: 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400',
       },
       justified: {
         icon: FiCheckCircle,
-        text: 'OK',
+        text: t('voucher.justified'),
         class: 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400',
       },
       cancelled: {
         icon: FiXCircle,
-        text: 'Cancel',
+        text: t('voucher.cancelled'),
         class: 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400',
       },
     }
@@ -96,7 +99,7 @@ export default function VoucherList({
                   onClick={() => onJustify(voucher.id)}
                   className="px-2 py-1 text-[10px] font-medium text-green-700 dark:text-green-400 bg-green-100 dark:bg-green-900/30 hover:bg-green-200 dark:hover:bg-green-900/50 rounded"
                 >
-                  Justificar
+                  {t('voucher.justify')}
                 </button>
               )}
               {onCancel && (
@@ -104,7 +107,7 @@ export default function VoucherList({
                   onClick={() => onCancel(voucher.id)}
                   className="px-2 py-1 text-[10px] font-medium text-red-700 dark:text-red-400 bg-red-100 dark:bg-red-900/30 hover:bg-red-200 dark:hover:bg-red-900/50 rounded"
                 >
-                  Cancelar
+                  {t('voucher.cancel')}
                 </button>
               )}
             </div>
@@ -113,7 +116,7 @@ export default function VoucherList({
       ))}
       <div className="flex items-center justify-between p-2 bg-orange-50 dark:bg-orange-900/20 rounded-lg border border-orange-200 dark:border-orange-800">
         <span className="text-xs font-semibold text-orange-700 dark:text-orange-300">
-          Total ({vouchers.length})
+          {t('voucher.total')} ({vouchers.length})
         </span>
         <span className="text-base font-bold text-orange-600 dark:text-orange-400">
           {vouchers.reduce((sum, v) => sum + parseFloat(v.amount), 0).toFixed(2)}€

@@ -7,6 +7,7 @@ import { createPortal } from 'react-dom'
 import Link from 'next/link'
 import { FiSearch, FiX, FiClock, FiCalendar } from 'react-icons/fi'
 import { FaCar } from 'react-icons/fa'
+import { useTranslations } from 'next-intl'
 import { parkingApi } from '@/app/lib/parking'
 import type { ParkingVehicle, ParkingBooking } from '@/app/lib/parking/types'
 
@@ -20,6 +21,7 @@ interface VehicleWithBookings extends ParkingVehicle {
 }
 
 export function VehicleSearchModal({ isOpen, onClose }: VehicleSearchModalProps) {
+  const t = useTranslations('parking')
   const [searchTerm, setSearchTerm] = useState('')
   const [results, setResults] = useState<ParkingVehicle[]>([])
   const [selectedVehicle, setSelectedVehicle] = useState<VehicleWithBookings | null>(null)
@@ -119,32 +121,25 @@ export function VehicleSearchModal({ isOpen, onClose }: VehicleSearchModalProps)
   }
 
   const getStatusBadge = (status: string) => {
-    const statusConfig: Record<string, { label: string; color: string }> = {
-      reserved: {
-        label: 'Reservado',
-        color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
-      },
-      checked_in: {
-        label: 'Ocupado',
-        color: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
-      },
-      completed: {
-        label: 'Completado',
-        color: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
-      },
-      canceled: {
-        label: 'Cancelado',
-        color: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400',
-      },
-      no_show: {
-        label: 'No presentado',
-        color: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400',
-      },
+    const STATUS_TRANSLATION_KEYS: Record<string, string> = {
+      reserved: 'status.reserved',
+      checked_in: 'status.checkedIn',
+      completed: 'status.completed',
+      canceled: 'status.canceled',
+      no_show: 'status.noShow',
     }
-    const config = statusConfig[status] || statusConfig.reserved
+    const statusColors: Record<string, string> = {
+      reserved: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
+      checked_in: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
+      completed: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
+      canceled: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400',
+      no_show: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400',
+    }
+    const translationKey = STATUS_TRANSLATION_KEYS[status] || STATUS_TRANSLATION_KEYS.reserved
+    const color = statusColors[status] || statusColors.reserved
     return (
-      <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${config.color}`}>
-        {config.label}
+      <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${color}`}>
+        {t(translationKey)}
       </span>
     )
   }
@@ -194,7 +189,7 @@ export function VehicleSearchModal({ isOpen, onClose }: VehicleSearchModalProps)
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Buscar por matrícula o propietario..."
+                placeholder={t('vehicleSearch.placeholder')}
                 className="flex-1 bg-transparent text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 outline-none"
               />
               {searchTerm && (
@@ -225,7 +220,7 @@ export function VehicleSearchModal({ isOpen, onClose }: VehicleSearchModalProps)
                 <div className="grid grid-cols-2 gap-3 text-sm">
                   <div>
                     <span className="text-[10px] font-semibold text-gray-500 dark:text-gray-400 uppercase">
-                      Matrícula
+                      {t('vehicleSearch.plateNumber')}
                     </span>
                     <p className="font-bold text-gray-900 dark:text-gray-100">
                       {selectedVehicle.plate_number}
@@ -233,7 +228,7 @@ export function VehicleSearchModal({ isOpen, onClose }: VehicleSearchModalProps)
                   </div>
                   <div>
                     <span className="text-[10px] font-semibold text-gray-500 dark:text-gray-400 uppercase">
-                      Propietario
+                      {t('vehicleSearch.owner')}
                     </span>
                     <p className="font-medium text-gray-900 dark:text-gray-100">
                       {selectedVehicle.owner_name}
@@ -242,7 +237,7 @@ export function VehicleSearchModal({ isOpen, onClose }: VehicleSearchModalProps)
                   {selectedVehicle.model && (
                     <div>
                       <span className="text-[10px] font-semibold text-gray-500 dark:text-gray-400 uppercase">
-                        Modelo
+                        {t('vehicleSearch.model')}
                       </span>
                       <p className="text-gray-700 dark:text-gray-300">{selectedVehicle.model}</p>
                     </div>
@@ -250,7 +245,7 @@ export function VehicleSearchModal({ isOpen, onClose }: VehicleSearchModalProps)
                   {selectedVehicle.created_at && (
                     <div>
                       <span className="text-[10px] font-semibold text-gray-500 dark:text-gray-400 uppercase">
-                        Registrado
+                        {t('vehicleSearch.registered')}
                       </span>
                       <p className="text-gray-700 dark:text-gray-300">
                         {formatDate(selectedVehicle.created_at)}
@@ -264,19 +259,19 @@ export function VehicleSearchModal({ isOpen, onClose }: VehicleSearchModalProps)
               <div>
                 <h4 className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase mb-2 flex items-center gap-2">
                   <FiCalendar className="w-3.5 h-3.5" />
-                  Historial de Reservas ({vehicleBookings.length})
+                  {t('vehicleSearch.bookingHistory')} ({vehicleBookings.length})
                 </h4>
 
                 {loadingBookings ? (
                   <div className="py-8 text-center">
                     <div className="inline-block h-6 w-6 animate-spin rounded-full border-2 border-purple-500 border-r-transparent" />
                     <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-                      Cargando historial...
+                      {t('vehicleSearch.loadingHistory')}
                     </p>
                   </div>
                 ) : vehicleBookings.length === 0 ? (
                   <div className="py-8 text-center text-sm text-gray-500 dark:text-gray-400">
-                    No hay reservas registradas para este vehículo
+                    {t('vehicleSearch.noBookings')}
                   </div>
                 ) : (
                   <div className="space-y-2">
@@ -302,7 +297,7 @@ export function VehicleSearchModal({ isOpen, onClose }: VehicleSearchModalProps)
                             </span>
                           </div>
                           <div>
-                            Plaza {booking.spot.level}-{booking.spot.number}
+                            {t('vehicleSearch.spot')} {booking.spot.level}-{booking.spot.number}
                           </div>
                         </div>
                       </Link>
@@ -317,26 +312,28 @@ export function VehicleSearchModal({ isOpen, onClose }: VehicleSearchModalProps)
               {loading ? (
                 <div className="py-12 text-center">
                   <div className="inline-block h-6 w-6 animate-spin rounded-full border-2 border-purple-500 border-r-transparent" />
-                  <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">Buscando...</p>
+                  <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                    {t('vehicleSearch.searching')}
+                  </p>
                 </div>
               ) : searchTerm.length < 2 ? (
                 <div className="py-12 text-center">
                   <FaCar className="w-10 h-10 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
                   <p className="text-sm text-gray-500 dark:text-gray-400">
-                    Escribe al menos 2 caracteres para buscar
+                    {t('vehicleSearch.minChars')}
                   </p>
                   <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
-                    Busca por matrícula o nombre del propietario
+                    {t('vehicleSearch.searchHint')}
                   </p>
                 </div>
               ) : results.length === 0 ? (
                 <div className="py-12 text-center">
                   <FiSearch className="w-10 h-10 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
                   <p className="text-sm text-gray-500 dark:text-gray-400">
-                    No se encontraron vehículos
+                    {t('vehicleSearch.noResults')}
                   </p>
                   <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
-                    Intenta con otro término de búsqueda
+                    {t('vehicleSearch.tryAnother')}
                   </p>
                 </div>
               ) : (
@@ -378,9 +375,9 @@ export function VehicleSearchModal({ isOpen, onClose }: VehicleSearchModalProps)
         {!selectedVehicle && (
           <div className="px-4 py-2 border-t border-gray-100 dark:border-[#21262d] bg-gray-50 dark:bg-[#0d1117]">
             <p className="text-[10px] text-gray-400 dark:text-gray-500 text-center">
-              Presiona{' '}
+              {t('vehicleSearch.pressEsc')}{' '}
               <kbd className="px-1 py-0.5 bg-gray-200 dark:bg-gray-700 rounded text-[9px]">ESC</kbd>{' '}
-              para cerrar
+              {t('vehicleSearch.toClose')}
             </p>
           </div>
         )}

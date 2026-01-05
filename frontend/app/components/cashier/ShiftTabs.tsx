@@ -1,6 +1,7 @@
 // app/components/cashier/ShiftTabs.tsx
 'use client'
 
+import { useTranslations } from 'next-intl'
 import type { CashierShift, ShiftType } from '@/app/lib/cashier/types'
 
 interface ShiftTabsProps {
@@ -9,16 +10,18 @@ interface ShiftTabsProps {
   onTabChange: (tab: ShiftType) => void
 }
 
-const SHIFT_LABELS: Record<ShiftType, string> = {
-  night: '🌙 Noche',
-  morning: '☀️ Mañana',
-  afternoon: '🌅 Tarde',
-  closing: '🔒 Cierre',
+const SHIFT_ICONS: Record<ShiftType, string> = {
+  night: '🌙',
+  morning: '☀️',
+  afternoon: '🌅',
+  closing: '🔒',
 }
 
 const SHIFT_ORDER: ShiftType[] = ['night', 'morning', 'afternoon', 'closing']
 
 export default function ShiftTabs({ shifts, activeTab, onTabChange }: ShiftTabsProps) {
+  const t = useTranslations('cashier')
+
   return (
     <div className="flex border-b border-gray-200 dark:border-gray-800">
       {SHIFT_ORDER.map((shift) => {
@@ -37,14 +40,19 @@ export default function ShiftTabs({ shifts, activeTab, onTabChange }: ShiftTabsP
             }`}
           >
             <div className="flex items-center justify-center gap-1.5">
-              <span>{SHIFT_LABELS[shift]}</span>
+              <span>
+                {SHIFT_ICONS[shift]} {t(`shifts.${shift}`)}
+              </span>
               {isClosed && (
-                <span className="w-1.5 h-1.5 bg-green-500 rounded-full" title="Cerrado" />
+                <span
+                  className="w-1.5 h-1.5 bg-green-500 rounded-full"
+                  title={t('summary.closed')}
+                />
               )}
               {isOpen && (
                 <span
                   className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse"
-                  title="Abierto"
+                  title={t('summary.open')}
                 />
               )}
             </div>

@@ -2,6 +2,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useTranslations } from 'next-intl'
 import { FiSave, FiX } from 'react-icons/fi'
 import { useUpdatePayments } from '@/app/lib/cashier/queries'
 import { toast } from 'react-hot-toast'
@@ -18,22 +19,23 @@ interface PaymentFormProps {
   onCancel: () => void
 }
 
-const PAYMENT_METHODS = [
-  { id: 1, name: 'Tarjeta', icon: '💳', color: 'blue' },
-  { id: 2, name: 'BACS', icon: '🏦', color: 'green' },
-  { id: 3, name: 'Web Pay', icon: '🌐', color: 'purple' },
-  { id: 4, name: 'Transfer', icon: '💸', color: 'orange' },
-  { id: 5, name: 'Otros', icon: '📝', color: 'gray' },
-]
-
 export default function PaymentForm({
   shiftId,
   initialPayments = [],
   onSave,
   onCancel,
 }: PaymentFormProps) {
+  const t = useTranslations('cashier')
   const [payments, setPayments] = useState<Record<number, string>>({})
   const updatePaymentsMutation = useUpdatePayments()
+
+  const PAYMENT_METHODS = [
+    { id: 1, name: t('payment.card'), icon: '💳', color: 'blue' },
+    { id: 2, name: t('payment.bacs'), icon: '🏦', color: 'green' },
+    { id: 3, name: t('payment.webPay'), icon: '🌐', color: 'purple' },
+    { id: 4, name: t('payment.transfer'), icon: '💸', color: 'orange' },
+    { id: 5, name: t('payment.others'), icon: '📝', color: 'gray' },
+  ]
 
   useEffect(() => {
     const initialValues: Record<number, string> = {}
@@ -42,6 +44,7 @@ export default function PaymentForm({
       initialValues[method.id] = existing ? parseFloat(existing.amount).toFixed(2) : '0.00'
     })
     setPayments(initialValues)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialPayments])
 
   const totalPayments = Object.values(payments).reduce(
@@ -66,10 +69,10 @@ export default function PaymentForm({
       })).filter((p) => p.amount > 0)
 
       await updatePaymentsMutation.mutateAsync({ shiftId, payments: paymentsToSend })
-      toast.success('Pagos guardados')
+      toast.success(t('payment.paymentsSaved'))
       setTimeout(() => onSave(), 100)
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Error al guardar'
+      const errorMessage = error instanceof Error ? error.message : t('error.saveError')
       toast.error(errorMessage)
     }
   }
@@ -82,13 +85,17 @@ export default function PaymentForm({
       <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-2.5">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-[10px] text-gray-600 dark:text-gray-400 mb-0.5">Total Pagos</p>
+            <p className="text-[10px] text-gray-600 dark:text-gray-400 mb-0.5">
+              {t('payment.totalPayments')}
+            </p>
             <p className="text-xl font-bold text-blue-600 dark:text-blue-400">
               {totalPayments.toFixed(2)}€
             </p>
           </div>
           <div className="text-right">
-            <p className="text-[9px] text-gray-500 dark:text-gray-400 mb-0.5">Completados</p>
+            <p className="text-[9px] text-gray-500 dark:text-gray-400 mb-0.5">
+              {t('payment.completed')}
+            </p>
             <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">
               {completedCount}/{PAYMENT_METHODS.length}
             </p>
@@ -96,8 +103,8 @@ export default function PaymentForm({
         </div>
       </div>
 
-      {/* Grid compacto */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+      {/* Grid compacto - una columna para evitar overflow en contenedores pequeños */}
+      <div className="grid grid-cols-1 gap-2">
         {PAYMENT_METHODS.map((method) => {
           const amount = parseFloat(payments[method.id] || '0')
           const hasValue = amount > 0
@@ -110,16 +117,14 @@ export default function PaymentForm({
                   : 'border-gray-200 dark:border-gray-800'
               }`}
             >
-              <div className="flex items-center gap-1.5 mb-1.5">
+              <div className="flex items-center gap-2">
                 <span className="text-lg">{method.icon}</span>
-                <div className="flex-1">
-                  <p className="text-xs font-medium text-gray-700 dark:text-gray-300">
-                    {method.name}
-                  </p>
-                  {hasValue && <p className="text-[9px] text-green-600 dark:text-green-400">✓</p>}
-                </div>
-              </div>
-              <div className="flex items-center gap-1.5">
+                <p className="text-xs font-medium text-gray-700 dark:text-gray-300 flex-1">
+                  {method.name}
+                </p>
+                {hasValue && (
+                  <span className="text-[9px] text-green-600 dark:text-green-400">✓</span>
+                )}
                 <input
                   type="text"
                   inputMode="decimal"
@@ -127,7 +132,7 @@ export default function PaymentForm({
                   onChange={(e) => handleAmountChange(method.id, e.target.value)}
                   placeholder="0.00"
                   disabled={isLoading}
-                  className="flex-1 px-2 py-1.5 text-base font-semibold text-gray-900 dark:text-white bg-gray-50 dark:bg-[#151b23] border border-gray-300 dark:border-gray-700 rounded focus:ring-1 focus:ring-blue-500 focus:border-transparent disabled:opacity-50"
+                  className="w-24 px-2 py-1.5 text-sm font-semibold text-right text-gray-900 dark:text-white bg-gray-50 dark:bg-[#151b23] border border-gray-300 dark:border-gray-700 rounded focus:ring-1 focus:ring-blue-500 focus:border-transparent disabled:opacity-50"
                 />
                 <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">€</span>
               </div>
@@ -144,7 +149,7 @@ export default function PaymentForm({
           className="px-3 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-[#0d1117] border border-gray-300 dark:border-gray-700 rounded hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50 flex items-center gap-1.5"
         >
           <FiX className="w-3 h-3" />
-          Cancelar
+          {t('common.cancel')}
         </button>
         <button
           onClick={handleSave}
@@ -154,12 +159,12 @@ export default function PaymentForm({
           {isLoading ? (
             <>
               <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              Guardando...
+              {t('common.saving')}
             </>
           ) : (
             <>
               <FiSave className="w-3 h-3" />
-              Guardar
+              {t('common.save')}
             </>
           )}
         </button>

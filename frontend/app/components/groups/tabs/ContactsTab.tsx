@@ -3,6 +3,7 @@
 'use client'
 
 import { useRouter, useSearchParams } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { useGroupStore } from '@/app/stores/useGroupStore'
 import { useGroupContacts } from '@/app/lib/groups'
 import { ContactCard } from '../cards/ContactCard'
@@ -14,6 +15,7 @@ export function ContactsTab() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { currentGroup } = useGroupStore()
+  const t = useTranslations('groups')
 
   const groupId = currentGroup?.id
   const { data: contacts = [], isLoading } = useGroupContacts(groupId)
@@ -33,7 +35,7 @@ export function ContactsTab() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <LoadingSpinner size="md" message="Cargando contactos..." />
+        <LoadingSpinner size="md" message={t('contacts.loadingContacts')} />
       </div>
     )
   }
@@ -47,14 +49,14 @@ export function ContactsTab() {
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
           <FiUsers className="w-4 h-4" />
-          Contactos del Grupo ({contacts.length})
+          {t('contacts.groupContacts')} ({contacts.length})
         </h3>
         <button
           onClick={handleCreateContact}
           className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-green-600 dark:bg-green-700 text-white text-xs font-medium rounded-md hover:bg-green-700 dark:hover:bg-green-800 transition-colors"
         >
           <FiPlus className="w-3.5 h-3.5" />
-          Nuevo Contacto
+          {t('contacts.newContact')}
         </button>
       </div>
 
@@ -62,15 +64,15 @@ export function ContactsTab() {
       {contacts.length === 0 ? (
         <EmptyState
           icon={<FiUsers className="w-12 h-12" />}
-          title="No hay contactos registrados"
-          description="Añade el primer contacto para este grupo"
+          title={t('contacts.noContacts')}
+          description={t('contacts.addFirstContact')}
           action={
             <button
               onClick={handleCreateContact}
               className="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors"
             >
               <FiPlus className="w-4 h-4" />
-              Crear Primer Contacto
+              {t('contacts.createFirst')}
             </button>
           }
         />
@@ -80,7 +82,7 @@ export function ContactsTab() {
           {primaryContact && (
             <div>
               <h4 className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Contacto Principal
+                {t('contacts.primaryContact')}
               </h4>
               <ContactCard
                 contact={primaryContact}
@@ -93,7 +95,7 @@ export function ContactsTab() {
           {otherContacts.length > 0 && (
             <div>
               <h4 className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Otros Contactos
+                {t('contacts.otherContacts')}
               </h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {otherContacts.map((contact) => (
@@ -113,8 +115,7 @@ export function ContactsTab() {
       {contacts.length > 0 && (
         <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
           <p className="text-xs text-blue-800 dark:text-blue-300">
-            💡 <strong>Contacto Principal:</strong> Este será el contacto principal para
-            comunicaciones relacionadas con el grupo.
+            {t('contacts.primaryContactTip')}
           </p>
         </div>
       )}

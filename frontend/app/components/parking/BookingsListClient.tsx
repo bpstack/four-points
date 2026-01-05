@@ -3,6 +3,7 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { useTranslations } from 'next-intl'
 import { createPortal } from 'react-dom'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
@@ -53,9 +54,11 @@ interface BookingsListClientProps {
 function QuickFilterDropdown({
   value,
   onChange,
+  t,
 }: {
   value: QuickFilter
   onChange: (value: QuickFilter) => void
+  t: ReturnType<typeof useTranslations<'parking'>>
 }) {
   const [isOpen, setIsOpen] = useState(false)
   const [position, setPosition] = useState({ top: 0, left: 0, width: 0 })
@@ -64,19 +67,19 @@ function QuickFilterDropdown({
 
   const options = [
     {
-      group: 'Llegadas',
+      group: t('quickFilters.arrivals'),
       items: [
-        { value: 'arrivals_pending', label: 'En espera (hoy)' },
-        { value: 'arrivals_inside', label: 'Dentro' },
-        { value: 'arrivals_total', label: 'Total llegadas' },
+        { value: 'arrivals_pending', label: t('quickFilters.arrivalsWaiting') },
+        { value: 'arrivals_inside', label: t('quickFilters.arrivalsInside') },
+        { value: 'arrivals_total', label: t('quickFilters.arrivalsTotal') },
       ],
     },
     {
-      group: 'Salidas',
+      group: t('quickFilters.departures'),
       items: [
-        { value: 'departures_pending', label: 'En espera (hoy)' },
-        { value: 'departures_completed', label: 'Completadas (hoy)' },
-        { value: 'departures_total', label: 'Total salidas' },
+        { value: 'departures_pending', label: t('quickFilters.departuresWaiting') },
+        { value: 'departures_completed', label: t('quickFilters.departuresCompleted') },
+        { value: 'departures_total', label: t('quickFilters.departuresTotal') },
       ],
     },
   ]
@@ -86,7 +89,7 @@ function QuickFilterDropdown({
       const found = group.items.find((item) => item.value === value)
       if (found) return found.label
     }
-    return 'Vista rápida'
+    return t('filters.quickView')
   }
 
   useEffect(() => {
@@ -141,7 +144,7 @@ function QuickFilterDropdown({
         onClick={() => handleSelect(null)}
         className="w-full px-3 py-2 text-left text-xs text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#1c2128] transition-colors"
       >
-        Vista rápida
+        {t('filters.quickView')}
       </button>
       <div className="h-px bg-gray-200 dark:bg-[#30363d]" />
 
@@ -195,6 +198,7 @@ export function BookingsListClient({
   initialTotal: _initialTotal,
   initialPagination,
 }: BookingsListClientProps) {
+  const t = useTranslations('parking')
   const router = useRouter()
   const searchParams = useSearchParams()
 
@@ -331,12 +335,13 @@ export function BookingsListClient({
           }
         }
       } catch (error) {
-        const message = error instanceof Error ? error.message : 'Error desconocido'
-        toast.error('Error al cargar reservas: ' + message)
+        const message = error instanceof Error ? error.message : ''
+        toast.error(t('messages.loadError') + (message ? ': ' + message : ''))
       } finally {
         setLoading(false)
       }
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [statusFilter, startDate, endDate, quickFilter]
   )
 
@@ -492,12 +497,12 @@ export function BookingsListClient({
         setShowUpdateModal(true)
         break
       case 'cancel':
-        if (confirm('¿Estás seguro de que deseas cancelar esta reserva?')) {
+        if (confirm(t('modals.cancelBooking.confirm'))) {
           handleCancel(booking)
         }
         break
       case 'noshow':
-        if (confirm('¿Marcar esta reserva como No presentado?')) {
+        if (confirm(t('modals.noShow.confirm'))) {
           handleNoShow(booking)
         }
         break
@@ -508,14 +513,12 @@ export function BookingsListClient({
     if (!selectedBooking) return
     try {
       await parkingApi.checkInBooking(selectedBooking.booking_code, checkInData)
-      toast.success('Check-in realizado correctamente')
+      toast.success(t('messages.checkInSuccess'))
       setShowCheckInModal(false)
       setCheckInData({ actual_checkin: '', notes: '' })
       loadBookings(currentPage)
     } catch (error) {
-      toast.error(
-        'Error al realizar check-in: ' + (error instanceof Error ? error.message : 'Error')
-      )
+      toast.error(t('messages.checkInError') + (error instanceof Error ? ': ' + error.message : ''))
     }
   }
 
@@ -526,7 +529,7 @@ export function BookingsListClient({
         ...checkOutData,
         payment_amount: parseFloat(checkOutData.payment_amount),
       })
-      toast.success('Check-out realizado correctamente')
+      toast.success(t('messages.checkOutSuccess'))
       setShowCheckOutModal(false)
       setCheckOutData({
         actual_checkout: '',
@@ -538,7 +541,7 @@ export function BookingsListClient({
       loadBookings(currentPage)
     } catch (error) {
       toast.error(
-        'Error al realizar check-out: ' + (error instanceof Error ? error.message : 'Error')
+        t('messages.checkOutError') + (error instanceof Error ? ': ' + error.message : '')
       )
     }
   }
@@ -552,34 +555,32 @@ export function BookingsListClient({
         total_amount: parseFloat(updateData.total_amount),
         notes: updateData.notes,
       })
-      toast.success('Reserva actualizada correctamente')
+      toast.success(t('messages.updateSuccess'))
       setShowUpdateModal(false)
       setUpdateData({ expected_checkin: '', expected_checkout: '', total_amount: '', notes: '' })
       loadBookings(currentPage)
     } catch (error) {
-      toast.error(
-        'Error al actualizar reserva: ' + (error instanceof Error ? error.message : 'Error')
-      )
+      toast.error(t('messages.updateError') + (error instanceof Error ? ': ' + error.message : ''))
     }
   }
 
   const handleCancel = async (booking: ParkingBooking) => {
     try {
       await parkingApi.cancelBooking(booking.booking_code)
-      toast.success('Reserva cancelada')
+      toast.success(t('modals.cancelBooking.success'))
       loadBookings(currentPage)
     } catch (error) {
-      toast.error('Error al cancelar: ' + (error instanceof Error ? error.message : 'Error'))
+      toast.error(t('messages.cancelError') + (error instanceof Error ? ': ' + error.message : ''))
     }
   }
 
   const handleNoShow = async (booking: ParkingBooking) => {
     try {
       await parkingApi.markBookingNoShow(booking.booking_code)
-      toast.success('Marcada como No presentado')
+      toast.success(t('modals.noShow.success'))
       loadBookings(currentPage)
     } catch (error) {
-      toast.error('Error: ' + (error instanceof Error ? error.message : 'Error'))
+      toast.error(error instanceof Error ? error.message : '')
     }
   }
 
@@ -603,7 +604,7 @@ export function BookingsListClient({
       <div className="min-h-screen bg-gray-50 dark:bg-[#010409] flex items-center justify-center">
         <div className="text-center">
           <div className="inline-block h-10 w-10 animate-spin rounded-full border-[3px] border-solid border-blue-600 dark:border-blue-500 border-r-transparent"></div>
-          <p className="mt-3 text-xs text-gray-600 dark:text-gray-400">Cargando reservas...</p>
+          <p className="mt-3 text-xs text-gray-600 dark:text-gray-400">{t('bookings.loading')}</p>
         </div>
       </div>
     )
@@ -623,16 +624,16 @@ export function BookingsListClient({
                 <Link
                   href="/dashboard/parking"
                   className="inline-flex items-center justify-center w-8 h-8 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md transition-colors"
-                  title="Volver al Dashboard"
+                  title={t('bookings.backToDashboard')}
                 >
                   <FiArrowLeft className="w-4 h-4" />
                 </Link>
                 <div>
                   <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">
-                    Reservas de Parking
+                    {t('bookings.title')}
                   </h1>
                   <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-0.5">
-                    Gestión completa de reservas de estacionamiento
+                    {t('bookings.subtitle')}
                   </p>
                 </div>
               </div>
@@ -640,7 +641,7 @@ export function BookingsListClient({
                 <Link
                   href="/dashboard/parking/status"
                   className="inline-flex items-center justify-center w-8 h-8 text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md transition-colors"
-                  title="Control de Parking"
+                  title={t('quickActions.parkingControl')}
                 >
                   <FaParking className="w-4 h-4" />
                 </Link>
@@ -649,7 +650,7 @@ export function BookingsListClient({
                   className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-green-600 dark:bg-green-700 text-white text-xs font-medium rounded-md hover:bg-green-700 dark:hover:bg-green-800 transition-colors"
                 >
                   <FiPlus className="w-3.5 h-3.5" />
-                  Nueva Reserva
+                  {t('bookings.newBooking')}
                 </Link>
               </div>
             </div>
@@ -665,7 +666,7 @@ export function BookingsListClient({
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 font-medium">
-                        Total Reservas
+                        {t('stats.totalBookings')}
                       </p>
                       <p className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 mt-0.5">
                         {totalBookings}
@@ -679,7 +680,7 @@ export function BookingsListClient({
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 font-medium">
-                        Reservados
+                        {t('stats.reserved')}
                       </p>
                       <p className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 mt-0.5">
                         {reservedCount}
@@ -693,7 +694,7 @@ export function BookingsListClient({
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 font-medium">
-                        Ocupados
+                        {t('stats.occupied')}
                       </p>
                       <p className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 mt-0.5">
                         {occupiedCount}
@@ -707,7 +708,7 @@ export function BookingsListClient({
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 font-medium">
-                        Completados
+                        {t('stats.completed')}
                       </p>
                       <p className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 mt-0.5">
                         {completedCount}
@@ -725,7 +726,7 @@ export function BookingsListClient({
                     <FiSearch className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 dark:text-gray-500" />
                     <input
                       type="text"
-                      placeholder="Buscar por código, cliente, matrícula, plaza..."
+                      placeholder={t('filters.search')}
                       value={searchInputValue}
                       onChange={(e) => handleSearchChange(e.target.value)}
                       className="w-full pl-8 pr-3 py-1.5 text-xs border border-gray-300 dark:border-gray-700 dark:bg-[#151b23] dark:text-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent"
@@ -735,13 +736,17 @@ export function BookingsListClient({
 
                 <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
                   {/* Vista rápida (filtros compuestos del dashboard) */}
-                  <QuickFilterDropdown value={quickFilter} onChange={handleQuickFilterChange} />
+                  <QuickFilterDropdown
+                    value={quickFilter}
+                    onChange={handleQuickFilterChange}
+                    t={t}
+                  />
 
                   {/* Fecha de entrada */}
                   <DatePickerInput
                     value={startDate || undefined}
                     onChange={(value) => handleStartDateChange(value || '')}
-                    placeholder="Entrada"
+                    placeholder={t('filters.entry')}
                     clearable={true}
                     size="sm"
                   />
@@ -750,7 +755,7 @@ export function BookingsListClient({
                   <DatePickerInput
                     value={endDate || undefined}
                     onChange={(value) => handleEndDateChange(value || '')}
-                    placeholder="Salida"
+                    placeholder={t('filters.exit')}
                     disabled={!startDate}
                     minDate={startDate ? new Date(startDate + 'T00:00:00') : null}
                     clearable={true}
@@ -763,12 +768,12 @@ export function BookingsListClient({
                     onChange={(e) => handleStatusChange(e.target.value as StatusFilter)}
                     className="w-full px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent bg-white dark:bg-[#151b23] dark:text-gray-200"
                   >
-                    <option value="all">Todos los estados</option>
-                    <option value="reserved">Reservado</option>
-                    <option value="checked_in">Ocupado</option>
-                    <option value="completed">Completado</option>
-                    <option value="canceled">Cancelado</option>
-                    <option value="no_show">No presentado</option>
+                    <option value="all">{t('filters.allStatuses')}</option>
+                    <option value="reserved">{t('status.reserved')}</option>
+                    <option value="checked_in">{t('status.checkedIn')}</option>
+                    <option value="completed">{t('status.completed')}</option>
+                    <option value="canceled">{t('status.canceled')}</option>
+                    <option value="no_show">{t('status.noShow')}</option>
                   </select>
 
                   {/* Limpiar filtros */}
@@ -778,7 +783,7 @@ export function BookingsListClient({
                       className="px-3 py-1.5 text-xs font-medium text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors flex items-center justify-center gap-1"
                     >
                       <FiX className="w-3 h-3" />
-                      Limpiar
+                      {t('filters.clear')}
                     </button>
                   )}
                 </div>
@@ -791,25 +796,25 @@ export function BookingsListClient({
                     <thead className="bg-gray-50 dark:bg-[#0d1117] border-b border-gray-200 dark:border-gray-800">
                       <tr>
                         <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                          Código
+                          {t('table.code')}
                         </th>
                         <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                          Cliente
+                          {t('table.client')}
                         </th>
                         <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                          Entrada
+                          {t('table.entry')}
                         </th>
                         <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                          Salida
+                          {t('table.exit')}
                         </th>
                         <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                          Estado
+                          {t('table.status')}
                         </th>
                         <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                          Plaza
+                          {t('table.spot')}
                         </th>
                         <th className="px-3 py-2 text-right text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                          Acciones
+                          {t('table.actions')}
                         </th>
                       </tr>
                     </thead>
@@ -821,8 +826,8 @@ export function BookingsListClient({
                             className="px-3 py-8 text-center text-xs text-gray-500 dark:text-gray-400"
                           >
                             {hasActiveFilters
-                              ? 'No se encontraron reservas con esos criterios'
-                              : 'No hay reservas registradas'}
+                              ? t('filters.noResultsWithFilters')
+                              : t('filters.noBookings')}
                           </td>
                         </tr>
                       ) : (
@@ -840,10 +845,10 @@ export function BookingsListClient({
                             <td className="px-3 py-2">
                               <div>
                                 <div className="text-xs font-medium text-gray-900 dark:text-gray-100">
-                                  {booking.vehicle?.owner || 'Sin propietario'}
+                                  {booking.vehicle?.owner || t('table.noOwner')}
                                 </div>
                                 <div className="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">
-                                  {booking.vehicle?.plate || 'Sin matrícula'}
+                                  {booking.vehicle?.plate || t('table.noPlate')}
                                 </div>
                               </div>
                             </td>
@@ -888,8 +893,8 @@ export function BookingsListClient({
                   <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-6 text-center">
                     <p className="text-xs text-gray-500 dark:text-gray-400">
                       {hasActiveFilters
-                        ? 'No se encontraron reservas con esos criterios'
-                        : 'No hay reservas registradas'}
+                        ? t('filters.noResultsWithFilters')
+                        : t('filters.noBookings')}
                     </p>
                   </div>
                 ) : (
@@ -908,7 +913,7 @@ export function BookingsListClient({
                             <StatusBadge status={booking.status} />
                           </div>
                           <p className="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">
-                            Plaza {booking.spot.level}-{booking.spot.number}
+                            {t('table.spot')} {booking.spot.level}-{booking.spot.number}
                           </p>
                         </div>
                         <div onClick={(e) => e.stopPropagation()}>
@@ -918,24 +923,28 @@ export function BookingsListClient({
 
                       <div className="mb-2">
                         <p className="text-xs font-medium text-gray-900 dark:text-gray-100">
-                          {booking.vehicle?.owner || 'Sin propietario'}
+                          {booking.vehicle?.owner || t('table.noOwner')}
                         </p>
                         <p className="text-[10px] text-gray-500 dark:text-gray-400">
                           {booking.vehicle?.model && `${booking.vehicle.model} · `}
-                          {booking.vehicle?.plate || 'Sin matrícula'}
+                          {booking.vehicle?.plate || t('table.noPlate')}
                         </p>
                       </div>
 
                       <div className="flex items-center justify-between text-[10px]">
                         <div>
-                          <span className="text-gray-500 dark:text-gray-400">Entrada: </span>
+                          <span className="text-gray-500 dark:text-gray-400">
+                            {t('table.entry')}:{' '}
+                          </span>
                           <span className="text-gray-900 dark:text-gray-100">
                             {formatDateShort(booking.schedule.expected_checkin)}{' '}
                             {formatTime(booking.schedule.expected_checkin)}
                           </span>
                         </div>
                         <div>
-                          <span className="text-gray-500 dark:text-gray-400">Salida: </span>
+                          <span className="text-gray-500 dark:text-gray-400">
+                            {t('table.exit')}:{' '}
+                          </span>
                           <span className="text-gray-900 dark:text-gray-100">
                             {formatDateShort(booking.schedule.expected_checkout)}{' '}
                             {formatTime(booking.schedule.expected_checkout)}
@@ -953,17 +962,20 @@ export function BookingsListClient({
                   {/* Results info */}
                   <div className="text-xs text-gray-600 dark:text-gray-400">
                     {filteredBookings.length === 0 ? (
-                      <span>Sin resultados</span>
+                      <span>{t('bookings.noResults')}</span>
                     ) : (
                       <span>
                         <span className="font-medium text-gray-900 dark:text-gray-100">
                           {filteredBookings.length}
                         </span>{' '}
-                        reserva{filteredBookings.length !== 1 ? 's' : ''}
+                        {filteredBookings.length !== 1
+                          ? t('bookings.reservations')
+                          : t('bookings.reservation')}
                         {pagination.totalPages > 1 && (
                           <span className="text-gray-400 dark:text-gray-500">
                             {' '}
-                            (pag. {pagination.page} de {pagination.totalPages})
+                            ({t('bookings.page')} {pagination.page} {t('bookings.of')}{' '}
+                            {pagination.totalPages})
                           </span>
                         )}
                       </span>
@@ -979,7 +991,7 @@ export function BookingsListClient({
                         className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                       >
                         <FiChevronLeft className="w-3.5 h-3.5" />
-                        Anterior
+                        {t('pagination.previous')}
                       </button>
                       <div className="flex items-center gap-1">
                         {/* Show page numbers */}
@@ -1016,7 +1028,7 @@ export function BookingsListClient({
                         disabled={pagination.page >= pagination.totalPages || loading}
                         className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                       >
-                        Siguiente
+                        {t('pagination.next')}
                         <FiChevronRight className="w-3.5 h-3.5" />
                       </button>
                     </div>
@@ -1030,14 +1042,14 @@ export function BookingsListClient({
             <div className="hidden min-[1400px]:block space-y-4">
               <div className="sticky top-4 space-y-3">
                 <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">
-                  Resumen
+                  {t('stats.summary')}
                 </h3>
 
                 <div className="bg-white dark:bg-[#0D1117] border border-[#d0d7de] dark:border-[#30363d] rounded-xl shadow-sm p-4">
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">
-                        Total Reservas
+                        {t('stats.totalBookings')}
                       </p>
                       <p className="text-xl font-bold text-gray-900 dark:text-gray-100 mt-0.5">
                         {totalBookings}
@@ -1053,7 +1065,7 @@ export function BookingsListClient({
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">
-                        Reservados
+                        {t('stats.reserved')}
                       </p>
                       <p className="text-xl font-bold text-gray-900 dark:text-gray-100 mt-0.5">
                         {reservedCount}
@@ -1069,7 +1081,7 @@ export function BookingsListClient({
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">
-                        Ocupados
+                        {t('stats.occupied')}
                       </p>
                       <p className="text-xl font-bold text-gray-900 dark:text-gray-100 mt-0.5">
                         {occupiedCount}
@@ -1085,7 +1097,7 @@ export function BookingsListClient({
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">
-                        Completados
+                        {t('stats.completed')}
                       </p>
                       <p className="text-xl font-bold text-gray-900 dark:text-gray-100 mt-0.5">
                         {completedCount}
@@ -1108,16 +1120,16 @@ export function BookingsListClient({
           <div className="bg-white dark:bg-[#161b22] rounded-lg shadow-xl max-w-md w-full border border-gray-200 dark:border-gray-800">
             <div className="border-b border-gray-200 dark:border-gray-800 px-6 py-4">
               <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                Check-in - {selectedBooking.booking_code}
+                {t('modals.checkIn.title')} - {selectedBooking.booking_code}
               </h3>
               <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                Plaza {selectedBooking.spot.level}-{selectedBooking.spot.number}
+                {t('table.spot')} {selectedBooking.spot.level}-{selectedBooking.spot.number}
               </p>
             </div>
             <div className="px-6 py-4 space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Fecha y hora de entrada
+                  {t('modals.checkIn.dateTime')}
                 </label>
                 <input
                   type="datetime-local"
@@ -1130,14 +1142,14 @@ export function BookingsListClient({
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Notas (opcional)
+                  {t('modals.checkIn.notes')}
                 </label>
                 <textarea
                   value={checkInData.notes}
                   onChange={(e) => setCheckInData({ ...checkInData, notes: e.target.value })}
                   rows={2}
                   className="w-full px-3 py-2 bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600"
-                  placeholder="Observaciones del check-in..."
+                  placeholder={t('modals.checkIn.notesPlaceholder')}
                 />
               </div>
             </div>
@@ -1149,13 +1161,13 @@ export function BookingsListClient({
                 }}
                 className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-md transition-colors"
               >
-                Cancelar
+                {t('modals.cancel')}
               </button>
               <button
                 onClick={handleCheckIn}
                 className="px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 rounded-md transition-colors"
               >
-                Confirmar Check-in
+                {t('modals.checkIn.confirm')}
               </button>
             </div>
           </div>
@@ -1168,16 +1180,16 @@ export function BookingsListClient({
           <div className="bg-white dark:bg-[#161b22] rounded-lg shadow-xl max-w-md w-full border border-gray-200 dark:border-gray-800">
             <div className="border-b border-gray-200 dark:border-gray-800 px-6 py-4">
               <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                Check-out - {selectedBooking.booking_code}
+                {t('modals.checkOut.title')} - {selectedBooking.booking_code}
               </h3>
               <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                Plaza {selectedBooking.spot.level}-{selectedBooking.spot.number}
+                {t('table.spot')} {selectedBooking.spot.level}-{selectedBooking.spot.number}
               </p>
             </div>
             <div className="px-6 py-4 space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Fecha y hora de salida
+                  {t('modals.checkOut.dateTime')}
                 </label>
                 <input
                   type="datetime-local"
@@ -1190,7 +1202,7 @@ export function BookingsListClient({
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Importe a cobrar (€)
+                  {t('modals.checkOut.amount')}
                 </label>
                 <input
                   type="number"
@@ -1204,7 +1216,7 @@ export function BookingsListClient({
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Método de pago
+                  {t('modals.checkOut.paymentMethod')}
                 </label>
                 <select
                   value={checkOutData.payment_method}
@@ -1213,15 +1225,15 @@ export function BookingsListClient({
                   }
                   className="w-full px-3 py-2 bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600"
                 >
-                  <option value="cash">Efectivo</option>
-                  <option value="card">Tarjeta</option>
-                  <option value="transfer">Transferencia</option>
-                  <option value="other">Otro</option>
+                  <option value="cash">{t('paymentMethods.cash')}</option>
+                  <option value="card">{t('paymentMethods.card')}</option>
+                  <option value="transfer">{t('paymentMethods.transfer')}</option>
+                  <option value="other">{t('paymentMethods.other')}</option>
                 </select>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Referencia (opcional)
+                  {t('modals.checkOut.reference')}
                 </label>
                 <input
                   type="text"
@@ -1230,19 +1242,19 @@ export function BookingsListClient({
                     setCheckOutData({ ...checkOutData, payment_reference: e.target.value })
                   }
                   className="w-full px-3 py-2 bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600"
-                  placeholder="Número de operación..."
+                  placeholder={t('modals.checkOut.referencePlaceholder')}
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Notas (opcional)
+                  {t('modals.checkOut.notes')}
                 </label>
                 <textarea
                   value={checkOutData.notes}
                   onChange={(e) => setCheckOutData({ ...checkOutData, notes: e.target.value })}
                   rows={2}
                   className="w-full px-3 py-2 bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600"
-                  placeholder="Observaciones del check-out..."
+                  placeholder={t('modals.checkOut.notesPlaceholder')}
                 />
               </div>
             </div>
@@ -1260,13 +1272,13 @@ export function BookingsListClient({
                 }}
                 className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-md transition-colors"
               >
-                Cancelar
+                {t('modals.cancel')}
               </button>
               <button
                 onClick={handleCheckOut}
                 className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 rounded-md transition-colors"
               >
-                Confirmar Check-out
+                {t('modals.checkOut.confirm')}
               </button>
             </div>
           </div>
@@ -1279,13 +1291,13 @@ export function BookingsListClient({
           <div className="bg-white dark:bg-[#161b22] rounded-lg shadow-xl max-w-md w-full border border-gray-200 dark:border-gray-800">
             <div className="border-b border-gray-200 dark:border-gray-800 px-6 py-4">
               <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                Modificar Reserva - {selectedBooking.booking_code}
+                {t('modals.update.title')} - {selectedBooking.booking_code}
               </h3>
             </div>
             <div className="px-6 py-4 space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Check-in esperado
+                  {t('modals.update.expectedCheckIn')}
                 </label>
                 <input
                   type="datetime-local"
@@ -1298,7 +1310,7 @@ export function BookingsListClient({
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Check-out esperado
+                  {t('modals.update.expectedCheckOut')}
                 </label>
                 <input
                   type="datetime-local"
@@ -1311,7 +1323,7 @@ export function BookingsListClient({
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Importe total (€)
+                  {t('modals.update.totalAmount')}
                 </label>
                 <input
                   type="number"
@@ -1323,14 +1335,14 @@ export function BookingsListClient({
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Notas
+                  {t('modals.update.notes')}
                 </label>
                 <textarea
                   value={updateData.notes}
                   onChange={(e) => setUpdateData({ ...updateData, notes: e.target.value })}
                   rows={3}
                   className="w-full px-3 py-2 bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600"
-                  placeholder="Notas adicionales..."
+                  placeholder={t('modals.update.notesPlaceholder')}
                 />
               </div>
             </div>
@@ -1347,13 +1359,13 @@ export function BookingsListClient({
                 }}
                 className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-md transition-colors"
               >
-                Cancelar
+                {t('modals.cancel')}
               </button>
               <button
                 onClick={handleUpdate}
                 className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 rounded-md transition-colors"
               >
-                Guardar Cambios
+                {t('modals.update.save')}
               </button>
             </div>
           </div>

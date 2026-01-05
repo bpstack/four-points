@@ -4,6 +4,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useSearchParams } from 'next/navigation'
+import { useTranslations, useLocale } from 'next-intl'
 import { useAuth } from '@/app/lib/auth/useAuth'
 import { cn } from '@/app/lib/helpers/utils'
 import {
@@ -41,6 +42,8 @@ export function MessagesPanel({ onConversationSelect }: MessagesPanelProps) {
   const { user } = useAuth()
   const searchParams = useSearchParams()
   const chatParam = searchParams.get('chat')
+  const t = useTranslations('profile.messages')
+  const locale = useLocale()
 
   // Hooks
   const conversations = useConversations({
@@ -150,7 +153,7 @@ export function MessagesPanel({ onConversationSelect }: MessagesPanelProps) {
 
     const type: ConversationType = userSearch.isGroup ? 'group' : 'dm'
     if (type === 'group' && !groupName.trim()) {
-      alert('Los grupos necesitan un nombre')
+      alert(t('newConversation.groupNeedsName'))
       return
     }
 
@@ -180,7 +183,7 @@ export function MessagesPanel({ onConversationSelect }: MessagesPanelProps) {
   }
 
   const handleDeleteMessage = async (messageId: number) => {
-    if (!confirm('¿Eliminar este mensaje?')) return
+    if (!confirm(t('actions.deleteMessage'))) return
 
     try {
       await chat.remove(messageId)
@@ -212,21 +215,20 @@ export function MessagesPanel({ onConversationSelect }: MessagesPanelProps) {
 
   const handleDeleteConversation = async () => {
     if (!conversations.selectedConversation) return
-    if (!confirm('¿Eliminar esta conversación? Se borrarán todos los mensajes permanentemente.'))
-      return
+    if (!confirm(t('actions.deleteConversation'))) return
 
     try {
       await conversations.remove(conversations.selectedConversation.id)
       setShowConversationMenu(false)
     } catch (error) {
       console.error('Error deleting conversation:', error)
-      alert('No tienes permisos para eliminar esta conversación')
+      alert(t('actions.noPermission'))
     }
   }
 
   const handleLeaveConversation = async () => {
     if (!conversations.selectedConversation) return
-    if (!confirm('¿Salir de esta conversación?')) return
+    if (!confirm(t('actions.leaveGroup'))) return
 
     try {
       await conversations.leave(conversations.selectedConversation.id)
@@ -265,11 +267,14 @@ export function MessagesPanel({ onConversationSelect }: MessagesPanelProps) {
     const hours = Math.floor(minutes / 60)
     const days = Math.floor(hours / 24)
 
-    if (minutes < 1) return 'Ahora'
+    if (minutes < 1) return t('time.now')
     if (minutes < 60) return `${minutes}m`
     if (hours < 24) return `${hours}h`
     if (days < 7) return `${days}d`
-    return date.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })
+    return date.toLocaleDateString(locale === 'es' ? 'es-ES' : 'en-US', {
+      day: 'numeric',
+      month: 'short',
+    })
   }
 
   const getRoleColor = (role: string | undefined) => {
@@ -286,7 +291,7 @@ export function MessagesPanel({ onConversationSelect }: MessagesPanelProps) {
   }
 
   const getConversationName = (conv: Conversation) => {
-    if (conv.type === 'group') return conv.name || 'Grupo sin nombre'
+    if (conv.type === 'group') return conv.name || t('conversations.groupNoName')
     return conv.other_username || 'Usuario'
   }
 
@@ -319,12 +324,12 @@ export function MessagesPanel({ onConversationSelect }: MessagesPanelProps) {
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-base md:text-xl font-semibold text-gray-900 dark:text-white">
-              Mensajes
+              {t('header.title')}
             </h2>
             <p className="text-xs md:text-sm text-gray-600 dark:text-gray-400">
               {conversations.totalUnread > 0
-                ? `${conversations.totalUnread} sin leer`
-                : 'Todas las conversaciones leidas'}
+                ? `${conversations.totalUnread} ${t('header.unread')}`
+                : t('header.allRead')}
             </p>
           </div>
           <div className="flex items-center gap-1.5 md:gap-2">
@@ -333,7 +338,7 @@ export function MessagesPanel({ onConversationSelect }: MessagesPanelProps) {
               <button
                 onClick={() => conversations.select(null)}
                 className="p-1.5 md:p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
-                title="Volver al perfil"
+                title={t('header.backToProfile')}
               >
                 <FiX className="w-4 h-4" />
               </button>
@@ -343,7 +348,7 @@ export function MessagesPanel({ onConversationSelect }: MessagesPanelProps) {
               className="px-2 py-1 md:px-3 md:py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs md:text-sm rounded-lg flex items-center gap-1 md:gap-1.5 transition-colors"
             >
               <FiPlus className="w-3.5 h-3.5 md:w-4 md:h-4" />
-              <span className="hidden sm:inline">Nuevo</span>
+              <span className="hidden sm:inline">{t('header.new')}</span>
             </button>
           </div>
         </div>
@@ -364,7 +369,7 @@ export function MessagesPanel({ onConversationSelect }: MessagesPanelProps) {
               <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <input
                 type="text"
-                placeholder="Buscar conversacion..."
+                placeholder={t('conversations.searchPlaceholder')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-9 pr-3 py-2 text-sm bg-white dark:bg-[#0d1117] border border-gray-200 dark:border-[#30363d] rounded-lg text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500"
@@ -377,12 +382,12 @@ export function MessagesPanel({ onConversationSelect }: MessagesPanelProps) {
             {filteredConversations.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-gray-500 p-4">
                 <FiUser className="w-10 h-10 mb-2 opacity-50" />
-                <p className="text-sm">No hay conversaciones</p>
+                <p className="text-sm">{t('conversations.noConversations')}</p>
                 <button
                   onClick={() => setShowNewConversation(true)}
                   className="mt-2 text-blue-500 text-sm hover:underline"
                 >
-                  Iniciar una nueva
+                  {t('conversations.startNew')}
                 </button>
               </div>
             ) : (
@@ -423,7 +428,7 @@ export function MessagesPanel({ onConversationSelect }: MessagesPanelProps) {
                         </div>
                         <div className="flex items-center justify-between gap-2">
                           <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                            {conv.last_message || 'Sin mensajes'}
+                            {conv.last_message || t('conversations.noMessages')}
                           </p>
                           {Number(conv.unread_count) > 0 ? (
                             <span className="px-1.5 py-0.5 bg-blue-600 text-white text-xs font-medium rounded-full flex-shrink-0">
@@ -493,7 +498,8 @@ export function MessagesPanel({ onConversationSelect }: MessagesPanelProps) {
                       disabled={loadingParticipants}
                     >
                       {loadingParticipants ? <FiLoader className="w-3 h-3 animate-spin" /> : null}
-                      {conversations.selectedConversation.participant_count} participantes
+                      {conversations.selectedConversation.participant_count}{' '}
+                      {t('chat.participants')}
                     </button>
                   )}
                 </div>
@@ -513,7 +519,7 @@ export function MessagesPanel({ onConversationSelect }: MessagesPanelProps) {
                           className="w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#30363d] flex items-center gap-2"
                         >
                           <FiArrowLeft className="w-4 h-4" />
-                          Salir del grupo
+                          {t('actions.leaveGroupButton')}
                         </button>
                       )}
                       <button
@@ -521,7 +527,7 @@ export function MessagesPanel({ onConversationSelect }: MessagesPanelProps) {
                         className="w-full px-4 py-2 text-left text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-2"
                       >
                         <FiTrash2 className="w-4 h-4" />
-                        Eliminar conversación
+                        {t('actions.deleteConversationButton')}
                       </button>
                     </div>
                   )}
@@ -537,7 +543,7 @@ export function MessagesPanel({ onConversationSelect }: MessagesPanelProps) {
                       disabled={chat.loading}
                       className="text-sm text-blue-500 hover:underline disabled:opacity-50"
                     >
-                      {chat.loading ? 'Cargando...' : 'Cargar mensajes anteriores'}
+                      {chat.loading ? t('chat.loading') : t('chat.loadPrevious')}
                     </button>
                   </div>
                 )}
@@ -591,7 +597,9 @@ export function MessagesPanel({ onConversationSelect }: MessagesPanelProps) {
                             isOwn ? 'text-blue-200' : 'text-gray-400'
                           )}
                         >
-                          {!!msg.is_edited && <span className="text-xs italic">editado</span>}
+                          {!!msg.is_edited && (
+                            <span className="text-xs italic">{t('chat.edited')}</span>
+                          )}
                           <span className="text-xs">{formatTime(msg.created_at)}</span>
                           {isOwn && <FiCheckCircle className="w-3 h-3" />}
                         </div>
@@ -630,13 +638,13 @@ export function MessagesPanel({ onConversationSelect }: MessagesPanelProps) {
                         ? 'bg-yellow-100 text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-400'
                         : 'hover:bg-gray-100 dark:hover:bg-[#21262d] text-gray-400'
                     )}
-                    title={notify ? 'Notificacion activada' : 'Activar notificacion urgente'}
+                    title={notify ? t('chat.notificationActive') : t('chat.activateNotification')}
                   >
                     <FiBell className="w-4 h-4" />
                   </button>
                   <input
                     type="text"
-                    placeholder="Escribe un mensaje..."
+                    placeholder={t('chat.writeMessage')}
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handleSendMessage()}
@@ -656,7 +664,7 @@ export function MessagesPanel({ onConversationSelect }: MessagesPanelProps) {
                 </div>
                 {notify && (
                   <p className="text-xs text-yellow-600 dark:text-yellow-400 mt-1">
-                    Los destinatarios recibiran una notificacion urgente
+                    {t('chat.urgentNotification')}
                   </p>
                 )}
               </div>
@@ -664,8 +672,8 @@ export function MessagesPanel({ onConversationSelect }: MessagesPanelProps) {
           ) : (
             <div className="flex-1 flex flex-col items-center justify-center text-gray-500 p-4">
               <FiUser className="w-12 h-12 mb-3 opacity-50" />
-              <p className="text-sm font-medium">Selecciona una conversacion</p>
-              <p className="text-xs text-gray-400 mt-1">Elige un contacto para ver los mensajes</p>
+              <p className="text-sm font-medium">{t('chat.selectConversation')}</p>
+              <p className="text-xs text-gray-400 mt-1">{t('chat.chooseContact')}</p>
             </div>
           )}
         </div>
@@ -678,7 +686,7 @@ export function MessagesPanel({ onConversationSelect }: MessagesPanelProps) {
             {/* Modal Header */}
             <div className="p-4 border-b border-gray-200 dark:border-[#30363d] flex items-center justify-between">
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                Nueva conversacion
+                {t('newConversation.title')}
               </h3>
               <button
                 onClick={() => setShowNewConversation(false)}
@@ -707,7 +715,7 @@ export function MessagesPanel({ onConversationSelect }: MessagesPanelProps) {
                 {userSearch.isGroup && (
                   <input
                     type="text"
-                    placeholder="Nombre del grupo..."
+                    placeholder={t('newConversation.groupName')}
                     value={groupName}
                     onChange={(e) => setGroupName(e.target.value)}
                     className="w-full mt-2 px-3 py-2 text-sm bg-gray-50 dark:bg-[#0d1117] border border-gray-200 dark:border-[#30363d] rounded-lg text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500"
@@ -722,7 +730,7 @@ export function MessagesPanel({ onConversationSelect }: MessagesPanelProps) {
                 <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <input
                   type="text"
-                  placeholder="Buscar usuarios..."
+                  placeholder={t('newConversation.searchUsers')}
                   value={userSearch.query}
                   onChange={(e) => userSearch.setQuery(e.target.value)}
                   className="w-full pl-9 pr-3 py-2 text-sm bg-gray-50 dark:bg-[#0d1117] border border-gray-200 dark:border-[#30363d] rounded-lg text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500"
@@ -739,7 +747,7 @@ export function MessagesPanel({ onConversationSelect }: MessagesPanelProps) {
               ) : userSearch.results.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-8 text-gray-500">
                   <FiUser className="w-8 h-8 mb-2 opacity-50" />
-                  <p className="text-sm">No se encontraron usuarios</p>
+                  <p className="text-sm">{t('newConversation.noUsersFound')}</p>
                 </div>
               ) : (
                 <div className="divide-y divide-gray-200 dark:divide-[#30363d]">
@@ -769,7 +777,9 @@ export function MessagesPanel({ onConversationSelect }: MessagesPanelProps) {
                           {u.role_name}
                         </span>
                         {u.existing_dm_id && (
-                          <span className="text-xs text-blue-500">Chat existente</span>
+                          <span className="text-xs text-blue-500">
+                            {t('newConversation.existingChat')}
+                          </span>
                         )}
                       </button>
                     )
@@ -788,17 +798,17 @@ export function MessagesPanel({ onConversationSelect }: MessagesPanelProps) {
                 {creatingConversation ? (
                   <>
                     <FiLoader className="w-4 h-4 animate-spin" />
-                    Creando...
+                    {t('newConversation.creating')}
                   </>
                 ) : userSearch.isGroup ? (
                   <>
                     <FiUsers className="w-4 h-4" />
-                    Crear grupo
+                    {t('newConversation.createGroup')}
                   </>
                 ) : (
                   <>
                     <FiSend className="w-4 h-4" />
-                    Iniciar chat
+                    {t('newConversation.startChat')}
                   </>
                 )}
               </button>
@@ -819,7 +829,9 @@ export function MessagesPanel({ onConversationSelect }: MessagesPanelProps) {
           >
             {/* Modal Header */}
             <div className="p-4 border-b border-gray-200 dark:border-[#30363d] flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Participantes</h3>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                {t('participants.title')}
+              </h3>
               <button
                 onClick={() => setShowParticipants(false)}
                 className="p-1 hover:bg-gray-100 dark:hover:bg-[#21262d] rounded-lg transition-colors"
@@ -845,7 +857,7 @@ export function MessagesPanel({ onConversationSelect }: MessagesPanelProps) {
                         <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
                           {p.username}
                           {p.user_id === user?.id && (
-                            <span className="text-gray-400 ml-1">(tu)</span>
+                            <span className="text-gray-400 ml-1">({t('participants.you')})</span>
                           )}
                         </p>
                         {p.role_name && (

@@ -6,6 +6,7 @@ import { GroupRepository } from '../../repositories/group/group-repository'
 import { PaymentCalculatorService } from '../../services/group/payment-calculator-service'
 import { GroupHistoryService } from '../../services/group/group-history-service'
 import { CreateGroupPaymentDTO, UpdateGroupPaymentDTO } from '../../models/group/index'
+import { ERROR_CODES, SUCCESS_CODES } from '../../config/error-codes.js'
 
 export class GroupPaymentController {
   /**
@@ -19,7 +20,8 @@ export class GroupPaymentController {
       if (isNaN(groupId)) {
         return res.status(400).json({
           success: false,
-          error: 'ID de grupo inválido',
+          error: ERROR_CODES.GROUP_INVALID_ID,
+          code: ERROR_CODES.GROUP_INVALID_ID,
         })
       }
 
@@ -28,7 +30,8 @@ export class GroupPaymentController {
       if (!group) {
         return res.status(404).json({
           success: false,
-          error: 'Grupo no encontrado',
+          error: ERROR_CODES.GROUP_NOT_FOUND,
+          code: ERROR_CODES.GROUP_NOT_FOUND,
         })
       }
 
@@ -46,8 +49,8 @@ export class GroupPaymentController {
       console.error('Error en getPaymentsByGroup:', error)
       return res.status(500).json({
         success: false,
-        error: 'Error al obtener pagos',
-        message: error.message,
+        error: ERROR_CODES.GROUP_PAYMENT_FETCH_ERROR,
+        code: ERROR_CODES.GROUP_PAYMENT_FETCH_ERROR,
       })
     }
   }
@@ -64,14 +67,16 @@ export class GroupPaymentController {
       if (isNaN(groupId)) {
         return res.status(400).json({
           success: false,
-          error: 'ID de grupo inválido',
+          error: ERROR_CODES.GROUP_INVALID_ID,
+          code: ERROR_CODES.GROUP_INVALID_ID,
         })
       }
 
       if (!userId) {
         return res.status(401).json({
           success: false,
-          error: 'Usuario no autenticado',
+          error: ERROR_CODES.UNAUTHORIZED,
+          code: ERROR_CODES.UNAUTHORIZED,
         })
       }
 
@@ -80,7 +85,8 @@ export class GroupPaymentController {
       if (!group) {
         return res.status(404).json({
           success: false,
-          error: 'Grupo no encontrado',
+          error: ERROR_CODES.GROUP_NOT_FOUND,
+          code: ERROR_CODES.GROUP_NOT_FOUND,
         })
       }
 
@@ -99,7 +105,8 @@ export class GroupPaymentController {
       if (!paymentData.payment_name || !paymentData.due_date) {
         return res.status(400).json({
           success: false,
-          error: 'Faltan campos obligatorios: payment_name, due_date',
+          error: ERROR_CODES.GROUP_PAYMENT_MISSING_FIELDS,
+          code: ERROR_CODES.GROUP_PAYMENT_MISSING_FIELDS,
         })
       }
 
@@ -113,7 +120,8 @@ export class GroupPaymentController {
       if (!paymentData.amount || paymentData.amount <= 0) {
         return res.status(400).json({
           success: false,
-          error: 'El pago debe tener un monto (amount) mayor a 0',
+          error: ERROR_CODES.GROUP_PAYMENT_INVALID_AMOUNT,
+          code: ERROR_CODES.GROUP_PAYMENT_INVALID_AMOUNT,
         })
       }
 
@@ -133,15 +141,16 @@ export class GroupPaymentController {
 
       return res.status(201).json({
         success: true,
-        message: 'Pago creado correctamente',
+        message: SUCCESS_CODES.GROUP_PAYMENT_CREATED,
+        code: SUCCESS_CODES.GROUP_PAYMENT_CREATED,
         data: newPayment,
       })
     } catch (error: any) {
       console.error('Error en createPayment:', error)
       return res.status(500).json({
         success: false,
-        error: 'Error al crear pago',
-        message: error.message,
+        error: ERROR_CODES.GROUP_PAYMENT_CREATE_ERROR,
+        code: ERROR_CODES.GROUP_PAYMENT_CREATE_ERROR,
       })
     }
   }
@@ -159,14 +168,16 @@ export class GroupPaymentController {
       if (isNaN(groupId) || isNaN(paymentId)) {
         return res.status(400).json({
           success: false,
-          error: 'IDs inválidos',
+          error: ERROR_CODES.INVALID_ID,
+          code: ERROR_CODES.INVALID_ID,
         })
       }
 
       if (!userId) {
         return res.status(401).json({
           success: false,
-          error: 'Usuario no autenticado',
+          error: ERROR_CODES.UNAUTHORIZED,
+          code: ERROR_CODES.UNAUTHORIZED,
         })
       }
 
@@ -175,14 +186,16 @@ export class GroupPaymentController {
       if (!oldPayment) {
         return res.status(404).json({
           success: false,
-          error: 'Pago no encontrado',
+          error: ERROR_CODES.GROUP_PAYMENT_NOT_FOUND,
+          code: ERROR_CODES.GROUP_PAYMENT_NOT_FOUND,
         })
       }
 
       if (oldPayment.group_id !== groupId) {
         return res.status(400).json({
           success: false,
-          error: 'El pago no pertenece a este grupo',
+          error: ERROR_CODES.GROUP_PAYMENT_NOT_IN_GROUP,
+          code: ERROR_CODES.GROUP_PAYMENT_NOT_IN_GROUP,
         })
       }
 
@@ -193,7 +206,8 @@ export class GroupPaymentController {
       if (!updated) {
         return res.status(500).json({
           success: false,
-          error: 'Error al actualizar pago',
+          error: ERROR_CODES.GROUP_PAYMENT_UPDATE_ERROR,
+          code: ERROR_CODES.GROUP_PAYMENT_UPDATE_ERROR,
         })
       }
 
@@ -209,15 +223,16 @@ export class GroupPaymentController {
 
       return res.status(200).json({
         success: true,
-        message: 'Pago actualizado correctamente',
+        message: SUCCESS_CODES.GROUP_PAYMENT_UPDATED,
+        code: SUCCESS_CODES.GROUP_PAYMENT_UPDATED,
         data: updatedPayment,
       })
     } catch (error: any) {
       console.error('Error en updatePayment:', error)
       return res.status(500).json({
         success: false,
-        error: 'Error al actualizar pago',
-        message: error.message,
+        error: ERROR_CODES.GROUP_PAYMENT_UPDATE_ERROR,
+        code: ERROR_CODES.GROUP_PAYMENT_UPDATE_ERROR,
       })
     }
   }
@@ -235,21 +250,24 @@ export class GroupPaymentController {
       if (isNaN(paymentId)) {
         return res.status(400).json({
           success: false,
-          error: 'ID de pago inválido',
+          error: ERROR_CODES.INVALID_ID,
+          code: ERROR_CODES.INVALID_ID,
         })
       }
 
       if (!status) {
         return res.status(400).json({
           success: false,
-          error: 'Estado no proporcionado',
+          error: ERROR_CODES.MISSING_REQUIRED_FIELDS,
+          code: ERROR_CODES.MISSING_REQUIRED_FIELDS,
         })
       }
 
       if (!userId) {
         return res.status(401).json({
           success: false,
-          error: 'Usuario no autenticado',
+          error: ERROR_CODES.UNAUTHORIZED,
+          code: ERROR_CODES.UNAUTHORIZED,
         })
       }
 
@@ -258,7 +276,8 @@ export class GroupPaymentController {
       if (!oldPayment) {
         return res.status(404).json({
           success: false,
-          error: 'Pago no encontrado',
+          error: ERROR_CODES.GROUP_PAYMENT_NOT_FOUND,
+          code: ERROR_CODES.GROUP_PAYMENT_NOT_FOUND,
         })
       }
 
@@ -267,7 +286,8 @@ export class GroupPaymentController {
       if (!updated) {
         return res.status(500).json({
           success: false,
-          error: 'Error al actualizar estado del pago',
+          error: ERROR_CODES.GROUP_PAYMENT_UPDATE_ERROR,
+          code: ERROR_CODES.GROUP_PAYMENT_UPDATE_ERROR,
         })
       }
 
@@ -285,14 +305,15 @@ export class GroupPaymentController {
 
       return res.status(200).json({
         success: true,
-        message: 'Estado actualizado correctamente',
+        message: SUCCESS_CODES.GROUP_PAYMENT_UPDATED,
+        code: SUCCESS_CODES.GROUP_PAYMENT_UPDATED,
       })
     } catch (error: any) {
       console.error('Error en updatePaymentStatus:', error)
       return res.status(500).json({
         success: false,
-        error: 'Error al actualizar estado',
-        message: error.message,
+        error: ERROR_CODES.GROUP_PAYMENT_UPDATE_ERROR,
+        code: ERROR_CODES.GROUP_PAYMENT_UPDATE_ERROR,
       })
     }
   }
@@ -310,21 +331,24 @@ export class GroupPaymentController {
       if (isNaN(paymentId)) {
         return res.status(400).json({
           success: false,
-          error: 'ID de pago inválido',
+          error: ERROR_CODES.INVALID_ID,
+          code: ERROR_CODES.INVALID_ID,
         })
       }
 
       if (amount_paid === undefined || amount_paid < 0) {
         return res.status(400).json({
           success: false,
-          error: 'Cantidad pagada inválida',
+          error: ERROR_CODES.GROUP_PAYMENT_INVALID_AMOUNT,
+          code: ERROR_CODES.GROUP_PAYMENT_INVALID_AMOUNT,
         })
       }
 
       if (!userId) {
         return res.status(401).json({
           success: false,
-          error: 'Usuario no autenticado',
+          error: ERROR_CODES.UNAUTHORIZED,
+          code: ERROR_CODES.UNAUTHORIZED,
         })
       }
 
@@ -333,7 +357,8 @@ export class GroupPaymentController {
       if (!oldPayment) {
         return res.status(404).json({
           success: false,
-          error: 'Pago no encontrado',
+          error: ERROR_CODES.GROUP_PAYMENT_NOT_FOUND,
+          code: ERROR_CODES.GROUP_PAYMENT_NOT_FOUND,
         })
       }
 
@@ -342,7 +367,8 @@ export class GroupPaymentController {
       if (!updated) {
         return res.status(500).json({
           success: false,
-          error: 'Error al actualizar cantidad pagada',
+          error: ERROR_CODES.GROUP_PAYMENT_UPDATE_ERROR,
+          code: ERROR_CODES.GROUP_PAYMENT_UPDATE_ERROR,
         })
       }
 
@@ -360,14 +386,15 @@ export class GroupPaymentController {
 
       return res.status(200).json({
         success: true,
-        message: 'Cantidad pagada actualizada correctamente',
+        message: SUCCESS_CODES.GROUP_PAYMENT_UPDATED,
+        code: SUCCESS_CODES.GROUP_PAYMENT_UPDATED,
       })
     } catch (error: any) {
       console.error('Error en updateAmountPaid:', error)
       return res.status(500).json({
         success: false,
-        error: 'Error al actualizar cantidad pagada',
-        message: error.message,
+        error: ERROR_CODES.GROUP_PAYMENT_UPDATE_ERROR,
+        code: ERROR_CODES.GROUP_PAYMENT_UPDATE_ERROR,
       })
     }
   }
@@ -385,14 +412,16 @@ export class GroupPaymentController {
       if (isNaN(groupId) || isNaN(paymentId)) {
         return res.status(400).json({
           success: false,
-          error: 'IDs inválidos',
+          error: ERROR_CODES.INVALID_ID,
+          code: ERROR_CODES.INVALID_ID,
         })
       }
 
       if (!userId) {
         return res.status(401).json({
           success: false,
-          error: 'Usuario no autenticado',
+          error: ERROR_CODES.UNAUTHORIZED,
+          code: ERROR_CODES.UNAUTHORIZED,
         })
       }
 
@@ -401,14 +430,16 @@ export class GroupPaymentController {
       if (!payment) {
         return res.status(404).json({
           success: false,
-          error: 'Pago no encontrado',
+          error: ERROR_CODES.GROUP_PAYMENT_NOT_FOUND,
+          code: ERROR_CODES.GROUP_PAYMENT_NOT_FOUND,
         })
       }
 
       if (payment.group_id !== groupId) {
         return res.status(400).json({
           success: false,
-          error: 'El pago no pertenece a este grupo',
+          error: ERROR_CODES.GROUP_PAYMENT_NOT_IN_GROUP,
+          code: ERROR_CODES.GROUP_PAYMENT_NOT_IN_GROUP,
         })
       }
 
@@ -417,7 +448,8 @@ export class GroupPaymentController {
       if (!deleted) {
         return res.status(500).json({
           success: false,
-          error: 'Error al eliminar pago',
+          error: ERROR_CODES.GROUP_PAYMENT_DELETE_ERROR,
+          code: ERROR_CODES.GROUP_PAYMENT_DELETE_ERROR,
         })
       }
 
@@ -425,14 +457,15 @@ export class GroupPaymentController {
 
       return res.status(200).json({
         success: true,
-        message: 'Pago eliminado correctamente',
+        message: SUCCESS_CODES.GROUP_PAYMENT_DELETED,
+        code: SUCCESS_CODES.GROUP_PAYMENT_DELETED,
       })
     } catch (error: any) {
       console.error('Error en deletePayment:', error)
       return res.status(500).json({
         success: false,
-        error: 'Error al eliminar pago',
-        message: error.message,
+        error: ERROR_CODES.GROUP_PAYMENT_DELETE_ERROR,
+        code: ERROR_CODES.GROUP_PAYMENT_DELETE_ERROR,
       })
     }
   }
@@ -457,8 +490,8 @@ export class GroupPaymentController {
       console.error('Error en getUpcomingPayments:', error)
       return res.status(500).json({
         success: false,
-        error: 'Error al obtener pagos próximos',
-        message: error.message,
+        error: ERROR_CODES.GROUP_PAYMENT_FETCH_ERROR,
+        code: ERROR_CODES.GROUP_PAYMENT_FETCH_ERROR,
       })
     }
   }
@@ -480,8 +513,8 @@ export class GroupPaymentController {
       console.error('Error en getOverduePayments:', error)
       return res.status(500).json({
         success: false,
-        error: 'Error al obtener pagos vencidos',
-        message: error.message,
+        error: ERROR_CODES.GROUP_PAYMENT_FETCH_ERROR,
+        code: ERROR_CODES.GROUP_PAYMENT_FETCH_ERROR,
       })
     }
   }

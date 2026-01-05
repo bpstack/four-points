@@ -2,6 +2,7 @@
 
 import { FaArrowLeft, FaSpinner, FaCar } from 'react-icons/fa'
 import { MdLocalParking } from 'react-icons/md'
+import { useTranslations, useLocale } from 'next-intl'
 import type { BookingWizardState, BookingWizardActions, WizardVariant } from '../types'
 
 interface ConfirmationStepProps {
@@ -32,24 +33,30 @@ const modalStyles = {
 }
 
 export default function ConfirmationStep({ variant, state, actions }: ConfirmationStepProps) {
+  const t = useTranslations('booking')
+  const locale = useLocale()
   const normalizeLevel = (levelCode: string) => levelCode.replace('-', '')
 
   if (variant === 'full') {
     return (
       <div className={fullStyles.card}>
-        <h2 className={fullStyles.sectionTitle}>Confirmar Reserva</h2>
+        <h2 className={fullStyles.sectionTitle}>{t('confirmation.title')}</h2>
 
         <div className="space-y-2 p-3 sm:p-4 bg-[#f6f8fa] dark:bg-[#0d1117] border border-[#d0d7de] dark:border-[#30363d] rounded-md text-sm">
           {state.vehicleId && (
             <>
               <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-0">
-                <span className="text-[#57606a] dark:text-[#8b949e]">Vehículo:</span>
+                <span className="text-[#57606a] dark:text-[#8b949e]">
+                  {t('confirmation.vehicleLabel')}
+                </span>
                 <span className="font-medium text-[#24292f] dark:text-[#f0f6fc]">
                   {state.vehicleData.plate_number} - {state.vehicleData.model}
                 </span>
               </div>
               <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-0">
-                <span className="text-[#57606a] dark:text-[#8b949e]">Propietario:</span>
+                <span className="text-[#57606a] dark:text-[#8b949e]">
+                  {t('confirmation.owner')}
+                </span>
                 <span className="font-medium text-[#24292f] dark:text-[#f0f6fc]">
                   {state.vehicleData.owner_name}
                 </span>
@@ -58,39 +65,41 @@ export default function ConfirmationStep({ variant, state, actions }: Confirmati
           )}
           {!state.vehicleId && (
             <div className="text-sm text-[#57606a] dark:text-[#8b949e] italic">
-              Sin vehículo asociado
+              {t('vehicle.noVehicle')}
             </div>
           )}
           <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-0 pt-2 border-t border-[#d0d7de] dark:border-[#30363d]">
-            <span className="text-[#57606a] dark:text-[#8b949e]">Plaza:</span>
+            <span className="text-[#57606a] dark:text-[#8b949e]">{t('confirmation.spot')}</span>
             <span className="font-medium text-[#24292f] dark:text-[#f0f6fc]">
-              Planta {normalizeLevel(state.reservationData.level_code)} - Nº{' '}
+              {t('dates.floor', { level: normalizeLevel(state.reservationData.level_code) })} - Nº{' '}
               {state.reservationData.spot_number}
             </span>
           </div>
           <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-0">
-            <span className="text-[#57606a] dark:text-[#8b949e]">Check-in:</span>
+            <span className="text-[#57606a] dark:text-[#8b949e]">{t('dates.checkin')}:</span>
             <span className="font-medium text-[#24292f] dark:text-[#f0f6fc]">
               {state.reservationData.expected_checkin_date}{' '}
               {state.reservationData.expected_checkin_time}
             </span>
           </div>
           <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-0">
-            <span className="text-[#57606a] dark:text-[#8b949e]">Check-out:</span>
+            <span className="text-[#57606a] dark:text-[#8b949e]">{t('dates.checkout')}:</span>
             <span className="font-medium text-[#24292f] dark:text-[#f0f6fc]">
               {state.reservationData.expected_checkout_date}{' '}
               {state.reservationData.expected_checkout_time}
             </span>
           </div>
           <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-0">
-            <span className="text-[#57606a] dark:text-[#8b949e]">Días:</span>
+            <span className="text-[#57606a] dark:text-[#8b949e]">{t('confirmation.days')}</span>
             <span className="font-medium text-[#24292f] dark:text-[#f0f6fc]">
               {actions.calculateDays()}
             </span>
           </div>
           {state.reservationData.total_amount && (
             <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-0 pt-2 border-t border-[#d0d7de] dark:border-[#30363d]">
-              <span className="font-medium text-[#24292f] dark:text-[#c9d1d9]">Precio:</span>
+              <span className="font-medium text-[#24292f] dark:text-[#c9d1d9]">
+                {t('confirmation.price')}
+              </span>
               <span className="font-bold text-[#1a7f37] dark:text-[#3fb950]">
                 €{parseFloat(state.reservationData.total_amount).toFixed(2)}
               </span>
@@ -98,7 +107,7 @@ export default function ConfirmationStep({ variant, state, actions }: Confirmati
           )}
           {!state.reservationData.total_amount && (
             <div className="text-xs text-[#57606a] dark:text-[#8b949e] pt-2 border-t border-[#d0d7de] dark:border-[#30363d]">
-              Precio se calculará automáticamente
+              {t('confirmation.priceAuto')}
             </div>
           )}
         </div>
@@ -112,7 +121,7 @@ export default function ConfirmationStep({ variant, state, actions }: Confirmati
               ' flex-1 flex items-center justify-center gap-2 order-2 sm:order-1'
             }
           >
-            <FaArrowLeft className="w-3 h-3" /> Atrás
+            <FaArrowLeft className="w-3 h-3" /> {t('actions.back')}
           </button>
           <button
             onClick={actions.handleCreateReservation}
@@ -125,10 +134,10 @@ export default function ConfirmationStep({ variant, state, actions }: Confirmati
             {state.loading ? (
               <>
                 <FaSpinner className="w-4 h-4 animate-spin" />
-                Creando...
+                {t('actions.creating')}
               </>
             ) : (
-              'Confirmar Reserva'
+              t('actions.confirmBooking')
             )}
           </button>
         </div>
@@ -140,8 +149,8 @@ export default function ConfirmationStep({ variant, state, actions }: Confirmati
   return (
     <div className={modalStyles.card}>
       <div>
-        <h3 className={modalStyles.title}>Confirmar Reserva</h3>
-        <p className={modalStyles.subtitle}>Revisa los detalles antes de confirmar</p>
+        <h3 className={modalStyles.title}>{t('confirmation.title')}</h3>
+        <p className={modalStyles.subtitle}>{t('confirmation.subtitle')}</p>
       </div>
 
       <div className="space-y-4 p-4 sm:p-5 bg-gradient-to-br from-gray-50 to-slate-50 dark:from-slate-800/60 dark:to-slate-900/60 rounded-lg sm:rounded-xl border border-gray-100 dark:border-slate-700/50">
@@ -150,18 +159,22 @@ export default function ConfirmationStep({ variant, state, actions }: Confirmati
           <div className="space-y-2 sm:space-y-3 pb-3 sm:pb-4 border-b border-gray-200 dark:border-gray-700">
             <div className="flex items-center gap-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
               <FaCar className="w-4 h-4" />
-              Vehículo
+              {t('confirmation.vehicle')}
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
               <div>
-                <span className="text-xs text-gray-600 dark:text-gray-400">Matrícula:</span>
+                <span className="text-xs text-gray-600 dark:text-gray-400">
+                  {t('confirmation.plate')}
+                </span>
                 <p className="font-mono font-semibold text-gray-900 dark:text-gray-100 text-sm sm:text-base">
                   {state.vehicleData.plate_number}{' '}
                   {state.vehicleData.model && `- ${state.vehicleData.model}`}
                 </p>
               </div>
               <div>
-                <span className="text-xs text-gray-600 dark:text-gray-400">Propietario:</span>
+                <span className="text-xs text-gray-600 dark:text-gray-400">
+                  {t('confirmation.owner')}
+                </span>
                 <p className="font-semibold text-gray-900 dark:text-gray-100 text-sm sm:text-base">
                   {state.vehicleData.owner_name}
                 </p>
@@ -172,7 +185,7 @@ export default function ConfirmationStep({ variant, state, actions }: Confirmati
         {!state.vehicleId && (
           <div className="p-3 bg-gray-100 dark:bg-slate-800 rounded-lg">
             <p className="text-sm text-gray-600 dark:text-gray-400 italic text-center">
-              Sin vehículo asociado
+              {t('vehicle.noVehicle')}
             </p>
           </div>
         )}
@@ -181,28 +194,34 @@ export default function ConfirmationStep({ variant, state, actions }: Confirmati
         <div className="space-y-2 sm:space-y-3">
           <div className="flex items-center gap-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
             <MdLocalParking className="w-4 h-4" />
-            Reserva
+            {t('confirmation.booking')}
           </div>
           <div className="grid grid-cols-2 gap-2 sm:gap-3">
             <div>
-              <span className="text-xs text-gray-600 dark:text-gray-400">Plaza:</span>
+              <span className="text-xs text-gray-600 dark:text-gray-400">
+                {t('confirmation.spot')}
+              </span>
               <p className="font-semibold text-gray-900 dark:text-gray-100 text-sm sm:text-base">
                 {normalizeLevel(state.reservationData.level_code)} ·{' '}
                 {state.reservationData.spot_number}
               </p>
             </div>
             <div>
-              <span className="text-xs text-gray-600 dark:text-gray-400">Días:</span>
+              <span className="text-xs text-gray-600 dark:text-gray-400">
+                {t('confirmation.days')}
+              </span>
               <p className="font-semibold text-gray-900 dark:text-gray-100 text-sm sm:text-base">
                 {actions.calculateDays()}
               </p>
             </div>
             <div>
-              <span className="text-xs text-gray-600 dark:text-gray-400">Entrada:</span>
+              <span className="text-xs text-gray-600 dark:text-gray-400">
+                {t('confirmation.entry')}
+              </span>
               <p className="font-semibold text-gray-900 dark:text-gray-100 text-sm sm:text-base">
                 {new Date(
                   `${state.reservationData.expected_checkin_date}T${state.reservationData.expected_checkin_time}`
-                ).toLocaleString('es-ES', {
+                ).toLocaleString(locale, {
                   day: '2-digit',
                   month: '2-digit',
                   hour: '2-digit',
@@ -211,11 +230,13 @@ export default function ConfirmationStep({ variant, state, actions }: Confirmati
               </p>
             </div>
             <div>
-              <span className="text-xs text-gray-600 dark:text-gray-400">Salida:</span>
+              <span className="text-xs text-gray-600 dark:text-gray-400">
+                {t('confirmation.exit')}
+              </span>
               <p className="font-semibold text-gray-900 dark:text-gray-100 text-sm sm:text-base">
                 {new Date(
                   `${state.reservationData.expected_checkout_date}T${state.reservationData.expected_checkout_time}`
-                ).toLocaleString('es-ES', {
+                ).toLocaleString(locale, {
                   day: '2-digit',
                   month: '2-digit',
                   hour: '2-digit',
@@ -231,7 +252,7 @@ export default function ConfirmationStep({ variant, state, actions }: Confirmati
           <div className="pt-3 sm:pt-4 border-t border-gray-200 dark:border-gray-700">
             <div className="flex justify-between items-center">
               <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                Precio Total:
+                {t('confirmation.priceTotal')}
               </span>
               <span className="text-xl sm:text-2xl font-bold text-indigo-600 dark:text-indigo-400">
                 €{parseFloat(state.reservationData.total_amount).toFixed(2)}
@@ -247,7 +268,7 @@ export default function ConfirmationStep({ variant, state, actions }: Confirmati
           onClick={actions.prevStep}
           className={`${modalStyles.buttonSecondary} order-2 sm:order-1`}
         >
-          Atrás
+          {t('actions.back')}
         </button>
         <button
           onClick={actions.handleCreateReservation}
@@ -257,10 +278,10 @@ export default function ConfirmationStep({ variant, state, actions }: Confirmati
           {state.loading ? (
             <span className="flex items-center justify-center gap-2">
               <FaSpinner className="w-4 h-4 animate-spin" />
-              Creando...
+              {t('actions.creating')}
             </span>
           ) : (
-            'Confirmar Reserva'
+            t('actions.confirmBooking')
           )}
         </button>
       </div>

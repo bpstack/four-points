@@ -2,6 +2,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useTranslations, useLocale } from 'next-intl'
 import { useMaintenanceStore } from '@/app/stores/useMaintenanceStore'
 import { maintenanceApi } from '@/app/lib/maintenance/maintenanceApi'
 import type { ReportStatus, ReportPriority } from '@/app/lib/maintenance/maintenance'
@@ -22,6 +23,8 @@ import {
 import toast from 'react-hot-toast'
 
 export function DetailTab() {
+  const t = useTranslations('maintenance')
+  const locale = useLocale()
   const { currentReport, images, isLoadingReport, refreshReport } = useMaintenanceStore()
   const [isEditingStatus, setIsEditingStatus] = useState(false)
   const [isEditingPriority, setIsEditingPriority] = useState(false)
@@ -35,7 +38,7 @@ export function DetailTab() {
   if (isLoadingReport) {
     return (
       <div className="flex items-center justify-center py-12">
-        <LoadingSpinner size="md" message="Cargando detalles..." />
+        <LoadingSpinner size="md" message={t('detail.loadingDetails')} />
       </div>
     )
   }
@@ -44,8 +47,8 @@ export function DetailTab() {
     return (
       <EmptyState
         icon={<FiFileText className="w-12 h-12" />}
-        title="No se pudo cargar el reporte"
-        description="Intenta recargar la página"
+        title={t('detail.loadError')}
+        description={t('detail.loadErrorDescription')}
       />
     )
   }
@@ -59,9 +62,9 @@ export function DetailTab() {
       await refreshReport(currentReport.id)
       setIsEditingStatus(false)
       setSelectedStatus(null)
-      toast.success('Estado actualizado')
+      toast.success(t('detail.toast.statusUpdated'))
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Error al actualizar estado'
+      const message = error instanceof Error ? error.message : t('detail.toast.statusError')
       toast.error(message)
     } finally {
       setIsSaving(false)
@@ -77,9 +80,9 @@ export function DetailTab() {
       await refreshReport(currentReport.id)
       setIsEditingPriority(false)
       setSelectedPriority(null)
-      toast.success('Prioridad actualizada')
+      toast.success(t('detail.toast.priorityUpdated'))
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Error al actualizar prioridad'
+      const message = error instanceof Error ? error.message : t('detail.toast.priorityError')
       toast.error(message)
     } finally {
       setIsSaving(false)
@@ -88,7 +91,7 @@ export function DetailTab() {
 
   const handleSaveNotes = async () => {
     if (!resolutionNotes.trim()) {
-      toast.error('Escribe las notas de resolución')
+      toast.error(t('detail.resolutionNotes.emptyError'))
       return
     }
 
@@ -98,9 +101,9 @@ export function DetailTab() {
       await refreshReport(currentReport.id)
       setShowNotesInput(false)
       setResolutionNotes('')
-      toast.success('Notas guardadas')
+      toast.success(t('detail.toast.notesSaved'))
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Error al guardar notas'
+      const message = error instanceof Error ? error.message : t('detail.toast.notesError')
       toast.error(message)
     } finally {
       setIsSaving(false)
@@ -112,37 +115,37 @@ export function DetailTab() {
       reported: {
         color:
           'bg-yellow-50 text-yellow-700 border border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-400 dark:border-yellow-800',
-        label: 'Reportado',
+        label: t('status.reported'),
       },
       assigned: {
         color:
           'bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-800',
-        label: 'Asignado',
+        label: t('status.assigned'),
       },
       in_progress: {
         color:
           'bg-purple-50 text-purple-700 border border-purple-200 dark:bg-purple-900/20 dark:text-purple-400 dark:border-purple-800',
-        label: 'En Progreso',
+        label: t('status.inProgress'),
       },
       waiting: {
         color:
           'bg-orange-50 text-orange-700 border border-orange-200 dark:bg-orange-900/20 dark:text-orange-400 dark:border-orange-800',
-        label: 'En Espera',
+        label: t('status.waiting'),
       },
       completed: {
         color:
           'bg-green-50 text-green-700 border border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800',
-        label: 'Completado',
+        label: t('status.completed'),
       },
       closed: {
         color:
           'bg-gray-50 text-gray-700 border border-gray-200 dark:bg-gray-900/20 dark:text-gray-400 dark:border-gray-800',
-        label: 'Cerrado',
+        label: t('status.closed'),
       },
       canceled: {
         color:
           'bg-red-50 text-red-700 border border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800',
-        label: 'Cancelado',
+        label: t('status.canceled'),
       },
     }
     return configs[status]
@@ -150,27 +153,27 @@ export function DetailTab() {
 
   const getPriorityConfig = (priority: typeof currentReport.priority) => {
     const configs = {
-      low: { color: 'text-gray-600 dark:text-gray-400', label: 'Baja' },
-      medium: { color: 'text-blue-600 dark:text-blue-400', label: 'Media' },
-      high: { color: 'text-orange-600 dark:text-orange-400', label: 'Alta' },
-      urgent: { color: 'text-red-600 dark:text-red-400', label: 'Urgente' },
+      low: { color: 'text-gray-600 dark:text-gray-400', label: t('priority.low') },
+      medium: { color: 'text-blue-600 dark:text-blue-400', label: t('priority.medium') },
+      high: { color: 'text-orange-600 dark:text-orange-400', label: t('priority.high') },
+      urgent: { color: 'text-red-600 dark:text-red-400', label: t('priority.urgent') },
     }
     return configs[priority]
   }
 
   const getLocationTypeLabel = (type: typeof currentReport.location_type) => {
     const labels = {
-      room: 'Habitación',
-      common_area: 'Área Común',
-      exterior: 'Exterior',
-      facilities: 'Instalaciones',
-      other: 'Otro',
+      room: t('locationType.room'),
+      common_area: t('locationType.commonArea'),
+      exterior: t('locationType.exterior'),
+      facilities: t('locationType.facilities'),
+      other: t('locationType.other'),
     }
     return labels[type]
   }
 
   const formatDateTime = (date: string) => {
-    return new Date(date).toLocaleDateString('es-ES', {
+    return new Date(date).toLocaleDateString(locale, {
       day: '2-digit',
       month: 'long',
       year: 'numeric',
@@ -183,20 +186,20 @@ export function DetailTab() {
   const priorityConfig = getPriorityConfig(currentReport.priority)
 
   const statusOptions: { value: ReportStatus; label: string }[] = [
-    { value: 'reported', label: 'Reportado' },
-    { value: 'assigned', label: 'Asignado' },
-    { value: 'in_progress', label: 'En Progreso' },
-    { value: 'waiting', label: 'En Espera' },
-    { value: 'completed', label: 'Completado' },
-    { value: 'closed', label: 'Cerrado' },
-    { value: 'canceled', label: 'Cancelado' },
+    { value: 'reported', label: t('status.reported') },
+    { value: 'assigned', label: t('status.assigned') },
+    { value: 'in_progress', label: t('status.inProgress') },
+    { value: 'waiting', label: t('status.waiting') },
+    { value: 'completed', label: t('status.completed') },
+    { value: 'closed', label: t('status.closed') },
+    { value: 'canceled', label: t('status.canceled') },
   ]
 
   const priorityOptions: { value: ReportPriority; label: string }[] = [
-    { value: 'low', label: 'Baja' },
-    { value: 'medium', label: 'Media' },
-    { value: 'high', label: 'Alta' },
-    { value: 'urgent', label: 'Urgente' },
+    { value: 'low', label: t('priority.low') },
+    { value: 'medium', label: t('priority.medium') },
+    { value: 'high', label: t('priority.high') },
+    { value: 'urgent', label: t('priority.urgent') },
   ]
 
   return (
@@ -211,7 +214,9 @@ export function DetailTab() {
             <div className="flex items-center justify-between gap-4">
               {/* Estado */}
               <div className="flex-1">
-                <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Estado</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
+                  {t('detail.sections.status')}
+                </p>
                 {isEditingStatus ? (
                   <div className="flex items-center gap-2">
                     <select
@@ -264,7 +269,7 @@ export function DetailTab() {
               {/* Prioridad */}
               <div className="flex-1">
                 <p className="text-xs text-gray-500 dark:text-gray-400 mb-1 text-right">
-                  Prioridad
+                  {t('detail.sections.priority')}
                 </p>
                 {isEditingPriority ? (
                   <div className="flex items-center justify-end gap-2">
@@ -319,19 +324,23 @@ export function DetailTab() {
           <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-4">
             <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2 mb-4">
               <FiFileText className="w-4 h-4" />
-              Información del Reporte
+              {t('detail.sections.reportInfo')}
             </h3>
 
             <div className="space-y-3">
               <div>
-                <label className="text-xs text-gray-500 dark:text-gray-400">Título</label>
+                <label className="text-xs text-gray-500 dark:text-gray-400">
+                  {t('detail.labels.title')}
+                </label>
                 <p className="text-sm text-gray-900 dark:text-gray-100 mt-1">
                   {currentReport.title}
                 </p>
               </div>
 
               <div>
-                <label className="text-xs text-gray-500 dark:text-gray-400">Descripción</label>
+                <label className="text-xs text-gray-500 dark:text-gray-400">
+                  {t('detail.labels.description')}
+                </label>
                 <p className="text-sm text-gray-900 dark:text-gray-100 mt-1 whitespace-pre-wrap">
                   {currentReport.description}
                 </p>
@@ -343,12 +352,14 @@ export function DetailTab() {
           <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-4">
             <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2 mb-4">
               <FiMapPin className="w-4 h-4" />
-              Ubicación
+              {t('detail.sections.location')}
             </h3>
 
             <div className="space-y-3">
               <div>
-                <label className="text-xs text-gray-500 dark:text-gray-400">Tipo</label>
+                <label className="text-xs text-gray-500 dark:text-gray-400">
+                  {t('detail.labels.type')}
+                </label>
                 <p className="text-sm text-gray-900 dark:text-gray-100 mt-1">
                   {getLocationTypeLabel(currentReport.location_type)}
                 </p>
@@ -356,7 +367,9 @@ export function DetailTab() {
 
               {currentReport.room_number && (
                 <div>
-                  <label className="text-xs text-gray-500 dark:text-gray-400">Habitación</label>
+                  <label className="text-xs text-gray-500 dark:text-gray-400">
+                    {t('detail.labels.room')}
+                  </label>
                   <p className="text-sm text-gray-900 dark:text-gray-100 mt-1">
                     {currentReport.room_number}
                   </p>
@@ -364,7 +377,9 @@ export function DetailTab() {
               )}
 
               <div>
-                <label className="text-xs text-gray-500 dark:text-gray-400">Descripción</label>
+                <label className="text-xs text-gray-500 dark:text-gray-400">
+                  {t('detail.labels.description')}
+                </label>
                 <p className="text-sm text-gray-900 dark:text-gray-100 mt-1">
                   {currentReport.location_description}
                 </p>
@@ -374,7 +389,7 @@ export function DetailTab() {
                 <div className="pt-2">
                   <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded text-xs font-medium bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400">
                     <FiAlertCircle className="w-3.5 h-3.5" />
-                    Habitación fuera de servicio
+                    {t('detail.labels.roomOutOfService')}
                   </span>
                 </div>
               )}
@@ -385,17 +400,17 @@ export function DetailTab() {
           <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-4">
             <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2 mb-4">
               <FiUser className="w-4 h-4" />
-              Asignación
+              {t('detail.sections.assignment')}
             </h3>
 
             <div className="space-y-3">
               {currentReport.assigned_type === 'internal' && (
                 <div>
                   <label className="text-xs text-gray-500 dark:text-gray-400">
-                    Personal Interno
+                    {t('detail.labels.internalStaff')}
                   </label>
                   <p className="text-sm text-gray-900 dark:text-gray-100 mt-1">
-                    {currentReport.assigned_to_name || 'Usuario asignado'}
+                    {currentReport.assigned_to_name || t('detail.labels.assignedUser')}
                   </p>
                 </div>
               )}
@@ -404,7 +419,7 @@ export function DetailTab() {
                 <>
                   <div>
                     <label className="text-xs text-gray-500 dark:text-gray-400">
-                      Empresa Externa
+                      {t('detail.labels.externalCompany')}
                     </label>
                     <p className="text-sm text-gray-900 dark:text-gray-100 mt-1">
                       {currentReport.external_company_name || '-'}
@@ -412,7 +427,9 @@ export function DetailTab() {
                   </div>
                   {currentReport.external_contact && (
                     <div>
-                      <label className="text-xs text-gray-500 dark:text-gray-400">Contacto</label>
+                      <label className="text-xs text-gray-500 dark:text-gray-400">
+                        {t('detail.labels.contact')}
+                      </label>
                       <p className="text-sm text-gray-900 dark:text-gray-100 mt-1">
                         {currentReport.external_contact}
                       </p>
@@ -422,7 +439,9 @@ export function DetailTab() {
               )}
 
               {!currentReport.assigned_type && (
-                <p className="text-sm text-gray-500 dark:text-gray-400">Sin asignar</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  {t('detail.labels.notAssigned')}
+                </p>
               )}
             </div>
           </div>
@@ -431,12 +450,14 @@ export function DetailTab() {
           <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-4">
             <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2 mb-4">
               <FiClock className="w-4 h-4" />
-              Fechas
+              {t('detail.sections.dates')}
             </h3>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="text-xs text-gray-500 dark:text-gray-400">Reportado</label>
+                <label className="text-xs text-gray-500 dark:text-gray-400">
+                  {t('detail.labels.reported')}
+                </label>
                 <p className="text-sm text-gray-900 dark:text-gray-100 mt-1">
                   {formatDateTime(currentReport.report_date)}
                 </p>
@@ -444,7 +465,9 @@ export function DetailTab() {
 
               {currentReport.started_at && (
                 <div>
-                  <label className="text-xs text-gray-500 dark:text-gray-400">Iniciado</label>
+                  <label className="text-xs text-gray-500 dark:text-gray-400">
+                    {t('detail.labels.started')}
+                  </label>
                   <p className="text-sm text-gray-900 dark:text-gray-100 mt-1">
                     {formatDateTime(currentReport.started_at)}
                   </p>
@@ -453,7 +476,9 @@ export function DetailTab() {
 
               {currentReport.resolved_at && (
                 <div>
-                  <label className="text-xs text-gray-500 dark:text-gray-400">Resuelto</label>
+                  <label className="text-xs text-gray-500 dark:text-gray-400">
+                    {t('detail.labels.resolved')}
+                  </label>
                   <p className="text-sm text-gray-900 dark:text-gray-100 mt-1">
                     {formatDateTime(currentReport.resolved_at)}
                   </p>
@@ -462,7 +487,9 @@ export function DetailTab() {
 
               {currentReport.closed_at && (
                 <div>
-                  <label className="text-xs text-gray-500 dark:text-gray-400">Cerrado</label>
+                  <label className="text-xs text-gray-500 dark:text-gray-400">
+                    {t('detail.labels.closed')}
+                  </label>
                   <p className="text-sm text-gray-900 dark:text-gray-100 mt-1">
                     {formatDateTime(currentReport.closed_at)}
                   </p>
@@ -474,7 +501,7 @@ export function DetailTab() {
           {/* Resolution Notes */}
           <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-4">
             <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">
-              Notas de Resolución
+              {t('detail.sections.resolutionNotes')}
             </h3>
             {currentReport.resolution_notes ? (
               <p className="text-sm text-gray-900 dark:text-gray-100 whitespace-pre-wrap">
@@ -485,7 +512,7 @@ export function DetailTab() {
                 <textarea
                   value={resolutionNotes}
                   onChange={(e) => setResolutionNotes(e.target.value)}
-                  placeholder="Describe cómo se resolvió el problema..."
+                  placeholder={t('detail.resolutionNotes.placeholder')}
                   rows={4}
                   className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 resize-none"
                 />
@@ -496,7 +523,7 @@ export function DetailTab() {
                     className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-green-600 rounded-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <FiCheck className="w-3.5 h-3.5" />
-                    Guardar
+                    {t('detail.resolutionNotes.save')}
                   </button>
                   <button
                     onClick={() => {
@@ -507,7 +534,7 @@ export function DetailTab() {
                     className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700"
                   >
                     <FiX className="w-3.5 h-3.5" />
-                    Cancelar
+                    {t('detail.resolutionNotes.cancel')}
                   </button>
                 </div>
               </div>
@@ -517,7 +544,7 @@ export function DetailTab() {
                 className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
               >
                 <FiEdit2 className="w-3.5 h-3.5" />
-                Añadir Notas de Resolución
+                {t('detail.resolutionNotes.add')}
               </button>
             )}
           </div>
@@ -525,29 +552,37 @@ export function DetailTab() {
           {/* Metadata */}
           <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-4">
             <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">
-              Información del Sistema
+              {t('detail.sections.systemInfo')}
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
               <div>
-                <label className="text-gray-500 dark:text-gray-400">Creado por</label>
+                <label className="text-gray-500 dark:text-gray-400">
+                  {t('detail.labels.createdBy')}
+                </label>
                 <p className="text-gray-900 dark:text-gray-100 mt-1">
                   {currentReport.created_by_name || currentReport.created_by}
                 </p>
               </div>
               <div>
-                <label className="text-gray-500 dark:text-gray-400">Fecha creación</label>
+                <label className="text-gray-500 dark:text-gray-400">
+                  {t('detail.labels.createdAt')}
+                </label>
                 <p className="text-gray-900 dark:text-gray-100 mt-1">
                   {formatDateTime(currentReport.created_at)}
                 </p>
               </div>
               <div>
-                <label className="text-gray-500 dark:text-gray-400">ID Reporte</label>
+                <label className="text-gray-500 dark:text-gray-400">
+                  {t('detail.labels.reportId')}
+                </label>
                 <p className="text-gray-900 dark:text-gray-100 mt-1 font-mono text-[10px]">
                   {currentReport.id}
                 </p>
               </div>
               <div>
-                <label className="text-gray-500 dark:text-gray-400">Última actualización</label>
+                <label className="text-gray-500 dark:text-gray-400">
+                  {t('detail.labels.lastUpdate')}
+                </label>
                 <p className="text-gray-900 dark:text-gray-100 mt-1">
                   {formatDateTime(currentReport.updated_at)}
                 </p>
@@ -560,7 +595,7 @@ export function DetailTab() {
             <div className="lg:hidden bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-4">
               <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2 mb-4">
                 <FiImage className="w-4 h-4" />
-                Imágenes ({images.length})
+                {t('detail.images.title', { count: images.length })}
               </h3>
               <div className="grid grid-cols-2 gap-3">
                 {images.map((image) => (
@@ -592,7 +627,7 @@ export function DetailTab() {
               <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-4">
                 <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2 mb-4">
                   <FiImage className="w-4 h-4" />
-                  Imágenes ({images.length})
+                  {t('detail.images.title', { count: images.length })}
                 </h3>
                 <div className="space-y-3">
                   {images.map((image) => (
@@ -618,10 +653,10 @@ export function DetailTab() {
               <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-4">
                 <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2 mb-4">
                   <FiImage className="w-4 h-4" />
-                  Imágenes
+                  {t('detail.images.titleNoCount')}
                 </h3>
                 <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-8">
-                  Sin imágenes adjuntas
+                  {t('detail.images.noImages')}
                 </p>
               </div>
             )}
@@ -644,7 +679,7 @@ export function DetailTab() {
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={expandedImage}
-            alt="Imagen ampliada"
+            alt={t('detail.images.expanded')}
             className="max-w-full max-h-[90vh] object-contain rounded-lg"
             onClick={(e) => e.stopPropagation()}
           />

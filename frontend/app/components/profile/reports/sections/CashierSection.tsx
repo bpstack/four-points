@@ -2,7 +2,8 @@
 
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useMemo } from 'react'
+import { useTranslations, useLocale } from 'next-intl'
 import { apiClient } from '@/app/lib/apiClient'
 import { cn } from '@/app/lib/helpers/utils'
 import { API_BASE_URL } from '@/app/lib/env'
@@ -112,35 +113,22 @@ interface _Shift {
 type ViewMode = 'dashboard' | 'vouchers' | 'history'
 
 // ═══════════════════════════════════════════════════════
-// CONFIG
+// CONFIG (colors and icons only - labels moved inside component for i18n)
 // ═══════════════════════════════════════════════════════
 
-const VOUCHER_STATUS_CONFIG: Record<
-  string,
-  { label: string; color: string; icon: React.ReactNode }
-> = {
+const VOUCHER_STATUS_COLORS: Record<string, { color: string; icon: React.ReactNode }> = {
   pending: {
-    label: 'Pendiente',
     color: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
     icon: <FiClock className="w-3 h-3" />,
   },
   justified: {
-    label: 'Justificado',
     color: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
     icon: <FiCheckCircle className="w-3 h-3" />,
   },
   cancelled: {
-    label: 'Cancelado',
     color: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
     icon: <FiXCircle className="w-3 h-3" />,
   },
-}
-
-const SHIFT_TYPES: Record<string, string> = {
-  morning: 'Mañana',
-  afternoon: 'Tarde',
-  night: 'Noche',
-  audit: 'Auditoría',
 }
 
 // ═══════════════════════════════════════════════════════
@@ -148,6 +136,30 @@ const SHIFT_TYPES: Record<string, string> = {
 // ═══════════════════════════════════════════════════════
 
 export default function CashierSection() {
+  const t = useTranslations('profile.reports.cashier')
+  const locale = useLocale()
+
+  // Status labels with translations
+  const VOUCHER_STATUS_LABELS = useMemo(
+    () => ({
+      pending: t('voucherStatus.pending'),
+      justified: t('voucherStatus.justified'),
+      cancelled: t('voucherStatus.cancelled'),
+    }),
+    [t]
+  )
+
+  // Shift types with translations
+  const SHIFT_TYPES = useMemo(
+    () => ({
+      morning: t('shiftTypes.morning'),
+      afternoon: t('shiftTypes.afternoon'),
+      night: t('shiftTypes.night'),
+      audit: t('shiftTypes.audit'),
+    }),
+    [t]
+  )
+
   const [overview, setOverview] = useState<DashboardOverview | null>(null)
   const [dailyReport, setDailyReport] = useState<DailyReport | null>(null)
   const [vouchers, setVouchers] = useState<Voucher[]>([])
@@ -221,14 +233,15 @@ export default function CashierSection() {
       }
       setLoaded(true)
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Error cargando datos de caja')
+      setError(err instanceof Error ? err.message : t('errorLoading'))
     } finally {
       setLoading(false)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [viewMode, voucherStatus, historyDate, dashboardDate])
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('es-MX', {
+    return new Intl.NumberFormat(locale === 'es' ? 'es-MX' : 'en-US', {
       style: 'currency',
       currency: 'MXN',
       minimumFractionDigits: 0,
@@ -236,7 +249,7 @@ export default function CashierSection() {
   }
 
   const formatDate = (dateStr: string) => {
-    return new Intl.DateTimeFormat('es-ES', {
+    return new Intl.DateTimeFormat(locale === 'es' ? 'es-ES' : 'en-US', {
       day: '2-digit',
       month: 'short',
       year: 'numeric',
@@ -244,7 +257,7 @@ export default function CashierSection() {
   }
 
   const formatDateTime = (dateStr: string) => {
-    return new Intl.DateTimeFormat('es-ES', {
+    return new Intl.DateTimeFormat(locale === 'es' ? 'es-ES' : 'en-US', {
       day: '2-digit',
       month: 'short',
       year: 'numeric',
@@ -259,19 +272,15 @@ export default function CashierSection() {
       <div className="flex flex-col items-center justify-center h-64 gap-4">
         <div className="text-center">
           <FiDollarSign className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
-          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-1">
-            Reportes de Caja
-          </h3>
-          <p className="text-sm text-gray-500 dark:text-gray-400 max-w-md">
-            Consulta el dashboard de caja, historial de vales y actividad del sistema.
-          </p>
+          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-1">{t('title')}</h3>
+          <p className="text-sm text-gray-500 dark:text-gray-400 max-w-md">{t('description')}</p>
         </div>
         <button
           onClick={fetchData}
           className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
         >
           <FiRefreshCw className="w-4 h-4" />
-          Cargar Dashboard
+          {t('loadDashboard')}
         </button>
       </div>
     )
@@ -294,7 +303,7 @@ export default function CashierSection() {
                 : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
             )}
           >
-            Dashboard
+            {t('views.dashboard')}
           </button>
           <button
             onClick={() => {
@@ -308,7 +317,7 @@ export default function CashierSection() {
                 : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
             )}
           >
-            Vales
+            {t('views.vouchers')}
           </button>
           <button
             onClick={() => {
@@ -322,7 +331,7 @@ export default function CashierSection() {
                 : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
             )}
           >
-            Historial
+            {t('views.history')}
           </button>
         </div>
 
@@ -334,7 +343,7 @@ export default function CashierSection() {
               setDashboardDate(date)
               setLoaded(false)
             }}
-            label="Fecha reporte"
+            label={t('dateFilter')}
           />
         )}
 
@@ -347,10 +356,10 @@ export default function CashierSection() {
             }}
             className="text-sm border border-gray-300 dark:border-[#30363d] rounded-lg px-3 py-1.5 bg-white dark:bg-[#0d1117] text-gray-900 dark:text-white"
           >
-            <option value="all">Todos los vales</option>
-            <option value="pending">Pendientes</option>
-            <option value="justified">Justificados</option>
-            <option value="cancelled">Cancelados</option>
+            <option value="all">{t('voucherStatus.all')}</option>
+            <option value="pending">{t('voucherStatus.pending')}</option>
+            <option value="justified">{t('voucherStatus.justified')}</option>
+            <option value="cancelled">{t('voucherStatus.cancelled')}</option>
           </select>
         )}
 
@@ -361,7 +370,7 @@ export default function CashierSection() {
               setHistoryDate(date)
               setLoaded(false)
             }}
-            label="Filtrar por fecha"
+            label={t('historyDateFilter')}
           />
         )}
       </div>
@@ -390,11 +399,11 @@ export default function CashierSection() {
           <div>
             <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-3 flex items-center gap-2">
               <FiCalendar className="w-4 h-4 text-blue-500" />
-              Hoy - {formatDate(overview.today.date)}
+              {t('dashboard.today')} - {formatDate(overview.today.date)}
               {overview.today.closed_shifts === overview.today.total_shifts &&
                 overview.today.total_shifts > 0 && (
                   <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400">
-                    Cerrado
+                    {t('dashboard.closed')}
                   </span>
                 )}
             </h4>
@@ -403,31 +412,41 @@ export default function CashierSection() {
                 <p className="text-2xl font-bold text-green-600 dark:text-green-400">
                   {formatCurrency(overview.today.grand_total)}
                 </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Total Ingresos</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  {t('dashboard.totalIncome')}
+                </p>
               </div>
               <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 text-center">
                 <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
                   {formatCurrency(overview.today.total_cash)}
                 </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Efectivo</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  {t('dashboard.cash')}
+                </p>
               </div>
               <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-4 text-center">
                 <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">
                   {formatCurrency(overview.today.total_payments)}
                 </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Otros Pagos</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  {t('dashboard.otherPayments')}
+                </p>
               </div>
               <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-lg p-4 text-center">
                 <p className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">
                   {overview.today.open_shifts}
                 </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Turnos Abiertos</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  {t('dashboard.openShifts')}
+                </p>
               </div>
               <div className="bg-gray-50 dark:bg-[#161b22] rounded-lg p-4 text-center">
                 <p className="text-2xl font-bold text-gray-700 dark:text-gray-300">
                   {overview.today.total_shifts}
                 </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Total Turnos</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  {t('dashboard.totalShifts')}
+                </p>
               </div>
             </div>
           </div>
@@ -436,26 +455,32 @@ export default function CashierSection() {
           <div>
             <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-3 flex items-center gap-2">
               <FiFileText className="w-4 h-4 text-purple-500" />
-              Resumen de Vales
+              {t('vouchersSummary.title')}
             </h4>
             <div className="grid grid-cols-3 gap-4">
               <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-lg p-4">
                 <p className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">
                   {overview.vouchers.active_count}
                 </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Vales Activos</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  {t('vouchersSummary.activeVouchers')}
+                </p>
               </div>
               <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-lg p-4">
                 <p className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">
                   {formatCurrency(overview.vouchers.active_amount)}
                 </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Monto Pendiente</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  {t('vouchersSummary.pendingAmount')}
+                </p>
               </div>
               <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-4">
                 <p className="text-2xl font-bold text-green-600 dark:text-green-400">
                   {formatCurrency(overview.vouchers.total_repaid)}
                 </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Total Justificado</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  {t('vouchersSummary.totalJustified')}
+                </p>
               </div>
             </div>
           </div>
@@ -468,7 +493,7 @@ export default function CashierSection() {
                   <FiAlertCircle className="w-5 h-5 text-yellow-500" />
                   <div>
                     <p className="text-sm font-medium text-yellow-800 dark:text-yellow-200">
-                      {overview.vouchers.active_count} vales pendientes
+                      {t('vouchersSummary.pendingAlert', { count: overview.vouchers.active_count })}
                     </p>
                     <p className="text-xs text-yellow-600 dark:text-yellow-400">
                       Total: {formatCurrency(overview.vouchers.active_amount)}
@@ -483,7 +508,7 @@ export default function CashierSection() {
                   }}
                   className="text-xs font-medium text-yellow-700 dark:text-yellow-300 hover:underline"
                 >
-                  Ver vales →
+                  {t('vouchersSummary.viewVouchers')} →
                 </button>
               </div>
             </div>
@@ -502,7 +527,7 @@ export default function CashierSection() {
               {dailyReport.summary.shifts_closed === dailyReport.summary.shifts_count &&
                 dailyReport.summary.shifts_count > 0 && (
                   <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400">
-                    Cerrado
+                    {t('dashboard.closed')}
                   </span>
                 )}
             </h4>
@@ -511,32 +536,41 @@ export default function CashierSection() {
                 <p className="text-2xl font-bold text-green-600 dark:text-green-400">
                   {formatCurrency(dailyReport.summary.grand_total)}
                 </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Total Ingresos</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  {t('dashboard.totalIncome')}
+                </p>
               </div>
               <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 text-center">
                 <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
                   {formatCurrency(dailyReport.summary.total_cash)}
                 </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Efectivo</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  {t('dashboard.cash')}
+                </p>
               </div>
               <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-4 text-center">
                 <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">
                   {formatCurrency(dailyReport.summary.total_payments)}
                 </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Otros Pagos</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  {t('dashboard.otherPayments')}
+                </p>
               </div>
               <div className="bg-orange-50 dark:bg-orange-900/20 rounded-lg p-4 text-center">
                 <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">
                   {formatCurrency(dailyReport.summary.total_vouchers)}
                 </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Vales</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  {t('dashboard.vouchers')}
+                </p>
               </div>
               <div className="bg-gray-50 dark:bg-[#161b22] rounded-lg p-4 text-center">
                 <p className="text-2xl font-bold text-gray-700 dark:text-gray-300">
                   {dailyReport.summary.shifts_count}
                 </p>
                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                  Turnos ({dailyReport.summary.shifts_closed} cerrados)
+                  {t('dashboard.shifts')} (
+                  {t('dashboard.shiftsClosed', { count: dailyReport.summary.shifts_closed })})
                 </p>
               </div>
             </div>
@@ -568,7 +602,7 @@ export default function CashierSection() {
                         : 'text-red-800 dark:text-red-200'
                     )}
                   >
-                    Diferencia: {formatCurrency(dailyReport.summary.total_difference)}
+                    {t('difference.title')}: {formatCurrency(dailyReport.summary.total_difference)}
                   </p>
                   <p
                     className={cn(
@@ -578,7 +612,9 @@ export default function CashierSection() {
                         : 'text-red-600 dark:text-red-400'
                     )}
                   >
-                    {dailyReport.summary.total_difference > 0 ? 'Sobrante' : 'Faltante'} en caja
+                    {dailyReport.summary.total_difference > 0
+                      ? t('difference.surplus')
+                      : t('difference.shortage')}
                   </p>
                 </div>
               </div>
@@ -590,23 +626,23 @@ export default function CashierSection() {
             <div>
               <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-3 flex items-center gap-2">
                 <FiClock className="w-4 h-4 text-blue-500" />
-                Detalle por Turno
+                {t('shiftDetail.title')}
               </h4>
               <div className="border border-gray-200 dark:border-[#30363d] rounded-lg overflow-hidden">
                 <table className="w-full text-sm">
                   <thead className="bg-gray-50 dark:bg-[#161b22]">
                     <tr>
                       <th className="px-4 py-3 text-left font-medium text-gray-500 dark:text-gray-400">
-                        Turno
+                        {t('shiftDetail.shift')}
                       </th>
                       <th className="px-4 py-3 text-right font-medium text-gray-500 dark:text-gray-400">
-                        Ingresos
+                        {t('shiftDetail.income')}
                       </th>
                       <th className="px-4 py-3 text-right font-medium text-gray-500 dark:text-gray-400">
-                        En Caja
+                        {t('shiftDetail.inBox')}
                       </th>
                       <th className="px-4 py-3 text-center font-medium text-gray-500 dark:text-gray-400">
-                        Estado
+                        {t('shiftDetail.status')}
                       </th>
                     </tr>
                   </thead>
@@ -617,7 +653,8 @@ export default function CashierSection() {
                         className="hover:bg-gray-50 dark:hover:bg-[#161b22]"
                       >
                         <td className="px-4 py-3 text-gray-900 dark:text-white font-medium">
-                          {SHIFT_TYPES[shiftData.shift.shift_type] || shiftData.shift.shift_type}
+                          {SHIFT_TYPES[shiftData.shift.shift_type as keyof typeof SHIFT_TYPES] ||
+                            shiftData.shift.shift_type}
                         </td>
                         <td className="px-4 py-3 text-right text-gray-900 dark:text-white">
                           {formatCurrency(shiftData.total_income)}
@@ -629,12 +666,12 @@ export default function CashierSection() {
                           {shiftData.is_balanced ? (
                             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
                               <FiCheckCircle className="w-3 h-3" />
-                              Cuadrado
+                              {t('shiftDetail.balanced')}
                             </span>
                           ) : (
                             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400">
                               <FiAlertCircle className="w-3 h-3" />
-                              Descuadre
+                              {t('shiftDetail.unbalanced')}
                             </span>
                           )}
                         </td>
@@ -652,8 +689,11 @@ export default function CashierSection() {
       {!loading && !error && viewMode === 'vouchers' && vouchers.length > 0 && (
         <div className="space-y-2">
           {vouchers.map((voucher) => {
+            const statusLabel =
+              VOUCHER_STATUS_LABELS[voucher.status as keyof typeof VOUCHER_STATUS_LABELS] ||
+              VOUCHER_STATUS_LABELS.pending
             const statusConfig =
-              VOUCHER_STATUS_CONFIG[voucher.status] || VOUCHER_STATUS_CONFIG.pending
+              VOUCHER_STATUS_COLORS[voucher.status] || VOUCHER_STATUS_COLORS.pending
 
             return (
               <div
@@ -670,7 +710,7 @@ export default function CashierSection() {
                         )}
                       >
                         {statusConfig.icon}
-                        {statusConfig.label}
+                        {statusLabel}
                       </span>
                       <span className="text-xs text-gray-400 font-mono">
                         #{voucher.voucher_number || voucher.id}
@@ -681,7 +721,7 @@ export default function CashierSection() {
                       {voucher.concept}
                     </p>
                     <p className="text-xs text-gray-500 dark:text-gray-400">
-                      Para: {voucher.recipient}
+                      {t('voucher.for')}: {voucher.recipient}
                     </p>
 
                     <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400 mt-2">
@@ -692,7 +732,7 @@ export default function CashierSection() {
                       {voucher.justified_at && (
                         <span className="inline-flex items-center gap-1">
                           <FiCheckCircle className="w-3.5 h-3.5 text-green-500" />
-                          Justificado: {formatDate(voucher.justified_at)}
+                          {t('voucher.justified')}: {formatDate(voucher.justified_at)}
                         </span>
                       )}
                     </div>
@@ -702,7 +742,9 @@ export default function CashierSection() {
                     <p className="text-lg font-bold text-gray-900 dark:text-white">
                       {formatCurrency(voucher.amount)}
                     </p>
-                    <p className="text-xs text-gray-400">Turno #{voucher.shift_id}</p>
+                    <p className="text-xs text-gray-400">
+                      {t('voucher.shift')} #{voucher.shift_id}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -718,19 +760,19 @@ export default function CashierSection() {
             <thead className="bg-gray-50 dark:bg-[#161b22]">
               <tr>
                 <th className="px-4 py-3 text-left font-medium text-gray-500 dark:text-gray-400">
-                  Accion
+                  {t('historyTable.action')}
                 </th>
                 <th className="px-4 py-3 text-left font-medium text-gray-500 dark:text-gray-400">
-                  Tabla
+                  {t('historyTable.table')}
                 </th>
                 <th className="px-4 py-3 text-left font-medium text-gray-500 dark:text-gray-400">
-                  Campo
+                  {t('historyTable.field')}
                 </th>
                 <th className="px-4 py-3 text-left font-medium text-gray-500 dark:text-gray-400">
-                  Usuario
+                  {t('historyTable.user')}
                 </th>
                 <th className="px-4 py-3 text-left font-medium text-gray-500 dark:text-gray-400">
-                  Fecha
+                  {t('historyTable.date')}
                 </th>
               </tr>
             </thead>
@@ -771,27 +813,38 @@ export default function CashierSection() {
       {!loading && !error && viewMode === 'vouchers' && vouchers.length === 0 && loaded && (
         <div className="flex flex-col items-center justify-center py-12 text-gray-500">
           <FiFileText className="w-10 h-10 mb-2" />
-          <p>No hay vales {voucherStatus !== 'all' ? `con estado "${voucherStatus}"` : ''}</p>
+          <p>
+            {voucherStatus !== 'all'
+              ? t('empty.noVouchersWithStatus', {
+                  status:
+                    VOUCHER_STATUS_LABELS[voucherStatus as keyof typeof VOUCHER_STATUS_LABELS],
+                })
+              : t('empty.noVouchers')}
+          </p>
         </div>
       )}
 
       {!loading && !error && viewMode === 'history' && historyData.length === 0 && loaded && (
         <div className="flex flex-col items-center justify-center py-12 text-gray-500">
           <FiClock className="w-10 h-10 mb-2" />
-          <p>No hay historial disponible</p>
+          <p>{t('empty.noHistory')}</p>
         </div>
       )}
 
       {/* Count */}
       {!loading && viewMode === 'vouchers' && vouchers.length > 0 && (
         <div className="text-xs text-gray-500 dark:text-gray-400 text-right">
-          Mostrando {vouchers.length} vales (máx. {DEFAULT_LIMIT})
+          {t('showing', { count: vouchers.length, type: t('voucher_plural'), max: DEFAULT_LIMIT })}
         </div>
       )}
 
       {!loading && viewMode === 'history' && historyData.length > 0 && (
         <div className="text-xs text-gray-500 dark:text-gray-400 text-right">
-          Mostrando {historyData.length} registros (máx. {DEFAULT_LIMIT})
+          {t('showing', {
+            count: historyData.length,
+            type: t('record_plural'),
+            max: DEFAULT_LIMIT,
+          })}
         </div>
       )}
     </div>

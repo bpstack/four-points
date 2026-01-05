@@ -1,519 +1,402 @@
-@roketid/windmill-react-ui es un framework de UI completo:
-
-### ui-monospace
-
-### Considerar algo así:
-
-hotel-frontend/
-├── app/ # App Router (pages, layouts, server components por defecto)
-│ ├── layout.tsx # Root layout
-│ ├── page.tsx # Landing page
-│ ├── login/ # Ruta login
-│ │ └── page.tsx
-│ ├── dashboard/ # Ruta protegida
-│ │ └── page.tsx
-│ ├── consignas/
-│ │ └── page.tsx
-│ ├── users/
-│ │ └── page.tsx
-│ ├── parking/
-│ │ └── page.tsx
-│ └── api/ # Endpoints API (si usas Next como proxy)
-│ ├── auth/
-│ │ ├── login/route.ts
-│ │ └── logout/route.ts
-│ ├── consignas/route.ts
-│ ├── users/route.ts
-│ └── parking/route.ts
-│
-├── components/ # Componentes client puros y reutilizables
-│ ├── forms/ # Formularios (LoginForm, ConsignaForm…)
-│ ├── layout/ # Navbar, Sidebar, Footer
-│ ├── theme/ # Botones de dark/light, ThemeProvider
-│ └── ui/ # shadcn/ui (autogenerados)
-│
-├── features/ # (opcional) agrupación por dominio
-│ ├── auth/ # Lógica de login/registro
-│ │ ├── components/ # Forms, botones, etc
-│ │ └── hooks/ # useLogin, useLogout…
-│ ├── users/
-│ └── consignas/
-│
-├── lib/ # utilidades
-│ ├── api-client.ts # cliente fetch/axios con baseURL y cookies
-│ ├── auth.ts # helpers (roles, cookies)
-│ └── validations.ts # esquemas compartidos de zod
-│
-├── types/ # interfaces TypeScript
-│ ├── auth.ts
-│ ├── user.ts
-│ └── parking.ts
-│
-├── styles/ # estilos globales
-│ └── globals.css
-├── public/ # imágenes, favicon
-├── .env.local
-├── tailwind.config.ts
-├── tsconfig.json
-└── package.json
-
-### AUTH
-
-📌 app/lib/login/authLogin.ts
-
-Este archivo es una librería de cliente (frontend).
-Define un objeto authLogin con métodos (login, logout, me) que tú puedes llamar desde tus componentes React/NextJS.
-Cuando llamas, por ejemplo, authLogin.login(...), hace un fetch al endpoint interno de tu aplicación Next.js (/api/auth/login).
-No habla directamente con tu backend en localhost:4000, sino que usa las rutas proxy que están en app/api/auth/....
-En resumen: este archivo es un helper/SDK para el frontend → abstrae la llamada al backend real.
-
-📌 app/api/auth/login/route.ts, logout/route.ts, me/route.ts
-
-Estos archivos son rutas de API de Next.js (se ejecutan en el servidor de Next, no en el navegador).
-Funcionan como proxy hacia tu backend real (http://localhost:4000).
-La gracia:
-
-El frontend nunca ve la URL real del backend.
-Controlas qué cookies se reenvían y cómo se gestionan.
-Seguridad: evitas exponer directamente las credenciales o CORS complicados.
-
-Ejemplo de flujo en login:
-
-El cliente (authLogin.login) hace fetch('/api/auth/login', ...).
-El endpoint interno (app/api/auth/login/route.ts) recibe eso.
-Este endpoint hace un fetch real al backend (http://localhost:4000/auth/login).
-Reenvía la respuesta al cliente y copia las cookies (set-cookie).
-
-🔑Diferencia clara:
-
-authLogin.ts: no toca al backend directamente → solo pide a Next API Routes.
-app/api/auth/...: sí hacen el fetch al backend real (localhost:4000).
-
-👉 En otras palabras:
-
-Frontend (React) → llama a authLogin.
-authLogin → llama a /api/auth/....
-Next API routes → hacen el fetch al backend (localhost:4000).
-Backend real → valida login/logout/me y responde con cookies y datos.
-
-📌 app/lib/login/useAuth.ts
-useAuth.ts es un hook de React (frontend) que centraliza toda la lógica de autenticación para que cualquier componente lo pueda usar fácilmente.
+# Four Points - Hotel Property Management System
+
+**[Live Demo](https://four-points.stackbp.es)**
+
+![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=flat&logo=typescript&logoColor=white)
+![Next.js](https://img.shields.io/badge/Next.js_15-black?style=flat&logo=next.js&logoColor=white)
+![React](https://img.shields.io/badge/React_19-61DAFB?style=flat&logo=react&logoColor=black)
+![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=flat&logo=tailwind-css&logoColor=white)
+![License](https://img.shields.io/badge/License-MIT-green.svg)
+
+A comprehensive, full-stack **Hotel Management System** designed for real-world hotel operations.
+Features a modern, responsive dashboard with role-based access control, multi-language support (EN/ES),
+and dark/light mode theming.
+
+> **Note**: This repository contains only the frontend. The backend API is private.
+
+---
+
+## Preview
+
+![Dashboard Preview](./public/screenshots/dashboard-black.png)
+
+<details>
+<summary>More Screenshots</summary>
+
+| Groups Module                                    | Parking Status                               |
+| ------------------------------------------------ | -------------------------------------------- |
+| ![Groups](./public/screenshots/groups-black.png) | ![Parking](./public/screenshots/parking.png) |
+
+| Cashier Shifts                               | Logbooks                                       |
+| -------------------------------------------- | ---------------------------------------------- |
+| ![Cashier](./public/screenshots/cashier.png) | ![Logbooks](./public/screenshots/logbooks.png) |
+
+| Desktop View                                 | Mobile View                                |
+| -------------------------------------------- | ------------------------------------------ |
+| ![Desktop](./public/screenshots/desktop.png) | ![Mobile](./public/screenshots/mobile.png) |
+
+</details>
+
+---
+
+## Tech Stack
+
+| Technology                | Purpose                                  |
+| ------------------------- | ---------------------------------------- |
+| **Next.js 16**            | React framework (App Router + Turbopack) |
+| **React 19**              | UI library (latest)                      |
+| **TypeScript 5.7**        | Type-safe development                    |
+| **TailwindCSS 3.4**       | Utility-first styling                    |
+| **NextUI**                | Component library (Tailwind-based)       |
+| **HeadlessUI**            | Unstyled accessible components           |
+| **Heroicons**             | SVG icon library                         |
+| **Zustand**               | Lightweight state management             |
+| **TanStack Query v5**     | Server state, caching & mutations        |
+| **next-intl**             | Internationalization (EN/ES)             |
+| **next-themes**           | Dark/Light mode with system detection    |
+| **Framer Motion**         | Smooth animations & transitions          |
+| **React Hook Form + Zod** | Form handling with schema validation     |
+| **Recharts**              | Data visualization & charts              |
+| **xlsx (SheetJS)**        | Excel file generation & export           |
+| **pdf-lib**               | PDF document generation                  |
+| **pdfjs-dist**            | PDF viewing & rendering                  |
+| **react-day-picker**      | Date selection components                |
+| **date-fns**              | Date manipulation utilities              |
+| **react-hot-toast**       | Toast notifications                      |
+| **react-icons**           | Icon library (multiple sets)             |
+| **use-debounce**          | Input debouncing                         |
+| **uuid**                  | Unique ID generation                     |
+| **js-cookie**             | Cookie management                        |
+| **clsx + tailwind-merge** | Conditional class utilities              |
+
+---
+
+## Features
+
+### Core Modules
+
+| Module             | Description                                                                                                                      |
+| ------------------ | -------------------------------------------------------------------------------------------------------------------------------- |
+| **Authentication** | JWT auth with access/refresh tokens, role-based access (admin, receptionist, maintenance, group-admin), avatar upload            |
+| **Dashboard**      | KPIs, quick actions, activity feed, important alerts                                                                             |
+| **Groups**         | Hotel group reservations with contacts, rooms, payments tracking, status workflow, complete audit history                        |
+| **Parking**        | Multi-level parking management, bookings with unique codes, check-in/out, rates, analytics                                       |
+| **Logbooks**       | Digital shift notes with priority levels, comments, read tracking, department organization. Tracked: who writes, when, who reads |
+| **Cashier**        | Daily cash management with 4 shifts, denomination counting, electronic payments, vouchers, daily reports                         |
+| **Maintenance**    | Work order tracking with custom IDs, image uploads, status workflow, assignment to staff/contractors                             |
+| **Blacklist**      | Guest incident records with severity levels, document verification, image gallery                                                |
+| **Conciliation**   | Daily room count reconciliation between Reception and Housekeeping                                                               |
+| **Backoffice**     | Invoice & supplier management with PDF uploads, validation workflow, monthly summaries                                           |
+| **Messaging**      | Internal communication system with direct messages and group chats                                                               |
+| **Notifications**  | Multi-module alert system with priority levels, scheduled delivery, email integration                                            |
+
+---
+
+### Schedule Module (In Development)
+
+> Currently being developed on a separate branch
+
+Automated staff scheduling system featuring a **hybrid generation engine** that combines a custom algorithm with optional AI optimization.
+
+#### Generation Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                   SCHEDULE GENERATION                        │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  PHASE 1: Algorithm Engine (50 iterations)                  │
+│  ┌─────────────────────────────────────────────────────┐   │
+│  │ 10 modular phases executed in sequence:             │   │
+│  │ • Initialize Matrix → Apply Constraints             │   │
+│  │ • Apply Employee Rules → Assign Night Blocks        │   │
+│  │ • Enforce Post-Night Rest → Assign Rotating Shifts  │   │
+│  │ • Assign Weekly Offs → Validate Coverage            │   │
+│  │ • Assign PI Support → Repair Small Blocks           │   │
+│  │ • Final Validation                                  │   │
+│  │                                                     │   │
+│  │ Keeps best result (minimum constraint violations)   │   │
+│  └─────────────────────────────────────────────────────┘   │
+│                          ↓                                  │
+│  PHASE 2: AI Optimization (single pass, optional)          │
+│  ┌─────────────────────────────────────────────────────┐   │
+│  │  ┌─────────┐   ┌─────────┐   ┌─────────┐           │   │
+│  │  │ Claude  │ OR│ OpenAI  │ OR│ Ollama  │           │   │
+│  │  │(Sonnet) │   │ (GPT)   │   │ (Local) │           │   │
+│  │  └─────────┘   └─────────┘   └─────────┘           │   │
+│  │                                                     │   │
+│  │  • Analyzes remaining violations                   │   │
+│  │  • Proposes targeted swaps                         │   │
+│  │  • Validates each change doesn't break coverage    │   │
+│  │  • Applies only safe improvements                  │   │
+│  └─────────────────────────────────────────────────────┘   │
+│                          ↓                                  │
+│  PHASE 3: Re-validation & Final Result                     │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+```
+
+#### Key Features
+
+| Feature                     | Description                                                           |
+| --------------------------- | --------------------------------------------------------------------- |
+| **Modular Phase System**    | 11 independent, testable phases executed in configurable order        |
+| **Constraint Management**   | Vacations, sick leave, training, holidays, employee requests          |
+| **Business Rules**          | Min/max consecutive work days, 48h rest periods, night block rotation |
+| **Coverage Validation**     | Ensures minimum staff per shift (Morning/Afternoon/Night)             |
+| **Employee-Specific Rules** | Custom preferences per employee (preferred shifts, max shifts/month)  |
+| **AI Provider Selection**   | Choose between Claude, OpenAI, Ollama, or algorithm-only              |
+| **Real-time Validation**    | Instant feedback on constraint violations                             |
+| **Excel Export**            | Compatible with existing spreadsheet workflows                        |
+
+#### Supported Shift Types
+
+| Code | Type       | Description                   |
+| ---- | ---------- | ----------------------------- |
+| M    | Morning    | Morning shift                 |
+| T    | Afternoon  | Afternoon shift               |
+| N    | Night      | Night shift (4-6 consecutive) |
+| L    | Day Off    | Weekly rest day               |
+| V    | Vacation   | Approved vacation             |
+| B    | Holiday    | Company holiday               |
+| IT   | Sick Leave | Medical leave                 |
+| FO   | Training   | Training day                  |
+| PI   | Support    | Backup when understaffed      |
+
+---
+
+## Special Features
+
+| Feature                  | Description                                                     |
+| ------------------------ | --------------------------------------------------------------- |
+| **Internationalization** | Full English and Spanish support with 19 translation namespaces |
+| **Dark/Light Mode**      | Complete theme support with system preference detection         |
+| **Role-Based Access**    | 4 roles with granular permissions per module                    |
+| **Real-time Updates**    | Live notifications, unread counters, activity feeds             |
+| **Responsive Design**    | Mobile-first approach, works on all devices                     |
+| **Demo Mode**            | Restricted operations for public deployments                    |
+
+---
+
+## Data Export & Documents
+
+### Excel Export (xlsx)
+
+| Module           | Export Feature                                  |
+| ---------------- | ----------------------------------------------- |
+| **Cashier**      | Daily shift reports with denomination breakdown |
+| **Parking**      | Booking history, analytics data                 |
+| **Groups**       | Reservation lists, payment summaries            |
+| **Conciliation** | Monthly room count reports                      |
+
+### PDF Generation (pdf-lib)
+
+| Module         | PDF Feature               |
+| -------------- | ------------------------- |
+| **Cashier**    | Daily cash reports        |
+| **Groups**     | Reservation confirmations |
+| **Backoffice** | Invoice summaries         |
+
+### PDF Viewing (pdfjs-dist)
+
+- In-app PDF preview for uploaded invoices
+- Thumbnail generation for document lists
+- Full document viewer with zoom controls
+
+---
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js 20+
+- pnpm 9+
+
+### Installation
+
+```bash
+# Clone the repository
+git clone https://github.com/bpstack/four-points-frontend.git
+cd four-points-frontend
+
+# Install dependencies
+pnpm install
+
+# Copy environment file
+cp .env.example .env.local
+
+# Start development server
+pnpm dev
+```
+
+Open [https://four-points.stackbp.es/](https://four-points.stackbp.es/) to view the application.
+
+### Demo Credentials
+
+```
+Username: demo
+Password: demo987654
+```
+
+---
+
+## Environment Variables
+
+Create a `.env.local` file based on `.env.example`:
+
+```env
+# API Configuration
+NEXT_PUBLIC_API_URL=http://localhost:4000
+
+# App Configuration
+NEXT_PUBLIC_APP_NAME=Four Points
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+
+# Feature Flags
+NEXT_PUBLIC_DEMO_MODE=true
+```
+
+> **Note**: The backend API is required for full functionality.
+
+---
+
+## Project Structure
+
+```
+frontend/
+├── app/
+│   ├── (auth)/              # Authentication pages
+│   ├── api/                 # API routes (Next.js)
+│   ├── components/          # React components
+│   │   ├── auth/
+│   │   ├── blacklist/
+│   │   ├── cashier/
+│   │   ├── conciliation/
+│   │   ├── dashboard/
+│   │   ├── groups/
+│   │   ├── layout/
+│   │   ├── logbooks/
+│   │   ├── maintenance/
+│   │   ├── notifications/
+│   │   ├── parking/
+│   │   ├── profile/
+│   │   └── ...
+│   ├── dashboard/           # Dashboard pages
+│   ├── i18n/                # Internationalization config
+│   ├── lib/                 # Utilities & hooks
+│   │   ├── auth/
+│   │   ├── helpers/
+│   │   └── [module]/
+│   ├── stores/              # Zustand stores
+│   └── ui/                  # Base UI components
+├── messages/
+│   ├── en/                  # English translations (19 files)
+│   └── es/                  # Spanish translations (19 files)
+├── public/
+│   └── screenshots/
+└── ...
+```
 
-1. Estado interno (useState)
+---
 
-user: guarda el usuario actual (o null si no hay sesión).
-loading: indica si se está comprobando la sesión inicial.
+## State Management
 
-2. Efecto inicial (useEffect)
+| Type         | Tool           | Usage                              |
+| ------------ | -------------- | ---------------------------------- |
+| Server state | TanStack Query | Data fetching, caching, mutations  |
+| Client state | Zustand        | UI state (selected items, filters) |
 
-Cuando el hook se monta, llama a authLogin.me() → esto va a /api/auth/me → backend.
-Si responde con un usuario válido → lo guarda en user.
-Si da error → deja user = null.
-Al final siempre quita el loading.
+### React Query Modules
 
-👉 Esto es para saber si ya hay una sesión activa (por ejemplo, si había cookie de login).
+BackOffice, Parking, Maintenance, Logbooks, Notifications, Groups (with SSR prefetch)
 
-3. login (con useCallback)
+---
 
-Llama a authLogin.login(username, password).
-Si el login es correcto, actualiza user con el usuario devuelto.
-Devuelve el usuario (útil para redirecciones después de login).
+## Authentication
 
-4. logout (con useCallback)
+Uses **HttpOnly cookies** for JWT tokens (XSS-protected). No localStorage.
 
-Llama a authLogin.logout().
-Limpia user poniéndolo a null.
+```
+Login → Access Token (15min) + Refresh Token (7 days)
+         ↓
+Request fails 401 → Auto-refresh via cookie
+         ↓
+Refresh expires → Redirect to /login
+```
 
-5. Devuelve un objeto con todo listo para usar en React:
-   {
-   user, // datos del usuario autenticado (o null)
-   loading, // si aún está verificando la sesión inicial
-   login, // función para logear
-   logout, // función para salir
-   isAuthenticated // boolean rápido para saber si hay sesión
-   }
+### Key Features
 
-   📊 Flujo completo con este hook
+- Automatic token refresh
+- Role-based access (admin, receptionist, maintenance, group-admin)
+- Centralized `apiClient` with `credentials: 'include'`
 
-App arranca → useAuth comprueba si ya hay sesión (authLogin.me()).
-Si hay cookie válida → guarda el usuario.
-Si no → user = null.
-Cuando un componente llama login(...) → se hace login y actualiza user.
-Cuando se llama logout() → se borra la cookie en backend y se limpia user.
+---
 
-👉 En resumen:
-authLogin.ts son funciones sueltas.
-useAuth.ts es el hook global que las usa para darte un estado reactivo de autenticación en React.
+## Demo Mode
 
-### Reorganizamos el proceso:
+This application includes a **Demo Mode** for safe public deployment. Demo users can **view everything** but have **limited write access**.
 
-📌 1. LoginForm.tsx
+### Allowed Operations
 
-Tipo: componente de UI (formulario).
-Responsabilidad: mostrar inputs y botón de login.
-Hook que usa: useLogin (para manejar el estado del login: loading, error).
+| Module          | Allowed Actions    |
+| --------------- | ------------------ |
+| **Auth**        | Logout             |
+| **Parking**     | Create bookings    |
+| **Logbooks**    | Add comments       |
+| **Maintenance** | Create work orders |
 
-Flujo:
+All other write operations are blocked with a friendly message.
 
-Usuario mete credenciales → handleSubmit → llama a useLogin.login().
-Si el login es correcto, muestra un alert (o redirige al dashboard).
+---
 
-👉 Es un componente tonto (presentacional), solo renderiza y delega lógica al hook.
+## Scripts
 
-📌 2. useLogin.ts
+```bash
+pnpm dev        # Development (Turbopack)
+pnpm build      # Production build
+pnpm start      # Start production
+pnpm lint       # ESLint
+pnpm format     # Prettier
+```
 
-Tipo: custom hook.
-Responsabilidad: encapsular la lógica del login/logout con estados locales (loading, error).
-Hook que usa: directamente authLogin (el helper que llama a /api/auth/...).
+---
 
-Flujo:
+## Backend
 
-login(username, password) → hace la llamada a authLogin.login.
-Maneja estados (loading, error) y devuelve el usuario en caso de éxito.
+This repository contains **only the frontend** application. The backend is a separate private Express 5 REST API.
 
-👉 Este hook se usa solo en formularios de login. No mantiene sesión global, solo maneja la acción puntual de loguear.
+See `PROJECT.md` for backend architecture details.
 
-📌 3. ProfileDropdown.tsx
+---
 
-Tipo: componente de UI (menú desplegable de usuario).
-Responsabilidad: mostrar info del usuario logueado y acciones (Perfil, Configuración, Cerrar Sesión).
+## License
 
-Props:
+This is a personal portfolio project. The code is visible for demonstration and recruitment purposes.
 
-user: objeto usuario (de useAuth normalmente).
-onLogout: callback para cerrar sesión.
+**What you can do:**
 
-Flujo:
+- ✅ View the code
+- ✅ Learn from it
+- ✅ Use as reference for your own projects
 
-Renderiza el nombre/rol/email.
-Botones → navegar a rutas (/dashboard/profile, /settings).
-Logout → llama a onLogout y redirige a /login.
+**What you cannot do:**
 
-👉 Es un componente visual reutilizable, recibe los datos y funciones desde fuera.
+- ❌ Use commercially without permission
+- ❌ Redistribute as your own work
 
-🔄 Cómo se conectan entre sí
+© 2025 Salvador Pérez (bpstack)
 
-LoginForm → usa useLogin para autenticar.
-useLogin → usa authLogin para llamar al backend vía proxy.
-ProfileDropdown → en una barra de navegación, recibe user y onLogout (generalmente de useAuth, el hook global de sesión).
+---
 
-📌 Dashboard/Layout.tsx Cierra el circulo; // app/dashboard/layout.tsx
+## Author
 
-Tipo: layout de Next.js (se aplica a todas las rutas bajo /dashboard).
+**Salvador Pérez**
 
-Responsabilidad:
-Proteger el área privada (/dashboard) → redirigir a /login si no hay usuario autenticado.
-Renderizar la estructura común del dashboard: sidebar + header + contenido.
-Gestionar cosas de UI global (tema, búsqueda, notificaciones, perfil).
+- GitHub: [@bpstack](https://github.com/bpstack)
+- Email: contact.bpstack@gmail.com
 
-**\*\*\*** ¿Quieres que te arme un ejemplo de AuthProvider para envolver todo tu <DashboardLayout> y que el hook useAuth sea compartido en toda la app, sin recalcular en cada layout?
-📌 ¿Qué hace un AuthProvider?
+---
 
-Es un Context Provider de React que inicializa useAuth una sola vez.
-Expone el user, login, logout, etc. a través de un contexto global.
-Así, cualquier componente de la app puede acceder al estado de sesión sin recalcular ni volver a pedir datos al backend.
-
-📌 1. Crear un nuevo archivo AuthContext.tsx
-
-Ruta: app/lib/login/AuthContext.tsx
-
-"use client"
-
-import { createContext, useContext, ReactNode } from "react"
-import { useAuth } from "./useAuth"
-
-// El contexto guardará todo lo que devuelve useAuth
-const AuthContext = createContext<ReturnType<typeof useAuth> | null>(null)
-
-export function AuthProvider({ children }: { children: ReactNode }) {
-const auth = useAuth() // aquí inicializamos tu hook global UNA sola vez
-
-return (
-<AuthContext.Provider value={auth}>
-{children}
-</AuthContext.Provider>
-)
-}
-
-// Hook para acceder al contexto en cualquier parte
-export function useAuthContext() {
-const ctx = useContext(AuthContext)
-if (!ctx) throw new Error("useAuthContext must be used within AuthProvider")
-return ctx
-}
-
-📌 2. Modificar tu layout raíz app/layout.tsx
-
-Ahora envuelves toda tu aplicación con el AuthProvider.
-
-Antes (simplificado):
-
-export default function RootLayout({ children }: { children: React.ReactNode }) {
-return (
-
-<html lang="es">
-<body>{children}</body>
-</html>
-)
-}
-
-Después:
-
-import { AuthProvider } from "@/app/lib/login/AuthContext"
-
-export default function RootLayout({ children }: { children: React.ReactNode }) {
-return (
-
-<html lang="es">
-<body>
-<AuthProvider>
-{children}
-</AuthProvider>
-</body>
-</html>
-)
-}
-
-📌 3. Modificar app/dashboard/layout.tsx
-
-Aquí es donde usabas useAuth directamente.
-Ahora usas el contexto para no recalcularlo cada vez.
-
-Antes:
-
-import { useAuth } from '@/app/lib/login/useAuth'
-
-const { user, loading, logout, isAuthenticated } = useAuth()
-
-Después:
-
-import { useAuthContext } from '@/app/lib/login/AuthContext'
-
-const { user, loading, logout, isAuthenticated } = useAuthContext()
-
-👉 El resto del layout (SideNav, ProfileDropdown, etc.) queda igual.
-
-📌 4. Opcional: actualizar ProfileDropdown.tsx
-
-Ahora mismo recibe user y onLogout como props.
-Si quieres simplificar, puedes hacer que consuma directamente el contexto (useAuthContext).
-Así no tienes que pasar props desde el layout.
-
-Antes:
-
-interface ProfileDropdownProps {
-user: User
-onLogout: () => void
-}
-
-export default function ProfileDropdown({ user, onLogout }: ProfileDropdownProps) {
-...
-}
-
-Después (más limpio):
-
-import { useAuthContext } from "@/app/lib/login/AuthContext"
-
-export default function ProfileDropdown() {
-const { user, logout } = useAuthContext()
-...
-}
-
-Y en DashboardLayout ya no le pasas props:
-
-<ProfileDropdown />
-
-📌 5. ¿Qué NO cambia?
-
-authLogin.ts: sigue igual.
-
-useAuth.ts: sigue igual (pero ahora solo lo usa AuthProvider, no directamente los layouts/páginas).
-
-useLogin.ts y LoginForm.tsx: siguen igual, porque son para el login puntual.
-
-📌 6. Ventajas tras estos cambios
-
-Una sola llamada a authLogin.me() al iniciar la app.
-Estado de usuario único y consistente en toda la aplicación.
-Ya no necesitas pasar user ni logout como props en todos lados → se leen directo del contexto.
-Preparado para roles, permisos o incluso refresh tokens más adelante.
-
-👉 Resumen de cambios concretos en archivos existentes:
-
-app/layout.tsx: envolver con <AuthProvider>.
-app/dashboard/layout.tsx: usar useAuthContext en lugar de useAuth.
-ProfileDropdown.tsx: opcional, dejar de recibir user y onLogout como props → usar useAuthContext.
-
-### solución temporal para poder entrar en la app sin hacer log in, tengo que implementarla
-
-🔎 En tu ProfileDropdown
-
-Mira la línea crítica:
-
-const { user, logout } = useAuthContext()
-
-// ⚠️ Si no hay usuario, no renderizar nada
-if (!user) return null
-
-👉 Esto es válido solo si siempre se leen los hooks ANTES del return.
-El problema ocurre cuando tu DashboardLayout está en DEV_MODE sin user:
-
-useAuthContext() devuelve algo incompleto (porque no estás logueado).
-
-ProfileDropdown devuelve null demasiado pronto.
-
-React detecta que se ejecutaron menos hooks que antes y te lanza ese error.
-
-✅ Soluciones
-Opción 1: Haz que ProfileDropdown maneje “modo dev” con un fake user
-const DEV_MODE = process.env.NEXT_PUBLIC_DEV_MODE === 'true'
-
-const { user, logout } = useAuthContext()
-const fakeUser = { username: "DevUser", role: "admin", email: "dev@local" }
-const currentUser = DEV_MODE ? fakeUser : user
-
-if (!currentUser) return null
-
-👉 Así ProfileDropdown siempre renderiza de forma consistente, aunque no haya login real.
-
-Opción 2: Maneja el fake user en el DashboardLayout y pásalo por props
-
-En el layout:
-
-const DEV_MODE = true
-const fakeUser = { username: "DevUser", role: "admin", email: "dev@local" }
-const currentUser = DEV_MODE ? fakeUser : user
-
-Y en el JSX:
-
-<ProfileDropdown user={currentUser} logout={logout} />
-
-En ProfileDropdown.tsx, quitas el useAuthContext y usas props:
-
-export default function ProfileDropdown({ user, logout }: { user: any, logout: () => void }) {
-if (!user) return null
-...
-}
-
-👉 Te pregunto:
-¿Quieres que te lo deje todo centralizado en DashboardLayout (opción 2, más limpio) o prefieres que ProfileDropdown se auto-gestione con su propio fakeUser (opción 1)?
-
-### Vamos a elaborar el logbooks system
-
-En el layout tengo que:
-Si quieres reducir líneas, podrías:
-
-Extraer el modal a un componente separado (NewEntryModal.tsx) - ahorrarías ~150 líneas en el layout
-Extraer la navegación del header (LogbookHeader.tsx) - ~100 líneas menos
-Extraer la paginación de días (DayPagination.tsx) - ~50 líneas menos
-
-### IMPORTANTE
-
-- Modificación base de datos, 04/10/2025
-
--- Añadir 'unread' al ENUM de la columna action
-
-ALTER TABLE logbook_history
-MODIFY COLUMN action ENUM(
-'create',
-'update',
-'delete',
-'read',
-'unread', -- ✅ AÑADIR este valor
-'solve',
-'reopen'
-) NOT NULL;
-
-Hay modificación de backend añadiendo nuevo endpoint , modificación del API route del frontend y terminada satisfactoriamente la funcionalidad de read/unread
-
-### Posible Problema registro de logbooks y comentarios
-
-Opción A: “Enviar el submit en el payload”
-Opción B: “Delegarlo en un async state”
-
-Escenario
-App simple (pocas peticiones, sin recarga de datos)
-
-Recomendación
-fetch directo en el submit (payload)
-
-Por qué
-Menos código, más directo.
-
-Escenario
-App mediana/grande (muchos fetch, caching, reintentos, feedback de usuario)
-
-Recomendación
-Delegar en un async state (React Query, Zustand, RTK Query, etc.)
-
-Por qué
-Mantiene el código limpio, maneja automáticamente loading/error/success, permite revalidar datos fácilmente.
-
-En resumen
-
-“En payload” → haces la petición directamente al enviar el formulario.
-✅ Simple, útil en formularios pequeños.
-❌ Difícil de mantener si hay muchos endpoints o lógica compleja.
-
-“Delegarlo en async state” → usas una capa que administra las peticiones, estados y cache.
-✅ Escalable, más limpio y reactivo.
-❌ Requiere configurar librerías o hooks adicionales.
-
-########################################
-
-### CAMBIAR FUENTE
-
-// app/ui/fonts-design/fonts.ts
-// app/ui/fonts-design/design-system.ts
-
-// app/ui/fonts-design/fonts.helper.ts
-
-En este último archivo, solo cambiar ACTIVE_FONTS
-
-Es importante saber que según // tailwind.config.ts se puede añadir especificaciones como font-sans o font-display para especificar una u otra
-
-### Autenticación implementada:
-
-Timeline de tokens:
-Login exitoso
-↓
-🟢 Access Token: 15 minutos
-🟢 Refresh Token: 7 días
-↓
-Minuto 15: Access token expira
-↓
-❌ Request falla con 401
-↓
-✅ Auto-refresh usa refresh token (válido 7 días)
-↓
-🟢 Nuevo Access Token: 15 minutos más
-🟢 Refresh Token: sigue válido
-↓
-... este ciclo se repite cada 15 min ...
-↓
-Día 7: Refresh token expira
-↓
-❌ Auto-refresh falla
-↓
-🚪 Redirigir a /login
-
-💡 ¿Por qué 15 minutos si el refresh dura 8 horas?
-Seguridad en capas:
-
-Access token corto (15 min): Si lo roban, solo es útil 15 minutos
-Refresh token largo (8 horas): Más seguro (HttpOnly), permite renovar sin molestar al usuario
-
-Es como tener:
-
-🔑 Llave temporal (access token) → se reemplaza cada 15 min
-🏠 Llave maestra (refresh token) → dura 8 horas, genera llaves temporales - esta se puede cambiar sólo modificando el time del refresh token en backend archivo: // services/tokenService.js
-
-### Para ver si utilizo una funcion en algun archivo del proyecto
-
-Get-ChildItem -Recurse -Include _.ts, _.tsx -Path app | Select-String "ClientBody"
-
-### Siempre que haya interacción del usuario necesitamos 'use client' - ejemplo: componente formulario login
-
-### Siempre que haya datos, server component.
-
-### NEGROS CAPAS #010409 #0D1117 #161B22
+<p align="center">
+  Made with Next.js, TypeScript, and TailwindCSS
+</p>

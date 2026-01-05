@@ -1,6 +1,7 @@
 // app/dashboard/cashier/hotel/page.tsx
 'use client'
 
+import { useTranslations } from 'next-intl'
 import {
   useCashierStore,
   useSelectedDate,
@@ -27,6 +28,7 @@ import ReopenDayModal from '@/app/components/cashier/ReopenDayModal'
 import { FiDollarSign, FiCreditCard, FiAlertCircle } from 'react-icons/fi'
 
 export default function CashierPage() {
+  const t = useTranslations('cashier')
   // Zustand selectors (optimizados para evitar re-renders innecesarios)
   const selectedDate = useSelectedDate()
   const activeTab = useActiveTab()
@@ -36,7 +38,7 @@ export default function CashierPage() {
   const { data: dailyData, isLoading, error } = useDailyDetails(selectedDate)
 
   if (isLoading) {
-    return <LoadingState message="Cargando datos del día..." />
+    return <LoadingState message={t('page.loading')} />
   }
 
   if (error) {
@@ -80,7 +82,7 @@ export default function CashierPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 font-medium">
-                    Gran Total
+                    {t('summary.grandTotal')}
                   </p>
                   <p className="text-lg sm:text-xl font-bold text-purple-700 dark:text-purple-400 mt-0.5">
                     {grandTotal.toFixed(2)}€
@@ -94,7 +96,7 @@ export default function CashierPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 font-medium">
-                    Efectivo
+                    {t('summary.cash')}
                   </p>
                   <p className="text-lg sm:text-xl font-bold text-blue-700 dark:text-blue-400 mt-0.5">
                     {totalCash.toFixed(2)}€
@@ -108,7 +110,7 @@ export default function CashierPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 font-medium">
-                    Electrónicos
+                    {t('summary.electronic')}
                   </p>
                   <p className="text-lg sm:text-xl font-bold text-green-700 dark:text-green-400 mt-0.5">
                     {electronicPayments.toFixed(2)}€
@@ -122,10 +124,10 @@ export default function CashierPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 font-medium">
-                    Estado
+                    {t('summary.status')}
                   </p>
                   <p className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 mt-0.5">
-                    {dailyData.status === 'closed' ? 'Cerrado' : 'Abierto'}
+                    {dailyData.status === 'closed' ? t('summary.closed') : t('summary.open')}
                   </p>
                 </div>
                 {dailyData.status === 'closed' ? (
@@ -149,7 +151,7 @@ export default function CashierPage() {
                 className="w-full px-3 py-2 bg-green-600 hover:bg-green-700 text-white text-xs rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
               >
                 <FiDollarSign className="w-3.5 h-3.5" />
-                Cerrar Día
+                {t('common.close')} {t('calendar.date')}
               </button>
             )}
             {dailyData.status === 'closed' && (
@@ -158,7 +160,7 @@ export default function CashierPage() {
                 className="w-full px-3 py-2 bg-orange-600 hover:bg-orange-700 text-white text-xs rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
               >
                 <FiAlertCircle className="w-3.5 h-3.5" />
-                Reabrir Día
+                {t('reopenDay.title')}
               </button>
             )}
           </div>
@@ -169,7 +171,7 @@ export default function CashierPage() {
               <div className="flex items-start gap-2">
                 <FiAlertCircle className="w-4 h-4 text-yellow-600 dark:text-yellow-400 flex-shrink-0 mt-0.5" />
                 <div className="text-[11px] text-yellow-700 dark:text-yellow-300">
-                  <p className="font-medium mb-1">Validaciones:</p>
+                  <p className="font-medium mb-1">{t('closeShift.validations')}:</p>
                   <ul className="list-disc list-inside space-y-0.5">
                     {dailyData.validation_errors.map((error: string, idx: number) => (
                       <li key={idx}>{error}</li>
@@ -189,7 +191,7 @@ export default function CashierPage() {
                 <ShiftCard shiftId={currentShift.id} shiftType={activeTab} />
               ) : (
                 <div className="text-center py-6 text-gray-400 dark:text-gray-500 text-xs">
-                  <p>Turno no creado</p>
+                  <p>{t('page.shiftNotCreated')}</p>
                 </div>
               )}
             </div>
@@ -201,6 +203,7 @@ export default function CashierPage() {
           <DaySummarySidebar
             daily={dailyData}
             selectedDate={selectedDate}
+            activeShiftType={activeTab}
             onCloseDay={() => openModal('closeDay')}
             onReopenDay={() => openModal('reopenDay')}
           />

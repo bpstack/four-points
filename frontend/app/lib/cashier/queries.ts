@@ -28,11 +28,31 @@ export const cashierKeys = {
   shift: (id: number) => ['cashier', 'shift', id] as const,
   vouchers: () => ['cashier', 'vouchers'] as const,
   voucherStats: () => ['cashier', 'vouchers', 'stats'] as const,
+  users: () => ['users', 'all'] as const,
 }
 
 // ═══════════════════════════════════════════════════════
 // QUERIES - DAILY
 // ═══════════════════════════════════════════════════════
+
+interface User {
+  id: string
+  username: string
+  email: string
+  role_id: number
+  is_active: number
+}
+
+export function useUsers() {
+  return useQuery<User[]>({
+    queryKey: cashierKeys.users(),
+    queryFn: async () => {
+      const response = await apiClient.get(`${API_BASE}/api/users`)
+      return response as User[]
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutos
+  })
+}
 
 export function useDailyDetails(date: string) {
   return useQuery<CashierDaily | null>({
@@ -49,7 +69,8 @@ export function useDailyDetails(date: string) {
         if (
           errorMessage.includes('404') ||
           errorMessage.includes('not found') ||
-          errorMessage.includes('Día no encontrado')
+          errorMessage.includes('Día no encontrado') ||
+          errorMessage.includes('CASHIER_DAY_NOT_FOUND')
         ) {
           console.log('ℹ️ Día no inicializado, mostrando opción de inicializar')
           return null
@@ -156,6 +177,19 @@ export function useCloseShift() {
   })
 }
 
+export function useReopenShift() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ shiftId, reason }: { shiftId: number; reason?: string }) =>
+      apiClient.patch(`${API_BASE}/api/cashier/shifts/${shiftId}/reopen`, { reason }),
+    onSuccess: (_, { shiftId }) => {
+      queryClient.invalidateQueries({ queryKey: cashierKeys.shift(shiftId) })
+      queryClient.invalidateQueries({ queryKey: ['cashier', 'daily'] })
+    },
+  })
+}
+
 export function useUpdateDenominations() {
   const queryClient = useQueryClient()
 
@@ -195,6 +229,30 @@ export function useUpdatePayments() {
     },
     onError: (error) => {
       console.error('❌ [Mutation] Error:', error) // ✅ LOG
+    },
+  })
+}
+
+export function useUpdateShiftUsers() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({
+      shiftId,
+      primaryUserId,
+      secondaryUserIds,
+    }: {
+      shiftId: number
+      primaryUserId: string
+      secondaryUserIds: string[]
+    }) =>
+      apiClient.put(`${API_BASE}/api/cashier/shifts/${shiftId}/users`, {
+        primary_user_id: primaryUserId,
+        secondary_user_ids: secondaryUserIds,
+      }),
+    onSuccess: (_, { shiftId }) => {
+      queryClient.invalidateQueries({ queryKey: cashierKeys.shift(shiftId) })
+      queryClient.invalidateQueries({ queryKey: ['cashier', 'daily'] })
     },
   })
 }
@@ -254,12 +312,13 @@ export function useMonthlyReport(year: number, month: number) {
   return useQuery<MonthlyReport>({
     queryKey: ['cashier', 'reports', 'monthly', year, month],
     queryFn: async () => {
-      const response = await apiClient.get(
+      const response = await apiClient.get<{ success: boolean; data: MonthlyReport }>(
         `${API_BASE}/api/cashier/reports/monthly/${year}/${month}`
       )
-      return response as MonthlyReport
+      return response.data
     },
     staleTime: 5 * 60 * 1000, // 5 minutos
+    enabled: !isNaN(year) && !isNaN(month) && year > 0 && month >= 1 && month <= 12,
   })
 }
 
@@ -267,8 +326,10 @@ export function useDashboardOverview() {
   return useQuery<DashboardOverview>({
     queryKey: ['cashier', 'reports', 'dashboard'],
     queryFn: async () => {
-      const response = await apiClient.get(`${API_BASE}/api/cashier/reports/dashboard`)
-      return response as DashboardOverview
+      const response = await apiClient.get<{ success: boolean; data: DashboardOverview }>(
+        `${API_BASE}/api/cashier/reports/dashboard`
+      )
+      return response.data
     },
     staleTime: 1 * 60 * 1000, // 1 minuto
   })

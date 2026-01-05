@@ -9,6 +9,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 import {
   FiSearch,
   FiPlus,
@@ -21,11 +22,7 @@ import {
   FiTrash2,
 } from 'react-icons/fi'
 import type { SupplierWithStats, Category } from '@/app/lib/backoffice/types'
-import {
-  formatCurrency,
-  PERIODICITY_LABELS,
-  PAYMENT_METHOD_LABELS,
-} from '@/app/lib/backoffice/types'
+import { formatCurrency } from '@/app/lib/backoffice/types'
 import { SupplierFormModal, ConfirmDialog, SupplierInvoicesModal } from '@/app/components/bo/modals'
 import { backofficeApi } from '@/app/lib/backoffice/backofficeApi'
 import { useRouter } from 'next/navigation'
@@ -44,6 +41,7 @@ export function SuppliersTab({
   pagination,
   onPageChange,
 }: SuppliersTabProps) {
+  const t = useTranslations('backoffice')
   const router = useRouter()
   const [searchTerm, setSearchTerm] = useState('')
   const [categoryFilter, setCategoryFilter] = useState<number | 'all'>('all')
@@ -67,6 +65,24 @@ export function SuppliersTab({
       periodicityFilter === 'all' || supplier.periodicity === periodicityFilter
     return matchesSearch && matchesCategory && matchesPeriodicity
   })
+
+  // Helper to get periodicity label from translations
+  const getPeriodicityLabel = (periodicity: string): string => {
+    const periodicityKeys: Record<string, string> = {
+      monthly: 'monthly',
+      bimonthly: 'bimonthly',
+      quarterly: 'quarterly',
+      annual: 'annual',
+      on_demand: 'onDemand',
+    }
+    const key = periodicityKeys[periodicity] || periodicity
+    return t(`periodicity.${key}`)
+  }
+
+  // Helper to get payment method label from translations
+  const getPaymentMethodLabel = (method: string): string => {
+    return method === 'transfer' ? t('filters.transfer') : t('filters.directDebit')
+  }
 
   const formatDate = (date: string | null) => {
     if (!date) return '-'
@@ -103,13 +119,13 @@ export function SuppliersTab({
 
     try {
       await backofficeApi.deleteSupplier(deletingSupplier.id)
-      toast.success('Proveedor eliminado correctamente')
+      toast.success(t('toast.supplierDeleted'))
       setDeleteDialogOpen(false)
       setDeletingSupplier(null)
       setSelectedSupplier(null)
       handleMutationSuccess()
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Error al eliminar el proveedor'
+      const message = error instanceof Error ? error.message : t('toast.supplierDeleteError')
       toast.error(message)
     }
   }
@@ -123,19 +139,25 @@ export function SuppliersTab({
       {/* Summary Stats */}
       <div className="grid grid-cols-3 gap-2 sm:gap-3">
         <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-3">
-          <p className="text-[10px] text-gray-600 dark:text-gray-400 font-medium">Proveedores</p>
+          <p className="text-[10px] text-gray-600 dark:text-gray-400 font-medium">
+            {t('suppliers.summary.suppliers')}
+          </p>
           <p className="text-sm sm:text-base font-bold text-gray-900 dark:text-gray-100 mt-0.5">
             {filteredSuppliers.length}
           </p>
         </div>
         <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-3">
-          <p className="text-[10px] text-gray-600 dark:text-gray-400 font-medium">Domiciliados</p>
+          <p className="text-[10px] text-gray-600 dark:text-gray-400 font-medium">
+            {t('suppliers.summary.directDebits')}
+          </p>
           <p className="text-sm sm:text-base font-bold text-purple-600 dark:text-purple-400 mt-0.5">
             {domiciledCount}
           </p>
         </div>
         <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-3">
-          <p className="text-[10px] text-gray-600 dark:text-gray-400 font-medium">Total YTD</p>
+          <p className="text-[10px] text-gray-600 dark:text-gray-400 font-medium">
+            {t('suppliers.summary.totalYtd')}
+          </p>
           <p className="text-sm sm:text-base font-bold text-gray-900 dark:text-gray-100 mt-0.5">
             {formatCurrency(totalYTD)}
           </p>
@@ -149,7 +171,7 @@ export function SuppliersTab({
           <FiSearch className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 dark:text-gray-500" />
           <input
             type="text"
-            placeholder="Buscar proveedor..."
+            placeholder={t('filters.searchSupplier')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full pl-8 pr-3 py-1.5 text-xs border border-gray-300 dark:border-gray-700 dark:bg-[#151b23] dark:text-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent"
@@ -164,7 +186,7 @@ export function SuppliersTab({
           }
           className="flex-1 min-w-[180px] px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent bg-white dark:bg-[#151b23] dark:text-gray-200"
         >
-          <option value="all">Todas las categorías</option>
+          <option value="all">{t('filters.allCategories')}</option>
           {categories.map((cat) => (
             <option key={cat.id} value={cat.id}>
               {cat.cost_center} - {cat.department}
@@ -178,12 +200,12 @@ export function SuppliersTab({
           onChange={(e) => setPeriodicityFilter(e.target.value)}
           className="w-full sm:w-52 px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent bg-white dark:bg-[#151b23] dark:text-gray-200"
         >
-          <option value="all">Todas las periodicidades</option>
-          <option value="monthly">Mensual</option>
-          <option value="bimonthly">Bimestral</option>
-          <option value="quarterly">Trimestral</option>
-          <option value="annual">Anual</option>
-          <option value="on_demand">Bajo demanda</option>
+          <option value="all">{t('filters.allPeriodicities')}</option>
+          <option value="monthly">{t('periodicity.monthly')}</option>
+          <option value="bimonthly">{t('periodicity.bimonthly')}</option>
+          <option value="quarterly">{t('periodicity.quarterly')}</option>
+          <option value="annual">{t('periodicity.annual')}</option>
+          <option value="on_demand">{t('periodicity.onDemand')}</option>
         </select>
 
         {/* Add Supplier */}
@@ -192,7 +214,7 @@ export function SuppliersTab({
           className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-green-600 dark:bg-green-700 text-white text-xs font-medium rounded-md hover:bg-green-700 dark:hover:bg-green-800 transition-colors"
         >
           <FiPlus className="w-3.5 h-3.5" />
-          Nuevo Proveedor
+          {t('actions.newSupplier')}
         </button>
       </div>
 
@@ -205,19 +227,19 @@ export function SuppliersTab({
               <thead className="bg-gray-50 dark:bg-[#0d1117] border-b border-gray-200 dark:border-gray-800">
                 <tr>
                   <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                    Proveedor
+                    {t('table.supplier')}
                   </th>
                   <th className="px-3 py-2 text-center text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider hidden sm:table-cell">
-                    Periodicidad
+                    {t('table.periodicity')}
                   </th>
                   <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider hidden md:table-cell">
-                    Departamento
+                    {t('table.department')}
                   </th>
                   <th className="px-3 py-2 text-right text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                    Total YTD
+                    {t('table.totalYtd')}
                   </th>
                   <th className="px-3 py-2 text-center text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider hidden sm:table-cell">
-                    Facturas
+                    {t('table.invoices')}
                   </th>
                   <th className="px-3 py-2"></th>
                 </tr>
@@ -229,7 +251,7 @@ export function SuppliersTab({
                       colSpan={6}
                       className="px-3 py-8 text-center text-xs text-gray-500 dark:text-gray-400"
                     >
-                      No se encontraron proveedores
+                      {t('empty.noSuppliers')}
                     </td>
                   </tr>
                 ) : (
@@ -250,14 +272,14 @@ export function SuppliersTab({
                             </span>
                             {supplier.payment_method === 'direct_debit' && (
                               <span className="px-1 py-0.5 text-[8px] font-medium bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 rounded">
-                                DOM
+                                {t('suppliers.dom')}
                               </span>
                             )}
                           </div>
                         </td>
                         <td className="px-3 py-2 text-center hidden sm:table-cell">
                           <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400">
-                            {PERIODICITY_LABELS[supplier.periodicity]}
+                            {getPeriodicityLabel(supplier.periodicity)}
                           </span>
                         </td>
                         <td className="px-3 py-2 text-xs text-gray-600 dark:text-gray-400 hidden md:table-cell">
@@ -284,9 +306,12 @@ export function SuppliersTab({
           {pagination.total > 0 && (
             <div className="px-3 py-2 border-t border-gray-200 dark:border-gray-800 flex items-center justify-between">
               <span className="text-xs text-gray-500 dark:text-gray-400">
-                Mostrando {filteredSuppliers.length} de {pagination.total} proveedores
+                {t('pagination.showingSuppliers', {
+                  count: filteredSuppliers.length,
+                  total: pagination.total,
+                })}
                 {pagination.totalPages > 1 &&
-                  ` (Página ${pagination.page} de ${pagination.totalPages})`}
+                  ` (${t('pagination.page', { current: pagination.page, total: pagination.totalPages })})`}
               </span>
               {pagination.totalPages > 1 && onPageChange && (
                 <div className="flex items-center gap-2">
@@ -296,14 +321,14 @@ export function SuppliersTab({
                     className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                   >
                     <FiChevronLeft className="w-3.5 h-3.5" />
-                    Anterior
+                    {t('actions.previous')}
                   </button>
                   <button
                     onClick={() => onPageChange(pagination.page + 1)}
                     disabled={pagination.page >= pagination.totalPages}
                     className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                   >
-                    Siguiente
+                    {t('actions.next')}
                     <FiChevronRight className="w-3.5 h-3.5" />
                   </button>
                 </div>
@@ -322,21 +347,21 @@ export function SuppliersTab({
                     {selectedSupplier.name}
                   </h3>
                   <p className="text-[10px] text-gray-500 dark:text-gray-500 mt-0.5">
-                    {selectedSupplier.cost_center || 'Sin categoría'}
+                    {selectedSupplier.cost_center || t('suppliers.detail.noCategory')}
                   </p>
                 </div>
                 <div className="flex items-center gap-1">
                   <button
                     onClick={() => handleOpenEditSupplier(selectedSupplier)}
                     className="inline-flex items-center justify-center w-7 h-7 text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors"
-                    title="Editar"
+                    title={t('actions.edit')}
                   >
                     <FiEdit2 className="w-3.5 h-3.5" />
                   </button>
                   <button
                     onClick={() => handleOpenDeleteDialog(selectedSupplier)}
                     className="inline-flex items-center justify-center w-7 h-7 text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors"
-                    title="Eliminar"
+                    title={t('actions.delete')}
                   >
                     <FiTrash2 className="w-3.5 h-3.5" />
                   </button>
@@ -347,13 +372,17 @@ export function SuppliersTab({
                 {/* Stats */}
                 <div className="grid grid-cols-2 gap-2">
                   <div className="bg-gray-50 dark:bg-[#0d1117] rounded p-2">
-                    <p className="text-[10px] text-gray-500 dark:text-gray-500">Total YTD</p>
+                    <p className="text-[10px] text-gray-500 dark:text-gray-500">
+                      {t('suppliers.detail.totalYtd')}
+                    </p>
                     <p className="text-sm font-bold text-gray-900 dark:text-gray-100">
                       {formatCurrency(selectedSupplier.ytd_total || 0)}
                     </p>
                   </div>
                   <div className="bg-gray-50 dark:bg-[#0d1117] rounded p-2">
-                    <p className="text-[10px] text-gray-500 dark:text-gray-500">Facturas</p>
+                    <p className="text-[10px] text-gray-500 dark:text-gray-500">
+                      {t('suppliers.detail.invoices')}
+                    </p>
                     <p className="text-sm font-bold text-gray-900 dark:text-gray-100">
                       {selectedSupplier.total_invoices || 0}
                     </p>
@@ -363,11 +392,11 @@ export function SuppliersTab({
                 {/* Stats detail */}
                 <div className="grid grid-cols-2 gap-2 text-[10px]">
                   <div className="flex items-center gap-1 text-yellow-600 dark:text-yellow-400">
-                    <span>Pendientes:</span>
+                    <span>{t('suppliers.detail.pending')}</span>
                     <span className="font-medium">{selectedSupplier.pending_invoices || 0}</span>
                   </div>
                   <div className="flex items-center gap-1 text-green-600 dark:text-green-400">
-                    <span>Pagadas:</span>
+                    <span>{t('suppliers.detail.paid')}</span>
                     <span className="font-medium">{selectedSupplier.paid_invoices || 0}</span>
                   </div>
                 </div>
@@ -376,23 +405,23 @@ export function SuppliersTab({
                 <div className="space-y-2 text-xs">
                   <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
                     <FiCalendar className="w-3.5 h-3.5 text-gray-400" />
-                    <span>Última factura:</span>
+                    <span>{t('suppliers.detail.lastInvoice')}</span>
                     <span className="text-gray-900 dark:text-gray-100">
                       {formatDate(selectedSupplier.last_invoice_date)}
                     </span>
                   </div>
                   <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
                     <FiDollarSign className="w-3.5 h-3.5 text-gray-400" />
-                    <span>Periodicidad:</span>
+                    <span>{t('suppliers.detail.periodicity')}</span>
                     <span className="text-gray-900 dark:text-gray-100">
-                      {PERIODICITY_LABELS[selectedSupplier.periodicity]}
+                      {getPeriodicityLabel(selectedSupplier.periodicity)}
                     </span>
                   </div>
                   <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
                     <FiFileText className="w-3.5 h-3.5 text-gray-400" />
-                    <span>Forma de pago:</span>
+                    <span>{t('suppliers.detail.paymentMethod')}</span>
                     <span className="text-gray-900 dark:text-gray-100">
-                      {PAYMENT_METHOD_LABELS[selectedSupplier.payment_method]}
+                      {getPaymentMethodLabel(selectedSupplier.payment_method)}
                     </span>
                   </div>
                 </div>
@@ -400,7 +429,9 @@ export function SuppliersTab({
                 {/* CIF */}
                 {selectedSupplier.cif && (
                   <div className="pt-2 border-t border-gray-100 dark:border-gray-800">
-                    <p className="text-[10px] text-gray-500 dark:text-gray-500 mb-1">CIF</p>
+                    <p className="text-[10px] text-gray-500 dark:text-gray-500 mb-1">
+                      {t('suppliers.detail.cif')}
+                    </p>
                     <p className="text-xs text-gray-700 dark:text-gray-300 font-mono">
                       {selectedSupplier.cif}
                     </p>
@@ -411,7 +442,7 @@ export function SuppliersTab({
                 {selectedSupplier.bank_account && (
                   <div className="pt-2 border-t border-gray-100 dark:border-gray-800">
                     <p className="text-[10px] text-gray-500 dark:text-gray-500 mb-1">
-                      Cuenta Bancaria
+                      {t('suppliers.detail.bankAccount')}
                     </p>
                     <p className="text-xs text-gray-700 dark:text-gray-300 font-mono break-all">
                       {selectedSupplier.bank_account}
@@ -423,7 +454,7 @@ export function SuppliersTab({
                 {selectedSupplier.notes && (
                   <div className="pt-2 border-t border-gray-100 dark:border-gray-800">
                     <p className="text-[10px] text-gray-500 dark:text-gray-500 mb-1">
-                      Observaciones
+                      {t('suppliers.detail.notes')}
                     </p>
                     <p className="text-xs text-gray-700 dark:text-gray-300">
                       {selectedSupplier.notes}
@@ -434,7 +465,9 @@ export function SuppliersTab({
                 {/* Contact info */}
                 {(selectedSupplier.email || selectedSupplier.phone) && (
                   <div className="pt-2 border-t border-gray-100 dark:border-gray-800 space-y-1">
-                    <p className="text-[10px] text-gray-500 dark:text-gray-500 mb-1">Contacto</p>
+                    <p className="text-[10px] text-gray-500 dark:text-gray-500 mb-1">
+                      {t('suppliers.detail.contact')}
+                    </p>
                     {selectedSupplier.email && (
                       <p className="text-xs text-gray-600 dark:text-gray-400">
                         {selectedSupplier.email}
@@ -451,7 +484,9 @@ export function SuppliersTab({
                 {/* Address */}
                 {selectedSupplier.address && (
                   <div className="pt-2 border-t border-gray-100 dark:border-gray-800">
-                    <p className="text-[10px] text-gray-500 dark:text-gray-500 mb-1">Dirección</p>
+                    <p className="text-[10px] text-gray-500 dark:text-gray-500 mb-1">
+                      {t('suppliers.detail.address')}
+                    </p>
                     <p className="text-xs text-gray-700 dark:text-gray-300">
                       {selectedSupplier.address}
                     </p>
@@ -465,7 +500,7 @@ export function SuppliersTab({
                     className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-blue-600 dark:bg-blue-700 text-white text-xs font-medium rounded-md hover:bg-blue-700 dark:hover:bg-blue-800 transition-colors"
                   >
                     <FiFileText className="w-3.5 h-3.5" />
-                    Ver Facturas
+                    {t('actions.viewInvoices')}
                   </button>
                 </div>
               </div>
@@ -474,7 +509,7 @@ export function SuppliersTab({
             <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-6 text-center">
               <FiFileText className="w-8 h-8 text-gray-300 dark:text-gray-600 mx-auto mb-2" />
               <p className="text-xs text-gray-500 dark:text-gray-400">
-                Selecciona un proveedor para ver sus detalles
+                {t('empty.selectSupplier')}
               </p>
             </div>
           )}
@@ -502,14 +537,17 @@ export function SuppliersTab({
             setDeletingSupplier(null)
           }}
           onConfirm={handleDeleteSupplier}
-          title="Eliminar Proveedor"
+          title={t('modals.deleteSupplier.title')}
           message={
             deletingSupplier.total_invoices > 0
-              ? `No se puede eliminar "${deletingSupplier.name}" porque tiene ${deletingSupplier.total_invoices} factura(s) asociada(s). Elimina primero todas las facturas desde "Ver Facturas".`
-              : `¿Estás seguro de que quieres eliminar el proveedor "${deletingSupplier.name}"? Esta acción no se puede deshacer.`
+              ? t('modals.deleteSupplier.messageWithInvoices', {
+                  name: deletingSupplier.name,
+                  count: deletingSupplier.total_invoices,
+                })
+              : t('modals.deleteSupplier.messageEmpty', { name: deletingSupplier.name })
           }
-          confirmText="Eliminar"
-          cancelText="Cancelar"
+          confirmText={t('modals.deleteSupplier.confirmButton')}
+          cancelText={t('actions.cancel')}
           variant="danger"
           disableConfirm={deletingSupplier.total_invoices > 0}
         />

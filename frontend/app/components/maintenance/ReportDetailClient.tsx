@@ -4,6 +4,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { useMaintenanceStore } from '@/app/stores/useMaintenanceStore'
 import { maintenanceApi } from '@/app/lib/maintenance/maintenanceApi'
 import type { ReportWithDetails } from '@/app/lib/maintenance/maintenance'
@@ -21,6 +22,7 @@ interface ReportDetailClientProps {
 }
 
 export function ReportDetailClient({ initialReport }: ReportDetailClientProps) {
+  const t = useTranslations('maintenance')
   const router = useRouter()
   const searchParams = useSearchParams()
   const activeTab = searchParams.get('tab') || 'detail'
@@ -62,10 +64,10 @@ export function ReportDetailClient({ initialReport }: ReportDetailClientProps) {
     try {
       setIsDeleting(true)
       await maintenanceApi.delete(currentReport.id)
-      toast.success('Reporte eliminado correctamente')
+      toast.success(t('detail.toast.reportDeleted'))
       router.push('/dashboard/maintenance')
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Error al eliminar el reporte'
+      const message = error instanceof Error ? error.message : t('detail.toast.deleteError')
       toast.error(message)
     } finally {
       setIsDeleting(false)
@@ -76,7 +78,7 @@ export function ReportDetailClient({ initialReport }: ReportDetailClientProps) {
   if (!currentReport) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-[#0d1117] flex items-center justify-center">
-        <LoadingSpinner size="lg" message="Cargando reporte..." />
+        <LoadingSpinner size="lg" message={t('detail.loadingReport')} />
       </div>
     )
   }
@@ -107,9 +109,9 @@ export function ReportDetailClient({ initialReport }: ReportDetailClientProps) {
         isOpen={isDeleteDialogOpen}
         onClose={() => setIsDeleteDialogOpen(false)}
         onConfirm={handleConfirmDelete}
-        title="Eliminar Reporte"
-        message={`¿Estás seguro de que quieres eliminar el reporte "${currentReport.title}"? Esta acción no se puede deshacer.`}
-        confirmText="Eliminar"
+        title={t('confirm.deleteTitle')}
+        message={t('confirm.deleteMessage', { title: currentReport.title })}
+        confirmText={t('confirm.deleteButton')}
         confirmVariant="danger"
         isLoading={isDeleting}
       />

@@ -5,6 +5,7 @@ import { GroupContactRepository } from '../../repositories/group/group-contact-r
 import { GroupRepository } from '../../repositories/group/group-repository'
 import { GroupHistoryService } from '../../services/group/group-history-service'
 import { CreateGroupContactDTO, UpdateGroupContactDTO } from '../../models/group/index'
+import { ERROR_CODES, SUCCESS_CODES } from '../../config/error-codes.js'
 
 export class GroupContactController {
   /**
@@ -18,7 +19,8 @@ export class GroupContactController {
       if (isNaN(groupId)) {
         return res.status(400).json({
           success: false,
-          error: 'ID de grupo inválido',
+          error: ERROR_CODES.GROUP_INVALID_ID,
+          code: ERROR_CODES.GROUP_INVALID_ID,
         })
       }
 
@@ -27,7 +29,8 @@ export class GroupContactController {
       if (!group) {
         return res.status(404).json({
           success: false,
-          error: 'Grupo no encontrado',
+          error: ERROR_CODES.GROUP_NOT_FOUND,
+          code: ERROR_CODES.GROUP_NOT_FOUND,
         })
       }
 
@@ -42,8 +45,8 @@ export class GroupContactController {
       console.error('Error en getContactsByGroup:', error)
       return res.status(500).json({
         success: false,
-        error: 'Error al obtener contactos',
-        message: error.message,
+        error: ERROR_CODES.GROUP_CONTACT_FETCH_ERROR,
+        code: ERROR_CODES.GROUP_CONTACT_FETCH_ERROR,
       })
     }
   }
@@ -60,14 +63,16 @@ export class GroupContactController {
       if (isNaN(groupId)) {
         return res.status(400).json({
           success: false,
-          error: 'ID de grupo inválido',
+          error: ERROR_CODES.GROUP_INVALID_ID,
+          code: ERROR_CODES.GROUP_INVALID_ID,
         })
       }
 
       if (!userId) {
         return res.status(401).json({
           success: false,
-          error: 'Usuario no autenticado',
+          error: ERROR_CODES.UNAUTHORIZED,
+          code: ERROR_CODES.UNAUTHORIZED,
         })
       }
 
@@ -76,7 +81,8 @@ export class GroupContactController {
       if (!group) {
         return res.status(404).json({
           success: false,
-          error: 'Grupo no encontrado',
+          error: ERROR_CODES.GROUP_NOT_FOUND,
+          code: ERROR_CODES.GROUP_NOT_FOUND,
         })
       }
 
@@ -104,15 +110,16 @@ export class GroupContactController {
 
       return res.status(201).json({
         success: true,
-        message: 'Contacto creado correctamente',
+        message: SUCCESS_CODES.GROUP_CONTACT_CREATED,
+        code: SUCCESS_CODES.GROUP_CONTACT_CREATED,
         data: newContact,
       })
     } catch (error: any) {
       console.error('Error en createContact:', error)
       return res.status(500).json({
         success: false,
-        error: 'Error al crear contacto',
-        message: error.message,
+        error: ERROR_CODES.GROUP_CONTACT_CREATE_ERROR,
+        code: ERROR_CODES.GROUP_CONTACT_CREATE_ERROR,
       })
     }
   }
@@ -130,14 +137,16 @@ export class GroupContactController {
       if (isNaN(groupId) || isNaN(contactId)) {
         return res.status(400).json({
           success: false,
-          error: 'IDs inválidos',
+          error: ERROR_CODES.INVALID_ID,
+          code: ERROR_CODES.INVALID_ID,
         })
       }
 
       if (!userId) {
         return res.status(401).json({
           success: false,
-          error: 'Usuario no autenticado',
+          error: ERROR_CODES.UNAUTHORIZED,
+          code: ERROR_CODES.UNAUTHORIZED,
         })
       }
 
@@ -146,14 +155,16 @@ export class GroupContactController {
       if (!oldContact) {
         return res.status(404).json({
           success: false,
-          error: 'Contacto no encontrado',
+          error: ERROR_CODES.GROUP_CONTACT_NOT_FOUND,
+          code: ERROR_CODES.GROUP_CONTACT_NOT_FOUND,
         })
       }
 
       if (oldContact.group_id !== groupId) {
         return res.status(400).json({
           success: false,
-          error: 'El contacto no pertenece a este grupo',
+          error: ERROR_CODES.GROUP_CONTACT_NOT_IN_GROUP,
+          code: ERROR_CODES.GROUP_CONTACT_NOT_IN_GROUP,
         })
       }
 
@@ -164,7 +175,8 @@ export class GroupContactController {
       if (!updated) {
         return res.status(500).json({
           success: false,
-          error: 'Error al actualizar contacto',
+          error: ERROR_CODES.GROUP_CONTACT_UPDATE_ERROR,
+          code: ERROR_CODES.GROUP_CONTACT_UPDATE_ERROR,
         })
       }
 
@@ -182,14 +194,15 @@ export class GroupContactController {
 
       return res.status(200).json({
         success: true,
-        message: 'Contacto actualizado correctamente',
+        message: SUCCESS_CODES.GROUP_CONTACT_UPDATED,
+        code: SUCCESS_CODES.GROUP_CONTACT_UPDATED,
       })
     } catch (error: any) {
       console.error('Error en updateContact:', error)
       return res.status(500).json({
         success: false,
-        error: 'Error al actualizar contacto',
-        message: error.message,
+        error: ERROR_CODES.GROUP_CONTACT_UPDATE_ERROR,
+        code: ERROR_CODES.GROUP_CONTACT_UPDATE_ERROR,
       })
     }
   }
@@ -207,14 +220,16 @@ export class GroupContactController {
       if (isNaN(groupId) || isNaN(contactId)) {
         return res.status(400).json({
           success: false,
-          error: 'IDs inválidos',
+          error: ERROR_CODES.INVALID_ID,
+          code: ERROR_CODES.INVALID_ID,
         })
       }
 
       if (!userId) {
         return res.status(401).json({
           success: false,
-          error: 'Usuario no autenticado',
+          error: ERROR_CODES.UNAUTHORIZED,
+          code: ERROR_CODES.UNAUTHORIZED,
         })
       }
 
@@ -223,14 +238,16 @@ export class GroupContactController {
       if (!contact) {
         return res.status(404).json({
           success: false,
-          error: 'Contacto no encontrado',
+          error: ERROR_CODES.GROUP_CONTACT_NOT_FOUND,
+          code: ERROR_CODES.GROUP_CONTACT_NOT_FOUND,
         })
       }
 
       if (contact.group_id !== groupId) {
         return res.status(400).json({
           success: false,
-          error: 'El contacto no pertenece a este grupo',
+          error: ERROR_CODES.GROUP_CONTACT_NOT_IN_GROUP,
+          code: ERROR_CODES.GROUP_CONTACT_NOT_IN_GROUP,
         })
       }
 
@@ -239,7 +256,8 @@ export class GroupContactController {
       if (!deleted) {
         return res.status(500).json({
           success: false,
-          error: 'Error al eliminar contacto',
+          error: ERROR_CODES.GROUP_CONTACT_DELETE_ERROR,
+          code: ERROR_CODES.GROUP_CONTACT_DELETE_ERROR,
         })
       }
 
@@ -247,14 +265,15 @@ export class GroupContactController {
 
       return res.status(200).json({
         success: true,
-        message: 'Contacto eliminado correctamente',
+        message: SUCCESS_CODES.GROUP_CONTACT_DELETED,
+        code: SUCCESS_CODES.GROUP_CONTACT_DELETED,
       })
     } catch (error: any) {
       console.error('Error en deleteContact:', error)
       return res.status(500).json({
         success: false,
-        error: 'Error al eliminar contacto',
-        message: error.message,
+        error: ERROR_CODES.GROUP_CONTACT_DELETE_ERROR,
+        code: ERROR_CODES.GROUP_CONTACT_DELETE_ERROR,
       })
     }
   }
@@ -270,7 +289,8 @@ export class GroupContactController {
       if (isNaN(groupId)) {
         return res.status(400).json({
           success: false,
-          error: 'ID de grupo inválido',
+          error: ERROR_CODES.GROUP_INVALID_ID,
+          code: ERROR_CODES.GROUP_INVALID_ID,
         })
       }
 
@@ -279,7 +299,8 @@ export class GroupContactController {
       if (!primaryContact) {
         return res.status(404).json({
           success: false,
-          error: 'No se encontró contacto principal',
+          error: ERROR_CODES.GROUP_CONTACT_PRIMARY_NOT_FOUND,
+          code: ERROR_CODES.GROUP_CONTACT_PRIMARY_NOT_FOUND,
         })
       }
 
@@ -291,8 +312,8 @@ export class GroupContactController {
       console.error('Error en getPrimaryContact:', error)
       return res.status(500).json({
         success: false,
-        error: 'Error al obtener contacto principal',
-        message: error.message,
+        error: ERROR_CODES.GROUP_CONTACT_FETCH_PRIMARY_ERROR,
+        code: ERROR_CODES.GROUP_CONTACT_FETCH_PRIMARY_ERROR,
       })
     }
   }

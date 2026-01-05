@@ -3,6 +3,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 import {
   FiSearch,
   FiPlus,
@@ -117,6 +118,7 @@ const mockOrders: Order[] = [
 ]
 
 export function OrdersTab() {
+  const t = useTranslations('restaurant')
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<OrderStatus | 'all'>('all')
   const [expandedOrder, setExpandedOrder] = useState<number | null>(null)
@@ -145,39 +147,41 @@ export function OrdersTab() {
   }
 
   const getStatusConfig = (status: OrderStatus) => {
-    const configs: Record<OrderStatus, { color: string; label: string; icon: React.ElementType }> =
-      {
-        pending: {
-          color:
-            'bg-yellow-50 text-yellow-700 border border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-400 dark:border-yellow-800',
-          label: 'Pendiente',
-          icon: FiClock,
-        },
-        confirmed: {
-          color:
-            'bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-800',
-          label: 'Confirmado',
-          icon: FiCheck,
-        },
-        shipped: {
-          color:
-            'bg-purple-50 text-purple-700 border border-purple-200 dark:bg-purple-900/20 dark:text-purple-400 dark:border-purple-800',
-          label: 'En Camino',
-          icon: FiTruck,
-        },
-        delivered: {
-          color:
-            'bg-green-50 text-green-700 border border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800',
-          label: 'Entregado',
-          icon: FiCheck,
-        },
-        cancelled: {
-          color:
-            'bg-red-50 text-red-700 border border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800',
-          label: 'Cancelado',
-          icon: FiX,
-        },
-      }
+    const configs: Record<
+      OrderStatus,
+      { color: string; labelKey: string; icon: React.ElementType }
+    > = {
+      pending: {
+        color:
+          'bg-yellow-50 text-yellow-700 border border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-400 dark:border-yellow-800',
+        labelKey: 'orders.status.pending',
+        icon: FiClock,
+      },
+      confirmed: {
+        color:
+          'bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-800',
+        labelKey: 'orders.status.confirmed',
+        icon: FiCheck,
+      },
+      shipped: {
+        color:
+          'bg-purple-50 text-purple-700 border border-purple-200 dark:bg-purple-900/20 dark:text-purple-400 dark:border-purple-800',
+        labelKey: 'orders.status.inTransit',
+        icon: FiTruck,
+      },
+      delivered: {
+        color:
+          'bg-green-50 text-green-700 border border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800',
+        labelKey: 'orders.status.delivered',
+        icon: FiCheck,
+      },
+      cancelled: {
+        color:
+          'bg-red-50 text-red-700 border border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800',
+        labelKey: 'orders.status.cancelled',
+        icon: FiX,
+      },
+    }
     return configs[status]
   }
 
@@ -198,7 +202,9 @@ export function OrdersTab() {
               <FiClock className="w-4 h-4 text-yellow-600 dark:text-yellow-400" />
             </div>
             <div>
-              <p className="text-[10px] text-gray-600 dark:text-gray-400">Pendientes</p>
+              <p className="text-[10px] text-gray-600 dark:text-gray-400">
+                {t('orders.summary.pending')}
+              </p>
               <p className="text-sm font-bold text-gray-900 dark:text-gray-100">{pendingCount}</p>
             </div>
           </div>
@@ -209,7 +215,9 @@ export function OrdersTab() {
               <FiTruck className="w-4 h-4 text-purple-600 dark:text-purple-400" />
             </div>
             <div>
-              <p className="text-[10px] text-gray-600 dark:text-gray-400">En Tránsito</p>
+              <p className="text-[10px] text-gray-600 dark:text-gray-400">
+                {t('orders.summary.inTransit')}
+              </p>
               <p className="text-sm font-bold text-gray-900 dark:text-gray-100">{inTransitCount}</p>
             </div>
           </div>
@@ -220,7 +228,9 @@ export function OrdersTab() {
               <FiPackage className="w-4 h-4 text-blue-600 dark:text-blue-400" />
             </div>
             <div>
-              <p className="text-[10px] text-gray-600 dark:text-gray-400">Valor Pendiente</p>
+              <p className="text-[10px] text-gray-600 dark:text-gray-400">
+                {t('orders.summary.pendingValue')}
+              </p>
               <p className="text-sm font-bold text-gray-900 dark:text-gray-100">
                 {formatCurrency(totalPendingValue)}
               </p>
@@ -236,7 +246,7 @@ export function OrdersTab() {
           <FiSearch className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 dark:text-gray-500" />
           <input
             type="text"
-            placeholder="Buscar por proveedor o nº pedido..."
+            placeholder={t('orders.searchPlaceholder')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full pl-8 pr-3 py-1.5 text-xs border border-gray-300 dark:border-gray-700 dark:bg-[#151b23] dark:text-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent"
@@ -249,18 +259,18 @@ export function OrdersTab() {
           onChange={(e) => setStatusFilter(e.target.value as OrderStatus | 'all')}
           className="px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent bg-white dark:bg-[#151b23] dark:text-gray-200"
         >
-          <option value="all">Todos los estados</option>
-          <option value="pending">Pendiente</option>
-          <option value="confirmed">Confirmado</option>
-          <option value="shipped">En Camino</option>
-          <option value="delivered">Entregado</option>
-          <option value="cancelled">Cancelado</option>
+          <option value="all">{t('orders.allStatuses')}</option>
+          <option value="pending">{t('orders.status.pending')}</option>
+          <option value="confirmed">{t('orders.status.confirmed')}</option>
+          <option value="shipped">{t('orders.status.inTransit')}</option>
+          <option value="delivered">{t('orders.status.delivered')}</option>
+          <option value="cancelled">{t('orders.status.cancelled')}</option>
         </select>
 
         {/* New Order Button */}
         <button className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-green-600 dark:bg-green-700 text-white text-xs font-medium rounded-md hover:bg-green-700 dark:hover:bg-green-800 transition-colors">
           <FiPlus className="w-3.5 h-3.5" />
-          Nuevo Pedido
+          {t('orders.newOrder')}
         </button>
       </div>
 
@@ -268,7 +278,7 @@ export function OrdersTab() {
       <div className="space-y-2">
         {filteredOrders.length === 0 ? (
           <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-6 text-center">
-            <p className="text-xs text-gray-500 dark:text-gray-400">No se encontraron pedidos</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">{t('orders.noOrders')}</p>
           </div>
         ) : (
           filteredOrders.map((order) => {
@@ -302,7 +312,7 @@ export function OrdersTab() {
                           {formatDate(order.orderDate)}
                         </span>
                         <span>
-                          Entrega:{' '}
+                          {t('orders.delivery')}{' '}
                           <span className="font-medium">{formatDate(order.expectedDate)}</span>
                         </span>
                       </div>
@@ -315,19 +325,21 @@ export function OrdersTab() {
                         className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium ${statusConfig.color}`}
                       >
                         <StatusIcon className="w-3 h-3" />
-                        {statusConfig.label}
+                        {t(statusConfig.labelKey)}
                       </span>
                     </div>
                   </div>
 
                   {/* Items preview */}
                   <div className="mt-2 text-[10px] text-gray-500 dark:text-gray-500">
-                    {order.items.length} producto{order.items.length !== 1 ? 's' : ''} ·{' '}
+                    {order.items.length}{' '}
+                    {order.items.length !== 1 ? t('orders.products') : t('orders.product')} ·{' '}
                     {order.items
                       .slice(0, 2)
                       .map((i) => i.productName)
                       .join(', ')}
-                    {order.items.length > 2 && ` y ${order.items.length - 2} más`}
+                    {order.items.length > 2 &&
+                      ` ${t('orders.andMore', { count: order.items.length - 2 })}`}
                   </div>
                 </div>
 
@@ -337,10 +349,10 @@ export function OrdersTab() {
                     <table className="w-full text-xs">
                       <thead>
                         <tr className="text-[10px] text-gray-600 dark:text-gray-400 uppercase">
-                          <th className="text-left pb-2">Producto</th>
-                          <th className="text-center pb-2">Cantidad</th>
-                          <th className="text-right pb-2">Precio Unit.</th>
-                          <th className="text-right pb-2">Subtotal</th>
+                          <th className="text-left pb-2">{t('orders.table.product')}</th>
+                          <th className="text-center pb-2">{t('orders.table.quantity')}</th>
+                          <th className="text-right pb-2">{t('orders.table.unitPrice')}</th>
+                          <th className="text-right pb-2">{t('orders.table.subtotal')}</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
@@ -367,7 +379,7 @@ export function OrdersTab() {
                             colSpan={3}
                             className="pt-2 text-right text-gray-700 dark:text-gray-300"
                           >
-                            Total:
+                            {t('orders.table.total')}
                           </td>
                           <td className="pt-2 text-right text-gray-900 dark:text-gray-100">
                             {formatCurrency(order.total)}
@@ -379,7 +391,7 @@ export function OrdersTab() {
                     {order.notes && (
                       <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-800">
                         <p className="text-[10px] text-gray-600 dark:text-gray-400">
-                          <span className="font-medium">Notas:</span> {order.notes}
+                          <span className="font-medium">{t('orders.notes')}</span> {order.notes}
                         </p>
                       </div>
                     )}
@@ -390,23 +402,23 @@ export function OrdersTab() {
                         <>
                           <button className="inline-flex items-center gap-1 px-2 py-1 text-[10px] font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors">
                             <FiX className="w-3 h-3" />
-                            Cancelar
+                            {t('orders.cancel')}
                           </button>
                           <button className="inline-flex items-center gap-1 px-2 py-1 text-[10px] font-medium text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors">
                             <FiCheck className="w-3 h-3" />
-                            Confirmar
+                            {t('orders.confirm')}
                           </button>
                         </>
                       )}
                       {order.status === 'shipped' && (
                         <button className="inline-flex items-center gap-1 px-2 py-1 text-[10px] font-medium text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 rounded transition-colors">
                           <FiCheck className="w-3 h-3" />
-                          Marcar Entregado
+                          {t('orders.markDelivered')}
                         </button>
                       )}
                       <button className="inline-flex items-center gap-1 px-2 py-1 text-[10px] font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors">
                         <FiEye className="w-3 h-3" />
-                        Ver Detalle
+                        {t('orders.viewDetail')}
                       </button>
                     </div>
                   </div>

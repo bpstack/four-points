@@ -5,20 +5,22 @@
 import { GroupStatusRecord, GroupPayment } from '@/app/lib/groups'
 import { useGroupStore } from '@/app/stores/useGroupStore'
 import { FiCheckCircle, FiCircle } from 'react-icons/fi'
+import { useTranslations } from 'next-intl'
 
 interface StatusTimelineProps {
   status: GroupStatusRecord | null
 }
 
-const TIMELINE_STEPS = [
-  { key: 'booking', label: 'Booking Confirmado' },
-  { key: 'contract', label: 'Contrato Firmado' },
-  { key: 'rooming', label: 'Rooming List' },
-  { key: 'balance', label: 'Balance Pagado' },
-] as const
-
 export function StatusTimeline({ status }: StatusTimelineProps) {
+  const t = useTranslations('groups')
   const { payments } = useGroupStore()
+
+  const TIMELINE_STEPS = [
+    { key: 'booking', label: t('statusCards.bookingConfirmed') },
+    { key: 'contract', label: t('statusCards.contractSigned') },
+    { key: 'rooming', label: t('statusCards.roomingList') },
+    { key: 'balance', label: t('statusCards.balancePaid') },
+  ] as const
 
   if (!status) return null
 
@@ -49,10 +51,10 @@ export function StatusTimeline({ status }: StatusTimelineProps) {
       <div className="mb-6">
         <div className="flex items-center justify-between mb-2">
           <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-            Progreso del Grupo
+            {t('statusCards.groupProgress')}
           </h3>
           <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
-            {progress} de {TIMELINE_STEPS.length}
+            {progress} {t('statusCards.of')} {TIMELINE_STEPS.length}
           </span>
         </div>
         <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">

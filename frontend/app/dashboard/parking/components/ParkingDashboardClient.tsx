@@ -30,6 +30,7 @@ import {
 import { VehicleSearchModal } from '@/app/components/parking/VehicleSearchModal'
 import { parkingApi, type FullStatsResponse } from '@/app/lib/parking'
 import type { ParkingStats, ParkingDashboardResponse } from '../actions/getParkingDashboardStats'
+import { useTranslations } from 'next-intl'
 
 // Query keys
 const dashboardKeys = {
@@ -48,6 +49,7 @@ export default function ParkingDashboardClient({
 }: ParkingDashboardClientProps) {
   const [selectedPeriod, setSelectedPeriod] = useState<'today' | 'week' | 'month'>('today')
   const [showVehicleSearch, setShowVehicleSearch] = useState(false)
+  const t = useTranslations('parking')
 
   // Calcular rango de fechas según período
   const getDateRange = useCallback(() => {
@@ -209,10 +211,10 @@ export default function ParkingDashboardClient({
                 <FaCar className="w-4 h-4 text-white" />
               </div>
               <h1 className="text-xl font-bold bg-gradient-to-r from-[#24292f] to-[#57606a] dark:from-[#f0f6fc] dark:to-[#c9d1d9] bg-clip-text text-transparent">
-                Parking
+                {t('title')}
               </h1>
               <span className="text-xs text-[#57606a] dark:text-[#8b949e] font-medium hidden sm:inline">
-                {selectedPeriod === 'today' ? 'Hoy, ' : ''}
+                {selectedPeriod === 'today' ? `${t('periods.today')}, ` : ''}
                 {getPeriodLabel()}
               </span>
             </div>
@@ -229,7 +231,11 @@ export default function ParkingDashboardClient({
                       : 'text-[#24292f] dark:text-[#c9d1d9] hover:bg-[#f6f8fa] dark:hover:bg-[#21262d]'
                   }`}
                 >
-                  {period === 'today' ? 'Hoy' : period === 'week' ? 'Semana' : 'Mes'}
+                  {period === 'today'
+                    ? t('periods.today')
+                    : period === 'week'
+                      ? t('periods.week')
+                      : t('periods.month')}
                 </button>
               ))}
             </div>
@@ -237,7 +243,7 @@ export default function ParkingDashboardClient({
 
           {/* Date on mobile (below title row) */}
           <p className="text-xs text-[#57606a] dark:text-[#8b949e] font-medium mt-2 sm:hidden">
-            {selectedPeriod === 'today' ? 'Hoy, ' : ''}
+            {selectedPeriod === 'today' ? `${t('periods.today')}, ` : ''}
             {getPeriodLabel()}
           </p>
         </div>
@@ -247,7 +253,7 @@ export default function ParkingDashboardClient({
           <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3 flex items-start gap-2 shadow-sm">
             <FiAlertCircle className="w-4 h-4 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
             <p className="text-xs text-red-700 dark:text-red-300 font-medium">
-              {error instanceof Error ? error.message : 'Error al cargar datos'}
+              {error instanceof Error ? error.message : t('dashboard.errorLoading')}
             </p>
           </div>
         )}
@@ -265,7 +271,7 @@ export default function ParkingDashboardClient({
                       <FiCalendar className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
                     </div>
                     <h2 className="text-sm font-bold text-[#24292f] dark:text-[#f0f6fc]">
-                      Reservas
+                      {t('reservations.title')}
                     </h2>
                   </div>
                   <button
@@ -280,7 +286,7 @@ export default function ParkingDashboardClient({
                   </button>
                 </div>
                 <p className="text-[10px] text-[#57606a] dark:text-[#8b949e] leading-relaxed">
-                  Flujo de vehículos: llegadas, estacionados y salidas.
+                  {t('reservations.description')}
                 </p>
               </div>
 
@@ -292,24 +298,24 @@ export default function ParkingDashboardClient({
                       <FiArrowDown className="w-3 h-3 text-green-600 dark:text-green-400" />
                     </div>
                     <h3 className="text-xs font-bold text-[#24292f] dark:text-[#f0f6fc]">
-                      Llegadas
+                      {t('reservations.arrivals')}
                     </h3>
                   </div>
                   <div className="grid grid-cols-3 gap-2">
                     <StatLink
-                      label="En espera"
+                      label={t('reservations.waiting')}
                       value={stats.pending_checkins}
                       loading={isFetching}
                       href="/dashboard/parking/bookings?filter=arrivals_pending"
                     />
                     <StatLink
-                      label="Dentro"
+                      label={t('reservations.inside')}
                       value={stats.active_bookings}
                       loading={isFetching}
                       href="/dashboard/parking/bookings?filter=arrivals_inside"
                     />
                     <StatLink
-                      label="Total"
+                      label={t('reservations.total')}
                       value={arrivalsTotal}
                       loading={isFetching}
                       href="/dashboard/parking/bookings?filter=arrivals_total"
@@ -324,24 +330,24 @@ export default function ParkingDashboardClient({
                       <FiArrowUp className="w-3 h-3 text-red-600 dark:text-red-400" />
                     </div>
                     <h3 className="text-xs font-bold text-[#24292f] dark:text-[#f0f6fc]">
-                      Salidas
+                      {t('reservations.departures')}
                     </h3>
                   </div>
                   <div className="grid grid-cols-3 gap-2">
                     <StatLink
-                      label="En espera"
+                      label={t('reservations.waiting')}
                       value={stats.pending_checkouts}
                       loading={isFetching}
                       href="/dashboard/parking/bookings?filter=departures_pending"
                     />
                     <StatLink
-                      label="Completadas"
+                      label={t('reservations.completed')}
                       value={stats.completed_today}
                       loading={isFetching}
                       href="/dashboard/parking/bookings?filter=departures_completed"
                     />
                     <StatLink
-                      label="Total"
+                      label={t('reservations.total')}
                       value={departuresTotal}
                       loading={isFetching}
                       href="/dashboard/parking/bookings?filter=departures_total"
@@ -358,43 +364,43 @@ export default function ParkingDashboardClient({
                   <FiZap className="w-3.5 h-3.5 text-orange-600 dark:text-orange-400" />
                 </div>
                 <h2 className="text-sm font-bold text-[#24292f] dark:text-[#f0f6fc]">
-                  Acciones Rapidas
+                  {t('quickActions.title')}
                 </h2>
               </div>
 
               <div className="grid grid-cols-3 gap-2">
                 <QuickActionCard
-                  label="Nueva"
+                  label={t('quickActions.newBooking')}
                   icon={FiCalendar}
                   href="/dashboard/parking/bookings/new"
                   color="blue"
                 />
                 <QuickActionCard
-                  label="Reservas"
+                  label={t('quickActions.allBookings')}
                   icon={FiGrid}
                   href="/dashboard/parking/bookings"
                   color="purple"
                 />
                 <QuickActionCard
-                  label="Control"
+                  label={t('quickActions.parkingControl')}
                   icon={FiMapPin}
                   href="/dashboard/parking/status"
                   color="green"
                 />
                 <QuickActionCard
-                  label="Buscar"
+                  label={t('quickActions.searchVehicle')}
                   icon={FiSearch}
                   onClick={() => setShowVehicleSearch(true)}
                   color="orange"
                 />
                 <QuickActionCard
-                  label="Check-In"
+                  label={t('quickActions.checkIns')}
                   icon={FiLogIn}
                   href="/dashboard/parking/bookings?status=reserved"
                   color="teal"
                 />
                 <QuickActionCard
-                  label="Check-Out"
+                  label={t('quickActions.checkOuts')}
                   icon={FiLogOut}
                   href="/dashboard/parking/bookings?status=checked_in"
                   color="red"
@@ -409,7 +415,7 @@ export default function ParkingDashboardClient({
                   <FiActivity className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
                 </div>
                 <h2 className="text-base font-bold text-[#24292f] dark:text-[#f0f6fc]">
-                  Control de Parking
+                  {t('control.title')}
                 </h2>
               </div>
 
@@ -423,10 +429,10 @@ export default function ParkingDashboardClient({
                     <div>
                       <div className="text-[10px] font-bold text-[#57606a] dark:text-[#8b949e] mb-1.5 uppercase tracking-wide">
                         {selectedPeriod === 'today'
-                          ? 'Ocupacion Actual'
+                          ? t('control.currentOccupancy')
                           : selectedPeriod === 'week'
-                            ? 'Ocupaciones Semanales'
-                            : 'Ocupaciones Mensuales'}
+                            ? t('control.weeklyOccupancy')
+                            : t('control.monthlyOccupancy')}
                       </div>
                       {isFetching ? (
                         <div className="h-7 w-24 bg-[#d0d7de] dark:bg-[#30363d] rounded-lg animate-pulse"></div>
@@ -456,10 +462,12 @@ export default function ParkingDashboardClient({
                   </div>
                   <div className="text-[10px] text-[#57606a] dark:text-[#8b949e] font-medium">
                     {selectedPeriod === 'today'
-                      ? `${stats.available_spots} plazas disponibles`
-                      : selectedPeriod === 'week'
-                        ? `Media diaria: ${Math.round(stats.total_bookings / 7)} ocupaciones`
-                        : `Media diaria: ${Math.round(stats.total_bookings / 30)} ocupaciones`}
+                      ? t('control.spotsAvailable', { count: stats.available_spots })
+                      : t('control.dailyAvg', {
+                          count: Math.round(
+                            stats.total_bookings / (selectedPeriod === 'week' ? 7 : 30)
+                          ),
+                        })}
                   </div>
                 </Link>
 
@@ -476,10 +484,10 @@ export default function ParkingDashboardClient({
                     <div>
                       <div className="text-[10px] font-bold text-[#57606a] dark:text-[#8b949e] mb-1.5 uppercase tracking-wide">
                         {selectedPeriod === 'today'
-                          ? 'Tasa de Ocupacion'
+                          ? t('control.occupancyRate')
                           : selectedPeriod === 'week'
-                            ? 'Tasa Media Semanal'
-                            : 'Tasa Media Mensual'}
+                            ? t('control.weeklyAvgRate')
+                            : t('control.monthlyAvgRate')}
                       </div>
                       {isFetching ? (
                         <div className="h-7 w-16 bg-[#d0d7de] dark:bg-[#30363d] rounded-lg animate-pulse"></div>
@@ -488,7 +496,7 @@ export default function ParkingDashboardClient({
                           {stats.occupancy_rate}%
                           {selectedPeriod !== 'today' && (
                             <span className="text-xs text-[#57606a] dark:text-[#8b949e] ml-1 font-medium">
-                              promedio
+                              {t('control.average')}
                             </span>
                           )}
                         </div>
@@ -506,8 +514,11 @@ export default function ParkingDashboardClient({
                   </div>
                   {selectedPeriod !== 'today' && (
                     <div className="text-[9px] text-[#57606a] dark:text-[#8b949e] mt-1.5 font-medium">
-                      Capacidad maxima {selectedPeriod === 'week' ? 'semanal' : 'mensual'}:{' '}
-                      {stats.total_spots * (selectedPeriod === 'week' ? 7 : 30)} plaza-dias
+                      {t('control.maxCapacity', {
+                        period:
+                          selectedPeriod === 'week' ? t('control.weekly') : t('control.monthly'),
+                        count: stats.total_spots * (selectedPeriod === 'week' ? 7 : 30),
+                      })}
                     </div>
                   )}
                 </Link>
@@ -524,43 +535,43 @@ export default function ParkingDashboardClient({
                   <FiZap className="w-3.5 h-3.5 text-orange-600 dark:text-orange-400" />
                 </div>
                 <h2 className="text-base font-bold text-[#24292f] dark:text-[#f0f6fc]">
-                  Acciones Rapidas
+                  {t('quickActions.title')}
                 </h2>
               </div>
 
               <div className="grid grid-cols-3 gap-2.5">
                 <QuickActionCard
-                  label="Nueva Reserva"
+                  label={t('quickActions.newBooking')}
                   icon={FiCalendar}
                   href="/dashboard/parking/bookings/new"
                   color="blue"
                 />
                 <QuickActionCard
-                  label="Todas las Reservas"
+                  label={t('quickActions.allBookings')}
                   icon={FiGrid}
                   href="/dashboard/parking/bookings"
                   color="purple"
                 />
                 <QuickActionCard
-                  label="Control de Parking"
+                  label={t('quickActions.parkingControl')}
                   icon={FiMapPin}
                   href="/dashboard/parking/status"
                   color="green"
                 />
                 <QuickActionCard
-                  label="Buscar Vehiculo"
+                  label={t('quickActions.searchVehicle')}
                   icon={FiSearch}
                   onClick={() => setShowVehicleSearch(true)}
                   color="orange"
                 />
                 <QuickActionCard
-                  label="Check-Ins"
+                  label={t('quickActions.checkIns')}
                   icon={FiLogIn}
                   href="/dashboard/parking/bookings?status=reserved"
                   color="teal"
                 />
                 <QuickActionCard
-                  label="Check-Outs"
+                  label={t('quickActions.checkOuts')}
                   icon={FiLogOut}
                   href="/dashboard/parking/bookings?status=checked_in"
                   color="red"
@@ -575,34 +586,34 @@ export default function ParkingDashboardClient({
                   <FiFileText className="w-3.5 h-3.5 text-gray-600 dark:text-gray-400" />
                 </div>
                 <h2 className="text-base font-bold text-[#24292f] dark:text-[#f0f6fc]">
-                  {selectedPeriod === 'today' ? 'Resumen Diario' : 'Resumen del Periodo'}
+                  {selectedPeriod === 'today' ? t('summary.title') : t('summary.periodTitle')}
                 </h2>
               </div>
 
               <div className="grid grid-cols-2 xl:grid-cols-4 gap-2.5">
                 <SummaryCard
-                  label="Completadas"
+                  label={t('summary.completed')}
                   value={stats.completed_today}
                   loading={isFetching}
                   icon="✓"
                   color="green"
                 />
                 <SummaryCard
-                  label="Canceladas"
+                  label={t('summary.canceled')}
                   value={stats.canceled_today}
                   loading={isFetching}
                   icon="✕"
                   color="red"
                 />
                 <SummaryCard
-                  label="No-Shows"
+                  label={t('summary.noShows')}
                   value={stats.no_shows_today}
                   loading={isFetching}
                   icon="?"
                   color="yellow"
                 />
                 <SummaryCard
-                  label="Total Reservas"
+                  label={t('summary.totalBookings')}
                   value={stats.total_bookings}
                   loading={isFetching}
                   icon="#"
@@ -620,47 +631,44 @@ export default function ParkingDashboardClient({
               <FiAlertCircle className="w-4 h-4 text-white" />
             </div>
             <h3 className="text-sm font-bold text-[#24292f] dark:text-[#f0f6fc]">
-              Ayuda Contextual
+              {t('help.title')}
             </h3>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-3 text-xs text-[#24292f] dark:text-[#c9d1d9] leading-relaxed">
             <div className="space-y-1.5 p-3 bg-white/50 dark:bg-black/20 rounded-lg">
               <div className="font-bold text-blue-600 dark:text-blue-400 text-[11px]">
-                📊 Reservas
+                📊 {t('help.reservations.title')}
               </div>
-              <p>
-                Vista completa del flujo de vehiculos. Rastrea vehiculos entrantes, estacionados y
-                salientes.
-              </p>
+              <p>{t('help.reservations.description')}</p>
             </div>
 
             <div className="space-y-1.5 p-3 bg-white/50 dark:bg-black/20 rounded-lg">
               <div className="font-bold text-green-600 dark:text-green-400 text-[11px]">
-                📥 Llegadas - En espera
+                📥 {t('help.arrivalsWaiting.title')}
               </div>
-              <p>Vehiculos con reservas confirmadas pendientes de check-in.</p>
+              <p>{t('help.arrivalsWaiting.description')}</p>
             </div>
 
             <div className="space-y-1.5 p-3 bg-white/50 dark:bg-black/20 rounded-lg">
               <div className="font-bold text-green-600 dark:text-green-400 text-[11px]">
-                ✅ Llegadas - Dentro
+                ✅ {t('help.arrivalsInside.title')}
               </div>
-              <p>Vehiculos actualmente estacionados que han completado el check-in.</p>
+              <p>{t('help.arrivalsInside.description')}</p>
             </div>
 
             <div className="space-y-1.5 p-3 bg-white/50 dark:bg-black/20 rounded-lg">
               <div className="font-bold text-red-600 dark:text-red-400 text-[11px]">
-                📤 Salidas - En espera
+                📤 {t('help.departuresWaiting.title')}
               </div>
-              <p>Vehiculos estacionados listos para el procesamiento de check-out.</p>
+              <p>{t('help.departuresWaiting.description')}</p>
             </div>
 
             <div className="space-y-1.5 p-3 bg-white/50 dark:bg-black/20 rounded-lg">
               <div className="font-bold text-purple-600 dark:text-purple-400 text-[11px]">
-                🚗 Control de Parking
+                🚗 {t('help.parkingControl.title')}
               </div>
-              <p>Monitoreo en tiempo real de ocupacion y capacidad del parking.</p>
+              <p>{t('help.parkingControl.description')}</p>
             </div>
           </div>
         </div>

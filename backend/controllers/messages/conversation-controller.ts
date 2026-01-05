@@ -7,6 +7,7 @@ import {
   MESSAGE_CONSTANTS,
   CreateConversationDTO,
 } from '../../models/messages/index.js'
+import { ERROR_CODES, SUCCESS_CODES } from '../../config/error-codes.js'
 
 export class ConversationController {
   /**
@@ -20,7 +21,8 @@ export class ConversationController {
       if (!userId) {
         return res.status(401).json({
           success: false,
-          error: 'Usuario no autenticado',
+          error: ERROR_CODES.AUTH_USER_NOT_AUTHENTICATED,
+          code: ERROR_CODES.AUTH_USER_NOT_AUTHENTICATED,
         })
       }
 
@@ -35,8 +37,8 @@ export class ConversationController {
       console.error('Error en getMyConversations:', error)
       return res.status(500).json({
         success: false,
-        error: 'Error al obtener conversaciones',
-        message: error.message,
+        error: ERROR_CODES.MESSAGES_FETCH_CONVERSATIONS_ERROR,
+        code: ERROR_CODES.MESSAGES_FETCH_CONVERSATIONS_ERROR,
       })
     }
   }
@@ -53,14 +55,16 @@ export class ConversationController {
       if (!userId) {
         return res.status(401).json({
           success: false,
-          error: 'Usuario no autenticado',
+          error: ERROR_CODES.AUTH_USER_NOT_AUTHENTICATED,
+          code: ERROR_CODES.AUTH_USER_NOT_AUTHENTICATED,
         })
       }
 
       if (isNaN(conversationId)) {
         return res.status(400).json({
           success: false,
-          error: 'ID de conversacion invalido',
+          error: ERROR_CODES.MESSAGES_INVALID_CONVERSATION_ID,
+          code: ERROR_CODES.MESSAGES_INVALID_CONVERSATION_ID,
         })
       }
 
@@ -71,7 +75,8 @@ export class ConversationController {
       if (!isParticipant && !isSystemAdmin) {
         return res.status(403).json({
           success: false,
-          error: 'No tienes acceso a esta conversacion',
+          error: ERROR_CODES.MESSAGES_NO_ACCESS,
+          code: ERROR_CODES.MESSAGES_NO_ACCESS,
         })
       }
 
@@ -80,7 +85,8 @@ export class ConversationController {
       if (!conversation) {
         return res.status(404).json({
           success: false,
-          error: 'Conversacion no encontrada',
+          error: ERROR_CODES.MESSAGES_CONVERSATION_NOT_FOUND,
+          code: ERROR_CODES.MESSAGES_CONVERSATION_NOT_FOUND,
         })
       }
 
@@ -98,8 +104,8 @@ export class ConversationController {
       console.error('Error en getConversation:', error)
       return res.status(500).json({
         success: false,
-        error: 'Error al obtener conversacion',
-        message: error.message,
+        error: ERROR_CODES.MESSAGES_FETCH_CONVERSATION_ERROR,
+        code: ERROR_CODES.MESSAGES_FETCH_CONVERSATION_ERROR,
       })
     }
   }
@@ -115,7 +121,8 @@ export class ConversationController {
       if (!userId) {
         return res.status(401).json({
           success: false,
-          error: 'Usuario no autenticado',
+          error: ERROR_CODES.AUTH_USER_NOT_AUTHENTICATED,
+          code: ERROR_CODES.AUTH_USER_NOT_AUTHENTICATED,
         })
       }
 
@@ -125,7 +132,8 @@ export class ConversationController {
       if (!type || !participant_ids || participant_ids.length === 0) {
         return res.status(400).json({
           success: false,
-          error: 'Faltan campos obligatorios: type, participant_ids',
+          error: ERROR_CODES.MESSAGES_MISSING_REQUIRED_FIELDS,
+          code: ERROR_CODES.MESSAGES_MISSING_REQUIRED_FIELDS,
         })
       }
 
@@ -134,7 +142,8 @@ export class ConversationController {
         if (participant_ids.length !== 1) {
           return res.status(400).json({
             success: false,
-            error: 'Un DM debe tener exactamente 1 participante',
+            error: ERROR_CODES.MESSAGES_DM_ONE_PARTICIPANT,
+            code: ERROR_CODES.MESSAGES_DM_ONE_PARTICIPANT,
           })
         }
 
@@ -146,7 +155,8 @@ export class ConversationController {
           return res.status(200).json({
             success: true,
             data: conversation,
-            message: 'DM existente encontrado',
+            message: SUCCESS_CODES.MESSAGES_DM_EXISTS,
+            code: SUCCESS_CODES.MESSAGES_DM_EXISTS,
             existing: true,
           })
         }
@@ -157,14 +167,16 @@ export class ConversationController {
         if (!name || name.trim().length === 0) {
           return res.status(400).json({
             success: false,
-            error: 'Los grupos requieren un nombre',
+            error: ERROR_CODES.MESSAGES_GROUP_NAME_REQUIRED,
+            code: ERROR_CODES.MESSAGES_GROUP_NAME_REQUIRED,
           })
         }
 
         if (name.length > MESSAGE_CONSTANTS.MAX_GROUP_NAME_LENGTH) {
           return res.status(400).json({
             success: false,
-            error: `El nombre del grupo no puede superar ${MESSAGE_CONSTANTS.MAX_GROUP_NAME_LENGTH} caracteres`,
+            error: ERROR_CODES.MESSAGES_GROUP_NAME_TOO_LONG,
+            code: ERROR_CODES.MESSAGES_GROUP_NAME_TOO_LONG,
           })
         }
 
@@ -172,7 +184,8 @@ export class ConversationController {
         if (participant_ids.length + 1 > MESSAGE_CONSTANTS.MAX_GROUP_PARTICIPANTS) {
           return res.status(400).json({
             success: false,
-            error: `Un grupo no puede tener mas de ${MESSAGE_CONSTANTS.MAX_GROUP_PARTICIPANTS} participantes`,
+            error: ERROR_CODES.MESSAGES_GROUP_MAX_PARTICIPANTS,
+            code: ERROR_CODES.MESSAGES_GROUP_MAX_PARTICIPANTS,
           })
         }
       }
@@ -199,14 +212,13 @@ export class ConversationController {
       return res.status(201).json({
         success: true,
         data: conversationWithDetails,
-        message: type === ConversationType.DM ? 'DM creado' : 'Grupo creado',
       })
     } catch (error: any) {
       console.error('Error en createConversation:', error)
       return res.status(500).json({
         success: false,
-        error: 'Error al crear conversacion',
-        message: error.message,
+        error: ERROR_CODES.MESSAGES_CREATE_CONVERSATION_ERROR,
+        code: ERROR_CODES.MESSAGES_CREATE_CONVERSATION_ERROR,
       })
     }
   }
@@ -224,14 +236,16 @@ export class ConversationController {
       if (!userId) {
         return res.status(401).json({
           success: false,
-          error: 'Usuario no autenticado',
+          error: ERROR_CODES.AUTH_USER_NOT_AUTHENTICATED,
+          code: ERROR_CODES.AUTH_USER_NOT_AUTHENTICATED,
         })
       }
 
       if (isNaN(conversationId)) {
         return res.status(400).json({
           success: false,
-          error: 'ID de conversacion invalido',
+          error: ERROR_CODES.MESSAGES_INVALID_CONVERSATION_ID,
+          code: ERROR_CODES.MESSAGES_INVALID_CONVERSATION_ID,
         })
       }
 
@@ -240,7 +254,8 @@ export class ConversationController {
       if (!isAdmin) {
         return res.status(403).json({
           success: false,
-          error: 'Solo el admin puede editar el grupo',
+          error: ERROR_CODES.MESSAGES_ADMIN_ONLY_EDIT,
+          code: ERROR_CODES.MESSAGES_ADMIN_ONLY_EDIT,
         })
       }
 
@@ -248,14 +263,16 @@ export class ConversationController {
       if (!conversation) {
         return res.status(404).json({
           success: false,
-          error: 'Conversacion no encontrada',
+          error: ERROR_CODES.MESSAGES_CONVERSATION_NOT_FOUND,
+          code: ERROR_CODES.MESSAGES_CONVERSATION_NOT_FOUND,
         })
       }
 
       if (conversation.type !== ConversationType.GROUP) {
         return res.status(400).json({
           success: false,
-          error: 'Solo los grupos pueden ser editados',
+          error: ERROR_CODES.MESSAGES_GROUPS_ONLY_EDIT,
+          code: ERROR_CODES.MESSAGES_GROUPS_ONLY_EDIT,
         })
       }
 
@@ -263,7 +280,8 @@ export class ConversationController {
         if (name.length > MESSAGE_CONSTANTS.MAX_GROUP_NAME_LENGTH) {
           return res.status(400).json({
             success: false,
-            error: `El nombre no puede superar ${MESSAGE_CONSTANTS.MAX_GROUP_NAME_LENGTH} caracteres`,
+            error: ERROR_CODES.MESSAGES_GROUP_NAME_TOO_LONG,
+            code: ERROR_CODES.MESSAGES_GROUP_NAME_TOO_LONG,
           })
         }
         await ConversationRepository.updateName(conversationId, name)
@@ -274,14 +292,15 @@ export class ConversationController {
       return res.status(200).json({
         success: true,
         data: updated,
-        message: 'Grupo actualizado',
+        message: SUCCESS_CODES.MESSAGES_GROUP_UPDATED,
+        code: SUCCESS_CODES.MESSAGES_GROUP_UPDATED,
       })
     } catch (error: any) {
       console.error('Error en updateConversation:', error)
       return res.status(500).json({
         success: false,
-        error: 'Error al actualizar conversacion',
-        message: error.message,
+        error: ERROR_CODES.MESSAGES_UPDATE_CONVERSATION_ERROR,
+        code: ERROR_CODES.MESSAGES_UPDATE_CONVERSATION_ERROR,
       })
     }
   }
@@ -298,14 +317,16 @@ export class ConversationController {
       if (!userId) {
         return res.status(401).json({
           success: false,
-          error: 'Usuario no autenticado',
+          error: ERROR_CODES.AUTH_USER_NOT_AUTHENTICATED,
+          code: ERROR_CODES.AUTH_USER_NOT_AUTHENTICATED,
         })
       }
 
       if (isNaN(conversationId)) {
         return res.status(400).json({
           success: false,
-          error: 'ID de conversacion invalido',
+          error: ERROR_CODES.MESSAGES_INVALID_CONVERSATION_ID,
+          code: ERROR_CODES.MESSAGES_INVALID_CONVERSATION_ID,
         })
       }
 
@@ -313,7 +334,8 @@ export class ConversationController {
       if (!conversation) {
         return res.status(404).json({
           success: false,
-          error: 'Conversacion no encontrada',
+          error: ERROR_CODES.MESSAGES_CONVERSATION_NOT_FOUND,
+          code: ERROR_CODES.MESSAGES_CONVERSATION_NOT_FOUND,
         })
       }
 
@@ -321,7 +343,8 @@ export class ConversationController {
       if (!isParticipant) {
         return res.status(403).json({
           success: false,
-          error: 'No eres participante de esta conversacion',
+          error: ERROR_CODES.MESSAGES_NOT_PARTICIPANT,
+          code: ERROR_CODES.MESSAGES_NOT_PARTICIPANT,
         })
       }
 
@@ -345,14 +368,15 @@ export class ConversationController {
 
       return res.status(200).json({
         success: true,
-        message: 'Has salido de la conversacion',
+        message: SUCCESS_CODES.MESSAGES_LEFT_CONVERSATION,
+        code: SUCCESS_CODES.MESSAGES_LEFT_CONVERSATION,
       })
     } catch (error: any) {
       console.error('Error en leaveConversation:', error)
       return res.status(500).json({
         success: false,
-        error: 'Error al salir de la conversacion',
-        message: error.message,
+        error: ERROR_CODES.MESSAGES_LEAVE_CONVERSATION_ERROR,
+        code: ERROR_CODES.MESSAGES_LEAVE_CONVERSATION_ERROR,
       })
     }
   }
@@ -370,14 +394,16 @@ export class ConversationController {
       if (!userId) {
         return res.status(401).json({
           success: false,
-          error: 'Usuario no autenticado',
+          error: ERROR_CODES.AUTH_USER_NOT_AUTHENTICATED,
+          code: ERROR_CODES.AUTH_USER_NOT_AUTHENTICATED,
         })
       }
 
       if (isNaN(conversationId)) {
         return res.status(400).json({
           success: false,
-          error: 'ID de conversacion invalido',
+          error: ERROR_CODES.MESSAGES_INVALID_CONVERSATION_ID,
+          code: ERROR_CODES.MESSAGES_INVALID_CONVERSATION_ID,
         })
       }
 
@@ -385,7 +411,8 @@ export class ConversationController {
       if (!conversation) {
         return res.status(404).json({
           success: false,
-          error: 'Conversacion no encontrada',
+          error: ERROR_CODES.MESSAGES_CONVERSATION_NOT_FOUND,
+          code: ERROR_CODES.MESSAGES_CONVERSATION_NOT_FOUND,
         })
       }
 
@@ -396,7 +423,8 @@ export class ConversationController {
       if (!isConversationAdmin && !isSystemAdmin) {
         return res.status(403).json({
           success: false,
-          error: 'Solo el admin de la conversacion o administrador del sistema puede eliminarla',
+          error: ERROR_CODES.MESSAGES_ADMIN_OR_SYSTEM_DELETE,
+          code: ERROR_CODES.MESSAGES_ADMIN_OR_SYSTEM_DELETE,
         })
       }
 
@@ -405,14 +433,15 @@ export class ConversationController {
 
       return res.status(200).json({
         success: true,
-        message: 'Conversacion eliminada correctamente',
+        message: SUCCESS_CODES.MESSAGES_CONVERSATION_DELETED,
+        code: SUCCESS_CODES.MESSAGES_CONVERSATION_DELETED,
       })
     } catch (error: any) {
       console.error('Error en deleteConversation:', error)
       return res.status(500).json({
         success: false,
-        error: 'Error al eliminar conversacion',
-        message: error.message,
+        error: ERROR_CODES.MESSAGES_DELETE_CONVERSATION_ERROR,
+        code: ERROR_CODES.MESSAGES_DELETE_CONVERSATION_ERROR,
       })
     }
   }
@@ -430,21 +459,24 @@ export class ConversationController {
       if (!userId) {
         return res.status(401).json({
           success: false,
-          error: 'Usuario no autenticado',
+          error: ERROR_CODES.AUTH_USER_NOT_AUTHENTICATED,
+          code: ERROR_CODES.AUTH_USER_NOT_AUTHENTICATED,
         })
       }
 
       if (isNaN(conversationId)) {
         return res.status(400).json({
           success: false,
-          error: 'ID de conversacion invalido',
+          error: ERROR_CODES.MESSAGES_INVALID_CONVERSATION_ID,
+          code: ERROR_CODES.MESSAGES_INVALID_CONVERSATION_ID,
         })
       }
 
       if (!user_ids || !Array.isArray(user_ids) || user_ids.length === 0) {
         return res.status(400).json({
           success: false,
-          error: 'Debes especificar al menos un usuario',
+          error: ERROR_CODES.MESSAGES_SPECIFY_USER,
+          code: ERROR_CODES.MESSAGES_SPECIFY_USER,
         })
       }
 
@@ -452,14 +484,16 @@ export class ConversationController {
       if (!conversation) {
         return res.status(404).json({
           success: false,
-          error: 'Conversacion no encontrada',
+          error: ERROR_CODES.MESSAGES_CONVERSATION_NOT_FOUND,
+          code: ERROR_CODES.MESSAGES_CONVERSATION_NOT_FOUND,
         })
       }
 
       if (conversation.type !== ConversationType.GROUP) {
         return res.status(400).json({
           success: false,
-          error: 'Solo se pueden añadir participantes a grupos',
+          error: ERROR_CODES.MESSAGES_GROUPS_ONLY_ADD,
+          code: ERROR_CODES.MESSAGES_GROUPS_ONLY_ADD,
         })
       }
 
@@ -468,7 +502,8 @@ export class ConversationController {
       if (!isAdmin) {
         return res.status(403).json({
           success: false,
-          error: 'Solo el admin puede añadir participantes',
+          error: ERROR_CODES.MESSAGES_ADMIN_ONLY_ADD,
+          code: ERROR_CODES.MESSAGES_ADMIN_ONLY_ADD,
         })
       }
 
@@ -477,7 +512,8 @@ export class ConversationController {
       if (currentCount + user_ids.length > MESSAGE_CONSTANTS.MAX_GROUP_PARTICIPANTS) {
         return res.status(400).json({
           success: false,
-          error: `El grupo no puede superar ${MESSAGE_CONSTANTS.MAX_GROUP_PARTICIPANTS} participantes`,
+          error: ERROR_CODES.MESSAGES_GROUP_MAX_PARTICIPANTS,
+          code: ERROR_CODES.MESSAGES_GROUP_MAX_PARTICIPANTS,
         })
       }
 
@@ -488,14 +524,15 @@ export class ConversationController {
       return res.status(200).json({
         success: true,
         data: participants,
-        message: 'Participantes añadidos',
+        message: SUCCESS_CODES.MESSAGES_PARTICIPANTS_ADDED,
+        code: SUCCESS_CODES.MESSAGES_PARTICIPANTS_ADDED,
       })
     } catch (error: any) {
       console.error('Error en addParticipants:', error)
       return res.status(500).json({
         success: false,
-        error: 'Error al añadir participantes',
-        message: error.message,
+        error: ERROR_CODES.MESSAGES_ADD_PARTICIPANTS_ERROR,
+        code: ERROR_CODES.MESSAGES_ADD_PARTICIPANTS_ERROR,
       })
     }
   }
@@ -513,14 +550,16 @@ export class ConversationController {
       if (!userId) {
         return res.status(401).json({
           success: false,
-          error: 'Usuario no autenticado',
+          error: ERROR_CODES.AUTH_USER_NOT_AUTHENTICATED,
+          code: ERROR_CODES.AUTH_USER_NOT_AUTHENTICATED,
         })
       }
 
       if (isNaN(conversationId)) {
         return res.status(400).json({
           success: false,
-          error: 'ID de conversacion invalido',
+          error: ERROR_CODES.MESSAGES_INVALID_CONVERSATION_ID,
+          code: ERROR_CODES.MESSAGES_INVALID_CONVERSATION_ID,
         })
       }
 
@@ -528,14 +567,16 @@ export class ConversationController {
       if (!conversation) {
         return res.status(404).json({
           success: false,
-          error: 'Conversacion no encontrada',
+          error: ERROR_CODES.MESSAGES_CONVERSATION_NOT_FOUND,
+          code: ERROR_CODES.MESSAGES_CONVERSATION_NOT_FOUND,
         })
       }
 
       if (conversation.type !== ConversationType.GROUP) {
         return res.status(400).json({
           success: false,
-          error: 'Solo se pueden remover participantes de grupos',
+          error: ERROR_CODES.MESSAGES_GROUPS_ONLY_REMOVE,
+          code: ERROR_CODES.MESSAGES_GROUPS_ONLY_REMOVE,
         })
       }
 
@@ -544,7 +585,8 @@ export class ConversationController {
       if (!isAdmin) {
         return res.status(403).json({
           success: false,
-          error: 'Solo el admin puede remover participantes',
+          error: ERROR_CODES.MESSAGES_ADMIN_ONLY_REMOVE,
+          code: ERROR_CODES.MESSAGES_ADMIN_ONLY_REMOVE,
         })
       }
 
@@ -552,7 +594,8 @@ export class ConversationController {
       if (targetUserId === userId) {
         return res.status(400).json({
           success: false,
-          error: 'Usa la opcion de salir para abandonar el grupo',
+          error: ERROR_CODES.MESSAGES_USE_LEAVE_OPTION,
+          code: ERROR_CODES.MESSAGES_USE_LEAVE_OPTION,
         })
       }
 
@@ -563,14 +606,15 @@ export class ConversationController {
       return res.status(200).json({
         success: true,
         data: participants,
-        message: 'Participante removido',
+        message: SUCCESS_CODES.MESSAGES_PARTICIPANT_REMOVED,
+        code: SUCCESS_CODES.MESSAGES_PARTICIPANT_REMOVED,
       })
     } catch (error: any) {
       console.error('Error en removeParticipant:', error)
       return res.status(500).json({
         success: false,
-        error: 'Error al remover participante',
-        message: error.message,
+        error: ERROR_CODES.MESSAGES_REMOVE_PARTICIPANT_ERROR,
+        code: ERROR_CODES.MESSAGES_REMOVE_PARTICIPANT_ERROR,
       })
     }
   }
@@ -587,14 +631,16 @@ export class ConversationController {
       if (!userId) {
         return res.status(401).json({
           success: false,
-          error: 'Usuario no autenticado',
+          error: ERROR_CODES.AUTH_USER_NOT_AUTHENTICATED,
+          code: ERROR_CODES.AUTH_USER_NOT_AUTHENTICATED,
         })
       }
 
       if (isNaN(conversationId)) {
         return res.status(400).json({
           success: false,
-          error: 'ID de conversacion invalido',
+          error: ERROR_CODES.MESSAGES_INVALID_CONVERSATION_ID,
+          code: ERROR_CODES.MESSAGES_INVALID_CONVERSATION_ID,
         })
       }
 
@@ -602,7 +648,8 @@ export class ConversationController {
       if (!isParticipant) {
         return res.status(403).json({
           success: false,
-          error: 'No eres participante de esta conversacion',
+          error: ERROR_CODES.MESSAGES_NOT_PARTICIPANT,
+          code: ERROR_CODES.MESSAGES_NOT_PARTICIPANT,
         })
       }
 
@@ -610,14 +657,15 @@ export class ConversationController {
 
       return res.status(200).json({
         success: true,
-        message: 'Conversacion marcada como leida',
+        message: SUCCESS_CODES.MESSAGES_MARKED_READ,
+        code: SUCCESS_CODES.MESSAGES_MARKED_READ,
       })
     } catch (error: any) {
       console.error('Error en markAsRead:', error)
       return res.status(500).json({
         success: false,
-        error: 'Error al marcar como leida',
-        message: error.message,
+        error: ERROR_CODES.MESSAGES_MARK_READ_ERROR,
+        code: ERROR_CODES.MESSAGES_MARK_READ_ERROR,
       })
     }
   }
@@ -634,7 +682,8 @@ export class ConversationController {
       if (!userId) {
         return res.status(401).json({
           success: false,
-          error: 'Usuario no autenticado',
+          error: ERROR_CODES.AUTH_USER_NOT_AUTHENTICATED,
+          code: ERROR_CODES.AUTH_USER_NOT_AUTHENTICATED,
         })
       }
 
@@ -654,8 +703,8 @@ export class ConversationController {
       console.error('Error en searchUsers:', error)
       return res.status(500).json({
         success: false,
-        error: 'Error al buscar usuarios',
-        message: error.message,
+        error: ERROR_CODES.MESSAGES_SEARCH_USERS_ERROR,
+        code: ERROR_CODES.MESSAGES_SEARCH_USERS_ERROR,
       })
     }
   }
@@ -672,14 +721,16 @@ export class ConversationController {
       if (!userId) {
         return res.status(401).json({
           success: false,
-          error: 'Usuario no autenticado',
+          error: ERROR_CODES.AUTH_USER_NOT_AUTHENTICATED,
+          code: ERROR_CODES.AUTH_USER_NOT_AUTHENTICATED,
         })
       }
 
       if (userRole !== 'admin') {
         return res.status(403).json({
           success: false,
-          error: 'Solo los administradores pueden ver todas las conversaciones',
+          error: ERROR_CODES.MESSAGES_ADMIN_ONLY_VIEW_ALL,
+          code: ERROR_CODES.MESSAGES_ADMIN_ONLY_VIEW_ALL,
         })
       }
 
@@ -695,8 +746,8 @@ export class ConversationController {
       console.error('Error en getAllConversations:', error)
       return res.status(500).json({
         success: false,
-        error: 'Error al obtener conversaciones',
-        message: error.message,
+        error: ERROR_CODES.MESSAGES_FETCH_CONVERSATIONS_ERROR,
+        code: ERROR_CODES.MESSAGES_FETCH_CONVERSATIONS_ERROR,
       })
     }
   }

@@ -9,6 +9,7 @@ import {
   markLogbookPending,
   unmarkLogbookRead,
 } from '../../repositories/logbook/logbookReads-repository.js'
+import { ERROR_CODES, SUCCESS_CODES } from '../../config/error-codes.js'
 
 // ============================================
 // CUSTOM ERROR TYPE
@@ -28,10 +29,19 @@ export async function readLogbookController(req: Request, res: Response): Promis
     const userId = req.user!.id
 
     const read = await logBookReadByUser({ logbookId, userId })
-    res.status(201).json(read)
+    res.status(201).json({
+      success: true,
+      data: read,
+      message: SUCCESS_CODES.LOGBOOK_READ_SUCCESS,
+      code: SUCCESS_CODES.LOGBOOK_READ_SUCCESS,
+    })
   } catch (err) {
     console.error(err)
-    res.status(500).json({ error: (err as Error).message })
+    res.status(500).json({
+      success: false,
+      error: ERROR_CODES.LOGBOOK_READ_ERROR,
+      code: ERROR_CODES.LOGBOOK_READ_ERROR,
+    })
   }
 }
 
@@ -45,10 +55,19 @@ export async function unreadLogbookController(req: Request, res: Response): Prom
     const userId = req.user!.id
 
     const unread = await unmarkLogbookRead({ logbookId, userId })
-    res.status(200).json(unread)
+    res.status(200).json({
+      success: true,
+      data: unread,
+      message: SUCCESS_CODES.LOGBOOK_UNREAD_SUCCESS,
+      code: SUCCESS_CODES.LOGBOOK_UNREAD_SUCCESS,
+    })
   } catch (err) {
     console.error(err)
-    res.status(500).json({ error: (err as Error).message })
+    res.status(500).json({
+      success: false,
+      error: ERROR_CODES.LOGBOOK_UNREAD_ERROR,
+      code: ERROR_CODES.LOGBOOK_UNREAD_ERROR,
+    })
   }
 }
 
@@ -62,11 +81,20 @@ export async function solveLogbookController(req: Request, res: Response): Promi
     const userId = req.user!.id
 
     const solved = await logbookSolvedByUser({ logbookId, userId })
-    res.status(200).json(solved)
+    res.status(200).json({
+      success: true,
+      data: solved,
+      message: SUCCESS_CODES.LOGBOOK_SOLVED_SUCCESS,
+      code: SUCCESS_CODES.LOGBOOK_SOLVED_SUCCESS,
+    })
   } catch (err) {
     const error = err as CustomError
     console.error(err)
-    res.status(error.status ?? 500).json({ error: error.message })
+    res.status(error.status ?? 500).json({
+      success: false,
+      error: ERROR_CODES.LOGBOOK_SOLVE_ERROR,
+      code: ERROR_CODES.LOGBOOK_SOLVE_ERROR,
+    })
   }
 }
 
@@ -80,11 +108,20 @@ export async function reopenLogbookController(req: Request, res: Response): Prom
     const userId = req.user!.id
 
     const pending = await markLogbookPending({ logbookId, userId })
-    res.json(pending)
+    res.json({
+      success: true,
+      data: pending,
+      message: SUCCESS_CODES.LOGBOOK_REOPENED_SUCCESS,
+      code: SUCCESS_CODES.LOGBOOK_REOPENED_SUCCESS,
+    })
   } catch (err) {
     const error = err as CustomError
     console.error(err)
-    res.status(error.status || 500).json({ error: error.message })
+    res.status(error.status || 500).json({
+      success: false,
+      error: ERROR_CODES.LOGBOOK_REOPEN_ERROR,
+      code: ERROR_CODES.LOGBOOK_REOPEN_ERROR,
+    })
   }
 }
 
@@ -96,10 +133,14 @@ export async function getLogbookReadersController(req: Request, res: Response): 
   try {
     const { logbookId } = req.params
     const readers = await getUsersWhoReadLogbook(logbookId)
-    res.json(readers)
+    res.json({ success: true, data: readers })
   } catch (err) {
     console.error(err)
-    res.status(500).json({ error: (err as Error).message })
+    res.status(500).json({
+      success: false,
+      error: ERROR_CODES.LOGBOOK_FETCH_READERS_ERROR,
+      code: ERROR_CODES.LOGBOOK_FETCH_READERS_ERROR,
+    })
   }
 }
 
@@ -113,20 +154,32 @@ export async function getLogbookSolvedController(req: Request, res: Response): P
 
     const id = Number(logbookId)
     if (!Number.isSafeInteger(id) || id <= 0) {
-      res.status(400).json({ error: 'logbookId debe ser un entero positivo' })
+      res.status(400).json({
+        success: false,
+        error: ERROR_CODES.INVALID_ID,
+        code: ERROR_CODES.INVALID_ID,
+      })
       return
     }
 
     const solved = await getUsersWhoSolvedLogbook(id)
 
     if (solved.length === 0) {
-      res.status(404).json({ error: 'Logbook no solucionado o inexistente' })
+      res.status(404).json({
+        success: false,
+        error: ERROR_CODES.LOGBOOK_NOT_SOLVED,
+        code: ERROR_CODES.LOGBOOK_NOT_SOLVED,
+      })
       return
     }
 
-    res.json(solved[0])
+    res.json({ success: true, data: solved[0] })
   } catch (err) {
     console.error(err)
-    res.status(500).json({ error: (err as Error).message })
+    res.status(500).json({
+      success: false,
+      error: ERROR_CODES.LOGBOOK_FETCH_SOLVER_ERROR,
+      code: ERROR_CODES.LOGBOOK_FETCH_SOLVER_ERROR,
+    })
   }
 }

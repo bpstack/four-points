@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect, useMemo } from 'react'
+import { useTranslations } from 'next-intl'
 import { FiBell, FiX, FiCalendar, FiClock, FiAlertCircle, FiLink } from 'react-icons/fi'
 import { apiClient } from '@/app/lib/apiClient'
 import { API_BASE_URL } from '@/app/lib/env'
@@ -83,6 +84,7 @@ export function GlobalNotificationModal({
   onClose,
   onSuccess,
 }: GlobalNotificationModalProps) {
+  const t = useTranslations('notifications')
   const [title, setTitle] = useState('')
   const [message, setMessage] = useState('')
   const [priority, setPriority] = useState<Priority>('medium')
@@ -119,7 +121,7 @@ export function GlobalNotificationModal({
 
   // Formatear fecha para mostrar
   const formatDate = (date: Date | null) => {
-    if (!date) return 'Seleccionar fecha'
+    if (!date) return t('modal.selectDate')
 
     const today = new Date()
     const tomorrow = new Date(today)
@@ -135,8 +137,8 @@ export function GlobalNotificationModal({
       date.getMonth() === tomorrow.getMonth() &&
       date.getFullYear() === tomorrow.getFullYear()
 
-    if (isToday) return 'Hoy'
-    if (isTomorrow) return 'Manana'
+    if (isToday) return t('modal.today')
+    if (isTomorrow) return t('modal.tomorrow')
 
     return date.toLocaleDateString('es-ES', {
       weekday: 'short',
@@ -158,8 +160,8 @@ export function GlobalNotificationModal({
   // Validar fecha/hora
   const validationResult = useMemo(() => {
     if (scheduleType === 'now') return { valid: true, message: null }
-    if (!selectedDate) return { valid: false, message: 'Selecciona una fecha' }
-    if (!scheduledDateTime) return { valid: false, message: 'Fecha/hora invalida' }
+    if (!selectedDate) return { valid: false, message: t('validation.selectDate') }
+    if (!scheduledDateTime) return { valid: false, message: t('validation.invalidDateTime') }
 
     const now = new Date()
     const minDateTime = new Date(now.getTime() + 5 * 60000)
@@ -167,12 +169,12 @@ export function GlobalNotificationModal({
     if (scheduledDateTime < minDateTime) {
       return {
         valid: false,
-        message: 'La hora debe ser al menos 5 minutos en el futuro',
+        message: t('validation.timeMinFuture'),
       }
     }
 
     return { valid: true, message: null }
-  }, [scheduleType, selectedDate, scheduledDateTime])
+  }, [scheduleType, selectedDate, scheduledDateTime, t])
 
   // Obtener el módulo basado en la sección seleccionada
   const getModuleForSection = (sectionValue: string) => {
@@ -216,8 +218,15 @@ export function GlobalNotificationModal({
       setSuccess(true)
       toast.success(
         scheduleType === 'now'
-          ? 'Notificacion enviada'
-          : `Notificacion programada para ${scheduledDateTime?.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })} a las ${selectedTime}`
+          ? t('toast.sent')
+          : t('toast.scheduled', {
+              date:
+                scheduledDateTime?.toLocaleDateString('es-ES', {
+                  day: 'numeric',
+                  month: 'short',
+                }) ?? '',
+              time: selectedTime,
+            })
       )
 
       setTimeout(() => {
@@ -225,7 +234,7 @@ export function GlobalNotificationModal({
         onSuccess?.()
       }, 1000)
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Error al crear la notificacion'
+      const errorMessage = err instanceof Error ? err.message : t('toast.error')
       setError(errorMessage)
       toast.error(errorMessage)
     } finally {
@@ -261,7 +270,7 @@ export function GlobalNotificationModal({
           <div className="flex items-center gap-2">
             <FiBell className="w-4 h-4 text-blue-600 dark:text-blue-400" />
             <h2 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-              Nueva Notificacion
+              {t('modal.title')}
             </h2>
           </div>
           <button
@@ -278,7 +287,7 @@ export function GlobalNotificationModal({
           <div>
             <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
               <FiLink className="inline w-3 h-3 mr-1" />
-              Enlace de destino *
+              {t('modal.destinationLink')}
             </label>
             <select
               value={selectedSection}
@@ -292,7 +301,7 @@ export function GlobalNotificationModal({
               ))}
             </select>
             <p className="text-[10px] text-gray-500 mt-0.5">
-              Al hacer click en la notificacion, se redirigira a:{' '}
+              {t('modal.redirectTo')}{' '}
               <code className="bg-gray-100 dark:bg-gray-800 px-1 rounded">{selectedSection}</code>
             </p>
           </div>
@@ -303,7 +312,7 @@ export function GlobalNotificationModal({
               htmlFor="title"
               className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1"
             >
-              Titulo *
+              {t('modal.titleLabel')}
             </label>
             <input
               type="text"
@@ -312,7 +321,7 @@ export function GlobalNotificationModal({
               onChange={(e) => setTitle(e.target.value)}
               required
               maxLength={100}
-              placeholder="Ej: Revision de parking necesaria"
+              placeholder={t('modal.titlePlaceholder')}
               className="w-full px-2.5 py-1.5 text-xs border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
@@ -323,7 +332,7 @@ export function GlobalNotificationModal({
               htmlFor="message"
               className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1"
             >
-              Mensaje *
+              {t('modal.messageLabel')}
             </label>
             <textarea
               id="message"
@@ -332,7 +341,7 @@ export function GlobalNotificationModal({
               required
               rows={3}
               maxLength={500}
-              placeholder="Describe la notificacion..."
+              placeholder={t('modal.messagePlaceholder')}
               className="w-full px-2.5 py-1.5 text-xs border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
             />
             <p className="text-[10px] text-gray-400 mt-0.5 text-right">{message.length}/500</p>
@@ -341,7 +350,7 @@ export function GlobalNotificationModal({
           {/* Priority */}
           <div>
             <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-              Prioridad
+              {t('modal.priority')}
             </label>
             <div className="grid grid-cols-3 gap-2">
               {(['low', 'medium', 'high'] as const).map((p) => (
@@ -359,7 +368,7 @@ export function GlobalNotificationModal({
                       : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
                   }`}
                 >
-                  {p === 'high' ? 'Alta' : p === 'medium' ? 'Media' : 'Baja'}
+                  {t(`priority.${p}`)}
                 </button>
               ))}
             </div>
@@ -368,7 +377,7 @@ export function GlobalNotificationModal({
           {/* Schedule Type */}
           <div>
             <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-              Programacion
+              {t('modal.scheduling')}
             </label>
             <div className="grid grid-cols-2 gap-2">
               <button
@@ -381,7 +390,7 @@ export function GlobalNotificationModal({
                 }`}
               >
                 <FiClock className="w-3.5 h-3.5" />
-                Enviar Ahora
+                {t('modal.sendNow')}
               </button>
               <button
                 type="button"
@@ -393,7 +402,7 @@ export function GlobalNotificationModal({
                 }`}
               >
                 <FiCalendar className="w-3.5 h-3.5" />
-                Programar
+                {t('modal.schedule')}
               </button>
             </div>
           </div>
@@ -405,7 +414,7 @@ export function GlobalNotificationModal({
                 {/* Fecha */}
                 <div className="relative" ref={calendarRef}>
                   <label className="block text-[10px] font-medium text-gray-500 dark:text-gray-400 mb-1">
-                    Fecha
+                    {t('modal.dateLabel')}
                   </label>
                   <button
                     type="button"
@@ -446,7 +455,7 @@ export function GlobalNotificationModal({
                 {/* Hora */}
                 <div>
                   <label className="block text-[10px] font-medium text-gray-500 dark:text-gray-400 mb-1">
-                    Hora
+                    {t('modal.timeLabel')}
                   </label>
                   <TimePicker
                     value={selectedTime}
@@ -464,13 +473,14 @@ export function GlobalNotificationModal({
                 <div className="flex items-center gap-1.5 text-[10px] text-green-600 dark:text-green-400">
                   <FiClock className="w-3 h-3" />
                   <span>
-                    Se enviara el{' '}
-                    {scheduledDateTime.toLocaleDateString('es-ES', {
-                      weekday: 'long',
-                      day: 'numeric',
-                      month: 'long',
-                    })}{' '}
-                    a las {selectedTime}
+                    {t('modal.willSendAt', {
+                      date: scheduledDateTime.toLocaleDateString('es-ES', {
+                        weekday: 'long',
+                        day: 'numeric',
+                        month: 'long',
+                      }),
+                      time: selectedTime,
+                    })}
                   </span>
                 </div>
               )}
@@ -496,7 +506,7 @@ export function GlobalNotificationModal({
           {success && (
             <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-md p-2">
               <p className="text-xs text-green-600 dark:text-green-400">
-                Notificacion {scheduleType === 'now' ? 'enviada' : 'programada'} correctamente
+                {scheduleType === 'now' ? t('toast.sentSuccess') : t('toast.scheduledSuccess')}
               </p>
             </div>
           )}
@@ -509,7 +519,7 @@ export function GlobalNotificationModal({
               disabled={loading}
               className="flex-1 px-3 py-2 text-xs font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-[#0d1117] border border-gray-300 dark:border-gray-700 rounded-md hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50 transition-colors"
             >
-              Cancelar
+              {t('modal.cancel')}
             </button>
             <button
               type="submit"
@@ -517,18 +527,18 @@ export function GlobalNotificationModal({
               className="flex-1 px-3 py-2 text-xs font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-1.5"
             >
               {loading ? (
-                'Creando...'
+                t('modal.creating')
               ) : success ? (
-                'Creada'
+                t('modal.created')
               ) : scheduleType === 'now' ? (
                 <>
                   <FiBell className="w-3 h-3" />
-                  Enviar
+                  {t('modal.send')}
                 </>
               ) : (
                 <>
                   <FiCalendar className="w-3 h-3" />
-                  Programar
+                  {t('modal.schedule')}
                 </>
               )}
             </button>

@@ -3,6 +3,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { FiCheck, FiTrash2 } from 'react-icons/fi'
 import { formatDistanceToNow } from 'date-fns'
 import { es } from 'date-fns/locale'
@@ -23,6 +24,7 @@ export default function NotificationItem({
   showActions = true,
 }: NotificationItemProps) {
   const router = useRouter()
+  const t = useTranslations('notifications')
 
   const relativeTime = formatDistanceToNow(new Date(notification.created_at), {
     addSuffix: true,
@@ -76,7 +78,7 @@ export default function NotificationItem({
               <button
                 onClick={() => onMarkAsRead(notification.id)}
                 className="p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors"
-                title="Marcar como leida"
+                title={t('item.markAsRead')}
               >
                 <FiCheck className="w-4 h-4" />
               </button>
@@ -84,7 +86,7 @@ export default function NotificationItem({
             <button
               onClick={() => onDelete(notification.id)}
               className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors"
-              title="Eliminar"
+              title={t('item.delete')}
             >
               <FiTrash2 className="w-4 h-4" />
             </button>

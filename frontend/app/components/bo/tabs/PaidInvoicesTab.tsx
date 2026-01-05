@@ -9,6 +9,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 import {
   FiSearch,
   FiDownload,
@@ -20,7 +21,7 @@ import {
   FiPackage,
 } from 'react-icons/fi'
 import type { InvoiceWithDetails, Category } from '@/app/lib/backoffice/types'
-import { formatCurrency, PAYMENT_METHOD_LABELS } from '@/app/lib/backoffice/types'
+import { formatCurrency } from '@/app/lib/backoffice/types'
 import { PdfViewerModal } from '@/app/components/bo/modals'
 import { backofficeApi } from '@/app/lib/backoffice'
 import toast from 'react-hot-toast'
@@ -294,31 +295,33 @@ interface PaidInvoicesTabProps {
   onPageChange?: (page: number) => void
 }
 
-// Helper function - defined outside component to avoid hoisting issues
-const getSpanishMonthName = (month: number): string => {
-  const months = [
-    'Enero',
-    'Febrero',
-    'Marzo',
-    'Abril',
-    'Mayo',
-    'Junio',
-    'Julio',
-    'Agosto',
-    'Septiembre',
-    'Octubre',
-    'Noviembre',
-    'Diciembre',
-  ]
-  return months[month - 1] || ''
-}
-
 export function PaidInvoicesTab({
   initialInvoices: realInvoices,
   categories: realCategories,
   pagination: realPagination,
   onPageChange,
 }: PaidInvoicesTabProps) {
+  const t = useTranslations('backoffice')
+
+  // Helper function to get month name from translations
+  const getMonthName = (month: number): string => {
+    const monthKeys = [
+      'january',
+      'february',
+      'march',
+      'april',
+      'may',
+      'june',
+      'july',
+      'august',
+      'september',
+      'october',
+      'november',
+      'december',
+    ]
+    return t(`months.${monthKeys[month - 1]}`) || ''
+  }
+
   // Use mock data or real data based on flag
   const initialInvoices = USE_MOCK_DATA ? MOCK_INVOICES : realInvoices
   const categories = USE_MOCK_DATA ? MOCK_CATEGORIES : realCategories
@@ -362,8 +365,8 @@ export function PaidInvoicesTab({
         year: m.year,
         month: m.month,
         count: m.count,
-        label: `${getSpanishMonthName(m.month)} ${m.year} (${m.count})`,
-        monthLabel: `${getSpanishMonthName(m.month)} (${m.count})`,
+        label: `${getMonthName(m.month)} ${m.year} (${m.count})`,
+        monthLabel: `${getMonthName(m.month)} (${m.count})`,
       }))
   })()
 
@@ -445,7 +448,7 @@ export function PaidInvoicesTab({
     const hasOriginal = !!invoice.original_pdf_url
 
     if (!hasValidated && !hasOriginal) {
-      toast.error('Esta factura no tiene PDF adjunto')
+      toast.error(t('toast.noPdfAttached'))
       return
     }
 
@@ -458,7 +461,7 @@ export function PaidInvoicesTab({
     // Get available months from paid invoices
     const months = getAvailableMonths()
     if (months.length === 0) {
-      toast.error('No hay facturas pagadas para revertir')
+      toast.error(t('toast.noPaidInvoicesToRevert'))
       return
     }
 
@@ -475,7 +478,7 @@ export function PaidInvoicesTab({
       setRevertDialogOpen(true)
     } catch (error: unknown) {
       console.error('[handleOpenRevertDialog] Error:', error)
-      toast.error(error instanceof Error ? error.message : 'Error al obtener preview')
+      toast.error(error instanceof Error ? error.message : t('toast.exportError'))
     }
   }
 
@@ -487,7 +490,7 @@ export function PaidInvoicesTab({
       setRevertPreview(preview)
     } catch (error: unknown) {
       console.error('[handleRevertMonthChange] Error:', error)
-      toast.error(error instanceof Error ? error.message : 'Error al obtener preview')
+      toast.error(error instanceof Error ? error.message : t('toast.exportError'))
     }
   }
 
@@ -506,7 +509,7 @@ export function PaidInvoicesTab({
       router.refresh()
     } catch (error: unknown) {
       console.error('[handleExecuteRevert] Error:', error)
-      toast.error(error instanceof Error ? error.message : 'Error al revertir')
+      toast.error(error instanceof Error ? error.message : t('toast.revertError'))
     } finally {
       setIsReverting(false)
     }
@@ -538,7 +541,7 @@ export function PaidInvoicesTab({
       .map((m) => ({
         year: m.year,
         month: m.month,
-        label: `${getSpanishMonthName(m.month)} ${m.year} (${m.count})`,
+        label: `${getMonthName(m.month)} ${m.year} (${m.count})`,
       }))
 
     return months
@@ -554,30 +557,30 @@ export function PaidInvoicesTab({
   // Export to CSV (max 50 entries)
   const handleExport = () => {
     if (filteredInvoices.length === 0) {
-      toast.error('No hay facturas para exportar')
+      toast.error(t('toast.noInvoicesToExport'))
       return
     }
 
     // Limit to 50 entries
     const invoicesToExport = filteredInvoices.slice(0, 50)
     if (filteredInvoices.length > 50) {
-      toast('Exportando las primeras 50 facturas. Usa filtros para reducir la selección.', {
+      toast(t('toast.exportFirst50'), {
         icon: '⚠️',
       })
     }
 
     // Create CSV content
     const headers = [
-      'Proveedor',
-      'Nº Factura',
-      'Fecha Factura',
-      'Fecha Pago',
-      'Importe sin IVA',
-      'Importe con IVA',
-      '% IVA',
-      'Método de Pago',
-      'Centro de Coste',
-      'Departamento',
+      t('table.supplier'),
+      t('table.invoiceNumber'),
+      t('table.invoiceDate'),
+      t('table.paymentDate'),
+      t('table.withoutVat'),
+      t('table.withVat'),
+      '% VAT',
+      t('table.method'),
+      'Cost Center',
+      t('table.department'),
     ]
 
     const rows = invoicesToExport.map((invoice) => [
@@ -588,7 +591,7 @@ export function PaidInvoicesTab({
       safeToFixed(invoice.amount_without_vat),
       safeToFixed(invoice.amount_with_vat),
       (invoice.vat_percentage ?? 0).toString(),
-      PAYMENT_METHOD_LABELS[invoice.payment_method] || '',
+      invoice.payment_method === 'transfer' ? t('filters.transfer') : t('filters.directDebit'),
       invoice.cost_center || '',
       invoice.department || '',
     ])
@@ -609,13 +612,13 @@ export function PaidInvoicesTab({
     document.body.removeChild(link)
     window.URL.revokeObjectURL(url)
 
-    toast.success(`${filteredInvoices.length} facturas exportadas`)
+    toast.success(t('toast.invoicesExported', { count: filteredInvoices.length }))
   }
 
   // Export to ZIP (validated PDFs only, max 50)
   const handleExportZip = async () => {
     if (filteredInvoices.length === 0) {
-      toast.error('No hay facturas para exportar')
+      toast.error(t('toast.noInvoicesToExport'))
       return
     }
 
@@ -630,14 +633,14 @@ export function PaidInvoicesTab({
         .join(', ')
       const moreText =
         invoicesWithoutPdf.length > 3 ? ` y ${invoicesWithoutPdf.length - 3} más` : ''
-      toast.error(`Facturas sin PDF validado: ${names}${moreText}`)
+      toast.error(t('toast.invoicesWithoutPdf', { names: `${names}${moreText}` }))
       return
     }
 
     // Limit to 50 entries
     const invoicesToExport = invoicesWithPdf.slice(0, 50)
     if (invoicesWithPdf.length > 50) {
-      toast('Descargando las primeras 50 facturas. Usa filtros para reducir la selección.', {
+      toast(t('toast.downloadFirst50'), {
         icon: '⚠️',
       })
     }
@@ -658,10 +661,10 @@ export function PaidInvoicesTab({
       window.URL.revokeObjectURL(url)
       document.body.removeChild(a)
 
-      toast.success(`${invoicesToExport.length} factura(s) descargada(s) en ZIP`)
+      toast.success(t('toast.invoicesDownloadedZip', { count: invoicesToExport.length }))
     } catch (error: unknown) {
       console.error('[handleExportZip] Error:', error)
-      toast.error(error instanceof Error ? error.message : 'Error al descargar las facturas')
+      toast.error(error instanceof Error ? error.message : t('toast.downloadError'))
     } finally {
       setIsExportingZip(false)
     }
@@ -693,8 +696,8 @@ export function PaidInvoicesTab({
 
   // Get month label for display
   const selectedMonthLabel = selectedMonth
-    ? `${getSpanishMonthName(selectedMonth.month)} ${selectedMonth.year}`
-    : 'Mes'
+    ? `${getMonthName(selectedMonth.month)} ${selectedMonth.year}`
+    : t('filters.byMonth')
 
   return (
     <div className="space-y-4">
@@ -702,20 +705,26 @@ export function PaidInvoicesTab({
       <div className="grid grid-cols-3 gap-2 sm:gap-3">
         <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-3">
           <p className="text-[10px] text-gray-600 dark:text-gray-400 font-medium">
-            {dateFilter === 'specific_month' ? `Total ${selectedMonthLabel}` : 'Total Filtrado'}
+            {dateFilter === 'specific_month'
+              ? t('paid.summary.totalMonth', { month: selectedMonthLabel })
+              : t('paid.summary.totalFiltered')}
           </p>
           <p className="text-sm sm:text-base font-bold text-green-600 dark:text-green-400 mt-0.5">
             {formatCurrency(totalMonthFiltered)}
           </p>
         </div>
         <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-3">
-          <p className="text-[10px] text-gray-600 dark:text-gray-400 font-medium">Domiciliadas</p>
+          <p className="text-[10px] text-gray-600 dark:text-gray-400 font-medium">
+            {t('paid.summary.directDebits')}
+          </p>
           <p className="text-sm sm:text-base font-bold text-purple-600 dark:text-purple-400 mt-0.5">
             {formatCurrency(byDirectDebit)}
           </p>
         </div>
         <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-3">
-          <p className="text-[10px] text-gray-600 dark:text-gray-400 font-medium">Transferencias</p>
+          <p className="text-[10px] text-gray-600 dark:text-gray-400 font-medium">
+            {t('paid.summary.transfers')}
+          </p>
           <p className="text-sm sm:text-base font-bold text-blue-600 dark:text-blue-400 mt-0.5">
             {formatCurrency(byTransfer)}
           </p>
@@ -729,7 +738,7 @@ export function PaidInvoicesTab({
           <FiSearch className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 dark:text-gray-500" />
           <input
             type="text"
-            placeholder="Buscar..."
+            placeholder={t('filters.search')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full pl-8 pr-3 py-1.5 text-xs border border-gray-300 dark:border-gray-700 dark:bg-[#151b23] dark:text-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent"
@@ -749,10 +758,10 @@ export function PaidInvoicesTab({
           }}
           className="w-full sm:w-36 px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent bg-white dark:bg-[#151b23] dark:text-gray-200"
         >
-          <option value="specific_month">Por Mes</option>
-          <option value="quarter">Último trimestre</option>
-          <option value="year">Último año</option>
-          <option value="all">Todo el histórico</option>
+          <option value="specific_month">{t('filters.byMonth')}</option>
+          <option value="quarter">{t('filters.lastQuarter')}</option>
+          <option value="year">{t('filters.lastYear')}</option>
+          <option value="all">{t('filters.allHistory')}</option>
         </select>
 
         {/* Month Selector with year grouping (only when "Por Mes" is selected) */}
@@ -801,7 +810,7 @@ export function PaidInvoicesTab({
           }
           className="flex-1 min-w-[240px] px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent bg-white dark:bg-[#151b23] dark:text-gray-200"
         >
-          <option value="all">Todas las categorías</option>
+          <option value="all">{t('filters.allCategories')}</option>
           {categories.map((cat) => (
             <option key={cat.id} value={cat.id}>
               {cat.cost_center} - {cat.department}
@@ -817,40 +826,40 @@ export function PaidInvoicesTab({
           }
           className="w-full sm:w-36 px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent bg-white dark:bg-[#151b23] dark:text-gray-200"
         >
-          <option value="all">Todos los pagos</option>
-          <option value="transfer">Transferencia</option>
-          <option value="direct_debit">Domiciliación</option>
+          <option value="all">{t('filters.allPayments')}</option>
+          <option value="transfer">{t('filters.transfer')}</option>
+          <option value="direct_debit">{t('filters.directDebit')}</option>
         </select>
 
         {/* Export Buttons */}
         <div className="flex gap-2">
           <button
             onClick={handleExport}
-            title="Exportar a CSV"
+            title={t('actions.csv')}
             className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-xs font-medium rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
           >
             <FiDownload className="w-3.5 h-3.5" />
-            CSV
+            {t('actions.csv')}
           </button>
           <button
             onClick={handleExportZip}
             disabled={isExportingZip}
-            title="Exportar PDFs validados como ZIP (máx. 50)"
+            title={t('actions.zip')}
             className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 text-xs font-medium rounded-md hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors disabled:opacity-50"
           >
             <FiPackage className="w-3.5 h-3.5" />
-            {isExportingZip ? 'Descargando...' : 'ZIP'}
+            {isExportingZip ? t('actions.downloading') : t('actions.zip')}
           </button>
         </div>
 
         {/* Revert Batch Payment */}
         <button
           onClick={handleOpenRevertDialog}
-          title="Revertir cierre de mes (devolver facturas a validadas)"
+          title={t('actions.reopenMonth')}
           className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 text-xs font-medium rounded-md hover:bg-orange-200 dark:hover:bg-orange-900/50 transition-colors"
         >
           <FiRotateCcw className="w-3.5 h-3.5" />
-          Reabrir Mes
+          {t('actions.reopenMonth')}
         </button>
       </div>
 
@@ -861,28 +870,28 @@ export function PaidInvoicesTab({
             <thead className="bg-gray-50 dark:bg-[#0d1117] border-b border-gray-200 dark:border-gray-800">
               <tr>
                 <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                  Proveedor
+                  {t('table.supplier')}
                 </th>
                 <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                  Nº Factura
+                  {t('table.invoiceNumber')}
                 </th>
                 <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                  Fecha Factura
+                  {t('table.invoiceDate')}
                 </th>
                 <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                  Fecha Pago
+                  {t('table.paymentDate')}
                 </th>
                 <th className="px-3 py-2 text-right text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                  Importe
+                  {t('table.amount')}
                 </th>
                 <th className="px-3 py-2 text-center text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                  Método
+                  {t('table.method')}
                 </th>
                 <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                  Categoría
+                  {t('table.category')}
                 </th>
                 <th className="px-3 py-2 text-right text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                  Acciones
+                  {t('table.actions')}
                 </th>
               </tr>
             </thead>
@@ -893,7 +902,7 @@ export function PaidInvoicesTab({
                     colSpan={8}
                     className="px-3 py-8 text-center text-xs text-gray-500 dark:text-gray-400"
                   >
-                    No se encontraron facturas pagadas
+                    {t('empty.noPaidInvoices')}
                   </td>
                 </tr>
               ) : (
@@ -924,7 +933,9 @@ export function PaidInvoicesTab({
                       </td>
                       <td className="px-3 py-2 text-center">
                         <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-purple-50 text-purple-700 dark:bg-purple-900/20 dark:text-purple-400">
-                          {PAYMENT_METHOD_LABELS[invoice.payment_method]}
+                          {invoice.payment_method === 'transfer'
+                            ? t('filters.transfer')
+                            : t('filters.directDebit')}
                         </span>
                       </td>
                       <td className="px-3 py-2">
@@ -939,7 +950,7 @@ export function PaidInvoicesTab({
                         <button
                           onClick={() => handleOpenPdfViewer(invoice)}
                           disabled={!hasPdf}
-                          title={hasPdf ? 'Ver PDF' : 'Sin PDF'}
+                          title={hasPdf ? t('actions.viewPdf') : t('pending.noPdf')}
                           className={`inline-flex items-center justify-center w-7 h-7 rounded transition-colors ${
                             hasPdf
                               ? 'text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-gray-100 dark:hover:bg-gray-800'
@@ -961,9 +972,9 @@ export function PaidInvoicesTab({
         {pagination.total > 0 && (
           <div className="px-3 py-2 border-t border-gray-200 dark:border-gray-800 flex items-center justify-between">
             <span className="text-xs text-gray-500 dark:text-gray-400">
-              Mostrando {filteredInvoices.length} de {pagination.total} facturas
+              {t('pagination.showing', { count: filteredInvoices.length, total: pagination.total })}
               {pagination.totalPages > 1 &&
-                ` (Página ${pagination.page} de ${pagination.totalPages})`}
+                ` (${t('pagination.page', { current: pagination.page, total: pagination.totalPages })})`}
             </span>
             {pagination.totalPages > 1 && onPageChange && (
               <div className="flex items-center gap-2">
@@ -973,14 +984,14 @@ export function PaidInvoicesTab({
                   className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   <FiChevronLeft className="w-3.5 h-3.5" />
-                  Anterior
+                  {t('actions.previous')}
                 </button>
                 <button
                   onClick={() => onPageChange(pagination.page + 1)}
                   disabled={pagination.page >= pagination.totalPages}
                   className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                 >
-                  Siguiente
+                  {t('actions.next')}
                   <FiChevronRight className="w-3.5 h-3.5" />
                 </button>
               </div>
@@ -993,9 +1004,7 @@ export function PaidInvoicesTab({
       <div className="lg:hidden space-y-2">
         {filteredInvoices.length === 0 ? (
           <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-6 text-center">
-            <p className="text-xs text-gray-500 dark:text-gray-400">
-              No se encontraron facturas pagadas
-            </p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">{t('empty.noPaidInvoices')}</p>
           </div>
         ) : (
           filteredInvoices.map((invoice) => {
@@ -1021,13 +1030,17 @@ export function PaidInvoicesTab({
 
                 <div className="grid grid-cols-2 gap-2 text-[10px] mb-2">
                   <div>
-                    <span className="text-gray-500 dark:text-gray-500">Fecha factura:</span>
+                    <span className="text-gray-500 dark:text-gray-500">
+                      {t('table.invoiceDate')}:
+                    </span>
                     <span className="ml-1 text-gray-900 dark:text-gray-100">
                       {formatDate(invoice.invoice_date)}
                     </span>
                   </div>
                   <div>
-                    <span className="text-gray-500 dark:text-gray-500">Fecha pago:</span>
+                    <span className="text-gray-500 dark:text-gray-500">
+                      {t('table.paymentDate')}:
+                    </span>
                     <span className="ml-1 text-gray-900 dark:text-gray-100">
                       {formatDate(invoice.paid_date)}
                     </span>
@@ -1059,7 +1072,7 @@ export function PaidInvoicesTab({
         {pagination.total > 0 && pagination.totalPages > 1 && onPageChange && (
           <div className="mt-3 flex items-center justify-between bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-3">
             <span className="text-xs text-gray-500 dark:text-gray-400">
-              Pág. {pagination.page}/{pagination.totalPages}
+              {t('pagination.page', { current: pagination.page, total: pagination.totalPages })}
             </span>
             <div className="flex items-center gap-2">
               <button
@@ -1068,14 +1081,14 @@ export function PaidInvoicesTab({
                 className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 <FiChevronLeft className="w-3.5 h-3.5" />
-                Anterior
+                {t('actions.previous')}
               </button>
               <button
                 onClick={() => onPageChange(pagination.page + 1)}
                 disabled={pagination.page >= pagination.totalPages}
                 className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
               >
-                Siguiente
+                {t('actions.next')}
                 <FiChevronRight className="w-3.5 h-3.5" />
               </button>
             </div>
@@ -1116,13 +1129,13 @@ export function PaidInvoicesTab({
             <div className="relative w-full max-w-md bg-white dark:bg-[#151b23] rounded-lg shadow-xl">
               <div className="p-6">
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
-                  Reabrir Mes - Revertir Cierre
+                  {t('modals.revertBatchPayment.title')}
                 </h3>
 
                 {/* Month selector */}
                 <div className="mb-4">
                   <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Seleccionar mes a revertir
+                    {t('modals.revertBatchPayment.selectMonth')}
                   </label>
                   <select
                     value={
@@ -1147,14 +1160,16 @@ export function PaidInvoicesTab({
                 {revertPreview && (
                   <div className="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-md p-4 mb-4">
                     <p className="text-sm text-orange-800 dark:text-orange-300 mb-2">
-                      <strong>Mes:</strong> {getSpanishMonthName(revertPreview.month)}{' '}
-                      {revertPreview.year}
+                      <strong>{t('modals.revertBatchPayment.month')}</strong>{' '}
+                      {getMonthName(revertPreview.month)} {revertPreview.year}
                     </p>
                     <p className="text-sm text-orange-800 dark:text-orange-300 mb-2">
-                      <strong>Facturas pagadas:</strong> {revertPreview.count}
+                      <strong>{t('modals.revertBatchPayment.paidInvoices')}</strong>{' '}
+                      {revertPreview.count}
                     </p>
                     <p className="text-sm text-orange-800 dark:text-orange-300">
-                      <strong>Importe total:</strong> {formatCurrency(revertPreview.total_amount)}
+                      <strong>{t('modals.revertBatchPayment.totalAmount')}</strong>{' '}
+                      {formatCurrency(revertPreview.total_amount)}
                     </p>
                   </div>
                 )}
@@ -1162,16 +1177,16 @@ export function PaidInvoicesTab({
                 {revertPreview && revertPreview.count === 0 ? (
                   <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-md p-3 mb-4">
                     <p className="text-xs text-yellow-800 dark:text-yellow-300">
-                      No hay facturas pagadas para este mes.
+                      {t('modals.revertBatchPayment.noInvoices')}
                     </p>
                   </div>
                 ) : (
                   revertPreview && (
                     <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-md p-3 mb-4">
                       <p className="text-xs text-blue-800 dark:text-blue-300">
-                        Esta acción revertirá todas las facturas pagadas de{' '}
-                        {getSpanishMonthName(revertPreview.month)} a estado validado. Podrás volver
-                        a cerrar el mes posteriormente.
+                        {t('modals.revertBatchPayment.description', {
+                          month: getMonthName(revertPreview.month),
+                        })}
                       </p>
                     </div>
                   )
@@ -1188,7 +1203,7 @@ export function PaidInvoicesTab({
                     disabled={isReverting}
                     className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
                   >
-                    Cancelar
+                    {t('actions.cancel')}
                   </button>
                   <button
                     type="button"
@@ -1197,8 +1212,10 @@ export function PaidInvoicesTab({
                     className="flex-1 px-4 py-2 text-sm font-medium text-white bg-orange-600 rounded-md hover:bg-orange-700 transition-colors disabled:opacity-50"
                   >
                     {isReverting
-                      ? 'Procesando...'
-                      : `Revertir ${revertPreview?.count || 0} Facturas`}
+                      ? t('actions.processing')
+                      : t('modals.revertBatchPayment.confirmButton', {
+                          count: revertPreview?.count || 0,
+                        })}
                   </button>
                 </div>
               </div>

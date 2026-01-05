@@ -5,6 +5,7 @@
 import React from 'react'
 import { BiError } from 'react-icons/bi'
 import { FiX } from 'react-icons/fi'
+import { useTranslations } from 'next-intl'
 import type { OverdueBooking } from '@/app/lib/parking/types'
 
 interface OverdueModalProps {
@@ -22,34 +23,36 @@ export default function OverdueModal({
   onAction,
   loading,
 }: OverdueModalProps) {
+  const t = useTranslations('parking.statusModals')
+
   if (!isOpen || !booking) return null
 
   const actions = [
     {
       id: 'checkout',
-      label: 'Dar Salida',
-      description: 'El cliente se alojó pero falta registrar la salida',
+      label: t('checkOutAction'),
+      description: t('checkOutDesc'),
       icon: '🚗',
       color: 'amber',
     },
     {
       id: 'no-show',
-      label: 'Marcar No-Show',
-      description: 'El cliente nunca se presentó',
+      label: t('markNoShow'),
+      description: t('markNoShowDesc'),
       icon: '❌',
       color: 'yellow',
     },
     {
       id: 'cancel',
-      label: 'Cancelar Reserva',
-      description: 'Cancelar la reserva completamente',
+      label: t('cancelBookingAction'),
+      description: t('cancelBookingDesc'),
       icon: '🚫',
       color: 'rose',
     },
     {
       id: 'delete',
-      label: 'Eliminar Reserva',
-      description: 'Borrar la reserva del sistema',
+      label: t('deleteBooking'),
+      description: t('deleteBookingDesc'),
       icon: '🗑️',
       color: 'red',
     },
@@ -64,7 +67,7 @@ export default function OverdueModal({
               <BiError className="w-5 h-5 text-orange-600 dark:text-orange-400" />
             </div>
             <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-              Gestionar Reserva Retrasada
+              {t('manageOverdue')}
             </h2>
           </div>
           <button
@@ -79,25 +82,25 @@ export default function OverdueModal({
         <div className="p-6 bg-gradient-to-br from-orange-50/50 to-amber-50/50 dark:from-orange-950/10 dark:to-amber-950/10 border-b border-gray-100 dark:border-gray-800">
           <div className="space-y-3 text-sm">
             <div className="flex justify-between items-center">
-              <span className="text-gray-600 dark:text-gray-400 font-medium">Cliente:</span>
+              <span className="text-gray-600 dark:text-gray-400 font-medium">{t('client')}:</span>
               <span className="font-semibold text-gray-900 dark:text-gray-100">
-                {booking.vehicle?.owner || 'Sin datos'}
+                {booking.vehicle?.owner || t('noData')}
               </span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-gray-600 dark:text-gray-400 font-medium">Vehículo:</span>
+              <span className="text-gray-600 dark:text-gray-400 font-medium">{t('vehicle')}:</span>
               <span className="font-mono font-semibold text-gray-900 dark:text-gray-100">
-                {booking.vehicle?.plate || 'Sin matrícula'}
+                {booking.vehicle?.plate || t('noPlate')}
               </span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-gray-600 dark:text-gray-400 font-medium">Plaza:</span>
+              <span className="text-gray-600 dark:text-gray-400 font-medium">{t('spot')}:</span>
               <span className="font-semibold text-gray-900 dark:text-gray-100">
                 {booking.spot.level} · {booking.spot.number}
               </span>
             </div>
             <div className="flex justify-between items-center pt-3 border-t border-orange-200 dark:border-orange-800/50">
-              <span className="text-gray-600 dark:text-gray-400 font-medium">Retraso:</span>
+              <span className="text-gray-600 dark:text-gray-400 font-medium">{t('delay')}:</span>
               <span className="px-3 py-1 font-bold text-orange-900 dark:text-orange-100 bg-orange-200 dark:bg-orange-900/50 rounded-lg">
                 {booking.horas_retraso}h
               </span>

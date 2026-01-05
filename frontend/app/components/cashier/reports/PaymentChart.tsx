@@ -1,5 +1,6 @@
 'use client'
 
+import { useTranslations } from 'next-intl'
 import {
   PieChart,
   Pie,
@@ -39,19 +40,21 @@ const COLORS = {
 }
 
 export default function PaymentChart({ report, viewMode = 'pie' }: PaymentChartProps) {
+  const t = useTranslations('cashier')
+
   const totals = {
     grand_total:
-      typeof report.totals.grand_total === 'string'
+      typeof report?.totals?.grand_total === 'string'
         ? parseFloat(report.totals.grand_total)
-        : report.totals.grand_total || 0,
+        : report?.totals?.grand_total || 0,
     total_days:
-      typeof report.period.total_days === 'string'
+      typeof report?.period?.total_days === 'string'
         ? parseInt(report.period.total_days)
-        : report.period.total_days || 1,
+        : report?.period?.total_days || 1,
   }
 
   // Filtrar métodos con valor > 0 para el gráfico
-  const chartData: ChartDataItem[] = report.payment_methods_breakdown
+  const chartData: ChartDataItem[] = (report?.payment_methods_breakdown || [])
     .map((method) => {
       const totalAmount =
         typeof method.total_amount === 'string'
@@ -134,7 +137,7 @@ export default function PaymentChart({ report, viewMode = 'pie' }: PaymentChartP
     return (
       <div className="bg-white dark:bg-[#0d1117] border border-gray-200 dark:border-gray-800 rounded-lg p-6">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
-          📊 Distribución por Método de Pago
+          {t('reports.distributionByPaymentMethod')}
         </h3>
 
         <ResponsiveContainer width="100%" height={400}>
@@ -185,7 +188,7 @@ export default function PaymentChart({ report, viewMode = 'pie' }: PaymentChartP
   return (
     <div className="bg-white dark:bg-[#0d1117] border border-gray-200 dark:border-gray-800 rounded-lg p-6">
       <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
-        🥧 Distribución por Método de Pago
+        {t('reports.distributionByPaymentMethod')}
       </h3>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -217,7 +220,7 @@ export default function PaymentChart({ report, viewMode = 'pie' }: PaymentChartP
         {/* ✅ Lista mejorada */}
         <div className="space-y-4">
           <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4">
-            Desglose detallado
+            {t('reports.detailedBreakdown')}
           </h4>
           {chartData
             .sort((a: ChartDataItem, b: ChartDataItem) => b.value - a.value)
@@ -263,13 +266,17 @@ export default function PaymentChart({ report, viewMode = 'pie' }: PaymentChartP
       <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-800">
         <div className="grid grid-cols-2 gap-4">
           <div className="text-center p-4 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border border-green-200 dark:border-green-800 rounded-lg">
-            <p className="text-sm text-green-700 dark:text-green-300 mb-1">Gran Total</p>
+            <p className="text-sm text-green-700 dark:text-green-300 mb-1">
+              {t('summary.grandTotal')}
+            </p>
             <p className="text-2xl font-bold text-green-900 dark:text-green-100">
               {totals.grand_total.toFixed(2)}€
             </p>
           </div>
           <div className="text-center p-4 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg">
-            <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Promedio/Día</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">
+              {t('reports.averagePerDay')}
+            </p>
             <p className="text-2xl font-bold text-gray-900 dark:text-white">
               {(totals.grand_total / totals.total_days).toFixed(2)}€
             </p>

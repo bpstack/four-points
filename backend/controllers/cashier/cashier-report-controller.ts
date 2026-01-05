@@ -30,10 +30,30 @@ export class CashierReportController {
       const openShifts = todayShifts.filter((s) => s.status === ShiftStatus.OPEN).length
       const closedShifts = todayShifts.filter((s) => s.status === ShiftStatus.CLOSED).length
 
-      // Calcular totales de hoy
-      const totalCashToday = todayShifts.reduce((sum, s) => sum + s.income, 0)
-      const totalPaymentsToday = todayShifts.reduce((sum, s) => sum + s.payments_total, 0)
-      const grandTotalToday = todayShifts.reduce((sum, s) => sum + s.grand_total, 0)
+      // Calcular totales de hoy desde las tablas relacionadas
+      // Solo contar turnos que tengan datos (denominaciones o pagos registrados)
+      let totalCashToday = 0
+      let totalPaymentsToday = 0
+
+      for (const shift of todayShifts) {
+        // Obtener total de denominaciones (efectivo contado)
+        const cashCounted = await CashierDenominationRepository.getTotalCash(shift.id)
+        // Obtener total de pagos electrónicos
+        const payments = await CashierPaymentRepository.getByShift(shift.id)
+        const paymentsTotal = payments.reduce((sum, p) => sum + Number(p.amount), 0)
+        
+        // Solo calcular si hay denominaciones o pagos registrados
+        // (evita valores negativos de turnos vacíos con solo fondo inicial)
+        if (cashCounted > 0 || paymentsTotal > 0) {
+          const initialFund = Number(shift.initial_fund) || 0
+          const income = cashCounted - initialFund
+          
+          totalCashToday += income
+          totalPaymentsToday += paymentsTotal
+        }
+      }
+
+      const grandTotalToday = totalCashToday + totalPaymentsToday
 
       // ✅ CORREGIDO: Usar getStats() en lugar de getSummary()
       const vouchersStats = await CashierVoucherRepository.getStats()
@@ -307,10 +327,10 @@ export class CashierReportController {
       return res.json({
         vouchers,
         summary: {
-          total_active: stats.pending_count.toString(),
-          total_active_amount: stats.pending_amount.toString(),
-          total_repaid: stats.justified_amount.toString(),
-          total_cancelled: stats.cancelled_amount.toString(),
+          total_active: (stats?.pending_count ?? 0).toString(),
+          total_active_amount: (stats?.pending_amount ?? 0).toString(),
+          total_repaid: (stats?.justified_amount ?? 0).toString(),
+          total_cancelled: (stats?.cancelled_amount ?? 0).toString(),
         },
       })
     } catch (error: any) {

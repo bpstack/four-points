@@ -1,4 +1,5 @@
 // app/dashboard/blacklist/not-found.tsx
+'use client'
 
 /**
  * Página 404 general del módulo Blacklist
@@ -6,10 +7,13 @@
 
 import Link from 'next/link'
 import { IoAlertCircleOutline, IoChevronBack } from 'react-icons/io5'
+import { useTranslations } from 'next-intl'
 import { Button } from '@/app/components/blacklist/ui/Button'
 import { Card } from '@/app/components/blacklist/ui/Card'
 
 export default function NotFound() {
+  const t = useTranslations('blacklist')
+
   return (
     <div className="min-h-screen bg-white dark:bg-[#010409] flex items-center justify-center px-4">
       <Card className="max-w-md w-full text-center bg-white dark:bg-[#0D1117] border-gray-200 dark:border-gray-800">
@@ -20,31 +24,30 @@ export default function NotFound() {
 
         {/* Título */}
         <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-3">
-          Página no encontrada
+          {t('notFound.pageTitle')}
         </h1>
 
         {/* Descripción */}
-        <p className="text-gray-600 dark:text-gray-400 mb-8">
-          La página que estás buscando no existe o ha sido movida. Verifica la URL o regresa a la
-          lista de registros.
-        </p>
+        <p className="text-gray-600 dark:text-gray-400 mb-8">{t('notFound.pageDescription')}</p>
 
         {/* Código de error */}
         <div className="inline-flex items-center gap-2 bg-gray-100 dark:bg-[#161B22] px-4 py-2 rounded-full mb-8">
-          <span className="text-sm font-mono text-gray-600 dark:text-gray-400">Error 404</span>
+          <span className="text-sm font-mono text-gray-600 dark:text-gray-400">
+            {t('notFound.error404')}
+          </span>
         </div>
 
         {/* Acciones */}
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <Link href="/dashboard/blacklist">
             <Button variant="primary" leftIcon={<IoChevronBack size={18} />} fullWidth>
-              Volver a Blacklist
+              {t('notFound.backToBlacklist')}
             </Button>
           </Link>
 
           <Link href="/dashboard">
             <Button variant="secondary" fullWidth>
-              Ir al dashboard
+              {t('notFound.goToDashboard')}
             </Button>
           </Link>
         </div>

@@ -1,6 +1,7 @@
 // app/components/booking/BookingWizard/steps/DateOnlyStep.tsx
 
 import { FaCalendar } from 'react-icons/fa'
+import { useTranslations } from 'next-intl'
 import { formatDateLocal, formatDateForInput } from '@/app/lib/helpers/date'
 import SimpleCalendar from '@/app/ui/calendar/simplecalendar'
 import TimePicker from '@/app/ui/calendar/timepicker'
@@ -20,14 +21,16 @@ interface DateOnlyStepProps {
 }
 
 export default function DateOnlyStep({ state, actions }: DateOnlyStepProps) {
+  const t = useTranslations('booking')
+
   return (
     <div className="space-y-6">
       {/* Fechas */}
-      <SlidePanelSection title="Fechas de la reserva">
+      <SlidePanelSection title={t('dates.sectionTitle')}>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {/* CHECK-IN */}
           <div className="relative calendar-container">
-            <FormField label="Fecha de entrada" required>
+            <FormField label={t('dates.checkinDate')} required>
               <button
                 type="button"
                 onClick={() => {
@@ -41,7 +44,7 @@ export default function DateOnlyStep({ state, actions }: DateOnlyStepProps) {
                 >
                   {state.reservationData.expected_checkin_date
                     ? formatDateLocal(new Date(state.reservationData.expected_checkin_date))
-                    : 'Seleccionar fecha'}
+                    : t('dates.selectDate')}
                 </span>
                 <FaCalendar className="w-4 h-4 text-gray-400" />
               </button>
@@ -69,16 +72,16 @@ export default function DateOnlyStep({ state, actions }: DateOnlyStepProps) {
             <div className="mt-2">
               <TimePicker
                 value={state.reservationData.expected_checkin_time}
-                onChange={(t) => actions.setReservationData({ expected_checkin_time: t })}
+                onChange={(time) => actions.setReservationData({ expected_checkin_time: time })}
                 openTo="right"
-                label="Hora de entrada"
+                label={t('dates.checkinTime')}
               />
             </div>
           </div>
 
           {/* CHECK-OUT */}
           <div className="relative calendar-container">
-            <FormField label="Fecha de salida" required>
+            <FormField label={t('dates.checkoutDate')} required>
               <button
                 type="button"
                 onClick={() => {
@@ -92,7 +95,7 @@ export default function DateOnlyStep({ state, actions }: DateOnlyStepProps) {
                 >
                   {state.reservationData.expected_checkout_date
                     ? formatDateLocal(new Date(state.reservationData.expected_checkout_date))
-                    : 'Seleccionar fecha'}
+                    : t('dates.selectDate')}
                 </span>
                 <FaCalendar className="w-4 h-4 text-gray-400" />
               </button>
@@ -120,9 +123,9 @@ export default function DateOnlyStep({ state, actions }: DateOnlyStepProps) {
             <div className="mt-2">
               <TimePicker
                 value={state.reservationData.expected_checkout_time}
-                onChange={(t) => actions.setReservationData({ expected_checkout_time: t })}
+                onChange={(time) => actions.setReservationData({ expected_checkout_time: time })}
                 openTo="left"
-                label="Hora de salida"
+                label={t('dates.checkoutTime')}
               />
             </div>
           </div>
@@ -132,49 +135,51 @@ export default function DateOnlyStep({ state, actions }: DateOnlyStepProps) {
         {actions.calculateDays() > 0 && (
           <Alert variant="info" className="mt-4">
             <p>
-              Duración de la estancia:{' '}
-              <span className="font-semibold">{actions.calculateDays()} día(s)</span>
+              {t('dates.duration')}{' '}
+              <span className="font-semibold">
+                {t('dates.durationDays', { count: actions.calculateDays() })}
+              </span>
             </p>
           </Alert>
         )}
       </SlidePanelSection>
 
       {/* Detalles adicionales */}
-      <SlidePanelSection title="Detalles de la reserva">
+      <SlidePanelSection title={t('details.title')}>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <FormField label="Precio total (€)">
+          <FormField label={t('details.priceTotal')}>
             <input
               type="number"
               step="0.01"
               value={state.reservationData.total_amount}
               onChange={(e) => actions.setReservationData({ total_amount: e.target.value })}
-              placeholder="Dejar vacío para cálculo automático"
+              placeholder={t('details.priceAutoPlaceholder')}
               className={inputClassName}
             />
           </FormField>
 
-          <FormField label="Origen de reserva">
+          <FormField label={t('details.bookingSource')}>
             <select
               value={state.reservationData.booking_source}
               onChange={(e) => actions.setReservationData({ booking_source: e.target.value })}
               className={selectClassName}
             >
-              <option value="direct">Directo</option>
-              <option value="booking">Booking.com</option>
-              <option value="airbnb">Airbnb</option>
-              <option value="phone">Teléfono</option>
-              <option value="email">Email</option>
-              <option value="walkin">Walk-in</option>
+              <option value="direct">{t('sources.direct')}</option>
+              <option value="booking">{t('sources.booking_com')}</option>
+              <option value="airbnb">{t('sources.airbnb')}</option>
+              <option value="phone">{t('sources.phone')}</option>
+              <option value="email">{t('sources.email')}</option>
+              <option value="walkin">{t('sources.walkin')}</option>
             </select>
           </FormField>
         </div>
 
-        <FormField label="Notas" className="mt-4">
+        <FormField label={t('details.notes')} className="mt-4">
           <textarea
             value={state.reservationData.notes}
             onChange={(e) => actions.setReservationData({ notes: e.target.value })}
             rows={3}
-            placeholder="Información adicional sobre la reserva..."
+            placeholder={t('details.notesPlaceholder')}
             className={textareaClassName}
           />
         </FormField>

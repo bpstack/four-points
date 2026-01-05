@@ -12,6 +12,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { Modal } from '@/app/components/blacklist/ui/Modal'
 import { Button } from '@/app/components/blacklist/ui/Button'
 import { Badge } from '@/app/components/blacklist/ui/Badge'
@@ -41,6 +42,7 @@ interface BlacklistModalProps {
 
 export function BlacklistModal({ isOpen, onClose, entry, auditTrail }: BlacklistModalProps) {
   const router = useRouter()
+  const t = useTranslations('blacklist')
   const [isDeleting, setIsDeleting] = useState(false)
   const [isRestoring, setIsRestoring] = useState(false)
   const [activeTab, setActiveTab] = useState<'details' | 'images' | 'history'>('details')
@@ -57,16 +59,12 @@ export function BlacklistModal({ isOpen, onClose, entry, auditTrail }: Blacklist
   // ELIMINAR (SOFT DELETE)
   // ========================================
   const handleDelete = async () => {
-    if (
-      !confirm(
-        '¿Estás seguro de eliminar este registro? Esta acción marcará el registro como eliminado pero podrá ser restaurado posteriormente.'
-      )
-    ) {
+    if (!confirm(t('delete.confirmMessage'))) {
       return
     }
 
     setIsDeleting(true)
-    toast.loading('Eliminando registro...')
+    toast.loading(t('delete.deleting'))
 
     try {
       const result = await deleteBlacklist(entry.id)
@@ -74,15 +72,15 @@ export function BlacklistModal({ isOpen, onClose, entry, auditTrail }: Blacklist
       toast.dismiss()
 
       if (result.success) {
-        toast.success('Registro eliminado correctamente')
+        toast.success(t('delete.success'))
         onClose()
         router.refresh()
       } else {
-        toast.error(result.error || 'Error al eliminar el registro')
+        toast.error(result.error || t('delete.error'))
       }
     } catch (error: unknown) {
       toast.dismiss()
-      toast.error(error instanceof Error ? error.message : 'Error al eliminar')
+      toast.error(error instanceof Error ? error.message : t('delete.genericError'))
     } finally {
       setIsDeleting(false)
     }
@@ -92,12 +90,12 @@ export function BlacklistModal({ isOpen, onClose, entry, auditTrail }: Blacklist
   // RESTAURAR
   // ========================================
   const handleRestore = async () => {
-    if (!confirm('¿Deseas restaurar este registro?')) {
+    if (!confirm(t('restore.confirm'))) {
       return
     }
 
     setIsRestoring(true)
-    toast.loading('Restaurando registro...')
+    toast.loading(t('restore.restoring'))
 
     try {
       const result = await restoreBlacklist(entry.id)
@@ -105,15 +103,15 @@ export function BlacklistModal({ isOpen, onClose, entry, auditTrail }: Blacklist
       toast.dismiss()
 
       if (result.success) {
-        toast.success('Registro restaurado correctamente')
+        toast.success(t('restore.success'))
         onClose()
         router.refresh()
       } else {
-        toast.error(result.error || 'Error al restaurar el registro')
+        toast.error(result.error || t('restore.error'))
       }
     } catch (error: unknown) {
       toast.dismiss()
-      toast.error(error instanceof Error ? error.message : 'Error al restaurar')
+      toast.error(error instanceof Error ? error.message : t('restore.genericError'))
     } finally {
       setIsRestoring(false)
     }
@@ -123,7 +121,7 @@ export function BlacklistModal({ isOpen, onClose, entry, auditTrail }: Blacklist
   const stayDays = calculateStayDays(entry.check_in_date, entry.check_out_date)
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size="xl" title="Detalles del registro">
+    <Modal isOpen={isOpen} onClose={onClose} size="xl" title={t('modal.title')}>
       <div className="space-y-6">
         {/* Header con badges */}
         <div className="flex items-start justify-between gap-4 pb-4 border-b border-gray-200 dark:border-gray-800">
@@ -146,7 +144,7 @@ export function BlacklistModal({ isOpen, onClose, entry, auditTrail }: Blacklist
                 {SEVERITY_LEVELS[entry.severity]}
               </Badge>
               <Badge variant={entry.status === 'ACTIVE' ? 'success' : 'default'}>
-                {entry.status === 'ACTIVE' ? 'Activo' : 'Eliminado'}
+                {entry.status === 'ACTIVE' ? t('status.active') : t('status.deleted')}
               </Badge>
             </div>
           </div>
@@ -163,7 +161,7 @@ export function BlacklistModal({ isOpen, onClose, entry, auditTrail }: Blacklist
                   : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100'
               }`}
             >
-              Detalles
+              {t('modal.tabs.details')}
             </button>
             <button
               onClick={() => setActiveTab('images')}
@@ -173,7 +171,7 @@ export function BlacklistModal({ isOpen, onClose, entry, auditTrail }: Blacklist
                   : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100'
               }`}
             >
-              Imágenes ({entry.images.length})
+              {t('modal.tabs.images')} ({entry.images.length})
             </button>
             <button
               onClick={() => setActiveTab('history')}
@@ -183,7 +181,7 @@ export function BlacklistModal({ isOpen, onClose, entry, auditTrail }: Blacklist
                   : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100'
               }`}
             >
-              Historial ({auditTrail.length})
+              {t('modal.tabs.history')} ({auditTrail.length})
             </button>
           </div>
         </div>
@@ -197,12 +195,12 @@ export function BlacklistModal({ isOpen, onClose, entry, auditTrail }: Blacklist
               <div>
                 <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2">
                   <IoDocumentTextOutline size={18} />
-                  Información del documento
+                  {t('detail.documentInfo')}
                 </h3>
                 <div className="grid grid-cols-2 gap-4 bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4">
                   <div>
                     <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">
-                      Tipo de documento
+                      {t('detail.documentType')}
                     </div>
                     <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
                       {DOCUMENT_TYPES[entry.document_type]}
@@ -210,7 +208,7 @@ export function BlacklistModal({ isOpen, onClose, entry, auditTrail }: Blacklist
                   </div>
                   <div>
                     <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">
-                      Número de documento
+                      {t('detail.documentNumber')}
                     </div>
                     <div className="text-sm font-medium text-gray-900 dark:text-gray-100 font-mono">
                       {entry.document_number}
@@ -223,25 +221,31 @@ export function BlacklistModal({ isOpen, onClose, entry, auditTrail }: Blacklist
               <div>
                 <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2">
                   <IoCalendarOutline size={18} />
-                  Fechas de hospedaje
+                  {t('detail.stayDates')}
                 </h3>
                 <div className="grid grid-cols-3 gap-4 bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4">
                   <div>
-                    <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">Entrada</div>
+                    <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">
+                      {t('detail.entry')}
+                    </div>
                     <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
                       {formatDate(entry.check_in_date)}
                     </div>
                   </div>
                   <div>
-                    <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">Salida</div>
+                    <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">
+                      {t('detail.exit')}
+                    </div>
                     <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
                       {formatDate(entry.check_out_date)}
                     </div>
                   </div>
                   <div>
-                    <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">Estancia</div>
+                    <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">
+                      {t('detail.stay')}
+                    </div>
                     <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                      {stayDays} {stayDays === 1 ? 'día' : 'días'}
+                      {stayDays} {stayDays === 1 ? t('detail.day') : t('detail.days')}
                     </div>
                   </div>
                 </div>
@@ -251,7 +255,7 @@ export function BlacklistModal({ isOpen, onClose, entry, auditTrail }: Blacklist
               <div>
                 <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2">
                   <IoWarningOutline size={18} />
-                  Motivo del incidente
+                  {t('detail.incidentReason')}
                 </h3>
                 <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4">
                   <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
@@ -263,7 +267,7 @@ export function BlacklistModal({ isOpen, onClose, entry, auditTrail }: Blacklist
               {/* Comentarios adicionales */}
               <div>
                 <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">
-                  Comentarios adicionales
+                  {t('detail.additionalComments')}
                 </h3>
                 <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4">
                   <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
@@ -276,20 +280,20 @@ export function BlacklistModal({ isOpen, onClose, entry, auditTrail }: Blacklist
               <div>
                 <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2">
                   <IoPersonOutline size={18} />
-                  Información de registro
+                  {t('detail.recordInfo')}
                 </h3>
                 <div className="grid grid-cols-2 gap-4 bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4">
                   <div>
                     <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">
-                      Registrado por
+                      {t('detail.registeredBy')}
                     </div>
                     <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                      {entry.created_by_username || 'Desconocido'}
+                      {entry.created_by_username || t('detail.unknown')}
                     </div>
                   </div>
                   <div>
                     <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">
-                      Fecha de registro
+                      {t('detail.registrationDate')}
                     </div>
                     <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
                       {formatDateTime(entry.created_at)}
@@ -298,7 +302,7 @@ export function BlacklistModal({ isOpen, onClose, entry, auditTrail }: Blacklist
                   {entry.updated_at && (
                     <div>
                       <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">
-                        Última modificación
+                        {t('detail.lastModification')}
                       </div>
                       <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
                         {formatDateTime(entry.updated_at)}
@@ -308,7 +312,7 @@ export function BlacklistModal({ isOpen, onClose, entry, auditTrail }: Blacklist
                   {entry.deleted_at && (
                     <div>
                       <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">
-                        Fecha de eliminación
+                        {t('detail.deletionDate')}
                       </div>
                       <div className="text-sm font-medium text-red-600 dark:text-red-400">
                         {formatDateTime(entry.deleted_at)}
@@ -338,7 +342,7 @@ export function BlacklistModal({ isOpen, onClose, entry, auditTrail }: Blacklist
         {/* Footer con acciones */}
         <div className="flex items-center justify-between gap-3 pt-4 border-t border-gray-200 dark:border-gray-800">
           <Button variant="ghost" onClick={onClose}>
-            Cerrar
+            {t('modal.close')}
           </Button>
 
           <div className="flex items-center gap-2">
@@ -350,7 +354,7 @@ export function BlacklistModal({ isOpen, onClose, entry, auditTrail }: Blacklist
                 isLoading={isRestoring}
                 leftIcon={<IoRefreshOutline size={18} />}
               >
-                Restaurar
+                {t('modal.restore')}
               </Button>
             ) : (
               // Si está activo: mostrar editar y eliminar
@@ -360,7 +364,7 @@ export function BlacklistModal({ isOpen, onClose, entry, auditTrail }: Blacklist
                   onClick={handleEdit}
                   leftIcon={<IoCreateOutline size={18} />}
                 >
-                  Editar
+                  {t('modal.edit')}
                 </Button>
                 <Button
                   variant="danger"
@@ -368,7 +372,7 @@ export function BlacklistModal({ isOpen, onClose, entry, auditTrail }: Blacklist
                   isLoading={isDeleting}
                   leftIcon={<IoTrashOutline size={18} />}
                 >
-                  Eliminar
+                  {t('delete.button')}
                 </Button>
               </>
             )}

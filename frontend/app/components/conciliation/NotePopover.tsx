@@ -1,6 +1,8 @@
 // app/components/conciliation/NotePopover.tsx
+'use client'
 
 import { FiX } from 'react-icons/fi'
+import { useTranslations } from 'next-intl'
 
 interface NotePopoverProps {
   notes: string[]
@@ -17,13 +19,15 @@ export default function NotePopover({
   onAddNote,
   onRemoveNote,
 }: NotePopoverProps) {
+  const t = useTranslations('conciliation')
+
   return (
     <>
       <div className="fixed inset-0 bg-black/20 z-40" onClick={onClose} />
       <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg shadow-xl p-4 w-96">
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-            Notas ({notes.length}/10)
+            {t('notePopover.title')} ({notes.length}/10)
           </h3>
           <button
             onClick={onClose}
@@ -37,7 +41,7 @@ export default function NotePopover({
           <div className="mb-3">
             <input
               type="text"
-              placeholder="Anadir nota (max. 200 caracteres)"
+              placeholder={t('notePopover.placeholder')}
               maxLength={200}
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {
@@ -48,7 +52,7 @@ export default function NotePopover({
               className="w-full px-3 py-2 text-sm border border-[#d0d7de] dark:border-[#30363d] rounded bg-white dark:bg-[#0d1117] text-[#24292f] dark:text-[#f0f6fc] placeholder:text-[#57606a] dark:placeholder:text-[#8b949e] focus:bg-white dark:focus:bg-[#0d1117] focus:border-[#0969da] dark:focus:border-[#58a6ff] focus:ring-2 focus:ring-[#0969da]/20 dark:focus:ring-[#58a6ff]/20"
             />
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-              Presiona Enter para anadir
+              {t('notePopover.pressEnter')}
             </p>
           </div>
         )}
@@ -56,7 +60,7 @@ export default function NotePopover({
         <div className="space-y-1 max-h-80 overflow-y-auto">
           {notes.length === 0 ? (
             <p className="text-xs text-gray-500 dark:text-gray-400 text-center py-4">
-              No hay notas
+              {t('notePopover.noNotes')}
             </p>
           ) : (
             notes.map((note, index) => (

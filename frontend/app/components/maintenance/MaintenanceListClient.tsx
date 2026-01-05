@@ -2,11 +2,12 @@
 
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import { useTranslations, useLocale } from 'next-intl'
 import type { MaintenanceReport, ReportFilters } from '@/app/lib/maintenance/maintenance'
 import type { MaintenanceListResponse } from '@/app/lib/maintenance/maintenanceApi'
-import { useMaintenanceList } from './hooks/useMaintenanceList'
+import { useMaintenanceList, type MaintenanceMessages } from './hooks/useMaintenanceList'
 import { CreateReportPanel } from './panels/CreateReportPanel'
 import { FiPlus, FiSearch, FiAlertCircle, FiTool, FiCheckCircle, FiClock } from 'react-icons/fi'
 
@@ -22,6 +23,23 @@ export function MaintenanceListClient({
   const router = useRouter()
   const searchParams = useSearchParams()
   const panel = searchParams.get('panel')
+  const t = useTranslations('maintenance')
+  const tCommon = useTranslations('common')
+  const locale = useLocale()
+
+  // Memoize messages for the hook
+  const messages: MaintenanceMessages = useMemo(
+    () => ({
+      operationError: tCommon('errors.operationError'),
+      reportCreated: t('panels.create.toast.reportCreated'),
+      reportUpdated: t('panels.edit.toast.reportUpdated'),
+      statusUpdated: t('detail.toast.statusUpdated'),
+      priorityUpdated: t('detail.toast.priorityUpdated'),
+      reportDeleted: t('detail.toast.reportDeleted'),
+      reportRestored: t('panels.edit.toast.reportUpdated'), // Using same as updated for restore
+    }),
+    [t, tCommon]
+  )
 
   const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '')
   const [currentPage, setCurrentPage] = useState(1)
@@ -41,6 +59,7 @@ export function MaintenanceListClient({
     initialData: initialPagination
       ? { reports: initialReports, pagination: initialPagination }
       : undefined,
+    messages,
   })
 
   const loading = isLoading || isFetching
@@ -105,37 +124,37 @@ export function MaintenanceListClient({
       reported: {
         color:
           'bg-yellow-50 text-yellow-700 border border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-400 dark:border-yellow-800',
-        label: 'Reportado',
+        label: t('status.reported'),
       },
       assigned: {
         color:
           'bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-800',
-        label: 'Asignado',
+        label: t('status.assigned'),
       },
       in_progress: {
         color:
           'bg-purple-50 text-purple-700 border border-purple-200 dark:bg-purple-900/20 dark:text-purple-400 dark:border-purple-800',
-        label: 'En Progreso',
+        label: t('status.inProgress'),
       },
       waiting: {
         color:
           'bg-orange-50 text-orange-700 border border-orange-200 dark:bg-orange-900/20 dark:text-orange-400 dark:border-orange-800',
-        label: 'En Espera',
+        label: t('status.waiting'),
       },
       completed: {
         color:
           'bg-green-50 text-green-700 border border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800',
-        label: 'Completado',
+        label: t('status.completed'),
       },
       closed: {
         color:
           'bg-gray-50 text-gray-700 border border-gray-200 dark:bg-gray-900/20 dark:text-gray-400 dark:border-gray-800',
-        label: 'Cerrado',
+        label: t('status.closed'),
       },
       canceled: {
         color:
           'bg-red-50 text-red-700 border border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800',
-        label: 'Cancelado',
+        label: t('status.canceled'),
       },
     }
     return configs[status]
@@ -145,19 +164,19 @@ export function MaintenanceListClient({
     const configs = {
       low: {
         color: 'text-gray-600 dark:text-gray-400',
-        label: 'Baja',
+        label: t('priority.low'),
       },
       medium: {
         color: 'text-blue-600 dark:text-blue-400',
-        label: 'Media',
+        label: t('priority.medium'),
       },
       high: {
         color: 'text-orange-600 dark:text-orange-400',
-        label: 'Alta',
+        label: t('priority.high'),
       },
       urgent: {
         color: 'text-red-600 dark:text-red-400',
-        label: 'Urgente',
+        label: t('priority.urgent'),
       },
     }
     return configs[priority]
@@ -165,17 +184,17 @@ export function MaintenanceListClient({
 
   const getLocationTypeLabel = (type: MaintenanceReport['location_type']) => {
     const labels = {
-      room: 'Habitación',
-      common_area: 'Área Común',
-      exterior: 'Exterior',
-      facilities: 'Instalaciones',
-      other: 'Otro',
+      room: t('locationType.room'),
+      common_area: t('locationType.commonArea'),
+      exterior: t('locationType.exterior'),
+      facilities: t('locationType.facilities'),
+      other: t('locationType.other'),
     }
     return labels[type]
   }
 
   const formatDate = (date: string) => {
-    return new Date(date).toLocaleDateString('es-ES', {
+    return new Date(date).toLocaleDateString(locale, {
       day: '2-digit',
       month: 'short',
       year: 'numeric',
@@ -195,7 +214,7 @@ export function MaintenanceListClient({
       <div className="min-h-screen bg-gray-50 dark:bg-[#0d1117] flex items-center justify-center">
         <div className="text-center">
           <div className="inline-block h-10 w-10 animate-spin rounded-full border-[3px] border-solid border-blue-600 dark:border-blue-500 border-r-transparent"></div>
-          <p className="mt-3 text-xs text-gray-600 dark:text-gray-400">Cargando reportes...</p>
+          <p className="mt-3 text-xs text-gray-600 dark:text-gray-400">{t('loading')}</p>
         </div>
       </div>
     )
@@ -210,10 +229,10 @@ export function MaintenanceListClient({
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div>
                 <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">
-                  Mantenimiento
+                  {t('title')}
                 </h1>
                 <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-0.5">
-                  Gestión de reportes de mantenimiento
+                  {t('subtitle')}
                 </p>
               </div>
               <button
@@ -221,7 +240,7 @@ export function MaintenanceListClient({
                 className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-green-600 dark:bg-green-700 text-white text-xs font-medium rounded-md hover:bg-green-700 dark:hover:bg-green-800 transition-colors"
               >
                 <FiPlus className="w-3.5 h-3.5" />
-                Nuevo Reporte
+                {t('newReport')}
               </button>
             </div>
           </div>
@@ -236,7 +255,7 @@ export function MaintenanceListClient({
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 font-medium">
-                        Total Reportes
+                        {t('stats.totalReports')}
                       </p>
                       <p className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 mt-0.5">
                         {totalReports}
@@ -250,7 +269,7 @@ export function MaintenanceListClient({
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 font-medium">
-                        Urgentes
+                        {t('stats.urgent')}
                       </p>
                       <p className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 mt-0.5">
                         {urgentReports}
@@ -264,7 +283,7 @@ export function MaintenanceListClient({
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 font-medium">
-                        En Progreso
+                        {t('stats.inProgress')}
                       </p>
                       <p className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 mt-0.5">
                         {inProgressReports}
@@ -278,7 +297,7 @@ export function MaintenanceListClient({
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 font-medium">
-                        Hab. Fuera de Servicio
+                        {t('stats.roomsOutOfService')}
                       </p>
                       <p className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 mt-0.5">
                         {roomsOutOfService}
@@ -296,7 +315,7 @@ export function MaintenanceListClient({
                     <FiSearch className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 dark:text-gray-500" />
                     <input
                       type="text"
-                      placeholder="Buscar por título, descripción, ubicación, habitación..."
+                      placeholder={t('filters.searchPlaceholder')}
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                       onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
@@ -308,7 +327,7 @@ export function MaintenanceListClient({
                     disabled={loading}
                     className="px-4 py-1.5 bg-blue-600 dark:bg-blue-700 text-white text-xs font-medium rounded-md hover:bg-blue-700 dark:hover:bg-blue-800 transition-colors disabled:opacity-50"
                   >
-                    {loading ? 'Buscando...' : 'Buscar'}
+                    {loading ? t('filters.searching') : t('filters.search')}
                   </button>
                 </div>
 
@@ -323,14 +342,14 @@ export function MaintenanceListClient({
                     }
                     className="w-full px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent bg-white dark:bg-[#151b23] dark:text-gray-200"
                   >
-                    <option value="">Todos los estados</option>
-                    <option value="reported">Reportado</option>
-                    <option value="assigned">Asignado</option>
-                    <option value="in_progress">En Progreso</option>
-                    <option value="waiting">En Espera</option>
-                    <option value="completed">Completado</option>
-                    <option value="closed">Cerrado</option>
-                    <option value="canceled">Cancelado</option>
+                    <option value="">{t('filters.allStatuses')}</option>
+                    <option value="reported">{t('status.reported')}</option>
+                    <option value="assigned">{t('status.assigned')}</option>
+                    <option value="in_progress">{t('status.inProgress')}</option>
+                    <option value="waiting">{t('status.waiting')}</option>
+                    <option value="completed">{t('status.completed')}</option>
+                    <option value="closed">{t('status.closed')}</option>
+                    <option value="canceled">{t('status.canceled')}</option>
                   </select>
 
                   <select
@@ -343,11 +362,11 @@ export function MaintenanceListClient({
                     }
                     className="w-full px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent bg-white dark:bg-[#151b23] dark:text-gray-200"
                   >
-                    <option value="">Todas las prioridades</option>
-                    <option value="low">Baja</option>
-                    <option value="medium">Media</option>
-                    <option value="high">Alta</option>
-                    <option value="urgent">Urgente</option>
+                    <option value="">{t('filters.allPriorities')}</option>
+                    <option value="low">{t('priority.low')}</option>
+                    <option value="medium">{t('priority.medium')}</option>
+                    <option value="high">{t('priority.high')}</option>
+                    <option value="urgent">{t('priority.urgent')}</option>
                   </select>
 
                   <select
@@ -361,12 +380,12 @@ export function MaintenanceListClient({
                     }
                     className="w-full px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent bg-white dark:bg-[#151b23] dark:text-gray-200"
                   >
-                    <option value="">Todas las ubicaciones</option>
-                    <option value="room">Habitación</option>
-                    <option value="common_area">Área Común</option>
-                    <option value="exterior">Exterior</option>
-                    <option value="facilities">Instalaciones</option>
-                    <option value="other">Otro</option>
+                    <option value="">{t('filters.allLocations')}</option>
+                    <option value="room">{t('locationType.room')}</option>
+                    <option value="common_area">{t('locationType.commonArea')}</option>
+                    <option value="exterior">{t('locationType.exterior')}</option>
+                    <option value="facilities">{t('locationType.facilities')}</option>
+                    <option value="other">{t('locationType.other')}</option>
                   </select>
 
                   <button
@@ -378,7 +397,7 @@ export function MaintenanceListClient({
                     }}
                     className="px-3 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                   >
-                    Limpiar Filtros
+                    {t('filters.clearFilters')}
                   </button>
                 </div>
               </div>
@@ -390,22 +409,22 @@ export function MaintenanceListClient({
                     <thead className="bg-gray-50 dark:bg-[#0d1117] border-b border-gray-200 dark:border-gray-800">
                       <tr>
                         <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                          Fecha
+                          {t('table.date')}
                         </th>
                         <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                          Título
+                          {t('table.title')}
                         </th>
                         <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                          Ubicación
+                          {t('table.location')}
                         </th>
                         <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                          Prioridad
+                          {t('table.priority')}
                         </th>
                         <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                          Estado
+                          {t('table.status')}
                         </th>
                         <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                          Asignado
+                          {t('table.assigned')}
                         </th>
                       </tr>
                     </thead>
@@ -418,8 +437,8 @@ export function MaintenanceListClient({
                           >
                             {searchTerm ||
                             Object.keys(filters).some((k) => filters[k as keyof ReportFilters])
-                              ? 'No se encontraron reportes con esos criterios'
-                              : 'No hay reportes registrados'}
+                              ? t('table.noReportsFound')
+                              : t('table.noReports')}
                           </td>
                         </tr>
                       ) : (
@@ -441,7 +460,7 @@ export function MaintenanceListClient({
                                 </div>
                                 {report.room_out_of_service && (
                                   <span className="inline-flex items-center mt-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400">
-                                    Habitación fuera de servicio
+                                    {t('table.roomOutOfService')}
                                   </span>
                                 )}
                               </td>
@@ -470,7 +489,7 @@ export function MaintenanceListClient({
                                 {report.assigned_type === 'external'
                                   ? report.external_company_name
                                   : report.assigned_to
-                                    ? 'Usuario asignado'
+                                    ? t('table.assignedUser')
                                     : '-'}
                               </td>
                             </tr>
@@ -485,9 +504,11 @@ export function MaintenanceListClient({
                 {pagination && pagination.total_pages > 1 && (
                   <div className="px-4 py-3 border-t border-gray-200 dark:border-gray-800 flex items-center justify-between">
                     <div className="text-xs text-gray-500 dark:text-gray-400">
-                      Mostrando {(pagination.page - 1) * pagination.limit + 1} a{' '}
-                      {Math.min(pagination.page * pagination.limit, pagination.total)} de{' '}
-                      {pagination.total} resultados
+                      {t('pagination.showing', {
+                        from: (pagination.page - 1) * pagination.limit + 1,
+                        to: Math.min(pagination.page * pagination.limit, pagination.total),
+                        total: pagination.total,
+                      })}
                     </div>
                     <div className="flex gap-2">
                       <button
@@ -495,14 +516,14 @@ export function MaintenanceListClient({
                         disabled={!pagination.has_prev || loading}
                         className="px-3 py-1 text-xs font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        Anterior
+                        {t('pagination.previous')}
                       </button>
                       <button
                         onClick={() => handlePageChange(pagination.page + 1)}
                         disabled={!pagination.has_next || loading}
                         className="px-3 py-1 text-xs font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        Siguiente
+                        {t('pagination.next')}
                       </button>
                     </div>
                   </div>
@@ -516,8 +537,8 @@ export function MaintenanceListClient({
                     <p className="text-xs text-gray-500 dark:text-gray-400">
                       {searchTerm ||
                       Object.keys(filters).some((k) => filters[k as keyof ReportFilters])
-                        ? 'No se encontraron reportes con esos criterios'
-                        : 'No hay reportes registrados'}
+                        ? t('table.noReportsFound')
+                        : t('table.noReports')}
                     </p>
                   </div>
                 ) : (
@@ -564,7 +585,7 @@ export function MaintenanceListClient({
                           {report.room_out_of_service && (
                             <div className="pt-1">
                               <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400">
-                                Habitación fuera de servicio
+                                {t('table.roomOutOfService')}
                               </span>
                             </div>
                           )}
@@ -582,7 +603,7 @@ export function MaintenanceListClient({
                       disabled={!pagination.has_prev || loading}
                       className="px-4 py-2 text-xs font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md disabled:opacity-50"
                     >
-                      Anterior
+                      {t('pagination.previous')}
                     </button>
                     <span className="px-4 py-2 text-xs text-gray-500">
                       {pagination.page} / {pagination.total_pages}
@@ -592,7 +613,7 @@ export function MaintenanceListClient({
                       disabled={!pagination.has_next || loading}
                       className="px-4 py-2 text-xs font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md disabled:opacity-50"
                     >
-                      Siguiente
+                      {t('pagination.next')}
                     </button>
                   </div>
                 )}
@@ -604,14 +625,14 @@ export function MaintenanceListClient({
             <div className="hidden min-[1400px]:block space-y-4">
               <div className="sticky top-4 space-y-3">
                 <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">
-                  Resumen
+                  {t('stats.summary')}
                 </h3>
 
                 <div className="bg-white dark:bg-[#0D1117] border border-[#d0d7de] dark:border-[#30363d] rounded-xl shadow-sm p-4">
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">
-                        Total Reportes
+                        {t('stats.totalReports')}
                       </p>
                       <p className="text-xl font-bold text-gray-900 dark:text-gray-100 mt-0.5">
                         {totalReports}
@@ -627,7 +648,7 @@ export function MaintenanceListClient({
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">
-                        Urgentes
+                        {t('stats.urgent')}
                       </p>
                       <p className="text-xl font-bold text-gray-900 dark:text-gray-100 mt-0.5">
                         {urgentReports}
@@ -643,7 +664,7 @@ export function MaintenanceListClient({
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">
-                        En Progreso
+                        {t('stats.inProgress')}
                       </p>
                       <p className="text-xl font-bold text-gray-900 dark:text-gray-100 mt-0.5">
                         {inProgressReports}
@@ -659,7 +680,7 @@ export function MaintenanceListClient({
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">
-                        Hab. Fuera de Servicio
+                        {t('stats.roomsOutOfService')}
                       </p>
                       <p className="text-xl font-bold text-gray-900 dark:text-gray-100 mt-0.5">
                         {roomsOutOfService}

@@ -1,6 +1,8 @@
 // app/components/conciliation/ConciliationTable.tsx
+'use client'
 
 import { FiFileText } from 'react-icons/fi'
+import { useTranslations } from 'next-intl'
 import type { EntryForm } from '@/app/lib/conciliation'
 
 interface ReasonConfig {
@@ -67,6 +69,7 @@ export default function ConciliationTable<T extends string>({
   colorScheme,
 }: ConciliationTableProps<T>) {
   const colors = colorSchemes[colorScheme]
+  const t = useTranslations('conciliation')
 
   return (
     <div className={`border ${colors.border} rounded-lg overflow-hidden`}>
@@ -81,19 +84,19 @@ export default function ConciliationTable<T extends string>({
           <thead className={colors.thead}>
             <tr>
               <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 dark:text-gray-300">
-                Concepto
+                {t('table.concept')}
               </th>
               <th className="px-3 py-2 text-center text-xs font-medium text-gray-700 dark:text-gray-300 w-20">
-                Valor
+                {t('table.value')}
               </th>
               <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 dark:text-gray-300 w-24">
-                No Hab
+                {t('table.roomNumber')}
               </th>
               <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 dark:text-gray-300 w-24">
-                Notas
+                {t('table.notes')}
               </th>
               <th className="px-3 py-2 text-center text-xs font-medium text-gray-700 dark:text-gray-300 w-20">
-                Resultado
+                {t('table.result')}
               </th>
             </tr>
           </thead>
@@ -131,10 +134,12 @@ export default function ConciliationTable<T extends string>({
                       {rooms.length > 0 ? (
                         <span className="flex items-center gap-1">
                           <span className="font-medium">{rooms.length}</span>
-                          <span className="text-[#57606a] dark:text-[#8b949e]">hab.</span>
+                          <span className="text-[#57606a] dark:text-[#8b949e]">
+                            {t('table.rooms')}
+                          </span>
                         </span>
                       ) : (
-                        <span className="text-[#57606a] dark:text-[#8b949e]">Anadir</span>
+                        <span className="text-[#57606a] dark:text-[#8b949e]">{t('table.add')}</span>
                       )}
                     </button>
                   </td>
@@ -150,7 +155,7 @@ export default function ConciliationTable<T extends string>({
                           <span className="font-medium">{entryNotes.length}</span>
                         </span>
                       ) : (
-                        <span className="text-[#57606a] dark:text-[#8b949e]">Anadir</span>
+                        <span className="text-[#57606a] dark:text-[#8b949e]">{t('table.add')}</span>
                       )}
                     </button>
                   </td>
@@ -174,7 +179,7 @@ export default function ConciliationTable<T extends string>({
                 colSpan={4}
                 className="px-3 py-3 text-sm font-semibold text-gray-900 dark:text-gray-100"
               >
-                Total {title}
+                {t('table.total')} {title}
               </td>
               <td className={`px-3 py-3 text-sm font-bold text-center ${colors.totalText}`}>
                 {total}

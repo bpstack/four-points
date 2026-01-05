@@ -20,6 +20,8 @@ build/
 # --------------------------------------------
 .env
 .env.local
+.env.development
+.env.production
 .env.*.local
 
 # --------------------------------------------
@@ -86,3 +88,6 @@ public/*.descarga
 # Demo records (local only)
 registrosDemo.md
 registrosDemo.csv
+
+# Test folders (not for public repo)
+app/fonts-test/

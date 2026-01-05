@@ -8,6 +8,7 @@ import { GroupPaymentRepository } from '../../repositories/group/group-payment-r
 import { PaymentCalculatorService } from '../../services/group/payment-calculator-service'
 import { GroupHistoryService } from '../../services/group/group-history-service'
 import { CreateGroupDTO, UpdateGroupDTO, GroupFilters } from '../../models/group/index'
+import { ERROR_CODES, SUCCESS_CODES } from '../../config/error-codes.js'
 
 export class GroupController {
   /**
@@ -40,8 +41,8 @@ export class GroupController {
       console.error('Error en getAllGroups:', error)
       return res.status(500).json({
         success: false,
-        error: 'Error al obtener grupos',
-        message: error.message,
+        error: ERROR_CODES.GROUP_FETCH_ERROR,
+        code: ERROR_CODES.GROUP_FETCH_ERROR,
       })
     }
   }
@@ -57,7 +58,8 @@ export class GroupController {
       if (isNaN(groupId)) {
         return res.status(400).json({
           success: false,
-          error: 'ID de grupo inválido',
+          error: ERROR_CODES.GROUP_INVALID_ID,
+          code: ERROR_CODES.GROUP_INVALID_ID,
         })
       }
 
@@ -66,7 +68,8 @@ export class GroupController {
       if (!group) {
         return res.status(404).json({
           success: false,
-          error: 'Grupo no encontrado',
+          error: ERROR_CODES.GROUP_NOT_FOUND,
+          code: ERROR_CODES.GROUP_NOT_FOUND,
         })
       }
 
@@ -91,8 +94,8 @@ export class GroupController {
       console.error('Error en getGroupById:', error)
       return res.status(500).json({
         success: false,
-        error: 'Error al obtener grupo',
-        message: error.message,
+        error: ERROR_CODES.GROUP_FETCH_ONE_ERROR,
+        code: ERROR_CODES.GROUP_FETCH_ONE_ERROR,
       })
     }
   }
@@ -108,7 +111,8 @@ export class GroupController {
       if (!userId) {
         return res.status(401).json({
           success: false,
-          error: 'Usuario no autenticado',
+          error: ERROR_CODES.UNAUTHORIZED,
+          code: ERROR_CODES.UNAUTHORIZED,
         })
       }
 
@@ -120,7 +124,8 @@ export class GroupController {
       if (!groupData.name || !groupData.arrival_date || !groupData.departure_date) {
         return res.status(400).json({
           success: false,
-          error: 'Faltan campos obligatorios: name, arrival_date, departure_date',
+          error: ERROR_CODES.GROUP_MISSING_REQUIRED_FIELDS,
+          code: ERROR_CODES.GROUP_MISSING_REQUIRED_FIELDS,
         })
       }
 
@@ -130,15 +135,16 @@ export class GroupController {
 
       return res.status(201).json({
         success: true,
-        message: 'Grupo creado correctamente',
+        message: SUCCESS_CODES.GROUP_CREATED,
+        code: SUCCESS_CODES.GROUP_CREATED,
         data: newGroup,
       })
     } catch (error: any) {
       console.error('Error en createGroup:', error)
       return res.status(500).json({
         success: false,
-        error: 'Error al crear grupo',
-        message: error.message,
+        error: ERROR_CODES.GROUP_CREATE_ERROR,
+        code: ERROR_CODES.GROUP_CREATE_ERROR,
       })
     }
   }
@@ -155,14 +161,16 @@ export class GroupController {
       if (isNaN(groupId)) {
         return res.status(400).json({
           success: false,
-          error: 'ID de grupo inválido',
+          error: ERROR_CODES.GROUP_INVALID_ID,
+          code: ERROR_CODES.GROUP_INVALID_ID,
         })
       }
 
       if (!userId) {
         return res.status(401).json({
           success: false,
-          error: 'Usuario no autenticado',
+          error: ERROR_CODES.UNAUTHORIZED,
+          code: ERROR_CODES.UNAUTHORIZED,
         })
       }
 
@@ -171,7 +179,8 @@ export class GroupController {
       if (!oldGroup) {
         return res.status(404).json({
           success: false,
-          error: 'Grupo no encontrado',
+          error: ERROR_CODES.GROUP_NOT_FOUND,
+          code: ERROR_CODES.GROUP_NOT_FOUND,
         })
       }
 
@@ -198,15 +207,16 @@ export class GroupController {
 
       return res.status(200).json({
         success: true,
-        message: 'Grupo actualizado correctamente',
+        message: SUCCESS_CODES.GROUP_UPDATED,
+        code: SUCCESS_CODES.GROUP_UPDATED,
         data: updatedGroup,
       })
     } catch (error: any) {
       console.error('Error en updateGroup:', error)
       return res.status(500).json({
         success: false,
-        error: 'Error al actualizar grupo',
-        message: error.message,
+        error: ERROR_CODES.GROUP_UPDATE_ERROR,
+        code: ERROR_CODES.GROUP_UPDATE_ERROR,
       })
     }
   }
@@ -223,14 +233,16 @@ export class GroupController {
       if (isNaN(groupId)) {
         return res.status(400).json({
           success: false,
-          error: 'ID de grupo inválido',
+          error: ERROR_CODES.GROUP_INVALID_ID,
+          code: ERROR_CODES.GROUP_INVALID_ID,
         })
       }
 
       if (!userId) {
         return res.status(401).json({
           success: false,
-          error: 'Usuario no autenticado',
+          error: ERROR_CODES.UNAUTHORIZED,
+          code: ERROR_CODES.UNAUTHORIZED,
         })
       }
 
@@ -239,7 +251,8 @@ export class GroupController {
       if (!group) {
         return res.status(404).json({
           success: false,
-          error: 'Grupo no encontrado',
+          error: ERROR_CODES.GROUP_NOT_FOUND,
+          code: ERROR_CODES.GROUP_NOT_FOUND,
         })
       }
 
@@ -248,20 +261,22 @@ export class GroupController {
       if (!deleted) {
         return res.status(500).json({
           success: false,
-          error: 'Error al eliminar grupo',
+          error: ERROR_CODES.GROUP_DELETE_ERROR,
+          code: ERROR_CODES.GROUP_DELETE_ERROR,
         })
       }
 
       return res.status(200).json({
         success: true,
-        message: 'Grupo eliminado correctamente',
+        message: SUCCESS_CODES.GROUP_DELETED,
+        code: SUCCESS_CODES.GROUP_DELETED,
       })
     } catch (error: any) {
       console.error('Error en deleteGroup:', error)
       return res.status(500).json({
         success: false,
-        error: 'Error al eliminar grupo',
-        message: error.message,
+        error: ERROR_CODES.GROUP_DELETE_ERROR,
+        code: ERROR_CODES.GROUP_DELETE_ERROR,
       })
     }
   }
@@ -286,8 +301,8 @@ export class GroupController {
       console.error('Error en getDashboardOverview:', error)
       return res.status(500).json({
         success: false,
-        error: 'Error al obtener resumen del dashboard',
-        message: error.message,
+        error: ERROR_CODES.GROUP_FETCH_DASHBOARD_ERROR,
+        code: ERROR_CODES.GROUP_FETCH_DASHBOARD_ERROR,
       })
     }
   }
@@ -311,8 +326,8 @@ export class GroupController {
       console.error('Error en getDashboardTimeline:', error)
       return res.status(500).json({
         success: false,
-        error: 'Error al obtener timeline',
-        message: error.message,
+        error: ERROR_CODES.GROUP_FETCH_TIMELINE_ERROR,
+        code: ERROR_CODES.GROUP_FETCH_TIMELINE_ERROR,
       })
     }
   }
