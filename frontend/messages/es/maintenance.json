@@ -110,9 +110,9 @@
       "toast": {
         "maxImages": "Máximo 5 imágenes permitidas",
         "fileTooLarge": "{fileName} excede 5MB",
-        "uploadingImages": "Subiendo imagenes...",
-        "imagesUploaded": "Imagenes subidas correctamente",
-        "imagesUploadError": "Reporte creado pero hubo error al subir imagenes",
+        "uploadingImages": "Subiendo imágenes...",
+        "imagesUploaded": "Imágenes subidas correctamente",
+        "imagesUploadError": "Reporte creado pero hubo error al subir imágenes",
         "reportCreated": "Reporte creado correctamente",
         "createError": "Error al crear el reporte"
       }

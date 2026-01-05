@@ -12,7 +12,7 @@
     "groups": "Grupos",
     "cashier": "Caja",
     "maintenance": "Mantenimiento",
-    "blacklist": "blacklist",
+    "blacklist": "Lista Negra",
     "backoffice": "Backoffice",
     "scheduling": "Horarios",
     "messages": "Mensajes",
@@ -54,7 +54,7 @@
     "saving": "Guardando...",
     "processing": "Procesando...",
     "deleting": "Eliminando...",
-    "yes": "Si",
+    "yes": "Sí",
     "no": "No"
   },
   "status": {
