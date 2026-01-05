@@ -3,6 +3,7 @@
 
 'use client'
 
+import { useTranslations } from 'next-intl'
 import { useState } from 'react'
 import {
   FiAlertCircle,
@@ -20,14 +21,13 @@ interface GenerationWarningsProps {
   onDismiss?: () => void
 }
 
-const SEVERITY_CONFIG = {
+const SEVERITY_CONFIG_BASE = {
   error: {
     icon: FiAlertCircle,
     bgColor: 'bg-red-50 dark:bg-red-900/20',
     borderColor: 'border-red-200 dark:border-red-800',
     textColor: 'text-red-800 dark:text-red-200',
     iconColor: 'text-red-500 dark:text-red-400',
-    label: 'Error',
   },
   warning: {
     icon: FiAlertTriangle,
@@ -35,7 +35,6 @@ const SEVERITY_CONFIG = {
     borderColor: 'border-amber-200 dark:border-amber-800',
     textColor: 'text-amber-800 dark:text-amber-200',
     iconColor: 'text-amber-500 dark:text-amber-400',
-    label: 'Advertencia',
   },
   info: {
     icon: FiInfo,
@@ -43,17 +42,7 @@ const SEVERITY_CONFIG = {
     borderColor: 'border-blue-200 dark:border-blue-800',
     textColor: 'text-blue-800 dark:text-blue-200',
     iconColor: 'text-blue-500 dark:text-blue-400',
-    label: 'Info',
   },
-}
-
-const TYPE_LABELS: Record<string, string> = {
-  coverage: 'Cobertura',
-  night_block: 'Bloque Nocturno',
-  rest: 'Descanso',
-  hours: 'Horas',
-  constraint: 'Restricción',
-  validation: 'Validación',
 }
 
 export function GenerationWarnings({
@@ -61,7 +50,30 @@ export function GenerationWarnings({
   generationTimeMs,
   onDismiss,
 }: GenerationWarningsProps) {
+  const t = useTranslations('scheduling.warnings')
+  const tTypes = useTranslations('scheduling.warnings.types')
   const [isExpanded, setIsExpanded] = useState(true)
+
+  // Create severity config with translations
+  const SEVERITY_CONFIG = {
+    error: { ...SEVERITY_CONFIG_BASE.error, label: t('error') },
+    warning: { ...SEVERITY_CONFIG_BASE.warning, label: t('warning') },
+    info: { ...SEVERITY_CONFIG_BASE.info, label: t('info') },
+  }
+
+  // Type labels from translations
+  const TYPE_LABELS: Record<string, string> = {
+    coverage: tTypes('coverage'),
+    night_block: tTypes('nightBlock'),
+    rest: tTypes('rest'),
+    hours: tTypes('hours'),
+    constraint: tTypes('constraint'),
+    validation: tTypes('validation'),
+  }
+
+  // Helper for pluralization
+  const getPlural = (count: number, key: string) =>
+    t(key as 'errorsCount' | 'warningsCount' | 'infoCount', { count, plural: count > 1 ? 's' : '' })
 
   if (!warnings || warnings.length === 0) {
     return null
@@ -96,11 +108,11 @@ export function GenerationWarnings({
           <HeaderIcon className={`w-5 h-5 ${headerConfig.iconColor}`} />
           <div>
             <span className={`text-sm font-medium ${headerConfig.textColor}`}>
-              {errorCount > 0 && `${errorCount} error${errorCount > 1 ? 'es' : ''}`}
+              {errorCount > 0 && getPlural(errorCount, 'errorsCount')}
               {errorCount > 0 && warningCount > 0 && ', '}
-              {warningCount > 0 && `${warningCount} advertencia${warningCount > 1 ? 's' : ''}`}
+              {warningCount > 0 && getPlural(warningCount, 'warningsCount')}
               {(errorCount > 0 || warningCount > 0) && infoCount > 0 && ', '}
-              {infoCount > 0 && `${infoCount} info`}
+              {infoCount > 0 && getPlural(infoCount, 'infoCount')}
             </span>
             {generationTimeMs && (
               <span className="text-xs text-gray-500 dark:text-gray-400 ml-2">
@@ -152,7 +164,7 @@ export function GenerationWarnings({
                       </span>
                       {warning.day && (
                         <span className="text-xs text-gray-500 dark:text-gray-400">
-                          • Día {warning.day}
+                          • {t('day', { day: warning.day })}
                         </span>
                       )}
                       {warning.employeeName && (

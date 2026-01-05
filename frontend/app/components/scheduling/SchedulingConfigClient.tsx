@@ -2,6 +2,7 @@
 
 'use client'
 
+import { useTranslations } from 'next-intl'
 import { useState, useCallback, useEffect } from 'react'
 import { useSearchParams, useRouter, usePathname } from 'next/navigation'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
@@ -45,6 +46,9 @@ interface Employee {
 }
 
 export function SchedulingConfigClient() {
+  const t = useTranslations('scheduling')
+  const tConfig = useTranslations('scheduling.config')
+  const tMessages = useTranslations('scheduling.messages')
   const _queryClient = useQueryClient()
   const router = useRouter()
   const pathname = usePathname()
@@ -99,11 +103,11 @@ export function SchedulingConfigClient() {
   const rules = rulesData?.rules || []
 
   const tabs = [
-    { id: 'employees' as TabType, label: 'Empleados', icon: FiUserCheck },
-    { id: 'totals' as TabType, label: 'Totales', icon: FiBarChart2 },
-    { id: 'general' as TabType, label: 'Configuracion General', icon: FiSettings },
-    { id: 'rules' as TabType, label: 'Reglas', icon: FiUsers },
-    { id: 'requests' as TabType, label: 'Peticiones', icon: FiCalendarOff },
+    { id: 'employees' as TabType, label: tConfig('tabs.employees'), icon: FiUserCheck },
+    { id: 'totals' as TabType, label: tConfig('tabs.totals'), icon: FiBarChart2 },
+    { id: 'general' as TabType, label: tConfig('tabs.general'), icon: FiSettings },
+    { id: 'rules' as TabType, label: tConfig('tabs.rules'), icon: FiUsers },
+    { id: 'requests' as TabType, label: tConfig('tabs.requests'), icon: FiCalendarOff },
   ]
 
   const isLoading = loadingConfig || loadingShifts || loadingRules
@@ -121,10 +125,10 @@ export function SchedulingConfigClient() {
           </Link>
           <div>
             <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">
-              Configuracion de Horarios
+              {t('page.configTitle')}
             </h1>
             <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-0.5">
-              Parametros globales, turnos y reglas de empleados
+              {t('page.configSubtitle')}
             </p>
           </div>
         </div>
@@ -158,7 +162,7 @@ export function SchedulingConfigClient() {
             <div className="p-12 text-center">
               <div className="inline-block h-8 w-8 animate-spin rounded-full border-[3px] border-solid border-blue-600 dark:border-blue-500 border-r-transparent"></div>
               <p className="mt-3 text-xs text-gray-600 dark:text-gray-400">
-                Cargando configuracion...
+                {tMessages('loadingConfig')}
               </p>
             </div>
           ) : (
@@ -195,6 +199,12 @@ interface EmployeeWithStatus {
 }
 
 function EmployeesTab() {
+  const _t = useTranslations('scheduling')
+  const tConfig = useTranslations('scheduling.config')
+  const tActions = useTranslations('scheduling.actions')
+  const tToasts = useTranslations('scheduling.toasts')
+  const tMessages = useTranslations('scheduling.messages')
+
   const queryClient = useQueryClient()
 
   // Fetch all employees with their schedulable status
@@ -242,13 +252,12 @@ function EmployeesTab() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: schedulingKeys.employeesAll() })
       queryClient.invalidateQueries({ queryKey: schedulingKeys.employees() })
-      // Invalidar contratos y totales para que se actualicen con los nuevos empleados
       queryClient.invalidateQueries({ queryKey: schedulingKeys.all })
-      toast.success('Empleados actualizados')
+      toast.success(tToasts('employeesUpdated'))
       setHasChanges(false)
     },
     onError: () => {
-      toast.error('Error al guardar')
+      toast.error(tToasts('saveError'))
     },
   })
 
@@ -260,7 +269,9 @@ function EmployeesTab() {
     return (
       <div className="p-12 text-center">
         <div className="inline-block h-8 w-8 animate-spin rounded-full border-[3px] border-solid border-blue-600 dark:border-blue-500 border-r-transparent"></div>
-        <p className="mt-3 text-xs text-gray-600 dark:text-gray-400">Cargando empleados...</p>
+        <p className="mt-3 text-xs text-gray-600 dark:text-gray-400">
+          {tMessages('loadingEmployees')}
+        </p>
       </div>
     )
   }
@@ -270,28 +281,31 @@ function EmployeesTab() {
       <div className="flex items-center justify-between mb-4">
         <div>
           <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-            Empleados para Horarios
+            {tConfig('employees.title')}
           </h3>
           <p className="text-xs text-gray-500 dark:text-gray-400">
-            Selecciona los empleados que participaran en la generacion de horarios
+            {tConfig('employees.subtitle')}
           </p>
         </div>
         <div className="flex items-center gap-2">
           <span className="text-xs text-gray-500 dark:text-gray-400">
-            {currentSelected.size} de {employees.length} seleccionados
+            {tConfig('employees.selectedCount', {
+              selected: currentSelected.size,
+              total: employees.length,
+            })}
           </span>
           <button
             onClick={selectAll}
             className="text-xs text-blue-600 hover:text-blue-700 dark:text-blue-400"
           >
-            Todos
+            {tActions('all')}
           </button>
           <span className="text-gray-300 dark:text-gray-600">|</span>
           <button
             onClick={selectNone}
             className="text-xs text-blue-600 hover:text-blue-700 dark:text-blue-400"
           >
-            Ninguno
+            {tActions('none')}
           </button>
         </div>
       </div>
@@ -322,11 +336,11 @@ function EmployeesTab() {
               {!hasChanges &&
                 (employee.is_schedulable ? (
                   <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
-                    Activo
+                    {tConfig('employees.active')}
                   </span>
                 ) : (
                   <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-500">
-                    Excluido
+                    {tConfig('employees.excluded')}
                   </span>
                 ))}
             </div>
@@ -337,7 +351,7 @@ function EmployeesTab() {
       {employees.length === 0 && (
         <div className="text-center py-8">
           <FiUsers className="w-10 h-10 mx-auto text-gray-400 mb-3" />
-          <p className="text-sm text-gray-600 dark:text-gray-400">No hay empleados registrados</p>
+          <p className="text-sm text-gray-600 dark:text-gray-400">{tMessages('noEmployees')}</p>
         </div>
       )}
 
@@ -349,7 +363,7 @@ function EmployeesTab() {
             className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 disabled:opacity-50 transition-colors"
           >
             <FiSave className="w-4 h-4" />
-            {saveMutation.isPending ? 'Guardando...' : 'Guardar cambios'}
+            {saveMutation.isPending ? tActions('saving') : tActions('save')}
           </button>
         </div>
       )}
@@ -377,6 +391,10 @@ interface AIStatusPanelProps {
 }
 
 function AIStatusPanel({ selectedProvider }: AIStatusPanelProps) {
+  const t = useTranslations('scheduling.config.ai')
+  const tToasts = useTranslations('scheduling.toasts')
+  const tActions = useTranslations('scheduling.actions')
+
   const [testing, setTesting] = useState(false)
   const [testResult, setTestResult] = useState<{
     success: boolean
@@ -400,12 +418,12 @@ function AIStatusPanel({ selectedProvider }: AIStatusPanelProps) {
       const result = await schedulingApi.testAIConnection(selectedProvider)
       setTestResult(result)
       if (result.success) {
-        toast.success(`Conexion exitosa con ${result.provider}`)
+        toast.success(tToasts('connectionSuccess', { provider: result.provider }))
       } else {
-        toast.error(result.error || 'Error de conexion')
+        toast.error(result.error || tToasts('connectionError'))
       }
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Error al probar conexion'
+      const message = err instanceof Error ? err.message : tToasts('connectionTestError')
       setTestResult({ success: false, error: message })
       toast.error(message)
     } finally {
@@ -418,26 +436,25 @@ function AIStatusPanel({ selectedProvider }: AIStatusPanelProps) {
   const isConfigured = providerInfo?.configured ?? false
   const isProviderEnabled = (providerInfo as { enabled?: boolean })?.enabled ?? true
 
-  // For Ollama, we always show as "configured" but need Docker running
-  const statusText = isLoading
-    ? 'Verificando...'
-    : !isProviderEnabled
-      ? 'Deshabilitado en servidor'
-      : isOllama
-        ? 'Requiere Docker ejecutandose'
-        : isConfigured
-          ? 'API Key configurada'
-          : 'API Key no configurada'
+  const getStatusText = () => {
+    if (isLoading) return t('verifying')
+    if (!isProviderEnabled) return t('disabledOnServer')
+    if (isOllama) return t('requiresDocker')
+    if (isConfigured) return t('apiKeyConfigured')
+    return t('apiKeyNotConfigured')
+  }
 
-  const statusColor = isLoading
-    ? 'bg-gray-400'
-    : !isProviderEnabled
-      ? 'bg-red-500'
-      : isOllama
-        ? 'bg-blue-500'
-        : isConfigured
-          ? 'bg-green-500'
-          : 'bg-yellow-500'
+  const statusText = getStatusText()
+
+  const getStatusColor = () => {
+    if (isLoading) return 'bg-gray-400'
+    if (!isProviderEnabled) return 'bg-red-500'
+    if (isOllama) return 'bg-blue-500'
+    if (isConfigured) return 'bg-green-500'
+    return 'bg-yellow-500'
+  }
+
+  const statusColor = getStatusColor()
 
   return (
     <div className="bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg p-4 space-y-3 max-w-2xl">
@@ -449,7 +466,7 @@ function AIStatusPanel({ selectedProvider }: AIStatusPanelProps) {
         </div>
         {providerInfo && 'model' in providerInfo && (
           <span className="text-xs text-gray-500 dark:text-gray-400">
-            Modelo: {providerInfo.model}
+            {t('activeProvider', { provider: providerInfo.model })}
           </span>
         )}
       </div>
@@ -461,10 +478,10 @@ function AIStatusPanel({ selectedProvider }: AIStatusPanelProps) {
             <span
               className={`w-1.5 h-1.5 rounded-full ${aiStatus.enabled ? 'bg-green-500' : 'bg-red-500'}`}
             />
-            <span>AI_ENABLED: {aiStatus.enabled ? 'true' : 'false'}</span>
+            <span>{t('enabledStatus', { status: aiStatus.enabled ? 'true' : 'false' })}</span>
           </div>
           {aiStatus.activeProvider !== 'None' && (
-            <div>Proveedor activo: {aiStatus.activeProvider}</div>
+            <div>{t('activeProvider', { provider: aiStatus.activeProvider })}</div>
           )}
         </div>
       )}
@@ -475,34 +492,28 @@ function AIStatusPanel({ selectedProvider }: AIStatusPanelProps) {
           {!isProviderEnabled ? (
             <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md p-2">
               <p className="text-xs text-red-700 dark:text-red-300">
-                Este proveedor esta deshabilitado en el servidor. Configure{' '}
-                <code className="ml-1 px-1 bg-red-100 dark:bg-red-900 rounded">
-                  {selectedProvider.toUpperCase()}_ENABLED=true
-                </code>{' '}
-                en el archivo .env
+                {t('providerDisabled', { provider: selectedProvider.toUpperCase() })}
               </p>
             </div>
           ) : isOllama ? (
             <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-md p-3">
               <p className="text-xs text-amber-700 dark:text-amber-300 leading-relaxed">
-                <strong>Solo para testing:</strong> Ollama responde rapido (~4s) pero los modelos
-                locales no tienen capacidad suficiente para optimizar horarios de forma efectiva.
-                Para uso real, usa Claude o Gemini.
+                {t('ollamaNote')}
               </p>
               <p className="text-xs text-amber-600 dark:text-amber-400 mt-2">
-                Requiere Ollama corriendo en{' '}
-                <code className="px-1.5 py-0.5 bg-amber-100 dark:bg-amber-900 rounded text-[11px]">
-                  {providerInfo && 'baseUrl' in providerInfo
-                    ? providerInfo.baseUrl
-                    : 'http://localhost:11434'}
-                </code>
+                {t('requiresOllama', {
+                  url:
+                    providerInfo && 'baseUrl' in providerInfo
+                      ? providerInfo.baseUrl
+                      : 'http://localhost:11434',
+                })}
               </p>
             </div>
           ) : (
             !isConfigured && (
               <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-md p-2">
                 <p className="text-xs text-yellow-700 dark:text-yellow-300">
-                  Configure la variable de entorno correspondiente en el servidor:
+                  {t('configureEnvVar')}
                   {selectedProvider === 'claude' && (
                     <code className="ml-1 px-1 bg-yellow-100 dark:bg-yellow-900 rounded">
                       CLAUDE_API_KEY
@@ -516,6 +527,11 @@ function AIStatusPanel({ selectedProvider }: AIStatusPanelProps) {
                   {selectedProvider === 'openai' && (
                     <code className="ml-1 px-1 bg-yellow-100 dark:bg-yellow-900 rounded">
                       OPENAI_API_KEY
+                    </code>
+                  )}
+                  {selectedProvider === 'minimax' && (
+                    <code className="ml-1 px-1 bg-yellow-100 dark:bg-yellow-900 rounded">
+                      MINIMAX_API_KEY
                     </code>
                   )}
                 </p>
@@ -532,7 +548,7 @@ function AIStatusPanel({ selectedProvider }: AIStatusPanelProps) {
           disabled={testing || !isConfigured || !aiStatus?.enabled || !isProviderEnabled}
           className="px-3 py-1.5 text-xs font-medium rounded-md bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
-          {testing ? 'Probando...' : 'Probar Conexion'}
+          {testing ? tActions('testing') : tActions('testConnection')}
         </button>
 
         {testResult && (
@@ -548,8 +564,7 @@ function AIStatusPanel({ selectedProvider }: AIStatusPanelProps) {
 
       {/* Info */}
       <div className="text-xs text-gray-500 dark:text-gray-400 pt-2 border-t border-gray-200 dark:border-gray-700">
-        <strong>IA habilitada:</strong> Despues de generar el horario base, la IA analizara los
-        errores y propondra cambios para optimizar el resultado.
+        {t('enabledDescription')}
       </div>
     </div>
   )
@@ -560,6 +575,11 @@ function AIStatusPanel({ selectedProvider }: AIStatusPanelProps) {
 // ============================================
 
 function GeneralConfigTab({ config, shifts, isProduction, aiEnabled }: GeneralConfigTabProps) {
+  const t = useTranslations('scheduling.config.general')
+  const tToasts = useTranslations('scheduling.toasts')
+  const tActions = useTranslations('scheduling.actions')
+  const tAI = useTranslations('scheduling.config.ai')
+
   const queryClient = useQueryClient()
   const [editedConfig, setEditedConfig] = useState<Partial<Record<string, string>>>({})
   const [saving, setSaving] = useState(false)
@@ -580,9 +600,9 @@ function GeneralConfigTab({ config, shifts, isProduction, aiEnabled }: GeneralCo
       )
       await Promise.all(promises)
       setEditedConfig({})
-      toast.success('Configuracion guardada')
+      toast.success(tToasts('configSaved'))
     } catch {
-      toast.error('Error al guardar')
+      toast.error(tToasts('saveError'))
     } finally {
       setSaving(false)
     }
@@ -598,12 +618,15 @@ function GeneralConfigTab({ config, shifts, isProduction, aiEnabled }: GeneralCo
     setEditedConfig({ ...editedConfig, [key]: value })
   }
 
+  const currentAIProvider = editedConfig['ai_provider'] ?? config.aiProvider
+  const isAIActive = currentAIProvider !== 'none'
+
   return (
     <div className="p-4 space-y-6">
       {/* DOTACIÓN POR TURNO */}
       <div>
         <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">
-          Dotacion por Turno
+          {t('staffingPerShift')}
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* Mañana */}
@@ -613,12 +636,12 @@ function GeneralConfigTab({ config, shifts, isProduction, aiEnabled }: GeneralCo
                 M
               </span>
               <span className="text-sm font-medium text-amber-800 dark:text-amber-300">
-                Turno Mañana
+                {t('morningShift')}
               </span>
             </div>
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-xs text-gray-600 dark:text-gray-400">Minimo</span>
+                <span className="text-xs text-gray-600 dark:text-gray-400">{t('minimum')}</span>
                 <input
                   type="number"
                   value={getValue('min_morning_staff', config.minMorningStaff)}
@@ -627,7 +650,7 @@ function GeneralConfigTab({ config, shifts, isProduction, aiEnabled }: GeneralCo
                 />
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-xs text-gray-600 dark:text-gray-400">Preferido</span>
+                <span className="text-xs text-gray-600 dark:text-gray-400">{t('preferred')}</span>
                 <input
                   type="number"
                   value={getValue('pref_morning_staff', config.prefMorningStaff)}
@@ -645,12 +668,12 @@ function GeneralConfigTab({ config, shifts, isProduction, aiEnabled }: GeneralCo
                 T
               </span>
               <span className="text-sm font-medium text-orange-800 dark:text-orange-300">
-                Turno Tarde
+                {t('afternoonShift')}
               </span>
             </div>
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-xs text-gray-600 dark:text-gray-400">Minimo</span>
+                <span className="text-xs text-gray-600 dark:text-gray-400">{t('minimum')}</span>
                 <input
                   type="number"
                   value={getValue('min_afternoon_staff', config.minAfternoonStaff)}
@@ -659,7 +682,7 @@ function GeneralConfigTab({ config, shifts, isProduction, aiEnabled }: GeneralCo
                 />
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-xs text-gray-600 dark:text-gray-400">Preferido</span>
+                <span className="text-xs text-gray-600 dark:text-gray-400">{t('preferred')}</span>
                 <input
                   type="number"
                   value={getValue('pref_afternoon_staff', config.prefAfternoonStaff)}
@@ -677,12 +700,12 @@ function GeneralConfigTab({ config, shifts, isProduction, aiEnabled }: GeneralCo
                 N
               </span>
               <span className="text-sm font-medium text-indigo-800 dark:text-indigo-300">
-                Turno Noche
+                {t('nightShift')}
               </span>
             </div>
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-xs text-gray-600 dark:text-gray-400">Minimo</span>
+                <span className="text-xs text-gray-600 dark:text-gray-400">{t('minimum')}</span>
                 <input
                   type="number"
                   value={getValue('min_night_staff', config.minNightStaff)}
@@ -691,7 +714,7 @@ function GeneralConfigTab({ config, shifts, isProduction, aiEnabled }: GeneralCo
                 />
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-xs text-gray-600 dark:text-gray-400">Maximo</span>
+                <span className="text-xs text-gray-600 dark:text-gray-400">{t('maximum')}</span>
                 <input
                   type="number"
                   value={getValue('max_night_staff', config.maxNightStaff)}
@@ -709,11 +732,13 @@ function GeneralConfigTab({ config, shifts, isProduction, aiEnabled }: GeneralCo
         {/* Limites Semanales */}
         <div className="bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
           <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-3">
-            Limites Semanales
+            {t('weeklyLimits')}
           </h4>
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-xs text-gray-600 dark:text-gray-400">Max turnos/semana</span>
+              <span className="text-xs text-gray-600 dark:text-gray-400">
+                {t('maxShiftsPerWeek')}
+              </span>
               <input
                 type="number"
                 value={getValue('max_weekly_shifts', config.maxWeeklyShifts)}
@@ -723,7 +748,7 @@ function GeneralConfigTab({ config, shifts, isProduction, aiEnabled }: GeneralCo
             </div>
             <div className="flex items-center justify-between">
               <span className="text-xs text-gray-600 dark:text-gray-400">
-                Turnos preferidos/semana
+                {t('preferredShiftsPerWeek')}
               </span>
               <input
                 type="number"
@@ -733,9 +758,7 @@ function GeneralConfigTab({ config, shifts, isProduction, aiEnabled }: GeneralCo
               />
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-xs text-gray-600 dark:text-gray-400">
-                Horas descanso minimo
-              </span>
+              <span className="text-xs text-gray-600 dark:text-gray-400">{t('minRestHours')}</span>
               <input
                 type="number"
                 value={getValue('min_rest_hours', config.minRestHours)}
@@ -749,14 +772,16 @@ function GeneralConfigTab({ config, shifts, isProduction, aiEnabled }: GeneralCo
         {/* Bloques de Noche */}
         <div className="bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
           <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-3">
-            Bloques de Noche
+            {t('nightBlocks')}
           </h4>
           <p className="text-[10px] text-gray-500 dark:text-gray-400 mb-3">
-            Noches consecutivas permitidas
+            {t('consecutiveNightsAllowed')}
           </p>
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-xs text-gray-600 dark:text-gray-400">Minimo consecutivas</span>
+              <span className="text-xs text-gray-600 dark:text-gray-400">
+                {t('minConsecutive')}
+              </span>
               <input
                 type="number"
                 value={getValue('min_night_block', config.minNightBlock)}
@@ -765,7 +790,9 @@ function GeneralConfigTab({ config, shifts, isProduction, aiEnabled }: GeneralCo
               />
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-xs text-gray-600 dark:text-gray-400">Maximo consecutivas</span>
+              <span className="text-xs text-gray-600 dark:text-gray-400">
+                {t('maxConsecutive')}
+              </span>
               <input
                 type="number"
                 value={getValue('max_night_block', config.maxNightBlock)}
@@ -774,7 +801,7 @@ function GeneralConfigTab({ config, shifts, isProduction, aiEnabled }: GeneralCo
               />
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-xs text-gray-600 dark:text-gray-400">Preferido</span>
+              <span className="text-xs text-gray-600 dark:text-gray-400">{t('preferred')}</span>
               <input
                 type="number"
                 value={getValue('pref_night_block', config.prefNightBlock)}
@@ -790,12 +817,12 @@ function GeneralConfigTab({ config, shifts, isProduction, aiEnabled }: GeneralCo
       <div className="space-y-3 pt-4 border-t border-gray-200 dark:border-gray-700">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Proveedor IA</h3>
-            <p className="text-xs text-gray-500 dark:text-gray-400">
-              Asistente de inteligencia artificial para optimizacion de horarios
-            </p>
+            <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+              {tAI('provider')}
+            </h3>
+            <p className="text-xs text-gray-500 dark:text-gray-400">{tAI('subtitle')}</p>
           </div>
-          {(editedConfig['ai_provider'] ?? config.aiProvider) !== 'none' && (
+          {isAIActive && (
             <span
               className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${
                 aiEnabled
@@ -806,31 +833,30 @@ function GeneralConfigTab({ config, shifts, isProduction, aiEnabled }: GeneralCo
               <span
                 className={`w-1.5 h-1.5 rounded-full ${aiEnabled ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}
               ></span>
-              {aiEnabled ? 'IA Activa' : 'IA Desactivada'}
+              {aiEnabled ? tAI('active') : tAI('inactive')}
             </span>
           )}
         </div>
         <div className="flex items-center gap-4">
           <select
-            value={editedConfig['ai_provider'] ?? config.aiProvider}
+            value={currentAIProvider}
             onChange={(e) => setEditedConfig({ ...editedConfig, ['ai_provider']: e.target.value })}
             className="w-72 px-3 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
           >
-            <option value="none">Desactivado</option>
-            <option value="claude">Claude (Anthropic)</option>
-            <option value="gemini">Gemini (Google)</option>
-            <option value="groq">Groq (Gratuito, muy rápido)</option>
-            {!isProduction && <option value="ollama">Ollama (Local - Solo desarrollo)</option>}
+            <option value="none">{tAI('disabled')}</option>
+            <option value="claude">{tAI('claude')}</option>
+            <option value="gemini">{tAI('gemini')}</option>
+            <option value="groq">{tAI('groq')}</option>
+            {!isProduction && <option value="ollama">{tAI('ollama')}</option>}
+            <option value="minimax">{tAI('minimax')}</option>
           </select>
-          {(editedConfig['ai_provider'] ?? config.aiProvider) === 'none' && (
+          {currentAIProvider === 'none' && (
             <span className="text-xs text-gray-500 dark:text-gray-400">
-              La generacion usara solo el algoritmo base
+              {tAI('baseAlgorithmOnly')}
             </span>
           )}
         </div>
-        {(editedConfig['ai_provider'] ?? config.aiProvider) !== 'none' && (
-          <AIStatusPanel selectedProvider={editedConfig['ai_provider'] ?? config.aiProvider} />
-        )}
+        {isAIActive && <AIStatusPanel selectedProvider={currentAIProvider} />}
       </div>
 
       {/* Shifts Section */}
@@ -845,7 +871,7 @@ function GeneralConfigTab({ config, shifts, isProduction, aiEnabled }: GeneralCo
             className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 disabled:opacity-50 transition-colors"
           >
             <FiSave className="w-4 h-4" />
-            {saving ? 'Guardando...' : 'Guardar cambios'}
+            {saving ? tActions('saving') : tActions('save')}
           </button>
         </div>
       )}
@@ -862,6 +888,10 @@ interface ShiftsSectionProps {
 }
 
 function ShiftsSection({ shifts }: ShiftsSectionProps) {
+  const t = useTranslations('scheduling.config.shifts')
+  const tToasts = useTranslations('scheduling.toasts')
+  const tActions = useTranslations('scheduling.actions')
+
   const queryClient = useQueryClient()
   const [showAddModal, setShowAddModal] = useState(false)
   const [editingShift, setEditingShift] = useState<SchedulingShift | null>(null)
@@ -870,15 +900,15 @@ function ShiftsSection({ shifts }: ShiftsSectionProps) {
     mutationFn: (shiftId: number) => schedulingApi.deleteShift(shiftId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: schedulingKeys.shifts() })
-      toast.success('Turno eliminado')
+      toast.success(tToasts('shiftDeleted'))
     },
     onError: () => {
-      toast.error('Error al eliminar turno')
+      toast.error(tToasts('shiftDeleteError'))
     },
   })
 
   const handleDelete = (shift: SchedulingShift) => {
-    if (confirm(`¿Eliminar turno "${shift.name}" (${shift.code})?`)) {
+    if (confirm(t('deleteConfirm', { name: shift.name, code: shift.code }))) {
       deleteMutation.mutate(shift.id)
     }
   }
@@ -887,17 +917,15 @@ function ShiftsSection({ shifts }: ShiftsSectionProps) {
     <div className="space-y-3 pt-4 border-t border-gray-200 dark:border-gray-700">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Tipos de Turno</h3>
-          <p className="text-xs text-gray-500 dark:text-gray-400">
-            Configura los turnos disponibles en el sistema
-          </p>
+          <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">{t('title')}</h3>
+          <p className="text-xs text-gray-500 dark:text-gray-400">{t('subtitle')}</p>
         </div>
         <button
           onClick={() => setShowAddModal(true)}
           className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded-md hover:bg-blue-700 transition-colors"
         >
           <FiPlus className="w-3.5 h-3.5" />
-          Agregar turno
+          {tActions('addShift')}
         </button>
       </div>
 
@@ -906,25 +934,25 @@ function ShiftsSection({ shifts }: ShiftsSectionProps) {
           <thead>
             <tr className="bg-gray-50 dark:bg-[#0d1117] border-b border-gray-200 dark:border-gray-700">
               <th className="text-left py-2 px-3 text-xs font-semibold text-gray-600 dark:text-gray-400">
-                Codigo
+                {t('code')}
               </th>
               <th className="text-left py-2 px-3 text-xs font-semibold text-gray-600 dark:text-gray-400">
-                Nombre
+                {t('name')}
               </th>
               <th className="text-left py-2 px-3 text-xs font-semibold text-gray-600 dark:text-gray-400">
-                Horario
+                {t('schedule')}
               </th>
               <th className="text-left py-2 px-3 text-xs font-semibold text-gray-600 dark:text-gray-400">
-                Horas
+                {t('hours')}
               </th>
               <th className="text-center py-2 px-3 text-xs font-semibold text-gray-600 dark:text-gray-400">
-                Trabajo
+                {t('work')}
               </th>
               <th className="text-center py-2 px-3 text-xs font-semibold text-gray-600 dark:text-gray-400">
-                Pagado
+                {t('paid')}
               </th>
               <th className="text-right py-2 px-3 text-xs font-semibold text-gray-600 dark:text-gray-400">
-                Acciones
+                {t('actions')}
               </th>
             </tr>
           </thead>
@@ -965,14 +993,14 @@ function ShiftsSection({ shifts }: ShiftsSectionProps) {
                     <button
                       onClick={() => setEditingShift(shift)}
                       className="p-1 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded"
-                      title="Editar"
+                      title={tActions('edit')}
                     >
                       <FiEdit2 className="w-3.5 h-3.5" />
                     </button>
                     <button
                       onClick={() => handleDelete(shift)}
                       className="p-1 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded"
-                      title="Eliminar"
+                      title={tActions('delete')}
                     >
                       <FiTrash2 className="w-3.5 h-3.5" />
                     </button>
@@ -987,7 +1015,7 @@ function ShiftsSection({ shifts }: ShiftsSectionProps) {
       {shifts.length === 0 && (
         <div className="text-center py-8">
           <FiCalendar className="w-10 h-10 mx-auto text-gray-400 mb-3" />
-          <p className="text-sm text-gray-600 dark:text-gray-400">No hay turnos configurados</p>
+          <p className="text-sm text-gray-600 dark:text-gray-400">{t('noShifts')}</p>
         </div>
       )}
 
@@ -1015,6 +1043,10 @@ interface ShiftModalProps {
 }
 
 function ShiftModal({ shift, onClose }: ShiftModalProps) {
+  const t = useTranslations('scheduling.config.shifts')
+  const tActions = useTranslations('scheduling.actions')
+  const tToasts = useTranslations('scheduling.toasts')
+
   const queryClient = useQueryClient()
   const isEditing = !!shift
 
@@ -1033,11 +1065,11 @@ function ShiftModal({ shift, onClose }: ShiftModalProps) {
     mutationFn: (data: CreateShiftDto) => schedulingApi.createShift(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: schedulingKeys.shifts() })
-      toast.success('Turno creado')
+      toast.success(tToasts('shiftCreated'))
       onClose()
     },
     onError: () => {
-      toast.error('Error al crear turno')
+      toast.error(tToasts('shiftCreateError'))
     },
   })
 
@@ -1046,11 +1078,11 @@ function ShiftModal({ shift, onClose }: ShiftModalProps) {
       schedulingApi.updateShift(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: schedulingKeys.shifts() })
-      toast.success('Turno actualizado')
+      toast.success(tToasts('shiftUpdated'))
       onClose()
     },
     onError: () => {
-      toast.error('Error al actualizar turno')
+      toast.error(tToasts('shiftUpdateError'))
     },
   })
 
@@ -1058,7 +1090,7 @@ function ShiftModal({ shift, onClose }: ShiftModalProps) {
     e.preventDefault()
 
     if (!code || !name) {
-      toast.error('Codigo y nombre son requeridos')
+      toast.error(t('codeNameRequired'))
       return
     }
 
@@ -1087,7 +1119,7 @@ function ShiftModal({ shift, onClose }: ShiftModalProps) {
       <div className="bg-white dark:bg-[#151b23] rounded-lg shadow-xl w-full max-w-md mx-4">
         <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700">
           <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-            {isEditing ? 'Editar Turno' : 'Nuevo Turno'}
+            {isEditing ? t('editShift') : t('newShift')}
           </h3>
           <button
             onClick={onClose}
@@ -1101,7 +1133,7 @@ function ShiftModal({ shift, onClose }: ShiftModalProps) {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Codigo *
+                {t('code')} *
               </label>
               <input
                 type="text"
@@ -1111,12 +1143,12 @@ function ShiftModal({ shift, onClose }: ShiftModalProps) {
                 placeholder="M, T, N..."
                 className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 uppercase"
                 required
-                disabled={isEditing} // No permitir cambiar codigo en edicion
+                disabled={isEditing}
               />
             </div>
             <div>
               <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Horas *
+                {t('hours')} *
               </label>
               <input
                 type="number"
@@ -1133,13 +1165,13 @@ function ShiftModal({ shift, onClose }: ShiftModalProps) {
 
           <div>
             <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Nombre *
+              {t('name')} *
             </label>
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="Turno Manana, Turno Tarde..."
+              placeholder={t('name')}
               className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100"
               required
             />
@@ -1148,7 +1180,7 @@ function ShiftModal({ shift, onClose }: ShiftModalProps) {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Hora inicio
+                {t('startTime')}
               </label>
               <input
                 type="time"
@@ -1159,7 +1191,7 @@ function ShiftModal({ shift, onClose }: ShiftModalProps) {
             </div>
             <div>
               <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Hora fin
+                {t('endTime')}
               </label>
               <input
                 type="time"
@@ -1172,7 +1204,7 @@ function ShiftModal({ shift, onClose }: ShiftModalProps) {
 
           <div>
             <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Orden de visualizacion
+              {t('displayOrder')}
             </label>
             <input
               type="number"
@@ -1182,9 +1214,7 @@ function ShiftModal({ shift, onClose }: ShiftModalProps) {
               max="99"
               className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100"
             />
-            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-              Menor numero = aparece primero en listas
-            </p>
+            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">{t('displayOrderHint')}</p>
           </div>
 
           <div className="flex items-center gap-6">
@@ -1195,7 +1225,7 @@ function ShiftModal({ shift, onClose }: ShiftModalProps) {
                 onChange={(e) => setIsWorkShift(e.target.checked)}
                 className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500 dark:bg-gray-800"
               />
-              <span className="text-sm text-gray-700 dark:text-gray-300">Es turno de trabajo</span>
+              <span className="text-sm text-gray-700 dark:text-gray-300">{t('isWorkShift')}</span>
             </label>
             <label className="flex items-center gap-2 cursor-pointer">
               <input
@@ -1204,7 +1234,7 @@ function ShiftModal({ shift, onClose }: ShiftModalProps) {
                 onChange={(e) => setIsPaid(e.target.checked)}
                 className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500 dark:bg-gray-800"
               />
-              <span className="text-sm text-gray-700 dark:text-gray-300">Es pagado</span>
+              <span className="text-sm text-gray-700 dark:text-gray-300">{t('isPaid')}</span>
             </label>
           </div>
 
@@ -1214,14 +1244,14 @@ function ShiftModal({ shift, onClose }: ShiftModalProps) {
               onClick={onClose}
               className="px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md transition-colors"
             >
-              Cancelar
+              {tActions('cancel')}
             </button>
             <button
               type="submit"
               disabled={isPending}
               className="px-4 py-2 text-sm bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 disabled:opacity-50 transition-colors"
             >
-              {isPending ? 'Guardando...' : isEditing ? 'Guardar' : 'Crear turno'}
+              {isPending ? tActions('saving') : isEditing ? tActions('save') : t('newShift')}
             </button>
           </div>
         </form>
@@ -1239,21 +1269,25 @@ interface RulesTabProps {
 }
 
 const RULE_TYPE_LABELS: Record<EmployeeRuleType, string> = {
-  shift_priority: 'Turno preferido',
-  max_shift_per_month: 'Max turnos/mes',
-  min_shift_per_month: 'Min turnos/mes',
-  fixed_days: 'Dias fijos',
-  fixed_shift: 'Turno fijo',
-  no_weekends: 'Sin fines de semana',
-  custom: 'Personalizada',
+  shift_priority: 'shift_priority',
+  max_shift_per_month: 'max_shift_per_month',
+  min_shift_per_month: 'min_shift_per_month',
+  fixed_days: 'fixed_days',
+  fixed_shift: 'fixed_shift',
+  no_weekends: 'no_weekends',
+  custom: 'custom',
 }
 
 function RulesTab({ rules }: RulesTabProps) {
+  const t = useTranslations('scheduling.config.rules')
+  const tActions = useTranslations('scheduling.actions')
+  const tToasts = useTranslations('scheduling.toasts')
+  const tTypes = useTranslations('scheduling.config.rules.types')
+
   const queryClient = useQueryClient()
   const [showAddForm, setShowAddForm] = useState(false)
   const [_editingRule, _setEditingRule] = useState<SchedulingEmployeeRule | null>(null)
 
-  // Group rules by employee
   const rulesByEmployee = rules.reduce(
     (acc, rule) => {
       if (!acc[rule.employeeId]) {
@@ -1272,10 +1306,10 @@ function RulesTab({ rules }: RulesTabProps) {
     mutationFn: (ruleId: number) => schedulingApi.deleteRule(ruleId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: schedulingKeys.rules() })
-      toast.success('Regla eliminada')
+      toast.success(tToasts('ruleDeleted'))
     },
     onError: () => {
-      toast.error('Error al eliminar')
+      toast.error(tToasts('ruleDeleteError'))
     },
   })
 
@@ -1284,40 +1318,38 @@ function RulesTab({ rules }: RulesTabProps) {
       schedulingApi.updateRule(ruleId, { isActive }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: schedulingKeys.rules() })
-      toast.success('Regla actualizada')
+      toast.success(tToasts('ruleUpdated'))
     },
     onError: () => {
-      toast.error('Error al actualizar')
+      toast.error(tToasts('ruleUpdateError'))
     },
   })
+
+  const getRuleLabel = (ruleType: EmployeeRuleType) => {
+    return tTypes(ruleType as string)
+  }
 
   return (
     <div className="p-4">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-            Reglas de Empleados
-          </h3>
-          <p className="text-xs text-gray-500 dark:text-gray-400">
-            Preferencias y restricciones por empleado
-          </p>
+          <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">{t('title')}</h3>
+          <p className="text-xs text-gray-500 dark:text-gray-400">{t('subtitle')}</p>
         </div>
         <button
           onClick={() => setShowAddForm(true)}
           className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded-md hover:bg-blue-700 transition-colors"
         >
           <FiPlus className="w-3.5 h-3.5" />
-          Agregar regla
+          {t('addRule')}
         </button>
       </div>
 
       {Object.keys(rulesByEmployee).length === 0 ? (
         <div className="text-center py-8">
           <FiUsers className="w-10 h-10 mx-auto text-gray-400 mb-3" />
-          <p className="text-sm text-gray-600 dark:text-gray-400">No hay reglas configuradas</p>
-          <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
-            Agrega reglas para personalizar la generacion de horarios
-          </p>
+          <p className="text-sm text-gray-600 dark:text-gray-400">{t('noRules')}</p>
+          <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">{t('noRulesHint')}</p>
         </div>
       ) : (
         <div className="space-y-4">
@@ -1346,7 +1378,7 @@ function RulesTab({ rules }: RulesTabProps) {
                               : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'
                           }`}
                         >
-                          {RULE_TYPE_LABELS[rule.ruleType]}
+                          {getRuleLabel(rule.ruleType)}
                         </span>
                         <span className="text-sm text-gray-900 dark:text-gray-100">
                           {formatRuleValue(rule.ruleType, rule.ruleValue)}
@@ -1371,7 +1403,7 @@ function RulesTab({ rules }: RulesTabProps) {
                               : 'text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20'
                           }`}
                         >
-                          {rule.isActive ? 'Desactivar' : 'Activar'}
+                          {rule.isActive ? tActions('deactivate') : tActions('activate')}
                         </button>
                         <button
                           onClick={() => deleteMutation.mutate(rule.id)}
@@ -1389,7 +1421,6 @@ function RulesTab({ rules }: RulesTabProps) {
         </div>
       )}
 
-      {/* Add Rule Modal placeholder - to be implemented */}
       {showAddForm && <AddRuleModal onClose={() => setShowAddForm(false)} />}
     </div>
   )
@@ -1404,13 +1435,19 @@ interface AddRuleModalProps {
 }
 
 function AddRuleModal({ onClose }: AddRuleModalProps) {
+  const t = useTranslations('scheduling.config.rules')
+  const tActions = useTranslations('scheduling.actions')
+  const tToasts = useTranslations('scheduling.toasts')
+  const tTypes = useTranslations('scheduling.config.rules.types')
+  const tPlaceholders = useTranslations('scheduling.config.rules.placeholders')
+  const tHelp = useTranslations('scheduling.config.rules.help')
+
   const queryClient = useQueryClient()
   const [employeeId, setEmployeeId] = useState('')
   const [ruleType, setRuleType] = useState<EmployeeRuleType>('shift_priority')
   const [ruleValue, setRuleValue] = useState('')
   const [notes, setNotes] = useState('')
 
-  // Fetch employees for dropdown - use apiClient via schedulingApi
   const { data: employees = [] } = useQuery<Employee[]>({
     queryKey: schedulingKeys.employees(),
     queryFn: schedulingApi.getSchedulableEmployees,
@@ -1420,18 +1457,18 @@ function AddRuleModal({ onClose }: AddRuleModalProps) {
     mutationFn: (data: CreateEmployeeRuleDto) => schedulingApi.createRule(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: schedulingKeys.rules() })
-      toast.success('Regla creada')
+      toast.success(tToasts('ruleCreated'))
       onClose()
     },
     onError: () => {
-      toast.error('Error al crear regla')
+      toast.error(tToasts('ruleCreateError'))
     },
   })
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (!employeeId || !ruleValue) {
-      toast.error('Completa todos los campos')
+      toast.error(t('completeAllFields'))
       return
     }
     createMutation.mutate({
@@ -1442,13 +1479,15 @@ function AddRuleModal({ onClose }: AddRuleModalProps) {
     })
   }
 
+  const getRuleTypeLabel = (type: EmployeeRuleType) => {
+    return tTypes(type as string)
+  }
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
       <div className="bg-white dark:bg-[#151b23] rounded-lg shadow-xl w-full max-w-md mx-4">
         <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700">
-          <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-            Agregar Regla de Empleado
-          </h3>
+          <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">{t('addRule')}</h3>
           <button
             onClick={onClose}
             className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
@@ -1460,7 +1499,7 @@ function AddRuleModal({ onClose }: AddRuleModalProps) {
         <form onSubmit={handleSubmit} className="p-4 space-y-4">
           <div>
             <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Empleado
+              {t('employee')}
             </label>
             <select
               value={employeeId}
@@ -1468,7 +1507,7 @@ function AddRuleModal({ onClose }: AddRuleModalProps) {
               className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100"
               required
             >
-              <option value="">Seleccionar empleado</option>
+              <option value="">{t('selectEmployee')}</option>
               {employees.map((emp) => (
                 <option key={emp.id} value={emp.id}>
                   {emp.username}
@@ -1479,16 +1518,16 @@ function AddRuleModal({ onClose }: AddRuleModalProps) {
 
           <div>
             <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Tipo de regla
+              {t('ruleType')}
             </label>
             <select
               value={ruleType}
               onChange={(e) => setRuleType(e.target.value as EmployeeRuleType)}
               className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100"
             >
-              {Object.entries(RULE_TYPE_LABELS).map(([key, label]) => (
+              {Object.entries(RULE_TYPE_LABELS).map(([key, _label]) => (
                 <option key={key} value={key}>
-                  {label}
+                  {getRuleTypeLabel(key as EmployeeRuleType)}
                 </option>
               ))}
             </select>
@@ -1496,22 +1535,24 @@ function AddRuleModal({ onClose }: AddRuleModalProps) {
 
           <div>
             <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Valor
+              {t('value')}
             </label>
             <input
               type="text"
               value={ruleValue}
               onChange={(e) => setRuleValue(e.target.value)}
-              placeholder={getRulePlaceholder(ruleType)}
+              placeholder={tPlaceholders(ruleType as string)}
               className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100"
               required
             />
-            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">{getRuleHelp(ruleType)}</p>
+            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+              {tHelp(ruleType as string)}
+            </p>
           </div>
 
           <div>
             <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Notas (opcional)
+              {t('notes')}
             </label>
             <input
               type="text"
@@ -1527,14 +1568,14 @@ function AddRuleModal({ onClose }: AddRuleModalProps) {
               onClick={onClose}
               className="px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md transition-colors"
             >
-              Cancelar
+              {tActions('cancel')}
             </button>
             <button
               type="submit"
               disabled={createMutation.isPending}
               className="px-4 py-2 text-sm bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 disabled:opacity-50 transition-colors"
             >
-              {createMutation.isPending ? 'Guardando...' : 'Guardar'}
+              {createMutation.isPending ? tActions('saving') : tActions('save')}
             </button>
           </div>
         </form>
@@ -1548,11 +1589,15 @@ function AddRuleModal({ onClose }: AddRuleModalProps) {
 // ============================================
 
 function RequestsTab() {
+  const t = useTranslations('scheduling.config.requests')
+  const tActions = useTranslations('scheduling.actions')
+  const tToasts = useTranslations('scheduling.toasts')
+  const tMessages = useTranslations('scheduling.messages')
+
   const queryClient = useQueryClient()
   const [showAddForm, setShowAddForm] = useState(false)
   const [selectedMonth, setSelectedMonth] = useState<number | null>(null)
 
-  // Fetch months to select from
   const { data: monthsData } = useQuery({
     queryKey: schedulingKeys.monthsList(),
     queryFn: () => schedulingApi.getAllMonths({ limit: 12 }),
@@ -1560,40 +1605,36 @@ function RequestsTab() {
 
   const months = monthsData?.months || []
 
-  // Fetch requests for selected month
   const { data: requests = [], isLoading: loadingRequests } = useQuery({
     queryKey: ['scheduling-requests', selectedMonth],
     queryFn: async () => {
       if (!selectedMonth) return []
       const constraints = await schedulingApi.getConstraintsByMonth(selectedMonth, {})
-      // Filter only request_off type
       return constraints.filter((c) => c.constraintType === 'request_off')
     },
     enabled: !!selectedMonth,
   })
 
-  // Delete mutation
   const deleteMutation = useMutation({
     mutationFn: (constraintId: number) => schedulingApi.deleteConstraint(constraintId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['scheduling-requests', selectedMonth] })
-      toast.success('Peticion eliminada')
+      toast.success(tToasts('requestDeleted'))
     },
     onError: () => {
-      toast.error('Error al eliminar')
+      toast.error(tToasts('ruleDeleteError'))
     },
   })
 
-  // Approve/Reject mutation
   const approveMutation = useMutation({
     mutationFn: ({ id, status }: { id: number; status: 'approved' | 'rejected' }) =>
       schedulingApi.approveConstraint(id, { status }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['scheduling-requests', selectedMonth] })
-      toast.success('Peticion actualizada')
+      toast.success(tToasts('requestUpdated'))
     },
     onError: () => {
-      toast.error('Error al actualizar')
+      toast.error(tToasts('ruleUpdateError'))
     },
   })
 
@@ -1616,11 +1657,11 @@ function RequestsTab() {
   const getStatusLabel = (status: string) => {
     switch (status) {
       case 'approved':
-        return 'Aprobada'
+        return t('approved')
       case 'rejected':
-        return 'Rechazada'
+        return t('rejected')
       default:
-        return 'Pendiente'
+        return t('pending')
     }
   }
 
@@ -1628,12 +1669,8 @@ function RequestsTab() {
     <div className="p-4">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-            Peticiones de Dias Libres
-          </h3>
-          <p className="text-xs text-gray-500 dark:text-gray-400">
-            Los empleados pueden solicitar dias especificos libres antes de generar el horario
-          </p>
+          <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">{t('title')}</h3>
+          <p className="text-xs text-gray-500 dark:text-gray-400">{t('subtitle')}</p>
         </div>
         <div className="flex items-center gap-3">
           <select
@@ -1641,7 +1678,7 @@ function RequestsTab() {
             onChange={(e) => setSelectedMonth(e.target.value ? Number(e.target.value) : null)}
             className="px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100"
           >
-            <option value="">Seleccionar mes</option>
+            <option value="">{t('selectMonth')}</option>
             {months.map((m) => (
               <option key={m.id} value={m.id}>
                 {new Date(m.year, m.month - 1).toLocaleDateString('es-ES', {
@@ -1657,7 +1694,7 @@ function RequestsTab() {
               className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded-md hover:bg-blue-700 transition-colors"
             >
               <FiPlus className="w-3.5 h-3.5" />
-              Nueva peticion
+              {t('newRequest')}
             </button>
           )}
         </div>
@@ -1667,22 +1704,22 @@ function RequestsTab() {
         <div className="text-center py-12">
           <FiCalendarOff className="w-10 h-10 mx-auto text-gray-400 mb-3" />
           <p className="text-sm text-gray-600 dark:text-gray-400">
-            Selecciona un mes para ver las peticiones
+            {tMessages('selectMonthToSeeRequests')}
           </p>
         </div>
       ) : loadingRequests ? (
         <div className="text-center py-12">
           <div className="inline-block h-8 w-8 animate-spin rounded-full border-[3px] border-solid border-blue-600 dark:border-blue-500 border-r-transparent"></div>
-          <p className="mt-3 text-xs text-gray-600 dark:text-gray-400">Cargando peticiones...</p>
+          <p className="mt-3 text-xs text-gray-600 dark:text-gray-400">
+            {tMessages('loadingRequests')}
+          </p>
         </div>
       ) : requests.length === 0 ? (
         <div className="text-center py-12">
           <FiCalendarOff className="w-10 h-10 mx-auto text-gray-400 mb-3" />
-          <p className="text-sm text-gray-600 dark:text-gray-400">
-            No hay peticiones para este mes
-          </p>
+          <p className="text-sm text-gray-600 dark:text-gray-400">{tMessages('noRequests')}</p>
           <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
-            Agrega peticiones de dias libres antes de generar el horario
+            {tMessages('noRequestsHint')}
           </p>
         </div>
       ) : (
@@ -1691,19 +1728,19 @@ function RequestsTab() {
             <thead>
               <tr className="bg-gray-50 dark:bg-[#0d1117] border-b border-gray-200 dark:border-gray-700">
                 <th className="text-left py-2 px-3 text-xs font-semibold text-gray-600 dark:text-gray-400">
-                  Empleado
+                  {t('employee')}
                 </th>
                 <th className="text-left py-2 px-3 text-xs font-semibold text-gray-600 dark:text-gray-400">
-                  Fechas
+                  {t('dates')}
                 </th>
                 <th className="text-left py-2 px-3 text-xs font-semibold text-gray-600 dark:text-gray-400">
-                  Motivo
+                  {t('reasonLabel')}
                 </th>
                 <th className="text-center py-2 px-3 text-xs font-semibold text-gray-600 dark:text-gray-400">
-                  Estado
+                  {t('status')}
                 </th>
                 <th className="text-right py-2 px-3 text-xs font-semibold text-gray-600 dark:text-gray-400">
-                  Acciones
+                  {t('actions')}
                 </th>
               </tr>
             </thead>
@@ -1739,7 +1776,7 @@ function RequestsTab() {
                               approveMutation.mutate({ id: request.id, status: 'approved' })
                             }
                             className="p-1 text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 rounded"
-                            title="Aprobar"
+                            title={t('approved')}
                           >
                             <FiCheck className="w-4 h-4" />
                           </button>
@@ -1748,7 +1785,7 @@ function RequestsTab() {
                               approveMutation.mutate({ id: request.id, status: 'rejected' })
                             }
                             className="p-1 text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20 rounded"
-                            title="Rechazar"
+                            title={t('rejected')}
                           >
                             <FiX className="w-4 h-4" />
                           </button>
@@ -1757,7 +1794,7 @@ function RequestsTab() {
                       <button
                         onClick={() => deleteMutation.mutate(request.id)}
                         className="p-1 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded"
-                        title="Eliminar"
+                        title={tActions('delete')}
                       >
                         <FiTrash2 className="w-4 h-4" />
                       </button>
@@ -1770,7 +1807,6 @@ function RequestsTab() {
         </div>
       )}
 
-      {/* Add Request Modal */}
       {showAddForm && selectedMonth && (
         <AddRequestModal monthId={selectedMonth} onClose={() => setShowAddForm(false)} />
       )}
@@ -1788,19 +1824,21 @@ interface AddRequestModalProps {
 }
 
 function AddRequestModal({ monthId, onClose }: AddRequestModalProps) {
+  const t = useTranslations('scheduling.config.requests')
+  const tActions = useTranslations('scheduling.actions')
+  const tToasts = useTranslations('scheduling.toasts')
+
   const queryClient = useQueryClient()
   const [employeeId, setEmployeeId] = useState('')
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
   const [notes, setNotes] = useState('')
 
-  // Fetch employees for dropdown
   const { data: employees = [] } = useQuery<Employee[]>({
     queryKey: schedulingKeys.employees(),
     queryFn: schedulingApi.getSchedulableEmployees,
   })
 
-  // Get month info for date range
   const { data: monthData } = useQuery({
     queryKey: schedulingKeys.month(monthId),
     queryFn: () => schedulingApi.getMonthById(monthId),
@@ -1818,18 +1856,18 @@ function AddRequestModal({ monthId, onClose }: AddRequestModalProps) {
       schedulingApi.createConstraint(data as Parameters<typeof schedulingApi.createConstraint>[0]),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['scheduling-requests', monthId] })
-      toast.success('Peticion creada')
+      toast.success(tToasts('requestCreated'))
       onClose()
     },
     onError: () => {
-      toast.error('Error al crear peticion')
+      toast.error(tToasts('requestCreateError'))
     },
   })
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (!employeeId || !startDate) {
-      toast.error('Completa los campos requeridos')
+      toast.error(t('completeRequired'))
       return
     }
     createMutation.mutate({
@@ -1842,7 +1880,6 @@ function AddRequestModal({ monthId, onClose }: AddRequestModalProps) {
     })
   }
 
-  // Calculate date limits based on month
   const getDateLimits = () => {
     if (!monthData) return { min: '', max: '' }
     const year = monthData.year
@@ -1862,7 +1899,7 @@ function AddRequestModal({ monthId, onClose }: AddRequestModalProps) {
       <div className="bg-white dark:bg-[#151b23] rounded-lg shadow-xl w-full max-w-md mx-4">
         <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700">
           <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-            Nueva Peticion de Dia Libre
+            {t('newRequest')}
           </h3>
           <button
             onClick={onClose}
@@ -1875,7 +1912,7 @@ function AddRequestModal({ monthId, onClose }: AddRequestModalProps) {
         <form onSubmit={handleSubmit} className="p-4 space-y-4">
           <div>
             <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Empleado *
+              {t('employee')} *
             </label>
             <select
               value={employeeId}
@@ -1883,7 +1920,7 @@ function AddRequestModal({ monthId, onClose }: AddRequestModalProps) {
               className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100"
               required
             >
-              <option value="">Seleccionar empleado</option>
+              <option value="">{t('selectMonth')}</option>
               {employees.map((emp) => (
                 <option key={emp.id} value={emp.id}>
                   {emp.username}
@@ -1895,7 +1932,7 @@ function AddRequestModal({ monthId, onClose }: AddRequestModalProps) {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Desde *
+                {t('from')}
               </label>
               <input
                 type="date"
@@ -1912,7 +1949,7 @@ function AddRequestModal({ monthId, onClose }: AddRequestModalProps) {
             </div>
             <div>
               <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Hasta
+                {t('until')}
               </label>
               <input
                 type="date"
@@ -1927,21 +1964,18 @@ function AddRequestModal({ monthId, onClose }: AddRequestModalProps) {
 
           <div>
             <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Motivo (opcional)
+              {t('reason')}
             </label>
             <input
               type="text"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="Ej: Cita medica, compromiso personal..."
+              placeholder={t('reasonPlaceholder')}
               className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100"
             />
           </div>
 
-          <p className="text-xs text-gray-500 dark:text-gray-400">
-            Las peticiones aprobadas se tendran en cuenta al generar el horario. Los dias
-            solicitados seran marcados como libre (L).
-          </p>
+          <p className="text-xs text-gray-500 dark:text-gray-400">{t('approvedNote')}</p>
 
           <div className="flex justify-end gap-2 pt-2">
             <button
@@ -1949,14 +1983,14 @@ function AddRequestModal({ monthId, onClose }: AddRequestModalProps) {
               onClick={onClose}
               className="px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md transition-colors"
             >
-              Cancelar
+              {tActions('cancel')}
             </button>
             <button
               type="submit"
               disabled={createMutation.isPending}
               className="px-4 py-2 text-sm bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 disabled:opacity-50 transition-colors"
             >
-              {createMutation.isPending ? 'Guardando...' : 'Guardar'}
+              {createMutation.isPending ? tActions('saving') : tActions('save')}
             </button>
           </div>
         </form>
@@ -1970,25 +2004,22 @@ function AddRequestModal({ monthId, onClose }: AddRequestModalProps) {
 // ============================================
 
 function TotalsTab() {
+  const t = useTranslations('scheduling.config.totals')
+
   const currentYear = new Date().getFullYear()
   const [selectedYear, setSelectedYear] = useState(currentYear)
 
-  // Generate year options (current year and 2 years back)
   const yearOptions = [currentYear, currentYear - 1, currentYear - 2]
 
   return (
     <div className="p-4">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-            Totales Anuales por Empleado
-          </h3>
-          <p className="text-xs text-gray-500 dark:text-gray-400">
-            Resumen de dias trabajados, vacaciones y pendientes (solo meses publicados)
-          </p>
+          <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">{t('title')}</h3>
+          <p className="text-xs text-gray-500 dark:text-gray-400">{t('subtitle')}</p>
         </div>
         <div className="flex items-center gap-2">
-          <label className="text-xs text-gray-600 dark:text-gray-400">Año:</label>
+          <label className="text-xs text-gray-600 dark:text-gray-400">{t('year')}</label>
           <select
             value={selectedYear}
             onChange={(e) => setSelectedYear(Number(e.target.value))}
@@ -2015,7 +2046,7 @@ function TotalsTab() {
 function formatRuleValue(ruleType: EmployeeRuleType, value: string): string {
   switch (ruleType) {
     case 'shift_priority':
-      return value === 'M' ? 'Manana' : value === 'T' ? 'Tarde' : value
+      return value === 'M' ? 'Mañana' : value === 'T' ? 'Tarde' : value
     case 'fixed_days': {
       const dayNames = ['', 'Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab', 'Dom']
       return value
@@ -2024,7 +2055,7 @@ function formatRuleValue(ruleType: EmployeeRuleType, value: string): string {
         .join(', ')
     }
     case 'no_weekends':
-      return value === 'true' ? 'Si' : 'No'
+      return value === 'true' ? 'Sí' : 'No'
     case 'max_shift_per_month':
     case 'min_shift_per_month': {
       const [shift, count] = value.split(':')
@@ -2032,41 +2063,5 @@ function formatRuleValue(ruleType: EmployeeRuleType, value: string): string {
     }
     default:
       return value
-  }
-}
-
-function getRulePlaceholder(ruleType: EmployeeRuleType): string {
-  switch (ruleType) {
-    case 'shift_priority':
-      return 'M o T'
-    case 'max_shift_per_month':
-    case 'min_shift_per_month':
-      return 'T:5'
-    case 'fixed_days':
-      return '1,2,3,4,5'
-    case 'fixed_shift':
-      return 'P'
-    case 'no_weekends':
-      return 'true'
-    default:
-      return ''
-  }
-}
-
-function getRuleHelp(ruleType: EmployeeRuleType): string {
-  switch (ruleType) {
-    case 'shift_priority':
-      return 'M = Manana, T = Tarde'
-    case 'max_shift_per_month':
-    case 'min_shift_per_month':
-      return 'Formato: TURNO:CANTIDAD (ej: T:5)'
-    case 'fixed_days':
-      return '1=Lun, 2=Mar, 3=Mie, 4=Jue, 5=Vie, 6=Sab, 7=Dom'
-    case 'fixed_shift':
-      return 'Codigo del turno (M, T, N, P, etc)'
-    case 'no_weekends':
-      return 'true = no trabaja fines de semana'
-    default:
-      return ''
   }
 }

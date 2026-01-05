@@ -6,6 +6,7 @@ import { useEffect, useRef } from 'react'
 import type { SchedulingShift } from '@/app/lib/scheduling'
 import { getShiftClasses } from '@/app/lib/scheduling'
 import { FiX } from 'react-icons/fi'
+import { useTranslations } from 'next-intl'
 
 interface ShiftSelectorProps {
   shifts: SchedulingShift[]
@@ -28,6 +29,7 @@ export function ShiftSelector({
   onClose,
   isLoading = false,
 }: ShiftSelectorProps) {
+  const t = useTranslations('scheduling.shiftSelector')
   const ref = useRef<HTMLDivElement>(null)
 
   // Close on click outside
@@ -81,7 +83,9 @@ export function ShiftSelector({
       <div className="px-2.5 py-1.5 bg-gray-50 dark:bg-[#151b23] border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
         <div>
           <p className="text-xs font-medium text-gray-900 dark:text-gray-100">{employeeName}</p>
-          <p className="text-[10px] text-gray-500 dark:text-gray-400">Día {dayNumber}</p>
+          <p className="text-[10px] text-gray-500 dark:text-gray-400">
+            {t('day', { day: dayNumber })}
+          </p>
         </div>
         <button
           onClick={onClose}
@@ -103,7 +107,7 @@ export function ShiftSelector({
             {workShifts.length > 0 && (
               <div className="mb-1.5">
                 <p className="px-0.5 py-0.5 text-[9px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  Trabajo
+                  {t('work')}
                 </p>
                 <div className="flex flex-wrap gap-1">
                   {workShifts.map((shift) => (
@@ -122,7 +126,7 @@ export function ShiftSelector({
             {nonWorkShifts.length > 0 && (
               <div>
                 <p className="px-0.5 py-0.5 text-[9px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  Ausencias
+                  {t('absences')}
                 </p>
                 <div className="flex flex-wrap gap-1">
                   {nonWorkShifts.map((shift) => (

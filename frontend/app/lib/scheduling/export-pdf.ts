@@ -31,25 +31,31 @@ const DAY_NAMES: Record<string, string> = {
 
 // Shift colors for PDF - Matching Tailwind colors from shift-styles.ts (light mode)
 // Format: bg is {color}-100, text is {color}-800 (or {color}-600 for gray)
-const SHIFT_COLORS: Record<string, { bg: [number, number, number]; text: [number, number, number] }> = {
+const SHIFT_COLORS: Record<
+  string,
+  { bg: [number, number, number]; text: [number, number, number] }
+> = {
   // Work shifts
-  M: { bg: [0.86, 0.94, 0.83], text: [0.13, 0.39, 0.13] },  // green-100, green-800
-  T: { bg: [0.86, 0.92, 0.98], text: [0.12, 0.31, 0.55] },  // blue-100, blue-800
-  N: { bg: [1.0, 0.93, 0.84], text: [0.58, 0.27, 0.0] },    // orange-100, orange-800
-  P: { bg: [0.88, 0.87, 0.98], text: [0.24, 0.19, 0.52] },  // indigo-100, indigo-800
-  PI: { bg: [0.99, 0.98, 0.77], text: [0.51, 0.40, 0.05] }, // yellow-100, yellow-800
+  M: { bg: [0.86, 0.94, 0.83], text: [0.13, 0.39, 0.13] }, // green-100, green-800
+  T: { bg: [0.86, 0.92, 0.98], text: [0.12, 0.31, 0.55] }, // blue-100, blue-800
+  N: { bg: [1.0, 0.93, 0.84], text: [0.58, 0.27, 0.0] }, // orange-100, orange-800
+  P: { bg: [0.88, 0.87, 0.98], text: [0.24, 0.19, 0.52] }, // indigo-100, indigo-800
+  PI: { bg: [0.99, 0.98, 0.77], text: [0.51, 0.4, 0.05] }, // yellow-100, yellow-800
 
   // Non-work shifts (absences, days off)
-  B: { bg: [0.95, 0.90, 0.98], text: [0.42, 0.13, 0.53] },  // purple-100, purple-800
-  V: { bg: [0.99, 0.89, 0.89], text: [0.60, 0.11, 0.11] },  // red-100, red-800
-  L: { bg: [0.95, 0.96, 0.96], text: [0.29, 0.33, 0.38] },  // gray-100, gray-600
+  B: { bg: [0.95, 0.9, 0.98], text: [0.42, 0.13, 0.53] }, // purple-100, purple-800
+  V: { bg: [0.99, 0.89, 0.89], text: [0.6, 0.11, 0.11] }, // red-100, red-800
+  L: { bg: [0.95, 0.96, 0.96], text: [0.29, 0.33, 0.38] }, // gray-100, gray-600
   FO: { bg: [0.93, 0.98, 0.82], text: [0.26, 0.43, 0.04] }, // lime-100, lime-800
   IT: { bg: [0.99, 0.95, 0.82], text: [0.57, 0.35, 0.01] }, // amber-100, amber-800
-  E: { bg: [0.99, 0.88, 0.93], text: [0.60, 0.12, 0.39] },  // pink-100, pink-800
-  A: { bg: [1.0, 0.89, 0.89], text: [0.62, 0.12, 0.17] },   // rose-100, rose-800
+  E: { bg: [0.99, 0.88, 0.93], text: [0.6, 0.12, 0.39] }, // pink-100, pink-800
+  A: { bg: [1.0, 0.89, 0.89], text: [0.62, 0.12, 0.17] }, // rose-100, rose-800
 }
 
-const DEFAULT_SHIFT_COLOR = { bg: [0.95, 0.95, 0.95] as [number, number, number], text: [0.3, 0.3, 0.3] as [number, number, number] }
+const DEFAULT_SHIFT_COLOR = {
+  bg: [0.95, 0.95, 0.95] as [number, number, number],
+  text: [0.3, 0.3, 0.3] as [number, number, number],
+}
 
 /**
  * Export schedule to PDF file - Only the matrix with employees and full month
@@ -137,7 +143,7 @@ export async function downloadSchedulePdf(monthData: SchedulingMonthFull): Promi
     let xPos = margin + nameColWidth
     days.forEach((day: SchedulingDay) => {
       const isWeekend = day.dayOfWeek === 'S' || day.dayOfWeek === 'D'
-      
+
       page.drawRectangle({
         x: xPos,
         y: yPos - headerHeight,
@@ -251,7 +257,7 @@ export async function downloadSchedulePdf(monthData: SchedulingMonthFull): Promi
 
   // Generate filename and download
   const filename = `horarios-${monthName.toLowerCase()}-${year}.pdf`
-  
+
   const pdfBytes = await pdfDoc.save()
   const blob = new Blob([pdfBytes], { type: 'application/pdf' })
   const url = window.URL.createObjectURL(blob)

@@ -2,6 +2,7 @@
 
 'use client'
 
+import { useTranslations } from 'next-intl'
 import { useState, useCallback, useMemo } from 'react'
 import { useSearchParams, useRouter, usePathname } from 'next/navigation'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
@@ -38,6 +39,12 @@ interface SelectedCell {
 }
 
 export function SchedulingClient() {
+  const t = useTranslations('scheduling')
+  const tToasts = useTranslations('scheduling.toasts')
+  const tActions = useTranslations('scheduling.actions')
+  const tMessages = useTranslations('scheduling.messages')
+  const tStatus = useTranslations('scheduling.status')
+
   const queryClient = useQueryClient()
   const router = useRouter()
   const pathname = usePathname()
@@ -124,15 +131,14 @@ export function SchedulingClient() {
     onSuccess: (newMonth) => {
       queryClient.invalidateQueries({ queryKey: schedulingKeys.months() })
       setSelectedMonthId(newMonth.id)
-      toast.success('Planning mensual creado')
+      toast.success(tToasts('planningCreated'))
     },
     onError: (error: unknown) => {
-      // 409 = month already exists, just refresh the list
       if (error instanceof ApiError && error.status === 409) {
         queryClient.invalidateQueries({ queryKey: schedulingKeys.months() })
-        toast('Este mes ya existe', { icon: 'ℹ️' })
+        toast(t('monthExists'), { icon: 'ℹ️' })
       } else {
-        toast.error('Error al crear el planning')
+        toast.error(tToasts('planningCreateError'))
       }
     },
   })
@@ -143,7 +149,6 @@ export function SchedulingClient() {
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: schedulingKeys.month(selectedMonthId!) })
 
-      // Store warnings for display
       if (data.result.warnings && data.result.warnings.length > 0) {
         setGenerationWarnings({
           warnings: data.result.warnings,
@@ -159,20 +164,26 @@ export function SchedulingClient() {
           data.result.warnings?.filter((w) => w.severity === 'warning').length || 0
 
         if (errorCount > 0) {
-          toast.error(`Horarios generados con ${errorCount} error${errorCount > 1 ? 'es' : ''}`)
+          toast.error(
+            tToasts('generatedWithErrors', { count: errorCount, plural: errorCount > 1 ? 's' : '' })
+          )
         } else if (warningCount > 0) {
           toast.success(
-            `Horarios generados: ${data.result.assignmentsCount} asignaciones (${warningCount} advertencia${warningCount > 1 ? 's' : ''})`
+            tToasts('generatedWithWarnings', {
+              count: data.result.assignmentsCount,
+              warningCount,
+              warningPlural: warningCount > 1 ? 's' : '',
+            })
           )
         } else {
-          toast.success(`Horarios generados: ${data.result.assignmentsCount} asignaciones`)
+          toast.success(tToasts('generatedSuccess', { count: data.result.assignmentsCount }))
         }
       } else {
-        toast.error('Generación completada con errores')
+        toast.error(tToasts('generationCompletedWithErrors'))
       }
     },
     onError: () => {
-      toast.error('Error al generar horarios')
+      toast.error(tToasts('generationError'))
       setGenerationWarnings(null)
     },
   })
@@ -184,12 +195,11 @@ export function SchedulingClient() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: schedulingKeys.month(selectedMonthId!) })
       queryClient.invalidateQueries({ queryKey: schedulingKeys.months() })
-      // Invalidate annual totals when publishing (totals only count published months)
       queryClient.invalidateQueries({ queryKey: schedulingKeys.annualTotals(selectedYear) })
-      toast.success('Estado actualizado')
+      toast.success(tToasts('statusUpdated'))
     },
     onError: () => {
-      toast.error('Error al actualizar estado')
+      toast.error(tToasts('statusUpdateError'))
     },
   })
 
@@ -199,12 +209,11 @@ export function SchedulingClient() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: schedulingKeys.month(selectedMonthId!) })
       queryClient.invalidateQueries({ queryKey: schedulingKeys.months() })
-      // Invalidate annual totals when unpublishing (totals only count published months)
       queryClient.invalidateQueries({ queryKey: schedulingKeys.annualTotals(selectedYear) })
-      toast.success('Mes revertido a estado generado')
+      toast.success(tToasts('monthReverted'))
     },
     onError: () => {
-      toast.error('Error al revertir la publicación')
+      toast.error(tToasts('revertError'))
     },
   })
 
@@ -213,13 +222,10 @@ export function SchedulingClient() {
     mutationFn: ({ assignmentId, shiftCode }: { assignmentId: number; shiftCode: string }) =>
       schedulingApi.updateAssignment(assignmentId, { shiftCode }),
     onSuccess: async () => {
-      // First, wait for the cache to be invalidated and refetched
       await queryClient.invalidateQueries({ queryKey: schedulingKeys.month(selectedMonthId!) })
       setSelectedCell(null)
-      toast.success('Turno actualizado')
+      toast.success(tToasts('shiftUpdated'))
 
-      // Then revalidate schedule to update warnings after manual edit
-      // Small delay to ensure DB write is committed
       if (selectedMonthId) {
         setTimeout(async () => {
           try {
@@ -228,20 +234,19 @@ export function SchedulingClient() {
             if (allWarnings.length > 0) {
               setGenerationWarnings({
                 warnings: allWarnings,
-                generationTimeMs: 0, // Not from generation
+                generationTimeMs: 0,
               })
             } else {
               setGenerationWarnings(null)
             }
-          } catch (err) {
-            // Validation failed silently - warnings will be stale but UI still works
-            console.warn('Failed to revalidate schedule after edit:', err)
+          } catch {
+            console.warn('Failed to revalidate schedule after edit')
           }
         }, 100)
       }
     },
     onError: () => {
-      toast.error('Error al actualizar turno')
+      toast.error(tToasts('shiftUpdateError'))
     },
   })
 
@@ -305,12 +310,11 @@ export function SchedulingClient() {
   const handleShiftSelect = useCallback(
     (shiftCode: string) => {
       if (!selectedCell?.assignmentId) {
-        toast.error('No se puede actualizar: asignación no encontrada')
+        toast.error(tToasts('assignmentNotFound'))
         setSelectedCell(null)
         return
       }
 
-      // Don't update if same shift
       if (shiftCode === selectedCell.currentShiftCode) {
         setSelectedCell(null)
         return
@@ -329,22 +333,22 @@ export function SchedulingClient() {
       draft: {
         color:
           'bg-gray-100 text-gray-700 border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700',
-        label: 'Borrador',
+        label: tStatus('draft'),
       },
       generated: {
         color:
           'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-800',
-        label: 'Generado',
+        label: tStatus('generated'),
       },
       published: {
         color:
           'bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800',
-        label: 'Publicado',
+        label: tStatus('published'),
       },
       archived: {
         color:
           'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-900/20 dark:text-purple-400 dark:border-purple-800',
-        label: 'Archivado',
+        label: tStatus('archived'),
       },
     }
     return configs[status]
@@ -368,10 +372,10 @@ export function SchedulingClient() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
             <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">
-              Planificación de Horarios
+              {t('page.title')}
             </h1>
             <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-0.5">
-              Gestión de turnos del personal de recepción
+              {t('page.subtitle')}
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -381,14 +385,14 @@ export function SchedulingClient() {
               className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-gray-700 dark:text-gray-300 text-xs font-medium rounded-md border border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors disabled:opacity-50"
             >
               <FiRefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
-              Actualizar
+              {tActions('refresh')}
             </button>
             <Link
               href="/dashboard/scheduling/config"
               className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-gray-700 dark:text-gray-300 text-xs font-medium rounded-md border border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
             >
               <FiSettings className="w-3.5 h-3.5" />
-              Config
+              {tActions('configButton')}
             </Link>
           </div>
         </div>
@@ -423,7 +427,7 @@ export function SchedulingClient() {
                     className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-blue-600 dark:bg-blue-700 text-white text-xs font-medium rounded-md hover:bg-blue-700 dark:hover:bg-blue-800 transition-colors disabled:opacity-50"
                   >
                     <FiPlay className="w-3.5 h-3.5" />
-                    {generateMutation.isPending ? 'Generando...' : 'Generar Horarios'}
+                    {generateMutation.isPending ? tActions('generating') : tActions('generate')}
                   </button>
                 )}
 
@@ -435,14 +439,14 @@ export function SchedulingClient() {
                       className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-gray-700 dark:text-gray-300 text-xs font-medium rounded-md border border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors disabled:opacity-50"
                     >
                       <FiRefreshCw className="w-3.5 h-3.5" />
-                      Regenerar
+                      {tActions('regenerate')}
                     </button>
                     <button
                       onClick={() => monthData && downloadSchedulePdf(monthData)}
                       className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-gray-700 dark:text-gray-300 text-xs font-medium rounded-md border border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                     >
                       <FiDownload className="w-3.5 h-3.5" />
-                      Exportar PDF
+                      {tActions('exportPdf')}
                     </button>
                     <button
                       onClick={handlePublish}
@@ -450,7 +454,7 @@ export function SchedulingClient() {
                       className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-green-600 dark:bg-green-700 text-white text-xs font-medium rounded-md hover:bg-green-700 dark:hover:bg-green-800 transition-colors disabled:opacity-50"
                     >
                       <FiCheck className="w-3.5 h-3.5" />
-                      Publicar
+                      {tActions('publish')}
                     </button>
                   </>
                 )}
@@ -463,14 +467,14 @@ export function SchedulingClient() {
                       className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-orange-700 dark:text-orange-400 text-xs font-medium rounded-md border border-orange-300 dark:border-orange-700 hover:bg-orange-50 dark:hover:bg-orange-900/20 transition-colors disabled:opacity-50"
                     >
                       <FiRotateCcw className="w-3.5 h-3.5" />
-                      {unpublishMutation.isPending ? 'Revertiendo...' : 'Revertir'}
+                      {unpublishMutation.isPending ? tActions('reverting') : tActions('unpublish')}
                     </button>
                     <button
                       onClick={() => monthData && downloadSchedulePdf(monthData)}
                       className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-gray-700 dark:text-gray-300 text-xs font-medium rounded-md border border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                     >
                       <FiDownload className="w-3.5 h-3.5" />
-                      Exportar PDF
+                      {tActions('exportPdf')}
                     </button>
                   </>
                 )}
@@ -484,16 +488,18 @@ export function SchedulingClient() {
           <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-12 text-center">
             <FiCalendar className="w-12 h-12 mx-auto text-gray-400 dark:text-gray-600 mb-4" />
             <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">
-              Selecciona un mes
+              {tMessages('selectMonth')}
             </h3>
             <p className="text-xs text-gray-600 dark:text-gray-400 mb-4">
-              Elige un mes existente o crea uno nuevo para comenzar
+              {tMessages('selectMonthHint')}
             </p>
           </div>
         ) : loadingMonth ? (
           <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-12 text-center">
             <div className="inline-block h-8 w-8 animate-spin rounded-full border-[3px] border-solid border-blue-600 dark:border-blue-500 border-r-transparent"></div>
-            <p className="mt-3 text-xs text-gray-600 dark:text-gray-400">Cargando datos...</p>
+            <p className="mt-3 text-xs text-gray-600 dark:text-gray-400">
+              {tMessages('loadingData')}
+            </p>
           </div>
         ) : monthData ? (
           <div className="space-y-4">

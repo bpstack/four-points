@@ -5,6 +5,7 @@
 import { useMemo } from 'react'
 import type { SchedulingMonth } from '@/app/lib/scheduling'
 import { FiChevronLeft, FiChevronRight } from 'react-icons/fi'
+import { useTranslations } from 'next-intl'
 
 interface MonthSelectorProps {
   months: SchedulingMonth[]
@@ -16,36 +17,6 @@ interface MonthSelectorProps {
   loading?: boolean
 }
 
-const MONTH_NAMES = [
-  'Enero',
-  'Febrero',
-  'Marzo',
-  'Abril',
-  'Mayo',
-  'Junio',
-  'Julio',
-  'Agosto',
-  'Septiembre',
-  'Octubre',
-  'Noviembre',
-  'Diciembre',
-]
-
-const MONTH_NAMES_SHORT = [
-  'Ene',
-  'Feb',
-  'Mar',
-  'Abr',
-  'May',
-  'Jun',
-  'Jul',
-  'Ago',
-  'Sep',
-  'Oct',
-  'Nov',
-  'Dic',
-]
-
 export function MonthSelector({
   months,
   selectedMonthId,
@@ -55,6 +26,12 @@ export function MonthSelector({
   onCreateMonth,
   loading,
 }: MonthSelectorProps) {
+  const t = useTranslations('scheduling.monthSelector')
+  const tCalendar = useTranslations('common.calendar')
+
+  // Get month names from translations
+  const monthNames = tCalendar.raw('months') as string[]
+  const monthNamesShort = tCalendar.raw('monthsShort') as string[]
   // Create a map of existing months
   const monthsMap = useMemo(() => {
     const map: Record<number, SchedulingMonth> = {}
@@ -102,7 +79,7 @@ export function MonthSelector({
 
       {/* Month Pills */}
       <div className="flex flex-wrap gap-1.5">
-        {MONTH_NAMES_SHORT.map((name, index) => {
+        {monthNamesShort.map((name, index) => {
           const monthNum = index + 1
           const existingMonth = monthsMap[monthNum]
           const isSelected = existingMonth?.id === selectedMonthId
@@ -138,7 +115,7 @@ export function MonthSelector({
               onClick={() => onCreateMonth(monthNum)}
               disabled={loading}
               className="px-2.5 py-1.5 text-xs font-medium rounded-md border border-dashed border-gray-300 dark:border-gray-700 text-gray-400 dark:text-gray-600 hover:border-blue-400 hover:text-blue-500 dark:hover:border-blue-600 dark:hover:text-blue-400 transition-colors disabled:opacity-50"
-              title={`Crear ${MONTH_NAMES[index]} ${selectedYear}`}
+              title={t('createMonth', { month: monthNames[index], year: selectedYear })}
             >
               {name}
             </button>

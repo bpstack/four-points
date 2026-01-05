@@ -4,12 +4,15 @@
 
 import type { SchedulingShift } from '@/app/lib/scheduling'
 import { getShiftClasses } from '@/app/lib/scheduling'
+import { useTranslations } from 'next-intl'
 
 interface ShiftLegendProps {
   shifts: SchedulingShift[]
 }
 
 export function ShiftLegend({ shifts }: ShiftLegendProps) {
+  const t = useTranslations('scheduling.legend')
+
   // Group shifts by work/non-work
   const workShifts = shifts.filter((s) => s.isWorkShift)
   const nonWorkShifts = shifts.filter((s) => !s.isWorkShift)
@@ -20,7 +23,7 @@ export function ShiftLegend({ shifts }: ShiftLegendProps) {
         {/* Work Shifts */}
         <div className="flex items-center gap-2 flex-wrap">
           <span className="text-[10px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
-            Turnos:
+            {t('shifts')}
           </span>
           {workShifts.map((shift) => (
             <div key={shift.code} className="flex items-center gap-1">
@@ -37,7 +40,7 @@ export function ShiftLegend({ shifts }: ShiftLegendProps) {
         {/* Non-Work Shifts */}
         <div className="flex items-center gap-2 flex-wrap">
           <span className="text-[10px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
-            Ausencias:
+            {t('absences')}
           </span>
           {nonWorkShifts.map((shift) => (
             <div key={shift.code} className="flex items-center gap-1">

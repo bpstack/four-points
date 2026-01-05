@@ -4,12 +4,14 @@
 
 import type { SchedulingMonthFull } from '@/app/lib/scheduling'
 import { FiUsers, FiSun, FiMoon, FiClock } from 'react-icons/fi'
+import { useTranslations } from 'next-intl'
 
 interface ScheduleStatsProps {
   monthData: SchedulingMonthFull
 }
 
 export function ScheduleStats({ monthData }: ScheduleStatsProps) {
+  const t = useTranslations('scheduling.stats')
   const { employees, dailyStats } = monthData
 
   // Calculate totals
@@ -36,7 +38,7 @@ export function ScheduleStats({ monthData }: ScheduleStatsProps) {
         <div className="flex items-center justify-between">
           <div>
             <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 font-medium">
-              Empleados
+              {t('employees')}
             </p>
             <p className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 mt-0.5">
               {totalEmployees}
@@ -51,14 +53,14 @@ export function ScheduleStats({ monthData }: ScheduleStatsProps) {
         <div className="flex items-center justify-between">
           <div>
             <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 font-medium">
-              Turnos M
+              {t('morningShifts')}
             </p>
             <p className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 mt-0.5">
               {totalM}
             </p>
             {daysWithoutMorning > 0 && (
               <p className="text-[10px] text-red-500 dark:text-red-400">
-                {daysWithoutMorning} días sin cubrir
+                {t('daysWithoutMorning', { count: daysWithoutMorning })}
               </p>
             )}
           </div>
@@ -71,14 +73,14 @@ export function ScheduleStats({ monthData }: ScheduleStatsProps) {
         <div className="flex items-center justify-between">
           <div>
             <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 font-medium">
-              Turnos T
+              {t('afternoonShifts')}
             </p>
             <p className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 mt-0.5">
               {totalT}
             </p>
             {daysWithoutAfternoon > 0 && (
               <p className="text-[10px] text-red-500 dark:text-red-400">
-                {daysWithoutAfternoon} días sin cubrir
+                {t('daysWithoutAfternoon', { count: daysWithoutAfternoon })}
               </p>
             )}
           </div>
@@ -91,14 +93,14 @@ export function ScheduleStats({ monthData }: ScheduleStatsProps) {
         <div className="flex items-center justify-between">
           <div>
             <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 font-medium">
-              Turnos N
+              {t('nightShifts')}
             </p>
             <p className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 mt-0.5">
               {totalN}
             </p>
             {daysWithoutNight > 0 && (
               <p className="text-[10px] text-red-500 dark:text-red-400">
-                {daysWithoutNight} días sin cubrir
+                {t('daysWithoutNight', { count: daysWithoutNight })}
               </p>
             )}
           </div>
@@ -117,7 +119,7 @@ export function ScheduleStats({ monthData }: ScheduleStatsProps) {
         <div className="flex items-center justify-between">
           <div>
             <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 font-medium">
-              Cobertura
+              {t('coverage')}
             </p>
             <p
               className={`text-sm sm:text-base font-bold mt-0.5 ${
@@ -126,7 +128,7 @@ export function ScheduleStats({ monthData }: ScheduleStatsProps) {
                   : 'text-green-700 dark:text-green-400'
               }`}
             >
-              {hasCoverageIssues ? 'Incompleta' : 'Completa'}
+              {hasCoverageIssues ? t('incomplete') : t('complete')}
             </p>
           </div>
           <div

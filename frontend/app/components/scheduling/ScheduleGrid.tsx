@@ -2,6 +2,7 @@
 
 'use client'
 
+import { useTranslations } from 'next-intl'
 import { useMemo } from 'react'
 import type { SchedulingMonthFull, SchedulingShift, DayOfWeek } from '@/app/lib/scheduling'
 import { getShiftClasses } from '@/app/lib/scheduling'
@@ -44,6 +45,7 @@ export function ScheduleGrid({
   onCellClick,
   editable = false,
 }: ScheduleGridProps) {
+  const t = useTranslations('scheduling')
   const { days, employees, dailyStats } = monthData
 
   // Group days by week (reserved for future week view)
@@ -80,7 +82,7 @@ export function ScheduleGrid({
           <thead>
             <tr className="bg-gray-50 dark:bg-[#0d1117]">
               <th className="sticky left-0 z-20 bg-gray-50 dark:bg-[#0d1117] px-3 py-2 text-left text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider border-b border-r border-gray-200 dark:border-gray-700 min-w-[120px]">
-                Empleado
+                {t('grid.employee')}
               </th>
               {days.map((day) => (
                 <th
@@ -104,7 +106,7 @@ export function ScheduleGrid({
                 </th>
               ))}
               <th className="px-2 py-2 text-center text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider border-b border-l border-gray-200 dark:border-gray-700 min-w-[36px] bg-gray-100 dark:bg-gray-800/50">
-                Tot
+                {t('grid.total')}
               </th>
               {STATS_COLUMNS.map((col) => (
                 <th
@@ -125,7 +127,7 @@ export function ScheduleGrid({
                   colSpan={days.length + 2 + STATS_COLUMNS.length}
                   className="px-3 py-8 text-center text-xs text-gray-500 dark:text-gray-400"
                 >
-                  No hay empleados asignados. Genera los horarios para ver las asignaciones.
+                  {t('grid.noEmployees')}
                 </td>
               </tr>
             ) : (
@@ -171,7 +173,7 @@ export function ScheduleGrid({
                               ${editable ? 'cursor-pointer hover:scale-110 hover:shadow-md' : 'cursor-default'}
                               ${shiftClasses}
                             `}
-                            title={shiftCode ? shiftsMap[shiftCode]?.name : 'Sin asignar'}
+                            title={shiftCode ? shiftsMap[shiftCode]?.name : t('grid.unassigned')}
                           >
                             {shiftCode || '-'}
                           </button>
@@ -203,7 +205,7 @@ export function ScheduleGrid({
               <>
                 <tr className="bg-gray-100 dark:bg-[#161b22] border-t-2 border-gray-300 dark:border-gray-700">
                   <td className="sticky left-0 z-10 bg-gray-100 dark:bg-[#161b22] px-3 py-1.5 text-[10px] font-semibold text-gray-600 dark:text-gray-500 border-r border-gray-200 dark:border-gray-700">
-                    M (Mañana)
+                    {t('grid.morning')}
                   </td>
                   {dailyStats.map((stat, i) => (
                     <td key={i} className="px-0.5 py-1 text-center">
@@ -221,7 +223,7 @@ export function ScheduleGrid({
                 </tr>
                 <tr className="bg-gray-100 dark:bg-[#161b22]">
                   <td className="sticky left-0 z-10 bg-gray-100 dark:bg-[#161b22] px-3 py-1.5 text-[10px] font-semibold text-gray-600 dark:text-gray-500 border-r border-gray-200 dark:border-gray-700">
-                    T (Tarde)
+                    {t('grid.afternoon')}
                   </td>
                   {dailyStats.map((stat, i) => (
                     <td key={i} className="px-0.5 py-1 text-center">
@@ -238,7 +240,7 @@ export function ScheduleGrid({
                 </tr>
                 <tr className="bg-gray-100 dark:bg-[#161b22]">
                   <td className="sticky left-0 z-10 bg-gray-100 dark:bg-[#161b22] px-3 py-1.5 text-[10px] font-semibold text-gray-600 dark:text-gray-500 border-r border-gray-200 dark:border-gray-700">
-                    N (Noche)
+                    {t('grid.night')}
                   </td>
                   {dailyStats.map((stat, i) => (
                     <td key={i} className="px-0.5 py-1 text-center">
@@ -255,7 +257,7 @@ export function ScheduleGrid({
                 </tr>
                 <tr className="bg-gray-100 dark:bg-[#161b22]">
                   <td className="sticky left-0 z-10 bg-gray-100 dark:bg-[#161b22] px-3 py-1.5 text-[10px] font-semibold text-gray-600 dark:text-gray-500 border-r border-gray-200 dark:border-gray-700">
-                    PI (Partido I)
+                    {t('grid.internalSupport')}
                   </td>
                   {dailyStats.map((stat, i) => (
                     <td key={i} className="px-0.5 py-1 text-center">
@@ -272,7 +274,7 @@ export function ScheduleGrid({
                 </tr>
                 <tr className="bg-gray-100 dark:bg-[#161b22]">
                   <td className="sticky left-0 z-10 bg-gray-100 dark:bg-[#161b22] px-3 py-1.5 text-[10px] font-semibold text-gray-600 dark:text-gray-500 border-r border-gray-200 dark:border-gray-700">
-                    P (Partido)
+                    {t('grid.support')}
                   </td>
                   {dailyStats.map((stat, i) => (
                     <td key={i} className="px-0.5 py-1 text-center">
@@ -289,7 +291,7 @@ export function ScheduleGrid({
                 </tr>
                 <tr className="bg-gray-200 dark:bg-[#1c2128] border-t border-gray-300 dark:border-gray-700">
                   <td className="sticky left-0 z-10 bg-gray-200 dark:bg-[#1c2128] px-3 py-1.5 text-[10px] font-bold text-gray-700 dark:text-gray-400 border-r border-gray-200 dark:border-gray-700">
-                    TOTAL
+                    {t('grid.totalLabel')}
                   </td>
                   {dailyStats.map((stat, i) => {
                     const total = stat.M + stat.T + stat.N + (stat.PI || 0) + (stat.P || 0)
