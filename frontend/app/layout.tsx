@@ -83,6 +83,17 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       style={Object.keys(fontVars).length > 0 ? (fontVars as React.CSSProperties) : undefined}
     >
       <head>
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-ZYSZ6THVDW"></script>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('js', new Date());
+              gtag('config', 'G-ZYSZ6THVDW');
+            `,
+          }}
+        />
         {(needsPrimaryAlias || needsDisplayAlias) && (
           <style>{`
             :root {
