@@ -117,6 +117,7 @@
         "contact_added": "Contacto anadido",
         "room_added": "Habitacion anadida",
         "payment_added": "Pago registrado",
+        "payment_updated": "Pago actualizado",
         "default": "Accion en grupos"
       },
       "logbook": {

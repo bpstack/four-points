@@ -117,6 +117,7 @@
         "contact_added": "Contact added",
         "room_added": "Room added",
         "payment_added": "Payment recorded",
+        "payment_updated": "Payment updated",
         "default": "Groups action"
       },
       "logbook": {
