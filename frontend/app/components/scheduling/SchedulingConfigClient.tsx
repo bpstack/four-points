@@ -418,7 +418,7 @@ function AIStatusPanel({ selectedProvider }: AIStatusPanelProps) {
       const result = await schedulingApi.testAIConnection(selectedProvider)
       setTestResult(result)
       if (result.success) {
-        toast.success(tToasts('connectionSuccess', { provider: result.provider }))
+        toast.success(tToasts('connectionSuccess', { provider: result.provider || selectedProvider }))
       } else {
         toast.error(result.error || tToasts('connectionError'))
       }
