@@ -117,12 +117,15 @@
         "contact_added": "Contacto añadido",
         "room_added": "Habitación añadida",
         "payment_added": "Pago registrado",
+        "payment_updated": "Pago actualizado",
         "default": "Acción en grupos"
       },
       "logbook": {
         "create": "Entrada creada",
         "created": "Entrada creada",
+        "edit": "Entrada editada",
         "edited": "Entrada editada",
+        "update": "Entrada editada",
         "updated": "Entrada editada",
         "deleted": "Entrada eliminada",
         "solved": "Marcada resuelta",

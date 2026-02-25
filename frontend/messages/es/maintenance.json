@@ -45,7 +45,10 @@
     "allStatuses": "Todos los estados",
     "allPriorities": "Todas las prioridades",
     "allLocations": "Todas las ubicaciones",
-    "clearFilters": "Limpiar Filtros"
+    "fromDate": "Desde",
+    "toDate": "Hasta",
+    "clearFilters": "Limpiar Filtros",
+    "clearSearch": "Limpiar búsqueda"
   },
   "table": {
     "date": "Fecha",
