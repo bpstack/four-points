@@ -6,11 +6,12 @@ import type { GeneratorContext, ConstraintResult, GenerationWarning } from '../t
 
 /**
  * Rotation Continuity Constraint
- * 
+ *
  * Enforces rotation rules:
- * 1. If doing M, continue M within the week (same for T, N)
- * 2. M can transition to T, but T cannot transition to M
- * 3. M or T can only do N if they've done exactly 1 shift of M or T
+ * 1. T(day X) → M(day X+1) = ERROR (only 8h between shifts)
+ * 2. T → L → M = OK (rest between)
+ * 3. M → T = OK (16h between shifts)
+ * NOTE: "máx 1 M/T before N" rule does NOT exist - removed
  */
 export class RotationContinuityConstraint extends BaseConstraint {
   readonly name = 'rotation_continuity'
@@ -37,61 +38,28 @@ export class RotationContinuityConstraint extends BaseConstraint {
   }
 
   /**
-   * Check that within a week, an employee stays on their shift type
+   * Check weekly rotation - with block-based rotation, M and T can coexist
+   * in the same week (e.g. M block ends, rest, T block starts).
+   * The only real constraint is T→M on consecutive days (checked in checkTransitions).
+   * This method is kept for structural compatibility but no longer flags weekly mixing.
    */
   private checkWeeklyRotation(
-    employeeId: string,
-    employeeName: string,
-    empMatrix: Record<number, string>,
-    days: Array<{ dayNumber: number; weekNumber: number }>,
+    _employeeId: string,
+    _employeeName: string,
+    _empMatrix: Record<number, string>,
+    _days: Array<{ dayNumber: number; weekNumber: number }>,
     _context: GeneratorContext
   ): GenerationWarning[] {
-    const violations: GenerationWarning[] = []
-
-    // Group days by week
-    const weekMap = new Map<number, number[]>()
-    for (const day of days) {
-      const weekDays = weekMap.get(day.weekNumber) || []
-      weekDays.push(day.dayNumber)
-      weekMap.set(day.weekNumber, weekDays)
-    }
-
-    // Check each week
-    for (const [weekNum, weekDays] of weekMap) {
-      const shifts = weekDays.map((d) => empMatrix[d]).filter((s) => s)
-      
-      // Get work shifts (M, T, N) - ignore rest days and special shifts
-      const workShifts = shifts.filter((s) => ['M', 'T', 'N'].includes(s))
-      
-      if (workShifts.length === 0) continue
-
-      // Count each type
-      const mCount = workShifts.filter((s) => s === 'M').length
-
-      // If someone has M and T in the same week (and not transitioning), that's a problem
-      // But M->T transition IS allowed (just not T->M)
-      // So we check for mixed M/T only if there's a T->M pattern
-      
-      // For N: if doing N, should be in a night block, not mixed with M/T in same week
-      // (This is more of a validation than strict constraint since night blocks are assigned first)
-      
-      // The main issue: if employee started with T, they shouldn't have M later in week
-      const firstWorkShift = workShifts[0]
-      if (firstWorkShift === 'T' && mCount > 0) {
-        violations.push(
-          this.warn(
-            `${employeeName} tiene turno T y luego M en semana ${weekNum} - no permitido`,
-            { type: 'constraint', severity: 'error', employeeId, employeeName }
-          )
-        )
-      }
-    }
-
-    return violations
+    // With block-based rotation, having M and T in the same week is valid
+    // (e.g., M(Mon-Wed) + L(Thu-Fri) + T(Sat) in the same week)
+    // T→M on consecutive days is caught by checkTransitions
+    return []
   }
 
   /**
    * Check day-to-day shift transitions
+   * Only ERROR if T->M on consecutive days without rest
+   * If there's L, V, B, IT, E, FO between T and M -> OK
    */
   private checkTransitions(
     employeeId: string,
@@ -111,34 +79,20 @@ export class RotationContinuityConstraint extends BaseConstraint {
 
       if (!prevShift || !currShift) continue
 
-      // Rule: T cannot transition to M
-      if (prevShift === 'T' && currShift === 'M') {
+      // Rule: T→M only ERROR if consecutive days (no rest between)
+      // T(day X) → M(day X+1) = ERROR (only 8h between shifts)
+      // T(day X) → L/V/B... → M(day Y) = OK (rest between)
+      if (prevShift === 'T' && currShift === 'M' && currDay === prevDay + 1) {
         violations.push(
           this.warn(
-            `${employeeName} transición inválida T->M en día ${currDay}`,
+            `${employeeName}: T(día ${prevDay}) → M(día ${currDay}) = solo 8h entre turnos`,
             { type: 'constraint', severity: 'error', day: currDay, employeeId, employeeName }
           )
         )
       }
 
-      // Rule: Can only start N if you've done exactly 1 M or T shift before
-      // This checks if transitioning into N from M/T
-      if (currShift === 'N' && ['M', 'T'].includes(prevShift)) {
-        // Count M/T shifts before this day
-        const mtShiftsBefore = sortedDays
-          .filter((d) => d.dayNumber < currDay)
-          .map((d) => empMatrix[d.dayNumber])
-          .filter((s) => ['M', 'T'].includes(s)).length
-
-        if (mtShiftsBefore > 1) {
-          violations.push(
-            this.warn(
-              `${employeeName} transición a N en día ${currDay} con ${mtShiftsBefore} turnos M/T previos (máx 1)`,
-              { type: 'constraint', severity: 'warning', day: currDay, employeeId, employeeName }
-            )
-          )
-        }
-      }
+      // NOTE: "máx 1 M/T before N" rule REMOVED - it doesn't exist in reality
+      // Any employee can transition from M/T block to N block after rest
     }
 
     return violations
@@ -165,8 +119,8 @@ export class RotationContinuityConstraint extends BaseConstraint {
 
         if (!prevShift || !currShift) continue
 
-        // Fix T->M: change M to T
-        if (prevShift === 'T' && currShift === 'M') {
+        // Fix T->M only if consecutive days (no rest between)
+        if (prevShift === 'T' && currShift === 'M' && currDay === prevDay + 1) {
           empMatrix[currDay] = 'T'
           fixed = true
         }

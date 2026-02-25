@@ -4,7 +4,7 @@ import express, { Request, Response, NextFunction } from 'express'
 import cookieParser from 'cookie-parser'
 import cors from 'cors'
 import { PORT } from './config/config.js'
-import { logServerInfo, logAIStatus } from './config/startup-logger.js'
+import { logServerInfo } from './config/startup-logger.js'
 
 import { CronService } from './services/cron/cron-service.js'
 import authRoutes from './routes/auth/auth-routes.js'
@@ -193,6 +193,5 @@ app.use((err: HttpError, _req: Request, res: Response, _next: NextFunction) => {
 // ========================================
 app.listen(PORT, async () => {
   logServerInfo(PORT)
-  await logAIStatus()
   CronService.start()
 })

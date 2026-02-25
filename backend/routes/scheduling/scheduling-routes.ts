@@ -17,6 +17,7 @@ import {
   // Months
   getAllMonths,
   getMonthById,
+  getMonthInfo,
   createMonth,
   updateMonth,
   deleteMonth,
@@ -39,9 +40,9 @@ import {
   deleteEmployeeRule,
   // History
   getHistory,
-  // Generation
-  generateSchedule,
+  // Validation
   validateSchedule,
+  resetMonth,
   unpublishMonth,
   // Schedulable Employees
   getSchedulableEmployees,
@@ -60,9 +61,6 @@ import {
   calculateProportionalContract,
   // Annual Totals
   getAnnualTotals,
-  // AI
-  getAIStatus,
-  testAIConnection,
 } from '../../controllers/scheduling/scheduling-controller.js'
 
 // Middlewares
@@ -124,6 +122,9 @@ router.post('/months', isAdmin, createMonth)
 // GET - Get month by ID (full data)
 router.get('/months/:id', getMonthById)
 
+// GET - Get month info (rules and approved requests)
+router.get('/months/:id/info', getMonthInfo)
+
 // PUT - Update month (admin only)
 router.put('/months/:id', isAdmin, updateMonth)
 
@@ -131,17 +132,16 @@ router.put('/months/:id', isAdmin, updateMonth)
 router.delete('/months/:id', isAdmin, deleteMonth)
 
 // ========================================
-// GENERATION ROUTES
+// VALIDATION ROUTES
 // ========================================
-
-// POST - Generate schedule (admin only)
-// TODO: Add rate limiting in production (e.g., 5 requests/hour per user)
-router.post('/months/:id/generate', isAdmin, generateSchedule)
 
 // POST - Validate schedule
 router.post('/months/:id/validate', validateSchedule)
 
-// POST - Unpublish month (revert to generated) (admin only)
+// POST - Reset month (clear assignments, re-load approved constraints)
+router.post('/months/:id/reset', isAdmin, resetMonth)
+
+// POST - Unpublish month (revert to draft) (admin only)
 router.post('/months/:id/unpublish', isAdmin, unpublishMonth)
 
 // ========================================
@@ -260,14 +260,5 @@ router.delete('/contracts/:id', isAdmin, deleteContract)
 // GET - Get annual totals for a year (calculated from published months)
 router.get('/totals/:year', getAnnualTotals)
 
-// ========================================
-// AI ROUTES
-// ========================================
-
-// GET - Get AI status and configuration
-router.get('/ai/status', getAIStatus)
-
-// POST - Test AI connection (admin only)
-router.post('/ai/test', isAdmin, testAIConnection)
-
+// Annual totals route already handled above
 export default router

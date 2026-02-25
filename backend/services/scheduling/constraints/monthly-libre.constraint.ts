@@ -9,8 +9,8 @@ import { countLibreDays, countShiftForEmployee } from '../utils/matrix.js'
  * Monthly Libre Constraint
  *
  * Rules:
- * - Minimum 8 libre days per month (includes V, B, IT, E, FO)
- * - Maximum 12 libre days per month (to ensure adequate work contribution)
+ * - Minimum 7 libre days per month (includes V, B, IT, E, FO)
+ * - Maximum 10 libre days per month (to ensure adequate work contribution)
  * - Libre types: L (regular), V (vacation), B (holiday), IT (sick leave), E (sick day), FO (training)
  */
 export class MonthlyLibreConstraint extends BaseConstraint {
@@ -18,10 +18,10 @@ export class MonthlyLibreConstraint extends BaseConstraint {
   readonly priority = 70 // Medium-high priority
 
   /** Default minimum libre days per month */
-  private readonly DEFAULT_MIN_LIBRE = 8
+  private readonly DEFAULT_MIN_LIBRE = 7
 
   /** Default maximum libre days per month */
-  private readonly DEFAULT_MAX_LIBRE = 12
+  private readonly DEFAULT_MAX_LIBRE = 10
 
   check(context: GeneratorContext): ConstraintResult {
     const violations: GenerationWarning[] = []

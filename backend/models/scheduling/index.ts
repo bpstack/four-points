@@ -17,7 +17,7 @@ import { RowDataPacket, ResultSetHeader } from 'mysql2'
 // ENUMS
 // ============================================
 
-export type MonthStatus = 'draft' | 'generated' | 'published' | 'archived'
+export type MonthStatus = 'draft' | 'published'
 
 export type ConstraintType =
   | 'vacation'
@@ -42,7 +42,6 @@ export type EmployeeRuleType =
 
 export type HistoryAction =
   | 'created'
-  | 'generated'
   | 'published'
   | 'unpublished'
   | 'assignment_changed'
@@ -50,6 +49,7 @@ export type HistoryAction =
   | 'constraint_approved'
   | 'constraint_rejected'
   | 'manual_edit'
+  | 'reset'
 
 export type DayOfWeek = 'L' | 'M' | 'X' | 'J' | 'V' | 'S' | 'D'
 
@@ -97,14 +97,11 @@ export interface SchedulingEmployeeRuleRow extends RowDataPacket {
   updated_at: Date
 }
 
-// scheduling_months
 export interface SchedulingMonthRow extends RowDataPacket {
   id: number
   year: number
   month: number
   status: MonthStatus
-  generated_at: Date | null
-  generated_by: string | null
   published_at: Date | null
   published_by: string | null
   notes: string | null
@@ -131,14 +128,13 @@ export interface SchedulingDayRow extends RowDataPacket {
   updated_at: Date
 }
 
-// scheduling_assignments
 export interface SchedulingAssignmentRow extends RowDataPacket {
   id: number
   month_id: number
   day_id: number
   employee_id: string
   shift_code: string
-  is_manual: number
+  source_constraint_id: number | null
   notes: string | null
   created_at: Date
   updated_at: Date
@@ -184,7 +180,6 @@ export interface SchedulingHistoryRow extends RowDataPacket {
 
 export interface SchedulingMonthWithCreator extends SchedulingMonthRow {
   created_by_name: string | null
-  generated_by_name: string | null
   published_by_name: string | null
 }
 
@@ -221,8 +216,6 @@ export interface CreateMonthDTO {
 export interface UpdateMonthDTO {
   status?: MonthStatus
   notes?: string | null
-  generated_at?: Date | null
-  generated_by?: string | null
   published_at?: Date | null
   published_by?: string | null
 }
@@ -257,13 +250,13 @@ export interface CreateAssignmentDTO {
   day_id: number
   employee_id: string
   shift_code: string
-  is_manual?: boolean
+  source_constraint_id?: number | null
   notes?: string | null
 }
 
 export interface UpdateAssignmentDTO {
   shift_code?: string
-  is_manual?: boolean
+  source_constraint_id?: number | null
   notes?: string | null
 }
 
@@ -271,6 +264,7 @@ export interface BulkAssignmentDTO {
   day_id: number
   employee_id: string
   shift_code: string
+  source_constraint_id?: number | null
 }
 
 // Constraint
@@ -374,7 +368,6 @@ export interface SchedulingAssignment {
   dayId: number
   employeeId: string
   shiftCode: string
-  isManual: boolean
   notes: string | null
 }
 
@@ -424,7 +417,7 @@ export interface EmployeeSchedule {
     [dayNumber: number]: {
       id: number
       shiftCode: string
-      isManual: boolean
+      sourceConstraintId?: number | null
       notes: string | null
     }
   }
@@ -445,8 +438,6 @@ export interface FullMonthResponse {
   year: number
   month: number
   status: MonthStatus
-  generatedAt: string | null
-  generatedBy: string | null
   publishedAt: string | null
   publishedBy: string | null
   notes: string | null
@@ -461,9 +452,7 @@ export interface FullMonthResponse {
 // ============================================
 
 export interface GenerationOptions {
-  useAI?: boolean
   forceRegenerate?: boolean
-  aiProvider?: 'none' | 'claude' | 'gemini' | 'ollama' | 'openai'
 }
 
 export interface GenerationWarning {
@@ -501,10 +490,10 @@ export interface ValidationResult {
 export interface SchedulingConfigMap {
   minMorningStaff: number
   prefMorningStaff: number
-  maxMorningStaff: number      // NEW: Máximo 2 personas turno mañana
+  maxMorningStaff: number // NEW: Máximo 2 personas turno mañana
   minAfternoonStaff: number
   prefAfternoonStaff: number
-  maxAfternoonStaff: number    // NEW: Máximo 2 personas turno tarde
+  maxAfternoonStaff: number // NEW: Máximo 2 personas turno tarde
   minNightStaff: number
   maxNightStaff: number
   maxWeeklyShifts: number
@@ -516,12 +505,11 @@ export interface SchedulingConfigMap {
   annualVacationDays: number
   annualHolidays: number
   annualFreeDays: number
-  aiProvider: 'none' | 'claude' | 'gemini' | 'ollama' | 'openai'
   // New validations
-  minMonthlyLibre: number      // 8 - Mínimo libres al mes
-  maxMonthlyLibre: number      // 12 - Máximo libres al mes
+  minMonthlyLibre: number // 8 - Mínimo libres al mes
+  maxMonthlyLibre: number // 12 - Máximo libres al mes
   maxConsecutiveWorkDays: number // 6 - Máximo días consecutivos de trabajo
-  minConsecutiveLibre: number  // 2 - Mínimo días libres consecutivos por semana
+  minConsecutiveLibre: number // 2 - Mínimo días libres consecutivos por semana
 }
 
 // ============================================
@@ -600,7 +588,7 @@ export interface EmployeeAnnualTotals {
   employeeId: string
   employeeName: string
   year: number
-  
+
   // Datos de convenio (lo que debería trabajar)
   convenio: {
     diasTrabajo: number
@@ -612,7 +600,7 @@ export interface EmployeeAnnualTotals {
     diasLaborablesAno: number
     observaciones: string | null
   }
-  
+
   // Disfrutados (lo que ya ha trabajado/disfrutado)
   disfrutados: {
     diasTrabajados: number
@@ -632,7 +620,7 @@ export interface EmployeeAnnualTotals {
     E: number
     A: number
   }
-  
+
   // Pendiente hasta final de año
   pendiente: {
     diasATrabaja: number
@@ -643,7 +631,7 @@ export interface EmployeeAnnualTotals {
     diasBonificables: number
     total: number
   }
-  
+
   // Meses incluidos en el cálculo
   mesesIncluidos: number
   ultimoMesCalculado: { year: number; month: number } | null

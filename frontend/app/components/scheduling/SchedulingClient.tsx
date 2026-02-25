@@ -14,17 +14,18 @@ import { MonthSelector } from './MonthSelector'
 import { ScheduleStats } from './ScheduleStats'
 import { ShiftLegend } from './ShiftLegend'
 import { ShiftSelector } from './ShiftSelector'
-import { GenerationWarnings } from './GenerationWarnings'
+import { ValidationWarnings } from './ValidationWarnings'
+import { MonthInfoPanel } from './MonthInfoPanel'
 import toast from 'react-hot-toast'
 import Link from 'next/link'
 import {
   FiCalendar,
-  FiPlay,
   FiCheck,
   FiSettings,
   FiDownload,
   FiRefreshCw,
   FiRotateCcw,
+  FiTrash2,
 } from 'react-icons/fi'
 
 // Cell selection state for editing
@@ -61,10 +62,9 @@ export function SchedulingClient() {
   // Local state for cell selection (doesn't need URL persistence)
   const [selectedCell, setSelectedCell] = useState<SelectedCell | null>(null)
 
-  // State for generation warnings
-  const [generationWarnings, setGenerationWarnings] = useState<{
+  // State for validation warnings
+  const [validationWarnings, setValidationWarnings] = useState<{
     warnings: GenerationWarning[]
-    generationTimeMs: number
   } | null>(null)
 
   // Update URL when year changes
@@ -133,58 +133,24 @@ export function SchedulingClient() {
       setSelectedMonthId(newMonth.id)
       toast.success(tToasts('planningCreated'))
     },
-    onError: (error: unknown) => {
+    onError: async (error: unknown) => {
       if (error instanceof ApiError && error.status === 409) {
-        queryClient.invalidateQueries({ queryKey: schedulingKeys.months() })
-        toast(t('monthExists'), { icon: 'ℹ️' })
+        await queryClient.invalidateQueries({ queryKey: schedulingKeys.months() })
+        const months = await queryClient.fetchQuery({
+          queryKey: schedulingKeys.monthsList({ year: selectedYear }),
+          queryFn: () => schedulingApi.getAllMonths({ year: selectedYear }),
+        })
+        const monthNumber = parseInt(searchParams.get('month') || String(new Date().getMonth() + 1))
+        const existingMonth = months?.months.find((m: any) => m.month === monthNumber)
+        if (existingMonth) {
+          setSelectedMonthId(existingMonth.id)
+          toast.success(tToasts('monthExists'))
+        } else {
+          toast.error(tToasts('planningCreateError'))
+        }
       } else {
         toast.error(tToasts('planningCreateError'))
       }
-    },
-  })
-
-  // Generate schedule mutation
-  const generateMutation = useMutation({
-    mutationFn: (monthId: number) => schedulingApi.generateSchedule(monthId),
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: schedulingKeys.month(selectedMonthId!) })
-
-      if (data.result.warnings && data.result.warnings.length > 0) {
-        setGenerationWarnings({
-          warnings: data.result.warnings,
-          generationTimeMs: data.result.generationTimeMs,
-        })
-      } else {
-        setGenerationWarnings(null)
-      }
-
-      if (data.result.success) {
-        const errorCount = data.result.warnings?.filter((w) => w.severity === 'error').length || 0
-        const warningCount =
-          data.result.warnings?.filter((w) => w.severity === 'warning').length || 0
-
-        if (errorCount > 0) {
-          toast.error(
-            tToasts('generatedWithErrors', { count: errorCount, plural: errorCount > 1 ? 's' : '' })
-          )
-        } else if (warningCount > 0) {
-          toast.success(
-            tToasts('generatedWithWarnings', {
-              count: data.result.assignmentsCount,
-              warningCount,
-              warningPlural: warningCount > 1 ? 's' : '',
-            })
-          )
-        } else {
-          toast.success(tToasts('generatedSuccess', { count: data.result.assignmentsCount }))
-        }
-      } else {
-        toast.error(tToasts('generationCompletedWithErrors'))
-      }
-    },
-    onError: () => {
-      toast.error(tToasts('generationError'))
-      setGenerationWarnings(null)
     },
   })
 
@@ -232,12 +198,11 @@ export function SchedulingClient() {
             const validationResult = await schedulingApi.validateSchedule(selectedMonthId)
             const allWarnings = [...validationResult.errors, ...validationResult.warnings]
             if (allWarnings.length > 0) {
-              setGenerationWarnings({
+              setValidationWarnings({
                 warnings: allWarnings,
-                generationTimeMs: 0,
               })
             } else {
-              setGenerationWarnings(null)
+              setValidationWarnings(null)
             }
           } catch {
             console.warn('Failed to revalidate schedule after edit')
@@ -257,14 +222,28 @@ export function SchedulingClient() {
     [createMonthMutation, selectedYear]
   )
 
-  const handleGenerate = useCallback(() => {
+  // Reset month mutation
+  const resetMutation = useMutation({
+    mutationFn: (monthId: number) => schedulingApi.resetMonth(monthId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: schedulingKeys.month(selectedMonthId!) })
+      toast.success(tToasts('resetSuccess'))
+    },
+    onError: () => {
+      toast.error(tToasts('resetError'))
+    },
+  })
+
+  const handleReset = useCallback(() => {
     if (selectedMonthId) {
-      generateMutation.mutate(selectedMonthId)
+      if (confirm(tActions('resetConfirm'))) {
+        resetMutation.mutate(selectedMonthId)
+      }
     }
-  }, [generateMutation, selectedMonthId])
+  }, [resetMutation, selectedMonthId])
 
   const handlePublish = useCallback(() => {
-    if (selectedMonthId && monthData?.status === 'generated') {
+    if (selectedMonthId && monthData?.status === 'draft') {
       updateStatusMutation.mutate({ id: selectedMonthId, status: 'published' })
     }
   }, [updateStatusMutation, selectedMonthId, monthData?.status])
@@ -274,6 +253,27 @@ export function SchedulingClient() {
       unpublishMutation.mutate(selectedMonthId)
     }
   }, [unpublishMutation, selectedMonthId, monthData?.status])
+
+  // Delete month mutation
+  const deleteMonthMutation = useMutation({
+    mutationFn: (monthId: number) => schedulingApi.deleteMonth(monthId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: schedulingKeys.months() })
+      setSelectedMonthId(null)
+      toast.success(tToasts('monthDeleted'))
+    },
+    onError: () => {
+      toast.error(tToasts('monthDeleteError'))
+    },
+  })
+
+  const handleDeleteMonth = useCallback(() => {
+    if (selectedMonthId) {
+      if (confirm(tActions('deleteMonthConfirm'))) {
+        deleteMonthMutation.mutate(selectedMonthId)
+      }
+    }
+  }, [deleteMonthMutation, selectedMonthId])
 
   // Handle cell click to open shift selector
   const handleCellClick = useCallback(
@@ -335,20 +335,11 @@ export function SchedulingClient() {
           'bg-gray-100 text-gray-700 border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700',
         label: tStatus('draft'),
       },
-      generated: {
-        color:
-          'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-800',
-        label: tStatus('generated'),
-      },
+
       published: {
         color:
           'bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800',
         label: tStatus('published'),
-      },
-      archived: {
-        color:
-          'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-900/20 dark:text-purple-400 dark:border-purple-800',
-        label: tStatus('archived'),
       },
     }
     return configs[status]
@@ -380,7 +371,7 @@ export function SchedulingClient() {
           </div>
           <div className="flex items-center gap-2">
             <button
-              onClick={() => refetchMonth()}
+              onClick={() => window.location.reload()}
               disabled={!selectedMonthId || loading}
               className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-gray-700 dark:text-gray-300 text-xs font-medium rounded-md border border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors disabled:opacity-50"
             >
@@ -421,32 +412,14 @@ export function SchedulingClient() {
 
                 {/* Action Buttons */}
                 {monthData.status === 'draft' && (
-                  <button
-                    onClick={handleGenerate}
-                    disabled={generateMutation.isPending}
-                    className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-blue-600 dark:bg-blue-700 text-white text-xs font-medium rounded-md hover:bg-blue-700 dark:hover:bg-blue-800 transition-colors disabled:opacity-50"
-                  >
-                    <FiPlay className="w-3.5 h-3.5" />
-                    {generateMutation.isPending ? tActions('generating') : tActions('generate')}
-                  </button>
-                )}
-
-                {monthData.status === 'generated' && (
                   <>
                     <button
-                      onClick={handleGenerate}
-                      disabled={generateMutation.isPending}
-                      className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-gray-700 dark:text-gray-300 text-xs font-medium rounded-md border border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors disabled:opacity-50"
+                      onClick={handleReset}
+                      disabled={resetMutation.isPending}
+                      className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-orange-700 dark:text-orange-400 text-xs font-medium rounded-md border border-orange-300 dark:border-orange-700 hover:bg-orange-50 dark:hover:bg-orange-900/20 transition-colors disabled:opacity-50"
                     >
-                      <FiRefreshCw className="w-3.5 h-3.5" />
-                      {tActions('regenerate')}
-                    </button>
-                    <button
-                      onClick={() => monthData && downloadSchedulePdf(monthData)}
-                      className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-gray-700 dark:text-gray-300 text-xs font-medium rounded-md border border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-                    >
-                      <FiDownload className="w-3.5 h-3.5" />
-                      {tActions('exportPdf')}
+                      <FiRotateCcw className="w-3.5 h-3.5" />
+                      {resetMutation.isPending ? tActions('resetting') : tActions('reset')}
                     </button>
                     <button
                       onClick={handlePublish}
@@ -478,6 +451,16 @@ export function SchedulingClient() {
                     </button>
                   </>
                 )}
+
+                {/* Delete Month Button */}
+                <button
+                  onClick={handleDeleteMonth}
+                  disabled={deleteMonthMutation.isPending}
+                  className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-red-700 dark:text-red-400 text-xs font-medium rounded-md border border-red-300 dark:border-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors disabled:opacity-50"
+                >
+                  <FiTrash2 className="w-3.5 h-3.5" />
+                  {deleteMonthMutation.isPending ? tActions('deleting') : tActions('delete')}
+                </button>
               </div>
             )}
           </div>
@@ -503,17 +486,19 @@ export function SchedulingClient() {
           </div>
         ) : monthData ? (
           <div className="space-y-4">
-            {/* Generation Warnings */}
-            {generationWarnings && generationWarnings.warnings.length > 0 && (
-              <GenerationWarnings
-                warnings={generationWarnings.warnings}
-                generationTimeMs={generationWarnings.generationTimeMs}
-                onDismiss={() => setGenerationWarnings(null)}
+            {/* Validation Warnings */}
+            {validationWarnings && validationWarnings.warnings.length > 0 && (
+              <ValidationWarnings
+                warnings={validationWarnings.warnings}
+                onDismiss={() => setValidationWarnings(null)}
               />
             )}
 
             {/* Stats Summary */}
             <ScheduleStats monthData={monthData} />
+
+            {/* Month Info Panel */}
+            <MonthInfoPanel monthId={selectedMonthId!} />
 
             {/* Shift Legend */}
             <ShiftLegend shifts={shifts} />
@@ -523,7 +508,7 @@ export function SchedulingClient() {
               monthData={monthData}
               shiftsMap={shiftsMap}
               onCellClick={handleCellClick}
-              editable={monthData.status !== 'published' && monthData.status !== 'archived'}
+              editable={monthData.status !== 'published'}
             />
           </div>
         ) : null}

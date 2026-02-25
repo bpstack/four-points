@@ -207,11 +207,12 @@ describe('ConsecutiveRestConstraint', () => {
     employee = createMockEmployee('emp1', 'Maria')
   })
 
-  it('should pass when employee has 2 consecutive libre days per week', () => {
+  it('should pass when every 7-day rolling window has 2 consecutive rest days', () => {
+    // Rest on days 5-6 and 11-12 → every window [1-7]..[8-14] has a consecutive pair
     const matrix: ScheduleMatrix = {
       emp1: {
-        1: 'M', 2: 'M', 3: 'M', 4: 'M', 5: 'M', 6: 'L', 7: 'L',
-        8: 'T', 9: 'T', 10: 'T', 11: 'T', 12: 'T', 13: 'L', 14: 'L',
+        1: 'M', 2: 'M', 3: 'M', 4: 'M', 5: 'L', 6: 'L', 7: 'T',
+        8: 'T', 9: 'T', 10: 'T', 11: 'L', 12: 'L', 13: 'M', 14: 'M',
       },
     }
     const context = createMockContext(matrix, [employee], days)
@@ -219,17 +220,18 @@ describe('ConsecutiveRestConstraint', () => {
     expect(result.satisfied).toBe(true)
   })
 
-  it('should fail when employee has only 1 libre day in a week', () => {
+  it('should fail when a rolling 7-day window has no 2 consecutive rest days', () => {
+    // Scattered single rest days → no 7-day window has 2 consecutive rest
     const matrix: ScheduleMatrix = {
       emp1: {
-        1: 'M', 2: 'M', 3: 'M', 4: 'M', 5: 'M', 6: 'M', 7: 'L',
-        8: 'T', 9: 'T', 10: 'T', 11: 'T', 12: 'T', 13: 'L', 14: 'L',
+        1: 'M', 2: 'L', 3: 'M', 4: 'M', 5: 'L', 6: 'M', 7: 'M',
+        8: 'L', 9: 'T', 10: 'T', 11: 'L', 12: 'T', 13: 'T', 14: 'L',
       },
     }
     const context = createMockContext(matrix, [employee], days)
     const result = constraint.check(context)
     expect(result.satisfied).toBe(false)
-    expect(result.violations).toHaveLength(1)
+    expect(result.violations.length).toBeGreaterThanOrEqual(1)
   })
 
   it('should fail when libre days are not consecutive', () => {
@@ -245,10 +247,11 @@ describe('ConsecutiveRestConstraint', () => {
   })
 
   it('should count vacation (V) as rest', () => {
+    // V on days 5-6, L on days 11-12 → every window has consecutive rest
     const matrix: ScheduleMatrix = {
       emp1: {
-        1: 'M', 2: 'M', 3: 'M', 4: 'M', 5: 'M', 6: 'V', 7: 'V',
-        8: 'T', 9: 'T', 10: 'T', 11: 'T', 12: 'T', 13: 'L', 14: 'L',
+        1: 'M', 2: 'M', 3: 'M', 4: 'M', 5: 'V', 6: 'V', 7: 'T',
+        8: 'T', 9: 'T', 10: 'T', 11: 'L', 12: 'L', 13: 'M', 14: 'M',
       },
     }
     const context = createMockContext(matrix, [employee], days)
@@ -257,10 +260,11 @@ describe('ConsecutiveRestConstraint', () => {
   })
 
   it('should count holiday (B) as rest', () => {
+    // B+L on days 5-6, L+L on days 11-12 → every window has consecutive rest
     const matrix: ScheduleMatrix = {
       emp1: {
-        1: 'M', 2: 'M', 3: 'M', 4: 'M', 5: 'M', 6: 'L', 7: 'B',
-        8: 'T', 9: 'T', 10: 'T', 11: 'T', 12: 'T', 13: 'L', 14: 'L',
+        1: 'M', 2: 'M', 3: 'M', 4: 'M', 5: 'B', 6: 'L', 7: 'T',
+        8: 'T', 9: 'T', 10: 'T', 11: 'L', 12: 'L', 13: 'M', 14: 'M',
       },
     }
     const context = createMockContext(matrix, [employee], days)
@@ -269,10 +273,11 @@ describe('ConsecutiveRestConstraint', () => {
   })
 
   it('should count sick leave (IT) as rest', () => {
+    // IT+IT on days 5-6, L+L on days 11-12 → every window has consecutive rest
     const matrix: ScheduleMatrix = {
       emp1: {
-        1: 'M', 2: 'M', 3: 'M', 4: 'M', 5: 'M', 6: 'IT', 7: 'IT',
-        8: 'T', 9: 'T', 10: 'T', 11: 'T', 12: 'T', 13: 'L', 14: 'L',
+        1: 'M', 2: 'M', 3: 'M', 4: 'M', 5: 'IT', 6: 'IT', 7: 'T',
+        8: 'T', 9: 'T', 10: 'T', 11: 'L', 12: 'L', 13: 'M', 14: 'M',
       },
     }
     const context = createMockContext(matrix, [employee], days)

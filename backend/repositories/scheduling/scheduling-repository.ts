@@ -108,7 +108,6 @@ export async function getConfigMap(): Promise<SchedulingConfigMap> {
     annualVacationDays: parseInt(map['annual_vacation_days'] || '30'),
     annualHolidays: parseInt(map['annual_holidays'] || '14'),
     annualFreeDays: parseInt(map['annual_free_days'] || '95'),
-    aiProvider: (map['ai_provider'] as 'none' | 'claude' | 'gemini' | 'ollama' | 'openai') || 'none',
     // New validations with defaults from business rules
     minMonthlyLibre: parseInt(map['min_monthly_libre'] || '8'),
     maxMonthlyLibre: parseInt(map['max_monthly_libre'] || '12'),
@@ -268,11 +267,9 @@ export async function getAllMonths(
     SELECT 
       m.*,
       u1.username as created_by_name,
-      u2.username as generated_by_name,
       u3.username as published_by_name
     FROM scheduling_months m
     LEFT JOIN users u1 ON m.created_by = u1.id
-    LEFT JOIN users u2 ON m.generated_by = u2.id
     LEFT JOIN users u3 ON m.published_by = u3.id
     WHERE 1=1
   `
@@ -300,11 +297,9 @@ export async function getMonthById(id: number): Promise<SchedulingMonthWithCreat
     `SELECT 
       m.*,
       u1.username as created_by_name,
-      u2.username as generated_by_name,
       u3.username as published_by_name
     FROM scheduling_months m
     LEFT JOIN users u1 ON m.created_by = u1.id
-    LEFT JOIN users u2 ON m.generated_by = u2.id
     LEFT JOIN users u3 ON m.published_by = u3.id
     WHERE m.id = ?`,
     [id]
@@ -340,22 +335,26 @@ export async function getPreviousMonthEndAssignments(
     prevMonth = 12
     prevYear = year - 1
   }
-  
+
   // Get the previous month record
   const prevMonthRecord = await getMonthByYearMonth(prevYear, prevMonth)
   if (!prevMonthRecord) {
     return [] // No previous month exists
   }
-  
+
   // CRITICAL: Only use PUBLISHED months for continuity
   // This ensures rotation continues from stable, approved schedules
   if (prevMonthRecord.status !== 'published') {
-    console.log(`[getPreviousMonthEndAssignments] Previous month ${prevYear}-${prevMonth} is ${prevMonthRecord.status}, not published - skipping continuity`)
+    console.log(
+      `[getPreviousMonthEndAssignments] Previous month ${prevYear}-${prevMonth} is ${prevMonthRecord.status}, not published - skipping continuity`
+    )
     return []
   }
-  
-  console.log(`[getPreviousMonthEndAssignments] Using published month ${prevYear}-${prevMonth} for continuity`)
-  
+
+  console.log(
+    `[getPreviousMonthEndAssignments] Using published month ${prevYear}-${prevMonth} for continuity`
+  )
+
   // Get assignments for last N days of previous month
   const [rows] = await db.execute<RowDataPacket[]>(
     `SELECT 
@@ -370,12 +369,12 @@ export async function getPreviousMonthEndAssignments(
     ORDER BY d.day_number DESC, a.employee_id`,
     [prevMonthRecord.id, lastNDays, prevMonthRecord.id]
   )
-  
-  return rows.map(r => ({
+
+  return rows.map((r) => ({
     employeeId: r.employeeId,
     dayNumber: r.dayNumber,
     shiftCode: r.shiftCode,
-    date: new Date(r.date)
+    date: new Date(r.date),
   }))
 }
 
@@ -400,14 +399,6 @@ export async function updateMonth(id: number, data: UpdateMonthDTO): Promise<boo
     fields.push('notes = ?')
     params.push(data.notes ?? null)
   }
-  if (data.generated_at !== undefined) {
-    fields.push('generated_at = ?')
-    params.push(data.generated_at ?? null)
-  }
-  if (data.generated_by !== undefined) {
-    fields.push('generated_by = ?')
-    params.push(data.generated_by ?? null)
-  }
   if (data.published_at !== undefined) {
     fields.push('published_at = ?')
     params.push(data.published_at ?? null)
@@ -430,10 +421,9 @@ export async function updateMonth(id: number, data: UpdateMonthDTO): Promise<boo
 }
 
 export async function deleteMonth(id: number): Promise<boolean> {
-  const [result] = await db.execute<ResultSetHeader>(
-    'DELETE FROM scheduling_months WHERE id = ?',
-    [id]
-  )
+  const [result] = await db.execute<ResultSetHeader>('DELETE FROM scheduling_months WHERE id = ?', [
+    id,
+  ])
   return result.affectedRows > 0
 }
 
@@ -497,7 +487,9 @@ export async function createDaysBulk(days: CreateDayDTO[]): Promise<void> {
     d.notes ?? null,
   ])
 
-  const placeholders = values.map(() => '(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())').join(', ')
+  const placeholders = values
+    .map(() => '(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())')
+    .join(', ')
   const flatValues = values.flat()
 
   await db.query(
@@ -615,21 +607,24 @@ export async function getAssignmentByDayEmployee(
 export async function createAssignment(data: CreateAssignmentDTO): Promise<number> {
   const [result] = await db.execute<ResultSetHeader>(
     `INSERT INTO scheduling_assignments 
-     (month_id, day_id, employee_id, shift_code, is_manual, notes, created_at, updated_at)
+     (month_id, day_id, employee_id, shift_code, source_constraint_id, notes, created_at, updated_at)
      VALUES (?, ?, ?, ?, ?, ?, NOW(), NOW())`,
     [
       data.month_id,
       data.day_id,
       data.employee_id,
       data.shift_code,
-      data.is_manual ? 1 : 0,
+      data.source_constraint_id ?? null,
       data.notes ?? null,
     ]
   )
   return result.insertId
 }
 
-export async function createAssignmentsBulk(monthId: number, assignments: BulkAssignmentDTO[]): Promise<void> {
+export async function createAssignmentsBulk(
+  monthId: number,
+  assignments: BulkAssignmentDTO[]
+): Promise<void> {
   if (assignments.length === 0) return
 
   const values = assignments.map((a) => [
@@ -637,7 +632,7 @@ export async function createAssignmentsBulk(monthId: number, assignments: BulkAs
     a.day_id,
     a.employee_id,
     a.shift_code,
-    0, // is_manual = false (generated)
+    a.source_constraint_id ?? null,
   ])
 
   const placeholders = values.map(() => '(?, ?, ?, ?, ?, NULL, NOW(), NOW())').join(', ')
@@ -645,7 +640,7 @@ export async function createAssignmentsBulk(monthId: number, assignments: BulkAs
 
   await db.query(
     `INSERT INTO scheduling_assignments 
-     (month_id, day_id, employee_id, shift_code, is_manual, notes, created_at, updated_at)
+     (month_id, day_id, employee_id, shift_code, source_constraint_id, notes, created_at, updated_at)
      VALUES ${placeholders}`,
     flatValues
   )
@@ -659,9 +654,9 @@ export async function updateAssignment(id: number, data: UpdateAssignmentDTO): P
     fields.push('shift_code = ?')
     params.push(data.shift_code)
   }
-  if (data.is_manual !== undefined) {
-    fields.push('is_manual = ?')
-    params.push(data.is_manual ? 1 : 0)
+  if (data.source_constraint_id !== undefined) {
+    fields.push('source_constraint_id = ?')
+    params.push(data.source_constraint_id ?? null)
   }
   if (data.notes !== undefined) {
     fields.push('notes = ?')
@@ -685,11 +680,10 @@ export async function upsertAssignment(data: CreateAssignmentDTO): Promise<numbe
   // Avoids extra SELECT query before INSERT/UPDATE
   const [result] = await db.execute<ResultSetHeader>(
     `INSERT INTO scheduling_assignments 
-     (month_id, day_id, employee_id, shift_code, is_manual, notes, created_at, updated_at)
+     (month_id, day_id, employee_id, shift_code, source_constraint_id, notes, created_at, updated_at)
      VALUES (?, ?, ?, ?, ?, ?, NOW(), NOW())
      ON DUPLICATE KEY UPDATE 
        shift_code = VALUES(shift_code),
-       is_manual = VALUES(is_manual),
        notes = VALUES(notes),
        updated_at = NOW()`,
     [
@@ -697,7 +691,7 @@ export async function upsertAssignment(data: CreateAssignmentDTO): Promise<numbe
       data.day_id,
       data.employee_id,
       data.shift_code,
-      data.is_manual ? 1 : 0,
+      data.source_constraint_id ?? null,
       data.notes ?? null,
     ]
   )
@@ -712,6 +706,21 @@ export async function upsertAssignment(data: CreateAssignmentDTO): Promise<numbe
 
 export async function deleteAllAssignmentsByMonth(monthId: number): Promise<void> {
   await db.execute('DELETE FROM scheduling_assignments WHERE month_id = ?', [monthId])
+}
+
+export async function fixMonthDates(monthId: number, year: number, month: number): Promise<number> {
+  const daysInMonth = new Date(year, month, 0).getDate()
+  
+  let fixedCount = 0
+  for (let day = 1; day <= daysInMonth; day++) {
+    const correctDate = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+    const [result] = await db.execute(
+      'UPDATE scheduling_days SET date = ? WHERE month_id = ? AND day_number = ?',
+      [correctDate, monthId, day]
+    )
+    fixedCount += (result as any).affectedRows
+  }
+  return fixedCount
 }
 
 // ============================================
@@ -755,7 +764,9 @@ export async function getConstraintsByMonth(
   return rows
 }
 
-export async function getConstraintById(id: number): Promise<SchedulingConstraintWithDetails | undefined> {
+export async function getConstraintById(
+  id: number
+): Promise<SchedulingConstraintWithDetails | undefined> {
   const [rows] = await db.execute<SchedulingConstraintWithDetails[]>(
     `SELECT 
       c.*,
@@ -881,7 +892,9 @@ export async function getEmployeeRulesByEmployee(
   return rows
 }
 
-export async function getEmployeeRuleById(id: number): Promise<SchedulingEmployeeRuleRow | undefined> {
+export async function getEmployeeRuleById(
+  id: number
+): Promise<SchedulingEmployeeRuleRow | undefined> {
   const [rows] = await db.execute<SchedulingEmployeeRuleRow[]>(
     'SELECT * FROM scheduling_employee_rules WHERE id = ?',
     [id]
@@ -894,18 +907,15 @@ export async function createEmployeeRule(data: CreateEmployeeRuleDTO): Promise<n
     `INSERT INTO scheduling_employee_rules 
      (employee_id, rule_type, rule_value, priority, is_active, notes, created_at, updated_at)
      VALUES (?, ?, ?, ?, 1, ?, NOW(), NOW())`,
-    [
-      data.employee_id,
-      data.rule_type,
-      data.rule_value,
-      data.priority ?? 0,
-      data.notes ?? null,
-    ]
+    [data.employee_id, data.rule_type, data.rule_value, data.priority ?? 0, data.notes ?? null]
   )
   return result.insertId
 }
 
-export async function updateEmployeeRule(id: number, data: UpdateEmployeeRuleDTO): Promise<boolean> {
+export async function updateEmployeeRule(
+  id: number,
+  data: UpdateEmployeeRuleDTO
+): Promise<boolean> {
   const fields: string[] = []
   const params: (string | number | null)[] = []
 
@@ -1032,7 +1042,9 @@ export async function getSchedulableEmployees(): Promise<SchedulableEmployee[]> 
  * Get all active employees with their schedulable status
  * Used by config UI to show which employees are selected
  */
-export async function getAllEmployeesWithSchedulableStatus(): Promise<SchedulableEmployeeWithStatus[]> {
+export async function getAllEmployeesWithSchedulableStatus(): Promise<
+  SchedulableEmployeeWithStatus[]
+> {
   const [rows] = await db.query<SchedulableEmployeeWithStatus[]>(
     `SELECT 
        u.id, 
@@ -1052,36 +1064,33 @@ export async function getAllEmployeesWithSchedulableStatus(): Promise<Schedulabl
  * Add an employee to scheduling
  */
 export async function addSchedulableEmployee(employeeId: string, addedBy?: string): Promise<void> {
-  await db.query(
-    `INSERT IGNORE INTO scheduling_employees (employee_id, added_by) VALUES (?, ?)`,
-    [employeeId, addedBy || null]
-  )
+  await db.query(`INSERT IGNORE INTO scheduling_employees (employee_id, added_by) VALUES (?, ?)`, [
+    employeeId,
+    addedBy || null,
+  ])
 }
 
 /**
  * Remove an employee from scheduling
  */
 export async function removeSchedulableEmployee(employeeId: string): Promise<void> {
-  await db.query(
-    `DELETE FROM scheduling_employees WHERE employee_id = ?`,
-    [employeeId]
-  )
+  await db.query(`DELETE FROM scheduling_employees WHERE employee_id = ?`, [employeeId])
 }
 
 /**
  * Set the list of schedulable employees (replaces all)
  */
-export async function setSchedulableEmployees(employeeIds: string[], addedBy?: string): Promise<void> {
+export async function setSchedulableEmployees(
+  employeeIds: string[],
+  addedBy?: string
+): Promise<void> {
   // Clear existing
   await db.query(`DELETE FROM scheduling_employees`)
-  
+
   // Insert new ones
   if (employeeIds.length > 0) {
-    const values = employeeIds.map(id => [id, addedBy || null])
-    await db.query(
-      `INSERT INTO scheduling_employees (employee_id, added_by) VALUES ?`,
-      [values]
-    )
+    const values = employeeIds.map((id) => [id, addedBy || null])
+    await db.query(`INSERT INTO scheduling_employees (employee_id, added_by) VALUES ?`, [values])
   }
 }
 
@@ -1089,7 +1098,9 @@ export async function setSchedulableEmployees(employeeIds: string[], addedBy?: s
 // EMPLOYEE CONTRACTS
 // ============================================
 
-export async function getContractsByYear(year: number): Promise<SchedulingEmployeeContractWithEmployee[]> {
+export async function getContractsByYear(
+  year: number
+): Promise<SchedulingEmployeeContractWithEmployee[]> {
   const [rows] = await db.query<SchedulingEmployeeContractWithEmployee[]>(
     `SELECT c.*, u.username as employee_name
      FROM scheduling_employee_contracts c
@@ -1113,7 +1124,9 @@ export async function getContractByEmployeeYear(
   return rows[0]
 }
 
-export async function getContractById(id: number): Promise<SchedulingEmployeeContractWithEmployee | undefined> {
+export async function getContractById(
+  id: number
+): Promise<SchedulingEmployeeContractWithEmployee | undefined> {
   const [rows] = await db.execute<SchedulingEmployeeContractWithEmployee[]>(
     `SELECT c.*, u.username as employee_name
      FROM scheduling_employee_contracts c
@@ -1148,7 +1161,10 @@ export async function createContract(data: CreateEmployeeContractDTO): Promise<n
   return result.insertId
 }
 
-export async function updateContract(id: number, data: UpdateEmployeeContractDTO): Promise<boolean> {
+export async function updateContract(
+  id: number,
+  data: UpdateEmployeeContractDTO
+): Promise<boolean> {
   const fields: string[] = []
   const params: (string | number | null)[] = []
 
@@ -1252,7 +1268,10 @@ export async function deleteContract(id: number): Promise<boolean> {
  * @param startDate The employee's start date (YYYY-MM-DD format)
  * @returns Proportional values for the contract
  */
-export function calculateProportionalContract(year: number, startDate: string): {
+export function calculateProportionalContract(
+  year: number,
+  startDate: string
+): {
   diasTrabajo: number
   horasAnuales: number
   diasVacaciones: number
@@ -1293,11 +1312,13 @@ export function calculateProportionalContract(year: number, startDate: string): 
   }
 
   // Calculate days from year start to start date (exclusive)
-  const daysBeforeStart = Math.floor((start.getTime() - yearStart.getTime()) / (1000 * 60 * 60 * 24))
-  
+  const daysBeforeStart = Math.floor(
+    (start.getTime() - yearStart.getTime()) / (1000 * 60 * 60 * 24)
+  )
+
   // Calculate remaining days in the year
   const remainingDays = 365 - daysBeforeStart
-  
+
   // Calculate proportion (remaining days / total days)
   const proportion = remainingDays / 365
 
@@ -1332,7 +1353,7 @@ export async function initializeContractForEmployee(
   }
 
   // Calculate values based on start date
-  const values = startDate 
+  const values = startDate
     ? calculateProportionalContract(year, startDate)
     : {
         dias_trabajo: 225,
@@ -1344,9 +1365,7 @@ export async function initializeContractForEmployee(
       }
 
   // Build observaciones with start date info
-  const observaciones = startDate 
-    ? `Inicio: ${startDate}` 
-    : null
+  const observaciones = startDate ? `Inicio: ${startDate}` : null
 
   return await createContract({
     employee_id: employeeId,
@@ -1354,9 +1373,12 @@ export async function initializeContractForEmployee(
     dias_trabajo: 'diasTrabajo' in values ? values.diasTrabajo : values.dias_trabajo,
     horas_anuales: 'horasAnuales' in values ? values.horasAnuales : values.horas_anuales,
     dias_vacaciones: 'diasVacaciones' in values ? values.diasVacaciones : values.dias_vacaciones,
-    dias_libre_semanal: 'diasLibreSemanal' in values ? values.diasLibreSemanal : values.dias_libre_semanal,
-    dias_bonificables: 'diasBonificables' in values ? values.diasBonificables : values.dias_bonificables,
-    dias_laborables_ano: 'diasLaborablesAno' in values ? values.diasLaborablesAno : values.dias_laborables_ano,
+    dias_libre_semanal:
+      'diasLibreSemanal' in values ? values.diasLibreSemanal : values.dias_libre_semanal,
+    dias_bonificables:
+      'diasBonificables' in values ? values.diasBonificables : values.dias_bonificables,
+    dias_laborables_ano:
+      'diasLaborablesAno' in values ? values.diasLaborablesAno : values.dias_laborables_ano,
     observaciones,
     created_by: createdBy,
   })
@@ -1366,10 +1388,13 @@ export async function initializeContractForEmployee(
  * Initialize default contracts for all schedulable employees for a given year
  * Only creates contracts if they don't already exist
  */
-export async function initializeContractsForYear(year: number, createdBy?: string): Promise<number> {
+export async function initializeContractsForYear(
+  year: number,
+  createdBy?: string
+): Promise<number> {
   const schedulableEmployees = await getSchedulableEmployees()
   let created = 0
-  
+
   for (const emp of schedulableEmployees) {
     const existing = await getContractByEmployeeYear(emp.id, year)
     if (!existing) {
@@ -1381,7 +1406,7 @@ export async function initializeContractsForYear(year: number, createdBy?: strin
       created++
     }
   }
-  
+
   return created
 }
 
@@ -1395,7 +1420,7 @@ export async function initializeContractsForYear(year: number, createdBy?: strin
 async function getShiftHoursMap(): Promise<Record<string, number>> {
   const shifts = await getAllShifts()
   const map: Record<string, number> = {}
-  shifts.forEach(s => {
+  shifts.forEach((s) => {
     map[s.code] = s.hours
   })
   return map
@@ -1408,29 +1433,29 @@ async function getShiftHoursMap(): Promise<Record<string, number>> {
 export async function calculateAnnualTotals(year: number): Promise<EmployeeAnnualTotals[]> {
   // Get published months for this year
   const publishedMonths = await getAllMonths({ year, status: 'published' })
-  
+
   if (publishedMonths.length === 0) {
     // Return empty totals with just contract data
     const contracts = await getContractsByYear(year)
-    return contracts.map(c => createEmptyTotals(c, year))
+    return contracts.map((c) => createEmptyTotals(c, year))
   }
-  
+
   // Get contracts for the year
   const contracts = await getContractsByYear(year)
-  const contractMap = new Map(contracts.map(c => [c.employee_id, c]))
-  
+  const contractMap = new Map(contracts.map((c) => [c.employee_id, c]))
+
   // Get shift hours
   const shiftHours = await getShiftHoursMap()
-  
+
   // Get all schedulable employees
   const employees = await getSchedulableEmployees()
-  
+
   // Calculate totals per employee
   const results: EmployeeAnnualTotals[] = []
-  
+
   for (const emp of employees) {
     const contract = contractMap.get(emp.id)
-    
+
     // Initialize disfrutados counters
     const disfrutados = {
       diasTrabajados: 0,
@@ -1449,15 +1474,15 @@ export async function calculateAnnualTotals(year: number): Promise<EmployeeAnnua
       E: 0,
       A: 0,
     }
-    
+
     // Aggregate from all published months
     for (const month of publishedMonths) {
       const assignments = await getAssignmentsByEmployee(month.id, emp.id)
-      
+
       for (const a of assignments) {
         const code = a.shift_code
         const hours = shiftHours[code] || 0
-        
+
         // Count by shift type
         switch (code) {
           case 'M':
@@ -1510,42 +1535,44 @@ export async function calculateAnnualTotals(year: number): Promise<EmployeeAnnua
         }
       }
     }
-    
+
     // Calculate total disfrutados
-    disfrutados.total = 
-      disfrutados.diasTrabajados + 
-      disfrutados.diasVacaciones + 
-      disfrutados.diasLibreSemanal + 
-      disfrutados.diasIt + 
+    disfrutados.total =
+      disfrutados.diasTrabajados +
+      disfrutados.diasVacaciones +
+      disfrutados.diasLibreSemanal +
+      disfrutados.diasIt +
       disfrutados.diasBonificables
-    
+
     // Build convenio from contract (or defaults)
-    const convenio = contract ? {
-      diasTrabajo: contract.dias_trabajo,
-      horasAnuales: contract.horas_anuales,
-      diasVacaciones: contract.dias_vacaciones,
-      diasLibreSemanal: contract.dias_libre_semanal,
-      diasBonificables: contract.dias_bonificables,
-      diasIt: contract.dias_it,
-      diasLaborablesAno: contract.dias_laborables_ano,
-      observaciones: contract.observaciones,
-    } : {
-      diasTrabajo: 225,
-      horasAnuales: 1800,
-      diasVacaciones: 30,
-      diasLibreSemanal: 90,
-      diasBonificables: 20,
-      diasIt: 0,
-      diasLaborablesAno: 365,
-      observaciones: null,
-    }
-    
+    const convenio = contract
+      ? {
+          diasTrabajo: contract.dias_trabajo,
+          horasAnuales: contract.horas_anuales,
+          diasVacaciones: contract.dias_vacaciones,
+          diasLibreSemanal: contract.dias_libre_semanal,
+          diasBonificables: contract.dias_bonificables,
+          diasIt: contract.dias_it,
+          diasLaborablesAno: contract.dias_laborables_ano,
+          observaciones: contract.observaciones,
+        }
+      : {
+          diasTrabajo: 225,
+          horasAnuales: 1800,
+          diasVacaciones: 30,
+          diasLibreSemanal: 90,
+          diasBonificables: 20,
+          diasIt: 0,
+          diasLaborablesAno: 365,
+          observaciones: null,
+        }
+
     // Calculate pendiente (remaining until year end)
     // IMPORTANT: IT days reduce the required work days
     // If someone has 225 work days by contract and 2 IT days, they only need to work 223 days
     const diasTrabajoAjustado = convenio.diasTrabajo - disfrutados.diasIt
-    const horasAnualesAjustadas = convenio.horasAnuales - (disfrutados.diasIt * 8) // Assuming 8h per IT day
-    
+    const horasAnualesAjustadas = convenio.horasAnuales - disfrutados.diasIt * 8 // Assuming 8h per IT day
+
     const pendiente = {
       diasATrabaja: diasTrabajoAjustado - disfrutados.diasTrabajados,
       horasATrabaja: horasAnualesAjustadas - disfrutados.horasTrabajadas,
@@ -1555,14 +1582,14 @@ export async function calculateAnnualTotals(year: number): Promise<EmployeeAnnua
       diasBonificables: convenio.diasBonificables - disfrutados.diasBonificables,
       total: convenio.diasLaborablesAno - disfrutados.total,
     }
-    
+
     // Get last published month
     const lastMonth = publishedMonths.reduce((latest, m) => {
       if (!latest) return m
       if (m.year > latest.year || (m.year === latest.year && m.month > latest.month)) return m
       return latest
     }, publishedMonths[0])
-    
+
     results.push({
       employeeId: emp.id,
       employeeName: emp.username,
@@ -1574,11 +1601,14 @@ export async function calculateAnnualTotals(year: number): Promise<EmployeeAnnua
       ultimoMesCalculado: lastMonth ? { year: lastMonth.year, month: lastMonth.month } : null,
     })
   }
-  
+
   return results
 }
 
-function createEmptyTotals(contract: SchedulingEmployeeContractWithEmployee, year: number): EmployeeAnnualTotals {
+function createEmptyTotals(
+  contract: SchedulingEmployeeContractWithEmployee,
+  year: number
+): EmployeeAnnualTotals {
   return {
     employeeId: contract.employee_id,
     employeeName: contract.employee_name,
@@ -1601,7 +1631,14 @@ function createEmptyTotals(contract: SchedulingEmployeeContractWithEmployee, yea
       diasIt: 0,
       diasBonificables: 0,
       total: 0,
-      M: 0, T: 0, N: 0, PI: 0, P: 0, FO: 0, E: 0, A: 0,
+      M: 0,
+      T: 0,
+      N: 0,
+      PI: 0,
+      P: 0,
+      FO: 0,
+      E: 0,
+      A: 0,
     },
     pendiente: {
       diasATrabaja: contract.dias_trabajo,
@@ -1630,10 +1667,10 @@ export function getWeekNumber(date: Date, monthStart: Date): number {
   // Week number within the month (1-6)
   const dayOfMonth = date.getDate()
   const firstDayOfWeek = monthStart.getDay() // 0=Sunday, 1=Monday...
-  
+
   // Adjust to Monday start (0=Monday)
   const adjustedFirstDay = firstDayOfWeek === 0 ? 6 : firstDayOfWeek - 1
-  
+
   return Math.ceil((dayOfMonth + adjustedFirstDay) / 7)
 }
 

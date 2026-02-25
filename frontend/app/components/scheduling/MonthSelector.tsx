@@ -45,12 +45,9 @@ export function MonthSelector({
     switch (status) {
       case 'draft':
         return 'bg-gray-400'
-      case 'generated':
-        return 'bg-blue-500'
+
       case 'published':
         return 'bg-green-500'
-      case 'archived':
-        return 'bg-purple-500'
       default:
         return 'bg-gray-300'
     }

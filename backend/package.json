@@ -8,7 +8,7 @@
     "dev": "tsx watch index.ts",
     "dev:local": "cross-env DB_ENVIRONMENT=local tsx watch index.ts",
     "dev:aiven": "cross-env DB_ENVIRONMENT=aiven tsx watch index.ts",
-    "build": "echo 'Using tsx - no build needed'",
+"build": "echo 'Using tsx - no build needed'",
     "start": "tsx index.ts",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
@@ -20,7 +20,6 @@
   "license": "ISC",
   "packageManager": "pnpm@10.13.1",
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.71.2",
     "archiver": "^7.0.1",
     "axios": "^1.12.2",
     "bcrypt": "6.0.0",

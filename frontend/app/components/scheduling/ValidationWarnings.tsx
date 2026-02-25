@@ -1,5 +1,5 @@
-// app/components/scheduling/GenerationWarnings.tsx
-// Component to display generation warnings/violations
+// app/components/scheduling/ValidationWarnings.tsx
+// Component to display validation warnings/violations
 
 'use client'
 
@@ -15,9 +15,8 @@ import {
 } from 'react-icons/fi'
 import type { GenerationWarning } from '@/app/lib/scheduling/types'
 
-interface GenerationWarningsProps {
+interface ValidationWarningsProps {
   warnings: GenerationWarning[]
-  generationTimeMs?: number
   onDismiss?: () => void
 }
 
@@ -45,11 +44,7 @@ const SEVERITY_CONFIG_BASE = {
   },
 }
 
-export function GenerationWarnings({
-  warnings,
-  generationTimeMs,
-  onDismiss,
-}: GenerationWarningsProps) {
+export function ValidationWarnings({ warnings, onDismiss }: ValidationWarningsProps) {
   const t = useTranslations('scheduling.warnings')
   const tTypes = useTranslations('scheduling.warnings.types')
   const [isExpanded, setIsExpanded] = useState(true)
@@ -114,11 +109,6 @@ export function GenerationWarnings({
               {(errorCount > 0 || warningCount > 0) && infoCount > 0 && ', '}
               {infoCount > 0 && getPlural(infoCount, 'infoCount')}
             </span>
-            {generationTimeMs && (
-              <span className="text-xs text-gray-500 dark:text-gray-400 ml-2">
-                ({(generationTimeMs / 1000).toFixed(1)}s)
-              </span>
-            )}
           </div>
         </div>
 

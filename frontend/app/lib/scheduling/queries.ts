@@ -47,6 +47,7 @@ export const schedulingKeys = {
   monthsList: (filters?: { year?: number; status?: string }) =>
     [...schedulingKeys.months(), 'list', filters] as const,
   month: (id: number) => [...schedulingKeys.months(), id] as const,
+  monthInfo: (id: number) => [...schedulingKeys.months(), id, 'info'] as const,
   monthValidation: (id: number) => [...schedulingKeys.months(), id, 'validation'] as const,
   constraints: (monthId: number) => [...schedulingKeys.all, 'constraints', monthId] as const,
   rules: () => [...schedulingKeys.all, 'rules'] as const,
@@ -58,7 +59,6 @@ export const schedulingKeys = {
   contractByEmployee: (year: number, employeeId: string) =>
     [...schedulingKeys.contracts(year), employeeId] as const,
   annualTotals: (year: number) => [...schedulingKeys.all, 'totals', year] as const,
-  aiStatus: () => [...schedulingKeys.all, 'ai', 'status'] as const,
 }
 
 // ============================================
@@ -160,6 +160,36 @@ export const schedulingApi = {
   },
 
   /**
+   * Get month info: rules and approved requests
+   */
+  getMonthInfo: async (
+    id: number
+  ): Promise<{
+    month: { id: number; year: number; month: number; status: string }
+    requests: Array<{
+      id: number
+      employeeId: string
+      employeeName: string
+      type: string
+      typeLabel: string
+      startDate: string
+      endDate: string
+      shiftCode: string | null
+    }>
+    employeeRules: Array<{
+      employeeId: string
+      employeeName: string
+      rules: string[]
+    }>
+    summary: {
+      totalRequests: number
+      totalEmployeesWithRules: number
+    }
+  }> => {
+    return apiClient.get(`${API_URL}/api/scheduling/months/${id}/info`)
+  },
+
+  /**
    * Create a new month planning
    */
   createMonth: async (data: CreateMonthDto): Promise<SchedulingMonth> => {
@@ -185,25 +215,25 @@ export const schedulingApi = {
   // ============================================
 
   /**
-   * Generate schedule for a month
+   * Reset month - clear all assignments and reload approved constraints
    */
-  generateSchedule: async (
+  resetMonth: async (
     monthId: number
-  ): Promise<{ success: boolean; result: GenerationResult }> => {
-    return apiClient.post(`${API_URL}/api/scheduling/months/${monthId}/generate`)
+  ): Promise<{ success: boolean; message: string; assignmentsCount: number }> => {
+    return apiClient.post(`${API_URL}/api/scheduling/months/${monthId}/reset`)
   },
 
   /**
    * Validate schedule and recalculate warnings
-   * Used to update warnings after manual edits without regenerating
+   * Used to update warnings after manual edits
    */
   validateSchedule: async (monthId: number): Promise<ValidationResult> => {
     return apiClient.post(`${API_URL}/api/scheduling/months/${monthId}/validate`)
   },
 
   /**
-   * Unpublish a month - revert from 'published' to 'generated' status
-   * This allows continuing to edit/regenerate the schedule
+   * Unpublish a month - revert from 'published' to 'draft' status
+   * This allows editing the schedule and re-publishing to update totals
    */
   unpublishMonth: async (
     monthId: number
@@ -268,7 +298,7 @@ export const schedulingApi = {
   ): Promise<SchedulingConstraint[]> => {
     const query = new URLSearchParams()
     if (filters?.status) query.append('status', filters.status)
-    if (filters?.employeeId) query.append('employeeId', filters.employeeId)
+    if (filters?.employeeId) query.append('employee_id', filters.employeeId)
     const queryString = query.toString()
     return apiClient.get(
       `${API_URL}/api/scheduling/months/${monthId}/constraints${queryString ? `?${queryString}` : ''}`
@@ -537,50 +567,5 @@ export const schedulingApi = {
    */
   getAnnualTotals: async (year: number): Promise<AnnualTotalsResponse> => {
     return apiClient.get(`${API_URL}/api/scheduling/totals/${year}`)
-  },
-
-  // ============================================
-  // AI
-  // ============================================
-
-  /**
-   * Get AI status and configuration
-   */
-  getAIStatus: async (): Promise<{
-    enabled: boolean
-    configuredProvider: string
-    activeProvider: string
-    isAvailable: boolean
-    isProduction: boolean
-    providers: {
-      claude: { configured: boolean; model: string }
-      gemini: { configured: boolean; model: string }
-      openai: { configured: boolean; model: string }
-      ollama: {
-        configured: boolean
-        model: string
-        host?: string
-        baseUrl?: string
-        requiresDocker?: boolean
-      }
-    }
-  }> => {
-    return apiClient.get(`${API_URL}/api/scheduling/ai/status`)
-  },
-
-  /**
-   * Test AI connection
-   */
-  testAIConnection: async (
-    provider?: string
-  ): Promise<{
-    success: boolean
-    provider?: string
-    responseTime?: number
-    model?: string
-    testResult?: { hasAnalysis: boolean; confidence: number }
-    error?: string
-  }> => {
-    return apiClient.post(`${API_URL}/api/scheduling/ai/test`, { provider })
   },
 }

@@ -367,6 +367,8 @@ Helper functions for date manipulation using dayjs.
 | **Notifications** | `/api/notifications` | notification-controller.ts |
 | **Activity** | `/api/activity` | activity-controller.ts |
 | **Departments** | `/api/departments` | departments-controller.ts |
+| **Scheduling** | `/api/scheduling` | scheduling-controller.ts |
+| **Chat** | `/api/chat` | chat-controller.ts |
 | **Search** | `/api/search` | search-controller.ts |
 | **Demo** | `/api/demo-activity` | demo-activity-controller.ts |
 
@@ -507,6 +509,7 @@ Located in `backend/services/` (8 service files)
 | **Logbook History** | `logbook/logbookHistory-service.ts` | Read tracking |
 | **Notification Generator** | `notifications/notification-generator-service.ts` | Auto notifications |
 | **Invoice PDF** | `parking/invoicePdfService.ts` | PDF generation |
+| **Schedule Validator** | `scheduling/schedule-validator.ts` | Real-time schedule validation |
 
 ---
 
@@ -590,6 +593,7 @@ export function roleCheck(...roles) {
 | **Messages** | `conversations`, `messages`, `conversation_participants` |
 | **Notifications** | `notifications`, `notification_reads`, `notification_schedule` |
 | **Activity** | `activity_log`, `activity_types` |
+| **Scheduling** | `scheduling_months`, `scheduling_days`, `scheduling_assignments`, `scheduling_constraints`, `scheduling_shifts`, `scheduling_employee_rules`, `scheduling_employees`, `scheduling_employee_contracts`, `scheduling_config`, `scheduling_history` |
 | **System** | `departments`, `settings` |
 
 ### Key Relationships
@@ -751,9 +755,6 @@ pnpm build            # No build needed (tsx)
 pnpm start            # Production start
 pnpm typecheck        # TypeScript type checking
 pnpm test             # Run tests
-pnpm test:unit        # Unit tests
-pnpm test:auth        # Auth integration tests
-pnpm test:users       # User routes tests
 pnpm test:watch       # Watch mode
 pnpm test:coverage    # Coverage report
 ```

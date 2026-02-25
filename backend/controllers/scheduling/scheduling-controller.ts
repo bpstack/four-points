@@ -1,7 +1,5 @@
 // controllers/scheduling/scheduling-controller.ts
 
-console.log('>>> SCHEDULING CONTROLLER LOADED <<<')
-
 import { Request, Response } from 'express'
 import * as repo from '../../repositories/scheduling/scheduling-repository.js'
 import { validateSchedule as validateScheduleService } from '../../services/scheduling/schedule-validator.js'
@@ -17,7 +15,6 @@ import {
   createEmployeeRuleSchema,
   updateEmployeeRuleSchema,
   updateConfigSchema,
-  generateScheduleSchema,
   monthQuerySchema,
   constraintQuerySchema,
 } from '../../validations/scheduling/scheduling-schemas.js'
@@ -34,6 +31,59 @@ import type {
   AnnualTotalsResponse,
 } from '../../models/scheduling/index.js'
 
+function isDateInRange(date: string, start: string, end: string): boolean {
+  return date >= start && date <= end
+}
+
+async function initializeMonthGrid(
+  monthId: number
+): Promise<{ day_id: number; employee_id: string; shift_code: string; source_constraint_id: number | null }[]> {
+  const monthDays = await repo.getDaysByMonth(monthId)
+  const approvedConstraints = await repo.getConstraintsByMonth(monthId, { status: 'approved' })
+
+  const constraintToShiftCode: Record<string, string> = {
+    vacation: 'V',
+    sick_leave: 'IT',
+    sick_day: 'E',
+    training: 'FO',
+    holiday: 'B',
+    request_off: 'L',
+  }
+
+  const schedulableEmployees = await repo.getSchedulableEmployees()
+
+  const assignments: {
+    day_id: number
+    employee_id: string
+    shift_code: string
+    source_constraint_id: number | null
+  }[] = []
+
+  for (const emp of schedulableEmployees) {
+    const empConstraints = approvedConstraints.filter((c) => c.employee_id === emp.id)
+
+    for (const day of monthDays) {
+      const constraint = empConstraints.find((c) =>
+        isDateInRange(day.date, c.start_date, c.end_date)
+      )
+
+      let shiftCode = 'L'
+      if (constraint) {
+        shiftCode = constraint.shift_code || constraintToShiftCode[constraint.constraint_type] || 'L'
+      }
+
+      assignments.push({
+        day_id: day.id,
+        employee_id: emp.id,
+        shift_code: shiftCode,
+        source_constraint_id: constraint?.id ?? null,
+      })
+    }
+  }
+
+  return assignments
+}
+
 // ============================================
 // HELPER: ZodError handler
 // ============================================
@@ -41,8 +91,9 @@ import type {
 function handleZodError(err: unknown, res: Response): boolean {
   const error = err as Error & { name?: string; issues?: unknown[] }
   if (error.name === 'ZodError') {
+    const firstIssue = (error.issues?.[0] as { message?: string } | undefined) ?? undefined
     res.status(400).json({
-      error: 'Datos inválidos',
+      error: firstIssue?.message || 'Datos inválidos',
       details: error.issues,
     })
     return true
@@ -78,34 +129,6 @@ export async function updateConfig(req: Request, res: Response): Promise<void> {
   try {
     const { key } = req.params
     const data = updateConfigSchema.parse(req.body)
-
-    // Validate ai_provider selection
-    if (key === 'ai_provider') {
-      const provider = data.config_value
-      const isProduction = process.env.NODE_ENV === 'production'
-      
-      // Ollama only works locally (requires Docker)
-      if (provider === 'ollama' && isProduction) {
-        res.status(400).json({ 
-          error: 'Ollama solo funciona en desarrollo local. En producción usa Claude o Gemini.' 
-        })
-        return
-      }
-      
-      // Validate API key exists for cloud providers
-      if (provider === 'claude' && !process.env.CLAUDE_API_KEY) {
-        res.status(400).json({ 
-          error: 'CLAUDE_API_KEY no está configurada en el servidor.' 
-        })
-        return
-      }
-      if (provider === 'gemini' && !process.env.GEMINI_API_KEY) {
-        res.status(400).json({ 
-          error: 'GEMINI_API_KEY no está configurada en el servidor.' 
-        })
-        return
-      }
-    }
 
     const updated = await repo.updateConfig(key, data)
     if (!updated) {
@@ -183,7 +206,8 @@ export async function getShiftById(req: Request, res: Response): Promise<void> {
 
 export async function createShift(req: Request, res: Response): Promise<void> {
   try {
-    const { code, name, startTime, endTime, hours, color, isWorkShift, isPaid, displayOrder } = req.body
+    const { code, name, startTime, endTime, hours, color, isWorkShift, isPaid, displayOrder } =
+      req.body
 
     if (!code || !name || hours === undefined) {
       res.status(400).json({ error: 'Código, nombre y horas son requeridos' })
@@ -230,7 +254,18 @@ export async function updateShift(req: Request, res: Response): Promise<void> {
       return
     }
 
-    const { code, name, startTime, endTime, hours, color, isWorkShift, isPaid, displayOrder, isActive } = req.body
+    const {
+      code,
+      name,
+      startTime,
+      endTime,
+      hours,
+      color,
+      isWorkShift,
+      isPaid,
+      displayOrder,
+      isActive,
+    } = req.body
 
     // If changing code, check it doesn't conflict with another shift
     if (code && code !== shift.code) {
@@ -324,37 +359,50 @@ export async function getMonthById(req: Request, res: Response): Promise<void> {
     }
 
     // Get full data for the month
-    const [days, assignments, constraints] = await Promise.all([
+    const [days, assignments, constraints, schedulableEmployees] = await Promise.all([
       repo.getDaysByMonth(monthId),
       repo.getAssignmentsByMonth(monthId),
       repo.getConstraintsByMonth(monthId),
+      repo.getSchedulableEmployees(),
     ])
 
     // Create Map for O(1) day lookups instead of O(n) array.find()
-    const daysById = new Map(days.map(d => [d.id, d]))
+    const daysById = new Map(days.map((d) => [d.id, d]))
 
-    // Get unique employees from assignments
+    // Build base employee map from schedulable employees (config)
     const employeeMap = new Map<string, { id: string; name: string }>()
+    schedulableEmployees.forEach((emp) => {
+      employeeMap.set(emp.id, { id: emp.id, name: emp.username })
+    })
+
+    // Ensure we also include any employees that have assignments but are not in schedulable list
     assignments.forEach((a) => {
       if (!employeeMap.has(a.employee_id)) {
         employeeMap.set(a.employee_id, { id: a.employee_id, name: a.employee_name })
       }
     })
 
-    // Build employee schedules with stats
+    // Build employee schedules with stats for all mapped employees
     const employees: EmployeeSchedule[] = []
     employeeMap.forEach((emp) => {
       const empAssignments = assignments.filter((a) => a.employee_id === emp.id)
-      
+
       // Build assignments as object keyed by day number (frontend expects this format)
-      const assignmentsMap: { [dayNumber: number]: { id: number; shiftCode: string; isManual: boolean; notes: string | null } } = {}
+      const assignmentsMap: {
+        [dayNumber: number]: {
+          id: number
+          shiftCode: string
+          sourceConstraintId?: number | null
+          notes: string | null
+        }
+      } = {}
       empAssignments.forEach((a) => {
         const day = daysById.get(a.day_id) // O(1) lookup
         if (day) {
           assignmentsMap[day.day_number] = {
             id: a.id,
             shiftCode: a.shift_code,
-            isManual: a.is_manual === 1,
+            sourceConstraintId: a.source_constraint_id,
             notes: a.notes,
           }
         }
@@ -415,7 +463,11 @@ export async function getMonthById(req: Request, res: Response): Promise<void> {
 
     const dailyStats: DailyStats[] = days.map((d) => {
       const dayAssignments = assignmentsByDayId.get(d.id) || []
-      let M = 0, T = 0, N = 0, PI = 0, P = 0
+      let M = 0,
+        T = 0,
+        N = 0,
+        PI = 0,
+        P = 0
       dayAssignments.forEach((a) => {
         if (a.shift_code === 'M') M++
         else if (a.shift_code === 'T') T++
@@ -465,8 +517,6 @@ export async function getMonthById(req: Request, res: Response): Promise<void> {
       year: month.year,
       month: month.month,
       status: month.status,
-      generatedAt: month.generated_at ? month.generated_at.toISOString() : null,
-      generatedBy: month.generated_by_name,
       publishedAt: month.published_at ? month.published_at.toISOString() : null,
       publishedBy: month.published_by_name,
       notes: month.notes,
@@ -480,6 +530,121 @@ export async function getMonthById(req: Request, res: Response): Promise<void> {
   } catch (err) {
     console.error('Error getting month:', err)
     res.status(500).json({ error: 'Error al obtener el mes' })
+  }
+}
+
+// ============================================
+// MONTH INFO
+// ============================================
+
+/**
+ * GET /months/:id/info
+ * Returns informational data about the month: rules and approved requests
+ */
+export async function getMonthInfo(req: Request, res: Response): Promise<void> {
+  try {
+    const monthId = parseInt(req.params.id)
+    if (isNaN(monthId)) {
+      res.status(400).json({ error: 'ID de mes inválido' })
+      return
+    }
+
+    const month = await repo.getMonthById(monthId)
+    if (!month) {
+      res.status(404).json({ error: 'Mes no encontrado' })
+      return
+    }
+
+    // Get approved constraints for this month
+    const approvedConstraints = await repo.getConstraintsByMonth(monthId, { status: 'approved' })
+
+    // Get employee rules
+    const allRules = await repo.getAllEmployeeRules()
+
+    // Get schedulable employees
+    const schedulableEmployees = await repo.getSchedulableEmployees()
+
+    // Format approved constraints as readable info
+    const requestsInfo = approvedConstraints.map((c) => {
+      const typeLabels: Record<string, string> = {
+        vacation: 'Vacaciones',
+        sick_leave: 'Baja médica (IT)',
+        sick_day: 'Enfermedad',
+        training: 'Formación',
+        holiday: 'Festivo',
+        request_off: 'Día libre',
+        request_shift: 'Petición de turno',
+      }
+
+      return {
+        id: c.id,
+        employeeId: c.employee_id,
+        employeeName: c.employee_name,
+        type: c.constraint_type,
+        typeLabel: typeLabels[c.constraint_type] || c.constraint_type,
+        startDate: c.start_date,
+        endDate: c.end_date,
+        shiftCode: c.shift_code,
+      }
+    })
+
+    // Format employee rules as readable info
+    const rulesInfo = schedulableEmployees
+      .map((emp) => {
+        const empRules = allRules.filter((r) => r.employee_id === emp.id)
+        if (empRules.length === 0) return null
+
+        const rules: string[] = []
+        for (const rule of empRules) {
+          switch (rule.rule_type) {
+            case 'fixed_shift':
+              rules.push(`Turno fijo: ${rule.rule_value}`)
+              break
+            case 'no_weekends':
+              rules.push('Sin fines de semana')
+              break
+            case 'shift_priority':
+              rules.push(`Prioridad: ${rule.rule_value}`)
+              break
+            case 'fixed_days':
+              rules.push(`Días fijos: ${rule.rule_value}`)
+              break
+            case 'max_shift_per_month':
+              rules.push(`Máx turnos: ${rule.rule_value}`)
+              break
+            case 'min_shift_per_month':
+              rules.push(`Mín turnos: ${rule.rule_value}`)
+              break
+          }
+        }
+
+        return rules.length > 0
+          ? {
+              employeeId: emp.id,
+              employeeName: emp.username,
+              rules,
+            }
+          : null
+      })
+      .filter(Boolean)
+
+    res.json({
+      month: {
+        id: month.id,
+        year: month.year,
+        month: month.month,
+        status: month.status,
+      },
+      requests: requestsInfo,
+      employeeRules: rulesInfo,
+      summary: {
+        totalRequests: requestsInfo.length,
+        totalEmployeesWithRules: rulesInfo.length,
+      },
+    })
+  } catch (err) {
+    console.error('Error getting month info:', err)
+    res.status(500).json({ error: 'Error al obtener información del mes' })
   }
 }
 
@@ -507,7 +672,7 @@ export async function createMonth(req: Request, res: Response): Promise<void> {
 
     for (let day = 1; day <= daysInMonth; day++) {
       const date = new Date(data.year, data.month - 1, day)
-      const dateStr = date.toISOString().split('T')[0]
+      const dateStr = `${data.year}-${String(data.month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
       const dayOfWeek = repo.getDayOfWeek(date)
       const weekNumber = repo.getWeekNumber(date, new Date(data.year, data.month - 1, 1))
 
@@ -522,6 +687,17 @@ export async function createMonth(req: Request, res: Response): Promise<void> {
 
     await repo.createDaysBulk(daysData)
 
+    // Pre-load approved constraints as assignments
+    const assignments = await initializeMonthGrid(monthId)
+
+    // Save assignments if any
+    if (assignments.length > 0) {
+      await repo.createAssignmentsBulk(monthId, assignments)
+      console.log(
+        `[createMonth] Initialized ${assignments.length} assignments`
+      )
+    }
+
     // Log history
     await repo.createHistory(monthId, 'created', userId)
 
@@ -531,6 +707,67 @@ export async function createMonth(req: Request, res: Response): Promise<void> {
     if (handleZodError(err, res)) return
     console.error('Error creating month:', err)
     res.status(500).json({ error: 'Error al crear el mes' })
+  }
+}
+
+// ============================================
+// RESET MONTH
+// ============================================
+
+export async function resetMonth(req: Request, res: Response): Promise<void> {
+  try {
+    const monthId = parseInt(req.params.id)
+    if (isNaN(monthId)) {
+      res.status(400).json({ error: 'ID de mes inválido' })
+      return
+    }
+
+    const userId = req.user!.id
+
+    // Get month
+    const month = await repo.getMonthById(monthId)
+    if (!month) {
+      res.status(404).json({ error: 'Mes no encontrado' })
+      return
+    }
+
+    // Only allow reset in draft status
+    if (month.status !== 'draft') {
+      res.status(400).json({ error: 'Solo se puede resetear un mes en estado draft' })
+      return
+    }
+
+    // Fix dates in scheduling_days (timezone issue fix)
+    const fixedCount = await repo.fixMonthDates(monthId, month.year, month.month)
+    console.log(`[resetMonth] Fixed ${fixedCount} day dates for month ${monthId}`)
+
+    // Delete all assignments
+    await repo.deleteAllAssignmentsByMonth(monthId)
+    console.log(`[resetMonth] Deleted all assignments for month ${monthId}`)
+
+    // Re-pre-load approved constraints as assignments
+    const assignments = await initializeMonthGrid(monthId)
+
+    // Save assignments if any
+    if (assignments.length > 0) {
+      await repo.createAssignmentsBulk(monthId, assignments)
+      console.log(
+        `[resetMonth] Initialized ${assignments.length} assignments`
+      )
+    }
+
+    // Log history
+    await repo.createHistory(monthId, 'reset', userId)
+
+    res.json({
+      success: true,
+      message: 'Mes reseteado correctamente',
+      assignmentsCount: assignments.length,
+    })
+  } catch (err) {
+    if (handleZodError(err, res)) return
+    console.error('Error resetting month:', err)
+    res.status(500).json({ error: 'Error al resetear el mes' })
   }
 }
 
@@ -650,6 +887,13 @@ export async function updateAssignment(req: Request, res: Response): Promise<voi
       return
     }
 
+    if (existing.source_constraint_id) {
+      res.status(409).json({
+        error: 'Esta celda está bloqueada por una petición aprobada y no se puede editar',
+      })
+      return
+    }
+
     // Validate shift exists
     const shift = await repo.getShiftByCode(data.shift_code)
     if (!shift) {
@@ -659,7 +903,6 @@ export async function updateAssignment(req: Request, res: Response): Promise<voi
 
     await repo.updateAssignment(assignmentId, {
       ...data,
-      is_manual: true,
     })
 
     // Log history
@@ -707,6 +950,21 @@ export async function bulkUpdateAssignments(req: Request, res: Response): Promis
       }
     }
 
+    // Prevent editing locked cells (preloaded from approved constraints)
+    for (const assignment of data.assignments) {
+      const existing = await repo.getAssignmentByDayEmployee(
+        assignment.day_id,
+        assignment.employee_id
+      )
+      if (existing?.source_constraint_id) {
+        res.status(409).json({
+          error:
+            'Hay celdas bloqueadas por peticiones aprobadas. No se pueden editar desde bulk update.',
+        })
+        return
+      }
+    }
+
     // Upsert each assignment
     for (const assignment of data.assignments) {
       await repo.upsertAssignment({
@@ -714,7 +972,6 @@ export async function bulkUpdateAssignments(req: Request, res: Response): Promis
         day_id: assignment.day_id,
         employee_id: assignment.employee_id,
         shift_code: assignment.shift_code,
-        is_manual: true,
       })
     }
 
@@ -745,7 +1002,7 @@ export async function getConstraintsByMonth(req: Request, res: Response): Promis
 
     const query = constraintQuerySchema.parse(req.query)
     const constraints = await repo.getConstraintsByMonth(monthId, query)
-    
+
     // Transform to camelCase for frontend
     const formatted = constraints.map((c) => ({
       id: c.id,
@@ -766,7 +1023,7 @@ export async function getConstraintsByMonth(req: Request, res: Response): Promis
       approvedAt: c.approved_at ? c.approved_at.toISOString() : null,
       createdAt: c.created_at ? c.created_at.toISOString() : null,
     }))
-    
+
     res.json(formatted)
   } catch (err) {
     if (handleZodError(err, res)) return
@@ -857,6 +1114,48 @@ export async function approveConstraint(req: Request, res: Response): Promise<vo
       approved_at: new Date(),
     })
 
+    // Sync assignments when approving or rejecting
+    const monthDays = await repo.getDaysByMonth(existing.month_id)
+    const affectedDays = monthDays.filter((d) =>
+      isDateInRange(d.date, existing.start_date, existing.end_date)
+    )
+
+    if (data.status === 'approved') {
+      const constraintToShiftCode: Record<string, string> = {
+        vacation: 'V',
+        sick_leave: 'IT',
+        sick_day: 'E',
+        training: 'FO',
+        holiday: 'B',
+        request_off: 'L',
+      }
+      const shiftCode =
+        existing.shift_code ||
+        constraintToShiftCode[existing.constraint_type] ||
+        'L'
+
+      for (const day of affectedDays) {
+        const assignment = await repo.getAssignmentByDayEmployee(day.id, existing.employee_id)
+        if (assignment) {
+          await repo.updateAssignment(assignment.id, {
+            shift_code: shiftCode,
+            source_constraint_id: constraintId,
+          })
+        }
+      }
+    } else if (data.status === 'rejected' && existing.status === 'approved') {
+      // Was approved before — clear the lock and reset to 'L'
+      for (const day of affectedDays) {
+        const assignment = await repo.getAssignmentByDayEmployee(day.id, existing.employee_id)
+        if (assignment && assignment.source_constraint_id === constraintId) {
+          await repo.updateAssignment(assignment.id, {
+            shift_code: 'L',
+            source_constraint_id: null,
+          })
+        }
+      }
+    }
+
     // Log history
     const action = data.status === 'approved' ? 'constraint_approved' : 'constraint_rejected'
     await repo.createHistory(existing.month_id, action, userId, {
@@ -902,7 +1201,7 @@ export async function deleteConstraint(req: Request, res: Response): Promise<voi
 export async function getAllEmployeeRules(_req: Request, res: Response): Promise<void> {
   try {
     const rules = await repo.getAllEmployeeRules()
-    res.json(rules)
+    res.json({ rules, total: rules.length })
   } catch (err) {
     console.error('Error getting employee rules:', err)
     res.status(500).json({ error: 'Error al obtener las reglas de empleados' })
@@ -1001,144 +1300,6 @@ export async function getHistory(req: Request, res: Response): Promise<void> {
   }
 }
 
-// ============================================
-// GENERATE
-// ============================================
-
-export async function generateSchedule(req: Request, res: Response): Promise<void> {
-  try {
-    console.log('[generateSchedule] Starting...')
-    const monthId = parseInt(req.params.id)
-    if (isNaN(monthId)) {
-      res.status(400).json({ error: 'ID de mes inválido' })
-      return
-    }
-
-    // Parse options (validates body but not used currently - always regenerates)
-    generateScheduleSchema.parse(req.body ?? {})
-    const userId = req.user!.id
-    console.log('[generateSchedule] monthId:', monthId, 'userId:', userId)
-
-    const month = await repo.getMonthById(monthId)
-    if (!month) {
-      res.status(404).json({ error: 'Mes no encontrado' })
-      return
-    }
-    console.log('[generateSchedule] Month found:', month.year, month.month, 'status:', month.status)
-
-    if (month.status === 'published') {
-      res.status(400).json({ error: 'No se puede regenerar un mes publicado' })
-      return
-    }
-
-    // If forceRegenerate or already has assignments, clear them first
-    // Always delete existing assignments when regenerating
-    console.log('[generateSchedule] Deleting existing assignments before generation')
-    await repo.deleteAllAssignmentsByMonth(monthId)
-
-    // Import and create generator V2
-    console.log('[generateSchedule] Creating generator V2...')
-    const { createScheduleGeneratorV2 } = await import('../../services/scheduling/schedule-generator-v2.js')
-    const generator = await createScheduleGeneratorV2(monthId)
-
-    if (!generator) {
-      console.log('[generateSchedule] Generator is null!')
-      res.status(500).json({ error: 'Error al inicializar el generador' })
-      return
-    }
-    console.log('[generateSchedule] Generator V2 created, running generate()...')
-
-    // Generate schedule with timeout
-    // 180 seconds for Ollama (local models are slower), 30 seconds for cloud APIs
-    const configMap = await repo.getConfigMap()
-    const aiProvider = (configMap.aiProvider || 'none').toLowerCase()
-    const GENERATION_TIMEOUT_MS = aiProvider === 'ollama' ? 180000 : 30000
-    console.log(`[generateSchedule] AI Provider: "${aiProvider}", Timeout: ${GENERATION_TIMEOUT_MS}ms`)
-    
-    const timeoutPromise = new Promise<never>((_, reject) => {
-      setTimeout(() => {
-        reject(new Error(`Generation timeout after ${GENERATION_TIMEOUT_MS}ms`))
-      }, GENERATION_TIMEOUT_MS)
-    })
-    
-    const result = await Promise.race([
-      generator.generate(),
-      timeoutPromise
-    ])
-    
-    // Log generation result for debugging
-    const logData = {
-      success: result.success,
-      attempt: result.attempt,
-      assignmentsCount: result.assignmentsCount,
-      generationTimeMs: result.generationTimeMs,
-      warningsCount: result.warnings.length,
-      errors: result.warnings.filter(w => w.severity === 'error'),
-      warnings: result.warnings.filter(w => w.severity === 'warning'),
-    }
-    console.log('[generateSchedule] Result:', JSON.stringify(logData, null, 2))
-    
-    if (result.attempt && result.attempt > 1) {
-      console.log(`[generateSchedule] Succeeded after ${result.attempt} attempts`)
-    }
-    
-    // Also write to file for debugging
-    const fs = await import('fs')
-    fs.writeFileSync('generation-result.json', JSON.stringify(logData, null, 2))
-
-    // Save assignments to database - always save the best result we got
-    // Even if there are warnings, save the schedule so user can see and manually fix
-    const assignments = generator.getAssignments()
-    if (assignments.length > 0) {
-      console.log('[generateSchedule] Assignments to save:', assignments.length)
-      
-      // Log first few assignments for debugging
-      console.log('[generateSchedule] Sample assignments:', JSON.stringify(assignments.slice(0, 5), null, 2))
-      
-      // Log unique shift codes being used
-      const shiftCodes = [...new Set(assignments.map(a => a.shift_code))]
-      console.log('[generateSchedule] Unique shift codes:', shiftCodes)
-      
-      try {
-        await repo.createAssignmentsBulk(monthId, assignments)
-        console.log('[generateSchedule] Assignments saved successfully')
-      } catch (dbErr) {
-        console.error('[generateSchedule] Database error saving assignments:', dbErr)
-        throw dbErr
-      }
-
-      // Update month status
-      await repo.updateMonth(monthId, {
-        status: 'generated',
-        generated_at: new Date(),
-        generated_by: userId,
-      })
-
-      // Log history
-      await repo.createHistory(monthId, 'generated', userId, {
-        notes: `Generado con ${result.assignmentsCount} asignaciones en ${result.generationTimeMs}ms (intento ${result.attempt || 1})`,
-      })
-    }
-
-    res.json({ success: result.success, result })
-  } catch (err) {
-    if (handleZodError(err, res)) return
-    
-    // Check if it's a timeout error
-    if (err instanceof Error && err.message.includes('timeout')) {
-      console.error('Generation timeout:', err.message)
-      res.status(408).json({ 
-        error: 'Tiempo de generación excedido', 
-        message: 'El generador no pudo encontrar una solución válida en el tiempo límite. Intenta de nuevo.' 
-      })
-      return
-    }
-    
-    console.error('Error generating schedule:', err)
-    res.status(500).json({ error: 'Error al generar el horario' })
-  }
-}
-
 export async function validateSchedule(req: Request, res: Response): Promise<void> {
   try {
     const monthId = parseInt(req.params.id)
@@ -1155,15 +1316,17 @@ export async function validateSchedule(req: Request, res: Response): Promise<voi
 
     // Use the validation service
     const result = await validateScheduleService(monthId)
-    
+
     if (!result) {
       res.status(500).json({ error: 'Error al crear el validador' })
       return
     }
 
-    console.log(`[ValidateSchedule] Month ${monthId}: ${result.stats.totalErrors} errors, ${result.stats.totalWarnings} warnings`)
+    console.log(
+      `[ValidateSchedule] Month ${monthId}: ${result.stats.totalErrors} errors, ${result.stats.totalWarnings} warnings`
+    )
     if (result.errors.length > 0) {
-      console.log(`[ValidateSchedule] Errors:`, result.errors.map(e => e.message).slice(0, 5))
+      console.log(`[ValidateSchedule] Errors:`, result.errors.map((e) => e.message).slice(0, 5))
     }
 
     res.json(result)
@@ -1174,8 +1337,8 @@ export async function validateSchedule(req: Request, res: Response): Promise<voi
 }
 
 /**
- * Unpublish a month - revert from 'published' to 'generated' status
- * This allows continuing to edit/regenerate the schedule
+ * Unpublish a month - revert from 'published' to 'draft' status
+ * This allows editing the schedule and re-publishing to update totals
  */
 export async function unpublishMonth(req: Request, res: Response): Promise<void> {
   try {
@@ -1187,7 +1350,7 @@ export async function unpublishMonth(req: Request, res: Response): Promise<void>
 
     const userId = req.user!.id
     const month = await repo.getMonthById(monthId)
-    
+
     if (!month) {
       res.status(404).json({ error: 'Mes no encontrado' })
       return
@@ -1198,23 +1361,23 @@ export async function unpublishMonth(req: Request, res: Response): Promise<void>
       return
     }
 
-    // Revert to generated status, clear published info
+    // Revert to draft status, clear published info
     await repo.updateMonth(monthId, {
-      status: 'generated',
+      status: 'draft',
       published_at: null,
       published_by: null,
     })
 
     // Log history
     await repo.createHistory(monthId, 'unpublished', userId, {
-      notes: 'Mes revertido a estado generado para permitir edición',
+      notes: 'Mes revertido a estado draft para permitir edición',
     })
 
     const updatedMonth = await repo.getMonthById(monthId)
-    res.json({ 
-      success: true, 
-      message: 'Mes revertido a estado generado',
-      month: updatedMonth 
+    res.json({
+      success: true,
+      message: 'Mes revertido a estado draft',
+      month: updatedMonth,
     })
   } catch (err) {
     console.error('Error unpublishing month:', err)
@@ -1250,7 +1413,7 @@ export async function addSchedulableEmployee(req: Request, res: Response): Promi
   try {
     const { employeeId } = req.params
     const userId = req.user?.id
-    
+
     await repo.addSchedulableEmployee(employeeId, userId)
     res.json({ success: true, message: 'Empleado añadido a horarios' })
   } catch (err) {
@@ -1262,7 +1425,7 @@ export async function addSchedulableEmployee(req: Request, res: Response): Promi
 export async function removeSchedulableEmployee(req: Request, res: Response): Promise<void> {
   try {
     const { employeeId } = req.params
-    
+
     await repo.removeSchedulableEmployee(employeeId)
     res.json({ success: true, message: 'Empleado removido de horarios' })
   } catch (err) {
@@ -1275,12 +1438,12 @@ export async function setSchedulableEmployees(req: Request, res: Response): Prom
   try {
     const { employeeIds } = req.body
     const userId = req.user?.id
-    
+
     if (!Array.isArray(employeeIds)) {
       res.status(400).json({ error: 'employeeIds debe ser un array' })
       return
     }
-    
+
     await repo.setSchedulableEmployees(employeeIds, userId)
     res.json({ success: true, message: `${employeeIds.length} empleados configurados` })
   } catch (err) {
@@ -1302,7 +1465,7 @@ export async function getContractsByYear(req: Request, res: Response): Promise<v
     }
 
     const contracts = await repo.getContractsByYear(year)
-    
+
     // Transform to camelCase for frontend
     const formatted: EmployeeContract[] = contracts.map((c) => ({
       id: c.id,
@@ -1318,7 +1481,7 @@ export async function getContractsByYear(req: Request, res: Response): Promise<v
       diasLaborablesAno: c.dias_laborables_ano,
       observaciones: c.observaciones,
     }))
-    
+
     res.json(formatted)
   } catch (err) {
     console.error('Error getting contracts:', err)
@@ -1330,19 +1493,19 @@ export async function getContractByEmployeeYear(req: Request, res: Response): Pr
   try {
     const { employeeId } = req.params
     const year = parseInt(req.params.year)
-    
+
     if (isNaN(year)) {
       res.status(400).json({ error: 'Año inválido' })
       return
     }
 
     const contract = await repo.getContractByEmployeeYear(employeeId, year)
-    
+
     if (!contract) {
       res.status(404).json({ error: 'Contrato no encontrado' })
       return
     }
-    
+
     res.json({
       id: contract.id,
       employeeId: contract.employee_id,
@@ -1365,9 +1528,9 @@ export async function getContractByEmployeeYear(req: Request, res: Response): Pr
 export async function createContract(req: Request, res: Response): Promise<void> {
   try {
     const userId = req.user?.id
-    const { 
-      employee_id, 
-      year, 
+    const {
+      employee_id,
+      year,
       dias_trabajo,
       horas_anuales,
       dias_vacaciones,
@@ -1426,7 +1589,7 @@ export async function updateContract(req: Request, res: Response): Promise<void>
       return
     }
 
-    const { 
+    const {
       dias_trabajo,
       horas_anuales,
       dias_vacaciones,
@@ -1488,11 +1651,11 @@ export async function initializeContractsForYear(req: Request, res: Response): P
 
     const userId = req.user?.id
     const created = await repo.initializeContractsForYear(year, userId)
-    
-    res.json({ 
-      success: true, 
+
+    res.json({
+      success: true,
       message: `${created} contratos creados con valores por defecto`,
-      created 
+      created,
     })
   } catch (err) {
     console.error('Error initializing contracts:', err)
@@ -1542,23 +1705,25 @@ export async function initializeContractForEmployee(req: Request, res: Response)
 
     res.status(201).json({
       success: true,
-      message: startDate 
+      message: startDate
         ? `Contrato creado con valores proporcionales desde ${startDate}`
         : 'Contrato creado con valores completos',
-      contract: contract ? {
-        id: contract.id,
-        employeeId: contract.employee_id,
-        employeeName: contract.employee_name,
-        year: contract.year,
-        diasTrabajo: contract.dias_trabajo,
-        horasAnuales: contract.horas_anuales,
-        diasVacaciones: contract.dias_vacaciones,
-        diasLibreSemanal: contract.dias_libre_semanal,
-        diasBonificables: contract.dias_bonificables,
-        diasIt: contract.dias_it,
-        diasLaborablesAno: contract.dias_laborables_ano,
-        observaciones: contract.observaciones,
-      } : null,
+      contract: contract
+        ? {
+            id: contract.id,
+            employeeId: contract.employee_id,
+            employeeName: contract.employee_name,
+            year: contract.year,
+            diasTrabajo: contract.dias_trabajo,
+            horasAnuales: contract.horas_anuales,
+            diasVacaciones: contract.dias_vacaciones,
+            diasLibreSemanal: contract.dias_libre_semanal,
+            diasBonificables: contract.dias_bonificables,
+            diasIt: contract.dias_it,
+            diasLaborablesAno: contract.dias_laborables_ano,
+            observaciones: contract.observaciones,
+          }
+        : null,
     })
   } catch (err) {
     console.error('Error initializing contract for employee:', err)
@@ -1624,17 +1789,17 @@ export async function getAnnualTotals(req: Request, res: Response): Promise<void
     }
 
     const totals = await repo.calculateAnnualTotals(year)
-    
+
     // Get count of published months for this year
     const publishedMonths = await repo.getAllMonths({ year, status: 'published' })
-    
+
     const response: AnnualTotalsResponse = {
       year,
       employees: totals,
       totalMesesPublicados: publishedMonths.length,
       fechaCalculo: new Date().toISOString(),
     }
-    
+
     res.json(response)
   } catch (err) {
     console.error('Error getting annual totals:', err)
@@ -1642,213 +1807,4 @@ export async function getAnnualTotals(req: Request, res: Response): Promise<void
   }
 }
 
-// ============================================
-// AI STATUS & TEST
-// ============================================
-
-import { AIClient, createAIClient } from '../../services/scheduling/ai/ai-client.js'
-import type { AIProviderType } from '../../services/scheduling/ai/types.js'
-import { PROVIDER_DEFAULTS } from '../../services/scheduling/ai/types.js'
-
-/**
- * GET /scheduling/ai/status
- * Returns AI configuration status
- */
-export async function getAIStatus(_req: Request, res: Response): Promise<void> {
-  try {
-    const aiEnabled = process.env.AI_ENABLED?.toLowerCase() === 'true' || process.env.AI_ENABLED === '1'
-    
-    // Get configured provider from DB config or default
-    const configMap = await repo.getConfigMap()
-    const configuredProvider = (configMap.aiProvider as AIProviderType) || 'none'
-    
-    // Helper to check if a provider is enabled (PROVIDER_ENABLED env var)
-    const isProviderEnabled = (provider: string): boolean => {
-      const envVar = `${provider.toUpperCase()}_ENABLED`
-      const value = process.env[envVar]
-      // If not set, default to true
-      if (value === undefined) return true
-      return value.toLowerCase() === 'true' || value === '1'
-    }
-
-    // Check which providers have API keys configured AND are enabled
-    const providers = {
-      claude: {
-        configured: !!process.env.CLAUDE_API_KEY,
-        enabled: isProviderEnabled('claude'),
-        model: PROVIDER_DEFAULTS.claude.model,
-      },
-      gemini: {
-        configured: !!process.env.GEMINI_API_KEY,
-        enabled: isProviderEnabled('gemini'),
-        model: PROVIDER_DEFAULTS.gemini.model,
-      },
-      groq: {
-        configured: !!process.env.GROQ_API_KEY,
-        enabled: isProviderEnabled('groq'),
-        model: PROVIDER_DEFAULTS.groq.model,
-      },
-      openai: {
-        configured: !!process.env.OPENAI_API_KEY,
-        enabled: isProviderEnabled('openai'),
-        model: PROVIDER_DEFAULTS.openai.model,
-      },
-      ollama: {
-        configured: true, // Ollama doesn't need API key, always "configured" if selected
-        enabled: isProviderEnabled('ollama'),
-        model: PROVIDER_DEFAULTS.ollama.model,
-        baseUrl: process.env.OLLAMA_BASE_URL || 'http://localhost:11434',
-        requiresDocker: true, // Indicates this needs Docker/local service running
-      },
-    }
-
-    // Create client to test current configuration
-    const client = new AIClient()
-    const isAvailable = client.isAvailable()
-    const activeProvider = client.getProviderName()
-
-    // Check environment
-    const isProduction = process.env.NODE_ENV === 'production'
-
-    res.json({
-      enabled: aiEnabled,
-      configuredProvider,
-      activeProvider,
-      isAvailable,
-      isProduction,
-      providers,
-    })
-  } catch (err) {
-    console.error('Error getting AI status:', err)
-    res.status(500).json({ error: 'Error al obtener estado de IA' })
-  }
-}
-
-/**
- * POST /scheduling/ai/test
- * Test AI connection with a simple prompt
- */
-export async function testAIConnection(req: Request, res: Response): Promise<void> {
-  try {
-    const { provider } = req.body as { provider?: AIProviderType }
-    
-    // Check if AI is enabled
-    const aiEnabled = process.env.AI_ENABLED?.toLowerCase() === 'true' || process.env.AI_ENABLED === '1'
-    if (!aiEnabled) {
-      res.status(400).json({ 
-        success: false, 
-        error: 'AI está desactivado. Configure AI_ENABLED=true en el servidor.' 
-      })
-      return
-    }
-
-    // Check if specific provider is enabled
-    if (provider && provider !== 'none') {
-      const providerEnabledVar = `${provider.toUpperCase()}_ENABLED`
-      const providerEnabled = process.env[providerEnabledVar]
-      // If explicitly set to false, reject
-      if (providerEnabled !== undefined && providerEnabled.toLowerCase() !== 'true' && providerEnabled !== '1') {
-        res.status(400).json({ 
-          success: false, 
-          error: `Proveedor ${provider} está deshabilitado. Configure ${providerEnabledVar}=true en el servidor.` 
-        })
-        return
-      }
-    }
-
-    // Create client (use specified provider or auto-detect)
-    const client = provider ? createAIClient(provider) : new AIClient()
-    
-    if (!client.isAvailable()) {
-      res.status(400).json({ 
-        success: false, 
-        error: `Proveedor ${provider || 'auto'} no disponible. Verifique la API key.` 
-      })
-      return
-    }
-
-    // Test with a simple optimization context
-    const testContext: import('../../services/scheduling/ai/types.js').AIContext = {
-      constraints: {
-        minMorningStaff: 1,
-        minAfternoonStaff: 1,
-        minNightStaff: 1,
-        minNightBlock: 3,
-        maxNightBlock: 6,
-        minRestHours: 48,
-        maxConsecutiveWorkDays: 6,
-        minMonthlyLibre: 8,
-        maxMonthlyLibre: 12,
-      },
-      employees: [{
-        id: '1',
-        name: 'Test Employee',
-        rules: 'Sin reglas especiales',
-        rulesRaw: {
-          shiftPriority: undefined,
-          fixedShift: undefined,
-          fixedDays: undefined,
-          noWeekends: undefined,
-          maxShiftPerMonth: undefined,
-        },
-        stats: {
-          M: 0,
-          T: 0,
-          N: 0,
-          L: 0,
-          presencias: 0,
-        },
-        overworked: false,
-        underworked: false,
-      }],
-      matrix: {
-        'Test Employee (1)': { '1': 'L', '2': 'L', '3': 'L' }
-      },
-      warnings: [{
-        type: 'test',
-        message: 'Test de conexión AI',
-        severity: 'info',
-        employeeId: '1',
-        day: 1,
-      }],
-      monthInfo: {
-        year: new Date().getFullYear(),
-        month: new Date().getMonth() + 1,
-        totalDays: 30,
-      },
-      coverage: {
-        underCoveredMorning: [],
-        underCoveredAfternoon: [],
-        underCoveredNight: [],
-        overCovered: [],
-      },
-      balance: {
-        avgPresencias: 0,
-        stdDevPresencias: 0,
-        balanceScore: 1,
-      },
-      holidays: [],
-    }
-
-    const startTime = Date.now()
-    const result = await client.optimize(testContext)
-    const elapsed = Date.now() - startTime
-
-    res.json({
-      success: true,
-      provider: client.getProviderName(),
-      responseTime: elapsed,
-      model: client.getConfig().model,
-      testResult: {
-        hasAnalysis: !!result.analysis,
-        confidence: result.confidence,
-      },
-    })
-  } catch (err) {
-    console.error('Error testing AI connection:', err)
-    res.status(500).json({ 
-      success: false, 
-      error: err instanceof Error ? err.message : 'Error al probar conexión IA' 
-    })
-  }
-}
+// Annual totals route already handled above

@@ -4,6 +4,7 @@
 
 import { useTranslations } from 'next-intl'
 import { useMemo } from 'react'
+import { FiLock } from 'react-icons/fi'
 import type { SchedulingMonthFull, SchedulingShift, DayOfWeek } from '@/app/lib/scheduling'
 import { getShiftClasses } from '@/app/lib/scheduling'
 
@@ -154,6 +155,8 @@ export function ScheduleGrid({
                     {days.map((day) => {
                       const assignment = employee.assignments[day.dayNumber]
                       const shiftCode = assignment?.shiftCode || null
+                      const isLockedByConstraint = Boolean(assignment?.sourceConstraintId)
+                      const canEditCell = editable && !isLockedByConstraint
                       const shiftClasses = getShiftClasses(shiftCode)
 
                       return (
@@ -165,17 +168,30 @@ export function ScheduleGrid({
                         >
                           <button
                             onClick={(e) =>
-                              editable && onCellClick?.(employee.id, day.id, shiftCode, e)
+                              canEditCell && onCellClick?.(employee.id, day.id, shiftCode, e)
                             }
-                            disabled={!editable}
+                            disabled={!canEditCell}
                             className={`
                               w-8 h-6 rounded text-[10px] font-bold border transition-all
-                              ${editable ? 'cursor-pointer hover:scale-110 hover:shadow-md' : 'cursor-default'}
+                              ${canEditCell ? 'cursor-pointer hover:scale-110 hover:shadow-md' : 'cursor-default'}
+                              ${isLockedByConstraint ? 'opacity-70 border-gray-400 dark:border-gray-600' : ''}
                               ${shiftClasses}
                             `}
-                            title={shiftCode ? shiftsMap[shiftCode]?.name : t('grid.unassigned')}
+                            title={
+                              isLockedByConstraint
+                                ? 'Celda bloqueada por petición aprobada'
+                                : shiftCode
+                                  ? shiftsMap[shiftCode]?.name
+                                  : t('grid.unassigned')
+                            }
                           >
-                            {shiftCode || '-'}
+                            <span className="inline-flex items-center justify-center gap-0.5">
+                              {isLockedByConstraint ? (
+                                <FiLock className="w-4 h-4 text-fuchsia-600 dark:text-fuchsia-400" />
+                              ) : (
+                                <>{shiftCode || '-'}</>
+                              )}
+                            </span>
                           </button>
                         </td>
                       )

@@ -1,7 +1,7 @@
 -- =========================================================
 -- SCHEDULING MODULE - DATABASE SCHEMA
 -- =========================================================
--- Descripción: Sistema de generación de horarios de personal
+-- Descripción: Sistema de horarios de personal (creación manual + validación)
 -- Versión: AIVEN (utf8mb4_0900_ai_ci)
 -- =========================================================
 
@@ -150,22 +150,19 @@ CREATE TABLE scheduling_months (
   id INT NOT NULL AUTO_INCREMENT,
   year INT NOT NULL COMMENT 'Año del planning',
   month INT NOT NULL COMMENT 'Mes del planning (1-12)',
-  status ENUM('draft', 'generated', 'published', 'archived') COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT 'draft' COMMENT 'Estado del planning',
-  generated_at DATETIME DEFAULT NULL COMMENT 'Fecha/hora de última generación',
-  generated_by CHAR(36) COLLATE utf8mb4_0900_ai_ci DEFAULT NULL COMMENT 'Usuario que generó',
+  status ENUM('draft', 'published') COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT 'draft' COMMENT 'Estado del planning: draft (en edición), published (publicado)',
   published_at DATETIME DEFAULT NULL COMMENT 'Fecha/hora de publicación',
   published_by CHAR(36) COLLATE utf8mb4_0900_ai_ci DEFAULT NULL COMMENT 'Usuario que publicó',
   notes TEXT COLLATE utf8mb4_0900_ai_ci DEFAULT NULL COMMENT 'Notas del planning',
   created_by CHAR(36) COLLATE utf8mb4_0900_ai_ci DEFAULT NULL COMMENT 'Usuario que creó',
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  
+
   PRIMARY KEY (id),
   UNIQUE KEY uk_year_month (year, month),
   KEY idx_status (status),
   KEY idx_year (year),
   KEY idx_month (month),
-  CONSTRAINT fk_sched_month_generated_by FOREIGN KEY (generated_by) REFERENCES users (id) ON DELETE SET NULL,
   CONSTRAINT fk_sched_month_published_by FOREIGN KEY (published_by) REFERENCES users (id) ON DELETE SET NULL,
   CONSTRAINT fk_sched_month_created_by FOREIGN KEY (created_by) REFERENCES users (id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Planning mensual';
@@ -209,21 +206,22 @@ CREATE TABLE scheduling_assignments (
   day_id INT NOT NULL COMMENT 'ID del día',
   employee_id CHAR(36) COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT 'ID del empleado',
   shift_code VARCHAR(5) COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT 'Código del turno asignado',
-  is_manual TINYINT(1) NOT NULL DEFAULT 0 COMMENT '1=asignado manualmente, 0=generado',
+  source_constraint_id INT DEFAULT NULL COMMENT 'Constraint origen (si la celda está precargada/bloqueada)',
   notes VARCHAR(255) COLLATE utf8mb4_0900_ai_ci DEFAULT NULL COMMENT 'Notas de la asignación',
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  
+
   PRIMARY KEY (id),
   UNIQUE KEY uk_day_employee (day_id, employee_id),
   KEY idx_month_id (month_id),
   KEY idx_employee_id (employee_id),
   KEY idx_shift_code (shift_code),
-  KEY idx_is_manual (is_manual),
+  KEY idx_source_constraint_id (source_constraint_id),
   CONSTRAINT fk_sched_assign_month FOREIGN KEY (month_id) REFERENCES scheduling_months (id) ON DELETE CASCADE,
   CONSTRAINT fk_sched_assign_day FOREIGN KEY (day_id) REFERENCES scheduling_days (id) ON DELETE CASCADE,
   CONSTRAINT fk_sched_assign_employee FOREIGN KEY (employee_id) REFERENCES users (id) ON DELETE CASCADE,
-  CONSTRAINT fk_sched_assign_shift FOREIGN KEY (shift_code) REFERENCES scheduling_shifts (code) ON DELETE RESTRICT
+  CONSTRAINT fk_sched_assign_shift FOREIGN KEY (shift_code) REFERENCES scheduling_shifts (code) ON DELETE RESTRICT,
+  CONSTRAINT fk_sched_assign_source_constraint FOREIGN KEY (source_constraint_id) REFERENCES scheduling_constraints (id) ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Asignación de turnos por empleado y día';
 
 -- =========================================================
@@ -269,7 +267,7 @@ CREATE TABLE scheduling_constraints (
 CREATE TABLE scheduling_history (
   id INT NOT NULL AUTO_INCREMENT,
   month_id INT NOT NULL COMMENT 'ID del planning mensual',
-  action ENUM('created', 'generated', 'published', 'unpublished', 'assignment_changed', 'constraint_added', 'constraint_approved', 'constraint_rejected', 'manual_edit') COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT 'Tipo de acción',
+  action ENUM('created', 'published', 'unpublished', 'assignment_changed', 'constraint_added', 'constraint_approved', 'constraint_rejected', 'manual_edit', 'reset') COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT 'Tipo de acción realizada',
   table_affected VARCHAR(50) COLLATE utf8mb4_0900_ai_ci DEFAULT NULL COMMENT 'Tabla afectada',
   record_id INT DEFAULT NULL COMMENT 'ID del registro afectado',
   field_changed VARCHAR(100) COLLATE utf8mb4_0900_ai_ci DEFAULT NULL COMMENT 'Campo modificado',
@@ -312,8 +310,7 @@ INSERT INTO scheduling_config (config_key, config_value, description) VALUES
 ('min_consecutive_libre', '2', 'Mínimo días libres consecutivos por semana'),
 ('annual_vacation_days', '30', 'Días de vacaciones anuales'),
 ('annual_holidays', '14', 'Festivos anuales'),
-('annual_free_days', '95', 'Libres semanales anuales'),
-('ai_provider', 'claude', 'Proveedor IA: none, claude, ollama, openai');
+('annual_free_days', '95', 'Libres semanales anuales');
 
 -- =========================================================
 -- DATOS INICIALES: Tipos de turno

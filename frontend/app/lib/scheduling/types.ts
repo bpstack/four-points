@@ -16,7 +16,7 @@
 // ENUMS & CONSTANTS
 // ============================================
 
-export type MonthStatus = 'draft' | 'generated' | 'published' | 'archived'
+export type MonthStatus = 'draft' | 'published'
 
 export type ConstraintType =
   | 'vacation'
@@ -43,13 +43,14 @@ export type DayOfWeek = 'L' | 'M' | 'X' | 'J' | 'V' | 'S' | 'D'
 
 export type HistoryAction =
   | 'created'
-  | 'generated'
   | 'published'
+  | 'unpublished'
   | 'assignment_changed'
   | 'constraint_added'
   | 'constraint_approved'
   | 'constraint_rejected'
   | 'manual_edit'
+  | 'reset'
 
 // ============================================
 // BASE TYPES
@@ -80,7 +81,6 @@ export interface SchedulingConfigMap {
   annualVacationDays: number
   annualHolidays: number
   annualFreeDays: number
-  aiProvider: string
 }
 
 export interface SchedulingShift {
@@ -117,7 +117,6 @@ export interface SchedulingAssignment {
   employeeId: string
   employeeName: string
   shiftCode: string
-  isManual: boolean
   notes: string | null
 }
 
@@ -171,7 +170,6 @@ export interface SchedulingHistory {
 // ============================================
 // EMPLOYEE WITH ASSIGNMENTS (for grid display)
 // ============================================
-
 export interface EmployeeSchedule {
   id: string
   name: string
@@ -179,7 +177,7 @@ export interface EmployeeSchedule {
     [dayNumber: number]: {
       id: number
       shiftCode: string
-      isManual: boolean
+      sourceConstraintId?: number | null
       notes: string | null
     }
   }
@@ -221,9 +219,6 @@ export interface SchedulingMonth {
   year: number
   month: number
   status: MonthStatus
-  generatedAt: string | null
-  generatedBy: string | null
-  generatedByName?: string | null
   publishedAt: string | null
   publishedBy: string | null
   publishedByName?: string | null

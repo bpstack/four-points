@@ -6,7 +6,7 @@ import { z } from 'zod'
 // BASE SCHEMAS
 // ============================================
 
-const monthStatusEnum = z.enum(['draft', 'generated', 'published', 'archived'])
+const monthStatusEnum = z.enum(['draft', 'published'])
 
 const constraintTypeEnum = z.enum([
   'vacation',
@@ -50,7 +50,9 @@ const monthSchema = z
 // const dayNumberSchema = z.number().int().min(1).max(31)
 // const weekNumberSchema = z.number().int().min(1).max(6)
 
-const dateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Formato de fecha inválido. Usa YYYY-MM-DD')
+const dateSchema = z
+  .string()
+  .regex(/^\d{4}-\d{2}-\d{2}$/, 'Formato de fecha inválido. Usa YYYY-MM-DD')
 
 const employeeIdSchema = z.string().uuid('El employee_id debe ser un UUID válido')
 
@@ -65,7 +67,7 @@ const notesSchema = z
   .optional()
   .nullable()
 
-const prioritySchema = z.number().int().min(0).max(100).default(0)
+const prioritySchema = z.number().int().min(0).max(10).default(0)
 
 // ============================================
 // MONTH SCHEMAS
@@ -124,7 +126,6 @@ export const bulkUpdateDaysSchema = z.object({
 
 export const updateAssignmentSchema = z.object({
   shift_code: shiftCodeSchema,
-  is_manual: z.boolean().default(true),
   notes: notesSchema,
 })
 
@@ -232,16 +233,6 @@ export const updateConfigSchema = z.object({
 })
 
 // ============================================
-// GENERATION SCHEMAS
-// ============================================
-
-export const generateScheduleSchema = z.object({
-  useAI: z.boolean().default(false),
-  forceRegenerate: z.boolean().default(false),
-  aiProvider: z.enum(['none', 'claude', 'gemini', 'ollama', 'openai', 'groq']).default('none'),
-}).default({ useAI: false, forceRegenerate: false, aiProvider: 'none' })
-
-// ============================================
 // QUERY SCHEMAS
 // ============================================
 
@@ -276,6 +267,5 @@ export type ApproveConstraintInput = z.infer<typeof approveConstraintSchema>
 export type CreateEmployeeRuleInput = z.infer<typeof createEmployeeRuleSchema>
 export type UpdateEmployeeRuleInput = z.infer<typeof updateEmployeeRuleSchema>
 export type UpdateConfigInput = z.infer<typeof updateConfigSchema>
-export type GenerateScheduleInput = z.infer<typeof generateScheduleSchema>
 export type MonthQueryInput = z.infer<typeof monthQuerySchema>
 export type ConstraintQueryInput = z.infer<typeof constraintQuerySchema>

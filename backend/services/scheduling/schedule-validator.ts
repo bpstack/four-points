@@ -20,8 +20,9 @@ import type {
   ScheduleMatrix,
 } from './types/index.js'
 
-import { FinalValidationPhase } from './phases/final-validation.phase.js'
 import { CoverageConstraint } from './constraints/coverage.constraint.js'
+import { isWorkShift, isLibreShift, getEmployeeShiftCounts } from './utils/matrix.js'
+import { getWeeksInMonth, areConsecutive } from './utils/day-helpers.js'
 
 // ============================================
 // VALIDATION RESULT
@@ -44,7 +45,7 @@ export interface ValidationResult {
 
 /**
  * Schedule Validator
- * 
+ *
  * Validates an existing schedule's assignments against all rules.
  * Used for re-validating after manual edits without regenerating.
  */
@@ -93,8 +94,7 @@ export class ScheduleValidator {
       maxConsecutiveWorkDays: config.maxConsecutiveWorkDays ?? 6,
       annualVacationDays: config.annualVacationDays ?? 22,
       annualHolidays: config.annualHolidays ?? 14,
-      annualFreeDays: config.annualFreeDays ?? 6,
-      aiProvider: config.aiProvider ?? 'none',
+      annualFreeDays: config.annualFreeDays ?? 95,
     }
 
     // Convert shifts to typed info
@@ -135,26 +135,26 @@ export class ScheduleValidator {
     // Build context with existing assignments
     const context = this.createContextFromAssignments()
 
-    console.log(`[Validator] Validating month ${this.monthId} with ${this.assignments.length} assignments`)
-    console.log(`[Validator] Employees: ${this.employees.map(e => e.name).join(', ')}`)
+    console.log(
+      `[Validator] Validating month ${this.monthId} with ${this.assignments.length} assignments`
+    )
+    console.log(`[Validator] Employees: ${this.employees.map((e) => e.name).join(', ')}`)
 
-    // Run validation phases
-    const finalValidation = new FinalValidationPhase()
-    const validationResult = finalValidation.execute(context)
+    // Run final validation logic (extracted from FinalValidationPhase)
+    const validationWarnings = this.runFinalValidation(context)
 
-    console.log(`[Validator] FinalValidation returned ${validationResult.warnings.length} issues`)
+    console.log(`[Validator] FinalValidation returned ${validationWarnings.length} issues`)
 
     // Run coverage constraint
     const coverageConstraint = new CoverageConstraint()
     const coverageResult = coverageConstraint.check(context)
 
-    console.log(`[Validator] CoverageConstraint returned ${coverageResult.violations.length} issues`)
+    console.log(
+      `[Validator] CoverageConstraint returned ${coverageResult.violations.length} issues`
+    )
 
     // Merge all warnings
-    const allWarnings: GenerationWarning[] = [
-      ...validationResult.warnings,
-      ...coverageResult.violations,
-    ]
+    const allWarnings: GenerationWarning[] = [...validationWarnings, ...coverageResult.violations]
 
     // Separate errors and warnings
     const errors = allWarnings.filter((w) => w.severity === 'error')
@@ -178,6 +178,506 @@ export class ScheduleValidator {
         byType,
       },
     }
+  }
+
+  // ============================================
+  // FINAL VALIDATION LOGIC (extracted from FinalValidationPhase)
+  // ============================================
+
+  private readonly MIN_WORK_BLOCK = 3
+
+  private runFinalValidation(context: GeneratorContext): GenerationWarning[] {
+    const warnings: GenerationWarning[] = []
+    const { matrix, days, employees, config } = context
+
+    const minMonthlyLibre = config.minMonthlyLibre || 7
+    const maxMonthlyLibre = config.maxMonthlyLibre || 10
+    const maxConsecutiveWorkDays = config.maxConsecutiveWorkDays || 6
+    const minNightBlock = config.minNightBlock || 4
+    const maxNightBlock = config.maxNightBlock || 6
+    const MIN_NIGHTS_REQUIRED = 3
+
+    for (const employee of employees) {
+      if (employee.rules.fixedDays) continue
+
+      const shiftCounts = getEmployeeShiftCounts(matrix, days, employee.id)
+      const totalLibreDays = this.countTotalLibreDays(matrix, days, employee.id)
+
+      // VALIDATION 1: Monthly libre days (8-12)
+      if (totalLibreDays < minMonthlyLibre) {
+        warnings.push(
+          this.createWarning(
+            `${employee.name}: Solo ${totalLibreDays} días libres al mes (mín ${minMonthlyLibre})`,
+            {
+              type: 'rest',
+              severity: 'warning',
+              employeeId: employee.id,
+              employeeName: employee.name,
+            }
+          )
+        )
+      }
+      if (totalLibreDays > maxMonthlyLibre) {
+        warnings.push(
+          this.createWarning(
+            `${employee.name}: ${totalLibreDays} días libres al mes (máx ${maxMonthlyLibre})`,
+            {
+              type: 'rest',
+              severity: 'warning',
+              employeeId: employee.id,
+              employeeName: employee.name,
+            }
+          )
+        )
+      }
+
+      // VALIDATION 2: Max consecutive work days (6)
+      const consecutiveViolations = this.findConsecutiveWorkViolations(
+        matrix,
+        days,
+        employee.id,
+        maxConsecutiveWorkDays
+      )
+      for (const violation of consecutiveViolations) {
+        warnings.push(
+          this.createError(
+            `${employee.name}: ${violation.count} días consecutivos trabajados (días ${violation.startDay}-${violation.endDay}, máx ${maxConsecutiveWorkDays})`,
+            {
+              type: 'rest',
+              employeeId: employee.id,
+              employeeName: employee.name,
+              day: violation.startDay,
+            }
+          )
+        )
+      }
+
+      // VALIDATION 3: Min consecutive work days (3) - no isolated 1-2 day work blocks
+      const smallWorkBlocks = this.findSmallWorkBlocks(
+        matrix,
+        days,
+        employee.id,
+        this.MIN_WORK_BLOCK
+      )
+      for (const block of smallWorkBlocks) {
+        warnings.push(
+          this.createError(
+            `${employee.name}: bloque de ${block.count} día(s) de trabajo (días ${block.startDay}-${block.endDay}, mín ${this.MIN_WORK_BLOCK} consecutivos)`,
+            {
+              type: 'rest',
+              employeeId: employee.id,
+              employeeName: employee.name,
+              day: block.startDay,
+            }
+          )
+        )
+      }
+
+      // VALIDATION 4: 2 consecutive rest in rolling 7-day window
+      for (let windowStart = 1; windowStart <= days.length - 6; windowStart++) {
+        const windowEnd = windowStart + 6
+        if (!this.hasConsecutiveRestInWindow(matrix, employee.id, windowStart, windowEnd)) {
+          warnings.push(
+            this.createWarning(
+              `${employee.name}: días ${windowStart}-${windowEnd} sin 2 días libres consecutivos (48h descanso)`,
+              {
+                type: 'rest',
+                severity: 'warning',
+                employeeId: employee.id,
+                employeeName: employee.name,
+              }
+            )
+          )
+          windowStart += 5
+        }
+      }
+
+      // VALIDATION 5: Max shifts per month rules
+      if (employee.rules.maxShiftPerMonth) {
+        for (const [shiftCode, maxCount] of Object.entries(employee.rules.maxShiftPerMonth)) {
+          const actual = shiftCounts[shiftCode] || 0
+          if (actual > maxCount) {
+            warnings.push(
+              this.createWarning(
+                `${employee.name}: ${actual} turnos ${shiftCode} (máx ${maxCount})`,
+                {
+                  type: 'constraint',
+                  severity: 'warning',
+                  employeeId: employee.id,
+                  employeeName: employee.name,
+                }
+              )
+            )
+          }
+        }
+      }
+
+      // VALIDATION 6: Weekly shifts don't exceed max
+      const weeks = getWeeksInMonth(days)
+      for (const week of weeks) {
+        const weekWork = this.countWeekWorkDays(matrix, days, employee.id, week.weekNumber)
+        if (weekWork > (config.maxWeeklyShifts || 6)) {
+          warnings.push(
+            this.createWarning(
+              `${employee.name}: ${weekWork} turnos en semana ${week.weekNumber} (máx ${config.maxWeeklyShifts || 6})`,
+              {
+                type: 'hours',
+                severity: 'warning',
+                employeeId: employee.id,
+                employeeName: employee.name,
+              }
+            )
+          )
+        }
+      }
+
+      // VALIDATION 7: Night block validation
+      const nightCount = shiftCounts['N'] || 0
+      if (nightCount > 0) {
+        const nightDays = days
+          .filter((d) => matrix[employee.id][d.dayNumber] === 'N')
+          .map((d) => d.dayNumber)
+          .sort((a, b) => a - b)
+
+        const isConsecutive = areConsecutive(nightDays)
+
+        if (!isConsecutive) {
+          warnings.push(
+            this.createError(
+              `${employee.name}: noches dispersas (días ${nightDays.join(', ')}) - deben ser consecutivas`,
+              { type: 'night_block', employeeId: employee.id, employeeName: employee.name }
+            )
+          )
+        } else if (nightCount < MIN_NIGHTS_REQUIRED) {
+          warnings.push(
+            this.createError(
+              `${employee.name}: ${nightCount} noches (mínimo obligatorio ${MIN_NIGHTS_REQUIRED} consecutivas)`,
+              { type: 'night_block', employeeId: employee.id, employeeName: employee.name }
+            )
+          )
+        } else if (nightCount < minNightBlock) {
+          warnings.push(
+            this.createWarning(
+              `${employee.name}: ${nightCount} noches (mín recomendado ${minNightBlock})`,
+              {
+                type: 'night_block',
+                severity: 'warning',
+                employeeId: employee.id,
+                employeeName: employee.name,
+              }
+            )
+          )
+        }
+
+        if (nightCount > maxNightBlock) {
+          warnings.push(
+            this.createError(
+              `${employee.name}: ${nightCount} noches consecutivas (máx ${maxNightBlock})`,
+              { type: 'night_block', employeeId: employee.id, employeeName: employee.name }
+            )
+          )
+        }
+      }
+    }
+
+    // ADDITIONAL VALIDATIONS
+    for (const employee of employees) {
+      if (employee.rules.fixedDays) continue
+
+      const shiftCounts = getEmployeeShiftCounts(matrix, days, employee.id)
+      const nightCount = shiftCounts['N'] || 0
+
+      // W5: Sin noches este mes (todos rotan)
+      if (nightCount === 0 && !employee.rules.fixedShift && !employee.rules.noWeekends) {
+        warnings.push(
+          this.createWarning(
+            `${employee.name}: 0 noches este mes (todos los rotatorios deben hacer noches)`,
+            {
+              type: 'night_block',
+              severity: 'warning',
+              employeeId: employee.id,
+              employeeName: employee.name,
+            }
+          )
+        )
+      }
+
+      // W6: >21 turnos en el mes
+      const workDays = this.countWorkDays(matrix, employee.id)
+      if (workDays > 21) {
+        warnings.push(
+          this.createWarning(`${employee.name}: ${workDays} turnos (máx recomendado 21)`, {
+            type: 'hours',
+            severity: 'warning',
+            employeeId: employee.id,
+            employeeName: employee.name,
+          })
+        )
+      }
+
+      // W7: <13 turnos sin V ni B
+      const vacDays = shiftCounts['V'] || 0
+      const bonDays = shiftCounts['B'] || 0
+      if (workDays < 13 && vacDays === 0 && bonDays === 0) {
+        warnings.push(
+          this.createWarning(
+            `${employee.name}: ${workDays} turnos sin vacaciones (mín recomendado 13)`,
+            {
+              type: 'hours',
+              severity: 'warning',
+              employeeId: employee.id,
+              employeeName: employee.name,
+            }
+          )
+        )
+      }
+
+      // W10: Sin fin de semana libre
+      if (!this.hasWeekendOff(matrix, employee.id, days)) {
+        warnings.push(
+          this.createWarning(`${employee.name}: no tiene ningún Sáb+Dom libre este mes`, {
+            type: 'rest',
+            severity: 'warning',
+            employeeId: employee.id,
+            employeeName: employee.name,
+          })
+        )
+      }
+
+      // W13: Desequilibrio M/T extremo (sin preferencia)
+      if (!employee.rules.shiftPriority) {
+        const mCount = shiftCounts['M'] || 0
+        const tCount = shiftCounts['T'] || 0
+        const total = mCount + tCount
+        if (total > 0 && (mCount === 0 || tCount === 0) && total > 5) {
+          warnings.push(
+            this.createWarning(`${employee.name}: ${mCount}M/${tCount}T - desequilibrio extremo`, {
+              type: 'constraint',
+              severity: 'warning',
+              employeeId: employee.id,
+              employeeName: employee.name,
+            })
+          )
+        }
+      }
+    }
+
+    return warnings
+  }
+
+  private createWarning(message: string, data: Partial<GenerationWarning>): GenerationWarning {
+    return {
+      type: 'validation',
+      severity: 'warning',
+      message,
+      ...data,
+    }
+  }
+
+  private createError(message: string, data: Partial<GenerationWarning>): GenerationWarning {
+    return {
+      type: 'validation',
+      severity: 'error',
+      message,
+      ...data,
+    }
+  }
+
+  private countTotalLibreDays(
+    matrix: Record<string, Record<number, string>>,
+    days: DayInfo[],
+    employeeId: string
+  ): number {
+    let total = 0
+    for (const day of days) {
+      const shift = matrix[employeeId][day.dayNumber]
+      if (
+        isLibreShift(shift) ||
+        shift === 'V' ||
+        shift === 'B' ||
+        shift === 'IT' ||
+        shift === 'E' ||
+        shift === 'FO'
+      ) {
+        total++
+      }
+    }
+    return total
+  }
+
+  private findConsecutiveWorkViolations(
+    matrix: Record<string, Record<number, string>>,
+    days: DayInfo[],
+    employeeId: string,
+    maxConsecutive: number
+  ): { startDay: number; endDay: number; count: number }[] {
+    const violations: { startDay: number; endDay: number; count: number }[] = []
+    const sortedDays = [...days].sort((a, b) => a.dayNumber - b.dayNumber)
+
+    let consecutiveStart = -1
+    let consecutiveCount = 0
+
+    for (let i = 0; i < sortedDays.length; i++) {
+      const day = sortedDays[i]
+      const shift = matrix[employeeId][day.dayNumber]
+      const isWork = isWorkShift(shift)
+
+      if (isWork) {
+        if (consecutiveCount === 0) {
+          consecutiveStart = day.dayNumber
+        }
+        consecutiveCount++
+      } else {
+        if (consecutiveCount > maxConsecutive) {
+          violations.push({
+            startDay: consecutiveStart,
+            endDay: sortedDays[i - 1].dayNumber,
+            count: consecutiveCount,
+          })
+        }
+        consecutiveCount = 0
+        consecutiveStart = -1
+      }
+    }
+
+    if (consecutiveCount > maxConsecutive) {
+      violations.push({
+        startDay: consecutiveStart,
+        endDay: sortedDays[sortedDays.length - 1].dayNumber,
+        count: consecutiveCount,
+      })
+    }
+
+    return violations
+  }
+
+  private countWeekWorkDays(
+    matrix: Record<string, Record<number, string>>,
+    days: DayInfo[],
+    employeeId: string,
+    weekNumber: number
+  ): number {
+    let count = 0
+    for (const day of days) {
+      if (day.weekNumber === weekNumber) {
+        const shift = matrix[employeeId][day.dayNumber]
+        if (isWorkShift(shift)) {
+          count++
+        }
+      }
+    }
+    return count
+  }
+
+  private findSmallWorkBlocks(
+    matrix: Record<string, Record<number, string>>,
+    days: DayInfo[],
+    employeeId: string,
+    minWorkBlock: number
+  ): { startDay: number; endDay: number; count: number }[] {
+    const violations: { startDay: number; endDay: number; count: number }[] = []
+    const sortedDays = [...days].sort((a, b) => a.dayNumber - b.dayNumber)
+
+    let blockStart = -1
+    let blockCount = 0
+
+    for (let i = 0; i < sortedDays.length; i++) {
+      const day = sortedDays[i]
+      const shift = matrix[employeeId][day.dayNumber]
+      const isWork = isWorkShift(shift)
+
+      if (isWork) {
+        if (blockCount === 0) {
+          blockStart = day.dayNumber
+        }
+        blockCount++
+      } else {
+        if (blockCount > 0 && blockCount < minWorkBlock) {
+          violations.push({
+            startDay: blockStart,
+            endDay: sortedDays[i - 1].dayNumber,
+            count: blockCount,
+          })
+        }
+        blockCount = 0
+        blockStart = -1
+      }
+    }
+
+    if (blockCount > 0 && blockCount < minWorkBlock) {
+      violations.push({
+        startDay: blockStart,
+        endDay: sortedDays[sortedDays.length - 1].dayNumber,
+        count: blockCount,
+      })
+    }
+
+    return violations
+  }
+
+  private hasConsecutiveRestInWindow(
+    matrix: Record<string, Record<number, string>>,
+    employeeId: string,
+    start: number,
+    end: number
+  ): boolean {
+    const empMatrix = matrix[employeeId]
+    if (!empMatrix) return false
+
+    for (let d = start; d < end; d++) {
+      const shift1 = empMatrix[d]
+      const shift2 = empMatrix[d + 1]
+
+      if (this.isRestShift(shift1) && this.isRestShift(shift2)) {
+        return true
+      }
+    }
+    return false
+  }
+
+  private isRestShift(shift: string | undefined): boolean {
+    if (!shift || shift === '') return false
+    return isLibreShift(shift) || ['V', 'B', 'IT', 'E', 'FO'].includes(shift)
+  }
+
+  private countWorkDays(
+    matrix: Record<string, Record<number, string>>,
+    employeeId: string
+  ): number {
+    let count = 0
+    const empMatrix = matrix[employeeId]
+    if (!empMatrix) return 0
+
+    for (const shift of Object.values(empMatrix)) {
+      if (shift && ['M', 'T', 'N', 'P', 'PI'].includes(shift)) {
+        count++
+      }
+    }
+    return count
+  }
+
+  private hasWeekendOff(
+    matrix: Record<string, Record<number, string>>,
+    employeeId: string,
+    days: DayInfo[]
+  ): boolean {
+    const empMatrix = matrix[employeeId]
+    if (!empMatrix) return false
+
+    for (let i = 0; i < days.length - 1; i++) {
+      const day1 = days[i]
+      const day2 = days[i + 1]
+
+      if (day1.dayOfWeek === 'S' && day2.dayOfWeek === 'D') {
+        const shift1 = empMatrix[day1.dayNumber]
+        const shift2 = empMatrix[day2.dayNumber]
+
+        if (isLibreShift(shift1) && isLibreShift(shift2)) {
+          return true
+        }
+      }
+    }
+    return false
   }
 
   // ============================================

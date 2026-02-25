@@ -14,6 +14,7 @@ export { CoverageConstraint } from './coverage.constraint.js'
 export { MaxConsecutiveWorkConstraint } from './max-consecutive-work.constraint.js'
 export { MonthlyLibreConstraint } from './monthly-libre.constraint.js'
 export { RotationContinuityConstraint } from './rotation-continuity.constraint.js'
+export { EmployeeRulesConstraint } from './employee-rules.constraint.js'
 
 // Re-export types for convenience
 export type { IConstraint, ConstraintResult } from '../types/index.js'
@@ -28,6 +29,7 @@ import { CoverageConstraint } from './coverage.constraint.js'
 import { MaxConsecutiveWorkConstraint } from './max-consecutive-work.constraint.js'
 import { MonthlyLibreConstraint } from './monthly-libre.constraint.js'
 import { RotationContinuityConstraint } from './rotation-continuity.constraint.js'
+import { EmployeeRulesConstraint } from './employee-rules.constraint.js'
 
 export function createDefaultConstraintRegistry(): ConstraintRegistry {
   const registry = new ConstraintRegistry()
@@ -38,6 +40,7 @@ export function createDefaultConstraintRegistry(): ConstraintRegistry {
   registry.register(new ConsecutiveRestConstraint()) // priority 95
   registry.register(new MaxConsecutiveWorkConstraint()) // priority 90
   registry.register(new RotationContinuityConstraint()) // priority 85
+  registry.register(new EmployeeRulesConstraint()) // priority 75
   registry.register(new MonthlyLibreConstraint()) // priority 70
 
   return registry

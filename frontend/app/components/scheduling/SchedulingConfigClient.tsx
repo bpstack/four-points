@@ -3,7 +3,7 @@
 'use client'
 
 import { useTranslations } from 'next-intl'
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useMemo } from 'react'
 import { useSearchParams, useRouter, usePathname } from 'next/navigation'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { schedulingApi, schedulingKeys } from '@/app/lib/scheduling'
@@ -12,6 +12,7 @@ import type {
   SchedulingShift,
   SchedulingEmployeeRule,
   CreateEmployeeRuleDto,
+  UpdateEmployeeRuleDto,
   EmployeeRuleType,
   CreateShiftDto,
   UpdateShiftDto,
@@ -19,6 +20,9 @@ import type {
 import { getShiftClasses } from '@/app/lib/scheduling'
 import toast from 'react-hot-toast'
 import Link from 'next/link'
+import { DayPicker, type DateRange } from 'react-day-picker'
+import { es } from 'date-fns/locale'
+import { ApiError } from '@/app/lib/apiClient'
 import {
   FiArrowLeft,
   FiSettings,
@@ -35,6 +39,8 @@ import {
   FiBarChart2,
 } from 'react-icons/fi'
 import { EmployeeTotals } from './EmployeeTotals'
+
+import 'react-day-picker/style.css'
 
 type TabType = 'employees' | 'totals' | 'general' | 'rules' | 'requests'
 
@@ -91,13 +97,6 @@ export function SchedulingConfigClient() {
   const { data: rulesData, isLoading: loadingRules } = useQuery({
     queryKey: schedulingKeys.rules(),
     queryFn: schedulingApi.getAllRules,
-  })
-
-  // Fetch AI status (for isProduction flag)
-  const { data: aiStatus } = useQuery({
-    queryKey: schedulingKeys.aiStatus(),
-    queryFn: schedulingApi.getAIStatus,
-    refetchOnWindowFocus: false,
   })
 
   const rules = rulesData?.rules || []
@@ -170,14 +169,9 @@ export function SchedulingConfigClient() {
               {activeTab === 'employees' && <EmployeesTab />}
               {activeTab === 'totals' && <TotalsTab />}
               {activeTab === 'general' && config && (
-                <GeneralConfigTab
-                  config={config}
-                  shifts={shifts}
-                  isProduction={aiStatus?.isProduction ?? false}
-                  aiEnabled={aiStatus?.enabled ?? false}
-                />
+                <GeneralConfigTab config={config} shifts={shifts} />
               )}
-              {activeTab === 'rules' && <RulesTab rules={rules} />}
+              {activeTab === 'rules' && <RulesTab />}
               {activeTab === 'requests' && <RequestsTab />}
             </>
           )}
@@ -378,207 +372,11 @@ function EmployeesTab() {
 interface GeneralConfigTabProps {
   config: SchedulingConfigMap
   shifts: SchedulingShift[]
-  isProduction: boolean
-  aiEnabled: boolean
 }
-
-// ============================================
-// AI STATUS PANEL
-// ============================================
-
-interface AIStatusPanelProps {
-  selectedProvider: string
-}
-
-function AIStatusPanel({ selectedProvider }: AIStatusPanelProps) {
-  const t = useTranslations('scheduling.config.ai')
-  const tToasts = useTranslations('scheduling.toasts')
-  const tActions = useTranslations('scheduling.actions')
-
-  const [testing, setTesting] = useState(false)
-  const [testResult, setTestResult] = useState<{
-    success: boolean
-    provider?: string
-    responseTime?: number
-    model?: string
-    error?: string
-  } | null>(null)
-
-  // Fetch AI status
-  const { data: aiStatus, isLoading } = useQuery({
-    queryKey: schedulingKeys.aiStatus(),
-    queryFn: schedulingApi.getAIStatus,
-    refetchOnWindowFocus: false,
-  })
-
-  const handleTestConnection = async () => {
-    setTesting(true)
-    setTestResult(null)
-    try {
-      const result = await schedulingApi.testAIConnection(selectedProvider)
-      setTestResult(result)
-      if (result.success) {
-        toast.success(tToasts('connectionSuccess', { provider: result.provider || selectedProvider }))
-      } else {
-        toast.error(result.error || tToasts('connectionError'))
-      }
-    } catch (err) {
-      const message = err instanceof Error ? err.message : tToasts('connectionTestError')
-      setTestResult({ success: false, error: message })
-      toast.error(message)
-    } finally {
-      setTesting(false)
-    }
-  }
-
-  const providerInfo = aiStatus?.providers?.[selectedProvider as keyof typeof aiStatus.providers]
-  const isOllama = selectedProvider === 'ollama'
-  const isConfigured = providerInfo?.configured ?? false
-  const isProviderEnabled = (providerInfo as { enabled?: boolean })?.enabled ?? true
-
-  const getStatusText = () => {
-    if (isLoading) return t('verifying')
-    if (!isProviderEnabled) return t('disabledOnServer')
-    if (isOllama) return t('requiresDocker')
-    if (isConfigured) return t('apiKeyConfigured')
-    return t('apiKeyNotConfigured')
-  }
-
-  const statusText = getStatusText()
-
-  const getStatusColor = () => {
-    if (isLoading) return 'bg-gray-400'
-    if (!isProviderEnabled) return 'bg-red-500'
-    if (isOllama) return 'bg-blue-500'
-    if (isConfigured) return 'bg-green-500'
-    return 'bg-yellow-500'
-  }
-
-  const statusColor = getStatusColor()
-
-  return (
-    <div className="bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg p-4 space-y-3 max-w-2xl">
-      {/* Status Row */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className={`w-2 h-2 rounded-full ${statusColor}`} />
-          <span className="text-sm text-gray-700 dark:text-gray-300">{statusText}</span>
-        </div>
-        {providerInfo && 'model' in providerInfo && (
-          <span className="text-xs text-gray-500 dark:text-gray-400">
-            {t('activeProvider', { provider: providerInfo.model })}
-          </span>
-        )}
-      </div>
-
-      {/* Server Status */}
-      {aiStatus && (
-        <div className="text-xs text-gray-500 dark:text-gray-400 space-y-1">
-          <div className="flex items-center gap-2">
-            <span
-              className={`w-1.5 h-1.5 rounded-full ${aiStatus.enabled ? 'bg-green-500' : 'bg-red-500'}`}
-            />
-            <span>{t('enabledStatus', { status: aiStatus.enabled ? 'true' : 'false' })}</span>
-          </div>
-          {aiStatus.activeProvider !== 'None' && (
-            <div>{t('activeProvider', { provider: aiStatus.activeProvider })}</div>
-          )}
-        </div>
-      )}
-
-      {/* Warning/Info for configuration */}
-      {!isLoading && (
-        <>
-          {!isProviderEnabled ? (
-            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md p-2">
-              <p className="text-xs text-red-700 dark:text-red-300">
-                {t('providerDisabled', { provider: selectedProvider.toUpperCase() })}
-              </p>
-            </div>
-          ) : isOllama ? (
-            <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-md p-3">
-              <p className="text-xs text-amber-700 dark:text-amber-300 leading-relaxed">
-                {t('ollamaNote')}
-              </p>
-              <p className="text-xs text-amber-600 dark:text-amber-400 mt-2">
-                {t('requiresOllama', {
-                  url:
-                    providerInfo && 'baseUrl' in providerInfo
-                      ? providerInfo.baseUrl
-                      : 'http://localhost:11434',
-                })}
-              </p>
-            </div>
-          ) : (
-            !isConfigured && (
-              <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-md p-2">
-                <p className="text-xs text-yellow-700 dark:text-yellow-300">
-                  {t('configureEnvVar')}
-                  {selectedProvider === 'claude' && (
-                    <code className="ml-1 px-1 bg-yellow-100 dark:bg-yellow-900 rounded">
-                      CLAUDE_API_KEY
-                    </code>
-                  )}
-                  {selectedProvider === 'gemini' && (
-                    <code className="ml-1 px-1 bg-yellow-100 dark:bg-yellow-900 rounded">
-                      GEMINI_API_KEY
-                    </code>
-                  )}
-                  {selectedProvider === 'openai' && (
-                    <code className="ml-1 px-1 bg-yellow-100 dark:bg-yellow-900 rounded">
-                      OPENAI_API_KEY
-                    </code>
-                  )}
-                  {selectedProvider === 'minimax' && (
-                    <code className="ml-1 px-1 bg-yellow-100 dark:bg-yellow-900 rounded">
-                      MINIMAX_API_KEY
-                    </code>
-                  )}
-                </p>
-              </div>
-            )
-          )}
-        </>
-      )}
-
-      {/* Test Button */}
-      <div className="flex items-center gap-3">
-        <button
-          onClick={handleTestConnection}
-          disabled={testing || !isConfigured || !aiStatus?.enabled || !isProviderEnabled}
-          className="px-3 py-1.5 text-xs font-medium rounded-md bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-        >
-          {testing ? tActions('testing') : tActions('testConnection')}
-        </button>
-
-        {testResult && (
-          <div
-            className={`text-xs ${testResult.success ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}
-          >
-            {testResult.success
-              ? `OK - ${testResult.responseTime}ms (${testResult.model})`
-              : testResult.error}
-          </div>
-        )}
-      </div>
-
-      {/* Info */}
-      <div className="text-xs text-gray-500 dark:text-gray-400 pt-2 border-t border-gray-200 dark:border-gray-700">
-        {t('enabledDescription')}
-      </div>
-    </div>
-  )
-}
-
-// ============================================
-// GENERAL CONFIG TAB
-// ============================================
-
-function GeneralConfigTab({ config, shifts, isProduction, aiEnabled }: GeneralConfigTabProps) {
+function GeneralConfigTab({ config, shifts }: GeneralConfigTabProps) {
   const t = useTranslations('scheduling.config.general')
   const tToasts = useTranslations('scheduling.toasts')
   const tActions = useTranslations('scheduling.actions')
-  const tAI = useTranslations('scheduling.config.ai')
 
   const queryClient = useQueryClient()
   const [editedConfig, setEditedConfig] = useState<Partial<Record<string, string>>>({})
@@ -617,9 +415,6 @@ function GeneralConfigTab({ config, shifts, isProduction, aiEnabled }: GeneralCo
   const handleChange = (key: string, value: string) => {
     setEditedConfig({ ...editedConfig, [key]: value })
   }
-
-  const currentAIProvider = editedConfig['ai_provider'] ?? config.aiProvider
-  const isAIActive = currentAIProvider !== 'none'
 
   return (
     <div className="p-4 space-y-6">
@@ -811,52 +606,6 @@ function GeneralConfigTab({ config, shifts, isProduction, aiEnabled }: GeneralCo
             </div>
           </div>
         </div>
-      </div>
-
-      {/* AI Provider */}
-      <div className="space-y-3 pt-4 border-t border-gray-200 dark:border-gray-700">
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-              {tAI('provider')}
-            </h3>
-            <p className="text-xs text-gray-500 dark:text-gray-400">{tAI('subtitle')}</p>
-          </div>
-          {isAIActive && (
-            <span
-              className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${
-                aiEnabled
-                  ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                  : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
-              }`}
-            >
-              <span
-                className={`w-1.5 h-1.5 rounded-full ${aiEnabled ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}
-              ></span>
-              {aiEnabled ? tAI('active') : tAI('inactive')}
-            </span>
-          )}
-        </div>
-        <div className="flex items-center gap-4">
-          <select
-            value={currentAIProvider}
-            onChange={(e) => setEditedConfig({ ...editedConfig, ['ai_provider']: e.target.value })}
-            className="w-72 px-3 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-          >
-            <option value="none">{tAI('disabled')}</option>
-            <option value="claude">{tAI('claude')}</option>
-            <option value="gemini">{tAI('gemini')}</option>
-            <option value="groq">{tAI('groq')}</option>
-            {!isProduction && <option value="ollama">{tAI('ollama')}</option>}
-            <option value="minimax">{tAI('minimax')}</option>
-          </select>
-          {currentAIProvider === 'none' && (
-            <span className="text-xs text-gray-500 dark:text-gray-400">
-              {tAI('baseAlgorithmOnly')}
-            </span>
-          )}
-        </div>
-        {isAIActive && <AIStatusPanel selectedProvider={currentAIProvider} />}
       </div>
 
       {/* Shifts Section */}
@@ -1148,33 +897,17 @@ function ShiftModal({ shift, onClose }: ShiftModalProps) {
             </div>
             <div>
               <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                {t('hours')} *
+                {t('name')} *
               </label>
               <input
-                type="number"
-                value={hours}
-                onChange={(e) => setHours(e.target.value)}
-                step="0.5"
-                min="0"
-                max="24"
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder={t('namePlaceholder')}
                 className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100"
                 required
               />
             </div>
-          </div>
-
-          <div>
-            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-              {t('name')} *
-            </label>
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder={t('name')}
-              className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100"
-              required
-            />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
@@ -1202,39 +935,52 @@ function ShiftModal({ shift, onClose }: ShiftModalProps) {
             </div>
           </div>
 
-          <div>
-            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-              {t('displayOrder')}
-            </label>
-            <input
-              type="number"
-              value={displayOrder}
-              onChange={(e) => setDisplayOrder(e.target.value)}
-              min="1"
-              max="99"
-              className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100"
-            />
-            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">{t('displayOrderHint')}</p>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                {t('hours')}
+              </label>
+              <input
+                type="number"
+                value={hours}
+                onChange={(e) => setHours(e.target.value)}
+                step="0.25"
+                min="0"
+                className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                {t('displayOrder')}
+              </label>
+              <input
+                type="number"
+                value={displayOrder}
+                onChange={(e) => setDisplayOrder(e.target.value)}
+                min="0"
+                className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100"
+              />
+            </div>
           </div>
 
-          <div className="flex items-center gap-6">
-            <label className="flex items-center gap-2 cursor-pointer">
+          <div className="grid grid-cols-2 gap-3">
+            <label className="inline-flex items-center gap-2 text-xs text-gray-700 dark:text-gray-300">
               <input
                 type="checkbox"
                 checked={isWorkShift}
                 onChange={(e) => setIsWorkShift(e.target.checked)}
-                className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500 dark:bg-gray-800"
+                className="rounded border-gray-300 dark:border-gray-700"
               />
-              <span className="text-sm text-gray-700 dark:text-gray-300">{t('isWorkShift')}</span>
+              {t('isWorkShift')}
             </label>
-            <label className="flex items-center gap-2 cursor-pointer">
+            <label className="inline-flex items-center gap-2 text-xs text-gray-700 dark:text-gray-300">
               <input
                 type="checkbox"
                 checked={isPaid}
                 onChange={(e) => setIsPaid(e.target.checked)}
-                className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500 dark:bg-gray-800"
+                className="rounded border-gray-300 dark:border-gray-700"
               />
-              <span className="text-sm text-gray-700 dark:text-gray-300">{t('isPaid')}</span>
+              {t('isPaid')}
             </label>
           </div>
 
@@ -1251,331 +997,7 @@ function ShiftModal({ shift, onClose }: ShiftModalProps) {
               disabled={isPending}
               className="px-4 py-2 text-sm bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 disabled:opacity-50 transition-colors"
             >
-              {isPending ? tActions('saving') : isEditing ? tActions('save') : t('newShift')}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  )
-}
-
-// ============================================
-// RULES TAB
-// ============================================
-
-interface RulesTabProps {
-  rules: SchedulingEmployeeRule[]
-}
-
-const RULE_TYPE_LABELS: Record<EmployeeRuleType, string> = {
-  shift_priority: 'shift_priority',
-  max_shift_per_month: 'max_shift_per_month',
-  min_shift_per_month: 'min_shift_per_month',
-  fixed_days: 'fixed_days',
-  fixed_shift: 'fixed_shift',
-  no_weekends: 'no_weekends',
-  custom: 'custom',
-}
-
-function RulesTab({ rules }: RulesTabProps) {
-  const t = useTranslations('scheduling.config.rules')
-  const tActions = useTranslations('scheduling.actions')
-  const tToasts = useTranslations('scheduling.toasts')
-  const tTypes = useTranslations('scheduling.config.rules.types')
-
-  const queryClient = useQueryClient()
-  const [showAddForm, setShowAddForm] = useState(false)
-  const [_editingRule, _setEditingRule] = useState<SchedulingEmployeeRule | null>(null)
-
-  const rulesByEmployee = rules.reduce(
-    (acc, rule) => {
-      if (!acc[rule.employeeId]) {
-        acc[rule.employeeId] = {
-          employeeName: rule.employeeName,
-          rules: [],
-        }
-      }
-      acc[rule.employeeId].rules.push(rule)
-      return acc
-    },
-    {} as Record<string, { employeeName: string; rules: SchedulingEmployeeRule[] }>
-  )
-
-  const deleteMutation = useMutation({
-    mutationFn: (ruleId: number) => schedulingApi.deleteRule(ruleId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: schedulingKeys.rules() })
-      toast.success(tToasts('ruleDeleted'))
-    },
-    onError: () => {
-      toast.error(tToasts('ruleDeleteError'))
-    },
-  })
-
-  const toggleActiveMutation = useMutation({
-    mutationFn: ({ ruleId, isActive }: { ruleId: number; isActive: boolean }) =>
-      schedulingApi.updateRule(ruleId, { isActive }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: schedulingKeys.rules() })
-      toast.success(tToasts('ruleUpdated'))
-    },
-    onError: () => {
-      toast.error(tToasts('ruleUpdateError'))
-    },
-  })
-
-  const getRuleLabel = (ruleType: EmployeeRuleType) => {
-    return tTypes(ruleType as string)
-  }
-
-  return (
-    <div className="p-4">
-      <div className="flex items-center justify-between mb-4">
-        <div>
-          <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">{t('title')}</h3>
-          <p className="text-xs text-gray-500 dark:text-gray-400">{t('subtitle')}</p>
-        </div>
-        <button
-          onClick={() => setShowAddForm(true)}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded-md hover:bg-blue-700 transition-colors"
-        >
-          <FiPlus className="w-3.5 h-3.5" />
-          {t('addRule')}
-        </button>
-      </div>
-
-      {Object.keys(rulesByEmployee).length === 0 ? (
-        <div className="text-center py-8">
-          <FiUsers className="w-10 h-10 mx-auto text-gray-400 mb-3" />
-          <p className="text-sm text-gray-600 dark:text-gray-400">{t('noRules')}</p>
-          <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">{t('noRulesHint')}</p>
-        </div>
-      ) : (
-        <div className="space-y-4">
-          {Object.entries(rulesByEmployee).map(
-            ([employeeId, { employeeName, rules: employeeRules }]) => (
-              <div
-                key={employeeId}
-                className="border border-gray-200 dark:border-gray-700 rounded-md overflow-hidden"
-              >
-                <div className="bg-gray-50 dark:bg-[#0d1117] px-3 py-2 border-b border-gray-200 dark:border-gray-700">
-                  <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                    {employeeName}
-                  </span>
-                </div>
-                <div className="divide-y divide-gray-100 dark:divide-gray-800">
-                  {employeeRules.map((rule) => (
-                    <div
-                      key={rule.id}
-                      className="flex items-center justify-between px-3 py-2 hover:bg-gray-50 dark:hover:bg-gray-800/50"
-                    >
-                      <div className="flex items-center gap-3">
-                        <span
-                          className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
-                            rule.isActive
-                              ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
-                              : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'
-                          }`}
-                        >
-                          {getRuleLabel(rule.ruleType)}
-                        </span>
-                        <span className="text-sm text-gray-900 dark:text-gray-100">
-                          {formatRuleValue(rule.ruleType, rule.ruleValue)}
-                        </span>
-                        {rule.notes && (
-                          <span className="text-xs text-gray-500 dark:text-gray-400">
-                            ({rule.notes})
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() =>
-                            toggleActiveMutation.mutate({
-                              ruleId: rule.id,
-                              isActive: !rule.isActive,
-                            })
-                          }
-                          className={`text-xs px-2 py-1 rounded ${
-                            rule.isActive
-                              ? 'text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20'
-                              : 'text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20'
-                          }`}
-                        >
-                          {rule.isActive ? tActions('deactivate') : tActions('activate')}
-                        </button>
-                        <button
-                          onClick={() => deleteMutation.mutate(rule.id)}
-                          className="text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 p-1 rounded"
-                        >
-                          <FiTrash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )
-          )}
-        </div>
-      )}
-
-      {showAddForm && <AddRuleModal onClose={() => setShowAddForm(false)} />}
-    </div>
-  )
-}
-
-// ============================================
-// ADD RULE MODAL
-// ============================================
-
-interface AddRuleModalProps {
-  onClose: () => void
-}
-
-function AddRuleModal({ onClose }: AddRuleModalProps) {
-  const t = useTranslations('scheduling.config.rules')
-  const tActions = useTranslations('scheduling.actions')
-  const tToasts = useTranslations('scheduling.toasts')
-  const tTypes = useTranslations('scheduling.config.rules.types')
-  const tPlaceholders = useTranslations('scheduling.config.rules.placeholders')
-  const tHelp = useTranslations('scheduling.config.rules.help')
-
-  const queryClient = useQueryClient()
-  const [employeeId, setEmployeeId] = useState('')
-  const [ruleType, setRuleType] = useState<EmployeeRuleType>('shift_priority')
-  const [ruleValue, setRuleValue] = useState('')
-  const [notes, setNotes] = useState('')
-
-  const { data: employees = [] } = useQuery<Employee[]>({
-    queryKey: schedulingKeys.employees(),
-    queryFn: schedulingApi.getSchedulableEmployees,
-  })
-
-  const createMutation = useMutation({
-    mutationFn: (data: CreateEmployeeRuleDto) => schedulingApi.createRule(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: schedulingKeys.rules() })
-      toast.success(tToasts('ruleCreated'))
-      onClose()
-    },
-    onError: () => {
-      toast.error(tToasts('ruleCreateError'))
-    },
-  })
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!employeeId || !ruleValue) {
-      toast.error(t('completeAllFields'))
-      return
-    }
-    createMutation.mutate({
-      employeeId,
-      ruleType,
-      ruleValue,
-      notes: notes || undefined,
-    })
-  }
-
-  const getRuleTypeLabel = (type: EmployeeRuleType) => {
-    return tTypes(type as string)
-  }
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="bg-white dark:bg-[#151b23] rounded-lg shadow-xl w-full max-w-md mx-4">
-        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700">
-          <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">{t('addRule')}</h3>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-          >
-            <FiX className="w-5 h-5" />
-          </button>
-        </div>
-
-        <form onSubmit={handleSubmit} className="p-4 space-y-4">
-          <div>
-            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-              {t('employee')}
-            </label>
-            <select
-              value={employeeId}
-              onChange={(e) => setEmployeeId(e.target.value)}
-              className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100"
-              required
-            >
-              <option value="">{t('selectEmployee')}</option>
-              {employees.map((emp) => (
-                <option key={emp.id} value={emp.id}>
-                  {emp.username}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-              {t('ruleType')}
-            </label>
-            <select
-              value={ruleType}
-              onChange={(e) => setRuleType(e.target.value as EmployeeRuleType)}
-              className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100"
-            >
-              {Object.entries(RULE_TYPE_LABELS).map(([key, _label]) => (
-                <option key={key} value={key}>
-                  {getRuleTypeLabel(key as EmployeeRuleType)}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-              {t('value')}
-            </label>
-            <input
-              type="text"
-              value={ruleValue}
-              onChange={(e) => setRuleValue(e.target.value)}
-              placeholder={tPlaceholders(ruleType as string)}
-              className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100"
-              required
-            />
-            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-              {tHelp(ruleType as string)}
-            </p>
-          </div>
-
-          <div>
-            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-              {t('notes')}
-            </label>
-            <input
-              type="text"
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100"
-            />
-          </div>
-
-          <div className="flex justify-end gap-2 pt-2">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md transition-colors"
-            >
-              {tActions('cancel')}
-            </button>
-            <button
-              type="submit"
-              disabled={createMutation.isPending}
-              className="px-4 py-2 text-sm bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 disabled:opacity-50 transition-colors"
-            >
-              {createMutation.isPending ? tActions('saving') : tActions('save')}
+              {isPending ? tActions('saving') : tActions('save')}
             </button>
           </div>
         </form>
@@ -1596,7 +1018,6 @@ function RequestsTab() {
 
   const queryClient = useQueryClient()
   const [showAddForm, setShowAddForm] = useState(false)
-  const [selectedMonth, setSelectedMonth] = useState<number | null>(null)
 
   const { data: monthsData } = useQuery({
     queryKey: schedulingKeys.monthsList(),
@@ -1605,20 +1026,58 @@ function RequestsTab() {
 
   const months = monthsData?.months || []
 
+  const currentYear = new Date().getFullYear()
+  const availableYears = [currentYear - 1, currentYear, currentYear + 1, currentYear + 2]
+  const availableMonths = [
+    { value: 1, label: 'Enero' },
+    { value: 2, label: 'Febrero' },
+    { value: 3, label: 'Marzo' },
+    { value: 4, label: 'Abril' },
+    { value: 5, label: 'Mayo' },
+    { value: 6, label: 'Junio' },
+    { value: 7, label: 'Julio' },
+    { value: 8, label: 'Agosto' },
+    { value: 9, label: 'Septiembre' },
+    { value: 10, label: 'Octubre' },
+    { value: 11, label: 'Noviembre' },
+    { value: 12, label: 'Diciembre' },
+  ]
+
+  const [selectedYear, setSelectedYear] = useState(currentYear)
+  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1)
+  const [listMonthId, setListMonthId] = useState<number | null>(null)
+
+  const monthMapping = useMemo(() => {
+    const map: Record<string, number> = {}
+    months.forEach((m) => {
+      const key = `${m.year}-${m.month}`
+      map[key] = m.id
+    })
+    return map
+  }, [months])
+
+  const selectedKey = `${selectedYear}-${selectedMonth}`
+  const isMonthInitialized = listMonthId !== null
+
+  useEffect(() => {
+    const monthId = monthMapping[selectedKey]
+    setListMonthId(monthId || null)
+  }, [selectedYear, selectedMonth, monthMapping])
+
   const { data: requests = [], isLoading: loadingRequests } = useQuery({
-    queryKey: ['scheduling-requests', selectedMonth],
+    queryKey: ['scheduling-requests', listMonthId],
     queryFn: async () => {
-      if (!selectedMonth) return []
-      const constraints = await schedulingApi.getConstraintsByMonth(selectedMonth, {})
+      if (!listMonthId) return []
+      const constraints = await schedulingApi.getConstraintsByMonth(listMonthId, {})
       return constraints.filter((c) => c.constraintType === 'request_off')
     },
-    enabled: !!selectedMonth,
+    enabled: !!listMonthId,
   })
 
   const deleteMutation = useMutation({
     mutationFn: (constraintId: number) => schedulingApi.deleteConstraint(constraintId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['scheduling-requests', selectedMonth] })
+      queryClient.invalidateQueries({ queryKey: ['scheduling-requests', listMonthId] })
       toast.success(tToasts('requestDeleted'))
     },
     onError: () => {
@@ -1630,7 +1089,7 @@ function RequestsTab() {
     mutationFn: ({ id, status }: { id: number; status: 'approved' | 'rejected' }) =>
       schedulingApi.approveConstraint(id, { status }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['scheduling-requests', selectedMonth] })
+      queryClient.invalidateQueries({ queryKey: ['scheduling-requests', listMonthId] })
       toast.success(tToasts('requestUpdated'))
     },
     onError: () => {
@@ -1673,38 +1132,52 @@ function RequestsTab() {
           <p className="text-xs text-gray-500 dark:text-gray-400">{t('subtitle')}</p>
         </div>
         <div className="flex items-center gap-3">
-          <select
-            value={selectedMonth || ''}
-            onChange={(e) => setSelectedMonth(e.target.value ? Number(e.target.value) : null)}
-            className="px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100"
-          >
-            <option value="">{t('selectMonth')}</option>
-            {months.map((m) => (
-              <option key={m.id} value={m.id}>
-                {new Date(m.year, m.month - 1).toLocaleDateString('es-ES', {
-                  month: 'long',
-                  year: 'numeric',
-                })}
-              </option>
-            ))}
-          </select>
-          {selectedMonth && (
-            <button
-              onClick={() => setShowAddForm(true)}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded-md hover:bg-blue-700 transition-colors"
+          <div className="flex items-center gap-2">
+            <select
+              value={selectedMonth}
+              onChange={(e) => setSelectedMonth(Number(e.target.value))}
+              className="px-2 py-1.5 text-xs border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
             >
-              <FiPlus className="w-3.5 h-3.5" />
-              {t('newRequest')}
-            </button>
-          )}
+              {availableMonths.map((m) => (
+                <option key={m.value} value={m.value}>
+                  {m.label}
+                </option>
+              ))}
+            </select>
+            <select
+              value={selectedYear}
+              onChange={(e) => setSelectedYear(Number(e.target.value))}
+              className="px-2 py-1.5 text-xs min-w-[80px] border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+            >
+              {availableYears.map((y) => (
+                <option key={y} value={y}>
+                  {y}
+                </option>
+              ))}
+            </select>
+          </div>
+          <button
+            onClick={() => setShowAddForm(true)}
+            title={t('newRequest')}
+            className={
+              `inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-colors ` +
+              'bg-blue-600 text-white hover:bg-blue-700'
+            }
+          >
+            <FiPlus className="w-3.5 h-3.5" />
+            {t('newRequest')}
+          </button>
         </div>
       </div>
 
-      {!selectedMonth ? (
+      {!isMonthInitialized ? (
         <div className="text-center py-12">
           <FiCalendarOff className="w-10 h-10 mx-auto text-gray-400 mb-3" />
           <p className="text-sm text-gray-600 dark:text-gray-400">
-            {tMessages('selectMonthToSeeRequests')}
+            {tMessages('monthNotInitialized')}
+          </p>
+          <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
+            {tMessages('monthNotInitializedHint')}
           </p>
         </div>
       ) : loadingRequests ? (
@@ -1807,8 +1280,15 @@ function RequestsTab() {
         </div>
       )}
 
-      {showAddForm && selectedMonth && (
-        <AddRequestModal monthId={selectedMonth} onClose={() => setShowAddForm(false)} />
+      {showAddForm && (
+        <AddRequestModal
+          months={months}
+          initialMonthId={listMonthId}
+          onClose={() => setShowAddForm(false)}
+          onMonthResolved={(monthId) => {
+            setListMonthId(monthId)
+          }}
+        />
       )}
     </div>
   )
@@ -1819,20 +1299,33 @@ function RequestsTab() {
 // ============================================
 
 interface AddRequestModalProps {
-  monthId: number
+  months: { id: number; year: number; month: number }[]
+  initialMonthId: number | null
   onClose: () => void
+  onMonthResolved: (monthId: number) => void
 }
 
-function AddRequestModal({ monthId, onClose }: AddRequestModalProps) {
+function AddRequestModal({
+  months,
+  initialMonthId,
+  onClose,
+  onMonthResolved,
+}: AddRequestModalProps) {
   const t = useTranslations('scheduling.config.requests')
   const tActions = useTranslations('scheduling.actions')
   const tToasts = useTranslations('scheduling.toasts')
+  const tMessages = useTranslations('scheduling.messages')
 
   const queryClient = useQueryClient()
+  const [monthId, setMonthId] = useState<number | null>(initialMonthId)
   const [employeeId, setEmployeeId] = useState('')
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
   const [notes, setNotes] = useState('')
+  const [range, setRange] = useState<{ from: Date | undefined; to: Date | undefined }>({
+    from: undefined,
+    to: undefined,
+  })
 
   const { data: employees = [] } = useQuery<Employee[]>({
     queryKey: schedulingKeys.employees(),
@@ -1840,8 +1333,9 @@ function AddRequestModal({ monthId, onClose }: AddRequestModalProps) {
   })
 
   const { data: monthData } = useQuery({
-    queryKey: schedulingKeys.month(monthId),
-    queryFn: () => schedulingApi.getMonthById(monthId),
+    queryKey: schedulingKeys.month(monthId || 0),
+    queryFn: () => schedulingApi.getMonthById(monthId as number),
+    enabled: !!monthId,
   })
 
   const createMutation = useMutation({
@@ -1855,18 +1349,26 @@ function AddRequestModal({ monthId, onClose }: AddRequestModalProps) {
     }) =>
       schedulingApi.createConstraint(data as Parameters<typeof schedulingApi.createConstraint>[0]),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['scheduling-requests', monthId] })
+      queryClient.invalidateQueries({ queryKey: ['scheduling-requests'] })
       toast.success(tToasts('requestCreated'))
       onClose()
     },
-    onError: () => {
+    onError: (err) => {
+      if (err instanceof ApiError) {
+        toast.error(err.message)
+        return
+      }
+      if (err instanceof Error) {
+        toast.error(err.message)
+        return
+      }
       toast.error(tToasts('requestCreateError'))
     },
   })
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!employeeId || !startDate) {
+    if (!monthId || !employeeId || !startDate) {
       toast.error(t('completeRequired'))
       return
     }
@@ -1886,13 +1388,55 @@ function AddRequestModal({ monthId, onClose }: AddRequestModalProps) {
     const month = monthData.month
     const firstDay = new Date(year, month - 1, 1)
     const lastDay = new Date(year, month, 0)
+    const toLocalDateString = (d: Date): string => {
+      const y = d.getFullYear()
+      const m = String(d.getMonth() + 1).padStart(2, '0')
+      const day = String(d.getDate()).padStart(2, '0')
+      return `${y}-${m}-${day}`
+    }
     return {
-      min: firstDay.toISOString().split('T')[0],
-      max: lastDay.toISOString().split('T')[0],
+      min: toLocalDateString(firstDay),
+      max: toLocalDateString(lastDay),
     }
   }
 
   const dateLimits = getDateLimits()
+
+  const toLocalDateString = (d: Date): string => {
+    const y = d.getFullYear()
+    const m = String(d.getMonth() + 1).padStart(2, '0')
+    const day = String(d.getDate()).padStart(2, '0')
+    return `${y}-${m}-${day}`
+  }
+
+  const monthDateRange = useMemo(() => {
+    if (!monthData) return null
+    const from = new Date(monthData.year, monthData.month - 1, 1)
+    const to = new Date(monthData.year, monthData.month, 0)
+    from.setHours(0, 0, 0, 0)
+    to.setHours(0, 0, 0, 0)
+    return { from, to }
+  }, [monthData])
+
+  const ensureMonthForDate = async (dateStr: string): Promise<number> => {
+    const [yStr, mStr] = dateStr.split('-')
+    const y = Number(yStr)
+    const m = Number(mStr)
+
+    const existing = months.find((x) => x.year === y && x.month === m)
+    if (existing) return existing.id
+
+    try {
+      const created = await schedulingApi.createMonth({ year: y, month: m })
+      return created.id
+    } catch (err) {
+      // If already exists (409) or race, refetch list and try to resolve again
+      const refreshed = await schedulingApi.getAllMonths({ limit: 24 })
+      const found = refreshed.months.find((x) => x.year === y && x.month === m)
+      if (found) return found.id
+      throw err
+    }
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
@@ -1920,7 +1464,7 @@ function AddRequestModal({ monthId, onClose }: AddRequestModalProps) {
               className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100"
               required
             >
-              <option value="">{t('selectMonth')}</option>
+              <option value="">{t('selectEmployee')}</option>
               {employees.map((emp) => (
                 <option key={emp.id} value={emp.id}>
                   {emp.username}
@@ -1929,37 +1473,65 @@ function AddRequestModal({ monthId, onClose }: AddRequestModalProps) {
             </select>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                {t('from')}
-              </label>
-              <input
-                type="date"
-                value={startDate}
-                onChange={(e) => {
-                  setStartDate(e.target.value)
-                  if (!endDate) setEndDate(e.target.value)
+          <div>
+            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+              {t('dates')} *
+            </label>
+
+            <div className="rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#0d1117] p-2">
+              <DayPicker
+                mode="range"
+                locale={es}
+                selected={{ from: range.from, to: range.to }}
+                onSelect={(r: DateRange | undefined) => {
+                  const from = r?.from
+                  const to = r?.to
+                  setRange({ from, to })
+                  if (from) {
+                    const start = toLocalDateString(from)
+                    setStartDate(start)
+                    setEndDate(to ? toLocalDateString(to) : start)
+
+                    // Ensure month exists and calendar constraints are updated
+                    void (async () => {
+                      const resolvedMonthId = await ensureMonthForDate(start)
+                      setMonthId(resolvedMonthId)
+                      onMonthResolved(resolvedMonthId)
+                    })()
+                  } else {
+                    setStartDate('')
+                    setEndDate('')
+                  }
                 }}
-                min={dateLimits.min}
-                max={dateLimits.max}
-                className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100"
-                required
+                className="text-xs"
               />
             </div>
-            <div>
-              <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                {t('until')}
-              </label>
-              <input
-                type="date"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-                min={startDate || dateLimits.min}
-                max={dateLimits.max}
-                className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100"
-              />
+
+            <div className="mt-2 grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-[11px] font-medium text-gray-600 dark:text-gray-400 mb-1">
+                  {t('from')}
+                </label>
+                <input
+                  type="text"
+                  value={startDate}
+                  readOnly
+                  className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-md bg-gray-50 dark:bg-[#0b0f14] text-gray-900 dark:text-gray-100"
+                />
+              </div>
+              <div>
+                <label className="block text-[11px] font-medium text-gray-600 dark:text-gray-400 mb-1">
+                  {t('until')}
+                </label>
+                <input
+                  type="text"
+                  value={endDate}
+                  readOnly
+                  className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-md bg-gray-50 dark:bg-[#0b0f14] text-gray-900 dark:text-gray-100"
+                />
+              </div>
             </div>
+
           </div>
 
           <div>
@@ -1987,7 +1559,7 @@ function AddRequestModal({ monthId, onClose }: AddRequestModalProps) {
             </button>
             <button
               type="submit"
-              disabled={createMutation.isPending}
+              disabled={createMutation.isPending || !monthId}
               className="px-4 py-2 text-sm bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 disabled:opacity-50 transition-colors"
             >
               {createMutation.isPending ? tActions('saving') : tActions('save')}
@@ -2035,6 +1607,619 @@ function TotalsTab() {
       </div>
 
       <EmployeeTotals year={selectedYear} />
+    </div>
+  )
+}
+
+// ============================================
+// RULES TAB
+// ============================================
+
+const RULE_TYPE_OPTIONS: { value: EmployeeRuleType; label: string; description: string }[] = [
+  {
+    value: 'shift_priority',
+    label: 'Turno preferido',
+    description: 'Turno preferido del empleado (M, T, N)',
+  },
+  { value: 'fixed_shift', label: 'Turno fijo', description: 'Siempre el mismo turno' },
+  {
+    value: 'fixed_days',
+    label: 'Días fijos',
+    description: 'Días específicos de la semana (1=Lun, 7=Dom)',
+  },
+  {
+    value: 'no_weekends',
+    label: 'Sin fines de semana',
+    description: 'No trabaja sábados ni domingos',
+  },
+  {
+    value: 'max_shift_per_month',
+    label: 'Máx. turnos/mes',
+    description: 'Máximo número de turnos por mes',
+  },
+  {
+    value: 'min_shift_per_month',
+    label: 'Mín. turnos/mes',
+    description: 'Mínimo número de turnos por mes',
+  },
+]
+
+const DAY_NAMES = ['', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo']
+
+function RulesTab() {
+  const t = useTranslations('scheduling.config.rules')
+  const tActions = useTranslations('scheduling.actions')
+  const tToasts = useTranslations('scheduling.toasts')
+  const tMessages = useTranslations('scheduling.messages')
+
+  const queryClient = useQueryClient()
+  const [showAddModal, setShowAddModal] = useState(false)
+  const [editingRule, setEditingRule] = useState<SchedulingEmployeeRule | null>(null)
+  const [filterEmployee, setFilterEmployee] = useState<string>('')
+
+  const { data: employees = [], isLoading: loadingEmployees } = useQuery<EmployeeWithStatus[]>({
+    queryKey: schedulingKeys.employeesAll(),
+    queryFn: schedulingApi.getAllEmployeesWithStatus,
+  })
+
+  const { data: rulesData, isLoading: loadingRules } = useQuery({
+    queryKey: schedulingKeys.rules(),
+    queryFn: async () => {
+      const result = await schedulingApi.getAllRules()
+      return {
+        ...result,
+        rules: result.rules.map((r: any) => ({
+          id: r.id,
+          employeeId: r.employee_id,
+          employeeName: r.employee_name,
+          ruleType: r.rule_type,
+          ruleValue: r.rule_value,
+          priority: r.priority,
+          isActive: r.is_active === 1,
+          notes: r.notes,
+          createdAt: r.created_at,
+        })),
+      }
+    },
+    staleTime: 0,
+  })
+
+  const rules = rulesData?.rules || []
+  const filteredRules = filterEmployee
+    ? rules.filter((r) => r.employeeId === filterEmployee)
+    : rules
+
+  const getEmployeeName = (employeeId: string, rule?: any) => {
+    if (rule?.employeeName) return rule.employeeName
+    const emp = employees.find((e) => e.id === employeeId)
+    return emp?.username || employeeId
+  }
+
+  const getRuleTypeLabel = (ruleType: EmployeeRuleType) => {
+    const option = RULE_TYPE_OPTIONS.find((o) => o.value === ruleType)
+    return option?.label || ruleType
+  }
+
+  const formatRuleValueDisplay = (ruleType: EmployeeRuleType, value: string) => {
+    switch (ruleType) {
+      case 'shift_priority':
+        return value === 'M'
+          ? 'Mañana (M)'
+          : value === 'T'
+            ? 'Tarde (T)'
+            : value === 'N'
+              ? 'Noche (N)'
+              : value
+      case 'fixed_shift':
+        return value === 'M'
+          ? 'Mañana (M)'
+          : value === 'T'
+            ? 'Tarde (T)'
+            : value === 'N'
+              ? 'Noche (N)'
+              : value
+      case 'fixed_days':
+        return value
+          .split(',')
+          .map((d) => {
+            const dayNum = parseInt(d)
+            return DAY_NAMES[dayNum] || d
+          })
+          .join(', ')
+      case 'no_weekends':
+        return value === 'true' ? 'Sí' : 'No'
+      case 'max_shift_per_month':
+      case 'min_shift_per_month':
+        return `${value} turnos`
+      default:
+        return value
+    }
+  }
+
+  const deleteMutation = useMutation({
+    mutationFn: (ruleId: number) => schedulingApi.deleteRule(ruleId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: schedulingKeys.rules() })
+      toast.success(tToasts('ruleDeleted'))
+    },
+    onError: () => {
+      toast.error(tToasts('ruleDeleteError'))
+    },
+  })
+
+  const toggleActiveMutation = useMutation({
+    mutationFn: ({ ruleId, isActive }: { ruleId: number; isActive: boolean }) =>
+      schedulingApi.updateRule(ruleId, { isActive }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: schedulingKeys.rules() })
+      toast.success(tToasts('ruleUpdated'))
+    },
+    onError: () => {
+      toast.error(tToasts('ruleUpdateError'))
+    },
+  })
+
+  const isLoading = loadingEmployees || loadingRules
+
+  return (
+    <div className="p-4">
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">{t('title')}</h3>
+          <p className="text-xs text-gray-500 dark:text-gray-400">{t('subtitle')}</p>
+        </div>
+        <div className="flex items-center gap-3">
+          <select
+            value={filterEmployee}
+            onChange={(e) => setFilterEmployee(e.target.value)}
+            className="px-8 py-1.5 text-xs border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+          >
+            <option value="">{t('allEmployees')}</option>
+            {employees.map((emp) => (
+              <option key={emp.id} value={emp.id}>
+                {emp.username}
+              </option>
+            ))}
+          </select>
+          <button
+            onClick={() => setShowAddModal(true)}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+          >
+            <FiPlus className="w-3.5 h-3.5" />
+            {t('addRule')}
+          </button>
+        </div>
+      </div>
+
+      {isLoading ? (
+        <div className="text-center py-12">
+          <div className="inline-block h-8 w-8 animate-spin rounded-full border-[3px] border-solid border-blue-600 dark:border-blue-500 border-r-transparent"></div>
+          <p className="mt-3 text-xs text-gray-600 dark:text-gray-400">
+            {tMessages('loadingRules')}
+          </p>
+        </div>
+      ) : filteredRules.length === 0 ? (
+        <div className="text-center py-12">
+          <FiUsers className="w-10 h-10 mx-auto text-gray-400 mb-3" />
+          <p className="text-sm text-gray-600 dark:text-gray-400">{tMessages('noRules')}</p>
+          <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
+            {tMessages('noRulesHint')}
+          </p>
+        </div>
+      ) : (
+        <div className="border border-gray-200 dark:border-gray-700 rounded-md overflow-hidden">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="bg-gray-50 dark:bg-[#0d1117] border-b border-gray-200 dark:border-gray-700">
+                <th className="text-left py-2 px-3 text-xs font-semibold text-gray-600 dark:text-gray-400">
+                  {t('employee')}
+                </th>
+                <th className="text-left py-2 px-3 text-xs font-semibold text-gray-600 dark:text-gray-400">
+                  {t('ruleType')}
+                </th>
+                <th className="text-left py-2 px-3 text-xs font-semibold text-gray-600 dark:text-gray-400">
+                  {t('value')}
+                </th>
+                <th className="text-center py-2 px-3 text-xs font-semibold text-gray-600 dark:text-gray-400">
+                  {t('priority')}
+                </th>
+                <th className="text-center py-2 px-3 text-xs font-semibold text-gray-600 dark:text-gray-400">
+                  {t('status')}
+                </th>
+                <th className="text-right py-2 px-3 text-xs font-semibold text-gray-600 dark:text-gray-400">
+                  {t('actions')}
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredRules.map((rule) => (
+                <tr
+                  key={rule.id}
+                  className="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50"
+                >
+                  <td className="py-2 px-3 text-gray-900 dark:text-gray-100">
+                    {getEmployeeName(rule.employeeId, rule)}
+                  </td>
+                  <td className="py-2 px-3">
+                    <span className="text-xs font-medium text-blue-600 dark:text-blue-400">
+                      {getRuleTypeLabel(rule.ruleType)}
+                    </span>
+                  </td>
+                  <td className="py-2 px-3 text-gray-600 dark:text-gray-400">
+                    {formatRuleValueDisplay(rule.ruleType, rule.ruleValue)}
+                  </td>
+                  <td className="py-2 px-3 text-center text-gray-600 dark:text-gray-400">
+                    {rule.priority}
+                  </td>
+                  <td className="py-2 px-3 text-center">
+                    <button
+                      onClick={() =>
+                        toggleActiveMutation.mutate({ ruleId: rule.id, isActive: !rule.isActive })
+                      }
+                      className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium transition-colors ${
+                        rule.isActive
+                          ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                          : 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-500'
+                      }`}
+                    >
+                      {rule.isActive ? t('active') : t('inactive')}
+                    </button>
+                  </td>
+                  <td className="py-2 px-3">
+                    <div className="flex items-center justify-end gap-1">
+                      <button
+                        onClick={() => setEditingRule(rule)}
+                        className="p-1 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded"
+                        title={tActions('edit')}
+                      >
+                        <FiEdit2 className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        onClick={() => {
+                          if (confirm(t('deleteConfirm'))) {
+                            deleteMutation.mutate(rule.id)
+                          }
+                        }}
+                        className="p-1 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded"
+                        title={tActions('delete')}
+                      >
+                        <FiTrash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {(showAddModal || editingRule) && (
+        <RuleModal
+          rule={editingRule}
+          employees={employees}
+          onClose={() => {
+            setShowAddModal(false)
+            setEditingRule(null)
+          }}
+        />
+      )}
+    </div>
+  )
+}
+
+// ============================================
+// RULE MODAL (Create/Edit)
+// ============================================
+
+interface RuleModalProps {
+  rule: SchedulingEmployeeRule | null
+  employees: EmployeeWithStatus[]
+  onClose: () => void
+}
+
+function RuleModal({ rule, employees, onClose }: RuleModalProps) {
+  const t = useTranslations('scheduling.config.rules')
+  const tActions = useTranslations('scheduling.actions')
+  const tToasts = useTranslations('scheduling.toasts')
+
+  const queryClient = useQueryClient()
+  const isEditing = !!rule
+
+  const [employeeId, setEmployeeId] = useState(rule?.employeeId || '')
+  const [ruleType, setRuleType] = useState<EmployeeRuleType>(
+    (rule?.ruleType as EmployeeRuleType) || 'shift_priority'
+  )
+  const [ruleValue, setRuleValue] = useState(rule?.ruleValue || '')
+  const [priority, setPriority] = useState(String(rule?.priority || 0))
+  const [isActive, setIsActive] = useState(rule?.isActive ?? true)
+  const [notes, setNotes] = useState(rule?.notes || '')
+
+  const createMutation = useMutation({
+    mutationFn: (data: CreateEmployeeRuleDto) => schedulingApi.createRule(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: schedulingKeys.rules() })
+      toast.success(tToasts('ruleCreated'))
+      onClose()
+    },
+    onError: () => {
+      toast.error(tToasts('ruleCreateError'))
+    },
+  })
+
+  const updateMutation = useMutation({
+    mutationFn: ({ ruleId, data }: { ruleId: number; data: UpdateEmployeeRuleDto }) => {
+      const snakeData = {
+        ...data,
+        rule_type: data.ruleType,
+        rule_value: data.ruleValue,
+        is_active: data.isActive,
+      }
+      delete snakeData.ruleType
+      delete snakeData.ruleValue
+      return schedulingApi.updateRule(ruleId, snakeData as any)
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: schedulingKeys.rules() })
+      toast.success(tToasts('ruleUpdated'))
+      onClose()
+    },
+    onError: () => {
+      toast.error(tToasts('ruleUpdateError'))
+    },
+  })
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+
+    if (!employeeId || !ruleType || !ruleValue) {
+      toast.error(t('fillRequired'))
+      return
+    }
+
+    const data = {
+      employee_id: employeeId,
+      rule_type: ruleType,
+      rule_value: ruleValue,
+      priority: parseInt(priority) || 0,
+      is_active: isActive,
+      notes: notes || null,
+    }
+
+    if (isEditing && rule) {
+      updateMutation.mutate({ ruleId: rule.id, data })
+    } else {
+      createMutation.mutate(data as any)
+    }
+  }
+
+  const getValueInputForType = () => {
+    switch (ruleType) {
+      case 'shift_priority':
+      case 'fixed_shift':
+        return (
+          <div className="flex gap-2">
+            {['M', 'T', 'N'].map((shift) => (
+              <button
+                key={shift}
+                type="button"
+                onClick={() => setRuleValue(shift)}
+                className={`px-3 py-2 text-sm font-medium rounded-md border transition-colors ${
+                  ruleValue === shift
+                    ? 'bg-blue-600 text-white border-blue-600'
+                    : 'border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800'
+                }`}
+              >
+                {shift === 'M' ? 'Mañana' : shift === 'T' ? 'Tarde' : 'Noche'}
+              </button>
+            ))}
+          </div>
+        )
+      case 'fixed_days':
+        return (
+          <div className="flex flex-wrap gap-2">
+            {[1, 2, 3, 4, 5, 6, 7].map((day) => (
+              <button
+                key={day}
+                type="button"
+                onClick={() => {
+                  const current = ruleValue ? ruleValue.split(',').filter(Boolean) : []
+                  if (current.includes(String(day))) {
+                    setRuleValue(current.filter((d) => d !== String(day)).join(','))
+                  } else {
+                    setRuleValue([...current, day].sort().join(','))
+                  }
+                }}
+                className={`px-2 py-1.5 text-xs font-medium rounded-md border transition-colors ${
+                  ruleValue.split(',').includes(String(day))
+                    ? 'bg-blue-600 text-white border-blue-600'
+                    : 'border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800'
+                }`}
+              >
+                {DAY_NAMES[day].slice(0, 3)}
+              </button>
+            ))}
+          </div>
+        )
+      case 'no_weekends':
+        return (
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => setRuleValue('true')}
+              className={`px-3 py-2 text-sm font-medium rounded-md border transition-colors ${
+                ruleValue === 'true'
+                  ? 'bg-blue-600 text-white border-blue-600'
+                  : 'border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800'
+              }`}
+            >
+              {t('yes')}
+            </button>
+            <button
+              type="button"
+              onClick={() => setRuleValue('false')}
+              className={`px-3 py-2 text-sm font-medium rounded-md border transition-colors ${
+                ruleValue === 'false'
+                  ? 'bg-blue-600 text-white border-blue-600'
+                  : 'border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800'
+              }`}
+            >
+              {t('no')}
+            </button>
+          </div>
+        )
+      case 'max_shift_per_month':
+      case 'min_shift_per_month':
+        return (
+          <input
+            type="number"
+            value={ruleValue}
+            onChange={(e) => setRuleValue(e.target.value)}
+            min="0"
+            max="31"
+            className="w-24 px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100"
+            placeholder="0"
+          />
+        )
+      default:
+        return (
+          <input
+            type="text"
+            value={ruleValue}
+            onChange={(e) => setRuleValue(e.target.value)}
+            className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100"
+          />
+        )
+    }
+  }
+
+  const isPending = createMutation.isPending || updateMutation.isPending
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+      <div className="bg-white dark:bg-[#151b23] rounded-lg shadow-xl w-full max-w-md mx-4">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700">
+          <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+            {isEditing ? t('editRule') : t('newRule')}
+          </h3>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+          >
+            <FiX className="w-5 h-5" />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="p-4 space-y-4">
+          <div>
+            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+              {t('employee')} *
+            </label>
+            <select
+              value={employeeId}
+              onChange={(e) => setEmployeeId(e.target.value)}
+              disabled={isEditing}
+              className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 disabled:opacity-50"
+              required
+            >
+              <option value="">{t('selectEmployee')}</option>
+              {employees.map((emp) => (
+                <option key={emp.id} value={emp.id}>
+                  {emp.username}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+              {t('ruleType')} *
+            </label>
+            <select
+              value={ruleType}
+              onChange={(e) => {
+                setRuleType(e.target.value as EmployeeRuleType)
+                setRuleValue('')
+              }}
+              disabled={isEditing}
+              className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 disabled:opacity-50"
+              required
+            >
+              {RULE_TYPE_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+            <p className="mt-1 text-[10px] text-gray-500 dark:text-gray-400">
+              {RULE_TYPE_OPTIONS.find((o) => o.value === ruleType)?.description}
+            </p>
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+              {t('value')} *
+            </label>
+            {getValueInputForType()}
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                {t('priority')}
+              </label>
+              <input
+                type="number"
+                value={priority}
+                onChange={(e) => setPriority(e.target.value)}
+                min="0"
+                max="10"
+                className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100"
+              />
+            </div>
+            <div className="flex items-center pt-6">
+              <label className="inline-flex items-center gap-2 text-xs text-gray-700 dark:text-gray-300">
+                <input
+                  type="checkbox"
+                  checked={isActive}
+                  onChange={(e) => setIsActive(e.target.checked)}
+                  className="rounded border-gray-300 dark:border-gray-600"
+                />
+                {t('active')}
+              </label>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+              {t('notes')}
+            </label>
+            <textarea
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              rows={2}
+              className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 resize-none"
+            />
+          </div>
+
+          <div className="flex justify-end gap-2 pt-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md transition-colors"
+            >
+              {tActions('cancel')}
+            </button>
+            <button
+              type="submit"
+              disabled={isPending || !employeeId || !ruleType || !ruleValue}
+              className="px-4 py-2 text-sm bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 disabled:opacity-50 transition-colors"
+            >
+              {isPending ? tActions('saving') : tActions('save')}
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   )
 }
