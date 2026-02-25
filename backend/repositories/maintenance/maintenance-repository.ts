@@ -124,7 +124,10 @@ async function generateReportId(): Promise<string> {
 function parseReportRow(row: ReportRow): MaintenanceReport {
   return {
     id: row.id,
-    report_date: row.report_date,
+    report_date:
+      typeof row.report_date === 'string'
+        ? row.report_date
+        : new Date(row.report_date).toISOString(),
     title: row.title,
     description: row.description,
     location_type: row.location_type as MaintenanceReport['location_type'],
@@ -137,17 +140,40 @@ function parseReportRow(row: ReportRow): MaintenanceReport {
     assigned_type: row.assigned_type as MaintenanceReport['assigned_type'],
     external_company_name: row.external_company_name,
     external_contact: row.external_contact,
-    started_at: row.started_at,
-    resolved_at: row.resolved_at,
-    closed_at: row.closed_at,
+    started_at: row.started_at
+      ? typeof row.started_at === 'string'
+        ? row.started_at
+        : new Date(row.started_at).toISOString()
+      : null,
+    resolved_at: row.resolved_at
+      ? typeof row.resolved_at === 'string'
+        ? row.resolved_at
+        : new Date(row.resolved_at).toISOString()
+      : null,
+    closed_at: row.closed_at
+      ? typeof row.closed_at === 'string'
+        ? row.closed_at
+        : new Date(row.closed_at).toISOString()
+      : null,
     resolution_notes: row.resolution_notes,
     is_deleted: Boolean(row.is_deleted),
-    deleted_at: row.deleted_at,
+    deleted_at: row.deleted_at
+      ? typeof row.deleted_at === 'string'
+        ? row.deleted_at
+        : new Date(row.deleted_at).toISOString()
+      : null,
     deleted_by: row.deleted_by,
     created_by: row.created_by,
-    created_at: row.created_at,
+    created_at:
+      typeof row.created_at === 'string' ? row.created_at : new Date(row.created_at).toISOString(),
     updated_by: row.updated_by,
-    updated_at: row.updated_at,
+    updated_at: row.updated_at
+      ? typeof row.updated_at === 'string'
+        ? row.updated_at
+        : new Date(row.updated_at).toISOString()
+      : (() => {
+          throw new Error('MaintenanceReport: updated_at is required but missing/null in DB row')
+        })(),
   }
 }
 
@@ -171,7 +197,10 @@ function parseImageRow(row: ImageRow): MaintenanceImage {
     public_id: row.public_id,
     auto_delete_on_close: Boolean(row.auto_delete_on_close),
     uploaded_by: row.uploaded_by,
-    uploaded_at: row.uploaded_at,
+    uploaded_at:
+      typeof row.uploaded_at === 'string'
+        ? row.uploaded_at
+        : new Date(row.uploaded_at).toISOString(),
   }
 }
 
@@ -185,7 +214,8 @@ function parseHistoryRow(row: HistoryRow): MaintenanceHistory {
     new_value: row.new_value,
     notes: row.notes,
     changed_by: row.changed_by,
-    changed_at: row.changed_at,
+    changed_at:
+      typeof row.changed_at === 'string' ? row.changed_at : new Date(row.changed_at).toISOString(),
     user_name: row.user_name || undefined,
   }
 }
@@ -276,10 +306,17 @@ export class MaintenanceRepository {
       params.push(room_number)
     }
 
-    // Búsqueda general
-    if (search) {
-      query += ` AND (r.title LIKE ? OR r.description LIKE ? OR r.location_description LIKE ? OR r.room_number LIKE ?)`
-      const searchPattern = `%${search}%`
+    // Búsqueda general - case insensitive y sin acentos
+    if (search && search.trim() !== '') {
+      // Usar COLLATE utf8mb4_general_ci para búsqueda case-insensitive
+      // Y REPLACE para remover acentos (forma simplificada - mejor en aplicación)
+      query += ` AND (
+        LOWER(CAST(r.title AS CHAR CHARACTER SET utf8mb4) COLLATE utf8mb4_general_ci) LIKE ? OR
+        LOWER(CAST(r.description AS CHAR CHARACTER SET utf8mb4) COLLATE utf8mb4_general_ci) LIKE ? OR
+        LOWER(CAST(r.location_description AS CHAR CHARACTER SET utf8mb4) COLLATE utf8mb4_general_ci) LIKE ? OR
+        LOWER(CAST(r.room_number AS CHAR CHARACTER SET utf8mb4) COLLATE utf8mb4_general_ci) LIKE ?
+      )`
+      const searchPattern = `%${search.toLowerCase()}%`
       params.push(searchPattern, searchPattern, searchPattern, searchPattern)
     }
 
@@ -305,6 +342,7 @@ export class MaintenanceRepository {
       FROM maintenance_reports r
       WHERE 1=1
     `
+    const countParams: any[] = []
 
     // Aplicar los mismos filtros al count query
     if (!include_deleted) {
@@ -312,36 +350,52 @@ export class MaintenanceRepository {
     }
     if (status) {
       countQuery += ` AND r.status = ?`
+      countParams.push(status)
     }
     if (priority) {
       countQuery += ` AND r.priority = ?`
+      countParams.push(priority)
     }
     if (location_type) {
       countQuery += ` AND r.location_type = ?`
+      countParams.push(location_type)
     }
     if (assigned_to) {
       countQuery += ` AND r.assigned_to = ?`
+      countParams.push(assigned_to)
     }
     if (created_by) {
       countQuery += ` AND r.created_by = ?`
+      countParams.push(created_by)
     }
     if (room_number) {
       countQuery += ` AND r.room_number = ?`
+      countParams.push(room_number)
     }
-    if (search) {
-      countQuery += ` AND (r.title LIKE ? OR r.description LIKE ? OR r.location_description LIKE ? OR r.room_number LIKE ?)`
+    if (search && search.trim() !== '') {
+      countQuery += ` AND (
+        LOWER(CAST(r.title AS CHAR CHARACTER SET utf8mb4) COLLATE utf8mb4_general_ci) LIKE ? OR
+        LOWER(CAST(r.description AS CHAR CHARACTER SET utf8mb4) COLLATE utf8mb4_general_ci) LIKE ? OR
+        LOWER(CAST(r.location_description AS CHAR CHARACTER SET utf8mb4) COLLATE utf8mb4_general_ci) LIKE ? OR
+        LOWER(CAST(r.room_number AS CHAR CHARACTER SET utf8mb4) COLLATE utf8mb4_general_ci) LIKE ?
+      )`
+      const searchPattern = `%${search.toLowerCase()}%`
+      countParams.push(searchPattern, searchPattern, searchPattern, searchPattern)
     }
     if (date) {
       countQuery += ` AND DATE(r.report_date) = ?`
+      countParams.push(date)
     }
     if (date_from && !date) {
       countQuery += ` AND DATE(r.report_date) >= ?`
+      countParams.push(date_from)
     }
     if (date_to && !date) {
       countQuery += ` AND DATE(r.report_date) <= ?`
+      countParams.push(date_to)
     }
 
-    const [countResult] = await db.query<CountRow[]>(countQuery, params)
+    const [countResult] = await db.query<CountRow[]>(countQuery, countParams)
     const total = countResult[0]?.total || 0
 
     // Ordenamiento y paginación
