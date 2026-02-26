@@ -1,7 +1,7 @@
 -- =========================================================
--- MASTER_INSTALL.sql
--- Instalación completa del sistema hotel_db
--- Ejecuta todos los scripts en orden correcto
+-- MASTER_INSTALL_AIVEN.sql
+-- Instalación completa del sistema hotel_db (Aiven/Prod)
+-- Collation: utf8mb4_0900_ai_ci
 -- =========================================================
 
 -- ============================================
@@ -9,54 +9,82 @@
 -- ============================================
 SET NAMES utf8mb4;
 SET CHARACTER SET utf8mb4;
-SET collation_connection = 'utf8mb4_unicode_ci';
+SET collation_connection = 'utf8mb4_0900_ai_ci';
 SET SQL_SAFE_UPDATES = 0;
 SET FOREIGN_KEY_CHECKS = 0;
 
 SELECT '========================================' AS separador;
-SELECT '🚀 INICIANDO INSTALACIÓN COMPLETA' AS mensaje;
+SELECT 'INICIANDO INSTALACIÓN COMPLETA (AIVEN)' AS mensaje;
 SELECT '========================================' AS separador;
 
 -- ============================================
 -- PASO 1: CREAR BASE DE DATOS
 -- ============================================
-SOURCE 01_create_database.sql;
+SOURCE aiven/01_create_database.sql;
 
 -- ============================================
--- PASO 2: TABLAS CORE
+-- PASO 2: TABLAS CORE (roles, departments, users)
 -- ============================================
-SOURCE 02_core_tables.sql;
+SOURCE aiven/02_core_tables.sql;
 
 -- ============================================
 -- PASO 3: SISTEMA LOGBOOK
 -- ============================================
-SOURCE 03_logbook_tables.sql;
+SOURCE aiven/03_logbook_tables.sql;
 
 -- ============================================
--- PASO 4: TABLAS PARKING
+-- PASO 4-8: PARKING
 -- ============================================
-SOURCE 04_parking_tables.sql;
+SOURCE aiven/04_parking_tables.sql;
+SOURCE aiven/05_parking_functions_triggers.sql;
+SOURCE aiven/06_parking_procedures.sql;
+SOURCE aiven/07_parking_initial_data.sql;
+-- SOURCE aiven/08_parking_sample_data.sql;  -- Descomentar para datos de prueba
 
 -- ============================================
--- PASO 5: FUNCIONES Y PROCEDIMIENTOS
+-- PASO 9: CONCILIACIÓN BANCARIA
 -- ============================================
-SOURCE 05_parking_functions_procedures.sql;
+SOURCE aiven/09_conciliation.sql;
 
 -- ============================================
--- PASO 6: TRIGGERS
+-- PASO 10: GROUP TRACKING
 -- ============================================
-SOURCE 06_parking_triggers.sql;
+SOURCE aiven/10_group-tracking.sql;
 
 -- ============================================
--- PASO 7: DATOS INICIALES
+-- PASO 11: CASHIER (CAJA)
 -- ============================================
-SOURCE 07_parking_initial_data.sql;
+SOURCE aiven/11_cashier.sql;
 
 -- ============================================
--- PASO 8 (OPCIONAL): DATOS DE EJEMPLO
--- Descomentar la siguiente línea para incluir datos de prueba
+-- PASO 12: BLACKLIST
 -- ============================================
--- SOURCE 08_parking_sample_data.sql;
+SOURCE aiven/12_blacklist.sql;
+
+-- ============================================
+-- PASO 13: MAINTENANCE
+-- ============================================
+SOURCE aiven/13_maintenance.sql;
+
+-- ============================================
+-- PASO 14: MESSAGES
+-- ============================================
+SOURCE aiven/14_messages.sql;
+
+-- ============================================
+-- PASO 15: DEMO USER (OPCIONAL)
+-- ============================================
+-- SOURCE aiven/15_demo_user.sql;  -- Descomentar para usuario demo
+
+-- ============================================
+-- PASO 16: BACKOFFICE
+-- ============================================
+SOURCE aiven/16_backoffice.sql;
+
+-- ============================================
+-- PASO 17: NOTIFICATIONS
+-- ============================================
+SOURCE aiven/17_notifications.sql;
 
 -- ============================================
 -- REACTIVAR CONFIGURACIONES
@@ -67,56 +95,8 @@ SET SQL_SAFE_UPDATES = 1;
 -- ============================================
 -- VERIFICACIÓN FINAL
 -- ============================================
+SOURCE aiven/99_verification.sql;
 
 SELECT '========================================' AS separador;
-SELECT '✅ INSTALACIÓN COMPLETADA' AS mensaje;
-SELECT '========================================' AS separador;
-
-USE hotel_db;
-
--- Verificar tablas
-SELECT 
-    'Tablas totales' AS componente,
-    COUNT(*) AS total
-FROM information_schema.TABLES
-WHERE TABLE_SCHEMA = 'hotel_db';
-
--- Verificar funciones
-SELECT 
-    'Funciones' AS componente,
-    COUNT(*) AS total
-FROM information_schema.ROUTINES
-WHERE ROUTINE_SCHEMA = 'hotel_db' 
-  AND ROUTINE_TYPE = 'FUNCTION';
-
--- Verificar procedimientos
-SELECT 
-    'Procedimientos' AS componente,
-    COUNT(*) AS total
-FROM information_schema.ROUTINES
-WHERE ROUTINE_SCHEMA = 'hotel_db' 
-  AND ROUTINE_TYPE = 'PROCEDURE';
-
--- Verificar triggers
-SELECT 
-    'Triggers' AS componente,
-    COUNT(*) AS total
-FROM information_schema.TRIGGERS
-WHERE TRIGGER_SCHEMA = 'hotel_db';
-
--- Verificar datos parking
-SELECT 'Plazas parking' AS componente, COUNT(*) AS total FROM parking_spots
-UNION ALL
-SELECT 'Tarifas' AS componente, COUNT(*) AS total FROM parking_rates
-UNION ALL
-SELECT 'Disponibilidad' AS componente, COUNT(*) AS total FROM parking_availability;
-
--- Verificar charset
-SELECT 
-    'Charset/Collation' AS componente,
-    CONCAT(@@character_set_database, ' / ', @@collation_database) AS valor;
-
-SELECT '========================================' AS separador;
-SELECT '🎉 Sistema hotel_db listo para usar' AS mensaje;
-SELECT 'Lee el README.md para más información' AS nota;
+SELECT 'INSTALACIÓN AIVEN COMPLETADA' AS mensaje;
 SELECT '========================================' AS separador;

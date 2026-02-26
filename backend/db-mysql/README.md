@@ -1,21 +1,36 @@
 # 🏨 Hotel DB - Sistema de Gestión
 
-Base de datos completa para gestión hotelera con sistema de parking integrado.
+Base de datos completa para gestión hotelera con múltiples módulos: parking, logbook, scheduling, messaging, etc.
 
 ## 📁 Estructura de Archivos
 
 ```
-database/
-├── 01_create_database.sql              # Crea BD con UTF-8
-├── 02_core_tables.sql                  # Usuarios, roles, departamentos
-├── 03_logbook_tables.sql               # Sistema de bitácora
-├── 04_parking_tables.sql               # Tablas de parking
-├── 05_parking_functions_triggers.sql   # Funciones y triggers
-├── 06_parking_procedures.sql           # Procedimientos almacenados
-├── 07_parking_initial_data.sql         # Datos iniciales (plazas + tarifas)
-├── 99_verification.sql                 # Script de verificación
-├── MIGRATION_GUIDE.md                  # Guía de migración completa
-└── README.md                           # Este archivo
+db-mysql/
+├── aiven/                          # Scripts de instalación
+│   ├── 01_create_database.sql      # Crea BD con UTF-8
+│   ├── 02_core_tables.sql          # Usuarios, roles, departamentos
+│   ├── 03_logbook_tables.sql       # Sistema de bitácora
+│   ├── 04_parking_tables.sql       # Tablas de parking
+│   ├── 05_parking_functions_triggers.sql
+│   ├── 06_parking_procedures.sql
+│   ├── 07_parking_initial_data.sql
+│   ├── 08_parking_sample_data.sql
+│   ├── 09_conciliation.sql         # Conciliación bancaria
+│   ├── 10_group-tracking.sql      # Seguimiento de grupos
+│   ├── 11_cashier.sql             # Sistema de caja
+│   ├── 12_blacklist.sql           # Lista negra
+│   ├── 13_maintenance.sql         # Mantenimiento
+│   ├── 14_messages.sql            # Mensajería
+│   ├── 15_demo_user.sql           # Usuario demo
+│   ├── 16_backoffice.sql          # Backoffice
+│   ├── 17_notifications.sql       # Notificaciones
+│   ├── 18_user_avatar.sql         # Avatares
+│   ├── 19_scheduling.sql          # Programación de turnos
+│   └── 99_verification.sql        # Verificación
+├── MASTER_INSTALL.sql              # Instalación completa
+├── INDEX.md                        # Índice general
+├── MIGRATION_GUIDE.md              # Guía de migración
+└── README.md                       # Este archivo
 ```
 
 ## 🚀 Inicio Rápido
@@ -23,166 +38,51 @@ database/
 ### Instalación completa
 
 ```bash
-# 1. Ejecutar scripts en orden
-mysql -u dz -p < 01_create_database.sql
-mysql -u dz -p < 02_core_tables.sql
-mysql -u dz -p < 03_logbook_tables.sql
-mysql -u dz -p < 04_parking_tables.sql
-mysql -u dz -p < 05_parking_functions_triggers.sql
-mysql -u dz -p < 06_parking_procedures.sql
-mysql -u dz -p < 07_parking_initial_data.sql
+# Un solo comando (recomendado)
+mysql -u root -p < MASTER_INSTALL.sql
 
-# 2. Verificar instalación
-mysql -u dz -p < 99_verification.sql
+# O desde el directorio aiven/
+cd aiven/
+mysql -u root -p < 01_create_database.sql
+# ... ejecutar en orden
 ```
 
-### Instalación con un solo comando
+### Verificación
 
 ```bash
-cat 01_*.sql 02_*.sql 03_*.sql 04_*.sql 05_*.sql 06_*.sql 07_*.sql | mysql -u dz -p
+mysql -u root -p < aiven/99_verification.sql
 ```
 
-## 📊 Sistema de Parking
+---
 
-### Características principales
+## 📊 Módulos del Sistema
 
-✅ **Gestión automática de disponibilidad**
+### Core (01-03)
+- **Usuarios**: Roles, departamentos, usuarios
+- **Logbook**: Bitácora con comentarios e historial de lecturas
 
-- Los triggers mantienen sincronizada la disponibilidad
-- Bloqueo/liberación automático de fechas
+### Parking (04-08)
+- **Gestión automática de disponibilidad** (triggers)
+- **Códigos de reserva únicos**: `PK-YYYYMMDD-0001`
+- **Control de solapamientos** (validación por trigger)
+- **Auditoría completa**: created_by, updated_by
 
-✅ **Códigos de reserva únicos**
+### Scheduling (19)
+- **Programación mensual de turnos**
+- **Estados**: `draft` (editable) / `published` (bloqueado)
+- **Constraints**: Validación de reglas de negocio
+- **Bloqueo de celdas**: Assignments con source_constraint_id
 
-- Formato: `PK-YYYYMMDD-0001`
-- Generación automática vía trigger
+### Otros módulos
+- **Conciliation**: Conciliación bancaria
+- **Group Tracking**: Seguimiento de grupos hoteleros
+- **Cashier**: Sistema de caja
+- **Maintenance**: Gestión de mantenimiento
+- **Messages**: Mensajería interna
+- **Notifications**: Sistema de notificaciones
+- **Backoffice**: Facturación y proveedores
 
-✅ **Control de solapamientos**
-
-- Validación antes de insertar reservas
-- Imposible hacer doble reserva
-
-✅ **Auditoría completa**
-
-- `created_by`, `updated_by` en cada reserva
-- Historial de cambios
-
-### Tablas principales
-
-| Tabla                  | Descripción                                  |
-| ---------------------- | -------------------------------------------- |
-| `parking_spots`        | 20 plazas (10 en planta -2, 10 en planta -3) |
-| `parking_vehicles`     | Vehículos registrados                        |
-| `parking_rates`        | Tarifas por día (1-30 días)                  |
-| `parking_bookings`     | Reservas con booking_code                    |
-| `parking_availability` | Disponibilidad diaria (365 días)             |
-
-### Funciones disponibles
-
-```sql
--- Verificar si una plaza está disponible
-SELECT check_availability(spot_id, fecha_desde, fecha_hasta);
-
--- Obtener total de plazas disponibles en una fecha
-SELECT get_total_availability('2025-11-01');
-```
-
-### Procedimientos disponibles
-
-```sql
--- Generar disponibilidad para 365 días
-CALL generate_availability();
-
--- Obtener plazas disponibles en un rango
-CALL get_available_spots('2025-11-01', '2025-11-05', '-2');
-
--- Ver check-ins pendientes para hoy
-CALL get_pending_checkins(CURDATE());
-
--- Sincronizar disponibilidad manualmente
-CALL sync_parking_availability();
-
--- Mantenimiento diario (marcar no_show + sincronizar)
-CALL daily_parking_maintenance();
-```
-
-## 📋 Uso Básico
-
-### Crear una reserva
-
-```sql
-INSERT INTO parking_bookings (
-    spot_id,
-    vehicle_id,
-    operator_id,
-    expected_checkin,
-    expected_checkout,
-    status,
-    total_amount,
-    created_by
-) VALUES (
-    1,  -- Plaza 1
-    1,  -- Vehículo 1
-    (SELECT id FROM users LIMIT 1),
-    '2025-11-01 14:00:00',
-    '2025-11-05 10:00:00',
-    'reserved',
-    51.00,
-    (SELECT id FROM users LIMIT 1)
-);
-```
-
-### Ver plazas disponibles
-
-```sql
-CALL get_available_spots('2025-11-01', '2025-11-05', NULL);
-```
-
-### Hacer check-in
-
-```sql
-UPDATE parking_bookings
-SET status = 'checked_in',
-    actual_checkin = NOW()
-WHERE id = 1;
-```
-
-### Hacer check-out
-
-```sql
-UPDATE parking_bookings
-SET status = 'completed',
-    actual_checkout = NOW()
-WHERE id = 1;
-```
-
-## 🔄 Mantenimiento
-
-### Sincronización diaria automática
-
-**Opción 1: Evento MySQL**
-
-```sql
-SET GLOBAL event_scheduler = ON;
-
-CREATE EVENT daily_maintenance
-ON SCHEDULE EVERY 1 DAY
-STARTS (TIMESTAMP(CURRENT_DATE) + INTERVAL 1 DAY + INTERVAL 3 HOUR)
-DO
-  CALL daily_parking_maintenance();
-```
-
-**Opción 2: Cron (Linux/Mac)**
-
-```bash
-# Ejecutar a las 3:00 AM diariamente
-0 3 * * * mysql -u dz -p'password' hotel_db -e "CALL daily_parking_maintenance();"
-```
-
-### Verificación de integridad
-
-```bash
-mysql -u dz -p < 99_verification.sql
-```
+---
 
 ## 🛡️ Seguridad
 
@@ -192,14 +92,16 @@ mysql -u dz -p < 99_verification.sql
 - **vehicle_id**: `ON DELETE SET NULL` - Preserva reserva si se borra vehículo
 - **operator_id, created_by, updated_by**: `ON DELETE SET NULL` - Preserva historial
 
-### Validaciones automáticas
+### Validaciones automáticas (Parking)
 
-✅ No permite reservas en fechas ocupadas (trigger)  
-✅ Genera booking_code único automáticamente (trigger)  
-✅ Actualiza disponibilidad al crear/modificar reservas (trigger)  
-✅ Libera disponibilidad al cancelar/completar (trigger)
+✅ No permite reservas en fechas ocupadas  
+✅ Genera booking_code único automáticamente  
+✅ Actualiza disponibilidad al crear/modificar reservas  
+✅ Libera disponibilidad al cancelar/completar  
 
-## 📈 Estadísticas
+---
+
+## 📈 Estadísticas (Parking)
 
 ### Ocupación actual
 
@@ -225,29 +127,30 @@ WHERE status = 'completed'
   AND YEAR(created_at) = YEAR(CURDATE());
 ```
 
+---
+
 ## 🆘 Troubleshooting
 
 Ver [MIGRATION_GUIDE.md](MIGRATION_GUIDE.md) para solución de problemas comunes.
 
+---
+
 ## 📝 Notas
 
-- **Codificación**: UTF-8 (`utf8mb4_unicode_ci`)
+- **Codificación**: UTF-8 (`utf8mb4_0900_ai_ci`)
 - **Motor**: InnoDB (transaccional)
-- **Plazas**: 20 (10 en planta -2, 10 en planta -3)
-- **Disponibilidad**: 365 días desde la fecha actual
-- **Tarifas**: Configurables (1-30 días)
+- **MySQL**: Requiere 8.0+ (para utf8mb4_0900_ai_ci)
+
+---
 
 ## 🔗 Enlaces Útiles
 
 - [Guía de Migración](MIGRATION_GUIDE.md)
-- [Script de Verificación](99_verification.sql)
-
-## 📞 Soporte
-
-Para dudas o problemas, consulta la [Guía de Migración](MIGRATION_GUIDE.md) sección "Troubleshooting".
+- [Índice de Tablas](INDEX.md)
+- [Script de Verificación](aiven/99_verification.sql)
 
 ---
 
-**Versión**: 1.0  
-**Última actualización**: 29 de Octubre 2025  
+**Versión**: 2.0  
+**Última actualización**: Febrero 2026  
 **Estado**: ✅ Producción

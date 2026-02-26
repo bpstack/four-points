@@ -4,7 +4,7 @@
 
 ```
 db-mysql/
-├── local/                    # Scripts para desarrollo local (utf8mb4_unicode_ci)
+├── aiven/                    # Scripts para desarrollo (utf8mb4_0900_ai_ci)
 │   ├── 01_create_database.sql
 │   ├── 02_core_tables.sql
 │   ├── 03_logbook_tables.sql
@@ -22,26 +22,8 @@ db-mysql/
 │   ├── 15_demo_user.sql
 │   ├── 16_backoffice.sql
 │   ├── 17_notifications.sql
-│   └── 99_verification.sql
-│
-├── aiven/                    # Scripts para Aiven/Prod (utf8mb4_0900_ai_ci)
-│   ├── 01_create_database.sql
-│   ├── 02_core_tables.sql
-│   ├── 03_logbook_tables.sql
-│   ├── 04_parking_tables.sql
-│   ├── 05_parking_functions_triggers.sql
-│   ├── 06_parking_procedures.sql
-│   ├── 07_parking_initial_data.sql
-│   ├── 08_parking_sample_data.sql
-│   ├── 09_conciliation.sql
-│   ├── 10_group-tracking.sql
-│   ├── 11_cashier.sql
-│   ├── 12_blacklist.sql
-│   ├── 13_maintenance.sql
-│   ├── 14_messages.sql
-│   ├── 15_demo_user.sql
-│   ├── 16_backoffice.sql
-│   ├── 17_notifications.sql
+│   ├── 18_user_avatar.sql
+│   ├── 19_scheduling.sql
 │   ├── 99_verification.sql
 │   ├── aiven-conexion.md
 │   └── ca-certificate.pem
@@ -50,19 +32,19 @@ db-mysql/
 │   ├── backup_hotel_db-local.sql
 │   └── backup_hotel_db-aiven.sql
 │
-├── MASTER_INSTALL_LOCAL.sql  # Instalación completa local
-├── MASTER_INSTALL_AIVEN.sql  # Instalación completa Aiven
-├── MASTER_INSTALL.sql        # (legacy)
+├── MASTER_INSTALL.sql        # Instalación completa (apunta a aiven/)
 ├── INDEX.md
 ├── README.md
-└── MIGRATION_GUIDE.md
+├── MIGRATION_GUIDE.md
+├── cleanup-scheduling.sql
+└── mock-data.sql
 ```
 
 ---
 
 ## Módulos del Sistema
 
-### Core (01-03) - Ambos entornos
+### Core (01-03)
 
 | # | Archivo | Descripción | Tablas |
 |---|---------|-------------|--------|
@@ -70,7 +52,7 @@ db-mysql/
 | 02 | `02_core_tables.sql` | Sistema de usuarios | `roles`, `departments`, `users` |
 | 03 | `03_logbook_tables.sql` | Bitácora | `logbooks`, `logbook_comments`, `logbook_reads`, `logbook_history` |
 
-### Parking (04-08) - Ambos entornos
+### Parking (04-08)
 
 | # | Archivo | Descripción | Componentes |
 |---|---------|-------------|-------------|
@@ -80,7 +62,7 @@ db-mysql/
 | 07 | `07_parking_initial_data.sql` | Datos iniciales | 20 plazas, 30 tarifas |
 | 08 | `08_parking_sample_data.sql` | Datos de ejemplo | Opcional |
 
-### Módulos Adicionales (09-17) - Ambos entornos
+### Módulos Adicionales (09-19)
 
 | # | Archivo | Descripción | Tablas |
 |---|---------|-------------|--------|
@@ -93,6 +75,8 @@ db-mysql/
 | 15 | `15_demo_user.sql` | Usuario demo | Rol `demo-admin` (id=7) + usuario `demo` |
 | 16 | `16_backoffice.sql` | Backoffice | `bo_categories`, `bo_suppliers`, `bo_invoices`, `bo_invoice_history`, `bo_assets` + 3 vistas |
 | 17 | `17_notifications.sql` | Notificaciones | `notifications`, `notification_recipients` |
+| 18 | `18_user_avatar.sql` | Avatares de usuario | `user_avatars` |
+| 19 | `19_scheduling.sql` | Programación de turnos | `scheduling_months`, `scheduling_assignments`, `scheduling_config`, `scheduling_employee_rules`, `scheduling_constraints`, etc. |
 
 ### Verificación (99)
 
@@ -104,34 +88,25 @@ db-mysql/
 
 ## Instalación
 
-### Local (Desarrollo)
+### Desarrollo Local (MySQL 8.0+)
 
 ```bash
-# Opción 1: Master install
-mysql -u root -p < MASTER_INSTALL_LOCAL.sql
-
-# Opción 2: Manual, script por script
-cd local/
-mysql -u root -p < 01_create_database.sql
-mysql -u root -p < 02_core_tables.sql
-# ... etc
+mysql -u root -p < MASTER_INSTALL.sql
 ```
 
 ### Aiven (Producción)
 
 ```bash
 # Ver aiven/aiven-conexion.md para detalles de conexión
-mysql -h HOST -P PORT -u USER -p --ssl-ca=aiven/ca-certificate.pem < MASTER_INSTALL_AIVEN.sql
+mysql -h HOST -P PORT -u USER -p --ssl-ca=aiven/ca-certificate.pem < MASTER_INSTALL.sql
 ```
 
 ---
 
-## Diferencias entre Entornos
+## Notas
 
-| Aspecto | Local | Aiven |
-|---------|-------|-------|
-| Collation | `utf8mb4_unicode_ci` | `utf8mb4_0900_ai_ci` |
-| SSL | No requerido | Requerido (ca-certificate.pem) |
+- **Collation**: `utf8mb4_0900_ai_ci` (MySQL 8.0+)
+- SSL requerido para Aiven (ca-certificate.pem)
 
 ---
 
@@ -149,7 +124,7 @@ mysql -h HOST -P PORT -u USER -p --ssl-ca=aiven/ca-certificate.pem < MASTER_INST
 
 ## Resumen de Tablas
 
-### Total: 45 tablas + 3 vistas
+### Total: ~50 tablas + 3 vistas
 
 - **Core**: 3 tablas (roles, departments, users)
 - **Logbook**: 4 tablas
@@ -162,8 +137,10 @@ mysql -h HOST -P PORT -u USER -p --ssl-ca=aiven/ca-certificate.pem < MASTER_INST
 - **Messages**: 3 tablas
 - **Notifications**: 2 tablas
 - **Backoffice**: 5 tablas + 3 vistas
+- **User Avatar**: 1 tabla
+- **Scheduling**: 7+ tablas
 
 ---
 
-**Versión**: 2.2  
-**Fecha**: Diciembre 2025
+**Versión**: 3.0  
+**Fecha**: Febrero 2026
