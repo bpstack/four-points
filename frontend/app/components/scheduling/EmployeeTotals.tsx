@@ -200,10 +200,7 @@ export function EmployeeTotals({ year }: EmployeeTotalsProps) {
             </button>
           )}
           <button
-            onClick={() => {
-              refetchContracts()
-              refetchTotals()
-            }}
+            onClick={() => window.location.reload()}
             className="p-1.5 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors"
             title={tActions('refresh')}
           >
@@ -270,41 +267,44 @@ export function EmployeeTotals({ year }: EmployeeTotalsProps) {
       )}
 
       <div>
-        <h3 className="text-xs font-bold text-gray-900 dark:text-gray-100 mb-2 px-1">
-          {t('byContract')}
-        </h3>
-        <div className="overflow-x-auto border border-gray-200 dark:border-gray-700 rounded">
+        <div className="flex items-center gap-2 mb-2 px-1">
+          <span className="w-1.5 h-4 rounded-full bg-slate-400 dark:bg-slate-500" />
+          <h3 className="text-xs font-bold text-slate-700 dark:text-slate-300">
+            {t('byContract')}
+          </h3>
+        </div>
+        <div className="overflow-x-auto border border-slate-200 dark:border-slate-700 rounded">
           <table className="w-full text-xs">
-            <thead className="bg-gray-100 dark:bg-gray-800">
+            <thead className="bg-slate-50 dark:bg-slate-800/60">
               <tr>
-                <th className="px-3 py-2 text-left font-medium text-gray-700 dark:text-gray-300 min-w-[100px]"></th>
-                <th className="px-2 py-2 text-center font-medium text-gray-700 dark:text-gray-300 min-w-[80px]">
+                <th className="px-3 py-2 text-left font-medium text-slate-600 dark:text-slate-400 min-w-[100px]"></th>
+                <th className="px-2 py-2 text-center font-medium text-slate-600 dark:text-slate-400 min-w-[80px]">
                   {t('workDays')}
                 </th>
-                <th className="px-2 py-2 text-center font-medium text-gray-700 dark:text-gray-300 min-w-[80px]">
+                <th className="px-2 py-2 text-center font-medium text-slate-600 dark:text-slate-400 min-w-[80px]">
                   {t('hoursToWork')}
                 </th>
-                <th className="px-2 py-2 text-center font-medium text-gray-700 dark:text-gray-300 min-w-[80px]">
+                <th className="px-2 py-2 text-center font-medium text-slate-600 dark:text-slate-400 min-w-[80px]">
                   {t('vacationDays')}
                 </th>
-                <th className="px-2 py-2 text-center font-medium text-gray-700 dark:text-gray-300 min-w-[80px]">
+                <th className="px-2 py-2 text-center font-medium text-slate-600 dark:text-slate-400 min-w-[80px]">
                   {t('weeklyFree')}
                 </th>
-                <th className="px-2 py-2 text-center font-medium text-gray-700 dark:text-gray-300 min-w-[50px]">
+                <th className="px-2 py-2 text-center font-medium text-slate-600 dark:text-slate-400 min-w-[50px]">
                   {t('it')}
                 </th>
-                <th className="px-2 py-2 text-center font-medium text-gray-700 dark:text-gray-300 min-w-[80px]">
+                <th className="px-2 py-2 text-center font-medium text-slate-600 dark:text-slate-400 min-w-[80px]">
                   {t('bonusDays')}
                 </th>
-                <th className="px-2 py-2 text-center font-medium text-gray-700 dark:text-gray-300 min-w-[80px]">
+                <th className="px-2 py-2 text-center font-medium text-slate-600 dark:text-slate-400 min-w-[80px]">
                   {t('workingDaysPerYear')}
                 </th>
-                <th className="px-2 py-2 text-left font-medium text-gray-700 dark:text-gray-300 min-w-[150px]">
+                <th className="px-2 py-2 text-left font-medium text-slate-600 dark:text-slate-400 min-w-[150px]">
                   {t('notes')}
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
               {contracts.length === 0 ? (
                 <tr>
                   <td
@@ -316,7 +316,7 @@ export function EmployeeTotals({ year }: EmployeeTotalsProps) {
                 </tr>
               ) : (
                 contracts.map((contract) => (
-                  <tr key={contract.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                  <tr key={contract.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/30">
                     <td className="px-3 py-1 font-medium text-gray-900 dark:text-gray-100">
                       {contract.employeeName}
                     </td>
@@ -325,7 +325,7 @@ export function EmployeeTotals({ year }: EmployeeTotalsProps) {
                         type="number"
                         value={getValue(contract, 'diasTrabajo')}
                         onChange={(e) => handleChange(contract.id, 'diasTrabajo', e.target.value)}
-                        className="w-full px-2 py-1 text-center text-xs border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full px-2 py-1 text-center text-xs border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-1 focus:ring-gray-500 dark:focus:ring-gray-400"
                       />
                     </td>
                     <td className="px-1 py-1">
@@ -333,7 +333,7 @@ export function EmployeeTotals({ year }: EmployeeTotalsProps) {
                         type="number"
                         value={getValue(contract, 'horasAnuales')}
                         onChange={(e) => handleChange(contract.id, 'horasAnuales', e.target.value)}
-                        className="w-full px-2 py-1 text-center text-xs border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full px-2 py-1 text-center text-xs border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-1 focus:ring-gray-500 dark:focus:ring-gray-400"
                       />
                     </td>
                     <td className="px-1 py-1">
@@ -343,7 +343,7 @@ export function EmployeeTotals({ year }: EmployeeTotalsProps) {
                         onChange={(e) =>
                           handleChange(contract.id, 'diasVacaciones', e.target.value)
                         }
-                        className="w-full px-2 py-1 text-center text-xs border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full px-2 py-1 text-center text-xs border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-1 focus:ring-gray-500 dark:focus:ring-gray-400"
                       />
                     </td>
                     <td className="px-1 py-1">
@@ -353,7 +353,7 @@ export function EmployeeTotals({ year }: EmployeeTotalsProps) {
                         onChange={(e) =>
                           handleChange(contract.id, 'diasLibreSemanal', e.target.value)
                         }
-                        className="w-full px-2 py-1 text-center text-xs border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full px-2 py-1 text-center text-xs border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-1 focus:ring-gray-500 dark:focus:ring-gray-400"
                       />
                     </td>
                     <td className="px-1 py-1">
@@ -361,7 +361,7 @@ export function EmployeeTotals({ year }: EmployeeTotalsProps) {
                         type="number"
                         value={getValue(contract, 'diasIt')}
                         onChange={(e) => handleChange(contract.id, 'diasIt', e.target.value)}
-                        className="w-full px-2 py-1 text-center text-xs border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full px-2 py-1 text-center text-xs border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-1 focus:ring-gray-500 dark:focus:ring-gray-400"
                       />
                     </td>
                     <td className="px-1 py-1">
@@ -371,7 +371,7 @@ export function EmployeeTotals({ year }: EmployeeTotalsProps) {
                         onChange={(e) =>
                           handleChange(contract.id, 'diasBonificables', e.target.value)
                         }
-                        className="w-full px-2 py-1 text-center text-xs border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full px-2 py-1 text-center text-xs border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-1 focus:ring-gray-500 dark:focus:ring-gray-400"
                       />
                     </td>
                     <td className="px-1 py-1">
@@ -381,7 +381,7 @@ export function EmployeeTotals({ year }: EmployeeTotalsProps) {
                         onChange={(e) =>
                           handleChange(contract.id, 'diasLaborablesAno', e.target.value)
                         }
-                        className="w-full px-2 py-1 text-center text-xs border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full px-2 py-1 text-center text-xs border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-1 focus:ring-gray-500 dark:focus:ring-gray-400"
                       />
                     </td>
                     <td className="px-1 py-1">
@@ -390,7 +390,7 @@ export function EmployeeTotals({ year }: EmployeeTotalsProps) {
                         value={getValue(contract, 'observaciones') || ''}
                         onChange={(e) => handleChange(contract.id, 'observaciones', e.target.value)}
                         placeholder={t('startDateExample')}
-                        className="w-full px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full px-2 py-1 text-xs border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-1 focus:ring-gray-500 dark:focus:ring-gray-400"
                       />
                     </td>
                   </tr>
@@ -402,38 +402,41 @@ export function EmployeeTotals({ year }: EmployeeTotalsProps) {
       </div>
 
       <div>
-        <h3 className="text-xs font-bold text-gray-900 dark:text-gray-100 mb-2 px-1">
-          {t('enjoyed')}
-        </h3>
-        <div className="overflow-x-auto border border-gray-200 dark:border-gray-700 rounded">
+        <div className="flex items-center gap-2 mb-2 px-1">
+          <span className="w-1.5 h-4 rounded-full bg-emerald-400 dark:bg-emerald-500" />
+          <h3 className="text-xs font-bold text-emerald-700 dark:text-emerald-400">
+            {t('enjoyed')}
+          </h3>
+        </div>
+        <div className="overflow-x-auto border border-emerald-200 dark:border-emerald-800 rounded">
           <table className="w-full text-xs">
-            <thead className="bg-gray-100 dark:bg-gray-800">
+            <thead className="bg-emerald-50 dark:bg-emerald-900/30">
               <tr>
-                <th className="px-3 py-2 text-left font-medium text-gray-700 dark:text-gray-300 min-w-[100px]"></th>
-                <th className="px-3 py-2 text-center font-medium text-gray-700 dark:text-gray-300">
+                <th className="px-3 py-2 text-left font-medium text-emerald-700 dark:text-emerald-400 min-w-[100px]"></th>
+                <th className="px-3 py-2 text-center font-medium text-emerald-700 dark:text-emerald-400">
                   {t('workedDays')}
                 </th>
-                <th className="px-3 py-2 text-center font-medium text-gray-700 dark:text-gray-300">
+                <th className="px-3 py-2 text-center font-medium text-emerald-700 dark:text-emerald-400">
                   {t('workedHours')}
                 </th>
-                <th className="px-3 py-2 text-center font-medium text-gray-700 dark:text-gray-300">
+                <th className="px-3 py-2 text-center font-medium text-emerald-700 dark:text-emerald-400">
                   {t('vacationDays')}
                 </th>
-                <th className="px-3 py-2 text-center font-medium text-gray-700 dark:text-gray-300">
+                <th className="px-3 py-2 text-center font-medium text-emerald-700 dark:text-emerald-400">
                   {t('weeklyFree')}
                 </th>
-                <th className="px-3 py-2 text-center font-medium text-gray-700 dark:text-gray-300">
+                <th className="px-3 py-2 text-center font-medium text-emerald-700 dark:text-emerald-400">
                   {t('it')}
                 </th>
-                <th className="px-3 py-2 text-center font-medium text-gray-700 dark:text-gray-300">
+                <th className="px-3 py-2 text-center font-medium text-emerald-700 dark:text-emerald-400">
                   {t('bonusDays')}
                 </th>
-                <th className="px-3 py-2 text-center font-medium text-gray-700 dark:text-gray-300">
+                <th className="px-3 py-2 text-center font-medium text-emerald-700 dark:text-emerald-400">
                   {t('total')}
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+            <tbody className="divide-y divide-emerald-100 dark:divide-emerald-900/40">
               {employees.length === 0 ? (
                 <tr>
                   <td
@@ -445,7 +448,7 @@ export function EmployeeTotals({ year }: EmployeeTotalsProps) {
                 </tr>
               ) : (
                 employees.map((emp) => (
-                  <tr key={emp.employeeId} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                  <tr key={emp.employeeId} className="hover:bg-emerald-50/60 dark:hover:bg-emerald-900/10">
                     <td className="px-3 py-2 font-medium text-gray-900 dark:text-gray-100">
                       {emp.employeeName}
                     </td>
@@ -479,38 +482,41 @@ export function EmployeeTotals({ year }: EmployeeTotalsProps) {
       </div>
 
       <div>
-        <h3 className="text-xs font-bold text-gray-900 dark:text-gray-100 mb-2 px-1">
-          {t('pendingUntilEndYear')}
-        </h3>
-        <div className="overflow-x-auto border border-gray-200 dark:border-gray-700 rounded">
+        <div className="flex items-center gap-2 mb-2 px-1">
+          <span className="w-1.5 h-4 rounded-full bg-amber-400 dark:bg-amber-500" />
+          <h3 className="text-xs font-bold text-amber-700 dark:text-amber-400">
+            {t('pendingUntilEndYear')}
+          </h3>
+        </div>
+        <div className="overflow-x-auto border border-amber-200 dark:border-amber-800 rounded">
           <table className="w-full text-xs">
-            <thead className="bg-gray-100 dark:bg-gray-800">
+            <thead className="bg-amber-50 dark:bg-amber-900/30">
               <tr>
-                <th className="px-3 py-2 text-left font-medium text-gray-700 dark:text-gray-300 min-w-[100px]"></th>
-                <th className="px-3 py-2 text-center font-medium text-gray-700 dark:text-gray-300">
+                <th className="px-3 py-2 text-left font-medium text-amber-700 dark:text-amber-400 min-w-[100px]"></th>
+                <th className="px-3 py-2 text-center font-medium text-amber-700 dark:text-amber-400">
                   {t('daysToWork')}
                 </th>
-                <th className="px-3 py-2 text-center font-medium text-gray-700 dark:text-gray-300">
+                <th className="px-3 py-2 text-center font-medium text-amber-700 dark:text-amber-400">
                   {t('hoursToWork')}
                 </th>
-                <th className="px-3 py-2 text-center font-medium text-gray-700 dark:text-gray-300">
+                <th className="px-3 py-2 text-center font-medium text-amber-700 dark:text-amber-400">
                   {t('vacationDays')}
                 </th>
-                <th className="px-3 py-2 text-center font-medium text-gray-700 dark:text-gray-300">
+                <th className="px-3 py-2 text-center font-medium text-amber-700 dark:text-amber-400">
                   {t('weeklyFree')}
                 </th>
-                <th className="px-3 py-2 text-center font-medium text-gray-700 dark:text-gray-300">
+                <th className="px-3 py-2 text-center font-medium text-amber-700 dark:text-amber-400">
                   {t('it')}
                 </th>
-                <th className="px-3 py-2 text-center font-medium text-gray-700 dark:text-gray-300">
+                <th className="px-3 py-2 text-center font-medium text-amber-700 dark:text-amber-400">
                   {t('bonusDays')}
                 </th>
-                <th className="px-3 py-2 text-center font-medium text-gray-700 dark:text-gray-300">
+                <th className="px-3 py-2 text-center font-medium text-amber-700 dark:text-amber-400">
                   {t('total')}
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+            <tbody className="divide-y divide-amber-100 dark:divide-amber-900/40">
               {employees.length === 0 ? (
                 <tr>
                   <td
@@ -522,7 +528,7 @@ export function EmployeeTotals({ year }: EmployeeTotalsProps) {
                 </tr>
               ) : (
                 employees.map((emp) => (
-                  <tr key={emp.employeeId} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                  <tr key={emp.employeeId} className="hover:bg-amber-50/60 dark:hover:bg-amber-900/10">
                     <td className="px-3 py-2 font-medium text-gray-900 dark:text-gray-100">
                       {emp.employeeName}
                     </td>
