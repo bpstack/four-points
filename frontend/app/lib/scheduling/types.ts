@@ -68,8 +68,10 @@ export interface SchedulingConfig {
 export interface SchedulingConfigMap {
   minMorningStaff: number
   prefMorningStaff: number
+  maxMorningStaff: number
   minAfternoonStaff: number
   prefAfternoonStaff: number
+  maxAfternoonStaff: number
   minNightStaff: number
   maxNightStaff: number
   maxWeeklyShifts: number
@@ -78,6 +80,9 @@ export interface SchedulingConfigMap {
   minNightBlock: number
   maxNightBlock: number
   prefNightBlock: number
+  minMonthlyLibre: number
+  maxMonthlyLibre: number
+  maxConsecutiveWorkDays: number
   annualVacationDays: number
   annualHolidays: number
   annualFreeDays: number
@@ -324,9 +329,9 @@ export interface UpdateAssignmentDto {
 }
 
 export interface BulkAssignmentDto {
-  dayId: number
-  employeeId: string
-  shiftCode: string
+  day_id: number
+  employee_id: string
+  shift_code: string
   notes?: string | null
 }
 
