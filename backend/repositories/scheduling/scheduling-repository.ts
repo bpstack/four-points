@@ -1421,7 +1421,7 @@ async function getShiftHoursMap(): Promise<Record<string, number>> {
   const shifts = await getAllShifts()
   const map: Record<string, number> = {}
   shifts.forEach((s) => {
-    map[s.code] = s.hours
+    map[s.code] = parseFloat(s.hours as unknown as string) || 0
   })
   return map
 }
