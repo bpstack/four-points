@@ -8,14 +8,21 @@ import { useSearchParams, useRouter, usePathname } from 'next/navigation'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { schedulingApi, schedulingKeys, downloadSchedulePdf } from '@/app/lib/scheduling'
 import { ApiError } from '@/app/lib/apiClient'
-import type { SchedulingShift, MonthStatus, GenerationWarning } from '@/app/lib/scheduling'
+import type {
+  SchedulingShift,
+  MonthStatus,
+  GenerationWarning,
+  BulkAssignmentDto,
+} from '@/app/lib/scheduling'
 import { ScheduleGrid } from './ScheduleGrid'
+import type { BulkSelection } from './ScheduleGrid'
 import { MonthSelector } from './MonthSelector'
 import { ScheduleStats } from './ScheduleStats'
 import { ShiftLegend } from './ShiftLegend'
 import { ShiftSelector } from './ShiftSelector'
 import { ValidationWarnings } from './ValidationWarnings'
 import { MonthInfoPanel } from './MonthInfoPanel'
+import { ConfirmDialog } from '@/app/ui/panels/ConfirmDialog'
 import toast from 'react-hot-toast'
 import Link from 'next/link'
 import {
@@ -66,6 +73,15 @@ export function SchedulingClient() {
   const [validationWarnings, setValidationWarnings] = useState<{
     warnings: GenerationWarning[]
   } | null>(null)
+
+  // Confirm dialog state
+  const [confirmDialog, setConfirmDialog] = useState<{
+    open: boolean
+    type: 'reset' | 'delete' | null
+  }>({ open: false, type: null })
+
+  // Bulk multi-cell selection state
+  const [bulkSelection, setBulkSelection] = useState<BulkSelection | null>(null)
 
   // Update URL when year changes
   const setSelectedYear = useCallback(
@@ -183,32 +199,50 @@ export function SchedulingClient() {
     },
   })
 
-  // Update single assignment mutation
+  // Helper: revalidate schedule after any assignment change
+  const revalidateSchedule = useCallback(
+    (monthId: number) => {
+      setTimeout(async () => {
+        try {
+          const validationResult = await schedulingApi.validateSchedule(monthId)
+          const allWarnings = [...validationResult.errors, ...validationResult.warnings]
+          setValidationWarnings(allWarnings.length > 0 ? { warnings: allWarnings } : null)
+        } catch {
+          console.warn('Failed to revalidate schedule after edit')
+        }
+      }, 100)
+    },
+    []
+  )
+
+  // Update single assignment mutation (no success toast — cell change is visual feedback enough)
   const updateAssignmentMutation = useMutation({
     mutationFn: ({ assignmentId, shiftCode }: { assignmentId: number; shiftCode: string }) =>
       schedulingApi.updateAssignment(assignmentId, { shiftCode }),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: schedulingKeys.month(selectedMonthId!) })
       setSelectedCell(null)
-      toast.success(tToasts('shiftUpdated'))
+      if (selectedMonthId) revalidateSchedule(selectedMonthId)
+    },
+    onError: () => {
+      toast.error(tToasts('shiftUpdateError'))
+    },
+  })
 
-      if (selectedMonthId) {
-        setTimeout(async () => {
-          try {
-            const validationResult = await schedulingApi.validateSchedule(selectedMonthId)
-            const allWarnings = [...validationResult.errors, ...validationResult.warnings]
-            if (allWarnings.length > 0) {
-              setValidationWarnings({
-                warnings: allWarnings,
-              })
-            } else {
-              setValidationWarnings(null)
-            }
-          } catch {
-            console.warn('Failed to revalidate schedule after edit')
-          }
-        }, 100)
-      }
+  // Bulk update assignments mutation
+  const bulkUpdateMutation = useMutation({
+    mutationFn: ({
+      monthId,
+      assignments,
+    }: {
+      monthId: number
+      assignments: BulkAssignmentDto[]
+    }) => schedulingApi.bulkUpdateAssignments(monthId, assignments),
+    onSuccess: async (_, { assignments }) => {
+      await queryClient.invalidateQueries({ queryKey: schedulingKeys.month(selectedMonthId!) })
+      setBulkSelection(null)
+      toast.success(`${assignments.length} turno${assignments.length !== 1 ? 's' : ''} actualizados`)
+      if (selectedMonthId) revalidateSchedule(selectedMonthId)
     },
     onError: () => {
       toast.error(tToasts('shiftUpdateError'))
@@ -236,11 +270,9 @@ export function SchedulingClient() {
 
   const handleReset = useCallback(() => {
     if (selectedMonthId) {
-      if (confirm(tActions('resetConfirm'))) {
-        resetMutation.mutate(selectedMonthId)
-      }
+      setConfirmDialog({ open: true, type: 'reset' })
     }
-  }, [resetMutation, selectedMonthId])
+  }, [selectedMonthId])
 
   const handlePublish = useCallback(() => {
     if (selectedMonthId && monthData?.status === 'draft') {
@@ -269,11 +301,9 @@ export function SchedulingClient() {
 
   const handleDeleteMonth = useCallback(() => {
     if (selectedMonthId) {
-      if (confirm(tActions('deleteMonthConfirm'))) {
-        deleteMonthMutation.mutate(selectedMonthId)
-      }
+      setConfirmDialog({ open: true, type: 'delete' })
     }
-  }, [deleteMonthMutation, selectedMonthId])
+  }, [selectedMonthId])
 
   // Handle cell click to open shift selector
   const handleCellClick = useCallback(
@@ -306,7 +336,7 @@ export function SchedulingClient() {
     [monthData]
   )
 
-  // Handle shift selection from selector
+  // Handle shift selection from selector (single cell)
   const handleShiftSelect = useCallback(
     (shiftCode: string) => {
       if (!selectedCell?.assignmentId) {
@@ -326,6 +356,38 @@ export function SchedulingClient() {
       })
     },
     [selectedCell, updateAssignmentMutation]
+  )
+
+  // Handle bulk cell drag selection from grid
+  const handleBulkCellSelect = useCallback((selection: BulkSelection) => {
+    setBulkSelection(selection)
+  }, [])
+
+  // Handle shift selection for bulk cells
+  const handleBulkShiftSelect = useCallback(
+    (shiftCode: string) => {
+      if (!bulkSelection || !selectedMonthId) {
+        setBulkSelection(null)
+        return
+      }
+
+      const assignments: BulkAssignmentDto[] = bulkSelection.cells
+        .filter((cell) => cell.assignmentId !== null)
+        .map((cell) => ({
+          day_id: cell.dayId,
+          employee_id: bulkSelection.employeeId,
+          shift_code: shiftCode,
+        }))
+
+      if (assignments.length === 0) {
+        toast.error(tToasts('assignmentNotFound'))
+        setBulkSelection(null)
+        return
+      }
+
+      bulkUpdateMutation.mutate({ monthId: selectedMonthId, assignments })
+    },
+    [bulkSelection, selectedMonthId, bulkUpdateMutation, tToasts]
   )
 
   const getStatusConfig = (status: MonthStatus) => {
@@ -508,12 +570,13 @@ export function SchedulingClient() {
               monthData={monthData}
               shiftsMap={shiftsMap}
               onCellClick={handleCellClick}
+              onBulkCellSelect={handleBulkCellSelect}
               editable={monthData.status !== 'published'}
             />
           </div>
         ) : null}
 
-        {/* Shift Selector Popover */}
+        {/* Shift Selector — single cell */}
         {selectedCell && (
           <ShiftSelector
             shifts={shifts}
@@ -526,6 +589,48 @@ export function SchedulingClient() {
             isLoading={updateAssignmentMutation.isPending}
           />
         )}
+
+        {/* Shift Selector — bulk multi-cell drag selection */}
+        {bulkSelection && (
+          <ShiftSelector
+            shifts={shifts}
+            currentShiftCode={null}
+            employeeName={bulkSelection.employeeName}
+            subtitle={`${bulkSelection.cells.length} días seleccionados`}
+            position={bulkSelection.position}
+            onSelect={handleBulkShiftSelect}
+            onClose={() => setBulkSelection(null)}
+            isLoading={bulkUpdateMutation.isPending}
+          />
+        )}
+
+        {/* Confirm dialogs */}
+        <ConfirmDialog
+          isOpen={confirmDialog.open && confirmDialog.type === 'reset'}
+          onClose={() => setConfirmDialog({ open: false, type: null })}
+          onConfirm={() => {
+            setConfirmDialog({ open: false, type: null })
+            resetMutation.mutate(selectedMonthId!)
+          }}
+          title={tActions('reset')}
+          message={tActions('resetConfirm')}
+          confirmText={tActions('reset')}
+          variant="warning"
+          isLoading={resetMutation.isPending}
+        />
+        <ConfirmDialog
+          isOpen={confirmDialog.open && confirmDialog.type === 'delete'}
+          onClose={() => setConfirmDialog({ open: false, type: null })}
+          onConfirm={() => {
+            setConfirmDialog({ open: false, type: null })
+            deleteMonthMutation.mutate(selectedMonthId!)
+          }}
+          title={tActions('delete')}
+          message={tActions('deleteMonthConfirm')}
+          confirmText={tActions('delete')}
+          variant="danger"
+          isLoading={deleteMonthMutation.isPending}
+        />
       </div>
     </div>
   )
