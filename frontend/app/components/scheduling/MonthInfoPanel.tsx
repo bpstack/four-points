@@ -12,9 +12,8 @@ interface MonthInfoPanelProps {
 }
 
 function formatDate(dateStr: string) {
-  const [year, month, day] = dateStr.split('-')
-  const monthNames = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic']
-  return `${parseInt(day)} ${monthNames[parseInt(month) - 1]}`
+  const date = new Date(dateStr)
+  return date.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })
 }
 
 export function MonthInfoPanel({ monthId }: MonthInfoPanelProps) {
