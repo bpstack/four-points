@@ -208,6 +208,7 @@ CREATE TABLE scheduling_assignments (
   shift_code VARCHAR(5) COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT 'Código del turno asignado',
   source_constraint_id INT DEFAULT NULL COMMENT 'Constraint origen (si la celda está precargada/bloqueada)',
   notes VARCHAR(255) COLLATE utf8mb4_0900_ai_ci DEFAULT NULL COMMENT 'Notas de la asignación',
+  libre_number INT NULL DEFAULT NULL COMMENT 'Par de libre semanal al que pertenece esta asignación (1-45)',
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 

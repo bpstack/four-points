@@ -704,8 +704,62 @@ export async function upsertAssignment(data: CreateAssignmentDTO): Promise<numbe
   return result.insertId
 }
 
+export async function recalculateLibreNumbers(
+  employeeId: string,
+  year: number
+): Promise<void> {
+  const [lRows] = await db.execute<RowDataPacket[]>(
+    `SELECT a.id
+     FROM scheduling_assignments a
+     JOIN scheduling_days d ON a.day_id = d.id
+     JOIN scheduling_months m ON a.month_id = m.id
+     WHERE a.employee_id = ? AND a.shift_code = 'L' AND m.year = ?
+     ORDER BY d.date ASC`,
+    [employeeId, year]
+  )
+
+  if (lRows.length > 0) {
+    const cases = lRows
+      .map((r, i) => `WHEN ${r.id} THEN ${Math.ceil((i + 1) / 2)}`)
+      .join(' ')
+    const ids = lRows.map((r) => r.id).join(',')
+    await db.execute(
+      `UPDATE scheduling_assignments
+       SET libre_number = CASE id ${cases} END
+       WHERE id IN (${ids})`
+    )
+  }
+
+  await db.execute(
+    `UPDATE scheduling_assignments a
+     JOIN scheduling_days d ON a.day_id = d.id
+     JOIN scheduling_months m ON a.month_id = m.id
+     SET a.libre_number = NULL
+     WHERE a.employee_id = ?
+       AND m.year = ?
+       AND a.shift_code != 'L'
+       AND a.libre_number IS NOT NULL`,
+    [employeeId, year]
+  )
+}
+
 export async function deleteAllAssignmentsByMonth(monthId: number): Promise<void> {
   await db.execute('DELETE FROM scheduling_assignments WHERE month_id = ?', [monthId])
+}
+
+export async function getAnnualLCountByEmployee(
+  year: number
+): Promise<{ employee_id: string; employee_name: string; libre_count: number }[]> {
+  const [rows] = await db.execute<RowDataPacket[]>(
+    `SELECT a.employee_id, u.username AS employee_name, COUNT(*) AS libre_count
+     FROM scheduling_assignments a
+     JOIN scheduling_months m ON a.month_id = m.id
+     JOIN users u ON a.employee_id = u.id
+     WHERE a.shift_code = 'L' AND m.year = ?
+     GROUP BY a.employee_id, u.username`,
+    [year]
+  )
+  return rows as { employee_id: string; employee_name: string; libre_count: number }[]
 }
 
 export async function fixMonthDates(monthId: number, year: number, month: number): Promise<number> {

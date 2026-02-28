@@ -136,6 +136,7 @@ export interface SchedulingAssignmentRow extends RowDataPacket {
   shift_code: string
   source_constraint_id: number | null
   notes: string | null
+  libre_number: number | null
   created_at: Date
   updated_at: Date
 }

@@ -184,6 +184,7 @@ export interface EmployeeSchedule {
       shiftCode: string
       sourceConstraintId?: number | null
       notes: string | null
+      libreNumber?: number | null
     }
   }
   stats: EmployeeStats

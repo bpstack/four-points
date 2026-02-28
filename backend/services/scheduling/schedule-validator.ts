@@ -732,6 +732,34 @@ export class ScheduleValidator {
       daysNeedingPI: [],
     }
   }
+
+  // ============================================
+  // ANNUAL LIBRE CHECK (cross-month)
+  // ============================================
+
+  async validateAnnualLibre(): Promise<GenerationWarning[]> {
+    const MAX_ANNUAL_LIBRE = 90
+    const employeeIds = new Set(this.employees.map((e) => e.id))
+    if (employeeIds.size === 0) return []
+
+    const counts = await repo.getAnnualLCountByEmployee(this.year)
+    const warnings: GenerationWarning[] = []
+
+    for (const row of counts) {
+      if (!employeeIds.has(row.employee_id)) continue
+      if (row.libre_count > MAX_ANNUAL_LIBRE) {
+        warnings.push({
+          type: 'constraint',
+          severity: 'warning',
+          message: `${row.employee_name}: ${row.libre_count} días libre semanal en ${this.year} (convenio: máx. ${MAX_ANNUAL_LIBRE})`,
+          employeeId: row.employee_id,
+          employeeName: row.employee_name,
+        })
+      }
+    }
+
+    return warnings
+  }
 }
 
 // ============================================
@@ -829,5 +857,18 @@ export async function createScheduleValidator(monthId: number): Promise<Schedule
 export async function validateSchedule(monthId: number): Promise<ValidationResult | null> {
   const validator = await createScheduleValidator(monthId)
   if (!validator) return null
-  return validator.validate()
+
+  const result = validator.validate()
+
+  // Annual libre check — cross-month, always a warning never an error
+  const annualWarnings = await validator.validateAnnualLibre()
+  if (annualWarnings.length > 0) {
+    result.warnings.push(...annualWarnings)
+    result.stats.totalWarnings += annualWarnings.length
+    for (const w of annualWarnings) {
+      result.stats.byType[w.type] = (result.stats.byType[w.type] || 0) + 1
+    }
+  }
+
+  return result
 }

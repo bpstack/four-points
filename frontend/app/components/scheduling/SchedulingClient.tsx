@@ -200,20 +200,17 @@ export function SchedulingClient() {
   })
 
   // Helper: revalidate schedule after any assignment change
-  const revalidateSchedule = useCallback(
-    (monthId: number) => {
-      setTimeout(async () => {
-        try {
-          const validationResult = await schedulingApi.validateSchedule(monthId)
-          const allWarnings = [...validationResult.errors, ...validationResult.warnings]
-          setValidationWarnings(allWarnings.length > 0 ? { warnings: allWarnings } : null)
-        } catch {
-          console.warn('Failed to revalidate schedule after edit')
-        }
-      }, 100)
-    },
-    []
-  )
+  const revalidateSchedule = useCallback((monthId: number) => {
+    setTimeout(async () => {
+      try {
+        const validationResult = await schedulingApi.validateSchedule(monthId)
+        const allWarnings = [...validationResult.errors, ...validationResult.warnings]
+        setValidationWarnings(allWarnings.length > 0 ? { warnings: allWarnings } : null)
+      } catch {
+        console.warn('Failed to revalidate schedule after edit')
+      }
+    }, 100)
+  }, [])
 
   // Update single assignment mutation (no success toast — cell change is visual feedback enough)
   const updateAssignmentMutation = useMutation({
@@ -231,17 +228,15 @@ export function SchedulingClient() {
 
   // Bulk update assignments mutation
   const bulkUpdateMutation = useMutation({
-    mutationFn: ({
-      monthId,
-      assignments,
-    }: {
-      monthId: number
-      assignments: BulkAssignmentDto[]
-    }) => schedulingApi.bulkUpdateAssignments(monthId, assignments),
+    mutationFn: ({ monthId, assignments }: { monthId: number; assignments: BulkAssignmentDto[] }) =>
+      schedulingApi.bulkUpdateAssignments(monthId, assignments),
     onSuccess: async (_, { assignments }) => {
       await queryClient.invalidateQueries({ queryKey: schedulingKeys.month(selectedMonthId!) })
       setBulkSelection(null)
-      toast.success(`${assignments.length} turno${assignments.length !== 1 ? 's' : ''} actualizados`)
+      setSelectedCell(null)
+      toast.success(
+        `${assignments.length} turno${assignments.length !== 1 ? 's' : ''} actualizados`
+      )
       if (selectedMonthId) revalidateSchedule(selectedMonthId)
     },
     onError: () => {
@@ -339,8 +334,7 @@ export function SchedulingClient() {
   // Handle shift selection from selector (single cell)
   const handleShiftSelect = useCallback(
     (shiftCode: string) => {
-      if (!selectedCell?.assignmentId) {
-        toast.error(tToasts('assignmentNotFound'))
+      if (!selectedCell) {
         setSelectedCell(null)
         return
       }
@@ -350,12 +344,27 @@ export function SchedulingClient() {
         return
       }
 
+      if (!selectedCell.assignmentId) {
+        if (!selectedMonthId) return
+        bulkUpdateMutation.mutate({
+          monthId: selectedMonthId,
+          assignments: [
+            {
+              day_id: selectedCell.dayId,
+              employee_id: selectedCell.employeeId,
+              shift_code: shiftCode,
+            },
+          ],
+        })
+        return
+      }
+
       updateAssignmentMutation.mutate({
         assignmentId: selectedCell.assignmentId,
         shiftCode,
       })
     },
-    [selectedCell, updateAssignmentMutation]
+    [selectedCell, selectedMonthId, updateAssignmentMutation, bulkUpdateMutation]
   )
 
   // Handle bulk cell drag selection from grid
@@ -371,23 +380,20 @@ export function SchedulingClient() {
         return
       }
 
-      const assignments: BulkAssignmentDto[] = bulkSelection.cells
-        .filter((cell) => cell.assignmentId !== null)
-        .map((cell) => ({
-          day_id: cell.dayId,
-          employee_id: bulkSelection.employeeId,
-          shift_code: shiftCode,
-        }))
+      const assignments: BulkAssignmentDto[] = bulkSelection.cells.map((cell) => ({
+        day_id: cell.dayId,
+        employee_id: bulkSelection.employeeId,
+        shift_code: shiftCode,
+      }))
 
       if (assignments.length === 0) {
-        toast.error(tToasts('assignmentNotFound'))
         setBulkSelection(null)
         return
       }
 
       bulkUpdateMutation.mutate({ monthId: selectedMonthId, assignments })
     },
-    [bulkSelection, selectedMonthId, bulkUpdateMutation, tToasts]
+    [bulkSelection, selectedMonthId, bulkUpdateMutation]
   )
 
   const getStatusConfig = (status: MonthStatus) => {

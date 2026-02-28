@@ -249,7 +249,9 @@ export function ScheduleGrid({
                       // Sunday gets a right border to close the weekend block
                       sunday ? 'border-r-2 border-r-violet-300 dark:border-r-violet-700' : '',
                       // Holiday overrides
-                      holiday ? 'bg-red-50 dark:bg-red-900/20 border-b border-gray-200 dark:border-gray-700' : '',
+                      holiday
+                        ? 'bg-red-50 dark:bg-red-900/20 border-b border-gray-200 dark:border-gray-700'
+                        : '',
                     ]
                       .filter(Boolean)
                       .join(' ')}
@@ -341,8 +343,12 @@ export function ScheduleGrid({
                             weekend
                               ? 'bg-violet-50/60 dark:bg-violet-950/25'
                               : 'border-gray-100 dark:border-gray-800',
-                            saturday ? 'border-l-2 border-l-violet-200 dark:border-l-violet-800/60' : '',
-                            sunday ? 'border-r-2 border-r-violet-200 dark:border-r-violet-800/60' : '',
+                            saturday
+                              ? 'border-l-2 border-l-violet-200 dark:border-l-violet-800/60'
+                              : '',
+                            sunday
+                              ? 'border-r-2 border-r-violet-200 dark:border-r-violet-800/60'
+                              : '',
                           ]
                             .filter(Boolean)
                             .join(' ')}
@@ -354,8 +360,7 @@ export function ScheduleGrid({
                             }}
                             onMouseDown={
                               canEditCell
-                                ? (e) =>
-                                    handleCellMouseDown(employee.id, employee.name, day.id, e)
+                                ? (e) => handleCellMouseDown(employee.id, employee.name, day.id, e)
                                 : undefined
                             }
                             onMouseEnter={
@@ -382,7 +387,11 @@ export function ScheduleGrid({
                               {isLockedByConstraint ? (
                                 <FiLock className="w-4 h-4 text-fuchsia-600 dark:text-fuchsia-400" />
                               ) : (
-                                <>{shiftCode || '-'}</>
+                                <>
+                                  {shiftCode === 'L' && assignment?.libreNumber
+                                    ? `L${assignment.libreNumber}`
+                                    : shiftCode || '-'}
+                                </>
                               )}
                             </span>
                           </button>
@@ -422,7 +431,12 @@ export function ScheduleGrid({
                         v === 0
                           ? 'text-red-500 dark:text-red-600'
                           : 'text-amber-600 dark:text-amber-600/90',
-                      extraCols: <td colSpan={STATS_COLUMNS.length} className="bg-gray-50 dark:bg-[#161b22]"></td>,
+                      extraCols: (
+                        <td
+                          colSpan={STATS_COLUMNS.length}
+                          className="bg-gray-50 dark:bg-[#161b22]"
+                        ></td>
+                      ),
                       borderTop: true,
                     },
                     {

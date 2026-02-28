@@ -394,6 +394,7 @@ export async function getMonthById(req: Request, res: Response): Promise<void> {
           shiftCode: string
           sourceConstraintId?: number | null
           notes: string | null
+          libreNumber?: number | null
         }
       } = {}
       empAssignments.forEach((a) => {
@@ -404,6 +405,7 @@ export async function getMonthById(req: Request, res: Response): Promise<void> {
             shiftCode: a.shift_code,
             sourceConstraintId: a.source_constraint_id,
             notes: a.notes,
+            libreNumber: a.libre_number ?? null,
           }
         }
       })
@@ -696,6 +698,12 @@ export async function createMonth(req: Request, res: Response): Promise<void> {
       console.log(
         `[createMonth] Initialized ${assignments.length} assignments`
       )
+
+      // Number libre pairs immediately after seeding
+      const uniqueEmployees = new Set(assignments.map((a) => a.employee_id))
+      for (const empId of uniqueEmployees) {
+        await repo.recalculateLibreNumbers(empId, data.year)
+      }
     }
 
     // Log history
@@ -754,6 +762,12 @@ export async function resetMonth(req: Request, res: Response): Promise<void> {
       console.log(
         `[resetMonth] Initialized ${assignments.length} assignments`
       )
+
+      // Number libre pairs immediately after seeding
+      const uniqueEmployees = new Set(assignments.map((a) => a.employee_id))
+      for (const empId of uniqueEmployees) {
+        await repo.recalculateLibreNumbers(empId, month.year)
+      }
     }
 
     // Log history
@@ -905,6 +919,13 @@ export async function updateAssignment(req: Request, res: Response): Promise<voi
       ...data,
     })
 
+    if (data.shift_code === 'L' || existing.shift_code === 'L') {
+      const month = await repo.getMonthById(existing.month_id)
+      if (month) {
+        await repo.recalculateLibreNumbers(existing.employee_id, month.year)
+      }
+    }
+
     // Log history
     await repo.createHistory(existing.month_id, 'assignment_changed', userId, {
       tableAffected: 'scheduling_assignments',
@@ -973,6 +994,11 @@ export async function bulkUpdateAssignments(req: Request, res: Response): Promis
         employee_id: assignment.employee_id,
         shift_code: assignment.shift_code,
       })
+    }
+
+    const affectedEmployees = new Set(data.assignments.map((a) => a.employee_id))
+    for (const empId of affectedEmployees) {
+      await repo.recalculateLibreNumbers(empId, month.year)
     }
 
     // Log history
