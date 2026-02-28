@@ -12,7 +12,10 @@ interface ShiftSelectorProps {
   shifts: SchedulingShift[]
   currentShiftCode: string | null
   employeeName: string
-  dayNumber: number
+  /** Day number for single-cell mode */
+  dayNumber?: number
+  /** Override subtitle text (used for multi-cell bulk mode) */
+  subtitle?: string
   position: { x: number; y: number }
   onSelect: (shiftCode: string) => void
   onClose: () => void
@@ -24,6 +27,7 @@ export function ShiftSelector({
   currentShiftCode,
   employeeName,
   dayNumber,
+  subtitle,
   position,
   onSelect,
   onClose,
@@ -84,7 +88,7 @@ export function ShiftSelector({
         <div>
           <p className="text-xs font-medium text-gray-900 dark:text-gray-100">{employeeName}</p>
           <p className="text-[10px] text-gray-500 dark:text-gray-400">
-            {t('day', { day: dayNumber })}
+            {subtitle ?? (dayNumber !== undefined ? t('day', { day: dayNumber }) : '')}
           </p>
         </div>
         <button
