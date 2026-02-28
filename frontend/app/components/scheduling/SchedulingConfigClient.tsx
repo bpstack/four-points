@@ -39,6 +39,7 @@ import {
   FiBarChart2,
 } from 'react-icons/fi'
 import { EmployeeTotals } from './EmployeeTotals'
+import { ConfirmDialog } from '@/app/ui/panels/ConfirmDialog'
 
 import 'react-day-picker/style.css'
 
@@ -441,7 +442,7 @@ function GeneralConfigTab({ config, shifts }: GeneralConfigTabProps) {
                   type="number"
                   value={getValue('min_morning_staff', config.minMorningStaff)}
                   onChange={(e) => handleChange('min_morning_staff', e.target.value)}
-                  className="w-16 px-2 py-1 text-sm text-center border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
+                  className="w-16 px-2 py-1 text-sm text-center border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-1 focus:ring-gray-500 dark:focus:ring-gray-400"
                 />
               </div>
               <div className="flex items-center justify-between">
@@ -450,7 +451,16 @@ function GeneralConfigTab({ config, shifts }: GeneralConfigTabProps) {
                   type="number"
                   value={getValue('pref_morning_staff', config.prefMorningStaff)}
                   onChange={(e) => handleChange('pref_morning_staff', e.target.value)}
-                  className="w-16 px-2 py-1 text-sm text-center border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
+                  className="w-16 px-2 py-1 text-sm text-center border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-1 focus:ring-gray-500 dark:focus:ring-gray-400"
+                />
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-gray-600 dark:text-gray-400">{t('maximum')}</span>
+                <input
+                  type="number"
+                  value={getValue('max_morning_staff', config.maxMorningStaff)}
+                  onChange={(e) => handleChange('max_morning_staff', e.target.value)}
+                  className="w-16 px-2 py-1 text-sm text-center border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-1 focus:ring-gray-500 dark:focus:ring-gray-400"
                 />
               </div>
             </div>
@@ -473,7 +483,7 @@ function GeneralConfigTab({ config, shifts }: GeneralConfigTabProps) {
                   type="number"
                   value={getValue('min_afternoon_staff', config.minAfternoonStaff)}
                   onChange={(e) => handleChange('min_afternoon_staff', e.target.value)}
-                  className="w-16 px-2 py-1 text-sm text-center border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
+                  className="w-16 px-2 py-1 text-sm text-center border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-1 focus:ring-gray-500 dark:focus:ring-gray-400"
                 />
               </div>
               <div className="flex items-center justify-between">
@@ -482,7 +492,16 @@ function GeneralConfigTab({ config, shifts }: GeneralConfigTabProps) {
                   type="number"
                   value={getValue('pref_afternoon_staff', config.prefAfternoonStaff)}
                   onChange={(e) => handleChange('pref_afternoon_staff', e.target.value)}
-                  className="w-16 px-2 py-1 text-sm text-center border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
+                  className="w-16 px-2 py-1 text-sm text-center border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-1 focus:ring-gray-500 dark:focus:ring-gray-400"
+                />
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-gray-600 dark:text-gray-400">{t('maximum')}</span>
+                <input
+                  type="number"
+                  value={getValue('max_afternoon_staff', config.maxAfternoonStaff)}
+                  onChange={(e) => handleChange('max_afternoon_staff', e.target.value)}
+                  className="w-16 px-2 py-1 text-sm text-center border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-1 focus:ring-gray-500 dark:focus:ring-gray-400"
                 />
               </div>
             </div>
@@ -505,7 +524,7 @@ function GeneralConfigTab({ config, shifts }: GeneralConfigTabProps) {
                   type="number"
                   value={getValue('min_night_staff', config.minNightStaff)}
                   onChange={(e) => handleChange('min_night_staff', e.target.value)}
-                  className="w-16 px-2 py-1 text-sm text-center border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
+                  className="w-16 px-2 py-1 text-sm text-center border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-1 focus:ring-gray-500 dark:focus:ring-gray-400"
                 />
               </div>
               <div className="flex items-center justify-between">
@@ -514,7 +533,7 @@ function GeneralConfigTab({ config, shifts }: GeneralConfigTabProps) {
                   type="number"
                   value={getValue('max_night_staff', config.maxNightStaff)}
                   onChange={(e) => handleChange('max_night_staff', e.target.value)}
-                  className="w-16 px-2 py-1 text-sm text-center border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
+                  className="w-16 px-2 py-1 text-sm text-center border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-1 focus:ring-gray-500 dark:focus:ring-gray-400"
                 />
               </div>
             </div>
@@ -538,7 +557,7 @@ function GeneralConfigTab({ config, shifts }: GeneralConfigTabProps) {
                 type="number"
                 value={getValue('max_weekly_shifts', config.maxWeeklyShifts)}
                 onChange={(e) => handleChange('max_weekly_shifts', e.target.value)}
-                className="w-16 px-2 py-1 text-sm text-center border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
+                className="w-16 px-2 py-1 text-sm text-center border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-1 focus:ring-gray-500 dark:focus:ring-gray-400"
               />
             </div>
             <div className="flex items-center justify-between">
@@ -549,7 +568,7 @@ function GeneralConfigTab({ config, shifts }: GeneralConfigTabProps) {
                 type="number"
                 value={getValue('pref_weekly_shifts', config.prefWeeklyShifts)}
                 onChange={(e) => handleChange('pref_weekly_shifts', e.target.value)}
-                className="w-16 px-2 py-1 text-sm text-center border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
+                className="w-16 px-2 py-1 text-sm text-center border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-1 focus:ring-gray-500 dark:focus:ring-gray-400"
               />
             </div>
             <div className="flex items-center justify-between">
@@ -558,7 +577,7 @@ function GeneralConfigTab({ config, shifts }: GeneralConfigTabProps) {
                 type="number"
                 value={getValue('min_rest_hours', config.minRestHours)}
                 onChange={(e) => handleChange('min_rest_hours', e.target.value)}
-                className="w-16 px-2 py-1 text-sm text-center border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
+                className="w-16 px-2 py-1 text-sm text-center border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-1 focus:ring-gray-500 dark:focus:ring-gray-400"
               />
             </div>
           </div>
@@ -581,7 +600,7 @@ function GeneralConfigTab({ config, shifts }: GeneralConfigTabProps) {
                 type="number"
                 value={getValue('min_night_block', config.minNightBlock)}
                 onChange={(e) => handleChange('min_night_block', e.target.value)}
-                className="w-16 px-2 py-1 text-sm text-center border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
+                className="w-16 px-2 py-1 text-sm text-center border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-1 focus:ring-gray-500 dark:focus:ring-gray-400"
               />
             </div>
             <div className="flex items-center justify-between">
@@ -592,7 +611,7 @@ function GeneralConfigTab({ config, shifts }: GeneralConfigTabProps) {
                 type="number"
                 value={getValue('max_night_block', config.maxNightBlock)}
                 onChange={(e) => handleChange('max_night_block', e.target.value)}
-                className="w-16 px-2 py-1 text-sm text-center border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
+                className="w-16 px-2 py-1 text-sm text-center border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-1 focus:ring-gray-500 dark:focus:ring-gray-400"
               />
             </div>
             <div className="flex items-center justify-between">
@@ -601,7 +620,61 @@ function GeneralConfigTab({ config, shifts }: GeneralConfigTabProps) {
                 type="number"
                 value={getValue('pref_night_block', config.prefNightBlock)}
                 onChange={(e) => handleChange('pref_night_block', e.target.value)}
-                className="w-16 px-2 py-1 text-sm text-center border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
+                className="w-16 px-2 py-1 text-sm text-center border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-1 focus:ring-gray-500 dark:focus:ring-gray-400"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* DÍAS LIBRES Y CONSECUTIVOS */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Días libres mensuales */}
+        <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-lg p-4">
+          <h4 className="text-sm font-medium text-emerald-800 dark:text-emerald-300 mb-1">
+            {t('monthlyFreeDays')}
+          </h4>
+          <p className="text-[10px] text-gray-500 dark:text-gray-400 mb-3">
+            {t('monthlyFreeDaysDesc')}
+          </p>
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-gray-600 dark:text-gray-400">{t('minimum')}</span>
+              <input
+                type="number"
+                value={getValue('min_monthly_libre', config.minMonthlyLibre)}
+                onChange={(e) => handleChange('min_monthly_libre', e.target.value)}
+                className="w-16 px-2 py-1 text-sm text-center border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-1 focus:ring-gray-500 dark:focus:ring-gray-400"
+              />
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-gray-600 dark:text-gray-400">{t('maximum')}</span>
+              <input
+                type="number"
+                value={getValue('max_monthly_libre', config.maxMonthlyLibre)}
+                onChange={(e) => handleChange('max_monthly_libre', e.target.value)}
+                className="w-16 px-2 py-1 text-sm text-center border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-1 focus:ring-gray-500 dark:focus:ring-gray-400"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Días consecutivos de trabajo */}
+        <div className="bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800 rounded-lg p-4">
+          <h4 className="text-sm font-medium text-rose-800 dark:text-rose-300 mb-1">
+            {t('consecutiveWorkDays')}
+          </h4>
+          <p className="text-[10px] text-gray-500 dark:text-gray-400 mb-3">
+            {t('consecutiveWorkDaysDesc')}
+          </p>
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-gray-600 dark:text-gray-400">{t('maximum')}</span>
+              <input
+                type="number"
+                value={getValue('max_consecutive_work_days', config.maxConsecutiveWorkDays)}
+                onChange={(e) => handleChange('max_consecutive_work_days', e.target.value)}
+                className="w-16 px-2 py-1 text-sm text-center border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-1 focus:ring-gray-500 dark:focus:ring-gray-400"
               />
             </div>
           </div>
@@ -644,23 +717,19 @@ function ShiftsSection({ shifts }: ShiftsSectionProps) {
   const queryClient = useQueryClient()
   const [showAddModal, setShowAddModal] = useState(false)
   const [editingShift, setEditingShift] = useState<SchedulingShift | null>(null)
+  const [deletingShift, setDeletingShift] = useState<SchedulingShift | null>(null)
 
   const deleteMutation = useMutation({
     mutationFn: (shiftId: number) => schedulingApi.deleteShift(shiftId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: schedulingKeys.shifts() })
+      setDeletingShift(null)
       toast.success(tToasts('shiftDeleted'))
     },
     onError: () => {
       toast.error(tToasts('shiftDeleteError'))
     },
   })
-
-  const handleDelete = (shift: SchedulingShift) => {
-    if (confirm(t('deleteConfirm', { name: shift.name, code: shift.code }))) {
-      deleteMutation.mutate(shift.id)
-    }
-  }
 
   return (
     <div className="space-y-3 pt-4 border-t border-gray-200 dark:border-gray-700">
@@ -747,7 +816,7 @@ function ShiftsSection({ shifts }: ShiftsSectionProps) {
                       <FiEdit2 className="w-3.5 h-3.5" />
                     </button>
                     <button
-                      onClick={() => handleDelete(shift)}
+                      onClick={() => setDeletingShift(shift)}
                       className="p-1 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded"
                       title={tActions('delete')}
                     >
@@ -778,6 +847,18 @@ function ShiftsSection({ shifts }: ShiftsSectionProps) {
           }}
         />
       )}
+
+      {/* Delete Shift Confirm */}
+      <ConfirmDialog
+        isOpen={!!deletingShift}
+        onClose={() => setDeletingShift(null)}
+        onConfirm={() => deletingShift && deleteMutation.mutate(deletingShift.id)}
+        title={tActions('delete')}
+        message={deletingShift ? t('deleteConfirm', { name: deletingShift.name, code: deletingShift.code }) : ''}
+        confirmText={tActions('delete')}
+        variant="danger"
+        isLoading={deleteMutation.isPending}
+      />
     </div>
   )
 }
@@ -1595,7 +1676,7 @@ function TotalsTab() {
           <select
             value={selectedYear}
             onChange={(e) => setSelectedYear(Number(e.target.value))}
-            className="px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 focus:ring-1 focus:ring-blue-500"
+            className="w-28 px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-1 focus:ring-gray-500 dark:focus:ring-gray-400"
           >
             {yearOptions.map((year) => (
               <option key={year} value={year}>
@@ -1655,6 +1736,7 @@ function RulesTab() {
   const queryClient = useQueryClient()
   const [showAddModal, setShowAddModal] = useState(false)
   const [editingRule, setEditingRule] = useState<SchedulingEmployeeRule | null>(null)
+  const [deletingRuleId, setDeletingRuleId] = useState<number | null>(null)
   const [filterEmployee, setFilterEmployee] = useState<string>('')
 
   const { data: employees = [], isLoading: loadingEmployees } = useQuery<EmployeeWithStatus[]>({
@@ -1740,6 +1822,7 @@ function RulesTab() {
     mutationFn: (ruleId: number) => schedulingApi.deleteRule(ruleId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: schedulingKeys.rules() })
+      setDeletingRuleId(null)
       toast.success(tToasts('ruleDeleted'))
     },
     onError: () => {
@@ -1875,11 +1958,7 @@ function RulesTab() {
                         <FiEdit2 className="w-3.5 h-3.5" />
                       </button>
                       <button
-                        onClick={() => {
-                          if (confirm(t('deleteConfirm'))) {
-                            deleteMutation.mutate(rule.id)
-                          }
-                        }}
+                        onClick={() => setDeletingRuleId(rule.id)}
                         className="p-1 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded"
                         title={tActions('delete')}
                       >
@@ -1904,6 +1983,18 @@ function RulesTab() {
           }}
         />
       )}
+
+      {/* Delete Rule Confirm */}
+      <ConfirmDialog
+        isOpen={deletingRuleId !== null}
+        onClose={() => setDeletingRuleId(null)}
+        onConfirm={() => deletingRuleId !== null && deleteMutation.mutate(deletingRuleId)}
+        title={tActions('delete')}
+        message={t('deleteConfirm')}
+        confirmText={tActions('delete')}
+        variant="danger"
+        isLoading={deleteMutation.isPending}
+      />
     </div>
   )
 }
