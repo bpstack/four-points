@@ -26,6 +26,7 @@
     "deleteMonthConfirm": "¿Estás seguro de que quieres eliminar este mes? Esta acción no se puede deshacer.",
     "exportPdf": "Exportar PDF",
     "publish": "Publicar",
+    "unpublish": "Despublicar",
     "revert": "Revertir",
     "reverting": "Revertiendo...",
     "save": "Guardar",
@@ -229,7 +230,11 @@
       "nightBlocks": "Bloques de Noche",
       "consecutiveNightsAllowed": "Noches consecutivas permitidas",
       "minConsecutive": "Mínimo consecutivas",
-      "maxConsecutive": "Máximo consecutivas"
+      "maxConsecutive": "Máximo consecutivas",
+      "monthlyFreeDays": "Días Libres Mensuales",
+      "monthlyFreeDaysDesc": "Mínimo y máximo de días libres por empleado al mes",
+      "consecutiveWorkDays": "Días Consecutivos de Trabajo",
+      "consecutiveWorkDaysDesc": "Máximo de días consecutivos trabajados sin descanso"
     },
     "ai": {
       "provider": "Proveedor IA",
@@ -275,6 +280,7 @@
       "isWorkShift": "Es turno de trabajo",
       "isPaid": "Es pagado",
       "codeNameRequired": "Código y nombre son requeridos",
+      "namePlaceholder": "Ej: Mañana, Tarde, Noche...",
       "deleteConfirm": "¿Eliminar turno \"{name}\" ({code})?"
     },
     "rules": {

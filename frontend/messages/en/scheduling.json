@@ -26,6 +26,7 @@
     "deleteMonthConfirm": "Are you sure you want to delete this month? This action cannot be undone.",
     "exportPdf": "Export PDF",
     "publish": "Publish",
+    "unpublish": "Unpublish",
     "revert": "Revert",
     "reverting": "Reverting...",
     "save": "Save",
@@ -227,7 +228,11 @@
       "nightBlocks": "Night Blocks",
       "consecutiveNightsAllowed": "Consecutive nights allowed",
       "minConsecutive": "Minimum consecutive",
-      "maxConsecutive": "Maximum consecutive"
+      "maxConsecutive": "Maximum consecutive",
+      "monthlyFreeDays": "Monthly Free Days",
+      "monthlyFreeDaysDesc": "Minimum and maximum free days per employee per month",
+      "consecutiveWorkDays": "Consecutive Work Days",
+      "consecutiveWorkDaysDesc": "Maximum consecutive work days without a rest day"
     },
     "ai": {
       "provider": "AI Provider",
@@ -273,6 +278,7 @@
       "isWorkShift": "Is work shift",
       "isPaid": "Is paid",
       "codeNameRequired": "Code and name are required",
+      "namePlaceholder": "e.g., Morning, Afternoon, Night...",
       "deleteConfirm": "Delete shift \"{name}\" ({code})?"
     },
     "rules": {
