@@ -227,7 +227,7 @@ export function ScheduleGrid({
           {/* Header */}
           <thead>
             <tr className="bg-gray-50 dark:bg-[#0d1117]">
-              <th className="sticky left-0 z-20 bg-gray-50 dark:bg-[#0d1117] px-3 py-2 text-left text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider border-b border-r border-gray-200 dark:border-gray-700 min-w-[120px]">
+              <th className="sticky left-0 z-20 bg-gray-50 dark:bg-[#0d1117] px-3 py-2 text-left text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider border-b border-r border-gray-200 dark:border-gray-700 min-w-[120px] shadow-[2px_0_4px_rgba(0,0,0,0.1)] dark:shadow-[2px_0_4px_rgba(0,0,0,0.3)]">
                 {t('grid.employee')}
               </th>
               {days.map((day) => {
@@ -238,6 +238,7 @@ export function ScheduleGrid({
                 return (
                   <th
                     key={day.id}
+                    title={holiday && day.holidayName ? day.holidayName : undefined}
                     className={[
                       'px-1 py-2 text-center text-[10px] font-semibold uppercase tracking-wider min-w-[36px]',
                       // Weekend: violet accent header with stronger bottom border
@@ -319,7 +320,13 @@ export function ScheduleGrid({
                     } hover:bg-blue-50/50 dark:hover:bg-blue-900/10 transition-colors`}
                   >
                     {/* Employee Name */}
-                    <td className="sticky left-0 z-10 bg-inherit px-3 py-1.5 text-xs font-medium text-gray-900 dark:text-gray-100 border-r border-gray-200 dark:border-gray-700 whitespace-nowrap">
+                    <td
+                      className={`sticky left-0 z-10 px-3 py-1.5 text-xs font-medium text-gray-900 dark:text-gray-100 border-r border-gray-200 dark:border-gray-700 whitespace-nowrap shadow-[2px_0_4px_rgba(0,0,0,0.05)] dark:shadow-[2px_0_4px_rgba(0,0,0,0.2)] ${
+                        empIndex % 2 === 0
+                          ? 'bg-white dark:bg-[#151b23]'
+                          : 'bg-gray-50 dark:bg-[#0d1117]'
+                      }`}
+                    >
                       {employee.name}
                     </td>
 
@@ -482,7 +489,7 @@ export function ScheduleGrid({
                     key={row.label}
                     className={`bg-gray-100 dark:bg-[#161b22]${row.borderTop ? ' border-t-2 border-gray-300 dark:border-gray-700' : ''}`}
                   >
-                    <td className="sticky left-0 z-10 bg-gray-100 dark:bg-[#161b22] px-3 py-1.5 text-[10px] font-semibold text-gray-600 dark:text-gray-500 border-r border-gray-200 dark:border-gray-700">
+                    <td className="sticky left-0 z-10 bg-gray-100 dark:bg-[#161b22] px-3 py-1.5 text-[10px] font-semibold text-gray-600 dark:text-gray-500 border-r border-gray-200 dark:border-gray-700 shadow-[2px_0_4px_rgba(0,0,0,0.05)] dark:shadow-[2px_0_4px_rgba(0,0,0,0.2)]">
                       {row.label}
                     </td>
                     {dailyStats.map((stat, i) => {
@@ -515,7 +522,7 @@ export function ScheduleGrid({
                 ))}
 
                 <tr className="bg-gray-200 dark:bg-[#1c2128] border-t border-gray-300 dark:border-gray-700">
-                  <td className="sticky left-0 z-10 bg-gray-200 dark:bg-[#1c2128] px-3 py-1.5 text-[10px] font-bold text-gray-700 dark:text-gray-400 border-r border-gray-200 dark:border-gray-700">
+                  <td className="sticky left-0 z-10 bg-gray-200 dark:bg-[#1c2128] px-3 py-1.5 text-[10px] font-bold text-gray-700 dark:text-gray-400 border-r border-gray-200 dark:border-gray-700 shadow-[2px_0_4px_rgba(0,0,0,0.05)] dark:shadow-[2px_0_4px_rgba(0,0,0,0.2)]">
                     {t('grid.totalLabel')}
                   </td>
                   {dailyStats.map((stat, i) => {

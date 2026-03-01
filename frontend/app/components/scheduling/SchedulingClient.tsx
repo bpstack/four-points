@@ -22,6 +22,7 @@ import { ShiftLegend } from './ShiftLegend'
 import { ShiftSelector } from './ShiftSelector'
 import { ValidationWarnings } from './ValidationWarnings'
 import { MonthInfoPanel } from './MonthInfoPanel'
+import { ManageHolidaysModal } from './ManageHolidaysModal'
 import { ConfirmDialog } from '@/app/ui/panels/ConfirmDialog'
 import toast from 'react-hot-toast'
 import Link from 'next/link'
@@ -79,6 +80,9 @@ export function SchedulingClient() {
     open: boolean
     type: 'reset' | 'delete' | null
   }>({ open: false, type: null })
+
+  // Holidays modal state
+  const [showHolidaysModal, setShowHolidaysModal] = useState(false)
 
   // Bulk multi-cell selection state
   const [bulkSelection, setBulkSelection] = useState<BulkSelection | null>(null)
@@ -470,65 +474,81 @@ export function SchedulingClient() {
             />
 
             {monthData && (
-              <div className="flex items-center gap-3">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
                 {/* Status Badge */}
                 <span
-                  className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${getStatusConfig(monthData.status).color}`}
+                  className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${getStatusConfig(monthData.status).color} shrink-0`}
                 >
                   {getStatusConfig(monthData.status).label}
                 </span>
 
-                {/* Action Buttons */}
-                {monthData.status === 'draft' && (
-                  <>
-                    <button
-                      onClick={handleReset}
-                      disabled={resetMutation.isPending}
-                      className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-orange-700 dark:text-orange-400 text-xs font-medium rounded-md border border-orange-300 dark:border-orange-700 hover:bg-orange-50 dark:hover:bg-orange-900/20 transition-colors disabled:opacity-50"
-                    >
-                      <FiRotateCcw className="w-3.5 h-3.5" />
-                      {resetMutation.isPending ? tActions('resetting') : tActions('reset')}
-                    </button>
-                    <button
-                      onClick={handlePublish}
-                      disabled={updateStatusMutation.isPending}
-                      className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-green-600 dark:bg-green-700 text-white text-xs font-medium rounded-md hover:bg-green-700 dark:hover:bg-green-800 transition-colors disabled:opacity-50"
-                    >
-                      <FiCheck className="w-3.5 h-3.5" />
-                      {tActions('publish')}
-                    </button>
-                  </>
-                )}
+                {/* Action Buttons - Wrapped container for mobile */}
+                <div className="flex flex-wrap items-center gap-2">
+                  {monthData.status === 'draft' && (
+                    <>
+                      <button
+                        onClick={() => setShowHolidaysModal(true)}
+                        className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-blue-700 dark:text-blue-400 text-xs font-medium rounded-md border border-blue-300 dark:border-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors whitespace-nowrap"
+                      >
+                        <FiCalendar className="w-3.5 h-3.5" />
+                        <span className="hidden sm:inline">Gestionar Festivos</span>
+                        <span className="sm:hidden">Festivos</span>
+                      </button>
+                      <button
+                        onClick={handleReset}
+                        disabled={resetMutation.isPending}
+                        className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-orange-700 dark:text-orange-400 text-xs font-medium rounded-md border border-orange-300 dark:border-orange-700 hover:bg-orange-50 dark:hover:bg-orange-900/20 transition-colors disabled:opacity-50 whitespace-nowrap"
+                      >
+                        <FiRotateCcw className="w-3.5 h-3.5" />
+                        {resetMutation.isPending ? tActions('resetting') : tActions('reset')}
+                      </button>
+                      <button
+                        onClick={handlePublish}
+                        disabled={updateStatusMutation.isPending}
+                        className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-green-600 dark:bg-green-700 text-white text-xs font-medium rounded-md hover:bg-green-700 dark:hover:bg-green-800 transition-colors disabled:opacity-50 whitespace-nowrap"
+                      >
+                        <FiCheck className="w-3.5 h-3.5" />
+                        {tActions('publish')}
+                      </button>
+                    </>
+                  )}
 
-                {monthData.status === 'published' && (
-                  <>
-                    <button
-                      onClick={handleUnpublish}
-                      disabled={unpublishMutation.isPending}
-                      className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-orange-700 dark:text-orange-400 text-xs font-medium rounded-md border border-orange-300 dark:border-orange-700 hover:bg-orange-50 dark:hover:bg-orange-900/20 transition-colors disabled:opacity-50"
-                    >
-                      <FiRotateCcw className="w-3.5 h-3.5" />
-                      {unpublishMutation.isPending ? tActions('reverting') : tActions('unpublish')}
-                    </button>
-                    <button
-                      onClick={() => monthData && downloadSchedulePdf(monthData)}
-                      className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-gray-700 dark:text-gray-300 text-xs font-medium rounded-md border border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-                    >
-                      <FiDownload className="w-3.5 h-3.5" />
-                      {tActions('exportPdf')}
-                    </button>
-                  </>
-                )}
+                  {monthData.status === 'published' && (
+                    <>
+                      <button
+                        onClick={handleUnpublish}
+                        disabled={unpublishMutation.isPending}
+                        className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-orange-700 dark:text-orange-400 text-xs font-medium rounded-md border border-orange-300 dark:border-orange-700 hover:bg-orange-50 dark:hover:bg-orange-900/20 transition-colors disabled:opacity-50 whitespace-nowrap"
+                      >
+                        <FiRotateCcw className="w-3.5 h-3.5" />
+                        {unpublishMutation.isPending
+                          ? tActions('reverting')
+                          : tActions('unpublish')}
+                      </button>
+                      <button
+                        onClick={() => monthData && downloadSchedulePdf(monthData)}
+                        className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-gray-700 dark:text-gray-300 text-xs font-medium rounded-md border border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors whitespace-nowrap"
+                      >
+                        <FiDownload className="w-3.5 h-3.5" />
+                        <span className="hidden sm:inline">{tActions('exportPdf')}</span>
+                        <span className="sm:hidden">PDF</span>
+                      </button>
+                    </>
+                  )}
 
-                {/* Delete Month Button */}
-                <button
-                  onClick={handleDeleteMonth}
-                  disabled={deleteMonthMutation.isPending}
-                  className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-red-700 dark:text-red-400 text-xs font-medium rounded-md border border-red-300 dark:border-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors disabled:opacity-50"
-                >
-                  <FiTrash2 className="w-3.5 h-3.5" />
-                  {deleteMonthMutation.isPending ? tActions('deleting') : tActions('delete')}
-                </button>
+                  {/* Delete Month Button */}
+                  <button
+                    onClick={handleDeleteMonth}
+                    disabled={deleteMonthMutation.isPending}
+                    className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-red-700 dark:text-red-400 text-xs font-medium rounded-md border border-red-300 dark:border-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors disabled:opacity-50 whitespace-nowrap"
+                  >
+                    <FiTrash2 className="w-3.5 h-3.5" />
+                    <span className="hidden sm:inline">
+                      {deleteMonthMutation.isPending ? tActions('deleting') : tActions('delete')}
+                    </span>
+                    <span className="sm:hidden">Eliminar</span>
+                  </button>
+                </div>
               </div>
             )}
           </div>
@@ -642,6 +662,17 @@ export function SchedulingClient() {
           variant="danger"
           isLoading={deleteMonthMutation.isPending}
         />
+
+        {/* Holidays Modal */}
+        {showHolidaysModal && monthData && (
+          <ManageHolidaysModal
+            monthId={monthData.id}
+            year={monthData.year}
+            month={monthData.month}
+            days={monthData.days}
+            onClose={() => setShowHolidaysModal(false)}
+          />
+        )}
       </div>
     </div>
   )
