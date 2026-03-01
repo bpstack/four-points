@@ -16,6 +16,8 @@ import type {
   EmployeeRuleType,
   CreateShiftDto,
   UpdateShiftDto,
+  UpdateConstraintDto,
+  SchedulingConstraint,
 } from '@/app/lib/scheduling'
 import { getShiftClasses } from '@/app/lib/scheduling'
 import toast from 'react-hot-toast'
@@ -32,6 +34,7 @@ import {
   FiPlus,
   FiTrash2,
   FiEdit2,
+  FiEdit,
   FiX,
   FiCheck,
   FiUserCheck,
@@ -854,7 +857,11 @@ function ShiftsSection({ shifts }: ShiftsSectionProps) {
         onClose={() => setDeletingShift(null)}
         onConfirm={() => deletingShift && deleteMutation.mutate(deletingShift.id)}
         title={tActions('delete')}
-        message={deletingShift ? t('deleteConfirm', { name: deletingShift.name, code: deletingShift.code }) : ''}
+        message={
+          deletingShift
+            ? t('deleteConfirm', { name: deletingShift.name, code: deletingShift.code })
+            : ''
+        }
         confirmText={tActions('delete')}
         variant="danger"
         isLoading={deleteMutation.isPending}
@@ -1099,6 +1106,7 @@ function RequestsTab() {
 
   const queryClient = useQueryClient()
   const [showAddForm, setShowAddForm] = useState(false)
+  const [editingRequest, setEditingRequest] = useState<SchedulingConstraint | null>(null)
 
   const { data: monthsData } = useQuery({
     queryKey: schedulingKeys.monthsList(),
@@ -1362,6 +1370,13 @@ function RequestsTab() {
                         </>
                       )}
                       <button
+                        onClick={() => setEditingRequest(request)}
+                        className="p-1 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded"
+                        title={tActions('edit')}
+                      >
+                        <FiEdit className="w-4 h-4" />
+                      </button>
+                      <button
                         onClick={() => deleteMutation.mutate(request.id)}
                         className="p-1 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded"
                         title={tActions('delete')}
@@ -1387,6 +1402,229 @@ function RequestsTab() {
           }}
         />
       )}
+
+      {editingRequest && (
+        <EditRequestModal
+          request={editingRequest}
+          months={months}
+          onClose={() => setEditingRequest(null)}
+          onSuccess={() => {
+            queryClient.invalidateQueries({ queryKey: ['scheduling-requests', listMonthId] })
+            setEditingRequest(null)
+          }}
+        />
+      )}
+    </div>
+  )
+}
+
+// ============================================
+// EDIT REQUEST MODAL
+// ============================================
+
+interface EditRequestModalProps {
+  request: SchedulingConstraint
+  months: { id: number; year: number; month: number }[]
+  onClose: () => void
+  onSuccess: () => void
+}
+
+function EditRequestModal({ request, months, onClose, onSuccess }: EditRequestModalProps) {
+  const t = useTranslations('scheduling.config.requests')
+  const tActions = useTranslations('scheduling.actions')
+  const tToasts = useTranslations('scheduling.toasts')
+
+  const [startDate, setStartDate] = useState(request.startDate)
+  const [endDate, setEndDate] = useState(request.endDate)
+  const [notes, setNotes] = useState(request.notes || '')
+  const [range, setRange] = useState<{ from: Date | undefined; to: Date | undefined }>(() => {
+    const from = new Date(request.startDate)
+    const to = new Date(request.endDate)
+    return { from, to }
+  })
+  const [isVacation, setIsVacation] = useState(request.constraintType === 'vacation')
+
+  const updateMutation = useMutation({
+    mutationFn: (data: {
+      constraintId: number
+      constraintType: string
+      startDate: string
+      endDate: string
+      notes?: string
+    }) => {
+      const { constraintId, ...rest } = data
+      return schedulingApi.updateConstraint(constraintId, rest as UpdateConstraintDto)
+    },
+    onSuccess: () => {
+      toast.success(tToasts('requestUpdated'))
+      onSuccess()
+    },
+    onError: (err) => {
+      if (err instanceof ApiError) {
+        toast.error(err.message)
+        return
+      }
+      if (err instanceof Error) {
+        toast.error(err.message)
+        return
+      }
+      toast.error(tToasts('requestUpdateError'))
+    },
+  })
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!startDate) {
+      toast.error(t('completeRequired'))
+      return
+    }
+    updateMutation.mutate({
+      constraintId: request.id,
+      constraintType: isVacation ? 'vacation' : 'request_off',
+      startDate,
+      endDate: endDate || startDate,
+      notes: notes || undefined,
+    })
+  }
+
+  const toLocalDateString = (d: Date): string => {
+    const y = d.getFullYear()
+    const m = String(d.getMonth() + 1).padStart(2, '0')
+    const day = String(d.getDate()).padStart(2, '0')
+    return `${y}-${m}-${day}`
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+      <div className="bg-white dark:bg-[#151b23] rounded-lg shadow-xl w-full max-w-md mx-4">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700">
+          <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+            {tActions('edit')} {t('newRequest')}
+          </h3>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+          >
+            <FiX className="w-5 h-5" />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="p-4 space-y-4">
+          <div>
+            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+              {t('employee')}
+            </label>
+            <input
+              type="text"
+              value={request.employeeName}
+              disabled
+              className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-md bg-gray-50 dark:bg-[#0b0f14] text-gray-600 dark:text-gray-400 cursor-not-allowed"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+              {t('dates')} *
+            </label>
+
+            <div className="rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#0d1117] p-2">
+              <DayPicker
+                mode="range"
+                locale={es}
+                selected={{ from: range.from, to: range.to }}
+                onSelect={(r: DateRange | undefined) => {
+                  const from = r?.from
+                  const to = r?.to
+                  setRange({ from, to })
+                  if (from) {
+                    const start = toLocalDateString(from)
+                    setStartDate(start)
+                    setEndDate(to ? toLocalDateString(to) : start)
+                  } else {
+                    setStartDate('')
+                    setEndDate('')
+                  }
+                }}
+                className="text-xs"
+              />
+            </div>
+
+            <div className="mt-2 grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-[11px] font-medium text-gray-600 dark:text-gray-400 mb-1">
+                  {t('from')}
+                </label>
+                <input
+                  type="text"
+                  value={startDate}
+                  readOnly
+                  className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-md bg-gray-50 dark:bg-[#0b0f14] text-gray-900 dark:text-gray-100"
+                />
+              </div>
+              <div>
+                <label className="block text-[11px] font-medium text-gray-600 dark:text-gray-400 mb-1">
+                  {t('until')}
+                </label>
+                <input
+                  type="text"
+                  value={endDate}
+                  readOnly
+                  className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-md bg-gray-50 dark:bg-[#0b0f14] text-gray-900 dark:text-gray-100"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+              {t('reason')}
+            </label>
+            <input
+              type="text"
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder={t('reasonPlaceholder')}
+              maxLength={46}
+              className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100"
+            />
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              {notes.length}/46 caracteres
+            </p>
+          </div>
+
+          <label className="flex items-center gap-2.5 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={isVacation}
+              onChange={(e) => setIsVacation(e.target.checked)}
+              className="w-4 h-4 rounded border-gray-300 dark:border-gray-600 text-red-600 focus:ring-red-500 cursor-pointer"
+            />
+            <span className="flex items-center gap-1.5 text-sm text-gray-700 dark:text-gray-300">
+              <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-semibold bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">
+                V
+              </span>
+              {t('vacationRequest')}
+            </span>
+          </label>
+
+          <div className="flex justify-end gap-2 pt-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md transition-colors"
+            >
+              {tActions('cancel')}
+            </button>
+            <button
+              type="submit"
+              disabled={updateMutation.isPending}
+              className="px-4 py-2 text-sm bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 disabled:opacity-50 transition-colors"
+            >
+              {updateMutation.isPending ? tActions('saving') : tActions('save')}
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   )
 }
@@ -1629,7 +1867,6 @@ function AddRequestModal({
                 />
               </div>
             </div>
-
           </div>
 
           <div>
@@ -1641,8 +1878,12 @@ function AddRequestModal({
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder={t('reasonPlaceholder')}
+              maxLength={46}
               className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100"
             />
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              {notes.length}/46 caracteres
+            </p>
           </div>
 
           <label className="flex items-center gap-2.5 cursor-pointer select-none">
