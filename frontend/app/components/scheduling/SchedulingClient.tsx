@@ -657,6 +657,7 @@ export function SchedulingClient() {
             tActions('deleteMonthDetail1'),
             tActions('deleteMonthDetail2'),
             tActions('deleteMonthDetail3'),
+            tActions('deleteMonthDetail4'),
           ]}
           confirmText={tActions('delete')}
           variant="danger"

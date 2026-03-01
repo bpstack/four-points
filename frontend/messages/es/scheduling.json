@@ -27,6 +27,7 @@
     "deleteMonthDetail1": "Todas las asignaciones de turnos del mes",
     "deleteMonthDetail2": "Todas las peticiones de días libres y vacaciones registradas",
     "deleteMonthDetail3": "Todo el historial de cambios del mes",
+    "deleteMonthDetail4": "Todos los festivos nacionales y autonómicos",
     "exportPdf": "Exportar PDF",
     "publish": "Publicar",
     "unpublish": "Despublicar",
