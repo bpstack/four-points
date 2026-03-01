@@ -88,6 +88,8 @@
     "monthDeleteError": "Error deleting month",
     "statusUpdated": "Status updated",
     "statusUpdateError": "Error updating status",
+    "holidaysUpdated": "Holidays updated successfully",
+    "holidaysUpdateError": "Error updating holidays",
     "monthReverted": "Month reverted to generated state",
     "revertError": "Error reverting publication",
     "shiftUpdated": "Shift updated",

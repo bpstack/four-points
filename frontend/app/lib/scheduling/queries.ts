@@ -175,6 +175,7 @@ export const schedulingApi = {
       startDate: string
       endDate: string
       shiftCode: string | null
+      notes: string | null
     }>
     employeeRules: Array<{
       employeeId: string
@@ -254,6 +255,16 @@ export const schedulingApi = {
     data: UpdateDayDto
   ): Promise<{ success: boolean }> => {
     return apiClient.put(`${API_URL}/api/scheduling/months/${monthId}/days/${dayId}`, data)
+  },
+
+  /**
+   * Bulk update days (e.g., mark multiple days as holidays)
+   */
+  bulkUpdateDays: async (
+    monthId: number,
+    days: Array<{ day_id: number; is_holiday?: boolean; holiday_name?: string | null }>
+  ): Promise<{ success: boolean; message: string; updatedCount: number }> => {
+    return apiClient.post(`${API_URL}/api/scheduling/months/${monthId}/days/bulk`, { days })
   },
 
   // ============================================

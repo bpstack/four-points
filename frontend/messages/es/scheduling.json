@@ -88,6 +88,8 @@
     "monthDeleteError": "Error al eliminar el mes",
     "statusUpdated": "Estado actualizado",
     "statusUpdateError": "Error al actualizar estado",
+    "holidaysUpdated": "Festivos actualizados correctamente",
+    "holidaysUpdateError": "Error al actualizar los festivos",
     "monthReverted": "Mes revertido a estado generado",
     "revertError": "Error al revertir la publicación",
     "shiftUpdated": "Turno actualizado",
