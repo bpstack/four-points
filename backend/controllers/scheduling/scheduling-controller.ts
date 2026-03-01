@@ -7,6 +7,7 @@ import {
   createMonthSchema,
   updateMonthSchema,
   updateDaySchema,
+  bulkUpdateDaysSchema,
   updateAssignmentSchema,
   bulkUpdateAssignmentsSchema,
   createConstraintSchema,
@@ -37,7 +38,9 @@ function isDateInRange(date: string, start: string, end: string): boolean {
 
 async function initializeMonthGrid(
   monthId: number
-): Promise<{ day_id: number; employee_id: string; shift_code: string; source_constraint_id: number | null }[]> {
+): Promise<
+  { day_id: number; employee_id: string; shift_code: string; source_constraint_id: number | null }[]
+> {
   const monthDays = await repo.getDaysByMonth(monthId)
   const approvedConstraints = await repo.getConstraintsByMonth(monthId, { status: 'approved' })
 
@@ -69,7 +72,8 @@ async function initializeMonthGrid(
 
       let shiftCode = 'L'
       if (constraint) {
-        shiftCode = constraint.shift_code || constraintToShiftCode[constraint.constraint_type] || 'L'
+        shiftCode =
+          constraint.shift_code || constraintToShiftCode[constraint.constraint_type] || 'L'
       }
 
       assignments.push({
@@ -587,6 +591,7 @@ export async function getMonthInfo(req: Request, res: Response): Promise<void> {
         startDate: c.start_date,
         endDate: c.end_date,
         shiftCode: c.shift_code,
+        notes: c.notes,
       }
     })
 
@@ -695,9 +700,7 @@ export async function createMonth(req: Request, res: Response): Promise<void> {
     // Save assignments if any
     if (assignments.length > 0) {
       await repo.createAssignmentsBulk(monthId, assignments)
-      console.log(
-        `[createMonth] Initialized ${assignments.length} assignments`
-      )
+      console.log(`[createMonth] Initialized ${assignments.length} assignments`)
 
       // Number libre pairs immediately after seeding
       const uniqueEmployees = new Set(assignments.map((a) => a.employee_id))
@@ -759,9 +762,7 @@ export async function resetMonth(req: Request, res: Response): Promise<void> {
     // Save assignments if any
     if (assignments.length > 0) {
       await repo.createAssignmentsBulk(monthId, assignments)
-      console.log(
-        `[resetMonth] Initialized ${assignments.length} assignments`
-      )
+      console.log(`[resetMonth] Initialized ${assignments.length} assignments`)
 
       // Number libre pairs immediately after seeding
       const uniqueEmployees = new Set(assignments.map((a) => a.employee_id))
@@ -877,6 +878,37 @@ export async function updateDay(req: Request, res: Response): Promise<void> {
     if (handleZodError(err, res)) return
     console.error('Error updating day:', err)
     res.status(500).json({ error: 'Error al actualizar el día' })
+  }
+}
+
+export async function bulkUpdateDays(req: Request, res: Response): Promise<void> {
+  try {
+    const monthId = parseInt(req.params.id)
+    if (isNaN(monthId)) {
+      res.status(400).json({ error: 'ID de mes inválido' })
+      return
+    }
+
+    const data = bulkUpdateDaysSchema.parse(req.body)
+
+    // Verify month exists
+    const month = await repo.getMonthById(monthId)
+    if (!month) {
+      res.status(404).json({ error: 'Mes no encontrado' })
+      return
+    }
+
+    const updatedCount = await repo.bulkUpdateDays(data.days)
+
+    res.json({
+      success: true,
+      message: `${updatedCount} día(s) actualizado(s) correctamente`,
+      updatedCount,
+    })
+  } catch (err) {
+    if (handleZodError(err, res)) return
+    console.error('Error bulk updating days:', err)
+    res.status(500).json({ error: 'Error al actualizar los días' })
   }
 }
 
@@ -1156,9 +1188,7 @@ export async function approveConstraint(req: Request, res: Response): Promise<vo
         request_off: 'L',
       }
       const shiftCode =
-        existing.shift_code ||
-        constraintToShiftCode[existing.constraint_type] ||
-        'L'
+        existing.shift_code || constraintToShiftCode[existing.constraint_type] || 'L'
 
       for (const day of affectedDays) {
         const assignment = await repo.getAssignmentByDayEmployee(day.id, existing.employee_id)

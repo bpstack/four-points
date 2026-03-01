@@ -63,7 +63,7 @@ const shiftCodeSchema = z
 
 const notesSchema = z
   .string()
-  .max(1000, 'Las notas no pueden exceder 1000 caracteres')
+  .max(46, 'El motivo no puede exceder 46 caracteres')
   .optional()
   .nullable()
 

@@ -23,6 +23,7 @@ import {
   deleteMonth,
   // Days
   updateDay,
+  bulkUpdateDays,
   // Assignments
   updateAssignment,
   bulkUpdateAssignments,
@@ -150,6 +151,9 @@ router.post('/months/:id/unpublish', isAdmin, unpublishMonth)
 
 // PUT - Update day (admin only)
 router.put('/months/:id/days/:dayId', isAdmin, updateDay)
+
+// POST - Bulk update days (admin only)
+router.post('/months/:id/days/bulk', isAdmin, bulkUpdateDays)
 
 // ========================================
 // ASSIGNMENTS ROUTES

@@ -542,6 +542,43 @@ export async function updateDay(id: number, data: UpdateDayDTO): Promise<boolean
   return result.affectedRows > 0
 }
 
+export async function bulkUpdateDays(
+  days: Array<{ day_id: number; is_holiday?: boolean; holiday_name?: string | null }>
+): Promise<number> {
+  if (days.length === 0) return 0
+
+  let updatedCount = 0
+
+  for (const day of days) {
+    const fields: string[] = []
+    const params: (string | number | null)[] = []
+
+    if (day.is_holiday !== undefined) {
+      fields.push('is_holiday = ?')
+      params.push(day.is_holiday ? 1 : 0)
+    }
+    if (day.holiday_name !== undefined) {
+      fields.push('holiday_name = ?')
+      params.push(day.holiday_name ?? null)
+    }
+
+    if (fields.length > 0) {
+      fields.push('updated_at = NOW()')
+      params.push(day.day_id)
+
+      const [result] = await db.execute<ResultSetHeader>(
+        `UPDATE scheduling_days SET ${fields.join(', ')} WHERE id = ?`,
+        params
+      )
+      if (result.affectedRows > 0) {
+        updatedCount++
+      }
+    }
+  }
+
+  return updatedCount
+}
+
 export async function deleteAllDaysByMonth(monthId: number): Promise<void> {
   await db.execute('DELETE FROM scheduling_days WHERE month_id = ?', [monthId])
 }
@@ -704,10 +741,7 @@ export async function upsertAssignment(data: CreateAssignmentDTO): Promise<numbe
   return result.insertId
 }
 
-export async function recalculateLibreNumbers(
-  employeeId: string,
-  year: number
-): Promise<void> {
+export async function recalculateLibreNumbers(employeeId: string, year: number): Promise<void> {
   const [lRows] = await db.execute<RowDataPacket[]>(
     `SELECT a.id
      FROM scheduling_assignments a
@@ -719,9 +753,7 @@ export async function recalculateLibreNumbers(
   )
 
   if (lRows.length > 0) {
-    const cases = lRows
-      .map((r, i) => `WHEN ${r.id} THEN ${Math.ceil((i + 1) / 2)}`)
-      .join(' ')
+    const cases = lRows.map((r, i) => `WHEN ${r.id} THEN ${Math.ceil((i + 1) / 2)}`).join(' ')
     const ids = lRows.map((r) => r.id).join(',')
     await db.execute(
       `UPDATE scheduling_assignments
@@ -764,7 +796,7 @@ export async function getAnnualLCountByEmployee(
 
 export async function fixMonthDates(monthId: number, year: number, month: number): Promise<number> {
   const daysInMonth = new Date(year, month, 0).getDate()
-  
+
   let fixedCount = 0
   for (let day = 1; day <= daysInMonth; day++) {
     const correctDate = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
