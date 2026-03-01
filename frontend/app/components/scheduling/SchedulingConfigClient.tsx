@@ -1150,7 +1150,9 @@ function RequestsTab() {
     queryFn: async () => {
       if (!listMonthId) return []
       const constraints = await schedulingApi.getConstraintsByMonth(listMonthId, {})
-      return constraints.filter((c) => c.constraintType === 'request_off')
+      return constraints.filter(
+        (c) => c.constraintType === 'request_off' || c.constraintType === 'vacation'
+      )
     },
     enabled: !!listMonthId,
   })
@@ -1285,6 +1287,9 @@ function RequestsTab() {
                   {t('employee')}
                 </th>
                 <th className="text-left py-2 px-3 text-xs font-semibold text-gray-600 dark:text-gray-400">
+                  {t('type')}
+                </th>
+                <th className="text-left py-2 px-3 text-xs font-semibold text-gray-600 dark:text-gray-400">
                   {t('dates')}
                 </th>
                 <th className="text-left py-2 px-3 text-xs font-semibold text-gray-600 dark:text-gray-400">
@@ -1306,6 +1311,17 @@ function RequestsTab() {
                 >
                   <td className="py-2 px-3 text-gray-900 dark:text-gray-100">
                     {request.employeeName}
+                  </td>
+                  <td className="py-2 px-3">
+                    {request.constraintType === 'vacation' ? (
+                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">
+                        V
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400">
+                        L
+                      </span>
+                    )}
                   </td>
                   <td className="py-2 px-3 text-gray-600 dark:text-gray-400">
                     {formatDate(request.startDate)}
@@ -1407,6 +1423,7 @@ function AddRequestModal({
     from: undefined,
     to: undefined,
   })
+  const [isVacation, setIsVacation] = useState(false)
 
   const { data: employees = [] } = useQuery<Employee[]>({
     queryKey: schedulingKeys.employees(),
@@ -1456,7 +1473,7 @@ function AddRequestModal({
     createMutation.mutate({
       monthId,
       employeeId,
-      constraintType: 'request_off',
+      constraintType: isVacation ? 'vacation' : 'request_off',
       startDate,
       endDate: endDate || startDate,
       notes: notes || undefined,
@@ -1627,6 +1644,21 @@ function AddRequestModal({
               className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100"
             />
           </div>
+
+          <label className="flex items-center gap-2.5 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={isVacation}
+              onChange={(e) => setIsVacation(e.target.checked)}
+              className="w-4 h-4 rounded border-gray-300 dark:border-gray-600 text-red-600 focus:ring-red-500 cursor-pointer"
+            />
+            <span className="flex items-center gap-1.5 text-sm text-gray-700 dark:text-gray-300">
+              <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-semibold bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">
+                V
+              </span>
+              {t('vacationRequest')}
+            </span>
+          </label>
 
           <p className="text-xs text-gray-500 dark:text-gray-400">{t('approvedNote')}</p>
 

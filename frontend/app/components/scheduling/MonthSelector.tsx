@@ -26,11 +26,9 @@ export function MonthSelector({
   onCreateMonth,
   loading,
 }: MonthSelectorProps) {
-  const t = useTranslations('scheduling.monthSelector')
   const tCalendar = useTranslations('common.calendar')
 
   // Get month names from translations
-  const monthNames = tCalendar.raw('months') as string[]
   const monthNamesShort = tCalendar.raw('monthsShort') as string[]
   // Create a map of existing months
   const monthsMap = useMemo(() => {
@@ -105,14 +103,13 @@ export function MonthSelector({
             )
           }
 
-          // Month doesn't exist - show create button
+          // Month doesn't exist - auto-create on click
           return (
             <button
               key={monthNum}
               onClick={() => onCreateMonth(monthNum)}
               disabled={loading}
-              className="px-2.5 py-1.5 text-xs font-medium rounded-md border border-dashed border-gray-300 dark:border-gray-700 text-gray-400 dark:text-gray-600 hover:border-blue-400 hover:text-blue-500 dark:hover:border-blue-600 dark:hover:text-blue-400 transition-colors disabled:opacity-50"
-              title={t('createMonth', { month: monthNames[index], year: selectedYear })}
+              className="px-2.5 py-1.5 text-xs font-medium rounded-md bg-gray-50 text-gray-500 hover:bg-gray-200 dark:bg-gray-800/50 dark:text-gray-500 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
             >
               {name}
             </button>

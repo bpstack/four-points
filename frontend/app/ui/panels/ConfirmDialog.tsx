@@ -15,6 +15,7 @@ interface ConfirmDialogProps {
   onConfirm: () => void
   title: string
   message: string
+  details?: string[]
   confirmText?: string
   cancelText?: string
   variant?: ConfirmDialogVariant
@@ -44,6 +45,7 @@ export function ConfirmDialog({
   onConfirm,
   title,
   message,
+  details,
   confirmText,
   cancelText,
   variant = 'danger',
@@ -106,10 +108,20 @@ export function ConfirmDialog({
                 </div>
 
                 {/* Body */}
-                <div className="px-6 py-5">
+                <div className="px-6 py-5 space-y-3">
                   <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
                     {message}
                   </p>
+                  {details && details.length > 0 && (
+                    <ul className="space-y-1.5 border border-red-200 dark:border-red-800/50 bg-red-50 dark:bg-red-900/10 rounded-lg p-3">
+                      {details.map((item, i) => (
+                        <li key={i} className="flex items-start gap-2 text-xs text-red-700 dark:text-red-400">
+                          <span className="mt-0.5 shrink-0">•</span>
+                          <span>{item}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </div>
 
                 {/* Footer */}

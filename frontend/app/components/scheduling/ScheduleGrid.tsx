@@ -370,7 +370,7 @@ export function ScheduleGrid({
                             }
                             disabled={!canEditCell}
                             className={`
-                              w-8 h-6 rounded text-[10px] font-bold border transition-all
+                              relative overflow-hidden w-8 h-6 rounded text-[10px] font-bold border transition-all
                               ${canEditCell ? 'cursor-pointer hover:scale-110 hover:shadow-md' : 'cursor-default'}
                               ${isLockedByConstraint ? 'opacity-70 border-gray-400 dark:border-gray-600' : ''}
                               ${shiftClasses}
@@ -383,17 +383,14 @@ export function ScheduleGrid({
                                   : t('grid.unassigned')
                             }
                           >
-                            <span className="inline-flex items-center justify-center gap-0.5">
-                              {isLockedByConstraint ? (
-                                <FiLock className="w-4 h-4 text-fuchsia-600 dark:text-fuchsia-400" />
-                              ) : (
-                                <>
-                                  {shiftCode === 'L' && assignment?.libreNumber
-                                    ? `L${assignment.libreNumber}`
-                                    : shiftCode || '-'}
-                                </>
-                              )}
+                            <span className="inline-flex items-center justify-center w-full h-full">
+                              {shiftCode === 'L' && assignment?.libreNumber
+                                ? `L${assignment.libreNumber}`
+                                : shiftCode || '-'}
                             </span>
+                            {isLockedByConstraint && (
+                              <FiLock className="absolute top-0.5 right-0.5 w-2 h-2 text-fuchsia-600 dark:text-fuchsia-400" />
+                            )}
                           </button>
                         </td>
                       )
@@ -446,6 +443,8 @@ export function ScheduleGrid({
                         v === 0
                           ? 'text-red-500 dark:text-red-600'
                           : 'text-orange-600 dark:text-orange-600/90',
+                      extraCols: null,
+                      borderTop: false,
                     },
                     {
                       label: t('grid.night'),
@@ -454,6 +453,8 @@ export function ScheduleGrid({
                         v === 0
                           ? 'text-red-500 dark:text-red-600'
                           : 'text-indigo-600 dark:text-indigo-500/90',
+                      extraCols: null,
+                      borderTop: false,
                     },
                     {
                       label: t('grid.internalSupport'),
@@ -462,6 +463,8 @@ export function ScheduleGrid({
                         v === 0
                           ? 'text-gray-400 dark:text-gray-600'
                           : 'text-cyan-600 dark:text-cyan-600/90',
+                      extraCols: null,
+                      borderTop: false,
                     },
                     {
                       label: t('grid.support'),
@@ -470,6 +473,8 @@ export function ScheduleGrid({
                         v === 0
                           ? 'text-gray-400 dark:text-gray-600'
                           : 'text-teal-600 dark:text-teal-600/90',
+                      extraCols: null,
+                      borderTop: false,
                     },
                   ] as const
                 ).map((row) => (

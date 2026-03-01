@@ -633,6 +633,11 @@ export function SchedulingClient() {
           }}
           title={tActions('delete')}
           message={tActions('deleteMonthConfirm')}
+          details={[
+            tActions('deleteMonthDetail1'),
+            tActions('deleteMonthDetail2'),
+            tActions('deleteMonthDetail3'),
+          ]}
           confirmText={tActions('delete')}
           variant="danger"
           isLoading={deleteMonthMutation.isPending}
