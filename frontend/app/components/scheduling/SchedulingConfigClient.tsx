@@ -22,9 +22,8 @@ import type {
 import { getShiftClasses } from '@/app/lib/scheduling'
 import toast from 'react-hot-toast'
 import Link from 'next/link'
-import { DayPicker, type DateRange } from 'react-day-picker'
-import { es } from 'date-fns/locale'
 import { ApiError } from '@/app/lib/apiClient'
+import DatePickerInput from '@/app/ui/calendar/DatePickerInput'
 import {
   FiArrowLeft,
   FiSettings,
@@ -49,6 +48,14 @@ import 'react-day-picker/style.css'
 type TabType = 'employees' | 'totals' | 'general' | 'rules' | 'requests'
 
 const VALID_TABS: TabType[] = ['employees', 'totals', 'general', 'rules', 'requests']
+
+function formatLocalDate(d: Date): string {
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${y}-${m}-${day}`
+}
+
 
 interface Employee {
   id: string
@@ -137,14 +144,14 @@ export function SchedulingConfigClient() {
         </div>
 
         {/* Tabs */}
-        <div className="border-b border-gray-200 dark:border-gray-800">
-          <nav className="flex gap-4">
+        <div className="border-b border-gray-200 dark:border-gray-800 overflow-x-auto">
+          <nav className="flex gap-1 sm:gap-4 min-w-max sm:min-w-0">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={`
-                  flex items-center gap-2 px-3 py-2 text-sm font-medium border-b-2 transition-colors
+                  flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-2 text-xs sm:text-sm font-medium border-b-2 transition-colors whitespace-nowrap
                   ${
                     activeTab === tab.id
                       ? 'border-blue-600 text-blue-600 dark:border-blue-400 dark:text-blue-400'
@@ -152,8 +159,8 @@ export function SchedulingConfigClient() {
                   }
                 `}
               >
-                <tab.icon className="w-4 h-4" />
-                {tab.label}
+                <tab.icon className="w-4 h-4 flex-shrink-0" />
+                <span>{tab.label}</span>
               </button>
             ))}
           </nav>
@@ -276,7 +283,7 @@ function EmployeesTab() {
 
   return (
     <div className="p-4">
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex flex-wrap items-start justify-between gap-3 mb-4">
         <div>
           <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
             {tConfig('employees.title')}
@@ -736,7 +743,7 @@ function ShiftsSection({ shifts }: ShiftsSectionProps) {
 
   return (
     <div className="space-y-3 pt-4 border-t border-gray-200 dark:border-gray-700">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">{t('title')}</h3>
           <p className="text-xs text-gray-500 dark:text-gray-400">{t('subtitle')}</p>
@@ -751,7 +758,7 @@ function ShiftsSection({ shifts }: ShiftsSectionProps) {
       </div>
 
       <div className="overflow-x-auto border border-gray-200 dark:border-gray-700 rounded-md">
-        <table className="w-full text-sm">
+        <table className="w-full text-sm min-w-[500px]">
           <thead>
             <tr className="bg-gray-50 dark:bg-[#0d1117] border-b border-gray-200 dark:border-gray-700">
               <th className="text-left py-2 px-3 text-xs font-semibold text-gray-600 dark:text-gray-400">
@@ -953,7 +960,7 @@ function ShiftModal({ shift, onClose }: ShiftModalProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="bg-white dark:bg-[#151b23] rounded-lg shadow-xl w-full max-w-md mx-4">
+      <div className="bg-white dark:bg-[#151b23] rounded-lg shadow-xl w-full max-w-md mx-4 overflow-y-auto max-h-[90vh]">
         <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700">
           <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
             {isEditing ? t('editShift') : t('newShift')}
@@ -1189,8 +1196,9 @@ function RequestsTab() {
   })
 
   const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr)
-    return date.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })
+    if (!dateStr) return ''
+    const [y, m, d] = dateStr.split('T')[0].split('-')
+    return `${d}-${m}-${y.slice(2)}`
   }
 
   const getStatusBadge = (status: string) => {
@@ -1217,12 +1225,12 @@ function RequestsTab() {
 
   return (
     <div className="p-4">
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex flex-wrap items-start justify-between gap-3 mb-4">
         <div>
           <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">{t('title')}</h3>
           <p className="text-xs text-gray-500 dark:text-gray-400">{t('subtitle')}</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2">
           <div className="flex items-center gap-2">
             <select
               value={selectedMonth}
@@ -1287,8 +1295,8 @@ function RequestsTab() {
           </p>
         </div>
       ) : (
-        <div className="border border-gray-200 dark:border-gray-700 rounded-md overflow-hidden">
-          <table className="w-full text-sm">
+        <div className="border border-gray-200 dark:border-gray-700 rounded-md overflow-x-auto">
+          <table className="w-full text-sm min-w-[600px]">
             <thead>
               <tr className="bg-gray-50 dark:bg-[#0d1117] border-b border-gray-200 dark:border-gray-700">
                 <th className="text-left py-2 px-3 text-xs font-semibold text-gray-600 dark:text-gray-400">
@@ -1434,14 +1442,9 @@ function EditRequestModal({ request, months, onClose, onSuccess }: EditRequestMo
   const tActions = useTranslations('scheduling.actions')
   const tToasts = useTranslations('scheduling.toasts')
 
-  const [startDate, setStartDate] = useState(request.startDate)
-  const [endDate, setEndDate] = useState(request.endDate)
+  const [startDate, setStartDate] = useState(() => formatLocalDate(new Date(request.startDate)))
+  const [endDate, setEndDate] = useState(() => formatLocalDate(new Date(request.endDate)))
   const [notes, setNotes] = useState(request.notes || '')
-  const [range, setRange] = useState<{ from: Date | undefined; to: Date | undefined }>(() => {
-    const from = new Date(request.startDate)
-    const to = new Date(request.endDate)
-    return { from, to }
-  })
   const [isVacation, setIsVacation] = useState(request.constraintType === 'vacation')
 
   const updateMutation = useMutation({
@@ -1487,16 +1490,9 @@ function EditRequestModal({ request, months, onClose, onSuccess }: EditRequestMo
     })
   }
 
-  const toLocalDateString = (d: Date): string => {
-    const y = d.getFullYear()
-    const m = String(d.getMonth() + 1).padStart(2, '0')
-    const day = String(d.getDate()).padStart(2, '0')
-    return `${y}-${m}-${day}`
-  }
-
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="bg-white dark:bg-[#151b23] rounded-lg shadow-xl w-full max-w-md mx-4">
+      <div className="bg-white dark:bg-[#151b23] rounded-lg shadow-xl w-full max-w-md mx-4 overflow-y-auto max-h-[90vh]">
         <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700">
           <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
             {tActions('edit')} {t('newRequest')}
@@ -1522,57 +1518,24 @@ function EditRequestModal({ request, months, onClose, onSuccess }: EditRequestMo
             />
           </div>
 
-          <div>
-            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-              {t('dates')} *
-            </label>
-
-            <div className="rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#0d1117] p-2">
-              <DayPicker
-                mode="range"
-                locale={es}
-                selected={{ from: range.from, to: range.to }}
-                onSelect={(r: DateRange | undefined) => {
-                  const from = r?.from
-                  const to = r?.to
-                  setRange({ from, to })
-                  if (from) {
-                    const start = toLocalDateString(from)
-                    setStartDate(start)
-                    setEndDate(to ? toLocalDateString(to) : start)
-                  } else {
-                    setStartDate('')
-                    setEndDate('')
-                  }
-                }}
-                className="text-xs"
-              />
-            </div>
-
-            <div className="mt-2 grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-[11px] font-medium text-gray-600 dark:text-gray-400 mb-1">
-                  {t('from')}
-                </label>
-                <input
-                  type="text"
-                  value={startDate}
-                  readOnly
-                  className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-md bg-gray-50 dark:bg-[#0b0f14] text-gray-900 dark:text-gray-100"
-                />
-              </div>
-              <div>
-                <label className="block text-[11px] font-medium text-gray-600 dark:text-gray-400 mb-1">
-                  {t('until')}
-                </label>
-                <input
-                  type="text"
-                  value={endDate}
-                  readOnly
-                  className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-md bg-gray-50 dark:bg-[#0b0f14] text-gray-900 dark:text-gray-100"
-                />
-              </div>
-            </div>
+          <div className="grid grid-cols-2 gap-3">
+            <DatePickerInput
+              label={`${t('from')} *`}
+              value={startDate}
+              onChange={(v) => {
+                const val = v || ''
+                setStartDate(val)
+                if (val && endDate && val > endDate) setEndDate(val)
+              }}
+              clearable={false}
+            />
+            <DatePickerInput
+              label={t('until')}
+              value={endDate || startDate}
+              onChange={(v) => setEndDate(v || startDate)}
+              minDate={startDate ? new Date(startDate + 'T12:00:00') : null}
+              clearable={false}
+            />
           </div>
 
           <div>
@@ -1657,10 +1620,6 @@ function AddRequestModal({
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
   const [notes, setNotes] = useState('')
-  const [range, setRange] = useState<{ from: Date | undefined; to: Date | undefined }>({
-    from: undefined,
-    to: undefined,
-  })
   const [isVacation, setIsVacation] = useState(false)
 
   const { data: employees = [] } = useQuery<Employee[]>({
@@ -1718,42 +1677,6 @@ function AddRequestModal({
     })
   }
 
-  const getDateLimits = () => {
-    if (!monthData) return { min: '', max: '' }
-    const year = monthData.year
-    const month = monthData.month
-    const firstDay = new Date(year, month - 1, 1)
-    const lastDay = new Date(year, month, 0)
-    const toLocalDateString = (d: Date): string => {
-      const y = d.getFullYear()
-      const m = String(d.getMonth() + 1).padStart(2, '0')
-      const day = String(d.getDate()).padStart(2, '0')
-      return `${y}-${m}-${day}`
-    }
-    return {
-      min: toLocalDateString(firstDay),
-      max: toLocalDateString(lastDay),
-    }
-  }
-
-  const dateLimits = getDateLimits()
-
-  const toLocalDateString = (d: Date): string => {
-    const y = d.getFullYear()
-    const m = String(d.getMonth() + 1).padStart(2, '0')
-    const day = String(d.getDate()).padStart(2, '0')
-    return `${y}-${m}-${day}`
-  }
-
-  const monthDateRange = useMemo(() => {
-    if (!monthData) return null
-    const from = new Date(monthData.year, monthData.month - 1, 1)
-    const to = new Date(monthData.year, monthData.month, 0)
-    from.setHours(0, 0, 0, 0)
-    to.setHours(0, 0, 0, 0)
-    return { from, to }
-  }, [monthData])
-
   const ensureMonthForDate = async (dateStr: string): Promise<number> => {
     const [yStr, mStr] = dateStr.split('-')
     const y = Number(yStr)
@@ -1776,7 +1699,7 @@ function AddRequestModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="bg-white dark:bg-[#151b23] rounded-lg shadow-xl w-full max-w-md mx-4">
+      <div className="bg-white dark:bg-[#151b23] rounded-lg shadow-xl w-full max-w-md mx-4 overflow-y-auto max-h-[90vh]">
         <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700">
           <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
             {t('newRequest')}
@@ -1809,64 +1732,31 @@ function AddRequestModal({
             </select>
           </div>
 
-          <div>
-            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-              {t('dates')} *
-            </label>
-
-            <div className="rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#0d1117] p-2">
-              <DayPicker
-                mode="range"
-                locale={es}
-                selected={{ from: range.from, to: range.to }}
-                onSelect={(r: DateRange | undefined) => {
-                  const from = r?.from
-                  const to = r?.to
-                  setRange({ from, to })
-                  if (from) {
-                    const start = toLocalDateString(from)
-                    setStartDate(start)
-                    setEndDate(to ? toLocalDateString(to) : start)
-
-                    // Ensure month exists and calendar constraints are updated
-                    void (async () => {
-                      const resolvedMonthId = await ensureMonthForDate(start)
-                      setMonthId(resolvedMonthId)
-                      onMonthResolved(resolvedMonthId)
-                    })()
-                  } else {
-                    setStartDate('')
-                    setEndDate('')
-                  }
-                }}
-                className="text-xs"
-              />
-            </div>
-
-            <div className="mt-2 grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-[11px] font-medium text-gray-600 dark:text-gray-400 mb-1">
-                  {t('from')}
-                </label>
-                <input
-                  type="text"
-                  value={startDate}
-                  readOnly
-                  className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-md bg-gray-50 dark:bg-[#0b0f14] text-gray-900 dark:text-gray-100"
-                />
-              </div>
-              <div>
-                <label className="block text-[11px] font-medium text-gray-600 dark:text-gray-400 mb-1">
-                  {t('until')}
-                </label>
-                <input
-                  type="text"
-                  value={endDate}
-                  readOnly
-                  className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-md bg-gray-50 dark:bg-[#0b0f14] text-gray-900 dark:text-gray-100"
-                />
-              </div>
-            </div>
+          <div className="grid grid-cols-2 gap-3">
+            <DatePickerInput
+              label={`${t('from')} *`}
+              value={startDate}
+              onChange={(v) => {
+                const val = v || ''
+                setStartDate(val)
+                if (val && endDate && val > endDate) setEndDate(val)
+                if (val) {
+                  void (async () => {
+                    const resolvedMonthId = await ensureMonthForDate(val)
+                    setMonthId(resolvedMonthId)
+                    onMonthResolved(resolvedMonthId)
+                  })()
+                }
+              }}
+              clearable={false}
+            />
+            <DatePickerInput
+              label={t('until')}
+              value={endDate || startDate}
+              onChange={(v) => setEndDate(v || startDate)}
+              minDate={startDate ? new Date(startDate + 'T12:00:00') : null}
+              clearable={false}
+            />
           </div>
 
           <div>
@@ -2119,16 +2009,16 @@ function RulesTab() {
 
   return (
     <div className="p-4">
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex flex-wrap items-start justify-between gap-3 mb-4">
         <div>
           <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">{t('title')}</h3>
           <p className="text-xs text-gray-500 dark:text-gray-400">{t('subtitle')}</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2">
           <select
             value={filterEmployee}
             onChange={(e) => setFilterEmployee(e.target.value)}
-            className="px-8 py-1.5 text-xs border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+            className="px-2 py-1.5 text-xs border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
           >
             <option value="">{t('allEmployees')}</option>
             {employees.map((emp) => (
@@ -2163,8 +2053,8 @@ function RulesTab() {
           </p>
         </div>
       ) : (
-        <div className="border border-gray-200 dark:border-gray-700 rounded-md overflow-hidden">
-          <table className="w-full text-sm">
+        <div className="border border-gray-200 dark:border-gray-700 rounded-md overflow-x-auto">
+          <table className="w-full text-sm min-w-[580px]">
             <thead>
               <tr className="bg-gray-50 dark:bg-[#0d1117] border-b border-gray-200 dark:border-gray-700">
                 <th className="text-left py-2 px-3 text-xs font-semibold text-gray-600 dark:text-gray-400">
@@ -2461,7 +2351,7 @@ function RuleModal({ rule, employees, onClose }: RuleModalProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="bg-white dark:bg-[#151b23] rounded-lg shadow-xl w-full max-w-md mx-4">
+      <div className="bg-white dark:bg-[#151b23] rounded-lg shadow-xl w-full max-w-md mx-4 overflow-y-auto max-h-[90vh]">
         <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700">
           <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
             {isEditing ? t('editRule') : t('newRule')}
