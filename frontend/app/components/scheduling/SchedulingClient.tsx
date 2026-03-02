@@ -491,8 +491,8 @@ export function SchedulingClient() {
                         className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-blue-700 dark:text-blue-400 text-xs font-medium rounded-md border border-blue-300 dark:border-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors whitespace-nowrap"
                       >
                         <FiCalendar className="w-3.5 h-3.5" />
-                        <span className="hidden sm:inline">Gestionar Festivos</span>
-                        <span className="sm:hidden">Festivos</span>
+                        <span className="hidden sm:inline">{tActions('manageHolidays')}</span>
+                        <span className="sm:hidden">{tActions('manageHolidaysShort')}</span>
                       </button>
                       <button
                         onClick={handleReset}

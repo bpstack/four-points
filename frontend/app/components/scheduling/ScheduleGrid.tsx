@@ -3,7 +3,7 @@
 'use client'
 
 import { useTranslations } from 'next-intl'
-import { useMemo, useRef, useEffect, useCallback } from 'react'
+import { useRef, useEffect, useCallback } from 'react'
 import { FiLock } from 'react-icons/fi'
 import type { SchedulingMonthFull, SchedulingShift, DayOfWeek } from '@/app/lib/scheduling'
 import { getShiftClasses } from '@/app/lib/scheduling'
@@ -68,30 +68,6 @@ export function ScheduleGrid({
 }: ScheduleGridProps) {
   const t = useTranslations('scheduling')
   const { days, employees, dailyStats } = monthData
-
-  // Group days by week (reserved for future week view)
-  const _weeks = useMemo(() => {
-    const grouped: { weekNumber: number; days: typeof days }[] = []
-    let currentWeek: typeof days = []
-    let currentWeekNumber = 0
-
-    days.forEach((day) => {
-      if (day.weekNumber !== currentWeekNumber) {
-        if (currentWeek.length > 0) {
-          grouped.push({ weekNumber: currentWeekNumber, days: currentWeek })
-        }
-        currentWeek = []
-        currentWeekNumber = day.weekNumber
-      }
-      currentWeek.push(day)
-    })
-
-    if (currentWeek.length > 0) {
-      grouped.push({ weekNumber: currentWeekNumber, days: currentWeek })
-    }
-
-    return grouped
-  }, [days])
 
   // ============================================================
   // DRAG-TO-SELECT LOGIC
