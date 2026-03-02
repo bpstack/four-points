@@ -38,7 +38,6 @@
     "create": "Create",
     "creating": "Creating...",
     "cancel": "Cancel",
-    "delete": "Delete",
     "edit": "Edit",
     "activate": "Activate",
     "deactivate": "Deactivate",
@@ -50,7 +49,9 @@
     "none": "None",
     "addShift": "Add shift",
     "addRule": "Add rule",
-    "newRequest": "New request"
+    "newRequest": "New request",
+    "manageHolidays": "Manage Holidays",
+    "manageHolidaysShort": "Holidays"
   },
   "messages": {
     "loadingData": "Loading data...",
@@ -122,6 +123,16 @@
     "connectionError": "Connection error",
     "connectionTestError": "Error testing connection"
   },
+  "manageHolidaysTitle": "Manage Holidays",
+  "regularDays": "Regular Days",
+  "holidayDays": "Holiday Days",
+  "clickToToggleHoliday": "Click on a day to mark/unmark it as a holiday",
+  "noHolidaysMarked": "No holidays marked",
+  "holidayNamePlaceholder": "Holiday name",
+  "noChangesToSave": "No changes to save",
+  "cancel": "Cancel",
+  "saveChanges": "Save Changes",
+  "saving": "Saving...",
   "grid": {
     "employee": "Employee",
     "total": "Tot",

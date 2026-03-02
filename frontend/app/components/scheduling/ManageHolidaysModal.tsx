@@ -79,11 +79,11 @@ export function ManageHolidaysModal({
     mutationFn: (data: DayEdit[]) => schedulingApi.bulkUpdateDays(monthId, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: schedulingKeys.month(monthId) })
-      toast.success(tToasts('holidaysUpdated') || 'Festivos actualizados correctamente')
+      toast.success(tToasts('holidaysUpdated'))
       onClose()
     },
     onError: () => {
-      toast.error(tToasts('holidaysUpdateError') || 'Error al actualizar festivos')
+      toast.error(tToasts('holidaysUpdateError'))
     },
   })
 
@@ -127,7 +127,7 @@ export function ManageHolidaysModal({
     })
 
     if (changes.length === 0) {
-      toast.success('No hay cambios para guardar')
+      toast.success(t('noChangesToSave'))
       onClose()
       return
     }
@@ -161,7 +161,7 @@ export function ManageHolidaysModal({
             </div>
             <div>
               <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                Gestionar Festivos
+                {t('manageHolidaysTitle')}
               </h2>
               <p className="text-xs text-gray-600 dark:text-gray-400">
                 {MONTH_NAMES[month - 1]} {year}
@@ -182,11 +182,11 @@ export function ManageHolidaysModal({
           <div>
             <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-red-500"></span>
-              Días Festivos ({holidayDays.length})
+              {t('holidayDays')} ({holidayDays.length})
             </h3>
             {holidayDays.length === 0 ? (
               <p className="text-xs text-gray-500 dark:text-gray-400 italic">
-                No hay festivos marcados
+                {t('noHolidaysMarked')}
               </p>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -209,7 +209,7 @@ export function ManageHolidaysModal({
                         type="text"
                         value={day.edit?.holiday_name || ''}
                         onChange={(e) => handleChangeName(day.id, e.target.value)}
-                        placeholder="Nombre del festivo"
+                        placeholder={t('holidayNamePlaceholder')}
                         className="mt-1 w-full px-2 py-1 text-xs rounded border border-gray-300 dark:border-gray-700 bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-red-500"
                       />
                     </div>
@@ -223,7 +223,7 @@ export function ManageHolidaysModal({
           <div>
             <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-gray-400"></span>
-              Días Regulares ({regularDays.length})
+              {t('regularDays')} ({regularDays.length})
             </h3>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2">
               {regularDays.map((day) => (
@@ -246,14 +246,14 @@ export function ManageHolidaysModal({
         {/* Footer */}
         <div className="flex items-center justify-between p-4 border-t border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-[#0d1117]">
           <p className="text-xs text-gray-600 dark:text-gray-400">
-            Haz clic en un día para marcarlo/desmarcarlo como festivo
+            {t('clickToToggleHoliday')}
           </p>
           <div className="flex items-center gap-2">
             <button
               onClick={onClose}
               className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md transition-colors"
             >
-              Cancelar
+              {t('cancel')}
             </button>
             <button
               onClick={handleSave}
@@ -261,7 +261,7 @@ export function ManageHolidaysModal({
               className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 dark:bg-blue-600 dark:hover:bg-blue-700 dark:disabled:bg-blue-800 rounded-md transition-colors flex items-center gap-2"
             >
               <FiSave className="w-4 h-4" />
-              {saveMutation.isPending ? 'Guardando...' : 'Guardar Cambios'}
+              {saveMutation.isPending ? t('saving') : t('saveChanges')}
             </button>
           </div>
         </div>

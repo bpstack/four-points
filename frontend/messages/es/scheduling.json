@@ -38,7 +38,6 @@
     "create": "Crear",
     "creating": "Creando...",
     "cancel": "Cancelar",
-    "delete": "Eliminar",
     "edit": "Editar",
     "activate": "Activar",
     "deactivate": "Desactivar",
@@ -50,7 +49,9 @@
     "none": "Ninguno",
     "addShift": "Agregar turno",
     "addRule": "Agregar regla",
-    "newRequest": "Nueva petición"
+    "newRequest": "Nueva petición",
+    "manageHolidays": "Gestionar Festivos",
+    "manageHolidaysShort": "Festivos"
   },
   "messages": {
     "loadingData": "Cargando datos...",
@@ -124,6 +125,16 @@
     "connectionError": "Error de conexión",
     "connectionTestError": "Error al probar conexión"
   },
+  "manageHolidaysTitle": "Gestionar Festivos",
+  "regularDays": "Días Regulares",
+  "holidayDays": "Días Festivos",
+  "clickToToggleHoliday": "Haz clic en un día para marcarlo/desmarcarlo como festivo",
+  "noHolidaysMarked": "No hay festivos marcados",
+  "holidayNamePlaceholder": "Nombre del festivo",
+  "noChangesToSave": "No hay cambios para guardar",
+  "cancel": "Cancelar",
+  "saveChanges": "Guardar Cambios",
+  "saving": "Guardando...",
   "grid": {
     "employee": "Empleado",
     "total": "Tot",
