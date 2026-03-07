@@ -229,7 +229,8 @@
       "assigned": "Asignado",
       "resolved": "Resuelto",
       "closed": "Cerrado",
-      "deleted": "Eliminado"
+      "deleted": "Eliminado",
+      "restored": "Restaurado"
     }
   },
   "tabs": {
