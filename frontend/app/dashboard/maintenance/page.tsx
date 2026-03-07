@@ -30,7 +30,7 @@ export default async function MaintenancePage({ searchParams }: PageProps) {
     date_from: params.date_from,
     date_to: params.date_to,
     page: params.page ? parseInt(params.page) : 1,
-    limit: 20,
+    limit: 100,
   }
 
   let data

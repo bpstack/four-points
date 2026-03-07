@@ -8,7 +8,6 @@ import { useTranslations, useLocale } from 'next-intl'
 import type { MaintenanceReport, ReportFilters } from '@/app/lib/maintenance/maintenance'
 import type { MaintenanceListResponse } from '@/app/lib/maintenance/maintenanceApi'
 import { useMaintenanceList, type MaintenanceMessages } from './hooks/useMaintenanceList'
-import { useDebouncedSearch } from './hooks/useDebouncedSearch'
 import { CreateReportPanel } from './panels/CreateReportPanel'
 import DatePickerInput from '@/app/ui/calendar/DatePickerInput'
 import {
@@ -19,6 +18,7 @@ import {
   FiCheckCircle,
   FiClock,
   FiX,
+  FiRefreshCw,
 } from 'react-icons/fi'
 
 interface MaintenanceListClientProps {
@@ -88,20 +88,29 @@ export function MaintenanceListClient({
     [router]
   )
 
-  // Debounced search hook - usa filtersRef para siempre tener los filtros actuales
-  const { searchInput, setSearchInput, resetInput, isSearching } = useDebouncedSearch({
-    delayMs: 400,
-    initialValue: filters.search || '',
-    onSearch: useCallback(
-      (value: string) => {
-        // Lee filtersRef.current para tener siempre los filtros más recientes
-        const currentFilters = filtersRef.current
-        const cleanValue = value && value.trim() !== '' ? value : undefined
-        updateFiltersAndUrl({ ...currentFilters, search: cleanValue })
-      },
-      [updateFiltersAndUrl]
-    ),
-  })
+  // Search input controlado manualmente (Enter o botón)
+  const [searchInput, setSearchInput] = useState(filters.search || '')
+
+  const executeSearch = useCallback(() => {
+    const currentFilters = filtersRef.current
+    const cleanValue = searchInput.trim() !== '' ? searchInput.trim() : undefined
+    updateFiltersAndUrl({ ...currentFilters, search: cleanValue })
+  }, [searchInput, updateFiltersAndUrl])
+
+  const handleSearchKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === 'Enter') {
+        executeSearch()
+      }
+    },
+    [executeSearch]
+  )
+
+  const handleClearSearch = useCallback(() => {
+    setSearchInput('')
+    const currentFilters = filtersRef.current
+    updateFiltersAndUrl({ ...currentFilters, search: undefined })
+  }, [updateFiltersAndUrl])
 
   // React Query hook - clean filters to only include defined values
   const cleanFilters = useMemo(() => {
@@ -118,7 +127,7 @@ export function MaintenanceListClient({
   const { reports, pagination, isLoading, isFetching, refetch } = useMaintenanceList({
     filters: cleanFilters,
     page: currentPage,
-    limit: 20,
+    limit: 100,
     initialData: initialPagination
       ? { reports: initialReports, pagination: initialPagination }
       : undefined,
@@ -150,11 +159,14 @@ export function MaintenanceListClient({
     [updateFiltersAndUrl]
   )
 
-  // Limpiar todos los filtros
-  const handleClearFilters = useCallback(() => {
-    resetInput('')
-    updateFiltersAndUrl({})
-  }, [resetInput, updateFiltersAndUrl])
+  // Limpiar todos los filtros y recargar datos
+  const handleRefresh = useCallback(() => {
+    setSearchInput('')
+    setFilters({})
+    filtersRef.current = {}
+    setCurrentPage(1)
+    router.push('/dashboard/maintenance', { scroll: false })
+  }, [router])
 
   const handleCreateReport = useCallback(() => {
     const params = new URLSearchParams(searchParams.toString())
@@ -296,13 +308,23 @@ export function MaintenanceListClient({
                   {t('subtitle')}
                 </p>
               </div>
-              <button
-                onClick={handleCreateReport}
-                className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-green-600 dark:bg-green-700 text-white text-xs font-medium rounded-md hover:bg-green-700 dark:hover:bg-green-800 transition-colors"
-              >
-                <FiPlus className="w-3.5 h-3.5" />
-                {t('newReport')}
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleRefresh}
+                  disabled={loading}
+                  className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-xs font-medium rounded-md border border-gray-300 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-700 disabled:opacity-50 transition-colors"
+                  title={tCommon('actions.refresh') || 'Actualizar'}
+                >
+                  <FiRefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
+                </button>
+                <button
+                  onClick={handleCreateReport}
+                  className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-green-600 dark:bg-green-700 text-white text-xs font-medium rounded-md hover:bg-green-700 dark:hover:bg-green-800 transition-colors"
+                >
+                  <FiPlus className="w-3.5 h-3.5" />
+                  {t('newReport')}
+                </button>
+              </div>
             </div>
           </div>
 
@@ -372,19 +394,20 @@ export function MaintenanceListClient({
               {/* Filters */}
               <div className="mb-4 space-y-3">
                 {/* Search Bar */}
-                <div className="relative">
-                  <div className="relative flex items-center">
+                <div className="relative flex items-center gap-2">
+                  <div className="relative flex-1 flex items-center">
                     <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500" />
                     <input
                       type="text"
                       placeholder={t('filters.searchPlaceholder')}
                       value={searchInput}
                       onChange={(e) => setSearchInput(e.target.value)}
+                      onKeyDown={handleSearchKeyDown}
                       className="w-full pl-9 pr-9 py-2 text-sm border border-gray-300 dark:border-gray-700 dark:bg-[#151b23] dark:text-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent transition-all"
                     />
                     {searchInput && (
                       <button
-                        onClick={() => setSearchInput('')}
+                        onClick={handleClearSearch}
                         className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
                         title={t('filters.clearSearch') || 'Limpiar búsqueda'}
                       >
@@ -392,20 +415,22 @@ export function MaintenanceListClient({
                       </button>
                     )}
                   </div>
-                  {isSearching && (
-                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                      <div className="h-4 w-4 border-2 border-gray-300 dark:border-gray-600 border-t-blue-500 rounded-full animate-spin"></div>
-                    </div>
-                  )}
+                  <button
+                    onClick={executeSearch}
+                    disabled={loading}
+                    className="px-4 py-2 text-sm font-medium text-white bg-blue-600 dark:bg-blue-700 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 transition-colors"
+                  >
+                    <FiSearch className="w-4 h-4" />
+                  </button>
                 </div>
 
-                {/* Filter Chips */}
-                <div className="flex flex-wrap gap-2 items-center">
+                {/* Filters Row */}
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-[1fr_1fr_1.3fr_1fr_1fr_auto] gap-2 items-end">
                   {/* Status Filter */}
                   <select
                     value={filters.status || ''}
                     onChange={(e) => handleFilterChange('status', e.target.value || undefined)}
-                    className="px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent bg-white dark:bg-[#151b23] dark:text-gray-200 hover:border-gray-400 dark:hover:border-gray-600 transition-colors"
+                    className="w-full px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent bg-white dark:bg-[#151b23] dark:text-gray-200 hover:border-gray-400 dark:hover:border-gray-600 transition-colors"
                   >
                     <option value="">{t('filters.allStatuses')}</option>
                     <option value="reported">{t('status.reported')}</option>
@@ -421,7 +446,7 @@ export function MaintenanceListClient({
                   <select
                     value={filters.priority || ''}
                     onChange={(e) => handleFilterChange('priority', e.target.value || undefined)}
-                    className="px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent bg-white dark:bg-[#151b23] dark:text-gray-200 hover:border-gray-400 dark:hover:border-gray-600 transition-colors"
+                    className="w-full px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent bg-white dark:bg-[#151b23] dark:text-gray-200 hover:border-gray-400 dark:hover:border-gray-600 transition-colors"
                   >
                     <option value="">{t('filters.allPriorities')}</option>
                     <option value="low">{t('priority.low')}</option>
@@ -436,7 +461,7 @@ export function MaintenanceListClient({
                     onChange={(e) =>
                       handleFilterChange('location_type', e.target.value || undefined)
                     }
-                    className="px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent bg-white dark:bg-[#151b23] dark:text-gray-200 hover:border-gray-400 dark:hover:border-gray-600 transition-colors"
+                    className="w-full px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent bg-white dark:bg-[#151b23] dark:text-gray-200 hover:border-gray-400 dark:hover:border-gray-600 transition-colors"
                   >
                     <option value="">{t('filters.allLocations')}</option>
                     <option value="room">{t('locationType.room')}</option>
@@ -446,45 +471,44 @@ export function MaintenanceListClient({
                     <option value="other">{t('locationType.other')}</option>
                   </select>
 
-                  {/* Date Range Filter */}
-                  <div className="flex items-center gap-2">
-                    <DatePickerInput
-                      value={filters.date_from || undefined}
-                      onChange={(value) =>
-                        handleDateRangeChange(value, filters.date_to || undefined)
-                      }
-                      placeholder={t('filters.fromDate')}
-                      size="sm"
-                      clearable
-                      className="min-w-[140px]"
-                    />
-                    <span className="text-gray-400 dark:text-gray-500 text-xs">→</span>
-                    <DatePickerInput
-                      value={filters.date_to || undefined}
-                      onChange={(value) =>
-                        handleDateRangeChange(filters.date_from || undefined, value)
-                      }
-                      placeholder={t('filters.toDate')}
-                      size="sm"
-                      clearable
-                      className="min-w-[140px]"
-                    />
-                  </div>
+                  {/* Date From Filter */}
+                  <DatePickerInput
+                    value={filters.date_from || undefined}
+                    onChange={(value) => handleDateRangeChange(value, filters.date_to || undefined)}
+                    placeholder={t('filters.fromDate')}
+                    size="sm"
+                    clearable
+                    className="w-full"
+                  />
+
+                  {/* Date To Filter */}
+                  <DatePickerInput
+                    value={filters.date_to || undefined}
+                    onChange={(value) =>
+                      handleDateRangeChange(filters.date_from || undefined, value)
+                    }
+                    placeholder={t('filters.toDate')}
+                    size="sm"
+                    clearable
+                    className="w-full"
+                  />
 
                   {/* Clear All Filters Button */}
-                  {(filters.status ||
-                    filters.priority ||
-                    filters.location_type ||
-                    filters.search ||
-                    filters.date_from ||
-                    filters.date_to) && (
+                  {filters.status ||
+                  filters.priority ||
+                  filters.location_type ||
+                  filters.search ||
+                  filters.date_from ||
+                  filters.date_to ? (
                     <button
-                      onClick={handleClearFilters}
-                      className="ml-auto px-3 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors flex items-center gap-1.5"
+                      onClick={handleRefresh}
+                      className="w-full px-3 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors flex items-center justify-center gap-1.5"
                     >
                       <FiX className="w-3.5 h-3.5" />
                       {t('filters.clearFilters')}
                     </button>
+                  ) : (
+                    <div />
                   )}
                 </div>
               </div>
