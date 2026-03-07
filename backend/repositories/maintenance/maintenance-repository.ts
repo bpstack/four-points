@@ -248,11 +248,94 @@ export class MaintenanceRepository {
       date_to,
       include_deleted = false,
       page = 1,
-      limit = 20,
+      limit = 100,
     } = filters
 
-    // Construir WHERE dinámico
-    let query = `
+    // Construir condiciones WHERE una sola vez (se reutiliza en count + data)
+    const conditions: string[] = []
+    const whereParams: any[] = []
+
+    if (!include_deleted) {
+      conditions.push(`r.is_deleted = FALSE`)
+    }
+
+    if (status) {
+      conditions.push(`r.status = ?`)
+      whereParams.push(status)
+    }
+
+    if (priority) {
+      conditions.push(`r.priority = ?`)
+      whereParams.push(priority)
+    }
+
+    if (location_type) {
+      conditions.push(`r.location_type = ?`)
+      whereParams.push(location_type)
+    }
+
+    if (assigned_to) {
+      conditions.push(`r.assigned_to = ?`)
+      whereParams.push(assigned_to)
+    }
+
+    if (created_by) {
+      conditions.push(`r.created_by = ?`)
+      whereParams.push(created_by)
+    }
+
+    if (room_number) {
+      conditions.push(`r.room_number = ?`)
+      whereParams.push(room_number)
+    }
+
+    // Búsqueda general: la collation utf8mb4_0900_ai_ci de la tabla
+    // ya es accent-insensitive y case-insensitive, no hace falta CAST/LOWER
+    if (search && search.trim() !== '') {
+      conditions.push(`(
+        r.title LIKE ? OR
+        r.location_description LIKE ? OR
+        r.room_number LIKE ? OR
+        r.id LIKE ? OR
+        CONCAT_WS(' ', r.location_type, CASE r.location_type
+          WHEN 'room' THEN 'Habitacion Room'
+          WHEN 'common_area' THEN 'Area Comun Common Area'
+          WHEN 'exterior' THEN 'Exterior'
+          WHEN 'facilities' THEN 'Instalaciones Facilities'
+          WHEN 'other' THEN 'Otro Other'
+          ELSE ''
+        END) LIKE ?
+      )`)
+      const searchPattern = `%${search.trim()}%`
+      whereParams.push(searchPattern, searchPattern, searchPattern, searchPattern, searchPattern)
+    }
+
+    // Filtro por fecha específica (single day)
+    if (date) {
+      conditions.push(`DATE(r.report_date) = ?`)
+      whereParams.push(date)
+    }
+
+    // Filtro por rango de fechas (inclusivo en ambos extremos)
+    if (date_from && !date) {
+      conditions.push(`DATE(r.report_date) >= ?`)
+      whereParams.push(date_from)
+    }
+    if (date_to && !date) {
+      conditions.push(`DATE(r.report_date) <= ?`)
+      whereParams.push(date_to)
+    }
+
+    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : ''
+
+    // Count query (reutiliza los mismos params)
+    const countQuery = `SELECT COUNT(*) as total FROM maintenance_reports r ${whereClause}`
+    const [countResult] = await db.query<CountRow[]>(countQuery, whereParams)
+    const total = countResult[0]?.total || 0
+
+    // Data query
+    const offset = (page - 1) * limit
+    const dataQuery = `
       SELECT 
         r.*,
         u1.username as created_by_name,
@@ -261,158 +344,18 @@ export class MaintenanceRepository {
       FROM maintenance_reports r
       LEFT JOIN users u1 ON r.created_by = u1.id
       LEFT JOIN users u2 ON r.assigned_to = u2.id
-      WHERE 1=1
+      ${whereClause}
+      ORDER BY 
+        CASE r.priority 
+          WHEN 'urgent' THEN 1 
+          WHEN 'high' THEN 2 
+          WHEN 'medium' THEN 3 
+          WHEN 'low' THEN 4 
+        END,
+        r.report_date DESC
+      LIMIT ? OFFSET ?
     `
-    const params: any[] = []
-
-    // Filtro por is_deleted
-    if (!include_deleted) {
-      query += ` AND r.is_deleted = FALSE`
-    }
-
-    // Filtro por status
-    if (status) {
-      query += ` AND r.status = ?`
-      params.push(status)
-    }
-
-    // Filtro por priority
-    if (priority) {
-      query += ` AND r.priority = ?`
-      params.push(priority)
-    }
-
-    // Filtro por location_type
-    if (location_type) {
-      query += ` AND r.location_type = ?`
-      params.push(location_type)
-    }
-
-    // Filtro por assigned_to
-    if (assigned_to) {
-      query += ` AND r.assigned_to = ?`
-      params.push(assigned_to)
-    }
-
-    // Filtro por created_by
-    if (created_by) {
-      query += ` AND r.created_by = ?`
-      params.push(created_by)
-    }
-
-    // Filtro por room_number
-    if (room_number) {
-      query += ` AND r.room_number = ?`
-      params.push(room_number)
-    }
-
-    // Búsqueda general - case insensitive y sin acentos
-    if (search && search.trim() !== '') {
-      // Usar COLLATE utf8mb4_general_ci para búsqueda case-insensitive
-      // Y REPLACE para remover acentos (forma simplificada - mejor en aplicación)
-      query += ` AND (
-        LOWER(CAST(r.title AS CHAR CHARACTER SET utf8mb4) COLLATE utf8mb4_general_ci) LIKE ? OR
-        LOWER(CAST(r.description AS CHAR CHARACTER SET utf8mb4) COLLATE utf8mb4_general_ci) LIKE ? OR
-        LOWER(CAST(r.location_description AS CHAR CHARACTER SET utf8mb4) COLLATE utf8mb4_general_ci) LIKE ? OR
-        LOWER(CAST(r.room_number AS CHAR CHARACTER SET utf8mb4) COLLATE utf8mb4_general_ci) LIKE ?
-      )`
-      const searchPattern = `%${search.toLowerCase()}%`
-      params.push(searchPattern, searchPattern, searchPattern, searchPattern)
-    }
-
-    // Filtro por fecha específica (single day)
-    if (date) {
-      query += ` AND DATE(r.report_date) = ?`
-      params.push(date)
-    }
-
-    // Filtro por rango de fechas (backwards compatible)
-    if (date_from && !date) {
-      query += ` AND DATE(r.report_date) >= ?`
-      params.push(date_from)
-    }
-    if (date_to && !date) {
-      query += ` AND DATE(r.report_date) <= ?`
-      params.push(date_to)
-    }
-
-    // Query para contar total - construir query separada sin subqueries
-    let countQuery = `
-      SELECT COUNT(*) as total
-      FROM maintenance_reports r
-      WHERE 1=1
-    `
-    const countParams: any[] = []
-
-    // Aplicar los mismos filtros al count query
-    if (!include_deleted) {
-      countQuery += ` AND r.is_deleted = FALSE`
-    }
-    if (status) {
-      countQuery += ` AND r.status = ?`
-      countParams.push(status)
-    }
-    if (priority) {
-      countQuery += ` AND r.priority = ?`
-      countParams.push(priority)
-    }
-    if (location_type) {
-      countQuery += ` AND r.location_type = ?`
-      countParams.push(location_type)
-    }
-    if (assigned_to) {
-      countQuery += ` AND r.assigned_to = ?`
-      countParams.push(assigned_to)
-    }
-    if (created_by) {
-      countQuery += ` AND r.created_by = ?`
-      countParams.push(created_by)
-    }
-    if (room_number) {
-      countQuery += ` AND r.room_number = ?`
-      countParams.push(room_number)
-    }
-    if (search && search.trim() !== '') {
-      countQuery += ` AND (
-        LOWER(CAST(r.title AS CHAR CHARACTER SET utf8mb4) COLLATE utf8mb4_general_ci) LIKE ? OR
-        LOWER(CAST(r.description AS CHAR CHARACTER SET utf8mb4) COLLATE utf8mb4_general_ci) LIKE ? OR
-        LOWER(CAST(r.location_description AS CHAR CHARACTER SET utf8mb4) COLLATE utf8mb4_general_ci) LIKE ? OR
-        LOWER(CAST(r.room_number AS CHAR CHARACTER SET utf8mb4) COLLATE utf8mb4_general_ci) LIKE ?
-      )`
-      const searchPattern = `%${search.toLowerCase()}%`
-      countParams.push(searchPattern, searchPattern, searchPattern, searchPattern)
-    }
-    if (date) {
-      countQuery += ` AND DATE(r.report_date) = ?`
-      countParams.push(date)
-    }
-    if (date_from && !date) {
-      countQuery += ` AND DATE(r.report_date) >= ?`
-      countParams.push(date_from)
-    }
-    if (date_to && !date) {
-      countQuery += ` AND DATE(r.report_date) <= ?`
-      countParams.push(date_to)
-    }
-
-    const [countResult] = await db.query<CountRow[]>(countQuery, countParams)
-    const total = countResult[0]?.total || 0
-
-    // Ordenamiento y paginación
-    query += ` ORDER BY 
-      CASE r.priority 
-        WHEN 'urgent' THEN 1 
-        WHEN 'high' THEN 2 
-        WHEN 'medium' THEN 3 
-        WHEN 'low' THEN 4 
-      END,
-      r.report_date DESC`
-
-    const offset = (page - 1) * limit
-    query += ` LIMIT ? OFFSET ?`
-    params.push(limit, offset)
-
-    const [rows] = await db.query<ReportRow[]>(query, params)
+    const [rows] = await db.query<ReportRow[]>(dataQuery, [...whereParams, limit, offset])
 
     // Calcular paginación
     const totalPages = Math.ceil(total / limit)
