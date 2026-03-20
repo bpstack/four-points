@@ -49,7 +49,7 @@ export function EmployeeTotals({ year }: EmployeeTotalsProps) {
   const {
     data: contracts = [],
     isLoading: loadingContracts,
-    refetch: refetchContracts,
+    refetch: _refetchContracts,
   } = useQuery({
     queryKey: schedulingKeys.contracts(year),
     queryFn: () => schedulingApi.getContractsByYear(year),
@@ -58,7 +58,7 @@ export function EmployeeTotals({ year }: EmployeeTotalsProps) {
   const {
     data: totalsData,
     isLoading: loadingTotals,
-    refetch: refetchTotals,
+    refetch: _refetchTotals,
   } = useQuery({
     queryKey: schedulingKeys.annualTotals(year),
     queryFn: () => schedulingApi.getAnnualTotals(year),
@@ -448,7 +448,10 @@ export function EmployeeTotals({ year }: EmployeeTotalsProps) {
                 </tr>
               ) : (
                 employees.map((emp) => (
-                  <tr key={emp.employeeId} className="hover:bg-emerald-50/60 dark:hover:bg-emerald-900/10">
+                  <tr
+                    key={emp.employeeId}
+                    className="hover:bg-emerald-50/60 dark:hover:bg-emerald-900/10"
+                  >
                     <td className="px-3 py-2 font-medium text-gray-900 dark:text-gray-100">
                       {emp.employeeName}
                     </td>
@@ -528,7 +531,10 @@ export function EmployeeTotals({ year }: EmployeeTotalsProps) {
                 </tr>
               ) : (
                 employees.map((emp) => (
-                  <tr key={emp.employeeId} className="hover:bg-amber-50/60 dark:hover:bg-amber-900/10">
+                  <tr
+                    key={emp.employeeId}
+                    className="hover:bg-amber-50/60 dark:hover:bg-amber-900/10"
+                  >
                     <td className="px-3 py-2 font-medium text-gray-900 dark:text-gray-100">
                       {emp.employeeName}
                     </td>

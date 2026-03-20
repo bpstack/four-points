@@ -245,9 +245,7 @@ export function ManageHolidaysModal({
 
         {/* Footer */}
         <div className="flex items-center justify-between p-4 border-t border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-[#0d1117]">
-          <p className="text-xs text-gray-600 dark:text-gray-400">
-            {t('clickToToggleHoliday')}
-          </p>
+          <p className="text-xs text-gray-600 dark:text-gray-400">{t('clickToToggleHoliday')}</p>
           <div className="flex items-center gap-2">
             <button
               onClick={onClose}

@@ -25,7 +25,7 @@ export function highlightSearchResult(
     return { highlighted: text, searchLength: 0 }
   }
 
-  const index = normalizedText.indexOf(normalizedSearch)
+  const _index = normalizedText.indexOf(normalizedSearch)
   const length = searchTerm.length
 
   return {

@@ -200,7 +200,12 @@ export default function DatePickerInput({
         createPortal(
           <div
             ref={calendarRef}
-            style={{ position: 'fixed', top: portalStyle.top, left: portalStyle.left, zIndex: 9999 }}
+            style={{
+              position: 'fixed',
+              top: portalStyle.top,
+              left: portalStyle.left,
+              zIndex: 9999,
+            }}
           >
             <SimpleCalendarCompact
               selectedDate={selectedDate}

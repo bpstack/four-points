@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 /* Drag-to-select highlight for schedule grid cells */
-button[data-drag-selected="true"] {
+button[data-drag-selected='true'] {
   outline: 2px solid #3b82f6 !important;
   outline-offset: 1px;
   transform: scale(1.08) !important;
@@ -11,7 +11,7 @@ button[data-drag-selected="true"] {
   position: relative;
 }
 
-.dark button[data-drag-selected="true"] {
+.dark button[data-drag-selected='true'] {
   outline-color: #60a5fa !important;
 }
 

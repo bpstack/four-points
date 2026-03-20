@@ -23,7 +23,6 @@ import type {
   UpdateEmployeeRuleDto,
   CreateShiftDto,
   UpdateShiftDto,
-  GenerationResult,
   ValidationResult,
   EmployeeContract,
   CreateContractDto,

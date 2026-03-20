@@ -4,7 +4,7 @@
 
 import { Fragment } from 'react'
 import { Dialog, Transition } from '@headlessui/react'
-import { FiAlertTriangle, FiTrash2, FiRefreshCw, FiX } from 'react-icons/fi'
+import { FiTrash2, FiRefreshCw, FiX } from 'react-icons/fi'
 import { useTranslations } from 'next-intl'
 
 export type ConfirmDialogVariant = 'danger' | 'warning'
@@ -27,15 +27,13 @@ const variantConfig = {
     icon: FiTrash2,
     iconBg: 'bg-red-100 dark:bg-red-900/30',
     iconColor: 'text-red-600 dark:text-red-400',
-    confirmBtn:
-      'bg-red-600 hover:bg-red-700 focus:ring-red-500 disabled:bg-red-400',
+    confirmBtn: 'bg-red-600 hover:bg-red-700 focus:ring-red-500 disabled:bg-red-400',
   },
   warning: {
     icon: FiRefreshCw,
     iconBg: 'bg-amber-100 dark:bg-amber-900/30',
     iconColor: 'text-amber-600 dark:text-amber-400',
-    confirmBtn:
-      'bg-amber-600 hover:bg-amber-700 focus:ring-amber-500 disabled:bg-amber-400',
+    confirmBtn: 'bg-amber-600 hover:bg-amber-700 focus:ring-amber-500 disabled:bg-amber-400',
   },
 }
 
@@ -115,7 +113,10 @@ export function ConfirmDialog({
                   {details && details.length > 0 && (
                     <ul className="space-y-1.5 border border-red-200 dark:border-red-800/50 bg-red-50 dark:bg-red-900/10 rounded-lg p-3">
                       {details.map((item, i) => (
-                        <li key={i} className="flex items-start gap-2 text-xs text-red-700 dark:text-red-400">
+                        <li
+                          key={i}
+                          className="flex items-start gap-2 text-xs text-red-700 dark:text-red-400"
+                        >
                           <span className="mt-0.5 shrink-0">•</span>
                           <span>{item}</span>
                         </li>

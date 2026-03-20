@@ -10,6 +10,7 @@ import { schedulingApi, schedulingKeys, downloadSchedulePdf } from '@/app/lib/sc
 import { ApiError } from '@/app/lib/apiClient'
 import type {
   SchedulingShift,
+  SchedulingMonth,
   MonthStatus,
   GenerationWarning,
   BulkAssignmentDto,
@@ -137,7 +138,7 @@ export function SchedulingClient() {
   const {
     data: monthData,
     isLoading: loadingMonth,
-    refetch: refetchMonth,
+    refetch: _refetchMonth,
   } = useQuery({
     queryKey: schedulingKeys.month(selectedMonthId!),
     queryFn: () => schedulingApi.getMonthById(selectedMonthId!),
@@ -161,7 +162,7 @@ export function SchedulingClient() {
           queryFn: () => schedulingApi.getAllMonths({ year: selectedYear }),
         })
         const monthNumber = parseInt(searchParams.get('month') || String(new Date().getMonth() + 1))
-        const existingMonth = months?.months.find((m: any) => m.month === monthNumber)
+        const existingMonth = months?.months.find((m: SchedulingMonth) => m.month === monthNumber)
         if (existingMonth) {
           setSelectedMonthId(existingMonth.id)
           toast.success(tToasts('monthExists'))

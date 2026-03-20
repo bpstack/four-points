@@ -38,7 +38,7 @@ export function MonthInfoPanel({ monthId }: MonthInfoPanelProps) {
     return null
   }
 
-  const { requests, employeeRules, summary } = monthInfo
+  const { requests, employeeRules } = monthInfo
 
   const hasRequests = requests && requests.length > 0
   const hasRules = employeeRules && employeeRules.length > 0

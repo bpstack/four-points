@@ -56,7 +56,6 @@ function formatLocalDate(d: Date): string {
   return `${y}-${m}-${day}`
 }
 
-
 interface Employee {
   id: string
   username: string
@@ -110,7 +109,7 @@ export function SchedulingConfigClient() {
     queryFn: schedulingApi.getAllRules,
   })
 
-  const rules = rulesData?.rules || []
+  const _rules = rulesData?.rules || []
 
   const tabs = [
     { id: 'employees' as TabType, label: tConfig('tabs.employees'), icon: FiUserCheck },
@@ -1120,7 +1119,7 @@ function RequestsTab() {
     queryFn: () => schedulingApi.getAllMonths({ limit: 12 }),
   })
 
-  const months = monthsData?.months || []
+  const months = useMemo(() => monthsData?.months || [], [monthsData?.months])
 
   const currentYear = new Date().getFullYear()
   const availableYears = [currentYear - 1, currentYear, currentYear + 1, currentYear + 2]
@@ -1158,7 +1157,7 @@ function RequestsTab() {
   useEffect(() => {
     const monthId = monthMapping[selectedKey]
     setListMonthId(monthId || null)
-  }, [selectedYear, selectedMonth, monthMapping])
+  }, [selectedKey, monthMapping])
 
   const { data: requests = [], isLoading: loadingRequests } = useQuery({
     queryKey: ['scheduling-requests', listMonthId],
@@ -1437,7 +1436,7 @@ interface EditRequestModalProps {
   onSuccess: () => void
 }
 
-function EditRequestModal({ request, months, onClose, onSuccess }: EditRequestModalProps) {
+function EditRequestModal({ request, months: _months, onClose, onSuccess }: EditRequestModalProps) {
   const t = useTranslations('scheduling.config.requests')
   const tActions = useTranslations('scheduling.actions')
   const tToasts = useTranslations('scheduling.toasts')
@@ -1612,7 +1611,7 @@ function AddRequestModal({
   const t = useTranslations('scheduling.config.requests')
   const tActions = useTranslations('scheduling.actions')
   const tToasts = useTranslations('scheduling.toasts')
-  const tMessages = useTranslations('scheduling.messages')
+  const _tMessages = useTranslations('scheduling.messages')
 
   const queryClient = useQueryClient()
   const [monthId, setMonthId] = useState<number | null>(initialMonthId)
@@ -1627,7 +1626,7 @@ function AddRequestModal({
     queryFn: schedulingApi.getSchedulableEmployees,
   })
 
-  const { data: monthData } = useQuery({
+  const { data: _monthData } = useQuery({
     queryKey: schedulingKeys.month(monthId || 0),
     queryFn: () => schedulingApi.getMonthById(monthId as number),
     enabled: !!monthId,
@@ -1909,23 +1908,7 @@ function RulesTab() {
 
   const { data: rulesData, isLoading: loadingRules } = useQuery({
     queryKey: schedulingKeys.rules(),
-    queryFn: async () => {
-      const result = await schedulingApi.getAllRules()
-      return {
-        ...result,
-        rules: result.rules.map((r: any) => ({
-          id: r.id,
-          employeeId: r.employee_id,
-          employeeName: r.employee_name,
-          ruleType: r.rule_type,
-          ruleValue: r.rule_value,
-          priority: r.priority,
-          isActive: r.is_active === 1,
-          notes: r.notes,
-          createdAt: r.created_at,
-        })),
-      }
-    },
+    queryFn: async () => schedulingApi.getAllRules(),
     staleTime: 0,
   })
 
@@ -1934,7 +1917,7 @@ function RulesTab() {
     ? rules.filter((r) => r.employeeId === filterEmployee)
     : rules
 
-  const getEmployeeName = (employeeId: string, rule?: any) => {
+  const getEmployeeName = (employeeId: string, rule?: SchedulingEmployeeRule) => {
     if (rule?.employeeName) return rule.employeeName
     const emp = employees.find((e) => e.id === employeeId)
     return emp?.username || employeeId
@@ -2211,7 +2194,7 @@ function RuleModal({ rule, employees, onClose }: RuleModalProps) {
       }
       delete snakeData.ruleType
       delete snakeData.ruleValue
-      return schedulingApi.updateRule(ruleId, snakeData as any)
+      return schedulingApi.updateRule(ruleId, snakeData as unknown as UpdateEmployeeRuleDto)
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: schedulingKeys.rules() })
@@ -2243,7 +2226,7 @@ function RuleModal({ rule, employees, onClose }: RuleModalProps) {
     if (isEditing && rule) {
       updateMutation.mutate({ ruleId: rule.id, data })
     } else {
-      createMutation.mutate(data as any)
+      createMutation.mutate(data as unknown as CreateEmployeeRuleDto)
     }
   }
 
@@ -2482,7 +2465,7 @@ function RuleModal({ rule, employees, onClose }: RuleModalProps) {
 // HELPERS
 // ============================================
 
-function formatRuleValue(ruleType: EmployeeRuleType, value: string): string {
+function _formatRuleValue(ruleType: EmployeeRuleType, value: string): string {
   switch (ruleType) {
     case 'shift_priority':
       return value === 'M' ? 'Mañana' : value === 'T' ? 'Tarde' : value

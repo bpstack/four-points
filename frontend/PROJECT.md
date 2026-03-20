@@ -41,26 +41,26 @@ Four Points es un **Sistema de Gestión Hotelera (PMS)** diseñado para operacio
 
 ### Características Principales
 
-| Característica | Descripción |
-| -------------- | ----------- |
-| **Full-Stack** | Frontend Next.js + Backend Express separados |
-| **TypeScript** | Desarrollo con tipos en ambos extremos |
-| **Base de Datos** | MySQL 8 (local + Aiven cloud) |
-| **Autenticación** | JWT con HttpOnly cookies (XSS protegido) |
-| **Multidioma** | Inglés y Español (19 namespaces) |
-| **Dark/Light Mode** | Tema completo con detección del sistema |
-| **Roles** | 4 roles: admin, receptionist, maintenance, group-admin |
-| **Exportación** | Excel (xlsx) y PDF (pdf-lib) |
-| **Demo Mode** | Operaciones restringidas para despliegues públicos |
+| Característica      | Descripción                                            |
+| ------------------- | ------------------------------------------------------ |
+| **Full-Stack**      | Frontend Next.js + Backend Express separados           |
+| **TypeScript**      | Desarrollo con tipos en ambos extremos                 |
+| **Base de Datos**   | MySQL 8 (local + Aiven cloud)                          |
+| **Autenticación**   | JWT con HttpOnly cookies (XSS protegido)               |
+| **Multidioma**      | Inglés y Español (19 namespaces)                       |
+| **Dark/Light Mode** | Tema completo con detección del sistema                |
+| **Roles**           | 4 roles: admin, receptionist, maintenance, group-admin |
+| **Exportación**     | Excel (xlsx) y PDF (pdf-lib)                           |
+| **Demo Mode**       | Operaciones restringidas para despliegues públicos     |
 
 ### URLs del Sistema
 
-| Entorno | URL |
-| ------- | --- |
-| Frontend Production | https://four-points.stackbp.es |
-| Frontend Vercel | https://four-points.vercel.app |
-| Backend API | https://api.four-points.stackbp.es |
-| Backend Render | https://four-points.onrender.com |
+| Entorno             | URL                                |
+| ------------------- | ---------------------------------- |
+| Frontend Production | https://four-points.stackbp.es     |
+| Frontend Vercel     | https://four-points.vercel.app     |
+| Backend API         | https://api.four-points.stackbp.es |
+| Backend Render      | https://four-points.onrender.com   |
 
 ---
 
@@ -215,30 +215,30 @@ frontend/
 
 ### Stack del Frontend
 
-| Tecnología | Propósito |
-| --------- | --------- |
-| **Next.js 16** | Framework React (App Router + Turbopack) |
-| **React 19** | Biblioteca UI (última versión) |
-| **TypeScript 5.7** | Desarrollo con tipos |
-| **TailwindCSS 3.4** | Estilos utility-first |
-| **NextUI 2.6** | Componentes Tailwind-based |
-| **HeadlessUI** | Componentes accesibles sin estilos |
-| **Heroicons** | Biblioteca de iconos SVG |
-| **Zustand 5** | State management ligero |
-| **TanStack Query 5** | Server state, caching, mutations |
-| **next-intl 4** | Internacionalización (EN/ES) |
-| **next-themes** | Dark/Light mode |
-| **Framer Motion** | Animaciones suaves |
-| **React Hook Form + Zod** | Formularios con validación |
-| **Recharts** | Visualización de datos y gráficos |
-| **xlsx (SheetJS)** | Generación y exportación Excel |
-| **pdf-lib** | Generación de documentos PDF |
-| **pdfjs-dist** | Visor de PDFs en aplicación |
-| **react-hot-toast** | Notificaciones toast |
-| **react-day-picker** | Componentes de selección de fecha |
-| **date-fns** | Utilidades de manipulación de fechas |
-| **js-cookie** | Gestión de cookies |
-| **clsx + tailwind-merge** | Utilidades condicionales de clases |
+| Tecnología                | Propósito                                |
+| ------------------------- | ---------------------------------------- |
+| **Next.js 16**            | Framework React (App Router + Turbopack) |
+| **React 19**              | Biblioteca UI (última versión)           |
+| **TypeScript 5.7**        | Desarrollo con tipos                     |
+| **TailwindCSS 3.4**       | Estilos utility-first                    |
+| **NextUI 2.6**            | Componentes Tailwind-based               |
+| **HeadlessUI**            | Componentes accesibles sin estilos       |
+| **Heroicons**             | Biblioteca de iconos SVG                 |
+| **Zustand 5**             | State management ligero                  |
+| **TanStack Query 5**      | Server state, caching, mutations         |
+| **next-intl 4**           | Internacionalización (EN/ES)             |
+| **next-themes**           | Dark/Light mode                          |
+| **Framer Motion**         | Animaciones suaves                       |
+| **React Hook Form + Zod** | Formularios con validación               |
+| **Recharts**              | Visualización de datos y gráficos        |
+| **xlsx (SheetJS)**        | Generación y exportación Excel           |
+| **pdf-lib**               | Generación de documentos PDF             |
+| **pdfjs-dist**            | Visor de PDFs en aplicación              |
+| **react-hot-toast**       | Notificaciones toast                     |
+| **react-day-picker**      | Componentes de selección de fecha        |
+| **date-fns**              | Utilidades de manipulación de fechas     |
+| **js-cookie**             | Gestión de cookies                       |
+| **clsx + tailwind-merge** | Utilidades condicionales de clases       |
 
 ### Cliente API (apiClient.ts)
 
@@ -257,25 +257,25 @@ El frontend usa un cliente centralizado con auto-refresh de JWT:
 
 ### State Management
 
-| Tipo | Herramienta | Uso |
-| ---- | ----------- | --- |
-| **Server State** | TanStack Query | Data fetching, caching, mutations |
-| **Client State** | Zustand | UI state (items seleccionados, filtros) |
+| Tipo             | Herramienta    | Uso                                     |
+| ---------------- | -------------- | --------------------------------------- |
+| **Server State** | TanStack Query | Data fetching, caching, mutations       |
+| **Client State** | Zustand        | UI state (items seleccionados, filtros) |
 
 ### Componentes Principales
 
-| Componente | Módulo | Propósito |
-| ---------- | ------ | --------- |
-| `ParkingDashboardClient` | Parking | Dashboard de parking |
-| `ConciliationClient` | Conciliación | Formulario de conciliación |
-| `CloseShiftModal` | Cashier | Cierre de turno |
-| `CreateBookingPanel` | Parking | Crear reserva |
-| `GroupDetailClient` | Groups | Detalle de grupo |
-| `ReportDetailClient` | Maintenance | Detalle de orden |
-| `GlobalSearch` | Global | Búsqueda global |
-| `NotificationsList` | Notifications | Lista de notificaciones |
-| `SlidePanel` | UI | Panel deslizante |
-| `DatePickerInput` | Calendar | Selector de fecha |
+| Componente               | Módulo        | Propósito                  |
+| ------------------------ | ------------- | -------------------------- |
+| `ParkingDashboardClient` | Parking       | Dashboard de parking       |
+| `ConciliationClient`     | Conciliación  | Formulario de conciliación |
+| `CloseShiftModal`        | Cashier       | Cierre de turno            |
+| `CreateBookingPanel`     | Parking       | Crear reserva              |
+| `GroupDetailClient`      | Groups        | Detalle de grupo           |
+| `ReportDetailClient`     | Maintenance   | Detalle de orden           |
+| `GlobalSearch`           | Global        | Búsqueda global            |
+| `NotificationsList`      | Notifications | Lista de notificaciones    |
+| `SlidePanel`             | UI            | Panel deslizante           |
+| `DatePickerInput`        | Calendar      | Selector de fecha          |
 
 ---
 
@@ -402,24 +402,24 @@ backend/
 
 ### Stack del Backend
 
-| Tecnología | Propósito |
-| --------- | --------- |
-| **Node.js 20+** | Runtime environment |
-| **Express 5** | Framework web (última versión major) |
-| **TypeScript** | Desarrollo con tipos |
-| **MySQL 8** | Base de datos relacional |
-| **mysql2** | Driver MySQL con promesas |
-| **Passport.js + JWT** | Autenticación |
-| **Zod 4** | Validación de requests |
-| **Cloudinary** | Almacenamiento cloud de imágenes/PDFs |
-| **Multer** | Upload de archivos (multipart/form-data) |
-| **Archiver** | Generación de ZIPs |
-| **node-cron** | Tareas programadas |
-| **nodemailer** | Envío de emails |
-| **bcrypt** | Hash de passwords (10 rounds) |
-| **express-rate-limit** | Rate limiting |
-| **dayjs** | Manipulación de fechas |
-| **Axios** | Llamadas a APIs externas |
+| Tecnología             | Propósito                                |
+| ---------------------- | ---------------------------------------- |
+| **Node.js 20+**        | Runtime environment                      |
+| **Express 5**          | Framework web (última versión major)     |
+| **TypeScript**         | Desarrollo con tipos                     |
+| **MySQL 8**            | Base de datos relacional                 |
+| **mysql2**             | Driver MySQL con promesas                |
+| **Passport.js + JWT**  | Autenticación                            |
+| **Zod 4**              | Validación de requests                   |
+| **Cloudinary**         | Almacenamiento cloud de imágenes/PDFs    |
+| **Multer**             | Upload de archivos (multipart/form-data) |
+| **Archiver**           | Generación de ZIPs                       |
+| **node-cron**          | Tareas programadas                       |
+| **nodemailer**         | Envío de emails                          |
+| **bcrypt**             | Hash de passwords (10 rounds)            |
+| **express-rate-limit** | Rate limiting                            |
+| **dayjs**              | Manipulación de fechas                   |
+| **Axios**              | Llamadas a APIs externas                 |
 
 ### API Endpoints
 
@@ -435,31 +435,31 @@ POST   /api/auth/register       # Registro (opcional)
 
 #### Módulos Principales
 
-| Módulo | Base Route | Operaciones |
-| ------ | ---------- | ----------- |
-| **Users** | `/api/users` | CRUD, avatar upload, roles |
-| **Groups** | `/api/groups` | Reservas, contactos, habitaciones, pagos, historial |
-| **Parking** | `/api/parking` | Espacios, reservas, check-in/out, tarifas, analytics |
-| **Logbooks** | `/api/logbooks` | Entradas, comentarios, seguimiento de lectura |
-| **Cashier** | `/api/cashier` | Turnos, denominaciones, pagos, vouchers, reportes |
-| **Maintenance** | `/api/maintenance` | Órdenes de trabajo, imágenes, estados |
-| **Blacklist** | `/api/blacklist` | Incidentes, verificación docs |
-| **Conciliation** | `/api/conciliations` | Conteo diario de habitaciones |
-| **Backoffice** | `/api/backoffice` | Facturas, proveedores, PDFs |
-| **Messages** | `/api/messages` | Conversaciones, mensajes directos |
-| **Notifications** | `/api/notifications` | Alertas, entrega programada |
-| **Activity** | `/api/activity` | Feed del dashboard, KPIs |
-| **Departments** | `/api/departments` | Gestión de departamentos |
-| **Search** | `/api/search` | Búsqueda global |
+| Módulo            | Base Route           | Operaciones                                          |
+| ----------------- | -------------------- | ---------------------------------------------------- |
+| **Users**         | `/api/users`         | CRUD, avatar upload, roles                           |
+| **Groups**        | `/api/groups`        | Reservas, contactos, habitaciones, pagos, historial  |
+| **Parking**       | `/api/parking`       | Espacios, reservas, check-in/out, tarifas, analytics |
+| **Logbooks**      | `/api/logbooks`      | Entradas, comentarios, seguimiento de lectura        |
+| **Cashier**       | `/api/cashier`       | Turnos, denominaciones, pagos, vouchers, reportes    |
+| **Maintenance**   | `/api/maintenance`   | Órdenes de trabajo, imágenes, estados                |
+| **Blacklist**     | `/api/blacklist`     | Incidentes, verificación docs                        |
+| **Conciliation**  | `/api/conciliations` | Conteo diario de habitaciones                        |
+| **Backoffice**    | `/api/backoffice`    | Facturas, proveedores, PDFs                          |
+| **Messages**      | `/api/messages`      | Conversaciones, mensajes directos                    |
+| **Notifications** | `/api/notifications` | Alertas, entrega programada                          |
+| **Activity**      | `/api/activity`      | Feed del dashboard, KPIs                             |
+| **Departments**   | `/api/departments`   | Gestión de departamentos                             |
+| **Search**        | `/api/search`        | Búsqueda global                                      |
 
 ### Middlewares
 
-| Middleware | Propósito |
-| --------- | --------- |
-| `authenticateToken` | Verificar JWT, attach user a request |
-| `roleCheck` | Validar permisos por rol |
-| `rateLimiter` | Prevenir abuso (100 req/15min por IP) |
-| `demoRestriction` | Bloquear writes para usuarios demo |
+| Middleware          | Propósito                             |
+| ------------------- | ------------------------------------- |
+| `authenticateToken` | Verificar JWT, attach user a request  |
+| `roleCheck`         | Validar permisos por rol              |
+| `rateLimiter`       | Prevenir abuso (100 req/15min por IP) |
+| `demoRestriction`   | Bloquear writes para usuarios demo    |
 
 ### Servicios Cron
 
@@ -486,21 +486,21 @@ POST   /api/auth/register       # Registro (opcional)
 
 El sistema usa **40+ tablas** organizadas por módulo:
 
-| Categoría | Tablas |
-| --------- | ------ |
-| **Auth** | `users`, `refresh_tokens` |
-| **Groups** | `group_reservations`, `group_contacts`, `group_rooms`, `group_payments`, `group_history` |
-| **Parking** | `parking_spaces`, `parking_bookings`, `parking_rates`, `parking_levels`, `parking_invoices` |
-| **Logbooks** | `logbook_entries`, `logbook_comments`, `logbook_reads`, `logbook_history` |
-| **Cashier** | `cashier_shifts`, `cashier_denominations`, `cashier_payments`, `cashier_vouchers`, `cashier_daily` |
-| **Maintenance** | `maintenance_orders`, `maintenance_images`, `maintenance_history` |
-| **Blacklist** | `blacklist_entries`, `blacklist_images` |
-| **Conciliation** | `conciliations`, `conciliation_monthly` |
-| **Backoffice** | `invoices`, `suppliers`, `invoice_images` |
-| **Messages** | `conversations`, `messages`, `conversation_participants` |
-| **Notifications** | `notifications`, `notification_reads`, `notification_schedule` |
-| **Activity** | `activity_log`, `activity_types` |
-| **System** | `departments`, `settings` |
+| Categoría         | Tablas                                                                                             |
+| ----------------- | -------------------------------------------------------------------------------------------------- |
+| **Auth**          | `users`, `refresh_tokens`                                                                          |
+| **Groups**        | `group_reservations`, `group_contacts`, `group_rooms`, `group_payments`, `group_history`           |
+| **Parking**       | `parking_spaces`, `parking_bookings`, `parking_rates`, `parking_levels`, `parking_invoices`        |
+| **Logbooks**      | `logbook_entries`, `logbook_comments`, `logbook_reads`, `logbook_history`                          |
+| **Cashier**       | `cashier_shifts`, `cashier_denominations`, `cashier_payments`, `cashier_vouchers`, `cashier_daily` |
+| **Maintenance**   | `maintenance_orders`, `maintenance_images`, `maintenance_history`                                  |
+| **Blacklist**     | `blacklist_entries`, `blacklist_images`                                                            |
+| **Conciliation**  | `conciliations`, `conciliation_monthly`                                                            |
+| **Backoffice**    | `invoices`, `suppliers`, `invoice_images`                                                          |
+| **Messages**      | `conversations`, `messages`, `conversation_participants`                                           |
+| **Notifications** | `notifications`, `notification_reads`, `notification_schedule`                                     |
+| **Activity**      | `activity_log`, `activity_types`                                                                   |
+| **System**        | `departments`, `settings`                                                                          |
 
 ### Relaciones Clave
 
@@ -524,10 +524,10 @@ departments (1) ───────< (n) users
 
 ### Configuración de Base de Datos
 
-| Entorno | Base de Datos | Host |
-| ------- | ------------- | ---- |
-| **Local** | `hotel_db` | localhost:3306 |
-| **Aiven** | `hotel_db` | Host cloud Aiven (SSL) |
+| Entorno   | Base de Datos | Host                   |
+| --------- | ------------- | ---------------------- |
+| **Local** | `hotel_db`    | localhost:3306         |
+| **Aiven** | `hotel_db`    | Host cloud Aiven (SSL) |
 
 ### Scripts SQL
 
@@ -776,14 +776,14 @@ NODE_ENV=development
 
 ### Deployment
 
-| Servicio | Proveedor | Propósito |
-| -------- | --------- | --------- |
-| **Frontend** | Vercel | Auto-deploy desde main |
-| **Frontend** | four-points.stackbp.es | Dominio personalizado |
-| **Backend** | Render | Auto-deploy desde main |
-| **Backend** | four-points.onrender.com | Fallback |
-| **Database** | Aiven | MySQL 8 gestionado |
-| **Media** | Cloudinary | Imágenes y PDFs |
+| Servicio     | Proveedor                | Propósito              |
+| ------------ | ------------------------ | ---------------------- |
+| **Frontend** | Vercel                   | Auto-deploy desde main |
+| **Frontend** | four-points.stackbp.es   | Dominio personalizado  |
+| **Backend**  | Render                   | Auto-deploy desde main |
+| **Backend**  | four-points.onrender.com | Fallback               |
+| **Database** | Aiven                    | MySQL 8 gestionado     |
+| **Media**    | Cloudinary               | Imágenes y PDFs        |
 
 ### CORS Configuration
 
@@ -799,15 +799,15 @@ El backend permite los siguientes orígenes:
 
 ### Seguridad
 
-| Medida | Implementación |
-| ------ | -------------- |
-| **XSS Protection** | HttpOnly cookies, sin localStorage |
-| **CSRF Protection** | SameSite cookies, whitelist CORS |
-| **SQL Injection** | Parameterized queries (mysql2) |
-| **Rate Limiting** | 100 requests / 15 min por IP |
-| **Password Hashing** | bcrypt (10 rounds) |
-| **Input Validation** | Zod schemas en todos los endpoints |
-| **Error Sanitization** | Errores genéricos en producción |
+| Medida                 | Implementación                     |
+| ---------------------- | ---------------------------------- |
+| **XSS Protection**     | HttpOnly cookies, sin localStorage |
+| **CSRF Protection**    | SameSite cookies, whitelist CORS   |
+| **SQL Injection**      | Parameterized queries (mysql2)     |
+| **Rate Limiting**      | 100 requests / 15 min por IP       |
+| **Password Hashing**   | bcrypt (10 rounds)                 |
+| **Input Validation**   | Zod schemas en todos los endpoints |
+| **Error Sanitization** | Errores genéricos en producción    |
 
 ---
 
@@ -853,35 +853,35 @@ mysql -u usuario -h host -p hotel_db -P 3306 --ssl-ca=certs/ca-certificate.pem <
 
 ### Frontend
 
-| Documento | Descripción |
-| --------- | ----------- |
-| `frontend/README.md` | Documentación completa del frontend |
+| Documento             | Descripción                         |
+| --------------------- | ----------------------------------- |
+| `frontend/README.md`  | Documentación completa del frontend |
 | `frontend/PROJECT.md` | Este archivo (resumen del proyecto) |
 
 ### Backend
 
-| Documento | Descripción |
-| --------- | ----------- |
-| `backend/README.md` | Guía de migración JWT → Sessions |
-| `backend.md` | Documentación detallada del backend |
+| Documento           | Descripción                         |
+| ------------------- | ----------------------------------- |
+| `backend/README.md` | Guía de migración JWT → Sessions    |
+| `backend.md`        | Documentación detallada del backend |
 
 ### Documentación General
 
-| Documento | Descripción |
-| --------- | ----------- |
+| Documento                                           | Descripción                      |
+| --------------------------------------------------- | -------------------------------- |
 | `docs/backend/enviroments/environment-variables.md` | Análisis de variables de entorno |
-| `docs/general/powershell/useCommands.md` | Comandos PowerShell útiles |
-| `docs/backend/database/database-configuration.md` | Configuración de base de datos |
-| `docs/backend/database/aiven-setup.md` | Configuración Aiven |
-| `docs/backend/security/security-implementation.md` | Implementación de seguridad |
+| `docs/general/powershell/useCommands.md`            | Comandos PowerShell útiles       |
+| `docs/backend/database/database-configuration.md`   | Configuración de base de datos   |
+| `docs/backend/database/aiven-setup.md`              | Configuración Aiven              |
+| `docs/backend/security/security-implementation.md`  | Implementación de seguridad      |
 
 ### Base de Datos
 
-| Documento | Descripción |
-| --------- | ----------- |
-| `backend/db-mysql/README.md` | Guía de bases de datos |
-| `backend/db-mysql/MIGRATION_GUIDE.md` | Guía de migración |
-| `backend/db-mysql/INDEX.md` | Índice de scripts SQL |
+| Documento                             | Descripción            |
+| ------------------------------------- | ---------------------- |
+| `backend/db-mysql/README.md`          | Guía de bases de datos |
+| `backend/db-mysql/MIGRATION_GUIDE.md` | Guía de migración      |
+| `backend/db-mysql/INDEX.md`           | Índice de scripts SQL  |
 
 ---
 
