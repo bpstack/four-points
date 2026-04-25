@@ -650,3 +650,12 @@ export interface AnnualTotalsResponse {
 // ============================================
 
 export { ResultSetHeader }
+
+// ============================================
+// EMPLOYEE REQUESTS (Fase 1 solver — 2026-04-25)
+// ============================================
+export type {
+  SchedulingRequestType,
+  SchedulingRequestStatus,
+  SchedulingEmployeeRequestRow,
+} from './employee-request.js'
