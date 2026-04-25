@@ -51,7 +51,9 @@ function defaultConfig(overrides = {}) {
 function noCoverageConfig(overrides = {}) {
   return defaultConfig({
     minMorningStaff: 0,
+    prefMorningStaff: 0,
     minAfternoonStaff: 0,
+    prefAfternoonStaff: 0,
     minNightStaff: 0,
     maxMorningStaff: 99,
     maxAfternoonStaff: 99,
@@ -196,6 +198,8 @@ write('F01-empty-month', {
       { type: 'coverage', severity: 'error', day: 1 },
       { type: 'coverage', severity: 'error', day: 5 },
     ],
+    softPenalty: 15,
+    softPenaltyBreakdown: { weekend_off_missing: 15 },
   },
 })
 
@@ -220,6 +224,8 @@ write('F02-perfect-month', {
   expected: {
     isValid: true,
     violations: [],
+    softPenalty: 25,
+    softPenaltyBreakdown: { weekend_off_missing: 25 },
   },
 })
 
@@ -242,6 +248,8 @@ write('F03-coverage-min-morning', {
   expected: {
     isValid: false,
     violations: [{ type: 'coverage', severity: 'error', day: 5 }],
+    softPenalty: 15,
+    softPenaltyBreakdown: { weekend_off_missing: 15 },
   },
 })
 
@@ -264,6 +272,8 @@ write('F04-coverage-min-afternoon', {
   expected: {
     isValid: false,
     violations: [{ type: 'coverage', severity: 'error', day: 10 }],
+    softPenalty: 15,
+    softPenaltyBreakdown: { weekend_off_missing: 15 },
   },
 })
 
@@ -286,6 +296,8 @@ write('F05-coverage-no-night', {
   expected: {
     isValid: false,
     violations: [{ type: 'coverage', severity: 'error', day: 15 }],
+    softPenalty: 170,
+    softPenaltyBreakdown: { weekend_off_missing: 15, pref_afternoon_staff_below: 155 },
   },
 })
 
@@ -308,6 +320,8 @@ write('F06-coverage-max-morning', {
   expected: {
     isValid: false,
     violations: [{ type: 'coverage', severity: 'warning', day: 5 }],
+    softPenalty: 325,
+    softPenaltyBreakdown: { weekend_off_missing: 15, pref_afternoon_staff_below: 310 },
   },
 })
 
@@ -348,6 +362,8 @@ write('F07-rest-hours-violation', {
   expected: {
     isValid: false,
     violations: [{ type: 'rest', employeeId: eid(1) }],
+    softPenalty: 10,
+    softPenaltyBreakdown: { weekend_off_missing: 10 },
   },
 })
 
@@ -391,6 +407,8 @@ write('F08-rest-hours-tight-but-ok', {
       // No rest error for EMP_01: the libre at day 7 buffers the T(6) → M(9) chain.
       { type: 'rest', severity: 'error', employeeId: eid(1) },
     ],
+    softPenalty: 10,
+    softPenaltyBreakdown: { weekend_off_missing: 10 },
   },
 })
 
@@ -428,6 +446,8 @@ write('F09-night-block-too-short', {
   expected: {
     isValid: false,
     violations: [{ type: 'night_block', employeeId: eid(1) }],
+    softPenalty: 0,
+    softPenaltyBreakdown: {},
   },
 })
 
@@ -509,6 +529,8 @@ write('F10-night-block-correct', {
     isValid: true,
     violations: [],
     absentViolations: [{ type: 'night_block', employeeId: eid(1) }],
+    softPenalty: 12,
+    softPenaltyBreakdown: { libre_below_pref: 2, weekend_off_missing: 10 },
   },
 })
 
@@ -516,7 +538,6 @@ write('F10-night-block-correct', {
 write('F11-cross-month-night-block-completed', {
   description:
     'Employee ended prev month with 3 nights, starts this month with 2 more → block of 5 total, valid.',
-  todo: true,
   input: {
     monthId: 1,
     year: 2026,
@@ -541,18 +562,22 @@ write('F11-cross-month-night-block-completed', {
       endedWithNight: { [eid(1)]: true, [eid(2)]: false },
     },
     assignments: {
+      // EMP_01: N,N on days 1-2 (cross-month continuation from 3 nights in prev month),
+      // then standard M blocks. Libre on 30,31 avoids isolated M at end of month.
       [eid(1)]: Object.fromEntries(
         jan2026Days().map((d) => {
           const dn = d.dayNumber
           if (dn === 1 || dn === 2) return [dn, 'N']
-          if ([3, 4, 10, 11, 17, 18, 24, 25, 29, 30].includes(dn)) return [dn, 'L']
+          if ([3, 4, 10, 11, 17, 18, 24, 25, 30, 31].includes(dn)) return [dn, 'L']
           return [dn, 'M']
         })
       ),
+      // EMP_02: starts with 5T block (no isolated 1-2 day start), ends cleanly.
+      // Libre: [6,7,13,14,20,21,25,26,27,28] → blocks: T(1-5),T(8-12),T(15-19),T(22-24),T(29-31)
       [eid(2)]: Object.fromEntries(
         jan2026Days().map((d) => {
           const dn = d.dayNumber
-          if ([3, 4, 10, 11, 17, 18, 24, 25, 29, 30].includes(dn)) return [dn, 'L']
+          if ([6, 7, 13, 14, 20, 21, 25, 26, 27, 28].includes(dn)) return [dn, 'L']
           return [dn, 'T']
         })
       ),
@@ -562,13 +587,14 @@ write('F11-cross-month-night-block-completed', {
     isValid: true,
     violations: [],
     absentViolations: [{ type: 'night_block', employeeId: eid(1) }],
+    softPenalty: 5,
+    softPenaltyBreakdown: { weekend_off_missing: 5 },
   },
 })
 
 write('F12-cross-month-rest-hours', {
   description:
     'Employee had T last day of prev month, M first day of this month — no rest in between.',
-  todo: true,
   input: {
     monthId: 1,
     year: 2026,
@@ -612,13 +638,14 @@ write('F12-cross-month-rest-hours', {
   expected: {
     isValid: false,
     violations: [{ type: 'rest', employeeId: eid(1) }],
+    softPenalty: 4,
+    softPenaltyBreakdown: { rotation_continuity_break: 4 },
   },
 })
 
 write('F13-cross-month-rotation-continuity', {
   description:
     'Employee ended prev month on M-rotation, starts this month on T without transition — rotation continuity warning.',
-  todo: true,
   input: {
     monthId: 1,
     year: 2026,
@@ -662,6 +689,8 @@ write('F13-cross-month-rotation-continuity', {
   expected: {
     isValid: false,
     violations: [{ type: 'constraint', employeeId: eid(1) }],
+    softPenalty: 4,
+    softPenaltyBreakdown: { rotation_continuity_break: 4 },
   },
 })
 
@@ -699,6 +728,8 @@ write('F14-libre-below-min', {
   expected: {
     isValid: false,
     violations: [{ type: 'rest', severity: 'warning', employeeId: eid(1) }],
+    softPenalty: 0,
+    softPenaltyBreakdown: {},
   },
 })
 
@@ -735,6 +766,8 @@ write('F15-libre-above-max', {
   expected: {
     isValid: false,
     violations: [{ type: 'rest', severity: 'warning', employeeId: eid(1) }],
+    softPenalty: 5,
+    softPenaltyBreakdown: { weekend_off_missing: 5 },
   },
 })
 
@@ -772,6 +805,8 @@ write('F16-consecutive-work-violation', {
   expected: {
     isValid: false,
     violations: [{ type: 'rest', severity: 'error', employeeId: eid(1) }],
+    softPenalty: 0,
+    softPenaltyBreakdown: {},
   },
 })
 
@@ -810,6 +845,8 @@ write('F17-small-work-block', {
   expected: {
     isValid: false,
     violations: [{ type: 'rest', severity: 'error', employeeId: eid(1) }],
+    softPenalty: 7,
+    softPenaltyBreakdown: { libre_above_pref: 2, weekend_off_missing: 5 },
   },
 })
 
@@ -848,13 +885,16 @@ write('F18-weekend-off-missing', {
   expected: {
     isValid: false,
     violations: [{ type: 'rest', severity: 'warning', employeeId: eid(1) }],
+    // Only EMP_01 triggers W10 (EMP_02 uses Pattern E weekdays); noCoverageConfig pref=0 → no pref penalty
+    softPenalty: 5,
+    softPenaltyBreakdown: {
+      weekend_off_missing: 5,
+    },
   },
 })
-
-// ---- F19: Weekend off met ----
-write('F19-weekend-off-met', {
+write('F19-pattern-e-no-weekend-off', {
   description:
-    'Both employees use Pattern E libres (not on weekends) → W10 warning fires but isValid=true. No rest errors.',
+    'Both employees use Pattern E libres (Mon+Tue blocks, not on weekends) → W10 fires for both. isValid=true (no errors). Named correctly: Pattern E never gives a Sat+Sun off.',
   input: {
     monthId: 1,
     year: 2026,
@@ -877,14 +917,19 @@ write('F19-weekend-off-met', {
   expected: {
     isValid: true,
     violations: [],
+    // Both EMP_01 and EMP_02: W10 fires (Pattern E libres are Mon+Tue blocks, not weekends)
+    // noCoverageConfig sets pref=0, so no pref_morning/afternoon penalties
+    softPenalty: 10,
+    softPenaltyBreakdown: {
+      weekend_off_missing: 10,
+    },
   },
 })
 
-// ---- F20: Employee no_weekends (todo — EmployeeRulesConstraint not in validator) ----
+// ---- F20: Employee no_weekends ----
 write('F20-employee-no-weekends', {
   description:
-    'Employee with noWeekends=true is assigned M on Saturday → employee-rules violation. TODO: EmployeeRulesConstraint not wired into ScheduleValidator yet.',
-  todo: true,
+    'Employee with noWeekends=true is assigned M on Saturday → employee-rules error violation.',
   input: {
     monthId: 1,
     year: 2026,
@@ -916,14 +961,15 @@ write('F20-employee-no-weekends', {
   expected: {
     isValid: false,
     violations: [{ type: 'constraint', employeeId: eid(1) }],
+    softPenalty: 2,
+    softPenaltyBreakdown: { libre_below_pref: 2 },
   },
 })
 
-// ---- F21: Employee fixed shift (todo — EmployeeRulesConstraint not in validator) ----
+// ---- F21: Employee fixed shift ----
 write('F21-employee-fixed-shift', {
   description:
-    'Employee with fixedShift=M is assigned T on multiple days → employee-rules violation. TODO: EmployeeRulesConstraint not wired into ScheduleValidator yet.',
-  todo: true,
+    'Employee with fixedShift=M is assigned T on multiple days → employee-rules error violation.',
   input: {
     monthId: 1,
     year: 2026,
@@ -955,6 +1001,8 @@ write('F21-employee-fixed-shift', {
   expected: {
     isValid: false,
     violations: [{ type: 'constraint', employeeId: eid(1) }],
+    softPenalty: 0,
+    softPenaltyBreakdown: {},
   },
 })
 
@@ -990,6 +1038,8 @@ write('F22-locked-vacation-respected', {
   expected: {
     isValid: true,
     violations: [],
+    softPenalty: 10,
+    softPenaltyBreakdown: { weekend_off_missing: 10 },
   },
 })
 
@@ -1025,6 +1075,8 @@ write('F23-locked-cell-still-counts', {
   expected: {
     isValid: true,
     violations: [],
+    softPenalty: 10,
+    softPenaltyBreakdown: { weekend_off_missing: 10 },
   },
 })
 
@@ -1103,6 +1155,8 @@ write('F24-29feb-leap-year', {
   expected: {
     isValid: true,
     violations: [],
+    softPenalty: 0,
+    softPenaltyBreakdown: {},
   },
 })
 
@@ -1136,6 +1190,8 @@ write('F25-fully-broken-month', {
       { type: 'rest', employeeId: eid(3) },
       { type: 'night_block', employeeId: eid(2) },
     ],
+    softPenalty: 10,
+    softPenaltyBreakdown: { weekend_off_missing: 10 },
   },
 })
 

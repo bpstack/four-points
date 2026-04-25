@@ -7,10 +7,10 @@
     "month": 1,
     "config": {
       "minMorningStaff": 0,
-      "prefMorningStaff": 2,
+      "prefMorningStaff": 0,
       "maxMorningStaff": 99,
       "minAfternoonStaff": 0,
-      "prefAfternoonStaff": 2,
+      "prefAfternoonStaff": 0,
       "maxAfternoonStaff": 99,
       "minNightStaff": 0,
       "maxNightStaff": 99,
@@ -304,6 +304,10 @@
         "severity": "error",
         "employeeId": "E0000000-0000-0000-0000-000000000001"
       }
-    ]
+    ],
+    "softPenalty": 10,
+    "softPenaltyBreakdown": {
+      "weekend_off_missing": 10
+    }
   }
 }

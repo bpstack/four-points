@@ -2,7 +2,8 @@
 // Runs all scheduling corpus fixtures against ScheduleValidator.
 // Each fixture describes expected violations that MUST be present (or absent) in the result.
 //
-// Cross-month fixtures (F11, F12, F13) are marked todo until B.0 wiring is complete.
+// Cross-month fixtures (F11, F12, F13) are marked todo until B.0 constraint logic is complete.
+// B.0 parameter wiring (previousMonthHistory) is done — constraints need to consume it.
 
 import { describe, it, expect } from 'vitest'
 import { ScheduleValidator } from '../../services/scheduling/schedule-validator.js'
@@ -14,7 +15,7 @@ import {
   buildEmployees,
   buildAssignments,
   mergeConfig,
-  // buildPreviousMonthHistory — wire in when B.0 lands and the validator constructor accepts it
+  buildPreviousMonthHistory,
 } from '../scheduling-corpus/factory.js'
 import type { CorpusFixture, ViolationMatcher } from '../scheduling-corpus/_schema.js'
 
@@ -58,6 +59,11 @@ function runFixture(fixture: CorpusFixture) {
   // Build the SchedulingConfigMap expected by the validator constructor
   const configMap = mergeConfig(input.config)
 
+  // Wire previous month history if provided by the fixture
+  const previousMonthHistory = input.previousMonthHistory
+    ? buildPreviousMonthHistory(input.previousMonthHistory)
+    : null
+
   const validator = new ScheduleValidator(
     input.monthId,
     input.year,
@@ -66,7 +72,8 @@ function runFixture(fixture: CorpusFixture) {
     shifts,
     days,
     employees,
-    assignments
+    assignments,
+    previousMonthHistory
   )
 
   return validator.validate()
@@ -122,6 +129,19 @@ describe('Scheduling corpus — validator parity', () => {
             (matcher.day ? ` day=${matcher.day}` : '') +
             `\nFound: [${found?.type}/${found?.severity}] emp=${found?.employeeId} day=${found?.day} msg="${found?.message}"`
         ).toBeUndefined()
+      }
+
+      // 4. Check soft penalty total (only if fixture specifies it)
+      if (fixture.expected.softPenalty !== undefined) {
+        expect(
+          result.softPenalty,
+          `Expected softPenalty=${fixture.expected.softPenalty} but got ${result.softPenalty}`
+        ).toBe(fixture.expected.softPenalty)
+      }
+
+      // 5. Check soft penalty breakdown (only if fixture specifies it)
+      if (fixture.expected.softPenaltyBreakdown !== undefined) {
+        expect(result.softPenaltyBreakdown).toEqual(fixture.expected.softPenaltyBreakdown)
       }
     })
   }

@@ -1,16 +1,16 @@
 {
-  "id": "F19-weekend-off-met",
-  "description": "Both employees use Pattern E libres (not on weekends) → W10 warning fires but isValid=true. No rest errors.",
+  "id": "F19-pattern-e-no-weekend-off",
+  "description": "Both employees use Pattern E libres (Mon+Tue blocks, not on weekends) → W10 fires for both. isValid=true (no errors). Named correctly: Pattern E never gives a Sat+Sun off.",
   "input": {
     "monthId": 1,
     "year": 2026,
     "month": 1,
     "config": {
       "minMorningStaff": 0,
-      "prefMorningStaff": 2,
+      "prefMorningStaff": 0,
       "maxMorningStaff": 99,
       "minAfternoonStaff": 0,
-      "prefAfternoonStaff": 2,
+      "prefAfternoonStaff": 0,
       "maxAfternoonStaff": 99,
       "minNightStaff": 0,
       "maxNightStaff": 99,
@@ -297,6 +297,10 @@
   },
   "expected": {
     "isValid": true,
-    "violations": []
+    "violations": [],
+    "softPenalty": 10,
+    "softPenaltyBreakdown": {
+      "weekend_off_missing": 10
+    }
   }
 }

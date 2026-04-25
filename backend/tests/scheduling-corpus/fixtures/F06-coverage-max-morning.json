@@ -340,6 +340,11 @@
         "severity": "warning",
         "day": 5
       }
-    ]
+    ],
+    "softPenalty": 325,
+    "softPenaltyBreakdown": {
+      "weekend_off_missing": 15,
+      "pref_afternoon_staff_below": 310
+    }
   }
 }

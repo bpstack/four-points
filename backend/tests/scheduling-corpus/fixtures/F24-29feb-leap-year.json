@@ -7,10 +7,10 @@
     "month": 2,
     "config": {
       "minMorningStaff": 0,
-      "prefMorningStaff": 2,
+      "prefMorningStaff": 0,
       "maxMorningStaff": 99,
       "minAfternoonStaff": 0,
-      "prefAfternoonStaff": 2,
+      "prefAfternoonStaff": 0,
       "maxAfternoonStaff": 99,
       "minNightStaff": 0,
       "maxNightStaff": 99,
@@ -281,6 +281,8 @@
   },
   "expected": {
     "isValid": true,
-    "violations": []
+    "violations": [],
+    "softPenalty": 0,
+    "softPenaltyBreakdown": {}
   }
 }

@@ -1,17 +1,16 @@
 {
   "id": "F13-cross-month-rotation-continuity",
   "description": "Employee ended prev month on M-rotation, starts this month on T without transition — rotation continuity warning.",
-  "todo": true,
   "input": {
     "monthId": 1,
     "year": 2026,
     "month": 1,
     "config": {
       "minMorningStaff": 0,
-      "prefMorningStaff": 2,
+      "prefMorningStaff": 0,
       "maxMorningStaff": 99,
       "minAfternoonStaff": 0,
-      "prefAfternoonStaff": 2,
+      "prefAfternoonStaff": 0,
       "maxAfternoonStaff": 99,
       "minNightStaff": 0,
       "maxNightStaff": 99,
@@ -334,6 +333,10 @@
         "type": "constraint",
         "employeeId": "E0000000-0000-0000-0000-000000000001"
       }
-    ]
+    ],
+    "softPenalty": 4,
+    "softPenaltyBreakdown": {
+      "rotation_continuity_break": 4
+    }
   }
 }

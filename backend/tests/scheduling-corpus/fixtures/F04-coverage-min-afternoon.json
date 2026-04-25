@@ -340,6 +340,10 @@
         "severity": "error",
         "day": 10
       }
-    ]
+    ],
+    "softPenalty": 15,
+    "softPenaltyBreakdown": {
+      "weekend_off_missing": 15
+    }
   }
 }

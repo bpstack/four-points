@@ -11,6 +11,8 @@ import type { GeneratorContext, ConstraintResult, GenerationWarning } from '../t
  * 1. T(day X) → M(day X+1) = ERROR (only 8h between shifts)
  * 2. T → L → M = OK (rest between)
  * 3. M → T = OK (16h between shifts)
+ * 4. Cross-month: if lastShiftType changed between months (M→T or T→M), emit error.
+ *    This also emits a rotation_continuity_break soft penalty.
  * NOTE: "máx 1 M/T before N" rule does NOT exist - removed
  */
 export class RotationContinuityConstraint extends BaseConstraint {
@@ -19,41 +21,65 @@ export class RotationContinuityConstraint extends BaseConstraint {
 
   check(context: GeneratorContext): ConstraintResult {
     const violations: GenerationWarning[] = []
-    const { matrix, employees, days } = context
+    const softViolations: GenerationWarning[] = []
+    let softPenalty = 0
+    const softPenaltyBreakdown: Record<string, number> = {}
+
+    const { matrix, employees, days, previousMonthHistory } = context
 
     for (const employee of employees) {
       const empMatrix = matrix[employee.id]
       if (!empMatrix) continue
 
-      // Check each week
-      const weeklyViolations = this.checkWeeklyRotation(employee.id, employee.name, empMatrix, days, context)
-      violations.push(...weeklyViolations)
+      // Cross-month rotation continuity check
+      if (previousMonthHistory) {
+        const lastShiftType = previousMonthHistory.lastShiftType.get(employee.id)
+        const day1Shift = empMatrix[1]
 
-      // Check day-to-day transitions
-      const transitionViolations = this.checkTransitions(employee.id, employee.name, empMatrix, days)
+        if (lastShiftType && (day1Shift === 'M' || day1Shift === 'T')) {
+          const day1Type = day1Shift as 'M' | 'T'
+          if (lastShiftType !== day1Type) {
+            // Rotation changed at month boundary without a rest transition
+            const { warning, penalty, breakdownKey } = this.softWarn(
+              'rotation_continuity_break',
+              1,
+              `${employee.name}: cambio de rotación ${lastShiftType}→${day1Type} en límite de mes sin transición`,
+              { type: 'constraint', day: 1, employeeId: employee.id, employeeName: employee.name }
+            )
+            // This is a hard error (rotation break is not acceptable without rest days)
+            violations.push({ ...warning, severity: 'error' })
+            softPenalty += penalty
+            softPenaltyBreakdown[breakdownKey] = (softPenaltyBreakdown[breakdownKey] ?? 0) + penalty
+          }
+        }
+      }
+
+      // Check day-to-day transitions within the month
+      const transitionViolations = this.checkTransitions(
+        employee.id,
+        employee.name,
+        empMatrix,
+        days
+      )
       violations.push(...transitionViolations)
     }
 
-    return violations.length > 0 ? this.failure(violations) : this.success()
-  }
+    const allViolations = [...violations, ...softViolations]
 
-  /**
-   * Check weekly rotation - with block-based rotation, M and T can coexist
-   * in the same week (e.g. M block ends, rest, T block starts).
-   * The only real constraint is T→M on consecutive days (checked in checkTransitions).
-   * This method is kept for structural compatibility but no longer flags weekly mixing.
-   */
-  private checkWeeklyRotation(
-    _employeeId: string,
-    _employeeName: string,
-    _empMatrix: Record<number, string>,
-    _days: Array<{ dayNumber: number; weekNumber: number }>,
-    _context: GeneratorContext
-  ): GenerationWarning[] {
-    // With block-based rotation, having M and T in the same week is valid
-    // (e.g., M(Mon-Wed) + L(Thu-Fri) + T(Sat) in the same week)
-    // T→M on consecutive days is caught by checkTransitions
-    return []
+    if (violations.length > 0) {
+      return {
+        ...this.failure(allViolations),
+        softPenalty,
+        softPenaltyBreakdown,
+      }
+    }
+
+    return {
+      ...this.success(),
+      violations: softViolations,
+      softPenalty,
+      softPenaltyBreakdown,
+    }
   }
 
   /**
@@ -90,9 +116,6 @@ export class RotationContinuityConstraint extends BaseConstraint {
           )
         )
       }
-
-      // NOTE: "máx 1 M/T before N" rule REMOVED - it doesn't exist in reality
-      // Any employee can transition from M/T block to N block after rest
     }
 
     return violations

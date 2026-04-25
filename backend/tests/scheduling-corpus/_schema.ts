@@ -137,6 +137,15 @@ export interface FixtureExpected {
    * Each matcher must find zero matching entries.
    */
   absentViolations?: ViolationMatcher[]
+  /**
+   * Expected soft penalty total. Optional — only checked when present.
+   * Fill in after running the validator to snapshot the value.
+   */
+  softPenalty?: number
+  /**
+   * Expected soft penalty breakdown by key. Optional — only checked when present.
+   */
+  softPenaltyBreakdown?: Record<string, number>
 }
 
 // ============================================

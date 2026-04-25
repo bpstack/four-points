@@ -18,9 +18,13 @@ import type {
   ShiftInfo,
   GenerationWarning,
   ScheduleMatrix,
+  PreviousMonthHistory,
 } from './types/index.js'
 
 import { CoverageConstraint } from './constraints/coverage.constraint.js'
+import { EmployeeRulesConstraint } from './constraints/employee-rules.constraint.js'
+import { ConstraintRegistry } from './constraints/registry.js'
+import { SOFT_WEIGHTS } from './soft-weights.js'
 import { isWorkShift, isLibreShift, getEmployeeShiftCounts } from './utils/matrix.js'
 import { getWeeksInMonth, areConsecutive } from './utils/day-helpers.js'
 
@@ -32,6 +36,10 @@ export interface ValidationResult {
   isValid: boolean
   errors: GenerationWarning[]
   warnings: GenerationWarning[]
+  /** Weighted sum of soft-penalty violations (0 = perfect, higher = more soft violations) */
+  softPenalty: number
+  /** Breakdown by SoftWeightKey for traceability and solver use */
+  softPenaltyBreakdown: Record<string, number>
   stats: {
     totalErrors: number
     totalWarnings: number
@@ -58,6 +66,7 @@ export class ScheduleValidator {
   private days: DayInfo[]
   private employees: Employee[]
   private assignments: SchedulingAssignmentWithDetails[]
+  private previousMonthHistory: PreviousMonthHistory | null
 
   constructor(
     monthId: number,
@@ -67,7 +76,8 @@ export class ScheduleValidator {
     shifts: SchedulingShiftRow[],
     days: SchedulingDayRow[],
     employees: Employee[],
-    assignments: SchedulingAssignmentWithDetails[]
+    assignments: SchedulingAssignmentWithDetails[],
+    previousMonthHistory: PreviousMonthHistory | null = null
   ) {
     this.monthId = monthId
     this.year = year
@@ -125,6 +135,7 @@ export class ScheduleValidator {
 
     this.employees = employees
     this.assignments = assignments
+    this.previousMonthHistory = previousMonthHistory
   }
 
   // ============================================
@@ -132,7 +143,7 @@ export class ScheduleValidator {
   // ============================================
 
   validate(): ValidationResult {
-    // Build context with existing assignments
+    // Build context with existing assignments (including previousMonthHistory for cross-month checks)
     const context = this.createContextFromAssignments()
 
     console.log(
@@ -140,27 +151,36 @@ export class ScheduleValidator {
     )
     console.log(`[Validator] Employees: ${this.employees.map((e) => e.name).join(', ')}`)
 
-    // Run final validation logic (extracted from FinalValidationPhase)
-    const validationWarnings = this.runFinalValidation(context)
+    // Run final validation logic (inline rules: libre count, consecutive work, night block, etc.)
+    const finalResult = this.runFinalValidation(context)
 
-    console.log(`[Validator] FinalValidation returned ${validationWarnings.length} issues`)
+    console.log(`[Validator] FinalValidation returned ${finalResult.warnings.length} issues`)
 
-    // Run coverage constraint
-    const coverageConstraint = new CoverageConstraint()
-    const coverageResult = coverageConstraint.check(context)
+    // Run constraint registry (coverage + employee-rules)
+    const registry = new ConstraintRegistry()
+    registry.register(new CoverageConstraint())
+    registry.register(new EmployeeRulesConstraint())
+    const registryResult = registry.checkAll(context)
 
     console.log(
-      `[Validator] CoverageConstraint returned ${coverageResult.violations.length} issues`
+      `[Validator] CoverageConstraint returned ${registryResult.violations.length} issues`
     )
 
     // Merge all warnings
-    const allWarnings: GenerationWarning[] = [...validationWarnings, ...coverageResult.violations]
+    const allWarnings: GenerationWarning[] = [...finalResult.warnings, ...registryResult.violations]
 
     // Separate errors and warnings
     const errors = allWarnings.filter((w) => w.severity === 'error')
     const warnings = allWarnings.filter((w) => w.severity === 'warning')
 
     console.log(`[Validator] Total: ${errors.length} errors, ${warnings.length} warnings`)
+
+    // Aggregate soft penalty from both sources
+    const softPenalty = finalResult.softPenalty + (registryResult.softPenalty ?? 0)
+    const softPenaltyBreakdown: Record<string, number> = { ...finalResult.softPenaltyBreakdown }
+    for (const [key, val] of Object.entries(registryResult.softPenaltyBreakdown ?? {})) {
+      softPenaltyBreakdown[key] = (softPenaltyBreakdown[key] ?? 0) + val
+    }
 
     // Count by type
     const byType: Record<string, number> = {}
@@ -172,6 +192,8 @@ export class ScheduleValidator {
       isValid: errors.length === 0,
       errors,
       warnings,
+      softPenalty,
+      softPenaltyBreakdown,
       stats: {
         totalErrors: errors.length,
         totalWarnings: warnings.length,
@@ -186,15 +208,24 @@ export class ScheduleValidator {
 
   private readonly MIN_WORK_BLOCK = 3
 
-  private runFinalValidation(context: GeneratorContext): GenerationWarning[] {
+  private runFinalValidation(context: GeneratorContext): {
+    warnings: GenerationWarning[]
+    softPenalty: number
+    softPenaltyBreakdown: Record<string, number>
+  } {
     const warnings: GenerationWarning[] = []
     const { matrix, days, employees, config } = context
+    let softPenalty = 0
+    const softPenaltyBreakdown: Record<string, number> = {}
 
-    const minMonthlyLibre = config.minMonthlyLibre || 7
-    const maxMonthlyLibre = config.maxMonthlyLibre || 10
+    const minMonthlyLibre = config.minMonthlyLibre ?? 7
+    const maxMonthlyLibre = config.maxMonthlyLibre ?? 10
+    const prefMonthlyLibre =
+      config.prefMonthlyLibre ?? Math.round((minMonthlyLibre + maxMonthlyLibre) / 2)
     const maxConsecutiveWorkDays = config.maxConsecutiveWorkDays || 6
     const minNightBlock = config.minNightBlock || 4
     const maxNightBlock = config.maxNightBlock || 6
+    const prefNightBlock = config.prefNightBlock || minNightBlock
     const MIN_NIGHTS_REQUIRED = 3
 
     for (const employee of employees) {
@@ -216,7 +247,15 @@ export class ScheduleValidator {
             }
           )
         )
+      } else if (totalLibreDays < prefMonthlyLibre) {
+        // SOFT: below preference but above minimum
+        const delta = prefMonthlyLibre - totalLibreDays
+        const penalty = SOFT_WEIGHTS.libre_below_pref * delta
+        softPenalty += penalty
+        softPenaltyBreakdown.libre_below_pref =
+          (softPenaltyBreakdown.libre_below_pref ?? 0) + penalty
       }
+
       if (totalLibreDays > maxMonthlyLibre) {
         warnings.push(
           this.createWarning(
@@ -229,6 +268,13 @@ export class ScheduleValidator {
             }
           )
         )
+      } else if (totalLibreDays > prefMonthlyLibre) {
+        // SOFT: above preference but below maximum
+        const delta = totalLibreDays - prefMonthlyLibre
+        const penalty = SOFT_WEIGHTS.libre_above_pref * delta
+        softPenalty += penalty
+        softPenaltyBreakdown.libre_above_pref =
+          (softPenaltyBreakdown.libre_above_pref ?? 0) + penalty
       }
 
       // VALIDATION 2: Max consecutive work days (6)
@@ -260,6 +306,20 @@ export class ScheduleValidator {
         this.MIN_WORK_BLOCK
       )
       for (const block of smallWorkBlocks) {
+        // Cross-month: if block starts on day 1, it may extend a block from the previous month.
+        // If the effective size (prev consecutive + current) >= MIN_WORK_BLOCK, skip the violation.
+        if (block.startDay === 1 && context.previousMonthHistory) {
+          const prevShifts = context.previousMonthHistory.lastShifts.get(employee.id)
+          if (prevShifts && prevShifts.length > 0) {
+            const sortedPrev = [...prevShifts].sort((a, b) => b.dayNumber - a.dayNumber)
+            let prevConsecutive = 0
+            for (const entry of sortedPrev) {
+              if (isWorkShift(entry.shiftCode)) prevConsecutive++
+              else break
+            }
+            if (block.count + prevConsecutive >= this.MIN_WORK_BLOCK) continue
+          }
+        }
         warnings.push(
           this.createError(
             `${employee.name}: bloque de ${block.count} día(s) de trabajo (días ${block.startDay}-${block.endDay}, mín ${this.MIN_WORK_BLOCK} consecutivos)`,
@@ -289,6 +349,50 @@ export class ScheduleValidator {
             )
           )
           windowStart += 5
+        }
+      }
+
+      // VALIDATION 4b: Cross-month rest — T on last day of prev month + M on day 1 = only 8h rest
+      if (context.previousMonthHistory) {
+        const prevShifts = context.previousMonthHistory.lastShifts.get(employee.id)
+        if (prevShifts && prevShifts.length > 0) {
+          const lastEntry = prevShifts.reduce((a, b) => (a.dayNumber > b.dayNumber ? a : b))
+          const day1Shift = matrix[employee.id]?.[1]
+          if (lastEntry.shiftCode === 'T' && day1Shift === 'M') {
+            warnings.push(
+              this.createError(
+                `${employee.name}: T(último día mes anterior) → M(día 1) = solo 8h entre turnos`,
+                {
+                  type: 'rest',
+                  day: 1,
+                  employeeId: employee.id,
+                  employeeName: employee.name,
+                }
+              )
+            )
+          }
+        }
+      }
+
+      // VALIDATION 4c: Cross-month rotation change (M→T or T→M at month boundary) = hard error + soft penalty
+      if (context.previousMonthHistory) {
+        const lastShiftType = context.previousMonthHistory.lastShiftType.get(employee.id)
+        const day1Shift = matrix[employee.id]?.[1]
+        if (
+          lastShiftType &&
+          (day1Shift === 'M' || day1Shift === 'T') &&
+          lastShiftType !== day1Shift
+        ) {
+          warnings.push(
+            this.createError(
+              `${employee.name}: cambio de rotación ${lastShiftType}→${day1Shift} en límite de mes sin transición`,
+              { type: 'constraint', day: 1, employeeId: employee.id, employeeName: employee.name }
+            )
+          )
+          const penalty = SOFT_WEIGHTS.rotation_continuity_break
+          softPenalty += penalty
+          softPenaltyBreakdown.rotation_continuity_break =
+            (softPenaltyBreakdown.rotation_continuity_break ?? 0) + penalty
         }
       }
 
@@ -341,6 +445,14 @@ export class ScheduleValidator {
 
         const isConsecutive = areConsecutive(nightDays)
 
+        // Cross-month: if employee had incomplete nights from previous month
+        // and this month's block starts on day 1, count them together
+        const prevIncomplete =
+          context.previousMonthHistory?.incompleteNightBlocks.get(employee.id) ?? 0
+        const startsOnDay1 = nightDays[0] === 1
+        const effectiveNightCount =
+          prevIncomplete > 0 && startsOnDay1 ? nightCount + prevIncomplete : nightCount
+
         if (!isConsecutive) {
           warnings.push(
             this.createError(
@@ -348,17 +460,17 @@ export class ScheduleValidator {
               { type: 'night_block', employeeId: employee.id, employeeName: employee.name }
             )
           )
-        } else if (nightCount < MIN_NIGHTS_REQUIRED) {
+        } else if (effectiveNightCount < MIN_NIGHTS_REQUIRED) {
           warnings.push(
             this.createError(
-              `${employee.name}: ${nightCount} noches (mínimo obligatorio ${MIN_NIGHTS_REQUIRED} consecutivas)`,
+              `${employee.name}: ${effectiveNightCount} noches (mínimo obligatorio ${MIN_NIGHTS_REQUIRED} consecutivas)`,
               { type: 'night_block', employeeId: employee.id, employeeName: employee.name }
             )
           )
-        } else if (nightCount < minNightBlock) {
+        } else if (effectiveNightCount < minNightBlock) {
           warnings.push(
             this.createWarning(
-              `${employee.name}: ${nightCount} noches (mín recomendado ${minNightBlock})`,
+              `${employee.name}: ${effectiveNightCount} noches (mín recomendado ${minNightBlock})`,
               {
                 type: 'night_block',
                 severity: 'warning',
@@ -369,13 +481,27 @@ export class ScheduleValidator {
           )
         }
 
-        if (nightCount > maxNightBlock) {
+        if (effectiveNightCount > maxNightBlock) {
           warnings.push(
             this.createError(
-              `${employee.name}: ${nightCount} noches consecutivas (máx ${maxNightBlock})`,
+              `${employee.name}: ${effectiveNightCount} noches consecutivas (máx ${maxNightBlock})`,
               { type: 'night_block', employeeId: employee.id, employeeName: employee.name }
             )
           )
+        }
+
+        // SOFT: within valid range [minBlock, maxBlock] but differs from preference
+        if (
+          isConsecutive &&
+          effectiveNightCount >= minNightBlock &&
+          effectiveNightCount <= maxNightBlock &&
+          effectiveNightCount !== prefNightBlock
+        ) {
+          const delta = Math.abs(effectiveNightCount - prefNightBlock)
+          const penalty = SOFT_WEIGHTS.pref_night_block_size_off * delta
+          softPenalty += penalty
+          softPenaltyBreakdown.pref_night_block_size_off =
+            (softPenaltyBreakdown.pref_night_block_size_off ?? 0) + penalty
         }
       }
     }
@@ -442,6 +568,11 @@ export class ScheduleValidator {
             employeeName: employee.name,
           })
         )
+        // S3 soft penalty: weight 5 per employee without weekend off
+        const penalty = SOFT_WEIGHTS.weekend_off_missing
+        softPenalty += penalty
+        softPenaltyBreakdown.weekend_off_missing =
+          (softPenaltyBreakdown.weekend_off_missing ?? 0) + penalty
       }
 
       // W13: Desequilibrio M/T extremo (sin preferencia)
@@ -462,7 +593,7 @@ export class ScheduleValidator {
       }
     }
 
-    return warnings
+    return { warnings, softPenalty, softPenaltyBreakdown }
   }
 
   private createWarning(message: string, data: Partial<GenerationWarning>): GenerationWarning {
@@ -727,7 +858,7 @@ export class ScheduleValidator {
       employees: this.employees,
       matrix,
       warnings: [],
-      previousMonthHistory: null,
+      previousMonthHistory: this.previousMonthHistory,
       employeesWithCompletedNightBlock: new Set(),
       daysNeedingPI: [],
     }

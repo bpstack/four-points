@@ -2,7 +2,12 @@
 // Constraint: Monthly libre days balance (8-12 days off per month)
 
 import { BaseConstraint } from './base-constraint.js'
-import type { GeneratorContext, ConstraintResult, GenerationWarning, DayInfo } from '../types/index.js'
+import type {
+  GeneratorContext,
+  ConstraintResult,
+  GenerationWarning,
+  DayInfo,
+} from '../types/index.js'
 import { countLibreDays, countShiftForEmployee } from '../utils/matrix.js'
 
 /**
@@ -11,6 +16,7 @@ import { countLibreDays, countShiftForEmployee } from '../utils/matrix.js'
  * Rules:
  * - Minimum 7 libre days per month (includes V, B, IT, E, FO)
  * - Maximum 10 libre days per month (to ensure adequate work contribution)
+ * - Soft penalty when below prefMonthlyLibre (but above min) or above pref (but below max)
  * - Libre types: L (regular), V (vacation), B (holiday), IT (sick leave), E (sick day), FO (training)
  */
 export class MonthlyLibreConstraint extends BaseConstraint {
@@ -25,9 +31,14 @@ export class MonthlyLibreConstraint extends BaseConstraint {
 
   check(context: GeneratorContext): ConstraintResult {
     const violations: GenerationWarning[] = []
+    const softViolations: GenerationWarning[] = []
+    let softPenalty = 0
+    const softPenaltyBreakdown: Record<string, number> = {}
+
     const { matrix, days, employees, config } = context
-    const minLibre = config.minMonthlyLibre || this.DEFAULT_MIN_LIBRE
-    const maxLibre = config.maxMonthlyLibre || this.DEFAULT_MAX_LIBRE
+    const minLibre = config.minMonthlyLibre ?? this.DEFAULT_MIN_LIBRE
+    const maxLibre = config.maxMonthlyLibre ?? this.DEFAULT_MAX_LIBRE
+    const prefLibre = config.prefMonthlyLibre ?? Math.round((minLibre + maxLibre) / 2)
 
     for (const employee of employees) {
       // Skip fixed-shift employees (like Presencia - they have different rules)
@@ -37,34 +48,65 @@ export class MonthlyLibreConstraint extends BaseConstraint {
 
       if (totalRestDays < minLibre) {
         violations.push(
-          this.warn(
-            `${employee.name}: ${totalRestDays} días de descanso (mínimo ${minLibre})`,
-            {
-              type: 'rest',
-              severity: 'warning',
-              employeeId: employee.id,
-              employeeName: employee.name,
-            }
-          )
+          this.warn(`${employee.name}: ${totalRestDays} días de descanso (mínimo ${minLibre})`, {
+            type: 'rest',
+            severity: 'warning',
+            employeeId: employee.id,
+            employeeName: employee.name,
+          })
         )
+      } else if (totalRestDays < prefLibre) {
+        // SOFT: Below preference but above minimum
+        const delta = prefLibre - totalRestDays
+        const { warning, penalty, breakdownKey } = this.softWarn(
+          'libre_below_pref',
+          delta,
+          `${employee.name}: ${totalRestDays} días libres (pref ${prefLibre}, mín ${minLibre})`,
+          { type: 'rest', employeeId: employee.id, employeeName: employee.name }
+        )
+        softViolations.push(warning)
+        softPenalty += penalty
+        softPenaltyBreakdown[breakdownKey] = (softPenaltyBreakdown[breakdownKey] ?? 0) + penalty
       }
 
       if (totalRestDays > maxLibre) {
         violations.push(
-          this.warn(
-            `${employee.name}: ${totalRestDays} días de descanso (máximo ${maxLibre})`,
-            {
-              type: 'rest',
-              severity: 'warning',
-              employeeId: employee.id,
-              employeeName: employee.name,
-            }
-          )
+          this.warn(`${employee.name}: ${totalRestDays} días de descanso (máximo ${maxLibre})`, {
+            type: 'rest',
+            severity: 'warning',
+            employeeId: employee.id,
+            employeeName: employee.name,
+          })
         )
+      } else if (totalRestDays > prefLibre && totalRestDays <= maxLibre) {
+        // SOFT: Above preference but below maximum
+        const delta = totalRestDays - prefLibre
+        const { warning, penalty, breakdownKey } = this.softWarn(
+          'libre_above_pref',
+          delta,
+          `${employee.name}: ${totalRestDays} días libres (pref ${prefLibre}, máx ${maxLibre})`,
+          { type: 'rest', employeeId: employee.id, employeeName: employee.name }
+        )
+        softViolations.push(warning)
+        softPenalty += penalty
+        softPenaltyBreakdown[breakdownKey] = (softPenaltyBreakdown[breakdownKey] ?? 0) + penalty
       }
     }
 
-    return violations.length > 0 ? this.failure(violations) : this.success()
+    if (violations.length > 0) {
+      return {
+        ...this.failure([...violations, ...softViolations]),
+        softPenalty,
+        softPenaltyBreakdown,
+      }
+    }
+
+    return {
+      ...this.success(),
+      violations: softViolations,
+      softPenalty,
+      softPenaltyBreakdown,
+    }
   }
 
   /**

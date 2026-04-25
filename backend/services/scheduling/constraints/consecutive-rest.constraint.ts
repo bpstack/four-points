@@ -13,6 +13,7 @@ import { isLibreShift, isAbsenceShift } from '../utils/matrix.js'
  * - Rest days can cross calendar week boundaries (e.g., Fri+Sat)
  * - Absence days (V, B, IT, E, FO) count as rest
  * - Days must be truly consecutive (day N and N+1)
+ * - Cross-month: T on last day of prev month + M on day 1 = rest violation (only 8h between shifts)
  *
  * NOTE: This replaces the old calendar-week validation.
  * A rolling window means we check days [1-7], [2-8], [3-9], etc.
@@ -23,14 +24,37 @@ export class ConsecutiveRestConstraint extends BaseConstraint {
 
   check(context: GeneratorContext): ConstraintResult {
     const violations: GenerationWarning[] = []
-    const { matrix, days, employees } = context
+    const { matrix, days, employees, previousMonthHistory } = context
     const daysInMonth = days.length
 
     for (const employee of employees) {
       // Skip fixed-shift employees with noWeekends (they have fixed rest days)
       if (employee.rules.fixedDays && employee.rules.noWeekends) continue
 
-      // Check every rolling 7-day window
+      // Cross-month check: T on last day of prev month → M on day 1 = only 8h rest (violation)
+      if (previousMonthHistory) {
+        const prevShifts = previousMonthHistory.lastShifts.get(employee.id)
+        if (prevShifts && prevShifts.length > 0) {
+          const lastEntry = prevShifts.reduce((a, b) => (a.dayNumber > b.dayNumber ? a : b))
+          const day1Shift = matrix[employee.id]?.[1]
+          if (lastEntry.shiftCode === 'T' && day1Shift === 'M') {
+            violations.push(
+              this.warn(
+                `${employee.name}: T(último día mes anterior) → M(día 1) = solo 8h entre turnos (mínimo descanso no cumplido)`,
+                {
+                  type: 'rest',
+                  severity: 'error',
+                  day: 1,
+                  employeeId: employee.id,
+                  employeeName: employee.name,
+                }
+              )
+            )
+          }
+        }
+      }
+
+      // Check every rolling 7-day window within the current month
       for (let start = 1; start <= daysInMonth - 6; start++) {
         const end = start + 6
 

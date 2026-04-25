@@ -1,17 +1,16 @@
 {
   "id": "F11-cross-month-night-block-completed",
   "description": "Employee ended prev month with 3 nights, starts this month with 2 more → block of 5 total, valid.",
-  "todo": true,
   "input": {
     "monthId": 1,
     "year": 2026,
     "month": 1,
     "config": {
       "minMorningStaff": 0,
-      "prefMorningStaff": 2,
+      "prefMorningStaff": 0,
       "maxMorningStaff": 99,
       "minAfternoonStaff": 0,
-      "prefAfternoonStaff": 2,
+      "prefAfternoonStaff": 0,
       "maxAfternoonStaff": 99,
       "minNightStaff": 0,
       "maxNightStaff": 99,
@@ -287,41 +286,41 @@
         "26": "M",
         "27": "M",
         "28": "M",
-        "29": "L",
+        "29": "M",
         "30": "L",
-        "31": "M"
+        "31": "L"
       },
       "E0000000-0000-0000-0000-000000000002": {
         "1": "T",
         "2": "T",
-        "3": "L",
-        "4": "L",
+        "3": "T",
+        "4": "T",
         "5": "T",
-        "6": "T",
-        "7": "T",
+        "6": "L",
+        "7": "L",
         "8": "T",
         "9": "T",
-        "10": "L",
-        "11": "L",
+        "10": "T",
+        "11": "T",
         "12": "T",
-        "13": "T",
-        "14": "T",
+        "13": "L",
+        "14": "L",
         "15": "T",
         "16": "T",
-        "17": "L",
-        "18": "L",
+        "17": "T",
+        "18": "T",
         "19": "T",
-        "20": "T",
-        "21": "T",
+        "20": "L",
+        "21": "L",
         "22": "T",
         "23": "T",
-        "24": "L",
+        "24": "T",
         "25": "L",
-        "26": "T",
-        "27": "T",
-        "28": "T",
-        "29": "L",
-        "30": "L",
+        "26": "L",
+        "27": "L",
+        "28": "L",
+        "29": "T",
+        "30": "T",
         "31": "T"
       }
     }
@@ -334,6 +333,10 @@
         "type": "night_block",
         "employeeId": "E0000000-0000-0000-0000-000000000001"
       }
-    ]
+    ],
+    "softPenalty": 5,
+    "softPenaltyBreakdown": {
+      "weekend_off_missing": 5
+    }
   }
 }

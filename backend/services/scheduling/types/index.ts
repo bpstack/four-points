@@ -103,6 +103,7 @@ export interface SchedulingConfig {
   maxNightBlock: number
   prefNightBlock: number
   minMonthlyLibre?: number
+  prefMonthlyLibre?: number
   maxMonthlyLibre?: number
   maxConsecutiveWorkDays?: number
   annualVacationDays: number
@@ -131,6 +132,10 @@ export interface ShiftInfo {
 export interface ConstraintResult {
   satisfied: boolean
   violations: GenerationWarning[]
+  /** Sum of soft penalties from this constraint (0 for hard-only constraints) */
+  softPenalty?: number
+  /** Breakdown by SoftWeightKey for traceability */
+  softPenaltyBreakdown?: Record<string, number>
 }
 
 export interface IConstraint {

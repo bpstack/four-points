@@ -28,6 +28,12 @@ export class CoverageConstraint extends BaseConstraint {
     const maxMorning = config.maxMorningStaff ?? 2
     const maxAfternoon = config.maxAfternoonStaff ?? 2
     const maxNight = config.maxNightStaff ?? 1
+    const prefMorning = config.prefMorningStaff ?? minMorning
+    const prefAfternoon = config.prefAfternoonStaff ?? minAfternoon
+
+    let softPenalty = 0
+    const softPenaltyBreakdown: Record<string, number> = {}
+    const softViolations: GenerationWarning[] = []
 
     for (const day of days) {
       // Skip holidays - no coverage required
@@ -46,6 +52,18 @@ export class CoverageConstraint extends BaseConstraint {
         violations.push(
           this.createCoverageViolation('M', day.dayNumber, morningCount, maxMorning, 'over')
         )
+      } else if (morningCount < prefMorning) {
+        // Soft: below preferred morning count but above minimum
+        const missing = prefMorning - morningCount
+        const { warning, penalty, breakdownKey } = this.softWarn(
+          'pref_morning_staff_below',
+          missing,
+          `Día ${day.dayNumber}: Mañana tiene ${morningCount} (preferido ${prefMorning})`,
+          { type: 'coverage', day: day.dayNumber }
+        )
+        softViolations.push(warning)
+        softPenalty += penalty
+        softPenaltyBreakdown[breakdownKey] = (softPenaltyBreakdown[breakdownKey] ?? 0) + penalty
       }
 
       // Check afternoon coverage
@@ -57,6 +75,18 @@ export class CoverageConstraint extends BaseConstraint {
         violations.push(
           this.createCoverageViolation('T', day.dayNumber, afternoonCount, maxAfternoon, 'over')
         )
+      } else if (afternoonCount < prefAfternoon) {
+        // Soft: below preferred afternoon count but above minimum
+        const missing = prefAfternoon - afternoonCount
+        const { warning, penalty, breakdownKey } = this.softWarn(
+          'pref_afternoon_staff_below',
+          missing,
+          `Día ${day.dayNumber}: Tarde tiene ${afternoonCount} (preferido ${prefAfternoon})`,
+          { type: 'coverage', day: day.dayNumber }
+        )
+        softViolations.push(warning)
+        softPenalty += penalty
+        softPenaltyBreakdown[breakdownKey] = (softPenaltyBreakdown[breakdownKey] ?? 0) + penalty
       }
 
       // Check night coverage
@@ -71,7 +101,18 @@ export class CoverageConstraint extends BaseConstraint {
       }
     }
 
-    return violations.length > 0 ? this.failure(violations) : this.success()
+    // Merge soft violations into the final list (they don't affect satisfied)
+    const allViolations = [...violations, ...softViolations]
+
+    if (violations.length === 0) {
+      return { ...this.success(), violations: softViolations, softPenalty, softPenaltyBreakdown }
+    }
+    return {
+      ...this.failure(violations),
+      violations: allViolations,
+      softPenalty,
+      softPenaltyBreakdown,
+    }
   }
 
   /**
