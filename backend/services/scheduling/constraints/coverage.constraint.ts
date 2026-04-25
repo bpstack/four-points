@@ -22,12 +22,12 @@ export class CoverageConstraint extends BaseConstraint {
     const violations: GenerationWarning[] = []
     const { matrix, days, config } = context
 
-    const minMorning = config.minMorningStaff || 1
-    const minAfternoon = config.minAfternoonStaff || 1
-    const minNight = config.minNightStaff || 1
-    const maxMorning = config.maxMorningStaff || 2
-    const maxAfternoon = config.maxAfternoonStaff || 2
-    const maxNight = config.maxNightStaff || 1
+    const minMorning = config.minMorningStaff ?? 1
+    const minAfternoon = config.minAfternoonStaff ?? 1
+    const minNight = config.minNightStaff ?? 1
+    const maxMorning = config.maxMorningStaff ?? 2
+    const maxAfternoon = config.maxAfternoonStaff ?? 2
+    const maxNight = config.maxNightStaff ?? 1
 
     for (const day of days) {
       // Skip holidays - no coverage required
