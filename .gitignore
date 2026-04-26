@@ -48,6 +48,13 @@ build/
 .cache/
 
 # --------------------------------------------
+# Python (scheduling solver)
+# --------------------------------------------
+backend/scheduling-solver/venv/
+**/__pycache__/
+*.pyc
+
+# --------------------------------------------
 # Claude Code Templates & Skills
 # --------------------------------------------
 .claude/
