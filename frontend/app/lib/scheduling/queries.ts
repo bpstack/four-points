@@ -223,6 +223,12 @@ export const schedulingApi = {
     return apiClient.post(`${API_URL}/api/scheduling/months/${monthId}/reset`)
   },
 
+  generateSchedule: async (
+    monthId: number
+  ): Promise<{ status: string; assignmentsCreated: number; stats: { solveTimeMs: number; status: string } }> => {
+    return apiClient.post(`${API_URL}/api/scheduling/months/${monthId}/generate`)
+  },
+
   /**
    * Validate schedule and recalculate warnings
    * Used to update warnings after manual edits
