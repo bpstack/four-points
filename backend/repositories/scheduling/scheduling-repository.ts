@@ -779,6 +779,15 @@ export async function deleteAllAssignmentsByMonth(monthId: number): Promise<void
   await db.execute('DELETE FROM scheduling_assignments WHERE month_id = ?', [monthId])
 }
 
+/** Borra solo las asignaciones sin celda bloqueada (source_constraint_id IS NULL). */
+export async function deleteUnlockedAssignmentsByMonth(monthId: number): Promise<number> {
+  const [result] = await db.execute<ResultSetHeader>(
+    'DELETE FROM scheduling_assignments WHERE month_id = ? AND source_constraint_id IS NULL',
+    [monthId]
+  )
+  return result.affectedRows
+}
+
 export async function getAnnualLCountByEmployee(
   year: number
 ): Promise<{ employee_id: string; employee_name: string; libre_count: number }[]> {

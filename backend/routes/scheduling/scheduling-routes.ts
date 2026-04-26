@@ -63,6 +63,7 @@ import {
   // Annual Totals
   getAnnualTotals,
 } from '../../controllers/scheduling/scheduling-controller.js'
+import { generateSchedule } from '../../controllers/scheduling/schedule-generate.controller.js'
 
 // Middlewares
 import { authenticateToken } from '../../middlewares/authenticateToken.js'
@@ -138,6 +139,9 @@ router.delete('/months/:id', isAdmin, deleteMonth)
 
 // POST - Validate schedule
 router.post('/months/:id/validate', validateSchedule)
+
+// POST - Generate schedule with CP-SAT solver (admin only)
+router.post('/months/:id/generate', isAdmin, generateSchedule)
 
 // POST - Reset month (clear assignments, re-load approved constraints)
 router.post('/months/:id/reset', isAdmin, resetMonth)
