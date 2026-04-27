@@ -6,14 +6,20 @@ import * as requestsRepo from '../../repositories/scheduling/employee-requests-r
 import type { SolverInput, SolverEmployee, SolverDayInfo, SolverConfig } from './types/solver.js'
 import type { DayOfWeek } from '../../models/scheduling/index.js'
 
-export async function buildSolverInput(monthId: number, year: number, month: number): Promise<SolverInput> {
-  const [configMap, employees, days, assignments, approvedRequests] = await Promise.all([
-    repo.getConfigMap(),
-    repo.getSchedulableEmployees(),
-    repo.getDaysByMonth(monthId),
-    repo.getAssignmentsByMonth(monthId),
-    requestsRepo.findApprovedForSolver(year, month),
-  ])
+export async function buildSolverInput(
+  monthId: number,
+  year: number,
+  month: number
+): Promise<SolverInput> {
+  const [configMap, employees, days, assignments, approvedRequests, prevTailRows] =
+    await Promise.all([
+      repo.getConfigMap(),
+      repo.getSchedulableEmployees(),
+      repo.getDaysByMonth(monthId),
+      repo.getAssignmentsByMonth(monthId),
+      requestsRepo.findApprovedForSolver(year, month),
+      repo.getPreviousMonthEndAssignments(year, month, 7),
+    ])
 
   // ── Empleados ──────────────────────────────────────────
   // Cargamos reglas por empleado (puede estar vacío en local)
@@ -23,7 +29,9 @@ export async function buildSolverInput(monthId: number, year: number, month: num
     .map((emp) => {
       const rules = allRules.filter((r) => r.employee_id === emp.id)
       const ruleMap: Record<string, string> = {}
-      rules.forEach((r) => { ruleMap[r.rule_type] = r.rule_value })
+      rules.forEach((r) => {
+        ruleMap[r.rule_type] = r.rule_value
+      })
 
       return {
         id: emp.id,
@@ -49,16 +57,16 @@ export async function buildSolverInput(monthId: number, year: number, month: num
 
   // ── Config ─────────────────────────────────────────────
   const config: SolverConfig = {
-    minMorningStaff:    configMap.minMorningStaff    ?? 1,
-    prefMorningStaff:   configMap.prefMorningStaff   ?? 2,
-    maxMorningStaff:    configMap.maxMorningStaff    ?? 6,
-    minAfternoonStaff:  configMap.minAfternoonStaff  ?? 1,
+    minMorningStaff: configMap.minMorningStaff ?? 1,
+    prefMorningStaff: configMap.prefMorningStaff ?? 2,
+    maxMorningStaff: configMap.maxMorningStaff ?? 6,
+    minAfternoonStaff: configMap.minAfternoonStaff ?? 1,
     prefAfternoonStaff: configMap.prefAfternoonStaff ?? 2,
-    maxAfternoonStaff:  configMap.maxAfternoonStaff  ?? 6,
-    minNightStaff:      configMap.minNightStaff      ?? 1,
-    maxNightStaff:      configMap.maxNightStaff      ?? 1,
-    minMonthlyLibre:    configMap.minMonthlyLibre    ?? 9,
-    maxMonthlyLibre:    configMap.maxMonthlyLibre    ?? 11,
+    maxAfternoonStaff: configMap.maxAfternoonStaff ?? 6,
+    minNightStaff: configMap.minNightStaff ?? 1,
+    maxNightStaff: configMap.maxNightStaff ?? 1,
+    minMonthlyLibre: configMap.minMonthlyLibre ?? 9,
+    maxMonthlyLibre: configMap.maxMonthlyLibre ?? 11,
     maxConsecutiveWorkDays: configMap.maxConsecutiveWorkDays ?? 6,
   }
 
@@ -80,7 +88,7 @@ export async function buildSolverInput(monthId: number, year: number, month: num
   for (const req of approvedRequests) {
     // Expandir el rango de fechas en números de día del mes
     const fromDate = new Date(req.date_from + 'T00:00:00')
-    const toDate   = new Date(req.date_to   + 'T00:00:00')
+    const toDate = new Date(req.date_to + 'T00:00:00')
 
     for (const day of days) {
       const dayDate = new Date(day.date)
@@ -97,6 +105,15 @@ export async function buildSolverInput(monthId: number, year: number, month: num
     }
   }
 
+  // ── Cola del mes anterior (continuidad cross-month) ───────────
+  // Convierte los rows en Record<empId, string[]> con orden cronológico ASC
+  const previousMonthTail: Record<string, string[]> = {}
+  const sortedTail = [...prevTailRows].sort((a, b) => a.dayNumber - b.dayNumber)
+  for (const row of sortedTail) {
+    if (!previousMonthTail[row.employeeId]) previousMonthTail[row.employeeId] = []
+    previousMonthTail[row.employeeId].push(row.shiftCode)
+  }
+
   return {
     monthId,
     year,
@@ -104,6 +121,7 @@ export async function buildSolverInput(monthId: number, year: number, month: num
     employees: solverEmployees,
     days: solverDays,
     lockedCells,
+    previousMonthTail,
     config,
     options: { timeoutSeconds: 30, optimizationLevel: 'fast' },
   }
@@ -111,9 +129,13 @@ export async function buildSolverInput(monthId: number, year: number, month: num
 
 function shiftCodeForRequestType(type: string): string | null {
   switch (type) {
-    case 'vacation':       return 'V'
-    case 'bonificable':    return 'B'
-    case 'baja_temporal':  return 'IT'
-    default:               return null  // shift_preference / shift_exclusion se gestionan diferente
+    case 'vacation':
+      return 'V'
+    case 'bonificable':
+      return 'B'
+    case 'baja_temporal':
+      return 'IT'
+    default:
+      return null // shift_preference / shift_exclusion se gestionan diferente
   }
 }

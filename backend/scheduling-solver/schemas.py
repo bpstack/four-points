@@ -68,6 +68,9 @@ class SolverInput(BaseModel):
     days: list[DayInfo]
     # employeeId → dayNumber → shiftCode  (celdas bloqueadas: vacaciones aprobadas, etc.)
     lockedCells: dict[str, dict[str, str]] = {}
+    # employeeId → lista de shifts de los últimos N días del mes anterior (orden cronológico ASC)
+    # Usado para continuidad cross-month (bloques de noche, descanso, trabajo consecutivo).
+    previousMonthTail: dict[str, list[str]] = {}
     config: SchedulingConfig = SchedulingConfig()
     options: SolverOptions = SolverOptions()
 

@@ -58,6 +58,11 @@ export interface SolverInput {
   days: SolverDayInfo[]
   /** employeeId → dayNumber (string) → shiftCode */
   lockedCells: Record<string, Record<string, string>>
+  /**
+   * employeeId → lista de shift codes de los últimos N días del mes anterior (orden ASC).
+   * Usado para continuidad cross-month: bloques de noche, transiciones, trabajo consecutivo.
+   */
+  previousMonthTail?: Record<string, string[]>
   config: SolverConfig
   options?: SolverOptions
 }

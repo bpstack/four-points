@@ -25,10 +25,29 @@ def apply(
     employees: list,
     days: list[DayInfo],
 ) -> None:
+    tail = input.previousMonthTail
     day_numbers = [d.dayNumber for d in days]
     num_days = len(day_numbers)
 
     for e_idx in range(len(employees)):
+        # ── Cross-month: transición último día del mes anterior → día 1 ──────
+        emp_tail = tail.get(employees[e_idx].id, [])
+        if emp_tail and day_numbers:
+            last_shift = emp_tail[-1]
+            day1 = day_numbers[0]
+
+            # H3: tras N no puede venir M/T/PI/P
+            if last_shift == 'N':
+                for forbidden in ['M', 'T', 'PI', 'P']:
+                    if (e_idx, day1, forbidden) in x:
+                        model.add(x[e_idx, day1, forbidden] == 0)
+
+            # T→M cross-month: tarde seguida de mañana = 8h descanso → prohibido
+            if last_shift == 'T':
+                if (e_idx, day1, 'M') in x:
+                    model.add(x[e_idx, day1, 'M'] == 0)
+
+        # ── Within-month transitions ──────────────────────────────────────────
         for pos in range(num_days - 1):
             d      = day_numbers[pos]
             d_next = day_numbers[pos + 1]
