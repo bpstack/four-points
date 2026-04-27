@@ -1,15 +1,20 @@
 """
 model.py — Construye y resuelve el modelo CP-SAT para un mes de scheduling.
 
-Constraints activas (MVP Fase 1):
+Constraints activas:
   H1 — Cobertura mínima M/T/N por día
-  H4 — Máximo días consecutivos de trabajo
-  H5 — ≥2 libres consecutivos en ventana de 7 días
-  H6 — Libres mensuales [min, max]
-  H7 — Celdas bloqueadas fijadas
+  H2 — Bloque de noches: mínimo/máximo consecutivos, 1 bloque por mes, cross-month
+  H3 — Transiciones prohibidas: N→M/T/PI/P, T→M (insuficiente descanso), cross-month
+  H4 — Máximo días consecutivos de trabajo, cross-month
+  H5 — ≥2 descansos en ventana de 7 días (cuenta V/B/IT/E/FO/A), cross-month
+  H6 — Libres mensuales [min, max] (min reducido por ausencias bloqueadas)
+  H7 — Celdas bloqueadas fijadas; turnos especiales (V/B/IT/…) prohibidos fuera de bloqueos
+  day_blocks — Bloques mínimos de turno M/T, cross-month
 
-Pendiente Fase 2: H2 night-blocks, H3 post-night rest, rotation-continuity,
-                  employee-rules noWeekends/fixedShift, soft constraints.
+Pendiente:
+  - Reglas de empleado en solver (noWeekends, fixedShift)
+  - Continuidad de rotación en solver
+  - Función objetivo para optimización soft (actualmente: primera solución factible)
 """
 
 import time
