@@ -10,18 +10,21 @@ Constraints activas:
   H6 — Libres mensuales [min, max] (min reducido por ausencias bloqueadas)
   H7 — Celdas bloqueadas fijadas; turnos especiales (V/B/IT/…) prohibidos fuera de bloqueos
   day_blocks — Bloques mínimos de turno M/T, cross-month
+  employee_rules — noWeekends (fuerza L en S/D), fixedShift (prohíbe otros work shifts)
 
 Pendiente:
-  - Reglas de empleado en solver (noWeekends, fixedShift)
   - Continuidad de rotación en solver
   - Función objetivo para optimización soft (actualmente: primera solución factible)
+
+Nota: fixedDays se resuelve antes del solver — build-solver-input.ts inyecta el patrón L-V/S-D
+como lockedCells, por lo que el solver lo ve como celdas ya fijadas (H7).
 """
 
 import time
 from ortools.sat.python import cp_model
 
 from schemas import SolverInput, SolverOutput, SolverSuccess, SolverInfeasible, SolverError, SolverStats
-from constraints import coverage, rest, locked_cells, libres, night_block, transitions, day_blocks
+from constraints import coverage, rest, locked_cells, libres, night_block, transitions, day_blocks, employee_rules
 
 
 # Todos los códigos de turno que el solver puede asignar
@@ -69,13 +72,14 @@ def solve(input: SolverInput) -> SolverOutput:
     # Aplicar constraints
     # ──────────────────────────────────────────────────────
 
-    locked_cells.apply(model, x, input, emp_idx_by_id)    # H7 primero (fija variables)
-    coverage.apply(model, x, input, employees, days)       # H1
-    rest.apply(model, x, input, employees, days)           # H4 + H5
-    libres.apply(model, x, input, employees, days)         # H6
-    night_block.apply(model, x, input, employees, days)    # H2 + solo 1 bloque N/mes
-    transitions.apply(model, x, input, employees, days)   # H3 + T→M prohibido
-    day_blocks.apply(model, x, input, employees, days)    # bloques mínimos M/T + M→T prohibido
+    locked_cells.apply(model, x, input, emp_idx_by_id)         # H7 primero (fija variables)
+    coverage.apply(model, x, input, employees, days)            # H1
+    rest.apply(model, x, input, employees, days)                # H4 + H5
+    libres.apply(model, x, input, employees, days)              # H6
+    night_block.apply(model, x, input, employees, days)         # H2 + solo 1 bloque N/mes
+    transitions.apply(model, x, input, employees, days)         # H3 + T→M prohibido
+    day_blocks.apply(model, x, input, employees, days)          # bloques mínimos M/T + M→T prohibido
+    employee_rules.apply(model, x, input, employees, days)      # noWeekends, fixedShift
 
     # ──────────────────────────────────────────────────────
     # Resolver
