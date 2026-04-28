@@ -969,7 +969,6 @@ export async function getAllEmployeeRules(): Promise<SchedulingEmployeeRuleWithE
     `SELECT r.*, u.username as employee_name
      FROM scheduling_employee_rules r
      JOIN users u ON r.employee_id = u.id
-     WHERE r.is_active = 1
      ORDER BY u.username, r.priority DESC`
   )
   return rows

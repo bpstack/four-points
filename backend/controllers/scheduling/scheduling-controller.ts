@@ -1256,7 +1256,18 @@ export async function deleteConstraint(req: Request, res: Response): Promise<voi
 
 export async function getAllEmployeeRules(_req: Request, res: Response): Promise<void> {
   try {
-    const rules = await repo.getAllEmployeeRules()
+    const rows = await repo.getAllEmployeeRules()
+    const rules = rows.map((r) => ({
+      id: r.id,
+      employeeId: r.employee_id,
+      employeeName: r.employee_name,
+      ruleType: r.rule_type,
+      ruleValue: r.rule_value,
+      priority: r.priority,
+      isActive: r.is_active === 1,
+      notes: r.notes,
+      createdAt: r.created_at,
+    }))
     res.json({ rules, total: rules.length })
   } catch (err) {
     console.error('Error getting employee rules:', err)
