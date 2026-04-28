@@ -27,11 +27,12 @@ export async function buildSolverInput(
 
   const solverEmployees: SolverEmployee[] = employees
     .map((emp) => {
-      const rules = allRules.filter((r) => r.employee_id === emp.id)
+      const rules = allRules.filter((r) => r.employee_id === emp.id && r.is_active === 1)
       const ruleMap: Record<string, string> = {}
       rules.forEach((r) => {
         ruleMap[r.rule_type] = r.rule_value
       })
+      const fixedDaysRaw = ruleMap['fixed_days']
 
       return {
         id: emp.id,
@@ -40,12 +41,15 @@ export async function buildSolverInput(
           fixedShift: ruleMap['fixed_shift'] ?? undefined,
           noWeekends: ruleMap['no_weekends'] === 'true',
           shiftPriority: ruleMap['shift_priority'] ?? undefined,
+          fixedDays: fixedDaysRaw
+            ? fixedDaysRaw.split(',').map(Number).filter((n) => !isNaN(n))
+            : undefined,
         },
       }
     })
-    // Excluir empleados con turno fijo no-rotatorio (P = Presencia fija, ej: dirección/admin).
-    // Estos tienen su propio patrón semanal y no participan en la generación automática.
-    .filter((emp) => emp.rules.fixedShift !== 'P')
+    // Excluir empleados P sin días fijos definidos (patrón manual desconocido).
+    // Si tienen fixedDays, SÍ participan: su patrón se inyecta como lockedCells.
+    .filter((emp) => emp.rules?.fixedShift !== 'P' || (emp.rules?.fixedDays?.length ?? 0) > 0)
 
   // ── Días ───────────────────────────────────────────────
   const solverDays: SolverDayInfo[] = days.map((d) => ({
@@ -102,6 +106,22 @@ export async function buildSolverInput(
       if (!lockedCells[req.employee_id][String(day.day_number)]) {
         lockedCells[req.employee_id][String(day.day_number)] = shiftCode
       }
+    }
+  }
+
+  // Fuente 3: empleados con fixedDays — patrón semanal determinístico (ej: L-V con turno P)
+  // Se inyectan como lockedCells: el solver (H7) fija sus variables, rest/libres no interfieren.
+  const DOW_TO_NUM: Record<string, number> = { L: 1, M: 2, X: 3, J: 4, V: 5, S: 6, D: 7 }
+  for (const emp of solverEmployees) {
+    if (!emp.rules?.fixedDays?.length) continue
+    const workShift = emp.rules.fixedShift ?? 'P'
+    if (!lockedCells[emp.id]) lockedCells[emp.id] = {}
+    for (const day of solverDays) {
+      if (lockedCells[emp.id][String(day.dayNumber)]) continue // vacación/petición aprobada tiene prioridad
+      const dow = DOW_TO_NUM[day.dayOfWeek] ?? 0
+      lockedCells[emp.id][String(day.dayNumber)] = emp.rules.fixedDays.includes(dow)
+        ? workShift
+        : 'L'
     }
   }
 
