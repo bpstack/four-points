@@ -319,9 +319,10 @@ export async function getMonthByYearMonth(
 }
 
 /**
- * Get the last N days of assignments from the previous month
- * Used for continuity in schedule generation (night blocks, shifts, etc.)
- * IMPORTANT: Only uses PUBLISHED months for continuity to ensure stable rotation
+ * Get the last N days of assignments from the previous month.
+ * Used for continuity in schedule generation (night blocks, shifts, cross-month transitions).
+ * Uses published OR draft months — draft months are intentional mid-planning context.
+ * If the previous month changes, the current month can simply be regenerated.
  */
 export async function getPreviousMonthEndAssignments(
   year: number,
@@ -342,17 +343,8 @@ export async function getPreviousMonthEndAssignments(
     return [] // No previous month exists
   }
 
-  // CRITICAL: Only use PUBLISHED months for continuity
-  // This ensures rotation continues from stable, approved schedules
-  if (prevMonthRecord.status !== 'published') {
-    console.log(
-      `[getPreviousMonthEndAssignments] Previous month ${prevYear}-${prevMonth} is ${prevMonthRecord.status}, not published - skipping continuity`
-    )
-    return []
-  }
-
   console.log(
-    `[getPreviousMonthEndAssignments] Using published month ${prevYear}-${prevMonth} for continuity`
+    `[getPreviousMonthEndAssignments] Using ${prevMonthRecord.status} month ${prevYear}-${prevMonth} for continuity`
   )
 
   // Get assignments for last N days of previous month
