@@ -1,6 +1,11 @@
 """
-H5 — Al menos 2 libres consecutivos en toda ventana deslizante de 7 días.
+H5 — Al menos 2 libres en toda ventana deslizante de 7 días.
 H4 — Máximo maxConsecutiveWorkDays días seguidos de trabajo.
+
+Con días virtuales (cross-month):
+  all_days = virtual_days + real_days.
+  Las ventanas que solapan virtual→real se manejan de forma uniforme.
+  No hay código cross-month especial; la continuidad sale sola.
 """
 
 from ortools.sat.python import cp_model
@@ -16,76 +21,32 @@ def apply(
     input: SolverInput,
     employees: list,
     days: list[DayInfo],
+    virtual_days_by_emp: dict[int, list[int]] = None,
 ) -> None:
-    cfg = input.config
-    tail = input.previousMonthTail
-    num_emps = len(employees)
-    day_numbers = [d.dayNumber for d in days]
-    num_days = len(day_numbers)
+    if virtual_days_by_emp is None:
+        virtual_days_by_emp = {}
 
-    for e in range(num_emps):
-        emp_id = employees[e].id
-        emp_tail = tail.get(emp_id, [])
+    cfg       = input.config
+    real_days = [d.dayNumber for d in days]
 
-        # ── H5: al menos 2 días de descanso en ventana de 7 ──────────────────
-        # Within-month windows (original)
-        for w_start in range(num_days - 6):
-            window = day_numbers[w_start : w_start + 7]
+    for e in range(len(employees)):
+        virt_days = virtual_days_by_emp.get(e, [])
+        all_days  = virt_days + real_days
+        n_all     = len(all_days)
+
+        # H5: ≥ 2 libres en toda ventana de 7 días
+        for w_start in range(n_all - 6):
+            window = all_days[w_start : w_start + 7]
             model.add(
                 sum(x[e, d, s] for d in window for s in REST_SHIFTS if (e, d, s) in x) >= 2
             )
 
-        # Cross-month windows: tail[-k:] + day_numbers[:7-k]
-        for overlap in range(1, min(7, len(emp_tail) + 1)):
-            tail_part = emp_tail[-overlap:]
-            tail_rest = sum(1 for s in tail_part if s in REST_SHIFTS)
-            current_part = day_numbers[:7 - overlap]
-            need = max(0, 2 - tail_rest)
-            # Solo añadir si hay días suficientes en el mes actual para satisfacer la constraint.
-            # Si need > len(current_part) el mes anterior ya viola H5 — no podemos compensarlo.
-            if need > 0 and current_part and need <= len(current_part):
-                model.add(
-                    sum(x[e, d, s] for d in current_part for s in REST_SHIFTS if (e, d, s) in x) >= need
-                )
-
-        # ── H4: máximo consecutivos de trabajo ───────────────────────────────
+        # H4: máximo días consecutivos de trabajo
         max_w = cfg.maxConsecutiveWorkDays
-
-        # Within-month windows (original)
-        for w_start in range(num_days):
-            window = day_numbers[w_start : w_start + max_w + 1]
+        for w_start in range(n_all):
+            window = all_days[w_start : w_start + max_w + 1]
             if len(window) < max_w + 1:
                 break
             model.add(
-                sum(x[e, d, s] for d in window for s in WORK_SHIFTS if (e, d, s) in x)
-                <= max_w
+                sum(x[e, d, s] for d in window for s in WORK_SHIFTS if (e, d, s) in x) <= max_w
             )
-
-        # Cross-month: si el empleado venía con una racha de trabajo del mes anterior,
-        # limitamos los primeros días del mes actual.
-        if emp_tail and day_numbers:
-            trailing_work = 0
-            for s in reversed(emp_tail):
-                if s in WORK_SHIFTS:
-                    trailing_work += 1
-                else:
-                    break
-
-            if trailing_work > 0:
-                remaining = max_w - trailing_work
-                if remaining <= 0:
-                    # Debe descansar al menos (1 - remaining) días desde el inicio
-                    force_rest = min(1 - remaining, num_days)
-                    for i in range(force_rest):
-                        d0 = day_numbers[i]
-                        model.add(
-                            sum(x[e, d0, s] for s in WORK_SHIFTS if (e, d0, s) in x) == 0
-                        )
-                else:
-                    # Puede trabajar `remaining` días más antes de necesitar descanso
-                    window = day_numbers[:remaining + 1]
-                    if len(window) == remaining + 1:
-                        model.add(
-                            sum(x[e, d, s] for d in window for s in WORK_SHIFTS if (e, d, s) in x)
-                            <= remaining
-                        )

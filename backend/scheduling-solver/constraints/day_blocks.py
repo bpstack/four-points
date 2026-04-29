@@ -1,21 +1,28 @@
 """
 Bloques mínimos de turno M y T.
 
-Regla: los turnos de Mañana y Tarde deben venir en bloques de al menos
-MIN_SHIFT_BLOCK días consecutivos del mismo tipo.
+Regla: los turnos M y T deben venir en bloques de al menos MIN_SHIFT_BLOCK días
+consecutivos del mismo tipo. Evita patrones "saltarines" y favorece la rotación semanal.
 
-Esto evita el patrón M T M L T M T que produce horarios "saltarines".
-La rotación semanal que usa el hotel (semana de M → semana de T → semana de N)
-emerge naturalmente de esta constraint.
+También se prohíbe el cambio directo M→T sin descanso entre medio
+(T→M ya lo gestiona transitions.py).
 
-También prohibimos M→T y T→M sin descanso entre medio (el cambio de turno
-exige al menos un día libre de transición).
+Cross-month (días virtuales):
+  Los bloques M/T siempre completan dentro de su mes (el mes anterior no dejará
+  un bloque parcial intencionalmente). El enforcement de continuación es CONDICIONAL
+  para M/T: si el día 1 sigue el mismo turno que el tail, se fuerzan los días
+  restantes para completar el mínimo, pero el día 1 en sí no se fuerza.
+
+  Esto contrasta con los bloques N, que sí son forzados (night_block.py).
+
+  La prohibición M→T sí aplica a todo all_days (incluyendo virtual→real).
 """
 
 from ortools.sat.python import cp_model
 from schemas import SolverInput, DayInfo
 
-MIN_SHIFT_BLOCK = 3   # mínimo de días consecutivos del mismo turno (M o T)
+MIN_SHIFT_BLOCK = 3
+_TAIL_LENGTH    = 7
 
 
 def apply(
@@ -24,68 +31,90 @@ def apply(
     input: SolverInput,
     employees: list,
     days: list[DayInfo],
+    virtual_days_by_emp: dict[int, list[int]] = None,
 ) -> None:
-    tail = input.previousMonthTail
-    day_numbers = [d.dayNumber for d in days]
-    num_days    = len(day_numbers)
-    pos_to_day  = {i: d for i, d in enumerate(day_numbers)}
+    if virtual_days_by_emp is None:
+        virtual_days_by_emp = {}
+
+    real_days = [d.dayNumber for d in days]
+    num_real  = len(real_days)
 
     for e_idx in range(len(employees)):
-        emp_tail = tail.get(employees[e_idx].id, [])
+        virt_days  = virtual_days_by_emp.get(e_idx, [])
+        all_days   = virt_days + real_days
+        n_all      = len(all_days)
+        real_start = len(virt_days)           # índice de day 1 en all_days
 
         for shift in ('M', 'T'):
-            other = 'T' if shift == 'M' else 'M'
+            # Trailing count del mes anterior (para day 1 de continuación)
+            raw_tail = input.previousMonthTail.get(employees[e_idx].id, [])
+            if raw_tail:
+                tail    = list(raw_tail[-_TAIL_LENGTH:])
+                padded  = ['L'] * (_TAIL_LENGTH - len(tail)) + tail
+                trailing_same = 0
+                for s in reversed(padded):
+                    if s == shift:
+                        trailing_same += 1
+                    else:
+                        break
+            else:
+                trailing_same = 0
 
-            # Contar días consecutivos de 'shift' al final del mes anterior
-            trailing_same = 0
-            for s in reversed(emp_tail):
-                if s == shift:
-                    trailing_same += 1
-                else:
-                    break
+            # Enforcement solo en días REALES; días virtuales no se tocan
+            for real_pos in range(num_real):
+                d       = real_days[real_pos]
+                all_pos = real_start + real_pos
+                # "enough" se calcula sobre días reales restantes (no all_days)
+                enough  = (real_pos + MIN_SHIFT_BLOCK <= num_real)
 
-            for pos, d in enumerate(day_numbers):
-                is_first = pos == 0
-                enough_days = (pos + MIN_SHIFT_BLOCK <= num_days)
-
-                if is_first:
+                if real_pos == 0:                        # Primer día real
                     if trailing_same > 0:
-                        # Día 1 es continuación de un bloque del mes anterior.
-                        # El bloque ya tiene `trailing_same` días. Solo hay que asegurar
-                        # que se completen los días mínimos restantes.
-                        remaining_for_min = max(0, MIN_SHIFT_BLOCK - trailing_same - 1)
-                        if remaining_for_min > 0 and pos + remaining_for_min < num_days:
-                            # Si día 1 es shift, los siguientes remaining_for_min días tb deben serlo
-                            for k in range(1, remaining_for_min + 1):
-                                nd = pos_to_day[pos + k]
-                                model.add(x[e_idx, nd, shift] >= x[e_idx, d, shift])
-                        # No se añade block_start: la continuación no es un inicio nuevo
-                    elif not enough_days:
+                        # Continuación del mes anterior: enforcement CONDICIONAL.
+                        # No se fuerza day 1=shift; pero SI day 1=shift, se completan
+                        # los días que faltan para llegar a MIN_SHIFT_BLOCK.
+                        remaining = max(0, MIN_SHIFT_BLOCK - trailing_same - 1)
+                        if remaining > 0:
+                            for k in range(1, remaining + 1):
+                                if real_pos + k < num_real:
+                                    nd = real_days[real_pos + k]
+                                    if (e_idx, nd, shift) in x:
+                                        model.add(x[e_idx, nd, shift] >= x[e_idx, d, shift])
+                    elif not enough:
+                        continue
+                    elif (e_idx, d, shift) not in x:
                         continue
                     else:
-                        # Sin contexto previo: si empieza aquí, debe completar MIN_SHIFT_BLOCK días
-                        block_start = model.new_bool_var(f"db_{shift}_{e_idx}_{d}_start")
-                        model.add(block_start == x[e_idx, d, shift])
+                        bs = model.new_bool_var(f"db_{shift}_{e_idx}_{d}")
+                        model.add(bs == x[e_idx, d, shift])
                         for k in range(1, MIN_SHIFT_BLOCK):
-                            nd = pos_to_day[pos + k]
-                            model.add(x[e_idx, nd, shift] >= block_start)
-                else:
-                    prev_d = pos_to_day[pos - 1]
+                            nd = real_days[real_pos + k]
+                            if (e_idx, nd, shift) in x:
+                                model.add(x[e_idx, nd, shift] >= bs)
 
-                    if not enough_days:
-                        model.add(x[e_idx, d, shift] <= x[e_idx, prev_d, shift])
+                else:                                    # Días reales 2+
+                    # prev_d: día anterior en all_days (puede ser virtual -1 para day 2)
+                    prev_d = all_days[all_pos - 1]
+
+                    if not enough:
+                        # Restaurar restricción original: no puede empezar un bloque nuevo
+                        # si no quedan días suficientes para completarlo.
+                        if (e_idx, prev_d, shift) in x and (e_idx, d, shift) in x:
+                            model.add(x[e_idx, d, shift] <= x[e_idx, prev_d, shift])
+                    elif (e_idx, d, shift) not in x or (e_idx, prev_d, shift) not in x:
+                        pass
                     else:
-                        block_start = model.new_bool_var(f"db_{shift}_{e_idx}_{d}_start")
-                        model.add(block_start <= x[e_idx, d, shift])
-                        model.add(block_start <= 1 - x[e_idx, prev_d, shift])
-                        model.add(block_start >= x[e_idx, d, shift] - x[e_idx, prev_d, shift])
-
+                        bs = model.new_bool_var(f"db_{shift}_{e_idx}_{d}")
+                        model.add(bs <= x[e_idx, d, shift])
+                        model.add(bs <= 1 - x[e_idx, prev_d, shift])
+                        model.add(bs >= x[e_idx, d, shift] - x[e_idx, prev_d, shift])
                         for k in range(1, MIN_SHIFT_BLOCK):
-                            nd = pos_to_day[pos + k]
-                            model.add(x[e_idx, nd, shift] >= block_start)
+                            nd = real_days[real_pos + k]
+                            if (e_idx, nd, shift) in x:
+                                model.add(x[e_idx, nd, shift] >= bs)
 
-                # Prohibir cambio directo M→T y T→M (sin descanso entre medio)
-                if shift == 'M' and pos < num_days - 1:
-                    d_next = pos_to_day[pos + 1]
-                    if (e_idx, d_next, 'T') in x:
-                        model.add(x[e_idx, d, 'M'] + x[e_idx, d_next, 'T'] <= 1)
+        # M → T directo prohibido — aplica sobre all_days (incluye virtual→real)
+        for pos in range(n_all - 1):
+            d      = all_days[pos]
+            d_next = all_days[pos + 1]
+            if (e_idx, d, 'M') in x and (e_idx, d_next, 'T') in x:
+                model.add(x[e_idx, d, 'M'] + x[e_idx, d_next, 'T'] <= 1)

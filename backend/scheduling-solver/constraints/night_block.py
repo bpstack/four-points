@@ -1,21 +1,34 @@
 """
 H2 — Bloques de noche consecutivos.
 
-Regla: quien hace noches, hace un bloque de min_night_block..max_night_block
-noches seguidas. No puede haber noches sueltas ni bloques demasiado cortos o largos.
+Reglas:
+  - Quien hace noches hace exactamente 1 bloque de min_block..max_block noches seguidas.
+  - Máximo 1 bloque NUEVO que empiece en días reales (d ≥ 1) por mes.
+  - Un bloque que empieza en días virtuales (tail del mes anterior) y se prolonga
+    en el mes actual NO cuenta como bloque nuevo del mes.
+  - Los bloques siempre completan su mínimo dentro del mes: si no quedan días
+    suficientes para un nuevo bloque, no puede empezar.
 
-Implementación CP-SAT:
-  1. max_night_block → ventana deslizante: sum(N en window) <= maxNightBlock
-  2. min_night_block → si empieza un bloque en día d (N en d pero no en d-1),
-     los días d+1..d+minNightBlock-1 también deben ser N.
-  3. Sin noches al final del mes si no caben min días (a menos que vengan de mes anterior).
+Continuación cross-month (condicional):
+  Si trailing_N > 0 (el mes anterior terminó en noches):
+    - trailing_N >= max_block → día 1 NO puede ser N (bloque ya al máximo).
+    - trailing_N >= min_block → bloque completo, día 1 puede opcionalmente extender.
+    - 0 < trailing_N < min_block → SI el día 1 es N, se fuerzan los días restantes
+      para completar el mínimo. Pero el día 1 NO se fuerza (condicional).
 
-Cross-month: si previousMonthHistory indica noches incompletas al inicio del mes,
-el bloque ya empezó → relajamos el requisito de mínimo al comienzo.
+  Nota: el solver nunca genera bloques parciales intencionalmente
+  (not-can-complete restaurado para días reales). Los tails con trailing_N < min_block
+  serían excepcionales (e.g. schedules manuales editados).
+
+Constraints sobre all_days:
+  - Máximo de noches consecutivas: ventana deslizante sobre all_days (incluye
+    días virtuales para detectar bloques que empezaron en el mes anterior).
 """
 
 from ortools.sat.python import cp_model
 from schemas import SolverInput, DayInfo
+
+_TAIL_LENGTH = 7
 
 
 def apply(
@@ -24,114 +37,118 @@ def apply(
     input: SolverInput,
     employees: list,
     days: list[DayInfo],
+    virtual_days_by_emp: dict[int, list[int]] = None,
 ) -> None:
-    cfg = input.config
-    tail = input.previousMonthTail
-    min_block = cfg.minNightBlock if cfg.minNightBlock else 4
-    max_block = cfg.maxNightBlock if cfg.maxNightBlock else 6
+    if virtual_days_by_emp is None:
+        virtual_days_by_emp = {}
 
-    day_numbers = [d.dayNumber for d in days]
-    num_days = len(day_numbers)
-    pos_to_day = {i: d for i, d in enumerate(day_numbers)}
+    cfg       = input.config
+    min_block = cfg.minNightBlock or 4
+    max_block = cfg.maxNightBlock or 6
+
+    real_days = [d.dayNumber for d in days]
+    num_real  = len(real_days)
 
     for e_idx in range(len(employees)):
-        emp_tail = tail.get(employees[e_idx].id, [])
+        virt_days  = virtual_days_by_emp.get(e_idx, [])
+        all_days   = virt_days + real_days
+        n_all      = len(all_days)
+        real_start = len(virt_days)            # índice de day 1 en all_days
 
-        # Contar noches consecutivas al final del mes anterior
-        trailing_N = 0
-        for s in reversed(emp_tail):
-            if s == 'N':
-                trailing_N += 1
-            else:
-                break
+        # Trailing N del mes anterior
+        raw_tail = input.previousMonthTail.get(employees[e_idx].id, [])
+        if raw_tail:
+            tail    = list(raw_tail[-_TAIL_LENGTH:])
+            padded  = ['L'] * (_TAIL_LENGTH - len(tail)) + tail
+            trailing_N = 0
+            for s in reversed(padded):
+                if s == 'N':
+                    trailing_N += 1
+                else:
+                    break
+        else:
+            trailing_N = 0
 
-        # ── 0. Solo UN bloque de noche NUEVO por empleado al mes ───────────
-        # Si trailing_N > 0, el día 1 es continuación del mes anterior → bs=0.
-        # El bloque ya "empezó" en el mes anterior; no cuenta como nuevo inicio.
-        all_block_starts = []
+        # ── Máximo de noches consecutivas (ventana sobre all_days) ───────────
+        for pos in range(n_all - max_block):
+            window = [all_days[p] for p in range(pos, pos + max_block + 1)]
+            model.add(
+                sum(x[e_idx, d, 'N'] for d in window if (e_idx, d, 'N') in x) <= max_block
+            )
 
-        for pos2, d2 in enumerate(day_numbers):
-            bs = model.new_bool_var(f"ns_max1_{e_idx}_{d2}")
-            if pos2 == 0:
+        # ── Bloque-start indicators (solo para días REALES) ───────────────────
+        # Se usan para "máximo 1 nuevo bloque por mes" y para el mínimo.
+        # Los días virtuales no generan indicadores: su validez fue
+        # responsabilidad del mes anterior.
+        block_starts: dict[int, object] = {}
+        for real_pos in range(num_real):
+            d       = real_days[real_pos]
+            all_pos = real_start + real_pos
+
+            bs = model.new_bool_var(f"ns_{e_idx}_{d}")
+            if (e_idx, d, 'N') not in x:
+                model.add(bs == 0)
+            elif real_pos == 0:
                 if trailing_N > 0:
-                    # Continuación cross-month: día 1 no es inicio de bloque nuevo
+                    # Continuación del mes anterior: NO es nuevo bloque
                     model.add(bs == 0)
                 else:
-                    model.add(bs == x[e_idx, d2, 'N'])
+                    # Sin contexto previo: es nuevo bloque si hay N aquí
+                    model.add(bs == x[e_idx, d, 'N'])
             else:
-                prev_d2 = day_numbers[pos2 - 1]
-                model.add(bs <= x[e_idx, d2, 'N'])
-                model.add(bs <= 1 - x[e_idx, prev_d2, 'N'])
-                model.add(bs >= x[e_idx, d2, 'N'] - x[e_idx, prev_d2, 'N'])
-            all_block_starts.append(bs)
-
-        model.add(sum(all_block_starts) <= 1)
-
-        # ── 1. Máximo de noches consecutivas (within-month) ─────────────────
-        for pos in range(num_days - max_block):
-            window = [pos_to_day[p] for p in range(pos, pos + max_block + 1)]
-            model.add(sum(x[e_idx, d, 'N'] for d in window) <= max_block)
-
-        # ── 1b. Máximo cross-month: ventanas que incluyen días del mes anterior ─
-        # Para cada solapamiento k con la cola del mes anterior,
-        # la ventana tiene k días de cola + (max_block+1-k) días del mes actual.
-        for k in range(1, min(max_block + 1, len(emp_tail) + 1)):
-            prev_N = sum(1 for s in emp_tail[-k:] if s == 'N')
-            curr_window_len = max_block + 1 - k
-            if curr_window_len <= 0:
-                break
-            curr_window = day_numbers[:curr_window_len]
-            if len(curr_window) < curr_window_len:
-                break
-            allowed = max(0, max_block - prev_N)
-            model.add(sum(x[e_idx, d, 'N'] for d in curr_window) <= allowed)
-
-        # ── 2. Mínimo de noches por bloque ──────────────────────────────────
-        for pos, d in enumerate(day_numbers):
-            is_first_day = pos == 0
-
-            if is_first_day:
-                if trailing_N > 0:
-                    # Continuación de un bloque cross-month.
-                    # El bloque tiene ya trailing_N noches del mes anterior.
-                    if trailing_N >= max_block:
-                        # Ya alcanzó el máximo: día 1 no puede ser N
-                        # (el cross-month max de arriba también lo fuerza, pero ser explícito)
-                        if (e_idx, d, 'N') in x:
-                            model.add(x[e_idx, d, 'N'] == 0)
-                    elif trailing_N >= min_block:
-                        # Bloque ya completo: si día 1 es N, es extensión válida.
-                        # No se requieren días mínimos adicionales aquí.
-                        pass
-                    else:
-                        # Bloque incompleto: si día 1 es N, deben completarse
-                        # los días que faltan para llegar a min_block en total.
-                        remaining_for_min = min_block - trailing_N - 1  # -1: día 1 ya cuenta
-                        if remaining_for_min > 0:
-                            for k in range(1, remaining_for_min + 1):
-                                if pos + k < num_days:
-                                    next_d = pos_to_day[pos + k]
-                                    model.add(x[e_idx, next_d, 'N'] >= x[e_idx, d, 'N'])
+                prev_d = all_days[all_pos - 1]
+                if (e_idx, prev_d, 'N') not in x:
+                    model.add(bs == x[e_idx, d, 'N'])
                 else:
-                    # Sin contexto previo: si hay N en día 1, deben seguir min_block días
-                    if pos + min_block <= num_days:
-                        block_start = model.new_bool_var(f"ns_{e_idx}_{d}")
-                        model.add(block_start == x[e_idx, d, 'N'])
-                        for k in range(1, min_block):
-                            next_d = pos_to_day[pos + k]
-                            model.add(x[e_idx, next_d, 'N'] >= block_start)
+                    model.add(bs <= x[e_idx, d, 'N'])
+                    model.add(bs <= 1 - x[e_idx, prev_d, 'N'])
+                    model.add(bs >= x[e_idx, d, 'N'] - x[e_idx, prev_d, 'N'])
+            block_starts[real_pos] = bs
+
+        # ── Máximo 1 bloque NUEVO en días reales ─────────────────────────────
+        model.add(sum(block_starts.values()) <= 1)
+
+        # ── Continuación cross-month (condicional) ────────────────────────────
+        # SI el día 1 es N, se completan los días restantes para llegar a min_block.
+        # El día 1 NO se fuerza (diferencia fundamental con bloques que empiezan
+        # en días reales, donde block_start sí fuerza el mínimo).
+        if trailing_N > 0 and real_days:
+            day1 = real_days[0]
+            if trailing_N >= max_block:
+                # Bloque ya al máximo: día 1 no puede ser N
+                if (e_idx, day1, 'N') in x:
+                    model.add(x[e_idx, day1, 'N'] == 0)
+            elif trailing_N < min_block:
+                # Bloque incompleto: SI día 1 = N, completar mínimo
+                remaining = min_block - trailing_N - 1   # -1: día 1 ya cuenta
+                for k in range(1, remaining + 1):
+                    if k < num_real:
+                        nd = real_days[k]
+                        if (e_idx, nd, 'N') in x:
+                            model.add(x[e_idx, nd, 'N'] >= x[e_idx, day1, 'N'])
+            # elif trailing_N >= min_block: bloque completo, sin restricción extra
+
+        # ── Mínimo de noches por bloque NUEVO en días reales ─────────────────
+        for real_pos in range(num_real):
+            d       = real_days[real_pos]
+            bs      = block_starts[real_pos]
+            # Solo si hay suficientes días reales restantes para completar el bloque.
+            # Si no hay suficientes, no puede empezar un nuevo bloque aquí.
+            can_complete = (real_pos + min_block <= num_real)
+
+            if can_complete:
+                for k in range(1, min_block):
+                    nd = real_days[real_pos + k]
+                    if (e_idx, nd, 'N') in x:
+                        model.add(x[e_idx, nd, 'N'] >= bs)
             else:
-                prev_d = pos_to_day[pos - 1]
-                can_complete_block = (pos + min_block <= num_days)
-
-                if not can_complete_block:
-                    # No quedan días suficientes para un bloque mínimo nuevo.
-                    model.add(x[e_idx, d, 'N'] <= x[e_idx, prev_d, 'N'])
-                else:
-                    block_start = model.new_bool_var(f"ns_{e_idx}_{d}")
-                    model.add(block_start <= x[e_idx, d, 'N'])
-                    model.add(block_start <= 1 - x[e_idx, prev_d, 'N'])
-                    model.add(block_start >= x[e_idx, d, 'N'] - x[e_idx, prev_d, 'N'])
-                    for k in range(1, min_block):
-                        next_d = pos_to_day[pos + k]
-                        model.add(x[e_idx, next_d, 'N'] >= block_start)
+                # Restaurar restricción original: no puede empezar bloque nuevo
+                # si no quedan días suficientes para completarlo.
+                if real_pos > 0:
+                    prev_d = all_days[real_start + real_pos - 1]
+                    if (e_idx, prev_d, 'N') in x and (e_idx, d, 'N') in x:
+                        model.add(x[e_idx, d, 'N'] <= x[e_idx, prev_d, 'N'])
+                elif trailing_N == 0:
+                    # Primer día real, sin trailing: no puede iniciar bloque
+                    if (e_idx, d, 'N') in x:
+                        model.add(x[e_idx, d, 'N'] == 0)

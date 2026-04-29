@@ -19,7 +19,6 @@ def apply(
     emp_idx_by_id: dict[str, int],
 ) -> None:
     # Paso 1: fijar cada celda bloqueada a su turno correspondiente.
-    # Registramos (e_idx, day) → shift para el paso 2.
     locked_by_emp_day: dict[tuple[int, int], str] = {}
 
     for emp_id, day_map in input.lockedCells.items():
@@ -32,10 +31,12 @@ def apply(
             if (e, d, shift_code) in x:
                 model.add(x[e, d, shift_code] == 1)
 
-    # Paso 2: prohibir turnos especiales (V, B, IT, E, FO, A, ...) en cualquier
-    # combinación (empleado, día) que NO esté explícitamente bloqueada.
-    # Sin esto el solver los usaría libremente para cuadrar otras constraints.
+    # Paso 2: prohibir turnos especiales en combinaciones no bloqueadas.
+    # Los días virtuales (d < 0) se saltan: ya están bloqueados desde model.py
+    # con add_exactly_one + forced shift; añadir constraints aquí produciría INFEASIBLE.
     for (e, d, s) in x:
+        if d < 0:
+            continue
         if s in _BASE_SHIFTS:
             continue
         if locked_by_emp_day.get((e, d)) != s:
