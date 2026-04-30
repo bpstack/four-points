@@ -62,6 +62,8 @@ import {
   calculateProportionalContract,
   // Annual Totals
   getAnnualTotals,
+  // Shift Stats
+  getShiftStats,
 } from '../../controllers/scheduling/scheduling-controller.js'
 import { generateSchedule } from '../../controllers/scheduling/schedule-generate.controller.js'
 
@@ -265,8 +267,12 @@ router.delete('/contracts/:id', isAdmin, deleteContract)
 // ANNUAL TOTALS ROUTES
 // ========================================
 
-// GET - Get annual totals for a year (calculated from published months)
 router.get('/totals/:year', getAnnualTotals)
 
-// Annual totals route already handled above
+// SHIFT STATS ROUTES
+// ========================================
+
+// GET /shift-stats?year=2026 — conteo de turnos por empleado (published + draft)
+router.get('/shift-stats', excludeMantenimiento, getShiftStats)
+
 export default router

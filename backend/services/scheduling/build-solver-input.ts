@@ -11,7 +11,7 @@ export async function buildSolverInput(
   year: number,
   month: number
 ): Promise<SolverInput> {
-  const [configMap, employees, days, assignments, approvedRequests, prevTailRows] =
+  const [configMap, employees, days, assignments, approvedRequests, prevTailRows, nightsHistory] =
     await Promise.all([
       repo.getConfigMap(),
       repo.getSchedulableEmployees(),
@@ -19,6 +19,7 @@ export async function buildSolverInput(
       repo.getAssignmentsByMonth(monthId),
       requestsRepo.findApprovedForSolver(year, month),
       repo.getPreviousMonthEndAssignments(year, month, 7),
+      repo.getNightHistoryForEmployees(monthId),
     ])
 
   // ── Empleados ──────────────────────────────────────────
@@ -69,6 +70,9 @@ export async function buildSolverInput(
     maxAfternoonStaff: configMap.maxAfternoonStaff ?? 6,
     minNightStaff: configMap.minNightStaff ?? 1,
     maxNightStaff: configMap.maxNightStaff ?? 1,
+    minNightBlock: configMap.minNightBlock ?? 4,
+    maxNightBlock: configMap.maxNightBlock ?? 6,
+    prefNightBlock: configMap.prefNightBlock ?? 5,
     minMonthlyLibre: configMap.minMonthlyLibre ?? 9,
     maxMonthlyLibre: configMap.maxMonthlyLibre ?? 11,
     maxConsecutiveWorkDays: configMap.maxConsecutiveWorkDays ?? 6,
@@ -142,8 +146,9 @@ export async function buildSolverInput(
     days: solverDays,
     lockedCells,
     previousMonthTail,
+    nightsHistory,
     config,
-    options: { timeoutSeconds: 30, optimizationLevel: 'fast' },
+    options: { timeoutSeconds: 30, optimizationLevel: 'balanced' },
   }
 }
 

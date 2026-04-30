@@ -106,13 +106,43 @@ def apply(
             block_starts[real_pos] = bs
 
         # ── Máximo 1 bloque NUEVO en días reales ─────────────────────────────
-        model.add(sum(block_starts.values()) <= 1)
+        # Si el mes anterior terminó en noches (trailing_N > 0), el empleado
+        # ya tiene su "bloque de noches del ciclo" en progreso — no puede iniciar
+        # uno nuevo en este mes. Solo se permite la completación cross-month.
+        #
+        # Excepción: si la continuación es físicamente imposible porque las
+        # celdas que necesita para completar el mínimo están bloqueadas (ej:
+        # vacaciones), el empleado queda liberado para iniciar un bloque nuevo
+        # más adelante en el mes. Sin esta excepción, el solver devuelve
+        # INFEASIBLE cuando hay una vacación al principio del mes para un
+        # empleado con trailing_N incompleto.
+        continuation_blocked = False
+        if 0 < trailing_N < min_block and real_days:
+            needed = min_block - trailing_N      # días adicionales para completar mínimo
+            emp_locked = input.lockedCells.get(employees[e_idx].id, {})
+            for k in range(min(needed, num_real)):
+                locked_shift = emp_locked.get(str(real_days[k]))
+                if locked_shift and locked_shift != 'N':
+                    continuation_blocked = True
+                    break
+
+        if 0 < trailing_N < min_block and not continuation_blocked:
+            # Bloque incompleto en progreso y puede continuar: prohibir bloque nuevo.
+            # (El empleado debe completar el bloque del mes anterior, no empezar otro.)
+            model.add(sum(block_starts.values()) == 0)
+        else:
+            # trailing_N == 0: sin contexto previo, bloque nuevo libre.
+            # trailing_N >= min_block: bloque ya completado en el mes anterior —
+            #   el empleado puede hacer noches de nuevo este mes.
+            # trailing_N < min_block con continuation_blocked (vacaciones): ídem.
+            model.add(sum(block_starts.values()) <= 1)
 
         # ── Continuación cross-month (condicional) ────────────────────────────
         # SI el día 1 es N, se completan los días restantes para llegar a min_block.
         # El día 1 NO se fuerza (diferencia fundamental con bloques que empiezan
         # en días reales, donde block_start sí fuerza el mínimo).
-        if trailing_N > 0 and real_days:
+        # Si la continuación está bloqueada, se omiten estas restricciones.
+        if trailing_N > 0 and real_days and not continuation_blocked:
             day1 = real_days[0]
             if trailing_N >= max_block:
                 # Bloque ya al máximo: día 1 no puede ser N

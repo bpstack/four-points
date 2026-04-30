@@ -112,9 +112,14 @@ def apply(
                             if (e_idx, nd, shift) in x:
                                 model.add(x[e_idx, nd, shift] >= bs)
 
-        # M → T directo prohibido — aplica sobre all_days (incluye virtual→real)
+        # M → T directo prohibido — aplica sobre all_days (incluye virtual→real).
+        # Se salta pares donde ambos días son virtuales: están fijados desde el tail
+        # del mes anterior y no podemos modificarlos (añadir la constraint haría el
+        # modelo INFEASIBLE si el mes anterior tuvo M→T por edición manual).
         for pos in range(n_all - 1):
             d      = all_days[pos]
             d_next = all_days[pos + 1]
+            if d < 0 and d_next < 0:   # ambos virtuales → skip
+                continue
             if (e_idx, d, 'M') in x and (e_idx, d_next, 'T') in x:
                 model.add(x[e_idx, d, 'M'] + x[e_idx, d_next, 'T'] <= 1)

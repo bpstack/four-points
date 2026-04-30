@@ -46,10 +46,13 @@ export async function generateSchedule(req: Request, res: Response): Promise<voi
     `${Object.keys(solverInput.lockedCells).length} empleados con celdas bloqueadas`
   )
 
-  // 4. Invocar solver
+  // 4. Invocar solver (abort si el cliente se desconecta)
+  const abortController = new AbortController()
+  req.on('close', () => abortController.abort())
+
   let solverOutput
   try {
-    solverOutput = await runSolver(solverInput)
+    solverOutput = await runSolver(solverInput, abortController.signal)
   } catch (err: any) {
     console.error('[generate] Error invocando solver:', err.message)
     res.status(500).json({ error: `Error invocando el solver: ${err.message}` })
@@ -66,7 +69,17 @@ export async function generateSchedule(req: Request, res: Response): Promise<voi
   }
 
   if (solverOutput.status === 'infeasible') {
-    console.warn('[generate] Solver INFEASIBLE')
+    const tail = solverInput.previousMonthTail ?? {}
+    console.warn('[generate] Solver INFEASIBLE — input summary:', JSON.stringify({
+      employees: solverInput.employees.map(e => ({
+        id: e.id,
+        fixedShift: e.rules?.fixedShift,
+        lockedDays: Object.keys(solverInput.lockedCells[e.id] ?? {}).length,
+        lockedCells: solverInput.lockedCells[e.id] ?? {},
+        tail: tail[e.id] ?? [],
+      })),
+      config: solverInput.config,
+    }))
     res.status(422).json({
       error: 'No existe un horario válido con las reglas actuales',
       conflictingConstraints: solverOutput.conflictingConstraints,

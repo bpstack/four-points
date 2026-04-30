@@ -12,6 +12,12 @@ Constraints activas:
   day_blocks — Bloques mínimos M/T; M→T prohibido
   employee_rules — noWeekends, fixedShift
 
+Función objetivo (soft):
+  S1 — Balanceo de noches: minimiza max(total_N) - min(total_N) entre empleados rotatorios
+       usando nightsHistory (noches acumuladas en meses anteriores) + noches del mes actual.
+  S2 — Libres sueltos: penaliza L aislado (sin L adyacente en el día anterior o siguiente).
+  S3 — Preferencia de turno: penaliza días con turno distinto al shiftPriority del empleado.
+
 Cross-month (días virtuales):
   Los empleados con previousMonthTail reciben variables para los días virtuales
   -TAIL_LENGTH...-1, bloqueadas desde el tail del mes anterior publicado.
@@ -100,6 +106,102 @@ def solve(input: SolverInput) -> SolverOutput:
     day_blocks.apply(model, x, input, employees, days, virtual_days_by_emp)
     employee_rules.apply(model, x, input, employees, days)
 
+    # ── Función objetivo (soft constraints) ──────────────────────────────────
+    # Pesos: S1 es el objetivo primario; S2 y S3 son secundarios.
+    W_NIGHT_BALANCE  = 10   # S1: por noche de diferencia entre max y min empleado
+    W_ISOLATED_L     = 2    # S2: por cada L aislado (sin L adyacente)
+    W_SHIFT_PRIORITY = 1    # S3: por cada día con turno distinto al preferido
+
+    objective_terms: list = []
+
+    # ── S1: Balanceo de noches ────────────────────────────────────────────────
+    # Empleados rotatorios (sin fixedShift): minimiza rango del total de noches
+    # (histórico + mes actual). Con esto, el solver prefiere asignar noches a
+    # los empleados con menos acumuladas, equilibrando el reparto a lo largo del año.
+    hist = input.nightsHistory
+    rotary_emps = [
+        (e_idx, emp)
+        for e_idx, emp in enumerate(employees)
+        if not emp.rules.fixedShift
+    ]
+    night_range = None   # definido aquí para ser accesible en el bloque de output
+    if len(rotary_emps) >= 2:
+        big_M = len(day_numbers) + max(hist.values(), default=0) + 1
+        total_nights_vars = []
+        for e_idx, emp in rotary_emps:
+            hist_n = hist.get(emp.id, 0)
+            curr_n_expr = sum(
+                x[e_idx, d, 'N']
+                for d in day_numbers
+                if (e_idx, d, 'N') in x
+            )
+            total = model.new_int_var(0, hist_n + len(day_numbers), f"total_n_{e_idx}")
+            model.add(total == hist_n + curr_n_expr)
+            total_nights_vars.append(total)
+
+        max_n = model.new_int_var(0, big_M, "max_n")
+        min_n = model.new_int_var(0, big_M, "min_n")
+        model.add_max_equality(max_n, total_nights_vars)
+        model.add_min_equality(min_n, total_nights_vars)
+        night_range = model.new_int_var(0, big_M, "night_range")
+        model.add(night_range == max_n - min_n)
+        objective_terms.append(W_NIGHT_BALANCE * night_range)
+
+    # ── S2: Libres sueltos ────────────────────────────────────────────────────
+    # Penaliza L que no tiene ningún L adyacente (ni anterior ni siguiente).
+    # Incentiva agrupar libres en pares/tríos en lugar de distribuirlos 1 a 1.
+    for e_idx in range(num_emps):
+        for pos, d in enumerate(day_numbers):
+            if (e_idx, d, 'L') not in x:
+                continue
+
+            prev_d = day_numbers[pos - 1] if pos > 0 else None
+            next_d = day_numbers[pos + 1] if pos < len(day_numbers) - 1 else None
+
+            # Verificar si el día anterior es L (puede ser virtual)
+            prev_L = None
+            if prev_d is not None and (e_idx, prev_d, 'L') in x:
+                prev_L = x[e_idx, prev_d, 'L']
+            elif pos == 0:
+                virt = virtual_days_by_emp.get(e_idx, [])
+                if virt and (e_idx, virt[-1], 'L') in x:
+                    prev_L = x[e_idx, virt[-1], 'L']
+
+            next_L = x[e_idx, next_d, 'L'] if next_d is not None and (e_idx, next_d, 'L') in x else None
+
+            iso = model.new_bool_var(f"iso_{e_idx}_{d}")
+
+            # Condiciones necesarias (upper bounds):
+            model.add(iso <= x[e_idx, d, 'L'])
+            if prev_L is not None:
+                model.add(iso <= 1 - prev_L)
+            if next_L is not None:
+                model.add(iso <= 1 - next_L)
+
+            # Condición suficiente (lower bound: iso ≥ L - prev_L - next_L):
+            lb = x[e_idx, d, 'L']
+            if prev_L is not None:
+                lb = lb - prev_L
+            if next_L is not None:
+                lb = lb - next_L
+            model.add(iso >= lb)
+
+            objective_terms.append(W_ISOLATED_L * iso)
+
+    # ── S3: Preferencia de turno (shiftPriority) ──────────────────────────────
+    # Penaliza días de trabajo con turno distinto al preferido del empleado.
+    for e_idx, emp in enumerate(employees):
+        priority = emp.rules.shiftPriority
+        if not priority or priority not in WORK_SHIFTS:
+            continue
+        for d in day_numbers:
+            for s in WORK_SHIFTS:
+                if s != priority and (e_idx, d, s) in x:
+                    objective_terms.append(W_SHIFT_PRIORITY * x[e_idx, d, s])
+
+    if objective_terms:
+        model.minimize(cp_model.LinearExpr.Sum(objective_terms))
+
     # ── Resolver ──────────────────────────────────────────────────────────────
 
     solver = cp_model.CpSolver()
@@ -132,12 +234,24 @@ def solve(input: SolverInput) -> SolverOutput:
                         matrix[emp.id][str(d)] = s
                         break
 
+        soft_penalty = int(solver.objective_value) if objective_terms else 0
+        # softPenaltyBreakdown solo incluye S1 (night_balance).
+        # S2 (isolated_L) y S3 (shift_priority) contribuyen al softPenalty total
+        # pero no se desglosan individualmente (calcularlos requeriría iterar sobre
+        # todas las variables iso/priority del solver, que no se almacenan por separado).
+        soft_breakdown: dict[str, int] = {}
+        if night_range is not None:
+            night_r = solver.value(night_range)
+            soft_breakdown["night_balance"] = W_NIGHT_BALANCE * night_r
+
         return SolverSuccess(
             status="ok",
             matrix=matrix,
             stats=SolverStats(
                 solveTimeMs=elapsed_ms,
                 hardConstraintsSatisfied=True,
+                softPenalty=soft_penalty,
+                softPenaltyBreakdown=soft_breakdown,
                 status=status_name,
             ),
         )

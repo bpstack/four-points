@@ -370,6 +370,63 @@ export async function getPreviousMonthEndAssignments(
   }))
 }
 
+/**
+ * Conteo de cada tipo de turno por empleado para el año indicado.
+ * Incluye meses publicados y en borrador (draft).
+ * Un único GROUP BY — muy eficiente incluso con muchos meses y empleados.
+ */
+export async function getShiftCountsByYear(year: number): Promise<
+  Array<{ employeeId: string; employeeName: string; shiftCode: string; count: number }>
+> {
+  const [rows] = await db.execute<RowDataPacket[]>(
+    `SELECT
+       sa.employee_id      AS employeeId,
+       u.username          AS employeeName,
+       sa.shift_code       AS shiftCode,
+       COUNT(*)            AS count
+     FROM scheduling_assignments sa
+     JOIN scheduling_months sm ON sa.month_id = sm.id
+     JOIN users u ON sa.employee_id = u.id
+     WHERE sm.year = ?
+       AND sm.status IN ('published', 'draft')
+     GROUP BY sa.employee_id, u.username, sa.shift_code
+     ORDER BY u.username, sa.shift_code`,
+    [year]
+  )
+  return rows.map((r) => ({
+    employeeId: r.employeeId as string,
+    employeeName: r.employeeName as string,
+    shiftCode: r.shiftCode as string,
+    count: Number(r.count),
+  }))
+}
+
+/**
+ * Total de noches (shift_code='N') por empleado en todos los meses PUBLICADOS
+ * excluyendo el mes indicado por monthId (el que se está generando).
+ * Usado por el solver para balancear noches con contexto histórico.
+ */
+export async function getNightHistoryForEmployees(
+  excludeMonthId: number
+): Promise<Record<string, number>> {
+  const [rows] = await db.execute<RowDataPacket[]>(
+    `SELECT a.employee_id AS employeeId, COUNT(*) AS nightCount
+     FROM scheduling_assignments a
+     JOIN scheduling_days d ON a.day_id = d.id
+     JOIN scheduling_months m ON d.month_id = m.id
+     WHERE m.status = 'published'
+       AND d.month_id != ?
+       AND a.shift_code = 'N'
+     GROUP BY a.employee_id`,
+    [excludeMonthId]
+  )
+  const result: Record<string, number> = {}
+  for (const row of rows) {
+    result[row.employeeId as string] = Number(row.nightCount)
+  }
+  return result
+}
+
 export async function createMonth(data: CreateMonthDTO): Promise<number> {
   const [result] = await db.execute<ResultSetHeader>(
     `INSERT INTO scheduling_months (year, month, status, notes, created_by, created_at, updated_at)

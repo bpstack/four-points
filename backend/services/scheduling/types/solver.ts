@@ -63,6 +63,12 @@ export interface SolverInput {
    * Usado para continuidad cross-month: bloques de noche, transiciones, trabajo consecutivo.
    */
   previousMonthTail?: Record<string, string[]>
+  /**
+   * employeeId → total de noches (N) en meses publicados anteriores.
+   * Usado por el solver para balancear noches con contexto histórico anual.
+   * Omitir o dejar vacío para balancear solo dentro del mes actual.
+   */
+  nightsHistory?: Record<string, number>
   config: SolverConfig
   options?: SolverOptions
 }

@@ -71,6 +71,9 @@ class SolverInput(BaseModel):
     # employeeId → lista de shifts de los últimos N días del mes anterior (orden cronológico ASC)
     # Usado para continuidad cross-month (bloques de noche, descanso, trabajo consecutivo).
     previousMonthTail: dict[str, list[str]] = {}
+    # employeeId → total de noches (N) acumuladas en meses publicados anteriores.
+    # Alimenta el objetivo soft de balanceo de noches entre empleados.
+    nightsHistory: dict[str, int] = {}
     config: SchedulingConfig = SchedulingConfig()
     options: SolverOptions = SolverOptions()
 

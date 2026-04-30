@@ -37,6 +37,12 @@ def apply(
             d      = all_days[pos]
             d_next = all_days[pos + 1]
 
+            # Pares virtual→virtual: ambos fijados desde el tail del mes anterior.
+            # Añadir prohibiciones aquí haría el modelo INFEASIBLE si el mes anterior
+            # tuvo una transición "prohibida" por edición manual (e.g. N→M, T→M).
+            if d < 0 and d_next < 0:
+                continue
+
             # H3: N → M/T/PI/P prohibido
             if (e_idx, d, 'N') in x:
                 for forbidden in ['M', 'T', 'PI', 'P']:
