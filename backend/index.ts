@@ -7,6 +7,7 @@ import { PORT } from './config/config.js'
 import { logServerInfo } from './config/startup-logger.js'
 
 import { CronService } from './services/cron/cron-service.js'
+import { warmupSolver } from './services/scheduling/solver-client.js'
 import authRoutes from './routes/auth/auth-routes.js'
 import userRoutes from './routes/auth/user-routes.js'
 import logbookRoutes from './routes/logbook/logbook-routes.js'
@@ -190,4 +191,5 @@ app.use((err: HttpError, _req: Request, res: Response, _next: NextFunction) => {
 app.listen(PORT, async () => {
   logServerInfo(PORT)
   CronService.start()
+  warmupSolver()
 })
