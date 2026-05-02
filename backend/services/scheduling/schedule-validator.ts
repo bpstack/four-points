@@ -902,13 +902,14 @@ export async function createScheduleValidator(monthId: number): Promise<Schedule
   const month = await repo.getMonthById(monthId)
   if (!month) return null
 
-  const [config, shifts, days, assignments, allRules, schedulableUsers] = await Promise.all([
+  const [config, shifts, days, assignments, allRules, schedulableUsers, prevTailRows] = await Promise.all([
     repo.getConfigMap(),
     repo.getAllShifts(),
     repo.getDaysByMonth(monthId),
     repo.getAssignmentsByMonth(monthId),
     repo.getAllEmployeeRules(),
     repo.getSchedulableEmployees(),
+    repo.getPreviousMonthEndAssignments(month.year, month.month, 7),
   ])
 
   // Build rules map for quick lookup
@@ -972,8 +973,45 @@ export async function createScheduleValidator(monthId: number): Promise<Schedule
     shifts,
     days,
     employees,
-    assignments
+    assignments,
+    buildPreviousMonthHistory(prevTailRows)
   )
+}
+
+function buildPreviousMonthHistory(
+  tailRows: { employeeId: string; dayNumber: number; shiftCode: string }[]
+): PreviousMonthHistory {
+  const lastShifts = new Map<string, { dayNumber: number; shiftCode: string }[]>()
+  const incompleteNightBlocks = new Map<string, number>()
+  const lastShiftType = new Map<string, 'M' | 'T'>()
+  const endedWithNight = new Map<string, boolean>()
+
+  for (const row of tailRows) {
+    if (!lastShifts.has(row.employeeId)) lastShifts.set(row.employeeId, [])
+    lastShifts.get(row.employeeId)!.push({ dayNumber: row.dayNumber, shiftCode: row.shiftCode })
+  }
+
+  for (const [empId, shifts] of lastShifts) {
+    const sorted = [...shifts].sort((a, b) => a.dayNumber - b.dayNumber)
+
+    for (let i = sorted.length - 1; i >= 0; i--) {
+      if (sorted[i].shiftCode === 'M' || sorted[i].shiftCode === 'T') {
+        lastShiftType.set(empId, sorted[i].shiftCode as 'M' | 'T')
+        break
+      }
+    }
+
+    endedWithNight.set(empId, sorted[sorted.length - 1]?.shiftCode === 'N')
+
+    let nightCount = 0
+    for (let i = sorted.length - 1; i >= 0; i--) {
+      if (sorted[i].shiftCode === 'N') nightCount++
+      else break
+    }
+    if (nightCount > 0) incompleteNightBlocks.set(empId, nightCount)
+  }
+
+  return { lastShifts, incompleteNightBlocks, lastShiftType, endedWithNight }
 }
 
 // ============================================
