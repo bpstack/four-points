@@ -138,3 +138,6 @@ local.json
 # Debug Output
 # --------------------------------------------
 generation-result.json
+debug-*.js
+debug-*.ts
+scripts/update-fixture-expected.*

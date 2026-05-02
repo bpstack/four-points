@@ -17,5 +17,5 @@
     "noImplicitReturns": true
   },
   "include": ["**/*.ts", "**/*.js"],
-  "exclude": ["node_modules", "dist", "tests"]
+  "exclude": ["node_modules", "dist", "tests", "scripts"]
 }
