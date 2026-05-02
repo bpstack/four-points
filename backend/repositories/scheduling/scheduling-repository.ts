@@ -830,15 +830,6 @@ export async function deleteAllAssignmentsByMonth(monthId: number): Promise<void
   await db.execute('DELETE FROM scheduling_assignments WHERE month_id = ?', [monthId])
 }
 
-/** Borra solo las asignaciones sin celda bloqueada (source_constraint_id IS NULL). */
-export async function deleteUnlockedAssignmentsByMonth(monthId: number): Promise<number> {
-  const [result] = await db.execute<ResultSetHeader>(
-    'DELETE FROM scheduling_assignments WHERE month_id = ? AND source_constraint_id IS NULL',
-    [monthId]
-  )
-  return result.affectedRows
-}
-
 /** Borra las asignaciones no bloqueadas e inserta las nuevas en una sola transacción. */
 export async function applyGeneratedSchedule(
   monthId: number,
