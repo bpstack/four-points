@@ -58,6 +58,7 @@ backend/scheduling-solver/venv/
 # Claude Code Templates & Skills
 # --------------------------------------------
 .claude/
+**/skills-lock.json
 
 # --------------------------------------------
 # Documentation (local only)
@@ -85,3 +86,5 @@ SCHEDULING-SOLVER-PLAN.md
 SCHEDULING-CONSTRAINTS.md
 SCHEDULING-DECISIONS-LOG.md
 PLANNING 2026.xlsx
+**mimo.md
+**schedule-process.md
