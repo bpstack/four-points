@@ -88,15 +88,10 @@ export async function generateSchedule(req: Request, res: Response): Promise<voi
     return
   }
 
-  // 6. Volcar matriz en BD (respetando celdas bloqueadas)
+  // 6. Volcar matriz en BD dentro de una sola transacción (delete + insert atómicos)
   const success = solverOutput as SolverSuccess
   const dayMap = new Map(days.map((d) => [d.day_number, d.id]))
 
-  // Borrar solo asignaciones NO bloqueadas (source_constraint_id IS NULL)
-  const deleted = await repo.deleteUnlockedAssignmentsByMonth(monthId)
-  console.log(`[generate] Eliminadas ${deleted} asignaciones no-bloqueadas`)
-
-  // Insertar las nuevas asignaciones del solver (saltar celdas bloqueadas)
   const lockedSet = new Set<string>()
   for (const [empId, dayDayMap] of Object.entries(solverInput.lockedCells)) {
     for (const dayNum of Object.keys(dayDayMap)) {
@@ -105,23 +100,17 @@ export async function generateSchedule(req: Request, res: Response): Promise<voi
   }
 
   const toInsert: { day_id: number; employee_id: string; shift_code: string; source_constraint_id: null }[] = []
-
   for (const [empId, dayShifts] of Object.entries(success.matrix)) {
     for (const [dayNumStr, shiftCode] of Object.entries(dayShifts)) {
       if (lockedSet.has(`${empId}:${dayNumStr}`)) continue
-
       const dayId = dayMap.get(Number(dayNumStr))
       if (!dayId) continue
-
       toInsert.push({ day_id: dayId, employee_id: empId, shift_code: shiftCode, source_constraint_id: null })
     }
   }
 
-  if (toInsert.length > 0) {
-    await repo.createAssignmentsBulk(monthId, toInsert)
-  }
-
-  console.log(`[generate] Insertadas ${toInsert.length} asignaciones para mes ${monthId}`)
+  const { deleted, inserted } = await repo.applyGeneratedSchedule(monthId, toInsert)
+  console.log(`[generate] Mes ${monthId}: ${deleted} eliminadas, ${inserted} insertadas (transacción)`)
 
   // Recalcular libre_number para todos los empleados del mes (L → L1,L1,L2,L2…)
   const empIds = solverInput.employees.map((e) => e.id)
