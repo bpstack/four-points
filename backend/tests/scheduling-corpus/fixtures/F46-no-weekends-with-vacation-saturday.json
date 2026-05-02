@@ -1,0 +1,100 @@
+{
+  "id": "F46-no-weekends-with-vacation-saturday",
+  "description": "EMP_06 has noWeekends=true but Saturday is locked as V (vacation). No employee-rules violation.",
+  "input": {
+    "monthId": 22,
+    "year": 2026,
+    "month": 9,
+    "config": {
+      "minMorningStaff": 0,
+      "prefMorningStaff": 0,
+      "maxMorningStaff": 99,
+      "minAfternoonStaff": 0,
+      "prefAfternoonStaff": 0,
+      "maxAfternoonStaff": 99,
+      "minNightStaff": 0,
+      "maxNightStaff": 99,
+      "maxWeeklyShifts": 6,
+      "prefWeeklyShifts": 5,
+      "minRestHours": 48,
+      "minNightBlock": 4,
+      "maxNightBlock": 6,
+      "prefNightBlock": 5,
+      "minMonthlyLibre": 9,
+      "maxMonthlyLibre": 11,
+      "maxConsecutiveWorkDays": 6,
+      "minConsecutiveLibre": 2,
+      "annualVacationDays": 30,
+      "annualHolidays": 20,
+      "annualFreeDays": 90
+    },
+    "employees": [
+      {
+        "id": "E0000000-0000-0000-0000-000000000001",
+        "name": "EMP_06",
+        "rules": {
+          "noWeekends": true
+        }
+      },
+      {
+        "id": "E0000000-0000-0000-0000-000000000002",
+        "name": "EMP_02"
+      }
+    ],
+    "days": [
+      { "dayNumber": 1, "dayOfWeek": "L", "weekNumber": 1, "isHoliday": false },
+      { "dayNumber": 2, "dayOfWeek": "M", "weekNumber": 1, "isHoliday": false },
+      { "dayNumber": 3, "dayOfWeek": "X", "weekNumber": 1, "isHoliday": false },
+      { "dayNumber": 4, "dayOfWeek": "J", "weekNumber": 1, "isHoliday": false },
+      { "dayNumber": 5, "dayOfWeek": "V", "weekNumber": 1, "isHoliday": false },
+      { "dayNumber": 6, "dayOfWeek": "S", "weekNumber": 1, "isHoliday": false },
+      { "dayNumber": 7, "dayOfWeek": "D", "weekNumber": 1, "isHoliday": false },
+      { "dayNumber": 8, "dayOfWeek": "L", "weekNumber": 2, "isHoliday": false },
+      { "dayNumber": 9, "dayOfWeek": "M", "weekNumber": 2, "isHoliday": false },
+      { "dayNumber": 10, "dayOfWeek": "X", "weekNumber": 2, "isHoliday": false },
+      { "dayNumber": 11, "dayOfWeek": "J", "weekNumber": 2, "isHoliday": false },
+      { "dayNumber": 12, "dayOfWeek": "V", "weekNumber": 2, "isHoliday": false },
+      { "dayNumber": 13, "dayOfWeek": "S", "weekNumber": 2, "isHoliday": false },
+      { "dayNumber": 14, "dayOfWeek": "D", "weekNumber": 2, "isHoliday": false },
+      { "dayNumber": 15, "dayOfWeek": "L", "weekNumber": 3, "isHoliday": false },
+      { "dayNumber": 16, "dayOfWeek": "M", "weekNumber": 3, "isHoliday": false },
+      { "dayNumber": 17, "dayOfWeek": "X", "weekNumber": 3, "isHoliday": false },
+      { "dayNumber": 18, "dayOfWeek": "J", "weekNumber": 3, "isHoliday": false },
+      { "dayNumber": 19, "dayOfWeek": "V", "weekNumber": 3, "isHoliday": false },
+      { "dayNumber": 20, "dayOfWeek": "S", "weekNumber": 3, "isHoliday": false },
+      { "dayNumber": 21, "dayOfWeek": "D", "weekNumber": 3, "isHoliday": false },
+      { "dayNumber": 22, "dayOfWeek": "L", "weekNumber": 4, "isHoliday": false },
+      { "dayNumber": 23, "dayOfWeek": "M", "weekNumber": 4, "isHoliday": false },
+      { "dayNumber": 24, "dayOfWeek": "X", "weekNumber": 4, "isHoliday": false },
+      { "dayNumber": 25, "dayOfWeek": "J", "weekNumber": 4, "isHoliday": false },
+      { "dayNumber": 26, "dayOfWeek": "V", "weekNumber": 4, "isHoliday": false },
+      { "dayNumber": 27, "dayOfWeek": "S", "weekNumber": 4, "isHoliday": false },
+      { "dayNumber": 28, "dayOfWeek": "D", "weekNumber": 4, "isHoliday": false },
+      { "dayNumber": 29, "dayOfWeek": "L", "weekNumber": 5, "isHoliday": false },
+      { "dayNumber": 30, "dayOfWeek": "M", "weekNumber": 5, "isHoliday": false }
+    ],
+    "lockedCells": {
+      "E0000000-0000-0000-0000-000000000001": [6, 13, 20, 27]
+    },
+    "assignments": {
+      "E0000000-0000-0000-0000-000000000001": {
+        "1": "P", "2": "P", "3": "P", "4": "P", "5": "P", "6": "V", "7": "L", "8": "P",
+        "9": "P", "10": "P", "11": "P", "12": "P", "13": "V", "14": "L", "15": "P",
+        "16": "P", "17": "P", "18": "P", "19": "P", "20": "V", "21": "L", "22": "P",
+        "23": "P", "24": "P", "25": "P", "26": "P", "27": "V", "28": "L", "29": "P", "30": "P"
+      },
+      "E0000000-0000-0000-0000-000000000002": {
+        "1": "L", "2": "L", "3": "T", "4": "T", "5": "T", "6": "T", "7": "L", "8": "L",
+        "9": "T", "10": "T", "11": "T", "12": "T", "13": "L", "14": "L", "15": "T",
+        "16": "T", "17": "T", "18": "T", "19": "L", "20": "L", "21": "T", "22": "T",
+        "23": "T", "24": "T", "25": "L", "26": "L", "27": "T", "28": "T", "29": "T", "30": "T"
+      }
+    }
+  },
+  "expected": {
+    "isValid": false,
+    "violations": [{"type":"rest","severity":"error","employeeId":"E0000000-0000-0000-0000-000000000001","day":29}],
+    "softPenalty": 5,
+    "softPenaltyBreakdown": {"weekend_off_missing":5}
+  }
+}

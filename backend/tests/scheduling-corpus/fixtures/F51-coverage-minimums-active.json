@@ -1,0 +1,105 @@
+{
+  "id": "F51-coverage-minimums-active",
+  "description": "Coverage minimums activated (minM=2, minT=2, minN=1). Solver must satisfy all coverage constraints.",
+  "input": {
+    "monthId": 27,
+    "year": 2026,
+    "month": 12,
+    "config": {
+      "minMorningStaff": 2,
+      "prefMorningStaff": 2,
+      "maxMorningStaff": 6,
+      "minAfternoonStaff": 2,
+      "prefAfternoonStaff": 2,
+      "maxAfternoonStaff": 6,
+      "minNightStaff": 1,
+      "maxNightStaff": 1,
+      "maxWeeklyShifts": 6,
+      "prefWeeklyShifts": 5,
+      "minRestHours": 48,
+      "minNightBlock": 4,
+      "maxNightBlock": 6,
+      "prefNightBlock": 5,
+      "minMonthlyLibre": 9,
+      "maxMonthlyLibre": 11,
+      "maxConsecutiveWorkDays": 6,
+      "minConsecutiveLibre": 2,
+      "annualVacationDays": 30,
+      "annualHolidays": 20,
+      "annualFreeDays": 90
+    },
+    "employees": [
+      {
+        "id": "E0000000-0000-0000-0000-000000000001",
+        "name": "EMP_01"
+      },
+      {
+        "id": "E0000000-0000-0000-0000-000000000002",
+        "name": "EMP_02"
+      },
+      {
+        "id": "E0000000-0000-0000-0000-000000000003",
+        "name": "EMP_03"
+      }
+    ],
+    "days": [
+      { "dayNumber": 1, "dayOfWeek": "L", "weekNumber": 1, "isHoliday": false },
+      { "dayNumber": 2, "dayOfWeek": "M", "weekNumber": 1, "isHoliday": false },
+      { "dayNumber": 3, "dayOfWeek": "X", "weekNumber": 1, "isHoliday": false },
+      { "dayNumber": 4, "dayOfWeek": "J", "weekNumber": 1, "isHoliday": false },
+      { "dayNumber": 5, "dayOfWeek": "V", "weekNumber": 1, "isHoliday": false },
+      { "dayNumber": 6, "dayOfWeek": "S", "weekNumber": 1, "isHoliday": false },
+      { "dayNumber": 7, "dayOfWeek": "D", "weekNumber": 1, "isHoliday": false },
+      { "dayNumber": 8, "dayOfWeek": "L", "weekNumber": 2, "isHoliday": false },
+      { "dayNumber": 9, "dayOfWeek": "M", "weekNumber": 2, "isHoliday": false },
+      { "dayNumber": 10, "dayOfWeek": "X", "weekNumber": 2, "isHoliday": false },
+      { "dayNumber": 11, "dayOfWeek": "J", "weekNumber": 2, "isHoliday": false },
+      { "dayNumber": 12, "dayOfWeek": "V", "weekNumber": 2, "isHoliday": false },
+      { "dayNumber": 13, "dayOfWeek": "S", "weekNumber": 2, "isHoliday": false },
+      { "dayNumber": 14, "dayOfWeek": "D", "weekNumber": 2, "isHoliday": false },
+      { "dayNumber": 15, "dayOfWeek": "L", "weekNumber": 3, "isHoliday": false },
+      { "dayNumber": 16, "dayOfWeek": "M", "weekNumber": 3, "isHoliday": false },
+      { "dayNumber": 17, "dayOfWeek": "X", "weekNumber": 3, "isHoliday": false },
+      { "dayNumber": 18, "dayOfWeek": "J", "weekNumber": 3, "isHoliday": false },
+      { "dayNumber": 19, "dayOfWeek": "V", "weekNumber": 3, "isHoliday": false },
+      { "dayNumber": 20, "dayOfWeek": "S", "weekNumber": 3, "isHoliday": false },
+      { "dayNumber": 21, "dayOfWeek": "D", "weekNumber": 3, "isHoliday": false },
+      { "dayNumber": 22, "dayOfWeek": "L", "weekNumber": 4, "isHoliday": false },
+      { "dayNumber": 23, "dayOfWeek": "M", "weekNumber": 4, "isHoliday": false },
+      { "dayNumber": 24, "dayOfWeek": "X", "weekNumber": 4, "isHoliday": false },
+      { "dayNumber": 25, "dayOfWeek": "J", "weekNumber": 4, "isHoliday": false },
+      { "dayNumber": 26, "dayOfWeek": "V", "weekNumber": 4, "isHoliday": false },
+      { "dayNumber": 27, "dayOfWeek": "S", "weekNumber": 4, "isHoliday": false },
+      { "dayNumber": 28, "dayOfWeek": "D", "weekNumber": 4, "isHoliday": false },
+      { "dayNumber": 29, "dayOfWeek": "L", "weekNumber": 5, "isHoliday": false },
+      { "dayNumber": 30, "dayOfWeek": "M", "weekNumber": 5, "isHoliday": false },
+      { "dayNumber": 31, "dayOfWeek": "X", "weekNumber": 5, "isHoliday": false }
+    ],
+    "assignments": {
+      "E0000000-0000-0000-0000-000000000001": {
+        "1": "L", "2": "L", "3": "M", "4": "M", "5": "N", "6": "N", "7": "N", "8": "N", "9": "N",
+        "10": "L", "11": "L", "12": "M", "13": "M", "14": "L", "15": "L", "16": "T", "17": "T",
+        "18": "T", "19": "T", "20": "L", "21": "L", "22": "M", "23": "M", "24": "N", "25": "N",
+        "26": "N", "27": "N", "28": "N", "29": "L", "30": "L", "31": "M"
+      },
+      "E0000000-0000-0000-0000-000000000002": {
+        "1": "L", "2": "L", "3": "M", "4": "M", "5": "M", "6": "M", "7": "M", "8": "L", "9": "L",
+        "10": "M", "11": "M", "12": "T", "13": "T", "14": "L", "15": "L", "16": "T", "17": "T",
+        "18": "T", "19": "T", "20": "L", "21": "L", "22": "T", "23": "T", "24": "T", "25": "T",
+        "26": "T", "27": "L", "28": "L", "29": "M", "30": "M", "31": "M"
+      },
+      "E0000000-0000-0000-0000-000000000003": {
+        "1": "L", "2": "L", "3": "T", "4": "T", "5": "T", "6": "T", "7": "T", "8": "L", "9": "L",
+        "10": "T", "11": "T", "12": "T", "13": "T", "14": "L", "15": "L", "16": "M", "17": "M",
+        "18": "M", "19": "M", "20": "L", "21": "L", "22": "M", "23": "M", "24": "M", "25": "M",
+        "26": "M", "27": "L", "28": "L", "29": "T", "30": "T", "31": "T"
+      }
+    }
+  },
+  "expected": {
+    "isValid": false,
+    "violations": [{"type":"rest","severity":"error","employeeId":"E0000000-0000-0000-0000-000000000001","day":3},{"type":"rest","severity":"error","employeeId":"E0000000-0000-0000-0000-000000000001","day":22},{"type":"rest","severity":"error","employeeId":"E0000000-0000-0000-0000-000000000001","day":12},{"type":"rest","severity":"error","employeeId":"E0000000-0000-0000-0000-000000000001","day":31},{"type":"night_block","severity":"error","employeeId":"E0000000-0000-0000-0000-000000000001"},{"type":"night_block","severity":"error","employeeId":"E0000000-0000-0000-0000-000000000001"},{"type":"coverage","severity":"error","day":1},{"type":"coverage","severity":"error","day":1},{"type":"coverage","severity":"error","day":1},{"type":"coverage","severity":"error","day":2},{"type":"coverage","severity":"error","day":2},{"type":"coverage","severity":"error","day":2},{"type":"coverage","severity":"error","day":3},{"type":"coverage","severity":"error","day":4},{"type":"coverage","severity":"error","day":8},{"type":"coverage","severity":"error","day":8},{"type":"coverage","severity":"error","day":9},{"type":"coverage","severity":"error","day":9},{"type":"coverage","severity":"error","day":10},{"type":"coverage","severity":"error","day":11},{"type":"coverage","severity":"error","day":12},{"type":"coverage","severity":"error","day":13},{"type":"coverage","severity":"error","day":14},{"type":"coverage","severity":"error","day":14},{"type":"coverage","severity":"error","day":14},{"type":"coverage","severity":"error","day":15},{"type":"coverage","severity":"error","day":15},{"type":"coverage","severity":"error","day":15},{"type":"coverage","severity":"error","day":16},{"type":"coverage","severity":"error","day":17},{"type":"coverage","severity":"error","day":18},{"type":"coverage","severity":"error","day":19},{"type":"coverage","severity":"error","day":20},{"type":"coverage","severity":"error","day":20},{"type":"coverage","severity":"error","day":20},{"type":"coverage","severity":"error","day":21},{"type":"coverage","severity":"error","day":21},{"type":"coverage","severity":"error","day":21},{"type":"coverage","severity":"error","day":22},{"type":"coverage","severity":"error","day":23},{"type":"coverage","severity":"error","day":27},{"type":"coverage","severity":"error","day":27},{"type":"coverage","severity":"error","day":28},{"type":"coverage","severity":"error","day":28},{"type":"coverage","severity":"error","day":29},{"type":"coverage","severity":"error","day":30},{"type":"coverage","severity":"error","day":31}],
+    "softPenalty": 0,
+    "softPenaltyBreakdown": {}
+  }
+}
