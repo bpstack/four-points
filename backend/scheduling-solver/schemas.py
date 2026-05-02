@@ -51,6 +51,7 @@ class SchedulingConfig(BaseModel):
     prefNightBlock: int = 5
     minMonthlyLibre: int = 9
     maxMonthlyLibre: int = 11
+    prefMonthlyLibre: int | None = None
     maxConsecutiveWorkDays: int = 6
 
 

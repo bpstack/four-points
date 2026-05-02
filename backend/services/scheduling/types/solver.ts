@@ -41,6 +41,7 @@ export interface SolverConfig {
   prefNightBlock?: number
   minMonthlyLibre?: number
   maxMonthlyLibre?: number
+  prefMonthlyLibre?: number
   maxConsecutiveWorkDays?: number
 }
 

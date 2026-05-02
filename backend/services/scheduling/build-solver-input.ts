@@ -75,6 +75,8 @@ export async function buildSolverInput(
     prefNightBlock: configMap.prefNightBlock ?? 5,
     minMonthlyLibre: configMap.minMonthlyLibre ?? 9,
     maxMonthlyLibre: configMap.maxMonthlyLibre ?? 11,
+    prefMonthlyLibre:
+      Math.round((configMap.minMonthlyLibre + configMap.maxMonthlyLibre) / 2),
     maxConsecutiveWorkDays: configMap.maxConsecutiveWorkDays ?? 6,
   }
 

@@ -111,6 +111,8 @@ export async function getConfigMap(): Promise<SchedulingConfigMap> {
     // New validations with defaults from business rules
     minMonthlyLibre: parseInt(map['min_monthly_libre'] || '8'),
     maxMonthlyLibre: parseInt(map['max_monthly_libre'] || '12'),
+    prefMonthlyLibre: parseInt(map['pref_monthly_libre'] ||
+      String(Math.round((parseInt(map['min_monthly_libre'] || '8') + parseInt(map['max_monthly_libre'] || '12')) / 2))),
     maxConsecutiveWorkDays: parseInt(map['max_consecutive_work_days'] || '6'),
     minConsecutiveLibre: parseInt(map['min_consecutive_libre'] || '2'),
   }
@@ -835,6 +837,43 @@ export async function deleteUnlockedAssignmentsByMonth(monthId: number): Promise
     [monthId]
   )
   return result.affectedRows
+}
+
+/** Borra las asignaciones no bloqueadas e inserta las nuevas en una sola transacción. */
+export async function applyGeneratedSchedule(
+  monthId: number,
+  toInsert: BulkAssignmentDTO[]
+): Promise<{ deleted: number; inserted: number }> {
+  const connection = await db.getConnection()
+  try {
+    await connection.beginTransaction()
+
+    const [delResult] = await connection.execute<ResultSetHeader>(
+      'DELETE FROM scheduling_assignments WHERE month_id = ? AND source_constraint_id IS NULL',
+      [monthId]
+    )
+
+    if (toInsert.length > 0) {
+      const values = toInsert.map((a) => [
+        monthId, a.day_id, a.employee_id, a.shift_code, a.source_constraint_id ?? null,
+      ])
+      const placeholders = values.map(() => '(?, ?, ?, ?, ?, NULL, NOW(), NOW())').join(', ')
+      await connection.query(
+        `INSERT INTO scheduling_assignments
+         (month_id, day_id, employee_id, shift_code, source_constraint_id, notes, created_at, updated_at)
+         VALUES ${placeholders}`,
+        values.flat()
+      )
+    }
+
+    await connection.commit()
+    return { deleted: delResult.affectedRows, inserted: toInsert.length }
+  } catch (err) {
+    await connection.rollback()
+    throw err
+  } finally {
+    connection.release()
+  }
 }
 
 export async function getAnnualLCountByEmployee(
