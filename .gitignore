@@ -64,7 +64,7 @@ backend/scheduling-solver/venv/
 # Documentation (local only)
 # --------------------------------------------
 **/docs/
-CLAUDE.md
+
 
 # --------------------------------------------
 # Local Scripts
@@ -75,16 +75,7 @@ sync-public.ps1
 # Miscellaneous
 # --------------------------------------------
 Sin título.png
-todo.md
-roadmap.md
-roadmap-schedule.md
 
 # Project documentation (private)
-ROADMAP.md
-TODO.md
-SCHEDULING-SOLVER-PLAN.md
-SCHEDULING-CONSTRAINTS.md
-SCHEDULING-DECISIONS-LOG.md
-PLANNING 2026.xlsx
-**mimo.md
+
 **schedule-process.md

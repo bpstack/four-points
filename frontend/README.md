@@ -883,15 +883,6 @@ pnpm format           # Prettier
 
 ---
 
-## 14. Related Documentation
-
-| Document | Description |
-| --------- | ----------- |
-| `frontend/README.md` | Complete frontend documentation |
-| `frontend/PROJECT.md` | Full project overview (frontend + backend) |
-| `backend.md` | Backend architecture |
-| `docs/` | Additional documentation |
-
 ---
 
 ## Author
