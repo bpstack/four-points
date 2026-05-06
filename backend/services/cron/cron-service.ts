@@ -3,6 +3,7 @@
 import cron from 'node-cron'
 import { NotificationGeneratorService } from '../notifications/notification-generator-service'
 import { BackofficeRepository } from '../../repositories/backoffice/backoffice-repository.js'
+import { dailyReset as checklistDailyReset } from '../checklist/checklist.service.js'
 
 /**
  * Servicio de tareas programadas (Cron Jobs)
@@ -71,9 +72,23 @@ export class CronService {
       }
     })
 
+    // ═══════════════════════════════════════════════════════
+    // CHECKLIST RESET - Todos los días a las 06:30 (Europe/Madrid)
+    // ═══════════════════════════════════════════════════════
+    cron.schedule('30 6 * * *', async () => {
+      console.log('📋 [CRON] Ejecutando reset diario de checklists...')
+      try {
+        const count = await checklistDailyReset()
+        console.log(`✅ [CRON] Checklist reset completado — ${count} runs cerrados`)
+      } catch (error) {
+        console.error('❌ [CRON] Error en checklist reset:', error)
+      }
+    }, { timezone: 'Europe/Madrid' })
+
     console.log('✅ Cron jobs iniciados:')
     console.log('   - Notificaciones: Todos los días a las 7:00 AM')
     console.log('   - Batch Payment: Día 10 de cada mes a las 23:59')
+    console.log('   - Checklist Reset: Todos los días a las 6:30 AM (Europe/Madrid)')
   }
 
   /**

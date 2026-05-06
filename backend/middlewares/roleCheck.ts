@@ -209,6 +209,28 @@ export const canAccessBackoffice: RoleCheckMiddleware = (req, res, next) => {
 }
 
 /**
+ * Verifica que el usuario pueda resetear checklists
+ * Uso: Botón de reset en el módulo Check List
+ * Roles permitidos: admin, recepcionista, demo-admin
+ */
+export const canResetChecklist: RoleCheckMiddleware = (req, res, next) => {
+  const allowedRoles = ['admin', 'recepcionista', 'demo-admin']
+
+  if (!req.user?.role) {
+    res.status(403).json({ error: 'No se pudo verificar el rol del usuario' })
+    return
+  }
+
+  if (allowedRoles.includes(req.user.role.toLowerCase())) {
+    next()
+  } else {
+    res.status(403).json({
+      error: 'Acceso denegado. Se requiere rol de admin o recepcionista para resetear',
+    })
+  }
+}
+
+/**
  * Verifica que el usuario sea admin real (NO demo-admin)
  * Uso: Para operaciones de escritura en backoffice
  * demo-admin tiene acceso de solo lectura
