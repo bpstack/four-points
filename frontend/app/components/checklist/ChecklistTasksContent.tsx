@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback } from 'react'
+import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { FiCheck } from 'react-icons/fi'
 import toast from 'react-hot-toast'
@@ -9,6 +9,7 @@ import { checklistApi, checklistKeys } from '@/app/lib/checklist/api'
 import type { RunStateDto, StepStateDto } from '@/app/lib/checklist/api'
 import { ChecklistHeader } from './ChecklistHeader'
 import { ChecklistNoteBanner } from './ChecklistNoteBanner'
+import { StepTriggerButtons, StepDetailsPanel } from './StepDetailsPanel'
 import { useAuthContext } from '@/app/lib/auth/useAuth'
 
 // ─── Checkbox ────────────────────────────────────────────
@@ -36,42 +37,71 @@ function Checkbox({ checked, onToggle }: { checked: boolean; onToggle: () => voi
 // ─── Step row ────────────────────────────────────────────
 
 function StepRow({
+  checklistId,
   step,
   state,
   onToggle,
 }: {
+  checklistId: string
   step: ChecklistStep
   state: StepStateDto | undefined
   onToggle: (done: boolean) => void
 }) {
+  const [openTab, setOpenTab] = useState<'comments' | 'attachments' | null>(null)
   const done = Boolean(state?.done)
 
+  const handleToggleTab = (tab: 'comments' | 'attachments') =>
+    setOpenTab((prev) => (prev === tab ? null : tab))
+
   return (
-    <li className="space-y-1.5">
-      <div className="flex items-start gap-3 group cursor-pointer" onClick={() => onToggle(!done)}>
-        <Checkbox checked={done} onToggle={() => onToggle(!done)} />
-        <div className="flex-1 min-w-0">
-          <span
-            className={`text-sm leading-snug transition-colors select-none ${
-              done
-                ? 'line-through text-gray-400 dark:text-gray-500'
-                : 'text-gray-800 dark:text-gray-200 group-hover:text-gray-900 dark:group-hover:text-gray-100'
-            }`}
-          >
-            {step.text}
-          </span>
-          {done && state?.done_by_username && state.done_at && (
-            <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
-              {state.done_by_username} ·{' '}
-              {new Date(state.done_at).toLocaleTimeString('es-ES', {
-                hour: '2-digit',
-                minute: '2-digit',
-              })}
-            </p>
-          )}
+    <li>
+      {/* Main row */}
+      <div className="flex items-start gap-3 group">
+        <div className="cursor-pointer mt-0.5" onClick={() => onToggle(!done)}>
+          <Checkbox checked={done} onToggle={() => onToggle(!done)} />
+        </div>
+        <div className="flex-1 min-w-0 flex items-start gap-2">
+          <div className="flex-1 min-w-0 cursor-pointer" onClick={() => onToggle(!done)}>
+            <span
+              className={`text-sm leading-snug transition-colors select-none ${
+                done
+                  ? 'line-through text-gray-400 dark:text-gray-500'
+                  : 'text-gray-800 dark:text-gray-200 group-hover:text-gray-900 dark:group-hover:text-gray-100'
+              }`}
+            >
+              {step.text}
+            </span>
+            {done && state?.done_by_username && state.done_at && (
+              <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
+                {state.done_by_username} ·{' '}
+                {new Date(state.done_at).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
+              </p>
+            )}
+          </div>
+          {/* Inline trigger buttons — right side of text */}
+          <StepTriggerButtons
+            openTab={openTab}
+            onToggle={handleToggleTab}
+            commentCount={state?.comment_count ?? 0}
+            attachmentCount={state?.attachment_count ?? 0}
+          />
         </div>
       </div>
-      {step.note && <ChecklistNoteBanner text={step.note} />}
+
+      {/* Note — below main row */}
+      {step.note && <div className="ml-7"><ChecklistNoteBanner text={step.note} /></div>}
+
+      {/* Panel — below the full row, aligned with text (ml-7 = checkbox width + gap) */}
+      {openTab && (
+        <div className="ml-7 mt-1.5">
+          <StepDetailsPanel
+            checklistId={checklistId}
+            stepId={step.id}
+            tab={openTab}
+            onClose={() => setOpenTab(null)}
+          />
+        </div>
+      )}
     </li>
   )
 }
@@ -113,6 +143,8 @@ export function ChecklistTasksContent({ item }: { item: ChecklistItem }) {
               done_by_user_id: done ? (user?.id ?? null) : null,
               done_at: done ? new Date().toISOString() : null,
               done_by_username: done ? (user?.username ?? null) : null,
+              comment_count: 0,
+              attachment_count: 0,
             }
         return { ...prev, steps: [...prev.steps.filter((s) => s.step_id !== stepId), updated] }
       })
@@ -125,11 +157,6 @@ export function ChecklistTasksContent({ item }: { item: ChecklistItem }) {
     onSettled: () => queryClient.invalidateQueries({ queryKey }),
   })
 
-  const handleToggle = useCallback(
-    (stepId: string, done: boolean) => toggleMutation.mutate({ stepId, done }),
-    [toggleMutation]
-  )
-
   const allSteps = item.sections.flatMap((s) => s.steps)
   const stepMap = new Map(data?.steps.map((s) => [s.step_id, s]) ?? [])
   const totalDone = allSteps.filter((s) => stepMap.get(s.id)?.done).length
@@ -138,11 +165,7 @@ export function ChecklistTasksContent({ item }: { item: ChecklistItem }) {
 
   return (
     <div>
-      <div className="flex items-start justify-between gap-4 mb-1">
-        <div className="flex-1">
-          <ChecklistHeader item={item} />
-        </div>
-      </div>
+      <ChecklistHeader item={item} />
 
       {isLoading && (
         <div className="flex items-center gap-2 text-sm text-gray-400 dark:text-gray-500 py-8">
@@ -182,9 +205,10 @@ export function ChecklistTasksContent({ item }: { item: ChecklistItem }) {
               {section.steps.map((step) => (
                 <StepRow
                   key={step.id}
+                  checklistId={item.id}
                   step={step}
                   state={stepMap.get(step.id)}
-                  onToggle={(done) => handleToggle(step.id, done)}
+                  onToggle={(done) => toggleMutation.mutate({ stepId: step.id, done })}
                 />
               ))}
             </ul>

@@ -3,7 +3,6 @@ import remarkGfm from 'remark-gfm'
 import type { Components } from 'react-markdown'
 import type { ChecklistItem } from '@/app/lib/checklist/types'
 import { ChecklistHeader } from './ChecklistHeader'
-import { ChecklistNoteBanner } from './ChecklistNoteBanner'
 
 const components: Components = {
   h1: ({ children }) => (
@@ -44,8 +43,8 @@ const components: Components = {
     </code>
   ),
   blockquote: ({ children }) => (
-    <div className="my-3">
-      <ChecklistNoteBanner text={children as string} />
+    <div className="my-3 rounded-md border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/20 px-3 py-2 text-sm text-amber-800 dark:text-amber-300">
+      {children}
     </div>
   ),
   hr: () => <hr className="my-5 border-gray-200 dark:border-gray-800" />,
