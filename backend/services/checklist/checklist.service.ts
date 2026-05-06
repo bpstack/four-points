@@ -1,12 +1,44 @@
 // services/checklist/checklist.service.ts
 
 import * as repo from '../../repositories/checklist/checklist-repository.js'
+import * as commentsRepo from '../../repositories/checklist/checklist-comments.repository.js'
 import type { ChecklistRunWithSteps } from '../../models/checklist/index.js'
+
+async function buildRunState(run: Awaited<ReturnType<typeof repo.getOrCreateRun>>): Promise<ChecklistRunWithSteps> {
+  const [steps, counts] = await Promise.all([
+    repo.getStepStates(run.id),
+    commentsRepo.getStepCounts(run.id),
+  ])
+
+  // Build map from existing step states
+  const stepMap = new Map(steps.map((s) => [s.step_id, s]))
+
+  // Include steps that have comments/attachments but were never toggled
+  for (const stepId of counts.keys()) {
+    if (!stepMap.has(stepId)) {
+      stepMap.set(stepId, {
+        run_id: run.id,
+        step_id: stepId,
+        done: false,
+        done_by_user_id: null,
+        done_at: null,
+        done_by_username: null,
+      } as Awaited<ReturnType<typeof repo.getStepStates>>[number])
+    }
+  }
+
+  const enriched = Array.from(stepMap.values()).map((s) => ({
+    ...s,
+    comment_count: counts.get(s.step_id)?.comments ?? 0,
+    attachment_count: counts.get(s.step_id)?.attachments ?? 0,
+  }))
+
+  return { run, steps: enriched }
+}
 
 export async function getRunState(checklistId: string): Promise<ChecklistRunWithSteps> {
   const run = await repo.getOrCreateRun(checklistId)
-  const steps = await repo.getStepStates(run.id)
-  return { run, steps }
+  return buildRunState(run)
 }
 
 export async function toggleStep(
@@ -18,8 +50,7 @@ export async function toggleStep(
   const run = await repo.getOrCreateRun(checklistId)
   await repo.upsertStepState(run.id, stepId, done, userId)
   await repo.logEvent(run.id, stepId, userId, done ? 'check' : 'uncheck')
-  const steps = await repo.getStepStates(run.id)
-  return { run, steps }
+  return buildRunState(run)
 }
 
 export async function resetRun(

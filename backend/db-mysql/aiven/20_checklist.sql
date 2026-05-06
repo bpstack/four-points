@@ -5,7 +5,7 @@
 --              procedimientos, referencia). Contenido en filesystem;
 --              DB solo persiste estado de pasos y audit log.
 -- Fases: F2 (runs + step_state + event_log + config)
---        F3 (comments + attachments — añadir en su momento)
+--        F3 (comments + attachments)
 -- =========================================================
 
 USE hotel_db;
@@ -15,6 +15,8 @@ USE hotel_db;
 -- =========================================================
 SET FOREIGN_KEY_CHECKS = 0;
 
+DROP TABLE IF EXISTS checklist_step_attachments;
+DROP TABLE IF EXISTS checklist_step_comments;
 DROP TABLE IF EXISTS checklist_event_log;
 DROP TABLE IF EXISTS checklist_step_state;
 DROP TABLE IF EXISTS checklist_runs;
@@ -91,6 +93,41 @@ CREATE TABLE checklist_event_log (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- =========================================================
+-- TABLA 5: checklist_step_comments (F3)
+-- Comentarios por paso dentro de un run. Inmutables (no se editan).
+-- =========================================================
+CREATE TABLE checklist_step_comments (
+  id          BIGINT AUTO_INCREMENT PRIMARY KEY,
+  run_id      BIGINT NOT NULL,
+  step_id     VARCHAR(100) NOT NULL,
+  user_id     CHAR(36) NOT NULL,
+  body        TEXT NOT NULL,
+  created_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (run_id) REFERENCES checklist_runs(id) ON DELETE CASCADE,
+  INDEX idx_step (run_id, step_id),
+  INDEX idx_user (user_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- =========================================================
+-- TABLA 6: checklist_step_attachments (F3)
+-- Adjuntos subidos a Cloudinary por paso dentro de un run.
+-- =========================================================
+CREATE TABLE checklist_step_attachments (
+  id          BIGINT AUTO_INCREMENT PRIMARY KEY,
+  run_id      BIGINT NOT NULL,
+  step_id     VARCHAR(100) NOT NULL,
+  user_id     CHAR(36) NOT NULL,
+  file_url    VARCHAR(500) NOT NULL,
+  public_id   VARCHAR(255) NOT NULL,
+  mime        VARCHAR(100) NOT NULL,
+  size        INT NOT NULL,
+  uploaded_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (run_id) REFERENCES checklist_runs(id) ON DELETE CASCADE,
+  INDEX idx_step (run_id, step_id),
+  INDEX idx_user (user_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- =========================================================
 -- VERIFICACIÓN
 -- =========================================================
 SELECT 'checklist_config'    AS tabla, COUNT(*) AS filas FROM checklist_config
@@ -99,4 +136,8 @@ SELECT 'checklist_runs',       COUNT(*) FROM checklist_runs
 UNION ALL
 SELECT 'checklist_step_state', COUNT(*) FROM checklist_step_state
 UNION ALL
-SELECT 'checklist_event_log',  COUNT(*) FROM checklist_event_log;
+SELECT 'checklist_event_log',       COUNT(*) FROM checklist_event_log
+UNION ALL
+SELECT 'checklist_step_comments',    COUNT(*) FROM checklist_step_comments
+UNION ALL
+SELECT 'checklist_step_attachments', COUNT(*) FROM checklist_step_attachments;
