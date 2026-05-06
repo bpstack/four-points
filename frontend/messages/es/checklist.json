@@ -1,0 +1,37 @@
+{
+  "page": {
+    "title": "Check List",
+    "landing": "Selecciona un procedimiento o tarea en el panel izquierdo para empezar."
+  },
+  "toc": {
+    "searchPlaceholder": "Buscar…",
+    "noResults": "Sin resultados",
+    "clearFilters": "Limpiar filtros"
+  },
+  "types": {
+    "tasks": "Tareas",
+    "guide": "Guía",
+    "reference": "Referencia"
+  },
+  "shifts": {
+    "morning": "Mañana",
+    "afternoon": "Tarde",
+    "night": "Noche"
+  },
+  "departments": {
+    "reception": "Recepción",
+    "housekeeping": "Housekeeping",
+    "fnb": "F&B",
+    "maintenance": "Mantenimiento",
+    "admin": "Administración"
+  },
+  "tasks": {
+    "steps": "{done} de {total} pasos completados",
+    "pending": "Contenido en elaboración.",
+    "progress": "{pct}%"
+  },
+  "meta": {
+    "version": "v{version}",
+    "updated": "Actualizado {date}"
+  }
+}

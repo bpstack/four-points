@@ -1,0 +1,21 @@
+{
+  "categories": [
+    {
+      "id": "daily-tasks",
+      "name": "Tareas diarias",
+      "icon": "sun",
+      "subGroupBy": "shift",
+      "shiftOrder": ["morning", "afternoon", "night"]
+    },
+    {
+      "id": "procedures",
+      "name": "Procedimientos",
+      "icon": "book"
+    },
+    {
+      "id": "reference",
+      "name": "Referencia",
+      "icon": "doc"
+    }
+  ]
+}
