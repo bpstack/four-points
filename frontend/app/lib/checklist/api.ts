@@ -78,7 +78,10 @@ export const checklistApi = {
   addAttachment: (id: string, stepId: string, file: File): Promise<AttachmentDto> => {
     const form = new FormData()
     form.append('file', file)
-    return apiClient.postFormData(`${API_URL}/api/checklists/${id}/steps/${stepId}/attachments`, form)
+    return apiClient.postFormData(
+      `${API_URL}/api/checklists/${id}/steps/${stepId}/attachments`,
+      form
+    )
   },
 
   deleteAttachment: (id: string, stepId: string, attachmentId: number): Promise<void> =>

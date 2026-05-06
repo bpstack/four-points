@@ -17,7 +17,9 @@ export function ChecklistHeader({ item }: { item: ChecklistMeta }) {
       <div className="flex items-start justify-between gap-4">
         <div className="flex-1 min-w-0">
           <div className="flex flex-wrap gap-2 mb-3">
-            <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${TYPE_COLORS[item.type]}`}>
+            <span
+              className={`text-xs font-medium px-2 py-0.5 rounded-full ${TYPE_COLORS[item.type]}`}
+            >
               {TYPE_LABELS[item.type]}
             </span>
             {item.shift && (
@@ -46,7 +48,13 @@ export function ChecklistHeader({ item }: { item: ChecklistMeta }) {
             if (content) {
               content.setAttribute(
                 'data-print-date',
-                new Date().toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+                new Date().toLocaleDateString('es-ES', {
+                  day: '2-digit',
+                  month: 'long',
+                  year: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                })
               )
             }
             window.print()

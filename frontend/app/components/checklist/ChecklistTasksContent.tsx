@@ -74,7 +74,10 @@ function StepRow({
             {done && state?.done_by_username && state.done_at && (
               <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
                 {state.done_by_username} ·{' '}
-                {new Date(state.done_at).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
+                {new Date(state.done_at).toLocaleTimeString('es-ES', {
+                  hour: '2-digit',
+                  minute: '2-digit',
+                })}
               </p>
             )}
           </div>
@@ -89,7 +92,11 @@ function StepRow({
       </div>
 
       {/* Note — below main row */}
-      {step.note && <div className="ml-7"><ChecklistNoteBanner text={step.note} /></div>}
+      {step.note && (
+        <div className="ml-7">
+          <ChecklistNoteBanner text={step.note} />
+        </div>
+      )}
 
       {/* Panel — below the full row, aligned with text (ml-7 = checkbox width + gap) */}
       {openTab && (

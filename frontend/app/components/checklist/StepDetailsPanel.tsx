@@ -36,9 +36,8 @@ function CommentList({ checklistId, stepId }: { checklistId: string; stepId: str
   const deleteMutation = useMutation({
     mutationFn: (id: number) => checklistApi.deleteComment(checklistId, stepId, id),
     onSuccess: (_, id) => {
-      queryClient.setQueryData<CommentDto[]>(
-        checklistKeys.comments(checklistId, stepId),
-        (prev) => (prev ?? []).filter((c) => c.id !== id)
+      queryClient.setQueryData<CommentDto[]>(checklistKeys.comments(checklistId, stepId), (prev) =>
+        (prev ?? []).filter((c) => c.id !== id)
       )
       queryClient.invalidateQueries({ queryKey: checklistKeys.run(checklistId) })
     },
@@ -55,18 +54,31 @@ function CommentList({ checklistId, stepId }: { checklistId: string; stepId: str
       )}
       <div className="space-y-1.5">
         {comments.map((c) => (
-          <div key={c.id} className="flex items-start gap-2 bg-gray-50 dark:bg-[#1c2128] rounded px-2.5 py-2">
+          <div
+            key={c.id}
+            className="flex items-start gap-2 bg-gray-50 dark:bg-[#1c2128] rounded px-2.5 py-2"
+          >
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-1.5 mb-0.5">
-                <span className="text-xs font-medium text-gray-700 dark:text-gray-300">{c.username}</span>
+                <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
+                  {c.username}
+                </span>
                 <span className="text-[10px] text-gray-400">
-                  {new Date(c.created_at).toLocaleString('es-ES', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
+                  {new Date(c.created_at).toLocaleString('es-ES', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })}
                 </span>
               </div>
               <p className="text-xs text-gray-700 dark:text-gray-300 break-words">{c.body}</p>
             </div>
             {(isAdmin || c.user_id === user?.id) && (
-              <button onClick={() => deleteMutation.mutate(c.id)} className="text-gray-300 dark:text-gray-600 hover:text-red-500 dark:hover:text-red-400 flex-shrink-0 transition-colors">
+              <button
+                onClick={() => deleteMutation.mutate(c.id)}
+                className="text-gray-300 dark:text-gray-600 hover:text-red-500 dark:hover:text-red-400 flex-shrink-0 transition-colors"
+              >
                 <FiTrash2 className="w-3 h-3" />
               </button>
             )}
@@ -77,7 +89,12 @@ function CommentList({ checklistId, stepId }: { checklistId: string; stepId: str
         <textarea
           value={body}
           onChange={(e) => setBody(e.target.value)}
-          onKeyDown={(e) => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); body.trim() && addMutation.mutate(body.trim()) } }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+              e.preventDefault()
+              body.trim() && addMutation.mutate(body.trim())
+            }
+          }}
           placeholder="Comentario... (Ctrl+Enter)"
           rows={2}
           className="flex-1 text-xs rounded border border-gray-300 dark:border-gray-700 bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none"
@@ -108,7 +125,10 @@ function AttachmentList({ checklistId, stepId }: { checklistId: string; stepId: 
   const deleteMutation = useMutation({
     mutationFn: (id: number) => checklistApi.deleteAttachment(checklistId, stepId, id),
     onSuccess: (_, id) => {
-      queryClient.setQueryData<AttachmentDto[]>(checklistKeys.attachments(checklistId, stepId), (prev) => (prev ?? []).filter((a) => a.id !== id))
+      queryClient.setQueryData<AttachmentDto[]>(
+        checklistKeys.attachments(checklistId, stepId),
+        (prev) => (prev ?? []).filter((a) => a.id !== id)
+      )
       queryClient.invalidateQueries({ queryKey: checklistKeys.run(checklistId) })
     },
     onError: () => toast.error('Error al eliminar imagen'),
@@ -125,7 +145,10 @@ function AttachmentList({ checklistId, stepId }: { checklistId: string; stepId: 
       {attachments.length > 0 && (
         <div className="grid grid-cols-3 gap-1.5">
           {attachments.map((a) => (
-            <div key={a.id} className="relative group rounded overflow-hidden border border-gray-200 dark:border-gray-700 aspect-square">
+            <div
+              key={a.id}
+              className="relative group rounded overflow-hidden border border-gray-200 dark:border-gray-700 aspect-square"
+            >
               <a href={a.file_url} target="_blank" rel="noopener noreferrer">
                 <img src={a.file_url} alt="" className="w-full h-full object-cover" />
               </a>
@@ -142,7 +165,9 @@ function AttachmentList({ checklistId, stepId }: { checklistId: string; stepId: 
         </div>
       )}
       <button
-        onClick={() => toast('La subida de imágenes está deshabilitada temporalmente.', { icon: '🚧' })}
+        onClick={() =>
+          toast('La subida de imágenes está deshabilitada temporalmente.', { icon: '🚧' })
+        }
         className="flex items-center gap-1.5 text-xs px-2.5 py-1 rounded border border-gray-200 dark:border-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed opacity-60"
       >
         <FiUpload className="w-3 h-3" />
@@ -163,7 +188,12 @@ interface StepDetailsPanelProps {
   onClose: () => void
 }
 
-export function StepDetailsPanel({ checklistId, stepId, tab: initialTab, onClose }: StepDetailsPanelProps) {
+export function StepDetailsPanel({
+  checklistId,
+  stepId,
+  tab: initialTab,
+  onClose,
+}: StepDetailsPanelProps) {
   const [tab, setTab] = useState<PanelTab>(initialTab)
 
   return (
@@ -181,12 +211,19 @@ export function StepDetailsPanel({ checklistId, stepId, tab: initialTab, onClose
         >
           <FiPaperclip className="w-3 h-3" /> Imágenes
         </button>
-        <button onClick={onClose} className="ml-auto px-2 py-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+        <button
+          onClick={onClose}
+          className="ml-auto px-2 py-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+        >
           <FiX className="w-3.5 h-3.5" />
         </button>
       </div>
       <div className="p-2.5">
-        {tab === 'comments' ? <CommentList checklistId={checklistId} stepId={stepId} /> : <AttachmentList checklistId={checklistId} stepId={stepId} />}
+        {tab === 'comments' ? (
+          <CommentList checklistId={checklistId} stepId={stepId} />
+        ) : (
+          <AttachmentList checklistId={checklistId} stepId={stepId} />
+        )}
       </div>
     </div>
   )
@@ -208,9 +245,14 @@ export function StepTriggerButtons({
   const hasActivity = commentCount > 0 || attachmentCount > 0
 
   return (
-    <div className={`flex items-center gap-1 flex-shrink-0 transition-opacity ${hasActivity ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
+    <div
+      className={`flex items-center gap-1 flex-shrink-0 transition-opacity ${hasActivity ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
+    >
       <button
-        onClick={(e) => { e.stopPropagation(); onToggle('comments') }}
+        onClick={(e) => {
+          e.stopPropagation()
+          onToggle('comments')
+        }}
         title="Comentarios"
         className={`flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded transition-colors ${
           openTab === 'comments'
@@ -222,7 +264,10 @@ export function StepTriggerButtons({
         {commentCount > 0 && <span>{commentCount}</span>}
       </button>
       <button
-        onClick={(e) => { e.stopPropagation(); onToggle('attachments') }}
+        onClick={(e) => {
+          e.stopPropagation()
+          onToggle('attachments')
+        }}
         title="Imágenes"
         className={`flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded transition-colors ${
           openTab === 'attachments'
