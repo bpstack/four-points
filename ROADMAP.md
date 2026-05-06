@@ -723,7 +723,7 @@ routes/scheduling/
 #### Componentes principales
 - ✅ `SchedulingClient.tsx` — Orquestador: selección mes/año (URL-based), edición de celdas, validación, publicar/despublicar, reset, PDF export, festivos
 - ✅ `ScheduleGrid.tsx` — Grid mensual interactivo (30+ columnas, drag-to-select bulk, celdas bloqueadas visualmente distintas, DOM directo para performance)
-- ✅ `SchedulingConfigClient.tsx` — Panel de config con 5 tabs (employees, totals, general, rules, requests) + todos los modales
+- ✅ `SchedulingConfigClient.tsx` — Panel de config con 7 tabs (employees, totals, general, rules, requests, shift-stats, presencias) + todos los modales
 - ✅ `ValidationWarnings.tsx` — Feedback de validación (errores/warnings/info, agrupados por severidad, expandible)
 - ✅ `MonthInfoPanel.tsx` — Panel lateral con constraints aprobados y reglas de empleado
 - ✅ `ManageHolidaysModal.tsx` — Modal para gestionar festivos (toggle + nombre inline)
@@ -785,6 +785,14 @@ routes/scheduling/
 #### Exportación
 - ✅ **PDF** — A4 landscape, grid completo con colores, multi-página, paginación
 
+#### Presencias
+- ✅ **Conversión de horario** — Convierte códigos de turno (M/T/N/PI/P→P, Lxx→L, resto sin cambio) al formato del documento oficial de presencias
+- ✅ **Cálculo de horas nocturnas** — T=1h (22:00-23:00), N=7h (23:00-6:00), resto=0h. Calculado sobre el código original antes de convertir
+- ✅ **Bloque 1 (Presencias)** — Output tab-separado por empleado: 28/30/31 códigos convertidos + total presencias. Listo para pegar en pestaña "Presencias" del Excel oficial
+- ✅ **Bloque 2 (Variables)** — Un número por línea: total horas nocturnas del mes por empleado. Listo para pegar en pestaña "Variables" del Excel oficial
+- ✅ **Copy-to-clipboard** — Botón en cada bloque con feedback visual (2s)
+- ✅ **Limpiar** — Resetea input y resultado
+
 #### UI/UX
 - ✅ **Dark mode** — Colores de turno adaptados (light + dark palette)
 - ✅ **Responsive** — overflow-x-auto, columnas sticky
@@ -801,7 +809,9 @@ routes/scheduling/
 | 3 | ⚠️ | **Métodos fix() incompletos** — Algunos constraints tienen `fix()` parcialmente implementado (rotation-continuity lo tiene, max-consecutive-work tiene stub) |
 | 4 | ℹ️ | **Archive/AI eliminado** — CLAUDE.md menciona `services/scheduling/archive/` con fases/scoring/AI pero el directorio no existe en el código actual (limpieza intencional) |
 | 5 | ℹ️ | **Soft markers no implementados** — Prefijos REQUEST_, AVOID_, PREFER_ definidos en utils pero no usados en la UI actual |
-| 6 | ⚠️ | **SchedulingConfigClient.tsx extenso** (~2489 líneas) — Contiene 5 tabs + todos los modales (employees, totals, general, rules, requests). Candidato fuerte a extracción de componentes por tab |
+| 6 | ⚠️ | **SchedulingConfigClient.tsx extenso** (~3000 líneas) — Contiene 7 tabs + todos los modales (employees, totals, general, rules, requests, shift-stats, presencias). Candidato fuerte a extracción de componentes por tab en `config/` |
+| 7 | ℹ️ | **Presencias — integración pendiente** — La tab de Presencias funciona con input manual (paste desde Excel). Cuando el scheduling esté estable, leer directamente desde `scheduling_assignments` eliminando el textarea. Endpoint previsto: `GET /presencias/:monthId` |
+| 8 | ℹ️ | **Presencias — exportación Excel pendiente** — Futuro: exportar directamente el documento oficial de presencias (.xlsx) con formato completo (cabeceras, leyenda, ambas pestañas) sin necesidad de copy-paste |
 
 ---
 
