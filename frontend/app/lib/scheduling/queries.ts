@@ -227,7 +227,11 @@ export const schedulingApi = {
 
   generateSchedule: async (
     monthId: number
-  ): Promise<{ status: string; assignmentsCreated: number; stats: { solveTimeMs: number; status: string } }> => {
+  ): Promise<{
+    status: string
+    assignmentsCreated: number
+    stats: { solveTimeMs: number; status: string }
+  }> => {
     return apiClient.post(`${API_URL}/api/scheduling/months/${monthId}/generate`)
   },
 

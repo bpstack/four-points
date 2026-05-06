@@ -83,7 +83,12 @@ export function SchedulingClient() {
   const [infeasibleModal, setInfeasibleModal] = useState<{
     open: boolean
     constraints: { constraintName: string; humanExplanation: string }[]
-    relaxations: { constraint: string; currentValue: number; proposedValue: number; impact: string }[]
+    relaxations: {
+      constraint: string
+      currentValue: number
+      proposedValue: number
+      impact: string
+    }[]
   }>({ open: false, constraints: [], relaxations: [] })
 
   const [confirmDialog, setConfirmDialog] = useState<{
@@ -270,7 +275,9 @@ export function SchedulingClient() {
     mutationFn: (monthId: number) => schedulingApi.generateSchedule(monthId),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: schedulingKeys.month(selectedMonthId!) })
-      toast.success(`Horario generado: ${data.assignmentsCreated} turnos en ${data.stats.solveTimeMs}ms`)
+      toast.success(
+        `Horario generado: ${data.assignmentsCreated} turnos en ${data.stats.solveTimeMs}ms`
+      )
     },
     onError: (err: any) => {
       if (err?.status === 422 && err?.data?.conflictingConstraints) {
@@ -703,7 +710,10 @@ export function SchedulingClient() {
               </p>
               <ul className="space-y-2">
                 {infeasibleModal.constraints.map((c, i) => (
-                  <li key={i} className="text-sm text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/20 rounded px-3 py-2">
+                  <li
+                    key={i}
+                    className="text-sm text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/20 rounded px-3 py-2"
+                  >
                     {c.humanExplanation}
                   </li>
                 ))}
@@ -716,7 +726,8 @@ export function SchedulingClient() {
                   <ul className="space-y-1">
                     {infeasibleModal.relaxations.map((r, i) => (
                       <li key={i} className="text-xs text-gray-600 dark:text-gray-400">
-                        • <strong>{r.constraint}</strong>: {r.currentValue} → {r.proposedValue} — {r.impact}
+                        • <strong>{r.constraint}</strong>: {r.currentValue} → {r.proposedValue} —{' '}
+                        {r.impact}
                       </li>
                     ))}
                   </ul>
@@ -724,7 +735,9 @@ export function SchedulingClient() {
               )}
               <div className="flex justify-end pt-2">
                 <button
-                  onClick={() => setInfeasibleModal({ open: false, constraints: [], relaxations: [] })}
+                  onClick={() =>
+                    setInfeasibleModal({ open: false, constraints: [], relaxations: [] })
+                  }
                   className="px-4 py-2 text-sm font-medium bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
                 >
                   Cerrar
