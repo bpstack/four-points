@@ -6,6 +6,7 @@ export interface ChecklistStep {
   id: string
   text: string
   note?: string
+  ref?: string | string[]
 }
 
 export interface ChecklistSection {
@@ -20,6 +21,8 @@ export interface ChecklistMeta {
   title: string
   category: string
   department: Department | string
+  /** Optional secondary departments — item also appears under these filters. */
+  departments?: (Department | string)[]
   shift: Shift | null
   version: string
   author: string

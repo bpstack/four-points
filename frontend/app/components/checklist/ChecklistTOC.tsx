@@ -148,15 +148,18 @@ export function ChecklistTOC({ catalog, onClose }: Props) {
 
   const filtered = useMemo(() => {
     let items = query.trim() ? fuse.search(query).map((r) => r.item) : catalog.items
-    if (deptFilter) items = items.filter((i) => i.department === deptFilter)
+    if (deptFilter)
+      items = items.filter(
+        (i) => i.department === deptFilter || i.departments?.includes(deptFilter)
+      )
     if (shiftFilter) items = items.filter((i) => i.shift === shiftFilter)
     return items
   }, [query, deptFilter, shiftFilter, fuse, catalog.items])
 
-  const departments = useMemo(
-    () => [...new Set(catalog.items.map((i) => i.department))],
-    [catalog.items]
-  )
+  const departments = useMemo(() => {
+    const all = catalog.items.flatMap((i) => [i.department, ...(i.departments ?? [])])
+    return [...new Set(all)]
+  }, [catalog.items])
 
   const hasFilters = query || deptFilter || shiftFilter
 
@@ -234,7 +237,7 @@ export function ChecklistTOC({ catalog, onClose }: Props) {
       </div>
 
       {/* Tree */}
-      <div className="flex-1 overflow-y-auto px-2 py-3 space-y-4">
+      <div className="scrollbar-discrete flex-1 overflow-y-auto px-2 py-3 space-y-4">
         {catalog.categories.map((cat) => (
           <CategoryGroup
             key={cat.id}

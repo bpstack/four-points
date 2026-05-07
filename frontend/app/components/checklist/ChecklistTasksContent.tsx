@@ -1,8 +1,9 @@
 'use client'
 
+import Link from 'next/link'
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { FiCheck } from 'react-icons/fi'
+import { FiCheck, FiFileText, FiBookOpen } from 'react-icons/fi'
 import toast from 'react-hot-toast'
 import type { ChecklistItem, ChecklistStep } from '@/app/lib/checklist/types'
 import { checklistApi, checklistKeys } from '@/app/lib/checklist/api'
@@ -62,14 +63,21 @@ function StepRow({
         </div>
         <div className="flex-1 min-w-0 flex items-start gap-2">
           <div className="flex-1 min-w-0 cursor-pointer" onClick={() => onToggle(!done)}>
-            <span
-              className={`text-sm leading-snug transition-colors select-none ${
-                done
-                  ? 'line-through text-gray-400 dark:text-gray-500'
-                  : 'text-gray-800 dark:text-gray-200 group-hover:text-gray-900 dark:group-hover:text-gray-100'
-              }`}
-            >
-              {step.text}
+            <span className="text-sm leading-snug select-none">
+              {(checklistId === 'cl-morning-shift' || checklistId === 'cl-afternoon-shift' || checklistId === 'cl-night-audit') && (
+                <span className="mr-1.5 font-mono text-[11px] text-gray-400 dark:text-gray-500 tabular-nums">
+                  {step.id.replace(/^s/, '').replace('-', '.')}
+                </span>
+              )}
+              <span
+                className={`transition-colors ${
+                  done
+                    ? 'line-through text-gray-400 dark:text-gray-500'
+                    : 'text-gray-800 dark:text-gray-200 group-hover:text-gray-900 dark:group-hover:text-gray-100'
+                }`}
+              >
+                {step.text}
+              </span>
             </span>
             {done && state?.done_by_username && state.done_at && (
               <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
@@ -82,18 +90,39 @@ function StepRow({
             )}
           </div>
           {/* Inline trigger buttons — right side of text */}
-          <StepTriggerButtons
-            openTab={openTab}
-            onToggle={handleToggleTab}
-            commentCount={state?.comment_count ?? 0}
-            attachmentCount={state?.attachment_count ?? 0}
-          />
+          <div className="flex items-center gap-1 flex-shrink-0">
+            <StepTriggerButtons
+              openTab={openTab}
+              onToggle={handleToggleTab}
+              commentCount={state?.comment_count ?? 0}
+              attachmentCount={state?.attachment_count ?? 0}
+            />
+            {step.ref &&
+              (Array.isArray(step.ref) ? step.ref : [step.ref]).map((ref) => {
+                const isGuide = ref.startsWith('guide:')
+                return (
+                  <Link
+                    key={ref}
+                    href={`/dashboard/checklist/cl-${ref.split(':')[1]}`}
+                    onClick={(e) => e.stopPropagation()}
+                    title={isGuide ? 'Ver procedimiento' : 'Ver referencia'}
+                    className="flex items-center px-1.5 py-0.5 rounded text-blue-500 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
+                  >
+                    {isGuide ? (
+                      <FiFileText className="w-3 h-3" />
+                    ) : (
+                      <FiBookOpen className="w-3 h-3" />
+                    )}
+                  </Link>
+                )
+              })}
+          </div>
         </div>
       </div>
 
       {/* Note — below main row */}
       {step.note && (
-        <div className="ml-7">
+        <div className="ml-7 mt-2">
           <ChecklistNoteBanner text={step.note} />
         </div>
       )}
@@ -208,7 +237,7 @@ export function ChecklistTasksContent({ item }: { item: ChecklistItem }) {
             <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 pb-1 border-b border-gray-200 dark:border-gray-800">
               {section.title}
             </h2>
-            <ul className="space-y-3">
+            <ul className="space-y-4">
               {section.steps.map((step) => (
                 <StepRow
                   key={step.id}

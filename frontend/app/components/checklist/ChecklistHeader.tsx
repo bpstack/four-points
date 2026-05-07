@@ -11,6 +11,16 @@ const TYPE_COLORS = {
   reference: 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400',
 }
 
+// Frontmatter dates arrive as ISO strings (gray-matter parses YAML dates → JSON.stringify → "2026-05-07T00:00:00.000Z").
+// Slice the date part to avoid timezone shifts when reformatting.
+function formatUpdated(value: string): string {
+  if (!value) return ''
+  const datePart = value.slice(0, 10)
+  const [year, month, day] = datePart.split('-')
+  if (!year || !month || !day) return value
+  return `${day}-${month}-${year.slice(2)}`
+}
+
 export function ChecklistHeader({ item }: { item: ChecklistMeta }) {
   return (
     <div className="border-b border-gray-200 dark:border-gray-800 pb-4 mb-6 checklist-no-print-border">
@@ -38,7 +48,7 @@ export function ChecklistHeader({ item }: { item: ChecklistMeta }) {
           <div className="mt-2 flex gap-4 text-xs text-gray-400 dark:text-gray-500">
             <span>v{item.version}</span>
             <span>{item.author}</span>
-            <span>Actualizado {item.updated}</span>
+            <span>Actualizado {formatUpdated(item.updated)}</span>
           </div>
         </div>
 

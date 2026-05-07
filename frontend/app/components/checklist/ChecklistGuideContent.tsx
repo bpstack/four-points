@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import type { Components } from 'react-markdown'
@@ -64,11 +65,21 @@ const components: Components = {
   hr: () => <hr className="my-6 border-0 border-t border-gray-100 dark:border-gray-800/60" />,
 
   // ── Links ─────────────────────────────────────────────────
-  a: ({ href, children }) => (
-    <a href={href} className="text-blue-600 dark:text-blue-400 hover:underline" target="_blank" rel="noopener noreferrer">
-      {children}
-    </a>
-  ),
+  a: ({ href, children }) => {
+    const isInternal = typeof href === 'string' && href.startsWith('/')
+    if (isInternal) {
+      return (
+        <Link href={href} className="text-blue-600 dark:text-blue-400 hover:underline">
+          {children}
+        </Link>
+      )
+    }
+    return (
+      <a href={href} className="text-blue-600 dark:text-blue-400 hover:underline" target="_blank" rel="noopener noreferrer">
+        {children}
+      </a>
+    )
+  },
 
   // ── Tables ────────────────────────────────────────────────
   table: ({ children }) => (
