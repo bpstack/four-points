@@ -2,6 +2,35 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Discrete, slim vertical scrollbar — used in checklist TOC and content. */
+.scrollbar-discrete {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(156, 163, 175, 0.35) transparent;
+}
+.scrollbar-discrete::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+.scrollbar-discrete::-webkit-scrollbar-track {
+  background: transparent;
+}
+.scrollbar-discrete::-webkit-scrollbar-thumb {
+  background-color: rgba(156, 163, 175, 0.35);
+  border-radius: 999px;
+}
+.scrollbar-discrete::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(107, 114, 128, 0.55);
+}
+.dark .scrollbar-discrete {
+  scrollbar-color: rgba(75, 85, 99, 0.5) transparent;
+}
+.dark .scrollbar-discrete::-webkit-scrollbar-thumb {
+  background-color: rgba(75, 85, 99, 0.5);
+}
+.dark .scrollbar-discrete::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(107, 114, 128, 0.75);
+}
+
 /* Drag-to-select highlight for schedule grid cells */
 button[data-drag-selected='true'] {
   outline: 2px solid #3b82f6 !important;
