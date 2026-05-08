@@ -5,6 +5,46 @@
 
 ---
 
+## ⚠️ IMPORTANTE — Deploy en Render: dependencia Python (scheduling solver)
+
+El solver de scheduling requiere Python 3.11 + ortools (~350 MB) corriendo como daemon.
+Hay problemas reales a resolver **antes de desplegar a producción en Render**:
+
+### Problema 1 — Venv no existe en el deploy (BLOQUEANTE)
+`backend/scheduling-solver/venv/` está en `.gitignore` → nunca llega a Render.
+El backend hace `spawn('venv/bin/python')` y falla con ENOENT.
+
+**Fix**: añadir al build command de Render:
+```
+pnpm install && python3 -m venv scheduling-solver/venv && scheduling-solver/venv/bin/pip install --no-cache-dir ortools pydantic
+```
+O como script `build` en `backend/package.json` para que Render lo ejecute automáticamente.
+
+### Problema 2 — Python 3.11 no garantizado en Render (BLOQUEANTE)
+Render usa Ubuntu pero no garantiza Python 3.11 en todos los buildpacks.
+Verificar la versión disponible o forzarla con:
+```
+# backend/scheduling-solver/.python-version
+3.11
+```
+
+### Problema 3 — Build lento por ortools (~350 MB)
+Cada deploy reinstala ortools desde cero. En Render free/starter puede tardar 5-10 min.
+Solución real: habilitar **build cache** en Render (planes pagados) o aceptar el tiempo.
+
+### Problema 4 — Cold start tras inactividad (Render free tier)
+El plan gratuito para el servidor tras 15 min sin tráfico. Al despertar:
+- Node arranca (~3s)
+- Daemon Python se lanza + ortools se importa (~10-15s en Linux)
+La primera petición de generación tras el sleep sufre esta espera.
+
+### Aiven
+Sin impacto. El solver es stateless respecto a la BD: Node lee de Aiven, construye el
+input, manda al daemon Python, y escribe el resultado de vuelta a Aiven. Python no
+toca la BD directamente.
+
+---
+
 ## Checks anuales (Diciembre)
 
 - Ver que todos los empleados tengan sus bonificables correspondientes → warning positivo si faltan
