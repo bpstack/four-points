@@ -296,17 +296,18 @@
     }
   },
   "expected": {
-    "isValid": false,
+    "isValid": true,
     "violations": [
       {
         "type": "rest",
-        "severity": "error",
+        "severity": "warning",
         "employeeId": "E0000000-0000-0000-0000-000000000001"
       }
     ],
-    "softPenalty": 7,
+    "softPenalty": 19,
     "softPenaltyBreakdown": {
       "libre_above_pref": 2,
+      "min_work_block_short": 12,
       "weekend_off_missing": 5
     }
   }

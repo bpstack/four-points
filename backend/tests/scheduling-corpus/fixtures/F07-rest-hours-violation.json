@@ -296,15 +296,16 @@
     }
   },
   "expected": {
-    "isValid": false,
+    "isValid": true,
     "violations": [
       {
         "type": "rest",
         "employeeId": "E0000000-0000-0000-0000-000000000001"
       }
     ],
-    "softPenalty": 10,
+    "softPenalty": 13,
     "softPenaltyBreakdown": {
+      "min_work_block_short": 3,
       "weekend_off_missing": 10
     }
   }

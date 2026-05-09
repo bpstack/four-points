@@ -119,20 +119,14 @@ function matrixToFixtureAssignments(
 const PARITY_FIXTURES = [
   'F02-perfect-month',
   'F10-night-block-correct',
+  'F11-cross-month-night-block-completed',
   'F22-locked-vacation-respected',
-  // F11 excluido: misma divergencia conocida que F30 — EMP_02 con tail vacío puede
-  // recibir bloque de 2 días de trabajo al inicio del mes (días 1-2, mín 3).
-  // Causa: day_blocks.py solo enforça bloques del mismo turno, no bloques mixtos.
-  // Pendiente: min_work_block.py. Ver SCHEDULING-SOLVER-PLAN.md Fase 2.
   // F26-F51 resolubles
   'F26-vacation-at-start',
   'F27-vacation-at-end',
   'F28-holiday-mid-month',
   'F29-simultaneous-vacations',
-  // F30 excluido: divergencia conocida — el solver no implementa min_work_block
-  // genérico para bloques mixtos de trabajo (M+T+N consecutivos). day_blocks.py
-  // solo enforça bloques de mismo turno. Pendiente: añadir min_work_block.py al
-  // solver. Ver SCHEDULING-SOLVER-PLAN.md Fase 2.
+  'F30-trailing-n-incomplete-with-vacation',
   'F33-short-month-28days',
   'F34-short-month-29feb-leap',
   'F35-night-block-min-3',

@@ -39,35 +39,180 @@
       }
     ],
     "days": [
-      { "dayNumber": 1, "dayOfWeek": "J", "weekNumber": 1, "isHoliday": false },
-      { "dayNumber": 2, "dayOfWeek": "V", "weekNumber": 1, "isHoliday": false },
-      { "dayNumber": 3, "dayOfWeek": "S", "weekNumber": 1, "isHoliday": false },
-      { "dayNumber": 4, "dayOfWeek": "D", "weekNumber": 1, "isHoliday": false },
-      { "dayNumber": 5, "dayOfWeek": "L", "weekNumber": 1, "isHoliday": false },
-      { "dayNumber": 6, "dayOfWeek": "M", "weekNumber": 2, "isHoliday": false },
-      { "dayNumber": 7, "dayOfWeek": "X", "weekNumber": 2, "isHoliday": false },
-      { "dayNumber": 8, "dayOfWeek": "J", "weekNumber": 2, "isHoliday": false },
-      { "dayNumber": 9, "dayOfWeek": "V", "weekNumber": 2, "isHoliday": false },
-      { "dayNumber": 10, "dayOfWeek": "S", "weekNumber": 2, "isHoliday": false },
-      { "dayNumber": 11, "dayOfWeek": "D", "weekNumber": 2, "isHoliday": false },
-      { "dayNumber": 12, "dayOfWeek": "L", "weekNumber": 3, "isHoliday": false },
-      { "dayNumber": 13, "dayOfWeek": "M", "weekNumber": 3, "isHoliday": false },
-      { "dayNumber": 14, "dayOfWeek": "X", "weekNumber": 3, "isHoliday": false },
-      { "dayNumber": 15, "dayOfWeek": "J", "weekNumber": 3, "isHoliday": false },
-      { "dayNumber": 16, "dayOfWeek": "V", "weekNumber": 3, "isHoliday": false },
-      { "dayNumber": 17, "dayOfWeek": "S", "weekNumber": 3, "isHoliday": false },
-      { "dayNumber": 18, "dayOfWeek": "D", "weekNumber": 3, "isHoliday": false },
-      { "dayNumber": 19, "dayOfWeek": "L", "weekNumber": 4, "isHoliday": false },
-      { "dayNumber": 20, "dayOfWeek": "M", "weekNumber": 4, "isHoliday": false },
-      { "dayNumber": 21, "dayOfWeek": "X", "weekNumber": 4, "isHoliday": false },
-      { "dayNumber": 22, "dayOfWeek": "J", "weekNumber": 4, "isHoliday": false },
-      { "dayNumber": 23, "dayOfWeek": "V", "weekNumber": 4, "isHoliday": false },
-      { "dayNumber": 24, "dayOfWeek": "S", "weekNumber": 4, "isHoliday": false },
-      { "dayNumber": 25, "dayOfWeek": "D", "weekNumber": 4, "isHoliday": false },
-      { "dayNumber": 26, "dayOfWeek": "L", "weekNumber": 5, "isHoliday": false },
-      { "dayNumber": 27, "dayOfWeek": "M", "weekNumber": 5, "isHoliday": false },
-      { "dayNumber": 28, "dayOfWeek": "X", "weekNumber": 5, "isHoliday": false },
-      { "dayNumber": 29, "dayOfWeek": "J", "weekNumber": 5, "isHoliday": false }
+      {
+        "dayNumber": 1,
+        "dayOfWeek": "J",
+        "weekNumber": 1,
+        "isHoliday": false
+      },
+      {
+        "dayNumber": 2,
+        "dayOfWeek": "V",
+        "weekNumber": 1,
+        "isHoliday": false
+      },
+      {
+        "dayNumber": 3,
+        "dayOfWeek": "S",
+        "weekNumber": 1,
+        "isHoliday": false
+      },
+      {
+        "dayNumber": 4,
+        "dayOfWeek": "D",
+        "weekNumber": 1,
+        "isHoliday": false
+      },
+      {
+        "dayNumber": 5,
+        "dayOfWeek": "L",
+        "weekNumber": 1,
+        "isHoliday": false
+      },
+      {
+        "dayNumber": 6,
+        "dayOfWeek": "M",
+        "weekNumber": 2,
+        "isHoliday": false
+      },
+      {
+        "dayNumber": 7,
+        "dayOfWeek": "X",
+        "weekNumber": 2,
+        "isHoliday": false
+      },
+      {
+        "dayNumber": 8,
+        "dayOfWeek": "J",
+        "weekNumber": 2,
+        "isHoliday": false
+      },
+      {
+        "dayNumber": 9,
+        "dayOfWeek": "V",
+        "weekNumber": 2,
+        "isHoliday": false
+      },
+      {
+        "dayNumber": 10,
+        "dayOfWeek": "S",
+        "weekNumber": 2,
+        "isHoliday": false
+      },
+      {
+        "dayNumber": 11,
+        "dayOfWeek": "D",
+        "weekNumber": 2,
+        "isHoliday": false
+      },
+      {
+        "dayNumber": 12,
+        "dayOfWeek": "L",
+        "weekNumber": 3,
+        "isHoliday": false
+      },
+      {
+        "dayNumber": 13,
+        "dayOfWeek": "M",
+        "weekNumber": 3,
+        "isHoliday": false
+      },
+      {
+        "dayNumber": 14,
+        "dayOfWeek": "X",
+        "weekNumber": 3,
+        "isHoliday": false
+      },
+      {
+        "dayNumber": 15,
+        "dayOfWeek": "J",
+        "weekNumber": 3,
+        "isHoliday": false
+      },
+      {
+        "dayNumber": 16,
+        "dayOfWeek": "V",
+        "weekNumber": 3,
+        "isHoliday": false
+      },
+      {
+        "dayNumber": 17,
+        "dayOfWeek": "S",
+        "weekNumber": 3,
+        "isHoliday": false
+      },
+      {
+        "dayNumber": 18,
+        "dayOfWeek": "D",
+        "weekNumber": 3,
+        "isHoliday": false
+      },
+      {
+        "dayNumber": 19,
+        "dayOfWeek": "L",
+        "weekNumber": 4,
+        "isHoliday": false
+      },
+      {
+        "dayNumber": 20,
+        "dayOfWeek": "M",
+        "weekNumber": 4,
+        "isHoliday": false
+      },
+      {
+        "dayNumber": 21,
+        "dayOfWeek": "X",
+        "weekNumber": 4,
+        "isHoliday": false
+      },
+      {
+        "dayNumber": 22,
+        "dayOfWeek": "J",
+        "weekNumber": 4,
+        "isHoliday": false
+      },
+      {
+        "dayNumber": 23,
+        "dayOfWeek": "V",
+        "weekNumber": 4,
+        "isHoliday": false
+      },
+      {
+        "dayNumber": 24,
+        "dayOfWeek": "S",
+        "weekNumber": 4,
+        "isHoliday": false
+      },
+      {
+        "dayNumber": 25,
+        "dayOfWeek": "D",
+        "weekNumber": 4,
+        "isHoliday": false
+      },
+      {
+        "dayNumber": 26,
+        "dayOfWeek": "L",
+        "weekNumber": 5,
+        "isHoliday": false
+      },
+      {
+        "dayNumber": 27,
+        "dayOfWeek": "M",
+        "weekNumber": 5,
+        "isHoliday": false
+      },
+      {
+        "dayNumber": 28,
+        "dayOfWeek": "X",
+        "weekNumber": 5,
+        "isHoliday": false
+      },
+      {
+        "dayNumber": 29,
+        "dayOfWeek": "J",
+        "weekNumber": 5,
+        "isHoliday": false
+      }
     ],
     "assignments": {
       "E0000000-0000-0000-0000-000000000001": {
@@ -136,8 +281,28 @@
   },
   "expected": {
     "isValid": false,
-    "violations": [{"type":"rest","severity":"error","employeeId":"E0000000-0000-0000-0000-000000000001","day":28},{"type":"night_block","severity":"error","employeeId":"E0000000-0000-0000-0000-000000000001"},{"type":"night_block","severity":"error","employeeId":"E0000000-0000-0000-0000-000000000001"}],
-    "softPenalty": 10,
-    "softPenaltyBreakdown": {"weekend_off_missing":10}
+    "violations": [
+      {
+        "type": "rest",
+        "severity": "warning",
+        "employeeId": "E0000000-0000-0000-0000-000000000001",
+        "day": 28
+      },
+      {
+        "type": "night_block",
+        "severity": "error",
+        "employeeId": "E0000000-0000-0000-0000-000000000001"
+      },
+      {
+        "type": "night_block",
+        "severity": "error",
+        "employeeId": "E0000000-0000-0000-0000-000000000001"
+      }
+    ],
+    "softPenalty": 13,
+    "softPenaltyBreakdown": {
+      "min_work_block_short": 3,
+      "weekend_off_missing": 10
+    }
   }
 }

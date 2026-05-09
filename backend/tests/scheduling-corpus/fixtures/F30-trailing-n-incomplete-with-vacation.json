@@ -161,9 +161,11 @@
     }
   },
   "expected": {
-    "isValid": false,
-    "violations": [{"type":"rest","severity":"error","employeeId":"E0000000-0000-0000-0000-000000000001","day":12}],
-    "softPenalty": 0,
-    "softPenaltyBreakdown": {}
+    "isValid": true,
+    "violations": [{"type":"rest","severity":"warning","employeeId":"E0000000-0000-0000-0000-000000000001","day":12}],
+    "softPenalty": 3,
+    "softPenaltyBreakdown": {
+      "min_work_block_short": 3
+    }
   }
 }

@@ -307,9 +307,10 @@
         "employeeId": "E0000000-0000-0000-0000-000000000001"
       }
     ],
-    "softPenalty": 2,
+    "softPenalty": 17,
     "softPenaltyBreakdown": {
-      "libre_below_pref": 2
+      "libre_below_pref": 2,
+      "min_work_block_short": 15
     }
   }
 }

@@ -334,8 +334,9 @@
         "employeeId": "E0000000-0000-0000-0000-000000000001"
       }
     ],
-    "softPenalty": 4,
+    "softPenalty": 19,
     "softPenaltyBreakdown": {
+      "min_work_block_short": 15,
       "rotation_continuity_break": 4
     }
   }
