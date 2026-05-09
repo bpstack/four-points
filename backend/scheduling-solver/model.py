@@ -37,6 +37,13 @@ from constraints import coverage, rest, locked_cells, libres, night_block, trans
 
 ASSIGNABLE_SHIFTS = ["M", "T", "N", "L"]
 WORK_SHIFTS       = {"M", "T", "N"}
+# Turnos que cuentan como "día de trabajo" para detectar bloques mínimos (S4 +
+# continuidad cross-block). DEBE incluir N para mantener paridad con el TS
+# validator (`isWorkShift` en `utils/matrix.ts` incluye N): un patrón como
+# L-M-N-N-N-N-L es UN bloque de trabajo continuo de 5 días, no un M aislado.
+# La protección 4-6 noches consecutivas la sigue garantizando night_block.py
+# como hard — esto solo afecta a cómo se cuentan los bordes de un bloque mixto.
+ALL_WORK_SHIFTS   = {"M", "T", "N", "P", "PI"}
 TAIL_LENGTH       = 7   # días de historia del mes anterior usados como días virtuales
 
 
@@ -107,12 +114,14 @@ def solve(input: SolverInput) -> SolverOutput:
     employee_rules.apply(model, x, input, employees, days)
 
     # ── Función objetivo (soft constraints) ──────────────────────────────────
-    # Pesos: S1 es el objetivo primario; S2 y S3 son secundarios.
-    W_NIGHT_BALANCE  = 10   # S1: por noche de diferencia entre max y min empleado
-    W_ISOLATED_L     = 2    # S2: por cada L aislado (sin L adyacente)
-    W_SHIFT_PRIORITY = 1    # S3: por cada día con turno distinto al preferido
+    # Pesos: S1 es el objetivo primario; S2/S3/S4 son secundarios.
+    W_NIGHT_BALANCE   = 10   # S1: por noche de diferencia entre max y min empleado
+    W_ISOLATED_L      = 2    # S2: por cada L aislado (sin L adyacente)
+    W_SHIFT_PRIORITY  = 1    # S3: por cada día con turno distinto al preferido
+    W_SHORT_WORK_BLOCK = 3   # S4: por día faltante en bloque corto de trabajo (mín 3 consec)
 
     objective_terms: list = []
+    short_block_vars: list = []   # acumulador para softPenaltyBreakdown S4
 
     # ── S1: Balanceo de noches ────────────────────────────────────────────────
     # Empleados rotatorios (sin fixedShift): minimiza rango del total de noches
@@ -199,6 +208,78 @@ def solve(input: SolverInput) -> SolverOutput:
                 if s != priority and (e_idx, d, s) in x:
                     objective_terms.append(W_SHIFT_PRIORITY * x[e_idx, d, s])
 
+    # ── S4: Bloques de trabajo cortos (mín 3 consecutivos) ────────────────────
+    # Soft constraint (CONSTRAINTS §3, peso 3 por día faltante). Hard constraints
+    # (cobertura, H5, night_block) pueden dejar al solver sin alternativa a un
+    # bloque de 1-2 días. Se penaliza pero no se prohíbe.
+    #
+    # Las noches NO se ven afectadas: night_block.py ya impone hard que cualquier
+    # bloque N tenga minNightBlock..maxNightBlock noches consecutivas (4-6). Y
+    # transitions.py prohíbe N→M/T sin libre. Por tanto un bloque corto que
+    # incluya N no puede ocurrir; S4 solo penaliza bloques mixtos M/T/P/PI.
+    #
+    # Detección: para cada día d, mira si termina un bloque corto:
+    #   - bloque de 1 día anclado en d  → gap = 2 (penalty 6)
+    #   - bloque de 2 días terminando en d → gap = 1 (penalty 3)
+    # Días virtuales del tail extienden el bloque hacia atrás (cross-month).
+    #
+    # is_work[e, d] = bool var = sum(x[e, d, s] for s in ALL_WORK_SHIFTS).
+    # Incluye N para que un bloque mixto M-N o N-T cuente como continuo (paridad TS).
+
+    is_work: dict = {}
+    for e_idx in range(num_emps):
+        virt_days = virtual_days_by_emp.get(e_idx, [])
+        all_days_e = virt_days + day_numbers
+        for d in all_days_e:
+            wb = model.new_bool_var(f"work_{e_idx}_{d}")
+            terms = [x[e_idx, d, s] for s in ALL_WORK_SHIFTS if (e_idx, d, s) in x]
+            if terms:
+                model.add(wb == cp_model.LinearExpr.Sum(terms))
+            else:
+                model.add(wb == 0)
+            is_work[e_idx, d] = wb
+
+    for e_idx in range(num_emps):
+        virt_days = virtual_days_by_emp.get(e_idx, [])
+        all_days_e = virt_days + day_numbers
+        n_e = len(all_days_e)
+        real_start = len(virt_days)
+
+        for pos in range(real_start, n_e):
+            d = all_days_e[pos]
+            prev_d      = all_days_e[pos - 1] if pos - 1 >= 0       else None
+            prev_prev_d = all_days_e[pos - 2] if pos - 2 >= 0       else None
+            next_d      = all_days_e[pos + 1] if pos + 1 < n_e      else None
+
+            # 1-day block at d: rest before AND rest after AND work at d.
+            #   penalty = peso × (MIN_BLOCK - 1) = 3 × 2 = 6
+            b1_terms = [is_work[e_idx, d]]
+            if prev_d is not None:
+                b1_terms.append(1 - is_work[e_idx, prev_d])
+            if next_d is not None:
+                b1_terms.append(1 - is_work[e_idx, next_d])
+            b1 = model.new_bool_var(f"short1_{e_idx}_{d}")
+            for t in b1_terms:
+                model.add(b1 <= t)
+            model.add(b1 >= cp_model.LinearExpr.Sum(b1_terms) - (len(b1_terms) - 1))
+            objective_terms.append(W_SHORT_WORK_BLOCK * 2 * b1)
+            short_block_vars.append((b1, 2))
+
+            # 2-day block ending at d: work at d-1 AND d, rest at d-2 (or boundary)
+            # AND rest at d+1 (or boundary).  penalty = peso × 1 = 3
+            if prev_d is not None:
+                b2_terms = [is_work[e_idx, prev_d], is_work[e_idx, d]]
+                if prev_prev_d is not None:
+                    b2_terms.append(1 - is_work[e_idx, prev_prev_d])
+                if next_d is not None:
+                    b2_terms.append(1 - is_work[e_idx, next_d])
+                b2 = model.new_bool_var(f"short2_{e_idx}_{d}")
+                for t in b2_terms:
+                    model.add(b2 <= t)
+                model.add(b2 >= cp_model.LinearExpr.Sum(b2_terms) - (len(b2_terms) - 1))
+                objective_terms.append(W_SHORT_WORK_BLOCK * 1 * b2)
+                short_block_vars.append((b2, 1))
+
     if objective_terms:
         model.minimize(cp_model.LinearExpr.Sum(objective_terms))
 
@@ -235,14 +316,20 @@ def solve(input: SolverInput) -> SolverOutput:
                         break
 
         soft_penalty = int(solver.objective_value) if objective_terms else 0
-        # softPenaltyBreakdown solo incluye S1 (night_balance).
+        # softPenaltyBreakdown incluye S1 (night_balance) y S4 (min_work_block_short).
         # S2 (isolated_L) y S3 (shift_priority) contribuyen al softPenalty total
-        # pero no se desglosan individualmente (calcularlos requeriría iterar sobre
-        # todas las variables iso/priority del solver, que no se almacenan por separado).
+        # pero no se desglosan individualmente.
         soft_breakdown: dict[str, int] = {}
         if night_range is not None:
             night_r = solver.value(night_range)
             soft_breakdown["night_balance"] = W_NIGHT_BALANCE * night_r
+        if short_block_vars:
+            short_total = sum(
+                W_SHORT_WORK_BLOCK * gap * solver.value(var)
+                for var, gap in short_block_vars
+            )
+            if short_total > 0:
+                soft_breakdown["min_work_block_short"] = short_total
 
         return SolverSuccess(
             status="ok",

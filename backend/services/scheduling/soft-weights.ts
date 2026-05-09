@@ -67,6 +67,13 @@ export const SOFT_WEIGHTS = {
    */
   rotation_continuity_break: 4,
   /**
+   * S4: Work block shorter than MIN_WORK_BLOCK (3 days). Penalty per missing day
+   * (block of 2 → 3pt, block of 1 → 6pt). Soft by catalog (CONSTRAINTS §3) — solver
+   * may produce short blocks when hard constraints leave no other option.
+   * @emitter schedule-validator.ts (runFinalValidation, VALIDATION 3)
+   */
+  min_work_block_short: 3,
+  /**
    * Approved shift preference not granted (not a hard constraint), per unmet request
    * @deferred Depends on scheduling_employee_requests table (step A of TODO.md
    *           and §7.5 of CONSTRAINTS). Wire alongside the request-loading logic.

@@ -320,11 +320,19 @@ export class ScheduleValidator {
             if (block.count + prevConsecutive >= this.MIN_WORK_BLOCK) continue
           }
         }
+        // S4 (CONSTRAINTS §3): soft, peso 3 por día faltante. Hard constraints
+        // pueden dejar al solver sin alternativa a un bloque corto.
+        const delta = this.MIN_WORK_BLOCK - block.count
+        const penalty = SOFT_WEIGHTS.min_work_block_short * delta
+        softPenalty += penalty
+        softPenaltyBreakdown.min_work_block_short =
+          (softPenaltyBreakdown.min_work_block_short ?? 0) + penalty
         warnings.push(
-          this.createError(
+          this.createWarning(
             `${employee.name}: bloque de ${block.count} día(s) de trabajo (días ${block.startDay}-${block.endDay}, mín ${this.MIN_WORK_BLOCK} consecutivos)`,
             {
               type: 'rest',
+              severity: 'warning',
               employeeId: employee.id,
               employeeName: employee.name,
               day: block.startDay,
