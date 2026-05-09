@@ -209,6 +209,131 @@ The scheduling module manages monthly staff schedules through **manual cell-by-c
 - Schedule parameters (min/max staff per shift, rest hours, libre ranges) stored in `scheduling_config` table
 - Employee-specific rules in `scheduling_employee_rules` table
 
+#### Running the solver locally
+
+The solver is a persistent Python daemon that the Node backend launches on startup and keeps alive for the entire server lifetime. Each generation request is one line of JSON sent over stdin; the response comes back as one line of JSON on stdout. OR-Tools is imported only once when the daemon starts, so subsequent generations are fast.
+
+**One-time setup:**
+
+```bash
+cd backend/scheduling-solver
+python -m venv venv                    # create local venv
+venv/Scripts/pip install ortools pydantic pytest   # Windows
+# venv/bin/pip install ortools pydantic pytest     # Linux/Mac
+```
+
+The venv lives under `backend/scheduling-solver/venv/` and is gitignored. On Render (production deploy), the build command needs to recreate it — see `TODO.md` "Deploy en Render".
+
+**Day-to-day workflow:**
+
+```bash
+cd backend
+pnpm dev:local              # backend + daemon Python launch automatically
+```
+
+When the backend boots, `services/scheduling/solver-client.ts` spawns `scheduling-solver/daemon.py` and calls `warmupSolver()` from `index.ts` so OR-Tools imports while the server is starting up. By the time the first request arrives, the daemon is ready (state `ready`).
+
+The daemon's lifecycle states are managed in `solver-client.ts`:
+
+- `idle` — not yet spawned
+- `starting` — process spawned, waiting for "READY" handshake on stdout
+- `ready` — accepting requests
+- `busy` — currently solving a request (semaphore enforces sequential processing)
+
+If the daemon dies unexpectedly (Python crash, OR-Tools error), the next call will detect the broken pipe and respawn it transparently.
+
+**Triggering a generation from the UI:**
+
+1. Open `http://localhost:3000/dashboard/scheduling`.
+2. Pick a month in `draft` state (or create one via the month picker).
+3. Click the "Generar horario" button. Frontend calls `POST /months/:id/generate`, which invokes `solver-client.ts → runSolver(input)`.
+4. The solver returns either `{status: 'ok', matrix, stats}` or `{status: 'infeasible', conflictingConstraints, suggestedRelaxations}`. The controller in `controllers/scheduling/schedule-generate.controller.ts` applies the matrix to `scheduling_assignments` inside a transaction.
+
+**Testing the solver in isolation (no Node):**
+
+The Python solver has its own pytest suite that runs the entire fixture corpus directly through `model.solve()`. Use this when iterating on a constraint to skip the Node round-trip:
+
+```bash
+cd backend/scheduling-solver
+venv/Scripts/python -m pytest tests/                # full Python suite (~15s, 103 tests)
+venv/Scripts/python -m pytest tests/test_corpus.py  # only the corpus
+venv/Scripts/python -m pytest tests/test_benchmark.py --runbenchmark   # 30×31 stress test
+```
+
+For the parity test that runs the Python solver against the TS validator (the actual cross-language sync check), use vitest from the backend root:
+
+```bash
+cd backend
+pnpm vitest run tests/scheduling/solver-parity.test.ts   # ~5s
+pnpm vitest run tests/scheduling/corpus.test.ts          # ~1s, no Python
+```
+
+**Debugging a specific month:**
+
+There are three Node helpers in `backend/` (not in tests/) that connect directly to the local DB and inspect state without running the full server:
+
+- `debug-compare.js` — list months in DB with their state.
+- `debug-month.js` — print all assignments for a given month ID.
+- `debug-sept.js` — full debug dump for a hardcoded month: employees, locked cells, the SolverInput JSON that would be sent, and the solver output.
+
+Edit the month ID inside the script and run with `node debug-sept.js`. Useful when the solver returns `infeasible` in production and you want to inspect exactly what got sent to it.
+
+#### Adding a new constraint
+
+The system maintains the same rule logic in three places: the TS validator (real-time editing feedback), the Python solver (generation), and the JSON corpus (regression tests). Skipping any of them creates drift, which the parity test will eventually catch but slowly. The order below is the cheapest path to a closed loop.
+
+**Step 1 — Decide hard vs soft and document it.**
+
+Open `SCHEDULING-CONSTRAINTS.md`. If the rule is hard (a violation invalidates the schedule), add it to §2 with an `H` ID. If it is soft (a violation is acceptable but penalised), add it to §3 with an `S` ID, choose a tentative weight in the 1-10 range, and explain *why* that weight relative to the others. The weight will be tuned in production; the relative ordering is what matters here.
+
+If the rule depends on continuity across the month boundary, also list it in §9.5 (cross-month invariant) so future readers know to wire `previousMonthHistory` into it.
+
+**Step 2 — Implement in the TS validator.**
+
+Create `backend/services/scheduling/constraints/<rule-name>.constraint.ts` extending `BaseConstraint`. The constraint receives a `GeneratorContext` with `matrix`, `employees`, `days`, `config`, and `previousMonthHistory` (null on the first month). For hard rules, push entries through `this.warn(message, {severity: 'error', ...})`. For soft rules, use `this.softWarn(weightKey, units, message, ...)` which automatically pulls the weight from `soft-weights.ts` and accumulates `softPenalty` and `softPenaltyBreakdown`.
+
+If you added a new soft weight, declare it in `services/scheduling/soft-weights.ts` with a JSDoc tag `@emitter` pointing to the constraint file. Constraints emit warnings with `severity: 'error'` for hard violations and `severity: 'warning'` for soft penalties. The split is: `validate()` returns `isValid: errors.length === 0`, plus a separate `softPenalty` total.
+
+Register the constraint in `schedule-validator.ts`, inside the `ConstraintRegistry` block of `validate()`, alongside `CoverageConstraint` and `EmployeeRulesConstraint`. If your rule fits more naturally inside the per-employee loop of `runFinalValidation` (because it needs cumulative state per employee, like libre counts), inline it there instead.
+
+**Step 3 — Implement in the Python solver.**
+
+Create `backend/scheduling-solver/constraints/<rule_name>.py` exposing an `apply(model, x, input, employees, days, virtual_days_by_emp=None)` function. The signature matches every other constraint in that directory (cross-reference `coverage.py` or `rest.py` for templates).
+
+The CP-SAT model variables are `x[employee_index, day_number, shift_code]` — boolean. For days inside the month, `day_number` ranges 1..N. For cross-month context, virtual days `-7..-1` are pre-blocked from `previousMonthTail` in `model.py`. To make a constraint cross-month aware, iterate over `all_days = virt_days + real_days` instead of just `day_numbers`. Several constraints (rest, transitions, day_blocks) already follow this pattern.
+
+Hard constraints use `model.add(...)` to assert the rule. Soft constraints introduce reified boolean indicator variables (e.g. "is this day a violation?") and add weighted terms to `objective_terms` inside `solve()`. The S4 implementation in `model.py` (search for `W_SHORT_WORK_BLOCK`) is a clean reference for soft constraints with cross-month behaviour.
+
+Wire your constraint into `model.solve()` by importing it and calling `apply()` after the existing constraints. Constraint order does not matter for correctness (CP-SAT is declarative), but grouping related rules together keeps the file readable.
+
+If the constraint contributes to `softPenalty`, also accumulate its breakdown for the output. The pattern is to keep a list of `(indicator_var, weight)` tuples while building the model and read back `solver.value(var)` after `solver.solve()` to populate `stats.softPenaltyBreakdown[<key>]` — same key string as in `soft-weights.ts`.
+
+**Step 4 — Add a fixture to the corpus.**
+
+Create `backend/tests/scheduling-corpus/fixtures/Fnn-<descriptive-name>.json` following the schema in `_schema.ts`. The fixture has three sections:
+
+1. `input` — month, employees, days, config, lockedCells, previousMonthHistory, and a fully-formed `assignments` matrix. The matrix should exercise the rule: for a hard violation, include a schedule that breaks it. For a soft test, include a schedule where the rule's penalty is calculable manually.
+2. `expected.isValid` — true if the schedule has no hard errors, false otherwise.
+3. `expected.violations` — list of matchers (type, severity, employeeId, day) that the validator must emit. Plus `expected.softPenalty` and `expected.softPenaltyBreakdown` for soft contributions.
+
+If the fixture is intended to also pass through the Python solver (i.e. the schedule is solver-reachable), add its ID to `SOLVABLE_FIXTURES` in `scheduling-solver/tests/test_corpus.py` and to `PARITY_FIXTURES` in `tests/scheduling/solver-parity.test.ts`. Coverage-disabled fixtures (`minMorningStaff: 0`, etc.) are usually safe additions to both lists.
+
+**Step 5 — Run the four test suites.**
+
+```bash
+cd backend
+pnpm vitest run tests/scheduling/corpus.test.ts          # TS validator vs fixtures
+pnpm vitest run tests/scheduling/solver-parity.test.ts   # Solver output → TS validator (no hard errors)
+cd scheduling-solver
+venv/Scripts/python -m pytest tests/test_corpus.py       # Python solver no crashes
+```
+
+All four must be green. If parity fails, the validator and solver disagree somewhere; if `test_corpus.py` errors, the Python constraint has a bug; if `corpus.test.ts` fails, the TS validator does. The error message points at the divergence — fix the side that disagrees with the spec in `SCHEDULING-CONSTRAINTS.md` (the spec is the source of truth, not the code).
+
+**Step 6 — Document the decision.**
+
+Append a brief entry to `SCHEDULING-DECISIONS-LOG.md` with the date, the rule, why it's hard or soft, and the chosen weight if applicable. This is the audit trail that lets a future agent (or you, six months later) understand why a constraint exists without spelunking through git history.
+
 ## Important Development Notes
 
 ### Backend Notes

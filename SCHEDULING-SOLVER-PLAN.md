@@ -90,7 +90,7 @@ Motivos del cambio a daemon (ver `SCHEDULING-DECISIONS-LOG.md` entrada 2026-04-3
 
 Archivos clave: `scheduling-solver/daemon.py` (proceso Python), `services/scheduling/solver-client.ts` (gestión del daemon desde Node).
 
-`main.py` sigue existiendo como entry point CLI para debugging/testing manual. Adicionalmente, existen scripts de debug en el backend para inspeccionar el sistema:
+`main.py` sigue existiendo como entry point CLI **solo para debugging manual** (ej: probar un input JSON suelto en consola). El flujo productivo NO lo usa — todas las generaciones reales pasan por el daemon. Adicionalmente, existen scripts de debug en el backend para inspeccionar el sistema:
 
 | Script | Propósito |
 | ------ | --------- |
@@ -340,7 +340,7 @@ Cada fase tiene **criterios de cierre medibles**. No se avanza a la siguiente ha
 | `solver-client.ts` | ✅ | Spawn Python, stdin/stdout, timeout, error handling |
 | `build-solver-input.ts` | ✅ | 3 fuentes de lockedCells: assignments bloqueados, requests, fixedDays |
 | Endpoint `POST /months/:id/generate` | ✅ | `controllers/scheduling/schedule-generate.controller.ts` |
-| Frontend botón + modal infeasible | ✅ | `SchedulingClient.tsx` |
+| Frontend botón + modal infeasible (versión básica) | ✅ | `SchedulingClient.tsx`. UX enriquecida (renderizar `conflictingConstraints` + `suggestedRelaxations` accionables) queda para Fase 3 paso 2. |
 | Corpus vs solver (Python pytest) | ✅ | `scheduling-solver/tests/test_corpus.py` — 44/44 verdes |
 | Parity validator TS | ✅ | `tests/scheduling/solver-parity.test.ts` — 4/4 verdes, 0 hard errors |
 
@@ -368,18 +368,18 @@ Cada fase tiene **criterios de cierre medibles**. No se avanza a la siguiente ha
 - [x] Output del solver pasa `ScheduleValidator.validate()` con 0 hard errors (4 fixtures, incl. cross-month).
 - [x] Corpus: 44 tests Python (25 fixtures × 2 suites) contra el solver — 44/44 verdes.
 
-### Fase 2 — Paridad de constraints + soft 🟡 EN PROGRESO (2026-04-30 → en curso)
+### Fase 2 — Paridad de constraints + soft 🟢 CERRADA EN CÓDIGO (2026-04-30 → 2026-05-09; tuning diferido a producción)
 
 **Objetivo:** el solver cubre TODAS las constraints actuales (hard) + minimiza soft penalty.
 
 **Trabajo:**
 
 1. ~~Night blocks, reglas por empleado~~ — adelantados a Fase 1 (H2, H3, employee_rules, day_blocks ya implementados).
-2. Rotation continuity — guiar el patrón M→T→N usando `previousMonthTail`. **Pendiente de spec con el manager** (no implementar sin definir el comportamiento esperado).
+2. ~~Rotation continuity~~ — ✅ cerrado 2026-05-09. Spec con manager (2026-05-02) redefinió el alcance: no hay patrón M→T→N predefinido; única regla de continuidad rotacional es T→M sin descanso = hard error. Ya implementado en TS (`rotation-continuity.constraint.ts`) y solver Python (`transitions.py`). F12/F13 cubren cross-month. Detalle en `SCHEDULING-DECISIONS-LOG.md` 2026-05-09.
 3. ~~Función de coste para soft constraints~~ — ✅ implementado 2026-04-30.
 4. ~~Ampliar corpus a 50+ fixtures~~ — ✅ implementado 2026-05-02: 51 fixtures (F01-F51). Cubre vacaciones boundary, meses cortos, leap year, fixedDays, noWeekends, cross-month, trailing N edge cases, coverage infeasible. Tests: 103 Python + 51 TS corpus + 22 TS parity verdes.
-5. ~~Paridad validator TS ↔ solver Python~~ — ✅ parcialmente implementado 2026-05-02: parity test cubre 22 fixtures. **Divergencia conocida documentada:** `day_blocks.py` solo enforza bloques del mismo turno (M→M, T→T), no bloques de trabajo mixtos. Cuando un empleado entra sin tail puede recibir bloque de 1-2 días trabajo que el validator marca error. Afecta F11 y F30 (excluidos de parity con TODO). Pendiente: añadir `min_work_block.py` al solver.
-6. Benchmark con hotel sintético de 30 empleados × 31 días. **Pendiente.**
+5. ~~Paridad validator TS ↔ solver Python~~ — ✅ implementado 2026-05-09: parity test cubre 24 fixtures (F11 y F30 reincorporados). **S4 `min_work_block` implementado como soft (no hard)** — alineado con catálogo CONSTRAINTS §3 peso 3. Validator TS ahora emite `warning` + softPenalty en vez de `error` (era bug). Solver Python penaliza bloques de 1-2 días en función objetivo (peso × días faltantes). Las noches siguen siendo hard via `night_block.py` (4-6 consec). 28 fixtures actualizadas con nueva softPenalty/severity.
+6. ~~Benchmark con hotel sintético de 30 empleados × 31 días~~ — ✅ implementado 2026-05-09 (`scheduling-solver/tests/test_benchmark.py`). 30 rotatorios × 31 días resuelven en < 5s con CP-SAT FEASIBLE; softPenalty=40 (night_balance dominante). No reachea OPTIMAL en 60s — primer-feasible es válido y usable. Bugs detectados: `fixedShift=P` sin `fixedDays` causa INFEASIBLE en Python (filtrado en TS, no replicado en Python). Detalle y valoración de viabilidad: ver `SCHEDULING-DECISIONS-LOG.md` 2026-05-09.
 7. ~~Daemon persistente~~ — ✅ implementado 2026-04-30.
 
 **Bugs corregidos en Fase 2 (2026-05-02):**
@@ -390,35 +390,49 @@ Cada fase tiene **criterios de cierre medibles**. No se avanza a la siguiente ha
 
 **Criterios de cierre:**
 
-- [ ] `min_work_block.py` añadido al solver: bloques de trabajo mixtos (M+T+N+PI+P) mín 3 días. F11 y F30 pasan parity.
-- [ ] Rotation continuity implementada (tras spec con manager).
-- [ ] Benchmark 30×31 resuelve en < 30s con optimizationLevel='balanced'.
-- [x] Corpus 50+ fixtures: 51 fixtures, 103+51+22 tests verdes.
-- [ ] El manager valida 3 meses en producción. Pesos S1/S2/S3 tuneados.
+- [x] S4 `min_work_block` implementado como soft (validator TS + solver Python). F11 y F30 pasan parity (2026-05-09).
+- [x] Rotation continuity cerrada (spec con manager 2026-05-02; T→M sin descanso = hard error en TS+Python).
+- [x] Benchmark 30×31 resuelve en < 30s con optimizationLevel='balanced' (FEASIBLE en <5s, no OPTIMAL — aceptable, 2026-05-09).
+- [x] Corpus 50+ fixtures: 51 fixtures, 103+51+24 tests verdes.
+- [ ] **Diferido a producción:** el manager valida 3 meses en producción y se tunean pesos S1/S2/S3/S4 con feedback real. Bloqueado por uso productivo, no por código.
 
-### Fase 3 — Producción y observabilidad (2-3 semanas)
+### Fase 3 — Producción y observabilidad 🟡 EN PROGRESO (2026-05-09 → en curso)
 
 **Objetivo:** el solver es el camino principal; el flujo manual se mantiene como fallback.
 
 **Trabajo:**
 
-1. Logging estructurado del solver (duración, soft penalty, branches explorados) persistido en tabla nueva `scheduling_solver_runs` para análisis posterior.
-2. UX de infeasibilidad: cuando el solver devuelve `infeasible`, el frontend muestra qué constraints conflictúan y qué relajación sugiere.
+1. Logging estructurado del solver (duración, soft penalty, branches explorados) persistido en tabla nueva `scheduling_solver_runs` para análisis posterior. **Pendiente.**
+2. UX de infeasibilidad: cuando el solver devuelve `infeasible`, el frontend muestra qué constraints conflictúan y qué relajación sugiere. **Pendiente.** Ver subsección "Alcance acordado de UX de infeasibilidad" más abajo para la diferencia con el bucle de feedback (que es ítem aparte).
 3. ~~Retirar el endpoint `generate-ai` y su código.~~ **Ya hecho en Fase 0** (ver entrada del 2026-04-24 en `SCHEDULING-DECISIONS-LOG.md`). Este paso queda vacío.
-4. Documentación mínima en `CLAUDE.md`: cómo ejecutar el solver localmente, cómo añadir una constraint nueva (a validator + solver + corpus).
+4. ~~Documentación mínima en `CLAUDE.md`~~ — ✅ implementado 2026-05-09. Dos secciones nuevas dentro del bloque "Scheduling System": "Running the solver locally" (daemon, estados, debug scripts, las 4 suites de tests) y "Adding a new constraint" (flujo de 6 pasos: clasificar en CONSTRAINTS.md → TS validator → Python solver → fixture corpus → 4 tests verdes → log de decisión).
 
 **Criterios de cierre:**
 
 - [ ] `scheduling_solver_runs` acumula ≥ 30 runs de producción.
 - [ ] UX de infeasibilidad probada con al menos 3 escenarios.
 - [x] `ai-generator.ts` y `ai-prompt.ts` borrados del repo (satisfecho en Fase 0, 2026-04-24).
-- [ ] Guía de desarrollo para añadir constraints en `CLAUDE.md`.
+- [x] Guía de desarrollo para añadir constraints en `CLAUDE.md` (2026-05-09).
+
+#### Alcance acordado de "UX de infeasibilidad" vs. "bucle de feedback"
+
+Distinción registrada 2026-05-09 tras pregunta del manager:
+
+- **UX de infeasibilidad (este paso 2):** se dispara cuando el solver devuelve `status: 'infeasible'`. El motor ya devuelve `conflictingConstraints` + `suggestedRelaxations` (ver §3.2 del plan); falta el frontend que renderice eso de forma comprensible y permita actuar (relajar un parámetro, desbloquear una celda, retry). No tiene relación con horarios buenos/malos — se dispara cuando NO hay solución matemática posible bajo las constraints actuales.
+- **Bucle de feedback de horarios generados** (manager edita post-generación, esas ediciones son señal de "esto era mejor que lo del solver"): es un ítem distinto, no incluido en este plan. Pertenece a "Después de Fase 3" y se conecta con tuning de pesos soft (Fase 2 punto 4 diferido). Cómo se ataca:
+  1. Persistir la matriz solver-generada **antes** de aplicarla (en `scheduling_solver_runs` junto con stats).
+  2. Después de N días, comparar matriz original vs. matriz final editada por el manager (diff celda a celda).
+  3. Cada cambio recurrente es un patrón: "el solver pone M, manager cambia a T los lunes" → señal para subir peso S3 (shift_priority) o ajustar config.
+  4. Refinar pesos manualmente con esos datos cada 2-3 meses.
+
+  No es ML/RL todavía — es analítica humana sobre los logs. Pasar a ML supone Capa 3 LLM (plan aparte) o un proyecto de "warm-starting con histórico" (anotado en "Después de Fase 3").
 
 ### Después de Fase 3
 
 - Capa 3 LLM (plan aparte).
 - Explorar warm-starting del solver con soluciones previas.
 - Multi-objetivo: permitir al manager elegir entre "mínimas violaciones soft" vs. "máxima estabilidad vs mes anterior".
+- **Bucle de feedback "manager edita → ajusta pesos"** (ver subsección "Alcance acordado de UX de infeasibilidad" en Fase 3): construido sobre `scheduling_solver_runs` cuando esa tabla acumule histórico suficiente. Implica analítica de diffs solver↔manager y tuning iterativo de pesos S1-S4. No es ML; es trabajo humano informado por datos. **Solo cuenta la matriz publicada, no las ediciones intermedias en draft** (regla del manager 2026-05-09; ver `SCHEDULING-DECISIONS-LOG.md`).
 
 ---
 

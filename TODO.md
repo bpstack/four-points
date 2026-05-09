@@ -128,19 +128,14 @@ Se añadieron variables CP-SAT para los días `-7..-1` (bloqueados desde `previo
   ```
   Esto borra y recrea la base de datos completa. Cualquier tabla nueva (como `scheduling_employee_requests`) debe estar incluida en `MASTER_INSTALL_AIVEN.sql` antes de ejecutarlo, no aplicarse por separado después. Verificar también que el collate `utf8mb4_0900_ai_ci` es compatible con el MySQL de Aiven (algunas versiones de Aiven usan MariaDB que no soporta ese collate — usar `utf8mb4_unicode_ci` como fallback si falla).
 
-## Scheduling — Siguiente paso (post feature/ai-schedule-generator) 🎯
+## Scheduling — Histórico de trabajo (Fase 2)
 
-El branch `feature/ai-schedule-generator` tiene el solver end-to-end funcionando y está listo para commit + merge.
+> Log cronológico de los items de Fase 2. El estado actual y los siguientes
+> pasos están en la sección "Scheduling — punto de retoma" más abajo. Si solo
+> quieres saber qué falta, salta directamente a esa.
 
-**Siguiente paso inmediato (Fase 2 de SCHEDULING-SOLVER-PLAN.md):**
+  ---
 
-1. **Ampliar corpus de tests**: añadir fixtures para los escenarios ahora posibles — vacación al inicio del mes, trailing_N >= minBlock, meses consecutivos sin publicar. Objetivo 50+ fixtures.
-2. **Paridad validator TS ↔ solver Python**: ejecutar el corpus completo contra ambos y verificar que coinciden. Actualmente parity test cubre 4 fixtures; debería cubrir todos los que tienen `expectedStatus: 'valid'`.
-3. **Tuning de pesos soft (S1/S2/S3)**: tras 2-3 meses en producción con el solver real, ajustar W1=10/W2=2/W3=1 con feedback del manager.
-4. **Rotation continuity (soft)**: guiar el patrón M→T→N entre meses usando `previousMonthTail`. Pendiente de especificación con el manager.
-
-
- ---                                                                                                                                                                              
   B.1 — Paridad validator TS ↔ solver Python
                                                                                                                                                                                    
   Trabajo mecánico: leer qué fixtures existen, ver cuáles tienen expectedStatus: 'valid', añadirlos al parity test. Yo lo hago más rápido y barato en tokens que explicártelo
@@ -204,23 +199,159 @@ El branch `feature/ai-schedule-generator` tiene el solver end-to-end funcionando
   → F26-F51 creados. SOLVABLE_FIXTURES actualizado. Marcar B.2 completo tras ejecutar tests.
   → NO commit ni push.
 
----
+  ---
 
-  B.3 — Rotation continuity (cross-month M↔T)
+  B.3 — Rotation continuity (cross-month M↔T) ✅ COMPLETADO 2026-05-02
 
   Comportamiento definido con manager (2026-05-02): igual que dentro de un mes.
   - T→M directo sin descanso = ERROR (hard)
   - Cambio M↔T en límite de mes sin descanso = ERROR (hard)
 
-  Implementado en rotation-continuity.constraint.ts.
-  F13 ya era correcto (isValid: false, isValid: false, rotation_continuity_break soft penalty).
-
-  → COMPLETADO.
+  Implementado en rotation-continuity.constraint.ts (TS) y transitions.py
+  (Python solver, vía días virtuales cross-month). F13 cubre el caso
+  cross-month en el corpus (isValid: false con error de rotación + soft
+  penalty rotation_continuity_break para tracking).
 
   ---
 
-  B.4 — Migración Aiven
+  B.4 — Migración Aiven `scheduling_employee_requests` ⏳ PENDIENTE
 
-  Trabajo de SQL + verificación manual en la DB real. Tú tienes que ejecutar los scripts; yo puedo preparar el SQL actualizado.
+  Bloquea producción. Detalle de pasos en "Scheduling — punto de retoma"
+  más abajo (sección "1. Migración Aiven"). Aquí solo se deja el marcador
+  cronológico para no romper el orden de items.
 
-  → Yo preparo los scripts, tú los ejecutas y verificas.
+  ---
+
+  B.5 — S4 min_work_block (soft, no hard) ✅ COMPLETADO 2026-05-09
+
+  Decisión: S4 es soft (peso 3) según catálogo CONSTRAINTS §3. Validator TS emitía
+  error por bug. Solver Python ahora penaliza bloques 1-2 días en función objetivo.
+  Las noches siguen hard via night_block.py.
+
+  Cambios:
+  - soft-weights.ts: + min_work_block_short: 3
+  - schedule-validator.ts: createError → createWarning + softPenalty acumulado
+  - scheduling-solver/model.py: S4 en objective (is_work bool + indicadores short1/short2)
+  - solver-parity.test.ts: F11 y F30 reincluidos (24 fixtures)
+  - 28 fixtures actualizadas con nueva expected.softPenalty/severity
+
+  Tests: 51 TS corpus + 24 TS parity + 103 Python = todos verdes.
+
+  ---
+
+  B.6 — Benchmark 30×31 ✅ COMPLETADO 2026-05-09
+
+  Script: scheduling-solver/tests/test_benchmark.py (ejecución directa o pytest --runbenchmark).
+  30 emps rotatorios × 31 días, config escalada (minM=8/maxM=15, minT=5/maxT=10, minN=1/maxN=2).
+
+  Resultados:
+  - Encuentra factible en <5s ✅
+  - Status FEASIBLE (no OPTIMAL) — solver agota timeout sin probar óptimo
+  - softPenalty=40 clavado (night_balance × 10, range=4) — estructural sin nightsHistory
+  - 60s no mejora respecto a 5s
+
+  Bugs descubiertos:
+  - fixedShift=P sin fixedDays → INFEASIBLE en Python (filtrado en TS antes, no replicado).
+    Posible mejora: guard en Python o error explícito.
+
+  Viabilidad hotel 30 personas:
+  - Motor: viable ✅
+  - Producto: falta segmentación por rol/departamento ❌ (gap conocido, no bloqueante para 1 dept)
+  - UI grid 30×31: sin probar ⚠️
+
+  Detalle completo: SCHEDULING-DECISIONS-LOG.md 2026-05-09.
+
+  ---
+
+  B.7 — Tuning pesos soft ⏸ DIFERIDO A PRODUCCIÓN 2026-05-09
+
+  Pesos actuales (model.py): W_NIGHT_BALANCE=10, W_ISOLATED_L=2,
+  W_SHIFT_PRIORITY=1, W_SHORT_WORK_BLOCK=3.
+
+  Sin uso productivo no hay base para tunear. Plan: 2-3 meses producción,
+  manager evalúa "raro / ok / perfecto", se ajustan pesos por evidencia.
+
+  Pendiente menor: persistir softPenaltyBreakdown por run en
+  scheduling_solver_runs (Fase 3 paso 1) para tener datos cuando llegue
+  el momento.
+
+  ---
+
+  B.8 — Rotation continuity ✅ CERRADO DE FACTO 2026-05-09
+
+  Originalmente planificado como "guiar patrón M→T→N". Spec con manager
+  (2026-05-02) lo redujo a "T→M sin descanso = hard error".
+
+  Ya implementado:
+  - TS: rotation-continuity.constraint.ts
+  - Python: transitions.py (cross-month vía días virtuales)
+  - F12, F13 cubren cross-month
+
+  No queda trabajo. Solo faltaba marcarlo cerrado. Detalle: DECISIONS-LOG 2026-05-09.
+
+---
+
+## Scheduling — punto de retoma (2026-05-09)
+
+**Estado actual:**
+- Fase 2 cerrada en código (S4 soft, F11/F30 parity, benchmark 30×31, rotation continuity confirmada cerrada).
+- Tuning de pesos S1-S4 diferido a producción (necesita 2-3 meses de uso real).
+- Fase 3 paso 4 (docs CLAUDE.md) cerrado.
+- **Fase 3 abierta:** quedan paso 1 (tabla `scheduling_solver_runs`) y paso 2 (UX infeasibilidad).
+- Migración Aiven de `scheduling_employee_requests` sigue pendiente y bloquea producción.
+
+**Cuando volvamos al scheduling, atacar en este orden:**
+
+### 1. Migración Aiven `scheduling_employee_requests` (bloquea producción)
+- DDL ya existe en local (`scripts/20260425_create_scheduling_employee_requests.sql`).
+- Hay que añadirlo a `aiven/19_scheduling.sql` o crear `aiven/20_scheduling_requests.sql` + incluir SOURCE en `MASTER_INSTALL_AIVEN.sql`.
+- Verificar collate `utf8mb4_0900_ai_ci` vs `utf8mb4_unicode_ci` según la versión MySQL/MariaDB de Aiven.
+- ⚠ El `MASTER_INSTALL_AIVEN.sql` empieza con DROP DATABASE — no aplicar el script suelto, debe quedar dentro del master para reinstall completo.
+
+### 2. Fase 3 paso 1 — tabla `scheduling_solver_runs`
+Persistir cada ejecución del solver para análisis posterior.
+
+Esquema mínimo propuesto:
+```sql
+CREATE TABLE scheduling_solver_runs (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  month_id INT NOT NULL,
+  generated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  generated_by CHAR(36),                    -- usuario que disparó
+  status ENUM('ok','infeasible','error') NOT NULL,
+  solve_time_ms INT,
+  cp_status VARCHAR(20),                    -- OPTIMAL, FEASIBLE, INFEASIBLE, UNKNOWN
+  soft_penalty INT,
+  soft_penalty_breakdown JSON,
+  solver_input JSON,                        -- snapshot del input enviado al solver
+  solver_matrix JSON,                       -- matriz original generada (pre-edición)
+  conflicting_constraints JSON,             -- solo si infeasible
+  FOREIGN KEY (month_id) REFERENCES scheduling_months(id) ON DELETE CASCADE
+);
+```
+
+Hook: en `schedule-generate.controller.ts`, dentro de la transacción que aplica la matriz, hacer también un `INSERT INTO scheduling_solver_runs`.
+
+### 3. Fase 3 paso 2 — UX de infeasibilidad
+Mejorar el modal del frontend cuando el solver devuelve `status: 'infeasible'`.
+
+- Renderizar `conflictingConstraints` con texto claro en el modal.
+- Mostrar `suggestedRelaxations` como acciones clickables (cada una un botón "Aplicar y reintentar").
+- En `model.py` rama `INFEASIBLE`, mejorar el motor de sugerencias usando `CpSolver.sufficient_assumptions_for_infeasibility()` en lugar del hardcode actual (devuelve siempre las dos mismas).
+- Tests con 3 escenarios de infeasibility (ya hay fixtures: F31 trailing-n-at-max, F51 coverage-minimums-active; añadir 1 más).
+
+### 4. Bucle de feedback "manager edita → mejora pesos" (post-Fase 3)
+Idea clave del manager (2026-05-09): **solo cuenta el horario PUBLICADO, no las ediciones en draft**.
+
+Razón: en draft el manager experimenta, prueba, deshace, itera. Esa señal es ruido. La señal real es la matriz final que se publica — esa es la que el equipo va a trabajar y representa el juicio definitivo del manager.
+
+Diseño:
+1. `scheduling_solver_runs.solver_matrix` guarda la matriz original generada.
+2. Cuando el mes transiciona `draft → published` (endpoint de publicación), se snapshotea la matriz final del momento en `scheduling_solver_runs.published_matrix` (columna nueva).
+3. Diff = `published_matrix - solver_matrix`. Cada celda cambiada es una "preferencia revelada" del manager.
+4. Análisis fuera del flujo en caliente (cron job semanal o herramienta de admin): agrupar diffs por patrón ("M→T en lunes", "L→V en viernes festivos", etc.) y mostrar al admin como tabla de "ajustes recurrentes".
+5. El admin (o dev) usa esos datos para ajustar pesos S1-S4 manualmente cada 2-3 meses, o cambiar config (`shiftPriority` por defecto, etc.).
+
+⚠ **Las ediciones en draft NO cuentan.** Se persisten en `scheduling_assignments` igual (es la BD viva del mes), pero no se alimentan al análisis de feedback.
+
+Decisión registrada en DECISIONS-LOG 2026-05-09 (entrada del bucle de feedback).
