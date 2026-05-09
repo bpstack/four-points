@@ -4,6 +4,7 @@ import remarkGfm from 'remark-gfm'
 import type { Components } from 'react-markdown'
 import type { ChecklistItem } from '@/app/lib/checklist/types'
 import { ChecklistHeader } from './ChecklistHeader'
+import { EmailLink } from './EmailLink'
 
 const components: Components = {
   // ── Headings ──────────────────────────────────────────────
@@ -66,6 +67,11 @@ const components: Components = {
 
   // ── Links ─────────────────────────────────────────────────
   a: ({ href, children }) => {
+    const isEmail = typeof href === 'string' && href.startsWith('mailto:')
+    if (isEmail) {
+      const email = href.replace('mailto:', '')
+      return <EmailLink email={email}>{children}</EmailLink>
+    }
     const isInternal = typeof href === 'string' && href.startsWith('/')
     if (isInternal) {
       return (

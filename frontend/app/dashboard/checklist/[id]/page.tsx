@@ -3,7 +3,6 @@ import { getChecklistById } from '@/app/lib/checklist/loader'
 import { ChecklistGuideContent } from '@/app/components/checklist/ChecklistGuideContent'
 import { ChecklistReferenceContent } from '@/app/components/checklist/ChecklistReferenceContent'
 import { ChecklistTasksContent } from '@/app/components/checklist/ChecklistTasksContent'
-import { EmailsDistListContent } from '@/app/components/checklist/EmailsDistListContent'
 
 interface Props {
   params: Promise<{ id: string }>
@@ -15,7 +14,6 @@ export default async function ChecklistDetailPage({ params }: Props) {
   if (!item) notFound()
 
   if (item.type === 'guide') return <ChecklistGuideContent item={item} />
-  if (item.type === 'reference' && id === 'cl-emails-dist-list') return <EmailsDistListContent item={item} />
   if (item.type === 'reference') return <ChecklistReferenceContent item={item} />
   return <ChecklistTasksContent item={item} />
 }
