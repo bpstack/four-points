@@ -226,6 +226,11 @@ export class ScheduleValidator {
     const minNightBlock = config.minNightBlock || 4
     const maxNightBlock = config.maxNightBlock || 6
     const prefNightBlock = config.prefNightBlock || minNightBlock
+    // Suelo absoluto de noches consecutivas en edición MANUAL. NO leer de config:
+    // el solver enforce `minNightBlock` (default 4) como hard, así que la generación
+    // automática nunca cae por debajo. Este 3 es la relajación intencional para que el
+    // manager pueda editar bloques de 3 noches (warning) sin invalidar el mes.
+    // Por debajo de 3 = error duro siempre.
     const MIN_NIGHTS_REQUIRED = 3
 
     for (const employee of employees) {

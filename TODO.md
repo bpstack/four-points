@@ -54,7 +54,17 @@ toca la BD directamente.
 
 ## Módulo Maintenance
 
-- Fix del sistema de tabs y panel de búsqueda (roto actualmente)
+- ~~Fix del sistema de tabs y panel de búsqueda (roto actualmente)~~ ✅ AUDITADO 2026-05-12: no había bug real, todo funcional. Auditoría revela 3 mejorables no críticos (ver abajo).
+
+### Mejorables Maintenance (post-merge, baja prioridad)
+
+1. **Sync state ↔ URL en back/forward** (`MaintenanceListClient.tsx:54-63, 92`): `useState` inicializa de `searchParams` solo en mount → browser back/forward deja state stale. Fix: `useEffect` que sincroniza state cuando `searchParams` cambia.
+
+2. **Helpers recreados cada render** (`MaintenanceListClient.tsx:195-267`): `getStatusConfig`, `getPriorityConfig`, `getLocationTypeLabel` reconstruyen el objeto `configs` en cada llamada (× N filas). Mover los maps fuera del componente o `useMemo` por `t`.
+
+3. **`queryFilters` recreado cada render** (`useMaintenanceList.ts:54`): el spread `{...filters, page, limit}` produce nueva referencia en cada render → queryKey array nuevo. React Query lo maneja con structural sharing pero genera trabajo. Fix: `useMemo(() => ({...filters, page, limit}), [filters, page, limit])`.
+
+4. **`image_count` subquery N+1-ish** (`maintenance-repository.ts:343`): subquery por fila. MySQL optimiza pero `LEFT JOIN maintenance_images mi ... GROUP BY r.id` con `COUNT(mi.id)` escala mejor para listas grandes. Marginal a tamaños actuales.
 
 ---
 
@@ -116,7 +126,7 @@ Se añadieron variables CP-SAT para los días `-7..-1` (bloqueados desde `previo
 
 - **Validación en tiempo real en 1 request**: tras `PATCH /assignments/:id` devolver también el resultado de validación para evitar la segunda llamada a `validateSchedule`. Diseño en `backend/services/scheduling/new-ROADMAP.md` §2.4.
 - **Promise.all sin catch en recalculate** (`schedule-generate.controller.ts:117`): si una recalculación de libre_number falla, el schedule ya está aplicado (transacción committed) pero los libres quedan mal numerados y el cliente recibe 500. Usar try/catch o `Promise.allSettled`.
-- **MIN_NIGHTS_REQUIRED hardcodeado** (`schedule-validator.ts:229`): `const MIN_NIGHTS_REQUIRED = 3` debería leer `config.minNightBlock` para mantenerse en sync si el config cambia.
+- ~~**MIN_NIGHTS_REQUIRED hardcodeado** (`schedule-validator.ts:229`)~~ ✅ REVISADO 2026-05-12: no hay que cambiar. El `3` es suelo de seguridad para edición MANUAL (permite bloques de 3 noches con warning). El solver enforce `minNightBlock=4` como HARD constraint, así que la generación automática nunca cae a 3. Cambiar a `config.minNightBlock` colapsaría la flexibilidad manual intencional. Comentario añadido en el código.
 - **Migración Aiven** `scheduling_employee_requests`: diferida a pre-producción. Aplicar `scripts/20260425_create_scheduling_employee_requests.sql` + actualizar `aiven/19_scheduling.sql` + `MASTER_INSTALL_AIVEN.sql`.
 
   ⚠️ **Importante para la migración Aiven**: el script maestro de Aiven empieza con:
@@ -308,8 +318,15 @@ Se añadieron variables CP-SAT para los días `-7..-1` (bloqueados desde `previo
 - Verificar collate `utf8mb4_0900_ai_ci` vs `utf8mb4_unicode_ci` según la versión MySQL/MariaDB de Aiven.
 - ⚠ El `MASTER_INSTALL_AIVEN.sql` empieza con DROP DATABASE — no aplicar el script suelto, debe quedar dentro del master para reinstall completo.
 
-### 2. Fase 3 paso 1 — tabla `scheduling_solver_runs`
+### 2. Fase 3 paso 1 — tabla `scheduling_solver_runs` ✅ COMPLETADO 2026-05-12
 Persistir cada ejecución del solver para análisis posterior.
+
+**Implementado:**
+- DDL en `aiven/19_scheduling.sql` (Tabla 12) — FK a `scheduling_months` ON DELETE CASCADE + FK a `users` ON DELETE SET NULL.
+- Repo: `insertSolverRun()` en `scheduling-repository.ts` (best-effort, JSON serializa input/matrix/conflicts).
+- Hook controller: `schedule-generate.controller.ts` persiste cada outcome (ok / infeasible / error / exception). Captura solveTimeMs, cpStatus, softPenalty + breakdown, snapshot del solver_input, matriz original (pre-edición). Errores de persistencia se loguean pero no rompen la respuesta.
+
+
 
 Esquema mínimo propuesto:
 ```sql
