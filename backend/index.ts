@@ -6,6 +6,7 @@ import cors from 'cors'
 import helmet from 'helmet'
 import { PORT } from './config/config.js'
 import { logServerInfo } from './config/startup-logger.js'
+import { logger } from './config/logger.js'
 import { apiLimiter } from './middlewares/rateLimiter.js'
 
 import { CronService } from './services/cron/cron-service.js'
@@ -72,7 +73,7 @@ app.use(
       if (allowedOrigins.includes(origin) || vercelPreviewPattern.test(origin)) {
         callback(null, true)
       } else {
-        console.warn(`[CORS] Blocked origin: ${origin}`)
+        logger.warn({ origin }, '[CORS] Blocked origin')
         callback(new Error('Not allowed by CORS'))
       }
     },
@@ -186,8 +187,8 @@ interface HttpError extends Error {
   status?: number
 }
 
-app.use((err: HttpError, _req: Request, res: Response, _next: NextFunction) => {
-  console.error('Error global:', err)
+app.use((err: HttpError, req: Request, res: Response, _next: NextFunction) => {
+  logger.error({ err, path: req.path, method: req.method }, 'Unhandled error')
 
   res.status(err.status || 500).json({
     error: process.env.NODE_ENV === 'production' ? 'Error interno del servidor' : err.message,

@@ -6,6 +6,7 @@ import crypto from 'crypto'
 import { SALT_ROUNDS } from '../../config/config.js'
 import db from '../../config/db.js'
 import { ResultSetHeader } from 'mysql2'
+import { logger } from '../../config/logger.js'
 import type {
   User,
   UserWithRole,
@@ -86,7 +87,7 @@ export class UserRepository {
         is_active: 1,
       }
     } catch (error: any) {
-      console.error('Error creating user:', error)
+      logger.error({ err: error }, 'Error creating user')
       if (error.code === 'ER_DUP_ENTRY') {
         const err = new Error('El nombre de usuario o email ya existe') as any
         err.code = 'ER_DUP_ENTRY'
@@ -116,7 +117,7 @@ export class UserRepository {
         [userId, userId]
       )
     } catch (error) {
-      console.error('Error asignando notificaciones existentes:', error)
+      logger.error({ err: error }, 'Error asignando notificaciones existentes')
       // No lanzar error, solo log - no queremos que falle la creación del usuario
     }
   }
@@ -159,21 +160,21 @@ export class UserRepository {
     
     // Now check if user exists (after timing-safe comparison)
     if (!user) {
-      console.warn(`[SECURITY] Login failed - user not found: ${username}`)
+      logger.warn({ event: 'login_failed', reason: 'user_not_found', username }, '[SECURITY] login failed')
       throw new Error('Credenciales inválidas')
     }
 
     if (!user.is_active) {
-      console.warn(`[SECURITY] Login failed - inactive user: ${username}`)
+      logger.warn({ event: 'login_failed', reason: 'inactive_user', username }, '[SECURITY] login failed')
       throw new Error('Usuario inactivo')
     }
 
     if (!isPasswordValid) {
-      console.warn(`[SECURITY] Login failed - invalid password for user: ${username}`)
+      logger.warn({ event: 'login_failed', reason: 'invalid_password', username }, '[SECURITY] login failed')
       throw new Error('Credenciales inválidas')
     }
 
-    console.info(`[AUTH] User logged in successfully: ${username}`)
+    logger.info({ event: 'login_success', username }, '[AUTH] user logged in')
     const { password: _pw, ...userWithoutPassword } = user
     return userWithoutPassword as User
   }
@@ -200,7 +201,7 @@ export class UserRepository {
       `)
       return rows as User[]
     } catch (error) {
-      console.error('Error al obtener usuarios:', error)
+      logger.error({ err: error }, 'Error al obtener usuarios')
       throw new Error('Error interno al obtener usuarios')
     }
   }
@@ -227,7 +228,7 @@ export class UserRepository {
       )
       return (rows[0] as User) || null
     } catch (error) {
-      console.error('Error en getById:', error)
+      logger.error({ err: error }, 'Error en getById')
       throw new Error('Error interno al obtener usuario por ID')
     }
   }
@@ -253,7 +254,7 @@ export class UserRepository {
       )
       return (rows[0] as User) || null
     } catch (error) {
-      console.error('Error en getByUsername:', error)
+      logger.error({ err: error }, 'Error en getByUsername')
       throw new Error('Error interno al obtener usuario por username')
     }
   }
@@ -280,7 +281,7 @@ export class UserRepository {
       )
       return rows as User[]
     } catch (error) {
-      console.error('Error en getByRole:', error)
+      logger.error({ err: error }, 'Error en getByRole')
       throw new Error('Error interno al obtener usuarios por rol')
     }
   }
@@ -354,7 +355,7 @@ export class UserRepository {
       return updatedUser
     } catch (error: any) {
       await dbConnection.rollback()
-      console.error('Error en update:', error)
+      logger.error({ err: error }, 'Error en update')
 
       if (
         error.message.includes('no encontrado') ||
@@ -419,12 +420,12 @@ export class UserRepository {
 
       await dbConnection.commit()
 
-      console.info(`[AUTH] User soft deleted: ${user.username} -> ${deletedUsername}`)
+      logger.info({ event: 'user_soft_deleted', from: user.username, to: deletedUsername }, '[AUTH] user soft deleted')
 
       return result.affectedRows > 0
     } catch (err) {
       await dbConnection.rollback()
-      console.error('Error al eliminar usuario:', err)
+      logger.error({ err }, 'Error al eliminar usuario')
       throw new Error('Error al eliminar el usuario')
     } finally {
       dbConnection.release()
@@ -464,7 +465,10 @@ export class UserRepository {
       // 2. Verificar contraseña actual
       const isPasswordValid = await bcrypt.compare(currentPassword, user.password || '')
       if (!isPasswordValid) {
-        console.warn(`[SECURITY] Profile update failed - invalid password for user ID: ${userId}`)
+        logger.warn(
+          { event: 'profile_update_failed', reason: 'invalid_password', userId },
+          '[SECURITY] profile update failed'
+        )
         throw new Error('Contraseña actual incorrecta')
       }
 
@@ -488,7 +492,7 @@ export class UserRepository {
 
       await dbConnection.commit()
 
-      console.info(`[AUTH] Profile updated for user ID: ${userId} (new username: ${sanitizedUsername})`)
+      logger.info({ event: 'profile_updated', userId, newUsername: sanitizedUsername }, '[AUTH] profile updated')
 
       // 5. Devolver usuario actualizado
       const updatedUser = await this.getById(userId)
@@ -499,7 +503,7 @@ export class UserRepository {
       return updatedUser
     } catch (error: any) {
       await dbConnection.rollback()
-      console.error('Error en updateProfile:', error)
+      logger.error({ err: error }, 'Error en updateProfile')
       throw error
     } finally {
       dbConnection.release()
@@ -533,7 +537,10 @@ export class UserRepository {
       // 2. Verificar contraseña actual
       const isPasswordValid = await bcrypt.compare(currentPassword, user.password || '')
       if (!isPasswordValid) {
-        console.warn(`[SECURITY] Password change failed - invalid current password for user ID: ${userId}`)
+        logger.warn(
+          { event: 'password_change_failed', reason: 'invalid_current_password', userId },
+          '[SECURITY] password change failed'
+        )
         throw new Error('Contraseña actual incorrecta')
       }
 
@@ -553,12 +560,12 @@ export class UserRepository {
 
       await dbConnection.commit()
 
-      console.info(`[AUTH] Password changed successfully for user ID: ${userId}`)
+      logger.info({ event: 'password_changed', userId }, '[AUTH] password changed')
 
       return true
     } catch (error: any) {
       await dbConnection.rollback()
-      console.error('Error en updatePassword:', error)
+      logger.error({ err: error }, 'Error en updatePassword')
       throw error
     } finally {
       dbConnection.release()
@@ -586,11 +593,11 @@ export class UserRepository {
         [hashedPassword, userId]
       )
 
-      console.info(`[AUTH] Password reset by admin for user ID: ${userId}`)
+      logger.info({ event: 'password_reset_by_admin', userId }, '[AUTH] password reset by admin')
 
       return true
     } catch (error: any) {
-      console.error('Error en resetPassword:', error)
+      logger.error({ err: error }, 'Error en resetPassword')
       throw error
     }
   }
@@ -624,10 +631,10 @@ export class UserRepository {
         [avatarUrl, avatarPublicId, userId]
       )
 
-      console.info(`[AUTH] Avatar updated for user ID: ${userId}`)
+      logger.info({ event: 'avatar_updated', userId }, '[AUTH] avatar updated')
       return this.getById(userId)
     } catch (error) {
-      console.error('Error en updateAvatar:', error)
+      logger.error({ err: error }, 'Error en updateAvatar')
       throw new Error('Error interno al actualizar avatar')
     }
   }
@@ -656,10 +663,10 @@ export class UserRepository {
         [userId]
       )
 
-      console.info(`[AUTH] Avatar deleted for user ID: ${userId}`)
+      logger.info({ event: 'avatar_deleted', userId }, '[AUTH] avatar deleted')
       return previousPublicId
     } catch (error) {
-      console.error('Error en deleteAvatar:', error)
+      logger.error({ err: error }, 'Error en deleteAvatar')
       throw new Error('Error interno al eliminar avatar')
     }
   }

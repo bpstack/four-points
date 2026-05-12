@@ -3,6 +3,7 @@
 import { Request, Response } from 'express'
 import { UserRepository } from '../../repositories/auth/user-repository.js'
 import type { UpdateUserDTO } from '../../models/auth/index.js'
+import { logger } from '../../config/logger.js'
 
 // ============================================
 // USER CONTROLLERS
@@ -17,7 +18,7 @@ export const getAllUsers = async (_req: Request, res: Response): Promise<void> =
     const users = await UserRepository.getAll()
     res.status(200).json(users)
   } catch (error) {
-    console.error('Error getAllUsers:', error)
+    logger.error({ err: error }, 'Error getAllUsers')
     res.status(500).json({ error: 'Error al recuperar usuarios' })
   }
 }
@@ -37,7 +38,7 @@ export const getUserById = async (req: Request, res: Response): Promise<void> =>
 
     res.status(200).json(user)
   } catch (error) {
-    console.error('Error getUserById:', error)
+    logger.error({ err: error }, 'Error getUserById')
     res.status(500).json({ error: 'Error al obtener usuario' })
   }
 }
@@ -51,7 +52,7 @@ export const getUsersByRole = async (req: Request, res: Response): Promise<void>
     const users = await UserRepository.getByRole(req.params.role)
     res.status(200).json(users)
   } catch (error) {
-    console.error('Error getUsersByRole:', error)
+    logger.error({ err: error }, 'Error getUsersByRole')
     res.status(500).json({ error: 'Error al obtener usuarios por rol' })
   }
 }
@@ -77,7 +78,7 @@ export const updateUser = async (req: Request, res: Response): Promise<void> => 
 
     res.status(200).json(updatedUser)
   } catch (error) {
-    console.error('Error updateUser:', error)
+    logger.error({ err: error }, 'Error updateUser')
     res.status(500).json({ error: 'Error al actualizar usuario' })
   }
 }
@@ -97,7 +98,7 @@ export const deleteUser = async (req: Request, res: Response): Promise<void> => 
 
     res.status(200).json({ message: 'Usuario eliminado correctamente' })
   } catch (error) {
-    console.error('Error deleteUser:', error)
+    logger.error({ err: error }, 'Error deleteUser')
     res.status(500).json({ error: 'Error al eliminar usuario' })
   }
 }
@@ -124,7 +125,7 @@ export const resetUserPassword = async (req: Request, res: Response): Promise<vo
 
     res.status(200).json({ message: 'Contraseña actualizada correctamente' })
   } catch (error: any) {
-    console.error('Error resetUserPassword:', error)
+    logger.error({ err: error }, 'Error resetUserPassword')
     if (error.message === 'Usuario no encontrado') {
       res.status(404).json({ error: error.message })
       return

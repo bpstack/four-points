@@ -3,6 +3,7 @@
 import { Request, Response, NextFunction } from 'express'
 import { verifyToken } from '../services/auth/tokenService.js'
 import { demoRestriction } from './demoRestriction.js'
+import { logger } from '../config/logger.js'
 
 /**
  * Middleware para verificar el token de acceso JWT.
@@ -63,7 +64,7 @@ export function authenticateToken(req: Request, res: Response, next: NextFunctio
       if (error.message === 'Token expirado' || error.name === 'TokenExpiredError') {
         message = 'Token expirado'
       } else {
-        console.log('[authenticateToken] Token inválido:', error.message)
+        logger.debug({ err: error.message, path: req.path }, '[authenticateToken] invalid token')
       }
     }
 

@@ -2,6 +2,7 @@
 
 import rateLimit from 'express-rate-limit'
 import type { Request, Response } from 'express'
+import { logger } from '../config/logger.js'
 
 /**
  * Helper to get a consistent IP key (handles IPv6)
@@ -38,7 +39,10 @@ export const loginLimiter = rateLimit({
     return `login-${ip}-${username}`
   },
   handler: (req: Request, res: Response) => {
-    console.warn(`[SECURITY] Rate limit exceeded for login attempt from IP: ${getIpKey(req)}`)
+    logger.warn(
+      { event: 'rate_limit_exceeded', kind: 'login', ip: getIpKey(req), username: req.body?.username },
+      '[SECURITY] login rate limit exceeded'
+    )
     res.status(429).json({
       error: 'Demasiados intentos de inicio de sesión. Intenta de nuevo en 15 minutos.',
     })
@@ -65,8 +69,9 @@ export const passwordChangeLimiter = rateLimit({
     return `password-ip-${getIpKey(req)}`
   },
   handler: (req: Request, res: Response) => {
-    console.warn(
-      `[SECURITY] Rate limit exceeded for password change from user: ${req.user?.id}, IP: ${getIpKey(req)}`
+    logger.warn(
+      { event: 'rate_limit_exceeded', kind: 'password_change', userId: req.user?.id, ip: getIpKey(req) },
+      '[SECURITY] password change rate limit exceeded'
     )
     res.status(429).json({
       error: 'Demasiados intentos de cambio de contraseña. Intenta de nuevo en 1 hora.',
@@ -94,8 +99,9 @@ export const profileUpdateLimiter = rateLimit({
     return `profile-ip-${getIpKey(req)}`
   },
   handler: (req: Request, res: Response) => {
-    console.warn(
-      `[SECURITY] Rate limit exceeded for profile update from user: ${req.user?.id}, IP: ${getIpKey(req)}`
+    logger.warn(
+      { event: 'rate_limit_exceeded', kind: 'profile_update', userId: req.user?.id, ip: getIpKey(req) },
+      '[SECURITY] profile update rate limit exceeded'
     )
     res.status(429).json({
       error: 'Demasiados intentos de actualización. Intenta de nuevo en 15 minutos.',
@@ -117,7 +123,10 @@ export const refreshLimiter = rateLimit({
   legacyHeaders: false,
   keyGenerator: (req: Request) => `refresh-${getIpKey(req)}`,
   handler: (req: Request, res: Response) => {
-    console.warn(`[SECURITY] Refresh rate limit exceeded from IP: ${getIpKey(req)}`)
+    logger.warn(
+      { event: 'rate_limit_exceeded', kind: 'refresh', ip: getIpKey(req) },
+      '[SECURITY] refresh rate limit exceeded'
+    )
     res.status(429).json({
       error: 'Demasiadas solicitudes de refresco. Intenta de nuevo en 15 minutos.',
     })

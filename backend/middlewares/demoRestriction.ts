@@ -11,6 +11,7 @@
 
 import { Request, Response, NextFunction } from 'express'
 import { DemoActivityRepository } from '../repositories/demo/demo-activity-repository.js'
+import { logger } from '../config/logger.js'
 
 // Rol del usuario demo
 const DEMO_ROLE = 'demo-admin'
@@ -62,7 +63,7 @@ function logBlockedAttempt(req: Request, userId: string | undefined, username: s
     blocked: true,
   }).catch((error) => {
     // No fallar silenciosamente, pero tampoco bloquear el request
-    console.error('[demoRestriction] Error logging blocked attempt to DB:', error)
+    logger.error({ err: error, route: fullPath }, '[demoRestriction] error logging blocked attempt')
   })
 }
 
