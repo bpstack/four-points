@@ -3,9 +3,19 @@
 
 import type { Request, Response } from 'express'
 import * as repo from '../../repositories/scheduling/scheduling-repository.js'
+import type { SolverRunRecord } from '../../repositories/scheduling/scheduling-repository.js'
 import { buildSolverInput } from '../../services/scheduling/build-solver-input.js'
 import { runSolver } from '../../services/scheduling/solver-client.js'
-import type { SolverSuccess } from '../../services/scheduling/types/solver.js'
+import type { SolverSuccess, SolverOutput } from '../../services/scheduling/types/solver.js'
+
+/** Persiste el registro del run; nunca lanza — error de log no debe romper la respuesta. */
+async function recordSolverRun(data: SolverRunRecord): Promise<void> {
+  try {
+    await repo.insertSolverRun(data)
+  } catch (err: any) {
+    console.error('[generate] Fallo persistiendo scheduling_solver_runs:', err.message)
+  }
+}
 
 export async function generateSchedule(req: Request, res: Response): Promise<void> {
   const monthId = Number(req.params.id)
@@ -46,24 +56,53 @@ export async function generateSchedule(req: Request, res: Response): Promise<voi
     `${Object.keys(solverInput.lockedCells).length} empleados con celdas bloqueadas`
   )
 
+  const generatedBy = req.user?.id ?? null
+
   // 4. Invocar solver (abort si el cliente se desconecta)
   const abortController = new AbortController()
   req.on('close', () => abortController.abort())
 
-  let solverOutput
+  const startMs = Date.now()
+  let solverOutput: SolverOutput
   try {
     solverOutput = await runSolver(solverInput, abortController.signal)
   } catch (err: any) {
+    const elapsed = Date.now() - startMs
     console.error('[generate] Error invocando solver:', err.message)
+    await recordSolverRun({
+      monthId,
+      generatedBy,
+      status: 'error',
+      solveTimeMs: elapsed,
+      cpStatus: null,
+      softPenalty: null,
+      softPenaltyBreakdown: null,
+      solverInput,
+      solverMatrix: null,
+      conflictingConstraints: null,
+    })
     res.status(500).json({ error: `Error invocando el solver: ${err.message}` })
     return
   }
+  const elapsedMs = Date.now() - startMs
 
   // 5. Manejar resultado
   if (solverOutput.status === 'error') {
     console.error(
       `[generate] Solver error (${solverOutput.errorCode}): ${solverOutput.message}`
     )
+    await recordSolverRun({
+      monthId,
+      generatedBy,
+      status: 'error',
+      solveTimeMs: elapsedMs,
+      cpStatus: solverOutput.errorCode,
+      softPenalty: null,
+      softPenaltyBreakdown: null,
+      solverInput,
+      solverMatrix: null,
+      conflictingConstraints: null,
+    })
     res.status(500).json({ error: solverOutput.message, errorCode: solverOutput.errorCode })
     return
   }
@@ -80,6 +119,21 @@ export async function generateSchedule(req: Request, res: Response): Promise<voi
       })),
       config: solverInput.config,
     }))
+    await recordSolverRun({
+      monthId,
+      generatedBy,
+      status: 'infeasible',
+      solveTimeMs: elapsedMs,
+      cpStatus: 'INFEASIBLE',
+      softPenalty: null,
+      softPenaltyBreakdown: null,
+      solverInput,
+      solverMatrix: null,
+      conflictingConstraints: {
+        conflictingConstraints: solverOutput.conflictingConstraints,
+        suggestedRelaxations: solverOutput.suggestedRelaxations,
+      },
+    })
     res.status(422).json({
       error: 'No existe un horario válido con las reglas actuales',
       conflictingConstraints: solverOutput.conflictingConstraints,
@@ -112,11 +166,40 @@ export async function generateSchedule(req: Request, res: Response): Promise<voi
   const { deleted, inserted } = await repo.applyGeneratedSchedule(monthId, toInsert)
   console.log(`[generate] Mes ${monthId}: ${deleted} eliminadas, ${inserted} insertadas (transacción)`)
 
-  // Recalcular libre_number para todos los empleados del mes (L → L1,L1,L2,L2…)
-  const empIds = solverInput.employees.map((e) => e.id)
-  await Promise.all(empIds.map((id) => repo.recalculateLibreNumbers(id, month.year)))
+  // Persistir run exitoso. La matriz original (pre-edición) sirve para el bucle de feedback futuro.
+  await recordSolverRun({
+    monthId,
+    generatedBy,
+    status: 'ok',
+    solveTimeMs: success.stats.solveTimeMs ?? elapsedMs,
+    cpStatus: success.stats.status ?? null,
+    softPenalty: success.stats.softPenalty ?? null,
+    softPenaltyBreakdown: success.stats.softPenaltyBreakdown ?? null,
+    solverInput,
+    solverMatrix: success.matrix,
+    conflictingConstraints: null,
+  })
 
-  console.log(`[generate] Libres numerados para ${empIds.length} empleados`)
+  // Recalcular libre_number para todos los empleados del mes (L → L1,L1,L2,L2…)
+  // Usamos allSettled: la matriz ya está committeada. Si una recalculación falla,
+  // logueamos el error pero no rompemos la respuesta — el horario es válido aunque
+  // la numeración de libres quede inconsistente para ese empleado.
+  const empIds = solverInput.employees.map((e) => e.id)
+  const results = await Promise.allSettled(
+    empIds.map((id) => repo.recalculateLibreNumbers(id, month.year))
+  )
+  const failed = results
+    .map((r, i) => (r.status === 'rejected' ? { empId: empIds[i], reason: r.reason } : null))
+    .filter((x): x is { empId: string; reason: unknown } => x !== null)
+  if (failed.length > 0) {
+    console.error(
+      `[generate] Mes ${monthId}: ${failed.length}/${empIds.length} recálculos de libre_number fallaron:`,
+      failed
+    )
+  }
+  console.log(
+    `[generate] Libres numerados para ${empIds.length - failed.length}/${empIds.length} empleados`
+  )
 
   res.json({
     status: 'ok',

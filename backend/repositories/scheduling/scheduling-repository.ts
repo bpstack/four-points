@@ -867,6 +867,45 @@ export async function applyGeneratedSchedule(
   }
 }
 
+// ============================================
+// SOLVER RUNS — historial de ejecuciones del solver CP-SAT
+// ============================================
+
+export interface SolverRunRecord {
+  monthId: number
+  generatedBy: string | null
+  status: 'ok' | 'infeasible' | 'error'
+  solveTimeMs: number | null
+  cpStatus: string | null
+  softPenalty: number | null
+  softPenaltyBreakdown: Record<string, number> | null
+  solverInput: unknown
+  solverMatrix: unknown | null
+  conflictingConstraints: unknown | null
+}
+
+export async function insertSolverRun(data: SolverRunRecord): Promise<number> {
+  const [result] = await db.execute<ResultSetHeader>(
+    `INSERT INTO scheduling_solver_runs
+     (month_id, generated_by, status, solve_time_ms, cp_status,
+      soft_penalty, soft_penalty_breakdown, solver_input, solver_matrix, conflicting_constraints)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [
+      data.monthId,
+      data.generatedBy,
+      data.status,
+      data.solveTimeMs,
+      data.cpStatus,
+      data.softPenalty,
+      data.softPenaltyBreakdown ? JSON.stringify(data.softPenaltyBreakdown) : null,
+      data.solverInput ? JSON.stringify(data.solverInput) : null,
+      data.solverMatrix ? JSON.stringify(data.solverMatrix) : null,
+      data.conflictingConstraints ? JSON.stringify(data.conflictingConstraints) : null,
+    ]
+  )
+  return result.insertId
+}
+
 export async function getAnnualLCountByEmployee(
   year: number
 ): Promise<{ employee_id: string; employee_name: string; libre_count: number }[]> {
