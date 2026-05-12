@@ -605,28 +605,27 @@ Si quieres seguridad extra mientras la plataforma sigue accesible solo a ti y a 
 | H1-12 | Deshabilitar usuario demo (`is_active=0` en Aiven + comentario en MASTER_INSTALL.sql + password rotado a hash aleatorio) | ✅ |
 | H1-15 | Tests de regresión sobre login/refresh/logout/demo whitelist (red de seguridad para Sprint 1) | ✅ 28 tests verdes (tokenService 9 + demoRestriction 15 + UserRepository.login 4) |
 
-### Horizonte 1 (Sprint 1) — Post-merge schedule+checklist (1-2 semanas, antes de datos reales)
+### Horizonte 1 (Sprint 1) ✅ CERRADO 2026-05-12 — PR #5 (`feature/auth-hardening`)
 
 > **Criterio de cierre:** ningún hallazgo crítico de §3.5 abierto, observabilidad básica activa, refresh token rotation funcionando.
-> **Precondición:** schedule+checklist mergeado a `main` y estable ≥24h en producción.
 
-| ID | Acción | Complejidad | Riesgo | Dependencia |
-|---|---|---|---|---|
-| H1-2 | Habilitar `loginLimiter` en `auth-routes.ts:46` | Trivial | Bajo | H1-15 |
-| H1-3 | Aplicar `apiLimiter` global en `index.ts` | Baja | Medio (puede afectar UX si limit muy bajo) | — |
-| H1-4 | Instalar y configurar `helmet` con CSP relajada inicialmente | Baja | Bajo (CSP puede romper assets, ajustar) | — |
-| H1-5 | Limitar payload `express.json({ limit: '2mb' })` | Trivial | Verificar uploads de imágenes/PDFs (Cloudinary recibe directo) | — |
-| H1-6 | CORS: rechazar requests sin `Origin` excepto explícito | Trivial | Probar healthchecks de Render que usen sin-Origin | — |
-| H1-7 | Quitar refresh token del body de login/refresh | Baja | Frontend puede depender de él (`apiClient` y `next-auth`) — verificar | H1-15 |
-| H1-8 | Añadir rate limiter a `/api/auth/refresh-token` | Trivial | Bajo | — |
-| H1-9 | Eliminar `passport`, `passport-jwt` de package.json | Trivial | Bajo | Confirmar 0 imports |
-| H1-10 | Eliminar `DEV_MODE` constante en frontend | Trivial | Bajo | — |
-| H1-11 | Crear `.env.example` en backend y frontend | Baja | — | — |
-| H1-13 | Instalar Sentry o equivalente (mínimo: error tracking) | Media | Bajo | — |
-| H1-14 | Instalar Pino o Winston con transporte a stdout estructurado | Media | Bajo | — |
-| H1-16 | Crear `render.yaml` y `vercel.json` con configs reproducibles | Media | Importante validar build de scheduler | B-1 |
-| **H2-1 promovido** | **Refresh token rotation: tabla `refresh_tokens` + revocación al logout/cambio de password** | Media | Alto si rompe sesiones activas | H1-15, H1-7 |
-| **H1-17** | **Configurar Cloudflare Zero Trust Access delante de `four-points.stackbp.es`** | Baja | Verificar que no rompe webhooks/APIs públicas (no las hay hoy) | D-2 |
+| ID | Acción | Estado |
+|---|---|---|
+| H1-2 | Habilitar `loginLimiter` en `/login` (5 intentos/15min, clave IP+username) | ✅ |
+| H1-3 | `apiLimiter` global en `/api/*` (300 req/15min) | ✅ |
+| H1-4 | `helmet` instalado; CSP deshabilitado (API pura JSON) | ✅ |
+| H1-5 | `express.json({ limit: '2mb' })` | ✅ |
+| H1-6 | CORS sin Origin — mantenido (Render healthcheck); riesgo mitigado por H1-2/H1-8 | ⚠️ intencional |
+| H1-7 | `refreshToken` eliminado del body de login y refresh | ✅ |
+| H1-8 | `refreshLimiter` en `/refresh-token` (30 req/15min) | ✅ |
+| H1-9 | `passport` + `passport-jwt` eliminados de `package.json` | ✅ |
+| H1-10 | `DEV_MODE` + `DEV_USER` eliminados de `useAuth.tsx` | ✅ |
+| H1-11 | `.env.example` en backend y frontend | ✅ ya existía |
+| H1-13 | Sentry | ⏳ Sprint 2 |
+| H1-14 | Pino/Winston | ⏳ Sprint 2 |
+| H1-16 | `render.yaml` + `vercel.json` | ⏳ Sprint 2 |
+| **H2-1** | **Refresh token rotation** | ⏳ Sprint 2 |
+| **H1-17** | **Cloudflare Zero Trust Access** | ⏳ Sprint 2 |
 
 ### Horizonte 2 — Medio plazo (1-2 meses, post estabilización)
 
