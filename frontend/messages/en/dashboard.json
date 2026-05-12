@@ -127,6 +127,7 @@
         "edited": "Entry edited",
         "update": "Entry edited",
         "updated": "Entry edited",
+        "delete": "Entry deleted",
         "deleted": "Entry deleted",
         "solved": "Marked resolved",
         "solve": "Marked resolved",

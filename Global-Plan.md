@@ -678,17 +678,21 @@ PR #3 mergeado a `main` (commit `f34e20d`). Todos los bloqueadores listados orig
 
 **Siguiente paso:** dejar `main` estable ≥24h en producción → arrancar Sprint 1.
 
-#### Sprint 1 — Endurecimiento auth + observabilidad (5-7 días)
+#### Sprint 1 — Endurecimiento auth + observabilidad 🚧 EN PROGRESO
 
-**Branch sugerido:** `feature/auth-hardening` desde `main` ya con scheduler.
+**Branches:** `feature/auth-hardening` (PR #5) + `feature/observability-pino` (PR #6). Ambos merged a `main` el 2026-05-12.
 
-1. **H1-2, H1-8** (rate limits auth) — primero porque son el mayor blocker bruteforce.
-2. **H1-7** (sacar refresh token del body) — preparación para H2-1 (sin esto, la rotación tiene un leak persistente).
-3. **H1-3** (apiLimiter global) — probar con un budget alto inicialmente.
-4. **H1-4, H1-5, H1-6** (helmet + body limit + CORS Origin) — endurecimiento HTTP.
-5. **H1-9, H1-10** (limpieza dead code passport + DEV_MODE).
-6. **H1-11** (.env.example).
-7. **H1-13, H1-14** (Sentry + Pino) — debe estar antes de H2-1 para tener observabilidad si la rotación produce errores en producción.
+1. ✅ **H1-2, H1-8** (rate limits auth) — `loginLimiter` activo (5 intentos/15min), `refreshLimiter` añadido (30 req/15min). PR #5.
+2. ✅ **H1-7** (refresh token fuera del body) — preparación para H2-1. PR #5.
+3. ✅ **H1-3** (apiLimiter global) — 300 req/15min, budget alto. PR #5.
+4. ✅ **H1-4, H1-5** (helmet + body limit 2mb) — PR #5. **H1-6** (CORS sin Origin) mantenido intencionalmente: Render healthcheck no manda Origin; el riesgo está mitigado por rate limiters.
+5. ✅ **H1-9, H1-10** (limpieza passport + DEV_MODE) — PR #5.
+6. ✅ **H1-11** (.env.example) — ya existía.
+7. 🚧 **H1-13, H1-14** observabilidad:
+   - ✅ **H1-14 Pino** logger estructurado (JSON prod, pretty dev). PR #6.
+   - ⏸️ **H1-13 Sentry** bloqueado por alta externa en sentry.io. Cuando esté el DSN, se cierra en una sesión corta.
+
+**Criterio de cierre real:** queda solo H1-13 pendiente del lado externo. Se considera Sprint 1 funcionalmente cerrado.
 
 #### Sprint 2 — Refresh rotation + Cloudflare (5-7 días)
 

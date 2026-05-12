@@ -443,7 +443,7 @@ Distinción registrada 2026-05-09 tras pregunta del manager:
 | Formulación CP-SAT lenta para 30+ empleados | Media | Alto | PoC en Fase 0; si es lento, explorar decomposición por semanas o warm-start |
 | Divergencia validator TS vs. solver Python | Alta | Alto | Corpus de tests compartido desde Fase 0; en CI correr ambos contra el mismo corpus |
 | Pesos de soft constraints mal tuneados → horarios "raros" | Alta | Medio | Fase 2 dedica trabajo específico al tuneo con meses reales |
-| Python no disponible en el deployment target | Baja | Alto | Verificar en el hosting actual antes de Fase 1; si imposible, replantear (microservicio en VM separada) |
+| ~~Python no disponible en el deployment target~~ ✅ resuelto | — | — | El Node buildpack de Render incluye `python3`. `package.json` `build` script crea venv + instala ortools. Funciona en producción desde 2026-05. Pendiente menor: anclar versión Python con `.python-version` (TODO.md Sprint 2) |
 | Cambios de convenio invalidan constraints | Baja | Medio | `SCHEDULING-CONSTRAINTS.md` es fácil de actualizar; lógica cambia en 2 sitios + tests |
 | UNSAT opaco (el solver dice "no hay solución" sin explicar) | Media | Medio | `sufficient_assumptions_for_infeasibility` de CP-SAT + trabajo dedicado en Fase 3 |
 
