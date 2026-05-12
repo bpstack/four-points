@@ -1,0 +1,134 @@
+● Exacto. La idea es: 
+                 
+  main ──────────────────────────────────────────────────────────────────►
+    │
+    ├── chore/audit-prep-sprint-0  ──► PR pequeño ──► merge a main
+    │     · H1-1 docs (CLAUDE.md, README.md)
+    │     · H1-12 demo off (SQL Aiven + MASTER_INSTALL)
+    │     · H1-15 tests/auth/ (vitest, sin tocar código de auth)
+    │
+    └── feature/ai-schedule-generator (sigues trabajando aquí en paralelo)
+          · B-2 migración Aiven scheduling_employee_requests
+          · Fase 3 paso 1, paso 2
+          · B-3, MIN_NIGHTS_REQUIRED, Maintenance UI
+          ──► merge a main cuando esté listo
+                │
+                └── feature/auth-hardening (Sprint 1 + Sprint 2)
+                      ──► antes de meter datos reales
+
+  Por qué esto funciona sin fricción:
+
+  Sprint 0 solo toca 4 cosas:
+  1. CLAUDE.md, README.md — texto, no código.
+  2. backend/db-mysql/aiven/15_demo_user.sql y MASTER_INSTALL_AIVEN.sql — SQL del seed.
+  3. La tabla users en Aiven directamente (UPDATE users SET is_active=0...) — esto no es código, es una operación manual en producción.
+  4. backend/tests/auth/*.test.ts — archivos nuevos.
+
+  feature/ai-schedule-generator no toca ninguno de esos archivos (toca scheduling, no auth ni demo). Riesgo de conflicto al rebasear: prácticamente cero.
+
+  Flujo concreto:
+
+  1. Desde main actual: git checkout -b chore/audit-prep-sprint-0.
+  2. Hacer Sprint 0 → PR pequeño → merge a main.
+  3. En feature/ai-schedule-generator haces git rebase main (o merge, como prefieras) para incorporar los nuevos tests + docs corregidas.
+  4. Sigues con scheduler/checklist hasta cerrar.
+  5. Merge schedule+checklist → main.
+  6. Nueva rama feature/auth-hardening desde main para Sprint 1.
+  7. Sprint 2 desde main ya con auth-hardening dentro.
+
+          · B-3, MIN_NIGHTS_REQUIRED, Maintenance UI
+          ──► merge a main cuando esté listo
+                │
+                └── feature/auth-hardening (Sprint 1 + Sprint 2)
+                      ──► antes de meter datos reales
+
+  Por qué esto funciona sin fricción:
+
+  Sprint 0 solo toca 4 cosas:
+  1. CLAUDE.md, README.md — texto, no código.
+  2. backend/db-mysql/aiven/15_demo_user.sql y MASTER_INSTALL_AIVEN.sql — SQL del seed.
+  3. La tabla users en Aiven directamente (UPDATE users SET is_active=0...) — esto no es código, es una operación manual en producción.
+  4. backend/tests/auth/*.test.ts — archivos nuevos.
+
+  feature/ai-schedule-generator no toca ninguno de esos archivos (toca scheduling, no auth ni demo). Riesgo de conflicto al rebasear: prácticamente cero.
+
+  Flujo concreto:
+
+  3. En feature/ai-schedule-generator haces git rebase main (o merge, como prefieras) para incorporar los nuevos tests + docs corregidas.
+
+  Por qué esto funciona sin fricción:
+
+  Sprint 0 solo toca 4 cosas:
+  1. CLAUDE.md, README.md — texto, no código.
+  2. backend/db-mysql/aiven/15_demo_user.sql y MASTER_INSTALL_AIVEN.sql — SQL del seed.
+  3. La tabla users en Aiven directamente (UPDATE users SET is_active=0...) — esto no es código, es una operación manual en producción.
+  4. backend/tests/auth/*.test.ts — archivos nuevos.
+
+  feature/ai-schedule-generator no toca ninguno de esos archivos (toca scheduling, no auth ni demo). Riesgo de conflicto al rebasear: prácticamente cero.
+
+  Flujo concreto:
+
+  1. Desde main actual: git checkout -b chore/audit-prep-sprint-0.
+  2. Hacer Sprint 0 → PR pequeño → merge a main.
+  3. En feature/ai-schedule-generator haces git rebase main (o merge, como prefieras) para incorporar los nuevos tests + docs corregidas.
+  4. Sigues con scheduler/checklist hasta cerrar.
+  5. Merge schedule+checklist → main.
+  6. Nueva rama feature/auth-hardening desde main para Sprint 1.
+  7. Sprint 2 desde main ya con auth-hardening dentro.
+
+  Ventaja extra de hacerlo así: las correcciones de docs llegan a main ya. Cualquier sesión IA posterior (o tú mismo en otro contexto) trabaja con la documentación correcta desde el primer momento, no con la "JWT
+  migrated to sessions" obsoleta.
+
+LO QUE VAMOS HACER:
+
+  Estado actual:
+                                      ┌── feature/ai-schedule-generator (HEAD, donde estás)
+                                      ▼
+  ... → 51e5d87 → 0794f97 → 99001d0 → 2b5d5b2 → 8f5ebda
+                                      ▲
+                                      └── main (más atrás, donde se quedó la última vez)
+
+  Cuando hagas git checkout main:
+          ┌── main (HEAD, ahora estás aquí)
+          ▼
+  ... → main_tip      ↘
+                        → 99001d0 → 2b5d5b2 → 8f5ebda  ← feature/ai-schedule-generator
+                                                         SIGUE EXISTIENDO, intacta
+
+  Tus commits de schedule/checklist no se borran ni se pierden. Siguen ahí en su rama. Solo cambia el "puntero" de qué archivos ves en tu carpeta.
+
+  Para volver: git checkout feature/ai-schedule-generator y aparecen todos los archivos exactamente como los dejaste.
+
+  El flujo concreto para Sprint 0:
+
+  # 1. Confirmar que tu trabajo de schedule está committeado (sin uncommitted changes)
+  git status                                    # debe estar limpio
+
+  # 2. Cambiar a main
+  git checkout main
+  git pull                                      # traer cambios remotos si hay
+
+  # 3. Crear rama nueva DESDE main
+  git checkout -b chore/audit-prep-sprint-0
+
+  # 4. Hacer el trabajo de Sprint 0 (docs, tests, demo SQL)
+  # ... commits ...
+
+  # 5. Push y PR
+  git push -u origin chore/audit-prep-sprint-0
+  gh pr create --base main --title "..."
+
+  # 6. Cuando merguee a main, vuelves a tu trabajo de schedule
+  git checkout feature/ai-schedule-generator
+  git rebase main                               # incorpora docs/tests nuevos
+  # Todo tu trabajo SIGUE AHÍ, ahora con las mejoras de Sprint 0 dentro
+
+  Comprobación que puedes hacer ahora mismo si dudas:
+
+  git log --oneline --all --graph -20
+
+  Verás todas las ramas con sus commits. feature/ai-schedule-generator es una línea, main es otra. Ninguna borra a la otra.
+
+  Lo único que perderías sería:
+  - Cambios sin commitear (uncommitted) si haces checkout sin guardarlos. Por eso git status debe estar limpio antes.
+  - O si haces git branch -D feature/ai-schedule-generator (borrado forzado) — no lo hagas.
