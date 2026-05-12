@@ -18,35 +18,45 @@ Tras revisar el documento, el dueño confirmó las siguientes decisiones. Estas 
 
 | Decisión | Resolución | Notas |
 |---|---|---|
-| **D-1 · Demo público** | Deshabilitar definitivamente según §5.2 plan de transición | No clonar deployment ni implementar multi-tenancy ahora |
-| **D-2 · Cloudflare Access** | Sí, delante de `four-points.stackbp.es` | Usar Zero Trust Access free tier (≤50 usuarios) |
-| **D-3 · Refresh token rotation** | Implementar **antes** de datos reales, **después** del merge schedule+checklist a `main` | Ver §6.0 — coordinación con scheduler |
+| **D-1 · Demo público** | Deshabilitar definitivamente según §5.2 plan de transición | ✅ Ejecutado 2026-05-12: `is_active=0` en aiven + password rotado + seed comentado en MASTER_INSTALL |
+| **D-2 · Cloudflare Access** | Sí, delante de `four-points.stackbp.es` | ⏳ Pendiente Sprint 2 (H1-17). Zero Trust Access free tier (≤50 usuarios) |
+| **D-3 · Refresh token rotation** | Implementar **antes** de datos reales, **después** del merge schedule+checklist a `main` | ⏳ Pendiente Sprint 2 (H2-1). Merge ya hecho (PR #3, 2026-05-12) |
 | **D-4 · Multi-tenancy** | Diferida indefinidamente | Reabrir solo si HotelCode capta primer cliente externo |
 
-### 0.1 Coordinación con el merge schedule+checklist
+### 0.1 Coordinación con el merge schedule+checklist ✅ COMPLETADO
 
-El branch `feature/ai-schedule-generator` (y los branches de checklist) tienen trabajo abierto que bloquea el merge a `main`. Resumen del estado pendiente (verificado en `TODO.md` y `SCHEDULING-SOLVER-PLAN.md` Fase 3):
+**Estado actualizado 2026-05-12:** `feature/ai-schedule-generator` mergeado a `main` (PR #3, merge commit `f34e20d`). Sprint 0 también cerrado el mismo día. Próximo paso: Sprint 1 cuando `main` esté estable ≥24h.
 
-**Bloqueadores del merge a main:**
-- Migración Aiven de `scheduling_employee_requests` (B-2 / TODO.md §pendientes menores).
-- Fase 3 paso 1 — tabla `scheduling_solver_runs`.
-- Fase 3 paso 2 — UX de infeasibilidad.
-- `Promise.allSettled` en `schedule-generate.controller.ts:117` (por).
-- `MIN_NIGHTS_REQUIRED` hardcoded en `schedule-validator.ts:229`.
-- Tabs y panel de búsqueda rotos en módulo Maintenance.
+**Bloqueadores del merge — todos cerrados:**
+- ✅ Migración Aiven de `scheduling_employee_requests` (B-2). Aplicado vía `scripts/20260512_add_scheduling_solver_runs_and_requests.sql`.
+- ✅ Fase 3 paso 1 — tabla `scheduling_solver_runs` + hook controller que persiste cada outcome.
+- ✅ Fase 3 paso 2 — UX de infeasibilidad: motor heurístico Python + botón Aplicar y reintentar.
+- ✅ `Promise.allSettled` en `schedule-generate.controller.ts` para recalc libres.
+- ✅ `MIN_NIGHTS_REQUIRED` revisado — falso bloqueador, comentado en código.
+- ✅ Maintenance UI auditado — sin bug real; 4 mejorables no críticos parqueados en TODO.md.
+
+**Gap adicional descubierto y resuelto:** Aiven no tenía las 6 tablas de checklist (causaban 500 en `/api/checklists/*`). Migración `scripts/20260512_add_checklist_tables.sql` aplicada.
 
 **Estrategia de orquestación auth ↔ scheduler:**
 
 ```
-HOY ──────► [Sprint 0 paralelo]      ──────► [merge schedule+checklist a main]
-              · H1-1 docs (CLAUDE.md)             ↓
-              · H1-12 deshabilitar demo     [Sprint 1 endurecimiento]
-              · H1-15 tests auth                  · resto de H1 (rate limit, helmet, CORS, body, refresh body, dead code, Sentry, Pino, render.yaml)
-                  (red de seguridad antes        · H2-1 refresh token rotation con tabla `refresh_tokens`
-                   de tocar nada de auth)        ↓
-                                            [datos reales empiezan a entrar]
-                                                 ↓
-                                            [Horizonte 2/3 a partir de aquí]
+[merge schedule+checklist a main]  ✅ DONE 2026-05-12 (PR #3)
+   ↓
+[Sprint 0]  ✅ DONE 2026-05-12 (mismo día tras estabilidad inmediata)
+   · H1-1 docs (CLAUDE.md, README) ✅
+   · H1-12 demo deshabilitado en Aiven ✅
+   · H1-15 28 tests regresión auth ✅
+   ↓
+[Sprint 1 endurecimiento]  ⏳ próximo (esperar ≥24h estabilidad)
+   · resto de H1 (rate limit, helmet, CORS body, refresh body, dead code, Sentry, Pino, render.yaml)
+   ↓
+[Sprint 2]  ⏳
+   · H2-1 refresh token rotation con tabla `refresh_tokens`
+   · H1-17 Cloudflare Zero Trust Access
+   ↓
+[datos reales empiezan a entrar]
+   ↓
+[Horizonte 2/3 a partir de aquí]
 ```
 
 **Razonamiento:**
@@ -584,16 +594,16 @@ Si quieres seguridad extra mientras la plataforma sigue accesible solo a ti y a 
 
 > **Estructura ajustada (2026-05-10):** H1 se divide en **Sprint 0** (paralelo al merge schedule+checklist, sin riesgo de conflicto) y **Sprint 1** (post-merge, antes de datos reales). Ver §0.1.
 
-### Sprint 0 — Paralelo al cierre de schedule+checklist (esta semana)
+### Sprint 0 — Paralelo al cierre de schedule+checklist ✅ CERRADO 2026-05-12
 
-> **Criterio de cierre:** docs alineadas con realidad, demo deshabilitado en producción, suite de tests auth en verde.
-> **Garantía:** ninguna de estas tareas toca código que esté en juego en el merge schedule+checklist.
+> **Criterio de cierre:** docs alineadas con realidad, demo deshabilitado en producción, suite de tests auth en verde. **TODOS los criterios cumplidos.**
+> **Garantía cumplida:** ninguna de estas tareas tocó código en juego en el merge schedule+checklist. Sprint 0 se ejecutó tras el merge para asegurar la base.
 
-| ID | Acción | Complejidad | Riesgo | Dependencia |
-|---|---|---|---|---|
-| H1-1 | Actualizar CLAUDE.md y README.md (auth real es JWT, no sessions) | Baja | Bajo | — |
-| H1-12 | Deshabilitar usuario demo (`is_active=0` en Aiven + remove from MASTER_INSTALL_AIVEN.sql + cambiar password a aleatorio antes del flag) | Trivial | Bajo | D-1 |
-| H1-15 | Tests de regresión sobre login/refresh/logout/demo whitelist (red de seguridad para Sprint 1) | Media | Bajo | Vitest ya configurado |
+| ID | Acción | Estado |
+|---|---|---|
+| H1-1 | Actualizar CLAUDE.md y README.md (auth real es JWT, no sessions) | ✅ |
+| H1-12 | Deshabilitar usuario demo (`is_active=0` en Aiven + comentario en MASTER_INSTALL.sql + password rotado a hash aleatorio) | ✅ |
+| H1-15 | Tests de regresión sobre login/refresh/logout/demo whitelist (red de seguridad para Sprint 1) | ✅ 28 tests verdes (tokenService 9 + demoRestriction 15 + UserRepository.login 4) |
 
 ### Horizonte 1 (Sprint 1) — Post-merge schedule+checklist (1-2 semanas, antes de datos reales)
 
@@ -652,27 +662,21 @@ Si quieres seguridad extra mientras la plataforma sigue accesible solo a ti y a 
 
 > Reorganizado según las decisiones de §0. El orden refleja la coordinación con el merge schedule+checklist.
 
-#### Sprint 0 — Paralelo a scheduler/checklist (puede empezar HOY)
+#### Sprint 0 ✅ COMPLETADO 2026-05-12
 
-**Branch sugerido:** `chore/audit-prep-sprint-0` (separado de `feature/ai-schedule-generator`).
+**Branch:** `chore/audit-prep-sprint-0` (creado desde `main` tras el merge de PR #3).
 
-1. **H1-1** (docs CLAUDE.md + README.md) — corregir la mentira "JWT migrated to sessions". Sin esto, cualquier sesión IA posterior toma decisiones erradas.
-2. **H1-12** (deshabilitar demo): cambiar password a aleatorio + `is_active=0` + quitar de `MASTER_INSTALL_AIVEN.sql`. Aplicar en Aiven manualmente sin reinstalar (`UPDATE users SET is_active=0, password=? WHERE username='demo';`).
-3. **H1-15** (tests regresión auth): vitest sobre login OK, login KO, refresh, logout, demo whitelist (POSTs permitidos vs bloqueados). Esta es la **red de seguridad** antes de Sprint 1.
+1. ✅ **H1-1** docs CLAUDE.md + README.md. JWT documentado como mecanismo real; eliminadas referencias a `express-session`, `authenticateSession.ts`, tabla `sessions`.
+2. ✅ **H1-12** demo deshabilitado. `is_active=0` aplicado en aiven, password rotado a hash aleatorio, seed file actualizado, comentario reforzado en `MASTER_INSTALL.sql`.
+3. ✅ **H1-15** tests regresión auth. 28 tests verdes en `backend/tests/auth/`: tokenService (9), demoRestriction middleware (15), UserRepository.login integration (4).
 
-**Salida esperada:** PR pequeño a `main` con docs + SQL del demo + carpeta `tests/auth/`. Verde, mergeable.
+**Resultado:** red de seguridad para Sprint 1 establecida. Backend completo: 142/142 vitest verdes.
 
-#### Hito intermedio — Merge schedule+checklist
+#### Hito intermedio — Merge schedule+checklist ✅ COMPLETADO 2026-05-12
 
-Trabajo que el dueño completa en `feature/ai-schedule-generator` y branches de checklist según `TODO.md` y `SCHEDULING-SOLVER-PLAN.md` Fase 3:
-- B-2 migración Aiven `scheduling_employee_requests`.
-- Fase 3 paso 1 — tabla `scheduling_solver_runs`.
-- Fase 3 paso 2 — UX infeasibilidad.
-- B-3 `Promise.allSettled` en `schedule-generate.controller.ts:117`.
-- `MIN_NIGHTS_REQUIRED` leer de config.
-- Fix Maintenance UI (tabs/búsqueda).
+PR #3 mergeado a `main` (commit `f34e20d`). Todos los bloqueadores listados originalmente cerrados — ver §0.1 actualizado.
 
-Cuando esto entre a `main` y aguante 24h en producción → arrancar Sprint 1.
+**Siguiente paso:** dejar `main` estable ≥24h en producción → arrancar Sprint 1.
 
 #### Sprint 1 — Endurecimiento auth + observabilidad (5-7 días)
 
@@ -802,7 +806,7 @@ curl -i https://api.four-points.stackbp.es/api/auth/login -X POST \
 
 ### E. Decisiones aún abiertas (no bloqueantes)
 
-1. **`scheduling_employee_requests` en Aiven**: ¿incluir en el merge schedule+checklist o como hotfix posterior? Recomendación: incluir en el merge — si no, ese merge no es realmente "production-ready".
+1. ~~`scheduling_employee_requests` en Aiven~~ ✅ Aplicado 2026-05-12 vía script incremental antes del merge.
 2. **Pino vs Winston**: pendiente. Pino es más rápido y JSON-native; Winston tiene más transports. Para Render con stdout, Pino es la elección obvia.
 3. **Sentry tier**: free hasta 5k errores/mes — suficiente para empezar.
 
@@ -810,4 +814,11 @@ curl -i https://api.four-points.stackbp.es/api/auth/login -X POST \
 
 **Próximas sesiones:** este documento es la referencia. Cuando se empiece a ejecutar el roadmap, ir actualizando los IDs (`H1-1`, `H1-2`...) marcándolos como `✅ done` con fecha y commit hash al lado, y mover los hallazgos cerrados de §3.5 a una sección "Resueltos" al final.
 
-**Próxima acción concreta:** crear branch `chore/audit-prep-sprint-0` y empezar por **H1-1** (docs) o **H1-15** (tests auth), según prefiera el dueño. H1-12 (deshabilitar demo) puede esperar al final del Sprint 0 para no perder el demo durante el desarrollo de Sprint 0 si surgiera necesidad.
+**Próxima acción concreta (2026-05-12):** mergear Sprint 0 a `main`. Después esperar ≥24h estabilidad y arrancar **Sprint 1** desde `feature/auth-hardening`:
+- H1-2 / H1-8: rate limits en `/login` y `/refresh-token` (loginLimiter ya definido, solo descomentar).
+- H1-7: sacar refresh token del body del response (preparación para H2-1).
+- H1-3 / H1-4 / H1-5 / H1-6: apiLimiter global, helmet, body limit, CORS Origin strict.
+- H1-9 / H1-10 / H1-11: limpieza dead code (passport-jwt, DEV_MODE) + `.env.example`.
+- H1-13 / H1-14: Sentry + Pino para observabilidad antes de Sprint 2.
+
+Tras Sprint 1 estable → **Sprint 2**: H2-1 refresh token rotation + H1-17 Cloudflare Access. Solo entonces empiezan a entrar datos reales.

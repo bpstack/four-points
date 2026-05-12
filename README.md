@@ -19,7 +19,7 @@ This document describes the backend architecture. The backend repository is **pr
 | **Express 5**          | Web framework (latest major version)       |
 | **TypeScript**         | Type-safe development                      |
 | **MySQL 8**            | Relational database                        |
-| **Passport.js + JWT**  | Authentication (HttpOnly cookies)          |
+| **jsonwebtoken + bcrypt** | Authentication (JWT in HttpOnly cookies) |
 | **Zod 4**              | Request validation & schema definitions    |
 | **Cloudinary**         | Image and PDF cloud storage                |
 | **Multer**             | File upload handling (multipart/form-data) |
@@ -69,7 +69,7 @@ This document describes the backend architecture. The backend repository is **pr
 
 ```
 POST   /api/auth/login          # Login with credentials
-POST   /api/auth/logout         # Clear session
+POST   /api/auth/logout         # Clear access/refresh cookies
 GET    /api/auth/me             # Get current user
 POST   /api/auth/refresh        # Refresh access token
 ```
