@@ -1,6 +1,15 @@
 -- =========================================================
 -- 15_demo_user.sql (AIVEN)
--- Usuario demo para demostrar la aplicación / demo / demo987654
+-- Usuario demo para demostrar la aplicación.
+--
+-- ⚠️ DESHABILITADO 2026-05-12 (Sprint 0, H1-12). Razón: introducción de
+-- datos reales en aiven; sin multi-tenancy no es seguro mantener un
+-- usuario público que comparte el mismo schema. La cuenta se queda en
+-- BD con is_active=0 y un password aleatorio (no es 'demo987654').
+-- MASTER_INSTALL.sql tiene este archivo comentado, por lo que un
+-- redeploy NO recrea el usuario. Para reactivar: cambiar is_active=1
+-- y resetear password con bcrypt nuevo.
+--
 -- Collation: utf8mb4_0900_ai_ci (Aiven/MySQL 8.0)
 -- =========================================================
 USE hotel_db;
@@ -37,21 +46,21 @@ ON DUPLICATE KEY UPDATE name = 'demo-admin';
 
 SELECT 'Rol demo-admin creado (id=7)' AS resultado;
 
--- 2. Crear usuario demo
--- Password: demo987654 (bcrypt hash con rounds=10)
+-- 2. Crear usuario demo (DESHABILITADO 2026-05-12)
+-- Password aleatorio (no en plano en ningun sitio). is_active=0.
 INSERT INTO users (id, username, email, password, role_id, is_active)
 VALUES (
   'demo-user-0000-0000-000000000001',
   'demo',
   'demo@four-points.local',
-  '$2b$10$DDRolzhYqUVClahO.ycw4uJe3yte5ly.9cd9RNoM1gvK6ZhyXsbjK',
+  '$2b$10$Mm0w4Yuj4MAUdYsKHidLoOdxJcIFe9GhoWvabrqVd6I7jFC/YzgI6',
   7,
-  1
+  0
 )
-ON DUPLICATE KEY UPDATE 
-  password = '$2b$10$DDRolzhYqUVClahO.ycw4uJe3yte5ly.9cd9RNoM1gvK6ZhyXsbjK',
+ON DUPLICATE KEY UPDATE
+  password = '$2b$10$Mm0w4Yuj4MAUdYsKHidLoOdxJcIFe9GhoWvabrqVd6I7jFC/YzgI6',
   role_id = 7,
-  is_active = 1;
+  is_active = 0;
 
 SELECT 'Usuario demo creado (AIVEN)' AS resultado;
 

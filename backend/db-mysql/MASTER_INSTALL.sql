@@ -72,9 +72,12 @@ SOURCE aiven/13_maintenance.sql;
 SOURCE aiven/14_messages.sql;
 
 -- ============================================
--- PASO 15: DEMO USER (OPCIONAL)
+-- PASO 15: DEMO USER (DESHABILITADO 2026-05-12 — Sprint 0 H1-12)
 -- ============================================
--- SOURCE aiven/15_demo_user.sql;  -- Descomentar para usuario demo
+-- ⚠️ NO descomentar sin replantear estrategia demo/real.
+-- Razón: sin multi-tenancy, el demo y los datos reales comparten schema.
+-- Ver Global-Plan.md §5.2 (estrategia demo/real) antes de reactivar.
+-- SOURCE aiven/15_demo_user.sql;
 
 -- ============================================
 -- PASO 16: BACKOFFICE
