@@ -344,29 +344,11 @@ def solve(input: SolverInput) -> SolverOutput:
         )
 
     elif status == cp_model.INFEASIBLE:
+        conflicts, relaxations = _analyze_infeasibility(input, elapsed_ms)
         return SolverInfeasible(
             status="infeasible",
-            conflictingConstraints=[{
-                "constraintName": "unknown",
-                "humanExplanation": (
-                    "No se encontro solucion factible con las constraints actuales. "
-                    f"Tiempo: {elapsed_ms}ms."
-                ),
-            }],
-            suggestedRelaxations=[
-                {
-                    "constraint": "minMonthlyLibre",
-                    "currentValue": cfg.minMonthlyLibre,
-                    "proposedValue": max(7, cfg.minMonthlyLibre - 1),
-                    "impact": "Reducir libres minimos puede desbloquear la solucion",
-                },
-                {
-                    "constraint": "minMorningStaff",
-                    "currentValue": cfg.minMorningStaff,
-                    "proposedValue": max(0, cfg.minMorningStaff - 1),
-                    "impact": "Reducir cobertura minima de manana puede desbloquear la solucion",
-                },
-            ],
+            conflictingConstraints=conflicts,
+            suggestedRelaxations=relaxations,
         )
 
     else:
@@ -375,3 +357,156 @@ def solve(input: SolverInput) -> SolverOutput:
             errorCode="TIMEOUT" if status == cp_model.UNKNOWN else "INTERNAL",
             message=f"Solver termino con status {status_name} en {elapsed_ms}ms",
         )
+
+
+# ────────────────────────────────────────────────────────────────
+# INFEASIBILITY ANALYZER (heuristico, basado en input)
+# ────────────────────────────────────────────────────────────────
+
+_SPECIAL_REST = {"V", "B", "E", "IT", "FO", "A"}
+
+
+def _analyze_infeasibility(inp: SolverInput, elapsed_ms: int):
+    """
+    Analiza el input para identificar causas plausibles de infeasibilidad.
+    No usa sufficient_assumptions_for_infeasibility de CP-SAT (requiere refactor a
+    assumptions). Heuristico: detecta desbalances obvios entre demanda y capacidad.
+    Devuelve (conflictingConstraints, suggestedRelaxations).
+    """
+    cfg = inp.config
+    num_days = len(inp.days)
+    num_emps = len(inp.employees)
+    conflicts = []
+    relaxations = []
+
+    if num_emps == 0 or num_days == 0:
+        return (
+            [{
+                "constraintName": "input_empty",
+                "humanExplanation": "El mes no tiene empleados o dias suficientes para generar un horario.",
+            }],
+            [],
+        )
+
+    # ── Capacidad agregada vs demanda ──
+    # Empleados disponibles para turnos rotatorios (excluye fixedShift=P sin fixedDays — la build_solver_input ya los filtra)
+    rotatorios = [e for e in inp.employees if not (e.rules.fixedShift and e.rules.fixedShift != "L")]
+    num_rotatorios = max(1, len(rotatorios))
+
+    # Celdas bloqueadas con turnos especiales (V/B/IT/...) por empleado — reducen capacidad
+    locked_special_by_emp: dict[str, int] = {}
+    for emp_id, day_map in inp.lockedCells.items():
+        n = sum(1 for code in day_map.values() if code in _SPECIAL_REST)
+        if n > 0:
+            locked_special_by_emp[emp_id] = n
+    total_locked_special = sum(locked_special_by_emp.values())
+
+    demand_shifts = num_days * (cfg.minMorningStaff + cfg.minAfternoonStaff + cfg.minNightStaff)
+    capacity_shifts = num_rotatorios * num_days - cfg.minMonthlyLibre * num_rotatorios - total_locked_special
+
+    if demand_shifts > capacity_shifts:
+        deficit = demand_shifts - capacity_shifts
+        conflicts.append({
+            "constraintName": "coverage_vs_capacity",
+            "humanExplanation": (
+                f"La cobertura minima diaria requiere {demand_shifts} turnos al mes "
+                f"({cfg.minMorningStaff}M+{cfg.minAfternoonStaff}T+{cfg.minNightStaff}N x {num_days} dias) "
+                f"pero hay capacidad para {max(0, capacity_shifts)} turnos con {num_rotatorios} empleados rotatorios. "
+                f"Faltan {deficit} turnos."
+            ),
+        })
+        # Sugerir reducir libres minimos primero (menos disruptivo) y luego cobertura
+        if cfg.minMonthlyLibre > 7:
+            relaxations.append({
+                "constraint": "minMonthlyLibre",
+                "currentValue": cfg.minMonthlyLibre,
+                "proposedValue": cfg.minMonthlyLibre - 1,
+                "impact": f"Libera ~{num_rotatorios} turnos al mes",
+            })
+        if cfg.minMorningStaff > 1:
+            relaxations.append({
+                "constraint": "minMorningStaff",
+                "currentValue": cfg.minMorningStaff,
+                "proposedValue": cfg.minMorningStaff - 1,
+                "impact": f"Reduce demanda en {num_days} turnos al mes",
+            })
+        if cfg.minAfternoonStaff > 1:
+            relaxations.append({
+                "constraint": "minAfternoonStaff",
+                "currentValue": cfg.minAfternoonStaff,
+                "proposedValue": cfg.minAfternoonStaff - 1,
+                "impact": f"Reduce demanda en {num_days} turnos al mes",
+            })
+
+    # ── Empleado individual con demasiado trabajo bloqueado ──
+    # Si el manager bloqueó tantos turnos M/T/N para un empleado que ya no caben
+    # los libres mínimos del mes en los días restantes, el solver no tiene salida.
+    for emp_id, day_map in inp.lockedCells.items():
+        n_work_locked = sum(1 for code in day_map.values() if code in {"M", "T", "N", "PI", "P"})
+        remaining = num_days - n_work_locked
+        if remaining < cfg.minMonthlyLibre:
+            emp_name = next((e.name for e in inp.employees if e.id == emp_id), emp_id)
+            conflicts.append({
+                "constraintName": "employee_locked_work_overload",
+                "employeeIds": [emp_id],
+                "humanExplanation": (
+                    f"{emp_name}: tiene {n_work_locked} turnos de trabajo bloqueados, solo quedan "
+                    f"{remaining} dias disponibles pero el minimo de libres es {cfg.minMonthlyLibre}."
+                ),
+            })
+
+    # ── Night block: minNightBlock demasiado alto para el mes ──
+    # Heuristico: si minNightBlock > num_days / num_rotatorios -> dificil de encajar
+    if cfg.minNightBlock > 0 and num_rotatorios > 0:
+        slots_per_emp = num_days // num_rotatorios
+        if cfg.minNightBlock > slots_per_emp:
+            conflicts.append({
+                "constraintName": "night_block_too_long",
+                "humanExplanation": (
+                    f"Bloque minimo de noches ({cfg.minNightBlock}) > dias disponibles por empleado "
+                    f"(~{slots_per_emp})."
+                ),
+            })
+            if cfg.minNightBlock > 3:
+                relaxations.append({
+                    "constraint": "minNightBlock",
+                    "currentValue": cfg.minNightBlock,
+                    "proposedValue": cfg.minNightBlock - 1,
+                    "impact": "Permite bloques de noche mas cortos",
+                })
+
+    # ── Descanso minimo entre turnos ──
+    if cfg.minRestHours > 24 * 2:
+        conflicts.append({
+            "constraintName": "rest_hours_too_high",
+            "humanExplanation": (
+                f"Descanso minimo de {cfg.minRestHours}h obliga a >2 dias libres entre turnos."
+            ),
+        })
+        relaxations.append({
+            "constraint": "minRestHours",
+            "currentValue": cfg.minRestHours,
+            "proposedValue": max(24, cfg.minRestHours - 12),
+            "impact": "Reduce el gap obligatorio entre turnos",
+        })
+
+    # ── Si no detectamos nada, fallback generico ──
+    if not conflicts:
+        conflicts.append({
+            "constraintName": "unknown",
+            "humanExplanation": (
+                f"No se encontro solucion factible con las constraints actuales. Tiempo: {elapsed_ms}ms. "
+                "Revisa peticiones aprobadas y configuracion del mes."
+            ),
+        })
+    if not relaxations:
+        # Default conservador: libres minimos (menos disruptivo)
+        if cfg.minMonthlyLibre > 7:
+            relaxations.append({
+                "constraint": "minMonthlyLibre",
+                "currentValue": cfg.minMonthlyLibre,
+                "proposedValue": cfg.minMonthlyLibre - 1,
+                "impact": "Reducir libres minimos suele desbloquear la solucion",
+            })
+
+    return conflicts, relaxations

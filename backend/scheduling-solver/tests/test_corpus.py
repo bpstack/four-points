@@ -183,3 +183,15 @@ def test_solver_detects_infeasibility(fixture_path: Path):
     assert result.status == "infeasible", (
         f"Expected 'infeasible' pero solver devolvió '{result.status}'"
     )
+    # El analyzer heuristico debe devolver al menos un conflicto con explicacion
+    assert len(result.conflictingConstraints) >= 1, "analyzer no devolvio conflictos"
+    for c in result.conflictingConstraints:
+        assert c.constraintName, "conflictingConstraint sin nombre"
+        assert c.humanExplanation and len(c.humanExplanation) > 10, (
+            f"humanExplanation vacia o muy corta: {c.humanExplanation!r}"
+        )
+    # Si hay relajaciones sugeridas, deben tener valores numericos
+    for r in result.suggestedRelaxations:
+        assert r.constraint, "suggestedRelaxation sin constraint"
+        assert isinstance(r.currentValue, int) and isinstance(r.proposedValue, int)
+        assert r.proposedValue != r.currentValue, "proposedValue == currentValue"
