@@ -608,7 +608,7 @@ Si quieres seguridad extra mientras la plataforma sigue accesible solo a ti y a 
 ### Horizonte 1 (Sprint 1) — Auth hardening + observabilidad
 
 > **Criterio de cierre:** ningún hallazgo crítico de §3.5 abierto, observabilidad básica activa, refresh token rotation funcionando.
-> **Estado:** la mayoría cerrado en PR #5 (2026-05-12). H1-14 (Pino) en progreso. H1-13 (Sentry) bloqueado por alta externa.
+> **Estado:** la mayoría cerrado en PR #5 (2026-05-12). H1-14 cerrado en PR #6 (2026-05-12). H1-13 (Sentry) bloqueado por alta externa.
 
 | ID | Acción | Estado |
 |---|---|---|
@@ -622,7 +622,7 @@ Si quieres seguridad extra mientras la plataforma sigue accesible solo a ti y a 
 | H1-9 | `passport` + `passport-jwt` eliminados de `package.json` | ✅ PR #5 |
 | H1-10 | `DEV_MODE` + `DEV_USER` eliminados de `useAuth.tsx` | ✅ PR #5 |
 | H1-11 | `.env.example` en backend y frontend | ✅ ya existía |
-| H1-14 | Pino logger estructurado (JSON prod, pretty dev) | 🚧 en `feature/observability-pino` |
+| H1-14 | Pino logger estructurado (JSON prod, pretty dev) | ✅ PR #6 |
 | H1-13 | Sentry | ⏸️ pendiente alta de cuenta en sentry.io |
 | H1-16 | `render.yaml` + `vercel.json` | ⏳ Sprint 2 |
 | **H2-1** | **Refresh token rotation** | ⏳ Sprint 2 |
