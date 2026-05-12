@@ -104,12 +104,33 @@ export const profileUpdateLimiter = rateLimit({
 })
 
 /**
+ * Rate limiter for refresh token endpoint
+ * Prevents refresh token abuse (no revocation yet — Sprint 2 adds table)
+ */
+export const refreshLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 30, // 30 refreshes per 15 minutes per IP
+  message: {
+    error: 'Demasiadas solicitudes de refresco. Intenta de nuevo en 15 minutos.',
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: (req: Request) => `refresh-${getIpKey(req)}`,
+  handler: (req: Request, res: Response) => {
+    console.warn(`[SECURITY] Refresh rate limit exceeded from IP: ${getIpKey(req)}`)
+    res.status(429).json({
+      error: 'Demasiadas solicitudes de refresco. Intenta de nuevo en 15 minutos.',
+    })
+  },
+})
+
+/**
  * General API rate limiter
  * Prevents abuse of API endpoints
  */
 export const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // 100 requests per 15 minutes
+  max: 300, // 300 requests per 15 minutes (budget alto para no romper UX)
   message: {
     error: 'Demasiadas solicitudes. Intenta de nuevo más tarde.',
   },
