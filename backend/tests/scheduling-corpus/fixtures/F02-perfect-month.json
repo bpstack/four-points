@@ -1,0 +1,417 @@
+{
+  "id": "F02-perfect-month",
+  "description": "Well-formed 5-employee schedule (Pattern E libres, no consecutive violations). Coverage disabled — this only proves non-coverage constraints pass.",
+  "input": {
+    "monthId": 1,
+    "year": 2026,
+    "month": 1,
+    "config": {
+      "minMorningStaff": 0,
+      "prefMorningStaff": 0,
+      "maxMorningStaff": 99,
+      "minAfternoonStaff": 0,
+      "prefAfternoonStaff": 0,
+      "maxAfternoonStaff": 99,
+      "minNightStaff": 0,
+      "maxNightStaff": 99,
+      "maxWeeklyShifts": 6,
+      "prefWeeklyShifts": 5,
+      "minRestHours": 48,
+      "minNightBlock": 4,
+      "maxNightBlock": 6,
+      "prefNightBlock": 5,
+      "minMonthlyLibre": 9,
+      "maxMonthlyLibre": 11,
+      "maxConsecutiveWorkDays": 6,
+      "minConsecutiveLibre": 2,
+      "annualVacationDays": 30,
+      "annualHolidays": 20,
+      "annualFreeDays": 90
+    },
+    "employees": [
+      {
+        "id": "E0000000-0000-0000-0000-000000000001",
+        "name": "EMP_01"
+      },
+      {
+        "id": "E0000000-0000-0000-0000-000000000002",
+        "name": "EMP_02"
+      },
+      {
+        "id": "E0000000-0000-0000-0000-000000000003",
+        "name": "EMP_03"
+      },
+      {
+        "id": "E0000000-0000-0000-0000-000000000004",
+        "name": "EMP_04"
+      },
+      {
+        "id": "E0000000-0000-0000-0000-000000000005",
+        "name": "EMP_05"
+      }
+    ],
+    "days": [
+      {
+        "dayNumber": 1,
+        "dayOfWeek": "J",
+        "weekNumber": 1,
+        "isHoliday": false
+      },
+      {
+        "dayNumber": 2,
+        "dayOfWeek": "V",
+        "weekNumber": 1,
+        "isHoliday": false
+      },
+      {
+        "dayNumber": 3,
+        "dayOfWeek": "S",
+        "weekNumber": 1,
+        "isHoliday": false
+      },
+      {
+        "dayNumber": 4,
+        "dayOfWeek": "D",
+        "weekNumber": 1,
+        "isHoliday": false
+      },
+      {
+        "dayNumber": 5,
+        "dayOfWeek": "L",
+        "weekNumber": 1,
+        "isHoliday": false
+      },
+      {
+        "dayNumber": 6,
+        "dayOfWeek": "M",
+        "weekNumber": 1,
+        "isHoliday": false
+      },
+      {
+        "dayNumber": 7,
+        "dayOfWeek": "X",
+        "weekNumber": 1,
+        "isHoliday": false
+      },
+      {
+        "dayNumber": 8,
+        "dayOfWeek": "J",
+        "weekNumber": 2,
+        "isHoliday": false
+      },
+      {
+        "dayNumber": 9,
+        "dayOfWeek": "V",
+        "weekNumber": 2,
+        "isHoliday": false
+      },
+      {
+        "dayNumber": 10,
+        "dayOfWeek": "S",
+        "weekNumber": 2,
+        "isHoliday": false
+      },
+      {
+        "dayNumber": 11,
+        "dayOfWeek": "D",
+        "weekNumber": 2,
+        "isHoliday": false
+      },
+      {
+        "dayNumber": 12,
+        "dayOfWeek": "L",
+        "weekNumber": 2,
+        "isHoliday": false
+      },
+      {
+        "dayNumber": 13,
+        "dayOfWeek": "M",
+        "weekNumber": 2,
+        "isHoliday": false
+      },
+      {
+        "dayNumber": 14,
+        "dayOfWeek": "X",
+        "weekNumber": 2,
+        "isHoliday": false
+      },
+      {
+        "dayNumber": 15,
+        "dayOfWeek": "J",
+        "weekNumber": 3,
+        "isHoliday": false
+      },
+      {
+        "dayNumber": 16,
+        "dayOfWeek": "V",
+        "weekNumber": 3,
+        "isHoliday": false
+      },
+      {
+        "dayNumber": 17,
+        "dayOfWeek": "S",
+        "weekNumber": 3,
+        "isHoliday": false
+      },
+      {
+        "dayNumber": 18,
+        "dayOfWeek": "D",
+        "weekNumber": 3,
+        "isHoliday": false
+      },
+      {
+        "dayNumber": 19,
+        "dayOfWeek": "L",
+        "weekNumber": 3,
+        "isHoliday": false
+      },
+      {
+        "dayNumber": 20,
+        "dayOfWeek": "M",
+        "weekNumber": 3,
+        "isHoliday": false
+      },
+      {
+        "dayNumber": 21,
+        "dayOfWeek": "X",
+        "weekNumber": 3,
+        "isHoliday": false
+      },
+      {
+        "dayNumber": 22,
+        "dayOfWeek": "J",
+        "weekNumber": 4,
+        "isHoliday": false
+      },
+      {
+        "dayNumber": 23,
+        "dayOfWeek": "V",
+        "weekNumber": 4,
+        "isHoliday": false
+      },
+      {
+        "dayNumber": 24,
+        "dayOfWeek": "S",
+        "weekNumber": 4,
+        "isHoliday": false
+      },
+      {
+        "dayNumber": 25,
+        "dayOfWeek": "D",
+        "weekNumber": 4,
+        "isHoliday": false
+      },
+      {
+        "dayNumber": 26,
+        "dayOfWeek": "L",
+        "weekNumber": 4,
+        "isHoliday": false
+      },
+      {
+        "dayNumber": 27,
+        "dayOfWeek": "M",
+        "weekNumber": 4,
+        "isHoliday": false
+      },
+      {
+        "dayNumber": 28,
+        "dayOfWeek": "X",
+        "weekNumber": 4,
+        "isHoliday": false
+      },
+      {
+        "dayNumber": 29,
+        "dayOfWeek": "J",
+        "weekNumber": 5,
+        "isHoliday": false
+      },
+      {
+        "dayNumber": 30,
+        "dayOfWeek": "V",
+        "weekNumber": 5,
+        "isHoliday": false
+      },
+      {
+        "dayNumber": 31,
+        "dayOfWeek": "S",
+        "weekNumber": 5,
+        "isHoliday": false
+      }
+    ],
+    "assignments": {
+      "E0000000-0000-0000-0000-000000000001": {
+        "1": "L",
+        "2": "L",
+        "3": "M",
+        "4": "M",
+        "5": "M",
+        "6": "M",
+        "7": "L",
+        "8": "L",
+        "9": "M",
+        "10": "M",
+        "11": "M",
+        "12": "M",
+        "13": "L",
+        "14": "L",
+        "15": "M",
+        "16": "M",
+        "17": "M",
+        "18": "M",
+        "19": "L",
+        "20": "L",
+        "21": "M",
+        "22": "M",
+        "23": "M",
+        "24": "M",
+        "25": "L",
+        "26": "L",
+        "27": "M",
+        "28": "M",
+        "29": "M",
+        "30": "M",
+        "31": "M"
+      },
+      "E0000000-0000-0000-0000-000000000002": {
+        "1": "L",
+        "2": "L",
+        "3": "T",
+        "4": "T",
+        "5": "T",
+        "6": "T",
+        "7": "L",
+        "8": "L",
+        "9": "T",
+        "10": "T",
+        "11": "T",
+        "12": "T",
+        "13": "L",
+        "14": "L",
+        "15": "T",
+        "16": "T",
+        "17": "T",
+        "18": "T",
+        "19": "L",
+        "20": "L",
+        "21": "T",
+        "22": "T",
+        "23": "T",
+        "24": "T",
+        "25": "L",
+        "26": "L",
+        "27": "T",
+        "28": "T",
+        "29": "T",
+        "30": "T",
+        "31": "T"
+      },
+      "E0000000-0000-0000-0000-000000000003": {
+        "1": "L",
+        "2": "L",
+        "3": "M",
+        "4": "M",
+        "5": "M",
+        "6": "M",
+        "7": "L",
+        "8": "L",
+        "9": "M",
+        "10": "M",
+        "11": "M",
+        "12": "M",
+        "13": "L",
+        "14": "L",
+        "15": "M",
+        "16": "M",
+        "17": "M",
+        "18": "M",
+        "19": "L",
+        "20": "L",
+        "21": "M",
+        "22": "M",
+        "23": "M",
+        "24": "M",
+        "25": "L",
+        "26": "L",
+        "27": "M",
+        "28": "M",
+        "29": "M",
+        "30": "M",
+        "31": "M"
+      },
+      "E0000000-0000-0000-0000-000000000004": {
+        "1": "L",
+        "2": "L",
+        "3": "T",
+        "4": "T",
+        "5": "T",
+        "6": "T",
+        "7": "L",
+        "8": "L",
+        "9": "T",
+        "10": "T",
+        "11": "T",
+        "12": "T",
+        "13": "L",
+        "14": "L",
+        "15": "T",
+        "16": "T",
+        "17": "T",
+        "18": "T",
+        "19": "L",
+        "20": "L",
+        "21": "T",
+        "22": "T",
+        "23": "T",
+        "24": "T",
+        "25": "L",
+        "26": "L",
+        "27": "T",
+        "28": "T",
+        "29": "T",
+        "30": "T",
+        "31": "T"
+      },
+      "E0000000-0000-0000-0000-000000000005": {
+        "1": "L",
+        "2": "L",
+        "3": "M",
+        "4": "M",
+        "5": "M",
+        "6": "M",
+        "7": "L",
+        "8": "L",
+        "9": "M",
+        "10": "M",
+        "11": "M",
+        "12": "M",
+        "13": "L",
+        "14": "L",
+        "15": "M",
+        "16": "M",
+        "17": "M",
+        "18": "M",
+        "19": "L",
+        "20": "L",
+        "21": "M",
+        "22": "M",
+        "23": "M",
+        "24": "M",
+        "25": "L",
+        "26": "L",
+        "27": "M",
+        "28": "M",
+        "29": "M",
+        "30": "M",
+        "31": "M"
+      }
+    }
+  },
+  "expected": {
+    "isValid": true,
+    "violations": [],
+    "softPenalty": 25,
+    "softPenaltyBreakdown": {
+      "weekend_off_missing": 25
+    }
+  }
+}

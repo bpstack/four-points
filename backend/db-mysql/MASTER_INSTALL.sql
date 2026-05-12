@@ -87,6 +87,21 @@ SOURCE aiven/16_backoffice.sql;
 SOURCE aiven/17_notifications.sql;
 
 -- ============================================
+-- PASO 18: USER AVATAR
+-- ============================================
+SOURCE aiven/18_user_avatar.sql;
+
+-- ============================================
+-- PASO 19: SCHEDULING
+-- ============================================
+SOURCE aiven/19_scheduling.sql;
+
+-- ============================================
+-- PASO 20: CHECKLIST OPERATIVO
+-- ============================================
+SOURCE aiven/20_checklist.sql;
+
+-- ============================================
 -- REACTIVAR CONFIGURACIONES
 -- ============================================
 SET FOREIGN_KEY_CHECKS = 1;

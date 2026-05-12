@@ -122,6 +122,7 @@ async function loadMessages(locale: Locale) {
     'booking',
     'notifications',
     'scheduling',
+    'checklist',
   ]
 
   const allMessages: Record<string, Record<string, unknown>> = {}

@@ -17,6 +17,7 @@ import { LiaParkingSolid } from 'react-icons/lia'
 import { GiOfficeChair } from 'react-icons/gi'
 import { CgDanger } from 'react-icons/cg'
 import { MdPointOfSale, MdSchedule } from 'react-icons/md'
+import { FiCheckSquare } from 'react-icons/fi'
 import { useState } from 'react'
 import { IoIosRestaurant } from 'react-icons/io'
 import { isAdminRole } from '@/app/lib/helpers/utils'
@@ -50,6 +51,10 @@ const cashierLinks: Omit<NavLink, 'icon'>[] = [
   { nameKey: 'hotelCashier', href: '/dashboard/cashier/hotel' },
   { nameKey: 'cashierReports', href: '/dashboard/cashier/reports' },
   { nameKey: 'cashierLogs', href: '/dashboard/cashier/logs' },
+]
+
+const checklistLinks: NavLink[] = [
+  { nameKey: 'checklist', href: '/dashboard/checklist', icon: FiCheckSquare },
 ]
 
 const profileLinks: NavLink[] = [
@@ -197,6 +202,12 @@ export default function NavLinks({ onClose, currentUserRole, collapsed = false }
           )}
         </div>
       </div>
+
+      {/* Separator */}
+      <div className="border-t border-gray-200 dark:border-gray-700" />
+
+      {/* Check List */}
+      <div className="flex flex-col gap-1">{checklistLinks.map((link) => renderLink(link))}</div>
 
       {/* Separator */}
       <div className="border-t border-gray-200 dark:border-gray-700" />

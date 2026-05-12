@@ -111,6 +111,8 @@ export async function getConfigMap(): Promise<SchedulingConfigMap> {
     // New validations with defaults from business rules
     minMonthlyLibre: parseInt(map['min_monthly_libre'] || '8'),
     maxMonthlyLibre: parseInt(map['max_monthly_libre'] || '12'),
+    prefMonthlyLibre: parseInt(map['pref_monthly_libre'] ||
+      String(Math.round((parseInt(map['min_monthly_libre'] || '8') + parseInt(map['max_monthly_libre'] || '12')) / 2))),
     maxConsecutiveWorkDays: parseInt(map['max_consecutive_work_days'] || '6'),
     minConsecutiveLibre: parseInt(map['min_consecutive_libre'] || '2'),
   }
@@ -319,9 +321,10 @@ export async function getMonthByYearMonth(
 }
 
 /**
- * Get the last N days of assignments from the previous month
- * Used for continuity in schedule generation (night blocks, shifts, etc.)
- * IMPORTANT: Only uses PUBLISHED months for continuity to ensure stable rotation
+ * Get the last N days of assignments from the previous month.
+ * Used for continuity in schedule generation (night blocks, shifts, cross-month transitions).
+ * Uses published OR draft months — draft months are intentional mid-planning context.
+ * If the previous month changes, the current month can simply be regenerated.
  */
 export async function getPreviousMonthEndAssignments(
   year: number,
@@ -342,17 +345,8 @@ export async function getPreviousMonthEndAssignments(
     return [] // No previous month exists
   }
 
-  // CRITICAL: Only use PUBLISHED months for continuity
-  // This ensures rotation continues from stable, approved schedules
-  if (prevMonthRecord.status !== 'published') {
-    console.log(
-      `[getPreviousMonthEndAssignments] Previous month ${prevYear}-${prevMonth} is ${prevMonthRecord.status}, not published - skipping continuity`
-    )
-    return []
-  }
-
   console.log(
-    `[getPreviousMonthEndAssignments] Using published month ${prevYear}-${prevMonth} for continuity`
+    `[getPreviousMonthEndAssignments] Using ${prevMonthRecord.status} month ${prevYear}-${prevMonth} for continuity`
   )
 
   // Get assignments for last N days of previous month
@@ -376,6 +370,63 @@ export async function getPreviousMonthEndAssignments(
     shiftCode: r.shiftCode,
     date: new Date(r.date),
   }))
+}
+
+/**
+ * Conteo de cada tipo de turno por empleado para el año indicado.
+ * Incluye meses publicados y en borrador (draft).
+ * Un único GROUP BY — muy eficiente incluso con muchos meses y empleados.
+ */
+export async function getShiftCountsByYear(year: number): Promise<
+  Array<{ employeeId: string; employeeName: string; shiftCode: string; count: number }>
+> {
+  const [rows] = await db.execute<RowDataPacket[]>(
+    `SELECT
+       sa.employee_id      AS employeeId,
+       u.username          AS employeeName,
+       sa.shift_code       AS shiftCode,
+       COUNT(*)            AS count
+     FROM scheduling_assignments sa
+     JOIN scheduling_months sm ON sa.month_id = sm.id
+     JOIN users u ON sa.employee_id = u.id
+     WHERE sm.year = ?
+       AND sm.status IN ('published', 'draft')
+     GROUP BY sa.employee_id, u.username, sa.shift_code
+     ORDER BY u.username, sa.shift_code`,
+    [year]
+  )
+  return rows.map((r) => ({
+    employeeId: r.employeeId as string,
+    employeeName: r.employeeName as string,
+    shiftCode: r.shiftCode as string,
+    count: Number(r.count),
+  }))
+}
+
+/**
+ * Total de noches (shift_code='N') por empleado en todos los meses PUBLICADOS
+ * excluyendo el mes indicado por monthId (el que se está generando).
+ * Usado por el solver para balancear noches con contexto histórico.
+ */
+export async function getNightHistoryForEmployees(
+  excludeMonthId: number
+): Promise<Record<string, number>> {
+  const [rows] = await db.execute<RowDataPacket[]>(
+    `SELECT a.employee_id AS employeeId, COUNT(*) AS nightCount
+     FROM scheduling_assignments a
+     JOIN scheduling_days d ON a.day_id = d.id
+     JOIN scheduling_months m ON d.month_id = m.id
+     WHERE m.status = 'published'
+       AND d.month_id != ?
+       AND a.shift_code = 'N'
+     GROUP BY a.employee_id`,
+    [excludeMonthId]
+  )
+  const result: Record<string, number> = {}
+  for (const row of rows) {
+    result[row.employeeId as string] = Number(row.nightCount)
+  }
+  return result
 }
 
 export async function createMonth(data: CreateMonthDTO): Promise<number> {
@@ -779,6 +830,82 @@ export async function deleteAllAssignmentsByMonth(monthId: number): Promise<void
   await db.execute('DELETE FROM scheduling_assignments WHERE month_id = ?', [monthId])
 }
 
+/** Borra las asignaciones no bloqueadas e inserta las nuevas en una sola transacción. */
+export async function applyGeneratedSchedule(
+  monthId: number,
+  toInsert: BulkAssignmentDTO[]
+): Promise<{ deleted: number; inserted: number }> {
+  const connection = await db.getConnection()
+  try {
+    await connection.beginTransaction()
+
+    const [delResult] = await connection.execute<ResultSetHeader>(
+      'DELETE FROM scheduling_assignments WHERE month_id = ? AND source_constraint_id IS NULL',
+      [monthId]
+    )
+
+    if (toInsert.length > 0) {
+      const values = toInsert.map((a) => [
+        monthId, a.day_id, a.employee_id, a.shift_code, a.source_constraint_id ?? null,
+      ])
+      const placeholders = values.map(() => '(?, ?, ?, ?, ?, NULL, NOW(), NOW())').join(', ')
+      await connection.query(
+        `INSERT INTO scheduling_assignments
+         (month_id, day_id, employee_id, shift_code, source_constraint_id, notes, created_at, updated_at)
+         VALUES ${placeholders}`,
+        values.flat()
+      )
+    }
+
+    await connection.commit()
+    return { deleted: delResult.affectedRows, inserted: toInsert.length }
+  } catch (err) {
+    await connection.rollback()
+    throw err
+  } finally {
+    connection.release()
+  }
+}
+
+// ============================================
+// SOLVER RUNS — historial de ejecuciones del solver CP-SAT
+// ============================================
+
+export interface SolverRunRecord {
+  monthId: number
+  generatedBy: string | null
+  status: 'ok' | 'infeasible' | 'error'
+  solveTimeMs: number | null
+  cpStatus: string | null
+  softPenalty: number | null
+  softPenaltyBreakdown: Record<string, number> | null
+  solverInput: unknown
+  solverMatrix: unknown | null
+  conflictingConstraints: unknown | null
+}
+
+export async function insertSolverRun(data: SolverRunRecord): Promise<number> {
+  const [result] = await db.execute<ResultSetHeader>(
+    `INSERT INTO scheduling_solver_runs
+     (month_id, generated_by, status, solve_time_ms, cp_status,
+      soft_penalty, soft_penalty_breakdown, solver_input, solver_matrix, conflicting_constraints)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [
+      data.monthId,
+      data.generatedBy,
+      data.status,
+      data.solveTimeMs,
+      data.cpStatus,
+      data.softPenalty,
+      data.softPenaltyBreakdown ? JSON.stringify(data.softPenaltyBreakdown) : null,
+      data.solverInput ? JSON.stringify(data.solverInput) : null,
+      data.solverMatrix ? JSON.stringify(data.solverMatrix) : null,
+      data.conflictingConstraints ? JSON.stringify(data.conflictingConstraints) : null,
+    ]
+  )
+  return result.insertId
+}
+
 export async function getAnnualLCountByEmployee(
   year: number
 ): Promise<{ employee_id: string; employee_name: string; libre_count: number }[]> {
@@ -960,7 +1087,6 @@ export async function getAllEmployeeRules(): Promise<SchedulingEmployeeRuleWithE
     `SELECT r.*, u.username as employee_name
      FROM scheduling_employee_rules r
      JOIN users u ON r.employee_id = u.id
-     WHERE r.is_active = 1
      ORDER BY u.username, r.priority DESC`
   )
   return rows

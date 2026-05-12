@@ -1256,7 +1256,18 @@ export async function deleteConstraint(req: Request, res: Response): Promise<voi
 
 export async function getAllEmployeeRules(_req: Request, res: Response): Promise<void> {
   try {
-    const rules = await repo.getAllEmployeeRules()
+    const rows = await repo.getAllEmployeeRules()
+    const rules = rows.map((r) => ({
+      id: r.id,
+      employeeId: r.employee_id,
+      employeeName: r.employee_name,
+      ruleType: r.rule_type,
+      ruleValue: r.rule_value,
+      priority: r.priority,
+      isActive: r.is_active === 1,
+      notes: r.notes,
+      createdAt: r.created_at,
+    }))
     res.json({ rules, total: rules.length })
   } catch (err) {
     console.error('Error getting employee rules:', err)
@@ -1829,6 +1840,46 @@ export async function calculateProportionalContract(req: Request, res: Response)
   } catch (err) {
     console.error('Error calculating proportional contract:', err)
     res.status(500).json({ error: 'Error al calcular valores proporcionales' })
+  }
+}
+
+// ============================================
+// SHIFT STATS
+// ============================================
+
+export async function getShiftStats(req: Request, res: Response): Promise<void> {
+  try {
+    const year = parseInt(req.query.year as string) || new Date().getFullYear()
+    if (isNaN(year) || year < 2020 || year > 2100) {
+      res.status(400).json({ error: 'Año inválido' })
+      return
+    }
+
+    const rows = await repo.getShiftCountsByYear(year)
+
+    // Pivot: group by employee, collect shift → count map
+    const empMap = new Map<string, { employeeId: string; employeeName: string; counts: Record<string, number> }>()
+    const codesSet = new Set<string>()
+
+    for (const row of rows) {
+      codesSet.add(row.shiftCode)
+      if (!empMap.has(row.employeeId)) {
+        empMap.set(row.employeeId, { employeeId: row.employeeId, employeeName: row.employeeName, counts: {} })
+      }
+      empMap.get(row.employeeId)!.counts[row.shiftCode] = row.count
+    }
+
+    const SHIFT_ORDER = ['M', 'T', 'N', 'PI', 'P', 'L', 'V', 'B', 'E', 'IT', 'FO', 'A']
+    const shiftCodes = SHIFT_ORDER.filter((c) => codesSet.has(c))
+
+    res.json({
+      year,
+      shiftCodes,
+      employees: [...empMap.values()].sort((a, b) => a.employeeName.localeCompare(b.employeeName)),
+    })
+  } catch (err) {
+    console.error('Error getting shift stats:', err)
+    res.status(500).json({ error: 'Error al obtener contabilidad de turnos' })
   }
 }
 

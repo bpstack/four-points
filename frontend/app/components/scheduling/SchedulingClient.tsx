@@ -35,6 +35,8 @@ import {
   FiRefreshCw,
   FiRotateCcw,
   FiTrash2,
+  FiCpu,
+  FiAlertTriangle,
 } from 'react-icons/fi'
 
 // Cell selection state for editing
@@ -46,6 +48,28 @@ interface SelectedCell {
   assignmentId: number | null
   currentShiftCode: string | null
   position: { x: number; y: number }
+}
+
+// Mapa de claves camelCase (vienen del solver) a snake_case (formato BD)
+const CONFIG_KEY_MAP: Record<string, string> = {
+  minMorningStaff: 'min_morning_staff',
+  prefMorningStaff: 'pref_morning_staff',
+  maxMorningStaff: 'max_morning_staff',
+  minAfternoonStaff: 'min_afternoon_staff',
+  prefAfternoonStaff: 'pref_afternoon_staff',
+  maxAfternoonStaff: 'max_afternoon_staff',
+  minNightStaff: 'min_night_staff',
+  maxNightStaff: 'max_night_staff',
+  maxWeeklyShifts: 'max_weekly_shifts',
+  prefWeeklyShifts: 'pref_weekly_shifts',
+  minRestHours: 'min_rest_hours',
+  minNightBlock: 'min_night_block',
+  maxNightBlock: 'max_night_block',
+  prefNightBlock: 'pref_night_block',
+  minMonthlyLibre: 'min_monthly_libre',
+  maxMonthlyLibre: 'max_monthly_libre',
+  prefMonthlyLibre: 'pref_monthly_libre',
+  maxConsecutiveWorkDays: 'max_consecutive_work_days',
 }
 
 export function SchedulingClient() {
@@ -77,6 +101,25 @@ export function SchedulingClient() {
   } | null>(null)
 
   // Confirm dialog state
+  const [generateConfirmOpen, setGenerateConfirmOpen] = useState(false)
+  const [infeasibleModal, setInfeasibleModal] = useState<{
+    open: boolean
+    constraints: { constraintName: string; humanExplanation: string; employeeIds?: string[] }[]
+    relaxations: {
+      constraint: string
+      currentValue: number
+      proposedValue: number
+      impact: string
+    }[]
+  }>({ open: false, constraints: [], relaxations: [] })
+
+  const [relaxationConfirm, setRelaxationConfirm] = useState<{
+    constraint: string
+    currentValue: number
+    proposedValue: number
+    impact: string
+  } | null>(null)
+
   const [confirmDialog, setConfirmDialog] = useState<{
     open: boolean
     type: 'reset' | 'delete' | null
@@ -255,6 +298,52 @@ export function SchedulingClient() {
     },
     [createMonthMutation, selectedYear]
   )
+
+  // Generate schedule mutation
+  const generateMutation = useMutation({
+    mutationFn: (monthId: number) => schedulingApi.generateSchedule(monthId),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: schedulingKeys.month(selectedMonthId!) })
+      toast.success(
+        `Horario generado: ${data.assignmentsCreated} turnos en ${data.stats.solveTimeMs}ms`
+      )
+    },
+    onError: (err: any) => {
+      if (err?.status === 422 && err?.data?.conflictingConstraints) {
+        setInfeasibleModal({
+          open: true,
+          constraints: err.data.conflictingConstraints,
+          relaxations: err.data.suggestedRelaxations ?? [],
+        })
+      } else {
+        toast.error(err?.data?.error ?? 'Error generando el horario')
+      }
+    },
+  })
+
+  const handleGenerate = useCallback(() => {
+    if (selectedMonthId) setGenerateConfirmOpen(true)
+  }, [selectedMonthId])
+
+  // Aplicar relajación sugerida y reintentar generación
+  const applyRelaxationMutation = useMutation({
+    mutationFn: async (params: { constraint: string; proposedValue: number; monthId: number }) => {
+      const dbKey = CONFIG_KEY_MAP[params.constraint] ?? params.constraint
+      await schedulingApi.updateConfig(dbKey, String(params.proposedValue))
+      return params.monthId
+    },
+    onSuccess: (monthId) => {
+      queryClient.invalidateQueries({ queryKey: ['scheduling', 'config'] })
+      setInfeasibleModal({ open: false, constraints: [], relaxations: [] })
+      setRelaxationConfirm(null)
+      toast.success('Configuración relajada. Reintentando generación…')
+      generateMutation.mutate(monthId)
+    },
+    onError: (err: any) => {
+      toast.error(err?.data?.error ?? 'Error aplicando la relajación')
+      setRelaxationConfirm(null)
+    },
+  })
 
   // Reset month mutation
   const resetMutation = useMutation({
@@ -496,6 +585,14 @@ export function SchedulingClient() {
                         <span className="sm:hidden">{tActions('manageHolidaysShort')}</span>
                       </button>
                       <button
+                        onClick={handleGenerate}
+                        disabled={generateMutation.isPending}
+                        className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-purple-600 dark:bg-purple-700 text-white text-xs font-medium rounded-md hover:bg-purple-700 dark:hover:bg-purple-800 transition-colors disabled:opacity-50 whitespace-nowrap"
+                      >
+                        <FiCpu className="w-3.5 h-3.5" />
+                        {generateMutation.isPending ? 'Generando...' : 'Generar horario'}
+                      </button>
+                      <button
                         onClick={handleReset}
                         disabled={resetMutation.isPending}
                         className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-orange-700 dark:text-orange-400 text-xs font-medium rounded-md border border-orange-300 dark:border-orange-700 hover:bg-orange-50 dark:hover:bg-orange-900/20 transition-colors disabled:opacity-50 whitespace-nowrap"
@@ -632,6 +729,115 @@ export function SchedulingClient() {
         )}
 
         {/* Confirm dialogs */}
+        {/* Modal confirmación: Generar horario */}
+        <ConfirmDialog
+          isOpen={generateConfirmOpen}
+          onClose={() => setGenerateConfirmOpen(false)}
+          onConfirm={() => {
+            setGenerateConfirmOpen(false)
+            generateMutation.mutate(selectedMonthId!)
+          }}
+          title="Generar horario automático"
+          message="El solver calculará un horario completo para este mes respetando las reglas de cobertura y descanso. Las celdas bloqueadas (vacaciones aprobadas, etc.) no se modificarán."
+          confirmText="Generar"
+          variant="warning"
+          isLoading={generateMutation.isPending}
+        />
+
+        {/* Modal INFEASIBLE: sin solución posible */}
+        {infeasibleModal.open && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+            <div className="bg-white dark:bg-gray-900 rounded-lg shadow-xl max-w-2xl w-full p-6 space-y-4 max-h-[90vh] overflow-y-auto">
+              <div className="flex items-center gap-3">
+                <FiAlertTriangle className="w-6 h-6 text-red-500 flex-shrink-0" />
+                <h2 className="text-base font-semibold text-gray-900 dark:text-white">
+                  No se puede generar el horario
+                </h2>
+              </div>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Las reglas actuales hacen imposible completar el mes. Causas detectadas:
+              </p>
+              <ul className="space-y-2">
+                {infeasibleModal.constraints.map((c, i) => (
+                  <li
+                    key={i}
+                    className="text-sm text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/20 rounded px-3 py-2"
+                  >
+                    <div className="font-medium mb-0.5 text-xs text-red-600 dark:text-red-500">
+                      {c.constraintName}
+                    </div>
+                    <div>{c.humanExplanation}</div>
+                  </li>
+                ))}
+              </ul>
+              {infeasibleModal.relaxations.length > 0 && (
+                <div>
+                  <p className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Relajaciones sugeridas (aplica una para reintentar):
+                  </p>
+                  <ul className="space-y-2">
+                    {infeasibleModal.relaxations.map((r, i) => (
+                      <li
+                        key={i}
+                        className="flex items-center justify-between gap-3 text-xs bg-gray-50 dark:bg-gray-800 rounded px-3 py-2"
+                      >
+                        <div className="flex-1 min-w-0">
+                          <div className="text-gray-900 dark:text-gray-100">
+                            <strong>{r.constraint}</strong>: {r.currentValue} → {r.proposedValue}
+                          </div>
+                          <div className="text-gray-600 dark:text-gray-400 mt-0.5">{r.impact}</div>
+                        </div>
+                        <button
+                          onClick={() => setRelaxationConfirm(r)}
+                          disabled={applyRelaxationMutation.isPending}
+                          className="flex-shrink-0 px-3 py-1.5 text-xs font-medium bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        >
+                          Aplicar
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              <div className="flex justify-end pt-2">
+                <button
+                  onClick={() =>
+                    setInfeasibleModal({ open: false, constraints: [], relaxations: [] })
+                  }
+                  className="px-4 py-2 text-sm font-medium bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                >
+                  Cerrar
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Confirm dialog para aplicar relajación */}
+        <ConfirmDialog
+          isOpen={relaxationConfirm !== null}
+          onClose={() => setRelaxationConfirm(null)}
+          onConfirm={() => {
+            if (relaxationConfirm && selectedMonthId) {
+              applyRelaxationMutation.mutate({
+                constraint: relaxationConfirm.constraint,
+                proposedValue: relaxationConfirm.proposedValue,
+                monthId: selectedMonthId,
+              })
+            }
+          }}
+          title="Aplicar relajación"
+          message={
+            relaxationConfirm
+              ? `¿Cambiar "${relaxationConfirm.constraint}" de ${relaxationConfirm.currentValue} a ${relaxationConfirm.proposedValue} y reintentar generación? Este cambio afecta la configuración global del hotel.`
+              : ''
+          }
+          confirmText="Aplicar y reintentar"
+          cancelText="Cancelar"
+          variant="warning"
+          isLoading={applyRelaxationMutation.isPending}
+        />
+
         <ConfirmDialog
           isOpen={confirmDialog.open && confirmDialog.type === 'reset'}
           onClose={() => setConfirmDialog({ open: false, type: null })}

@@ -7,6 +7,7 @@ import { PORT } from './config/config.js'
 import { logServerInfo } from './config/startup-logger.js'
 
 import { CronService } from './services/cron/cron-service.js'
+import { warmupSolver } from './services/scheduling/solver-client.js'
 import authRoutes from './routes/auth/auth-routes.js'
 import userRoutes from './routes/auth/user-routes.js'
 import logbookRoutes from './routes/logbook/logbook-routes.js'
@@ -27,6 +28,7 @@ import backofficeRoutes from './routes/backoffice/backoffice-routes.js'
 import schedulingRoutes from './routes/scheduling/scheduling-routes.js'
 import searchRoutes from './routes/search/search-routes.js'
 import demoActivityRoutes from './routes/demo/demo-activity-routes.js'
+import checklistRoutes from './routes/checklist/checklist-routes.js'
 
 // ============================================
 // EXPRESS APP
@@ -158,6 +160,7 @@ app.use('/api/search', searchRoutes)
 
 // Rutas de actividad demo (solo admin)
 app.use('/api/demo-activity', demoActivityRoutes)
+app.use('/api/checklists', checklistRoutes)
 
 // ========================================
 // MANEJO DE ERRORES
@@ -190,4 +193,5 @@ app.use((err: HttpError, _req: Request, res: Response, _next: NextFunction) => {
 app.listen(PORT, async () => {
   logServerInfo(PORT)
   CronService.start()
+  warmupSolver()
 })

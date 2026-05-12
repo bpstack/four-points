@@ -29,6 +29,7 @@ node_modules/
 .DS_Store
 Thumbs.db
 Desktop.ini
+~*
 
 # --------------------------------------------
 # Logs
@@ -48,15 +49,23 @@ build/
 .cache/
 
 # --------------------------------------------
+# Python (scheduling solver)
+# --------------------------------------------
+backend/scheduling-solver/venv/
+**/__pycache__/
+*.pyc
+
+# --------------------------------------------
 # Claude Code Templates & Skills
 # --------------------------------------------
 .claude/
+**/skills-lock.json
 
 # --------------------------------------------
 # Documentation (local only)
 # --------------------------------------------
 **/docs/
-CLAUDE.md
+
 
 # --------------------------------------------
 # Local Scripts
@@ -67,10 +76,7 @@ sync-public.ps1
 # Miscellaneous
 # --------------------------------------------
 Sin título.png
-todo.md
-roadmap.md
-roadmap-schedule.md
 
 # Project documentation (private)
-ROADMAP.md
-TODO.md
+
+**schedule-process.md

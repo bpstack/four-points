@@ -539,3 +539,15 @@ export interface AnnualTotalsResponse {
   totalMesesPublicados: number
   fechaCalculo: string
 }
+
+export interface ShiftStatsEmployee {
+  employeeId: string
+  employeeName: string
+  counts: Record<string, number>
+}
+
+export interface ShiftStatsResponse {
+  year: number
+  shiftCodes: string[]
+  employees: ShiftStatsEmployee[]
+}

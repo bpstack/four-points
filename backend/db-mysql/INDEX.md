@@ -78,6 +78,12 @@ db-mysql/
 | 18 | `18_user_avatar.sql` | Avatares de usuario | `user_avatars` |
 | 19 | `19_scheduling.sql` | Programación de turnos | `scheduling_months`, `scheduling_assignments`, `scheduling_config`, `scheduling_employee_rules`, `scheduling_constraints`, etc. |
 
+### Migraciones incrementales (`scripts/`)
+
+| Fecha | Archivo | Descripción | Estado |
+|---|---|---|---|
+| 2026-04-25 | `20260425_create_scheduling_employee_requests.sql` | Nueva tabla `scheduling_employee_requests` — peticiones de turno de empleados (Fase 1 del solver). Referencia FK a `users(id)`. | ✅ local · ⏳ Aiven pendiente |
+
 ### Verificación (99)
 
 | # | Archivo | Descripción |

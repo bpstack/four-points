@@ -26,7 +26,8 @@
     "hotelCashier": "Caja Hotel",
     "cashierReports": "Reportes de Caja",
     "cashierLogs": "Registros de Caja",
-    "cashierDashboard": "Resumen"
+    "cashierDashboard": "Resumen",
+    "checklist": "Check List"
   },
   "actions": {
     "save": "Guardar",

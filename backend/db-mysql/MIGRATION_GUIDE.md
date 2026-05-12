@@ -40,6 +40,7 @@ mysql -u root -p < 02_core_tables.sql
 | 17 | `17_notifications.sql` | Notificaciones |
 | 18 | `18_user_avatar.sql` | Avatares de usuario |
 | 19 | `19_scheduling.sql` | Programación de turnos |
+| 20 | `20_checklist.sql` | Checklists operativos (runs, step_state, event_log, config) |
 | 99 | `99_verification.sql` | Verificación de instalación |
 
 ---

@@ -63,11 +63,13 @@ export class ConstraintRegistry {
 
   /**
    * Check all enabled constraints
-   * @returns Combined result with all violations
+   * @returns Combined result with all violations and aggregated soft penalty
    */
   checkAll(context: GeneratorContext): ConstraintResult {
     const allViolations: GenerationWarning[] = []
     let allSatisfied = true
+    let totalSoftPenalty = 0
+    const totalBreakdown: Record<string, number> = {}
 
     for (const constraint of this.getEnabled()) {
       const result = constraint.check(context)
@@ -75,11 +77,19 @@ export class ConstraintRegistry {
         allSatisfied = false
       }
       allViolations.push(...result.violations)
+      if (result.softPenalty) {
+        totalSoftPenalty += result.softPenalty
+        for (const [key, val] of Object.entries(result.softPenaltyBreakdown ?? {})) {
+          totalBreakdown[key] = (totalBreakdown[key] ?? 0) + val
+        }
+      }
     }
 
     return {
       satisfied: allSatisfied,
       violations: allViolations,
+      softPenalty: totalSoftPenalty,
+      softPenaltyBreakdown: totalBreakdown,
     }
   }
 

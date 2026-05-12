@@ -37,82 +37,82 @@ A comprehensive, full-stack **Hotel Management System** designed for real-world 
 
 ### Core Technologies
 
-| Technology | Version | Purpose |
-| ---------- | ------- | ------- |
-| **Next.js** | 16.0.8 | React framework (App Router + Turbopack) |
-| **React** | 19 | UI library (latest) |
-| **TypeScript** | 5.7.3 | Type-safe development |
-| **TailwindCSS** | 3.4.17 | Utility-first styling |
-| **NextUI** | 2.6.11 | Component library (Tailwind-based) |
-| **HeadlessUI** | 2.2.9 | Unstyled accessible components |
-| **Heroicons** | 2.2.0 | SVG icon library |
+| Technology      | Version | Purpose                                  |
+| --------------- | ------- | ---------------------------------------- |
+| **Next.js**     | 16.0.8  | React framework (App Router + Turbopack) |
+| **React**       | 19      | UI library (latest)                      |
+| **TypeScript**  | 5.7.3   | Type-safe development                    |
+| **TailwindCSS** | 3.4.17  | Utility-first styling                    |
+| **NextUI**      | 2.6.11  | Component library (Tailwind-based)       |
+| **HeadlessUI**  | 2.2.9   | Unstyled accessible components           |
+| **Heroicons**   | 2.2.0   | SVG icon library                         |
 
 ### State & Data Management
 
-| Technology | Version | Purpose |
-| ---------- | ------- | ------- |
-| **Zustand** | 5.0.8 | Lightweight state management |
-| **TanStack Query** | 5.90.11 | Server state, caching & mutations |
-| **React Hook Form** | 7.66.0 | Form handling |
-| **Zod** | 3.25.17 | Schema validation |
+| Technology          | Version | Purpose                           |
+| ------------------- | ------- | --------------------------------- |
+| **Zustand**         | 5.0.8   | Lightweight state management      |
+| **TanStack Query**  | 5.90.11 | Server state, caching & mutations |
+| **React Hook Form** | 7.66.0  | Form handling                     |
+| **Zod**             | 3.25.17 | Schema validation                 |
 
 ### UI & UX
 
-| Technology | Version | Purpose |
-| ---------- | ------- | ------- |
-| **Framer Motion** | 12.23.22 | Smooth animations & transitions |
-| **React Hot Toast** | 2.6.0 | Toast notifications |
-| **React Day Picker** | 9.11.1 | Date selection components |
-| **Recharts** | 3.5.1 | Data visualization & charts |
+| Technology           | Version  | Purpose                         |
+| -------------------- | -------- | ------------------------------- |
+| **Framer Motion**    | 12.23.22 | Smooth animations & transitions |
+| **React Hot Toast**  | 2.6.0    | Toast notifications             |
+| **React Day Picker** | 9.11.1   | Date selection components       |
+| **Recharts**         | 3.5.1    | Data visualization & charts     |
 
 ### Internationalization & Themes
 
-| Technology | Version | Purpose |
-| ---------- | ------- | ------- |
-| **next-intl** | 4.6.1 | Internationalization (EN/ES) |
-| **next-themes** | 0.4.6 | Dark/Light mode with system detection |
+| Technology      | Version | Purpose                               |
+| --------------- | ------- | ------------------------------------- |
+| **next-intl**   | 4.6.1   | Internationalization (EN/ES)          |
+| **next-themes** | 0.4.6   | Dark/Light mode with system detection |
 
 ### Documents & Export
 
-| Technology | Version | Purpose |
-| ---------- | ------- | ------- |
-| **xlsx (SheetJS)** | 0.18.5 | Excel file generation & export |
-| **pdf-lib** | 1.17.1 | PDF document generation |
-| **pdfjs-dist** | 5.4.449 | PDF viewing & rendering |
+| Technology         | Version | Purpose                        |
+| ------------------ | ------- | ------------------------------ |
+| **xlsx (SheetJS)** | 0.18.5  | Excel file generation & export |
+| **pdf-lib**        | 1.17.1  | PDF document generation        |
+| **pdfjs-dist**     | 5.4.449 | PDF viewing & rendering        |
 
 ### Utilities
 
-| Technology | Version | Purpose |
-| ---------- | ------- | ------- |
-| **date-fns** | 4.1.0 | Date manipulation utilities |
-| **clsx** | 2.1.1 | Conditional class utilities |
-| **tailwind-merge** | 3.3.1 | Tailwind class merging |
-| **use-debounce** | 10.0.4 | Input debouncing |
-| **uuid** | 13.0.0 | Unique ID generation |
-| **js-cookie** | 3.0.5 | Cookie management |
-| **react-icons** | 5.5.0 | Icon library (multiple sets) |
+| Technology         | Version | Purpose                      |
+| ------------------ | ------- | ---------------------------- |
+| **date-fns**       | 4.1.0   | Date manipulation utilities  |
+| **clsx**           | 2.1.1   | Conditional class utilities  |
+| **tailwind-merge** | 3.3.1   | Tailwind class merging       |
+| **use-debounce**   | 10.0.4  | Input debouncing             |
+| **uuid**           | 13.0.0  | Unique ID generation         |
+| **js-cookie**      | 3.0.5   | Cookie management            |
+| **react-icons**    | 5.5.0   | Icon library (multiple sets) |
 
 ### Analytics & SEO
 
-| Technology | Version | Purpose |
-| ---------- | ------- | ------- |
-| **@vercel/analytics** | 1.6.1 | Vercel Analytics |
+| Technology            | Version | Purpose          |
+| --------------------- | ------- | ---------------- |
+| **@vercel/analytics** | 1.6.1   | Vercel Analytics |
 
 ### Authentication
 
-| Technology | Version | Purpose |
-| ---------- | ------- | ------- |
-| **bcrypt** | 5.1.1 | Password hashing (client-side) |
-| **next-auth** | 5.0.0-beta.25 | Authentication (optional) |
+| Technology    | Version       | Purpose                        |
+| ------------- | ------------- | ------------------------------ |
+| **bcrypt**    | 5.1.1         | Password hashing (client-side) |
+| **next-auth** | 5.0.0-beta.25 | Authentication (optional)      |
 
 ### Dev Dependencies
 
-| Tool | Version | Purpose |
-| ---- | ------- | ------- |
-| **ESLint** | 8.57.1 | Code linting |
-| **Prettier** | 3.6.2 | Code formatting |
-| **TypeScript** | 5.7.3 | Type checking |
-| **@types/** | Various | TypeScript definitions |
+| Tool           | Version | Purpose                |
+| -------------- | ------- | ---------------------- |
+| **ESLint**     | 8.57.1  | Code linting           |
+| **Prettier**   | 3.6.2   | Code formatting        |
+| **TypeScript** | 5.7.3   | Type checking          |
+| **@types/**    | Various | TypeScript definitions |
 
 ---
 
@@ -428,54 +428,54 @@ frontend/
 
 ### Dashboard Components
 
-| Component | File | Purpose |
-| --------- | ---- | ------- |
-| `DashboardHeader` | dashboard/DashboardHeader.tsx | Header with search and profile |
-| `GlobalStatusGrid` | dashboard/GlobalStatusGrid.tsx | KPI cards grid |
-| `QuickActionsCard` | dashboard/QuickActionsCard.tsx | Quick action buttons |
-| `RecentActivityCard` | dashboard/RecentActivityCard.tsx | Activity feed |
-| `ImportantLogbooksCard` | dashboard/ImportantLogbooksCard.tsx | Critical logbooks |
+| Component               | File                                | Purpose                        |
+| ----------------------- | ----------------------------------- | ------------------------------ |
+| `DashboardHeader`       | dashboard/DashboardHeader.tsx       | Header with search and profile |
+| `GlobalStatusGrid`      | dashboard/GlobalStatusGrid.tsx      | KPI cards grid                 |
+| `QuickActionsCard`      | dashboard/QuickActionsCard.tsx      | Quick action buttons           |
+| `RecentActivityCard`    | dashboard/RecentActivityCard.tsx    | Activity feed                  |
+| `ImportantLogbooksCard` | dashboard/ImportantLogbooksCard.tsx | Critical logbooks              |
 
 ### Parking Components
 
-| Component | File | Purpose |
-| --------- | ---- | ------- |
-| `ParkingDashboardClient` | dashboard/parking/components/ | Main parking dashboard |
-| `ParkingStatusClient` | dashboard/parking/status/components/ | Status view |
-| `ParkingTable` | dashboard/parking/status/components/ | Spaces table |
-| `CheckInModal` | modals/ | Check-in modal |
-| `CheckOutModal` | modals/ | Check-out modal |
-| `VehicleSearchModal` | VehicleSearchModal.tsx | Search vehicle |
+| Component                | File                                 | Purpose                |
+| ------------------------ | ------------------------------------ | ---------------------- |
+| `ParkingDashboardClient` | dashboard/parking/components/        | Main parking dashboard |
+| `ParkingStatusClient`    | dashboard/parking/status/components/ | Status view            |
+| `ParkingTable`           | dashboard/parking/status/components/ | Spaces table           |
+| `CheckInModal`           | modals/                              | Check-in modal         |
+| `CheckOutModal`          | modals/                              | Check-out modal        |
+| `VehicleSearchModal`     | VehicleSearchModal.tsx               | Search vehicle         |
 
 ### Cashier Components
 
-| Component | File | Purpose |
-| --------- | ---- | ------- |
-| `CloseShiftModal` | CloseShiftModal.tsx | Close shift dialog |
-| `DenominationForm` | DenominationForm.tsx | Currency input |
-| `ShiftTabs` | ShiftTabs.tsx | Shift navigation |
+| Component           | File                  | Purpose               |
+| ------------------- | --------------------- | --------------------- |
+| `CloseShiftModal`   | CloseShiftModal.tsx   | Close shift dialog    |
+| `DenominationForm`  | DenominationForm.tsx  | Currency input        |
+| `ShiftTabs`         | ShiftTabs.tsx         | Shift navigation      |
 | `ShiftUsersManager` | ShiftUsersManager.tsx | User shift assignment |
 
 ### Group Components
 
-| Component | File | Purpose |
-| --------- | ---- | ------- |
+| Component           | File                         | Purpose           |
+| ------------------- | ---------------------------- | ----------------- |
 | `GroupDetailClient` | groups/GroupDetailClient.tsx | Group detail view |
-| `GroupsListClient` | groups/GroupsListClient.tsx | Groups list |
-| `ContactCard` | groups/cards/ | Contact info |
-| `PaymentCard` | groups/cards/ | Payment tracking |
-| `RoomCard` | groups/cards/ | Room assignment |
+| `GroupsListClient`  | groups/GroupsListClient.tsx  | Groups list       |
+| `ContactCard`       | groups/cards/                | Contact info      |
+| `PaymentCard`       | groups/cards/                | Payment tracking  |
+| `RoomCard`          | groups/cards/                | Room assignment   |
 
 ### UI Components
 
-| Component | File | Purpose |
-| --------- | ---- | ------- |
-| `SlidePanel` | panels/SlidePanel.tsx | Slide-out panel |
-| `CenterModal` | panels/CenterModal.tsx | Modal dialog |
-| `DatePickerInput` | calendar/DatePickerInput.tsx | Date selection |
-| `HorizontalDatePicker` | calendar/ | Date range picker |
-| `ModuleError` | errors/ModuleError.tsx | Error boundary |
-| `SkeletonLoader` | skeletons.tsx | Loading states |
+| Component              | File                         | Purpose           |
+| ---------------------- | ---------------------------- | ----------------- |
+| `SlidePanel`           | panels/SlidePanel.tsx        | Slide-out panel   |
+| `CenterModal`          | panels/CenterModal.tsx       | Modal dialog      |
+| `DatePickerInput`      | calendar/DatePickerInput.tsx | Date selection    |
+| `HorizontalDatePicker` | calendar/                    | Date range picker |
+| `ModuleError`          | errors/ModuleError.tsx       | Error boundary    |
+| `SkeletonLoader`       | skeletons.tsx                | Loading states    |
 
 ---
 
@@ -519,23 +519,23 @@ interface FetchOptions extends RequestInit {
 
 ### Methods
 
-| Method | Purpose |
-| ------- | ------- |
-| `apiClient.get<T>()` | GET request |
-| `apiClient.post<T>()` | POST request |
-| `apiClient.patch<T>()` | PATCH request |
-| `apiClient.put<T>()` | PUT request |
-| `apiClient.delete<T>()` | DELETE request |
-| `apiClient.postFormData<T>()` | File upload |
-| `apiClient.getBlob()` | Download file |
+| Method                        | Purpose        |
+| ----------------------------- | -------------- |
+| `apiClient.get<T>()`          | GET request    |
+| `apiClient.post<T>()`         | POST request   |
+| `apiClient.patch<T>()`        | PATCH request  |
+| `apiClient.put<T>()`          | PUT request    |
+| `apiClient.delete<T>()`       | DELETE request |
+| `apiClient.postFormData<T>()` | File upload    |
+| `apiClient.getBlob()`         | Download file  |
 
 ### Error Handling
 
 ```typescript
 class ApiError extends Error {
-  demo: boolean      // Is demo mode restriction
-  status: number     // HTTP status
-  code?: string      // Backend error code for i18n
+  demo: boolean // Is demo mode restriction
+  status: number // HTTP status
+  code?: string // Backend error code for i18n
 }
 
 // Demo errors show toast notification
@@ -548,16 +548,16 @@ class ApiError extends Error {
 
 ### Server State (TanStack Query)
 
-| Module | Hook/Query | Purpose |
-| ------ | ---------- | ------- |
-| **Activity** | `useActivity()` | Dashboard feed |
-| **Parking** | `useParkingSpaces()` | Parking data |
-| **Groups** | `useGroups()` | Group reservations |
-| **Logbooks** | `useLogbooks()` | Shift notes |
-| **Cashier** | `useCashierShifts()` | Shift data |
-| **Maintenance** | `useMaintenanceOrders()` | Work orders |
-| **Notifications** | `useNotifications()` | Alert system |
-| **Backoffice** | `useInvoices()` | Invoice management |
+| Module            | Hook/Query               | Purpose            |
+| ----------------- | ------------------------ | ------------------ |
+| **Activity**      | `useActivity()`          | Dashboard feed     |
+| **Parking**       | `useParkingSpaces()`     | Parking data       |
+| **Groups**        | `useGroups()`            | Group reservations |
+| **Logbooks**      | `useLogbooks()`          | Shift notes        |
+| **Cashier**       | `useCashierShifts()`     | Shift data         |
+| **Maintenance**   | `useMaintenanceOrders()` | Work orders        |
+| **Notifications** | `useNotifications()`     | Alert system       |
+| **Backoffice**    | `useInvoices()`          | Invoice management |
 
 ### Client State (Zustand)
 
@@ -607,33 +607,33 @@ interface NotificationStore {
 
 ### Supported Languages
 
-| Language | Code | Namespace Files |
-| -------- | ---- | --------------- |
-| **English** | en | 19 files |
-| **Spanish** | es | 19 files |
+| Language    | Code | Namespace Files |
+| ----------- | ---- | --------------- |
+| **English** | en   | 19 files        |
+| **Spanish** | es   | 19 files        |
 
 ### Translation Namespaces
 
-| Namespace | Module |
-| --------- | ------ |
-| `auth` | Authentication |
-| `cashier` | Cashier module |
-| `conciliation` | Conciliation |
-| `dashboard` | Dashboard |
-| `errors` | Error messages |
-| `groups` | Groups/Reservations |
-| `logbook` | Logbooks |
-| `maintenance` | Maintenance |
-| `messages` | Messaging |
-| `notifications` | Notifications |
-| `parking` | Parking |
-| `profile` | User profile |
-| `common` | Shared strings |
-| `validation` | Form validation |
-| `backoffice` | Backoffice |
-| `blacklist` | Blacklist |
-| `booking` | Booking |
-| `restaurant` | Restaurant |
+| Namespace       | Module              |
+| --------------- | ------------------- |
+| `auth`          | Authentication      |
+| `cashier`       | Cashier module      |
+| `conciliation`  | Conciliation        |
+| `dashboard`     | Dashboard           |
+| `errors`        | Error messages      |
+| `groups`        | Groups/Reservations |
+| `logbook`       | Logbooks            |
+| `maintenance`   | Maintenance         |
+| `messages`      | Messaging           |
+| `notifications` | Notifications       |
+| `parking`       | Parking             |
+| `profile`       | User profile        |
+| `common`        | Shared strings      |
+| `validation`    | Form validation     |
+| `backoffice`    | Backoffice          |
+| `blacklist`     | Blacklist           |
+| `booking`       | Booking             |
+| `restaurant`    | Restaurant          |
 
 ### Usage
 
@@ -661,20 +661,20 @@ export default async function Page() {
 
 ### Core Modules
 
-| Module | Description |
-| ------ | ----------- |
+| Module             | Description                                                                                                           |
+| ------------------ | --------------------------------------------------------------------------------------------------------------------- |
 | **Authentication** | JWT auth with access/refresh tokens, role-based access (admin, receptionist, maintenance, group-admin), avatar upload |
-| **Dashboard** | KPIs, quick actions, activity feed, important alerts |
-| **Groups** | Hotel group reservations with contacts, rooms, payments tracking, status workflow, complete audit history |
-| **Parking** | Multi-level parking management, bookings with unique codes, check-in/out, rates, analytics |
-| **Logbooks** | Digital shift notes with priority levels, comments, read tracking, department organization |
-| **Cashier** | Daily cash management with 4 shifts, denomination counting, electronic payments, vouchers, daily reports |
-| **Maintenance** | Work order tracking with custom IDs, image uploads, status workflow, assignment to staff/contractors |
-| **Blacklist** | Guest incident records with severity levels, document verification, image gallery |
-| **Conciliation** | Daily room count reconciliation between Reception and Housekeeping |
-| **Backoffice** | Invoice & supplier management with PDF uploads, validation workflow, monthly summaries |
-| **Messaging** | Internal communication system with direct messages and group chats |
-| **Notifications** | Multi-module alert system with priority levels, scheduled delivery, email integration |
+| **Dashboard**      | KPIs, quick actions, activity feed, important alerts                                                                  |
+| **Groups**         | Hotel group reservations with contacts, rooms, payments tracking, status workflow, complete audit history             |
+| **Parking**        | Multi-level parking management, bookings with unique codes, check-in/out, rates, analytics                            |
+| **Logbooks**       | Digital shift notes with priority levels, comments, read tracking, department organization                            |
+| **Cashier**        | Daily cash management with 4 shifts, denomination counting, electronic payments, vouchers, daily reports              |
+| **Maintenance**    | Work order tracking with custom IDs, image uploads, status workflow, assignment to staff/contractors                  |
+| **Blacklist**      | Guest incident records with severity levels, document verification, image gallery                                     |
+| **Conciliation**   | Daily room count reconciliation between Reception and Housekeeping                                                    |
+| **Backoffice**     | Invoice & supplier management with PDF uploads, validation workflow, monthly summaries                                |
+| **Messaging**      | Internal communication system with direct messages and group chats                                                    |
+| **Notifications**  | Multi-module alert system with priority levels, scheduled delivery, email integration                                 |
 
 ### Schedule Module (In Development)
 
@@ -684,14 +684,14 @@ Automated staff scheduling system featuring a **hybrid generation engine** that 
 
 ### Special Features
 
-| Feature | Description |
-| ------- | ----------- |
+| Feature                  | Description                                                     |
+| ------------------------ | --------------------------------------------------------------- |
 | **Internationalization** | Full English and Spanish support with 19 translation namespaces |
-| **Dark/Light Mode** | Complete theme support with system preference detection |
-| **Role-Based Access** | 4 roles with granular permissions per module |
-| **Real-time Updates** | Live notifications, unread counters, activity feeds |
-| **Responsive Design** | Mobile-first approach, works on all devices |
-| **Demo Mode** | Restricted operations for public deployments |
+| **Dark/Light Mode**      | Complete theme support with system preference detection         |
+| **Role-Based Access**    | 4 roles with granular permissions per module                    |
+| **Real-time Updates**    | Live notifications, unread counters, activity feeds             |
+| **Responsive Design**    | Mobile-first approach, works on all devices                     |
+| **Demo Mode**            | Restricted operations for public deployments                    |
 
 ---
 
@@ -699,20 +699,20 @@ Automated staff scheduling system featuring a **hybrid generation engine** that 
 
 ### Excel Export (xlsx)
 
-| Module | Export Feature |
-| ------ | -------------- |
-| **Cashier** | Daily shift reports with denomination breakdown |
-| **Parking** | Booking history, analytics data |
-| **Groups** | Reservation lists, payment summaries |
-| **Conciliation** | Monthly room count reports |
+| Module           | Export Feature                                  |
+| ---------------- | ----------------------------------------------- |
+| **Cashier**      | Daily shift reports with denomination breakdown |
+| **Parking**      | Booking history, analytics data                 |
+| **Groups**       | Reservation lists, payment summaries            |
+| **Conciliation** | Monthly room count reports                      |
 
 ### PDF Generation (pdf-lib)
 
-| Module | PDF Feature |
-| ------ | ----------- |
-| **Cashier** | Daily cash reports |
-| **Groups** | Reservation confirmations |
-| **Backoffice** | Invoice summaries |
+| Module         | PDF Feature               |
+| -------------- | ------------------------- |
+| **Cashier**    | Daily cash reports        |
+| **Groups**     | Reservation confirmations |
+| **Backoffice** | Invoice summaries         |
 
 ### PDF Viewing (pdfjs-dist)
 
@@ -775,11 +775,11 @@ This application includes a **Demo Mode** for safe public deployment. Demo users
 
 ### Allowed Operations
 
-| Module | Allowed Actions |
-| ------ | --------------- |
-| **Auth** | Logout |
-| **Parking** | Create bookings |
-| **Logbooks** | Add comments |
+| Module          | Allowed Actions    |
+| --------------- | ------------------ |
+| **Auth**        | Logout             |
+| **Parking**     | Create bookings    |
+| **Logbooks**    | Add comments       |
 | **Maintenance** | Create work orders |
 
 All other write operations are blocked with a friendly toast message.
@@ -801,14 +801,15 @@ All other write operations are blocked with a friendly toast message.
 ### Fonts System
 
 **Files:**
+
 - `app/ui/fonts-design/fonts.ts` - Font definitions
 - `app/ui/fonts-design/fonts.helper.ts` - Font utilities
 - `app/ui/fonts-design/design-system.ts` - Design tokens
 
 ```typescript
 // Available fonts (configured via CSS variables)
---font-primary   // Main font
---font-display   // Headings font
+--font - primary // Main font
+--font - display // Headings font
 ```
 
 ### Responsive Design
@@ -882,15 +883,6 @@ pnpm format           # Prettier
 ```
 
 ---
-
-## 14. Related Documentation
-
-| Document | Description |
-| --------- | ----------- |
-| `frontend/README.md` | Complete frontend documentation |
-| `frontend/PROJECT.md` | Full project overview (frontend + backend) |
-| `backend.md` | Backend architecture |
-| `docs/` | Additional documentation |
 
 ---
 

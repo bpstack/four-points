@@ -1,0 +1,258 @@
+{
+  "id": "F01-empty-month",
+  "description": "Month with no assignments. Every day missing coverage → many coverage errors.",
+  "input": {
+    "monthId": 1,
+    "year": 2026,
+    "month": 1,
+    "config": {
+      "minMorningStaff": 1,
+      "prefMorningStaff": 2,
+      "maxMorningStaff": 6,
+      "minAfternoonStaff": 1,
+      "prefAfternoonStaff": 2,
+      "maxAfternoonStaff": 6,
+      "minNightStaff": 1,
+      "maxNightStaff": 1,
+      "maxWeeklyShifts": 6,
+      "prefWeeklyShifts": 5,
+      "minRestHours": 48,
+      "minNightBlock": 4,
+      "maxNightBlock": 6,
+      "prefNightBlock": 5,
+      "minMonthlyLibre": 9,
+      "maxMonthlyLibre": 11,
+      "maxConsecutiveWorkDays": 6,
+      "minConsecutiveLibre": 2,
+      "annualVacationDays": 30,
+      "annualHolidays": 20,
+      "annualFreeDays": 90
+    },
+    "employees": [
+      {
+        "id": "E0000000-0000-0000-0000-000000000001",
+        "name": "EMP_01"
+      },
+      {
+        "id": "E0000000-0000-0000-0000-000000000002",
+        "name": "EMP_02"
+      },
+      {
+        "id": "E0000000-0000-0000-0000-000000000003",
+        "name": "EMP_03"
+      }
+    ],
+    "days": [
+      {
+        "dayNumber": 1,
+        "dayOfWeek": "J",
+        "weekNumber": 1,
+        "isHoliday": false
+      },
+      {
+        "dayNumber": 2,
+        "dayOfWeek": "V",
+        "weekNumber": 1,
+        "isHoliday": false
+      },
+      {
+        "dayNumber": 3,
+        "dayOfWeek": "S",
+        "weekNumber": 1,
+        "isHoliday": false
+      },
+      {
+        "dayNumber": 4,
+        "dayOfWeek": "D",
+        "weekNumber": 1,
+        "isHoliday": false
+      },
+      {
+        "dayNumber": 5,
+        "dayOfWeek": "L",
+        "weekNumber": 1,
+        "isHoliday": false
+      },
+      {
+        "dayNumber": 6,
+        "dayOfWeek": "M",
+        "weekNumber": 1,
+        "isHoliday": false
+      },
+      {
+        "dayNumber": 7,
+        "dayOfWeek": "X",
+        "weekNumber": 1,
+        "isHoliday": false
+      },
+      {
+        "dayNumber": 8,
+        "dayOfWeek": "J",
+        "weekNumber": 2,
+        "isHoliday": false
+      },
+      {
+        "dayNumber": 9,
+        "dayOfWeek": "V",
+        "weekNumber": 2,
+        "isHoliday": false
+      },
+      {
+        "dayNumber": 10,
+        "dayOfWeek": "S",
+        "weekNumber": 2,
+        "isHoliday": false
+      },
+      {
+        "dayNumber": 11,
+        "dayOfWeek": "D",
+        "weekNumber": 2,
+        "isHoliday": false
+      },
+      {
+        "dayNumber": 12,
+        "dayOfWeek": "L",
+        "weekNumber": 2,
+        "isHoliday": false
+      },
+      {
+        "dayNumber": 13,
+        "dayOfWeek": "M",
+        "weekNumber": 2,
+        "isHoliday": false
+      },
+      {
+        "dayNumber": 14,
+        "dayOfWeek": "X",
+        "weekNumber": 2,
+        "isHoliday": false
+      },
+      {
+        "dayNumber": 15,
+        "dayOfWeek": "J",
+        "weekNumber": 3,
+        "isHoliday": false
+      },
+      {
+        "dayNumber": 16,
+        "dayOfWeek": "V",
+        "weekNumber": 3,
+        "isHoliday": false
+      },
+      {
+        "dayNumber": 17,
+        "dayOfWeek": "S",
+        "weekNumber": 3,
+        "isHoliday": false
+      },
+      {
+        "dayNumber": 18,
+        "dayOfWeek": "D",
+        "weekNumber": 3,
+        "isHoliday": false
+      },
+      {
+        "dayNumber": 19,
+        "dayOfWeek": "L",
+        "weekNumber": 3,
+        "isHoliday": false
+      },
+      {
+        "dayNumber": 20,
+        "dayOfWeek": "M",
+        "weekNumber": 3,
+        "isHoliday": false
+      },
+      {
+        "dayNumber": 21,
+        "dayOfWeek": "X",
+        "weekNumber": 3,
+        "isHoliday": false
+      },
+      {
+        "dayNumber": 22,
+        "dayOfWeek": "J",
+        "weekNumber": 4,
+        "isHoliday": false
+      },
+      {
+        "dayNumber": 23,
+        "dayOfWeek": "V",
+        "weekNumber": 4,
+        "isHoliday": false
+      },
+      {
+        "dayNumber": 24,
+        "dayOfWeek": "S",
+        "weekNumber": 4,
+        "isHoliday": false
+      },
+      {
+        "dayNumber": 25,
+        "dayOfWeek": "D",
+        "weekNumber": 4,
+        "isHoliday": false
+      },
+      {
+        "dayNumber": 26,
+        "dayOfWeek": "L",
+        "weekNumber": 4,
+        "isHoliday": false
+      },
+      {
+        "dayNumber": 27,
+        "dayOfWeek": "M",
+        "weekNumber": 4,
+        "isHoliday": false
+      },
+      {
+        "dayNumber": 28,
+        "dayOfWeek": "X",
+        "weekNumber": 4,
+        "isHoliday": false
+      },
+      {
+        "dayNumber": 29,
+        "dayOfWeek": "J",
+        "weekNumber": 5,
+        "isHoliday": false
+      },
+      {
+        "dayNumber": 30,
+        "dayOfWeek": "V",
+        "weekNumber": 5,
+        "isHoliday": false
+      },
+      {
+        "dayNumber": 31,
+        "dayOfWeek": "S",
+        "weekNumber": 5,
+        "isHoliday": false
+      }
+    ],
+    "assignments": {
+      "E0000000-0000-0000-0000-000000000001": {},
+      "E0000000-0000-0000-0000-000000000002": {},
+      "E0000000-0000-0000-0000-000000000003": {}
+    }
+  },
+  "expected": {
+    "isValid": false,
+    "violations": [
+      {
+        "type": "coverage",
+        "severity": "error",
+        "day": 1
+      },
+      {
+        "type": "coverage",
+        "severity": "error",
+        "day": 5
+      }
+    ],
+    "softPenalty": 15,
+    "softPenaltyBreakdown": {
+      "weekend_off_missing": 15
+    }
+  }
+}

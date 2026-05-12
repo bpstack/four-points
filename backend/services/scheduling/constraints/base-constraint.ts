@@ -2,6 +2,7 @@
 // Base class and interfaces for constraints
 
 import type { GeneratorContext, ConstraintResult, GenerationWarning } from '../types/index.js'
+import { SOFT_WEIGHTS, type SoftWeightKey } from '../soft-weights.js'
 
 /**
  * Abstract base class for constraints
@@ -81,5 +82,29 @@ export abstract class BaseConstraint {
     } = {}
   ): GenerationWarning {
     return this.warn(message, { ...options, severity: 'error' })
+  }
+
+  /**
+   * Helper to create a soft (penalty-bearing) warning.
+   * Returns the warning to push plus the penalty amount and breakdown key.
+   * Units multiply the base weight: e.g. 2 missing staff = 2 units.
+   */
+  protected softWarn(
+    weightKey: SoftWeightKey,
+    units: number,
+    message: string,
+    options: {
+      type?: GenerationWarning['type']
+      day?: number
+      employeeId?: string
+      employeeName?: string
+    } = {}
+  ): { warning: GenerationWarning; penalty: number; breakdownKey: string } {
+    const penalty = SOFT_WEIGHTS[weightKey] * units
+    return {
+      warning: this.warn(message, { ...options, severity: 'warning' }),
+      penalty,
+      breakdownKey: weightKey,
+    }
   }
 }

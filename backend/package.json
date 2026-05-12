@@ -8,12 +8,13 @@
     "dev": "tsx watch index.ts",
     "dev:local": "cross-env DB_ENVIRONMENT=local tsx watch index.ts",
     "dev:aiven": "cross-env DB_ENVIRONMENT=aiven tsx watch index.ts",
-"build": "echo 'Using tsx - no build needed'",
+    "build": "python3 -m venv scheduling-solver/venv && scheduling-solver/venv/bin/pip install --no-cache-dir ortools pydantic",
     "start": "tsx index.ts",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "test:corpus": "vitest run tests/scheduling/corpus.test.ts"
   },
   "keywords": [],
   "author": "",

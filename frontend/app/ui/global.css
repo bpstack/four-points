@@ -2,6 +2,35 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Discrete, slim vertical scrollbar — used in checklist TOC and content. */
+.scrollbar-discrete {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(156, 163, 175, 0.35) transparent;
+}
+.scrollbar-discrete::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+.scrollbar-discrete::-webkit-scrollbar-track {
+  background: transparent;
+}
+.scrollbar-discrete::-webkit-scrollbar-thumb {
+  background-color: rgba(156, 163, 175, 0.35);
+  border-radius: 999px;
+}
+.scrollbar-discrete::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(107, 114, 128, 0.55);
+}
+.dark .scrollbar-discrete {
+  scrollbar-color: rgba(75, 85, 99, 0.5) transparent;
+}
+.dark .scrollbar-discrete::-webkit-scrollbar-thumb {
+  background-color: rgba(75, 85, 99, 0.5);
+}
+.dark .scrollbar-discrete::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(107, 114, 128, 0.75);
+}
+
 /* Drag-to-select highlight for schedule grid cells */
 button[data-drag-selected='true'] {
   outline: 2px solid #3b82f6 !important;
@@ -45,4 +74,70 @@ main,
 .dark .rdp-day_button:hover:not(:disabled) {
   background-color: #374151;
   border-radius: var(--rdp-day_button-border-radius);
+}
+
+/* ============================================
+   CHECKLIST PRINT STYLES
+   ============================================ */
+@media print {
+  @page {
+    margin: 1.5cm 2cm;
+    size: A4 portrait;
+  }
+
+  /* Hide everything in the body */
+  body * {
+    visibility: hidden;
+  }
+
+  /* Show only the checklist content and all its children */
+  .checklist-print-content,
+  .checklist-print-content * {
+    visibility: visible;
+  }
+
+  /* Position content at top-left, full width */
+  .checklist-print-content {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    max-width: 100%;
+    padding: 0;
+    background: white;
+    color: black;
+  }
+
+  /* Hide print button and action buttons inside content */
+  .checklist-no-print {
+    display: none !important;
+  }
+
+  /* Completed steps remain struck through */
+  .checklist-print-content .line-through {
+    text-decoration: line-through;
+    opacity: 0.45;
+  }
+
+  /* Pagination hints */
+  .checklist-print-content h2 {
+    break-after: avoid;
+  }
+
+  .checklist-print-content li {
+    break-inside: avoid;
+  }
+
+  /* Footer */
+  .checklist-print-content::after {
+    content: "Demo Hotel  ·  " attr(data-print-date);
+    display: block;
+    margin-top: 1cm;
+    padding-top: 6px;
+    border-top: 1px solid #d1d5db;
+    font-size: 8pt;
+    color: #9ca3af;
+    text-align: center;
+    visibility: visible;
+  }
 }

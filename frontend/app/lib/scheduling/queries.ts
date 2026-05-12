@@ -28,6 +28,7 @@ import type {
   CreateContractDto,
   UpdateContractDto,
   AnnualTotalsResponse,
+  ShiftStatsResponse,
 } from './types'
 
 const API_URL = API_BASE_URL
@@ -58,6 +59,7 @@ export const schedulingKeys = {
   contractByEmployee: (year: number, employeeId: string) =>
     [...schedulingKeys.contracts(year), employeeId] as const,
   annualTotals: (year: number) => [...schedulingKeys.all, 'totals', year] as const,
+  shiftStats: (year: number) => [...schedulingKeys.all, 'shift-stats', year] as const,
 }
 
 // ============================================
@@ -221,6 +223,16 @@ export const schedulingApi = {
     monthId: number
   ): Promise<{ success: boolean; message: string; assignmentsCount: number }> => {
     return apiClient.post(`${API_URL}/api/scheduling/months/${monthId}/reset`)
+  },
+
+  generateSchedule: async (
+    monthId: number
+  ): Promise<{
+    status: string
+    assignmentsCreated: number
+    stats: { solveTimeMs: number; status: string }
+  }> => {
+    return apiClient.post(`${API_URL}/api/scheduling/months/${monthId}/generate`)
   },
 
   /**
@@ -577,5 +589,12 @@ export const schedulingApi = {
    */
   getAnnualTotals: async (year: number): Promise<AnnualTotalsResponse> => {
     return apiClient.get(`${API_URL}/api/scheduling/totals/${year}`)
+  },
+
+  /**
+   * Conteo de turnos por empleado para el año indicado (published + draft).
+   */
+  getShiftStats: async (year: number): Promise<ShiftStatsResponse> => {
+    return apiClient.get(`${API_URL}/api/scheduling/shift-stats?year=${year}`)
   },
 }

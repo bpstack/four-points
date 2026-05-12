@@ -26,7 +26,8 @@
     "hotelCashier": "Hotel Cashier",
     "cashierReports": "Cashier Reports",
     "cashierLogs": "Cashier Logs",
-    "cashierDashboard": "Overview"
+    "cashierDashboard": "Overview",
+    "checklist": "Check List"
   },
   "actions": {
     "save": "Save",

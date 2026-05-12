@@ -1,0 +1,37 @@
+{
+  "page": {
+    "title": "Check List",
+    "landing": "Select a procedure or task from the left panel to get started."
+  },
+  "toc": {
+    "searchPlaceholder": "Search…",
+    "noResults": "No results",
+    "clearFilters": "Clear filters"
+  },
+  "types": {
+    "tasks": "Tasks",
+    "guide": "Guide",
+    "reference": "Reference"
+  },
+  "shifts": {
+    "morning": "Morning",
+    "afternoon": "Afternoon",
+    "night": "Night"
+  },
+  "departments": {
+    "reception": "Reception",
+    "housekeeping": "Housekeeping",
+    "fnb": "F&B",
+    "maintenance": "Maintenance",
+    "admin": "Administration"
+  },
+  "tasks": {
+    "steps": "{done} of {total} steps completed",
+    "pending": "Content in progress.",
+    "progress": "{pct}%"
+  },
+  "meta": {
+    "version": "v{version}",
+    "updated": "Updated {date}"
+  }
+}

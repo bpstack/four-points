@@ -509,6 +509,7 @@ export interface SchedulingConfigMap {
   // New validations
   minMonthlyLibre: number // 8 - Mínimo libres al mes
   maxMonthlyLibre: number // 12 - Máximo libres al mes
+  prefMonthlyLibre: number // Preferido para balanceo del solver
   maxConsecutiveWorkDays: number // 6 - Máximo días consecutivos de trabajo
   minConsecutiveLibre: number // 2 - Mínimo días libres consecutivos por semana
 }
@@ -650,3 +651,12 @@ export interface AnnualTotalsResponse {
 // ============================================
 
 export { ResultSetHeader }
+
+// ============================================
+// EMPLOYEE REQUESTS (Fase 1 solver — 2026-04-25)
+// ============================================
+export type {
+  SchedulingRequestType,
+  SchedulingRequestStatus,
+  SchedulingEmployeeRequestRow,
+} from './employee-request.js'
