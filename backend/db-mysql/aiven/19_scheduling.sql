@@ -12,6 +12,8 @@ USE hotel_db;
 -- =========================================================
 SET FOREIGN_KEY_CHECKS = 0;
 
+DROP TABLE IF EXISTS scheduling_solver_runs;
+DROP TABLE IF EXISTS scheduling_employee_requests;
 DROP TABLE IF EXISTS scheduling_history;
 DROP TABLE IF EXISTS scheduling_assignments;
 DROP TABLE IF EXISTS scheduling_constraints;
@@ -348,6 +350,68 @@ INSERT INTO scheduling_shifts (code, name, start_time, end_time, hours, color, i
 --   ('uuid-elena', 2025, 225, 1800, 30, 90, 20, 365, NULL),
 --   ('uuid-Clara', 2025, 225, 1800, 30, 90, 20, 365, NULL),
 --   ('uuid-andres', 2025, 225, 1800, 30, 90, 20, 365, NULL);
+
+-- =========================================================
+-- TABLA 11: scheduling_employee_requests
+-- Peticiones de empleados (vacaciones, libres, turnos...)
+-- Origen: SCHEDULING-CONSTRAINTS.md §7.5 (2026-04-25)
+-- =========================================================
+CREATE TABLE scheduling_employee_requests (
+  id              INT          NOT NULL AUTO_INCREMENT,
+  employee_id     CHAR(36)     COLLATE utf8mb4_0900_ai_ci NOT NULL  COMMENT 'ID del empleado (users.id)',
+  date_from       DATE         NOT NULL                              COMMENT 'Fecha inicio de la petición',
+  date_to         DATE         NOT NULL                              COMMENT 'Fecha fin de la petición',
+  request_type    ENUM(
+    'shift_preference',
+    'shift_exclusion',
+    'bonificable',
+    'baja_temporal',
+    'vacation'
+  )               COLLATE utf8mb4_0900_ai_ci NOT NULL               COMMENT 'Tipo de petición',
+  requested_value VARCHAR(10)  COLLATE utf8mb4_0900_ai_ci DEFAULT NULL COMMENT 'Código turno (L,M,T,N,PI,P,...) cuando aplica',
+  status          ENUM('pending', 'approved', 'rejected') COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT 'pending',
+  notes           VARCHAR(255) COLLATE utf8mb4_0900_ai_ci DEFAULT NULL COMMENT 'Notas de la petición',
+  created_by      CHAR(36)     COLLATE utf8mb4_0900_ai_ci DEFAULT NULL COMMENT 'Manager que crea la petición',
+  approved_by     CHAR(36)     COLLATE utf8mb4_0900_ai_ci DEFAULT NULL COMMENT 'Manager que aprueba',
+  created_at      TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at      TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  approved_at     TIMESTAMP    NULL DEFAULT NULL                     COMMENT 'Fecha de aprobación',
+
+  PRIMARY KEY (id),
+  KEY idx_employee_date (employee_id, date_from, date_to),
+  KEY idx_status (status),
+  KEY idx_request_type (request_type),
+  CONSTRAINT fk_sched_req_employee    FOREIGN KEY (employee_id) REFERENCES users (id) ON DELETE CASCADE,
+  CONSTRAINT fk_sched_req_created_by  FOREIGN KEY (created_by)  REFERENCES users (id) ON DELETE SET NULL,
+  CONSTRAINT fk_sched_req_approved_by FOREIGN KEY (approved_by) REFERENCES users (id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Peticiones de empleados (vacaciones, libres, turnos específicos)';
+
+-- =========================================================
+-- TABLA 12: scheduling_solver_runs
+-- Historial de ejecuciones del solver CP-SAT por mes
+-- Origen: SCHEDULING-SOLVER-PLAN.md Fase 3 paso 1
+-- =========================================================
+CREATE TABLE scheduling_solver_runs (
+  id                      INT          NOT NULL AUTO_INCREMENT,
+  month_id                INT          NOT NULL                              COMMENT 'Mes para el que se generó',
+  generated_at            TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  generated_by            CHAR(36)     COLLATE utf8mb4_0900_ai_ci DEFAULT NULL COMMENT 'Usuario que disparó la generación',
+  status                  ENUM('ok', 'infeasible', 'error') COLLATE utf8mb4_0900_ai_ci NOT NULL,
+  solve_time_ms           INT          DEFAULT NULL                          COMMENT 'Tiempo de resolución en ms',
+  cp_status               VARCHAR(20)  COLLATE utf8mb4_0900_ai_ci DEFAULT NULL COMMENT 'OPTIMAL, FEASIBLE, INFEASIBLE, UNKNOWN',
+  soft_penalty            INT          DEFAULT NULL                          COMMENT 'Penalización soft total',
+  soft_penalty_breakdown  JSON         DEFAULT NULL                          COMMENT 'Desglose de penalización por constraint soft',
+  solver_input            JSON         DEFAULT NULL                          COMMENT 'Snapshot del input enviado al solver',
+  solver_matrix           JSON         DEFAULT NULL                          COMMENT 'Matriz generada original (pre-edición manual)',
+  conflicting_constraints JSON         DEFAULT NULL                          COMMENT 'Constraints en conflicto (solo si infeasible)',
+
+  PRIMARY KEY (id),
+  KEY idx_month_id     (month_id),
+  KEY idx_status       (status),
+  KEY idx_generated_at (generated_at),
+  CONSTRAINT fk_solver_run_month        FOREIGN KEY (month_id)      REFERENCES scheduling_months (id) ON DELETE CASCADE,
+  CONSTRAINT fk_solver_run_generated_by FOREIGN KEY (generated_by)  REFERENCES users (id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Historial de ejecuciones del solver CP-SAT por mes';
 
 -- =========================================================
 -- VERIFICACIÓN
