@@ -22,7 +22,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Language**: TypeScript (ES modules, `type: "module"`)
 - **Database**: MySQL (local + Aiven cloud)
 - **Runtime**: tsx (no build step needed)
-- **Authentication**: Cookie-based sessions with JWT
+- **Authentication**: JWT in HttpOnly cookies (access 15 min + refresh 7 d)
 - **Validation**: Zod
 - **Testing**: Vitest
 - **Package Manager**: pnpm
@@ -83,11 +83,13 @@ index.ts → routes → controllers → services → repositories → models
 - Connection pool managed in `config/config.ts`
 
 **Authentication System:**
-- Cookie-based with `express-session`
-- Session data stored in MySQL `sessions` table
-- Authentication middleware: `middlewares/authenticateSession.ts`
-- Role-based access control via `middlewares/roleCheck.ts`
-- Frontend sends `credentials: 'include'` in all fetch requests
+- JWT (`jsonwebtoken`) signed with `SECRET_JWT_KEY`. Access token 15 min, refresh 7 d (same secret).
+- Both tokens travel in **HttpOnly cookies** (`access_token`, `refresh_token`); `Authorization: Bearer` is accepted as fallback.
+- In production cookies are scoped to `.four-points.stackbp.es` (`controllers/auth/auth-controllers.ts:31`).
+- Authentication middleware: `middlewares/authenticateToken.ts` (verifies JWT, then delegates to `demoRestriction`).
+- Role-based access control via `middlewares/roleCheck.ts`.
+- Frontend sends `credentials: 'include'` in all fetch requests.
+- **No `express-session`, no MySQL `sessions` table, no `authenticateSession.ts`.** Older docs referenced a planned JWT→sessions migration that was never implemented; the system is and stays JWT.
 
 **CORS Configuration:**
 - Allows `localhost:3000`, Vercel domains, and production domains
@@ -350,7 +352,7 @@ Append a brief entry to `SCHEDULING-DECISIONS-LOG.md` with the date, the rule, w
    - `.env` for backend configuration
    - Two database modes: `DB_ENVIRONMENT=local` or `DB_ENVIRONMENT=aiven`
 
-4. **Session vs JWT**: The system migrated from JWT to sessions. Old JWT code exists but is not active.
+4. **Auth is JWT** (HttpOnly cookies). The repo briefly contained plans to switch to `express-session`; those plans were dropped. Do not reintroduce `req.session` or look for a `sessions` table — it does not exist.
 
 5. **Cron Jobs**: `services/cron/cron-service.ts` runs scheduled tasks, started in `index.ts`
 
@@ -368,8 +370,8 @@ Append a brief entry to `SCHEDULING-DECISIONS-LOG.md` with the date, the rule, w
    - Always include `credentials: 'include'` in fetch options
 
 3. **Authentication Flow**:
-   - Login → Backend sets `hotel_session` cookie
-   - Frontend `AuthProvider` checks session on mount
+   - Login → Backend sets `access_token` and `refresh_token` HttpOnly cookies
+   - Frontend `AuthProvider` calls `GET /api/auth/me` on mount; on 401 it retries via `POST /api/auth/refresh-token`
    - `useAuthContext()` provides auth state globally
 
 4. **Environment Variables**:
@@ -410,11 +412,11 @@ Append a brief entry to `SCHEDULING-DECISIONS-LOG.md` with the date, the rule, w
 - Backend: Multiple route files in `routes/parking/`
 
 ### Authentication System
-- Migrated from JWT to session-based auth
-- Sessions stored in MySQL
-- Cookie name: `hotel_session`
-- Session duration: 8 hours (configurable)
-- Supports role-based access (admin, receptionist, etc.)
+- JWT (`jsonwebtoken`), signed with `SECRET_JWT_KEY`. Tokens are stateless (no DB lookup per request).
+- Cookies: `access_token` (15 min) and `refresh_token` (7 d), both HttpOnly + SameSite=lax.
+- Production cookie domain: `.four-points.stackbp.es`.
+- Roles defined in `roles` table (admin, recepcionista, mantenimiento, group-admin, demo-admin). Enforcement in `middlewares/roleCheck.ts`.
+- Demo user (`username: demo`) is **disabled** (`is_active=0`) since 2026-05-12. See `aiven/15_demo_user.sql` for context.
 
 ### Maintenance System
 - Tracks maintenance requests and tasks
@@ -440,7 +442,7 @@ Get-ChildItem -Recurse -Include *.js,*.ts -Exclude node_modules,dist | Select-St
 ## Database Information
 
 - **Database Name**: `hotel_db`
-- **Key Tables**: users, logbook, parking, scheduling_months, scheduling_assignments, sessions
+- **Key Tables**: users, logbook, parking, scheduling_months, scheduling_assignments, scheduling_solver_runs, scheduling_employee_requests, checklist_runs, demo_activity_log
 - **Migrations**: Manual SQL scripts in `backend/db-mysql/`
 - **Backups**: Store in `backend/db-mysql/backup/`
 
