@@ -15,6 +15,7 @@ import {
 } from '../../services/auth/tokenService.js'
 import { CloudinaryService } from '../../services/blacklist/cloudinary-service.js'
 import { ERROR_CODES, SUCCESS_CODES } from '../../config/error-codes.js'
+import { logger } from '../../config/logger.js'
 import type {
   CookieOptions,
   TokenPayload,
@@ -138,7 +139,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
     }
 
     if (process.env.NODE_ENV !== 'production') {
-      console.error('Registration error:', error)
+      logger.error({ err: error }, 'Registration error')
     }
 
     res.status(500).json({ error: 'Internal server error' })
@@ -252,7 +253,7 @@ export const me = async (req: Request, res: Response): Promise<void> => {
       user: userWithoutPassword,
     })
   } catch (error) {
-    console.error('Error en /me:', error)
+    logger.error({ err: error }, 'Error en /me')
     res.status(500).json({
       error: ERROR_CODES.INTERNAL_ERROR,
       code: ERROR_CODES.INTERNAL_ERROR,
@@ -313,7 +314,7 @@ export const updateProfile = async (req: Request, res: Response): Promise<void> 
     })
   } catch (error) {
     const err = error as Error
-    console.error('Error en updateProfile:', err.message)
+    logger.error({ err: err.message }, 'Error en updateProfile')
 
     // Errores conocidos
     if (err.message === 'Contraseña actual incorrecta') {
@@ -380,7 +381,7 @@ export const updatePassword = async (req: Request, res: Response): Promise<void>
     })
   } catch (error) {
     const err = error as Error
-    console.error('Error en updatePassword:', err.message)
+    logger.error({ err: err.message }, 'Error en updatePassword')
 
     // Errores conocidos
     if (err.message === 'Contraseña actual incorrecta') {
@@ -439,7 +440,7 @@ export const uploadAvatar = async (req: Request, res: Response): Promise<void> =
 
     // Obtener el public_id del avatar anterior (si existe) para eliminarlo después
     const previousPublicId = await UserRepository.getAvatarPublicId(userId)
-    console.log(`[AUTH] Previous avatar public_id for user ${userId}:`, previousPublicId)
+    logger.debug({ userId, previousPublicId }, '[AUTH] previous avatar public_id')
 
     // Subir nueva imagen a Cloudinary (método optimizado para avatares)
     const uploadResult = await CloudinaryService.uploadAvatar(
@@ -447,7 +448,7 @@ export const uploadAvatar = async (req: Request, res: Response): Promise<void> =
       req.file.originalname,
       'avatars' // Carpeta en Cloudinary
     )
-    console.log(`[AUTH] New avatar uploaded:`, uploadResult.public_id)
+    logger.info({ publicId: uploadResult.public_id }, '[AUTH] new avatar uploaded')
 
     // Actualizar usuario con nuevo avatar
     const updatedUser = await UserRepository.updateAvatar(
@@ -460,10 +461,10 @@ export const uploadAvatar = async (req: Request, res: Response): Promise<void> =
     if (previousPublicId) {
       try {
         await CloudinaryService.deleteImage(previousPublicId)
-        console.info(`[AUTH] Previous avatar deleted: ${previousPublicId}`)
+        logger.info({ previousPublicId }, '[AUTH] previous avatar deleted')
       } catch (error) {
         // No bloquear si falla la eliminación del anterior
-        console.error('[AUTH] Failed to delete previous avatar:', error)
+        logger.error({ err: error }, '[AUTH] failed to delete previous avatar')
       }
     }
 
@@ -474,7 +475,7 @@ export const uploadAvatar = async (req: Request, res: Response): Promise<void> =
       user: updatedUser,
     })
   } catch (error) {
-    console.error('Error en uploadAvatar:', error)
+    logger.error({ err: error }, 'Error en uploadAvatar')
     res.status(500).json({
       error: ERROR_CODES.AUTH_UPLOAD_AVATAR_ERROR,
       code: ERROR_CODES.AUTH_UPLOAD_AVATAR_ERROR,
@@ -496,10 +497,10 @@ export const deleteAvatar = async (req: Request, res: Response): Promise<void> =
     if (publicId) {
       try {
         await CloudinaryService.deleteImage(publicId)
-        console.info(`[AUTH] Avatar deleted from Cloudinary: ${publicId}`)
+        logger.info({ publicId }, '[AUTH] avatar deleted from Cloudinary')
       } catch (error) {
         // No bloquear si falla la eliminación de Cloudinary
-        console.error('[AUTH] Failed to delete avatar from Cloudinary:', error)
+        logger.error({ err: error }, '[AUTH] failed to delete avatar from Cloudinary')
       }
     }
 
@@ -513,7 +514,7 @@ export const deleteAvatar = async (req: Request, res: Response): Promise<void> =
       user: updatedUser,
     })
   } catch (error) {
-    console.error('Error en deleteAvatar:', error)
+    logger.error({ err: error }, 'Error en deleteAvatar')
     res.status(500).json({
       error: ERROR_CODES.AUTH_DELETE_AVATAR_ERROR,
       code: ERROR_CODES.AUTH_DELETE_AVATAR_ERROR,

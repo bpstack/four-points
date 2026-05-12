@@ -19,11 +19,12 @@
 //
 // ============================================
 
+import { logger } from './logger.js'
+
 /**
  * Muestra informacion basica del servidor al iniciar
  * @param port - Puerto en el que corre el servidor
  */
 export function logServerInfo(port: number): void {
-  console.log(`🚀 Server running at http://localhost:${port}`)
-  console.log(`📝 Environment: ${process.env.NODE_ENV || 'development'}`)
+  logger.info({ port, env: process.env.NODE_ENV || 'development' }, 'Server started')
 }
