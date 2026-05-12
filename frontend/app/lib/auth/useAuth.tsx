@@ -14,16 +14,6 @@ import { useRouter, usePathname } from 'next/navigation'
 import { authLogin } from './authService'
 import type { User } from '@/app/lib/logbooks/types'
 
-const DEV_MODE = false
-
-const DEV_USER: User = {
-  id: 'dev-uuid-12345',
-  username: 'Dev-user',
-  email: 'dev@example.com',
-  role: 'developer',
-  avatar_url: null,
-}
-
 const PUBLIC_ROUTES = [
   '/',
   '/auth/login',
@@ -72,10 +62,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
    * Reutilizada por checkSession y refreshUser
    */
   const fetchUserData = useCallback(async (): Promise<User | null> => {
-    if (DEV_MODE) {
-      return DEV_USER
-    }
-
     try {
       const me = await authLogin.me()
       return {
@@ -133,13 +119,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setLoading(true)
 
       try {
-        if (DEV_MODE) {
-          setUser(DEV_USER)
-          setLoading(false)
-          router.push('/dashboard')
-          return
-        }
-
         const data = await authLogin.login(username, password)
 
         setUser({
@@ -166,9 +145,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setLoading(true)
 
     try {
-      if (!DEV_MODE) {
-        await authLogin.logout()
-      }
+      await authLogin.logout()
     } catch (error) {
       console.error('[useAuth] Error en logout:', error)
     } finally {

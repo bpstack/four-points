@@ -15,7 +15,8 @@ import {
 } from '../../controllers/auth/auth-controllers.js'
 import { authenticateToken } from '../../middlewares/authenticateToken.js'
 import {
-  // loginLimiter, // Temporarily disabled for testing
+  loginLimiter,
+  refreshLimiter,
   passwordChangeLimiter,
   profileUpdateLimiter,
 } from '../../middlewares/rateLimiter.js'
@@ -43,8 +44,8 @@ const avatarUpload = multer({
 // PUBLIC ROUTES (no authentication)
 // ========================================
 
-router.post('/login', /* loginLimiter, */ login)
-router.post('/refresh-token', refreshToken)
+router.post('/login', loginLimiter, login)
+router.post('/refresh-token', refreshLimiter, refreshToken)
 
 // ========================================
 // ADMIN ONLY ROUTES

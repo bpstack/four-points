@@ -3,8 +3,10 @@
 import express, { Request, Response, NextFunction } from 'express'
 import cookieParser from 'cookie-parser'
 import cors from 'cors'
+import helmet from 'helmet'
 import { PORT } from './config/config.js'
 import { logServerInfo } from './config/startup-logger.js'
+import { apiLimiter } from './middlewares/rateLimiter.js'
 
 import { CronService } from './services/cron/cron-service.js'
 import { warmupSolver } from './services/scheduling/solver-client.js'
@@ -40,6 +42,10 @@ const app = express()
 // CONFIGURACIÓN DE SEGURIDAD
 // ========================================
 app.disable('x-powered-by')
+
+// Helmet: cabeceras de seguridad HTTP (X-Frame-Options, HSTS, X-Content-Type-Options, etc.)
+// CSP deshabilitado — API pura JSON, no sirve HTML ni assets
+app.use(helmet({ contentSecurityPolicy: false }))
 
 // CORS (antes de todo)
 const allowedOrigins = [
@@ -80,8 +86,9 @@ app.use(
 // ========================================
 // MIDDLEWARES GLOBALES
 // ========================================
-app.use(express.json())
+app.use(express.json({ limit: '2mb' }))
 app.use(cookieParser())
+app.use('/api', apiLimiter)
 
 // ========================================
 // MOTOR DE VISTAS (opcional, si usas EJS)

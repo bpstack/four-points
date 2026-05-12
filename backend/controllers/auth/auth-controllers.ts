@@ -98,8 +98,6 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       success: true,
       user: userWithoutPassword,
       token: accessToken,
-      // Siempre enviar refreshToken - el proxy de Next.js lo necesita para crear cookies HttpOnly
-      refreshToken: refreshToken,
     })
   } catch {
     res.status(401).json({
@@ -197,12 +195,9 @@ export const refreshToken = (req: Request, res: Response): void => {
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 días (debe coincidir con tokenService.ts)
     })
 
-    // Return tokens in body as well (for localStorage and Next.js proxy)
     res.status(200).json({
       success: true,
       token: newAccessToken,
-      // Siempre enviar refreshToken - el proxy de Next.js lo necesita para crear cookies HttpOnly
-      refreshToken: newRefreshToken,
     })
   } catch {
     res.clearCookie('access_token', cookieOptions)
