@@ -290,3 +290,7 @@ Ancla la versión de Python que usa Render. Sin esto, si Render cambia el buildp
    ↓
 [meta de Sprint 2 alcanzada → empezar a meter datos reales]
 ```
+
+## Plan para Timezone & Hotel Date Refactor
+
+@merge-timesZone.md
