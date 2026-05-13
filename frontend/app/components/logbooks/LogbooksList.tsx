@@ -689,6 +689,30 @@ export default function LogbooksList({
 
           {/* Mobile Layout */}
           <div className="md:hidden p-4 space-y-3">
+            {/* Author & Time - Mobile */}
+            <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
+              <div className="flex items-center gap-1.5">
+                <FiClock className="w-3.5 h-3.5 flex-shrink-0" />
+                <span>
+                  {new Date(entry.timestamp).toLocaleTimeString('es-ES', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: false,
+                  })}
+                  {' · '}
+                  {new Date(entry.timestamp).toLocaleDateString('es-ES', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric',
+                  })}
+                </span>
+              </div>
+              <span className="text-gray-300 dark:text-gray-600">·</span>
+              <div className="flex items-center gap-1.5">
+                <FiUser className="w-3.5 h-3.5 flex-shrink-0" />
+                <span>{formatUsername(entry.author_name, t('list.unknownUser'))}</span>
+              </div>
+            </div>
             <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap break-all max-h-[700px] overflow-y-auto pr-2">
               {entry.description}
             </p>
