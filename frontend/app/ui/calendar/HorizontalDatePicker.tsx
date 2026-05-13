@@ -34,8 +34,12 @@ export default function HorizontalDatePicker({
   mobileDaysVisible: _mobileDaysVisible = 5,
 }: HorizontalDatePickerProps) {
   const containerRef = useRef<HTMLDivElement>(null)
+  const scrollRef = useRef<HTMLDivElement>(null)
   const [visibleCount, setVisibleCount] = useState(31) // Default to all days
   const [startIndex, setStartIndex] = useState(0)
+  const [isDragging, setIsDragging] = useState(false)
+  const [startX, setStartX] = useState(0)
+  const [scrollLeft, setScrollLeft] = useState(0)
 
   // Calculate days in month
   const currentYear = currentDate.getFullYear()
@@ -132,6 +136,30 @@ export default function HorizontalDatePicker({
     }
   }
 
+  // Touch/drag handling for mobile swipe
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (!scrollRef.current) return
+    setIsDragging(true)
+    setStartX(e.touches[0].pageX - scrollRef.current.offsetLeft)
+    setScrollLeft(scrollRef.current.scrollLeft)
+  }
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isDragging || !scrollRef.current) return
+    e.preventDefault()
+    const x = e.touches[0].pageX - scrollRef.current.offsetLeft
+    const walk = (x - startX) * 1.5
+    scrollRef.current.scrollLeft = scrollLeft - walk
+  }
+
+  const handleTouchEnd = () => {
+    setIsDragging(false)
+    if (!scrollRef.current) return
+    const newStartIndex = Math.round(scrollRef.current.scrollLeft / (sizes.buttonWidth + sizes.gap))
+    const clampedIndex = Math.max(0, Math.min(newStartIndex, daysInMonth - visibleCount))
+    setStartIndex(clampedIndex)
+  }
+
   // Check if we need navigation arrows (not all days fit)
   const needsNavigation = daysInMonth > visibleCount
 
@@ -157,9 +185,14 @@ export default function HorizontalDatePicker({
           </button>
         )}
 
-        {/* Days container */}
+        {/* Days container - scrollable on mobile */}
         <div
-          className={`flex flex-1 justify-start overflow-hidden ${needsNavigation ? 'gap-1 md:gap-1.5' : 'gap-1.5 md:gap-2'}`}
+          ref={scrollRef}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+          className={`flex flex-1 justify-start md:justify-center overflow-x-auto snap-x snap-mandatory touch-pan-x scroll-smooth ${needsNavigation ? 'gap-1 md:gap-1.5' : 'gap-1.5 md:gap-2'} [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden`}
+          style={{ scrollSnapType: 'x mandatory' }}
         >
           {visibleDays.map((day) => {
             const date = new Date(currentYear, currentMonth, day)
@@ -172,7 +205,7 @@ export default function HorizontalDatePicker({
                 key={`day-${currentYear}-${currentMonth}-${day}`}
                 onClick={() => onSelectDay(day)}
                 className={`
-                  flex-shrink-0 rounded-lg font-medium flex flex-col items-center justify-center transition-colors
+                  flex-shrink-0 rounded-lg font-medium flex flex-col items-center justify-center transition-colors snap-start
                   ${sizes.button}
                   ${
                     isSelected
