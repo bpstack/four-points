@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import Fuse from 'fuse.js'
@@ -29,7 +29,7 @@ const SHIFT_ICONS: Record<Shift, React.ComponentType<{ className?: string }>> = 
   night: FiMoon,
 }
 
-function ItemLink({ item, onClose }: { item: ChecklistMeta; onClose?: () => void }) {
+function ItemLink({ item, onClose, onItemClick }: { item: ChecklistMeta; onClose?: () => void; onItemClick?: () => void }) {
   const pathname = usePathname()
   const isActive = pathname === `/dashboard/checklist/${item.id}`
   const Icon = TYPE_ICONS[item.type]
@@ -37,7 +37,7 @@ function ItemLink({ item, onClose }: { item: ChecklistMeta; onClose?: () => void
   return (
     <Link
       href={`/dashboard/checklist/${item.id}`}
-      onClick={onClose}
+      onClick={() => { onClose?.(); onItemClick?.() }}
       className={`flex items-center gap-2 px-2 py-1.5 rounded-md text-sm transition-colors ${
         isActive
           ? 'bg-blue-50 dark:bg-gray-800 text-blue-700 dark:text-blue-400 font-medium'
@@ -54,12 +54,23 @@ function CategoryGroup({
   category,
   items,
   onClose,
+  onItemClick,
 }: {
   category: CategoryMeta
   items: ChecklistMeta[]
   onClose?: () => void
+  onItemClick?: () => void
 }) {
-  const [open, setOpen] = useState(true)
+  const [open, setOpen] = useState(false)
+
+  useEffect(() => {
+    const md = '(min-width: 768px)'
+    const mq = window.matchMedia(md)
+    const handle = () => setOpen(mq.matches)
+    handle()
+    mq.addEventListener('change', handle)
+    return () => mq.removeEventListener('change', handle)
+  }, [])
 
   if (items.length === 0) return null
 
@@ -78,7 +89,7 @@ function CategoryGroup({
           onClick={() => setOpen(!open)}
           className="w-full flex items-center gap-1.5 px-2 py-1 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
         >
-          <span className={`transition-transform ${open ? 'rotate-90' : ''}`}>›</span>
+          <span className={`transition-transform ${open ? 'rotate-90' : ''}`}>{'>'}</span>
           {category.name}
         </button>
         {open && (
@@ -95,7 +106,7 @@ function CategoryGroup({
                   </div>
                   <div className="space-y-0.5">
                     {shiftItems.map((item) => (
-                      <ItemLink key={item.id} item={item} onClose={onClose} />
+                      <ItemLink key={item.id} item={item} onClose={onClose} onItemClick={onItemClick} />
                     ))}
                   </div>
                 </div>
@@ -113,13 +124,13 @@ function CategoryGroup({
         onClick={() => setOpen(!open)}
         className="w-full flex items-center gap-1.5 px-2 py-1 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
       >
-        <span className={`transition-transform ${open ? 'rotate-90' : ''}`}>›</span>
+        <span className={`transition-transform ${open ? 'rotate-90' : ''}`}>{'>'}</span>
         {category.name}
       </button>
       {open && (
         <div className="mt-1 space-y-0.5 pl-2">
           {items.map((item) => (
-            <ItemLink key={item.id} item={item} onClose={onClose} />
+            <ItemLink key={item.id} item={item} onClose={onClose} onItemClick={onItemClick} />
           ))}
         </div>
       )}
@@ -130,9 +141,10 @@ function CategoryGroup({
 interface Props {
   catalog: Catalog
   onClose?: () => void
+  onItemClick?: () => void
 }
 
-export function ChecklistTOC({ catalog, onClose }: Props) {
+export function ChecklistTOC({ catalog, onClose, onItemClick }: Props) {
   const [query, setQuery] = useState('')
   const [deptFilter, setDeptFilter] = useState<string | null>(null)
   const [shiftFilter, setShiftFilter] = useState<Shift | null>(null)
@@ -164,17 +176,17 @@ export function ChecklistTOC({ catalog, onClose }: Props) {
   const hasFilters = query || deptFilter || shiftFilter
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex h-full min-h-0 flex-col">
       {/* Header */}
       <div className="px-3 py-3 border-b border-gray-200 dark:border-gray-800">
-        <h2 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-2">Check List</h2>
+        <h2 className="hidden md:block text-sm font-semibold text-gray-900 dark:text-gray-100 mb-2">Check List</h2>
         {/* Search */}
         <div className="relative">
           <FiSearch className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Buscar…"
+            placeholder="Buscar..."
             className="w-full pl-8 pr-7 py-1.5 text-xs rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-1 focus:ring-blue-500"
           />
           {query && (
@@ -188,9 +200,8 @@ export function ChecklistTOC({ catalog, onClose }: Props) {
         </div>
       </div>
 
-      {/* Filters */}
-      <div className="px-3 py-2 border-b border-gray-200 dark:border-gray-800 space-y-1.5">
-        {/* Dept pills */}
+      {/* Filters — desktop only */}
+      <div className="hidden md:block px-3 py-2 border-b border-gray-200 dark:border-gray-800 space-y-1.5">
         <div className="flex flex-wrap gap-1">
           {departments.map((dept) => (
             <button
@@ -206,8 +217,7 @@ export function ChecklistTOC({ catalog, onClose }: Props) {
             </button>
           ))}
         </div>
-        {/* Shift pills */}
-        <div className="flex gap-1">
+        <div className="flex flex-wrap gap-1">
           {(['morning', 'afternoon', 'night'] as Shift[]).map((shift) => (
             <button
               key={shift}
@@ -237,13 +247,14 @@ export function ChecklistTOC({ catalog, onClose }: Props) {
       </div>
 
       {/* Tree */}
-      <div className="scrollbar-discrete flex-1 overflow-y-auto px-2 py-3 space-y-4">
+      <div className="scrollbar-discrete min-h-0 flex-1 space-y-4 overflow-y-auto px-2 py-3">
         {catalog.categories.map((cat) => (
           <CategoryGroup
             key={cat.id}
             category={cat}
             items={filtered.filter((i) => i.category === cat.id)}
             onClose={onClose}
+            onItemClick={onItemClick}
           />
         ))}
         {filtered.length === 0 && (

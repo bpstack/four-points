@@ -24,7 +24,7 @@ function formatUpdated(value: string): string {
 export function ChecklistHeader({ item }: { item: ChecklistMeta }) {
   return (
     <div className="border-b border-gray-200 dark:border-gray-800 pb-4 mb-6 checklist-no-print-border">
-      <div className="flex items-start justify-between gap-4">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="flex-1 min-w-0">
           <div className="flex flex-wrap gap-2 mb-3">
             <span
@@ -45,7 +45,7 @@ export function ChecklistHeader({ item }: { item: ChecklistMeta }) {
           {item.description && (
             <p className="text-sm text-gray-500 dark:text-gray-400">{item.description}</p>
           )}
-          <div className="mt-2 flex gap-4 text-xs text-gray-400 dark:text-gray-500">
+          <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-400 dark:text-gray-500">
             <span>v{item.version}</span>
             <span>{item.author}</span>
             <span>Actualizado {formatUpdated(item.updated)}</span>
@@ -70,7 +70,7 @@ export function ChecklistHeader({ item }: { item: ChecklistMeta }) {
             window.print()
           }}
           title="Exportar PDF / Imprimir"
-          className="checklist-no-print flex-shrink-0 flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-md border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors mt-1"
+          className="checklist-no-print hidden sm:flex mt-1 flex flex-shrink-0 items-center justify-center gap-1.5 rounded-md border border-gray-300 px-3 py-1.5 text-xs text-gray-600 transition-colors hover:bg-gray-100 dark:border-gray-600 dark:text-gray-400 dark:hover:bg-gray-800 sm:justify-start"
         >
           <FiPrinter className="w-3.5 h-3.5" />
           PDF
