@@ -35,11 +35,8 @@ export default function HorizontalDatePicker({
 }: HorizontalDatePickerProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
-  const [visibleCount, setVisibleCount] = useState(31) // Default to all days
+  const [visibleCount, setVisibleCount] = useState(31)
   const [startIndex, setStartIndex] = useState(0)
-  const [isDragging, setIsDragging] = useState(false)
-  const [startX, setStartX] = useState(0)
-  const [scrollLeft, setScrollLeft] = useState(0)
 
   // Calculate days in month
   const currentYear = currentDate.getFullYear()
@@ -95,15 +92,18 @@ export default function HorizontalDatePicker({
     calculateVisibleCount()
   }, [currentDate, calculateVisibleCount])
 
-  // Adjust startIndex when selected day changes to keep it visible
+  // Adjust startIndex only when the selected day itself changes (not on scroll)
+  const prevSelectedDayRef = useRef<number>(selectedDay)
   useEffect(() => {
-    const selectedIndex = selectedDay - 1
-    if (selectedIndex < startIndex) {
-      setStartIndex(selectedIndex)
-    } else if (selectedIndex >= startIndex + visibleCount) {
-      setStartIndex(selectedIndex - visibleCount + 1)
-    }
-  }, [selectedDay, startIndex, visibleCount])
+    if (prevSelectedDayRef.current === selectedDay) return
+    prevSelectedDayRef.current = selectedDay
+    setStartIndex((prev) => {
+      const selectedIndex = selectedDay - 1
+      if (selectedIndex < prev) return selectedIndex
+      if (selectedIndex >= prev + visibleCount) return selectedIndex - visibleCount + 1
+      return prev
+    })
+  }, [selectedDay, visibleCount])
 
   // Reset startIndex when month changes
   useEffect(() => {
@@ -136,30 +136,6 @@ export default function HorizontalDatePicker({
     }
   }
 
-  // Touch/drag handling for mobile swipe
-  const handleTouchStart = (e: React.TouchEvent) => {
-    if (!scrollRef.current) return
-    setIsDragging(true)
-    setStartX(e.touches[0].pageX - scrollRef.current.offsetLeft)
-    setScrollLeft(scrollRef.current.scrollLeft)
-  }
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (!isDragging || !scrollRef.current) return
-    e.preventDefault()
-    const x = e.touches[0].pageX - scrollRef.current.offsetLeft
-    const walk = (x - startX) * 1.5
-    scrollRef.current.scrollLeft = scrollLeft - walk
-  }
-
-  const handleTouchEnd = () => {
-    setIsDragging(false)
-    if (!scrollRef.current) return
-    const newStartIndex = Math.round(scrollRef.current.scrollLeft / (sizes.buttonWidth + sizes.gap))
-    const clampedIndex = Math.max(0, Math.min(newStartIndex, daysInMonth - visibleCount))
-    setStartIndex(clampedIndex)
-  }
-
   // Check if we need navigation arrows (not all days fit)
   const needsNavigation = daysInMonth > visibleCount
 
@@ -188,11 +164,16 @@ export default function HorizontalDatePicker({
         {/* Days container - scrollable on mobile */}
         <div
           ref={scrollRef}
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
-          className={`flex flex-1 justify-start md:justify-center overflow-x-auto snap-x snap-mandatory touch-pan-x scroll-smooth ${needsNavigation ? 'gap-1 md:gap-1.5' : 'gap-1.5 md:gap-2'} [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden`}
-          style={{ scrollSnapType: 'x mandatory' }}
+          onScroll={() => {
+            if (!scrollRef.current) return
+            const dayWidth = sizes.buttonWidth + sizes.gap
+            const newStartIndex = Math.round(scrollRef.current.scrollLeft / dayWidth)
+            const clampedIndex = Math.max(0, Math.min(newStartIndex, daysInMonth - visibleCount))
+            setStartIndex(clampedIndex)
+          }}
+          className={`flex flex-1 justify-start overflow-x-auto touch-pan-x scroll-smooth ${
+            needsNavigation ? 'gap-1' : 'gap-1.5'
+          } [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden`}
         >
           {visibleDays.map((day) => {
             const date = new Date(currentYear, currentMonth, day)
@@ -205,7 +186,7 @@ export default function HorizontalDatePicker({
                 key={`day-${currentYear}-${currentMonth}-${day}`}
                 onClick={() => onSelectDay(day)}
                 className={`
-                  flex-shrink-0 rounded-lg font-medium flex flex-col items-center justify-center transition-colors snap-start
+                  flex-shrink-0 rounded-lg font-medium flex flex-col items-center justify-center transition-colors
                   ${sizes.button}
                   ${
                     isSelected
