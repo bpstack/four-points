@@ -33,10 +33,10 @@ export default function HorizontalDatePicker({
   size = 'md',
   mobileDaysVisible: _mobileDaysVisible = 5,
 }: HorizontalDatePickerProps) {
-  const containerRef = useRef<HTMLDivElement>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
-  const [visibleCount, setVisibleCount] = useState(31)
-  const [startIndex, setStartIndex] = useState(0)
+  const [scrollLeft, setScrollLeft] = useState(0)
+  const [scrollWidth, setScrollWidth] = useState(0)
+  const [clientWidth, setClientWidth] = useState(0)
 
   // Calculate days in month
   const currentYear = currentDate.getFullYear()
@@ -51,6 +51,7 @@ export default function HorizontalDatePicker({
       button: 'w-9 h-10 md:w-9 md:h-10',
       weekday: 'text-[7px] md:text-[8px]',
       day: 'text-[11px] md:text-xs',
+      gapClass: 'gap-1',
       buttonWidth: 36, // w-9 = 36px
       gap: 4, // gap-1 = 4px
     },
@@ -59,59 +60,70 @@ export default function HorizontalDatePicker({
       button: 'w-10 h-11 md:w-10 md:h-11',
       weekday: 'text-[8px] md:text-[9px]',
       day: 'text-xs md:text-sm',
+      gapClass: 'gap-1.5',
       buttonWidth: 40, // w-10 = 40px
       gap: 6, // gap-1.5 = 6px
     },
   }
 
   const sizes = sizeClasses[size]
+  const dayWidth = sizes.buttonWidth + sizes.gap
 
-  // Calculate how many days can fit in the container
-  const calculateVisibleCount = useCallback(() => {
-    if (!containerRef.current) return
+  // Track scroll container dimensions with ResizeObserver
+  const updateDimensions = useCallback(() => {
+    const el = scrollRef.current
+    if (!el) return
+    setScrollWidth(el.scrollWidth)
+    setClientWidth(el.clientWidth)
+  }, [])
 
-    const containerWidth = containerRef.current.offsetWidth
-    // Account for arrow buttons (32px each + padding) on both sides
-    const arrowsWidth = 80
-    const availableWidth = containerWidth - arrowsWidth
-    const dayWidth = sizes.buttonWidth + sizes.gap
-    const count = Math.floor(availableWidth / dayWidth)
-
-    setVisibleCount(Math.max(3, Math.min(count, daysInMonth)))
-  }, [daysInMonth, sizes.buttonWidth, sizes.gap])
-
-  // Recalculate on resize
   useEffect(() => {
-    calculateVisibleCount()
-    window.addEventListener('resize', calculateVisibleCount)
-    return () => window.removeEventListener('resize', calculateVisibleCount)
-  }, [calculateVisibleCount])
+    const el = scrollRef.current
+    if (!el) return
+    updateDimensions()
+    const ro = new ResizeObserver(updateDimensions)
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [updateDimensions, daysInMonth])
 
-  // Recalculate when month changes
-  useEffect(() => {
-    calculateVisibleCount()
-  }, [currentDate, calculateVisibleCount])
+  const handleScroll = useCallback(() => {
+    if (!scrollRef.current) return
+    setScrollLeft(scrollRef.current.scrollLeft)
+  }, [])
 
-  // Adjust startIndex only when the selected day itself changes (not on scroll)
+  // Scroll to keep selected day visible only when selectedDay prop changes
   const prevSelectedDayRef = useRef<number>(selectedDay)
   useEffect(() => {
     if (prevSelectedDayRef.current === selectedDay) return
     prevSelectedDayRef.current = selectedDay
-    setStartIndex((prev) => {
-      const selectedIndex = selectedDay - 1
-      if (selectedIndex < prev) return selectedIndex
-      if (selectedIndex >= prev + visibleCount) return selectedIndex - visibleCount + 1
-      return prev
-    })
-  }, [selectedDay, visibleCount])
+    const el = scrollRef.current
+    if (!el) return
+    const itemStart = (selectedDay - 1) * dayWidth
+    const itemEnd = itemStart + sizes.buttonWidth
+    if (itemStart < el.scrollLeft || itemEnd > el.scrollLeft + el.clientWidth) {
+      el.scrollTo({ left: itemStart, behavior: 'smooth' })
+    }
+  }, [selectedDay, dayWidth, sizes.buttonWidth])
 
-  // Reset startIndex when month changes
+  // Reset scroll when month changes
   useEffect(() => {
-    setStartIndex(0)
+    const el = scrollRef.current
+    if (!el) return
+    el.scrollLeft = 0
+    setScrollLeft(0)
   }, [currentMonth, currentYear])
 
-  // Get visible days based on startIndex and visibleCount
-  const visibleDays = allDays.slice(startIndex, startIndex + visibleCount)
+  const needsNavigation = scrollWidth > clientWidth + 1
+  const canGoBack = scrollLeft > 0
+  const canGoForward = scrollLeft + clientWidth < scrollWidth - 1
+
+  const navigateDays = (direction: 'back' | 'forward') => {
+    const el = scrollRef.current
+    if (!el) return
+    const visibleCount = Math.max(1, Math.floor(el.clientWidth / dayWidth))
+    const step = Math.max(1, Math.floor(visibleCount / 2)) * dayWidth
+    el.scrollBy({ left: direction === 'back' ? -step : step, behavior: 'smooth' })
+  }
 
   // Check if a day is today
   const isToday = (day: number) => {
@@ -123,25 +135,8 @@ export default function HorizontalDatePicker({
     )
   }
 
-  // Navigation
-  const canGoBack = startIndex > 0
-  const canGoForward = startIndex + visibleCount < daysInMonth
-
-  const navigateDays = (direction: 'back' | 'forward') => {
-    const step = Math.max(1, Math.floor(visibleCount / 2))
-    if (direction === 'back') {
-      setStartIndex(Math.max(0, startIndex - step))
-    } else {
-      setStartIndex(Math.min(daysInMonth - visibleCount, startIndex + step))
-    }
-  }
-
-  // Check if we need navigation arrows (not all days fit)
-  const needsNavigation = daysInMonth > visibleCount
-
   return (
     <div
-      ref={containerRef}
       className={`bg-white dark:bg-[#010409] border border-gray-200 dark:border-gray-800 rounded-lg shadow-sm overflow-hidden ${className}`}
     >
       <div className={`flex items-center ${sizes.container}`}>
@@ -161,21 +156,13 @@ export default function HorizontalDatePicker({
           </button>
         )}
 
-        {/* Days container - scrollable on mobile */}
+        {/* Days container — all days rendered, native scroll on mobile and desktop */}
         <div
           ref={scrollRef}
-          onScroll={() => {
-            if (!scrollRef.current) return
-            const dayWidth = sizes.buttonWidth + sizes.gap
-            const newStartIndex = Math.round(scrollRef.current.scrollLeft / dayWidth)
-            const clampedIndex = Math.max(0, Math.min(newStartIndex, daysInMonth - visibleCount))
-            setStartIndex(clampedIndex)
-          }}
-          className={`flex flex-1 justify-start overflow-x-auto touch-pan-x scroll-smooth ${
-            needsNavigation ? 'gap-1' : 'gap-1.5'
-          } [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden`}
+          onScroll={handleScroll}
+          className={`flex flex-1 overflow-x-auto touch-pan-x ${sizes.gapClass} [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden`}
         >
-          {visibleDays.map((day) => {
+          {allDays.map((day) => {
             const date = new Date(currentYear, currentMonth, day)
             const weekday = date.toLocaleDateString(locale, { weekday: 'short' })
             const isTodayDay = isToday(day)
