@@ -39,6 +39,10 @@ import checklistRoutes from './routes/checklist/checklist-routes.js'
 
 const app = express()
 
+// Detrás del proxy de Render: una capa. Permite que req.ip y express-rate-limit
+// usen la IP real del cliente del header X-Forwarded-For en vez de la IP del proxy.
+app.set('trust proxy', 1)
+
 // ========================================
 // CONFIGURACIÓN DE SEGURIDAD
 // ========================================
