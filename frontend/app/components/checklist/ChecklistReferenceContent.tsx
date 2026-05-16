@@ -59,7 +59,12 @@ const components: Components = {
       )
     }
     return (
-      <a href={href} className="text-blue-600 dark:text-blue-400 hover:underline font-sans" target="_blank" rel="noopener noreferrer">
+      <a
+        href={href}
+        className="text-blue-600 dark:text-blue-400 hover:underline font-sans"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
         {children}
       </a>
     )
@@ -77,7 +82,9 @@ const components: Components = {
   tbody: ({ children }) => (
     <tbody className="divide-y divide-gray-100 dark:divide-gray-800">{children}</tbody>
   ),
-  tr: ({ children }) => <tr className="hover:bg-gray-50/50 dark:hover:bg-white/[0.02]">{children}</tr>,
+  tr: ({ children }) => (
+    <tr className="hover:bg-gray-50/50 dark:hover:bg-white/[0.02]">{children}</tr>
+  ),
   th: ({ children }) => (
     <th className="px-3 py-2 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
       {children}

@@ -65,7 +65,9 @@ function StepRow({
         <div className="flex-1 min-w-0 flex items-start gap-2">
           <div className="flex-1 min-w-0 cursor-pointer" onClick={() => onToggle(!done)}>
             <span className="text-sm leading-snug select-none">
-              {(checklistId === 'cl-morning-shift' || checklistId === 'cl-afternoon-shift' || checklistId === 'cl-night-audit') && (
+              {(checklistId === 'cl-morning-shift' ||
+                checklistId === 'cl-afternoon-shift' ||
+                checklistId === 'cl-night-audit') && (
                 <span className="mr-1.5 font-mono text-[11px] text-gray-400 dark:text-gray-500 tabular-nums">
                   {step.id.replace(/^s/, '').replace('-', '.')}
                 </span>

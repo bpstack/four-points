@@ -19,9 +19,7 @@ const components: Components = {
     </h2>
   ),
   h3: ({ children }) => (
-    <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-200 mt-5 mb-2">
-      {children}
-    </h3>
+    <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-200 mt-5 mb-2">{children}</h3>
   ),
 
   // ── Body ──────────────────────────────────────────────────
@@ -40,9 +38,7 @@ const components: Components = {
       {children}
     </ol>
   ),
-  li: ({ children }) => (
-    <li className="leading-relaxed [&>ul]:mt-1.5 [&>ol]:mt-1.5">{children}</li>
-  ),
+  li: ({ children }) => <li className="leading-relaxed [&>ul]:mt-1.5 [&>ol]:mt-1.5">{children}</li>,
   strong: ({ children }) => (
     <strong className="font-semibold text-gray-900 dark:text-gray-100">{children}</strong>
   ),
@@ -81,7 +77,12 @@ const components: Components = {
       )
     }
     return (
-      <a href={href} className="text-blue-600 dark:text-blue-400 hover:underline" target="_blank" rel="noopener noreferrer">
+      <a
+        href={href}
+        className="text-blue-600 dark:text-blue-400 hover:underline"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
         {children}
       </a>
     )
@@ -101,7 +102,9 @@ const components: Components = {
   tbody: ({ children }) => (
     <tbody className="divide-y divide-gray-100 dark:divide-gray-800">{children}</tbody>
   ),
-  tr: ({ children }) => <tr className="hover:bg-gray-50/50 dark:hover:bg-white/[0.02]">{children}</tr>,
+  tr: ({ children }) => (
+    <tr className="hover:bg-gray-50/50 dark:hover:bg-white/[0.02]">{children}</tr>
+  ),
   th: ({ children }) => (
     <th className="px-3 py-2 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
       {children}

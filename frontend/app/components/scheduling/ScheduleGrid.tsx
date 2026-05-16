@@ -303,7 +303,12 @@ export function ScheduleGrid({
                           : 'bg-gray-50 dark:bg-[#0d1117]'
                       }`}
                     >
-                      <span className="block truncate px-2 py-1 text-[10px] font-medium text-gray-900 dark:text-gray-100 md:px-3 md:py-1.5 md:text-xs" title={employee.name}>{employee.name}</span>
+                      <span
+                        className="block truncate px-2 py-1 text-[10px] font-medium text-gray-900 dark:text-gray-100 md:px-3 md:py-1.5 md:text-xs"
+                        title={employee.name}
+                      >
+                        {employee.name}
+                      </span>
                     </td>
 
                     {/* Day Cells */}

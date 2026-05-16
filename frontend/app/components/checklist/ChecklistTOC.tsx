@@ -29,7 +29,15 @@ const SHIFT_ICONS: Record<Shift, React.ComponentType<{ className?: string }>> = 
   night: FiMoon,
 }
 
-function ItemLink({ item, onClose, onItemClick }: { item: ChecklistMeta; onClose?: () => void; onItemClick?: () => void }) {
+function ItemLink({
+  item,
+  onClose,
+  onItemClick,
+}: {
+  item: ChecklistMeta
+  onClose?: () => void
+  onItemClick?: () => void
+}) {
   const pathname = usePathname()
   const isActive = pathname === `/dashboard/checklist/${item.id}`
   const Icon = TYPE_ICONS[item.type]
@@ -37,7 +45,10 @@ function ItemLink({ item, onClose, onItemClick }: { item: ChecklistMeta; onClose
   return (
     <Link
       href={`/dashboard/checklist/${item.id}`}
-      onClick={() => { onClose?.(); onItemClick?.() }}
+      onClick={() => {
+        onClose?.()
+        onItemClick?.()
+      }}
       className={`flex items-center gap-2 px-2 py-1.5 rounded-md text-sm transition-colors ${
         isActive
           ? 'bg-blue-50 dark:bg-gray-800 text-blue-700 dark:text-blue-400 font-medium'
@@ -106,7 +117,12 @@ function CategoryGroup({
                   </div>
                   <div className="space-y-0.5">
                     {shiftItems.map((item) => (
-                      <ItemLink key={item.id} item={item} onClose={onClose} onItemClick={onItemClick} />
+                      <ItemLink
+                        key={item.id}
+                        item={item}
+                        onClose={onClose}
+                        onItemClick={onItemClick}
+                      />
                     ))}
                   </div>
                 </div>
@@ -179,7 +195,9 @@ export function ChecklistTOC({ catalog, onClose, onItemClick }: Props) {
     <div className="flex h-full min-h-0 flex-col">
       {/* Header */}
       <div className="px-3 py-3 border-b border-gray-200 dark:border-gray-800">
-        <h2 className="hidden md:block text-sm font-semibold text-gray-900 dark:text-gray-100 mb-2">Check List</h2>
+        <h2 className="hidden md:block text-sm font-semibold text-gray-900 dark:text-gray-100 mb-2">
+          Check List
+        </h2>
         {/* Search */}
         <div className="relative">
           <FiSearch className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
