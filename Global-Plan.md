@@ -20,8 +20,9 @@ Tras revisar el documento, el dueño confirmó las siguientes decisiones. Estas 
 |---|---|---|
 | **D-1 · Demo público** | Deshabilitar definitivamente según §5.2 plan de transición | ✅ Ejecutado 2026-05-12: `is_active=0` en aiven + password rotado + seed comentado en MASTER_INSTALL |
 | **D-2 · Cloudflare Access** | Sí, delante de `four-points.stackbp.es` | ⏳ Pendiente Sprint 2 (H1-17). Zero Trust Access free tier (≤50 usuarios) |
-| **D-3 · Refresh token rotation** | Implementar **antes** de datos reales, **después** del merge schedule+checklist a `main` | ⏳ Pendiente Sprint 2 (H2-1). Merge ya hecho (PR #3, 2026-05-12) |
+| **D-3 · Refresh token rotation** | ~~Implementar antes de datos reales~~ → **DESCARTADO a esta escala (revisado 2026-05-15)** | Ver §0.2 para razonamiento. Reabrir si crecimiento a 50+ usuarios, apertura pública o compliance regulado |
 | **D-4 · Multi-tenancy** | Diferida indefinidamente | Reabrir solo si HotelCode capta primer cliente externo |
+| **D-5 · Alcance Sprint 2** | Reducido a infraestructura mínima + Cloudflare Access (2026-05-15) | H2-1 descartado, H1-16 desagregado, ver §0.2 |
 
 ### 0.1 Coordinación con el merge schedule+checklist ✅ COMPLETADO
 
@@ -50,9 +51,12 @@ Tras revisar el documento, el dueño confirmó las siguientes decisiones. Estas 
 [Sprint 1 endurecimiento]  ⏳ próximo (esperar ≥24h estabilidad)
    · resto de H1 (rate limit, helmet, CORS body, refresh body, dead code, Sentry, Pino, render.yaml)
    ↓
-[Sprint 2]  ⏳
-   · H2-1 refresh token rotation con tabla `refresh_tokens`
+[Sprint 2]  ⏳ (alcance revisado 2026-05-15 — ver §0.2)
+   · H1-13 Sentry (10 min cuando DSN listo)
+   · H1-16.1 pin deps Python (requirements.txt)
+   · H1-16.4 vercel.json security headers
    · H1-17 Cloudflare Zero Trust Access
+   · H2-1 (descartado a esta escala — ver §0.2)
    ↓
 [datos reales empiezan a entrar]
    ↓
@@ -65,6 +69,77 @@ Tras revisar el documento, el dueño confirmó las siguientes decisiones. Estas 
 3. **Tests auth (H1-15) primero**: antes de tocar el módulo de auth en Sprint 1, los tests de regresión deben estar en `main`. Esto es la red de seguridad que hace que cualquier cambio posterior sea reversible.
 
 **Criterio de paso al Sprint 1:** schedule+checklist merge a `main` completado y pasando tests verdes en `main` durante al menos 24h en producción.
+
+### 0.2 Revisión de prioridades — 2026-05-15
+
+Tras análisis objetivo del alcance de Sprint 2 con el dueño, se revisó el plan original a la luz de la **escala real del producto**:
+
+- PMS interno (no público), 1-3 hoteles previstos, 5-30 usuarios totales del equipo de recepción.
+- 1 dev, 1 servicio backend en Render (tier gratis), 1 frontend en Vercel, 1 entorno productivo.
+- App ya funcionando en producción; el producto real (scheduling, timezone, features) sigue sin terminar.
+- Tiempo invertido en infraestructura es tiempo NO invertido en features que mueven el producto.
+
+#### Cambios concretos
+
+**1) H2-1 Refresh token rotation → DESCARTADO a esta escala (revierte D-3)**
+
+Razonamiento:
+
+| Amenaza | Probabilidad | ¿H2-1 lo mitiga? | ¿Hay alternativa más barata? |
+|---|---|---|---|
+| XSS roba refresh token | Muy baja — cookies son `HttpOnly`, JS no las puede leer | N/A | Ya mitigado |
+| Empleado pierde portátil con sesión activa | Real pero infrecuente | Sí | Rotar `SECRET_JWT_KEY` en Render (relogea a ≤30 usuarios) |
+| Empleado deshonesto exfiltra cookies | Muy baja — requiere acceso físico | Sí | Mismo "botón nuclear" |
+| Fuga refresh en logs | Baja — controlable con buena instrumentación | Sí | Auditar logs (1 vez) |
+| Atacante externo penetra CF Access | Muy baja — Google OAuth previa | Discutible | CF Access (H1-17) ya planificado |
+
+Coste de implementación de H2-1: tabla `refresh_tokens` + migración local + migración Aiven + cambios en `login`/`refresh`/`logout`/`updatePassword` + tests + ventana de despliegue arriesgada (rompe sesiones activas si hay bug). Coste alto. Riesgo residual cubierto: bajo.
+
+**Reabrir H2-1 si:** crecimiento a 50+ usuarios, apertura a tráfico público (no más solo equipo interno), o entrada en compliance regulado (PCI, HIPAA, ePrivacy estricta).
+
+**2) H1-16 → desagregado en 6 sub-items según valor real**
+
+El item original "render.yaml + vercel.json" mezclaba cosas de valor real (security headers, pin de versiones) con ceremonia (Blueprint IaC con un solo servicio):
+
+| Sub-item | Decisión | Razón |
+|---|---|---|
+| **H1-16.1** Pinear deps Python (`requirements.txt`, fijar ortools/pydantic) | ✅ Sprint 2 | Único riesgo silencioso con probabilidad no despreciable: hoy `pip install ortools pydantic` sin versión → cada deploy descarga lo último → pandas/numpy/ortools incompatible rompe el build |
+| **H1-16.2** `.python-version` con `3.11` | ⚠️ Opcional | 1 min, valor marginal — Render no cambia el default de buildpack Python con frecuencia |
+| **H1-16.3** `engines.node` o `.nvmrc` con `22.16.0` | ⚠️ Opcional | 2 min, valor marginal — Node 22 es LTS hasta 2027 |
+| **H1-16.4** `frontend/vercel.json` security headers | ✅ Sprint 2 | Valor objetivo medible (HSTS, X-Frame-Options, etc. → securityheaders.com puntúa A) |
+| **H1-16.5** `backend/render.yaml` Blueprint | ⏸️ Diferido | Valor real de IaC aparece con ≥2 entornos o ≥2 servicios. Hoy: 1+1+1 → ceremonia. Receta lista en `TODO.md` para cuando se reabra |
+| **H1-16.6** `^` → exacto en deps | ❌ Descartado | `pnpm-lock.yaml` ya pinea las versiones efectivas. Cambio cosmético sin estabilidad nueva |
+
+**3) Alternativas más útiles a esta escala** (no Sprint 2 — evaluar en Horizonte 2)
+
+En lugar de H2-1, las siguientes intervenciones aportan más valor al modelo de amenaza real:
+
+- **Audit log básico** (`security_audit_log`: usuario, timestamp, acción, IP). Más útil que rotación para GDPR e investigación de incidentes a escala interna. Implementable como middleware Express con tabla simple.
+- **2FA opcional para usuarios `admin`** — TOTP con `otplib`. Corta de raíz el blast radius del usuario con más privilegios, que es el único caso donde el robo de sesión tiene impacto serio en un PMS interno.
+- **Endpoint admin "listar/expulsar sesiones"** — cubre el caso "perdí el portátil" sin la complejidad de rotation completa. Implementación: campo `tokens_invalidated_after` en `users` + validación en `authenticateToken` middleware.
+
+Estas tres se reabrirán cuando se conozca mejor el patrón de uso real (≥1 mes con datos reales en producción).
+
+#### Resumen Sprint 2 revisado
+
+```
+HACER:
+  · H1-13   Sentry (10 min cuando llegue DSN)
+  · H1-16.1 Pinear deps Python (10 min)
+  · H1-16.4 vercel.json security headers (5 min)
+  · H1-17   Cloudflare Zero Trust Access (~30 min panel)
+
+OPCIONAL (cheap):
+  · H1-16.2 .python-version
+  · H1-16.3 engines.node
+
+DIFERIDO:
+  · H1-16.5 render.yaml Blueprint (cuando haya 2º entorno)
+  · H1-16.6 ^ → exacto (no hacer, lockfile cubre)
+
+DESCARTADO:
+  · H2-1    Refresh token rotation
+```
 
 ---
 
@@ -624,13 +699,19 @@ Si quieres seguridad extra mientras la plataforma sigue accesible solo a ti y a 
 | H1-11 | `.env.example` en backend y frontend | ✅ ya existía |
 | H1-14 | Pino logger estructurado (JSON prod, pretty dev) | ✅ PR #6 |
 | H1-13 | Sentry | ⏸️ pendiente alta de cuenta en sentry.io |
-| H1-16 | `render.yaml` + `vercel.json` | ⏳ Sprint 2 |
-| **H2-1** | **Refresh token rotation** | ⏳ Sprint 2 |
+| H1-16.1 | Pinear deps Python (`requirements.txt` + cambio script `build`) | ⏳ Sprint 2 |
+| H1-16.4 | `frontend/vercel.json` security headers | ⏳ Sprint 2 |
+| H1-16.2 | `.python-version` con `3.11` | ⚠️ Opcional Sprint 2 |
+| H1-16.3 | `engines.node` o `.nvmrc` con `22.16.0` | ⚠️ Opcional Sprint 2 |
+| H1-16.5 | `backend/render.yaml` Blueprint | ⏸️ Diferido (cuando haya 2º entorno) |
+| H1-16.6 | `^` → exacto en deps | ❌ Descartado (lockfile ya cubre) |
 | **H1-17** | **Cloudflare Zero Trust Access** | ⏳ Sprint 2 |
+| **H2-1** | **Refresh token rotation** | ❌ Descartado a esta escala (revisado 2026-05-15, ver §0.2) |
 
 ### Horizonte 2 — Medio plazo (1-2 meses, post estabilización)
 
-> H2-1 (refresh token rotation) y H2-10 (Cloudflare) se han **promovido a Sprint 1** por decisión D-3 y D-2.
+> Histórico: H2-1 (refresh token rotation) y H2-10 (Cloudflare) se promovieron a Sprint 1/2 por D-3 y D-2.
+> Revisado 2026-05-15: H2-1 vuelve a Horizonte 2 con estado **descartado** salvo cambio de escala (ver §0.2). H1-17 (Cloudflare) mantiene su sitio en Sprint 2.
 
 | ID | Acción | Complejidad | Riesgo |
 |---|---|---|---|
@@ -642,6 +723,9 @@ Si quieres seguridad extra mientras la plataforma sigue accesible solo a ti y a 
 | H2-7 | Logging estructurado de eventos de auth (login OK/KO, password change, role change) | Media | Decidir destino: tabla `security_audit_log` o servicio externo |
 | H2-8 | Resolver bloqueadores `TODO.md` que sigan abiertos tras el merge (B-1 venv Render, B-3 allSettled, MIN_NIGHTS_REQUIRED hardcoded) | Variable | Críticos para que scheduling funcione en prod |
 | H2-9 | Mensajes de error genéricos en producción (no leak enumerate users) | Baja | Bajo |
+| H2-11 | **Audit log básico** (tabla `security_audit_log`: usuario, ts, acción, IP) — alternativa a H2-1 más útil a esta escala. GDPR-relevante | Media | Bajo (es agregar tabla y middleware, no toca auth core) |
+| H2-12 | **2FA opcional para admins** (TOTP con `otplib`) — corta blast radius del usuario admin si se compromete | Media | Bajo (es opcional, se activa por usuario) |
+| H2-13 | **Endpoint admin "listar/expulsar sesiones"** — campo `tokens_invalidated_after` en `users` + check en `authenticateToken`. Cubre caso "perdí el portátil" sin la complejidad de H2-1 | Media | Bajo si tests cubren login post-expulsión |
 
 ### Horizonte 3 — Largo plazo (3-6 meses, evolución estructural)
 
@@ -694,15 +778,29 @@ PR #3 mergeado a `main` (commit `f34e20d`). Todos los bloqueadores listados orig
 
 **Criterio de cierre real:** queda solo H1-13 pendiente del lado externo. Se considera Sprint 1 funcionalmente cerrado.
 
-#### Sprint 2 — Refresh rotation + Cloudflare (5-7 días)
+#### Sprint 2 — Infraestructura mínima + Cloudflare Access (2-3 días — alcance revisado 2026-05-15)
 
-**Branch sugerido:** `feature/refresh-rotation`.
+> **Alcance reducido** tras §0.2. El plan original (H2-1 refresh rotation + H1-16 completo) era sobreingeniería para el modelo de amenaza real de un PMS interno de 5-30 usuarios.
 
-1. **H2-1 (promovido)** — tabla `refresh_tokens`, rotación cada uso, revocación al logout y al cambio de password. Tests específicos (login, refresh consume token viejo, logout revoca).
-2. **H1-16** (render.yaml/vercel.json) — antes o en paralelo con la rotación, da igual.
-3. **H1-17 (Cloudflare Access)** — al final del sprint, tras verificar que la rotación no rompe el flujo cross-origin con cookies. Testear primero en preview Vercel.
+**Branch sugerido:** `feature/sprint-2-infra`.
 
-**Después → datos reales empiezan a entrar.** A partir de aquí, el horizonte 2 se hace con la plataforma viva, lo que aumenta el riesgo de cada cambio. Por eso es importante completar Sprint 0 + 1 + 2 antes.
+1. **H1-13 Sentry** — bloqueado en alta externa de sentry.io. Cuando llegue el DSN, se cierra en 10 min (cerrar §3.5 hallazgo de observabilidad).
+2. **H1-16.1** Pinear deps Python: crear `backend/scheduling-solver/requirements.txt` con `ortools==9.15.6755`, `pydantic==2.13.4`, y cambiar el script `build` en `backend/package.json` a `pip install --no-cache-dir -r scheduling-solver/requirements.txt`.
+3. **H1-16.4** Crear `frontend/vercel.json` con security headers (HSTS, X-Frame-Options, etc.). Receta en `TODO.md §"Ficheros listos para copiar B"`.
+4. **H1-17 Cloudflare Zero Trust Access** — capa de Google OAuth delante del frontend. Solo panel CF, sin código. Guía paso a paso en `TODO.md §"Guía Cloudflare Zero Trust Access"`.
+
+**Opcionales (3 min en total, valor marginal):**
+- **H1-16.2** `.python-version` con `3.11`.
+- **H1-16.3** `engines.node: "22.16.0"` en `backend/package.json` y `frontend/package.json`.
+
+**Diferidos:**
+- **H1-16.5** `render.yaml` Blueprint → reabrir cuando haya staging o 2º hotel.
+- **H1-16.6** `^` → exacto en deps → no hacer, `pnpm-lock.yaml` ya pinea las versiones.
+
+**Descartado a esta escala:**
+- **H2-1** Refresh token rotation → ver §0.2 para razonamiento detallado.
+
+**Después → datos reales empiezan a entrar.** A partir de aquí, el horizonte 2 se hace con la plataforma viva, lo que aumenta el riesgo de cada cambio.
 
 ### 7.2 Cómo abordar los riesgos del refactor
 
@@ -805,8 +903,9 @@ curl -i https://api.four-points.stackbp.es/api/auth/login -X POST \
 |---|---|---|
 | ¿Demo público o privado? | **Deshabilitado definitivamente** según §5.2 | 2026-05-10 |
 | ¿Cloudflare Access? | **Sí** delante de four-points.stackbp.es (Sprint 2 H1-17) | 2026-05-10 |
-| ¿Cuándo refresh token rotation? | **Antes de datos reales, después del merge schedule+checklist** (H2-1 promovido a Sprint 2) | 2026-05-10 |
+| ¿Cuándo refresh token rotation? | ~~Antes de datos reales~~ → **Descartado a esta escala** (revierte D-3, ver §0.2) | 2026-05-10 → revisado 2026-05-15 |
 | ¿Multi-tenancy? | **Diferida indefinidamente**; reabrir solo si HotelCode capta cliente externo | 2026-05-10 |
+| ¿Alcance Sprint 2? | **Reducido** a infraestructura mínima + CF Access tras análisis de escala real | 2026-05-15 |
 
 ### E. Decisiones aún abiertas (no bloqueantes)
 
@@ -825,4 +924,4 @@ curl -i https://api.four-points.stackbp.es/api/auth/login -X POST \
 - H1-9 / H1-10 / H1-11: limpieza dead code (passport-jwt, DEV_MODE) + `.env.example`.
 - H1-13 / H1-14: Sentry + Pino para observabilidad antes de Sprint 2.
 
-Tras Sprint 1 estable → **Sprint 2**: H2-1 refresh token rotation + H1-17 Cloudflare Access. Solo entonces empiezan a entrar datos reales.
+Tras Sprint 1 estable → **Sprint 2 (alcance revisado 2026-05-15, ver §0.2)**: H1-13 Sentry + H1-16.1 pin deps Python + H1-16.4 vercel.json security headers + H1-17 Cloudflare Zero Trust Access. H2-1 refresh rotation descartado a esta escala. Solo entonces empiezan a entrar datos reales.
