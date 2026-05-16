@@ -7,5 +7,5 @@ export const toggleStepSchema = z.object({
 })
 
 export const createCommentSchema = z.object({
-  body: z.string().trim().min(1).max(1000),
+  body: z.string().trim().min(1).max(500),
 })

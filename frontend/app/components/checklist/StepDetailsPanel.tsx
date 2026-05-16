@@ -11,6 +11,8 @@ import { formatTimestampSmart } from '@/app/lib/helpers/date'
 
 // ── Comment list ──────────────────────────────────────────
 
+const COMMENT_MAX_LENGTH = 500
+
 function CommentList({ checklistId, stepId }: { checklistId: string; stepId: string }) {
   const { user } = useAuthContext()
   const queryClient = useQueryClient()
@@ -47,6 +49,14 @@ function CommentList({ checklistId, stepId }: { checklistId: string; stepId: str
 
   const isAdmin = user?.role?.toLowerCase() === 'admin'
 
+  const submitComment = () => {
+    const trimmed = body.trim()
+    if (!trimmed || trimmed.length > COMMENT_MAX_LENGTH) return
+    addMutation.mutate(trimmed)
+  }
+
+  const isInvalid = !body.trim() || body.length > COMMENT_MAX_LENGTH
+
   return (
     <div className="space-y-2.5">
       {isLoading && <p className="text-xs text-gray-400">Cargando...</p>}
@@ -82,23 +92,35 @@ function CommentList({ checklistId, stepId }: { checklistId: string; stepId: str
         ))}
       </div>
       <div className="flex gap-1.5">
-        <textarea
-          value={body}
-          onChange={(e) => setBody(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
-              e.preventDefault()
-              body.trim() && addMutation.mutate(body.trim())
-            }
-          }}
-          placeholder="Comentario... (Ctrl+Enter)"
-          rows={2}
-          className="flex-1 text-xs rounded border border-gray-300 dark:border-gray-700 bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none"
-        />
+        <div className="flex-1 flex flex-col gap-0.5">
+          <textarea
+            value={body}
+            onChange={(e) => setBody(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                e.preventDefault()
+                submitComment()
+              }
+            }}
+            placeholder="Comentario... (Ctrl+Enter)"
+            rows={2}
+            maxLength={COMMENT_MAX_LENGTH}
+            className="text-xs rounded border border-gray-300 dark:border-gray-700 bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none"
+          />
+          <span
+            className={`text-[10px] self-end tabular-nums ${
+              body.length >= COMMENT_MAX_LENGTH
+                ? 'text-red-500'
+                : 'text-gray-400 dark:text-gray-500'
+            }`}
+          >
+            {body.length}/{COMMENT_MAX_LENGTH}
+          </span>
+        </div>
         <button
-          onClick={() => body.trim() && addMutation.mutate(body.trim())}
-          disabled={!body.trim() || addMutation.isPending}
-          className="self-end w-7 h-7 flex items-center justify-center rounded bg-blue-600 hover:bg-blue-700 disabled:opacity-40 text-white flex-shrink-0"
+          onClick={submitComment}
+          disabled={isInvalid || addMutation.isPending}
+          className="self-start w-7 h-7 flex items-center justify-center rounded bg-blue-600 hover:bg-blue-700 disabled:opacity-40 text-white flex-shrink-0"
         >
           <FiSend className="w-3 h-3" />
         </button>
