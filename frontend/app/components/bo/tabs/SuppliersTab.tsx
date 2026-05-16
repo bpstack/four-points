@@ -10,6 +10,7 @@
 
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
+import { formatDateDisplayShort } from '@/app/lib/helpers/date'
 import {
   FiSearch,
   FiPlus,
@@ -84,14 +85,7 @@ export function SuppliersTab({
     return method === 'transfer' ? t('filters.transfer') : t('filters.directDebit')
   }
 
-  const formatDate = (date: string | null) => {
-    if (!date) return '-'
-    return new Date(date).toLocaleDateString('es-ES', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-    })
-  }
+  const formatDate = (date: string | null) => (date ? formatDateDisplayShort(date) : '-')
 
   // Handle refresh after mutations
   const handleMutationSuccess = () => {

@@ -11,6 +11,7 @@
 
 import { useState, useMemo } from 'react'
 import { useTranslations } from 'next-intl'
+import { formatDateDisplayShort } from '@/app/lib/helpers/date'
 import {
   FiSearch,
   FiPlus,
@@ -111,14 +112,7 @@ export function SuppliersTabLazy({
     })
   }, [suppliers, searchTerm, categoryFilter, periodicityFilter])
 
-  const formatDate = (date: string | null) => {
-    if (!date) return '-'
-    return new Date(date).toLocaleDateString('es-ES', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-    })
-  }
+  const formatDate = (date: string | null) => (date ? formatDateDisplayShort(date) : '-')
 
   // Modal handlers
   const handleOpenNewSupplier = () => {

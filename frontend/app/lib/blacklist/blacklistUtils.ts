@@ -59,6 +59,7 @@ function escapeRegex(str: string): string {
 export function formatDate(dateString: string): string {
   const date = new Date(dateString)
   return new Intl.DateTimeFormat('es-ES', {
+    timeZone: 'Europe/Madrid',
     day: '2-digit',
     month: '2-digit',
     year: 'numeric',
@@ -71,6 +72,7 @@ export function formatDate(dateString: string): string {
 export function formatDateTime(dateString: string): string {
   const date = new Date(dateString)
   return new Intl.DateTimeFormat('es-ES', {
+    timeZone: 'Europe/Madrid',
     day: '2-digit',
     month: '2-digit',
     year: 'numeric',

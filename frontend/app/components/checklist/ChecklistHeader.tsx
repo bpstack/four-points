@@ -59,6 +59,7 @@ export function ChecklistHeader({ item }: { item: ChecklistMeta }) {
               content.setAttribute(
                 'data-print-date',
                 new Date().toLocaleDateString('es-ES', {
+                  timeZone: 'Europe/Madrid',
                   day: '2-digit',
                   month: 'long',
                   year: 'numeric',

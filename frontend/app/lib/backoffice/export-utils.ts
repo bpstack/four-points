@@ -10,11 +10,12 @@ import type { InvoiceWithDetails } from './types'
 import { INVOICE_STATUS_LABELS, PAYMENT_METHOD_LABELS, formatCurrency } from './types'
 
 /**
- * Format date for display in exports
+ * Format date for display in exports (DD/MM/YYYY Madrid). Returns '-' for null.
  */
 function formatDate(date: string | null): string {
   if (!date) return '-'
   return new Date(date).toLocaleDateString('es-ES', {
+    timeZone: 'Europe/Madrid',
     day: '2-digit',
     month: '2-digit',
     year: 'numeric',

@@ -11,6 +11,7 @@
 
 import { useState, useTransition } from 'react'
 import { useTranslations } from 'next-intl'
+import { formatDateDisplayShort } from '@/app/lib/helpers/date'
 import {
   FiSearch,
   FiPlus,
@@ -103,13 +104,7 @@ export function PendingInvoicesTab({
     return matchesSearch && matchesCategory && matchesPaymentMethod
   })
 
-  const formatDate = (date: string) => {
-    return new Date(date).toLocaleDateString('es-ES', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-    })
-  }
+  const formatDate = (date: string) => formatDateDisplayShort(date)
 
   const toggleSelectInvoice = (id: number) => {
     setSelectedInvoices((prev) =>

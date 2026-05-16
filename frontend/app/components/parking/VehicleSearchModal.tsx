@@ -9,6 +9,7 @@ import { FiSearch, FiX, FiClock, FiCalendar } from 'react-icons/fi'
 import { FaCar } from 'react-icons/fa'
 import { useTranslations } from 'next-intl'
 import { parkingApi } from '@/app/lib/parking'
+import { formatDateDisplayShort } from '@/app/lib/helpers/date'
 import type { ParkingVehicle, ParkingBooking } from '@/app/lib/parking/types'
 
 interface VehicleSearchModalProps {
@@ -105,13 +106,7 @@ export function VehicleSearchModal({ isOpen, onClose }: VehicleSearchModalProps)
     setVehicleBookings([])
   }
 
-  const formatDate = (date: string) => {
-    return new Date(date).toLocaleDateString('es-ES', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-    })
-  }
+  const formatDate = (date: string) => formatDateDisplayShort(date)
 
   const _formatTime = (date: string) => {
     return new Date(date).toLocaleTimeString('es-ES', {

@@ -12,6 +12,7 @@ import { ChecklistHeader } from './ChecklistHeader'
 import { ChecklistNoteBanner } from './ChecklistNoteBanner'
 import { StepTriggerButtons, StepDetailsPanel } from './StepDetailsPanel'
 import { useAuthContext } from '@/app/lib/auth/useAuth'
+import { formatMadridTime } from '@/app/lib/helpers/date'
 
 // ─── Checkbox ────────────────────────────────────────────
 
@@ -81,11 +82,7 @@ function StepRow({
             </span>
             {done && state?.done_by_username && state.done_at && (
               <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
-                {state.done_by_username} ·{' '}
-                {new Date(state.done_at).toLocaleTimeString('es-ES', {
-                  hour: '2-digit',
-                  minute: '2-digit',
-                })}
+                {state.done_by_username} · {formatMadridTime(state.done_at)}
               </p>
             )}
           </div>

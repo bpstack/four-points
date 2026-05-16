@@ -569,6 +569,7 @@ export default function LogbooksList({
                   <FiClock className="w-4 h-4 text-gray-500 dark:text-gray-400 flex-shrink-0" />
                   <span className="text-sm font-medium text-gray-900 dark:text-white">
                     {new Date(entry.timestamp).toLocaleTimeString('es-ES', {
+                      timeZone: 'Europe/Madrid',
                       hour: '2-digit',
                       minute: '2-digit',
                       hour12: false,
@@ -695,12 +696,14 @@ export default function LogbooksList({
                 <FiClock className="w-3.5 h-3.5 flex-shrink-0" />
                 <span>
                   {new Date(entry.timestamp).toLocaleTimeString('es-ES', {
+                    timeZone: 'Europe/Madrid',
                     hour: '2-digit',
                     minute: '2-digit',
                     hour12: false,
                   })}
                   {' · '}
                   {new Date(entry.timestamp).toLocaleDateString('es-ES', {
+                    timeZone: 'Europe/Madrid',
                     day: '2-digit',
                     month: '2-digit',
                     year: 'numeric',

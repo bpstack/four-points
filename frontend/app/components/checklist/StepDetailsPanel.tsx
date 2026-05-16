@@ -7,6 +7,7 @@ import toast from 'react-hot-toast'
 import { checklistApi, checklistKeys } from '@/app/lib/checklist/api'
 import type { CommentDto, AttachmentDto } from '@/app/lib/checklist/api'
 import { useAuthContext } from '@/app/lib/auth/useAuth'
+import { formatTimestampSmart } from '@/app/lib/helpers/date'
 
 // ── Comment list ──────────────────────────────────────────
 
@@ -64,12 +65,7 @@ function CommentList({ checklistId, stepId }: { checklistId: string; stepId: str
                   {c.username}
                 </span>
                 <span className="text-[10px] text-gray-400">
-                  {new Date(c.created_at).toLocaleString('es-ES', {
-                    day: '2-digit',
-                    month: '2-digit',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  })}
+                  {formatTimestampSmart(c.created_at)}
                 </span>
               </div>
               <p className="text-xs text-gray-700 dark:text-gray-300 break-words">{c.body}</p>
