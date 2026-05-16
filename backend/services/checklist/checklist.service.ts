@@ -2,6 +2,7 @@
 
 import * as repo from '../../repositories/checklist/checklist-repository.js'
 import * as commentsRepo from '../../repositories/checklist/checklist-comments.repository.js'
+import { getTodayMadrid } from '../../config/date-utils.js'
 import type { ChecklistRunWithSteps } from '../../models/checklist/index.js'
 
 async function buildRunState(run: Awaited<ReturnType<typeof repo.getOrCreateRun>>): Promise<ChecklistRunWithSteps> {
@@ -57,7 +58,7 @@ export async function resetRun(
   checklistId: string,
   userId: string
 ): Promise<ChecklistRunWithSteps> {
-  const today = repo.getHotelDate()
+  const today = getTodayMadrid()
   const currentRun = await repo.findActiveRun(checklistId, today)
   if (currentRun) {
     await repo.logEvent(currentRun.id, null, userId, 'reset_manual')

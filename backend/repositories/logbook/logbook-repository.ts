@@ -2,6 +2,7 @@
 // CRUD + soft-delete + filtros
 
 import db from '../../config/db.js'
+import { getTodayMadrid } from '../../config/date-utils.js'
 import type {
   LogbookWithAuthor,
   CreateLogbookDTO,
@@ -41,7 +42,7 @@ export async function createLogbook({
     throw new Error('author_id no puede ser undefined o null')
   }
 
-  const today = new Date().toISOString().split('T')[0] // yyyy-mm-dd
+  const today = getTodayMadrid() // YYYY-MM-DD en Europe/Madrid (hotel_date)
 
   const [result] = await db.execute<ResultSetHeader>(
     `INSERT INTO logbooks

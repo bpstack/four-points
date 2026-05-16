@@ -46,7 +46,7 @@ export class CronService {
       } catch (error) {
         console.error('❌ [CRON] Error procesando notificaciones:', error)
       }
-    })
+    }, { timezone: 'Europe/Madrid' })
 
     // ═══════════════════════════════════════════════════════
     // BATCH PAYMENT - Día 10 de cada mes a las 23:59
@@ -70,7 +70,7 @@ export class CronService {
       } catch (error) {
         console.error('❌ [CRON] Error en batch payment:', error)
       }
-    })
+    }, { timezone: 'Europe/Madrid' })
 
     // ═══════════════════════════════════════════════════════
     // CHECKLIST RESET - Todos los días a las 06:30 (Europe/Madrid)

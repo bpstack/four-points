@@ -1,12 +1,8 @@
 // repositories/checklist/checklist-repository.ts
 
 import db from '../../config/db.js'
+import { getTodayMadrid } from '../../config/date-utils.js'
 import type { ChecklistRun, StepState, ResultSetHeader } from '../../models/checklist/index.js'
-
-// Returns YYYY-MM-DD in Europe/Madrid timezone
-export function getHotelDate(): string {
-  return new Intl.DateTimeFormat('sv-SE', { timeZone: 'Europe/Madrid' }).format(new Date())
-}
 
 // ──────────────────────────────────────────────────────────
 // RUNS
@@ -35,7 +31,7 @@ export async function createRun(checklistId: string, hotelDate: string): Promise
 }
 
 export async function getOrCreateRun(checklistId: string): Promise<ChecklistRun> {
-  const today = getHotelDate()
+  const today = getTodayMadrid()
   const existing = await findActiveRun(checklistId, today)
   if (existing) return existing
   try {
@@ -63,7 +59,7 @@ export async function closeRun(runId: number, userId: string, reason: 'cron' | '
 
 // Closes all runs from previous hotel dates (called by cron at 06:30)
 export async function closeStaleRuns(): Promise<number> {
-  const today = getHotelDate()
+  const today = getTodayMadrid()
   const [result] = await db.execute<ResultSetHeader>(
     `UPDATE checklist_runs SET reset_at = NOW(), reset_by_user_id = 'system-cron', reset_reason = 'cron'
      WHERE hotel_id = 1 AND hotel_date < ? AND reset_at IS NULL`,

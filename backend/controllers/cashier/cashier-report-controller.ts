@@ -6,13 +6,7 @@ import { CashierVoucherRepository } from '../../repositories/cashier/cashier-vou
 import { CashierDenominationRepository } from '../../repositories/cashier/cashier-denomination-repository.js'
 import { CashierPaymentRepository } from '../../repositories/cashier/cashier-payment-repository.js'
 import { ShiftStatus } from '../../models/cashier/index.js'
-
-// ✅ Helper para obtener fecha actual en zona horaria de Madrid
-function getTodayMadrid(): string {
-  const now = new Date()
-  const madridTime = new Date(now.toLocaleString('en-US', { timeZone: 'Europe/Madrid' }))
-  return madridTime.toISOString().split('T')[0]
-}
+import { getTodayMadrid } from '../../config/date-utils.js'
 
 export class CashierReportController {
   /**
