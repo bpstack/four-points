@@ -38,6 +38,9 @@ async function buildRunState(run: Awaited<ReturnType<typeof repo.getOrCreateRun>
 }
 
 export async function getRunState(checklistId: string): Promise<ChecklistRunWithSteps> {
+  // Auto-close lazy: si el cron 06:30 Madrid no disparó (Render free tier dormido),
+  // cerrar aquí los runs con hotel_date < today. UPDATE indexed, noop tras la primera del día.
+  await repo.closeStaleRuns()
   const run = await repo.getOrCreateRun(checklistId)
   return buildRunState(run)
 }
