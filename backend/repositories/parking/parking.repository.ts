@@ -3,6 +3,7 @@
 import db from '../../config/db.js'
 import dayjs from 'dayjs'
 import { ResultSetHeader } from 'mysql2'
+import { getTodayMadrid } from '../../config/date-utils.js'
 import type {
   ParkingSpotRow,
   ParkingVehicleRow,
@@ -177,7 +178,7 @@ export async function searchVehicles(searchTerm: string): Promise<ParkingVehicle
 
 // Usa parking_availability
 export const getAvailableSpots = async (date: string | null = null): Promise<ParkingSpotRow[]> => {
-  const targetDate = date || new Date().toISOString().split('T')[0]
+  const targetDate = date || getTodayMadrid()
 
   const [rows] = await db.execute<ParkingSpotRow[]>(
     `SELECT ps.* 

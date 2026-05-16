@@ -1,6 +1,7 @@
 // repositories/cashier/cashier-daily-repository.ts
 
 import db from '../../config/db.js'
+import { getLastDayOfMonth } from '../../config/date-utils.js'
 import {
   CashierDaily,
   CashierDailyDetail,
@@ -269,7 +270,7 @@ export class CashierDailyRepository {
 
   static async getMonthlySummary(year: number, month: number): Promise<MonthlyCashierSummary> {
     const startDate = `${year}-${String(month).padStart(2, '0')}-01`
-    const endDate = new Date(year, month, 0).toISOString().split('T')[0]
+    const endDate = getLastDayOfMonth(year, month)
 
     // ✅ CALCULAR TOTALES DESDE TABLAS FUENTE (cashier_denominations y cashier_payments)
     // en lugar de leer de cashier_daily que puede tener datos desactualizados

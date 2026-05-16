@@ -6,6 +6,7 @@
 
 import pool from '../../config/db.js'
 import { RowDataPacket, ResultSetHeader } from 'mysql2'
+import { getNowMadrid } from '../../config/date-utils.js'
 import {
   Category,
   Supplier,
@@ -890,7 +891,7 @@ export class BackofficeRepository {
   // ========================================
 
   static async getSummaryStats(): Promise<SummaryStats> {
-    const currentMonth = new Date().toISOString().slice(0, 7) // YYYY-MM
+    const currentMonth = getNowMadrid().format('YYYY-MM') // mes actual en Europe/Madrid
 
     const [pending] = await pool.query<RowDataPacket[]>(
       `SELECT COUNT(*) as count, COALESCE(SUM(amount_with_vat), 0) as total 
@@ -936,7 +937,7 @@ export class BackofficeRepository {
   }
 
   static async getMonthlySummary(year?: number): Promise<any[]> {
-    const targetYear = year || new Date().getFullYear()
+    const targetYear = year || getNowMadrid().year()
     const [rows] = await pool.query<RowDataPacket[]>(
       `SELECT * FROM v_bo_monthly_summary WHERE year = ? ORDER BY month DESC`,
       [targetYear]

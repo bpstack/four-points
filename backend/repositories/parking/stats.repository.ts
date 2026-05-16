@@ -3,6 +3,7 @@
 // ============================================
 import pool from '../../config/db.js'
 import { RowDataPacket } from 'mysql2/promise'
+import { formatDateMadrid } from '../../config/date-utils.js'
 import type {
   DailyStatsRow,
   OccupancyByLevelRow,
@@ -45,7 +46,7 @@ class ParkingStatsRepository {
   // STATS - Estadísticas generales del día
   // ============================================
   async getDailyStats(date: Date | string = new Date()): Promise<DailyStats> {
-    const targetDate = new Date(date).toISOString().split('T')[0]
+    const targetDate = formatDateMadrid(date)
 
     const query = `
     SELECT 
@@ -149,7 +150,7 @@ class ParkingStatsRepository {
   // OCCUPANCY - Ocupación por planta
   // ============================================
   async getOccupancyByLevel(date: Date | string = new Date()): Promise<OccupancyByLevelResponse> {
-    const targetDate = typeof date === 'string' ? date : new Date().toISOString().split('T')[0]
+    const targetDate = formatDateMadrid(date)
 
     const query = `
     SELECT 
@@ -263,7 +264,7 @@ class ParkingStatsRepository {
       params = [endDate, endDate, String(dateOrStartDate), endDate]
     } else {
       // Fecha única
-      const targetDate = new Date(dateOrStartDate).toISOString().split('T')[0]
+      const targetDate = formatDateMadrid(dateOrStartDate)
       query = `
       SELECT 
         b.id AS booking_id,
@@ -382,7 +383,7 @@ class ParkingStatsRepository {
       params = [endDate, String(dateOrStartDate), endDate]
     } else {
       // Fecha única
-      const targetDate = new Date(dateOrStartDate).toISOString().split('T')[0]
+      const targetDate = formatDateMadrid(dateOrStartDate)
       query = `
       SELECT 
         b.id AS booking_id,
@@ -466,7 +467,7 @@ class ParkingStatsRepository {
   async getAvailabilityByLevel(
     date: Date | string = new Date()
   ): Promise<AvailabilityByLevelResponse> {
-    const targetDate = new Date(date).toISOString().split('T')[0]
+    const targetDate = formatDateMadrid(date)
 
     const query = `
     SELECT 

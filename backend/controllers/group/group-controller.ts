@@ -9,6 +9,7 @@ import { PaymentCalculatorService } from '../../services/group/payment-calculato
 import { GroupHistoryService } from '../../services/group/group-history-service'
 import { CreateGroupDTO, UpdateGroupDTO, GroupFilters } from '../../models/group/index'
 import { ERROR_CODES, SUCCESS_CODES } from '../../config/error-codes.js'
+import { getNowMadrid } from '../../config/date-utils.js'
 
 export class GroupController {
   /**
@@ -313,7 +314,7 @@ export class GroupController {
    */
   static async getDashboardTimeline(req: Request, res: Response): Promise<Response> {
     try {
-      const year = req.query.year ? parseInt(req.query.year as string) : new Date().getFullYear()
+      const year = req.query.year ? parseInt(req.query.year as string) : getNowMadrid().year()
 
       const timeline = await GroupRepository.getTimeline(year)
 

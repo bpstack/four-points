@@ -14,9 +14,10 @@
  */
 
 import db from '../config/db.js';
+import { getTodayMadrid } from '../config/date-utils.js';
 
 const CHECKLIST_ID = process.argv[2] ?? 'cl-night-audit';
-const HOTEL_DATE   = process.argv[3] ?? new Date().toISOString().slice(0, 10);
+const HOTEL_DATE   = process.argv[3] ?? getTodayMadrid();
 
 const fmt = (d: any) => d instanceof Date ? d.toISOString().slice(0, 19).replace('T', ' ') : String(d).slice(0, 19);
 

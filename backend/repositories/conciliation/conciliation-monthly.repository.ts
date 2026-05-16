@@ -6,6 +6,7 @@
 
 import pool from '../../config/db.js'
 import type { ResultSetHeader, RowDataPacket } from 'mysql2'
+import { getLastDayOfMonth } from '../../config/date-utils.js'
 import {
   IMonthlySummaryMeta,
   IMonthlySummaryResponse,
@@ -91,13 +92,10 @@ export class ConciliationMonthlyRepository {
     // 1. Obtener metadata del mes
     const metadata = await this.getOrCreateMonthlySummaryMeta(year, month)
 
-    // 2. Calcular fechas del período
-    const startDate = new Date(year, month - 1, 1)
-    const endDate = new Date(year, month, 0) // Último día del mes
-    const totalDays = endDate.getDate()
-
-    const startDateStr = startDate.toISOString().split('T')[0]
-    const endDateStr = endDate.toISOString().split('T')[0]
+    // 2. Calcular fechas del período (calendar math sin dependencia de TZ del runtime)
+    const startDateStr = `${year}-${String(month).padStart(2, '0')}-01`
+    const endDateStr = getLastDayOfMonth(year, month)
+    const totalDays = parseInt(endDateStr.split('-')[2], 10)
 
     // 3. Contar conciliaciones del mes
     const [countRows] = await pool.query<RowDataPacket[]>(

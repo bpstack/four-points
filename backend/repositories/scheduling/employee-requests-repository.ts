@@ -4,6 +4,7 @@
 // Endpoints CRUD son trabajo de Fase 1, aquí solo las queries del solver.
 
 import db from '../../config/db.js'
+import { getLastDayOfMonth } from '../../config/date-utils.js'
 import type { SchedulingEmployeeRequestRow } from '../../models/scheduling/index.js'
 
 /**
@@ -15,7 +16,7 @@ export async function findByMonth(
   month: number
 ): Promise<SchedulingEmployeeRequestRow[]> {
   const firstDay = `${year}-${String(month).padStart(2, '0')}-01`
-  const lastDay = new Date(year, month, 0).toISOString().slice(0, 10)
+  const lastDay = getLastDayOfMonth(year, month)
 
   const [rows] = await db.query(
     `SELECT * FROM scheduling_employee_requests

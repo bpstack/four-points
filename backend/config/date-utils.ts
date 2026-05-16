@@ -60,6 +60,18 @@ export const getEndOfDayMadrid = (date: DateInput): Dayjs => {
   return dayjs(date).tz(TIMEZONE).endOf('day')
 }
 
+/**
+ * Devuelve el último día del mes en formato YYYY-MM-DD.
+ * @param year — año (4 dígitos)
+ * @param month — mes 1-indexed (1 = enero, 12 = diciembre)
+ *
+ * Sustituye al patrón `new Date(year, month, 0).toISOString().slice(0, 10)`
+ * que es frágil porque depende del timezone del runtime.
+ */
+export const getLastDayOfMonth = (year: number, month: number): string => {
+  return dayjs(`${year}-${String(month).padStart(2, '0')}-01`).endOf('month').format('YYYY-MM-DD')
+}
+
 export default {
   getTodayMadrid,
   getNowMadrid,
@@ -68,5 +80,6 @@ export default {
   formatDateTimeMadrid,
   getStartOfDayMadrid,
   getEndOfDayMadrid,
+  getLastDayOfMonth,
   TIMEZONE,
 }

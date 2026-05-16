@@ -3,6 +3,7 @@
 import { Request, Response } from 'express'
 import * as repo from '../../repositories/scheduling/scheduling-repository.js'
 import { validateSchedule as validateScheduleService } from '../../services/scheduling/schedule-validator.js'
+import { getNowMadrid } from '../../config/date-utils.js'
 import {
   createMonthSchema,
   updateMonthSchema,
@@ -1849,7 +1850,7 @@ export async function calculateProportionalContract(req: Request, res: Response)
 
 export async function getShiftStats(req: Request, res: Response): Promise<void> {
   try {
-    const year = parseInt(req.query.year as string) || new Date().getFullYear()
+    const year = parseInt(req.query.year as string) || getNowMadrid().year()
     if (isNaN(year) || year < 2020 || year > 2100) {
       res.status(400).json({ error: 'Año inválido' })
       return
