@@ -90,6 +90,17 @@ Motivos del cambio a daemon (ver `SCHEDULING-DECISIONS-LOG.md` entrada 2026-04-3
 
 Archivos clave: `scheduling-solver/daemon.py` (proceso Python), `services/scheduling/solver-client.ts` (gestión del daemon desde Node).
 
+**Reproducibilidad del entorno Python** (2026-05-16):
+
+- **Runtime anclado** — `backend/scheduling-solver/.python-version` con `3.11`. Render usa esa versión en el buildpack.
+- **Dependencias pineadas** — `backend/scheduling-solver/requirements.txt` con:
+  ```
+  ortools==9.15.6755
+  pydantic==2.13.4
+  ```
+  El script `build` en `backend/package.json` ejecuta `pip install --no-cache-dir -r scheduling-solver/requirements.txt`. Cada deploy descarga exactamente esas versiones; no hay riesgo de regresión silenciosa por una release rota upstream.
+- **Política de actualización** — para subir versiones (ej. `ortools 9.16.0`), editar `requirements.txt` y pushear. Si rompe, `git revert` restaura las versiones anteriores de forma trivial. Las transitivas (`numpy`, `pandas`, `protobuf`...) no se pinean; cubre el 90% de regresiones y mantiene los upgrades simples.
+
 `main.py` sigue existiendo como entry point CLI **solo para debugging manual** (ej: probar un input JSON suelto en consola). El flujo productivo NO lo usa — todas las generaciones reales pasan por el daemon. Adicionalmente, existen scripts de debug en el backend para inspeccionar el sistema:
 
 | Script | Propósito |
@@ -443,7 +454,8 @@ Distinción registrada 2026-05-09 tras pregunta del manager:
 | Formulación CP-SAT lenta para 30+ empleados | Media | Alto | PoC en Fase 0; si es lento, explorar decomposición por semanas o warm-start |
 | Divergencia validator TS vs. solver Python | Alta | Alto | Corpus de tests compartido desde Fase 0; en CI correr ambos contra el mismo corpus |
 | Pesos de soft constraints mal tuneados → horarios "raros" | Alta | Medio | Fase 2 dedica trabajo específico al tuneo con meses reales |
-| ~~Python no disponible en el deployment target~~ ✅ resuelto | — | — | El Node buildpack de Render incluye `python3`. `package.json` `build` script crea venv + instala ortools. Funciona en producción desde 2026-05. Pendiente menor: anclar versión Python con `.python-version` (TODO.md Sprint 2) |
+| ~~Python no disponible en el deployment target~~ ✅ resuelto | — | — | El Node buildpack de Render incluye `python3`. `package.json` `build` script crea venv + instala ortools+pydantic desde `requirements.txt`. Versiones pineadas (`ortools==9.15.6755`, `pydantic==2.13.4`) y Python 3.11 anclado vía `.python-version` (2026-05-16). Funciona en producción de forma reproducible |
+| ~~Cálculo del último día del mes incorrecto en `findByMonth`~~ ✅ resuelto 2026-05-16 | — | — | `employee-requests-repository.ts:18` usaba `new Date(year, month, 0).toISOString().slice(0,10)` que en runtime con offset positivo (Madrid local con `dev:aiven`) devolvía un día menos del esperado (ej. `2026-05-30` en vez de `2026-05-31`), perdiendo requests del último día del mes que el solver debería tratar como lockedCells. En Render UTC no se manifestaba pero localmente sí. Fix: nuevo helper `getLastDayOfMonth(year, month)` en `config/date-utils.ts` (independiente del TZ runtime). Mismo cambio aplicado en `cashier-daily-repository.ts` y `conciliation-monthly.repository.ts` (commit `acb281a`) |
 | Cambios de convenio invalidan constraints | Baja | Medio | `SCHEDULING-CONSTRAINTS.md` es fácil de actualizar; lógica cambia en 2 sitios + tests |
 | UNSAT opaco (el solver dice "no hay solución" sin explicar) | Media | Medio | `sufficient_assumptions_for_infeasibility` de CP-SAT + trabajo dedicado en Fase 3 |
 

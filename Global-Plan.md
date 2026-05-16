@@ -23,6 +23,7 @@ Tras revisar el documento, el dueño confirmó las siguientes decisiones. Estas 
 | **D-3 · Refresh token rotation** | ~~Implementar antes de datos reales~~ → **DESCARTADO a esta escala (revisado 2026-05-15)** | Ver §0.2 para razonamiento. Reabrir si crecimiento a 50+ usuarios, apertura pública o compliance regulado |
 | **D-4 · Multi-tenancy** | Diferida indefinidamente | Reabrir solo si HotelCode capta primer cliente externo |
 | **D-5 · Alcance Sprint 2** | Reducido a infraestructura mínima + Cloudflare Access (2026-05-15) | H2-1 descartado, H1-16 desagregado, ver §0.2 |
+| **D-6 · Refactor timezone** | Centralizar lógica de fechas Madrid en backend + frontend; UTC solo para timestamps de auditoría | ✅ Ejecutado 2026-05-16 en 7 commits (`d7039d8` → `84899b2`). Ver §0.3 |
 
 ### 0.1 Coordinación con el merge schedule+checklist ✅ COMPLETADO
 
@@ -51,12 +52,14 @@ Tras revisar el documento, el dueño confirmó las siguientes decisiones. Estas 
 [Sprint 1 endurecimiento]  ⏳ próximo (esperar ≥24h estabilidad)
    · resto de H1 (rate limit, helmet, CORS body, refresh body, dead code, Sentry, Pino, render.yaml)
    ↓
-[Sprint 2]  ⏳ (alcance revisado 2026-05-15 — ver §0.2)
-   · H1-13 Sentry (10 min cuando DSN listo)
-   · H1-16.1 pin deps Python (requirements.txt)
-   · H1-16.4 vercel.json security headers
-   · H1-17 Cloudflare Zero Trust Access
-   · H2-1 (descartado a esta escala — ver §0.2)
+[Sprint 2]  🚧 EN PROGRESO (alcance revisado 2026-05-15 — ver §0.2)
+   · H1-13 Sentry ⏸️ bloqueado por DSN externo
+   · H1-16.1 pin deps Python ✅ 2026-05-16
+   · H1-16.2/3/4 ✅ 2026-05-16
+   · H1-17 Cloudflare Zero Trust Access ⏳ tarea panel-only
+   · H1-18 trust proxy ✅ 2026-05-16 (descubierto durante refactor timezone)
+   · H1-19 refactor timezone ✅ 2026-05-16 (no en plan original, ver §0.3)
+   · H2-1 ❌ descartado a esta escala (ver §0.2)
    ↓
 [datos reales empiezan a entrar]
    ↓
@@ -109,6 +112,43 @@ El item original "render.yaml + vercel.json" mezclaba cosas de valor real (secur
 | **H1-16.4** `frontend/vercel.json` security headers | ✅ Sprint 2 | Valor objetivo medible (HSTS, X-Frame-Options, etc. → securityheaders.com puntúa A) |
 | **H1-16.5** `backend/render.yaml` Blueprint | ⏸️ Diferido | Valor real de IaC aparece con ≥2 entornos o ≥2 servicios. Hoy: 1+1+1 → ceremonia. Receta lista en `TODO.md` para cuando se reabra |
 | **H1-16.6** `^` → exacto en deps | ❌ Descartado | `pnpm-lock.yaml` ya pinea las versiones efectivas. Cambio cosmético sin estabilidad nueva |
+
+### 0.3 Refactor timezone — completado (2026-05-16)
+
+Refactor ejecutado tras detectar bugs reales de timezone en producción (Render UTC + lógica de negocio Madrid). 7 commits clean, separados por scope, todos pusheados y verificados en prod:
+
+| Commit | Lote | Scope |
+|---|---|---|
+| `d7039d8` | B | docs: revise sprint 2 scope + rewrite timezone plan |
+| `d0c6c71` | A | chore: pin Node 22.16.0 + Python 3.11 + vercel.json security headers + Zod `.trim()` |
+| `5a2049b` | A.1 | fix: `app.set('trust proxy', 1)` para `express-rate-limit` con IP real cliente |
+| `fa3de26` | C | refactor: centralizar `getTodayMadrid()` + timezone Madrid en crons |
+| `b1d2a20` | D | fix: auto-close lazy en `getRunState()` (workaround cron-sleep Render free tier) |
+| `acb281a` | E | refactor: 14 sitios en 9 archivos backend con `getNowMadrid()` / `getLastDayOfMonth()` |
+| `84899b2` | F | fix: `timeZone: 'Europe/Madrid'` explícito en helpers frontend + `parseInputDate` robusto a ISO |
+
+**Arquitectura canon resultante:**
+
+```
+UTC          → timestamps de auditoría: created_at, updated_at, reset_at, done_at
+Europe/Madrid → lógica de negocio: hotel_date, cierres diarios, turnos, cajas
+```
+
+- **Fuente única backend**: `backend/config/date-utils.ts` (`getTodayMadrid`, `getNowMadrid`, `getLastDayOfMonth`, `formatDateMadrid`...).
+- **Fuente única frontend**: `frontend/app/lib/helpers/date.ts` con `timeZone: 'Europe/Madrid'` forzado en todos los helpers.
+
+**Bugs reales corregidos:**
+- Crons `'0 7 * * *'` y batch payment día 10 disparaban en UTC, no Madrid (1-2h de desfase real).
+- `getOccupancyByLevel` en `stats.repository.ts:152` ignoraba el parámetro `date` y usaba NOW UTC.
+- `cashier-daily.repository.ts:272` calculaba `endDate` del mes con `new Date(year, month, 0).toISOString()` → en Render UTC devolvía el día 30 en lugar del 31 los meses con 31 días.
+- Frontend mostraba "Invalid Date" en backoffice cuando la API devolvía ISO datetime (`...T...`) en vez de YYYY-MM-DD plano.
+- `express-rate-limit` agrupaba todos los usuarios bajo la IP del proxy de Render (`ValidationError` recurrente en logs).
+
+**Defensa en profundidad añadida:** `closeStaleRuns()` ahora se llama lazy al inicio de `getRunState()`. El cron primario 06:30 Madrid sigue activo; el lazy cubre el caso "Render free tier dormido en horario de baja actividad nocturna". Coste: 1 UPDATE indexado, noop tras la primera petición del día.
+
+**Decisión no realizada** (consciente): unificar todos los formatos visuales a `DD-MM-YY`. Los formatos legibles ya consolidados (`21 dic 2025`, `28/10/2025`, `HH:mm` para hoy + `DD/MM/YYYY HH:mm` para días previos) se mantienen porque son los que el usuario quiere ver. La fuente de bugs era el TZ, no el formato.
+
+---
 
 **3) Alternativas más útiles a esta escala** (no Sprint 2 — evaluar en Horizonte 2)
 
@@ -699,13 +739,15 @@ Si quieres seguridad extra mientras la plataforma sigue accesible solo a ti y a 
 | H1-11 | `.env.example` en backend y frontend | ✅ ya existía |
 | H1-14 | Pino logger estructurado (JSON prod, pretty dev) | ✅ PR #6 |
 | H1-13 | Sentry | ⏸️ pendiente alta de cuenta en sentry.io |
-| H1-16.1 | Pinear deps Python (`requirements.txt` + cambio script `build`) | ⏳ Sprint 2 |
-| H1-16.4 | `frontend/vercel.json` security headers | ⏳ Sprint 2 |
-| H1-16.2 | `.python-version` con `3.11` | ⚠️ Opcional Sprint 2 |
-| H1-16.3 | `engines.node` o `.nvmrc` con `22.16.0` | ⚠️ Opcional Sprint 2 |
+| H1-16.1 | Pinear deps Python (`requirements.txt` + cambio script `build`) | ✅ 2026-05-16 (`ortools==9.15.6755`, `pydantic==2.13.4`) |
+| H1-16.2 | `.python-version` con `3.11` | ✅ 2026-05-16 (commit `d0c6c71`) |
+| H1-16.3 | `engines.node` `22.16.0` en `backend/package.json` y `frontend/package.json` | ✅ 2026-05-16 (commit `d0c6c71`) |
+| H1-16.4 | `frontend/vercel.json` security headers | ✅ 2026-05-16 (commit `d0c6c71`, grade A en securityheaders.com) |
 | H1-16.5 | `backend/render.yaml` Blueprint | ⏸️ Diferido (cuando haya 2º entorno) |
 | H1-16.6 | `^` → exacto en deps | ❌ Descartado (lockfile ya cubre) |
-| **H1-17** | **Cloudflare Zero Trust Access** | ⏳ Sprint 2 |
+| **H1-17** | **Cloudflare Zero Trust Access** | ⏳ Sprint 2 (tarea panel-only) |
+| H1-18 | `app.set('trust proxy', 1)` para `express-rate-limit` con IP real cliente detrás de Render | ✅ 2026-05-16 (commit `5a2049b`, fix descubierto durante refactor timezone) |
+| H1-19 | Refactor timezone (centralización Madrid/UTC) | ✅ 2026-05-16 (commits `fa3de26` + `b1d2a20` + `acb281a` + `84899b2`, ver §0.3) |
 | **H2-1** | **Refresh token rotation** | ❌ Descartado a esta escala (revisado 2026-05-15, ver §0.2) |
 
 ### Horizonte 2 — Medio plazo (1-2 meses, post estabilización)
@@ -778,20 +820,18 @@ PR #3 mergeado a `main` (commit `f34e20d`). Todos los bloqueadores listados orig
 
 **Criterio de cierre real:** queda solo H1-13 pendiente del lado externo. Se considera Sprint 1 funcionalmente cerrado.
 
-#### Sprint 2 — Infraestructura mínima + Cloudflare Access (2-3 días — alcance revisado 2026-05-15)
+#### Sprint 2 — Infraestructura mínima + Cloudflare Access 🚧 EN PROGRESO
 
 > **Alcance reducido** tras §0.2. El plan original (H2-1 refresh rotation + H1-16 completo) era sobreingeniería para el modelo de amenaza real de un PMS interno de 5-30 usuarios.
-
-**Branch sugerido:** `feature/sprint-2-infra`.
+> **Avance 2026-05-16:** H1-16.2/3/4 cerrados directamente desde working tree sin rama (commit `d0c6c71`). Trust proxy (H1-18, bug encontrado en el camino) también cerrado. Queda H1-16.1, H1-13 y H1-17.
 
 1. **H1-13 Sentry** — bloqueado en alta externa de sentry.io. Cuando llegue el DSN, se cierra en 10 min (cerrar §3.5 hallazgo de observabilidad).
-2. **H1-16.1** Pinear deps Python: crear `backend/scheduling-solver/requirements.txt` con `ortools==9.15.6755`, `pydantic==2.13.4`, y cambiar el script `build` en `backend/package.json` a `pip install --no-cache-dir -r scheduling-solver/requirements.txt`.
-3. **H1-16.4** Crear `frontend/vercel.json` con security headers (HSTS, X-Frame-Options, etc.). Receta en `TODO.md §"Ficheros listos para copiar B"`.
-4. **H1-17 Cloudflare Zero Trust Access** — capa de Google OAuth delante del frontend. Solo panel CF, sin código. Guía paso a paso en `TODO.md §"Guía Cloudflare Zero Trust Access"`.
-
-**Opcionales (3 min en total, valor marginal):**
-- **H1-16.2** `.python-version` con `3.11`.
-- **H1-16.3** `engines.node: "22.16.0"` en `backend/package.json` y `frontend/package.json`.
+2. ✅ **H1-16.1** Pinear deps Python — 2026-05-16. `backend/scheduling-solver/requirements.txt` con `ortools==9.15.6755`, `pydantic==2.13.4`; script `build` en `backend/package.json` apunta a `-r scheduling-solver/requirements.txt`. Deploys reproducibles.
+3. ✅ **H1-16.2** `.python-version` con `3.11` — 2026-05-16.
+4. ✅ **H1-16.3** `engines.node` `22.16.0` — 2026-05-16.
+5. ✅ **H1-16.4** `frontend/vercel.json` security headers — 2026-05-16 (grade A en securityheaders.com).
+6. ✅ **H1-18** `app.set('trust proxy', 1)` — 2026-05-16 (no estaba en plan original; detectado durante el refactor timezone porque `express-rate-limit` lanzaba `ValidationError` repetidos en logs).
+7. **H1-17 Cloudflare Zero Trust Access** — capa de Google OAuth delante del frontend. Solo panel CF, sin código. Guía paso a paso en `TODO.md §"Guía Cloudflare Zero Trust Access"`.
 
 **Diferidos:**
 - **H1-16.5** `render.yaml` Blueprint → reabrir cuando haya staging o 2º hotel.
@@ -917,11 +957,9 @@ curl -i https://api.four-points.stackbp.es/api/auth/login -X POST \
 
 **Próximas sesiones:** este documento es la referencia. Cuando se empiece a ejecutar el roadmap, ir actualizando los IDs (`H1-1`, `H1-2`...) marcándolos como `✅ done` con fecha y commit hash al lado, y mover los hallazgos cerrados de §3.5 a una sección "Resueltos" al final.
 
-**Próxima acción concreta (2026-05-12):** mergear Sprint 0 a `main`. Después esperar ≥24h estabilidad y arrancar **Sprint 1** desde `feature/auth-hardening`:
-- H1-2 / H1-8: rate limits en `/login` y `/refresh-token` (loginLimiter ya definido, solo descomentar).
-- H1-7: sacar refresh token del body del response (preparación para H2-1).
-- H1-3 / H1-4 / H1-5 / H1-6: apiLimiter global, helmet, body limit, CORS Origin strict.
-- H1-9 / H1-10 / H1-11: limpieza dead code (passport-jwt, DEV_MODE) + `.env.example`.
-- H1-13 / H1-14: Sentry + Pino para observabilidad antes de Sprint 2.
+**Próxima acción concreta (2026-05-16):** cerrar Sprint 2.
 
-Tras Sprint 1 estable → **Sprint 2 (alcance revisado 2026-05-15, ver §0.2)**: H1-13 Sentry + H1-16.1 pin deps Python + H1-16.4 vercel.json security headers + H1-17 Cloudflare Zero Trust Access. H2-1 refresh rotation descartado a esta escala. Solo entonces empiezan a entrar datos reales.
+1. **H1-13 Sentry** — dar de alta cuenta en sentry.io, traer DSN, integrar (10 min).
+2. **H1-17 Cloudflare Zero Trust Access** — solo panel CF, sin código. Guía paso a paso en `TODO.md §"Guía Cloudflare Zero Trust Access"` (~30 min).
+
+Tras esto, Sprint 2 cierra. **Solo entonces empiezan a entrar datos reales.**
