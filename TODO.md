@@ -10,19 +10,7 @@
 
 - **Sprint 2** 🚧 al 80% — 5 items cerrados (H1-16.1/2/3/4 + H1-18 trust proxy + H1-19 refactor timezone). Quedan **H1-13 Sentry** (bloqueado externo) y **H1-17 Cloudflare Access** (panel).
 - Refactor timezone Madrid/UTC completo en backend + frontend (7 commits). Detalle en `Global-Plan.md §0.3`.
-
----
-
-## Quickies (10-30 min, cualquier sesión)
-
-- [ ] **Prettier `--fix` global del frontend** (1 min). Hay 15 errores cosméticos en el repo, incluidos `ChecklistTasksContent.tsx:68` y `StepDetailsPanel.tsx:91`. `cd frontend && pnpm lint --fix && git commit -m "style: format with prettier"`. Deja la base limpia para futuras sesiones.
-
-- [ ] **Zod comentarios — bajar max a 500 + contador UI** (10 min). En `validations/checklist/checklist-schemas.ts:9` cambiar `max(1000)` → `max(500)` (no se necesitan comentarios largos en operativa recepción). En `frontend/app/components/checklist/StepDetailsPanel.tsx` añadir contador `{body.length}/500` debajo del textarea + deshabilitar botón "Enviar" si `body.trim() === '' || body.length > 500`.
-
-- [ ] **Decisión `docs/` gitignored**. Línea 67 del `.gitignore` (`**/docs/`) excluye toda la carpeta. `docs/checklists/checklist.md` (creado 2026-05-15 como reemplazo del `CHECKLIST-ROADMAP.md` borrado) **no está versionado**, solo existe en disco local. Tres opciones:
-  - (a) Añadir `!docs/` al `.gitignore` y versionar (recomendado si era intencional tener docs públicos).
-  - (b) Mover el `.md` a sitio tracked (ej. `CHECKLIST.md` en raíz).
-  - (c) Aceptar `docs/` como scratch local.
+- Housekeeping cerrado: Prettier global, Zod comentarios 500 + contador UI, `docs/` ahora versionada en repo, protección desmarcar trabajo ajeno (modal confirmación) (commits `d75c940`, `41c4df8`, `3157d01`, este push).
 
 ---
 
@@ -73,8 +61,6 @@ Una vez activo, cerrar el §3.5 hallazgo de observabilidad de `Global-Plan.md`.
 - [ ] **Historial en Reports** (2-3h) — añadir sección `checklist` a `ReportSection` en `frontend/app/components/profile/reports/types.ts:134` + crear `ChecklistSection.tsx`. Mostrará runs por checklist (fecha, turno, pasos completados, autor). **Requiere endpoint nuevo:** `GET /api/checklists/:id/history?limit=N`. Datos en `checklist_runs` + `checklist_step_state` + `checklist_event_log`. UI: `/dashboard/profile?panel=settings&tab=reports`. TODO con detalle ya en `reports/types.ts:136-140`.
 
 - [ ] **Zod validación `stepId` contra el JSON** (45 min) — `toggleStepSchema` (`validations/checklist/checklist-schemas.ts:5`) solo valida `done: z.boolean()`. Debería rechazar `stepId` que no existe en el checklist JSON. Recomendado: opción (a) — función dedicada en el controller que cargue el JSON y compruebe existencia. Mantiene Zod desacoplado del filesystem.
-
-- [ ] **Protección desmarcar trabajo ajeno** (45 min) — modal de confirmación cuando un usuario destica un step `done` que marcó OTRO. UX: pop-up "Este paso fue marcado por {done_by_username} a las {done_at HH:mm}. ¿Confirmas desmarcar?". El check `done_by_user_id !== currentUser.id` está disponible en `state`. Lugar: `ChecklistTasksContent.tsx` o `StepDetailsPanel.tsx`.
 
 - [ ] **Retención `checklist_event_log`** (decisión + 1-2h implementación, no urgente) — tabla crece sin límite (~3000 rows/año con 3 checklists diarios). Documentar estrategia antes:
   - Opción A: cron mensual archive a `checklist_event_log_archive` rows > 1 año.

@@ -13,6 +13,7 @@ import { ChecklistNoteBanner } from './ChecklistNoteBanner'
 import { StepTriggerButtons, StepDetailsPanel } from './StepDetailsPanel'
 import { useAuthContext } from '@/app/lib/auth/useAuth'
 import { formatMadridTime } from '@/app/lib/helpers/date'
+import { ConfirmDialog } from '@/app/ui/panels/ConfirmDialog'
 
 // ─── Checkbox ────────────────────────────────────────────
 
@@ -49,21 +50,42 @@ function StepRow({
   state: StepStateDto | undefined
   onToggle: (done: boolean) => void
 }) {
+  const { user } = useAuthContext()
   const [openTab, setOpenTab] = useState<'comments' | 'attachments' | null>(null)
+  const [confirmUntick, setConfirmUntick] = useState(false)
   const done = Boolean(state?.done)
 
   const handleToggleTab = (tab: 'comments' | 'attachments') =>
     setOpenTab((prev) => (prev === tab ? null : tab))
 
+  const handleToggle = () => {
+    const newDone = !done
+    // Solo pedir confirmación al DESMARCAR un paso marcado por OTRO usuario
+    if (
+      newDone === false &&
+      state?.done_by_user_id &&
+      state.done_by_user_id !== user?.id
+    ) {
+      setConfirmUntick(true)
+      return
+    }
+    onToggle(newDone)
+  }
+
+  const confirmedUntick = () => {
+    onToggle(false)
+    setConfirmUntick(false)
+  }
+
   return (
     <li>
       {/* Main row */}
       <div className="flex items-start gap-3 group">
-        <div className="cursor-pointer mt-0.5" onClick={() => onToggle(!done)}>
-          <Checkbox checked={done} onToggle={() => onToggle(!done)} />
+        <div className="cursor-pointer mt-0.5" onClick={handleToggle}>
+          <Checkbox checked={done} onToggle={handleToggle} />
         </div>
         <div className="flex-1 min-w-0 flex items-start gap-2">
-          <div className="flex-1 min-w-0 cursor-pointer" onClick={() => onToggle(!done)}>
+          <div className="flex-1 min-w-0 cursor-pointer" onClick={handleToggle}>
             <span className="text-sm leading-snug select-none">
               {(checklistId === 'cl-morning-shift' ||
                 checklistId === 'cl-afternoon-shift' ||
@@ -137,6 +159,20 @@ function StepRow({
           />
         </div>
       )}
+
+      {/* Confirmación al desmarcar un paso marcado por otro usuario */}
+      <ConfirmDialog
+        isOpen={confirmUntick}
+        onClose={() => setConfirmUntick(false)}
+        onConfirm={confirmedUntick}
+        variant="warning"
+        title="¿Desmarcar este paso?"
+        message={`Este paso fue marcado por ${state?.done_by_username ?? 'otro usuario'}${
+          state?.done_at ? ` a las ${formatMadridTime(state.done_at)}` : ''
+        }.`}
+        confirmText="Sí, desmarcar"
+        cancelText="Cancelar"
+      />
     </li>
   )
 }
