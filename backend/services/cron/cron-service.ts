@@ -3,7 +3,8 @@
 import cron from 'node-cron'
 import { NotificationGeneratorService } from '../notifications/notification-generator-service'
 import { BackofficeRepository } from '../../repositories/backoffice/backoffice-repository.js'
-import { dailyReset as checklistDailyReset } from '../checklist/checklist.service.js'
+import { dailyReset as checklistDailyReset, purgeOldEventLogs } from '../checklist/checklist.service.js'
+import { logger } from '../../config/logger.js'
 
 /**
  * Servicio de tareas programadas (Cron Jobs)
@@ -22,12 +23,12 @@ export class CronService {
    */
   static start(): void {
     if (this.isRunning) {
-      console.log('⚠️  Cron jobs ya están corriendo')
+      logger.info('Cron jobs ya están corriendo')
       return
     }
 
     this.isRunning = true
-    console.log('🕐 Iniciando cron jobs...')
+    logger.info('Iniciando cron jobs')
 
     // ═══════════════════════════════════════════════════════
     // NOTIFICACIONES AUTOMÁTICAS - Todos los días a las 7:00 AM
@@ -36,15 +37,15 @@ export class CronService {
     // '0 7 * * *' = A las 7:00 AM todos los días
 
     cron.schedule('0 7 * * *', async () => {
-      console.log('🔔 [CRON] Ejecutando verificación de notificaciones...')
+      logger.info('[CRON] Ejecutando verificación de notificaciones')
       const startTime = Date.now()
 
       try {
         await NotificationGeneratorService.processPendingNotifications()
         const duration = Date.now() - startTime
-        console.log(`✅ [CRON] Notificaciones procesadas en ${duration}ms`)
+        logger.info({ duration }, '[CRON] Notificaciones procesadas')
       } catch (error) {
-        console.error('❌ [CRON] Error procesando notificaciones:', error)
+        logger.error({ err: error }, '[CRON] Error procesando notificaciones')
       }
     }, { timezone: 'Europe/Madrid' })
 
@@ -55,7 +56,7 @@ export class CronService {
     // '59 23 10 * *' = A las 23:59 del día 10 de cada mes
 
     cron.schedule('59 23 10 * *', async () => {
-      console.log('💰 [CRON] Ejecutando batch payment de facturas...')
+      logger.info('[CRON] Ejecutando batch payment de facturas')
       const startTime = Date.now()
 
       try {
@@ -63,12 +64,12 @@ export class CronService {
         const duration = Date.now() - startTime
         
         if (result.success) {
-          console.log(`✅ [CRON] Batch payment completado en ${duration}ms - ${result.count} facturas marcadas como pagadas`)
+          logger.info({ duration, count: result.count }, '[CRON] Batch payment completado')
         } else {
-          console.error(`❌ [CRON] Batch payment falló: ${result.error}`)
+          logger.error({ err: result.error }, '[CRON] Batch payment falló')
         }
       } catch (error) {
-        console.error('❌ [CRON] Error en batch payment:', error)
+        logger.error({ err: error }, '[CRON] Error en batch payment')
       }
     }, { timezone: 'Europe/Madrid' })
 
@@ -76,19 +77,35 @@ export class CronService {
     // CHECKLIST RESET - Todos los días a las 06:30 (Europe/Madrid)
     // ═══════════════════════════════════════════════════════
     cron.schedule('30 6 * * *', async () => {
-      console.log('📋 [CRON] Ejecutando reset diario de checklists...')
+      logger.info('[CRON] Ejecutando reset diario de checklists')
       try {
         const count = await checklistDailyReset()
-        console.log(`✅ [CRON] Checklist reset completado — ${count} runs cerrados`)
+        logger.info({ count }, '[CRON] Checklist reset completado')
       } catch (error) {
-        console.error('❌ [CRON] Error en checklist reset:', error)
+        logger.error({ err: error }, '[CRON] Error en checklist reset')
       }
     }, { timezone: 'Europe/Madrid' })
 
-    console.log('✅ Cron jobs iniciados:')
-    console.log('   - Notificaciones: Todos los días a las 7:00 AM')
-    console.log('   - Batch Payment: Día 10 de cada mes a las 23:59')
-    console.log('   - Checklist Reset: Todos los días a las 6:30 AM (Europe/Madrid)')
+    // ═══════════════════════════════════════════════════════
+    // CHECKLIST EVENT LOG PURGE - Cada lunes a las 04:00 (Europe/Madrid)
+    // ═══════════════════════════════════════════════════════
+    // Borra eventos de checklist_event_log con más de 7 días.
+    // Datos operativos diarios — no se necesita histórico más allá de una semana.
+    cron.schedule('0 4 * * 1', async () => {
+      logger.info('[CRON] Purgando checklist_event_log (>7 días)')
+      try {
+        const deleted = await purgeOldEventLogs(7)
+        logger.info({ deleted }, '[CRON] Checklist event log purgado')
+      } catch (error) {
+        logger.error({ err: error }, '[CRON] Error purgando checklist event log')
+      }
+    }, { timezone: 'Europe/Madrid' })
+
+    logger.info('Cron jobs iniciados')
+    logger.info('   - Notificaciones: Todos los días a las 7:00 AM')
+    logger.info('   - Batch Payment: Día 10 de cada mes a las 23:59')
+    logger.info('   - Checklist Reset: Todos los días a las 6:30 AM (Europe/Madrid)')
+    logger.info('   - Checklist Event Log Purge: Cada lunes a las 4:00 AM (Europe/Madrid)')
   }
 
   /**
@@ -101,14 +118,14 @@ export class CronService {
     error?: string
     duration?: number
   }> {
-    console.log('🔔 [MANUAL] Ejecutando verificación de notificaciones...')
+    logger.info('[MANUAL] Ejecutando verificación de notificaciones')
     const startTime = Date.now()
 
     try {
       const results = await NotificationGeneratorService.processPendingNotifications()
       const duration = Date.now() - startTime
 
-      console.log(`✅ [MANUAL] Notificaciones procesadas en ${duration}ms`)
+      logger.info({ duration }, '[MANUAL] Notificaciones procesadas')
 
       return {
         success: true,
@@ -116,7 +133,7 @@ export class CronService {
         duration,
       }
     } catch (error) {
-      console.error('❌ [MANUAL] Error procesando notificaciones:', error)
+      logger.error({ err: error }, '[MANUAL] Error procesando notificaciones')
 
       return {
         success: false,
@@ -162,14 +179,14 @@ export class CronService {
 
     const executingUserId = userId || this.SYSTEM_USER_ID
 
-    console.log(`💰 [BATCH PAYMENT] Processing validated invoices for ${month}/${year}...`)
+    logger.info({ month, year }, '[BATCH PAYMENT] Processing validated invoices')
 
     try {
       // First, get preview of what will be updated
       const preview = await BackofficeRepository.getValidatedInvoicesCountByMonth(year, month)
       
       if (preview.count === 0) {
-        console.log(`ℹ️  [BATCH PAYMENT] No validated invoices found for ${month}/${year}`)
+        logger.info({ month, year }, '[BATCH PAYMENT] No validated invoices found')
         return {
           success: true,
           count: 0,
@@ -180,13 +197,13 @@ export class CronService {
         }
       }
 
-      console.log(`💰 [BATCH PAYMENT] Found ${preview.count} validated invoices totaling €${preview.total_amount.toFixed(2)}`)
+      logger.info({ count: preview.count, total: preview.total_amount.toFixed(2) }, '[BATCH PAYMENT] Found validated invoices')
 
       // Execute batch update
       const result = await BackofficeRepository.markValidatedInvoicesAsPaid(year, month, executingUserId)
       const duration = Date.now() - startTime
 
-      console.log(`✅ [BATCH PAYMENT] Marked ${result.count} invoices as paid in ${duration}ms`)
+      logger.info({ count: result.count, duration }, '[BATCH PAYMENT] Marked invoices as paid')
 
       return {
         success: true,
@@ -197,7 +214,7 @@ export class CronService {
         duration,
       }
     } catch (error) {
-      console.error('❌ [BATCH PAYMENT] Error:', error)
+      logger.error({ err: error }, '[BATCH PAYMENT] Error')
 
       return {
         success: false,

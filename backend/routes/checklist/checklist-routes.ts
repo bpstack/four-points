@@ -8,6 +8,7 @@ import {
   getRunController,
   toggleStepController,
   resetRunController,
+  getHistoryController,
 } from '../../controllers/checklist/checklist-controllers.js'
 import {
   getCommentsController,
@@ -27,6 +28,9 @@ router.use(excludeMantenimiento)
 // ── Run & steps ───────────────────────────────────────────
 // GET  /api/checklists/:id/run
 router.get('/:id/run', getRunController)
+
+// GET  /api/checklists/:id/history?limit=N
+router.get('/:id/history', getHistoryController)
 
 // PATCH /api/checklists/:id/steps/:stepId
 router.patch('/:id/steps/:stepId', toggleStepController)

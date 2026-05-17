@@ -2,7 +2,9 @@
 
 import { Request, Response } from 'express'
 import * as checklistService from '../../services/checklist/checklist.service.js'
+import { getValidStepIds } from '../../services/checklist/checklist-content.js'
 import { toggleStepSchema } from '../../validations/checklist/checklist-schemas.js'
+import { logger } from '../../config/logger.js'
 
 // GET /api/checklists/:id/run
 export async function getRunController(req: Request, res: Response): Promise<void> {
@@ -11,7 +13,7 @@ export async function getRunController(req: Request, res: Response): Promise<voi
     const state = await checklistService.getRunState(id)
     res.json(state)
   } catch (err) {
-    console.error('[checklist] getRunController:', err)
+    logger.error({ err }, '[checklist] getRunController')
     res.status(500).json({ error: 'Error al obtener el estado del checklist' })
   }
 }
@@ -22,6 +24,13 @@ export async function toggleStepController(req: Request, res: Response): Promise
     const { id, stepId } = req.params
     const userId = req.user!.id
     const { done } = toggleStepSchema.parse(req.body)
+
+    const validIds = getValidStepIds(id)
+    if (validIds !== null && !validIds.has(stepId)) {
+      res.status(400).json({ error: 'Paso no válido' })
+      return
+    }
+
     const state = await checklistService.toggleStep(id, stepId, done, userId)
     res.json(state)
   } catch (err) {
@@ -30,7 +39,7 @@ export async function toggleStepController(req: Request, res: Response): Promise
       res.status(400).json({ error: 'Datos inválidos', details: error.issues })
       return
     }
-    console.error('[checklist] toggleStepController:', err)
+    logger.error({ err }, '[checklist] toggleStepController')
     res.status(500).json({ error: 'Error al actualizar el paso' })
   }
 }
@@ -43,7 +52,20 @@ export async function resetRunController(req: Request, res: Response): Promise<v
     const state = await checklistService.resetRun(id, userId)
     res.json(state)
   } catch (err) {
-    console.error('[checklist] resetRunController:', err)
+    logger.error({ err }, '[checklist] resetRunController')
     res.status(500).json({ error: 'Error al resetear el checklist' })
+  }
+}
+
+// GET /api/checklists/:id/history?limit=N
+export async function getHistoryController(req: Request, res: Response): Promise<void> {
+  try {
+    const { id } = req.params
+    const limit = Math.min(Number(req.query.limit) || 30, 100)
+    const history = await checklistService.getHistory(id, limit)
+    res.json(history)
+  } catch (err) {
+    logger.error({ err }, '[checklist] getHistoryController')
+    res.status(500).json({ error: 'Error al obtener el historial' })
   }
 }

@@ -76,3 +76,15 @@ export async function resetRun(
 export async function dailyReset(): Promise<number> {
   return repo.closeStaleRuns()
 }
+
+// Called by weekly cron — keeps event_log lean (operational data, not long-term audit)
+export async function purgeOldEventLogs(daysToKeep = 7): Promise<number> {
+  return repo.purgeOldEvents(daysToKeep)
+}
+
+export async function getHistory(
+  checklistId: string,
+  limit = 30
+): Promise<Awaited<ReturnType<typeof repo.getRunHistory>>> {
+  return repo.getRunHistory(checklistId, limit)
+}
