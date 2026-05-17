@@ -398,6 +398,18 @@ Append a brief entry to `SCHEDULING-DECISIONS-LOG.md` with the date, the rule, w
 
 ## Module-Specific Guidance
 
+### Checklist System
+- Daily operational checklists (morning/afternoon/night shifts)
+- Content (step definitions) in JSON files; DB only stores state and audit log
+- Frontend: `app/dashboard/checklist/`, content JSONs: `frontend/content/checklist/tasks/`
+- Backend: `controllers/checklist/`, `services/checklist/`, `repositories/checklist/`
+- **⚠️ SYNC RULE — TWO COPIES OF CHECKLIST JSONs:**
+  - `frontend/content/checklist/tasks/<name>.json` — used by UI to render steps
+  - `backend/content/checklist/tasks/<name>.json` — used by backend to validate stepIds
+  - When adding/removing/renaming steps, **update BOTH files**. Convention: `cl-<name>` → `<name>.json`
+  - Helper: `backend/services/checklist/checklist-content.ts` → `getValidStepIds(checklistId)`
+- **Event log retention:** `checklist_event_log` purged weekly (every Monday 04:00 Madrid) keeping last 7 days. Operational data only — no long-term audit needed.
+
 ### Logbook System
 - Tracks hotel operational notes and tasks
 - Supports read/unread status (stored in `logbook_history` table)

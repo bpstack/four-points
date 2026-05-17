@@ -44,43 +44,6 @@ Una vez activo, cerrar el §3.5 hallazgo de observabilidad de `Global-Plan.md`.
 
 ---
 
-## Módulo Checklist — pendientes técnicos
-
-> Módulo en producción (F1, F2, F3, F5 entregadas). Documentación completa en `docs/checklists/checklist.md`.
-
-- [ ] **Tests Vitest checklist** (~1h) — crear `backend/tests/checklist/`. Cobertura mínima:
-  - `getRunState` crea run nuevo si no existe para `hotel_date` Madrid de hoy.
-  - `getRunState` devuelve run existente (idempotencia).
-  - `getRunState` cierra runs viejos (`hotel_date < today`) en la primera llamada del día (auto-close lazy, ya en prod desde commit `b1d2a20`).
-  - `toggleStep(stepId, done=true)` inserta row en `checklist_step_state` con `done_by_user_id` y `done_at`.
-  - `toggleStep` registra event_log con `kind='step_done'`/`'step_undone'`.
-  - `closeStaleRuns` con DB vacía es noop (`affectedRows=0`).
-  - `closeStaleRuns` con run viejo marca `reset_at=NOW()`, `reset_reason='cron'`, `reset_by_user_id='system-cron'`.
-  - Comentarios: `.trim()` rechaza solo-espacios (regresión del fix 2026-05-15).
-
-- [ ] **Historial en Reports** (2-3h) — añadir sección `checklist` a `ReportSection` en `frontend/app/components/profile/reports/types.ts:134` + crear `ChecklistSection.tsx`. Mostrará runs por checklist (fecha, turno, pasos completados, autor). **Requiere endpoint nuevo:** `GET /api/checklists/:id/history?limit=N`. Datos en `checklist_runs` + `checklist_step_state` + `checklist_event_log`. UI: `/dashboard/profile?panel=settings&tab=reports`. TODO con detalle ya en `reports/types.ts:136-140`.
-
-- [ ] **Zod validación `stepId` contra el JSON** (45 min) — `toggleStepSchema` (`validations/checklist/checklist-schemas.ts:5`) solo valida `done: z.boolean()`. Debería rechazar `stepId` que no existe en el checklist JSON. Recomendado: opción (a) — función dedicada en el controller que cargue el JSON y compruebe existencia. Mantiene Zod desacoplado del filesystem.
-
-- [ ] **Retención `checklist_event_log`** (decisión + 1-2h implementación, no urgente) — tabla crece sin límite (~3000 rows/año con 3 checklists diarios). Documentar estrategia antes:
-  - Opción A: cron mensual archive a `checklist_event_log_archive` rows > 1 año.
-  - Opción B: purge directo > 2 años (más simple).
-  - Actualizar `docs/checklists/checklist.md` cuando se decida.
-
-### Pendientes de contenido (manager, no dev)
-
-- [ ] `tasks/morning-shift.json` — pasos reales turno de mañana.
-- [ ] `tasks/housekeeping-daily.json` — tareas reales housekeeping.
-- [ ] Procedimientos: `guides/fidelizacion-postcheckin.md`, `guides/balancing-opera.md`.
-- [ ] Referencias: `references/shift-f3.md`, `references/reports-t122.md`.
-
-### Futuro (evaluar con uso real)
-
-- Reactivar upload de imágenes en F3 cuando se decidan límites Cloudinary y formatos.
-- Si hay multi-hotel (`HotelCode`), reabrir F4 (editor admin UI).
-- Reset por turno (06:30/14:00/23:00) si el flujo operativo lo pide. Schema: `daily_reset_overrides` JSON en `checklist_config`.
-
----
 
 ## Módulo Scheduling Solver — pendientes
 
