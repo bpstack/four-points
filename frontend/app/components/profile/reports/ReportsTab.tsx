@@ -11,6 +11,7 @@ import {
   FiTool,
   FiUsers,
   FiDollarSign,
+  FiCheckSquare,
   FiChevronRight,
   FiRefreshCw,
   FiAlertCircle,
@@ -27,6 +28,7 @@ const LogbooksSection = lazy(() => import('./sections/LogbooksSection'))
 const MaintenanceSection = lazy(() => import('./sections/MaintenanceSection'))
 const GroupsSection = lazy(() => import('./sections/GroupsSection'))
 const CashierSection = lazy(() => import('./sections/CashierSection'))
+const ChecklistSection = lazy(() => import('./sections/ChecklistSection'))
 
 // ═══════════════════════════════════════════════════════
 // LOADING FALLBACK
@@ -92,6 +94,12 @@ export function ReportsTab() {
         description: t('sections.cashierDesc'),
         icon: <FiDollarSign className="w-5 h-5" />,
       },
+      {
+        id: 'checklist',
+        label: t('sections.checklist'),
+        description: t('sections.checklistDesc'),
+        icon: <FiCheckSquare className="w-5 h-5" />,
+      },
     ],
     [t]
   )
@@ -115,6 +123,8 @@ export function ReportsTab() {
         return <GroupsSection key={refreshKey} />
       case 'cashier':
         return <CashierSection key={refreshKey} />
+      case 'checklist':
+        return <ChecklistSection key={refreshKey} />
       default:
         return null
     }

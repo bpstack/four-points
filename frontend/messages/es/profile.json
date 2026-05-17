@@ -229,7 +229,9 @@
       "groups": "Grupos",
       "groupsDesc": "Historial de grupos y pagos",
       "cashier": "Caja",
-      "cashierDesc": "Turnos, vales y cierres diarios"
+      "cashierDesc": "Turnos, vales y cierres diarios",
+      "checklist": "Check List",
+      "checklistDesc": "Historial de runs diarios"
     },
     "overview": {
       "title": "Actividad del Sistema",
@@ -460,6 +462,29 @@
       "voucher_plural": "vales",
       "record_plural": "registros",
       "errorLoading": "Error cargando datos de caja"
+    },
+    "checklist": {
+      "title": "Historial de Checklists",
+      "description": "Consulta los runs diarios cerrados por turno.",
+      "loadHistory": "Cargar historial",
+      "reload": "Recargar",
+      "checklists": {
+        "cl-morning-shift": "Turno de mañana",
+        "cl-afternoon-shift": "Turno de tarde",
+        "cl-night-audit": "Cierre nocturno"
+      },
+      "table": {
+        "date": "Fecha",
+        "stepsCompleted": "Pasos marcados",
+        "completedBy": "Completado por",
+        "closedBy": "Cierre"
+      },
+      "stepsUnit": "pasos",
+      "closedBySystem": "Automático",
+      "closedManually": "Manual",
+      "noHistory": "No hay runs cerrados para este checklist",
+      "errorLoading": "Error cargando historial",
+      "showing": "Mostrando {count} runs (máx. {max})"
     },
     "common": {
       "filterByDate": "Filtrar por fecha"

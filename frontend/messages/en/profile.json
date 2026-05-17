@@ -229,7 +229,9 @@
       "groups": "Groups",
       "groupsDesc": "Groups and payments history",
       "cashier": "Cashier",
-      "cashierDesc": "Shifts, vouchers and daily closings"
+      "cashierDesc": "Shifts, vouchers and daily closings",
+      "checklist": "Check List",
+      "checklistDesc": "Daily run history"
     },
     "overview": {
       "title": "System Activity",
@@ -460,6 +462,29 @@
       "voucher_plural": "vouchers",
       "record_plural": "records",
       "errorLoading": "Error loading cashier data"
+    },
+    "checklist": {
+      "title": "Checklist History",
+      "description": "View closed daily runs by shift.",
+      "loadHistory": "Load history",
+      "reload": "Reload",
+      "checklists": {
+        "cl-morning-shift": "Morning shift",
+        "cl-afternoon-shift": "Afternoon shift",
+        "cl-night-audit": "Night audit"
+      },
+      "table": {
+        "date": "Date",
+        "stepsCompleted": "Steps completed",
+        "completedBy": "Completed by",
+        "closedBy": "Closed"
+      },
+      "stepsUnit": "steps",
+      "closedBySystem": "Automatic",
+      "closedManually": "Manual",
+      "noHistory": "No closed runs for this checklist",
+      "errorLoading": "Error loading history",
+      "showing": "Showing {count} runs (max. {max})"
     },
     "common": {
       "filterByDate": "Filter by date"

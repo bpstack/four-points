@@ -131,10 +131,4 @@ export interface CashierHistoryEntry {
 // SECTIONS
 // ═══════════════════════════════════════════════════════
 
-export type ReportSection = 'overview' | 'logbooks' | 'maintenance' | 'groups' | 'cashier'
-
-// TODO: añadir sección 'checklist' a ReportSection y crear ChecklistSection.tsx
-// Mostrará historial de runs por checklist: fecha, turno, pasos completados, quién los hizo
-// Requiere endpoint: GET /api/checklists/:id/history → últimos N runs con step_states
-// Ubicación UI: /dashboard/profile?panel=settings&tab=reports → sección "Check List"
-// Datos disponibles en DB: checklist_runs + checklist_step_state + checklist_event_log
+export type ReportSection = 'overview' | 'logbooks' | 'maintenance' | 'groups' | 'cashier' | 'checklist'
