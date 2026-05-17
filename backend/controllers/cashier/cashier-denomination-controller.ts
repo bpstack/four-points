@@ -4,6 +4,7 @@ import { Request, Response } from 'express'
 import { CashierDenominationRepository } from '../../repositories/cashier/cashier-denomination-repository.js'
 import { CashierHistoryRepository } from '../../repositories/cashier/cashier-history-repository.js'
 import { CashierShiftRepository } from '../../repositories/cashier/cashier-shift-repository.js'
+import { logger } from '../../config/logger.js'
 
 export class CashierDenominationController {
   /**
@@ -23,7 +24,7 @@ export class CashierDenominationController {
         total_cash: totalCash,
       })
     } catch (error) {
-      console.error('Error al obtener denominaciones:', error)
+      logger.error({ err: error }, 'Error al obtener denominaciones')
       res.status(500).json({ error: 'Error al obtener denominaciones' })
     }
   }
@@ -59,7 +60,7 @@ export class CashierDenominationController {
 
       res.json(updated)
     } catch (error) {
-      console.error('Error al actualizar denominaciones:', error)
+      logger.error({ err: error }, 'Error al actualizar denominaciones')
       res.status(500).json({ error: 'Error al actualizar denominaciones' })
     }
   }
@@ -80,7 +81,7 @@ export class CashierDenominationController {
 
       res.status(201).json(denomination)
     } catch (error) {
-      console.error('Error al crear denominación:', error)
+      logger.error({ err: error }, 'Error al crear denominación')
       res.status(500).json({ error: 'Error al crear denominación' })
     }
   }
@@ -98,7 +99,7 @@ export class CashierDenominationController {
 
       res.json(updated)
     } catch (error: any) {
-      console.error('Error al actualizar denominación:', error)
+      logger.error({ err: error }, 'Error al actualizar denominación')
       res.status(500).json({ error: error.message || 'Error al actualizar denominación' })
     }
   }
@@ -115,7 +116,7 @@ export class CashierDenominationController {
 
       res.json({ message: 'Denominación eliminada correctamente' })
     } catch (error) {
-      console.error('Error al eliminar denominación:', error)
+      logger.error({ err: error }, 'Error al eliminar denominación')
       res.status(500).json({ error: 'Error al eliminar denominación' })
     }
   }

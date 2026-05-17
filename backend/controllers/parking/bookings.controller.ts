@@ -8,6 +8,7 @@ import { createBookingSchema } from '../../validations/parking/booking-validatio
 import { getNowMadrid } from '../../config/date-utils.js'
 import { ERROR_CODES, SUCCESS_CODES } from '../../config/error-codes.js'
 import type { BookingFilters, UpdateBookingDTO } from '../../models/parking/index.js'
+import { logger } from '../../config/logger.js'
 
 class ParkingBookingsController {
   // ============================================
@@ -118,7 +119,7 @@ class ParkingBookingsController {
         bookings: result.bookings,
       })
     } catch (error) {
-      console.error('Error en getBookings:', error)
+      logger.error({ err: error }, 'Error en getBookings:')
       res.status(500).json({
         success: false,
         error: ERROR_CODES.PARKING_FETCH_BOOKINGS_ERROR,
@@ -161,7 +162,7 @@ class ParkingBookingsController {
         booking,
       })
     } catch (error) {
-      console.error('Error en getBookingByCode:', error)
+      logger.error({ err: error }, 'Error en getBookingByCode:')
       res.status(500).json({
         success: false,
         error: ERROR_CODES.PARKING_FETCH_BOOKING_ERROR,
@@ -243,7 +244,7 @@ class ParkingBookingsController {
         booking,
       })
     } catch (error) {
-      console.error('Error en createBooking:', error)
+      logger.error({ err: error }, 'Error en createBooking:')
       const errorMessage = (error as Error).message
 
       if (errorMessage.includes('no encontrada') || errorMessage.includes('no está disponible')) {
@@ -311,7 +312,7 @@ class ParkingBookingsController {
         booking,
       })
     } catch (error) {
-      console.error('Error en checkIn:', error)
+      logger.error({ err: error }, 'Error en checkIn:')
       const errorMessage = (error as Error).message
 
       if (errorMessage === ERROR_CODES.PARKING_BOOKING_NOT_FOUND || errorMessage === 'Reserva no encontrada') {
@@ -342,10 +343,7 @@ class ParkingBookingsController {
       }
 
       // Log detallado para debugging
-      console.error('Error no manejado en checkIn:', {
-        message: errorMessage,
-        stack: (error as Error).stack,
-      })
+      logger.error({ message: errorMessage, stack: (error as Error).stack }, 'Error no manejado en checkIn')
 
       res.status(500).json({
         success: false,
@@ -408,7 +406,7 @@ class ParkingBookingsController {
         booking,
       })
     } catch (error) {
-      console.error('Error en checkOut:', error)
+      logger.error({ err: error }, 'Error en checkOut:')
       const errorMessage = (error as Error).message
 
       if (errorMessage === ERROR_CODES.PARKING_BOOKING_NOT_FOUND) {
@@ -472,7 +470,7 @@ class ParkingBookingsController {
         booking,
       })
     } catch (error) {
-      console.error('Error en cancelBooking:', error)
+      logger.error({ err: error }, 'Error en cancelBooking:')
       const errorMessage = (error as Error).message
 
       if (errorMessage === ERROR_CODES.PARKING_BOOKING_NOT_FOUND) {
@@ -536,7 +534,7 @@ class ParkingBookingsController {
         booking,
       })
     } catch (error) {
-      console.error('Error en markNoShow:', error)
+      logger.error({ err: error }, 'Error en markNoShow:')
       const errorMessage = (error as Error).message
 
       if (errorMessage === ERROR_CODES.PARKING_BOOKING_NOT_FOUND) {
@@ -711,7 +709,7 @@ class ParkingBookingsController {
         booking,
       })
     } catch (error) {
-      console.error('Error en updateBooking:', error)
+      logger.error({ err: error }, 'Error en updateBooking:')
       const errorMessage = (error as Error).message
 
       if (errorMessage === ERROR_CODES.PARKING_BOOKING_NOT_FOUND) {
@@ -798,7 +796,7 @@ class ParkingBookingsController {
         code: SUCCESS_CODES.PARKING_BOOKING_DELETED,
       })
     } catch (error) {
-      console.error('Error en deleteBooking:', error)
+      logger.error({ err: error }, 'Error en deleteBooking:')
       const errorMessage = (error as Error).message
 
       if (errorMessage === ERROR_CODES.PARKING_BOOKING_NOT_FOUND) {
@@ -832,7 +830,7 @@ class ParkingBookingsController {
         bookings,
       })
     } catch (error) {
-      console.error('Error en getOverdueCheckins:', error)
+      logger.error({ err: error }, 'Error en getOverdueCheckins:')
       res.status(500).json({
         success: false,
         error: ERROR_CODES.PARKING_FETCH_DELAYED_ERROR,

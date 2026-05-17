@@ -8,6 +8,7 @@ import { Request, Response } from 'express'
 import { conciliationRepo } from '../../repositories/conciliation/conciliation.repository.js'
 import { IUpdateFormRequest } from '../../models/conciliation.model.js'
 import { ERROR_CODES, SUCCESS_CODES } from '../../config/error-codes.js'
+import { logger } from '../../config/logger.js'
 
 /**
  * GET /api/conciliations
@@ -18,7 +19,7 @@ export async function getAll(_req: Request, res: Response): Promise<void> {
     const conciliations = await conciliationRepo.getAll()
     res.status(200).json({ success: true, data: conciliations })
   } catch (error) {
-    console.error('Error en getAll conciliations:', error)
+    logger.error({ err: error }, 'Error en getAll conciliations')
     res.status(500).json({
       success: false,
       error: ERROR_CODES.CONCILIATION_FETCH_ERROR,
@@ -55,7 +56,7 @@ export async function getById(req: Request, res: Response): Promise<void> {
       })
       return
     }
-    console.error('Error en getById conciliation:', error)
+    logger.error({ err: error }, 'Error en getById conciliation')
     res.status(500).json({
       success: false,
       error: ERROR_CODES.CONCILIATION_FETCH_ONE_ERROR,
@@ -94,7 +95,7 @@ export async function getByDay(req: Request, res: Response): Promise<void> {
     const conciliation = await conciliationRepo.getById(summary.id)
     res.status(200).json({ success: true, data: conciliation })
   } catch (error) {
-    console.error('Error en getByDay conciliation:', error)
+    logger.error({ err: error }, 'Error en getByDay conciliation')
     res.status(500).json({
       success: false,
       error: ERROR_CODES.CONCILIATION_FETCH_ONE_ERROR,
@@ -148,7 +149,7 @@ export async function create(req: Request, res: Response): Promise<void> {
       data: conciliation,
     })
   } catch (error) {
-    console.error('Error en create conciliation:', error)
+    logger.error({ err: error }, 'Error en create conciliation')
     res.status(500).json({
       success: false,
       error: ERROR_CODES.CONCILIATION_CREATE_ERROR,
@@ -241,7 +242,7 @@ export async function updateForm(req: Request, res: Response): Promise<void> {
       })
       return
     }
-    console.error('Error en updateForm:', error)
+    logger.error({ err: error }, 'Error en updateForm')
     res.status(500).json({
       success: false,
       error: ERROR_CODES.CONCILIATION_UPDATE_FORM_ERROR,
@@ -316,7 +317,7 @@ export async function updateStatus(req: Request, res: Response): Promise<void> {
       })
       return
     }
-    console.error('Error en updateStatus:', error)
+    logger.error({ err: error }, 'Error en updateStatus')
     res.status(500).json({
       success: false,
       error: ERROR_CODES.CONCILIATION_UPDATE_STATUS_ERROR,
@@ -377,7 +378,7 @@ export async function recalculateTotals(req: Request, res: Response): Promise<vo
       })
       return
     }
-    console.error('Error en recalculateTotals:', error)
+    logger.error({ err: error }, 'Error en recalculateTotals')
     res.status(500).json({
       success: false,
       error: ERROR_CODES.CONCILIATION_RECALCULATE_ERROR,
@@ -423,7 +424,7 @@ export async function remove(req: Request, res: Response): Promise<void> {
       })
       return
     }
-    console.error('Error en delete conciliation:', error)
+    logger.error({ err: error }, 'Error en delete conciliation')
     res.status(500).json({
       success: false,
       error: ERROR_CODES.CONCILIATION_DELETE_ERROR,

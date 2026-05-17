@@ -2,6 +2,7 @@
 
 import { GroupPaymentRepository } from '../../repositories/group/group-payment-repository'
 import { GroupRepository } from '../../repositories/group/group-repository'
+import { logger } from '../../config/logger.js'
 
 export class PaymentCalculatorService {
   /**
@@ -22,7 +23,7 @@ export class PaymentCalculatorService {
 
       return affectedRows
     } catch (error) {
-      console.error('Error recalculando pagos:', error)
+      logger.error({ err: error }, 'Error recalculando pagos')
       throw error
     }
   }

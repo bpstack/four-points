@@ -7,6 +7,7 @@ import { CashierHistoryRepository } from '../../repositories/cashier/cashier-his
 import { CashierPaymentRepository } from '../../repositories/cashier/cashier-payment-repository.js'
 import { CashierDenominationRepository } from '../../repositories/cashier/cashier-denomination-repository.js'
 import { CashierVoucherRepository } from '../../repositories/cashier/cashier-voucher-repository.js'
+import { logger } from '../../config/logger.js'
 
 export class CashierShiftController {
   /**
@@ -40,7 +41,7 @@ export class CashierShiftController {
 
       res.json(shiftWithDetails)
     } catch (error) {
-      console.error('Error al obtener turno:', error)
+      logger.error({ err: error }, 'Error al obtener turno')
       res.status(500).json({ error: 'Error al obtener turno' })
     }
   }
@@ -92,7 +93,7 @@ export class CashierShiftController {
         totalPages: Math.ceil(total / filters.limit),
       })
     } catch (error) {
-      console.error('Error al obtener turnos:', error)
+      logger.error({ err: error }, 'Error al obtener turnos')
       res.status(500).json({ error: 'Error al obtener turnos' })
     }
   }
@@ -121,7 +122,7 @@ export class CashierShiftController {
 
       res.json(updated)
     } catch (error: any) {
-      console.error('Error al actualizar turno:', error)
+      logger.error({ err: error }, 'Error al actualizar turno')
       res.status(500).json({ error: error.message || 'Error al actualizar turno' })
     }
   }
@@ -155,7 +156,7 @@ export class CashierShiftController {
 
       res.json(closed)
     } catch (error: any) {
-      console.error('Error al cerrar turno:', error)
+      logger.error({ err: error }, 'Error al cerrar turno')
       res.status(500).json({ error: error.message || 'Error al cerrar turno' })
     }
   }
@@ -189,7 +190,7 @@ export class CashierShiftController {
 
       res.json(reopened)
     } catch (error: any) {
-      console.error('Error al reabrir turno:', error)
+      logger.error({ err: error }, 'Error al reabrir turno')
       res.status(500).json({ error: error.message || 'Error al reabrir turno' })
     }
   }
@@ -225,7 +226,7 @@ export class CashierShiftController {
 
       res.json(updated)
     } catch (error) {
-      console.error('Error al actualizar usuarios:', error)
+      logger.error({ err: error }, 'Error al actualizar usuarios')
       res.status(500).json({ error: 'Error al actualizar usuarios' })
     }
   }
@@ -242,7 +243,7 @@ export class CashierShiftController {
 
       res.json({ message: 'Turno eliminado correctamente' })
     } catch (error: any) {
-      console.error('Error al eliminar turno:', error)
+      logger.error({ err: error }, 'Error al eliminar turno')
       res.status(500).json({ error: error.message || 'Error al eliminar turno' })
     }
   }
@@ -259,7 +260,7 @@ export class CashierShiftController {
 
       res.json(history)
     } catch (error) {
-      console.error('Error al obtener historial:', error)
+      logger.error({ err: error }, 'Error al obtener historial')
       res.status(500).json({ error: 'Error al obtener historial' })
     }
   }

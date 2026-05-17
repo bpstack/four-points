@@ -2,6 +2,7 @@
 
 import mysql from 'mysql2/promise'
 import type { Pool } from 'mysql2/promise' // ← AÑADIDO
+import { logger } from './logger.js'
 import dotenv from 'dotenv'
 import fs from 'fs'
 import path from 'path'
@@ -82,13 +83,7 @@ if (environment === 'aiven' && !config.host) {
 // ========================================
 // 📊 LOG DE CONFIGURACIÓN (sin passwords)
 // ========================================
-console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
-console.log(`🗄️  MySQL Environment: ${environment.toUpperCase()}`)
-console.log(`📍 Host: ${config.host}:${config.port}`)
-console.log(`💾 Database: ${config.database}`)
-console.log(`👤 User: ${config.user}`)
-console.log(`🔐 SSL: ${config.ssl ? 'Enabled' : 'Disabled'}`)
-console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+logger.info({ environment: environment.toUpperCase(), host: config.host, port: config.port, database: config.database, user: config.user, ssl: config.ssl ? 'Enabled' : 'Disabled' }, 'MySQL configuration')
 
 // ========================================
 // 🔌 POOL DE CONEXIONES
@@ -99,11 +94,11 @@ const pool: Pool = mysql.createPool(config) // ← MODIFICADO (añadido tipo)
 pool
   .getConnection()
   .then((connection) => {
-    console.log('✅ Conexión MySQL exitosa')
+    logger.info('Conexión MySQL exitosa')
     connection.release()
   })
   .catch((err) => {
-    console.error('❌ Error de conexión MySQL:', err.message)
+    logger.error({ err }, 'Error de conexión MySQL')
     process.exit(1)
   })
 

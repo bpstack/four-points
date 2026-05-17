@@ -32,6 +32,7 @@ import type {
   EmployeeContract,
   AnnualTotalsResponse,
 } from '../../models/scheduling/index.js'
+import { logger } from '../../config/logger.js'
 
 function isDateInRange(date: string, start: string, end: string): boolean {
   return date >= start && date <= end
@@ -115,7 +116,7 @@ export async function getAllConfig(_req: Request, res: Response): Promise<void> 
     const config = await repo.getAllConfig()
     res.json(config)
   } catch (err) {
-    console.error('Error getting config:', err)
+    logger.error({ err }, 'Error getting config')
     res.status(500).json({ error: 'Error al obtener la configuración' })
   }
 }
@@ -125,7 +126,7 @@ export async function getConfigMap(_req: Request, res: Response): Promise<void> 
     const configMap = await repo.getConfigMap()
     res.json(configMap)
   } catch (err) {
-    console.error('Error getting config map:', err)
+    logger.error({ err }, 'Error getting config map')
     res.status(500).json({ error: 'Error al obtener la configuración' })
   }
 }
@@ -144,7 +145,7 @@ export async function updateConfig(req: Request, res: Response): Promise<void> {
     res.json({ message: 'Configuración actualizada correctamente' })
   } catch (err) {
     if (handleZodError(err, res)) return
-    console.error('Error updating config:', err)
+    logger.error({ err }, 'Error updating config')
     res.status(500).json({ error: 'Error al actualizar la configuración' })
   }
 }
@@ -171,7 +172,7 @@ export async function getAllShifts(_req: Request, res: Response): Promise<void> 
     }))
     res.json(formatted)
   } catch (err) {
-    console.error('Error getting shifts:', err)
+    logger.error({ err }, 'Error getting shifts')
     res.status(500).json({ error: 'Error al obtener los turnos' })
   }
 }
@@ -204,7 +205,7 @@ export async function getShiftById(req: Request, res: Response): Promise<void> {
       isActive: shift.is_active === 1,
     })
   } catch (err) {
-    console.error('Error getting shift:', err)
+    logger.error({ err }, 'Error getting shift')
     res.status(500).json({ error: 'Error al obtener el turno' })
   }
 }
@@ -240,7 +241,7 @@ export async function createShift(req: Request, res: Response): Promise<void> {
 
     res.status(201).json({ id: shiftId, message: 'Turno creado correctamente' })
   } catch (err) {
-    console.error('Error creating shift:', err)
+    logger.error({ err }, 'Error creating shift')
     res.status(500).json({ error: 'Error al crear el turno' })
   }
 }
@@ -300,7 +301,7 @@ export async function updateShift(req: Request, res: Response): Promise<void> {
       res.status(400).json({ error: 'No se realizaron cambios' })
     }
   } catch (err) {
-    console.error('Error updating shift:', err)
+    logger.error({ err }, 'Error updating shift')
     res.status(500).json({ error: 'Error al actualizar el turno' })
   }
 }
@@ -328,7 +329,7 @@ export async function deleteShift(req: Request, res: Response): Promise<void> {
       res.status(400).json({ error: 'No se pudo eliminar el turno' })
     }
   } catch (err) {
-    console.error('Error deleting shift:', err)
+    logger.error({ err }, 'Error deleting shift')
     res.status(500).json({ error: 'Error al eliminar el turno' })
   }
 }
@@ -344,7 +345,7 @@ export async function getAllMonths(req: Request, res: Response): Promise<void> {
     res.json({ months, total: months.length })
   } catch (err) {
     if (handleZodError(err, res)) return
-    console.error('Error getting months:', err)
+    logger.error({ err }, 'Error getting months')
     res.status(500).json({ error: 'Error al obtener los meses' })
   }
 }
@@ -535,7 +536,7 @@ export async function getMonthById(req: Request, res: Response): Promise<void> {
 
     res.json(response)
   } catch (err) {
-    console.error('Error getting month:', err)
+    logger.error({ err }, 'Error getting month')
     res.status(500).json({ error: 'Error al obtener el mes' })
   }
 }
@@ -651,7 +652,7 @@ export async function getMonthInfo(req: Request, res: Response): Promise<void> {
       },
     })
   } catch (err) {
-    console.error('Error getting month info:', err)
+    logger.error({ err }, 'Error getting month info')
     res.status(500).json({ error: 'Error al obtener información del mes' })
   }
 }
@@ -701,7 +702,7 @@ export async function createMonth(req: Request, res: Response): Promise<void> {
     // Save assignments if any
     if (assignments.length > 0) {
       await repo.createAssignmentsBulk(monthId, assignments)
-      console.log(`[createMonth] Initialized ${assignments.length} assignments`)
+      logger.info({ monthId, assignmentsCount: assignments.length }, '[createMonth] Initialized assignments')
 
       // Number libre pairs immediately after seeding
       const uniqueEmployees = new Set(assignments.map((a) => a.employee_id))
@@ -717,7 +718,7 @@ export async function createMonth(req: Request, res: Response): Promise<void> {
     res.status(201).json(month)
   } catch (err) {
     if (handleZodError(err, res)) return
-    console.error('Error creating month:', err)
+    logger.error({ err }, 'Error creating month')
     res.status(500).json({ error: 'Error al crear el mes' })
   }
 }
@@ -751,11 +752,11 @@ export async function resetMonth(req: Request, res: Response): Promise<void> {
 
     // Fix dates in scheduling_days (timezone issue fix)
     const fixedCount = await repo.fixMonthDates(monthId, month.year, month.month)
-    console.log(`[resetMonth] Fixed ${fixedCount} day dates for month ${monthId}`)
+    logger.info({ monthId, fixedCount }, '[resetMonth] Fixed day dates')
 
     // Delete all assignments
     await repo.deleteAllAssignmentsByMonth(monthId)
-    console.log(`[resetMonth] Deleted all assignments for month ${monthId}`)
+    logger.info({ monthId }, '[resetMonth] Deleted all assignments')
 
     // Re-pre-load approved constraints as assignments
     const assignments = await initializeMonthGrid(monthId)
@@ -763,7 +764,7 @@ export async function resetMonth(req: Request, res: Response): Promise<void> {
     // Save assignments if any
     if (assignments.length > 0) {
       await repo.createAssignmentsBulk(monthId, assignments)
-      console.log(`[resetMonth] Initialized ${assignments.length} assignments`)
+      logger.info({ monthId, assignmentsCount: assignments.length }, '[resetMonth] Initialized assignments')
 
       // Number libre pairs immediately after seeding
       const uniqueEmployees = new Set(assignments.map((a) => a.employee_id))
@@ -782,7 +783,7 @@ export async function resetMonth(req: Request, res: Response): Promise<void> {
     })
   } catch (err) {
     if (handleZodError(err, res)) return
-    console.error('Error resetting month:', err)
+    logger.error({ err }, 'Error resetting month')
     res.status(500).json({ error: 'Error al resetear el mes' })
   }
 }
@@ -820,7 +821,7 @@ export async function updateMonth(req: Request, res: Response): Promise<void> {
     res.json(month)
   } catch (err) {
     if (handleZodError(err, res)) return
-    console.error('Error updating month:', err)
+    logger.error({ err }, 'Error updating month')
     res.status(500).json({ error: 'Error al actualizar el mes' })
   }
 }
@@ -847,7 +848,7 @@ export async function deleteMonth(req: Request, res: Response): Promise<void> {
     await repo.deleteMonth(monthId)
     res.json({ message: 'Mes eliminado correctamente' })
   } catch (err) {
-    console.error('Error deleting month:', err)
+    logger.error({ err }, 'Error deleting month')
     res.status(500).json({ error: 'Error al eliminar el mes' })
   }
 }
@@ -877,7 +878,7 @@ export async function updateDay(req: Request, res: Response): Promise<void> {
     res.json(day)
   } catch (err) {
     if (handleZodError(err, res)) return
-    console.error('Error updating day:', err)
+    logger.error({ err }, 'Error updating day')
     res.status(500).json({ error: 'Error al actualizar el día' })
   }
 }
@@ -908,7 +909,7 @@ export async function bulkUpdateDays(req: Request, res: Response): Promise<void>
     })
   } catch (err) {
     if (handleZodError(err, res)) return
-    console.error('Error bulk updating days:', err)
+    logger.error({ err }, 'Error bulk updating days')
     res.status(500).json({ error: 'Error al actualizar los días' })
   }
 }
@@ -971,7 +972,7 @@ export async function updateAssignment(req: Request, res: Response): Promise<voi
     res.json({ message: 'Asignación actualizada correctamente' })
   } catch (err) {
     if (handleZodError(err, res)) return
-    console.error('Error updating assignment:', err)
+    logger.error({ err }, 'Error updating assignment')
     res.status(500).json({ error: 'Error al actualizar la asignación' })
   }
 }
@@ -1042,7 +1043,7 @@ export async function bulkUpdateAssignments(req: Request, res: Response): Promis
     res.json({ message: `${data.assignments.length} asignaciones actualizadas` })
   } catch (err) {
     if (handleZodError(err, res)) return
-    console.error('Error bulk updating assignments:', err)
+    logger.error({ err }, 'Error bulk updating assignments')
     res.status(500).json({ error: 'Error al actualizar las asignaciones' })
   }
 }
@@ -1086,7 +1087,7 @@ export async function getConstraintsByMonth(req: Request, res: Response): Promis
     res.json(formatted)
   } catch (err) {
     if (handleZodError(err, res)) return
-    console.error('Error getting constraints:', err)
+    logger.error({ err }, 'Error getting constraints')
     res.status(500).json({ error: 'Error al obtener las restricciones' })
   }
 }
@@ -1118,7 +1119,7 @@ export async function createConstraint(req: Request, res: Response): Promise<voi
     res.status(201).json(constraint)
   } catch (err) {
     if (handleZodError(err, res)) return
-    console.error('Error creating constraint:', err)
+    logger.error({ err }, 'Error creating constraint')
     res.status(500).json({ error: 'Error al crear la restricción' })
   }
 }
@@ -1144,7 +1145,7 @@ export async function updateConstraint(req: Request, res: Response): Promise<voi
     res.json(constraint)
   } catch (err) {
     if (handleZodError(err, res)) return
-    console.error('Error updating constraint:', err)
+    logger.error({ err }, 'Error updating constraint')
     res.status(500).json({ error: 'Error al actualizar la restricción' })
   }
 }
@@ -1224,7 +1225,7 @@ export async function approveConstraint(req: Request, res: Response): Promise<vo
     res.json(constraint)
   } catch (err) {
     if (handleZodError(err, res)) return
-    console.error('Error approving constraint:', err)
+    logger.error({ err }, 'Error approving constraint')
     res.status(500).json({ error: 'Error al aprobar/rechazar la restricción' })
   }
 }
@@ -1246,7 +1247,7 @@ export async function deleteConstraint(req: Request, res: Response): Promise<voi
     await repo.deleteConstraint(constraintId)
     res.json({ message: 'Restricción eliminada correctamente' })
   } catch (err) {
-    console.error('Error deleting constraint:', err)
+    logger.error({ err }, 'Error deleting constraint')
     res.status(500).json({ error: 'Error al eliminar la restricción' })
   }
 }
@@ -1271,7 +1272,7 @@ export async function getAllEmployeeRules(_req: Request, res: Response): Promise
     }))
     res.json({ rules, total: rules.length })
   } catch (err) {
-    console.error('Error getting employee rules:', err)
+    logger.error({ err }, 'Error getting employee rules')
     res.status(500).json({ error: 'Error al obtener las reglas de empleados' })
   }
 }
@@ -1282,7 +1283,7 @@ export async function getEmployeeRulesByEmployee(req: Request, res: Response): P
     const rules = await repo.getEmployeeRulesByEmployee(employeeId)
     res.json(rules)
   } catch (err) {
-    console.error('Error getting employee rules:', err)
+    logger.error({ err }, 'Error getting employee rules by employee')
     res.status(500).json({ error: 'Error al obtener las reglas del empleado' })
   }
 }
@@ -1295,7 +1296,7 @@ export async function createEmployeeRule(req: Request, res: Response): Promise<v
     res.status(201).json(rule)
   } catch (err) {
     if (handleZodError(err, res)) return
-    console.error('Error creating employee rule:', err)
+    logger.error({ err }, 'Error creating employee rule')
     res.status(500).json({ error: 'Error al crear la regla del empleado' })
   }
 }
@@ -1321,7 +1322,7 @@ export async function updateEmployeeRule(req: Request, res: Response): Promise<v
     res.json(rule)
   } catch (err) {
     if (handleZodError(err, res)) return
-    console.error('Error updating employee rule:', err)
+    logger.error({ err }, 'Error updating employee rule')
     res.status(500).json({ error: 'Error al actualizar la regla del empleado' })
   }
 }
@@ -1343,7 +1344,7 @@ export async function deleteEmployeeRule(req: Request, res: Response): Promise<v
     await repo.deleteEmployeeRule(ruleId)
     res.json({ message: 'Regla eliminada correctamente' })
   } catch (err) {
-    console.error('Error deleting employee rule:', err)
+    logger.error({ err }, 'Error deleting employee rule')
     res.status(500).json({ error: 'Error al eliminar la regla del empleado' })
   }
 }
@@ -1363,7 +1364,7 @@ export async function getHistory(req: Request, res: Response): Promise<void> {
     const history = await repo.getHistoryByMonth(monthId)
     res.json(history)
   } catch (err) {
-    console.error('Error getting history:', err)
+    logger.error({ err }, 'Error getting history')
     res.status(500).json({ error: 'Error al obtener el historial' })
   }
 }
@@ -1390,16 +1391,14 @@ export async function validateSchedule(req: Request, res: Response): Promise<voi
       return
     }
 
-    console.log(
-      `[ValidateSchedule] Month ${monthId}: ${result.stats.totalErrors} errors, ${result.stats.totalWarnings} warnings`
-    )
+    logger.info({ monthId, totalErrors: result.stats.totalErrors, totalWarnings: result.stats.totalWarnings }, '[ValidateSchedule] validation summary')
     if (result.errors.length > 0) {
-      console.log(`[ValidateSchedule] Errors:`, result.errors.map((e) => e.message).slice(0, 5))
+      logger.info({ monthId, errors: result.errors.map((e) => e.message).slice(0, 5) }, '[ValidateSchedule] error details')
     }
 
     res.json(result)
   } catch (err) {
-    console.error('Error validating schedule:', err)
+    logger.error({ err }, 'Error validating schedule')
     res.status(500).json({ error: 'Error al validar el horario' })
   }
 }
@@ -1448,7 +1447,7 @@ export async function unpublishMonth(req: Request, res: Response): Promise<void>
       month: updatedMonth,
     })
   } catch (err) {
-    console.error('Error unpublishing month:', err)
+    logger.error({ err }, 'Error unpublishing month')
     res.status(500).json({ error: 'Error al revertir la publicación' })
   }
 }
@@ -1462,7 +1461,7 @@ export async function getSchedulableEmployees(_req: Request, res: Response): Pro
     const employees = await repo.getSchedulableEmployees()
     res.json(employees)
   } catch (err) {
-    console.error('Error getting schedulable employees:', err)
+    logger.error({ err }, 'Error getting schedulable employees')
     res.status(500).json({ error: 'Error al obtener empleados' })
   }
 }
@@ -1472,7 +1471,7 @@ export async function getAllEmployeesWithStatus(_req: Request, res: Response): P
     const employees = await repo.getAllEmployeesWithSchedulableStatus()
     res.json(employees)
   } catch (err) {
-    console.error('Error getting employees with status:', err)
+    logger.error({ err }, 'Error getting employees with status')
     res.status(500).json({ error: 'Error al obtener empleados' })
   }
 }
@@ -1485,7 +1484,7 @@ export async function addSchedulableEmployee(req: Request, res: Response): Promi
     await repo.addSchedulableEmployee(employeeId, userId)
     res.json({ success: true, message: 'Empleado añadido a horarios' })
   } catch (err) {
-    console.error('Error adding schedulable employee:', err)
+    logger.error({ err }, 'Error adding schedulable employee')
     res.status(500).json({ error: 'Error al añadir empleado' })
   }
 }
@@ -1497,7 +1496,7 @@ export async function removeSchedulableEmployee(req: Request, res: Response): Pr
     await repo.removeSchedulableEmployee(employeeId)
     res.json({ success: true, message: 'Empleado removido de horarios' })
   } catch (err) {
-    console.error('Error removing schedulable employee:', err)
+    logger.error({ err }, 'Error removing schedulable employee')
     res.status(500).json({ error: 'Error al remover empleado' })
   }
 }
@@ -1515,7 +1514,7 @@ export async function setSchedulableEmployees(req: Request, res: Response): Prom
     await repo.setSchedulableEmployees(employeeIds, userId)
     res.json({ success: true, message: `${employeeIds.length} empleados configurados` })
   } catch (err) {
-    console.error('Error setting schedulable employees:', err)
+    logger.error({ err }, 'Error setting schedulable employees')
     res.status(500).json({ error: 'Error al configurar empleados' })
   }
 }
@@ -1552,7 +1551,7 @@ export async function getContractsByYear(req: Request, res: Response): Promise<v
 
     res.json(formatted)
   } catch (err) {
-    console.error('Error getting contracts:', err)
+    logger.error({ err }, 'Error getting contracts')
     res.status(500).json({ error: 'Error al obtener contratos' })
   }
 }
@@ -1588,7 +1587,7 @@ export async function getContractByEmployeeYear(req: Request, res: Response): Pr
       observaciones: contract.observaciones,
     })
   } catch (err) {
-    console.error('Error getting contract:', err)
+    logger.error({ err }, 'Error getting contract')
     res.status(500).json({ error: 'Error al obtener contrato' })
   }
 }
@@ -1638,7 +1637,7 @@ export async function createContract(req: Request, res: Response): Promise<void>
     const contract = await repo.getContractById(contractId)
     res.status(201).json(contract)
   } catch (err) {
-    console.error('Error creating contract:', err)
+    logger.error({ err }, 'Error creating contract')
     res.status(500).json({ error: 'Error al crear contrato' })
   }
 }
@@ -1682,7 +1681,7 @@ export async function updateContract(req: Request, res: Response): Promise<void>
     const contract = await repo.getContractById(contractId)
     res.json(contract)
   } catch (err) {
-    console.error('Error updating contract:', err)
+    logger.error({ err }, 'Error updating contract')
     res.status(500).json({ error: 'Error al actualizar contrato' })
   }
 }
@@ -1704,7 +1703,7 @@ export async function deleteContract(req: Request, res: Response): Promise<void>
     await repo.deleteContract(contractId)
     res.json({ message: 'Contrato eliminado correctamente' })
   } catch (err) {
-    console.error('Error deleting contract:', err)
+    logger.error({ err }, 'Error deleting contract')
     res.status(500).json({ error: 'Error al eliminar contrato' })
   }
 }
@@ -1726,7 +1725,7 @@ export async function initializeContractsForYear(req: Request, res: Response): P
       created,
     })
   } catch (err) {
-    console.error('Error initializing contracts:', err)
+    logger.error({ err }, 'Error initializing contracts')
     res.status(500).json({ error: 'Error al inicializar contratos' })
   }
 }
@@ -1794,7 +1793,7 @@ export async function initializeContractForEmployee(req: Request, res: Response)
         : null,
     })
   } catch (err) {
-    console.error('Error initializing contract for employee:', err)
+    logger.error({ err }, 'Error initializing contract for employee')
     res.status(500).json({ error: 'Error al inicializar contrato' })
   }
 }
@@ -1839,7 +1838,7 @@ export async function calculateProportionalContract(req: Request, res: Response)
       },
     })
   } catch (err) {
-    console.error('Error calculating proportional contract:', err)
+    logger.error({ err }, 'Error calculating proportional contract')
     res.status(500).json({ error: 'Error al calcular valores proporcionales' })
   }
 }
@@ -1879,7 +1878,7 @@ export async function getShiftStats(req: Request, res: Response): Promise<void> 
       employees: [...empMap.values()].sort((a, b) => a.employeeName.localeCompare(b.employeeName)),
     })
   } catch (err) {
-    console.error('Error getting shift stats:', err)
+    logger.error({ err }, 'Error getting shift stats')
     res.status(500).json({ error: 'Error al obtener contabilidad de turnos' })
   }
 }
@@ -1910,7 +1909,7 @@ export async function getAnnualTotals(req: Request, res: Response): Promise<void
 
     res.json(response)
   } catch (err) {
-    console.error('Error getting annual totals:', err)
+    logger.error({ err }, 'Error getting annual totals')
     res.status(500).json({ error: 'Error al obtener totales anuales' })
   }
 }

@@ -7,6 +7,7 @@
 import { Request, Response } from 'express'
 import { conciliationMonthlyRepo } from '../../repositories/conciliation/conciliation-monthly.repository.js'
 import { ERROR_CODES } from '../../config/error-codes.js'
+import { logger } from '../../config/logger.js'
 
 /**
  * GET /api/conciliations/monthly-summary/:year/:month
@@ -50,7 +51,7 @@ export async function getMonthlySummary(req: Request, res: Response): Promise<vo
 
     res.status(200).json({ success: true, data: summary })
   } catch (error) {
-    console.error('Error en getMonthlySummary:', error)
+    logger.error({ err: error }, 'Error en getMonthlySummary')
     res.status(500).json({
       success: false,
       error: ERROR_CODES.CONCILIATION_MONTHLY_FETCH_ERROR,
@@ -92,7 +93,7 @@ export async function validateMonthlySummary(req: Request, res: Response): Promi
 
     res.status(200).json({ success: true, data: validation })
   } catch (error) {
-    console.error('Error en validateMonthlySummary:', error)
+    logger.error({ err: error }, 'Error en validateMonthlySummary')
     res.status(500).json({
       success: false,
       error: ERROR_CODES.CONCILIATION_MONTHLY_VALIDATE_ERROR,
@@ -169,7 +170,7 @@ export async function updateMonthlySummaryStatus(req: Request, res: Response): P
       return
     }
 
-    console.error('Error en updateMonthlySummaryStatus:', error)
+    logger.error({ err: error }, 'Error en updateMonthlySummaryStatus')
     res.status(500).json({
       success: false,
       error: ERROR_CODES.CONCILIATION_MONTHLY_UPDATE_STATUS_ERROR,
@@ -219,7 +220,7 @@ export async function getMissingDays(req: Request, res: Response): Promise<void>
       },
     })
   } catch (error) {
-    console.error('Error en getMissingDays:', error)
+    logger.error({ err: error }, 'Error en getMissingDays')
     res.status(500).json({
       success: false,
       error: ERROR_CODES.CONCILIATION_MONTHLY_MISSING_DAYS_ERROR,

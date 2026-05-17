@@ -32,6 +32,8 @@ import {
   unreadLogbookController,
 } from '../../controllers/logbook/logbookReads-controllers.js'
 
+import { logger } from '../../config/logger.js'
+
 // Middlewares
 import { authenticateToken } from '../../middlewares/authenticateToken.js'
 import { excludeMantenimiento } from '../../middlewares/roleCheck.js'
@@ -61,7 +63,7 @@ router.get('/trashed', async (req: Request, res: Response) => {
     const trashed = await logbookRepo.getAllTrashedLogbooks({ limit, offset })
     res.json(trashed)
   } catch (err) {
-    console.error(err)
+    logger.error({ err }, 'Error al obtener logbooks borrados')
     res.status(500).json({ error: 'Error al obtener los borrados' })
   }
 })

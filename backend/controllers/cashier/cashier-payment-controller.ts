@@ -4,6 +4,7 @@ import { Request, Response } from 'express'
 import { CashierPaymentRepository } from '../../repositories/cashier/cashier-payment-repository.js'
 import { CashierHistoryRepository } from '../../repositories/cashier/cashier-history-repository.js'
 import { CashierShiftRepository } from '../../repositories/cashier/cashier-shift-repository.js'
+import { logger } from '../../config/logger.js'
 
 export class CashierPaymentController {
   /**
@@ -18,7 +19,7 @@ export class CashierPaymentController {
 
       res.json(payments)
     } catch (error) {
-      console.error('Error al obtener pagos:', error)
+      logger.error({ err: error }, 'Error al obtener pagos')
       res.status(500).json({ error: 'Error al obtener pagos' })
     }
   }
@@ -35,7 +36,7 @@ export class CashierPaymentController {
 
       res.json(summary)
     } catch (error) {
-      console.error('Error al obtener resumen:', error)
+      logger.error({ err: error }, 'Error al obtener resumen')
       res.status(500).json({ error: 'Error al obtener resumen' })
     }
   }
@@ -48,8 +49,8 @@ export class CashierPaymentController {
     try {
       const { shiftId } = req.params
       const { payments } = req.body
-      console.log('🔍 [Controller] replaceAll payments - shiftId:', shiftId) // ✅ LOG
-      console.log('🔍 [Controller] replaceAll payments - data:', payments) // ✅ LOG
+      logger.debug({ shiftId }, '🔍 [Controller] replaceAll payments - shiftId:') // ✅ LOG
+      logger.debug({ data: payments }, '🔍 [Controller] replaceAll payments - data:') // ✅ LOG
 
       await CashierPaymentRepository.replaceAllForShift(parseInt(shiftId), payments)
 
@@ -68,10 +69,10 @@ export class CashierPaymentController {
       }
 
       const updated = await CashierPaymentRepository.getByShift(parseInt(shiftId))
-      console.log('✅ [Controller] Pagos actualizados:', updated) // ✅ LOG
+      logger.debug({ updated }, '✅ [Controller] Pagos actualizados:') // ✅ LOG
       res.json(updated)
     } catch (error) {
-      console.error('Error al actualizar pagos:', error)
+      logger.error({ err: error }, 'Error al actualizar pagos')
       res.status(500).json({ error: 'Error al actualizar pagos' })
     }
   }
@@ -92,7 +93,7 @@ export class CashierPaymentController {
 
       res.status(201).json(payment)
     } catch (error) {
-      console.error('Error al crear pago:', error)
+      logger.error({ err: error }, 'Error al crear pago')
       res.status(500).json({ error: 'Error al crear pago' })
     }
   }
@@ -110,7 +111,7 @@ export class CashierPaymentController {
 
       res.json(updated)
     } catch (error: any) {
-      console.error('Error al actualizar pago:', error)
+      logger.error({ err: error }, 'Error al actualizar pago')
       res.status(500).json({ error: error.message || 'Error al actualizar pago' })
     }
   }
@@ -127,7 +128,7 @@ export class CashierPaymentController {
 
       res.json({ message: 'Pago eliminado correctamente' })
     } catch (error) {
-      console.error('Error al eliminar pago:', error)
+      logger.error({ err: error }, 'Error al eliminar pago')
       res.status(500).json({ error: 'Error al eliminar pago' })
     }
   }

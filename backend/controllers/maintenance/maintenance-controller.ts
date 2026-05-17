@@ -18,6 +18,7 @@ import {
   assignReportSchema,
 } from '../../validations/maintenance/schemas.js'
 import type { ReportFilters } from '../../models/maintenance/index.js'
+import { logger } from '../../config/logger.js'
 
 // ========================================
 // CONTROLLER
@@ -54,7 +55,7 @@ export class MaintenanceController {
         filters_applied: filters,
       })
     } catch (error: any) {
-      console.error('[MaintenanceController.getAll] Error:', error.message)
+      logger.error({ err: error }, '[MaintenanceController.getAll] Error')
       res.status(500).json({
         error: 'Error al obtener los reportes',
         message: error.message,
@@ -91,7 +92,7 @@ export class MaintenanceController {
 
       res.json({ report })
     } catch (error: any) {
-      console.error('[MaintenanceController.getById] Error:', error.message)
+      logger.error({ err: error }, '[MaintenanceController.getById] Error')
       res.status(500).json({
         error: 'Error al obtener el reporte',
         message: error.message,
@@ -129,7 +130,7 @@ export class MaintenanceController {
         report,
       })
     } catch (error: any) {
-      console.error('[MaintenanceController.create] Error:', error.message)
+      logger.error({ err: error }, '[MaintenanceController.create] Error')
       res.status(500).json({
         error: 'Error al crear el reporte',
         message: error.message,
@@ -181,7 +182,7 @@ export class MaintenanceController {
         report,
       })
     } catch (error: any) {
-      console.error('[MaintenanceController.update] Error:', error.message)
+      logger.error({ err: error }, '[MaintenanceController.update] Error')
 
       if (error.message.includes('eliminado')) {
         res.status(400).json({ error: error.message })
@@ -245,7 +246,7 @@ export class MaintenanceController {
         report,
       })
     } catch (error: any) {
-      console.error('[MaintenanceController.updateStatus] Error:', error.message)
+      logger.error({ err: error }, '[MaintenanceController.updateStatus] Error')
       res.status(500).json({
         error: 'Error al actualizar el estado',
         message: error.message,
@@ -302,7 +303,7 @@ export class MaintenanceController {
         report,
       })
     } catch (error: any) {
-      console.error('[MaintenanceController.updatePriority] Error:', error.message)
+      logger.error({ err: error }, '[MaintenanceController.updatePriority] Error')
       res.status(500).json({
         error: 'Error al actualizar la prioridad',
         message: error.message,
@@ -359,7 +360,7 @@ export class MaintenanceController {
         report,
       })
     } catch (error: any) {
-      console.error('[MaintenanceController.addResolutionNotes] Error:', error.message)
+      logger.error({ err: error }, '[MaintenanceController.addResolutionNotes] Error')
       res.status(500).json({
         error: 'Error al agregar las notas',
         message: error.message,
@@ -423,7 +424,7 @@ export class MaintenanceController {
         report,
       })
     } catch (error: any) {
-      console.error('[MaintenanceController.assignReport] Error:', error.message)
+      logger.error({ err: error }, '[MaintenanceController.assignReport] Error')
       res.status(500).json({
         error: 'Error al asignar el reporte',
         message: error.message,
@@ -462,7 +463,7 @@ export class MaintenanceController {
 
       res.json({ message: 'Reporte eliminado correctamente' })
     } catch (error: any) {
-      console.error('[MaintenanceController.delete] Error:', error.message)
+      logger.error({ err: error }, '[MaintenanceController.delete] Error')
 
       if (error.message.includes('ya está eliminado')) {
         res.status(400).json({ error: error.message })
@@ -510,7 +511,7 @@ export class MaintenanceController {
         report,
       })
     } catch (error: any) {
-      console.error('[MaintenanceController.restore] Error:', error.message)
+      logger.error({ err: error }, '[MaintenanceController.restore] Error')
 
       if (error.message.includes('no está eliminado')) {
         res.status(400).json({ error: error.message })
@@ -549,7 +550,7 @@ export class MaintenanceController {
 
       res.json({ images })
     } catch (error: any) {
-      console.error('[MaintenanceController.getImages] Error:', error.message)
+      logger.error({ err: error }, '[MaintenanceController.getImages] Error')
       res.status(500).json({
         error: 'Error al obtener las imágenes',
         message: error.message,
@@ -638,7 +639,7 @@ export class MaintenanceController {
         image,
       })
     } catch (error: any) {
-      console.error('[MaintenanceController.uploadImage] Error:', error.message)
+      logger.error({ err: error }, '[MaintenanceController.uploadImage] Error')
       res.status(500).json({
         error: 'Error al subir la imagen',
         message: error.message,
@@ -687,7 +688,7 @@ export class MaintenanceController {
 
       res.json({ message: 'Imagen eliminada correctamente' })
     } catch (error: any) {
-      console.error('[MaintenanceController.deleteImage] Error:', error.message)
+      logger.error({ err: error }, '[MaintenanceController.deleteImage] Error')
       res.status(500).json({
         error: 'Error al eliminar la imagen',
         message: error.message,
@@ -720,7 +721,7 @@ export class MaintenanceController {
 
       res.json({ history })
     } catch (error: any) {
-      console.error('[MaintenanceController.getHistory] Error:', error.message)
+      logger.error({ err: error }, '[MaintenanceController.getHistory] Error')
       res.status(500).json({
         error: 'Error al obtener el historial',
         message: error.message,
@@ -742,7 +743,7 @@ export class MaintenanceController {
 
       res.json(stats)
     } catch (error: any) {
-      console.error('[MaintenanceController.getStats] Error:', error.message)
+      logger.error({ err: error }, '[MaintenanceController.getStats] Error')
       res.status(500).json({
         error: 'Error al obtener estadísticas',
         message: error.message,

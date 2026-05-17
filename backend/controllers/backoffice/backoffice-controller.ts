@@ -14,6 +14,7 @@ import {
 } from '../../repositories/backoffice/backoffice-repository.js'
 import { CloudinaryService } from '../../services/blacklist/cloudinary-service.js'
 import { ERROR_CODES, SUCCESS_CODES } from '../../config/error-codes.js'
+import { logger } from '../../config/logger.js'
 
 // ========================================
 // CONTROLLER
@@ -33,7 +34,7 @@ export class BackofficeController {
       const categories = await BackofficeRepository.getAllCategories()
       res.json({ success: true, categories })
     } catch (error: any) {
-      console.error('[BackofficeController.getCategories] Error:', error.message)
+      logger.error({ err: error }, '[BackofficeController.getCategories] Error')
       res.status(500).json({
         success: false,
         error: ERROR_CODES.BACKOFFICE_FETCH_CATEGORIES_ERROR,
@@ -62,7 +63,7 @@ export class BackofficeController {
 
       res.json({ success: true, category })
     } catch (error: any) {
-      console.error('[BackofficeController.getCategoryById] Error:', error.message)
+      logger.error({ err: error }, '[BackofficeController.getCategoryById] Error')
       res.status(500).json({
         success: false,
         error: ERROR_CODES.BACKOFFICE_FETCH_CATEGORY_ERROR,
@@ -103,7 +104,7 @@ export class BackofficeController {
         category,
       })
     } catch (error: any) {
-      console.error('[BackofficeController.createCategory] Error:', error.message)
+      logger.error({ err: error }, '[BackofficeController.createCategory] Error')
       res.status(500).json({
         success: false,
         error: ERROR_CODES.BACKOFFICE_CREATE_CATEGORY_ERROR,
@@ -147,7 +148,7 @@ export class BackofficeController {
         },
       })
     } catch (error: any) {
-      console.error('[BackofficeController.getSuppliers] Error:', error.message)
+      logger.error({ err: error }, '[BackofficeController.getSuppliers] Error')
       res.status(500).json({
         success: false,
         error: ERROR_CODES.BACKOFFICE_FETCH_SUPPLIERS_ERROR,
@@ -179,7 +180,7 @@ export class BackofficeController {
 
       res.json({ success: true, supplier, invoices })
     } catch (error: any) {
-      console.error('[BackofficeController.getSupplierById] Error:', error.message)
+      logger.error({ err: error }, '[BackofficeController.getSupplierById] Error')
       res.status(500).json({
         success: false,
         error: ERROR_CODES.BACKOFFICE_FETCH_SUPPLIER_ERROR,
@@ -239,7 +240,7 @@ export class BackofficeController {
         supplier,
       })
     } catch (error: any) {
-      console.error('[BackofficeController.createSupplier] Error:', error.message)
+      logger.error({ err: error }, '[BackofficeController.createSupplier] Error')
       res.status(500).json({
         success: false,
         error: ERROR_CODES.BACKOFFICE_CREATE_SUPPLIER_ERROR,
@@ -289,7 +290,7 @@ export class BackofficeController {
         supplier,
       })
     } catch (error: any) {
-      console.error('[BackofficeController.updateSupplier] Error:', error.message)
+      logger.error({ err: error }, '[BackofficeController.updateSupplier] Error')
       res.status(500).json({
         success: false,
         error: ERROR_CODES.BACKOFFICE_UPDATE_SUPPLIER_ERROR,
@@ -323,7 +324,7 @@ export class BackofficeController {
         code: SUCCESS_CODES.BACKOFFICE_SUPPLIER_DEACTIVATED,
       })
     } catch (error: any) {
-      console.error('[BackofficeController.deleteSupplier] Error:', error.message)
+      logger.error({ err: error }, '[BackofficeController.deleteSupplier] Error')
       res.status(500).json({
         success: false,
         error: ERROR_CODES.BACKOFFICE_DEACTIVATE_SUPPLIER_ERROR,
@@ -370,7 +371,7 @@ export class BackofficeController {
         filters_applied: filters,
       })
     } catch (error: any) {
-      console.error('[BackofficeController.getInvoices] Error:', error.message)
+      logger.error({ err: error }, '[BackofficeController.getInvoices] Error')
       res.status(500).json({
         success: false,
         error: ERROR_CODES.BACKOFFICE_FETCH_INVOICES_ERROR,
@@ -402,7 +403,7 @@ export class BackofficeController {
 
       res.json({ success: true, invoice, history })
     } catch (error: any) {
-      console.error('[BackofficeController.getInvoiceById] Error:', error.message)
+      logger.error({ err: error }, '[BackofficeController.getInvoiceById] Error')
       res.status(500).json({
         success: false,
         error: ERROR_CODES.BACKOFFICE_FETCH_INVOICE_ERROR,
@@ -466,7 +467,7 @@ export class BackofficeController {
         invoice,
       })
     } catch (error: any) {
-      console.error('[BackofficeController.createInvoice] Error:', error.message)
+      logger.error({ err: error }, '[BackofficeController.createInvoice] Error')
       res.status(500).json({
         success: false,
         error: ERROR_CODES.BACKOFFICE_CREATE_INVOICE_ERROR,
@@ -512,7 +513,7 @@ export class BackofficeController {
         invoice,
       })
     } catch (error: any) {
-      console.error('[BackofficeController.updateInvoice] Error:', error.message)
+      logger.error({ err: error }, '[BackofficeController.updateInvoice] Error')
       res.status(500).json({
         success: false,
         error: ERROR_CODES.BACKOFFICE_UPDATE_INVOICE_ERROR,
@@ -539,13 +540,7 @@ export class BackofficeController {
       const { id } = req.params
       const { validated_pdf_url, validated_pdf_public_id, validation_notes } = req.body
 
-      console.log('[BackofficeController.validateInvoice] Starting validation:', {
-        id,
-        userId: req.user.id,
-        validated_pdf_url: validated_pdf_url || '(not provided)',
-        validated_pdf_public_id: validated_pdf_public_id || '(not provided)',
-        validation_notes: validation_notes || '(not provided)'
-      })
+      logger.debug({ id, userId: req.user.id, validated_pdf_url: validated_pdf_url || '(not provided)', validated_pdf_public_id: validated_pdf_public_id || '(not provided)', validation_notes: validation_notes || '(not provided)' }, '[BackofficeController.validateInvoice] Starting validation')
 
       const validated = await BackofficeRepository.validateInvoice(
         Number(id),
@@ -563,11 +558,7 @@ export class BackofficeController {
       }
 
       const invoice = await BackofficeRepository.getInvoiceById(Number(id))
-      console.log('[BackofficeController.validateInvoice] Result:', {
-        id: invoice?.id,
-        status: invoice?.status,
-        validated_pdf_url: invoice?.validated_pdf_url || '(null)'
-      })
+      logger.info({ id: invoice?.id, status: invoice?.status, validatedPdfUrl: invoice?.validated_pdf_url || '(null)' }, '[BackofficeController.validateInvoice] Result')
 
       res.json({
         success: true,
@@ -576,7 +567,7 @@ export class BackofficeController {
         invoice,
       })
     } catch (error: any) {
-      console.error('[BackofficeController.validateInvoice] Error:', error.message)
+      logger.error({ err: error }, '[BackofficeController.validateInvoice] Error')
       res.status(500).json({
         success: false,
         error: ERROR_CODES.BACKOFFICE_VALIDATE_INVOICE_ERROR,
@@ -632,7 +623,7 @@ export class BackofficeController {
         invoice,
       })
     } catch (error: any) {
-      console.error('[BackofficeController.rejectInvoice] Error:', error.message)
+      logger.error({ err: error }, '[BackofficeController.rejectInvoice] Error')
       res.status(500).json({
         success: false,
         error: ERROR_CODES.BACKOFFICE_REJECT_INVOICE_ERROR,
@@ -683,7 +674,7 @@ export class BackofficeController {
         invoice,
       })
     } catch (error: any) {
-      console.error('[BackofficeController.unvalidateInvoice] Error:', error.message)
+      logger.error({ err: error }, '[BackofficeController.unvalidateInvoice] Error')
       res.status(500).json({
         success: false,
         error: ERROR_CODES.BACKOFFICE_REVERT_VALIDATION_ERROR,
@@ -739,7 +730,7 @@ export class BackofficeController {
         invoice,
       })
     } catch (error: any) {
-      console.error('[BackofficeController.markAsPaid] Error:', error.message)
+      logger.error({ err: error }, '[BackofficeController.markAsPaid] Error')
       res.status(500).json({
         success: false,
         error: ERROR_CODES.BACKOFFICE_MARK_PAID_ERROR,
@@ -776,21 +767,17 @@ export class BackofficeController {
         return
       }
 
-      console.log('[BackofficeController.deleteInvoice] Deleting invoice:', {
-        id: invoice.id,
-        original_pdf_public_id: invoice.original_pdf_public_id,
-        validated_pdf_public_id: invoice.validated_pdf_public_id,
-      })
+      logger.info({ id: invoice.id, originalPdfPublicId: invoice.original_pdf_public_id, validatedPdfPublicId: invoice.validated_pdf_public_id }, '[BackofficeController.deleteInvoice] Deleting invoice')
 
       // Eliminar PDFs de Cloudinary (opción estricta: falla todo si Cloudinary falla)
       if (invoice.original_pdf_public_id) {
         await CloudinaryService.deleteFile(invoice.original_pdf_public_id, 'raw')
-        console.log('[BackofficeController.deleteInvoice] Original PDF deleted from Cloudinary')
+        logger.info('[BackofficeController.deleteInvoice] Original PDF deleted from Cloudinary')
       }
 
       if (invoice.validated_pdf_public_id) {
         await CloudinaryService.deleteFile(invoice.validated_pdf_public_id, 'raw')
-        console.log('[BackofficeController.deleteInvoice] Validated PDF deleted from Cloudinary')
+        logger.info('[BackofficeController.deleteInvoice] Validated PDF deleted from Cloudinary')
       }
 
       // Solo eliminar de BD si Cloudinary fue exitoso
@@ -805,14 +792,14 @@ export class BackofficeController {
         return
       }
 
-      console.log('[BackofficeController.deleteInvoice] Invoice deleted from DB')
+      logger.info('[BackofficeController.deleteInvoice] Invoice deleted from DB')
       res.json({
         success: true,
         message: SUCCESS_CODES.BACKOFFICE_INVOICE_DELETED,
         code: SUCCESS_CODES.BACKOFFICE_INVOICE_DELETED,
       })
     } catch (error: any) {
-      console.error('[BackofficeController.deleteInvoice] Error:', error.message)
+      logger.error({ err: error }, '[BackofficeController.deleteInvoice] Error')
       res.status(500).json({
         success: false,
         error: ERROR_CODES.BACKOFFICE_DELETE_INVOICE_ERROR,
@@ -833,7 +820,7 @@ export class BackofficeController {
 
       res.json({ success: true, history })
     } catch (error: any) {
-      console.error('[BackofficeController.getInvoiceHistory] Error:', error.message)
+      logger.error({ err: error }, '[BackofficeController.getInvoiceHistory] Error')
       res.status(500).json({
         success: false,
         error: ERROR_CODES.BACKOFFICE_FETCH_HISTORY_ERROR,
@@ -860,7 +847,7 @@ export class BackofficeController {
       const { id } = req.params
       const { type } = req.query // 'original' o 'validated'
 
-      console.log('[BackofficeController.uploadInvoicePdf] Starting upload:', { id, type, userId: req.user.id })
+      logger.info({ id, type, userId: req.user.id }, '[BackofficeController.uploadInvoicePdf] Starting upload')
 
       if (!type || !['original', 'validated'].includes(type as string)) {
         res.status(400).json({
@@ -918,7 +905,7 @@ export class BackofficeController {
         return
       }
 
-      console.log('[BackofficeController.uploadInvoicePdf] Uploading to Cloudinary...')
+      logger.debug('[BackofficeController.uploadInvoicePdf] Uploading to Cloudinary...')
 
       // Subir a Cloudinary (usar uploadPdf para archivos PDF)
       const cloudinaryResult = await CloudinaryService.uploadPdf(
@@ -927,13 +914,10 @@ export class BackofficeController {
         'backoffice/invoices'
       )
 
-      console.log('[BackofficeController.uploadInvoicePdf] Cloudinary result:', {
-        secure_url: cloudinaryResult.secure_url,
-        public_id: cloudinaryResult.public_id
-      })
+      logger.info({ secureUrl: cloudinaryResult.secure_url, publicId: cloudinaryResult.public_id }, '[BackofficeController.uploadInvoicePdf] Cloudinary result')
 
       // Actualizar en BD
-      console.log('[BackofficeController.uploadInvoicePdf] Updating DB with type:', type)
+      logger.debug({ type }, '[BackofficeController.uploadInvoicePdf] Updating DB with type')
       const updateResult = await BackofficeRepository.updateInvoicePdf(
         Number(id),
         type as 'original' | 'validated',
@@ -941,26 +925,22 @@ export class BackofficeController {
         cloudinaryResult.public_id,
         req.user.id
       )
-      console.log('[BackofficeController.uploadInvoicePdf] DB update result:', updateResult)
+      logger.debug({ updateResult }, '[BackofficeController.uploadInvoicePdf] DB update result')
 
       // Borrar el archivo anterior de Cloudinary (solo si había uno y el upload fue exitoso)
       if (previousPublicId && updateResult) {
         try {
-          console.log('[BackofficeController.uploadInvoicePdf] Deleting previous PDF:', previousPublicId)
+          logger.debug({ previousPublicId }, '[BackofficeController.uploadInvoicePdf] Deleting previous PDF')
           await CloudinaryService.deleteFile(previousPublicId, 'raw')
-          console.log('[BackofficeController.uploadInvoicePdf] Previous PDF deleted successfully')
+          logger.debug('[BackofficeController.uploadInvoicePdf] Previous PDF deleted successfully')
         } catch (deleteError: any) {
           // Log pero no fallar - el nuevo archivo ya está subido
-          console.warn('[BackofficeController.uploadInvoicePdf] Failed to delete previous PDF:', deleteError.message)
+          logger.warn({ err: deleteError }, '[BackofficeController.uploadInvoicePdf] Failed to delete previous PDF')
         }
       }
 
       const updatedInvoice = await BackofficeRepository.getInvoiceById(Number(id))
-      console.log('[BackofficeController.uploadInvoicePdf] Updated invoice:', {
-        id: updatedInvoice?.id,
-        original_pdf_url: updatedInvoice?.original_pdf_url,
-        validated_pdf_url: updatedInvoice?.validated_pdf_url
-      })
+      logger.info({ id: updatedInvoice?.id, originalPdfUrl: updatedInvoice?.original_pdf_url, validatedPdfUrl: updatedInvoice?.validated_pdf_url }, '[BackofficeController.uploadInvoicePdf] Updated invoice')
 
       res.json({
         success: true,
@@ -969,7 +949,7 @@ export class BackofficeController {
         invoice: updatedInvoice,
       })
     } catch (error: any) {
-      console.error('[BackofficeController.uploadInvoicePdf] Error:', error.message)
+      logger.error({ err: error }, '[BackofficeController.uploadInvoicePdf] Error')
       res.status(500).json({
         success: false,
         error: ERROR_CODES.BACKOFFICE_UPLOAD_PDF_ERROR,
@@ -994,7 +974,7 @@ export class BackofficeController {
 
       res.json({ success: true, assets })
     } catch (error: any) {
-      console.error('[BackofficeController.getAssets] Error:', error.message)
+      logger.error({ err: error }, '[BackofficeController.getAssets] Error')
       res.status(500).json({
         success: false,
         error: ERROR_CODES.BACKOFFICE_FETCH_ASSETS_ERROR,
@@ -1084,7 +1064,7 @@ export class BackofficeController {
         asset,
       })
     } catch (error: any) {
-      console.error('[BackofficeController.createAsset] Error:', error.message)
+      logger.error({ err: error }, '[BackofficeController.createAsset] Error')
       res.status(500).json({
         success: false,
         error: ERROR_CODES.BACKOFFICE_CREATE_ASSET_ERROR,
@@ -1112,21 +1092,17 @@ export class BackofficeController {
         return
       }
 
-      console.log('[BackofficeController.deleteAsset] Deleting asset:', {
-        id: asset.id,
-        name: asset.name,
-        cloudinary_public_id: asset.cloudinary_public_id,
-      })
+      logger.info({ id: asset.id, name: asset.name, cloudinaryPublicId: asset.cloudinary_public_id }, '[BackofficeController.deleteAsset] Deleting asset')
 
       // Eliminar de Cloudinary primero (opción estricta: falla todo si Cloudinary falla)
       if (asset.cloudinary_public_id) {
         await CloudinaryService.deleteImage(asset.cloudinary_public_id)
-        console.log('[BackofficeController.deleteAsset] Cloudinary image deleted successfully')
+        logger.info('[BackofficeController.deleteAsset] Cloudinary image deleted successfully')
       }
 
       // Solo eliminar de BD si Cloudinary fue exitoso
       await BackofficeRepository.deleteAsset(Number(id))
-      console.log('[BackofficeController.deleteAsset] Asset deleted from DB')
+      logger.info('[BackofficeController.deleteAsset] Asset deleted from DB')
 
       res.json({
         success: true,
@@ -1134,7 +1110,7 @@ export class BackofficeController {
         code: SUCCESS_CODES.BACKOFFICE_ASSET_DELETED,
       })
     } catch (error: any) {
-      console.error('[BackofficeController.deleteAsset] Error:', error.message)
+      logger.error({ err: error }, '[BackofficeController.deleteAsset] Error')
       res.status(500).json({
         success: false,
         error: ERROR_CODES.BACKOFFICE_DELETE_ASSET_ERROR,
@@ -1171,7 +1147,7 @@ export class BackofficeController {
         asset: { ...asset, is_default: true },
       })
     } catch (error: any) {
-      console.error('[BackofficeController.setDefaultAsset] Error:', error.message)
+      logger.error({ err: error }, '[BackofficeController.setDefaultAsset] Error')
       res.status(500).json({
         success: false,
         error: ERROR_CODES.BACKOFFICE_SET_DEFAULT_ERROR,
@@ -1265,7 +1241,7 @@ export class BackofficeController {
         return
       }
 
-      console.log(`[BackofficeController.downloadValidatedInvoicesZip] Creating ZIP for ${invoices.length} invoices`)
+      logger.info({ invoicesCount: invoices.length }, '[BackofficeController.downloadValidatedInvoicesZip] Creating ZIP')
 
       // Create ZIP archive
       const archive = archiver('zip', { zlib: { level: 5 } })
@@ -1280,7 +1256,7 @@ export class BackofficeController {
 
       // Handle archive errors
       archive.on('error', (err) => {
-        console.error('[BackofficeController.downloadValidatedInvoicesZip] Archive error:', err)
+        logger.error({ err }, '[BackofficeController.downloadValidatedInvoicesZip] Archive error')
         throw err
       })
 
@@ -1300,7 +1276,7 @@ export class BackofficeController {
       for (const invoice of invoices) {
         try {
           const pdfUrl = invoice.validated_pdf_url!
-          console.log(`[BackofficeController.downloadValidatedInvoicesZip] Downloading: ${invoice.invoice_number}`)
+          logger.debug({ invoiceNumber: invoice.invoice_number }, '[BackofficeController.downloadValidatedInvoicesZip] Downloading')
 
           // Try to download the PDF
           let pdfBuffer: Buffer | null = null
@@ -1313,7 +1289,7 @@ export class BackofficeController {
             })
             pdfBuffer = Buffer.from(response.data)
           } catch (err: any) {
-            console.log(`[downloadValidatedInvoicesZip] Direct download failed for ${invoice.invoice_number}: ${err.message}`)
+            logger.warn({ invoiceNumber: invoice.invoice_number, err }, '[downloadValidatedInvoicesZip] Direct download failed')
           }
 
           // Method 2: Signed URL
@@ -1326,12 +1302,12 @@ export class BackofficeController {
               })
               pdfBuffer = Buffer.from(response.data)
             } catch (err: any) {
-              console.log(`[downloadValidatedInvoicesZip] Signed URL failed for ${invoice.invoice_number}: ${err.message}`)
+              logger.warn({ invoiceNumber: invoice.invoice_number, err }, '[downloadValidatedInvoicesZip] Signed URL failed')
             }
           }
 
           if (!pdfBuffer) {
-            console.error(`[downloadValidatedInvoicesZip] Failed to download PDF for invoice ${invoice.invoice_number}`)
+            logger.error({ invoiceNumber: invoice.invoice_number }, '[downloadValidatedInvoicesZip] Failed to download PDF')
             continue // Skip this invoice but continue with others
           }
 
@@ -1344,20 +1320,20 @@ export class BackofficeController {
 
           // Add to archive
           archive.append(pdfBuffer, { name: filename })
-          console.log(`[downloadValidatedInvoicesZip] Added: ${filename}`)
+          logger.debug({ filename }, '[downloadValidatedInvoicesZip] Added')
 
         } catch (err: any) {
-          console.error(`[downloadValidatedInvoicesZip] Error processing invoice ${invoice.id}:`, err.message)
+          logger.error({ invoiceId: invoice.id, err }, '[downloadValidatedInvoicesZip] Error processing invoice')
           // Continue with other invoices
         }
       }
 
       // Finalize the archive
       await archive.finalize()
-      console.log(`[BackofficeController.downloadValidatedInvoicesZip] ZIP created successfully`)
+      logger.info('[BackofficeController.downloadValidatedInvoicesZip] ZIP created successfully')
 
     } catch (error: any) {
-      console.error('[BackofficeController.downloadValidatedInvoicesZip] Error:', error.message)
+      logger.error({ err: error }, '[BackofficeController.downloadValidatedInvoicesZip] Error')
       // Only send error if headers haven't been sent
       if (!res.headersSent) {
         res.status(500).json({
@@ -1421,7 +1397,7 @@ export class BackofficeController {
         expires_in: 3600,
       })
     } catch (error: any) {
-      console.error('[BackofficeController.getInvoicePdfUrl] Error:', error.message)
+      logger.error({ err: error }, '[BackofficeController.getInvoicePdfUrl] Error')
       res.status(500).json({
         success: false,
         error: ERROR_CODES.BACKOFFICE_GET_PDF_URL_ERROR,
@@ -1469,7 +1445,7 @@ export class BackofficeController {
         return
       }
 
-      console.log('[BackofficeController.downloadInvoicePdf] Downloading from:', pdfUrl)
+      logger.debug({ pdfUrl }, '[BackofficeController.downloadInvoicePdf] Downloading from')
 
       // Intentar múltiples métodos de descarga
       let pdfBuffer: Buffer | null = null
@@ -1477,16 +1453,16 @@ export class BackofficeController {
 
       // Método 1: URL directa (funciona para archivos públicos)
       try {
-        console.log('[BackofficeController.downloadInvoicePdf] Trying direct URL...')
+        logger.debug('[BackofficeController.downloadInvoicePdf] Trying direct URL...')
         const response = await axios.get(pdfUrl, {
           responseType: 'arraybuffer',
           timeout: 30000,
         })
         pdfBuffer = Buffer.from(response.data)
-        console.log('[BackofficeController.downloadInvoicePdf] Downloaded successfully from direct URL')
+        logger.debug('[BackofficeController.downloadInvoicePdf] Downloaded successfully from direct URL')
       } catch (err: any) {
         lastError = err
-        console.log('[BackofficeController.downloadInvoicePdf] Direct URL failed:', err.message)
+        logger.warn({ err }, '[BackofficeController.downloadInvoicePdf] Direct URL failed')
       }
 
       // Método 2: Si es una URL de Cloudinary image/upload, intentar añadir fl_attachment
@@ -1494,16 +1470,16 @@ export class BackofficeController {
         try {
           // Añadir fl_attachment para forzar descarga
           const attachmentUrl = pdfUrl.replace('/image/upload/', '/image/upload/fl_attachment/')
-          console.log('[BackofficeController.downloadInvoicePdf] Trying attachment URL:', attachmentUrl)
+          logger.debug({ attachmentUrl }, '[BackofficeController.downloadInvoicePdf] Trying attachment URL')
           const response = await axios.get(attachmentUrl, {
             responseType: 'arraybuffer',
             timeout: 30000,
           })
           pdfBuffer = Buffer.from(response.data)
-          console.log('[BackofficeController.downloadInvoicePdf] Downloaded successfully from attachment URL')
+          logger.debug('[BackofficeController.downloadInvoicePdf] Downloaded successfully from attachment URL')
         } catch (err: any) {
           lastError = err
-          console.log('[BackofficeController.downloadInvoicePdf] Attachment URL failed:', err.message)
+          logger.warn({ err }, '[BackofficeController.downloadInvoicePdf] Attachment URL failed')
         }
       }
 
@@ -1511,16 +1487,16 @@ export class BackofficeController {
       if (!pdfBuffer) {
         try {
           const signedUrl = CloudinaryService.generateSignedUrlFromUrl(pdfUrl, 3600)
-          console.log('[BackofficeController.downloadInvoicePdf] Trying signed URL:', signedUrl)
+          logger.debug({ signedUrl }, '[BackofficeController.downloadInvoicePdf] Trying signed URL')
           const response = await axios.get(signedUrl, {
             responseType: 'arraybuffer',
             timeout: 30000,
           })
           pdfBuffer = Buffer.from(response.data)
-          console.log('[BackofficeController.downloadInvoicePdf] Downloaded successfully from signed URL')
+          logger.debug('[BackofficeController.downloadInvoicePdf] Downloaded successfully from signed URL')
         } catch (err: any) {
           lastError = err
-          console.log('[BackofficeController.downloadInvoicePdf] Signed URL failed:', err.message)
+          logger.warn({ err }, '[BackofficeController.downloadInvoicePdf] Signed URL failed')
         }
       }
 
@@ -1533,21 +1509,21 @@ export class BackofficeController {
           } else {
             altUrl = pdfUrl + '.pdf'
           }
-          console.log('[BackofficeController.downloadInvoicePdf] Trying alternate URL:', altUrl)
+          logger.debug({ altUrl }, '[BackofficeController.downloadInvoicePdf] Trying alternate URL')
           const response = await axios.get(altUrl, {
             responseType: 'arraybuffer',
             timeout: 30000,
           })
           pdfBuffer = Buffer.from(response.data)
-          console.log('[BackofficeController.downloadInvoicePdf] Downloaded successfully from alternate URL')
+          logger.debug('[BackofficeController.downloadInvoicePdf] Downloaded successfully from alternate URL')
         } catch (err: any) {
           lastError = err
-          console.log('[BackofficeController.downloadInvoicePdf] Alternate URL failed:', err.message)
+          logger.warn({ err }, '[BackofficeController.downloadInvoicePdf] Alternate URL failed')
         }
       }
 
       if (!pdfBuffer) {
-        console.error('[BackofficeController.downloadInvoicePdf] All download methods failed')
+        logger.error({ err: lastError }, '[BackofficeController.downloadInvoicePdf] All download methods failed')
         throw lastError || new Error('No se pudo descargar el PDF')
       }
 
@@ -1562,10 +1538,7 @@ export class BackofficeController {
       res.setHeader('Content-Length', pdfBuffer.length)
       res.send(pdfBuffer)
     } catch (error: any) {
-      console.error('[BackofficeController.downloadInvoicePdf] Error:', error.message)
-      if (error.response) {
-        console.error('[BackofficeController.downloadInvoicePdf] Response status:', error.response.status)
-      }
+      logger.error({ err: error, responseStatus: error.response?.status }, '[BackofficeController.downloadInvoicePdf] Error')
       res.status(500).json({
         success: false,
         error: ERROR_CODES.BACKOFFICE_DOWNLOAD_PDF_ERROR,
@@ -1584,7 +1557,7 @@ export class BackofficeController {
 
       res.json({ success: true, ...stats })
     } catch (error: any) {
-      console.error('[BackofficeController.getStats] Error:', error.message)
+      logger.error({ err: error }, '[BackofficeController.getStats] Error')
       res.status(500).json({
         success: false,
         error: ERROR_CODES.BACKOFFICE_FETCH_STATS_ERROR,
@@ -1605,7 +1578,7 @@ export class BackofficeController {
 
       res.json({ success: true, summary })
     } catch (error: any) {
-      console.error('[BackofficeController.getMonthlySummary] Error:', error.message)
+      logger.error({ err: error }, '[BackofficeController.getMonthlySummary] Error')
       res.status(500).json({
         success: false,
         error: ERROR_CODES.BACKOFFICE_FETCH_MONTHLY_SUMMARY_ERROR,
@@ -1637,7 +1610,7 @@ export class BackofficeController {
         ...preview,
       })
     } catch (error: any) {
-      console.error('[BackofficeController.previewBatchPayment] Error:', error.message)
+      logger.error({ err: error }, '[BackofficeController.previewBatchPayment] Error')
       res.status(500).json({
         success: false,
         error: ERROR_CODES.BACKOFFICE_BATCH_PAYMENT_PREVIEW_ERROR,
@@ -1667,7 +1640,7 @@ export class BackofficeController {
       // Import CronService dynamically to avoid circular dependency
       const { CronService } = await import('../../services/cron/cron-service.js')
       
-      console.log(`[BackofficeController.executeBatchPayment] User ${req.user.id} executing batch payment for ${month || 'prev'}/${year || 'prev'}`)
+      logger.info({ userId: req.user.id, month, year }, '[BackofficeController.executeBatchPayment] Executing batch payment')
       
       const result = await CronService.runBatchPaymentNow(year, month, req.user.id)
 
@@ -1683,7 +1656,7 @@ export class BackofficeController {
         })
       }
     } catch (error: any) {
-      console.error('[BackofficeController.executeBatchPayment] Error:', error.message)
+      logger.error({ err: error }, '[BackofficeController.executeBatchPayment] Error')
       res.status(500).json({
         success: false,
         error: ERROR_CODES.BACKOFFICE_BATCH_PAYMENT_ERROR,
@@ -1730,7 +1703,7 @@ export class BackofficeController {
         total_amount: preview.total_amount,
       })
     } catch (error: any) {
-      console.error('[BackofficeController.previewRevertBatchPayment] Error:', error.message)
+      logger.error({ err: error }, '[BackofficeController.previewRevertBatchPayment] Error')
       res.status(500).json({
         success: false,
         error: ERROR_CODES.BACKOFFICE_REVERT_BATCH_PREVIEW_ERROR,
@@ -1775,7 +1748,7 @@ export class BackofficeController {
         return
       }
 
-      console.log(`[BackofficeController.revertBatchPayment] User ${req.user.id} reverting batch payment for ${month}/${year}`)
+      logger.info({ userId: req.user.id, month, year }, '[BackofficeController.revertBatchPayment] Reverting batch payment')
 
       const startTime = Date.now()
       const result = await BackofficeRepository.revertPaidInvoicesToValidated(year, month, req.user.id)
@@ -1790,7 +1763,7 @@ export class BackofficeController {
         duration,
       })
     } catch (error: any) {
-      console.error('[BackofficeController.revertBatchPayment] Error:', error.message)
+      logger.error({ err: error }, '[BackofficeController.revertBatchPayment] Error')
       res.status(500).json({
         success: false,
         error: ERROR_CODES.BACKOFFICE_REVERT_BATCH_ERROR,

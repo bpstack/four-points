@@ -5,6 +5,7 @@
 
 import { Request, Response } from 'express'
 import { globalSearch } from '../../repositories/search/search-repository.js'
+import { logger } from '../../config/logger.js'
 
 /**
  * GET /api/search?q=query
@@ -47,7 +48,7 @@ export async function search(req: Request, res: Response) {
       results,
     })
   } catch (error) {
-    console.error('[Search] Error:', error)
+    logger.error({ err: error }, '[Search] Error')
     return res.status(500).json({
       success: false,
       message: 'Error performing search',

@@ -8,6 +8,7 @@ import {
   CreateConversationDTO,
 } from '../../models/messages/index.js'
 import { ERROR_CODES, SUCCESS_CODES } from '../../config/error-codes.js'
+import { logger } from '../../config/logger.js'
 
 export class ConversationController {
   /**
@@ -34,7 +35,7 @@ export class ConversationController {
         count: conversations.length,
       })
     } catch (error: any) {
-      console.error('Error en getMyConversations:', error)
+      logger.error({ err: error }, 'Error en getMyConversations')
       return res.status(500).json({
         success: false,
         error: ERROR_CODES.MESSAGES_FETCH_CONVERSATIONS_ERROR,
@@ -101,7 +102,7 @@ export class ConversationController {
         },
       })
     } catch (error: any) {
-      console.error('Error en getConversation:', error)
+      logger.error({ err: error }, 'Error en getConversation')
       return res.status(500).json({
         success: false,
         error: ERROR_CODES.MESSAGES_FETCH_CONVERSATION_ERROR,
@@ -214,7 +215,7 @@ export class ConversationController {
         data: conversationWithDetails,
       })
     } catch (error: any) {
-      console.error('Error en createConversation:', error)
+      logger.error({ err: error }, 'Error en createConversation')
       return res.status(500).json({
         success: false,
         error: ERROR_CODES.MESSAGES_CREATE_CONVERSATION_ERROR,
@@ -296,7 +297,7 @@ export class ConversationController {
         code: SUCCESS_CODES.MESSAGES_GROUP_UPDATED,
       })
     } catch (error: any) {
-      console.error('Error en updateConversation:', error)
+      logger.error({ err: error }, 'Error en updateConversation')
       return res.status(500).json({
         success: false,
         error: ERROR_CODES.MESSAGES_UPDATE_CONVERSATION_ERROR,
@@ -372,7 +373,7 @@ export class ConversationController {
         code: SUCCESS_CODES.MESSAGES_LEFT_CONVERSATION,
       })
     } catch (error: any) {
-      console.error('Error en leaveConversation:', error)
+      logger.error({ err: error }, 'Error en leaveConversation')
       return res.status(500).json({
         success: false,
         error: ERROR_CODES.MESSAGES_LEAVE_CONVERSATION_ERROR,
@@ -437,7 +438,7 @@ export class ConversationController {
         code: SUCCESS_CODES.MESSAGES_CONVERSATION_DELETED,
       })
     } catch (error: any) {
-      console.error('Error en deleteConversation:', error)
+      logger.error({ err: error }, 'Error en deleteConversation')
       return res.status(500).json({
         success: false,
         error: ERROR_CODES.MESSAGES_DELETE_CONVERSATION_ERROR,
@@ -528,7 +529,7 @@ export class ConversationController {
         code: SUCCESS_CODES.MESSAGES_PARTICIPANTS_ADDED,
       })
     } catch (error: any) {
-      console.error('Error en addParticipants:', error)
+      logger.error({ err: error }, 'Error en addParticipants')
       return res.status(500).json({
         success: false,
         error: ERROR_CODES.MESSAGES_ADD_PARTICIPANTS_ERROR,
@@ -610,7 +611,7 @@ export class ConversationController {
         code: SUCCESS_CODES.MESSAGES_PARTICIPANT_REMOVED,
       })
     } catch (error: any) {
-      console.error('Error en removeParticipant:', error)
+      logger.error({ err: error }, 'Error en removeParticipant')
       return res.status(500).json({
         success: false,
         error: ERROR_CODES.MESSAGES_REMOVE_PARTICIPANT_ERROR,
@@ -661,7 +662,7 @@ export class ConversationController {
         code: SUCCESS_CODES.MESSAGES_MARKED_READ,
       })
     } catch (error: any) {
-      console.error('Error en markAsRead:', error)
+      logger.error({ err: error }, 'Error en markAsRead')
       return res.status(500).json({
         success: false,
         error: ERROR_CODES.MESSAGES_MARK_READ_ERROR,
@@ -700,7 +701,7 @@ export class ConversationController {
         count: users.length,
       })
     } catch (error: any) {
-      console.error('Error en searchUsers:', error)
+      logger.error({ err: error }, 'Error en searchUsers')
       return res.status(500).json({
         success: false,
         error: ERROR_CODES.MESSAGES_SEARCH_USERS_ERROR,
@@ -743,7 +744,7 @@ export class ConversationController {
         count: conversations.length,
       })
     } catch (error: any) {
-      console.error('Error en getAllConversations:', error)
+      logger.error({ err: error }, 'Error en getAllConversations')
       return res.status(500).json({
         success: false,
         error: ERROR_CODES.MESSAGES_FETCH_CONVERSATIONS_ERROR,

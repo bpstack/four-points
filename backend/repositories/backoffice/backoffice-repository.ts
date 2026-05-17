@@ -7,6 +7,7 @@
 import pool from '../../config/db.js'
 import { RowDataPacket, ResultSetHeader } from 'mysql2'
 import { getNowMadrid } from '../../config/date-utils.js'
+import { logger } from '../../config/logger.js'
 import {
   Category,
   Supplier,
@@ -617,9 +618,7 @@ export class BackofficeRepository {
       )
     }
 
-    console.log(
-      `[BackofficeRepository.markValidatedInvoicesAsPaid] Marked ${result.affectedRows} invoices as paid for ${month}/${year}`
-    )
+    logger.info({ affectedRows: result.affectedRows, month, year }, '[BackofficeRepository.markValidatedInvoicesAsPaid] Marked invoices as paid')
 
     return { count: result.affectedRows, invoiceIds }
   }
@@ -729,9 +728,7 @@ export class BackofficeRepository {
       )
     }
 
-    console.log(
-      `[BackofficeRepository.revertPaidInvoicesToValidated] Reverted ${result.affectedRows} invoices to validated for ${month}/${year}`
-    )
+    logger.info({ affectedRows: result.affectedRows, month, year }, '[BackofficeRepository.revertPaidInvoicesToValidated] Reverted invoices to validated')
 
     return { count: result.affectedRows, invoiceIds }
   }
@@ -761,7 +758,7 @@ export class BackofficeRepository {
     // Then delete the invoice
     const [result] = await pool.query<ResultSetHeader>(`DELETE FROM bo_invoices WHERE id = ?`, [id])
 
-    console.log(`[BackofficeRepository.deleteInvoice] Hard deleted invoice ${id}`)
+    logger.info({ id }, '[BackofficeRepository.deleteInvoice] Hard deleted invoice')
 
     return result.affectedRows > 0
   }

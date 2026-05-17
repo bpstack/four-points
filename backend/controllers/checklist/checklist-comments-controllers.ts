@@ -3,6 +3,7 @@
 import { Request, Response } from 'express'
 import * as commentsService from '../../services/checklist/checklist-comments.service.js'
 import { createCommentSchema } from '../../validations/checklist/checklist-schemas.js'
+import { logger } from '../../config/logger.js'
 
 function isAdmin(req: Request): boolean {
   return req.user?.role?.toLowerCase() === 'admin'
@@ -17,7 +18,7 @@ export async function getCommentsController(req: Request, res: Response): Promis
     const comments = await commentsService.getComments(id, stepId)
     res.json(comments)
   } catch (err) {
-    console.error('[checklist] getComments:', err)
+    logger.error({ err }, '[checklist] getComments')
     res.status(500).json({ error: 'Error al obtener comentarios' })
   }
 }
@@ -35,7 +36,7 @@ export async function addCommentController(req: Request, res: Response): Promise
       res.status(400).json({ error: 'Datos inválidos', details: error.issues })
       return
     }
-    console.error('[checklist] addComment:', err)
+    logger.error({ err }, '[checklist] addComment')
     res.status(500).json({ error: 'Error al crear comentario' })
   }
 }
@@ -53,7 +54,7 @@ export async function deleteCommentController(req: Request, res: Response): Prom
     }
     res.json({ success: true })
   } catch (err) {
-    console.error('[checklist] deleteComment:', err)
+    logger.error({ err }, '[checklist] deleteComment')
     res.status(500).json({ error: 'Error al eliminar comentario' })
   }
 }
@@ -67,7 +68,7 @@ export async function getAttachmentsController(req: Request, res: Response): Pro
     const attachments = await commentsService.getAttachments(id, stepId)
     res.json(attachments)
   } catch (err) {
-    console.error('[checklist] getAttachments:', err)
+    logger.error({ err }, '[checklist] getAttachments')
     res.status(500).json({ error: 'Error al obtener adjuntos' })
   }
 }
@@ -95,7 +96,7 @@ export async function addAttachmentController(req: Request, res: Response): Prom
     )
     res.status(201).json(attachment)
   } catch (err) {
-    console.error('[checklist] addAttachment:', err)
+    logger.error({ err }, '[checklist] addAttachment')
     res.status(500).json({ error: 'Error al subir adjunto' })
   }
 }
@@ -113,7 +114,7 @@ export async function deleteAttachmentController(req: Request, res: Response): P
     }
     res.json({ success: true })
   } catch (err) {
-    console.error('[checklist] deleteAttachment:', err)
+    logger.error({ err }, '[checklist] deleteAttachment')
     res.status(500).json({ error: 'Error al eliminar adjunto' })
   }
 }

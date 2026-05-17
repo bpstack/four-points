@@ -28,6 +28,8 @@ import { SOFT_WEIGHTS } from './soft-weights.js'
 import { isWorkShift, isLibreShift, getEmployeeShiftCounts } from './utils/matrix.js'
 import { getWeeksInMonth, areConsecutive } from './utils/day-helpers.js'
 
+import { logger } from '../../config/logger.js'
+
 // ============================================
 // VALIDATION RESULT
 // ============================================
@@ -146,15 +148,15 @@ export class ScheduleValidator {
     // Build context with existing assignments (including previousMonthHistory for cross-month checks)
     const context = this.createContextFromAssignments()
 
-    console.log(
+    logger.debug(
       `[Validator] Validating month ${this.monthId} with ${this.assignments.length} assignments`
     )
-    console.log(`[Validator] Employees: ${this.employees.map((e) => e.name).join(', ')}`)
+    logger.debug(`[Validator] Employees: ${this.employees.map((e) => e.name).join(', ')}`)
 
     // Run final validation logic (inline rules: libre count, consecutive work, night block, etc.)
     const finalResult = this.runFinalValidation(context)
 
-    console.log(`[Validator] FinalValidation returned ${finalResult.warnings.length} issues`)
+    logger.debug(`[Validator] FinalValidation returned ${finalResult.warnings.length} issues`)
 
     // Run constraint registry (coverage + employee-rules)
     const registry = new ConstraintRegistry()
@@ -162,7 +164,7 @@ export class ScheduleValidator {
     registry.register(new EmployeeRulesConstraint())
     const registryResult = registry.checkAll(context)
 
-    console.log(
+    logger.debug(
       `[Validator] CoverageConstraint returned ${registryResult.violations.length} issues`
     )
 
@@ -173,7 +175,7 @@ export class ScheduleValidator {
     const errors = allWarnings.filter((w) => w.severity === 'error')
     const warnings = allWarnings.filter((w) => w.severity === 'warning')
 
-    console.log(`[Validator] Total: ${errors.length} errors, ${warnings.length} warnings`)
+    logger.info(`[Validator] Total: ${errors.length} errors, ${warnings.length} warnings`)
 
     // Aggregate soft penalty from both sources
     const softPenalty = finalResult.softPenalty + (registryResult.softPenalty ?? 0)
@@ -858,7 +860,7 @@ export class ScheduleValidator {
         .sort((a, b) => Number(a[0]) - Number(b[0]))
         .map(([day, shift]) => `${day}:${shift}`)
         .join(' ')
-      console.log(`[Validator] Matrix for ${firstEmp.name}: ${shifts}`)
+      logger.debug(`[Validator] Matrix for ${firstEmp.name}: ${shifts}`)
     }
 
     return {

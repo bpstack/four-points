@@ -7,6 +7,7 @@
 import { Request, Response } from 'express'
 import ParkingStatsRepository from '../../repositories/parking/stats.repository.js'
 import { getNowMadrid } from '../../config/date-utils.js'
+import { logger } from '../../config/logger.js'
 
 interface DiffResult {
   absolute: number
@@ -63,7 +64,7 @@ class ParkingAnalyticsController {
         data: analysis,
       })
     } catch (error) {
-      console.error('Error en getOccupancyTrends:', error)
+      logger.error({ err: error }, 'Error en getOccupancyTrends:')
       res.status(500).json({
         success: false,
         message: 'Error al obtener tendencias',
@@ -132,7 +133,7 @@ class ParkingAnalyticsController {
         data: comparison,
       })
     } catch (error) {
-      console.error('Error en getPeriodComparison:', error)
+      logger.error({ err: error }, 'Error en getPeriodComparison:')
       res.status(500).json({
         success: false,
         message: 'Error al comparar periodos',
@@ -187,7 +188,7 @@ class ParkingAnalyticsController {
         data: performance,
       })
     } catch (error) {
-      console.error('Error en getLevelPerformance:', error)
+      logger.error({ err: error }, 'Error en getLevelPerformance:')
       res.status(500).json({
         success: false,
         message: 'Error al obtener performance',
@@ -261,7 +262,7 @@ class ParkingAnalyticsController {
         data: analysis,
       })
     } catch (error) {
-      console.error('Error en getBookingAnalysis:', error)
+      logger.error({ err: error }, 'Error en getBookingAnalysis:')
       res.status(500).json({
         success: false,
         message: 'Error al analizar reservas',

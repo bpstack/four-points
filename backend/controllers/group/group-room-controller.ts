@@ -6,6 +6,7 @@ import { GroupRepository } from '../../repositories/group/group-repository'
 import { GroupHistoryService } from '../../services/group/group-history-service'
 import { CreateGroupRoomDTO, UpdateGroupRoomDTO } from '../../models/group/index'
 import { ERROR_CODES, SUCCESS_CODES } from '../../config/error-codes.js'
+import { logger } from '../../config/logger.js'
 
 export class GroupRoomController {
   /**
@@ -45,7 +46,7 @@ export class GroupRoomController {
         },
       })
     } catch (error: any) {
-      console.error('Error en getRoomsByGroup:', error)
+      logger.error({ err: error }, 'Error en getRoomsByGroup')
       return res.status(500).json({
         success: false,
         error: ERROR_CODES.GROUP_ROOM_FETCH_ERROR,
@@ -125,7 +126,7 @@ export class GroupRoomController {
         code: SUCCESS_CODES.GROUP_ROOM_SAVED,
       })
     } catch (error: any) {
-      console.error('Error en createOrUpdateRoom:', error)
+      logger.error({ err: error }, 'Error en createOrUpdateRoom')
       return res.status(500).json({
         success: false,
         error: ERROR_CODES.GROUP_ROOM_SAVE_ERROR,
@@ -208,7 +209,7 @@ export class GroupRoomController {
         code: SUCCESS_CODES.GROUP_ROOM_UPDATED,
       })
     } catch (error: any) {
-      console.error('Error en updateRoom:', error)
+      logger.error({ err: error }, 'Error en updateRoom')
       return res.status(500).json({
         success: false,
         error: ERROR_CODES.GROUP_ROOM_UPDATE_ERROR,
@@ -279,7 +280,7 @@ export class GroupRoomController {
         code: SUCCESS_CODES.GROUP_ROOM_DELETED,
       })
     } catch (error: any) {
-      console.error('Error en deleteRoom:', error)
+      logger.error({ err: error }, 'Error en deleteRoom')
       return res.status(500).json({
         success: false,
         error: ERROR_CODES.GROUP_ROOM_DELETE_ERROR,

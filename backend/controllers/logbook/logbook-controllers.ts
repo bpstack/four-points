@@ -9,6 +9,7 @@ import {
   updateLogbookSchema,
 } from '../../validations/logbook/logbook-schemas.js'
 import { ERROR_CODES, SUCCESS_CODES } from '../../config/error-codes.js'
+import { logger } from '../../config/logger.js'
 
 // ============================================
 // CREATE LOGBOOK
@@ -40,7 +41,7 @@ export async function createLogbook(req: Request, res: Response): Promise<void> 
       return
     }
 
-    console.error(err)
+    logger.error({ err }, 'Error en createLogbook')
     res.status(500).json({
       success: false,
       error: ERROR_CODES.LOGBOOK_CREATE_ERROR,
@@ -84,7 +85,7 @@ export async function updateLogbookController(req: Request, res: Response): Prom
       return
     }
 
-    console.error('Error updating logbook:', error)
+    logger.error({ err: error }, 'Error updating logbook')
     res.status(500).json({
       success: false,
       error: ERROR_CODES.LOGBOOK_FETCH_ERROR,
@@ -124,7 +125,7 @@ export async function getLogbookHistory(req: Request, res: Response): Promise<vo
 
     res.json(data)
   } catch (err) {
-    console.error(err)
+    logger.error({ err }, 'Error en getLogbookHistory')
     res.status(500).json({
       success: false,
       error: ERROR_CODES.LOGBOOK_FETCH_ERROR,
@@ -145,7 +146,7 @@ export async function getAllLogbooks(req: Request, res: Response): Promise<void>
     const logbooks = await logbookRepo.getAllLogbooks({ limit, offset })
     res.json(logbooks)
   } catch (err) {
-    console.error('Error al obtener logbooks:', err)
+    logger.error({ err }, 'Error al obtener logbooks')
     res.status(500).json({
       success: false,
       error: ERROR_CODES.LOGBOOK_FETCH_ERROR,
@@ -167,7 +168,7 @@ export async function getLogbooksByDepartment(req: Request, res: Response): Prom
     const logbooks = await logbookRepo.getLogbooksByDepartment(departmentId, { limit, offset })
     res.json(logbooks)
   } catch (err) {
-    console.error('Error al obtener logbooks por departamento:', err)
+    logger.error({ err }, 'Error al obtener logbooks por departamento')
     res.status(500).json({
       success: false,
       error: ERROR_CODES.LOGBOOK_FETCH_BY_DEPARTMENT_ERROR,
@@ -189,7 +190,7 @@ export async function getLogbooksByAuthor(req: Request, res: Response): Promise<
     const logbooks = await logbookRepo.getLogbooksByAuthor(authorId, { limit, offset })
     res.json(logbooks)
   } catch (err) {
-    console.error('Error al obtener logbooks por autor:', err)
+    logger.error({ err }, 'Error al obtener logbooks por autor')
     res.status(500).json({
       success: false,
       error: ERROR_CODES.LOGBOOK_FETCH_BY_AUTHOR_ERROR,
@@ -222,7 +223,7 @@ export async function getLogbooksByImportance(req: Request, res: Response): Prom
     const logbooks = await logbookRepo.getLogbooksByImportance(importance, { limit, offset })
     res.json(logbooks)
   } catch (err) {
-    console.error('Error al obtener logbooks por importancia:', err)
+    logger.error({ err }, 'Error al obtener logbooks por importancia')
     res.status(500).json({
       success: false,
       error: ERROR_CODES.LOGBOOK_FETCH_BY_IMPORTANCE_ERROR,
@@ -254,7 +255,7 @@ export async function getLogbooksByDay(req: Request, res: Response): Promise<voi
     const logbooks = await logbookRepo.getLogbooksByDay(day, { limit, offset })
     res.json(logbooks)
   } catch (err) {
-    console.error('Error al obtener logbooks por día:', err)
+    logger.error({ err }, 'Error al obtener logbooks por día')
     res.status(500).json({
       success: false,
       error: ERROR_CODES.LOGBOOK_FETCH_BY_DAY_ERROR,
@@ -315,7 +316,7 @@ export async function deleteLogbookController(req: Request, res: Response): Prom
       history: historyRecord,
     })
   } catch (err) {
-    console.error('Delete Logbook error:', err)
+    logger.error({ err }, 'Delete Logbook error')
     res.status(500).json({
       success: false,
       error: ERROR_CODES.LOGBOOK_DELETE_ERROR,

@@ -3,6 +3,7 @@
 import nodemailer from 'nodemailer'
 import { Notification } from '../../models/notifications/index'
 import { NotificationRepository } from '../../repositories/notifications/notification-repository'
+import { logger } from '../../config/logger.js'
 
 // Configuración del transportador de email
 const transporter = nodemailer.createTransport({
@@ -24,7 +25,7 @@ export class EmailService {
       const recipients = await NotificationRepository.getRecipients(notification.id)
 
       if (recipients.length === 0) {
-        console.log(`No hay destinatarios para la notificación ${notification.id}`)
+        logger.info({ notificationId: notification.id }, 'No hay destinatarios para la notificación')
         return
       }
 
@@ -41,7 +42,7 @@ export class EmailService {
 
       await NotificationRepository.markEmailSent(notification.id)
     } catch (error) {
-      console.error('Error enviando email de notificación:', error)
+      logger.error({ err: error }, 'Error enviando email de notificación')
       throw error
     }
   }
@@ -68,9 +69,9 @@ export class EmailService {
       }
 
       await transporter.sendMail(mailOptions)
-      console.log(`Email enviado a ${to}: ${subject}`)
+      logger.info({ to, subject }, 'Email enviado')
     } catch (error) {
-      console.error(`Error enviando email a ${to}:`, error)
+      logger.error({ err: error, to }, 'Error enviando email')
       throw error
     }
   }
@@ -156,10 +157,10 @@ export class EmailService {
   static async verifyConnection(): Promise<boolean> {
     try {
       await transporter.verify()
-      console.log('✅ Conexión SMTP verificada correctamente')
+      logger.info('✅ Conexión SMTP verificada correctamente')
       return true
     } catch (error) {
-      console.error('❌ Error verificando conexión SMTP:', error)
+      logger.error({ err: error }, '❌ Error verificando conexión SMTP')
       return false
     }
   }

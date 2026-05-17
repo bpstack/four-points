@@ -10,6 +10,7 @@ import {
   updateCommentSchema,
 } from '../../validations/logbook/logbook-schemas.js'
 import { ERROR_CODES, SUCCESS_CODES } from '../../config/error-codes.js'
+import { logger } from '../../config/logger.js'
 
 // ============================================
 // CREATE COMMENT
@@ -80,7 +81,7 @@ export async function createCommentController(req: Request, res: Response): Prom
       return
     }
 
-    console.error(err)
+    logger.error({ err }, 'Error en createComment')
     res.status(500).json({
       success: false,
       error: ERROR_CODES.LOGBOOK_COMMENT_CREATE_ERROR,
@@ -177,7 +178,7 @@ export async function updateCommentController(req: Request, res: Response): Prom
       return
     }
 
-    console.error(err)
+    logger.error({ err }, 'Error en updateComment')
     res.status(500).json({
       success: false,
       error: ERROR_CODES.LOGBOOK_COMMENT_UPDATE_ERROR,
@@ -249,7 +250,7 @@ export async function deleteCommentController(req: Request, res: Response): Prom
       code: SUCCESS_CODES.LOGBOOK_COMMENT_DELETED,
     })
   } catch (err) {
-    console.error(err)
+    logger.error({ err }, 'Error en deleteComment')
     res.status(500).json({
       success: false,
       error: ERROR_CODES.LOGBOOK_COMMENT_DELETE_ERROR,
@@ -268,7 +269,7 @@ export async function getCommentsByLogbookController(req: Request, res: Response
     const comments = await commentRepo.getCommentByLogbookId(logbookId)
     res.json({ logbookId, comments })
   } catch (err) {
-    console.error(err)
+    logger.error({ err }, 'Error en getCommentsByLogbook')
     res.status(500).json({
       success: false,
       error: ERROR_CODES.LOGBOOK_FETCH_ERROR,
@@ -287,7 +288,7 @@ export async function getCommentHistoryController(req: Request, res: Response): 
     const history = await commentHistoryRepo.getHistoryByCommentId(commentId)
     res.json({ commentId, history })
   } catch (err) {
-    console.error(err)
+    logger.error({ err }, 'Error en getCommentHistory')
     res.status(500).json({
       success: false,
       error: ERROR_CODES.LOGBOOK_FETCH_ERROR,

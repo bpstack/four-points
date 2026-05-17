@@ -2,6 +2,7 @@
 
 import db from '../../config/db.js'
 import { getLastDayOfMonth } from '../../config/date-utils.js'
+import { logger } from '../../config/logger.js'
 import {
   CashierDaily,
   CashierDailyDetail,
@@ -39,8 +40,7 @@ export class CashierDailyRepository {
 
     const [rows] = await db.query<CashierDaily[]>(query, [date])
 
-    console.log('🔍 [getByDate] Input date:', date)
-    console.log('🔍 [getByDate] Result:', rows.length > 0 ? rows[0].date : 'NOT FOUND')
+    logger.debug({ date, found: rows.length > 0 ? rows[0].date : null }, '[getByDate] query result')
 
     return rows[0] || null
   }

@@ -2,6 +2,7 @@
 
 import db from '../../config/db.js'
 import { RowDataPacket, ResultSetHeader, PoolConnection } from 'mysql2/promise'
+import { logger } from '../../config/logger.js'
 
 // ============================================
 // TYPES
@@ -49,7 +50,7 @@ export class DepartmentRepository {
         name,
       }
     } catch (error) {
-      console.error('Error creating department:', error)
+      logger.error({ err: error }, 'Error creating department')
 
       const mysqlError = error as MySQLError
       if (mysqlError.code === 'ER_DUP_ENTRY') {
@@ -76,7 +77,7 @@ export class DepartmentRepository {
       `)
       return rows
     } catch (error) {
-      console.error('Error al obtener departamentos:', error)
+      logger.error({ err: error }, 'Error al obtener departamentos')
       throw new Error('Error interno al obtener departamentos')
     }
   }
@@ -96,7 +97,7 @@ export class DepartmentRepository {
       )
       return rows[0] || null
     } catch (error) {
-      console.error('Error en getById:', error)
+      logger.error({ err: error }, 'Error en getById')
       throw new Error('Error interno al obtener departamento por ID')
     }
   }
@@ -137,7 +138,7 @@ export class DepartmentRepository {
       return updatedDepartment
     } catch (error) {
       await dbConnection.rollback()
-      console.error('Error en update:', error)
+      logger.error({ err: error }, 'Error en update')
 
       const err = error as MySQLError
       if (err.message.includes('no encontrado') || err.message.includes('No hay campos')) {
@@ -167,7 +168,7 @@ export class DepartmentRepository {
 
       return result
     } catch (error) {
-      console.error('Error al eliminar departamento:', error)
+      logger.error({ err: error }, 'Error al eliminar departamento')
 
       const mysqlError = error as MySQLError
       // Si hay registros relacionados (FK constraint)

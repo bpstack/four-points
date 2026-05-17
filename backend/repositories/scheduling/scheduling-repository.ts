@@ -3,6 +3,7 @@
 
 import db from '../../config/db.js'
 import { RowDataPacket } from 'mysql2'
+import { logger } from '../../config/logger.js'
 import type {
   SchedulingConfigRow,
   SchedulingShiftRow,
@@ -345,9 +346,7 @@ export async function getPreviousMonthEndAssignments(
     return [] // No previous month exists
   }
 
-  console.log(
-    `[getPreviousMonthEndAssignments] Using ${prevMonthRecord.status} month ${prevYear}-${prevMonth} for continuity`
-  )
+  logger.info({ status: prevMonthRecord.status, year: prevYear, month: prevMonth }, '[getPreviousMonthEndAssignments] Using previous month for continuity')
 
   // Get assignments for last N days of previous month
   const [rows] = await db.execute<RowDataPacket[]>(

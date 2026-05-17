@@ -3,6 +3,7 @@
 import { Request, Response } from 'express'
 import { CashierVoucherRepository } from '../../repositories/cashier/cashier-voucher-repository.js'
 import { CashierHistoryRepository } from '../../repositories/cashier/cashier-history-repository.js'
+import { logger } from '../../config/logger.js'
 
 export class CashierVoucherController {
   /**
@@ -52,7 +53,7 @@ export class CashierVoucherController {
         totalPages: Math.ceil(total / filters.limit),
       })
     } catch (error) {
-      console.error('Error al obtener vales:', error)
+      logger.error({ err: error }, 'Error al obtener vales')
       res.status(500).json({ error: 'Error al obtener vales' })
     }
   }
@@ -74,7 +75,7 @@ export class CashierVoucherController {
         count: vouchers.length,
       })
     } catch (error) {
-      console.error('Error al obtener vales activos:', error)
+      logger.error({ err: error }, 'Error al obtener vales activos')
       res.status(500).json({ error: 'Error al obtener vales activos' })
     }
   }
@@ -96,7 +97,7 @@ export class CashierVoucherController {
 
       res.json(voucher)
     } catch (error) {
-      console.error('Error al obtener vale:', error)
+      logger.error({ err: error }, 'Error al obtener vale')
       res.status(500).json({ error: 'Error al obtener vale' })
     }
   }
@@ -135,7 +136,7 @@ export class CashierVoucherController {
 
       res.status(201).json(voucher)
     } catch (error) {
-      console.error('Error al crear vale:', error)
+      logger.error({ err: error }, 'Error al crear vale')
       res.status(500).json({ error: 'Error al crear vale' })
     }
   }
@@ -165,7 +166,7 @@ export class CashierVoucherController {
 
       res.json(updated)
     } catch (error: any) {
-      console.error('Error al actualizar vale:', error)
+      logger.error({ err: error }, 'Error al actualizar vale')
       res.status(500).json({ error: error.message || 'Error al actualizar vale' })
     }
   }
@@ -198,7 +199,7 @@ export class CashierVoucherController {
 
       res.json(justified)
     } catch (error: any) {
-      console.error('Error al justificar vale:', error)
+      logger.error({ err: error }, 'Error al justificar vale')
       res.status(500).json({ error: error.message || 'Error al justificar vale' })
     }
   }
@@ -230,7 +231,7 @@ export class CashierVoucherController {
 
       res.json(cancelled)
     } catch (error: any) {
-      console.error('Error al cancelar vale:', error)
+      logger.error({ err: error }, 'Error al cancelar vale')
       res.status(500).json({ error: error.message || 'Error al cancelar vale' })
     }
   }
@@ -247,7 +248,7 @@ export class CashierVoucherController {
 
       res.json({ message: 'Vale eliminado correctamente' })
     } catch (error: any) {
-      console.error('Error al eliminar vale:', error)
+      logger.error({ err: error }, 'Error al eliminar vale')
       res.status(500).json({ error: error.message || 'Error al eliminar vale' })
     }
   }
@@ -264,7 +265,7 @@ export class CashierVoucherController {
 
       res.json(stats)
     } catch (error) {
-      console.error('Error al obtener estadísticas:', error)
+      logger.error({ err: error }, 'Error al obtener estadísticas')
       res.status(500).json({ error: 'Error al obtener estadísticas' })
     }
   }

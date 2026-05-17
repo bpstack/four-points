@@ -6,6 +6,7 @@ import { CashierShiftRepository } from '../../repositories/cashier/cashier-shift
 import { CashierHistoryRepository } from '../../repositories/cashier/cashier-history-repository.js'
 import { ShiftType } from '../../models/cashier/index.js'
 import { ERROR_CODES, SUCCESS_CODES } from '../../config/error-codes.js'
+import { logger } from '../../config/logger.js'
 
 export class CashierDailyController {
   /**
@@ -29,7 +30,7 @@ export class CashierDailyController {
 
       res.json(dailyDetail)
     } catch (error) {
-      console.error('Error al obtener día:', error)
+      logger.error({ err: error }, 'Error al obtener día')
       res.status(500).json({
         success: false,
         error: ERROR_CODES.CASHIER_FETCH_DAY_ERROR,
@@ -110,7 +111,7 @@ export class CashierDailyController {
         data: dailyDetail,
       })
     } catch (error) {
-      console.error('Error al inicializar día:', error)
+      logger.error({ err: error }, 'Error al inicializar día')
       res.status(500).json({
         success: false,
         error: ERROR_CODES.CASHIER_INIT_DAY_ERROR,
@@ -184,7 +185,7 @@ export class CashierDailyController {
         data: closedDaily,
       })
     } catch (error: any) {
-      console.error('Error al cerrar día:', error)
+      logger.error({ err: error }, 'Error al cerrar día')
       res.status(500).json({
         success: false,
         error: ERROR_CODES.CASHIER_CLOSE_DAY_ERROR,
@@ -233,7 +234,7 @@ export class CashierDailyController {
         data: reopened,
       })
     } catch (error: any) {
-      console.error('Error al reabrir día:', error)
+      logger.error({ err: error }, 'Error al reabrir día')
       res.status(500).json({
         success: false,
         error: ERROR_CODES.CASHIER_REOPEN_DAY_ERROR,
@@ -275,7 +276,7 @@ export class CashierDailyController {
 
       res.json({ success: true, data: summary })
     } catch (error) {
-      console.error('Error al obtener resumen:', error)
+      logger.error({ err: error }, 'Error al obtener resumen')
       res.status(500).json({
         success: false,
         error: ERROR_CODES.CASHIER_FETCH_SUMMARY_ERROR,
@@ -324,7 +325,7 @@ export class CashierDailyController {
         totalPages: Math.ceil(total / filters.limit),
       })
     } catch (error) {
-      console.error('Error al obtener días:', error)
+      logger.error({ err: error }, 'Error al obtener días')
       res.status(500).json({
         success: false,
         error: ERROR_CODES.CASHIER_FETCH_DAYS_ERROR,
@@ -357,7 +358,7 @@ export class CashierDailyController {
 
       res.json({ success: true, data: summary })
     } catch (error) {
-      console.error('Error al obtener resumen mensual:', error)
+      logger.error({ err: error }, 'Error al obtener resumen mensual')
       res.status(500).json({
         success: false,
         error: ERROR_CODES.CASHIER_FETCH_MONTHLY_SUMMARY_ERROR,

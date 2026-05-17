@@ -13,6 +13,7 @@ import { spawn, type ChildProcess } from 'node:child_process'
 import { join, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import type { SolverInput, SolverOutput } from './types/solver.js'
+import { logger } from '../../config/logger.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
@@ -73,13 +74,13 @@ function startDaemon(): Promise<void> {
 
   py.stderr.on('data', (chunk: Buffer) => {
     const msg = chunk.toString().trim()
-    if (msg) console.error('[solver-daemon] stderr:', msg)
+    if (msg) logger.error({ err: msg }, '[solver-daemon] stderr')
   })
 
   py.on('close', (code, signal) => {
     const reason = signal ? `señal ${signal}` : `código ${code}`
     const err = new Error(`Daemon Python terminó inesperadamente (${reason})`)
-    console.error('[solver-daemon]', err.message)
+    logger.error({ err }, '[solver-daemon]')
 
     // Si hay una petición en vuelo, rechazarla
     _pendingReject?.(err)
@@ -95,7 +96,7 @@ function startDaemon(): Promise<void> {
   })
 
   py.on('error', (err) => {
-    console.error('[solver-daemon] error al iniciar:', err.message)
+    logger.error({ err }, '[solver-daemon] error al iniciar')
     if (_daemon.phase === 'starting') {
       (_daemon as Extract<DaemonState, { phase: 'starting' }>).reject(err)
     }
@@ -125,7 +126,7 @@ function startDaemon(): Promise<void> {
       clearTimeout(startupTimer)
       ;(_daemon as Extract<DaemonState, { phase: 'starting' }>).resolve()
       _daemon = { phase: 'ready', py, lineBuffer: '' }
-      console.log('[solver-daemon] listo (ortools cargado)')
+      logger.info('[solver-daemon] listo (ortools cargado)')
       return
     }
 
@@ -136,7 +137,7 @@ function startDaemon(): Promise<void> {
       _pendingReject = null
       cb(line)
     } else {
-      console.warn('[solver-daemon] línea recibida sin petición pendiente:', line.slice(0, 100))
+      logger.warn({ line: line.slice(0, 100) }, '[solver-daemon] línea recibida sin petición pendiente')
     }
   }
 
@@ -210,7 +211,7 @@ async function _runWithDaemon(
   // stdin/stdout — matar el proceso es la única salida segura. py.on('close')
   // limpiará el estado y el siguiente request reiniciará el daemon.
   const timeoutHandle = setTimeout(() => {
-    console.error(`[solver-daemon] Timeout (${SOLVE_TIMEOUT_MS / 1000}s) — reiniciando daemon`)
+    logger.error({ timeoutSeconds: SOLVE_TIMEOUT_MS / 1000 }, '[solver-daemon] Timeout — reiniciando daemon')
     py.kill('SIGKILL')
   }, SOLVE_TIMEOUT_MS)
 
@@ -253,11 +254,11 @@ async function _runWithDaemon(
  * petición real, ortools ya esté importado.
  */
 export function warmupSolver(): void {
-  console.log('[solver-daemon] Pre-calentando daemon en background...')
+  logger.info('[solver-daemon] Pre-calentando daemon en background')
   startDaemon().then(() => {
-    console.log('[solver-daemon] Daemon caliente y listo.')
+    logger.info('[solver-daemon] Daemon caliente y listo.')
   }).catch((err) => {
-    console.warn('[solver-daemon] Warm-up falló (se reintentará en la primera petición):', err.message)
+    logger.warn({ err }, '[solver-daemon] Warm-up falló (se reintentará en la primera petición)')
     _daemon = { phase: 'idle' }  // permitir reintento
   })
 }

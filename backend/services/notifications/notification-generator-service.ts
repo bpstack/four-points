@@ -13,6 +13,8 @@ import {
   NotificationStatus,
 } from '../../models/notifications/index'
 
+import { logger } from '../../config/logger.js'
+
 // ═══════════════════════════════════════════════════════
 // CONFIGURACIÓN CENTRALIZADA (MODIFICABLE)
 // ═══════════════════════════════════════════════════════
@@ -130,7 +132,7 @@ export class NotificationGeneratorService {
       const notification = await NotificationRepository.create(notificationData)
       await this.addGroupAdminRecipients(notification.id)
     } catch (error) {
-      console.error('Error generando notificación de pago:', error)
+      logger.error({ err: error }, 'Error generando notificación de pago:')
       throw error
     }
   }
@@ -171,7 +173,7 @@ export class NotificationGeneratorService {
       const notification = await NotificationRepository.create(notificationData)
       await this.addGroupAdminRecipients(notification.id)
     } catch (error) {
-      console.error('Error generando notificación de pago vencido:', error)
+      logger.error({ err: error }, 'Error generando notificación de pago vencido:')
       throw error
     }
   }
@@ -208,7 +210,7 @@ export class NotificationGeneratorService {
       const notification = await NotificationRepository.create(notificationData)
       await this.addGroupAdminRecipients(notification.id)
     } catch (error) {
-      console.error('Error generando notificación de rooming list:', error)
+      logger.error({ err: error }, 'Error generando notificación de rooming list:')
       throw error
     }
   }
@@ -247,7 +249,7 @@ export class NotificationGeneratorService {
       const notification = await NotificationRepository.create(notificationData)
       await this.addGroupAdminRecipients(notification.id)
     } catch (error) {
-      console.error('Error generando notificación de llegada:', error)
+      logger.error({ err: error }, 'Error generando notificación de llegada:')
       throw error
     }
   }
@@ -288,7 +290,7 @@ export class NotificationGeneratorService {
         await this.addGroupAdminRecipients(notification.id)
       }
     } catch (error) {
-      console.error('Error generando notificación manual:', error)
+      logger.error({ err: error }, 'Error generando notificación manual:')
       throw error
     }
   }
@@ -341,9 +343,9 @@ export class NotificationGeneratorService {
         await this.addGroupAdminRecipients(notification.id)
       }
 
-      console.log(`✅ Notificación general creada: "${title}" -> ${directLink || '/dashboard'}`)
+      logger.info(`✅ Notificación general creada: "${title}" -> ${directLink || '/dashboard'}`)
     } catch (error) {
-      console.error('Error generando notificación general:', error)
+      logger.error({ err: error }, 'Error generando notificación general:')
       throw error
     }
   }
@@ -367,7 +369,7 @@ export class NotificationGeneratorService {
         await NotificationRepository.addRecipients(notificationId, userIds)
       }
     } catch (error) {
-      console.error('Error añadiendo destinatarios:', error)
+      logger.error({ err: error }, 'Error añadiendo destinatarios:')
       throw error
     }
   }
@@ -384,14 +386,14 @@ export class NotificationGeneratorService {
         await NotificationRepository.updateStatus(notification.id, NotificationStatus.SENT)
       }
 
-      console.log(`✅ Procesadas ${pendingNotifications.length} notificaciones programadas`)
+      logger.info(`✅ Procesadas ${pendingNotifications.length} notificaciones programadas`)
 
       // 2. Verificar y generar nuevas notificaciones automáticas
       const results = await this.checkAndGenerateNotifications()
 
-      console.log('📊 Resumen de notificaciones generadas:', results)
+      logger.info({ results }, '📊 Resumen de notificaciones generadas:')
     } catch (error) {
-      console.error('Error procesando notificaciones pendientes:', error)
+      logger.error({ err: error }, 'Error procesando notificaciones pendientes:')
       throw error
     }
   }
@@ -414,7 +416,7 @@ export class NotificationGeneratorService {
     arrivals: number
   }> {
     try {
-      console.log('🔍 Iniciando verificación de eventos pendientes...')
+      logger.info('🔍 Iniciando verificación de eventos pendientes...')
 
       let paymentsUpcoming = 0
       let paymentsOverdue = 0
@@ -440,7 +442,7 @@ export class NotificationGeneratorService {
           if (!existingNotification) {
             await this.generatePaymentReminder(payment.id, days)
             paymentsUpcoming++
-            console.log(`✅ Notificación de pago creada: ${payment.payment_name} (${days} días)`)
+            logger.info(`✅ Notificación de pago creada: ${payment.payment_name} (${days} días)`)
           }
         }
       }
@@ -463,7 +465,7 @@ export class NotificationGeneratorService {
         if (!existingNotification) {
           await this.generateOverduePaymentNotification(payment.id)
           paymentsOverdue++
-          console.log(`⚠️ Notificación de pago vencido: ${payment.payment_name}`)
+          logger.warn(`⚠️ Notificación de pago vencido: ${payment.payment_name}`)
         }
       }
 
@@ -481,7 +483,7 @@ export class NotificationGeneratorService {
           if (!existingNotification) {
             await this.generateRoomingListReminder(group.id, days)
             roomingLists++
-            console.log(`📋 Notificación de rooming list creada: ${group.name} (${days} días)`)
+            logger.info(`📋 Notificación de rooming list creada: ${group.name} (${days} días)`)
           }
         }
       }
@@ -500,17 +502,12 @@ export class NotificationGeneratorService {
           if (!existingNotification) {
             await this.generateArrivalReminder(group.id, days)
             arrivals++
-            console.log(`🛬 Notificación de llegada creada: ${group.name} (${days} días)`)
+            logger.info(`🛬 Notificación de llegada creada: ${group.name} (${days} días)`)
           }
         }
       }
 
-      console.log('✅ Verificación completada:', {
-        paymentsUpcoming,
-        paymentsOverdue,
-        roomingLists,
-        arrivals,
-      })
+      logger.info({ paymentsUpcoming, paymentsOverdue, roomingLists, arrivals }, '✅ Verificación completada:')
 
       return {
         paymentsUpcoming,
@@ -519,7 +516,7 @@ export class NotificationGeneratorService {
         arrivals,
       }
     } catch (error) {
-      console.error('❌ Error en verificación automática:', error)
+      logger.error({ err: error }, '❌ Error en verificación automática:')
       throw error
     }
   }
@@ -554,14 +551,14 @@ export class NotificationGeneratorService {
       })
 
       if (exists) {
-        console.log(
+        logger.info(
           `⏭️  Notificación duplicada evitada: ${relatedTo} ${relatedId} (${daysOffset} días)`
         )
       }
 
       return exists
     } catch (error) {
-      console.error('Error verificando duplicado:', error)
+      logger.error({ err: error }, 'Error verificando duplicado:')
       return false
     }
   }
@@ -584,12 +581,12 @@ export class NotificationGeneratorService {
       })
 
       if (exists) {
-        console.log(`⏭️  Notificación de rooming duplicada evitada: grupo ${groupId}`)
+        logger.info(`⏭️  Notificación de rooming duplicada evitada: grupo ${groupId}`)
       }
 
       return exists
     } catch (error) {
-      console.error('Error verificando duplicado de rooming:', error)
+      logger.error({ err: error }, 'Error verificando duplicado de rooming:')
       return false
     }
   }
@@ -612,12 +609,12 @@ export class NotificationGeneratorService {
       })
 
       if (exists) {
-        console.log(`⏭️  Notificación de llegada duplicada evitada: grupo ${groupId}`)
+        logger.info(`⏭️  Notificación de llegada duplicada evitada: grupo ${groupId}`)
       }
 
       return exists
     } catch (error) {
-      console.error('Error verificando duplicado de llegada:', error)
+      logger.error({ err: error }, 'Error verificando duplicado de llegada:')
       return false
     }
   }

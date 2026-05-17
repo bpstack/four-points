@@ -10,6 +10,7 @@ import {
   UpdateBalanceRequest,
 } from '../../models/group/index'
 import { ERROR_CODES, SUCCESS_CODES } from '../../config/error-codes.js'
+import { logger } from '../../config/logger.js'
 
 export class GroupStatusController {
   /**
@@ -33,7 +34,7 @@ export class GroupStatusController {
 
       res.json(status)
     } catch (error) {
-      console.error('Error al obtener estado:', error)
+      logger.error({ err: error }, 'Error al obtener estado')
       res.status(500).json({
         success: false,
         error: ERROR_CODES.GROUP_STATUS_FETCH_ERROR,
@@ -103,7 +104,7 @@ export class GroupStatusController {
         code: SUCCESS_CODES.GROUP_BOOKING_UPDATED,
       })
     } catch (error) {
-      console.error('Error al actualizar booking:', error)
+      logger.error({ err: error }, 'Error al actualizar booking')
       res.status(500).json({
         success: false,
         error: ERROR_CODES.GROUP_STATUS_UPDATE_BOOKING_ERROR,
@@ -173,7 +174,7 @@ export class GroupStatusController {
         code: SUCCESS_CODES.GROUP_CONTRACT_UPDATED,
       })
     } catch (error) {
-      console.error('Error al actualizar contrato:', error)
+      logger.error({ err: error }, 'Error al actualizar contrato')
       res.status(500).json({
         success: false,
         error: ERROR_CODES.GROUP_STATUS_UPDATE_CONTRACT_ERROR,
@@ -233,7 +234,7 @@ export class GroupStatusController {
         code: SUCCESS_CODES.GROUP_ROOMING_UPDATED,
       })
     } catch (error) {
-      console.error('Error al actualizar rooming:', error)
+      logger.error({ err: error }, 'Error al actualizar rooming')
       res.status(500).json({
         success: false,
         error: ERROR_CODES.GROUP_STATUS_UPDATE_ROOMING_ERROR,
@@ -293,7 +294,7 @@ export class GroupStatusController {
         code: SUCCESS_CODES.GROUP_BALANCE_UPDATED,
       })
     } catch (error) {
-      console.error('Error al actualizar balance:', error)
+      logger.error({ err: error }, 'Error al actualizar balance')
       res.status(500).json({
         success: false,
         error: ERROR_CODES.GROUP_STATUS_UPDATE_BALANCE_ERROR,

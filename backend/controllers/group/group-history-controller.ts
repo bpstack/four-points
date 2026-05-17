@@ -4,6 +4,7 @@ import { Request, Response } from 'express'
 import { GroupHistoryService } from '../../services/group/group-history-service'
 import { GroupRepository } from '../../repositories/group/group-repository'
 import { ERROR_CODES } from '../../config/error-codes.js'
+import { logger } from '../../config/logger.js'
 
 export class GroupHistoryController {
   /**
@@ -41,7 +42,7 @@ export class GroupHistoryController {
         count: history.length,
       })
     } catch (error: any) {
-      console.error('Error en getGroupHistory:', error)
+      logger.error({ err: error }, 'Error en getGroupHistory')
       return res.status(500).json({
         success: false,
         error: ERROR_CODES.GROUP_HISTORY_FETCH_ERROR,

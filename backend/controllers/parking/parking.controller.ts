@@ -8,6 +8,7 @@ import {
 } from '../../validations/parking/vehicle-validation.js'
 import { getTodayMadrid } from '../../config/date-utils.js'
 import type { LevelCode } from '../../models/parking/index.js'
+import { logger } from '../../config/logger.js'
 
 interface MySQLError extends Error {
   code?: string
@@ -53,7 +54,7 @@ export const listSpots = async (req: Request, res: Response): Promise<void> => {
     const [rows] = await repo.getAllSpots()
     res.json(rows)
   } catch (err) {
-    console.error('[parking.controller] listSpots', err)
+    logger.error({ err }, '[parking.controller] listSpots')
     res.status(500).json({ error: 'Error al obtener las plazas' })
   }
 }
@@ -136,7 +137,7 @@ export const manageVehicles = async (req: Request, res: Response): Promise<void>
       res.status(409).json({ error: 'La matrícula ya existe' })
       return
     }
-    console.error('[parking.controller] manageVehicles', err)
+    logger.error({ err }, '[parking.controller] manageVehicles')
     res.status(500).json({ error: 'Error al gestionar vehículos' })
   }
 }
@@ -188,7 +189,7 @@ export const updateVehicle = async (req: Request, res: Response): Promise<void> 
       res.status(409).json({ error: 'La matrícula ya existe' })
       return
     }
-    console.error('[parking.controller] updateVehicle', err)
+    logger.error({ err }, '[parking.controller] updateVehicle')
     res.status(500).json({ error: 'Error al actualizar el vehículo' })
   }
 }
@@ -227,7 +228,7 @@ export const deleteVehicle = async (req: Request, res: Response): Promise<void> 
       })
       return
     }
-    console.error('[parking.controller] deleteVehicle', err)
+    logger.error({ err }, '[parking.controller] deleteVehicle')
     res.status(500).json({ error: 'Error al eliminar el vehículo' })
   }
 }
@@ -248,7 +249,7 @@ export const getVehicleById = async (req: Request, res: Response): Promise<void>
 
     res.json(vehicle)
   } catch (err) {
-    console.error('[parking.controller] getVehicleById', err)
+    logger.error({ err }, '[parking.controller] getVehicleById')
     res.status(500).json({ error: 'Error al obtener el vehículo' })
   }
 }
@@ -269,7 +270,7 @@ export const getVehicleByPlateNumber = async (req: Request, res: Response): Prom
 
     res.json(vehicle)
   } catch (err) {
-    console.error('[parking.controller] getVehicleByPlateNumber', err)
+    logger.error({ err }, '[parking.controller] getVehicleByPlateNumber')
     res.status(500).json({ error: 'Error al obtener el vehículo' })
   }
 }
@@ -290,7 +291,7 @@ export const searchVehicles = async (req: Request, res: Response): Promise<void>
     const vehicle = await repo.searchVehicles(String(q))
     res.json(vehicle)
   } catch (err) {
-    console.error('[parking.controller] searchVehicles', err)
+    logger.error({ err }, '[parking.controller] searchVehicles')
     res.status(500).json({ error: 'Error al buscar vehículos' })
   }
 }
@@ -437,7 +438,7 @@ export const listAvailableSpots = async (req: Request, res: Response): Promise<v
     })
   } catch (err) {
     const error = err as MySQLError
-    console.error('[parking.controller] listAvailableSpots', err)
+    logger.error({ err }, '[parking.controller] listAvailableSpots')
 
     // Diferencia entre errores de BD y lógica
     if (error.code && error.code.startsWith('ER_')) {

@@ -4,6 +4,7 @@
  */
 
 import { v2 as cloudinary } from 'cloudinary'
+import { logger } from '../../config/logger.js'
 
 // Flag para evitar configurar múltiples veces
 let isConfigured = false
@@ -20,11 +21,7 @@ function ensureConfigured(): void {
   const apiSecret = process.env.CLOUDINARY_API_SECRET
 
   if (!cloudName || !apiKey || !apiSecret) {
-    console.error('[CloudinaryService] Missing configuration:', {
-      cloud_name: !!cloudName,
-      api_key: !!apiKey,
-      api_secret: !!apiSecret,
-    })
+    logger.error({ cloud_name: !!cloudName, api_key: !!apiKey, api_secret: !!apiSecret }, '[CloudinaryService] Missing configuration')
     throw new Error('Cloudinary configuration missing. Check CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET')
   }
 
@@ -35,7 +32,7 @@ function ensureConfigured(): void {
   })
 
   isConfigured = true
-  console.log('[CloudinaryService] Configured successfully for cloud:', cloudName)
+    logger.info({ cloud: cloudName }, '[CloudinaryService] Configured successfully')
 }
 
 export interface CloudinaryUploadResult {
@@ -77,7 +74,7 @@ export class CloudinaryService {
         },
         (error, result) => {
           if (error) {
-            console.error('[CloudinaryService] Upload error:', error)
+            logger.error({ err: error }, '[CloudinaryService] Upload error')
             reject(new Error('Error al subir imagen a Cloudinary'))
             return
           }
@@ -131,7 +128,7 @@ export class CloudinaryService {
         },
         (error, result) => {
           if (error) {
-            console.error('[CloudinaryService] Avatar upload error:', error)
+            logger.error({ err: error }, '[CloudinaryService] Avatar upload error')
             reject(new Error('Error al subir avatar a Cloudinary'))
             return
           }
@@ -164,14 +161,14 @@ export class CloudinaryService {
     ensureConfigured()
     
     try {
-      console.log('[CloudinaryService] Attempting to delete image:', publicId)
+      logger.debug({ publicId }, '[CloudinaryService] Attempting to delete image')
       
       const result = await cloudinary.uploader.destroy(publicId, {
         resource_type: 'image',
         invalidate: true,
       })
       
-      console.log('[CloudinaryService] Delete result:', result)
+      logger.info({ result }, '[CloudinaryService] Delete result')
       
       // 'ok' = eliminado exitosamente, 'not found' = ya no existe (también consideramos éxito)
       if (result.result === 'ok' || result.result === 'not found') {
@@ -179,11 +176,11 @@ export class CloudinaryService {
       }
       
       // Si el resultado es diferente, logueamos y lanzamos error
-      console.error('[CloudinaryService] Unexpected delete result:', result)
+      logger.error({ result }, '[CloudinaryService] Unexpected delete result')
       throw new Error(`Cloudinary delete returned: ${result.result}`)
     } catch (error: any) {
-      console.error('[CloudinaryService] Delete error:', error.message || error)
-      console.error('[CloudinaryService] Delete error details:', JSON.stringify(error, null, 2))
+      logger.error({ err: error }, '[CloudinaryService] Delete error')
+      logger.error({ err: error, details: error }, '[CloudinaryService] Delete error details')
       throw new Error(`Error al eliminar imagen de Cloudinary: ${error.message || 'Unknown error'}`)
     }
   }
@@ -239,7 +236,7 @@ export class CloudinaryService {
         },
         (error, result) => {
           if (error) {
-            console.error('[CloudinaryService] PDF Upload error:', error)
+            logger.error({ err: error }, '[CloudinaryService] PDF Upload error')
             reject(new Error(`Error al subir PDF a Cloudinary: ${error.message}`))
             return
           }
@@ -249,11 +246,7 @@ export class CloudinaryService {
             return
           }
 
-          console.log('[CloudinaryService] PDF uploaded successfully:')
-          console.log('  - URL:', result.secure_url)
-          console.log('  - Public ID:', result.public_id)
-          console.log('  - Resource Type:', result.resource_type)
-          console.log('  - Format:', result.format)
+          logger.info({ url: result.secure_url, publicId: result.public_id, resourceType: result.resource_type, format: result.format }, '[CloudinaryService] PDF uploaded successfully')
 
           resolve({
             url: result.url,
@@ -283,7 +276,7 @@ export class CloudinaryService {
       const result = await cloudinary.uploader.destroy(publicId, { resource_type: resourceType })
       return result.result === 'ok'
     } catch (error) {
-      console.error('[CloudinaryService] Delete error:', error)
+      logger.error({ err: error }, '[CloudinaryService] Delete error')
       throw new Error('Error al eliminar archivo de Cloudinary')
     }
   }
@@ -310,7 +303,7 @@ export class CloudinaryService {
       expires_at: timestamp,
     })
 
-    console.log('[CloudinaryService] Generated signed URL for:', publicId)
+    logger.info({ publicId }, '[CloudinaryService] Generated signed URL')
     return signedUrl
   }
 
@@ -333,7 +326,7 @@ export class CloudinaryService {
       // Example: https://res.cloudinary.com/xxx/raw/upload/v123/backoffice/invoices/pdf_123_name.pdf
       const uploadMatch = url.match(/\/upload\/v\d+\/(.+)$/)
       if (!uploadMatch) {
-        console.error('[CloudinaryService] Could not extract public_id from URL:', url)
+        logger.error({ url }, '[CloudinaryService] Could not extract public_id from URL')
         return url // Devolver URL original si no se puede parsear
       }
 
@@ -342,11 +335,11 @@ export class CloudinaryService {
       // Remover extensión del archivo
       publicId = publicId.replace(/\.[^/.]+$/, '')
 
-      console.log('[CloudinaryService] Extracted public_id:', publicId, 'resource_type:', resourceType)
+      logger.debug({ publicId, resourceType }, '[CloudinaryService] Extracted public_id')
 
       return this.generateSignedUrl(publicId, resourceType, expiresInSeconds)
     } catch (error) {
-      console.error('[CloudinaryService] Error generating signed URL:', error)
+      logger.error({ err: error }, '[CloudinaryService] Error generating signed URL')
       return url // Devolver URL original en caso de error
     }
   }

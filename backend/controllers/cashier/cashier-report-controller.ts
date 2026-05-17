@@ -7,6 +7,7 @@ import { CashierDenominationRepository } from '../../repositories/cashier/cashie
 import { CashierPaymentRepository } from '../../repositories/cashier/cashier-payment-repository.js'
 import { ShiftStatus } from '../../models/cashier/index.js'
 import { getTodayMadrid } from '../../config/date-utils.js'
+import { logger } from '../../config/logger.js'
 
 export class CashierReportController {
   /**
@@ -73,7 +74,7 @@ export class CashierReportController {
         },
       })
     } catch (error: any) {
-      console.error('Error en getDashboardOverview:', error)
+      logger.error({ err: error }, 'Error en getDashboardOverview')
       return res.status(500).json({
         success: false,
         error: 'Error al obtener resumen del dashboard',
@@ -154,7 +155,7 @@ export class CashierReportController {
         },
       })
     } catch (error: any) {
-      console.error('Error en getDailyReport:', error)
+      logger.error({ err: error }, 'Error en getDailyReport')
       return res.status(500).json({
         success: false,
         error: 'Error al obtener reporte diario',
@@ -286,7 +287,7 @@ export class CashierReportController {
         },
       })
     } catch (error: any) {
-      console.error('Error en getPeriodReport:', error)
+      logger.error({ err: error }, 'Error en getPeriodReport')
       return res.status(500).json({
         success: false,
         error: 'Error al obtener reporte de período',
@@ -328,7 +329,7 @@ export class CashierReportController {
         },
       })
     } catch (error: any) {
-      console.error('Error al obtener historial de vales:', error)
+      logger.error({ err: error }, 'Error al obtener historial de vales')
       return res.status(500).json({
         success: false,
         error: 'Error al obtener historial de vales',
@@ -384,7 +385,7 @@ export class CashierReportController {
         },
       })
     } catch (error: any) {
-      console.error('Error en getShiftsSummary:', error)
+      logger.error({ err: error }, 'Error en getShiftsSummary')
       return res.status(500).json({
         success: false,
         error: 'Error al obtener resumen de turnos',

@@ -6,6 +6,7 @@
 
 import type { Request, Response } from 'express'
 import { DemoActivityRepository } from '../../repositories/demo/demo-activity-repository.js'
+import { logger } from '../../config/logger.js'
 
 // ========================================
 // CONTROLLER
@@ -44,7 +45,7 @@ export class DemoActivityController {
         },
       })
     } catch (error: any) {
-      console.error('[DemoActivityController.getLogs] Error:', error.message)
+      logger.error({ err: error }, '[DemoActivityController.getLogs] Error')
       res.status(500).json({
         success: false,
         error: 'Error al obtener logs de actividad demo',
@@ -69,7 +70,7 @@ export class DemoActivityController {
         stats,
       })
     } catch (error: any) {
-      console.error('[DemoActivityController.getStats] Error:', error.message)
+      logger.error({ err: error }, '[DemoActivityController.getStats] Error')
       res.status(500).json({
         success: false,
         error: 'Error al obtener estadísticas de actividad demo',
@@ -93,7 +94,7 @@ export class DemoActivityController {
       res.setHeader('Content-Disposition', 'attachment; filename="registrosDemo.md"')
       res.send(markdown)
     } catch (error: any) {
-      console.error('[DemoActivityController.exportToMarkdown] Error:', error.message)
+      logger.error({ err: error }, '[DemoActivityController.exportToMarkdown] Error')
       res.status(500).json({
         success: false,
         error: 'Error al exportar logs de actividad demo',
@@ -121,7 +122,7 @@ export class DemoActivityController {
         daysToKeep,
       })
     } catch (error: any) {
-      console.error('[DemoActivityController.cleanupOldLogs] Error:', error.message)
+      logger.error({ err: error }, '[DemoActivityController.cleanupOldLogs] Error')
       res.status(500).json({
         success: false,
         error: 'Error al limpiar logs antiguos',

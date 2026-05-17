@@ -7,6 +7,7 @@ import { PaymentCalculatorService } from '../../services/group/payment-calculato
 import { GroupHistoryService } from '../../services/group/group-history-service'
 import { CreateGroupPaymentDTO, UpdateGroupPaymentDTO } from '../../models/group/index'
 import { ERROR_CODES, SUCCESS_CODES } from '../../config/error-codes.js'
+import { logger } from '../../config/logger.js'
 
 export class GroupPaymentController {
   /**
@@ -46,7 +47,7 @@ export class GroupPaymentController {
         },
       })
     } catch (error: any) {
-      console.error('Error en getPaymentsByGroup:', error)
+      logger.error({ err: error }, 'Error en getPaymentsByGroup')
       return res.status(500).json({
         success: false,
         error: ERROR_CODES.GROUP_PAYMENT_FETCH_ERROR,
@@ -146,7 +147,7 @@ export class GroupPaymentController {
         data: newPayment,
       })
     } catch (error: any) {
-      console.error('Error en createPayment:', error)
+      logger.error({ err: error }, 'Error en createPayment')
       return res.status(500).json({
         success: false,
         error: ERROR_CODES.GROUP_PAYMENT_CREATE_ERROR,
@@ -228,7 +229,7 @@ export class GroupPaymentController {
         data: updatedPayment,
       })
     } catch (error: any) {
-      console.error('Error en updatePayment:', error)
+      logger.error({ err: error }, 'Error en updatePayment')
       return res.status(500).json({
         success: false,
         error: ERROR_CODES.GROUP_PAYMENT_UPDATE_ERROR,
@@ -309,7 +310,7 @@ export class GroupPaymentController {
         code: SUCCESS_CODES.GROUP_PAYMENT_UPDATED,
       })
     } catch (error: any) {
-      console.error('Error en updatePaymentStatus:', error)
+      logger.error({ err: error }, 'Error en updatePaymentStatus')
       return res.status(500).json({
         success: false,
         error: ERROR_CODES.GROUP_PAYMENT_UPDATE_ERROR,
@@ -390,7 +391,7 @@ export class GroupPaymentController {
         code: SUCCESS_CODES.GROUP_PAYMENT_UPDATED,
       })
     } catch (error: any) {
-      console.error('Error en updateAmountPaid:', error)
+      logger.error({ err: error }, 'Error en updateAmountPaid')
       return res.status(500).json({
         success: false,
         error: ERROR_CODES.GROUP_PAYMENT_UPDATE_ERROR,
@@ -461,7 +462,7 @@ export class GroupPaymentController {
         code: SUCCESS_CODES.GROUP_PAYMENT_DELETED,
       })
     } catch (error: any) {
-      console.error('Error en deletePayment:', error)
+      logger.error({ err: error }, 'Error en deletePayment')
       return res.status(500).json({
         success: false,
         error: ERROR_CODES.GROUP_PAYMENT_DELETE_ERROR,
@@ -487,7 +488,7 @@ export class GroupPaymentController {
         days,
       })
     } catch (error: any) {
-      console.error('Error en getUpcomingPayments:', error)
+      logger.error({ err: error }, 'Error en getUpcomingPayments')
       return res.status(500).json({
         success: false,
         error: ERROR_CODES.GROUP_PAYMENT_FETCH_ERROR,
@@ -510,7 +511,7 @@ export class GroupPaymentController {
         count: payments.length,
       })
     } catch (error: any) {
-      console.error('Error en getOverduePayments:', error)
+      logger.error({ err: error }, 'Error en getOverduePayments')
       return res.status(500).json({
         success: false,
         error: ERROR_CODES.GROUP_PAYMENT_FETCH_ERROR,

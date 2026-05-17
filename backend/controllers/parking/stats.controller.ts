@@ -7,6 +7,7 @@ import { Request, Response } from 'express'
 import ParkingStatsRepository from '../../repositories/parking/stats.repository.js'
 import { getTodayMadrid, formatDateMadrid } from '../../config/date-utils.js'
 import type { LevelRangeOccupancy } from '../../models/parking/index.js'
+import { logger } from '../../config/logger.js'
 
 interface OccupancyWithAverage extends LevelRangeOccupancy {
   occupancy_rate: number
@@ -40,7 +41,7 @@ class ParkingStatsController {
         stats,
       })
     } catch (error) {
-      console.error('Error en getStats:', error)
+      logger.error({ err: error }, 'Error en getStats:')
       res.status(500).json({
         success: false,
         message: 'Error al obtener estadísticas',
@@ -126,7 +127,7 @@ class ParkingStatsController {
         data: occupancy,
       })
     } catch (error) {
-      console.error('Error en getOccupancy:', error)
+      logger.error({ err: error }, 'Error en getOccupancy:')
       res.status(500).json({
         success: false,
         message: 'Error al obtener ocupación',
@@ -194,7 +195,7 @@ class ParkingStatsController {
 
       res.status(200).json(responseData)
     } catch (error) {
-      console.error('Error en getPendingCheckins:', error)
+      logger.error({ err: error }, 'Error en getPendingCheckins:')
       res.status(500).json({
         success: false,
         message: 'Error al obtener check-ins pendientes',
@@ -262,7 +263,7 @@ class ParkingStatsController {
 
       res.status(200).json(responseData)
     } catch (error) {
-      console.error('Error en getPendingCheckouts:', error)
+      logger.error({ err: error }, 'Error en getPendingCheckouts:')
       res.status(500).json({
         success: false,
         message: 'Error al obtener check-outs pendientes',
@@ -296,7 +297,7 @@ class ParkingStatsController {
         data: availability,
       })
     } catch (error) {
-      console.error('Error en getAvailability:', error)
+      logger.error({ err: error }, 'Error en getAvailability:')
       res.status(500).json({
         success: false,
         message: 'Error al obtener disponibilidad',
@@ -452,7 +453,7 @@ class ParkingStatsController {
         },
       })
     } catch (error) {
-      console.error('Error en getFullDashboard:', error)
+      logger.error({ err: error }, 'Error en getFullDashboard:')
       res.status(500).json({
         success: false,
         message: 'Error al obtener dashboard',
@@ -514,7 +515,7 @@ class ParkingStatsController {
         ...result,
       })
     } catch (error) {
-      console.error('Error en getStatsByRange:', error)
+      logger.error({ err: error }, 'Error en getStatsByRange:')
       res.status(500).json({
         success: false,
         message: 'Error al obtener estadísticas del rango',
@@ -615,7 +616,7 @@ class ParkingStatsController {
         },
       })
     } catch (error) {
-      console.error('Error en getOccupancyByRange:', error)
+      logger.error({ err: error }, 'Error en getOccupancyByRange:')
       res.status(500).json({
         success: false,
         message: 'Error al obtener ocupación del rango',

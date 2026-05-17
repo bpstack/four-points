@@ -10,6 +10,7 @@ import { GroupHistoryService } from '../../services/group/group-history-service'
 import { CreateGroupDTO, UpdateGroupDTO, GroupFilters } from '../../models/group/index'
 import { ERROR_CODES, SUCCESS_CODES } from '../../config/error-codes.js'
 import { getNowMadrid } from '../../config/date-utils.js'
+import { logger } from '../../config/logger.js'
 
 export class GroupController {
   /**
@@ -39,7 +40,7 @@ export class GroupController {
         count: groups.length,
       })
     } catch (error: any) {
-      console.error('Error en getAllGroups:', error)
+      logger.error({ err: error }, 'Error en getAllGroups')
       return res.status(500).json({
         success: false,
         error: ERROR_CODES.GROUP_FETCH_ERROR,
@@ -92,7 +93,7 @@ export class GroupController {
         },
       })
     } catch (error: any) {
-      console.error('Error en getGroupById:', error)
+      logger.error({ err: error }, 'Error en getGroupById')
       return res.status(500).json({
         success: false,
         error: ERROR_CODES.GROUP_FETCH_ONE_ERROR,
@@ -141,7 +142,7 @@ export class GroupController {
         data: newGroup,
       })
     } catch (error: any) {
-      console.error('Error en createGroup:', error)
+      logger.error({ err: error }, 'Error en createGroup')
       return res.status(500).json({
         success: false,
         error: ERROR_CODES.GROUP_CREATE_ERROR,
@@ -213,7 +214,7 @@ export class GroupController {
         data: updatedGroup,
       })
     } catch (error: any) {
-      console.error('Error en updateGroup:', error)
+      logger.error({ err: error }, 'Error en updateGroup')
       return res.status(500).json({
         success: false,
         error: ERROR_CODES.GROUP_UPDATE_ERROR,
@@ -273,7 +274,7 @@ export class GroupController {
         code: SUCCESS_CODES.GROUP_DELETED,
       })
     } catch (error: any) {
-      console.error('Error en deleteGroup:', error)
+      logger.error({ err: error }, 'Error en deleteGroup')
       return res.status(500).json({
         success: false,
         error: ERROR_CODES.GROUP_DELETE_ERROR,
@@ -299,7 +300,7 @@ export class GroupController {
         },
       })
     } catch (error: any) {
-      console.error('Error en getDashboardOverview:', error)
+      logger.error({ err: error }, 'Error en getDashboardOverview')
       return res.status(500).json({
         success: false,
         error: ERROR_CODES.GROUP_FETCH_DASHBOARD_ERROR,
@@ -324,7 +325,7 @@ export class GroupController {
         year,
       })
     } catch (error: any) {
-      console.error('Error en getDashboardTimeline:', error)
+      logger.error({ err: error }, 'Error en getDashboardTimeline')
       return res.status(500).json({
         success: false,
         error: ERROR_CODES.GROUP_FETCH_TIMELINE_ERROR,

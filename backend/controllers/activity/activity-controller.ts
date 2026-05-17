@@ -6,6 +6,7 @@
 import { Request, Response } from 'express'
 import { ActivityRepository, ActivitySource } from '../../repositories/activity/activity-repository.js'
 import { ERROR_CODES } from '../../config/error-codes.js'
+import { logger } from '../../config/logger.js'
 
 export class ActivityController {
   /**
@@ -77,7 +78,7 @@ export class ActivityController {
         },
       })
     } catch (error) {
-      console.error('[ActivityController] Error en getRecentActivity:', error)
+      logger.error({ err: error }, '[ActivityController] Error en getRecentActivity')
       res.status(500).json({
         success: false,
         error: ERROR_CODES.ACTIVITY_FETCH_ERROR,

@@ -3,6 +3,7 @@
 import { Request, Response } from 'express'
 import { DepartmentRepository } from '../../repositories/departments/departments-repository.js'
 import { ERROR_CODES, SUCCESS_CODES } from '../../config/error-codes.js'
+import { logger } from '../../config/logger.js'
 
 interface MySQLError extends Error {
   code?: string
@@ -31,7 +32,7 @@ export const createDepartment = async (req: Request, res: Response): Promise<voi
 
     res.status(201).json({ success: true, data: newDepartment })
   } catch (error) {
-    console.error('Error createDepartment:', error)
+    logger.error({ err: error }, 'Error createDepartment')
 
     const mysqlError = error as MySQLError
     if (mysqlError.code === 'ER_DUP_ENTRY') {
@@ -60,7 +61,7 @@ export const getAllDepartments = async (_req: Request, res: Response): Promise<v
     const departments = await DepartmentRepository.getAll()
     res.status(200).json({ success: true, data: departments })
   } catch (error) {
-    console.error('Error getAllDepartments:', error)
+    logger.error({ err: error }, 'Error getAllDepartments')
     res.status(500).json({
       success: false,
       error: ERROR_CODES.DEPARTMENTS_FETCH_ERROR,
@@ -88,7 +89,7 @@ export const getDepartmentById = async (req: Request, res: Response): Promise<vo
 
     res.status(200).json({ success: true, data: department })
   } catch (error) {
-    console.error('Error getDepartmentById:', error)
+    logger.error({ err: error }, 'Error getDepartmentById')
     res.status(500).json({
       success: false,
       error: ERROR_CODES.DEPARTMENTS_FETCH_ONE_ERROR,
@@ -129,7 +130,7 @@ export const updateDepartment = async (req: Request, res: Response): Promise<voi
 
     res.status(200).json({ success: true, data: updatedDepartment })
   } catch (error) {
-    console.error('Error updateDepartment:', error)
+    logger.error({ err: error }, 'Error updateDepartment')
 
     const err = error as MySQLError
     if (err.message.includes('no encontrado')) {
@@ -181,7 +182,7 @@ export const deleteDepartment = async (req: Request, res: Response): Promise<voi
       code: SUCCESS_CODES.DEPARTMENTS_DELETED,
     })
   } catch (error) {
-    console.error('Error deleteDepartment:', error)
+    logger.error({ err: error }, 'Error deleteDepartment')
 
     const err = error as Error
     if (err.message.includes('registros asociados')) {

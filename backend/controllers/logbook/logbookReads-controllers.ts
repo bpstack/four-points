@@ -10,6 +10,7 @@ import {
   unmarkLogbookRead,
 } from '../../repositories/logbook/logbookReads-repository.js'
 import { ERROR_CODES, SUCCESS_CODES } from '../../config/error-codes.js'
+import { logger } from '../../config/logger.js'
 
 // ============================================
 // CUSTOM ERROR TYPE
@@ -36,7 +37,7 @@ export async function readLogbookController(req: Request, res: Response): Promis
       code: SUCCESS_CODES.LOGBOOK_READ_SUCCESS,
     })
   } catch (err) {
-    console.error(err)
+    logger.error({ err }, 'Error en readLogbook')
     res.status(500).json({
       success: false,
       error: ERROR_CODES.LOGBOOK_READ_ERROR,
@@ -62,7 +63,7 @@ export async function unreadLogbookController(req: Request, res: Response): Prom
       code: SUCCESS_CODES.LOGBOOK_UNREAD_SUCCESS,
     })
   } catch (err) {
-    console.error(err)
+    logger.error({ err }, 'Error en unreadLogbook')
     res.status(500).json({
       success: false,
       error: ERROR_CODES.LOGBOOK_UNREAD_ERROR,
@@ -89,7 +90,7 @@ export async function solveLogbookController(req: Request, res: Response): Promi
     })
   } catch (err) {
     const error = err as CustomError
-    console.error(err)
+    logger.error({ err }, 'Error en solveLogbook')
     res.status(error.status ?? 500).json({
       success: false,
       error: ERROR_CODES.LOGBOOK_SOLVE_ERROR,
@@ -116,7 +117,7 @@ export async function reopenLogbookController(req: Request, res: Response): Prom
     })
   } catch (err) {
     const error = err as CustomError
-    console.error(err)
+    logger.error({ err }, 'Error en reopenLogbook')
     res.status(error.status || 500).json({
       success: false,
       error: ERROR_CODES.LOGBOOK_REOPEN_ERROR,
@@ -135,7 +136,7 @@ export async function getLogbookReadersController(req: Request, res: Response): 
     const readers = await getUsersWhoReadLogbook(logbookId)
     res.json({ success: true, data: readers })
   } catch (err) {
-    console.error(err)
+    logger.error({ err }, 'Error en getLogbookReaders')
     res.status(500).json({
       success: false,
       error: ERROR_CODES.LOGBOOK_FETCH_READERS_ERROR,
@@ -175,7 +176,7 @@ export async function getLogbookSolvedController(req: Request, res: Response): P
 
     res.json({ success: true, data: solved[0] })
   } catch (err) {
-    console.error(err)
+    logger.error({ err }, 'Error en getLogbookSolved')
     res.status(500).json({
       success: false,
       error: ERROR_CODES.LOGBOOK_FETCH_SOLVER_ERROR,

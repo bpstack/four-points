@@ -6,6 +6,7 @@ import { MessageRepository } from '../../repositories/messages/message-repositor
 import { NotificationRepository } from '../../repositories/notifications/notification-repository.js'
 import { MESSAGE_CONSTANTS } from '../../models/messages/index.js'
 import { ERROR_CODES, SUCCESS_CODES } from '../../config/error-codes.js'
+import { logger } from '../../config/logger.js'
 
 export class MessageController {
   /**
@@ -70,7 +71,7 @@ export class MessageController {
         oldest_id: messages.length > 0 ? messages[0].id : null,
       })
     } catch (error: any) {
-      console.error('Error en getMessages:', error)
+      logger.error({ err: error }, 'Error en getMessages')
       return res.status(500).json({
         success: false,
         error: ERROR_CODES.MESSAGES_FETCH_MESSAGES_ERROR,
@@ -161,7 +162,7 @@ export class MessageController {
         code: SUCCESS_CODES.MESSAGES_SENT,
       })
     } catch (error: any) {
-      console.error('Error en sendMessage:', error)
+      logger.error({ err: error }, 'Error en sendMessage')
       return res.status(500).json({
         success: false,
         error: ERROR_CODES.MESSAGES_SEND_MESSAGE_ERROR,
@@ -240,7 +241,7 @@ export class MessageController {
         code: SUCCESS_CODES.MESSAGES_EDITED,
       })
     } catch (error: any) {
-      console.error('Error en editMessage:', error)
+      logger.error({ err: error }, 'Error en editMessage')
       return res.status(500).json({
         success: false,
         error: ERROR_CODES.MESSAGES_EDIT_MESSAGE_ERROR,
@@ -302,7 +303,7 @@ export class MessageController {
         code: SUCCESS_CODES.MESSAGES_DELETED,
       })
     } catch (error: any) {
-      console.error('Error en deleteMessage:', error)
+      logger.error({ err: error }, 'Error en deleteMessage')
       return res.status(500).json({
         success: false,
         error: ERROR_CODES.MESSAGES_DELETE_MESSAGE_ERROR,
@@ -338,7 +339,7 @@ export class MessageController {
         },
       })
     } catch (error: any) {
-      console.error('Error en getUnreadCount:', error)
+      logger.error({ err: error }, 'Error en getUnreadCount')
       return res.status(500).json({
         success: false,
         error: ERROR_CODES.MESSAGES_FETCH_UNREAD_ERROR,
@@ -389,7 +390,7 @@ export class MessageController {
         count: messages.length,
       })
     } catch (error: any) {
-      console.error('Error en searchMessages:', error)
+      logger.error({ err: error }, 'Error en searchMessages')
       return res.status(500).json({
         success: false,
         error: ERROR_CODES.MESSAGES_SEARCH_MESSAGES_ERROR,
@@ -435,7 +436,7 @@ export class MessageController {
       // Añadir recipients
       await NotificationRepository.addRecipients(notification.id, recipientIds)
     } catch (error) {
-      console.error('Error al crear notificacion de mensaje:', error)
+      logger.error({ err: error }, 'Error al crear notificacion de mensaje')
       // No lanzamos error para no afectar el envio del mensaje
     }
   }

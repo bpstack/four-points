@@ -4,6 +4,7 @@ import { CashierShiftRepository } from '../../repositories/cashier/cashier-shift
 import { UserRepository } from '../../repositories/auth/user-repository.js'
 import db from '../../config/db.js'
 import type { HistoryWithDetails, HistoryAction } from '../../models/cashier/index.js'
+import { logger } from '../../config/logger.js'
 
 export class CashierHistoryController {
   /**
@@ -68,7 +69,7 @@ export class CashierHistoryController {
         data: enrichedHistory,
       })
     } catch (error: any) {
-      console.error('Error en getAll (history):', error)
+      logger.error({ err: error }, 'Error en getAll (history)')
       return res.status(500).json({
         success: false,
         error: 'Error al obtener historial',
@@ -178,7 +179,7 @@ export class CashierHistoryController {
         },
       })
     } catch (error: any) {
-      console.error('Error en getStats (history):', error)
+      logger.error({ err: error }, 'Error en getStats (history)')
       return res.status(500).json({
         success: false,
         error: 'Error al obtener estadísticas de historial',
@@ -245,7 +246,7 @@ export class CashierHistoryController {
         },
       })
     } catch (error: any) {
-      console.error('Error en getByShift (history):', error)
+      logger.error({ err: error }, 'Error en getByShift (history)')
       return res.status(500).json({
         success: false,
         error: 'Error al obtener historial del turno',
@@ -289,7 +290,7 @@ export class CashierHistoryController {
         data: enrichedHistory,
       })
     } catch (error: any) {
-      console.error('Error en getRecent (history):', error)
+      logger.error({ err: error }, 'Error en getRecent (history)')
       return res.status(500).json({
         success: false,
         error: 'Error al obtener actividad reciente',

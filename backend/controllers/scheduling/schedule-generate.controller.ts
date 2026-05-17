@@ -4,6 +4,7 @@
 import type { Request, Response } from 'express'
 import * as repo from '../../repositories/scheduling/scheduling-repository.js'
 import type { SolverRunRecord } from '../../repositories/scheduling/scheduling-repository.js'
+import { logger } from '../../config/logger.js'
 import { buildSolverInput } from '../../services/scheduling/build-solver-input.js'
 import { runSolver } from '../../services/scheduling/solver-client.js'
 import type { SolverSuccess, SolverOutput } from '../../services/scheduling/types/solver.js'
@@ -13,7 +14,7 @@ async function recordSolverRun(data: SolverRunRecord): Promise<void> {
   try {
     await repo.insertSolverRun(data)
   } catch (err: any) {
-    console.error('[generate] Fallo persistiendo scheduling_solver_runs:', err.message)
+    logger.error({ err }, '[generate] Fallo persistiendo scheduling_solver_runs')
   }
 }
 
@@ -50,11 +51,7 @@ export async function generateSchedule(req: Request, res: Response): Promise<voi
     return
   }
 
-  console.log(
-    `[generate] Mes ${monthId} (${month.year}-${month.month}): ` +
-    `${solverInput.employees.length} empleados, ${days.length} días, ` +
-    `${Object.keys(solverInput.lockedCells).length} empleados con celdas bloqueadas`
-  )
+  logger.info({ monthId, year: month.year, month: month.month, employeesCount: solverInput.employees.length, daysCount: days.length, lockedEmployeesCount: Object.keys(solverInput.lockedCells).length }, '[generate] solver input built')
 
   const generatedBy = req.user?.id ?? null
 
@@ -68,7 +65,7 @@ export async function generateSchedule(req: Request, res: Response): Promise<voi
     solverOutput = await runSolver(solverInput, abortController.signal)
   } catch (err: any) {
     const elapsed = Date.now() - startMs
-    console.error('[generate] Error invocando solver:', err.message)
+    logger.error({ err, elapsed }, '[generate] Error invocando solver')
     await recordSolverRun({
       monthId,
       generatedBy,
@@ -88,9 +85,7 @@ export async function generateSchedule(req: Request, res: Response): Promise<voi
 
   // 5. Manejar resultado
   if (solverOutput.status === 'error') {
-    console.error(
-      `[generate] Solver error (${solverOutput.errorCode}): ${solverOutput.message}`
-    )
+    logger.error({ errorCode: solverOutput.errorCode, message: solverOutput.message }, '[generate] Solver error')
     await recordSolverRun({
       monthId,
       generatedBy,
@@ -109,16 +104,13 @@ export async function generateSchedule(req: Request, res: Response): Promise<voi
 
   if (solverOutput.status === 'infeasible') {
     const tail = solverInput.previousMonthTail ?? {}
-    console.warn('[generate] Solver INFEASIBLE — input summary:', JSON.stringify({
-      employees: solverInput.employees.map(e => ({
-        id: e.id,
-        fixedShift: e.rules?.fixedShift,
-        lockedDays: Object.keys(solverInput.lockedCells[e.id] ?? {}).length,
-        lockedCells: solverInput.lockedCells[e.id] ?? {},
-        tail: tail[e.id] ?? [],
-      })),
-      config: solverInput.config,
-    }))
+    logger.warn({ employeesSummary: solverInput.employees.map(e => ({
+      id: e.id,
+      fixedShift: e.rules?.fixedShift,
+      lockedDays: Object.keys(solverInput.lockedCells[e.id] ?? {}).length,
+      lockedCells: solverInput.lockedCells[e.id] ?? {},
+      tail: tail[e.id] ?? [],
+    })), config: solverInput.config }, '[generate] Solver INFEASIBLE — input summary')
     await recordSolverRun({
       monthId,
       generatedBy,
@@ -164,7 +156,7 @@ export async function generateSchedule(req: Request, res: Response): Promise<voi
   }
 
   const { deleted, inserted } = await repo.applyGeneratedSchedule(monthId, toInsert)
-  console.log(`[generate] Mes ${monthId}: ${deleted} eliminadas, ${inserted} insertadas (transacción)`)
+  logger.info({ monthId, deleted, inserted }, '[generate] transacción completada')
 
   // Persistir run exitoso. La matriz original (pre-edición) sirve para el bucle de feedback futuro.
   await recordSolverRun({
@@ -192,14 +184,9 @@ export async function generateSchedule(req: Request, res: Response): Promise<voi
     .map((r, i) => (r.status === 'rejected' ? { empId: empIds[i], reason: r.reason } : null))
     .filter((x): x is { empId: string; reason: unknown } => x !== null)
   if (failed.length > 0) {
-    console.error(
-      `[generate] Mes ${monthId}: ${failed.length}/${empIds.length} recálculos de libre_number fallaron:`,
-      failed
-    )
+    logger.error({ monthId, failedCount: failed.length, totalCount: empIds.length, failed }, '[generate] recálculos de libre_number fallaron')
   }
-  console.log(
-    `[generate] Libres numerados para ${empIds.length - failed.length}/${empIds.length} empleados`
-  )
+  logger.info({ successCount: empIds.length - failed.length, totalCount: empIds.length }, '[generate] libres numerados')
 
   res.json({
     status: 'ok',
