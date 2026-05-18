@@ -119,11 +119,27 @@ export const backofficeApi = {
   },
 
   /**
-   * Desactivar proveedor (soft delete)
+   * Eliminar proveedor permanentemente (solo si no tiene facturas)
    */
   deleteSupplier: async (id: number): Promise<{ message: string }> => {
     const url = `${API_BASE}/api/backoffice/suppliers/${id}`
     return apiClient.delete(url)
+  },
+
+  /**
+   * Marcar proveedor como inactivo (preserva histórico de facturas)
+   */
+  inactivateSupplier: async (id: number): Promise<{ message: string }> => {
+    const url = `${API_BASE}/api/backoffice/suppliers/${id}/inactivate`
+    return apiClient.post(url, {})
+  },
+
+  /**
+   * Reactivar proveedor inactivo
+   */
+  activateSupplier: async (id: number): Promise<{ message: string }> => {
+    const url = `${API_BASE}/api/backoffice/suppliers/${id}/activate`
+    return apiClient.post(url, {})
   },
 
   // ========================================

@@ -62,6 +62,9 @@
     "reopenMonth": "Reabrir Mes",
     "edit": "Editar",
     "delete": "Eliminar",
+    "deleteBlockedHasInvoices": "No se puede eliminar: tiene facturas asociadas. Inactiva el proveedor.",
+    "inactivate": "Marcar como inactivo",
+    "activate": "Reactivar",
     "viewPdf": "Ver PDF",
     "uploadPdf": "Subir PDF",
     "viewInvoices": "Ver Facturas",
@@ -136,6 +139,10 @@
     }
   },
   "suppliers": {
+    "tabs": {
+      "active": "Activos",
+      "inactive": "Inactivos"
+    },
     "summary": {
       "suppliers": "Proveedores",
       "directDebits": "Domiciliados",
@@ -328,9 +335,19 @@
     },
     "deleteSupplier": {
       "title": "Eliminar Proveedor",
-      "messageWithInvoices": "No se puede eliminar \"{name}\" porque tiene {count} factura(s) asociada(s). Elimina primero todas las facturas desde \"Ver Facturas\".",
-      "messageEmpty": "Estas seguro de que quieres eliminar el proveedor \"{name}\"? Esta accion no se puede deshacer.",
+      "messageWithInvoices": "No se puede eliminar \"{name}\" porque tiene {count} factura(s) asociada(s). Marca el proveedor como inactivo en su lugar.",
+      "messageEmpty": "Estas seguro de que quieres eliminar permanentemente el proveedor \"{name}\"? Esta accion no se puede deshacer.",
       "confirmButton": "Eliminar"
+    },
+    "inactivateSupplier": {
+      "title": "Marcar como inactivo",
+      "message": "El proveedor \"{name}\" pasara a la lista de inactivos. Sus facturas se conservan y podras reactivarlo cuando quieras.",
+      "confirmButton": "Marcar como inactivo"
+    },
+    "reactivateSupplier": {
+      "title": "Proveedor ya existente",
+      "message": "Ya existe un proveedor con el nombre \"{name}\" pero esta inactivo. Quieres reactivarlo en lugar de crear uno nuevo?",
+      "confirmButton": "Reactivar"
     },
     "deleteElement": {
       "title": "Eliminar elemento",
@@ -464,8 +481,12 @@
     "supplierCreated": "Proveedor creado correctamente",
     "supplierUpdated": "Proveedor actualizado correctamente",
     "supplierDeleted": "Proveedor eliminado correctamente",
+    "supplierInactivated": "Proveedor marcado como inactivo",
+    "supplierActivated": "Proveedor reactivado correctamente",
     "supplierSaveError": "Error al guardar el proveedor",
     "supplierDeleteError": "Error al eliminar el proveedor",
+    "supplierInactivateError": "Error al marcar el proveedor como inactivo",
+    "supplierActivateError": "Error al reactivar el proveedor",
     "pdfOriginalUploaded": "PDF original subido correctamente",
     "pdfValidatedUploaded": "PDF validado subido correctamente",
     "pdfUploadError": "Error al subir el PDF",

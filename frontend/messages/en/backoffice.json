@@ -62,6 +62,9 @@
     "reopenMonth": "Reopen Month",
     "edit": "Edit",
     "delete": "Delete",
+    "deleteBlockedHasInvoices": "Cannot delete: supplier has associated invoices. Mark as inactive instead.",
+    "inactivate": "Mark as inactive",
+    "activate": "Reactivate",
     "viewPdf": "View PDF",
     "uploadPdf": "Upload PDF",
     "viewInvoices": "View Invoices",
@@ -136,6 +139,10 @@
     }
   },
   "suppliers": {
+    "tabs": {
+      "active": "Active",
+      "inactive": "Inactive"
+    },
     "summary": {
       "suppliers": "Suppliers",
       "directDebits": "Direct Debits",
@@ -328,9 +335,19 @@
     },
     "deleteSupplier": {
       "title": "Delete Supplier",
-      "messageWithInvoices": "Cannot delete \"{name}\" because it has {count} associated invoice(s). Delete all invoices first from \"View Invoices\".",
-      "messageEmpty": "Are you sure you want to delete supplier \"{name}\"? This action cannot be undone.",
+      "messageWithInvoices": "Cannot delete \"{name}\" because it has {count} associated invoice(s). Mark the supplier as inactive instead.",
+      "messageEmpty": "Are you sure you want to permanently delete supplier \"{name}\"? This action cannot be undone.",
       "confirmButton": "Delete"
+    },
+    "inactivateSupplier": {
+      "title": "Mark as inactive",
+      "message": "Supplier \"{name}\" will move to the inactive list. Its invoices are kept and you can reactivate it any time.",
+      "confirmButton": "Mark as inactive"
+    },
+    "reactivateSupplier": {
+      "title": "Supplier already exists",
+      "message": "A supplier named \"{name}\" already exists but is inactive. Reactivate it instead of creating a new one?",
+      "confirmButton": "Reactivate"
     },
     "deleteElement": {
       "title": "Delete element",
@@ -464,8 +481,12 @@
     "supplierCreated": "Supplier created successfully",
     "supplierUpdated": "Supplier updated successfully",
     "supplierDeleted": "Supplier deleted successfully",
+    "supplierInactivated": "Supplier marked as inactive",
+    "supplierActivated": "Supplier reactivated successfully",
     "supplierSaveError": "Error saving supplier",
     "supplierDeleteError": "Error deleting supplier",
+    "supplierInactivateError": "Error marking supplier as inactive",
+    "supplierActivateError": "Error reactivating supplier",
     "pdfOriginalUploaded": "Original PDF uploaded successfully",
     "pdfValidatedUploaded": "Validated PDF uploaded successfully",
     "pdfUploadError": "Error uploading PDF",

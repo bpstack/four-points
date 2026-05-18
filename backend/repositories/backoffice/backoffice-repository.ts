@@ -213,9 +213,25 @@ export class BackofficeRepository {
     return result.affectedRows > 0
   }
 
-  static async deleteSupplier(id: number): Promise<boolean> {
+  static async inactivateSupplier(id: number): Promise<boolean> {
     const [result] = await pool.query<ResultSetHeader>(
       `UPDATE bo_suppliers SET is_active = 0 WHERE id = ?`,
+      [id]
+    )
+    return result.affectedRows > 0
+  }
+
+  static async activateSupplier(id: number): Promise<boolean> {
+    const [result] = await pool.query<ResultSetHeader>(
+      `UPDATE bo_suppliers SET is_active = 1 WHERE id = ?`,
+      [id]
+    )
+    return result.affectedRows > 0
+  }
+
+  static async hardDeleteSupplier(id: number): Promise<boolean> {
+    const [result] = await pool.query<ResultSetHeader>(
+      `DELETE FROM bo_suppliers WHERE id = ?`,
       [id]
     )
     return result.affectedRows > 0

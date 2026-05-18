@@ -218,6 +218,16 @@ export class BackofficeController {
       // Verificar que no exista un proveedor con el mismo nombre
       const existing = await BackofficeRepository.getSupplierByName(name)
       if (existing) {
+        if (!existing.is_active) {
+          // Existe pero está inactivo: el frontend puede ofrecer reactivar
+          res.status(409).json({
+            success: false,
+            error: ERROR_CODES.BACKOFFICE_SUPPLIER_INACTIVE_EXISTS,
+            code: ERROR_CODES.BACKOFFICE_SUPPLIER_INACTIVE_EXISTS,
+            existingId: existing.id,
+          })
+          return
+        }
         res.status(400).json({
           success: false,
           error: ERROR_CODES.BACKOFFICE_SUPPLIER_EXISTS,
@@ -301,15 +311,60 @@ export class BackofficeController {
 
   /**
    * DELETE /api/backoffice/suppliers/:id
-   * Desactivar proveedor (soft delete)
+   * Hard delete (eliminar permanentemente). Solo permitido si no tiene facturas.
    */
   static async deleteSupplier(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params
 
-      const deleted = await BackofficeRepository.deleteSupplier(Number(id))
+      const supplier = await BackofficeRepository.getSupplierById(Number(id))
+      if (!supplier) {
+        res.status(404).json({
+          success: false,
+          error: ERROR_CODES.BACKOFFICE_SUPPLIER_NOT_FOUND,
+          code: ERROR_CODES.BACKOFFICE_SUPPLIER_NOT_FOUND,
+        })
+        return
+      }
 
-      if (!deleted) {
+      if (supplier.total_invoices > 0) {
+        res.status(409).json({
+          success: false,
+          error: ERROR_CODES.BACKOFFICE_SUPPLIER_HAS_INVOICES,
+          code: ERROR_CODES.BACKOFFICE_SUPPLIER_HAS_INVOICES,
+          totalInvoices: supplier.total_invoices,
+        })
+        return
+      }
+
+      await BackofficeRepository.hardDeleteSupplier(Number(id))
+
+      res.json({
+        success: true,
+        message: SUCCESS_CODES.BACKOFFICE_SUPPLIER_DELETED,
+        code: SUCCESS_CODES.BACKOFFICE_SUPPLIER_DELETED,
+      })
+    } catch (error: any) {
+      logger.error({ err: error }, '[BackofficeController.deleteSupplier] Error')
+      res.status(500).json({
+        success: false,
+        error: ERROR_CODES.BACKOFFICE_DELETE_SUPPLIER_ERROR,
+        code: ERROR_CODES.BACKOFFICE_DELETE_SUPPLIER_ERROR,
+      })
+    }
+  }
+
+  /**
+   * POST /api/backoffice/suppliers/:id/inactivate
+   * Marcar proveedor como inactivo (preserva histórico de facturas).
+   */
+  static async inactivateSupplier(req: Request, res: Response): Promise<void> {
+    try {
+      const { id } = req.params
+
+      const updated = await BackofficeRepository.inactivateSupplier(Number(id))
+
+      if (!updated) {
         res.status(404).json({
           success: false,
           error: ERROR_CODES.BACKOFFICE_SUPPLIER_NOT_FOUND,
@@ -320,15 +375,49 @@ export class BackofficeController {
 
       res.json({
         success: true,
-        message: SUCCESS_CODES.BACKOFFICE_SUPPLIER_DEACTIVATED,
-        code: SUCCESS_CODES.BACKOFFICE_SUPPLIER_DEACTIVATED,
+        message: SUCCESS_CODES.BACKOFFICE_SUPPLIER_INACTIVATED,
+        code: SUCCESS_CODES.BACKOFFICE_SUPPLIER_INACTIVATED,
       })
     } catch (error: any) {
-      logger.error({ err: error }, '[BackofficeController.deleteSupplier] Error')
+      logger.error({ err: error }, '[BackofficeController.inactivateSupplier] Error')
       res.status(500).json({
         success: false,
-        error: ERROR_CODES.BACKOFFICE_DEACTIVATE_SUPPLIER_ERROR,
-        code: ERROR_CODES.BACKOFFICE_DEACTIVATE_SUPPLIER_ERROR,
+        error: ERROR_CODES.BACKOFFICE_INACTIVATE_SUPPLIER_ERROR,
+        code: ERROR_CODES.BACKOFFICE_INACTIVATE_SUPPLIER_ERROR,
+      })
+    }
+  }
+
+  /**
+   * POST /api/backoffice/suppliers/:id/activate
+   * Reactivar proveedor inactivo.
+   */
+  static async activateSupplier(req: Request, res: Response): Promise<void> {
+    try {
+      const { id } = req.params
+
+      const updated = await BackofficeRepository.activateSupplier(Number(id))
+
+      if (!updated) {
+        res.status(404).json({
+          success: false,
+          error: ERROR_CODES.BACKOFFICE_SUPPLIER_NOT_FOUND,
+          code: ERROR_CODES.BACKOFFICE_SUPPLIER_NOT_FOUND,
+        })
+        return
+      }
+
+      res.json({
+        success: true,
+        message: SUCCESS_CODES.BACKOFFICE_SUPPLIER_ACTIVATED,
+        code: SUCCESS_CODES.BACKOFFICE_SUPPLIER_ACTIVATED,
+      })
+    } catch (error: any) {
+      logger.error({ err: error }, '[BackofficeController.activateSupplier] Error')
+      res.status(500).json({
+        success: false,
+        error: ERROR_CODES.BACKOFFICE_ACTIVATE_SUPPLIER_ERROR,
+        code: ERROR_CODES.BACKOFFICE_ACTIVATE_SUPPLIER_ERROR,
       })
     }
   }

@@ -23,6 +23,8 @@ import {
   FiDollarSign,
   FiTrash2,
   FiX,
+  FiPower,
+  FiRotateCcw,
 } from 'react-icons/fi'
 import type { SupplierWithStats, Category } from '@/app/lib/backoffice/types'
 import {
@@ -42,7 +44,8 @@ interface SuppliersTabLazyProps {
   onPageChange?: (page: number) => void
 }
 
-const suppliersKey = (page: number) => ['backoffice', 'suppliers', page] as const
+const suppliersKey = (page: number, isActive: boolean) =>
+  ['backoffice', 'suppliers', isActive ? 'active' : 'inactive', page] as const
 const suppliersListKey = () => ['backoffice', 'suppliers'] as const
 
 export function SuppliersTabLazy({
@@ -54,6 +57,7 @@ export function SuppliersTabLazy({
   const t = useTranslations('backoffice')
   const queryClient = useQueryClient()
 
+  const [activeStatusTab, setActiveStatusTab] = useState<'active' | 'inactive'>('active')
   const [searchTerm, setSearchTerm] = useState('')
   const [categoryFilter, setCategoryFilter] = useState<number | 'all'>('all')
   const [periodicityFilter, setPeriodicityFilter] = useState<string>('all')
@@ -64,27 +68,34 @@ export function SuppliersTabLazy({
   const [editingSupplier, setEditingSupplier] = useState<SupplierWithStats | null>(null)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [deletingSupplier, setDeletingSupplier] = useState<SupplierWithStats | null>(null)
+  const [inactivateDialogOpen, setInactivateDialogOpen] = useState(false)
+  const [inactivatingSupplier, setInactivatingSupplier] = useState<SupplierWithStats | null>(null)
   const [invoicesModalOpen, setInvoicesModalOpen] = useState(false)
 
-  // React Query fetch
+  const isActiveTab = activeStatusTab === 'active'
+
+  // React Query fetch — separate cache per tab (active vs inactive)
   const { data } = useQuery({
-    queryKey: suppliersKey(pagination.page),
+    queryKey: suppliersKey(pagination.page, isActiveTab),
     queryFn: async () => {
       const response = await backofficeApi.getSuppliers({
         page: pagination.page,
         limit: pagination.limit ?? 100,
+        is_active: isActiveTab,
       })
       return response
     },
-    initialData: {
-      suppliers: initialSuppliers,
-      pagination: {
-        page: pagination.page,
-        total: pagination.total,
-        totalPages: pagination.totalPages,
-        limit: pagination.limit ?? 100,
-      },
-    },
+    initialData: isActiveTab
+      ? {
+          suppliers: initialSuppliers,
+          pagination: {
+            page: pagination.page,
+            total: pagination.total,
+            totalPages: pagination.totalPages,
+            limit: pagination.limit ?? 100,
+          },
+        }
+      : undefined,
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
     refetchOnWindowFocus: false,
@@ -93,7 +104,7 @@ export function SuppliersTabLazy({
     retry: false,
   })
 
-  const suppliers = data?.suppliers ?? initialSuppliers
+  const suppliers = data?.suppliers ?? (isActiveTab ? initialSuppliers : [])
   const serverPagination = data?.pagination ?? pagination
 
   const invalidateSuppliers = () => {
@@ -146,6 +157,39 @@ export function SuppliersTabLazy({
     }
   }
 
+  const handleOpenInactivateDialog = (supplier: SupplierWithStats) => {
+    setInactivatingSupplier(supplier)
+    setInactivateDialogOpen(true)
+  }
+
+  const handleInactivateSupplier = async () => {
+    if (!inactivatingSupplier) return
+
+    try {
+      await backofficeApi.inactivateSupplier(inactivatingSupplier.id)
+      toast.success(t('toast.supplierInactivated'))
+      setInactivateDialogOpen(false)
+      setInactivatingSupplier(null)
+      setSelectedSupplier(null)
+      invalidateSuppliers()
+    } catch (error) {
+      const message = error instanceof Error ? error.message : t('toast.supplierInactivateError')
+      toast.error(message)
+    }
+  }
+
+  const handleActivateSupplier = async (supplier: SupplierWithStats) => {
+    try {
+      await backofficeApi.activateSupplier(supplier.id)
+      toast.success(t('toast.supplierActivated'))
+      setSelectedSupplier(null)
+      invalidateSuppliers()
+    } catch (error) {
+      const message = error instanceof Error ? error.message : t('toast.supplierActivateError')
+      toast.error(message)
+    }
+  }
+
   // Summary stats
   const domiciledCount = filteredSuppliers.filter((s) => s.payment_method === 'direct_debit').length
   const transferCount = filteredSuppliers.filter((s) => s.payment_method === 'transfer').length
@@ -176,6 +220,36 @@ export function SuppliersTabLazy({
             {transferCount}
           </p>
         </div>
+      </div>
+
+      {/* Status Sub-tabs */}
+      <div className="flex items-center gap-1 border-b border-border">
+        <button
+          onClick={() => {
+            setActiveStatusTab('active')
+            setSelectedSupplier(null)
+          }}
+          className={`px-3 py-2 text-xs font-medium border-b-2 transition-colors ${
+            activeStatusTab === 'active'
+              ? 'border-accent text-accent'
+              : 'border-transparent text-fg-muted hover:text-fg'
+          }`}
+        >
+          {t('suppliers.tabs.active')}
+        </button>
+        <button
+          onClick={() => {
+            setActiveStatusTab('inactive')
+            setSelectedSupplier(null)
+          }}
+          className={`px-3 py-2 text-xs font-medium border-b-2 transition-colors ${
+            activeStatusTab === 'inactive'
+              ? 'border-accent text-accent'
+              : 'border-transparent text-fg-muted hover:text-fg'
+          }`}
+        >
+          {t('suppliers.tabs.inactive')}
+        </button>
       </div>
 
       {/* Filters */}
@@ -365,10 +439,32 @@ export function SuppliersTabLazy({
                   >
                     <FiEdit2 className="w-3.5 h-3.5" />
                   </button>
+                  {selectedSupplier.is_active ? (
+                    <button
+                      onClick={() => handleOpenInactivateDialog(selectedSupplier)}
+                      className="inline-flex items-center justify-center w-7 h-7 text-fg-muted hover:text-warning hover:bg-surface-hover rounded transition-colors"
+                      title={t('actions.inactivate')}
+                    >
+                      <FiPower className="w-3.5 h-3.5" />
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => handleActivateSupplier(selectedSupplier)}
+                      className="inline-flex items-center justify-center w-7 h-7 text-fg-muted hover:text-success hover:bg-surface-hover rounded transition-colors"
+                      title={t('actions.activate')}
+                    >
+                      <FiRotateCcw className="w-3.5 h-3.5" />
+                    </button>
+                  )}
                   <button
                     onClick={() => handleOpenDeleteDialog(selectedSupplier)}
-                    className="inline-flex items-center justify-center w-7 h-7 text-fg-muted hover:text-red-600 dark:hover:text-red-400 hover:bg-surface-hover rounded transition-colors"
-                    title={t('actions.delete')}
+                    disabled={(selectedSupplier.total_invoices || 0) > 0}
+                    className="inline-flex items-center justify-center w-7 h-7 text-fg-muted hover:text-red-600 dark:hover:text-red-400 hover:bg-surface-hover rounded transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:text-fg-muted disabled:hover:bg-transparent"
+                    title={
+                      (selectedSupplier.total_invoices || 0) > 0
+                        ? t('actions.deleteBlockedHasInvoices')
+                        : t('actions.delete')
+                    }
                   >
                     <FiTrash2 className="w-3.5 h-3.5" />
                   </button>
@@ -524,7 +620,7 @@ export function SuppliersTabLazy({
         />
       )}
 
-      {/* Delete Confirmation Dialog */}
+      {/* Hard-delete Confirmation Dialog (only when no invoices) */}
       {deleteDialogOpen && deletingSupplier && (
         <ConfirmDialog
           isOpen={deleteDialogOpen}
@@ -537,6 +633,22 @@ export function SuppliersTabLazy({
             setDeletingSupplier(null)
           }}
           onConfirm={handleDeleteSupplier}
+        />
+      )}
+
+      {/* Inactivate Confirmation Dialog */}
+      {inactivateDialogOpen && inactivatingSupplier && (
+        <ConfirmDialog
+          isOpen={inactivateDialogOpen}
+          title={t('modals.inactivateSupplier.title')}
+          message={t('modals.inactivateSupplier.message', { name: inactivatingSupplier.name })}
+          confirmText={t('modals.inactivateSupplier.confirmButton')}
+          variant="warning"
+          onClose={() => {
+            setInactivateDialogOpen(false)
+            setInactivatingSupplier(null)
+          }}
+          onConfirm={handleInactivateSupplier}
         />
       )}
 

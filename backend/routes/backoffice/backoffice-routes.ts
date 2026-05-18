@@ -107,10 +107,28 @@ router.patch('/suppliers/:id', isRealAdmin, BackofficeController.updateSupplier)
 
 /**
  * @route   DELETE /api/backoffice/suppliers/:id
- * @desc    Desactivar proveedor (soft delete)
+ * @desc    Eliminar proveedor permanentemente (solo si no tiene facturas)
  * @access  Private (admin only)
  */
 router.delete('/suppliers/:id', isRealAdmin, BackofficeController.deleteSupplier)
+
+/**
+ * @route   POST /api/backoffice/suppliers/:id/inactivate
+ * @desc    Marcar proveedor como inactivo (preserva histórico)
+ * @access  Private (admin only)
+ */
+router.post(
+  '/suppliers/:id/inactivate',
+  isRealAdmin,
+  BackofficeController.inactivateSupplier
+)
+
+/**
+ * @route   POST /api/backoffice/suppliers/:id/activate
+ * @desc    Reactivar proveedor inactivo
+ * @access  Private (admin only)
+ */
+router.post('/suppliers/:id/activate', isRealAdmin, BackofficeController.activateSupplier)
 
 // ========================================
 // RUTAS DE FACTURAS

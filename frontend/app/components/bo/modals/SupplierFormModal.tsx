@@ -9,7 +9,7 @@
 import { useState, useEffect, useTransition } from 'react'
 import { useTranslations } from 'next-intl'
 import { FiSave } from 'react-icons/fi'
-import { Modal, Input, Select, Textarea, Button } from '@/app/ui/components'
+import { Modal, Input, Select, Textarea, Button, ConfirmDialog } from '@/app/ui/components'
 import type {
   SupplierWithStats,
   SupplierFormData,
@@ -18,6 +18,7 @@ import type {
   PaymentMethod,
 } from '@/app/lib/backoffice/types'
 import { backofficeApi } from '@/app/lib/backoffice/backofficeApi'
+import { ApiError } from '@/app/lib/apiClient'
 import toast from 'react-hot-toast'
 
 interface SupplierFormModalProps {
@@ -38,6 +39,11 @@ export function SupplierFormModal({
   const t = useTranslations('backoffice')
   const [isPending, startTransition] = useTransition()
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const [reactivateModal, setReactivateModal] = useState<{
+    open: boolean
+    existingId: number | null
+    name: string
+  }>({ open: false, existingId: null, name: '' })
 
   // Periodicity options with translations
   const PERIODICITY_OPTIONS: { value: Periodicity; label: string }[] = [
@@ -177,10 +183,39 @@ export function SupplierFormModal({
         onSuccess()
         onClose()
       } catch (error) {
+        // Si el backend reporta que existe un proveedor inactivo con ese nombre,
+        // ofrecer reactivarlo en lugar de fallar.
+        if (
+          error instanceof ApiError &&
+          error.status === 409 &&
+          error.code === 'BACKOFFICE_SUPPLIER_INACTIVE_EXISTS' &&
+          typeof error.body?.existingId === 'number'
+        ) {
+          setReactivateModal({
+            open: true,
+            existingId: error.body.existingId as number,
+            name: formData.name.trim(),
+          })
+          return
+        }
         const message = error instanceof Error ? error.message : t('toast.supplierSaveError')
         toast.error(message)
       }
     })
+  }
+
+  const handleReactivateConfirm = async () => {
+    if (!reactivateModal.existingId) return
+    try {
+      await backofficeApi.activateSupplier(reactivateModal.existingId)
+      toast.success(t('toast.supplierActivated'))
+      setReactivateModal({ open: false, existingId: null, name: '' })
+      onSuccess()
+      onClose()
+    } catch (error) {
+      const message = error instanceof Error ? error.message : t('toast.supplierActivateError')
+      toast.error(message)
+    }
   }
 
   return (
@@ -319,6 +354,19 @@ export function SupplierFormModal({
           </div>
         </div>
       </form>
+
+      {reactivateModal.open && (
+        <ConfirmDialog
+          isOpen={reactivateModal.open}
+          title={t('modals.reactivateSupplier.title')}
+          message={t('modals.reactivateSupplier.message', { name: reactivateModal.name })}
+          confirmText={t('modals.reactivateSupplier.confirmButton')}
+          cancelText={t('actions.cancel')}
+          variant="info"
+          onClose={() => setReactivateModal({ open: false, existingId: null, name: '' })}
+          onConfirm={handleReactivateConfirm}
+        />
+      )}
     </Modal>
   )
 }

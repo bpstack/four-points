@@ -223,13 +223,21 @@ export class ApiError extends Error {
   demo: boolean
   status: number
   code?: string
+  body?: Record<string, unknown>
 
-  constructor(message: string, status: number, demo: boolean = false, code?: string) {
+  constructor(
+    message: string,
+    status: number,
+    demo: boolean = false,
+    code?: string,
+    body?: Record<string, unknown>
+  ) {
     super(message)
     this.name = 'ApiError'
     this.status = status
     this.demo = demo
     this.code = code
+    this.body = body
   }
 }
 
@@ -264,7 +272,7 @@ async function handleApiError(response: Response): Promise<never> {
     })
   }
 
-  throw new ApiError(message, response.status, isDemo, errorCode)
+  throw new ApiError(message, response.status, isDemo, errorCode, errorData)
 }
 
 /**
