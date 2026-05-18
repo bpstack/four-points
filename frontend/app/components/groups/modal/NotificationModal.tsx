@@ -7,7 +7,13 @@
 
 import { useState, useRef, useEffect, useMemo } from 'react'
 import { FiBell, FiX, FiCalendar, FiClock, FiAlertCircle } from 'react-icons/fi'
-import { groupsApi, type CreateNotificationDTO, NotificationPriority } from '@/app/lib/groups'
+import {
+  groupsApi,
+  groupsKeys,
+  type CreateNotificationDTO,
+  NotificationPriority,
+} from '@/app/lib/groups'
+import { useQueryClient } from '@tanstack/react-query'
 import SimpleCalendarCompact from '@/app/ui/calendar/SimpleCalendarCompact'
 import TimePicker from '@/app/ui/calendar/timepicker'
 import { useTranslations } from 'next-intl'
@@ -65,6 +71,7 @@ function getMinTimeForToday(): string {
 
 export function NotificationModal({ isOpen, onClose, groupId, groupName }: NotificationModalProps) {
   const t = useTranslations('notifications')
+  const queryClient = useQueryClient()
   const [title, setTitle] = useState('')
   const [message, setMessage] = useState('')
   const [priority, setPriority] = useState<'low' | 'medium' | 'high'>('medium')
@@ -181,6 +188,7 @@ export function NotificationModal({ isOpen, onClose, groupId, groupName }: Notif
       }
 
       await groupsApi.createNotification(groupId, data)
+      await queryClient.invalidateQueries({ queryKey: groupsKeys.notifications(groupId) })
 
       setSuccess(true)
       setTimeout(() => {

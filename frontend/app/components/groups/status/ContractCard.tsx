@@ -7,7 +7,7 @@ import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { contractSchema, type ContractFormData } from '@/app/lib/schemas/group-schemas'
 import { groupsApi, type GroupStatusRecord } from '@/app/lib/groups'
-import { useGroupStore } from '@/app/stores/useGroupStore'
+import { useQueryClient } from '@tanstack/react-query'
 import { FiFileText, FiEdit2, FiSave, FiX, FiCheckCircle, FiCalendar } from 'react-icons/fi'
 import { formatDateForInput, parseInputDate } from '@/app/lib/helpers/date'
 import SimpleCalendarCompact from '@/app/ui/calendar/SimpleCalendarCompact'
@@ -26,7 +26,7 @@ export function ContractCard({ status, groupId }: ContractCardProps) {
   const locale = useLocale()
   const [isEditing, setIsEditing] = useState(false)
   const [showCalendar, setShowCalendar] = useState(false)
-  const { refreshStatus, refreshGroup } = useGroupStore()
+  const queryClient = useQueryClient()
 
   const {
     register,
@@ -68,7 +68,7 @@ export function ContractCard({ status, groupId }: ContractCardProps) {
       await groupsApi.updateContract(groupId, data)
       toast.success(t('statusCards.contractUpdateSuccess'))
 
-      await Promise.all([refreshStatus(groupId), refreshGroup(groupId)])
+      await queryClient.invalidateQueries({ queryKey: ['groups', groupId] })
 
       setIsEditing(false)
       setShowCalendar(false)

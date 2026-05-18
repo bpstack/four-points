@@ -5,6 +5,8 @@ import { useState } from 'react'
 import { useTranslations, useLocale } from 'next-intl'
 import { useMaintenanceStore } from '@/app/stores/useMaintenanceStore'
 import { maintenanceApi } from '@/app/lib/maintenance/maintenanceApi'
+import { maintenanceKeys } from '../hooks/useMaintenanceList'
+import { useQueryClient } from '@tanstack/react-query'
 import type { ReportStatus, ReportPriority } from '@/app/lib/maintenance/maintenance'
 import { LoadingSpinner } from '../shared/LoadingSpinner'
 import { EmptyState } from '../shared/EmptyState'
@@ -26,6 +28,7 @@ export function DetailTab() {
   const t = useTranslations('maintenance')
   const locale = useLocale()
   const { currentReport, images, isLoadingReport, refreshReport } = useMaintenanceStore()
+  const queryClient = useQueryClient()
   const [isEditingStatus, setIsEditingStatus] = useState(false)
   const [isEditingPriority, setIsEditingPriority] = useState(false)
   const [selectedStatus, setSelectedStatus] = useState<ReportStatus | null>(null)
@@ -60,6 +63,7 @@ export function DetailTab() {
       setIsSaving(true)
       await maintenanceApi.updateStatus(currentReport.id, selectedStatus)
       await refreshReport(currentReport.id)
+      await queryClient.invalidateQueries({ queryKey: maintenanceKeys.all })
       setIsEditingStatus(false)
       setSelectedStatus(null)
       toast.success(t('detail.toast.statusUpdated'))
@@ -78,6 +82,7 @@ export function DetailTab() {
       setIsSaving(true)
       await maintenanceApi.updatePriority(currentReport.id, selectedPriority)
       await refreshReport(currentReport.id)
+      await queryClient.invalidateQueries({ queryKey: maintenanceKeys.all })
       setIsEditingPriority(false)
       setSelectedPriority(null)
       toast.success(t('detail.toast.priorityUpdated'))
@@ -99,6 +104,7 @@ export function DetailTab() {
       setIsSaving(true)
       await maintenanceApi.addResolutionNotes(currentReport.id, resolutionNotes)
       await refreshReport(currentReport.id)
+      await queryClient.invalidateQueries({ queryKey: maintenanceKeys.all })
       setShowNotesInput(false)
       setResolutionNotes('')
       toast.success(t('detail.toast.notesSaved'))

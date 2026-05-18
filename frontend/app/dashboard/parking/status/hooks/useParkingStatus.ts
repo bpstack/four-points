@@ -436,5 +436,9 @@ export function useParkingStatus(selectedDate: string, messages: ParkingStatusMe
     handlePaymentBooking,
     confirmPayment,
     handleOverdueAction,
+
+    // Cache invalidation (call after mutations performed outside this hook,
+    // e.g. BookingWizard creating a booking from a modal).
+    invalidate: invalidateAll,
   }
 }

@@ -9,6 +9,8 @@ import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { reportSchema, type ReportFormData } from '@/app/lib/maintenance/maintenance-schemas'
 import { maintenanceApi } from '@/app/lib/maintenance/maintenanceApi'
+import { maintenanceKeys } from '../hooks/useMaintenanceList'
+import { useQueryClient } from '@tanstack/react-query'
 import { FiSave, FiUpload, FiX, FiTool } from 'react-icons/fi'
 import toast from 'react-hot-toast'
 import {
@@ -30,6 +32,7 @@ interface CreateReportPanelProps {
 export function CreateReportPanel({ isOpen, onClose }: CreateReportPanelProps) {
   const t = useTranslations('maintenance')
   const router = useRouter()
+  const queryClient = useQueryClient()
   const [previewImages, setPreviewImages] = useState<string[]>([])
   const [imageFiles, setImageFiles] = useState<File[]>([])
 
@@ -139,6 +142,7 @@ export function CreateReportPanel({ isOpen, onClose }: CreateReportPanelProps) {
         }
       }
 
+      await queryClient.invalidateQueries({ queryKey: maintenanceKeys.all })
       toast.success(t('panels.create.toast.reportCreated'))
       router.push(`/dashboard/maintenance/${reportId}`)
       onClose()

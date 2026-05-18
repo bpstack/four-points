@@ -82,6 +82,7 @@ export default function ParkingStatusClient({
     handlePaymentBooking,
     confirmPayment,
     handleOverdueAction,
+    invalidate,
   } = useParkingStatus(selectedDate, messages)
 
   const filteredSpots =
@@ -278,6 +279,7 @@ export default function ParkingStatusClient({
           selectedDate={selectedDate}
           onSuccess={() => {
             setCreateModal({ isOpen: false, spot: null })
+            invalidate()
           }}
           onCancel={() => setCreateModal({ isOpen: false, spot: null })}
         />

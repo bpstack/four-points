@@ -8,6 +8,8 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useTranslations } from 'next-intl'
 import { reportSchema, type ReportFormData } from '@/app/lib/maintenance/maintenance-schemas'
 import { maintenanceApi } from '@/app/lib/maintenance/maintenanceApi'
+import { maintenanceKeys } from '../hooks/useMaintenanceList'
+import { useQueryClient } from '@tanstack/react-query'
 import type { ReportWithDetails, MaintenanceImage } from '@/app/lib/maintenance/maintenance'
 import { FiSave, FiTool, FiUpload, FiX, FiTrash2 } from 'react-icons/fi'
 import toast from 'react-hot-toast'
@@ -31,6 +33,7 @@ interface EditReportPanelProps {
 
 export function EditReportPanel({ isOpen, onClose, report, onSuccess }: EditReportPanelProps) {
   const t = useTranslations('maintenance')
+  const queryClient = useQueryClient()
   // State for new images to upload
   const [previewImages, setPreviewImages] = useState<string[]>([])
   const [imageFiles, setImageFiles] = useState<File[]>([])
@@ -157,6 +160,7 @@ export function EditReportPanel({ isOpen, onClose, report, onSuccess }: EditRepo
       setDeletingImageId(imageId)
       await maintenanceApi.deleteImage(report.id, imageId)
       setExistingImages((prev) => prev.filter((img) => img.id !== imageId))
+      await queryClient.invalidateQueries({ queryKey: maintenanceKeys.detail(report.id.toString()) })
       toast.success(t('panels.edit.toast.imageDeleted'))
     } catch (error) {
       console.error('Error deleting image:', error)
@@ -184,6 +188,7 @@ export function EditReportPanel({ isOpen, onClose, report, onSuccess }: EditRepo
         }
       }
 
+      await queryClient.invalidateQueries({ queryKey: maintenanceKeys.all })
       toast.success(t('panels.edit.toast.reportUpdated'))
       onSuccess?.()
       onClose()

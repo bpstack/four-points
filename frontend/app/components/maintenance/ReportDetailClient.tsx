@@ -7,6 +7,8 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { useMaintenanceStore } from '@/app/stores/useMaintenanceStore'
 import { maintenanceApi } from '@/app/lib/maintenance/maintenanceApi'
+import { maintenanceKeys } from './hooks/useMaintenanceList'
+import { useQueryClient } from '@tanstack/react-query'
 import type { ReportWithDetails } from '@/app/lib/maintenance/maintenance'
 import { ReportHeader } from './layout/ReportHeader'
 import { TabNavigation } from './layout/TabNavigation'
@@ -28,6 +30,7 @@ export function ReportDetailClient({ initialReport }: ReportDetailClientProps) {
   const activeTab = searchParams.get('tab') || 'detail'
 
   const { currentReport, setCurrentReport, setActiveTab, refreshReport } = useMaintenanceStore()
+  const queryClient = useQueryClient()
 
   // Estados para editar y eliminar
   const [isEditPanelOpen, setIsEditPanelOpen] = useState(false)
@@ -64,6 +67,7 @@ export function ReportDetailClient({ initialReport }: ReportDetailClientProps) {
     try {
       setIsDeleting(true)
       await maintenanceApi.delete(currentReport.id)
+      await queryClient.invalidateQueries({ queryKey: maintenanceKeys.all })
       toast.success(t('detail.toast.reportDeleted'))
       router.push('/dashboard/maintenance')
     } catch (error) {

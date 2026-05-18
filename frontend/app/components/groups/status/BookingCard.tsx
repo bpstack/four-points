@@ -17,7 +17,7 @@ import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { bookingSchema, type BookingFormData } from '@/app/lib/schemas/group-schemas'
 import { groupsApi, type GroupStatusRecord } from '@/app/lib/groups'
-import { useGroupStore } from '@/app/stores/useGroupStore'
+import { useQueryClient } from '@tanstack/react-query'
 import { FiCalendar, FiEdit2, FiSave, FiX, FiCheckCircle } from 'react-icons/fi'
 import { formatDateForInput, parseInputDate } from '@/app/lib/helpers/date'
 import SimpleCalendarCompact from '@/app/ui/calendar/SimpleCalendarCompact'
@@ -36,7 +36,7 @@ export function BookingCard({ status, groupId }: BookingCardProps) {
   const locale = useLocale()
   const [isEditing, setIsEditing] = useState(false)
   const [showCalendar, setShowCalendar] = useState(false)
-  const { refreshStatus, refreshGroup } = useGroupStore()
+  const queryClient = useQueryClient()
 
   const {
     register,
@@ -78,7 +78,7 @@ export function BookingCard({ status, groupId }: BookingCardProps) {
       await groupsApi.updateBooking(groupId, data)
       toast.success(t('statusCards.bookingUpdateSuccess'))
 
-      await Promise.all([refreshStatus(groupId), refreshGroup(groupId)])
+      await queryClient.invalidateQueries({ queryKey: ['groups', groupId] })
 
       setIsEditing(false)
       setShowCalendar(false)

@@ -12,7 +12,7 @@ import {
   type UpdateRoomingDTO,
   RoomingStatus,
 } from '@/app/lib/groups'
-import { useGroupStore } from '@/app/stores/useGroupStore'
+import { useQueryClient } from '@tanstack/react-query'
 import { FiUsers, FiEdit2, FiSave, FiX, FiCalendar } from 'react-icons/fi'
 import { formatDateForInput, parseInputDate } from '@/app/lib/helpers/date'
 import SimpleCalendarCompact from '@/app/ui/calendar/SimpleCalendarCompact'
@@ -31,7 +31,7 @@ export function RoomingCard({ status, groupId }: RoomingCardProps) {
   const [isEditing, setIsEditing] = useState(false)
   const [showRequestedCalendar, setShowRequestedCalendar] = useState(false)
   const [showReceivedCalendar, setShowReceivedCalendar] = useState(false)
-  const { refreshStatus, refreshGroup } = useGroupStore()
+  const queryClient = useQueryClient()
 
   const ROOMING_STATUS_CONFIG = {
     [RoomingStatus.PENDING]: {
@@ -109,7 +109,7 @@ export function RoomingCard({ status, groupId }: RoomingCardProps) {
       await groupsApi.updateRooming(groupId, payload)
       toast.success(t('statusCards.roomingUpdateSuccess'))
 
-      await Promise.all([refreshStatus(groupId), refreshGroup(groupId)])
+      await queryClient.invalidateQueries({ queryKey: ['groups', groupId] })
 
       setIsEditing(false)
       setShowRequestedCalendar(false)
