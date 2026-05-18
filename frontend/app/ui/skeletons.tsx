@@ -7,23 +7,23 @@ const shimmer =
 // Skeleton para fila de tabla (Desktop)
 function UserTableRowSkeleton() {
   return (
-    <tr className="hover:bg-gray-50 dark:hover:bg-[#161b22]/50 transition-colors">
+    <tr className="hover:bg-surface-hover/50 transition-colors">
       <td className="px-4 py-3">
         <div className="flex items-center gap-2">
-          <div className="h-3.5 w-3.5 rounded bg-gray-200 dark:bg-gray-700"></div>
-          <div className="h-4 w-24 rounded bg-gray-200 dark:bg-gray-700"></div>
+          <div className="h-3.5 w-3.5 rounded bg-surface-hover"></div>
+          <div className="h-4 w-24 rounded bg-surface-hover"></div>
         </div>
       </td>
       <td className="px-4 py-3">
-        <div className="h-4 w-32 rounded bg-gray-200 dark:bg-gray-700"></div>
+        <div className="h-4 w-32 rounded bg-surface-hover"></div>
       </td>
       <td className="px-4 py-3">
-        <div className="h-4 w-20 rounded bg-gray-200 dark:bg-gray-700"></div>
+        <div className="h-4 w-20 rounded bg-surface-hover"></div>
       </td>
       <td className="px-4 py-3">
         <div className="flex gap-2">
-          <div className="h-6 w-6 rounded bg-gray-200 dark:bg-gray-700"></div>
-          <div className="h-6 w-6 rounded bg-gray-200 dark:bg-gray-700"></div>
+          <div className="h-6 w-6 rounded bg-surface-hover"></div>
+          <div className="h-6 w-6 rounded bg-surface-hover"></div>
         </div>
       </td>
     </tr>
@@ -33,20 +33,20 @@ function UserTableRowSkeleton() {
 // Skeleton para cards móviles
 function UserCardSkeleton() {
   return (
-    <div className="bg-white dark:bg-[#161b22] border border-gray-200 dark:border-[#30363d] rounded-md p-4">
+    <div className="bg-surface border border-gray-200 rounded-md p-4">
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-center gap-2">
-          <div className="h-4 w-4 rounded bg-gray-200 dark:bg-gray-700"></div>
-          <div className="h-4 w-32 rounded bg-gray-200 dark:bg-gray-700"></div>
+          <div className="h-4 w-4 rounded bg-surface-hover"></div>
+          <div className="h-4 w-32 rounded bg-surface-hover"></div>
         </div>
         <div className="flex gap-2">
-          <div className="h-6 w-6 rounded bg-gray-200 dark:bg-gray-700"></div>
-          <div className="h-6 w-6 rounded bg-gray-200 dark:bg-gray-700"></div>
+          <div className="h-6 w-6 rounded bg-surface-hover"></div>
+          <div className="h-6 w-6 rounded bg-surface-hover"></div>
         </div>
       </div>
       <div className="space-y-2">
-        <div className="h-3 w-full rounded bg-gray-200 dark:bg-gray-700"></div>
-        <div className="h-3 w-24 rounded bg-gray-200 dark:bg-gray-700"></div>
+        <div className="h-3 w-full rounded bg-surface-hover"></div>
+        <div className="h-3 w-24 rounded bg-surface-hover"></div>
       </div>
     </div>
   )
@@ -58,22 +58,19 @@ export function UsersTableSkeleton() {
     <>
       {/* Desktop Table */}
       <div
-        className={`${shimmer} relative hidden md:block overflow-hidden overflow-x-auto border border-gray-200 dark:border-[#30363d] rounded-md`}
+        className={`${shimmer} relative hidden md:block overflow-hidden overflow-x-auto border border-gray-200 rounded-md`}
       >
         <table className="w-full text-xs">
-          <thead className="bg-gray-50 border-b border-gray-200 dark:bg-[#161b22] dark:border-[#30363d]">
+          <thead className="bg-gray-50 border-b border-gray-200 dark:bg-surface-hover">
             <tr>
               {['Username', 'Email', 'Role', 'Actions'].map((header) => (
-                <th
-                  key={header}
-                  className="px-4 py-2 text-left font-semibold text-gray-700 dark:text-gray-300"
-                >
+                <th key={header} className="px-4 py-2 text-left font-semibold text-fg">
                   {header}
                 </th>
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-200 dark:divide-[#30363d] bg-white dark:bg-[#0d1117]">
+          <tbody className="divide-y divide-gray-200 dark:divide-border bg-surface">
             <UserTableRowSkeleton />
             <UserTableRowSkeleton />
             <UserTableRowSkeleton />

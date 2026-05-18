@@ -87,10 +87,9 @@ export function BalanceCard({ groupId }: BalanceCardProps) {
         return {
           icon: FiAlertCircle,
           label: t('statusCards.partialPayment'),
-          color:
-            'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-800',
+          color: 'bg-info/10 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-800',
           iconColor: 'text-blue-600 dark:text-blue-400',
-          bgColor: 'bg-blue-100 dark:bg-blue-900/20',
+          bgColor: 'bg-info/10',
         }
       case 'pending':
       default:
@@ -109,7 +108,7 @@ export function BalanceCard({ groupId }: BalanceCardProps) {
   const StatusIcon = statusConfig.icon
 
   return (
-    <div className="bg-white dark:bg-[#0D1117] rounded-lg border border-gray-200 dark:border-gray-800 p-4">
+    <div className="bg-surface rounded-lg border border-border p-4">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
@@ -118,9 +117,7 @@ export function BalanceCard({ groupId }: BalanceCardProps) {
           >
             <FiDollarSign className={`w-4 h-4 ${statusConfig.iconColor}`} />
           </div>
-          <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-            {t('statusCards.balance')}
-          </h4>
+          <h4 className="text-sm font-semibold text-fg">{t('statusCards.balance')}</h4>
         </div>
       </div>
 
@@ -134,14 +131,12 @@ export function BalanceCard({ groupId }: BalanceCardProps) {
             <StatusIcon className="w-3.5 h-3.5" />
             {statusConfig.label}
           </span>
-          <span className="text-xs font-semibold text-gray-900 dark:text-gray-100">
-            {balance.percentagePaid}%
-          </span>
+          <span className="text-xs font-semibold text-fg">{balance.percentagePaid}%</span>
         </div>
 
         {/* Progress Bar */}
         <div>
-          <div className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+          <div className="w-full h-2 bg-surface-hover rounded-full overflow-hidden">
             <div
               className={`h-full transition-all duration-500 rounded-full ${
                 balance.status === 'paid'
@@ -156,19 +151,15 @@ export function BalanceCard({ groupId }: BalanceCardProps) {
         </div>
 
         {/* Amounts */}
-        <div className="grid grid-cols-2 gap-3 pt-2 border-t border-gray-200 dark:border-gray-800">
+        <div className="grid grid-cols-2 gap-3 pt-2 border-t border-border">
           <div>
-            <p className="text-[10px] text-gray-500 dark:text-gray-400 mb-0.5">
-              {t('statusCards.totalExpected')}
-            </p>
-            <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+            <p className="text-[10px] text-fg-subtle mb-0.5">{t('statusCards.totalExpected')}</p>
+            <p className="text-sm font-semibold text-fg">
               {formatCurrency(balance.totalExpected, currentGroup?.currency)}
             </p>
           </div>
           <div>
-            <p className="text-[10px] text-gray-500 dark:text-gray-400 mb-0.5">
-              {t('statusCards.paidAmount')}
-            </p>
+            <p className="text-[10px] text-fg-subtle mb-0.5">{t('statusCards.paidAmount')}</p>
             <p className="text-sm font-semibold text-green-600 dark:text-green-400">
               {formatCurrency(balance.totalPaid, currentGroup?.currency)}
             </p>
@@ -177,10 +168,8 @@ export function BalanceCard({ groupId }: BalanceCardProps) {
 
         {/* Remaining Amount (solo si hay pendiente) */}
         {balance.remaining > 0 && (
-          <div className="pt-2 border-t border-gray-200 dark:border-gray-800">
-            <p className="text-[10px] text-gray-500 dark:text-gray-400 mb-0.5">
-              {t('statusCards.pendingPayment')}
-            </p>
+          <div className="pt-2 border-t border-border">
+            <p className="text-[10px] text-fg-subtle mb-0.5">{t('statusCards.pendingPayment')}</p>
             <p className="text-sm font-semibold text-orange-600 dark:text-orange-400">
               {formatCurrency(balance.remaining, currentGroup?.currency)}
             </p>
@@ -188,10 +177,8 @@ export function BalanceCard({ groupId }: BalanceCardProps) {
         )}
 
         {/* Info Helper */}
-        <div className="pt-2 border-t border-gray-200 dark:border-gray-800">
-          <p className="text-[10px] text-gray-500 dark:text-gray-400 italic">
-            {t('statusCards.balanceHint')}
-          </p>
+        <div className="pt-2 border-t border-border">
+          <p className="text-[10px] text-fg-subtle italic">{t('statusCards.balanceHint')}</p>
         </div>
       </div>
     </div>

@@ -96,7 +96,7 @@ export function HistoryItem({ record }: HistoryItemProps) {
     [HistoryAction.UPDATED]: {
       icon: FiEdit,
       label: t('actions.updated'),
-      color: 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20',
+      color: 'text-blue-600 dark:text-blue-400 bg-info/10',
     },
     [HistoryAction.DELETED]: {
       icon: FiTrash2,
@@ -258,7 +258,7 @@ export function HistoryItem({ record }: HistoryItemProps) {
   return (
     <div className="relative pl-8 pb-6 last:pb-0">
       {/* Timeline line */}
-      <div className="absolute left-3 top-0 bottom-0 w-0.5 bg-gray-200 dark:bg-gray-800 last:hidden" />
+      <div className="absolute left-3 top-0 bottom-0 w-0.5 bg-surface-hover last:hidden" />
 
       {/* Icon */}
       <div
@@ -268,15 +268,13 @@ export function HistoryItem({ record }: HistoryItemProps) {
       </div>
 
       {/* Content */}
-      <div className="bg-white dark:bg-[#151b23] rounded-lg border border-gray-200 dark:border-gray-800 p-4">
+      <div className="bg-surface rounded-lg border border-border p-4">
         {/* Header */}
         <div className="flex items-start justify-between mb-3">
           <div>
-            <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-              {getDescription()}
-            </p>
+            <p className="text-sm font-medium text-fg">{getDescription()}</p>
             {record.changed_by_username && (
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+              <p className="text-xs text-fg-subtle mt-0.5">
                 {t('byUser')}{' '}
                 <span className="font-medium text-blue-600 dark:text-blue-400">
                   {record.changed_by_username}
@@ -284,7 +282,7 @@ export function HistoryItem({ record }: HistoryItemProps) {
               </p>
             )}
           </div>
-          <div className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">
+          <div className="flex items-center gap-1.5 text-xs text-fg-subtle">
             <FiClock className="w-3 h-3" />
             {formatDate(record.changed_at)}
           </div>
@@ -295,16 +293,14 @@ export function HistoryItem({ record }: HistoryItemProps) {
           <div className="space-y-2">
             {jsonChanges.map((change, index) => (
               <div key={index} className="text-sm">
-                <p className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  {formatFieldName(change.field)}
-                </p>
+                <p className="text-xs font-medium text-fg mb-1">{formatFieldName(change.field)}</p>
                 <div className="flex items-center gap-2">
                   {change.oldVal !== null && change.oldVal !== undefined && (
                     <>
                       <span className="px-2 py-1 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded text-xs">
                         {formatValue(String(change.oldVal), change.field)}
                       </span>
-                      <span className="text-gray-400">→</span>
+                      <span className="text-fg-subtle">→</span>
                     </>
                   )}
                   <span className="px-2 py-1 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 rounded text-xs font-medium">
@@ -316,7 +312,7 @@ export function HistoryItem({ record }: HistoryItemProps) {
           </div>
         ) : record.field_changed && (record.old_value || record.new_value) ? (
           <div className="text-sm">
-            <p className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <p className="text-xs font-medium text-fg mb-1">
               {formatFieldName(record.field_changed)}
             </p>
             <div className="flex items-center gap-2">
@@ -325,7 +321,7 @@ export function HistoryItem({ record }: HistoryItemProps) {
                   <span className="px-2 py-1 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded text-xs">
                     {formatValue(record.old_value, record.field_changed)}
                   </span>
-                  <span className="text-gray-400">→</span>
+                  <span className="text-fg-subtle">→</span>
                 </>
               )}
               {record.new_value && (
@@ -339,7 +335,7 @@ export function HistoryItem({ record }: HistoryItemProps) {
 
         {/* Notes */}
         {record.notes && (
-          <p className="text-xs text-gray-600 dark:text-gray-400 italic mt-3 pt-3 border-t border-gray-200 dark:border-gray-800">
+          <p className="text-xs text-fg-muted italic mt-3 pt-3 border-t border-border">
             {record.notes}
           </p>
         )}

@@ -85,18 +85,14 @@ export default function DenominationForm({
       <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border border-green-200 dark:border-green-800 rounded-lg p-2.5">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-[10px] text-gray-600 dark:text-gray-400 mb-0.5">
-              {t('denomination.cashCounted')}
-            </p>
+            <p className="text-[10px] text-fg-muted mb-0.5">{t('denomination.cashCounted')}</p>
             <p className="text-xl font-bold text-green-600 dark:text-green-400">
               {cashCounted.toFixed(2)}€
             </p>
           </div>
           <div className="text-right">
-            <p className="text-[9px] text-gray-500 dark:text-gray-400 mb-0.5">
-              {t('denomination.completed')}
-            </p>
-            <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+            <p className="text-[9px] text-fg-subtle mb-0.5">{t('denomination.completed')}</p>
+            <p className="text-sm font-semibold text-fg">
               {completedCount}/{EURO_DENOMINATIONS.length}
             </p>
           </div>
@@ -113,10 +109,10 @@ export default function DenominationForm({
           return (
             <div
               key={denom}
-              className={`bg-white dark:bg-[#0d1117] border rounded-lg p-2 transition-all ${
+              className={`bg-surface border rounded-lg p-2 transition-all ${
                 hasValue
                   ? 'border-green-300 dark:border-green-700 ring-1 ring-green-100 dark:ring-green-900/30'
-                  : 'border-gray-200 dark:border-gray-800'
+                  : 'border-border'
               }`}
             >
               <div className="flex items-center gap-1.5 mb-1.5">
@@ -124,7 +120,7 @@ export default function DenominationForm({
                 {denom >= 5 && <span className="text-lg">💶</span>}
                 <div className="flex-1">
                   <div className="flex items-center gap-1.5">
-                    <p className="text-lg font-medium text-gray-700 dark:text-gray-300">
+                    <p className="text-lg font-medium text-fg">
                       {denom >= 1 ? `${denom}€` : `${(denom * 100).toFixed(0)}¢`}
                     </p>
                     {/* Badge Billete/Moneda */}
@@ -134,7 +130,7 @@ export default function DenominationForm({
                       </span>
                     )}
                     {denom < 5 && (
-                      <span className="text-[11px] px-1 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded font-medium">
+                      <span className="text-[11px] px-1 py-0.5 bg-info/10 text-blue-700 dark:text-blue-400 rounded font-medium">
                         {t('denomination.coin')}
                       </span>
                     )}
@@ -155,7 +151,7 @@ export default function DenominationForm({
                 placeholder="0"
                 min="0"
                 disabled={isLoading}
-                className="w-full px-2 py-1.5 text-center text-base font-semibold text-gray-900 dark:text-white bg-gray-50 dark:bg-[#151b23] border border-gray-300 dark:border-gray-700 rounded focus:ring-1 focus:ring-green-500 focus:border-transparent disabled:opacity-50"
+                className="w-full px-2 py-1.5 text-center text-base font-semibold text-fg bg-surface border border-border rounded focus:ring-1 focus:ring-green-500 focus:border-transparent disabled:opacity-50"
               />
             </div>
           )
@@ -163,11 +159,11 @@ export default function DenominationForm({
       </div>
 
       {/* Botones - IGUAL que PaymentForm */}
-      <div className="flex items-center justify-end gap-2 pt-2 border-t border-gray-200 dark:border-gray-800">
+      <div className="flex items-center justify-end gap-2 pt-2 border-t border-border">
         <button
           onClick={onCancel}
           disabled={isLoading}
-          className="px-3 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-[#0d1117] border border-gray-300 dark:border-gray-700 rounded hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50 flex items-center gap-1.5"
+          className="px-3 py-1.5 text-xs font-medium text-fg bg-surface border border-border rounded hover:bg-surface-hover disabled:opacity-50 flex items-center gap-1.5"
         >
           <FiX className="w-3 h-3" />
           {t('common.cancel')}
@@ -175,7 +171,7 @@ export default function DenominationForm({
         <button
           onClick={handleSave}
           disabled={isLoading}
-          className="px-3 py-1.5 text-xs font-medium text-white bg-green-600 hover:bg-green-700 rounded disabled:opacity-50 flex items-center gap-1.5"
+          className="px-3 py-1.5 text-xs font-medium text-accent-fg bg-accent hover:bg-accent-hover rounded disabled:opacity-50 flex items-center gap-1.5"
         >
           {isLoading ? (
             <>

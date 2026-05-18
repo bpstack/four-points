@@ -42,12 +42,11 @@ export function MonthSelector({
   const getStatusDot = (status: string) => {
     switch (status) {
       case 'draft':
-        return 'bg-gray-400'
-
+        return 'bg-warning'
       case 'published':
-        return 'bg-green-500'
+        return 'bg-success'
       default:
-        return 'bg-gray-300'
+        return 'bg-border'
     }
   }
 
@@ -57,16 +56,16 @@ export function MonthSelector({
       <div className="flex items-center gap-2">
         <button
           onClick={() => onSelectYear(selectedYear - 1)}
-          className="p-1.5 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors"
+          className="p-1.5 text-fg-muted hover:text-fg hover:bg-surface-hover rounded transition-colors"
         >
           <FiChevronLeft className="w-4 h-4" />
         </button>
-        <span className="text-sm font-semibold text-gray-900 dark:text-gray-100 min-w-[60px] text-center">
+        <span className="text-sm font-semibold text-fg min-w-[60px] text-center">
           {selectedYear}
         </span>
         <button
           onClick={() => onSelectYear(selectedYear + 1)}
-          className="p-1.5 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors"
+          className="p-1.5 text-fg-muted hover:text-fg hover:bg-surface-hover rounded transition-colors"
         >
           <FiChevronRight className="w-4 h-4" />
         </button>
@@ -89,8 +88,8 @@ export function MonthSelector({
                   relative px-2.5 py-1.5 text-xs font-medium rounded-md transition-colors
                   ${
                     isSelected
-                      ? 'bg-blue-600 text-white dark:bg-blue-700'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'
+                      ? 'bg-accent text-accent-fg'
+                      : 'bg-surface-hover text-fg-muted hover:text-fg hover:bg-surface-hover'
                   }
                   disabled:opacity-50
                 `}
@@ -109,7 +108,7 @@ export function MonthSelector({
               key={monthNum}
               onClick={() => onCreateMonth(monthNum)}
               disabled={loading}
-              className="px-2.5 py-1.5 text-xs font-medium rounded-md bg-gray-50 text-gray-500 hover:bg-gray-200 dark:bg-gray-800/50 dark:text-gray-500 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
+              className="px-2.5 py-1.5 text-xs font-medium rounded-md bg-surface border border-dashed border-border text-fg-subtle hover:bg-surface-hover hover:text-fg-muted transition-colors disabled:opacity-50"
             >
               {name}
             </button>

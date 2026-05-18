@@ -333,30 +333,30 @@ export function SupplierInvoicesModal({
 
       {/* Modal */}
       <div className="flex min-h-full items-center justify-center p-4">
-        <div className="relative w-full max-w-3xl bg-white dark:bg-[#151b23] rounded-lg shadow-xl max-h-[85vh] flex flex-col">
+        <div className="relative w-full max-w-3xl bg-surface rounded-lg shadow-xl max-h-[85vh] flex flex-col">
           {/* Header */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-800">
+          <div className="flex items-center justify-between px-6 py-4 border-b border-border">
             <div>
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+              <h2 className="text-lg font-semibold text-fg">
                 {t('modals.supplierInvoices.title', { name: supplier.name })}
               </h2>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+              <p className="text-xs text-fg-subtle mt-0.5">
                 {t('modals.supplierInvoices.totalInvoices', { count: invoices.length })}
               </p>
             </div>
             <button
               onClick={onClose}
-              className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+              className="rounded-fp p-1 text-fg-subtle hover:bg-surface-hover hover:text-fg transition-colors"
             >
               <FiX className="w-5 h-5" />
             </button>
           </div>
 
           {/* Summary Stats */}
-          <div className="px-6 py-3 border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-[#0d1117]">
+          <div className="px-6 py-3 border-b border-border bg-gray-50 dark:bg-surface">
             <div className="grid grid-cols-3 gap-4">
               <div className="text-center">
-                <p className="text-[10px] text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                <p className="text-[10px] text-fg-subtle uppercase tracking-wider">
                   {t('modals.supplierInvoices.stats.totalPaid')}
                 </p>
                 <p className="text-sm font-bold text-green-600 dark:text-green-400 mt-0.5">
@@ -364,7 +364,7 @@ export function SupplierInvoicesModal({
                 </p>
               </div>
               <div className="text-center">
-                <p className="text-[10px] text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                <p className="text-[10px] text-fg-subtle uppercase tracking-wider">
                   {t('modals.supplierInvoices.stats.pending')}
                 </p>
                 <p className="text-sm font-bold text-yellow-600 dark:text-yellow-400 mt-0.5">
@@ -372,10 +372,10 @@ export function SupplierInvoicesModal({
                 </p>
               </div>
               <div className="text-center">
-                <p className="text-[10px] text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                <p className="text-[10px] text-fg-subtle uppercase tracking-wider">
                   {t('modals.supplierInvoices.stats.totalYtd')}
                 </p>
-                <p className="text-sm font-bold text-gray-900 dark:text-gray-100 mt-0.5">
+                <p className="text-sm font-bold text-fg mt-0.5">
                   {formatCurrency(supplier.ytd_total || 0)}
                 </p>
               </div>
@@ -400,10 +400,8 @@ export function SupplierInvoicesModal({
               </div>
             ) : monthGroups.length === 0 ? (
               <div className="text-center py-12">
-                <FiFileText className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  {t('empty.noInvoicesForSupplier')}
-                </p>
+                <FiFileText className="w-12 h-12 text-fg-subtle mx-auto mb-3" />
+                <p className="text-sm text-fg-subtle">{t('empty.noInvoicesForSupplier')}</p>
               </div>
             ) : (
               <div className="space-y-2">
@@ -412,23 +410,23 @@ export function SupplierInvoicesModal({
                   return (
                     <div
                       key={`${group.year}-${group.month}`}
-                      className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden"
+                      className="border border-border rounded-lg overflow-hidden"
                     >
                       {/* Month Header */}
                       <button
                         onClick={() => toggleMonth(group.year, group.month)}
-                        className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 dark:bg-[#0d1117] hover:bg-gray-100 dark:hover:bg-gray-800/50 transition-colors"
+                        className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 dark:bg-surface hover:bg-surface-hover/50 transition-colors"
                       >
                         <div className="flex items-center gap-3">
                           {expanded ? (
-                            <FiChevronDown className="w-4 h-4 text-gray-400" />
+                            <FiChevronDown className="w-4 h-4 text-fg-subtle" />
                           ) : (
-                            <FiChevronRight className="w-4 h-4 text-gray-400" />
+                            <FiChevronRight className="w-4 h-4 text-fg-subtle" />
                           )}
-                          <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                          <span className="text-sm font-medium text-fg">
                             {group.monthName} {group.year}
                           </span>
-                          <span className="text-xs text-gray-500 dark:text-gray-400">
+                          <span className="text-xs text-fg-subtle">
                             ({group.invoices.length}{' '}
                             {group.invoices.length !== 1
                               ? t('modals.supplierInvoices.invoices')
@@ -458,7 +456,7 @@ export function SupplierInvoicesModal({
                               </span>
                             )}
                           </div>
-                          <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                          <span className="text-sm font-semibold text-fg">
                             {formatCurrency(group.totalAmount)}
                           </span>
                         </div>
@@ -466,19 +464,19 @@ export function SupplierInvoicesModal({
 
                       {/* Invoices List */}
                       {expanded && (
-                        <div className="divide-y divide-gray-100 dark:divide-gray-800">
+                        <div className="divide-y divide-border">
                           {group.invoices.map((invoice) => (
                             <div
                               key={invoice.id}
-                              className="flex items-center justify-between px-4 py-2.5 hover:bg-gray-50 dark:hover:bg-gray-800/30"
+                              className="flex items-center justify-between px-4 py-2.5 hover:bg-surface-hover/30"
                             >
                               <div className="flex items-center gap-3">
-                                <FiFileText className="w-4 h-4 text-gray-400" />
+                                <FiFileText className="w-4 h-4 text-fg-subtle" />
                                 <div>
-                                  <p className="text-xs font-medium text-gray-900 dark:text-gray-100">
+                                  <p className="text-xs font-medium text-fg">
                                     {invoice.invoice_number}
                                   </p>
-                                  <p className="text-[10px] text-gray-500 dark:text-gray-400">
+                                  <p className="text-[10px] text-fg-subtle">
                                     {formatDate(invoice.invoice_date)}
                                     {invoice.paid_date && (
                                       <span className="ml-2">
@@ -497,7 +495,7 @@ export function SupplierInvoicesModal({
                                 >
                                   {getStatusLabel(invoice.status)}
                                 </span>
-                                <span className="text-xs font-medium text-gray-900 dark:text-gray-100 min-w-[80px] text-right">
+                                <span className="text-xs font-medium text-fg min-w-[80px] text-right">
                                   {formatCurrency(invoice.amount_with_vat)}
                                 </span>
                                 {/* PDF Download Links */}
@@ -519,7 +517,7 @@ export function SupplierInvoicesModal({
                                     </button>
                                   ) : (
                                     <span
-                                      className="p-1.5 text-gray-300 dark:text-gray-600 cursor-not-allowed"
+                                      className="p-1.5 text-fg-subtle/40 cursor-not-allowed"
                                       title={t('modals.supplierInvoices.noOriginalPdf')}
                                     >
                                       <FiFileText className="w-3.5 h-3.5" />
@@ -542,7 +540,7 @@ export function SupplierInvoicesModal({
                                     </button>
                                   ) : (
                                     <span
-                                      className="p-1.5 text-gray-300 dark:text-gray-600 cursor-not-allowed"
+                                      className="p-1.5 text-fg-subtle/40 cursor-not-allowed"
                                       title={t('modals.supplierInvoices.noValidatedPdf')}
                                     >
                                       <FiCheckCircle className="w-3.5 h-3.5" />
@@ -554,7 +552,7 @@ export function SupplierInvoicesModal({
                                     e.stopPropagation()
                                     handleDeleteClick(invoice)
                                   }}
-                                  className="p-1.5 text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors"
+                                  className="rounded-fp p-1.5 text-fg-subtle hover:text-danger hover:bg-danger/10 transition-colors"
                                   title={t('modals.supplierInvoices.deleteInvoice')}
                                 >
                                   <FiTrash2 className="w-3.5 h-3.5" />
@@ -572,10 +570,10 @@ export function SupplierInvoicesModal({
           </div>
 
           {/* Footer */}
-          <div className="px-6 py-3 border-t border-gray-200 dark:border-gray-800 flex justify-end">
+          <div className="px-6 py-3 border-t border-border flex justify-end">
             <button
               onClick={onClose}
-              className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+              className="px-4 py-2 text-sm font-medium text-fg bg-surface-hover border border-border rounded-md hover:bg-surface-hover transition-colors"
             >
               {t('actions.close')}
             </button>
@@ -591,7 +589,7 @@ export function SupplierInvoicesModal({
             onClick={handleDeleteCancel}
           />
           <div className="flex min-h-full items-center justify-center p-4">
-            <div className="relative w-full max-w-md bg-white dark:bg-[#151b23] rounded-lg shadow-xl">
+            <div className="relative w-full max-w-md bg-surface rounded-lg shadow-xl">
               <div className="p-6">
                 {/* Icon */}
                 <div className="mx-auto w-12 h-12 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center mb-4">
@@ -601,10 +599,10 @@ export function SupplierInvoicesModal({
                 {deleteStep === 1 ? (
                   <>
                     {/* Step 1: First confirmation */}
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 text-center mb-2">
+                    <h3 className="text-lg font-semibold text-fg text-center mb-2">
                       {t('modals.supplierInvoices.deleteConfirm.step1.title')}
                     </h3>
-                    <div className="text-sm text-gray-600 dark:text-gray-400 text-center mb-4 space-y-2">
+                    <div className="text-sm text-fg-muted text-center mb-4 space-y-2">
                       <p>
                         <strong>{t('modals.supplierInvoices.deleteConfirm.step1.invoice')}</strong>{' '}
                         {deletingInvoice.invoice_number}
@@ -618,13 +616,13 @@ export function SupplierInvoicesModal({
                         {getStatusLabel(deletingInvoice.status)}
                       </p>
                     </div>
-                    <p className="text-sm text-gray-500 dark:text-gray-400 text-center mb-6">
+                    <p className="text-sm text-fg-subtle text-center mb-6">
                       {t('modals.supplierInvoices.deleteConfirm.step1.question')}
                     </p>
                     <div className="flex gap-3">
                       <button
                         onClick={handleDeleteCancel}
-                        className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                        className="flex-1 px-4 py-2 text-sm font-medium text-fg bg-surface-hover border border-border rounded-md hover:bg-surface-hover transition-colors"
                       >
                         {t('actions.cancel')}
                       </button>
@@ -649,14 +647,14 @@ export function SupplierInvoicesModal({
                         })}
                       </p>
                     </div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400 text-center mb-6">
+                    <p className="text-sm text-fg-muted text-center mb-6">
                       {t('modals.supplierInvoices.deleteConfirm.step2.instruction')}
                     </p>
                     <input
                       type="text"
                       id="delete-confirm-input"
                       placeholder={t('modals.supplierInvoices.deleteConfirm.step2.placeholder')}
-                      className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md mb-4 focus:outline-none focus:ring-2 focus:ring-red-500 dark:bg-gray-800 dark:text-gray-100"
+                      className="w-full px-3 py-2 text-sm border border-border rounded-md mb-4 focus:outline-none focus:ring-2 focus:ring-red-500 bg-surface-sunken text-fg"
                       onChange={(e) => {
                         const btn = document.getElementById('final-delete-btn') as HTMLButtonElement
                         if (btn) {
@@ -669,7 +667,7 @@ export function SupplierInvoicesModal({
                       <button
                         onClick={handleDeleteCancel}
                         disabled={isDeleting}
-                        className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
+                        className="flex-1 px-4 py-2 text-sm font-medium text-fg bg-surface-hover border border-border rounded-md hover:bg-surface-hover transition-colors disabled:opacity-50"
                       >
                         {t('actions.cancel')}
                       </button>

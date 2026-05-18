@@ -37,6 +37,7 @@ import {
 import { ReportsTab } from './reports'
 import { CenterModal, CenterModalFooterButtons, FormField, inputClassName } from '@/app/ui/panels'
 import { GlobalNotificationModal } from '@/app/components/notifications/GlobalNotificationModal'
+import { Checkbox } from '@/app/ui/components'
 
 // Types
 interface User {
@@ -200,15 +201,15 @@ export function SettingsPanel() {
     <div className="h-full max-w-[1400px]">
       {/* Header */}
       <div className="mb-6">
-        <h2 className="text-xl font-semibold text-gray-900 dark:text-white">{t('title')}</h2>
-        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{t('subtitle')}</p>
+        <h2 className="text-xl font-semibold text-fg">{t('title')}</h2>
+        <p className="text-sm text-fg-muted mt-1">{t('subtitle')}</p>
       </div>
 
       {/* Tabs - Mobile Dropdown */}
       <div className="md:hidden mb-4" ref={dropdownRef}>
         <button
           onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-          className="w-full flex items-center justify-between px-3 py-2 text-sm font-medium text-gray-900 dark:text-white bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg"
+          className="w-full flex items-center justify-between px-3 py-2 text-sm font-medium text-fg bg-surface-hover/50 border border-border rounded-lg"
         >
           <span className="flex items-center gap-2">
             {activeTabConfig.icon}
@@ -228,11 +229,9 @@ export function SettingsPanel() {
             />
             {/* Centered Modal */}
             <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-              <div className="w-full max-w-sm bg-white dark:bg-[#161b22] border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl overflow-hidden">
-                <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
-                  <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
-                    {t('selectSection')}
-                  </h3>
+              <div className="w-full max-w-sm bg-surface border border-border rounded-lg shadow-xl overflow-hidden">
+                <div className="px-4 py-3 border-b border-border">
+                  <h3 className="text-sm font-semibold text-fg">{t('selectSection')}</h3>
                 </div>
                 <div className="py-1">
                   {availableTabs.map((tab) => (
@@ -242,8 +241,8 @@ export function SettingsPanel() {
                       className={cn(
                         'w-full flex items-center justify-between px-4 py-3 text-sm transition-colors',
                         activeTab === tab.id
-                          ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
-                          : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800'
+                          ? 'bg-info/10 text-blue-600 dark:text-blue-400'
+                          : 'text-fg hover:bg-surface-hover'
                       )}
                     >
                       <span className="flex items-center gap-2">
@@ -261,7 +260,7 @@ export function SettingsPanel() {
       </div>
 
       {/* Tabs - Desktop */}
-      <div className="hidden md:block border-b border-gray-200 dark:border-[#30363d] mb-6">
+      <div className="hidden md:block border-b border-gray-200 mb-6">
         <nav className="flex gap-4">
           {availableTabs.map((tab) => (
             <button
@@ -270,8 +269,8 @@ export function SettingsPanel() {
               className={cn(
                 'flex items-center gap-2 px-1 py-3 text-sm font-medium border-b-2 transition-colors',
                 activeTab === tab.id
-                  ? 'border-blue-500 text-blue-600 dark:text-blue-400'
-                  : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                  ? 'border-accent text-accent'
+                  : 'border-transparent text-fg-subtle hover:text-fg'
               )}
             >
               {tab.icon}
@@ -368,19 +367,19 @@ function DepartmentsTab() {
   }
 
   return (
-    <div className="bg-white dark:bg-[#161b22] rounded-lg border border-gray-200 dark:border-[#30363d]">
-      <div className="px-4 py-3 border-b border-gray-200 dark:border-[#30363d]">
+    <div className="bg-surface rounded-lg border border-gray-200">
+      <div className="px-4 py-3 border-b border-gray-200">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
-            <h3 className="text-sm font-semibold text-gray-900 dark:text-white">{t('title')}</h3>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+            <h3 className="text-sm font-semibold text-fg">{t('title')}</h3>
+            <p className="text-xs text-fg-subtle mt-0.5">
               {t('subtitle')} ({departments.length} {t('total')})
             </p>
           </div>
           <div className="flex gap-2">
             <button
               onClick={() => setIsAddModalOpen(true)}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-accent-fg bg-accent hover:bg-accent-hover rounded-lg transition-colors"
             >
               <FiPlus className="w-3.5 h-3.5" />
               {t('new')}
@@ -388,7 +387,7 @@ function DepartmentsTab() {
             <button
               onClick={loadDepartments}
               disabled={isLoading}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-[#0d1117] border border-gray-300 dark:border-[#30363d] hover:bg-gray-50 dark:hover:bg-[#21262d] rounded-lg transition-colors disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-fg bg-surface border border-gray-300 hover:bg-surface-hover rounded-lg transition-colors disabled:opacity-50"
             >
               <FiRefreshCw className={cn('w-3.5 h-3.5', isLoading && 'animate-spin')} />
             </button>
@@ -400,7 +399,7 @@ function DepartmentsTab() {
         {isLoading && (
           <div className="animate-pulse space-y-2">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="h-12 bg-gray-200 dark:bg-gray-800 rounded-lg" />
+              <div key={i} className="h-12 bg-surface-hover rounded-lg" />
             ))}
           </div>
         )}
@@ -417,27 +416,23 @@ function DepartmentsTab() {
             {departments.map((dept) => (
               <div
                 key={dept.id}
-                className="flex items-center justify-between p-3 bg-gray-50 dark:bg-[#0d1117] border border-gray-200 dark:border-[#30363d] rounded-lg"
+                className="flex items-center justify-between p-3 bg-surface-sunken border border-gray-200 rounded-lg"
               >
                 <div className="flex items-center gap-3">
-                  <span className="text-xs text-gray-500 dark:text-gray-400 font-mono">
-                    #{dept.id}
-                  </span>
-                  <span className="text-sm font-medium text-gray-900 dark:text-white">
-                    {dept.displayName}
-                  </span>
+                  <span className="text-xs text-fg-subtle font-mono">#{dept.id}</span>
+                  <span className="text-sm font-medium text-fg">{dept.displayName}</span>
                 </div>
                 <div className="flex items-center gap-1">
                   <button
                     onClick={() => handleEdit(dept)}
-                    className="p-1.5 text-gray-500 hover:text-blue-600 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                    className="p-1.5 text-gray-500 hover:text-blue-600 hover:bg-surface-hover rounded-lg transition-colors"
                     title="Editar"
                   >
                     <FiEdit2 className="w-3.5 h-3.5" />
                   </button>
                   <button
                     onClick={() => handleDelete(dept.id, dept.displayName)}
-                    className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                    className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-surface-hover rounded-lg transition-colors"
                     title="Eliminar"
                   >
                     <FiTrash2 className="w-3.5 h-3.5" />
@@ -651,17 +646,17 @@ function UserManagement({
   const t = useTranslations('profile.settings.users')
 
   return (
-    <div className="bg-white dark:bg-[#161b22] rounded-lg border border-gray-200 dark:border-[#30363d]">
-      <div className="px-4 py-3 border-b border-gray-200 dark:border-[#30363d]">
+    <div className="bg-surface rounded-lg border border-gray-200">
+      <div className="px-4 py-3 border-b border-gray-200">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
-            <h3 className="text-sm font-semibold text-gray-900 dark:text-white">{t('title')}</h3>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{t('subtitle')}</p>
+            <h3 className="text-sm font-semibold text-fg">{t('title')}</h3>
+            <p className="text-xs text-fg-subtle mt-0.5">{t('subtitle')}</p>
           </div>
           <div className="flex gap-2">
             <button
               onClick={onOpenModal}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-accent-fg bg-accent hover:bg-accent-hover rounded-lg transition-colors"
             >
               <FiUserPlus className="w-3.5 h-3.5" />
               {t('new')}
@@ -669,7 +664,7 @@ function UserManagement({
             <button
               onClick={onRefresh}
               disabled={loading}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-[#0d1117] border border-gray-300 dark:border-[#30363d] hover:bg-gray-50 dark:hover:bg-[#21262d] rounded-lg transition-colors disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-fg bg-surface border border-gray-300 hover:bg-surface-hover rounded-lg transition-colors disabled:opacity-50"
             >
               <FiRefreshCw className={cn('w-3.5 h-3.5', loading && 'animate-spin')} />
             </button>
@@ -803,10 +798,7 @@ function UserTable({ users, onDelete }: { users: User[]; onDelete: (id: string) 
         const isEditing = editingId === user.id
 
         return (
-          <div
-            key={user.id}
-            className="bg-gray-50 dark:bg-[#0d1117] border border-gray-200 dark:border-[#30363d] rounded-lg p-3"
-          >
+          <div key={user.id} className="bg-surface-sunken border border-gray-200 rounded-lg p-3">
             {isEditing ? (
               <div className="space-y-3 md:space-y-0 md:flex md:items-center md:gap-3">
                 <input
@@ -814,19 +806,19 @@ function UserTable({ users, onDelete }: { users: User[]; onDelete: (id: string) 
                   value={editForm.username || ''}
                   onChange={(e) => setEditForm({ ...editForm, username: e.target.value })}
                   placeholder="Username"
-                  className="w-full md:w-40 px-3 py-1.5 text-sm border border-gray-300 dark:border-[#30363d] rounded-lg bg-white dark:bg-[#0d1117] text-gray-900 dark:text-white"
+                  className="w-full md:w-40 px-3 py-1.5 text-sm border border-gray-300 rounded-lg bg-surface text-fg"
                 />
                 <input
                   type="email"
                   value={editForm.email || ''}
                   onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
                   placeholder="Email"
-                  className="w-full md:flex-1 px-3 py-1.5 text-sm border border-gray-300 dark:border-[#30363d] rounded-lg bg-white dark:bg-[#0d1117] text-gray-900 dark:text-white"
+                  className="w-full md:flex-1 px-3 py-1.5 text-sm border border-gray-300 rounded-lg bg-surface text-fg"
                 />
                 <select
                   value={editForm.role || ''}
                   onChange={(e) => setEditForm({ ...editForm, role: e.target.value })}
-                  className="w-full md:w-40 px-3 py-1.5 text-sm border border-gray-300 dark:border-[#30363d] rounded-lg bg-white dark:bg-[#0d1117] text-gray-900 dark:text-white"
+                  className="w-full md:w-40 px-3 py-1.5 text-sm border border-gray-300 rounded-lg bg-surface text-fg"
                 >
                   <option value="recepcionista">{t('roles.receptionist')}</option>
                   <option value="admin">{t('roles.admin')}</option>
@@ -837,14 +829,14 @@ function UserTable({ users, onDelete }: { users: User[]; onDelete: (id: string) 
                   <button
                     onClick={() => handleSave(user.id)}
                     disabled={savingId === user.id}
-                    className="flex-1 md:flex-none inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-green-600 hover:bg-green-700 disabled:opacity-50 rounded-lg"
+                    className="flex-1 md:flex-none inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-medium text-accent-fg bg-accent hover:bg-accent-hover disabled:opacity-50 rounded-lg"
                   >
                     <FiCheck className="w-3.5 h-3.5" />
                     {savingId === user.id ? tButtons('saving') : tButtons('save')}
                   </button>
                   <button
                     onClick={handleCancel}
-                    className="flex-1 md:flex-none inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-[#0d1117] border border-gray-300 dark:border-[#30363d] rounded-lg"
+                    className="flex-1 md:flex-none inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-medium text-fg bg-surface border border-gray-300 rounded-lg"
                   >
                     <FiX className="w-3.5 h-3.5" />
                     {tButtons('cancel')}
@@ -861,12 +853,8 @@ function UserTable({ users, onDelete }: { users: User[]; onDelete: (id: string) 
 
                   {/* Mobile: stacked layout */}
                   <div className="min-w-0 flex-1 md:hidden">
-                    <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
-                      {user.username}
-                    </p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                      {user.email}
-                    </p>
+                    <p className="text-sm font-medium text-fg truncate">{user.username}</p>
+                    <p className="text-xs text-fg-subtle truncate">{user.email}</p>
                     <span
                       className={cn(
                         'inline-flex mt-1 px-2 py-0.5 rounded-full text-xs font-medium border',
@@ -880,12 +868,10 @@ function UserTable({ users, onDelete }: { users: User[]; onDelete: (id: string) 
 
                   {/* Desktop: horizontal layout */}
                   <div className="hidden md:flex md:items-center md:gap-4 md:flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-900 dark:text-white truncate w-32 flex-shrink-0">
+                    <p className="text-sm font-medium text-fg truncate w-32 flex-shrink-0">
                       {user.username}
                     </p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400 truncate flex-1">
-                      {user.email}
-                    </p>
+                    <p className="text-sm text-fg-subtle truncate flex-1">{user.email}</p>
                     <span
                       className={cn(
                         'inline-flex px-2 py-0.5 rounded-full text-xs font-medium border flex-shrink-0',
@@ -904,20 +890,20 @@ function UserTable({ users, onDelete }: { users: User[]; onDelete: (id: string) 
                     onClick={() =>
                       setResetPasswordModal({ userId: user.id, username: user.username })
                     }
-                    className="p-1.5 text-gray-500 hover:text-orange-600 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                    className="p-1.5 text-gray-500 hover:text-orange-600 hover:bg-surface-hover rounded-lg transition-colors"
                     title="Reset password"
                   >
                     <FiKey className="w-3.5 h-3.5" />
                   </button>
                   <button
                     onClick={() => handleEdit(user)}
-                    className="p-1.5 text-gray-500 hover:text-blue-600 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                    className="p-1.5 text-gray-500 hover:text-blue-600 hover:bg-surface-hover rounded-lg transition-colors"
                   >
                     <FiEdit2 className="w-3.5 h-3.5" />
                   </button>
                   <button
                     onClick={() => onDelete(user.id)}
-                    className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                    className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-surface-hover rounded-lg transition-colors"
                   >
                     <FiTrash2 className="w-3.5 h-3.5" />
                   </button>
@@ -971,7 +957,7 @@ function UserTable({ users, onDelete }: { users: User[]; onDelete: (id: string) 
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-fg"
               >
                 {showPassword ? <FiEyeOff className="w-4 h-4" /> : <FiEye className="w-4 h-4" />}
               </button>
@@ -989,7 +975,7 @@ function UserTable({ users, onDelete }: { users: User[]; onDelete: (id: string) 
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-fg"
               >
                 {showPassword ? <FiEyeOff className="w-4 h-4" /> : <FiEye className="w-4 h-4" />}
               </button>
@@ -1042,16 +1028,16 @@ function NotificationsSettings() {
 
   return (
     <>
-      <div className="bg-white dark:bg-[#161b22] rounded-lg border border-gray-200 dark:border-[#30363d]">
-        <div className="px-4 py-3 border-b border-gray-200 dark:border-[#30363d]">
+      <div className="bg-surface rounded-lg border border-gray-200">
+        <div className="px-4 py-3 border-b border-gray-200">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
-              <h3 className="text-sm font-semibold text-gray-900 dark:text-white">{t('title')}</h3>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{t('subtitle')}</p>
+              <h3 className="text-sm font-semibold text-fg">{t('title')}</h3>
+              <p className="text-xs text-fg-subtle mt-0.5">{t('subtitle')}</p>
             </div>
             <button
               onClick={() => setIsNotificationModalOpen(true)}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-accent-fg bg-accent hover:bg-accent-hover rounded-lg transition-colors"
             >
               <FiPlus className="w-3.5 h-3.5" />
               {t('createNotification')}
@@ -1061,18 +1047,16 @@ function NotificationsSettings() {
         <div className="p-4 space-y-3">
           <SettingRow label={t('emailNotifications')} description={t('emailDesc')} defaultChecked />
 
-          <div className="py-3 border-t border-gray-200 dark:border-[#30363d]">
+          <div className="py-3 border-t border-gray-200">
             <div className="flex items-center justify-between mb-2">
               <div>
-                <p className="text-sm font-medium text-gray-900 dark:text-white">
-                  {t('pushNotifications')}
-                </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">{t('pushDesc')}</p>
+                <p className="text-sm font-medium text-fg">{t('pushNotifications')}</p>
+                <p className="text-xs text-fg-subtle">{t('pushDesc')}</p>
               </div>
               <button
                 onClick={handleCheckNotifications}
                 disabled={checkingNotifications}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 rounded-lg transition-colors"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-accent-fg bg-accent hover:bg-accent-hover disabled:bg-blue-400 rounded-lg transition-colors"
               >
                 <FiRefreshCw
                   className={cn('w-3.5 h-3.5', checkingNotifications && 'animate-spin')}
@@ -1114,20 +1098,18 @@ function SecuritySettings() {
   const t = useTranslations('profile.settings.security')
 
   return (
-    <div className="bg-white dark:bg-[#161b22] rounded-lg border border-gray-200 dark:border-[#30363d]">
-      <div className="px-4 py-3 border-b border-gray-200 dark:border-[#30363d]">
-        <h3 className="text-sm font-semibold text-gray-900 dark:text-white">{t('title')}</h3>
-        <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{t('subtitle')}</p>
+    <div className="bg-surface rounded-lg border border-gray-200">
+      <div className="px-4 py-3 border-b border-gray-200">
+        <h3 className="text-sm font-semibold text-fg">{t('title')}</h3>
+        <p className="text-xs text-fg-subtle mt-0.5">{t('subtitle')}</p>
       </div>
       <div className="p-4 space-y-3">
         <SettingRow label={t('twoFactor')} description={t('twoFactorDesc')} />
         <SettingRow label={t('passwordRotation')} description={t('passwordRotationDesc')} />
         <SettingRow label={t('loginAlerts')} description={t('loginAlertsDesc')} defaultChecked />
 
-        <div className="pt-4 border-t border-gray-200 dark:border-[#30363d]">
-          <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">
-            {t('activeSessions')}
-          </h4>
+        <div className="pt-4 border-t border-gray-200">
+          <h4 className="text-sm font-semibold text-fg mb-3">{t('activeSessions')}</h4>
           <div className="space-y-2">
             <SessionItem
               device="Desktop - Chrome"
@@ -1155,13 +1137,13 @@ function SettingRow({
   return (
     <div className="flex items-center justify-between py-2">
       <div>
-        <p className="text-sm font-medium text-gray-900 dark:text-white">{label}</p>
-        <p className="text-xs text-gray-500 dark:text-gray-400">{description}</p>
+        <p className="text-sm font-medium text-fg">{label}</p>
+        <p className="text-xs text-fg-subtle">{description}</p>
       </div>
-      <input
-        type="checkbox"
+      <Checkbox
         defaultChecked={defaultChecked}
-        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
+        hideLabel
+        label={label}
       />
     </div>
   )
@@ -1179,10 +1161,10 @@ function SessionItem({
   activeLabel?: string
 }) {
   return (
-    <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-[#0d1117] border border-gray-200 dark:border-[#30363d] rounded-lg">
+    <div className="flex items-center justify-between p-3 bg-surface-sunken border border-gray-200 rounded-lg">
       <div>
-        <p className="text-sm font-medium text-gray-900 dark:text-white">{device}</p>
-        <p className="text-xs text-gray-500 dark:text-gray-400">{location}</p>
+        <p className="text-sm font-medium text-fg">{device}</p>
+        <p className="text-xs text-fg-subtle">{location}</p>
       </div>
       {active && (
         <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">

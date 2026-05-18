@@ -38,10 +38,8 @@ export function ShiftStatsTab() {
     <div className="p-4 md:p-6 space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-            Contabilidad de turnos
-          </h2>
-          <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+          <h2 className="text-sm font-semibold text-fg">Contabilidad de turnos</h2>
+          <p className="text-xs text-fg-subtle mt-0.5">
             Acumulado anual por empleado — publicados y borradores
           </p>
         </div>
@@ -49,7 +47,7 @@ export function ShiftStatsTab() {
           <select
             value={year}
             onChange={(e) => setYear(Number(e.target.value))}
-            className="text-xs rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-[#1c2128] text-gray-900 dark:text-gray-100 px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="text-xs rounded-md border border-border bg-surface text-fg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-accent/50"
           >
             {yearOptions.map((y) => (
               <option key={y} value={y}>
@@ -61,7 +59,7 @@ export function ShiftStatsTab() {
             onClick={() => refetch()}
             disabled={isFetching}
             title="Actualizar"
-            className="p-1.5 rounded-md border border-gray-300 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-40 transition-colors"
+            className="p-1.5 rounded-md border border-border text-fg-subtle hover:bg-surface-hover disabled:opacity-40 transition-colors"
           >
             <FiRefreshCw className={`w-3.5 h-3.5 ${isFetching ? 'animate-spin' : ''}`} />
           </button>
@@ -70,12 +68,10 @@ export function ShiftStatsTab() {
 
       {isLoading ? (
         <div className="flex items-center justify-center py-16">
-          <div className="h-6 w-6 animate-spin rounded-full border-[3px] border-blue-600 dark:border-blue-500 border-r-transparent" />
+          <div className="h-6 w-6 animate-spin rounded-full border-[3px] border-accent border-r-transparent" />
         </div>
       ) : !data || data.employees.length === 0 ? (
-        <p className="text-center py-12 text-sm text-gray-400 dark:text-gray-500">
-          No hay datos para {year}
-        </p>
+        <p className="text-center py-12 text-sm text-fg-subtle">No hay datos para {year}</p>
       ) : (
         <ShiftStatsTable data={data} />
       )}
@@ -94,29 +90,29 @@ function ShiftStatsTable({ data }: { data: ShiftStatsResponse }) {
   }
 
   return (
-    <div className="overflow-x-auto rounded-md border border-gray-200 dark:border-gray-800">
+    <div className="overflow-x-auto rounded-md border border-border">
       <table className="w-full text-xs border-collapse">
         <thead>
-          <tr className="bg-gray-50 dark:bg-[#1c2128]">
-            <th className="sticky left-0 z-10 bg-gray-50 dark:bg-[#1c2128] text-left px-3 py-2.5 font-semibold text-gray-700 dark:text-gray-300 border-b border-r border-gray-200 dark:border-gray-800 whitespace-nowrap">
+          <tr className="bg-surface-hover">
+            <th className="sticky left-0 z-10 bg-surface-hover text-left px-3 py-2.5 font-semibold text-fg border-b border-r border-border whitespace-nowrap">
               Empleado
             </th>
             {shiftCodes.map((code) => (
               <th
                 key={code}
-                className="px-3 py-2.5 text-center font-semibold border-b border-gray-200 dark:border-gray-800 whitespace-nowrap"
+                className="px-3 py-2.5 text-center font-semibold border-b border-border whitespace-nowrap"
               >
                 <span
                   className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-bold border ${SHIFT_STYLES[code] ?? ''}`}
                 >
                   {code}
                 </span>
-                <div className="text-[10px] font-normal text-gray-400 dark:text-gray-500 mt-0.5">
+                <div className="text-[10px] font-normal text-fg-subtle mt-0.5">
                   {SHIFT_LABEL[code] ?? code}
                 </div>
               </th>
             ))}
-            <th className="px-3 py-2.5 text-center font-semibold text-gray-700 dark:text-gray-300 border-b border-l border-gray-200 dark:border-gray-800 whitespace-nowrap">
+            <th className="px-3 py-2.5 text-center font-semibold text-fg border-b border-l border-border whitespace-nowrap">
               Total días
             </th>
           </tr>
@@ -128,12 +124,12 @@ function ShiftStatsTable({ data }: { data: ShiftStatsResponse }) {
               <tr
                 key={emp.employeeId}
                 className={`
-                  border-b border-gray-100 dark:border-gray-800/60
-                  ${i % 2 === 0 ? 'bg-white dark:bg-transparent' : 'bg-gray-50/50 dark:bg-[#1c2128]/40'}
+                  border-b border-border
+                  ${i % 2 === 0 ? 'bg-surface' : 'bg-surface-hover'}
                   hover:bg-blue-50/40 dark:hover:bg-blue-900/10 transition-colors
                 `}
               >
-                <td className="sticky left-0 z-10 px-3 py-2 font-medium text-gray-900 dark:text-gray-200 border-r border-gray-200 dark:border-gray-800 bg-inherit whitespace-nowrap">
+                <td className="sticky left-0 z-10 px-3 py-2 font-medium text-fg border-r border-border bg-inherit whitespace-nowrap">
                   {emp.employeeName}
                 </td>
                 {shiftCodes.map((code) => {
@@ -142,17 +138,17 @@ function ShiftStatsTable({ data }: { data: ShiftStatsResponse }) {
                     <td key={code} className="px-3 py-2 text-center tabular-nums">
                       {count > 0 ? (
                         <span
-                          className={`inline-block min-w-[2rem] px-1.5 py-0.5 rounded border text-[11px] font-semibold ${SHIFT_STYLES[code] ?? 'text-gray-700 dark:text-gray-300'}`}
+                          className={`inline-block min-w-[2rem] px-1.5 py-0.5 rounded border text-[11px] font-semibold ${SHIFT_STYLES[code] ?? 'text-fg'}`}
                         >
                           {count}
                         </span>
                       ) : (
-                        <span className="text-gray-300 dark:text-gray-700">—</span>
+                        <span className="text-fg-subtle">—</span>
                       )}
                     </td>
                   )
                 })}
-                <td className="px-3 py-2 text-center font-semibold text-gray-700 dark:text-gray-300 border-l border-gray-200 dark:border-gray-800 tabular-nums">
+                <td className="px-3 py-2 text-center font-semibold text-fg border-l border-border tabular-nums">
                   {rowTotal}
                 </td>
               </tr>
@@ -160,19 +156,19 @@ function ShiftStatsTable({ data }: { data: ShiftStatsResponse }) {
           })}
         </tbody>
         <tfoot>
-          <tr className="bg-gray-50 dark:bg-[#1c2128] border-t-2 border-gray-200 dark:border-gray-700">
-            <td className="sticky left-0 z-10 bg-gray-50 dark:bg-[#1c2128] px-3 py-2 font-semibold text-gray-700 dark:text-gray-300 border-r border-gray-200 dark:border-gray-800 text-xs">
+          <tr className="bg-surface-hover border-t-2 border-border">
+            <td className="sticky left-0 z-10 bg-surface-hover px-3 py-2 font-semibold text-fg border-r border-border text-xs">
               Total
             </td>
             {shiftCodes.map((code) => (
               <td
                 key={code}
-                className="px-3 py-2 text-center font-semibold text-gray-700 dark:text-gray-300 tabular-nums text-[11px]"
+                className="px-3 py-2 text-center font-semibold text-fg tabular-nums text-[11px]"
               >
                 {totals[code] ?? 0}
               </td>
             ))}
-            <td className="px-3 py-2 text-center font-bold text-gray-900 dark:text-gray-100 border-l border-gray-200 dark:border-gray-800 tabular-nums">
+            <td className="px-3 py-2 text-center font-bold text-fg border-l border-border tabular-nums">
               {shiftCodes.reduce((s, c) => s + (totals[c] ?? 0), 0)}
             </td>
           </tr>

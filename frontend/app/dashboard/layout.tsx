@@ -73,7 +73,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }
 
   return (
-    <div className="flex h-screen bg-white dark:bg-[#010409] antialiased">
+    <div className="flex h-screen bg-bg antialiased">
       {/* Mobile Sidebar Overlay */}
       {sidebarOpen && (
         <div
@@ -100,13 +100,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Top Header */}
-        <header className="h-16 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-[#010409] flex items-center justify-between px-4 md:px-6">
+        <header className="h-16 border-b border-border bg-bg flex items-center justify-between px-4 md:px-6">
           {/* Left Section */}
           <div className="flex items-center gap-3 flex-1 min-w-0">
             {/* Mobile Menu Button */}
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="md:hidden p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors flex-shrink-0"
+              className="md:hidden p-2 text-fg-muted hover:text-fg hover:bg-surface-hover rounded-lg transition-colors flex-shrink-0"
             >
               <FiMenu className="h-6 w-6" />
             </button>
@@ -115,17 +115,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <nav className="hidden md:flex items-center gap-1 overflow-x-auto scrollbar-hide min-w-0">
               {breadcrumbs.map((crumb, index) => (
                 <div key={crumb.href} className="flex items-center gap-1 flex-shrink-0">
-                  {index > 0 && (
-                    <FiChevronRight className="h-4 w-4 text-gray-400 dark:text-gray-600 flex-shrink-0" />
-                  )}
+                  {index > 0 && <FiChevronRight className="h-4 w-4 text-fg-subtle flex-shrink-0" />}
                   {crumb.isLast ? (
-                    <span className="text-sm font-medium text-gray-900 dark:text-white px-2 py-1 truncate">
+                    <span className="text-sm font-medium text-fg px-2 py-1 truncate">
                       {crumb.label}
                     </span>
                   ) : (
                     <Link
                       href={crumb.href}
-                      className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white px-2 py-1 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors truncate"
+                      className="text-sm text-fg-muted hover:text-fg px-2 py-1 rounded-md hover:bg-surface-hover transition-colors truncate"
                     >
                       {crumb.label}
                     </Link>
@@ -140,7 +138,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             {/* Mobile Search Button */}
             <button
               onClick={() => setMobileSearchOpen(true)}
-              className="md:hidden p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+              className="md:hidden p-2 text-fg-muted hover:text-fg hover:bg-surface-hover rounded-lg transition-colors"
             >
               <FiSearch className="h-5 w-5" />
             </button>
@@ -157,7 +155,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </header>
 
         {/* Content Area */}
-        <main className="flex-1 overflow-y-auto bg-white dark:bg-[#010409]">
+        <main className="flex-1 overflow-y-auto bg-bg">
           <div className="w-full p-4 md:p-6">{children}</div>
         </main>
       </div>

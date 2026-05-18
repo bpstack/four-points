@@ -65,16 +65,14 @@ export function OverviewTab() {
   return (
     <div className="space-y-6">
       {/* Info Card */}
-      <div className="bg-white dark:bg-[#0D1117] rounded-lg border border-gray-200 dark:border-gray-800 p-4 sm:p-6">
+      <div className="bg-surface rounded-lg border border-border p-4 sm:p-6">
         {/* Header con botones */}
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">
-            {t('overview.generalInfo')}
-          </h2>
+          <h2 className="text-base font-semibold text-fg">{t('overview.generalInfo')}</h2>
           <div className="flex items-center gap-2">
             <button
               onClick={() => setIsNotificationModalOpen(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-[#21262d] hover:bg-gray-200 dark:hover:bg-[#30363d] border border-gray-300 dark:border-gray-700 rounded-md transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-fg bg-surface-hover hover:bg-surface-hover border border-border rounded-md transition-colors"
               title={t('overview.notification')}
             >
               <FiBell className="w-3.5 h-3.5" />
@@ -82,7 +80,7 @@ export function OverviewTab() {
             </button>
             <button
               onClick={handleEditGroup}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-[#21262d] hover:bg-gray-200 dark:hover:bg-[#30363d] border border-gray-300 dark:border-gray-700 rounded-md transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-fg bg-surface-hover hover:bg-surface-hover border border-border rounded-md transition-colors"
               title={t('overview.edit')}
             >
               <FiEdit className="w-3.5 h-3.5" />
@@ -94,68 +92,62 @@ export function OverviewTab() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Nombre */}
           <div>
-            <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
+            <label className="block text-xs font-medium text-fg-subtle mb-1">
               {t('overview.groupName')}
             </label>
-            <p className="text-sm text-gray-900 dark:text-gray-100">{currentGroup.name}</p>
+            <p className="text-sm text-fg">{currentGroup.name}</p>
           </div>
 
           {/* Agencia */}
           <div>
-            <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
+            <label className="block text-xs font-medium text-fg-subtle mb-1">
               {t('overview.agency')}
             </label>
-            <p className="text-sm text-gray-900 dark:text-gray-100">{currentGroup.agency || '-'}</p>
+            <p className="text-sm text-fg">{currentGroup.agency || '-'}</p>
           </div>
 
           {/* Llegada */}
           <div>
-            <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
+            <label className="block text-xs font-medium text-fg-subtle mb-1">
               {t('overview.arrivalDate')}
             </label>
-            <p className="text-sm text-gray-900 dark:text-gray-100">
-              {formatDate(currentGroup.arrival_date, 'long')}
-            </p>
+            <p className="text-sm text-fg">{formatDate(currentGroup.arrival_date, 'long')}</p>
           </div>
 
           {/* Salida */}
           <div>
-            <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
+            <label className="block text-xs font-medium text-fg-subtle mb-1">
               {t('overview.departureDate')}
             </label>
-            <p className="text-sm text-gray-900 dark:text-gray-100">
-              {formatDate(currentGroup.departure_date, 'long')}
-            </p>
+            <p className="text-sm text-fg">{formatDate(currentGroup.departure_date, 'long')}</p>
           </div>
 
           {/* Importe */}
           <div>
-            <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
+            <label className="block text-xs font-medium text-fg-subtle mb-1">
               {t('overview.totalAmount')}
             </label>
-            <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+            <p className="text-sm font-semibold text-fg">
               {formatCurrency(currentGroup.total_amount, currentGroup.currency)}
             </p>
           </div>
 
           {/* Moneda */}
           <div>
-            <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
+            <label className="block text-xs font-medium text-fg-subtle mb-1">
               {t('overview.currency')}
             </label>
-            <p className="text-sm text-gray-900 dark:text-gray-100">{currentGroup.currency}</p>
+            <p className="text-sm text-fg">{currentGroup.currency}</p>
           </div>
         </div>
 
         {/* Notas */}
         {currentGroup.notes && (
-          <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-800">
-            <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
+          <div className="mt-4 pt-4 border-t border-border">
+            <label className="block text-xs font-medium text-fg-subtle mb-1">
               {t('overview.notes')}
             </label>
-            <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
-              {currentGroup.notes}
-            </p>
+            <p className="text-sm text-fg whitespace-pre-wrap">{currentGroup.notes}</p>
           </div>
         )}
       </div>
@@ -163,7 +155,7 @@ export function OverviewTab() {
       {/* Quick Status Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Booking Status */}
-        <div className="bg-white dark:bg-[#0D1117] rounded-lg border border-gray-200 dark:border-gray-800 p-4">
+        <div className="bg-surface rounded-lg border border-border p-4">
           <div className="flex items-center gap-3">
             {currentGroup.booking_confirmed ? (
               <FiCheckCircle className="w-8 h-8 text-green-500 dark:text-green-400 flex-shrink-0" />
@@ -171,14 +163,14 @@ export function OverviewTab() {
               <FiClock className="w-8 h-8 text-yellow-500 dark:text-yellow-400 flex-shrink-0" />
             )}
             <div className="flex-1 min-w-0">
-              <p className="text-xs text-gray-500 dark:text-gray-400">{t('overview.booking')}</p>
-              <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+              <p className="text-xs text-fg-subtle">{t('overview.booking')}</p>
+              <p className="text-sm font-medium text-fg">
                 {currentGroup.booking_confirmed
                   ? t('overview.bookingConfirmed')
                   : t('overview.bookingPending')}
               </p>
               {currentGroup.booking_confirmed_date && (
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                <p className="text-xs text-fg-subtle mt-0.5">
                   {formatDate(currentGroup.booking_confirmed_date)}
                 </p>
               )}
@@ -187,7 +179,7 @@ export function OverviewTab() {
         </div>
 
         {/* Contract Status */}
-        <div className="bg-white dark:bg-[#0D1117] rounded-lg border border-gray-200 dark:border-gray-800 p-4">
+        <div className="bg-surface rounded-lg border border-border p-4">
           <div className="flex items-center gap-3">
             {currentGroup.contract_signed ? (
               <FiCheckCircle className="w-8 h-8 text-green-500 dark:text-green-400 flex-shrink-0" />
@@ -195,14 +187,14 @@ export function OverviewTab() {
               <FiClock className="w-8 h-8 text-yellow-500 dark:text-yellow-400 flex-shrink-0" />
             )}
             <div className="flex-1 min-w-0">
-              <p className="text-xs text-gray-500 dark:text-gray-400">{t('overview.contract')}</p>
-              <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+              <p className="text-xs text-fg-subtle">{t('overview.contract')}</p>
+              <p className="text-sm font-medium text-fg">
                 {currentGroup.contract_signed
                   ? t('overview.contractSigned')
                   : t('overview.contractPending')}
               </p>
               {currentGroup.contract_signed_date && (
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                <p className="text-xs text-fg-subtle mt-0.5">
                   {formatDate(currentGroup.contract_signed_date)}
                 </p>
               )}
@@ -211,20 +203,18 @@ export function OverviewTab() {
         </div>
 
         {/* Rooming Status */}
-        <div className="bg-white dark:bg-[#0D1117] rounded-lg border border-gray-200 dark:border-gray-800 p-4">
+        <div className="bg-surface rounded-lg border border-border p-4">
           <div className="flex items-center gap-3">
             {currentGroup.rooming_status === 'received' ? (
               <FiCheckCircle className="w-8 h-8 text-green-500 dark:text-green-400 flex-shrink-0" />
             ) : currentGroup.rooming_status === 'requested' ? (
               <FiClock className="w-8 h-8 text-blue-500 dark:text-blue-400 flex-shrink-0" />
             ) : (
-              <FiFileText className="w-8 h-8 text-gray-400 dark:text-gray-500 flex-shrink-0" />
+              <FiFileText className="w-8 h-8 text-fg-subtle flex-shrink-0" />
             )}
             <div className="flex-1 min-w-0">
-              <p className="text-xs text-gray-500 dark:text-gray-400">
-                {t('overview.roomingList')}
-              </p>
-              <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+              <p className="text-xs text-fg-subtle">{t('overview.roomingList')}</p>
+              <p className="text-sm font-medium text-fg">
                 {currentGroup.rooming_status === 'received'
                   ? t('overview.roomingReceived')
                   : currentGroup.rooming_status === 'requested'
@@ -232,7 +222,7 @@ export function OverviewTab() {
                     : t('overview.roomingPending')}
               </p>
               {currentGroup.rooming_received_date && (
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                <p className="text-xs text-fg-subtle mt-0.5">
                   {formatDate(currentGroup.rooming_received_date)}
                 </p>
               )}
@@ -241,7 +231,7 @@ export function OverviewTab() {
         </div>
 
         {/* Balance Status */}
-        <div className="bg-white dark:bg-[#0D1117] rounded-lg border border-gray-200 dark:border-gray-800 p-4">
+        <div className="bg-surface rounded-lg border border-border p-4">
           <div className="flex items-center gap-3">
             {balanceStatus.isPaid ? (
               <FiCheckCircle className="w-8 h-8 text-green-500 dark:text-green-400 flex-shrink-0" />
@@ -249,8 +239,8 @@ export function OverviewTab() {
               <FiDollarSign className="w-8 h-8 text-orange-500 dark:text-orange-400 flex-shrink-0" />
             )}
             <div className="flex-1 min-w-0">
-              <p className="text-xs text-gray-500 dark:text-gray-400">{t('overview.balance')}</p>
-              <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+              <p className="text-xs text-fg-subtle">{t('overview.balance')}</p>
+              <p className="text-sm font-medium text-fg">
                 {balanceStatus.isPaid ? t('overview.balancePaid') : t('overview.balancePending')}
               </p>
               {!balanceStatus.isPaid && balanceStatus.remaining > 0 && (
@@ -270,36 +260,30 @@ export function OverviewTab() {
       </div>
 
       {/* Metadata */}
-      <div className="bg-white dark:bg-[#0D1117] rounded-lg border border-gray-200 dark:border-gray-800 p-4">
-        <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">
-          {t('overview.systemInfo')}
-        </h3>
+      <div className="bg-surface rounded-lg border border-border p-4">
+        <h3 className="text-sm font-semibold text-fg mb-3">{t('overview.systemInfo')}</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
           <div>
-            <span className="text-gray-500 dark:text-gray-400">{t('overview.createdBy')}</span>{' '}
-            <span className="text-gray-900 dark:text-gray-100">
+            <span className="text-fg-subtle">{t('overview.createdBy')}</span>{' '}
+            <span className="text-fg">
               {currentGroup.created_by_username || currentGroup.created_by || '-'}
             </span>
           </div>
           <div>
-            <span className="text-gray-500 dark:text-gray-400">{t('overview.createdAt')}</span>{' '}
-            <span className="text-gray-900 dark:text-gray-100">
-              {formatDate(currentGroup.created_at, 'long')}
-            </span>
+            <span className="text-fg-subtle">{t('overview.createdAt')}</span>{' '}
+            <span className="text-fg">{formatDate(currentGroup.created_at, 'long')}</span>
           </div>
           {currentGroup.updated_by && (
             <>
               <div>
-                <span className="text-gray-500 dark:text-gray-400">{t('overview.updatedBy')}</span>{' '}
-                <span className="text-gray-900 dark:text-gray-100">
+                <span className="text-fg-subtle">{t('overview.updatedBy')}</span>{' '}
+                <span className="text-fg">
                   {currentGroup.updated_by_username || currentGroup.updated_by}
                 </span>
               </div>
               <div>
-                <span className="text-gray-500 dark:text-gray-400">{t('overview.updatedAt')}</span>{' '}
-                <span className="text-gray-900 dark:text-gray-100">
-                  {formatDate(currentGroup.updated_at, 'long')}
-                </span>
+                <span className="text-fg-subtle">{t('overview.updatedAt')}</span>{' '}
+                <span className="text-fg">{formatDate(currentGroup.updated_at, 'long')}</span>
               </div>
             </>
           )}

@@ -48,7 +48,7 @@ export default function EditBlacklistPage({ params }: PageProps) {
 
   if (loading) {
     return (
-      <div className="min-h-screen dark:bg-[#010409] flex items-center justify-center">
+      <div className="min-h-screen dark:bg-bg flex items-center justify-center">
         <div className="animate-spin h-8 w-8 border-2 border-blue-500 border-t-transparent rounded-full"></div>
       </div>
     )
@@ -59,21 +59,19 @@ export default function EditBlacklistPage({ params }: PageProps) {
   }
 
   return (
-    <div className="min-h-screen dark:bg-[#010409]">
+    <div className="min-h-screen dark:bg-bg">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Link
           href={`/dashboard/blacklist/${id}`}
-          className="inline-flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 mb-6 transition-colors"
+          className="inline-flex items-center gap-2 text-sm text-fg-muted hover:text-fg mb-6 transition-colors"
         >
           <IoChevronBack size={16} />
           {t('editPage.backToDetail')}
         </Link>
 
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
-            {t('editPage.title')}
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-1">{entry.guest_name}</p>
+          <h1 className="text-3xl font-bold text-fg">{t('editPage.title')}</h1>
+          <p className="text-fg-muted mt-1">{entry.guest_name}</p>
         </div>
 
         <BlacklistForm mode="edit" initialData={entry} />

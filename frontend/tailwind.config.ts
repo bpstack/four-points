@@ -20,6 +20,9 @@ const config: Config = {
         // font-display: Usa la variable CSS de la fuente display
         display: ['var(--font-display)', 'system-ui', 'sans-serif'],
 
+        // font-mono: Geist Mono para números, IDs, códigos, room numbers
+        mono: ['var(--fp-font-mono)', 'ui-monospace', 'monospace'],
+
         // ============= FUENTES ADICIONALES (Backup) =============
         inter: ['Inter', 'sans-serif'],
         roboto: ['Roboto', 'sans-serif'],
@@ -39,6 +42,58 @@ const config: Config = {
           500: '#0070F3',
           600: '#2F6FEB',
         },
+
+        // ============= FOUR-POINTS DESIGN TOKENS =============
+        bg: 'var(--fp-bg)',
+        surface: {
+          DEFAULT: 'var(--fp-surface)',
+          elevated: 'var(--fp-surface-elevated)',
+          hover: 'var(--fp-surface-hover)',
+          sunken: 'var(--fp-surface-sunken)',
+        },
+        border: {
+          DEFAULT: 'var(--fp-border)',
+          strong: 'var(--fp-border-strong)',
+        },
+        fg: {
+          DEFAULT: 'var(--fp-fg)',
+          muted: 'var(--fp-fg-muted)',
+          subtle: 'var(--fp-fg-subtle)',
+        },
+        accent: {
+          DEFAULT: 'var(--fp-accent)',
+          fg: 'var(--fp-accent-fg)',
+          hover: 'var(--fp-accent-hover)',
+        },
+        success: 'var(--fp-success)',
+        warning: 'var(--fp-warning)',
+        danger: 'var(--fp-danger)',
+        info: 'var(--fp-info)',
+        neutral: 'var(--fp-neutral)',
+        'critical-bg': 'var(--fp-critical-bg)',
+        'critical-border': 'var(--fp-critical-border)',
+        'high-bg': 'var(--fp-high-bg)',
+        'high-border': 'var(--fp-high-border)',
+        'success-bg': 'var(--fp-success-bg)',
+        'success-border': 'var(--fp-success-border)',
+        'warning-bg': 'var(--fp-warning-bg)',
+        'warning-border': 'var(--fp-warning-border)',
+        'danger-bg': 'var(--fp-danger-bg)',
+        'danger-border': 'var(--fp-danger-border)',
+        'info-bg': 'var(--fp-info-bg)',
+        'info-border': 'var(--fp-info-border)',
+      },
+
+      borderRadius: {
+        'fp-sm': 'var(--fp-radius-sm)',
+        fp: 'var(--fp-radius)',
+        'fp-md': 'var(--fp-radius-md)',
+        'fp-lg': 'var(--fp-radius-lg)',
+      },
+
+      boxShadow: {
+        'fp-pop': 'var(--fp-shadow-pop)',
+        'fp-modal': 'var(--fp-shadow-modal)',
       },
 
       keyframes: {

@@ -6,6 +6,7 @@ import { useTranslations, useLocale } from 'next-intl'
 import { FiActivity, FiRefreshCw } from 'react-icons/fi'
 import { FaCar } from 'react-icons/fa'
 import { FiUsers, FiBook, FiTool } from 'react-icons/fi'
+import { Card, Button } from '@/app/ui/components'
 
 export type ActivitySource = 'cashier' | 'groups' | 'logbook' | 'maintenance'
 
@@ -135,25 +136,25 @@ export function RecentActivityCard({ activities, loading, onRefresh }: RecentAct
   )
 
   return (
-    <div className="bg-white dark:bg-[#0D1117] border border-[#d0d7de] dark:border-[#30363d] rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200 p-5">
+    <Card padding="none" className="p-5">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <div className="p-1.5 bg-green-100 dark:bg-green-900/20 rounded-lg">
-            <FiActivity className="w-4 h-4 text-green-600 dark:text-green-400" />
+          <div className="p-1.5 bg-success/10 rounded-lg">
+            <FiActivity className="w-4 h-4 text-success" />
           </div>
-          <h2 className="text-sm font-bold text-[#24292f] dark:text-[#f0f6fc]">{t('title')}</h2>
+          <h2 className="text-sm font-bold text-fg">{t('title')}</h2>
         </div>
         {onRefresh && (
-          <button
+          <Button
+            variant="ghost"
+            iconOnly
+            size="sm"
             onClick={onRefresh}
             disabled={loading}
-            className="p-2 rounded-lg hover:bg-[#f6f8fa] dark:hover:bg-[#21262d] transition-colors disabled:opacity-50"
             title={t('refresh')}
           >
-            <FiRefreshCw
-              className={`w-4 h-4 text-[#57606a] dark:text-[#8b949e] ${loading ? 'animate-spin' : ''}`}
-            />
-          </button>
+            <FiRefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+          </Button>
         )}
       </div>
 
@@ -161,26 +162,24 @@ export function RecentActivityCard({ activities, loading, onRefresh }: RecentAct
         <div className="space-y-3">
           {[1, 2, 3, 4, 5].map((i) => (
             <div key={i} className="animate-pulse flex items-start gap-3">
-              <div className="w-6 h-6 bg-[#d0d7de] dark:bg-[#30363d] rounded-full mt-1" />
+              <div className="w-6 h-6 bg-border rounded-full mt-1" />
               <div className="flex-1 space-y-2">
-                <div className="h-3 bg-[#d0d7de] dark:bg-[#21262d] rounded w-3/4" />
-                <div className="h-2.5 bg-[#d0d7de] dark:bg-[#21262d] rounded w-1/2" />
+                <div className="h-3 bg-border rounded w-3/4" />
+                <div className="h-2.5 bg-border rounded w-1/2" />
               </div>
             </div>
           ))}
         </div>
       ) : activities.length === 0 ? (
         <div className="text-center py-8">
-          <p className="text-sm font-medium text-[#57606a] dark:text-[#8b949e]">
-            {t('noActivity')}
-          </p>
+          <p className="text-sm font-medium text-fg-muted">{t('noActivity')}</p>
         </div>
       ) : (
         <div className="space-y-2">
           {activities.map((activity) => (
             <div
               key={activity.id}
-              className="flex items-start gap-3 p-3 rounded-lg hover:bg-[#f6f8fa] dark:hover:bg-[#0d1117] transition-colors duration-150"
+              className="flex items-start gap-3 p-3 rounded-lg hover:bg-surface-hover transition-colors duration-150"
             >
               <div className="flex-shrink-0 mt-0.5">
                 <div
@@ -191,15 +190,15 @@ export function RecentActivityCard({ activities, loading, onRefresh }: RecentAct
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-0.5">
-                  <p className="text-sm font-semibold text-[#24292f] dark:text-[#f0f6fc]">
+                  <p className="text-sm font-semibold text-fg">
                     {translateAction(activity.source, activity.action)}
                   </p>
-                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#f6f8fa] dark:bg-[#21262d] text-[#57606a] dark:text-[#8b949e] font-medium">
+                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-surface-hover text-fg-muted font-medium">
                     {sourceNames[activity.source]}
                   </span>
                 </div>
-                <p className="text-xs text-[#57606a] dark:text-[#8b949e]">{activity.username}</p>
-                <p className="text-[11px] text-[#57606a] dark:text-[#8b949e] mt-0.5 font-medium">
+                <p className="text-xs text-fg-muted">{activity.username}</p>
+                <p className="text-[11px] text-fg-muted mt-0.5 font-medium">
                   {formatTimestamp(activity.timestamp)}
                 </p>
               </div>
@@ -207,6 +206,6 @@ export function RecentActivityCard({ activities, loading, onRefresh }: RecentAct
           ))}
         </div>
       )}
-    </div>
+    </Card>
   )
 }

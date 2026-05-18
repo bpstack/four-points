@@ -93,7 +93,7 @@ export function PaymentsTab() {
       {/* Balance Summary */}
       <div className="bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-lg border border-blue-200 dark:border-blue-800 p-4 sm:p-6">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+          <h2 className="text-base font-semibold text-fg flex items-center gap-2">
             <FiDollarSign className="w-5 h-5" />
             {t('payments.paymentBalance')}
           </h2>
@@ -101,33 +101,31 @@ export function PaymentsTab() {
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {/* Total Amount */}
-          <div className="bg-white/50 dark:bg-gray-800/50 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
-            <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">
-              {t('payments.totalAmount')}
-            </p>
-            <p className="text-xl font-bold text-gray-900 dark:text-gray-100">
+          <div className="bg-surface/50 rounded-lg p-3 border border-border">
+            <p className="text-xs text-fg-muted mb-1">{t('payments.totalAmount')}</p>
+            <p className="text-xl font-bold text-fg">
               {formatCurrency(balance.total_amount, currentGroup?.currency)}
             </p>
           </div>
 
           {/* Total Paid */}
-          <div className="bg-white/50 dark:bg-gray-800/50 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
-            <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">{t('payments.paid')}</p>
+          <div className="bg-surface/50 rounded-lg p-3 border border-border">
+            <p className="text-xs text-fg-muted mb-1">{t('payments.paid')}</p>
             <p className="text-xl font-bold text-green-600 dark:text-green-400">
               {formatCurrency(balance.total_paid, currentGroup?.currency)}
             </p>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+            <p className="text-xs text-fg-subtle mt-1">
               {balance.percentage_paid}% {t('payments.ofTotal')}
             </p>
           </div>
 
           {/* Remaining */}
-          <div className="bg-white/50 dark:bg-gray-800/50 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
-            <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">{t('payments.pending')}</p>
+          <div className="bg-surface/50 rounded-lg p-3 border border-border">
+            <p className="text-xs text-fg-muted mb-1">{t('payments.pending')}</p>
             <p className="text-xl font-bold text-orange-600 dark:text-orange-400">
               {formatCurrency(balance.remaining, currentGroup?.currency)}
             </p>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+            <p className="text-xs text-fg-subtle mt-1">
               {100 - balance.percentage_paid}% {t('payments.remaining')}
             </p>
           </div>
@@ -136,14 +134,10 @@ export function PaymentsTab() {
         {/* Progress bar */}
         <div className="mt-4">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-xs text-gray-600 dark:text-gray-400">
-              {t('payments.paymentProgress')}
-            </span>
-            <span className="text-xs font-semibold text-gray-900 dark:text-gray-100">
-              {balance.percentage_paid}%
-            </span>
+            <span className="text-xs text-fg-muted">{t('payments.paymentProgress')}</span>
+            <span className="text-xs font-semibold text-fg">{balance.percentage_paid}%</span>
           </div>
-          <div className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+          <div className="w-full h-2 bg-surface-hover rounded-full overflow-hidden">
             <div
               className="h-full bg-gradient-to-r from-blue-500 to-green-500 transition-all duration-500 rounded-full"
               style={{ width: `${Math.min(balance.percentage_paid, 100)}%` }}
@@ -154,13 +148,13 @@ export function PaymentsTab() {
 
       {/* Payments List Header */}
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+        <h3 className="text-sm font-semibold text-fg flex items-center gap-2">
           <FiFileText className="w-4 h-4" />
           {t('payments.scheduledPayments')} ({payments.length})
         </h3>
         <button
           onClick={handleCreatePayment}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-green-600 dark:bg-green-700 text-white text-xs font-medium rounded-md hover:bg-green-700 dark:hover:bg-green-800 transition-colors"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-accent text-accent-fg text-xs font-medium rounded-md hover:bg-accent-hover transition-colors"
         >
           <FiPlus className="w-3.5 h-3.5" />
           {t('payments.newPayment')}
@@ -176,7 +170,7 @@ export function PaymentsTab() {
           action={
             <button
               onClick={handleCreatePayment}
-              className="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors"
+              className="inline-flex items-center gap-1.5 px-4 py-2 bg-accent text-accent-fg text-sm font-medium rounded-md hover:bg-accent-hover transition-colors"
             >
               <FiPlus className="w-4 h-4" />
               {t('payments.createFirst')}
@@ -205,33 +199,27 @@ export function PaymentsTab() {
 
       {/* Quick Stats */}
       {payments.length > 0 && (
-        <div className="bg-white dark:bg-[#151b23] rounded-lg border border-gray-200 dark:border-gray-800 p-4">
-          <h4 className="text-xs font-semibold text-gray-900 dark:text-gray-100 mb-3">
-            {t('payments.quickStats')}
-          </h4>
+        <div className="bg-surface rounded-lg border border-border p-4">
+          <h4 className="text-xs font-semibold text-fg mb-3">{t('payments.quickStats')}</h4>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
             <div>
-              <p className="text-gray-500 dark:text-gray-400 mb-1">{t('payments.totalPayments')}</p>
-              <p className="font-semibold text-gray-900 dark:text-gray-100">{payments.length}</p>
+              <p className="text-fg-subtle mb-1">{t('payments.totalPayments')}</p>
+              <p className="font-semibold text-fg">{payments.length}</p>
             </div>
             <div>
-              <p className="text-gray-500 dark:text-gray-400 mb-1">{t('payments.paidPayments')}</p>
+              <p className="text-fg-subtle mb-1">{t('payments.paidPayments')}</p>
               <p className="font-semibold text-green-600 dark:text-green-400">
                 {payments.filter((p) => p.status === 'paid').length}
               </p>
             </div>
             <div>
-              <p className="text-gray-500 dark:text-gray-400 mb-1">
-                {t('payments.pendingPayments')}
-              </p>
+              <p className="text-fg-subtle mb-1">{t('payments.pendingPayments')}</p>
               <p className="font-semibold text-yellow-600 dark:text-yellow-400">
                 {payments.filter((p) => p.status === 'pending').length}
               </p>
             </div>
             <div>
-              <p className="text-gray-500 dark:text-gray-400 mb-1">
-                {t('payments.partialPayments')}
-              </p>
+              <p className="text-fg-subtle mb-1">{t('payments.partialPayments')}</p>
               <p className="font-semibold text-orange-600 dark:text-orange-400">
                 {payments.filter((p) => p.status === 'partial').length}
               </p>
@@ -243,7 +231,7 @@ export function PaymentsTab() {
             <div className="mt-4">
               <button
                 onClick={() => setShowBreakdown(!showBreakdown)}
-                className="w-full flex items-center justify-between px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-900/50 hover:bg-gray-100 dark:hover:bg-gray-900 rounded-md transition-colors"
+                className="w-full flex items-center justify-between px-4 py-2 text-sm font-medium text-fg bg-surface-sunken hover:bg-gray-100 rounded-md transition-colors"
               >
                 <span>{t('payments.viewBreakdown')}</span>
                 {showBreakdown ? (
@@ -254,30 +242,30 @@ export function PaymentsTab() {
               </button>
 
               {showBreakdown && (
-                <div className="mt-3 overflow-hidden rounded-md border border-gray-200 dark:border-gray-800">
+                <div className="mt-3 overflow-hidden rounded-md border border-border">
                   {/* Vista Desktop - Tabla */}
                   <div className="hidden md:block overflow-x-auto">
                     <table className="w-full text-sm">
-                      <thead className="bg-gray-50 dark:bg-gray-900/50">
+                      <thead className="bg-surface-sunken">
                         <tr>
-                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
+                          <th className="px-4 py-2 text-left text-xs font-medium text-fg-subtle uppercase">
                             {t('payments.payment')}
                           </th>
-                          <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
+                          <th className="px-4 py-2 text-right text-xs font-medium text-fg-subtle uppercase">
                             {t('payments.total')}
                           </th>
-                          <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
+                          <th className="px-4 py-2 text-right text-xs font-medium text-fg-subtle uppercase">
                             {t('payments.paid')}
                           </th>
-                          <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
+                          <th className="px-4 py-2 text-right text-xs font-medium text-fg-subtle uppercase">
                             {t('payments.remaining_amount')}
                           </th>
-                          <th className="px-4 py-2 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
+                          <th className="px-4 py-2 text-center text-xs font-medium text-fg-subtle uppercase">
                             %
                           </th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-gray-200 dark:divide-gray-800 bg-white dark:bg-[#0d1117]">
+                      <tbody className="divide-y divide-border bg-surface">
                         {payments
                           .sort((a, b) => (a.payment_order || 0) - (b.payment_order || 0))
                           .map((payment) => {
@@ -292,22 +280,17 @@ export function PaymentsTab() {
                             }
 
                             return (
-                              <tr
-                                key={payment.id}
-                                className="hover:bg-gray-50 dark:hover:bg-gray-900/30"
-                              >
+                              <tr key={payment.id} className="hover:bg-surface-hover/30">
                                 <td className="px-4 py-2">
                                   <div className="flex items-center gap-2">
-                                    <span className="text-xs font-semibold text-gray-400 dark:text-gray-600">
+                                    <span className="text-xs font-semibold text-fg-subtle">
                                       {getOrderLabel(payment.payment_order || 0)}
                                     </span>
-                                    <span className="text-xs text-gray-900 dark:text-gray-100">
-                                      {payment.payment_name}
-                                    </span>
+                                    <span className="text-xs text-fg">{payment.payment_name}</span>
                                   </div>
                                 </td>
                                 <td className="px-4 py-2 text-right">
-                                  <span className="text-xs font-medium text-gray-900 dark:text-gray-100">
+                                  <span className="text-xs font-medium text-fg">
                                     {totalPago.toLocaleString('es-ES', {
                                       minimumFractionDigits: 2,
                                     })}{' '}
@@ -319,7 +302,7 @@ export function PaymentsTab() {
                                     className={`text-xs font-medium ${
                                       pagado > 0
                                         ? 'text-green-600 dark:text-green-400'
-                                        : 'text-gray-400 dark:text-gray-600'
+                                        : 'text-fg-subtle'
                                     }`}
                                   >
                                     {pagado.toLocaleString('es-ES', {
@@ -333,7 +316,7 @@ export function PaymentsTab() {
                                     className={`text-xs font-medium ${
                                       restante > 0
                                         ? 'text-amber-600 dark:text-amber-400'
-                                        : 'text-gray-400 dark:text-gray-600'
+                                        : 'text-fg-subtle'
                                     }`}
                                   >
                                     {restante.toLocaleString('es-ES', {
@@ -343,7 +326,7 @@ export function PaymentsTab() {
                                   </span>
                                 </td>
                                 <td className="px-4 py-2 text-center">
-                                  <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
+                                  <span className="text-xs font-medium text-fg-muted">
                                     {progreso.toFixed(0)}%
                                   </span>
                                 </td>
@@ -352,9 +335,9 @@ export function PaymentsTab() {
                           })}
 
                         {/* Fila TOTALES */}
-                        <tr className="bg-gray-50 dark:bg-gray-900/70 font-semibold">
+                        <tr className="bg-bg font-semibold">
                           <td className="px-4 py-2">
-                            <span className="text-xs font-bold text-gray-900 dark:text-gray-100">
+                            <span className="text-xs font-bold text-fg">
                               {t('payments.totals')}
                             </span>
                           </td>
@@ -395,7 +378,7 @@ export function PaymentsTab() {
                             </span>
                           </td>
                           <td className="px-4 py-2 text-center">
-                            <span className="text-xs font-bold text-gray-900 dark:text-gray-100">
+                            <span className="text-xs font-bold text-fg">
                               {balance.percentage_paid}%
                             </span>
                           </td>
@@ -405,7 +388,7 @@ export function PaymentsTab() {
                   </div>
 
                   {/* Vista Mobile - Cards */}
-                  <div className="md:hidden divide-y divide-gray-200 dark:divide-gray-800 bg-white dark:bg-[#0d1117]">
+                  <div className="md:hidden divide-y divide-border bg-surface">
                     {payments
                       .sort((a, b) => (a.payment_order || 0) - (b.payment_order || 0))
                       .map((payment) => {
@@ -424,25 +407,23 @@ export function PaymentsTab() {
                             {/* Header */}
                             <div className="flex items-center justify-between">
                               <div className="flex items-center gap-2">
-                                <span className="text-xs font-bold text-gray-400 dark:text-gray-600">
+                                <span className="text-xs font-bold text-fg-subtle">
                                   {getOrderLabel(payment.payment_order || 0)}
                                 </span>
-                                <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                                <span className="text-sm font-medium text-fg">
                                   {payment.payment_name}
                                 </span>
                               </div>
-                              <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
+                              <span className="text-xs font-medium text-fg-muted">
                                 {progreso.toFixed(0)}%
                               </span>
                             </div>
 
                             {/* Amounts Grid */}
                             <div className="grid grid-cols-3 gap-2 text-xs">
-                              <div className="text-center p-2 bg-blue-50 dark:bg-blue-900/20 rounded">
-                                <p className="text-gray-600 dark:text-gray-400 mb-0.5">
-                                  {t('payments.total')}
-                                </p>
-                                <p className="font-semibold text-gray-900 dark:text-gray-100">
+                              <div className="text-center p-2 bg-info/10 rounded">
+                                <p className="text-fg-muted mb-0.5">{t('payments.total')}</p>
+                                <p className="font-semibold text-fg">
                                   {totalPago.toLocaleString('es-ES', {
                                     minimumFractionDigits: 0,
                                     maximumFractionDigits: 0,
@@ -451,14 +432,12 @@ export function PaymentsTab() {
                                 </p>
                               </div>
                               <div className="text-center p-2 bg-green-50 dark:bg-green-900/20 rounded">
-                                <p className="text-gray-600 dark:text-gray-400 mb-0.5">
-                                  {t('payments.paid')}
-                                </p>
+                                <p className="text-fg-muted mb-0.5">{t('payments.paid')}</p>
                                 <p
                                   className={`font-semibold ${
                                     pagado > 0
                                       ? 'text-green-600 dark:text-green-400'
-                                      : 'text-gray-400 dark:text-gray-600'
+                                      : 'text-fg-subtle'
                                   }`}
                                 >
                                   {pagado.toLocaleString('es-ES', {
@@ -469,14 +448,14 @@ export function PaymentsTab() {
                                 </p>
                               </div>
                               <div className="text-center p-2 bg-amber-50 dark:bg-amber-900/20 rounded">
-                                <p className="text-gray-600 dark:text-gray-400 mb-0.5">
+                                <p className="text-fg-muted mb-0.5">
                                   {t('payments.remaining_amount')}
                                 </p>
                                 <p
                                   className={`font-semibold ${
                                     restante > 0
                                       ? 'text-amber-600 dark:text-amber-400'
-                                      : 'text-gray-400 dark:text-gray-600'
+                                      : 'text-fg-subtle'
                                   }`}
                                 >
                                   {restante.toLocaleString('es-ES', {
@@ -489,7 +468,7 @@ export function PaymentsTab() {
                             </div>
 
                             {/* Progress Bar */}
-                            <div className="w-full h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                            <div className="w-full h-1.5 bg-surface-hover rounded-full overflow-hidden">
                               <div
                                 className="h-full bg-gradient-to-r from-green-500 to-blue-500 transition-all"
                                 style={{ width: `${progreso}%` }}
@@ -500,15 +479,11 @@ export function PaymentsTab() {
                       })}
 
                     {/* Totales Mobile */}
-                    <div className="p-3 bg-gray-50 dark:bg-gray-900/70 space-y-2">
-                      <p className="text-xs font-bold text-gray-900 dark:text-gray-100 mb-2">
-                        {t('payments.totals')}
-                      </p>
+                    <div className="p-3 bg-bg space-y-2">
+                      <p className="text-xs font-bold text-fg mb-2">{t('payments.totals')}</p>
                       <div className="grid grid-cols-3 gap-2 text-xs">
                         <div className="text-center">
-                          <p className="text-gray-600 dark:text-gray-400 mb-0.5">
-                            {t('payments.total')}
-                          </p>
+                          <p className="text-fg-muted mb-0.5">{t('payments.total')}</p>
                           <p className="font-bold text-blue-600 dark:text-blue-400">
                             {payments
                               .reduce((sum, p) => sum + parseFloat(String(p.amount || 0)), 0)
@@ -520,9 +495,7 @@ export function PaymentsTab() {
                           </p>
                         </div>
                         <div className="text-center">
-                          <p className="text-gray-600 dark:text-gray-400 mb-0.5">
-                            {t('payments.paid')}
-                          </p>
+                          <p className="text-fg-muted mb-0.5">{t('payments.paid')}</p>
                           <p className="font-bold text-green-600 dark:text-green-400">
                             {payments
                               .reduce((sum, p) => sum + parseFloat(String(p.amount_paid || 0)), 0)
@@ -534,9 +507,7 @@ export function PaymentsTab() {
                           </p>
                         </div>
                         <div className="text-center">
-                          <p className="text-gray-600 dark:text-gray-400 mb-0.5">
-                            {t('payments.remaining_amount')}
-                          </p>
+                          <p className="text-fg-muted mb-0.5">{t('payments.remaining_amount')}</p>
                           <p className="font-bold text-amber-600 dark:text-amber-400">
                             {payments
                               .reduce(
@@ -555,10 +526,8 @@ export function PaymentsTab() {
                         </div>
                       </div>
                       <div className="flex items-center justify-center gap-2 mt-2">
-                        <span className="text-xs text-gray-600 dark:text-gray-400">
-                          {t('payments.progress')}
-                        </span>
-                        <span className="text-xs font-bold text-gray-900 dark:text-gray-100">
+                        <span className="text-xs text-fg-muted">{t('payments.progress')}</span>
+                        <span className="text-xs font-bold text-fg">
                           {balance.percentage_paid}%
                         </span>
                       </div>

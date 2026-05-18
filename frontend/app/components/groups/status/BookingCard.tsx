@@ -13,7 +13,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useForm } from 'react-hook-form'
+import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { bookingSchema, type BookingFormData } from '@/app/lib/schemas/group-schemas'
 import { groupsApi, type GroupStatusRecord } from '@/app/lib/groups'
@@ -24,6 +24,7 @@ import SimpleCalendarCompact from '@/app/ui/calendar/SimpleCalendarCompact'
 import toast from 'react-hot-toast'
 import { useTranslations } from 'next-intl'
 import { useLocale } from 'next-intl'
+import { Checkbox } from '@/app/ui/components'
 
 interface BookingCardProps {
   status: GroupStatusRecord
@@ -43,6 +44,7 @@ export function BookingCard({ status, groupId }: BookingCardProps) {
     reset,
     watch,
     setValue,
+    control,
     formState: { errors, isSubmitting },
   } = useForm<BookingFormData>({
     resolver: zodResolver(bookingSchema),
@@ -104,22 +106,20 @@ export function BookingCard({ status, groupId }: BookingCardProps) {
   }
 
   return (
-    <div className="bg-white dark:bg-[#0D1117] rounded-lg border border-gray-200 dark:border-gray-800 p-4">
+    <div className="bg-surface rounded-lg border border-border p-4">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/20 rounded-lg flex items-center justify-center">
+          <div className="w-8 h-8 bg-info/10 rounded-lg flex items-center justify-center">
             <FiCalendar className="w-4 h-4 text-blue-600 dark:text-blue-400" />
           </div>
-          <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-            {t('statusCards.booking')}
-          </h4>
+          <h4 className="text-sm font-semibold text-fg">{t('statusCards.booking')}</h4>
         </div>
 
         {!isEditing && (
           <button
             onClick={() => setIsEditing(true)}
-            className="p-1.5 text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors"
+            className="p-1.5 text-fg-muted hover:text-blue-600 dark:hover:text-blue-400 hover:bg-surface-hover rounded transition-colors"
           >
             <FiEdit2 className="w-4 h-4" />
           </button>
@@ -130,24 +130,23 @@ export function BookingCard({ status, groupId }: BookingCardProps) {
       {isEditing ? (
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-3">
           {/* Confirmed Checkbox */}
-          <div className="flex items-center gap-2">
-            <input
-              {...register('confirmed')}
-              type="checkbox"
-              id="booking_confirmed"
-              className="w-4 h-4 text-blue-600 border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600"
-            />
-            <label
-              htmlFor="booking_confirmed"
-              className="text-sm font-medium text-gray-700 dark:text-gray-300"
-            >
-              {t('statusCards.bookingConfirmedLabel')}
-            </label>
-          </div>
+          <Controller
+            name="confirmed"
+            control={control}
+            render={({ field }) => (
+              <Checkbox
+                checked={!!field.value}
+                onCheckedChange={field.onChange}
+                label={t('statusCards.bookingConfirmedLabel')}
+                strikeOnCheck={false}
+                id="booking_confirmed"
+              />
+            )}
+          />
 
           {/* Date con Calendar */}
           <div className="relative calendar-container">
-            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label className="block text-xs font-medium text-fg mb-1">
               {t('statusCards.confirmationDate')}
             </label>
             <div className="relative">
@@ -160,9 +159,9 @@ export function BookingCard({ status, groupId }: BookingCardProps) {
                   e.stopPropagation()
                   setShowCalendar(!showCalendar)
                 }}
-                className="w-full px-3 py-1.5 pr-8 text-sm border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 cursor-pointer"
+                className="w-full px-3 py-1.5 pr-8 text-sm border border-border rounded-md bg-surface text-fg focus:outline-none focus:ring-2 focus:ring-accent/50 cursor-pointer"
               />
-              <FiCalendar className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+              <FiCalendar className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-fg-subtle pointer-events-none" />
             </div>
             {errors.date && (
               <p className="mt-1 text-xs text-red-600 dark:text-red-400">{errors.date.message}</p>
@@ -192,14 +191,14 @@ export function BookingCard({ status, groupId }: BookingCardProps) {
               type="button"
               onClick={handleCancel}
               disabled={isSubmitting}
-              className="px-3 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50"
+              className="px-3 py-1.5 text-xs font-medium text-fg bg-surface border border-border rounded-md hover:bg-surface-hover disabled:opacity-50"
             >
               <FiX className="w-3.5 h-3.5" />
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-accent-fg bg-accent rounded-md hover:bg-accent-hover disabled:opacity-50"
             >
               {isSubmitting ? (
                 <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -227,7 +226,7 @@ export function BookingCard({ status, groupId }: BookingCardProps) {
 
           {/* Date */}
           {status.booking_confirmed_date && (
-            <p className="text-xs text-gray-600 dark:text-gray-400">
+            <p className="text-xs text-fg-muted">
               {t('statusCards.confirmedOn')}{' '}
               {new Date(status.booking_confirmed_date).toLocaleDateString(
                 locale === 'es' ? 'es-ES' : 'en-US',

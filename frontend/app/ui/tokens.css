@@ -1,0 +1,183 @@
+/* ============================================================
+   Four-Points PMS — Design Tokens
+   ------------------------------------------------------------
+   CSS variables that drive the whole visual system. Theming
+   uses `.dark` class on <html> (matches Tailwind darkMode:'class'
+   and your existing ThemeProvider).
+
+   Use these tokens either:
+     - directly:    style={{ background: 'var(--fp-bg)' }}
+     - via Tailwind: className="bg-surface text-fg-muted"
+       (mapped in tailwind.config.ts)
+   ============================================================ */
+
+:root {
+  /* ===== Surfaces ===== */
+  --fp-bg: oklch(0.99 0.001 250); /* page background — casi blanco puro */
+  --fp-surface: oklch(1 0 0); /* cards, panels — blanco puro */
+  --fp-surface-elevated: oklch(1 0 0); /* modals, popovers */
+  --fp-surface-hover: oklch(0.95 0.003 250); /* hover states */
+  --fp-surface-sunken: oklch(0.98 0.002 250); /* inset / input bg */
+
+  /* ===== Borders ===== */
+  --fp-border: oklch(0.88 0.004 250);
+  --fp-border-strong: oklch(0.78 0.006 250);
+
+  /* ===== Foreground (text) ===== */
+  --fp-fg: oklch(0.18 0.01 250); /* primary text */
+  --fp-fg-muted: oklch(0.48 0.01 250); /* secondary text */
+  --fp-fg-subtle: oklch(0.62 0.01 250); /* meta, hints */
+
+  /* ===== Accent ===== */
+  --fp-accent: oklch(0.55 0.13 230); /* slate-blue */
+  --fp-accent-fg: oklch(0.99 0 0);
+  --fp-accent-hover: oklch(0.5 0.13 230);
+
+  /* ===== Semantic ===== */
+  --fp-success: oklch(0.55 0.16 145);
+  --fp-warning: oklch(0.62 0.17 65);
+  --fp-danger: oklch(0.55 0.22 22);
+  --fp-info: oklch(0.55 0.13 230);
+  --fp-neutral: oklch(0.62 0.01 250);
+
+  /* ===== Priority states (entry cards) ===== */
+  --fp-critical-bg: oklch(0.975 0.025 22); /* barely-pink light bg */
+  --fp-critical-border: oklch(0.82 0.08 22); /* soft red border */
+  --fp-critical-accent: oklch(0.55 0.22 22); /* left accent stripe */
+  --fp-high-bg: oklch(0.975 0.022 72); /* barely-amber light bg */
+  --fp-high-border: oklch(0.84 0.07 72); /* soft amber border */
+  --fp-high-accent: oklch(0.62 0.17 65); /* left accent stripe */
+
+  /* ===== State backgrounds ===== */
+  --fp-success-bg: oklch(0.96 0.03 145);
+  --fp-success-border: oklch(0.8 0.08 145);
+  --fp-warning-bg: oklch(0.97 0.025 72);
+  --fp-warning-border: oklch(0.82 0.07 72);
+  --fp-danger-bg: oklch(0.975 0.025 22);
+  --fp-danger-border: oklch(0.82 0.08 22);
+  --fp-info-bg: oklch(0.965 0.02 230);
+  --fp-info-border: oklch(0.8 0.06 230);
+
+  /* ===== Effects ===== */
+  --fp-shadow-pop: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.04);
+  --fp-shadow-modal: 0 24px 48px rgba(15, 23, 42, 0.1), 0 4px 12px rgba(15, 23, 42, 0.06);
+  --fp-ring: 0 0 0 3px color-mix(in oklch, var(--fp-accent) 35%, transparent);
+
+  /* ===== Radii (extra to Tailwind defaults) ===== */
+  --fp-radius-sm: 4px;
+  --fp-radius: 6px;
+  --fp-radius-md: 8px;
+  --fp-radius-lg: 12px;
+
+  /* ===== Typography helpers ===== */
+  --fp-font-mono: 'Geist Mono', ui-monospace, 'JetBrains Mono', 'SF Mono', Menlo, monospace;
+}
+
+/* ====================  DARK THEME  ======================== */
+/* Matches your existing class-based dark mode (html.dark)    */
+.dark {
+  --fp-bg: oklch(0.11 0 0); /* negro profundo — fondo de página */
+  --fp-surface: oklch(0.17 0 0); /* cards claramente más claras que bg */
+  --fp-surface-elevated: oklch(0.22 0 0); /* modals encima de todo */
+  --fp-surface-hover: oklch(0.22 0 0); /* hover visible */
+  --fp-surface-sunken: oklch(0.14 0 0); /* inputs ligeramente hundidos */
+
+  --fp-border: oklch(0.28 0 0); /* bordes bien definidos */
+  --fp-border-strong: oklch(0.38 0 0);
+
+  --fp-fg: oklch(0.96 0 0);
+  --fp-fg-muted: oklch(0.68 0 0);
+  --fp-fg-subtle: oklch(0.5 0 0);
+
+  --fp-accent: oklch(0.72 0.14 230);
+  --fp-accent-fg: oklch(0.145 0 0);
+  --fp-accent-hover: oklch(0.78 0.14 230);
+
+  --fp-success: oklch(0.72 0.17 145);
+  --fp-warning: oklch(0.78 0.16 75);
+  --fp-danger: oklch(0.65 0.22 22);
+  --fp-info: oklch(0.7 0.13 230);
+  --fp-neutral: oklch(0.62 0.01 250);
+
+  /* ===== Priority states dark ===== */
+  --fp-critical-bg: oklch(0.21 0.04 22); /* dark red tint, subtle */
+  --fp-critical-border: oklch(0.44 0.14 22); /* clearly red, not white */
+  --fp-critical-accent: oklch(0.6 0.2 22);
+  --fp-high-bg: oklch(0.21 0.03 72); /* dark amber tint */
+  --fp-high-border: oklch(0.46 0.12 72); /* clearly amber */
+  --fp-high-accent: oklch(0.65 0.16 72);
+
+  --fp-shadow-pop: 0 1px 3px rgba(0, 0, 0, 0.35), 0 1px 2px rgba(0, 0, 0, 0.25);
+  --fp-shadow-modal: 0 24px 64px rgba(0, 0, 0, 0.7);
+
+  /* ===== State backgrounds dark ===== */
+  --fp-success-bg: oklch(0.21 0.04 145);
+  --fp-success-border: oklch(0.44 0.12 145);
+  --fp-warning-bg: oklch(0.21 0.03 72);
+  --fp-warning-border: oklch(0.46 0.1 72);
+  --fp-danger-bg: oklch(0.21 0.04 22);
+  --fp-danger-border: oklch(0.44 0.14 22);
+  --fp-info-bg: oklch(0.19 0.03 230);
+  --fp-info-border: oklch(0.42 0.1 230);
+}
+
+/* ====================  ACCENT VARIANTS  ====================
+   Optional — switch via `data-accent` on <html> if you want
+   to expose accent color choice to the user.
+   =========================================================== */
+[data-accent='violet'] {
+  --fp-accent: oklch(0.55 0.18 290);
+}
+[data-accent='emerald'] {
+  --fp-accent: oklch(0.5 0.14 165);
+}
+[data-accent='amber'] {
+  --fp-accent: oklch(0.62 0.16 75);
+}
+
+.dark[data-accent='violet'] {
+  --fp-accent: oklch(0.7 0.18 290);
+}
+.dark[data-accent='emerald'] {
+  --fp-accent: oklch(0.72 0.17 165);
+}
+.dark[data-accent='amber'] {
+  --fp-accent: oklch(0.78 0.16 75);
+}
+
+/* ====================  UTILITIES  ==========================
+   Small helpers that pair with the tokens. Keep this list
+   short — anything bigger goes in a Tailwind plugin instead.
+   =========================================================== */
+
+/* Tabular numerals — apply to anything carrying ids, money, counts, dates. */
+.fp-tnum {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings:
+    'tnum' 1,
+    'cv11' 1;
+}
+
+/* Monospace room numbers / codes */
+.fp-mono {
+  font-family: var(--fp-font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Keyboard shortcut hint */
+.fp-kbd {
+  font-family: var(--fp-font-mono);
+  background: var(--fp-surface-elevated);
+  border: 1px solid var(--fp-border);
+  color: var(--fp-fg-muted);
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-size: 11px;
+  line-height: 1;
+}
+
+/* Focus ring used across interactive elements */
+.fp-focus-ring:focus-visible {
+  outline: none;
+  box-shadow: var(--fp-ring);
+}

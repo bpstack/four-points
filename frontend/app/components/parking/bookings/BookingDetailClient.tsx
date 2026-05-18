@@ -199,8 +199,8 @@ export function BookingDetailClient({ code }: BookingDetailClientProps) {
     return (
       <div className="min-h-[50vh] flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
-          <FiRefreshCw className="w-8 h-8 text-[#0969da] dark:text-[#58a6ff] animate-spin" />
-          <p className="text-sm text-[#57606a] dark:text-[#8b949e]">{t('bookingDetail.loading')}</p>
+          <FiRefreshCw className="w-8 h-8 text-accent animate-spin" />
+          <p className="text-sm text-fg-muted">{t('bookingDetail.loading')}</p>
         </div>
       </div>
     )
@@ -211,12 +211,9 @@ export function BookingDetailClient({ code }: BookingDetailClientProps) {
     return (
       <div className="min-h-[50vh] flex items-center justify-center">
         <div className="text-center">
-          <FiAlertTriangle className="w-12 h-12 text-[#9a6700] dark:text-[#d29922] mx-auto mb-4" />
-          <p className="text-[#57606a] dark:text-[#8b949e] mb-4">{t('bookingDetail.notFound')}</p>
-          <Link
-            href="/dashboard/parking/bookings"
-            className="text-[#0969da] dark:text-[#58a6ff] hover:underline text-sm"
-          >
+          <FiAlertTriangle className="w-12 h-12 text-warning mx-auto mb-4" />
+          <p className="text-fg-muted mb-4">{t('bookingDetail.notFound')}</p>
+          <Link href="/dashboard/parking/bookings" className="text-accent hover:underline text-sm">
             {t('bookingDetail.backToBookings')}
           </Link>
         </div>
@@ -232,7 +229,7 @@ export function BookingDetailClient({ code }: BookingDetailClientProps) {
       : 0
 
   return (
-    <div className="min-h-screen bg-white dark:bg-[#010409]">
+    <div className="min-h-screen bg-bg">
       {/* Header */}
       <BookingHeader
         booking={booking}
@@ -249,58 +246,58 @@ export function BookingDetailClient({ code }: BookingDetailClientProps) {
         {/* Stats Row - Mobile/Tablet */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 mb-6 min-[1400px]:hidden">
           {/* Plaza */}
-          <div className="bg-white dark:bg-[#151b23] rounded-md border border-[#d0d7de] dark:border-[#30363d] p-3">
+          <div className="bg-surface rounded-md border border-border p-3">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-[10px] sm:text-xs text-[#57606a] dark:text-[#8b949e] font-medium">
+                <p className="text-[10px] sm:text-xs text-fg-muted font-medium">
                   {t('bookingDetail.spot')}
                 </p>
-                <p className="text-sm sm:text-base font-bold text-[#24292f] dark:text-[#f0f6fc] mt-0.5">
+                <p className="text-sm sm:text-base font-bold text-fg mt-0.5">
                   {booking.spot.level}-{booking.spot.number}
                 </p>
               </div>
-              <FiMapPin className="w-5 h-5 sm:w-6 sm:h-6 text-[#0969da] dark:text-[#58a6ff]" />
+              <FiMapPin className="w-5 h-5 sm:w-6 sm:h-6 text-accent" />
             </div>
           </div>
 
           {/* Check-in */}
-          <div className="bg-white dark:bg-[#151b23] rounded-md border border-[#d0d7de] dark:border-[#30363d] p-3">
+          <div className="bg-surface rounded-md border border-border p-3">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-[10px] sm:text-xs text-[#57606a] dark:text-[#8b949e] font-medium">
+                <p className="text-[10px] sm:text-xs text-fg-muted font-medium">
                   {t('bookingDetail.checkIn')}
                 </p>
-                <p className="text-sm sm:text-base font-bold text-[#24292f] dark:text-[#f0f6fc] mt-0.5">
+                <p className="text-sm sm:text-base font-bold text-fg mt-0.5">
                   {formatDate(booking.schedule.expected_checkin, false)}
                 </p>
               </div>
-              <FiLogIn className="w-5 h-5 sm:w-6 sm:h-6 text-[#1a7f37] dark:text-[#3fb950]" />
+              <FiLogIn className="w-5 h-5 sm:w-6 sm:h-6 text-success" />
             </div>
           </div>
 
           {/* Check-out */}
-          <div className="bg-white dark:bg-[#151b23] rounded-md border border-[#d0d7de] dark:border-[#30363d] p-3">
+          <div className="bg-surface rounded-md border border-border p-3">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-[10px] sm:text-xs text-[#57606a] dark:text-[#8b949e] font-medium">
+                <p className="text-[10px] sm:text-xs text-fg-muted font-medium">
                   {t('bookingDetail.checkOut')}
                 </p>
-                <p className="text-sm sm:text-base font-bold text-[#24292f] dark:text-[#f0f6fc] mt-0.5">
+                <p className="text-sm sm:text-base font-bold text-fg mt-0.5">
                   {formatDate(booking.schedule.expected_checkout, false)}
                 </p>
               </div>
-              <FiLogOut className="w-5 h-5 sm:w-6 sm:h-6 text-[#9a6700] dark:text-[#d29922]" />
+              <FiLogOut className="w-5 h-5 sm:w-6 sm:h-6 text-warning" />
             </div>
           </div>
 
           {/* Dias */}
-          <div className="bg-white dark:bg-[#151b23] rounded-md border border-[#d0d7de] dark:border-[#30363d] p-3 col-span-2 lg:col-span-1">
+          <div className="bg-surface rounded-md border border-border p-3 col-span-2 lg:col-span-1">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-[10px] sm:text-xs text-[#57606a] dark:text-[#8b949e] font-medium">
+                <p className="text-[10px] sm:text-xs text-fg-muted font-medium">
                   {t('bookingDetail.duration')}
                 </p>
-                <p className="text-sm sm:text-base font-bold text-[#24292f] dark:text-[#f0f6fc] mt-0.5">
+                <p className="text-sm sm:text-base font-bold text-fg mt-0.5">
                   {booking.schedule.planned_days}{' '}
                   {booking.schedule.planned_days === 1
                     ? t('bookingDetail.day')
@@ -324,18 +321,14 @@ export function BookingDetailClient({ code }: BookingDetailClientProps) {
             >
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-xs text-[#57606a] dark:text-[#8b949e] mb-1">
-                    {t('bookingDetail.location')}
-                  </p>
-                  <p className="text-xl font-bold text-[#24292f] dark:text-[#f0f6fc]">
+                  <p className="text-xs text-fg-muted mb-1">{t('bookingDetail.location')}</p>
+                  <p className="text-xl font-bold text-fg">
                     {booking.spot.level} - {booking.spot.number}
                   </p>
                 </div>
                 <div>
-                  <p className="text-xs text-[#57606a] dark:text-[#8b949e] mb-1">
-                    {t('bookingDetail.spotType')}
-                  </p>
-                  <p className="text-base font-medium text-[#24292f] dark:text-[#f0f6fc]">
+                  <p className="text-xs text-fg-muted mb-1">{t('bookingDetail.spotType')}</p>
+                  <p className="text-base font-medium text-fg">
                     {t(`spotTypes.${booking.spot.type}` as const) || booking.spot.type}
                   </p>
                 </div>
@@ -358,9 +351,7 @@ export function BookingDetailClient({ code }: BookingDetailClientProps) {
                   )}
                 </div>
               ) : (
-                <p className="text-[#57606a] dark:text-[#8b949e] italic text-sm">
-                  {t('bookingDetail.noVehicle')}
-                </p>
+                <p className="text-fg-muted italic text-sm">{t('bookingDetail.noVehicle')}</p>
               )}
             </InfoCard>
 
@@ -369,25 +360,25 @@ export function BookingDetailClient({ code }: BookingDetailClientProps) {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 {/* Check-in */}
                 <div>
-                  <h4 className="text-xs font-semibold text-[#57606a] dark:text-[#8b949e] mb-3 flex items-center gap-2 uppercase tracking-wide">
+                  <h4 className="text-xs font-semibold text-fg-muted mb-3 flex items-center gap-2 uppercase tracking-wide">
                     <FiLogIn className="w-3.5 h-3.5" />
                     {t('bookingDetail.checkIn')}
                   </h4>
                   <div className="space-y-2">
                     <div>
-                      <p className="text-[10px] text-[#57606a] dark:text-[#8b949e] uppercase tracking-wide">
+                      <p className="text-[10px] text-fg-muted uppercase tracking-wide">
                         {t('bookingDetail.expected')}
                       </p>
-                      <p className="text-sm font-medium text-[#24292f] dark:text-[#f0f6fc]">
+                      <p className="text-sm font-medium text-fg">
                         {formatDate(booking.schedule.expected_checkin)}
                       </p>
                     </div>
                     {booking.schedule.actual_checkin && (
                       <div className="bg-[#dafbe1] dark:bg-[#23883726] border border-[#aceebb] dark:border-[#238636] rounded-md p-2.5">
-                        <p className="text-[10px] text-[#1a7f37] dark:text-[#3fb950] font-medium uppercase tracking-wide">
+                        <p className="text-[10px] text-success font-medium uppercase tracking-wide">
                           {t('bookingDetail.completed')}
                         </p>
-                        <p className="text-sm font-semibold text-[#1a7f37] dark:text-[#3fb950]">
+                        <p className="text-sm font-semibold text-success">
                           {formatDate(booking.schedule.actual_checkin)}
                         </p>
                       </div>
@@ -397,25 +388,25 @@ export function BookingDetailClient({ code }: BookingDetailClientProps) {
 
                 {/* Check-out */}
                 <div>
-                  <h4 className="text-xs font-semibold text-[#57606a] dark:text-[#8b949e] mb-3 flex items-center gap-2 uppercase tracking-wide">
+                  <h4 className="text-xs font-semibold text-fg-muted mb-3 flex items-center gap-2 uppercase tracking-wide">
                     <FiLogOut className="w-3.5 h-3.5" />
                     {t('bookingDetail.checkOut')}
                   </h4>
                   <div className="space-y-2">
                     <div>
-                      <p className="text-[10px] text-[#57606a] dark:text-[#8b949e] uppercase tracking-wide">
+                      <p className="text-[10px] text-fg-muted uppercase tracking-wide">
                         {t('bookingDetail.expected')}
                       </p>
-                      <p className="text-sm font-medium text-[#24292f] dark:text-[#f0f6fc]">
+                      <p className="text-sm font-medium text-fg">
                         {formatDate(booking.schedule.expected_checkout)}
                       </p>
                     </div>
                     {booking.schedule.actual_checkout && (
                       <div className="bg-[#dafbe1] dark:bg-[#23883726] border border-[#aceebb] dark:border-[#238636] rounded-md p-2.5">
-                        <p className="text-[10px] text-[#1a7f37] dark:text-[#3fb950] font-medium uppercase tracking-wide">
+                        <p className="text-[10px] text-success font-medium uppercase tracking-wide">
                           {t('bookingDetail.completed')}
                         </p>
-                        <p className="text-sm font-semibold text-[#1a7f37] dark:text-[#3fb950]">
+                        <p className="text-sm font-semibold text-success">
                           {formatDate(booking.schedule.actual_checkout)}
                         </p>
                       </div>
@@ -424,22 +415,14 @@ export function BookingDetailClient({ code }: BookingDetailClientProps) {
                 </div>
               </div>
 
-              <div className="mt-4 pt-4 border-t border-[#d0d7de] dark:border-[#30363d] flex justify-between text-sm">
-                <span className="text-[#57606a] dark:text-[#8b949e]">
-                  {t('bookingDetail.plannedDays')}
-                </span>
-                <span className="font-bold text-[#24292f] dark:text-[#f0f6fc]">
-                  {booking.schedule.planned_days}
-                </span>
+              <div className="mt-4 pt-4 border-t border-border flex justify-between text-sm">
+                <span className="text-fg-muted">{t('bookingDetail.plannedDays')}</span>
+                <span className="font-bold text-fg">{booking.schedule.planned_days}</span>
               </div>
               {booking.schedule.actual_days && (
                 <div className="flex justify-between text-sm mt-1">
-                  <span className="text-[#57606a] dark:text-[#8b949e]">
-                    {t('bookingDetail.actualDays')}
-                  </span>
-                  <span className="font-bold text-[#1a7f37] dark:text-[#3fb950]">
-                    {booking.schedule.actual_days}
-                  </span>
+                  <span className="text-fg-muted">{t('bookingDetail.actualDays')}</span>
+                  <span className="font-bold text-success">{booking.schedule.actual_days}</span>
                 </div>
               )}
             </InfoCard>
@@ -447,7 +430,7 @@ export function BookingDetailClient({ code }: BookingDetailClientProps) {
             {/* Notas */}
             {booking.notes && (
               <InfoCard title={t('bookingDetail.notes')} icon={<FiFileText className="w-4 h-4" />}>
-                <p className="text-sm text-[#57606a] dark:text-[#c9d1d9] whitespace-pre-wrap">
+                <p className="text-sm text-fg-muted dark:text-fg-muted whitespace-pre-wrap">
                   {booking.notes}
                 </p>
               </InfoCard>
@@ -479,9 +462,7 @@ export function BookingDetailClient({ code }: BookingDetailClientProps) {
 
               {booking.operator && (
                 <InfoCard title={t('bookingDetail.operator')} icon={<FiUser className="w-4 h-4" />}>
-                  <p className="font-medium text-[#24292f] dark:text-[#f0f6fc]">
-                    {booking.operator.username}
-                  </p>
+                  <p className="font-medium text-fg">{booking.operator.username}</p>
                 </InfoCard>
               )}
             </div>
@@ -490,7 +471,7 @@ export function BookingDetailClient({ code }: BookingDetailClientProps) {
           {/* Right Column - Sidebar */}
           <div className="space-y-5">
             {/* Payment Card - Featured */}
-            <div className="bg-white dark:bg-[#151b23] border border-[#d0d7de] dark:border-[#30363d] rounded-md overflow-hidden">
+            <div className="bg-surface border border-border rounded-md overflow-hidden">
               {/* Payment Header with colored accent */}
               <div
                 className={`px-4 py-3 border-b ${
@@ -500,7 +481,7 @@ export function BookingDetailClient({ code }: BookingDetailClientProps) {
                 }`}
               >
                 <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-semibold text-[#24292f] dark:text-[#f0f6fc] flex items-center gap-2">
+                  <h3 className="text-sm font-semibold text-fg flex items-center gap-2">
                     <FiDollarSign className="w-4 h-4" />
                     {t('bookingDetail.payment.title')}
                   </h3>
@@ -516,18 +497,16 @@ export function BookingDetailClient({ code }: BookingDetailClientProps) {
 
               <div className="p-4">
                 {/* Total */}
-                <div className="flex justify-between items-center pb-3 border-b border-[#d0d7de] dark:border-[#30363d]">
-                  <span className="text-xs text-[#57606a] dark:text-[#8b949e]">
-                    {t('bookingDetail.payment.total')}
-                  </span>
-                  <span className="text-xl font-bold text-[#24292f] dark:text-[#f0f6fc]">
+                <div className="flex justify-between items-center pb-3 border-b border-border">
+                  <span className="text-xs text-fg-muted">{t('bookingDetail.payment.total')}</span>
+                  <span className="text-xl font-bold text-fg">
                     {booking.payment.total_amount.toFixed(2)} €
                   </span>
                 </div>
 
                 {/* Progress bar */}
                 <div className="my-3">
-                  <div className="h-2 bg-[#d0d7de] dark:bg-[#30363d] rounded-full overflow-hidden">
+                  <div className="h-2 bg-[#d0d7de] dark:bg-surface-hover rounded-full overflow-hidden">
                     <div
                       className={`h-full transition-all duration-300 ${
                         isPaid ? 'bg-[#1a7f37]' : 'bg-[#9a6700]'
@@ -540,22 +519,18 @@ export function BookingDetailClient({ code }: BookingDetailClientProps) {
                 {/* Amounts */}
                 <div className="space-y-2">
                   <div className="flex justify-between items-center">
-                    <span className="text-xs text-[#57606a] dark:text-[#8b949e]">
-                      {t('bookingDetail.payment.paid')}
-                    </span>
-                    <span className="text-sm font-semibold text-[#1a7f37] dark:text-[#3fb950]">
+                    <span className="text-xs text-fg-muted">{t('bookingDetail.payment.paid')}</span>
+                    <span className="text-sm font-semibold text-success">
                       {booking.payment.paid_amount.toFixed(2)} €
                     </span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-xs text-[#57606a] dark:text-[#8b949e]">
+                    <span className="text-xs text-fg-muted">
                       {t('bookingDetail.payment.pending')}
                     </span>
                     <span
                       className={`text-sm font-semibold ${
-                        booking.payment.pending_amount > 0
-                          ? 'text-[#cf222e] dark:text-[#f85149]'
-                          : 'text-[#57606a] dark:text-[#8b949e]'
+                        booking.payment.pending_amount > 0 ? 'text-danger' : 'text-fg-muted'
                       }`}
                     >
                       {booking.payment.pending_amount.toFixed(2)} €
@@ -565,34 +540,26 @@ export function BookingDetailClient({ code }: BookingDetailClientProps) {
 
                 {/* Payment details */}
                 {booking.payment.method && (
-                  <div className="mt-3 pt-3 border-t border-[#d0d7de] dark:border-[#30363d] space-y-2">
+                  <div className="mt-3 pt-3 border-t border-border space-y-2">
                     <div className="flex justify-between text-xs">
-                      <span className="text-[#57606a] dark:text-[#8b949e]">
-                        {t('bookingDetail.payment.method')}
-                      </span>
-                      <span className="font-medium text-[#24292f] dark:text-[#f0f6fc]">
+                      <span className="text-fg-muted">{t('bookingDetail.payment.method')}</span>
+                      <span className="font-medium text-fg">
                         {t(`paymentMethods.${booking.payment.method}` as const) ||
                           booking.payment.method}
                       </span>
                     </div>
                     {booking.payment.reference && (
                       <div className="flex justify-between text-xs">
-                        <span className="text-[#57606a] dark:text-[#8b949e]">
+                        <span className="text-fg-muted">
                           {t('bookingDetail.payment.reference')}
                         </span>
-                        <span className="font-mono text-[#24292f] dark:text-[#f0f6fc]">
-                          {booking.payment.reference}
-                        </span>
+                        <span className="font-mono text-fg">{booking.payment.reference}</span>
                       </div>
                     )}
                     {booking.payment.date && (
                       <div className="flex justify-between text-xs">
-                        <span className="text-[#57606a] dark:text-[#8b949e]">
-                          {t('bookingDetail.payment.date')}
-                        </span>
-                        <span className="text-[#24292f] dark:text-[#f0f6fc]">
-                          {formatDate(booking.payment.date)}
-                        </span>
+                        <span className="text-fg-muted">{t('bookingDetail.payment.date')}</span>
+                        <span className="text-fg">{formatDate(booking.payment.date)}</span>
                       </div>
                     )}
                   </div>
@@ -604,7 +571,7 @@ export function BookingDetailClient({ code }: BookingDetailClientProps) {
                     onClick={() => setShowPaymentModal(true)}
                     className={`w-full mt-4 px-3 py-2 text-sm font-medium rounded-md transition-colors flex items-center justify-center gap-2 ${
                       isPaid
-                        ? 'bg-[#f6f8fa] dark:bg-[#21262d] text-[#57606a] dark:text-[#8b949e] border border-[#d0d7de] dark:border-[#30363d] hover:bg-[#f3f4f6] dark:hover:bg-[#30363d]'
+                        ? 'bg-[#f6f8fa] dark:bg-surface-hover text-fg-muted border border-border hover:bg-surface-hover'
                         : 'bg-[#1a7f37] hover:bg-[#116329] text-white'
                     }`}
                   >
@@ -646,9 +613,7 @@ export function BookingDetailClient({ code }: BookingDetailClientProps) {
             {booking.operator && (
               <div className="hidden min-[1400px]:block">
                 <InfoCard title={t('bookingDetail.operator')} icon={<FiUser className="w-4 h-4" />}>
-                  <p className="font-medium text-[#24292f] dark:text-[#f0f6fc]">
-                    {booking.operator.username}
-                  </p>
+                  <p className="font-medium text-fg">{booking.operator.username}</p>
                 </InfoCard>
               </div>
             )}
@@ -657,27 +622,23 @@ export function BookingDetailClient({ code }: BookingDetailClientProps) {
             <InfoCard title={t('bookingDetail.registry')} icon={<FiClock className="w-4 h-4" />}>
               <div className="space-y-3 text-xs">
                 <div>
-                  <p className="text-[10px] text-[#57606a] dark:text-[#8b949e] uppercase tracking-wide">
+                  <p className="text-[10px] text-fg-muted uppercase tracking-wide">
                     {t('bookingDetail.created')}
                   </p>
-                  <p className="text-[#24292f] dark:text-[#f0f6fc]">
-                    {formatDate(booking.timestamps.created_at, true, true)}
-                  </p>
+                  <p className="text-fg">{formatDate(booking.timestamps.created_at, true, true)}</p>
                   {booking.timestamps.created_by && (
-                    <p className="text-[10px] text-[#57606a] dark:text-[#8b949e] mt-0.5">
+                    <p className="text-[10px] text-fg-muted mt-0.5">
                       {t('bookingDetail.by')} {booking.timestamps.created_by.username}
                     </p>
                   )}
                 </div>
                 <div>
-                  <p className="text-[10px] text-[#57606a] dark:text-[#8b949e] uppercase tracking-wide">
+                  <p className="text-[10px] text-fg-muted uppercase tracking-wide">
                     {t('bookingDetail.updated')}
                   </p>
-                  <p className="text-[#24292f] dark:text-[#f0f6fc]">
-                    {formatDate(booking.timestamps.updated_at, true, true)}
-                  </p>
+                  <p className="text-fg">{formatDate(booking.timestamps.updated_at, true, true)}</p>
                   {booking.timestamps.updated_by && (
-                    <p className="text-[10px] text-[#57606a] dark:text-[#8b949e] mt-0.5">
+                    <p className="text-[10px] text-fg-muted mt-0.5">
                       {t('bookingDetail.by')} {booking.timestamps.updated_by.username}
                     </p>
                   )}

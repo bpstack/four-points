@@ -6,6 +6,7 @@ import { FiChevronLeft, FiChevronRight, FiCalendar, FiPlus } from 'react-icons/f
 import { useTranslations } from 'next-intl'
 import { useConciliationByDay, useCreateConciliation } from '@/app/lib/conciliation'
 import HorizontalDatePicker from '@/app/ui/calendar/HorizontalDatePicker'
+import { Badge } from '@/app/ui/components'
 import ConciliationForm from './ConciliationForm'
 
 export default function ConciliationClient() {
@@ -78,63 +79,63 @@ export default function ConciliationClient() {
   }
 
   return (
-    <div className="min-h-screen bg-white dark:bg-[#010409]">
+    <div className="min-h-screen bg-bg">
       {/* Header sticky principal - Full width */}
-      <div className="sticky top-0 z-30 bg-white dark:bg-[#010409] shadow-sm">
-        <div className="px-3 py-2 md:px-4 md:py-3 border-b border-gray-200 dark:border-gray-800">
+      <div className="sticky top-0 z-30 bg-bg shadow-sm">
+        <div className="px-3 py-2 md:px-4 md:py-3 border-b border-border">
           {/* Desktop */}
           <div className="hidden md:flex items-center gap-3 justify-between">
             <div className="flex items-center gap-3 flex-1 min-w-0">
               <div className="w-56 flex-shrink-0">
-                <h1 className="text-base font-semibold text-gray-900 dark:text-white capitalize truncate">
+                <h1 className="text-base font-semibold text-fg capitalize truncate">
                   {currentMonth} {currentYear}
                 </h1>
               </div>
               <div className="flex items-center gap-2">
                 <button
                   onClick={goToPreviousMonth}
-                  className="p-2 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-700 rounded-md hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                  className="p-2 text-fg border border-border rounded-md hover:bg-surface-hover transition-colors"
                 >
                   <FiChevronLeft className="w-4 h-4" />
                 </button>
                 <button
                   onClick={goToNextMonth}
-                  className="p-2 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-700 rounded-md hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                  className="p-2 text-fg border border-border rounded-md hover:bg-surface-hover transition-colors"
                 >
                   <FiChevronRight className="w-4 h-4" />
                 </button>
               </div>
               <button
                 onClick={goToToday}
-                className="ml-3 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-700 rounded-md hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors flex items-center gap-1"
+                className="ml-3 px-3 py-2 text-sm font-medium text-fg border border-border rounded-md hover:bg-surface-hover transition-colors flex items-center gap-1"
               >
                 <FiCalendar className="w-4 h-4" /> {t('header.today')}
               </button>
               {selectedConciliation && (
-                <div className="ml-4 text-sm text-gray-700 dark:text-gray-400 flex-shrink-0">
-                  {t('header.status')}:{' '}
-                  <span
-                    className={`font-medium px-2 py-0.5 rounded ${
+                <div className="ml-4 text-sm text-fg-muted flex-shrink-0 flex items-center gap-1.5">
+                  {t('header.status')}:
+                  <Badge
+                    tone={
                       selectedConciliation.status === 'draft'
-                        ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400'
+                        ? 'warning'
                         : selectedConciliation.status === 'confirmed'
-                          ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400'
-                          : 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400'
-                    }`}
+                          ? 'info'
+                          : 'success'
+                    }
                   >
                     {selectedConciliation.status === 'draft'
                       ? t('status.draft')
                       : selectedConciliation.status === 'confirmed'
                         ? t('status.confirmed')
                         : t('status.closed')}
-                  </span>
+                  </Badge>
                 </div>
               )}
             </div>
             {!selectedConciliation && (
               <button
                 onClick={handleCreateConciliation}
-                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 rounded-md transition-colors"
+                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-accent-fg bg-accent hover:bg-accent-hover rounded-md transition-colors"
               >
                 <FiPlus className="w-4 h-4" /> {t('header.newConciliation')}
               </button>
@@ -144,32 +145,32 @@ export default function ConciliationClient() {
           {/* Mobile */}
           <div className="md:hidden flex items-center justify-between gap-2">
             <div className="flex items-center gap-2">
-              <h1 className="text-base font-semibold text-gray-900 dark:text-white capitalize whitespace-nowrap">
+              <h1 className="text-base font-semibold text-fg capitalize whitespace-nowrap">
                 {currentMonth.slice(0, 3)} {currentYear}
               </h1>
               <button
                 onClick={goToPreviousMonth}
-                className="p-2.5 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                className="p-2.5 text-fg border border-border rounded-lg hover:bg-surface-hover transition-colors"
               >
                 <FiChevronLeft className="w-4 h-4" />
               </button>
               <button
                 onClick={goToNextMonth}
-                className="p-2.5 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                className="p-2.5 text-fg border border-border rounded-lg hover:bg-surface-hover transition-colors"
               >
                 <FiChevronRight className="w-4 h-4" />
               </button>
             </div>
             <button
               onClick={goToToday}
-              className="px-2.5 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors flex items-center gap-1 flex-shrink-0"
+              className="px-2.5 py-1.5 text-xs font-medium text-fg border border-border rounded-lg hover:bg-surface-hover transition-colors flex items-center gap-1 flex-shrink-0"
             >
               <FiCalendar className="w-3.5 h-3.5" /> {t('header.today')}
             </button>
             {!selectedConciliation && (
               <button
                 onClick={handleCreateConciliation}
-                className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 rounded-lg transition-colors whitespace-nowrap flex-shrink-0"
+                className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-accent-fg bg-accent hover:bg-accent-hover rounded-lg transition-colors whitespace-nowrap flex-shrink-0"
               >
                 <FiPlus className="w-3.5 h-3.5" /> {t('header.newMobile')}
               </button>

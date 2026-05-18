@@ -9,7 +9,7 @@ export default function BookingDetailPage() {
   const code = params.code as string
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-[#010409]">
+    <div className="min-h-screen bg-gray-50 dark:bg-bg">
       <BookingDetailClient code={code} />
     </div>
   )

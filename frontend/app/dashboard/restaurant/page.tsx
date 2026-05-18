@@ -51,31 +51,27 @@ function RestaurantContent() {
   }
 
   return (
-    <div className="min-h-screen bg-white dark:bg-[#010409] p-4 md:p-6">
+    <div className="min-h-screen bg-bg p-4 md:p-6">
       <div className="max-w-[1600px] space-y-5">
         {/* Header */}
         <div className="mb-4 sm:mb-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
-              <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">
-                {t('page.title')}
-              </h1>
-              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-0.5">
-                {t('page.subtitle')}
-              </p>
+              <h1 className="text-xl sm:text-2xl font-bold text-fg">{t('page.title')}</h1>
+              <p className="text-xs sm:text-sm text-fg-muted mt-0.5">{t('page.subtitle')}</p>
             </div>
           </div>
         </div>
 
         {/* Summary Stats Cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
-          <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-3 hover:shadow-md dark:hover:shadow-gray-900/50 transition-shadow">
+          <div className="bg-surface border border-border rounded-fp-md shadow-fp-pop p-3 hover:bg-surface-hover transition-colors">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 font-medium">
+                <p className="text-[10px] sm:text-xs text-fg-muted font-medium">
                   {t('stats.totalProducts')}
                 </p>
-                <p className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 mt-0.5">
+                <p className="text-lg sm:text-xl font-bold text-fg mt-0.5">
                   {summaryStats.totalProducts}
                 </p>
               </div>
@@ -83,10 +79,10 @@ function RestaurantContent() {
             </div>
           </div>
 
-          <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-3 hover:shadow-md dark:hover:shadow-gray-900/50 transition-shadow">
+          <div className="bg-surface border border-border rounded-fp-md shadow-fp-pop p-3 hover:bg-surface-hover transition-colors">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 font-medium">
+                <p className="text-[10px] sm:text-xs text-fg-muted font-medium">
                   {t('stats.lowStock')}
                 </p>
                 <p className="text-lg sm:text-xl font-bold text-orange-600 dark:text-orange-400 mt-0.5">
@@ -97,13 +93,13 @@ function RestaurantContent() {
             </div>
           </div>
 
-          <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-3 hover:shadow-md dark:hover:shadow-gray-900/50 transition-shadow">
+          <div className="bg-surface border border-border rounded-fp-md shadow-fp-pop p-3 hover:bg-surface-hover transition-colors">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 font-medium">
+                <p className="text-[10px] sm:text-xs text-fg-muted font-medium">
                   {t('stats.pendingOrders')}
                 </p>
-                <p className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 mt-0.5">
+                <p className="text-lg sm:text-xl font-bold text-fg mt-0.5">
                   {summaryStats.pendingOrders}
                 </p>
               </div>
@@ -111,13 +107,13 @@ function RestaurantContent() {
             </div>
           </div>
 
-          <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-3 hover:shadow-md dark:hover:shadow-gray-900/50 transition-shadow">
+          <div className="bg-surface border border-border rounded-fp-md shadow-fp-pop p-3 hover:bg-surface-hover transition-colors">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 font-medium">
+                <p className="text-[10px] sm:text-xs text-fg-muted font-medium">
                   {t('stats.monthlyExpenses')}
                 </p>
-                <p className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 mt-0.5">
+                <p className="text-lg sm:text-xl font-bold text-fg mt-0.5">
                   {new Intl.NumberFormat('es-ES', {
                     style: 'currency',
                     currency: 'EUR',
@@ -130,7 +126,7 @@ function RestaurantContent() {
         </div>
 
         {/* Tab Navigation */}
-        <div className="border-b border-gray-200 dark:border-gray-800">
+        <div className="border-b border-border">
           <nav className="flex space-x-4 sm:space-x-6 overflow-x-auto" aria-label="Tabs">
             {tabs.map((tab) => {
               const Icon = tab.icon
@@ -141,8 +137,8 @@ function RestaurantContent() {
                   onClick={() => handleTabChange(tab.id)}
                   className={`flex items-center gap-1.5 px-1 py-3 text-xs sm:text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
                     isActive
-                      ? 'border-blue-600 dark:border-blue-500 text-blue-600 dark:text-blue-400'
-                      : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:border-gray-300 dark:hover:border-gray-600'
+                      ? 'border-accent text-accent'
+                      : 'border-transparent text-fg-muted hover:text-fg hover:border-border'
                   }`}
                 >
                   <Icon className="w-4 h-4" />
@@ -167,10 +163,10 @@ function RestaurantContent() {
 function LoadingFallback() {
   const t = useTranslations('restaurant')
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-[#010409] flex items-center justify-center">
+    <div className="min-h-screen bg-gray-50 dark:bg-bg flex items-center justify-center">
       <div className="text-center">
         <div className="inline-block h-10 w-10 animate-spin rounded-full border-[3px] border-solid border-blue-600 dark:border-blue-500 border-r-transparent"></div>
-        <p className="mt-3 text-xs text-gray-600 dark:text-gray-400">{t('page.loading')}</p>
+        <p className="mt-3 text-xs text-fg-muted">{t('page.loading')}</p>
       </div>
     </div>
   )

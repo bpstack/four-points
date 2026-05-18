@@ -196,44 +196,36 @@ export function OrdersTab() {
     <div className="space-y-4">
       {/* Order Stats */}
       <div className="grid grid-cols-3 gap-2 sm:gap-3">
-        <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-3">
+        <div className="bg-surface rounded-md border border-border p-3">
           <div className="flex items-center gap-2">
             <div className="p-1.5 bg-yellow-100 dark:bg-yellow-900/20 rounded">
               <FiClock className="w-4 h-4 text-yellow-600 dark:text-yellow-400" />
             </div>
             <div>
-              <p className="text-[10px] text-gray-600 dark:text-gray-400">
-                {t('orders.summary.pending')}
-              </p>
-              <p className="text-sm font-bold text-gray-900 dark:text-gray-100">{pendingCount}</p>
+              <p className="text-[10px] text-fg-muted">{t('orders.summary.pending')}</p>
+              <p className="text-sm font-bold text-fg">{pendingCount}</p>
             </div>
           </div>
         </div>
-        <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-3">
+        <div className="bg-surface rounded-md border border-border p-3">
           <div className="flex items-center gap-2">
             <div className="p-1.5 bg-purple-100 dark:bg-purple-900/20 rounded">
               <FiTruck className="w-4 h-4 text-purple-600 dark:text-purple-400" />
             </div>
             <div>
-              <p className="text-[10px] text-gray-600 dark:text-gray-400">
-                {t('orders.summary.inTransit')}
-              </p>
-              <p className="text-sm font-bold text-gray-900 dark:text-gray-100">{inTransitCount}</p>
+              <p className="text-[10px] text-fg-muted">{t('orders.summary.inTransit')}</p>
+              <p className="text-sm font-bold text-fg">{inTransitCount}</p>
             </div>
           </div>
         </div>
-        <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-3">
+        <div className="bg-surface rounded-md border border-border p-3">
           <div className="flex items-center gap-2">
-            <div className="p-1.5 bg-blue-100 dark:bg-blue-900/20 rounded">
+            <div className="p-1.5 bg-info/10 rounded">
               <FiPackage className="w-4 h-4 text-blue-600 dark:text-blue-400" />
             </div>
             <div>
-              <p className="text-[10px] text-gray-600 dark:text-gray-400">
-                {t('orders.summary.pendingValue')}
-              </p>
-              <p className="text-sm font-bold text-gray-900 dark:text-gray-100">
-                {formatCurrency(totalPendingValue)}
-              </p>
+              <p className="text-[10px] text-fg-muted">{t('orders.summary.pendingValue')}</p>
+              <p className="text-sm font-bold text-fg">{formatCurrency(totalPendingValue)}</p>
             </div>
           </div>
         </div>
@@ -243,13 +235,13 @@ export function OrdersTab() {
       <div className="flex flex-col sm:flex-row gap-3">
         {/* Search */}
         <div className="relative flex-1">
-          <FiSearch className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 dark:text-gray-500" />
+          <FiSearch className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-fg-subtle" />
           <input
             type="text"
             placeholder={t('orders.searchPlaceholder')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-8 pr-3 py-1.5 text-xs border border-gray-300 dark:border-gray-700 dark:bg-[#151b23] dark:text-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent"
+            className="w-full pl-8 pr-3 py-1.5 text-xs border border-border bg-surface text-fg rounded-md focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-transparent"
           />
         </div>
 
@@ -257,7 +249,7 @@ export function OrdersTab() {
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value as OrderStatus | 'all')}
-          className="px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent bg-white dark:bg-[#151b23] dark:text-gray-200"
+          className="px-3 py-1.5 text-xs border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-transparent bg-surface dark:text-fg"
         >
           <option value="all">{t('orders.allStatuses')}</option>
           <option value="pending">{t('orders.status.pending')}</option>
@@ -268,7 +260,7 @@ export function OrdersTab() {
         </select>
 
         {/* New Order Button */}
-        <button className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-green-600 dark:bg-green-700 text-white text-xs font-medium rounded-md hover:bg-green-700 dark:hover:bg-green-800 transition-colors">
+        <button className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-accent text-accent-fg text-xs font-medium rounded-md hover:bg-accent-hover transition-colors">
           <FiPlus className="w-3.5 h-3.5" />
           {t('orders.newOrder')}
         </button>
@@ -277,8 +269,8 @@ export function OrdersTab() {
       {/* Orders List */}
       <div className="space-y-2">
         {filteredOrders.length === 0 ? (
-          <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-6 text-center">
-            <p className="text-xs text-gray-500 dark:text-gray-400">{t('orders.noOrders')}</p>
+          <div className="bg-surface rounded-md border border-border p-6 text-center">
+            <p className="text-xs text-fg-subtle">{t('orders.noOrders')}</p>
           </div>
         ) : (
           filteredOrders.map((order) => {
@@ -289,7 +281,7 @@ export function OrdersTab() {
             return (
               <div
                 key={order.id}
-                className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 overflow-hidden hover:shadow-md dark:hover:shadow-gray-900/50 transition-shadow"
+                className="bg-surface rounded-md border border-border overflow-hidden hover:shadow-md transition-shadow"
               >
                 {/* Order Header */}
                 <div
@@ -299,14 +291,10 @@ export function OrdersTab() {
                   <div className="flex items-start justify-between">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <span className="text-[10px] text-gray-500 dark:text-gray-500">
-                          #{order.id}
-                        </span>
-                        <h3 className="font-semibold text-xs text-gray-900 dark:text-gray-100">
-                          {order.supplier}
-                        </h3>
+                        <span className="text-[10px] text-fg-subtle">#{order.id}</span>
+                        <h3 className="font-semibold text-xs text-fg">{order.supplier}</h3>
                       </div>
-                      <div className="flex items-center gap-3 mt-1 text-[10px] text-gray-600 dark:text-gray-400">
+                      <div className="flex items-center gap-3 mt-1 text-[10px] text-fg-muted">
                         <span className="flex items-center gap-1">
                           <FiCalendar className="w-3 h-3" />
                           {formatDate(order.orderDate)}
@@ -318,7 +306,7 @@ export function OrdersTab() {
                       </div>
                     </div>
                     <div className="flex items-center gap-2 ml-2">
-                      <span className="text-sm font-bold text-gray-900 dark:text-gray-100">
+                      <span className="text-sm font-bold text-fg">
                         {formatCurrency(order.total)}
                       </span>
                       <span
@@ -331,7 +319,7 @@ export function OrdersTab() {
                   </div>
 
                   {/* Items preview */}
-                  <div className="mt-2 text-[10px] text-gray-500 dark:text-gray-500">
+                  <div className="mt-2 text-[10px] text-fg-subtle">
                     {order.items.length}{' '}
                     {order.items.length !== 1 ? t('orders.products') : t('orders.product')} ·{' '}
                     {order.items
@@ -345,29 +333,27 @@ export function OrdersTab() {
 
                 {/* Expanded Content */}
                 {isExpanded && (
-                  <div className="border-t border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-[#0d1117] p-3">
+                  <div className="border-t border-border bg-surface-hover p-3">
                     <table className="w-full text-xs">
                       <thead>
-                        <tr className="text-[10px] text-gray-600 dark:text-gray-400 uppercase">
+                        <tr className="text-[10px] text-fg-muted uppercase">
                           <th className="text-left pb-2">{t('orders.table.product')}</th>
                           <th className="text-center pb-2">{t('orders.table.quantity')}</th>
                           <th className="text-right pb-2">{t('orders.table.unitPrice')}</th>
                           <th className="text-right pb-2">{t('orders.table.subtotal')}</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
+                      <tbody className="divide-y divide-border">
                         {order.items.map((item, idx) => (
                           <tr key={idx}>
-                            <td className="py-1.5 text-gray-900 dark:text-gray-100">
-                              {item.productName}
-                            </td>
-                            <td className="py-1.5 text-center text-gray-600 dark:text-gray-400">
+                            <td className="py-1.5 text-fg">{item.productName}</td>
+                            <td className="py-1.5 text-center text-fg-muted">
                               {item.quantity} {item.unit}
                             </td>
-                            <td className="py-1.5 text-right text-gray-600 dark:text-gray-400">
+                            <td className="py-1.5 text-right text-fg-muted">
                               {formatCurrency(item.unitPrice)}
                             </td>
-                            <td className="py-1.5 text-right font-medium text-gray-900 dark:text-gray-100">
+                            <td className="py-1.5 text-right font-medium text-fg">
                               {formatCurrency(item.quantity * item.unitPrice)}
                             </td>
                           </tr>
@@ -375,48 +361,43 @@ export function OrdersTab() {
                       </tbody>
                       <tfoot>
                         <tr className="font-semibold">
-                          <td
-                            colSpan={3}
-                            className="pt-2 text-right text-gray-700 dark:text-gray-300"
-                          >
+                          <td colSpan={3} className="pt-2 text-right text-fg">
                             {t('orders.table.total')}
                           </td>
-                          <td className="pt-2 text-right text-gray-900 dark:text-gray-100">
-                            {formatCurrency(order.total)}
-                          </td>
+                          <td className="pt-2 text-right text-fg">{formatCurrency(order.total)}</td>
                         </tr>
                       </tfoot>
                     </table>
 
                     {order.notes && (
-                      <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-800">
-                        <p className="text-[10px] text-gray-600 dark:text-gray-400">
+                      <div className="mt-3 pt-3 border-t border-border">
+                        <p className="text-[10px] text-fg-muted">
                           <span className="font-medium">{t('orders.notes')}</span> {order.notes}
                         </p>
                       </div>
                     )}
 
                     {/* Actions */}
-                    <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-800 flex justify-end gap-2">
+                    <div className="mt-3 pt-3 border-t border-border flex justify-end gap-2">
                       {order.status === 'pending' && (
                         <>
-                          <button className="inline-flex items-center gap-1 px-2 py-1 text-[10px] font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors">
+                          <button className="inline-flex items-center gap-1 px-2 py-1 text-[10px] font-medium text-danger hover:bg-danger/10 rounded transition-colors">
                             <FiX className="w-3 h-3" />
                             {t('orders.cancel')}
                           </button>
-                          <button className="inline-flex items-center gap-1 px-2 py-1 text-[10px] font-medium text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors">
+                          <button className="inline-flex items-center gap-1 px-2 py-1 text-[10px] font-medium text-accent hover:bg-accent/10 rounded transition-colors">
                             <FiCheck className="w-3 h-3" />
                             {t('orders.confirm')}
                           </button>
                         </>
                       )}
                       {order.status === 'shipped' && (
-                        <button className="inline-flex items-center gap-1 px-2 py-1 text-[10px] font-medium text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 rounded transition-colors">
+                        <button className="inline-flex items-center gap-1 px-2 py-1 text-[10px] font-medium text-success hover:bg-success/10 rounded transition-colors">
                           <FiCheck className="w-3 h-3" />
                           {t('orders.markDelivered')}
                         </button>
                       )}
-                      <button className="inline-flex items-center gap-1 px-2 py-1 text-[10px] font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors">
+                      <button className="inline-flex items-center gap-1 px-2 py-1 text-[10px] font-medium text-fg-muted hover:bg-surface-hover rounded transition-colors">
                         <FiEye className="w-3 h-3" />
                         {t('orders.viewDetail')}
                       </button>

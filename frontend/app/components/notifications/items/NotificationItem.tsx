@@ -44,24 +44,20 @@ export default function NotificationItem({
 
   return (
     <div
-      className={`p-4 border-l-4 ${priorityColor} ${
-        !notification.is_read ? 'bg-blue-50/50 dark:bg-blue-900/10' : ''
-      }`}
+      className={`p-4 border-l-4 ${priorityColor} ${!notification.is_read ? 'bg-accent/5' : ''}`}
     >
       <div className="flex items-start justify-between gap-3">
         <button onClick={handleClick} className="flex-1 text-left">
           <div className="flex items-center gap-2 mb-1">
             {!notification.is_read && (
-              <span className="w-2 h-2 bg-blue-600 rounded-full flex-shrink-0" />
+              <span className="w-2 h-2 bg-accent rounded-full flex-shrink-0" />
             )}
-            <h3 className="text-sm font-medium text-gray-900 dark:text-white">
-              {notification.title}
-            </h3>
+            <h3 className="text-sm font-medium text-fg">{notification.title}</h3>
           </div>
           {notification.message && (
-            <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">{notification.message}</p>
+            <p className="text-xs text-fg-muted mb-2">{notification.message}</p>
           )}
-          <div className="flex items-center gap-2 text-xs text-gray-500">
+          <div className="flex items-center gap-2 text-xs text-fg-subtle">
             {notification.group_name && (
               <>
                 <span>{notification.group_name}</span>
@@ -77,7 +73,7 @@ export default function NotificationItem({
             {!notification.is_read && (
               <button
                 onClick={() => onMarkAsRead(notification.id)}
-                className="p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors"
+                className="p-1.5 text-fg-muted hover:text-accent hover:bg-accent/10 rounded transition-colors"
                 title={t('item.markAsRead')}
               >
                 <FiCheck className="w-4 h-4" />
@@ -85,7 +81,7 @@ export default function NotificationItem({
             )}
             <button
               onClick={() => onDelete(notification.id)}
-              className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors"
+              className="p-1.5 text-fg-muted hover:text-danger hover:bg-danger/10 rounded transition-colors"
               title={t('item.delete')}
             >
               <FiTrash2 className="w-4 h-4" />

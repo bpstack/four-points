@@ -17,7 +17,7 @@ function CopyButton({ text, label }: { text: string; label: string }) {
   return (
     <button
       onClick={handleCopy}
-      className="flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-md border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+      className="flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-md border border-border text-fg-muted hover:bg-surface-hover transition-colors"
     >
       {copied ? (
         <FiCheck className="w-3.5 h-3.5 text-green-500" />
@@ -39,15 +39,15 @@ function OutputBlock({
   content: string
 }) {
   return (
-    <div className="rounded-md border border-gray-200 dark:border-gray-700 overflow-hidden">
-      <div className="flex items-center justify-between px-3 py-2 bg-gray-50 dark:bg-[#1c2128] border-b border-gray-200 dark:border-gray-700">
+    <div className="rounded-md border border-border overflow-hidden">
+      <div className="flex items-center justify-between px-3 py-2 bg-surface-hover border-b border-border">
         <div>
-          <span className="text-xs font-semibold text-gray-700 dark:text-gray-300">{title}</span>
-          <span className="ml-2 text-xs text-gray-500 dark:text-gray-500">{subtitle}</span>
+          <span className="text-xs font-semibold text-fg">{title}</span>
+          <span className="ml-2 text-xs text-fg-subtle">{subtitle}</span>
         </div>
         <CopyButton text={content} label="Copiar" />
       </div>
-      <pre className="p-3 text-xs font-mono text-gray-800 dark:text-gray-200 bg-white dark:bg-[#0d1117] overflow-x-auto whitespace-pre leading-5">
+      <pre className="p-3 text-xs font-mono text-fg bg-surface overflow-x-auto whitespace-pre leading-5">
         {content}
       </pre>
     </div>
@@ -65,10 +65,8 @@ export function PresenciasTab() {
   return (
     <div className="p-4 md:p-6 space-y-5">
       <div>
-        <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-200 mb-1">
-          Conversión de horario a presencias
-        </h3>
-        <p className="text-xs text-gray-500 dark:text-gray-400">
+        <h3 className="text-sm font-semibold text-fg mb-1">Conversión de horario a presencias</h3>
+        <p className="text-xs text-fg-subtle">
           Copia el horario mensual desde Excel (nombre + días separados por tabulador) y pégalo
           aquí.
         </p>
@@ -81,7 +79,7 @@ export function PresenciasTab() {
           placeholder={'EMP_06\tP\tB\tL14\tP\t...\nMARTA R\tM\tT\tN\t...'}
           rows={10}
           spellCheck={false}
-          className="w-full font-mono text-xs rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 p-3 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 resize-y"
+          className="w-full font-mono text-xs rounded-md border border-border bg-surface text-fg p-3 focus:outline-none focus:ring-2 focus:ring-accent/50 resize-y"
         />
       </div>
 
@@ -89,7 +87,7 @@ export function PresenciasTab() {
         <button
           onClick={handleCalcular}
           disabled={!input.trim()}
-          className="px-4 py-2 text-sm font-medium rounded-md bg-blue-600 hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed text-white transition-colors"
+          className="px-4 py-2 text-sm font-medium rounded-md bg-accent hover:bg-accent-hover disabled:opacity-40 disabled:cursor-not-allowed text-accent-fg transition-colors"
         >
           Calcular
         </button>
@@ -99,7 +97,7 @@ export function PresenciasTab() {
               setInput('')
               setResult(null)
             }}
-            className="px-4 py-2 text-sm font-medium rounded-md border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            className="px-4 py-2 text-sm font-medium rounded-md border border-border text-fg-muted hover:bg-surface-hover transition-colors"
           >
             Limpiar
           </button>

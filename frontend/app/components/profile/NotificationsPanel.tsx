@@ -23,24 +23,22 @@ export function NotificationsPanel() {
 
   if (loading) {
     return (
-      <div className="bg-white dark:bg-[#0d1117] border border-gray-200 dark:border-[#30363d] rounded-lg p-8">
+      <div className="bg-surface border border-border rounded-fp-md p-8">
         <div className="flex items-center justify-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent" />
         </div>
       </div>
     )
   }
 
   return (
-    <div className="bg-white dark:bg-[#0d1117] border border-gray-200 dark:border-[#30363d] rounded-lg overflow-hidden">
+    <div className="bg-surface border border-border rounded-fp-md overflow-hidden">
       {/* Header */}
-      <div className="px-4 py-3 border-b border-gray-200 dark:border-[#30363d]">
+      <div className="px-4 py-3 border-b border-border">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-sm font-semibold text-gray-900 dark:text-white">
-              {t('panel.title')}
-            </h2>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+            <h2 className="text-sm font-semibold text-fg">{t('panel.title')}</h2>
+            <p className="text-xs text-fg-subtle mt-0.5">
               {unreadCount > 0
                 ? t('panel.unreadCount', { count: unreadCount })
                 : t('panel.allRead')}
@@ -49,7 +47,7 @@ export function NotificationsPanel() {
           {unreadCount > 0 && (
             <button
               onClick={markAllAsRead}
-              className="px-3 py-1.5 text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors flex items-center gap-1.5"
+              className="px-3 py-1.5 text-xs font-medium text-accent-fg bg-accent hover:bg-accent-hover rounded-md transition-colors flex items-center gap-1.5"
             >
               <FiCheck className="w-3 h-3" />
               {t('panel.markAll')}
@@ -63,8 +61,8 @@ export function NotificationsPanel() {
             onClick={() => setFilter('all')}
             className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
               filter === 'all'
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-[#21262d] dark:text-gray-300 dark:hover:bg-[#30363d]'
+                ? 'bg-accent text-accent-fg'
+                : 'bg-surface-hover text-fg-muted hover:text-fg'
             }`}
           >
             {t('list.all', { count: notifications.length })}
@@ -73,8 +71,8 @@ export function NotificationsPanel() {
             onClick={() => setFilter('unread')}
             className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
               filter === 'unread'
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-[#21262d] dark:text-gray-300 dark:hover:bg-[#30363d]'
+                ? 'bg-accent text-accent-fg'
+                : 'bg-surface-hover text-fg-muted hover:text-fg'
             }`}
           >
             {t('list.unread', { count: unreadCount })}
@@ -86,13 +84,13 @@ export function NotificationsPanel() {
       <div className="max-h-[calc(100vh-280px)] overflow-y-auto">
         {filteredNotifications.length === 0 ? (
           <div className="p-8 text-center">
-            <FiBell className="w-12 h-12 mx-auto text-gray-300 dark:text-gray-600 mb-2" />
-            <p className="text-sm text-gray-500 dark:text-gray-400">
+            <FiBell className="w-12 h-12 mx-auto text-fg-subtle mb-2" />
+            <p className="text-sm text-fg-subtle">
               {filter === 'unread' ? t('list.noUnread') : t('list.noNotifications')}
             </p>
           </div>
         ) : (
-          <div className="divide-y divide-gray-200 dark:divide-[#30363d]">
+          <div className="divide-y divide-border">
             {filteredNotifications.map((notification) => (
               <NotificationItem
                 key={notification.id}

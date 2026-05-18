@@ -17,7 +17,7 @@ export function LoadingSpinner({ size = 'md', message }: LoadingSpinnerProps) {
       <div
         className={`animate-spin rounded-full border-solid border-blue-600 dark:border-blue-500 border-r-transparent ${sizeClasses[size]}`}
       />
-      {message && <p className="text-xs text-gray-600 dark:text-gray-400">{message}</p>}
+      {message && <p className="text-xs text-fg-muted">{message}</p>}
     </div>
   )
 }

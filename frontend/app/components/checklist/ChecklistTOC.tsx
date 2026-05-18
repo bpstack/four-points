@@ -51,8 +51,8 @@ function ItemLink({
       }}
       className={`flex items-center gap-2 px-2 py-1.5 rounded-md text-sm transition-colors ${
         isActive
-          ? 'bg-blue-50 dark:bg-gray-800 text-blue-700 dark:text-blue-400 font-medium'
-          : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
+          ? 'bg-accent/10 text-accent font-medium'
+          : 'text-fg-muted hover:bg-surface-hover hover:text-fg'
       }`}
     >
       <Icon className="w-3.5 h-3.5 flex-shrink-0 opacity-60" />
@@ -98,7 +98,7 @@ function CategoryGroup({
       <div>
         <button
           onClick={() => setOpen(!open)}
-          className="w-full flex items-center gap-1.5 px-2 py-1 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
+          className="w-full flex items-center gap-1.5 px-2 py-1 text-xs font-semibold text-fg-subtle uppercase tracking-wide hover:text-fg transition-colors"
         >
           <span className={`transition-transform ${open ? 'rotate-90' : ''}`}>{'>'}</span>
           {category.name}
@@ -138,7 +138,7 @@ function CategoryGroup({
     <div>
       <button
         onClick={() => setOpen(!open)}
-        className="w-full flex items-center gap-1.5 px-2 py-1 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
+        className="w-full flex items-center gap-1.5 px-2 py-1 text-xs font-semibold text-fg-subtle uppercase tracking-wide hover:text-fg transition-colors"
       >
         <span className={`transition-transform ${open ? 'rotate-90' : ''}`}>{'>'}</span>
         {category.name}
@@ -194,23 +194,21 @@ export function ChecklistTOC({ catalog, onClose, onItemClick }: Props) {
   return (
     <div className="flex h-full min-h-0 flex-col">
       {/* Header */}
-      <div className="px-3 py-3 border-b border-gray-200 dark:border-gray-800">
-        <h2 className="hidden md:block text-sm font-semibold text-gray-900 dark:text-gray-100 mb-2">
-          Check List
-        </h2>
+      <div className="px-3 py-3 border-b border-border">
+        <h2 className="hidden md:block text-sm font-semibold text-fg mb-2">Check List</h2>
         {/* Search */}
         <div className="relative">
-          <FiSearch className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
+          <FiSearch className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-fg-subtle" />
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Buscar..."
-            className="w-full pl-8 pr-7 py-1.5 text-xs rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="w-full pl-8 pr-7 py-1.5 text-xs rounded-md border border-border bg-surface text-fg focus:outline-none focus:ring-1 focus:ring-accent/50"
           />
           {query && (
             <button
               onClick={() => setQuery('')}
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-fg-subtle hover:text-fg"
             >
               <FiX className="w-3.5 h-3.5" />
             </button>
@@ -219,7 +217,7 @@ export function ChecklistTOC({ catalog, onClose, onItemClick }: Props) {
       </div>
 
       {/* Filters — desktop only */}
-      <div className="hidden md:block px-3 py-2 border-b border-gray-200 dark:border-gray-800 space-y-1.5">
+      <div className="hidden md:block px-3 py-2 border-b border-border space-y-1.5">
         <div className="flex flex-wrap gap-1">
           {departments.map((dept) => (
             <button
@@ -227,8 +225,8 @@ export function ChecklistTOC({ catalog, onClose, onItemClick }: Props) {
               onClick={() => setDeptFilter(deptFilter === dept ? null : dept)}
               className={`text-xs px-2 py-0.5 rounded-full border transition-colors ${
                 deptFilter === dept
-                  ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
-                  : 'border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:border-gray-400'
+                  ? 'border-accent bg-accent/10 text-accent'
+                  : 'border-border text-fg-subtle hover:border-border-strong'
               }`}
             >
               {DEPT_LABELS[dept] ?? dept}
@@ -243,7 +241,7 @@ export function ChecklistTOC({ catalog, onClose, onItemClick }: Props) {
               className={`text-xs px-2 py-0.5 rounded-full border transition-colors ${
                 shiftFilter === shift
                   ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300'
-                  : 'border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:border-gray-400'
+                  : 'border-border text-fg-subtle hover:border-border-strong'
               }`}
             >
               {SHIFT_LABELS[shift]}
@@ -257,7 +255,7 @@ export function ChecklistTOC({ catalog, onClose, onItemClick }: Props) {
               setDeptFilter(null)
               setShiftFilter(null)
             }}
-            className="text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+            className="text-xs text-fg-subtle hover:text-fg"
           >
             Limpiar filtros
           </button>
@@ -276,9 +274,7 @@ export function ChecklistTOC({ catalog, onClose, onItemClick }: Props) {
           />
         ))}
         {filtered.length === 0 && (
-          <p className="text-xs text-gray-400 dark:text-gray-500 text-center py-4">
-            Sin resultados
-          </p>
+          <p className="text-xs text-fg-subtle text-center py-4">Sin resultados</p>
         )}
       </div>
     </div>

@@ -138,8 +138,7 @@ export function DetailTab() {
         label: t('status.completed'),
       },
       closed: {
-        color:
-          'bg-gray-50 text-gray-700 border border-gray-200 dark:bg-gray-900/20 dark:text-gray-400 dark:border-gray-800',
+        color: 'bg-surface-sunken text-fg-muted border border-border',
         label: t('status.closed'),
       },
       canceled: {
@@ -153,10 +152,10 @@ export function DetailTab() {
 
   const getPriorityConfig = (priority: typeof currentReport.priority) => {
     const configs = {
-      low: { color: 'text-gray-600 dark:text-gray-400', label: t('priority.low') },
-      medium: { color: 'text-blue-600 dark:text-blue-400', label: t('priority.medium') },
+      low: { color: 'text-fg-muted', label: t('priority.low') },
+      medium: { color: 'text-info', label: t('priority.medium') },
       high: { color: 'text-orange-600 dark:text-orange-400', label: t('priority.high') },
-      urgent: { color: 'text-red-600 dark:text-red-400', label: t('priority.urgent') },
+      urgent: { color: 'text-danger', label: t('priority.urgent') },
     }
     return configs[priority]
   }
@@ -210,20 +209,18 @@ export function DetailTab() {
         {/* Left Column - Main Information */}
         <div className="lg:col-span-2 space-y-6">
           {/* Status & Priority */}
-          <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-4">
+          <div className="bg-surface rounded-md border border-border p-4">
             <div className="flex items-center justify-between gap-4">
               {/* Estado */}
               <div className="flex-1">
-                <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
-                  {t('detail.sections.status')}
-                </p>
+                <p className="text-xs text-fg-subtle mb-1">{t('detail.sections.status')}</p>
                 {isEditingStatus ? (
                   <div className="flex items-center gap-2">
                     <select
                       value={selectedStatus || currentReport.status}
                       onChange={(e) => setSelectedStatus(e.target.value as ReportStatus)}
                       disabled={isSaving}
-                      className="flex-1 px-2 py-1 text-xs border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="flex-1 px-2 py-1 text-xs border border-border rounded-md bg-surface text-fg focus:outline-none focus:ring-2 focus:ring-accent/50"
                     >
                       {statusOptions.map((option) => (
                         <option key={option.value} value={option.value}>
@@ -234,7 +231,7 @@ export function DetailTab() {
                     <button
                       onClick={handleStatusChange}
                       disabled={isSaving}
-                      className="p-1 text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 rounded disabled:opacity-50"
+                      className="p-1 text-success hover:bg-green-50 dark:hover:bg-green-900/20 rounded disabled:opacity-50"
                     >
                       <FiCheck className="w-4 h-4" />
                     </button>
@@ -244,7 +241,7 @@ export function DetailTab() {
                         setSelectedStatus(null)
                       }}
                       disabled={isSaving}
-                      className="p-1 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded"
+                      className="p-1 text-danger hover:bg-red-50 dark:hover:bg-red-900/20 rounded"
                     >
                       <FiX className="w-4 h-4" />
                     </button>
@@ -258,7 +255,7 @@ export function DetailTab() {
                     </span>
                     <button
                       onClick={() => setIsEditingStatus(true)}
-                      className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded"
+                      className="p-1 text-fg-subtle hover:text-fg hover:bg-surface-hover rounded"
                     >
                       <FiEdit2 className="w-3.5 h-3.5" />
                     </button>
@@ -268,7 +265,7 @@ export function DetailTab() {
 
               {/* Prioridad */}
               <div className="flex-1">
-                <p className="text-xs text-gray-500 dark:text-gray-400 mb-1 text-right">
+                <p className="text-xs text-fg-subtle mb-1 text-right">
                   {t('detail.sections.priority')}
                 </p>
                 {isEditingPriority ? (
@@ -279,14 +276,14 @@ export function DetailTab() {
                         setSelectedPriority(null)
                       }}
                       disabled={isSaving}
-                      className="p-1 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded"
+                      className="p-1 text-danger hover:bg-red-50 dark:hover:bg-red-900/20 rounded"
                     >
                       <FiX className="w-4 h-4" />
                     </button>
                     <button
                       onClick={handlePriorityChange}
                       disabled={isSaving}
-                      className="p-1 text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 rounded disabled:opacity-50"
+                      className="p-1 text-success hover:bg-green-50 dark:hover:bg-green-900/20 rounded disabled:opacity-50"
                     >
                       <FiCheck className="w-4 h-4" />
                     </button>
@@ -294,7 +291,7 @@ export function DetailTab() {
                       value={selectedPriority || currentReport.priority}
                       onChange={(e) => setSelectedPriority(e.target.value as ReportPriority)}
                       disabled={isSaving}
-                      className="flex-1 px-2 py-1 text-xs border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="flex-1 px-2 py-1 text-xs border border-border rounded-md bg-surface text-fg focus:outline-none focus:ring-2 focus:ring-accent/50"
                     >
                       {priorityOptions.map((option) => (
                         <option key={option.value} value={option.value}>
@@ -307,7 +304,7 @@ export function DetailTab() {
                   <div className="flex items-center justify-end gap-2">
                     <button
                       onClick={() => setIsEditingPriority(true)}
-                      className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded"
+                      className="p-1 text-fg-subtle hover:text-fg hover:bg-surface-hover rounded"
                     >
                       <FiEdit2 className="w-3.5 h-3.5" />
                     </button>
@@ -321,27 +318,21 @@ export function DetailTab() {
           </div>
 
           {/* Main Info */}
-          <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-4">
-            <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2 mb-4">
+          <div className="bg-surface rounded-md border border-border p-4">
+            <h3 className="text-sm font-semibold text-fg flex items-center gap-2 mb-4">
               <FiFileText className="w-4 h-4" />
               {t('detail.sections.reportInfo')}
             </h3>
 
             <div className="space-y-3">
               <div>
-                <label className="text-xs text-gray-500 dark:text-gray-400">
-                  {t('detail.labels.title')}
-                </label>
-                <p className="text-sm text-gray-900 dark:text-gray-100 mt-1">
-                  {currentReport.title}
-                </p>
+                <label className="text-xs text-fg-subtle">{t('detail.labels.title')}</label>
+                <p className="text-sm text-fg mt-1">{currentReport.title}</p>
               </div>
 
               <div>
-                <label className="text-xs text-gray-500 dark:text-gray-400">
-                  {t('detail.labels.description')}
-                </label>
-                <p className="text-sm text-gray-900 dark:text-gray-100 mt-1 whitespace-pre-wrap">
+                <label className="text-xs text-fg-subtle">{t('detail.labels.description')}</label>
+                <p className="text-sm text-fg mt-1 whitespace-pre-wrap">
                   {currentReport.description}
                 </p>
               </div>
@@ -349,40 +340,30 @@ export function DetailTab() {
           </div>
 
           {/* Location */}
-          <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-4">
-            <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2 mb-4">
+          <div className="bg-surface rounded-md border border-border p-4">
+            <h3 className="text-sm font-semibold text-fg flex items-center gap-2 mb-4">
               <FiMapPin className="w-4 h-4" />
               {t('detail.sections.location')}
             </h3>
 
             <div className="space-y-3">
               <div>
-                <label className="text-xs text-gray-500 dark:text-gray-400">
-                  {t('detail.labels.type')}
-                </label>
-                <p className="text-sm text-gray-900 dark:text-gray-100 mt-1">
+                <label className="text-xs text-fg-subtle">{t('detail.labels.type')}</label>
+                <p className="text-sm text-fg mt-1">
                   {getLocationTypeLabel(currentReport.location_type)}
                 </p>
               </div>
 
               {currentReport.room_number && (
                 <div>
-                  <label className="text-xs text-gray-500 dark:text-gray-400">
-                    {t('detail.labels.room')}
-                  </label>
-                  <p className="text-sm text-gray-900 dark:text-gray-100 mt-1">
-                    {currentReport.room_number}
-                  </p>
+                  <label className="text-xs text-fg-subtle">{t('detail.labels.room')}</label>
+                  <p className="text-sm text-fg mt-1">{currentReport.room_number}</p>
                 </div>
               )}
 
               <div>
-                <label className="text-xs text-gray-500 dark:text-gray-400">
-                  {t('detail.labels.description')}
-                </label>
-                <p className="text-sm text-gray-900 dark:text-gray-100 mt-1">
-                  {currentReport.location_description}
-                </p>
+                <label className="text-xs text-fg-subtle">{t('detail.labels.description')}</label>
+                <p className="text-sm text-fg mt-1">{currentReport.location_description}</p>
               </div>
 
               {currentReport.room_out_of_service && (
@@ -397,8 +378,8 @@ export function DetailTab() {
           </div>
 
           {/* Assignment */}
-          <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-4">
-            <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2 mb-4">
+          <div className="bg-surface rounded-md border border-border p-4">
+            <h3 className="text-sm font-semibold text-fg flex items-center gap-2 mb-4">
               <FiUser className="w-4 h-4" />
               {t('detail.sections.assignment')}
             </h3>
@@ -406,10 +387,10 @@ export function DetailTab() {
             <div className="space-y-3">
               {currentReport.assigned_type === 'internal' && (
                 <div>
-                  <label className="text-xs text-gray-500 dark:text-gray-400">
+                  <label className="text-xs text-fg-subtle">
                     {t('detail.labels.internalStaff')}
                   </label>
-                  <p className="text-sm text-gray-900 dark:text-gray-100 mt-1">
+                  <p className="text-sm text-fg mt-1">
                     {currentReport.assigned_to_name || t('detail.labels.assignedUser')}
                   </p>
                 </div>
@@ -418,68 +399,52 @@ export function DetailTab() {
               {currentReport.assigned_type === 'external' && (
                 <>
                   <div>
-                    <label className="text-xs text-gray-500 dark:text-gray-400">
+                    <label className="text-xs text-fg-subtle">
                       {t('detail.labels.externalCompany')}
                     </label>
-                    <p className="text-sm text-gray-900 dark:text-gray-100 mt-1">
+                    <p className="text-sm text-fg mt-1">
                       {currentReport.external_company_name || '-'}
                     </p>
                   </div>
                   {currentReport.external_contact && (
                     <div>
-                      <label className="text-xs text-gray-500 dark:text-gray-400">
-                        {t('detail.labels.contact')}
-                      </label>
-                      <p className="text-sm text-gray-900 dark:text-gray-100 mt-1">
-                        {currentReport.external_contact}
-                      </p>
+                      <label className="text-xs text-fg-subtle">{t('detail.labels.contact')}</label>
+                      <p className="text-sm text-fg mt-1">{currentReport.external_contact}</p>
                     </div>
                   )}
                 </>
               )}
 
               {!currentReport.assigned_type && (
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  {t('detail.labels.notAssigned')}
-                </p>
+                <p className="text-sm text-fg-subtle">{t('detail.labels.notAssigned')}</p>
               )}
             </div>
           </div>
 
           {/* Timestamps */}
-          <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-4">
-            <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2 mb-4">
+          <div className="bg-surface rounded-md border border-border p-4">
+            <h3 className="text-sm font-semibold text-fg flex items-center gap-2 mb-4">
               <FiClock className="w-4 h-4" />
               {t('detail.sections.dates')}
             </h3>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="text-xs text-gray-500 dark:text-gray-400">
-                  {t('detail.labels.reported')}
-                </label>
-                <p className="text-sm text-gray-900 dark:text-gray-100 mt-1">
-                  {formatDateTime(currentReport.report_date)}
-                </p>
+                <label className="text-xs text-fg-subtle">{t('detail.labels.reported')}</label>
+                <p className="text-sm text-fg mt-1">{formatDateTime(currentReport.report_date)}</p>
               </div>
 
               {currentReport.started_at && (
                 <div>
-                  <label className="text-xs text-gray-500 dark:text-gray-400">
-                    {t('detail.labels.started')}
-                  </label>
-                  <p className="text-sm text-gray-900 dark:text-gray-100 mt-1">
-                    {formatDateTime(currentReport.started_at)}
-                  </p>
+                  <label className="text-xs text-fg-subtle">{t('detail.labels.started')}</label>
+                  <p className="text-sm text-fg mt-1">{formatDateTime(currentReport.started_at)}</p>
                 </div>
               )}
 
               {currentReport.resolved_at && (
                 <div>
-                  <label className="text-xs text-gray-500 dark:text-gray-400">
-                    {t('detail.labels.resolved')}
-                  </label>
-                  <p className="text-sm text-gray-900 dark:text-gray-100 mt-1">
+                  <label className="text-xs text-fg-subtle">{t('detail.labels.resolved')}</label>
+                  <p className="text-sm text-fg mt-1">
                     {formatDateTime(currentReport.resolved_at)}
                   </p>
                 </div>
@@ -487,24 +452,20 @@ export function DetailTab() {
 
               {currentReport.closed_at && (
                 <div>
-                  <label className="text-xs text-gray-500 dark:text-gray-400">
-                    {t('detail.labels.closed')}
-                  </label>
-                  <p className="text-sm text-gray-900 dark:text-gray-100 mt-1">
-                    {formatDateTime(currentReport.closed_at)}
-                  </p>
+                  <label className="text-xs text-fg-subtle">{t('detail.labels.closed')}</label>
+                  <p className="text-sm text-fg mt-1">{formatDateTime(currentReport.closed_at)}</p>
                 </div>
               )}
             </div>
           </div>
 
           {/* Resolution Notes */}
-          <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-4">
-            <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">
+          <div className="bg-surface rounded-md border border-border p-4">
+            <h3 className="text-sm font-semibold text-fg mb-3">
               {t('detail.sections.resolutionNotes')}
             </h3>
             {currentReport.resolution_notes ? (
-              <p className="text-sm text-gray-900 dark:text-gray-100 whitespace-pre-wrap">
+              <p className="text-sm text-fg whitespace-pre-wrap">
                 {currentReport.resolution_notes}
               </p>
             ) : showNotesInput ? (
@@ -514,13 +475,13 @@ export function DetailTab() {
                   onChange={(e) => setResolutionNotes(e.target.value)}
                   placeholder={t('detail.resolutionNotes.placeholder')}
                   rows={4}
-                  className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 resize-none"
+                  className="w-full px-3 py-2 text-sm border border-border rounded-md bg-surface text-fg focus:outline-none focus:ring-2 focus:ring-accent/50 resize-none"
                 />
                 <div className="flex gap-2">
                   <button
                     onClick={handleSaveNotes}
                     disabled={isSaving || !resolutionNotes.trim()}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-green-600 rounded-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-accent-fg bg-accent rounded-md hover:bg-accent-hover disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <FiCheck className="w-3.5 h-3.5" />
                     {t('detail.resolutionNotes.save')}
@@ -531,7 +492,7 @@ export function DetailTab() {
                       setResolutionNotes('')
                     }}
                     disabled={isSaving}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-fg bg-surface border border-border rounded-md hover:bg-surface-hover"
                   >
                     <FiX className="w-3.5 h-3.5" />
                     {t('detail.resolutionNotes.cancel')}
@@ -541,7 +502,7 @@ export function DetailTab() {
             ) : (
               <button
                 onClick={() => setShowNotesInput(true)}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-fg bg-surface border border-border rounded-md hover:bg-surface-hover transition-colors"
               >
                 <FiEdit2 className="w-3.5 h-3.5" />
                 {t('detail.resolutionNotes.add')}
@@ -550,50 +511,36 @@ export function DetailTab() {
           </div>
 
           {/* Metadata */}
-          <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-4">
-            <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">
+          <div className="bg-surface rounded-md border border-border p-4">
+            <h3 className="text-sm font-semibold text-fg mb-3">
               {t('detail.sections.systemInfo')}
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
               <div>
-                <label className="text-gray-500 dark:text-gray-400">
-                  {t('detail.labels.createdBy')}
-                </label>
-                <p className="text-gray-900 dark:text-gray-100 mt-1">
+                <label className="text-fg-subtle">{t('detail.labels.createdBy')}</label>
+                <p className="text-fg mt-1">
                   {currentReport.created_by_name || currentReport.created_by}
                 </p>
               </div>
               <div>
-                <label className="text-gray-500 dark:text-gray-400">
-                  {t('detail.labels.createdAt')}
-                </label>
-                <p className="text-gray-900 dark:text-gray-100 mt-1">
-                  {formatDateTime(currentReport.created_at)}
-                </p>
+                <label className="text-fg-subtle">{t('detail.labels.createdAt')}</label>
+                <p className="text-fg mt-1">{formatDateTime(currentReport.created_at)}</p>
               </div>
               <div>
-                <label className="text-gray-500 dark:text-gray-400">
-                  {t('detail.labels.reportId')}
-                </label>
-                <p className="text-gray-900 dark:text-gray-100 mt-1 font-mono text-[10px]">
-                  {currentReport.id}
-                </p>
+                <label className="text-fg-subtle">{t('detail.labels.reportId')}</label>
+                <p className="text-fg mt-1 font-mono text-[10px]">{currentReport.id}</p>
               </div>
               <div>
-                <label className="text-gray-500 dark:text-gray-400">
-                  {t('detail.labels.lastUpdate')}
-                </label>
-                <p className="text-gray-900 dark:text-gray-100 mt-1">
-                  {formatDateTime(currentReport.updated_at)}
-                </p>
+                <label className="text-fg-subtle">{t('detail.labels.lastUpdate')}</label>
+                <p className="text-fg mt-1">{formatDateTime(currentReport.updated_at)}</p>
               </div>
             </div>
           </div>
 
           {/* Mobile Only: Images Section */}
           {images.length > 0 && (
-            <div className="lg:hidden bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-4">
-              <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2 mb-4">
+            <div className="lg:hidden bg-surface rounded-md border border-border p-4">
+              <h3 className="text-sm font-semibold text-fg flex items-center gap-2 mb-4">
                 <FiImage className="w-4 h-4" />
                 {t('detail.images.title', { count: images.length })}
               </h3>
@@ -608,7 +555,7 @@ export function DetailTab() {
                     <img
                       src={image.file_path}
                       alt={image.file_name}
-                      className="w-full h-32 object-contain bg-gray-100 dark:bg-gray-900 rounded-md border border-gray-300 dark:border-gray-700"
+                      className="w-full h-32 object-contain bg-surface-sunken rounded-md border border-border"
                     />
                     <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors rounded-md flex items-center justify-center">
                       <FiMaximize2 className="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -624,8 +571,8 @@ export function DetailTab() {
         <div className="hidden lg:block lg:col-span-1">
           <div className="sticky top-4 space-y-4">
             {images.length > 0 ? (
-              <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-4">
-                <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2 mb-4">
+              <div className="bg-surface rounded-md border border-border p-4">
+                <h3 className="text-sm font-semibold text-fg flex items-center gap-2 mb-4">
                   <FiImage className="w-4 h-4" />
                   {t('detail.images.title', { count: images.length })}
                 </h3>
@@ -640,7 +587,7 @@ export function DetailTab() {
                       <img
                         src={image.file_path}
                         alt={image.file_name}
-                        className="w-full h-48 object-contain bg-gray-100 dark:bg-gray-900 rounded-md border border-gray-300 dark:border-gray-700"
+                        className="w-full h-48 object-contain bg-surface-sunken rounded-md border border-border"
                       />
                       <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors rounded-md flex items-center justify-center">
                         <FiMaximize2 className="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -650,12 +597,12 @@ export function DetailTab() {
                 </div>
               </div>
             ) : (
-              <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-4">
-                <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2 mb-4">
+              <div className="bg-surface rounded-md border border-border p-4">
+                <h3 className="text-sm font-semibold text-fg flex items-center gap-2 mb-4">
                   <FiImage className="w-4 h-4" />
                   {t('detail.images.titleNoCount')}
                 </h3>
-                <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-8">
+                <p className="text-sm text-fg-subtle text-center py-8">
                   {t('detail.images.noImages')}
                 </p>
               </div>

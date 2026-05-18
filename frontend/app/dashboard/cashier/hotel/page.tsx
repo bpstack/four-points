@@ -78,10 +78,10 @@ export default function CashierPage() {
         <div className="min-[1400px]:col-span-3 space-y-4">
           {/* Stats - Mobile/Tablet (hidden on >= 1400px) */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 min-[1400px]:hidden">
-            <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-3 hover:shadow-md dark:hover:shadow-gray-900/50 transition-shadow">
+            <div className="bg-surface rounded-md border border-border p-3 hover:shadow-md dark:hover:shadow-gray-900/50 transition-shadow">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 font-medium">
+                  <p className="text-[10px] sm:text-xs text-fg-muted font-medium">
                     {t('summary.grandTotal')}
                   </p>
                   <p className="text-lg sm:text-xl font-bold text-purple-700 dark:text-purple-400 mt-0.5">
@@ -92,10 +92,10 @@ export default function CashierPage() {
               </div>
             </div>
 
-            <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-3 hover:shadow-md dark:hover:shadow-gray-900/50 transition-shadow">
+            <div className="bg-surface rounded-md border border-border p-3 hover:shadow-md dark:hover:shadow-gray-900/50 transition-shadow">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 font-medium">
+                  <p className="text-[10px] sm:text-xs text-fg-muted font-medium">
                     {t('summary.cash')}
                   </p>
                   <p className="text-lg sm:text-xl font-bold text-blue-700 dark:text-blue-400 mt-0.5">
@@ -106,10 +106,10 @@ export default function CashierPage() {
               </div>
             </div>
 
-            <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-3 hover:shadow-md dark:hover:shadow-gray-900/50 transition-shadow">
+            <div className="bg-surface rounded-md border border-border p-3 hover:shadow-md dark:hover:shadow-gray-900/50 transition-shadow">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 font-medium">
+                  <p className="text-[10px] sm:text-xs text-fg-muted font-medium">
                     {t('summary.electronic')}
                   </p>
                   <p className="text-lg sm:text-xl font-bold text-green-700 dark:text-green-400 mt-0.5">
@@ -120,13 +120,13 @@ export default function CashierPage() {
               </div>
             </div>
 
-            <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-3 hover:shadow-md dark:hover:shadow-gray-900/50 transition-shadow col-span-2 lg:col-span-1">
+            <div className="bg-surface rounded-md border border-border p-3 hover:shadow-md dark:hover:shadow-gray-900/50 transition-shadow col-span-2 lg:col-span-1">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 font-medium">
+                  <p className="text-[10px] sm:text-xs text-fg-muted font-medium">
                     {t('summary.status')}
                   </p>
-                  <p className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 mt-0.5">
+                  <p className="text-lg sm:text-xl font-bold text-fg mt-0.5">
                     {dailyData.status === 'closed' ? t('summary.closed') : t('summary.open')}
                   </p>
                 </div>
@@ -135,7 +135,7 @@ export default function CashierPage() {
                     ✓
                   </span>
                 ) : (
-                  <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 text-[10px] font-medium rounded-full">
+                  <span className="px-2 py-1 bg-info/10 text-blue-700 dark:text-blue-400 text-[10px] font-medium rounded-full">
                     ●
                   </span>
                 )}
@@ -148,7 +148,7 @@ export default function CashierPage() {
             {dailyData.can_close && (
               <button
                 onClick={() => openModal('closeDay')}
-                className="w-full px-3 py-2 bg-green-600 hover:bg-green-700 text-white text-xs rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
+                className="w-full px-3 py-2 bg-accent hover:bg-accent-hover text-accent-fg text-xs rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
               >
                 <FiDollarSign className="w-3.5 h-3.5" />
                 {t('common.close')} {t('calendar.date')}
@@ -183,14 +183,14 @@ export default function CashierPage() {
           )}
 
           {/* Tabs de turnos */}
-          <div className="bg-white dark:bg-[#0d1117] border border-gray-200 dark:border-gray-800 rounded-lg overflow-hidden">
+          <div className="bg-surface border border-border rounded-lg overflow-hidden">
             <ShiftTabs shifts={dailyData.shifts} activeTab={activeTab} onTabChange={setActiveTab} />
 
             <div className="p-4">
               {currentShift ? (
                 <ShiftCard shiftId={currentShift.id} shiftType={activeTab} />
               ) : (
-                <div className="text-center py-6 text-gray-400 dark:text-gray-500 text-xs">
+                <div className="text-center py-6 text-fg-subtle text-xs">
                   <p>{t('page.shiftNotCreated')}</p>
                 </div>
               )}

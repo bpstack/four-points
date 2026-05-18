@@ -77,11 +77,11 @@ export function MobileSearchModal({ isOpen, onClose }: MobileSearchModalProps) {
   return (
     <div className="fixed inset-0 z-50 bg-black/50" onClick={handleClose}>
       <div
-        className="mt-12 mx-4 bg-white dark:bg-[#010409] rounded-xl shadow-2xl max-h-[80vh] flex flex-col overflow-hidden"
+        className="mt-12 mx-4 bg-bg rounded-xl shadow-2xl max-h-[80vh] flex flex-col overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-200 dark:border-gray-800">
+        <div className="flex items-center gap-3 px-4 py-3 border-b border-border">
           <div className="relative flex-1">
             <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
             <input
@@ -91,7 +91,7 @@ export function MobileSearchModal({ isOpen, onClose }: MobileSearchModalProps) {
               onChange={(e) => setQuery(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder={t('search.placeholder')}
-              className="w-full pl-10 pr-10 py-2.5 text-base bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+              className="w-full pl-10 pr-10 py-2.5 text-base bg-surface-sunken border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-accent/50 text-fg placeholder-gray-500 dark:placeholder-gray-400"
             />
             {query.length > 0 && (
               <button
@@ -107,18 +107,18 @@ export function MobileSearchModal({ isOpen, onClose }: MobileSearchModalProps) {
           </div>
           <button
             onClick={handleClose}
-            className="px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+            className="px-3 py-2 text-sm font-medium text-fg-muted hover:text-fg"
           >
             {t('actions.cancel')}
           </button>
         </div>
 
         {/* Search Button */}
-        <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-800">
+        <div className="px-4 py-3 border-b border-border">
           <button
             onClick={handleSearch}
             disabled={isLoading || query.trim().length < getMinChars(query.trim())}
-            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 dark:disabled:bg-gray-700 text-white rounded-lg font-medium transition-colors disabled:cursor-not-allowed"
+            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-accent hover:bg-accent-hover disabled:opacity-50 text-accent-fg rounded-lg font-medium transition-colors disabled:cursor-not-allowed"
           >
             {isLoading ? (
               <>
@@ -133,9 +133,7 @@ export function MobileSearchModal({ isOpen, onClose }: MobileSearchModalProps) {
             )}
           </button>
           {query.trim().length > 0 && query.trim().length < getMinChars(query.trim()) && (
-            <p className="mt-2 text-xs text-center text-gray-500 dark:text-gray-400">
-              {t('search.minChars')}
-            </p>
+            <p className="mt-2 text-xs text-center text-fg-subtle">{t('search.minChars')}</p>
           )}
         </div>
 
@@ -144,7 +142,7 @@ export function MobileSearchModal({ isOpen, onClose }: MobileSearchModalProps) {
           {error && <div className="px-4 py-3 text-sm text-red-600 dark:text-red-400">{error}</div>}
 
           {results && totalResults === 0 && !error && (
-            <div className="px-4 py-12 text-center text-gray-500 dark:text-gray-400">
+            <div className="px-4 py-12 text-center text-fg-subtle">
               <FiSearch className="h-12 w-12 mx-auto mb-3 opacity-50" />
               <p>{t('search.noResults')}</p>
             </div>
@@ -152,9 +150,9 @@ export function MobileSearchModal({ isOpen, onClose }: MobileSearchModalProps) {
 
           {/* Parking Results */}
           {results && results.parking.length > 0 && (
-            <div className="border-b border-gray-100 dark:border-gray-800">
-              <div className="px-4 py-2 bg-gray-50 dark:bg-gray-800/50">
-                <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase flex items-center gap-2">
+            <div className="border-b border-border">
+              <div className="px-4 py-2 bg-surface-hover/50">
+                <h3 className="text-xs font-semibold text-fg-subtle uppercase flex items-center gap-2">
                   <FiTruck className="h-3.5 w-3.5" />
                   {t('search.categories.parking')}
                 </h3>
@@ -163,12 +161,10 @@ export function MobileSearchModal({ isOpen, onClose }: MobileSearchModalProps) {
                 <button
                   key={`parking-${item.id}`}
                   onClick={() => handleNavigate(`/dashboard/parking/bookings/${item.booking_code}`)}
-                  className="w-full px-4 py-3 text-left hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors border-b border-gray-100 dark:border-gray-800 last:border-b-0"
+                  className="w-full px-4 py-3 text-left hover:bg-surface-hover transition-colors border-b border-border last:border-b-0"
                 >
-                  <p className="text-base font-medium text-gray-900 dark:text-white">
-                    {item.booking_code}
-                  </p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                  <p className="text-base font-medium text-fg">{item.booking_code}</p>
+                  <p className="text-sm text-fg-subtle">
                     {item.plate_number || t('search.noPlate')} ·{' '}
                     {item.owner_name || t('search.noOwner')}
                   </p>
@@ -179,9 +175,9 @@ export function MobileSearchModal({ isOpen, onClose }: MobileSearchModalProps) {
 
           {/* Maintenance Results */}
           {results && results.maintenance.length > 0 && (
-            <div className="border-b border-gray-100 dark:border-gray-800">
-              <div className="px-4 py-2 bg-gray-50 dark:bg-gray-800/50">
-                <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase flex items-center gap-2">
+            <div className="border-b border-border">
+              <div className="px-4 py-2 bg-surface-hover/50">
+                <h3 className="text-xs font-semibold text-fg-subtle uppercase flex items-center gap-2">
                   <FiTool className="h-3.5 w-3.5" />
                   {t('search.categories.maintenance')}
                 </h3>
@@ -190,12 +186,10 @@ export function MobileSearchModal({ isOpen, onClose }: MobileSearchModalProps) {
                 <button
                   key={`maintenance-${item.id}`}
                   onClick={() => handleNavigate(`/dashboard/maintenance/${item.id}`)}
-                  className="w-full px-4 py-3 text-left hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors border-b border-gray-100 dark:border-gray-800 last:border-b-0"
+                  className="w-full px-4 py-3 text-left hover:bg-surface-hover transition-colors border-b border-border last:border-b-0"
                 >
-                  <p className="text-base font-medium text-gray-900 dark:text-white">
-                    {item.title}
-                  </p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                  <p className="text-base font-medium text-fg">{item.title}</p>
+                  <p className="text-sm text-fg-subtle">
                     {item.room_number ? `${t('search.room')} ${item.room_number}` : item.id} ·{' '}
                     <span
                       className={
@@ -216,9 +210,9 @@ export function MobileSearchModal({ isOpen, onClose }: MobileSearchModalProps) {
 
           {/* Groups Results */}
           {results && results.groups.length > 0 && (
-            <div className="border-b border-gray-100 dark:border-gray-800">
-              <div className="px-4 py-2 bg-gray-50 dark:bg-gray-800/50">
-                <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase flex items-center gap-2">
+            <div className="border-b border-border">
+              <div className="px-4 py-2 bg-surface-hover/50">
+                <h3 className="text-xs font-semibold text-fg-subtle uppercase flex items-center gap-2">
                   <FiUsers className="h-3.5 w-3.5" />
                   {t('search.categories.groups')}
                 </h3>
@@ -227,10 +221,10 @@ export function MobileSearchModal({ isOpen, onClose }: MobileSearchModalProps) {
                 <button
                   key={`group-${item.id}`}
                   onClick={() => handleNavigate(`/dashboard/groups/${item.id}`)}
-                  className="w-full px-4 py-3 text-left hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors border-b border-gray-100 dark:border-gray-800 last:border-b-0"
+                  className="w-full px-4 py-3 text-left hover:bg-surface-hover transition-colors border-b border-border last:border-b-0"
                 >
-                  <p className="text-base font-medium text-gray-900 dark:text-white">{item.name}</p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                  <p className="text-base font-medium text-fg">{item.name}</p>
+                  <p className="text-sm text-fg-subtle">
                     {item.agency || t('search.noAgency')} · {item.status}
                   </p>
                 </button>
@@ -241,8 +235,8 @@ export function MobileSearchModal({ isOpen, onClose }: MobileSearchModalProps) {
           {/* Blacklist Results */}
           {results && results.blacklist.length > 0 && (
             <div>
-              <div className="px-4 py-2 bg-gray-50 dark:bg-gray-800/50">
-                <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase flex items-center gap-2">
+              <div className="px-4 py-2 bg-surface-hover/50">
+                <h3 className="text-xs font-semibold text-fg-subtle uppercase flex items-center gap-2">
                   <FiAlertCircle className="h-3.5 w-3.5" />
                   {t('search.categories.blacklist')}
                 </h3>
@@ -251,12 +245,10 @@ export function MobileSearchModal({ isOpen, onClose }: MobileSearchModalProps) {
                 <button
                   key={`blacklist-${item.id}`}
                   onClick={() => handleNavigate(`/dashboard/blacklist/${item.id}`)}
-                  className="w-full px-4 py-3 text-left hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors border-b border-gray-100 dark:border-gray-800 last:border-b-0"
+                  className="w-full px-4 py-3 text-left hover:bg-surface-hover transition-colors border-b border-border last:border-b-0"
                 >
-                  <p className="text-base font-medium text-gray-900 dark:text-white">
-                    {item.guest_name}
-                  </p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                  <p className="text-base font-medium text-fg">{item.guest_name}</p>
+                  <p className="text-sm text-fg-subtle">
                     {item.document_number} ·{' '}
                     <span
                       className={
@@ -277,7 +269,7 @@ export function MobileSearchModal({ isOpen, onClose }: MobileSearchModalProps) {
 
           {/* Hint when no search yet */}
           {!results && !error && (
-            <div className="px-4 py-12 text-center text-gray-500 dark:text-gray-400">
+            <div className="px-4 py-12 text-center text-fg-subtle">
               <FiSearch className="h-12 w-12 mx-auto mb-3 opacity-50" />
               <p className="text-sm">{t('search.hint')}</p>
             </div>

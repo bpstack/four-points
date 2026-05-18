@@ -4,6 +4,7 @@
 import { FiDollarSign, FiAlertCircle } from 'react-icons/fi'
 import type { CashierDaily } from '@/app/lib/cashier/types'
 import { useTranslations } from 'next-intl'
+import { Card, Badge } from '@/app/ui/components'
 
 interface DaySummaryCardProps {
   daily: CashierDaily
@@ -21,29 +22,21 @@ export default function DaySummaryCard({
   const t = useTranslations('cashier')
 
   return (
-    <div className="bg-white dark:bg-[#0d1117] border border-gray-200 dark:border-gray-800 rounded-lg p-4">
+    <Card padding="md">
       <div className="flex items-center justify-between mb-3">
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-          <FiDollarSign className="w-4 h-4 text-green-600" />
+        <h2 className="text-lg font-semibold text-fg flex items-center gap-2">
+          <FiDollarSign className="w-4 h-4 text-success" />
           {t('summary.dayTitle')}
         </h2>
         <div className="flex items-center gap-2">
-          <span className="text-xs text-gray-500 dark:text-gray-400">{selectedDate}</span>
-          {daily.status === 'closed' && (
-            <span className="px-2 py-0.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-[10px] font-medium rounded">
-              {t('summary.closed')}
-            </span>
-          )}
-          {daily.status === 'open' && (
-            <span className="px-2 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 text-[10px] font-medium rounded">
-              {t('summary.open')}
-            </span>
-          )}
+          <span className="text-xs text-fg-subtle">{selectedDate}</span>
+          {daily.status === 'closed' && <Badge tone="success">{t('summary.closed')}</Badge>}
+          {daily.status === 'open' && <Badge tone="info">{t('summary.open')}</Badge>}
         </div>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg border border-blue-200 dark:border-blue-800">
+        <div className="bg-info/10 p-3 rounded-lg border border-blue-200 dark:border-blue-800">
           <p className="text-[10px] text-blue-600 dark:text-blue-400 font-medium mb-0.5">
             {t('summary.totalCash')}
           </p>
@@ -77,12 +70,10 @@ export default function DaySummaryCard({
           </p>
         </div>
 
-        <div className="bg-gray-50 dark:bg-gray-800/30 p-2.5 rounded-lg border border-dashed border-gray-300 dark:border-gray-700">
+        <div className="bg-surface-hover/30 p-2.5 rounded-lg border border-dashed border-border">
           <div className="flex items-center gap-1.5 mb-0.5">
             <span className="text-sm">📝</span>
-            <p className="text-[9px] text-gray-500 dark:text-gray-400 font-medium">
-              {t('summary.activeVouchers')}
-            </p>
+            <p className="text-[9px] text-fg-subtle font-medium">{t('summary.activeVouchers')}</p>
           </div>
           <p className="text-base font-bold text-orange-600 dark:text-orange-400">
             {parseFloat(daily.active_vouchers_total || '0').toFixed(2)}€
@@ -109,7 +100,7 @@ export default function DaySummaryCard({
         <div className="mt-3">
           <button
             onClick={onCloseDay}
-            className="w-full px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
+            className="w-full px-4 py-2 bg-accent hover:bg-accent-hover text-accent-fg text-sm rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
           >
             <FiDollarSign className="w-4 h-4" />
             {t('closeDay.closeDayComplete')}
@@ -129,6 +120,6 @@ export default function DaySummaryCard({
           </button>
         </div>
       )}
-    </div>
+    </Card>
   )
 }

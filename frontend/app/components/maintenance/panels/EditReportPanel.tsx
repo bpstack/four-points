@@ -3,7 +3,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useForm, SubmitHandler } from 'react-hook-form'
+import { useForm, Controller, type SubmitHandler } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useTranslations } from 'next-intl'
 import { reportSchema, type ReportFormData } from '@/app/lib/maintenance/maintenance-schemas'
@@ -19,8 +19,8 @@ import {
   inputClassName,
   selectClassName,
   textareaClassName,
-  checkboxClassName,
 } from '@/app/ui/panels'
+import { Checkbox } from '@/app/ui/components'
 
 interface EditReportPanelProps {
   isOpen: boolean
@@ -44,6 +44,7 @@ export function EditReportPanel({ isOpen, onClose, report, onSuccess }: EditRepo
     reset,
     watch,
     setValue,
+    control,
     formState: { errors, isSubmitting, isDirty },
   } = useForm<ReportFormData>({
     resolver: zodResolver(reportSchema),
@@ -203,7 +204,7 @@ export function EditReportPanel({ isOpen, onClose, report, onSuccess }: EditRepo
       title={t('panels.edit.title')}
       subtitle={`ID: ${report.id}`}
       size="lg"
-      headerIcon={<FiTool className="w-5 h-5 text-blue-600 dark:text-blue-400" />}
+      headerIcon={<FiTool className="w-5 h-5 text-info" />}
       footer={
         <SlidePanelFooterButtons
           onCancel={onClose}
@@ -302,16 +303,18 @@ export function EditReportPanel({ isOpen, onClose, report, onSuccess }: EditRepo
 
         {/* Room Out of Service */}
         {locationType === 'room' && (
-          <div className="flex items-center">
-            <input
-              {...register('room_out_of_service')}
-              type="checkbox"
-              className={checkboxClassName}
-            />
-            <label className="ml-2 text-sm text-gray-700 dark:text-gray-300">
-              {t('panels.create.fields.roomOutOfService')}
-            </label>
-          </div>
+          <Controller
+            name="room_out_of_service"
+            control={control}
+            render={({ field }) => (
+              <Checkbox
+                checked={!!field.value}
+                onCheckedChange={field.onChange}
+                label={t('panels.create.fields.roomOutOfService')}
+                strikeOnCheck={false}
+              />
+            )}
+          />
         )}
 
         {/* Assigned Type */}
@@ -356,7 +359,7 @@ export function EditReportPanel({ isOpen, onClose, report, onSuccess }: EditRepo
                   <img
                     src={image.file_path}
                     alt={image.file_name}
-                    className="w-full h-24 object-cover rounded-md border border-gray-300 dark:border-gray-700"
+                    className="w-full h-24 object-cover rounded-md border border-border"
                   />
                   <button
                     type="button"
@@ -380,18 +383,18 @@ export function EditReportPanel({ isOpen, onClose, report, onSuccess }: EditRepo
         {/* New Images Upload */}
         <FormField label={t('panels.edit.addImages', { current: totalImages, max: maxImages })}>
           <label
-            className={`flex items-center justify-center w-full px-4 py-6 border-2 border-gray-300 dark:border-gray-700 border-dashed rounded-md transition-colors ${
+            className={`flex items-center justify-center w-full px-4 py-6 border-2 border-border border-dashed rounded-md transition-colors ${
               canAddMoreImages
                 ? 'cursor-pointer hover:border-gray-400 dark:hover:border-gray-600'
                 : 'cursor-not-allowed opacity-50'
             }`}
           >
             <div className="space-y-1 text-center">
-              <FiUpload className="mx-auto h-8 w-8 text-gray-400" />
-              <div className="text-xs text-gray-600 dark:text-gray-400">
+              <FiUpload className="mx-auto h-8 w-8 text-fg-subtle" />
+              <div className="text-xs text-fg-muted">
                 {canAddMoreImages ? (
                   <>
-                    <span className="font-medium text-blue-600 dark:text-blue-400">
+                    <span className="font-medium text-info">
                       {t('panels.create.images.clickToUpload')}
                     </span>{' '}
                     {t('panels.create.images.dragImages')}
@@ -400,7 +403,7 @@ export function EditReportPanel({ isOpen, onClose, report, onSuccess }: EditRepo
                   <span>{t('panels.edit.imageLimitReached')}</span>
                 )}
               </div>
-              <p className="text-[10px] text-gray-500">{t('panels.create.images.formats')}</p>
+              <p className="text-[10px] text-fg-muted">{t('panels.create.images.formats')}</p>
             </div>
             <input
               type="file"
@@ -432,7 +435,7 @@ export function EditReportPanel({ isOpen, onClose, report, onSuccess }: EditRepo
                   >
                     <FiX className="w-3 h-3" />
                   </button>
-                  <div className="absolute bottom-1 left-1 px-1 py-0.5 bg-blue-600 text-white text-[8px] rounded">
+                  <div className="absolute bottom-1 left-1 px-1 py-0.5 bg-accent text-accent-fg text-[8px] rounded">
                     {t('panels.edit.newBadge')}
                   </div>
                 </div>

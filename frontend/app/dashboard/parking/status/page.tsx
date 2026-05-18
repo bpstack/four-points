@@ -85,10 +85,10 @@ export default async function ParkingStatusPage({ searchParams }: PageProps) {
 
 //   if (loading) {
 //     return (
-//       <div className="min-h-screen bg-[#f6f8fa] dark:bg-[#0d1117] flex items-center justify-center">
+//       <div className="min-h-screen bg-[#f6f8fa] dark:bg-surface flex items-center justify-center">
 //         <div className="text-center">
-//           <div className="w-20 h-20 border-4 border-gray-300 dark:border-gray-700 border-t-indigo-600 dark:border-t-indigo-400 rounded-full animate-spin mx-auto mb-6" />
-//           <p className="text-lg font-medium text-gray-700 dark:text-gray-300">
+//           <div className="w-20 h-20 border-4 border-border border-t-indigo-600 dark:border-t-indigo-400 rounded-full animate-spin mx-auto mb-6" />
+//           <p className="text-lg font-medium text-fg">
 //             Cargando datos del parking...
 //           </p>
 //         </div>
@@ -101,18 +101,18 @@ export default async function ParkingStatusPage({ searchParams }: PageProps) {
 //       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 //         <div className="lg:col-span-2 space-y-6">
 //           {selectedLevelData && (
-//             <div className="bg-[#f6f8fa] dark:bg-[#0d1117] border-2 border-gray-200 dark:border-gray-800 rounded-2xl p-5 shadow-sm">
-//               <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+//             <div className="bg-[#f6f8fa] dark:bg-surface border-2 border-border rounded-2xl p-5 shadow-sm">
+//               <h2 className="text-xl font-bold text-fg mb-2">
 //                 {levelFromUrl === 'all'
 //                   ? 'Todas las Plantas'
 //                   : `Planta ${levelFromUrl.replace('-', '')}`}
 //               </h2>
-//               <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
+//               <div className="flex items-center gap-4 text-sm text-fg-muted">
 //                 <div className="flex items-center gap-2">
 //                   <div className="w-3 h-3 bg-indigo-500 rounded-full" />
 //                   <span>
 //                     Ocupación:{' '}
-//                     <span className="font-semibold text-gray-900 dark:text-gray-100">
+//                     <span className="font-semibold text-fg">
 //                       {Math.round(selectedLevelData.occupancy_rate)}%
 //                     </span>
 //                   </span>

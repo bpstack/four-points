@@ -100,17 +100,17 @@ export default function CloseDayModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-      <div className="bg-white dark:bg-[#0d1117] rounded-lg shadow-xl border border-gray-200 dark:border-gray-800 w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+      <div className="bg-surface rounded-lg shadow-xl border border-border w-full max-w-3xl max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="sticky top-0 bg-white dark:bg-[#0d1117] flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-800 z-10">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+        <div className="sticky top-0 bg-surface flex items-center justify-between p-4 border-b border-border z-10">
+          <h3 className="text-lg font-semibold text-fg flex items-center gap-2">
             <FiCalendar className="w-5 h-5 text-green-600" />
             {t('closeDay.title')}
           </h3>
           <button
             onClick={onClose}
             disabled={isLoading}
-            className="p-1 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 rounded transition-colors"
+            className="p-1 text-fg-subtle hover:text-fg rounded transition-colors"
           >
             <FiX className="w-5 h-5" />
           </button>
@@ -119,7 +119,7 @@ export default function CloseDayModal({
         {/* Content */}
         <div className="p-6 space-y-6">
           {/* Fecha */}
-          <div className="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+          <div className="text-center p-4 bg-info/10 rounded-lg border border-blue-200 dark:border-blue-800">
             <p className="text-sm text-blue-700 dark:text-blue-300 mb-1">
               {t('closeDay.dateOfDay')}
             </p>
@@ -135,9 +135,7 @@ export default function CloseDayModal({
 
           {/* Validaciones */}
           <div className="space-y-2">
-            <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
-              {t('closeDay.validations')}:
-            </h4>
+            <h4 className="text-sm font-semibold text-fg mb-3">{t('closeDay.validations')}:</h4>
 
             {/* 4 Turnos */}
             <div
@@ -192,7 +190,7 @@ export default function CloseDayModal({
             </div>
 
             {/* ✅ Vales - Solo informativo */}
-            <div className="flex items-center gap-2 p-3 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
+            <div className="flex items-center gap-2 p-3 rounded-lg bg-info/10 border border-blue-200 dark:border-blue-800">
               <FiAlertCircle className="w-5 h-5 text-blue-600 dark:text-blue-400" />
               <div className="flex-1">
                 <span className="text-sm font-medium text-blue-700 dark:text-blue-300">
@@ -211,9 +209,7 @@ export default function CloseDayModal({
 
           {/* Estado de turnos */}
           <div className="space-y-2">
-            <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
-              {t('closeDay.shiftStatus')}:
-            </h4>
+            <h4 className="text-sm font-semibold text-fg mb-3">{t('closeDay.shiftStatus')}:</h4>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               {['night', 'morning', 'afternoon', 'closing'].map((shiftType) => {
                 const shift = dailyData.shifts?.find((s) => s.shift_type === shiftType)
@@ -231,21 +227,17 @@ export default function CloseDayModal({
                     className={`p-3 rounded-lg border text-center ${
                       isClosed
                         ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800'
-                        : 'bg-gray-50 dark:bg-gray-800/50 border-gray-200 dark:border-gray-700'
+                        : 'bg-surface-hover/50 border-border'
                     }`}
                   >
                     <div className="text-2xl mb-1">{icons[shiftType as keyof typeof icons]}</div>
-                    <p className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      {t(`shifts.${shiftType}`)}
-                    </p>
+                    <p className="text-xs font-medium text-fg mb-1">{t(`shifts.${shiftType}`)}</p>
                     {isClosed ? (
                       <span className="text-xs text-green-600 dark:text-green-400 font-medium">
                         ✓ {t('summary.closed')}
                       </span>
                     ) : (
-                      <span className="text-xs text-gray-500 dark:text-gray-400">
-                        {t('summary.open')}
-                      </span>
+                      <span className="text-xs text-fg-subtle">{t('summary.open')}</span>
                     )}
                   </div>
                 )
@@ -255,7 +247,7 @@ export default function CloseDayModal({
 
           {/* Resumen Financiero */}
           <div className="space-y-3">
-            <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+            <h4 className="text-sm font-semibold text-fg mb-3">
               {t('closeDay.financialSummary')}:
             </h4>
 
@@ -269,7 +261,7 @@ export default function CloseDayModal({
                 </p>
               </div>
 
-              <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+              <div className="p-3 bg-info/10 rounded-lg border border-blue-200 dark:border-blue-800">
                 <p className="text-xs text-blue-700 dark:text-blue-300 mb-1">
                   {t('closeDay.card')}
                 </p>
@@ -305,22 +297,16 @@ export default function CloseDayModal({
                 </p>
               </div>
 
-              <div className="p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700">
-                <p className="text-xs text-gray-700 dark:text-gray-300 mb-1">
-                  {t('closeDay.others')}
-                </p>
-                <p className="text-xl font-bold text-gray-600 dark:text-gray-400">
-                  {totals.other.toFixed(2)}€
-                </p>
+              <div className="p-3 bg-surface-hover/50 rounded-lg border border-border">
+                <p className="text-xs text-fg mb-1">{t('closeDay.others')}</p>
+                <p className="text-xl font-bold text-fg-muted">{totals.other.toFixed(2)}€</p>
               </div>
             </div>
 
             {/* Gran Total */}
             <div className="p-4 bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-900/20 dark:to-blue-900/20 rounded-lg border-2 border-green-300 dark:border-green-700">
               <div className="flex justify-between items-center">
-                <span className="text-lg font-bold text-gray-900 dark:text-white">
-                  {t('closeDay.grandTotalDay')}
-                </span>
+                <span className="text-lg font-bold text-fg">{t('closeDay.grandTotalDay')}</span>
                 <span className="text-3xl font-bold text-green-600 dark:text-green-400">
                   {grandTotal.toFixed(2)}€
                 </span>
@@ -330,18 +316,18 @@ export default function CloseDayModal({
         </div>
 
         {/* Footer */}
-        <div className="sticky bottom-0 bg-white dark:bg-[#0d1117] p-4 border-t border-gray-200 dark:border-gray-800 flex items-center justify-end gap-3">
+        <div className="sticky bottom-0 bg-surface p-4 border-t border-border flex items-center justify-end gap-3">
           <button
             onClick={onClose}
             disabled={isLoading}
-            className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-[#0d1117] border border-gray-300 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-4 py-2 text-sm font-medium text-fg bg-surface border border-border rounded-lg hover:bg-surface-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {t('closeDay.cancel')}
           </button>
           <button
             onClick={handleClose}
             disabled={isLoading || !canClose}
-            className="px-6 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            className="px-6 py-2 text-sm font-medium text-accent-fg bg-accent hover:bg-accent-hover rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
           >
             {isLoading ? (
               <>

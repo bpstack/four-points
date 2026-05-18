@@ -104,12 +104,12 @@ export default function SimpleCalendarCompact({
             h-10 text-xs rounded transition-colors
             ${
               isDisabled
-                ? 'text-gray-300 dark:text-gray-600 cursor-not-allowed'
+                ? 'text-fg-subtle cursor-not-allowed'
                 : isSelected
-                  ? 'bg-blue-600 text-white font-semibold'
+                  ? 'bg-accent text-accent-fg font-semibold'
                   : isTodayDate
-                    ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-medium'
-                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
+                    ? 'bg-info/10 text-blue-600 dark:text-blue-400 font-medium'
+                    : 'text-fg hover:bg-surface-hover'
             }
           `}
         >
@@ -122,27 +122,23 @@ export default function SimpleCalendarCompact({
   }
 
   return (
-    <div className="bg-white dark:bg-[#0d1117] border border-gray-300 dark:border-gray-700 rounded-lg shadow-lg p-2 w-56">
+    <div className="bg-surface border border-border rounded-lg shadow-lg p-2 w-56">
       {/* Header compacto */}
       <div className="flex items-center justify-between mb-2">
         <button
           type="button"
           onClick={previousMonth}
-          className="p-0.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded"
+          className="p-0.5 hover:bg-surface-hover rounded"
         >
-          <FiChevronLeft className="w-3.5 h-3.5 text-gray-600 dark:text-gray-400" />
+          <FiChevronLeft className="w-3.5 h-3.5 text-fg-muted" />
         </button>
 
-        <span className="text-xs font-semibold text-gray-900 dark:text-gray-100">
+        <span className="text-xs font-semibold text-fg">
           {monthNames[currentMonth.getMonth()]} {currentMonth.getFullYear()}
         </span>
 
-        <button
-          type="button"
-          onClick={nextMonth}
-          className="p-0.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded"
-        >
-          <FiChevronRight className="w-3.5 h-3.5 text-gray-600 dark:text-gray-400" />
+        <button type="button" onClick={nextMonth} className="p-0.5 hover:bg-surface-hover rounded">
+          <FiChevronRight className="w-3.5 h-3.5 text-fg-muted" />
         </button>
       </div>
 
@@ -151,7 +147,7 @@ export default function SimpleCalendarCompact({
         {dayNames.map((day) => (
           <div
             key={day}
-            className="h-5 flex items-center justify-center text-[10px] font-medium text-gray-500 dark:text-gray-400"
+            className="h-5 flex items-center justify-center text-[10px] font-medium text-fg-subtle"
           >
             {day}
           </div>

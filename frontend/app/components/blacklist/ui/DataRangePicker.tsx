@@ -33,7 +33,7 @@ export function DateRangePicker({ label, error, value, onChange, required }: Dat
   return (
     <div className="flex flex-col gap-1.5 w-full relative">
       {label && (
-        <label className="text-sm font-medium text-gray-900 dark:text-gray-100">
+        <label className="text-sm font-medium text-fg">
           {label}
           {required && <span className="text-red-500 ml-1">*</span>}
         </label>
@@ -44,19 +44,17 @@ export function DateRangePicker({ label, error, value, onChange, required }: Dat
         onClick={() => setIsOpen(!isOpen)}
         className={clsx(
           'flex items-center gap-2 px-3 py-2 rounded-md border text-sm text-left',
-          'bg-white dark:bg-[#161B22]', // ← bg-white en modo claro
-          'text-gray-900 dark:text-gray-100',
+          'bg-surface', // ← bg-white en modo claro
+          'text-fg',
           'transition-colors duration-200',
           'focus:outline-none focus:ring-2 focus:ring-offset-0',
           error
             ? 'border-red-500 focus:ring-red-500/20'
-            : 'border-gray-300 dark:border-gray-700 focus:ring-blue-500/20 focus:border-blue-500'
+            : 'border-border focus:ring-accent/50/20 focus:border-blue-500'
         )}
       >
-        <IoCalendarOutline className="text-gray-500 dark:text-gray-400" />
-        <span className={clsx(!value?.from && 'text-gray-500 dark:text-gray-400')}>
-          {formatDateRange()}
-        </span>
+        <IoCalendarOutline className="text-fg-subtle" />
+        <span className={clsx(!value?.from && 'text-fg-subtle')}>{formatDateRange()}</span>
       </button>
 
       {isOpen && (
@@ -65,7 +63,7 @@ export function DateRangePicker({ label, error, value, onChange, required }: Dat
           <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />
 
           {/* Calendar dropdown */}
-          <div className="absolute top-full left-0 mt-2 z-50 bg-gray-50 dark:bg-[#0D1117] border border-gray-200 dark:border-gray-800 rounded-lg shadow-lg p-3">
+          <div className="absolute top-full left-0 mt-2 z-50 bg-surface border border-border rounded-lg shadow-lg p-3">
             <DayPicker
               mode="range"
               selected={{ from: value?.from, to: value?.to }}

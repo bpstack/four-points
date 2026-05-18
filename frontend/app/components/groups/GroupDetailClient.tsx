@@ -123,14 +123,14 @@ export function GroupDetailClient({ initialGroup }: GroupDetailClientProps) {
 
   if (!currentGroup) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-[#0d1117] flex items-center justify-center">
+      <div className="min-h-screen bg-surface flex items-center justify-center">
         <LoadingSpinner size="lg" message={t('loadingGroup')} />
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-white dark:bg-[#010409]">
+    <div className="min-h-screen bg-bg">
       <GroupHeader group={currentGroup} />
 
       <TabNavigation groupId={currentGroup.id} />

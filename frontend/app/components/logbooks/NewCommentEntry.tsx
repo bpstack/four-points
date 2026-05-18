@@ -82,7 +82,7 @@ export default function NewCommentEntry({
       subtitle={t('modals.newComment.subtitle')}
       size="xl"
       position="left"
-      headerIcon={<FiMessageSquare className="w-5 h-5 text-blue-600 dark:text-blue-400" />}
+      headerIcon={<FiMessageSquare className="w-5 h-5 text-info" />}
       footer={
         <SlidePanelFooterButtons
           onCancel={onClose}

@@ -286,7 +286,7 @@ export function MessagesPanel({ onConversationSelect }: MessagesPanelProps) {
       case 'mantenimiento':
         return 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400'
       default:
-        return 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400'
+        return 'bg-surface-hover text-fg-muted'
     }
   }
 
@@ -323,10 +323,8 @@ export function MessagesPanel({ onConversationSelect }: MessagesPanelProps) {
       <div className="mb-2 md:mb-4">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-base md:text-xl font-semibold text-gray-900 dark:text-white">
-              {t('header.title')}
-            </h2>
-            <p className="text-xs md:text-sm text-gray-600 dark:text-gray-400">
+            <h2 className="text-base md:text-xl font-semibold text-fg">{t('header.title')}</h2>
+            <p className="text-xs md:text-sm text-fg-muted">
               {conversations.totalUnread > 0
                 ? `${conversations.totalUnread} ${t('header.unread')}`
                 : t('header.allRead')}
@@ -337,7 +335,7 @@ export function MessagesPanel({ onConversationSelect }: MessagesPanelProps) {
             {conversations.selectedConversation && (
               <button
                 onClick={() => conversations.select(null)}
-                className="p-1.5 md:p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                className="p-1.5 md:p-2 text-gray-500 hover:text-fg-muted dark:hover:text-gray-200 hover:bg-surface-hover rounded-lg transition-colors"
                 title={t('header.backToProfile')}
               >
                 <FiX className="w-4 h-4" />
@@ -345,7 +343,7 @@ export function MessagesPanel({ onConversationSelect }: MessagesPanelProps) {
             )}
             <button
               onClick={() => setShowNewConversation(true)}
-              className="px-2 py-1 md:px-3 md:py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs md:text-sm rounded-lg flex items-center gap-1 md:gap-1.5 transition-colors"
+              className="px-2 py-1 md:px-3 md:py-1.5 bg-accent text-accent-fg hover:bg-accent-hover text-xs md:text-sm rounded-lg flex items-center gap-1 md:gap-1.5 transition-colors"
             >
               <FiPlus className="w-3.5 h-3.5 md:w-4 md:h-4" />
               <span className="hidden sm:inline">{t('header.new')}</span>
@@ -359,12 +357,12 @@ export function MessagesPanel({ onConversationSelect }: MessagesPanelProps) {
         {/* Conversations List */}
         <div
           className={cn(
-            'w-full md:w-80 flex-shrink-0 flex flex-col bg-gray-50 dark:bg-[#161b22] border border-gray-200 dark:border-[#30363d] rounded-lg overflow-hidden',
+            'w-full md:w-80 flex-shrink-0 flex flex-col bg-surface-sunken border border-gray-200 rounded-lg overflow-hidden',
             conversations.selectedConversation && 'hidden md:flex'
           )}
         >
           {/* Search */}
-          <div className="p-3 border-b border-gray-200 dark:border-[#30363d]">
+          <div className="p-3 border-b border-gray-200">
             <div className="relative">
               <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <input
@@ -372,7 +370,7 @@ export function MessagesPanel({ onConversationSelect }: MessagesPanelProps) {
                 placeholder={t('conversations.searchPlaceholder')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-3 py-2 text-sm bg-white dark:bg-[#0d1117] border border-gray-200 dark:border-[#30363d] rounded-lg text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="w-full pl-9 pr-3 py-2 text-sm bg-surface border border-gray-200 rounded-lg text-fg placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-accent/50"
               />
             </div>
           </div>
@@ -391,15 +389,14 @@ export function MessagesPanel({ onConversationSelect }: MessagesPanelProps) {
                 </button>
               </div>
             ) : (
-              <div className="divide-y divide-gray-200 dark:divide-[#30363d]">
+              <div className="divide-y divide-gray-200 dark:divide-border">
                 {filteredConversations.map((conv) => (
                   <button
                     key={conv.id}
                     onClick={() => conversations.select(conv)}
                     className={cn(
-                      'w-full p-3 text-left hover:bg-gray-100 dark:hover:bg-[#21262d] transition-colors',
-                      conversations.selectedConversation?.id === conv.id &&
-                        'bg-gray-100 dark:bg-[#21262d]'
+                      'w-full p-3 text-left hover:bg-surface-hover transition-colors',
+                      conversations.selectedConversation?.id === conv.id && 'bg-surface-hover'
                     )}
                   >
                     <div className="flex items-start gap-3">
@@ -419,7 +416,7 @@ export function MessagesPanel({ onConversationSelect }: MessagesPanelProps) {
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between gap-2 mb-0.5">
-                          <span className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                          <span className="text-sm font-medium text-fg truncate">
                             {getConversationName(conv)}
                           </span>
                           <span className="text-xs text-gray-500 flex-shrink-0">
@@ -427,11 +424,11 @@ export function MessagesPanel({ onConversationSelect }: MessagesPanelProps) {
                           </span>
                         </div>
                         <div className="flex items-center justify-between gap-2">
-                          <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                          <p className="text-xs text-fg-subtle truncate">
                             {conv.last_message || t('conversations.noMessages')}
                           </p>
                           {Number(conv.unread_count) > 0 ? (
-                            <span className="px-1.5 py-0.5 bg-blue-600 text-white text-xs font-medium rounded-full flex-shrink-0">
+                            <span className="px-1.5 py-0.5 bg-accent text-accent-fg text-xs font-medium rounded-full flex-shrink-0">
                               {conv.unread_count}
                             </span>
                           ) : null}
@@ -448,17 +445,17 @@ export function MessagesPanel({ onConversationSelect }: MessagesPanelProps) {
         {/* Chat Area */}
         <div
           className={cn(
-            'flex-1 flex flex-col bg-gray-50 dark:bg-[#161b22] border border-gray-200 dark:border-[#30363d] rounded-lg overflow-hidden',
+            'flex-1 flex flex-col bg-surface-sunken border border-gray-200 rounded-lg overflow-hidden',
             !conversations.selectedConversation && 'hidden md:flex'
           )}
         >
           {conversations.selectedConversation ? (
             <>
               {/* Chat Header */}
-              <div className="px-4 py-3 border-b border-gray-200 dark:border-[#30363d] flex items-center gap-3">
+              <div className="px-4 py-3 border-b border-gray-200 flex items-center gap-3">
                 <button
                   onClick={() => conversations.select(null)}
-                  className="md:hidden p-1 hover:bg-gray-100 dark:hover:bg-[#21262d] rounded-lg transition-colors"
+                  className="md:hidden p-1 hover:bg-surface-hover rounded-lg transition-colors"
                 >
                   <FiArrowLeft className="w-5 h-5 text-gray-500" />
                 </button>
@@ -477,7 +474,7 @@ export function MessagesPanel({ onConversationSelect }: MessagesPanelProps) {
                   )}
                 </div>
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-900 dark:text-white">
+                  <p className="text-sm font-medium text-fg">
                     {getConversationName(conversations.selectedConversation)}
                   </p>
                   {conversations.selectedConversation.type === 'dm' &&
@@ -506,17 +503,17 @@ export function MessagesPanel({ onConversationSelect }: MessagesPanelProps) {
                 <div className="relative" ref={menuRef}>
                   <button
                     onClick={() => setShowConversationMenu(!showConversationMenu)}
-                    className="p-1 hover:bg-gray-100 dark:hover:bg-[#21262d] rounded-lg transition-colors"
+                    className="p-1 hover:bg-surface-hover rounded-lg transition-colors"
                   >
                     <FiMoreVertical className="w-4 h-4 text-gray-500" />
                   </button>
 
                   {showConversationMenu && (
-                    <div className="absolute right-0 top-full mt-1 w-48 bg-white dark:bg-[#21262d] border border-gray-200 dark:border-[#30363d] rounded-lg shadow-lg py-1 z-50">
+                    <div className="absolute right-0 top-full mt-1 w-48 bg-surface border border-gray-200 rounded-lg shadow-lg py-1 z-50">
                       {conversations.selectedConversation.type === 'group' && (
                         <button
                           onClick={handleLeaveConversation}
-                          className="w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#30363d] flex items-center gap-2"
+                          className="w-full px-4 py-2 text-left text-sm text-fg hover:bg-gray-100 flex items-center gap-2"
                         >
                           <FiArrowLeft className="w-4 h-4" />
                           {t('actions.leaveGroupButton')}
@@ -561,12 +558,12 @@ export function MessagesPanel({ onConversationSelect }: MessagesPanelProps) {
                         className={cn(
                           'max-w-[80%] px-3 py-2 rounded-lg relative',
                           isOwn
-                            ? 'bg-blue-600 text-white'
-                            : 'bg-white dark:bg-[#0d1117] border border-gray-200 dark:border-[#30363d] text-gray-900 dark:text-white'
+                            ? 'bg-indigo-600 dark:bg-indigo-700 text-white'
+                            : 'bg-surface border border-border text-fg'
                         )}
                       >
                         {!isOwn && conversations.selectedConversation?.type === 'group' && (
-                          <p className="text-xs font-medium mb-1 text-blue-500">
+                          <p className="text-xs font-medium mb-1 text-accent">
                             {msg.sender_username}
                           </p>
                         )}
@@ -577,7 +574,7 @@ export function MessagesPanel({ onConversationSelect }: MessagesPanelProps) {
                               type="text"
                               value={chat.editContent}
                               onChange={(e) => chat.setEditContent(e.target.value)}
-                              className="flex-1 px-2 py-1 text-sm bg-white dark:bg-[#21262d] border rounded text-gray-900 dark:text-white"
+                              className="flex-1 px-2 py-1 text-sm bg-surface border rounded text-fg"
                               autoFocus
                             />
                             <button onClick={handleEditMessage} className="text-green-500">
@@ -594,7 +591,7 @@ export function MessagesPanel({ onConversationSelect }: MessagesPanelProps) {
                         <div
                           className={cn(
                             'flex items-center justify-end gap-1 mt-1',
-                            isOwn ? 'text-blue-200' : 'text-gray-400'
+                            isOwn ? 'text-white/60' : 'text-fg-subtle'
                           )}
                         >
                           {!!msg.is_edited && (
@@ -608,13 +605,13 @@ export function MessagesPanel({ onConversationSelect }: MessagesPanelProps) {
                           <div className="absolute -top-2 -right-2 hidden group-hover:flex gap-1">
                             <button
                               onClick={() => chat.startEdit(msg)}
-                              className="p-1 bg-white dark:bg-[#21262d] border border-gray-200 dark:border-[#30363d] rounded shadow-sm hover:bg-gray-100 dark:hover:bg-[#30363d]"
+                              className="p-1 bg-surface border border-border rounded shadow-sm hover:bg-surface-hover"
                             >
-                              <FiEdit2 className="w-3 h-3 text-gray-600 dark:text-gray-400" />
+                              <FiEdit2 className="w-3 h-3 text-fg-muted" />
                             </button>
                             <button
                               onClick={() => handleDeleteMessage(msg.id)}
-                              className="p-1 bg-white dark:bg-[#21262d] border border-gray-200 dark:border-[#30363d] rounded shadow-sm hover:bg-red-50 dark:hover:bg-red-900/20"
+                              className="p-1 bg-surface border border-gray-200 rounded shadow-sm hover:bg-red-50 dark:hover:bg-red-900/20"
                             >
                               <FiTrash2 className="w-3 h-3 text-red-500" />
                             </button>
@@ -628,7 +625,7 @@ export function MessagesPanel({ onConversationSelect }: MessagesPanelProps) {
               </div>
 
               {/* Input */}
-              <div className="p-3 border-t border-gray-200 dark:border-[#30363d]">
+              <div className="p-3 border-t border-gray-200">
                 <div className="flex gap-2 items-center">
                   <button
                     onClick={() => setNotify(!notify)}
@@ -636,7 +633,7 @@ export function MessagesPanel({ onConversationSelect }: MessagesPanelProps) {
                       'p-2 rounded-lg transition-colors',
                       notify
                         ? 'bg-yellow-100 text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-400'
-                        : 'hover:bg-gray-100 dark:hover:bg-[#21262d] text-gray-400'
+                        : 'hover:bg-surface-hover text-gray-400'
                     )}
                     title={notify ? t('chat.notificationActive') : t('chat.activateNotification')}
                   >
@@ -648,12 +645,12 @@ export function MessagesPanel({ onConversationSelect }: MessagesPanelProps) {
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handleSendMessage()}
-                    className="flex-1 px-3 py-2 text-sm bg-white dark:bg-[#0d1117] border border-gray-200 dark:border-[#30363d] rounded-lg text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="flex-1 px-3 py-2 text-sm bg-surface border border-gray-200 rounded-lg text-fg placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-accent/50"
                   />
                   <button
                     onClick={handleSendMessage}
                     disabled={!newMessage.trim() || chat.sending}
-                    className="p-1.5 md:px-4 md:py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 disabled:opacity-50 text-white rounded-md md:rounded-lg transition-colors"
+                    className="p-1.5 md:px-4 md:py-2 bg-accent hover:bg-accent-hover disabled:opacity-50 text-accent-fg rounded-md md:rounded-lg transition-colors"
                   >
                     {chat.sending ? (
                       <FiLoader className="w-3.5 h-3.5 md:w-4 md:h-4 animate-spin" />
@@ -682,15 +679,13 @@ export function MessagesPanel({ onConversationSelect }: MessagesPanelProps) {
       {/* New Conversation Modal */}
       {showNewConversation && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-[#161b22] rounded-lg shadow-xl w-full max-w-md max-h-[80vh] flex flex-col">
+          <div className="bg-surface rounded-lg shadow-xl w-full max-w-md max-h-[80vh] flex flex-col">
             {/* Modal Header */}
-            <div className="p-4 border-b border-gray-200 dark:border-[#30363d] flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                {t('newConversation.title')}
-              </h3>
+            <div className="p-4 border-b border-gray-200 flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-fg">{t('newConversation.title')}</h3>
               <button
                 onClick={() => setShowNewConversation(false)}
-                className="p-1 hover:bg-gray-100 dark:hover:bg-[#21262d] rounded-lg transition-colors"
+                className="p-1 hover:bg-surface-hover rounded-lg transition-colors"
               >
                 <FiX className="w-5 h-5 text-gray-500" />
               </button>
@@ -698,12 +693,12 @@ export function MessagesPanel({ onConversationSelect }: MessagesPanelProps) {
 
             {/* Selected Users */}
             {userSearch.selectedUsers.length > 0 && (
-              <div className="p-3 border-b border-gray-200 dark:border-[#30363d]">
+              <div className="p-3 border-b border-gray-200">
                 <div className="flex flex-wrap gap-2">
                   {userSearch.selectedUsers.map((u) => (
                     <span
                       key={u.id}
-                      className="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 text-sm rounded-full flex items-center gap-1"
+                      className="px-2 py-1 bg-info/10 text-blue-700 dark:text-blue-400 text-sm rounded-full flex items-center gap-1"
                     >
                       {u.username}
                       <button onClick={() => userSearch.toggleUser(u)}>
@@ -718,14 +713,14 @@ export function MessagesPanel({ onConversationSelect }: MessagesPanelProps) {
                     placeholder={t('newConversation.groupName')}
                     value={groupName}
                     onChange={(e) => setGroupName(e.target.value)}
-                    className="w-full mt-2 px-3 py-2 text-sm bg-gray-50 dark:bg-[#0d1117] border border-gray-200 dark:border-[#30363d] rounded-lg text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="w-full mt-2 px-3 py-2 text-sm bg-surface-sunken border border-gray-200 rounded-lg text-fg placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-accent/50"
                   />
                 )}
               </div>
             )}
 
             {/* Search */}
-            <div className="p-3 border-b border-gray-200 dark:border-[#30363d]">
+            <div className="p-3 border-b border-gray-200">
               <div className="relative">
                 <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <input
@@ -733,7 +728,7 @@ export function MessagesPanel({ onConversationSelect }: MessagesPanelProps) {
                   placeholder={t('newConversation.searchUsers')}
                   value={userSearch.query}
                   onChange={(e) => userSearch.setQuery(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2 text-sm bg-gray-50 dark:bg-[#0d1117] border border-gray-200 dark:border-[#30363d] rounded-lg text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="w-full pl-9 pr-3 py-2 text-sm bg-surface-sunken border border-gray-200 rounded-lg text-fg placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-accent/50"
                 />
               </div>
             </div>
@@ -750,7 +745,7 @@ export function MessagesPanel({ onConversationSelect }: MessagesPanelProps) {
                   <p className="text-sm">{t('newConversation.noUsersFound')}</p>
                 </div>
               ) : (
-                <div className="divide-y divide-gray-200 dark:divide-[#30363d]">
+                <div className="divide-y divide-gray-200 dark:divide-border">
                   {userSearch.results.map((u) => {
                     const isSelected = userSearch.isSelected(u.id)
                     return (
@@ -758,17 +753,15 @@ export function MessagesPanel({ onConversationSelect }: MessagesPanelProps) {
                         key={u.id}
                         onClick={() => handleUserSelect(u)}
                         className={cn(
-                          'w-full p-3 text-left hover:bg-gray-100 dark:hover:bg-[#21262d] transition-colors flex items-center gap-3',
-                          isSelected && 'bg-blue-50 dark:bg-blue-900/20'
+                          'w-full p-3 text-left hover:bg-surface-hover transition-colors flex items-center gap-3',
+                          isSelected && 'bg-info/10'
                         )}
                       >
                         <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-sm font-medium flex-shrink-0">
                           {u.username.charAt(0).toUpperCase()}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
-                            {u.username}
-                          </p>
+                          <p className="text-sm font-medium text-fg truncate">{u.username}</p>
                           <p className="text-xs text-gray-500 truncate">{u.email}</p>
                         </div>
                         <span
@@ -789,11 +782,11 @@ export function MessagesPanel({ onConversationSelect }: MessagesPanelProps) {
             </div>
 
             {/* Modal Footer */}
-            <div className="p-4 border-t border-gray-200 dark:border-[#30363d]">
+            <div className="p-4 border-t border-gray-200">
               <button
                 onClick={handleCreateConversation}
                 disabled={!userSearch.canCreate || creatingConversation}
-                className="w-full py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-lg transition-colors flex items-center justify-center gap-2"
+                className="w-full py-2 bg-accent hover:bg-accent-hover disabled:opacity-50 text-accent-fg rounded-lg transition-colors flex items-center justify-center gap-2"
               >
                 {creatingConversation ? (
                   <>
@@ -824,17 +817,15 @@ export function MessagesPanel({ onConversationSelect }: MessagesPanelProps) {
           onClick={() => setShowParticipants(false)}
         >
           <div
-            className="bg-white dark:bg-[#161b22] rounded-lg shadow-xl w-full max-w-sm max-h-[60vh] flex flex-col"
+            className="bg-surface rounded-lg shadow-xl w-full max-w-sm max-h-[60vh] flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Modal Header */}
-            <div className="p-4 border-b border-gray-200 dark:border-[#30363d] flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                {t('participants.title')}
-              </h3>
+            <div className="p-4 border-b border-gray-200 flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-fg">{t('participants.title')}</h3>
               <button
                 onClick={() => setShowParticipants(false)}
-                className="p-1 hover:bg-gray-100 dark:hover:bg-[#21262d] rounded-lg transition-colors"
+                className="p-1 hover:bg-surface-hover rounded-lg transition-colors"
               >
                 <FiX className="w-5 h-5 text-gray-500" />
               </button>
@@ -847,14 +838,14 @@ export function MessagesPanel({ onConversationSelect }: MessagesPanelProps) {
                   <FiLoader className="w-6 h-6 animate-spin text-blue-500" />
                 </div>
               ) : (
-                <div className="divide-y divide-gray-200 dark:divide-[#30363d]">
+                <div className="divide-y divide-gray-200 dark:divide-border">
                   {participants.map((p) => (
                     <div key={p.user_id} className="px-4 py-3 flex items-center gap-3">
                       <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-sm font-medium flex-shrink-0">
                         {p.username.charAt(0).toUpperCase()}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                        <p className="text-sm font-medium text-fg truncate">
                           {p.username}
                           {p.user_id === user?.id && (
                             <span className="text-gray-400 ml-1">({t('participants.you')})</span>

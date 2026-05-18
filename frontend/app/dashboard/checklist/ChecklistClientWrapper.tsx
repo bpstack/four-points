@@ -17,16 +17,16 @@ export default function ChecklistClientWrapper({ catalog, children }: Props) {
     <div className="checklist-print-wrapper flex h-[calc(100vh-4rem)] min-h-0 flex-col overflow-hidden md:flex-row">
       {/* TOC sidebar */}
       <aside
-        className={`w-full flex-shrink-0 overflow-hidden border-b border-gray-200 bg-white dark:border-gray-800 dark:bg-[#0d1117] md:h-auto md:w-[25rem] md:border-b-0 md:border-r ${
+        className={`w-full flex-shrink-0 overflow-hidden border-b border-border bg-surface md:h-auto md:w-[25rem] md:border-b-0 md:border-r md:border-border md:rounded-tr-xl md:shadow-[2px_0_8px_rgba(0,0,0,0.06)] dark:md:shadow-[2px_0_8px_rgba(0,0,0,0.25)] ${
           collapsed ? 'md:w-12' : ''
         }`}
       >
         {/* Mobile collapse header */}
-        <div className="flex items-center justify-between px-3 py-2 border-b border-gray-200 dark:border-gray-800 md:hidden">
-          <h2 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Check List</h2>
+        <div className="flex items-center justify-between px-3 py-2 border-b border-border md:hidden">
+          <h2 className="text-sm font-semibold text-fg">Check List</h2>
           <button
             onClick={() => setCollapsed(!collapsed)}
-            className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+            className="flex items-center gap-1 text-xs text-fg-subtle hover:text-fg"
             aria-label={collapsed ? 'Expandir checklist' : 'Colapsar checklist'}
           >
             {collapsed ? (
@@ -51,7 +51,7 @@ export default function ChecklistClientWrapper({ catalog, children }: Props) {
       </aside>
 
       {/* Content */}
-      <main className="scrollbar-discrete min-h-0 flex-1 overflow-y-auto bg-white dark:bg-[#010409]">
+      <main className="scrollbar-discrete min-h-0 flex-1 overflow-y-auto bg-bg">
         <div className="checklist-print-content mx-auto max-w-[60.5rem] px-4 py-5 sm:px-6 sm:py-8 md:mx-0">
           {children}
         </div>

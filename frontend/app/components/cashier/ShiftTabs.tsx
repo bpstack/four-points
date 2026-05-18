@@ -23,7 +23,7 @@ export default function ShiftTabs({ shifts, activeTab, onTabChange }: ShiftTabsP
   const t = useTranslations('cashier')
 
   return (
-    <div className="flex border-b border-gray-200 dark:border-gray-800">
+    <div className="flex border-b border-border">
       {SHIFT_ORDER.map((shift) => {
         const shiftData = shifts?.find((s) => s.shift_type === shift)
         const isOpen = shiftData?.status === 'open'
@@ -35,8 +35,8 @@ export default function ShiftTabs({ shifts, activeTab, onTabChange }: ShiftTabsP
             onClick={() => onTabChange(shift)}
             className={`flex-1 px-3 py-2.5 text-xs font-medium transition-colors relative ${
               activeTab === shift
-                ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border-b-2 border-blue-600'
-                : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800'
+                ? 'bg-info/10 text-blue-600 dark:text-blue-400 border-b-2 border-blue-600'
+                : 'text-fg-muted hover:bg-surface-hover'
             }`}
           >
             <div className="flex items-center justify-center gap-1.5">

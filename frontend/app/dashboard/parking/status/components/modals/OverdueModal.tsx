@@ -60,47 +60,43 @@ export default function OverdueModal({
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-orange-200/50 dark:border-orange-800/30 overflow-hidden">
+      <div className="w-full max-w-md bg-surface rounded-2xl shadow-2xl border border-orange-200/50 dark:border-orange-800/30 overflow-hidden">
         <div className="px-6 py-4 bg-gradient-to-r from-orange-50 to-amber-50 dark:from-orange-950/20 dark:to-amber-950/20 border-b border-orange-100 dark:border-orange-900/30 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-orange-100 dark:bg-orange-900/30 rounded-lg">
               <BiError className="w-5 h-5 text-orange-600 dark:text-orange-400" />
             </div>
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-              {t('manageOverdue')}
-            </h2>
+            <h2 className="text-lg font-semibold text-fg">{t('manageOverdue')}</h2>
           </div>
           <button
             onClick={onClose}
             disabled={loading}
-            className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"
+            className="text-fg-muted hover:text-fg p-2 rounded-lg hover:bg-surface-hover transition-colors"
           >
             <FiX className="w-5 h-5" />
           </button>
         </div>
 
-        <div className="p-6 bg-gradient-to-br from-orange-50/50 to-amber-50/50 dark:from-orange-950/10 dark:to-amber-950/10 border-b border-gray-100 dark:border-gray-800">
+        <div className="p-6 bg-gradient-to-br from-orange-50/50 to-amber-50/50 dark:from-orange-950/10 dark:to-amber-950/10 border-b border-border">
           <div className="space-y-3 text-sm">
             <div className="flex justify-between items-center">
-              <span className="text-gray-600 dark:text-gray-400 font-medium">{t('client')}:</span>
-              <span className="font-semibold text-gray-900 dark:text-gray-100">
-                {booking.vehicle?.owner || t('noData')}
-              </span>
+              <span className="text-fg-muted font-medium">{t('client')}:</span>
+              <span className="font-semibold text-fg">{booking.vehicle?.owner || t('noData')}</span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-gray-600 dark:text-gray-400 font-medium">{t('vehicle')}:</span>
-              <span className="font-mono font-semibold text-gray-900 dark:text-gray-100">
+              <span className="text-fg-muted font-medium">{t('vehicle')}:</span>
+              <span className="font-mono font-semibold text-fg">
                 {booking.vehicle?.plate || t('noPlate')}
               </span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-gray-600 dark:text-gray-400 font-medium">{t('spot')}:</span>
-              <span className="font-semibold text-gray-900 dark:text-gray-100">
+              <span className="text-fg-muted font-medium">{t('spot')}:</span>
+              <span className="font-semibold text-fg">
                 {booking.spot.level} · {booking.spot.number}
               </span>
             </div>
             <div className="flex justify-between items-center pt-3 border-t border-orange-200 dark:border-orange-800/50">
-              <span className="text-gray-600 dark:text-gray-400 font-medium">{t('delay')}:</span>
+              <span className="text-fg-muted font-medium">{t('delay')}:</span>
               <span className="px-3 py-1 font-bold text-orange-900 dark:text-orange-100 bg-orange-200 dark:bg-orange-900/50 rounded-lg">
                 {booking.horas_retraso}h
               </span>
@@ -114,17 +110,15 @@ export default function OverdueModal({
               key={action.id}
               onClick={() => onAction(action.id as 'checkout' | 'no-show' | 'cancel' | 'delete')}
               disabled={loading}
-              className="w-full p-4 text-left border-2 border-gray-100 dark:border-gray-800 rounded-xl hover:border-gray-300 dark:hover:border-gray-700 hover:bg-gray-50 dark:hover:bg-slate-800/50 transition-all duration-200 disabled:opacity-50 group"
+              className="w-full p-4 text-left border-2 border-border rounded-xl hover:border-border-strong hover:bg-surface-hover transition-all duration-200 disabled:opacity-50 group"
             >
               <div className="flex items-center gap-4">
                 <span className="text-2xl group-hover:scale-110 transition-transform">
                   {action.icon}
                 </span>
                 <div className="flex-1">
-                  <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-                    {action.label}
-                  </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">{action.description}</p>
+                  <p className="text-sm font-semibold text-fg">{action.label}</p>
+                  <p className="text-xs text-fg-subtle">{action.description}</p>
                 </div>
               </div>
             </button>

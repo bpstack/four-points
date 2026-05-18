@@ -17,7 +17,7 @@ import type { BookingWizardProps } from './types'
 // Progress bar styles for full variant
 const progressBarClass = (isActive: boolean) =>
   `h-0.5 flex-1 rounded-full transition-colors ${
-    isActive ? 'bg-[#0969da] dark:bg-[#1f6feb]' : 'bg-[#d0d7de] dark:bg-[#30363d]'
+    isActive ? 'bg-accent' : 'bg-border dark:bg-surface-hover'
   }`
 
 export default function BookingWizard({
@@ -47,39 +47,35 @@ export default function BookingWizard({
   // Success screen (solo para variant='full')
   if (variant === 'full' && state.step === 4 && state.success) {
     return (
-      <div className="min-h-screen bg-white dark:bg-[#010409] p-4 sm:p-6">
+      <div className="min-h-screen bg-bg p-4 sm:p-6">
         <div className="max-w-3xl mx-auto">
-          <div className="bg-white dark:bg-[#161b22] border border-[#d0d7de] dark:border-[#30363d] rounded-md p-6 text-center">
+          <div className="bg-surface border border-border rounded-md p-6 text-center">
             <div className="w-16 h-16 bg-[#ddf4ff] dark:bg-[#051d30] rounded-full flex items-center justify-center mx-auto mb-4">
-              <FaCheck className="w-8 h-8 text-[#0969da] dark:text-[#58a6ff]" />
+              <FaCheck className="w-8 h-8 text-accent" />
             </div>
 
-            <h2 className="text-xl font-semibold text-[#24292f] dark:text-[#f0f6fc] mb-2">
-              {t('success.title')}
-            </h2>
+            <h2 className="text-xl font-semibold text-fg mb-2">{t('success.title')}</h2>
 
-            <p className="text-sm text-[#57606a] dark:text-[#8b949e] mb-6">
-              {t('success.message')}
-            </p>
+            <p className="text-sm text-fg-muted mb-6">{t('success.message')}</p>
 
             <div className="flex flex-col gap-2">
               <div className="flex gap-2">
                 <button
                   onClick={() => router.push('/dashboard/parking/bookings')}
-                  className="flex-1 px-4 py-2 bg-[#0969da] hover:bg-[#0550ae] dark:bg-[#1f6feb] dark:hover:bg-[#1158c7] text-white rounded-md font-medium transition text-sm"
+                  className="flex-1 px-4 py-2 bg-accent hover:bg-accent-hover text-accent-fg rounded-md font-medium transition text-sm"
                 >
                   {t('success.viewAll')}
                 </button>
                 <button
                   onClick={() => router.refresh()}
-                  className="flex-1 px-4 py-2 bg-[#f6f8fa] hover:bg-[#eaeef2] dark:bg-[#21262d] dark:hover:bg-[#30363d] text-[#24292f] dark:text-[#c9d1d9] rounded-md font-medium transition text-sm"
+                  className="flex-1 px-4 py-2 bg-[#f6f8fa] hover:bg-surface-hover dark:bg-surface-hover text-fg rounded-md font-medium transition text-sm"
                 >
                   {t('success.createAnother')}
                 </button>
               </div>
               <button
                 onClick={() => router.push('/dashboard/parking/status')}
-                className="w-full px-4 py-2 bg-[#f6f8fa] hover:bg-[#eaeef2] dark:bg-[#21262d] dark:hover:bg-[#30363d] text-[#24292f] dark:text-[#c9d1d9] rounded-md font-medium transition text-sm"
+                className="w-full px-4 py-2 bg-[#f6f8fa] hover:bg-surface-hover dark:bg-surface-hover text-fg rounded-md font-medium transition text-sm"
               >
                 {t('success.goToParking')}
               </button>
@@ -93,14 +89,12 @@ export default function BookingWizard({
   // Render full page variant
   if (variant === 'full') {
     return (
-      <div className="min-h-screen bg-white dark:bg-[#010409] p-4 sm:p-6">
+      <div className="min-h-screen bg-bg p-4 sm:p-6">
         <div className="max-w-3xl mx-auto">
           {/* Header */}
           <div className="mb-6">
-            <h1 className="text-3xl font-semibold text-[#24292f] dark:text-[#f0f6fc] mb-4">
-              {t('wizard.title')}
-            </h1>
-            <p className="text-sm text-[#57606a] dark:text-[#8b949e]">
+            <h1 className="text-3xl font-semibold text-fg mb-4">{t('wizard.title')}</h1>
+            <p className="text-sm text-fg-muted">
               {t('wizard.step', { current: state.step, total: 3 })}
             </p>
 

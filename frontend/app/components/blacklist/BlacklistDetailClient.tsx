@@ -7,9 +7,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { useTranslations } from 'next-intl'
 import { IoChevronBack, IoCreateOutline } from 'react-icons/io5'
-import { Card } from '@/app/components/blacklist/ui/Card'
-import { Button } from '@/app/components/blacklist/ui/Button'
-import { Badge } from '@/app/components/blacklist/ui/Badge'
+import { Card, Button, Badge } from '@/app/ui/components'
 import { ImageGallery } from '@/app/components/blacklist/mains/ImageGallery'
 import { AuditTrail } from '@/app/components/blacklist/mains/AuditTrail'
 import { BlacklistDetailSummaryPanel } from '@/app/components/blacklist/layout/BlacklistDetailSummaryPanel'
@@ -65,13 +63,13 @@ export function BlacklistDetailClient({
   }
 
   return (
-    <div className="min-h-screen bg-white dark:bg-[#010409]">
+    <div className="min-h-screen bg-bg">
       {/* Header */}
-      <div className="border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-[#010409]">
+      <div className="border-b border-border bg-bg">
         <div className="max-w-[1400px] px-4 md:px-6 py-4">
           <Link
             href="/dashboard/blacklist"
-            className="inline-flex items-center gap-1.5 text-xs text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 mb-4 transition-colors"
+            className="inline-flex items-center gap-1.5 text-xs text-fg-muted hover:text-gray-900 dark:hover:text-gray-100 mb-4 transition-colors"
           >
             <IoChevronBack size={14} />
             {t('detail.backToList')}
@@ -79,24 +77,22 @@ export function BlacklistDetailClient({
 
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
-              <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">
-                {entry.guest_name}
-              </h1>
+              <h1 className="text-xl sm:text-2xl font-bold text-fg">{entry.guest_name}</h1>
               <div className="flex flex-wrap items-center gap-2 mt-1.5">
                 <Badge
-                  variant={
+                  tone={
                     entry.severity === 'CRITICAL'
                       ? 'danger'
                       : entry.severity === 'HIGH'
                         ? 'warning'
                         : entry.severity === 'MEDIUM'
                           ? 'info'
-                          : 'default'
+                          : 'neutral'
                   }
                 >
                   {SEVERITY_LEVELS[entry.severity]}
                 </Badge>
-                <Badge variant={entry.status === 'ACTIVE' ? 'success' : 'default'}>
+                <Badge tone={entry.status === 'ACTIVE' ? 'success' : 'neutral'}>
                   {entry.status === 'ACTIVE' ? t('status.active') : t('status.deleted')}
                 </Badge>
               </div>
@@ -104,11 +100,8 @@ export function BlacklistDetailClient({
 
             {entry.status === 'ACTIVE' && (
               <div className="flex items-center gap-2">
-                <Button
-                  variant="secondary"
-                  leftIcon={<IoCreateOutline size={16} />}
-                  onClick={handleOpenEditPanel}
-                >
+                <Button variant="default" onClick={handleOpenEditPanel}>
+                  <IoCreateOutline size={16} />
                   {t('detail.edit')}
                 </Button>
                 <DeleteButton entryId={entry.id} />
@@ -122,10 +115,10 @@ export function BlacklistDetailClient({
       <div className="max-w-[1400px] px-4 md:px-6 py-6">
         {/* Stats - Mobile/Tablet (hidden on >= 1400px) */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 mb-6 min-[1400px]:hidden">
-          <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-3">
+          <div className="bg-surface rounded-md border border-border p-3">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 font-medium">
+                <p className="text-[10px] sm:text-xs text-fg-muted font-medium">
                   {t('detail.severityLevel')}
                 </p>
                 <p
@@ -136,7 +129,7 @@ export function BlacklistDetailClient({
                         ? 'text-orange-600 dark:text-orange-400'
                         : entry.severity === 'MEDIUM'
                           ? 'text-blue-600 dark:text-blue-400'
-                          : 'text-gray-600 dark:text-gray-400'
+                          : 'text-fg-muted'
                   }`}
                 >
                   {SEVERITY_LEVELS[entry.severity]}
@@ -156,13 +149,13 @@ export function BlacklistDetailClient({
             </div>
           </div>
 
-          <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-3">
+          <div className="bg-surface rounded-md border border-border p-3">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 font-medium">
+                <p className="text-[10px] sm:text-xs text-fg-muted font-medium">
                   {t('detail.entry')}
                 </p>
-                <p className="text-sm sm:text-base font-bold text-gray-900 dark:text-gray-100 mt-0.5">
+                <p className="text-sm sm:text-base font-bold text-fg mt-0.5">
                   {formatDate(entry.check_in_date)}
                 </p>
               </div>
@@ -170,13 +163,13 @@ export function BlacklistDetailClient({
             </div>
           </div>
 
-          <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-3">
+          <div className="bg-surface rounded-md border border-border p-3">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 font-medium">
+                <p className="text-[10px] sm:text-xs text-fg-muted font-medium">
                   {t('detail.exit')}
                 </p>
-                <p className="text-sm sm:text-base font-bold text-gray-900 dark:text-gray-100 mt-0.5">
+                <p className="text-sm sm:text-base font-bold text-fg mt-0.5">
                   {formatDate(entry.check_out_date)}
                 </p>
               </div>
@@ -184,13 +177,13 @@ export function BlacklistDetailClient({
             </div>
           </div>
 
-          <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-3 col-span-2 lg:col-span-1">
+          <div className="bg-surface rounded-md border border-border p-3 col-span-2 lg:col-span-1">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 font-medium">
+                <p className="text-[10px] sm:text-xs text-fg-muted font-medium">
                   {t('detail.stay')}
                 </p>
-                <p className="text-sm sm:text-base font-bold text-gray-900 dark:text-gray-100 mt-0.5">
+                <p className="text-sm sm:text-base font-bold text-fg mt-0.5">
                   {stayDays} {stayDays === 1 ? t('detail.day') : t('detail.days')}
                 </p>
               </div>
@@ -204,25 +197,21 @@ export function BlacklistDetailClient({
           {/* Left Column - Main Content */}
           <div className="min-[1400px]:col-span-3 space-y-5">
             {/* Documento */}
-            <Card className="bg-gray-50 dark:bg-[#0D1117] border-gray-200 dark:border-gray-800">
-              <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
+            <Card className="bg-surface border-border">
+              <h3 className="text-sm font-semibold text-fg mb-4 flex items-center gap-2">
                 <IoDocumentTextOutline size={18} />
                 {t('detail.documentInfo')}
               </h3>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">
-                    {t('detail.documentType')}
-                  </div>
-                  <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                  <div className="text-xs text-fg-muted mb-1">{t('detail.documentType')}</div>
+                  <div className="text-sm font-medium text-fg">
                     {DOCUMENT_TYPES[entry.document_type]}
                   </div>
                 </div>
                 <div>
-                  <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">
-                    {t('detail.documentNumber')}
-                  </div>
-                  <div className="text-sm font-medium text-gray-900 dark:text-gray-100 font-mono">
+                  <div className="text-xs text-fg-muted mb-1">{t('detail.documentNumber')}</div>
+                  <div className="text-sm font-medium text-fg font-mono">
                     {entry.document_number}
                   </div>
                 </div>
@@ -230,33 +219,27 @@ export function BlacklistDetailClient({
             </Card>
 
             {/* Fechas - Only visible on mobile/tablet */}
-            <Card className="dark:bg-[#0D1117] border-gray-200 dark:border-gray-800 min-[1400px]:hidden">
-              <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
+            <Card className="dark:bg-surface border-border min-[1400px]:hidden">
+              <h3 className="text-sm font-semibold text-fg mb-4 flex items-center gap-2">
                 <IoCalendarOutline size={18} />
                 {t('detail.stayDates')}
               </h3>
               <div className="grid grid-cols-3 gap-4">
                 <div>
-                  <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">
-                    {t('detail.entry')}
-                  </div>
-                  <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                  <div className="text-xs text-fg-muted mb-1">{t('detail.entry')}</div>
+                  <div className="text-sm font-medium text-fg">
                     {formatDate(entry.check_in_date)}
                   </div>
                 </div>
                 <div>
-                  <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">
-                    {t('detail.exit')}
-                  </div>
-                  <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                  <div className="text-xs text-fg-muted mb-1">{t('detail.exit')}</div>
+                  <div className="text-sm font-medium text-fg">
                     {formatDate(entry.check_out_date)}
                   </div>
                 </div>
                 <div>
-                  <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">
-                    {t('detail.stay')}
-                  </div>
-                  <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                  <div className="text-xs text-fg-muted mb-1">{t('detail.stay')}</div>
+                  <div className="text-sm font-medium text-fg">
                     {stayDays} {stayDays === 1 ? t('detail.day') : t('detail.days')}
                   </div>
                 </div>
@@ -264,75 +247,59 @@ export function BlacklistDetailClient({
             </Card>
 
             {/* Motivo */}
-            <Card className="dark:bg-[#0D1117] border-gray-200 dark:border-gray-800">
-              <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
+            <Card className="dark:bg-surface border-border">
+              <h3 className="text-sm font-semibold text-fg mb-4 flex items-center gap-2">
                 <IoWarningOutline size={18} />
                 {t('detail.incidentReason')}
               </h3>
-              <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
-                {entry.reason}
-              </p>
+              <p className="text-sm text-fg whitespace-pre-wrap">{entry.reason}</p>
             </Card>
 
             {/* Comentarios */}
-            <Card className="dark:bg-[#0D1117] border-gray-200 dark:border-gray-800">
-              <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-4">
+            <Card className="dark:bg-surface border-border">
+              <h3 className="text-sm font-semibold text-fg mb-4">
                 {t('detail.additionalComments')}
               </h3>
-              <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
-                {entry.comments}
-              </p>
+              <p className="text-sm text-fg whitespace-pre-wrap">{entry.comments}</p>
             </Card>
 
             {/* Imagenes */}
-            <Card className="dark:bg-[#0D1117] border-gray-200 dark:border-gray-800">
-              <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-4">
+            <Card className="dark:bg-surface border-border">
+              <h3 className="text-sm font-semibold text-fg mb-4">
                 {t('detail.photoEvidence')} ({entry.images.length})
               </h3>
               <ImageGallery images={entry.images} alt={`Evidencia de ${entry.guest_name}`} />
             </Card>
 
             {/* Informacion - Only visible on mobile/tablet */}
-            <Card className="dark:bg-[#0D1117] border-gray-200 dark:border-gray-800 min-[1400px]:hidden">
-              <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
+            <Card className="dark:bg-surface border-border min-[1400px]:hidden">
+              <h3 className="text-sm font-semibold text-fg mb-4 flex items-center gap-2">
                 <IoPersonOutline size={18} />
                 {t('detail.recordInfo')}
               </h3>
               <div className="space-y-3">
                 <div>
-                  <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">
-                    {t('detail.registeredBy')}
-                  </div>
-                  <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                  <div className="text-xs text-fg-muted mb-1">{t('detail.registeredBy')}</div>
+                  <div className="text-sm font-medium text-fg">
                     {entry.created_by_username || t('detail.unknown')}
                   </div>
                 </div>
                 <div>
-                  <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">
-                    {t('detail.registrationDate')}
-                  </div>
-                  <div className="text-xs text-gray-900 dark:text-gray-100">
-                    {formatDateTime(entry.created_at)}
-                  </div>
+                  <div className="text-xs text-fg-muted mb-1">{t('detail.registrationDate')}</div>
+                  <div className="text-xs text-fg">{formatDateTime(entry.created_at)}</div>
                 </div>
                 {entry.updated_at && (
                   <div>
-                    <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">
-                      {t('detail.lastModification')}
-                    </div>
-                    <div className="text-xs text-gray-900 dark:text-gray-100">
-                      {formatDateTime(entry.updated_at)}
-                    </div>
+                    <div className="text-xs text-fg-muted mb-1">{t('detail.lastModification')}</div>
+                    <div className="text-xs text-fg">{formatDateTime(entry.updated_at)}</div>
                   </div>
                 )}
               </div>
             </Card>
 
             {/* Historial */}
-            <Card className="dark:bg-[#0D1117] border-gray-200 dark:border-gray-800">
-              <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-4">
-                {t('detail.changeHistory')}
-              </h3>
+            <Card className="dark:bg-surface border-border">
+              <h3 className="text-sm font-semibold text-fg mb-4">{t('detail.changeHistory')}</h3>
               <AuditTrail entries={audit_trail} />
             </Card>
           </div>

@@ -46,18 +46,16 @@ export function StatusTimeline({ status }: StatusTimelineProps) {
   const progressPercentage = (progress / TIMELINE_STEPS.length) * 100
 
   return (
-    <div className="bg-white dark:bg-[#0D1117] rounded-lg border border-gray-200 dark:border-gray-800 p-6">
+    <div className="bg-surface rounded-lg border border-border p-6">
       {/* Progress Bar */}
       <div className="mb-6">
         <div className="flex items-center justify-between mb-2">
-          <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-            {t('statusCards.groupProgress')}
-          </h3>
-          <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
+          <h3 className="text-sm font-semibold text-fg">{t('statusCards.groupProgress')}</h3>
+          <span className="text-sm font-medium text-fg-muted">
             {progress} {t('statusCards.of')} {TIMELINE_STEPS.length}
           </span>
         </div>
-        <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+        <div className="w-full bg-surface-hover rounded-full h-2">
           <div
             className="bg-gradient-to-r from-blue-500 to-green-500 h-2 rounded-full transition-all duration-500"
             style={{ width: `${progressPercentage}%` }}
@@ -77,9 +75,7 @@ export function StatusTimeline({ status }: StatusTimelineProps) {
               <div className="flex flex-col items-center">
                 <div
                   className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
-                    isCompleted
-                      ? 'bg-green-500 text-white'
-                      : 'bg-gray-200 dark:bg-gray-700 text-gray-400 dark:text-gray-500'
+                    isCompleted ? 'bg-accent text-accent-fg' : 'bg-surface-hover text-fg-subtle'
                   }`}
                 >
                   {isCompleted ? (
@@ -90,22 +86,14 @@ export function StatusTimeline({ status }: StatusTimelineProps) {
                 </div>
                 {!isLast && (
                   <div
-                    className={`w-0.5 h-8 ${
-                      isCompleted ? 'bg-green-500' : 'bg-gray-200 dark:bg-gray-700'
-                    }`}
+                    className={`w-0.5 h-8 ${isCompleted ? 'bg-green-500' : 'bg-surface-hover'}`}
                   />
                 )}
               </div>
 
               {/* Label */}
               <div className="flex-1 pt-1">
-                <p
-                  className={`text-sm font-medium ${
-                    isCompleted
-                      ? 'text-gray-900 dark:text-gray-100'
-                      : 'text-gray-500 dark:text-gray-400'
-                  }`}
-                >
+                <p className={`text-sm font-medium ${isCompleted ? 'text-fg' : 'text-fg-subtle'}`}>
                   {step.label}
                 </p>
               </div>

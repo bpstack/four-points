@@ -14,7 +14,7 @@ import { DetailTab } from './tabs/DetailTab'
 import { HistoryTab } from './tabs/HistoryTab'
 import { LoadingSpinner } from './shared/LoadingSpinner'
 import { EditReportPanel } from './panels/EditReportPanel'
-import { ConfirmDialog } from './shared/ConfirmDialog'
+import { ConfirmDialog } from '@/app/ui/components'
 import toast from 'react-hot-toast'
 
 interface ReportDetailClientProps {
@@ -77,7 +77,7 @@ export function ReportDetailClient({ initialReport }: ReportDetailClientProps) {
 
   if (!currentReport) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-[#0d1117] flex items-center justify-center">
+      <div className="min-h-screen bg-surface flex items-center justify-center">
         <LoadingSpinner size="lg" message={t('detail.loadingReport')} />
       </div>
     )
@@ -85,7 +85,7 @@ export function ReportDetailClient({ initialReport }: ReportDetailClientProps) {
 
   return (
     <>
-      <div className="min-h-screen bg-gray-50 dark:bg-[#010409]">
+      <div className="min-h-screen bg-bg">
         <ReportHeader report={currentReport} onEdit={handleEdit} onDelete={handleDelete} />
 
         <TabNavigation reportId={currentReport.id} />
@@ -112,7 +112,7 @@ export function ReportDetailClient({ initialReport }: ReportDetailClientProps) {
         title={t('confirm.deleteTitle')}
         message={t('confirm.deleteMessage', { title: currentReport.title })}
         confirmText={t('confirm.deleteButton')}
-        confirmVariant="danger"
+        variant="danger"
         isLoading={isDeleting}
       />
     </>

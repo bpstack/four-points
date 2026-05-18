@@ -264,19 +264,14 @@ export function GlobalNotificationModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-      <div className="bg-white dark:bg-[#151b23] rounded-lg shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto">
+      <div className="bg-surface rounded-lg shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="flex items-center justify-between p-3 border-b border-gray-200 dark:border-gray-800 sticky top-0 bg-white dark:bg-[#151b23] z-10">
+        <div className="flex items-center justify-between p-3 border-b border-border sticky top-0 bg-surface z-10">
           <div className="flex items-center gap-2">
-            <FiBell className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-            <h2 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-              {t('modal.title')}
-            </h2>
+            <FiBell className="w-4 h-4 text-accent" />
+            <h2 className="text-sm font-semibold text-fg">{t('modal.title')}</h2>
           </div>
-          <button
-            onClick={handleClose}
-            className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
-          >
+          <button onClick={handleClose} className="text-fg-muted hover:text-fg transition-colors">
             <FiX className="w-4 h-4" />
           </button>
         </div>
@@ -285,14 +280,14 @@ export function GlobalNotificationModal({
         <form onSubmit={handleSubmit} className="p-3 space-y-3">
           {/* Section Selector */}
           <div>
-            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label className="block text-xs font-medium text-fg mb-1">
               <FiLink className="inline w-3 h-3 mr-1" />
               {t('modal.destinationLink')}
             </label>
             <select
               value={selectedSection}
               onChange={(e) => setSelectedSection(e.target.value)}
-              className="w-full px-2.5 py-1.5 text-xs border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-2.5 py-1.5 text-xs border border-border rounded-md bg-surface text-fg focus:outline-none focus:ring-2 focus:ring-accent/50"
             >
               {APP_SECTIONS.map((section) => (
                 <option key={section.value} value={section.value}>
@@ -300,18 +295,15 @@ export function GlobalNotificationModal({
                 </option>
               ))}
             </select>
-            <p className="text-[10px] text-gray-500 mt-0.5">
+            <p className="text-[10px] text-fg-subtle mt-0.5">
               {t('modal.redirectTo')}{' '}
-              <code className="bg-gray-100 dark:bg-gray-800 px-1 rounded">{selectedSection}</code>
+              <code className="bg-surface-hover px-1 rounded">{selectedSection}</code>
             </p>
           </div>
 
           {/* Title */}
           <div>
-            <label
-              htmlFor="title"
-              className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1"
-            >
+            <label htmlFor="title" className="block text-xs font-medium text-fg mb-1">
               {t('modal.titleLabel')}
             </label>
             <input
@@ -322,16 +314,13 @@ export function GlobalNotificationModal({
               required
               maxLength={100}
               placeholder={t('modal.titlePlaceholder')}
-              className="w-full px-2.5 py-1.5 text-xs border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-2.5 py-1.5 text-xs border border-border rounded-md bg-surface text-fg focus:outline-none focus:ring-2 focus:ring-accent/50"
             />
           </div>
 
           {/* Message */}
           <div>
-            <label
-              htmlFor="message"
-              className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1"
-            >
+            <label htmlFor="message" className="block text-xs font-medium text-fg mb-1">
               {t('modal.messageLabel')}
             </label>
             <textarea
@@ -342,14 +331,14 @@ export function GlobalNotificationModal({
               rows={3}
               maxLength={500}
               placeholder={t('modal.messagePlaceholder')}
-              className="w-full px-2.5 py-1.5 text-xs border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+              className="w-full px-2.5 py-1.5 text-xs border border-border rounded-md bg-surface text-fg focus:outline-none focus:ring-2 focus:ring-accent/50 resize-none"
             />
-            <p className="text-[10px] text-gray-400 mt-0.5 text-right">{message.length}/500</p>
+            <p className="text-[10px] text-fg-subtle mt-0.5 text-right">{message.length}/500</p>
           </div>
 
           {/* Priority */}
           <div>
-            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+            <label className="block text-xs font-medium text-fg mb-1.5">
               {t('modal.priority')}
             </label>
             <div className="grid grid-cols-3 gap-2">
@@ -364,8 +353,8 @@ export function GlobalNotificationModal({
                         ? 'bg-red-600 text-white'
                         : p === 'medium'
                           ? 'bg-yellow-600 text-white'
-                          : 'bg-green-600 text-white'
-                      : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+                          : 'bg-accent text-accent-fg'
+                      : 'bg-surface-hover text-fg hover:bg-surface-hover'
                   }`}
                 >
                   {t(`priority.${p}`)}
@@ -376,7 +365,7 @@ export function GlobalNotificationModal({
 
           {/* Schedule Type */}
           <div>
-            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+            <label className="block text-xs font-medium text-fg mb-1.5">
               {t('modal.scheduling')}
             </label>
             <div className="grid grid-cols-2 gap-2">
@@ -385,8 +374,8 @@ export function GlobalNotificationModal({
                 onClick={() => setScheduleType('now')}
                 className={`flex items-center justify-center gap-1.5 px-2.5 py-2 rounded-md text-xs font-medium transition-colors ${
                   scheduleType === 'now'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+                    ? 'bg-accent text-accent-fg'
+                    : 'bg-surface-hover text-fg hover:bg-surface-hover'
                 }`}
               >
                 <FiClock className="w-3.5 h-3.5" />
@@ -397,8 +386,8 @@ export function GlobalNotificationModal({
                 onClick={() => setScheduleType('scheduled')}
                 className={`flex items-center justify-center gap-1.5 px-2.5 py-2 rounded-md text-xs font-medium transition-colors ${
                   scheduleType === 'scheduled'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+                    ? 'bg-accent text-accent-fg'
+                    : 'bg-surface-hover text-fg hover:bg-surface-hover'
                 }`}
               >
                 <FiCalendar className="w-3.5 h-3.5" />
@@ -409,20 +398,20 @@ export function GlobalNotificationModal({
 
           {/* Scheduled DateTime */}
           {scheduleType === 'scheduled' && (
-            <div className="space-y-2 p-2.5 bg-gray-50 dark:bg-gray-900/50 rounded-md border border-gray-200 dark:border-gray-800">
+            <div className="space-y-2 p-2.5 bg-surface-hover rounded-md border border-border">
               <div className="grid grid-cols-2 gap-2">
                 {/* Fecha */}
                 <div className="relative" ref={calendarRef}>
-                  <label className="block text-[10px] font-medium text-gray-500 dark:text-gray-400 mb-1">
+                  <label className="block text-[10px] font-medium text-fg-subtle mb-1">
                     {t('modal.dateLabel')}
                   </label>
                   <button
                     type="button"
                     onClick={() => setShowCalendar(!showCalendar)}
-                    className="w-full px-2.5 py-1.5 text-xs border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 text-left flex items-center justify-between"
+                    className="w-full px-2.5 py-1.5 text-xs border border-border rounded-md bg-surface text-fg focus:outline-none focus:ring-2 focus:ring-accent/50 text-left flex items-center justify-between"
                   >
                     <span className="truncate">{formatDate(selectedDate)}</span>
-                    <FiCalendar className="w-3 h-3 text-gray-400 flex-shrink-0" />
+                    <FiCalendar className="w-3 h-3 text-fg-subtle flex-shrink-0" />
                   </button>
 
                   {showCalendar && (
@@ -454,7 +443,7 @@ export function GlobalNotificationModal({
 
                 {/* Hora */}
                 <div>
-                  <label className="block text-[10px] font-medium text-gray-500 dark:text-gray-400 mb-1">
+                  <label className="block text-[10px] font-medium text-fg-subtle mb-1">
                     {t('modal.timeLabel')}
                   </label>
                   <TimePicker
@@ -470,7 +459,7 @@ export function GlobalNotificationModal({
 
               {/* Preview */}
               {scheduledDateTime && validationResult.valid && (
-                <div className="flex items-center gap-1.5 text-[10px] text-green-600 dark:text-green-400">
+                <div className="flex items-center gap-1.5 text-[10px] text-success">
                   <FiClock className="w-3 h-3" />
                   <span>
                     {t('modal.willSendAt', {
@@ -487,7 +476,7 @@ export function GlobalNotificationModal({
 
               {/* Warning */}
               {!validationResult.valid && validationResult.message && (
-                <div className="flex items-center gap-1.5 text-[10px] text-amber-600 dark:text-amber-400">
+                <div className="flex items-center gap-1.5 text-[10px] text-warning">
                   <FiAlertCircle className="w-3 h-3" />
                   <span>{validationResult.message}</span>
                 </div>
@@ -517,14 +506,14 @@ export function GlobalNotificationModal({
               type="button"
               onClick={handleClose}
               disabled={loading}
-              className="flex-1 px-3 py-2 text-xs font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-[#0d1117] border border-gray-300 dark:border-gray-700 rounded-md hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50 transition-colors"
+              className="flex-1 px-3 py-2 text-xs font-medium text-fg bg-surface border border-border rounded-md hover:bg-surface-hover disabled:opacity-50 transition-colors"
             >
               {t('modal.cancel')}
             </button>
             <button
               type="submit"
               disabled={loading || success || !validationResult.valid || !title || !message}
-              className="flex-1 px-3 py-2 text-xs font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-1.5"
+              className="flex-1 px-3 py-2 text-xs font-medium text-accent-fg bg-accent rounded-md hover:bg-accent-hover disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-1.5"
             >
               {loading ? (
                 t('modal.creating')

@@ -23,7 +23,7 @@ export default function NotificationsList() {
   if (loading) {
     return (
       <div className="p-8 text-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto" />
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent mx-auto" />
       </div>
     )
   }
@@ -36,8 +36,8 @@ export default function NotificationsList() {
           onClick={() => setFilter('all')}
           className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
             filter === 'all'
-              ? 'bg-blue-600 text-white'
-              : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-[#21262d] dark:text-gray-300 dark:hover:bg-[#30363d]'
+              ? 'bg-accent text-accent-fg'
+              : 'bg-surface-hover text-fg-muted hover:text-fg'
           }`}
         >
           {t('list.all', { count: notifications.length })}
@@ -46,8 +46,8 @@ export default function NotificationsList() {
           onClick={() => setFilter('unread')}
           className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
             filter === 'unread'
-              ? 'bg-blue-600 text-white'
-              : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-[#21262d] dark:text-gray-300 dark:hover:bg-[#30363d]'
+              ? 'bg-accent text-accent-fg'
+              : 'bg-surface-hover text-fg-muted hover:text-fg'
           }`}
         >
           {t('list.unread', { count: unreadCount })}
@@ -55,16 +55,16 @@ export default function NotificationsList() {
       </div>
 
       {/* List */}
-      <div className="bg-gray-50 dark:bg-[#161b22] border border-gray-200 dark:border-[#30363d] rounded-lg overflow-hidden">
+      <div className="bg-surface border border-border rounded-fp-md overflow-hidden">
         {filteredNotifications.length === 0 ? (
           <div className="p-8 text-center">
-            <FiBell className="w-12 h-12 mx-auto text-gray-300 dark:text-gray-600 mb-2" />
-            <p className="text-sm text-gray-500 dark:text-gray-400">
+            <FiBell className="w-12 h-12 mx-auto text-fg-subtle mb-2" />
+            <p className="text-sm text-fg-subtle">
               {filter === 'unread' ? t('list.noUnread') : t('list.noNotifications')}
             </p>
           </div>
         ) : (
-          <div className="divide-y divide-gray-200 dark:divide-[#30363d]">
+          <div className="divide-y divide-border">
             {filteredNotifications.map((notification) => (
               <NotificationItem
                 key={notification.id}

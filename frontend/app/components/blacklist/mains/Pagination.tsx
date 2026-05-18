@@ -96,9 +96,9 @@ export function Pagination({
   }
 
   return (
-    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-6 py-4 bg-white dark:bg-[#161B22] border-t border-gray-200 dark:border-gray-700">
+    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-6 py-4 bg-surface border-t border-border">
       {/* Info de registros */}
-      <div className="text-sm text-gray-700 dark:text-gray-300">
+      <div className="text-sm text-fg">
         {t('showing')} <span className="font-medium">{start}</span> {t('to')}{' '}
         <span className="font-medium">{end}</span> {t('of')}{' '}
         <span className="font-medium">{totalEntries}</span> {t('records')}
@@ -112,9 +112,7 @@ export function Pagination({
           disabled={!hasPrev}
           className={clsx(
             'flex items-center gap-1 px-3 py-2 text-sm font-medium rounded-md transition-colors',
-            hasPrev
-              ? 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#0D1117]'
-              : 'text-gray-400 dark:text-gray-600 cursor-not-allowed'
+            hasPrev ? 'text-fg hover:bg-surface-hover' : 'text-fg-subtle cursor-not-allowed'
           )}
         >
           <IoChevronBack size={16} />
@@ -131,8 +129,8 @@ export function Pagination({
                 className={clsx(
                   'min-w-[36px] h-9 px-3 text-sm font-medium rounded-md transition-colors',
                   page === currentPage
-                    ? 'bg-blue-600 text-white hover:bg-blue-700'
-                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#0D1117]'
+                    ? 'bg-accent text-accent-fg hover:bg-accent-hover'
+                    : 'text-fg hover:bg-surface-hover'
                 )}
               >
                 {page}
@@ -154,9 +152,7 @@ export function Pagination({
           disabled={!hasNext}
           className={clsx(
             'flex items-center gap-1 px-3 py-2 text-sm font-medium rounded-md transition-colors',
-            hasNext
-              ? 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#0D1117]'
-              : 'text-gray-400 dark:text-gray-600 cursor-not-allowed'
+            hasNext ? 'text-fg hover:bg-surface-hover' : 'text-fg-subtle cursor-not-allowed'
           )}
         >
           <span className="hidden sm:inline">{t('next')}</span>
@@ -165,7 +161,7 @@ export function Pagination({
       </div>
 
       {/* Info adicional - mobile */}
-      <div className="sm:hidden text-xs text-gray-600 dark:text-gray-400">
+      <div className="sm:hidden text-xs text-fg-muted">
         {t('page')} {currentPage} {t('pageOf')} {totalPages}
       </div>
     </div>

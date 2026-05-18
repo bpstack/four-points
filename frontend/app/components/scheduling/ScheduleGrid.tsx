@@ -197,13 +197,13 @@ export function ScheduleGrid({
   const isSunday = (dayOfWeek: DayOfWeek) => dayOfWeek === 'D'
 
   return (
-    <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 overflow-hidden">
+    <div className="bg-surface rounded-md border border-border overflow-hidden">
       <div className="overflow-x-auto">
         <table className="w-full border-collapse text-xs">
           {/* Header */}
           <thead>
-            <tr className="bg-gray-50 dark:bg-[#0d1117]">
-              <th className="sticky left-0 z-20 bg-gray-50 dark:bg-[#0d1117] px-2 py-2 text-left text-[8px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider border-b border-r border-gray-200 dark:border-gray-700 w-[60px] min-w-[60px] max-w-[60px] shadow-[2px_0_4px_rgba(0,0,0,0.1)] dark:shadow-[2px_0_4px_rgba(0,0,0,0.3)] md:w-auto md:min-w-[120px] md:max-w-none md:px-3 md:text-[10px]">
+            <tr className="bg-surface-sunken">
+              <th className="sticky left-0 z-20 bg-surface-sunken px-2 py-2 text-left text-[8px] font-semibold text-fg uppercase tracking-wider border-b border-r border-border w-[60px] min-w-[60px] max-w-[60px] shadow-[2px_0_4px_rgba(0,0,0,0.1)] dark:shadow-[2px_0_4px_rgba(0,0,0,0.3)] md:w-auto md:min-w-[120px] md:max-w-none md:px-3 md:text-[10px]">
                 {t('grid.employee')}
               </th>
               {days.map((day) => {
@@ -220,15 +220,13 @@ export function ScheduleGrid({
                       // Weekend: violet accent header with stronger bottom border
                       weekend && !holiday
                         ? 'bg-violet-50 dark:bg-violet-950/50 text-violet-700 dark:text-violet-300 border-b-2 border-b-violet-300 dark:border-b-violet-700'
-                        : 'text-gray-700 dark:text-gray-300 border-b border-gray-200 dark:border-gray-700',
+                        : 'text-fg border-b border-border',
                       // Saturday gets a left border to open the weekend block
                       saturday ? 'border-l-2 border-l-violet-300 dark:border-l-violet-700' : '',
                       // Sunday gets a right border to close the weekend block
                       sunday ? 'border-r-2 border-r-violet-300 dark:border-r-violet-700' : '',
                       // Holiday overrides
-                      holiday
-                        ? 'bg-red-50 dark:bg-red-900/20 border-b border-gray-200 dark:border-gray-700'
-                        : '',
+                      holiday ? 'bg-red-50 dark:bg-red-900/20 border-b border-border' : '',
                     ]
                       .filter(Boolean)
                       .join(' ')}
@@ -255,13 +253,13 @@ export function ScheduleGrid({
                   </th>
                 )
               })}
-              <th className="px-2 py-2 text-center text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider border-b border-l border-gray-200 dark:border-gray-700 min-w-[36px] bg-gray-100 dark:bg-gray-800/50">
+              <th className="px-2 py-2 text-center text-[10px] font-semibold text-fg uppercase tracking-wider border-b border-l border-border min-w-[36px] bg-surface-sunken">
                 {t('grid.total')}
               </th>
               {STATS_COLUMNS.map((col) => (
                 <th
                   key={col.key}
-                  className={`px-1 py-2 text-center text-[10px] font-semibold uppercase tracking-wider border-b border-gray-200 dark:border-gray-700 min-w-[32px] bg-gray-100 dark:bg-gray-800/50 ${col.color}`}
+                  className={`px-1 py-2 text-center text-[10px] font-semibold uppercase tracking-wider border-b border-border min-w-[32px] bg-surface-sunken ${col.color}`}
                 >
                   {col.label}
                 </th>
@@ -275,7 +273,7 @@ export function ScheduleGrid({
               <tr>
                 <td
                   colSpan={days.length + 2 + STATS_COLUMNS.length}
-                  className="px-3 py-8 text-center text-xs text-gray-500 dark:text-gray-400"
+                  className="px-3 py-8 text-center text-xs text-fg-subtle"
                 >
                   {t('grid.noEmployees')}
                 </td>
@@ -290,21 +288,17 @@ export function ScheduleGrid({
                   <tr
                     key={employee.id}
                     className={`${
-                      empIndex % 2 === 0
-                        ? 'bg-white dark:bg-[#151b23]'
-                        : 'bg-gray-50/50 dark:bg-[#0d1117]/50'
+                      empIndex % 2 === 0 ? 'bg-surface' : 'bg-surface-sunken/50'
                     } hover:bg-blue-50/50 dark:hover:bg-blue-900/10 transition-colors`}
                   >
                     {/* Employee Name */}
                     <td
-                      className={`sticky left-0 z-10 border-r border-gray-200 dark:border-gray-700 shadow-[2px_0_4px_rgba(0,0,0,0.05)] dark:shadow-[2px_0_4px_rgba(0,0,0,0.2)] w-[60px] min-w-[60px] max-w-[60px] overflow-hidden text-ellipsis md:w-auto md:min-w-0 md:max-w-none ${
-                        empIndex % 2 === 0
-                          ? 'bg-white dark:bg-[#151b23]'
-                          : 'bg-gray-50 dark:bg-[#0d1117]'
+                      className={`sticky left-0 z-10 border-r border-border shadow-[2px_0_4px_rgba(0,0,0,0.05)] dark:shadow-[2px_0_4px_rgba(0,0,0,0.2)] w-[60px] min-w-[60px] max-w-[60px] overflow-hidden text-ellipsis md:w-auto md:min-w-0 md:max-w-none ${
+                        empIndex % 2 === 0 ? 'bg-surface' : 'bg-surface-sunken'
                       }`}
                     >
                       <span
-                        className="block truncate px-2 py-1 text-[10px] font-medium text-gray-900 dark:text-gray-100 md:px-3 md:py-1.5 md:text-xs"
+                        className="block truncate px-2 py-1 text-[10px] font-medium text-fg md:px-3 md:py-1.5 md:text-xs"
                         title={employee.name}
                       >
                         {employee.name}
@@ -328,9 +322,7 @@ export function ScheduleGrid({
                           key={day.id}
                           className={[
                             'px-0.5 py-1 text-center',
-                            weekend
-                              ? 'bg-violet-50/60 dark:bg-violet-950/25'
-                              : 'border-gray-100 dark:border-gray-800',
+                            weekend ? 'bg-violet-50/60 dark:bg-violet-950/25' : 'border-border',
                             saturday
                               ? 'border-l-2 border-l-violet-200 dark:border-l-violet-800/60'
                               : '',
@@ -360,7 +352,7 @@ export function ScheduleGrid({
                             className={`
                               relative overflow-hidden w-8 h-6 rounded text-[10px] font-bold border transition-all
                               ${canEditCell ? 'cursor-pointer hover:scale-110 hover:shadow-md' : 'cursor-default'}
-                              ${isLockedByConstraint ? 'opacity-70 border-gray-400 dark:border-gray-600' : ''}
+                              ${isLockedByConstraint ? 'opacity-70 border-border-strong' : ''}
                               ${shiftClasses}
                             `}
                             title={
@@ -385,13 +377,13 @@ export function ScheduleGrid({
                     })}
 
                     {/* Total + Stats columns */}
-                    <td className="px-1 py-1.5 text-center text-[10px] font-semibold text-gray-700 dark:text-gray-300 border-l border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/30">
+                    <td className="px-1 py-1.5 text-center text-[10px] font-semibold text-fg border-l border-border bg-surface-sunken/30">
                       {totalWorkShifts}
                     </td>
                     {STATS_COLUMNS.map((col) => (
                       <td
                         key={col.key}
-                        className="px-1 py-1.5 text-center text-[10px] font-medium bg-gray-50 dark:bg-gray-800/30"
+                        className="px-1 py-1.5 text-center text-[10px] font-medium bg-surface-sunken/30"
                       >
                         <span className={col.color}>
                           {employee.stats?.[col.key as keyof typeof employee.stats] || 0}
@@ -417,10 +409,7 @@ export function ScheduleGrid({
                           ? 'text-red-500 dark:text-red-600'
                           : 'text-amber-600 dark:text-amber-600/90',
                       extraCols: (
-                        <td
-                          colSpan={STATS_COLUMNS.length}
-                          className="bg-gray-50 dark:bg-[#161b22]"
-                        ></td>
+                        <td colSpan={STATS_COLUMNS.length} className="bg-surface-sunken"></td>
                       ),
                       borderTop: true,
                     },
@@ -448,9 +437,7 @@ export function ScheduleGrid({
                       label: t('grid.internalSupport'),
                       getValue: (s: (typeof dailyStats)[0]) => s.PI || 0,
                       colorFn: (v: number) =>
-                        v === 0
-                          ? 'text-gray-400 dark:text-gray-600'
-                          : 'text-cyan-600 dark:text-cyan-600/90',
+                        v === 0 ? 'text-fg-subtle' : 'text-cyan-600 dark:text-cyan-600/90',
                       extraCols: null,
                       borderTop: false,
                     },
@@ -458,9 +445,7 @@ export function ScheduleGrid({
                       label: t('grid.support'),
                       getValue: (s: (typeof dailyStats)[0]) => s.P || 0,
                       colorFn: (v: number) =>
-                        v === 0
-                          ? 'text-gray-400 dark:text-gray-600'
-                          : 'text-teal-600 dark:text-teal-600/90',
+                        v === 0 ? 'text-fg-subtle' : 'text-teal-600 dark:text-teal-600/90',
                       extraCols: null,
                       borderTop: false,
                     },
@@ -468,9 +453,9 @@ export function ScheduleGrid({
                 ).map((row) => (
                   <tr
                     key={row.label}
-                    className={`bg-gray-100 dark:bg-[#161b22]${row.borderTop ? ' border-t-2 border-gray-300 dark:border-gray-700' : ''}`}
+                    className={`bg-surface-hover${row.borderTop ? ' border-t-2 border-border' : ''}`}
                   >
-                    <td className="sticky left-0 z-10 bg-gray-100 dark:bg-[#161b22] px-2 py-1 text-[10px] font-semibold text-gray-600 dark:text-gray-500 border-r border-gray-200 dark:border-gray-700 shadow-[2px_0_4px_rgba(0,0,0,0.05)] dark:shadow-[2px_0_4px_rgba(0,0,0,0.2)] w-[60px] min-w-[60px] max-w-[60px] overflow-hidden text-ellipsis md:w-auto md:min-w-0 md:max-w-none md:px-3 md:py-1.5 md:text-xs">
+                    <td className="sticky left-0 z-10 bg-surface-hover px-2 py-1 text-[10px] font-semibold text-fg-subtle border-r border-border shadow-[2px_0_4px_rgba(0,0,0,0.05)] dark:shadow-[2px_0_4px_rgba(0,0,0,0.2)] w-[60px] min-w-[60px] max-w-[60px] overflow-hidden text-ellipsis md:w-auto md:min-w-0 md:max-w-none md:px-3 md:py-1.5 md:text-xs">
                       {row.label}
                     </td>
                     {dailyStats.map((stat, i) => {
@@ -495,15 +480,15 @@ export function ScheduleGrid({
                         </td>
                       )
                     })}
-                    <td className="px-2 py-1 text-center text-[10px] font-bold text-gray-600 dark:text-gray-500 border-l border-gray-200 dark:border-gray-700">
+                    <td className="px-2 py-1 text-center text-[10px] font-bold text-fg-subtle border-l border-border">
                       {dailyStats.reduce((sum, s) => sum + row.getValue(s), 0)}
                     </td>
                     {row.extraCols}
                   </tr>
                 ))}
 
-                <tr className="bg-gray-200 dark:bg-[#1c2128] border-t border-gray-300 dark:border-gray-700">
-                  <td className="sticky left-0 z-10 bg-gray-200 dark:bg-[#1c2128] px-2 py-1 text-[10px] font-bold text-gray-700 dark:text-gray-400 border-r border-gray-200 dark:border-gray-700 shadow-[2px_0_4px_rgba(0,0,0,0.05)] dark:shadow-[2px_0_4px_rgba(0,0,0,0.2)] w-[60px] min-w-[60px] max-w-[60px] overflow-hidden text-ellipsis md:w-auto md:min-w-0 md:max-w-none md:px-3 md:py-1.5 md:text-xs">
+                <tr className="bg-surface-hover border-t border-border">
+                  <td className="sticky left-0 z-10 bg-surface-hover px-2 py-1 text-[10px] font-bold text-fg-muted border-r border-border shadow-[2px_0_4px_rgba(0,0,0,0.05)] dark:shadow-[2px_0_4px_rgba(0,0,0,0.2)] w-[60px] min-w-[60px] max-w-[60px] overflow-hidden text-ellipsis md:w-auto md:min-w-0 md:max-w-none md:px-3 md:py-1.5 md:text-xs">
                     {t('grid.totalLabel')}
                   </td>
                   {dailyStats.map((stat, i) => {
@@ -532,7 +517,7 @@ export function ScheduleGrid({
                       </td>
                     )
                   })}
-                  <td className="px-2 py-1 text-center text-[10px] font-bold text-gray-700 dark:text-gray-400 border-l border-gray-200 dark:border-gray-700">
+                  <td className="px-2 py-1 text-center text-[10px] font-bold text-fg-muted border-l border-border">
                     {dailyStats.reduce(
                       (sum, s) => sum + s.M + s.T + s.N + (s.PI || 0) + (s.P || 0),
                       0

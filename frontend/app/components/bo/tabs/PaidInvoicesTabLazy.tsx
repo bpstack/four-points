@@ -471,8 +471,8 @@ export function PaidInvoicesTabLazy({
     <div className="space-y-4">
       {/* Summary - Only show filtered totals (global stats are in the header) */}
       <div className="grid grid-cols-3 gap-2 sm:gap-3">
-        <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-3">
-          <p className="text-[10px] text-gray-600 dark:text-gray-400 font-medium">
+        <div className="bg-surface rounded-md border border-border p-3">
+          <p className="text-[10px] text-fg-muted font-medium">
             {dateFilter === 'specific_month'
               ? t('paid.summary.totalMonth', { month: selectedMonthLabel })
               : t('paid.summary.totalFiltered')}
@@ -481,18 +481,14 @@ export function PaidInvoicesTabLazy({
             {formatCurrency(totalMonthFiltered)}
           </p>
         </div>
-        <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-3">
-          <p className="text-[10px] text-gray-600 dark:text-gray-400 font-medium">
-            {t('paid.summary.directDebits')}
-          </p>
+        <div className="bg-surface rounded-md border border-border p-3">
+          <p className="text-[10px] text-fg-muted font-medium">{t('paid.summary.directDebits')}</p>
           <p className="text-sm sm:text-base font-bold text-purple-600 dark:text-purple-400 mt-0.5">
             {formatCurrency(byDirectDebit)}
           </p>
         </div>
-        <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-3">
-          <p className="text-[10px] text-gray-600 dark:text-gray-400 font-medium">
-            {t('paid.summary.transfers')}
-          </p>
+        <div className="bg-surface rounded-md border border-border p-3">
+          <p className="text-[10px] text-fg-muted font-medium">{t('paid.summary.transfers')}</p>
           <p className="text-sm sm:text-base font-bold text-blue-600 dark:text-blue-400 mt-0.5">
             {formatCurrency(byTransfer)}
           </p>
@@ -503,13 +499,13 @@ export function PaidInvoicesTabLazy({
       <div className="flex flex-col sm:flex-row gap-3 flex-wrap">
         {/* Search */}
         <div className="relative w-full sm:w-52">
-          <FiSearch className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 dark:text-gray-500" />
+          <FiSearch className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-fg-subtle" />
           <input
             type="text"
             placeholder={t('filters.search')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-8 pr-3 py-1.5 text-xs border border-gray-300 dark:border-gray-700 dark:bg-[#151b23] dark:text-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent"
+            className="w-full pl-8 pr-3 py-1.5 text-xs border border-border bg-surface text-fg rounded-md focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-transparent"
           />
         </div>
 
@@ -524,7 +520,7 @@ export function PaidInvoicesTabLazy({
               setSelectedMonth({ year: availableMonths[0].year, month: availableMonths[0].month })
             }
           }}
-          className="w-full sm:w-36 px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent bg-white dark:bg-[#151b23] dark:text-gray-200"
+          className="w-full sm:w-36 px-3 py-1.5 text-xs border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-transparent bg-surface dark:text-fg"
         >
           <option value="specific_month">{t('filters.byMonth')}</option>
           <option value="quarter">{t('filters.lastQuarter')}</option>
@@ -540,7 +536,7 @@ export function PaidInvoicesTabLazy({
               const [year, month] = e.target.value.split('-').map(Number)
               setSelectedMonth({ year, month })
             }}
-            className="w-full sm:w-48 px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent bg-white dark:bg-[#151b23] dark:text-gray-200"
+            className="w-full sm:w-48 px-3 py-1.5 text-xs border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-transparent bg-surface dark:text-fg"
           >
             {(() => {
               // Group months by year
@@ -576,7 +572,7 @@ export function PaidInvoicesTabLazy({
           onChange={(e) =>
             setCategoryFilter(e.target.value === 'all' ? 'all' : Number(e.target.value))
           }
-          className="flex-1 min-w-[240px] px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent bg-white dark:bg-[#151b23] dark:text-gray-200"
+          className="flex-1 min-w-[240px] px-3 py-1.5 text-xs border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-transparent bg-surface dark:text-fg"
         >
           <option value="all">{t('filters.allCategories')}</option>
           {categories.map((cat) => (
@@ -592,7 +588,7 @@ export function PaidInvoicesTabLazy({
           onChange={(e) =>
             setPaymentMethodFilter(e.target.value as 'all' | 'transfer' | 'direct_debit')
           }
-          className="w-full sm:w-36 px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent bg-white dark:bg-[#151b23] dark:text-gray-200"
+          className="w-full sm:w-36 px-3 py-1.5 text-xs border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-transparent bg-surface dark:text-fg"
         >
           <option value="all">{t('filters.allPayments')}</option>
           <option value="transfer">{t('filters.transfer')}</option>
@@ -604,7 +600,7 @@ export function PaidInvoicesTabLazy({
           <button
             onClick={handleExport}
             title={t('actions.csv')}
-            className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-xs font-medium rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+            className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-surface-hover text-fg text-xs font-medium rounded-md hover:bg-surface-hover transition-colors"
           >
             <FiDownload className="w-3.5 h-3.5" />
             {t('actions.csv')}
@@ -613,7 +609,7 @@ export function PaidInvoicesTabLazy({
             onClick={handleExportZip}
             disabled={isExportingZip}
             title={t('actions.zip')}
-            className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 text-xs font-medium rounded-md hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors disabled:opacity-50"
+            className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-info/10 text-blue-700 dark:text-blue-400 text-xs font-medium rounded-md hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors disabled:opacity-50"
           >
             <FiPackage className="w-3.5 h-3.5" />
             {isExportingZip ? t('actions.downloading') : t('actions.zip')}
@@ -632,44 +628,41 @@ export function PaidInvoicesTabLazy({
       </div>
 
       {/* Desktop Table */}
-      <div className="hidden lg:block bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden">
+      <div className="hidden lg:block bg-surface rounded-md border border-border shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-gray-50 dark:bg-[#0d1117] border-b border-gray-200 dark:border-gray-800">
+            <thead className="bg-surface-sunken border-b border-border">
               <tr>
-                <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                <th className="px-3 py-2 text-left text-[10px] font-semibold text-fg uppercase tracking-wider">
                   {t('table.supplier')}
                 </th>
-                <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                <th className="px-3 py-2 text-left text-[10px] font-semibold text-fg uppercase tracking-wider">
                   {t('table.invoiceNumber')}
                 </th>
-                <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                <th className="px-3 py-2 text-left text-[10px] font-semibold text-fg uppercase tracking-wider">
                   {t('table.invoiceDate')}
                 </th>
-                <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                <th className="px-3 py-2 text-left text-[10px] font-semibold text-fg uppercase tracking-wider">
                   {t('table.paymentDate')}
                 </th>
-                <th className="px-3 py-2 text-right text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                <th className="px-3 py-2 text-right text-[10px] font-semibold text-fg uppercase tracking-wider">
                   {t('table.amount')}
                 </th>
-                <th className="px-3 py-2 text-center text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                <th className="px-3 py-2 text-center text-[10px] font-semibold text-fg uppercase tracking-wider">
                   {t('table.method')}
                 </th>
-                <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                <th className="px-3 py-2 text-left text-[10px] font-semibold text-fg uppercase tracking-wider">
                   {t('table.category')}
                 </th>
-                <th className="px-3 py-2 text-right text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                <th className="px-3 py-2 text-right text-[10px] font-semibold text-fg uppercase tracking-wider">
                   {t('table.actions')}
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
+            <tbody className="divide-y divide-border">
               {filteredInvoices.length === 0 ? (
                 <tr>
-                  <td
-                    colSpan={8}
-                    className="px-3 py-8 text-center text-xs text-gray-500 dark:text-gray-400"
-                  >
+                  <td colSpan={8} className="px-3 py-8 text-center text-xs text-fg-subtle">
                     {t('empty.noPaidInvoices')}
                   </td>
                 </tr>
@@ -677,20 +670,17 @@ export function PaidInvoicesTabLazy({
                 filteredInvoices.map((invoice) => {
                   const hasPdf = invoice.original_pdf_url || invoice.validated_pdf_url
                   return (
-                    <tr
-                      key={invoice.id}
-                      className="hover:bg-gray-50 dark:hover:bg-[#0d1117] transition-colors"
-                    >
-                      <td className="px-3 py-2 text-xs font-medium text-gray-900 dark:text-gray-100">
+                    <tr key={invoice.id} className="hover:bg-surface-hover transition-colors">
+                      <td className="px-3 py-2 text-xs font-medium text-fg">
                         {invoice.supplier_name}
                       </td>
-                      <td className="px-3 py-2 text-xs text-gray-600 dark:text-gray-400 font-mono">
+                      <td className="px-3 py-2 text-xs text-fg-muted font-mono">
                         {invoice.invoice_number}
                       </td>
-                      <td className="px-3 py-2 text-xs text-gray-600 dark:text-gray-400">
+                      <td className="px-3 py-2 text-xs text-fg-muted">
                         {formatDate(invoice.invoice_date)}
                       </td>
-                      <td className="px-3 py-2 text-xs text-gray-600 dark:text-gray-400">
+                      <td className="px-3 py-2 text-xs text-fg-muted">
                         <div className="flex items-center gap-1">
                           <FiCalendar className="w-3 h-3 text-green-500" />
                           {formatDate(invoice.paid_date)}
@@ -705,12 +695,8 @@ export function PaidInvoicesTabLazy({
                         </span>
                       </td>
                       <td className="px-3 py-2">
-                        <div className="text-xs text-gray-900 dark:text-gray-100">
-                          {invoice.cost_center}
-                        </div>
-                        <div className="text-[10px] text-gray-500 dark:text-gray-500">
-                          {invoice.department}
-                        </div>
+                        <div className="text-xs text-fg">{invoice.cost_center}</div>
+                        <div className="text-[10px] text-fg-subtle">{invoice.department}</div>
                       </td>
                       <td className="px-3 py-2 text-right">
                         <button
@@ -719,8 +705,8 @@ export function PaidInvoicesTabLazy({
                           title={hasPdf ? t('actions.viewPdf') : t('pending.noPdf')}
                           className={`inline-flex items-center justify-center w-7 h-7 rounded transition-colors ${
                             hasPdf
-                              ? 'text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-gray-100 dark:hover:bg-gray-800'
-                              : 'text-gray-300 dark:text-gray-600 cursor-not-allowed'
+                              ? 'text-fg-muted hover:text-purple-600 dark:hover:text-purple-400 hover:bg-surface-hover'
+                              : 'text-fg-subtle cursor-not-allowed'
                           }`}
                         >
                           <FiFileText className="w-3.5 h-3.5" />
@@ -736,8 +722,8 @@ export function PaidInvoicesTabLazy({
 
         {/* Pagination info and controls */}
         {pagination.total > 0 && (
-          <div className="px-3 py-2 border-t border-gray-200 dark:border-gray-800 flex items-center justify-between">
-            <span className="text-xs text-gray-500 dark:text-gray-400">
+          <div className="px-3 py-2 border-t border-border flex items-center justify-between">
+            <span className="text-xs text-fg-subtle">
               {t('pagination.showing', { count: filteredInvoices.length, total: pagination.total })}
               {pagination.totalPages > 1 &&
                 ` (${t('pagination.page', { current: pagination.page, total: pagination.totalPages })})`}
@@ -747,7 +733,7 @@ export function PaidInvoicesTabLazy({
                 <button
                   onClick={() => onPageChange(pagination.page - 1)}
                   disabled={pagination.page <= 1}
-                  className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-fg-muted bg-surface-hover rounded hover:bg-surface-hover transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   <FiChevronLeft className="w-3.5 h-3.5" />
                   {t('actions.previous')}
@@ -755,7 +741,7 @@ export function PaidInvoicesTabLazy({
                 <button
                   onClick={() => onPageChange(pagination.page + 1)}
                   disabled={pagination.page >= pagination.totalPages}
-                  className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-fg-muted bg-surface-hover rounded hover:bg-surface-hover transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   {t('actions.next')}
                   <FiChevronRight className="w-3.5 h-3.5" />
@@ -769,25 +755,18 @@ export function PaidInvoicesTabLazy({
       {/* Mobile Cards */}
       <div className="lg:hidden space-y-2">
         {filteredInvoices.length === 0 ? (
-          <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-6 text-center">
-            <p className="text-xs text-gray-500 dark:text-gray-400">{t('empty.noPaidInvoices')}</p>
+          <div className="bg-surface rounded-md border border-border p-6 text-center">
+            <p className="text-xs text-fg-subtle">{t('empty.noPaidInvoices')}</p>
           </div>
         ) : (
           filteredInvoices.map((invoice) => {
             const hasPdf = invoice.original_pdf_url || invoice.validated_pdf_url
             return (
-              <div
-                key={invoice.id}
-                className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-3"
-              >
+              <div key={invoice.id} className="bg-surface rounded-md border border-border p-3">
                 <div className="flex items-start justify-between mb-2">
                   <div>
-                    <h3 className="font-semibold text-xs text-gray-900 dark:text-gray-100">
-                      {invoice.supplier_name}
-                    </h3>
-                    <p className="text-[10px] text-gray-500 dark:text-gray-500 font-mono">
-                      {invoice.invoice_number}
-                    </p>
+                    <h3 className="font-semibold text-xs text-fg">{invoice.supplier_name}</h3>
+                    <p className="text-[10px] text-fg-subtle font-mono">{invoice.invoice_number}</p>
                   </div>
                   <span className="font-bold text-xs text-green-600 dark:text-green-400">
                     {formatCurrency(invoice.amount_with_vat)}
@@ -796,34 +775,24 @@ export function PaidInvoicesTabLazy({
 
                 <div className="grid grid-cols-2 gap-2 text-[10px] mb-2">
                   <div>
-                    <span className="text-gray-500 dark:text-gray-500">
-                      {t('table.invoiceDate')}:
-                    </span>
-                    <span className="ml-1 text-gray-900 dark:text-gray-100">
-                      {formatDate(invoice.invoice_date)}
-                    </span>
+                    <span className="text-fg-subtle">{t('table.invoiceDate')}:</span>
+                    <span className="ml-1 text-fg">{formatDate(invoice.invoice_date)}</span>
                   </div>
                   <div>
-                    <span className="text-gray-500 dark:text-gray-500">
-                      {t('table.paymentDate')}:
-                    </span>
-                    <span className="ml-1 text-gray-900 dark:text-gray-100">
-                      {formatDate(invoice.paid_date)}
-                    </span>
+                    <span className="text-fg-subtle">{t('table.paymentDate')}:</span>
+                    <span className="ml-1 text-fg">{formatDate(invoice.paid_date)}</span>
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between pt-2 border-t border-gray-100 dark:border-gray-800">
-                  <span className="text-[10px] text-gray-600 dark:text-gray-400">
-                    {invoice.cost_center}
-                  </span>
+                <div className="flex items-center justify-between pt-2 border-t border-border">
+                  <span className="text-[10px] text-fg-muted">{invoice.cost_center}</span>
                   <button
                     onClick={() => handleOpenPdfViewer(invoice)}
                     disabled={!hasPdf}
                     className={`inline-flex items-center justify-center w-6 h-6 rounded transition-colors ${
                       hasPdf
-                        ? 'text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-gray-100 dark:hover:bg-gray-800'
-                        : 'text-gray-300 dark:text-gray-600 cursor-not-allowed'
+                        ? 'text-fg-muted hover:text-purple-600 dark:hover:text-purple-400 hover:bg-surface-hover'
+                        : 'text-fg-subtle cursor-not-allowed'
                     }`}
                   >
                     <FiFileText className="w-3 h-3" />
@@ -836,15 +805,15 @@ export function PaidInvoicesTabLazy({
 
         {/* Mobile Pagination */}
         {pagination.total > 0 && pagination.totalPages > 1 && onPageChange && (
-          <div className="mt-3 flex items-center justify-between bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-3">
-            <span className="text-xs text-gray-500 dark:text-gray-400">
+          <div className="mt-3 flex items-center justify-between bg-surface rounded-md border border-border p-3">
+            <span className="text-xs text-fg-subtle">
               {t('pagination.page', { current: pagination.page, total: pagination.totalPages })}
             </span>
             <div className="flex items-center gap-2">
               <button
                 onClick={() => onPageChange(pagination.page - 1)}
                 disabled={pagination.page <= 1}
-                className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-fg-muted bg-surface-hover rounded hover:bg-surface-hover transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 <FiChevronLeft className="w-3.5 h-3.5" />
                 {t('actions.previous')}
@@ -852,7 +821,7 @@ export function PaidInvoicesTabLazy({
               <button
                 onClick={() => onPageChange(pagination.page + 1)}
                 disabled={pagination.page >= pagination.totalPages}
-                className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-fg-muted bg-surface-hover rounded hover:bg-surface-hover transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 {t('actions.next')}
                 <FiChevronRight className="w-3.5 h-3.5" />
@@ -892,15 +861,15 @@ export function PaidInvoicesTabLazy({
             }}
           />
           <div className="flex min-h-full items-center justify-center p-4">
-            <div className="relative w-full max-w-md bg-white dark:bg-[#151b23] rounded-lg shadow-xl">
+            <div className="relative w-full max-w-md bg-surface rounded-lg shadow-xl">
               <div className="p-6">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
+                <h3 className="text-lg font-semibold text-fg mb-4">
                   {t('modals.revertBatchPayment.title')}
                 </h3>
 
                 {/* Month selector */}
                 <div className="mb-4">
-                  <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  <label className="block text-xs font-medium text-fg mb-1">
                     {t('modals.revertBatchPayment.selectMonth')}
                   </label>
                   <select
@@ -913,7 +882,7 @@ export function PaidInvoicesTabLazy({
                       const [year, month] = e.target.value.split('-').map(Number)
                       handleRevertMonthChange(year, month)
                     }}
-                    className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 dark:focus:ring-orange-600 focus:border-transparent bg-white dark:bg-[#0d1117] dark:text-gray-200"
+                    className="w-full px-3 py-2 text-sm border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 dark:focus:ring-orange-600 focus:border-transparent bg-surface dark:text-fg"
                   >
                     {getAvailableMonths().map((m) => (
                       <option key={`${m.year}-${m.month}`} value={`${m.year}-${m.month}`}>
@@ -948,7 +917,7 @@ export function PaidInvoicesTabLazy({
                   </div>
                 ) : (
                   revertPreview && (
-                    <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-md p-3 mb-4">
+                    <div className="bg-info/10 border border-blue-200 dark:border-blue-800 rounded-md p-3 mb-4">
                       <p className="text-xs text-blue-800 dark:text-blue-300">
                         {t('modals.revertBatchPayment.description', {
                           month: getMonthName(revertPreview.month),
@@ -967,7 +936,7 @@ export function PaidInvoicesTabLazy({
                       setSelectedMonthYear(null)
                     }}
                     disabled={isReverting}
-                    className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
+                    className="flex-1 px-4 py-2 text-sm font-medium text-fg bg-surface-hover border border-border rounded-md hover:bg-surface-hover transition-colors disabled:opacity-50"
                   >
                     {t('actions.cancel')}
                   </button>

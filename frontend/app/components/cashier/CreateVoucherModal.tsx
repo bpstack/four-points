@@ -86,16 +86,16 @@ export default function CreateVoucherModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-      <div className="bg-white dark:bg-[#0d1117] rounded-lg shadow-xl border border-gray-200 dark:border-gray-800 w-full max-w-md mx-4">
+      <div className="bg-surface rounded-lg shadow-xl border border-border w-full max-w-md mx-4">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-800">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+        <div className="flex items-center justify-between p-4 border-b border-border">
+          <h3 className="text-lg font-semibold text-fg flex items-center gap-2">
             📝 {t('voucher.newVoucher')}
           </h3>
           <button
             onClick={handleCancel}
             disabled={isLoading}
-            className="p-1 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 rounded transition-colors"
+            className="p-1 text-fg-subtle hover:text-fg rounded transition-colors"
           >
             <FiX className="w-5 h-5" />
           </button>
@@ -120,7 +120,7 @@ export default function CreateVoucherModal({
         <form onSubmit={handleSubmit} className="p-4 space-y-4">
           {/* Monto */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label className="block text-sm font-medium text-fg mb-2">
               {t('voucher.voucherAmount')}{' '}
               <span className="text-red-500">{t('common.required')}</span>
             </label>
@@ -137,21 +137,19 @@ export default function CreateVoucherModal({
                 }}
                 placeholder="0.00"
                 disabled={isLoading}
-                className="w-full px-4 py-2 pr-8 text-lg font-semibold text-gray-900 dark:text-white bg-gray-50 dark:bg-[#151b23] border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full px-4 py-2 pr-8 text-lg font-semibold text-fg bg-surface border border-border rounded-lg focus:ring-2 focus:ring-accent/50 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
                 required
               />
-              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 font-medium">
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-fg-subtle font-medium">
                 €
               </span>
             </div>
-            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-              {t('voucher.enterAmount')}
-            </p>
+            <p className="mt-1 text-xs text-fg-subtle">{t('voucher.enterAmount')}</p>
           </div>
 
           {/* Razón */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label className="block text-sm font-medium text-fg mb-2">
               {t('voucher.reason')} <span className="text-red-500">{t('common.required')}</span>
             </label>
             <textarea
@@ -160,16 +158,16 @@ export default function CreateVoucherModal({
               placeholder={t('voucher.reasonPlaceholder')}
               disabled={isLoading}
               rows={3}
-              className="w-full px-4 py-2 text-sm text-gray-900 dark:text-white bg-gray-50 dark:bg-[#151b23] border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed resize-none"
+              className="w-full px-4 py-2 text-sm text-fg bg-surface border border-border rounded-lg focus:ring-2 focus:ring-accent/50 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed resize-none"
               required
               minLength={5}
             />
             <div className="mt-1 flex items-center justify-between text-xs">
-              <span className="text-gray-500 dark:text-gray-400">{t('voucher.minCharacters')}</span>
+              <span className="text-fg-subtle">{t('voucher.minCharacters')}</span>
               <span
                 className={`font-medium ${
                   reason.length < 5
-                    ? 'text-gray-400 dark:text-gray-500'
+                    ? 'text-fg-subtle'
                     : reason.length < 20
                       ? 'text-yellow-600 dark:text-yellow-400'
                       : 'text-green-600 dark:text-green-400'
@@ -186,14 +184,14 @@ export default function CreateVoucherModal({
               type="button"
               onClick={handleCancel}
               disabled={isLoading}
-              className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-[#0d1117] border border-gray-300 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 py-2 text-sm font-medium text-fg bg-surface border border-border rounded-lg hover:bg-surface-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {t('common.cancel')}
             </button>
             <button
               type="submit"
               disabled={isLoading || !amount || reason.length < 5}
-              className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              className="px-4 py-2 text-sm font-medium text-accent-fg bg-accent hover:bg-accent-hover rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
             >
               {isLoading ? (
                 <>

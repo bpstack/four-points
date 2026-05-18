@@ -10,18 +10,11 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import {
-  FiX,
-  FiExternalLink,
-  FiDownload,
-  FiLoader,
-  FiAlertCircle,
-  FiFileText,
-  FiCheck,
-} from 'react-icons/fi'
+import { FiX, FiExternalLink, FiDownload, FiAlertCircle, FiFileText, FiCheck } from 'react-icons/fi'
 import { useTranslations } from 'next-intl'
 import { backofficeApi } from '@/app/lib/backoffice/backofficeApi'
 import toast from 'react-hot-toast'
+import { Button, Spinner } from '@/app/ui/components'
 
 interface PdfViewerModalProps {
   isOpen: boolean
@@ -215,18 +208,18 @@ export function PdfViewerModal({
 
       {/* Modal - Full screen on mobile, large on desktop */}
       <div className="flex min-h-full items-center justify-center p-2 sm:p-4">
-        <div className="relative w-full max-w-5xl h-[90vh] bg-white dark:bg-[#151b23] rounded-lg shadow-xl flex flex-col">
+        <div className="relative w-full max-w-5xl h-[90vh] bg-surface rounded-lg shadow-xl flex flex-col">
           {/* Header */}
-          <div className="flex items-center justify-between px-4 sm:px-6 py-3 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
+          <div className="flex items-center justify-between px-4 sm:px-6 py-3 border-b border-border flex-shrink-0">
             <div className="flex items-center gap-3 min-w-0">
               <div className="w-10 h-10 bg-red-50 dark:bg-red-900/20 rounded-lg flex items-center justify-center flex-shrink-0">
                 <FiFileText className="w-5 h-5 text-red-500 dark:text-red-400" />
               </div>
               <div className="min-w-0">
-                <h2 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 truncate">
+                <h2 className="text-base sm:text-lg font-semibold text-fg truncate">
                   {invoiceNumber}
                 </h2>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
+                <p className="text-xs text-fg-subtle">
                   {activePdfType === 'validated'
                     ? t('modals.pdfViewer.validatedPdf')
                     : t('modals.pdfViewer.originalPdf')}
@@ -246,30 +239,28 @@ export function PdfViewerModal({
                 <>
                   <button
                     onClick={handleOpenInNewTab}
-                    className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                    className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-fg bg-surface-hover rounded-md hover:bg-surface-hover transition-colors"
                     title={t('modals.pdfViewer.openNewTab')}
                   >
                     <FiExternalLink className="w-3.5 h-3.5" />
                     <span className="hidden md:inline">{t('modals.pdfViewer.newTab')}</span>
                   </button>
-                  <button
+                  <Button
+                    variant="accent"
+                    size="sm"
                     onClick={handleDownload}
                     disabled={downloading}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50"
                     title={t('modals.pdfViewer.downloadPdf')}
+                    loading={downloading}
                   >
-                    {downloading ? (
-                      <FiLoader className="w-3.5 h-3.5 animate-spin" />
-                    ) : (
-                      <FiDownload className="w-3.5 h-3.5" />
-                    )}
+                    {!downloading && <FiDownload className="w-3.5 h-3.5" />}
                     <span className="hidden md:inline">{t('modals.pdfViewer.download')}</span>
-                  </button>
+                  </Button>
                 </>
               )}
               <button
                 onClick={onClose}
-                className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded transition-colors"
+                className="rounded-fp p-1.5 text-fg-subtle hover:bg-surface-hover hover:text-fg transition-colors"
                 title={t('modals.pdfViewer.close')}
               >
                 <FiX className="w-5 h-5" />
@@ -279,13 +270,13 @@ export function PdfViewerModal({
 
           {/* Tabs (if both PDFs exist) - only show after loading invoice data */}
           {!isLoadingInitial && showTabs && (
-            <div className="flex border-b border-gray-200 dark:border-gray-700 px-4 sm:px-6 flex-shrink-0">
+            <div className="flex border-b border-border px-4 sm:px-6 flex-shrink-0">
               <button
                 onClick={() => setActivePdfType('original')}
                 className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
                   activePdfType === 'original'
                     ? 'border-blue-500 text-blue-600 dark:text-blue-400'
-                    : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                    : 'border-transparent text-fg-subtle hover:text-fg'
                 }`}
               >
                 {t('modals.pdfViewer.originalTab')}
@@ -295,7 +286,7 @@ export function PdfViewerModal({
                 className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors flex items-center gap-1.5 ${
                   activePdfType === 'validated'
                     ? 'border-green-500 text-green-600 dark:text-green-400'
-                    : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                    : 'border-transparent text-fg-subtle hover:text-fg'
                 }`}
               >
                 <FiCheck className="w-3.5 h-3.5" />
@@ -305,25 +296,26 @@ export function PdfViewerModal({
           )}
 
           {/* Content - PDF Viewer */}
-          <div className="flex-1 min-h-0 p-2 sm:p-4 bg-gray-100 dark:bg-gray-900">
+          <div className="flex-1 min-h-0 p-2 sm:p-4 bg-surface-sunken">
             {isLoadingInitial ? (
-              <div className="flex flex-col items-center justify-center h-full text-gray-500 dark:text-gray-400">
-                <FiLoader className="w-12 h-12 animate-spin mb-4" />
+              <div className="flex flex-col items-center justify-center h-full text-fg-subtle">
+                <Spinner size="lg" className="mb-4" />
                 <p className="text-sm">{t('modals.pdfViewer.loadingInvoice')}</p>
               </div>
             ) : loading ? (
-              <div className="flex flex-col items-center justify-center h-full text-gray-500 dark:text-gray-400">
-                <FiLoader className="w-12 h-12 animate-spin mb-4" />
+              <div className="flex flex-col items-center justify-center h-full text-fg-subtle">
+                <Spinner size="lg" className="mb-4" />
                 <p className="text-sm">{t('modals.pdfViewer.loadingPdf')}</p>
               </div>
             ) : error ? (
               <div className="flex flex-col items-center justify-center h-full text-red-500">
                 <FiAlertCircle className="w-12 h-12 mb-4" />
                 <p className="font-medium">{t('modals.pdfViewer.errorLoading')}</p>
-                <p className="text-sm mt-1 text-gray-500 dark:text-gray-400">
-                  {t(`modals.pdfViewer.${error}`)}
-                </p>
-                <button
+                <p className="text-sm mt-1 text-fg-subtle">{t(`modals.pdfViewer.${error}`)}</p>
+                <Button
+                  variant="accent"
+                  size="md"
+                  className="mt-4"
                   onClick={() => {
                     setError(null)
                     setLoading(true)
@@ -336,19 +328,18 @@ export function PdfViewerModal({
                       .catch(() => setError('errorLoading'))
                       .finally(() => setLoading(false))
                   }}
-                  className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
                 >
                   {t('modals.pdfViewer.retry')}
-                </button>
+                </Button>
               </div>
             ) : pdfBlobUrl ? (
               <iframe
                 src={pdfBlobUrl}
-                className="w-full h-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white"
+                className="w-full h-full rounded-lg border border-border bg-white"
                 title={`PDF - ${invoiceNumber}`}
               />
             ) : (
-              <div className="flex flex-col items-center justify-center h-full text-gray-500 dark:text-gray-400">
+              <div className="flex flex-col items-center justify-center h-full text-fg-subtle">
                 <FiFileText className="w-12 h-12 mb-4" />
                 <p className="text-sm">{t('modals.pdfViewer.noPdfAvailable')}</p>
               </div>
@@ -357,26 +348,21 @@ export function PdfViewerModal({
 
           {/* Mobile action buttons */}
           {pdfBlobUrl && (
-            <div className="sm:hidden flex gap-2 p-3 border-t border-gray-200 dark:border-gray-700 flex-shrink-0">
-              <button
-                onClick={handleOpenInNewTab}
-                className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-              >
+            <div className="sm:hidden flex gap-2 p-3 border-t border-border flex-shrink-0">
+              <Button variant="default" fullWidth onClick={handleOpenInNewTab}>
                 <FiExternalLink className="w-4 h-4" />
                 {t('modals.pdfViewer.newTab')}
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="accent"
+                fullWidth
                 onClick={handleDownload}
                 disabled={downloading}
-                className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50"
+                loading={downloading}
               >
-                {downloading ? (
-                  <FiLoader className="w-4 h-4 animate-spin" />
-                ) : (
-                  <FiDownload className="w-4 h-4" />
-                )}
+                {!downloading && <FiDownload className="w-4 h-4" />}
                 {t('modals.pdfViewer.download')}
-              </button>
+              </Button>
             </div>
           )}
         </div>

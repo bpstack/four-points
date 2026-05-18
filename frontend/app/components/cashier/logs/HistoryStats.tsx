@@ -42,34 +42,26 @@ export default function HistoryStats({ stats }: HistoryStatsProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
       {/* Total de Entradas */}
-      <div className="bg-white dark:bg-[#0d1117] border border-gray-200 dark:border-gray-800 rounded-lg p-6">
+      <div className="bg-surface border border-border rounded-lg p-6">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400">
-            {t('logs.totalRecords')}
-          </h3>
+          <h3 className="text-sm font-medium text-fg-muted">{t('logs.totalRecords')}</h3>
           <FiActivity className="w-5 h-5 text-blue-600 dark:text-blue-400" />
         </div>
-        <p className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-          {stats.total_entries}
-        </p>
+        <p className="text-3xl font-bold text-fg mb-2">{stats.total_entries}</p>
         <div className="space-y-1">
           {topActions.map((action) => (
             <div key={action.action} className="flex items-center justify-between text-xs">
-              <span className="text-gray-600 dark:text-gray-400">
-                {getActionLabel(action.action)}
-              </span>
-              <span className="font-medium text-gray-900 dark:text-white">{action.count}</span>
+              <span className="text-fg-muted">{getActionLabel(action.action)}</span>
+              <span className="font-medium text-fg">{action.count}</span>
             </div>
           ))}
         </div>
       </div>
 
       {/* Usuarios Más Activos */}
-      <div className="bg-white dark:bg-[#0d1117] border border-gray-200 dark:border-gray-800 rounded-lg p-6">
+      <div className="bg-surface border border-border rounded-lg p-6">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400">
-            {t('logs.activeUsers')}
-          </h3>
+          <h3 className="text-sm font-medium text-fg-muted">{t('logs.activeUsers')}</h3>
           <FiUsers className="w-5 h-5 text-green-600 dark:text-green-400" />
         </div>
         <div className="space-y-3">
@@ -80,48 +72,40 @@ export default function HistoryStats({ stats }: HistoryStatsProps) {
                   {index + 1}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
-                    {user.username}
-                  </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                  <p className="text-sm font-medium text-fg truncate">{user.username}</p>
+                  <p className="text-xs text-fg-subtle">
                     {user.actions_count} {t('logs.action').toLowerCase()}
                   </p>
                 </div>
               </div>
             ))
           ) : (
-            <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">
-              {t('logs.noActivity')}
-            </p>
+            <p className="text-sm text-fg-subtle text-center py-4">{t('logs.noActivity')}</p>
           )}
         </div>
       </div>
 
       {/* Actividad Reciente */}
-      <div className="bg-white dark:bg-[#0d1117] border border-gray-200 dark:border-gray-800 rounded-lg p-6">
+      <div className="bg-surface border border-border rounded-lg p-6">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400">
-            {t('logs.recentActivity')}
-          </h3>
+          <h3 className="text-sm font-medium text-fg-muted">{t('logs.recentActivity')}</h3>
           <FiList className="w-5 h-5 text-purple-600 dark:text-purple-400" />
         </div>
         <div className="space-y-3">
           {stats.recent_activity.slice(0, 3).map((activity) => (
             <div key={activity.id} className="border-l-2 border-blue-500 pl-3">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-medium text-gray-900 dark:text-white">
+                <span className="text-xs font-medium text-fg">
                   {getActionLabel(activity.action)}
                 </span>
-                <span className="text-xs text-gray-500 dark:text-gray-400">
+                <span className="text-xs text-fg-subtle">
                   {new Date(activity.changed_at).toLocaleTimeString('es-ES', {
                     hour: '2-digit',
                     minute: '2-digit',
                   })}
                 </span>
               </div>
-              <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
-                {activity.username || t('logs.system')}
-              </p>
+              <p className="text-xs text-fg-muted mt-1">{activity.username || t('logs.system')}</p>
             </div>
           ))}
         </div>

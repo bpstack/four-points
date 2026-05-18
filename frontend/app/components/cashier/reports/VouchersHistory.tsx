@@ -107,7 +107,7 @@ export default function VouchersHistory({ year, month }: VouchersHistoryProps) {
       <div className="flex items-center justify-center py-20">
         <div className="text-center">
           <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-          <p className="text-sm text-gray-500 dark:text-gray-400">{t('page.loadingVouchers')}</p>
+          <p className="text-sm text-fg-subtle">{t('page.loadingVouchers')}</p>
         </div>
       </div>
     )
@@ -125,14 +125,10 @@ export default function VouchersHistory({ year, month }: VouchersHistoryProps) {
     <div className="space-y-6">
       {/* Estadísticas */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="bg-white dark:bg-[#0d1117] border border-gray-200 dark:border-gray-800 rounded-lg p-4">
-          <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">
-            {t('vouchersHistory.totalVouchers')}
-          </p>
-          <p className="text-2xl font-bold text-gray-900 dark:text-white">{totals.all}</p>
-          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-            {totals.totalAmount.toFixed(2)}€
-          </p>
+        <div className="bg-surface border border-border rounded-lg p-4">
+          <p className="text-sm text-fg-muted mb-1">{t('vouchersHistory.totalVouchers')}</p>
+          <p className="text-2xl font-bold text-fg">{totals.all}</p>
+          <p className="text-xs text-fg-subtle mt-1">{totals.totalAmount.toFixed(2)}€</p>
         </div>
 
         <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
@@ -165,7 +161,7 @@ export default function VouchersHistory({ year, month }: VouchersHistoryProps) {
       </div>
 
       {/* Filtros y búsqueda */}
-      <div className="bg-white dark:bg-[#0d1117] border border-gray-200 dark:border-gray-800 rounded-lg p-4">
+      <div className="bg-surface border border-border rounded-lg p-4">
         <div className="flex flex-col md:flex-row gap-4">
           {/* Buscador */}
           <div className="flex-1 relative">
@@ -175,7 +171,7 @@ export default function VouchersHistory({ year, month }: VouchersHistoryProps) {
               placeholder={t('vouchersHistory.searchPlaceholder')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full pl-10 pr-4 py-2 border border-border rounded-lg bg-surface-hover text-fg placeholder-gray-400 focus:ring-2 focus:ring-accent/50 focus:border-transparent"
             />
           </div>
 
@@ -185,7 +181,7 @@ export default function VouchersHistory({ year, month }: VouchersHistoryProps) {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value as VoucherStatus)}
-              className="px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="px-4 py-2 border border-border rounded-lg bg-surface-hover text-fg focus:ring-2 focus:ring-accent/50 focus:border-transparent"
             >
               <option value="all">{t('vouchersHistory.allStatuses')}</option>
               <option value="pending">{t('vouchersHistory.pendingStatus')}</option>
@@ -197,7 +193,7 @@ export default function VouchersHistory({ year, month }: VouchersHistoryProps) {
           {/* Botón exportar */}
           <button
             onClick={() => console.log('Exportar vales')}
-            className="px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center gap-2 whitespace-nowrap"
+            className="px-4 py-2 border border-border rounded-lg bg-surface-hover text-fg hover:bg-surface-hover transition-colors flex items-center gap-2 whitespace-nowrap"
           >
             <FiDownload className="w-4 h-4" />
             {t('vouchersHistory.export')}
@@ -206,55 +202,52 @@ export default function VouchersHistory({ year, month }: VouchersHistoryProps) {
       </div>
 
       {/* Tabla de vales */}
-      <div className="bg-white dark:bg-[#0d1117] border border-gray-200 dark:border-gray-800 rounded-lg overflow-hidden">
+      <div className="bg-surface border border-border rounded-lg overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-gray-50 dark:bg-gray-800/50">
+            <thead className="bg-surface-hover/50">
               <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-medium text-fg uppercase tracking-wider">
                   {t('vouchersHistory.dateCol')}
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-medium text-fg uppercase tracking-wider">
                   {t('vouchersHistory.shiftCol')}
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-medium text-fg uppercase tracking-wider">
                   {t('vouchersHistory.userCol')}
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-medium text-fg uppercase tracking-wider">
                   {t('vouchersHistory.reasonCol')}
                 </th>
-                <th className="px-4 py-3 text-right text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                <th className="px-4 py-3 text-right text-xs font-medium text-fg uppercase tracking-wider">
                   {t('vouchersHistory.amountCol')}
                 </th>
-                <th className="px-4 py-3 text-center text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                <th className="px-4 py-3 text-center text-xs font-medium text-fg uppercase tracking-wider">
                   {t('vouchersHistory.statusCol')}
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
+            <tbody className="divide-y divide-border">
               {filteredVouchers.length > 0 ? (
                 filteredVouchers.map((voucher: VoucherHistoryItem) => (
-                  <tr
-                    key={voucher.id}
-                    className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
-                  >
-                    <td className="px-4 py-3 text-sm text-gray-900 dark:text-white whitespace-nowrap">
+                  <tr key={voucher.id} className="hover:bg-surface-hover/50 transition-colors">
+                    <td className="px-4 py-3 text-sm text-fg whitespace-nowrap">
                       {new Date(voucher.created_at).toLocaleDateString('es-ES', {
                         day: '2-digit',
                         month: '2-digit',
                         year: 'numeric',
                       })}
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-900 dark:text-white">
+                    <td className="px-4 py-3 text-sm text-fg">
                       {formatShiftType(voucher.shift_type)}
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-900 dark:text-white">
+                    <td className="px-4 py-3 text-sm text-fg">
                       {voucher.created_by_username || '-'}
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400 max-w-xs truncate">
+                    <td className="px-4 py-3 text-sm text-fg-muted max-w-xs truncate">
                       {voucher.reason}
                     </td>
-                    <td className="px-4 py-3 text-sm text-right font-medium text-gray-900 dark:text-white">
+                    <td className="px-4 py-3 text-sm text-right font-medium text-fg">
                       {parseFloat(voucher.amount).toFixed(2)}€
                     </td>
                     <td className="px-4 py-3 text-center">{getStatusBadge(voucher.status)}</td>
@@ -262,10 +255,7 @@ export default function VouchersHistory({ year, month }: VouchersHistoryProps) {
                 ))
               ) : (
                 <tr>
-                  <td
-                    colSpan={6}
-                    className="px-4 py-8 text-center text-gray-500 dark:text-gray-400"
-                  >
+                  <td colSpan={6} className="px-4 py-8 text-center text-fg-subtle">
                     {t('vouchersHistory.noVouchersFound')}
                   </td>
                 </tr>

@@ -29,7 +29,7 @@ export function TabNavigation(_props: TabNavigationProps) {
   ]
 
   return (
-    <div className="bg-white dark:bg-[#010409]">
+    <div className="bg-bg">
       <div className="max-w-[1400px] px-4 md:px-6 py-6">
         <nav className="flex gap-4 sm:gap-6" aria-label="Tabs">
           {tabs.map((tab) => {
@@ -42,8 +42,8 @@ export function TabNavigation(_props: TabNavigationProps) {
                   inline-flex items-center gap-2 px-1 py-3 border-b-2 text-sm font-medium transition-colors
                   ${
                     isActive
-                      ? 'border-blue-600 dark:border-blue-500 text-blue-600 dark:text-blue-400'
-                      : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:border-gray-300 dark:hover:border-gray-700'
+                      ? 'border-blue-600 dark:border-blue-500 text-info'
+                      : 'border-transparent text-fg-muted hover:text-fg hover:border-gray-300 dark:hover:border-gray-700'
                   }
                 `}
               >

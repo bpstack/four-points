@@ -126,7 +126,7 @@ export default function NewLogbookEntry({
       subtitle={t('modals.newEntry.subtitle')}
       size="xl"
       position="right"
-      headerIcon={<FiAlertTriangle className="w-5 h-5 text-blue-600 dark:text-blue-400" />}
+      headerIcon={<FiAlertTriangle className="w-5 h-5 text-info" />}
       footer={
         <SlidePanelFooterButtons
           onCancel={onClose}
@@ -184,7 +184,7 @@ export default function NewLogbookEntry({
                   placeholder={t('modals.newEntry.placeholders.date')}
                   disabled={isSubmitting}
                 />
-                <FiCalendar className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
+                <FiCalendar className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-fg-subtle pointer-events-none" />
               </div>
 
               {/* Today button */}
@@ -195,7 +195,7 @@ export default function NewLogbookEntry({
                   setDate(formatDateForInput(today))
                   setShowCalendar(false)
                 }}
-                className="px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-md font-medium transition-colors text-sm"
+                className="px-4 py-2 bg-surface-hover hover:bg-border text-fg rounded-md font-medium transition-colors text-sm"
                 disabled={isSubmitting}
               >
                 {t('modals.newEntry.fields.today')}

@@ -8,7 +8,8 @@
 
 import { useState, useEffect, useTransition } from 'react'
 import { useTranslations } from 'next-intl'
-import { FiX, FiSave, FiLoader } from 'react-icons/fi'
+import { FiSave } from 'react-icons/fi'
+import { Modal, Input, Select, Textarea, Button } from '@/app/ui/components'
 import type {
   SupplierWithStats,
   SupplierFormData,
@@ -182,264 +183,142 @@ export function SupplierFormModal({
     })
   }
 
-  if (!isOpen) return null
-
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
-      {/* Backdrop */}
-      <div className="fixed inset-0 bg-black/50 transition-opacity" onClick={onClose} />
-
-      {/* Modal */}
-      <div className="flex min-h-full items-center justify-center p-4">
-        <div className="relative w-full max-w-2xl bg-white dark:bg-[#151b23] rounded-lg shadow-xl">
-          {/* Header */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-              {supplier ? t('modals.supplier.editTitle') : t('modals.supplier.createTitle')}
-            </h2>
-            <button
-              onClick={onClose}
-              className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded transition-colors"
-            >
-              <FiX className="w-5 h-5" />
-            </button>
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={supplier ? t('modals.supplier.editTitle') : t('modals.supplier.createTitle')}
+      size="md"
+      static={isPending}
+      footer={
+        <>
+          <Button type="button" variant="default" onClick={onClose} disabled={isPending}>
+            {t('actions.cancel')}
+          </Button>
+          <Button type="submit" form="supplier-form" variant="accent" loading={isPending}>
+            <FiSave className="w-4 h-4" />
+            {supplier ? t('modals.supplier.buttons.update') : t('modals.supplier.buttons.create')}
+          </Button>
+        </>
+      }
+    >
+      <form id="supplier-form" onSubmit={handleSubmit}>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="md:col-span-2">
+            <Input
+              label={`${t('modals.supplier.fields.name')} *`}
+              value={formData.name}
+              onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
+              placeholder={t('modals.supplier.placeholders.name')}
+              error={errors.name}
+            />
           </div>
 
-          {/* Form */}
-          <form onSubmit={handleSubmit} className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Nombre */}
-              <div className="md:col-span-2">
-                <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  {t('modals.supplier.fields.name')} *
-                </label>
-                <input
-                  type="text"
-                  value={formData.name}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
-                  className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-[#0d1117] dark:text-gray-200 ${
-                    errors.name
-                      ? 'border-red-500 dark:border-red-500'
-                      : 'border-gray-300 dark:border-gray-600'
-                  }`}
-                  placeholder={t('modals.supplier.placeholders.name')}
-                />
-                {errors.name && <p className="mt-1 text-xs text-red-500">{errors.name}</p>}
-              </div>
+          <Input
+            label={t('modals.supplier.fields.cif')}
+            value={formData.cif || ''}
+            onChange={(e) =>
+              setFormData((prev) => ({ ...prev, cif: e.target.value.toUpperCase() }))
+            }
+            placeholder={t('modals.supplier.placeholders.cif')}
+            maxLength={9}
+            error={errors.cif}
+            mono
+          />
 
-              {/* CIF */}
-              <div>
-                <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  {t('modals.supplier.fields.cif')}
-                </label>
-                <input
-                  type="text"
-                  value={formData.cif || ''}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, cif: e.target.value.toUpperCase() }))
-                  }
-                  className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-[#0d1117] dark:text-gray-200 ${
-                    errors.cif
-                      ? 'border-red-500 dark:border-red-500'
-                      : 'border-gray-300 dark:border-gray-600'
-                  }`}
-                  placeholder={t('modals.supplier.placeholders.cif')}
-                  maxLength={9}
-                />
-                {errors.cif && <p className="mt-1 text-xs text-red-500">{errors.cif}</p>}
-              </div>
+          <Select
+            label={t('modals.supplier.fields.defaultCategory')}
+            value={formData.default_category_id != null ? String(formData.default_category_id) : ''}
+            onChange={(e) =>
+              setFormData((prev) => ({
+                ...prev,
+                default_category_id: e.target.value ? Number(e.target.value) : undefined,
+              }))
+            }
+            options={[
+              { value: '', label: t('modals.supplier.placeholders.noCategory') },
+              ...categories.map((c) => ({
+                value: String(c.id),
+                label: `${c.cost_center} - ${c.department}`,
+              })),
+            ]}
+          />
 
-              {/* Categoría por defecto */}
-              <div>
-                <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  {t('modals.supplier.fields.defaultCategory')}
-                </label>
-                <select
-                  value={formData.default_category_id || ''}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      default_category_id: e.target.value ? Number(e.target.value) : undefined,
-                    }))
-                  }
-                  className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-[#0d1117] dark:text-gray-200"
-                >
-                  <option value="">{t('modals.supplier.placeholders.noCategory')}</option>
-                  {categories.map((cat) => (
-                    <option key={cat.id} value={cat.id}>
-                      {cat.cost_center} - {cat.department}
-                    </option>
-                  ))}
-                </select>
-              </div>
+          <Select
+            label={t('modals.supplier.fields.periodicity')}
+            value={formData.periodicity}
+            onChange={(e) =>
+              setFormData((prev) => ({ ...prev, periodicity: e.target.value as Periodicity }))
+            }
+            options={PERIODICITY_OPTIONS.map((o) => ({ value: o.value, label: o.label }))}
+          />
 
-              {/* Periodicidad */}
-              <div>
-                <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  {t('modals.supplier.fields.periodicity')}
-                </label>
-                <select
-                  value={formData.periodicity}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      periodicity: e.target.value as Periodicity,
-                    }))
-                  }
-                  className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-[#0d1117] dark:text-gray-200"
-                >
-                  {PERIODICITY_OPTIONS.map((opt) => (
-                    <option key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
+          <Select
+            label={t('modals.supplier.fields.paymentMethod')}
+            value={formData.payment_method}
+            onChange={(e) =>
+              setFormData((prev) => ({
+                ...prev,
+                payment_method: e.target.value as PaymentMethod,
+              }))
+            }
+            options={PAYMENT_METHOD_OPTIONS.map((o) => ({ value: o.value, label: o.label }))}
+          />
 
-              {/* Método de pago */}
-              <div>
-                <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  {t('modals.supplier.fields.paymentMethod')}
-                </label>
-                <select
-                  value={formData.payment_method}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      payment_method: e.target.value as PaymentMethod,
-                    }))
-                  }
-                  className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-[#0d1117] dark:text-gray-200"
-                >
-                  {PAYMENT_METHOD_OPTIONS.map((opt) => (
-                    <option key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
+          <div className="md:col-span-2">
+            <Input
+              label={t('modals.supplier.fields.bankAccount')}
+              value={formData.bank_account || ''}
+              onChange={(e) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  bank_account: e.target.value.toUpperCase(),
+                }))
+              }
+              placeholder={t('modals.supplier.placeholders.bankAccount')}
+              error={errors.bank_account}
+              mono
+            />
+          </div>
 
-              {/* Cuenta bancaria (IBAN) */}
-              <div className="md:col-span-2">
-                <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  {t('modals.supplier.fields.bankAccount')}
-                </label>
-                <input
-                  type="text"
-                  value={formData.bank_account || ''}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      bank_account: e.target.value.toUpperCase(),
-                    }))
-                  }
-                  className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-[#0d1117] dark:text-gray-200 ${
-                    errors.bank_account
-                      ? 'border-red-500 dark:border-red-500'
-                      : 'border-gray-300 dark:border-gray-600'
-                  }`}
-                  placeholder={t('modals.supplier.placeholders.bankAccount')}
-                />
-                {errors.bank_account && (
-                  <p className="mt-1 text-xs text-red-500">{errors.bank_account}</p>
-                )}
-              </div>
+          <Input
+            label={t('modals.supplier.fields.email')}
+            type="email"
+            value={formData.email || ''}
+            onChange={(e) => setFormData((prev) => ({ ...prev, email: e.target.value }))}
+            placeholder={t('modals.supplier.placeholders.email')}
+            error={errors.email}
+          />
 
-              {/* Email */}
-              <div>
-                <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  {t('modals.supplier.fields.email')}
-                </label>
-                <input
-                  type="email"
-                  value={formData.email || ''}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, email: e.target.value }))}
-                  className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-[#0d1117] dark:text-gray-200 ${
-                    errors.email
-                      ? 'border-red-500 dark:border-red-500'
-                      : 'border-gray-300 dark:border-gray-600'
-                  }`}
-                  placeholder={t('modals.supplier.placeholders.email')}
-                />
-                {errors.email && <p className="mt-1 text-xs text-red-500">{errors.email}</p>}
-              </div>
+          <Input
+            label={t('modals.supplier.fields.phone')}
+            type="tel"
+            value={formData.phone || ''}
+            onChange={(e) => setFormData((prev) => ({ ...prev, phone: e.target.value }))}
+            placeholder={t('modals.supplier.placeholders.phone')}
+          />
 
-              {/* Teléfono */}
-              <div>
-                <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  {t('modals.supplier.fields.phone')}
-                </label>
-                <input
-                  type="tel"
-                  value={formData.phone || ''}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, phone: e.target.value }))}
-                  className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-[#0d1117] dark:text-gray-200"
-                  placeholder={t('modals.supplier.placeholders.phone')}
-                />
-              </div>
+          <div className="md:col-span-2">
+            <Input
+              label={t('modals.supplier.fields.address')}
+              value={formData.address || ''}
+              onChange={(e) => setFormData((prev) => ({ ...prev, address: e.target.value }))}
+              placeholder={t('modals.supplier.placeholders.address')}
+            />
+          </div>
 
-              {/* Dirección */}
-              <div className="md:col-span-2">
-                <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  {t('modals.supplier.fields.address')}
-                </label>
-                <input
-                  type="text"
-                  value={formData.address || ''}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, address: e.target.value }))}
-                  className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-[#0d1117] dark:text-gray-200"
-                  placeholder={t('modals.supplier.placeholders.address')}
-                />
-              </div>
-
-              {/* Notas */}
-              <div className="md:col-span-2">
-                <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  {t('modals.supplier.fields.notes')}
-                </label>
-                <textarea
-                  value={formData.notes || ''}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, notes: e.target.value }))}
-                  rows={2}
-                  className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-[#0d1117] dark:text-gray-200 resize-none"
-                  placeholder={t('modals.supplier.placeholders.notes')}
-                />
-              </div>
-            </div>
-
-            {/* Actions */}
-            <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
-              <button
-                type="button"
-                onClick={onClose}
-                disabled={isPending}
-                className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
-              >
-                {t('actions.cancel')}
-              </button>
-              <button
-                type="submit"
-                disabled={isPending}
-                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50"
-              >
-                {isPending ? (
-                  <>
-                    <FiLoader className="w-4 h-4 animate-spin" />
-                    {t('actions.saving')}
-                  </>
-                ) : (
-                  <>
-                    <FiSave className="w-4 h-4" />
-                    {supplier
-                      ? t('modals.supplier.buttons.update')
-                      : t('modals.supplier.buttons.create')}
-                  </>
-                )}
-              </button>
-            </div>
-          </form>
+          <div className="md:col-span-2">
+            <Textarea
+              label={t('modals.supplier.fields.notes')}
+              value={formData.notes || ''}
+              onChange={(e) => setFormData((prev) => ({ ...prev, notes: e.target.value }))}
+              rows={2}
+              resize="none"
+              placeholder={t('modals.supplier.placeholders.notes')}
+            />
+          </div>
         </div>
-      </div>
-    </div>
+      </form>
+    </Modal>
   )
 }

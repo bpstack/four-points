@@ -43,13 +43,11 @@ export function StatusTab() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+        <h3 className="text-sm font-semibold text-fg flex items-center gap-2">
           <FiActivity className="w-4 h-4" />
           {t('statusTab.groupStatus')}
         </h3>
-        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-          {t('statusTab.trackingProgress')}
-        </p>
+        <p className="text-xs text-fg-subtle mt-1">{t('statusTab.trackingProgress')}</p>
       </div>
 
       {/* Timeline */}
@@ -64,7 +62,7 @@ export function StatusTab() {
       </div>
 
       {/* Info Box */}
-      <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+      <div className="bg-info/10 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
         <p className="text-xs text-blue-800 dark:text-blue-300">{t('statusTab.inlineEditTip')}</p>
       </div>
     </div>

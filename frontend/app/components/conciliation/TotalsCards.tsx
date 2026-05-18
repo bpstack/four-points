@@ -2,6 +2,7 @@
 'use client'
 
 import { useTranslations } from 'next-intl'
+import { Card } from '@/app/ui/components'
 
 interface TotalsCardsProps {
   totalReception: number
@@ -21,37 +22,29 @@ export default function TotalsCards({
 
   return (
     <div className={isVertical ? 'space-y-3' : 'grid grid-cols-1 md:grid-cols-3 gap-4'}>
-      {isVertical && (
-        <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-          {t('totals.title')}
-        </h3>
-      )}
-      <div className="bg-white dark:bg-[#0D1117] border border-[#d0d7de] dark:border-[#30363d] rounded-xl shadow-sm p-4">
+      {isVertical && <h3 className="text-sm font-semibold text-fg">{t('totals.title')}</h3>}
+      <Card padding="md">
         <div className="flex items-center justify-between">
           <div>
             <div className="text-xs text-blue-600 dark:text-blue-400 font-medium">
               {t('totals.reception')}
             </div>
-            <div className="text-xl font-bold text-gray-900 dark:text-gray-100 mt-0.5">
-              {totalReception}
-            </div>
+            <div className="text-xl font-bold text-fg mt-0.5">{totalReception}</div>
           </div>
-          <div className="p-2 bg-blue-100 dark:bg-blue-900/20 rounded-lg">
+          <div className="p-2 bg-info/10 rounded-lg">
             <div className="w-5 h-5 flex items-center justify-center text-blue-600 dark:text-blue-400 font-bold text-sm">
               R
             </div>
           </div>
         </div>
-      </div>
-      <div className="bg-white dark:bg-[#0D1117] border border-[#d0d7de] dark:border-[#30363d] rounded-xl shadow-sm p-4">
+      </Card>
+      <Card padding="md">
         <div className="flex items-center justify-between">
           <div>
             <div className="text-xs text-purple-600 dark:text-purple-400 font-medium">
               {t('totals.housekeeping')}
             </div>
-            <div className="text-xl font-bold text-gray-900 dark:text-gray-100 mt-0.5">
-              {totalHousekeeping}
-            </div>
+            <div className="text-xl font-bold text-fg mt-0.5">{totalHousekeeping}</div>
           </div>
           <div className="p-2 bg-purple-100 dark:bg-purple-900/20 rounded-lg">
             <div className="w-5 h-5 flex items-center justify-center text-purple-600 dark:text-purple-400 font-bold text-sm">
@@ -59,14 +52,8 @@ export default function TotalsCards({
             </div>
           </div>
         </div>
-      </div>
-      <div
-        className={`bg-white dark:bg-[#0D1117] border rounded-xl shadow-sm p-4 ${
-          difference === 0
-            ? 'border-green-300 dark:border-green-800'
-            : 'border-red-300 dark:border-red-800'
-        }`}
-      >
+      </Card>
+      <Card padding="md" className={difference === 0 ? 'border-success/40' : 'border-danger/40'}>
         <div className="flex items-center justify-between">
           <div>
             <div
@@ -106,7 +93,7 @@ export default function TotalsCards({
             </div>
           </div>
         </div>
-      </div>
+      </Card>
     </div>
   )
 }

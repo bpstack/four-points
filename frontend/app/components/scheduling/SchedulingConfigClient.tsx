@@ -82,26 +82,22 @@ export function SchedulingConfigClient() {
   ]
 
   return (
-    <div className="min-h-screen bg-white dark:bg-[#010409] p-4 md:p-6">
+    <div className="min-h-screen bg-bg p-4 md:p-6">
       <div className="max-w-[1400px] space-y-5">
         <div className="flex items-center gap-4">
           <Link
             href="/dashboard/scheduling"
-            className="inline-flex items-center justify-center w-8 h-8 rounded-md border border-gray-300 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+            className="inline-flex items-center justify-center w-8 h-8 rounded-md border border-border text-fg-muted hover:bg-surface-hover transition-colors"
           >
             <FiArrowLeft className="w-4 h-4" />
           </Link>
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">
-              {t('page.configTitle')}
-            </h1>
-            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-0.5">
-              {t('page.configSubtitle')}
-            </p>
+            <h1 className="text-xl sm:text-2xl font-bold text-fg">{t('page.configTitle')}</h1>
+            <p className="text-xs sm:text-sm text-fg-muted mt-0.5">{t('page.configSubtitle')}</p>
           </div>
         </div>
 
-        <div className="border-b border-gray-200 dark:border-gray-800 overflow-x-auto">
+        <div className="border-b border-border overflow-x-auto">
           <nav className="flex gap-1 sm:gap-4 min-w-max sm:min-w-0">
             {tabs.map((tab) => (
               <button
@@ -112,7 +108,7 @@ export function SchedulingConfigClient() {
                   ${
                     activeTab === tab.id
                       ? 'border-blue-600 text-blue-600 dark:border-blue-400 dark:text-blue-400'
-                      : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+                      : 'border-transparent text-fg-muted hover:text-fg'
                   }
                 `}
               >
@@ -123,7 +119,7 @@ export function SchedulingConfigClient() {
           </nav>
         </div>
 
-        <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800">
+        <div className="bg-surface rounded-md border border-border">
           {activeTab === 'employees' && <EmployeesTab />}
           {activeTab === 'totals' && <TotalsTab />}
           {activeTab === 'general' && <GeneralConfigTab />}

@@ -63,7 +63,7 @@ export default function BaseModal({
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       <div
-        className={`w-full max-w-md bg-[#f6f8fa] dark:bg-[#0d1117] rounded-2xl shadow-2xl border ${colors.border} overflow-hidden`}
+        className={`w-full max-w-md bg-[#f6f8fa] dark:bg-surface rounded-2xl shadow-2xl border ${colors.border} overflow-hidden`}
       >
         {/* Header */}
         <div
@@ -72,14 +72,14 @@ export default function BaseModal({
           <div className={`p-2 ${colors.iconBg} rounded-lg`}>
             <div className={colors.iconColor}>{icon}</div>
           </div>
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{title}</h2>
+          <h2 className="text-lg font-semibold text-fg">{title}</h2>
         </div>
 
         {/* Content */}
         <div className="p-6 space-y-4">{children}</div>
 
         {/* Footer */}
-        <div className="px-6 py-4 bg-gray-50/50 dark:bg-slate-900/50 border-t border-gray-100 dark:border-gray-800 flex gap-3 justify-end">
+        <div className="px-6 py-4 bg-surface-sunken/50 border-t border-border flex gap-3 justify-end">
           {footer}
         </div>
       </div>

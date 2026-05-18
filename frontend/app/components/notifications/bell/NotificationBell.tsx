@@ -52,7 +52,7 @@ export default function NotificationBell() {
       {/* Bell Button con Badge */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="relative p-1.5 md:p-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+        className="relative p-1.5 md:p-2 text-fg-muted hover:bg-surface-hover rounded-lg transition-colors"
       >
         <FiBell className="w-4 h-4 md:w-5 md:h-5" />
 
@@ -66,16 +66,16 @@ export default function NotificationBell() {
 
       {/* Dropdown */}
       {isOpen && (
-        <div className="fixed sm:absolute inset-x-2 sm:inset-x-auto sm:right-0 top-14 sm:top-auto sm:mt-2 w-auto sm:w-96 bg-white dark:bg-[#161b22] border border-gray-200 dark:border-[#30363d] rounded-lg shadow-lg z-50 max-h-[70vh] sm:max-h-[500px] flex flex-col">
+        <div className="fixed sm:absolute inset-x-2 sm:inset-x-auto sm:right-0 top-14 sm:top-auto sm:mt-2 w-auto sm:w-96 bg-surface border border-border rounded-fp-md shadow-fp-modal z-50 max-h-[70vh] sm:max-h-[500px] flex flex-col">
           {/* Header */}
-          <div className="flex items-center justify-between p-3 border-b border-gray-200 dark:border-[#30363d]">
-            <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
+          <div className="flex items-center justify-between p-3 border-b border-border">
+            <h3 className="text-sm font-semibold text-fg">
               Notificaciones {unreadCount > 0 && `(${unreadCount})`}
             </h3>
             {unreadCount > 0 && (
               <button
                 onClick={markAllAsRead}
-                className="text-xs text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 flex items-center gap-1"
+                className="text-xs text-accent hover:text-accent-hover flex items-center gap-1"
               >
                 <FiCheck className="w-3 h-3" />
                 Marcar todas
@@ -87,17 +87,15 @@ export default function NotificationBell() {
           <div className="overflow-y-auto flex-1">
             {loading ? (
               <div className="p-8 text-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto" />
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent mx-auto" />
               </div>
             ) : recentUnread.length === 0 ? (
               <div className="p-8 text-center">
-                <FiBell className="w-12 h-12 mx-auto text-gray-300 dark:text-gray-600 mb-2" />
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  No tienes notificaciones nuevas
-                </p>
+                <FiBell className="w-12 h-12 mx-auto text-fg-subtle mb-2" />
+                <p className="text-sm text-fg-subtle">No tienes notificaciones nuevas</p>
               </div>
             ) : (
-              <div className="divide-y divide-gray-200 dark:divide-[#30363d]">
+              <div className="divide-y divide-border">
                 {recentUnread.map((notification) => (
                   <DropdownItem
                     key={notification.id}
@@ -110,11 +108,11 @@ export default function NotificationBell() {
           </div>
 
           {/* Footer */}
-          <div className="border-t border-gray-200 dark:border-[#30363d] p-2">
+          <div className="border-t border-border p-2">
             <Link
               href="/dashboard/profile?panel=notifications"
               onClick={() => setIsOpen(false)}
-              className="block w-full text-center text-xs text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 py-2 rounded hover:bg-gray-50 dark:hover:bg-[#21262d] transition-colors"
+              className="block w-full text-center text-xs text-accent hover:text-accent-hover py-2 rounded hover:bg-surface-hover transition-colors"
             >
               Ver todas las notificaciones
             </Link>
@@ -143,29 +141,25 @@ function DropdownItem({ notification, onClick }: DropdownItemProps) {
   return (
     <button
       onClick={() => onClick(notification.id, notification.direct_link)}
-      className={`w-full p-3 hover:bg-gray-50 dark:hover:bg-[#21262d] transition-colors text-left border-l-4 ${
+      className={`w-full p-3 hover:bg-surface-hover transition-colors text-left border-l-4 ${
         PRIORITY_COLORS[notification.priority]
       }`}
     >
       {/* Titulo */}
       <div className="flex items-start justify-between gap-2 mb-1">
-        <p className="text-sm font-medium text-gray-900 dark:text-white line-clamp-1">
-          {notification.title}
-        </p>
+        <p className="text-sm font-medium text-fg line-clamp-1">{notification.title}</p>
         {notification.direct_link && (
-          <FiExternalLink className="w-3 h-3 text-gray-400 flex-shrink-0 mt-0.5" />
+          <FiExternalLink className="w-3 h-3 text-fg-subtle flex-shrink-0 mt-0.5" />
         )}
       </div>
 
       {/* Mensaje */}
       {notification.message && (
-        <p className="text-xs text-gray-600 dark:text-gray-400 line-clamp-2 mb-1">
-          {notification.message}
-        </p>
+        <p className="text-xs text-fg-muted line-clamp-2 mb-1">{notification.message}</p>
       )}
 
       {/* Footer */}
-      <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-500">
+      <div className="flex items-center gap-2 text-xs text-fg-subtle">
         {notification.group_name && (
           <>
             <span className="truncate">{notification.group_name}</span>

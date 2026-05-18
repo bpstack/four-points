@@ -224,7 +224,7 @@ export default function DashboardHome() {
   // ========================================
 
   return (
-    <div className="min-h-screen bg-white dark:bg-[#010409] px-4 md:px-5 lg:px-6 pt-4 md:-mt-2 md:pt-0 pb-4">
+    <div className="min-h-screen bg-bg px-4 md:px-5 lg:px-6 pt-4 md:-mt-2 md:pt-0 pb-4">
       <div className="max-w-[1600px] space-y-4">
         {/* Header with Period Selector */}
         <DashboardHeader selectedPeriod={selectedPeriod} onPeriodChange={handlePeriodChange} />

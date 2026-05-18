@@ -88,27 +88,21 @@ export default function DaySummarySidebar({
 
   return (
     <div className="sticky top-4 space-y-3">
-      <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">
-        {t('summary.dayTitle')}
-      </h3>
+      <h3 className="text-sm font-semibold text-fg mb-3">{t('summary.dayTitle')}</h3>
 
       {/* Status Badge */}
-      <div className="bg-white dark:bg-[#0D1117] border border-[#d0d7de] dark:border-[#30363d] rounded-xl shadow-sm p-4">
+      <div className="bg-surface border border-border rounded-fp-md shadow-fp-pop p-4">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">
-              {t('summary.status')}
-            </p>
-            <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 mt-0.5">
-              {selectedDate}
-            </p>
+            <p className="text-xs text-fg-muted font-medium">{t('summary.status')}</p>
+            <p className="text-sm font-semibold text-fg mt-0.5">{selectedDate}</p>
           </div>
           {daily.status === 'closed' ? (
             <span className="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-[10px] font-medium rounded-full">
               {t('summary.closed')}
             </span>
           ) : (
-            <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 text-[10px] font-medium rounded-full">
+            <span className="px-2 py-1 bg-info/10 text-blue-700 dark:text-blue-400 text-[10px] font-medium rounded-full">
               {t('summary.open')}
             </span>
           )}
@@ -116,12 +110,10 @@ export default function DaySummarySidebar({
       </div>
 
       {/* Gran Total */}
-      <div className="bg-white dark:bg-[#0D1117] border border-[#d0d7de] dark:border-[#30363d] rounded-xl shadow-sm p-4">
+      <div className="bg-surface border border-border rounded-fp-md shadow-fp-pop p-4">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">
-              {t('summary.grandTotal')}
-            </p>
+            <p className="text-xs text-fg-muted font-medium">{t('summary.grandTotal')}</p>
             <p className="text-xl font-bold text-purple-700 dark:text-purple-400 mt-0.5">
               {grandTotal.toFixed(2)}€
             </p>
@@ -133,29 +125,25 @@ export default function DaySummarySidebar({
       </div>
 
       {/* Total Efectivo */}
-      <div className="bg-white dark:bg-[#0D1117] border border-[#d0d7de] dark:border-[#30363d] rounded-xl shadow-sm p-4">
+      <div className="bg-surface border border-border rounded-fp-md shadow-fp-pop p-4">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">
-              {t('summary.cash')}
-            </p>
+            <p className="text-xs text-fg-muted font-medium">{t('summary.cash')}</p>
             <p className="text-xl font-bold text-blue-700 dark:text-blue-400 mt-0.5">
               {totalCash.toFixed(2)}€
             </p>
           </div>
-          <div className="p-2 bg-blue-100 dark:bg-blue-900/20 rounded-lg">
+          <div className="p-2 bg-info/10 rounded-lg">
             <FiDollarSign className="w-5 h-5 text-blue-600 dark:text-blue-400" />
           </div>
         </div>
       </div>
 
       {/* Pagos Electrónicos */}
-      <div className="bg-white dark:bg-[#0D1117] border border-[#d0d7de] dark:border-[#30363d] rounded-xl shadow-sm p-4">
+      <div className="bg-surface border border-border rounded-fp-md shadow-fp-pop p-4">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">
-              {t('summary.electronic')}
-            </p>
+            <p className="text-xs text-fg-muted font-medium">{t('summary.electronic')}</p>
             <p className="text-xl font-bold text-green-700 dark:text-green-400 mt-0.5">
               {electronicPayments.toFixed(2)}€
             </p>
@@ -168,12 +156,10 @@ export default function DaySummarySidebar({
 
       {/* Vales Activos */}
       {activeVouchers > 0 && (
-        <div className="bg-white dark:bg-[#0D1117] border border-[#d0d7de] dark:border-[#30363d] rounded-xl shadow-sm p-4">
+        <div className="bg-surface border border-border rounded-fp-md shadow-fp-pop p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">
-                {t('summary.activeVouchers')}
-              </p>
+              <p className="text-xs text-fg-muted font-medium">{t('summary.activeVouchers')}</p>
               <p className="text-xl font-bold text-orange-600 dark:text-orange-400 mt-0.5">
                 {activeVouchers.toFixed(2)}€
               </p>
@@ -208,7 +194,7 @@ export default function DaySummarySidebar({
         <button
           onClick={handleExportPdf}
           disabled={isExporting}
-          className="w-full px-3 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs rounded-lg font-medium transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+          className="w-full px-3 py-2 bg-surface-hover hover:bg-surface-hover text-fg text-xs rounded-lg font-medium transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
         >
           <FiDownload className={`w-3.5 h-3.5 ${isExporting ? 'animate-bounce' : ''}`} />
           {isExporting ? t('export.exporting') : t('export.button')}
@@ -217,7 +203,7 @@ export default function DaySummarySidebar({
         {daily.can_close && (
           <button
             onClick={onCloseDay}
-            className="w-full px-3 py-2 bg-green-600 hover:bg-green-700 text-white text-xs rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
+            className="w-full px-3 py-2 bg-accent hover:bg-accent-hover text-accent-fg text-xs rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
           >
             <FiDollarSign className="w-3.5 h-3.5" />
             {t('closeDay.closeDayComplete')}

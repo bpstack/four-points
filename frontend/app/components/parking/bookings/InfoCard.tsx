@@ -2,6 +2,7 @@
 'use client'
 
 import { ReactNode } from 'react'
+import { Card } from '@/app/ui/components'
 
 interface InfoCardProps {
   title: string
@@ -18,21 +19,20 @@ export function InfoCard({
   className = '',
   variant = 'default',
 }: InfoCardProps) {
-  const bgClass =
-    variant === 'highlighted' ? 'bg-[#f6f8fa] dark:bg-[#0d1117]' : 'bg-white dark:bg-[#151b23]'
-
   return (
-    <div
-      className={`${bgClass} border border-[#d0d7de] dark:border-[#30363d] rounded-md ${className}`}
+    <Card
+      padding="none"
+      variant={variant === 'highlighted' ? 'sunken' : 'default'}
+      className={className}
     >
-      <div className="px-4 py-3 border-b border-[#d0d7de] dark:border-[#30363d]">
-        <h3 className="text-sm font-semibold text-[#24292f] dark:text-[#f0f6fc] flex items-center gap-2">
-          {icon && <span className="text-[#57606a] dark:text-[#8b949e]">{icon}</span>}
+      <div className="px-4 py-3 border-b border-border">
+        <h3 className="text-sm font-semibold text-fg flex items-center gap-2">
+          {icon && <span className="text-fg-muted">{icon}</span>}
           {title}
         </h3>
       </div>
       <div className="p-4">{children}</div>
-    </div>
+    </Card>
   )
 }
 
@@ -45,11 +45,11 @@ interface InfoRowProps {
 
 export function InfoRow({ label, value, highlight = false, mono = false }: InfoRowProps) {
   return (
-    <div className="flex items-center justify-between py-2 border-b border-[#d0d7de]/50 dark:border-[#30363d]/50 last:border-0">
-      <span className="text-xs text-[#57606a] dark:text-[#8b949e]">{label}</span>
+    <div className="flex items-center justify-between py-2 border-b border-border/50/50 last:border-0">
+      <span className="text-xs text-fg-muted">{label}</span>
       <span
         className={`text-sm font-medium ${
-          highlight ? 'text-[#0969da] dark:text-[#58a6ff]' : 'text-[#24292f] dark:text-[#f0f6fc]'
+          highlight ? 'text-accent' : 'text-fg'
         } ${mono ? 'font-mono' : ''}`}
       >
         {value}

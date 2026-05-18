@@ -34,30 +34,22 @@ export function ScheduleStats({ monthData }: ScheduleStatsProps) {
   return (
     <div className="grid grid-cols-2 lg:grid-cols-5 gap-2 sm:gap-3">
       {/* Employees */}
-      <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-3 hover:shadow-md dark:hover:shadow-gray-900/50 transition-shadow">
+      <div className="bg-surface rounded-md border border-border p-3 hover:shadow-md dark:hover:shadow-gray-900/50 transition-shadow">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 font-medium">
-              {t('employees')}
-            </p>
-            <p className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 mt-0.5">
-              {totalEmployees}
-            </p>
+            <p className="text-[10px] sm:text-xs text-fg-muted font-medium">{t('employees')}</p>
+            <p className="text-lg sm:text-xl font-bold text-fg mt-0.5">{totalEmployees}</p>
           </div>
           <FiUsers className="w-5 h-5 sm:w-6 sm:h-6 text-blue-500 dark:text-blue-400" />
         </div>
       </div>
 
       {/* Morning Shifts */}
-      <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-3 hover:shadow-md dark:hover:shadow-gray-900/50 transition-shadow">
+      <div className="bg-surface rounded-md border border-border p-3 hover:shadow-md dark:hover:shadow-gray-900/50 transition-shadow">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 font-medium">
-              {t('morningShifts')}
-            </p>
-            <p className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 mt-0.5">
-              {totalM}
-            </p>
+            <p className="text-[10px] sm:text-xs text-fg-muted font-medium">{t('morningShifts')}</p>
+            <p className="text-lg sm:text-xl font-bold text-fg mt-0.5">{totalM}</p>
             {daysWithoutMorning > 0 && (
               <p className="text-[10px] text-red-500 dark:text-red-400">
                 {t('daysWithoutMorning', { count: daysWithoutMorning })}
@@ -69,15 +61,13 @@ export function ScheduleStats({ monthData }: ScheduleStatsProps) {
       </div>
 
       {/* Afternoon Shifts */}
-      <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-3 hover:shadow-md dark:hover:shadow-gray-900/50 transition-shadow">
+      <div className="bg-surface rounded-md border border-border p-3 hover:shadow-md dark:hover:shadow-gray-900/50 transition-shadow">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 font-medium">
+            <p className="text-[10px] sm:text-xs text-fg-muted font-medium">
               {t('afternoonShifts')}
             </p>
-            <p className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 mt-0.5">
-              {totalT}
-            </p>
+            <p className="text-lg sm:text-xl font-bold text-fg mt-0.5">{totalT}</p>
             {daysWithoutAfternoon > 0 && (
               <p className="text-[10px] text-red-500 dark:text-red-400">
                 {t('daysWithoutAfternoon', { count: daysWithoutAfternoon })}
@@ -89,15 +79,11 @@ export function ScheduleStats({ monthData }: ScheduleStatsProps) {
       </div>
 
       {/* Night Shifts */}
-      <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-3 hover:shadow-md dark:hover:shadow-gray-900/50 transition-shadow">
+      <div className="bg-surface rounded-md border border-border p-3 hover:shadow-md dark:hover:shadow-gray-900/50 transition-shadow">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 font-medium">
-              {t('nightShifts')}
-            </p>
-            <p className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 mt-0.5">
-              {totalN}
-            </p>
+            <p className="text-[10px] sm:text-xs text-fg-muted font-medium">{t('nightShifts')}</p>
+            <p className="text-lg sm:text-xl font-bold text-fg mt-0.5">{totalN}</p>
             {daysWithoutNight > 0 && (
               <p className="text-[10px] text-red-500 dark:text-red-400">
                 {t('daysWithoutNight', { count: daysWithoutNight })}
@@ -118,9 +104,7 @@ export function ScheduleStats({ monthData }: ScheduleStatsProps) {
       >
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 font-medium">
-              {t('coverage')}
-            </p>
+            <p className="text-[10px] sm:text-xs text-fg-muted font-medium">{t('coverage')}</p>
             <p
               className={`text-sm sm:text-base font-bold mt-0.5 ${
                 hasCoverageIssues

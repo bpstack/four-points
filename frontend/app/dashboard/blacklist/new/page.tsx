@@ -14,12 +14,12 @@ export default function NewBlacklistPage() {
   const t = useTranslations('blacklist')
 
   return (
-    <div className="min-h-screen bg-white dark:bg-[#010409]">
+    <div className="min-h-screen bg-bg">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Breadcrumb / Back button */}
         <Link
           href="/dashboard/blacklist"
-          className="inline-flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 mb-6 transition-colors"
+          className="inline-flex items-center gap-2 text-sm text-fg-muted hover:text-fg mb-6 transition-colors"
         >
           <IoChevronBack size={16} />
           {t('newPage.backToList')}
@@ -27,10 +27,8 @@ export default function NewBlacklistPage() {
 
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
-            {t('newPage.title')}
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-1">{t('newPage.subtitle')}</p>
+          <h1 className="text-3xl font-bold text-fg">{t('newPage.title')}</h1>
+          <p className="text-fg-muted mt-1">{t('newPage.subtitle')}</p>
         </div>
 
         {/* Formulario */}

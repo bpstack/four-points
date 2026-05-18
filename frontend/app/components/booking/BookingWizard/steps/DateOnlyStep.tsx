@@ -40,13 +40,13 @@ export default function DateOnlyStep({ state, actions }: DateOnlyStepProps) {
                 className={`${inputClassName} text-left flex justify-between items-center`}
               >
                 <span
-                  className={state.reservationData.expected_checkin_date ? '' : 'text-gray-400'}
+                  className={state.reservationData.expected_checkin_date ? '' : 'text-fg-subtle'}
                 >
                   {state.reservationData.expected_checkin_date
                     ? formatDateLocal(new Date(state.reservationData.expected_checkin_date))
                     : t('dates.selectDate')}
                 </span>
-                <FaCalendar className="w-4 h-4 text-gray-400" />
+                <FaCalendar className="w-4 h-4 text-fg-subtle" />
               </button>
             </FormField>
 
@@ -91,13 +91,13 @@ export default function DateOnlyStep({ state, actions }: DateOnlyStepProps) {
                 className={`${inputClassName} text-left flex justify-between items-center`}
               >
                 <span
-                  className={state.reservationData.expected_checkout_date ? '' : 'text-gray-400'}
+                  className={state.reservationData.expected_checkout_date ? '' : 'text-fg-subtle'}
                 >
                   {state.reservationData.expected_checkout_date
                     ? formatDateLocal(new Date(state.reservationData.expected_checkout_date))
                     : t('dates.selectDate')}
                 </span>
-                <FaCalendar className="w-4 h-4 text-gray-400" />
+                <FaCalendar className="w-4 h-4 text-fg-subtle" />
               </button>
             </FormField>
 

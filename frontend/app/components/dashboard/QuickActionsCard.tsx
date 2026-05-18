@@ -6,6 +6,7 @@ import { useTranslations } from 'next-intl'
 import { FiZap, FiBook, FiTool, FiUsers } from 'react-icons/fi'
 import { FaCar } from 'react-icons/fa'
 import { IconType } from 'react-icons'
+import { Card } from '@/app/ui/components'
 
 interface QuickAction {
   labelKey: string
@@ -60,12 +61,10 @@ export function QuickActionsCard() {
   )
 
   return (
-    <div className="bg-white dark:bg-[#0D1117] border border-[#d0d7de] dark:border-[#30363d] rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200 p-4 sm:p-6">
+    <Card className="p-4 sm:p-6">
       <div className="flex items-center gap-2 mb-3 sm:mb-5">
-        <FiZap className="w-4 h-4 sm:w-5 sm:h-5 text-[#0969da] dark:text-[#58a6ff]" />
-        <h2 className="text-sm sm:text-lg font-bold text-[#24292f] dark:text-[#f0f6fc]">
-          {t('title')}
-        </h2>
+        <FiZap className="w-4 h-4 sm:w-5 sm:h-5 text-accent" />
+        <h2 className="text-sm sm:text-lg font-bold text-fg">{t('title')}</h2>
       </div>
 
       <div className="grid grid-cols-4 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
@@ -73,7 +72,7 @@ export function QuickActionsCard() {
           <a
             key={action.labelKey}
             href={action.href}
-            className="group relative overflow-hidden p-2 sm:p-5 bg-gradient-to-br from-[#f6f8fa] to-white dark:from-[#161B22] dark:to-[#161b22] border border-[#d0d7de] dark:border-[#21262d] rounded-xl hover:border-[#0969da] dark:hover:border-[#58a6ff] hover:shadow-lg transition-all duration-300 sm:transform sm:hover:-translate-y-1"
+            className="group relative overflow-hidden p-2 sm:p-5 bg-surface border border-border rounded-xl hover:border-accent hover:shadow-lg transition-all duration-300 sm:transform sm:hover:-translate-y-1"
           >
             <div className="flex flex-col items-center text-center space-y-1.5 sm:space-y-3">
               <div
@@ -81,7 +80,7 @@ export function QuickActionsCard() {
               >
                 <action.icon className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
               </div>
-              <span className="text-[10px] sm:text-xs font-semibold text-[#24292f] dark:text-[#c9d1d9] leading-tight group-hover:text-[#0969da] dark:group-hover:text-[#58a6ff] transition-colors">
+              <span className="text-[10px] sm:text-xs font-semibold text-fg leading-tight group-hover:text-accent transition-colors">
                 <span className="sm:hidden">{action.shortLabel}</span>
                 <span className="hidden sm:inline">{action.label}</span>
               </span>
@@ -89,6 +88,6 @@ export function QuickActionsCard() {
           </a>
         ))}
       </div>
-    </div>
+    </Card>
   )
 }

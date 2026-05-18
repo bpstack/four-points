@@ -11,7 +11,6 @@ import { useEffect, useState, useRef, useCallback } from 'react'
 import { useTranslations } from 'next-intl'
 import {
   FiX,
-  FiLoader,
   FiAlertCircle,
   FiCheck,
   FiMove,
@@ -28,6 +27,7 @@ import { PDFDocument, rgb, StandardFonts } from 'pdf-lib'
 import * as pdfjsLib from 'pdfjs-dist'
 import { toast } from 'react-hot-toast'
 import { backofficeApi, type Asset } from '@/app/lib/backoffice'
+import { Spinner } from '@/app/ui/components'
 
 // Configure PDF.js worker
 if (typeof window !== 'undefined') {
@@ -776,20 +776,16 @@ export function PdfEditorModal({
       {/* Modal Container */}
       <div className="flex h-full">
         {/* Sidebar - Tools and Assets */}
-        <div className="w-72 bg-white dark:bg-[#151b23] border-r border-gray-200 dark:border-gray-700 flex flex-col">
+        <div className="w-72 bg-surface border-r border-border flex flex-col">
           {/* Header */}
-          <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
-            <h2 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-              {t('modals.pdfEditor.title')}
-            </h2>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 truncate">
-              {invoiceNumber}
-            </p>
+          <div className="px-4 py-3 border-b border-border">
+            <h2 className="text-sm font-semibold text-fg">{t('modals.pdfEditor.title')}</h2>
+            <p className="text-xs text-fg-subtle mt-0.5 truncate">{invoiceNumber}</p>
           </div>
 
           {/* Tools Section */}
-          <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
-            <h3 className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2 uppercase tracking-wide">
+          <div className="px-4 py-3 border-b border-border">
+            <h3 className="text-xs font-semibold text-fg mb-2 uppercase tracking-wide">
               {t('modals.pdfEditor.tools')}
             </h3>
             <div className="flex gap-2">
@@ -797,8 +793,8 @@ export function PdfEditorModal({
                 onClick={() => setActiveTool('select')}
                 className={`p-2 rounded-lg transition-colors ${
                   activeTool === 'select'
-                    ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
-                    : 'hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400'
+                    ? 'bg-info/10 text-blue-600 dark:text-blue-400'
+                    : 'hover:bg-surface-hover text-fg-muted'
                 }`}
                 title={t('modals.pdfEditor.selectAndMove')}
               >
@@ -808,8 +804,8 @@ export function PdfEditorModal({
                 onClick={() => setActiveTool('text')}
                 className={`p-2 rounded-lg transition-colors ${
                   activeTool === 'text'
-                    ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
-                    : 'hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400'
+                    ? 'bg-info/10 text-blue-600 dark:text-blue-400'
+                    : 'hover:bg-surface-hover text-fg-muted'
                 }`}
                 title={t('modals.pdfEditor.addText')}
               >
@@ -819,8 +815,8 @@ export function PdfEditorModal({
                 onClick={() => setActiveTool('highlight')}
                 className={`p-2 rounded-lg transition-colors ${
                   activeTool === 'highlight'
-                    ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
-                    : 'hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400'
+                    ? 'bg-info/10 text-blue-600 dark:text-blue-400'
+                    : 'hover:bg-surface-hover text-fg-muted'
                 }`}
                 title={t('modals.pdfEditor.highlight')}
               >
@@ -836,16 +832,14 @@ export function PdfEditorModal({
                   onChange={(e) => setTextInput(e.target.value)}
                   placeholder={t('modals.pdfEditor.textPlaceholder')}
                   rows={3}
-                  className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 resize-none"
+                  className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-surface-hover text-fg resize-none"
                 />
                 <div className="flex items-center gap-2">
-                  <label className="text-xs text-gray-500 dark:text-gray-400">
-                    {t('modals.pdfEditor.fontSize')}
-                  </label>
+                  <label className="text-xs text-fg-subtle">{t('modals.pdfEditor.fontSize')}</label>
                   <select
                     value={textFontSize}
                     onChange={(e) => setTextFontSize(Number(e.target.value))}
-                    className="flex-1 px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                    className="flex-1 px-2 py-1 text-xs border border-border rounded bg-surface-hover text-fg"
                   >
                     <option value={8}>8</option>
                     <option value={10}>10</option>
@@ -856,9 +850,7 @@ export function PdfEditorModal({
                     <option value={24}>24</option>
                   </select>
                 </div>
-                <p className="text-[10px] text-gray-400 dark:text-gray-500">
-                  {t('modals.pdfEditor.clickToAddText')}
-                </p>
+                <p className="text-[10px] text-fg-subtle">{t('modals.pdfEditor.clickToAddText')}</p>
               </div>
             )}
 
@@ -866,7 +858,7 @@ export function PdfEditorModal({
             {activeTool === 'highlight' && (
               <div className="mt-3 space-y-2">
                 <div className="flex items-center gap-2">
-                  <label className="text-xs text-gray-500 dark:text-gray-400">
+                  <label className="text-xs text-fg-subtle">
                     {t('modals.pdfEditor.highlightColor')}
                   </label>
                   <input
@@ -890,7 +882,7 @@ export function PdfEditorModal({
                     ))}
                   </div>
                 </div>
-                <p className="text-[10px] text-gray-400 dark:text-gray-500">
+                <p className="text-[10px] text-fg-subtle">
                   {t('modals.pdfEditor.clickAndDragToHighlight')}
                 </p>
               </div>
@@ -901,11 +893,11 @@ export function PdfEditorModal({
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
             {/* Stamps */}
             <div>
-              <h3 className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2 uppercase tracking-wide">
+              <h3 className="text-xs font-semibold text-fg mb-2 uppercase tracking-wide">
                 {t('modals.pdfEditor.stamps')}
               </h3>
               {stamps.length === 0 ? (
-                <p className="text-xs text-gray-400 dark:text-gray-500 italic">
+                <p className="text-xs text-fg-subtle italic">
                   {t('modals.pdfEditor.noStampsAvailable')}
                 </p>
               ) : (
@@ -914,7 +906,7 @@ export function PdfEditorModal({
                     <button
                       key={stamp.id}
                       onClick={() => handleAddAsset(stamp)}
-                      className="aspect-square p-2 border border-gray-200 dark:border-gray-700 rounded-lg hover:border-blue-500 dark:hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
+                      className="aspect-square p-2 border border-border rounded-lg hover:border-blue-500 dark:hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
                       title={stamp.name}
                     >
                       {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -931,11 +923,11 @@ export function PdfEditorModal({
 
             {/* Signatures */}
             <div>
-              <h3 className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2 uppercase tracking-wide">
+              <h3 className="text-xs font-semibold text-fg mb-2 uppercase tracking-wide">
                 {t('modals.pdfEditor.signatures')}
               </h3>
               {signatures.length === 0 ? (
-                <p className="text-xs text-gray-400 dark:text-gray-500 italic">
+                <p className="text-xs text-fg-subtle italic">
                   {t('modals.pdfEditor.noSignaturesAvailable')}
                 </p>
               ) : (
@@ -944,7 +936,7 @@ export function PdfEditorModal({
                     <button
                       key={sig.id}
                       onClick={() => handleAddAsset(sig)}
-                      className="aspect-video p-2 border border-gray-200 dark:border-gray-700 rounded-lg hover:border-blue-500 dark:hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
+                      className="aspect-video p-2 border border-border rounded-lg hover:border-blue-500 dark:hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
                       title={sig.name}
                     >
                       {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -962,9 +954,9 @@ export function PdfEditorModal({
 
           {/* Selected Element Actions */}
           {selectedElement && (
-            <div className="px-4 py-3 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0d1117]">
+            <div className="px-4 py-3 border-t border-border bg-gray-50 dark:bg-surface">
               <div className="flex items-center justify-between">
-                <span className="text-xs text-gray-600 dark:text-gray-400">
+                <span className="text-xs text-fg-muted">
                   {t('modals.pdfEditor.selectedElement')}
                 </span>
                 <button
@@ -975,16 +967,14 @@ export function PdfEditorModal({
                   <FiTrash2 className="w-4 h-4" />
                 </button>
               </div>
-              <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-1">
-                {t('modals.pdfEditor.dragToMove')}
-              </p>
+              <p className="text-[10px] text-fg-subtle mt-1">{t('modals.pdfEditor.dragToMove')}</p>
             </div>
           )}
 
           {/* Save Button */}
-          <div className="px-4 py-3 border-t border-gray-200 dark:border-gray-700 space-y-2">
+          <div className="px-4 py-3 border-t border-border space-y-2">
             {/* Debug info */}
-            <p className="text-[10px] text-gray-500 dark:text-gray-400 text-center">
+            <p className="text-[10px] text-fg-subtle text-center">
               {t('modals.pdfEditor.elementsCount', {
                 count: placedElements.length,
                 pageCount: currentPageElements.length,
@@ -995,11 +985,11 @@ export function PdfEditorModal({
             <button
               onClick={handleSave}
               disabled={saving || placedElements.length === 0}
-              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-accent text-accent-fg rounded-lg hover:bg-accent-hover transition-colors font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {saving ? (
                 <>
-                  <FiLoader className="w-4 h-4 animate-spin" />
+                  <Spinner size="sm" tone="current" />
                   {t('modals.pdfEditor.saving')}
                 </>
               ) : (
@@ -1015,7 +1005,7 @@ export function PdfEditorModal({
               <button
                 onClick={handleSave}
                 disabled={saving}
-                className="w-full flex items-center justify-center gap-2 px-3 py-2 text-xs text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                className="w-full flex items-center justify-center gap-2 px-3 py-2 text-xs text-fg-muted hover:text-gray-900 dark:hover:text-gray-200 hover:bg-surface-hover rounded-lg transition-colors"
               >
                 <FiCheck className="w-3.5 h-3.5" />
                 {t('modals.pdfEditor.validateWithoutModify')}
@@ -1097,8 +1087,8 @@ export function PdfEditorModal({
           {/* PDF Canvas Area */}
           <div className="flex-1 overflow-auto flex items-center justify-center p-4">
             {loading ? (
-              <div className="flex flex-col items-center text-gray-400">
-                <FiLoader className="w-10 h-10 animate-spin mb-4" />
+              <div className="flex flex-col items-center text-fg-subtle">
+                <Spinner size="lg" className="mb-4" />
                 <p>{t('modals.pdfEditor.loadingPdf')}</p>
               </div>
             ) : error ? (
@@ -1216,7 +1206,7 @@ export function PdfEditorModal({
                     )}
                     {/* Move indicator */}
                     {selectedElement === element.id && activeTool === 'select' && (
-                      <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-blue-500 text-white text-[10px] px-2 py-0.5 rounded flex items-center gap-1 whitespace-nowrap">
+                      <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-accent text-accent-fg text-[10px] px-2 py-0.5 rounded flex items-center gap-1 whitespace-nowrap">
                         <FiMove className="w-3 h-3" />
                         {t('modals.pdfEditor.moveAndResize')}
                       </div>

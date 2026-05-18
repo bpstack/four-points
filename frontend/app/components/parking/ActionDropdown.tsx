@@ -125,7 +125,7 @@ export function ActionDropdown({ booking, onAction }: ActionDropdownProps) {
   const availableActions = ACTIONS_CONFIG[booking.status] || []
 
   if (availableActions.length === 0) {
-    return <span className="text-xs text-gray-400 dark:text-gray-600">-</span>
+    return <span className="text-xs text-fg-subtle">-</span>
   }
 
   const dropdownContent = (
@@ -137,25 +137,23 @@ export function ActionDropdown({ booking, onAction }: ActionDropdownProps) {
         left: position.left,
         zIndex: 9999,
       }}
-      className="w-56 bg-white dark:bg-[#161b22] border border-gray-200 dark:border-[#30363d] rounded-lg shadow-2xl overflow-hidden"
+      className="w-56 bg-surface border border-border rounded-lg shadow-2xl overflow-hidden"
     >
       {availableActions.map((action, index) => {
         const Icon = action.icon
         return (
           <div key={action.id}>
-            {action.divider && index > 0 && (
-              <div className="h-px bg-gray-200 dark:bg-[#30363d] my-1" />
-            )}
+            {action.divider && index > 0 && <div className="h-px bg-surface-hover my-1" />}
             <button
               onClick={(e) => {
                 e.stopPropagation()
                 setIsOpen(false)
                 onAction(action.id, booking)
               }}
-              className="w-full px-4 py-2.5 text-left text-sm flex items-center gap-3 hover:bg-gray-50 dark:hover:bg-[#1c2128] transition-colors group"
+              className="w-full px-4 py-2.5 text-left text-sm flex items-center gap-3 hover:bg-surface-hover transition-colors group"
             >
               <Icon className={`w-4 h-4 ${action.color}`} />
-              <span className="text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-gray-100">
+              <span className="text-fg group-hover:text-gray-900 dark:group-hover:text-gray-100">
                 {t(action.translationKey)}
               </span>
             </button>
@@ -170,7 +168,7 @@ export function ActionDropdown({ booking, onAction }: ActionDropdownProps) {
       <button
         ref={buttonRef}
         onClick={handleToggle}
-        className="p-1.5 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md transition-colors"
+        className="p-1.5 text-fg-muted hover:text-fg hover:bg-surface-hover rounded-md transition-colors"
         title={t('actions.title')}
       >
         <FaEllipsisV className="w-4 h-4" />

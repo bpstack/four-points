@@ -83,12 +83,10 @@ export default function PaymentChart({ report, viewMode = 'pie' }: PaymentChartP
   }) => {
     if (active && payload && payload.length) {
       return (
-        <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg p-3">
-          <p className="font-medium text-gray-900 dark:text-white">{payload[0].name}</p>
-          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-            {payload[0].value.toFixed(2)}€
-          </p>
-          <p className="text-xs text-gray-500 dark:text-gray-500 mt-0.5">
+        <div className="bg-surface-hover border border-border rounded-lg shadow-lg p-3">
+          <p className="font-medium text-fg">{payload[0].name}</p>
+          <p className="text-sm text-fg-muted mt-1">{payload[0].value.toFixed(2)}€</p>
+          <p className="text-xs text-fg-subtle mt-0.5">
             {payload[0].payload.percentage.toFixed(1)}%
           </p>
         </div>
@@ -135,8 +133,8 @@ export default function PaymentChart({ report, viewMode = 'pie' }: PaymentChartP
 
   if (viewMode === 'bar') {
     return (
-      <div className="bg-white dark:bg-[#0d1117] border border-gray-200 dark:border-gray-800 rounded-lg p-6">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
+      <div className="bg-surface border border-border rounded-lg p-6">
+        <h3 className="text-lg font-semibold text-fg mb-6 flex items-center gap-2">
           {t('reports.distributionByPaymentMethod')}
         </h3>
 
@@ -146,11 +144,11 @@ export default function PaymentChart({ report, viewMode = 'pie' }: PaymentChartP
             <XAxis
               dataKey="name"
               tick={{ fill: 'currentColor', fontSize: 12 }}
-              className="text-gray-600 dark:text-gray-400"
+              className="text-fg-muted"
             />
             <YAxis
               tick={{ fill: 'currentColor', fontSize: 12 }}
-              className="text-gray-600 dark:text-gray-400"
+              className="text-fg-muted"
               tickFormatter={(value) => `${value}€`}
             />
             <Tooltip content={<CustomTooltip />} />
@@ -166,17 +164,15 @@ export default function PaymentChart({ report, viewMode = 'pie' }: PaymentChartP
           {chartData.map((entry: ChartDataItem) => (
             <div
               key={entry.name}
-              className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700"
+              className="flex items-center gap-3 p-3 bg-surface-hover/50 rounded-lg border border-border"
             >
               <div
                 className="w-4 h-4 rounded-full flex-shrink-0"
                 style={{ backgroundColor: entry.color }}
               />
               <div className="flex-1 min-w-0">
-                <p className="text-xs text-gray-600 dark:text-gray-400 truncate">{entry.name}</p>
-                <p className="text-sm font-bold text-gray-900 dark:text-white">
-                  {entry.value.toFixed(2)}€
-                </p>
+                <p className="text-xs text-fg-muted truncate">{entry.name}</p>
+                <p className="text-sm font-bold text-fg">{entry.value.toFixed(2)}€</p>
               </div>
             </div>
           ))}
@@ -186,8 +182,8 @@ export default function PaymentChart({ report, viewMode = 'pie' }: PaymentChartP
   }
 
   return (
-    <div className="bg-white dark:bg-[#0d1117] border border-gray-200 dark:border-gray-800 rounded-lg p-6">
-      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
+    <div className="bg-surface border border-border rounded-lg p-6">
+      <h3 className="text-lg font-semibold text-fg mb-6 flex items-center gap-2">
         {t('reports.distributionByPaymentMethod')}
       </h3>
 
@@ -219,15 +215,13 @@ export default function PaymentChart({ report, viewMode = 'pie' }: PaymentChartP
 
         {/* ✅ Lista mejorada */}
         <div className="space-y-4">
-          <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4">
-            {t('reports.detailedBreakdown')}
-          </h4>
+          <h4 className="text-sm font-semibold text-fg mb-4">{t('reports.detailedBreakdown')}</h4>
           {chartData
             .sort((a: ChartDataItem, b: ChartDataItem) => b.value - a.value)
             .map((entry: ChartDataItem) => (
               <div
                 key={entry.name}
-                className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-4 border border-gray-200 dark:border-gray-700"
+                className="bg-surface-hover/50 rounded-lg p-4 border border-border"
               >
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
@@ -235,16 +229,14 @@ export default function PaymentChart({ report, viewMode = 'pie' }: PaymentChartP
                       className="w-4 h-4 rounded-full flex-shrink-0"
                       style={{ backgroundColor: entry.color }}
                     />
-                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                      {entry.name}
-                    </span>
+                    <span className="text-sm font-medium text-fg">{entry.name}</span>
                   </div>
-                  <span className="text-xs font-semibold text-gray-500 dark:text-gray-400">
+                  <span className="text-xs font-semibold text-fg-subtle">
                     {entry.percentage.toFixed(1)}%
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5 overflow-hidden mr-3">
+                  <div className="w-full bg-border rounded-full h-2.5 overflow-hidden mr-3">
                     <div
                       className="h-2.5 rounded-full transition-all duration-500 ease-out"
                       style={{
@@ -253,7 +245,7 @@ export default function PaymentChart({ report, viewMode = 'pie' }: PaymentChartP
                       }}
                     />
                   </div>
-                  <span className="text-sm font-bold text-gray-900 dark:text-white whitespace-nowrap">
+                  <span className="text-sm font-bold text-fg whitespace-nowrap">
                     {entry.value.toFixed(2)}€
                   </span>
                 </div>
@@ -263,7 +255,7 @@ export default function PaymentChart({ report, viewMode = 'pie' }: PaymentChartP
       </div>
 
       {/* Resumen totales */}
-      <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-800">
+      <div className="mt-6 pt-6 border-t border-border">
         <div className="grid grid-cols-2 gap-4">
           <div className="text-center p-4 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border border-green-200 dark:border-green-800 rounded-lg">
             <p className="text-sm text-green-700 dark:text-green-300 mb-1">
@@ -273,11 +265,9 @@ export default function PaymentChart({ report, viewMode = 'pie' }: PaymentChartP
               {totals.grand_total.toFixed(2)}€
             </p>
           </div>
-          <div className="text-center p-4 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg">
-            <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">
-              {t('reports.averagePerDay')}
-            </p>
-            <p className="text-2xl font-bold text-gray-900 dark:text-white">
+          <div className="text-center p-4 bg-surface-hover/50 border border-border rounded-lg">
+            <p className="text-sm text-fg-muted mb-1">{t('reports.averagePerDay')}</p>
+            <p className="text-2xl font-bold text-fg">
               {(totals.grand_total / totals.total_days).toFixed(2)}€
             </p>
           </div>

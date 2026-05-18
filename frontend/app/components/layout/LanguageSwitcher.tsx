@@ -29,20 +29,20 @@ export default function LanguageSwitcher() {
         disabled={isPending || currentLocale === 'es'}
         className={`px-2 py-1 rounded transition-colors ${
           currentLocale === 'es'
-            ? 'bg-gray-100 dark:bg-gray-700'
-            : 'opacity-50 hover:opacity-100 hover:bg-gray-100 dark:hover:bg-gray-700'
+            ? 'bg-surface-hover'
+            : 'opacity-50 hover:opacity-100 hover:bg-surface-hover'
         }`}
       >
         🇪🇸
       </button>
-      <span className="text-gray-300 dark:text-gray-600">/</span>
+      <span className="text-fg-subtle">/</span>
       <button
         onClick={() => handleLocaleChange('en')}
         disabled={isPending || currentLocale === 'en'}
         className={`px-2 py-1 rounded transition-colors ${
           currentLocale === 'en'
-            ? 'bg-gray-100 dark:bg-gray-700'
-            : 'opacity-50 hover:opacity-100 hover:bg-gray-100 dark:hover:bg-gray-700'
+            ? 'bg-surface-hover'
+            : 'opacity-50 hover:opacity-100 hover:bg-surface-hover'
         }`}
       >
         🇬🇧

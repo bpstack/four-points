@@ -11,6 +11,7 @@ import {
   FiClock,
   FiCheckCircle,
 } from 'react-icons/fi'
+import { Card, Button, Badge } from '@/app/ui/components'
 
 export interface LogbookEntryDisplay {
   id: number
@@ -40,16 +41,6 @@ const getPriorityColor = (priority: string) => {
   }
 }
 
-const getPriorityBadge = (priority: string) => {
-  switch (priority) {
-    case 'critical':
-      return 'bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-400'
-    case 'high':
-      return 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-400'
-    default:
-      return 'bg-[#f6f8fa] dark:bg-[#21262d] text-[#57606a] dark:text-[#8b949e]'
-  }
-}
 
 export function ImportantLogbooksCard({
   entries,
@@ -73,38 +64,40 @@ export function ImportantLogbooksCard({
   }
 
   return (
-    <div className="bg-white dark:bg-[#0D1117] border border-[#d0d7de] dark:border-[#30363d] rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200 p-5">
+    <Card padding="none" className="p-5">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <div className="p-1.5 bg-red-100 dark:bg-red-900/20 rounded-lg">
-            <FiAlertTriangle className="w-4 h-4 text-red-600 dark:text-red-400" />
+          <div className="p-1.5 bg-danger/10 rounded-lg">
+            <FiAlertTriangle className="w-4 h-4 text-danger" />
           </div>
-          <h2 className="text-sm font-bold text-[#24292f] dark:text-[#f0f6fc]">
-            {t('title', { period: getPeriodTitle() })}
-          </h2>
+          <h2 className="text-sm font-bold text-fg">{t('title', { period: getPeriodTitle() })}</h2>
         </div>
         <div className="flex items-center gap-2">
-          <button
+          <Button
+            variant="ghost"
+            iconOnly
+            size="sm"
             onClick={onRefresh}
             disabled={loading}
-            className="p-2 rounded-lg hover:bg-[#f6f8fa] dark:hover:bg-[#21262d] transition-colors disabled:opacity-50"
             title={t('refresh')}
           >
-            <FiRefreshCw
-              className={`w-4 h-4 text-[#57606a] dark:text-[#8b949e] ${loading ? 'animate-spin' : ''}`}
-            />
-          </button>
-          <a href="/dashboard/logbooks">
-            <button className="text-xs font-semibold text-[#0969da] dark:text-[#58a6ff] hover:text-[#0550ae] dark:hover:text-[#79c0ff] flex items-center gap-1.5 px-3 py-1.5 rounded-lg hover:bg-[#f6f8fa] dark:hover:bg-[#21262d] transition-colors">
-              {t('viewAll')} <FiArrowRight className="w-3.5 h-3.5" />
-            </button>
-          </a>
+            <FiRefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            as="a"
+            href="/dashboard/logbooks"
+            className="text-accent hover:text-accent"
+          >
+            {t('viewAll')} <FiArrowRight className="w-3.5 h-3.5" />
+          </Button>
         </div>
       </div>
 
       {/* Entry Counter */}
       {!loading && entries.length > 0 && (
-        <div className="mb-3 flex items-center gap-2 p-3 bg-blue-50 dark:bg-blue-900/10 rounded-lg border border-blue-200 dark:border-blue-800">
+        <div className="mb-3 flex items-center gap-2 p-3 bg-info/10 rounded-lg border border-blue-200 dark:border-blue-800">
           <FiAlertCircle className="w-4 h-4 text-blue-600 dark:text-blue-400" />
           <span className="text-sm text-blue-700 dark:text-blue-300">
             <strong className="font-bold">{entries.length}</strong>{' '}
@@ -121,7 +114,7 @@ export function ImportantLogbooksCard({
           {[1, 2, 3].map((i) => (
             <div
               key={i}
-              className="animate-pulse p-4 bg-gradient-to-br from-[#f6f8fa] to-white dark:from-[#0d1117] dark:to-[#161b22] rounded-lg border border-[#d0d7de] dark:border-[#21262d] h-28"
+              className="animate-pulse p-4 bg-surface-hover rounded-lg border border-border h-28"
             />
           ))}
         </div>
@@ -130,7 +123,7 @@ export function ImportantLogbooksCard({
           <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 dark:bg-green-900/20 rounded-full mb-3">
             <FiCheckCircle className="w-8 h-8 text-green-600 dark:text-green-400" />
           </div>
-          <p className="text-sm font-medium text-[#57606a] dark:text-[#8b949e]">
+          <p className="text-sm font-medium text-fg-muted">
             {t('noItems', { period: periodLabel })}
           </p>
         </div>
@@ -141,12 +134,12 @@ export function ImportantLogbooksCard({
           {entries.map((entry) => (
             <div
               key={entry.id}
-              className={`p-4 rounded-lg ${getPriorityColor(entry.priority)} border border-[#d0d7de] dark:border-[#30363d] hover:shadow-md transition-shadow duration-200`}
+              className={`p-4 rounded-lg ${getPriorityColor(entry.priority)} border border-border hover:shadow-md transition-shadow duration-200`}
             >
               <div className="flex items-start justify-between mb-2">
                 <div className="flex items-center gap-2">
-                  <FiClock className="w-3.5 h-3.5 text-[#57606a] dark:text-[#8b949e]" />
-                  <span className="text-xs font-bold text-[#24292f] dark:text-[#f0f6fc]">
+                  <FiClock className="w-3.5 h-3.5 text-fg-muted" />
+                  <span className="text-xs font-bold text-fg">
                     {new Date(entry.timestamp).toLocaleDateString(localeCode, {
                       day: '2-digit',
                       month: '2-digit',
@@ -159,28 +152,27 @@ export function ImportantLogbooksCard({
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
-                  {entry.status === 'resolved' ? (
-                    <span className="text-[10px] px-2.5 py-1 rounded-full bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400 font-bold border border-green-200 dark:border-green-800">
-                      {t('status.resolved')}
-                    </span>
-                  ) : (
-                    <span className="text-[10px] px-2.5 py-1 rounded-full bg-orange-100 text-orange-700 dark:bg-orange-900/20 dark:text-orange-400 font-bold border border-orange-200 dark:border-orange-800">
-                      {t('status.pending')}
-                    </span>
-                  )}
-                  <span
-                    className={`text-[10px] px-2.5 py-1 rounded-full font-bold flex items-center gap-1 border ${getPriorityBadge(entry.priority)}`}
+                  <Badge tone={entry.status === 'resolved' ? 'success' : 'warning'}>
+                    {t(`status.${entry.status}`)}
+                  </Badge>
+                  <Badge
+                    tone={
+                      entry.priority === 'critical'
+                        ? 'danger'
+                        : entry.priority === 'high'
+                          ? 'warning'
+                          : 'neutral'
+                    }
+                    dot
                   >
-                    {entry.priority === 'critical' && <FiAlertTriangle className="w-3 h-3" />}
-                    {entry.priority === 'high' && <FiAlertCircle className="w-3 h-3" />}
                     {t(`priority.${entry.priority}`)}
-                  </span>
+                  </Badge>
                 </div>
               </div>
-              <p className="text-[11px] text-[#57606a] dark:text-[#8b949e] mb-2 font-medium">
+              <p className="text-[11px] text-fg-muted mb-2 font-medium">
                 {t('by', { author: entry.author_name })}
               </p>
-              <p className="text-xs text-[#24292f] dark:text-[#c9d1d9] leading-relaxed">
+              <p className="text-xs text-fg leading-relaxed">
                 {entry.description.length > 400
                   ? `${entry.description.substring(0, 400)}...`
                   : entry.description}
@@ -189,6 +181,6 @@ export function ImportantLogbooksCard({
           ))}
         </div>
       )}
-    </div>
+    </Card>
   )
 }

@@ -20,6 +20,7 @@ import {
   FiAlertCircle,
   FiTrendingUp,
 } from 'react-icons/fi'
+import { Card } from '@/app/ui/components'
 
 export async function StatsCards() {
   const stats = await getStats()
@@ -28,25 +29,23 @@ export async function StatsCards() {
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-2 sm:gap-3">
       {/* Pending Invoices */}
-      <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-3 hover:shadow-md dark:hover:shadow-gray-900/50 transition-shadow">
+      <Card padding="sm" hover>
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 font-medium">
+            <p className="text-[10px] sm:text-xs text-fg-muted font-medium">
               {t('stats.pendingInvoices')}
             </p>
-            <p className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 mt-0.5">
-              {stats.pending_count}
-            </p>
+            <p className="text-lg sm:text-xl font-bold text-fg mt-0.5">{stats.pending_count}</p>
           </div>
           <FiFileText className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-500 dark:text-yellow-400" />
         </div>
-      </div>
+      </Card>
 
       {/* Total Pending */}
-      <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-3 hover:shadow-md dark:hover:shadow-gray-900/50 transition-shadow">
+      <Card padding="sm" hover>
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 font-medium">
+            <p className="text-[10px] sm:text-xs text-fg-muted font-medium">
               {t('stats.pendingTotal')}
             </p>
             <p className="text-lg sm:text-xl font-bold text-orange-600 dark:text-orange-400 mt-0.5">
@@ -55,43 +54,39 @@ export async function StatsCards() {
           </div>
           <FiDollarSign className="w-5 h-5 sm:w-6 sm:h-6 text-orange-500 dark:text-orange-400" />
         </div>
-      </div>
+      </Card>
 
       {/* Overdue */}
-      <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-3 hover:shadow-md dark:hover:shadow-gray-900/50 transition-shadow">
+      <Card padding="sm" hover>
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 font-medium">
-              {t('stats.overdue')}
-            </p>
+            <p className="text-[10px] sm:text-xs text-fg-muted font-medium">{t('stats.overdue')}</p>
             <p className="text-lg sm:text-xl font-bold text-red-600 dark:text-red-400 mt-0.5">
               {stats.overdue_count}
             </p>
           </div>
           <FiAlertCircle className="w-5 h-5 sm:w-6 sm:h-6 text-red-500 dark:text-red-400" />
         </div>
-      </div>
+      </Card>
 
       {/* Paid (Month) */}
-      <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-3 hover:shadow-md dark:hover:shadow-gray-900/50 transition-shadow">
+      <Card padding="sm" hover>
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 font-medium">
+            <p className="text-[10px] sm:text-xs text-fg-muted font-medium">
               {t('stats.paidMonth')}
             </p>
-            <p className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 mt-0.5">
-              {stats.paid_this_month}
-            </p>
+            <p className="text-lg sm:text-xl font-bold text-fg mt-0.5">{stats.paid_this_month}</p>
           </div>
           <FiCheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-green-500 dark:text-green-400" />
         </div>
-      </div>
+      </Card>
 
       {/* Total Paid (History) */}
-      <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-3 hover:shadow-md dark:hover:shadow-gray-900/50 transition-shadow">
+      <Card padding="sm" hover>
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 font-medium">
+            <p className="text-[10px] sm:text-xs text-fg-muted font-medium">
               {t('stats.paidTotal')}
             </p>
             <p className="text-lg sm:text-xl font-bold text-green-600 dark:text-green-400 mt-0.5">
@@ -100,22 +95,20 @@ export async function StatsCards() {
           </div>
           <FiTrendingUp className="w-5 h-5 sm:w-6 sm:h-6 text-green-500 dark:text-green-400" />
         </div>
-      </div>
+      </Card>
 
       {/* Suppliers */}
-      <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-3 hover:shadow-md dark:hover:shadow-gray-900/50 transition-shadow">
+      <Card padding="sm" hover>
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 font-medium">
+            <p className="text-[10px] sm:text-xs text-fg-muted font-medium">
               {t('stats.suppliers')}
             </p>
-            <p className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 mt-0.5">
-              {stats.suppliers_count}
-            </p>
+            <p className="text-lg sm:text-xl font-bold text-fg mt-0.5">{stats.suppliers_count}</p>
           </div>
           <FiUsers className="w-5 h-5 sm:w-6 sm:h-6 text-blue-500 dark:text-blue-400" />
         </div>
-      </div>
+      </Card>
     </div>
   )
 }

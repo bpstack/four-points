@@ -22,7 +22,7 @@ export default function UninitializedDayState({ onInitialize }: UninitializedDay
       </p>
       <button
         onClick={onInitialize}
-        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors flex items-center gap-2 mx-auto"
+        className="px-4 py-2 bg-accent text-accent-fg hover:bg-accent-hover rounded-lg font-medium transition-colors flex items-center gap-2 mx-auto"
       >
         <FiDollarSign className="w-4 h-4" />
         {t('uninitializedDay.initializeButton')}

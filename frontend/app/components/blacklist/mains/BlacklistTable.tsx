@@ -12,8 +12,7 @@
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { IoEyeOutline, IoWarning } from 'react-icons/io5'
-import { Badge } from '@/app/components/blacklist/ui/Badge'
-import { Button } from '@/app/components/blacklist/ui/Button'
+import { Badge, Button } from '@/app/ui/components'
 import type { BlacklistEntry } from '@/app/lib/blacklist/types'
 import { SEVERITY_LEVELS } from '@/app/lib/blacklist/types'
 import { formatDate, highlightMatches, truncateText } from '@/app/lib/blacklist/blacklistUtils'
@@ -45,37 +44,37 @@ export function BlacklistTable({ entries, searchTerm }: BlacklistTableProps) {
       {/* DESKTOP: Tabla */}
       <div className="hidden md:block overflow-x-auto">
         <table className="w-full text-sm">
-          <thead className="bg-gray-50 dark:bg-[#0D1117] border-b border-gray-200 dark:border-gray-800">
+          <thead className="bg-surface border-b border-border">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-fg-subtle uppercase tracking-wider">
                 {t('table.guest')}
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-fg-subtle uppercase tracking-wider">
                 {t('table.document')}
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-fg-subtle uppercase tracking-wider">
                 {t('table.dates')}
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-fg-subtle uppercase tracking-wider">
                 {t('table.severity')}
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-fg-subtle uppercase tracking-wider">
                 {t('table.status')}
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-fg-subtle uppercase tracking-wider">
                 {t('table.registeredBy')}
               </th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+              <th className="px-6 py-3 text-right text-xs font-medium text-fg-subtle uppercase tracking-wider">
                 {t('table.actions')}
               </th>
             </tr>
           </thead>
-          <tbody className="bg-white dark:bg-[#0D1117] divide-y divide-gray-200 dark:divide-gray-800">
+          <tbody className="bg-surface divide-y divide-border">
             {entries.map((entry) => (
               <tr
                 key={entry.id}
                 onClick={() => handleRowClick(entry.id)}
-                className="hover:bg-gray-50 dark:hover:bg-[#161B22] cursor-pointer transition-colors"
+                className="hover:bg-surface-hover cursor-pointer transition-colors"
               >
                 {/* Nombre del huésped */}
                 <td className="px-6 py-4">
@@ -85,14 +84,14 @@ export function BlacklistTable({ entries, searchTerm }: BlacklistTableProps) {
                     )}
                     <div>
                       <div
-                        className="font-medium text-gray-900 dark:text-gray-100"
+                        className="font-medium text-fg"
                         dangerouslySetInnerHTML={{
                           __html: searchTerm
                             ? highlightMatches(entry.guest_name, searchTerm)
                             : entry.guest_name,
                         }}
                       />
-                      <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                      <div className="text-xs text-fg-subtle mt-0.5">
                         {truncateText(entry.reason, 60)}
                       </div>
                     </div>
@@ -103,38 +102,34 @@ export function BlacklistTable({ entries, searchTerm }: BlacklistTableProps) {
                 <td className="px-6 py-4">
                   <div>
                     <div
-                      className="text-gray-900 dark:text-gray-100 font-mono"
+                      className="text-fg font-mono"
                       dangerouslySetInnerHTML={{
                         __html: searchTerm
                           ? highlightMatches(entry.document_number, searchTerm)
                           : entry.document_number,
                       }}
                     />
-                    <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                      {entry.document_type}
-                    </div>
+                    <div className="text-xs text-fg-subtle mt-0.5">{entry.document_type}</div>
                   </div>
                 </td>
 
                 {/* Fechas */}
-                <td className="px-6 py-4 text-gray-700 dark:text-gray-300 whitespace-nowrap">
+                <td className="px-6 py-4 text-fg whitespace-nowrap">
                   <div className="text-sm">{formatDate(entry.check_in_date)}</div>
-                  <div className="text-xs text-gray-500 dark:text-gray-400">
-                    → {formatDate(entry.check_out_date)}
-                  </div>
+                  <div className="text-xs text-fg-subtle">→ {formatDate(entry.check_out_date)}</div>
                 </td>
 
                 {/* Gravedad */}
                 <td className="px-6 py-4">
                   <Badge
-                    variant={
+                    tone={
                       entry.severity === 'CRITICAL'
                         ? 'danger'
                         : entry.severity === 'HIGH'
                           ? 'warning'
                           : entry.severity === 'MEDIUM'
                             ? 'info'
-                            : 'default'
+                            : 'neutral'
                     }
                   >
                     {SEVERITY_LEVELS[entry.severity]}
@@ -143,17 +138,15 @@ export function BlacklistTable({ entries, searchTerm }: BlacklistTableProps) {
 
                 {/* Estado */}
                 <td className="px-6 py-4">
-                  <Badge variant={entry.status === 'ACTIVE' ? 'success' : 'default'}>
+                  <Badge tone={entry.status === 'ACTIVE' ? 'success' : 'neutral'}>
                     {entry.status === 'ACTIVE' ? t('status.active') : t('status.deleted')}
                   </Badge>
                 </td>
 
                 {/* Autor */}
-                <td className="px-6 py-4 text-gray-700 dark:text-gray-300">
+                <td className="px-6 py-4 text-fg">
                   <div className="text-sm">{entry.created_by_username || t('detail.unknown')}</div>
-                  <div className="text-xs text-gray-500 dark:text-gray-400">
-                    {formatDate(entry.created_at)}
-                  </div>
+                  <div className="text-xs text-fg-subtle">{formatDate(entry.created_at)}</div>
                 </td>
 
                 {/* Acciones */}
@@ -197,7 +190,7 @@ function BlacklistCard({ entry, searchTerm, t }: BlacklistCardProps) {
   return (
     <Link
       href={`/dashboard/blacklist/${entry.id}`}
-      className="block bg-white dark:bg-[#161B22] border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:shadow-md transition-shadow"
+      className="block bg-surface border border-border rounded-lg p-4 hover:shadow-md transition-shadow"
     >
       {/* Header */}
       <div className="flex items-start justify-between gap-3 mb-3">
@@ -207,7 +200,7 @@ function BlacklistCard({ entry, searchTerm, t }: BlacklistCardProps) {
               <IoWarning className="text-red-500 flex-shrink-0" size={18} />
             )}
             <h3
-              className="font-semibold text-gray-900 dark:text-gray-100"
+              className="font-semibold text-fg"
               dangerouslySetInnerHTML={{
                 __html: searchTerm
                   ? highlightMatches(entry.guest_name, searchTerm)
@@ -216,7 +209,7 @@ function BlacklistCard({ entry, searchTerm, t }: BlacklistCardProps) {
             />
           </div>
           <p
-            className="text-sm text-gray-600 dark:text-gray-400 font-mono"
+            className="text-sm text-fg-muted font-mono"
             dangerouslySetInnerHTML={{
               __html: searchTerm
                 ? highlightMatches(entry.document_number, searchTerm)
@@ -227,44 +220,42 @@ function BlacklistCard({ entry, searchTerm, t }: BlacklistCardProps) {
 
         <div className="flex flex-col items-end gap-2">
           <Badge
-            variant={
+            tone={
               entry.severity === 'CRITICAL'
                 ? 'danger'
                 : entry.severity === 'HIGH'
                   ? 'warning'
                   : entry.severity === 'MEDIUM'
                     ? 'info'
-                    : 'default'
+                    : 'neutral'
             }
             size="sm"
           >
             {SEVERITY_LEVELS[entry.severity]}
           </Badge>
-          <Badge variant={entry.status === 'ACTIVE' ? 'success' : 'default'} size="sm">
+          <Badge tone={entry.status === 'ACTIVE' ? 'success' : 'neutral'} size="sm">
             {entry.status === 'ACTIVE' ? t('status.active') : t('status.deleted')}
           </Badge>
         </div>
       </div>
 
       {/* Motivo */}
-      <p className="text-sm text-gray-700 dark:text-gray-300 mb-3 line-clamp-2">{entry.reason}</p>
+      <p className="text-sm text-fg mb-3 line-clamp-2">{entry.reason}</p>
 
       {/* Fechas */}
-      <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400 mb-3">
+      <div className="flex items-center gap-2 text-xs text-fg-muted mb-3">
         <span>{formatDate(entry.check_in_date)}</span>
         <span>→</span>
         <span>{formatDate(entry.check_out_date)}</span>
       </div>
 
       {/* Footer */}
-      <div className="flex items-center justify-between pt-3 border-t border-gray-200 dark:border-gray-700">
-        <div className="text-xs text-gray-500 dark:text-gray-400">
+      <div className="flex items-center justify-between pt-3 border-t border-border">
+        <div className="text-xs text-fg-subtle">
           Por:{' '}
           <span className="font-medium">{entry.created_by_username || t('detail.unknown')}</span>
         </div>
-        <div className="text-xs text-gray-500 dark:text-gray-400">
-          {formatDate(entry.created_at)}
-        </div>
+        <div className="text-xs text-fg-subtle">{formatDate(entry.created_at)}</div>
       </div>
     </Link>
   )
@@ -281,17 +272,15 @@ interface EmptyStateProps {
 function EmptyState({ t }: EmptyStateProps) {
   return (
     <div className="flex flex-col items-center justify-center py-16 px-4">
-      <div className="w-16 h-16 bg-gray-100 dark:bg-[#161B22] rounded-full flex items-center justify-center mb-4">
-        <IoWarning className="text-gray-400 dark:text-gray-600" size={32} />
+      <div className="w-16 h-16 bg-surface-hover rounded-full flex items-center justify-center mb-4">
+        <IoWarning className="text-fg-subtle" size={32} />
       </div>
-      <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
-        {t('table.noEntries')}
-      </h3>
-      <p className="text-sm text-gray-600 dark:text-gray-400 text-center max-w-md mb-6">
+      <h3 className="text-lg font-semibold text-fg mb-2">{t('table.noEntries')}</h3>
+      <p className="text-sm text-fg-muted text-center max-w-md mb-6">
         {t('table.noResultsSearch')}
       </p>
       <Link href="/dashboard/blacklist/new">
-        <Button variant="primary">{t('page.newEntry')}</Button>
+        <Button variant="accent">{t('page.newEntry')}</Button>
       </Link>
     </div>
   )

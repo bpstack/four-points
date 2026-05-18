@@ -363,10 +363,10 @@ export function CreateBlacklistPanel({ isOpen, onClose }: CreateBlacklistPanelPr
       <SlidePanelSection title={t('form.photoEvidence')}>
         <FormField label={t('form.uploadImages')} hint={t('form.imageHint')}>
           <div className="flex items-center justify-center w-full">
-            <label className="flex flex-col items-center justify-center w-full h-24 border-2 border-gray-300 dark:border-gray-700 border-dashed rounded-lg cursor-pointer bg-white dark:bg-[#0d1117] hover:bg-gray-50 dark:hover:bg-[#161B22] transition-colors">
+            <label className="flex flex-col items-center justify-center w-full h-24 border-2 border-border border-dashed rounded-lg cursor-pointer bg-surface hover:bg-surface-hover transition-colors">
               <div className="flex flex-col items-center justify-center pt-3 pb-4">
                 <FiUpload className="w-6 h-6 mb-2 text-gray-400" />
-                <p className="text-xs text-gray-500 dark:text-gray-400">
+                <p className="text-xs text-fg-subtle">
                   <span className="font-semibold">{t('form.clickToUpload')}</span>{' '}
                   {t('form.dragImages')}
                 </p>
@@ -384,14 +384,14 @@ export function CreateBlacklistPanel({ isOpen, onClose }: CreateBlacklistPanelPr
           {/* Image Previews */}
           {selectedImages.length > 0 && (
             <div className="mt-3">
-              <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">
+              <p className="text-xs text-fg-muted mb-2">
                 {t('form.imagesSelected', { count: selectedImages.length })}
               </p>
               <div className="flex flex-wrap gap-2">
                 {selectedImages.map((file, index) => (
                   <div
                     key={index}
-                    className="relative w-16 h-16 rounded-md overflow-hidden border border-gray-200 dark:border-gray-700 group"
+                    className="relative w-16 h-16 rounded-md overflow-hidden border border-border group"
                   >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img

@@ -16,22 +16,22 @@ interface DateSpotStepProps {
 
 // GitHub-style for full variant
 const styles = {
-  card: 'bg-[#f6f8fa] dark:bg-[#161b22] border border-[#d0d7de] dark:border-[#30363d] rounded-md p-4 sm:p-5',
-  sectionTitle: 'text-lg font-medium text-[#24292f] dark:text-[#f0f6fc]',
-  label: 'block text-sm font-medium text-[#24292f] dark:text-[#c9d1d9] mb-1',
+  card: 'bg-[#f6f8fa] dark:bg-surface-hover border border-border rounded-md p-4 sm:p-5',
+  sectionTitle: 'text-lg font-medium text-fg',
+  label: 'block text-sm font-medium text-fg mb-1',
   input:
-    'w-full px-3 py-2 bg-white dark:bg-[#0d1117] border border-[#d0d7de] dark:border-[#30363d] rounded-md text-[#24292f] dark:text-[#c9d1d9] placeholder-[#57606a] dark:placeholder-[#8b949e] focus:outline-none focus:ring-1 focus:ring-[#0969da] dark:focus:ring-[#1f6feb] text-sm',
+    'w-full px-3 py-2 bg-surface border border-border rounded-md text-fg placeholder-[#57606a] dark:placeholder-[#8b949e] focus:outline-none focus:ring-1 focus:ring-[#0969da] dark:focus:ring-[#1f6feb] text-sm',
   buttonPrimary:
-    'px-4 py-2 bg-[#0969da] hover:bg-[#0550ae] dark:bg-[#1f6feb] dark:hover:bg-[#1158c7] disabled:bg-[#d0d7de] dark:disabled:bg-[#30363d] disabled:text-[#8c959f] text-white rounded-md font-medium transition text-sm',
+    'px-4 py-2 bg-accent hover:bg-accent-hover disabled:bg-border dark:disabled:bg-surface-elevated disabled:text-fg-subtle text-accent-fg rounded-md font-medium transition text-sm',
   buttonSecondary:
-    'px-4 py-2 bg-[#f6f8fa] hover:bg-[#eaeef2] dark:bg-[#21262d] dark:hover:bg-[#30363d] text-[#24292f] dark:text-[#c9d1d9] rounded-md font-medium transition text-sm',
+    'px-4 py-2 bg-[#f6f8fa] hover:bg-surface-hover dark:bg-surface-hover text-fg rounded-md font-medium transition text-sm',
   spotGrid:
-    'grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 max-h-64 overflow-y-auto p-2 bg-[#f6f8fa] dark:bg-[#0d1117] border border-[#d0d7de] dark:border-[#30363d] rounded-md',
+    'grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 max-h-64 overflow-y-auto p-2 bg-[#f6f8fa] dark:bg-surface border border-border rounded-md',
   spotCard: (isSelected: boolean) =>
     `p-2 sm:p-3 rounded-md border-2 transition text-center cursor-pointer ${
       isSelected
         ? 'bg-[#ddf4ff] dark:bg-[#051d30] border-[#0969da] dark:border-[#1f6feb]'
-        : 'bg-white dark:bg-[#161b22] border-[#d0d7de] dark:border-[#30363d] hover:border-[#0969da] dark:hover:border-[#58a6ff]'
+        : 'bg-surface border-border hover:border-[#0969da] dark:hover:border-[#58a6ff]'
     }`,
 }
 
@@ -60,7 +60,7 @@ export default function DateSpotStep({ state, actions }: DateSpotStepProps) {
   return (
     <div className={styles.card}>
       <div className="flex gap-2 items-center mb-4">
-        <FaCalendar className="w-5 h-5 text-[#0969da] dark:text-[#58a6ff]" />
+        <FaCalendar className="w-5 h-5 text-accent" />
         <h2 className={styles.sectionTitle}>{t('dates.title')}</h2>
       </div>
 
@@ -70,7 +70,7 @@ export default function DateSpotStep({ state, actions }: DateSpotStepProps) {
           {/* Check-in */}
           <div className="relative" ref={checkinRef}>
             <label className={styles.label}>
-              {t('dates.checkin')} <span className="text-[#cf222e] dark:text-[#f85149]">*</span>
+              {t('dates.checkin')} <span className="text-danger">*</span>
             </label>
             <button
               type="button"
@@ -78,20 +78,14 @@ export default function DateSpotStep({ state, actions }: DateSpotStepProps) {
                 actions.setShowCheckinCalendar(!state.showCheckinCalendar)
                 actions.setShowCheckoutCalendar(false)
               }}
-              className="w-full px-3 py-2 bg-white dark:bg-[#0d1117] border border-[#d0d7de] dark:border-[#30363d] rounded-md text-[#24292f] dark:text-[#c9d1d9] focus:outline-none focus:ring-1 focus:ring-[#0969da] dark:focus:ring-[#1f6feb] text-sm text-left flex items-center justify-between"
+              className="w-full px-3 py-2 bg-surface border border-border rounded-md text-fg focus:outline-none focus:ring-1 focus:ring-[#0969da] dark:focus:ring-[#1f6feb] text-sm text-left flex items-center justify-between"
             >
-              <span
-                className={
-                  state.reservationData.expected_checkin_date
-                    ? ''
-                    : 'text-[#57606a] dark:text-[#8b949e]'
-                }
-              >
+              <span className={state.reservationData.expected_checkin_date ? '' : 'text-fg-muted'}>
                 {state.reservationData.expected_checkin_date
                   ? formatDateLocal(new Date(state.reservationData.expected_checkin_date))
                   : t('dates.selectDate')}
               </span>
-              <FaCalendar className="w-4 h-4 text-[#57606a] dark:text-[#8b949e]" />
+              <FaCalendar className="w-4 h-4 text-fg-muted" />
             </button>
 
             {state.showCheckinCalendar && (
@@ -126,7 +120,7 @@ export default function DateSpotStep({ state, actions }: DateSpotStepProps) {
           {/* Check-out */}
           <div className="relative" ref={checkoutRef}>
             <label className={styles.label}>
-              {t('dates.checkout')} <span className="text-[#cf222e] dark:text-[#f85149]">*</span>
+              {t('dates.checkout')} <span className="text-danger">*</span>
             </label>
             <button
               type="button"
@@ -134,20 +128,14 @@ export default function DateSpotStep({ state, actions }: DateSpotStepProps) {
                 actions.setShowCheckoutCalendar(!state.showCheckoutCalendar)
                 actions.setShowCheckinCalendar(false)
               }}
-              className="w-full px-3 py-2 bg-white dark:bg-[#0d1117] border border-[#d0d7de] dark:border-[#30363d] rounded-md text-[#24292f] dark:text-[#c9d1d9] focus:outline-none focus:ring-1 focus:ring-[#0969da] dark:focus:ring-[#1f6feb] text-sm text-left flex items-center justify-between"
+              className="w-full px-3 py-2 bg-surface border border-border rounded-md text-fg focus:outline-none focus:ring-1 focus:ring-[#0969da] dark:focus:ring-[#1f6feb] text-sm text-left flex items-center justify-between"
             >
-              <span
-                className={
-                  state.reservationData.expected_checkout_date
-                    ? ''
-                    : 'text-[#57606a] dark:text-[#8b949e]'
-                }
-              >
+              <span className={state.reservationData.expected_checkout_date ? '' : 'text-fg-muted'}>
                 {state.reservationData.expected_checkout_date
                   ? formatDateLocal(new Date(state.reservationData.expected_checkout_date))
                   : t('dates.selectDate')}
               </span>
-              <FaCalendar className="w-4 h-4 text-[#57606a] dark:text-[#8b949e]" />
+              <FaCalendar className="w-4 h-4 text-fg-muted" />
             </button>
 
             {state.showCheckoutCalendar && (
@@ -183,7 +171,7 @@ export default function DateSpotStep({ state, actions }: DateSpotStepProps) {
         {/* Info días */}
         {state.reservationData.expected_checkin_date &&
           state.reservationData.expected_checkout_date && (
-            <div className="p-2 bg-[#f6f8fa] dark:bg-[#0d1117] border border-[#d0d7de] dark:border-[#30363d] rounded text-sm text-[#57606a] dark:text-[#8b949e]">
+            <div className="p-2 bg-[#f6f8fa] dark:bg-surface border border-border rounded text-sm text-fg-muted">
               <strong>{actions.calculateDays()}</strong> {t('dates.daysStay')}
             </div>
           )}
@@ -216,7 +204,7 @@ export default function DateSpotStep({ state, actions }: DateSpotStepProps) {
         {/* Grid de plazas - RESPONSIVE */}
         {state.availableSpots.length > 0 && (
           <div>
-            <h3 className="text-sm font-medium text-[#24292f] dark:text-[#c9d1d9] mb-2">
+            <h3 className="text-sm font-medium text-fg mb-2">
               {t('dates.availableSpots', { count: state.availableSpots.length })}
             </h3>
             <div className={styles.spotGrid}>
@@ -226,13 +214,13 @@ export default function DateSpotStep({ state, actions }: DateSpotStepProps) {
                   onClick={() => actions.handleSelectSpot(spot)}
                   className={styles.spotCard(state.selectedSpot?.id === spot.id)}
                 >
-                  <div className="text-xs sm:text-sm font-semibold text-[#24292f] dark:text-[#f0f6fc] mb-1">
+                  <div className="text-xs sm:text-sm font-semibold text-fg mb-1">
                     {t('dates.floor', { level: normalizeLevel(spot.level_code) })}
                   </div>
-                  <div className="text-base sm:text-lg font-bold text-[#0969da] dark:text-[#58a6ff]">
+                  <div className="text-base sm:text-lg font-bold text-accent">
                     {t('dates.spotNumber', { number: spot.spot_number })}
                   </div>
-                  <div className="text-xs text-[#57606a] dark:text-[#8b949e] capitalize mt-1 hidden sm:block">
+                  <div className="text-xs text-fg-muted capitalize mt-1 hidden sm:block">
                     {spot.spot_type.replace('_', ' ')}
                   </div>
                 </button>

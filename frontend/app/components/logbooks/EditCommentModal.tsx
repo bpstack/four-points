@@ -46,7 +46,7 @@ export default function EditCommentModal({
       onClose={onClose}
       title={t('modals.editComment.title')}
       size="lg"
-      headerIcon={<FiMessageSquare className="w-5 h-5 text-blue-600 dark:text-blue-400" />}
+      headerIcon={<FiMessageSquare className="w-5 h-5 text-info" />}
       footer={
         <CenterModalFooterButtons
           onCancel={onClose}

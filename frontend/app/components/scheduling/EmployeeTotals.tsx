@@ -177,7 +177,7 @@ export function EmployeeTotals({ year }: EmployeeTotalsProps) {
     return (
       <div className="p-8 text-center">
         <div className="inline-block h-8 w-8 animate-spin rounded-full border-[3px] border-solid border-blue-600 border-r-transparent"></div>
-        <p className="mt-3 text-xs text-gray-600 dark:text-gray-400">{tMessages('loadingData')}</p>
+        <p className="mt-3 text-xs text-fg-muted">{tMessages('loadingData')}</p>
       </div>
     )
   }
@@ -185,7 +185,7 @@ export function EmployeeTotals({ year }: EmployeeTotalsProps) {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <p className="text-xs text-gray-500 dark:text-gray-400">
+        <p className="text-xs text-fg-subtle">
           {t('publishedMonths', { count: totalMesesPublicados })}
         </p>
         <div className="flex items-center gap-2">
@@ -193,7 +193,7 @@ export function EmployeeTotals({ year }: EmployeeTotalsProps) {
             <button
               onClick={handleSaveAll}
               disabled={updateContractMutation.isPending}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-green-600 text-white text-xs font-medium rounded-md hover:bg-green-700 disabled:opacity-50 transition-colors"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-accent text-accent-fg text-xs font-medium rounded-md hover:bg-accent-hover disabled:opacity-50 transition-colors"
             >
               <FiSave className="w-3.5 h-3.5" />
               {updateContractMutation.isPending ? tActions('saving') : t('saveChanges')}
@@ -201,7 +201,7 @@ export function EmployeeTotals({ year }: EmployeeTotalsProps) {
           )}
           <button
             onClick={() => window.location.reload()}
-            className="p-1.5 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors"
+            className="p-1.5 text-fg-subtle hover:bg-surface-hover rounded transition-colors"
             title={tActions('refresh')}
           >
             <FiRefreshCw className="w-4 h-4" />
@@ -229,16 +229,11 @@ export function EmployeeTotals({ year }: EmployeeTotalsProps) {
           </p>
           <div className="space-y-2">
             {employeesWithoutContracts.map((emp) => (
-              <div
-                key={emp.id}
-                className="flex items-center gap-3 bg-white dark:bg-gray-900 rounded px-3 py-2"
-              >
-                <span className="flex-1 text-sm text-gray-900 dark:text-gray-100 font-medium">
-                  {emp.username}
-                </span>
+              <div key={emp.id} className="flex items-center gap-3 bg-surface rounded px-3 py-2">
+                <span className="flex-1 text-sm text-fg font-medium">{emp.username}</span>
                 <div className="flex items-center gap-2">
                   <div className="relative">
-                    <FiCalendar className="absolute left-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
+                    <FiCalendar className="absolute left-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-fg-subtle" />
                     <input
                       type="date"
                       value={startDates[emp.id] || ''}
@@ -247,14 +242,14 @@ export function EmployeeTotals({ year }: EmployeeTotalsProps) {
                       }
                       min={`${year}-01-01`}
                       max={`${year}-12-31`}
-                      className="pl-7 pr-2 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                      className="pl-7 pr-2 py-1 text-xs border border-border rounded bg-surface text-fg"
                       placeholder={t('startDatePlaceholder')}
                     />
                   </div>
                   <button
                     onClick={() => handleCreateContract(emp.id)}
                     disabled={initSingleContractMutation.isPending}
-                    className="inline-flex items-center gap-1 px-2 py-1 bg-blue-600 text-white text-xs font-medium rounded hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                    className="inline-flex items-center gap-1 px-2 py-1 bg-accent text-accent-fg text-xs font-medium rounded hover:bg-accent-hover disabled:opacity-50 transition-colors"
                   >
                     <FiPlus className="w-3 h-3" />
                     {tActions('create')}
@@ -268,64 +263,57 @@ export function EmployeeTotals({ year }: EmployeeTotalsProps) {
 
       <div>
         <div className="flex items-center gap-2 mb-2 px-1">
-          <span className="w-1.5 h-4 rounded-full bg-slate-400 dark:bg-slate-500" />
-          <h3 className="text-xs font-bold text-slate-700 dark:text-slate-300">
-            {t('byContract')}
-          </h3>
+          <span className="w-1.5 h-4 rounded-full bg-border-strong" />
+          <h3 className="text-xs font-bold text-fg-muted">{t('byContract')}</h3>
         </div>
-        <div className="overflow-x-auto border border-slate-200 dark:border-slate-700 rounded">
+        <div className="overflow-x-auto border border-border rounded">
           <table className="w-full text-xs">
-            <thead className="bg-slate-50 dark:bg-slate-800/60">
+            <thead className="bg-surface-sunken">
               <tr>
-                <th className="px-3 py-2 text-left font-medium text-slate-600 dark:text-slate-400 min-w-[100px]"></th>
-                <th className="px-2 py-2 text-center font-medium text-slate-600 dark:text-slate-400 min-w-[80px]">
+                <th className="px-3 py-2 text-left font-medium text-fg-muted min-w-[100px]"></th>
+                <th className="px-2 py-2 text-center font-medium text-fg-muted min-w-[80px]">
                   {t('workDays')}
                 </th>
-                <th className="px-2 py-2 text-center font-medium text-slate-600 dark:text-slate-400 min-w-[80px]">
+                <th className="px-2 py-2 text-center font-medium text-fg-muted min-w-[80px]">
                   {t('hoursToWork')}
                 </th>
-                <th className="px-2 py-2 text-center font-medium text-slate-600 dark:text-slate-400 min-w-[80px]">
+                <th className="px-2 py-2 text-center font-medium text-fg-muted min-w-[80px]">
                   {t('vacationDays')}
                 </th>
-                <th className="px-2 py-2 text-center font-medium text-slate-600 dark:text-slate-400 min-w-[80px]">
+                <th className="px-2 py-2 text-center font-medium text-fg-muted min-w-[80px]">
                   {t('weeklyFree')}
                 </th>
-                <th className="px-2 py-2 text-center font-medium text-slate-600 dark:text-slate-400 min-w-[50px]">
+                <th className="px-2 py-2 text-center font-medium text-fg-muted min-w-[50px]">
                   {t('it')}
                 </th>
-                <th className="px-2 py-2 text-center font-medium text-slate-600 dark:text-slate-400 min-w-[80px]">
+                <th className="px-2 py-2 text-center font-medium text-fg-muted min-w-[80px]">
                   {t('bonusDays')}
                 </th>
-                <th className="px-2 py-2 text-center font-medium text-slate-600 dark:text-slate-400 min-w-[80px]">
+                <th className="px-2 py-2 text-center font-medium text-fg-muted min-w-[80px]">
                   {t('workingDaysPerYear')}
                 </th>
-                <th className="px-2 py-2 text-left font-medium text-slate-600 dark:text-slate-400 min-w-[150px]">
+                <th className="px-2 py-2 text-left font-medium text-fg-muted min-w-[150px]">
                   {t('notes')}
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+            <tbody className="divide-y divide-border">
               {contracts.length === 0 ? (
                 <tr>
-                  <td
-                    colSpan={9}
-                    className="px-3 py-4 text-center text-gray-500 dark:text-gray-400"
-                  >
+                  <td colSpan={9} className="px-3 py-4 text-center text-fg-subtle">
                     {tMessages('noContracts')}
                   </td>
                 </tr>
               ) : (
                 contracts.map((contract) => (
-                  <tr key={contract.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/30">
-                    <td className="px-3 py-1 font-medium text-gray-900 dark:text-gray-100">
-                      {contract.employeeName}
-                    </td>
+                  <tr key={contract.id} className="hover:bg-surface-hover">
+                    <td className="px-3 py-1 font-medium text-fg">{contract.employeeName}</td>
                     <td className="px-1 py-1">
                       <input
                         type="number"
                         value={getValue(contract, 'diasTrabajo')}
                         onChange={(e) => handleChange(contract.id, 'diasTrabajo', e.target.value)}
-                        className="w-full px-2 py-1 text-center text-xs border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-1 focus:ring-gray-500 dark:focus:ring-gray-400"
+                        className="w-full px-2 py-1 text-center text-xs border border-border rounded bg-surface text-fg focus:outline-none focus:ring-1 focus:ring-gray-500 dark:focus:ring-gray-400"
                       />
                     </td>
                     <td className="px-1 py-1">
@@ -333,7 +321,7 @@ export function EmployeeTotals({ year }: EmployeeTotalsProps) {
                         type="number"
                         value={getValue(contract, 'horasAnuales')}
                         onChange={(e) => handleChange(contract.id, 'horasAnuales', e.target.value)}
-                        className="w-full px-2 py-1 text-center text-xs border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-1 focus:ring-gray-500 dark:focus:ring-gray-400"
+                        className="w-full px-2 py-1 text-center text-xs border border-border rounded bg-surface text-fg focus:outline-none focus:ring-1 focus:ring-gray-500 dark:focus:ring-gray-400"
                       />
                     </td>
                     <td className="px-1 py-1">
@@ -343,7 +331,7 @@ export function EmployeeTotals({ year }: EmployeeTotalsProps) {
                         onChange={(e) =>
                           handleChange(contract.id, 'diasVacaciones', e.target.value)
                         }
-                        className="w-full px-2 py-1 text-center text-xs border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-1 focus:ring-gray-500 dark:focus:ring-gray-400"
+                        className="w-full px-2 py-1 text-center text-xs border border-border rounded bg-surface text-fg focus:outline-none focus:ring-1 focus:ring-gray-500 dark:focus:ring-gray-400"
                       />
                     </td>
                     <td className="px-1 py-1">
@@ -353,7 +341,7 @@ export function EmployeeTotals({ year }: EmployeeTotalsProps) {
                         onChange={(e) =>
                           handleChange(contract.id, 'diasLibreSemanal', e.target.value)
                         }
-                        className="w-full px-2 py-1 text-center text-xs border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-1 focus:ring-gray-500 dark:focus:ring-gray-400"
+                        className="w-full px-2 py-1 text-center text-xs border border-border rounded bg-surface text-fg focus:outline-none focus:ring-1 focus:ring-gray-500 dark:focus:ring-gray-400"
                       />
                     </td>
                     <td className="px-1 py-1">
@@ -361,7 +349,7 @@ export function EmployeeTotals({ year }: EmployeeTotalsProps) {
                         type="number"
                         value={getValue(contract, 'diasIt')}
                         onChange={(e) => handleChange(contract.id, 'diasIt', e.target.value)}
-                        className="w-full px-2 py-1 text-center text-xs border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-1 focus:ring-gray-500 dark:focus:ring-gray-400"
+                        className="w-full px-2 py-1 text-center text-xs border border-border rounded bg-surface text-fg focus:outline-none focus:ring-1 focus:ring-gray-500 dark:focus:ring-gray-400"
                       />
                     </td>
                     <td className="px-1 py-1">
@@ -371,7 +359,7 @@ export function EmployeeTotals({ year }: EmployeeTotalsProps) {
                         onChange={(e) =>
                           handleChange(contract.id, 'diasBonificables', e.target.value)
                         }
-                        className="w-full px-2 py-1 text-center text-xs border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-1 focus:ring-gray-500 dark:focus:ring-gray-400"
+                        className="w-full px-2 py-1 text-center text-xs border border-border rounded bg-surface text-fg focus:outline-none focus:ring-1 focus:ring-gray-500 dark:focus:ring-gray-400"
                       />
                     </td>
                     <td className="px-1 py-1">
@@ -381,7 +369,7 @@ export function EmployeeTotals({ year }: EmployeeTotalsProps) {
                         onChange={(e) =>
                           handleChange(contract.id, 'diasLaborablesAno', e.target.value)
                         }
-                        className="w-full px-2 py-1 text-center text-xs border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-1 focus:ring-gray-500 dark:focus:ring-gray-400"
+                        className="w-full px-2 py-1 text-center text-xs border border-border rounded bg-surface text-fg focus:outline-none focus:ring-1 focus:ring-gray-500 dark:focus:ring-gray-400"
                       />
                     </td>
                     <td className="px-1 py-1">
@@ -390,7 +378,7 @@ export function EmployeeTotals({ year }: EmployeeTotalsProps) {
                         value={getValue(contract, 'observaciones') || ''}
                         onChange={(e) => handleChange(contract.id, 'observaciones', e.target.value)}
                         placeholder={t('startDateExample')}
-                        className="w-full px-2 py-1 text-xs border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-1 focus:ring-gray-500 dark:focus:ring-gray-400"
+                        className="w-full px-2 py-1 text-xs border border-border rounded bg-surface text-fg focus:outline-none focus:ring-1 focus:ring-gray-500 dark:focus:ring-gray-400"
                       />
                     </td>
                   </tr>
@@ -439,10 +427,7 @@ export function EmployeeTotals({ year }: EmployeeTotalsProps) {
             <tbody className="divide-y divide-emerald-100 dark:divide-emerald-900/40">
               {employees.length === 0 ? (
                 <tr>
-                  <td
-                    colSpan={8}
-                    className="px-3 py-4 text-center text-gray-500 dark:text-gray-400"
-                  >
+                  <td colSpan={8} className="px-3 py-4 text-center text-fg-subtle">
                     {tMessages('noData')}
                   </td>
                 </tr>
@@ -452,28 +437,24 @@ export function EmployeeTotals({ year }: EmployeeTotalsProps) {
                     key={emp.employeeId}
                     className="hover:bg-emerald-50/60 dark:hover:bg-emerald-900/10"
                   >
-                    <td className="px-3 py-2 font-medium text-gray-900 dark:text-gray-100">
-                      {emp.employeeName}
-                    </td>
-                    <td className="px-3 py-2 text-center text-gray-700 dark:text-gray-300">
+                    <td className="px-3 py-2 font-medium text-fg">{emp.employeeName}</td>
+                    <td className="px-3 py-2 text-center text-fg">
                       {emp.disfrutados.diasTrabajados}
                     </td>
-                    <td className="px-3 py-2 text-center text-gray-700 dark:text-gray-300">
+                    <td className="px-3 py-2 text-center text-fg">
                       {emp.disfrutados.horasTrabajadas}
                     </td>
-                    <td className="px-3 py-2 text-center text-gray-700 dark:text-gray-300">
+                    <td className="px-3 py-2 text-center text-fg">
                       {emp.disfrutados.diasVacaciones}
                     </td>
-                    <td className="px-3 py-2 text-center text-gray-700 dark:text-gray-300">
+                    <td className="px-3 py-2 text-center text-fg">
                       {emp.disfrutados.diasLibreSemanal}
                     </td>
-                    <td className="px-3 py-2 text-center text-gray-700 dark:text-gray-300">
-                      {emp.disfrutados.diasIt}
-                    </td>
-                    <td className="px-3 py-2 text-center text-gray-700 dark:text-gray-300">
+                    <td className="px-3 py-2 text-center text-fg">{emp.disfrutados.diasIt}</td>
+                    <td className="px-3 py-2 text-center text-fg">
                       {emp.disfrutados.diasBonificables}
                     </td>
-                    <td className="px-3 py-2 text-center font-bold text-gray-900 dark:text-gray-100">
+                    <td className="px-3 py-2 text-center font-bold text-fg">
                       {emp.disfrutados.total}
                     </td>
                   </tr>
@@ -522,10 +503,7 @@ export function EmployeeTotals({ year }: EmployeeTotalsProps) {
             <tbody className="divide-y divide-amber-100 dark:divide-amber-900/40">
               {employees.length === 0 ? (
                 <tr>
-                  <td
-                    colSpan={8}
-                    className="px-3 py-4 text-center text-gray-500 dark:text-gray-400"
-                  >
+                  <td colSpan={8} className="px-3 py-4 text-center text-fg-subtle">
                     {tMessages('noData')}
                   </td>
                 </tr>
@@ -535,41 +513,39 @@ export function EmployeeTotals({ year }: EmployeeTotalsProps) {
                     key={emp.employeeId}
                     className="hover:bg-amber-50/60 dark:hover:bg-amber-900/10"
                   >
-                    <td className="px-3 py-2 font-medium text-gray-900 dark:text-gray-100">
-                      {emp.employeeName}
-                    </td>
+                    <td className="px-3 py-2 font-medium text-fg">{emp.employeeName}</td>
                     <td
-                      className={`px-3 py-2 text-center ${emp.pendiente.diasATrabaja < 0 ? 'text-red-600 dark:text-red-400' : 'text-gray-700 dark:text-gray-300'}`}
+                      className={`px-3 py-2 text-center ${emp.pendiente.diasATrabaja < 0 ? 'text-red-600 dark:text-red-400' : 'text-fg'}`}
                     >
                       {emp.pendiente.diasATrabaja}
                     </td>
                     <td
-                      className={`px-3 py-2 text-center ${emp.pendiente.horasATrabaja < 0 ? 'text-red-600 dark:text-red-400' : 'text-gray-700 dark:text-gray-300'}`}
+                      className={`px-3 py-2 text-center ${emp.pendiente.horasATrabaja < 0 ? 'text-red-600 dark:text-red-400' : 'text-fg'}`}
                     >
                       {emp.pendiente.horasATrabaja}
                     </td>
                     <td
-                      className={`px-3 py-2 text-center ${emp.pendiente.diasVacaciones < 0 ? 'text-red-600 dark:text-red-400' : 'text-gray-700 dark:text-gray-300'}`}
+                      className={`px-3 py-2 text-center ${emp.pendiente.diasVacaciones < 0 ? 'text-red-600 dark:text-red-400' : 'text-fg'}`}
                     >
                       {emp.pendiente.diasVacaciones}
                     </td>
                     <td
-                      className={`px-3 py-2 text-center ${emp.pendiente.diasLibreSemanal < 0 ? 'text-red-600 dark:text-red-400' : 'text-gray-700 dark:text-gray-300'}`}
+                      className={`px-3 py-2 text-center ${emp.pendiente.diasLibreSemanal < 0 ? 'text-red-600 dark:text-red-400' : 'text-fg'}`}
                     >
                       {emp.pendiente.diasLibreSemanal}
                     </td>
                     <td
-                      className={`px-3 py-2 text-center ${emp.pendiente.diasIt < 0 ? 'text-red-600 dark:text-red-400' : 'text-gray-700 dark:text-gray-300'}`}
+                      className={`px-3 py-2 text-center ${emp.pendiente.diasIt < 0 ? 'text-red-600 dark:text-red-400' : 'text-fg'}`}
                     >
                       {emp.pendiente.diasIt}
                     </td>
                     <td
-                      className={`px-3 py-2 text-center ${emp.pendiente.diasBonificables < 0 ? 'text-red-600 dark:text-red-400' : 'text-gray-700 dark:text-gray-300'}`}
+                      className={`px-3 py-2 text-center ${emp.pendiente.diasBonificables < 0 ? 'text-red-600 dark:text-red-400' : 'text-fg'}`}
                     >
                       {emp.pendiente.diasBonificables}
                     </td>
                     <td
-                      className={`px-3 py-2 text-center font-bold ${emp.pendiente.total < 0 ? 'text-red-600 dark:text-red-400' : 'text-gray-900 dark:text-gray-100'}`}
+                      className={`px-3 py-2 text-center font-bold ${emp.pendiente.total < 0 ? 'text-red-600 dark:text-red-400' : 'text-fg'}`}
                     >
                       {emp.pendiente.total}
                     </td>

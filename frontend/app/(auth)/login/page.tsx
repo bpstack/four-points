@@ -3,7 +3,13 @@
 
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
-import { AtSymbolIcon, KeyIcon, CheckCircleIcon } from '@heroicons/react/24/outline'
+import {
+  AtSymbolIcon,
+  KeyIcon,
+  CheckCircleIcon,
+  EyeIcon,
+  EyeSlashIcon,
+} from '@heroicons/react/24/outline'
 import { ArrowRightIcon } from '@heroicons/react/20/solid'
 import { Fa4 } from 'react-icons/fa6'
 import { TbTransformPointTopLeft } from 'react-icons/tb'
@@ -15,18 +21,16 @@ export default function LoginPage() {
   const t = useTranslations('auth')
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
   const [success, setSuccess] = useState(false)
   const { login, loading } = useAuth()
-  // Validación en tiempo real
+
   const validateUsername = (value: string) => {
     if (value.length === 0) return
     if (value.length < 3) {
-      setFieldErrors((prev) => ({
-        ...prev,
-        username: t('errors.usernameMinLength'),
-      }))
+      setFieldErrors((prev) => ({ ...prev, username: t('errors.usernameMinLength') }))
     } else {
       setFieldErrors((prev) => ({ ...prev, username: '' }))
     }
@@ -35,10 +39,7 @@ export default function LoginPage() {
   const validatePassword = (value: string) => {
     if (value.length === 0) return
     if (value.length < 6) {
-      setFieldErrors((prev) => ({
-        ...prev,
-        password: t('errors.passwordMinLength'),
-      }))
+      setFieldErrors((prev) => ({ ...prev, password: t('errors.passwordMinLength') }))
     } else {
       setFieldErrors((prev) => ({ ...prev, password: '' }))
     }
@@ -49,7 +50,6 @@ export default function LoginPage() {
     setError(null)
     setFieldErrors({})
     setSuccess(false)
-
     try {
       await login(username, password)
     } catch (err: unknown) {
@@ -63,180 +63,150 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-black px-6">
-      <div className="flex flex-col items-center w-full max-w-md space-y-6">
+    <main className="relative flex min-h-screen items-center justify-center bg-bg px-6">
+      <div className="absolute right-6 top-6">
+        <SimpleThemeButton />
+      </div>
+
+      <div className="flex w-full max-w-sm flex-col items-center gap-8">
         {/* Logo */}
-        <div className="flex h-20 w-full items-center justify-center rounded-lg bg-blue-500 dark:bg-black p-4 md:h-42">
-          <div className="absolute right-8 top-8 md:hidden">
-            <SimpleThemeButton />
+        <Link href="/" className="group flex items-center gap-2.5">
+          <div className="flex items-center gap-0.5 text-accent">
+            <span className="inline-block text-4xl leading-none transition-transform duration-300 group-hover:scale-110">
+              <Fa4 />
+            </span>
+            <span className="inline-block text-4xl leading-none transition-transform duration-300 group-hover:rotate-12 group-hover:scale-110">
+              <TbTransformPointTopLeft />
+            </span>
           </div>
-          <div className="relative flex items-center justify-center gap-6">
-            <div className="flex gap-1">
-              <Link
-                href="/"
-                className="text-white text-5xl drop-shadow-lg hover:scale-125 transition-transform duration-300 cursor-pointer"
-              >
-                <Fa4 />
-              </Link>
-              <Link
-                href="/"
-                className="text-white text-5xl drop-shadow-lg hover:rotate-12 hover:scale-125 transition-transform duration-300 cursor-pointer"
-              >
-                <TbTransformPointTopLeft />
-              </Link>
-            </div>
-          </div>
-        </div>
+          <span className="text-lg font-semibold tracking-tight text-fg transition-colors duration-300 group-hover:text-accent">
+            Four Points
+          </span>
+        </Link>
 
-        {/* Formulario de Login */}
-        <form
-          onSubmit={handleLogin}
-          className="w-full max-w-md rounded-2xl bg-white dark:bg-[#0d1117] px-6 pb-6 pt-8 shadow-lg border border-gray-200 dark:border-neutral-800"
-        >
-          <h1 className="mb-6 text-2xl font-semibold text-gray-900 dark:text-gray-100">
-            {t('login.titleFourPoints')}
-          </h1>
+        {/* Card */}
+        <div className="w-full rounded-xl border border-border bg-surface px-6 pb-6 pt-7 shadow-fp-pop">
+          <h1 className="mb-1 text-xl font-semibold text-fg">{t('login.title')}</h1>
+          <p className="mb-6 text-sm text-fg-muted">Introduce tus credenciales para acceder</p>
 
-          {/* Mensaje de éxito */}
           {success && (
-            <div className="mb-4 flex items-center gap-3 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 p-4">
-              <CheckCircleIcon className="h-5 w-5 text-green-600 dark:text-green-400 flex-shrink-0" />
-              <div className="flex-1">
+            <div className="mb-4 flex items-center gap-3 rounded-lg border border-green-200 bg-green-50 p-4 dark:border-green-800 dark:bg-green-900/20">
+              <CheckCircleIcon className="h-5 w-5 shrink-0 text-green-600 dark:text-green-400" />
+              <div>
                 <p className="text-sm font-medium text-green-800 dark:text-green-300">
                   {t('login.loginSuccess')}
                 </p>
-                <p className="text-xs text-green-700 dark:text-green-400 mt-1">
+                <p className="mt-0.5 text-xs text-green-700 dark:text-green-400">
                   {t('login.redirecting')}
                 </p>
               </div>
             </div>
           )}
 
-          {/* Error general */}
           {error && (
-            <div className="mb-4 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-3">
+            <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 dark:border-red-800 dark:bg-red-900/20">
               <p className="text-sm text-red-800 dark:text-red-300">{error}</p>
             </div>
           )}
 
-          {/* Username */}
-          <div>
-            <label
-              htmlFor="username"
-              className="mb-2 block text-xs font-medium text-gray-700 dark:text-[#c9d1d9]"
-            >
-              {t('login.username')}
-            </label>
-            <div className="relative">
-              <input
-                id="username"
-                type="text"
-                placeholder={t('login.usernamePlaceholder')}
-                value={username}
-                onChange={(e) => {
-                  setUsername(e.target.value)
-                  if (fieldErrors.username) {
-                    setFieldErrors({ ...fieldErrors, username: '' })
-                  }
-                }}
-                onBlur={(e) => validateUsername(e.target.value)}
-                required
-                minLength={3}
-                className={`peer block w-full rounded-md border ${
-                  fieldErrors.username
-                    ? 'border-red-500 dark:border-red-500'
-                    : 'border-gray-300 dark:border-[#30363d]'
-                } bg-white dark:bg-[#0d1117] py-2 pl-10 text-sm 
-                  text-black dark:text-[#f0f6fc] 
-                  placeholder-gray-500 dark:placeholder-[#8b949e] 
-                  focus:outline-none focus:ring-2 ${
+          <form onSubmit={handleLogin} className="space-y-4">
+            {/* Username */}
+            <div>
+              <label htmlFor="username" className="mb-1.5 block text-xs font-medium text-fg-muted">
+                {t('login.username')}
+              </label>
+              <div className="relative">
+                <input
+                  id="username"
+                  type="text"
+                  placeholder={t('login.usernamePlaceholder')}
+                  value={username}
+                  onChange={(e) => {
+                    setUsername(e.target.value)
+                    if (fieldErrors.username) setFieldErrors({ ...fieldErrors, username: '' })
+                  }}
+                  onBlur={(e) => validateUsername(e.target.value)}
+                  required
+                  minLength={3}
+                  className={`block w-full rounded-md border bg-surface-sunken py-2 pl-9 pr-3 text-sm text-fg placeholder-fg-subtle transition-colors focus:outline-none focus:ring-2 ${
                     fieldErrors.username
-                      ? 'focus:ring-red-500'
-                      : 'focus:ring-blue-500 dark:focus:ring-[#1f6feb]'
+                      ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20'
+                      : 'border-border focus:border-accent focus:ring-accent/20'
                   }`}
-              />
-              <AtSymbolIcon
-                className={`pointer-events-none absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 ${
-                  fieldErrors.username
-                    ? 'text-red-500'
-                    : 'text-gray-500 dark:text-[#8b949e] peer-focus:text-gray-900 dark:peer-focus:text-[#f0f6fc]'
-                }`}
-              />
+                />
+                <AtSymbolIcon
+                  className={`pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 ${
+                    fieldErrors.username ? 'text-red-500' : 'text-fg-subtle'
+                  }`}
+                />
+              </div>
+              {fieldErrors.username && (
+                <p className="mt-1 text-xs text-red-600 dark:text-red-400">
+                  {fieldErrors.username}
+                </p>
+              )}
             </div>
-            {fieldErrors.username && (
-              <p className="mt-1 text-xs text-red-600 dark:text-red-400">{fieldErrors.username}</p>
-            )}
-          </div>
 
-          {/* Password */}
-          <div className="mt-4">
-            <label
-              htmlFor="password"
-              className="mb-2 block text-xs font-medium text-gray-700 dark:text-[#c9d1d9]"
-            >
-              {t('login.password')}
-            </label>
-            <div className="relative">
-              <input
-                id="password"
-                type="password"
-                placeholder={t('login.passwordMinHint')}
-                value={password}
-                onChange={(e) => {
-                  setPassword(e.target.value)
-                  if (fieldErrors.password) {
-                    setFieldErrors({ ...fieldErrors, password: '' })
-                  }
-                }}
-                onBlur={(e) => validatePassword(e.target.value)}
-                required
-                minLength={6}
-                className={`peer block w-full rounded-md border ${
-                  fieldErrors.password
-                    ? 'border-red-500 dark:border-red-500'
-                    : 'border-gray-300 dark:border-[#30363d]'
-                } bg-white dark:bg-[#0d1117] py-2 pl-10 text-sm 
-                  text-black dark:text-[#f0f6fc] 
-                  placeholder-gray-500 dark:placeholder-[#8b949e] 
-                  focus:outline-none focus:ring-2 ${
+            {/* Password */}
+            <div>
+              <label htmlFor="password" className="mb-1.5 block text-xs font-medium text-fg-muted">
+                {t('login.password')}
+              </label>
+              <div className="relative">
+                <input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder={t('login.passwordMinHint')}
+                  value={password}
+                  onChange={(e) => {
+                    setPassword(e.target.value)
+                    if (fieldErrors.password) setFieldErrors({ ...fieldErrors, password: '' })
+                  }}
+                  onBlur={(e) => validatePassword(e.target.value)}
+                  required
+                  minLength={6}
+                  className={`block w-full rounded-md border bg-surface-sunken py-2 pl-9 pr-10 text-sm text-fg placeholder-fg-subtle transition-colors focus:outline-none focus:ring-2 ${
                     fieldErrors.password
-                      ? 'focus:ring-red-500'
-                      : 'focus:ring-blue-500 dark:focus:ring-[#1f6feb]'
+                      ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20'
+                      : 'border-border focus:border-accent focus:ring-accent/20'
                   }`}
-              />
-              <KeyIcon
-                className={`pointer-events-none absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 ${
-                  fieldErrors.password
-                    ? 'text-red-500'
-                    : 'text-gray-500 dark:text-[#8b949e] peer-focus:text-gray-900 dark:peer-focus:text-[#f0f6fc]'
-                }`}
-              />
+                />
+                <KeyIcon
+                  className={`pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 ${
+                    fieldErrors.password ? 'text-red-500' : 'text-fg-subtle'
+                  }`}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  tabIndex={-1}
+                  aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 text-fg-subtle transition-colors hover:text-fg"
+                >
+                  {showPassword ? (
+                    <EyeSlashIcon className="h-4 w-4" />
+                  ) : (
+                    <EyeIcon className="h-4 w-4" />
+                  )}
+                </button>
+              </div>
+              {fieldErrors.password && (
+                <p className="mt-1 text-xs text-red-600 dark:text-red-400">
+                  {fieldErrors.password}
+                </p>
+              )}
             </div>
-            {fieldErrors.password && (
-              <p className="mt-1 text-xs text-red-600 dark:text-red-400">{fieldErrors.password}</p>
-            )}
-          </div>
 
-          {/* Botón */}
-          <button
-            type="submit"
-            disabled={loading || success}
-            className="mt-6 flex w-full items-center justify-center rounded-md bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition-colors duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {loading ? t('login.submitting') : success ? t('login.success') : t('login.submit')}
-            {!loading && !success && <ArrowRightIcon className="ml-2 h-5 w-5" />}
-          </button>
-
-          <p className="mt-4 text-center text-sm text-gray-600 dark:text-gray-400">
-            {t('login.noAccount')}{' '}
-            <Link
-              href="https://www.stackbp.es/"
-              className="text-blue-600 dark:text-blue-400 hover:underline"
+            <button
+              type="submit"
+              disabled={loading || success}
+              className="mt-2 flex w-full items-center justify-center rounded-md bg-accent px-4 py-2.5 text-sm font-semibold text-accent-fg transition-colors duration-200 hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {t('login.liveDemo')}
-            </Link>
-          </p>
-        </form>
+              {loading ? t('login.submitting') : success ? t('login.success') : t('login.submit')}
+              {!loading && !success && <ArrowRightIcon className="ml-2 h-4 w-4" />}
+            </button>
+          </form>
+        </div>
       </div>
     </main>
   )

@@ -90,8 +90,8 @@ export default function NavLinks({ onClose, currentUserRole, collapsed = false }
           ${collapsed ? 'justify-center px-2 py-3' : 'px-2.5 md:px-3 py-3 md:py-2'}
           ${
             isActive
-              ? 'bg-blue-50 dark:bg-gray-800 text-blue-700 dark:text-white border-l-4 border-blue-600 dark:border-blue-400'
-              : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white border-l-4 border-transparent'
+              ? 'bg-accent/10 text-accent border-l-4 border-accent'
+              : 'text-fg-muted hover:bg-surface-hover hover:text-fg border-l-4 border-transparent'
           }
           ${collapsed ? 'border-l-0' : ''}
         `}
@@ -108,12 +108,12 @@ export default function NavLinks({ onClose, currentUserRole, collapsed = false }
       <div className="flex flex-col gap-1">{mainLinks.map((link) => renderLink(link))}</div>
 
       {/* Separator */}
-      <div className="border-t border-gray-200 dark:border-gray-700" />
+      <div className="border-t border-border" />
 
       {/* Back Office Tasks Group */}
       <div className="flex flex-col gap-1">
         {!collapsed && (
-          <h3 className="px-3 text-xs font-semibold text-gray-500 dark:text-gray-400 tracking-wide mb-1">
+          <h3 className="px-3 text-xs font-semibold text-fg-subtle tracking-wide mb-1">
             {t('backofficeTasks')}
           </h3>
         )}
@@ -137,8 +137,8 @@ export default function NavLinks({ onClose, currentUserRole, collapsed = false }
                 flex items-center justify-center px-2 py-3 rounded-lg text-sm font-medium transition-all duration-200
                 ${
                   isCashierActive
-                    ? 'bg-blue-50 dark:bg-gray-800 text-blue-700 dark:text-white'
-                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white'
+                    ? 'bg-accent/10 text-accent'
+                    : 'text-fg-muted hover:bg-surface-hover hover:text-fg'
                 }
               `}
             >
@@ -153,8 +153,8 @@ export default function NavLinks({ onClose, currentUserRole, collapsed = false }
                   w-full flex items-center gap-2 md:gap-3 px-2.5 md:px-3 py-3 md:py-2 rounded-lg text-sm font-medium transition-all duration-200
                   ${
                     isCashierActive
-                      ? 'bg-blue-50 dark:bg-gray-800 text-blue-700 dark:text-white border-l-4 border-blue-600 dark:border-blue-400'
-                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white border-l-4 border-transparent'
+                      ? 'bg-accent/10 text-accent border-l-4 border-accent'
+                      : 'text-fg-muted hover:bg-surface-hover hover:text-fg border-l-4 border-transparent'
                   }
                 `}
               >
@@ -187,8 +187,8 @@ export default function NavLinks({ onClose, currentUserRole, collapsed = false }
                           block px-2.5 md:px-3 py-2.5 md:py-2 rounded-md text-sm transition-all duration-200
                           ${
                             isSubActive
-                              ? 'bg-blue-100 dark:bg-gray-700 text-blue-700 dark:text-blue-300 font-medium'
-                              : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white'
+                              ? 'bg-accent/10 text-accent font-medium'
+                              : 'text-fg-muted hover:bg-surface-hover hover:text-fg'
                           }
                         `}
                       >
@@ -204,13 +204,13 @@ export default function NavLinks({ onClose, currentUserRole, collapsed = false }
       </div>
 
       {/* Separator */}
-      <div className="border-t border-gray-200 dark:border-gray-700" />
+      <div className="border-t border-border" />
 
       {/* Check List */}
       <div className="flex flex-col gap-1">{checklistLinks.map((link) => renderLink(link))}</div>
 
       {/* Separator */}
-      <div className="border-t border-gray-200 dark:border-gray-700" />
+      <div className="border-t border-border" />
 
       {/* Profile Group */}
       <div className="flex flex-col gap-1">{profileLinks.map((link) => renderLink(link))}</div>

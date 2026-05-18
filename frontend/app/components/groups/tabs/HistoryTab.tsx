@@ -65,22 +65,20 @@ export function HistoryTab() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+          <h3 className="text-sm font-semibold text-fg flex items-center gap-2">
             <FiClock className="w-4 h-4" />
             {t('history.historyTitle')}
           </h3>
-          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-            {t('history.historySubtitle')}
-          </p>
+          <p className="text-xs text-fg-subtle mt-1">{t('history.historySubtitle')}</p>
         </div>
 
         {/* Filter */}
         <div className="flex items-center gap-2">
-          <FiFilter className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+          <FiFilter className="w-4 h-4 text-fg-subtle" />
           <select
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
-            className="px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-[#151b23] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="px-3 py-1.5 text-xs border border-border rounded-md bg-surface text-fg focus:outline-none focus:ring-2 focus:ring-accent/50"
           >
             {ACTION_FILTERS.map((option) => (
               <option key={option.value} value={option.value}>
@@ -110,7 +108,7 @@ export function HistoryTab() {
 
       {/* Stats */}
       {history.length > 0 && (
-        <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+        <div className="bg-info/10 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
           <p className="text-xs text-blue-800 dark:text-blue-300">
             {t('history.totalChanges')} {history.length} {t('history.records')}
             {filter !== 'all' && ` (${filteredHistory.length} ${t('history.filtered')})`}

@@ -77,24 +77,21 @@ export function ShiftSelector({
   return (
     <div
       ref={ref}
-      className="fixed z-50 bg-white dark:bg-[#1c2128] rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden"
+      className="fixed z-50 bg-surface rounded-lg shadow-xl border border-border overflow-hidden"
       style={{
         left: adjustedPosition.left,
         top: adjustedPosition.top,
       }}
     >
       {/* Header */}
-      <div className="px-2.5 py-1.5 bg-gray-50 dark:bg-[#151b23] border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
+      <div className="px-2.5 py-1.5 bg-surface border-b border-border flex items-center justify-between">
         <div>
-          <p className="text-xs font-medium text-gray-900 dark:text-gray-100">{employeeName}</p>
-          <p className="text-[10px] text-gray-500 dark:text-gray-400">
+          <p className="text-xs font-medium text-fg">{employeeName}</p>
+          <p className="text-[10px] text-fg-subtle">
             {subtitle ?? (dayNumber !== undefined ? t('day', { day: dayNumber }) : '')}
           </p>
         </div>
-        <button
-          onClick={onClose}
-          className="p-0.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded"
-        >
+        <button onClick={onClose} className="p-0.5 text-fg-subtle hover:text-fg rounded">
           <FiX className="w-3.5 h-3.5" />
         </button>
       </div>
@@ -110,7 +107,7 @@ export function ShiftSelector({
             {/* Work shifts */}
             {workShifts.length > 0 && (
               <div className="mb-1.5">
-                <p className="px-0.5 py-0.5 text-[9px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                <p className="px-0.5 py-0.5 text-[9px] font-semibold text-fg-subtle uppercase tracking-wider">
                   {t('work')}
                 </p>
                 <div className="flex flex-wrap gap-1">
@@ -129,7 +126,7 @@ export function ShiftSelector({
             {/* Non-work shifts (libres, vacaciones, etc) */}
             {nonWorkShifts.length > 0 && (
               <div>
-                <p className="px-0.5 py-0.5 text-[9px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                <p className="px-0.5 py-0.5 text-[9px] font-semibold text-fg-subtle uppercase tracking-wider">
                   {t('absences')}
                 </p>
                 <div className="flex flex-wrap gap-1">

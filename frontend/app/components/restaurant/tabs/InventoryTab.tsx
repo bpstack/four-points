@@ -217,13 +217,13 @@ export function InventoryTab() {
       <div className="flex flex-col lg:flex-row gap-3">
         {/* Search */}
         <div className="relative flex-1">
-          <FiSearch className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 dark:text-gray-500" />
+          <FiSearch className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-fg-subtle" />
           <input
             type="text"
             placeholder={t('inventory.searchPlaceholder')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-8 pr-3 py-1.5 text-xs border border-gray-300 dark:border-gray-700 dark:bg-[#151b23] dark:text-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent"
+            className="w-full pl-8 pr-3 py-1.5 text-xs border border-border bg-surface text-fg rounded-md focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-transparent"
           />
         </div>
 
@@ -231,7 +231,7 @@ export function InventoryTab() {
         <select
           value={selectedCategory}
           onChange={(e) => setSelectedCategory(e.target.value)}
-          className="px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent bg-white dark:bg-[#151b23] dark:text-gray-200"
+          className="px-3 py-1.5 text-xs border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-transparent bg-surface dark:text-fg"
         >
           {categories.map((cat) => (
             <option key={cat.id} value={cat.id}>
@@ -246,7 +246,7 @@ export function InventoryTab() {
           className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md border transition-colors ${
             showLowStockOnly
               ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 border-orange-300 dark:border-orange-800'
-              : 'bg-white dark:bg-[#151b23] text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800'
+              : 'bg-surface text-fg border-border hover:bg-surface-hover'
           }`}
         >
           <FiAlertTriangle className="w-3.5 h-3.5" />
@@ -254,51 +254,48 @@ export function InventoryTab() {
         </button>
 
         {/* Add Product Button */}
-        <button className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-green-600 dark:bg-green-700 text-white text-xs font-medium rounded-md hover:bg-green-700 dark:hover:bg-green-800 transition-colors">
+        <button className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-accent text-accent-fg text-xs font-medium rounded-md hover:bg-accent-hover transition-colors">
           <FiPlus className="w-3.5 h-3.5" />
           {t('inventory.addProduct')}
         </button>
       </div>
 
       {/* Desktop Table */}
-      <div className="hidden md:block bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden">
+      <div className="hidden md:block bg-surface rounded-md border border-border shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-gray-50 dark:bg-[#0d1117] border-b border-gray-200 dark:border-gray-800">
+            <thead className="bg-surface-sunken border-b border-border">
               <tr>
-                <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                <th className="px-3 py-2 text-left text-[10px] font-semibold text-fg uppercase tracking-wider">
                   {t('inventory.table.product')}
                 </th>
-                <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                <th className="px-3 py-2 text-left text-[10px] font-semibold text-fg uppercase tracking-wider">
                   {t('inventory.table.category')}
                 </th>
-                <th className="px-3 py-2 text-center text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                <th className="px-3 py-2 text-center text-[10px] font-semibold text-fg uppercase tracking-wider">
                   {t('inventory.table.stock')}
                 </th>
-                <th className="px-3 py-2 text-center text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                <th className="px-3 py-2 text-center text-[10px] font-semibold text-fg uppercase tracking-wider">
                   {t('inventory.table.status')}
                 </th>
-                <th className="px-3 py-2 text-right text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                <th className="px-3 py-2 text-right text-[10px] font-semibold text-fg uppercase tracking-wider">
                   {t('inventory.table.price')}
                 </th>
-                <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                <th className="px-3 py-2 text-left text-[10px] font-semibold text-fg uppercase tracking-wider">
                   {t('inventory.table.supplier')}
                 </th>
-                <th className="px-3 py-2 text-center text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                <th className="px-3 py-2 text-center text-[10px] font-semibold text-fg uppercase tracking-wider">
                   {t('inventory.table.updated')}
                 </th>
-                <th className="px-3 py-2 text-right text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                <th className="px-3 py-2 text-right text-[10px] font-semibold text-fg uppercase tracking-wider">
                   {t('inventory.table.actions')}
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
+            <tbody className="divide-y divide-border">
               {filteredProducts.length === 0 ? (
                 <tr>
-                  <td
-                    colSpan={8}
-                    className="px-3 py-8 text-center text-xs text-gray-500 dark:text-gray-400"
-                  >
+                  <td colSpan={8} className="px-3 py-8 text-center text-xs text-fg-subtle">
                     {t('inventory.noProducts')}
                   </td>
                 </tr>
@@ -306,24 +303,19 @@ export function InventoryTab() {
                 filteredProducts.map((product) => {
                   const stockStatus = getStockStatus(product.stock, product.minStock)
                   return (
-                    <tr
-                      key={product.id}
-                      className="hover:bg-gray-50 dark:hover:bg-[#0d1117] transition-colors"
-                    >
+                    <tr key={product.id} className="hover:bg-surface-hover transition-colors">
                       <td className="px-3 py-2">
                         <div className="flex items-center gap-2">
                           {product.stock < product.minStock && (
                             <FiAlertTriangle className="w-3.5 h-3.5 text-orange-500 flex-shrink-0" />
                           )}
-                          <span className="text-xs font-medium text-gray-900 dark:text-gray-100">
-                            {product.name}
-                          </span>
+                          <span className="text-xs font-medium text-fg">{product.name}</span>
                         </div>
                       </td>
-                      <td className="px-3 py-2 text-xs text-gray-600 dark:text-gray-400 capitalize">
+                      <td className="px-3 py-2 text-xs text-fg-muted capitalize">
                         {getCategoryLabel(product.category)}
                       </td>
-                      <td className="px-3 py-2 text-xs text-center text-gray-900 dark:text-gray-100">
+                      <td className="px-3 py-2 text-xs text-center text-fg">
                         {product.stock} {product.unit}
                       </td>
                       <td className="px-3 py-2 text-center">
@@ -333,21 +325,19 @@ export function InventoryTab() {
                           {t(stockStatus.labelKey)}
                         </span>
                       </td>
-                      <td className="px-3 py-2 text-xs text-right font-medium text-gray-900 dark:text-gray-100">
+                      <td className="px-3 py-2 text-xs text-right font-medium text-fg">
                         {formatCurrency(product.price)}
                       </td>
-                      <td className="px-3 py-2 text-xs text-gray-600 dark:text-gray-400">
-                        {product.supplier}
-                      </td>
-                      <td className="px-3 py-2 text-xs text-center text-gray-600 dark:text-gray-400">
+                      <td className="px-3 py-2 text-xs text-fg-muted">{product.supplier}</td>
+                      <td className="px-3 py-2 text-xs text-center text-fg-muted">
                         {formatDate(product.lastUpdated)}
                       </td>
                       <td className="px-3 py-2 text-right">
                         <div className="flex items-center justify-end gap-1">
-                          <button className="inline-flex items-center justify-center w-7 h-7 text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors">
+                          <button className="inline-flex items-center justify-center w-7 h-7 text-fg-muted hover:text-accent hover:bg-surface-hover rounded transition-colors">
                             <FiEdit2 className="w-3.5 h-3.5" />
                           </button>
-                          <button className="inline-flex items-center justify-center w-7 h-7 text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors">
+                          <button className="inline-flex items-center justify-center w-7 h-7 text-fg-muted hover:text-red-600 dark:hover:text-red-400 hover:bg-surface-hover rounded transition-colors">
                             <FiTrash2 className="w-3.5 h-3.5" />
                           </button>
                         </div>
@@ -364,8 +354,8 @@ export function InventoryTab() {
       {/* Mobile Cards */}
       <div className="md:hidden space-y-2">
         {filteredProducts.length === 0 ? (
-          <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-6 text-center">
-            <p className="text-xs text-gray-500 dark:text-gray-400">{t('inventory.noProducts')}</p>
+          <div className="bg-surface rounded-md border border-border p-6 text-center">
+            <p className="text-xs text-fg-subtle">{t('inventory.noProducts')}</p>
           </div>
         ) : (
           filteredProducts.map((product) => {
@@ -373,7 +363,7 @@ export function InventoryTab() {
             return (
               <div
                 key={product.id}
-                className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-3 hover:shadow-md dark:hover:shadow-gray-900/50 transition-shadow"
+                className="bg-surface border border-border rounded-fp-md shadow-fp-pop p-3 hover:bg-surface-hover transition-colors"
               >
                 <div className="flex items-start justify-between mb-2">
                   <div className="flex-1 min-w-0">
@@ -381,11 +371,9 @@ export function InventoryTab() {
                       {product.stock < product.minStock && (
                         <FiAlertTriangle className="w-3.5 h-3.5 text-orange-500 flex-shrink-0" />
                       )}
-                      <h3 className="font-semibold text-xs text-gray-900 dark:text-gray-100 truncate">
-                        {product.name}
-                      </h3>
+                      <h3 className="font-semibold text-xs text-fg truncate">{product.name}</h3>
                     </div>
-                    <p className="text-[10px] text-gray-600 dark:text-gray-400 mt-0.5 capitalize">
+                    <p className="text-[10px] text-fg-muted mt-0.5 capitalize">
                       {getCategoryLabel(product.category)}
                     </p>
                   </div>
@@ -396,27 +384,25 @@ export function InventoryTab() {
                   </span>
                 </div>
 
-                <div className="flex items-center justify-between text-[10px] text-gray-600 dark:text-gray-400">
+                <div className="flex items-center justify-between text-[10px] text-fg-muted">
                   <span>
                     {t('inventory.stock')}{' '}
-                    <span className="font-medium text-gray-900 dark:text-gray-100">
+                    <span className="font-medium text-fg">
                       {product.stock} {product.unit}
                     </span>
                   </span>
-                  <span className="font-semibold text-xs text-gray-900 dark:text-gray-100">
+                  <span className="font-semibold text-xs text-fg">
                     {formatCurrency(product.price)}
                   </span>
                 </div>
 
-                <div className="flex items-center justify-between mt-2 pt-2 border-t border-gray-100 dark:border-gray-800">
-                  <span className="text-[10px] text-gray-500 dark:text-gray-500">
-                    {product.supplier}
-                  </span>
+                <div className="flex items-center justify-between mt-2 pt-2 border-t border-border">
+                  <span className="text-[10px] text-fg-subtle">{product.supplier}</span>
                   <div className="flex items-center gap-1">
-                    <button className="inline-flex items-center justify-center w-6 h-6 text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors">
+                    <button className="inline-flex items-center justify-center w-6 h-6 text-fg-muted hover:text-accent hover:bg-surface-hover rounded transition-colors">
                       <FiEdit2 className="w-3 h-3" />
                     </button>
-                    <button className="inline-flex items-center justify-center w-6 h-6 text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors">
+                    <button className="inline-flex items-center justify-center w-6 h-6 text-fg-muted hover:text-red-600 dark:hover:text-red-400 hover:bg-surface-hover rounded transition-colors">
                       <FiTrash2 className="w-3 h-3" />
                     </button>
                   </div>

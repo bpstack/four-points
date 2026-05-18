@@ -312,9 +312,7 @@ export function PaymentPanel({
           </FormField>
         </div>
 
-        <p className="text-xs text-gray-500 dark:text-gray-400">
-          {t('paymentPanel.percentageHint')}
-        </p>
+        <p className="text-xs text-fg-subtle">{t('paymentPanel.percentageHint')}</p>
 
         {/* Amount Paid */}
         <FormField label={t('paymentPanel.amountPaid')} error={errors.amount_paid?.message}>
@@ -342,7 +340,7 @@ export function PaymentPanel({
                 onClick={() => setShowDueDateCal(!showDueDateCal)}
                 className={`${inputClassName} pr-10 cursor-pointer`}
               />
-              <FiCalendar className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+              <FiCalendar className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-fg-subtle pointer-events-none" />
             </div>
           </FormField>
           {showDueDateCal && (

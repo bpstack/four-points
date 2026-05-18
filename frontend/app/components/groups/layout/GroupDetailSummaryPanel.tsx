@@ -8,6 +8,7 @@ import { useGroupStore } from '@/app/stores/useGroupStore'
 import { useGroupPayments } from '@/app/lib/groups'
 import { formatCurrency, formatDate } from '@/app/lib/helpers/utils'
 import { FiDollarSign, FiLogIn, FiLogOut, FiClock } from 'react-icons/fi'
+import { Card, Badge } from '@/app/ui/components'
 
 export function GroupDetailSummaryPanel() {
   const { currentGroup } = useGroupStore()
@@ -49,18 +50,14 @@ export function GroupDetailSummaryPanel() {
 
   return (
     <div className="sticky top-4 space-y-3">
-      <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">
-        {t('stats.summary')}
-      </h3>
+      <h3 className="text-sm font-semibold text-fg mb-3">{t('stats.summary')}</h3>
 
       {/* Llegada */}
-      <div className="bg-white dark:bg-[#0D1117] border border-[#d0d7de] dark:border-[#30363d] rounded-xl shadow-sm p-4">
+      <Card padding="md">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">
-              {t('table.arrival')}
-            </p>
-            <p className="text-sm font-bold text-gray-900 dark:text-gray-100 mt-0.5">
+            <p className="text-xs text-fg-muted font-medium">{t('table.arrival')}</p>
+            <p className="text-sm font-bold text-fg mt-0.5">
               {formatDate(currentGroup.arrival_date, 'long')}
             </p>
           </div>
@@ -68,16 +65,14 @@ export function GroupDetailSummaryPanel() {
             <FiLogIn className="w-5 h-5 text-green-600 dark:text-green-400" />
           </div>
         </div>
-      </div>
+      </Card>
 
       {/* Salida */}
-      <div className="bg-white dark:bg-[#0D1117] border border-[#d0d7de] dark:border-[#30363d] rounded-xl shadow-sm p-4">
+      <Card padding="md">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">
-              {t('table.departure')}
-            </p>
-            <p className="text-sm font-bold text-gray-900 dark:text-gray-100 mt-0.5">
+            <p className="text-xs text-fg-muted font-medium">{t('table.departure')}</p>
+            <p className="text-sm font-bold text-fg mt-0.5">
               {formatDate(currentGroup.departure_date, 'long')}
             </p>
           </div>
@@ -85,34 +80,30 @@ export function GroupDetailSummaryPanel() {
             <FiLogOut className="w-5 h-5 text-orange-600 dark:text-orange-400" />
           </div>
         </div>
-      </div>
+      </Card>
 
       {/* Estancia */}
-      <div className="bg-white dark:bg-[#0D1117] border border-[#d0d7de] dark:border-[#30363d] rounded-xl shadow-sm p-4">
+      <Card padding="md">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">
-              {t('summaryPanel.stay')}
-            </p>
-            <p className="text-xl font-bold text-gray-900 dark:text-gray-100 mt-0.5">
+            <p className="text-xs text-fg-muted font-medium">{t('summaryPanel.stay')}</p>
+            <p className="text-xl font-bold text-fg mt-0.5">
               {stayNights}{' '}
-              <span className="text-sm font-normal text-gray-500">{t('summaryPanel.nights')}</span>
+              <span className="text-sm font-normal text-fg-muted">{t('summaryPanel.nights')}</span>
             </p>
           </div>
-          <div className="p-2 bg-blue-100 dark:bg-blue-900/20 rounded-lg">
+          <div className="p-2 bg-info/10 rounded-lg">
             <FiClock className="w-5 h-5 text-blue-600 dark:text-blue-400" />
           </div>
         </div>
-      </div>
+      </Card>
 
       {/* Importe Total */}
-      <div className="bg-white dark:bg-[#0D1117] border border-[#d0d7de] dark:border-[#30363d] rounded-xl shadow-sm p-4">
+      <Card padding="md">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">
-              {t('overview.totalAmount')}
-            </p>
-            <p className="text-xl font-bold text-gray-900 dark:text-gray-100 mt-0.5">
+            <p className="text-xs text-fg-muted font-medium">{t('overview.totalAmount')}</p>
+            <p className="text-xl font-bold text-fg mt-0.5">
               {formatCurrency(currentGroup.total_amount, currentGroup.currency)}
             </p>
           </div>
@@ -120,42 +111,28 @@ export function GroupDetailSummaryPanel() {
             <FiDollarSign className="w-5 h-5 text-purple-600 dark:text-purple-400" />
           </div>
         </div>
-      </div>
+      </Card>
 
       {/* Balance */}
-      <div
-        className={`bg-white dark:bg-[#0D1117] border rounded-xl shadow-sm p-4 ${
-          balanceStatus.isPaid
-            ? 'border-green-200 dark:border-green-800/30'
-            : 'border-[#d0d7de] dark:border-[#30363d]'
-        }`}
-      >
+      <Card padding="md" className={balanceStatus.isPaid ? 'border-success/30' : ''}>
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">
-              {t('statusTab.paymentStatus')}
-            </p>
-            <span
-              className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
-                balanceStatus.isPaid
-                  ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                  : 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400'
-              }`}
-            >
+            <p className="text-xs text-fg-muted font-medium">{t('statusTab.paymentStatus')}</p>
+            <Badge tone={balanceStatus.isPaid ? 'success' : 'warning'}>
               {balanceStatus.isPaid ? t('overview.balancePaid') : t('overview.balancePending')}
-            </span>
+            </Badge>
           </div>
 
           <div className="space-y-1.5">
             <div className="flex justify-between text-xs">
-              <span className="text-gray-500 dark:text-gray-400">{t('payments.paid')}:</span>
+              <span className="text-fg-subtle">{t('payments.paid')}:</span>
               <span className="font-medium text-green-600 dark:text-green-400">
                 {formatCurrency(balanceStatus.totalPaid, currentGroup.currency)}
               </span>
             </div>
             {!balanceStatus.isPaid && balanceStatus.remaining > 0 && (
               <div className="flex justify-between text-xs">
-                <span className="text-gray-500 dark:text-gray-400">{t('payments.pending')}:</span>
+                <span className="text-fg-subtle">{t('payments.pending')}:</span>
                 <span className="font-medium text-orange-600 dark:text-orange-400">
                   {formatCurrency(balanceStatus.remaining, currentGroup.currency)}
                 </span>
@@ -165,7 +142,7 @@ export function GroupDetailSummaryPanel() {
 
           {/* Progress bar */}
           <div className="mt-2">
-            <div className="h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+            <div className="h-1.5 bg-surface-hover rounded-full overflow-hidden">
               <div
                 className={`h-full rounded-full transition-all duration-300 ${
                   balanceStatus.isPaid
@@ -183,7 +160,7 @@ export function GroupDetailSummaryPanel() {
             </div>
           </div>
         </div>
-      </div>
+      </Card>
     </div>
   )
 }

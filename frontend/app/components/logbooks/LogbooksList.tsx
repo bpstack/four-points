@@ -4,7 +4,6 @@
 import { useState } from 'react'
 import {
   FiClock,
-  FiAlertCircle,
   FiEdit2,
   FiMessageSquare,
   FiEye,
@@ -27,6 +26,7 @@ import NewCommentEntry from './NewCommentEntry'
 import EditLogbookModal from './EditLogbookModal'
 import EditCommentModal from './EditCommentModal'
 import { useTranslations } from 'next-intl'
+import { Badge, Button } from '@/app/ui/components'
 
 // =============================================
 // HELPER FUNCTIONS
@@ -49,29 +49,14 @@ function getInitials(username: string): string {
   return username.substring(0, 2).toUpperCase()
 }
 
-function getPriorityColor(priority: string) {
-  switch (priority) {
-    case 'critical':
-      return 'text-red-700 bg-red-100 border-red-300 dark:text-red-400 dark:bg-red-900/20 dark:border-red-800'
-    case 'high':
-      return 'text-orange-700 bg-orange-100 border-orange-300 dark:text-orange-400 dark:bg-orange-900/20 dark:border-orange-800'
-    case 'medium':
-      return 'text-yellow-700 bg-yellow-100 border-yellow-300 dark:text-yellow-400 dark:bg-yellow-900/20 dark:border-yellow-800'
-    case 'low':
-      return 'text-green-700 bg-green-100 border-green-300 dark:text-green-400 dark:bg-green-900/20 dark:border-green-800'
-    default:
-      return 'text-gray-700 bg-gray-100 border-gray-300 dark:text-gray-400 dark:bg-gray-800 dark:border-gray-700'
-  }
-}
-
 function getPriorityBackground(priority: string) {
   switch (priority) {
     case 'critical':
-      return 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'
+      return 'bg-critical-bg border-critical-border border-l-4 border-l-danger'
     case 'high':
-      return 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-700'
+      return 'bg-high-bg border-high-border border-l-4 border-l-warning'
     default:
-      return 'bg-white dark:bg-[#151b23] border-gray-200 dark:border-gray-800'
+      return 'bg-surface border-border'
   }
 }
 
@@ -204,7 +189,7 @@ function ReadByAvatars({
   }
 
   if (safeUsers.length === 0) {
-    return <span className="text-xs text-gray-400 dark:text-gray-500 italic">{noneLabel}</span>
+    return <span className="text-xs text-fg-subtle italic">{noneLabel}</span>
   }
 
   return (
@@ -227,7 +212,7 @@ function ReadByAvatars({
         </div>
       ))}
       {remainingCount > 0 && (
-        <div className="text-[10px] text-gray-500 dark:text-gray-400 ml-1">
+        <div className="text-[10px] text-fg-subtle ml-1">
           {moreLabel.replace('__count__', String(remainingCount))}
         </div>
       )}
@@ -294,7 +279,7 @@ function ReadToggleButton({
       className={`flex items-center gap-1.5 text-xs transition-colors ${
         isRead
           ? 'text-indigo-600 dark:text-indigo-400 hover:text-indigo-700'
-          : 'text-gray-600 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400'
+          : 'text-fg-muted hover:text-indigo-600 dark:hover:text-indigo-400'
       }`}
     >
       <FiEye className="w-4 h-4" />
@@ -508,33 +493,33 @@ export default function LogbooksList({
     <div className="max-w-[1600px] space-y-3">
       {/* Header - Desktop only */}
       {entries.length > 0 && (
-        <div className="hidden md:block sticky top-[115px] z-20 border border-gray-200 dark:border-gray-800 rounded-lg bg-white dark:bg-[#0d1117] shadow-sm overflow-hidden mb-3">
-          <div className="flex px-3 py-2.5 bg-gray-50/50 dark:bg-gray-900/20">
-            <div className="w-24 flex-shrink-0 border-r border-gray-200 dark:border-gray-700 pr-3">
-              <h3 className="text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide">
+        <div className="hidden md:block sticky top-[115px] z-20 border border-border rounded-lg bg-surface shadow-sm overflow-hidden mb-3">
+          <div className="flex px-3 py-2.5 bg-surface-sunken/50">
+            <div className="w-24 flex-shrink-0 border-r border-border pr-3">
+              <h3 className="text-xs font-semibold text-fg uppercase tracking-wide">
                 {t('list.columns.timeAuthor')}
               </h3>
             </div>
-            <div className="flex-1 px-4 border-r border-gray-200 dark:border-gray-700">
+            <div className="flex-1 px-4 border-r border-border">
               <div className="flex items-center gap-1.5">
                 <SlBookOpen className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
-                <h3 className="text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide">
+                <h3 className="text-xs font-semibold text-fg uppercase tracking-wide">
                   {t('list.columns.entries')}
                 </h3>
               </div>
             </div>
-            <div className="w-32 flex-shrink-0 px-3 border-r border-gray-200 dark:border-gray-700">
+            <div className="w-32 flex-shrink-0 px-3 border-r border-border">
               <div className="flex items-center gap-1.5">
-                <FiUsers className="w-3.5 h-3.5 text-green-600 dark:text-green-400" />
-                <h3 className="text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide">
+                <FiUsers className="w-3.5 h-3.5 text-success" />
+                <h3 className="text-xs font-semibold text-fg uppercase tracking-wide">
                   {t('list.columns.department')}
                 </h3>
               </div>
             </div>
-            <div className="w-28 flex-shrink-0 px-3 border-r border-gray-200 dark:border-gray-700">
+            <div className="w-28 flex-shrink-0 px-3 border-r border-border">
               <div className="flex items-center gap-1.5">
                 <FiTag className="w-3.5 h-3.5 text-orange-600 dark:text-orange-400" />
-                <h3 className="text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide">
+                <h3 className="text-xs font-semibold text-fg uppercase tracking-wide">
                   {t('list.columns.priority')}
                 </h3>
               </div>
@@ -542,7 +527,7 @@ export default function LogbooksList({
             <div className="w-40 flex-shrink-0 pl-3">
               <div className="flex items-center gap-1.5">
                 <FiEye className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
-                <h3 className="text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide">
+                <h3 className="text-xs font-semibold text-fg uppercase tracking-wide">
                   {t('list.columns.readBy')}
                 </h3>
               </div>
@@ -563,11 +548,11 @@ export default function LogbooksList({
         >
           {/* Desktop Layout */}
           <div className="hidden md:flex p-4">
-            <div className="w-24 flex-shrink-0 border-r border-slate-200 dark:border-slate-700 pr-3">
+            <div className="w-24 flex-shrink-0 border-r border-border pr-3">
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
-                  <FiClock className="w-4 h-4 text-gray-500 dark:text-gray-400 flex-shrink-0" />
-                  <span className="text-sm font-medium text-gray-900 dark:text-white">
+                  <FiClock className="w-4 h-4 text-fg-subtle flex-shrink-0" />
+                  <span className="text-sm font-medium text-fg">
                     {new Date(entry.timestamp).toLocaleTimeString('es-ES', {
                       timeZone: 'Europe/Madrid',
                       hour: '2-digit',
@@ -577,16 +562,16 @@ export default function LogbooksList({
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <FiUser className="w-3.5 h-3.5 text-gray-400 dark:text-gray-500 flex-shrink-0" />
-                  <span className="text-xs text-gray-600 dark:text-gray-400 truncate">
+                  <FiUser className="w-3.5 h-3.5 text-fg-subtle flex-shrink-0" />
+                  <span className="text-xs text-fg-muted truncate">
                     {formatUsername(entry.author_name, t('list.unknownUser'))}
                   </span>
                 </div>
               </div>
             </div>
 
-            <div className="flex-1 min-w-0 px-4 border-r border-slate-200 dark:border-slate-700">
-              <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap break-all max-h-[700px] overflow-y-auto pr-2">
+            <div className="flex-1 min-w-0 px-4 border-r border-border">
+              <p className="text-sm text-fg whitespace-pre-wrap break-all max-h-[700px] overflow-y-auto pr-2">
                 {entry.description}
               </p>
               {entry.comments && entry.comments.length > 0 && (
@@ -603,14 +588,14 @@ export default function LogbooksList({
                         className={`text-sm rounded-lg p-2 border ${
                           entry.status === 'resolved'
                             ? 'bg-green-100 dark:bg-green-800/20 border-green-200 dark:border-green-600'
-                            : 'bg-blue-50 dark:bg-blue-900/10 border-blue-100 dark:border-blue-900/30'
+                            : 'bg-info/10 border-blue-100 dark:border-blue-900/30'
                         }`}
                       >
-                        <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap break-all max-h-[300px] overflow-y-auto pr-2">
+                        <p className="text-fg whitespace-pre-wrap break-all max-h-[300px] overflow-y-auto pr-2">
                           {comment.comment}
                         </p>
                         <div className="flex items-center justify-between gap-2 mt-1">
-                          <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+                          <div className="flex items-center gap-2 text-xs text-fg-subtle">
                             <span className="font-medium">
                               {formatUsername(comment.author_name, t('list.unknownUser'))}
                             </span>
@@ -634,26 +619,30 @@ export default function LogbooksList({
                           </div>
                           {user?.id === comment.user_id && (
                             <div className="flex items-center gap-1">
-                              <button
+                              <Button
+                                variant="ghost"
+                                iconOnly
+                                size="sm"
                                 onClick={(e) => {
                                   e.stopPropagation()
                                   handleEditComment(entry.id, comment.id)
                                 }}
-                                className="p-1 text-blue-600 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded transition-colors"
                                 title={t('list.tooltips.editComment')}
                               >
                                 <FiEdit2 className="w-3 h-3" />
-                              </button>
-                              <button
+                              </Button>
+                              <Button
+                                variant="danger"
+                                iconOnly
+                                size="sm"
                                 onClick={(e) => {
                                   e.stopPropagation()
                                   handleDeleteComment(entry.id, comment.id)
                                 }}
-                                className="p-1 text-red-600 hover:bg-red-100 dark:hover:bg-red-900/30 rounded transition-colors"
                                 title={t('list.tooltips.deleteComment')}
                               >
                                 <FiTrash2 className="w-3 h-3" />
-                              </button>
+                              </Button>
                             </div>
                           )}
                         </div>
@@ -663,19 +652,25 @@ export default function LogbooksList({
               )}
             </div>
 
-            <div className="w-32 flex-shrink-0 px-3 border-r border-slate-200 dark:border-slate-700 flex items-start">
-              <span className="inline-block px-3 py-1 text-xs font-medium bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-md">
-                {getDepartmentName(entry.department_id || 1)}
-              </span>
+            <div className="w-32 flex-shrink-0 px-3 border-r border-border flex items-start">
+              <Badge tone="neutral">{getDepartmentName(entry.department_id || 1)}</Badge>
             </div>
 
-            <div className="w-28 flex-shrink-0 px-3 border-r border-slate-200 dark:border-slate-700 flex items-start">
-              <span
-                className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-semibold border ${getPriorityColor(entry.priority ?? 'low')}`}
+            <div className="w-28 flex-shrink-0 px-3 border-r border-border flex items-start">
+              <Badge
+                tone={
+                  entry.priority === 'critical'
+                    ? 'danger'
+                    : entry.priority === 'high'
+                      ? 'warning'
+                      : entry.priority === 'medium'
+                        ? 'info'
+                        : 'success'
+                }
+                dot
               >
-                {entry.priority === 'critical' && <FiAlertCircle className="w-3 h-3" />}
                 {t(`priorities.${entry.priority ?? 'low'}`)}
-              </span>
+              </Badge>
             </div>
 
             <div className="w-40 flex-shrink-0 pl-3 flex flex-col items-start">
@@ -691,7 +686,7 @@ export default function LogbooksList({
           {/* Mobile Layout */}
           <div className="md:hidden p-4 space-y-3">
             {/* Author & Time - Mobile */}
-            <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
+            <div className="flex items-center gap-3 text-xs text-fg-subtle">
               <div className="flex items-center gap-1.5">
                 <FiClock className="w-3.5 h-3.5 flex-shrink-0" />
                 <span>
@@ -710,13 +705,13 @@ export default function LogbooksList({
                   })}
                 </span>
               </div>
-              <span className="text-gray-300 dark:text-gray-600">·</span>
+              <span className="text-fg-subtle">·</span>
               <div className="flex items-center gap-1.5">
                 <FiUser className="w-3.5 h-3.5 flex-shrink-0" />
                 <span>{formatUsername(entry.author_name, t('list.unknownUser'))}</span>
               </div>
             </div>
-            <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap break-all max-h-[700px] overflow-y-auto pr-2">
+            <p className="text-sm text-fg whitespace-pre-wrap break-all max-h-[700px] overflow-y-auto pr-2">
               {entry.description}
             </p>
             {entry.comments && entry.comments.length > 0 && (
@@ -733,14 +728,14 @@ export default function LogbooksList({
                       className={`text-sm rounded-lg p-2 border ${
                         entry.status === 'resolved'
                           ? 'bg-green-100 dark:bg-green-800/20 border-green-200 dark:border-green-600'
-                          : 'bg-blue-50 dark:bg-blue-900/10 border-blue-100 dark:border-blue-900/30'
+                          : 'bg-info/10 border-blue-100 dark:border-blue-900/30'
                       }`}
                     >
-                      <p className="text-gray-700 dark:text-gray-300 text-xs whitespace-pre-wrap break-all max-h-[300px] overflow-y-auto pr-2">
+                      <p className="text-fg text-xs whitespace-pre-wrap break-all max-h-[300px] overflow-y-auto pr-2">
                         {comment.comment}
                       </p>
                       <div className="flex items-center justify-between gap-2 mt-1">
-                        <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+                        <div className="flex items-center gap-2 text-xs text-fg-subtle">
                           <span className="font-medium">
                             {formatUsername(comment.author_name, t('list.unknownUser'))}
                           </span>
@@ -776,10 +771,8 @@ export default function LogbooksList({
                   ))}
               </div>
             )}
-            <div className="flex items-center gap-2 pt-2 border-t border-gray-200 dark:border-gray-700">
-              <span className="text-xs text-gray-500 dark:text-gray-400">
-                {t('list.readers.label')}
-              </span>
+            <div className="flex items-center gap-2 pt-2 border-t border-border">
+              <span className="text-xs text-fg-subtle">{t('list.readers.label')}</span>
               <EntryReaders
                 entryId={entry.id}
                 useReaders={useReaders}
@@ -790,14 +783,14 @@ export default function LogbooksList({
           </div>
 
           {/* Footer - Actions */}
-          <div className="px-4 pb-4 pt-3 border-t border-gray-100 dark:border-gray-800">
+          <div className="px-4 pb-4 pt-3 border-t border-border">
             <div className="hidden md:flex">
-              <div className="w-24 flex-shrink-0 border-r border-slate-200 dark:border-slate-700 pr-3" />
-              <div className="flex-1 px-4 flex items-center gap-4 border-r border-slate-200 dark:border-slate-700">
+              <div className="w-24 flex-shrink-0 border-r border-border pr-3" />
+              <div className="flex-1 px-4 flex items-center gap-4 border-r border-border">
                 {user?.id === entry.author_id && (
                   <button
                     onClick={() => handleEdit(entry.id)}
-                    className="flex items-center gap-1.5 text-xs text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                    className="flex items-center gap-1.5 text-xs text-fg-muted hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                   >
                     <FiEdit2 className="w-4 h-4" />
                     <span>{t('list.actions.edit')}</span>
@@ -806,7 +799,7 @@ export default function LogbooksList({
 
                 <button
                   onClick={() => handleOpenCommentModal(entry.id)}
-                  className="flex items-center gap-1.5 text-xs text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                  className="flex items-center gap-1.5 text-xs text-fg-muted hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                 >
                   <FiMessageSquare className="w-4 h-4" />
                   <span>{t('list.actions.comment')}</span>
@@ -817,8 +810,8 @@ export default function LogbooksList({
                   disabled={mutations.toggleStatus.isPending}
                   className={`flex items-center gap-1.5 text-xs transition-colors ${
                     entry.status === 'resolved'
-                      ? 'text-green-600 dark:text-green-400 hover:text-green-700'
-                      : 'text-yellow-600 dark:text-yellow-400 hover:text-yellow-700'
+                      ? 'text-success hover:text-green-700'
+                      : 'text-warning hover:text-yellow-700'
                   }`}
                 >
                   {entry.status === 'resolved' ? (
@@ -841,7 +834,7 @@ export default function LogbooksList({
                       handleDeleteEntry(entry.id)
                     }}
                     disabled={mutations.deleteLogbook.isPending}
-                    className="flex items-center gap-1.5 text-xs text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-500 transition-colors"
+                    className="flex items-center gap-1.5 text-xs text-danger hover:text-red-700 dark:hover:text-red-500 transition-colors"
                   >
                     <FiTrash2 className="w-4 h-4" />
                     <span>{t('list.actions.delete')}</span>
@@ -850,7 +843,7 @@ export default function LogbooksList({
 
                 {entry.updated_at && entry.updated_at !== entry.timestamp && (
                   <div
-                    className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400 ml-auto"
+                    className="flex items-center gap-1.5 text-xs text-fg-subtle ml-auto"
                     title={t('list.badges.lastEditedTooltip', {
                       date: formatEditTimestamp(entry.updated_at),
                     })}
@@ -863,8 +856,8 @@ export default function LogbooksList({
                 )}
               </div>
 
-              <div className="w-32 flex-shrink-0 px-3 border-r border-slate-200 dark:border-slate-700" />
-              <div className="w-28 flex-shrink-0 px-3 border-r border-slate-200 dark:border-slate-700" />
+              <div className="w-32 flex-shrink-0 px-3 border-r border-border" />
+              <div className="w-28 flex-shrink-0 px-3 border-r border-border" />
               <div className="w-40 flex-shrink-0 pl-3">
                 <ReadToggleButton
                   entryId={entry.id}
@@ -884,7 +877,7 @@ export default function LogbooksList({
                 {user?.id === entry.author_id && (
                   <button
                     onClick={() => handleEdit(entry.id)}
-                    className="flex items-center gap-1.5 text-xs text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                    className="flex items-center gap-1.5 text-xs text-fg-muted hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                   >
                     <FiEdit2 className="w-4 h-4" />
                     <span>{t('list.actions.edit')}</span>
@@ -893,7 +886,7 @@ export default function LogbooksList({
 
                 <button
                   onClick={() => handleOpenCommentModal(entry.id)}
-                  className="flex items-center gap-1.5 text-xs text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                  className="flex items-center gap-1.5 text-xs text-fg-muted hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                 >
                   <FiMessageSquare className="w-4 h-4" />
                   <span>{t('list.actions.comment')}</span>
@@ -902,9 +895,7 @@ export default function LogbooksList({
                 <button
                   onClick={() => handleToggleStatus(entry.id, entry.status || 'pending')}
                   className={`flex items-center gap-1.5 text-xs transition-colors ${
-                    entry.status === 'resolved'
-                      ? 'text-green-600 dark:text-green-400'
-                      : 'text-yellow-600 dark:text-yellow-400'
+                    entry.status === 'resolved' ? 'text-success' : 'text-warning'
                   }`}
                 >
                   {entry.status === 'resolved' ? (
@@ -926,7 +917,7 @@ export default function LogbooksList({
                       e.stopPropagation()
                       handleDeleteEntry(entry.id)
                     }}
-                    className="flex items-center gap-1.5 text-xs text-red-600 dark:text-red-400 hover:text-red-700 transition-colors"
+                    className="flex items-center gap-1.5 text-xs text-danger hover:text-red-700 transition-colors"
                   >
                     <FiTrash2 className="w-4 h-4" />
                     <span>{t('list.actions.delete')}</span>
@@ -949,10 +940,8 @@ export default function LogbooksList({
       ))}
 
       {entries.length === 0 && (
-        <div className="bg-white dark:bg-[#151b23] border border-gray-200 dark:border-gray-800 rounded-lg p-8 text-center">
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            {dayStatusMessage || t('list.emptyState')}
-          </p>
+        <div className="bg-surface border border-border rounded-lg p-8 text-center">
+          <p className="text-sm text-fg-subtle">{dayStatusMessage || t('list.emptyState')}</p>
         </div>
       )}
 

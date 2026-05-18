@@ -45,9 +45,9 @@ export default function GeneralNotes({
   const t = useTranslations('conciliation')
 
   return (
-    <div className="border border-gray-200 dark:border-gray-800 rounded-lg overflow-hidden flex flex-col">
-      <div className="bg-gray-100 dark:bg-gray-800 px-4 py-3 border-b border-gray-200 dark:border-gray-700">
-        <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+    <div className="border border-border rounded-lg overflow-hidden flex flex-col">
+      <div className="bg-surface-hover px-4 py-3 border-b border-border">
+        <h3 className="text-sm font-semibold text-fg flex items-center gap-2">
           <FiAlertCircle className="w-4 h-4" />
           {t('generalNotes.title')} ({notes.length})
         </h3>
@@ -61,12 +61,12 @@ export default function GeneralNotes({
               onChange={(e) => onNewNoteChange(e.target.value)}
               placeholder={t('generalNotes.placeholder')}
               rows={3}
-              className="w-full px-3 py-2 text-sm border border-[#d0d7de] dark:border-[#30363d] rounded bg-white dark:bg-[#0d1117] text-[#24292f] dark:text-[#f0f6fc] placeholder:text-[#57606a] dark:placeholder:text-[#8b949e] focus:bg-white dark:focus:bg-[#0d1117] focus:border-[#0969da] dark:focus:border-[#58a6ff] focus:ring-2 focus:ring-[#0969da]/20 dark:focus:ring-[#58a6ff]/20 resize-none"
+              className="w-full px-3 py-2 text-sm border border-border rounded bg-surface text-fg placeholder:text-fg-muted focus:bg-surface focus:border-accent focus:ring-2 focus:ring-accent/20 outline-none transition-colors resize-none"
             />
             <button
               onClick={onAddNote}
               disabled={!newNoteText.trim()}
-              className="flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed rounded-md transition-colors"
+              className="flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium text-accent-fg bg-accent hover:bg-accent-hover disabled:opacity-50 disabled:cursor-not-allowed rounded-md transition-colors"
             >
               <FiPlus className="w-4 h-4" />
               {t('generalNotes.addNote')}
@@ -76,17 +76,14 @@ export default function GeneralNotes({
 
         <div className="space-y-2 overflow-y-auto flex-1">
           {notes.length === 0 ? (
-            <div className="text-center py-8 text-gray-500 dark:text-gray-400 text-xs">
+            <div className="text-center py-8 text-fg-subtle text-xs">
               {t('generalNotes.noNotes')}
             </div>
           ) : (
             notes.map((note) => (
-              <div
-                key={note.id}
-                className="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-2.5"
-              >
+              <div key={note.id} className="bg-surface-hover border border-border rounded-lg p-2.5">
                 <div className="flex items-start justify-between gap-2 mb-1.5">
-                  <div className="flex flex-col gap-0.5 text-[10px] text-gray-600 dark:text-gray-400 min-w-0">
+                  <div className="flex flex-col gap-0.5 text-[10px] text-fg-muted min-w-0">
                     <div className="flex items-center gap-1">
                       <FiUser className="w-3 h-3 flex-shrink-0" />
                       <span className="font-medium truncate">{note.author}</span>
@@ -99,16 +96,14 @@ export default function GeneralNotes({
                   {!isReadOnly && currentUserId === note.author_id && (
                     <button
                       onClick={() => onDeleteNote(note.id, note.author_id)}
-                      className="text-red-500 hover:text-red-700 flex-shrink-0"
+                      className="text-danger hover:opacity-70 flex-shrink-0"
                       title={t('generalNotes.deleteNote')}
                     >
                       <FiTrash2 className="w-3.5 h-3.5" />
                     </button>
                   )}
                 </div>
-                <p className="text-xs text-gray-900 dark:text-gray-100 whitespace-pre-wrap break-words">
-                  {note.text}
-                </p>
+                <p className="text-xs text-fg whitespace-pre-wrap break-words">{note.text}</p>
               </div>
             ))
           )}

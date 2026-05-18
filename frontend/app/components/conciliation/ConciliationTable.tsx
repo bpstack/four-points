@@ -43,8 +43,8 @@ const colorSchemes = {
   blue: {
     border: 'border-blue-200 dark:border-blue-800',
     accent: 'bg-blue-500',
-    thead: 'bg-blue-50 dark:bg-blue-900/20',
-    tfoot: 'bg-blue-50 dark:bg-blue-900/20 border-t-2 border-blue-200 dark:border-blue-800',
+    thead: 'bg-info/10',
+    tfoot: 'bg-info/10 border-t-2 border-blue-200 dark:border-blue-800',
     totalText: 'text-blue-700 dark:text-blue-300',
   },
   purple: {
@@ -73,8 +73,8 @@ export default function ConciliationTable<T extends string>({
 
   return (
     <div className={`border ${colors.border} rounded-lg overflow-hidden`}>
-      <div className="bg-gray-50 dark:bg-gray-800/50 px-4 py-3 border-b border-gray-200 dark:border-gray-700">
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+      <div className="bg-surface-hover/50 px-4 py-3 border-b border-border">
+        <h2 className="text-lg font-semibold text-fg flex items-center gap-2">
           <div className={`w-1 h-4 ${colors.accent} rounded-full`}></div>
           {title}
         </h2>
@@ -83,24 +83,24 @@ export default function ConciliationTable<T extends string>({
         <table className="w-full">
           <thead className={colors.thead}>
             <tr>
-              <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 dark:text-gray-300">
+              <th className="px-3 py-2 text-left text-xs font-medium text-fg">
                 {t('table.concept')}
               </th>
-              <th className="px-3 py-2 text-center text-xs font-medium text-gray-700 dark:text-gray-300 w-20">
+              <th className="px-3 py-2 text-center text-xs font-medium text-fg w-20">
                 {t('table.value')}
               </th>
-              <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 dark:text-gray-300 w-24">
+              <th className="px-3 py-2 text-left text-xs font-medium text-fg w-24">
                 {t('table.roomNumber')}
               </th>
-              <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 dark:text-gray-300 w-24">
+              <th className="px-3 py-2 text-left text-xs font-medium text-fg w-24">
                 {t('table.notes')}
               </th>
-              <th className="px-3 py-2 text-center text-xs font-medium text-gray-700 dark:text-gray-300 w-20">
+              <th className="px-3 py-2 text-center text-xs font-medium text-fg w-20">
                 {t('table.result')}
               </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
+          <tbody className="divide-y divide-border">
             {reasons.map((reason) => {
               const reasonConfig = config[reason]
               const entry = form[reason] || { value: 0, room_number: '', notes: '' }
@@ -108,10 +108,8 @@ export default function ConciliationTable<T extends string>({
               const entryNotes = parseNotes(entry.notes)
 
               return (
-                <tr key={reason} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
-                  <td className="px-3 py-2 text-sm text-gray-900 dark:text-gray-100">
-                    {reasonConfig.label}
-                  </td>
+                <tr key={reason} className="hover:bg-surface-hover/50">
+                  <td className="px-3 py-2 text-sm text-fg">{reasonConfig.label}</td>
                   <td className="px-3 py-2">
                     <input
                       type="number"
@@ -122,24 +120,22 @@ export default function ConciliationTable<T extends string>({
                       }
                       disabled={isReadOnly}
                       placeholder="0"
-                      className="w-full px-2 py-1 text-sm text-center border border-[#d0d7de] dark:border-[#30363d] rounded bg-white dark:bg-[#0d1117] text-[#24292f] dark:text-[#f0f6fc] placeholder:text-[#57606a] dark:placeholder:text-[#8b949e] disabled:bg-[#eaeef2] dark:disabled:bg-[#161b22] disabled:cursor-not-allowed focus:bg-white dark:focus:bg-[#0d1117] focus:border-[#0969da] dark:focus:border-[#58a6ff] focus:ring-2 focus:ring-[#0969da]/20 dark:focus:ring-[#58a6ff]/20 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                      className="w-full px-2 py-1 text-sm text-center border border-border rounded bg-surface text-fg placeholder:text-fg-muted disabled:bg-surface-hover disabled:opacity-60 disabled:cursor-not-allowed focus:bg-surface focus:border-accent focus:ring-2 focus:ring-accent/20 outline-none transition-colors [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                     />
                   </td>
                   <td className="px-3 py-2">
                     <button
                       onClick={() => onRoomClick(reason, entry.room_number)}
                       disabled={isReadOnly}
-                      className="w-full px-2 py-1 text-sm text-left border border-[#d0d7de] dark:border-[#30363d] rounded bg-white dark:bg-[#0d1117] text-[#24292f] dark:text-[#f0f6fc] hover:bg-[#f6f8fa] dark:hover:bg-[#161b22] hover:border-[#0969da] dark:hover:border-[#58a6ff] disabled:bg-[#eaeef2] dark:disabled:bg-[#161b22] disabled:cursor-not-allowed truncate transition-colors"
+                      className="w-full px-2 py-1 text-sm text-left border border-border rounded bg-surface text-fg hover:bg-surface-hover hover:border-accent disabled:bg-surface-hover disabled:opacity-60 disabled:cursor-not-allowed truncate transition-colors"
                     >
                       {rooms.length > 0 ? (
                         <span className="flex items-center gap-1">
                           <span className="font-medium">{rooms.length}</span>
-                          <span className="text-[#57606a] dark:text-[#8b949e]">
-                            {t('table.rooms')}
-                          </span>
+                          <span className="text-fg-muted">{t('table.rooms')}</span>
                         </span>
                       ) : (
-                        <span className="text-[#57606a] dark:text-[#8b949e]">{t('table.add')}</span>
+                        <span className="text-fg-muted">{t('table.add')}</span>
                       )}
                     </button>
                   </td>
@@ -147,15 +143,15 @@ export default function ConciliationTable<T extends string>({
                     <button
                       onClick={() => onNoteClick(reason, entry.notes)}
                       disabled={isReadOnly}
-                      className="w-full px-2 py-1 text-sm text-left border border-[#d0d7de] dark:border-[#30363d] rounded bg-white dark:bg-[#0d1117] text-[#24292f] dark:text-[#f0f6fc] hover:bg-[#f6f8fa] dark:hover:bg-[#161b22] hover:border-[#0969da] dark:hover:border-[#58a6ff] disabled:bg-[#eaeef2] dark:disabled:bg-[#161b22] disabled:cursor-not-allowed truncate transition-colors"
+                      className="w-full px-2 py-1 text-sm text-left border border-border rounded bg-surface text-fg hover:bg-surface-hover hover:border-accent disabled:bg-surface-hover disabled:opacity-60 disabled:cursor-not-allowed truncate transition-colors"
                     >
                       {entryNotes.length > 0 ? (
                         <span className="flex items-center gap-1">
-                          <FiFileText className="w-3.5 h-3.5 text-[#57606a] dark:text-[#8b949e]" />
+                          <FiFileText className="w-3.5 h-3.5 text-fg-muted" />
                           <span className="font-medium">{entryNotes.length}</span>
                         </span>
                       ) : (
-                        <span className="text-[#57606a] dark:text-[#8b949e]">{t('table.add')}</span>
+                        <span className="text-fg-muted">{t('table.add')}</span>
                       )}
                     </button>
                   </td>
@@ -175,10 +171,7 @@ export default function ConciliationTable<T extends string>({
           </tbody>
           <tfoot className={colors.tfoot}>
             <tr>
-              <td
-                colSpan={4}
-                className="px-3 py-3 text-sm font-semibold text-gray-900 dark:text-gray-100"
-              >
+              <td colSpan={4} className="px-3 py-3 text-sm font-semibold text-fg">
                 {t('table.total')} {title}
               </td>
               <td className={`px-3 py-3 text-sm font-bold text-center ${colors.totalText}`}>

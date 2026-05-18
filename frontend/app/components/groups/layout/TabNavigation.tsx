@@ -58,18 +58,18 @@ export function TabNavigation(_props: TabNavigationProps) {
   }
 
   return (
-    <div className="border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-[#010409]">
+    <div className="border-b border-border bg-bg">
       {/* Mobile: Dropdown */}
       <div className="md:hidden px-4 py-2" ref={dropdownRef}>
         <div className="relative w-fit">
           <button
             onClick={() => setIsOpen(!isOpen)}
-            className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-900 dark:text-white bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-fg bg-surface-sunken border border-border rounded-lg hover:bg-surface-hover transition-colors"
           >
             <span>{activeTabConfig.label}</span>
             <FiChevronDown
               className={cn(
-                'w-4 h-4 text-gray-500 transition-transform duration-200',
+                'w-4 h-4 text-fg-muted transition-transform duration-200',
                 isOpen && 'rotate-180'
               )}
             />
@@ -77,7 +77,7 @@ export function TabNavigation(_props: TabNavigationProps) {
 
           {/* Dropdown Menu */}
           {isOpen && (
-            <div className="absolute left-0 mt-1 w-44 bg-white dark:bg-[#161b22] border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-50 overflow-hidden">
+            <div className="absolute left-0 mt-1 w-44 bg-surface border border-border rounded-lg shadow-lg z-50 overflow-hidden">
               {tabs.map((tab) => {
                 const isActive = activeTab === tab.id
 
@@ -88,8 +88,8 @@ export function TabNavigation(_props: TabNavigationProps) {
                     className={cn(
                       'w-full flex items-center justify-between px-3 py-2 text-sm transition-colors',
                       isActive
-                        ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
-                        : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800'
+                        ? 'bg-info/10 text-blue-600 dark:text-blue-400'
+                        : 'text-fg hover:bg-surface-hover'
                     )}
                   >
                     <span>{tab.label}</span>
@@ -115,7 +115,7 @@ export function TabNavigation(_props: TabNavigationProps) {
                 'whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm transition-colors',
                 isActive
                   ? 'border-blue-500 text-blue-600 dark:text-blue-400'
-                  : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600'
+                  : 'border-transparent text-fg-subtle hover:text-fg hover:border-border'
               )}
             >
               {tab.label}

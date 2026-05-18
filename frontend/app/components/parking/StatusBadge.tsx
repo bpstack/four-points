@@ -3,6 +3,7 @@
 
 import { useTranslations } from 'next-intl'
 import { STATUS_CONFIG, type BookingStatus } from './helpers'
+import { Badge } from '@/app/ui/components'
 
 interface StatusBadgeProps {
   status: BookingStatus | string
@@ -27,14 +28,10 @@ export function StatusBadge({ status, size = 'sm' }: StatusBadgeProps) {
   const config = STATUS_CONFIG[status as BookingStatus] || STATUS_CONFIG.reserved
   const translationKey = STATUS_TRANSLATION_KEYS[status as BookingStatus] || 'status.reserved'
 
-  const sizeClasses = size === 'sm' ? 'px-2 py-0.5 text-[10px]' : 'px-2.5 py-0.5 text-xs'
-
   return (
-    <span
-      className={`inline-flex items-center rounded-full font-medium flex-shrink-0 ${config.color} ${sizeClasses}`}
-    >
+    <Badge tone={config.tone} size={size}>
       {t(translationKey)}
-    </span>
+    </Badge>
   )
 }
 

@@ -15,7 +15,7 @@ interface ContactCardProps {
 
 export function ContactCard({ contact, onEdit }: ContactCardProps) {
   return (
-    <div className="bg-white dark:bg-[#151b23] rounded-lg border border-gray-200 dark:border-gray-800 p-4 hover:shadow-md dark:hover:shadow-gray-900/50 transition-all">
+    <div className="bg-surface rounded-lg border border-border p-4 hover:shadow-md dark:hover:shadow-gray-900/50 transition-all">
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-center gap-2 flex-1 min-w-0">
           <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
@@ -23,7 +23,7 @@ export function ContactCard({ contact, onEdit }: ContactCardProps) {
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
-              <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate">
+              <h3 className="text-sm font-semibold text-fg truncate">
                 {contact.contact_name || 'Sin nombre'}
               </h3>
               {contact.is_primary && (
@@ -38,7 +38,7 @@ export function ContactCard({ contact, onEdit }: ContactCardProps) {
 
         <button
           onClick={onEdit}
-          className="ml-2 flex-shrink-0 inline-flex items-center justify-center w-8 h-8 text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors"
+          className="ml-2 flex-shrink-0 inline-flex items-center justify-center w-8 h-8 text-fg-muted hover:text-blue-600 dark:hover:text-blue-400 hover:bg-surface-hover rounded transition-colors"
         >
           <FiEdit className="w-4 h-4" />
         </button>
@@ -47,7 +47,7 @@ export function ContactCard({ contact, onEdit }: ContactCardProps) {
       <div className="space-y-2">
         {contact.contact_email && (
           <div className="flex items-center gap-2 text-xs">
-            <FiMail className="w-3.5 h-3.5 text-gray-400 dark:text-gray-500 flex-shrink-0" />
+            <FiMail className="w-3.5 h-3.5 text-fg-subtle flex-shrink-0" />
             <a
               href={`mailto:${contact.contact_email}`}
               className="text-blue-600 dark:text-blue-400 hover:underline truncate"
@@ -59,10 +59,10 @@ export function ContactCard({ contact, onEdit }: ContactCardProps) {
 
         {contact.contact_phone && (
           <div className="flex items-center gap-2 text-xs">
-            <FiPhone className="w-3.5 h-3.5 text-gray-400 dark:text-gray-500 flex-shrink-0" />
+            <FiPhone className="w-3.5 h-3.5 text-fg-subtle flex-shrink-0" />
             <a
               href={`tel:${contact.contact_phone}`}
-              className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400"
+              className="text-fg hover:text-blue-600 dark:hover:text-blue-400"
             >
               {contact.contact_phone}
             </a>
@@ -70,9 +70,7 @@ export function ContactCard({ contact, onEdit }: ContactCardProps) {
         )}
 
         {!contact.contact_email && !contact.contact_phone && (
-          <p className="text-xs text-gray-500 dark:text-gray-400 italic">
-            Sin información de contacto
-          </p>
+          <p className="text-xs text-fg-subtle italic">Sin información de contacto</p>
         )}
       </div>
     </div>

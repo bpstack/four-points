@@ -8,7 +8,7 @@ import type { SchedulingShift, CreateShiftDto, UpdateShiftDto } from '@/app/lib/
 import { getShiftClasses } from '@/app/lib/scheduling'
 import toast from 'react-hot-toast'
 import { FiPlus, FiTrash2, FiEdit2, FiX, FiCheck, FiSave, FiCalendar } from 'react-icons/fi'
-import { ConfirmDialog } from '@/app/ui/panels/ConfirmDialog'
+import { Checkbox, ConfirmDialog } from '@/app/ui/components'
 
 export function GeneralConfigTab() {
   const t = useTranslations('scheduling.config.general')
@@ -68,9 +68,7 @@ export function GeneralConfigTab() {
     return (
       <div className="p-12 text-center">
         <div className="inline-block h-8 w-8 animate-spin rounded-full border-[3px] border-solid border-blue-600 dark:border-blue-500 border-r-transparent"></div>
-        <p className="mt-3 text-xs text-gray-600 dark:text-gray-400">
-          {tMessages('loadingConfig')}
-        </p>
+        <p className="mt-3 text-xs text-fg-muted">{tMessages('loadingConfig')}</p>
       </div>
     )
   }
@@ -78,9 +76,7 @@ export function GeneralConfigTab() {
   return (
     <div className="p-4 space-y-6">
       <div>
-        <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">
-          {t('staffingPerShift')}
-        </h3>
+        <h3 className="text-sm font-semibold text-fg mb-3">{t('staffingPerShift')}</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
             <div className="flex items-center gap-2 mb-3">
@@ -93,30 +89,30 @@ export function GeneralConfigTab() {
             </div>
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-xs text-gray-600 dark:text-gray-400">{t('minimum')}</span>
+                <span className="text-xs text-fg-muted">{t('minimum')}</span>
                 <input
                   type="number"
                   value={getValue('min_morning_staff', config.minMorningStaff)}
                   onChange={(e) => handleChange('min_morning_staff', e.target.value)}
-                  className="w-16 px-2 py-1 text-sm text-center border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-1 focus:ring-gray-500 dark:focus:ring-gray-400"
+                  className="w-16 px-2 py-1 text-sm text-center border border-border rounded bg-surface text-fg focus:outline-none focus:ring-1 focus:ring-gray-500 dark:focus:ring-gray-400"
                 />
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-xs text-gray-600 dark:text-gray-400">{t('preferred')}</span>
+                <span className="text-xs text-fg-muted">{t('preferred')}</span>
                 <input
                   type="number"
                   value={getValue('pref_morning_staff', config.prefMorningStaff)}
                   onChange={(e) => handleChange('pref_morning_staff', e.target.value)}
-                  className="w-16 px-2 py-1 text-sm text-center border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-1 focus:ring-gray-500 dark:focus:ring-gray-400"
+                  className="w-16 px-2 py-1 text-sm text-center border border-border rounded bg-surface text-fg focus:outline-none focus:ring-1 focus:ring-gray-500 dark:focus:ring-gray-400"
                 />
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-xs text-gray-600 dark:text-gray-400">{t('maximum')}</span>
+                <span className="text-xs text-fg-muted">{t('maximum')}</span>
                 <input
                   type="number"
                   value={getValue('max_morning_staff', config.maxMorningStaff)}
                   onChange={(e) => handleChange('max_morning_staff', e.target.value)}
-                  className="w-16 px-2 py-1 text-sm text-center border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-1 focus:ring-gray-500 dark:focus:ring-gray-400"
+                  className="w-16 px-2 py-1 text-sm text-center border border-border rounded bg-surface text-fg focus:outline-none focus:ring-1 focus:ring-gray-500 dark:focus:ring-gray-400"
                 />
               </div>
             </div>
@@ -133,30 +129,30 @@ export function GeneralConfigTab() {
             </div>
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-xs text-gray-600 dark:text-gray-400">{t('minimum')}</span>
+                <span className="text-xs text-fg-muted">{t('minimum')}</span>
                 <input
                   type="number"
                   value={getValue('min_afternoon_staff', config.minAfternoonStaff)}
                   onChange={(e) => handleChange('min_afternoon_staff', e.target.value)}
-                  className="w-16 px-2 py-1 text-sm text-center border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-1 focus:ring-gray-500 dark:focus:ring-gray-400"
+                  className="w-16 px-2 py-1 text-sm text-center border border-border rounded bg-surface text-fg focus:outline-none focus:ring-1 focus:ring-gray-500 dark:focus:ring-gray-400"
                 />
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-xs text-gray-600 dark:text-gray-400">{t('preferred')}</span>
+                <span className="text-xs text-fg-muted">{t('preferred')}</span>
                 <input
                   type="number"
                   value={getValue('pref_afternoon_staff', config.prefAfternoonStaff)}
                   onChange={(e) => handleChange('pref_afternoon_staff', e.target.value)}
-                  className="w-16 px-2 py-1 text-sm text-center border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-1 focus:ring-gray-500 dark:focus:ring-gray-400"
+                  className="w-16 px-2 py-1 text-sm text-center border border-border rounded bg-surface text-fg focus:outline-none focus:ring-1 focus:ring-gray-500 dark:focus:ring-gray-400"
                 />
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-xs text-gray-600 dark:text-gray-400">{t('maximum')}</span>
+                <span className="text-xs text-fg-muted">{t('maximum')}</span>
                 <input
                   type="number"
                   value={getValue('max_afternoon_staff', config.maxAfternoonStaff)}
                   onChange={(e) => handleChange('max_afternoon_staff', e.target.value)}
-                  className="w-16 px-2 py-1 text-sm text-center border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-1 focus:ring-gray-500 dark:focus:ring-gray-400"
+                  className="w-16 px-2 py-1 text-sm text-center border border-border rounded bg-surface text-fg focus:outline-none focus:ring-1 focus:ring-gray-500 dark:focus:ring-gray-400"
                 />
               </div>
             </div>
@@ -173,21 +169,21 @@ export function GeneralConfigTab() {
             </div>
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-xs text-gray-600 dark:text-gray-400">{t('minimum')}</span>
+                <span className="text-xs text-fg-muted">{t('minimum')}</span>
                 <input
                   type="number"
                   value={getValue('min_night_staff', config.minNightStaff)}
                   onChange={(e) => handleChange('min_night_staff', e.target.value)}
-                  className="w-16 px-2 py-1 text-sm text-center border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-1 focus:ring-gray-500 dark:focus:ring-gray-400"
+                  className="w-16 px-2 py-1 text-sm text-center border border-border rounded bg-surface text-fg focus:outline-none focus:ring-1 focus:ring-gray-500 dark:focus:ring-gray-400"
                 />
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-xs text-gray-600 dark:text-gray-400">{t('maximum')}</span>
+                <span className="text-xs text-fg-muted">{t('maximum')}</span>
                 <input
                   type="number"
                   value={getValue('max_night_staff', config.maxNightStaff)}
                   onChange={(e) => handleChange('max_night_staff', e.target.value)}
-                  className="w-16 px-2 py-1 text-sm text-center border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-1 focus:ring-gray-500 dark:focus:ring-gray-400"
+                  className="w-16 px-2 py-1 text-sm text-center border border-border rounded bg-surface text-fg focus:outline-none focus:ring-1 focus:ring-gray-500 dark:focus:ring-gray-400"
                 />
               </div>
             </div>
@@ -196,82 +192,68 @@ export function GeneralConfigTab() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
-          <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-3">
-            {t('weeklyLimits')}
-          </h4>
+        <div className="bg-surface-hover/50 border border-border rounded-lg p-4">
+          <h4 className="text-sm font-medium text-fg mb-3">{t('weeklyLimits')}</h4>
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-xs text-gray-600 dark:text-gray-400">
-                {t('maxShiftsPerWeek')}
-              </span>
+              <span className="text-xs text-fg-muted">{t('maxShiftsPerWeek')}</span>
               <input
                 type="number"
                 value={getValue('max_weekly_shifts', config.maxWeeklyShifts)}
                 onChange={(e) => handleChange('max_weekly_shifts', e.target.value)}
-                className="w-16 px-2 py-1 text-sm text-center border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-1 focus:ring-gray-500 dark:focus:ring-gray-400"
+                className="w-16 px-2 py-1 text-sm text-center border border-border rounded bg-surface text-fg focus:outline-none focus:ring-1 focus:ring-gray-500 dark:focus:ring-gray-400"
               />
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-xs text-gray-600 dark:text-gray-400">
-                {t('preferredShiftsPerWeek')}
-              </span>
+              <span className="text-xs text-fg-muted">{t('preferredShiftsPerWeek')}</span>
               <input
                 type="number"
                 value={getValue('pref_weekly_shifts', config.prefWeeklyShifts)}
                 onChange={(e) => handleChange('pref_weekly_shifts', e.target.value)}
-                className="w-16 px-2 py-1 text-sm text-center border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-1 focus:ring-gray-500 dark:focus:ring-gray-400"
+                className="w-16 px-2 py-1 text-sm text-center border border-border rounded bg-surface text-fg focus:outline-none focus:ring-1 focus:ring-gray-500 dark:focus:ring-gray-400"
               />
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-xs text-gray-600 dark:text-gray-400">{t('minRestHours')}</span>
+              <span className="text-xs text-fg-muted">{t('minRestHours')}</span>
               <input
                 type="number"
                 value={getValue('min_rest_hours', config.minRestHours)}
                 onChange={(e) => handleChange('min_rest_hours', e.target.value)}
-                className="w-16 px-2 py-1 text-sm text-center border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-1 focus:ring-gray-500 dark:focus:ring-gray-400"
+                className="w-16 px-2 py-1 text-sm text-center border border-border rounded bg-surface text-fg focus:outline-none focus:ring-1 focus:ring-gray-500 dark:focus:ring-gray-400"
               />
             </div>
           </div>
         </div>
 
-        <div className="bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
-          <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-3">
-            {t('nightBlocks')}
-          </h4>
-          <p className="text-[10px] text-gray-500 dark:text-gray-400 mb-3">
-            {t('consecutiveNightsAllowed')}
-          </p>
+        <div className="bg-surface-hover/50 border border-border rounded-lg p-4">
+          <h4 className="text-sm font-medium text-fg mb-3">{t('nightBlocks')}</h4>
+          <p className="text-[10px] text-fg-subtle mb-3">{t('consecutiveNightsAllowed')}</p>
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-xs text-gray-600 dark:text-gray-400">
-                {t('minConsecutive')}
-              </span>
+              <span className="text-xs text-fg-muted">{t('minConsecutive')}</span>
               <input
                 type="number"
                 value={getValue('min_night_block', config.minNightBlock)}
                 onChange={(e) => handleChange('min_night_block', e.target.value)}
-                className="w-16 px-2 py-1 text-sm text-center border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-1 focus:ring-gray-500 dark:focus:ring-gray-400"
+                className="w-16 px-2 py-1 text-sm text-center border border-border rounded bg-surface text-fg focus:outline-none focus:ring-1 focus:ring-gray-500 dark:focus:ring-gray-400"
               />
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-xs text-gray-600 dark:text-gray-400">
-                {t('maxConsecutive')}
-              </span>
+              <span className="text-xs text-fg-muted">{t('maxConsecutive')}</span>
               <input
                 type="number"
                 value={getValue('max_night_block', config.maxNightBlock)}
                 onChange={(e) => handleChange('max_night_block', e.target.value)}
-                className="w-16 px-2 py-1 text-sm text-center border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-1 focus:ring-gray-500 dark:focus:ring-gray-400"
+                className="w-16 px-2 py-1 text-sm text-center border border-border rounded bg-surface text-fg focus:outline-none focus:ring-1 focus:ring-gray-500 dark:focus:ring-gray-400"
               />
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-xs text-gray-600 dark:text-gray-400">{t('preferred')}</span>
+              <span className="text-xs text-fg-muted">{t('preferred')}</span>
               <input
                 type="number"
                 value={getValue('pref_night_block', config.prefNightBlock)}
                 onChange={(e) => handleChange('pref_night_block', e.target.value)}
-                className="w-16 px-2 py-1 text-sm text-center border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-1 focus:ring-gray-500 dark:focus:ring-gray-400"
+                className="w-16 px-2 py-1 text-sm text-center border border-border rounded bg-surface text-fg focus:outline-none focus:ring-1 focus:ring-gray-500 dark:focus:ring-gray-400"
               />
             </div>
           </div>
@@ -283,26 +265,24 @@ export function GeneralConfigTab() {
           <h4 className="text-sm font-medium text-emerald-800 dark:text-emerald-300 mb-1">
             {t('monthlyFreeDays')}
           </h4>
-          <p className="text-[10px] text-gray-500 dark:text-gray-400 mb-3">
-            {t('monthlyFreeDaysDesc')}
-          </p>
+          <p className="text-[10px] text-fg-subtle mb-3">{t('monthlyFreeDaysDesc')}</p>
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-xs text-gray-600 dark:text-gray-400">{t('minimum')}</span>
+              <span className="text-xs text-fg-muted">{t('minimum')}</span>
               <input
                 type="number"
                 value={getValue('min_monthly_libre', config.minMonthlyLibre)}
                 onChange={(e) => handleChange('min_monthly_libre', e.target.value)}
-                className="w-16 px-2 py-1 text-sm text-center border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-1 focus:ring-gray-500 dark:focus:ring-gray-400"
+                className="w-16 px-2 py-1 text-sm text-center border border-border rounded bg-surface text-fg focus:outline-none focus:ring-1 focus:ring-gray-500 dark:focus:ring-gray-400"
               />
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-xs text-gray-600 dark:text-gray-400">{t('maximum')}</span>
+              <span className="text-xs text-fg-muted">{t('maximum')}</span>
               <input
                 type="number"
                 value={getValue('max_monthly_libre', config.maxMonthlyLibre)}
                 onChange={(e) => handleChange('max_monthly_libre', e.target.value)}
-                className="w-16 px-2 py-1 text-sm text-center border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-1 focus:ring-gray-500 dark:focus:ring-gray-400"
+                className="w-16 px-2 py-1 text-sm text-center border border-border rounded bg-surface text-fg focus:outline-none focus:ring-1 focus:ring-gray-500 dark:focus:ring-gray-400"
               />
             </div>
           </div>
@@ -312,17 +292,15 @@ export function GeneralConfigTab() {
           <h4 className="text-sm font-medium text-rose-800 dark:text-rose-300 mb-1">
             {t('consecutiveWorkDays')}
           </h4>
-          <p className="text-[10px] text-gray-500 dark:text-gray-400 mb-3">
-            {t('consecutiveWorkDaysDesc')}
-          </p>
+          <p className="text-[10px] text-fg-subtle mb-3">{t('consecutiveWorkDaysDesc')}</p>
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-xs text-gray-600 dark:text-gray-400">{t('maximum')}</span>
+              <span className="text-xs text-fg-muted">{t('maximum')}</span>
               <input
                 type="number"
                 value={getValue('max_consecutive_work_days', config.maxConsecutiveWorkDays)}
                 onChange={(e) => handleChange('max_consecutive_work_days', e.target.value)}
-                className="w-16 px-2 py-1 text-sm text-center border border-gray-300 dark:border-gray-700 rounded bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-1 focus:ring-gray-500 dark:focus:ring-gray-400"
+                className="w-16 px-2 py-1 text-sm text-center border border-border rounded bg-surface text-fg focus:outline-none focus:ring-1 focus:ring-gray-500 dark:focus:ring-gray-400"
               />
             </div>
           </div>
@@ -332,11 +310,11 @@ export function GeneralConfigTab() {
       <ShiftsSection shifts={shifts} />
 
       {hasChanges && (
-        <div className="flex justify-end pt-4 border-t border-gray-200 dark:border-gray-700">
+        <div className="flex justify-end pt-4 border-t border-border">
           <button
             onClick={handleSave}
             disabled={saving}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 disabled:opacity-50 transition-colors"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-accent text-accent-fg text-sm font-medium rounded-md hover:bg-accent-hover disabled:opacity-50 transition-colors"
           >
             <FiSave className="w-4 h-4" />
             {saving ? tActions('saving') : tActions('save')}
@@ -374,44 +352,44 @@ function ShiftsSection({ shifts }: ShiftsSectionProps) {
   })
 
   return (
-    <div className="space-y-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+    <div className="space-y-3 pt-4 border-t border-border">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">{t('title')}</h3>
-          <p className="text-xs text-gray-500 dark:text-gray-400">{t('subtitle')}</p>
+          <h3 className="text-sm font-semibold text-fg">{t('title')}</h3>
+          <p className="text-xs text-fg-subtle">{t('subtitle')}</p>
         </div>
         <button
           onClick={() => setShowAddModal(true)}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded-md hover:bg-blue-700 transition-colors"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-accent text-accent-fg text-xs font-medium rounded-md hover:bg-accent-hover transition-colors"
         >
           <FiPlus className="w-3.5 h-3.5" />
           {tActions('addShift')}
         </button>
       </div>
 
-      <div className="overflow-x-auto border border-gray-200 dark:border-gray-700 rounded-md">
+      <div className="overflow-x-auto border border-border rounded-md">
         <table className="w-full text-sm min-w-[500px]">
           <thead>
-            <tr className="bg-gray-50 dark:bg-[#0d1117] border-b border-gray-200 dark:border-gray-700">
-              <th className="text-left py-2 px-3 text-xs font-semibold text-gray-600 dark:text-gray-400">
+            <tr className="bg-gray-50 dark:bg-surface border-b border-border">
+              <th className="text-left py-2 px-3 text-xs font-semibold text-fg-muted">
                 {t('code')}
               </th>
-              <th className="text-left py-2 px-3 text-xs font-semibold text-gray-600 dark:text-gray-400">
+              <th className="text-left py-2 px-3 text-xs font-semibold text-fg-muted">
                 {t('name')}
               </th>
-              <th className="text-left py-2 px-3 text-xs font-semibold text-gray-600 dark:text-gray-400">
+              <th className="text-left py-2 px-3 text-xs font-semibold text-fg-muted">
                 {t('schedule')}
               </th>
-              <th className="text-left py-2 px-3 text-xs font-semibold text-gray-600 dark:text-gray-400">
+              <th className="text-left py-2 px-3 text-xs font-semibold text-fg-muted">
                 {t('hours')}
               </th>
-              <th className="text-center py-2 px-3 text-xs font-semibold text-gray-600 dark:text-gray-400">
+              <th className="text-center py-2 px-3 text-xs font-semibold text-fg-muted">
                 {t('work')}
               </th>
-              <th className="text-center py-2 px-3 text-xs font-semibold text-gray-600 dark:text-gray-400">
+              <th className="text-center py-2 px-3 text-xs font-semibold text-fg-muted">
                 {t('paid')}
               </th>
-              <th className="text-right py-2 px-3 text-xs font-semibold text-gray-600 dark:text-gray-400">
+              <th className="text-right py-2 px-3 text-xs font-semibold text-fg-muted">
                 {t('actions')}
               </th>
             </tr>
@@ -420,7 +398,7 @@ function ShiftsSection({ shifts }: ShiftsSectionProps) {
             {shifts.map((shift) => (
               <tr
                 key={shift.id}
-                className="border-b border-gray-100 dark:border-gray-800 last:border-b-0 hover:bg-gray-50 dark:hover:bg-gray-800/50"
+                className="border-b border-border last:border-b-0 hover:bg-surface-hover/50"
               >
                 <td className="py-2 px-3">
                   <span
@@ -429,23 +407,23 @@ function ShiftsSection({ shifts }: ShiftsSectionProps) {
                     {shift.code}
                   </span>
                 </td>
-                <td className="py-2 px-3 text-gray-900 dark:text-gray-100">{shift.name}</td>
-                <td className="py-2 px-3 text-gray-600 dark:text-gray-400">
+                <td className="py-2 px-3 text-fg">{shift.name}</td>
+                <td className="py-2 px-3 text-fg-muted">
                   {shift.startTime && shift.endTime ? `${shift.startTime} - ${shift.endTime}` : '-'}
                 </td>
-                <td className="py-2 px-3 text-gray-600 dark:text-gray-400">{shift.hours}h</td>
+                <td className="py-2 px-3 text-fg-muted">{shift.hours}h</td>
                 <td className="py-2 px-3 text-center">
                   {shift.isWorkShift ? (
                     <FiCheck className="w-4 h-4 text-green-500 mx-auto" />
                   ) : (
-                    <FiX className="w-4 h-4 text-gray-400 mx-auto" />
+                    <FiX className="w-4 h-4 text-fg-subtle mx-auto" />
                   )}
                 </td>
                 <td className="py-2 px-3 text-center">
                   {shift.isPaid ? (
                     <FiCheck className="w-4 h-4 text-green-500 mx-auto" />
                   ) : (
-                    <FiX className="w-4 h-4 text-gray-400 mx-auto" />
+                    <FiX className="w-4 h-4 text-fg-subtle mx-auto" />
                   )}
                 </td>
                 <td className="py-2 px-3">
@@ -474,8 +452,8 @@ function ShiftsSection({ shifts }: ShiftsSectionProps) {
 
       {shifts.length === 0 && (
         <div className="text-center py-8">
-          <FiCalendar className="w-10 h-10 mx-auto text-gray-400 mb-3" />
-          <p className="text-sm text-gray-600 dark:text-gray-400">{t('noShifts')}</p>
+          <FiCalendar className="w-10 h-10 mx-auto text-fg-subtle mb-3" />
+          <p className="text-sm text-fg-muted">{t('noShifts')}</p>
         </div>
       )}
 
@@ -492,7 +470,9 @@ function ShiftsSection({ shifts }: ShiftsSectionProps) {
       <ConfirmDialog
         isOpen={!!deletingShift}
         onClose={() => setDeletingShift(null)}
-        onConfirm={() => deletingShift && deleteMutation.mutate(deletingShift.id)}
+        onConfirm={() => {
+          if (deletingShift) deleteMutation.mutate(deletingShift.id)
+        }}
         title={tActions('delete')}
         message={
           deletingShift
@@ -586,15 +566,12 @@ function ShiftModal({ shift, onClose }: ShiftModalProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="bg-white dark:bg-[#151b23] rounded-lg shadow-xl w-full max-w-md mx-4 overflow-y-auto max-h-[90vh]">
-        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700">
-          <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+      <div className="bg-surface rounded-lg shadow-xl w-full max-w-md mx-4 overflow-y-auto max-h-[90vh]">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-border">
+          <h3 className="text-sm font-semibold text-fg">
             {isEditing ? t('editShift') : t('newShift')}
           </h3>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-          >
+          <button onClick={onClose} className="text-fg-subtle hover:text-fg">
             <FiX className="w-5 h-5" />
           </button>
         </div>
@@ -602,30 +579,26 @@ function ShiftModal({ shift, onClose }: ShiftModalProps) {
         <form onSubmit={handleSubmit} className="p-4 space-y-4">
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                {t('code')} *
-              </label>
+              <label className="block text-xs font-medium text-fg mb-1">{t('code')} *</label>
               <input
                 type="text"
                 value={code}
                 onChange={(e) => setCode(e.target.value.toUpperCase())}
                 maxLength={3}
                 placeholder="M, T, N..."
-                className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 uppercase"
+                className="w-full px-3 py-2 text-sm border border-border rounded-md bg-surface text-fg uppercase"
                 required
                 disabled={isEditing}
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                {t('name')} *
-              </label>
+              <label className="block text-xs font-medium text-fg mb-1">{t('name')} *</label>
               <input
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder={t('namePlaceholder')}
-                className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100"
+                className="w-full px-3 py-2 text-sm border border-border rounded-md bg-surface text-fg"
                 required
               />
             </div>
@@ -633,90 +606,76 @@ function ShiftModal({ shift, onClose }: ShiftModalProps) {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                {t('startTime')}
-              </label>
+              <label className="block text-xs font-medium text-fg mb-1">{t('startTime')}</label>
               <input
                 type="time"
                 value={startTime}
                 onChange={(e) => setStartTime(e.target.value)}
-                className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100"
+                className="w-full px-3 py-2 text-sm border border-border rounded-md bg-surface text-fg"
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                {t('endTime')}
-              </label>
+              <label className="block text-xs font-medium text-fg mb-1">{t('endTime')}</label>
               <input
                 type="time"
                 value={endTime}
                 onChange={(e) => setEndTime(e.target.value)}
-                className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100"
+                className="w-full px-3 py-2 text-sm border border-border rounded-md bg-surface text-fg"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                {t('hours')}
-              </label>
+              <label className="block text-xs font-medium text-fg mb-1">{t('hours')}</label>
               <input
                 type="number"
                 value={hours}
                 onChange={(e) => setHours(e.target.value)}
                 step="0.25"
                 min="0"
-                className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100"
+                className="w-full px-3 py-2 text-sm border border-border rounded-md bg-surface text-fg"
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                {t('displayOrder')}
-              </label>
+              <label className="block text-xs font-medium text-fg mb-1">{t('displayOrder')}</label>
               <input
                 type="number"
                 value={displayOrder}
                 onChange={(e) => setDisplayOrder(e.target.value)}
                 min="0"
-                className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100"
+                className="w-full px-3 py-2 text-sm border border-border rounded-md bg-surface text-fg"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
-            <label className="inline-flex items-center gap-2 text-xs text-gray-700 dark:text-gray-300">
-              <input
-                type="checkbox"
-                checked={isWorkShift}
-                onChange={(e) => setIsWorkShift(e.target.checked)}
-                className="rounded border-gray-300 dark:border-gray-700"
-              />
-              {t('isWorkShift')}
-            </label>
-            <label className="inline-flex items-center gap-2 text-xs text-gray-700 dark:text-gray-300">
-              <input
-                type="checkbox"
-                checked={isPaid}
-                onChange={(e) => setIsPaid(e.target.checked)}
-                className="rounded border-gray-300 dark:border-gray-700"
-              />
-              {t('isPaid')}
-            </label>
+            <Checkbox
+              checked={isWorkShift}
+              onCheckedChange={setIsWorkShift}
+              label={t('isWorkShift')}
+              strikeOnCheck={false}
+            />
+            <Checkbox
+              checked={isPaid}
+              onCheckedChange={setIsPaid}
+              label={t('isPaid')}
+              strikeOnCheck={false}
+            />
           </div>
 
           <div className="flex justify-end gap-2 pt-2">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md transition-colors"
+              className="px-4 py-2 text-sm text-fg hover:bg-surface-hover rounded-md transition-colors"
             >
               {tActions('cancel')}
             </button>
             <button
               type="submit"
               disabled={isPending}
-              className="px-4 py-2 text-sm bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 disabled:opacity-50 transition-colors"
+              className="px-4 py-2 text-sm bg-accent text-accent-fg font-medium rounded-md hover:bg-accent-hover disabled:opacity-50 transition-colors"
             >
               {isPending ? tActions('saving') : tActions('save')}
             </button>

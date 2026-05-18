@@ -24,7 +24,7 @@ import { ShiftSelector } from './ShiftSelector'
 import { ValidationWarnings } from './ValidationWarnings'
 import { MonthInfoPanel } from './MonthInfoPanel'
 import { ManageHolidaysModal } from './ManageHolidaysModal'
-import { ConfirmDialog } from '@/app/ui/panels/ConfirmDialog'
+import { ConfirmDialog } from '@/app/ui/components'
 import toast from 'react-hot-toast'
 import Link from 'next/link'
 import {
@@ -308,15 +308,16 @@ export function SchedulingClient() {
         `Horario generado: ${data.assignmentsCreated} turnos en ${data.stats.solveTimeMs}ms`
       )
     },
-    onError: (err: any) => {
-      if (err?.status === 422 && err?.data?.conflictingConstraints) {
+    onError: (err: unknown) => {
+      const e = err as ApiError & { data?: { conflictingConstraints?: { constraintName: string; humanExplanation: string; employeeIds?: string[] }[]; suggestedRelaxations?: { constraint: string; currentValue: number; proposedValue: number; impact: string }[]; error?: string } }
+      if (e?.status === 422 && e?.data?.conflictingConstraints) {
         setInfeasibleModal({
           open: true,
-          constraints: err.data.conflictingConstraints,
-          relaxations: err.data.suggestedRelaxations ?? [],
+          constraints: e.data.conflictingConstraints,
+          relaxations: e.data.suggestedRelaxations ?? [],
         })
       } else {
-        toast.error(err?.data?.error ?? 'Error generando el horario')
+        toast.error(e?.data?.error ?? 'Error generando el horario')
       }
     },
   })
@@ -339,8 +340,9 @@ export function SchedulingClient() {
       toast.success('Configuración relajada. Reintentando generación…')
       generateMutation.mutate(monthId)
     },
-    onError: (err: any) => {
-      toast.error(err?.data?.error ?? 'Error aplicando la relajación')
+    onError: (err: unknown) => {
+      const e = err as ApiError & { data?: { error?: string } }
+      toast.error(e?.data?.error ?? 'Error aplicando la relajación')
       setRelaxationConfirm(null)
     },
   })
@@ -493,8 +495,7 @@ export function SchedulingClient() {
   const getStatusConfig = (status: MonthStatus) => {
     const configs: Record<MonthStatus, { color: string; label: string }> = {
       draft: {
-        color:
-          'bg-gray-100 text-gray-700 border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700',
+        color: 'bg-surface-sunken text-fg-muted border-border',
         label: tStatus('draft'),
       },
 
@@ -519,30 +520,26 @@ export function SchedulingClient() {
   const loading = loadingMonths || loadingMonth
 
   return (
-    <div className="min-h-screen bg-white dark:bg-[#010409] p-4 md:p-6">
+    <div className="min-h-screen bg-bg p-4 md:p-6">
       <div className="max-w-[1800px] space-y-5">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">
-              {t('page.title')}
-            </h1>
-            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-0.5">
-              {t('page.subtitle')}
-            </p>
+            <h1 className="text-xl sm:text-2xl font-bold text-fg">{t('page.title')}</h1>
+            <p className="text-xs sm:text-sm text-fg-muted mt-0.5">{t('page.subtitle')}</p>
           </div>
           <div className="flex items-center gap-2">
             <button
               onClick={() => window.location.reload()}
               disabled={!selectedMonthId || loading}
-              className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-gray-700 dark:text-gray-300 text-xs font-medium rounded-md border border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors disabled:opacity-50"
+              className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-fg text-xs font-medium rounded-md border border-border hover:bg-surface-hover transition-colors disabled:opacity-50"
             >
               <FiRefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
               {tActions('refresh')}
             </button>
             <Link
               href="/dashboard/scheduling/config"
-              className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-gray-700 dark:text-gray-300 text-xs font-medium rounded-md border border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+              className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-fg text-xs font-medium rounded-md border border-border hover:bg-surface-hover transition-colors"
             >
               <FiSettings className="w-3.5 h-3.5" />
               {tActions('configButton')}
@@ -551,7 +548,7 @@ export function SchedulingClient() {
         </div>
 
         {/* Month Selector & Actions */}
-        <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-4">
+        <div className="bg-surface rounded-md border border-border p-4">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
             <MonthSelector
               months={months}
@@ -603,7 +600,7 @@ export function SchedulingClient() {
                       <button
                         onClick={handlePublish}
                         disabled={updateStatusMutation.isPending}
-                        className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-green-600 dark:bg-green-700 text-white text-xs font-medium rounded-md hover:bg-green-700 dark:hover:bg-green-800 transition-colors disabled:opacity-50 whitespace-nowrap"
+                        className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-accent text-accent-fg text-xs font-medium rounded-md hover:bg-accent-hover transition-colors disabled:opacity-50 whitespace-nowrap"
                       >
                         <FiCheck className="w-3.5 h-3.5" />
                         {tActions('publish')}
@@ -625,7 +622,7 @@ export function SchedulingClient() {
                       </button>
                       <button
                         onClick={() => monthData && downloadSchedulePdf(monthData)}
-                        className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-gray-700 dark:text-gray-300 text-xs font-medium rounded-md border border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors whitespace-nowrap"
+                        className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-fg text-xs font-medium rounded-md border border-border hover:bg-surface-hover transition-colors whitespace-nowrap"
                       >
                         <FiDownload className="w-3.5 h-3.5" />
                         <span className="hidden sm:inline">{tActions('exportPdf')}</span>
@@ -654,21 +651,15 @@ export function SchedulingClient() {
 
         {/* Main Content */}
         {!selectedMonthId ? (
-          <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-12 text-center">
-            <FiCalendar className="w-12 h-12 mx-auto text-gray-400 dark:text-gray-600 mb-4" />
-            <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">
-              {tMessages('selectMonth')}
-            </h3>
-            <p className="text-xs text-gray-600 dark:text-gray-400 mb-4">
-              {tMessages('selectMonthHint')}
-            </p>
+          <div className="bg-surface rounded-md border border-border p-12 text-center">
+            <FiCalendar className="w-12 h-12 mx-auto text-fg-subtle mb-4" />
+            <h3 className="text-sm font-medium text-fg mb-2">{tMessages('selectMonth')}</h3>
+            <p className="text-xs text-fg-muted mb-4">{tMessages('selectMonthHint')}</p>
           </div>
         ) : loadingMonth ? (
-          <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-12 text-center">
+          <div className="bg-surface rounded-md border border-border p-12 text-center">
             <div className="inline-block h-8 w-8 animate-spin rounded-full border-[3px] border-solid border-blue-600 dark:border-blue-500 border-r-transparent"></div>
-            <p className="mt-3 text-xs text-gray-600 dark:text-gray-400">
-              {tMessages('loadingData')}
-            </p>
+            <p className="mt-3 text-xs text-fg-muted">{tMessages('loadingData')}</p>
           </div>
         ) : monthData ? (
           <div className="space-y-4">
@@ -747,14 +738,12 @@ export function SchedulingClient() {
         {/* Modal INFEASIBLE: sin solución posible */}
         {infeasibleModal.open && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-            <div className="bg-white dark:bg-gray-900 rounded-lg shadow-xl max-w-2xl w-full p-6 space-y-4 max-h-[90vh] overflow-y-auto">
+            <div className="bg-surface rounded-lg shadow-xl max-w-2xl w-full p-6 space-y-4 max-h-[90vh] overflow-y-auto">
               <div className="flex items-center gap-3">
                 <FiAlertTriangle className="w-6 h-6 text-red-500 flex-shrink-0" />
-                <h2 className="text-base font-semibold text-gray-900 dark:text-white">
-                  No se puede generar el horario
-                </h2>
+                <h2 className="text-base font-semibold text-fg">No se puede generar el horario</h2>
               </div>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
+              <p className="text-sm text-fg-muted">
                 Las reglas actuales hacen imposible completar el mes. Causas detectadas:
               </p>
               <ul className="space-y-2">
@@ -772,25 +761,25 @@ export function SchedulingClient() {
               </ul>
               {infeasibleModal.relaxations.length > 0 && (
                 <div>
-                  <p className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <p className="text-xs font-medium text-fg mb-2">
                     Relajaciones sugeridas (aplica una para reintentar):
                   </p>
                   <ul className="space-y-2">
                     {infeasibleModal.relaxations.map((r, i) => (
                       <li
                         key={i}
-                        className="flex items-center justify-between gap-3 text-xs bg-gray-50 dark:bg-gray-800 rounded px-3 py-2"
+                        className="flex items-center justify-between gap-3 text-xs bg-surface-sunken rounded px-3 py-2"
                       >
                         <div className="flex-1 min-w-0">
-                          <div className="text-gray-900 dark:text-gray-100">
+                          <div className="text-fg">
                             <strong>{r.constraint}</strong>: {r.currentValue} → {r.proposedValue}
                           </div>
-                          <div className="text-gray-600 dark:text-gray-400 mt-0.5">{r.impact}</div>
+                          <div className="text-fg-muted mt-0.5">{r.impact}</div>
                         </div>
                         <button
                           onClick={() => setRelaxationConfirm(r)}
                           disabled={applyRelaxationMutation.isPending}
-                          className="flex-shrink-0 px-3 py-1.5 text-xs font-medium bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                          className="flex-shrink-0 px-3 py-1.5 text-xs font-medium bg-accent text-accent-fg rounded hover:bg-accent-hover disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                         >
                           Aplicar
                         </button>
@@ -804,7 +793,7 @@ export function SchedulingClient() {
                   onClick={() =>
                     setInfeasibleModal({ open: false, constraints: [], relaxations: [] })
                   }
-                  className="px-4 py-2 text-sm font-medium bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                  className="px-4 py-2 text-sm font-medium bg-surface-sunken text-fg rounded-md hover:bg-surface-hover transition-colors"
                 >
                   Cerrar
                 </button>

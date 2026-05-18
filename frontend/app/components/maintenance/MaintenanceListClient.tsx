@@ -20,6 +20,7 @@ import {
   FiX,
   FiRefreshCw,
 } from 'react-icons/fi'
+import { Card, Badge, Button } from '@/app/ui/components'
 
 interface MaintenanceListClientProps {
   initialReports: MaintenanceReport[]
@@ -193,66 +194,32 @@ export function MaintenanceListClient({
   }, [])
 
   const getStatusConfig = (status: MaintenanceReport['status']) => {
-    const configs = {
-      reported: {
-        color:
-          'bg-yellow-50 text-yellow-700 border border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-400 dark:border-yellow-800',
-        label: t('status.reported'),
-      },
-      assigned: {
-        color:
-          'bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-800',
-        label: t('status.assigned'),
-      },
-      in_progress: {
-        color:
-          'bg-purple-50 text-purple-700 border border-purple-200 dark:bg-purple-900/20 dark:text-purple-400 dark:border-purple-800',
-        label: t('status.inProgress'),
-      },
-      waiting: {
-        color:
-          'bg-orange-50 text-orange-700 border border-orange-200 dark:bg-orange-900/20 dark:text-orange-400 dark:border-orange-800',
-        label: t('status.waiting'),
-      },
-      completed: {
-        color:
-          'bg-green-50 text-green-700 border border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800',
-        label: t('status.completed'),
-      },
-      closed: {
-        color:
-          'bg-gray-50 text-gray-700 border border-gray-200 dark:bg-gray-900/20 dark:text-gray-400 dark:border-gray-800',
-        label: t('status.closed'),
-      },
-      canceled: {
-        color:
-          'bg-red-50 text-red-700 border border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800',
-        label: t('status.canceled'),
-      },
+    const configs: Record<
+      string,
+      { tone: 'warning' | 'info' | 'accent' | 'success' | 'neutral' | 'danger'; label: string }
+    > = {
+      reported: { tone: 'warning', label: t('status.reported') },
+      assigned: { tone: 'info', label: t('status.assigned') },
+      in_progress: { tone: 'accent', label: t('status.inProgress') },
+      waiting: { tone: 'warning', label: t('status.waiting') },
+      completed: { tone: 'success', label: t('status.completed') },
+      closed: { tone: 'neutral', label: t('status.closed') },
+      canceled: { tone: 'danger', label: t('status.canceled') },
     }
-    return configs[status]
+    return configs[status] ?? { tone: 'neutral' as const, label: status }
   }
 
   const getPriorityConfig = (priority: MaintenanceReport['priority']) => {
-    const configs = {
-      low: {
-        color: 'text-gray-600 dark:text-gray-400',
-        label: t('priority.low'),
-      },
-      medium: {
-        color: 'text-blue-600 dark:text-blue-400',
-        label: t('priority.medium'),
-      },
-      high: {
-        color: 'text-orange-600 dark:text-orange-400',
-        label: t('priority.high'),
-      },
-      urgent: {
-        color: 'text-red-600 dark:text-red-400',
-        label: t('priority.urgent'),
-      },
+    const configs: Record<
+      string,
+      { tone: 'neutral' | 'info' | 'warning' | 'danger'; label: string }
+    > = {
+      low: { tone: 'neutral', label: t('priority.low') },
+      medium: { tone: 'info', label: t('priority.medium') },
+      high: { tone: 'warning', label: t('priority.high') },
+      urgent: { tone: 'danger', label: t('priority.urgent') },
     }
-    return configs[priority]
+    return configs[priority] ?? { tone: 'neutral' as const, label: priority }
   }
 
   const getLocationTypeLabel = (type: MaintenanceReport['location_type']) => {
@@ -284,10 +251,10 @@ export function MaintenanceListClient({
 
   if (loading && reports.length === 0) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-[#0d1117] flex items-center justify-center">
+      <div className="min-h-screen bg-surface flex items-center justify-center">
         <div className="text-center">
           <div className="inline-block h-10 w-10 animate-spin rounded-full border-[3px] border-solid border-blue-600 dark:border-blue-500 border-r-transparent"></div>
-          <p className="mt-3 text-xs text-gray-600 dark:text-gray-400">{t('loading')}</p>
+          <p className="mt-3 text-xs text-fg-muted">{t('loading')}</p>
         </div>
       </div>
     )
@@ -295,35 +262,30 @@ export function MaintenanceListClient({
 
   return (
     <>
-      <div className="min-h-screen bg-white dark:bg-[#010409] p-4 md:p-6">
+      <div className="min-h-screen bg-bg p-4 md:p-6">
         <div className="max-w-[1400px] space-y-5">
           {/* Header */}
           <div className="mb-4 sm:mb-6">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div>
-                <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">
-                  {t('title')}
-                </h1>
-                <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-0.5">
-                  {t('subtitle')}
-                </p>
+                <h1 className="text-xl sm:text-2xl font-bold text-fg">{t('title')}</h1>
+                <p className="text-xs sm:text-sm text-fg-muted mt-0.5">{t('subtitle')}</p>
               </div>
               <div className="flex items-center gap-2">
-                <button
+                <Button
+                  variant="ghost"
+                  iconOnly
+                  size="sm"
                   onClick={handleRefresh}
                   disabled={loading}
-                  className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-xs font-medium rounded-md border border-gray-300 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-700 disabled:opacity-50 transition-colors"
                   title={tCommon('actions.refresh') || 'Actualizar'}
                 >
                   <FiRefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
-                </button>
-                <button
-                  onClick={handleCreateReport}
-                  className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-green-600 dark:bg-green-700 text-white text-xs font-medium rounded-md hover:bg-green-700 dark:hover:bg-green-800 transition-colors"
-                >
+                </Button>
+                <Button variant="accent" size="sm" onClick={handleCreateReport}>
                   <FiPlus className="w-3.5 h-3.5" />
                   {t('newReport')}
-                </button>
+                </Button>
               </div>
             </div>
           </div>
@@ -334,61 +296,54 @@ export function MaintenanceListClient({
             <div className="min-[1400px]:col-span-3 space-y-4">
               {/* Stats - Mobile/Tablet (hidden on >= 1400px) */}
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 min-[1400px]:hidden">
-                <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-3 hover:shadow-md dark:hover:shadow-gray-900/50 transition-shadow">
+                <Card padding="sm" hover>
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 font-medium">
+                      <p className="text-[10px] sm:text-xs text-fg-muted font-medium">
                         {t('stats.totalReports')}
                       </p>
-                      <p className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 mt-0.5">
-                        {totalReports}
-                      </p>
+                      <p className="text-lg sm:text-xl font-bold text-fg mt-0.5">{totalReports}</p>
                     </div>
-                    <FiTool className="w-5 h-5 sm:w-6 sm:h-6 text-blue-500 dark:text-blue-400" />
+                    <FiTool className="w-5 h-5 sm:w-6 sm:h-6 text-info" />
                   </div>
-                </div>
-
-                <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-3 hover:shadow-md dark:hover:shadow-gray-900/50 transition-shadow">
+                </Card>
+                <Card padding="sm" hover>
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 font-medium">
+                      <p className="text-[10px] sm:text-xs text-fg-muted font-medium">
                         {t('stats.urgent')}
                       </p>
-                      <p className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 mt-0.5">
-                        {urgentReports}
-                      </p>
+                      <p className="text-lg sm:text-xl font-bold text-fg mt-0.5">{urgentReports}</p>
                     </div>
-                    <FiAlertCircle className="w-5 h-5 sm:w-6 sm:h-6 text-red-500 dark:text-red-400" />
+                    <FiAlertCircle className="w-5 h-5 sm:w-6 sm:h-6 text-danger" />
                   </div>
-                </div>
-
-                <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-3 hover:shadow-md dark:hover:shadow-gray-900/50 transition-shadow">
+                </Card>
+                <Card padding="sm" hover>
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 font-medium">
+                      <p className="text-[10px] sm:text-xs text-fg-muted font-medium">
                         {t('stats.inProgress')}
                       </p>
-                      <p className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 mt-0.5">
+                      <p className="text-lg sm:text-xl font-bold text-fg mt-0.5">
                         {inProgressReports}
                       </p>
                     </div>
-                    <FiClock className="w-5 h-5 sm:w-6 sm:h-6 text-purple-500 dark:text-purple-400" />
+                    <FiClock className="w-5 h-5 sm:w-6 sm:h-6 text-accent" />
                   </div>
-                </div>
-
-                <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-3 hover:shadow-md dark:hover:shadow-gray-900/50 transition-shadow">
+                </Card>
+                <Card padding="sm" hover>
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 font-medium">
+                      <p className="text-[10px] sm:text-xs text-fg-muted font-medium">
                         {t('stats.roomsOutOfService')}
                       </p>
-                      <p className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 mt-0.5">
+                      <p className="text-lg sm:text-xl font-bold text-fg mt-0.5">
                         {roomsOutOfService}
                       </p>
                     </div>
-                    <FiCheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-orange-500 dark:text-orange-400" />
+                    <FiCheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-warning" />
                   </div>
-                </div>
+                </Card>
               </div>
 
               {/* Filters */}
@@ -396,32 +351,28 @@ export function MaintenanceListClient({
                 {/* Search Bar */}
                 <div className="relative flex items-center gap-2">
                   <div className="relative flex-1 flex items-center">
-                    <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500" />
+                    <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-fg-subtle" />
                     <input
                       type="text"
                       placeholder={t('filters.searchPlaceholder')}
                       value={searchInput}
                       onChange={(e) => setSearchInput(e.target.value)}
                       onKeyDown={handleSearchKeyDown}
-                      className="w-full pl-9 pr-9 py-2 text-sm border border-gray-300 dark:border-gray-700 dark:bg-[#151b23] dark:text-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent transition-all"
+                      className="w-full pl-9 pr-9 py-2 text-sm border border-border bg-surface text-fg rounded-lg focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-transparent transition-all"
                     />
                     {searchInput && (
                       <button
                         onClick={handleClearSearch}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-fg-subtle hover:text-fg transition-colors"
                         title={t('filters.clearSearch') || 'Limpiar búsqueda'}
                       >
                         <FiX className="w-4 h-4" />
                       </button>
                     )}
                   </div>
-                  <button
-                    onClick={executeSearch}
-                    disabled={loading}
-                    className="px-4 py-2 text-sm font-medium text-white bg-blue-600 dark:bg-blue-700 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 transition-colors"
-                  >
+                  <Button variant="accent" iconOnly onClick={executeSearch} disabled={loading}>
                     <FiSearch className="w-4 h-4" />
-                  </button>
+                  </Button>
                 </div>
 
                 {/* Filters Row */}
@@ -430,7 +381,7 @@ export function MaintenanceListClient({
                   <select
                     value={filters.status || ''}
                     onChange={(e) => handleFilterChange('status', e.target.value || undefined)}
-                    className="w-full px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent bg-white dark:bg-[#151b23] dark:text-gray-200 hover:border-gray-400 dark:hover:border-gray-600 transition-colors"
+                    className="w-full px-3 py-1.5 text-xs border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-transparent bg-surface dark:text-fg hover:border-gray-400 dark:hover:border-gray-600 transition-colors"
                   >
                     <option value="">{t('filters.allStatuses')}</option>
                     <option value="reported">{t('status.reported')}</option>
@@ -446,7 +397,7 @@ export function MaintenanceListClient({
                   <select
                     value={filters.priority || ''}
                     onChange={(e) => handleFilterChange('priority', e.target.value || undefined)}
-                    className="w-full px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent bg-white dark:bg-[#151b23] dark:text-gray-200 hover:border-gray-400 dark:hover:border-gray-600 transition-colors"
+                    className="w-full px-3 py-1.5 text-xs border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-transparent bg-surface dark:text-fg hover:border-gray-400 dark:hover:border-gray-600 transition-colors"
                   >
                     <option value="">{t('filters.allPriorities')}</option>
                     <option value="low">{t('priority.low')}</option>
@@ -461,7 +412,7 @@ export function MaintenanceListClient({
                     onChange={(e) =>
                       handleFilterChange('location_type', e.target.value || undefined)
                     }
-                    className="w-full px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent bg-white dark:bg-[#151b23] dark:text-gray-200 hover:border-gray-400 dark:hover:border-gray-600 transition-colors"
+                    className="w-full px-3 py-1.5 text-xs border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-transparent bg-surface dark:text-fg hover:border-gray-400 dark:hover:border-gray-600 transition-colors"
                   >
                     <option value="">{t('filters.allLocations')}</option>
                     <option value="room">{t('locationType.room')}</option>
@@ -502,7 +453,7 @@ export function MaintenanceListClient({
                   filters.date_to ? (
                     <button
                       onClick={handleRefresh}
-                      className="w-full px-3 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors flex items-center justify-center gap-1.5"
+                      className="w-full px-3 py-1.5 text-xs font-medium text-fg bg-surface-hover border border-border rounded-lg hover:bg-surface-hover transition-colors flex items-center justify-center gap-1.5"
                     >
                       <FiX className="w-3.5 h-3.5" />
                       {t('filters.clearFilters')}
@@ -514,38 +465,35 @@ export function MaintenanceListClient({
               </div>
 
               {/* Table - Desktop */}
-              <div className="hidden md:block bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden">
+              <div className="hidden md:block bg-surface rounded-md border border-border shadow-sm overflow-hidden">
                 <div className="overflow-x-auto">
                   <table className="w-full">
-                    <thead className="bg-gray-50 dark:bg-[#0d1117] border-b border-gray-200 dark:border-gray-800">
+                    <thead className="bg-surface border-b border-border">
                       <tr>
-                        <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                        <th className="px-3 py-2 text-left text-[10px] font-semibold text-fg uppercase tracking-wider">
                           {t('table.date')}
                         </th>
-                        <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                        <th className="px-3 py-2 text-left text-[10px] font-semibold text-fg uppercase tracking-wider">
                           {t('table.title')}
                         </th>
-                        <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                        <th className="px-3 py-2 text-left text-[10px] font-semibold text-fg uppercase tracking-wider">
                           {t('table.location')}
                         </th>
-                        <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                        <th className="px-3 py-2 text-left text-[10px] font-semibold text-fg uppercase tracking-wider">
                           {t('table.priority')}
                         </th>
-                        <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                        <th className="px-3 py-2 text-left text-[10px] font-semibold text-fg uppercase tracking-wider">
                           {t('table.status')}
                         </th>
-                        <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                        <th className="px-3 py-2 text-left text-[10px] font-semibold text-fg uppercase tracking-wider">
                           {t('table.assigned')}
                         </th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
+                    <tbody className="divide-y divide-gray-200 dark:divide-border">
                       {reports.length === 0 ? (
                         <tr>
-                          <td
-                            colSpan={6}
-                            className="px-3 py-8 text-center text-xs text-gray-500 dark:text-gray-400"
-                          >
+                          <td colSpan={6} className="px-3 py-8 text-center text-xs text-fg-subtle">
                             {Object.keys(filters).some((k) => filters[k as keyof ReportFilters])
                               ? t('table.noReportsFound')
                               : t('table.noReports')}
@@ -559,43 +507,37 @@ export function MaintenanceListClient({
                             <tr
                               key={report.id}
                               onClick={() => handleViewReport(report.id)}
-                              className="hover:bg-gray-50 dark:hover:bg-[#0d1117] transition-colors cursor-pointer"
+                              className="hover:bg-surface-hover transition-colors cursor-pointer"
                             >
-                              <td className="px-3 py-2 text-xs text-gray-600 dark:text-gray-400 whitespace-nowrap">
+                              <td className="px-3 py-2 text-xs text-fg-muted whitespace-nowrap">
                                 {formatDate(report.report_date)}
                               </td>
                               <td className="px-3 py-2">
-                                <div className="text-xs font-medium text-gray-900 dark:text-gray-100">
-                                  {report.title}
-                                </div>
+                                <div className="text-xs font-medium text-fg">{report.title}</div>
                                 {report.room_out_of_service && (
-                                  <span className="inline-flex items-center mt-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400">
+                                  <Badge tone="danger" className="mt-1">
                                     {t('table.roomOutOfService')}
-                                  </span>
+                                  </Badge>
                                 )}
                               </td>
                               <td className="px-3 py-2">
-                                <div className="text-xs text-gray-900 dark:text-gray-100">
+                                <div className="text-xs text-fg">
                                   {getLocationTypeLabel(report.location_type)}
                                   {report.room_number && ` - ${report.room_number}`}
                                 </div>
-                                <div className="text-[10px] text-gray-500 dark:text-gray-500 mt-0.5">
+                                <div className="text-[10px] text-fg-muted mt-0.5">
                                   {report.location_description}
                                 </div>
                               </td>
                               <td className="px-3 py-2">
-                                <span className={`text-xs font-medium ${priorityConfig.color}`}>
+                                <Badge tone={priorityConfig.tone} dot>
                                   {priorityConfig.label}
-                                </span>
+                                </Badge>
                               </td>
                               <td className="px-3 py-2">
-                                <span
-                                  className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium ${statusConfig.color}`}
-                                >
-                                  {statusConfig.label}
-                                </span>
+                                <Badge tone={statusConfig.tone}>{statusConfig.label}</Badge>
                               </td>
-                              <td className="px-3 py-2 text-xs text-gray-600 dark:text-gray-400">
+                              <td className="px-3 py-2 text-xs text-fg-muted">
                                 {report.assigned_type === 'external'
                                   ? report.external_company_name
                                   : report.assigned_to
@@ -612,8 +554,8 @@ export function MaintenanceListClient({
 
                 {/* Pagination */}
                 {pagination && pagination.total_pages > 1 && (
-                  <div className="px-4 py-3 border-t border-gray-200 dark:border-gray-800 flex items-center justify-between">
-                    <div className="text-xs text-gray-500 dark:text-gray-400">
+                  <div className="px-4 py-3 border-t border-border flex items-center justify-between">
+                    <div className="text-xs text-fg-subtle">
                       {t('pagination.showing', {
                         from: (pagination.page - 1) * pagination.limit + 1,
                         to: Math.min(pagination.page * pagination.limit, pagination.total),
@@ -621,20 +563,20 @@ export function MaintenanceListClient({
                       })}
                     </div>
                     <div className="flex gap-2">
-                      <button
+                      <Button
+                        size="sm"
                         onClick={() => handlePageChange(pagination.page - 1)}
                         disabled={!pagination.has_prev || loading}
-                        className="px-3 py-1 text-xs font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         {t('pagination.previous')}
-                      </button>
-                      <button
+                      </Button>
+                      <Button
+                        size="sm"
                         onClick={() => handlePageChange(pagination.page + 1)}
                         disabled={!pagination.has_next || loading}
-                        className="px-3 py-1 text-xs font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         {t('pagination.next')}
-                      </button>
+                      </Button>
                     </div>
                   </div>
                 )}
@@ -643,8 +585,8 @@ export function MaintenanceListClient({
               {/* Cards - Mobile */}
               <div className="md:hidden space-y-2">
                 {reports.length === 0 ? (
-                  <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-6 text-center">
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                  <div className="bg-surface rounded-md border border-border p-6 text-center">
+                    <p className="text-xs text-fg-subtle">
                       {Object.keys(filters).some((k) => filters[k as keyof ReportFilters])
                         ? t('table.noReportsFound')
                         : t('table.noReports')}
@@ -658,45 +600,37 @@ export function MaintenanceListClient({
                       <div
                         key={report.id}
                         onClick={() => handleViewReport(report.id)}
-                        className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-3 hover:shadow-md dark:hover:shadow-gray-900/50 transition-shadow cursor-pointer"
+                        className="bg-surface rounded-md border border-border p-3 hover:shadow-md dark:hover:shadow-gray-900/50 transition-shadow cursor-pointer"
                       >
                         <div className="flex items-start justify-between mb-2">
                           <div className="flex-1 min-w-0">
-                            <h3 className="font-semibold text-xs text-gray-900 dark:text-gray-100">
-                              {report.title}
-                            </h3>
-                            <p className="text-[10px] text-gray-600 dark:text-gray-400 mt-0.5">
+                            <h3 className="font-semibold text-xs text-fg">{report.title}</h3>
+                            <p className="text-[10px] text-fg-muted mt-0.5">
                               {getLocationTypeLabel(report.location_type)}
                               {report.room_number && ` - ${report.room_number}`}
                             </p>
                           </div>
-                          <span className={`ml-2 text-[10px] font-medium ${priorityConfig.color}`}>
+                          <Badge tone={priorityConfig.tone} dot className="ml-2">
                             {priorityConfig.label}
-                          </span>
+                          </Badge>
                         </div>
 
                         <div className="space-y-1.5">
-                          <p className="text-[10px] text-gray-600 dark:text-gray-400 line-clamp-2">
+                          <p className="text-[10px] text-fg-muted line-clamp-2">
                             {report.description}
                           </p>
 
                           <div className="flex items-center justify-between">
-                            <span
-                              className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium ${statusConfig.color}`}
-                            >
-                              {statusConfig.label}
-                            </span>
-                            <span className="text-[10px] text-gray-500 dark:text-gray-500">
+                            <Badge tone={statusConfig.tone}>{statusConfig.label}</Badge>
+                            <span className="text-[10px] text-fg-muted">
                               {formatDate(report.report_date)}
                             </span>
                           </div>
 
                           {report.room_out_of_service && (
-                            <div className="pt-1">
-                              <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400">
-                                {t('table.roomOutOfService')}
-                              </span>
-                            </div>
+                            <Badge tone="danger" className="pt-1">
+                              {t('table.roomOutOfService')}
+                            </Badge>
                           )}
                         </div>
                       </div>
@@ -710,17 +644,17 @@ export function MaintenanceListClient({
                     <button
                       onClick={() => handlePageChange(pagination.page - 1)}
                       disabled={!pagination.has_prev || loading}
-                      className="px-4 py-2 text-xs font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md disabled:opacity-50"
+                      className="px-4 py-2 text-xs font-medium text-fg bg-surface border border-border rounded-md disabled:opacity-50"
                     >
                       {t('pagination.previous')}
                     </button>
-                    <span className="px-4 py-2 text-xs text-gray-500">
+                    <span className="px-4 py-2 text-xs text-fg-muted">
                       {pagination.page} / {pagination.total_pages}
                     </span>
                     <button
                       onClick={() => handlePageChange(pagination.page + 1)}
                       disabled={!pagination.has_next || loading}
-                      className="px-4 py-2 text-xs font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md disabled:opacity-50"
+                      className="px-4 py-2 text-xs font-medium text-fg bg-surface border border-border rounded-md disabled:opacity-50"
                     >
                       {t('pagination.next')}
                     </button>
@@ -733,51 +667,37 @@ export function MaintenanceListClient({
             {/* Right Column - Stats Sidebar (visible on >= 1400px) */}
             <div className="hidden min-[1400px]:block space-y-4">
               <div className="sticky top-4 space-y-3">
-                <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">
-                  {t('stats.summary')}
-                </h3>
+                <h3 className="text-sm font-semibold text-fg mb-3">{t('stats.summary')}</h3>
 
-                <div className="bg-white dark:bg-[#0D1117] border border-[#d0d7de] dark:border-[#30363d] rounded-xl shadow-sm p-4">
+                <div className="bg-surface border border-border rounded-xl shadow-sm p-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">
-                        {t('stats.totalReports')}
-                      </p>
-                      <p className="text-xl font-bold text-gray-900 dark:text-gray-100 mt-0.5">
-                        {totalReports}
-                      </p>
+                      <p className="text-xs text-fg-muted font-medium">{t('stats.totalReports')}</p>
+                      <p className="text-xl font-bold text-fg mt-0.5">{totalReports}</p>
                     </div>
-                    <div className="p-2 bg-blue-100 dark:bg-blue-900/20 rounded-lg">
-                      <FiTool className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                    <div className="p-2 bg-info/10 rounded-lg">
+                      <FiTool className="w-5 h-5 text-info" />
                     </div>
                   </div>
                 </div>
 
-                <div className="bg-white dark:bg-[#0D1117] border border-[#d0d7de] dark:border-[#30363d] rounded-xl shadow-sm p-4">
+                <div className="bg-surface border border-border rounded-xl shadow-sm p-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">
-                        {t('stats.urgent')}
-                      </p>
-                      <p className="text-xl font-bold text-gray-900 dark:text-gray-100 mt-0.5">
-                        {urgentReports}
-                      </p>
+                      <p className="text-xs text-fg-muted font-medium">{t('stats.urgent')}</p>
+                      <p className="text-xl font-bold text-fg mt-0.5">{urgentReports}</p>
                     </div>
                     <div className="p-2 bg-red-100 dark:bg-red-900/20 rounded-lg">
-                      <FiAlertCircle className="w-5 h-5 text-red-600 dark:text-red-400" />
+                      <FiAlertCircle className="w-5 h-5 text-danger" />
                     </div>
                   </div>
                 </div>
 
-                <div className="bg-white dark:bg-[#0D1117] border border-[#d0d7de] dark:border-[#30363d] rounded-xl shadow-sm p-4">
+                <div className="bg-surface border border-border rounded-xl shadow-sm p-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">
-                        {t('stats.inProgress')}
-                      </p>
-                      <p className="text-xl font-bold text-gray-900 dark:text-gray-100 mt-0.5">
-                        {inProgressReports}
-                      </p>
+                      <p className="text-xs text-fg-muted font-medium">{t('stats.inProgress')}</p>
+                      <p className="text-xl font-bold text-fg mt-0.5">{inProgressReports}</p>
                     </div>
                     <div className="p-2 bg-purple-100 dark:bg-purple-900/20 rounded-lg">
                       <FiClock className="w-5 h-5 text-purple-600 dark:text-purple-400" />
@@ -785,15 +705,13 @@ export function MaintenanceListClient({
                   </div>
                 </div>
 
-                <div className="bg-white dark:bg-[#0D1117] border border-[#d0d7de] dark:border-[#30363d] rounded-xl shadow-sm p-4">
+                <div className="bg-surface border border-border rounded-xl shadow-sm p-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">
+                      <p className="text-xs text-fg-muted font-medium">
                         {t('stats.roomsOutOfService')}
                       </p>
-                      <p className="text-xl font-bold text-gray-900 dark:text-gray-100 mt-0.5">
-                        {roomsOutOfService}
-                      </p>
+                      <p className="text-xl font-bold text-fg mt-0.5">{roomsOutOfService}</p>
                     </div>
                     <div className="p-2 bg-orange-100 dark:bg-orange-900/20 rounded-lg">
                       <FiCheckCircle className="w-5 h-5 text-orange-600 dark:text-orange-400" />

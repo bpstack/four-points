@@ -138,20 +138,18 @@ export function RoomPanel({ isOpen, onClose, room, groupId }: RoomPanelProps) {
             {ROOM_TYPES.map((type) => (
               <label
                 key={type.value}
-                className="relative flex items-center gap-3 p-3 border-2 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors border-gray-200 dark:border-gray-700 has-[:checked]:border-blue-500 has-[:checked]:bg-blue-50 dark:has-[:checked]:bg-blue-900/20"
+                className="relative flex items-center gap-3 p-3 border-2 rounded-lg cursor-pointer hover:bg-surface-hover transition-colors border-border has-[:checked]:border-blue-500 has-[:checked]:bg-blue-50 dark:has-[:checked]:bg-blue-900/20"
               >
                 <input
                   {...register('room_type')}
                   type="radio"
                   value={type.value}
-                  className="w-4 h-4 text-blue-600 border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500"
+                  className="w-4 h-4 text-blue-600 border-border focus:ring-2 focus:ring-accent/50"
                 />
-                <span className="w-8 h-8 flex items-center justify-center text-sm font-bold bg-gray-100 dark:bg-gray-800 rounded-full text-gray-600 dark:text-gray-300">
+                <span className="w-8 h-8 flex items-center justify-center text-sm font-bold bg-surface-sunken rounded-full text-fg-muted">
                   {type.icon}
                 </span>
-                <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                  {type.label}
-                </span>
+                <span className="text-sm font-medium text-fg">{type.label}</span>
               </label>
             ))}
           </div>

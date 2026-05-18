@@ -390,7 +390,7 @@ export default function ConciliationForm({
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-gray-500 dark:text-gray-400">{t('page.loading')}</div>
+        <div className="text-fg-subtle">{t('page.loading')}</div>
       </div>
     )
   }
@@ -399,10 +399,8 @@ export default function ConciliationForm({
   if (!conciliation) {
     return (
       <div className="flex flex-col items-center justify-center h-64 space-y-4">
-        <FiAlertCircle className="w-12 h-12 text-gray-400" />
-        <p className="text-gray-600 dark:text-gray-400">
-          {dayStatusMessage || t('page.selectDay')}
-        </p>
+        <FiAlertCircle className="w-12 h-12 text-fg-subtle" />
+        <p className="text-fg-muted">{dayStatusMessage || t('page.selectDay')}</p>
       </div>
     )
   }

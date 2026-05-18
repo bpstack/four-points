@@ -80,8 +80,8 @@ export default function DateFilter({ selectedDate, onDateChange, label }: DateFi
             inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-lg border transition-colors
             ${
               selectedDate
-                ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 rounded-r-none border-r-0'
-                : 'bg-white dark:bg-[#21262d] border-gray-300 dark:border-[#30363d] text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#30363d]'
+                ? 'bg-info/10 border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 rounded-r-none border-r-0'
+                : 'bg-surface border-border text-fg hover:bg-surface-hover'
             }
           `}
         >
@@ -91,7 +91,7 @@ export default function DateFilter({ selectedDate, onDateChange, label }: DateFi
         {selectedDate && (
           <button
             onClick={handleClear}
-            className="p-1.5 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 border-l-0 rounded-r-lg text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-800 transition-colors"
+            className="p-1.5 bg-info/10 border border-blue-200 dark:border-blue-800 border-l-0 rounded-r-lg text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-800 transition-colors"
           >
             <FiX className="w-3.5 h-3.5" />
           </button>

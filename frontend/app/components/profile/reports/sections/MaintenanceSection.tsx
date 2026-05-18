@@ -24,6 +24,7 @@ import {
 } from 'react-icons/fi'
 import type { MaintenanceReport, MaintenanceHistoryEntry } from '../types'
 import DateFilter from '../DateFilter'
+import { Checkbox } from '@/app/ui/components'
 
 const API_URL = API_BASE_URL
 
@@ -39,7 +40,7 @@ const STATUS_COLORS: Record<string, string> = {
   pending: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
   in_progress: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
   resolved: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
-  closed: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300',
+  closed: 'bg-surface-hover text-fg-muted',
 }
 
 const PRIORITY_COLORS: Record<string, string> = {
@@ -179,13 +180,13 @@ export default function MaintenanceSection() {
     return (
       <div className="flex flex-col items-center justify-center h-64 gap-4">
         <div className="text-center">
-          <FiTool className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
-          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-1">{t('title')}</h3>
-          <p className="text-sm text-gray-500 dark:text-gray-400 max-w-md">{t('description')}</p>
+          <FiTool className="w-12 h-12 text-fg-subtle mx-auto mb-3" />
+          <h3 className="text-lg font-medium text-fg mb-1">{t('title')}</h3>
+          <p className="text-sm text-fg-subtle max-w-md">{t('description')}</p>
         </div>
         <button
           onClick={fetchReports}
-          className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
+          className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-accent-fg bg-accent hover:bg-accent-hover rounded-lg transition-colors"
         >
           <FiRefreshCw className="w-4 h-4" />
           {t('loadHistory')}
@@ -197,7 +198,7 @@ export default function MaintenanceSection() {
   return (
     <div className="space-y-4">
       {/* Filters */}
-      <div className="flex items-center justify-between gap-4 pb-4 border-b border-gray-200 dark:border-[#30363d]">
+      <div className="flex items-center justify-between gap-4 pb-4 border-b border-border">
         <div className="flex items-center gap-2 flex-wrap">
           <FiFilter className="w-4 h-4 text-gray-400" />
 
@@ -211,7 +212,7 @@ export default function MaintenanceSection() {
               setStatusFilter(e.target.value)
               setLoaded(false)
             }}
-            className="text-sm border border-gray-300 dark:border-[#30363d] rounded-lg px-3 py-1.5 bg-white dark:bg-[#0d1117] text-gray-900 dark:text-white"
+            className="text-sm border border-border rounded-lg px-3 py-1.5 bg-surface text-fg"
           >
             <option value="all">{t('status.all')}</option>
             <option value="reported">{t('status.reported')}</option>
@@ -228,7 +229,7 @@ export default function MaintenanceSection() {
               setPriorityFilter(e.target.value)
               setLoaded(false)
             }}
-            className="text-sm border border-gray-300 dark:border-[#30363d] rounded-lg px-3 py-1.5 bg-white dark:bg-[#0d1117] text-gray-900 dark:text-white"
+            className="text-sm border border-border rounded-lg px-3 py-1.5 bg-surface text-fg"
           >
             <option value="all">{t('priority.all')}</option>
             <option value="low">{t('priority.low')}</option>
@@ -238,18 +239,15 @@ export default function MaintenanceSection() {
           </select>
 
           {/* Include Deleted */}
-          <label className="inline-flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={includeDeleted}
-              onChange={(e) => {
-                setIncludeDeleted(e.target.checked)
-                setLoaded(false)
-              }}
-              className="rounded border-gray-300 dark:border-[#30363d]"
-            />
-            {t('filters.deleted')}
-          </label>
+          <Checkbox
+            checked={includeDeleted}
+            onCheckedChange={(v) => {
+              setIncludeDeleted(v)
+              setLoaded(false)
+            }}
+            label={t('filters.deleted')}
+            strikeOnCheck={false}
+          />
         </div>
       </div>
 
@@ -284,12 +282,9 @@ export default function MaintenanceSection() {
             const isExpanded = expandedId === report.id
 
             return (
-              <div
-                key={report.id}
-                className="border border-gray-200 dark:border-[#30363d] rounded-lg overflow-hidden"
-              >
+              <div key={report.id} className="border border-border rounded-lg overflow-hidden">
                 {/* Report Row */}
-                <div className="bg-white dark:bg-[#0d1117] p-4">
+                <div className="bg-surface p-4">
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-2 flex-wrap">
@@ -326,16 +321,14 @@ export default function MaintenanceSection() {
                         </span>
                       </div>
 
-                      <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-1">
-                        {report.title}
-                      </h4>
+                      <h4 className="text-sm font-medium text-fg mb-1">{report.title}</h4>
                       {report.description && (
-                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-2 line-clamp-2">
+                        <p className="text-sm text-fg-muted mb-2 line-clamp-2">
                           {report.description}
                         </p>
                       )}
 
-                      <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400 flex-wrap">
+                      <div className="flex items-center gap-4 text-xs text-fg-subtle flex-wrap">
                         <span className="inline-flex items-center gap-1">
                           <FiUser className="w-3.5 h-3.5" />
                           {report.created_by_name || report.created_by}
@@ -355,7 +348,7 @@ export default function MaintenanceSection() {
                     {/* Expand History Button */}
                     <button
                       onClick={() => fetchHistory(report.id)}
-                      className="flex items-center gap-1 px-2 py-1 text-xs font-medium text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-[#21262d] rounded transition-colors"
+                      className="flex items-center gap-1 px-2 py-1 text-xs font-medium text-fg-muted hover:text-accent hover:bg-surface-hover rounded transition-colors"
                     >
                       <FiClock className="w-3.5 h-3.5" />
                       {t('table.date')}
@@ -370,31 +363,29 @@ export default function MaintenanceSection() {
 
                 {/* History Panel */}
                 {isExpanded && (
-                  <div className="border-t border-gray-200 dark:border-[#30363d] bg-gray-50 dark:bg-[#161b22] p-4">
+                  <div className="border-t border-border bg-surface-sunken p-4">
                     {historyLoading ? (
                       <div className="flex items-center justify-center py-4">
                         <FiLoader className="w-5 h-5 animate-spin text-gray-400" />
                       </div>
                     ) : history.length > 0 ? (
                       <div className="space-y-2">
-                        <h4 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3">
+                        <h4 className="text-xs font-medium text-fg-subtle uppercase tracking-wide mb-3">
                           {t('table.date')}
                         </h4>
                         {history.map((entry) => (
                           <div
                             key={entry.id}
-                            className="flex items-start gap-3 text-xs bg-white dark:bg-[#0d1117] p-2 rounded border border-gray-200 dark:border-[#30363d]"
+                            className="flex items-start gap-3 text-xs bg-surface p-2 rounded border border-border"
                           >
                             <div className="flex-1">
                               <div className="flex items-center gap-2 mb-1">
-                                <span className="font-medium text-gray-900 dark:text-white">
-                                  {entry.action}
-                                </span>
+                                <span className="font-medium text-fg">{entry.action}</span>
                                 {entry.field_changed && (
                                   <span className="text-gray-400">({entry.field_changed})</span>
                                 )}
                                 <span className="text-gray-400">-</span>
-                                <span className="text-gray-700 dark:text-gray-300">
+                                <span className="text-fg">
                                   {entry.user_name || entry.changed_by}
                                 </span>
                               </div>
@@ -404,9 +395,7 @@ export default function MaintenanceSection() {
                                 </p>
                               )}
                               {entry.new_value && (
-                                <p className="text-gray-700 dark:text-gray-300 truncate">
-                                  {entry.new_value}
-                                </p>
+                                <p className="text-fg truncate">{entry.new_value}</p>
                               )}
                             </div>
                             <span className="text-gray-400 flex-shrink-0">
@@ -436,7 +425,7 @@ export default function MaintenanceSection() {
 
       {/* Count */}
       {!loading && reports.length > 0 && (
-        <div className="text-xs text-gray-500 dark:text-gray-400 text-right">
+        <div className="text-xs text-fg-subtle text-right">
           {t('showing', { count: reports.length })}
         </div>
       )}

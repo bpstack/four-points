@@ -40,13 +40,13 @@ export default function HistoryFilters({
     <div className="flex flex-col sm:flex-row gap-2">
       {/* Filtro de usuario (búsqueda) */}
       <div className="relative flex-1">
-        <FiSearch className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 dark:text-gray-500" />
+        <FiSearch className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-fg-subtle" />
         <input
           type="text"
           placeholder={t('logs.searchByUser')}
           value={userFilter}
           onChange={(e) => onUserFilterChange(e.target.value)}
-          className="w-full pl-8 pr-3 py-1.5 text-xs border border-gray-300 dark:border-gray-700 dark:bg-[#151b23] dark:text-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent"
+          className="w-full pl-8 pr-3 py-1.5 text-xs border border-border bg-surface text-fg rounded-md focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-transparent"
         />
       </div>
 
@@ -54,7 +54,7 @@ export default function HistoryFilters({
       <select
         value={actionFilter}
         onChange={(e) => onActionFilterChange(e.target.value as HistoryAction | 'all')}
-        className="w-full sm:w-auto sm:min-w-[140px] px-3 py-1.5 pr-8 text-xs border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent bg-white dark:bg-[#151b23] dark:text-gray-200"
+        className="w-full sm:w-auto sm:min-w-[140px] px-3 py-1.5 pr-8 text-xs border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-transparent bg-surface dark:text-fg"
       >
         {actions.map((action) => (
           <option key={action.value} value={action.value}>
@@ -66,7 +66,7 @@ export default function HistoryFilters({
       {/* Botón exportar */}
       <button
         onClick={onExport}
-        className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-[#151b23] text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+        className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs border border-border rounded-md bg-surface text-fg hover:bg-surface-hover transition-colors"
       >
         <FiDownload className="w-3.5 h-3.5" />
         {t('logs.export')}

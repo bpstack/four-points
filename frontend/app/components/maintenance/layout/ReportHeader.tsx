@@ -46,8 +46,7 @@ export function ReportHeader({ report, onEdit, onDelete }: ReportHeaderProps) {
         label: t('status.completed'),
       },
       closed: {
-        color:
-          'bg-gray-50 text-gray-700 border border-gray-200 dark:bg-gray-900/20 dark:text-gray-400 dark:border-gray-800',
+        color: 'bg-surface-sunken text-fg-muted border border-border',
         label: t('status.closed'),
       },
       canceled: {
@@ -62,12 +61,12 @@ export function ReportHeader({ report, onEdit, onDelete }: ReportHeaderProps) {
   const statusConfig = getStatusConfig(report.status)
 
   return (
-    <div className="bg-white dark:bg-[#010409] border-b border-gray-200 dark:border-gray-800">
+    <div className="bg-bg border-b border-border">
       <div className="max-w-[1400px] px-4 md:px-6 py-6">
         {/* Back button */}
         <button
           onClick={() => router.push('/dashboard/maintenance')}
-          className="inline-flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 mb-4 transition-colors"
+          className="inline-flex items-center gap-2 text-sm text-fg-muted hover:text-fg mb-4 transition-colors"
         >
           <FiArrowLeft className="w-4 h-4" />
           {t('detail.backToList')}
@@ -77,9 +76,7 @@ export function ReportHeader({ report, onEdit, onDelete }: ReportHeaderProps) {
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-3 mb-2">
-              <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100 truncate">
-                {report.title}
-              </h1>
+              <h1 className="text-xl sm:text-2xl font-bold text-fg truncate">{report.title}</h1>
               <span
                 className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusConfig.color} flex-shrink-0`}
               >
@@ -87,7 +84,7 @@ export function ReportHeader({ report, onEdit, onDelete }: ReportHeaderProps) {
               </span>
             </div>
 
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-gray-600 dark:text-gray-400">
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-fg-muted">
               <span className="font-mono">ID: {report.id}</span>
               <span>•</span>
               <span>
@@ -113,14 +110,14 @@ export function ReportHeader({ report, onEdit, onDelete }: ReportHeaderProps) {
           <div className="flex items-center gap-2 flex-shrink-0">
             <button
               onClick={onEdit}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-fg bg-surface border border-border rounded-md hover:bg-surface-hover transition-colors"
             >
               <FiEdit className="w-3.5 h-3.5" />
               {t('detail.edit')}
             </button>
             <button
               onClick={onDelete}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-red-700 dark:text-red-400 bg-white dark:bg-gray-800 border border-red-300 dark:border-red-800 rounded-md hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-danger bg-surface border border-red-300 dark:border-red-800 rounded-md hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
             >
               <FiTrash2 className="w-3.5 h-3.5" />
               {t('detail.delete')}

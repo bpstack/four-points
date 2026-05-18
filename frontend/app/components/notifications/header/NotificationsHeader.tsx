@@ -14,22 +14,20 @@ export default function NotificationsHeader() {
     <div className="mb-6">
       <div className="flex items-center gap-4 mb-4">
         <Link href="/dashboard/profile">
-          <button className="p-2 hover:bg-gray-100 dark:hover:bg-[#21262d] rounded-lg transition-colors">
-            <FiArrowLeft className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+          <button className="p-2 hover:bg-surface-hover rounded-lg transition-colors">
+            <FiArrowLeft className="w-5 h-5 text-fg-subtle" />
           </button>
         </Link>
         <div className="flex-1">
-          <h1 className="text-xl font-semibold text-gray-900 dark:text-white mb-1">
-            Notificaciones
-          </h1>
-          <p className="text-xs text-gray-500 dark:text-gray-400">
+          <h1 className="text-xl font-semibold text-fg mb-1">Notificaciones</h1>
+          <p className="text-xs text-fg-subtle">
             {unreadCount > 0 ? `${unreadCount} sin leer` : 'Todas leidas'}
           </p>
         </div>
         {unreadCount > 0 && (
           <button
             onClick={markAllAsRead}
-            className="px-3 py-1.5 text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors flex items-center gap-2"
+            className="px-3 py-1.5 text-xs font-medium text-accent-fg bg-accent hover:bg-accent-hover rounded-md transition-colors flex items-center gap-2"
           >
             <FiCheck className="w-3 h-3" />
             Marcar todas

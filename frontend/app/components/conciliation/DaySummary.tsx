@@ -52,10 +52,8 @@ export default function DaySummary({ conciliation, baseRooms }: DaySummaryProps)
   // Componente de firma
   const SignatureSection = () => (
     <div>
-      <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-2">
-        {t('daySummary.signatureReception')}
-      </h4>
-      <div className="h-40 border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-lg" />
+      <h4 className="text-sm font-semibold text-fg mb-2">{t('daySummary.signatureReception')}</h4>
+      <div className="h-40 border-2 border-dashed border-border rounded-lg" />
     </div>
   )
 
@@ -63,14 +61,12 @@ export default function DaySummary({ conciliation, baseRooms }: DaySummaryProps)
   const DateAndBillingSection = () => (
     <div className="space-y-3">
       <div className="flex items-center gap-2 text-sm">
-        <FiCalendar className="w-4 h-4 text-gray-500" />
-        <span className="font-medium text-gray-700 dark:text-gray-300">
-          {t('daySummary.date')}:
-        </span>
-        <span className="text-gray-900 dark:text-gray-100">{formatDate(conciliation.date)}</span>
+        <FiCalendar className="w-4 h-4 text-fg-muted" />
+        <span className="font-medium text-fg">{t('daySummary.date')}:</span>
+        <span className="text-fg">{formatDate(conciliation.date)}</span>
       </div>
 
-      <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
+      <div className="bg-info/10 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
         <p className="text-xs text-blue-600 dark:text-blue-400 font-medium mb-1">
           {t('daySummary.billingDay')} {getPreviousDay(conciliation.date)}:
         </p>
@@ -82,9 +78,9 @@ export default function DaySummary({ conciliation, baseRooms }: DaySummaryProps)
   )
 
   return (
-    <div className="border border-gray-200 dark:border-gray-800 rounded-lg overflow-hidden flex flex-col xl:sticky xl:top-6">
-      <div className="bg-gray-100 dark:bg-gray-800 px-4 py-3 border-b border-gray-200 dark:border-gray-700">
-        <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+    <div className="border border-border rounded-lg overflow-hidden flex flex-col xl:sticky xl:top-6">
+      <div className="bg-surface-hover px-4 py-3 border-b border-border">
+        <h3 className="text-sm font-semibold text-fg">
           {showMonthlySummary ? t('daySummary.monthlySummary') : t('daySummary.dayInfo')}
         </h3>
       </div>
@@ -96,18 +92,18 @@ export default function DaySummary({ conciliation, baseRooms }: DaySummaryProps)
             {/* Resumen Mensual */}
             <div>
               {loadingMonthlySummary ? (
-                <div className="text-center py-8 text-gray-500 dark:text-gray-400 text-sm">
+                <div className="text-center py-8 text-fg-subtle text-sm">
                   {t('daySummary.loadingSummary')}
                 </div>
               ) : monthlySummary ? (
                 <div className="space-y-4">
                   {/* Info del periodo */}
-                  <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-3 text-xs">
-                    <p className="text-gray-600 dark:text-gray-400 mb-1">
+                  <div className="bg-surface-hover rounded-lg p-3 text-xs">
+                    <p className="text-fg-muted mb-1">
                       {t('daySummary.period')}: {formatDate(monthlySummary.period.start)} -{' '}
                       {formatDate(monthlySummary.period.end)}
                     </p>
-                    <p className="text-gray-600 dark:text-gray-400">
+                    <p className="text-fg-muted">
                       {t('daySummary.days')}: {monthlySummary.period.conciliations_count} /{' '}
                       {monthlySummary.period.total_days}
                     </p>
@@ -120,7 +116,7 @@ export default function DaySummary({ conciliation, baseRooms }: DaySummaryProps)
 
                   {/* Totales del mes */}
                   <div className="space-y-3">
-                    <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
+                    <div className="bg-info/10 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
                       <p className="text-xs text-blue-600 dark:text-blue-400 font-medium">
                         {t('daySummary.totalReception')}
                       </p>
@@ -177,14 +173,10 @@ export default function DaySummary({ conciliation, baseRooms }: DaySummaryProps)
                         {monthlySummary.reception_summary.map((item) => (
                           <div
                             key={item.reason}
-                            className="flex justify-between items-center text-xs bg-gray-50 dark:bg-gray-900 rounded px-2 py-1"
+                            className="flex justify-between items-center text-xs bg-surface-hover rounded px-2 py-1"
                           >
-                            <span className="text-gray-700 dark:text-gray-300 truncate pr-2">
-                              {item.label}
-                            </span>
-                            <span className="font-semibold text-gray-900 dark:text-gray-100">
-                              {item.total}
-                            </span>
+                            <span className="text-fg truncate pr-2">{item.label}</span>
+                            <span className="font-semibold text-fg">{item.total}</span>
                           </div>
                         ))}
                       </div>
@@ -199,14 +191,10 @@ export default function DaySummary({ conciliation, baseRooms }: DaySummaryProps)
                         {monthlySummary.housekeeping_summary.map((item) => (
                           <div
                             key={item.reason}
-                            className="flex justify-between items-center text-xs bg-gray-50 dark:bg-gray-900 rounded px-2 py-1"
+                            className="flex justify-between items-center text-xs bg-surface-hover rounded px-2 py-1"
                           >
-                            <span className="text-gray-700 dark:text-gray-300 truncate pr-2">
-                              {item.label}
-                            </span>
-                            <span className="font-semibold text-gray-900 dark:text-gray-100">
-                              {item.total}
-                            </span>
+                            <span className="text-fg truncate pr-2">{item.label}</span>
+                            <span className="font-semibold text-fg">{item.total}</span>
                           </div>
                         ))}
                       </div>
@@ -228,20 +216,18 @@ export default function DaySummary({ conciliation, baseRooms }: DaySummaryProps)
                   )}
                 </div>
               ) : (
-                <div className="text-center py-8 text-gray-500 dark:text-gray-400 text-sm">
+                <div className="text-center py-8 text-fg-subtle text-sm">
                   {t('daySummary.couldNotLoad')}
                 </div>
               )}
             </div>
 
             {/* Divisor */}
-            <div className="border-t border-gray-200 dark:border-gray-700"></div>
+            <div className="border-t border-border"></div>
 
             {/* Informacion del Dia (debajo del resumen mensual) */}
             <div>
-              <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">
-                {t('daySummary.dayInfo')}
-              </h4>
+              <h4 className="text-sm font-semibold text-fg mb-3">{t('daySummary.dayInfo')}</h4>
               <div className="space-y-4">
                 <SignatureSection />
                 <DateAndBillingSection />

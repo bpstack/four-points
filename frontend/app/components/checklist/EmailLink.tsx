@@ -12,7 +12,7 @@ export function EmailLink({ email, children }: { email: string; children: React.
         setCopied(true)
         setTimeout(() => setCopied(false), 1200)
       }}
-      className="text-blue-600 dark:text-blue-400 hover:underline font-mono cursor-copy inline"
+      className="text-info hover:underline font-mono cursor-copy inline"
     >
       {children}
       {copied && <span className="ml-1.5 text-green-600 font-medium text-xs">Copiado!</span>}

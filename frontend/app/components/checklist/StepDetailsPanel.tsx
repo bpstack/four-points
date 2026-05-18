@@ -8,6 +8,7 @@ import { checklistApi, checklistKeys } from '@/app/lib/checklist/api'
 import type { CommentDto, AttachmentDto } from '@/app/lib/checklist/api'
 import { useAuthContext } from '@/app/lib/auth/useAuth'
 import { formatTimestampSmart } from '@/app/lib/helpers/date'
+import Image from 'next/image'
 
 // ── Comment list ──────────────────────────────────────────
 
@@ -59,31 +60,26 @@ function CommentList({ checklistId, stepId }: { checklistId: string; stepId: str
 
   return (
     <div className="space-y-2.5">
-      {isLoading && <p className="text-xs text-gray-400">Cargando...</p>}
+      {isLoading && <p className="text-xs text-fg-subtle">Cargando...</p>}
       {!isLoading && comments.length === 0 && (
-        <p className="text-xs text-gray-400 dark:text-gray-500 italic">Sin comentarios aún.</p>
+        <p className="text-xs text-fg-subtle italic">Sin comentarios aún.</p>
       )}
       <div className="space-y-1.5">
         {comments.map((c) => (
-          <div
-            key={c.id}
-            className="flex items-start gap-2 bg-gray-50 dark:bg-[#1c2128] rounded px-2.5 py-2"
-          >
+          <div key={c.id} className="flex items-start gap-2 bg-surface-hover rounded px-2.5 py-2">
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-1.5 mb-0.5">
-                <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
-                  {c.username}
-                </span>
-                <span className="text-[10px] text-gray-400">
+                <span className="text-xs font-medium text-fg">{c.username}</span>
+                <span className="text-[10px] text-fg-subtle">
                   {formatTimestampSmart(c.created_at)}
                 </span>
               </div>
-              <p className="text-xs text-gray-700 dark:text-gray-300 break-words">{c.body}</p>
+              <p className="text-xs text-fg break-words">{c.body}</p>
             </div>
             {(isAdmin || c.user_id === user?.id) && (
               <button
                 onClick={() => deleteMutation.mutate(c.id)}
-                className="text-gray-300 dark:text-gray-600 hover:text-red-500 dark:hover:text-red-400 flex-shrink-0 transition-colors"
+                className="text-fg-subtle hover:text-red-500 dark:hover:text-red-400 flex-shrink-0 transition-colors"
               >
                 <FiTrash2 className="w-3 h-3" />
               </button>
@@ -105,13 +101,11 @@ function CommentList({ checklistId, stepId }: { checklistId: string; stepId: str
             placeholder="Comentario... (Ctrl+Enter)"
             rows={2}
             maxLength={COMMENT_MAX_LENGTH}
-            className="text-xs rounded border border-gray-300 dark:border-gray-700 bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none"
+            className="text-xs rounded border border-border bg-surface text-fg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-accent/50 resize-none"
           />
           <span
             className={`text-[10px] self-end tabular-nums ${
-              body.length >= COMMENT_MAX_LENGTH
-                ? 'text-red-500'
-                : 'text-gray-400 dark:text-gray-500'
+              body.length >= COMMENT_MAX_LENGTH ? 'text-red-500' : 'text-fg-subtle'
             }`}
           >
             {body.length}/{COMMENT_MAX_LENGTH}
@@ -120,7 +114,7 @@ function CommentList({ checklistId, stepId }: { checklistId: string; stepId: str
         <button
           onClick={submitComment}
           disabled={isInvalid || addMutation.isPending}
-          className="self-start w-7 h-7 flex items-center justify-center rounded bg-blue-600 hover:bg-blue-700 disabled:opacity-40 text-white flex-shrink-0"
+          className="self-start w-7 h-7 flex items-center justify-center rounded bg-accent hover:bg-accent-hover disabled:opacity-40 text-accent-fg flex-shrink-0"
         >
           <FiSend className="w-3 h-3" />
         </button>
@@ -156,19 +150,19 @@ function AttachmentList({ checklistId, stepId }: { checklistId: string; stepId: 
 
   return (
     <div className="space-y-2.5">
-      {isLoading && <p className="text-xs text-gray-400">Cargando...</p>}
+      {isLoading && <p className="text-xs text-fg-subtle">Cargando...</p>}
       {!isLoading && attachments.length === 0 && (
-        <p className="text-xs text-gray-400 dark:text-gray-500 italic">Sin imágenes aún.</p>
+        <p className="text-xs text-fg-subtle italic">Sin imágenes aún.</p>
       )}
       {attachments.length > 0 && (
         <div className="grid grid-cols-3 gap-1.5">
           {attachments.map((a) => (
             <div
               key={a.id}
-              className="relative group rounded overflow-hidden border border-gray-200 dark:border-gray-700 aspect-square"
+              className="relative group rounded overflow-hidden border border-border aspect-square"
             >
               <a href={a.file_url} target="_blank" rel="noopener noreferrer">
-                <img src={a.file_url} alt="" className="w-full h-full object-cover" />
+                <Image src={a.file_url} alt="" fill className="object-cover" />
               </a>
               {(isAdmin || a.user_id === user?.id) && (
                 <button
@@ -186,7 +180,7 @@ function AttachmentList({ checklistId, stepId }: { checklistId: string; stepId: 
         onClick={() =>
           toast('La subida de imágenes está deshabilitada temporalmente.', { icon: '🚧' })
         }
-        className="flex items-center gap-1.5 text-xs px-2.5 py-1 rounded border border-gray-200 dark:border-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed opacity-60"
+        className="flex items-center gap-1.5 text-xs px-2.5 py-1 rounded border border-border text-fg-subtle cursor-not-allowed opacity-60"
       >
         <FiUpload className="w-3 h-3" />
         Subir imagen
@@ -215,24 +209,21 @@ export function StepDetailsPanel({
   const [tab, setTab] = useState<PanelTab>(initialTab)
 
   return (
-    <div className="mt-1.5 rounded border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#0d1117] overflow-hidden">
-      <div className="flex items-center border-b border-gray-200 dark:border-gray-700">
+    <div className="mt-1.5 rounded border border-border bg-surface overflow-hidden">
+      <div className="flex items-center border-b border-border">
         <button
           onClick={() => setTab('comments')}
-          className={`flex items-center gap-1 px-3 py-1.5 text-xs font-medium border-b-2 transition-colors ${tab === 'comments' ? 'border-blue-500 text-blue-600 dark:text-blue-400' : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700'}`}
+          className={`flex items-center gap-1 px-3 py-1.5 text-xs font-medium border-b-2 transition-colors ${tab === 'comments' ? 'border-blue-500 text-info' : 'border-transparent text-fg-subtle hover:text-fg'}`}
         >
           <FiMessageSquare className="w-3 h-3" /> Comentarios
         </button>
         <button
           onClick={() => setTab('attachments')}
-          className={`flex items-center gap-1 px-3 py-1.5 text-xs font-medium border-b-2 transition-colors ${tab === 'attachments' ? 'border-blue-500 text-blue-600 dark:text-blue-400' : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700'}`}
+          className={`flex items-center gap-1 px-3 py-1.5 text-xs font-medium border-b-2 transition-colors ${tab === 'attachments' ? 'border-blue-500 text-info' : 'border-transparent text-fg-subtle hover:text-fg'}`}
         >
           <FiPaperclip className="w-3 h-3" /> Imágenes
         </button>
-        <button
-          onClick={onClose}
-          className="ml-auto px-2 py-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
-        >
+        <button onClick={onClose} className="ml-auto px-2 py-1.5 text-fg-subtle hover:text-fg">
           <FiX className="w-3.5 h-3.5" />
         </button>
       </div>
@@ -274,8 +265,8 @@ export function StepTriggerButtons({
         title="Comentarios"
         className={`flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded transition-colors ${
           openTab === 'comments'
-            ? 'bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400'
-            : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'
+            ? 'bg-blue-100 dark:bg-blue-900/40 text-info'
+            : 'text-fg-subtle hover:text-fg'
         }`}
       >
         <FiMessageSquare className="w-3 h-3" />
@@ -289,8 +280,8 @@ export function StepTriggerButtons({
         title="Imágenes"
         className={`flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded transition-colors ${
           openTab === 'attachments'
-            ? 'bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400'
-            : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'
+            ? 'bg-blue-100 dark:bg-blue-900/40 text-info'
+            : 'text-fg-subtle hover:text-fg'
         }`}
       >
         <FiPaperclip className="w-3 h-3" />

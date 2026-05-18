@@ -73,17 +73,17 @@ export default function CloseShiftModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-      <div className="bg-white dark:bg-[#0d1117] rounded-lg shadow-xl border border-gray-200 dark:border-gray-800 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+      <div className="bg-surface rounded-lg shadow-xl border border-border w-full max-w-2xl max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="sticky top-0 bg-white dark:bg-[#0d1117] flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-800">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+        <div className="sticky top-0 bg-surface flex items-center justify-between p-4 border-b border-border">
+          <h3 className="text-lg font-semibold text-fg flex items-center gap-2">
             <FiCheckCircle className="w-5 h-5 text-green-600" />
             {t('closeShift.title')} {shiftType}
           </h3>
           <button
             onClick={onClose}
             disabled={isLoading}
-            className="p-1 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 rounded transition-colors"
+            className="p-1 text-fg-subtle hover:text-fg rounded transition-colors"
           >
             <FiX className="w-5 h-5" />
           </button>
@@ -93,9 +93,7 @@ export default function CloseShiftModal({
         <div className="p-6 space-y-6">
           {/* Validaciones */}
           <div className="space-y-2">
-            <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
-              {t('closeShift.validations')}:
-            </h4>
+            <h4 className="text-sm font-semibold text-fg mb-3">{t('closeShift.validations')}:</h4>
 
             {/* Denominaciones */}
             <div
@@ -128,19 +126,19 @@ export default function CloseShiftModal({
               className={`flex items-center gap-2 p-3 rounded-lg ${
                 shift.payments && shift.payments.length > 0
                   ? 'bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800'
-                  : 'bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700'
+                  : 'bg-surface-hover/50 border border-border'
               }`}
             >
               {shift.payments && shift.payments.length > 0 ? (
                 <FiCheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
               ) : (
-                <FiDollarSign className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+                <FiDollarSign className="w-5 h-5 text-fg-subtle" />
               )}
               <span
                 className={`text-sm font-medium ${
                   shift.payments && shift.payments.length > 0
                     ? 'text-green-700 dark:text-green-300'
-                    : 'text-gray-600 dark:text-gray-400'
+                    : 'text-fg-muted'
                 }`}
               >
                 {shift.payments && shift.payments.length > 0
@@ -151,7 +149,7 @@ export default function CloseShiftModal({
 
             {/* ✅ Vales - Solo informativo (azul) */}
             {shiftType === 'Cierre' && pendingVouchersCount > 0 && (
-              <div className="flex items-center gap-2 p-3 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
+              <div className="flex items-center gap-2 p-3 rounded-lg bg-info/10 border border-blue-200 dark:border-blue-800">
                 <FiAlertCircle className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                 <div className="flex-1">
                   <span className="text-sm font-medium text-blue-700 dark:text-blue-300">
@@ -167,23 +165,19 @@ export default function CloseShiftModal({
 
           {/* Resumen financiero */}
           <div className="space-y-3">
-            <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+            <h4 className="text-sm font-semibold text-fg mb-3">
               {t('closeShift.financialSummary')}:
             </h4>
 
-            <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-4 space-y-2">
+            <div className="bg-surface-hover/50 rounded-lg p-4 space-y-2">
               <div className="flex justify-between text-sm">
-                <span className="text-gray-600 dark:text-gray-400">
-                  {t('closeShift.initialFund')}:
-                </span>
-                <span className="font-semibold text-gray-900 dark:text-white">
+                <span className="text-fg-muted">{t('closeShift.initialFund')}:</span>
+                <span className="font-semibold text-fg">
                   {parseFloat(shift.initial_fund).toFixed(2)}€
                 </span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-gray-600 dark:text-gray-400">
-                  {t('closeShift.shiftIncome')}:
-                </span>
+                <span className="text-fg-muted">{t('closeShift.shiftIncome')}:</span>
                 <span className="font-semibold text-green-600 dark:text-green-400">
                   +{parseFloat(shift.income).toFixed(2)}€
                 </span>
@@ -191,7 +185,7 @@ export default function CloseShiftModal({
 
               {totalVouchers > 0 && (
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600 dark:text-gray-400">
+                  <span className="text-fg-muted">
                     {t('closeShift.shiftVouchers')} ({shift.vouchers?.length || 0}):
                   </span>
                   <span className="font-semibold text-orange-600 dark:text-orange-400">
@@ -200,24 +194,18 @@ export default function CloseShiftModal({
                 </div>
               )}
 
-              <div className="flex justify-between text-sm pt-2 border-t border-gray-200 dark:border-gray-700">
-                <span className="text-gray-600 dark:text-gray-400">
-                  {t('closeShift.expectedCash')}:
-                </span>
-                <span className="font-semibold text-gray-900 dark:text-white">
-                  {cashExpected.toFixed(2)}€
-                </span>
+              <div className="flex justify-between text-sm pt-2 border-t border-border">
+                <span className="text-fg-muted">{t('closeShift.expectedCash')}:</span>
+                <span className="font-semibold text-fg">{cashExpected.toFixed(2)}€</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-gray-600 dark:text-gray-400">
-                  {t('closeShift.countedCash')}:
-                </span>
+                <span className="text-fg-muted">{t('closeShift.countedCash')}:</span>
                 <span className="font-semibold text-blue-600 dark:text-blue-400">
                   {cashCounted.toFixed(2)}€
                 </span>
               </div>
               <div
-                className={`flex justify-between text-sm pt-2 border-t border-gray-200 dark:border-gray-700 ${
+                className={`flex justify-between text-sm pt-2 border-t border-border ${
                   difference === 0
                     ? 'text-green-600 dark:text-green-400'
                     : 'text-red-600 dark:text-red-400'
@@ -228,7 +216,7 @@ export default function CloseShiftModal({
               </div>
             </div>
 
-            <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
+            <div className="bg-info/10 rounded-lg p-4">
               <div className="flex justify-between text-sm mb-1">
                 <span className="text-blue-700 dark:text-blue-300">{t('closeShift.cash')}:</span>
                 <span className="font-semibold text-blue-900 dark:text-blue-100">
@@ -271,7 +259,7 @@ export default function CloseShiftModal({
 
           {/* Info sobre vales si no es turno Cierre */}
           {shiftType !== 'Cierre' && totalVouchers > 0 && (
-            <div className="p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg flex items-start gap-2">
+            <div className="p-3 bg-info/10 border border-blue-200 dark:border-blue-800 rounded-lg flex items-start gap-2">
               <FiDollarSign className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
               <div className="text-sm text-blue-700 dark:text-blue-300">
                 <p className="font-medium">{t('closeShift.shiftVouchersInfo')}</p>
@@ -284,18 +272,18 @@ export default function CloseShiftModal({
         </div>
 
         {/* Footer */}
-        <div className="sticky bottom-0 bg-white dark:bg-[#0d1117] p-4 border-t border-gray-200 dark:border-gray-800 flex items-center justify-end gap-3">
+        <div className="sticky bottom-0 bg-surface p-4 border-t border-border flex items-center justify-end gap-3">
           <button
             onClick={onClose}
             disabled={isLoading}
-            className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-[#0d1117] border border-gray-300 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-4 py-2 text-sm font-medium text-fg bg-surface border border-border rounded-lg hover:bg-surface-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {t('closeShift.cancel')}
           </button>
           <button
             onClick={handleClose}
             disabled={isLoading || !canClose}
-            className="px-6 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            className="px-6 py-2 text-sm font-medium text-accent-fg bg-accent hover:bg-accent-hover rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
           >
             {isLoading ? (
               <>

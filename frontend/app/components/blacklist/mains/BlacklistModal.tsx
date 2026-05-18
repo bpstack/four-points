@@ -13,9 +13,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
-import { Modal } from '@/app/components/blacklist/ui/Modal'
-import { Button } from '@/app/components/blacklist/ui/Button'
-import { Badge } from '@/app/components/blacklist/ui/Badge'
+import { Modal, Button, Badge } from '@/app/ui/components'
 import { ImageGallery } from './ImageGallery'
 import { AuditTrail } from './AuditTrail'
 import { deleteBlacklist, restoreBlacklist } from '@/app/dashboard/blacklist/actions'
@@ -124,26 +122,24 @@ export function BlacklistModal({ isOpen, onClose, entry, auditTrail }: Blacklist
     <Modal isOpen={isOpen} onClose={onClose} size="xl" title={t('modal.title')}>
       <div className="space-y-6">
         {/* Header con badges */}
-        <div className="flex items-start justify-between gap-4 pb-4 border-b border-gray-200 dark:border-gray-800">
+        <div className="flex items-start justify-between gap-4 pb-4 border-b border-border">
           <div className="flex-1">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-              {entry.guest_name}
-            </h2>
+            <h2 className="text-2xl font-bold text-fg mb-2">{entry.guest_name}</h2>
             <div className="flex flex-wrap items-center gap-2">
               <Badge
-                variant={
+                tone={
                   entry.severity === 'CRITICAL'
                     ? 'danger'
                     : entry.severity === 'HIGH'
                       ? 'warning'
                       : entry.severity === 'MEDIUM'
                         ? 'info'
-                        : 'default'
+                        : 'neutral'
                 }
               >
                 {SEVERITY_LEVELS[entry.severity]}
               </Badge>
-              <Badge variant={entry.status === 'ACTIVE' ? 'success' : 'default'}>
+              <Badge tone={entry.status === 'ACTIVE' ? 'success' : 'neutral'}>
                 {entry.status === 'ACTIVE' ? t('status.active') : t('status.deleted')}
               </Badge>
             </div>
@@ -151,14 +147,14 @@ export function BlacklistModal({ isOpen, onClose, entry, auditTrail }: Blacklist
         </div>
 
         {/* Tabs */}
-        <div className="border-b border-gray-200 dark:border-gray-800">
+        <div className="border-b border-border">
           <div className="flex gap-4">
             <button
               onClick={() => setActiveTab('details')}
               className={`pb-3 px-2 text-sm font-medium border-b-2 transition-colors ${
                 activeTab === 'details'
                   ? 'border-blue-600 text-blue-600 dark:border-blue-400 dark:text-blue-400'
-                  : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100'
+                  : 'border-transparent text-fg-muted hover:text-fg'
               }`}
             >
               {t('modal.tabs.details')}
@@ -168,7 +164,7 @@ export function BlacklistModal({ isOpen, onClose, entry, auditTrail }: Blacklist
               className={`pb-3 px-2 text-sm font-medium border-b-2 transition-colors ${
                 activeTab === 'images'
                   ? 'border-blue-600 text-blue-600 dark:border-blue-400 dark:text-blue-400'
-                  : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100'
+                  : 'border-transparent text-fg-muted hover:text-fg'
               }`}
             >
               {t('modal.tabs.images')} ({entry.images.length})
@@ -178,7 +174,7 @@ export function BlacklistModal({ isOpen, onClose, entry, auditTrail }: Blacklist
               className={`pb-3 px-2 text-sm font-medium border-b-2 transition-colors ${
                 activeTab === 'history'
                   ? 'border-blue-600 text-blue-600 dark:border-blue-400 dark:text-blue-400'
-                  : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100'
+                  : 'border-transparent text-fg-muted hover:text-fg'
               }`}
             >
               {t('modal.tabs.history')} ({auditTrail.length})
@@ -193,24 +189,20 @@ export function BlacklistModal({ isOpen, onClose, entry, auditTrail }: Blacklist
             <div className="space-y-6">
               {/* Información del documento */}
               <div>
-                <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2">
+                <h3 className="text-sm font-semibold text-fg mb-3 flex items-center gap-2">
                   <IoDocumentTextOutline size={18} />
                   {t('detail.documentInfo')}
                 </h3>
-                <div className="grid grid-cols-2 gap-4 bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4">
+                <div className="grid grid-cols-2 gap-4 bg-surface-sunken rounded-lg p-4">
                   <div>
-                    <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">
-                      {t('detail.documentType')}
-                    </div>
-                    <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                    <div className="text-xs text-fg-muted mb-1">{t('detail.documentType')}</div>
+                    <div className="text-sm font-medium text-fg">
                       {DOCUMENT_TYPES[entry.document_type]}
                     </div>
                   </div>
                   <div>
-                    <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">
-                      {t('detail.documentNumber')}
-                    </div>
-                    <div className="text-sm font-medium text-gray-900 dark:text-gray-100 font-mono">
+                    <div className="text-xs text-fg-muted mb-1">{t('detail.documentNumber')}</div>
+                    <div className="text-sm font-medium text-fg font-mono">
                       {entry.document_number}
                     </div>
                   </div>
@@ -219,32 +211,26 @@ export function BlacklistModal({ isOpen, onClose, entry, auditTrail }: Blacklist
 
               {/* Fechas de hospedaje */}
               <div>
-                <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2">
+                <h3 className="text-sm font-semibold text-fg mb-3 flex items-center gap-2">
                   <IoCalendarOutline size={18} />
                   {t('detail.stayDates')}
                 </h3>
-                <div className="grid grid-cols-3 gap-4 bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4">
+                <div className="grid grid-cols-3 gap-4 bg-surface-sunken rounded-lg p-4">
                   <div>
-                    <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">
-                      {t('detail.entry')}
-                    </div>
-                    <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                    <div className="text-xs text-fg-muted mb-1">{t('detail.entry')}</div>
+                    <div className="text-sm font-medium text-fg">
                       {formatDate(entry.check_in_date)}
                     </div>
                   </div>
                   <div>
-                    <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">
-                      {t('detail.exit')}
-                    </div>
-                    <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                    <div className="text-xs text-fg-muted mb-1">{t('detail.exit')}</div>
+                    <div className="text-sm font-medium text-fg">
                       {formatDate(entry.check_out_date)}
                     </div>
                   </div>
                   <div>
-                    <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">
-                      {t('detail.stay')}
-                    </div>
-                    <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                    <div className="text-xs text-fg-muted mb-1">{t('detail.stay')}</div>
+                    <div className="text-sm font-medium text-fg">
                       {stayDays} {stayDays === 1 ? t('detail.day') : t('detail.days')}
                     </div>
                   </div>
@@ -253,67 +239,57 @@ export function BlacklistModal({ isOpen, onClose, entry, auditTrail }: Blacklist
 
               {/* Motivo del incidente */}
               <div>
-                <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2">
+                <h3 className="text-sm font-semibold text-fg mb-3 flex items-center gap-2">
                   <IoWarningOutline size={18} />
                   {t('detail.incidentReason')}
                 </h3>
-                <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4">
-                  <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
-                    {entry.reason}
-                  </p>
+                <div className="bg-surface-sunken rounded-lg p-4">
+                  <p className="text-sm text-fg whitespace-pre-wrap">{entry.reason}</p>
                 </div>
               </div>
 
               {/* Comentarios adicionales */}
               <div>
-                <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">
+                <h3 className="text-sm font-semibold text-fg mb-3">
                   {t('detail.additionalComments')}
                 </h3>
-                <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4">
-                  <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
-                    {entry.comments}
-                  </p>
+                <div className="bg-surface-sunken rounded-lg p-4">
+                  <p className="text-sm text-fg whitespace-pre-wrap">{entry.comments}</p>
                 </div>
               </div>
 
               {/* Información de registro */}
               <div>
-                <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2">
+                <h3 className="text-sm font-semibold text-fg mb-3 flex items-center gap-2">
                   <IoPersonOutline size={18} />
                   {t('detail.recordInfo')}
                 </h3>
-                <div className="grid grid-cols-2 gap-4 bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4">
+                <div className="grid grid-cols-2 gap-4 bg-surface-sunken rounded-lg p-4">
                   <div>
-                    <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">
-                      {t('detail.registeredBy')}
-                    </div>
-                    <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                    <div className="text-xs text-fg-muted mb-1">{t('detail.registeredBy')}</div>
+                    <div className="text-sm font-medium text-fg">
                       {entry.created_by_username || t('detail.unknown')}
                     </div>
                   </div>
                   <div>
-                    <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">
-                      {t('detail.registrationDate')}
-                    </div>
-                    <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                    <div className="text-xs text-fg-muted mb-1">{t('detail.registrationDate')}</div>
+                    <div className="text-sm font-medium text-fg">
                       {formatDateTime(entry.created_at)}
                     </div>
                   </div>
                   {entry.updated_at && (
                     <div>
-                      <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">
+                      <div className="text-xs text-fg-muted mb-1">
                         {t('detail.lastModification')}
                       </div>
-                      <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                      <div className="text-sm font-medium text-fg">
                         {formatDateTime(entry.updated_at)}
                       </div>
                     </div>
                   )}
                   {entry.deleted_at && (
                     <div>
-                      <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">
-                        {t('detail.deletionDate')}
-                      </div>
+                      <div className="text-xs text-fg-muted mb-1">{t('detail.deletionDate')}</div>
                       <div className="text-sm font-medium text-red-600 dark:text-red-400">
                         {formatDateTime(entry.deleted_at)}
                       </div>
@@ -340,38 +316,25 @@ export function BlacklistModal({ isOpen, onClose, entry, auditTrail }: Blacklist
         </div>
 
         {/* Footer con acciones */}
-        <div className="flex items-center justify-between gap-3 pt-4 border-t border-gray-200 dark:border-gray-800">
+        <div className="flex items-center justify-between gap-3 pt-4 border-t border-border">
           <Button variant="ghost" onClick={onClose}>
             {t('modal.close')}
           </Button>
 
           <div className="flex items-center gap-2">
             {entry.status === 'DELETED' ? (
-              // Si está eliminado: mostrar botón restaurar
-              <Button
-                variant="primary"
-                onClick={handleRestore}
-                isLoading={isRestoring}
-                leftIcon={<IoRefreshOutline size={18} />}
-              >
+              <Button variant="accent" onClick={handleRestore} loading={isRestoring}>
+                <IoRefreshOutline size={18} />
                 {t('modal.restore')}
               </Button>
             ) : (
-              // Si está activo: mostrar editar y eliminar
               <>
-                <Button
-                  variant="secondary"
-                  onClick={handleEdit}
-                  leftIcon={<IoCreateOutline size={18} />}
-                >
+                <Button variant="default" onClick={handleEdit}>
+                  <IoCreateOutline size={18} />
                   {t('modal.edit')}
                 </Button>
-                <Button
-                  variant="danger"
-                  onClick={handleDelete}
-                  isLoading={isDeleting}
-                  leftIcon={<IoTrashOutline size={18} />}
-                >
+                <Button variant="danger" onClick={handleDelete} loading={isDeleting}>
+                  <IoTrashOutline size={18} />
                   {t('delete.button')}
                 </Button>
               </>

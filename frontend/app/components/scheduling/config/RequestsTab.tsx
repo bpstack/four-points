@@ -7,6 +7,7 @@ import { schedulingApi, schedulingKeys } from '@/app/lib/scheduling'
 import type { SchedulingConstraint, UpdateConstraintDto } from '@/app/lib/scheduling'
 import toast from 'react-hot-toast'
 import { FiPlus, FiTrash2, FiEdit, FiX, FiCheck, FiCalendar } from 'react-icons/fi'
+import { Checkbox } from '@/app/ui/components'
 import DatePickerInput from '@/app/ui/calendar/DatePickerInput'
 import { ApiError } from '@/app/lib/apiClient'
 import { formatLocalDate } from './utils/date'
@@ -139,15 +140,15 @@ export function RequestsTab() {
     <div className="p-4">
       <div className="flex flex-wrap items-start justify-between gap-3 mb-4">
         <div>
-          <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">{t('title')}</h3>
-          <p className="text-xs text-gray-500 dark:text-gray-400">{t('subtitle')}</p>
+          <h3 className="text-sm font-semibold text-fg">{t('title')}</h3>
+          <p className="text-xs text-fg-subtle">{t('subtitle')}</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <div className="flex items-center gap-2">
             <select
               value={selectedMonth}
               onChange={(e) => setSelectedMonth(Number(e.target.value))}
-              className="px-2 py-1.5 text-xs border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+              className="px-2 py-1.5 text-xs border border-border rounded-md bg-surface-hover text-fg"
             >
               {AVAILABLE_MONTHS.map((m) => (
                 <option key={m.value} value={m.value}>
@@ -158,7 +159,7 @@ export function RequestsTab() {
             <select
               value={selectedYear}
               onChange={(e) => setSelectedYear(Number(e.target.value))}
-              className="px-2 py-1.5 text-xs min-w-[80px] border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+              className="px-2 py-1.5 text-xs min-w-[80px] border border-border rounded-md bg-surface-hover text-fg"
             >
               {availableYears.map((y) => (
                 <option key={y} value={y}>
@@ -172,7 +173,7 @@ export function RequestsTab() {
             title={t('newRequest')}
             className={
               `inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-colors ` +
-              'bg-blue-600 text-white hover:bg-blue-700'
+              'bg-accent text-accent-fg hover:bg-accent-hover'
             }
           >
             <FiPlus className="w-3.5 h-3.5" />
@@ -183,81 +184,66 @@ export function RequestsTab() {
 
       {!isMonthInitialized ? (
         <div className="text-center py-12">
-          <FiCalendar className="w-10 h-10 mx-auto text-gray-400 mb-3" />
-          <p className="text-sm text-gray-600 dark:text-gray-400">
-            {tMessages('monthNotInitialized')}
-          </p>
-          <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
-            {tMessages('monthNotInitializedHint')}
-          </p>
+          <FiCalendar className="w-10 h-10 mx-auto text-fg-subtle mb-3" />
+          <p className="text-sm text-fg-muted">{tMessages('monthNotInitialized')}</p>
+          <p className="text-xs text-fg-subtle mt-1">{tMessages('monthNotInitializedHint')}</p>
         </div>
       ) : loadingRequests ? (
         <div className="text-center py-12">
           <div className="inline-block h-8 w-8 animate-spin rounded-full border-[3px] border-solid border-blue-600 dark:border-blue-500 border-r-transparent"></div>
-          <p className="mt-3 text-xs text-gray-600 dark:text-gray-400">
-            {tMessages('loadingRequests')}
-          </p>
+          <p className="mt-3 text-xs text-fg-muted">{tMessages('loadingRequests')}</p>
         </div>
       ) : requests.length === 0 ? (
         <div className="text-center py-12">
-          <FiCalendar className="w-10 h-10 mx-auto text-gray-400 mb-3" />
-          <p className="text-sm text-gray-600 dark:text-gray-400">{tMessages('noRequests')}</p>
-          <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
-            {tMessages('noRequestsHint')}
-          </p>
+          <FiCalendar className="w-10 h-10 mx-auto text-fg-subtle mb-3" />
+          <p className="text-sm text-fg-muted">{tMessages('noRequests')}</p>
+          <p className="text-xs text-fg-subtle mt-1">{tMessages('noRequestsHint')}</p>
         </div>
       ) : (
-        <div className="border border-gray-200 dark:border-gray-700 rounded-md overflow-x-auto">
+        <div className="border border-border rounded-md overflow-x-auto">
           <table className="w-full text-sm min-w-[600px]">
             <thead>
-              <tr className="bg-gray-50 dark:bg-[#0d1117] border-b border-gray-200 dark:border-gray-700">
-                <th className="text-left py-2 px-3 text-xs font-semibold text-gray-600 dark:text-gray-400">
+              <tr className="bg-gray-50 dark:bg-surface border-b border-border">
+                <th className="text-left py-2 px-3 text-xs font-semibold text-fg-muted">
                   {t('employee')}
                 </th>
-                <th className="text-left py-2 px-3 text-xs font-semibold text-gray-600 dark:text-gray-400">
+                <th className="text-left py-2 px-3 text-xs font-semibold text-fg-muted">
                   {t('type')}
                 </th>
-                <th className="text-left py-2 px-3 text-xs font-semibold text-gray-600 dark:text-gray-400">
+                <th className="text-left py-2 px-3 text-xs font-semibold text-fg-muted">
                   {t('dates')}
                 </th>
-                <th className="text-left py-2 px-3 text-xs font-semibold text-gray-600 dark:text-gray-400">
+                <th className="text-left py-2 px-3 text-xs font-semibold text-fg-muted">
                   {t('reasonLabel')}
                 </th>
-                <th className="text-center py-2 px-3 text-xs font-semibold text-gray-600 dark:text-gray-400">
+                <th className="text-center py-2 px-3 text-xs font-semibold text-fg-muted">
                   {t('status')}
                 </th>
-                <th className="text-right py-2 px-3 text-xs font-semibold text-gray-600 dark:text-gray-400">
+                <th className="text-right py-2 px-3 text-xs font-semibold text-fg-muted">
                   {t('actions')}
                 </th>
               </tr>
             </thead>
             <tbody>
               {requests.map((request) => (
-                <tr
-                  key={request.id}
-                  className="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50"
-                >
-                  <td className="py-2 px-3 text-gray-900 dark:text-gray-100">
-                    {request.employeeName}
-                  </td>
+                <tr key={request.id} className="border-b border-border hover:bg-surface-hover/50">
+                  <td className="py-2 px-3 text-fg">{request.employeeName}</td>
                   <td className="py-2 px-3">
                     {request.constraintType === 'vacation' ? (
                       <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">
                         V
                       </span>
                     ) : (
-                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400">
+                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-surface-hover text-fg-muted">
                         L
                       </span>
                     )}
                   </td>
-                  <td className="py-2 px-3 text-gray-600 dark:text-gray-400">
+                  <td className="py-2 px-3 text-fg-muted">
                     {formatDate(request.startDate)}
                     {request.startDate !== request.endDate && ` - ${formatDate(request.endDate)}`}
                   </td>
-                  <td className="py-2 px-3 text-gray-600 dark:text-gray-400">
-                    {request.notes || '-'}
-                  </td>
+                  <td className="py-2 px-3 text-fg-muted">{request.notes || '-'}</td>
                   <td className="py-2 px-3 text-center">
                     <span
                       className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${getStatusBadge(request.status)}`}
@@ -400,29 +386,24 @@ function EditRequestModal({ request, onClose, onSuccess }: EditRequestModalProps
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="bg-white dark:bg-[#151b23] rounded-lg shadow-xl w-full max-w-md mx-4 overflow-y-auto max-h-[90vh]">
-        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700">
-          <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+      <div className="bg-surface rounded-lg shadow-xl w-full max-w-md mx-4 overflow-y-auto max-h-[90vh]">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-border">
+          <h3 className="text-sm font-semibold text-fg">
             {tActions('edit')} {t('newRequest')}
           </h3>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-          >
+          <button onClick={onClose} className="text-fg-subtle hover:text-fg">
             <FiX className="w-5 h-5" />
           </button>
         </div>
 
         <form onSubmit={handleSubmit} className="p-4 space-y-4">
           <div>
-            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-              {t('employee')}
-            </label>
+            <label className="block text-xs font-medium text-fg mb-1">{t('employee')}</label>
             <input
               type="text"
               value={request.employeeName}
               disabled
-              className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-md bg-gray-50 dark:bg-[#0b0f14] text-gray-600 dark:text-gray-400 cursor-not-allowed"
+              className="w-full px-3 py-2 text-sm border border-border rounded-md bg-surface-sunken text-fg-muted cursor-not-allowed"
             />
           </div>
 
@@ -447,49 +428,44 @@ function EditRequestModal({ request, onClose, onSuccess }: EditRequestModalProps
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-              {t('reason')}
-            </label>
+            <label className="block text-xs font-medium text-fg mb-1">{t('reason')}</label>
             <input
               type="text"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder={t('reasonPlaceholder')}
               maxLength={46}
-              className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100"
+              className="w-full px-3 py-2 text-sm border border-border rounded-md bg-surface text-fg"
             />
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-              {notes.length}/46 caracteres
-            </p>
+            <p className="text-xs text-fg-subtle mt-1">{notes.length}/46 caracteres</p>
           </div>
 
-          <label className="flex items-center gap-2.5 cursor-pointer select-none">
-            <input
-              type="checkbox"
-              checked={isVacation}
-              onChange={(e) => setIsVacation(e.target.checked)}
-              className="w-4 h-4 rounded border-gray-300 dark:border-gray-600 text-red-600 focus:ring-red-500 cursor-pointer"
-            />
-            <span className="flex items-center gap-1.5 text-sm text-gray-700 dark:text-gray-300">
-              <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-semibold bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">
-                V
+          <Checkbox
+            checked={isVacation}
+            onCheckedChange={setIsVacation}
+            label={
+              <span className="flex items-center gap-1.5 text-sm text-fg">
+                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-semibold bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">
+                  V
+                </span>
+                {t('vacationRequest')}
               </span>
-              {t('vacationRequest')}
-            </span>
-          </label>
+            }
+            strikeOnCheck={false}
+          />
 
           <div className="flex justify-end gap-2 pt-2">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md transition-colors"
+              className="px-4 py-2 text-sm text-fg hover:bg-surface-hover rounded-md transition-colors"
             >
               {tActions('cancel')}
             </button>
             <button
               type="submit"
               disabled={updateMutation.isPending}
-              className="px-4 py-2 text-sm bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 disabled:opacity-50 transition-colors"
+              className="px-4 py-2 text-sm bg-accent text-accent-fg font-medium rounded-md hover:bg-accent-hover disabled:opacity-50 transition-colors"
             >
               {updateMutation.isPending ? tActions('saving') : tActions('save')}
             </button>
@@ -595,28 +571,21 @@ function AddRequestModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="bg-white dark:bg-[#151b23] rounded-lg shadow-xl w-full max-w-md mx-4 overflow-y-auto max-h-[90vh]">
-        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700">
-          <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-            {t('newRequest')}
-          </h3>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-          >
+      <div className="bg-surface rounded-lg shadow-xl w-full max-w-md mx-4 overflow-y-auto max-h-[90vh]">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-border">
+          <h3 className="text-sm font-semibold text-fg">{t('newRequest')}</h3>
+          <button onClick={onClose} className="text-fg-subtle hover:text-fg">
             <FiX className="w-5 h-5" />
           </button>
         </div>
 
         <form onSubmit={handleSubmit} className="p-4 space-y-4">
           <div>
-            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-              {t('employee')} *
-            </label>
+            <label className="block text-xs font-medium text-fg mb-1">{t('employee')} *</label>
             <select
               value={employeeId}
               onChange={(e) => setEmployeeId(e.target.value)}
-              className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100"
+              className="w-full px-3 py-2 text-sm border border-border rounded-md bg-surface text-fg"
               required
             >
               <option value="">{t('selectEmployee')}</option>
@@ -656,51 +625,46 @@ function AddRequestModal({
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-              {t('reason')}
-            </label>
+            <label className="block text-xs font-medium text-fg mb-1">{t('reason')}</label>
             <input
               type="text"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder={t('reasonPlaceholder')}
               maxLength={46}
-              className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100"
+              className="w-full px-3 py-2 text-sm border border-border rounded-md bg-surface text-fg"
             />
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-              {notes.length}/46 caracteres
-            </p>
+            <p className="text-xs text-fg-subtle mt-1">{notes.length}/46 caracteres</p>
           </div>
 
-          <label className="flex items-center gap-2.5 cursor-pointer select-none">
-            <input
-              type="checkbox"
-              checked={isVacation}
-              onChange={(e) => setIsVacation(e.target.checked)}
-              className="w-4 h-4 rounded border-gray-300 dark:border-gray-600 text-red-600 focus:ring-red-500 cursor-pointer"
-            />
-            <span className="flex items-center gap-1.5 text-sm text-gray-700 dark:text-gray-300">
-              <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-semibold bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">
-                V
+          <Checkbox
+            checked={isVacation}
+            onCheckedChange={setIsVacation}
+            label={
+              <span className="flex items-center gap-1.5 text-sm text-fg">
+                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-semibold bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">
+                  V
+                </span>
+                {t('vacationRequest')}
               </span>
-              {t('vacationRequest')}
-            </span>
-          </label>
+            }
+            strikeOnCheck={false}
+          />
 
-          <p className="text-xs text-gray-500 dark:text-gray-400">{t('approvedNote')}</p>
+          <p className="text-xs text-fg-subtle">{t('approvedNote')}</p>
 
           <div className="flex justify-end gap-2 pt-2">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md transition-colors"
+              className="px-4 py-2 text-sm text-fg hover:bg-surface-hover rounded-md transition-colors"
             >
               {tActions('cancel')}
             </button>
             <button
               type="submit"
               disabled={createMutation.isPending || !monthId}
-              className="px-4 py-2 text-sm bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 disabled:opacity-50 transition-colors"
+              className="px-4 py-2 text-sm bg-accent text-accent-fg font-medium rounded-md hover:bg-accent-hover disabled:opacity-50 transition-colors"
             >
               {createMutation.isPending ? tActions('saving') : tActions('save')}
             </button>

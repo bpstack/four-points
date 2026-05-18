@@ -25,7 +25,7 @@ export default function SchedulingLayout({ children }: { children: React.ReactNo
   // Show nothing while checking auth
   if (loading) {
     return (
-      <div className="min-h-screen bg-white dark:bg-[#010409] flex items-center justify-center">
+      <div className="min-h-screen bg-bg flex items-center justify-center">
         <div className="text-center">
           <div className="inline-block h-8 w-8 animate-spin rounded-full border-[3px] border-solid border-blue-600 dark:border-blue-500 border-r-transparent"></div>
         </div>

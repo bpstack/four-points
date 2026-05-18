@@ -1,3 +1,5 @@
+@import './tokens.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -57,7 +59,19 @@ button[data-drag-selected='true'] {
 #__next,
 main,
 [data-theme] {
-  @apply dark:bg-[#010409];
+  background-color: var(--fp-bg);
+}
+
+/* Native form controls — dark mode fix.
+   Forces browsers to render checkboxes/radios/selects with dark OS scheme
+   so unchecked background is dark, not white. */
+.dark input[type='checkbox'],
+.dark input[type='radio'] {
+  color-scheme: dark;
+  accent-color: var(--fp-accent);
+}
+.dark select {
+  color-scheme: dark;
 }
 
 /* DayPicker dark mode overrides (react-day-picker v9) */
@@ -130,7 +144,7 @@ main,
 
   /* Footer */
   .checklist-print-content::after {
-    content: "Demo Hotel  ·  " attr(data-print-date);
+    content: 'Demo Hotel  ·  ' attr(data-print-date);
     display: block;
     margin-top: 1cm;
     padding-top: 6px;

@@ -192,39 +192,39 @@ export function EditBookingModal({
 
   return (
     <div className="fixed inset-0 bg-black/50 dark:bg-black/70 flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-[#161b22] rounded-lg shadow-xl max-w-lg w-full border border-gray-200 dark:border-gray-800 max-h-[90vh] flex flex-col">
+      <div className="bg-surface rounded-lg shadow-xl max-w-lg w-full border border-border max-h-[90vh] flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-800">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-border">
           <div>
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+            <h3 className="text-lg font-semibold text-fg flex items-center gap-2">
               <FiEdit2 className="w-5 h-5 text-blue-600" />
               {t('editModal.title')}
             </h3>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+            <p className="text-sm text-fg-subtle mt-1">
               {booking.booking_code}
               {booking.vehicle?.owner && (
-                <span className="text-gray-700 dark:text-gray-300"> - {booking.vehicle.owner}</span>
+                <span className="text-fg"> - {booking.vehicle.owner}</span>
               )}
             </p>
           </div>
           <button
             onClick={onClose}
-            className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
+            className="p-2 text-fg-subtle hover:text-fg rounded-lg hover:bg-surface-hover"
           >
             <FiX className="w-5 h-5" />
           </button>
         </div>
 
         {/* Tabs */}
-        <div className="flex border-b border-gray-200 dark:border-gray-800 px-4">
+        <div className="flex border-b border-border px-4">
           {tabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 -mb-px transition-colors ${
                 activeTab === tab.id
-                  ? 'border-blue-600 text-blue-600 dark:text-blue-400'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
+                  ? 'border-blue-600 text-info'
+                  : 'border-transparent text-fg-subtle hover:text-fg'
               }`}
             >
               <tab.icon className="w-4 h-4" />
@@ -249,7 +249,7 @@ export function EditBookingModal({
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  <label className="block text-sm font-medium text-fg mb-1">
                     {t('editModal.expectedCheckIn')}
                   </label>
                   <input
@@ -257,27 +257,27 @@ export function EditBookingModal({
                     value={data.expected_checkin}
                     onChange={(e) => setData({ ...data, expected_checkin: e.target.value })}
                     disabled={isCheckedIn || isCheckinInPast}
-                    className="w-full px-3 py-2 bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm disabled:bg-gray-100 dark:disabled:bg-gray-800 disabled:text-gray-500 disabled:cursor-not-allowed"
+                    className="w-full px-3 py-2 bg-surface text-fg border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-accent/50 text-sm disabled:bg-gray-100 dark:disabled:bg-gray-800 disabled:text-gray-500 disabled:cursor-not-allowed"
                   />
                   {isCheckinInPast && !isCheckedIn && (
-                    <p className="text-xs text-gray-500 mt-1">{t('editModal.pastDateWarning')}</p>
+                    <p className="text-xs text-fg-muted mt-1">{t('editModal.pastDateWarning')}</p>
                   )}
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  <label className="block text-sm font-medium text-fg mb-1">
                     {t('editModal.expectedCheckOut')}
                   </label>
                   <input
                     type="datetime-local"
                     value={data.expected_checkout}
                     onChange={(e) => setData({ ...data, expected_checkout: e.target.value })}
-                    className="w-full px-3 py-2 bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                    className="w-full px-3 py-2 bg-surface text-fg border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-accent/50 text-sm"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label className="block text-sm font-medium text-fg mb-1">
                   {t('editModal.totalAmount')}
                 </label>
                 <div className="relative">
@@ -287,21 +287,23 @@ export function EditBookingModal({
                     min="0"
                     value={data.total_amount}
                     onChange={(e) => setData({ ...data, total_amount: e.target.value })}
-                    className="w-full px-3 py-2 pr-8 bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 pr-8 bg-surface text-fg border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-accent/50"
                   />
-                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">€</span>
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-fg-subtle">
+                    €
+                  </span>
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  <label className="block text-sm font-medium text-fg mb-1">
                     {t('editModal.bookingSource')}
                   </label>
                   <select
                     value={data.booking_source}
                     onChange={(e) => setData({ ...data, booking_source: e.target.value })}
-                    className="w-full px-3 py-2 bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 bg-surface text-fg border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-accent/50"
                   >
                     <option value="direct">{t('bookingSources.direct')}</option>
                     <option value="booking_com">{t('bookingSources.booking_com')}</option>
@@ -314,14 +316,14 @@ export function EditBookingModal({
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  <label className="block text-sm font-medium text-fg mb-1">
                     {t('editModal.externalId')}
                   </label>
                   <input
                     type="text"
                     value={data.external_booking_id}
                     onChange={(e) => setData({ ...data, external_booking_id: e.target.value })}
-                    className="w-full px-3 py-2 bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 bg-surface text-fg border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-accent/50"
                     placeholder={t('editModal.externalIdPlaceholder')}
                   />
                 </div>
@@ -332,8 +334,8 @@ export function EditBookingModal({
                 booking.status !== 'completed' &&
                 booking.status !== 'canceled' &&
                 booking.status !== 'no_show' && (
-                  <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
-                    <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">
+                  <div className="pt-2 border-t border-border">
+                    <p className="text-xs font-medium text-fg-subtle mb-2">
                       {t('editModal.quickActions')}
                     </p>
                     <div className="flex gap-2">
@@ -380,14 +382,14 @@ export function EditBookingModal({
                 )}
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label className="block text-sm font-medium text-fg mb-1">
                   {t('editModal.notes')}
                 </label>
                 <textarea
                   value={data.notes}
                   onChange={(e) => setData({ ...data, notes: e.target.value })}
                   rows={3}
-                  className="w-full px-3 py-2 bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                  className="w-full px-3 py-2 bg-surface text-fg border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-accent/50 resize-none"
                   placeholder={t('editModal.notesPlaceholder')}
                 />
               </div>
@@ -397,8 +399,8 @@ export function EditBookingModal({
           {/* Spot Tab */}
           {activeTab === 'spot' && (
             <div className="space-y-4">
-              <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
-                <p className="text-sm text-blue-700 dark:text-blue-300">
+              <div className="bg-info/10 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
+                <p className="text-sm text-info">
                   {t('editModal.currentSpot')}{' '}
                   <strong>
                     {booking.spot.level} - {booking.spot.number}
@@ -407,13 +409,13 @@ export function EditBookingModal({
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label className="block text-sm font-medium text-fg mb-1">
                   {t('editModal.level')}
                 </label>
                 <select
                   value={selectedSpot.level_code}
                   onChange={(e) => setSelectedSpot({ ...selectedSpot, level_code: e.target.value })}
-                  className="w-full px-3 py-2 bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 bg-surface text-fg border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-accent/50"
                 >
                   <option value="-2">{t('editModal.levelOption', { level: '-2' })}</option>
                   <option value="-3">{t('editModal.levelOption', { level: '-3' })}</option>
@@ -421,13 +423,13 @@ export function EditBookingModal({
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-fg mb-2">
                   {t('editModal.availableSpots')}
                   {loadingSpots && (
-                    <span className="ml-2 text-gray-400">{t('editModal.loadingSpots')}</span>
+                    <span className="ml-2 text-fg-subtle">{t('editModal.loadingSpots')}</span>
                   )}
                 </label>
-                <div className="grid grid-cols-4 gap-2 max-h-48 overflow-y-auto p-2 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
+                <div className="grid grid-cols-4 gap-2 max-h-48 overflow-y-auto p-2 bg-surface-sunken rounded-lg">
                   {availableSpots
                     .filter((s) => s.level_code === selectedSpot.level_code)
                     .map((spot) => (
@@ -438,8 +440,8 @@ export function EditBookingModal({
                         }
                         className={`p-2 text-sm font-medium rounded-lg border transition-colors ${
                           selectedSpot.spot_number === spot.spot_number
-                            ? 'bg-blue-600 text-white border-blue-600'
-                            : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:border-blue-400'
+                            ? 'bg-accent text-accent-fg border-accent'
+                            : 'bg-surface text-fg border-border hover:border-blue-400'
                         }`}
                       >
                         {spot.spot_number}
@@ -451,7 +453,7 @@ export function EditBookingModal({
                   {availableSpots.filter((s) => s.level_code === selectedSpot.level_code).length ===
                     0 &&
                     !loadingSpots && (
-                      <p className="col-span-4 text-center text-sm text-gray-500 py-4">
+                      <p className="col-span-4 text-center text-sm text-fg-muted py-4">
                         {t('editModal.noSpotsAvailable')}
                       </p>
                     )}
@@ -465,7 +467,7 @@ export function EditBookingModal({
             <div className="space-y-4">
               {booking.vehicle && (
                 <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-3">
-                  <p className="text-sm text-green-700 dark:text-green-300">
+                  <p className="text-sm text-success">
                     {t('editModal.currentVehicle')} <strong>{booking.vehicle.plate}</strong> -{' '}
                     {booking.vehicle.owner}
                   </p>
@@ -473,16 +475,16 @@ export function EditBookingModal({
               )}
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label className="block text-sm font-medium text-fg mb-1">
                   {t('editModal.searchVehicle')}
                 </label>
                 <div className="relative">
-                  <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-fg-subtle" />
                   <input
                     type="text"
                     value={vehicleSearch}
                     onChange={(e) => setVehicleSearch(e.target.value)}
-                    className="w-full pl-10 pr-3 py-2 bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full pl-10 pr-3 py-2 bg-surface text-fg border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-accent/50"
                     placeholder={t('editModal.searchVehiclePlaceholder')}
                   />
                 </div>
@@ -502,23 +504,19 @@ export function EditBookingModal({
                       onClick={() => setSelectedVehicle(vehicle.id)}
                       className={`w-full p-3 rounded-lg border text-left transition-colors ${
                         selectedVehicle === vehicle.id
-                          ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-400 dark:border-blue-600'
-                          : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:border-blue-300'
+                          ? 'bg-info/10 border-blue-400 dark:border-blue-600'
+                          : 'bg-surface border-border hover:border-blue-300'
                       }`}
                     >
                       <div className="flex items-center justify-between">
-                        <span className="font-mono font-semibold text-gray-900 dark:text-gray-100">
+                        <span className="font-mono font-semibold text-fg">
                           {vehicle.plate_number}
                         </span>
                         {vehicle.model && (
-                          <span className="text-xs text-gray-500 dark:text-gray-400">
-                            {vehicle.model}
-                          </span>
+                          <span className="text-xs text-fg-subtle">{vehicle.model}</span>
                         )}
                       </div>
-                      <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                        {vehicle.owner_name}
-                      </p>
+                      <p className="text-sm text-fg-muted mt-1">{vehicle.owner_name}</p>
                     </button>
                   ))}
                 </div>
@@ -527,7 +525,7 @@ export function EditBookingModal({
               {selectedVehicle && (
                 <button
                   onClick={() => setSelectedVehicle(null)}
-                  className="text-sm text-red-600 hover:text-red-700 dark:text-red-400"
+                  className="text-sm text-danger hover:text-red-700"
                 >
                   {t('editModal.removeVehicle')}
                 </button>
@@ -537,18 +535,18 @@ export function EditBookingModal({
         </div>
 
         {/* Footer */}
-        <div className="flex gap-3 px-6 py-4 border-t border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/30 rounded-b-lg">
+        <div className="flex gap-3 px-6 py-4 border-t border-border bg-surface-sunken/30 rounded-b-lg">
           <button
             onClick={onClose}
             disabled={loading}
-            className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
+            className="flex-1 px-4 py-2 text-sm font-medium text-fg bg-surface border border-border rounded-lg hover:bg-surface-hover transition-colors disabled:opacity-50"
           >
             {t('editModal.cancel')}
           </button>
           <button
             onClick={handleSubmit}
             disabled={loading}
-            className="flex-1 px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+            className="flex-1 px-4 py-2 text-sm font-medium text-accent-fg bg-accent hover:bg-accent-hover rounded-lg transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
           >
             {loading ? (
               <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />

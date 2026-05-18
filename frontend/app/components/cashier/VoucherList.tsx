@@ -22,7 +22,7 @@ export default function VoucherList({
 
   if (vouchers.length === 0) {
     return (
-      <div className="text-center py-4 text-gray-400 dark:text-gray-500 text-xs">
+      <div className="text-center py-4 text-fg-subtle text-xs">
         <p>{t('voucher.noVouchers')}</p>
       </div>
     )
@@ -76,10 +76,10 @@ export default function VoucherList({
             <div className="flex items-center gap-1.5">
               <span className="text-lg">📝</span>
               <div>
-                <p className="text-base font-bold text-gray-900 dark:text-white">
+                <p className="text-base font-bold text-fg">
                   {parseFloat(voucher.amount).toFixed(2)}€
                 </p>
-                <p className="text-[9px] text-gray-500 dark:text-gray-400">
+                <p className="text-[9px] text-fg-subtle">
                   {new Date(voucher.created_at).toLocaleDateString('es-ES', {
                     day: '2-digit',
                     month: 'short',
@@ -91,7 +91,7 @@ export default function VoucherList({
             </div>
             {getStatusBadge(voucher.status)}
           </div>
-          <p className="text-[11px] text-gray-700 dark:text-gray-300 mb-2">{voucher.reason}</p>
+          <p className="text-[11px] text-fg mb-2">{voucher.reason}</p>
           {voucher.status === 'pending' && (
             <div className="flex items-center gap-1.5">
               {canJustify && onJustify && (

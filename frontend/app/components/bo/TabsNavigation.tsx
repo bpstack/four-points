@@ -10,6 +10,7 @@
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { FiClock, FiCheckCircle, FiUsers, FiSettings } from 'react-icons/fi'
+import { Badge } from '@/app/ui/components'
 
 export type TabType = 'pending' | 'paid' | 'suppliers' | 'settings'
 
@@ -37,7 +38,7 @@ export function TabsNavigation({ pendingCount = 0 }: TabsNavigationProps) {
   }
 
   return (
-    <div className="border-b border-gray-200 dark:border-gray-800">
+    <div className="border-b border-border">
       <nav className="flex space-x-4 sm:space-x-6 overflow-x-auto" aria-label="Tabs">
         {tabIds.map((tab) => {
           const Icon = tab.icon
@@ -48,16 +49,16 @@ export function TabsNavigation({ pendingCount = 0 }: TabsNavigationProps) {
               onClick={() => handleTabChange(tab.id)}
               className={`flex items-center gap-1.5 px-1 py-3 text-xs sm:text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
                 isActive
-                  ? 'border-blue-600 dark:border-blue-500 text-blue-600 dark:text-blue-400'
-                  : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:border-gray-300 dark:hover:border-gray-600'
+                  ? 'border-accent text-accent'
+                  : 'border-transparent text-fg-muted hover:text-fg hover:border-border'
               }`}
             >
               <Icon className="w-4 h-4" />
               {t(`tabs.${tab.id}`)}
               {tab.id === 'pending' && pendingCount > 0 && (
-                <span className="ml-1 px-1.5 py-0.5 text-[10px] font-medium bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 rounded-full">
+                <Badge tone="warning" className="ml-1">
                   {pendingCount}
-                </span>
+                </Badge>
               )}
             </button>
           )

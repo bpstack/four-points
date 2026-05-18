@@ -9,6 +9,7 @@ import { IoIosRestaurant } from 'react-icons/io'
 import { HiOutlineDocumentCheck } from 'react-icons/hi2'
 import { CgDanger } from 'react-icons/cg'
 import { IconType } from 'react-icons'
+import { Card } from '@/app/ui/components'
 
 interface StatusItem {
   label: string
@@ -83,7 +84,7 @@ export function GlobalStatusGrid({ isUserAdmin }: GlobalStatusGridProps) {
         href: '/dashboard/profile?panel=messages',
         id: 'messages',
         color: 'from-blue-500 to-blue-600',
-        bgColor: 'bg-blue-50 dark:bg-blue-900/10',
+        bgColor: 'bg-info/10',
       },
       {
         label: t('backoffice'),
@@ -99,10 +100,10 @@ export function GlobalStatusGrid({ isUserAdmin }: GlobalStatusGridProps) {
   )
 
   return (
-    <div className="bg-white dark:bg-[#0D1117] border border-[#d0d7de] dark:border-[#30363d] rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200 p-6">
+    <Card padding="lg">
       <div className="flex items-center gap-2 mb-5">
-        <FiGrid className="w-5 h-5 text-[#0969da] dark:text-[#58a6ff]" />
-        <h2 className="text-lg font-bold text-[#24292f] dark:text-[#f0f6fc]">{t('title')}</h2>
+        <FiGrid className="w-5 h-5 text-accent" />
+        <h2 className="text-lg font-bold text-fg">{t('title')}</h2>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -113,7 +114,7 @@ export function GlobalStatusGrid({ isUserAdmin }: GlobalStatusGridProps) {
             <a
               key={item.id}
               href={item.href}
-              className={`group relative overflow-hidden p-5 ${item.bgColor} border border-[#d0d7de] dark:border-[#30363d] rounded-xl hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1`}
+              className={`group relative overflow-hidden p-5 ${item.bgColor} border border-border rounded-xl hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1`}
             >
               <div className="flex flex-col items-center text-center space-y-3">
                 <div
@@ -121,15 +122,13 @@ export function GlobalStatusGrid({ isUserAdmin }: GlobalStatusGridProps) {
                 >
                   <item.icon className="w-5 h-5 text-white" />
                 </div>
-                <span className="text-xs font-semibold text-[#24292f] dark:text-[#c9d1d9] leading-tight">
-                  {item.label}
-                </span>
+                <span className="text-xs font-semibold text-fg leading-tight">{item.label}</span>
               </div>
               <div className="absolute inset-0 bg-gradient-to-br from-transparent to-white/5 dark:to-black/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
             </a>
           )
         })}
       </div>
-    </div>
+    </Card>
   )
 }

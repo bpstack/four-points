@@ -4,7 +4,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
-import { Button } from '@/app/components/blacklist/ui/Button'
+import { Button } from '@/app/ui/components'
 import { deleteBlacklist } from '@/app/dashboard/blacklist/actions/deleteBlacklist'
 import { IoTrashOutline } from 'react-icons/io5'
 import toast from 'react-hot-toast'
@@ -48,12 +48,8 @@ export function DeleteButton({ entryId }: DeleteButtonProps) {
   }
 
   return (
-    <Button
-      variant="danger"
-      onClick={handleDelete}
-      isLoading={isDeleting}
-      leftIcon={<IoTrashOutline size={18} />}
-    >
+    <Button variant="danger" onClick={handleDelete} loading={isDeleting}>
+      <IoTrashOutline size={18} />
       {t('delete.button')}
     </Button>
   )

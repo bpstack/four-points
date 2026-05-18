@@ -81,14 +81,14 @@ export default function ShiftUsersManager({ shiftId, users, isEditable }: ShiftU
   }
 
   return (
-    <div className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300 flex-wrap">
+    <div className="flex items-center gap-2 text-sm text-fg flex-wrap">
       <FiUsers className="w-4 h-4 flex-shrink-0" />
       <span className="font-medium">{t('shiftCard.responsible')}:</span>
 
       <div className="flex items-center gap-2 flex-wrap">
         {/* Primary user (cannot be removed) */}
         {primaryUser && (
-          <span className="px-2 py-0.5 rounded text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 font-medium">
+          <span className="px-2 py-0.5 rounded text-xs bg-info/10 text-blue-700 dark:text-blue-400 font-medium">
             {primaryUser.username} ({t('shiftCard.primary')})
           </span>
         )}
@@ -97,7 +97,7 @@ export default function ShiftUsersManager({ shiftId, users, isEditable }: ShiftU
         {secondaryUsers.map((user) => (
           <span
             key={user.user_id}
-            className="px-2 py-0.5 rounded text-xs bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 flex items-center gap-1"
+            className="px-2 py-0.5 rounded text-xs bg-surface-hover text-fg-muted flex items-center gap-1"
           >
             {user.username}
             {isEditable && (
@@ -130,24 +130,22 @@ export default function ShiftUsersManager({ shiftId, users, isEditable }: ShiftU
 
             {/* Dropdown menu */}
             {isDropdownOpen && (
-              <div className="absolute top-full left-0 mt-1 w-48 bg-white dark:bg-[#161b22] border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-50 py-1 max-h-48 overflow-y-auto">
+              <div className="absolute top-full left-0 mt-1 w-48 bg-surface border border-border rounded-lg shadow-lg z-50 py-1 max-h-48 overflow-y-auto">
                 {loadingUsers ? (
-                  <div className="px-3 py-2 text-xs text-gray-500 dark:text-gray-400">
-                    {t('common.loading')}...
-                  </div>
+                  <div className="px-3 py-2 text-xs text-fg-subtle">{t('common.loading')}...</div>
                 ) : availableUsers && availableUsers.length > 0 ? (
                   availableUsers.map((user) => (
                     <button
                       key={user.id}
                       onClick={() => handleAddUser(user.id)}
                       disabled={updateUsersMutation.isPending}
-                      className="w-full text-left px-3 py-2 text-xs text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors disabled:opacity-50"
+                      className="w-full text-left px-3 py-2 text-xs text-fg hover:bg-surface-hover transition-colors disabled:opacity-50"
                     >
                       {user.username}
                     </button>
                   ))
                 ) : (
-                  <div className="px-3 py-2 text-xs text-gray-500 dark:text-gray-400">
+                  <div className="px-3 py-2 text-xs text-fg-subtle">
                     {t('shiftUsers.noUsersAvailable')}
                   </div>
                 )}

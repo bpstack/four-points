@@ -85,18 +85,14 @@ export default function PaymentForm({
       <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-2.5">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-[10px] text-gray-600 dark:text-gray-400 mb-0.5">
-              {t('payment.totalPayments')}
-            </p>
+            <p className="text-[10px] text-fg-muted mb-0.5">{t('payment.totalPayments')}</p>
             <p className="text-xl font-bold text-blue-600 dark:text-blue-400">
               {totalPayments.toFixed(2)}€
             </p>
           </div>
           <div className="text-right">
-            <p className="text-[9px] text-gray-500 dark:text-gray-400 mb-0.5">
-              {t('payment.completed')}
-            </p>
-            <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+            <p className="text-[9px] text-fg-subtle mb-0.5">{t('payment.completed')}</p>
+            <p className="text-sm font-semibold text-fg">
               {completedCount}/{PAYMENT_METHODS.length}
             </p>
           </div>
@@ -111,17 +107,15 @@ export default function PaymentForm({
           return (
             <div
               key={method.id}
-              className={`bg-white dark:bg-[#0d1117] border rounded-lg p-2 transition-all ${
+              className={`bg-surface border rounded-lg p-2 transition-all ${
                 hasValue
                   ? 'border-green-300 dark:border-green-700 ring-1 ring-green-100 dark:ring-green-900/30'
-                  : 'border-gray-200 dark:border-gray-800'
+                  : 'border-border'
               }`}
             >
               <div className="flex items-center gap-2">
                 <span className="text-lg">{method.icon}</span>
-                <p className="text-xs font-medium text-gray-700 dark:text-gray-300 flex-1">
-                  {method.name}
-                </p>
+                <p className="text-xs font-medium text-fg flex-1">{method.name}</p>
                 {hasValue && (
                   <span className="text-[9px] text-green-600 dark:text-green-400">✓</span>
                 )}
@@ -132,9 +126,9 @@ export default function PaymentForm({
                   onChange={(e) => handleAmountChange(method.id, e.target.value)}
                   placeholder="0.00"
                   disabled={isLoading}
-                  className="w-24 px-2 py-1.5 text-sm font-semibold text-right text-gray-900 dark:text-white bg-gray-50 dark:bg-[#151b23] border border-gray-300 dark:border-gray-700 rounded focus:ring-1 focus:ring-blue-500 focus:border-transparent disabled:opacity-50"
+                  className="w-24 px-2 py-1.5 text-sm font-semibold text-right text-fg bg-surface border border-border rounded focus:ring-1 focus:ring-accent/50 focus:border-transparent disabled:opacity-50"
                 />
-                <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">€</span>
+                <span className="text-xs text-fg-subtle font-medium">€</span>
               </div>
             </div>
           )
@@ -142,11 +136,11 @@ export default function PaymentForm({
       </div>
 
       {/* Botones */}
-      <div className="flex items-center justify-end gap-2 pt-2 border-t border-gray-200 dark:border-gray-800">
+      <div className="flex items-center justify-end gap-2 pt-2 border-t border-border">
         <button
           onClick={onCancel}
           disabled={isLoading}
-          className="px-3 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-[#0d1117] border border-gray-300 dark:border-gray-700 rounded hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50 flex items-center gap-1.5"
+          className="px-3 py-1.5 text-xs font-medium text-fg bg-surface border border-border rounded hover:bg-surface-hover disabled:opacity-50 flex items-center gap-1.5"
         >
           <FiX className="w-3 h-3" />
           {t('common.cancel')}
@@ -154,7 +148,7 @@ export default function PaymentForm({
         <button
           onClick={handleSave}
           disabled={isLoading}
-          className="px-3 py-1.5 text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 rounded disabled:opacity-50 flex items-center gap-1.5"
+          className="px-3 py-1.5 text-xs font-medium text-accent-fg bg-accent hover:bg-accent-hover rounded disabled:opacity-50 flex items-center gap-1.5"
         >
           {isLoading ? (
             <>

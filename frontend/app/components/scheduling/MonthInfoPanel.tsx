@@ -25,10 +25,10 @@ export function MonthInfoPanel({ monthId }: MonthInfoPanelProps) {
 
   if (isLoading) {
     return (
-      <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-4">
+      <div className="bg-surface rounded-md border border-border p-4">
         <div className="animate-pulse flex items-center gap-2">
-          <div className="w-4 h-4 bg-gray-200 dark:bg-gray-700 rounded"></div>
-          <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-32"></div>
+          <div className="w-4 h-4 bg-surface-hover rounded"></div>
+          <div className="h-4 bg-surface-hover rounded w-32"></div>
         </div>
       </div>
     )
@@ -45,12 +45,12 @@ export function MonthInfoPanel({ monthId }: MonthInfoPanelProps) {
 
   if (!hasRequests && !hasRules) {
     return (
-      <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-4">
-        <div className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+      <div className="bg-surface rounded-md border border-border p-4">
+        <div className="flex items-center gap-2 text-sm font-medium text-fg">
           <FiInfo className="w-4 h-4" />
           <span>Información del Mes</span>
         </div>
-        <div className="text-xs text-gray-500 dark:text-gray-400 italic mt-2">
+        <div className="text-xs text-fg-subtle italic mt-2">
           Sin reglas ni peticiones aprobadas este mes
         </div>
       </div>
@@ -58,8 +58,8 @@ export function MonthInfoPanel({ monthId }: MonthInfoPanelProps) {
   }
 
   return (
-    <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-4 space-y-3">
-      <div className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+    <div className="bg-surface rounded-md border border-border p-4 space-y-3">
+      <div className="flex items-center gap-2 text-sm font-medium text-fg">
         <FiInfo className="w-4 h-4" />
         <span>Información del Mes</span>
       </div>
@@ -71,29 +71,22 @@ export function MonthInfoPanel({ monthId }: MonthInfoPanelProps) {
           <div className="space-y-2">
             <div className="flex items-center gap-2 text-xs">
               <FiCalendar className="w-3 h-3 text-blue-500 shrink-0" />
-              <span className="font-medium text-gray-700 dark:text-gray-300">
-                Peticiones aprobadas ({requests.length})
-              </span>
+              <span className="font-medium text-fg">Peticiones aprobadas ({requests.length})</span>
             </div>
             <div className="space-y-1.5 pl-5">
               {requests.slice(0, 5).map((req) => (
-                <div
-                  key={req.id}
-                  className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed"
-                >
+                <div key={req.id} className="text-xs text-fg-muted leading-relaxed">
                   <span className="font-medium">{req.employeeName}:</span> {req.typeLabel} (
                   {formatDate(req.startDate)} - {formatDate(req.endDate)})
                   {req.notes && (
-                    <span className="text-gray-500 dark:text-gray-500 block sm:inline sm:ml-1 mt-0.5 sm:mt-0">
+                    <span className="text-fg-subtle block sm:inline sm:ml-1 mt-0.5 sm:mt-0">
                       {req.notes.length > 30 ? `${req.notes.substring(0, 30)}...` : req.notes}
                     </span>
                   )}
                 </div>
               ))}
               {requests.length > 5 && (
-                <div className="text-xs text-gray-500 dark:text-gray-400 italic">
-                  +{requests.length - 5} más...
-                </div>
+                <div className="text-xs text-fg-subtle italic">+{requests.length - 5} más...</div>
               )}
             </div>
           </div>
@@ -104,16 +97,13 @@ export function MonthInfoPanel({ monthId }: MonthInfoPanelProps) {
           <div className="space-y-2">
             <div className="flex items-center gap-2 text-xs">
               <FiUsers className="w-3 h-3 text-green-500 shrink-0" />
-              <span className="font-medium text-gray-700 dark:text-gray-300">
+              <span className="font-medium text-fg">
                 Empleados con reglas ({employeeRules.length})
               </span>
             </div>
             <div className="space-y-1.5 pl-5">
               {employeeRules.map((emp) => (
-                <div
-                  key={emp.employeeId}
-                  className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed"
-                >
+                <div key={emp.employeeId} className="text-xs text-fg-muted leading-relaxed">
                   <span className="font-medium">{emp.employeeName}:</span> {emp.rules.join(', ')}
                 </div>
               ))}

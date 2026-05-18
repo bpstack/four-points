@@ -134,7 +134,7 @@ export function ImageUploader({
     <div className="flex flex-col gap-3 w-full">
       {/* Label */}
       {label && (
-        <label className="text-sm font-medium text-gray-900 dark:text-gray-100">
+        <label className="text-sm font-medium text-fg">
           {label}
           {required && <span className="text-red-500 ml-1">*</span>}
         </label>
@@ -150,12 +150,12 @@ export function ImageUploader({
           'relative flex flex-col items-center justify-center gap-3',
           'border-2 border-dashed rounded-lg p-8',
           'transition-all duration-200 cursor-pointer',
-          'bg-gray-50 dark:bg-[#161B22]/50',
+          'bg-surface-sunken/50',
           isDragging
-            ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+            ? 'border-blue-500 bg-info/10'
             : error || validationError
               ? 'border-red-500 hover:border-red-600'
-              : 'border-gray-300 dark:border-gray-700 hover:border-gray-400 dark:hover:border-gray-600'
+              : 'border-border hover:border-gray-400 dark:hover:border-gray-600'
         )}
       >
         <input
@@ -180,14 +180,14 @@ export function ImageUploader({
         />
 
         <div className="text-center">
-          <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+          <p className="text-sm font-medium text-fg">
             {isDragging ? t('ui.imageUploader.dropImagesHere') : t('ui.imageUploader.dragOrClick')}
           </p>
-          <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+          <p className="text-xs text-fg-muted mt-1">
             {acceptedFormats.map((f) => f.split('/')[1].toUpperCase()).join(', ')} -{' '}
             {t('ui.imageUploader.maxPerFile', { maxSize: maxSizeMB })}
           </p>
-          <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
+          <p className="text-xs text-fg-muted mt-1">
             {t('ui.imageUploader.imagesCount', { current: value.length, max: maxFiles })}
           </p>
         </div>
@@ -216,7 +216,7 @@ export function ImageUploader({
 
       {/* Helper text */}
       {helperText && !error && !validationError && (
-        <p className="text-xs text-gray-600 dark:text-gray-400">{helperText}</p>
+        <p className="text-xs text-fg-muted">{helperText}</p>
       )}
     </div>
   )
@@ -244,7 +244,7 @@ function ImagePreview({ file, onRemove }: ImagePreviewProps) {
   })
 
   return (
-    <div className="relative group aspect-square rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+    <div className="relative group aspect-square rounded-lg overflow-hidden bg-surface-sunken border border-border">
       {preview ? (
         <Image
           src={preview}

@@ -36,8 +36,7 @@ export function RoomingCard({ status, groupId }: RoomingCardProps) {
   const ROOMING_STATUS_CONFIG = {
     [RoomingStatus.PENDING]: {
       label: t('statusCards.roomingPending'),
-      color:
-        'bg-gray-50 dark:bg-gray-900/20 text-gray-700 dark:text-gray-400 border-gray-200 dark:border-gray-800',
+      color: 'bg-bg/20 text-fg-muted border-border',
     },
     [RoomingStatus.REQUESTED]: {
       label: t('statusCards.roomingRequested'),
@@ -142,22 +141,20 @@ export function RoomingCard({ status, groupId }: RoomingCardProps) {
   const statusConfig = ROOMING_STATUS_CONFIG[status.rooming_status]
 
   return (
-    <div className="bg-white dark:bg-[#0D1117] rounded-lg border border-gray-200 dark:border-gray-800 p-4">
+    <div className="bg-surface rounded-lg border border-border p-4">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 bg-orange-100 dark:bg-orange-900/20 rounded-lg flex items-center justify-center">
             <FiUsers className="w-4 h-4 text-orange-600 dark:text-orange-400" />
           </div>
-          <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-            {t('statusCards.rooming')}
-          </h4>
+          <h4 className="text-sm font-semibold text-fg">{t('statusCards.rooming')}</h4>
         </div>
 
         {!isEditing && (
           <button
             onClick={() => setIsEditing(true)}
-            className="p-1.5 text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors"
+            className="p-1.5 text-fg-muted hover:text-blue-600 dark:hover:text-blue-400 hover:bg-surface-hover rounded transition-colors"
           >
             <FiEdit2 className="w-4 h-4" />
           </button>
@@ -169,12 +166,12 @@ export function RoomingCard({ status, groupId }: RoomingCardProps) {
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-3">
           {/* Status Select */}
           <div>
-            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label className="block text-xs font-medium text-fg mb-1">
               {t('statusCards.statusLabel')}
             </label>
             <select
               {...register('rooming_status')}
-              className="w-full px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-1.5 text-sm border border-border rounded-md bg-surface text-fg focus:outline-none focus:ring-2 focus:ring-accent/50"
             >
               <option value="pending">{t('statusCards.roomingPending')}</option>
               <option value="requested">{t('statusCards.roomingRequested')}</option>
@@ -185,7 +182,7 @@ export function RoomingCard({ status, groupId }: RoomingCardProps) {
           {/* Requested Date - Si NO es pending */}
           {roomingStatus !== RoomingStatus.PENDING && (
             <div className="relative calendar-container">
-              <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label className="block text-xs font-medium text-fg mb-1">
                 {t('statusCards.requestDate')}
               </label>
               <div className="relative">
@@ -199,9 +196,9 @@ export function RoomingCard({ status, groupId }: RoomingCardProps) {
                     setShowReceivedCalendar(false)
                     setShowRequestedCalendar(!showRequestedCalendar)
                   }}
-                  className="w-full px-3 py-1.5 pr-8 text-sm border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 cursor-pointer"
+                  className="w-full px-3 py-1.5 pr-8 text-sm border border-border rounded-md bg-surface text-fg focus:outline-none focus:ring-2 focus:ring-accent/50 cursor-pointer"
                 />
-                <FiCalendar className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                <FiCalendar className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-fg-subtle pointer-events-none" />
               </div>
               {errors.rooming_requested_date && (
                 <p className="mt-1 text-xs text-red-600 dark:text-red-400">
@@ -230,7 +227,7 @@ export function RoomingCard({ status, groupId }: RoomingCardProps) {
           {/* Received Date - Solo si status es "received" */}
           {roomingStatus === RoomingStatus.RECEIVED && (
             <div className="relative calendar-container">
-              <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label className="block text-xs font-medium text-fg mb-1">
                 {t('statusCards.receiveDate')}
               </label>
               <div className="relative">
@@ -244,9 +241,9 @@ export function RoomingCard({ status, groupId }: RoomingCardProps) {
                     setShowRequestedCalendar(false)
                     setShowReceivedCalendar(!showReceivedCalendar)
                   }}
-                  className="w-full px-3 py-2 pr-8 text-sm border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 cursor-pointer"
+                  className="w-full px-3 py-2 pr-8 text-sm border border-border rounded-md bg-surface text-fg focus:outline-none focus:ring-2 focus:ring-accent/50 cursor-pointer"
                 />
-                <FiCalendar className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                <FiCalendar className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-fg-subtle pointer-events-none" />
               </div>
               {errors.rooming_received_date && (
                 <p className="mt-1 text-xs text-red-600 dark:text-red-400">
@@ -278,14 +275,14 @@ export function RoomingCard({ status, groupId }: RoomingCardProps) {
               type="button"
               onClick={handleCancel}
               disabled={isSubmitting}
-              className="px-3 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50"
+              className="px-3 py-1.5 text-xs font-medium text-fg bg-surface border border-border rounded-md hover:bg-surface-hover disabled:opacity-50"
             >
               <FiX className="w-3.5 h-3.5" />
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-accent-fg bg-accent rounded-md hover:bg-accent-hover disabled:opacity-50"
             >
               {isSubmitting ? (
                 <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -307,7 +304,7 @@ export function RoomingCard({ status, groupId }: RoomingCardProps) {
           </div>
 
           {/* Dates */}
-          <div className="space-y-1 text-xs text-gray-600 dark:text-gray-400">
+          <div className="space-y-1 text-xs text-fg-muted">
             {status.rooming_requested_date && (
               <p>
                 {t('statusCards.requested')}{' '}

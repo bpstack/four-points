@@ -29,8 +29,8 @@ export default function ActionButtons({
 
   if (isReadOnly) {
     return (
-      <div className="bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg p-4">
-        <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
+      <div className="bg-surface-hover border border-border rounded-lg p-4">
+        <div className="flex items-center gap-2 text-fg">
           <FiLock className="w-5 h-5" />
           <span className="font-medium">{t('actions.closedReadOnly')}</span>
         </div>
@@ -43,7 +43,7 @@ export default function ActionButtons({
       <button
         onClick={onSave}
         disabled={saving}
-        className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 rounded-md transition-colors"
+        className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-accent-fg bg-accent hover:bg-accent-hover disabled:opacity-50 rounded-md transition-colors"
       >
         <FiSave className="w-4 h-4" />
         {saving ? t('actions.saving') : t('actions.saveDraft')}
@@ -53,7 +53,7 @@ export default function ActionButtons({
         <button
           onClick={onConfirm}
           disabled={saving}
-          className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 disabled:bg-green-400 rounded-md transition-colors"
+          className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-accent-fg bg-accent hover:bg-accent-hover disabled:opacity-50 rounded-md transition-colors"
         >
           <FiCheck className="w-4 h-4" />
           {t('actions.submit')}
@@ -64,14 +64,14 @@ export default function ActionButtons({
         <>
           <button
             onClick={onReopen}
-            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-md transition-colors"
+            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-fg bg-surface-hover border border-border hover:bg-surface-hover rounded-md transition-colors"
           >
             <FiEdit3 className="w-4 h-4" />
             {t('actions.reopen')}
           </button>
           <button
             onClick={onClose}
-            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-gray-600 hover:bg-gray-700 rounded-md transition-colors"
+            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-fg bg-surface-hover border border-border hover:border-border-strong rounded-md transition-colors"
           >
             <FiLock className="w-4 h-4" />
             {t('actions.closeDefinitely')}

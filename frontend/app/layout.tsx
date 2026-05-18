@@ -105,10 +105,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           `}</style>
         )}
       </head>
-      <body
-        className="antialiased font-sans bg-white dark:bg-[#010409]"
-        suppressHydrationWarning={true}
-      >
+      <body className="antialiased font-sans bg-bg" suppressHydrationWarning={true}>
         <NextIntlClientProvider messages={messages}>
           <Providers>{children}</Providers>
         </NextIntlClientProvider>

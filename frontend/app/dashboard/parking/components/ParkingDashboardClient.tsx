@@ -168,29 +168,29 @@ export default function ParkingDashboardClient({
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white dark:bg-[#010409] px-4 md:px-5 lg:px-6 pt-4 md:-mt-2 md:pt-0 pb-4">
+      <div className="min-h-screen bg-bg px-4 md:px-5 lg:px-6 pt-4 md:-mt-2 md:pt-0 pb-4">
         <div className="max-w-[1600px] space-y-5">
           {/* Skeleton Header */}
           <div className="mb-4">
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-3">
-                <div className="h-7 w-7 bg-gray-200 dark:bg-[#21262d] rounded-lg animate-pulse"></div>
-                <div className="h-6 w-40 bg-gray-200 dark:bg-[#21262d] rounded animate-pulse"></div>
+                <div className="h-7 w-7 bg-surface-hover rounded-lg animate-pulse"></div>
+                <div className="h-6 w-40 bg-surface-hover rounded animate-pulse"></div>
               </div>
-              <div className="h-8 w-36 bg-gray-200 dark:bg-[#21262d] rounded-lg animate-pulse"></div>
+              <div className="h-8 w-36 bg-surface-hover rounded-lg animate-pulse"></div>
             </div>
-            <div className="h-3 w-48 bg-gray-200 dark:bg-[#21262d] rounded animate-pulse mt-2 sm:hidden"></div>
+            <div className="h-3 w-48 bg-surface-hover rounded animate-pulse mt-2 sm:hidden"></div>
           </div>
 
           {/* Skeleton Grid */}
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
             <div className="space-y-5">
-              <div className="bg-white dark:bg-[#0D1117] border border-[#d0d7de] dark:border-[#30363d] rounded-xl p-5 h-64 animate-pulse"></div>
-              <div className="bg-white dark:bg-[#0D1117] border border-[#d0d7de] dark:border-[#30363d] rounded-xl p-5 h-48 animate-pulse"></div>
+              <div className="bg-surface border border-border rounded-xl p-5 h-64 animate-pulse"></div>
+              <div className="bg-surface border border-border rounded-xl p-5 h-48 animate-pulse"></div>
             </div>
             <div className="space-y-5">
-              <div className="bg-white dark:bg-[#0D1117] border border-[#d0d7de] dark:border-[#30363d] rounded-xl p-5 h-48 animate-pulse"></div>
-              <div className="bg-white dark:bg-[#0D1117] border border-[#d0d7de] dark:border-[#30363d] rounded-xl p-5 h-48 animate-pulse"></div>
+              <div className="bg-surface border border-border rounded-xl p-5 h-48 animate-pulse"></div>
+              <div className="bg-surface border border-border rounded-xl p-5 h-48 animate-pulse"></div>
             </div>
           </div>
         </div>
@@ -199,7 +199,7 @@ export default function ParkingDashboardClient({
   }
 
   return (
-    <div className="min-h-screen bg-white dark:bg-[#010409] px-4 md:px-5 lg:px-6 pt-4 md:-mt-2 md:pt-0 pb-4">
+    <div className="min-h-screen bg-bg px-4 md:px-5 lg:px-6 pt-4 md:-mt-2 md:pt-0 pb-4">
       <div className="max-w-[1600px] space-y-5">
         {/* Header */}
         <div className="mb-4">
@@ -213,14 +213,14 @@ export default function ParkingDashboardClient({
               <h1 className="text-xl font-bold bg-gradient-to-r from-[#24292f] to-[#57606a] dark:from-[#f0f6fc] dark:to-[#c9d1d9] bg-clip-text text-transparent">
                 {t('title')}
               </h1>
-              <span className="text-xs text-[#57606a] dark:text-[#8b949e] font-medium hidden sm:inline">
+              <span className="text-xs text-fg-muted font-medium hidden sm:inline">
                 {selectedPeriod === 'today' ? `${t('periods.today')}, ` : ''}
                 {getPeriodLabel()}
               </span>
             </div>
 
             {/* Right: Period Selector */}
-            <div className="flex items-center gap-0.5 bg-white dark:bg-[#161b22] p-1 rounded-lg border border-[#d0d7de] dark:border-[#30363d] shadow-sm">
+            <div className="flex items-center gap-0.5 bg-surface p-1 rounded-lg border border-border shadow-sm">
               {(['today', 'week', 'month'] as const).map((period) => (
                 <button
                   key={period}
@@ -228,7 +228,7 @@ export default function ParkingDashboardClient({
                   className={`px-2 sm:px-3 py-1 text-xs font-semibold rounded-md transition-all duration-200 capitalize ${
                     selectedPeriod === period
                       ? 'bg-gradient-to-r from-purple-600 to-purple-700 text-white shadow-md'
-                      : 'text-[#24292f] dark:text-[#c9d1d9] hover:bg-[#f6f8fa] dark:hover:bg-[#21262d]'
+                      : 'text-fg hover:bg-surface-hover'
                   }`}
                 >
                   {period === 'today'
@@ -242,7 +242,7 @@ export default function ParkingDashboardClient({
           </div>
 
           {/* Date on mobile (below title row) */}
-          <p className="text-xs text-[#57606a] dark:text-[#8b949e] font-medium mt-2 sm:hidden">
+          <p className="text-xs text-fg-muted font-medium mt-2 sm:hidden">
             {selectedPeriod === 'today' ? `${t('periods.today')}, ` : ''}
             {getPeriodLabel()}
           </p>
@@ -263,29 +263,27 @@ export default function ParkingDashboardClient({
           {/* Left Column - Reservas + Control de Parking */}
           <div className="space-y-5">
             {/* Reservations Section */}
-            <div className="bg-white dark:bg-[#0D1117] border border-[#d0d7de] dark:border-[#30363d] rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200 p-4">
+            <div className="bg-surface border border-border rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200 p-4">
               <div className="mb-3">
                 <div className="flex items-center justify-between mb-1">
                   <div className="flex items-center gap-2">
-                    <div className="p-1 bg-blue-100 dark:bg-blue-900/20 rounded-lg">
+                    <div className="p-1 bg-info/10 rounded-lg">
                       <FiCalendar className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
                     </div>
-                    <h2 className="text-sm font-bold text-[#24292f] dark:text-[#f0f6fc]">
-                      {t('reservations.title')}
-                    </h2>
+                    <h2 className="text-sm font-bold text-fg">{t('reservations.title')}</h2>
                   </div>
                   <button
                     onClick={() => refetch()}
                     disabled={isFetching}
-                    className="p-1.5 rounded-lg hover:bg-[#f6f8fa] dark:hover:bg-[#21262d] transition-colors disabled:opacity-50"
+                    className="p-1.5 rounded-lg hover:bg-surface-hover transition-colors disabled:opacity-50"
                     title="Refresh"
                   >
                     <FiRefreshCw
-                      className={`w-3.5 h-3.5 text-[#57606a] dark:text-[#8b949e] ${isFetching ? 'animate-spin' : ''}`}
+                      className={`w-3.5 h-3.5 text-fg-muted ${isFetching ? 'animate-spin' : ''}`}
                     />
                   </button>
                 </div>
-                <p className="text-[10px] text-[#57606a] dark:text-[#8b949e] leading-relaxed">
+                <p className="text-[10px] text-fg-muted leading-relaxed">
                   {t('reservations.description')}
                 </p>
               </div>
@@ -293,13 +291,11 @@ export default function ParkingDashboardClient({
               <div className="space-y-3">
                 {/* Arrivals */}
                 <div>
-                  <div className="flex items-center gap-2 mb-2 pb-1.5 border-b border-[#d0d7de] dark:border-[#21262d]">
+                  <div className="flex items-center gap-2 mb-2 pb-1.5 border-b border-border">
                     <div className="p-0.5 bg-green-100 dark:bg-green-900/20 rounded">
                       <FiArrowDown className="w-3 h-3 text-green-600 dark:text-green-400" />
                     </div>
-                    <h3 className="text-xs font-bold text-[#24292f] dark:text-[#f0f6fc]">
-                      {t('reservations.arrivals')}
-                    </h3>
+                    <h3 className="text-xs font-bold text-fg">{t('reservations.arrivals')}</h3>
                   </div>
                   <div className="grid grid-cols-3 gap-2">
                     <StatLink
@@ -325,13 +321,11 @@ export default function ParkingDashboardClient({
 
                 {/* Departures */}
                 <div>
-                  <div className="flex items-center gap-2 mb-2 pb-1.5 border-b border-[#d0d7de] dark:border-[#21262d]">
+                  <div className="flex items-center gap-2 mb-2 pb-1.5 border-b border-border">
                     <div className="p-0.5 bg-red-100 dark:bg-red-900/20 rounded">
                       <FiArrowUp className="w-3 h-3 text-red-600 dark:text-red-400" />
                     </div>
-                    <h3 className="text-xs font-bold text-[#24292f] dark:text-[#f0f6fc]">
-                      {t('reservations.departures')}
-                    </h3>
+                    <h3 className="text-xs font-bold text-fg">{t('reservations.departures')}</h3>
                   </div>
                   <div className="grid grid-cols-3 gap-2">
                     <StatLink
@@ -358,14 +352,12 @@ export default function ParkingDashboardClient({
             </div>
 
             {/* Acciones Rápidas - Mobile only (after Reservas) */}
-            <div className="xl:hidden bg-white dark:bg-[#0D1117] border border-[#d0d7de] dark:border-[#30363d] rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200 p-4">
+            <div className="xl:hidden bg-surface border border-border rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200 p-4">
               <div className="flex items-center gap-2 mb-3">
                 <div className="p-1 bg-orange-100 dark:bg-orange-900/20 rounded-lg">
                   <FiZap className="w-3.5 h-3.5 text-orange-600 dark:text-orange-400" />
                 </div>
-                <h2 className="text-sm font-bold text-[#24292f] dark:text-[#f0f6fc]">
-                  {t('quickActions.title')}
-                </h2>
+                <h2 className="text-sm font-bold text-fg">{t('quickActions.title')}</h2>
               </div>
 
               <div className="grid grid-cols-3 gap-2">
@@ -409,25 +401,23 @@ export default function ParkingDashboardClient({
             </div>
 
             {/* Control de Parking */}
-            <div className="bg-white dark:bg-[#0D1117] border border-[#d0d7de] dark:border-[#30363d] rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200 p-5">
+            <div className="bg-surface border border-border rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200 p-5">
               <div className="flex items-center gap-2 mb-4">
                 <div className="p-1 bg-purple-100 dark:bg-purple-900/20 rounded-lg">
                   <FiActivity className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
                 </div>
-                <h2 className="text-base font-bold text-[#24292f] dark:text-[#f0f6fc]">
-                  {t('control.title')}
-                </h2>
+                <h2 className="text-base font-bold text-fg">{t('control.title')}</h2>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 {/* Occupancy */}
                 <Link
                   href="/dashboard/parking/status"
-                  className="group p-4 bg-white dark:bg-[#161B22] border border-[#d0d7de] dark:border-[#21262d] rounded-xl hover:border-purple-500 dark:hover:border-purple-500 hover:shadow-lg transition-all duration-300 transform hover:-translate-y-0.5"
+                  className="group p-4 bg-surface border border-border rounded-xl hover:border-purple-500 dark:hover:border-purple-500 hover:shadow-lg transition-all duration-300 transform hover:-translate-y-0.5"
                 >
                   <div className="flex items-start justify-between mb-3">
                     <div>
-                      <div className="text-[10px] font-bold text-[#57606a] dark:text-[#8b949e] mb-1.5 uppercase tracking-wide">
+                      <div className="text-[10px] font-bold text-fg-muted mb-1.5 uppercase tracking-wide">
                         {selectedPeriod === 'today'
                           ? t('control.currentOccupancy')
                           : selectedPeriod === 'week'
@@ -435,22 +425,20 @@ export default function ParkingDashboardClient({
                             : t('control.monthlyOccupancy')}
                       </div>
                       {isFetching ? (
-                        <div className="h-7 w-24 bg-[#d0d7de] dark:bg-[#30363d] rounded-lg animate-pulse"></div>
+                        <div className="h-7 w-24 bg-[#d0d7de] dark:bg-surface-hover rounded-lg animate-pulse"></div>
                       ) : (
-                        <div className="text-2xl font-bold text-[#24292f] dark:text-[#f0f6fc]">
+                        <div className="text-2xl font-bold text-fg">
                           {selectedPeriod === 'today' ? (
                             <>
                               {stats.occupied_spots}
-                              <span className="text-base text-[#57606a] dark:text-[#8b949e] font-semibold">
+                              <span className="text-base text-fg-muted font-semibold">
                                 /{stats.total_spots}
                               </span>
                             </>
                           ) : (
                             <>
                               {stats.total_bookings}
-                              <span className="text-xs text-[#57606a] dark:text-[#8b949e] ml-1 font-medium">
-                                total
-                              </span>
+                              <span className="text-xs text-fg-muted ml-1 font-medium">total</span>
                             </>
                           )}
                         </div>
@@ -460,7 +448,7 @@ export default function ParkingDashboardClient({
                       <FaCar className="w-4 h-4 text-purple-600 dark:text-purple-400" />
                     </div>
                   </div>
-                  <div className="text-[10px] text-[#57606a] dark:text-[#8b949e] font-medium">
+                  <div className="text-[10px] text-fg-muted font-medium">
                     {selectedPeriod === 'today'
                       ? t('control.spotsAvailable', { count: stats.available_spots })
                       : t('control.dailyAvg', {
@@ -474,15 +462,15 @@ export default function ParkingDashboardClient({
                 {/* Occupancy Rate */}
                 <Link
                   href="/dashboard/parking/status"
-                  className={`group p-4 bg-white dark:bg-[#161B22] border rounded-xl hover:shadow-lg transition-all duration-300 transform hover:-translate-y-0.5 ${
+                  className={`group p-4 bg-surface border rounded-xl hover:shadow-lg transition-all duration-300 transform hover:-translate-y-0.5 ${
                     stats.occupancy_rate >= 100
                       ? 'border-green-500 animate-pulse-green'
-                      : 'border-[#d0d7de] dark:border-[#21262d] hover:border-blue-500 dark:hover:border-blue-500'
+                      : 'border-border hover:border-blue-500 dark:hover:border-blue-500'
                   }`}
                 >
                   <div className="flex items-start justify-between mb-3">
                     <div>
-                      <div className="text-[10px] font-bold text-[#57606a] dark:text-[#8b949e] mb-1.5 uppercase tracking-wide">
+                      <div className="text-[10px] font-bold text-fg-muted mb-1.5 uppercase tracking-wide">
                         {selectedPeriod === 'today'
                           ? t('control.occupancyRate')
                           : selectedPeriod === 'week'
@@ -490,30 +478,30 @@ export default function ParkingDashboardClient({
                             : t('control.monthlyAvgRate')}
                       </div>
                       {isFetching ? (
-                        <div className="h-7 w-16 bg-[#d0d7de] dark:bg-[#30363d] rounded-lg animate-pulse"></div>
+                        <div className="h-7 w-16 bg-[#d0d7de] dark:bg-surface-hover rounded-lg animate-pulse"></div>
                       ) : (
-                        <div className="text-2xl font-bold text-[#24292f] dark:text-[#f0f6fc]">
+                        <div className="text-2xl font-bold text-fg">
                           {stats.occupancy_rate}%
                           {selectedPeriod !== 'today' && (
-                            <span className="text-xs text-[#57606a] dark:text-[#8b949e] ml-1 font-medium">
+                            <span className="text-xs text-fg-muted ml-1 font-medium">
                               {t('control.average')}
                             </span>
                           )}
                         </div>
                       )}
                     </div>
-                    <div className="p-2 bg-blue-100 dark:bg-blue-900/20 rounded-lg group-hover:scale-110 transition-transform duration-300">
+                    <div className="p-2 bg-info/10 rounded-lg group-hover:scale-110 transition-transform duration-300">
                       <FiTrendingUp className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                     </div>
                   </div>
-                  <div className="w-full h-2 bg-[#d0d7de] dark:bg-[#21262d] rounded-full overflow-hidden">
+                  <div className="w-full h-2 bg-[#d0d7de] dark:bg-surface-hover rounded-full overflow-hidden">
                     <div
                       className="h-full bg-gradient-to-r from-blue-600 to-blue-500 dark:from-blue-500 dark:to-blue-600 transition-all duration-500"
                       style={{ width: `${Math.min(stats.occupancy_rate, 100)}%` }}
                     ></div>
                   </div>
                   {selectedPeriod !== 'today' && (
-                    <div className="text-[9px] text-[#57606a] dark:text-[#8b949e] mt-1.5 font-medium">
+                    <div className="text-[9px] text-fg-muted mt-1.5 font-medium">
                       {t('control.maxCapacity', {
                         period:
                           selectedPeriod === 'week' ? t('control.weekly') : t('control.monthly'),
@@ -529,14 +517,12 @@ export default function ParkingDashboardClient({
           {/* Right Column - Acciones Rápidas (Desktop) + Resumen Diario */}
           <div className="space-y-5">
             {/* Acciones Rápidas - Desktop only */}
-            <div className="hidden xl:block bg-white dark:bg-[#0D1117] border border-[#d0d7de] dark:border-[#30363d] rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200 p-5">
+            <div className="hidden xl:block bg-surface border border-border rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200 p-5">
               <div className="flex items-center gap-2 mb-4">
                 <div className="p-1 bg-orange-100 dark:bg-orange-900/20 rounded-lg">
                   <FiZap className="w-3.5 h-3.5 text-orange-600 dark:text-orange-400" />
                 </div>
-                <h2 className="text-base font-bold text-[#24292f] dark:text-[#f0f6fc]">
-                  {t('quickActions.title')}
-                </h2>
+                <h2 className="text-base font-bold text-fg">{t('quickActions.title')}</h2>
               </div>
 
               <div className="grid grid-cols-3 gap-2.5">
@@ -580,12 +566,12 @@ export default function ParkingDashboardClient({
             </div>
 
             {/* Resumen del Período */}
-            <div className="bg-white dark:bg-[#0D1117] border border-[#d0d7de] dark:border-[#30363d] rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200 p-5">
+            <div className="bg-surface border border-border rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200 p-5">
               <div className="flex items-center gap-2 mb-4">
-                <div className="p-1 bg-gray-100 dark:bg-gray-900/20 rounded-lg">
-                  <FiFileText className="w-3.5 h-3.5 text-gray-600 dark:text-gray-400" />
+                <div className="p-1 bg-surface-sunken/20 rounded-lg">
+                  <FiFileText className="w-3.5 h-3.5 text-fg-muted" />
                 </div>
-                <h2 className="text-base font-bold text-[#24292f] dark:text-[#f0f6fc]">
+                <h2 className="text-base font-bold text-fg">
                   {selectedPeriod === 'today' ? t('summary.title') : t('summary.periodTitle')}
                 </h2>
               </div>
@@ -630,12 +616,10 @@ export default function ParkingDashboardClient({
             <div className="p-1.5 bg-blue-600 dark:bg-blue-500 rounded-lg shadow-lg">
               <FiAlertCircle className="w-4 h-4 text-white" />
             </div>
-            <h3 className="text-sm font-bold text-[#24292f] dark:text-[#f0f6fc]">
-              {t('help.title')}
-            </h3>
+            <h3 className="text-sm font-bold text-fg">{t('help.title')}</h3>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-3 text-xs text-[#24292f] dark:text-[#c9d1d9] leading-relaxed">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-3 text-xs text-fg leading-relaxed">
             <div className="space-y-1.5 p-3 bg-white/50 dark:bg-black/20 rounded-lg">
               <div className="font-bold text-blue-600 dark:text-blue-400 text-[11px]">
                 📊 {t('help.reservations.title')}
@@ -698,16 +682,14 @@ function StatLink({
   return (
     <Link
       href={href}
-      className="group text-center py-2 px-2 rounded-lg hover:bg-[#f6f8fa] dark:hover:bg-[#0d1117] border border-transparent hover:border-[#d0d7de] dark:hover:border-[#30363d] transition-all duration-200"
+      className="group text-center py-2 px-2 rounded-lg hover:bg-surface-hover border border-transparent hover:border-border dark:hover:border-[#30363d] transition-all duration-200"
     >
       {loading ? (
-        <div className="h-6 bg-[#d0d7de] dark:bg-[#30363d] rounded-lg animate-pulse mb-1"></div>
+        <div className="h-6 bg-[#d0d7de] dark:bg-surface-hover rounded-lg animate-pulse mb-1"></div>
       ) : (
-        <div className="text-xl font-bold text-[#24292f] dark:text-[#f0f6fc] mb-0.5">{value}</div>
+        <div className="text-xl font-bold text-fg mb-0.5">{value}</div>
       )}
-      <div className="text-[9px] font-semibold text-[#57606a] dark:text-[#8b949e] uppercase tracking-wide">
-        {label}
-      </div>
+      <div className="text-[9px] font-semibold text-fg-muted uppercase tracking-wide">{label}</div>
     </Link>
   )
 }
@@ -772,7 +754,7 @@ function QuickActionCard({
 
   const config = colorConfig[color as keyof typeof colorConfig]
 
-  const className = `group flex flex-col items-center justify-center gap-2 p-3 min-h-[80px] bg-white dark:bg-[#0d1117] border border-[#d0d7de] dark:border-[#21262d] rounded-xl ${config.border} hover:shadow-md transition-all duration-200`
+  const className = `group flex flex-col items-center justify-center gap-2 p-3 min-h-[80px] bg-surface border border-border rounded-xl ${config.border} hover:shadow-md transition-all duration-200`
 
   const content = (
     <>
@@ -781,9 +763,7 @@ function QuickActionCard({
       >
         <Icon className={`w-4 h-4 ${config.iconColor}`} />
       </div>
-      <span className="text-[11px] font-semibold text-[#24292f] dark:text-[#c9d1d9] text-center leading-tight">
-        {label}
-      </span>
+      <span className="text-[11px] font-semibold text-fg text-center leading-tight">{label}</span>
     </>
   )
 
@@ -829,7 +809,7 @@ function SummaryCard({
       iconColor: 'text-yellow-600 dark:text-yellow-400',
     },
     blue: {
-      iconBg: 'bg-blue-100 dark:bg-blue-900/30',
+      iconBg: 'bg-info/10',
       iconColor: 'text-blue-600 dark:text-blue-400',
     },
   }
@@ -837,20 +817,20 @@ function SummaryCard({
   const config = colorConfig[color as keyof typeof colorConfig]
 
   return (
-    <div className="flex items-center gap-3 p-3 bg-white dark:bg-[#0d1117] border border-[#d0d7de] dark:border-[#21262d] rounded-xl hover:shadow-md transition-shadow duration-200">
+    <div className="flex items-center gap-3 p-3 bg-surface border border-border rounded-xl hover:shadow-md transition-shadow duration-200">
       <div
         className={`flex-shrink-0 w-10 h-10 ${config.iconBg} rounded-xl flex items-center justify-center`}
       >
         <span className={`text-base font-bold ${config.iconColor}`}>{icon}</span>
       </div>
       <div className="min-w-0">
-        <div className="text-[10px] font-semibold text-[#57606a] dark:text-[#8b949e] uppercase tracking-wide mb-0.5">
+        <div className="text-[10px] font-semibold text-fg-muted uppercase tracking-wide mb-0.5">
           {label}
         </div>
         {loading ? (
-          <div className="h-5 w-8 bg-[#d0d7de] dark:bg-[#30363d] rounded animate-pulse"></div>
+          <div className="h-5 w-8 bg-[#d0d7de] dark:bg-surface-hover rounded animate-pulse"></div>
         ) : (
-          <div className="text-lg font-bold text-[#24292f] dark:text-[#f0f6fc]">{value}</div>
+          <div className="text-lg font-bold text-fg">{value}</div>
         )}
       </div>
     </div>

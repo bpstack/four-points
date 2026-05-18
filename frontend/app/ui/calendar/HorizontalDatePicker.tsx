@@ -136,9 +136,7 @@ export default function HorizontalDatePicker({
   }
 
   return (
-    <div
-      className={`bg-white dark:bg-[#010409] border border-gray-200 dark:border-gray-800 rounded-lg shadow-sm overflow-hidden ${className}`}
-    >
+    <div className={`bg-bg border border-border rounded-lg shadow-sm overflow-hidden ${className}`}>
       <div className={`flex items-center ${sizes.container}`}>
         {/* Back arrow - show only when needed */}
         {needsNavigation && (
@@ -147,8 +145,8 @@ export default function HorizontalDatePicker({
             disabled={!canGoBack}
             className={`flex-shrink-0 p-1.5 rounded-lg transition-colors ${
               canGoBack
-                ? 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
-                : 'text-gray-300 dark:text-gray-700 cursor-not-allowed'
+                ? 'text-fg-muted hover:bg-surface-hover'
+                : 'text-fg-subtle cursor-not-allowed'
             }`}
             aria-label="Días anteriores"
           >
@@ -177,10 +175,10 @@ export default function HorizontalDatePicker({
                   ${sizes.button}
                   ${
                     isSelected
-                      ? 'bg-blue-600 text-white shadow-md'
+                      ? 'bg-accent text-accent-fg shadow-md'
                       : isTodayDay
-                        ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 ring-2 ring-blue-500 dark:ring-blue-400 ring-inset'
-                        : 'bg-gray-50 dark:bg-gray-800/50 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                        ? 'bg-accent/10 text-accent ring-2 ring-accent ring-inset'
+                        : 'bg-surface-hover/50 text-fg hover:bg-surface-hover'
                   }
                 `}
               >
@@ -202,8 +200,8 @@ export default function HorizontalDatePicker({
             disabled={!canGoForward}
             className={`flex-shrink-0 p-1.5 rounded-lg transition-colors ${
               canGoForward
-                ? 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
-                : 'text-gray-300 dark:text-gray-700 cursor-not-allowed'
+                ? 'text-fg-muted hover:bg-surface-hover'
+                : 'text-fg-subtle cursor-not-allowed'
             }`}
             aria-label="Días siguientes"
           >

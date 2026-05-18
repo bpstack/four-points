@@ -16,10 +16,7 @@ import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useTranslations } from 'next-intl'
 import toast from 'react-hot-toast'
-import { Input } from '@/app/components/blacklist/ui/Input'
-import { TextArea } from '@/app/components/blacklist/ui/TextArea'
-import { Select } from '@/app/components/blacklist/ui/Select'
-import { Button } from '@/app/components/blacklist/ui/Button'
+import { Input, Textarea, Select, Button } from '@/app/ui/components'
 import { ImageUploader } from '@/app/components/blacklist/ui/ImageUploader'
 import { blacklistSchema } from '@/app/lib/blacklist/blacklistSchema'
 import { blacklistApi } from '@/app/lib/blacklist/blacklistApi'
@@ -197,10 +194,8 @@ export function BlacklistForm({ mode, initialData, onSuccess }: BlacklistFormPro
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       {/* Información del huésped */}
-      <div className="bg-gray-50 dark:bg-[#0D1117] border border-gray-200 dark:border-gray-800 rounded-lg p-6">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
-          {t('form.guestInfo')}
-        </h3>
+      <div className="bg-surface border border-border rounded-lg p-6">
+        <h3 className="text-lg font-semibold text-fg mb-4">{t('form.guestInfo')}</h3>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="md:col-span-2">
@@ -235,10 +230,8 @@ export function BlacklistForm({ mode, initialData, onSuccess }: BlacklistFormPro
       </div>
 
       {/* Fechas de hospedaje */}
-      <div className="bg-gray-100 dark:bg-[#0D1117] border border-gray-200 dark:border-gray-800 rounded-lg p-6">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
-          {t('form.stayDates')}
-        </h3>
+      <div className="bg-gray-100 dark:bg-surface border border-border rounded-lg p-6">
+        <h3 className="text-lg font-semibold text-fg mb-4">{t('form.stayDates')}</h3>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Controller
@@ -246,14 +239,14 @@ export function BlacklistForm({ mode, initialData, onSuccess }: BlacklistFormPro
             control={control}
             render={({ field }) => (
               <div>
-                <label className="block text-sm font-medium text-gray-900 dark:text-gray-100 mb-1.5">
+                <label className="block text-sm font-medium text-fg mb-1.5">
                   {t('form.checkInDate')} <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="date"
                   value={field.value instanceof Date ? field.value.toISOString().split('T')[0] : ''}
                   onChange={(e) => field.onChange(new Date(e.target.value))}
-                  className="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-[#161B22] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors text-sm"
+                  className="w-full px-3 py-2 rounded-md border border-border bg-surface text-fg focus:outline-none focus:ring-2 focus:ring-accent/50/20 focus:border-blue-500 transition-colors text-sm"
                 />
                 {errors.check_in_date && (
                   <p className="text-xs text-red-600 dark:text-red-400 mt-1">
@@ -269,14 +262,14 @@ export function BlacklistForm({ mode, initialData, onSuccess }: BlacklistFormPro
             control={control}
             render={({ field }) => (
               <div>
-                <label className="block text-sm font-medium text-gray-900 dark:text-gray-100 mb-1.5">
+                <label className="block text-sm font-medium text-fg mb-1.5">
                   {t('form.checkOutDate')} <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="date"
                   value={field.value instanceof Date ? field.value.toISOString().split('T')[0] : ''}
                   onChange={(e) => field.onChange(new Date(e.target.value))}
-                  className="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-[#161B22] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors text-sm"
+                  className="w-full px-3 py-2 rounded-md border border-border bg-surface text-fg focus:outline-none focus:ring-2 focus:ring-accent/50/20 focus:border-blue-500 transition-colors text-sm"
                 />
                 {errors.check_out_date && (
                   <p className="text-xs text-red-600 dark:text-red-400 mt-1">
@@ -290,10 +283,8 @@ export function BlacklistForm({ mode, initialData, onSuccess }: BlacklistFormPro
       </div>
 
       {/* Motivo y gravedad */}
-      <div className="bg-gray-50 dark:bg-[#0D1117] border border-gray-200 dark:border-gray-800 rounded-lg p-6">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
-          {t('form.incidentDetails')}
-        </h3>
+      <div className="bg-surface border border-border rounded-lg p-6">
+        <h3 className="text-lg font-semibold text-fg mb-4">{t('form.incidentDetails')}</h3>
 
         <div className="space-y-4">
           <Select
@@ -307,7 +298,7 @@ export function BlacklistForm({ mode, initialData, onSuccess }: BlacklistFormPro
             required
           />
 
-          <TextArea
+          <Textarea
             label={t('form.inclusionReasonFull')}
             placeholder={t('form.inclusionReasonPlaceholder')}
             {...register('reason')}
@@ -316,7 +307,7 @@ export function BlacklistForm({ mode, initialData, onSuccess }: BlacklistFormPro
             required
           />
 
-          <TextArea
+          <Textarea
             label={t('form.additionalCommentsReceptionist')}
             placeholder={t('form.additionalCommentsPlaceholder')}
             {...register('comments')}
@@ -328,10 +319,8 @@ export function BlacklistForm({ mode, initialData, onSuccess }: BlacklistFormPro
       </div>
 
       {/* Imágenes */}
-      <div className="bg-gray-50 dark:bg-[#0D1117] border border-gray-200 dark:border-gray-800 rounded-lg p-6">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
-          {t('form.photoEvidence')}
-        </h3>
+      <div className="bg-surface border border-border rounded-lg p-6">
+        <h3 className="text-lg font-semibold text-fg mb-4">{t('form.photoEvidence')}</h3>
 
         <Controller
           name="images"
@@ -353,14 +342,14 @@ export function BlacklistForm({ mode, initialData, onSuccess }: BlacklistFormPro
         {/* Mostrar imágenes existentes en modo edición */}
         {mode === 'edit' && initialData?.images && initialData.images.length > 0 && (
           <div className="mt-4">
-            <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <p className="text-sm font-medium text-fg mb-2">
               {t('form.currentImages')} ({initialData.images.length}):
             </p>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
               {initialData.images.map((url, index) => (
                 <div
                   key={url}
-                  className="relative aspect-square rounded-lg overflow-hidden border border-gray-200 dark:border-gray-800"
+                  className="relative aspect-square rounded-lg overflow-hidden border border-border"
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
@@ -376,15 +365,15 @@ export function BlacklistForm({ mode, initialData, onSuccess }: BlacklistFormPro
       </div>
 
       {/* Botones de acción */}
-      <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-800">
+      <div className="flex items-center justify-end gap-3 pt-4 border-t border-border">
         <Button type="button" variant="ghost" onClick={handleCancel} disabled={isSubmitting}>
           {t('form.cancel')}
         </Button>
 
         <Button
           type="submit"
-          variant="primary"
-          isLoading={isSubmitting || uploadingImages}
+          variant="accent"
+          loading={isSubmitting || uploadingImages}
           disabled={isSubmitting || uploadingImages}
         >
           {isSubmitting || uploadingImages

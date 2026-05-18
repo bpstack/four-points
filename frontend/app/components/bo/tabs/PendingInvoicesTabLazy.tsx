@@ -42,6 +42,7 @@ import {
 import { backofficeApi } from '@/app/lib/backoffice/backofficeApi'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { exportToExcel, exportToPdf } from '@/app/lib/backoffice/export-utils'
+import { Checkbox } from '@/app/ui/components'
 import toast from 'react-hot-toast'
 
 interface PendingInvoicesTabLazyProps {
@@ -475,13 +476,13 @@ export function PendingInvoicesTabLazy({
       <div className="flex flex-col lg:flex-row gap-3">
         {/* Search */}
         <div className="relative w-full lg:w-64">
-          <FiSearch className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 dark:text-gray-500" />
+          <FiSearch className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-fg-subtle" />
           <input
             type="text"
             placeholder={t('filters.search')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-8 pr-3 py-1.5 text-xs border border-gray-300 dark:border-gray-700 dark:bg-[#151b23] dark:text-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent"
+            className="w-full pl-8 pr-3 py-1.5 text-xs border border-border bg-surface text-fg rounded-md focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-transparent"
           />
         </div>
 
@@ -491,7 +492,7 @@ export function PendingInvoicesTabLazy({
           onChange={(e) =>
             setCategoryFilter(e.target.value === 'all' ? 'all' : Number(e.target.value))
           }
-          className="flex-1 min-w-[280px] px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent bg-white dark:bg-[#151b23] dark:text-gray-200"
+          className="flex-1 min-w-[280px] px-3 py-1.5 text-xs border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-transparent bg-surface dark:text-fg"
         >
           <option value="all">{t('filters.allCategories')}</option>
           {categories.map((cat) => (
@@ -507,7 +508,7 @@ export function PendingInvoicesTabLazy({
           onChange={(e) =>
             setPaymentMethodFilter(e.target.value as 'all' | 'transfer' | 'direct_debit')
           }
-          className="w-full lg:w-40 px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent bg-white dark:bg-[#151b23] dark:text-gray-200"
+          className="w-full lg:w-40 px-3 py-1.5 text-xs border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-transparent bg-surface dark:text-fg"
         >
           <option value="all">{t('filters.allPayments')}</option>
           <option value="transfer">{t('filters.transfer')}</option>
@@ -518,7 +519,7 @@ export function PendingInvoicesTabLazy({
         <div className="flex gap-2">
           <button
             onClick={handleOpenNewInvoice}
-            className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-green-600 dark:bg-green-700 text-white text-xs font-medium rounded-md hover:bg-green-700 dark:hover:bg-green-800 transition-colors"
+            className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-accent text-accent-fg text-xs font-medium rounded-md hover:bg-accent-hover transition-colors"
           >
             <FiPlus className="w-3.5 h-3.5" />
             {t('actions.newInvoice')}
@@ -536,7 +537,7 @@ export function PendingInvoicesTabLazy({
 
       {/* Selected Actions */}
       {selectedInvoices.length > 0 && (
-        <div className="flex items-center justify-between bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-md px-3 py-2">
+        <div className="flex items-center justify-between bg-info/10 border border-blue-200 dark:border-blue-800 rounded-md px-3 py-2">
           <span className="text-xs text-blue-700 dark:text-blue-400">
             {t('selection.selected', {
               count: selectedInvoices.length,
@@ -554,7 +555,7 @@ export function PendingInvoicesTabLazy({
               onClick={handleExportZip}
               disabled={isExporting}
               title={t('actions.exportZip')}
-              className="inline-flex items-center gap-1 px-2 py-1 text-[10px] font-medium text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors disabled:opacity-50"
+              className="inline-flex items-center gap-1 px-2 py-1 text-[10px] font-medium text-accent hover:bg-accent/10 rounded transition-colors disabled:opacity-50"
             >
               <FiDownload className="w-3 h-3" />
               {isExporting ? t('actions.downloading') : t('actions.exportZip')}
@@ -564,55 +565,56 @@ export function PendingInvoicesTabLazy({
       )}
 
       {/* Desktop Table */}
-      <div className="hidden lg:block bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden">
+      <div className="hidden lg:block bg-surface rounded-md border border-border shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-gray-50 dark:bg-[#0d1117] border-b border-gray-200 dark:border-gray-800">
+            <thead className="bg-surface-sunken border-b border-border">
               <tr>
                 <th className="px-3 py-2 text-left">
-                  <input
-                    type="checkbox"
+                  <Checkbox
                     checked={
                       selectedInvoices.length === filteredInvoices.length &&
                       filteredInvoices.length > 0
                     }
-                    onChange={toggleSelectAll}
-                    className="w-3.5 h-3.5 rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500"
+                    indeterminate={
+                      selectedInvoices.length > 0 &&
+                      selectedInvoices.length < filteredInvoices.length
+                    }
+                    onCheckedChange={toggleSelectAll}
+                    strikeOnCheck={false}
+                    className="px-0 py-0 hover:bg-transparent"
                   />
                 </th>
-                <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                <th className="px-3 py-2 text-left text-[10px] font-semibold text-fg uppercase tracking-wider">
                   {t('table.supplier')}
                 </th>
-                <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                <th className="px-3 py-2 text-left text-[10px] font-semibold text-fg uppercase tracking-wider">
                   {t('table.invoiceNumber')}
                 </th>
-                <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                <th className="px-3 py-2 text-left text-[10px] font-semibold text-fg uppercase tracking-wider">
                   {t('table.date')}
                 </th>
-                <th className="px-3 py-2 text-right text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                <th className="px-3 py-2 text-right text-[10px] font-semibold text-fg uppercase tracking-wider">
                   {t('table.withoutVat')}
                 </th>
-                <th className="px-3 py-2 text-right text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                <th className="px-3 py-2 text-right text-[10px] font-semibold text-fg uppercase tracking-wider">
                   {t('table.withVat')}
                 </th>
-                <th className="px-3 py-2 text-center text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                <th className="px-3 py-2 text-center text-[10px] font-semibold text-fg uppercase tracking-wider">
                   {t('table.status')}
                 </th>
-                <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                <th className="px-3 py-2 text-left text-[10px] font-semibold text-fg uppercase tracking-wider">
                   {t('table.category')}
                 </th>
-                <th className="px-3 py-2 text-right text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                <th className="px-3 py-2 text-right text-[10px] font-semibold text-fg uppercase tracking-wider">
                   {t('table.actions')}
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
+            <tbody className="divide-y divide-border">
               {filteredInvoices.length === 0 ? (
                 <tr>
-                  <td
-                    colSpan={9}
-                    className="px-3 py-8 text-center text-xs text-gray-500 dark:text-gray-400"
-                  >
+                  <td colSpan={9} className="px-3 py-8 text-center text-xs text-fg-subtle">
                     {t('empty.noInvoices')}
                   </td>
                 </tr>
@@ -623,31 +625,31 @@ export function PendingInvoicesTabLazy({
                   return (
                     <tr
                       key={invoice.id}
-                      className={`hover:bg-gray-50 dark:hover:bg-[#0d1117] transition-colors ${
-                        isSelected ? 'bg-blue-50/50 dark:bg-blue-900/10' : ''
+                      className={`hover:bg-surface-hover transition-colors ${
+                        isSelected ? 'bg-accent/5' : ''
                       }`}
                     >
                       <td className="px-3 py-2">
-                        <input
-                          type="checkbox"
+                        <Checkbox
                           checked={isSelected}
-                          onChange={() => toggleSelectInvoice(invoice.id)}
-                          className="w-3.5 h-3.5 rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500"
+                          onCheckedChange={() => toggleSelectInvoice(invoice.id)}
+                          strikeOnCheck={false}
+                          className="px-0 py-0 hover:bg-transparent"
                         />
                       </td>
-                      <td className="px-3 py-2 text-xs font-medium text-gray-900 dark:text-gray-100">
+                      <td className="px-3 py-2 text-xs font-medium text-fg">
                         {invoice.supplier_name}
                       </td>
-                      <td className="px-3 py-2 text-xs text-gray-600 dark:text-gray-400 font-mono">
+                      <td className="px-3 py-2 text-xs text-fg-muted font-mono">
                         {invoice.invoice_number}
                       </td>
-                      <td className="px-3 py-2 text-xs text-gray-600 dark:text-gray-400">
+                      <td className="px-3 py-2 text-xs text-fg-muted">
                         {formatDate(invoice.invoice_date)}
                       </td>
-                      <td className="px-3 py-2 text-xs text-right text-gray-600 dark:text-gray-400">
+                      <td className="px-3 py-2 text-xs text-right text-fg-muted">
                         {formatCurrency(invoice.amount_without_vat)}
                       </td>
-                      <td className="px-3 py-2 text-xs text-right font-medium text-gray-900 dark:text-gray-100">
+                      <td className="px-3 py-2 text-xs text-right font-medium text-fg">
                         {formatCurrency(invoice.amount_with_vat)}
                       </td>
                       <td className="px-3 py-2 text-center">
@@ -661,12 +663,8 @@ export function PendingInvoicesTabLazy({
                         </span>
                       </td>
                       <td className="px-3 py-2">
-                        <div className="text-xs text-gray-900 dark:text-gray-100">
-                          {invoice.cost_center}
-                        </div>
-                        <div className="text-[10px] text-gray-500 dark:text-gray-500">
-                          {invoice.department}
-                        </div>
+                        <div className="text-xs text-fg">{invoice.cost_center}</div>
+                        <div className="text-[10px] text-fg-subtle">{invoice.department}</div>
                       </td>
                       <td className="px-3 py-2 text-right">
                         <div className="flex items-center justify-end gap-1">
@@ -680,7 +678,7 @@ export function PendingInvoicesTabLazy({
                                     ? t('pending.validateWithStamp')
                                     : t('actions.validate')
                                 }
-                                className="inline-flex items-center justify-center w-7 h-7 text-gray-600 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors disabled:opacity-50"
+                                className="inline-flex items-center justify-center w-7 h-7 text-fg-muted hover:text-green-600 dark:hover:text-green-400 hover:bg-surface-hover rounded transition-colors disabled:opacity-50"
                               >
                                 <FiCheck className="w-3.5 h-3.5" />
                               </button>
@@ -688,7 +686,7 @@ export function PendingInvoicesTabLazy({
                                 onClick={() => handleOpenDeleteDialog(invoice)}
                                 disabled={isSubmitting}
                                 title={t('actions.delete')}
-                                className="inline-flex items-center justify-center w-7 h-7 text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors disabled:opacity-50"
+                                className="inline-flex items-center justify-center w-7 h-7 text-fg-muted hover:text-red-600 dark:hover:text-red-400 hover:bg-surface-hover rounded transition-colors disabled:opacity-50"
                               >
                                 <FiX className="w-3.5 h-3.5" />
                               </button>
@@ -700,7 +698,7 @@ export function PendingInvoicesTabLazy({
                               onClick={() => handleUnvalidate(invoice)}
                               disabled={isSubmitting}
                               title={t('pending.revertValidation')}
-                              className="inline-flex items-center justify-center w-7 h-7 text-gray-600 dark:text-gray-400 hover:text-orange-600 dark:hover:text-orange-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors disabled:opacity-50"
+                              className="inline-flex items-center justify-center w-7 h-7 text-fg-muted hover:text-orange-600 dark:hover:text-orange-400 hover:bg-surface-hover rounded transition-colors disabled:opacity-50"
                             >
                               <FiRotateCcw className="w-3.5 h-3.5" />
                             </button>
@@ -708,14 +706,14 @@ export function PendingInvoicesTabLazy({
                           <button
                             onClick={() => handleOpenEditInvoice(invoice)}
                             title={t('actions.edit')}
-                            className="inline-flex items-center justify-center w-7 h-7 text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors"
+                            className="inline-flex items-center justify-center w-7 h-7 text-fg-muted hover:text-accent hover:bg-surface-hover rounded transition-colors"
                           >
                             <FiEdit2 className="w-3.5 h-3.5" />
                           </button>
                           <button
                             onClick={() => handleOpenPdfUpload(invoice)}
                             title={t('actions.uploadPdf')}
-                            className="inline-flex items-center justify-center w-7 h-7 text-gray-600 dark:text-gray-400 hover:text-orange-600 dark:hover:text-orange-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors"
+                            className="inline-flex items-center justify-center w-7 h-7 text-fg-muted hover:text-orange-600 dark:hover:text-orange-400 hover:bg-surface-hover rounded transition-colors"
                           >
                             <FiUpload className="w-3.5 h-3.5" />
                           </button>
@@ -725,8 +723,8 @@ export function PendingInvoicesTabLazy({
                             disabled={!hasPdf}
                             className={`inline-flex items-center justify-center w-7 h-7 rounded transition-colors ${
                               hasPdf
-                                ? 'text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-gray-100 dark:hover:bg-gray-800'
-                                : 'text-gray-300 dark:text-gray-600 cursor-not-allowed'
+                                ? 'text-fg-muted hover:text-purple-600 dark:hover:text-purple-400 hover:bg-surface-hover'
+                                : 'text-fg-subtle cursor-not-allowed'
                             }`}
                           >
                             <FiFileText className="w-3.5 h-3.5" />
@@ -743,8 +741,8 @@ export function PendingInvoicesTabLazy({
 
         {/* Pagination info and Export buttons */}
         {pagination.total > 0 && (
-          <div className="px-3 py-2 border-t border-gray-200 dark:border-gray-800 flex items-center justify-between">
-            <span className="text-xs text-gray-500 dark:text-gray-400">
+          <div className="px-3 py-2 border-t border-border flex items-center justify-between">
+            <span className="text-xs text-fg-subtle">
               {t('pagination.showing', { count: filteredInvoices.length, total: pagination.total })}
             </span>
             <div className="flex items-center gap-2">
@@ -790,8 +788,8 @@ export function PendingInvoicesTabLazy({
       {/* Mobile Cards */}
       <div className="lg:hidden space-y-2">
         {filteredInvoices.length === 0 ? (
-          <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-6 text-center">
-            <p className="text-xs text-gray-500 dark:text-gray-400">{t('empty.noInvoices')}</p>
+          <div className="bg-surface rounded-md border border-border p-6 text-center">
+            <p className="text-xs text-fg-subtle">{t('empty.noInvoices')}</p>
           </div>
         ) : (
           filteredInvoices.map((invoice) => {
@@ -800,23 +798,21 @@ export function PendingInvoicesTabLazy({
             return (
               <div
                 key={invoice.id}
-                className={`bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-3 hover:shadow-md dark:hover:shadow-gray-900/50 transition-shadow ${
-                  isSelected ? 'ring-2 ring-blue-500' : ''
+                className={`bg-surface border border-border rounded-fp-md shadow-fp-pop p-3 ${
+                  isSelected ? 'ring-2 ring-accent' : ''
                 }`}
               >
                 <div className="flex items-start justify-between mb-2">
                   <div className="flex items-start gap-2">
-                    <input
-                      type="checkbox"
+                    <Checkbox
                       checked={isSelected}
-                      onChange={() => toggleSelectInvoice(invoice.id)}
-                      className="mt-0.5 w-3.5 h-3.5 rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500"
+                      onCheckedChange={() => toggleSelectInvoice(invoice.id)}
+                      strikeOnCheck={false}
+                      className="px-0 py-0 hover:bg-transparent mt-0.5"
                     />
                     <div>
-                      <h3 className="font-semibold text-xs text-gray-900 dark:text-gray-100">
-                        {invoice.supplier_name}
-                      </h3>
-                      <p className="text-[10px] text-gray-500 dark:text-gray-500 font-mono">
+                      <h3 className="font-semibold text-xs text-fg">{invoice.supplier_name}</h3>
+                      <p className="text-[10px] text-fg-subtle font-mono">
                         {invoice.invoice_number}
                       </p>
                     </div>
@@ -833,23 +829,19 @@ export function PendingInvoicesTabLazy({
 
                 <div className="grid grid-cols-2 gap-2 text-[10px] mb-2">
                   <div>
-                    <span className="text-gray-500 dark:text-gray-500">{t('table.date')}:</span>
-                    <span className="ml-1 text-gray-900 dark:text-gray-100">
-                      {formatDate(invoice.invoice_date)}
-                    </span>
+                    <span className="text-fg-subtle">{t('table.date')}:</span>
+                    <span className="ml-1 text-fg">{formatDate(invoice.invoice_date)}</span>
                   </div>
                   <div className="text-right">
-                    <span className="text-gray-500 dark:text-gray-500">{t('table.withVat')}:</span>
-                    <span className="ml-1 font-semibold text-gray-900 dark:text-gray-100">
+                    <span className="text-fg-subtle">{t('table.withVat')}:</span>
+                    <span className="ml-1 font-semibold text-fg">
                       {formatCurrency(invoice.amount_with_vat)}
                     </span>
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between pt-2 border-t border-gray-100 dark:border-gray-800">
-                  <span className="text-[10px] text-gray-600 dark:text-gray-400">
-                    {invoice.cost_center}
-                  </span>
+                <div className="flex items-center justify-between pt-2 border-t border-border">
+                  <span className="text-[10px] text-fg-muted">{invoice.cost_center}</span>
                   <div className="flex items-center gap-1">
                     {invoice.status === 'pending' && (
                       <>
@@ -861,7 +853,7 @@ export function PendingInvoicesTabLazy({
                               ? t('pending.validateWithStamp')
                               : t('actions.validate')
                           }
-                          className="inline-flex items-center justify-center w-7 h-7 text-gray-600 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors disabled:opacity-50"
+                          className="inline-flex items-center justify-center w-7 h-7 text-fg-muted hover:text-green-600 dark:hover:text-green-400 hover:bg-surface-hover rounded transition-colors disabled:opacity-50"
                         >
                           <FiCheck className="w-3.5 h-3.5" />
                         </button>
@@ -869,7 +861,7 @@ export function PendingInvoicesTabLazy({
                           onClick={() => handleOpenDeleteDialog(invoice)}
                           disabled={isSubmitting}
                           title={t('actions.delete')}
-                          className="inline-flex items-center justify-center w-7 h-7 text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors disabled:opacity-50"
+                          className="inline-flex items-center justify-center w-7 h-7 text-fg-muted hover:text-red-600 dark:hover:text-red-400 hover:bg-surface-hover rounded transition-colors disabled:opacity-50"
                         >
                           <FiX className="w-3.5 h-3.5" />
                         </button>
@@ -881,7 +873,7 @@ export function PendingInvoicesTabLazy({
                         onClick={() => handleUnvalidate(invoice)}
                         disabled={isSubmitting}
                         title={t('pending.revertValidation')}
-                        className="inline-flex items-center justify-center w-6 h-6 text-gray-600 dark:text-gray-400 hover:text-orange-600 dark:hover:text-orange-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors"
+                        className="inline-flex items-center justify-center w-6 h-6 text-fg-muted hover:text-orange-600 dark:hover:text-orange-400 hover:bg-surface-hover rounded transition-colors"
                       >
                         <FiRotateCcw className="w-3 h-3" />
                       </button>
@@ -889,13 +881,13 @@ export function PendingInvoicesTabLazy({
 
                     <button
                       onClick={() => handleOpenEditInvoice(invoice)}
-                      className="inline-flex items-center justify-center w-6 h-6 text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors"
+                      className="inline-flex items-center justify-center w-6 h-6 text-fg-muted hover:text-accent hover:bg-surface-hover rounded transition-colors"
                     >
                       <FiEdit2 className="w-3 h-3" />
                     </button>
                     <button
                       onClick={() => handleOpenPdfUpload(invoice)}
-                      className="inline-flex items-center justify-center w-6 h-6 text-gray-600 dark:text-gray-400 hover:text-orange-600 dark:hover:text-orange-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors"
+                      className="inline-flex items-center justify-center w-6 h-6 text-fg-muted hover:text-orange-600 dark:hover:text-orange-400 hover:bg-surface-hover rounded transition-colors"
                     >
                       <FiUpload className="w-3 h-3" />
                     </button>
@@ -904,8 +896,8 @@ export function PendingInvoicesTabLazy({
                       disabled={!hasPdf}
                       className={`inline-flex items-center justify-center w-6 h-6 rounded transition-colors ${
                         hasPdf
-                          ? 'text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-gray-100 dark:hover:bg-gray-800'
-                          : 'text-gray-300 dark:text-gray-600 cursor-not-allowed'
+                          ? 'text-fg-muted hover:text-purple-600 dark:hover:text-purple-400 hover:bg-surface-hover'
+                          : 'text-fg-subtle cursor-not-allowed'
                       }`}
                     >
                       <FiFileText className="w-3 h-3" />
@@ -1004,20 +996,20 @@ export function PendingInvoicesTabLazy({
             }}
           />
           <div className="flex min-h-full items-center justify-center p-4">
-            <div className="relative w-full max-w-md bg-white dark:bg-[#151b23] rounded-lg shadow-xl">
+            <div className="relative w-full max-w-md bg-surface rounded-lg shadow-xl">
               <div className="p-6">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
+                <h3 className="text-lg font-semibold text-fg mb-2">
                   {t('modals.validateInvoice.title')}
                 </h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                <p className="text-sm text-fg-muted mb-2">
                   <strong>{t('modals.validateInvoice.invoice')}</strong>{' '}
                   {validatingInvoice.invoice_number}
                 </p>
-                <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                <p className="text-sm text-fg-muted mb-2">
                   <strong>{t('modals.validateInvoice.supplier')}</strong>{' '}
                   {validatingInvoice.supplier_name}
                 </p>
-                <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                <p className="text-sm text-fg-muted mb-4">
                   <strong>{t('modals.validateInvoice.amount')}</strong>{' '}
                   {formatCurrency(validatingInvoice.amount_with_vat)}
                 </p>
@@ -1034,7 +1026,7 @@ export function PendingInvoicesTabLazy({
                       setValidatingInvoice(null)
                     }}
                     disabled={isSubmitting}
-                    className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
+                    className="flex-1 px-4 py-2 text-sm font-medium text-fg bg-surface-hover border border-border rounded-md hover:bg-surface-hover transition-colors disabled:opacity-50"
                   >
                     {t('actions.cancel')}
                   </button>
@@ -1042,7 +1034,7 @@ export function PendingInvoicesTabLazy({
                     type="button"
                     onClick={handleConfirmValidate}
                     disabled={isSubmitting}
-                    className="flex-1 px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700 transition-colors disabled:opacity-50"
+                    className="flex-1 px-4 py-2 text-sm font-medium text-accent-fg bg-accent rounded-md hover:bg-accent-hover transition-colors disabled:opacity-50"
                   >
                     {isSubmitting
                       ? t('actions.processing')
@@ -1068,9 +1060,9 @@ export function PendingInvoicesTabLazy({
             }}
           />
           <div className="flex min-h-full items-center justify-center p-4">
-            <div className="relative w-full max-w-md bg-white dark:bg-[#151b23] rounded-lg shadow-xl">
+            <div className="relative w-full max-w-md bg-surface rounded-lg shadow-xl">
               <div className="p-6">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
+                <h3 className="text-lg font-semibold text-fg mb-4">
                   {t('modals.batchPayment.title')}
                 </h3>
 
@@ -1096,7 +1088,7 @@ export function PendingInvoicesTabLazy({
                     </p>
                   </div>
                 ) : (
-                  <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-md p-3 mb-4">
+                  <div className="bg-info/10 border border-blue-200 dark:border-blue-800 rounded-md p-3 mb-4">
                     <p className="text-xs text-blue-800 dark:text-blue-300">
                       {t('modals.batchPayment.description', {
                         month: getMonthName(batchPayPreview.month),
@@ -1113,7 +1105,7 @@ export function PendingInvoicesTabLazy({
                       setBatchPayPreview(null)
                     }}
                     disabled={isBatchPaying}
-                    className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
+                    className="flex-1 px-4 py-2 text-sm font-medium text-fg bg-surface-hover border border-border rounded-md hover:bg-surface-hover transition-colors disabled:opacity-50"
                   >
                     {t('actions.cancel')}
                   </button>

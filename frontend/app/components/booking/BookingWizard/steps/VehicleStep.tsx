@@ -14,15 +14,15 @@ interface VehicleStepProps {
 
 // Styles for full variant (GitHub-style)
 const fullStyles = {
-  card: 'bg-[#f6f8fa] dark:bg-[#161b22] border border-[#d0d7de] dark:border-[#30363d] rounded-md p-4 sm:p-5',
-  sectionTitle: 'text-lg font-medium text-[#24292f] dark:text-[#f0f6fc]',
-  label: 'block text-sm font-medium text-[#24292f] dark:text-[#c9d1d9] mb-1',
+  card: 'bg-[#f6f8fa] dark:bg-surface-hover border border-border rounded-md p-4 sm:p-5',
+  sectionTitle: 'text-lg font-medium text-fg',
+  label: 'block text-sm font-medium text-fg mb-1',
   input:
-    'w-full px-3 py-2 bg-white dark:bg-[#0d1117] border border-[#d0d7de] dark:border-[#30363d] rounded-md text-[#24292f] dark:text-[#c9d1d9] placeholder-[#57606a] dark:placeholder-[#8b949e] focus:outline-none focus:ring-1 focus:ring-[#0969da] dark:focus:ring-[#1f6feb] text-sm',
+    'w-full px-3 py-2 bg-surface border border-border rounded-md text-fg placeholder-[#57606a] dark:placeholder-[#8b949e] focus:outline-none focus:ring-1 focus:ring-[#0969da] dark:focus:ring-[#1f6feb] text-sm',
   buttonPrimary:
-    'px-4 py-2 bg-[#0969da] hover:bg-[#0550ae] dark:bg-[#1f6feb] dark:hover:bg-[#1158c7] disabled:bg-[#d0d7de] dark:disabled:bg-[#30363d] disabled:text-[#8c959f] text-white rounded-md font-medium transition text-sm',
+    'px-4 py-2 bg-accent hover:bg-accent-hover disabled:bg-border dark:disabled:bg-surface-elevated disabled:text-fg-subtle text-accent-fg rounded-md font-medium transition text-sm',
   buttonSecondary:
-    'px-4 py-2 bg-[#f6f8fa] hover:bg-[#eaeef2] dark:bg-[#21262d] dark:hover:bg-[#30363d] text-[#24292f] dark:text-[#c9d1d9] rounded-md font-medium transition text-sm',
+    'px-4 py-2 bg-[#f6f8fa] hover:bg-surface-hover dark:bg-surface-hover text-fg rounded-md font-medium transition text-sm',
 }
 
 export default function VehicleStep({ variant, state, actions, onCancel }: VehicleStepProps) {
@@ -52,22 +52,20 @@ export default function VehicleStep({ variant, state, actions, onCancel }: Vehic
             />
             {state.searchingVehicles && (
               <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                <FaSpinner className="w-4 h-4 animate-spin text-[#57606a] dark:text-[#8b949e]" />
+                <FaSpinner className="w-4 h-4 animate-spin text-fg-muted" />
               </div>
             )}
 
             {state.showVehicleSearch && state.vehicleSearchResults.length > 0 && (
-              <div className="absolute z-10 w-full mt-1 bg-white dark:bg-[#161b22] border border-[#d0d7de] dark:border-[#30363d] rounded-md shadow-lg max-h-48 overflow-y-auto">
+              <div className="absolute z-10 w-full mt-1 bg-surface border border-border rounded-md shadow-lg max-h-48 overflow-y-auto">
                 {state.vehicleSearchResults.map((vehicle) => (
                   <button
                     key={vehicle.id}
                     onClick={() => actions.handleSelectExistingVehicle(vehicle)}
-                    className="w-full px-3 py-2 text-left hover:bg-[#f6f8fa] dark:hover:bg-[#21262d] transition-colors border-b border-[#d0d7de] dark:border-[#30363d] last:border-b-0"
+                    className="w-full px-3 py-2 text-left hover:bg-surface-hover transition-colors border-b border-border last:border-b-0"
                   >
-                    <div className="font-medium text-[#24292f] dark:text-[#f0f6fc]">
-                      {vehicle.plate_number}
-                    </div>
-                    <div className="text-xs text-[#57606a] dark:text-[#8b949e]">
+                    <div className="font-medium text-fg">{vehicle.plate_number}</div>
+                    <div className="text-xs text-fg-muted">
                       {vehicle.owner_name} {vehicle.model && `• ${vehicle.model}`}
                     </div>
                   </button>
@@ -75,18 +73,16 @@ export default function VehicleStep({ variant, state, actions, onCancel }: Vehic
               </div>
             )}
           </div>
-          <p className="text-xs text-[#57606a] dark:text-[#8b949e] mt-1">
-            {t('vehicle.searchHint')}
-          </p>
+          <p className="text-xs text-fg-muted mt-1">{t('vehicle.searchHint')}</p>
         </div>
 
         {/* Separador */}
         <div className="relative mb-3">
           <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-[#d0d7de] dark:border-[#30363d]"></div>
+            <div className="w-full border-t border-border"></div>
           </div>
           <div className="relative flex justify-center text-xs">
-            <span className="bg-[#f6f8fa] dark:bg-[#161b22] px-2 text-[#57606a] dark:text-[#8b949e]">
+            <span className="bg-[#f6f8fa] dark:bg-surface-hover px-2 text-fg-muted">
               {t('vehicle.newVehicleTitle')}
             </span>
           </div>
@@ -170,22 +166,20 @@ export default function VehicleStep({ variant, state, actions, onCancel }: Vehic
           />
           {state.searchingVehicles && (
             <div className="absolute right-3 top-1/2 -translate-y-1/2">
-              <FaSpinner className="w-4 h-4 animate-spin text-gray-400" />
+              <FaSpinner className="w-4 h-4 animate-spin text-fg-subtle" />
             </div>
           )}
 
           {state.showVehicleSearch && state.vehicleSearchResults.length > 0 && (
-            <div className="absolute z-10 w-full mt-1 bg-white dark:bg-[#1c2128] border border-gray-200 dark:border-gray-700 rounded-md shadow-lg max-h-48 overflow-y-auto">
+            <div className="absolute z-10 w-full mt-1 bg-surface border border-border rounded-md shadow-lg max-h-48 overflow-y-auto">
               {state.vehicleSearchResults.map((vehicle) => (
                 <button
                   key={vehicle.id}
                   onClick={() => actions.handleSelectExistingVehicle(vehicle)}
-                  className="w-full px-3 py-2 text-left hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors border-b border-gray-100 dark:border-gray-700 last:border-b-0"
+                  className="w-full px-3 py-2 text-left hover:bg-surface-hover transition-colors border-b border-border last:border-b-0"
                 >
-                  <div className="font-medium text-gray-900 dark:text-gray-100">
-                    {vehicle.plate_number}
-                  </div>
-                  <div className="text-xs text-gray-500 dark:text-gray-400">
+                  <div className="font-medium text-fg">{vehicle.plate_number}</div>
+                  <div className="text-xs text-fg-subtle">
                     {vehicle.owner_name} {vehicle.model && `• ${vehicle.model}`}
                   </div>
                 </button>
@@ -193,18 +187,16 @@ export default function VehicleStep({ variant, state, actions, onCancel }: Vehic
             </div>
           )}
         </div>
-        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{t('vehicle.searchHint')}</p>
+        <p className="text-xs text-fg-subtle mt-1">{t('vehicle.searchHint')}</p>
       </SlidePanelSection>
 
       {/* Separador */}
       <div className="relative">
         <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-gray-200 dark:border-gray-700"></div>
+          <div className="w-full border-t border-border"></div>
         </div>
         <div className="relative flex justify-center text-xs">
-          <span className="bg-white dark:bg-[#151b23] px-2 text-gray-500 dark:text-gray-400">
-            {t('vehicle.newVehicle')}
-          </span>
+          <span className="bg-surface px-2 text-fg-subtle">{t('vehicle.newVehicle')}</span>
         </div>
       </div>
 

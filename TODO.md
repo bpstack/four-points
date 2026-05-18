@@ -57,6 +57,31 @@ Una vez activo, cerrar el §3.5 hallazgo de observabilidad de `Global-Plan.md`.
 
 ---
 
+## Refactor sincronización cliente/servidor — post-deploy design-system
+
+**Síntoma actual:** mutaciones que actualizan el backend pero la UI no refleja el cambio sin F5. Repetido en muchos módulos (parking status, groups status timeline, BO suppliers, etc.). Diagnosticado durante el deploy del design system (sesión 2026-05-18).
+
+**4 patrones detectados en el codebase:**
+
+1. **Estado local inicializado desde props**: `useState(initialData)` en cliente, nunca se rerefetchea tras mutar.
+2. **React Query sin `invalidateQueries` en `onSuccess`** de la mutación.
+3. **`router.refresh()` con `serverFetch({ revalidate: 60, tags: [...] })`**: re-renderiza Server Components pero la Data Cache devuelve la versión vieja. Las mutaciones van directas al Express, así que `revalidateTag` nunca se dispara.
+4. **Estado en padre no propagado**: un sub-componente refetchea pero los hermanos siguen con la copia inicial (ej: `ContractCard` actualiza pero `StatusTimeline` no).
+
+**Plan de refactor (sprint estimado):**
+
+1. **Estandarizar en React Query** para toda data de listados/detalles. Eliminar `useState(initialData)` cuando dependa de un fetch.
+2. **Centralizar `queryKeys`** por dominio (`lib/queryKeys.ts` con `parking.bookings()`, `groups.detail(id)`, etc.) para evitar typos en invalidaciones.
+3. **Cada mutación debe invalidar sus keys**: usar `onSuccess: () => queryClient.invalidateQueries({ queryKey: ... })` sistemáticamente. Considerar un helper `useMutationWithInvalidation`.
+4. **Decidir política SSR**: o bien `cache: 'no-store'` en `serverFetch` (más simple, peor TTFB), o bien Server Actions con `revalidateTag('<dominio>')` después de cada mutación (más correcto, más código).
+5. **Auditar componentes "padre que no propaga"** y elevar la fuente de verdad al padre o mover ese estado a React Query con `queryKey` compartida.
+
+**Por dónde empezar (orden sugerido)**: BO suppliers (caso ya diagnosticado, 1 fichero), Groups status timeline (caso de #4 visible), Parking status (caso más grande). Una vez fijados 2-3 módulos, generalizar el patrón al resto.
+
+**No iniciar antes del deploy del design system** — primero estabilizamos lo que hay, después la refactor.
+
+---
+
 ## Horizonte 2 — post-datos reales
 
 > Solo apuntados; detalle y razonamiento en `Global-Plan.md §6 Roadmap por horizontes`. **No iniciar nada de esto hasta que entren datos reales y se conozca el patrón de uso real.**

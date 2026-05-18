@@ -211,7 +211,7 @@ export function EditGroupPanel({ isOpen, onClose, group, onSuccess }: EditGroupP
                   }}
                   className={`${inputClassName} pr-10 ${datesLocked ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                 />
-                <FiCalendar className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                <FiCalendar className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-fg-subtle pointer-events-none" />
               </div>
             </FormField>
             {showArrivalCal && !datesLocked && (
@@ -249,7 +249,7 @@ export function EditGroupPanel({ isOpen, onClose, group, onSuccess }: EditGroupP
                   }}
                   className={`${inputClassName} pr-10 ${datesLocked ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                 />
-                <FiCalendar className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                <FiCalendar className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-fg-subtle pointer-events-none" />
               </div>
             </FormField>
             {showDepartureCal && !datesLocked && (

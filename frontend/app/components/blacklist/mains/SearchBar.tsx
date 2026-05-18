@@ -145,12 +145,12 @@ export function SearchBar({ totalResults }: SearchBarProps) {
             placeholder={t('filters.searchPlaceholder')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-10 py-2.5 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-[#161B22] text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors text-sm"
+            className="w-full pl-10 pr-10 py-2.5 rounded-md border border-border bg-surface text-fg placeholder:text-gray-500 dark:placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-accent/50/20 focus:border-blue-500 transition-colors text-sm"
           />
           {searchTerm && (
             <button
               onClick={() => setSearchTerm('')}
-              className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+              className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-fg"
             >
               <IoClose size={20} />
             </button>
@@ -164,8 +164,8 @@ export function SearchBar({ totalResults }: SearchBarProps) {
             px-4 py-2.5 rounded-md font-medium text-sm transition-colors relative
             ${
               showFilters
-                ? 'bg-blue-600 text-white hover:bg-blue-700'
-                : 'bg-gray-100 dark:bg-[#161B22] text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-[#1c2128] border border-gray-300 dark:border-gray-700'
+                ? 'bg-accent text-accent-fg hover:bg-accent-hover'
+                : 'bg-surface-hover text-fg hover:bg-surface-hover border border-border'
             }
           `}
         >
@@ -184,7 +184,7 @@ export function SearchBar({ totalResults }: SearchBarProps) {
         {hasActiveFilters && (
           <button
             onClick={clearFilters}
-            className="px-4 py-2.5 rounded-md font-medium text-sm transition-colors bg-gray-100 dark:bg-[#161B22] text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-[#1c2128] border border-gray-300 dark:border-gray-700 flex items-center gap-2"
+            className="px-4 py-2.5 rounded-md font-medium text-sm transition-colors bg-surface-hover text-fg hover:bg-surface-hover border border-border flex items-center gap-2"
           >
             <IoClose size={16} />
             {t('filters.clear')}
@@ -194,7 +194,7 @@ export function SearchBar({ totalResults }: SearchBarProps) {
 
       {/* Resultados */}
       {totalResults !== undefined && (
-        <div className="text-sm text-gray-600 dark:text-gray-400">
+        <div className="text-sm text-fg-muted">
           {totalResults === 0 ? (
             <span>{t('filters.noResults')}</span>
           ) : (
@@ -209,11 +209,11 @@ export function SearchBar({ totalResults }: SearchBarProps) {
 
       {/* Panel de filtros avanzados */}
       {showFilters && (
-        <div className="bg-gray-50 dark:bg-[#161B22] border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+        <div className="bg-surface-sunken border border-border rounded-lg p-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {/* Filtro: Documento */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+              <label className="block text-sm font-medium text-fg mb-1.5">
                 {t('filters.document')}
               </label>
               <input
@@ -221,19 +221,19 @@ export function SearchBar({ totalResults }: SearchBarProps) {
                 placeholder={t('filters.documentPlaceholder')}
                 value={documentFilter}
                 onChange={(e) => setDocumentFilter(e.target.value.toUpperCase())}
-                className="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-[#0D1117] text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors text-sm"
+                className="w-full px-3 py-2 rounded-md border border-border bg-surface text-fg placeholder:text-gray-500 dark:placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-accent/50/20 focus:border-blue-500 transition-colors text-sm"
               />
             </div>
 
             {/* Filtro: Severidad */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+              <label className="block text-sm font-medium text-fg mb-1.5">
                 {t('filters.severity')}
               </label>
               <select
                 value={severityFilter}
                 onChange={(e) => setSeverityFilter(e.target.value)}
-                className="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-[#0D1117] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors text-sm"
+                className="w-full px-3 py-2 rounded-md border border-border bg-surface text-fg focus:outline-none focus:ring-2 focus:ring-accent/50/20 focus:border-blue-500 transition-colors text-sm"
               >
                 <option value="">{t('filters.all')}</option>
                 <option value="LOW">{t('severity.low')}</option>
@@ -245,13 +245,13 @@ export function SearchBar({ totalResults }: SearchBarProps) {
 
             {/* Filtro: Estado */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+              <label className="block text-sm font-medium text-fg mb-1.5">
                 {t('filters.status')}
               </label>
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-[#0D1117] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors text-sm"
+                className="w-full px-3 py-2 rounded-md border border-border bg-surface text-fg focus:outline-none focus:ring-2 focus:ring-accent/50/20 focus:border-blue-500 transition-colors text-sm"
               >
                 <option value="ACTIVE">{t('filters.active')}</option>
                 <option value="DELETED">{t('filters.deleted')}</option>
@@ -261,36 +261,36 @@ export function SearchBar({ totalResults }: SearchBarProps) {
 
             {/* Filtro: Fecha desde */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+              <label className="block text-sm font-medium text-fg mb-1.5">
                 {t('filters.dateFrom')}
               </label>
               <input
                 type="date"
                 value={fromDateFilter}
                 onChange={(e) => setFromDateFilter(e.target.value)}
-                className="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-[#0D1117] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors text-sm"
+                className="w-full px-3 py-2 rounded-md border border-border bg-surface text-fg focus:outline-none focus:ring-2 focus:ring-accent/50/20 focus:border-blue-500 transition-colors text-sm"
               />
             </div>
 
             {/* Filtro: Fecha hasta */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+              <label className="block text-sm font-medium text-fg mb-1.5">
                 {t('filters.dateTo')}
               </label>
               <input
                 type="date"
                 value={toDateFilter}
                 onChange={(e) => setToDateFilter(e.target.value)}
-                className="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-[#0D1117] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors text-sm"
+                className="w-full px-3 py-2 rounded-md border border-border bg-surface text-fg focus:outline-none focus:ring-2 focus:ring-accent/50/20 focus:border-blue-500 transition-colors text-sm"
               />
             </div>
           </div>
 
           {/* Botón aplicar filtros */}
-          <div className="flex justify-end mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+          <div className="flex justify-end mt-4 pt-4 border-t border-border">
             <button
               onClick={applyFilters}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm font-medium"
+              className="px-4 py-2 bg-accent text-accent-fg rounded-md hover:bg-accent-hover transition-colors text-sm font-medium"
             >
               {t('filters.applyFilters')}
             </button>

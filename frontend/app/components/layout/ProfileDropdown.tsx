@@ -77,7 +77,7 @@ export default function ProfileDropdown() {
       {/* Botón de perfil */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-1 md:gap-2 px-1.5 md:px-3 py-1.5 md:py-2 rounded-lg transition-colors duration-200 hover:bg-gray-200 dark:hover:bg-gray-700"
+        className="flex items-center gap-1 md:gap-2 px-1.5 md:px-3 py-1.5 md:py-2 rounded-lg transition-colors duration-200 hover:bg-surface-hover"
       >
         {user.avatar_url ? (
           <Image
@@ -93,13 +93,11 @@ export default function ProfileDropdown() {
           </div>
         )}
         <div className="hidden md:block text-left">
-          <p className="text-sm font-medium text-gray-900 dark:text-white">{user.username}</p>
-          {user.role && (
-            <p className="text-xs text-gray-500 dark:text-gray-400 capitalize">{user.role}</p>
-          )}
+          <p className="text-sm font-medium text-fg">{user.username}</p>
+          {user.role && <p className="text-xs text-fg-subtle capitalize">{user.role}</p>}
         </div>
         <FiChevronDown
-          className={`h-3 w-3 md:h-4 md:w-4 text-gray-500 dark:text-gray-400 transition-transform duration-200 ${
+          className={`h-3 w-3 md:h-4 md:w-4 text-fg-subtle transition-transform duration-200 ${
             isOpen ? 'rotate-180' : ''
           }`}
         />
@@ -107,20 +105,18 @@ export default function ProfileDropdown() {
 
       {/* Dropdown menu */}
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-56 rounded-lg bg-white dark:bg-gray-800 shadow-lg border border-gray-200 dark:border-gray-700 z-50 overflow-hidden">
+        <div className="absolute right-0 mt-2 w-56 rounded-lg bg-surface-hover shadow-lg border border-border z-50 overflow-hidden">
           {/* User info */}
-          <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
-            <p className="text-sm font-medium text-gray-900 dark:text-white">{user.username}</p>
-            {user.email && (
-              <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{user.email}</p>
-            )}
+          <div className="px-4 py-3 border-b border-border">
+            <p className="text-sm font-medium text-fg">{user.username}</p>
+            {user.email && <p className="text-xs text-fg-subtle truncate">{user.email}</p>}
           </div>
 
           {/* Menu items */}
           <div className="py-1">
             <button
               onClick={handleProfile}
-              className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+              className="w-full flex items-center gap-3 px-4 py-2 text-sm text-fg hover:bg-surface-hover transition-colors"
             >
               <FiUser className="h-4 w-4" />
               <span>{t('myProfile')}</span>
@@ -128,7 +124,7 @@ export default function ProfileDropdown() {
 
             <button
               onClick={handleMessages}
-              className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+              className="w-full flex items-center gap-3 px-4 py-2 text-sm text-fg hover:bg-surface-hover transition-colors"
             >
               <FiMessageSquare className="h-4 w-4" />
               <span>{t('messages')}</span>
@@ -136,7 +132,7 @@ export default function ProfileDropdown() {
 
             <button
               onClick={handleNotifications}
-              className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+              className="w-full flex items-center gap-3 px-4 py-2 text-sm text-fg hover:bg-surface-hover transition-colors"
             >
               <div className="relative">
                 <FiBell className="h-4 w-4" />
@@ -156,7 +152,7 @@ export default function ProfileDropdown() {
 
             <button
               onClick={handleSettings}
-              className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+              className="w-full flex items-center gap-3 px-4 py-2 text-sm text-fg hover:bg-surface-hover transition-colors"
             >
               <FiSettings className="h-4 w-4" />
               <span>{t('settings')}</span>
@@ -164,12 +160,12 @@ export default function ProfileDropdown() {
           </div>
 
           {/* Language Switcher */}
-          <div className="border-t border-gray-200 dark:border-gray-700 py-1">
+          <div className="border-t border-border py-1">
             <LanguageSwitcher />
           </div>
 
           {/* Logout */}
-          <div className="border-t border-gray-200 dark:border-gray-700 py-1">
+          <div className="border-t border-border py-1">
             <button
               onClick={handleLogout}
               className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"

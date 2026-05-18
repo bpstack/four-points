@@ -26,26 +26,26 @@ export default function SideNav({ onClose, collapsed = false, onToggleCollapse }
   const isCollapsed = isMobile ? false : collapsed
 
   return (
-    <div className="flex h-full flex-col bg-white dark:bg-[#0d1117]">
+    <div className="flex h-full flex-col bg-surface">
       {/* Logo Section with Close button on mobile */}
-      <div className="flex h-16 items-center justify-between border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-[#010409]">
+      <div className="flex h-16 items-center justify-between border-b border-border bg-bg">
         <Link
-          className={`flex flex-1 h-full items-center gap-3 hover:bg-blue-600 dark:hover:bg-blue-700 transition-colors group ${isCollapsed ? 'justify-center px-2' : 'px-6'}`}
+          className={`flex flex-1 h-full items-center gap-3 hover:bg-surface-hover transition-colors duration-200 group ${isCollapsed ? 'justify-center px-2' : 'px-6'}`}
           href="/dashboard"
           onClick={onClose}
         >
-          <div className="flex items-center gap-2 p-2 rounded-lg bg-blue-50 dark:bg-blue-900/20 group-hover:bg-blue-500 dark:group-hover:bg-blue-600 transition-colors">
-            <Fa4 className="text-blue-600 dark:text-white group-hover:text-white text-xl group-hover:scale-110 transition-all duration-300" />
+          <div className="flex items-center gap-1.5">
+            <Fa4 className="text-accent text-xl group-hover:scale-110 transition-transform duration-300" />
             {!isCollapsed && (
-              <TbTransformPointTopLeft className="text-blue-600 dark:text-white group-hover:text-white text-xl group-hover:rotate-12 group-hover:scale-110 transition-all duration-300" />
+              <TbTransformPointTopLeft className="text-accent text-xl group-hover:rotate-12 group-hover:scale-110 transition-transform duration-300" />
             )}
           </div>
           {!isCollapsed && (
             <div className="flex flex-col">
-              <span className="text-base font-display font-semibold text-gray-900 dark:text-gray-100 group-hover:text-white dark:group-hover:text-white transition-colors">
+              <span className="text-base font-display font-semibold text-fg group-hover:text-accent transition-colors duration-200">
                 Hotel PMS
               </span>
-              <span className="text-sm text-gray-600 dark:text-gray-400 group-hover:text-gray-200 dark:group-hover:text-gray-200 transition-colors">
+              <span className="text-sm text-fg-muted transition-colors duration-200">
                 Management
               </span>
             </div>
@@ -56,7 +56,7 @@ export default function SideNav({ onClose, collapsed = false, onToggleCollapse }
         {onClose && (
           <button
             onClick={onClose}
-            className="md:hidden p-3 mr-2 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
+            className="md:hidden p-3 mr-2 rounded-lg text-fg-subtle hover:bg-surface-hover hover:text-fg transition-colors"
             aria-label="Close menu"
           >
             <XMarkIcon className="w-6 h-6" />
@@ -73,10 +73,10 @@ export default function SideNav({ onClose, collapsed = false, onToggleCollapse }
 
       {/* Collapse Toggle Button - Desktop/Tablet only */}
       {onToggleCollapse && (
-        <div className="hidden md:block border-t border-gray-200 dark:border-gray-800 p-2">
+        <div className="hidden md:block border-t border-border p-2">
           <button
             onClick={onToggleCollapse}
-            className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-700 dark:hover:text-gray-200 transition-colors ${isCollapsed ? 'justify-center' : ''}`}
+            className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-fg-subtle hover:bg-surface-hover hover:text-fg transition-colors ${isCollapsed ? 'justify-center' : ''}`}
             title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           >
             {isCollapsed ? (

@@ -134,15 +134,15 @@ export default function OverviewSection() {
     return (
       <div className="flex flex-col items-center justify-center h-64 gap-4">
         <div className="text-center">
-          <FiClock className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
-          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-1">{t('title')}</h3>
-          <p className="text-sm text-gray-500 dark:text-gray-400 max-w-md">
+          <FiClock className="w-12 h-12 text-fg-subtle mx-auto mb-3" />
+          <h3 className="text-lg font-medium text-fg mb-1">{t('title')}</h3>
+          <p className="text-sm text-fg-subtle max-w-md">
             {t('description', { count: DEFAULT_LIMIT })}
           </p>
         </div>
         <button
           onClick={fetchActivity}
-          className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
+          className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-accent-fg bg-accent hover:bg-accent-hover rounded-lg transition-colors"
         >
           <FiRefreshCw className="w-4 h-4" />
           {t('loadActivity')}
@@ -154,7 +154,7 @@ export default function OverviewSection() {
   return (
     <div className="space-y-4">
       {/* Filters */}
-      <div className="flex items-center gap-4 pb-4 border-b border-gray-200 dark:border-[#30363d]">
+      <div className="flex items-center gap-4 pb-4 border-b border-border">
         <div className="flex items-center gap-2 flex-wrap">
           <FiFilter className="w-4 h-4 text-gray-400" />
 
@@ -173,7 +173,7 @@ export default function OverviewSection() {
               setSourceFilter(e.target.value as ActivitySource | 'all')
               setLoaded(false)
             }}
-            className="text-sm border border-gray-300 dark:border-[#30363d] rounded-lg px-3 py-1.5 bg-white dark:bg-[#0d1117] text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="text-sm border border-border rounded-lg px-3 py-1.5 bg-surface text-fg focus:ring-2 focus:ring-accent/50 focus:border-transparent"
           >
             <option value="all">{t('sources.all')}</option>
             <option value="logbook">{SOURCE_LABELS.logbook}</option>
@@ -203,34 +203,31 @@ export default function OverviewSection() {
 
       {/* Activity List */}
       {!loading && !error && activity.length > 0 && (
-        <div className="border border-gray-200 dark:border-[#30363d] rounded-lg overflow-hidden">
+        <div className="border border-border rounded-lg overflow-hidden">
           <table className="w-full text-sm">
-            <thead className="bg-gray-50 dark:bg-[#161b22]">
+            <thead className="bg-surface-hover">
               <tr>
-                <th className="px-4 py-3 text-left font-medium text-gray-500 dark:text-gray-400">
+                <th className="px-4 py-3 text-left font-medium text-fg-subtle">
                   {t('table.source')}
                 </th>
-                <th className="px-4 py-3 text-left font-medium text-gray-500 dark:text-gray-400">
+                <th className="px-4 py-3 text-left font-medium text-fg-subtle">
                   {t('table.action')}
                 </th>
-                <th className="px-4 py-3 text-left font-medium text-gray-500 dark:text-gray-400">
+                <th className="px-4 py-3 text-left font-medium text-fg-subtle">
                   {t('table.user')}
                 </th>
-                <th className="px-4 py-3 text-left font-medium text-gray-500 dark:text-gray-400">
+                <th className="px-4 py-3 text-left font-medium text-fg-subtle">
                   {t('table.record')}
                 </th>
-                <th className="px-4 py-3 text-left font-medium text-gray-500 dark:text-gray-400">
+                <th className="px-4 py-3 text-left font-medium text-fg-subtle">
                   {t('table.date')}
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200 dark:divide-[#30363d]">
+            <tbody className="divide-y divide-gray-200 dark:divide-border">
               {activity.map((item) => {
                 return (
-                  <tr
-                    key={item.id}
-                    className="hover:bg-gray-50 dark:hover:bg-[#161b22] transition-colors"
-                  >
+                  <tr key={item.id} className="hover:bg-surface-hover transition-colors">
                     <td className="px-4 py-3">
                       <span
                         className={cn(
@@ -242,19 +239,19 @@ export default function OverviewSection() {
                         {SOURCE_LABELS[item.source]}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-gray-900 dark:text-white">
+                    <td className="px-4 py-3 text-fg">
                       {ACTION_LABELS[item.action as keyof typeof ACTION_LABELS] || item.action}
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
                         <FiUser className="w-3.5 h-3.5 text-gray-400" />
-                        <span className="text-gray-700 dark:text-gray-300">{item.username}</span>
+                        <span className="text-fg">{item.username}</span>
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-gray-500 dark:text-gray-400 font-mono text-xs">
+                    <td className="px-4 py-3 text-fg-subtle font-mono text-xs">
                       #{item.record_id || '-'}
                     </td>
-                    <td className="px-4 py-3 text-gray-500 dark:text-gray-400 text-xs">
+                    <td className="px-4 py-3 text-fg-subtle text-xs">
                       {formatDate(item.timestamp)}
                     </td>
                   </tr>
@@ -275,7 +272,7 @@ export default function OverviewSection() {
 
       {/* Count */}
       {!loading && activity.length > 0 && (
-        <div className="text-xs text-gray-500 dark:text-gray-400 text-right">
+        <div className="text-xs text-fg-subtle text-right">
           {t('showing', { count: activity.length, max: DEFAULT_LIMIT })}
         </div>
       )}

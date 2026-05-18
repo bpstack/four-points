@@ -67,21 +67,19 @@ export function PaymentCard({ payment, onEdit }: PaymentCardProps) {
     <div
       id={`payment-${payment.id}`}
       className={cn(
-        'bg-white dark:bg-[#151b23] rounded-lg border p-4 transition-all duration-300',
+        'bg-surface rounded-lg border p-4 transition-all duration-300',
         isHighlighted
           ? 'ring-2 ring-blue-500 border-blue-500 dark:ring-blue-400 dark:border-blue-400 shadow-lg'
-          : 'border-gray-200 dark:border-gray-800 hover:shadow-md dark:hover:shadow-gray-900/50'
+          : 'border-border hover:shadow-md dark:hover:shadow-gray-900/50'
       )}
     >
       {/* Header */}
       <div className="flex items-start justify-between mb-3">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
-            <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate">
-              {payment.payment_name}
-            </h3>
+            <h3 className="text-sm font-semibold text-fg truncate">{payment.payment_name}</h3>
             {payment.payment_order && (
-              <span className="flex-shrink-0 inline-flex items-center justify-center w-5 h-5 text-[10px] font-medium text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 rounded-full">
+              <span className="flex-shrink-0 inline-flex items-center justify-center w-5 h-5 text-[10px] font-medium text-fg-muted bg-surface-sunken rounded-full">
                 {payment.payment_order}
               </span>
             )}
@@ -116,7 +114,7 @@ export function PaymentCard({ payment, onEdit }: PaymentCardProps) {
         {/* Edit button */}
         <button
           onClick={onEdit}
-          className="ml-2 flex-shrink-0 inline-flex items-center justify-center w-8 h-8 text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors"
+          className="ml-2 flex-shrink-0 inline-flex items-center justify-center w-8 h-8 text-fg-muted hover:text-blue-600 dark:hover:text-blue-400 hover:bg-surface-hover rounded transition-colors"
         >
           <FiEdit className="w-4 h-4" />
         </button>
@@ -125,20 +123,20 @@ export function PaymentCard({ payment, onEdit }: PaymentCardProps) {
       {/* Amount Info */}
       <div className="grid grid-cols-2 gap-3 mb-3">
         <div className="flex items-center gap-2">
-          <FiDollarSign className="w-4 h-4 text-gray-400 dark:text-gray-500 flex-shrink-0" />
+          <FiDollarSign className="w-4 h-4 text-fg-subtle flex-shrink-0" />
           <div className="min-w-0">
-            <p className="text-[10px] text-gray-500 dark:text-gray-400">Monto Total</p>
-            <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate">
+            <p className="text-[10px] text-fg-subtle">Monto Total</p>
+            <p className="text-sm font-semibold text-fg truncate">
               {formatCurrency(payment.amount)}
             </p>
           </div>
         </div>
 
         <div className="flex items-center gap-2">
-          <FiDollarSign className="w-4 h-4 text-gray-400 dark:text-gray-500 flex-shrink-0" />
+          <FiDollarSign className="w-4 h-4 text-fg-subtle flex-shrink-0" />
           <div className="min-w-0">
-            <p className="text-[10px] text-gray-500 dark:text-gray-400">Pagado</p>
-            <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate">
+            <p className="text-[10px] text-fg-subtle">Pagado</p>
+            <p className="text-sm font-semibold text-fg truncate">
               {formatCurrency(payment.amount_paid)}
             </p>
           </div>
@@ -149,12 +147,10 @@ export function PaymentCard({ payment, onEdit }: PaymentCardProps) {
       {payment.amount > 0 && (
         <div className="mb-3">
           <div className="flex items-center justify-between mb-1">
-            <span className="text-[10px] text-gray-500 dark:text-gray-400">Progreso</span>
-            <span className="text-[10px] font-medium text-gray-900 dark:text-gray-100">
-              {percentagePaid}%
-            </span>
+            <span className="text-[10px] text-fg-subtle">Progreso</span>
+            <span className="text-[10px] font-medium text-fg">{percentagePaid}%</span>
           </div>
-          <div className="w-full h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+          <div className="w-full h-1.5 bg-surface-hover rounded-full overflow-hidden">
             <div
               className={cn(
                 'h-full transition-all duration-300 rounded-full',
@@ -162,7 +158,7 @@ export function PaymentCard({ payment, onEdit }: PaymentCardProps) {
                   ? 'bg-green-500 dark:bg-green-400'
                   : percentagePaid > 0
                     ? 'bg-blue-500 dark:bg-blue-400'
-                    : 'bg-gray-300 dark:bg-gray-600'
+                    : 'bg-border-strong'
               )}
               style={{ width: `${Math.min(percentagePaid, 100)}%` }}
             />
@@ -171,15 +167,15 @@ export function PaymentCard({ payment, onEdit }: PaymentCardProps) {
       )}
 
       {/* Due date */}
-      <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
+      <div className="flex items-center gap-2 text-xs text-fg-muted">
         <FiCalendar className="w-3.5 h-3.5 flex-shrink-0" />
         <span>Vencimiento: {formatDate(payment.due_date)}</span>
       </div>
 
       {/* Notes */}
       {payment.notes && (
-        <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-800">
-          <p className="text-xs text-gray-600 dark:text-gray-400 line-clamp-2">{payment.notes}</p>
+        <div className="mt-3 pt-3 border-t border-border">
+          <p className="text-xs text-fg-muted line-clamp-2">{payment.notes}</p>
         </div>
       )}
     </div>

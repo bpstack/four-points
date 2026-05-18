@@ -40,7 +40,7 @@ export default function CancelModal({
           <button
             onClick={onClose}
             disabled={loading}
-            className="px-5 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-all duration-200 disabled:opacity-50"
+            className="px-5 py-2.5 text-sm font-medium text-fg hover:bg-surface-hover rounded-lg transition-all duration-200 disabled:opacity-50"
           >
             {t('noKeep')}
           </button>
@@ -58,26 +58,18 @@ export default function CancelModal({
         <p className="text-sm font-medium text-rose-900 dark:text-rose-200">⚠️ {t('cannotUndo')}</p>
       </div>
 
-      <div className="space-y-3 bg-gradient-to-br from-gray-50 to-slate-50 dark:from-slate-800/60 dark:to-slate-900/60 p-5 rounded-xl border border-gray-100 dark:border-slate-700/50">
+      <div className="space-y-3 bg-surface-sunken p-5 rounded-xl border border-border">
         <div className="flex justify-between items-center">
-          <span className="text-sm text-gray-600 dark:text-gray-400 font-medium">
-            {t('client')}:
-          </span>
-          <span className="font-semibold text-gray-900 dark:text-gray-100">
-            {booking.vehicle?.owner || t('noClient')}
-          </span>
+          <span className="text-sm text-fg-muted font-medium">{t('client')}:</span>
+          <span className="font-semibold text-fg">{booking.vehicle?.owner || t('noClient')}</span>
         </div>
         <div className="flex justify-between items-center">
-          <span className="text-sm text-gray-600 dark:text-gray-400 font-medium">
-            {t('vehicle')}:
-          </span>
-          <span className="font-mono font-semibold text-gray-900 dark:text-gray-100">
-            {booking.vehicle?.plate}
-          </span>
+          <span className="text-sm text-fg-muted font-medium">{t('vehicle')}:</span>
+          <span className="font-mono font-semibold text-fg">{booking.vehicle?.plate}</span>
         </div>
         <div className="flex justify-between items-center">
-          <span className="text-sm text-gray-600 dark:text-gray-400 font-medium">{t('spot')}:</span>
-          <span className="font-semibold text-gray-900 dark:text-gray-100">
+          <span className="text-sm text-fg-muted font-medium">{t('spot')}:</span>
+          <span className="font-semibold text-fg">
             {booking.spot?.level} · {booking.spot?.number}
           </span>
         </div>

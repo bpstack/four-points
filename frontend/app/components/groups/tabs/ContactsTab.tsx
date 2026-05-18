@@ -47,13 +47,13 @@ export function ContactsTab() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+        <h3 className="text-sm font-semibold text-fg flex items-center gap-2">
           <FiUsers className="w-4 h-4" />
           {t('contacts.groupContacts')} ({contacts.length})
         </h3>
         <button
           onClick={handleCreateContact}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-green-600 dark:bg-green-700 text-white text-xs font-medium rounded-md hover:bg-green-700 dark:hover:bg-green-800 transition-colors"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-accent text-accent-fg text-xs font-medium rounded-md hover:bg-accent-hover transition-colors"
         >
           <FiPlus className="w-3.5 h-3.5" />
           {t('contacts.newContact')}
@@ -69,7 +69,7 @@ export function ContactsTab() {
           action={
             <button
               onClick={handleCreateContact}
-              className="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors"
+              className="inline-flex items-center gap-1.5 px-4 py-2 bg-accent text-accent-fg text-sm font-medium rounded-md hover:bg-accent-hover transition-colors"
             >
               <FiPlus className="w-4 h-4" />
               {t('contacts.createFirst')}
@@ -81,9 +81,7 @@ export function ContactsTab() {
           {/* Primary Contact */}
           {primaryContact && (
             <div>
-              <h4 className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">
-                {t('contacts.primaryContact')}
-              </h4>
+              <h4 className="text-xs font-medium text-fg mb-2">{t('contacts.primaryContact')}</h4>
               <ContactCard
                 contact={primaryContact}
                 onEdit={() => handleEditContact(primaryContact.id)}
@@ -94,9 +92,7 @@ export function ContactsTab() {
           {/* Other Contacts */}
           {otherContacts.length > 0 && (
             <div>
-              <h4 className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">
-                {t('contacts.otherContacts')}
-              </h4>
+              <h4 className="text-xs font-medium text-fg mb-2">{t('contacts.otherContacts')}</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {otherContacts.map((contact) => (
                   <ContactCard
@@ -113,7 +109,7 @@ export function ContactsTab() {
 
       {/* Info Box */}
       {contacts.length > 0 && (
-        <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+        <div className="bg-info/10 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
           <p className="text-xs text-blue-800 dark:text-blue-300">
             {t('contacts.primaryContactTip')}
           </p>

@@ -37,7 +37,7 @@ const SEVERITY_CONFIG_BASE = {
   },
   info: {
     icon: FiInfo,
-    bgColor: 'bg-blue-50 dark:bg-blue-900/20',
+    bgColor: 'bg-info/10',
     borderColor: 'border-blue-200 dark:border-blue-800',
     textColor: 'text-blue-800 dark:text-blue-200',
     iconColor: 'text-blue-500 dark:text-blue-400',
@@ -121,21 +121,21 @@ export function ValidationWarnings({ warnings, onDismiss }: ValidationWarningsPr
               }}
               className="p-1 rounded hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
             >
-              <FiX className="w-4 h-4 text-gray-500" />
+              <FiX className="w-4 h-4 text-fg-muted" />
             </button>
           )}
           {isExpanded ? (
-            <FiChevronUp className="w-4 h-4 text-gray-500" />
+            <FiChevronUp className="w-4 h-4 text-fg-muted" />
           ) : (
-            <FiChevronDown className="w-4 h-4 text-gray-500" />
+            <FiChevronDown className="w-4 h-4 text-fg-muted" />
           )}
         </div>
       </div>
 
       {/* Warnings List */}
       {isExpanded && (
-        <div className="border-t border-gray-200 dark:border-gray-700 max-h-64 overflow-y-auto">
-          <ul className="divide-y divide-gray-200 dark:divide-gray-700">
+        <div className="border-t border-border max-h-64 overflow-y-auto">
+          <ul className="divide-y divide-border">
             {sortedWarnings.map((warning, index) => {
               const config = SEVERITY_CONFIG[warning.severity]
               const Icon = config.icon
@@ -147,20 +147,18 @@ export function ValidationWarnings({ warnings, onDismiss }: ValidationWarningsPr
                 >
                   <Icon className={`w-4 h-4 mt-0.5 flex-shrink-0 ${config.iconColor}`} />
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm text-gray-700 dark:text-gray-300">{warning.message}</p>
+                    <p className="text-sm text-fg">{warning.message}</p>
                     <div className="flex items-center gap-2 mt-1">
-                      <span className="text-xs text-gray-500 dark:text-gray-400">
+                      <span className="text-xs text-fg-subtle">
                         {TYPE_LABELS[warning.type] || warning.type}
                       </span>
                       {warning.day && (
-                        <span className="text-xs text-gray-500 dark:text-gray-400">
+                        <span className="text-xs text-fg-subtle">
                           • {t('day', { day: warning.day })}
                         </span>
                       )}
                       {warning.employeeName && (
-                        <span className="text-xs text-gray-500 dark:text-gray-400">
-                          • {warning.employeeName}
-                        </span>
+                        <span className="text-xs text-fg-subtle">• {warning.employeeName}</span>
                       )}
                     </div>
                   </div>

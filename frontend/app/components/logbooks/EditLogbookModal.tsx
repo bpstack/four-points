@@ -46,7 +46,7 @@ export default function EditLogbookModal({
       onClose={onClose}
       title={t('modals.editEntry.title')}
       size="lg"
-      headerIcon={<FiEdit className="w-5 h-5 text-blue-600 dark:text-blue-400" />}
+      headerIcon={<FiEdit className="w-5 h-5 text-info" />}
       footer={
         <CenterModalFooterButtons
           onCancel={onClose}

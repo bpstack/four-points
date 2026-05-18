@@ -164,5 +164,5 @@ export const SEVERITY_COLORS = {
 
 export const STATUS_COLORS = {
   ACTIVE: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
-  DELETED: 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300',
+  DELETED: 'bg-surface-hover text-fg',
 } as const

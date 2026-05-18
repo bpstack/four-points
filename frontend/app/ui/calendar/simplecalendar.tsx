@@ -70,10 +70,10 @@ export default function SimpleCalendar({ selectedDate, onSelect, onClose }: Simp
             h-9 w-9 rounded-lg text-sm font-medium transition-all
             ${
               isSelected
-                ? 'bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600'
+                ? 'bg-accent text-accent-fg hover:bg-accent-hover dark:bg-blue-500 dark:hover:bg-accent-hover'
                 : isCurrentDay
                   ? 'border-2 border-blue-600 text-blue-600 dark:border-blue-400 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950'
-                  : 'text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800'
+                  : 'text-fg hover:bg-surface-hover'
             }
           `}
         >
@@ -86,22 +86,22 @@ export default function SimpleCalendar({ selectedDate, onSelect, onClose }: Simp
   }
 
   return (
-    <div className="bg-white dark:bg-[#161b22] rounded-lg shadow-xl p-5 border border-gray-200 dark:border-[#30363d] w-[290px]">
+    <div className="bg-surface rounded-lg shadow-xl p-5 border border-gray-200 w-[290px]">
       <div className="flex items-center justify-between mb-4">
         <button
           onClick={previousMonth}
-          className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 transition-colors"
+          className="p-2 rounded-lg hover:bg-surface-hover text-fg transition-colors"
         >
           <FaChevronLeft className="w-4 h-4" />
         </button>
 
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+        <h3 className="text-lg font-semibold text-fg">
           {monthNames[currentMonth.getMonth()]} {currentMonth.getFullYear()}
         </h3>
 
         <button
           onClick={nextMonth}
-          className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 transition-colors"
+          className="p-2 rounded-lg hover:bg-surface-hover text-fg transition-colors"
         >
           <FaChevronRight className="w-4 h-4" />
         </button>
@@ -111,7 +111,7 @@ export default function SimpleCalendar({ selectedDate, onSelect, onClose }: Simp
         {dayNames.map((day, index) => (
           <div
             key={index}
-            className="h-9 w-9 flex items-center justify-center text-xs font-semibold text-gray-500 dark:text-gray-400"
+            className="h-9 w-9 flex items-center justify-center text-xs font-semibold text-fg-subtle"
           >
             {day}
           </div>
@@ -121,10 +121,10 @@ export default function SimpleCalendar({ selectedDate, onSelect, onClose }: Simp
       <div className="grid grid-cols-7 gap-2">{renderDays()}</div>
 
       {onClose && (
-        <div className="mt-4 pt-4 border-t border-gray-200 dark:border-[#30363d] flex justify-end">
+        <div className="mt-4 pt-4 border-t border-gray-200 flex justify-end">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+            className="px-4 py-2 text-sm font-medium text-fg hover:bg-surface-hover rounded-lg transition-colors"
           >
             {t('calendar.close')}
           </button>

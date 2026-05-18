@@ -5,13 +5,13 @@
 
 function StatsCardSkeleton() {
   return (
-    <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-3 animate-pulse">
+    <div className="bg-surface rounded-md border border-border p-3 animate-pulse">
       <div className="flex items-center justify-between">
         <div className="space-y-2">
-          <div className="h-3 w-16 bg-gray-200 dark:bg-gray-700 rounded" />
-          <div className="h-6 w-12 bg-gray-200 dark:bg-gray-700 rounded" />
+          <div className="h-3 w-16 bg-surface-hover rounded" />
+          <div className="h-6 w-12 bg-surface-hover rounded" />
         </div>
-        <div className="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-lg" />
+        <div className="w-8 h-8 bg-surface-hover rounded-lg" />
       </div>
     </div>
   )
@@ -22,27 +22,27 @@ function TableRowSkeleton() {
     <tr className="animate-pulse">
       <td className="px-3 py-2">
         <div className="space-y-1">
-          <div className="h-4 w-32 bg-gray-200 dark:bg-gray-700 rounded" />
-          <div className="h-3 w-20 bg-gray-100 dark:bg-gray-800 rounded" />
+          <div className="h-4 w-32 bg-surface-hover rounded" />
+          <div className="h-3 w-20 bg-surface-hover rounded" />
         </div>
       </td>
       <td className="px-3 py-2">
-        <div className="h-4 w-24 bg-gray-200 dark:bg-gray-700 rounded" />
+        <div className="h-4 w-24 bg-surface-hover rounded" />
       </td>
       <td className="px-3 py-2">
         <div className="space-y-1">
-          <div className="h-3 w-20 bg-gray-200 dark:bg-gray-700 rounded" />
-          <div className="h-3 w-20 bg-gray-100 dark:bg-gray-800 rounded" />
+          <div className="h-3 w-20 bg-surface-hover rounded" />
+          <div className="h-3 w-20 bg-surface-hover rounded" />
         </div>
       </td>
       <td className="px-3 py-2">
-        <div className="h-5 w-16 bg-gray-200 dark:bg-gray-700 rounded-full" />
+        <div className="h-5 w-16 bg-surface-hover rounded-full" />
       </td>
       <td className="px-3 py-2">
-        <div className="h-4 w-16 bg-gray-200 dark:bg-gray-700 rounded" />
+        <div className="h-4 w-16 bg-surface-hover rounded" />
       </td>
       <td className="px-3 py-2 text-right">
-        <div className="h-7 w-7 bg-gray-200 dark:bg-gray-700 rounded ml-auto" />
+        <div className="h-7 w-7 bg-surface-hover rounded ml-auto" />
       </td>
     </tr>
   )
@@ -50,20 +50,20 @@ function TableRowSkeleton() {
 
 function MobileCardSkeleton() {
   return (
-    <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-3 animate-pulse">
+    <div className="bg-surface rounded-md border border-border p-3 animate-pulse">
       <div className="flex items-start justify-between mb-2">
         <div className="space-y-1 flex-1">
-          <div className="h-4 w-32 bg-gray-200 dark:bg-gray-700 rounded" />
-          <div className="h-3 w-20 bg-gray-100 dark:bg-gray-800 rounded" />
+          <div className="h-4 w-32 bg-surface-hover rounded" />
+          <div className="h-3 w-20 bg-surface-hover rounded" />
         </div>
-        <div className="h-6 w-6 bg-gray-200 dark:bg-gray-700 rounded" />
+        <div className="h-6 w-6 bg-surface-hover rounded" />
       </div>
       <div className="flex items-center justify-between mt-3">
         <div className="flex items-center gap-2">
-          <div className="h-5 w-16 bg-gray-200 dark:bg-gray-700 rounded-full" />
-          <div className="h-4 w-12 bg-gray-100 dark:bg-gray-800 rounded" />
+          <div className="h-5 w-16 bg-surface-hover rounded-full" />
+          <div className="h-4 w-12 bg-surface-hover rounded" />
         </div>
-        <div className="h-3 w-16 bg-gray-100 dark:bg-gray-800 rounded" />
+        <div className="h-3 w-16 bg-surface-hover rounded" />
       </div>
     </div>
   )
@@ -71,16 +71,16 @@ function MobileCardSkeleton() {
 
 export default function GroupsLoading() {
   return (
-    <div className="min-h-screen bg-white dark:bg-[#010409] p-4 md:p-6">
+    <div className="min-h-screen bg-bg p-4 md:p-6">
       <div className="max-w-[1400px] space-y-5">
         {/* Header */}
         <div className="mb-4 sm:mb-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div className="space-y-1">
-              <div className="h-7 w-32 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
-              <div className="h-4 w-48 bg-gray-100 dark:bg-gray-800 rounded animate-pulse" />
+              <div className="h-7 w-32 bg-surface-hover rounded animate-pulse" />
+              <div className="h-4 w-48 bg-surface-hover rounded animate-pulse" />
             </div>
-            <div className="h-8 w-28 bg-gray-200 dark:bg-gray-700 rounded-md animate-pulse" />
+            <div className="h-8 w-28 bg-surface-hover rounded-md animate-pulse" />
           </div>
         </div>
 
@@ -94,23 +94,23 @@ export default function GroupsLoading() {
 
         {/* Filters */}
         <div className="flex flex-col sm:flex-row gap-2 animate-pulse">
-          <div className="flex-1 h-8 bg-gray-200 dark:bg-gray-700 rounded-md" />
-          <div className="w-full sm:w-36 h-8 bg-gray-200 dark:bg-gray-700 rounded-md" />
+          <div className="flex-1 h-8 bg-surface-hover rounded-md" />
+          <div className="w-full sm:w-36 h-8 bg-surface-hover rounded-md" />
         </div>
 
         {/* Table - Desktop */}
-        <div className="hidden md:block bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 overflow-hidden">
+        <div className="hidden md:block bg-surface rounded-md border border-border overflow-hidden">
           <table className="w-full">
-            <thead className="bg-gray-50 dark:bg-[#0d1117] border-b border-gray-200 dark:border-gray-800">
+            <thead className="bg-gray-50 dark:bg-surface border-b border-border">
               <tr>
                 {[1, 2, 3, 4, 5, 6].map((i) => (
                   <th key={i} className="px-3 py-2">
-                    <div className="h-3 w-16 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                    <div className="h-3 w-16 bg-surface-hover rounded animate-pulse" />
                   </th>
                 ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
+            <tbody className="divide-y divide-border">
               {[...Array(8)].map((_, i) => (
                 <TableRowSkeleton key={i} />
               ))}

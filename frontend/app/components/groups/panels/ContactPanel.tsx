@@ -3,7 +3,7 @@
 'use client'
 
 import { useEffect } from 'react'
-import { useForm, type Resolver } from 'react-hook-form'
+import { useForm, Controller, type Resolver } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { FiSave } from 'react-icons/fi'
 import toast from 'react-hot-toast'
@@ -23,8 +23,8 @@ import {
   SlidePanelFooterButtons,
   FormField,
   inputClassName,
-  checkboxClassName,
 } from '@/app/ui/panels'
+import { Checkbox } from '@/app/ui/components'
 
 interface ContactPanelProps {
   isOpen: boolean
@@ -49,6 +49,7 @@ export function ContactPanel({ isOpen, onClose, contact, groupId }: ContactPanel
     register,
     handleSubmit,
     reset,
+    control,
     formState: { errors, isSubmitting },
   } = useForm<ContactFormData>({
     resolver: zodResolver(contactSchema) as Resolver<ContactFormData>,
@@ -156,24 +157,21 @@ export function ContactPanel({ isOpen, onClose, contact, groupId }: ContactPanel
         </FormField>
 
         {/* Is Primary */}
-        <div className="flex items-center gap-2">
-          <input
-            {...register('is_primary')}
-            type="checkbox"
-            id="is_primary"
-            className={checkboxClassName}
-          />
-          <label
-            htmlFor="is_primary"
-            className="text-sm font-medium text-gray-700 dark:text-gray-300"
-          >
-            {t('contactPanel.isPrimary')}
-          </label>
-        </div>
+        <Controller
+          name="is_primary"
+          control={control}
+          render={({ field }) => (
+            <Checkbox
+              checked={!!field.value}
+              onCheckedChange={field.onChange}
+              label={t('contactPanel.isPrimary')}
+              strikeOnCheck={false}
+              id="is_primary"
+            />
+          )}
+        />
 
-        <p className="text-xs text-gray-500 dark:text-gray-400">
-          {t('contactPanel.isPrimaryHint')}
-        </p>
+        <p className="text-xs text-fg-subtle">{t('contactPanel.isPrimaryHint')}</p>
       </SlidePanelSection>
     </SlidePanel>
   )

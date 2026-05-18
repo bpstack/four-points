@@ -152,25 +152,23 @@ export function ManageHolidaysModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="w-full max-w-4xl max-h-[90vh] bg-white dark:bg-[#151b23] rounded-lg shadow-xl flex flex-col">
+      <div className="w-full max-w-4xl max-h-[90vh] bg-surface rounded-lg shadow-xl flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-800">
+        <div className="flex items-center justify-between p-4 border-b border-border">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-md bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-md bg-info/10 flex items-center justify-center">
               <FiCalendar className="w-5 h-5 text-blue-600 dark:text-blue-400" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                {t('manageHolidaysTitle')}
-              </h2>
-              <p className="text-xs text-gray-600 dark:text-gray-400">
+              <h2 className="text-lg font-semibold text-fg">{t('manageHolidaysTitle')}</h2>
+              <p className="text-xs text-fg-muted">
                 {MONTH_NAMES[month - 1]} {year}
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 flex items-center justify-center text-gray-500 dark:text-gray-400 transition-colors"
+            className="w-8 h-8 rounded-md hover:bg-surface-hover flex items-center justify-center text-fg-subtle transition-colors"
           >
             <FiX className="w-5 h-5" />
           </button>
@@ -180,14 +178,12 @@ export function ManageHolidaysModal({
         <div className="flex-1 overflow-y-auto p-4 space-y-6">
           {/* Holiday days section */}
           <div>
-            <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2">
+            <h3 className="text-sm font-semibold text-fg mb-3 flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-red-500"></span>
               {t('holidayDays')} ({holidayDays.length})
             </h3>
             {holidayDays.length === 0 ? (
-              <p className="text-xs text-gray-500 dark:text-gray-400 italic">
-                {t('noHolidaysMarked')}
-              </p>
+              <p className="text-xs text-fg-subtle italic">{t('noHolidaysMarked')}</p>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {holidayDays.map((day) => (
@@ -202,7 +198,7 @@ export function ManageHolidaysModal({
                       <FiCheck className="w-3.5 h-3.5 text-white" />
                     </button>
                     <div className="flex-1 min-w-0">
-                      <div className="text-xs font-medium text-gray-700 dark:text-gray-300">
+                      <div className="text-xs font-medium text-fg">
                         {DAY_NAMES_FULL[day.dayOfWeek]} {day.dayNumber}
                       </div>
                       <input
@@ -210,7 +206,7 @@ export function ManageHolidaysModal({
                         value={day.edit?.holiday_name || ''}
                         onChange={(e) => handleChangeName(day.id, e.target.value)}
                         placeholder={t('holidayNamePlaceholder')}
-                        className="mt-1 w-full px-2 py-1 text-xs rounded border border-gray-300 dark:border-gray-700 bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-red-500"
+                        className="mt-1 w-full px-2 py-1 text-xs rounded border border-border bg-surface text-fg placeholder-fg-subtle focus:outline-none focus:ring-2 focus:ring-red-500"
                       />
                     </div>
                   </div>
@@ -221,7 +217,7 @@ export function ManageHolidaysModal({
 
           {/* Regular days section */}
           <div>
-            <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2">
+            <h3 className="text-sm font-semibold text-fg mb-3 flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-gray-400"></span>
               {t('regularDays')} ({regularDays.length})
             </h3>
@@ -230,12 +226,12 @@ export function ManageHolidaysModal({
                 <button
                   key={day.id}
                   onClick={() => handleToggleHoliday(day.id)}
-                  className="flex items-center gap-2 p-2 rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#0d1117] hover:border-blue-500 dark:hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/10 transition-colors text-left"
+                  className="flex items-center gap-2 p-2 rounded-md border border-border bg-surface hover:border-blue-500 dark:hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/10 transition-colors text-left"
                 >
-                  <div className="w-4 h-4 rounded border-2 border-gray-300 dark:border-gray-600 flex-shrink-0"></div>
-                  <div className="text-xs text-gray-700 dark:text-gray-300 min-w-0">
+                  <div className="w-4 h-4 rounded border-2 border-border flex-shrink-0"></div>
+                  <div className="text-xs text-fg min-w-0">
                     <div className="font-medium">{DAY_NAMES_FULL[day.dayOfWeek]}</div>
-                    <div className="text-gray-500 dark:text-gray-400">Día {day.dayNumber}</div>
+                    <div className="text-fg-subtle">Día {day.dayNumber}</div>
                   </div>
                 </button>
               ))}
@@ -244,19 +240,19 @@ export function ManageHolidaysModal({
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between p-4 border-t border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-[#0d1117]">
-          <p className="text-xs text-gray-600 dark:text-gray-400">{t('clickToToggleHoliday')}</p>
+        <div className="flex items-center justify-between p-4 border-t border-border bg-surface-sunken">
+          <p className="text-xs text-fg-muted">{t('clickToToggleHoliday')}</p>
           <div className="flex items-center gap-2">
             <button
               onClick={onClose}
-              className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md transition-colors"
+              className="px-4 py-2 text-sm font-medium text-fg hover:bg-surface-hover rounded-md transition-colors"
             >
               {t('cancel')}
             </button>
             <button
               onClick={handleSave}
               disabled={saveMutation.isPending}
-              className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 dark:bg-blue-600 dark:hover:bg-blue-700 dark:disabled:bg-blue-800 rounded-md transition-colors flex items-center gap-2"
+              className="px-4 py-2 text-sm font-medium text-accent-fg bg-accent hover:bg-accent-hover disabled:bg-blue-400 dark:bg-blue-600 dark:hover:bg-accent-hover dark:disabled:bg-blue-800 rounded-md transition-colors flex items-center gap-2"
             >
               <FiSave className="w-4 h-4" />
               {saveMutation.isPending ? t('saving') : t('saveChanges')}

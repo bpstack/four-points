@@ -91,7 +91,7 @@ export function SlidePanelFooterWithDelete({
           type="button"
           onClick={onCancel}
           disabled={isDisabled}
-          className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 transition-colors"
+          className="flex-1 px-4 py-2 text-sm font-medium text-fg bg-surface-hover border border-border rounded-md hover:bg-surface-hover focus:outline-none focus:ring-2 focus:ring-accent/50 disabled:opacity-50 transition-colors"
         >
           {resolvedCancelText}
         </button>
@@ -99,7 +99,7 @@ export function SlidePanelFooterWithDelete({
           type="button"
           onClick={onSubmit}
           disabled={isDisabled || submitDisabled}
-          className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 transition-colors"
+          className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-accent-fg bg-accent rounded-md hover:bg-accent-hover focus:outline-none focus:ring-2 focus:ring-accent/50 disabled:opacity-50 transition-colors"
         >
           {isSubmitting ? (
             <>
@@ -116,22 +116,20 @@ export function SlidePanelFooterWithDelete({
       </div>
 
       {/* Delete section */}
-      <div className="flex justify-center pt-2 border-t border-gray-100 dark:border-gray-800">
+      <div className="flex justify-center pt-2 border-t border-border">
         {!showDeleteConfirm ? (
           <button
             type="button"
             onClick={() => setShowDeleteConfirm(true)}
             disabled={isDisabled}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 focus:outline-none focus:text-red-600 dark:focus:text-red-400 disabled:opacity-50 transition-colors"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-fg-subtle hover:text-red-600 dark:hover:text-red-400 focus:outline-none focus:text-red-600 dark:focus:text-red-400 disabled:opacity-50 transition-colors"
           >
             <FiTrash2 className="w-3.5 h-3.5" />
             {resolvedDeleteText}
           </button>
         ) : (
           <div className="flex items-center gap-2 flex-wrap justify-center">
-            <span className="text-xs text-gray-600 dark:text-gray-400">
-              {resolvedDeleteConfirmText}
-            </span>
+            <span className="text-xs text-fg-muted">{resolvedDeleteConfirmText}</span>
             <button
               type="button"
               onClick={handleDelete}
@@ -144,7 +142,7 @@ export function SlidePanelFooterWithDelete({
               type="button"
               onClick={() => setShowDeleteConfirm(false)}
               disabled={isDeleting}
-              className="px-2.5 py-1 text-xs font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 focus:outline-none disabled:opacity-50 transition-colors"
+              className="px-2.5 py-1 text-xs font-medium text-fg-muted hover:text-fg focus:outline-none disabled:opacity-50 transition-colors"
             >
               {t('actions.no')}
             </button>

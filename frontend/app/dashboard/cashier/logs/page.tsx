@@ -76,17 +76,13 @@ export default function LogsPage() {
       .slice(0, 2) || []
 
   return (
-    <div className="min-h-screen bg-white dark:bg-[#010409] p-4 md:p-6">
+    <div className="min-h-screen bg-bg p-4 md:p-6">
       <div className="max-w-[1400px] space-y-5">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
-              {t('logs.pageTitle')}
-            </h1>
-            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-0.5">
-              {t('logs.pageSubtitle')}
-            </p>
+            <h1 className="text-xl sm:text-2xl font-bold text-fg">{t('logs.pageTitle')}</h1>
+            <p className="text-xs sm:text-sm text-fg-muted mt-0.5">{t('logs.pageSubtitle')}</p>
           </div>
 
           <DateNavigator
@@ -105,13 +101,13 @@ export default function LogsPage() {
             {!statsLoading && statsData && (
               <div className="grid grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 min-[1400px]:hidden">
                 {/* Total Registros */}
-                <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-3">
+                <div className="bg-surface rounded-md border border-border p-3">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 font-medium">
+                      <p className="text-[10px] sm:text-xs text-fg-muted font-medium">
                         {t('logs.totalRecords')}
                       </p>
-                      <p className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 mt-0.5">
+                      <p className="text-lg sm:text-xl font-bold text-fg mt-0.5">
                         {statsData.total_entries}
                       </p>
                     </div>
@@ -120,13 +116,13 @@ export default function LogsPage() {
                 </div>
 
                 {/* Usuarios Activos */}
-                <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-3">
+                <div className="bg-surface rounded-md border border-border p-3">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 font-medium">
+                      <p className="text-[10px] sm:text-xs text-fg-muted font-medium">
                         {t('logs.activeUsers')}
                       </p>
-                      <p className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 mt-0.5">
+                      <p className="text-lg sm:text-xl font-bold text-fg mt-0.5">
                         {topUsers.length}
                       </p>
                     </div>
@@ -135,13 +131,13 @@ export default function LogsPage() {
                 </div>
 
                 {/* Top Acción */}
-                <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-3 col-span-2 lg:col-span-1">
+                <div className="bg-surface rounded-md border border-border p-3 col-span-2 lg:col-span-1">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 font-medium">
+                      <p className="text-[10px] sm:text-xs text-fg-muted font-medium">
                         {t('logs.frequentAction')}
                       </p>
-                      <p className="text-sm sm:text-base font-bold text-gray-900 dark:text-gray-100 mt-0.5">
+                      <p className="text-sm sm:text-base font-bold text-fg mt-0.5">
                         {topActions[0] ? getActionLabel(topActions[0].action) : '-'}
                       </p>
                     </div>

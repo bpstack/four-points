@@ -62,17 +62,13 @@ export default function ReportsPage() {
     : null
 
   return (
-    <div className="min-h-screen bg-white dark:bg-[#010409] p-4 md:p-6">
+    <div className="min-h-screen bg-bg p-4 md:p-6">
       <div className="max-w-[1400px] space-y-5">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
-              {t('reports.pageTitle')}
-            </h1>
-            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-0.5">
-              {t('reports.pageSubtitle')}
-            </p>
+            <h1 className="text-xl sm:text-2xl font-bold text-fg">{t('reports.pageTitle')}</h1>
+            <p className="text-xs sm:text-sm text-fg-muted mt-0.5">{t('reports.pageSubtitle')}</p>
           </div>
 
           <DateNavigator
@@ -105,13 +101,13 @@ export default function ReportsPage() {
                   </div>
                 </div>
 
-                <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-3">
+                <div className="bg-surface rounded-md border border-border p-3">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 font-medium">
+                      <p className="text-[10px] sm:text-xs text-fg-muted font-medium">
                         {t('reports.cash')}
                       </p>
-                      <p className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 mt-0.5">
+                      <p className="text-lg sm:text-xl font-bold text-fg mt-0.5">
                         {parsedReport.totalCash.toFixed(2)}€
                       </p>
                     </div>
@@ -119,13 +115,13 @@ export default function ReportsPage() {
                   </div>
                 </div>
 
-                <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-3">
+                <div className="bg-surface rounded-md border border-border p-3">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 font-medium">
+                      <p className="text-[10px] sm:text-xs text-fg-muted font-medium">
                         {t('reports.electronic')}
                       </p>
-                      <p className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 mt-0.5">
+                      <p className="text-lg sm:text-xl font-bold text-fg mt-0.5">
                         {parsedReport.electronicPayments.toFixed(2)}€
                       </p>
                     </div>
@@ -133,13 +129,13 @@ export default function ReportsPage() {
                   </div>
                 </div>
 
-                <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-3 col-span-2 lg:col-span-1">
+                <div className="bg-surface rounded-md border border-border p-3 col-span-2 lg:col-span-1">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 font-medium">
+                      <p className="text-[10px] sm:text-xs text-fg-muted font-medium">
                         {t('reports.daysClosed')}
                       </p>
-                      <p className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 mt-0.5">
+                      <p className="text-lg sm:text-xl font-bold text-fg mt-0.5">
                         {parsedReport.daysClosed}/{parsedReport.totalDays}
                       </p>
                     </div>
@@ -150,7 +146,7 @@ export default function ReportsPage() {
             )}
 
             {/* Tabs */}
-            <div className="bg-white dark:bg-[#0d1117] border border-gray-200 dark:border-gray-800 rounded-lg p-1">
+            <div className="bg-surface border border-border rounded-lg p-1">
               <div className="flex gap-1">
                 {TAB_CONFIG.map((tab) => (
                   <button
@@ -158,8 +154,8 @@ export default function ReportsPage() {
                     onClick={() => setReportsTab(tab.id)}
                     className={`flex-1 px-3 py-2 rounded-md text-xs font-medium transition-colors ${
                       activeTab === tab.id
-                        ? 'bg-blue-600 text-white'
-                        : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
+                        ? 'bg-accent text-accent-fg'
+                        : 'text-fg-muted hover:bg-surface-hover'
                     }`}
                   >
                     {tab.label}
@@ -176,13 +172,13 @@ export default function ReportsPage() {
                 <div className="space-y-4">
                   {/* Toggle view mode */}
                   <div className="flex justify-end">
-                    <div className="inline-flex bg-white dark:bg-[#0d1117] border border-gray-200 dark:border-gray-800 rounded-lg p-1">
+                    <div className="inline-flex bg-surface border border-border rounded-lg p-1">
                       <button
                         onClick={() => setChartViewMode('pie')}
                         className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
                           chartViewMode === 'pie'
-                            ? 'bg-blue-600 text-white'
-                            : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
+                            ? 'bg-accent text-accent-fg'
+                            : 'text-fg-muted hover:bg-surface-hover'
                         }`}
                       >
                         {t('reports.pie')}
@@ -191,8 +187,8 @@ export default function ReportsPage() {
                         onClick={() => setChartViewMode('bar')}
                         className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
                           chartViewMode === 'bar'
-                            ? 'bg-blue-600 text-white'
-                            : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
+                            ? 'bg-accent text-accent-fg'
+                            : 'text-fg-muted hover:bg-surface-hover'
                         }`}
                       >
                         {t('reports.bar')}

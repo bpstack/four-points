@@ -71,7 +71,7 @@ interface ModalStepIndicatorProps {
 
 function ModalStepIndicator({ steps, currentStep }: ModalStepIndicatorProps) {
   return (
-    <div className="px-6 py-4 bg-gray-50/50 dark:bg-slate-900/50 border-b border-gray-100 dark:border-slate-800">
+    <div className="px-6 py-4 bg-surface-sunken/50 border-b border-border">
       <div className="flex items-center justify-between max-w-md mx-auto">
         {steps.map((step, idx) => (
           <div key={step.number} className="flex items-center">
@@ -79,10 +79,10 @@ function ModalStepIndicator({ steps, currentStep }: ModalStepIndicatorProps) {
               className={cn(
                 'w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold transition-all duration-200',
                 step.number < currentStep
-                  ? 'bg-green-500 text-white'
+                  ? 'bg-accent text-accent-fg'
                   : step.number === currentStep
                     ? 'bg-gradient-to-br from-indigo-600 to-blue-600 text-white shadow-lg shadow-indigo-500/30'
-                    : 'bg-gray-200 dark:bg-slate-800 text-gray-500 dark:text-gray-400'
+                    : 'bg-surface-hover text-fg-subtle'
               )}
             >
               {step.number < currentStep ? (
@@ -97,7 +97,7 @@ function ModalStepIndicator({ steps, currentStep }: ModalStepIndicatorProps) {
                   'w-16 h-1 mx-2 rounded transition-all duration-200',
                   step.number < currentStep
                     ? 'bg-gradient-to-r from-indigo-600 to-blue-600'
-                    : 'bg-gray-200 dark:bg-slate-800'
+                    : 'bg-surface-hover'
                 )}
               />
             )}
@@ -113,7 +113,7 @@ function ModalStepIndicator({ steps, currentStep }: ModalStepIndicatorProps) {
               'text-xs font-medium transition-colors text-center',
               step.number === currentStep
                 ? 'text-indigo-600 dark:text-indigo-400'
-                : 'text-gray-500 dark:text-gray-400'
+                : 'text-fg-subtle'
             )}
             style={{ width: '80px' }}
           >
@@ -177,8 +177,8 @@ export function CenterModal({
             >
               <Dialog.Panel
                 className={cn(
-                  'w-full transform overflow-hidden rounded-2xl bg-white dark:bg-[#0d1117] shadow-2xl transition-all',
-                  'border border-gray-200/50 dark:border-gray-800/50',
+                  'w-full transform overflow-hidden rounded-2xl bg-surface shadow-2xl transition-all',
+                  'border border-border/50',
                   sizeClasses[size],
                   className
                 )}
@@ -189,7 +189,7 @@ export function CenterModal({
                     'px-6 py-4 border-b flex items-center justify-between',
                     gradientHeader
                       ? 'bg-gradient-to-r from-indigo-50 to-blue-50 dark:from-indigo-950/20 dark:to-blue-950/20 border-indigo-100 dark:border-indigo-900/30'
-                      : 'bg-gray-50 dark:bg-[#161b22] border-gray-200 dark:border-gray-800'
+                      : 'bg-surface-hover border-border'
                   )}
                 >
                   <div className="flex items-center gap-3">
@@ -199,25 +199,21 @@ export function CenterModal({
                           'p-2 rounded-lg',
                           gradientHeader
                             ? 'bg-indigo-100 dark:bg-indigo-900/30'
-                            : 'bg-gray-100 dark:bg-gray-800'
+                            : 'bg-surface-hover'
                         )}
                       >
                         {headerIcon}
                       </div>
                     )}
                     <div>
-                      <Dialog.Title className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                        {title}
-                      </Dialog.Title>
-                      {subtitle && (
-                        <p className="text-sm text-gray-600 dark:text-gray-400">{subtitle}</p>
-                      )}
+                      <Dialog.Title className="text-lg font-semibold text-fg">{title}</Dialog.Title>
+                      {subtitle && <p className="text-sm text-fg-muted">{subtitle}</p>}
                     </div>
                   </div>
                   {showCloseButton && (
                     <button
                       onClick={onClose}
-                      className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"
+                      className="text-fg-muted hover:text-fg p-2 rounded-lg hover:bg-surface-hover transition-colors"
                     >
                       <FiX className="w-5 h-5" />
                     </button>
@@ -232,9 +228,7 @@ export function CenterModal({
 
                 {/* Footer */}
                 {footer && (
-                  <div className="px-6 py-4 bg-gray-50 dark:bg-[#161b22] border-t border-gray-200 dark:border-gray-800">
-                    {footer}
-                  </div>
+                  <div className="px-6 py-4 bg-surface-hover border-t border-border">{footer}</div>
                 )}
               </Dialog.Panel>
             </Transition.Child>
@@ -280,8 +274,8 @@ export function CenterModalFooterButtons({
   const resolvedBackText = backText ?? t('actions.back')
 
   const variantClasses = {
-    primary: 'bg-blue-600 hover:bg-blue-700 focus:ring-blue-500',
-    success: 'bg-green-600 hover:bg-green-700 focus:ring-green-500',
+    primary: 'bg-accent hover:bg-accent-hover focus:ring-accent/50',
+    success: 'bg-green-600 hover:bg-accent-hover focus:ring-green-500',
     danger: 'bg-red-600 hover:bg-red-700 focus:ring-red-500',
   }
 
@@ -292,7 +286,7 @@ export function CenterModalFooterButtons({
           type="button"
           onClick={onBack}
           disabled={isSubmitting}
-          className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 transition-colors"
+          className="px-4 py-2 text-sm font-medium text-fg bg-surface-hover border border-border rounded-lg hover:bg-surface-hover focus:outline-none focus:ring-2 focus:ring-accent/50 disabled:opacity-50 transition-colors"
         >
           {resolvedBackText}
         </button>
@@ -301,7 +295,7 @@ export function CenterModalFooterButtons({
         type="button"
         onClick={onCancel}
         disabled={isSubmitting}
-        className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 transition-colors"
+        className="px-4 py-2 text-sm font-medium text-fg bg-surface-hover border border-border rounded-lg hover:bg-surface-hover focus:outline-none focus:ring-2 focus:ring-accent/50 disabled:opacity-50 transition-colors"
       >
         {resolvedCancelText}
       </button>

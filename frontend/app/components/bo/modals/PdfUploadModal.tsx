@@ -8,7 +8,8 @@
 
 import { useState, useCallback, useTransition } from 'react'
 import { useTranslations } from 'next-intl'
-import { FiX, FiUpload, FiLoader, FiFile, FiTrash2 } from 'react-icons/fi'
+import { FiUpload, FiFile, FiTrash2 } from 'react-icons/fi'
+import { Modal, Button } from '@/app/ui/components'
 import { backofficeApi } from '@/app/lib/backoffice/backofficeApi'
 import toast from 'react-hot-toast'
 
@@ -137,145 +138,104 @@ export function PdfUploadModal({
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
   }
 
-  if (!isOpen) return null
-
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
-      {/* Backdrop */}
-      <div className="fixed inset-0 bg-black/50 transition-opacity" onClick={handleClose} />
+    <Modal
+      isOpen={isOpen}
+      onClose={handleClose}
+      title={
+        type === 'original'
+          ? t('modals.pdfUpload.originalTitle')
+          : t('modals.pdfUpload.validatedTitle')
+      }
+      size="sm"
+      static={isPending}
+      footer={
+        <>
+          <Button type="button" variant="default" onClick={handleClose} disabled={isPending}>
+            {t('actions.cancel')}
+          </Button>
+          <Button
+            type="submit"
+            form="pdf-upload-form"
+            variant="accent"
+            loading={isPending}
+            disabled={!file}
+          >
+            <FiUpload className="w-4 h-4" />
+            {t('modals.pdfUpload.buttons.upload')}
+          </Button>
+        </>
+      }
+    >
+      <form id="pdf-upload-form" onSubmit={handleSubmit} className="space-y-4">
+        <p className="text-xs text-fg-subtle -mt-1">
+          {t('modals.pdfUpload.invoice')} {invoiceNumber}
+        </p>
 
-      {/* Modal */}
-      <div className="flex min-h-full items-center justify-center p-4">
-        <div className="relative w-full max-w-md bg-white dark:bg-[#151b23] rounded-lg shadow-xl">
-          {/* Header */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-            <div>
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                {type === 'original'
-                  ? t('modals.pdfUpload.originalTitle')
-                  : t('modals.pdfUpload.validatedTitle')}
-              </h2>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                {t('modals.pdfUpload.invoice')} {invoiceNumber}
-              </p>
-            </div>
-            <button
-              onClick={handleClose}
-              className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded transition-colors"
-            >
-              <FiX className="w-5 h-5" />
-            </button>
+        {existingPdfUrl && (
+          <div className="p-3 bg-warning/10 border border-warning/30 rounded-fp text-xs text-warning">
+            {type === 'original'
+              ? t('modals.pdfUpload.existingWarning.original')
+              : t('modals.pdfUpload.existingWarning.validated')}
           </div>
+        )}
 
-          {/* Content */}
-          <form onSubmit={handleSubmit} className="p-6">
-            {/* Existing PDF notice */}
-            {existingPdfUrl && (
-              <div className="mb-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-md">
-                <p className="text-xs text-yellow-800 dark:text-yellow-300">
-                  {type === 'original'
-                    ? t('modals.pdfUpload.existingWarning.original')
-                    : t('modals.pdfUpload.existingWarning.validated')}
+        {/* Drop zone */}
+        <div
+          onDragEnter={handleDrag}
+          onDragLeave={handleDrag}
+          onDragOver={handleDrag}
+          onDrop={handleDrop}
+          className={`relative border-2 border-dashed rounded-fp-md p-8 text-center transition-colors ${
+            dragActive
+              ? 'border-accent bg-accent/5'
+              : file
+                ? 'border-success bg-success/5'
+                : 'border-border hover:border-border-strong'
+          }`}
+        >
+          <input
+            type="file"
+            accept="application/pdf"
+            onChange={handleInputChange}
+            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+          />
+
+          {file ? (
+            <div className="space-y-2">
+              <FiFile className="w-10 h-10 mx-auto text-success" />
+              <div>
+                <p className="text-sm font-medium text-fg truncate max-w-[200px] mx-auto">
+                  {file.name}
                 </p>
+                <p className="text-xs text-fg-subtle">{formatFileSize(file.size)}</p>
               </div>
-            )}
-
-            {/* Drop zone */}
-            <div
-              onDragEnter={handleDrag}
-              onDragLeave={handleDrag}
-              onDragOver={handleDrag}
-              onDrop={handleDrop}
-              className={`relative border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
-                dragActive
-                  ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
-                  : file
-                    ? 'border-green-500 bg-green-50 dark:bg-green-900/20'
-                    : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
-              }`}
-            >
-              <input
-                type="file"
-                accept="application/pdf"
-                onChange={handleInputChange}
-                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-              />
-
-              {file ? (
-                <div className="space-y-2">
-                  <FiFile className="w-10 h-10 mx-auto text-green-600 dark:text-green-400" />
-                  <div>
-                    <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate max-w-[200px] mx-auto">
-                      {file.name}
-                    </p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
-                      {formatFileSize(file.size)}
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      setFile(null)
-                    }}
-                    className="inline-flex items-center gap-1 text-xs text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300"
-                  >
-                    <FiTrash2 className="w-3 h-3" />
-                    {t('modals.pdfUpload.buttons.remove')}
-                  </button>
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  <FiUpload className="w-10 h-10 mx-auto text-gray-400" />
-                  <div>
-                    <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                      {t('modals.pdfUpload.dropzone.drag')}
-                    </p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
-                      {t('modals.pdfUpload.dropzone.click')}
-                    </p>
-                  </div>
-                  <p className="text-xs text-gray-400 dark:text-gray-500">
-                    {t('modals.pdfUpload.dropzone.maxSize')}
-                  </p>
-                </div>
-              )}
-            </div>
-
-            {/* Error */}
-            {error && <p className="mt-2 text-xs text-red-500 text-center">{error}</p>}
-
-            {/* Actions */}
-            <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
               <button
                 type="button"
-                onClick={handleClose}
-                disabled={isPending}
-                className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setFile(null)
+                }}
+                className="inline-flex items-center gap-1 text-xs text-danger hover:opacity-80"
               >
-                {t('actions.cancel')}
-              </button>
-              <button
-                type="submit"
-                disabled={isPending || !file}
-                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50"
-              >
-                {isPending ? (
-                  <>
-                    <FiLoader className="w-4 h-4 animate-spin" />
-                    {t('actions.uploading')}
-                  </>
-                ) : (
-                  <>
-                    <FiUpload className="w-4 h-4" />
-                    {t('modals.pdfUpload.buttons.upload')}
-                  </>
-                )}
+                <FiTrash2 className="w-3 h-3" />
+                {t('modals.pdfUpload.buttons.remove')}
               </button>
             </div>
-          </form>
+          ) : (
+            <div className="space-y-2">
+              <FiUpload className="w-10 h-10 mx-auto text-fg-subtle" />
+              <div>
+                <p className="text-sm font-medium text-fg">{t('modals.pdfUpload.dropzone.drag')}</p>
+                <p className="text-xs text-fg-subtle">{t('modals.pdfUpload.dropzone.click')}</p>
+              </div>
+              <p className="text-xs text-fg-subtle">{t('modals.pdfUpload.dropzone.maxSize')}</p>
+            </div>
+          )}
         </div>
-      </div>
-    </div>
+
+        {error && <p className="text-xs text-danger text-center">{error}</p>}
+      </form>
+    </Modal>
   )
 }

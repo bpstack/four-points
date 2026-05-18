@@ -43,7 +43,7 @@ function ProfileContent() {
   if (!user) {
     return (
       <div className="flex items-center justify-center h-full">
-        <p className="text-xs text-gray-500 dark:text-gray-400">{t('unableToLoad')}</p>
+        <p className="text-xs text-fg-subtle">{t('unableToLoad')}</p>
       </div>
     )
   }
@@ -65,7 +65,7 @@ function ProfileContent() {
   const rightPanel = renderRightPanel()
 
   return (
-    <div className="h-full min-h-screen bg-white dark:bg-[#010409]">
+    <div className="h-full min-h-screen bg-bg">
       <div className="h-full flex flex-col lg:flex-row gap-6 p-4 md:p-6">
         {/* Left Panel - Profile Sidebar (hidden when conversation is active) */}
         {!shouldHideSidebar && (
@@ -87,9 +87,9 @@ function ProfileContent() {
         {!rightPanel && (
           <main className="hidden lg:flex flex-1 items-center justify-center">
             <div className="text-center">
-              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-surface-hover flex items-center justify-center">
                 <svg
-                  className="w-8 h-8 text-gray-400"
+                  className="w-8 h-8 text-fg-subtle"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -102,10 +102,8 @@ function ProfileContent() {
                   />
                 </svg>
               </div>
-              <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-1">
-                {t('selectOption')}
-              </h3>
-              <p className="text-xs text-gray-500 dark:text-gray-400">{t('useLeftMenu')}</p>
+              <h3 className="text-sm font-medium text-fg mb-1">{t('selectOption')}</h3>
+              <p className="text-xs text-fg-subtle">{t('useLeftMenu')}</p>
             </div>
           </main>
         )}

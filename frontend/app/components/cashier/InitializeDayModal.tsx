@@ -56,18 +56,16 @@ export default function InitializeDayModal({
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-[#0d1117] rounded-lg w-full max-w-md shadow-2xl border border-gray-200 dark:border-gray-800">
+      <div className="bg-surface rounded-lg w-full max-w-md shadow-2xl border border-border">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-800">
+        <div className="flex items-center justify-between p-6 border-b border-border">
           <div className="flex items-center gap-2">
             <FiDollarSign className="w-5 h-5 text-blue-600" />
-            <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-              {t('initializeDay.title')}
-            </h3>
+            <h3 className="text-xl font-semibold text-fg">{t('initializeDay.title')}</h3>
           </div>
           <button
             onClick={onClose}
-            className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+            className="p-1 text-fg-subtle hover:text-fg transition-colors"
             disabled={initializeMutation.isPending}
           >
             <FiX className="w-5 h-5" />
@@ -77,7 +75,7 @@ export default function InitializeDayModal({
         {/* Body */}
         <form onSubmit={handleSubmit}>
           <div className="p-6 space-y-4">
-            <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+            <div className="bg-info/10 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
               <p className="text-sm text-blue-800 dark:text-blue-300">
                 {t('initializeDay.shiftsWillBeCreated')}
               </p>
@@ -90,19 +88,19 @@ export default function InitializeDayModal({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-fg mb-2">
                 {t('initializeDay.date')}
               </label>
               <input
                 type="text"
                 value={selectedDate}
                 disabled
-                className="w-full px-4 py-2.5 bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg text-gray-500 dark:text-gray-400"
+                className="w-full px-4 py-2.5 bg-surface-hover border border-border rounded-lg text-fg-subtle"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-fg mb-2">
                 {t('initializeDay.initialFund')} (€)
               </label>
               <input
@@ -111,40 +109,38 @@ export default function InitializeDayModal({
                 onChange={(e) => setInitialFund(e.target.value)}
                 step="0.01"
                 min="0"
-                className="w-full px-4 py-2.5 bg-white dark:bg-[#151b23] border border-gray-300 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-2.5 bg-surface border border-border rounded-lg text-fg focus:ring-2 focus:ring-accent/50 focus:border-transparent"
                 disabled={initializeMutation.isPending}
               />
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                {t('initializeDay.initialFundHint')}
-              </p>
+              <p className="text-xs text-fg-subtle mt-1">{t('initializeDay.initialFundHint')}</p>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-fg mb-2">
                 {t('initializeDay.responsible')}
               </label>
               <input
                 type="text"
                 value={user?.username || 'N/A'}
                 disabled
-                className="w-full px-4 py-2.5 bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg text-gray-500 dark:text-gray-400"
+                className="w-full px-4 py-2.5 bg-surface-hover border border-border rounded-lg text-fg-subtle"
               />
             </div>
           </div>
 
           {/* Footer */}
-          <div className="flex justify-end gap-3 p-6 border-t border-gray-200 dark:border-gray-800">
+          <div className="flex justify-end gap-3 p-6 border-t border-border">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+              className="px-4 py-2 border border-border rounded-lg text-fg hover:bg-surface-hover transition-colors"
               disabled={initializeMutation.isPending}
             >
               {t('initializeDay.cancel')}
             </button>
             <button
               type="submit"
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 py-2 bg-accent text-accent-fg hover:bg-accent-hover rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               disabled={initializeMutation.isPending || !initialFund}
             >
               {initializeMutation.isPending ? (

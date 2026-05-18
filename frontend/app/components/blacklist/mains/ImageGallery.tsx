@@ -93,8 +93,8 @@ export function ImageGallery({ images, alt = 'Imagen de evidencia' }: ImageGalle
 
   if (images.length === 0) {
     return (
-      <div className="flex items-center justify-center h-48 bg-gray-100 dark:bg-gray-800 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-700">
-        <p className="text-gray-500 dark:text-gray-400 text-sm">{t('ui.noImages')}</p>
+      <div className="flex items-center justify-center h-48 bg-surface-sunken rounded-lg border-2 border-dashed border-border">
+        <p className="text-fg-subtle text-sm">{t('ui.noImages')}</p>
       </div>
     )
   }
@@ -114,7 +114,7 @@ export function ImageGallery({ images, alt = 'Imagen de evidencia' }: ImageGalle
           <button
             key={`${imageUrl}-${index}`}
             onClick={() => openLightbox(index)}
-            className="relative aspect-square group overflow-hidden rounded-lg border border-gray-200 dark:border-gray-800 bg-gray-100 dark:bg-gray-800 hover:border-blue-500 dark:hover:border-blue-500 transition-all max-w-[200px]"
+            className="relative aspect-square group overflow-hidden rounded-lg border border-border bg-surface-sunken hover:border-blue-500 dark:hover:border-blue-500 transition-all max-w-[200px]"
           >
             <Image
               src={imageUrl}
@@ -126,8 +126,8 @@ export function ImageGallery({ images, alt = 'Imagen de evidencia' }: ImageGalle
 
             {/* Overlay con icono */}
             <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-300 flex items-center justify-center">
-              <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-white/90 dark:bg-gray-900/90 rounded-full p-3">
-                <IoExpandOutline className="text-gray-900 dark:text-gray-100" size={24} />
+              <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-surface-elevated/90 rounded-full p-3">
+                <IoExpandOutline className="text-fg" size={24} />
               </div>
             </div>
 

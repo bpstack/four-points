@@ -299,7 +299,7 @@ export function ProfileSidebar() {
       />
 
       {/* Profile Header */}
-      <div className="bg-gray-50 dark:bg-[#161b22] border border-gray-200 dark:border-[#30363d] rounded-lg p-4">
+      <div className="bg-surface-hover border border-gray-200 rounded-lg p-4">
         <div className="flex items-center gap-4 mb-4">
           <div className="relative group flex-shrink-0">
             {/* Avatar */}
@@ -334,10 +334,10 @@ export function ProfileSidebar() {
 
             {/* Avatar Menu Dropdown */}
             {showAvatarMenu && (
-              <div className="absolute left-0 top-full mt-1 z-10 w-36 py-1 bg-white dark:bg-[#161b22] border border-gray-200 dark:border-[#30363d] rounded-lg shadow-lg">
+              <div className="absolute left-0 top-full mt-1 z-10 w-36 py-1 bg-surface border border-gray-200 rounded-lg shadow-lg">
                 <button
                   onClick={handleUploadClick}
-                  className="w-full flex items-center gap-2 px-3 py-2 text-xs text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#21262d]"
+                  className="w-full flex items-center gap-2 px-3 py-2 text-xs text-fg hover:bg-surface-hover"
                 >
                   <FiUpload className="w-3.5 h-3.5" />
                   {user.avatar_url ? t('avatar.changePhoto') : t('avatar.uploadPhoto')}
@@ -345,7 +345,7 @@ export function ProfileSidebar() {
                 {user.avatar_url && (
                   <button
                     onClick={handleDeleteAvatar}
-                    className="w-full flex items-center gap-2 px-3 py-2 text-xs text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-[#21262d]"
+                    className="w-full flex items-center gap-2 px-3 py-2 text-xs text-red-600 dark:text-red-400 hover:bg-surface-hover"
                   >
                     <FiTrash2 className="w-3.5 h-3.5" />
                     {t('avatar.deletePhoto')}
@@ -355,12 +355,8 @@ export function ProfileSidebar() {
             )}
           </div>
           <div className="flex-1 min-w-0">
-            <h2 className="text-sm font-semibold text-gray-900 dark:text-white truncate">
-              {formattedUsername}
-            </h2>
-            <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-              {user.email || t('noEmail')}
-            </p>
+            <h2 className="text-sm font-semibold text-fg truncate">{formattedUsername}</h2>
+            <p className="text-xs text-fg-subtle truncate">{user.email || t('noEmail')}</p>
             <span className="inline-flex items-center px-2 py-0.5 mt-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">
               {user.role}
             </span>
@@ -391,19 +387,17 @@ export function ProfileSidebar() {
       )}
 
       {/* Username Section */}
-      <div className="bg-gray-50 dark:bg-[#161b22] border border-gray-200 dark:border-[#30363d] rounded-lg overflow-hidden">
+      <div className="bg-surface-hover border border-gray-200 rounded-lg overflow-hidden">
         <div className="p-3">
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">
               <FiUser className="w-4 h-4 text-gray-400" />
-              <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
-                {t('username.label')}
-              </span>
+              <span className="text-xs font-medium text-fg-muted">{t('username.label')}</span>
             </div>
             {!isEditingUsername && (
               <button
                 onClick={handleStartEditUsername}
-                className="p-1 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors"
+                className="p-1 text-gray-400 hover:text-accent hover:bg-surface-hover rounded transition-colors"
                 title={t('username.editTitle')}
               >
                 <FiEdit2 className="w-3.5 h-3.5" />
@@ -412,11 +406,11 @@ export function ProfileSidebar() {
           </div>
 
           {!isEditingUsername ? (
-            <p className="text-sm text-gray-900 dark:text-white">{formattedUsername}</p>
+            <p className="text-sm text-fg">{formattedUsername}</p>
           ) : (
             <div className="space-y-3">
               <div>
-                <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
+                <label className="block text-xs text-fg-subtle mb-1">
                   {t('username.newUsername')}
                 </label>
                 <input
@@ -424,12 +418,12 @@ export function ProfileSidebar() {
                   value={newUsername}
                   onChange={(e) => setNewUsername(e.target.value)}
                   placeholder={t('username.placeholder')}
-                  className="w-full px-3 py-2 text-sm bg-white dark:bg-[#0d1117] border border-gray-300 dark:border-[#30363d] rounded-lg text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 text-sm bg-surface border border-gray-300 rounded-lg text-fg placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-accent/50 focus:border-blue-500"
                   disabled={usernameLoading}
                 />
               </div>
               <div>
-                <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
+                <label className="block text-xs text-fg-subtle mb-1">
                   {t('username.currentPasswordConfirm')}
                 </label>
                 <input
@@ -437,7 +431,7 @@ export function ProfileSidebar() {
                   value={usernamePassword}
                   onChange={(e) => setUsernamePassword(e.target.value)}
                   placeholder={t('username.passwordPlaceholder')}
-                  className="w-full px-3 py-2 text-sm bg-white dark:bg-[#0d1117] border border-gray-300 dark:border-[#30363d] rounded-lg text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 text-sm bg-surface border border-gray-300 rounded-lg text-fg placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-accent/50 focus:border-blue-500"
                   disabled={usernameLoading}
                 />
               </div>
@@ -453,7 +447,7 @@ export function ProfileSidebar() {
                 <button
                   onClick={handleSaveUsername}
                   disabled={usernameLoading}
-                  className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed rounded-lg transition-colors"
+                  className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-medium text-accent-fg bg-accent hover:bg-accent-hover disabled:bg-blue-400 disabled:cursor-not-allowed rounded-lg transition-colors"
                 >
                   {usernameLoading ? (
                     <span className="animate-spin h-3 w-3 border-2 border-white border-t-transparent rounded-full" />
@@ -465,7 +459,7 @@ export function ProfileSidebar() {
                 <button
                   onClick={handleCancelEditUsername}
                   disabled={usernameLoading}
-                  className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-[#0d1117] border border-gray-300 dark:border-[#30363d] hover:bg-gray-50 dark:hover:bg-[#21262d] disabled:opacity-50 rounded-lg transition-colors"
+                  className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-medium text-fg bg-surface border border-gray-300 hover:bg-surface-hover disabled:opacity-50 rounded-lg transition-colors"
                 >
                   <FiX className="w-3.5 h-3.5" />
                   {t('buttons.cancel')}
@@ -477,19 +471,17 @@ export function ProfileSidebar() {
       </div>
 
       {/* Password Section */}
-      <div className="bg-gray-50 dark:bg-[#161b22] border border-gray-200 dark:border-[#30363d] rounded-lg overflow-hidden">
+      <div className="bg-surface-hover border border-gray-200 rounded-lg overflow-hidden">
         <div className="p-3">
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">
               <FiLock className="w-4 h-4 text-gray-400" />
-              <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
-                {t('password.label')}
-              </span>
+              <span className="text-xs font-medium text-fg-muted">{t('password.label')}</span>
             </div>
             {!isEditingPassword && (
               <button
                 onClick={handleStartEditPassword}
-                className="p-1 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors"
+                className="p-1 text-gray-400 hover:text-accent hover:bg-surface-hover rounded transition-colors"
                 title={t('password.changeTitle')}
               >
                 <FiEdit2 className="w-3.5 h-3.5" />
@@ -498,27 +490,25 @@ export function ProfileSidebar() {
           </div>
 
           {!isEditingPassword ? (
-            <p className="text-sm text-gray-900 dark:text-white">••••••••</p>
+            <p className="text-sm text-fg">••••••••</p>
           ) : (
             <div className="space-y-3">
               {/* Current Password */}
               <div>
-                <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
-                  {t('password.current')}
-                </label>
+                <label className="block text-xs text-fg-subtle mb-1">{t('password.current')}</label>
                 <div className="relative">
                   <input
                     type={showCurrentPassword ? 'text' : 'password'}
                     value={currentPassword}
                     onChange={(e) => setCurrentPassword(e.target.value)}
                     placeholder={t('password.currentPlaceholder')}
-                    className="w-full px-3 py-2 pr-10 text-sm bg-white dark:bg-[#0d1117] border border-gray-300 dark:border-[#30363d] rounded-lg text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 pr-10 text-sm bg-surface border border-gray-300 rounded-lg text-fg placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-accent/50 focus:border-blue-500"
                     disabled={passwordLoading}
                   />
                   <button
                     type="button"
                     onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-fg"
                   >
                     {showCurrentPassword ? (
                       <FiEyeOff className="w-4 h-4" />
@@ -531,22 +521,20 @@ export function ProfileSidebar() {
 
               {/* New Password */}
               <div>
-                <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
-                  {t('password.new')}
-                </label>
+                <label className="block text-xs text-fg-subtle mb-1">{t('password.new')}</label>
                 <div className="relative">
                   <input
                     type={showNewPassword ? 'text' : 'password'}
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     placeholder={t('password.minChars')}
-                    className="w-full px-3 py-2 pr-10 text-sm bg-white dark:bg-[#0d1117] border border-gray-300 dark:border-[#30363d] rounded-lg text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 pr-10 text-sm bg-surface border border-gray-300 rounded-lg text-fg placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-accent/50 focus:border-blue-500"
                     disabled={passwordLoading}
                   />
                   <button
                     type="button"
                     onClick={() => setShowNewPassword(!showNewPassword)}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-fg"
                   >
                     {showNewPassword ? (
                       <FiEyeOff className="w-4 h-4" />
@@ -559,22 +547,20 @@ export function ProfileSidebar() {
 
               {/* Confirm Password */}
               <div>
-                <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
-                  {t('password.confirm')}
-                </label>
+                <label className="block text-xs text-fg-subtle mb-1">{t('password.confirm')}</label>
                 <div className="relative">
                   <input
                     type={showConfirmPassword ? 'text' : 'password'}
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     placeholder={t('password.repeatPlaceholder')}
-                    className="w-full px-3 py-2 pr-10 text-sm bg-white dark:bg-[#0d1117] border border-gray-300 dark:border-[#30363d] rounded-lg text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 pr-10 text-sm bg-surface border border-gray-300 rounded-lg text-fg placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-accent/50 focus:border-blue-500"
                     disabled={passwordLoading}
                   />
                   <button
                     type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-fg"
                   >
                     {showConfirmPassword ? (
                       <FiEyeOff className="w-4 h-4" />
@@ -602,7 +588,7 @@ export function ProfileSidebar() {
                 <button
                   onClick={handleSavePassword}
                   disabled={passwordLoading}
-                  className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed rounded-lg transition-colors"
+                  className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-medium text-accent-fg bg-accent hover:bg-accent-hover disabled:bg-blue-400 disabled:cursor-not-allowed rounded-lg transition-colors"
                 >
                   {passwordLoading ? (
                     <span className="animate-spin h-3 w-3 border-2 border-white border-t-transparent rounded-full" />
@@ -614,7 +600,7 @@ export function ProfileSidebar() {
                 <button
                   onClick={handleCancelEditPassword}
                   disabled={passwordLoading}
-                  className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-[#0d1117] border border-gray-300 dark:border-[#30363d] hover:bg-gray-50 dark:hover:bg-[#21262d] disabled:opacity-50 rounded-lg transition-colors"
+                  className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-medium text-fg bg-surface border border-gray-300 hover:bg-surface-hover disabled:opacity-50 rounded-lg transition-colors"
                 >
                   <FiX className="w-3.5 h-3.5" />
                   {t('buttons.cancel')}
@@ -626,7 +612,7 @@ export function ProfileSidebar() {
       </div>
 
       {/* Navigation */}
-      <div className="bg-gray-50 dark:bg-[#161b22] border border-gray-200 dark:border-[#30363d] rounded-lg overflow-hidden">
+      <div className="bg-surface-hover border border-gray-200 rounded-lg overflow-hidden">
         <NavButton
           icon={<FiMessageSquare className="w-4 h-4" />}
           label={t('navigation.messages')}
@@ -675,8 +661,8 @@ function NavButton({
       onClick={onClick}
       className={cn(
         'w-full flex items-center justify-between p-3 transition-colors text-left',
-        borderTop && 'border-t border-gray-200 dark:border-[#30363d]',
-        active ? 'bg-blue-50 dark:bg-blue-900/20' : 'hover:bg-gray-100 dark:hover:bg-[#21262d]'
+        borderTop && 'border-t border-gray-200',
+        active ? 'bg-info/10' : 'hover:bg-surface-hover'
       )}
     >
       <div className="flex items-center gap-3">
@@ -685,7 +671,7 @@ function NavButton({
             'p-2 rounded-md',
             active
               ? 'bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400'
-              : 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400'
+              : 'bg-surface-hover text-fg-subtle'
           )}
         >
           {icon}
@@ -694,19 +680,16 @@ function NavButton({
           <p
             className={cn(
               'text-sm font-medium',
-              active ? 'text-blue-700 dark:text-blue-400' : 'text-gray-900 dark:text-white'
+              active ? 'text-blue-700 dark:text-blue-400' : 'text-fg'
             )}
           >
             {label}
           </p>
-          <p className="text-xs text-gray-500 dark:text-gray-400">{description}</p>
+          <p className="text-xs text-fg-subtle">{description}</p>
         </div>
       </div>
       <FiChevronRight
-        className={cn(
-          'w-4 h-4',
-          active ? 'text-blue-600 dark:text-blue-400' : 'text-gray-400 dark:text-gray-500'
-        )}
+        className={cn('w-4 h-4', active ? 'text-blue-600 dark:text-blue-400' : 'text-fg-subtle')}
       />
     </button>
   )

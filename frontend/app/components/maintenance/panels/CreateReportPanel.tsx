@@ -3,7 +3,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useForm } from 'react-hook-form'
+import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
@@ -19,8 +19,8 @@ import {
   inputClassName,
   selectClassName,
   textareaClassName,
-  checkboxClassName,
 } from '@/app/ui/panels'
+import { Checkbox } from '@/app/ui/components'
 
 interface CreateReportPanelProps {
   isOpen: boolean
@@ -39,6 +39,7 @@ export function CreateReportPanel({ isOpen, onClose }: CreateReportPanelProps) {
     reset,
     watch,
     setValue,
+    control,
     formState: { errors, isSubmitting },
   } = useForm<ReportFormData>({
     resolver: zodResolver(reportSchema),
@@ -158,7 +159,7 @@ export function CreateReportPanel({ isOpen, onClose }: CreateReportPanelProps) {
       title={t('panels.create.title')}
       subtitle={t('panels.create.subtitle')}
       size="lg"
-      headerIcon={<FiTool className="w-5 h-5 text-blue-600 dark:text-blue-400" />}
+      headerIcon={<FiTool className="w-5 h-5 text-info" />}
       footer={
         <SlidePanelFooterButtons
           onCancel={onClose}
@@ -256,16 +257,18 @@ export function CreateReportPanel({ isOpen, onClose }: CreateReportPanelProps) {
 
         {/* Room Out of Service */}
         {locationType === 'room' && (
-          <div className="flex items-center">
-            <input
-              {...register('room_out_of_service')}
-              type="checkbox"
-              className={checkboxClassName}
-            />
-            <label className="ml-2 text-sm text-gray-700 dark:text-gray-300">
-              {t('panels.create.fields.roomOutOfService')}
-            </label>
-          </div>
+          <Controller
+            name="room_out_of_service"
+            control={control}
+            render={({ field }) => (
+              <Checkbox
+                checked={!!field.value}
+                onCheckedChange={field.onChange}
+                label={t('panels.create.fields.roomOutOfService')}
+                strikeOnCheck={false}
+              />
+            )}
+          />
         )}
 
         {/* Assigned Type */}
@@ -302,16 +305,16 @@ export function CreateReportPanel({ isOpen, onClose }: CreateReportPanelProps) {
 
         {/* Images Upload */}
         <FormField label={t('panels.create.fields.images')}>
-          <label className="flex items-center justify-center w-full px-4 py-6 border-2 border-gray-300 dark:border-gray-700 border-dashed rounded-md cursor-pointer hover:border-gray-400 dark:hover:border-gray-600 transition-colors">
+          <label className="flex items-center justify-center w-full px-4 py-6 border-2 border-border border-dashed rounded-md cursor-pointer hover:border-gray-400 dark:hover:border-gray-600 transition-colors">
             <div className="space-y-1 text-center">
-              <FiUpload className="mx-auto h-8 w-8 text-gray-400" />
-              <div className="text-xs text-gray-600 dark:text-gray-400">
-                <span className="font-medium text-blue-600 dark:text-blue-400">
+              <FiUpload className="mx-auto h-8 w-8 text-fg-subtle" />
+              <div className="text-xs text-fg-muted">
+                <span className="font-medium text-info">
                   {t('panels.create.images.clickToUpload')}
                 </span>{' '}
                 {t('panels.create.images.dragImages')}
               </div>
-              <p className="text-[10px] text-gray-500">{t('panels.create.images.formats')}</p>
+              <p className="text-[10px] text-fg-muted">{t('panels.create.images.formats')}</p>
             </div>
             <input
               type="file"
@@ -333,7 +336,7 @@ export function CreateReportPanel({ isOpen, onClose }: CreateReportPanelProps) {
                 <img
                   src={preview}
                   alt={`Preview ${index + 1}`}
-                  className="w-full h-24 object-cover rounded-md border border-gray-300 dark:border-gray-700"
+                  className="w-full h-24 object-cover rounded-md border border-border"
                 />
                 <button
                   type="button"

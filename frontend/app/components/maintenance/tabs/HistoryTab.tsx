@@ -57,7 +57,7 @@ export function HistoryTab() {
       },
       updated: {
         icon: <FiEdit className="w-4 h-4" />,
-        color: 'bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400',
+        color: 'bg-surface-hover text-fg-muted',
         label: t('history.actions.updated'),
       },
       assigned: {
@@ -72,7 +72,7 @@ export function HistoryTab() {
       },
       closed: {
         icon: <FiAlertCircle className="w-4 h-4" />,
-        color: 'bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400',
+        color: 'bg-surface-hover text-fg-muted',
         label: t('history.actions.closed'),
       },
       deleted: {
@@ -101,15 +101,15 @@ export function HistoryTab() {
 
   return (
     <div className="space-y-4">
-      <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-4">
-        <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2 mb-4">
+      <div className="bg-surface rounded-md border border-border p-4">
+        <h3 className="text-sm font-semibold text-fg flex items-center gap-2 mb-4">
           <FiClock className="w-4 h-4" />
           {t('history.title')}
         </h3>
 
         <div className="relative">
           {/* Timeline line */}
-          <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-gray-200 dark:bg-gray-800" />
+          <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-surface-hover" />
 
           {/* History entries */}
           <div className="space-y-4">
@@ -125,25 +125,21 @@ export function HistoryTab() {
                   </div>
 
                   {/* Content */}
-                  <div className="bg-gray-50 dark:bg-[#0d1117] rounded-md p-3 border border-gray-200 dark:border-gray-800">
+                  <div className="bg-surface rounded-md p-3 border border-border">
                     <div className="flex items-start justify-between mb-2">
                       <div className="flex-1">
-                        <p className="text-xs font-semibold text-gray-900 dark:text-gray-100">
-                          {actionConfig.label}
-                        </p>
-                        <p className="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">
+                        <p className="text-xs font-semibold text-fg">{actionConfig.label}</p>
+                        <p className="text-[10px] text-fg-subtle mt-0.5">
                           {entry.user_name || t('history.system')} •{' '}
                           {formatDateTime(entry.changed_at)}
                         </p>
                       </div>
                     </div>
 
-                    {entry.notes && (
-                      <p className="text-xs text-gray-700 dark:text-gray-300 mb-2">{entry.notes}</p>
-                    )}
+                    {entry.notes && <p className="text-xs text-fg mb-2">{entry.notes}</p>}
 
                     {entry.field_changed && (
-                      <div className="text-[10px] text-gray-500 dark:text-gray-400 space-y-0.5">
+                      <div className="text-[10px] text-fg-subtle space-y-0.5">
                         {entry.old_value && (
                           <p>
                             <span className="font-medium">{t('history.previous')}</span>{' '}

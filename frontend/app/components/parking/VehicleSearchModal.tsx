@@ -127,7 +127,7 @@ export function VehicleSearchModal({ isOpen, onClose }: VehicleSearchModalProps)
       reserved: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
       checked_in: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
       completed: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
-      canceled: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400',
+      canceled: 'bg-surface-sunken text-fg-muted',
       no_show: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400',
     }
     const translationKey = STATUS_TRANSLATION_KEYS[status] || STATUS_TRANSLATION_KEYS.reserved
@@ -154,54 +154,50 @@ export function VehicleSearchModal({ isOpen, onClose }: VehicleSearchModalProps)
       {/* Modal */}
       <div
         ref={modalRef}
-        className="relative w-full max-w-lg bg-white dark:bg-[#161b22] rounded-xl shadow-2xl border border-gray-200 dark:border-[#30363d] overflow-hidden"
+        className="relative w-full max-w-lg bg-surface rounded-xl shadow-2xl border border-border overflow-hidden"
       >
         {/* Header */}
-        <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-200 dark:border-[#30363d]">
+        <div className="flex items-center gap-3 px-4 py-3 border-b border-border">
           {selectedVehicle ? (
             <>
               <button
                 onClick={handleBackToSearch}
-                className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md transition-colors"
+                className="p-1.5 hover:bg-surface-hover rounded-md transition-colors"
               >
-                <FiX className="w-4 h-4 text-gray-500 dark:text-gray-400 rotate-180" />
+                <FiX className="w-4 h-4 text-fg-subtle rotate-180" />
               </button>
               <div className="flex items-center gap-2 flex-1">
                 <FaCar className="w-4 h-4 text-purple-500" />
-                <span className="font-semibold text-gray-900 dark:text-gray-100">
-                  {selectedVehicle.plate_number}
-                </span>
-                <span className="text-sm text-gray-500 dark:text-gray-400">
-                  - {selectedVehicle.owner_name}
-                </span>
+                <span className="font-semibold text-fg">{selectedVehicle.plate_number}</span>
+                <span className="text-sm text-fg-subtle">- {selectedVehicle.owner_name}</span>
               </div>
             </>
           ) : (
             <>
-              <FiSearch className="w-4 h-4 text-gray-400" />
+              <FiSearch className="w-4 h-4 text-fg-subtle" />
               <input
                 ref={inputRef}
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder={t('vehicleSearch.placeholder')}
-                className="flex-1 bg-transparent text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 outline-none"
+                className="flex-1 bg-transparent text-sm text-fg placeholder-fg-subtle outline-none"
               />
               {searchTerm && (
                 <button
                   onClick={() => setSearchTerm('')}
-                  className="p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors"
+                  className="p-1 hover:bg-surface-hover rounded transition-colors"
                 >
-                  <FiX className="w-3.5 h-3.5 text-gray-400" />
+                  <FiX className="w-3.5 h-3.5 text-fg-subtle" />
                 </button>
               )}
             </>
           )}
           <button
             onClick={onClose}
-            className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md transition-colors"
+            className="p-1.5 hover:bg-surface-hover rounded-md transition-colors"
           >
-            <FiX className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+            <FiX className="w-4 h-4 text-fg-subtle" />
           </button>
         </div>
 
@@ -211,40 +207,34 @@ export function VehicleSearchModal({ isOpen, onClose }: VehicleSearchModalProps)
             // Vehicle details view
             <div className="p-4">
               {/* Vehicle Info */}
-              <div className="mb-4 p-3 bg-gray-50 dark:bg-[#0d1117] rounded-lg">
+              <div className="mb-4 p-3 bg-surface rounded-lg">
                 <div className="grid grid-cols-2 gap-3 text-sm">
                   <div>
-                    <span className="text-[10px] font-semibold text-gray-500 dark:text-gray-400 uppercase">
+                    <span className="text-[10px] font-semibold text-fg-subtle uppercase">
                       {t('vehicleSearch.plateNumber')}
                     </span>
-                    <p className="font-bold text-gray-900 dark:text-gray-100">
-                      {selectedVehicle.plate_number}
-                    </p>
+                    <p className="font-bold text-fg">{selectedVehicle.plate_number}</p>
                   </div>
                   <div>
-                    <span className="text-[10px] font-semibold text-gray-500 dark:text-gray-400 uppercase">
+                    <span className="text-[10px] font-semibold text-fg-subtle uppercase">
                       {t('vehicleSearch.owner')}
                     </span>
-                    <p className="font-medium text-gray-900 dark:text-gray-100">
-                      {selectedVehicle.owner_name}
-                    </p>
+                    <p className="font-medium text-fg">{selectedVehicle.owner_name}</p>
                   </div>
                   {selectedVehicle.model && (
                     <div>
-                      <span className="text-[10px] font-semibold text-gray-500 dark:text-gray-400 uppercase">
+                      <span className="text-[10px] font-semibold text-fg-subtle uppercase">
                         {t('vehicleSearch.model')}
                       </span>
-                      <p className="text-gray-700 dark:text-gray-300">{selectedVehicle.model}</p>
+                      <p className="text-fg">{selectedVehicle.model}</p>
                     </div>
                   )}
                   {selectedVehicle.created_at && (
                     <div>
-                      <span className="text-[10px] font-semibold text-gray-500 dark:text-gray-400 uppercase">
+                      <span className="text-[10px] font-semibold text-fg-subtle uppercase">
                         {t('vehicleSearch.registered')}
                       </span>
-                      <p className="text-gray-700 dark:text-gray-300">
-                        {formatDate(selectedVehicle.created_at)}
-                      </p>
+                      <p className="text-fg">{formatDate(selectedVehicle.created_at)}</p>
                     </div>
                   )}
                 </div>
@@ -252,7 +242,7 @@ export function VehicleSearchModal({ isOpen, onClose }: VehicleSearchModalProps)
 
               {/* Bookings History */}
               <div>
-                <h4 className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase mb-2 flex items-center gap-2">
+                <h4 className="text-xs font-bold text-fg uppercase mb-2 flex items-center gap-2">
                   <FiCalendar className="w-3.5 h-3.5" />
                   {t('vehicleSearch.bookingHistory')} ({vehicleBookings.length})
                 </h4>
@@ -260,12 +250,12 @@ export function VehicleSearchModal({ isOpen, onClose }: VehicleSearchModalProps)
                 {loadingBookings ? (
                   <div className="py-8 text-center">
                     <div className="inline-block h-6 w-6 animate-spin rounded-full border-2 border-purple-500 border-r-transparent" />
-                    <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                    <p className="mt-2 text-xs text-fg-subtle">
                       {t('vehicleSearch.loadingHistory')}
                     </p>
                   </div>
                 ) : vehicleBookings.length === 0 ? (
-                  <div className="py-8 text-center text-sm text-gray-500 dark:text-gray-400">
+                  <div className="py-8 text-center text-sm text-fg-subtle">
                     {t('vehicleSearch.noBookings')}
                   </div>
                 ) : (
@@ -275,7 +265,7 @@ export function VehicleSearchModal({ isOpen, onClose }: VehicleSearchModalProps)
                         key={booking.id}
                         href={`/dashboard/parking/bookings/${booking.booking_code}`}
                         onClick={onClose}
-                        className="block p-3 bg-white dark:bg-[#0d1117] border border-gray-200 dark:border-[#30363d] rounded-lg hover:border-purple-400 dark:hover:border-purple-500 transition-colors"
+                        className="block p-3 bg-surface border border-border rounded-lg hover:border-purple-400 dark:hover:border-purple-500 transition-colors"
                       >
                         <div className="flex items-start justify-between mb-2">
                           <span className="text-xs font-semibold text-purple-600 dark:text-purple-400">
@@ -283,7 +273,7 @@ export function VehicleSearchModal({ isOpen, onClose }: VehicleSearchModalProps)
                           </span>
                           {getStatusBadge(booking.status)}
                         </div>
-                        <div className="flex items-center gap-4 text-[11px] text-gray-600 dark:text-gray-400">
+                        <div className="flex items-center gap-4 text-[11px] text-fg-muted">
                           <div className="flex items-center gap-1">
                             <FiClock className="w-3 h-3" />
                             <span>
@@ -307,29 +297,19 @@ export function VehicleSearchModal({ isOpen, onClose }: VehicleSearchModalProps)
               {loading ? (
                 <div className="py-12 text-center">
                   <div className="inline-block h-6 w-6 animate-spin rounded-full border-2 border-purple-500 border-r-transparent" />
-                  <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-                    {t('vehicleSearch.searching')}
-                  </p>
+                  <p className="mt-2 text-xs text-fg-subtle">{t('vehicleSearch.searching')}</p>
                 </div>
               ) : searchTerm.length < 2 ? (
                 <div className="py-12 text-center">
-                  <FaCar className="w-10 h-10 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    {t('vehicleSearch.minChars')}
-                  </p>
-                  <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
-                    {t('vehicleSearch.searchHint')}
-                  </p>
+                  <FaCar className="w-10 h-10 text-fg-subtle mx-auto mb-3" />
+                  <p className="text-sm text-fg-subtle">{t('vehicleSearch.minChars')}</p>
+                  <p className="text-xs text-fg-subtle mt-1">{t('vehicleSearch.searchHint')}</p>
                 </div>
               ) : results.length === 0 ? (
                 <div className="py-12 text-center">
-                  <FiSearch className="w-10 h-10 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    {t('vehicleSearch.noResults')}
-                  </p>
-                  <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
-                    {t('vehicleSearch.tryAnother')}
-                  </p>
+                  <FiSearch className="w-10 h-10 text-fg-subtle mx-auto mb-3" />
+                  <p className="text-sm text-fg-subtle">{t('vehicleSearch.noResults')}</p>
+                  <p className="text-xs text-fg-subtle mt-1">{t('vehicleSearch.tryAnother')}</p>
                 </div>
               ) : (
                 <div className="divide-y divide-gray-100 dark:divide-[#21262d]">
@@ -337,27 +317,21 @@ export function VehicleSearchModal({ isOpen, onClose }: VehicleSearchModalProps)
                     <button
                       key={vehicle.id}
                       onClick={() => handleSelectVehicle(vehicle)}
-                      className="w-full px-4 py-3 flex items-center gap-3 hover:bg-gray-50 dark:hover:bg-[#0d1117] transition-colors text-left"
+                      className="w-full px-4 py-3 flex items-center gap-3 hover:bg-surface-hover transition-colors text-left"
                     >
                       <div className="p-2 bg-purple-100 dark:bg-purple-900/20 rounded-lg">
                         <FaCar className="w-4 h-4 text-purple-600 dark:text-purple-400" />
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <span className="font-bold text-sm text-gray-900 dark:text-gray-100">
-                            {vehicle.plate_number}
-                          </span>
+                          <span className="font-bold text-sm text-fg">{vehicle.plate_number}</span>
                           {vehicle.model && (
-                            <span className="text-xs text-gray-500 dark:text-gray-400">
-                              {vehicle.model}
-                            </span>
+                            <span className="text-xs text-fg-subtle">{vehicle.model}</span>
                           )}
                         </div>
-                        <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                          {vehicle.owner_name}
-                        </p>
+                        <p className="text-xs text-fg-subtle truncate">{vehicle.owner_name}</p>
                       </div>
-                      <FiCalendar className="w-4 h-4 text-gray-400" />
+                      <FiCalendar className="w-4 h-4 text-fg-subtle" />
                     </button>
                   ))}
                 </div>
@@ -368,10 +342,10 @@ export function VehicleSearchModal({ isOpen, onClose }: VehicleSearchModalProps)
 
         {/* Footer hint */}
         {!selectedVehicle && (
-          <div className="px-4 py-2 border-t border-gray-100 dark:border-[#21262d] bg-gray-50 dark:bg-[#0d1117]">
-            <p className="text-[10px] text-gray-400 dark:text-gray-500 text-center">
+          <div className="px-4 py-2 border-t border-gray-100 bg-surface">
+            <p className="text-[10px] text-fg-subtle text-center">
               {t('vehicleSearch.pressEsc')}{' '}
-              <kbd className="px-1 py-0.5 bg-gray-200 dark:bg-gray-700 rounded text-[9px]">ESC</kbd>{' '}
+              <kbd className="px-1 py-0.5 bg-surface-hover rounded text-[9px]">ESC</kbd>{' '}
               {t('vehicleSearch.toClose')}
             </p>
           </div>

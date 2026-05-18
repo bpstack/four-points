@@ -27,6 +27,7 @@ import { FaParking } from 'react-icons/fa'
 // Importar componentes y helpers compartidos
 import { StatusBadge } from './StatusBadge'
 import { ActionDropdown } from './ActionDropdown'
+import { Card, Button } from '@/app/ui/components'
 import { formatDateShort, formatTime, formatDateTimeLocal } from './helpers'
 import DatePickerInput from '@/app/ui/calendar/DatePickerInput'
 
@@ -137,28 +138,28 @@ function QuickFilterDropdown({
         minWidth: position.width,
         zIndex: 9999,
       }}
-      className="bg-white dark:bg-[#161b22] border border-gray-200 dark:border-[#30363d] rounded-lg shadow-2xl overflow-hidden"
+      className="bg-surface border border-gray-200 rounded-lg shadow-2xl overflow-hidden"
     >
       {/* Opción para limpiar */}
       <button
         onClick={() => handleSelect(null)}
-        className="w-full px-3 py-2 text-left text-xs text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#1c2128] transition-colors"
+        className="w-full px-3 py-2 text-left text-xs text-fg hover:bg-surface-hover transition-colors"
       >
         {t('filters.quickView')}
       </button>
-      <div className="h-px bg-gray-200 dark:bg-[#30363d]" />
+      <div className="h-px bg-surface-hover" />
 
       {options.map((group, idx) => (
         <div key={group.group}>
-          {idx > 0 && <div className="h-px bg-gray-200 dark:bg-[#30363d]" />}
-          <div className="px-3 py-1.5 text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide bg-gray-50 dark:bg-[#0d1117]">
+          {idx > 0 && <div className="h-px bg-surface-hover" />}
+          <div className="px-3 py-1.5 text-[10px] font-bold text-fg-subtle uppercase tracking-wide bg-surface">
             {group.group}
           </div>
           {group.items.map((item) => (
             <button
               key={item.value}
               onClick={() => handleSelect(item.value)}
-              className="w-full px-3 py-2 text-left text-xs text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#1c2128] transition-colors"
+              className="w-full px-3 py-2 text-left text-xs text-fg hover:bg-surface-hover transition-colors"
             >
               {item.label}
             </button>
@@ -173,10 +174,10 @@ function QuickFilterDropdown({
       <button
         ref={buttonRef}
         onClick={handleToggle}
-        className={`w-full px-3 py-1.5 text-xs border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent flex items-center justify-between gap-2 ${
+        className={`w-full px-3 py-1.5 text-xs border rounded-md focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-transparent flex items-center justify-between gap-2 ${
           value
-            ? 'border-blue-400 dark:border-blue-600 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300'
-            : 'border-gray-300 dark:border-gray-700 bg-white dark:bg-[#151b23] text-gray-700 dark:text-gray-200'
+            ? 'border-blue-400 dark:border-blue-600 bg-info/10 text-blue-700 dark:text-blue-300'
+            : 'border-border bg-surface text-gray-700 dark:text-fg'
         }`}
       >
         <span className="truncate">{getLabel()}</span>
@@ -601,10 +602,10 @@ export function BookingsListClient({
   // ============================================
   if (loading && bookings.length === 0) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-[#010409] flex items-center justify-center">
+      <div className="min-h-screen bg-bg flex items-center justify-center">
         <div className="text-center">
           <div className="inline-block h-10 w-10 animate-spin rounded-full border-[3px] border-solid border-blue-600 dark:border-blue-500 border-r-transparent"></div>
-          <p className="mt-3 text-xs text-gray-600 dark:text-gray-400">{t('bookings.loading')}</p>
+          <p className="mt-3 text-xs text-fg-muted">{t('bookings.loading')}</p>
         </div>
       </div>
     )
@@ -615,7 +616,7 @@ export function BookingsListClient({
   // ============================================
   return (
     <>
-      <div className="min-h-screen bg-white dark:bg-[#010409] p-4 md:p-6">
+      <div className="min-h-screen bg-bg p-4 md:p-6">
         <div className="max-w-[1400px] space-y-5">
           {/* Header */}
           <div className="mb-4 sm:mb-6">
@@ -623,16 +624,14 @@ export function BookingsListClient({
               <div className="flex items-center gap-3">
                 <Link
                   href="/dashboard/parking"
-                  className="inline-flex items-center justify-center w-8 h-8 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md transition-colors"
+                  className="inline-flex items-center justify-center w-8 h-8 text-fg-subtle hover:text-gray-700 dark:hover:text-gray-200 hover:bg-surface-hover rounded-md transition-colors"
                   title={t('bookings.backToDashboard')}
                 >
                   <FiArrowLeft className="w-4 h-4" />
                 </Link>
                 <div>
-                  <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">
-                    {t('bookings.title')}
-                  </h1>
-                  <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-0.5">
+                  <h1 className="text-xl sm:text-2xl font-bold text-fg">{t('bookings.title')}</h1>
+                  <p className="text-xs sm:text-sm text-fg-muted mt-0.5">
                     {t('bookings.subtitle')}
                   </p>
                 </div>
@@ -640,18 +639,15 @@ export function BookingsListClient({
               <div className="flex items-center gap-2">
                 <Link
                   href="/dashboard/parking/status"
-                  className="inline-flex items-center justify-center w-8 h-8 text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md transition-colors"
+                  className="inline-flex items-center justify-center w-8 h-8 text-fg-subtle hover:text-info hover:bg-surface-hover rounded-md transition-colors"
                   title={t('quickActions.parkingControl')}
                 >
                   <FaParking className="w-4 h-4" />
                 </Link>
-                <Link
-                  href="/dashboard/parking/bookings/new"
-                  className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-green-600 dark:bg-green-700 text-white text-xs font-medium rounded-md hover:bg-green-700 dark:hover:bg-green-800 transition-colors"
-                >
+                <Button variant="accent" size="sm" as="a" href="/dashboard/parking/bookings/new">
                   <FiPlus className="w-3.5 h-3.5" />
                   {t('bookings.newBooking')}
-                </Link>
+                </Button>
               </div>
             </div>
           </div>
@@ -662,74 +658,65 @@ export function BookingsListClient({
             <div className="min-[1400px]:col-span-3 space-y-4">
               {/* Stats - Mobile/Tablet (hidden on >= 1400px) */}
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 min-[1400px]:hidden">
-                <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-3 hover:shadow-md dark:hover:shadow-gray-900/50 transition-shadow">
+                <Card padding="sm" hover>
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 font-medium">
+                      <p className="text-[10px] sm:text-xs text-fg-muted font-medium">
                         {t('stats.totalBookings')}
                       </p>
-                      <p className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 mt-0.5">
-                        {totalBookings}
-                      </p>
+                      <p className="text-lg sm:text-xl font-bold text-fg mt-0.5">{totalBookings}</p>
                     </div>
-                    <FaParking className="w-5 h-5 sm:w-6 sm:h-6 text-blue-500 dark:text-blue-400" />
+                    <FaParking className="w-5 h-5 sm:w-6 sm:h-6 text-info" />
                   </div>
-                </div>
-
-                <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-3 hover:shadow-md dark:hover:shadow-gray-900/50 transition-shadow">
+                </Card>
+                <Card padding="sm" hover>
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 font-medium">
+                      <p className="text-[10px] sm:text-xs text-fg-muted font-medium">
                         {t('stats.reserved')}
                       </p>
-                      <p className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 mt-0.5">
-                        {reservedCount}
-                      </p>
+                      <p className="text-lg sm:text-xl font-bold text-fg mt-0.5">{reservedCount}</p>
                     </div>
-                    <FiClock className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-500 dark:text-yellow-400" />
+                    <FiClock className="w-5 h-5 sm:w-6 sm:h-6 text-warning" />
                   </div>
-                </div>
-
-                <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-3 hover:shadow-md dark:hover:shadow-gray-900/50 transition-shadow">
+                </Card>
+                <Card padding="sm" hover>
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 font-medium">
+                      <p className="text-[10px] sm:text-xs text-fg-muted font-medium">
                         {t('stats.occupied')}
                       </p>
-                      <p className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 mt-0.5">
-                        {occupiedCount}
-                      </p>
+                      <p className="text-lg sm:text-xl font-bold text-fg mt-0.5">{occupiedCount}</p>
                     </div>
-                    <FiCalendar className="w-5 h-5 sm:w-6 sm:h-6 text-purple-500 dark:text-purple-400" />
+                    <FiCalendar className="w-5 h-5 sm:w-6 sm:h-6 text-accent" />
                   </div>
-                </div>
-
-                <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-3 hover:shadow-md dark:hover:shadow-gray-900/50 transition-shadow col-span-2 lg:col-span-1">
+                </Card>
+                <Card padding="sm" hover className="col-span-2 lg:col-span-1">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 font-medium">
+                      <p className="text-[10px] sm:text-xs text-fg-muted font-medium">
                         {t('stats.completed')}
                       </p>
-                      <p className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 mt-0.5">
+                      <p className="text-lg sm:text-xl font-bold text-fg mt-0.5">
                         {completedCount}
                       </p>
                     </div>
-                    <FiCheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-green-500 dark:text-green-400" />
+                    <FiCheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-success" />
                   </div>
-                </div>
+                </Card>
               </div>
 
               {/* Filters */}
               <div className="mb-4 space-y-2">
                 <div className="flex flex-col sm:flex-row gap-2">
                   <div className="relative flex-1">
-                    <FiSearch className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 dark:text-gray-500" />
+                    <FiSearch className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-fg-subtle" />
                     <input
                       type="text"
                       placeholder={t('filters.search')}
                       value={searchInputValue}
                       onChange={(e) => handleSearchChange(e.target.value)}
-                      className="w-full pl-8 pr-3 py-1.5 text-xs border border-gray-300 dark:border-gray-700 dark:bg-[#151b23] dark:text-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent"
+                      className="w-full pl-8 pr-3 py-1.5 text-xs border border-border bg-surface text-fg rounded-md focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-transparent"
                     />
                   </div>
                 </div>
@@ -766,7 +753,7 @@ export function BookingsListClient({
                   <select
                     value={statusFilter}
                     onChange={(e) => handleStatusChange(e.target.value as StatusFilter)}
-                    className="w-full px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:border-transparent bg-white dark:bg-[#151b23] dark:text-gray-200"
+                    className="w-full px-3 py-1.5 text-xs border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-transparent bg-surface text-fg"
                   >
                     <option value="all">{t('filters.allStatuses')}</option>
                     <option value="reserved">{t('status.reserved')}</option>
@@ -780,7 +767,7 @@ export function BookingsListClient({
                   {hasActiveFilters && (
                     <button
                       onClick={handleClearFilters}
-                      className="px-3 py-1.5 text-xs font-medium text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors flex items-center justify-center gap-1"
+                      className="px-3 py-1.5 text-xs font-medium text-danger bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors flex items-center justify-center gap-1"
                     >
                       <FiX className="w-3 h-3" />
                       {t('filters.clear')}
@@ -790,41 +777,38 @@ export function BookingsListClient({
               </div>
 
               {/* Table - Desktop */}
-              <div className="hidden md:block bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 shadow-sm">
+              <div className="hidden md:block bg-surface rounded-md border border-border shadow-sm">
                 <div className="overflow-x-auto overflow-y-visible">
                   <table className="w-full">
-                    <thead className="bg-gray-50 dark:bg-[#0d1117] border-b border-gray-200 dark:border-gray-800">
+                    <thead className="bg-surface border-b border-border">
                       <tr>
-                        <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                        <th className="px-3 py-2 text-left text-[10px] font-semibold text-fg uppercase tracking-wider">
                           {t('table.code')}
                         </th>
-                        <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                        <th className="px-3 py-2 text-left text-[10px] font-semibold text-fg uppercase tracking-wider">
                           {t('table.client')}
                         </th>
-                        <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                        <th className="px-3 py-2 text-left text-[10px] font-semibold text-fg uppercase tracking-wider">
                           {t('table.entry')}
                         </th>
-                        <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                        <th className="px-3 py-2 text-left text-[10px] font-semibold text-fg uppercase tracking-wider">
                           {t('table.exit')}
                         </th>
-                        <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                        <th className="px-3 py-2 text-left text-[10px] font-semibold text-fg uppercase tracking-wider">
                           {t('table.status')}
                         </th>
-                        <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                        <th className="px-3 py-2 text-left text-[10px] font-semibold text-fg uppercase tracking-wider">
                           {t('table.spot')}
                         </th>
-                        <th className="px-3 py-2 text-right text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                        <th className="px-3 py-2 text-right text-[10px] font-semibold text-fg uppercase tracking-wider">
                           {t('table.actions')}
                         </th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
+                    <tbody className="divide-y divide-gray-200 dark:divide-border">
                       {filteredBookings.length === 0 ? (
                         <tr>
-                          <td
-                            colSpan={7}
-                            className="px-3 py-8 text-center text-xs text-gray-500 dark:text-gray-400"
-                          >
+                          <td colSpan={7} className="px-3 py-8 text-center text-xs text-fg-subtle">
                             {hasActiveFilters
                               ? t('filters.noResultsWithFilters')
                               : t('filters.noBookings')}
@@ -835,36 +819,36 @@ export function BookingsListClient({
                           <tr
                             key={booking.id}
                             onClick={() => handleRowClick(booking.booking_code)}
-                            className="hover:bg-gray-50 dark:hover:bg-[#0d1117] transition-colors cursor-pointer"
+                            className="hover:bg-surface-hover transition-colors cursor-pointer"
                           >
                             <td className="px-3 py-2">
-                              <span className="text-xs font-medium text-blue-600 dark:text-blue-400 hover:underline">
+                              <span className="text-xs font-medium text-info hover:underline">
                                 {booking.booking_code}
                               </span>
                             </td>
                             <td className="px-3 py-2">
                               <div>
-                                <div className="text-xs font-medium text-gray-900 dark:text-gray-100">
+                                <div className="text-xs font-medium text-fg">
                                   {booking.vehicle?.owner || t('table.noOwner')}
                                 </div>
-                                <div className="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">
+                                <div className="text-[10px] text-fg-subtle mt-0.5">
                                   {booking.vehicle?.plate || t('table.noPlate')}
                                 </div>
                               </div>
                             </td>
                             <td className="px-3 py-2">
-                              <div className="text-xs text-gray-900 dark:text-gray-100">
+                              <div className="text-xs text-fg">
                                 {formatDateShort(booking.schedule.expected_checkin)}
                               </div>
-                              <div className="text-[10px] text-gray-500 dark:text-gray-400">
+                              <div className="text-[10px] text-fg-subtle">
                                 {formatTime(booking.schedule.expected_checkin)}
                               </div>
                             </td>
                             <td className="px-3 py-2">
-                              <div className="text-xs text-gray-900 dark:text-gray-100">
+                              <div className="text-xs text-fg">
                                 {formatDateShort(booking.schedule.expected_checkout)}
                               </div>
-                              <div className="text-[10px] text-gray-500 dark:text-gray-400">
+                              <div className="text-[10px] text-fg-subtle">
                                 {formatTime(booking.schedule.expected_checkout)}
                               </div>
                             </td>
@@ -872,7 +856,7 @@ export function BookingsListClient({
                               <StatusBadge status={booking.status} />
                             </td>
                             <td className="px-3 py-2">
-                              <span className="text-xs font-medium text-gray-900 dark:text-gray-100">
+                              <span className="text-xs font-medium text-fg">
                                 {booking.spot.level}-{booking.spot.number}
                               </span>
                             </td>
@@ -890,8 +874,8 @@ export function BookingsListClient({
               {/* Cards - Mobile */}
               <div className="md:hidden space-y-2">
                 {filteredBookings.length === 0 ? (
-                  <div className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-6 text-center">
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                  <div className="bg-surface rounded-md border border-border p-6 text-center">
+                    <p className="text-xs text-fg-subtle">
                       {hasActiveFilters
                         ? t('filters.noResultsWithFilters')
                         : t('filters.noBookings')}
@@ -899,20 +883,23 @@ export function BookingsListClient({
                   </div>
                 ) : (
                   filteredBookings.map((booking) => (
-                    <div
+                    <Card
                       key={booking.id}
+                      padding="sm"
+                      hover
+                      as="div"
                       onClick={() => handleRowClick(booking.booking_code)}
-                      className="bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 p-3 hover:shadow-md dark:hover:shadow-gray-900/50 transition-shadow cursor-pointer"
+                      className="cursor-pointer"
                     >
                       <div className="flex items-start justify-between mb-2">
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
-                            <span className="text-xs font-semibold text-blue-600 dark:text-blue-400">
+                            <span className="text-xs font-semibold text-info">
                               {booking.booking_code}
                             </span>
                             <StatusBadge status={booking.status} />
                           </div>
-                          <p className="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">
+                          <p className="text-[10px] text-fg-subtle mt-0.5">
                             {t('table.spot')} {booking.spot.level}-{booking.spot.number}
                           </p>
                         </div>
@@ -922,10 +909,10 @@ export function BookingsListClient({
                       </div>
 
                       <div className="mb-2">
-                        <p className="text-xs font-medium text-gray-900 dark:text-gray-100">
+                        <p className="text-xs font-medium text-fg">
                           {booking.vehicle?.owner || t('table.noOwner')}
                         </p>
-                        <p className="text-[10px] text-gray-500 dark:text-gray-400">
+                        <p className="text-[10px] text-fg-subtle">
                           {booking.vehicle?.model && `${booking.vehicle.model} · `}
                           {booking.vehicle?.plate || t('table.noPlate')}
                         </p>
@@ -933,46 +920,40 @@ export function BookingsListClient({
 
                       <div className="flex items-center justify-between text-[10px]">
                         <div>
-                          <span className="text-gray-500 dark:text-gray-400">
-                            {t('table.entry')}:{' '}
-                          </span>
-                          <span className="text-gray-900 dark:text-gray-100">
+                          <span className="text-fg-subtle">{t('table.entry')}: </span>
+                          <span className="text-fg">
                             {formatDateShort(booking.schedule.expected_checkin)}{' '}
                             {formatTime(booking.schedule.expected_checkin)}
                           </span>
                         </div>
                         <div>
-                          <span className="text-gray-500 dark:text-gray-400">
-                            {t('table.exit')}:{' '}
-                          </span>
-                          <span className="text-gray-900 dark:text-gray-100">
+                          <span className="text-fg-subtle">{t('table.exit')}: </span>
+                          <span className="text-fg">
                             {formatDateShort(booking.schedule.expected_checkout)}{' '}
                             {formatTime(booking.schedule.expected_checkout)}
                           </span>
                         </div>
                       </div>
-                    </div>
+                    </Card>
                   ))
                 )}
               </div>
 
               {/* Results Info & Pagination Controls */}
-              <div className="mt-4 bg-white dark:bg-[#151b23] rounded-md border border-gray-200 dark:border-gray-800 px-4 py-3">
+              <div className="mt-4 bg-surface rounded-md border border-border px-4 py-3">
                 <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
                   {/* Results info */}
-                  <div className="text-xs text-gray-600 dark:text-gray-400">
+                  <div className="text-xs text-fg-muted">
                     {filteredBookings.length === 0 ? (
                       <span>{t('bookings.noResults')}</span>
                     ) : (
                       <span>
-                        <span className="font-medium text-gray-900 dark:text-gray-100">
-                          {filteredBookings.length}
-                        </span>{' '}
+                        <span className="font-medium text-fg">{filteredBookings.length}</span>{' '}
                         {filteredBookings.length !== 1
                           ? t('bookings.reservations')
                           : t('bookings.reservation')}
                         {pagination.totalPages > 1 && (
-                          <span className="text-gray-400 dark:text-gray-500">
+                          <span className="text-fg-subtle">
                             {' '}
                             ({t('bookings.page')} {pagination.page} {t('bookings.of')}{' '}
                             {pagination.totalPages})
@@ -988,7 +969,7 @@ export function BookingsListClient({
                       <button
                         onClick={() => handlePageChange(pagination.page - 1)}
                         disabled={pagination.page <= 1 || loading}
-                        className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-fg bg-surface-hover border border-border rounded-md hover:bg-surface-hover disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                       >
                         <FiChevronLeft className="w-3.5 h-3.5" />
                         {t('pagination.previous')}
@@ -1014,8 +995,8 @@ export function BookingsListClient({
                               disabled={loading}
                               className={`w-8 h-8 text-xs font-medium rounded-md transition-colors ${
                                 pageNum === pagination.page
-                                  ? 'bg-blue-600 text-white'
-                                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
+                                  ? 'bg-accent text-accent-fg'
+                                  : 'text-fg hover:bg-surface-hover'
                               }`}
                             >
                               {pageNum}
@@ -1026,7 +1007,7 @@ export function BookingsListClient({
                       <button
                         onClick={() => handlePageChange(pagination.page + 1)}
                         disabled={pagination.page >= pagination.totalPages || loading}
-                        className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-fg bg-surface-hover border border-border rounded-md hover:bg-surface-hover disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                       >
                         {t('pagination.next')}
                         <FiChevronRight className="w-3.5 h-3.5" />
@@ -1041,51 +1022,39 @@ export function BookingsListClient({
             {/* Right Column - Stats Sidebar (visible on >= 1400px) */}
             <div className="hidden min-[1400px]:block space-y-4">
               <div className="sticky top-4 space-y-3">
-                <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">
-                  {t('stats.summary')}
-                </h3>
+                <h3 className="text-sm font-semibold text-fg mb-3">{t('stats.summary')}</h3>
 
-                <div className="bg-white dark:bg-[#0D1117] border border-[#d0d7de] dark:border-[#30363d] rounded-xl shadow-sm p-4">
+                <div className="bg-surface border border-border rounded-xl shadow-sm p-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">
+                      <p className="text-xs text-fg-muted font-medium">
                         {t('stats.totalBookings')}
                       </p>
-                      <p className="text-xl font-bold text-gray-900 dark:text-gray-100 mt-0.5">
-                        {totalBookings}
-                      </p>
+                      <p className="text-xl font-bold text-fg mt-0.5">{totalBookings}</p>
                     </div>
-                    <div className="p-2 bg-blue-100 dark:bg-blue-900/20 rounded-lg">
-                      <FaParking className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                    <div className="p-2 bg-info/10 rounded-lg">
+                      <FaParking className="w-5 h-5 text-info" />
                     </div>
                   </div>
                 </div>
 
-                <div className="bg-white dark:bg-[#0D1117] border border-[#d0d7de] dark:border-[#30363d] rounded-xl shadow-sm p-4">
+                <div className="bg-surface border border-border rounded-xl shadow-sm p-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">
-                        {t('stats.reserved')}
-                      </p>
-                      <p className="text-xl font-bold text-gray-900 dark:text-gray-100 mt-0.5">
-                        {reservedCount}
-                      </p>
+                      <p className="text-xs text-fg-muted font-medium">{t('stats.reserved')}</p>
+                      <p className="text-xl font-bold text-fg mt-0.5">{reservedCount}</p>
                     </div>
                     <div className="p-2 bg-yellow-100 dark:bg-yellow-900/20 rounded-lg">
-                      <FiClock className="w-5 h-5 text-yellow-600 dark:text-yellow-400" />
+                      <FiClock className="w-5 h-5 text-warning" />
                     </div>
                   </div>
                 </div>
 
-                <div className="bg-white dark:bg-[#0D1117] border border-[#d0d7de] dark:border-[#30363d] rounded-xl shadow-sm p-4">
+                <div className="bg-surface border border-border rounded-xl shadow-sm p-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">
-                        {t('stats.occupied')}
-                      </p>
-                      <p className="text-xl font-bold text-gray-900 dark:text-gray-100 mt-0.5">
-                        {occupiedCount}
-                      </p>
+                      <p className="text-xs text-fg-muted font-medium">{t('stats.occupied')}</p>
+                      <p className="text-xl font-bold text-fg mt-0.5">{occupiedCount}</p>
                     </div>
                     <div className="p-2 bg-purple-100 dark:bg-purple-900/20 rounded-lg">
                       <FiCalendar className="w-5 h-5 text-purple-600 dark:text-purple-400" />
@@ -1093,18 +1062,14 @@ export function BookingsListClient({
                   </div>
                 </div>
 
-                <div className="bg-white dark:bg-[#0D1117] border border-[#d0d7de] dark:border-[#30363d] rounded-xl shadow-sm p-4">
+                <div className="bg-surface border border-border rounded-xl shadow-sm p-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">
-                        {t('stats.completed')}
-                      </p>
-                      <p className="text-xl font-bold text-gray-900 dark:text-gray-100 mt-0.5">
-                        {completedCount}
-                      </p>
+                      <p className="text-xs text-fg-muted font-medium">{t('stats.completed')}</p>
+                      <p className="text-xl font-bold text-fg mt-0.5">{completedCount}</p>
                     </div>
                     <div className="p-2 bg-green-100 dark:bg-green-900/20 rounded-lg">
-                      <FiCheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
+                      <FiCheckCircle className="w-5 h-5 text-success" />
                     </div>
                   </div>
                 </div>
@@ -1117,18 +1082,18 @@ export function BookingsListClient({
       {/* MODAL CHECK-IN */}
       {showCheckInModal && selectedBooking && (
         <div className="fixed inset-0 bg-black/50 dark:bg-black/70 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-[#161b22] rounded-lg shadow-xl max-w-md w-full border border-gray-200 dark:border-gray-800">
-            <div className="border-b border-gray-200 dark:border-gray-800 px-6 py-4">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+          <div className="bg-surface rounded-lg shadow-xl max-w-md w-full border border-border">
+            <div className="border-b border-border px-6 py-4">
+              <h3 className="text-lg font-semibold text-fg">
                 {t('modals.checkIn.title')} - {selectedBooking.booking_code}
               </h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+              <p className="text-sm text-fg-muted mt-1">
                 {t('table.spot')} {selectedBooking.spot.level}-{selectedBooking.spot.number}
               </p>
             </div>
             <div className="px-6 py-4 space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label className="block text-sm font-medium text-fg mb-1">
                   {t('modals.checkIn.dateTime')}
                 </label>
                 <input
@@ -1137,35 +1102,35 @@ export function BookingsListClient({
                   onChange={(e) =>
                     setCheckInData({ ...checkInData, actual_checkin: e.target.value })
                   }
-                  className="w-full px-3 py-2 bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600"
+                  className="w-full px-3 py-2 bg-surface text-fg border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-accent/50"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label className="block text-sm font-medium text-fg mb-1">
                   {t('modals.checkIn.notes')}
                 </label>
                 <textarea
                   value={checkInData.notes}
                   onChange={(e) => setCheckInData({ ...checkInData, notes: e.target.value })}
                   rows={2}
-                  className="w-full px-3 py-2 bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600"
+                  className="w-full px-3 py-2 bg-surface text-fg border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-accent/50"
                   placeholder={t('modals.checkIn.notesPlaceholder')}
                 />
               </div>
             </div>
-            <div className="border-t border-gray-200 dark:border-gray-800 px-6 py-4 flex gap-3 justify-end">
+            <div className="border-t border-border px-6 py-4 flex gap-3 justify-end">
               <button
                 onClick={() => {
                   setShowCheckInModal(false)
                   setCheckInData({ actual_checkin: '', notes: '' })
                 }}
-                className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-md transition-colors"
+                className="px-4 py-2 text-sm font-medium text-fg bg-surface-hover hover:bg-surface-hover rounded-md transition-colors"
               >
                 {t('modals.cancel')}
               </button>
               <button
                 onClick={handleCheckIn}
-                className="px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 rounded-md transition-colors"
+                className="px-4 py-2 text-sm font-medium text-accent-fg bg-accent hover:bg-accent-hover dark:bg-green-700 dark:hover:bg-accent-hover rounded-md transition-colors"
               >
                 {t('modals.checkIn.confirm')}
               </button>
@@ -1177,18 +1142,18 @@ export function BookingsListClient({
       {/* MODAL CHECK-OUT */}
       {showCheckOutModal && selectedBooking && (
         <div className="fixed inset-0 bg-black/50 dark:bg-black/70 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-[#161b22] rounded-lg shadow-xl max-w-md w-full border border-gray-200 dark:border-gray-800">
-            <div className="border-b border-gray-200 dark:border-gray-800 px-6 py-4">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+          <div className="bg-surface rounded-lg shadow-xl max-w-md w-full border border-border">
+            <div className="border-b border-border px-6 py-4">
+              <h3 className="text-lg font-semibold text-fg">
                 {t('modals.checkOut.title')} - {selectedBooking.booking_code}
               </h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+              <p className="text-sm text-fg-muted mt-1">
                 {t('table.spot')} {selectedBooking.spot.level}-{selectedBooking.spot.number}
               </p>
             </div>
             <div className="px-6 py-4 space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label className="block text-sm font-medium text-fg mb-1">
                   {t('modals.checkOut.dateTime')}
                 </label>
                 <input
@@ -1197,11 +1162,11 @@ export function BookingsListClient({
                   onChange={(e) =>
                     setCheckOutData({ ...checkOutData, actual_checkout: e.target.value })
                   }
-                  className="w-full px-3 py-2 bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600"
+                  className="w-full px-3 py-2 bg-surface text-fg border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-accent/50"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label className="block text-sm font-medium text-fg mb-1">
                   {t('modals.checkOut.amount')}
                 </label>
                 <input
@@ -1211,11 +1176,11 @@ export function BookingsListClient({
                   onChange={(e) =>
                     setCheckOutData({ ...checkOutData, payment_amount: e.target.value })
                   }
-                  className="w-full px-3 py-2 bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600"
+                  className="w-full px-3 py-2 bg-surface text-fg border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-accent/50"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label className="block text-sm font-medium text-fg mb-1">
                   {t('modals.checkOut.paymentMethod')}
                 </label>
                 <select
@@ -1223,7 +1188,7 @@ export function BookingsListClient({
                   onChange={(e) =>
                     setCheckOutData({ ...checkOutData, payment_method: e.target.value })
                   }
-                  className="w-full px-3 py-2 bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600"
+                  className="w-full px-3 py-2 bg-surface text-fg border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-accent/50"
                 >
                   <option value="cash">{t('paymentMethods.cash')}</option>
                   <option value="card">{t('paymentMethods.card')}</option>
@@ -1232,7 +1197,7 @@ export function BookingsListClient({
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label className="block text-sm font-medium text-fg mb-1">
                   {t('modals.checkOut.reference')}
                 </label>
                 <input
@@ -1241,24 +1206,24 @@ export function BookingsListClient({
                   onChange={(e) =>
                     setCheckOutData({ ...checkOutData, payment_reference: e.target.value })
                   }
-                  className="w-full px-3 py-2 bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600"
+                  className="w-full px-3 py-2 bg-surface text-fg border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-accent/50"
                   placeholder={t('modals.checkOut.referencePlaceholder')}
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label className="block text-sm font-medium text-fg mb-1">
                   {t('modals.checkOut.notes')}
                 </label>
                 <textarea
                   value={checkOutData.notes}
                   onChange={(e) => setCheckOutData({ ...checkOutData, notes: e.target.value })}
                   rows={2}
-                  className="w-full px-3 py-2 bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600"
+                  className="w-full px-3 py-2 bg-surface text-fg border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-accent/50"
                   placeholder={t('modals.checkOut.notesPlaceholder')}
                 />
               </div>
             </div>
-            <div className="border-t border-gray-200 dark:border-gray-800 px-6 py-4 flex gap-3 justify-end">
+            <div className="border-t border-border px-6 py-4 flex gap-3 justify-end">
               <button
                 onClick={() => {
                   setShowCheckOutModal(false)
@@ -1270,13 +1235,13 @@ export function BookingsListClient({
                     notes: '',
                   })
                 }}
-                className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-md transition-colors"
+                className="px-4 py-2 text-sm font-medium text-fg bg-surface-hover hover:bg-surface-hover rounded-md transition-colors"
               >
                 {t('modals.cancel')}
               </button>
               <button
                 onClick={handleCheckOut}
-                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 rounded-md transition-colors"
+                className="px-4 py-2 text-sm font-medium text-accent-fg bg-accent hover:bg-accent-hover rounded-md transition-colors"
               >
                 {t('modals.checkOut.confirm')}
               </button>
@@ -1288,15 +1253,15 @@ export function BookingsListClient({
       {/* MODAL MODIFICAR */}
       {showUpdateModal && selectedBooking && (
         <div className="fixed inset-0 bg-black/50 dark:bg-black/70 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-[#161b22] rounded-lg shadow-xl max-w-md w-full border border-gray-200 dark:border-gray-800">
-            <div className="border-b border-gray-200 dark:border-gray-800 px-6 py-4">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+          <div className="bg-surface rounded-lg shadow-xl max-w-md w-full border border-border">
+            <div className="border-b border-border px-6 py-4">
+              <h3 className="text-lg font-semibold text-fg">
                 {t('modals.update.title')} - {selectedBooking.booking_code}
               </h3>
             </div>
             <div className="px-6 py-4 space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label className="block text-sm font-medium text-fg mb-1">
                   {t('modals.update.expectedCheckIn')}
                 </label>
                 <input
@@ -1305,11 +1270,11 @@ export function BookingsListClient({
                   onChange={(e) =>
                     setUpdateData({ ...updateData, expected_checkin: e.target.value })
                   }
-                  className="w-full px-3 py-2 bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600"
+                  className="w-full px-3 py-2 bg-surface text-fg border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-accent/50"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label className="block text-sm font-medium text-fg mb-1">
                   {t('modals.update.expectedCheckOut')}
                 </label>
                 <input
@@ -1318,11 +1283,11 @@ export function BookingsListClient({
                   onChange={(e) =>
                     setUpdateData({ ...updateData, expected_checkout: e.target.value })
                   }
-                  className="w-full px-3 py-2 bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600"
+                  className="w-full px-3 py-2 bg-surface text-fg border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-accent/50"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label className="block text-sm font-medium text-fg mb-1">
                   {t('modals.update.totalAmount')}
                 </label>
                 <input
@@ -1330,23 +1295,23 @@ export function BookingsListClient({
                   step="0.01"
                   value={updateData.total_amount}
                   onChange={(e) => setUpdateData({ ...updateData, total_amount: e.target.value })}
-                  className="w-full px-3 py-2 bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600"
+                  className="w-full px-3 py-2 bg-surface text-fg border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-accent/50"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label className="block text-sm font-medium text-fg mb-1">
                   {t('modals.update.notes')}
                 </label>
                 <textarea
                   value={updateData.notes}
                   onChange={(e) => setUpdateData({ ...updateData, notes: e.target.value })}
                   rows={3}
-                  className="w-full px-3 py-2 bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600"
+                  className="w-full px-3 py-2 bg-surface text-fg border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-accent/50"
                   placeholder={t('modals.update.notesPlaceholder')}
                 />
               </div>
             </div>
-            <div className="border-t border-gray-200 dark:border-gray-800 px-6 py-4 flex gap-3 justify-end">
+            <div className="border-t border-border px-6 py-4 flex gap-3 justify-end">
               <button
                 onClick={() => {
                   setShowUpdateModal(false)
@@ -1357,13 +1322,13 @@ export function BookingsListClient({
                     notes: '',
                   })
                 }}
-                className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-md transition-colors"
+                className="px-4 py-2 text-sm font-medium text-fg bg-surface-hover hover:bg-surface-hover rounded-md transition-colors"
               >
                 {t('modals.cancel')}
               </button>
               <button
                 onClick={handleUpdate}
-                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 rounded-md transition-colors"
+                className="px-4 py-2 text-sm font-medium text-accent-fg bg-accent hover:bg-accent-hover rounded-md transition-colors"
               >
                 {t('modals.update.save')}
               </button>

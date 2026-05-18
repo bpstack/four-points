@@ -28,7 +28,7 @@ export interface Notification {
 }
 
 export const PRIORITY_COLORS: Record<NotificationPriority, string> = {
-  low: 'border-gray-300 dark:border-gray-600',
+  low: 'border-border',
   medium: 'border-blue-400 dark:border-blue-600',
   high: 'border-yellow-400 dark:border-yellow-600',
   urgent: 'border-red-500 dark:border-red-600',

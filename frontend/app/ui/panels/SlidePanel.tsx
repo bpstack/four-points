@@ -88,10 +88,10 @@ export function StepIndicator({ steps, currentStep, variant = 'default' }: StepI
               className={cn(
                 'w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold transition-all duration-200',
                 step.number < currentStep
-                  ? 'bg-green-500 text-white'
+                  ? 'bg-accent text-accent-fg'
                   : step.number === currentStep
-                    ? 'bg-blue-600 text-white ring-2 ring-blue-300 dark:ring-blue-800'
-                    : 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400'
+                    ? 'bg-accent text-accent-fg ring-2 ring-blue-300 dark:ring-blue-800'
+                    : 'bg-border text-fg-subtle'
               )}
             >
               {step.number < currentStep ? <FiCheck className="w-4 h-4" /> : step.number}
@@ -100,7 +100,7 @@ export function StepIndicator({ steps, currentStep, variant = 'default' }: StepI
               <div
                 className={cn(
                   'w-8 h-0.5 mx-1 transition-all duration-200',
-                  step.number < currentStep ? 'bg-green-500' : 'bg-gray-200 dark:bg-gray-700'
+                  step.number < currentStep ? 'bg-green-500' : 'bg-border'
                 )}
               />
             )}
@@ -119,10 +119,10 @@ export function StepIndicator({ steps, currentStep, variant = 'default' }: StepI
               className={cn(
                 'w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold transition-all duration-200',
                 step.number < currentStep
-                  ? 'bg-green-500 text-white'
+                  ? 'bg-accent text-accent-fg'
                   : step.number === currentStep
                     ? 'bg-gradient-to-br from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/30'
-                    : 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400'
+                    : 'bg-border text-fg-subtle'
               )}
             >
               {step.number < currentStep ? (
@@ -134,9 +134,7 @@ export function StepIndicator({ steps, currentStep, variant = 'default' }: StepI
             <span
               className={cn(
                 'mt-2 text-xs font-medium transition-colors',
-                step.number === currentStep
-                  ? 'text-blue-600 dark:text-blue-400'
-                  : 'text-gray-500 dark:text-gray-400'
+                step.number === currentStep ? 'text-blue-600 dark:text-blue-400' : 'text-fg-subtle'
               )}
             >
               {step.label}
@@ -146,7 +144,7 @@ export function StepIndicator({ steps, currentStep, variant = 'default' }: StepI
             <div
               className={cn(
                 'flex-1 h-0.5 mx-4 transition-all duration-200',
-                step.number < currentStep ? 'bg-green-500' : 'bg-gray-200 dark:bg-gray-700'
+                step.number < currentStep ? 'bg-green-500' : 'bg-border'
               )}
             />
           )}
@@ -217,32 +215,26 @@ export function SlidePanel({
                 <Dialog.Panel
                   className={cn('pointer-events-auto w-screen', sizeClasses[size], className)}
                 >
-                  <div className="flex h-full flex-col bg-white dark:bg-[#151b23] shadow-xl">
+                  <div className="flex h-full flex-col bg-surface shadow-xl">
                     {/* Header */}
-                    <div className="px-4 py-6 sm:px-6 border-b border-gray-200 dark:border-gray-800">
+                    <div className="px-4 py-6 sm:px-6 border-b border-border">
                       <div className="flex items-start justify-between">
                         <div className="flex items-center gap-3">
                           {headerIcon && (
-                            <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
-                              {headerIcon}
-                            </div>
+                            <div className="p-2 bg-info/10 rounded-lg">{headerIcon}</div>
                           )}
                           <div>
-                            <Dialog.Title className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                            <Dialog.Title className="text-lg font-semibold text-fg">
                               {title}
                             </Dialog.Title>
-                            {subtitle && (
-                              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                                {subtitle}
-                              </p>
-                            )}
+                            {subtitle && <p className="mt-1 text-sm text-fg-subtle">{subtitle}</p>}
                           </div>
                         </div>
                         {showCloseButton && (
                           <button
                             type="button"
                             onClick={onClose}
-                            className="rounded-md text-gray-400 hover:text-gray-500 dark:hover:text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                            className="rounded-md text-fg-subtle hover:text-fg focus:outline-none focus:ring-2 focus:ring-accent/50 focus:ring-offset-2"
                           >
                             <span className="sr-only">{t('panels.closePanel')}</span>
                             <FiX className="h-6 w-6" />
@@ -263,9 +255,7 @@ export function SlidePanel({
 
                     {/* Footer - fixed at bottom */}
                     {footer && (
-                      <div className="border-t border-gray-200 dark:border-gray-800 px-4 py-4 sm:px-6">
-                        {footer}
-                      </div>
+                      <div className="border-t border-border px-4 py-4 sm:px-6">{footer}</div>
                     )}
                   </div>
                 </Dialog.Panel>
@@ -293,9 +283,7 @@ export function SlidePanelSection({ children, className, title }: SlidePanelSect
   return (
     <div className={cn('space-y-4', className)}>
       {title && (
-        <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100 border-b border-gray-200 dark:border-gray-700 pb-2">
-          {title}
-        </h3>
+        <h3 className="text-sm font-medium text-fg border-b border-border pb-2">{title}</h3>
       )}
       {children}
     </div>
@@ -338,8 +326,8 @@ export function SlidePanelFooterButtons({
   const resolvedBackText = backText ?? t('actions.back')
 
   const variantClasses = {
-    primary: 'bg-blue-600 hover:bg-blue-700 focus:ring-blue-500',
-    success: 'bg-green-600 hover:bg-green-700 focus:ring-green-500',
+    primary: 'bg-accent hover:bg-accent-hover focus:ring-accent/50',
+    success: 'bg-green-600 hover:bg-accent-hover focus:ring-green-500',
     danger: 'bg-red-600 hover:bg-red-700 focus:ring-red-500',
   }
 
@@ -352,7 +340,7 @@ export function SlidePanelFooterButtons({
             type="button"
             onClick={onBack}
             disabled={isSubmitting}
-            className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 transition-colors"
+            className="px-4 py-2 text-sm font-medium text-fg bg-surface-hover border border-border rounded-md hover:bg-surface-hover focus:outline-none focus:ring-2 focus:ring-accent/50 disabled:opacity-50 transition-colors"
           >
             {resolvedBackText}
           </button>
@@ -361,7 +349,7 @@ export function SlidePanelFooterButtons({
           type="button"
           onClick={onCancel}
           disabled={isSubmitting}
-          className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 transition-colors"
+          className="px-4 py-2 text-sm font-medium text-fg bg-surface-hover border border-border rounded-md hover:bg-surface-hover focus:outline-none focus:ring-2 focus:ring-accent/50 disabled:opacity-50 transition-colors"
         >
           {resolvedCancelText}
         </button>
@@ -410,11 +398,11 @@ interface FormFieldProps {
 export function FormField({ label, required, error, children, hint, className }: FormFieldProps) {
   return (
     <div className={className}>
-      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+      <label className="block text-sm font-medium text-fg mb-1">
         {label} {required && <span className="text-red-500">*</span>}
       </label>
       {children}
-      {hint && !error && <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">{hint}</p>}
+      {hint && !error && <p className="mt-1 text-xs text-fg-subtle">{hint}</p>}
       {error && <p className="mt-1 text-xs text-red-600 dark:text-red-400">{error}</p>}
     </div>
   )
@@ -422,7 +410,7 @@ export function FormField({ label, required, error, children, hint, className }:
 
 /** Consistent text input styling */
 export const inputClassName =
-  'w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-[#0d1117] text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed'
+  'w-full px-3 py-2 text-sm border border-border rounded-md bg-surface-sunken text-fg placeholder-fg-subtle focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent transition-colors disabled:opacity-50 disabled:cursor-not-allowed'
 
 /** Consistent select styling */
 export const selectClassName = inputClassName
@@ -432,7 +420,7 @@ export const textareaClassName = cn(inputClassName, 'resize-none')
 
 /** Consistent checkbox styling */
 export const checkboxClassName =
-  'h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-[#0d1117]'
+  'h-4 w-4 text-accent focus:ring-accent/20 border-border rounded bg-surface-sunken'
 
 // ===============================================
 // ALERT COMPONENTS
@@ -446,7 +434,7 @@ interface AlertProps {
 
 export function Alert({ children, variant, className }: AlertProps) {
   const variants = {
-    info: 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800 text-blue-800 dark:text-blue-400',
+    info: 'bg-info/10 border-blue-200 dark:border-blue-800 text-blue-800 dark:text-blue-400',
     warning:
       'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800 text-yellow-800 dark:text-yellow-400',
     error:

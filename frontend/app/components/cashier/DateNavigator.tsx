@@ -33,31 +33,28 @@ export default function DateNavigator({
     <div className="flex items-center gap-3">
       <button
         onClick={onPrevious}
-        className="p-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+        className="p-2 border border-border rounded-lg bg-surface-hover text-fg hover:bg-surface-hover transition-colors"
       >
         <FiChevronLeft className="w-5 h-5" />
       </button>
 
-      <div className="flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800">
-        <FiCalendar className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-        <span
-          className="font-medium text-gray-900 dark:text-white text-center"
-          style={{ minWidth: labelMinWidth }}
-        >
+      <div className="flex items-center gap-2 px-4 py-2 border border-border rounded-lg bg-surface-hover">
+        <FiCalendar className="w-5 h-5 text-fg-subtle" />
+        <span className="font-medium text-fg text-center" style={{ minWidth: labelMinWidth }}>
           {displayLabel}
         </span>
       </div>
 
       <button
         onClick={onNext}
-        className="p-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+        className="p-2 border border-border rounded-lg bg-surface-hover text-fg hover:bg-surface-hover transition-colors"
       >
         <FiChevronRight className="w-5 h-5" />
       </button>
 
       <button
         onClick={onToday}
-        className="px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors font-medium"
+        className="px-4 py-2 border border-border rounded-lg bg-surface-hover text-fg hover:bg-surface-hover transition-colors font-medium"
       >
         {displayTodayLabel}
       </button>

@@ -31,15 +31,10 @@ export default function LogsSummarySidebar({ stats, isLoading }: LogsSummarySide
   if (isLoading) {
     return (
       <div className="sticky top-4 space-y-3">
-        <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">
-          {t('logs.statistics')}
-        </h3>
+        <h3 className="text-sm font-semibold text-fg mb-3">{t('logs.statistics')}</h3>
         <div className="animate-pulse space-y-3">
           {[1, 2, 3].map((i) => (
-            <div
-              key={i}
-              className="bg-white dark:bg-[#0D1117] border border-[#d0d7de] dark:border-[#30363d] rounded-xl p-4 h-24"
-            />
+            <div key={i} className="bg-surface border border-border rounded-xl p-4 h-24" />
           ))}
         </div>
       </div>
@@ -55,41 +50,31 @@ export default function LogsSummarySidebar({ stats, isLoading }: LogsSummarySide
 
   return (
     <div className="sticky top-4 space-y-3">
-      <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">
-        {t('logs.statistics')}
-      </h3>
+      <h3 className="text-sm font-semibold text-fg mb-3">{t('logs.statistics')}</h3>
 
       {/* Total Registros */}
-      <div className="bg-white dark:bg-[#0D1117] border border-[#d0d7de] dark:border-[#30363d] rounded-xl shadow-sm p-4">
+      <div className="bg-surface border border-border rounded-fp-md shadow-fp-pop p-4">
         <div className="flex items-center justify-between mb-3">
-          <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">
-            {t('logs.totalRecords')}
-          </p>
-          <div className="p-2 bg-blue-100 dark:bg-blue-900/20 rounded-lg">
+          <p className="text-xs text-fg-muted font-medium">{t('logs.totalRecords')}</p>
+          <div className="p-2 bg-info/10 rounded-lg">
             <FiActivity className="w-4 h-4 text-blue-600 dark:text-blue-400" />
           </div>
         </div>
-        <p className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
-          {stats.total_entries}
-        </p>
+        <p className="text-2xl font-bold text-fg mb-3">{stats.total_entries}</p>
         <div className="space-y-1.5">
           {topActions.map((action) => (
             <div key={action.action} className="flex items-center justify-between text-[11px]">
-              <span className="text-gray-600 dark:text-gray-400">
-                {getActionLabel(action.action)}
-              </span>
-              <span className="font-medium text-gray-900 dark:text-white">{action.count}</span>
+              <span className="text-fg-muted">{getActionLabel(action.action)}</span>
+              <span className="font-medium text-fg">{action.count}</span>
             </div>
           ))}
         </div>
       </div>
 
       {/* Usuarios Más Activos */}
-      <div className="bg-white dark:bg-[#0D1117] border border-[#d0d7de] dark:border-[#30363d] rounded-xl shadow-sm p-4">
+      <div className="bg-surface border border-border rounded-fp-md shadow-fp-pop p-4">
         <div className="flex items-center justify-between mb-3">
-          <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">
-            {t('logs.activeUsers')}
-          </p>
+          <p className="text-xs text-fg-muted font-medium">{t('logs.activeUsers')}</p>
           <div className="p-2 bg-green-100 dark:bg-green-900/20 rounded-lg">
             <FiUsers className="w-4 h-4 text-green-600 dark:text-green-400" />
           </div>
@@ -102,29 +87,23 @@ export default function LogsSummarySidebar({ stats, isLoading }: LogsSummarySide
                   {index + 1}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs font-medium text-gray-900 dark:text-white truncate">
-                    {user.username}
-                  </p>
-                  <p className="text-[10px] text-gray-500 dark:text-gray-400">
+                  <p className="text-xs font-medium text-fg truncate">{user.username}</p>
+                  <p className="text-[10px] text-fg-subtle">
                     {user.actions_count} {t('logs.action').toLowerCase()}
                   </p>
                 </div>
               </div>
             ))
           ) : (
-            <p className="text-xs text-gray-500 dark:text-gray-400 text-center py-2">
-              {t('logs.noActivity')}
-            </p>
+            <p className="text-xs text-fg-subtle text-center py-2">{t('logs.noActivity')}</p>
           )}
         </div>
       </div>
 
       {/* Actividad Reciente */}
-      <div className="bg-white dark:bg-[#0D1117] border border-[#d0d7de] dark:border-[#30363d] rounded-xl shadow-sm p-4">
+      <div className="bg-surface border border-border rounded-fp-md shadow-fp-pop p-4">
         <div className="flex items-center justify-between mb-3">
-          <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">
-            {t('logs.recentActivity')}
-          </p>
+          <p className="text-xs text-fg-muted font-medium">{t('logs.recentActivity')}</p>
           <div className="p-2 bg-purple-100 dark:bg-purple-900/20 rounded-lg">
             <FiList className="w-4 h-4 text-purple-600 dark:text-purple-400" />
           </div>
@@ -133,17 +112,17 @@ export default function LogsSummarySidebar({ stats, isLoading }: LogsSummarySide
           {stats.recent_activity.slice(0, 3).map((activity) => (
             <div key={activity.id} className="border-l-2 border-blue-500 pl-2.5">
               <div className="flex items-center justify-between">
-                <span className="text-[11px] font-medium text-gray-900 dark:text-white">
+                <span className="text-[11px] font-medium text-fg">
                   {getActionLabel(activity.action)}
                 </span>
-                <span className="text-[10px] text-gray-500 dark:text-gray-400">
+                <span className="text-[10px] text-fg-subtle">
                   {new Date(activity.changed_at).toLocaleTimeString('es-ES', {
                     hour: '2-digit',
                     minute: '2-digit',
                   })}
                 </span>
               </div>
-              <p className="text-[10px] text-gray-600 dark:text-gray-400 mt-0.5">
+              <p className="text-[10px] text-fg-muted mt-0.5">
                 {activity.username || t('logs.system')}
               </p>
             </div>

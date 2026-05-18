@@ -100,12 +100,9 @@ export default function ParkingStatusClient({
           {/* Skeleton mobile/tablet: paneles horizontales */}
           <div className="2xl:hidden grid grid-cols-2 md:grid-cols-4 gap-4">
             {[...Array(4)].map((_, i) => (
-              <div
-                key={i}
-                className="bg-white dark:bg-[#0d1117] border border-gray-200 dark:border-[#30363d] rounded-lg p-4"
-              >
-                <div className="h-4 w-20 bg-gray-200 dark:bg-[#21262d] rounded animate-pulse mb-2"></div>
-                <div className="h-8 w-16 bg-gray-200 dark:bg-[#21262d] rounded animate-pulse"></div>
+              <div key={i} className="bg-surface border border-border rounded-lg p-4">
+                <div className="h-4 w-20 bg-surface-hover rounded animate-pulse mb-2"></div>
+                <div className="h-8 w-16 bg-surface-hover rounded animate-pulse"></div>
               </div>
             ))}
           </div>
@@ -115,35 +112,29 @@ export default function ParkingStatusClient({
             {/* Contenido principal */}
             <div className="2xl:col-span-3 space-y-6">
               {/* Skeleton del panel de ocupación */}
-              <div className="bg-gray-50 dark:bg-[#0d1117] border-2 border-gray-200 dark:border-[#30363d] rounded-2xl p-5">
-                <div className="h-7 w-48 bg-gray-200 dark:bg-[#21262d] rounded animate-pulse mb-3"></div>
+              <div className="bg-surface-sunken border-2 border-border rounded-2xl p-5">
+                <div className="h-7 w-48 bg-surface-hover rounded animate-pulse mb-3"></div>
                 <div className="flex items-center gap-4">
-                  <div className="h-4 w-32 bg-gray-200 dark:bg-[#21262d] rounded animate-pulse"></div>
-                  <div className="h-4 w-32 bg-gray-200 dark:bg-[#21262d] rounded animate-pulse"></div>
+                  <div className="h-4 w-32 bg-surface-hover rounded animate-pulse"></div>
+                  <div className="h-4 w-32 bg-surface-hover rounded animate-pulse"></div>
                 </div>
               </div>
 
               {/* Skeleton de la tabla */}
-              <div className="bg-white dark:bg-[#0d1117] border border-gray-200 dark:border-[#30363d] rounded-lg overflow-hidden">
-                <div className="bg-gray-50 dark:bg-[#161b22] border-b border-gray-200 dark:border-[#30363d] px-6 py-4">
+              <div className="bg-surface border border-border rounded-lg overflow-hidden">
+                <div className="bg-surface-sunken border-b border-border px-6 py-4">
                   <div className="grid grid-cols-5 gap-4">
                     {[...Array(5)].map((_, i) => (
-                      <div
-                        key={i}
-                        className="h-4 bg-gray-200 dark:bg-[#21262d] rounded animate-pulse"
-                      ></div>
+                      <div key={i} className="h-4 bg-surface-hover rounded animate-pulse"></div>
                     ))}
                   </div>
                 </div>
-                <div className="divide-y divide-gray-200 dark:divide-[#30363d]">
+                <div className="divide-y divide-border">
                   {[...Array(8)].map((_, i) => (
                     <div key={i} className="px-6 py-4">
                       <div className="grid grid-cols-5 gap-4">
                         {[...Array(5)].map((_, j) => (
-                          <div
-                            key={j}
-                            className="h-4 bg-gray-200 dark:bg-[#21262d] rounded animate-pulse"
-                          ></div>
+                          <div key={j} className="h-4 bg-surface-hover rounded animate-pulse"></div>
                         ))}
                       </div>
                     </div>
@@ -155,17 +146,11 @@ export default function ParkingStatusClient({
             {/* Skeleton sidebar derecho */}
             <div className="hidden 2xl:block 2xl:col-span-1 space-y-6">
               {[...Array(3)].map((_, i) => (
-                <div
-                  key={i}
-                  className="bg-white dark:bg-[#0d1117] border border-gray-200 dark:border-[#30363d] rounded-lg p-6"
-                >
-                  <div className="h-6 w-40 bg-gray-200 dark:bg-[#21262d] rounded animate-pulse mb-4"></div>
+                <div key={i} className="bg-surface border border-border rounded-lg p-6">
+                  <div className="h-6 w-40 bg-surface-hover rounded animate-pulse mb-4"></div>
                   <div className="space-y-3">
                     {[...Array(3)].map((_, j) => (
-                      <div
-                        key={j}
-                        className="h-16 bg-gray-100 dark:bg-[#161b22] rounded animate-pulse"
-                      ></div>
+                      <div key={j} className="h-16 bg-surface-hover rounded animate-pulse"></div>
                     ))}
                   </div>
                 </div>
@@ -198,23 +183,23 @@ export default function ParkingStatusClient({
           {/* Contenido principal: 3 columnas */}
           <div className="2xl:col-span-3 space-y-6">
             {selectedLevelData && (
-              <div className="bg-[#f6f8fa] dark:bg-[#0d1117] border-2 border-gray-200 dark:border-gray-800 rounded-2xl p-5 shadow-sm">
-                <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+              <div className="bg-surface-sunken border-2 border-border rounded-2xl p-5 shadow-sm">
+                <h2 className="text-xl font-bold text-fg mb-2">
                   {levelFromUrl === 'all'
                     ? t('statusPage.allLevels')
                     : t('statusPage.level', { level: levelFromUrl.replace('-', '') })}
                 </h2>
-                <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
+                <div className="flex items-center gap-4 text-sm text-fg-muted">
                   <div className="flex items-center gap-2">
                     <div className="w-3 h-3 bg-indigo-500 rounded-full" />
                     <span>
                       {t('statusPage.occupancy')}:{' '}
-                      <span className="font-semibold text-gray-900 dark:text-gray-100">
+                      <span className="font-semibold text-fg">
                         {Math.round(selectedLevelData.occupancy_rate)}%
                       </span>
                     </span>
                   </div>
-                  <div className="w-px h-2 bg-gray-300 dark:bg-gray-700" />
+                  <div className="w-px h-2 bg-border" />
                   <span>
                     {t('statusPage.available')}:{' '}
                     <span className="font-semibold text-emerald-600 dark:text-emerald-400">

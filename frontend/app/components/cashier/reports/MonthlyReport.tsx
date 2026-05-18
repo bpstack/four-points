@@ -71,7 +71,7 @@ export default function MonthlyReport({ year, month }: MonthlyReportProps) {
       <div className="flex items-center justify-center py-12">
         <div className="text-center">
           <div className="inline-block h-8 w-8 animate-spin rounded-full border-[3px] border-solid border-blue-600 dark:border-blue-500 border-r-transparent"></div>
-          <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">{t('page.loadingReport')}</p>
+          <p className="mt-2 text-xs text-fg-subtle">{t('page.loadingReport')}</p>
         </div>
       </div>
     )
@@ -150,32 +150,26 @@ export default function MonthlyReport({ year, month }: MonthlyReportProps) {
   return (
     <div className="space-y-4">
       {/* Desglose por Método de Pago */}
-      <div className="bg-white dark:bg-[#151b23] border border-gray-200 dark:border-gray-800 rounded-md p-4">
-        <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+      <div className="bg-surface border border-border rounded-md p-4">
+        <h3 className="text-sm font-semibold text-fg mb-3 flex items-center gap-2">
           {t('reports.paymentMethodBreakdown')}
         </h3>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
           {report.payment_methods_breakdown.map((method: ParsedMethod) => (
             <div
               key={method.method_name}
-              className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-3 border border-gray-200 dark:border-gray-700"
+              className="bg-surface-hover/50 rounded-lg p-3 border border-border"
             >
-              <p className="text-[10px] text-gray-600 dark:text-gray-400 mb-1">
-                {method.method_name}
-              </p>
-              <p className="text-sm font-bold text-gray-900 dark:text-white">
-                {method.total_amount.toFixed(2)}€
-              </p>
+              <p className="text-[10px] text-fg-muted mb-1">{method.method_name}</p>
+              <p className="text-sm font-bold text-fg">{method.total_amount.toFixed(2)}€</p>
               <div className="mt-1.5">
-                <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1">
+                <div className="w-full bg-border rounded-full h-1">
                   <div
-                    className="bg-blue-600 h-1 rounded-full transition-all"
+                    className="bg-accent h-1 rounded-full transition-all"
                     style={{ width: `${method.percentage}%` }}
                   />
                 </div>
-                <p className="text-[9px] text-gray-500 dark:text-gray-400 mt-0.5">
-                  {method.percentage.toFixed(1)}%
-                </p>
+                <p className="text-[9px] text-fg-subtle mt-0.5">{method.percentage.toFixed(1)}%</p>
               </div>
             </div>
           ))}
@@ -183,13 +177,11 @@ export default function MonthlyReport({ year, month }: MonthlyReportProps) {
       </div>
 
       {/* Tabla de Días */}
-      <div className="bg-white dark:bg-[#151b23] border border-gray-200 dark:border-gray-800 rounded-md overflow-hidden">
-        <div className="flex items-center justify-between px-3 py-2 border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-[#0d1117]">
-          <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
-            {t('reports.dailyBreakdown')}
-          </h3>
+      <div className="bg-surface border border-border rounded-md overflow-hidden">
+        <div className="flex items-center justify-between px-3 py-2 border-b border-border bg-surface-sunken">
+          <h3 className="text-sm font-semibold text-fg">{t('reports.dailyBreakdown')}</h3>
           <button
-            className="px-2 py-1 text-[10px] font-medium text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-700 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors flex items-center gap-1"
+            className="px-2 py-1 text-[10px] font-medium text-fg border border-border rounded hover:bg-surface-hover transition-colors flex items-center gap-1"
             onClick={() => {
               console.log('Exportar reporte')
             }}
@@ -201,41 +193,36 @@ export default function MonthlyReport({ year, month }: MonthlyReportProps) {
 
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-gray-50 dark:bg-[#0d1117]">
+            <thead className="bg-surface-sunken">
               <tr>
-                <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                <th className="px-3 py-2 text-left text-[10px] font-semibold text-fg uppercase tracking-wider">
                   {t('reports.dateCol')}
                 </th>
-                <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                <th className="px-3 py-2 text-left text-[10px] font-semibold text-fg uppercase tracking-wider">
                   {t('reports.statusCol')}
                 </th>
-                <th className="px-3 py-2 text-right text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                <th className="px-3 py-2 text-right text-[10px] font-semibold text-fg uppercase tracking-wider">
                   {t('reports.cashCol')}
                 </th>
-                <th className="px-3 py-2 text-right text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                <th className="px-3 py-2 text-right text-[10px] font-semibold text-fg uppercase tracking-wider">
                   {t('reports.totalCol')}
                 </th>
-                <th className="px-3 py-2 text-center text-[10px] font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                <th className="px-3 py-2 text-center text-[10px] font-semibold text-fg uppercase tracking-wider">
                   {t('reports.validCol')}
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
+            <tbody className="divide-y divide-border">
               {report.daily_breakdown.map((day: ParsedDay) => {
                 const date = new Date(day.date)
                 const dayName = date.toLocaleDateString('es-ES', { weekday: 'short' })
                 const dayNumber = date.getDate()
 
                 return (
-                  <tr
-                    key={day.date}
-                    className="hover:bg-gray-50 dark:hover:bg-[#0d1117] transition-colors"
-                  >
-                    <td className="px-3 py-2 text-xs text-gray-900 dark:text-white">
+                  <tr key={day.date} className="hover:bg-surface-hover transition-colors">
+                    <td className="px-3 py-2 text-xs text-fg">
                       <div className="flex items-center gap-1.5">
-                        <span className="text-gray-500 dark:text-gray-400 capitalize text-[10px]">
-                          {dayName}
-                        </span>
+                        <span className="text-fg-subtle capitalize text-[10px]">{dayName}</span>
                         <span className="font-medium text-[11px]">{dayNumber}</span>
                       </div>
                     </td>
@@ -252,10 +239,10 @@ export default function MonthlyReport({ year, month }: MonthlyReportProps) {
                         </span>
                       )}
                     </td>
-                    <td className="px-3 py-2 text-[11px] text-right font-medium text-gray-900 dark:text-white">
+                    <td className="px-3 py-2 text-[11px] text-right font-medium text-fg">
                       {day.total_cash.toFixed(2)}€
                     </td>
-                    <td className="px-3 py-2 text-[11px] text-right font-bold text-gray-900 dark:text-white">
+                    <td className="px-3 py-2 text-[11px] text-right font-bold text-fg">
                       {day.grand_total.toFixed(2)}€
                     </td>
                     <td className="px-3 py-2 text-center">
@@ -273,12 +260,12 @@ export default function MonthlyReport({ year, month }: MonthlyReportProps) {
                 )
               })}
             </tbody>
-            <tfoot className="bg-gray-50 dark:bg-[#0d1117] font-bold border-t border-gray-200 dark:border-gray-800">
+            <tfoot className="bg-surface-sunken font-bold border-t border-border">
               <tr>
-                <td colSpan={2} className="px-3 py-2 text-[11px] text-gray-900 dark:text-white">
+                <td colSpan={2} className="px-3 py-2 text-[11px] text-fg">
                   {t('reports.monthTotal')}
                 </td>
-                <td className="px-3 py-2 text-[11px] text-right text-gray-900 dark:text-white">
+                <td className="px-3 py-2 text-[11px] text-right text-fg">
                   {report.totals.total_cash.toFixed(2)}€
                 </td>
                 <td className="px-3 py-2 text-[11px] text-right text-green-600 dark:text-green-400">

@@ -53,12 +53,12 @@ export function RoomsTab() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+          <h3 className="text-sm font-semibold text-fg flex items-center gap-2">
             <FiEdit className="w-4 h-4" />
             {t('rooms.groupRooms')}
           </h3>
           {roomsArray.length > 0 && (
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+            <p className="text-xs text-fg-subtle mt-1">
               {totalRooms}{' '}
               {totalRooms === 1
                 ? t('rooms.totalRooms').toLowerCase()
@@ -69,7 +69,7 @@ export function RoomsTab() {
         </div>
         <button
           onClick={handleCreateRoom}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-green-600 dark:bg-green-700 text-white text-xs font-medium rounded-md hover:bg-green-700 dark:hover:bg-green-800 transition-colors"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-accent text-accent-fg text-xs font-medium rounded-md hover:bg-accent-hover transition-colors"
         >
           <FiPlus className="w-3.5 h-3.5" />
           {t('rooms.newRoom')}
@@ -85,7 +85,7 @@ export function RoomsTab() {
           action={
             <button
               onClick={handleCreateRoom}
-              className="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors"
+              className="inline-flex items-center gap-1.5 px-4 py-2 bg-accent text-accent-fg text-sm font-medium rounded-md hover:bg-accent-hover transition-colors"
             >
               <FiPlus className="w-4 h-4" />
               {t('rooms.createFirst')}
@@ -109,22 +109,22 @@ export function RoomsTab() {
                 <FiUsers className="w-5 h-5 text-white" />
               </div>
               <div>
-                <p className="text-xs text-gray-600 dark:text-gray-400">{t('rooms.totalGuests')}</p>
-                <p className="text-lg font-bold text-gray-900 dark:text-gray-100">
+                <p className="text-xs text-fg-muted">{t('rooms.totalGuests')}</p>
+                <p className="text-lg font-bold text-fg">
                   {totalGuests} {totalGuests === 1 ? t('cards.guest') : t('cards.guests')}
                 </p>
               </div>
             </div>
             <div className="text-right">
-              <p className="text-xs text-gray-600 dark:text-gray-400">{t('rooms.totalRooms')}</p>
-              <p className="text-lg font-bold text-gray-900 dark:text-gray-100">{totalRooms}</p>
+              <p className="text-xs text-fg-muted">{t('rooms.totalRooms')}</p>
+              <p className="text-lg font-bold text-fg">{totalRooms}</p>
             </div>
           </div>
         </div>
       )}
 
       {/* Info Box */}
-      <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+      <div className="bg-info/10 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
         <p className="text-xs text-blue-800 dark:text-blue-300">{t('rooms.infoTip')}</p>
       </div>
     </div>
