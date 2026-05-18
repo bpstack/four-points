@@ -33,7 +33,7 @@ function UserTableRowSkeleton() {
 // Skeleton para cards móviles
 function UserCardSkeleton() {
   return (
-    <div className="bg-surface border border-gray-200 rounded-md p-4">
+    <div className="bg-surface border border-border rounded-md p-4">
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-center gap-2">
           <div className="h-4 w-4 rounded bg-surface-hover"></div>
@@ -58,10 +58,10 @@ export function UsersTableSkeleton() {
     <>
       {/* Desktop Table */}
       <div
-        className={`${shimmer} relative hidden md:block overflow-hidden overflow-x-auto border border-gray-200 rounded-md`}
+        className={`${shimmer} relative hidden md:block overflow-hidden overflow-x-auto border border-border rounded-md`}
       >
         <table className="w-full text-xs">
-          <thead className="bg-gray-50 border-b border-gray-200 dark:bg-surface-hover">
+          <thead className="bg-gray-50 border-b border-border dark:bg-surface-hover">
             <tr>
               {['Username', 'Email', 'Role', 'Actions'].map((header) => (
                 <th key={header} className="px-4 py-2 text-left font-semibold text-fg">

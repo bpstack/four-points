@@ -86,7 +86,7 @@ export default function SimpleCalendar({ selectedDate, onSelect, onClose }: Simp
   }
 
   return (
-    <div className="bg-surface rounded-lg shadow-xl p-5 border border-gray-200 w-[290px]">
+    <div className="bg-surface rounded-lg shadow-xl p-5 border border-border w-[290px]">
       <div className="flex items-center justify-between mb-4">
         <button
           onClick={previousMonth}
@@ -121,7 +121,7 @@ export default function SimpleCalendar({ selectedDate, onSelect, onClose }: Simp
       <div className="grid grid-cols-7 gap-2">{renderDays()}</div>
 
       {onClose && (
-        <div className="mt-4 pt-4 border-t border-gray-200 flex justify-end">
+        <div className="mt-4 pt-4 border-t border-border flex justify-end">
           <button
             onClick={onClose}
             className="px-4 py-2 text-sm font-medium text-fg hover:bg-surface-hover rounded-lg transition-colors"

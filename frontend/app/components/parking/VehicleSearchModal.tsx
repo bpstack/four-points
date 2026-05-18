@@ -342,7 +342,7 @@ export function VehicleSearchModal({ isOpen, onClose }: VehicleSearchModalProps)
 
         {/* Footer hint */}
         {!selectedVehicle && (
-          <div className="px-4 py-2 border-t border-gray-100 bg-surface">
+          <div className="px-4 py-2 border-t border-border bg-surface">
             <p className="text-[10px] text-fg-subtle text-center">
               {t('vehicleSearch.pressEsc')}{' '}
               <kbd className="px-1 py-0.5 bg-surface-hover rounded text-[9px]">ESC</kbd>{' '}

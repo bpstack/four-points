@@ -299,7 +299,7 @@ export function ProfileSidebar() {
       />
 
       {/* Profile Header */}
-      <div className="bg-surface-hover border border-gray-200 rounded-lg p-4">
+      <div className="bg-surface-hover border border-border rounded-lg p-4">
         <div className="flex items-center gap-4 mb-4">
           <div className="relative group flex-shrink-0">
             {/* Avatar */}
@@ -334,7 +334,7 @@ export function ProfileSidebar() {
 
             {/* Avatar Menu Dropdown */}
             {showAvatarMenu && (
-              <div className="absolute left-0 top-full mt-1 z-10 w-36 py-1 bg-surface border border-gray-200 rounded-lg shadow-lg">
+              <div className="absolute left-0 top-full mt-1 z-10 w-36 py-1 bg-surface border border-border rounded-lg shadow-lg">
                 <button
                   onClick={handleUploadClick}
                   className="w-full flex items-center gap-2 px-3 py-2 text-xs text-fg hover:bg-surface-hover"
@@ -387,7 +387,7 @@ export function ProfileSidebar() {
       )}
 
       {/* Username Section */}
-      <div className="bg-surface-hover border border-gray-200 rounded-lg overflow-hidden">
+      <div className="bg-surface-hover border border-border rounded-lg overflow-hidden">
         <div className="p-3">
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">
@@ -418,7 +418,7 @@ export function ProfileSidebar() {
                   value={newUsername}
                   onChange={(e) => setNewUsername(e.target.value)}
                   placeholder={t('username.placeholder')}
-                  className="w-full px-3 py-2 text-sm bg-surface border border-gray-300 rounded-lg text-fg placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-accent/50 focus:border-blue-500"
+                  className="w-full px-3 py-2 text-sm bg-surface border border-border rounded-lg text-fg placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-accent/50 focus:border-blue-500"
                   disabled={usernameLoading}
                 />
               </div>
@@ -431,7 +431,7 @@ export function ProfileSidebar() {
                   value={usernamePassword}
                   onChange={(e) => setUsernamePassword(e.target.value)}
                   placeholder={t('username.passwordPlaceholder')}
-                  className="w-full px-3 py-2 text-sm bg-surface border border-gray-300 rounded-lg text-fg placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-accent/50 focus:border-blue-500"
+                  className="w-full px-3 py-2 text-sm bg-surface border border-border rounded-lg text-fg placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-accent/50 focus:border-blue-500"
                   disabled={usernameLoading}
                 />
               </div>
@@ -459,7 +459,7 @@ export function ProfileSidebar() {
                 <button
                   onClick={handleCancelEditUsername}
                   disabled={usernameLoading}
-                  className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-medium text-fg bg-surface border border-gray-300 hover:bg-surface-hover disabled:opacity-50 rounded-lg transition-colors"
+                  className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-medium text-fg bg-surface border border-border hover:bg-surface-hover disabled:opacity-50 rounded-lg transition-colors"
                 >
                   <FiX className="w-3.5 h-3.5" />
                   {t('buttons.cancel')}
@@ -471,7 +471,7 @@ export function ProfileSidebar() {
       </div>
 
       {/* Password Section */}
-      <div className="bg-surface-hover border border-gray-200 rounded-lg overflow-hidden">
+      <div className="bg-surface-hover border border-border rounded-lg overflow-hidden">
         <div className="p-3">
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">
@@ -502,7 +502,7 @@ export function ProfileSidebar() {
                     value={currentPassword}
                     onChange={(e) => setCurrentPassword(e.target.value)}
                     placeholder={t('password.currentPlaceholder')}
-                    className="w-full px-3 py-2 pr-10 text-sm bg-surface border border-gray-300 rounded-lg text-fg placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-accent/50 focus:border-blue-500"
+                    className="w-full px-3 py-2 pr-10 text-sm bg-surface border border-border rounded-lg text-fg placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-accent/50 focus:border-blue-500"
                     disabled={passwordLoading}
                   />
                   <button
@@ -528,7 +528,7 @@ export function ProfileSidebar() {
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     placeholder={t('password.minChars')}
-                    className="w-full px-3 py-2 pr-10 text-sm bg-surface border border-gray-300 rounded-lg text-fg placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-accent/50 focus:border-blue-500"
+                    className="w-full px-3 py-2 pr-10 text-sm bg-surface border border-border rounded-lg text-fg placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-accent/50 focus:border-blue-500"
                     disabled={passwordLoading}
                   />
                   <button
@@ -554,7 +554,7 @@ export function ProfileSidebar() {
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     placeholder={t('password.repeatPlaceholder')}
-                    className="w-full px-3 py-2 pr-10 text-sm bg-surface border border-gray-300 rounded-lg text-fg placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-accent/50 focus:border-blue-500"
+                    className="w-full px-3 py-2 pr-10 text-sm bg-surface border border-border rounded-lg text-fg placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-accent/50 focus:border-blue-500"
                     disabled={passwordLoading}
                   />
                   <button
@@ -600,7 +600,7 @@ export function ProfileSidebar() {
                 <button
                   onClick={handleCancelEditPassword}
                   disabled={passwordLoading}
-                  className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-medium text-fg bg-surface border border-gray-300 hover:bg-surface-hover disabled:opacity-50 rounded-lg transition-colors"
+                  className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-medium text-fg bg-surface border border-border hover:bg-surface-hover disabled:opacity-50 rounded-lg transition-colors"
                 >
                   <FiX className="w-3.5 h-3.5" />
                   {t('buttons.cancel')}
@@ -612,7 +612,7 @@ export function ProfileSidebar() {
       </div>
 
       {/* Navigation */}
-      <div className="bg-surface-hover border border-gray-200 rounded-lg overflow-hidden">
+      <div className="bg-surface-hover border border-border rounded-lg overflow-hidden">
         <NavButton
           icon={<FiMessageSquare className="w-4 h-4" />}
           label={t('navigation.messages')}
@@ -661,7 +661,7 @@ function NavButton({
       onClick={onClick}
       className={cn(
         'w-full flex items-center justify-between p-3 transition-colors text-left',
-        borderTop && 'border-t border-gray-200',
+        borderTop && 'border-t border-border',
         active ? 'bg-info/10' : 'hover:bg-surface-hover'
       )}
     >

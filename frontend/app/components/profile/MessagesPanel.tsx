@@ -357,12 +357,12 @@ export function MessagesPanel({ onConversationSelect }: MessagesPanelProps) {
         {/* Conversations List */}
         <div
           className={cn(
-            'w-full md:w-80 flex-shrink-0 flex flex-col bg-surface-sunken border border-gray-200 rounded-lg overflow-hidden',
+            'w-full md:w-80 flex-shrink-0 flex flex-col bg-surface-sunken border border-border rounded-lg overflow-hidden',
             conversations.selectedConversation && 'hidden md:flex'
           )}
         >
           {/* Search */}
-          <div className="p-3 border-b border-gray-200">
+          <div className="p-3 border-b border-border">
             <div className="relative">
               <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <input
@@ -370,7 +370,7 @@ export function MessagesPanel({ onConversationSelect }: MessagesPanelProps) {
                 placeholder={t('conversations.searchPlaceholder')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-3 py-2 text-sm bg-surface border border-gray-200 rounded-lg text-fg placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-accent/50"
+                className="w-full pl-9 pr-3 py-2 text-sm bg-surface border border-border rounded-lg text-fg placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-accent/50"
               />
             </div>
           </div>
@@ -445,14 +445,14 @@ export function MessagesPanel({ onConversationSelect }: MessagesPanelProps) {
         {/* Chat Area */}
         <div
           className={cn(
-            'flex-1 flex flex-col bg-surface-sunken border border-gray-200 rounded-lg overflow-hidden',
+            'flex-1 flex flex-col bg-surface-sunken border border-border rounded-lg overflow-hidden',
             !conversations.selectedConversation && 'hidden md:flex'
           )}
         >
           {conversations.selectedConversation ? (
             <>
               {/* Chat Header */}
-              <div className="px-4 py-3 border-b border-gray-200 flex items-center gap-3">
+              <div className="px-4 py-3 border-b border-border flex items-center gap-3">
                 <button
                   onClick={() => conversations.select(null)}
                   className="md:hidden p-1 hover:bg-surface-hover rounded-lg transition-colors"
@@ -509,7 +509,7 @@ export function MessagesPanel({ onConversationSelect }: MessagesPanelProps) {
                   </button>
 
                   {showConversationMenu && (
-                    <div className="absolute right-0 top-full mt-1 w-48 bg-surface border border-gray-200 rounded-lg shadow-lg py-1 z-50">
+                    <div className="absolute right-0 top-full mt-1 w-48 bg-surface border border-border rounded-lg shadow-lg py-1 z-50">
                       {conversations.selectedConversation.type === 'group' && (
                         <button
                           onClick={handleLeaveConversation}
@@ -611,7 +611,7 @@ export function MessagesPanel({ onConversationSelect }: MessagesPanelProps) {
                             </button>
                             <button
                               onClick={() => handleDeleteMessage(msg.id)}
-                              className="p-1 bg-surface border border-gray-200 rounded shadow-sm hover:bg-red-50 dark:hover:bg-red-900/20"
+                              className="p-1 bg-surface border border-border rounded shadow-sm hover:bg-red-50 dark:hover:bg-red-900/20"
                             >
                               <FiTrash2 className="w-3 h-3 text-red-500" />
                             </button>
@@ -625,7 +625,7 @@ export function MessagesPanel({ onConversationSelect }: MessagesPanelProps) {
               </div>
 
               {/* Input */}
-              <div className="p-3 border-t border-gray-200">
+              <div className="p-3 border-t border-border">
                 <div className="flex gap-2 items-center">
                   <button
                     onClick={() => setNotify(!notify)}
@@ -645,7 +645,7 @@ export function MessagesPanel({ onConversationSelect }: MessagesPanelProps) {
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handleSendMessage()}
-                    className="flex-1 px-3 py-2 text-sm bg-surface border border-gray-200 rounded-lg text-fg placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-accent/50"
+                    className="flex-1 px-3 py-2 text-sm bg-surface border border-border rounded-lg text-fg placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-accent/50"
                   />
                   <button
                     onClick={handleSendMessage}
@@ -681,7 +681,7 @@ export function MessagesPanel({ onConversationSelect }: MessagesPanelProps) {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-surface rounded-lg shadow-xl w-full max-w-md max-h-[80vh] flex flex-col">
             {/* Modal Header */}
-            <div className="p-4 border-b border-gray-200 flex items-center justify-between">
+            <div className="p-4 border-b border-border flex items-center justify-between">
               <h3 className="text-lg font-semibold text-fg">{t('newConversation.title')}</h3>
               <button
                 onClick={() => setShowNewConversation(false)}
@@ -693,7 +693,7 @@ export function MessagesPanel({ onConversationSelect }: MessagesPanelProps) {
 
             {/* Selected Users */}
             {userSearch.selectedUsers.length > 0 && (
-              <div className="p-3 border-b border-gray-200">
+              <div className="p-3 border-b border-border">
                 <div className="flex flex-wrap gap-2">
                   {userSearch.selectedUsers.map((u) => (
                     <span
@@ -713,14 +713,14 @@ export function MessagesPanel({ onConversationSelect }: MessagesPanelProps) {
                     placeholder={t('newConversation.groupName')}
                     value={groupName}
                     onChange={(e) => setGroupName(e.target.value)}
-                    className="w-full mt-2 px-3 py-2 text-sm bg-surface-sunken border border-gray-200 rounded-lg text-fg placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-accent/50"
+                    className="w-full mt-2 px-3 py-2 text-sm bg-surface-sunken border border-border rounded-lg text-fg placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-accent/50"
                   />
                 )}
               </div>
             )}
 
             {/* Search */}
-            <div className="p-3 border-b border-gray-200">
+            <div className="p-3 border-b border-border">
               <div className="relative">
                 <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <input
@@ -728,7 +728,7 @@ export function MessagesPanel({ onConversationSelect }: MessagesPanelProps) {
                   placeholder={t('newConversation.searchUsers')}
                   value={userSearch.query}
                   onChange={(e) => userSearch.setQuery(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2 text-sm bg-surface-sunken border border-gray-200 rounded-lg text-fg placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-accent/50"
+                  className="w-full pl-9 pr-3 py-2 text-sm bg-surface-sunken border border-border rounded-lg text-fg placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-accent/50"
                 />
               </div>
             </div>
@@ -782,7 +782,7 @@ export function MessagesPanel({ onConversationSelect }: MessagesPanelProps) {
             </div>
 
             {/* Modal Footer */}
-            <div className="p-4 border-t border-gray-200">
+            <div className="p-4 border-t border-border">
               <button
                 onClick={handleCreateConversation}
                 disabled={!userSearch.canCreate || creatingConversation}
@@ -821,7 +821,7 @@ export function MessagesPanel({ onConversationSelect }: MessagesPanelProps) {
             onClick={(e) => e.stopPropagation()}
           >
             {/* Modal Header */}
-            <div className="p-4 border-b border-gray-200 flex items-center justify-between">
+            <div className="p-4 border-b border-border flex items-center justify-between">
               <h3 className="text-lg font-semibold text-fg">{t('participants.title')}</h3>
               <button
                 onClick={() => setShowParticipants(false)}

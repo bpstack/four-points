@@ -9,7 +9,7 @@ export default function ProfileLoading() {
       <div className="h-full flex flex-col lg:flex-row gap-6 p-4 md:p-6">
         {/* Left Panel - Profile Sidebar Skeleton */}
         <aside className="w-full lg:w-72 xl:w-80 flex-shrink-0">
-          <div className="bg-surface border border-gray-200 rounded-xl p-6 animate-pulse">
+          <div className="bg-surface border border-border rounded-xl p-6 animate-pulse">
             {/* Avatar */}
             <div className="flex flex-col items-center mb-6">
               <div className="w-20 h-20 bg-surface-hover rounded-full mb-3" />

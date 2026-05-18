@@ -138,7 +138,7 @@ function QuickFilterDropdown({
         minWidth: position.width,
         zIndex: 9999,
       }}
-      className="bg-surface border border-gray-200 rounded-lg shadow-2xl overflow-hidden"
+      className="bg-surface border border-border rounded-lg shadow-2xl overflow-hidden"
     >
       {/* Opción para limpiar */}
       <button

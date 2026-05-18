@@ -260,7 +260,7 @@ export function SettingsPanel() {
       </div>
 
       {/* Tabs - Desktop */}
-      <div className="hidden md:block border-b border-gray-200 mb-6">
+      <div className="hidden md:block border-b border-border mb-6">
         <nav className="flex gap-4">
           {availableTabs.map((tab) => (
             <button
@@ -367,8 +367,8 @@ function DepartmentsTab() {
   }
 
   return (
-    <div className="bg-surface rounded-lg border border-gray-200">
-      <div className="px-4 py-3 border-b border-gray-200">
+    <div className="bg-surface rounded-lg border border-border">
+      <div className="px-4 py-3 border-b border-border">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
             <h3 className="text-sm font-semibold text-fg">{t('title')}</h3>
@@ -387,7 +387,7 @@ function DepartmentsTab() {
             <button
               onClick={loadDepartments}
               disabled={isLoading}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-fg bg-surface border border-gray-300 hover:bg-surface-hover rounded-lg transition-colors disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-fg bg-surface border border-border hover:bg-surface-hover rounded-lg transition-colors disabled:opacity-50"
             >
               <FiRefreshCw className={cn('w-3.5 h-3.5', isLoading && 'animate-spin')} />
             </button>
@@ -416,7 +416,7 @@ function DepartmentsTab() {
             {departments.map((dept) => (
               <div
                 key={dept.id}
-                className="flex items-center justify-between p-3 bg-surface-sunken border border-gray-200 rounded-lg"
+                className="flex items-center justify-between p-3 bg-surface-sunken border border-border rounded-lg"
               >
                 <div className="flex items-center gap-3">
                   <span className="text-xs text-fg-subtle font-mono">#{dept.id}</span>
@@ -646,8 +646,8 @@ function UserManagement({
   const t = useTranslations('profile.settings.users')
 
   return (
-    <div className="bg-surface rounded-lg border border-gray-200">
-      <div className="px-4 py-3 border-b border-gray-200">
+    <div className="bg-surface rounded-lg border border-border">
+      <div className="px-4 py-3 border-b border-border">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
             <h3 className="text-sm font-semibold text-fg">{t('title')}</h3>
@@ -664,7 +664,7 @@ function UserManagement({
             <button
               onClick={onRefresh}
               disabled={loading}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-fg bg-surface border border-gray-300 hover:bg-surface-hover rounded-lg transition-colors disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-fg bg-surface border border-border hover:bg-surface-hover rounded-lg transition-colors disabled:opacity-50"
             >
               <FiRefreshCw className={cn('w-3.5 h-3.5', loading && 'animate-spin')} />
             </button>
@@ -798,7 +798,7 @@ function UserTable({ users, onDelete }: { users: User[]; onDelete: (id: string) 
         const isEditing = editingId === user.id
 
         return (
-          <div key={user.id} className="bg-surface-sunken border border-gray-200 rounded-lg p-3">
+          <div key={user.id} className="bg-surface-sunken border border-border rounded-lg p-3">
             {isEditing ? (
               <div className="space-y-3 md:space-y-0 md:flex md:items-center md:gap-3">
                 <input
@@ -806,19 +806,19 @@ function UserTable({ users, onDelete }: { users: User[]; onDelete: (id: string) 
                   value={editForm.username || ''}
                   onChange={(e) => setEditForm({ ...editForm, username: e.target.value })}
                   placeholder="Username"
-                  className="w-full md:w-40 px-3 py-1.5 text-sm border border-gray-300 rounded-lg bg-surface text-fg"
+                  className="w-full md:w-40 px-3 py-1.5 text-sm border border-border rounded-lg bg-surface text-fg"
                 />
                 <input
                   type="email"
                   value={editForm.email || ''}
                   onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
                   placeholder="Email"
-                  className="w-full md:flex-1 px-3 py-1.5 text-sm border border-gray-300 rounded-lg bg-surface text-fg"
+                  className="w-full md:flex-1 px-3 py-1.5 text-sm border border-border rounded-lg bg-surface text-fg"
                 />
                 <select
                   value={editForm.role || ''}
                   onChange={(e) => setEditForm({ ...editForm, role: e.target.value })}
-                  className="w-full md:w-40 px-3 py-1.5 text-sm border border-gray-300 rounded-lg bg-surface text-fg"
+                  className="w-full md:w-40 px-3 py-1.5 text-sm border border-border rounded-lg bg-surface text-fg"
                 >
                   <option value="recepcionista">{t('roles.receptionist')}</option>
                   <option value="admin">{t('roles.admin')}</option>
@@ -836,7 +836,7 @@ function UserTable({ users, onDelete }: { users: User[]; onDelete: (id: string) 
                   </button>
                   <button
                     onClick={handleCancel}
-                    className="flex-1 md:flex-none inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-medium text-fg bg-surface border border-gray-300 rounded-lg"
+                    className="flex-1 md:flex-none inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-medium text-fg bg-surface border border-border rounded-lg"
                   >
                     <FiX className="w-3.5 h-3.5" />
                     {tButtons('cancel')}
@@ -1028,8 +1028,8 @@ function NotificationsSettings() {
 
   return (
     <>
-      <div className="bg-surface rounded-lg border border-gray-200">
-        <div className="px-4 py-3 border-b border-gray-200">
+      <div className="bg-surface rounded-lg border border-border">
+        <div className="px-4 py-3 border-b border-border">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
               <h3 className="text-sm font-semibold text-fg">{t('title')}</h3>
@@ -1047,7 +1047,7 @@ function NotificationsSettings() {
         <div className="p-4 space-y-3">
           <SettingRow label={t('emailNotifications')} description={t('emailDesc')} defaultChecked />
 
-          <div className="py-3 border-t border-gray-200">
+          <div className="py-3 border-t border-border">
             <div className="flex items-center justify-between mb-2">
               <div>
                 <p className="text-sm font-medium text-fg">{t('pushNotifications')}</p>
@@ -1098,8 +1098,8 @@ function SecuritySettings() {
   const t = useTranslations('profile.settings.security')
 
   return (
-    <div className="bg-surface rounded-lg border border-gray-200">
-      <div className="px-4 py-3 border-b border-gray-200">
+    <div className="bg-surface rounded-lg border border-border">
+      <div className="px-4 py-3 border-b border-border">
         <h3 className="text-sm font-semibold text-fg">{t('title')}</h3>
         <p className="text-xs text-fg-subtle mt-0.5">{t('subtitle')}</p>
       </div>
@@ -1108,7 +1108,7 @@ function SecuritySettings() {
         <SettingRow label={t('passwordRotation')} description={t('passwordRotationDesc')} />
         <SettingRow label={t('loginAlerts')} description={t('loginAlertsDesc')} defaultChecked />
 
-        <div className="pt-4 border-t border-gray-200">
+        <div className="pt-4 border-t border-border">
           <h4 className="text-sm font-semibold text-fg mb-3">{t('activeSessions')}</h4>
           <div className="space-y-2">
             <SessionItem
@@ -1161,7 +1161,7 @@ function SessionItem({
   activeLabel?: string
 }) {
   return (
-    <div className="flex items-center justify-between p-3 bg-surface-sunken border border-gray-200 rounded-lg">
+    <div className="flex items-center justify-between p-3 bg-surface-sunken border border-border rounded-lg">
       <div>
         <p className="text-sm font-medium text-fg">{device}</p>
         <p className="text-xs text-fg-subtle">{location}</p>
