@@ -378,8 +378,16 @@
       "approved": "Aprobada",
       "rejected": "Rechazada",
       "pending": "Pendiente",
-      "vacationRequest": "Petición de vacaciones (V)",
-      "approvedNote": "Al crear o resetear el mes, las peticiones aprobadas se precargan y quedan bloqueadas (L = libre, V = vacaciones).",
+      "typeLabel": "Tipo de petición",
+      "types": {
+        "request_off": "Libre (L)",
+        "vacation": "Vacaciones (V)",
+        "sick_leave": "IT — Baja temporal",
+        "holiday": "Bonificable / Festivo (B)",
+        "sick_day": "Enfermedad puntual (E)",
+        "training": "Formación (FO)"
+      },
+      "approvedNote": "Al crear o resetear el mes, las peticiones aprobadas se precargan y quedan bloqueadas con su código (L, V, IT, B, E o FO).",
       "completeRequired": "Completa los campos requeridos",
       "actions": "Acciones"
     }

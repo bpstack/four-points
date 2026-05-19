@@ -478,6 +478,14 @@ Get-ChildItem -Recurse -Include *.js,*.ts -Exclude node_modules,dist | Select-St
 3. Access app at `http://localhost:3000`
 4. API available at `http://localhost:4000`
 
+## Commit conventions
+
+- **Language:** subject and body in **English**. UI strings, Spanish identifiers and file paths may remain in their original language inside the body when necessary.
+- **Format:** [Conventional Commits](https://www.conventionalcommits.org/) (`feat:`, `fix:`, `docs:`, `chore:`, `refactor:`, `test:`, `perf:`, `build:`, `ci:`, `style:`). Optional scope: `feat(scheduling/solver): ...`.
+- **Subject:** imperative mood, ≤ 72 characters, no trailing period.
+- **Body:** explain the *why*, not the *what*. Use bullets when there are 3+ independent points. Reference files/functions only when the diff doesn't make them obvious. Avoid vague messages (`fix bug`, `update code`, `wip`).
+- **Footers:** reserve for issue references (`Refs #123`, `Closes #45`) and similar metadata.
+
 ## Notes
 
 - The system uses Spanish for UI and some code comments

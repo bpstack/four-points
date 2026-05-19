@@ -376,8 +376,16 @@
       "approved": "Approved",
       "rejected": "Rejected",
       "pending": "Pending",
-      "vacationRequest": "Vacation request (V)",
-      "approvedNote": "When creating or resetting the month, approved requests are preloaded and locked (L = day off, V = vacation).",
+      "typeLabel": "Request type",
+      "types": {
+        "request_off": "Day off (L)",
+        "vacation": "Vacation (V)",
+        "sick_leave": "IT — Temp disability",
+        "holiday": "Bonus / Holiday (B)",
+        "sick_day": "Sick day (E)",
+        "training": "Training (FO)"
+      },
+      "approvedNote": "When creating or resetting the month, approved requests are preloaded and locked with their code (L, V, IT, B, E or FO).",
       "completeRequired": "Complete required fields",
       "actions": "Actions"
     }

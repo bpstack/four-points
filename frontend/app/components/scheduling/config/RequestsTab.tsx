@@ -4,10 +4,13 @@ import { useTranslations } from 'next-intl'
 import { useState, useEffect, useMemo } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { schedulingApi, schedulingKeys } from '@/app/lib/scheduling'
-import type { SchedulingConstraint, UpdateConstraintDto } from '@/app/lib/scheduling'
+import type {
+  SchedulingConstraint,
+  UpdateConstraintDto,
+  ConstraintType,
+} from '@/app/lib/scheduling'
 import toast from 'react-hot-toast'
 import { FiPlus, FiTrash2, FiEdit, FiX, FiCheck, FiCalendar } from 'react-icons/fi'
-import { Checkbox } from '@/app/ui/components'
 import DatePickerInput from '@/app/ui/calendar/DatePickerInput'
 import { ApiError } from '@/app/lib/apiClient'
 import { formatUsername } from '@/app/lib/helpers/user'
@@ -16,6 +19,47 @@ import { formatLocalDate } from './utils/date'
 interface Employee {
   id: string
   username: string
+}
+
+// ConstraintType -> shift code generado al precargar el mes (initializeAssignments).
+// Espejo de backend/controllers/scheduling/scheduling-controller.ts:constraintToShiftCode.
+// Solo los 6 tipos "tipo ausencia" se exponen en la UI; request_shift / request_no_shift
+// requieren shift_code adicional y no se gestionan desde este modal todavía.
+type SelectableConstraintType = Extract<
+  ConstraintType,
+  'request_off' | 'vacation' | 'sick_leave' | 'holiday' | 'sick_day' | 'training'
+>
+
+const CONSTRAINT_TYPE_TO_SHIFT: Record<SelectableConstraintType, string> = {
+  request_off: 'L',
+  vacation: 'V',
+  sick_leave: 'IT',
+  holiday: 'B',
+  sick_day: 'E',
+  training: 'FO',
+}
+
+const SELECTABLE_CONSTRAINT_TYPES: SelectableConstraintType[] = [
+  'request_off',
+  'vacation',
+  'sick_leave',
+  'holiday',
+  'sick_day',
+  'training',
+]
+
+// Colores de badge por shift_code generado. Reutiliza la paleta del módulo.
+const SHIFT_BADGE_CLASSES: Record<string, string> = {
+  L: 'bg-surface-hover text-fg-muted',
+  V: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
+  IT: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400',
+  B: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
+  E: 'bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-400',
+  FO: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
+}
+
+function shiftCodeForConstraint(type: string): string {
+  return CONSTRAINT_TYPE_TO_SHIFT[type as SelectableConstraintType] ?? 'L'
 }
 
 const AVAILABLE_MONTHS = [
@@ -79,8 +123,8 @@ export function RequestsTab() {
     queryFn: async () => {
       if (!listMonthId) return []
       const constraints = await schedulingApi.getConstraintsByMonth(listMonthId, {})
-      return constraints.filter(
-        (c) => c.constraintType === 'request_off' || c.constraintType === 'vacation'
+      return constraints.filter((c) =>
+        (SELECTABLE_CONSTRAINT_TYPES as string[]).includes(c.constraintType)
       )
     },
     enabled: !!listMonthId,
@@ -230,15 +274,17 @@ export function RequestsTab() {
                 <tr key={request.id} className="border-b border-border hover:bg-surface-hover/50">
                   <td className="py-2 px-3 text-fg">{formatUsername(request.employeeName)}</td>
                   <td className="py-2 px-3">
-                    {request.constraintType === 'vacation' ? (
-                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">
-                        V
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-surface-hover text-fg-muted">
-                        L
-                      </span>
-                    )}
+                    {(() => {
+                      const code = shiftCodeForConstraint(request.constraintType)
+                      const cls = SHIFT_BADGE_CLASSES[code] ?? 'bg-surface-hover text-fg-muted'
+                      return (
+                        <span
+                          className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold ${cls}`}
+                        >
+                          {code}
+                        </span>
+                      )
+                    })()}
                   </td>
                   <td className="py-2 px-3 text-fg-muted">
                     {formatDate(request.startDate)}
@@ -340,7 +386,11 @@ function EditRequestModal({ request, onClose, onSuccess }: EditRequestModalProps
   const [startDate, setStartDate] = useState(() => formatLocalDate(new Date(request.startDate)))
   const [endDate, setEndDate] = useState(() => formatLocalDate(new Date(request.endDate)))
   const [notes, setNotes] = useState(request.notes || '')
-  const [isVacation, setIsVacation] = useState(request.constraintType === 'vacation')
+  const [constraintType, setConstraintType] = useState<SelectableConstraintType>(
+    (SELECTABLE_CONSTRAINT_TYPES as string[]).includes(request.constraintType)
+      ? (request.constraintType as SelectableConstraintType)
+      : 'request_off'
+  )
 
   const updateMutation = useMutation({
     mutationFn: (data: {
@@ -378,7 +428,7 @@ function EditRequestModal({ request, onClose, onSuccess }: EditRequestModalProps
     }
     updateMutation.mutate({
       constraintId: request.id,
-      constraintType: isVacation ? 'vacation' : 'request_off',
+      constraintType,
       startDate,
       endDate: endDate || startDate,
       notes: notes || undefined,
@@ -441,19 +491,7 @@ function EditRequestModal({ request, onClose, onSuccess }: EditRequestModalProps
             <p className="text-xs text-fg-subtle mt-1">{notes.length}/46 caracteres</p>
           </div>
 
-          <Checkbox
-            checked={isVacation}
-            onCheckedChange={setIsVacation}
-            label={
-              <span className="flex items-center gap-1.5 text-sm text-fg">
-                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-semibold bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">
-                  V
-                </span>
-                {t('vacationRequest')}
-              </span>
-            }
-            strikeOnCheck={false}
-          />
+          <ConstraintTypePicker value={constraintType} onChange={setConstraintType} />
 
           <div className="flex justify-end gap-2 pt-2">
             <button
@@ -500,7 +538,7 @@ function AddRequestModal({
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
   const [notes, setNotes] = useState('')
-  const [isVacation, setIsVacation] = useState(false)
+  const [constraintType, setConstraintType] = useState<SelectableConstraintType>('request_off')
 
   const { data: employees = [] } = useQuery<Employee[]>({
     queryKey: schedulingKeys.employees(),
@@ -544,7 +582,7 @@ function AddRequestModal({
     createMutation.mutate({
       monthId,
       employeeId,
-      constraintType: isVacation ? 'vacation' : 'request_off',
+      constraintType,
       startDate,
       endDate: endDate || startDate,
       notes: notes || undefined,
@@ -638,19 +676,7 @@ function AddRequestModal({
             <p className="text-xs text-fg-subtle mt-1">{notes.length}/46 caracteres</p>
           </div>
 
-          <Checkbox
-            checked={isVacation}
-            onCheckedChange={setIsVacation}
-            label={
-              <span className="flex items-center gap-1.5 text-sm text-fg">
-                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-semibold bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">
-                  V
-                </span>
-                {t('vacationRequest')}
-              </span>
-            }
-            strikeOnCheck={false}
-          />
+          <ConstraintTypePicker value={constraintType} onChange={setConstraintType} />
 
           <p className="text-xs text-fg-subtle">{t('approvedNote')}</p>
 
@@ -671,6 +697,51 @@ function AddRequestModal({
             </button>
           </div>
         </form>
+      </div>
+    </div>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ConstraintTypePicker: button grid con los 6 tipos visibles. Devuelve el
+// constraintType que se enviará al backend. El badge muestra el shift_code
+// resultante (L/V/IT/B/E/FO) para que el usuario sepa qué se aplicará al mes.
+// ─────────────────────────────────────────────────────────────────────────────
+interface ConstraintTypePickerProps {
+  value: SelectableConstraintType
+  onChange: (type: SelectableConstraintType) => void
+}
+
+function ConstraintTypePicker({ value, onChange }: ConstraintTypePickerProps) {
+  const t = useTranslations('scheduling.config.requests')
+  return (
+    <div>
+      <label className="block text-xs font-medium text-fg mb-1.5">{t('typeLabel')}</label>
+      <div className="grid grid-cols-2 gap-2">
+        {SELECTABLE_CONSTRAINT_TYPES.map((type) => {
+          const code = CONSTRAINT_TYPE_TO_SHIFT[type]
+          const badgeCls = SHIFT_BADGE_CLASSES[code] ?? 'bg-surface-hover text-fg-muted'
+          const isActive = value === type
+          return (
+            <button
+              key={type}
+              type="button"
+              onClick={() => onChange(type)}
+              className={`flex items-center gap-2 px-3 py-2 text-xs rounded-md border transition-colors text-left ${
+                isActive
+                  ? 'border-accent bg-accent/10 text-fg ring-1 ring-accent'
+                  : 'border-border text-fg hover:bg-surface-hover'
+              }`}
+            >
+              <span
+                className={`inline-flex items-center justify-center min-w-[26px] px-1.5 py-0.5 rounded text-[10px] font-semibold ${badgeCls}`}
+              >
+                {code}
+              </span>
+              <span className="flex-1">{t(`types.${type}`)}</span>
+            </button>
+          )
+        })}
       </div>
     </div>
   )
