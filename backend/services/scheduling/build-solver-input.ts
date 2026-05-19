@@ -14,7 +14,7 @@ export async function buildSolverInput(
   const [configMap, employees, days, assignments, approvedRequests, prevTailRows, nightsHistory] =
     await Promise.all([
       repo.getConfigMap(),
-      repo.getSchedulableEmployees(),
+      repo.getSchedulableEmployeesForMonth(year, month),
       repo.getDaysByMonth(monthId),
       repo.getAssignmentsByMonth(monthId),
       requestsRepo.findApprovedForSolver(year, month),

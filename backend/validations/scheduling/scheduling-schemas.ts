@@ -140,6 +140,25 @@ export const bulkUpdateAssignmentsSchema = z.object({
 })
 
 // ============================================
+// SCHEDULABLE EMPLOYEE DATES
+// ============================================
+
+const nullableDateSchema = dateSchema.nullable().optional()
+
+export const updateEmployeeDatesSchema = z
+  .object({
+    startDate: nullableDateSchema,
+    endDate: nullableDateSchema,
+  })
+  .refine(
+    (data) => {
+      if (data.startDate && data.endDate) return data.startDate <= data.endDate
+      return true
+    },
+    { message: 'startDate debe ser anterior o igual a endDate' }
+  )
+
+// ============================================
 // CONSTRAINT SCHEMAS
 // ============================================
 

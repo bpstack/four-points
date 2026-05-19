@@ -1227,6 +1227,8 @@ export interface SchedulableEmployee extends RowDataPacket {
   id: string
   username: string
   role_id: number
+  start_date: string | null
+  end_date: string | null
 }
 
 export interface SchedulableEmployeeWithStatus extends SchedulableEmployee {
@@ -1240,11 +1242,43 @@ export interface SchedulableEmployeeWithStatus extends SchedulableEmployee {
  */
 export async function getSchedulableEmployees(): Promise<SchedulableEmployee[]> {
   const [rows] = await db.query<SchedulableEmployee[]>(
-    `SELECT u.id, u.username, u.role_id
+    `SELECT u.id, u.username, u.role_id,
+            DATE_FORMAT(se.start_date, '%Y-%m-%d') AS start_date,
+            DATE_FORMAT(se.end_date,   '%Y-%m-%d') AS end_date
      FROM users u
      INNER JOIN scheduling_employees se ON u.id = se.employee_id
      WHERE u.is_active = 1
      ORDER BY se.display_order IS NULL, se.display_order, u.username`
+  )
+  return rows
+}
+
+/**
+ * Get employees that were active in a given (year, month). Filters by
+ * scheduling_employees.start_date / end_date — an employee with both NULL is
+ * always active. Used by month-view endpoints so people who hadn't joined yet
+ * (or who already left) don't show as empty rows in the grid.
+ */
+export async function getSchedulableEmployeesForMonth(
+  year: number,
+  month: number
+): Promise<SchedulableEmployee[]> {
+  const firstDay = `${year}-${String(month).padStart(2, '0')}-01`
+  // last day of month — JS Date trick: day 0 of next month is last day of this month
+  const lastDate = new Date(year, month, 0)
+  const lastDay = `${year}-${String(month).padStart(2, '0')}-${String(lastDate.getDate()).padStart(2, '0')}`
+
+  const [rows] = await db.query<SchedulableEmployee[]>(
+    `SELECT u.id, u.username, u.role_id,
+            DATE_FORMAT(se.start_date, '%Y-%m-%d') AS start_date,
+            DATE_FORMAT(se.end_date,   '%Y-%m-%d') AS end_date
+     FROM users u
+     INNER JOIN scheduling_employees se ON u.id = se.employee_id
+     WHERE u.is_active = 1
+       AND (se.start_date IS NULL OR se.start_date <= ?)
+       AND (se.end_date   IS NULL OR se.end_date   >= ?)
+     ORDER BY se.display_order IS NULL, se.display_order, u.username`,
+    [lastDay, firstDay]
   )
   return rows
 }
@@ -1262,7 +1296,9 @@ export async function getAllEmployeesWithSchedulableStatus(): Promise<
        u.username,
        u.role_id,
        CASE WHEN se.employee_id IS NOT NULL THEN TRUE ELSE FALSE END as is_schedulable,
-       se.added_at
+       se.added_at,
+       DATE_FORMAT(se.start_date, '%Y-%m-%d') AS start_date,
+       DATE_FORMAT(se.end_date,   '%Y-%m-%d') AS end_date
      FROM users u
      LEFT JOIN scheduling_employees se ON u.id = se.employee_id
      WHERE u.is_active = 1
@@ -1286,6 +1322,23 @@ export async function addSchedulableEmployee(employeeId: string, addedBy?: strin
  */
 export async function removeSchedulableEmployee(employeeId: string): Promise<void> {
   await db.query(`DELETE FROM scheduling_employees WHERE employee_id = ?`, [employeeId])
+}
+
+/**
+ * Update start_date / end_date for a single schedulable employee. Pass null
+ * to clear a date. Used to mark partial tenures (e.g. employee leaves mid-year).
+ */
+export async function setSchedulableEmployeeDates(
+  employeeId: string,
+  startDate: string | null,
+  endDate: string | null
+): Promise<void> {
+  await db.query(
+    `UPDATE scheduling_employees
+        SET start_date = ?, end_date = ?
+      WHERE employee_id = ?`,
+    [startDate, endDate, employeeId]
+  )
 }
 
 /**

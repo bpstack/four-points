@@ -19,6 +19,7 @@ import {
   updateConfigSchema,
   monthQuerySchema,
   constraintQuerySchema,
+  updateEmployeeDatesSchema,
 } from '../../validations/scheduling/scheduling-schemas.js'
 import type {
   FullMonthResponse,
@@ -364,12 +365,14 @@ export async function getMonthById(req: Request, res: Response): Promise<void> {
       return
     }
 
-    // Get full data for the month
+    // Get full data for the month. Schedulable employees are filtered by
+    // start_date / end_date so people who hadn't joined (or already left) in
+    // this month don't show up as empty rows in the grid.
     const [days, assignments, constraints, schedulableEmployees] = await Promise.all([
       repo.getDaysByMonth(monthId),
       repo.getAssignmentsByMonth(monthId),
       repo.getConstraintsByMonth(monthId),
-      repo.getSchedulableEmployees(),
+      repo.getSchedulableEmployeesForMonth(month.year, month.month),
     ])
 
     // Create Map for O(1) day lookups instead of O(n) array.find()
@@ -1498,6 +1501,27 @@ export async function removeSchedulableEmployee(req: Request, res: Response): Pr
   } catch (err) {
     logger.error({ err }, 'Error removing schedulable employee')
     res.status(500).json({ error: 'Error al remover empleado' })
+  }
+}
+
+export async function setSchedulableEmployeeDates(
+  req: Request,
+  res: Response
+): Promise<void> {
+  try {
+    const { employeeId } = req.params
+    const parsed = updateEmployeeDatesSchema.safeParse(req.body)
+    if (!parsed.success) {
+      res.status(400).json({ error: 'Datos inválidos', details: parsed.error.flatten() })
+      return
+    }
+    const { startDate, endDate } = parsed.data
+
+    await repo.setSchedulableEmployeeDates(employeeId, startDate ?? null, endDate ?? null)
+    res.json({ success: true, message: 'Fechas del empleado actualizadas' })
+  } catch (err) {
+    logger.error({ err }, 'Error updating schedulable employee dates')
+    res.status(500).json({ error: 'Error al actualizar fechas del empleado' })
   }
 }
 

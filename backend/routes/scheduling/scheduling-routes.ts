@@ -52,6 +52,7 @@ import {
   removeSchedulableEmployee,
   setSchedulableEmployees,
   setSchedulableEmployeesOrder,
+  setSchedulableEmployeeDates,
   // Contracts
   getContractsByYear,
   getContractByEmployeeYear,
@@ -239,6 +240,10 @@ router.put('/employees', isAdmin, setSchedulableEmployees)
 // PATCH - Reorder schedulable employees (admin only)
 // Body: { orderedIds: string[] } — array of employee IDs in desired order
 router.patch('/employees/order', isAdmin, setSchedulableEmployeesOrder)
+
+// PATCH - Update start_date / end_date for a single employee (admin only)
+// Body: { startDate: 'YYYY-MM-DD' | null, endDate: 'YYYY-MM-DD' | null }
+router.patch('/employees/:employeeId/dates', isAdmin, setSchedulableEmployeeDates)
 
 // ========================================
 // CONTRACTS ROUTES
