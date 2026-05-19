@@ -29,6 +29,7 @@ import {
   bulkUpdateAssignments,
   // Constraints
   getConstraintsByMonth,
+  getConstraintsByPeriod,
   createConstraint,
   updateConstraint,
   approveConstraint,
@@ -179,6 +180,9 @@ router.put('/months/:id/assignments', isAdmin, bulkUpdateAssignments)
 
 // GET - Get constraints by month
 router.get('/months/:id/constraints', getConstraintsByMonth)
+
+// GET - Get constraints overlapping a period (year+month), no month_id required
+router.get('/constraints/by-period', getConstraintsByPeriod)
 
 // POST - Create constraint
 router.post('/constraints', createConstraint)

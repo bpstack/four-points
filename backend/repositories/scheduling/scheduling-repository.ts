@@ -976,6 +976,31 @@ export async function getConstraintsByMonth(
   return rows
 }
 
+export async function getConstraintsByPeriod(
+  year: number,
+  month: number
+): Promise<SchedulingConstraintWithDetails[]> {
+  const firstDay = `${year}-${String(month).padStart(2, '0')}-01`
+  const d = new Date(year, month, 0) // day 0 of month+1 = last day of given month
+  const lastDay = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+
+  const [rows] = await db.execute<SchedulingConstraintWithDetails[]>(
+    `SELECT
+      c.*,
+      u1.username as employee_name,
+      u2.username as created_by_name,
+      u3.username as approved_by_name
+    FROM scheduling_constraints c
+    JOIN users u1 ON c.employee_id = u1.id
+    LEFT JOIN users u2 ON c.created_by = u2.id
+    LEFT JOIN users u3 ON c.approved_by = u3.id
+    WHERE c.start_date <= ? AND c.end_date >= ?
+    ORDER BY c.priority ASC, c.start_date ASC`,
+    [lastDay, firstDay]
+  )
+  return rows
+}
+
 export async function getConstraintById(
   id: number
 ): Promise<SchedulingConstraintWithDetails | undefined> {

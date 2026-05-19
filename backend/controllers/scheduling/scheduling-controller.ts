@@ -1095,6 +1095,44 @@ export async function getConstraintsByMonth(req: Request, res: Response): Promis
   }
 }
 
+export async function getConstraintsByPeriod(req: Request, res: Response): Promise<void> {
+  try {
+    const year = parseInt(req.query.year as string)
+    const month = parseInt(req.query.month as string)
+    if (isNaN(year) || isNaN(month) || month < 1 || month > 12) {
+      res.status(400).json({ error: 'Parámetros year/month inválidos' })
+      return
+    }
+
+    const constraints = await repo.getConstraintsByPeriod(year, month)
+
+    const formatted = constraints.map((c) => ({
+      id: c.id,
+      monthId: c.month_id,
+      employeeId: c.employee_id,
+      employeeName: c.employee_name,
+      constraintType: c.constraint_type,
+      startDate: c.start_date,
+      endDate: c.end_date,
+      shiftCode: c.shift_code,
+      status: c.status,
+      priority: c.priority,
+      notes: c.notes,
+      createdBy: c.created_by,
+      createdByName: c.created_by_name,
+      approvedBy: c.approved_by,
+      approvedByName: c.approved_by_name,
+      approvedAt: c.approved_at ? c.approved_at.toISOString() : null,
+      createdAt: c.created_at ? c.created_at.toISOString() : null,
+    }))
+
+    res.json(formatted)
+  } catch (err) {
+    logger.error({ err }, 'Error getting constraints by period')
+    res.status(500).json({ error: 'Error al obtener las restricciones' })
+  }
+}
+
 export async function createConstraint(req: Request, res: Response): Promise<void> {
   try {
     const data = createConstraintSchema.parse(req.body)
