@@ -50,6 +50,8 @@ export const schedulingKeys = {
   monthInfo: (id: number) => [...schedulingKeys.months(), id, 'info'] as const,
   monthValidation: (id: number) => [...schedulingKeys.months(), id, 'validation'] as const,
   constraints: (monthId: number) => [...schedulingKeys.all, 'constraints', monthId] as const,
+  constraintsByPeriod: (year: number, month: number) =>
+    [...schedulingKeys.all, 'constraints-period', year, month] as const,
   rules: () => [...schedulingKeys.all, 'rules'] as const,
   rulesByEmployee: (employeeId: string) => [...schedulingKeys.rules(), employeeId] as const,
   history: (monthId: number) => [...schedulingKeys.all, 'history', monthId] as const,
@@ -324,6 +326,15 @@ export const schedulingApi = {
     const queryString = query.toString()
     return apiClient.get(
       `${API_URL}/api/scheduling/months/${monthId}/constraints${queryString ? `?${queryString}` : ''}`
+    )
+  },
+
+  /**
+   * Get constraints overlapping a given year+month period (no month_id needed)
+   */
+  getConstraintsByPeriod: async (year: number, month: number): Promise<SchedulingConstraint[]> => {
+    return apiClient.get(
+      `${API_URL}/api/scheduling/constraints/by-period?year=${year}&month=${month}`
     )
   },
 

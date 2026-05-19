@@ -1,7 +1,7 @@
 'use client'
 
 import { useTranslations } from 'next-intl'
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { schedulingApi, schedulingKeys } from '@/app/lib/scheduling'
 import type {
@@ -12,6 +12,8 @@ import type {
 import toast from 'react-hot-toast'
 import { FiPlus, FiTrash2, FiEdit, FiX, FiCheck, FiCalendar } from 'react-icons/fi'
 import DatePickerInput from '@/app/ui/calendar/DatePickerInput'
+import { SelectDropdown } from '@/app/ui/components/SelectDropdown'
+import type { DropdownOption } from '@/app/ui/components/SelectDropdown'
 import { ApiError } from '@/app/lib/apiClient'
 import { formatUsername } from '@/app/lib/helpers/user'
 import { formatLocalDate } from './utils/date'
@@ -62,7 +64,7 @@ function shiftCodeForConstraint(type: string): string {
   return CONSTRAINT_TYPE_TO_SHIFT[type as SelectableConstraintType] ?? 'L'
 }
 
-const AVAILABLE_MONTHS = [
+const AVAILABLE_MONTHS: DropdownOption<number>[] = [
   { value: 1, label: 'Enero' },
   { value: 2, label: 'Febrero' },
   { value: 3, label: 'Marzo' },
@@ -87,53 +89,33 @@ export function RequestsTab() {
   const [showAddForm, setShowAddForm] = useState(false)
   const [editingRequest, setEditingRequest] = useState<SchedulingConstraint | null>(null)
 
-  const { data: monthsData } = useQuery({
-    queryKey: schedulingKeys.monthsList(),
-    queryFn: () => schedulingApi.getAllMonths({ limit: 12 }),
-  })
-
-  const months = useMemo(() => monthsData?.months || [], [monthsData?.months])
-
   const currentYear = new Date().getFullYear()
-  const availableYears = [currentYear - 1, currentYear, currentYear + 1, currentYear + 2]
+  const availableYears: DropdownOption<number>[] = [
+    currentYear - 1,
+    currentYear,
+    currentYear + 1,
+    currentYear + 2,
+  ].map((y) => ({ value: y, label: String(y) }))
 
   const [selectedYear, setSelectedYear] = useState(currentYear)
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1)
-  const [listMonthId, setListMonthId] = useState<number | null>(null)
 
-  const monthMapping = useMemo(() => {
-    const map: Record<string, number> = {}
-    months.forEach((m) => {
-      const key = `${m.year}-${m.month}`
-      map[key] = m.id
-    })
-    return map
-  }, [months])
-
-  const selectedKey = `${selectedYear}-${selectedMonth}`
-  const isMonthInitialized = listMonthId !== null
-
-  useEffect(() => {
-    const monthId = monthMapping[selectedKey]
-    setListMonthId(monthId || null)
-  }, [selectedKey, monthMapping])
+  const periodKey = schedulingKeys.constraintsByPeriod(selectedYear, selectedMonth)
 
   const { data: requests = [], isLoading: loadingRequests } = useQuery({
-    queryKey: ['scheduling-requests', listMonthId],
+    queryKey: periodKey,
     queryFn: async () => {
-      if (!listMonthId) return []
-      const constraints = await schedulingApi.getConstraintsByMonth(listMonthId, {})
+      const constraints = await schedulingApi.getConstraintsByPeriod(selectedYear, selectedMonth)
       return constraints.filter((c) =>
         (SELECTABLE_CONSTRAINT_TYPES as string[]).includes(c.constraintType)
       )
     },
-    enabled: !!listMonthId,
   })
 
   const deleteMutation = useMutation({
     mutationFn: (constraintId: number) => schedulingApi.deleteConstraint(constraintId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['scheduling-requests', listMonthId] })
+      queryClient.invalidateQueries({ queryKey: periodKey })
       toast.success(tToasts('requestDeleted'))
     },
     onError: () => {
@@ -145,7 +127,7 @@ export function RequestsTab() {
     mutationFn: ({ id, status }: { id: number; status: 'approved' | 'rejected' }) =>
       schedulingApi.approveConstraint(id, { status }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['scheduling-requests', listMonthId] })
+      queryClient.invalidateQueries({ queryKey: periodKey })
       toast.success(tToasts('requestUpdated'))
     },
     onError: () => {
@@ -190,28 +172,18 @@ export function RequestsTab() {
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <div className="flex items-center gap-2">
-            <select
+            <SelectDropdown<number>
               value={selectedMonth}
-              onChange={(e) => setSelectedMonth(Number(e.target.value))}
-              className="px-2 py-1.5 text-xs border border-border rounded-md bg-surface-hover text-fg"
-            >
-              {AVAILABLE_MONTHS.map((m) => (
-                <option key={m.value} value={m.value}>
-                  {m.label}
-                </option>
-              ))}
-            </select>
-            <select
+              onChange={setSelectedMonth}
+              options={AVAILABLE_MONTHS}
+              className="w-32"
+            />
+            <SelectDropdown<number>
               value={selectedYear}
-              onChange={(e) => setSelectedYear(Number(e.target.value))}
-              className="px-2 py-1.5 text-xs min-w-[80px] border border-border rounded-md bg-surface-hover text-fg"
-            >
-              {availableYears.map((y) => (
-                <option key={y} value={y}>
-                  {y}
-                </option>
-              ))}
-            </select>
+              onChange={setSelectedYear}
+              options={availableYears}
+              className="w-24"
+            />
           </div>
           <button
             onClick={() => setShowAddForm(true)}
@@ -227,13 +199,7 @@ export function RequestsTab() {
         </div>
       </div>
 
-      {!isMonthInitialized ? (
-        <div className="text-center py-12">
-          <FiCalendar className="w-10 h-10 mx-auto text-fg-subtle mb-3" />
-          <p className="text-sm text-fg-muted">{tMessages('monthNotInitialized')}</p>
-          <p className="text-xs text-fg-subtle mt-1">{tMessages('monthNotInitializedHint')}</p>
-        </div>
-      ) : loadingRequests ? (
+      {loadingRequests ? (
         <div className="text-center py-12">
           <div className="inline-block h-8 w-8 animate-spin rounded-full border-[3px] border-solid border-blue-600 dark:border-blue-500 border-r-transparent"></div>
           <p className="mt-3 text-xs text-fg-muted">{tMessages('loadingRequests')}</p>
@@ -347,11 +313,11 @@ export function RequestsTab() {
 
       {showAddForm && (
         <AddRequestModal
-          months={months}
-          initialMonthId={listMonthId}
+          initialYear={selectedYear}
+          initialMonth={selectedMonth}
           onClose={() => setShowAddForm(false)}
-          onMonthResolved={(monthId) => {
-            setListMonthId(monthId)
+          onSuccess={() => {
+            queryClient.invalidateQueries({ queryKey: periodKey })
           }}
         />
       )}
@@ -359,10 +325,9 @@ export function RequestsTab() {
       {editingRequest && (
         <EditRequestModal
           request={editingRequest}
-          months={months}
           onClose={() => setEditingRequest(null)}
           onSuccess={() => {
-            queryClient.invalidateQueries({ queryKey: ['scheduling-requests', listMonthId] })
+            queryClient.invalidateQueries({ queryKey: periodKey })
             setEditingRequest(null)
           }}
         />
@@ -373,7 +338,6 @@ export function RequestsTab() {
 
 interface EditRequestModalProps {
   request: SchedulingConstraint
-  months: { id: number; year: number; month: number }[]
   onClose: () => void
   onSuccess: () => void
 }
@@ -516,26 +480,22 @@ function EditRequestModal({ request, onClose, onSuccess }: EditRequestModalProps
 }
 
 interface AddRequestModalProps {
-  months: { id: number; year: number; month: number }[]
-  initialMonthId: number | null
+  initialYear: number
+  initialMonth: number
   onClose: () => void
-  onMonthResolved: (monthId: number) => void
+  onSuccess: () => void
 }
 
-function AddRequestModal({
-  months,
-  initialMonthId,
-  onClose,
-  onMonthResolved,
-}: AddRequestModalProps) {
+function AddRequestModal({ initialYear, initialMonth, onClose, onSuccess }: AddRequestModalProps) {
   const t = useTranslations('scheduling.config.requests')
   const tActions = useTranslations('scheduling.actions')
   const tToasts = useTranslations('scheduling.toasts')
 
-  const queryClient = useQueryClient()
-  const [monthId, setMonthId] = useState<number | null>(initialMonthId)
+  const defaultStart = `${initialYear}-${String(initialMonth).padStart(2, '0')}-01`
+
+  const [monthId, setMonthId] = useState<number | null>(null)
   const [employeeId, setEmployeeId] = useState('')
-  const [startDate, setStartDate] = useState('')
+  const [startDate, setStartDate] = useState(defaultStart)
   const [endDate, setEndDate] = useState('')
   const [notes, setNotes] = useState('')
   const [constraintType, setConstraintType] = useState<SelectableConstraintType>('request_off')
@@ -544,6 +504,25 @@ function AddRequestModal({
     queryKey: schedulingKeys.employees(),
     queryFn: schedulingApi.getSchedulableEmployees,
   })
+
+  // Resolve (or create) the month for a given YYYY-MM-DD date string
+  const ensureMonthForDate = async (dateStr: string): Promise<number> => {
+    const [yStr, mStr] = dateStr.split('-')
+    const y = Number(yStr)
+    const m = Number(mStr)
+    const { months: all } = await schedulingApi.getAllMonths({ year: y })
+    const existing = all.find((x) => x.month === m)
+    if (existing) return existing.id
+    const created = await schedulingApi.createMonth({ year: y, month: m })
+    return created.id
+  }
+
+  // Pre-resolve the month for the initially selected period so the submit
+  // button is enabled even if the user doesn't change the date.
+  useEffect(() => {
+    void ensureMonthForDate(defaultStart).then(setMonthId).catch(() => setMonthId(null))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [defaultStart])
 
   const createMutation = useMutation({
     mutationFn: (data: {
@@ -556,8 +535,8 @@ function AddRequestModal({
     }) =>
       schedulingApi.createConstraint(data as Parameters<typeof schedulingApi.createConstraint>[0]),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['scheduling-requests'] })
       toast.success(tToasts('requestCreated'))
+      onSuccess()
       onClose()
     },
     onError: (err) => {
@@ -587,25 +566,6 @@ function AddRequestModal({
       endDate: endDate || startDate,
       notes: notes || undefined,
     })
-  }
-
-  const ensureMonthForDate = async (dateStr: string): Promise<number> => {
-    const [yStr, mStr] = dateStr.split('-')
-    const y = Number(yStr)
-    const m = Number(mStr)
-
-    const existing = months.find((x) => x.year === y && x.month === m)
-    if (existing) return existing.id
-
-    try {
-      const created = await schedulingApi.createMonth({ year: y, month: m })
-      return created.id
-    } catch (err) {
-      const refreshed = await schedulingApi.getAllMonths({ limit: 24 })
-      const found = refreshed.months.find((x) => x.year === y && x.month === m)
-      if (found) return found.id
-      throw err
-    }
   }
 
   return (
@@ -645,11 +605,7 @@ function AddRequestModal({
                 setStartDate(val)
                 if (val && endDate && val > endDate) setEndDate(val)
                 if (val) {
-                  void (async () => {
-                    const resolvedMonthId = await ensureMonthForDate(val)
-                    setMonthId(resolvedMonthId)
-                    onMonthResolved(resolvedMonthId)
-                  })()
+                  void ensureMonthForDate(val).then(setMonthId).catch(() => setMonthId(null))
                 }
               }}
               clearable={false}
