@@ -4,6 +4,8 @@ import { useTranslations } from 'next-intl'
 import { useState } from 'react'
 import { FiInfo } from 'react-icons/fi'
 import { EmployeeTotals } from '../EmployeeTotals'
+import { SelectDropdown } from '@/app/ui/components/SelectDropdown'
+import type { DropdownOption } from '@/app/ui/components/SelectDropdown'
 
 export function TotalsTab() {
   const t = useTranslations('scheduling.config.totals')
@@ -11,7 +13,9 @@ export function TotalsTab() {
   const currentYear = new Date().getFullYear()
   const [selectedYear, setSelectedYear] = useState(currentYear)
 
-  const yearOptions = [currentYear, currentYear - 1, currentYear - 2]
+  const yearOptions: DropdownOption<number>[] = [currentYear, currentYear - 1, currentYear - 2].map(
+    (y) => ({ value: y, label: String(y) })
+  )
 
   return (
     <div className="p-4">
@@ -22,17 +26,12 @@ export function TotalsTab() {
         </div>
         <div className="flex items-center gap-2">
           <label className="text-xs text-fg-muted">{t('year')}</label>
-          <select
+          <SelectDropdown<number>
             value={selectedYear}
-            onChange={(e) => setSelectedYear(Number(e.target.value))}
-            className="w-28 px-3 py-1.5 text-sm border border-border rounded-md bg-surface text-fg focus:outline-none focus:ring-1 focus:ring-gray-500 dark:focus:ring-gray-400"
-          >
-            {yearOptions.map((year) => (
-              <option key={year} value={year}>
-                {year}
-              </option>
-            ))}
-          </select>
+            onChange={setSelectedYear}
+            options={yearOptions}
+            className="w-28"
+          />
         </div>
       </div>
 

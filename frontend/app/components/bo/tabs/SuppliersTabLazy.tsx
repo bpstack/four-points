@@ -36,6 +36,7 @@ import { SupplierFormModal, ConfirmDialog, SupplierInvoicesModal } from '@/app/c
 import { backofficeApi } from '@/app/lib/backoffice/backofficeApi'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
+import { SelectDropdown } from '@/app/ui/components/SelectDropdown'
 
 interface SuppliersTabLazyProps {
   initialSuppliers: SupplierWithStats[]
@@ -267,34 +268,33 @@ export function SuppliersTabLazy({
         </div>
 
         {/* Category Filter */}
-        <select
-          value={categoryFilter}
-          onChange={(e) =>
-            setCategoryFilter(e.target.value === 'all' ? 'all' : Number(e.target.value))
-          }
-          className="flex-1 min-w-[180px] px-3 py-1.5 text-xs border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-transparent bg-surface dark:text-fg"
-        >
-          <option value="all">{t('filters.allCategories')}</option>
-          {categories.map((cat) => (
-            <option key={cat.id} value={cat.id}>
-              {cat.cost_center} - {cat.department}
-            </option>
-          ))}
-        </select>
+        <SelectDropdown<string>
+          value={String(categoryFilter)}
+          onChange={(v) => setCategoryFilter(v === 'all' ? 'all' : Number(v))}
+          options={[
+            { value: 'all', label: t('filters.allCategories') },
+            ...categories.map((cat) => ({
+              value: String(cat.id),
+              label: `${cat.cost_center} - ${cat.department}`,
+            })),
+          ]}
+          className="flex-1 min-w-[180px]"
+        />
 
         {/* Periodicity Filter */}
-        <select
+        <SelectDropdown<string>
           value={periodicityFilter}
-          onChange={(e) => setPeriodicityFilter(e.target.value)}
-          className="w-full sm:w-52 px-3 py-1.5 text-xs border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-transparent bg-surface dark:text-fg"
-        >
-          <option value="all">{t('filters.allPeriodicities')}</option>
-          <option value="monthly">{t('periodicity.monthly')}</option>
-          <option value="bimonthly">{t('periodicity.bimonthly')}</option>
-          <option value="quarterly">{t('periodicity.quarterly')}</option>
-          <option value="annual">{t('periodicity.annual')}</option>
-          <option value="on_demand">{t('periodicity.onDemand')}</option>
-        </select>
+          onChange={setPeriodicityFilter}
+          options={[
+            { value: 'all', label: t('filters.allPeriodicities') },
+            { value: 'monthly', label: t('periodicity.monthly') },
+            { value: 'bimonthly', label: t('periodicity.bimonthly') },
+            { value: 'quarterly', label: t('periodicity.quarterly') },
+            { value: 'annual', label: t('periodicity.annual') },
+            { value: 'on_demand', label: t('periodicity.onDemand') },
+          ]}
+          className="w-full sm:w-52"
+        />
 
         {/* Add Supplier */}
         <button

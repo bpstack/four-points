@@ -5,6 +5,7 @@ import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import type { ParkingBooking } from '@/app/lib/parking/types'
 import { FiDollarSign, FiX, FiCheck, FiAlertCircle } from 'react-icons/fi'
+import { SelectDropdown } from '@/app/ui/components/SelectDropdown'
 
 interface PaymentModalProps {
   booking: ParkingBooking
@@ -146,26 +147,24 @@ export function PaymentModal({ booking, onClose, onConfirm }: PaymentModalProps)
                 </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-fg mb-1">
-                  {t('paymentModal.paymentMethod')}
-                </label>
-                <select
+              <SelectDropdown<string>
                   value={data.payment_method}
-                  onChange={(e) =>
+                  onChange={(v) =>
                     setData({
                       ...data,
-                      payment_method: e.target.value as 'cash' | 'card' | 'transfer' | 'agency',
+                      payment_method: v as 'cash' | 'card' | 'transfer' | 'agency',
                     })
                   }
-                  className="w-full px-3 py-2 bg-surface text-fg border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0969da] focus:border-[#0969da]"
-                >
-                  <option value="cash">{t('paymentMethods.cash')}</option>
-                  <option value="card">{t('paymentMethods.card')}</option>
-                  <option value="transfer">{t('paymentMethods.transfer')}</option>
-                  <option value="other">{t('paymentMethods.other')}</option>
-                </select>
-              </div>
+                  options={[
+                    { value: 'cash', label: t('paymentMethods.cash') },
+                    { value: 'card', label: t('paymentMethods.card') },
+                    { value: 'transfer', label: t('paymentMethods.transfer') },
+                    { value: 'other', label: t('paymentMethods.other') },
+                  ]}
+                  label={t('paymentModal.paymentMethod')}
+                  size="md"
+                  className="w-full"
+                />
 
               <div>
                 <label className="block text-sm font-medium text-fg mb-1">

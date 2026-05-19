@@ -8,6 +8,7 @@ import { API_BASE_URL } from '@/app/lib/env'
 import SimpleCalendarCompact from '@/app/ui/calendar/SimpleCalendarCompact'
 import TimePicker from '@/app/ui/calendar/timepicker'
 import { toast } from 'react-hot-toast'
+import { SelectDropdown } from '@/app/ui/components/SelectDropdown'
 
 const API_URL = API_BASE_URL
 
@@ -284,17 +285,12 @@ export function GlobalNotificationModal({
               <FiLink className="inline w-3 h-3 mr-1" />
               {t('modal.destinationLink')}
             </label>
-            <select
+            <SelectDropdown<string>
               value={selectedSection}
-              onChange={(e) => setSelectedSection(e.target.value)}
-              className="w-full px-2.5 py-1.5 text-xs border border-border rounded-md bg-surface text-fg focus:outline-none focus:ring-2 focus:ring-accent/50"
-            >
-              {APP_SECTIONS.map((section) => (
-                <option key={section.value} value={section.value}>
-                  {section.label}
-                </option>
-              ))}
-            </select>
+              onChange={setSelectedSection}
+              options={[...APP_SECTIONS]}
+              className="w-full"
+            />
             <p className="text-[10px] text-fg-subtle mt-0.5">
               {t('modal.redirectTo')}{' '}
               <code className="bg-surface-hover px-1 rounded">{selectedSection}</code>

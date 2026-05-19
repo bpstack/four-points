@@ -14,6 +14,8 @@ import toast from 'react-hot-toast'
 import { FiPlus, FiTrash2, FiEdit2, FiX, FiUsers } from 'react-icons/fi'
 import { Checkbox, ConfirmDialog } from '@/app/ui/components'
 import { formatUsername } from '@/app/lib/helpers/user'
+import { SelectDropdown } from '@/app/ui/components/SelectDropdown'
+import type { DropdownOption } from '@/app/ui/components/SelectDropdown'
 
 const RULE_TYPE_OPTIONS: { value: EmployeeRuleType; label: string; description: string }[] = [
   {
@@ -154,6 +156,11 @@ export function RulesTab() {
 
   const isLoading = loadingEmployees || loadingRules
 
+  const employeeFilterOptions: DropdownOption<string>[] = [
+    { value: '', label: t('allEmployees') },
+    ...employees.map((emp) => ({ value: emp.id, label: formatUsername(emp.username) })),
+  ]
+
   return (
     <div className="p-4">
       <div className="flex flex-wrap items-start justify-between gap-3 mb-4">
@@ -162,18 +169,12 @@ export function RulesTab() {
           <p className="text-xs text-fg-subtle">{t('subtitle')}</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <select
+          <SelectDropdown<string>
             value={filterEmployee}
-            onChange={(e) => setFilterEmployee(e.target.value)}
-            className="px-2 py-1.5 text-xs border border-border rounded-md bg-surface-hover text-fg"
-          >
-            <option value="">{t('allEmployees')}</option>
-            {employees.map((emp) => (
-              <option key={emp.id} value={emp.id}>
-                {formatUsername(emp.username)}
-              </option>
-            ))}
-          </select>
+            onChange={setFilterEmployee}
+            options={employeeFilterOptions}
+            className="w-40"
+          />
           <button
             onClick={() => setShowAddModal(true)}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md bg-accent text-accent-fg hover:bg-accent-hover transition-colors"

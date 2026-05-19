@@ -357,7 +357,7 @@ export function ProfileSidebar() {
           <div className="flex-1 min-w-0">
             <h2 className="text-sm font-semibold text-fg truncate">{formattedUsername}</h2>
             <p className="text-xs text-fg-subtle truncate">{user.email || t('noEmail')}</p>
-            <span className="inline-flex items-center px-2 py-0.5 mt-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">
+            <span className="inline-flex items-center px-2 py-0.5 mt-1 rounded-full text-xs font-medium bg-accent/10 text-accent">
               {user.role}
             </span>
           </div>
@@ -447,7 +447,7 @@ export function ProfileSidebar() {
                 <button
                   onClick={handleSaveUsername}
                   disabled={usernameLoading}
-                  className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-medium text-accent-fg bg-accent hover:bg-accent-hover disabled:bg-blue-400 disabled:cursor-not-allowed rounded-lg transition-colors"
+                  className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-medium text-accent-fg bg-accent hover:bg-accent-hover disabled:opacity-60 disabled:cursor-not-allowed rounded-lg transition-colors"
                 >
                   {usernameLoading ? (
                     <span className="animate-spin h-3 w-3 border-2 border-white border-t-transparent rounded-full" />
@@ -588,7 +588,7 @@ export function ProfileSidebar() {
                 <button
                   onClick={handleSavePassword}
                   disabled={passwordLoading}
-                  className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-medium text-accent-fg bg-accent hover:bg-accent-hover disabled:bg-blue-400 disabled:cursor-not-allowed rounded-lg transition-colors"
+                  className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-medium text-accent-fg bg-accent hover:bg-accent-hover disabled:opacity-60 disabled:cursor-not-allowed rounded-lg transition-colors"
                 >
                   {passwordLoading ? (
                     <span className="animate-spin h-3 w-3 border-2 border-white border-t-transparent rounded-full" />
@@ -670,7 +670,7 @@ function NavButton({
           className={cn(
             'p-2 rounded-md',
             active
-              ? 'bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400'
+              ? 'bg-accent/10 text-accent'
               : 'bg-surface-hover text-fg-subtle'
           )}
         >
@@ -680,7 +680,7 @@ function NavButton({
           <p
             className={cn(
               'text-sm font-medium',
-              active ? 'text-blue-700 dark:text-blue-400' : 'text-fg'
+              active ? 'text-accent' : 'text-fg'
             )}
           >
             {label}
@@ -689,7 +689,7 @@ function NavButton({
         </div>
       </div>
       <FiChevronRight
-        className={cn('w-4 h-4', active ? 'text-blue-600 dark:text-blue-400' : 'text-fg-subtle')}
+        className={cn('w-4 h-4', active ? 'text-accent' : 'text-fg-subtle')}
       />
     </button>
   )

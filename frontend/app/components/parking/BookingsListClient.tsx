@@ -30,6 +30,7 @@ import { ActionDropdown } from './ActionDropdown'
 import { Card, Button } from '@/app/ui/components'
 import { formatDateShort, formatTime, formatDateTimeLocal } from './helpers'
 import DatePickerInput from '@/app/ui/calendar/DatePickerInput'
+import { SelectDropdown } from '@/app/ui/components/SelectDropdown'
 
 // ============================================
 // TIPOS E INTERFACES
@@ -721,157 +722,155 @@ export function BookingsListClient({
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
-                  {/* Vista rápida (filtros compuestos del dashboard) */}
-                  <QuickFilterDropdown
-                    value={quickFilter}
-                    onChange={handleQuickFilterChange}
-                    t={t}
-                  />
+                  <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+                    {/* Vista rápida (filtros compuestos del dashboard) */}
+                    <QuickFilterDropdown
+                      value={quickFilter}
+                      onChange={handleQuickFilterChange}
+                      t={t}
+                    />
 
-                  {/* Fecha de entrada */}
-                  <DatePickerInput
-                    value={startDate || undefined}
-                    onChange={(value) => handleStartDateChange(value || '')}
-                    placeholder={t('filters.entry')}
-                    clearable={true}
-                    size="sm"
-                  />
+                    {/* Fecha de entrada */}
+                    <DatePickerInput
+                      value={startDate || undefined}
+                      onChange={(value) => handleStartDateChange(value || '')}
+                      placeholder={t('filters.entry')}
+                      clearable={true}
+                      size="sm"
+                    />
 
-                  {/* Fecha de salida (opcional) */}
-                  <DatePickerInput
-                    value={endDate || undefined}
-                    onChange={(value) => handleEndDateChange(value || '')}
-                    placeholder={t('filters.exit')}
-                    disabled={!startDate}
-                    minDate={startDate ? new Date(startDate + 'T00:00:00') : null}
-                    clearable={true}
-                    size="sm"
-                  />
+                    {/* Fecha de salida (opcional) */}
+                    <DatePickerInput
+                      value={endDate || undefined}
+                      onChange={(value) => handleEndDateChange(value || '')}
+                      placeholder={t('filters.exit')}
+                      disabled={!startDate}
+                      minDate={startDate ? new Date(startDate + 'T00:00:00') : null}
+                      clearable={true}
+                      size="sm"
+                    />
 
-                  {/* Filtro de estado */}
-                  <select
-                    value={statusFilter}
-                    onChange={(e) => handleStatusChange(e.target.value as StatusFilter)}
-                    className="w-full px-3 py-1.5 text-xs border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-transparent bg-surface text-fg"
-                  >
-                    <option value="all">{t('filters.allStatuses')}</option>
-                    <option value="reserved">{t('status.reserved')}</option>
-                    <option value="checked_in">{t('status.checkedIn')}</option>
-                    <option value="completed">{t('status.completed')}</option>
-                    <option value="canceled">{t('status.canceled')}</option>
-                    <option value="no_show">{t('status.noShow')}</option>
-                  </select>
+                    {/* Filtro de estado */}
+                    <SelectDropdown<StatusFilter>
+                      value={statusFilter}
+                      onChange={handleStatusChange}
+                      options={[
+                        { value: 'all', label: t('filters.allStatuses') },
+                        { value: 'reserved', label: t('status.reserved') },
+                        { value: 'checked_in', label: t('status.checkedIn') },
+                        { value: 'completed', label: t('status.completed') },
+                        { value: 'canceled', label: t('status.canceled') },
+                        { value: 'no_show', label: t('status.noShow') },
+                      ]}
+                    />
 
-                  {/* Limpiar filtros */}
-                  {hasActiveFilters && (
-                    <button
-                      onClick={handleClearFilters}
-                      className="px-3 py-1.5 text-xs font-medium text-danger bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors flex items-center justify-center gap-1"
-                    >
-                      <FiX className="w-3 h-3" />
-                      {t('filters.clear')}
-                    </button>
-                  )}
+                    {/* Limpiar filtros */}
+                    {hasActiveFilters && (
+                      <button
+                        onClick={handleClearFilters}
+                        className="px-3 py-1.5 text-xs font-medium text-danger bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors flex items-center justify-center gap-1"
+                      >
+                        <FiX className="w-3 h-3" />
+                        {t('filters.clear')}
+                      </button>
+                    )}
+                  </div>
                 </div>
-              </div>
 
-              {/* Table - Desktop */}
-              <div className="hidden md:block bg-surface rounded-md border border-border shadow-sm">
-                <div className="overflow-x-auto overflow-y-visible">
-                  <table className="w-full">
-                    <thead className="bg-surface border-b border-border">
-                      <tr>
-                        <th className="px-3 py-2 text-left text-[10px] font-semibold text-fg uppercase tracking-wider">
-                          {t('table.code')}
-                        </th>
-                        <th className="px-3 py-2 text-left text-[10px] font-semibold text-fg uppercase tracking-wider">
-                          {t('table.client')}
-                        </th>
-                        <th className="px-3 py-2 text-left text-[10px] font-semibold text-fg uppercase tracking-wider">
-                          {t('table.entry')}
-                        </th>
-                        <th className="px-3 py-2 text-left text-[10px] font-semibold text-fg uppercase tracking-wider">
-                          {t('table.exit')}
-                        </th>
-                        <th className="px-3 py-2 text-left text-[10px] font-semibold text-fg uppercase tracking-wider">
-                          {t('table.status')}
-                        </th>
-                        <th className="px-3 py-2 text-left text-[10px] font-semibold text-fg uppercase tracking-wider">
-                          {t('table.spot')}
-                        </th>
-                        <th className="px-3 py-2 text-right text-[10px] font-semibold text-fg uppercase tracking-wider">
-                          {t('table.actions')}
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-200 dark:divide-border">
-                      {filteredBookings.length === 0 ? (
+                {/* Table - Desktop */}
+                <div className="hidden md:block bg-surface rounded-md border border-border shadow-sm">
+                  <div className="overflow-x-auto overflow-y-visible">
+                    <table className="w-full">
+                      <thead className="bg-surface border-b border-border">
                         <tr>
-                          <td colSpan={7} className="px-3 py-8 text-center text-xs text-fg-subtle">
-                            {hasActiveFilters
-                              ? t('filters.noResultsWithFilters')
-                              : t('filters.noBookings')}
-                          </td>
+                          <th className="px-3 py-2 text-left text-[10px] font-semibold text-fg uppercase tracking-wider">
+                            {t('table.code')}
+                          </th>
+                          <th className="px-3 py-2 text-left text-[10px] font-semibold text-fg uppercase tracking-wider">
+                            {t('table.client')}
+                          </th>
+                          <th className="px-3 py-2 text-left text-[10px] font-semibold text-fg uppercase tracking-wider">
+                            {t('table.entry')}
+                          </th>
+                          <th className="px-3 py-2 text-left text-[10px] font-semibold text-fg uppercase tracking-wider">
+                            {t('table.exit')}
+                          </th>
+                          <th className="px-3 py-2 text-left text-[10px] font-semibold text-fg uppercase tracking-wider">
+                            {t('table.status')}
+                          </th>
+                          <th className="px-3 py-2 text-left text-[10px] font-semibold text-fg uppercase tracking-wider">
+                            {t('table.spot')}
+                          </th>
+                          <th className="px-3 py-2 text-right text-[10px] font-semibold text-fg uppercase tracking-wider">
+                            {t('table.actions')}
+                          </th>
                         </tr>
-                      ) : (
-                        filteredBookings.map((booking) => (
-                          <tr
-                            key={booking.id}
-                            onClick={() => handleRowClick(booking.booking_code)}
-                            className="hover:bg-surface-hover transition-colors cursor-pointer"
-                          >
-                            <td className="px-3 py-2">
-                              <span className="text-xs font-medium text-info hover:underline">
-                                {booking.booking_code}
-                              </span>
-                            </td>
-                            <td className="px-3 py-2">
-                              <div>
-                                <div className="text-xs font-medium text-fg">
-                                  {booking.vehicle?.owner || t('table.noOwner')}
-                                </div>
-                                <div className="text-[10px] text-fg-subtle mt-0.5">
-                                  {booking.vehicle?.plate || t('table.noPlate')}
-                                </div>
-                              </div>
-                            </td>
-                            <td className="px-3 py-2">
-                              <div className="text-xs text-fg">
-                                {formatDateShort(booking.schedule.expected_checkin)}
-                              </div>
-                              <div className="text-[10px] text-fg-subtle">
-                                {formatTime(booking.schedule.expected_checkin)}
-                              </div>
-                            </td>
-                            <td className="px-3 py-2">
-                              <div className="text-xs text-fg">
-                                {formatDateShort(booking.schedule.expected_checkout)}
-                              </div>
-                              <div className="text-[10px] text-fg-subtle">
-                                {formatTime(booking.schedule.expected_checkout)}
-                              </div>
-                            </td>
-                            <td className="px-3 py-2">
-                              <StatusBadge status={booking.status} />
-                            </td>
-                            <td className="px-3 py-2">
-                              <span className="text-xs font-medium text-fg">
-                                {booking.spot.level}-{booking.spot.number}
-                              </span>
-                            </td>
-                            <td className="px-3 py-2 text-right">
-                              <ActionDropdown booking={booking} onAction={handleAction} />
+                      </thead>
+                      <tbody className="divide-y divide-gray-200 dark:divide-border">
+                        {filteredBookings.length === 0 ? (
+                          <tr>
+                            <td colSpan={7} className="px-3 py-8 text-center text-xs text-fg-subtle">
+                              {hasActiveFilters
+                                ? t('filters.noResultsWithFilters')
+                                : t('filters.noBookings')}
                             </td>
                           </tr>
-                        ))
-                      )}
-                    </tbody>
-                  </table>
+                        ) : (
+                          filteredBookings.map((booking) => (
+                            <tr
+                              key={booking.id}
+                              onClick={() => handleRowClick(booking.booking_code)}
+                              className="hover:bg-surface-hover transition-colors cursor-pointer"
+                            >
+                              <td className="px-3 py-2">
+                                <span className="text-xs font-medium text-info hover:underline">
+                                  {booking.booking_code}
+                                </span>
+                              </td>
+                              <td className="px-3 py-2">
+                                <div>
+                                  <div className="text-xs font-medium text-fg">
+                                    {booking.vehicle?.owner || t('table.noOwner')}
+                                  </div>
+                                  <div className="text-[10px] text-fg-subtle mt-0.5">
+                                    {booking.vehicle?.plate || t('table.noPlate')}
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="px-3 py-2">
+                                <div className="text-xs text-fg">
+                                  {formatDateShort(booking.schedule.expected_checkin)}
+                                </div>
+                                <div className="text-[10px] text-fg-subtle">
+                                  {formatTime(booking.schedule.expected_checkin)}
+                                </div>
+                              </td>
+                              <td className="px-3 py-2">
+                                <div className="text-xs text-fg">
+                                  {formatDateShort(booking.schedule.expected_checkout)}
+                                </div>
+                                <div className="text-[10px] text-fg-subtle">
+                                  {formatTime(booking.schedule.expected_checkout)}
+                                </div>
+                              </td>
+                              <td className="px-3 py-2">
+                                <StatusBadge status={booking.status} />
+                              </td>
+                              <td className="px-3 py-2">
+                                <span className="text-xs font-medium text-fg">
+                                  {booking.spot.level}-{booking.spot.number}
+                                </span>
+                              </td>
+                              <td className="px-3 py-2 text-right">
+                                <ActionDropdown booking={booking} onAction={handleAction} />
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
-              </div>
-
-              {/* Cards - Mobile */}
               <div className="md:hidden space-y-2">
                 {filteredBookings.length === 0 ? (
                   <div className="bg-surface rounded-md border border-border p-6 text-center">
@@ -1179,23 +1178,19 @@ export function BookingsListClient({
                   className="w-full px-3 py-2 bg-surface text-fg border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-accent/50"
                 />
               </div>
-              <div>
-                <label className="block text-sm font-medium text-fg mb-1">
-                  {t('modals.checkOut.paymentMethod')}
-                </label>
-                <select
+              <SelectDropdown<string>
                   value={checkOutData.payment_method}
-                  onChange={(e) =>
-                    setCheckOutData({ ...checkOutData, payment_method: e.target.value })
-                  }
-                  className="w-full px-3 py-2 bg-surface text-fg border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-accent/50"
-                >
-                  <option value="cash">{t('paymentMethods.cash')}</option>
-                  <option value="card">{t('paymentMethods.card')}</option>
-                  <option value="transfer">{t('paymentMethods.transfer')}</option>
-                  <option value="other">{t('paymentMethods.other')}</option>
-                </select>
-              </div>
+                  onChange={(v) => setCheckOutData({ ...checkOutData, payment_method: v })}
+                  options={[
+                    { value: 'cash', label: t('paymentMethods.cash') },
+                    { value: 'card', label: t('paymentMethods.card') },
+                    { value: 'transfer', label: t('paymentMethods.transfer') },
+                    { value: 'other', label: t('paymentMethods.other') },
+                  ]}
+                  label={t('modals.checkOut.paymentMethod')}
+                  size="md"
+                  className="w-full"
+                />
               <div>
                 <label className="block text-sm font-medium text-fg mb-1">
                   {t('modals.checkOut.reference')}

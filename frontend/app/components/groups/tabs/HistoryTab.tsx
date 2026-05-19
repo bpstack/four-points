@@ -10,6 +10,7 @@ import { HistoryItem } from '../history/HistoryItem'
 import { EmptyState } from '../shared/EmptyState'
 import { LoadingSpinner } from '../shared/LoadingSpinner'
 import { FiClock, FiFilter } from 'react-icons/fi'
+import { SelectDropdown } from '@/app/ui/components/SelectDropdown'
 
 export function HistoryTab() {
   const { currentGroup } = useGroupStore()
@@ -75,17 +76,12 @@ export function HistoryTab() {
         {/* Filter */}
         <div className="flex items-center gap-2">
           <FiFilter className="w-4 h-4 text-fg-subtle" />
-          <select
+          <SelectDropdown<string>
             value={filter}
-            onChange={(e) => setFilter(e.target.value)}
-            className="px-3 py-1.5 text-xs border border-border rounded-md bg-surface text-fg focus:outline-none focus:ring-2 focus:ring-accent/50"
-          >
-            {ACTION_FILTERS.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
+            onChange={setFilter}
+            options={ACTION_FILTERS}
+            className="w-40"
+          />
         </div>
       </div>
 

@@ -19,6 +19,7 @@ import {
   FiUsers,
   FiDollarSign,
 } from 'react-icons/fi'
+import { SelectDropdown } from '@/app/ui/components/SelectDropdown'
 import DateFilter from '../DateFilter'
 import type { UnifiedActivity, ActivitySource } from '../types'
 
@@ -167,27 +168,28 @@ export default function OverviewSection() {
             label={t('dateFilter')}
           />
 
-          <select
+          <SelectDropdown<ActivitySource | 'all'>
             value={sourceFilter}
-            onChange={(e) => {
-              setSourceFilter(e.target.value as ActivitySource | 'all')
+            onChange={(v) => {
+              setSourceFilter(v)
               setLoaded(false)
             }}
-            className="text-sm border border-border rounded-lg px-3 py-1.5 bg-surface text-fg focus:ring-2 focus:ring-accent/50 focus:border-transparent"
-          >
-            <option value="all">{t('sources.all')}</option>
-            <option value="logbook">{SOURCE_LABELS.logbook}</option>
-            <option value="maintenance">{SOURCE_LABELS.maintenance}</option>
-            <option value="groups">{SOURCE_LABELS.groups}</option>
-            <option value="cashier">{SOURCE_LABELS.cashier}</option>
-          </select>
+            options={[
+              { value: 'all', label: t('sources.all') },
+              { value: 'logbook', label: SOURCE_LABELS.logbook },
+              { value: 'maintenance', label: SOURCE_LABELS.maintenance },
+              { value: 'groups', label: SOURCE_LABELS.groups },
+              { value: 'cashier', label: SOURCE_LABELS.cashier },
+            ]}
+            className="w-44"
+          />
         </div>
       </div>
 
       {/* Loading */}
       {loading && (
         <div className="flex items-center justify-center py-12">
-          <FiLoader className="w-6 h-6 animate-spin text-blue-500" />
+          <FiLoader className="w-6 h-6 animate-spin text-accent" />
         </div>
       )}
 

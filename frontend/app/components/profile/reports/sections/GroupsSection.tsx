@@ -291,7 +291,7 @@ export default function GroupsSection() {
             <button
               onClick={searchGroupById}
               disabled={!searchId.trim()}
-              className="p-1.5 text-gray-500 hover:text-blue-600 disabled:opacity-50"
+              className="p-1.5 text-gray-500 hover:text-accent disabled:opacity-50"
             >
               <FiSearch className="w-4 h-4" />
             </button>
@@ -303,7 +303,7 @@ export default function GroupsSection() {
               setSearchId('')
               setLoaded(false)
             }}
-            className="text-xs text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+            className="text-xs text-accent hover:text-accent/80"
           >
             {t('viewAll')}
           </button>
@@ -313,7 +313,7 @@ export default function GroupsSection() {
       {/* Loading */}
       {loading && (
         <div className="flex items-center justify-center py-12">
-          <FiLoader className="w-6 h-6 animate-spin text-blue-500" />
+          <FiLoader className="w-6 h-6 animate-spin text-accent" />
         </div>
       )}
 
@@ -413,7 +413,7 @@ export default function GroupsSection() {
                                   <span className="text-gray-400">({entry.table_affected})</span>
                                 )}
                                 {entry.field_changed && (
-                                  <span className="text-blue-500">{entry.field_changed}</span>
+                                  <span className="text-accent">{entry.field_changed}</span>
                                 )}
                                 <span className="text-gray-400">{t('history.by')}</span>
                                 <span className="text-fg">

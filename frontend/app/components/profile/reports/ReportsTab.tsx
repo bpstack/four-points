@@ -137,7 +137,7 @@ export function ReportsTab() {
         {/* Sidebar Header */}
         <div className="p-4 border-b border-border">
           <h3 className="text-sm font-semibold text-fg flex items-center gap-2">
-            <FiActivity className="w-4 h-4 text-blue-500" />
+            <FiActivity className="w-4 h-4 text-accent" />
             {t('title')}
           </h3>
           <p className="text-xs text-fg-subtle mt-1">{t('subtitle')}</p>
@@ -152,14 +152,14 @@ export function ReportsTab() {
               className={cn(
                 'w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-all mb-1',
                 activeSection === section.id
-                  ? 'bg-info/10 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800'
+                  ? 'bg-accent/10 text-accent border border-accent/30'
                   : 'text-fg hover:bg-surface-hover border border-transparent'
               )}
             >
               <span
                 className={cn(
                   'flex-shrink-0',
-                  activeSection === section.id ? 'text-blue-500' : 'text-fg-subtle'
+                  activeSection === section.id ? 'text-accent' : 'text-fg-subtle'
                 )}
               >
                 {section.icon}
@@ -169,7 +169,7 @@ export function ReportsTab() {
                 <p className="text-xs text-fg-subtle truncate">{section.description}</p>
               </div>
               {activeSection === section.id && (
-                <FiChevronRight className="w-4 h-4 flex-shrink-0 text-blue-500" />
+                <FiChevronRight className="w-4 h-4 flex-shrink-0 text-accent" />
               )}
             </button>
           ))}

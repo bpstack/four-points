@@ -23,6 +23,7 @@ import {
 } from 'react-icons/fi'
 import type { LogbookEntry, LogbookHistoryEntry } from '../types'
 import DateFilter from '../DateFilter'
+import { SelectDropdown } from '@/app/ui/components/SelectDropdown'
 
 const API_URL = API_BASE_URL
 
@@ -175,34 +176,36 @@ export default function LogbooksSection() {
           <DateFilter selectedDate={dateFilter} onDateChange={handleDateChange} />
 
           {/* View Mode */}
-          <select
+          <SelectDropdown<string>
             value={viewMode}
-            onChange={(e) => {
-              setViewMode(e.target.value as ViewMode)
+            onChange={(v) => {
+              setViewMode(v as ViewMode)
               setLoaded(false)
             }}
-            className="text-sm border border-border rounded-lg px-3 py-1.5 bg-surface text-fg"
-          >
-            <option value="all">{t('status.all')}</option>
-            <option value="trashed">{t('filters.deleted')}</option>
-          </select>
+            options={[
+              { value: 'all', label: t('status.all') },
+              { value: 'trashed', label: t('filters.deleted') },
+            ]}
+            className="w-32"
+          />
 
           {/* Priority Filter (solo en modo 'all') */}
           {viewMode === 'all' && (
-            <select
+            <SelectDropdown<string>
               value={priorityFilter}
-              onChange={(e) => {
-                setPriorityFilter(e.target.value)
+              onChange={(v) => {
+                setPriorityFilter(v)
                 setLoaded(false)
               }}
-              className="text-sm border border-border rounded-lg px-3 py-1.5 bg-surface text-fg"
-            >
-              <option value="all">{t('priority.all')}</option>
-              <option value="baja">{t('priority.low')}</option>
-              <option value="media">{t('priority.medium')}</option>
-              <option value="alta">{t('priority.high')}</option>
-              <option value="urgente">{t('priority.urgent')}</option>
-            </select>
+              options={[
+                { value: 'all', label: t('priority.all') },
+                { value: 'baja', label: t('priority.low') },
+                { value: 'media', label: t('priority.medium') },
+                { value: 'alta', label: t('priority.high') },
+                { value: 'urgente', label: t('priority.urgent') },
+              ]}
+              className="w-36"
+            />
           )}
         </div>
       </div>
@@ -210,7 +213,7 @@ export default function LogbooksSection() {
       {/* Loading */}
       {loading && (
         <div className="flex items-center justify-center py-12">
-          <FiLoader className="w-6 h-6 animate-spin text-blue-500" />
+          <FiLoader className="w-6 h-6 animate-spin text-accent" />
         </div>
       )}
 

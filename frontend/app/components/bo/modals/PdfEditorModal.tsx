@@ -28,6 +28,7 @@ import * as pdfjsLib from 'pdfjs-dist'
 import { toast } from 'react-hot-toast'
 import { backofficeApi, type Asset } from '@/app/lib/backoffice'
 import { Spinner } from '@/app/ui/components'
+import { SelectDropdown } from '@/app/ui/components/SelectDropdown'
 
 // Configure PDF.js worker
 if (typeof window !== 'undefined') {
@@ -835,20 +836,13 @@ export function PdfEditorModal({
                   className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-surface-hover text-fg resize-none"
                 />
                 <div className="flex items-center gap-2">
-                  <label className="text-xs text-fg-subtle">{t('modals.pdfEditor.fontSize')}</label>
-                  <select
+                  <SelectDropdown<number>
                     value={textFontSize}
-                    onChange={(e) => setTextFontSize(Number(e.target.value))}
-                    className="flex-1 px-2 py-1 text-xs border border-border rounded bg-surface-hover text-fg"
-                  >
-                    <option value={8}>8</option>
-                    <option value={10}>10</option>
-                    <option value={12}>12</option>
-                    <option value={14}>14</option>
-                    <option value={16}>16</option>
-                    <option value={18}>18</option>
-                    <option value={24}>24</option>
-                  </select>
+                    onChange={setTextFontSize}
+                    options={[8, 10, 12, 14, 16, 18, 24].map((s) => ({ value: s, label: String(s) }))}
+                    label={t('modals.pdfEditor.fontSize')}
+                    className="flex-1"
+                  />
                 </div>
                 <p className="text-[10px] text-fg-subtle">{t('modals.pdfEditor.clickToAddText')}</p>
               </div>

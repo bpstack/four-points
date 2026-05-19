@@ -20,6 +20,7 @@ import {
   FiCheckCircle,
   FiXCircle,
 } from 'react-icons/fi'
+import { SelectDropdown } from '@/app/ui/components/SelectDropdown'
 interface CashierHistoryEntry {
   id: number
   shift_id: number
@@ -348,19 +349,20 @@ export default function CashierSection() {
         )}
 
         {viewMode === 'vouchers' && (
-          <select
+          <SelectDropdown<string>
             value={voucherStatus}
-            onChange={(e) => {
-              setVoucherStatus(e.target.value)
+            onChange={(v) => {
+              setVoucherStatus(v)
               setLoaded(false)
             }}
-            className="text-sm border border-border rounded-lg px-3 py-1.5 bg-surface text-fg"
-          >
-            <option value="all">{t('voucherStatus.all')}</option>
-            <option value="pending">{t('voucherStatus.pending')}</option>
-            <option value="justified">{t('voucherStatus.justified')}</option>
-            <option value="cancelled">{t('voucherStatus.cancelled')}</option>
-          </select>
+            options={[
+              { value: 'all', label: t('voucherStatus.all') },
+              { value: 'pending', label: t('voucherStatus.pending') },
+              { value: 'justified', label: t('voucherStatus.justified') },
+              { value: 'cancelled', label: t('voucherStatus.cancelled') },
+            ]}
+            className="w-40"
+          />
         )}
 
         {viewMode === 'history' && (
@@ -378,7 +380,7 @@ export default function CashierSection() {
       {/* Loading */}
       {loading && (
         <div className="flex items-center justify-center py-12">
-          <FiLoader className="w-6 h-6 animate-spin text-blue-500" />
+          <FiLoader className="w-6 h-6 animate-spin text-accent" />
         </div>
       )}
 
@@ -398,7 +400,7 @@ export default function CashierSection() {
           {/* Today's Summary */}
           <div>
             <h4 className="text-sm font-medium text-fg mb-3 flex items-center gap-2">
-              <FiCalendar className="w-4 h-4 text-blue-500" />
+              <FiCalendar className="w-4 h-4 text-accent" />
               {t('dashboard.today')} - {formatDate(overview.today.date)}
               {overview.today.closed_shifts === overview.today.total_shifts &&
                 overview.today.total_shifts > 0 && (
@@ -415,7 +417,7 @@ export default function CashierSection() {
                 <p className="text-xs text-fg-subtle mt-1">{t('dashboard.totalIncome')}</p>
               </div>
               <div className="bg-info/10 rounded-lg p-4 text-center">
-                <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                <p className="text-2xl font-bold text-accent">
                   {formatCurrency(overview.today.total_cash)}
                 </p>
                 <p className="text-xs text-fg-subtle mt-1">{t('dashboard.cash')}</p>
@@ -504,7 +506,7 @@ export default function CashierSection() {
           {/* Date Summary */}
           <div>
             <h4 className="text-sm font-medium text-fg mb-3 flex items-center gap-2">
-              <FiCalendar className="w-4 h-4 text-blue-500" />
+              <FiCalendar className="w-4 h-4 text-accent" />
               {formatDate(dailyReport.date)}
               {dailyReport.summary.shifts_closed === dailyReport.summary.shifts_count &&
                 dailyReport.summary.shifts_count > 0 && (
@@ -521,7 +523,7 @@ export default function CashierSection() {
                 <p className="text-xs text-fg-subtle mt-1">{t('dashboard.totalIncome')}</p>
               </div>
               <div className="bg-info/10 rounded-lg p-4 text-center">
-                <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                <p className="text-2xl font-bold text-accent">
                   {formatCurrency(dailyReport.summary.total_cash)}
                 </p>
                 <p className="text-xs text-fg-subtle mt-1">{t('dashboard.cash')}</p>
@@ -597,7 +599,7 @@ export default function CashierSection() {
           {dailyReport.shifts.length > 0 && (
             <div>
               <h4 className="text-sm font-medium text-fg mb-3 flex items-center gap-2">
-                <FiClock className="w-4 h-4 text-blue-500" />
+                <FiClock className="w-4 h-4 text-accent" />
                 {t('shiftDetail.title')}
               </h4>
               <div className="border border-border rounded-lg overflow-hidden">

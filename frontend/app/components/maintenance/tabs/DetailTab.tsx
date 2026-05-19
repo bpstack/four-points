@@ -23,6 +23,7 @@ import {
   FiMaximize2,
 } from 'react-icons/fi'
 import toast from 'react-hot-toast'
+import { SelectDropdown } from '@/app/ui/components/SelectDropdown'
 
 export function DetailTab() {
   const t = useTranslations('maintenance')
@@ -222,18 +223,13 @@ export function DetailTab() {
                 <p className="text-xs text-fg-subtle mb-1">{t('detail.sections.status')}</p>
                 {isEditingStatus ? (
                   <div className="flex items-center gap-2">
-                    <select
+                    <SelectDropdown<ReportStatus>
                       value={selectedStatus || currentReport.status}
-                      onChange={(e) => setSelectedStatus(e.target.value as ReportStatus)}
+                      onChange={(v) => setSelectedStatus(v)}
+                      options={statusOptions}
                       disabled={isSaving}
-                      className="flex-1 px-2 py-1 text-xs border border-border rounded-md bg-surface text-fg focus:outline-none focus:ring-2 focus:ring-accent/50"
-                    >
-                      {statusOptions.map((option) => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
+                      className="flex-1"
+                    />
                     <button
                       onClick={handleStatusChange}
                       disabled={isSaving}
@@ -293,18 +289,13 @@ export function DetailTab() {
                     >
                       <FiCheck className="w-4 h-4" />
                     </button>
-                    <select
+                    <SelectDropdown<ReportPriority>
                       value={selectedPriority || currentReport.priority}
-                      onChange={(e) => setSelectedPriority(e.target.value as ReportPriority)}
+                      onChange={(v) => setSelectedPriority(v)}
+                      options={priorityOptions}
                       disabled={isSaving}
-                      className="flex-1 px-2 py-1 text-xs border border-border rounded-md bg-surface text-fg focus:outline-none focus:ring-2 focus:ring-accent/50"
-                    >
-                      {priorityOptions.map((option) => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
+                      className="flex-1"
+                    />
                   </div>
                 ) : (
                   <div className="flex items-center justify-end gap-2">

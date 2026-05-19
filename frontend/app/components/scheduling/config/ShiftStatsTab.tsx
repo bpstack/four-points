@@ -7,6 +7,8 @@ import { SHIFT_STYLES } from '@/app/lib/scheduling'
 import { FiRefreshCw } from 'react-icons/fi'
 import type { ShiftStatsResponse } from '@/app/lib/scheduling'
 import { formatUsername } from '@/app/lib/helpers/user'
+import { SelectDropdown } from '@/app/ui/components/SelectDropdown'
+import type { DropdownOption } from '@/app/ui/components/SelectDropdown'
 
 const SHIFT_LABEL: Record<string, string> = {
   M: 'Mañana',
@@ -33,7 +35,10 @@ export function ShiftStatsTab() {
     refetchOnWindowFocus: true,
   })
 
-  const yearOptions = Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i)
+  const yearOptions: DropdownOption<number>[] = Array.from(
+    { length: 5 },
+    (_, i) => new Date().getFullYear() - i
+  ).map((y) => ({ value: y, label: String(y) }))
 
   return (
     <div className="p-4 md:p-6 space-y-4">
@@ -45,17 +50,12 @@ export function ShiftStatsTab() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <select
+          <SelectDropdown<number>
             value={year}
-            onChange={(e) => setYear(Number(e.target.value))}
-            className="text-xs rounded-md border border-border bg-surface text-fg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-accent/50"
-          >
-            {yearOptions.map((y) => (
-              <option key={y} value={y}>
-                {y}
-              </option>
-            ))}
-          </select>
+            onChange={setYear}
+            options={yearOptions}
+            className="w-24"
+          />
           <button
             onClick={() => refetch()}
             disabled={isFetching}

@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl'
 import { FiSearch, FiFilter, FiDownload, FiCheckCircle, FiClock, FiXCircle } from 'react-icons/fi'
 import { useVouchersHistory } from '@/app/lib/cashier/queries'
 import type { VoucherHistoryItem } from '@/app/lib/cashier/types'
+import { SelectDropdown } from '@/app/ui/components/SelectDropdown'
 
 interface VouchersHistoryProps {
   year: number
@@ -178,16 +179,17 @@ export default function VouchersHistory({ year, month }: VouchersHistoryProps) {
           {/* Filtro de estado */}
           <div className="flex items-center gap-2">
             <FiFilter className="w-5 h-5 text-gray-400 flex-shrink-0" />
-            <select
+            <SelectDropdown<VoucherStatus>
               value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value as VoucherStatus)}
-              className="px-4 py-2 border border-border rounded-lg bg-surface-hover text-fg focus:ring-2 focus:ring-accent/50 focus:border-transparent"
-            >
-              <option value="all">{t('vouchersHistory.allStatuses')}</option>
-              <option value="pending">{t('vouchersHistory.pendingStatus')}</option>
-              <option value="justified">{t('vouchersHistory.justifiedStatus')}</option>
-              <option value="cancelled">{t('vouchersHistory.cancelledStatus')}</option>
-            </select>
+              onChange={setStatusFilter}
+              options={[
+                { value: 'all', label: t('vouchersHistory.allStatuses') },
+                { value: 'pending', label: t('vouchersHistory.pendingStatus') },
+                { value: 'justified', label: t('vouchersHistory.justifiedStatus') },
+                { value: 'cancelled', label: t('vouchersHistory.cancelledStatus') },
+              ]}
+              className="w-40"
+            />
           </div>
 
           {/* Botón exportar */}

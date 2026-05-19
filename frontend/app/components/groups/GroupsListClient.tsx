@@ -19,6 +19,7 @@ import {
   FiClock,
 } from 'react-icons/fi'
 import { Card, Badge, Button } from '@/app/ui/components'
+import { SelectDropdown } from '@/app/ui/components/SelectDropdown'
 
 interface GroupsListClientProps {
   initialGroups?: Group[]
@@ -228,18 +229,19 @@ export function GroupsListClient({ initialGroups, initialStatus = 'all' }: Group
                     className="w-full pl-8 pr-3 py-1.5 text-xs border border-border bg-surface text-fg rounded-md focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-transparent"
                   />
                 </div>
-                <select
+                <SelectDropdown<GroupStatus | 'all'>
                   value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value as GroupStatus | 'all')}
-                  className="w-full sm:w-auto sm:min-w-[180px] px-3 py-1.5 text-xs border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-transparent bg-surface dark:text-fg"
-                >
-                  <option value="all">{t('filters.allStatuses')}</option>
-                  <option value="pending">{t('status.pending')}</option>
-                  <option value="confirmed">{t('status.confirmed')}</option>
-                  <option value="in_progress">{t('status.in_progress')}</option>
-                  <option value="completed">{t('status.completed')}</option>
-                  <option value="cancelled">{t('status.cancelled')}</option>
-                </select>
+                  onChange={(v) => setStatusFilter(v)}
+                  options={[
+                    { value: 'all' as GroupStatus | 'all', label: t('filters.allStatuses') },
+                    { value: 'pending' as GroupStatus | 'all', label: t('status.pending') },
+                    { value: 'confirmed' as GroupStatus | 'all', label: t('status.confirmed') },
+                    { value: 'in_progress' as GroupStatus | 'all', label: t('status.in_progress') },
+                    { value: 'completed' as GroupStatus | 'all', label: t('status.completed') },
+                    { value: 'cancelled' as GroupStatus | 'all', label: t('status.cancelled') },
+                  ]}
+                  className="w-full sm:w-auto sm:min-w-[180px]"
+                />
               </div>
 
               {/* Table - Desktop */}

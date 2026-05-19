@@ -40,6 +40,7 @@ import { backofficeApi } from '@/app/lib/backoffice'
 import { exportToExcel, exportToPdf } from '@/app/lib/backoffice/export-utils'
 import { Checkbox } from '@/app/ui/components'
 import toast from 'react-hot-toast'
+import { SelectDropdown } from '@/app/ui/components/SelectDropdown'
 import { useRouter } from 'next/navigation'
 
 interface PendingInvoicesTabProps {
@@ -429,33 +430,30 @@ export function PendingInvoicesTab({
         </div>
 
         {/* Category Filter */}
-        <select
-          value={categoryFilter}
-          onChange={(e) =>
-            setCategoryFilter(e.target.value === 'all' ? 'all' : Number(e.target.value))
-          }
-          className="flex-1 min-w-[280px] px-3 py-1.5 text-xs border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-transparent bg-surface dark:text-fg"
-        >
-          <option value="all">{t('filters.allCategories')}</option>
-          {categories.map((cat) => (
-            <option key={cat.id} value={cat.id}>
-              {cat.cost_center} - {cat.department}
-            </option>
-          ))}
-        </select>
+        <SelectDropdown<string>
+          value={String(categoryFilter)}
+          onChange={(v) => setCategoryFilter(v === 'all' ? 'all' : Number(v))}
+          options={[
+            { value: 'all', label: t('filters.allCategories') },
+            ...categories.map((cat) => ({
+              value: String(cat.id),
+              label: `${cat.cost_center} - ${cat.department}`,
+            })),
+          ]}
+          className="flex-1 min-w-[280px]"
+        />
 
         {/* Payment Method Filter */}
-        <select
+        <SelectDropdown<string>
           value={paymentMethodFilter}
-          onChange={(e) =>
-            setPaymentMethodFilter(e.target.value as 'all' | 'transfer' | 'direct_debit')
-          }
-          className="w-full lg:w-40 px-3 py-1.5 text-xs border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-transparent bg-surface dark:text-fg"
-        >
-          <option value="all">{t('filters.allPayments')}</option>
-          <option value="transfer">{t('filters.transfer')}</option>
-          <option value="direct_debit">{t('filters.directDebit')}</option>
-        </select>
+          onChange={(v) => setPaymentMethodFilter(v as 'all' | 'transfer' | 'direct_debit')}
+          options={[
+            { value: 'all', label: t('filters.allPayments') },
+            { value: 'transfer', label: t('filters.transfer') },
+            { value: 'direct_debit', label: t('filters.directDebit') },
+          ]}
+          className="w-full lg:w-40"
+        />
 
         {/* Actions */}
         <div className="flex gap-2">

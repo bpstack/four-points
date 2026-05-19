@@ -15,6 +15,7 @@ import {
   FiCalendar,
   FiPackage,
 } from 'react-icons/fi'
+import { SelectDropdown } from '@/app/ui/components/SelectDropdown'
 
 // Types
 type OrderStatus = 'pending' | 'confirmed' | 'shipped' | 'delivered' | 'cancelled'
@@ -246,18 +247,19 @@ export function OrdersTab() {
         </div>
 
         {/* Status Filter */}
-        <select
+        <SelectDropdown<OrderStatus | 'all'>
           value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value as OrderStatus | 'all')}
-          className="px-3 py-1.5 text-xs border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-transparent bg-surface dark:text-fg"
-        >
-          <option value="all">{t('orders.allStatuses')}</option>
-          <option value="pending">{t('orders.status.pending')}</option>
-          <option value="confirmed">{t('orders.status.confirmed')}</option>
-          <option value="shipped">{t('orders.status.inTransit')}</option>
-          <option value="delivered">{t('orders.status.delivered')}</option>
-          <option value="cancelled">{t('orders.status.cancelled')}</option>
-        </select>
+          onChange={(v) => setStatusFilter(v)}
+          options={[
+            { value: 'all', label: t('orders.allStatuses') },
+            { value: 'pending', label: t('orders.status.pending') },
+            { value: 'confirmed', label: t('orders.status.confirmed') },
+            { value: 'shipped', label: t('orders.status.inTransit') },
+            { value: 'delivered', label: t('orders.status.delivered') },
+            { value: 'cancelled', label: t('orders.status.cancelled') },
+          ]}
+          className="w-40"
+        />
 
         {/* New Order Button */}
         <button className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-accent text-accent-fg text-xs font-medium rounded-md hover:bg-accent-hover transition-colors">

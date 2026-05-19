@@ -25,6 +25,7 @@ import {
 import type { MaintenanceReport, MaintenanceHistoryEntry } from '../types'
 import DateFilter from '../DateFilter'
 import { Checkbox } from '@/app/ui/components'
+import { SelectDropdown } from '@/app/ui/components/SelectDropdown'
 
 const API_URL = API_BASE_URL
 
@@ -206,37 +207,39 @@ export default function MaintenanceSection() {
           <DateFilter selectedDate={dateFilter} onDateChange={handleDateChange} />
 
           {/* Status Filter */}
-          <select
+          <SelectDropdown<string>
             value={statusFilter}
-            onChange={(e) => {
-              setStatusFilter(e.target.value)
+            onChange={(v) => {
+              setStatusFilter(v)
               setLoaded(false)
             }}
-            className="text-sm border border-border rounded-lg px-3 py-1.5 bg-surface text-fg"
-          >
-            <option value="all">{t('status.all')}</option>
-            <option value="reported">{t('status.reported')}</option>
-            <option value="pending">{t('status.pending')}</option>
-            <option value="in_progress">{t('status.in_progress')}</option>
-            <option value="resolved">{t('status.resolved')}</option>
-            <option value="closed">{t('status.closed')}</option>
-          </select>
+            options={[
+              { value: 'all', label: t('status.all') },
+              { value: 'reported', label: t('status.reported') },
+              { value: 'pending', label: t('status.pending') },
+              { value: 'in_progress', label: t('status.in_progress') },
+              { value: 'resolved', label: t('status.resolved') },
+              { value: 'closed', label: t('status.closed') },
+            ]}
+            className="w-40"
+          />
 
           {/* Priority Filter */}
-          <select
+          <SelectDropdown<string>
             value={priorityFilter}
-            onChange={(e) => {
-              setPriorityFilter(e.target.value)
+            onChange={(v) => {
+              setPriorityFilter(v)
               setLoaded(false)
             }}
-            className="text-sm border border-border rounded-lg px-3 py-1.5 bg-surface text-fg"
-          >
-            <option value="all">{t('priority.all')}</option>
-            <option value="low">{t('priority.low')}</option>
-            <option value="medium">{t('priority.medium')}</option>
-            <option value="high">{t('priority.high')}</option>
-            <option value="urgent">{t('priority.urgent')}</option>
-          </select>
+            options={[
+              { value: 'all', label: t('priority.all') },
+              { value: 'low', label: t('priority.low') },
+              { value: 'medium', label: t('priority.medium') },
+              { value: 'high', label: t('priority.high') },
+              { value: 'urgent', label: t('priority.urgent') },
+            ]}
+            className="w-36"
+          />
 
           {/* Include Deleted */}
           <Checkbox
@@ -254,7 +257,7 @@ export default function MaintenanceSection() {
       {/* Loading */}
       {loading && (
         <div className="flex items-center justify-center py-12">
-          <FiLoader className="w-6 h-6 animate-spin text-blue-500" />
+          <FiLoader className="w-6 h-6 animate-spin text-accent" />
         </div>
       )}
 

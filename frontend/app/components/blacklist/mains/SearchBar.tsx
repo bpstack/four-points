@@ -13,6 +13,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { useDebounce } from 'use-debounce'
 import { IoSearch, IoClose, IoFunnel } from 'react-icons/io5'
+import { SelectDropdown } from '@/app/ui/components/SelectDropdown'
 
 interface SearchBarProps {
   totalResults?: number
@@ -230,17 +231,19 @@ export function SearchBar({ totalResults }: SearchBarProps) {
               <label className="block text-sm font-medium text-fg mb-1.5">
                 {t('filters.severity')}
               </label>
-              <select
+              <SelectDropdown<string>
                 value={severityFilter}
-                onChange={(e) => setSeverityFilter(e.target.value)}
-                className="w-full px-3 py-2 rounded-md border border-border bg-surface text-fg focus:outline-none focus:ring-2 focus:ring-accent/50/20 focus:border-blue-500 transition-colors text-sm"
-              >
-                <option value="">{t('filters.all')}</option>
-                <option value="LOW">{t('severity.low')}</option>
-                <option value="MEDIUM">{t('severity.medium')}</option>
-                <option value="HIGH">{t('severity.high')}</option>
-                <option value="CRITICAL">{t('severity.critical')}</option>
-              </select>
+                onChange={setSeverityFilter}
+                options={[
+                  { value: '', label: t('filters.all') },
+                  { value: 'LOW', label: t('severity.low') },
+                  { value: 'MEDIUM', label: t('severity.medium') },
+                  { value: 'HIGH', label: t('severity.high') },
+                  { value: 'CRITICAL', label: t('severity.critical') },
+                ]}
+                label={t('filters.severity')}
+                className="w-full"
+              />
             </div>
 
             {/* Filtro: Estado */}
@@ -248,15 +251,17 @@ export function SearchBar({ totalResults }: SearchBarProps) {
               <label className="block text-sm font-medium text-fg mb-1.5">
                 {t('filters.status')}
               </label>
-              <select
+              <SelectDropdown<string>
                 value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="w-full px-3 py-2 rounded-md border border-border bg-surface text-fg focus:outline-none focus:ring-2 focus:ring-accent/50/20 focus:border-blue-500 transition-colors text-sm"
-              >
-                <option value="ACTIVE">{t('filters.active')}</option>
-                <option value="DELETED">{t('filters.deleted')}</option>
-                <option value="ALL">{t('filters.allStatuses')}</option>
-              </select>
+                onChange={setStatusFilter}
+                options={[
+                  { value: 'ACTIVE', label: t('filters.active') },
+                  { value: 'DELETED', label: t('filters.deleted') },
+                  { value: 'ALL', label: t('filters.allStatuses') },
+                ]}
+                label={t('filters.status')}
+                className="w-full"
+              />
             </div>
 
             {/* Filtro: Fecha desde */}

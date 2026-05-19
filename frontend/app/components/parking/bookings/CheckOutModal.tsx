@@ -6,6 +6,7 @@ import { useTranslations } from 'next-intl'
 import type { ParkingBooking } from '@/app/lib/parking/types'
 import { formatDateTimeLocal } from '../helpers'
 import { FiLogOut, FiX, FiDollarSign } from 'react-icons/fi'
+import { SelectDropdown } from '@/app/ui/components/SelectDropdown'
 
 interface CheckOutModalProps {
   booking: ParkingBooking
@@ -126,21 +127,19 @@ export function CheckOutModal({ booking, onClose, onConfirm }: CheckOutModalProp
             </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-fg mb-1">
-              {t('checkOutModal.paymentMethod')}
-            </label>
-            <select
+          <SelectDropdown<string>
               value={data.payment_method}
-              onChange={(e) => setData({ ...data, payment_method: e.target.value })}
-              className="w-full px-3 py-2 bg-surface text-fg border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-accent/50"
-            >
-              <option value="cash">{t('paymentMethods.cash')}</option>
-              <option value="card">{t('paymentMethods.card')}</option>
-              <option value="transfer">{t('paymentMethods.transfer')}</option>
-              <option value="other">{t('paymentMethods.other')}</option>
-            </select>
-          </div>
+              onChange={(v) => setData({ ...data, payment_method: v })}
+              options={[
+                { value: 'cash', label: t('paymentMethods.cash') },
+                { value: 'card', label: t('paymentMethods.card') },
+                { value: 'transfer', label: t('paymentMethods.transfer') },
+                { value: 'other', label: t('paymentMethods.other') },
+              ]}
+              label={t('checkOutModal.paymentMethod')}
+              size="md"
+              className="w-full"
+            />
 
           <div>
             <label className="block text-sm font-medium text-fg mb-1">

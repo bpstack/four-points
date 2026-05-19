@@ -23,6 +23,7 @@ import {
 } from 'react-icons/fi'
 import { IoWarning } from 'react-icons/io5'
 import { Badge } from '@/app/ui/components'
+import { SelectDropdown } from '@/app/ui/components/SelectDropdown'
 import { CreateBlacklistPanel } from '@/app/components/blacklist/panels/CreateBlacklistPanel'
 import type { BlacklistEntry, BlacklistFilters } from '@/app/lib/blacklist/types'
 import { formatDate, highlightMatches, truncateText } from '@/app/lib/blacklist/blacklistUtils'
@@ -224,26 +225,28 @@ export default function BlacklistPage() {
                     className="w-full pl-8 pr-3 py-1.5 text-xs border border-border bg-surface text-fg rounded-md focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-transparent"
                   />
                 </div>
-                <select
+                <SelectDropdown<SeverityFilter>
                   value={severityFilter}
-                  onChange={(e) => setSeverityFilter(e.target.value as SeverityFilter)}
-                  className="w-full sm:w-auto sm:min-w-[140px] px-3 py-1.5 pr-8 text-xs border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-transparent bg-surface dark:text-fg"
-                >
-                  <option value="all">{t('filters.severity')}</option>
-                  <option value="CRITICAL">{t('severity.critical')}</option>
-                  <option value="HIGH">{t('severity.high')}</option>
-                  <option value="MEDIUM">{t('severity.medium')}</option>
-                  <option value="LOW">{t('severity.low')}</option>
-                </select>
-                <select
+                  onChange={setSeverityFilter}
+                  options={[
+                    { value: 'all', label: t('filters.severity') },
+                    { value: 'CRITICAL', label: t('severity.critical') },
+                    { value: 'HIGH', label: t('severity.high') },
+                    { value: 'MEDIUM', label: t('severity.medium') },
+                    { value: 'LOW', label: t('severity.low') },
+                  ]}
+                  className="w-full sm:w-auto sm:min-w-[140px]"
+                />
+                <SelectDropdown<StatusFilter>
                   value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
-                  className="w-full sm:w-auto sm:min-w-[120px] px-3 py-1.5 text-xs border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-transparent bg-surface dark:text-fg"
-                >
-                  <option value="ACTIVE">{t('filters.active')}</option>
-                  <option value="DELETED">{t('filters.deleted')}</option>
-                  <option value="all">{t('filters.allStatuses')}</option>
-                </select>
+                  onChange={setStatusFilter}
+                  options={[
+                    { value: 'ACTIVE', label: t('filters.active') },
+                    { value: 'DELETED', label: t('filters.deleted') },
+                    { value: 'all', label: t('filters.allStatuses') },
+                  ]}
+                  className="w-full sm:w-auto sm:min-w-[120px]"
+                />
               </div>
 
               {/* Table - Desktop */}

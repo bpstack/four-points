@@ -10,6 +10,8 @@ import type { MaintenanceListResponse } from '@/app/lib/maintenance/maintenanceA
 import { useMaintenanceList, type MaintenanceMessages } from './hooks/useMaintenanceList'
 import { CreateReportPanel } from './panels/CreateReportPanel'
 import DatePickerInput from '@/app/ui/calendar/DatePickerInput'
+import { SelectDropdown } from '@/app/ui/components/SelectDropdown'
+import type { DropdownOption } from '@/app/ui/components/SelectDropdown'
 import {
   FiPlus,
   FiSearch,
@@ -378,49 +380,50 @@ export function MaintenanceListClient({
                 {/* Filters Row */}
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-[1fr_1fr_1.3fr_1fr_1fr_auto] gap-2 items-end">
                   {/* Status Filter */}
-                  <select
+                  <SelectDropdown<string>
                     value={filters.status || ''}
-                    onChange={(e) => handleFilterChange('status', e.target.value || undefined)}
-                    className="w-full px-3 py-1.5 text-xs border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-transparent bg-surface dark:text-fg hover:border-gray-400 dark:hover:border-gray-600 transition-colors"
-                  >
-                    <option value="">{t('filters.allStatuses')}</option>
-                    <option value="reported">{t('status.reported')}</option>
-                    <option value="assigned">{t('status.assigned')}</option>
-                    <option value="in_progress">{t('status.inProgress')}</option>
-                    <option value="waiting">{t('status.waiting')}</option>
-                    <option value="completed">{t('status.completed')}</option>
-                    <option value="closed">{t('status.closed')}</option>
-                    <option value="canceled">{t('status.canceled')}</option>
-                  </select>
+                    onChange={(v) => handleFilterChange('status', v || undefined)}
+                    options={[
+                      { value: '', label: t('filters.allStatuses') },
+                      { value: 'reported', label: t('status.reported') },
+                      { value: 'assigned', label: t('status.assigned') },
+                      { value: 'in_progress', label: t('status.inProgress') },
+                      { value: 'waiting', label: t('status.waiting') },
+                      { value: 'completed', label: t('status.completed') },
+                      { value: 'closed', label: t('status.closed') },
+                      { value: 'canceled', label: t('status.canceled') },
+                    ]}
+                    className="w-full"
+                  />
 
                   {/* Priority Filter */}
-                  <select
+                  <SelectDropdown<string>
                     value={filters.priority || ''}
-                    onChange={(e) => handleFilterChange('priority', e.target.value || undefined)}
-                    className="w-full px-3 py-1.5 text-xs border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-transparent bg-surface dark:text-fg hover:border-gray-400 dark:hover:border-gray-600 transition-colors"
-                  >
-                    <option value="">{t('filters.allPriorities')}</option>
-                    <option value="low">{t('priority.low')}</option>
-                    <option value="medium">{t('priority.medium')}</option>
-                    <option value="high">{t('priority.high')}</option>
-                    <option value="urgent">{t('priority.urgent')}</option>
-                  </select>
+                    onChange={(v) => handleFilterChange('priority', v || undefined)}
+                    options={[
+                      { value: '', label: t('filters.allPriorities') },
+                      { value: 'low', label: t('priority.low') },
+                      { value: 'medium', label: t('priority.medium') },
+                      { value: 'high', label: t('priority.high') },
+                      { value: 'urgent', label: t('priority.urgent') },
+                    ]}
+                    className="w-full"
+                  />
 
                   {/* Location Type Filter */}
-                  <select
+                  <SelectDropdown<string>
                     value={filters.location_type || ''}
-                    onChange={(e) =>
-                      handleFilterChange('location_type', e.target.value || undefined)
-                    }
-                    className="w-full px-3 py-1.5 text-xs border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-transparent bg-surface dark:text-fg hover:border-gray-400 dark:hover:border-gray-600 transition-colors"
-                  >
-                    <option value="">{t('filters.allLocations')}</option>
-                    <option value="room">{t('locationType.room')}</option>
-                    <option value="common_area">{t('locationType.commonArea')}</option>
-                    <option value="exterior">{t('locationType.exterior')}</option>
-                    <option value="facilities">{t('locationType.facilities')}</option>
-                    <option value="other">{t('locationType.other')}</option>
-                  </select>
+                    onChange={(v) => handleFilterChange('location_type', v || undefined)}
+                    options={[
+                      { value: '', label: t('filters.allLocations') },
+                      { value: 'room', label: t('locationType.room') },
+                      { value: 'common_area', label: t('locationType.commonArea') },
+                      { value: 'exterior', label: t('locationType.exterior') },
+                      { value: 'facilities', label: t('locationType.facilities') },
+                      { value: 'other', label: t('locationType.other') },
+                    ]}
+                    className="w-full"
+                  />
 
                   {/* Date From Filter */}
                   <DatePickerInput

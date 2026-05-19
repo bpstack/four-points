@@ -5,6 +5,7 @@
 import { useTranslations } from 'next-intl'
 import { FiSearch, FiDownload } from 'react-icons/fi'
 import type { HistoryAction } from '@/app/lib/cashier/types'
+import { SelectDropdown } from '@/app/ui/components/SelectDropdown'
 
 interface HistoryFiltersProps {
   actionFilter: HistoryAction | 'all'
@@ -51,17 +52,12 @@ export default function HistoryFilters({
       </div>
 
       {/* Filtro de acción */}
-      <select
+      <SelectDropdown<HistoryAction | 'all'>
         value={actionFilter}
-        onChange={(e) => onActionFilterChange(e.target.value as HistoryAction | 'all')}
-        className="w-full sm:w-auto sm:min-w-[140px] px-3 py-1.5 pr-8 text-xs border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-transparent bg-surface dark:text-fg"
-      >
-        {actions.map((action) => (
-          <option key={action.value} value={action.value}>
-            {action.label}
-          </option>
-        ))}
-      </select>
+        onChange={onActionFilterChange}
+        options={actions}
+        className="w-full sm:w-auto sm:min-w-[140px]"
+      />
 
       {/* Botón exportar */}
       <button

@@ -176,7 +176,7 @@ export default function ChecklistSection() {
       {/* Loading */}
       {loading && (
         <div className="flex items-center justify-center py-12">
-          <FiLoader className="w-6 h-6 animate-spin text-blue-500" />
+          <FiLoader className="w-6 h-6 animate-spin text-accent" />
         </div>
       )}
 
@@ -250,7 +250,7 @@ export default function ChecklistSection() {
                           'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium',
                           run.reset_reason === 'cron'
                             ? 'bg-surface-hover text-fg-muted'
-                            : 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400'
+                            : 'bg-accent/10 text-accent'
                         )}
                       >
                         {closedLabel}

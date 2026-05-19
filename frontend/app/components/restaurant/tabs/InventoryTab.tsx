@@ -5,6 +5,7 @@
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { FiSearch, FiPlus, FiEdit2, FiTrash2, FiAlertTriangle } from 'react-icons/fi'
+import { SelectDropdown } from '@/app/ui/components/SelectDropdown'
 
 // Mock data types
 interface Product {
@@ -228,17 +229,12 @@ export function InventoryTab() {
         </div>
 
         {/* Category Filter */}
-        <select
+        <SelectDropdown<string>
           value={selectedCategory}
-          onChange={(e) => setSelectedCategory(e.target.value)}
-          className="px-3 py-1.5 text-xs border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-transparent bg-surface dark:text-fg"
-        >
-          {categories.map((cat) => (
-            <option key={cat.id} value={cat.id}>
-              {t(cat.labelKey)} ({cat.count})
-            </option>
-          ))}
-        </select>
+          onChange={setSelectedCategory}
+          options={categories.map((cat) => ({ value: cat.id, label: `${t(cat.labelKey)} (${cat.count})` }))}
+          className="w-48"
+        />
 
         {/* Low Stock Filter */}
         <button

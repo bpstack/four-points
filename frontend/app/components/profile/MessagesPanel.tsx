@@ -312,7 +312,7 @@ export function MessagesPanel({ onConversationSelect }: MessagesPanelProps) {
   if (conversations.loading) {
     return (
       <div className="h-full flex items-center justify-center">
-        <FiLoader className="w-8 h-8 animate-spin text-blue-500" />
+        <FiLoader className="w-8 h-8 animate-spin text-accent" />
       </div>
     )
   }
@@ -383,7 +383,7 @@ export function MessagesPanel({ onConversationSelect }: MessagesPanelProps) {
                 <p className="text-sm">{t('conversations.noConversations')}</p>
                 <button
                   onClick={() => setShowNewConversation(true)}
-                  className="mt-2 text-blue-500 text-sm hover:underline"
+                  className="mt-2 text-accent text-sm hover:underline"
                 >
                   {t('conversations.startNew')}
                 </button>
@@ -491,7 +491,7 @@ export function MessagesPanel({ onConversationSelect }: MessagesPanelProps) {
                   {conversations.selectedConversation.type === 'group' && (
                     <button
                       onClick={handleShowParticipants}
-                      className="text-xs text-gray-500 hover:text-blue-500 hover:underline transition-colors flex items-center gap-1"
+                      className="text-xs text-gray-500 hover:text-accent hover:underline transition-colors flex items-center gap-1"
                       disabled={loadingParticipants}
                     >
                       {loadingParticipants ? <FiLoader className="w-3 h-3 animate-spin" /> : null}
@@ -538,7 +538,7 @@ export function MessagesPanel({ onConversationSelect }: MessagesPanelProps) {
                     <button
                       onClick={chat.loadMore}
                       disabled={chat.loading}
-                      className="text-sm text-blue-500 hover:underline disabled:opacity-50"
+                      className="text-sm text-accent hover:underline disabled:opacity-50"
                     >
                       {chat.loading ? t('chat.loading') : t('chat.loadPrevious')}
                     </button>
@@ -698,7 +698,7 @@ export function MessagesPanel({ onConversationSelect }: MessagesPanelProps) {
                   {userSearch.selectedUsers.map((u) => (
                     <span
                       key={u.id}
-                      className="px-2 py-1 bg-info/10 text-blue-700 dark:text-blue-400 text-sm rounded-full flex items-center gap-1"
+                      className="px-2 py-1 bg-accent/10 text-accent text-sm rounded-full flex items-center gap-1"
                     >
                       {u.username}
                       <button onClick={() => userSearch.toggleUser(u)}>
@@ -737,7 +737,7 @@ export function MessagesPanel({ onConversationSelect }: MessagesPanelProps) {
             <div className="flex-1 overflow-y-auto">
               {userSearch.loading ? (
                 <div className="flex items-center justify-center py-8">
-                  <FiLoader className="w-6 h-6 animate-spin text-blue-500" />
+                  <FiLoader className="w-6 h-6 animate-spin text-accent" />
                 </div>
               ) : userSearch.results.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-8 text-gray-500">
@@ -770,7 +770,7 @@ export function MessagesPanel({ onConversationSelect }: MessagesPanelProps) {
                           {u.role_name}
                         </span>
                         {u.existing_dm_id && (
-                          <span className="text-xs text-blue-500">
+                          <span className="text-xs text-accent">
                             {t('newConversation.existingChat')}
                           </span>
                         )}
@@ -835,7 +835,7 @@ export function MessagesPanel({ onConversationSelect }: MessagesPanelProps) {
             <div className="flex-1 overflow-y-auto">
               {participants.length === 0 ? (
                 <div className="flex items-center justify-center py-8">
-                  <FiLoader className="w-6 h-6 animate-spin text-blue-500" />
+                  <FiLoader className="w-6 h-6 animate-spin text-accent" />
                 </div>
               ) : (
                 <div className="divide-y divide-gray-200 dark:divide-border">

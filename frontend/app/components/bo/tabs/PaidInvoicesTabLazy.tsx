@@ -26,6 +26,7 @@ import { formatCurrency, PAYMENT_METHOD_LABELS } from '@/app/lib/backoffice/type
 import { PdfViewerModal } from '@/app/components/bo/modals'
 import { backofficeApi } from '@/app/lib/backoffice/backofficeApi'
 import toast from 'react-hot-toast'
+import { SelectDropdown } from '@/app/ui/components/SelectDropdown'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 
 interface PaidInvoicesTabLazyProps {
@@ -510,23 +511,23 @@ export function PaidInvoicesTabLazy({
         </div>
 
         {/* Date Filter Type - wider to fit "Último trimestre" */}
-        <select
+        <SelectDropdown<string>
           value={dateFilter}
-          onChange={(e) => {
-            const newFilter = e.target.value as typeof dateFilter
+          onChange={(v) => {
+            const newFilter = v as typeof dateFilter
             setDateFilter(newFilter)
-            // Reset month selection when changing filter type
             if (newFilter === 'specific_month' && availableMonths.length > 0) {
               setSelectedMonth({ year: availableMonths[0].year, month: availableMonths[0].month })
             }
           }}
-          className="w-full sm:w-36 px-3 py-1.5 text-xs border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-transparent bg-surface dark:text-fg"
-        >
-          <option value="specific_month">{t('filters.byMonth')}</option>
-          <option value="quarter">{t('filters.lastQuarter')}</option>
-          <option value="year">{t('filters.lastYear')}</option>
-          <option value="all">{t('filters.allHistory')}</option>
-        </select>
+          options={[
+            { value: 'specific_month', label: t('filters.byMonth') },
+            { value: 'quarter', label: t('filters.lastQuarter') },
+            { value: 'year', label: t('filters.lastYear') },
+            { value: 'all', label: t('filters.allHistory') },
+          ]}
+          className="w-full sm:w-36"
+        />
 
         {/* Month Selector with year grouping (only when "Por Mes" is selected) */}
         {dateFilter === 'specific_month' && availableMonths.length > 0 && (
@@ -567,33 +568,30 @@ export function PaidInvoicesTabLazy({
         )}
 
         {/* Category Filter */}
-        <select
-          value={categoryFilter}
-          onChange={(e) =>
-            setCategoryFilter(e.target.value === 'all' ? 'all' : Number(e.target.value))
-          }
-          className="flex-1 min-w-[240px] px-3 py-1.5 text-xs border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-transparent bg-surface dark:text-fg"
-        >
-          <option value="all">{t('filters.allCategories')}</option>
-          {categories.map((cat) => (
-            <option key={cat.id} value={cat.id}>
-              {cat.cost_center} - {cat.department}
-            </option>
-          ))}
-        </select>
+        <SelectDropdown<string>
+          value={String(categoryFilter)}
+          onChange={(v) => setCategoryFilter(v === 'all' ? 'all' : Number(v))}
+          options={[
+            { value: 'all', label: t('filters.allCategories') },
+            ...categories.map((cat) => ({
+              value: String(cat.id),
+              label: `${cat.cost_center} - ${cat.department}`,
+            })),
+          ]}
+          className="flex-1 min-w-[240px]"
+        />
 
         {/* Payment Method Filter - slightly wider */}
-        <select
+        <SelectDropdown<string>
           value={paymentMethodFilter}
-          onChange={(e) =>
-            setPaymentMethodFilter(e.target.value as 'all' | 'transfer' | 'direct_debit')
-          }
-          className="w-full sm:w-36 px-3 py-1.5 text-xs border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-transparent bg-surface dark:text-fg"
-        >
-          <option value="all">{t('filters.allPayments')}</option>
-          <option value="transfer">{t('filters.transfer')}</option>
-          <option value="direct_debit">{t('filters.directDebit')}</option>
-        </select>
+          onChange={(v) => setPaymentMethodFilter(v as 'all' | 'transfer' | 'direct_debit')}
+          options={[
+            { value: 'all', label: t('filters.allPayments') },
+            { value: 'transfer', label: t('filters.transfer') },
+            { value: 'direct_debit', label: t('filters.directDebit') },
+          ]}
+          className="w-full sm:w-36"
+        />
 
         {/* Export Buttons */}
         <div className="flex gap-2">
@@ -872,24 +870,23 @@ export function PaidInvoicesTabLazy({
                   <label className="block text-xs font-medium text-fg mb-1">
                     {t('modals.revertBatchPayment.selectMonth')}
                   </label>
-                  <select
+                  <SelectDropdown<string>
                     value={
                       selectedMonthYear
                         ? `${selectedMonthYear.year}-${selectedMonthYear.month}`
-                        : ''
+                        : (getAvailableMonths()[0] ? `${getAvailableMonths()[0].year}-${getAvailableMonths()[0].month}` : '')
                     }
-                    onChange={(e) => {
-                      const [year, month] = e.target.value.split('-').map(Number)
+                    onChange={(v) => {
+                      const [year, month] = v.split('-').map(Number)
                       handleRevertMonthChange(year, month)
                     }}
-                    className="w-full px-3 py-2 text-sm border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 dark:focus:ring-orange-600 focus:border-transparent bg-surface dark:text-fg"
-                  >
-                    {getAvailableMonths().map((m) => (
-                      <option key={`${m.year}-${m.month}`} value={`${m.year}-${m.month}`}>
-                        {m.label}
-                      </option>
-                    ))}
-                  </select>
+                    options={getAvailableMonths().map((m) => ({
+                      value: `${m.year}-${m.month}`,
+                      label: m.label,
+                    }))}
+                    size="md"
+                    className="w-full"
+                  />
                 </div>
 
                 {revertPreview && (

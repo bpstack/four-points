@@ -7,6 +7,7 @@ import type { ParkingBooking, ParkingVehicle, AvailableSpot } from '@/app/lib/pa
 import { parkingApi } from '@/app/lib/parking'
 import { formatDateTimeLocal } from '../helpers'
 import { FiEdit2, FiX, FiSearch, FiMapPin, FiTruck, FiSlash, FiUserX } from 'react-icons/fi'
+import { SelectDropdown } from '@/app/ui/components/SelectDropdown'
 
 interface EditBookingModalProps {
   booking: ParkingBooking
@@ -297,23 +298,23 @@ export function EditBookingModal({
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-fg mb-1">
-                    {t('editModal.bookingSource')}
-                  </label>
-                  <select
+                  <SelectDropdown<string>
                     value={data.booking_source}
-                    onChange={(e) => setData({ ...data, booking_source: e.target.value })}
-                    className="w-full px-3 py-2 bg-surface text-fg border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-accent/50"
-                  >
-                    <option value="direct">{t('bookingSources.direct')}</option>
-                    <option value="booking_com">{t('bookingSources.booking_com')}</option>
-                    <option value="expedia">{t('bookingSources.expedia')}</option>
-                    <option value="airbnb">{t('bookingSources.airbnb')}</option>
-                    <option value="phone">{t('bookingSources.phone')}</option>
-                    <option value="email">{t('bookingSources.email')}</option>
-                    <option value="walkin">{t('bookingSources.walkin')}</option>
-                    <option value="other">{t('bookingSources.other')}</option>
-                  </select>
+                    onChange={(v) => setData({ ...data, booking_source: v })}
+                    options={[
+                      { value: 'direct', label: t('bookingSources.direct') },
+                      { value: 'booking_com', label: t('bookingSources.booking_com') },
+                      { value: 'expedia', label: t('bookingSources.expedia') },
+                      { value: 'airbnb', label: t('bookingSources.airbnb') },
+                      { value: 'phone', label: t('bookingSources.phone') },
+                      { value: 'email', label: t('bookingSources.email') },
+                      { value: 'walkin', label: t('bookingSources.walkin') },
+                      { value: 'other', label: t('bookingSources.other') },
+                    ]}
+                    label={t('editModal.bookingSource')}
+                    size="md"
+                    className="w-full"
+                  />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-fg mb-1">
@@ -409,17 +410,17 @@ export function EditBookingModal({
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-fg mb-1">
-                  {t('editModal.level')}
-                </label>
-                <select
+                <SelectDropdown<string>
                   value={selectedSpot.level_code}
-                  onChange={(e) => setSelectedSpot({ ...selectedSpot, level_code: e.target.value })}
-                  className="w-full px-3 py-2 bg-surface text-fg border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-accent/50"
-                >
-                  <option value="-2">{t('editModal.levelOption', { level: '-2' })}</option>
-                  <option value="-3">{t('editModal.levelOption', { level: '-3' })}</option>
-                </select>
+                  onChange={(v) => setSelectedSpot({ ...selectedSpot, level_code: v })}
+                  options={[
+                    { value: '-2', label: t('editModal.levelOption', { level: '-2' }) },
+                    { value: '-3', label: t('editModal.levelOption', { level: '-3' }) },
+                  ]}
+                  label={t('editModal.level')}
+                  size="md"
+                  className="w-full"
+                />
               </div>
 
               <div>

@@ -37,6 +37,7 @@ import {
 import { ReportsTab } from './reports'
 import { CenterModal, CenterModalFooterButtons, FormField, inputClassName } from '@/app/ui/panels'
 import { GlobalNotificationModal } from '@/app/components/notifications/GlobalNotificationModal'
+import { SelectDropdown } from '@/app/ui/components/SelectDropdown'
 import { Checkbox } from '@/app/ui/components'
 
 // Types
@@ -69,8 +70,8 @@ const ROLE_COLORS = {
     borderColor: 'border-purple-200 dark:border-purple-800',
   },
   'group-admin': {
-    color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
-    borderColor: 'border-blue-200 dark:border-blue-800',
+    color: 'bg-accent/10 text-accent',
+    borderColor: 'border-accent/30',
   },
   recepcionista: {
     color: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
@@ -241,7 +242,7 @@ export function SettingsPanel() {
                       className={cn(
                         'w-full flex items-center justify-between px-4 py-3 text-sm transition-colors',
                         activeTab === tab.id
-                          ? 'bg-info/10 text-blue-600 dark:text-blue-400'
+                          ? 'bg-accent/10 text-accent'
                           : 'text-fg hover:bg-surface-hover'
                       )}
                     >
@@ -425,7 +426,7 @@ function DepartmentsTab() {
                 <div className="flex items-center gap-1">
                   <button
                     onClick={() => handleEdit(dept)}
-                    className="p-1.5 text-gray-500 hover:text-blue-600 hover:bg-surface-hover rounded-lg transition-colors"
+                    className="p-1.5 text-gray-500 hover:text-accent hover:bg-surface-hover rounded-lg transition-colors"
                     title="Editar"
                   >
                     <FiEdit2 className="w-3.5 h-3.5" />
@@ -596,7 +597,7 @@ function EditDepartmentModal({
       onClose={onClose}
       title={t('editDepartment')}
       size="sm"
-      headerIcon={<FiEdit2 className="w-5 h-5 text-blue-600 dark:text-blue-400" />}
+      headerIcon={<FiEdit2 className="w-5 h-5 text-accent" />}
       footer={
         <CenterModalFooterButtons
           onCancel={onClose}
@@ -815,16 +816,17 @@ function UserTable({ users, onDelete }: { users: User[]; onDelete: (id: string) 
                   placeholder="Email"
                   className="w-full md:flex-1 px-3 py-1.5 text-sm border border-border rounded-lg bg-surface text-fg"
                 />
-                <select
-                  value={editForm.role || ''}
-                  onChange={(e) => setEditForm({ ...editForm, role: e.target.value })}
-                  className="w-full md:w-40 px-3 py-1.5 text-sm border border-border rounded-lg bg-surface text-fg"
-                >
-                  <option value="recepcionista">{t('roles.receptionist')}</option>
-                  <option value="admin">{t('roles.admin')}</option>
-                  <option value="group-admin">{t('roles.groupAdmin')}</option>
-                  <option value="mantenimiento">{t('roles.maintenance')}</option>
-                </select>
+                <SelectDropdown<string>
+                  value={editForm.role || 'recepcionista'}
+                  onChange={(v) => setEditForm({ ...editForm, role: v })}
+                  options={[
+                    { value: 'recepcionista', label: t('roles.receptionist') },
+                    { value: 'admin', label: t('roles.admin') },
+                    { value: 'group-admin', label: t('roles.groupAdmin') },
+                    { value: 'mantenimiento', label: t('roles.maintenance') },
+                  ]}
+                  className="w-full md:w-40"
+                />
                 <div className="flex gap-2 md:flex-shrink-0">
                   <button
                     onClick={() => handleSave(user.id)}
@@ -897,7 +899,7 @@ function UserTable({ users, onDelete }: { users: User[]; onDelete: (id: string) 
                   </button>
                   <button
                     onClick={() => handleEdit(user)}
-                    className="p-1.5 text-gray-500 hover:text-blue-600 hover:bg-surface-hover rounded-lg transition-colors"
+                    className="p-1.5 text-gray-500 hover:text-accent hover:bg-surface-hover rounded-lg transition-colors"
                   >
                     <FiEdit2 className="w-3.5 h-3.5" />
                   </button>
@@ -1056,7 +1058,7 @@ function NotificationsSettings() {
               <button
                 onClick={handleCheckNotifications}
                 disabled={checkingNotifications}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-accent-fg bg-accent hover:bg-accent-hover disabled:bg-blue-400 rounded-lg transition-colors"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-accent-fg bg-accent hover:bg-accent-hover disabled:opacity-60 rounded-lg transition-colors"
               >
                 <FiRefreshCw
                   className={cn('w-3.5 h-3.5', checkingNotifications && 'animate-spin')}
