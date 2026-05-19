@@ -210,7 +210,13 @@
     "startDateInstructions": "Select start date to calculate proportional values, or leave blank for full year.",
     "startDatePlaceholder": "Start date",
     "startDateExample": "Ex: Start: 2025-02-07",
-    "saveChanges": "Save Changes"
+    "saveChanges": "Save Changes",
+    "activePeriod": "ACTIVE PERIOD IN SCHEDULING",
+    "activePeriodHint": "Leave blank if the employee has always been active (no date limit).",
+    "startDate": "Start",
+    "endDate": "End",
+    "dateSaved": "Dates updated",
+    "dateSaveError": "Error saving dates"
   },
   "config": {
     "tabs": {

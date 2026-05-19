@@ -8,7 +8,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { schedulingApi, schedulingKeys } from '@/app/lib/scheduling'
 import type { EmployeeContract, UpdateContractDto } from '@/app/lib/scheduling'
 import { formatUsername } from '@/app/lib/helpers/user'
-import { FiRefreshCw, FiSave, FiPlus, FiCalendar } from 'react-icons/fi'
+import { FiRefreshCw, FiSave, FiPlus, FiInfo } from 'react-icons/fi'
+import DatePickerInput from '@/app/ui/calendar/DatePickerInput'
 import toast from 'react-hot-toast'
 
 interface EmployeeTotalsProps {
@@ -41,6 +42,9 @@ export function EmployeeTotals({ year }: EmployeeTotalsProps) {
   )
   const [hasChanges, setHasChanges] = useState(false)
   const [startDates, setStartDates] = useState<Record<string, string>>({})
+  const [employeeDateEdits, setEmployeeDateEdits] = useState<
+    Record<string, { startDate: string; endDate: string }>
+  >({})
 
   const { data: schedulableEmployees = [] } = useQuery({
     queryKey: schedulingKeys.employees(),
@@ -91,6 +95,25 @@ export function EmployeeTotals({ year }: EmployeeTotalsProps) {
     },
   })
 
+  const updateDatesMutation = useMutation({
+    mutationFn: ({
+      employeeId,
+      startDate,
+      endDate,
+    }: {
+      employeeId: string
+      startDate: string | null
+      endDate: string | null
+    }) => schedulingApi.updateEmployeeDates(employeeId, { startDate, endDate }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: schedulingKeys.employees() })
+      toast.success(t('dateSaved'))
+    },
+    onError: () => {
+      toast.error(t('dateSaveError'))
+    },
+  })
+
   const updateContractMutation = useMutation({
     mutationFn: ({ id, data }: { id: number; data: UpdateContractDto }) =>
       schedulingApi.updateContract(id, data),
@@ -111,6 +134,44 @@ export function EmployeeTotals({ year }: EmployeeTotalsProps) {
     (e) => !employeesWithContracts.has(e.id)
   )
   const hasEmployeesWithoutContracts = employeesWithoutContracts.length > 0
+
+  const getDateValue = (employeeId: string, field: 'startDate' | 'endDate'): string => {
+    const local = employeeDateEdits[employeeId]
+    if (local && local[field] !== undefined) return local[field]
+    const emp = schedulableEmployees.find((e) => e.id === employeeId)
+    if (!emp) return ''
+    return (field === 'startDate' ? emp.start_date : emp.end_date) ?? ''
+  }
+
+  const handleDateChangeAndSave = (
+    employeeId: string,
+    field: 'startDate' | 'endDate',
+    value: string
+  ) => {
+    // Update local edits state
+    setEmployeeDateEdits((prev) => ({
+      ...prev,
+      [employeeId]: { ...prev[employeeId], [field]: value },
+    }))
+    // Save immediately with the new value (avoid stale closure)
+    const emp = schedulableEmployees.find((e) => e.id === employeeId)
+    const currentEdits = employeeDateEdits[employeeId] || {}
+    const origStart = emp?.start_date ?? ''
+    const origEnd = emp?.end_date ?? ''
+    const resolvedStart =
+      field === 'startDate'
+        ? value || null
+        : currentEdits.startDate !== undefined
+          ? currentEdits.startDate || null
+          : origStart || null
+    const resolvedEnd =
+      field === 'endDate'
+        ? value || null
+        : currentEdits.endDate !== undefined
+          ? currentEdits.endDate || null
+          : origEnd || null
+    updateDatesMutation.mutate({ employeeId, startDate: resolvedStart, endDate: resolvedEnd })
+  }
 
   const getValue = (contract: EmployeeContract, field: keyof EditableConvenio): string | number => {
     const edited = editedContracts[contract.id]
@@ -235,20 +296,13 @@ export function EmployeeTotals({ year }: EmployeeTotalsProps) {
                   {formatUsername(emp.username)}
                 </span>
                 <div className="flex items-center gap-2">
-                  <div className="relative">
-                    <FiCalendar className="absolute left-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-fg-subtle" />
-                    <input
-                      type="date"
-                      value={startDates[emp.id] || ''}
-                      onChange={(e) =>
-                        setStartDates((prev) => ({ ...prev, [emp.id]: e.target.value }))
-                      }
-                      min={`${year}-01-01`}
-                      max={`${year}-12-31`}
-                      className="pl-7 pr-2 py-1 text-xs border border-border rounded bg-surface text-fg"
-                      placeholder={t('startDatePlaceholder')}
-                    />
-                  </div>
+                  <DatePickerInput
+                    value={startDates[emp.id] || ''}
+                    onChange={(v: string | undefined) =>
+                      setStartDates((prev) => ({ ...prev, [emp.id]: v || '' }))
+                    }
+                    size="sm"
+                  />
                   <button
                     onClick={() => handleCreateContract(emp.id)}
                     disabled={initSingleContractMutation.isPending}
@@ -264,6 +318,63 @@ export function EmployeeTotals({ year }: EmployeeTotalsProps) {
         </div>
       )}
 
+      {/* ── Active period ── */}
+      {schedulableEmployees.length > 0 && (
+        <div>
+          <div className="flex items-center gap-2 mb-2 px-1">
+            <span className="w-1.5 h-4 rounded-full bg-info dark:bg-info" />
+            <h3 className="text-xs font-bold text-fg-muted">{t('activePeriod')}</h3>
+          </div>
+          <div className="mb-2 flex items-start gap-1.5 px-2 py-1.5 rounded bg-info-bg/50 border border-info-border/30 text-xs text-fg-muted">
+            <FiInfo className="w-3.5 h-3.5 shrink-0 mt-px text-info" />
+            <span>{t('activePeriodHint')}</span>
+          </div>
+          <div className="overflow-x-auto border border-border rounded">
+            <table className="w-full text-xs">
+              <thead className="bg-surface-sunken">
+                <tr>
+                  <th className="px-3 py-2 text-left font-medium text-fg-muted min-w-[100px]"></th>
+                  <th className="px-3 py-2 text-center font-medium text-fg-muted min-w-[140px]">
+                    {t('startDate')}
+                  </th>
+                  <th className="px-3 py-2 text-center font-medium text-fg-muted min-w-[140px]">
+                    {t('endDate')}
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {schedulableEmployees.map((emp) => (
+                  <tr key={emp.id} className="hover:bg-surface-hover">
+                    <td className="px-3 py-1.5 font-medium text-fg">
+                      {formatUsername(emp.username)}
+                    </td>
+                    <td className="px-2 py-1">
+                      <DatePickerInput
+                        value={getDateValue(emp.id, 'startDate')}
+                        onChange={(v: string | undefined) =>
+                          handleDateChangeAndSave(emp.id, 'startDate', v || '')
+                        }
+                        size="sm"
+                      />
+                    </td>
+                    <td className="px-2 py-1">
+                      <DatePickerInput
+                        value={getDateValue(emp.id, 'endDate')}
+                        onChange={(v: string | undefined) =>
+                          handleDateChangeAndSave(emp.id, 'endDate', v || '')
+                        }
+                        size="sm"
+                      />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* ── By contract ── */}
       <div>
         <div className="flex items-center gap-2 mb-2 px-1">
           <span className="w-1.5 h-4 rounded-full bg-border-strong" />
@@ -310,7 +421,9 @@ export function EmployeeTotals({ year }: EmployeeTotalsProps) {
               ) : (
                 contracts.map((contract) => (
                   <tr key={contract.id} className="hover:bg-surface-hover">
-                    <td className="px-3 py-1 font-medium text-fg">{formatUsername(contract.employeeName)}</td>
+                    <td className="px-3 py-1 font-medium text-fg">
+                      {formatUsername(contract.employeeName)}
+                    </td>
                     <td className="px-1 py-1">
                       <input
                         type="number"
@@ -440,7 +553,9 @@ export function EmployeeTotals({ year }: EmployeeTotalsProps) {
                     key={emp.employeeId}
                     className="hover:bg-emerald-50/60 dark:hover:bg-emerald-900/10"
                   >
-                    <td className="px-3 py-2 font-medium text-fg">{formatUsername(emp.employeeName)}</td>
+                    <td className="px-3 py-2 font-medium text-fg">
+                      {formatUsername(emp.employeeName)}
+                    </td>
                     <td className="px-3 py-2 text-center text-fg">
                       {emp.disfrutados.diasTrabajados}
                     </td>
@@ -516,7 +631,9 @@ export function EmployeeTotals({ year }: EmployeeTotalsProps) {
                     key={emp.employeeId}
                     className="hover:bg-amber-50/60 dark:hover:bg-amber-900/10"
                   >
-                    <td className="px-3 py-2 font-medium text-fg">{formatUsername(emp.employeeName)}</td>
+                    <td className="px-3 py-2 font-medium text-fg">
+                      {formatUsername(emp.employeeName)}
+                    </td>
                     <td
                       className={`px-3 py-2 text-center ${emp.pendiente.diasATrabaja < 0 ? 'text-red-600 dark:text-red-400' : 'text-fg'}`}
                     >

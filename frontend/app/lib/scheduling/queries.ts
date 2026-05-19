@@ -455,7 +455,13 @@ export const schedulingApi = {
    * Get employees selected for scheduling
    */
   getSchedulableEmployees: async (): Promise<
-    { id: string; username: string; role_id: number }[]
+    {
+      id: string
+      username: string
+      role_id: number
+      start_date: string | null
+      end_date: string | null
+    }[]
   > => {
     return apiClient.get(`${API_URL}/api/scheduling/employees`)
   },
@@ -464,7 +470,14 @@ export const schedulingApi = {
    * Get all employees with their schedulable status
    */
   getAllEmployeesWithStatus: async (): Promise<
-    { id: string; username: string; role_id: number; is_schedulable: boolean }[]
+    {
+      id: string
+      username: string
+      role_id: number
+      is_schedulable: boolean
+      start_date: string | null
+      end_date: string | null
+    }[]
   > => {
     return apiClient.get(`${API_URL}/api/scheduling/employees/all`)
   },
@@ -495,10 +508,20 @@ export const schedulingApi = {
    * display_order value. Used to put managers on top and respect manual
    * seniority in the scheduling grid, totals, dropdowns, etc.
    */
-  setSchedulableEmployeesOrder: async (
-    orderedIds: string[]
-  ): Promise<{ success: boolean }> => {
+  setSchedulableEmployeesOrder: async (orderedIds: string[]): Promise<{ success: boolean }> => {
     return apiClient.patch(`${API_URL}/api/scheduling/employees/order`, { orderedIds })
+  },
+
+  /**
+   * Update start_date / end_date of a single schedulable employee. Pass null
+   * to clear a date. Used for partial-tenure employees (mid-year start or
+   * leave).
+   */
+  updateEmployeeDates: async (
+    employeeId: string,
+    payload: { startDate: string | null; endDate: string | null }
+  ): Promise<{ success: boolean }> => {
+    return apiClient.patch(`${API_URL}/api/scheduling/employees/${employeeId}/dates`, payload)
   },
 
   // ============================================

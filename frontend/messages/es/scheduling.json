@@ -212,7 +212,13 @@
     "startDateInstructions": "Selecciona la fecha de inicio para calcular valores proporcionales, o deja en blanco para año completo.",
     "startDatePlaceholder": "Fecha inicio",
     "startDateExample": "Ej: Inicio: 2025-02-07",
-    "saveChanges": "Guardar Cambios"
+    "saveChanges": "Guardar Cambios",
+    "activePeriod": "PERÍODO ACTIVO EN HORARIOS",
+    "activePeriodHint": "Deja en blanco para indicar que el empleado siempre ha estado activo (sin límite de fecha).",
+    "startDate": "Inicio",
+    "endDate": "Fin",
+    "dateSaved": "Fechas actualizadas",
+    "dateSaveError": "Error al guardar fechas"
   },
   "config": {
     "tabs": {
