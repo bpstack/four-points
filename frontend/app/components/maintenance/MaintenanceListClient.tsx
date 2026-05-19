@@ -69,27 +69,29 @@ export function MaintenanceListClient({
   const filtersRef = useRef(filters)
   filtersRef.current = filters
 
-  // Actualizar URL y estado con filtros (fuente única de verdad)
-  const updateFiltersAndUrl = useCallback(
-    (newFilters: ReportFilters) => {
-      setFilters(newFilters)
-      filtersRef.current = newFilters
-      setCurrentPage(1)
+  // Actualizar URL y estado con filtros (fuente única de verdad).
+  // Usa history.replaceState en vez de router.push para no disparar un
+  // re-render del Server Component en cada cambio de filtro.
+  const updateFiltersAndUrl = useCallback((newFilters: ReportFilters) => {
+    setFilters(newFilters)
+    filtersRef.current = newFilters
+    setCurrentPage(1)
 
-      // Build URL params from filters
-      const params = new URLSearchParams()
-      if (newFilters.status) params.set('status', newFilters.status)
-      if (newFilters.priority) params.set('priority', newFilters.priority)
-      if (newFilters.location_type) params.set('location_type', newFilters.location_type)
-      if (newFilters.search) params.set('search', newFilters.search)
-      if (newFilters.date_from) params.set('date_from', newFilters.date_from)
-      if (newFilters.date_to) params.set('date_to', newFilters.date_to)
+    const params = new URLSearchParams()
+    if (newFilters.status) params.set('status', newFilters.status)
+    if (newFilters.priority) params.set('priority', newFilters.priority)
+    if (newFilters.location_type) params.set('location_type', newFilters.location_type)
+    if (newFilters.search) params.set('search', newFilters.search)
+    if (newFilters.date_from) params.set('date_from', newFilters.date_from)
+    if (newFilters.date_to) params.set('date_to', newFilters.date_to)
 
-      const queryString = params.toString()
-      router.push(queryString ? `?${queryString}` : '/dashboard/maintenance', { scroll: false })
-    },
-    [router]
-  )
+    // Preserve the panel param so any open slide-panel stays open
+    const panel = new URLSearchParams(window.location.search).get('panel')
+    if (panel) params.set('panel', panel)
+
+    const qs = params.toString()
+    window.history.replaceState(null, '', qs ? `?${qs}` : '/dashboard/maintenance')
+  }, [])
 
   // Search input controlado manualmente (Enter o botón)
   const [searchInput, setSearchInput] = useState(filters.search || '')
@@ -168,8 +170,8 @@ export function MaintenanceListClient({
     setFilters({})
     filtersRef.current = {}
     setCurrentPage(1)
-    router.push('/dashboard/maintenance', { scroll: false })
-  }, [router])
+    window.history.replaceState(null, '', '/dashboard/maintenance')
+  }, [])
 
   const handleCreateReport = useCallback(() => {
     const params = new URLSearchParams(searchParams.toString())
@@ -251,11 +253,13 @@ export function MaintenanceListClient({
   const inProgressReports = reports.filter((r) => r.status === 'in_progress').length
   const roomsOutOfService = reports.filter((r) => r.room_out_of_service === true).length
 
-  if (loading && reports.length === 0) {
+  // Full-screen spinner only on the very first load when no server-side
+  // initial data was provided. Filter changes use the inline table skeleton.
+  if (isLoading && reports.length === 0 && !initialPagination) {
     return (
       <div className="min-h-screen bg-surface flex items-center justify-center">
         <div className="text-center">
-          <div className="inline-block h-10 w-10 animate-spin rounded-full border-[3px] border-solid border-blue-600 dark:border-blue-500 border-r-transparent"></div>
+          <div className="inline-block h-10 w-10 animate-spin rounded-full border-[3px] border-solid border-accent border-r-transparent"></div>
           <p className="mt-3 text-xs text-fg-muted">{t('loading')}</p>
         </div>
       </div>
@@ -494,7 +498,21 @@ export function MaintenanceListClient({
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200 dark:divide-border">
-                      {reports.length === 0 ? (
+                      {isFetching ? (
+                        Array.from({ length: 8 }).map((_, i) => (
+                          <tr key={i} className="animate-pulse">
+                            <td className="px-3 py-2.5"><div className="h-3 bg-surface-hover rounded w-20" /></td>
+                            <td className="px-3 py-2.5">
+                              <div className="h-3 bg-surface-hover rounded w-44 mb-1.5" />
+                              <div className="h-2.5 bg-surface-hover rounded w-28" />
+                            </td>
+                            <td className="px-3 py-2.5"><div className="h-3 bg-surface-hover rounded w-28" /></td>
+                            <td className="px-3 py-2.5"><div className="h-5 bg-surface-hover rounded-full w-16" /></td>
+                            <td className="px-3 py-2.5"><div className="h-5 bg-surface-hover rounded-full w-20" /></td>
+                            <td className="px-3 py-2.5"><div className="h-3 bg-surface-hover rounded w-20" /></td>
+                          </tr>
+                        ))
+                      ) : reports.length === 0 ? (
                         <tr>
                           <td colSpan={6} className="px-3 py-8 text-center text-xs text-fg-subtle">
                             {Object.keys(filters).some((k) => filters[k as keyof ReportFilters])
@@ -587,7 +605,21 @@ export function MaintenanceListClient({
 
               {/* Cards - Mobile */}
               <div className="md:hidden space-y-2">
-                {reports.length === 0 ? (
+                {isFetching ? (
+                  Array.from({ length: 5 }).map((_, i) => (
+                    <div key={i} className="bg-surface rounded-md border border-border p-3 animate-pulse space-y-2">
+                      <div className="flex items-center justify-between">
+                        <div className="h-3 bg-surface-hover rounded w-40" />
+                        <div className="h-5 bg-surface-hover rounded-full w-16" />
+                      </div>
+                      <div className="h-2.5 bg-surface-hover rounded w-28" />
+                      <div className="flex gap-2">
+                        <div className="h-5 bg-surface-hover rounded-full w-20" />
+                        <div className="h-5 bg-surface-hover rounded-full w-16" />
+                      </div>
+                    </div>
+                  ))
+                ) : reports.length === 0 ? (
                   <div className="bg-surface rounded-md border border-border p-6 text-center">
                     <p className="text-xs text-fg-subtle">
                       {Object.keys(filters).some((k) => filters[k as keyof ReportFilters])

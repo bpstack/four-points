@@ -124,16 +124,6 @@ export default function BlacklistPage() {
     return configs[severity]
   }
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 dark:bg-bg flex items-center justify-center">
-        <div className="text-center">
-          <div className="inline-block h-10 w-10 animate-spin rounded-full border-[3px] border-solid border-blue-600 dark:border-blue-500 border-r-transparent"></div>
-          <p className="mt-3 text-xs text-fg-muted">{t('page.loading')}</p>
-        </div>
-      </div>
-    )
-  }
 
   return (
     <>
@@ -279,7 +269,31 @@ export default function BlacklistPage() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-border">
-                      {entries.length === 0 ? (
+                      {loading ? (
+                        Array.from({ length: 7 }).map((_, i) => (
+                          <tr key={i} className="animate-pulse">
+                            <td className="px-3 py-2.5">
+                              <div className="h-3 bg-surface-hover rounded w-36 mb-1.5" />
+                              <div className="h-2.5 bg-surface-hover rounded w-24" />
+                            </td>
+                            <td className="px-3 py-2.5">
+                              <div className="h-3 bg-surface-hover rounded w-28 mb-1.5" />
+                              <div className="h-2.5 bg-surface-hover rounded w-16" />
+                            </td>
+                            <td className="px-3 py-2.5">
+                              <div className="h-3 bg-surface-hover rounded w-20 mb-1.5" />
+                              <div className="h-2.5 bg-surface-hover rounded w-20" />
+                            </td>
+                            <td className="px-3 py-2.5"><div className="h-5 bg-surface-hover rounded-full w-16" /></td>
+                            <td className="px-3 py-2.5"><div className="h-5 bg-surface-hover rounded-full w-14" /></td>
+                            <td className="px-3 py-2.5">
+                              <div className="h-3 bg-surface-hover rounded w-20 mb-1.5" />
+                              <div className="h-2.5 bg-surface-hover rounded w-16" />
+                            </td>
+                            <td className="px-3 py-2.5"><div className="h-7 bg-surface-hover rounded w-7 ml-auto" /></td>
+                          </tr>
+                        ))
+                      ) : entries.length === 0 ? (
                         <tr>
                           <td colSpan={7} className="px-3 py-8 text-center text-xs text-fg-subtle">
                             {searchTerm ? t('table.noResultsSearch') : t('table.noEntries')}
@@ -382,7 +396,27 @@ export default function BlacklistPage() {
 
               {/* Cards - Mobile */}
               <div className="md:hidden space-y-2">
-                {entries.length === 0 ? (
+                {loading ? (
+                  Array.from({ length: 5 }).map((_, i) => (
+                    <div key={i} className="bg-surface rounded-md border border-border p-3 animate-pulse space-y-2">
+                      <div className="flex items-start justify-between">
+                        <div className="space-y-1.5 flex-1">
+                          <div className="h-3 bg-surface-hover rounded w-40" />
+                          <div className="h-2.5 bg-surface-hover rounded w-28" />
+                        </div>
+                        <div className="h-6 w-6 bg-surface-hover rounded ml-2 flex-shrink-0" />
+                      </div>
+                      <div className="h-2.5 bg-surface-hover rounded w-full" />
+                      <div className="flex items-center justify-between">
+                        <div className="flex gap-2">
+                          <div className="h-5 bg-surface-hover rounded-full w-16" />
+                          <div className="h-5 bg-surface-hover rounded-full w-14" />
+                        </div>
+                        <div className="h-2.5 bg-surface-hover rounded w-20" />
+                      </div>
+                    </div>
+                  ))
+                ) : entries.length === 0 ? (
                   <div className="bg-surface rounded-md border border-border p-6 text-center">
                     <p className="text-xs text-fg-subtle">
                       {searchTerm ? t('table.noResultsSearch') : t('table.noEntries')}
