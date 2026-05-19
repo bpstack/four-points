@@ -52,8 +52,8 @@ pnpm test:coverage    # Run tests with coverage report
 
 ### Database
 - SQL scripts are in `backend/db-mysql/`
-- Use `MASTER_INSTALL_LOCAL.sql` for local setup
-- Use `MASTER_INSTALL_AIVEN.sql` for cloud setup
+- Initial install: `MASTER_INSTALL.sql` (sólo contra BD vacía — no usar contra BDs con datos)
+- Cambios incrementales: `backend/db-mysql/scripts/AAAAMMDD_*.sql` (idempotentes). Política en `MIGRATIONS_POLICY.md`.
 
 ## Architecture
 
@@ -165,7 +165,7 @@ The scheduling module manages monthly staff schedules through **manual cell-by-c
   - `tests/test_corpus.py` - Tests Python: ningún fixture crashea, fixtures resolubles dan status='ok'
   - `tests/test_daemon_stress.py` - Tests del daemon: arranque, requests válidas/inválidas, recuperación
 - **Solver client**: `services/scheduling/solver-client.ts` - Gestiona el daemon Python: estado (idle/starting/ready), semáforo (peticiones secuenciales), abort-safe, warm-up al arrancar
-- **Solver input builder**: `services/scheduling/build-solver-input.ts` - Fetches DB data, builds SolverInput JSON (locked cells, cross-month tail, employee rules, fixedDays pre-expansion, minNightBlock/maxNightBlock del config)
+- **Solver input builder**: `services/scheduling/build-solver-input.ts` - Fetches DB data, builds SolverInput JSON (locked cells, cross-month tail, employee rules, fixedDays pre-expansion, minNightBlock/maxNightBlock del config). Usa `getSchedulableEmployeesForMonth(year, month)` para filtrar empleados por su `start_date` / `end_date` — empleados ya desvinculados o aún no contratados no entran al solver.
 
 **Key Endpoints:**
 - `GET /months/:id` - Full month data (days, assignments, constraints, stats)
@@ -197,7 +197,7 @@ The scheduling module manages monthly staff schedules through **manual cell-by-c
 
 **Shift Types:**
 - Work shifts: M (Morning), T (Afternoon), N (Night), PI (Internal Support), P (Presencia)
-- Off states: L (Free), V (Vacation), B (Bonificable/Holiday), E (Sick day), IT (Temp Disability), FO (Day Off), A (Unjustified absence)
+- Off states: L (Free), V (Vacation), B (Bonificable/Holiday), E (Sick day), IT (Temp Disability), FO (Day Off), A (Unjustified absence), LI (Libre Disposición — libre extraordinario fuera de la rotación semanal)
 
 **Frontend Components:**
 - `SchedulingClient.tsx` - Main orchestrator
@@ -210,6 +210,14 @@ The scheduling module manages monthly staff schedules through **manual cell-by-c
 **Configuration:**
 - Schedule parameters (min/max staff per shift, rest hours, libre ranges) stored in `scheduling_config` table
 - Employee-specific rules in `scheduling_employee_rules` table
+- Employee tenure (`start_date` / `end_date` en `scheduling_employees`) controla en qué meses aparece el empleado. Ambos NULL = activo sin restricción. Editable desde la pestaña *Totales* → *Período activo en horarios*.
+
+**Cross-month gotcha (H4/H5 — 2026-05-20).** El solver Python aplica H4 (max consecutive work) y H5 (≥2 rest en ventana 7) sobre `all_days = virtual_days + real_days`. Si el tail virtual del mes anterior ya viola el constraint matemáticamente (ej: 6 turnos M seguidos al cierre del mes anterior), la ventana es unsatisfiable y produce INFEASIBLE artificial al generar el nuevo mes. `constraints/rest.py` **omite** estas ventanas "doomed" — la validación del mes anterior es responsabilidad del mes anterior. Ver `SCHEDULING-DECISIONS-LOG.md` (entrada 2026-05-20) y `SCHEDULING-CONSTRAINTS.md` §H5 para el razonamiento completo y deuda pendiente (drift Python↔TS validator).
+
+**Importador histórico desde Excel.** `backend/scripts/import-planning-2026.ts` (tsx + xlsx) vuelca PLANNING 2026.xlsx (Enero-Mayo) en `scheduling_months` / `scheduling_days` / `scheduling_assignments` en estado *draft*. Idempotente por mes. Whitelist explícita de empleados (excluye personal de otros departamentos). Mapeo de códigos `L1..L9 → L+libre_number`, `PI1 → FO`, `BT → IT`. Uso:
+```bash
+pnpm exec cross-env DB_ENVIRONMENT=aiven tsx --env-file=.env scripts/import-planning-2026.ts [Enero|...|all]
+```
 
 #### Running the solver locally
 
@@ -455,7 +463,7 @@ Get-ChildItem -Recurse -Include *.js,*.ts -Exclude node_modules,dist | Select-St
 
 - **Database Name**: `hotel_db`
 - **Key Tables**: users, logbook, parking, scheduling_months, scheduling_assignments, scheduling_solver_runs, scheduling_employee_requests, checklist_runs, demo_activity_log
-- **Migrations**: Manual SQL scripts in `backend/db-mysql/`
+- **Migrations**: scripts incrementales idempotentes en `backend/db-mysql/scripts/AAAAMMDD_*.sql`. Política documentada en `backend/db-mysql/MIGRATIONS_POLICY.md`. **NUNCA** ejecutar `MASTER_INSTALL.sql` ni `aiven/NN_*.sql` contra una BD con datos — solo scripts incrementales. Registrar cada migración en `backend/db-mysql/INDEX.md`.
 - **Backups**: Store in `backend/db-mysql/backup/`
 
 ## External Services

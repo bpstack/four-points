@@ -76,6 +76,59 @@ Una vez activo, cerrar el §3.5 hallazgo de observabilidad de `Global-Plan.md`.
 
 ---
 
+## Scheduling solver — deuda técnica detectada al importar histórico
+
+### H5: alinear semántica Python ↔ TS validator ↔ spec (~30-60 min)
+
+**Spec documentado** (`SCHEDULING-CONSTRAINTS.md §H5`): "≥2 días **consecutivos** de descanso en ventana 7 días" (necesita par `L,L`).
+
+**TS validator** (`services/scheduling/constraints/consecutive-rest.constraint.ts`): correcto — exige par consecutivo.
+
+**Python solver** (`scheduling-solver/constraints/rest.py`): drift histórico — implementa `sum(rest) ≥ 2`, no exige consecutivos. Más laxo.
+
+Resultado actual: el solver puede generar schedules que el validator marca como inválidos (par no encontrado pero suma ≥2). El parity test no lo cazó porque los fixtures actuales casualmente no exhiben el caso degenerado (`L M M M M L M` = 2 rest no consecutivos en 7 días).
+
+**Acción:** reescribir `rest.py` H5 con boolean indicator `is_consecutive_rest_pair_in_window[w]` reificado sobre pares de días adyacentes (`L_d ∧ L_{d+1}`), exigir suma ≥ 1 por ventana. Verificar parity post-cambio.
+
+### H4 vs H5: contradicción de bound efectivo (~1-2h de discusión + cambio)
+
+H4 dice `maxConsecutiveWorkDays = 6`. H5 (ventana 7 días, ≥2 rest **consecutivos**) implica efectivamente `max consecutive work = 5` (un par WWWWWWL en 7 días → solo 1 rest, viola H5).
+
+H4 está muerto: H5 siempre le gana.
+
+**Decisión pendiente:**
+
+- **Opción A**: aceptar el bound real (5 consecutivos) y bajar H4 a 5. Honesto, evita confusión.
+- **Opción B**: cambiar H5 a ventana 8 días (`≥2 rest en 8 días`). Permitiría patrón hostelero "6 trabajo + 2 descanso", muy común. Cambio más invasivo: afecta `rest.py`, validator TS, fixtures que asumen 7, documentación.
+
+Si se elige B, evaluar también si esto resolvería retroactivamente el caso Andrés (6 M al cierre de mayo) sin necesitar la excepción cross-month que añadimos el 2026-05-20.
+
+### Cross-month "doomed windows" — fix aplicado, monitorizar
+
+Aplicado el 2026-05-20 en `rest.py` (ver `SCHEDULING-DECISIONS-LOG.md`). Funciona para el caso Andrés real y para F31/F52. Pero:
+
+- Mismo patrón puede aparecer en otros constraints con ventana deslizante cross-month (`night_block.py` ventana max-block, `day_blocks.py`). Auditarlos por completitud cuando aparezca un INFEASIBLE similar.
+- Si más adelante se rehace H5 a "consecutive pair" (item anterior), revisar si la lógica de skip cross-month sigue siendo correcta o necesita ajuste.
+
+---
+
+## Documentación / DX — pendientes
+
+### Política de migraciones — revisitar (~1-2h, futuro)
+
+Hoy aplicamos doble escritura: script incremental idempotente en `backend/db-mysql/scripts/` + espejo manual en `backend/db-mysql/aiven/NN_*.sql`. Decisión y razones en `backend/db-mysql/MIGRATIONS_POLICY.md`.
+
+Pendiente evaluar si conviene pasar al patrón **solo incrementales** (estilo Rails/Django/Flyway): `aiven/NN_*.sql` congelado en su estado inicial, todo cambio posterior solo en `scripts/`. Beneficios: una sola fuente de verdad, trazabilidad histórica, menos riesgo de ejecución accidental del install completo. Coste: el archivo base envejece y deja de ser un resumen panorámico legible del modelo.
+
+Cuando se decida abordarlo:
+
+1. Auditar todas las divergencias actuales entre `aiven/NN_*.sql` y la BD real (¿quedan cosas en la BD que no estén en el archivo? ¿al revés?).
+2. Decidir patrón final: híbrido actual / solo incrementales / herramienta (knex, dbmate, prisma migrate, flyway).
+3. Si se cambia: actualizar `MIGRATIONS_POLICY.md`, `INDEX.md`, `MIGRATION_GUIDE.md` y `README.md` de `backend/db-mysql/` en consecuencia.
+4. Si se introduce herramienta: migrar el histórico de `scripts/` al formato que pida y borrar la duplicación.
+
+---
+
 ## Untracked intencional (no tocar)
 
 `migration-nextjs-to-vite.md` y `react-query-doubts.md` en raíz son notas personales del usuario sobre análisis futuro de arquitectura/rendimiento (potencial migración Next→Vite, refactor React Query). Untracked a propósito mientras evolucionan. **No commitearlas, no borrarlas, no proponer moverlas.**

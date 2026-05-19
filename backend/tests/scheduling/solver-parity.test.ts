@@ -140,11 +140,15 @@ const PARITY_FIXTURES = [
   'F48-fixed-shift-with-fixed-days',
   'F49-presencia-only-no-fixed-days',
   'F50-multiple-employees-with-rules',
+  // F31 moved here (was INFEASIBLE) — cross-month tail of 6 N's is solvable
+  // once H4/H5 skip "doomed" windows whose virtual portion already exceeds
+  // the constraint. See SCHEDULING-DECISIONS-LOG entry 2026-05-20.
+  'F31-trailing-n-at-max',
+  'F52-cross-month-6-consecutive-work-tail',
 ]
 
 // Fixtures that are provably infeasible for the solver (coverage or hard constraints)
 const INFEASIBLE_FIXTURES = [
-  'F31-trailing-n-at-max',
   'F51-coverage-minimums-active',
 ]
 

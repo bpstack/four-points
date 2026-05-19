@@ -139,12 +139,16 @@ SOLVABLE_FIXTURES = {
     "F49-presencia-only-no-fixed-days",
     "F50-multiple-employees-with-rules",
     # F43 (T→M cross-month) es INVÁLIDO — el solver debe evitar esta transición
+    # F31 movido aquí desde INFEASIBLE — el tail de 6 N que tenía no es realmente
+    # infactible (su día 1 se fuerza a no-N por night_block; H5/H4 cross-month
+    # skipea ventanas "doomed" por el tail del mes anterior).
+    "F31-trailing-n-at-max",
+    "F52-cross-month-6-consecutive-work-tail",
 }
 
 # Fixtures que el solver DEBE rechazar (parámetros físicamente imposibles).
 # Sirven para verificar que el solver detecta correctamente la infactibilidad.
 INFEASIBLE_FIXTURES = {
-    "F31-trailing-n-at-max",          # EMP_01 con trailing_N=6 (=maxBlock) + nuevo bloque obligatorio = 12+ N's
     "F51-coverage-minimums-active",   # 3 empleados, cobertura requiere 5 staff/día
 }
 
