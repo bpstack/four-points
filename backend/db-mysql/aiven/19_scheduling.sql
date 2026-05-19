@@ -79,6 +79,8 @@ CREATE TABLE scheduling_employees (
   added_by CHAR(36) COLLATE utf8mb4_0900_ai_ci DEFAULT NULL COMMENT 'Usuario que lo añadió',
   notes VARCHAR(255) COLLATE utf8mb4_0900_ai_ci DEFAULT NULL COMMENT 'Notas',
   display_order INT NULL COMMENT 'Orden manual en las UIs de scheduling. NULL = sin orden, fallback alfabetico',
+  start_date DATE NULL COMMENT 'Fecha de alta efectiva en horarios. NULL = siempre activo.',
+  end_date DATE NULL COMMENT 'Fecha de baja en horarios. NULL = sin baja.',
 
   PRIMARY KEY (employee_id),
   KEY idx_added_at (added_at),
@@ -332,7 +334,8 @@ INSERT INTO scheduling_shifts (code, name, start_time, end_time, hours, color, i
 ('FO', 'Formación', NULL, NULL, 0.00, '#FEF9C3', 0, 1, 9),
 ('IT', 'Incapacidad Temporal', NULL, NULL, 0.00, '#FED7AA', 0, 1, 10),
 ('E', 'Enfermedad', NULL, NULL, 0.00, '#FECDD3', 0, 1, 11),
-('A', 'Ausencia Injustificada', NULL, NULL, 0.00, '#FCA5A5', 0, 0, 12);
+('A', 'Ausencia Injustificada', NULL, NULL, 0.00, '#FCA5A5', 0, 0, 12),
+('LI', 'Libre Disposición', NULL, NULL, 0.00, '#E5E7EB', 0, 1, 13);
 
 -- =========================================================
 -- NOTA: DATOS INICIALES DE CONTRATOS

@@ -83,6 +83,10 @@ db-mysql/
 | Fecha | Archivo | Descripción | Estado |
 |---|---|---|---|
 | 2026-04-25 | `20260425_create_scheduling_employee_requests.sql` | Nueva tabla `scheduling_employee_requests` — peticiones de turno de empleados (Fase 1 del solver). Referencia FK a `users(id)`. | ✅ local · ⏳ Aiven pendiente |
+| 2026-05-19 | `20260519_add_scheduling_employee_display_order.sql` | Columna `display_order` en `scheduling_employees` para reordenar manualmente la lista en las UIs de scheduling. NULL = fallback alfabético. Idempotente. | ✅ local · ✅ Aiven |
+| 2026-05-20 | `20260520_add_scheduling_employee_dates.sql` | Columnas `start_date` y `end_date` en `scheduling_employees` para modelar tenencias parciales (altas y bajas a mitad de año). NULL = activo sin restricción. Idempotente. | ✅ local · ✅ Aiven |
+| 2026-05-20 | `20260520_add_shift_LI.sql` | Nuevo código `LI` (Libre Disposición) en `scheduling_shifts`. Día libre extraordinario fuera de la rotación semanal. Idempotente (`INSERT IGNORE`). | ✅ local · ✅ Aiven |
+| 2026-05-20 | `20260520_insert_user_example.sql` | Usuario `Clara` (recepcionista, role_id=1, is_active=1) + entrada en `scheduling_employees` con `start_date=2026-01-01` / `end_date=2026-02-26`. Trabajó Ene-Feb 2026. Idempotente (`INSERT IGNORE`). | ✅ local · ✅ Aiven |
 
 ### Verificación (99)
 
@@ -113,6 +117,7 @@ mysql -h HOST -P PORT -u USER -p --ssl-ca=aiven/ca-certificate.pem < MASTER_INST
 
 - **Collation**: `utf8mb4_0900_ai_ci` (MySQL 8.0+)
 - SSL requerido para Aiven (ca-certificate.pem)
+- **Política de migraciones**: ver [`MIGRATIONS_POLICY.md`](./MIGRATIONS_POLICY.md). Resumen: cambios de schema → script incremental idempotente en `scripts/` + espejo en `aiven/NN_*.sql` + registro en la tabla "Migraciones incrementales" de este archivo. **No** ejecutar `MASTER_INSTALL.sql` ni los scripts numerados contra una BD con datos.
 
 ---
 
