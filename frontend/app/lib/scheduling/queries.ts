@@ -490,6 +490,17 @@ export const schedulingApi = {
     return apiClient.put(`${API_URL}/api/scheduling/employees`, { employeeIds })
   },
 
+  /**
+   * Reorder schedulable employees. The position in the array becomes the
+   * display_order value. Used to put managers on top and respect manual
+   * seniority in the scheduling grid, totals, dropdowns, etc.
+   */
+  setSchedulableEmployeesOrder: async (
+    orderedIds: string[]
+  ): Promise<{ success: boolean }> => {
+    return apiClient.patch(`${API_URL}/api/scheduling/employees/order`, { orderedIds })
+  },
+
   // ============================================
   // CONTRACTS
   // ============================================

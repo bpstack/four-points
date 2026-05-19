@@ -2,6 +2,7 @@
 
 import { useTranslations } from 'next-intl'
 import { useState } from 'react'
+import { FiInfo } from 'react-icons/fi'
 import { EmployeeTotals } from '../EmployeeTotals'
 
 export function TotalsTab() {
@@ -33,6 +34,11 @@ export function TotalsTab() {
             ))}
           </select>
         </div>
+      </div>
+
+      <div className="mb-3 flex items-center gap-2 px-3 py-2 rounded-md bg-info-bg/50 border border-info-border/30 text-xs text-fg-muted">
+        <FiInfo className="w-3.5 h-3.5 shrink-0 text-info" />
+        <span>{t('orderHint')}</span>
       </div>
 
       <EmployeeTotals year={selectedYear} />

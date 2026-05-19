@@ -47,6 +47,8 @@
     "testing": "Testing...",
     "all": "All",
     "none": "None",
+    "moveUp": "Move up",
+    "moveDown": "Move down",
     "addShift": "Add shift",
     "addRule": "Add rule",
     "newRequest": "New request",
@@ -222,13 +224,15 @@
       "title": "Employees for Scheduling",
       "subtitle": "Select employees who will participate in schedule generation",
       "selectedCount": "{selected} of {total} selected",
+      "selectEmployee": "Select employee",
       "active": "Active",
       "excluded": "Excluded"
     },
     "totals": {
       "title": "Annual Totals per Employee",
       "subtitle": "Summary of worked days, vacations and pending (published months only)",
-      "year": "Year:"
+      "year": "Year:",
+      "orderHint": "Row order is set from the Employees tab."
     },
     "general": {
       "staffingPerShift": "Staffing per Shift",
@@ -296,7 +300,8 @@
       "isPaid": "Is paid",
       "codeNameRequired": "Code and name are required",
       "namePlaceholder": "e.g., Morning, Afternoon, Night...",
-      "deleteConfirm": "Delete shift \"{name}\" ({code})?"
+      "deleteConfirm": "Delete shift \"{name}\" ({code})?",
+      "noShifts": "No shifts configured"
     },
     "rules": {
       "title": "Employee Rules",

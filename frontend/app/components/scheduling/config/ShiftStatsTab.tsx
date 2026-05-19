@@ -6,6 +6,7 @@ import { schedulingApi, schedulingKeys } from '@/app/lib/scheduling'
 import { SHIFT_STYLES } from '@/app/lib/scheduling'
 import { FiRefreshCw } from 'react-icons/fi'
 import type { ShiftStatsResponse } from '@/app/lib/scheduling'
+import { formatUsername } from '@/app/lib/helpers/user'
 
 const SHIFT_LABEL: Record<string, string> = {
   M: 'Mañana',
@@ -130,7 +131,7 @@ function ShiftStatsTable({ data }: { data: ShiftStatsResponse }) {
                 `}
               >
                 <td className="sticky left-0 z-10 px-3 py-2 font-medium text-fg border-r border-border bg-inherit whitespace-nowrap">
-                  {emp.employeeName}
+                  {formatUsername(emp.employeeName)}
                 </td>
                 {shiftCodes.map((code) => {
                   const count = emp.counts[code] ?? 0

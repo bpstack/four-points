@@ -1244,7 +1244,7 @@ export async function getSchedulableEmployees(): Promise<SchedulableEmployee[]> 
      FROM users u
      INNER JOIN scheduling_employees se ON u.id = se.employee_id
      WHERE u.is_active = 1
-     ORDER BY u.username`
+     ORDER BY se.display_order IS NULL, se.display_order, u.username`
   )
   return rows
 }
@@ -1257,16 +1257,16 @@ export async function getAllEmployeesWithSchedulableStatus(): Promise<
   SchedulableEmployeeWithStatus[]
 > {
   const [rows] = await db.query<SchedulableEmployeeWithStatus[]>(
-    `SELECT 
-       u.id, 
-       u.username, 
+    `SELECT
+       u.id,
+       u.username,
        u.role_id,
        CASE WHEN se.employee_id IS NOT NULL THEN TRUE ELSE FALSE END as is_schedulable,
        se.added_at
      FROM users u
      LEFT JOIN scheduling_employees se ON u.id = se.employee_id
      WHERE u.is_active = 1
-     ORDER BY u.username`
+     ORDER BY se.display_order IS NULL, se.display_order, u.username`
   )
   return rows
 }
@@ -1286,6 +1286,33 @@ export async function addSchedulableEmployee(employeeId: string, addedBy?: strin
  */
 export async function removeSchedulableEmployee(employeeId: string): Promise<void> {
   await db.query(`DELETE FROM scheduling_employees WHERE employee_id = ?`, [employeeId])
+}
+
+/**
+ * Update the manual display_order for a batch of schedulable employees.
+ * Pass the full ordered list — the order index in the array becomes the value.
+ * Employees not present in the payload are left untouched.
+ */
+export async function setSchedulableEmployeesOrder(
+  orderedIds: string[]
+): Promise<void> {
+  if (orderedIds.length === 0) return
+  const conn = await db.getConnection()
+  try {
+    await conn.beginTransaction()
+    for (let i = 0; i < orderedIds.length; i++) {
+      await conn.query(
+        `UPDATE scheduling_employees SET display_order = ? WHERE employee_id = ?`,
+        [i, orderedIds[i]]
+      )
+    }
+    await conn.commit()
+  } catch (err) {
+    await conn.rollback()
+    throw err
+  } finally {
+    conn.release()
+  }
 }
 
 /**
@@ -1318,7 +1345,7 @@ export async function getContractsByYear(
      JOIN users u ON c.employee_id = u.id
      JOIN scheduling_employees se ON c.employee_id = se.employee_id
      WHERE c.year = ?
-     ORDER BY u.username`,
+     ORDER BY se.display_order IS NULL, se.display_order, u.username`,
     [year]
   )
   return rows

@@ -47,6 +47,8 @@
     "testing": "Probando...",
     "all": "Todos",
     "none": "Ninguno",
+    "moveUp": "Subir",
+    "moveDown": "Bajar",
     "addShift": "Agregar turno",
     "addRule": "Agregar regla",
     "newRequest": "Nueva petición",
@@ -224,13 +226,15 @@
       "title": "Empleados para Horarios",
       "subtitle": "Selecciona los empleados que participarán en la generación de horarios",
       "selectedCount": "{selected} de {total} seleccionados",
+      "selectEmployee": "Seleccionar empleado",
       "active": "Activo",
       "excluded": "Excluido"
     },
     "totals": {
       "title": "Totales Anuales por Empleado",
       "subtitle": "Resumen de días trabajados, vacaciones y pendientes (solo meses publicados)",
-      "year": "Año:"
+      "year": "Año:",
+      "orderHint": "El orden de la lista se establece desde la pestaña Empleados."
     },
     "general": {
       "staffingPerShift": "Dotación por Turno",
@@ -298,7 +302,8 @@
       "isPaid": "Es pagado",
       "codeNameRequired": "Código y nombre son requeridos",
       "namePlaceholder": "Ej: Mañana, Tarde, Noche...",
-      "deleteConfirm": "¿Eliminar turno \"{name}\" ({code})?"
+      "deleteConfirm": "¿Eliminar turno \"{name}\" ({code})?",
+      "noShifts": "No hay turnos configurados"
     },
     "rules": {
       "title": "Reglas de Empleados",

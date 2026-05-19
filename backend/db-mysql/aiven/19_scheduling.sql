@@ -78,9 +78,11 @@ CREATE TABLE scheduling_employees (
   added_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Fecha de alta en scheduling',
   added_by CHAR(36) COLLATE utf8mb4_0900_ai_ci DEFAULT NULL COMMENT 'Usuario que lo añadió',
   notes VARCHAR(255) COLLATE utf8mb4_0900_ai_ci DEFAULT NULL COMMENT 'Notas',
-  
+  display_order INT NULL COMMENT 'Orden manual en las UIs de scheduling. NULL = sin orden, fallback alfabetico',
+
   PRIMARY KEY (employee_id),
   KEY idx_added_at (added_at),
+  KEY idx_scheduling_employees_display_order (display_order),
   CONSTRAINT fk_sched_emp_user FOREIGN KEY (employee_id) REFERENCES users (id) ON DELETE CASCADE,
   CONSTRAINT fk_sched_emp_added_by FOREIGN KEY (added_by) REFERENCES users (id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Empleados que participan en horarios';

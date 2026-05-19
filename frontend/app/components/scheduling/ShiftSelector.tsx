@@ -7,6 +7,7 @@ import type { SchedulingShift } from '@/app/lib/scheduling'
 import { getShiftClasses } from '@/app/lib/scheduling'
 import { FiX } from 'react-icons/fi'
 import { useTranslations } from 'next-intl'
+import { formatUsername } from '@/app/lib/helpers/user'
 
 interface ShiftSelectorProps {
   shifts: SchedulingShift[]
@@ -86,7 +87,7 @@ export function ShiftSelector({
       {/* Header */}
       <div className="px-2.5 py-1.5 bg-surface border-b border-border flex items-center justify-between">
         <div>
-          <p className="text-xs font-medium text-fg">{employeeName}</p>
+          <p className="text-xs font-medium text-fg">{formatUsername(employeeName)}</p>
           <p className="text-[10px] text-fg-subtle">
             {subtitle ?? (dayNumber !== undefined ? t('day', { day: dayNumber }) : '')}
           </p>

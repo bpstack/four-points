@@ -51,6 +51,7 @@ import {
   addSchedulableEmployee,
   removeSchedulableEmployee,
   setSchedulableEmployees,
+  setSchedulableEmployeesOrder,
   // Contracts
   getContractsByYear,
   getContractByEmployeeYear,
@@ -234,6 +235,10 @@ router.delete('/employees/:employeeId', isAdmin, removeSchedulableEmployee)
 
 // PUT - Set all schedulable employees (replaces list) (admin only)
 router.put('/employees', isAdmin, setSchedulableEmployees)
+
+// PATCH - Reorder schedulable employees (admin only)
+// Body: { orderedIds: string[] } — array of employee IDs in desired order
+router.patch('/employees/order', isAdmin, setSchedulableEmployeesOrder)
 
 // ========================================
 // CONTRACTS ROUTES

@@ -10,6 +10,7 @@ import { FiPlus, FiTrash2, FiEdit, FiX, FiCheck, FiCalendar } from 'react-icons/
 import { Checkbox } from '@/app/ui/components'
 import DatePickerInput from '@/app/ui/calendar/DatePickerInput'
 import { ApiError } from '@/app/lib/apiClient'
+import { formatUsername } from '@/app/lib/helpers/user'
 import { formatLocalDate } from './utils/date'
 
 interface Employee {
@@ -227,7 +228,7 @@ export function RequestsTab() {
             <tbody>
               {requests.map((request) => (
                 <tr key={request.id} className="border-b border-border hover:bg-surface-hover/50">
-                  <td className="py-2 px-3 text-fg">{request.employeeName}</td>
+                  <td className="py-2 px-3 text-fg">{formatUsername(request.employeeName)}</td>
                   <td className="py-2 px-3">
                     {request.constraintType === 'vacation' ? (
                       <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">
@@ -591,7 +592,7 @@ function AddRequestModal({
               <option value="">{t('selectEmployee')}</option>
               {employees.map((emp) => (
                 <option key={emp.id} value={emp.id}>
-                  {emp.username}
+                  {formatUsername(emp.username)}
                 </option>
               ))}
             </select>

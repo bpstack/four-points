@@ -7,6 +7,7 @@ import { useRef, useEffect, useCallback } from 'react'
 import { FiLock } from 'react-icons/fi'
 import type { SchedulingMonthFull, SchedulingShift, DayOfWeek } from '@/app/lib/scheduling'
 import { getShiftClasses } from '@/app/lib/scheduling'
+import { formatUsername } from '@/app/lib/helpers/user'
 
 // ============================================================
 // TYPES
@@ -299,9 +300,9 @@ export function ScheduleGrid({
                     >
                       <span
                         className="block truncate px-2 py-1 text-[10px] font-medium text-fg md:px-3 md:py-1.5 md:text-xs"
-                        title={employee.name}
+                        title={formatUsername(employee.name)}
                       >
-                        {employee.name}
+                        {formatUsername(employee.name)}
                       </span>
                     </td>
 

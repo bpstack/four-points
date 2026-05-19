@@ -1501,6 +1501,25 @@ export async function removeSchedulableEmployee(req: Request, res: Response): Pr
   }
 }
 
+export async function setSchedulableEmployeesOrder(
+  req: Request,
+  res: Response
+): Promise<void> {
+  try {
+    const { orderedIds } = req.body
+    if (!Array.isArray(orderedIds) || orderedIds.some((id) => typeof id !== 'string')) {
+      res.status(400).json({ error: 'orderedIds must be an array of string IDs' })
+      return
+    }
+
+    await repo.setSchedulableEmployeesOrder(orderedIds)
+    res.json({ success: true, message: 'Orden de empleados actualizado' })
+  } catch (err) {
+    logger.error({ err }, 'Error updating schedulable employees order')
+    res.status(500).json({ error: 'Error al actualizar orden de empleados' })
+  }
+}
+
 export async function setSchedulableEmployees(req: Request, res: Response): Promise<void> {
   try {
     const { employeeIds } = req.body

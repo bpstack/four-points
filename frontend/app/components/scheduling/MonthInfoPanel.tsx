@@ -5,6 +5,7 @@
 
 import { useQuery } from '@tanstack/react-query'
 import { schedulingApi, schedulingKeys } from '@/app/lib/scheduling'
+import { formatUsername } from '@/app/lib/helpers/user'
 import { FiInfo, FiCalendar, FiUsers } from 'react-icons/fi'
 
 interface MonthInfoPanelProps {
@@ -76,7 +77,7 @@ export function MonthInfoPanel({ monthId }: MonthInfoPanelProps) {
             <div className="space-y-1.5 pl-5">
               {requests.slice(0, 5).map((req) => (
                 <div key={req.id} className="text-xs text-fg-muted leading-relaxed">
-                  <span className="font-medium">{req.employeeName}:</span> {req.typeLabel} (
+                  <span className="font-medium">{formatUsername(req.employeeName)}:</span> {req.typeLabel} (
                   {formatDate(req.startDate)} - {formatDate(req.endDate)})
                   {req.notes && (
                     <span className="text-fg-subtle block sm:inline sm:ml-1 mt-0.5 sm:mt-0">
@@ -104,7 +105,7 @@ export function MonthInfoPanel({ monthId }: MonthInfoPanelProps) {
             <div className="space-y-1.5 pl-5">
               {employeeRules.map((emp) => (
                 <div key={emp.employeeId} className="text-xs text-fg-muted leading-relaxed">
-                  <span className="font-medium">{emp.employeeName}:</span> {emp.rules.join(', ')}
+                  <span className="font-medium">{formatUsername(emp.employeeName)}:</span> {emp.rules.join(', ')}
                 </div>
               ))}
             </div>

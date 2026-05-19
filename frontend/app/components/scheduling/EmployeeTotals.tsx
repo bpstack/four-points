@@ -7,6 +7,7 @@ import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { schedulingApi, schedulingKeys } from '@/app/lib/scheduling'
 import type { EmployeeContract, UpdateContractDto } from '@/app/lib/scheduling'
+import { formatUsername } from '@/app/lib/helpers/user'
 import { FiRefreshCw, FiSave, FiPlus, FiCalendar } from 'react-icons/fi'
 import toast from 'react-hot-toast'
 
@@ -230,7 +231,9 @@ export function EmployeeTotals({ year }: EmployeeTotalsProps) {
           <div className="space-y-2">
             {employeesWithoutContracts.map((emp) => (
               <div key={emp.id} className="flex items-center gap-3 bg-surface rounded px-3 py-2">
-                <span className="flex-1 text-sm text-fg font-medium">{emp.username}</span>
+                <span className="flex-1 text-sm text-fg font-medium">
+                  {formatUsername(emp.username)}
+                </span>
                 <div className="flex items-center gap-2">
                   <div className="relative">
                     <FiCalendar className="absolute left-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-fg-subtle" />
@@ -307,7 +310,7 @@ export function EmployeeTotals({ year }: EmployeeTotalsProps) {
               ) : (
                 contracts.map((contract) => (
                   <tr key={contract.id} className="hover:bg-surface-hover">
-                    <td className="px-3 py-1 font-medium text-fg">{contract.employeeName}</td>
+                    <td className="px-3 py-1 font-medium text-fg">{formatUsername(contract.employeeName)}</td>
                     <td className="px-1 py-1">
                       <input
                         type="number"
@@ -437,7 +440,7 @@ export function EmployeeTotals({ year }: EmployeeTotalsProps) {
                     key={emp.employeeId}
                     className="hover:bg-emerald-50/60 dark:hover:bg-emerald-900/10"
                   >
-                    <td className="px-3 py-2 font-medium text-fg">{emp.employeeName}</td>
+                    <td className="px-3 py-2 font-medium text-fg">{formatUsername(emp.employeeName)}</td>
                     <td className="px-3 py-2 text-center text-fg">
                       {emp.disfrutados.diasTrabajados}
                     </td>
@@ -513,7 +516,7 @@ export function EmployeeTotals({ year }: EmployeeTotalsProps) {
                     key={emp.employeeId}
                     className="hover:bg-amber-50/60 dark:hover:bg-amber-900/10"
                   >
-                    <td className="px-3 py-2 font-medium text-fg">{emp.employeeName}</td>
+                    <td className="px-3 py-2 font-medium text-fg">{formatUsername(emp.employeeName)}</td>
                     <td
                       className={`px-3 py-2 text-center ${emp.pendiente.diasATrabaja < 0 ? 'text-red-600 dark:text-red-400' : 'text-fg'}`}
                     >

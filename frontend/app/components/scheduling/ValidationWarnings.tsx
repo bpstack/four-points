@@ -14,6 +14,7 @@ import {
   FiChevronUp,
 } from 'react-icons/fi'
 import type { GenerationWarning } from '@/app/lib/scheduling/types'
+import { formatUsername } from '@/app/lib/helpers/user'
 
 interface ValidationWarningsProps {
   warnings: GenerationWarning[]
@@ -158,7 +159,7 @@ export function ValidationWarnings({ warnings, onDismiss }: ValidationWarningsPr
                         </span>
                       )}
                       {warning.employeeName && (
-                        <span className="text-xs text-fg-subtle">• {warning.employeeName}</span>
+                        <span className="text-xs text-fg-subtle">• {formatUsername(warning.employeeName)}</span>
                       )}
                     </div>
                   </div>

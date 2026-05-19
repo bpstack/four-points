@@ -13,6 +13,7 @@ import type {
 import toast from 'react-hot-toast'
 import { FiPlus, FiTrash2, FiEdit2, FiX, FiUsers } from 'react-icons/fi'
 import { Checkbox, ConfirmDialog } from '@/app/ui/components'
+import { formatUsername } from '@/app/lib/helpers/user'
 
 const RULE_TYPE_OPTIONS: { value: EmployeeRuleType; label: string; description: string }[] = [
   {
@@ -81,9 +82,9 @@ export function RulesTab() {
     : rules
 
   const getEmployeeName = (employeeId: string, rule?: SchedulingEmployeeRule) => {
-    if (rule?.employeeName) return rule.employeeName
+    if (rule?.employeeName) return formatUsername(rule.employeeName)
     const emp = employees.find((e) => e.id === employeeId)
-    return emp?.username || employeeId
+    return formatUsername(emp?.username || employeeId)
   }
 
   const getRuleTypeLabel = (ruleType: EmployeeRuleType) => {
@@ -169,7 +170,7 @@ export function RulesTab() {
             <option value="">{t('allEmployees')}</option>
             {employees.map((emp) => (
               <option key={emp.id} value={emp.id}>
-                {emp.username}
+                {formatUsername(emp.username)}
               </option>
             ))}
           </select>
@@ -382,10 +383,20 @@ function RuleModal({ rule, employees, onClose }: RuleModalProps) {
   const getValueInputForType = () => {
     switch (ruleType) {
       case 'shift_priority':
-      case 'fixed_shift':
+      case 'fixed_shift': {
+        // shift_priority only makes sense for rotating shifts (M/T/N).
+        // fixed_shift also supports P (Presencia, manager) and PI (Apoyo Interno).
+        const SHIFT_LABELS: Record<string, string> = {
+          M: 'Mañana',
+          T: 'Tarde',
+          N: 'Noche',
+          P: 'Presencia',
+          PI: 'Apoyo Interno',
+        }
+        const shifts = ruleType === 'fixed_shift' ? ['M', 'T', 'N', 'P', 'PI'] : ['M', 'T', 'N']
         return (
-          <div className="flex gap-2">
-            {['M', 'T', 'N'].map((shift) => (
+          <div className="flex flex-wrap gap-2">
+            {shifts.map((shift) => (
               <button
                 key={shift}
                 type="button"
@@ -396,11 +407,12 @@ function RuleModal({ rule, employees, onClose }: RuleModalProps) {
                     : 'border-border text-fg hover:bg-surface-hover'
                 }`}
               >
-                {shift === 'M' ? 'Mañana' : shift === 'T' ? 'Tarde' : 'Noche'}
+                {SHIFT_LABELS[shift]}
               </button>
             ))}
           </div>
         )
+      }
       case 'fixed_days':
         return (
           <div className="flex flex-wrap gap-2">

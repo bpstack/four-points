@@ -4,8 +4,9 @@ import { useTranslations } from 'next-intl'
 import { useState, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { schedulingApi, schedulingKeys } from '@/app/lib/scheduling'
+import { formatUsername } from '@/app/lib/helpers/user'
 import toast from 'react-hot-toast'
-import { FiSave, FiUsers } from 'react-icons/fi'
+import { FiSave, FiUsers, FiChevronUp, FiChevronDown } from 'react-icons/fi'
 import { Checkbox } from '@/app/ui/components'
 
 interface EmployeeWithStatus {
@@ -75,8 +76,33 @@ export function EmployeesTab() {
     },
   })
 
+  const reorderMutation = useMutation({
+    mutationFn: (ids: string[]) => schedulingApi.setSchedulableEmployeesOrder(ids),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: schedulingKeys.employeesAll() })
+      queryClient.invalidateQueries({ queryKey: schedulingKeys.employees() })
+      queryClient.invalidateQueries({ queryKey: schedulingKeys.all })
+    },
+    onError: () => {
+      toast.error(tToasts('saveError'))
+    },
+  })
+
   const handleSave = () => {
     saveMutation.mutate(Array.from(currentSelected))
+  }
+
+  // Reorder helpers: only schedulable employees that are persisted in the DB
+  // get manual ordering — newly-selected (unsaved) ones go to the end of the
+  // alpha tail until the user saves the selection.
+  const schedulableIds = employees.filter((e) => e.is_schedulable).map((e) => e.id)
+
+  const moveSchedulable = (index: number, direction: -1 | 1) => {
+    const next = [...schedulableIds]
+    const target = index + direction
+    if (target < 0 || target >= next.length) return
+    ;[next[index], next[target]] = [next[target], next[index]]
+    reorderMutation.mutate(next)
   }
 
   if (isLoading || selectedIds === null) {
@@ -120,35 +146,67 @@ export function EmployeesTab() {
 
       <div className="border border-border rounded-md overflow-hidden">
         <div>
-          {employees.map((employee, index) => (
-            <div
-              key={employee.id}
-              className={`flex items-center gap-3 px-3 py-2 hover:bg-surface-hover/50 cursor-pointer ${
-                index !== employees.length - 1 ? 'border-b border-border' : ''
-              }`}
-              onClick={() => toggleEmployee(employee.id)}
-            >
-              <Checkbox
-                checked={currentSelected.has(employee.id)}
-                onCheckedChange={() => toggleEmployee(employee.id)}
-                hideLabel
-                label={`${tConfig('employees.selectEmployee')} ${employee.username}`}
-              />
-              <div className="flex-1 min-w-0">
-                <span className="text-sm text-fg">{employee.username}</span>
+          {employees.map((employee, index) => {
+            const orderIndex = schedulableIds.indexOf(employee.id)
+            const canMoveUp = orderIndex > 0
+            const canMoveDown = orderIndex >= 0 && orderIndex < schedulableIds.length - 1
+            return (
+              <div
+                key={employee.id}
+                className={`flex items-center gap-3 px-3 py-2 hover:bg-surface-hover/50 cursor-pointer ${
+                  index !== employees.length - 1 ? 'border-b border-border' : ''
+                }`}
+                onClick={() => toggleEmployee(employee.id)}
+              >
+                <div onClick={(e) => e.stopPropagation()}>
+                  <Checkbox
+                    checked={currentSelected.has(employee.id)}
+                    onCheckedChange={() => toggleEmployee(employee.id)}
+                    hideLabel
+                    label={`${tConfig('employees.selectEmployee')} ${formatUsername(employee.username)}`}
+                  />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <span className="text-sm text-fg">{formatUsername(employee.username)}</span>
+                </div>
+                {employee.is_schedulable && !hasChanges && (
+                  <div
+                    className="flex items-center gap-0.5"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => moveSchedulable(orderIndex, -1)}
+                      disabled={!canMoveUp || reorderMutation.isPending}
+                      className="inline-flex items-center justify-center w-6 h-6 text-fg-muted hover:text-fg hover:bg-surface-hover rounded disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+                      title={tActions('moveUp')}
+                    >
+                      <FiChevronUp className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => moveSchedulable(orderIndex, 1)}
+                      disabled={!canMoveDown || reorderMutation.isPending}
+                      className="inline-flex items-center justify-center w-6 h-6 text-fg-muted hover:text-fg hover:bg-surface-hover rounded disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+                      title={tActions('moveDown')}
+                    >
+                      <FiChevronDown className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                )}
+                {!hasChanges &&
+                  (employee.is_schedulable ? (
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
+                      {tConfig('employees.active')}
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-surface-sunken text-fg-muted">
+                      {tConfig('employees.excluded')}
+                    </span>
+                  ))}
               </div>
-              {!hasChanges &&
-                (employee.is_schedulable ? (
-                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
-                    {tConfig('employees.active')}
-                  </span>
-                ) : (
-                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-surface-sunken text-fg-muted">
-                    {tConfig('employees.excluded')}
-                  </span>
-                ))}
-            </div>
-          ))}
+            )
+          })}
         </div>
       </div>
 
