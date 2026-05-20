@@ -1,54 +1,47 @@
-# Resumen de Archivos - docs/backend/
+# docs/backend/ — Índice de Documentación
+
+## Estructura actual
 
 ```
 docs/backend/
+├── README.md                          ← este archivo
+│
 ├── auth/
-│   ├── session-authentication.md      ← JWT→Sessions + AUTH.md
-│   └── README.md
+│   └── productionAuthSetup.md         ← cookies HttpOnly en producción
 │
 ├── bff/
-│   ├── server-setup.md                ← BFF.md + setup
-│   ├── cors-configuration.md          ← CORS
-│   └── README.md
+│   └── BFF.md                         ← arquitectura backend-for-frontend
 │
-├── database/
-│   ├── index.md                       ← INDEX.md
-│   ├── migration-guide.md             ← MIGRATION_GUIDE.md
-│   ├── parking-system.md              ← Parking docs
-│   └── README.md
+├── config/
+│   └── cors-configuration.md          ← configuración CORS (index.ts)
 │
-├── env_bars/
-│   ├── aiven-setup.md                 ← MySQL Cloud
-│   ├── database-configuration.md      ← Dual BD config
-│   ├── environment-variables.md       ← ENV_VARS.md + variables
-│   └── README.md
+├── enviroments/
+│   └── environment-variables.md       ← variables de entorno (.env)
+│
+├── scheduling/
+│   ├── README.md                      ← arquitectura completa del módulo
+│   └── solver-setup.md                ← daemon Python, OR-Tools, tests
 │
 ├── security/
-│   ├── database-security.md           ← Git + SECURITY.md
-│   ├── security-plan.md               ← Plan de seguridad
-│   └── README.md
+│   └── security-implementation.md     ← JWT, roleCheck, middlewares
 │
-└── testing/
-    ├── README.md                      ← testingINFO.md
-    ├── test-results-latest.md         ← latest.txt
-    └── README.md
+├── testing/
+│   ├── README.md                      ← guía de tests y comandos
+│   ├── TESTING-REALITY-CHECK.md       ← qué testear y qué no
+│   └── SECURITY-FINDINGS.md          ← vulnerabilidades detectadas
+│
+└── pdfPROXY.md                        ← proxy de PDFs (backoffice)
 ```
 
-## Resumen de Movimientos
+## Fuente de verdad para DB
 
-| Archivo Original | Nueva Ubicación |
-|------------------|-----------------|
-| `backend/docs/AUTH.md` | `docs/backend/auth/session-authentication.md` |
-| `backend/docs/BFF.md` | `docs/backend/bff/server-setup.md` |
-| `backend/docs/ENV_VARS.md` | `docs/backend/env_bars/environment-variables.md` |
-| `backend/docs/SECURITY.md` | `docs/backend/security/security-plan.md` |
-| `backend/docs/testing/testingINFO.md` | `docs/backend/testing/README.md` |
-| `backend/docs/testing/.test-results/latest.txt` | `docs/backend/testing/test-results-latest.md` |
+La documentación de base de datos **no** está en `docs/backend/`. Está directamente en:
 
-## Archivos Integrados en Documentación Existente
-
-- `backend/README.md` → `auth/session-authentication.md` + `bff/server-setup.md`
-- `backend/db-mysql/README.md` → `database/parking-system.md`
-- `backend/db-mysql/INDEX.md` → `database/index.md`
-- `backend/db-mysql/MIGRATION_GUIDE.md` → `database/migration-guide.md`
-- `backend/db-mysql/aiven/aiven-conexion.md` → `env_bars/aiven-setup.md` + `env_bars/database-configuration.md` + `bff/cors-configuration.md`
+```
+backend/db-mysql/
+├── INDEX.md               ← índice de todas las tablas
+├── MIGRATION_GUIDE.md     ← cómo aplicar migraciones
+├── MIGRATIONS_POLICY.md   ← política de scripts incrementales
+├── scripts/               ← scripts incrementales (post-instalación)
+└── aiven/                 ← scripts base de instalación completa
+```

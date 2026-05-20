@@ -134,8 +134,8 @@ Cuando se excede el límite, el servidor responde con:
 import { loginLimiter, passwordChangeLimiter, profileUpdateLimiter } from '../middlewares/rateLimiter.js'
 
 router.post('/login', loginLimiter, loginController)
-router.patch('/me/password', authenticateSession, passwordChangeLimiter, updatePasswordController)
-router.patch('/me/profile', authenticateSession, profileUpdateLimiter, updateProfileController)
+router.patch('/me/password', authenticateToken, passwordChangeLimiter, updatePasswordController)
+router.patch('/me/profile', authenticateToken, profileUpdateLimiter, updateProfileController)
 ```
 
 ---
@@ -234,8 +234,9 @@ export async function loginController(req, res) {
     const { username, password } = req.body
     const user = await UserRepository.verifyLogin(username, password)
     
-    // Crear sesión
-    req.session.user = { id: user.id, username: user.username, role: user.role }
+    // Generar JWT y setear cookies HttpOnly
+    const { accessToken, refreshToken } = generateTokens(user)
+    setAuthCookies(res, accessToken, refreshToken)
     
     logger.info(`[AUTH] User logged in successfully: ${username}`)
     
@@ -511,39 +512,6 @@ const cookieOptions: CookieOptions = {
 
 **Estado actual:** Configuración B (Same-Site / `sameSite: 'lax'`)
 
-### Configuración de Sesiones
-
-**Archivo:** `backend/config/sessionConfig.js`
-
-```typescript
-import session from 'express-session'
-import MySQLStoreFactory from 'express-mysql-session'
-
-const MySQLStore = MySQLStoreFactory(session)
-
-export const sessionConfig = {
-  key: 'hotel_session',
-  secret: process.env.SESSION_SECRET,
-  store: new MySQLStore({
-    host: process.env.DB_HOST,
-    port: process.env.DB_PORT,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME,
-    createDatabaseTable: true,
-  }),
-  resave: false,
-  saveUninitialized: false,
-  cookie: {
-    httpOnly: true,
-    maxAge: 8 * 60 * 60 * 1000, // 8 horas
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
-  },
-  rolling: true, // Extiende sesión con actividad
-}
-```
-
 ---
 
 ## Configuración de Git y Base de Datos
@@ -809,8 +777,7 @@ Tras 3 intentos fallidos, mostrar CAPTCHA antes del 4to intento.
 
 ```
 backend/middlewares/
-├── authenticateSession.ts    # Middleware de autenticación
-├── authenticateToken.ts      # Middleware legacy JWT
+├── authenticateToken.ts      # Middleware JWT (access_token cookie / Bearer header)
 ├── roleCheck.ts              # Control de acceso por roles
 ├── demoRestriction.ts        # Restricciones para demo
 └── rateLimiter.ts            # Rate limiting
@@ -820,8 +787,7 @@ backend/validations/auth/
 └── logbook-validation.ts     # Validaciones de logbook
 
 backend/repositories/auth/
-├── user-repository.ts        # Repositorio de usuarios
-└── session-repository.ts     # Repositorio de sesiones
+└── user-repository.ts        # Repositorio de usuarios
 
 backend/controllers/auth/
 ├── auth-controllers.ts       # Controladores de auth
@@ -829,14 +795,13 @@ backend/controllers/auth/
 
 backend/config/
 ├── db.ts                     # Conexión MySQL
-├── sessionConfig.js          # Configuración de sesiones
 └── certs/                    # Certificados SSL (Aiven)
 
 backend/routes/auth/
 └── auth-routes.ts            # Rutas de autenticación
 
 backend/package.json
-└── dependencies: express-rate-limit, bcrypt, express-session, express-mysql-session
+└── dependencies: express-rate-limit, bcrypt, jsonwebtoken
 ```
 
 ### Frontend
@@ -886,8 +851,7 @@ backend/db-mysql/aiven/
 
 ### Documentación Relacionada
 
-- `auth/session-authentication.md` - Migración JWT→Sessions
-- `database/migration-guide.md` - Guía de migración de BD
+- `auth/productionAuthSetup.md` - Arquitectura de autenticación y deploy
 - `testing/README.md` - Documentación de testing
 
 ---

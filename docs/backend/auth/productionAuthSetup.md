@@ -1,6 +1,6 @@
 # Sistema de Autenticación Four-Points
 
-> **Actualizado**: Diciembre 2024
+> **Actualizado**: Diciembre 2024 (revisado Mayo 2026)
 > **Estado**: FUNCIONAL Y PROBADO
 > **Dominio**: four-points.stackbp.es
 
@@ -383,18 +383,18 @@ export const excludeMantenimiento = (req, res, next) => {
 En desarrollo, el sistema usa:
 
 - Backend: `http://localhost:4000`
-- Tokens en `localStorage` (más fácil para debugging)
-- Cookies sin `domain` (solo localhost)
-
-Para probar producción localmente:
+- Cookies HttpOnly sin atributo `domain` (scope solo a localhost)
+- El frontend llama directamente al backend en `localhost:4000` (sin proxy)
 
 ```bash
-# Backend
-NODE_ENV=production pnpm dev
+# Iniciar backend local
+cd backend && pnpm dev:local
 
-# Frontend
-NODE_ENV=production pnpm dev
+# Iniciar frontend
+cd frontend && pnpm dev
 ```
+
+> **Nota**: Los tokens siempre viajan en HttpOnly cookies, tanto en local como en producción. No se usa `localStorage` en ningún entorno.
 
 ---
 

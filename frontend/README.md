@@ -5,8 +5,8 @@
 **[Live Demo](https://four-points.stackbp.es)**
 
 ![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=flat&logo=typescript&logoColor=white)
-![Next.js](https://img.shields.io/badge/Next.js_16-black?style=flat&logo=next.js&logoColor=white)
-![React](https://img.shields.io/badge/React_19-61DAFB?style=flat&logo=react&logoColor=black)
+![Next.js](https://img.shields.io/badge/Next.js_14-black?style=flat&logo=next.js&logoColor=white)
+![React](https://img.shields.io/badge/React_18-61DAFB?style=flat&logo=react&logoColor=black)
 ![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=flat&logo=tailwind-css&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-green.svg)
 
@@ -39,7 +39,7 @@ A comprehensive, full-stack **Hotel Management System** designed for real-world 
 
 | Technology      | Version | Purpose                                  |
 | --------------- | ------- | ---------------------------------------- |
-| **Next.js**     | 16.0.8  | React framework (App Router + Turbopack) |
+| **Next.js**     | 14      | React framework (App Router + Turbopack) |
 | **React**       | 19      | UI library (latest)                      |
 | **TypeScript**  | 5.7.3   | Type-safe development                    |
 | **TailwindCSS** | 3.4.17  | Utility-first styling                    |
@@ -100,10 +100,7 @@ A comprehensive, full-stack **Hotel Management System** designed for real-world 
 
 ### Authentication
 
-| Technology    | Version       | Purpose                        |
-| ------------- | ------------- | ------------------------------ |
-| **bcrypt**    | 5.1.1         | Password hashing (client-side) |
-| **next-auth** | 5.0.0-beta.25 | Authentication (optional)      |
+Authentication is handled entirely by the **backend** via JWT tokens in HttpOnly cookies. The frontend has no client-side password hashing — `bcrypt` and `next-auth` are not used.
 
 ### Dev Dependencies
 
@@ -676,11 +673,9 @@ export default async function Page() {
 | **Messaging**      | Internal communication system with direct messages and group chats                                                    |
 | **Notifications**  | Multi-module alert system with priority levels, scheduled delivery, email integration                                 |
 
-### Schedule Module (In Development)
+### Schedule Module
 
-> Currently being developed on a separate branch
-
-Automated staff scheduling system featuring a **hybrid generation engine** that combines a custom algorithm with optional AI optimization.
+Staff scheduling system with a CP-SAT solver (Google OR-Tools) for automated monthly schedule generation, real-time validation, constraint management, and PDF export. See `docs/backend/scheduling/README.md`.
 
 ### Special Features
 
@@ -865,10 +860,7 @@ NEXT_PUBLIC_DEMO_MODE=true
 
 ### Demo Credentials
 
-```
-Username: demo
-Password: demo987654
-```
+> **Note:** The demo user is currently **disabled**. Contact the administrator to enable it for a demo session.
 
 ---
 

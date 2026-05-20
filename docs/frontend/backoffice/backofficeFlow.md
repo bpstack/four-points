@@ -44,14 +44,15 @@ Desde el tab "Pendientes":
 **Ejemplo:** Si estamos en Diciembre 2025, buscara facturas de Noviembre 2025
 **Solucion:** Si necesitas cerrar un mes especifico, el sistema usa automaticamente el mes anterior
 
-### 3. **MOCK DATA activo en PaidInvoicesTab**
-**ATENCION - PROBLEMA CRITICO:**
-En `PaidInvoicesTab.tsx` linea 55:
+### 3. **Código mock en PaidInvoicesTab (inactivo)**
+El tab "Pagadas" tiene un bloque de datos de prueba (~250 líneas) con el comentario `DELETE BEFORE PRODUCTION`. El flag está desactivado:
+
 ```typescript
-const USE_MOCK_DATA = true // SET TO FALSE FOR PRODUCTION
+// PaidInvoicesTab.tsx — línea 288
+const USE_MOCK_DATA = false // SET TO FALSE FOR PRODUCTION
 ```
-**Esto hace que el tab "Pagadas" muestre datos FALSOS, no tus facturas reales.**
-**Solucion:** Cambiar a `false` antes de produccion
+
+En producción se usan datos reales. El código mock es basura acumulada que no afecta el comportamiento pero ocupa espacio en el bundle. También existe una función `_generateMockInvoices` sin usar en `SupplierInvoicesModal.tsx`. Ambos pueden eliminarse en una limpieza de código.
 
 ### 4. **Facturas pagadas que necesitan revertirse**
 **Solucion:** 
@@ -100,17 +101,3 @@ const USE_MOCK_DATA = true // SET TO FALSE FOR PRODUCTION
 | `pending` | Validar, Editar, Subir PDF, Eliminar |
 | `validated` | Revertir validacion, Editar, Ver PDF |
 | `paid` | Ver PDF, Exportar CSV, Exportar ZIP |
-
----
-
-## Importante: Cambio para Produccion
-
-Antes de ir a produccion, en `frontend/app/components/bo/tabs/PaidInvoicesTab.tsx`:
-
-```typescript
-// Linea 55: CAMBIAR DE
-const USE_MOCK_DATA = true
-
-// A
-const USE_MOCK_DATA = false
-```

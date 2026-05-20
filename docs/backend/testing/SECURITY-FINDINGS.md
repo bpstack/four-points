@@ -1,8 +1,9 @@
 # 🔴 Vulnerabilidades de Seguridad Encontradas
 
-**Fecha:** 4 de Enero, 2026
+**Fecha inicial:** 4 de Enero, 2026
+**Revisión:** 20 de Mayo, 2026
 **Fuente:** Tests críticos de seguridad (authenticateToken, demoRestriction)
-**Estado:** Documentado - Pendiente de resolución
+**Estado:** 3 abiertos (1+2+4 relacionados) · 1 cerrado (#5) · 2 diseño intencional (#3, #7) · 1 pendiente decisión (#8)
 
 ---
 
@@ -14,6 +15,19 @@ Durante la implementación de tests críticos de seguridad, se identificaron **8
 - **3 Altas** (debilidades de diseño significativas)
 - **2 Medias** (mejoras recomendadas)
 
+**Estado tras revisión 2026-05-20:**
+
+| # | Hallazgo | Severidad | Estado |
+|---|---|---|---|
+| 1 | No verifica existencia en BD | 🔴 Crítica | ⚠️ Abierto |
+| 2 | No verifica `is_active` | 🔴 Crítica | ⚠️ Abierto |
+| 3 | Sin revocación de tokens | 🔴 Crítica | ✅ Decisión consciente (JWT stateless) |
+| 4 | Role injection vía token | 🟡 Alta | ⚠️ Abierto (se resuelve con #1/#2) |
+| 5 | Case-sensitive role comparison | 🟡 Alta | ✅ Cerrado (`.toLowerCase()` implementado) |
+| 6 | Email vacío en req.user | 🟡 Alta | ⚠️ Abierto (se resuelve con #1/#2) |
+| 7 | Demo ve datos sensibles GET | 🟢 Media | ✅ Intencional + demo desactivado en prod |
+| 8 | Sin ownership en comentarios logbook | 🟢 Media | 🤔 Pendiente decisión de diseño |
+
 ---
 
 ## 🔴 VULNERABILIDADES CRÍTICAS
@@ -22,6 +36,7 @@ Durante la implementación de tests críticos de seguridad, se identificaron **8
 
 **Archivo:** `middlewares/authenticateToken.ts` (línea 39-45)
 **Severidad:** 🔴 CRÍTICA
+**Estado (2026-05-20):** ⚠️ ABIERTO — sin cambios desde enero. Mitigación parcial: el access token dura solo 15 minutos, por lo que la ventana de exposición es acotada. El endpoint `GET /me` sí consulta BD, pero no se llama en cada request protegida.
 **Impacto:** Un usuario eliminado de la BD puede seguir usando su token JWT hasta que expire
 
 **Descripción:**
@@ -75,6 +90,7 @@ req.user = {
 
 **Archivo:** `middlewares/authenticateToken.ts` (línea 39-45)
 **Severidad:** 🔴 CRÍTICA
+**Estado (2026-05-20):** ⚠️ ABIERTO — sin cambios desde enero. El campo `is_active` existe en la tabla `users` y se usó para deshabilitar el usuario demo (2026-05-12), pero el middleware no lo lee. Mismo problema que #1: ventana máxima de 15 min por la duración del access token.
 **Impacto:** Usuarios desactivados pueden seguir accediendo al sistema
 
 **Descripción:**
@@ -105,7 +121,8 @@ if (!user || !user.is_active) {
 
 **Archivo:** `middlewares/authenticateToken.ts`
 **Severidad:** 🔴 CRÍTICA
-**Impacto:** Tokens comprometidos no pueden ser invalidados
+**Estado (2026-05-20):** ✅ DECISIÓN ARQUITECTÓNICA CONSCIENTE — JWT stateless sin blocklist es el diseño elegido. El logout borra las cookies HttpOnly en el cliente, lo que es suficiente para el modelo de amenaza actual (no hay tokens en localStorage, el vector de extracción requiere acceso físico o interceptación de red). Si se necesitara revocación inmediata se implementaría token versioning en BD (ver opción B abajo). No está planificado hasta Horizonte 2.
+**Impacto:** Tokens comprometidos no pueden ser invalidados individualmente
 
 **Descripción:**
 El sistema JWT actual **no tiene lista negra (blacklist)** de tokens. Si un token es comprometido, la única opción es cambiar `SECRET_JWT_KEY`, lo que invalida **todos** los tokens de **todos** los usuarios.
@@ -165,6 +182,7 @@ await UserRepository.incrementTokenVersion(userId)
 
 **Archivo:** `middlewares/authenticateToken.ts` (línea 52)
 **Severidad:** 🟡 ALTA
+**Estado (2026-05-20):** ⚠️ ABIERTO — el rol sigue leyéndose del token, no de la BD. Relacionado con #1 y #2: la solución de consultar BD en cada request resolvería los tres a la vez. Ver `TODO.md → H2-11` para el plan de auditoría.
 **Impacto:** Si SECRET_JWT_KEY es comprometido, atacante puede crear tokens admin
 
 **Descripción:**
@@ -211,7 +229,8 @@ req.user = {
 
 **Archivo:** `middlewares/demoRestriction.ts`
 **Severidad:** 🟡 ALTA
-**Impacto:** Usuario con rol 'DEMO-ADMIN' o 'Demo-Admin' evita restricciones
+**Estado (2026-05-20):** ✅ CERRADO — verificado en código. `demoRestriction.ts` usa `.toLowerCase()` en la comparación. Además `roleCheck.ts` tiene `isRealAdmin` que excluye explícitamente a `demo-admin` con un 403. La defensa en profundidad está implementada.
+**Impacto:** ~~Usuario con rol 'DEMO-ADMIN' o 'Demo-Admin' evita restricciones~~ (resuelto)
 
 **Descripción:**
 El middleware compara `role === 'demo-admin'` de forma **case-sensitive**. Un usuario con rol 'DEMO-ADMIN' (mayúsculas) no será detectado como demo.
@@ -247,7 +266,8 @@ if (req.user.role.toLowerCase() === 'demo-admin') {
 
 **Archivo:** `middlewares/authenticateToken.ts` (línea 51)
 **Severidad:** 🟡 ALTA
-**Impacto:** Código que depende de `req.user.email` no funciona
+**Estado (2026-05-20):** ⚠️ ABIERTO — el email sigue sin estar en el payload JWT. Sin embargo no hay evidencia de que algún endpoint dependa de `req.user.email`. Se resolvería automáticamente si se implementa la consulta a BD en cada request (#1/#2/#4).
+**Impacto:** Código que dependa de `req.user.email` no funciona
 
 **Descripción:**
 El email no está incluido en el payload del JWT, por lo que `req.user.email` siempre es una cadena vacía.
@@ -299,7 +319,8 @@ req.user = {
 
 **Archivo:** `middlewares/demoRestriction.ts`
 **Severidad:** 🟢 MEDIA
-**Impacto:** Usuario demo puede ver facturas, reportes, información de backoffice
+**Estado (2026-05-20):** ✅ DISEÑO INTENCIONAL — el usuario demo existe para demostrar el sistema. Ver datos (solo lectura) es el comportamiento esperado. El usuario demo está desactivado en producción desde 2026-05-12.
+**Impacto:** ~~Usuario demo puede ver facturas, reportes, información de backoffice~~ (intencional)
 
 **Descripción:**
 El middleware `demoRestriction` permite **todos** los requests GET, incluso a endpoints sensibles como `/api/backoffice/invoices`.
@@ -347,6 +368,7 @@ if (req.method === 'GET') {
 
 **Archivo:** `middlewares/demoRestriction.ts`
 **Severidad:** 🟢 MEDIA
+**Estado (2026-05-20):** 🤔 PENDIENTE DECISIÓN — el logbook es un módulo colaborativo (notas del turno para todo el equipo), por lo que comentar en entradas ajenas puede ser intencional. Sin datos de uso real no se puede determinar si es un bug o diseño correcto.
 **Impacto:** Demo puede comentar en cualquier logbook (no solo los suyos)
 
 **Descripción:**
@@ -437,19 +459,18 @@ username.toLowerCase() === expected.toLowerCase()
 
 ## 📊 Métricas de Seguridad
 
-### Estado Actual
+### Estado Actual (revisión 2026-05-20)
 - **Tests de seguridad:** 20 tests críticos implementados
 - **Vulnerabilidades detectadas:** 8 (3 críticas, 3 altas, 2 medias)
-- **Cobertura de seguridad:** 100% en middlewares testeados
-- **Vulnerabilidades resueltas:** 0/8
+- **Cerradas / decisión consciente:** 2 (#3, #5)
+- **Diseño intencional:** 1 (#7)
+- **Abiertos:** 4 (#1, #2, #4, #6 — se resuelven todos a la vez consultando BD en `authenticateToken`)
+- **Pendiente decisión:** 1 (#8)
 
-### Objetivo
-- **Vulnerabilidades críticas resueltas:** 3/3 (100%)
-- **Vulnerabilidades altas resueltas:** 3/3 (100%)
-- **Tiempo estimado de resolución:** 2-4 semanas
-- **Tests de regresión:** Agregar tests quefallen si la vulnerabilidad regresa
+### Próxima acción recomendada
+
+Implementar consulta a BD en `authenticateToken` (un único cambio cierra #1, #2, #4 y #6 simultáneamente). Ver `TODO.md → Horizonte 2` para el plan.
 
 ---
 
-**Última actualización:** 2026-01-04
-**Próxima revisión:** Después de implementar soluciones
+**Última actualización:** 2026-05-20

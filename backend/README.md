@@ -115,8 +115,7 @@ backend/
 │   ├── parking/
 │   └── search/
 ├── middlewares/
-│   ├── authenticateToken.ts # Verificar JWT
-│   ├── authenticateSession.ts # Verificar sesión
+│   ├── authenticateToken.ts # Verificar JWT (cookie o Bearer header)
 │   ├── roleCheck.ts         # Validar permisos
 │   ├── rateLimiter.ts       # Rate limiting (100 req/15min)
 │   └── demoRestriction.ts   # Bloquear writes en demo
@@ -152,8 +151,8 @@ backend/
 | **TypeScript**         | Desarrollo con tipos                     |
 | **MySQL 8**            | Base de datos relacional                 |
 | **mysql2**             | Driver MySQL con promesas                |
-| **express-session**    | Gestión de sesiones (migrado desde JWT) |
-| **Passport.js + JWT**  | Autenticación (legado, no activo)        |
+| **jsonwebtoken**       | Autenticación JWT (access 15 min + refresh 7 d) |
+| **cookie-parser**      | Lectura de HttpOnly cookies             |
 | **Zod 4**              | Validación de requests                   |
 | **Cloudinary**         | Almacenamiento cloud de imágenes/PDFs    |
 | **Multer**             | Upload de archivos (multipart/form-data) |
@@ -238,7 +237,7 @@ POST /api/scheduling/months/:id/reset      # Resetear asignaciones
 POST /api/scheduling/constraints/:id/approve # Aprobar restricciones
 ```
 
-> Para scripts de debug del scheduling, ver `SCHEDULING-SOLVER-PLAN.md`.
+> Para scripts de debug del scheduling, ver `docs/backend/scheduling/solver-setup.md`.
 
 ### Formato de Respuestas
 
@@ -256,8 +255,7 @@ POST /api/scheduling/constraints/:id/approve # Aprobar restricciones
 
 | Middleware             | Propósito                             |
 | ---------------------- | ------------------------------------- |
-| `authenticateSession`  | Verificar sesión HTTP-only cookie     |
-| `authenticateToken`    | Verificar JWT (legado)                |
+| `authenticateToken`    | Verificar JWT (access token)          |
 | `roleCheck`            | Validar permisos por rol              |
 | `rateLimiter`         | Prevenir abuso (100 req/15min por IP) |
 | `demoRestriction`     | Bloquear writes para usuarios demo    |
@@ -281,7 +279,7 @@ El sistema usa **40+ tablas** organizadas por módulo:
 
 | Categoría         | Tablas                                                                                             |
 | ----------------- | -------------------------------------------------------------------------------------------------- |
-| **Auth**          | `users`, `sessions`                                                                                |
+| **Auth**          | `users`, `roles`                                                                                   |
 | **Groups**        | `group_reservations`, `group_contacts`, `group_rooms`, `group_payments`, `group_history`           |
 | **Parking**       | `parking_spaces`, `parking_bookings`, `parking_rates`, `parking_levels`, `parking_invoices`        |
 | **Logbooks**      | `logbook_entries`, `logbook_comments`, `logbook_reads`, `logbook_history`                          |
@@ -429,15 +427,17 @@ pnpm test:coverage    # Tests con coverage
 
 ---
 
-## 9. Completar en Más Detalle
+## 9. Documentación Relacionada
 
-Esta es una visión general del backend. Para documentación más detallada, consultar:
+Para documentación detallada consultar:
 
-- **Arquitectura de servicios**: Detalle de cada controller, service y repository
-- **Sistema de scheduling**: Documentación del CP-SAT solver, daemon Python, y restricciones
-- **Autenticación**: Migración de JWT a sessions (razones, implementación)
-- **Modelos de datos**: Esquemas Zod completos de cada entidad
-- **Testing**: Tests unitarios y de integración con Vitest
-- **Docker**: Contenerización del backend y base de datos
-- **CI/CD**: Pipelines de deployment a Render
-- **Monitoreo**: Logging, errores, métricas de rendimiento
+- **Sistema de scheduling**: `docs/backend/scheduling/README.md` — arquitectura, endpoints, CP-SAT solver
+- **Solver Python**: `docs/backend/scheduling/solver-setup.md` — daemon, OR-Tools, tests
+- **Autenticación en producción**: `docs/backend/auth/productionAuthSetup.md`
+- **CORS**: `docs/backend/config/cors-configuration.md`
+- **Seguridad**: `docs/backend/security/security-implementation.md`
+- **Checklist**: `docs/backend/checklist.md`
+- **DB**: `backend/db-mysql/INDEX.md`, `MIGRATIONS_POLICY.md`
+- **Testing**: `docs/backend/testing/README.md`
+- **Restricciones de scheduling**: `SCHEDULING-CONSTRAINTS.md`
+- **Variables de entorno**: `docs/backend/enviroments/environment-variables.md`

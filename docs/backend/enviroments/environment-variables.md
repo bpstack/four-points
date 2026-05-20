@@ -202,11 +202,21 @@ const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:4000'
 
 ---
 
-### 3.3 `BACKEND_URL` - PARA EL SERVIDOR (5 archivos)
+### 3.3 `NEXT_SERVER_API_URL` / `BACKEND_URL` - PARA EL SERVIDOR (5 archivos)
 
 **¿Qué es?** Variable privada, solo accesible desde el servidor de Next.js.
 
-**¿Dónde se usa?** En 5 archivos de API Routes:
+**Nota (2026-05-20):** El código no lee `BACKEND_URL` directamente. Las API Routes importan `SERVER_API_BASE_URL` desde `frontend/app/lib/env.ts`, que centraliza así:
+
+```typescript
+// app/lib/env.ts
+export const API_BASE_URL        = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'
+export const SERVER_API_BASE_URL = process.env.NEXT_SERVER_API_URL || API_BASE_URL
+```
+
+La variable real del servidor es `NEXT_SERVER_API_URL`. Si no está definida en Vercel, cae al fallback `NEXT_PUBLIC_API_URL`. En la configuración actual ambas apuntan al mismo valor, por lo que funciona aunque `NEXT_SERVER_API_URL` no esté definida explícitamente. La variable `BACKEND_URL` documentada originalmente ya no se lee en ningún archivo.
+
+**¿Dónde se usa (indirectamente vía `env.ts`)?** En 5 archivos de API Routes:
 
 | Archivo                          | Propósito               |
 | -------------------------------- | ----------------------- |
@@ -239,11 +249,11 @@ Esto permite manejar cookies HttpOnly de forma segura.
 **Ejemplo de uso en código:**
 
 ```typescript
-// app/api/auth/login/route.ts:9
-const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:4000'
+// app/lib/env.ts
+export const SERVER_API_BASE_URL = process.env.NEXT_SERVER_API_URL || API_BASE_URL
 ```
 
-**Veredicto:** ✅ NECESARIA - Usada correctamente para operaciones server-side.
+**Veredicto:** ✅ NECESARIA — usada correctamente para operaciones server-side a través de `lib/env.ts`.
 
 ---
 
@@ -426,15 +436,14 @@ BACKEND_URL=http://localhost:4000
 | ¿Está optimizada?                      | ⚠️ No, tiene redundancia                          |
 | ¿Qué debería eliminar?                 | `BACKEND_API_URL` (no se usa)                     |
 | ¿Qué debería unificar?                 | `NEXT_PUBLIC_BACKEND_URL` → `NEXT_PUBLIC_API_URL` |
-| ¿Cuántas variables necesito realmente? | 2: `NEXT_PUBLIC_API_URL` y `BACKEND_URL`          |
+| ¿Cuántas variables necesito realmente? | 2: `NEXT_PUBLIC_API_URL` y `NEXT_SERVER_API_URL` (vía `lib/env.ts`) |
 
 ---
 
 ## Ver también
 
-- `env_bars/aiven-setup.md` - Configuración MySQL Cloud
-- `env_bars/database-configuration.md` - Configuración dual BD
-- `backend/docs/config/server-setup.md` - Configuración del servidor
-- `backend/docs/security/security-implementation.md` - Implementación de seguridad
+- `backend/db-mysql/README.md` - Configuración MySQL (local y Aiven)
+- `docs/backend/config/cors-configuration.md` - Configuración CORS
+- `docs/backend/security/security-implementation.md` - Implementación de seguridad
 
 

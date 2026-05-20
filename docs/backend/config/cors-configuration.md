@@ -1,18 +1,23 @@
-# 🔒 CORS Configuration
+# CORS Configuration
 
-**Archivo:** `backend/index.ts`
+**Archivo fuente:** `backend/index.ts` (líneas 56–89)
 
 ---
 
-## Configuración de Orígenes
+## Orígenes permitidos
 
 ```typescript
 const allowedOrigins = [
-  'http://localhost:3000',      // PC desarrollo
-  'http://127.0.0.1:3000',      // Alternativa localhost
-  process.env.FRONTEND_URL_NETWORK,    // Móvil en red local
-  process.env.FRONTEND_URL_PRODUCTION, // Producción
-].filter(Boolean)
+  'http://localhost:3000',                  // desarrollo local
+  'https://four-points.stackbp.es',        // producción (custom domain)
+  'https://four-points.vercel.app',        // producción (Vercel)
+  'https://api.four-points.stackbp.es',   // API domain propio
+  'https://four-points.onrender.com',     // backend Render (server-to-server)
+  process.env.FRONTEND_URL,               // URL adicional configurable
+].filter(Boolean) as string[]
+
+// Todos los preview deployments de Vercel (*.vercel.app)
+const vercelPreviewPattern = /\.vercel\.app$/
 ```
 
 ---
@@ -22,41 +27,55 @@ const allowedOrigins = [
 ```typescript
 app.use(
   cors({
-    origin: function (origin, callback) {
-      // Permitir requests sin origin (Postman, apps móviles)
-      if (!origin) return callback(null, true)
-
-      if (allowedOrigins.includes(origin)) {
+    origin: (origin, callback) => {
+      // Sin origin → Postman, server-to-server, mobile apps → permitir
+      if (!origin) {
+        callback(null, true)
+        return
+      }
+      // Lista explícita + patrón Vercel previews
+      if (allowedOrigins.includes(origin) || vercelPreviewPattern.test(origin)) {
         callback(null, true)
       } else {
-        console.log('❌ CORS bloqueado para:', origin)
+        logger.warn({ origin }, '[CORS] Blocked origin')
         callback(new Error('Not allowed by CORS'))
       }
     },
-    credentials: true,  // ← CRÍTICO para cookies
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
     exposedHeaders: ['Set-Cookie'],
-  }),
+  })
 )
 ```
 
 ---
 
-## ⚠️ Puntos Críticos
+## Puntos críticos
 
-1. **credentials: true** - Obligatorio para autenticación por sesiones
-2. **allowedHeaders** - Incluir 'Cookie' y 'Authorization'
-3. **exposedHeaders** - Permitir acceso a 'Set-Cookie' desde JS
-4. **Origen dinámico** - MySQL Workbench y apps móviles no envían origin
+| Punto | Motivo |
+|-------|--------|
+| `credentials: true` | Obligatorio para que las cookies HttpOnly viajen cross-origin |
+| `allowedHeaders: ['Cookie']` | Permite que el navegador envíe la cookie de sesión |
+| `exposedHeaders: ['Set-Cookie']` | Permite que el navegador lea `Set-Cookie` en respuesta |
+| `PATCH` en `methods` | Necesario para `PATCH /assignments/:id` (scheduling) |
+| Sin origin → permitir | Postman, Render interno, mobile apps no envían `Origin` |
 
 ---
 
-## Acceso desde Móvil
-
-Asegurar que la IP de red esté en `allowedOrigins`:
+## Variable de entorno adicional
 
 ```env
-FRONTEND_URL_NETWORK=http://192.168.1.34:3000
+# .env
+FRONTEND_URL=https://mi-dominio-custom.com   # opcional, para dominios extra
 ```
 
+---
+
+## Logging de bloqueos
+
+Los orígenes bloqueados se registran con `logger.warn` (Pino), visible en los logs del servidor:
+
+```
+[CORS] Blocked origin  origin="https://dominio-no-permitido.com"
+```

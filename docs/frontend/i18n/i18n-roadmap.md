@@ -1,6 +1,10 @@
 # i18n Implementation Roadmap
 
-## Branch: `languagesystem`
+> **Estado (2026-05-20):** La rama `languagesystem` fue mergeada a `main`.
+> La infraestructura i18n está **activa en producción**.
+> Las fases 1–19 están completas. Pendientes menores: `validation.json` (Zod), pruebas manuales de idioma, y algunos strings hardcodeados de baja prioridad (detallados en Phase 19 y la sección HARDCODED STRINGS).
+
+## Branch: `languagesystem` (mergeada en `main`)
 
 ## Started: 23-dic-2025
 
