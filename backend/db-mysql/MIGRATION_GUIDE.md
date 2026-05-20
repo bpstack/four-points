@@ -40,8 +40,10 @@ mysql -u root -p < 02_core_tables.sql
 | 17 | `17_notifications.sql` | Notificaciones |
 | 18 | `18_user_avatar.sql` | Avatares de usuario |
 | 19 | `19_scheduling.sql` | Programación de turnos |
-| 20 | `20_checklist.sql` | Checklists operativos (runs, step_state, event_log, config) |
+| 20 | `20_checklist.sql` | Checklists operativos (runs, step_state, event_log, config, comments, attachments) |
 | 99 | `99_verification.sql` | Verificación de instalación |
+
+> **Política de migraciones (vigente desde 2026-05-20):** Los archivos `aiven/NN_*.sql` están **congelados** como snapshot del schema base. Todo cambio posterior vive únicamente en `scripts/AAAAMMDD_*.sql`. Para reconstruir la BD desde cero: `MASTER_INSTALL.sql` + todos los `scripts/*.sql` en orden cronológico. Ver `MIGRATIONS_POLICY.md`.
 
 ---
 

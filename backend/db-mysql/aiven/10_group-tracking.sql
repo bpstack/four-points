@@ -1,3 +1,11 @@
+-- =============================================================================
+-- ⚠️  FROZEN 2026-05-20 — DO NOT EDIT
+-- =============================================================================
+-- This file is part of the install base snapshot. All schema changes since
+-- 2026-05-20 live in `scripts/AAAAMMDD_*.sql`. Editing this file breaks the
+-- single-source-of-truth invariant. See MIGRATIONS_POLICY.md.
+-- =============================================================================
+
 -- =========================================================
 -- GROUP TRACKING MODULE - DATABASE SCHEMA
 -- =========================================================

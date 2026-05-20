@@ -1,79 +1,77 @@
 # Política de migraciones — `backend/db-mysql/`
 
-> Última revisión: 2026-05-20
+> Última revisión: 2026-05-20 (transición a "solo incrementales")
 
-Este documento recoge **cómo se gestionan los cambios de schema** en el proyecto y por qué se hace así. Si vas a tocar tablas, leelo entero antes.
-
----
-
-## Estado actual (decisión vigente)
-
-Se aplica un **patrón híbrido con doble escritura**:
-
-1. **Cada cambio de schema produce un script incremental idempotente** en `backend/db-mysql/scripts/AAAAMMDD_<descripcion>.sql`. Ese script es el **único que se ejecuta** contra la BD viva (local y Aiven).
-2. **El mismo cambio se espeja** en el archivo de instalación inicial correspondiente (`aiven/NN_<modulo>.sql`) editando el `CREATE TABLE` / `INSERT` original. Ese archivo **nunca se ejecuta** sobre una BD existente — solo sirve como representación legible del schema final.
-3. La migración se **registra en `INDEX.md`** (tabla "Migraciones incrementales") con fecha, archivo, descripción y estado por entorno (`✅ local · ✅ Aiven`, `⏳ pendiente`, etc).
-
-### Reglas prácticas
-
-- **Nunca** ejecutar `MASTER_INSTALL.sql` ni los scripts `aiven/01_…` … `aiven/20_…` contra una BD con datos. Solo tienen sentido contra una BD vacía.
-- **Nunca** modificar un script incremental ya commiteado (ni siquiera para "corregir"). Si algo salió mal, crear un nuevo script `AAAAMMDD_fix_…sql` que lo enmiende.
-- Las migraciones **deben ser idempotentes**: protegerse con `information_schema.COLUMNS`, `INSERT IGNORE`, `CREATE TABLE IF NOT EXISTS`, etc. Plantilla en `scripts/20260519_add_scheduling_employee_display_order.sql`.
-- Aplicar primero en **local** (`pnpm dev:local`), luego en **Aiven**.
-- Charset/collation siempre: `utf8mb4` / `utf8mb4_0900_ai_ci`.
+Este documento recoge **cómo se gestionan los cambios de schema** en el proyecto. Si vas a tocar tablas, leelo entero antes.
 
 ---
 
-## Razones de la decisión
+## Estado actual
 
-**A favor del espejo (lo que hacemos hoy):**
+Patrón **solo incrementales**, estilo Rails/Django/Flyway. Una sola fuente de verdad: la secuencia ordenada de scripts en `backend/db-mysql/scripts/`.
 
-- El archivo `aiven/NN_*.sql` sigue siendo una foto legible del modelo. Onboarding y revisión rápida no requieren reconstruir mentalmente el schema a partir del histórico de scripts.
-- Reconstrucción coherente: `MASTER_INSTALL.sql` (en una BD nueva) produce el schema real, sin tener que recordar aplicar también todos los incrementales antiguos.
-- Diff de PRs más informativo: ves la columna nueva tanto en el script incremental (ejecución) como en el `CREATE TABLE` actualizado (documentación).
+### Reglas
 
-**Coste asumido:**
+1. **`aiven/NN_*.sql` está congelado** desde el 2026-05-20. Cabecera `⚠️ FROZEN` en cada archivo. Son snapshot histórico del install base, **no se editan nunca**.
+2. **Cada cambio de schema** = un nuevo script en `backend/db-mysql/scripts/AAAAMMDD_<descripcion>.sql`. Idempotente. Ejecutable sobre BD viva.
+3. **Registro obligatorio en `INDEX.md`** (tabla "Migraciones incrementales") con fecha, archivo, descripción, estado por entorno (`✅ local · ✅ Aiven`, `⏳ pendiente`, etc).
+4. **Nunca modificar un script commiteado**. Si algo salió mal, crear nuevo script `AAAAMMDD_fix_…sql` que lo enmiende.
+5. Las migraciones **deben ser idempotentes**: protegerse con `information_schema.COLUMNS`, `INSERT IGNORE`, `CREATE TABLE IF NOT EXISTS`, etc. Plantilla en `scripts/20260519_add_scheduling_employee_display_order.sql`.
+6. Aplicar primero en **local** (`pnpm dev:local`), luego en **Aiven**. Actualizar columna "Estado" de `INDEX.md`.
+7. Charset/collation siempre: `utf8mb4` / `utf8mb4_0900_ai_ci`.
 
-- Doble escritura cada vez. Olvidos posibles → divergencias entre archivo "documental" y BD real.
-- Las migraciones más viejas pueden perder relevancia (la columna ya está en el `CREATE TABLE`, así que el script incremental queda como artefacto histórico que ya no aporta).
-- Riesgo silencioso: alguien que vea el archivo "limpio" puede no enterarse de que esa columna ENTRÓ en una fecha concreta y que en BDs antiguas todavía no exista.
+### Reconstrucción desde cero
 
----
+```bash
+# 1. Base congelada (snapshot 2026-05-20)
+mysql -u root -p < MASTER_INSTALL.sql
 
-## Patrones alternativos considerados (no adoptados)
+# 2. Todos los incrementales en orden cronológico
+for f in scripts/*.sql; do mysql -u root -p hotel_db < "$f"; done
+```
 
-### Solo migraciones incrementales (estilo Rails / Django / Flyway / Liquibase)
-
-`aiven/NN_*.sql` se congelaría en su estado inicial. Cualquier cambio posterior vive solo en `scripts/`. La reconstrucción sería siempre: instalación base + secuencia de migraciones por fecha.
-
-- ✅ Una sola fuente de verdad. Sin riesgo de divergencia.
-- ✅ Trazabilidad histórica máxima (cada cambio tiene fecha, autor, razón en cabecera).
-- ✅ Estándar de la industria.
-- ❌ El archivo base envejece y deja de ser un resumen útil del modelo — para entender el schema actual hay que leer base + N migraciones.
-- ❌ Pierdes la "vista panorámica" en un solo archivo.
-
-Pendiente de revisión: ver `TODO.md` → tarea **"Política de migraciones — revisitar"**.
-
-### Herramienta de migraciones (knex, prisma migrate, dbmate, flyway)
-
-No adoptada. Para el tamaño actual del equipo y del schema, la fricción de introducir una herramienta supera el beneficio. Si el equipo crece o el ritmo de cambios se acelera, reconsiderar.
+Idempotencia garantiza que aplicar todos los scripts dos veces no rompe nada.
 
 ---
 
-## Cuándo revisar este documento
+## Por qué este modelo
 
-- Si el patrón híbrido empieza a generar divergencias reales (caso: la BD tiene una columna que el `aiven/NN_*.sql` no refleja, o viceversa). → Pasar al modelo de "solo incrementales" o adoptar herramienta.
-- Si se incorpora gente nueva al proyecto y la fricción de entender el flujo se nota. → Reconsiderar.
-- Si llega CI que valide el schema. → Reconsiderar.
+**Antes (híbrido, hasta 2026-05-19):** doble escritura. Cada cambio se replicaba en `aiven/NN_*.sql` (espejo manual) y en `scripts/` (ejecución real). Coste asumido: divergencia silenciosa entre el archivo "documental" y la BD real cuando se olvidaba el espejo.
 
-Cualquier cambio en esta política se documenta aquí (sección de cambios al final si llega el caso) y se notifica en `TODO.md` / `Global-Plan.md`.
+**Ahora (solo incrementales, desde 2026-05-20):** los `aiven/NN_*.sql` quedan como snapshot del schema en el momento del congelamiento. Todo cambio posterior vive en `scripts/`. Beneficios:
+
+- Una sola fuente de verdad. Sin riesgo de divergencia.
+- Trazabilidad histórica máxima (cada cambio tiene fecha, autor, razón en cabecera).
+- Sin ejecución accidental del install completo sobre BD con datos (porque `MASTER_INSTALL.sql` ya no representa el estado actual — solo el del 2026-05-20).
+- Estándar de la industria.
+
+**Coste asumido:** el snapshot envejece. Para entender el schema actual hay que leer base congelada + N scripts. Compensado parcialmente por:
+
+- Lista cronológica completa en `INDEX.md` (tabla "Migraciones incrementales").
+- Scripts retroactivos `[RETROACTIVE]` documentan cambios pre-2026-04-25 que entraron editando `aiven/` directamente. Reconstrucción histórica desde commits.
+
+---
+
+## Reconstrucción retroactiva (histórico pre-2026-04-25)
+
+`scripts/` empieza el 2026-04-25 (`20260425_create_scheduling_employee_requests.sql`). Cambios anteriores entraron editando directo `aiven/NN_*.sql` sin script incremental.
+
+Esos cambios se han reconstruido a posteriori como scripts marcados `[RETROACTIVE]` con fecha extraída del commit original. Ver `INDEX.md` para la lista completa. Todos idempotentes y no-op contra la BD viva actual.
+
+---
+
+## Cuándo cambiar este modelo
+
+- Si el equipo crece > 1-2 devs y necesita sincronización formal → considerar herramienta (dbmate / flyway / prisma migrate).
+- Si llega CI que valide schema → automatizar aplicación de scripts.
+- Si el snapshot base resulta confuso → renombrar `aiven/NN_*.sql` a `aiven/baseline-YYYYMMDD/` para enfatizar que es congelado.
 
 ---
 
 ## Archivos relacionados
 
 - `INDEX.md` — índice general, tabla "Migraciones incrementales"
-- `MIGRATION_GUIDE.md` — guía de instalación inicial (scripts 01-20)
+- `MIGRATION_GUIDE.md` — guía de instalación inicial (scripts 01-20 congelados)
 - `README.md` — overview de la carpeta
-- `scripts/` — scripts incrementales, ordenados por fecha
-- `aiven/NN_*.sql` — schema base reconstructible (espejado a mano)
+- `scripts/` — scripts incrementales, ordenados por fecha. Única fuente de verdad para cambios desde 2026-05-20.
+- `aiven/NN_*.sql` — snapshot congelado del install base. No editar.

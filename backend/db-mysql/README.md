@@ -2,11 +2,13 @@
 
 Base de datos completa para gestión hotelera con múltiples módulos: parking, logbook, scheduling, messaging, etc.
 
+> ⚠️ **Política de migraciones (desde 2026-05-20):** sólo incrementales. Archivos `aiven/NN_*.sql` **congelados** como snapshot del install base. Todo cambio nuevo va a `scripts/AAAAMMDD_*.sql`. Ver [`MIGRATIONS_POLICY.md`](./MIGRATIONS_POLICY.md).
+
 ## 📁 Estructura de Archivos
 
 ```
 db-mysql/
-├── aiven/                          # Scripts de instalación
+├── aiven/                          # ⚠️ FROZEN snapshot (no editar — ver scripts/)
 │   ├── 01_create_database.sql      # Crea BD con UTF-8
 │   ├── 02_core_tables.sql          # Usuarios, roles, departamentos
 │   ├── 03_logbook_tables.sql       # Sistema de bitácora
@@ -26,10 +28,14 @@ db-mysql/
 │   ├── 17_notifications.sql       # Notificaciones
 │   ├── 18_user_avatar.sql         # Avatares
 │   ├── 19_scheduling.sql          # Programación de turnos
+│   ├── 20_checklist.sql           # Checklists operativos
 │   └── 99_verification.sql        # Verificación
-├── MASTER_INSTALL.sql              # Instalación completa
-├── INDEX.md                        # Índice general
-├── MIGRATION_GUIDE.md              # Guía de migración
+├── scripts/                        # Incrementales — única fuente de verdad post-2026-05-20
+│   └── AAAAMMDD_*.sql              # Idempotentes, registrados en INDEX.md
+├── MASTER_INSTALL.sql              # Snapshot 2026-05-20 (base congelada)
+├── INDEX.md                        # Índice general + tabla de incrementales
+├── MIGRATIONS_POLICY.md            # Política vigente
+├── MIGRATION_GUIDE.md              # Guía de instalación
 └── README.md                       # Este archivo
 ```
 
