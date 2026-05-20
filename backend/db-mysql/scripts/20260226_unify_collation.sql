@@ -1,0 +1,25 @@
+-- =============================================================================
+-- 20260226_unify_collation.sql  [RETROACTIVE — historical marker]
+-- =============================================================================
+-- Marks the migration from mixed collations (utf8mb4_unicode_ci /
+-- utf8mb4_general_ci / utf8mb4_0900_ai_ci) to the unified standard
+-- `utf8mb4_0900_ai_ci` for the entire `hotel_db` schema (commit f5d47d6).
+--
+-- This was an infrastructure refactor: all CREATE TABLE statements in
+-- `aiven/NN_*.sql` were normalized + the local/ folder was removed +
+-- `MASTER_INSTALL_AIVEN.sql` / `MASTER_INSTALL_LOCAL.sql` were unified into a
+-- single `MASTER_INSTALL.sql`. The live BD (Aiven) was migrated by hand.
+--
+-- This script is a NO-OP MARKER. Running it does nothing. Its only purpose is
+-- to leave a trace in the migration history so that anyone reading the
+-- scripts/ folder chronologically sees that this event happened on 2026-02-26.
+--
+-- If you ever need to verify the current state:
+--   SELECT TABLE_NAME, TABLE_COLLATION
+--   FROM information_schema.TABLES
+--   WHERE TABLE_SCHEMA = 'hotel_db'
+--     AND TABLE_COLLATION != 'utf8mb4_0900_ai_ci';
+-- Empty result = unification holds.
+-- =============================================================================
+
+SELECT 'Marker only: collation unified to utf8mb4_0900_ai_ci on 2026-02-26 (commit f5d47d6)' AS info;
