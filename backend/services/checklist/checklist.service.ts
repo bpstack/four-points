@@ -84,7 +84,9 @@ export async function purgeOldEventLogs(daysToKeep = 7): Promise<number> {
 
 export async function getHistory(
   checklistId: string,
-  limit = 30
+  limit = 30,
+  dateFrom?: string,
+  dateTo?: string
 ): Promise<Awaited<ReturnType<typeof repo.getRunHistory>>> {
-  return repo.getRunHistory(checklistId, limit)
+  return repo.getRunHistory(checklistId, limit, dateFrom, dateTo)
 }

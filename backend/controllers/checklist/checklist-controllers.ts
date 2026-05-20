@@ -57,12 +57,14 @@ export async function resetRunController(req: Request, res: Response): Promise<v
   }
 }
 
-// GET /api/checklists/:id/history?limit=N
+// GET /api/checklists/:id/history?limit=N&date_from=YYYY-MM-DD&date_to=YYYY-MM-DD
 export async function getHistoryController(req: Request, res: Response): Promise<void> {
   try {
     const { id } = req.params
     const limit = Math.min(Number(req.query.limit) || 30, 100)
-    const history = await checklistService.getHistory(id, limit)
+    const dateFrom = req.query.date_from as string | undefined
+    const dateTo = req.query.date_to as string | undefined
+    const history = await checklistService.getHistory(id, limit, dateFrom, dateTo)
     res.json(history)
   } catch (err) {
     logger.error({ err }, '[checklist] getHistoryController')

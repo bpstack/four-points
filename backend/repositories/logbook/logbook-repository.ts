@@ -87,9 +87,9 @@ export async function getById(id: number | string): Promise<LogbookWithAuthor | 
 export async function getAllLogbooks(options: PaginationOptions = {}): Promise<LogbookWithAuthor[]> {
   const limit = sanitizeLimit(options.limit)
   const offset = options.offset || 0
-  
+
   const [rows] = await db.query<LogbookWithAuthor[]>(
-    `SELECT 
+    `SELECT
       l.*,
       u.username as author_name,
       u.email as author_email,
@@ -97,10 +97,64 @@ export async function getAllLogbooks(options: PaginationOptions = {}): Promise<L
     FROM logbooks l
     LEFT JOIN users u ON l.author_id = u.id
     LEFT JOIN departments d ON l.department_id = d.id
-    WHERE l.deleted_at IS NULL 
+    WHERE l.deleted_at IS NULL
     ORDER BY l.created_at DESC
     LIMIT ? OFFSET ?`,
     [limit, offset]
+  )
+  return rows
+}
+
+interface LogbookFilterOptions extends PaginationOptions {
+  date_from?: string
+  date_to?: string
+  importance_level?: string
+  include_trashed?: boolean
+}
+
+export async function getLogbooksFiltered(options: LogbookFilterOptions = {}): Promise<LogbookWithAuthor[]> {
+  const limit = sanitizeLimit(options.limit)
+  const offset = options.offset || 0
+  const params: (string | number)[] = []
+
+  const conditions: string[] = []
+
+  if (options.include_trashed) {
+    conditions.push('l.deleted_at IS NOT NULL')
+  } else {
+    conditions.push('l.deleted_at IS NULL')
+  }
+
+  if (options.importance_level && options.importance_level !== 'all') {
+    conditions.push('l.importance_level = ?')
+    params.push(options.importance_level)
+  }
+
+  if (options.date_from) {
+    conditions.push('(l.date >= ? OR (l.date IS NULL AND DATE(l.created_at) >= ?))')
+    params.push(options.date_from, options.date_from)
+  }
+
+  if (options.date_to) {
+    conditions.push('(l.date <= ? OR (l.date IS NULL AND DATE(l.created_at) <= ?))')
+    params.push(options.date_to, options.date_to)
+  }
+
+  const where = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : ''
+
+  const [rows] = await db.query<LogbookWithAuthor[]>(
+    `SELECT
+      l.*,
+      u.username as author_name,
+      u.email as author_email,
+      d.name as department_name
+    FROM logbooks l
+    LEFT JOIN users u ON l.author_id = u.id
+    LEFT JOIN departments d ON l.department_id = d.id
+    ${where}
+    ORDER BY l.created_at DESC
+    LIMIT ? OFFSET ?`,
+    [...params, limit, offset]
   )
   return rows
 }

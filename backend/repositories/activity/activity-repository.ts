@@ -399,6 +399,138 @@ export class ActivityRepository {
   }
 
   /**
+   * Obtener actividad filtrada por rango de fechas y opcionalmente por fuente
+   */
+  static async getActivityByDateRange(
+    dateFrom: string,
+    dateTo: string,
+    limit: number = 50,
+    source?: ActivitySource
+  ): Promise<UnifiedActivity[]> {
+    if (source) {
+      return this.getActivityByDateRangeAndSource(dateFrom, dateTo, source, limit)
+    }
+
+    const query = `
+      SELECT * FROM (
+        SELECT
+          ch.id as id,
+          'cashier' COLLATE utf8mb4_0900_ai_ci as source,
+          ch.action COLLATE utf8mb4_0900_ai_ci as action,
+          CAST(ch.changed_by AS CHAR) COLLATE utf8mb4_0900_ai_ci as user_id,
+          COALESCE(u1.username, 'Sistema') COLLATE utf8mb4_0900_ai_ci as username,
+          ch.changed_at as timestamp,
+          CAST(ch.shift_id AS CHAR) COLLATE utf8mb4_0900_ai_ci as record_id
+        FROM cashier_history ch
+        LEFT JOIN users u1 ON ch.changed_by = u1.id
+        WHERE ch.changed_at >= ? AND ch.changed_at < DATE_ADD(?, INTERVAL 1 DAY)
+
+        UNION ALL
+
+        SELECT
+          gh.id as id,
+          'groups' COLLATE utf8mb4_0900_ai_ci as source,
+          gh.action COLLATE utf8mb4_0900_ai_ci as action,
+          CAST(gh.changed_by AS CHAR) COLLATE utf8mb4_0900_ai_ci as user_id,
+          COALESCE(u2.username, 'Sistema') COLLATE utf8mb4_0900_ai_ci as username,
+          gh.changed_at as timestamp,
+          CAST(gh.group_id AS CHAR) COLLATE utf8mb4_0900_ai_ci as record_id
+        FROM group_history gh
+        LEFT JOIN users u2 ON gh.changed_by = u2.id
+        WHERE gh.changed_at >= ? AND gh.changed_at < DATE_ADD(?, INTERVAL 1 DAY)
+
+        UNION ALL
+
+        SELECT
+          lh.id as id,
+          'logbook' COLLATE utf8mb4_0900_ai_ci as source,
+          lh.action COLLATE utf8mb4_0900_ai_ci as action,
+          CAST(lh.editor_id AS CHAR) COLLATE utf8mb4_0900_ai_ci as user_id,
+          COALESCE(u3.username, 'Sistema') COLLATE utf8mb4_0900_ai_ci as username,
+          lh.created_at as timestamp,
+          CAST(lh.logbook_id AS CHAR) COLLATE utf8mb4_0900_ai_ci as record_id
+        FROM logbook_history lh
+        LEFT JOIN users u3 ON lh.editor_id = u3.id
+        WHERE lh.created_at >= ? AND lh.created_at < DATE_ADD(?, INTERVAL 1 DAY)
+
+        UNION ALL
+
+        SELECT
+          mh.id as id,
+          'maintenance' COLLATE utf8mb4_0900_ai_ci as source,
+          mh.action COLLATE utf8mb4_0900_ai_ci as action,
+          CAST(mh.changed_by AS CHAR) COLLATE utf8mb4_0900_ai_ci as user_id,
+          COALESCE(u4.username, 'Sistema') COLLATE utf8mb4_0900_ai_ci as username,
+          mh.changed_at as timestamp,
+          mh.report_id COLLATE utf8mb4_0900_ai_ci as record_id
+        FROM maintenance_history mh
+        LEFT JOIN users u4 ON mh.changed_by = u4.id
+        WHERE mh.changed_at >= ? AND mh.changed_at < DATE_ADD(?, INTERVAL 1 DAY)
+      ) AS combined
+      ORDER BY timestamp DESC
+      LIMIT ?
+    `
+
+    const [rows] = await db.query<ActivityRow[]>(query, [
+      dateFrom, dateTo,
+      dateFrom, dateTo,
+      dateFrom, dateTo,
+      dateFrom, dateTo,
+      limit,
+    ])
+
+    return rows.map((row) => ({
+      id: `${row.source}-${row.id}`,
+      source: row.source,
+      action: row.action,
+      user_id: row.user_id,
+      username: row.username,
+      timestamp: new Date(row.timestamp).toISOString(),
+      record_id: row.record_id,
+    }))
+  }
+
+  private static async getActivityByDateRangeAndSource(
+    dateFrom: string,
+    dateTo: string,
+    source: ActivitySource,
+    limit: number
+  ): Promise<UnifiedActivity[]> {
+    const tableMap: Record<ActivitySource, { table: string; idField: string; actionField: string; userField: string; timestampField: string; recordField: string }> = {
+      cashier: { table: 'cashier_history ch', idField: 'ch.id', actionField: 'ch.action', userField: 'ch.changed_by', timestampField: 'ch.changed_at', recordField: 'CAST(ch.shift_id AS CHAR)' },
+      groups: { table: 'group_history gh', idField: 'gh.id', actionField: 'gh.action', userField: 'gh.changed_by', timestampField: 'gh.changed_at', recordField: 'CAST(gh.group_id AS CHAR)' },
+      logbook: { table: 'logbook_history lh', idField: 'lh.id', actionField: 'lh.action', userField: 'lh.editor_id', timestampField: 'lh.created_at', recordField: 'CAST(lh.logbook_id AS CHAR)' },
+      maintenance: { table: 'maintenance_history mh', idField: 'mh.id', actionField: 'mh.action', userField: 'mh.changed_by', timestampField: 'mh.changed_at', recordField: 'mh.report_id' },
+    }
+    const m = tableMap[source]
+    const query = `
+      SELECT
+        ${m.idField} as id,
+        '${source}' COLLATE utf8mb4_0900_ai_ci as source,
+        ${m.actionField} COLLATE utf8mb4_0900_ai_ci as action,
+        CAST(${m.userField} AS CHAR) COLLATE utf8mb4_0900_ai_ci as user_id,
+        COALESCE(u.username, 'Sistema') COLLATE utf8mb4_0900_ai_ci as username,
+        ${m.timestampField} as timestamp,
+        ${m.recordField} COLLATE utf8mb4_0900_ai_ci as record_id
+      FROM ${m.table}
+      LEFT JOIN users u ON ${m.userField} = u.id
+      WHERE ${m.timestampField} >= ? AND ${m.timestampField} < DATE_ADD(?, INTERVAL 1 DAY)
+      ORDER BY ${m.timestampField} DESC
+      LIMIT ?
+    `
+    const [rows] = await db.query<ActivityRow[]>(query, [dateFrom, dateTo, limit])
+    return rows.map((row) => ({
+      id: `${row.source}-${row.id}`,
+      source: row.source,
+      action: row.action,
+      user_id: row.user_id,
+      username: row.username,
+      timestamp: new Date(row.timestamp).toISOString(),
+      record_id: row.record_id,
+    }))
+  }
+
+  /**
    * Obtener actividad de un usuario específico
    */
   static async getActivityByUser(userId: string, limit: number = 10): Promise<UnifiedActivity[]> {

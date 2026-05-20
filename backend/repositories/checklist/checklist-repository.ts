@@ -118,16 +118,31 @@ export async function deleteStepStates(runId: number): Promise<void> {
 // Returns the last N completed runs for a checklist with their step states
 export async function getRunHistory(
   checklistId: string,
-  limit: number
+  limit: number,
+  dateFrom?: string,
+  dateTo?: string
 ): Promise<{ run: ChecklistRun; steps: { step_id: string; done: boolean; done_by_username: string | null; done_at: string | null }[] }[]> {
   // LIMIT embedded directly — prepared statements don't support LIMIT ? in all MySQL versions
   const safeLimit = Math.max(1, Math.min(Math.floor(limit), 100))
+
+  const dateConditions: string[] = []
+  const params: (string | number)[] = [checklistId]
+  if (dateFrom) {
+    dateConditions.push('hotel_date >= ?')
+    params.push(dateFrom)
+  }
+  if (dateTo) {
+    dateConditions.push('hotel_date <= ?')
+    params.push(dateTo)
+  }
+  const extraWhere = dateConditions.length > 0 ? ` AND ${dateConditions.join(' AND ')}` : ''
+
   const [runs] = await db.query<ChecklistRun[]>(
     `SELECT * FROM checklist_runs
-     WHERE checklist_id = ? AND hotel_id = 1 AND reset_at IS NOT NULL
+     WHERE checklist_id = ? AND hotel_id = 1 AND reset_at IS NOT NULL${extraWhere}
      ORDER BY hotel_date DESC, reset_at DESC
      LIMIT ${safeLimit}`,
-    [checklistId]
+    params
   )
 
   if (!runs.length) return []
