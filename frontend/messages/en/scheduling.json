@@ -14,7 +14,9 @@
   "actions": {
     "refresh": "Refresh",
     "config": "Config",
-    "configButton": "Settings",
+    "configButton": "Schedule Management",
+    "configSubtext": "Employees · Shifts · Rules · Requests",
+    "configTooltip": "Configure minimum coverage, solver parameters and approve pending requests",
     "generate": "Generate Schedules",
     "generating": "Generating...",
     "regenerate": "Regenerate",

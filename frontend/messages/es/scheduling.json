@@ -14,7 +14,9 @@
   "actions": {
     "refresh": "Actualizar",
     "config": "Config",
-    "configButton": "Configuración",
+    "configButton": "Gestión del sistema",
+    "configSubtext": "Empleados · Turnos · Reglas · Solicitudes",
+    "configTooltip": "Configura coberturas mínimas, parámetros del solver y aprueba peticiones pendientes",
     "generate": "Generar Horarios",
     "generating": "Generando...",
     "regenerate": "Regenerar",

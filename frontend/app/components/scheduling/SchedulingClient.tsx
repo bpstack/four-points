@@ -32,11 +32,12 @@ import {
   FiCheck,
   FiSettings,
   FiDownload,
-  FiRefreshCw,
   FiRotateCcw,
   FiTrash2,
   FiCpu,
   FiAlertTriangle,
+  FiArrowRight,
+  FiArrowLeft,
 } from 'react-icons/fi'
 
 // Cell selection state for editing
@@ -523,28 +524,28 @@ export function SchedulingClient() {
     <div className="min-h-screen bg-bg p-4 md:p-6">
       <div className="max-w-[1800px] space-y-5">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div className="flex flex-col sm:flex-row sm:items-start gap-4">
           <div>
             <h1 className="text-xl sm:text-2xl font-bold text-fg">{t('page.title')}</h1>
             <p className="text-xs sm:text-sm text-fg-muted mt-0.5">{t('page.subtitle')}</p>
           </div>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => window.location.reload()}
-              disabled={!selectedMonthId || loading}
-              className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-fg text-xs font-medium rounded-md border border-border hover:bg-surface-hover transition-colors disabled:opacity-50"
-            >
-              <FiRefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
-              {tActions('refresh')}
-            </button>
-            <Link
-              href="/dashboard/scheduling/config"
-              className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-fg text-xs font-medium rounded-md border border-border hover:bg-surface-hover transition-colors"
-            >
-              <FiSettings className="w-3.5 h-3.5" />
-              {tActions('configButton')}
-            </Link>
-          </div>
+          <Link
+            href="/dashboard/scheduling/config"
+            title={tActions('configTooltip')}
+            className="inline-flex items-center gap-3 px-4 py-3 rounded-lg bg-accent/10 hover:bg-accent/20 hover:shadow-lg hover:shadow-accent/15 hover:-translate-y-0.5 active:translate-y-0 active:shadow-sm active:scale-[0.98] transition-all duration-200 shrink-0 group"
+          >
+            <div className="flex items-center justify-center w-8 h-8 rounded-md bg-accent/20 group-hover:bg-accent/35 group-hover:rotate-45 transition-all duration-300 shrink-0">
+              <FiSettings className="w-4 h-4 text-accent" />
+            </div>
+            <div className="flex flex-col items-start">
+              <span className="text-sm font-semibold text-accent leading-tight">{tActions('configButton')}</span>
+              <span className="text-xs text-fg-muted leading-tight mt-0.5 group-hover:text-fg-subtle transition-colors">{tActions('configSubtext')}</span>
+            </div>
+            <span className="shrink-0 text-accent transition-all duration-200">
+              <FiArrowRight className="w-4 h-4 group-hover:hidden" />
+              <FiArrowLeft className="w-4 h-4 hidden group-hover:block" />
+            </span>
+          </Link>
         </div>
 
         {/* Month Selector & Actions */}
