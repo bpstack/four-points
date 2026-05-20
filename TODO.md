@@ -1,15 +1,13 @@
 # TODO — Four-Points PMS
 
-> **Lista accionable para la próxima sesión.** Curada — no replica las tablas de `Global-Plan.md` ni `SCHEDULING-SOLVER-PLAN.md`, solo lo que el siguiente agente debería tocar primero.
->
-> Roadmap completo en `Global-Plan.md`. Plan del solver en `SCHEDULING-SOLVER-PLAN.md`. Decisiones de scheduling en `SCHEDULING-DECISIONS-LOG.md` y `SCHEDULING-CONSTRAINTS.md`.
+> **Lista accionable para la próxima sesión.** Curada. Decisiones de scheduling en `SCHEDULING-DECISIONS-LOG.md` y `SCHEDULING-CONSTRAINTS.md`. Arquitectura del solver en `docs/backend/scheduling/`.
 
 ---
 
 ## Estado breve (2026-05-16)
 
 - **Sprint 2** 🚧 al 80% — 5 items cerrados (H1-16.1/2/3/4 + H1-18 trust proxy + H1-19 refactor timezone). Quedan **H1-13 Sentry** (bloqueado externo) y **H1-17 Cloudflare Access** (panel).
-- Refactor timezone Madrid/UTC completo en backend + frontend (7 commits). Detalle en `Global-Plan.md §0.3`.
+- Refactor timezone Madrid/UTC completo en backend + frontend (7 commits).
 - Housekeeping cerrado: Prettier global, Zod comentarios 500 + contador UI, `docs/` ahora versionada en repo, protección desmarcar trabajo ajeno (modal confirmación) (commits `d75c940`, `41c4df8`, `3157d01`, este push).
 
 ---
@@ -25,7 +23,7 @@ Cuando tengas DSN:
 3. Envoltorio del error handler global para capturar errores no manejados.
 4. Sentry free tier: 5k errores/mes — suficiente para esta escala.
 
-Una vez activo, cerrar el §3.5 hallazgo de observabilidad de `Global-Plan.md`.
+Una vez activo, registrar el hallazgo en `SCHEDULING-DECISIONS-LOG.md`.
 
 ### H1-17 Cloudflare Zero Trust Access ⏳ (tarea panel, ~30 min)
 
@@ -47,19 +45,19 @@ Una vez activo, cerrar el §3.5 hallazgo de observabilidad de `Global-Plan.md`.
 
 ## Módulo Scheduling Solver — pendientes
 
-> Plan técnico completo en `SCHEDULING-SOLVER-PLAN.md`. Fase 1 ✅ + Fase 2 ✅ (en código). Fase 3 🟡 en progreso.
+> Fase 1 ✅ + Fase 2 ✅ (en código). Fase 3 🟡 en progreso. Decisiones en `SCHEDULING-DECISIONS-LOG.md`.
 
 - [ ] **Fase 3 criterio abierto: `scheduling_solver_runs` ≥ 30 runs de producción** (bloqueado por uso real). El logging estructurado está implementado (commit `f34e20d`), solo falta acumular datos. Cuando llegues a 30 runs, hacer query agregada para detectar patrones (status, soft penalty, breakdown) y registrar findings en `SCHEDULING-DECISIONS-LOG.md`.
 
 - [ ] **Fase 3 criterio abierto: UX de infeasibilidad probada con ≥ 3 escenarios reales** — motor `_analyze_infeasibility` ya implementado (commit `f34e20d`), pero solo testeado con corpus sintético. Hacer 3 generaciones con configs imposibles a propósito (ej: 2 empleados rotatorios + cobertura mínima 3) → comprobar que las relajaciones sugeridas son aplicables y arreglan el infeasibility.
 
-- [ ] **Fase 2 punto 4 diferido — tuning de pesos soft S1/S2/S3/S4** (bloqueado por uso productivo). Cuando el manager valide 3 meses consecutivos en producción, analizar el `softPenaltyBreakdown` real y los diffs entre matriz solver-generada y matriz final editada por el manager (en `scheduling_solver_runs`). Cada patrón recurrente = señal para subir/bajar un peso. Detalle del método en `SCHEDULING-SOLVER-PLAN.md §4 Después de Fase 3 - Bucle de feedback`.
+- [ ] **Fase 2 punto 4 diferido — tuning de pesos soft S1/S2/S3/S4** (bloqueado por uso productivo). Cuando el manager valide 3 meses consecutivos en producción, analizar el `softPenaltyBreakdown` real y los diffs entre matriz solver-generada y matriz final editada por el manager (en `scheduling_solver_runs`). Cada patrón recurrente = señal para subir/bajar un peso.
 
 ---
 
 ## Horizonte 2 — post-datos reales
 
-> Solo apuntados; detalle y razonamiento en `Global-Plan.md §6 Roadmap por horizontes`. **No iniciar nada de esto hasta que entren datos reales y se conozca el patrón de uso real.**
+> Solo apuntados; **no iniciar nada de esto hasta que entren datos reales y se conozca el patrón de uso real.**
 
 | ID | Item | Por qué importa |
 |---|---|---|
@@ -109,23 +107,6 @@ Aplicado el 2026-05-20 en `rest.py` (ver `SCHEDULING-DECISIONS-LOG.md`). Funcion
 
 - Mismo patrón puede aparecer en otros constraints con ventana deslizante cross-month (`night_block.py` ventana max-block, `day_blocks.py`). Auditarlos por completitud cuando aparezca un INFEASIBLE similar.
 - Si más adelante se rehace H5 a "consecutive pair" (item anterior), revisar si la lógica de skip cross-month sigue siendo correcta o necesita ajuste.
-
----
-
-## Documentación / DX — pendientes
-
-### Política de migraciones — revisitar (~1-2h, futuro)
-
-Hoy aplicamos doble escritura: script incremental idempotente en `backend/db-mysql/scripts/` + espejo manual en `backend/db-mysql/aiven/NN_*.sql`. Decisión y razones en `backend/db-mysql/MIGRATIONS_POLICY.md`.
-
-Pendiente evaluar si conviene pasar al patrón **solo incrementales** (estilo Rails/Django/Flyway): `aiven/NN_*.sql` congelado en su estado inicial, todo cambio posterior solo en `scripts/`. Beneficios: una sola fuente de verdad, trazabilidad histórica, menos riesgo de ejecución accidental del install completo. Coste: el archivo base envejece y deja de ser un resumen panorámico legible del modelo.
-
-Cuando se decida abordarlo:
-
-1. Auditar todas las divergencias actuales entre `aiven/NN_*.sql` y la BD real (¿quedan cosas en la BD que no estén en el archivo? ¿al revés?).
-2. Decidir patrón final: híbrido actual / solo incrementales / herramienta (knex, dbmate, prisma migrate, flyway).
-3. Si se cambia: actualizar `MIGRATIONS_POLICY.md`, `INDEX.md`, `MIGRATION_GUIDE.md` y `README.md` de `backend/db-mysql/` en consecuencia.
-4. Si se introduce herramienta: migrar el histórico de `scripts/` al formato que pida y borrar la duplicación.
 
 ---
 

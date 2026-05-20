@@ -52,8 +52,9 @@ pnpm test:coverage    # Run tests with coverage report
 
 ### Database
 - SQL scripts are in `backend/db-mysql/`
-- Initial install: `MASTER_INSTALL.sql` (sólo contra BD vacía — no usar contra BDs con datos)
-- Cambios incrementales: `backend/db-mysql/scripts/AAAAMMDD_*.sql` (idempotentes). Política en `MIGRATIONS_POLICY.md`.
+- **Política vigente (desde 2026-05-20):** solo incrementales. `aiven/NN_*.sql` está **congelado** como snapshot del install base. Todo cambio nuevo va a `backend/db-mysql/scripts/AAAAMMDD_*.sql` (idempotentes). Detalle completo en `MIGRATIONS_POLICY.md`.
+- Initial install: `MASTER_INSTALL.sql` (sólo contra BD vacía — no usar contra BDs con datos).
+- Reconstrucción desde cero = `MASTER_INSTALL.sql` + todos los `scripts/*.sql` en orden cronológico.
 
 ## Architecture
 
@@ -463,7 +464,7 @@ Get-ChildItem -Recurse -Include *.js,*.ts -Exclude node_modules,dist | Select-St
 
 - **Database Name**: `hotel_db`
 - **Key Tables**: users, logbook, parking, scheduling_months, scheduling_assignments, scheduling_solver_runs, scheduling_employee_requests, checklist_runs, demo_activity_log
-- **Migrations**: scripts incrementales idempotentes en `backend/db-mysql/scripts/AAAAMMDD_*.sql`. Política documentada en `backend/db-mysql/MIGRATIONS_POLICY.md`. **NUNCA** ejecutar `MASTER_INSTALL.sql` ni `aiven/NN_*.sql` contra una BD con datos — solo scripts incrementales. Registrar cada migración en `backend/db-mysql/INDEX.md`.
+- **Migrations**: solo incrementales. `aiven/NN_*.sql` congelado desde 2026-05-20. Todo cambio nuevo en `backend/db-mysql/scripts/AAAAMMDD_*.sql` (idempotentes). Política en `MIGRATIONS_POLICY.md`. **NUNCA** ejecutar `MASTER_INSTALL.sql` ni `aiven/NN_*.sql` contra una BD con datos. **NUNCA** editar archivos en `aiven/`. Registrar cada migración nueva en `backend/db-mysql/INDEX.md`.
 - **Backups**: Store in `backend/db-mysql/backup/`
 
 ## External Services
