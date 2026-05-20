@@ -2,16 +2,14 @@
 
 'use client'
 
-import { useState, useCallback, useMemo } from 'react'
-import { useTranslations, useLocale } from 'next-intl'
+import { useState, useCallback, useEffect, useMemo } from 'react'
+import { useTranslations } from 'next-intl'
 import { apiClient } from '@/app/lib/apiClient'
 import { cn } from '@/app/lib/helpers/utils'
 import { API_BASE_URL } from '@/app/lib/env'
 import {
   FiTool,
   FiLoader,
-  FiAlertCircle,
-  FiRefreshCw,
   FiFilter,
   FiUser,
   FiCalendar,
@@ -20,21 +18,15 @@ import {
   FiChevronRight,
   FiClock,
   FiTrash2,
-  FiAlertTriangle,
 } from 'react-icons/fi'
 import type { MaintenanceReport, MaintenanceHistoryEntry } from '../types'
-import DateFilter from '../DateFilter'
+import DateRangePicker, { getDefaultDateRange, type DateRange } from '../DateRangePicker'
 import { Checkbox } from '@/app/ui/components'
 import { SelectDropdown } from '@/app/ui/components/SelectDropdown'
+import { ReportError, ReportListSkeleton, formatReportDateTime } from '../utils'
 
 const API_URL = API_BASE_URL
-
-// Límite de registros por defecto
 const DEFAULT_LIMIT = 50
-
-// ═══════════════════════════════════════════════════════
-// CONFIG (colors only - labels use translations)
-// ═══════════════════════════════════════════════════════
 
 const STATUS_COLORS: Record<string, string> = {
   reported: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
@@ -51,30 +43,21 @@ const PRIORITY_COLORS: Record<string, string> = {
   urgent: 'text-red-500',
 }
 
-// ═══════════════════════════════════════════════════════
-// COMPONENT
-// ═══════════════════════════════════════════════════════
-
 export default function MaintenanceSection() {
   const t = useTranslations('profile.reports.maintenance')
-  const locale = useLocale()
   const [reports, setReports] = useState<MaintenanceReport[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [loaded, setLoaded] = useState(false)
 
-  // Filters
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [priorityFilter, setPriorityFilter] = useState<string>('all')
-  const [dateFilter, setDateFilter] = useState<string | null>(null)
+  const [dateRange, setDateRange] = useState<DateRange>(getDefaultDateRange)
   const [includeDeleted, setIncludeDeleted] = useState(false)
 
-  // History expansion
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [history, setHistory] = useState<MaintenanceHistoryEntry[]>([])
   const [historyLoading, setHistoryLoading] = useState(false)
 
-  // Labels with translations
   const STATUS_LABELS = useMemo(
     () => ({
       reported: t('status.reported'),
@@ -104,14 +87,12 @@ export default function MaintenanceSection() {
       if (statusFilter !== 'all') params.set('status', statusFilter)
       if (priorityFilter !== 'all') params.set('priority', priorityFilter)
       if (includeDeleted) params.set('include_deleted', 'true')
-      if (dateFilter) params.set('date', dateFilter)
+      params.set('date_from', dateRange.from)
+      params.set('date_to', dateRange.to)
       params.set('limit', DEFAULT_LIMIT.toString())
 
       const response = await apiClient.get<
-        | {
-            data?: { reports?: MaintenanceReport[] }
-            reports?: MaintenanceReport[]
-          }
+        | { data?: { reports?: MaintenanceReport[] }; reports?: MaintenanceReport[] }
         | MaintenanceReport[]
       >(`${API_URL}/api/maintenance?${params.toString()}`)
       const data =
@@ -119,15 +100,17 @@ export default function MaintenanceSection() {
         (response as { reports?: MaintenanceReport[] }).reports ||
         response ||
         []
-      // Limit to DEFAULT_LIMIT
       setReports(Array.isArray(data) ? data.slice(0, DEFAULT_LIMIT) : [])
-      setLoaded(true)
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : t('noData'))
     } finally {
       setLoading(false)
     }
-  }, [statusFilter, priorityFilter, includeDeleted, dateFilter, t])
+  }, [statusFilter, priorityFilter, includeDeleted, dateRange.from, dateRange.to, t])
+
+  useEffect(() => {
+    fetchReports()
+  }, [fetchReports])
 
   const fetchHistory = useCallback(
     async (reportId: string) => {
@@ -135,15 +118,11 @@ export default function MaintenanceSection() {
         setExpandedId(null)
         return
       }
-
       setHistoryLoading(true)
       setExpandedId(reportId)
       try {
         const response = await apiClient.get<
-          | {
-              data?: { history?: MaintenanceHistoryEntry[] }
-              history?: MaintenanceHistoryEntry[]
-            }
+          | { data?: { history?: MaintenanceHistoryEntry[] }; history?: MaintenanceHistoryEntry[] }
           | MaintenanceHistoryEntry[]
         >(`${API_URL}/api/maintenance/${reportId}/history`)
         const historyData =
@@ -151,8 +130,7 @@ export default function MaintenanceSection() {
           (response as { history?: MaintenanceHistoryEntry[] }).history ||
           (Array.isArray(response) ? response : [])
         setHistory(historyData)
-      } catch (err: unknown) {
-        console.error('Error fetching history:', err)
+      } catch {
         setHistory([])
       } finally {
         setHistoryLoading(false)
@@ -161,117 +139,53 @@ export default function MaintenanceSection() {
     [expandedId]
   )
 
-  const handleDateChange = (date: string | null) => {
-    setDateFilter(date)
-    setLoaded(false)
-  }
-
-  const formatDate = (dateStr: string) => {
-    return new Intl.DateTimeFormat(locale === 'es' ? 'es-ES' : 'en-US', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    }).format(new Date(dateStr))
-  }
-
-  // Estado inicial
-  if (!loaded && !loading) {
-    return (
-      <div className="flex flex-col items-center justify-center h-64 gap-4">
-        <div className="text-center">
-          <FiTool className="w-12 h-12 text-fg-subtle mx-auto mb-3" />
-          <h3 className="text-lg font-medium text-fg mb-1">{t('title')}</h3>
-          <p className="text-sm text-fg-subtle max-w-md">{t('description')}</p>
-        </div>
-        <button
-          onClick={fetchReports}
-          className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-accent-fg bg-accent hover:bg-accent-hover rounded-lg transition-colors"
-        >
-          <FiRefreshCw className="w-4 h-4" />
-          {t('loadHistory')}
-        </button>
-      </div>
-    )
-  }
-
   return (
     <div className="space-y-4">
       {/* Filters */}
-      <div className="flex items-center justify-between gap-4 pb-4 border-b border-border">
-        <div className="flex items-center gap-2 flex-wrap">
-          <FiFilter className="w-4 h-4 text-gray-400" />
+      <div className="flex items-center gap-3 pb-4 border-b border-border flex-wrap">
+        <FiFilter className="w-4 h-4 text-gray-400 flex-shrink-0" />
 
-          {/* Date Filter */}
-          <DateFilter selectedDate={dateFilter} onDateChange={handleDateChange} />
+        <DateRangePicker value={dateRange} onChange={setDateRange} />
 
-          {/* Status Filter */}
-          <SelectDropdown<string>
-            value={statusFilter}
-            onChange={(v) => {
-              setStatusFilter(v)
-              setLoaded(false)
-            }}
-            options={[
-              { value: 'all', label: t('status.all') },
-              { value: 'reported', label: t('status.reported') },
-              { value: 'pending', label: t('status.pending') },
-              { value: 'in_progress', label: t('status.in_progress') },
-              { value: 'resolved', label: t('status.resolved') },
-              { value: 'closed', label: t('status.closed') },
-            ]}
-            className="w-40"
-          />
+        <SelectDropdown<string>
+          value={statusFilter}
+          onChange={setStatusFilter}
+          options={[
+            { value: 'all', label: t('status.all') },
+            { value: 'reported', label: t('status.reported') },
+            { value: 'pending', label: t('status.pending') },
+            { value: 'in_progress', label: t('status.in_progress') },
+            { value: 'resolved', label: t('status.resolved') },
+            { value: 'closed', label: t('status.closed') },
+          ]}
+          className="w-40"
+        />
 
-          {/* Priority Filter */}
-          <SelectDropdown<string>
-            value={priorityFilter}
-            onChange={(v) => {
-              setPriorityFilter(v)
-              setLoaded(false)
-            }}
-            options={[
-              { value: 'all', label: t('priority.all') },
-              { value: 'low', label: t('priority.low') },
-              { value: 'medium', label: t('priority.medium') },
-              { value: 'high', label: t('priority.high') },
-              { value: 'urgent', label: t('priority.urgent') },
-            ]}
-            className="w-36"
-          />
+        <SelectDropdown<string>
+          value={priorityFilter}
+          onChange={setPriorityFilter}
+          options={[
+            { value: 'all', label: t('priority.all') },
+            { value: 'low', label: t('priority.low') },
+            { value: 'medium', label: t('priority.medium') },
+            { value: 'high', label: t('priority.high') },
+            { value: 'urgent', label: t('priority.urgent') },
+          ]}
+          className="w-36"
+        />
 
-          {/* Include Deleted */}
-          <Checkbox
-            checked={includeDeleted}
-            onCheckedChange={(v) => {
-              setIncludeDeleted(v)
-              setLoaded(false)
-            }}
-            label={t('filters.deleted')}
-            strikeOnCheck={false}
-          />
-        </div>
+        <Checkbox
+          checked={includeDeleted}
+          onCheckedChange={setIncludeDeleted}
+          label={t('filters.deleted')}
+          strikeOnCheck={false}
+        />
       </div>
 
-      {/* Loading */}
-      {loading && (
-        <div className="flex items-center justify-center py-12">
-          <FiLoader className="w-6 h-6 animate-spin text-accent" />
-        </div>
-      )}
+      {loading && <ReportListSkeleton />}
+      {!loading && error && <ReportError message={error} />}
 
-      {/* Error */}
-      {error && (
-        <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-          <div className="flex items-center gap-2">
-            <FiAlertCircle className="w-4 h-4 text-red-500" />
-            <span className="text-sm text-red-600 dark:text-red-400">{error}</span>
-          </div>
-        </div>
-      )}
-
-      {/* Reports List */}
+      {/* Reports list */}
       {!loading && !error && reports.length > 0 && (
         <div className="space-y-2">
           {reports.map((report) => {
@@ -286,31 +200,14 @@ export default function MaintenanceSection() {
 
             return (
               <div key={report.id} className="border border-border rounded-lg overflow-hidden">
-                {/* Report Row */}
                 <div className="bg-surface p-4">
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-2 flex-wrap">
-                        <span
-                          className={cn(
-                            'px-2 py-0.5 rounded-full text-xs font-medium',
-                            statusColor
-                          )}
-                        >
+                        <span className={cn('px-2 py-0.5 rounded-full text-xs font-medium', statusColor)}>
                           {statusLabel}
                         </span>
-                        <span
-                          className={cn(
-                            'inline-flex items-center gap-1 text-xs font-medium',
-                            priorityColor
-                          )}
-                        >
-                          {report.priority === 'high' && (
-                            <FiAlertTriangle className="w-3.5 h-3.5" />
-                          )}
-                          {report.priority === 'urgent' && (
-                            <FiAlertCircle className="w-3.5 h-3.5" />
-                          )}
+                        <span className={cn('text-xs font-medium', priorityColor)}>
                           {priorityLabel}
                         </span>
                         {report.deleted_at && (
@@ -343,15 +240,14 @@ export default function MaintenanceSection() {
                         </span>
                         <span className="inline-flex items-center gap-1">
                           <FiCalendar className="w-3.5 h-3.5" />
-                          {formatDate(report.created_at)}
+                          {formatReportDateTime(report.created_at)}
                         </span>
                       </div>
                     </div>
 
-                    {/* Expand History Button */}
                     <button
                       onClick={() => fetchHistory(report.id)}
-                      className="flex items-center gap-1 px-2 py-1 text-xs font-medium text-fg-muted hover:text-accent hover:bg-surface-hover rounded transition-colors"
+                      className="flex items-center gap-1 px-2 py-1 text-xs font-medium text-fg-muted hover:text-accent hover:bg-surface-hover rounded transition-colors flex-shrink-0"
                     >
                       <FiClock className="w-3.5 h-3.5" />
                       {t('table.date')}
@@ -364,7 +260,7 @@ export default function MaintenanceSection() {
                   </div>
                 </div>
 
-                {/* History Panel */}
+                {/* History panel */}
                 {isExpanded && (
                   <div className="border-t border-border bg-surface-sunken p-4">
                     {historyLoading ? (
@@ -381,28 +277,24 @@ export default function MaintenanceSection() {
                             key={entry.id}
                             className="flex items-start gap-3 text-xs bg-surface p-2 rounded border border-border"
                           >
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-1">
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-1 flex-wrap">
                                 <span className="font-medium text-fg">{entry.action}</span>
                                 {entry.field_changed && (
-                                  <span className="text-gray-400">({entry.field_changed})</span>
+                                  <span className="text-accent">{entry.field_changed}</span>
                                 )}
-                                <span className="text-gray-400">-</span>
-                                <span className="text-fg">
-                                  {entry.user_name || entry.changed_by}
-                                </span>
+                                <span className="text-gray-400">—</span>
+                                <span className="text-fg">{entry.user_name || entry.changed_by}</span>
                               </div>
                               {entry.old_value && (
-                                <p className="text-gray-500 line-through truncate">
-                                  {entry.old_value}
-                                </p>
+                                <p className="text-gray-500 line-through truncate">{entry.old_value}</p>
                               )}
                               {entry.new_value && (
                                 <p className="text-fg truncate">{entry.new_value}</p>
                               )}
                             </div>
                             <span className="text-gray-400 flex-shrink-0">
-                              {formatDate(entry.changed_at)}
+                              {formatReportDateTime(entry.changed_at)}
                             </span>
                           </div>
                         ))}
@@ -418,9 +310,9 @@ export default function MaintenanceSection() {
         </div>
       )}
 
-      {/* Empty State */}
-      {!loading && !error && reports.length === 0 && loaded && (
-        <div className="flex flex-col items-center justify-center py-12 text-gray-500">
+      {/* Empty state */}
+      {!loading && !error && reports.length === 0 && (
+        <div className="flex flex-col items-center justify-center py-12 text-fg-subtle">
           <FiTool className="w-10 h-10 mb-2" />
           <p>{t('noData')}</p>
         </div>

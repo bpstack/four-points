@@ -307,6 +307,7 @@
         "createdBy": "Creado por",
         "date": "Fecha"
       },
+      "historyLabel": "Historial",
       "noData": "No se encontraron logbooks",
       "showing": "Mostrando {count} registros"
     },
@@ -487,7 +488,8 @@
       "showing": "Mostrando {count} runs (máx. {max})"
     },
     "common": {
-      "filterByDate": "Filtrar por fecha"
+      "filterByDate": "Filtrar por fecha",
+      "clearDate": "Limpiar filtro de fecha"
     }
   }
 }

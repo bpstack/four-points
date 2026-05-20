@@ -2,37 +2,30 @@
 
 'use client'
 
-import { useState, useCallback, useMemo } from 'react'
-import { useTranslations, useLocale } from 'next-intl'
+import { useState, useCallback, useEffect, useMemo } from 'react'
+import { useTranslations } from 'next-intl'
 import { apiClient } from '@/app/lib/apiClient'
 import { cn } from '@/app/lib/helpers/utils'
 import { API_BASE_URL } from '@/app/lib/env'
 import {
   FiBook,
   FiLoader,
-  FiAlertCircle,
-  FiRefreshCw,
   FiFilter,
   FiUser,
   FiCalendar,
   FiCheckCircle,
-  FiClock,
   FiTrash2,
   FiChevronDown,
   FiChevronRight,
+  FiClock,
 } from 'react-icons/fi'
 import type { LogbookEntry, LogbookHistoryEntry } from '../types'
-import DateFilter from '../DateFilter'
+import DateRangePicker, { getDefaultDateRange, type DateRange } from '../DateRangePicker'
 import { SelectDropdown } from '@/app/ui/components/SelectDropdown'
+import { ReportError, ReportListSkeleton, formatReportDate, formatReportDateTime } from '../utils'
 
 const API_URL = API_BASE_URL
-
-// Límite de registros por defecto
 const DEFAULT_LIMIT = 50
-
-// ═══════════════════════════════════════════════════════
-// PRIORITY CONFIG (colors only - labels use translations)
-// ═══════════════════════════════════════════════════════
 
 const PRIORITY_COLORS: Record<string, string> = {
   baja: 'bg-surface-hover text-fg-muted',
@@ -41,29 +34,96 @@ const PRIORITY_COLORS: Record<string, string> = {
   urgente: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
 }
 
-type ViewMode = 'all' | 'trashed'
+// Fields to omit from history diff (internal IDs, noise)
+const IGNORED_DIFF_KEYS = new Set([
+  'id', 'logbook_id', 'comment_id', 'user_id', 'author_id',
+  'department_id', 'updated_at', 'created_at',
+])
 
-// ═══════════════════════════════════════════════════════
-// COMPONENT
-// ═══════════════════════════════════════════════════════
+const FIELD_LABELS: Record<string, string> = {
+  message: 'Mensaje',
+  comment: 'Comentario',
+  importance_level: 'Prioridad',
+  is_solved: 'Estado',
+  date: 'Fecha',
+  solved_at: 'Resuelto el',
+  solved_by: 'Resuelto por',
+  deleted_at: 'Eliminado el',
+}
+
+function renderDiff(prev: unknown, next: unknown): React.ReactNode {
+  if (prev == null && next == null) return null
+
+  const toEntries = (val: unknown) => {
+    if (val == null || typeof val !== 'object') return []
+    return Object.entries(val as Record<string, unknown>).filter(
+      ([k]) => !IGNORED_DIFF_KEYS.has(k)
+    )
+  }
+
+  if (typeof prev === 'object' || typeof next === 'object') {
+    const prevObj = (prev != null && typeof prev === 'object') ? prev as Record<string, unknown> : {}
+    const nextObj = (next != null && typeof next === 'object') ? next as Record<string, unknown> : {}
+    const allKeys = [...new Set([...toEntries(prevObj).map(([k]) => k), ...toEntries(nextObj).map(([k]) => k)])]
+
+    const changedKeys = allKeys.filter(
+      (k) => JSON.stringify(prevObj[k]) !== JSON.stringify(nextObj[k])
+    )
+
+    if (changedKeys.length === 0) return null
+
+    return (
+      <div className="space-y-1 mt-1">
+        {changedKeys.map((k) => (
+          <div key={k} className="flex items-start gap-1.5 flex-wrap text-xs">
+            <span className="text-fg-subtle font-medium shrink-0">
+              {FIELD_LABELS[k] ?? k}:
+            </span>
+            {prevObj[k] != null && (
+              <span className="line-through text-gray-400 break-all">
+                {String(prevObj[k])}
+              </span>
+            )}
+            {prevObj[k] != null && nextObj[k] != null && (
+              <span className="text-gray-400">→</span>
+            )}
+            {nextObj[k] != null && (
+              <span className="text-fg break-all">{String(nextObj[k])}</span>
+            )}
+          </div>
+        ))}
+      </div>
+    )
+  }
+
+  // Plain strings
+  return (
+    <div className="space-y-0.5 mt-1 text-xs">
+      {prev != null && (
+        <p className="line-through text-gray-400 break-all">{String(prev)}</p>
+      )}
+      {next != null && (
+        <p className="text-fg break-all">{String(next)}</p>
+      )}
+    </div>
+  )
+}
+
+type ViewMode = 'all' | 'trashed'
 
 export default function LogbooksSection() {
   const t = useTranslations('profile.reports.logbooks')
-  const locale = useLocale()
   const [logbooks, setLogbooks] = useState<LogbookEntry[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [loaded, setLoaded] = useState(false)
   const [viewMode, setViewMode] = useState<ViewMode>('all')
   const [priorityFilter, setPriorityFilter] = useState<string>('all')
-  const [dateFilter, setDateFilter] = useState<string | null>(null)
+  const [dateRange, setDateRange] = useState<DateRange>(getDefaultDateRange)
 
-  // History expansion
   const [expandedId, setExpandedId] = useState<number | null>(null)
   const [history, setHistory] = useState<LogbookHistoryEntry[]>([])
   const [historyLoading, setHistoryLoading] = useState(false)
 
-  // Priority labels with translations
   const PRIORITY_LABELS = useMemo(
     () => ({
       baja: t('priority.low'),
@@ -78,31 +138,28 @@ export default function LogbooksSection() {
     setLoading(true)
     setError(null)
     try {
-      let endpoint: string
+      const params = new URLSearchParams()
+      params.set('limit', DEFAULT_LIMIT.toString())
+      params.set('date_from', dateRange.from)
+      params.set('date_to', dateRange.to)
+      if (viewMode === 'trashed') params.set('include_trashed', 'true')
+      if (priorityFilter !== 'all') params.set('importance_level', priorityFilter)
 
-      // Use specific endpoint based on filters
-      if (dateFilter) {
-        // Use the day-specific endpoint
-        endpoint = `${API_URL}/api/logbooks/day/${dateFilter}`
-      } else if (viewMode === 'trashed') {
-        endpoint = `${API_URL}/api/logbooks/trashed`
-      } else if (priorityFilter !== 'all') {
-        endpoint = `${API_URL}/api/logbooks/priority/${priorityFilter}`
-      } else {
-        endpoint = `${API_URL}/api/logbooks/all`
-      }
-
-      const response = await apiClient.get<{ data?: LogbookEntry[] } | LogbookEntry[]>(endpoint)
+      const response = await apiClient.get<{ data?: LogbookEntry[] } | LogbookEntry[]>(
+        `${API_URL}/api/logbooks/all?${params.toString()}`
+      )
       const data = (response as { data?: LogbookEntry[] }).data || response || []
-      // Limit to DEFAULT_LIMIT (backend doesn't support limit param)
       setLogbooks(Array.isArray(data) ? data.slice(0, DEFAULT_LIMIT) : [])
-      setLoaded(true)
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : t('noData'))
     } finally {
       setLoading(false)
     }
-  }, [viewMode, priorityFilter, dateFilter, t])
+  }, [dateRange.from, dateRange.to, viewMode, priorityFilter, t])
+
+  useEffect(() => {
+    fetchLogbooks()
+  }, [fetchLogbooks])
 
   const fetchHistory = useCallback(
     async (logbookId: number) => {
@@ -110,7 +167,6 @@ export default function LogbooksSection() {
         setExpandedId(null)
         return
       }
-
       setHistoryLoading(true)
       setExpandedId(logbookId)
       try {
@@ -118,10 +174,8 @@ export default function LogbooksSection() {
           history?: LogbookHistoryEntry[]
           data?: { history?: LogbookHistoryEntry[] }
         }>(`${API_URL}/api/logbooks/${logbookId}/history`)
-        // Backend returns { logbookId, history: [...] }
         setHistory(response.history || response.data?.history || [])
-      } catch (err: unknown) {
-        console.error('Error fetching history:', err)
+      } catch {
         setHistory([])
       } finally {
         setHistoryLoading(false)
@@ -130,104 +184,47 @@ export default function LogbooksSection() {
     [expandedId]
   )
 
-  const handleDateChange = (date: string | null) => {
-    setDateFilter(date)
-    setLoaded(false) // Reset to trigger new fetch
-  }
-
-  const formatDate = (dateStr: string) => {
-    return new Intl.DateTimeFormat(locale === 'es' ? 'es-ES' : 'en-US', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    }).format(new Date(dateStr))
-  }
-
-  // Estado inicial
-  if (!loaded && !loading) {
-    return (
-      <div className="flex flex-col items-center justify-center h-64 gap-4">
-        <div className="text-center">
-          <FiBook className="w-12 h-12 text-fg-subtle mx-auto mb-3" />
-          <h3 className="text-lg font-medium text-fg mb-1">{t('title')}</h3>
-          <p className="text-sm text-fg-subtle max-w-md">{t('description')}</p>
-        </div>
-        <button
-          onClick={fetchLogbooks}
-          className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-accent-fg bg-accent hover:bg-accent-hover rounded-lg transition-colors"
-        >
-          <FiRefreshCw className="w-4 h-4" />
-          {t('loadHistory')}
-        </button>
-      </div>
-    )
-  }
-
   return (
     <div className="space-y-4">
       {/* Filters */}
-      <div className="flex items-center justify-between gap-4 pb-4 border-b border-border">
-        <div className="flex items-center gap-2 flex-wrap">
-          <FiFilter className="w-4 h-4 text-gray-400" />
+      <div className="flex items-center gap-3 pb-4 border-b border-border flex-wrap">
+        <FiFilter className="w-4 h-4 text-gray-400 flex-shrink-0" />
 
-          {/* Date Filter */}
-          <DateFilter selectedDate={dateFilter} onDateChange={handleDateChange} />
+        <DateRangePicker value={dateRange} onChange={setDateRange} />
 
-          {/* View Mode */}
+        <SelectDropdown<string>
+          value={viewMode}
+          onChange={(v) => {
+            setViewMode(v as ViewMode)
+            if (v === 'trashed') setPriorityFilter('all')
+          }}
+          options={[
+            { value: 'all', label: t('status.all') },
+            { value: 'trashed', label: t('filters.deleted') },
+          ]}
+          className="w-32"
+        />
+
+        {viewMode === 'all' && (
           <SelectDropdown<string>
-            value={viewMode}
-            onChange={(v) => {
-              setViewMode(v as ViewMode)
-              setLoaded(false)
-            }}
+            value={priorityFilter}
+            onChange={setPriorityFilter}
             options={[
-              { value: 'all', label: t('status.all') },
-              { value: 'trashed', label: t('filters.deleted') },
+              { value: 'all', label: t('priority.all') },
+              { value: 'baja', label: t('priority.low') },
+              { value: 'media', label: t('priority.medium') },
+              { value: 'alta', label: t('priority.high') },
+              { value: 'urgente', label: t('priority.urgent') },
             ]}
-            className="w-32"
+            className="w-36"
           />
-
-          {/* Priority Filter (solo en modo 'all') */}
-          {viewMode === 'all' && (
-            <SelectDropdown<string>
-              value={priorityFilter}
-              onChange={(v) => {
-                setPriorityFilter(v)
-                setLoaded(false)
-              }}
-              options={[
-                { value: 'all', label: t('priority.all') },
-                { value: 'baja', label: t('priority.low') },
-                { value: 'media', label: t('priority.medium') },
-                { value: 'alta', label: t('priority.high') },
-                { value: 'urgente', label: t('priority.urgent') },
-              ]}
-              className="w-36"
-            />
-          )}
-        </div>
+        )}
       </div>
 
-      {/* Loading */}
-      {loading && (
-        <div className="flex items-center justify-center py-12">
-          <FiLoader className="w-6 h-6 animate-spin text-accent" />
-        </div>
-      )}
+      {loading && <ReportListSkeleton />}
+      {!loading && error && <ReportError message={error} />}
 
-      {/* Error */}
-      {error && (
-        <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-          <div className="flex items-center gap-2">
-            <FiAlertCircle className="w-4 h-4 text-red-500" />
-            <span className="text-sm text-red-600 dark:text-red-400">{error}</span>
-          </div>
-        </div>
-      )}
-
-      {/* Logbooks List */}
+      {/* Logbooks list */}
       {!loading && !error && logbooks.length > 0 && (
         <div className="space-y-2">
           {logbooks.map((logbook) => {
@@ -239,17 +236,11 @@ export default function LogbooksSection() {
 
             return (
               <div key={logbook.id} className="border border-border rounded-lg overflow-hidden">
-                {/* Logbook Row */}
                 <div className="bg-surface p-4">
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-2">
-                        <span
-                          className={cn(
-                            'px-2 py-0.5 rounded-full text-xs font-medium',
-                            priorityColor
-                          )}
-                        >
+                      <div className="flex items-center gap-2 mb-2 flex-wrap">
+                        <span className={cn('px-2 py-0.5 rounded-full text-xs font-medium', priorityColor)}>
                           {priorityLabel}
                         </span>
                         {!!logbook.is_solved && (
@@ -269,14 +260,14 @@ export default function LogbooksSection() {
 
                       <p className="text-sm text-fg mb-2 line-clamp-2">{logbook.message}</p>
 
-                      <div className="flex items-center gap-4 text-xs text-fg-subtle">
+                      <div className="flex items-center gap-4 text-xs text-fg-subtle flex-wrap">
                         <span className="inline-flex items-center gap-1">
                           <FiUser className="w-3.5 h-3.5" />
                           {logbook.author_name || logbook.author_id}
                         </span>
                         <span className="inline-flex items-center gap-1">
                           <FiCalendar className="w-3.5 h-3.5" />
-                          {formatDate(logbook.created_at)}
+                          {formatReportDateTime(logbook.created_at)}
                         </span>
                         {logbook.department_name && (
                           <span className="text-gray-400">{logbook.department_name}</span>
@@ -284,13 +275,12 @@ export default function LogbooksSection() {
                       </div>
                     </div>
 
-                    {/* Expand History Button */}
                     <button
                       onClick={() => fetchHistory(logbook.id)}
-                      className="flex items-center gap-1 px-2 py-1 text-xs font-medium text-fg-muted hover:text-accent hover:bg-surface-hover rounded transition-colors"
+                      className="flex items-center gap-1 px-2 py-1 text-xs font-medium text-fg-muted hover:text-accent hover:bg-surface-hover rounded transition-colors flex-shrink-0"
                     >
                       <FiClock className="w-3.5 h-3.5" />
-                      {t('table.date')}
+                      {t('historyLabel') || 'Historial'}
                       {isExpanded ? (
                         <FiChevronDown className="w-3.5 h-3.5" />
                       ) : (
@@ -300,7 +290,7 @@ export default function LogbooksSection() {
                   </div>
                 </div>
 
-                {/* History Panel */}
+                {/* History panel */}
                 {isExpanded && (
                   <div className="border-t border-border bg-surface-sunken p-4">
                     {historyLoading ? (
@@ -310,36 +300,23 @@ export default function LogbooksSection() {
                     ) : history.length > 0 ? (
                       <div className="space-y-2">
                         <h4 className="text-xs font-medium text-fg-subtle uppercase tracking-wide mb-3">
-                          {t('table.date')}
+                          {t('historyLabel') || 'Historial de cambios'}
                         </h4>
                         {history.map((entry) => (
                           <div
                             key={entry.id}
                             className="flex items-start gap-3 text-xs bg-surface p-2 rounded border border-border"
                           >
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-1">
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-0.5 flex-wrap">
                                 <span className="font-medium text-fg">{entry.action}</span>
-                                <span className="text-gray-400">-</span>
+                                <span className="text-gray-400">—</span>
                                 <span className="text-fg">{entry.editor?.username || '-'}</span>
                               </div>
-                              {entry.previousContent != null && (
-                                <p className="text-gray-500 line-through truncate">
-                                  {typeof entry.previousContent === 'string'
-                                    ? entry.previousContent
-                                    : JSON.stringify(entry.previousContent)}
-                                </p>
-                              )}
-                              {entry.newContent != null && (
-                                <p className="text-fg truncate">
-                                  {typeof entry.newContent === 'string'
-                                    ? entry.newContent
-                                    : JSON.stringify(entry.newContent)}
-                                </p>
-                              )}
+                              {renderDiff(entry.previousContent, entry.newContent)}
                             </div>
-                            <span className="text-gray-400 flex-shrink-0">
-                              {formatDate(entry.createdAt)}
+                            <span className="text-gray-400 flex-shrink-0 text-xs">
+                              {formatReportDateTime(entry.createdAt)}
                             </span>
                           </div>
                         ))}
@@ -355,9 +332,9 @@ export default function LogbooksSection() {
         </div>
       )}
 
-      {/* Empty State */}
-      {!loading && !error && logbooks.length === 0 && loaded && (
-        <div className="flex flex-col items-center justify-center py-12 text-gray-500">
+      {/* Empty state */}
+      {!loading && !error && logbooks.length === 0 && (
+        <div className="flex flex-col items-center justify-center py-12 text-fg-subtle">
           <FiBook className="w-10 h-10 mb-2" />
           <p>{t('noData')}</p>
         </div>

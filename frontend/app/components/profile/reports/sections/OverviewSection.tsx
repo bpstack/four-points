@@ -2,17 +2,14 @@
 
 'use client'
 
-import { useState, useCallback, useMemo } from 'react'
-import { useTranslations, useLocale } from 'next-intl'
+import { useState, useCallback, useEffect, useMemo } from 'react'
+import { useTranslations } from 'next-intl'
 import { apiClient } from '@/app/lib/apiClient'
 import { cn } from '@/app/lib/helpers/utils'
 import { API_BASE_URL } from '@/app/lib/env'
 import {
   FiClock,
   FiUser,
-  FiLoader,
-  FiAlertCircle,
-  FiRefreshCw,
   FiFilter,
   FiBook,
   FiTool,
@@ -20,15 +17,12 @@ import {
   FiDollarSign,
 } from 'react-icons/fi'
 import { SelectDropdown } from '@/app/ui/components/SelectDropdown'
-import DateFilter from '../DateFilter'
+import DateRangePicker, { getDefaultDateRange, type DateRange } from '../DateRangePicker'
+import { ReportError, ReportTableSkeleton, formatReportDateTime } from '../utils'
 import type { UnifiedActivity, ActivitySource } from '../types'
 
 const API_URL = API_BASE_URL
 const DEFAULT_LIMIT = 50
-
-// ═══════════════════════════════════════════════════════
-// SOURCE CONFIG (colors only - labels use translations)
-// ═══════════════════════════════════════════════════════
 
 const SOURCE_COLORS: Record<ActivitySource, string> = {
   cashier: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
@@ -44,21 +38,14 @@ const SOURCE_ICONS: Record<ActivitySource, React.ReactNode> = {
   maintenance: <FiTool className="w-3.5 h-3.5" />,
 }
 
-// ═══════════════════════════════════════════════════════
-// COMPONENT
-// ═══════════════════════════════════════════════════════
-
 export default function OverviewSection() {
   const t = useTranslations('profile.reports.overview')
-  const locale = useLocale()
   const [activity, setActivity] = useState<UnifiedActivity[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [loaded, setLoaded] = useState(false)
   const [sourceFilter, setSourceFilter] = useState<ActivitySource | 'all'>('all')
-  const [dateFilter, setDateFilter] = useState<string | null>(null)
+  const [dateRange, setDateRange] = useState<DateRange>(getDefaultDateRange)
 
-  // Source labels with translations
   const SOURCE_LABELS = useMemo(
     () => ({
       cashier: t('sources.cashier'),
@@ -69,7 +56,6 @@ export default function OverviewSection() {
     [t]
   )
 
-  // Action labels with translations
   const ACTION_LABELS = useMemo(
     () => ({
       created: t('actions.created'),
@@ -102,171 +88,101 @@ export default function OverviewSection() {
     setError(null)
     try {
       const params = new URLSearchParams({ limit: DEFAULT_LIMIT.toString() })
+      params.set('date_from', dateRange.from)
+      params.set('date_to', dateRange.to)
       if (sourceFilter !== 'all') params.set('source', sourceFilter)
-      if (dateFilter) params.set('date', dateFilter)
 
       const response = await apiClient.get<{ data?: UnifiedActivity[] } | UnifiedActivity[]>(
         `${API_URL}/api/activity/recent?${params.toString()}`
       )
       const data = (response as { data?: UnifiedActivity[] }).data || response || []
-      // Ensure limit is applied
       setActivity(Array.isArray(data) ? data.slice(0, DEFAULT_LIMIT) : [])
-      setLoaded(true)
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : t('errorLoading'))
     } finally {
       setLoading(false)
     }
-  }, [sourceFilter, dateFilter, t])
+  }, [dateRange.from, dateRange.to, sourceFilter, t])
 
-  const formatDate = (timestamp: string) => {
-    const date = new Date(timestamp)
-    return new Intl.DateTimeFormat(locale === 'es' ? 'es-ES' : 'en-US', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    }).format(date)
-  }
-
-  // Estado inicial - mostrar boton para cargar
-  if (!loaded && !loading) {
-    return (
-      <div className="flex flex-col items-center justify-center h-64 gap-4">
-        <div className="text-center">
-          <FiClock className="w-12 h-12 text-fg-subtle mx-auto mb-3" />
-          <h3 className="text-lg font-medium text-fg mb-1">{t('title')}</h3>
-          <p className="text-sm text-fg-subtle max-w-md">
-            {t('description', { count: DEFAULT_LIMIT })}
-          </p>
-        </div>
-        <button
-          onClick={fetchActivity}
-          className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-accent-fg bg-accent hover:bg-accent-hover rounded-lg transition-colors"
-        >
-          <FiRefreshCw className="w-4 h-4" />
-          {t('loadActivity')}
-        </button>
-      </div>
-    )
-  }
+  useEffect(() => {
+    fetchActivity()
+  }, [fetchActivity])
 
   return (
     <div className="space-y-4">
       {/* Filters */}
-      <div className="flex items-center gap-4 pb-4 border-b border-border">
-        <div className="flex items-center gap-2 flex-wrap">
-          <FiFilter className="w-4 h-4 text-gray-400" />
+      <div className="flex items-center gap-3 pb-4 border-b border-border flex-wrap">
+        <FiFilter className="w-4 h-4 text-gray-400 flex-shrink-0" />
 
-          <DateFilter
-            selectedDate={dateFilter}
-            onDateChange={(date) => {
-              setDateFilter(date)
-              setLoaded(false)
-            }}
-            label={t('dateFilter')}
-          />
+        <DateRangePicker value={dateRange} onChange={setDateRange} />
 
-          <SelectDropdown<ActivitySource | 'all'>
-            value={sourceFilter}
-            onChange={(v) => {
-              setSourceFilter(v)
-              setLoaded(false)
-            }}
-            options={[
-              { value: 'all', label: t('sources.all') },
-              { value: 'logbook', label: SOURCE_LABELS.logbook },
-              { value: 'maintenance', label: SOURCE_LABELS.maintenance },
-              { value: 'groups', label: SOURCE_LABELS.groups },
-              { value: 'cashier', label: SOURCE_LABELS.cashier },
-            ]}
-            className="w-44"
-          />
-        </div>
+        <SelectDropdown<ActivitySource | 'all'>
+          value={sourceFilter}
+          onChange={setSourceFilter}
+          options={[
+            { value: 'all', label: t('sources.all') },
+            { value: 'logbook', label: SOURCE_LABELS.logbook },
+            { value: 'maintenance', label: SOURCE_LABELS.maintenance },
+            { value: 'groups', label: SOURCE_LABELS.groups },
+            { value: 'cashier', label: SOURCE_LABELS.cashier },
+          ]}
+          className="w-44"
+        />
       </div>
 
-      {/* Loading */}
-      {loading && (
-        <div className="flex items-center justify-center py-12">
-          <FiLoader className="w-6 h-6 animate-spin text-accent" />
-        </div>
-      )}
+      {loading && <ReportTableSkeleton cols={5} rows={8} />}
+      {!loading && error && <ReportError message={error} />}
 
-      {/* Error */}
-      {error && (
-        <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-          <div className="flex items-center gap-2">
-            <FiAlertCircle className="w-4 h-4 text-red-500" />
-            <span className="text-sm text-red-600 dark:text-red-400">{error}</span>
-          </div>
-        </div>
-      )}
-
-      {/* Activity List */}
+      {/* Activity table */}
       {!loading && !error && activity.length > 0 && (
         <div className="border border-border rounded-lg overflow-hidden">
           <table className="w-full text-sm">
             <thead className="bg-surface-hover">
               <tr>
-                <th className="px-4 py-3 text-left font-medium text-fg-subtle">
-                  {t('table.source')}
-                </th>
-                <th className="px-4 py-3 text-left font-medium text-fg-subtle">
-                  {t('table.action')}
-                </th>
-                <th className="px-4 py-3 text-left font-medium text-fg-subtle">
-                  {t('table.user')}
-                </th>
-                <th className="px-4 py-3 text-left font-medium text-fg-subtle">
-                  {t('table.record')}
-                </th>
-                <th className="px-4 py-3 text-left font-medium text-fg-subtle">
-                  {t('table.date')}
-                </th>
+                <th className="px-4 py-3 text-left font-medium text-fg-subtle">{t('table.source')}</th>
+                <th className="px-4 py-3 text-left font-medium text-fg-subtle">{t('table.action')}</th>
+                <th className="px-4 py-3 text-left font-medium text-fg-subtle">{t('table.user')}</th>
+                <th className="px-4 py-3 text-left font-medium text-fg-subtle">{t('table.record')}</th>
+                <th className="px-4 py-3 text-left font-medium text-fg-subtle">{t('table.date')}</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200 dark:divide-border">
-              {activity.map((item) => {
-                return (
-                  <tr key={item.id} className="hover:bg-surface-hover transition-colors">
-                    <td className="px-4 py-3">
-                      <span
-                        className={cn(
-                          'inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium',
-                          SOURCE_COLORS[item.source]
-                        )}
-                      >
-                        {SOURCE_ICONS[item.source]}
-                        {SOURCE_LABELS[item.source]}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-fg">
-                      {ACTION_LABELS[item.action as keyof typeof ACTION_LABELS] || item.action}
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-2">
-                        <FiUser className="w-3.5 h-3.5 text-gray-400" />
-                        <span className="text-fg">{item.username}</span>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 text-fg-subtle font-mono text-xs">
-                      #{item.record_id || '-'}
-                    </td>
-                    <td className="px-4 py-3 text-fg-subtle text-xs">
-                      {formatDate(item.timestamp)}
-                    </td>
-                  </tr>
-                )
-              })}
+            <tbody className="divide-y divide-border">
+              {activity.map((item) => (
+                <tr key={item.id} className="hover:bg-surface-hover transition-colors">
+                  <td className="px-4 py-3">
+                    <span
+                      className={cn(
+                        'inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium',
+                        SOURCE_COLORS[item.source]
+                      )}
+                    >
+                      {SOURCE_ICONS[item.source]}
+                      {SOURCE_LABELS[item.source]}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 text-fg">
+                    {ACTION_LABELS[item.action as keyof typeof ACTION_LABELS] || item.action}
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-2">
+                      <FiUser className="w-3.5 h-3.5 text-gray-400" />
+                      <span className="text-fg">{item.username}</span>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3 text-fg-subtle font-mono text-xs">
+                    {item.record_id ? `#${item.record_id}` : '-'}
+                  </td>
+                  <td className="px-4 py-3 text-fg-subtle text-xs">{formatReportDateTime(item.timestamp)}</td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
       )}
 
-      {/* Empty State */}
-      {!loading && !error && activity.length === 0 && loaded && (
-        <div className="flex flex-col items-center justify-center py-12 text-gray-500">
+      {/* Empty state */}
+      {!loading && !error && activity.length === 0 && (
+        <div className="flex flex-col items-center justify-center py-12 text-fg-subtle">
           <FiClock className="w-10 h-10 mb-2" />
           <p>{t('noActivity')}</p>
         </div>

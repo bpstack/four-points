@@ -2,17 +2,17 @@
 
 'use client'
 
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback, useEffect, useMemo } from 'react'
 import { useTranslations, useLocale } from 'next-intl'
 import { apiClient } from '@/app/lib/apiClient'
 import { cn } from '@/app/lib/helpers/utils'
 import { API_BASE_URL } from '@/app/lib/env'
+import DateRangePicker, { getDefaultDateRange, type DateRange } from '../DateRangePicker'
 import DateFilter from '../DateFilter'
 import {
   FiDollarSign,
   FiLoader,
   FiAlertCircle,
-  FiRefreshCw,
   FiUser,
   FiCalendar,
   FiClock,
@@ -21,6 +21,8 @@ import {
   FiXCircle,
 } from 'react-icons/fi'
 import { SelectDropdown } from '@/app/ui/components/SelectDropdown'
+import { ReportError, formatReportDate, formatReportDateTime } from '../utils'
+
 interface CashierHistoryEntry {
   id: number
   shift_id: number
@@ -30,19 +32,14 @@ interface CashierHistoryEntry {
   old_value: string | null
   new_value: string | null
   changed_by: string
-  username?: string // Backend returns this from JOIN
+  username?: string
   changed_at: string
   shift_date?: string
   shift_type?: string
-  shift_status?: string
 }
 
 const API_URL = API_BASE_URL
 const DEFAULT_LIMIT = 50
-
-// ═══════════════════════════════════════════════════════
-// TYPES
-// ═══════════════════════════════════════════════════════
 
 interface DashboardOverview {
   today: {
@@ -63,10 +60,7 @@ interface DashboardOverview {
 }
 
 interface DailyReportShift {
-  shift: {
-    id: number
-    shift_type: string
-  }
+  shift: { id: number; shift_type: string }
   total_income: number
   expected_in_box: number
   is_balanced: boolean
@@ -99,23 +93,7 @@ interface Voucher {
   justified_by: string | null
 }
 
-interface _Shift {
-  id: number
-  daily_id: number
-  shift_type: string
-  shift_date: string
-  is_closed: boolean
-  total_cash: number
-  total_card: number
-  total_income: number
-  notes: string | null
-}
-
 type ViewMode = 'dashboard' | 'vouchers' | 'history'
-
-// ═══════════════════════════════════════════════════════
-// CONFIG (colors and icons only - labels moved inside component for i18n)
-// ═══════════════════════════════════════════════════════
 
 const VOUCHER_STATUS_COLORS: Record<string, { color: string; icon: React.ReactNode }> = {
   pending: {
@@ -132,15 +110,40 @@ const VOUCHER_STATUS_COLORS: Record<string, { color: string; icon: React.ReactNo
   },
 }
 
-// ═══════════════════════════════════════════════════════
-// COMPONENT
-// ═══════════════════════════════════════════════════════
+function DashboardSkeleton() {
+  return (
+    <div className="space-y-6 animate-pulse">
+      <div className="grid grid-cols-5 gap-4">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <div key={i} className="bg-surface-hover rounded-lg h-20" />
+        ))}
+      </div>
+      <div className="grid grid-cols-3 gap-4">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <div key={i} className="bg-surface-hover rounded-lg h-16" />
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function TableSkeleton() {
+  return (
+    <div className="space-y-2 animate-pulse">
+      {Array.from({ length: 6 }).map((_, i) => (
+        <div key={i} className="border border-border rounded-lg p-4">
+          <div className="h-3 w-1/2 bg-surface-hover rounded mb-2" />
+          <div className="h-3 w-1/3 bg-surface-hover rounded" />
+        </div>
+      ))}
+    </div>
+  )
+}
 
 export default function CashierSection() {
   const t = useTranslations('profile.reports.cashier')
   const locale = useLocale()
 
-  // Status labels with translations
   const VOUCHER_STATUS_LABELS = useMemo(
     () => ({
       pending: t('voucherStatus.pending'),
@@ -150,7 +153,6 @@ export default function CashierSection() {
     [t]
   )
 
-  // Shift types with translations
   const SHIFT_TYPES = useMemo(
     () => ({
       morning: t('shiftTypes.morning'),
@@ -167,18 +169,10 @@ export default function CashierSection() {
   const [historyData, setHistoryData] = useState<CashierHistoryEntry[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [loaded, setLoaded] = useState(false)
 
-  // View mode
   const [viewMode, setViewMode] = useState<ViewMode>('dashboard')
-
-  // Voucher filters
   const [voucherStatus, setVoucherStatus] = useState<string>('all')
-
-  // Date filter for history view
-  const [historyDate, setHistoryDate] = useState<string | null>(null)
-
-  // Date filter for dashboard view
+  const [historyRange, setHistoryRange] = useState<DateRange>(getDefaultDateRange)
   const [dashboardDate, setDashboardDate] = useState<string | null>(null)
 
   const fetchData = useCallback(async () => {
@@ -186,7 +180,6 @@ export default function CashierSection() {
     setError(null)
     try {
       if (viewMode === 'dashboard') {
-        // If a specific date is selected, use the daily report endpoint
         if (dashboardDate) {
           const response = await apiClient.get(
             `${API_URL}/api/cashier/reports/daily/${dashboardDate}`
@@ -216,10 +209,8 @@ export default function CashierSection() {
         }
       } else if (viewMode === 'history') {
         const params = new URLSearchParams({ limit: DEFAULT_LIMIT.toString() })
-        if (historyDate) {
-          params.set('from_date', historyDate)
-          params.set('to_date', historyDate)
-        }
+        params.set('from_date', historyRange.from)
+        params.set('to_date', historyRange.to)
         const response = await apiClient.get(`${API_URL}/api/cashier/history?${params.toString()}`)
         const data = response as
           | { data?: { data?: CashierHistoryEntry[] } | CashierHistoryEntry[] }
@@ -232,118 +223,49 @@ export default function CashierSection() {
           setHistoryData((data.data as { data?: CashierHistoryEntry[] })?.data || [])
         }
       }
-      setLoaded(true)
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : t('errorLoading'))
     } finally {
       setLoading(false)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [viewMode, voucherStatus, historyDate, dashboardDate])
+  }, [viewMode, voucherStatus, historyRange.from, historyRange.to, dashboardDate, t])
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat(locale === 'es' ? 'es-MX' : 'en-US', {
+  useEffect(() => {
+    fetchData()
+  }, [fetchData])
+
+  const formatCurrency = (amount: number) =>
+    new Intl.NumberFormat(locale === 'es' ? 'es-MX' : 'en-US', {
       style: 'currency',
       currency: 'MXN',
       minimumFractionDigits: 0,
     }).format(amount)
-  }
-
-  const formatDate = (dateStr: string) => {
-    return new Intl.DateTimeFormat(locale === 'es' ? 'es-ES' : 'en-US', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-    }).format(new Date(dateStr))
-  }
-
-  const formatDateTime = (dateStr: string) => {
-    return new Intl.DateTimeFormat(locale === 'es' ? 'es-ES' : 'en-US', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    }).format(new Date(dateStr))
-  }
-
-  // Estado inicial
-  if (!loaded && !loading) {
-    return (
-      <div className="flex flex-col items-center justify-center h-64 gap-4">
-        <div className="text-center">
-          <FiDollarSign className="w-12 h-12 text-fg-subtle mx-auto mb-3" />
-          <h3 className="text-lg font-medium text-fg mb-1">{t('title')}</h3>
-          <p className="text-sm text-fg-subtle max-w-md">{t('description')}</p>
-        </div>
-        <button
-          onClick={fetchData}
-          className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-accent-fg bg-accent hover:bg-accent-hover rounded-lg transition-colors"
-        >
-          <FiRefreshCw className="w-4 h-4" />
-          {t('loadDashboard')}
-        </button>
-      </div>
-    )
-  }
 
   return (
     <div className="space-y-4">
-      {/* View Mode Tabs */}
-      <div className="flex items-center gap-4 pb-4 border-b border-border flex-wrap">
+      {/* View mode tabs + inline filters */}
+      <div className="flex items-center gap-3 pb-4 border-b border-border flex-wrap">
         <div className="flex items-center gap-1 bg-surface-hover rounded-lg p-1">
-          <button
-            onClick={() => {
-              setViewMode('dashboard')
-              setLoaded(false)
-            }}
-            className={cn(
-              'px-3 py-1.5 text-xs font-medium rounded-md transition-colors',
-              viewMode === 'dashboard'
-                ? 'bg-surface text-fg shadow-sm'
-                : 'text-fg-muted hover:text-fg'
-            )}
-          >
-            {t('views.dashboard')}
-          </button>
-          <button
-            onClick={() => {
-              setViewMode('vouchers')
-              setLoaded(false)
-            }}
-            className={cn(
-              'px-3 py-1.5 text-xs font-medium rounded-md transition-colors',
-              viewMode === 'vouchers'
-                ? 'bg-surface text-fg shadow-sm'
-                : 'text-fg-muted hover:text-fg'
-            )}
-          >
-            {t('views.vouchers')}
-          </button>
-          <button
-            onClick={() => {
-              setViewMode('history')
-              setLoaded(false)
-            }}
-            className={cn(
-              'px-3 py-1.5 text-xs font-medium rounded-md transition-colors',
-              viewMode === 'history'
-                ? 'bg-surface text-fg shadow-sm'
-                : 'text-fg-muted hover:text-fg'
-            )}
-          >
-            {t('views.history')}
-          </button>
+          {(['dashboard', 'vouchers', 'history'] as ViewMode[]).map((mode) => (
+            <button
+              key={mode}
+              onClick={() => setViewMode(mode)}
+              className={cn(
+                'px-3 py-1.5 text-xs font-medium rounded-md transition-colors',
+                viewMode === mode
+                  ? 'bg-surface text-fg shadow-sm'
+                  : 'text-fg-muted hover:text-fg'
+              )}
+            >
+              {t(`views.${mode}`)}
+            </button>
+          ))}
         </div>
 
-        {/* Filters - inline with tabs */}
         {viewMode === 'dashboard' && (
           <DateFilter
             selectedDate={dashboardDate}
-            onDateChange={(date) => {
-              setDashboardDate(date)
-              setLoaded(false)
-            }}
+            onDateChange={setDashboardDate}
             label={t('dateFilter')}
           />
         )}
@@ -351,10 +273,7 @@ export default function CashierSection() {
         {viewMode === 'vouchers' && (
           <SelectDropdown<string>
             value={voucherStatus}
-            onChange={(v) => {
-              setVoucherStatus(v)
-              setLoaded(false)
-            }}
+            onChange={setVoucherStatus}
             options={[
               { value: 'all', label: t('voucherStatus.all') },
               { value: 'pending', label: t('voucherStatus.pending') },
@@ -366,82 +285,55 @@ export default function CashierSection() {
         )}
 
         {viewMode === 'history' && (
-          <DateFilter
-            selectedDate={historyDate}
-            onDateChange={(date) => {
-              setHistoryDate(date)
-              setLoaded(false)
-            }}
-            label={t('historyDateFilter')}
-          />
+          <DateRangePicker value={historyRange} onChange={setHistoryRange} />
         )}
       </div>
 
       {/* Loading */}
-      {loading && (
-        <div className="flex items-center justify-center py-12">
-          <FiLoader className="w-6 h-6 animate-spin text-accent" />
-        </div>
-      )}
+      {loading && (viewMode === 'dashboard' ? <DashboardSkeleton /> : <TableSkeleton />)}
 
-      {/* Error */}
-      {error && (
-        <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-          <div className="flex items-center gap-2">
-            <FiAlertCircle className="w-4 h-4 text-red-500" />
-            <span className="text-sm text-red-600 dark:text-red-400">{error}</span>
-          </div>
-        </div>
-      )}
+      {!loading && error && <ReportError message={error} />}
 
-      {/* Dashboard View */}
+      {/* Dashboard — today */}
       {!loading && !error && viewMode === 'dashboard' && overview && (
         <div className="space-y-6">
-          {/* Today's Summary */}
           <div>
             <h4 className="text-sm font-medium text-fg mb-3 flex items-center gap-2">
               <FiCalendar className="w-4 h-4 text-accent" />
-              {t('dashboard.today')} - {formatDate(overview.today.date)}
-              {overview.today.closed_shifts === overview.today.total_shifts &&
-                overview.today.total_shifts > 0 && (
-                  <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-surface-hover text-fg-muted">
-                    {t('dashboard.closed')}
-                  </span>
-                )}
+              {t('dashboard.today')} — {formatReportDate(overview.today.date)}
             </h4>
             <div className="grid grid-cols-5 gap-4">
               <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-4 text-center">
-                <p className="text-2xl font-bold text-green-600 dark:text-green-400">
+                <p className="text-xl font-bold text-green-600 dark:text-green-400">
                   {formatCurrency(overview.today.grand_total)}
                 </p>
                 <p className="text-xs text-fg-subtle mt-1">{t('dashboard.totalIncome')}</p>
               </div>
               <div className="bg-info/10 rounded-lg p-4 text-center">
-                <p className="text-2xl font-bold text-accent">
+                <p className="text-xl font-bold text-accent">
                   {formatCurrency(overview.today.total_cash)}
                 </p>
                 <p className="text-xs text-fg-subtle mt-1">{t('dashboard.cash')}</p>
               </div>
               <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-4 text-center">
-                <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">
+                <p className="text-xl font-bold text-purple-600 dark:text-purple-400">
                   {formatCurrency(overview.today.total_payments)}
                 </p>
                 <p className="text-xs text-fg-subtle mt-1">{t('dashboard.otherPayments')}</p>
               </div>
               <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-lg p-4 text-center">
-                <p className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">
+                <p className="text-xl font-bold text-yellow-600 dark:text-yellow-400">
                   {overview.today.open_shifts}
                 </p>
                 <p className="text-xs text-fg-subtle mt-1">{t('dashboard.openShifts')}</p>
               </div>
               <div className="bg-surface-sunken rounded-lg p-4 text-center">
-                <p className="text-2xl font-bold text-fg">{overview.today.total_shifts}</p>
+                <p className="text-xl font-bold text-fg">{overview.today.total_shifts}</p>
                 <p className="text-xs text-fg-subtle mt-1">{t('dashboard.totalShifts')}</p>
               </div>
             </div>
           </div>
 
-          {/* Vouchers Summary */}
           <div>
             <h4 className="text-sm font-medium text-fg mb-3 flex items-center gap-2">
               <FiFileText className="w-4 h-4 text-purple-500" />
@@ -449,19 +341,19 @@ export default function CashierSection() {
             </h4>
             <div className="grid grid-cols-3 gap-4">
               <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-lg p-4">
-                <p className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">
+                <p className="text-xl font-bold text-yellow-600 dark:text-yellow-400">
                   {overview.vouchers.active_count}
                 </p>
                 <p className="text-xs text-fg-subtle mt-1">{t('vouchersSummary.activeVouchers')}</p>
               </div>
               <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-lg p-4">
-                <p className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">
+                <p className="text-xl font-bold text-yellow-600 dark:text-yellow-400">
                   {formatCurrency(overview.vouchers.active_amount)}
                 </p>
                 <p className="text-xs text-fg-subtle mt-1">{t('vouchersSummary.pendingAmount')}</p>
               </div>
               <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-4">
-                <p className="text-2xl font-bold text-green-600 dark:text-green-400">
+                <p className="text-xl font-bold text-green-600 dark:text-green-400">
                   {formatCurrency(overview.vouchers.total_repaid)}
                 </p>
                 <p className="text-xs text-fg-subtle mt-1">{t('vouchersSummary.totalJustified')}</p>
@@ -469,7 +361,6 @@ export default function CashierSection() {
             </div>
           </div>
 
-          {/* Pending Vouchers Alert */}
           {overview.vouchers.active_count > 0 && (
             <div className="p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
               <div className="flex items-center justify-between">
@@ -485,11 +376,7 @@ export default function CashierSection() {
                   </div>
                 </div>
                 <button
-                  onClick={() => {
-                    setViewMode('vouchers')
-                    setVoucherStatus('pending')
-                    setLoaded(false)
-                  }}
+                  onClick={() => { setViewMode('vouchers'); setVoucherStatus('pending') }}
                   className="text-xs font-medium text-yellow-700 dark:text-yellow-300 hover:underline"
                 >
                   {t('vouchersSummary.viewVouchers')} →
@@ -500,57 +387,48 @@ export default function CashierSection() {
         </div>
       )}
 
-      {/* Daily Report View (when specific date is selected) */}
+      {/* Dashboard — daily report for specific date */}
       {!loading && !error && viewMode === 'dashboard' && dailyReport && (
         <div className="space-y-6">
-          {/* Date Summary */}
           <div>
             <h4 className="text-sm font-medium text-fg mb-3 flex items-center gap-2">
               <FiCalendar className="w-4 h-4 text-accent" />
-              {formatDate(dailyReport.date)}
-              {dailyReport.summary.shifts_closed === dailyReport.summary.shifts_count &&
-                dailyReport.summary.shifts_count > 0 && (
-                  <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-surface-hover text-fg-muted">
-                    {t('dashboard.closed')}
-                  </span>
-                )}
+              {formatReportDate(dailyReport.date)}
             </h4>
             <div className="grid grid-cols-5 gap-4">
               <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-4 text-center">
-                <p className="text-2xl font-bold text-green-600 dark:text-green-400">
+                <p className="text-xl font-bold text-green-600 dark:text-green-400">
                   {formatCurrency(dailyReport.summary.grand_total)}
                 </p>
                 <p className="text-xs text-fg-subtle mt-1">{t('dashboard.totalIncome')}</p>
               </div>
               <div className="bg-info/10 rounded-lg p-4 text-center">
-                <p className="text-2xl font-bold text-accent">
+                <p className="text-xl font-bold text-accent">
                   {formatCurrency(dailyReport.summary.total_cash)}
                 </p>
                 <p className="text-xs text-fg-subtle mt-1">{t('dashboard.cash')}</p>
               </div>
               <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-4 text-center">
-                <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">
+                <p className="text-xl font-bold text-purple-600 dark:text-purple-400">
                   {formatCurrency(dailyReport.summary.total_payments)}
                 </p>
                 <p className="text-xs text-fg-subtle mt-1">{t('dashboard.otherPayments')}</p>
               </div>
               <div className="bg-orange-50 dark:bg-orange-900/20 rounded-lg p-4 text-center">
-                <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">
+                <p className="text-xl font-bold text-orange-600 dark:text-orange-400">
                   {formatCurrency(dailyReport.summary.total_vouchers)}
                 </p>
                 <p className="text-xs text-fg-subtle mt-1">{t('dashboard.vouchers')}</p>
               </div>
               <div className="bg-surface-sunken rounded-lg p-4 text-center">
-                <p className="text-2xl font-bold text-fg">{dailyReport.summary.shifts_count}</p>
+                <p className="text-xl font-bold text-fg">{dailyReport.summary.shifts_count}</p>
                 <p className="text-xs text-fg-subtle mt-1">
-                  {t('dashboard.shifts')} (
-                  {t('dashboard.shiftsClosed', { count: dailyReport.summary.shifts_closed })})
+                  {t('dashboard.shifts')} ({t('dashboard.shiftsClosed', { count: dailyReport.summary.shifts_closed })})
                 </p>
               </div>
             </div>
           </div>
 
-          {/* Difference Alert */}
           {Math.abs(dailyReport.summary.total_difference) > 0.5 && (
             <div
               className={cn(
@@ -567,96 +445,63 @@ export default function CashierSection() {
                     dailyReport.summary.total_difference > 0 ? 'text-green-500' : 'text-red-500'
                   )}
                 />
-                <div>
-                  <p
-                    className={cn(
-                      'text-sm font-medium',
-                      dailyReport.summary.total_difference > 0
-                        ? 'text-green-800 dark:text-green-200'
-                        : 'text-red-800 dark:text-red-200'
-                    )}
-                  >
-                    {t('difference.title')}: {formatCurrency(dailyReport.summary.total_difference)}
-                  </p>
-                  <p
-                    className={cn(
-                      'text-xs',
-                      dailyReport.summary.total_difference > 0
-                        ? 'text-green-600 dark:text-green-400'
-                        : 'text-red-600 dark:text-red-400'
-                    )}
-                  >
-                    {dailyReport.summary.total_difference > 0
-                      ? t('difference.surplus')
-                      : t('difference.shortage')}
-                  </p>
-                </div>
+                <p
+                  className={cn(
+                    'text-sm font-medium',
+                    dailyReport.summary.total_difference > 0
+                      ? 'text-green-800 dark:text-green-200'
+                      : 'text-red-800 dark:text-red-200'
+                  )}
+                >
+                  {t('difference.title')}: {formatCurrency(dailyReport.summary.total_difference)}
+                  {' '}— {dailyReport.summary.total_difference > 0 ? t('difference.surplus') : t('difference.shortage')}
+                </p>
               </div>
             </div>
           )}
 
-          {/* Shifts Details */}
           {dailyReport.shifts.length > 0 && (
-            <div>
-              <h4 className="text-sm font-medium text-fg mb-3 flex items-center gap-2">
-                <FiClock className="w-4 h-4 text-accent" />
-                {t('shiftDetail.title')}
-              </h4>
-              <div className="border border-border rounded-lg overflow-hidden">
-                <table className="w-full text-sm">
-                  <thead className="bg-surface-sunken">
-                    <tr>
-                      <th className="px-4 py-3 text-left font-medium text-fg-subtle">
-                        {t('shiftDetail.shift')}
-                      </th>
-                      <th className="px-4 py-3 text-right font-medium text-fg-subtle">
-                        {t('shiftDetail.income')}
-                      </th>
-                      <th className="px-4 py-3 text-right font-medium text-fg-subtle">
-                        {t('shiftDetail.inBox')}
-                      </th>
-                      <th className="px-4 py-3 text-center font-medium text-fg-subtle">
-                        {t('shiftDetail.status')}
-                      </th>
+            <div className="border border-border rounded-lg overflow-hidden">
+              <table className="w-full text-sm">
+                <thead className="bg-surface-sunken">
+                  <tr>
+                    <th className="px-4 py-3 text-left font-medium text-fg-subtle">{t('shiftDetail.shift')}</th>
+                    <th className="px-4 py-3 text-right font-medium text-fg-subtle">{t('shiftDetail.income')}</th>
+                    <th className="px-4 py-3 text-right font-medium text-fg-subtle">{t('shiftDetail.inBox')}</th>
+                    <th className="px-4 py-3 text-center font-medium text-fg-subtle">{t('shiftDetail.status')}</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {dailyReport.shifts.map((shiftData) => (
+                    <tr key={shiftData.shift.id} className="hover:bg-surface-hover">
+                      <td className="px-4 py-3 text-fg font-medium">
+                        {SHIFT_TYPES[shiftData.shift.shift_type as keyof typeof SHIFT_TYPES] || shiftData.shift.shift_type}
+                      </td>
+                      <td className="px-4 py-3 text-right text-fg">{formatCurrency(shiftData.total_income)}</td>
+                      <td className="px-4 py-3 text-right text-fg-muted">{formatCurrency(shiftData.expected_in_box)}</td>
+                      <td className="px-4 py-3 text-center">
+                        {shiftData.is_balanced ? (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
+                            <FiCheckCircle className="w-3 h-3" />
+                            {t('shiftDetail.balanced')}
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400">
+                            <FiAlertCircle className="w-3 h-3" />
+                            {t('shiftDetail.unbalanced')}
+                          </span>
+                        )}
+                      </td>
                     </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-200 dark:divide-border">
-                    {dailyReport.shifts.map((shiftData) => (
-                      <tr key={shiftData.shift.id} className="hover:bg-surface-hover">
-                        <td className="px-4 py-3 text-fg font-medium">
-                          {SHIFT_TYPES[shiftData.shift.shift_type as keyof typeof SHIFT_TYPES] ||
-                            shiftData.shift.shift_type}
-                        </td>
-                        <td className="px-4 py-3 text-right text-fg">
-                          {formatCurrency(shiftData.total_income)}
-                        </td>
-                        <td className="px-4 py-3 text-right text-fg-muted">
-                          {formatCurrency(shiftData.expected_in_box)}
-                        </td>
-                        <td className="px-4 py-3 text-center">
-                          {shiftData.is_balanced ? (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
-                              <FiCheckCircle className="w-3 h-3" />
-                              {t('shiftDetail.balanced')}
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400">
-                              <FiAlertCircle className="w-3 h-3" />
-                              {t('shiftDetail.unbalanced')}
-                            </span>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                  ))}
+                </tbody>
+              </table>
             </div>
           )}
         </div>
       )}
 
-      {/* Vouchers View */}
+      {/* Vouchers */}
       {!loading && !error && viewMode === 'vouchers' && vouchers.length > 0 && (
         <div className="space-y-2">
           {vouchers.map((voucher) => {
@@ -684,31 +529,24 @@ export default function CashierSection() {
                         #{voucher.voucher_number || voucher.id}
                       </span>
                     </div>
-
                     <p className="text-sm font-medium text-fg mb-1">{voucher.concept}</p>
-                    <p className="text-xs text-fg-subtle">
-                      {t('voucher.for')}: {voucher.recipient}
-                    </p>
-
-                    <div className="flex items-center gap-4 text-xs text-fg-subtle mt-2">
+                    <p className="text-xs text-fg-subtle">{t('voucher.for')}: {voucher.recipient}</p>
+                    <div className="flex items-center gap-4 text-xs text-fg-subtle mt-2 flex-wrap">
                       <span className="inline-flex items-center gap-1">
                         <FiCalendar className="w-3.5 h-3.5" />
-                        {formatDateTime(voucher.created_at)}
+                        {formatReportDateTime(voucher.created_at)}
                       </span>
                       {voucher.justified_at && (
                         <span className="inline-flex items-center gap-1">
                           <FiCheckCircle className="w-3.5 h-3.5 text-green-500" />
-                          {t('voucher.justified')}: {formatDate(voucher.justified_at)}
+                          {t('voucher.justified')}: {formatReportDate(voucher.justified_at)}
                         </span>
                       )}
                     </div>
                   </div>
-
-                  <div className="text-right">
+                  <div className="text-right flex-shrink-0">
                     <p className="text-lg font-bold text-fg">{formatCurrency(voucher.amount)}</p>
-                    <p className="text-xs text-gray-400">
-                      {t('voucher.shift')} #{voucher.shift_id}
-                    </p>
+                    <p className="text-xs text-gray-400">{t('voucher.shift')} #{voucher.shift_id}</p>
                   </div>
                 </div>
               </div>
@@ -717,30 +555,20 @@ export default function CashierSection() {
         </div>
       )}
 
-      {/* History View */}
+      {/* History table */}
       {!loading && !error && viewMode === 'history' && historyData.length > 0 && (
         <div className="border border-border rounded-lg overflow-hidden">
           <table className="w-full text-sm">
             <thead className="bg-surface-sunken">
               <tr>
-                <th className="px-4 py-3 text-left font-medium text-fg-subtle">
-                  {t('historyTable.action')}
-                </th>
-                <th className="px-4 py-3 text-left font-medium text-fg-subtle">
-                  {t('historyTable.table')}
-                </th>
-                <th className="px-4 py-3 text-left font-medium text-fg-subtle">
-                  {t('historyTable.field')}
-                </th>
-                <th className="px-4 py-3 text-left font-medium text-fg-subtle">
-                  {t('historyTable.user')}
-                </th>
-                <th className="px-4 py-3 text-left font-medium text-fg-subtle">
-                  {t('historyTable.date')}
-                </th>
+                <th className="px-4 py-3 text-left font-medium text-fg-subtle">{t('historyTable.action')}</th>
+                <th className="px-4 py-3 text-left font-medium text-fg-subtle">{t('historyTable.table')}</th>
+                <th className="px-4 py-3 text-left font-medium text-fg-subtle">{t('historyTable.field')}</th>
+                <th className="px-4 py-3 text-left font-medium text-fg-subtle">{t('historyTable.user')}</th>
+                <th className="px-4 py-3 text-left font-medium text-fg-subtle">{t('historyTable.date')}</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200 dark:divide-border">
+            <tbody className="divide-y divide-border">
               {historyData.map((entry) => (
                 <tr key={entry.id} className="hover:bg-surface-hover transition-colors">
                   <td className="px-4 py-3 text-fg font-medium">{entry.action}</td>
@@ -752,9 +580,7 @@ export default function CashierSection() {
                       <span className="text-fg">{entry.username || entry.changed_by}</span>
                     </div>
                   </td>
-                  <td className="px-4 py-3 text-fg-subtle text-xs">
-                    {formatDateTime(entry.changed_at)}
-                  </td>
+                  <td className="px-4 py-3 text-fg-subtle text-xs">{formatReportDateTime(entry.changed_at)}</td>
                 </tr>
               ))}
             </tbody>
@@ -762,42 +588,36 @@ export default function CashierSection() {
         </div>
       )}
 
-      {/* Empty States */}
-      {!loading && !error && viewMode === 'vouchers' && vouchers.length === 0 && loaded && (
-        <div className="flex flex-col items-center justify-center py-12 text-gray-500">
+      {/* Empty states */}
+      {!loading && !error && viewMode === 'vouchers' && vouchers.length === 0 && (
+        <div className="flex flex-col items-center justify-center py-12 text-fg-subtle">
           <FiFileText className="w-10 h-10 mb-2" />
           <p>
             {voucherStatus !== 'all'
               ? t('empty.noVouchersWithStatus', {
-                  status:
-                    VOUCHER_STATUS_LABELS[voucherStatus as keyof typeof VOUCHER_STATUS_LABELS],
+                  status: VOUCHER_STATUS_LABELS[voucherStatus as keyof typeof VOUCHER_STATUS_LABELS],
                 })
               : t('empty.noVouchers')}
           </p>
         </div>
       )}
 
-      {!loading && !error && viewMode === 'history' && historyData.length === 0 && loaded && (
-        <div className="flex flex-col items-center justify-center py-12 text-gray-500">
+      {!loading && !error && viewMode === 'history' && historyData.length === 0 && (
+        <div className="flex flex-col items-center justify-center py-12 text-fg-subtle">
           <FiClock className="w-10 h-10 mb-2" />
           <p>{t('empty.noHistory')}</p>
         </div>
       )}
 
-      {/* Count */}
+      {/* Counts */}
       {!loading && viewMode === 'vouchers' && vouchers.length > 0 && (
         <div className="text-xs text-fg-subtle text-right">
           {t('showing', { count: vouchers.length, type: t('voucher_plural'), max: DEFAULT_LIMIT })}
         </div>
       )}
-
       {!loading && viewMode === 'history' && historyData.length > 0 && (
         <div className="text-xs text-fg-subtle text-right">
-          {t('showing', {
-            count: historyData.length,
-            type: t('record_plural'),
-            max: DEFAULT_LIMIT,
-          })}
+          {t('showing', { count: historyData.length, type: t('record_plural'), max: DEFAULT_LIMIT })}
         </div>
       )}
     </div>
