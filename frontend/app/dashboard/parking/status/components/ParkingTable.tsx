@@ -251,7 +251,7 @@ export default function ParkingTable({
                               {spot.level_code.replace('-', '')} · {spot.spot_number}
                             </p>
                             <p className="text-[10px] text-fg-subtle capitalize">
-                              {spot.spot_type.replace('_', ' ')}
+                              {t(`spotTypes.${spot.spot_type}` as Parameters<typeof t>[0]) || spot.spot_type.replace('_', ' ')}
                             </p>
                           </div>
                         </td>
@@ -359,7 +359,7 @@ export default function ParkingTable({
                       <StatusBadgeSpot status={spot.status} />
                     </div>
                     <span className="text-[10px] text-fg-subtle capitalize">
-                      {spot.spot_type.replace('_', ' ')}
+                      {t(`spotTypes.${spot.spot_type}` as Parameters<typeof t>[0]) || spot.spot_type.replace('_', ' ')}
                     </span>
                   </div>
 

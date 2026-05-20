@@ -366,6 +366,9 @@
     "searchVehicle": "Search vehicle",
     "searchVehiclePlaceholder": "Search by plate or owner...",
     "removeVehicle": "Remove assigned vehicle",
+    "quickActions": "Quick Actions",
+    "noShow": "No-Show",
+    "cancelBooking": "Cancel booking",
     "cancel": "Cancel",
     "save": "Save Changes"
   },
@@ -391,6 +394,10 @@
     "standard": "Standard",
     "large": "Large",
     "mas_ancha": "Extra Wide",
+    "ancha": "Wide",
+    "esquina": "Corner",
+    "accesible": "Accessible",
+    "estrecha_bicis": "Bikes",
     "handicapped": "Handicapped",
     "motorcycle": "Motorcycle",
     "electric": "Electric"

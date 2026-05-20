@@ -366,6 +366,9 @@
     "searchVehicle": "Buscar vehículo",
     "searchVehiclePlaceholder": "Buscar por matrícula o propietario...",
     "removeVehicle": "Quitar vehículo asignado",
+    "quickActions": "Acciones rápidas",
+    "noShow": "No-Show",
+    "cancelBooking": "Cancelar reserva",
     "cancel": "Cancelar",
     "save": "Guardar Cambios"
   },
@@ -391,6 +394,10 @@
     "standard": "Estándar",
     "large": "Grande",
     "mas_ancha": "Más Ancha",
+    "ancha": "Ancha",
+    "esquina": "Esquina",
+    "accesible": "Accesible",
+    "estrecha_bicis": "Estrecha / Bicis",
     "handicapped": "Minusválidos",
     "motorcycle": "Moto",
     "electric": "Eléctrico"

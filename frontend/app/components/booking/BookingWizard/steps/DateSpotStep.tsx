@@ -37,6 +37,7 @@ const styles = {
 
 export default function DateSpotStep({ state, actions }: DateSpotStepProps) {
   const t = useTranslations('booking')
+  const tParking = useTranslations('parking')
   const checkinRef = useRef<HTMLDivElement>(null)
   const checkoutRef = useRef<HTMLDivElement>(null)
 
@@ -221,7 +222,7 @@ export default function DateSpotStep({ state, actions }: DateSpotStepProps) {
                     {t('dates.spotNumber', { number: spot.spot_number })}
                   </div>
                   <div className="text-xs text-fg-muted capitalize mt-1 hidden sm:block">
-                    {spot.spot_type.replace('_', ' ')}
+                    {tParking(`spotTypes.${spot.spot_type}` as Parameters<typeof tParking>[0]) || spot.spot_type.replace('_', ' ')}
                   </div>
                 </button>
               ))}
