@@ -101,6 +101,8 @@
         "status_changed": "Estado cambiado",
         "day_initialized": "Día inicializado",
         "day_closed": "Día cerrado",
+        "daily_closed": "Día cerrado",
+        "daily_reopened": "Día reabierto",
         "payment_added": "Pago añadido",
         "payment_deleted": "Pago eliminado",
         "voucher_created": "Voucher creado",
