@@ -14,11 +14,12 @@ import {
   FiDollarSign,
   FiTruck,
 } from 'react-icons/fi'
+import { DailyRevenueTab } from '@/app/components/restaurant/tabs/DailyRevenueTab'
 import { InventoryTab } from '@/app/components/restaurant/tabs/InventoryTab'
 import { OrdersTab } from '@/app/components/restaurant/tabs/OrdersTab'
 import { StatsTab } from '@/app/components/restaurant/tabs/StatsTab'
 
-type TabType = 'inventory' | 'orders' | 'stats'
+type TabType = 'dailyRevenue' | 'inventory' | 'orders' | 'stats'
 
 // Mock summary stats
 const summaryStats = {
@@ -32,13 +33,14 @@ function RestaurantContent() {
   const t = useTranslations('restaurant')
   const router = useRouter()
   const searchParams = useSearchParams()
-  const currentTab = (searchParams.get('tab') as TabType) || 'inventory'
+  const currentTab = (searchParams.get('tab') as TabType) || 'dailyRevenue'
 
   const tabs: {
     id: TabType
-    labelKey: 'inventory' | 'orders' | 'stats'
+    labelKey: 'dailyRevenue' | 'inventory' | 'orders' | 'stats'
     icon: React.ElementType
   }[] = [
+    { id: 'dailyRevenue', labelKey: 'dailyRevenue', icon: FiDollarSign },
     { id: 'inventory', labelKey: 'inventory', icon: FiPackage },
     { id: 'orders', labelKey: 'orders', icon: FiShoppingCart },
     { id: 'stats', labelKey: 'stats', icon: FiBarChart2 },
@@ -151,6 +153,7 @@ function RestaurantContent() {
 
         {/* Tab Content */}
         <div className="mt-4">
+          {currentTab === 'dailyRevenue' && <DailyRevenueTab />}
           {currentTab === 'inventory' && <InventoryTab />}
           {currentTab === 'orders' && <OrdersTab />}
           {currentTab === 'stats' && <StatsTab />}

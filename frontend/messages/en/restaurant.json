@@ -16,9 +16,56 @@
     "loading": "Loading..."
   },
   "tabs": {
+    "dailyRevenue": "Daily Revenue F&B",
     "inventory": "Inventory",
     "orders": "Orders",
     "stats": "Statistics"
+  },
+  "dailyRevenue": {
+    "title": "Daily Revenue F&B",
+    "subtitle": "Daily F&B revenue — Opera data",
+    "selectMonth": "Select month",
+    "noData": "No data for this month",
+    "upload": {
+      "label": "Upload Opera report (PDF)",
+      "hint": "Drag here or click to select",
+      "hintType": "PDF only · D114",
+      "uploading": "Processing...",
+      "success": "Data updated for {date}",
+      "error": "Error processing PDF"
+    },
+    "table": {
+      "day": "Day",
+      "breakfastIncluded": "Breakfast Included",
+      "breakfastExcluded": "Breakfast Excluded",
+      "breakfastDirecto": "Breakfast Direct",
+      "breakfastTotal": "Breakfast Total",
+      "lunchFood": "Lunch Food",
+      "lunchBev": "Lunch Bev.",
+      "dinnerFood": "Dinner Food",
+      "dinnerBev": "Dinner Bev.",
+      "laCasetaTotal": "La Caseta Total",
+      "fnbTotal": "F&B Total"
+    },
+    "summary": {
+      "totalBreakfast": "Total Breakfast",
+      "totalCaseta": "Total La Caseta",
+      "totalFnb": "Total F&B",
+      "avgPerDay": "Avg/day"
+    },
+    "groups": {
+      "breakfast": "Breakfast",
+      "lunch": "Lunch",
+      "dinner": "Dinner",
+      "laCaseta": "La Caseta"
+    },
+    "charts": {
+      "dailyFnb": "Daily F&B Evolution",
+      "breakdownByGroup": "Breakdown by Service",
+      "monthlyComparison": "Monthly Comparison",
+      "amount": "Amount (€)",
+      "day": "Day"
+    }
   },
   "stats": {
     "totalProducts": "Total Products",

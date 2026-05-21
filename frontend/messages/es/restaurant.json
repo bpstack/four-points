@@ -16,9 +16,56 @@
     "loading": "Cargando..."
   },
   "tabs": {
+    "dailyRevenue": "Daily Revenue F&B",
     "inventory": "Inventario",
     "orders": "Pedidos",
     "stats": "Estadísticas"
+  },
+  "dailyRevenue": {
+    "title": "Daily Revenue F&B",
+    "subtitle": "Ingresos diarios de restauración — datos Opera",
+    "selectMonth": "Seleccionar mes",
+    "noData": "Sin datos para este mes",
+    "upload": {
+      "label": "Subir reporte Opera (PDF)",
+      "hint": "Arrastra aquí o haz clic para seleccionar",
+      "hintType": "Solo PDF · D114",
+      "uploading": "Procesando...",
+      "success": "Datos actualizados para {date}",
+      "error": "Error al procesar el PDF"
+    },
+    "table": {
+      "day": "Día",
+      "breakfastIncluded": "Desayuno Incluido",
+      "breakfastExcluded": "Desayuno No Incluido",
+      "breakfastDirecto": "Desayuno Directo",
+      "breakfastTotal": "Total Desayuno",
+      "lunchFood": "Almuerzo Food",
+      "lunchBev": "Almuerzo Bev.",
+      "dinnerFood": "Cena Food",
+      "dinnerBev": "Cena Bev.",
+      "laCasetaTotal": "Total La Caseta",
+      "fnbTotal": "Total F&B"
+    },
+    "summary": {
+      "totalBreakfast": "Total Desayuno",
+      "totalCaseta": "Total La Caseta",
+      "totalFnb": "Total F&B",
+      "avgPerDay": "Media/día"
+    },
+    "groups": {
+      "breakfast": "Desayuno",
+      "lunch": "Almuerzo",
+      "dinner": "Cena",
+      "laCaseta": "La Caseta"
+    },
+    "charts": {
+      "dailyFnb": "Evolución Diaria F&B",
+      "breakdownByGroup": "Desglose por Servicio",
+      "monthlyComparison": "Comparativa Mensual",
+      "amount": "Importe (€)",
+      "day": "Día"
+    }
   },
   "stats": {
     "totalProducts": "Total Productos",
