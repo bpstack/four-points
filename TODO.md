@@ -110,6 +110,18 @@ Aplicado el 2026-05-20 en `rest.py` (ver `SCHEDULING-DECISIONS-LOG.md`). Funcion
 
 ---
 
+## Bug: setSchedulableEmployees borra start_date/end_date
+
+**Descripción:** El endpoint `PUT /api/scheduling/employees` hace un `DELETE FROM scheduling_employees` total seguido de un `INSERT (employee_id, added_by)`. Cualquier `start_date`/`end_date` configurado previamente (ej: Clara, Cristina, Víctor) se pierde silenciosamente si un admin guarda la lista desde `EmployeesTab`.
+
+**Reproducción:** Ir a `/config` → pestaña Empleados → desmarcar y volver a marcar cualquier empleado con fechas → guardar → las fechas desaparecen.
+
+**Fix propuesto:** Cambiar el replace-all por un diff selectivo: solo `DELETE` las filas de empleados que se eliminaron de la lista, solo `INSERT` los nuevos que se añaden. Los que permanecen no se tocan → `start_date`/`end_date` se preservan.
+
+**Archivos afectados:** `backend/repositories/scheduling/scheduling-repository.ts` (`setSchedulableEmployees`).
+
+---
+
 ## Untracked intencional (no tocar)
 
 `migration-nextjs-to-vite.md` y `react-query-doubts.md` en raíz son notas personales del usuario sobre análisis futuro de arquitectura/rendimiento (potencial migración Next→Vite, refactor React Query). Untracked a propósito mientras evolucionan. **No commitearlas, no borrarlas, no proponer moverlas.**
