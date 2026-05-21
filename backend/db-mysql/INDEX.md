@@ -100,6 +100,7 @@ db-mysql/
 | 2026-05-20 | `20260520_add_scheduling_employee_dates.sql` | Columnas `start_date` y `end_date` en `scheduling_employees` para modelar tenencias parciales (altas y bajas a mitad de año). NULL = activo sin restricción. Idempotente. | ✅ local · ✅ Aiven |
 | 2026-05-20 | `20260520_add_shift_LI.sql` | Nuevo código `LI` (Libre Disposición) en `scheduling_shifts`. Día libre extraordinario fuera de la rotación semanal. Idempotente (`INSERT IGNORE`). | ✅ local · ✅ Aiven |
 | 2026-05-20 | `20260520_insert_user_example.sql` | Usuario `Clara` (recepcionista, role_id=1, is_active=1) + entrada en `scheduling_employees` con `start_date=2026-01-01` / `end_date=2026-02-26`. Trabajó Ene-Feb 2026. Idempotente (`INSERT IGNORE`). | ✅ local · ✅ Aiven |
+| 2026-05-21 | `20260521_add_fnb_revenue.sql` | Módulo F&B Daily Revenue: `fnb_category` (seed 7 categorías Breakfast/Lunch/Dinner) + `fnb_daily_revenue` (valores diarios por código Opera). Idempotente. | ✅ local · ✅ Aiven |
 
 ### Verificación (99)
 
