@@ -1,4 +1,4 @@
-import { PDFParse } from 'pdf-parse'
+import pdfParse from 'pdf-parse'
 import { trackedCodesSet } from './fnb-categories.cache.js'
 
 export interface ParsedPdfData {
@@ -8,9 +8,8 @@ export interface ParsedPdfData {
 }
 
 export async function parseOperaPdf(buffer: Buffer): Promise<ParsedPdfData> {
-  const parser = new PDFParse({ data: buffer } as any)
-  const result = await (parser as any).getText()
-  const text: string = result.text ?? ''
+  const data = await pdfParse(buffer)
+  const text: string = data.text ?? ''
 
   const tracked = await trackedCodesSet()
   const date = extractDate(text)
@@ -61,10 +60,9 @@ function extractEntries(text: string, trackedCodes: Set<string>): { code: string
         phase = 'codes'
         continue
       }
-      // Require at least one decimal-point number (filters "2026 2026 2026" year headers)
-      if (/^[\d,.\s\-]+$/.test(line) && !line.startsWith('Code') && /\d\.\d/.test(line) && values.length < codes.length) {
-        const parts = line.split(/\s+/)
-        const nums = parts.map(p => parseFloat(p.replace(',', ''))).filter(n => !isNaN(n))
+      // Require decimal point — filters "2026 2026 2026" year header lines
+      if (/^[\d,.\s\-]+$/.test(line) && /\d\.\d/.test(line) && values.length < codes.length) {
+        const nums = line.split(/\s+/).map(p => parseFloat(p.replace(',', ''))).filter(n => !isNaN(n))
         if (nums.length >= 1) values.push(nums[0])
       }
     }

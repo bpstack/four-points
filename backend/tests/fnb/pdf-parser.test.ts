@@ -3,13 +3,14 @@
 // No DB needed for parsing itself, but trackedCodesSet() loads from DB.
 // Test stubs trackedCodesSet by writing the 7 expected codes directly.
 
-import { describe, it, expect, beforeAll } from 'vitest'
+import { describe, it, expect, beforeAll, vi } from 'vitest'
 import { readFileSync } from 'fs'
 import { join, dirname } from 'path'
 import { fileURLToPath } from 'url'
 import db from '../../config/db.js'
-import { parseOperaPdf } from '../../services/fnb/pdf-parser.service.js'
 import { invalidateCategories } from '../../services/fnb/fnb-categories.cache.js'
+
+import { parseOperaPdf } from '../../services/fnb/pdf-parser.service.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const FIXTURE = join(__dirname, 'fixtures', 'OperaPrint-sample.pdf')
