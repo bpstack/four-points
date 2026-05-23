@@ -122,6 +122,160 @@ Aplicado el 2026-05-20 en `rest.py` (ver `SCHEDULING-DECISIONS-LOG.md`). Funcion
 
 ---
 
+## Reestructurar CLAUDE.md en capas por módulo
+
+> **Objetivo:** dividir el `CLAUDE.md` raíz (≈400 líneas monolíticas) en archivos por módulo para que Claude Code cargue solo el contexto relevante al directorio desde donde se abre la sesión. Esto reduce ruido, libera contexto, y hace que el agente trabaje con la documentación específica del módulo en mano sin tener que filtrarla mentalmente del resto.
+
+### Cómo funciona la carga (referencia)
+
+Cuando se abre Claude desde un directorio, carga **todos los `CLAUDE.md` desde ese directorio hacia la raíz** en el arranque. Los subdirectorios hermanos **no** se cargan. Ejemplo: abrir desde `backend/services/logbook/` carga `logbook/CLAUDE.md` + `backend/CLAUDE.md` + raíz, pero **no** carga `frontend/CLAUDE.md` ni `backend/scheduling-solver/CLAUDE.md`.
+
+Consecuencia operativa: **abrir Claude siempre desde el directorio más específico de la tarea**, no desde la raíz, salvo trabajo cross-módulo real.
+
+### Principio rector
+
+- Crear `CLAUDE.md` solo donde aporte valor real. No por completitud, no "uno por carpeta".
+- Cada archivo debe ser **autocontenido para tareas en su módulo** — no obligar a Claude a leer el raíz para entender la pieza local.
+- El raíz queda con lo verdaderamente global: stack, auth, convenciones de commit, comandos de dev, política de DB. Todo lo específico de un módulo sale fuera.
+- La granularidad la decide la complejidad del módulo, no su tamaño en archivos. Logbook puede vivir con un solo `CLAUDE.md`; scheduling probablemente necesita varios (solver, backend, frontend).
+
+### Fase 1 — Inventario de módulos (sin tocar archivos)
+
+Mapear cada módulo del proyecto identificando:
+
+1. Su ubicación en backend y frontend.
+2. Su complejidad real (líneas, número de componentes/servicios, decisiones de diseño documentadas).
+3. Si tiene gotchas / convenciones / patrones que merezcan documentación dedicada.
+4. Qué fragmento del `CLAUDE.md` raíz actual le corresponde.
+
+Módulos identificados a priori (a refinar en el inventario):
+
+- [ ] **Scheduling** — el más grande. Solver Python + backend TS + frontend grid. Candidato a 3 `CLAUDE.md`.
+- [ ] **Logbook**
+- [ ] **Parking**
+- [ ] **Maintenance**
+- [ ] **Messaging**
+- [ ] **Checklist** — sync rule entre frontend/backend JSON
+- [ ] **Auth** — probablemente queda en raíz (transversal)
+- [ ] **Cashier**
+- [ ] **Backoffice**
+- [ ] **Restaurant / F&B** — añadido recientemente
+- [ ] **DB / migraciones** — `backend/db-mysql/` candidato propio
+- [ ] **Otros** (revisar `backend/services/` y `frontend/app/dashboard/` exhaustivamente)
+
+Entregable de la Fase 1: tabla en este TODO con módulo → ubicación(es) → necesita CLAUDE.md sí/no → dónde.
+
+#### Resultado del inventario (2026-05-23)
+
+Métrica usada: archivos en `backend/{controllers,services,repositories,routes,validations}/<modulo>/` + componentes en `frontend/app/components/<modulo>/` + rutas en `frontend/app/dashboard/<modulo>/`. Complejidad real medida también por presencia en el `CLAUDE.md` raíz actual y gotchas documentados.
+
+| Módulo | Backend files | Frontend comp | Dashboard | Complejidad | Necesita CLAUDE.md | Ubicación(es) propuesta(s) |
+|---|---:|---:|---:|---|---|---|
+| **scheduling** | 26 | 20 | 3 | 🔴 Alta (solver + UI + cross-month) | **Sí — múltiple** | `backend/services/scheduling/` + `backend/scheduling-solver/` + `frontend/app/components/scheduling/` |
+| **parking** | 14 | 16 | 23 | 🟠 Alta (mayor superficie UI) | **Sí** | `frontend/app/dashboard/parking/` (es la referencia de responsive del proyecto) + evaluar `backend/services/parking/` |
+| **cashier** | 17 | 26 | 6 | 🟠 Alta | **Sí** | `backend/services/cashier/` + `frontend/app/components/cashier/` (evaluar uno o dos en Fase 2) |
+| **group** | 17 | 30 | 5 | 🟠 Alta (multi-tenancy) | **Sí** | `backend/services/group/` + `frontend/app/components/groups/` |
+| **logbook** | 11 | 6 | 3 | 🟡 Media (read/unread, comments, history table) | **Sí** | `backend/services/logbook/` (lógica de estado más densa que el UI) |
+| **checklist** | 9 | 8 | 4 | 🟡 Media (regla de sync JSON dual) | **Sí** | `backend/services/checklist/` (la regla de sync vive aquí; el frontend lee, no es la fuente) |
+| **conciliation** | 7 | 11 | 4 | 🟡 Media | **Evaluar** en Fase 2 | A decidir tras leer código |
+| **maintenance** | 4 | 11 | 6 | 🟡 Media (workflow estados) | **Evaluar** en Fase 2 | Probablemente `frontend/app/components/maintenance/` |
+| **blacklist** | 5 | 14 | 15 | 🟡 Media | **Evaluar** en Fase 2 | A decidir |
+| **fnb / restaurant** | 8 | 5 | 3 | 🟡 Media (reciente, en evolución) | **Sí (light)** | `backend/services/fnb/` |
+| **backoffice / bo** | 3 | 23 | 3 | 🟡 Frontend-heavy | **Evaluar** en Fase 2 | Probablemente `frontend/app/components/bo/` |
+| **messages** | 5 | — | — | 🟢 Baja-media | **No (por ahora)** | Queda en raíz |
+| **notifications** | 4 | 6 | — | 🟢 Baja | **No** | Queda en raíz |
+| **activity** | 3 | — | — | 🟢 Baja | **No** | — |
+| **auth** | 7 | 1 | — | 🟢 Transversal | **No (queda en raíz)** | El raíz es su sitio natural — afecta a todo |
+| **demo** | 3 | — | — | 🟢 Baja | **No** | — |
+| **departments** | 3 | — | — | 🟢 Baja | **No** | — |
+| **search** | 3 | 4 | — | 🟢 Baja | **No** | — |
+| **profile** | — | 17 | 3 | 🟢 Frontend-only ligero | **No** | — |
+
+Infraestructura (no son módulos de negocio pero sí necesitan documentación dedicada):
+
+| Pieza | Ubicación | Necesita CLAUDE.md | Por qué |
+|---|---|---|---|
+| **Solver Python** | `backend/scheduling-solver/` | **Sí** | Daemon, OR-Tools, corpus, fixtures, cómo añadir constraint, tests Python — todo muy específico y denso. Ya incluido como uno de los 3 de scheduling. |
+| **DB / migraciones** | `backend/db-mysql/` | **Sí** | Política migraciones incrementales, prohibición de MASTER_INSTALL, INDEX.md a mantener — gotchas críticos. |
+| **Scripts one-off** | `backend/scripts/` | **No** | Son utilidades puntuales (import-planning-2026, import-fnb-2026). Documentación inline en cada script basta. |
+| **Cron** | `backend/services/cron/` | **No** | 1 archivo central, basta con mención en raíz. |
+
+**Conteo final estimado: 9-12 archivos `CLAUDE.md` modulares** (3 de scheduling + parking + cashier + group + logbook + checklist + fnb + db-mysql + 3-4 condicionales tras Fase 2). Lejos de "uno por módulo" — coherente con el principio de no sobre-documentar.
+
+**Decisión sobre el índice en raíz:** sí se incluirá. Sección compacta al final del raíz, formato `ruta → propósito` en una línea por entrada. ~12-15 líneas total. Razón: el descubrimiento de `CLAUDE.md` en subdirectorios hermanos no es automático para Claude; un índice explícito evita que el agente trabaje sin saber que existe documentación local en otro módulo cuando la tarea cruza fronteras.
+
+**Próximo paso (Fase 2):** empezar por **scheduling** — el más complejo y el que más libera el raíz. Tres archivos en este orden: solver Python → backend TS → frontend.
+
+### Fase 2 — Crear los `CLAUDE.md` módulo a módulo
+
+> **Regla de seguridad innegociable:** no se borra **ni una línea** del `CLAUDE.md` raíz hasta que la información correspondiente esté **transferida, verificada e integrada** en el archivo modular. El orden es siempre **crear → verificar → eliminar del raíz**, idealmente en el mismo commit para que git nunca registre un estado intermedio donde la información no exista en ningún sitio. Si en algún momento de Fase 2 se interrumpe la sesión, el `CLAUDE.md` raíz debe seguir siendo igual de informativo que ahora — es la red de seguridad.
+
+Para cada módulo marcado como "necesita":
+
+1. Leer en profundidad sus archivos clave (backend + frontend) en el código real, no solo en el raíz.
+2. Identificar la(s) sección(es) del `CLAUDE.md` raíz actual que le corresponden — **copiar, no cortar**.
+3. Detectar qué decisiones de diseño / gotchas / convenciones específicas existen en el código y aún no están documentadas (oportunidad de enriquecer, no solo mover).
+4. Escribir el `CLAUDE.md` modular autocontenido en el directorio elegido (puede ser dentro de `backend/services/<modulo>/`, `frontend/app/dashboard/<modulo>/`, `frontend/app/components/<modulo>/`, o varios según la lógica del módulo).
+5. Validar que el archivo se entiende sin el contexto del raíz y que **toda la información del raíz relativa al módulo está presente** (verificación explícita pre-borrado).
+6. **Solo ahora** eliminar del `CLAUDE.md` raíz las secciones ya transferidas, dejando en su lugar (si procede) una entrada en el índice apuntando al nuevo archivo.
+7. Commit único agrupando creación + limpieza del raíz, con mensaje del tipo `docs(claude): split <modulo> module context`.
+
+Orden sugerido (de más a menos complejo, para amortizar el aprendizaje):
+
+1. Scheduling (3 archivos: solver Python, backend, frontend grid)
+2. Checklist (regla de sync frontend/backend JSON merece documentación dedicada)
+3. Logbook
+4. Parking
+5. Maintenance
+6. Restaurant / F&B
+7. Messaging
+8. Cashier / Backoffice (revisar si justifican archivo propio)
+9. DB / migraciones (`backend/db-mysql/CLAUDE.md`)
+
+### Fase 3 — Adelgazar el `CLAUDE.md` raíz
+
+Una vez extraído todo lo modular, el raíz queda **solo con**:
+
+- Project overview (1 párrafo)
+- Tech stack (lista breve)
+- Comandos comunes (frontend + backend + DB)
+- Convenciones globales: imports `.js`, auth JWT, política de commits, política de migraciones (puntero a `MIGRATIONS_POLICY.md`)
+- Pitfalls verdaderamente globales (credentials include, server vs client components a nivel concepto)
+- Índice de los `CLAUDE.md` modulares con ruta y propósito de cada uno
+
+Objetivo cuantitativo: **raíz ≤100 líneas**.
+
+### Fase 4 — Validación
+
+- Probar abrir sesión en 3-4 módulos distintos y verificar que el contexto cargado es suficiente y no redundante.
+- Ajustar lo que falte o sobre tras uso real.
+- Documentar la nueva convención en el `CLAUDE.md` raíz como referencia para futuras incorporaciones de módulos.
+
+### Estrategia de commits (decidido 2026-05-23)
+
+**Regla: un commit por módulo, no por archivo, no bundle al final del proyecto entero.**
+
+Razones que llevaron a esta decisión (registradas para no reabrir el debate):
+
+1. **Trabajo multi-sesión.** La reestructura ocupa varias sesiones. Commits por módulo = checkpoint en git que sobrevive a cualquier accidente (cuelgue, push wrong branch, context loss). Si se commiteara solo al final, un imprevisto a mitad de Fase 2 puede tirar horas de trabajo.
+2. **Mensaje describe una unidad coherente.** Un commit `docs(claude): split scheduling module context` describe los 3 archivos del módulo (solver Python + backend TS + frontend) en una sola pieza legible. Un commit "restructure all CLAUDE.md across all modules" sería ilegible en el git log y nadie lo abriría.
+3. **Revert quirúrgico.** Si dentro de 2 meses se descubre que el split de un módulo (p.ej. parking) está mal hecho, revertir un commit específico es trivial. Revertir "todo el restructure" obligaría a perder el trabajo bueno con el malo.
+
+**Granularidad concreta:**
+
+- Módulos con varios `CLAUDE.md` (ej: scheduling con 3 archivos: solver Python + backend TS + frontend): **un commit al cerrar los 3 archivos** con la limpieza correspondiente del raíz. Mensaje tipo `docs(claude): split scheduling module context into layered files`.
+- Módulos con un solo `CLAUDE.md` (ej: logbook, checklist): **un commit por módulo**, incluyendo el archivo nuevo + la limpieza de su sección en el raíz.
+- Fase 3 (adelgazar el raíz a ≤100 líneas) y Fase 4 (validación + índice final): commits separados al final.
+
+**No se commitea hasta cerrar el módulo entero.** Si una sesión termina con un módulo a medias (p.ej. solver Python creado pero backend TS aún pendiente), se deja **no commiteado** en el working tree — la "Regla de seguridad innegociable" (crear → verificar → eliminar) garantiza que el raíz sigue íntegro mientras tanto, así que git en ese momento no pierde nada.
+
+### Notas operativas
+
+- Esta tarea puede ocupar varias sesiones. Cada fase es checkpointable: completar e ir al siguiente módulo sin perder estado.
+- El sistema de memoria (`memory/MEMORY.md`) sigue siendo complementario, no sustitutivo. Reglas que valgan para *todo* el proyecto siguen en memoria; lo específico de módulo va en su `CLAUDE.md`.
+
+---
+
 ## Untracked intencional (no tocar)
 
 `migration-nextjs-to-vite.md` y `react-query-doubts.md` en raíz son notas personales del usuario sobre análisis futuro de arquitectura/rendimiento (potencial migración Next→Vite, refactor React Query). Untracked a propósito mientras evolucionan. **No commitearlas, no borrarlas, no proponer moverlas.**
