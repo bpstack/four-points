@@ -235,6 +235,10 @@ Plazas (-2/-3), vehículos, reservas con lifecycle reserved → checked_in → c
 
 Partes de mantenimiento (averías técnicas). Workflow de 7 estados (`reported → assigned → in_progress → waiting → completed → closed`, más `canceled`), prioridades 4-niveles, asignación interna o externa, imágenes (Cloudinary, 5 MB máx), historial completo. **Único módulo donde el rol `mantenimiento` sí entra.** Documentación completa en `frontend/app/components/maintenance/CLAUDE.md` (workflow, endpoints, patrones de UI, gotchas).
 
+### F&B / Restaurant System
+
+Ingestión de facturación F&B diaria desde PDFs de Opera (parser dedicado) + entrada manual + vistas mensual/diario con charts. Tab Daily Revenue es lo único en producción; tabs Inventory / Orders / Stats están **mockeados** como placeholders de fase 2. `pdf-parse` pinneado en v1 por OOM en Render. Documentación completa en `backend/services/fnb/CLAUDE.md` (códigos Opera, algoritmo del parser, endpoints, pivot SQL, qué tabs son mock).
+
 ### Messaging System
 - Internal messaging between staff
 - Real-time notifications

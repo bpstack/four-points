@@ -159,7 +159,7 @@ Módulos identificados a priori (a refinar en el inventario):
 - [x] **Auth** — confirmado: queda en raíz (transversal, no necesita archivo propio).
 - [ ] **Cashier**
 - [ ] **Backoffice**
-- [ ] **Restaurant / F&B** — añadido recientemente
+- [x] **Restaurant / F&B** — ✅ cerrado 2026-05-23. 1 archivo en `backend/services/fnb/`.
 - [ ] **DB / migraciones** — `backend/db-mysql/` candidato propio
 - [ ] **Otros** (revisar `backend/services/` y `frontend/app/dashboard/` exhaustivamente)
 
@@ -227,8 +227,8 @@ Orden sugerido (de más a menos complejo, para amortizar el aprendizaje):
 3. ✅ Logbook — cerrado 2026-05-23
 4. ✅ Parking — cerrado 2026-05-23 (2 archivos)
 5. ✅ Maintenance — cerrado 2026-05-23
-6. ⏳ Restaurant / F&B
-7. Messaging
+6. ✅ Restaurant / F&B — cerrado 2026-05-23
+7. ⏳ Messaging
 8. Cashier / Backoffice (revisar si justifican archivo propio)
 9. DB / migraciones (`backend/db-mysql/CLAUDE.md`)
 
