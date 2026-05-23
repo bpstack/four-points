@@ -1,159 +1,159 @@
 # CLAUDE.md — F&B / Restaurant
 
-> Módulo de Food & Beverage del hotel. Reciente (2026-05) y en evolución. Tab principal en producción: **Daily Revenue** (parseo de PDFs de Opera + entrada manual). Los tabs Inventory / Orders / Stats están **mockeados** como placeholders. **Un único archivo** porque el módulo aún es chico y la complejidad real está concentrada en el parser PDF backend.
+> Food & Beverage module. Recent (2026-05) and evolving. Main tab in production: **Daily Revenue** (Opera PDF parsing + manual entry). The Inventory / Orders / Stats tabs are **mocked** placeholders. **Single file** because the module is still small and the real complexity is concentrated in the backend PDF parser.
 
-## Propósito (alcance actual)
+## Scope (current)
 
-**Implementado:** ingestión de facturación F&B diaria. El recepcionista sube el PDF diario de Opera (Calendar/Month to Date), el backend lo parsea, extrae los códigos de categoría y los montos, y los persiste en `fnb_daily_revenue`. El frontend pinta vistas mensuales agregadas + diarias con charts.
+**Implemented:** daily F&B revenue ingestion. The receptionist uploads the daily Opera PDF (Calendar/Month to Date), the backend parses it, extracts category codes and amounts, and writes them to `fnb_daily_revenue`. The frontend renders aggregated monthly views + daily detail with charts.
 
-**Mock / placeholder:** los tabs Inventory, Orders, Stats. Tienen UI pero **no backend real** — son scaffolding para una segunda fase del módulo (inventario de productos, órdenes a proveedores, agregados anuales). Las stats mostradas en la cabecera (`summaryStats` en `page.tsx`) son datos hardcoded para maquetar.
+**Mocked / placeholder:** the Inventory, Orders, Stats tabs. They have UI but **no real backend** — they're scaffolding for the module's second phase (product inventory, supplier orders, annual aggregates). The summary stats shown in the header (`summaryStats` in `page.tsx`) are hardcoded mock data.
 
-## Estructura
+## Layout
 
 ```
 backend/services/fnb/
-   ├── pdf-parser.service.ts            (89 líneas — parseOperaPdf: extrae fecha,
-   │                                      entries por código, grand total)
-   └── fnb-categories.cache.ts          (39 líneas — caché de `trackedCodesSet`,
-                                          códigos activos por los que filtrar el PDF)
+   ├── pdf-parser.service.ts            (89 lines — parseOperaPdf: extracts date,
+   │                                      per-code entries, grand total)
+   └── fnb-categories.cache.ts          (39 lines — caches `trackedCodesSet`, the
+                                          active codes used to filter the PDF)
 
 backend/controllers/fnb/
-   ├── fnb-upload.controller.ts         (42 líneas — POST /upload: orquesta parser +
-   │                                      validación + persistencia)
-   ├── fnb-revenue.controller.ts        (40 líneas — GET /monthly, /daily; DELETE /day/:date)
-   └── fnb-manual.controller.ts         (39 líneas — POST /entries — entrada manual cuando
-                                          no hay PDF disponible)
+   ├── fnb-upload.controller.ts         (42 lines — POST /upload: orchestrates parser
+   │                                      + validation + persistence)
+   ├── fnb-revenue.controller.ts        (40 lines — GET /monthly, /daily; DELETE /day/:date)
+   └── fnb-manual.controller.ts         (39 lines — POST /entries — manual entry
+                                          when no PDF is available)
 
 backend/repositories/fnb/
-   └── fnb.repository.ts                (155 líneas — pivot mensual con CASE WHEN por
-                                          code, totals computados en SQL)
+   └── fnb.repository.ts                (155 lines — monthly pivot with CASE WHEN
+                                          per code, totals computed in SQL)
 
 backend/routes/fnb/
-   └── fnb-routes.ts                    (34 líneas)
+   └── fnb-routes.ts                    (34 lines)
 
 frontend/app/dashboard/restaurant/
-   ├── page.tsx                         (184 líneas — tab switcher + summary stats mock)
+   ├── page.tsx                         (184 lines — tab switcher + mocked summary stats)
    ├── loading.tsx
    └── error.tsx
 
 frontend/app/components/restaurant/tabs/
-   ├── DailyRevenueTab.tsx              (1113 líneas — el tab real: upload PDF, edit
-   │                                      manual, charts mensual/diario)
-   ├── InventoryTab.tsx                 (413 líneas — MOCK)
-   ├── OrdersTab.tsx                    (416 líneas — MOCK)
-   └── StatsTab.tsx                     (294 líneas — MOCK)
+   ├── DailyRevenueTab.tsx              (1113 lines — the real tab: PDF upload, manual
+   │                                      edit, monthly/daily charts)
+   ├── InventoryTab.tsx                 (413 lines — MOCK)
+   ├── OrdersTab.tsx                    (416 lines — MOCK)
+   └── StatsTab.tsx                     (294 lines — MOCK)
 ```
 
-## Códigos de categoría — sync rule
+## Category codes — sync rule
 
-El sistema asume **códigos fijos de Opera** mapeados a 7 columnas estables. Definidos como `CATEGORY_CODES` en `repositories/fnb/fnb.repository.ts`:
+The system assumes **fixed Opera codes** mapped to 7 stable columns. Defined as `CATEGORY_CODES` in `repositories/fnb/fnb.repository.ts`:
 
-| Columna | Código Opera | Significado |
+| Column | Opera code | Meaning |
 |---|---|---|
-| `breakfast_included` | `21110` | Desayuno incluido (tarifa con BB) |
-| `breakfast_excluded` | `21124` | Desayuno extra (cliente sin BB que lo pide) |
-| `breakfast_directo` | `21120` | Desayuno directo (no asociado a reserva) |
-| `lunch_food` | `21111` | Comida — comida |
-| `lunch_bev` | `21267` | Comida — bebidas |
-| `dinner_food` | `21112` | Cena — comida |
-| `dinner_bev` | `21307` | Cena — bebidas |
+| `breakfast_included` | `21110` | Included breakfast (BB rate) |
+| `breakfast_excluded` | `21124` | Extra breakfast (non-BB guest who orders it) |
+| `breakfast_directo` | `21120` | Walk-in breakfast (not tied to a booking) |
+| `lunch_food` | `21111` | Lunch — food |
+| `lunch_bev` | `21267` | Lunch — beverages |
+| `dinner_food` | `21112` | Dinner — food |
+| `dinner_bev` | `21307` | Dinner — beverages |
 
-**Si Opera renombra un código o añades una categoría nueva:**
+**If Opera renames a code or you add a new category:**
 
-1. Actualiza `CATEGORY_CODES` en `fnb.repository.ts`.
-2. Añade el campo en `FnbMonthlyRow` (`backend/models/fnb/fnb.models.ts`) y en el `interface MonthlyRow` del frontend (`DailyRevenueTab.tsx`).
-3. Actualiza `buildEmptyRow()` para incluir el nuevo campo a 0.
-4. Si el código nuevo debe afectar el filtro del parser, añádelo a `fnb_category` (tabla) — `fnb-categories.cache.ts` lo recoge dinámicamente.
+1. Update `CATEGORY_CODES` in `fnb.repository.ts`.
+2. Add the field to `FnbMonthlyRow` (`backend/models/fnb/fnb.models.ts`) and to the frontend's `interface MonthlyRow` (`DailyRevenueTab.tsx`).
+3. Update `buildEmptyRow()` to include the new field defaulting to 0.
+4. If the new code should affect the parser filter, add it to `fnb_category` (table) — `fnb-categories.cache.ts` picks it up dynamically.
 
-**Cache de códigos `trackedCodesSet`**: lectura de `fnb_category` cacheada en memoria del proceso. Se refresca cada N segundos (TTL definido en `fnb-categories.cache.ts`). Si añades un código nuevo por SQL directo, el parser tarda hasta ese TTL en empezar a verlo — alternativa: reiniciar el backend.
+**`trackedCodesSet` code cache:** reads `fnb_category` and caches in process memory. Refreshes every N seconds (TTL defined in `fnb-categories.cache.ts`). If you add a code via direct SQL, the parser takes up to that TTL to start seeing it — alternative: restart the backend.
 
 ## PDF parser — `parseOperaPdf(buffer)`
 
-Entrada: `Buffer` del PDF subido (multer in-memory). Salida: `{ date, entries[], grandTotal }`.
+Input: `Buffer` of the uploaded PDF (multer in-memory). Output: `{ date, entries[], grandTotal }`.
 
-**Algoritmo:**
+**Algorithm:**
 
-1. `pdf-parse` extrae el texto plano del PDF.
-2. **Extracción de fecha (`extractDate`):** busca el patrón `Date DD/MM/YY` que aparece en la línea de filtro de Opera (`Calendar/Month to Date`). Devuelve `YYYY-MM-DD`. **Si no hay match, devuelve null** y el controller responde 422 — **no hay fallback** porque la fecha del header del PDF es +1 día respecto a la hotel date y corrompería los registros silenciosamente.
-3. **Extracción de entries (`extractEntries`):** state machine con 3 fases:
-   - `codes` — recolecta líneas que matchean `/^\d{5}$/`.
-   - `descriptions` — saltadas (texto descriptivo entre códigos y valores).
-   - `values` — recolecta los amounts, parea con los códigos por índice.
-   Filtra solo los códigos en `trackedCodesSet`.
-4. **Grand total (`extractGrandTotal`):** matching numérico para validación.
+1. `pdf-parse` extracts plain text from the PDF.
+2. **Date extraction (`extractDate`):** looks for the pattern `Date DD/MM/YY` that appears in Opera's filter line (`Calendar/Month to Date`). Returns `YYYY-MM-DD`. **If no match, returns null** and the controller responds 422 — **there's no fallback** because the PDF header date is +1 day off from the hotel date and would silently corrupt records.
+3. **Entry extraction (`extractEntries`):** 3-phase state machine:
+   - `codes` — collects lines matching `/^\d{5}$/`.
+   - `descriptions` — skipped (descriptive text between codes and values).
+   - `values` — collects amounts, pairs them with codes by index.
+   Filters by codes in `trackedCodesSet`.
+4. **Grand total (`extractGrandTotal`):** numeric match for validation.
 
-**Limitaciones conocidas:**
-- El parser asume el layout exacto del PDF de Opera. Si Opera cambia el formato, hay que ajustar las heurísticas. No es brittle, pero tampoco es robusto a refactor de Opera.
-- 10 MB hardcap en multer. Si un PDF supera eso, falla en upload — Opera nunca produce PDFs tan grandes en condiciones normales, así que el cap es defensivo no funcional.
+**Known limitations:**
+- The parser assumes Opera's exact PDF layout. If Opera changes the format, the heuristics need tuning. Not brittle, but not robust against Opera refactors.
+- 10 MB hard cap in multer. PDFs that big never come out of Opera in normal conditions, so the cap is defensive, not functional.
 
 ## Performance — pdf-parse v1
 
-**Importante (commit `954043c`):** `pdf-parse` está pinneado en **v1** porque v2 hace OOM en Render free tier. v2 carga PDF.js completo en memoria; v1 es ligero. Si en algún momento se actualiza Node o se cambia de host, **probar v2 antes de upgradear** — quizás vuelva a ser viable. No upgradear sin medir.
+**Important (commit `954043c`):** `pdf-parse` is pinned to **v1** because v2 OOMs on Render free tier. v2 loads full PDF.js into memory; v1 is light. If at some point Node is upgraded or the host changes, **test v2 before upgrading** — it might become viable again. Don't upgrade without measuring.
 
 ## Endpoints
 
-| Método y ruta | Propósito |
+| Method and route | Purpose |
 |---|---|
-| `GET /api/fnb/categories` | Lista de categorías activas (driver de `trackedCodesSet`) |
-| `GET /api/fnb/monthly?year=YYYY&month=MM` | Pivot mensual: una fila por día del mes |
-| `GET /api/fnb/daily?date=YYYY-MM-DD` | Detalle de un día concreto |
-| `POST /api/fnb/upload` | Subida del PDF (`multipart/form-data`, campo `pdf`, 10 MB máx) |
-| `POST /api/fnb/entries` | Entrada manual (cuando no hay PDF disponible) |
-| `DELETE /api/fnb/day/:date` | Borrar todos los registros de un día |
+| `GET /api/fnb/categories` | List of active categories (drives `trackedCodesSet`) |
+| `GET /api/fnb/monthly?year=YYYY&month=MM` | Monthly pivot: one row per day of the month |
+| `GET /api/fnb/daily?date=YYYY-MM-DD` | Detail of a specific day |
+| `POST /api/fnb/upload` | PDF upload (`multipart/form-data`, field `pdf`, 10 MB max) |
+| `POST /api/fnb/entries` | Manual entry (when no PDF is available) |
+| `DELETE /api/fnb/day/:date` | Delete all records for a day |
 
-Toda la subruta tras `authenticateToken` + `canAccessFnb`. Roles permitidos: `admin`, `recepcionista`, `demo-admin`, **`group-admin`** (este último añadido en `00bab83`).
+The whole subroute sits behind `authenticateToken` + `canAccessFnb`. Allowed roles: `admin`, `recepcionista`, `demo-admin`, **`group-admin`** (the last one added in `00bab83`).
 
-**Sobre `/entries` (manual):** el flujo manual existe para cuando Opera no genera el PDF o el día tiene revenue F&B sin tener registro Opera (eventos privados, La Caseta, etc.). Usa los mismos `CATEGORY_CODES` que el parser para coherencia.
+**About `/entries` (manual):** the manual path exists for when Opera doesn't generate the PDF, or when the day has F&B revenue without an Opera record (private events, La Caseta, etc.). Uses the same `CATEGORY_CODES` as the parser for consistency.
 
-## Pivot mensual — patrón SQL
+## Monthly pivot — SQL pattern
 
-`getMonthlyData(year, month)` usa `MAX(CASE WHEN ...)` para pivotar el long-form (`date, category_code, amount`) a una fila por día con columna por categoría. Es eficiente para meses (max 31 filas) y mantiene tipado fuerte en TS.
+`getMonthlyData(year, month)` uses `MAX(CASE WHEN ...)` to pivot long-form (`date, category_code, amount`) into one row per day with one column per category. Efficient for months (max 31 rows) and keeps strong TS typing.
 
-**Totales computados en SQL** (`breakfast_total`, `lunch_total`, `dinner_total`, `la_caseta_total`, `fnb_total`) usando `r2()` en JS para redondear a 2 decimales **fuera del SQL**. Razón: evitar drift de floats (0.1 + 0.2 = 0.30000000000000004 produce sumas con decimales fantasma). Cualquier total nuevo replica este patrón.
+**Totals computed in SQL** (`breakfast_total`, `lunch_total`, `dinner_total`, `la_caseta_total`, `fnb_total`) with `r2()` in JS rounding to 2 decimals **outside the SQL**. Reason: avoid float drift (0.1 + 0.2 = 0.30000000000000004 produces phantom decimals). Any new total replicates this pattern.
 
-**Días faltantes:** si la BD no tiene una fila para un día del mes, `getMonthlyData` añade un `buildEmptyRow(date)` con todos los ceros. La UI espera filas para todos los días del mes — si decides no rellenar, ajusta también la UI o tendrás huecos visuales.
+**Missing days:** if the DB has no row for a day of the month, `getMonthlyData` injects `buildEmptyRow(date)` with all zeros. The UI expects rows for every day of the month — if you ever decide not to fill them, adjust the UI too or you'll have visual gaps.
 
 ## Frontend — Daily Revenue tab
 
-`DailyRevenueTab.tsx` (1113 líneas) es el único tab real. Estructura interna:
+`DailyRevenueTab.tsx` (1113 lines) is the only real tab. Internal structure:
 
-- **Sección Upload PDF**: drag & drop + apiClient call al `/upload` endpoint. Toast con resultado.
-- **Sección Calendario mensual**: navegación por mes, fetch de `/monthly`, render de tabla con totals.
-- **Sección Edit manual**: si una fila tiene revenue cargado, permite editarlo. Calls al `/entries` endpoint.
-- **Charts (recharts)**: BarChart, LineChart, PieChart — distribución por tipo de servicio (breakfast / lunch / dinner) a lo largo del mes.
-- **Sección Diario**: drill-down a un día con todos los detalles.
+- **Upload PDF section**: drag & drop + apiClient call to `/upload`. Toast with the result.
+- **Monthly calendar section**: month navigation, fetches `/monthly`, renders a table with totals.
+- **Manual edit section**: if a row has revenue loaded, you can edit it. Calls `/entries`.
+- **Charts (recharts)**: BarChart, LineChart, PieChart — service-type distribution (breakfast / lunch / dinner) across the month.
+- **Daily section**: drill-down into a day with all detail.
 
-El tamaño (1113 líneas) es alto. Si se va a tocar UI no trivial, considera split por sección. No urgente.
+The size (1113 lines) is high. If you're about to touch non-trivial UI here, consider splitting by section. Not urgent.
 
-## Tabs mock (Inventory / Orders / Stats)
+## Mock tabs (Inventory / Orders / Stats)
 
-Los tabs `InventoryTab.tsx`, `OrdersTab.tsx`, `StatsTab.tsx` tienen **UI pero no datos reales**. Hardcoded mocks. Funcionan como **placeholder para la fase 2** del módulo (inventario interno y pedidos a proveedores).
+`InventoryTab.tsx`, `OrdersTab.tsx`, `StatsTab.tsx` have **UI but no real data**. Hardcoded mocks. They function as **placeholders for the module's phase 2** (internal inventory and supplier orders).
 
-**No hay backend para estos tabs.** Si alguien pide implementar uno:
+**No backend for these tabs.** If someone asks to implement one:
 
-1. Diseñar el schema en BD (probablemente `fnb_products`, `fnb_orders`, `fnb_suppliers`).
-2. Crear el controller + repo correspondiente.
-3. Conectar el tab existente reemplazando los mocks por React Query calls.
-4. Documentar aquí.
+1. Design the DB schema (probably `fnb_products`, `fnb_orders`, `fnb_suppliers`).
+2. Create the matching controller + repo.
+3. Wire the existing tab by replacing the mocks with React Query calls.
+4. Document here.
 
-`summaryStats` en `page.tsx` (totalProducts, lowStock, pendingOrders, monthlyExpenses) también son hardcoded — pertenecen a la fase mockeada.
+`summaryStats` in `page.tsx` (totalProducts, lowStock, pendingOrders, monthlyExpenses) is also hardcoded — part of the mocked phase.
 
 ## Auth
 
-`canAccessFnb` permite: `admin`, `group-admin`, `demo-admin`, `recepcionista`. **Mantenimiento bloqueado.** Sin permiso admin-only en endpoints — recepción puede subir PDFs y editar manualmente.
+`canAccessFnb` allows: `admin`, `group-admin`, `demo-admin`, `recepcionista`. **Mantenimiento blocked.** No admin-only restrictions on endpoints — reception can upload PDFs and edit manually.
 
-## Gotchas conocidos
+## Known gotchas
 
-1. **pdf-parse v1 pinneado.** No upgradear sin probar OOM en Render. Documentado en commit `954043c`.
-2. **Fecha del PDF: filtro line vs header.** El parser usa el filtro (`Date DD/MM/YY`) **no el header**. El header es +1 día y corrompería datos.
-3. **Cache de `trackedCodesSet` con TTL.** Cambios en `fnb_category` tardan hasta el TTL en propagarse al parser. Reinicia el server para forzar.
-4. **`CATEGORY_CODES` está hardcoded** en el repo — codes específicos de Opera del hotel. Si cambias de hotel o Opera renumera, tocar aquí.
-5. **Floats: usar `r2()`.** Cualquier suma de amounts debe pasar por `r2()` antes de devolverla al frontend.
-6. **Tabs mock no son features.** Si te piden "arreglar el inventario", confirma alcance — la UI existe pero no hay datos reales detrás.
-7. **`DailyRevenueTab.tsx` con 1113 líneas.** Vigilar si crece más; considerar split por sección.
+1. **pdf-parse v1 pinned.** Don't upgrade without testing OOM on Render. Documented in commit `954043c`.
+2. **PDF date: filter line vs header.** The parser uses the filter (`Date DD/MM/YY`) **not the header**. The header is +1 day off and would corrupt data.
+3. **`trackedCodesSet` cache with TTL.** Changes to `fnb_category` take up to the TTL to propagate to the parser. Restart the server to force.
+4. **`CATEGORY_CODES` is hardcoded** in the repo — specific Opera codes for the hotel. If the hotel changes or Opera renumbers, touch here.
+5. **Floats: use `r2()`.** Any amount sum must pass through `r2()` before going to the frontend.
+6. **Mock tabs are not features.** If asked to "fix the inventory", confirm the scope — the UI exists but there's no real data behind it.
+7. **`DailyRevenueTab.tsx` at 1113 lines.** Watch if it grows; consider splitting by section.
 
-## Referencias cruzadas
+## Cross references
 
-- `backend/middlewares/roleCheck.ts → canAccessFnb` — roles permitidos.
-- `backend/models/fnb/fnb.models.ts` — tipos del módulo.
-- `backend/scripts/import-fnb-2026.ts` — script one-off para importar histórico (si existe — usado en setup inicial).
+- `backend/middlewares/roleCheck.ts → canAccessFnb` — allowed roles.
+- `backend/models/fnb/fnb.models.ts` — module types.
+- `backend/scripts/import-fnb-2026.ts` — one-off script to import historical data (if present — used in initial setup).

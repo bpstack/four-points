@@ -269,6 +269,42 @@ Razones que llevaron a esta decisión (registradas para no reabrir el debate):
 
 **No se commitea hasta cerrar el módulo entero.** Si una sesión termina con un módulo a medias (p.ej. solver Python creado pero backend TS aún pendiente), se deja **no commiteado** en el working tree — la "Regla de seguridad innegociable" (crear → verificar → eliminar) garantiza que el raíz sigue íntegro mientras tanto, así que git en ese momento no pierde nada.
 
+### Estado de la sesión 2026-05-23
+
+**Cerrados en esta sesión (6 módulos, 9 archivos modulares):**
+
+| Módulo | Archivo(s) | Commit |
+|---|---|---|
+| Scheduling | `backend/scheduling-solver/CLAUDE.md`, `backend/services/scheduling/CLAUDE.md`, `frontend/app/components/scheduling/CLAUDE.md` | `04959a4` |
+| Checklist | `backend/services/checklist/CLAUDE.md` | `3728854` |
+| Logbook | `backend/services/logbook/CLAUDE.md` | `568bc98` |
+| Parking | `backend/services/parking/CLAUDE.md`, `frontend/app/dashboard/parking/CLAUDE.md` | `fc220c3` |
+| Maintenance | `frontend/app/components/maintenance/CLAUDE.md` | `18fe9b6` |
+| F&B / Restaurant | `backend/services/fnb/CLAUDE.md` | `34b6644` |
+
+**Corrección de idioma (pendiente de commit al cerrar la sesión):** los 9 archivos modulares se escribieron originalmente en español por inercia conversacional. Cumplen la función pero rompen consistencia con el `CLAUDE.md` raíz original (inglés) y con la convención de commits (inglés). **Re-traducidos a inglés técnico idiomático en un solo commit** `docs(claude): translate module CLAUDE.md files to English`. Los resúmenes que el raíz dejó para cada módulo también pasaron a inglés en el mismo commit.
+
+**Pushed hasta el commit:** `34b6644` (último push fue de scheduling + roleCheck + plan TODO en commits `04959a4..791c03d`). Los commits de checklist/logbook/parking/maintenance/F&B están en local sin pushear, **pero el commit de traducción que cierra esta sesión sí se commiteará a continuación**. Pushear todo junto cuando arranque la próxima sesión, o ahora si el usuario lo pide.
+
+### Cómo arrancar la próxima sesión
+
+1. **Push pendiente:** `git push origin main` para subir los 6 commits del split + el de traducción si quedó algo sin pushear. Comprobar primero con `git log origin/main..HEAD`.
+2. **Verificación rápida del split:** abrir Claude desde `backend/scheduling-solver/`, `backend/services/logbook/`, `frontend/app/dashboard/parking/`, etc., y confirmar que el contexto cargado es coherente. Si algo chirría, ajustar antes de seguir.
+3. **Continuar Fase 2 — módulos pendientes** (en orden sugerido):
+   - **Cashier** (17 backend + 26 componentes + lib export PDF de 687 líneas; muy denso). Probablemente 2 archivos: `backend/services/cashier/` (no existe el dir todavía, ver nota abajo) o `backend/controllers/cashier/` + `frontend/app/components/cashier/`. Decidir en la exploración.
+   - **Group** (17 backend + 30 componentes, multi-tenancy). 2 archivos: `backend/services/group/` o `controllers/group/` + `frontend/app/components/groups/`.
+   - **DB / migraciones** (`backend/db-mysql/CLAUDE.md`): política de migraciones incrementales, prohibición de MASTER_INSTALL, INDEX.md. Único archivo.
+   - **Conciliation, Blacklist, Backoffice/bo** marcados como "Evaluar" en el inventario — leer código y decidir si justifican archivo propio. Si no, su sección breve en el raíz es suficiente.
+4. **Decisión pendiente sobre `backend/services/cashier/` y `backend/services/group/`:** **estos directorios no existen** (todo el módulo vive en controllers/repositories/routes directamente). Hay dos opciones para ubicar el CLAUDE.md:
+   - **Opción A:** crear el directorio `backend/services/<modulo>/` solo para alojar el `CLAUDE.md` (no añade servicios reales, es solo punto de anclaje semántico). Pro: consistente con scheduling/checklist/logbook/parking/fnb. Contra: añade un directorio "vacío" que puede confundir.
+   - **Opción B:** colocarlo en `backend/controllers/<modulo>/CLAUDE.md` o `backend/repositories/<modulo>/CLAUDE.md`. Pro: vive donde está el código. Contra: rompe la convención que arrastramos.
+   - **Recomendación a futuro tú:** Opción A — la convención manda. Ya se hizo así con maintenance al revés (no hay services/maintenance/ pero su CLAUDE.md vive en components/maintenance/). Coherencia > pureza estructural.
+5. **Fase 3 (adelgazar raíz a ≤100 líneas) y Fase 4 (validación + índice final):** todavía no tocadas. Hacerlas al final, cuando todos los módulos de Fase 2 estén cerrados.
+
+### Convención de idioma — confirmada
+
+**Todo CLAUDE.md va en inglés técnico idiomático.** Sin traducción literal del español; usar el dialecto natural ("stays in sync", "drop in", "wire up", "gotcha", etc.). Los comentarios de código pueden seguir en su idioma original (mixto ES/EN según el archivo). Esta convención está alineada con el `CLAUDE.md` raíz original y con la convención de commits en inglés.
+
 ### Notas operativas
 
 - Esta tarea puede ocupar varias sesiones. Cada fase es checkpointable: completar e ir al siguiente módulo sin perder estado.

@@ -1,12 +1,12 @@
 # CLAUDE.md — Maintenance
 
-> Módulo de partes de mantenimiento del hotel. **Un único archivo** porque el módulo no es lo bastante grande para justificar split backend/frontend; el archivo vive en `frontend/app/components/maintenance/` que es donde está la mayor superficie de código.
+> Hotel maintenance report module. **Single file** because the module isn't big enough to justify a backend/frontend split; the file lives in `frontend/app/components/maintenance/` where most of the code surface area is.
 
-## Propósito
+## What it does
 
-Reportes de mantenimiento (averías, incidencias técnicas). Cada **report** describe una incidencia con ubicación, prioridad, asignación, estado de workflow, imágenes adjuntas y un historial completo de cambios. El módulo cubre toda la cadena: alta → asignación → en curso → resuelto → cerrado, con soft delete + restore.
+Maintenance reports (faults, technical incidents). Each **report** describes an incident with location, priority, assignment, workflow status, attached images and a full history of changes. The module covers the whole chain: created → assigned → in progress → resolved → closed, with soft delete + restore.
 
-## Workflow de estado
+## Status workflow
 
 ```
 reported ──► assigned ──► in_progress ──► completed ──► closed
@@ -18,98 +18,98 @@ reported ──► assigned ──► in_progress ──► completed ──► 
                           canceled ◄──────────┘
 ```
 
-**7 estados** definidos en `frontend/app/lib/maintenance/maintenance.ts`:
+**7 statuses** defined in `frontend/app/lib/maintenance/maintenance.ts`:
 
-| Estado | Significado |
+| Status | Meaning |
 |---|---|
-| `reported` | Recién creado, sin asignar |
-| `assigned` | Asignado a alguien (interno o externo) pero sin empezar |
-| `in_progress` | Trabajando en ello |
-| `waiting` | Bloqueado por algo externo (esperando pieza, presupuesto, etc.) |
-| `completed` | Resuelto, pendiente de cierre formal |
-| `closed` | Cerrado definitivamente, no se reabre |
-| `canceled` | Cancelado (duplicado, no procede, etc.) |
+| `reported` | Just created, unassigned |
+| `assigned` | Assigned to someone (internal or external) but not started |
+| `in_progress` | Work is happening |
+| `waiting` | Blocked on something external (waiting for parts, quote, etc.) |
+| `completed` | Resolved, pending formal closure |
+| `closed` | Closed for good, doesn't reopen |
+| `canceled` | Canceled (duplicate, doesn't apply, etc.) |
 
-**4 prioridades:** `low`, `medium`, `high`, `urgent`. **5 location types:** `room`, `common_area`, `exterior`, `facilities`, `other`. **2 assigned types:** `internal` (asignado a usuario del sistema) o `external` (empresa externa con `external_company_name` + `external_contact`).
+**4 priorities:** `low`, `medium`, `high`, `urgent`. **5 location types:** `room`, `common_area`, `exterior`, `facilities`, `other`. **2 assigned types:** `internal` (assigned to a system user) or `external` (third-party company with `external_company_name` + `external_contact`).
 
-**Constraint:** si `location_type === 'room'`, `room_number` es obligatorio. Validado en el schema Zod del frontend (`reportSchema.refine()` en `maintenance-schemas.ts`) y en el backend (`reportFiltersSchema`).
+**Constraint:** if `location_type === 'room'`, `room_number` is required. Validated by the frontend Zod schema (`reportSchema.refine()` in `maintenance-schemas.ts`) and by the backend (`reportFiltersSchema`).
 
-## Estructura
+## Layout
 
 ```
 backend/controllers/maintenance/
-   └── maintenance-controller.ts        (753 líneas — clase con métodos estáticos
+   └── maintenance-controller.ts        (753 lines — class with static methods
                                           MaintenanceController.getAll, create, etc.)
 
 backend/repositories/maintenance/
-   └── maintenance-repository.ts        (970 líneas — todo el SQL del módulo;
-                                          incluye imágenes e historial)
+   └── maintenance-repository.ts        (970 lines — all module SQL;
+                                          includes images and history)
 
 backend/routes/maintenance/
-   └── maintenance-routes.ts            (155 líneas — 14 rutas)
+   └── maintenance-routes.ts            (155 lines — 14 routes)
 
 backend/validations/maintenance/
    └── schemas.ts                       (Zod schemas: create, update, status, priority,
                                           resolution, filters, idParam, assign)
 
 frontend/app/dashboard/maintenance/
-   ├── page.tsx                         (64 líneas — Server: SSR de la lista inicial)
+   ├── page.tsx                         (64 lines — Server: SSR for the initial list)
    ├── error.tsx / loading.tsx
-   ├── [id]/page.tsx                    (detalle por ID)
-   └── actions/getMaintenance.ts        (server action para SSR)
+   ├── [id]/page.tsx                    (detail by ID)
+   └── actions/getMaintenance.ts        (server action for SSR)
 
 frontend/app/components/maintenance/
-   ├── MaintenanceListClient.tsx        (766 líneas — la lista con filtros y modales)
-   ├── ReportDetailClient.tsx           (124 líneas — wrapper del detalle)
-   ├── hooks/useMaintenanceList.ts      (185 líneas — React Query con keys factory)
+   ├── MaintenanceListClient.tsx        (766 lines — list with filters and modals)
+   ├── ReportDetailClient.tsx           (124 lines — detail wrapper)
+   ├── hooks/useMaintenanceList.ts      (185 lines — React Query with keys factory)
    ├── layout/
    │   ├── ReportHeader.tsx
    │   └── TabNavigation.tsx
    ├── panels/
-   │   ├── CreateReportPanel.tsx        (359 líneas — formulario create)
-   │   └── EditReportPanel.tsx          (454 líneas — formulario edit)
+   │   ├── CreateReportPanel.tsx        (359 lines — create form)
+   │   └── EditReportPanel.tsx          (454 lines — edit form)
    ├── tabs/
-   │   ├── DetailTab.tsx                (634 líneas — el tab principal de la vista detalle)
-   │   └── HistoryTab.tsx               (166 líneas — historial de cambios)
+   │   ├── DetailTab.tsx                (634 lines — main tab of the detail view)
+   │   └── HistoryTab.tsx               (166 lines — change history)
    └── shared/                          (EmptyState, LoadingSpinner)
 
 frontend/app/lib/maintenance/
    ├── maintenance.ts                   (types: ReportStatus, ReportPriority, etc.)
    ├── maintenanceApi.ts                (apiClient calls)
-   └── maintenance-schemas.ts           (Zod del lado UI)
+   └── maintenance-schemas.ts           (Zod on the UI side)
 ```
 
 ## Backend — endpoints
 
-| Método y ruta | Propósito |
+| Method and route | Purpose |
 |---|---|
-| `GET /api/maintenance` | Lista con filtros: status, priority, location_type, assigned_to, created_by, room_number, search, date_from, date_to, include_deleted; paginación `page` + `limit` |
-| `GET /api/maintenance/stats` | Estadísticas agregadas |
-| `GET /api/maintenance/:id` | Detalle con imágenes + historial |
-| `POST /api/maintenance` | Crear report |
-| `PATCH /api/maintenance/:id` | Update general |
-| `PATCH /api/maintenance/:id/status` | Cambiar solo estado (con `notes?`) |
-| `PATCH /api/maintenance/:id/priority` | Cambiar solo prioridad |
-| `PATCH /api/maintenance/:id/resolution-notes` | Añadir notas de resolución |
-| `PATCH /api/maintenance/:id/assign` | Asignar (interno o externo) |
+| `GET /api/maintenance` | List with filters: status, priority, location_type, assigned_to, created_by, room_number, search, date_from, date_to, include_deleted; pagination `page` + `limit` |
+| `GET /api/maintenance/stats` | Aggregate statistics |
+| `GET /api/maintenance/:id` | Detail with images + history |
+| `POST /api/maintenance` | Create report |
+| `PATCH /api/maintenance/:id` | General update |
+| `PATCH /api/maintenance/:id/status` | Status-only change (with `notes?`) |
+| `PATCH /api/maintenance/:id/priority` | Priority-only change |
+| `PATCH /api/maintenance/:id/resolution-notes` | Append resolution notes |
+| `PATCH /api/maintenance/:id/assign` | Assign (internal or external) |
 | `DELETE /api/maintenance/:id` | Soft delete |
-| `PATCH /api/maintenance/:id/restore` | Restaurar |
-| `GET /api/maintenance/:id/images` | Listar imágenes |
-| `POST /api/maintenance/:id/images` | Subir imagen (multipart, 5 MB máx) |
-| `DELETE /api/maintenance/:id/images/:imageId` | Borrar imagen |
-| `GET /api/maintenance/:id/history` | Historial de cambios |
+| `PATCH /api/maintenance/:id/restore` | Restore |
+| `GET /api/maintenance/:id/images` | List images |
+| `POST /api/maintenance/:id/images` | Upload image (multipart, 5 MB max) |
+| `DELETE /api/maintenance/:id/images/:imageId` | Delete image |
+| `GET /api/maintenance/:id/history` | Change history |
 
-**Middleware:** todas las rutas tras `authenticateToken` + `canAccessMaintenance`. Este middleware permite **al rol mantenimiento entrar** — al contrario de la mayoría de módulos que lo excluyen.
+**Middleware:** every route sits behind `authenticateToken` + `canAccessMaintenance`. This middleware **lets the mantenimiento role in** — unlike most modules that exclude it.
 
-**Imágenes:** multer in-memory + Cloudinary. Hardcap 5 MB por archivo en el middleware multer.
+**Images:** multer in-memory + Cloudinary. Hard cap of 5 MB per file in the multer middleware.
 
-## Patrón controllers-as-class
+## Class-based controller pattern
 
-`MaintenanceController` es **clase con métodos estáticos**, mismo patrón que parking (`ParkingBookingsController`). No es el patrón estándar del proyecto (la mayoría usa funciones exportadas sueltas), pero es coherente dentro de este módulo. Si añades un controller nuevo aquí, sigue el patrón clase.
+`MaintenanceController` is a **class with static methods**, same pattern as parking (`ParkingBookingsController`). It's not the project's default pattern (most use free-standing exported functions), but it's internally consistent within the module. If you add a new controller here, follow the class pattern.
 
-## Historial (`maintenance_history`)
+## History (`maintenance_history`)
 
-Cada cambio importante se logea con un `action` de este set:
+Every important change is logged with one of these `action` values:
 
 - `created`
 - `status_changed`
@@ -121,13 +121,13 @@ Cada cambio importante se logea con un `action` de este set:
 - `deleted`
 - `restored`
 
-Visible en `HistoryTab.tsx`. **Regla:** toda mutación que afecte el estado o la asignación del report debe pasar por el repo en una llamada que también escribe en `maintenance_history`. Si añades una mutation nueva, asegúrate de añadir el log; si el `action` no encaja en los actuales, extiende el enum del lado TS y del lado DB (CHECK constraint).
+Visible in `HistoryTab.tsx`. **Rule:** any mutation that touches the report's status or assignment must go through the repo via a call that also writes to `maintenance_history`. If you add a new mutation, make sure it logs; if the `action` doesn't fit the existing set, extend the enum on the TS side and on the DB side (CHECK constraint).
 
 ## Frontend — patterns
 
 ### `useMaintenanceList(filters, page, limit, initialData, messages)`
 
-Hook orchestrator del listado. Recibe el `initialData` del SSR (para el primer paint sin spinner) y solo lo usa cuando no hay filtros activos — si el usuario filtra, se descarta el cache server y se hace fetch fresh. Mismo patrón `messages` injection que logbook: los toasts i18n se pasan desde el contenedor para que el hook sea i18n-agnostic.
+List orchestrator hook. Takes `initialData` from SSR (for first paint with no spinner) and only uses it when no filters are active — once the user filters, the server cache is discarded and a fresh fetch runs. Same `messages` injection pattern as logbook: i18n toasts are passed in from the container so the hook stays i18n-agnostic.
 
 ### `maintenanceKeys` factory
 
@@ -137,37 +137,37 @@ maintenanceKeys.detail(id)       // ['maintenance', 'detail', id]
 maintenanceKeys.stats()          // ['maintenance', 'stats']
 ```
 
-A diferencia de parking (que no tiene factory), aquí sí porque la jerarquía de invalidaciones es más compleja (un edit de un report debe invalidar tanto su detail como las lists que lo contengan).
+Unlike parking (which has no factory), there's one here because the invalidation hierarchy is more complex (editing a report has to invalidate both its detail and any lists containing it).
 
-### Detalle por tabs
+### Tabbed detail
 
-`ReportDetailClient` monta `TabNavigation` + el tab activo (`DetailTab` o `HistoryTab`). La URL preserva el tab activo en query string para que F5 mantenga la vista.
+`ReportDetailClient` mounts `TabNavigation` + the active tab (`DetailTab` or `HistoryTab`). The URL preserves the active tab in the query string so F5 keeps the view.
 
-`DetailTab.tsx` (634 líneas) es el grueso de la UI de detalle: cabecera, descripción, ubicación, asignación, imágenes con preview, acciones inline para cambiar estado/prioridad/asignación, formularios de resolution-notes.
+`DetailTab.tsx` (634 lines) is the bulk of the detail UI: header, description, location, assignment, image preview gallery, inline actions to change status/priority/assignment, resolution-notes form.
 
 ### CreateReportPanel + EditReportPanel
 
-Dos paneles separados (no un modal reutilizado) porque los flujos divergen: el create exige campos mínimos y autocompleta `status: 'reported'`; el edit permite tocar cualquier campo según los permisos. Ambos validan con el mismo `reportSchema` de Zod (`maintenance-schemas.ts`).
+Two separate panels (not a shared modal) because the flows diverge: create requires minimum fields and auto-sets `status: 'reported'`; edit lets you touch any field within permissions. Both validate against the same `reportSchema` Zod (`maintenance-schemas.ts`).
 
-## Auth / permisos
+## Auth / permissions
 
-`canAccessMaintenance` permite a:
+`canAccessMaintenance` allows:
 - `admin`, `group-admin`, `demo-admin`
 - `recepcionista`
-- **`mantenimiento`** (este es el módulo donde sí entra)
+- **`mantenimiento`** (this is the module they do enter)
 
-Es uno de los pocos módulos accesibles para el rol mantenimiento — de hecho es **su módulo principal de trabajo**. Tenlo en cuenta si vas a tocar permisos: la UX para mantenimiento es clave.
+It's one of the few modules accessible to the mantenimiento role — in fact it's **their main work module**. Keep that in mind if you touch permissions: the UX for mantenimiento is key.
 
-## Gotchas conocidos
+## Known gotchas
 
-1. **`canAccessMaintenance` permite mantenimiento.** Los demás módulos lo bloquean. Si añades un endpoint global que cruza módulos, ten en cuenta qué roles pueden llegar.
-2. **`location_type='room' ⇒ room_number` requerido.** Validación cruzada en Zod (`.refine`). Si añades un nuevo `location_type` con regla similar, repite el patrón.
-3. **Status `closed` es definitivo.** El UI no expone reopen desde `closed`. Si lo necesitas, hay que añadir tanto endpoint backend como UI; revisar `maintenance_history.action` para coherencia.
-4. **`DetailTab.tsx` con 634 líneas y `MaintenanceListClient.tsx` con 766 líneas.** En el radar para split si crece más, no urgente.
-5. **Image upload max 5 MB.** Hardcoded en el multer config en `routes/maintenance/maintenance-routes.ts`. Si cambia el requisito, ajustar ahí.
+1. **`canAccessMaintenance` lets mantenimiento in.** Other modules block them. If you add a global endpoint that crosses modules, mind which roles can reach it.
+2. **`location_type='room' ⇒ room_number` required.** Cross-field validation in Zod (`.refine`). If you add a new `location_type` with a similar rule, repeat the pattern.
+3. **`closed` status is final.** The UI doesn't expose a reopen from `closed`. If you need it, add both the backend endpoint and the UI; check `maintenance_history.action` for coherence.
+4. **`DetailTab.tsx` at 634 lines and `MaintenanceListClient.tsx` at 766 lines.** On the radar for split if they grow more, not urgent.
+5. **Image upload capped at 5 MB.** Hardcoded in the multer config in `routes/maintenance/maintenance-routes.ts`. If the requirement changes, adjust there.
 
-## Referencias cruzadas
+## Cross references
 
-- `backend/middlewares/roleCheck.ts → canAccessMaintenance` — los roles permitidos.
-- `backend/services/blacklist/cloudinary-service.ts` — el helper Cloudinary que también usa este módulo para subir imágenes.
-- `frontend/app/lib/maintenance/maintenance.ts` — todos los types y enums.
+- `backend/middlewares/roleCheck.ts → canAccessMaintenance` — the allowed roles.
+- `backend/services/blacklist/cloudinary-service.ts` — the Cloudinary helper this module also uses for image uploads.
+- `frontend/app/lib/maintenance/maintenance.ts` — all types and enums.

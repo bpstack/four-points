@@ -1,47 +1,47 @@
-# CLAUDE.md — Scheduling (backend TS)
+# CLAUDE.md — Scheduling (TS backend)
 
-> Contexto específico de la pieza backend del módulo de scheduling: validator, constraints TS, registry, soft weights, builder del input del solver, cliente del daemon Python, controllers y repository. El solver Python tiene su propio archivo en `backend/scheduling-solver/CLAUDE.md` — leer ese además de éste cuando la tarea cruce la frontera.
+> Context for the backend TS piece of the scheduling module: validator, TS constraints, registry, soft weights, solver-input builder, Python daemon client, controllers and repository. The Python solver has its own file at `backend/scheduling-solver/CLAUDE.md` — read that alongside this one when the task crosses the boundary.
 
-## Concepto general del módulo
+## What the module does
 
-El sistema gestiona horarios mensuales del personal mediante **edición manual celda a celda con validación en tiempo real**, con **generación automática opcional** vía un solver CP-SAT (Python).
+Manages monthly staff schedules through **manual cell-by-cell editing with real-time validation**, plus optional **auto-generation** via a CP-SAT solver (Python).
 
-**Estados de un mes:** `draft` (editable, validación con warnings) ↔ `published` (read-only para staff).
+**Month states:** `draft` (editable, validation surfaces warnings) ↔ `published` (read-only for staff).
 
-**Cell locking.** Las celdas con `source_constraint_id` están **bloqueadas**: provienen de aprobaciones (vacaciones, IT, etc.) y no se pueden sobreescribir desde la UI ni desde el solver. El locking es la pieza que permite que solver y edición manual convivan: el solver respeta lo bloqueado, el manager puede preasignar lo que sea, y la validación distingue entre celdas "del usuario" y celdas "del sistema".
+**Cell locking.** Assignments with `source_constraint_id` are **locked**: they come from approvals (vacations, IT, etc.) and can't be overwritten from the UI or by the solver. Locking is the mechanism that lets the solver and manual editing coexist: the solver respects locked cells, the manager can pre-assign anything, and the validator distinguishes "user" cells from "system" cells.
 
-**Constraint flow.** Manager crea una constraint (ej: vacación) → admin aprueba → al aprobar se aplica el shift correspondiente como assignment **con `source_constraint_id`** (queda bloqueada). Si se rechaza, no se toca el grid. Si se borra la constraint aprobada, las assignments derivadas se desbloquean / borran.
+**Constraint flow.** Manager creates a constraint (e.g. vacation) → admin approves → the matching shift gets written as an assignment **with `source_constraint_id`** (locked). If rejected, nothing happens to the grid. If an approved constraint is deleted, its derived assignments get unlocked / removed.
 
-**Retroactive constraints.** Los admins pueden añadir constraints para fechas pasadas (ej: registrar un día de baja IT a posteriori). Esto es por diseño — el módulo no asume que los meses pasados son inmutables hasta que entran en `published`.
+**Retroactive constraints.** Admins can add constraints for past dates (e.g. log an IT absence after the fact). This is by design — the module doesn't assume past months are immutable until they go `published`.
 
-**Auto-generación.** El solver CP-SAT genera un mes completo respetando todos los hard constraints, las locked cells, y las reglas de empleado. Se invoca desde la UI en un mes `draft`. La salida se vuelca en `scheduling_assignments` dentro de una transacción.
+**Auto-generation.** The CP-SAT solver generates a full month respecting every hard constraint, locked cells and employee rules. Triggered from the UI on a `draft` month. The output is applied to `scheduling_assignments` inside a transaction.
 
-## Arquitectura de la pieza backend TS
+## Backend layout
 
 ```
 routes/scheduling/scheduling-routes.ts
    ↓
 controllers/scheduling/
-   ├── scheduling-controller.ts        (~2000 líneas — CRUD de meses, días, assignments,
+   ├── scheduling-controller.ts        (~2000 lines — CRUD for months, days, assignments,
    │                                    constraints, employee rules, contracts, totals)
-   └── schedule-generate.controller.ts (~200 líneas — orquesta generación: build input,
-                                        invoca solver, vuelca matriz, persiste run log)
+   └── schedule-generate.controller.ts (~200 lines — orchestrates generation: build input,
+                                        invoke solver, write matrix, persist run log)
    ↓
 services/scheduling/
-   ├── schedule-validator.ts           (~1000 líneas — valida un mes existente; usa
-   │                                    constraints/ + lógica per-employee en runFinalValidation)
-   ├── build-solver-input.ts           (construye SolverInput desde BD; lockedCells de 3 fuentes)
-   ├── solver-client.ts                (gestiona el daemon Python: state machine + semáforo)
-   ├── soft-weights.ts                 (pesos numéricos del catálogo soft, sincronizado con Python)
+   ├── schedule-validator.ts           (~1000 lines — validates an existing month; uses
+   │                                    constraints/ + per-employee logic in runFinalValidation)
+   ├── build-solver-input.ts           (builds SolverInput from DB; lockedCells from 3 sources)
+   ├── solver-client.ts                (manages the Python daemon: state machine + semaphore)
+   ├── soft-weights.ts                 (soft-catalog numeric weights, kept in sync with Python)
    ├── constraints/
-   │   ├── base-constraint.ts          (clase abstract con helpers warn/softWarn/failure/success)
+   │   ├── base-constraint.ts          (abstract class with warn/softWarn/failure/success helpers)
    │   ├── registry.ts                 (ConstraintRegistry: register, getEnabled, checkAll)
-   │   ├── coverage.constraint.ts      (H1: cobertura mínima M/T/N por día)
-   │   ├── consecutive-rest.constraint.ts  (H5: ≥2 rest en ventana 7)
-   │   ├── max-consecutive-work.constraint.ts  (H4: max días consecutivos trabajo)
-   │   ├── monthly-libre.constraint.ts (H6: libres mensuales [min, max])
-   │   ├── night-block.constraint.ts   (H2: bloques noche [min, max])
-   │   ├── rotation-continuity.constraint.ts (continuidad de patrón rotacional)
+   │   ├── coverage.constraint.ts      (H1: minimum M/T/N coverage per day)
+   │   ├── consecutive-rest.constraint.ts  (H5: ≥2 rest in window of 7)
+   │   ├── max-consecutive-work.constraint.ts  (H4: max consecutive work days)
+   │   ├── monthly-libre.constraint.ts (H6: monthly libres [min, max])
+   │   ├── night-block.constraint.ts   (H2: night blocks [min, max])
+   │   ├── rotation-continuity.constraint.ts (rotational pattern continuity)
    │   └── employee-rules.constraint.ts (noWeekends, fixedShift, fixedDays)
    ├── utils/
    │   ├── matrix.ts                   (isWorkShift, isLibreShift, getEmployeeShiftCounts...)
@@ -49,15 +49,15 @@ services/scheduling/
    └── types/                          (Employee, DayInfo, GeneratorContext, ScheduleMatrix, etc.)
    ↓
 repositories/scheduling/
-   ├── scheduling-repository.ts        (~2000 líneas — toda la DB del módulo)
-   └── employee-requests-repository.ts (peticiones aprobadas para el solver)
+   ├── scheduling-repository.ts        (~2000 lines — all module persistence)
+   └── employee-requests-repository.ts (approved requests for the solver)
 ```
 
-**Importante:** validator y solver son **dos sistemas paralelos** con la misma especificación pero implementaciones distintas. El validator corre en TS sobre una matriz ya hecha y devuelve warnings/errors; el solver corre en Python y construye la matriz desde cero. La especificación textual común vive en `SCHEDULING-CONSTRAINTS.md` (raíz del repo) y es la fuente de verdad cuando ambos discrepan.
+**Important:** the validator and the solver are **two parallel systems** with the same spec but distinct implementations. The validator runs in TS over an existing matrix and returns warnings/errors; the solver runs in Python and builds the matrix from scratch. The shared textual spec lives in `SCHEDULING-CONSTRAINTS.md` (repo root) and is the source of truth when the two disagree.
 
 ## Validator (`schedule-validator.ts`)
 
-Toma un mes (matriz `empleado → día → turno`) y devuelve:
+Takes a month (employee × day × shift matrix) and returns:
 
 ```ts
 interface ValidationResult {
@@ -70,18 +70,18 @@ interface ValidationResult {
 }
 ```
 
-**Estructura interna:**
-1. **Constructor:** recibe `monthId`, `year`, `month`, config, shifts, days, employees, assignments, `previousMonthHistory`. Construye el `GeneratorContext`.
-2. **`validate()`:** instancia un `ConstraintRegistry`, registra las constraints relevantes (`CoverageConstraint`, `EmployeeRulesConstraint`, etc.), corre `checkAll(context)` → agrega violations y soft penalties.
-3. **`runFinalValidation()`:** lógica per-employee que no encaja en una constraint suelta (libre counts acumulados, weekend-off missing, M/T variety, etc.). Emite warnings adicionales directamente con `severity: 'error'` o `'warning'` y acumula soft penalty con la misma convención `softPenaltyBreakdown[key] += ...`.
+**Internal structure:**
+1. **Constructor:** receives `monthId`, `year`, `month`, config, shifts, days, employees, assignments, `previousMonthHistory`. Builds the `GeneratorContext`.
+2. **`validate()`:** instantiates a `ConstraintRegistry`, registers the relevant constraints (`CoverageConstraint`, `EmployeeRulesConstraint`, etc.), runs `checkAll(context)` → aggregates violations and soft penalties.
+3. **`runFinalValidation()`:** per-employee logic that doesn't fit a discrete constraint (accumulated libre counts, weekend-off missing, M/T variety, etc.). Emits warnings directly with `severity: 'error'` or `'warning'` and accumulates soft penalty with the same convention `softPenaltyBreakdown[key] += ...`.
 
-**Decisión:** algunas reglas viven dentro de `runFinalValidation` porque necesitan **estado acumulado por empleado** que sería costoso (o feo) pasar a través del API de `BaseConstraint`. No es deuda técnica, es pragmatismo — si en el futuro la suma supera lo razonable se promueve a constraint con context extendido.
+**Decision:** some rules live inside `runFinalValidation` because they need **per-employee accumulated state** that would be costly (or ugly) to thread through the `BaseConstraint` API. This isn't tech debt, it's pragmatism — if the inline section grows past reasonable size, promote it to a constraint with extended context.
 
-`isValid = errors.length === 0`. Soft penalty es independiente: una validación puede ser válida (sin hard errors) y aún así tener penalty alta.
+`isValid = errors.length === 0`. Soft penalty is independent: a validation can be valid (no hard errors) and still have a high penalty.
 
-## Constraints TS (`constraints/`)
+## TS constraints (`constraints/`)
 
-Cada constraint extiende `BaseConstraint`:
+Each constraint extends `BaseConstraint`:
 
 ```ts
 abstract class BaseConstraint {
@@ -90,7 +90,7 @@ abstract class BaseConstraint {
   enabled: boolean = true
   abstract check(context: GeneratorContext): ConstraintResult
   
-  // helpers heredados:
+  // inherited helpers:
   protected warn(message, { type, severity: 'error'|'warning', day, employeeId })
   protected softWarn(weightKey: SoftWeightKey, units: number, message, ...)
   protected success() / failure(violations)
@@ -98,107 +98,107 @@ abstract class BaseConstraint {
 ```
 
 **`warn` vs `softWarn`:**
-- `warn` con `severity: 'error'` → hard violation (anula isValid).
-- `warn` con `severity: 'warning'` → warning de UI sin coste numérico.
-- `softWarn(weightKey, units, ...)` → automaticamente: emite warning + suma `SOFT_WEIGHTS[weightKey] * units` al `softPenalty` y al `softPenaltyBreakdown[weightKey]`.
+- `warn` with `severity: 'error'` → hard violation (kills isValid).
+- `warn` with `severity: 'warning'` → UI warning with no numeric cost.
+- `softWarn(weightKey, units, ...)` → automatically: emits warning + adds `SOFT_WEIGHTS[weightKey] * units` to `softPenalty` and `softPenaltyBreakdown[weightKey]`.
 
-Para añadir una constraint nueva al validator, ver § "Cómo añadir una constraint" abajo.
+To add a new constraint to the validator, see § "Adding a new constraint" below.
 
 ## Soft weights (`soft-weights.ts`)
 
-Tabla numérica con los pesos del catálogo soft. **Fuente de verdad para los pesos:** este archivo. La especificación textual está en `SCHEDULING-CONSTRAINTS.md §6`. Los pesos también se replican en `model.py` del solver Python para que ambos lados produzcan números comparables.
+Numeric table with the soft-catalog weights. **Source of truth for weights:** this file. The textual spec is in `SCHEDULING-CONSTRAINTS.md §6`. The same weights are mirrored in `model.py` on the Python solver so both sides produce comparable numbers.
 
-**Convención `@emitter` en JSDoc:** cada peso lleva un tag `@emitter <path>` apuntando al archivo que actualmente emite ese soft penalty. Si añades un soft nuevo, declara `@emitter` apuntando a tu constraint. Si un peso está declarado pero ningún archivo lo emite todavía, marca `@deferred <reason>` — esto se hace para reservar la clave sin implementarla aún (S2 weekly_shifts_off, weekend_imbalance, shift_variety_low, request_preference_unmet están en este estado a 2026-05-23).
+**JSDoc `@emitter` convention:** every weight carries an `@emitter <path>` tag pointing at the file that currently emits that soft penalty. If you add a new soft weight, declare `@emitter` pointing at your constraint. If a weight is declared but no file emits it yet, mark it `@deferred <reason>` — this is how we reserve a key without implementing it yet (S2 weekly_shifts_off, weekend_imbalance, shift_variety_low, request_preference_unmet are in this state as of 2026-05-23).
 
-Las claves del `softPenaltyBreakdown` que devuelve el validator TS deben **coincidir exactamente** con las claves que devuelve el solver Python en su `stats.softPenaltyBreakdown`. Esa paridad de naming es lo que permite que el dashboard compare los soft penalty entre solver output y validator-post-solve.
+The keys returned by the TS validator's `softPenaltyBreakdown` must **match exactly** the keys returned by the Python solver's `stats.softPenaltyBreakdown`. That naming parity is what lets the stats dashboard compare solver output with the post-solve validator readout.
 
 ## `build-solver-input.ts`
 
-Construye el `SolverInput` JSON desde la BD. Lo crítico está en cómo arma los **lockedCells**, que tienen **3 fuentes** en este orden de prioridad:
+Builds the `SolverInput` JSON from the DB. The critical bit is how it assembles **lockedCells**, which come from **3 sources** in this priority order:
 
-1. **Assignments con `source_constraint_id`** — aprobaciones ya volcadas en `scheduling_assignments`.
-2. **Approved requests** (`scheduling_employee_requests` con `status='approved'`) — expandidas en su rango de fechas. `shift_code` viene de `requested_value` o se mapea desde `request_type` (vacation→V, bonificable→B, baja_temporal→IT). `shift_preference` y `shift_exclusion` se gestionan diferente y no entran como locked. **No sobreescriben** lo que ya pusiera la fuente 1.
-3. **`fixedDays` patterns** — empleados con regla `fixed_days` (ej: "1,2,3,4,5" = L-V). Para cada día del mes, se inyecta como locked: `workShift` (= `fixedShift` o 'P' por defecto) si `dayOfWeek ∈ fixedDays`, `L` si no. **No sobreescriben** las fuentes 1 ni 2 — vacación / petición aprobada ganan sobre fixedDays.
+1. **Assignments with `source_constraint_id`** — approvals already written to `scheduling_assignments`.
+2. **Approved requests** (`scheduling_employee_requests` with `status='approved'`) — expanded across their date range. `shift_code` comes from `requested_value` or is mapped from `request_type` (vacation→V, bonificable→B, baja_temporal→IT). `shift_preference` and `shift_exclusion` are handled differently and don't enter as locked. **They don't overwrite** what source 1 already wrote.
+3. **`fixedDays` patterns** — employees with a `fixed_days` rule (e.g. "1,2,3,4,5" = Mon-Fri). For each day of the month, injected as locked: `workShift` (= `fixedShift` or 'P' by default) if `dayOfWeek ∈ fixedDays`, `L` otherwise. **They don't overwrite** sources 1 or 2 — vacation / approved request beats fixedDays.
 
-**`DOW_TO_NUM` mapping** (para fixedDays): L=1, M=2, X=3, J=4, V=5, S=6, D=7.
+**`DOW_TO_NUM` mapping** (for fixedDays): L=1, M=2, X=3, J=4, V=5, S=6, D=7.
 
-**Empleados excluidos:** los que tengan `fixedShift === 'P'` y **no** tengan `fixedDays` se filtran fuera del solver (patrón manual desconocido — el solver no sabría cuándo asignarles P). Sí participan si tienen fixedDays porque su patrón es determinístico.
+**Excluded employees:** anyone with `fixedShift === 'P'` and **no** `fixedDays` is filtered out of the solver (unknown manual pattern — the solver wouldn't know when to assign them P). They do participate if they have fixedDays because that pattern is deterministic.
 
-**Otros campos del input:**
-- `employees`: cargados con `getSchedulableEmployeesForMonth(year, month)` — filtra por `start_date`/`end_date` de `scheduling_employees`. Empleados ya desvinculados o aún no contratados no entran al solver.
-- `days`: con `isHoliday` desde `scheduling_days`.
-- `previousMonthTail`: últimos 7 días de assignments del mes anterior (draft o published — `getPreviousMonthEndAssignments` lee ambos).
-- `nightsHistory`: noches acumuladas en meses publicados anteriores; alimenta S1 del solver.
-- `config`: vuelca todos los campos de `scheduling_config` con fallbacks razonables.
+**Other input fields:**
+- `employees`: loaded via `getSchedulableEmployeesForMonth(year, month)` — filters by `start_date`/`end_date` from `scheduling_employees`. Employees off the roster or not yet hired don't enter the solver.
+- `days`: with `isHoliday` from `scheduling_days`.
+- `previousMonthTail`: last 7 days of assignments from the previous month (draft or published — `getPreviousMonthEndAssignments` reads both).
+- `nightsHistory`: nights accumulated in previous published months; feeds S1 in the solver.
+- `config`: dumps every field from `scheduling_config` with sane fallbacks.
 
-Cualquier campo nuevo del lado Python (`schemas.py`) necesita su contraparte aquí. Si añades un parámetro de config, asegúrate de que el fallback aquí coincida con el default en el schema Python.
+Any new field on the Python side (`schemas.py`) needs its counterpart here. If you add a config parameter, make sure the fallback here matches the default in the Python schema.
 
 ## `solver-client.ts`
 
-Envuelve el daemon Python persistente. Detalle del daemon en `backend/scheduling-solver/CLAUDE.md`; aquí lo relevante es el lado Node.
+Wraps the persistent Python daemon. Details on the daemon side in `backend/scheduling-solver/CLAUDE.md`; here's what matters on the Node side.
 
 **State machine:**
 ```
 idle → starting → ready → busy → ready → busy → ...
                     ↑          ↓
                     └──────────┘
-                  (semáforo por petición)
+                  (per-request semaphore)
 ```
 
-**Garantías:**
-- **Semáforo**: una petición a la vez. CP-SAT no es thread-safe por proceso, así que serializamos.
-- **Abort-safe**: si el cliente HTTP se desconecta (`req.on('close')`), el `AbortSignal` no libera el semáforo hasta que el daemon responda — evita desincronización entre Node y el proceso Python.
-- **Respawn transparente**: si el daemon muere (broken pipe), la siguiente petición lo relanza.
-- **Startup timeout largo (30 min)**: la primera vez en Windows con Defender activo, importar OR-Tools puede tardar hasta 20 minutos. En Linux/Mac son segundos.
-- **Solve timeout**: 60 s. El timeout interno del solver es 30 s (`SolverOptions.timeoutSeconds`), aquí dejamos margen.
+**Guarantees:**
+- **Semaphore**: one request at a time. CP-SAT isn't thread-safe per process, so we serialize.
+- **Abort-safe**: if the HTTP client disconnects (`req.on('close')`), the `AbortSignal` doesn't release the semaphore until the daemon answers — avoids desync between Node and the Python process.
+- **Transparent respawn**: if the daemon dies (broken pipe), the next request relaunches it.
+- **Long startup timeout (30 min)**: the first time on Windows with Defender active, importing OR-Tools can take up to 20 minutes. On Linux/Mac, seconds.
+- **Solve timeout**: 60 s. The solver's internal timeout is 30 s (`SolverOptions.timeoutSeconds`); we leave headroom.
 
-**Warmup:** `index.ts` llama `warmupSolver()` al boot del backend → arranca el daemon en background mientras Express termina de levantar. Cuando llega la primera generación, el daemon ya está `ready`.
+**Warmup:** `index.ts` calls `warmupSolver()` at boot → spins up the daemon in the background while Express finishes coming online. By the time the first generation arrives, the daemon is `ready`.
 
 ## Controllers
 
-**`scheduling-controller.ts`** (~2000 líneas): CRUD masivo de todos los recursos del módulo. Lo divide por bloques `// ──── Config ────`, `// ──── Months ────`, etc. Exporta funciones nombradas que `routes/scheduling/scheduling-routes.ts` ensambla.
+**`scheduling-controller.ts`** (~2000 lines): massive CRUD for every resource in the module. Split into `// ──── Config ────`, `// ──── Months ────`, etc. Exports named functions that `routes/scheduling/scheduling-routes.ts` wires together.
 
-**`schedule-generate.controller.ts`** (~200 líneas): hace **una sola cosa** — orquestar la generación. Flujo:
+**`schedule-generate.controller.ts`** (~200 lines): does **one thing** — orchestrate generation. Flow:
 
-1. Validar que el mes existe, está en `draft`, tiene días generados, tiene empleados.
+1. Validate that the month exists, is `draft`, has generated days, has employees.
 2. `buildSolverInput()` → SolverInput JSON.
 3. `runSolver(input, abortSignal)` → SolverOutput.
-4. Si `status === 'ok'`: aplicar `matrix` a `scheduling_assignments` **dentro de una transacción** (las claves negativas — días virtuales — se ignoran).
-5. Si `status === 'infeasible'`: devolver 422 con `conflictingConstraints` y `suggestedRelaxations`.
-6. Si `status === 'error'`: devolver 500 con el `errorCode`.
-7. Persistir el run completo en `scheduling_solver_runs` (input + output + stats + tiempo).
+4. If `status === 'ok'`: apply `matrix` to `scheduling_assignments` **inside a transaction** (negative keys — virtual days — are ignored).
+5. If `status === 'infeasible'`: return 422 with `conflictingConstraints` and `suggestedRelaxations`.
+6. If `status === 'error'`: return 500 with the `errorCode`.
+7. Persist the full run in `scheduling_solver_runs` (input + output + stats + time).
 
-**Persistencia del run log es non-fatal:** si fallar el insert en `scheduling_solver_runs`, la respuesta al usuario sigue siendo OK. Logging interno con `logger.error`.
+**Run log persistence is non-fatal:** if the insert into `scheduling_solver_runs` fails, the response to the user is still OK. Internal logging via `logger.error`.
 
 ## Repository
 
-`scheduling-repository.ts` es enorme (~2000 líneas) y agrupa toda la persistencia: config, shifts, months, days, assignments, constraints, employee rules, schedulable employees con `start_date`/`end_date`, contracts, annual totals, holidays, solver run logs, history.
+`scheduling-repository.ts` is huge (~2000 lines) and groups all module persistence: config, shifts, months, days, assignments, constraints, employee rules, schedulable employees with `start_date`/`end_date`, contracts, annual totals, holidays, solver run logs, history.
 
-Cuando toques este archivo:
+When you touch this file:
 
-- Casi todas las funciones reciben `monthId` o `year/month` — son por mes, no globales.
-- Las assignments con `source_constraint_id !== null` están bloqueadas: respeta esa invariante en cualquier query de bulk update.
-- `getSchedulableEmployeesForMonth(year, month)` aplica filtros por `start_date`/`end_date`. Para listas crudas de empleados (Totales tab, etc.) usa `getAllEmployeesWithStatus`.
-- `getPreviousMonthEndAssignments(year, month, N)` lee mes anterior aunque esté en `draft` — esto es intencional para que las cadenas Ene→Feb→Mar funcionen sin tener que publicar mes a mes.
+- Almost every function takes `monthId` or `year/month` — they're per-month, not global.
+- Assignments with `source_constraint_id !== null` are locked: respect that invariant in any bulk update query.
+- `getSchedulableEmployeesForMonth(year, month)` applies `start_date`/`end_date` filtering. For raw employee lists (Totals tab, etc.) use `getAllEmployeesWithStatus`.
+- `getPreviousMonthEndAssignments(year, month, N)` reads the previous month even when it's still `draft` — this is intentional so that Jan→Feb→Mar chains work without having to publish month by month.
 
-**Bug conocido (TODO.md):** `setSchedulableEmployees` hace `DELETE` + `INSERT` masivos que pierden `start_date`/`end_date`. Fix propuesto: diff selectivo (solo DELETE de los que salen, INSERT de los que entran). Ver `TODO.md` § "Bug: setSchedulableEmployees".
+**Known bug (TODO.md):** `setSchedulableEmployees` does mass `DELETE` + `INSERT` and loses `start_date`/`end_date` in the process. Proposed fix: selective diff (only DELETE rows that leave, INSERT rows that arrive). See `TODO.md` § "Bug: setSchedulableEmployees".
 
-## Endpoints principales
+## Main endpoints
 
-| Método y ruta | Propósito |
+| Method and route | Purpose |
 |---|---|
 | `GET /months/:id` | Full month data (days, assignments, constraints, stats) |
-| `GET /months/:id/info` | Approved constraints + employee rules para el panel lateral |
-| `POST /months/:id/generate` | Invoca CP-SAT solver, aplica matriz a assignments |
+| `GET /months/:id/info` | Approved constraints + employee rules for the side panel |
+| `POST /months/:id/generate` | Run CP-SAT solver, apply matrix to assignments |
 | `POST /months/:id/reset` | Wipe all assignments, re-seed from approved constraints |
-| `POST /months/:id/unpublish` | Vuelve a draft (transición controlada) |
-| `PATCH /assignments/:id` | Update single cell (409 si está locked) |
-| `POST /assignments/bulk` | Bulk update; respeta locks |
+| `POST /months/:id/unpublish` | Back to draft (controlled transition) |
+| `PATCH /assignments/:id` | Update single cell (409 if locked) |
+| `POST /assignments/bulk` | Bulk update; respects locks |
 | `POST /constraints/:id/approve` | Approve/reject + auto-sync assignments |
-| `GET /employee-rules` | Lista de reglas en camelCase para el panel |
-| `PUT /scheduling/employees` | Set schedulable employees list (⚠️ ver bug arriba) |
+| `GET /employee-rules` | Rules list in camelCase for the panel |
+| `PUT /scheduling/employees` | Set schedulable employees list (⚠️ see bug above) |
 
-Ruta completa en `routes/scheduling/scheduling-routes.ts` con middleware `authenticateToken` + `isAdmin` / `excludeMantenimiento` según el endpoint.
+Full routing in `routes/scheduling/scheduling-routes.ts` with `authenticateToken` + `isAdmin` / `excludeMantenimiento` per endpoint.
 
 ## Shift types
 
@@ -207,120 +207,120 @@ Ruta completa en `routes/scheduling/scheduling-routes.ts` con middleware `authen
 - `T` — Afternoon
 - `N` — Night
 - `PI` — Internal Support
-- `P` — Presencia (requiere `fixedShift=P` + `fixedDays` o queda excluido del solver)
+- `P` — Presencia (requires `fixedShift=P` + `fixedDays` or it gets excluded from the solver)
 
 **Off / special states:**
-- `L` — Libre (libre regular del mes)
-- `V` — Vacation (vacación aprobada — locked)
-- `B` — Bonificable (festivo/holiday compensado — locked)
+- `L` — Libre (regular monthly off)
+- `V` — Vacation (approved — locked)
+- `B` — Bonificable (compensated holiday — locked)
 - `E` — Sick day (eventual, point-in-time — locked)
-- `IT` — Incapacidad Temporal (baja larga — locked)
-- `FO` — Day Off (día libre por compensación — locked)
-- `A` — Ausencia injustificada (locked, suele entrar a posteriori)
-- `LI` — Libre Disposición (libre extraordinario fuera de la rotación semanal — locked)
+- `IT` — Incapacidad Temporal (extended sick leave — locked)
+- `FO` — Day Off (compensatory off — locked)
+- `A` — Unjustified absence (locked, usually entered after the fact)
+- `LI` — Libre Disposición (extra free day outside the weekly rotation — locked)
 
-Helpers para clasificar shifts: `services/scheduling/utils/matrix.ts` exporta `isWorkShift`, `isLibreShift`, `getEmployeeShiftCounts`. **`isWorkShift` incluye N, P, PI** — recordarlo cuando se cuentan bloques de trabajo (paridad con `ALL_WORK_SHIFTS` del solver Python).
+Helpers to classify shifts: `services/scheduling/utils/matrix.ts` exports `isWorkShift`, `isLibreShift`, `getEmployeeShiftCounts`. **`isWorkShift` includes N, P, PI** — remember when counting work blocks (parity with `ALL_WORK_SHIFTS` on the Python solver).
 
 ## Configuration tables
 
-**`scheduling_config`** — KV de parámetros globales del scheduling (min/max staff por turno, rest hours, libre ranges, night block mins, etc.). Cargado vía `getConfigMap()`. Cambios desde la UI en `/dashboard/scheduling/config` → tab "General".
+**`scheduling_config`** — global KV parameters (min/max staff per shift, rest hours, libre ranges, night block mins, etc.). Loaded via `getConfigMap()`. Edited from the UI at `/dashboard/scheduling/config` → "General" tab.
 
-**`scheduling_employee_rules`** — reglas por empleado: `fixed_shift`, `no_weekends`, `shift_priority`, `fixed_days`. Una fila por (employee_id, rule_type). `is_active=1` para reglas vigentes; histórico se conserva con `is_active=0`. Cargado vía `getAllEmployeeRules()` (camelCase) o `getEmployeeRulesByEmployee(id)`.
+**`scheduling_employee_rules`** — per-employee rules: `fixed_shift`, `no_weekends`, `shift_priority`, `fixed_days`. One row per (employee_id, rule_type). `is_active=1` for active rules; history is preserved with `is_active=0`. Loaded via `getAllEmployeeRules()` (camelCase) or `getEmployeeRulesByEmployee(id)`.
 
-**`scheduling_employees`** — qué empleados forman parte del scheduling del hotel. Incluye `start_date` / `end_date`: ambos NULL = activo sin restricción; con fechas = empleado solo aparece en meses dentro del rango. Editable desde *Totales* → *Período activo en horarios*.
+**`scheduling_employees`** — which employees are part of the hotel's scheduling. Includes `start_date` / `end_date`: both NULL = unrestricted; with dates = the employee only shows up in months within the range. Editable from *Totals* → *Período activo en horarios*.
 
-**`scheduling_employee_requests`** — peticiones del empleado: vacaciones, IT, preferencias. Estados `pending` / `approved` / `rejected`. Solo las aprobadas entran al solver vía `findApprovedForSolver(year, month)`.
+**`scheduling_employee_requests`** — employee requests: vacations, IT, preferences. States `pending` / `approved` / `rejected`. Only approved ones enter the solver via `findApprovedForSolver(year, month)`.
 
-**`scheduling_solver_runs`** — log de cada generación: input, output, status, time, conflicts, soft penalty breakdown. Útil para diagnosticar INFEASIBLE de producción reproduciendo el input exacto.
+**`scheduling_solver_runs`** — log of every generation: input, output, status, time, conflicts, soft penalty breakdown. Useful to debug INFEASIBLE in production by replaying the exact input.
 
-## Cómo añadir una constraint nueva (guía completa cross-lenguaje)
+## Adding a new constraint (full cross-language guide)
 
-> Esta es la guía single-source para añadir una regla nueva al sistema. Toca tres sitios: validator TS, solver Python, fixtures del corpus. Saltarse uno crea drift, que el parity test eventualmente cazará pero tarde.
+> This is the single-source guide for adding a new rule to the system. Three places to touch: TS validator, Python solver, fixture corpus. Skipping any of them creates drift that the parity test will eventually catch, but slowly.
 
-### Paso 1 — Decidir hard vs soft y documentarlo
+### Step 1 — Decide hard vs soft and document it
 
-Abre `SCHEDULING-CONSTRAINTS.md` (raíz del repo).
+Open `SCHEDULING-CONSTRAINTS.md` (repo root).
 
-- **Hard:** un violation invalida el mes. Añadir a §2 con ID `H<n>`.
-- **Soft:** un violation es aceptable pero penalizado. Añadir a §3 con ID `S<n>`, peso tentativo 1-10, y explicar *por qué* ese peso relativo a los demás. El peso se afinará con feedback del manager; lo importante es el orden relativo.
+- **Hard:** a violation invalidates the month. Add to §2 with ID `H<n>`.
+- **Soft:** a violation is acceptable but penalized. Add to §3 with ID `S<n>`, a tentative weight 1-10, and explain *why* that weight relative to the others. The weight gets tuned with manager feedback; what matters here is the relative ordering.
 
-Si la regla depende de continuidad cross-month, listarla también en §9.5 (cross-month invariant) para que un futuro lector sepa que necesita cablear `previousMonthHistory` (TS) / `previousMonthTail` (Python).
+If the rule depends on cross-month continuity, also list it in §9.5 (cross-month invariant) so a future reader knows to wire `previousMonthHistory` (TS) / `previousMonthTail` (Python).
 
-### Paso 2 — Implementar en el validator TS
+### Step 2 — Implement in the TS validator
 
-Crear `backend/services/scheduling/constraints/<rule-name>.constraint.ts` extendiendo `BaseConstraint`. Recibe `GeneratorContext` con `matrix`, `employees`, `days`, `config`, `previousMonthHistory` (null en el primer mes histórico).
+Create `backend/services/scheduling/constraints/<rule-name>.constraint.ts` extending `BaseConstraint`. It receives `GeneratorContext` with `matrix`, `employees`, `days`, `config`, `previousMonthHistory` (null on the first historical month).
 
 - Hard rules → `this.warn(message, { severity: 'error', ... })`.
-- Soft rules → `this.softWarn(weightKey, units, message, ...)` — automáticamente añade el peso desde `SOFT_WEIGHTS[weightKey]` y acumula `softPenalty` + `softPenaltyBreakdown`.
+- Soft rules → `this.softWarn(weightKey, units, message, ...)` — automatically picks the weight from `SOFT_WEIGHTS[weightKey]` and accumulates `softPenalty` + `softPenaltyBreakdown`.
 
-Si añades un peso soft nuevo:
-1. Declárarlo en `services/scheduling/soft-weights.ts`.
-2. Tag JSDoc `@emitter constraints/<tu-rule>.constraint.ts` apuntando al archivo emisor.
-3. Si no lo vas a emitir aún, márcalo `@deferred <reason>`.
+If you add a new soft weight:
+1. Declare it in `services/scheduling/soft-weights.ts`.
+2. JSDoc tag `@emitter constraints/<your-rule>.constraint.ts` pointing at the emitting file.
+3. If you're not emitting it yet, mark `@deferred <reason>`.
 
-Registra la constraint en `schedule-validator.ts` dentro del bloque `ConstraintRegistry` de `validate()`, al lado de `CoverageConstraint` / `EmployeeRulesConstraint`. **Excepción:** si la regla necesita estado acumulado per-employee (libre counts, weekend off check, M/T variety…), inline-la en `runFinalValidation()` siguiendo el patrón existente — no fuerces el API de `BaseConstraint`.
+Register the constraint in `schedule-validator.ts` inside the `ConstraintRegistry` block of `validate()`, alongside `CoverageConstraint` / `EmployeeRulesConstraint`. **Exception:** if the rule needs accumulated per-employee state (libre counts, weekend off check, M/T variety…), inline it in `runFinalValidation()` following the existing pattern — don't force the `BaseConstraint` API.
 
-### Paso 3 — Implementar en el solver Python
+### Step 3 — Implement in the Python solver
 
-→ Detalle completo en `backend/scheduling-solver/CLAUDE.md` § "Cómo añadir una constraint nueva (lado Python)". Resumen:
+→ Full detail in `backend/scheduling-solver/CLAUDE.md` § "Adding a new constraint (Python side)". Summary:
 
-1. Crear `backend/scheduling-solver/constraints/<rule_name>.py` con signature `apply(model, x, input, employees, days, virtual_days_by_emp=None)`.
-2. Hard: `model.add(...)`. Soft: BoolVars indicadores + términos ponderados en `objective_terms` de `solve()`.
-3. Importar y llamar `apply()` desde `model.solve()`. Orden no importa.
-4. Si contribuye al `softPenalty`, exponer en `softPenaltyBreakdown` con la **misma key** que `soft-weights.ts`.
+1. Create `backend/scheduling-solver/constraints/<rule_name>.py` with signature `apply(model, x, input, employees, days, virtual_days_by_emp=None)`.
+2. Hard: `model.add(...)`. Soft: indicator BoolVars + weighted terms in `objective_terms` in `solve()`.
+3. Import and call `apply()` from `model.solve()`. Order doesn't matter.
+4. If it contributes to `softPenalty`, expose it in `softPenaltyBreakdown` with the **same key** as `soft-weights.ts`.
 
-### Paso 4 — Añadir un fixture al corpus
+### Step 4 — Add a fixture to the corpus
 
-Crear `backend/tests/scheduling-corpus/fixtures/F<nn>-<descriptive-name>.json` siguiendo `_schema.ts`. Tres secciones:
+Create `backend/tests/scheduling-corpus/fixtures/F<nn>-<descriptive-name>.json` following `_schema.ts`. Three sections:
 
-1. `input` — month, employees, days, config, lockedCells, previousMonthHistory, **matrix totalmente formada**. La matrix debe ejercitar la regla: para hard, incluir un schedule que la rompa; para soft, incluir uno cuya penalty sea calculable a mano.
-2. `expected.isValid` — `true` si la matrix no tiene hard errors, `false` si los tiene.
-3. `expected.violations` — lista de matchers (type, severity, employeeId, day) que el validator debe emitir. Plus `expected.softPenalty` y `expected.softPenaltyBreakdown` para contribuciones soft.
+1. `input` — month, employees, days, config, lockedCells, previousMonthHistory, **fully-formed matrix**. The matrix should exercise the rule: for hard, include a schedule that breaks it; for soft, include one where the penalty is hand-calculable.
+2. `expected.isValid` — `true` if the matrix has no hard errors, `false` if it does.
+3. `expected.violations` — matchers (type, severity, employeeId, day) the validator must emit. Plus `expected.softPenalty` and `expected.softPenaltyBreakdown` for soft contributions.
 
-Si el fixture es solver-reachable (la matrix podría provenir del solver), añadir su ID a:
-- `SOLVABLE_FIXTURES` en `backend/scheduling-solver/tests/test_corpus.py`
-- `PARITY_FIXTURES` en `backend/tests/scheduling/solver-parity.test.ts`
+If the fixture is solver-reachable (the matrix could come from the solver), add its ID to:
+- `SOLVABLE_FIXTURES` in `backend/scheduling-solver/tests/test_corpus.py`
+- `PARITY_FIXTURES` in `backend/tests/scheduling/solver-parity.test.ts`
 
-Fixtures con `minMorningStaff: 0` (cobertura desactivada) suelen ser candidatos seguros para ambos sets.
+Fixtures with `minMorningStaff: 0` (coverage disabled) are usually safe additions to both lists.
 
-### Paso 5 — Correr las cuatro suites
+### Step 5 — Run the four suites
 
 ```bash
 cd backend
 pnpm vitest run tests/scheduling/corpus.test.ts          # TS validator vs fixtures
 pnpm vitest run tests/scheduling/solver-parity.test.ts   # solver → TS validator (0 hard errors)
 cd scheduling-solver
-venv/Scripts/python -m pytest tests/test_corpus.py       # solver Python no crashea
+venv/Scripts/python -m pytest tests/test_corpus.py       # Python solver doesn't crash
 venv/Scripts/python -m pytest tests/test_daemon_stress.py  # daemon stress
 ```
 
-Todas verdes. Si parity falla, validator y solver discrepan: arregla el lado que se desvía de `SCHEDULING-CONSTRAINTS.md` (la spec es la verdad, no el código).
+All green. If parity fails, the validator and solver disagree: fix the side that drifts from `SCHEDULING-CONSTRAINTS.md` (the spec is truth, the code isn't).
 
-### Paso 6 — Documentar la decisión
+### Step 6 — Document the decision
 
-Append a `SCHEDULING-DECISIONS-LOG.md`: fecha, regla, hard/soft, peso si aplica, razonamiento. Esto es el audit trail que permite a un agente futuro (o a ti dentro de 6 meses) entender por qué la constraint existe sin spelunking del git log.
+Append to `SCHEDULING-DECISIONS-LOG.md`: date, rule, hard/soft, weight if applicable, reasoning. This is the audit trail that lets a future agent (or you, six months later) understand why the constraint exists without spelunking the git log.
 
-## Importador histórico desde Excel
+## Historical Excel importer
 
-`backend/scripts/import-planning-2026.ts` (tsx + xlsx) vuelca `PLANNING 2026.xlsx` (Enero-Mayo) en `scheduling_months` / `scheduling_days` / `scheduling_assignments` en estado *draft*. Idempotente por mes. Whitelist explícita de empleados (excluye personal de otros departamentos). Mapeo de códigos `L1..L9 → L+libre_number`, `PI1 → FO`, `BT → IT`. Uso:
+`backend/scripts/import-planning-2026.ts` (tsx + xlsx) loads `PLANNING 2026.xlsx` (January-May) into `scheduling_months` / `scheduling_days` / `scheduling_assignments` in *draft* state. Idempotent per month. Explicit employee allowlist (excludes other-department staff). Code mapping `L1..L9 → L+libre_number`, `PI1 → FO`, `BT → IT`. Usage:
 
 ```bash
 pnpm exec cross-env DB_ENVIRONMENT=aiven tsx --env-file=.env scripts/import-planning-2026.ts [Enero|...|all]
 ```
 
-Útil cuando se hace setup en una BD limpia o se quiere replicar el estado histórico para tests integrados.
+Useful when setting up a clean DB or replicating historical state for integration tests.
 
-## Cross-month gotcha (H4/H5) — deuda pendiente
+## Cross-month gotcha (H4/H5) — outstanding debt
 
-El solver Python aplica H4 (max consecutive work) y H5 (≥2 rest en ventana 7) sobre `all_days = virtual_days + real_days`. Si el tail virtual del mes anterior ya viola el constraint matemáticamente (ej: 6 turnos M seguidos al cierre del mes anterior), la ventana es unsatisfiable y produciría INFEASIBLE artificial. `rest.py` **omite** estas ventanas "doomed".
+The Python solver applies H4 (max consecutive work) and H5 (≥2 rest in window of 7) over `all_days = virtual_days + real_days`. If the virtual tail of the previous month already breaks the constraint mathematically (e.g. 6 M shifts in a row at last month's close), the window is unsatisfiable and would produce an artificial INFEASIBLE. `rest.py` **skips** these "doomed" windows.
 
-**Deuda:** el TS validator NO aplica esta misma exención todavía. Posible drift: un mes generado por solver puede dar warnings espurios al revalidarlo con el validator TS. Cuando ocurra, replicar la lógica de skip cross-month en `consecutive-rest.constraint.ts` y `max-consecutive-work.constraint.ts`. Ver `SCHEDULING-DECISIONS-LOG.md` (entrada 2026-05-20) y `SCHEDULING-CONSTRAINTS.md §H5`.
+**Debt:** the TS validator does NOT apply the same exemption yet. Possible drift: a month generated by the solver may surface spurious warnings when re-validated by the TS validator. When it bites, replicate the cross-month skip logic in `consecutive-rest.constraint.ts` and `max-consecutive-work.constraint.ts`. See `SCHEDULING-DECISIONS-LOG.md` (entry 2026-05-20) and `SCHEDULING-CONSTRAINTS.md §H5`.
 
-## Referencias cruzadas
+## Cross references
 
-- `backend/scheduling-solver/CLAUDE.md` — el solver Python (daemon, modelo CP-SAT, constraints, tests).
-- `SCHEDULING-CONSTRAINTS.md` (raíz) — especificación textual completa. Fuente de verdad.
-- `SCHEDULING-DECISIONS-LOG.md` (raíz) — bitácora de decisiones (por qué hard/soft, por qué los pesos, qué se intentó).
-- `SCHEDULING-SOLVER-PLAN.md` (raíz) — plan original. Histórico.
-- `TODO.md` (raíz) — bugs conocidos del módulo (setSchedulableEmployees, deuda H5 cross-month, etc.).
-- `frontend/app/components/scheduling/` — UI (cuando se cree su CLAUDE.md, irá aquí).
+- `backend/scheduling-solver/CLAUDE.md` — the Python solver (daemon, CP-SAT model, constraints, tests).
+- `SCHEDULING-CONSTRAINTS.md` (root) — full textual specification. Source of truth.
+- `SCHEDULING-DECISIONS-LOG.md` (root) — decision log (why hard/soft, why the weights, what was tried).
+- `SCHEDULING-SOLVER-PLAN.md` (root) — original plan. Historical.
+- `TODO.md` (root) — known module bugs (setSchedulableEmployees, H5 cross-month debt, etc.).
+- `frontend/app/components/scheduling/CLAUDE.md` — the UI side of the module.

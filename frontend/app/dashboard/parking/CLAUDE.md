@@ -1,113 +1,114 @@
 # CLAUDE.md — Parking (frontend)
 
-> UI del módulo de parking. Backend documentado en `backend/services/parking/CLAUDE.md`. **Este módulo es la referencia interna del proyecto para patrones responsive** — cuando dudes cómo hacer una tabla wide o un dashboard mobile-friendly en otro módulo, mira aquí primero.
+> UI for the parking module. Backend documented at `backend/services/parking/CLAUDE.md`. **This module is the project's internal reference for responsive patterns** — when in doubt about how to do a wide table or a mobile-friendly dashboard in another module, look here first.
 
-## Estructura
+## Layout
 
 ```
 frontend/app/dashboard/parking/
-   ├── layout.tsx                  (8 líneas — wrapper)
-   ├── page.tsx                    (58 líneas — Server Component: SSR pre-fetch del dashboard de hoy)
+   ├── layout.tsx                  (8 lines — wrapper)
+   ├── page.tsx                    (58 lines — Server Component: SSR pre-fetch of today's dashboard)
    ├── loading.tsx                 (skeleton)
    ├── error.tsx                   (error boundary)
    ├── actions/
-   │   └── getParkingDashboardStats.ts  (71 líneas — server action para SSR)
+   │   └── getParkingDashboardStats.ts  (71 lines — server action for SSR)
    ├── components/
-   │   └── ParkingDashboardClient.tsx   (cliente que recibe las stats pre-fetched)
+   │   └── ParkingDashboardClient.tsx   (client that receives the pre-fetched stats)
    ├── bookings/
-   │   ├── page.tsx                (lista de bookings — SSR del page 0)
-   │   ├── new/page.tsx            (formulario de nueva reserva)
-   │   └── [code]/page.tsx         (detalle de una booking por booking_code)
+   │   ├── page.tsx                (booking list — SSR for page 0)
+   │   ├── new/page.tsx            (new booking form)
+   │   └── [code]/page.tsx         (booking detail by booking_code)
    └── status/
        ├── layout.tsx
        ├── page.tsx
        ├── components/
-       │   ├── ParkingStatusClient.tsx  (orquestador real-time)
-       │   ├── ParkingTable.tsx         (tabla de plazas por planta)
-       │   ├── ParkingNavigator.tsx     (selector planta -2 / -3)
-       │   ├── StatusPanels.tsx         (paneles laterales de KPIs)
-       │   └── modals/                  (5 modales: CheckIn, CheckOut, Cancel, Overdue, BaseModal)
+       │   ├── ParkingStatusClient.tsx  (real-time orchestrator)
+       │   ├── ParkingTable.tsx         (spot table per level)
+       │   ├── ParkingNavigator.tsx     (level selector -2 / -3)
+       │   ├── StatusPanels.tsx         (side KPI panels)
+       │   └── modals/                  (5 modals: CheckIn, CheckOut, Cancel, Overdue, BaseModal)
        ├── hooks/
-       │   └── useParkingStatus.ts      (hook con polling de estado)
+       │   └── useParkingStatus.ts      (hook with state polling)
        └── utils/
            └── statusBadges.tsx
 
 frontend/app/components/parking/
-   ├── BookingsListClient.tsx      (1336 líneas — la lista de bookings con filtros, quick filters,
-   │                                paginación, búsqueda, exportar; el componente más grande del módulo)
-   ├── BookingsListClient.tsx      → wrapped por bookings/page.tsx
-   ├── ActionDropdown.tsx          (acciones por fila de booking)
-   ├── StatusBadge.tsx             (badge para BookingStatus)
-   ├── VehicleSearchModal.tsx      (modal de búsqueda con autocomplete)
+   ├── BookingsListClient.tsx      (1336 lines — the booking list with filters, quick
+   │                                filters, pagination, search, export; the largest
+   │                                component in the module)
+   ├── BookingsListClient.tsx      → wrapped by bookings/page.tsx
+   ├── ActionDropdown.tsx          (per-row booking actions)
+   ├── StatusBadge.tsx             (badge for BookingStatus)
+   ├── VehicleSearchModal.tsx      (autocomplete search modal)
    ├── helpers/
-   │   ├── constants.ts            (enums duplicados del backend — sync rule)
+   │   ├── constants.ts            (enums duplicated from backend — sync rule)
    │   ├── date-formatters.ts
    │   └── index.ts
    └── bookings/
-       ├── BookingDetailClient.tsx (688 líneas — la página de detalle)
+       ├── BookingDetailClient.tsx (688 lines — the detail page)
        ├── BookingHeader.tsx
-       ├── EditBookingModal.tsx    (567 líneas)
+       ├── EditBookingModal.tsx    (567 lines)
        ├── CheckInModal.tsx
        ├── CheckOutModal.tsx
        ├── PaymentModal.tsx
        └── InfoCard.tsx
 
 frontend/app/lib/parking/
-   ├── queries.ts                  (313 líneas — apiClient calls, ningún hook React Query aquí)
-   ├── types.ts                    (367 líneas — todos los DTOs)
-   ├── actions.ts                  (71 líneas — server actions adicionales)
+   ├── queries.ts                  (313 lines — apiClient calls, no React Query hooks here)
+   ├── types.ts                    (367 lines — every DTO)
+   ├── actions.ts                  (71 lines — additional server actions)
    └── index.ts
 ```
 
-## Rutas (URL → componente)
+## Routes (URL → component)
 
-| URL | Componente / fuente |
+| URL | Component / source |
 |---|---|
 | `/dashboard/parking` | `page.tsx` (Server, SSR stats) → `ParkingDashboardClient.tsx` |
-| `/dashboard/parking/bookings` | `bookings/page.tsx` (Server, SSR lista) → `BookingsListClient.tsx` |
-| `/dashboard/parking/bookings/new` | `bookings/new/page.tsx` (formulario create) |
+| `/dashboard/parking/bookings` | `bookings/page.tsx` (Server, SSR list) → `BookingsListClient.tsx` |
+| `/dashboard/parking/bookings/new` | `bookings/new/page.tsx` (create form) |
 | `/dashboard/parking/bookings/:code` | `bookings/[code]/page.tsx` → `BookingDetailClient.tsx` |
 | `/dashboard/parking/status` | `status/page.tsx` → `ParkingStatusClient.tsx` (real-time view) |
 
-**Nota:** `/dashboard/parking` (root) es el **dashboard de KPIs/stats**. `/status` es la **vista en tiempo real de la ocupación** (mapa de plazas por planta). Son vistas distintas y complementarias.
+**Note:** `/dashboard/parking` (root) is the **KPI/stats dashboard**. `/status` is the **real-time occupancy view** (spot map per level). They're distinct, complementary views.
 
-## Tres vistas principales
+## Three main views
 
 ### 1. Dashboard (`/dashboard/parking`)
 
-Pantalla de entrada del módulo. Server Component que pre-fetcha las stats del día con `getParkingDashboardStats()`, las inyecta como prop al cliente. Renderiza:
+Module entry screen. Server Component that pre-fetches the day's stats with `getParkingDashboardStats()` and injects them as a prop to the client. Renders:
 
-- KPIs del día (ocupación, ingresos, llegadas, salidas).
-- Listas de pending check-ins y check-outs.
-- Charts de tendencias (próximamente).
+- Day KPIs (occupancy, revenue, arrivals, departures).
+- Pending check-in and check-out lists.
+- Trend charts (coming soon).
 
-Pre-fetch SSR es **intencional**: la primera carga sin spinner es lo que diferencia este módulo. Si añades más vistas pre-fetcheables, sigue el patrón `actions/` + Server Component.
+SSR pre-fetch is **intentional**: the first paint with no spinner is what sets this module apart. If you add more pre-fetchable views, follow the `actions/` + Server Component pattern.
 
 ### 2. Bookings list (`/dashboard/parking/bookings`)
 
-`BookingsListClient.tsx` (1336 líneas — el más grande del módulo). Características:
+`BookingsListClient.tsx` (1336 lines — the largest in the module). Features:
 
-- **Filtros combinables:** estado, fecha, source, búsqueda por matrícula/dueño.
-- **Quick filters compuestos:** `arrivals_pending`, `arrivals_inside`, `arrivals_total`, `departures_pending`, `departures_completed`, `departures_total`. Mapean a combinaciones de `status` + `date` ya pre-armadas para el usuario.
-- **Paginación:** server-side; `limit`/`offset` + `PaginationInfo`.
-- **`ActionDropdown`** por fila con acciones contextuales según el estado actual del booking.
-- **Crear nuevo** desde botón `+ Nueva reserva` → navega a `/bookings/new`.
+- **Combinable filters:** status, date, source, search by plate/owner.
+- **Composite quick filters:** `arrivals_pending`, `arrivals_inside`, `arrivals_total`, `departures_pending`, `departures_completed`, `departures_total`. Map to pre-armed combinations of `status` + `date` for the user.
+- **Pagination:** server-side; `limit`/`offset` + `PaginationInfo`.
+- **`ActionDropdown`** per row with contextual actions based on the booking's current status.
+- **New booking** via the `+ Nueva reserva` button → navigates to `/bookings/new`.
 
-### 3. Status real-time (`/dashboard/parking/status`)
+### 3. Real-time status (`/dashboard/parking/status`)
 
-Vista de **estado de ocupación** por planta. Diferente filosofía: no es una tabla de bookings, es un **mapa de plazas**.
+**Occupancy status** view per level. Different philosophy: it's not a booking table, it's a **spot map**.
 
-- `ParkingNavigator` para alternar entre planta `-2` y `-3`.
-- `ParkingTable` para renderizar cada plaza con su estado (free / occupied / reserved / overdue).
-- `StatusPanels` lateral con KPIs del momento.
-- `useParkingStatus` (hook con polling cada N segundos para mantener la vista fresca).
-- 5 modales: CheckIn, CheckOut, Cancel, Overdue, BaseModal.
+- `ParkingNavigator` to swap between level `-2` and `-3`.
+- `ParkingTable` renders each spot with its status (free / occupied / reserved / overdue).
+- `StatusPanels` on the side with current-moment KPIs.
+- `useParkingStatus` (hook with polling every N seconds to keep the view fresh).
+- 5 modals: CheckIn, CheckOut, Cancel, Overdue, BaseModal.
 
-## ⚠️ Patrón responsive — referencia del proyecto
+## ⚠️ Responsive pattern — project reference
 
-Este módulo es el **referente interno** del proyecto para responsive. Si necesitas un patrón equivalente en otro módulo, replícalo desde aquí.
+This module is the project's **internal reference** for responsive. If you need an equivalent pattern in another module, copy it from here.
 
-### Tablas wide con scroll horizontal
+### Wide tables with horizontal scroll
 
 ```tsx
 <div className="overflow-x-auto">
@@ -117,34 +118,34 @@ Este módulo es el **referente interno** del proyecto para responsive. Si necesi
 </div>
 ```
 
-`overflow-x-auto` en el wrapper, `min-w-[Xpx]` en la tabla. Width proporcional al número de columnas. En desktop ocupa el contenedor; en mobile scrollea sin colapsar columnas.
+`overflow-x-auto` on the wrapper, `min-w-[Xpx]` on the table. Width proportional to the column count. On desktop fills the container; on mobile scrolls without collapsing columns.
 
-### Headers con `flex-wrap`
+### Headers with `flex-wrap`
 
 ```tsx
 <div className="flex flex-wrap items-center justify-between gap-3">
   <h1>...</h1>
   <div className="flex flex-wrap gap-2">
-    {/* botones / filtros */}
+    {/* buttons / filters */}
   </div>
 </div>
 ```
 
-En mobile los botones bajan a la siguiente línea sin romper el layout. Probado con 1-6 elementos en el header.
+On mobile, buttons wrap to the next line without breaking the layout. Tested with 1-6 elements in the header.
 
-### Modales mobile-friendly
+### Mobile-friendly modals
 
 ```tsx
 <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
   <div className="w-full max-w-2xl overflow-y-auto max-h-[90vh] bg-surface rounded-xl">
-    {/* contenido */}
+    {/* content */}
   </div>
 </div>
 ```
 
-`overflow-y-auto max-h-[90vh]` en el contenedor interno garantiza scroll cuando el contenido es largo y la viewport es corta.
+`overflow-y-auto max-h-[90vh]` on the inner container guarantees scroll when content is long and the viewport is short.
 
-### Grids responsive
+### Responsive grids
 
 ```tsx
 <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
@@ -152,13 +153,13 @@ En mobile los botones bajan a la siguiente línea sin romper el layout. Probado 
 </div>
 ```
 
-1 columna en mobile/tablet, 2 en desktop XL. Si necesitas 3 paneles, `grid-cols-1 md:grid-cols-2 xl:grid-cols-3`. **No uses `lg:`** salvo necesidad — el módulo está calibrado para los breakpoints `md` y `xl` específicamente.
+1 column on mobile/tablet, 2 on XL desktop. If you need 3 panels, `grid-cols-1 md:grid-cols-2 xl:grid-cols-3`. **Don't use `lg:`** unless necessary — the module is tuned specifically for the `md` and `xl` breakpoints.
 
 ## React Query — `lib/parking/queries.ts`
 
-`parkingApi` es un objeto plano con métodos por endpoint (`parkingApi.listSpots()`, `parkingApi.getBookings(...)`, etc.). **No hay hooks** prearmados — cada componente usa `useQuery` directamente con la key que quiera.
+`parkingApi` is a flat object with one method per endpoint (`parkingApi.listSpots()`, `parkingApi.getBookings(...)`, etc.). **No pre-built hooks** — each component calls `useQuery` directly with whatever key it wants.
 
-Patrón típico en cliente:
+Typical client pattern:
 
 ```tsx
 const { data, isLoading } = useQuery({
@@ -167,35 +168,35 @@ const { data, isLoading } = useQuery({
 })
 ```
 
-**No hay `parkingKeys` factory** (a diferencia de scheduling). Los componentes hardcodean las keys. Esto es estilo, no error — funciona porque el módulo no tiene una jerarquía tan compleja de invalidaciones. Si la complejidad crece, considera extraer una factory equivalente a `schedulingKeys`.
+**There's no `parkingKeys` factory** (unlike scheduling). Components hardcode the keys. This is style, not a bug — it works because the module doesn't have a complex invalidation hierarchy. If complexity grows, consider extracting a factory equivalent to `schedulingKeys`.
 
-## Enums duplicados — sync rule
+## Duplicated enums — sync rule
 
-`frontend/app/components/parking/helpers/constants.ts` contiene la copia frontend de los enums del backend:
+`frontend/app/components/parking/helpers/constants.ts` holds the frontend copy of the backend enums:
 
-- `BookingStatus` (5 valores)
-- `BookingSource` (5 valores)
-- `PaymentMethod` (4 valores)
-- `SpotType` (6 valores)
-- Mapeos a labels y badge tones
+- `BookingStatus` (5 values)
+- `BookingSource` (5 values)
+- `PaymentMethod` (4 values)
+- `SpotType` (6 values)
+- Label and badge tone mappings
 
-**Si el backend añade un valor, actualiza ambos lados en el mismo commit.** Si dejas el frontend desfasado, las bookings con el nuevo valor aparecerán sin badge o con label en blanco. Sin error visible — solo UI rota silenciosa.
+**If the backend adds a value, update both sides in the same commit.** If you leave the frontend out of sync, bookings with the new value will render with no badge or empty label. No visible error — just silently broken UI.
 
 ## Auth
 
-Toda la subruta `/dashboard/parking/*` requiere autenticación + rol distinto de mantenimiento (el backend bloquea, y el dashboard layout asume usuario logueado). No hay restricción admin-only — recepcionistas usan el módulo a diario.
+The whole `/dashboard/parking/*` subroute requires authentication + a role other than mantenimiento (the backend blocks them and the dashboard layout assumes a logged-in user). No admin-only restriction — recepcionistas use the module daily.
 
-## Gotchas conocidos
+## Known gotchas
 
-1. **`BookingsListClient.tsx` con 1336 líneas.** Está al límite de necesitar split. Si vas a tocar features no triviales (nuevos filtros, ordenación, exportación), considera extraer subcomponentes antes de añadir más LOC. No es prioridad pero está en el radar.
-2. **`EditBookingModal.tsx` con 567 líneas.** Mismo aviso, menor escala.
-3. **`booking_code` vs `id` en URLs:** las URLs públicas usan `code`, jamás `id`. Mantén esta invariante si añades nuevas rutas paramétricas.
-4. **Status view + dashboard son distintos.** No fundas la UI: el dashboard es agregaciones, el status es ocupación en tiempo real con mapa de plazas. Si te piden "ver estado del parking" pregunta cuál de las dos.
-5. **Polling del status:** `useParkingStatus` hace polling. Si en el futuro se añade WebSocket / SSE para invalidar push-based, **respetar el patrón de invalidación de React Query** — no metas state local paralelo.
-6. **No hay frontend de facturas.** La generación PDF está apagada en el backend (TODO). Si activas, hay que hacer la UI de listado/descarga de facturas — no existe nada todavía.
+1. **`BookingsListClient.tsx` is 1336 lines.** Approaching split territory. If you're about to add non-trivial features (new filters, sorting, exports), consider extracting subcomponents before adding more LOC. Not urgent but on the radar.
+2. **`EditBookingModal.tsx` is 567 lines.** Same warning, smaller scale.
+3. **`booking_code` vs `id` in URLs:** public URLs use `code`, never `id`. Keep that invariant when adding new parametric routes.
+4. **Status view ≠ dashboard.** Don't merge the two UIs: dashboard is aggregations, status is real-time occupancy with a spot map. If someone asks for "the parking status view", ask which one they mean.
+5. **Status polling:** `useParkingStatus` polls. If you ever add WebSocket / SSE for push-based invalidation, **respect the React Query invalidation pattern** — don't introduce parallel local state.
+6. **No invoicing frontend yet.** PDF generation is off on the backend (TODO). If you activate it, you'll need to build the invoice list/download UI — nothing exists today.
 
-## Referencias cruzadas
+## Cross references
 
-- `backend/services/parking/CLAUDE.md` — backend completo del módulo.
-- `frontend/app/components/parking/helpers/constants.ts` — copia frontend de los enums.
-- `frontend/app/components/parking/` — componentes shared del módulo (lista, badges, dropdowns, modales de bookings).
+- `backend/services/parking/CLAUDE.md` — full backend for the module.
+- `frontend/app/components/parking/helpers/constants.ts` — frontend copy of the enums.
+- `frontend/app/components/parking/` — module's shared components (list, badges, dropdowns, booking modals).

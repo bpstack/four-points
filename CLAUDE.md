@@ -142,13 +142,13 @@ app/
 
 ### Scheduling System (Complex Feature)
 
-Gestiona horarios mensuales del personal con edición manual celda a celda + validación en tiempo real, y generación automática vía solver CP-SAT (Python). Es el módulo más complejo del proyecto; su documentación está dividida en archivos modulares:
+Manages monthly staff schedules with manual cell-by-cell editing + real-time validation, plus auto-generation via a CP-SAT solver (Python). The most complex module in the project; its documentation is split across module files:
 
-- **`backend/services/scheduling/CLAUDE.md`** — backend TS: conceptos del módulo (month states, cell locking, constraint flow, retroactive), validator, constraints TS, soft-weights, build-solver-input, solver-client, controllers, endpoints, shift types, configuration tables, importador histórico, **guía completa cross-lenguaje para añadir una constraint nueva**.
-- **`backend/scheduling-solver/CLAUDE.md`** — solver Python CP-SAT: daemon, modelo, hard constraints, función objetivo soft (S1-S4), cross-month con días virtuales, infeasibility analyzer, setup local, tests, debug helpers.
-- **`frontend/app/components/scheduling/CLAUDE.md`** — UI del grid, modales de config, auth gate (admin-only), React Query, shift styles, PDF export, patrones responsive, gotchas de DayPicker + i18n.
+- **`backend/services/scheduling/CLAUDE.md`** — TS backend: module concepts (month states, cell locking, constraint flow, retroactive), validator, TS constraints, soft-weights, build-solver-input, solver-client, controllers, endpoints, shift types, configuration tables, historical importer, **full cross-language guide for adding a new constraint**.
+- **`backend/scheduling-solver/CLAUDE.md`** — Python CP-SAT solver: daemon, model, hard constraints, soft objective (S1-S4), cross-month with virtual days, infeasibility analyzer, local setup, tests, debug helpers.
+- **`frontend/app/components/scheduling/CLAUDE.md`** — grid UI, config modals, auth gate (admin-only), React Query, shift styles, PDF export, responsive patterns, DayPicker + i18n gotchas.
 
-Cuando trabajes en este módulo, abre Claude desde el directorio más específico posible para que cargue solo el contexto relevante; los conceptos globales del módulo viven en el `CLAUDE.md` del backend TS.
+When working in this module, open Claude from the most specific directory possible so it loads only the relevant context; the module-wide concepts live in the TS backend's `CLAUDE.md`.
 
 ## Important Development Notes
 
@@ -214,15 +214,15 @@ Cuando trabajes en este módulo, abre Claude desde el directorio más específic
 
 ### Checklist System
 
-Checklists operacionales diarios (mañana / tarde / night audit). Definición de steps en JSONs duplicados en `backend/content/checklist/tasks/` y `frontend/content/checklist/tasks/` (regla de sync crítica). Backend tracking de estado en DB + cron de reset diario y purga semanal del event log. **Documentación completa en `backend/services/checklist/CLAUDE.md`** (arquitectura, lifecycle del run, regla de sync, endpoints, gotchas, frontend).
+Daily operational checklists (morning / afternoon / night audit). Step definitions live in JSON files duplicated at `backend/content/checklist/tasks/` and `frontend/content/checklist/tasks/` (critical sync rule). Backend tracks state in the DB + cron jobs for daily reset and weekly event-log purge. **Full doc in `backend/services/checklist/CLAUDE.md`** (architecture, run lifecycle, sync rule, endpoints, gotchas, frontend).
 
 ### Logbook System
 
-Libro de incidencias operativas del hotel: entradas con importancia, comentarios, read/unread per user, solve/reopen, soft delete con recovery, audit log completo en `logbook_history` + `logbook_comments_history`. Solo el autor edita/borra sus propias entradas (no hay admin override). **Documentación completa en `backend/services/logbook/CLAUDE.md`** (tablas, endpoints, mapeo importance ES↔EN, hook `useLogbooks`, gotchas).
+Hotel incident log: importance-tagged entries, comments, per-user read/unread, solve/reopen, soft delete with recovery, full audit log in `logbook_history` + `logbook_comments_history`. Only the author edits/deletes their own entries (no admin override). **Full doc in `backend/services/logbook/CLAUDE.md`** (tables, endpoints, ES↔EN importance mapping, `useLogbooks` hook, gotchas).
 
 ### Parking System
 
-Plazas (-2/-3), vehículos, reservas con lifecycle reserved → checked_in → completed (+ canceled/no_show), stats con 3 modos (hoy / día / rango), analytics de tendencias. **Referencia interna del proyecto para patrones responsive.** Documentación completa en `backend/services/parking/CLAUDE.md` (backend: controllers en clase, booking_code vs id, cálculo de días, PDF facturación inactivo) y `frontend/app/dashboard/parking/CLAUDE.md` (tres vistas — dashboard / bookings list / status real-time; patrones responsive con ejemplos de código).
+Spots (-2/-3), vehicles, bookings with the reserved → checked_in → completed lifecycle (+ canceled/no_show), stats with 3 modes (today / day / range), trend analytics. **The project's internal reference for responsive patterns.** Full docs in `backend/services/parking/CLAUDE.md` (backend: class-based controllers, booking_code vs id, day-count calculation, inactive PDF invoicing) and `frontend/app/dashboard/parking/CLAUDE.md` (three views — dashboard / bookings list / real-time status; responsive patterns with code examples).
 
 ### Authentication System
 - JWT (`jsonwebtoken`), signed with `SECRET_JWT_KEY`. Tokens are stateless (no DB lookup per request).
@@ -233,11 +233,11 @@ Plazas (-2/-3), vehículos, reservas con lifecycle reserved → checked_in → c
 
 ### Maintenance System
 
-Partes de mantenimiento (averías técnicas). Workflow de 7 estados (`reported → assigned → in_progress → waiting → completed → closed`, más `canceled`), prioridades 4-niveles, asignación interna o externa, imágenes (Cloudinary, 5 MB máx), historial completo. **Único módulo donde el rol `mantenimiento` sí entra.** Documentación completa en `frontend/app/components/maintenance/CLAUDE.md` (workflow, endpoints, patrones de UI, gotchas).
+Maintenance reports (technical faults). 7-state workflow (`reported → assigned → in_progress → waiting → completed → closed`, plus `canceled`), 4-level priorities, internal or external assignment, images (Cloudinary, 5 MB max), full history. **The only module where the `mantenimiento` role is allowed in.** Full doc in `frontend/app/components/maintenance/CLAUDE.md` (workflow, endpoints, UI patterns, gotchas).
 
 ### F&B / Restaurant System
 
-Ingestión de facturación F&B diaria desde PDFs de Opera (parser dedicado) + entrada manual + vistas mensual/diario con charts. Tab Daily Revenue es lo único en producción; tabs Inventory / Orders / Stats están **mockeados** como placeholders de fase 2. `pdf-parse` pinneado en v1 por OOM en Render. Documentación completa en `backend/services/fnb/CLAUDE.md` (códigos Opera, algoritmo del parser, endpoints, pivot SQL, qué tabs son mock).
+Daily F&B revenue ingestion from Opera PDFs (dedicated parser) + manual entry + monthly/daily views with charts. The Daily Revenue tab is the only one in production; the Inventory / Orders / Stats tabs are **mocked** as phase-2 placeholders. `pdf-parse` pinned to v1 due to OOM on Render. Full doc in `backend/services/fnb/CLAUDE.md` (Opera codes, parser algorithm, endpoints, SQL pivot, which tabs are mock).
 
 ### Messaging System
 - Internal messaging between staff

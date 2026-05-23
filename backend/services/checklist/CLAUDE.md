@@ -1,42 +1,42 @@
 # CLAUDE.md — Checklist
 
-> Documentación única del módulo de checklists. Cubre backend, frontend y la **regla de sync entre los JSONs duplicados** que es el principal gotcha del módulo. No tiene archivo separado en el frontend porque la lógica de estado vive aquí.
+> Single doc for the checklist module. Covers backend, frontend and the **JSON sync rule** that is the module's main gotcha. No separate frontend file because the state logic lives here.
 
-## Propósito
+## What it does
 
-Checklists operacionales diarios (turno de mañana / tarde / night audit) para recepción. Cada checklist es un conjunto de **secciones** con **steps** marcables. Los steps se resetean cada día a las 06:30 Madrid; los comentarios y attachments por step se conservan ligados al `run` del día en cuestión.
+Daily operational checklists for reception (morning / afternoon / night audit). Each checklist is a set of **sections** with checkable **steps**. Steps reset every day at 06:30 Madrid; comments and attachments per step are kept tied to that day's `run`.
 
-**Modelo de datos en BD:**
-- `checklist_runs` — un "día" del checklist (`checklist_id`, `hotel_date`, `reset_at`).
-- `checklist_step_state` — estado done/undone por step de un run.
-- `checklist_comments` — comentarios per step.
-- `checklist_attachments` — adjuntos per step (subidos vía Cloudinary).
-- `checklist_event_log` — auditoría operacional (check, uncheck, reset). **Purgado semanalmente**, no es histórico de largo plazo.
+**DB model:**
+- `checklist_runs` — one "day" of the checklist (`checklist_id`, `hotel_date`, `reset_at`).
+- `checklist_step_state` — done/undone state per step of a run.
+- `checklist_comments` — comments per step.
+- `checklist_attachments` — per-step attachments (uploaded via Cloudinary).
+- `checklist_event_log` — operational audit (check, uncheck, reset). **Purged weekly**, not long-term history.
 
-El contenido **definición de steps** (qué pasos tiene el checklist) **NO está en BD**: vive en archivos JSON.
+The **step definition** content (what steps the checklist has) is **NOT in the DB**: it lives in JSON files.
 
-## ⚠️ Regla de sync — DOS COPIAS DE LOS JSONS
+## ⚠️ Sync rule — TWO COPIES OF THE JSONs
 
 ```
-backend/content/checklist/tasks/<name>.json   ← validación de stepIds (backend)
-frontend/content/checklist/tasks/<name>.json  ← renderizado del UI (frontend)
+backend/content/checklist/tasks/<name>.json   ← stepId validation (backend)
+frontend/content/checklist/tasks/<name>.json  ← UI rendering (frontend)
 ```
 
-**Cuando añadas, renombres o elimines un step, sección o checklist, actualiza AMBOS archivos en el mismo commit.** El backend usa su copia para validar que los `stepId` recibidos en los endpoints existen antes de escribir en BD; el frontend usa su copia para pintar el grid de tareas. Si las copias divergen:
+**When you add, rename or remove a step, section or checklist, update BOTH files in the same commit.** The backend uses its copy to validate that incoming `stepId`s exist before writing to the DB; the frontend uses its copy to render the task grid. When the copies drift:
 
-- Frontend nuevo + backend viejo → el usuario marca un step que el backend no conoce → se rechaza silenciosamente o se acepta como step "huérfano".
-- Frontend viejo + backend nuevo → el step no aparece en la UI pero la BD lo conoce → orfanato al revés.
+- Frontend new + backend old → user marks a step the backend doesn't know about → silently rejected or accepted as an "orphan" step.
+- Frontend old + backend new → step doesn't appear in the UI but the DB knows about it → orphan the other way.
 
-**Convención de naming:** el `checklist_id` `cl-<name>` mapea al fichero `<name>.json`. Ejemplo: `cl-morning-shift` → `morning-shift.json` en ambos directorios. El mapeo lo hace `checklistIdToFilename(id)` en `services/checklist/checklist-content.ts`.
+**Naming convention:** the `checklist_id` `cl-<name>` maps to file `<name>.json`. Example: `cl-morning-shift` → `morning-shift.json` in both directories. The mapping is done by `checklistIdToFilename(id)` in `services/checklist/checklist-content.ts`.
 
-**Helper backend:** `getValidStepIds(checklistId)` en `checklist-content.ts` devuelve el `Set<string>` de stepIds válidos para un checklist, o `null` si el JSON no existe (fail-open: permite checklists no documentados). Cacheado in-memory por toda la vida del proceso — los JSONs solo cambian con un deploy.
+**Backend helper:** `getValidStepIds(checklistId)` in `checklist-content.ts` returns the `Set<string>` of valid stepIds for a checklist, or `null` if the JSON is missing (fail-open: undocumented checklists are allowed). In-memory cached for the lifetime of the process — JSONs only change on deploy.
 
-**Archivos actuales (a 2026-05-23):**
-- `morning-shift.json` — Turno de mañana
-- `afternoon-shift.json` — Turno de tarde
-- `night-audit.json` — Auditoría nocturna
+**Current files (as of 2026-05-23):**
+- `morning-shift.json`
+- `afternoon-shift.json`
+- `night-audit.json`
 
-## Estructura del JSON
+## JSON structure
 
 ```jsonc
 {
@@ -63,17 +63,17 @@ frontend/content/checklist/tasks/<name>.json  ← renderizado del UI (frontend)
 }
 ```
 
-Los tipos `guide` y `reference` son contenido sin steps marcables — guías y referencias que se enlazan desde los steps con `"ref": "reference:<id>"`. El loader del frontend distingue por `type` y renderiza componentes distintos (`ChecklistGuideContent`, `ChecklistReferenceContent`, `ChecklistTasksContent`).
+The `guide` and `reference` types are non-checkable content — guides and references that steps link to via `"ref": "reference:<id>"`. The frontend loader dispatches by `type` and renders distinct components (`ChecklistGuideContent`, `ChecklistReferenceContent`, `ChecklistTasksContent`).
 
-Hay también ítems en formato Markdown (`.md` con frontmatter YAML) cargados por `gray-matter`. Conviven con los JSON en el mismo catálogo.
+There are also Markdown items (`.md` with YAML frontmatter) loaded via `gray-matter`. They live in the same catalog as the JSON items.
 
-## Backend — arquitectura
+## Backend — layout
 
 ```
 backend/services/checklist/
-   ├── checklist.service.ts         (92 líneas — runs, steps, daily reset, purge)
-   ├── checklist-comments.service.ts (84 líneas — comments + attachments)
-   └── checklist-content.ts          (54 líneas — getValidStepIds + cache JSON)
+   ├── checklist.service.ts         (92 lines — runs, steps, daily reset, purge)
+   ├── checklist-comments.service.ts (84 lines — comments + attachments)
+   └── checklist-content.ts          (54 lines — getValidStepIds + JSON cache)
 
 backend/controllers/checklist/
    ├── checklist-controllers.ts                 (run state, toggle, reset, history)
@@ -83,141 +83,141 @@ backend/repositories/checklist/
    ├── checklist-repository.ts                  (runs, step_state, event_log, history)
    └── checklist-comments.repository.ts         (comments + attachments + counts)
 
-backend/routes/checklist/checklist-routes.ts    (61 líneas — todos los endpoints)
+backend/routes/checklist/checklist-routes.ts    (61 lines — all endpoints)
 ```
 
-### Lifecycle del run
+### Run lifecycle
 
 ```
 getRunState(checklistId)
    ↓
-closeStaleRuns()            ← UPDATE indexed sobre runs con hotel_date < today (noop tras la 1ª del día)
+closeStaleRuns()            ← indexed UPDATE on runs with hotel_date < today (noop after the day's first call)
    ↓
 getOrCreateRun(checklistId)
    ↓
-  findActiveRun(hotelDate)  ← devuelve si existe
-   ↓ si no existe
+  findActiveRun(hotelDate)  ← returns if it exists
+   ↓ if not
   createRun(hotelDate)      ← INSERT
    ↓
 buildRunState(run)
    ↓
-  getStepStates + getStepCounts (paralelo)
+  getStepStates + getStepCounts (parallel)
    ↓
-  enrich con done_by_username, comment_count, attachment_count
+  enrich with done_by_username, comment_count, attachment_count
 ```
 
-**`closeStaleRuns()` es el auto-close lazy.** Está pensado para Render free tier: si el cron de 06:30 no disparó (porque el servidor estaba dormido), la primera petición del día cierra los runs viejos y crea el nuevo. Es idempotente y barato — un UPDATE con índice — así que se ejecuta antes de cada `getRunState`.
+**`closeStaleRuns()` is the lazy auto-close.** It exists to cover Render free tier: if the 06:30 cron didn't fire (server was asleep), the first request of the day closes the old runs and opens the new one. Idempotent and cheap — an indexed UPDATE — so it runs before every `getRunState`.
 
-### Toggle y reset
+### Toggle and reset
 
-- `toggleStep(checklistId, stepId, done, userId)` → upsert en `checklist_step_state` + insert en `event_log` (`'check'` o `'uncheck'`).
-- `resetRun(checklistId, userId)` → cierra el run actual (`closeRun` con `reason='manual'`), crea uno nuevo, logea `'reset_manual'`. Permisos: middleware `canResetChecklist` en routes.
+- `toggleStep(checklistId, stepId, done, userId)` → upsert on `checklist_step_state` + insert into `event_log` (`'check'` or `'uncheck'`).
+- `resetRun(checklistId, userId)` → closes the current run (`closeRun` with `reason='manual'`), creates a new one, logs `'reset_manual'`. Permissions: `canResetChecklist` middleware in routes.
 
 ### Cron jobs (`backend/services/cron/cron-service.ts`)
 
-| Cron | Horario (Madrid) | Función |
+| Cron | Schedule (Madrid) | Function |
 |---|---|---|
-| `30 6 * * *` | Diario 06:30 | `checklistDailyReset()` → cierra runs del día anterior. |
-| `0 4 * * 1` | Lunes 04:00 | `purgeOldEventLogs(7)` → borra `checklist_event_log` con >7 días. |
+| `30 6 * * *` | Daily 06:30 | `checklistDailyReset()` → closes the previous day's runs. |
+| `0 4 * * 1` | Monday 04:00 | `purgeOldEventLogs(7)` → drops `checklist_event_log` rows older than 7 days. |
 
-**Retención del event log: 7 días.** Datos operativos diarios, no auditoría de largo plazo. Si en el futuro se necesita histórico mayor (cumplimiento, KPIs), promover a una tabla agregada separada — no extender la retención sobre la tabla cruda.
+**Event log retention: 7 days.** Operational data, not long-term audit. If at some point you need a longer history (compliance, KPIs), promote to a separate aggregated table — don't extend the retention on the raw table.
 
 ### StepId validation flow
 
 ```
 POST /api/checklists/:id/steps/:stepId/comments
    ↓
-addCommentController valida stepId con getValidStepIds(checklistId)
+addCommentController validates stepId with getValidStepIds(checklistId)
    ↓
-  Si el set es null (checklist no en JSON backend) → fail-open, acepta
-  Si el set existe y stepId NO está → 422
-  Si el set existe y stepId SÍ está → continúa al repo
+  Set is null (checklist not in backend JSON) → fail-open, accept
+  Set exists and stepId NOT in it → 422
+  Set exists and stepId IS in it → continue to repo
 ```
 
-Mismo patrón en attachments. Toggle de step **no** valida — los stepId vienen de la propia UI que renderiza desde el JSON, así que el camino feliz no necesita el cinturón.
+Same pattern on attachments. Toggle doesn't validate — stepIds come from the UI that renders from the same JSON, so the happy path doesn't need the belt.
 
 ## Endpoints
 
-| Método y ruta | Propósito |
+| Method and route | Purpose |
 |---|---|
-| `GET /api/checklists/:id/run` | Estado actual del run del día (auto-create + auto-close stale) |
-| `GET /api/checklists/:id/history?limit=N` | Últimos N runs cerrados |
+| `GET /api/checklists/:id/run` | Current run state for today (auto-create + auto-close stale) |
+| `GET /api/checklists/:id/history?limit=N` | Last N closed runs |
 | `PATCH /api/checklists/:id/steps/:stepId` | Toggle done/undone |
-| `POST /api/checklists/:id/reset` | Reset manual (requiere `canResetChecklist`) |
-| `GET/POST/DELETE /:id/steps/:stepId/comments[/:commentId]` | CRUD comentarios |
-| `GET/POST/DELETE /:id/steps/:stepId/attachments[/:attachmentId]` | CRUD adjuntos (multer + Cloudinary) |
+| `POST /api/checklists/:id/reset` | Manual reset (requires `canResetChecklist`) |
+| `GET/POST/DELETE /:id/steps/:stepId/comments[/:commentId]` | Comment CRUD |
+| `GET/POST/DELETE /:id/steps/:stepId/attachments[/:attachmentId]` | Attachment CRUD (multer + Cloudinary) |
 
-Toda la subruta lleva `authenticateToken` + `excludeMantenimiento`. Reset adicional con `canResetChecklist` (admin / recepcionista).
+The whole subroute sits behind `authenticateToken` + `excludeMantenimiento`. Mantenimiento doesn't enter. Reset additionally requires `canResetChecklist` (admin / recepcionista).
 
-## Frontend — arquitectura
+## Frontend — layout
 
 ```
 frontend/app/dashboard/checklist/
-   ├── layout.tsx                  (8 líneas — wrapper de página)
-   ├── page.tsx                    (13 líneas — landing del módulo)
-   ├── ChecklistClientWrapper.tsx  (61 líneas — TOC sidebar + colapso mobile)
-   └── [id]/page.tsx               (19 líneas — dispatch por type a Guide/Reference/Tasks)
+   ├── layout.tsx                  (8 lines — page wrapper)
+   ├── page.tsx                    (13 lines — module landing)
+   ├── ChecklistClientWrapper.tsx  (61 lines — TOC sidebar + mobile collapse)
+   └── [id]/page.tsx               (19 lines — dispatch by type to Guide/Reference/Tasks)
 
 frontend/app/components/checklist/
-   ├── ChecklistTOC.tsx                (282 líneas — index lateral del catálogo)
-   ├── ChecklistTasksContent.tsx       (261 líneas — render del checklist marcable + steps + comentarios)
-   ├── StepDetailsPanel.tsx            (292 líneas — panel lateral de detalle de un step: comments, attachments)
-   ├── ChecklistGuideContent.tsx       (renderiza items type=guide)
-   ├── ChecklistReferenceContent.tsx   (renderiza items type=reference)
+   ├── ChecklistTOC.tsx                (282 lines — side index of the catalog)
+   ├── ChecklistTasksContent.tsx       (261 lines — checkable checklist render + steps + comments)
+   ├── StepDetailsPanel.tsx            (292 lines — side detail panel of a step: comments, attachments)
+   ├── ChecklistGuideContent.tsx       (renders items of type=guide)
+   ├── ChecklistReferenceContent.tsx   (renders items of type=reference)
    ├── ChecklistHeader.tsx
    ├── ChecklistNoteBanner.tsx
    └── EmailLink.tsx
 
 frontend/app/lib/checklist/
-   ├── loader.ts                   (build-time loader del catálogo JSON+MD, cached in-memory)
-   ├── api.ts                      (DTOs + apiClient calls a backend)
+   ├── loader.ts                   (build-time loader for the JSON+MD catalog, cached in-memory)
+   ├── api.ts                      (DTOs + apiClient calls to the backend)
    └── types.ts                    (Catalog, ChecklistItem, ChecklistMeta, CategoryMeta)
 
 frontend/content/checklist/
-   ├── _index.json                 (catálogo: categorías y orden)
-   ├── tasks/*.json                (items type=tasks — los duplicados del backend)
-   ├── guides/*.md                 (guías markdown con frontmatter)
-   └── references/*.md             (referencias markdown)
+   ├── _index.json                 (catalog: categories and order)
+   ├── tasks/*.json                (type=tasks items — the duplicates of the backend)
+   ├── guides/*.md                 (markdown guides with frontmatter)
+   └── references/*.md             (markdown references)
 ```
 
 ### Loader
 
-`loader.ts` lee el contenido del directorio `frontend/content/checklist/` al boot del server, lo parsea, y construye el `Catalog` en memoria. Se cachea de por vida (`let _catalog: Catalog | null`). Los Server Components (`[id]/page.tsx`) llaman a `getChecklistById(id)` que pega contra este caché.
+`loader.ts` reads `frontend/content/checklist/` at server boot, parses it, and builds the `Catalog` in memory. Cached for the lifetime of the server (`let _catalog: Catalog | null`). Server Components (`[id]/page.tsx`) call `getChecklistById(id)` which hits the cache.
 
-**Markdown items** se parsean con `gray-matter` (frontmatter YAML + body MD). El loader serializa fechas de YAML a strings (`serializeDates`) para que React no las trate como objetos `Date` que rompen la serialización a client component.
+**Markdown items** are parsed with `gray-matter` (YAML frontmatter + body MD). The loader serializes YAML dates to strings (`serializeDates`) so React doesn't treat them as `Date` objects, which would break serialization into client components.
 
 ### Render
 
-`[id]/page.tsx` es Server Component que despacha por `item.type`:
+`[id]/page.tsx` is a Server Component that dispatches by `item.type`:
 
-- `guide` → `ChecklistGuideContent` (markdown render, no marcable).
+- `guide` → `ChecklistGuideContent` (markdown render, non-checkable).
 - `reference` → `ChecklistReferenceContent`.
-- `tasks` → `ChecklistTasksContent` ('use client', llamadas a backend para state).
+- `tasks` → `ChecklistTasksContent` ('use client', backend calls for state).
 
-`ChecklistTasksContent` orquesta la interacción: hace `GET /run`, renderiza secciones+steps con checkboxes, mutations al backend para toggle / reset / add comment / upload attachment. Optimistic updates con invalidación tras éxito.
+`ChecklistTasksContent` drives the interaction: `GET /run`, renders sections+steps with checkboxes, mutations to the backend for toggle / reset / add comment / upload attachment. Optimistic updates with invalidation after success.
 
-`ChecklistTOC.tsx` es el sidebar — categorías colapsables, items lineales, link al detalle. En mobile colapsa el sidebar completo (state local en `ChecklistClientWrapper`).
+`ChecklistTOC.tsx` is the sidebar — collapsible categories, flat item list, link to the detail. On mobile the whole sidebar collapses (local state in `ChecklistClientWrapper`).
 
-`StepDetailsPanel.tsx` (292 líneas) se monta lateral cuando el usuario abre un step: muestra comments + attachments del step y permite añadir/borrar.
+`StepDetailsPanel.tsx` (292 lines) opens to the side when a step is selected: shows comments + attachments for the step and lets you add/remove.
 
-## Convenciones y patrones
+## Conventions and patterns
 
-- **Mobile responsive:** `ChecklistClientWrapper` usa `flex-col md:flex-row` para apilar TOC encima en mobile, lateral en desktop. El TOC en mobile se colapsa con un botón.
-- **Print mode:** las clases `checklist-print-wrapper` y `checklist-print-content` activan estilos específicos para imprimir un checklist completo (ver `global.css`). Útil para auditorías físicas.
-- **i18n:** los textos de los steps están en los JSONs (en español, no traducidos). Los wrappers de UI (botones, headers) sí usan `next-intl` con namespace `checklist`.
-- **Auth:** todas las rutas backend tras `authenticateToken` + `excludeMantenimiento`. Mantenimiento no entra al módulo. Reset requiere `canResetChecklist` (admin / recepcionista).
-- **Subida de attachments:** multer in-memory → Cloudinary. Path en `addAttachmentController`.
+- **Mobile responsive:** `ChecklistClientWrapper` uses `flex-col md:flex-row` to stack the TOC on top in mobile, beside in desktop. The mobile TOC collapses with a button.
+- **Print mode:** classes `checklist-print-wrapper` and `checklist-print-content` enable print-specific styles (see `global.css`). Useful for physical audits.
+- **i18n:** the step text lives in the JSONs (Spanish, untranslated). UI wrappers (buttons, headers) use `next-intl` with the `checklist` namespace.
+- **Auth:** every backend route sits behind `authenticateToken` + `excludeMantenimiento`. Mantenimiento doesn't enter the module. Reset requires `canResetChecklist` (admin / recepcionista).
+- **Attachment upload:** multer in-memory → Cloudinary. Wiring in `addAttachmentController`.
 
-## Gotchas conocidos
+## Known gotchas
 
-1. **JSON sync** (ver § "Regla de sync"). Si modificas un JSON y olvidas la otra copia, lo más probable es que se descubra al primer comment o attachment intentado en un step nuevo.
-2. **Markdown con dates en frontmatter:** YAML dates se parsean como `Date` por defecto y no son serializables a client components. `loader.ts` ya tiene `serializeDates` — si añades campos date nuevos, asegúrate de que pasen por ahí.
-3. **Render free tier + cron 06:30:** si el servicio está dormido a las 06:30, el cron no dispara. El auto-close lazy en `getRunState` cubre ese caso transparentemente. Si en algún momento se cambia a un plan paid (always-on), el lazy sigue siendo correcto (idempotente).
-4. **Event log retention 7 días:** datos antes de 7 días simplemente desaparecen. Si auditoría te pide un evento de hace 2 semanas, no existe. Decisión consciente — promover a tabla agregada si cambia el requisito.
+1. **JSON sync** (see § "Sync rule"). If you modify a JSON and forget the other copy, the first comment or attachment on a new step will surface the bug.
+2. **YAML dates in Markdown frontmatter:** YAML dates parse as `Date` by default and aren't serializable to client components. `loader.ts` already handles it via `serializeDates` — if you add new date-typed fields, make sure they go through it.
+3. **Render free tier + 06:30 cron:** if the service is asleep at 06:30, the cron doesn't fire. The lazy auto-close in `getRunState` covers it transparently. If we ever upgrade to a paid (always-on) plan, the lazy path is still correct (idempotent).
+4. **7-day event log retention:** events older than 7 days simply disappear. If audit asks for an event from two weeks ago, it doesn't exist. Conscious decision — promote to an aggregated table if the requirement changes.
 
-## Referencias cruzadas
+## Cross references
 
-- `backend/content/checklist/tasks/` y `frontend/content/checklist/tasks/` — los JSONs duplicados que mantener en sync.
-- `backend/services/cron/cron-service.ts` — schedule de los 2 cron jobs del módulo.
-- `backend/services/checklist/checklist-content.ts` — helper `getValidStepIds`.
-- `frontend/app/lib/checklist/loader.ts` — loader build-time del catálogo.
+- `backend/content/checklist/tasks/` and `frontend/content/checklist/tasks/` — the duplicate JSONs to keep in sync.
+- `backend/services/cron/cron-service.ts` — schedule for the module's two cron jobs.
+- `backend/services/checklist/checklist-content.ts` — `getValidStepIds` helper.
+- `frontend/app/lib/checklist/loader.ts` — build-time catalog loader.

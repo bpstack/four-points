@@ -1,63 +1,63 @@
 # CLAUDE.md — Parking (backend)
 
-> Backend del módulo de parking del hotel: reservas, vehículos, plazas, estadísticas y analítica. La UI tiene su propio archivo en `frontend/app/dashboard/parking/CLAUDE.md`. Este documento cubre el contrato HTTP, la lógica de bookings, los estados y los gotchas del lado servidor.
+> Backend for the hotel parking module: bookings, vehicles, spots, stats and analytics. The UI has its own file at `frontend/app/dashboard/parking/CLAUDE.md`. This doc covers the HTTP contract, booking logic, states and server-side gotchas.
 
-## Propósito
+## What it does
 
-Gestiona las plazas de parking del hotel (dos niveles `-2` y `-3`), sus tipos, las reservas, los vehículos, y los check-in/check-out. Sirve también el dashboard de estado en tiempo real, estadísticas históricas y analítica de tendencias.
+Manages the hotel's parking spots (two levels `-2` and `-3`), their types, bookings, vehicles, and check-in/check-out. Also serves the real-time status dashboard, historical stats and trend analytics.
 
-## Estructura
+## Layout
 
 ```
 backend/services/parking/
-   └── invoicePdfService.ts        (136 líneas — TODO comentado: facturación PDF futura
-                                    con almacenamiento local o S3. NO está activo.)
+   └── invoicePdfService.ts        (136 lines — entirely commented out: future PDF
+                                    invoicing with local or S3 storage. NOT active.)
 
 backend/controllers/parking/
-   ├── parking.controller.ts        (457 líneas — spots + vehicles CRUD + búsqueda)
-   ├── bookings.controller.ts       (843 líneas — el core: listar, crear, editar,
+   ├── parking.controller.ts        (457 lines — spots + vehicles CRUD + search)
+   ├── bookings.controller.ts       (843 lines — the core: list, create, edit,
    │                                  check-in, check-out, cancel, no-show, overdue)
-   ├── stats.controller.ts          (629 líneas — dashboard stats con modo fecha única
-   │                                  vs rango)
-   └── analytics.controller.ts      (379 líneas — tendencias, comparativas, recomendaciones)
+   ├── stats.controller.ts          (629 lines — dashboard stats with single-date
+   │                                  vs range modes)
+   └── analytics.controller.ts      (379 lines — trends, comparisons, recommendations)
 
 backend/repositories/parking/
-   ├── parking.repository.ts        (328 líneas — spots, vehicles, invoice metadata)
-   ├── bookings.repository.ts       (1102 líneas — bookings con joins; el más denso)
-   └── stats.repository.ts          (718 líneas — agregaciones para stats/analytics)
+   ├── parking.repository.ts        (328 lines — spots, vehicles, invoice metadata)
+   ├── bookings.repository.ts       (1102 lines — bookings with joins; the densest one)
+   └── stats.repository.ts          (718 lines — aggregations for stats/analytics)
 
 backend/routes/parking/
-   ├── parking.routes.ts            (46 líneas — /spots, /vehicles)
-   ├── bookings.routes.ts           (159 líneas — /bookings, /bookings/:code, /overdue)
-   ├── stats.routes.ts              (74 líneas — /stats, /stats/pending-checkins, /stats/pending-checkouts)
-   └── analytics.routes.ts          (101 líneas — /stats/analytics/trends, etc.)
+   ├── parking.routes.ts            (46 lines — /spots, /vehicles)
+   ├── bookings.routes.ts           (159 lines — /bookings, /bookings/:code, /overdue)
+   ├── stats.routes.ts              (74 lines — /stats, /stats/pending-checkins, /stats/pending-checkouts)
+   └── analytics.routes.ts          (101 lines — /stats/analytics/trends, etc.)
 ```
 
-## Tablas en BD
+## DB tables
 
-| Tabla | Propósito |
+| Table | Purpose |
 |---|---|
-| `parking_spots` | Plazas físicas: número, level_code (-2/-3), spot_type, disponibilidad |
-| `parking_vehicles` | Vehículos registrados (matrícula, dueño, tipo). Compartidos entre bookings |
-| `parking_bookings` | Reservas: spot, vehículo, fechas esperadas, real, estado, source, payment, total |
-| `parking_invoices` | Facturas asociadas (futuro — la generación PDF está apagada) |
-| `parking_rates` | Tarifas por tipo de plaza / período (consultado para cálculo de `total_amount`) |
+| `parking_spots` | Physical spots: number, level_code (-2/-3), spot_type, availability |
+| `parking_vehicles` | Registered vehicles (plate, owner, type). Shared across bookings |
+| `parking_bookings` | Bookings: spot, vehicle, expected dates, actual dates, status, source, payment, total |
+| `parking_invoices` | Associated invoices (future — PDF generation is off) |
+| `parking_rates` | Rates per spot type / period (used for `total_amount` computation) |
 
-**`booking_code`:** las bookings se identifican públicamente por un `booking_code` (string corto, p.ej. `BK-0042`) además del `id` numérico. Las rutas de detalle usan `:code`, no `:id`. Importante porque el frontend nunca expone `id` al usuario.
+**`booking_code`:** bookings are publicly identified by a `booking_code` (short string, e.g. `BK-0042`) in addition to the numeric `id`. Detail routes use `:code`, not `:id`. Important because the frontend never exposes `id` to the user.
 
-## Estados y enums (sincronización backend ↔ frontend)
+## States and enums (backend ↔ frontend sync)
 
-Los siguientes valores se duplican en `frontend/app/components/parking/helpers/constants.ts`. Si añades uno, **actualiza ambos lados**.
+The following values are duplicated in `frontend/app/components/parking/helpers/constants.ts`. If you add one, **update both sides**.
 
 ### Booking status
 
-| Estado | Significado |
+| Status | Meaning |
 |---|---|
-| `reserved` | Reserva creada, esperando llegada |
-| `checked_in` | Vehículo entró, está usando la plaza |
-| `completed` | Vehículo salió correctamente |
-| `canceled` | Reserva cancelada (no aplica el slot) |
-| `no_show` | Cliente no apareció en la fecha esperada |
+| `reserved` | Booking created, waiting for arrival |
+| `checked_in` | Vehicle arrived, using the spot |
+| `completed` | Vehicle left correctly |
+| `canceled` | Booking canceled (slot not used) |
+| `no_show` | Customer didn't show up on expected date |
 
 ### Booking source
 
@@ -69,121 +69,121 @@ Los siguientes valores se duplican en `frontend/app/components/parking/helpers/c
 
 ### Spot types
 
-`normal`, `ancha`, `mas_ancha`, `esquina`, `accesible`, `estrecha_bicis`. **Drive el cálculo de tarifa** vía `parking_rates`.
+`normal`, `ancha`, `mas_ancha`, `esquina`, `accesible`, `estrecha_bicis`. **Drive the rate calculation** via `parking_rates`.
 
 ### Levels
 
-`-2` y `-3` (cadenas de un dígito con signo). Hardcoded en el dominio; añadir un nivel implicaría migración + cambios en UI/queries.
+`-2` and `-3` (single-digit signed strings). Hardcoded in the domain; adding a level would mean a migration plus UI/query changes.
 
-## Flujo principal — booking lifecycle
+## Main flow — booking lifecycle
 
 ```
 CREATE BOOKING                      EDIT
    ↓                                 ↓
-{ status: 'reserved' }              (cualquier campo si el booking no se ha
-   ↓                                 cerrado; algunos campos como spot_id
-   ↓                                 disparan re-validation de disponibilidad)
+{ status: 'reserved' }              (any field while the booking isn't closed;
+   ↓                                 some fields like spot_id retrigger
+   ↓                                 availability re-validation)
 CHECK-IN                             
    ↓ (POST /bookings/:code/checkin)
 { status: 'checked_in', actual_checkin = NOW() }
    ↓
 CHECK-OUT
-   ↓ (POST /bookings/:code/checkout, calcula total final si difiere)
+   ↓ (POST /bookings/:code/checkout, recompute final total if it differs)
 { status: 'completed', actual_checkout = NOW(), payment_method, ... }
 
-ALTERNATIVAS:
+ALTERNATIVES:
    reserved → canceled  (POST /bookings/:code/cancel)
-   reserved → no_show   (cron o manual)
+   reserved → no_show   (cron or manual)
 ```
 
-**Cálculo de `total_amount`:** se hace al crear y se puede recalcular en check-out si las fechas reales difieren. Usa la tarifa de `parking_rates` para el `spot_type`. El cálculo de días considera el día completo: si llegas el 25 a las 23:00 y sales el 26 a las 10:00, son **2 días naturales**, no 0.5. Ver `_calculateBookingDays()` en `bookings.repository.ts`.
+**`total_amount` calculation:** done on create and can be recomputed at check-out if actual dates differ. Uses the rate from `parking_rates` for the `spot_type`. The day count treats whole days: arriving on the 25th at 23:00 and leaving on the 26th at 10:00 counts as **2 calendar days**, not 0.5. See `_calculateBookingDays()` in `bookings.repository.ts`.
 
-**Disponibilidad:** antes de crear o mover un booking, se verifica que el spot no esté ocupado en el rango `[expected_checkin, expected_checkout)`. Solapamientos se rechazan con 409.
+**Availability:** before creating or moving a booking, the system verifies the spot isn't occupied in the `[expected_checkin, expected_checkout)` range. Overlaps return 409.
 
-## Stats y analytics
+## Stats and analytics
 
-### `/stats` — modo doble
+### `/stats` — three modes
 
-`GET /api/parking/stats` opera en **3 modos** según query params:
+`GET /api/parking/stats` operates in **3 modes** depending on query params:
 
-1. **Sin params** → stats del día de hoy + occupancy + pending checkins/checkouts + availability.
-2. **`?date=YYYY-MM-DD`** → mismos campos para un día específico (pasado o futuro).
-3. **`?startDate=...&endDate=...`** → stats + occupancy **consolidados** (promedios, máx, mín) para el rango. **No incluye** pending checkins/checkouts/availability (esos solo aplican a un día concreto).
+1. **No params** → today's stats + occupancy + pending checkins/checkouts + availability.
+2. **`?date=YYYY-MM-DD`** → same fields for a specific day (past or future).
+3. **`?startDate=...&endDate=...`** → **consolidated** stats + occupancy (averages, max, min) for the range. **Doesn't include** pending checkins/checkouts/availability (those only apply to a single day).
 
-Documentado inline en `stats.routes.ts` con casos de uso. Si la UI cambia, leer los comentarios ahí — están bien mantenidos.
+Documented inline in `stats.routes.ts` with use cases. If the UI changes, read those comments — they're well-maintained.
 
 ### `/stats/analytics/trends`
 
-Tendencias en últimos N días (default 7). Devuelve ocupación promedio por planta, pico máximo, mínimo, dirección de tendencia (`increasing` / `declining` / `stable`) y recomendaciones automáticas. Útil para detectar plantas infrautilizadas o picos recurrentes.
+Trends across the last N days (default 7). Returns average occupancy per level, peak, min, trend direction (`increasing` / `declining` / `stable`) and auto-generated recommendations. Useful for spotting underused levels or recurring peaks.
 
 ## Endpoints
 
-| Método y ruta | Propósito |
+| Method and route | Purpose |
 |---|---|
 | **Spots & Vehicles (`/api/parking`)** | |
-| `GET /spots` | Lista de plazas |
-| `GET /spots/available` | Plazas disponibles ahora |
-| `GET /vehicles` / `POST /vehicles` | Buscar / crear vehículo |
-| `GET /vehicles/search` | Búsqueda con autocomplete |
-| `PUT /vehicles/:id` | Editar vehículo |
-| `DELETE /vehicles/:id` | Borrar (admin-only via `isAdmin`) |
+| `GET /spots` | List of spots |
+| `GET /spots/available` | Available spots right now |
+| `GET /vehicles` / `POST /vehicles` | Search / create vehicle |
+| `GET /vehicles/search` | Autocomplete search |
+| `PUT /vehicles/:id` | Edit vehicle |
+| `DELETE /vehicles/:id` | Delete (admin-only via `isAdmin`) |
 | **Bookings (`/api/parking/bookings`)** | |
-| `GET /` | Listar (filtros: status, date, spot_id, vehicle_id, plate_number, owner_name, booking_source) |
-| `POST /` | Crear booking |
-| `GET /:code` | Detalle por booking_code |
-| `PUT /:code` | Editar booking |
-| `POST /:code/checkin` | Marcar entrada efectiva |
-| `POST /:code/checkout` | Marcar salida + pago |
-| `POST /:code/cancel` | Cancelar |
+| `GET /` | List (filters: status, date, spot_id, vehicle_id, plate_number, owner_name, booking_source) |
+| `POST /` | Create booking |
+| `GET /:code` | Detail by booking_code |
+| `PUT /:code` | Edit booking |
+| `POST /:code/checkin` | Mark actual entry |
+| `POST /:code/checkout` | Mark exit + payment |
+| `POST /:code/cancel` | Cancel |
 | `POST /:code/no-show` | No-show |
-| `GET /overdue/list` | Bookings con `expected_checkout` pasado y aún `checked_in` |
+| `GET /overdue/list` | Bookings with `expected_checkout` past and still `checked_in` |
 | **Stats (`/api/parking/stats`)** | |
-| `GET /` | Dashboard stats (3 modos: hoy / día / rango) |
-| `GET /pending-checkins` | Lista de bookings esperando entrar hoy (o `?date=...`) |
-| `GET /pending-checkouts` | Lista esperando salir hoy |
+| `GET /` | Dashboard stats (3 modes: today / day / range) |
+| `GET /pending-checkins` | Bookings expected to arrive today (or `?date=...`) |
+| `GET /pending-checkouts` | Bookings expected to leave today |
 | **Analytics (`/api/parking/stats/analytics`)** | |
-| `GET /trends` | Tendencias de ocupación últimos N días |
+| `GET /trends` | Occupancy trends across the last N days |
 
-Toda la subruta tras `authenticateToken` + `excludeMantenimiento`. Mantenimiento no entra al módulo. Algunas mutaciones específicas requieren `isAdmin` (ej: `DELETE /vehicles/:id`).
+The whole subroute sits behind `authenticateToken` + `excludeMantenimiento`. Mantenimiento doesn't enter. Some specific mutations require `isAdmin` (e.g. `DELETE /vehicles/:id`).
 
-**Convención de orden en routes:** rutas específicas (`/overdue/list`) van **antes** de las paramétricas (`/:code`) para que Express no las capture mal. Mantén ese orden si modificas.
+**Route ordering convention:** specific routes (`/overdue/list`) go **before** the parametric ones (`/:code`) so Express doesn't capture them wrong. Keep that order when modifying.
 
-## Patrones del módulo
+## Module patterns
 
-### Controllers en clase
+### Class-based controllers
 
-A diferencia del resto del backend (funciones exportadas sueltas), `bookings.controller.ts`, `stats.controller.ts` y `analytics.controller.ts` se exportan como **clase con métodos estáticos** (`ParkingBookingsController.getBookings`, etc.). Es un patrón heredado del primer scaffold del módulo. **No es bug ni deuda urgente**: funciona, está consistente. Si añades un controller nuevo aquí, seguir el patrón clase para mantener coherencia interna.
+Unlike the rest of the backend (free-standing exported functions), `bookings.controller.ts`, `stats.controller.ts` and `analytics.controller.ts` export as **classes with static methods** (`ParkingBookingsController.getBookings`, etc.). This is inherited from the first scaffold of the module. **Not a bug and not urgent debt**: it works, it's internally consistent. If you add a new controller here, follow the class pattern to keep internal coherence.
 
 ### Date handling
 
-Las fechas en backend usan `getTodayMadrid()` de `config/date-utils.js` para fechas locales del hotel (importante para "hoy" en stats — el hotel opera Madrid time, no UTC). Las fechas de booking se almacenan como `DATETIME` MySQL en hora local Madrid.
+Backend dates use `getTodayMadrid()` from `config/date-utils.js` for local hotel dates (important for "today" in stats — the hotel runs on Madrid time, not UTC). Booking dates are stored as MySQL `DATETIME` in Madrid local time.
 
-### Filtros y paginación
+### Filters and pagination
 
-`GET /bookings` acepta múltiples filtros combinables (vía AND). Paginación con `limit` + `offset`, devuelve `PaginationInfo` con `total`, `page`, `totalPages`. Coordinado con el frontend que paginariza el grid.
+`GET /bookings` accepts multiple combinable filters (AND). Pagination via `limit` + `offset`, returns `PaginationInfo` with `total`, `page`, `totalPages`. Coordinated with the frontend grid that paginates them.
 
-## PDF facturación — **inactivo**
+## PDF invoicing — **inactive**
 
-`invoicePdfService.ts` está **completamente comentado**. Era el placeholder para facturación con almacenamiento dual (local o S3 según `STORAGE.TYPE`). Si en algún momento se activa, descomentar y:
+`invoicePdfService.ts` is **fully commented out**. It was the placeholder for invoicing with dual storage (local or S3 depending on `STORAGE.TYPE`). If at some point it gets activated, uncomment and:
 
-1. Instalar `pdfkit` y `aws-sdk` (o reemplazar con un servicio externo).
-2. Definir `STORAGE.TYPE` en `config.ts` (`'local'` o `'s3'`).
-3. Configurar AWS region + credenciales si es S3.
-4. Conectar `parking_invoices` con generación al check-out.
+1. Install `pdfkit` and `aws-sdk` (or replace with an external service).
+2. Define `STORAGE.TYPE` in `config.ts` (`'local'` or `'s3'`).
+3. Configure AWS region + credentials if S3.
+4. Wire `parking_invoices` to the check-out path.
 
-No es prioridad ahora. Si el cliente no lo pide, no lo actives.
+Not a priority. If the client doesn't ask for it, don't activate it.
 
-## Gotchas conocidos
+## Known gotchas
 
-1. **`booking_code` vs `id`:** las URLs públicas usan `code`, las llaves de BD usan `id`. No los confundas — el frontend nunca debe ver `id`.
-2. **Día completo en cálculo de tarifa:** llegada a las 23:00 + salida a las 10:00 = 2 días. No 0.5. Si se decide cambiar a horas, hay que tocar `_calculateBookingDays()` y todos los tests que dependen del comportamiento día-natural.
-3. **3 modos del `/stats`:** documentar bien antes de extender. Añadir un 4º modo sin razón clara complica al consumidor.
-4. **Orden de rutas:** `/overdue/list` antes que `/:code`. Si reordenas, valida con curl.
-5. **Hora Madrid hardcoded:** todo asume Madrid time. Multi-tenant con diferentes zonas horarias necesitaría refactor (no en el horizonte cercano).
-6. **Enums duplicados frontend ↔ backend:** lista en `helpers/constants.ts` del frontend. Mantener sincronizado.
+1. **`booking_code` vs `id`:** public URLs use `code`, DB keys use `id`. Don't confuse them — the frontend should never see `id`.
+2. **Calendar-day pricing:** arrival at 23:00 + departure at 10:00 = 2 days. Not 0.5. If you ever switch to hours, you have to touch `_calculateBookingDays()` and every test that depends on calendar-day behavior.
+3. **3 modes of `/stats`:** document well before extending. Adding a 4th mode without a clear reason complicates the consumer.
+4. **Route ordering:** `/overdue/list` before `/:code`. If you reorder, validate with curl.
+5. **Madrid time hardcoded:** everything assumes Madrid time. Multi-tenant across different timezones would need a refactor (not on the near horizon).
+6. **Frontend ↔ backend enum duplication:** the list lives in `helpers/constants.ts` on the frontend. Keep them in sync.
 
-## Referencias cruzadas
+## Cross references
 
-- `frontend/app/dashboard/parking/CLAUDE.md` — la UI del módulo.
-- `frontend/app/components/parking/helpers/constants.ts` — la copia frontend de los enums.
-- `backend/models/parking/index.ts` — todos los tipos TS del módulo.
+- `frontend/app/dashboard/parking/CLAUDE.md` — the module's UI side.
+- `frontend/app/components/parking/helpers/constants.ts` — the frontend copy of the enums.
+- `backend/models/parking/index.ts` — every TS type for the module.

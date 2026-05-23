@@ -1,136 +1,134 @@
 # CLAUDE.md — Logbook
 
-> Documentación única del módulo de logbooks (libro de incidencias / notas operativas del hotel). Cubre backend y frontend. La lógica de estado (read/unread per user, solved/pending, soft delete + trashed, history audit) es lo más denso del módulo y vive en el backend; el frontend es un grid + modales que consume los endpoints.
+> Single doc for the logbook module (hotel incident log / operational notes). Covers backend and frontend. The state logic (per-user read/unread, solved/pending, soft delete + trashed, history audit) is the densest part of the module and lives in the backend; the frontend is a grid + modals that consume the endpoints.
 
-## Propósito
+## What it does
 
-Libro de incidencias operativas del hotel. Cada entrada (logbook entry) registra una nota o tarea, marcada con un nivel de importancia, asignada a un departamento, escrita por un autor. Otros usuarios la leen, comentan, marcan como leída, y eventualmente la "resuelven". Todas las mutaciones quedan auditadas en `logbook_history`. Los borrados son soft (recoverable desde `/trashed`).
+Hotel incident log. Each entry (logbook entry) records a note or task, marked with an importance level, assigned to a department, written by an author. Other users read it, comment, mark it as read, and eventually "solve" it. Every mutation is audited in `logbook_history`. Deletes are soft (recoverable from `/trashed`).
 
-## Tablas en BD
+## DB tables
 
-| Tabla | Propósito |
+| Table | Purpose |
 |---|---|
-| `logbook` | Entradas principales. `is_deleted` para soft delete. |
-| `logbook_comments` | Comentarios per entrada. También con `is_deleted` para soft delete. |
-| `logbook_history` | Audit log de cambios sobre logbooks (create, update, delete). |
-| `logbook_comments_history` | Audit log de cambios sobre comentarios. |
-| `logbook_reads` | (user_id, logbook_id, read_at) — quién leyó qué y cuándo. |
-| `logbook_solved` | (user_id, logbook_id, solved_at) — quién marcó como resuelta. |
-| `logbook_pending` | Histórico de reopens (cuando alguien marca como pending lo que estaba solved). |
+| `logbook` | Main entries. `is_deleted` for soft delete. |
+| `logbook_comments` | Per-entry comments. Also `is_deleted` for soft delete. |
+| `logbook_history` | Audit log of changes on logbooks (create, update, delete). |
+| `logbook_comments_history` | Audit log of changes on comments. |
+| `logbook_reads` | (user_id, logbook_id, read_at) — who read what and when. |
+| `logbook_solved` | (user_id, logbook_id, solved_at) — who marked it solved. |
+| `logbook_pending` | History of reopens (when someone marks a solved entry as pending again). |
 
-**Importancia:** valores backend `baja` / `media` / `alta` / `urgente`. **Frontend usa `low` / `medium` / `high` / `critical`** y mapea via `mapPriorityToBackend()` en `LogbooksList.tsx`. **Gotcha:** si añades un nuevo nivel, actualiza el mapeo en ambos lados — no hay enum compartido.
+**Importance:** backend values `baja` / `media` / `alta` / `urgente`. **Frontend uses `low` / `medium` / `high` / `critical`** and maps via `mapPriorityToBackend()` in `LogbooksList.tsx`. **Gotcha:** if you add a new level, update the mapping on both sides — there's no shared enum.
 
-## Backend — arquitectura
+## Backend — layout
 
 ```
 backend/services/logbook/
-   └── logbookHistory-service.ts    (104 líneas — único service; helpers para
-                                     escribir en logbook_history alrededor de
-                                     create/update/delete del repo)
+   └── logbookHistory-service.ts    (104 lines — single service; helpers to write
+                                     into logbook_history around the repo's
+                                     create/update/delete)
 
 backend/controllers/logbook/
-   ├── logbook-controllers.ts            (334 líneas — CRUD + filtros: all,
+   ├── logbook-controllers.ts            (334 lines — CRUD + filters: all,
    │                                      byDepartment, byAuthor, byImportance,
    │                                      byDay, soft delete, history)
-   ├── logbookComments-controllers.ts    (298 líneas — CRUD comentarios + history)
-   └── logbookReads-controllers.ts       (186 líneas — read/unread, solve/reopen,
-                                          listar readers y solvers)
+   ├── logbookComments-controllers.ts    (298 lines — comment CRUD + history)
+   └── logbookReads-controllers.ts       (186 lines — read/unread, solve/reopen,
+                                          list readers and solvers)
 
 backend/repositories/logbook/
-   ├── logbook-repository.ts                  (315 líneas — incluye getAllTrashedLogbooks)
-   ├── logbookHistory-repository.ts           (150 líneas — addHistory genérico para
-   │                                            logbooks y comments)
-   ├── logbookComments-repository.ts          (141 líneas)
-   ├── logbookCommentsHistory-repository.ts   (55 líneas)
-   └── logbookReads-repository.ts             (248 líneas — reads, solved, pending)
+   ├── logbook-repository.ts                  (315 lines — includes getAllTrashedLogbooks)
+   ├── logbookHistory-repository.ts           (150 lines — generic addHistory for
+   │                                            logbooks and comments)
+   ├── logbookComments-repository.ts          (141 lines)
+   ├── logbookCommentsHistory-repository.ts   (55 lines)
+   └── logbookReads-repository.ts             (248 lines — reads, solved, pending)
 
-backend/routes/logbook/logbook-routes.ts      (143 líneas)
+backend/routes/logbook/logbook-routes.ts      (143 lines)
 ```
 
-### Patrón principal — service + repository + controller
+### Main pattern — service + repository + controller
 
-A diferencia de scheduling, aquí los controllers cargan parte de la lógica directamente contra los repos (no hay un service genérico). Solo `logbookHistory-service.ts` envuelve operaciones que necesitan **logging atómico en history**: `logAction()`, `updateLogbookHistory()`, `deleteLogbookHistory()`.
+Unlike scheduling, controllers here load part of the logic directly against the repos (no generic service). Only `logbookHistory-service.ts` wraps operations that need **atomic history logging**: `logAction()`, `updateLogbookHistory()`, `deleteLogbookHistory()`.
 
-**Regla de oro del módulo:** **toda mutación de logbook o comentario debe registrarse en su tabla `*_history`**. El service es quien lo garantiza para updates/deletes; los creates se logean inline desde el controller (ver `createLogbook` en `logbook-controllers.ts`). Si añades una nueva ruta de mutación, **no la metas sin pasar por history** — la audit trail es un requisito del producto, no un nice-to-have.
+**Golden rule of the module:** **every logbook or comment mutation must be recorded in its `*_history` table**. The service guarantees this for updates/deletes; creates log inline from the controller (see `createLogbook` in `logbook-controllers.ts`). When you add a new mutation route, **don't skip the history call** — the audit trail is a product requirement, not a nice-to-have.
 
-### Autoría — solo el autor puede editar/borrar
+### Authorship — only the author edits/deletes
 
-`updateLogbookHistory()` y `deleteLogbookHistory()` verifican `logbook.author_id === editorId` antes de tocar. Si no coincide, lanzan error. Mismo patrón en comentarios: solo el autor del comentario lo edita/borra. Admins **no son excepción** a nivel de service — si se quiere bypass, va a tener que añadirse explícitamente y registrar quién lo hizo.
+`updateLogbookHistory()` and `deleteLogbookHistory()` verify `logbook.author_id === editorId` before touching anything. If it doesn't match, they throw. Same pattern for comments: only the comment's author edits/deletes. Admins **are not exempt** at the service level — if a bypass is needed, it has to be added explicitly and logged with who did it.
 
-### Read/Unread y Solve/Reopen
+### Read/Unread and Solve/Reopen
 
-Estos son los flags que cambian más a menudo desde la UI:
+These are the flags that flip most often from the UI:
 
-- `readLogbookController` → `INSERT IGNORE` en `logbook_reads` (idempotente).
-- `unreadLogbookController` → `DELETE` de la fila correspondiente.
-- `solveLogbookController` → `INSERT` en `logbook_solved` + `INSERT` en `logbook_pending` con `pending_at = NULL`. Sobreescribe si ya estaba.
-- `reopenLogbookController` → `DELETE FROM logbook_solved` para ese logbook (uno solo solver activo).
+- `readLogbookController` → `INSERT IGNORE` on `logbook_reads` (idempotent).
+- `unreadLogbookController` → `DELETE` of the corresponding row.
+- `solveLogbookController` → `INSERT` on `logbook_solved` + `INSERT` on `logbook_pending` with `pending_at = NULL`. Overwrites if already set.
+- `reopenLogbookController` → `DELETE FROM logbook_solved` for that logbook (single active solver).
 
-Los reads/solves se logean en `logbook_history` también (acción `read`, `unread`, `solve`, `reopen`). Esto da el audit completo: quién leyó qué nota y cuándo, quién la resolvió, quién la reabrió.
+Reads/solves also log to `logbook_history` (actions `read`, `unread`, `solve`, `reopen`). This gives the full audit: who read what note and when, who solved it, who reopened it.
 
 ### Endpoints
 
-| Método y ruta | Propósito |
+| Method and route | Purpose |
 |---|---|
 | `POST /api/logbook/` | Create logbook |
-| `PUT /api/logbook/:id` | Update (solo autor) |
-| `DELETE /api/logbook/:id` | Soft delete (solo autor) |
-| `GET /api/logbook/all` | All logbooks (filtros via query) |
-| `GET /api/logbook/department/:departmentId` | Filtrar por departamento |
-| `GET /api/logbook/author/:authorId` | Filtrar por autor |
-| `GET /api/logbook/priority/:importance` | Filtrar por importancia |
-| `GET /api/logbook/day/:day` | Filtrar por día (YYYY-MM-DD) |
-| `GET /api/logbook/trashed` | Lista de borrados (soft delete recovery) |
-| `GET /api/logbook/:logbookId/history` | Audit de la entrada |
-| `POST/GET/PUT/DELETE /api/logbook/:logbookId/comments[/:id]` | CRUD comentarios |
-| `GET /api/logbook/:logbookId/comments/:commentId/history` | Audit de un comentario |
-| `POST/DELETE /api/logbook/:logbookId/read` | Marcar/desmarcar como leída |
-| `PUT /api/logbook/:logbookId/solve` | Marcar como resuelta |
-| `PUT /api/logbook/:logbookId/pending` | Reabrir |
-| `GET /api/logbook/:logbookId/readers` | Lista de quién ha leído |
-| `GET /api/logbook/:logbookId/solved` | Quién resolvió (si está resuelta) |
+| `PUT /api/logbook/:id` | Update (author only) |
+| `DELETE /api/logbook/:id` | Soft delete (author only) |
+| `GET /api/logbook/all` | All logbooks (filters via query) |
+| `GET /api/logbook/department/:departmentId` | Filter by department |
+| `GET /api/logbook/author/:authorId` | Filter by author |
+| `GET /api/logbook/priority/:importance` | Filter by importance |
+| `GET /api/logbook/day/:day` | Filter by day (YYYY-MM-DD) |
+| `GET /api/logbook/trashed` | List of deleted entries (soft delete recovery) |
+| `GET /api/logbook/:logbookId/history` | Audit of the entry |
+| `POST/GET/PUT/DELETE /api/logbook/:logbookId/comments[/:id]` | Comment CRUD |
+| `GET /api/logbook/:logbookId/comments/:commentId/history` | Audit of a comment |
+| `POST/DELETE /api/logbook/:logbookId/read` | Mark/unmark as read |
+| `PUT /api/logbook/:logbookId/solve` | Mark as solved |
+| `PUT /api/logbook/:logbookId/pending` | Reopen |
+| `GET /api/logbook/:logbookId/readers` | List of who has read it |
+| `GET /api/logbook/:logbookId/solved` | Who solved it (if it's solved) |
 
-Toda la subruta detrás de `authenticateToken` + `excludeMantenimiento`. Mantenimiento no entra al módulo.
+The whole subroute sits behind `authenticateToken` + `excludeMantenimiento`. Mantenimiento doesn't enter.
 
-**Importante:** `GET /trashed` está antes que las rutas `:id` en el router para que Express no lo capture como id. Si reordenas, cuida ese orden.
+**Important:** `GET /trashed` is declared **before** the `:id` routes so Express doesn't capture it as an id. If you reorder, mind that order.
 
-## Frontend — arquitectura
+## Frontend — layout
 
 ```
 frontend/app/dashboard/logbooks/
-   ├── page.tsx          (6 líneas — entry point que monta LogbooksContainer)
+   ├── page.tsx          (6 lines — entry point that mounts LogbooksContainer)
    ├── loading.tsx       (skeleton)
    └── error.tsx         (error boundary)
 
 frontend/app/components/logbooks/
-   ├── LogbooksContainer.tsx   (264 líneas — orchestrator: date picker, useLogbooks hook,
-   │                            handlers)
-   ├── LogbooksList.tsx        (990 líneas — render del feed, modales de read/comments,
-   │                            mapeo importance ES↔EN, estilos por prioridad)
-   ├── NewLogbookEntry.tsx     (260 líneas — modal de creación)
-   ├── NewCommentEntry.tsx     (161 líneas)
-   ├── EditLogbookModal.tsx    (118 líneas)
-   └── EditCommentModal.tsx    (118 líneas)
+   ├── LogbooksContainer.tsx   (264 lines — orchestrator: date picker, useLogbooks hook, handlers)
+   ├── LogbooksList.tsx        (990 lines — feed render, read/comments modals, ES↔EN importance mapping, priority styling)
+   ├── NewLogbookEntry.tsx     (260 lines — create modal)
+   ├── NewCommentEntry.tsx     (161 lines)
+   ├── EditLogbookModal.tsx    (118 lines)
+   └── EditCommentModal.tsx    (118 lines)
 
 frontend/app/lib/logbooks/
    ├── queries.ts           (React Query keys + apiClient calls)
    ├── types.ts             (LogEntry, Comment, etc.)
-   ├── validations.ts       (Zod schemas; las mismas keys que el backend pero del lado UI)
-   ├── hooks/useLogbooks.ts (hook orchestrator: mutations + cache invalidation + toasts)
+   ├── validations.ts       (Zod schemas; same keys as backend but on the UI side)
+   ├── hooks/useLogbooks.ts (orchestrator hook: mutations + cache invalidation + toasts)
    └── hooks/useDepartments.ts
 ```
 
-### `useLogbooks(date, messages)` — el hook clave
+### `useLogbooks(date, messages)` — the key hook
 
-`useLogbooks` es donde vive prácticamente toda la lógica del feed. Recibe la fecha activa y un objeto `messages` con los strings i18n para los toasts (inyectados desde el container para que el hook sea i18n-agnóstico). Devuelve:
+`useLogbooks` is where most of the feed logic lives. Takes the active date and a `messages` object with the i18n toast strings (injected from the container so the hook is i18n-agnostic). Returns:
 
-- `entries` — los logbooks del día.
+- `entries` — the day's logbooks.
 - Mutations: `createLogbook`, `updateLogbook`, `deleteLogbook`, `toggleStatus`, `toggleRead`, `createComment`, `updateComment`, `deleteComment`.
-- Cada mutation tiene optimistic update + invalidación de la query del día + toast tras éxito/error.
+- Every mutation does optimistic update + invalidates the day's query + emits success/error toast.
 
-**`messages` injection pattern:** se hace en `LogbooksContainer.tsx` con `useMemo(() => ({...}), [tLogbook])`. La razón es que el hook no puede llamar `useTranslations()` dentro (rompería las reglas de hooks si la key cambia), y queremos que los mensajes se actualicen al cambiar de locale.
+**`messages` injection pattern:** done in `LogbooksContainer.tsx` with `useMemo(() => ({...}), [tLogbook])`. The reason is that the hook can't call `useTranslations()` inside (would break the rules of hooks if the key changes), and we want messages to update when the locale changes.
 
-### Importance ↔ Priority mapeo
+### Importance ↔ Priority mapping
 
 ```
 Frontend         Backend
@@ -140,29 +138,29 @@ Frontend         Backend
 'low'        ↔   'baja'
 ```
 
-`mapPriorityToBackend()` en `LogbooksList.tsx`. Estilos por prioridad en `getPriorityBackground()` — bordes rojos en `critical`, naranjas en `high`, neutro en el resto.
+`mapPriorityToBackend()` in `LogbooksList.tsx`. Per-priority styling in `getPriorityBackground()` — red borders for `critical`, orange for `high`, neutral for the rest.
 
-### Selector de día
+### Day picker
 
-`HorizontalDatePicker` de `@/app/ui/calendar/` muestra una franja horizontal de días del mes seleccionado. El estado activo es `(currentDate, selectedDay)`. El query del backend usa `?day=YYYY-MM-DD`.
+`HorizontalDatePicker` from `@/app/ui/calendar/` shows a horizontal strip of days for the selected month. Active state is `(currentDate, selectedDay)`. The backend query uses `?day=YYYY-MM-DD`.
 
-## Patrones / convenciones
+## Conventions and patterns
 
-- **i18n:** namespaces `logbooks` y `logbook` (distintos). El plural se usa para el contenedor (página), el singular para textos de una entrada y los toasts. Diccionarios en `frontend/i18n/`.
-- **Toasts:** `react-hot-toast`. Toda mutation tiene mensaje de éxito o error.
-- **Auth:** todas las rutas backend tras `authenticateToken` + `excludeMantenimiento`. Mantenimiento no entra al módulo.
-- **Soft delete:** los borrados van a `is_deleted=1` y aparecen en `/trashed`. No hay UI todavía para restaurar; restauración es manual desde la BD (puede añadirse fácilmente).
-- **Comments con history independiente:** edits a comentarios también se logean, en `logbook_comments_history` (no en `logbook_history`). Si necesitas el audit completo de una entrada con sus comentarios, hay que cruzar las dos tablas.
+- **i18n:** namespaces `logbooks` and `logbook` (distinct). Plural for the container (page), singular for entry-level text and toasts. Dictionaries in `frontend/i18n/`.
+- **Toasts:** `react-hot-toast`. Every mutation has success or error messaging.
+- **Auth:** every backend route sits behind `authenticateToken` + `excludeMantenimiento`. Mantenimiento doesn't enter.
+- **Soft delete:** deletes go to `is_deleted=1` and show up in `/trashed`. No restore UI yet; restoration is manual via SQL (easy to add).
+- **Comments with independent history:** comment edits also log, but to `logbook_comments_history` (not `logbook_history`). If you need the full audit of an entry including its comments, you have to join the two tables.
 
-## Gotchas conocidos
+## Known gotchas
 
-1. **Importance mapping ES↔EN:** dos lugares distintos definen las strings (backend usa ES, frontend usa EN). Si añades un nivel, actualiza ambos y el mapeo en `LogbooksList.tsx` + `getPriorityBackground()`.
-2. **Solo el autor edita/borra:** no es admin override. Si en el futuro hace falta, va en `services` con su propio audit trail (`action: 'admin_override'`).
-3. **`/trashed` orden en router:** ruta declarada **antes** que las `:id` para no chocar. Mantén esto si reordenas el archivo.
-4. **`LogbooksList.tsx` tiene 990 líneas.** Está al borde de necesitar split. Si vas a tocar cosas no triviales ahí, considera extraer subcomponentes (cada entry, modal de readers, etc.) antes de añadir más. No es prioridad pero está en el radar.
+1. **ES↔EN importance mapping:** two places define the strings (backend uses ES, frontend uses EN). If you add a level, update both ends and the mapping in `LogbooksList.tsx` + `getPriorityBackground()`.
+2. **Only the author edits/deletes:** no admin override. If you need one in the future, put it in `services` with its own audit trail (`action: 'admin_override'`).
+3. **`/trashed` route order:** declared **before** the `:id` routes to avoid the clash. Keep that order if you reorder the file.
+4. **`LogbooksList.tsx` is 990 lines.** Approaching split territory. If you're about to add non-trivial work in there, consider extracting subcomponents (each entry, readers modal, etc.) first. Not urgent but on the radar.
 
-## Referencias cruzadas
+## Cross references
 
-- `backend/repositories/logbook/` — todos los repos.
-- `frontend/app/lib/logbooks/hooks/useLogbooks.ts` — el hook orchestrator del frontend.
-- `backend/config/error-codes.ts` — códigos de error específicos del módulo (`LOGBOOK_CREATE_ERROR`, etc.).
+- `backend/repositories/logbook/` — all repos.
+- `frontend/app/lib/logbooks/hooks/useLogbooks.ts` — the frontend orchestrator hook.
+- `backend/config/error-codes.ts` — module-specific error codes (`LOGBOOK_CREATE_ERROR`, etc.).
