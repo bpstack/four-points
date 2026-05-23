@@ -235,7 +235,7 @@ export const canResetChecklist: RoleCheckMiddleware = (req, res, next) => {
  * Roles permitidos: admin, recepcionista, demo-admin
  */
 export const canAccessFnb: RoleCheckMiddleware = (req, res, next) => {
-  const allowedRoles = ['admin', 'recepcionista', 'demo-admin']
+  const allowedRoles = ['admin', 'recepcionista', 'demo-admin', 'group-admin']
 
   if (!req.user?.role) {
     res.status(403).json({ error: 'No se pudo verificar el rol del usuario' })
