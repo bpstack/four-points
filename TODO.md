@@ -150,13 +150,13 @@ Mapear cada módulo del proyecto identificando:
 
 Módulos identificados a priori (a refinar en el inventario):
 
-- [ ] **Scheduling** — el más grande. Solver Python + backend TS + frontend grid. Candidato a 3 `CLAUDE.md`.
+- [x] **Scheduling** — ✅ cerrado 2026-05-23 (commit `04959a4`). 3 archivos: solver Python + backend TS + frontend.
 - [ ] **Logbook**
 - [ ] **Parking**
 - [ ] **Maintenance**
 - [ ] **Messaging**
-- [ ] **Checklist** — sync rule entre frontend/backend JSON
-- [ ] **Auth** — probablemente queda en raíz (transversal)
+- [x] **Checklist** — ✅ cerrado 2026-05-23. Sync rule entre frontend/backend JSON documentada. 1 archivo en `backend/services/checklist/`.
+- [x] **Auth** — confirmado: queda en raíz (transversal, no necesita archivo propio).
 - [ ] **Cashier**
 - [ ] **Backoffice**
 - [ ] **Restaurant / F&B** — añadido recientemente
@@ -222,9 +222,9 @@ Para cada módulo marcado como "necesita":
 
 Orden sugerido (de más a menos complejo, para amortizar el aprendizaje):
 
-1. Scheduling (3 archivos: solver Python, backend, frontend grid)
-2. Checklist (regla de sync frontend/backend JSON merece documentación dedicada)
-3. Logbook
+1. ✅ Scheduling (3 archivos: solver Python, backend, frontend grid) — cerrado 2026-05-23, commit `04959a4`
+2. ✅ Checklist (regla de sync frontend/backend JSON documentada) — cerrado 2026-05-23
+3. ⏳ Logbook
 4. Parking
 5. Maintenance
 6. Restaurant / F&B

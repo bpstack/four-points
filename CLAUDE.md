@@ -213,16 +213,8 @@ Cuando trabajes en este módulo, abre Claude desde el directorio más específic
 ## Module-Specific Guidance
 
 ### Checklist System
-- Daily operational checklists (morning/afternoon/night shifts)
-- Content (step definitions) in JSON files; DB only stores state and audit log
-- Frontend: `app/dashboard/checklist/`, content JSONs: `frontend/content/checklist/tasks/`
-- Backend: `controllers/checklist/`, `services/checklist/`, `repositories/checklist/`
-- **⚠️ SYNC RULE — TWO COPIES OF CHECKLIST JSONs:**
-  - `frontend/content/checklist/tasks/<name>.json` — used by UI to render steps
-  - `backend/content/checklist/tasks/<name>.json` — used by backend to validate stepIds
-  - When adding/removing/renaming steps, **update BOTH files**. Convention: `cl-<name>` → `<name>.json`
-  - Helper: `backend/services/checklist/checklist-content.ts` → `getValidStepIds(checklistId)`
-- **Event log retention:** `checklist_event_log` purged weekly (every Monday 04:00 Madrid) keeping last 7 days. Operational data only — no long-term audit needed.
+
+Checklists operacionales diarios (mañana / tarde / night audit). Definición de steps en JSONs duplicados en `backend/content/checklist/tasks/` y `frontend/content/checklist/tasks/` (regla de sync crítica). Backend tracking de estado en DB + cron de reset diario y purga semanal del event log. **Documentación completa en `backend/services/checklist/CLAUDE.md`** (arquitectura, lifecycle del run, regla de sync, endpoints, gotchas, frontend).
 
 ### Logbook System
 - Tracks hotel operational notes and tasks
