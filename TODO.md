@@ -151,7 +151,7 @@ Mapear cada módulo del proyecto identificando:
 Módulos identificados a priori (a refinar en el inventario):
 
 - [x] **Scheduling** — ✅ cerrado 2026-05-23 (commit `04959a4`). 3 archivos: solver Python + backend TS + frontend.
-- [ ] **Logbook**
+- [x] **Logbook** — ✅ cerrado 2026-05-23. 1 archivo en `backend/services/logbook/`.
 - [ ] **Parking**
 - [ ] **Maintenance**
 - [ ] **Messaging**
@@ -224,8 +224,8 @@ Orden sugerido (de más a menos complejo, para amortizar el aprendizaje):
 
 1. ✅ Scheduling (3 archivos: solver Python, backend, frontend grid) — cerrado 2026-05-23, commit `04959a4`
 2. ✅ Checklist (regla de sync frontend/backend JSON documentada) — cerrado 2026-05-23
-3. ⏳ Logbook
-4. Parking
+3. ✅ Logbook — cerrado 2026-05-23
+4. ⏳ Parking
 5. Maintenance
 6. Restaurant / F&B
 7. Messaging

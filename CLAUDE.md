@@ -217,11 +217,8 @@ Cuando trabajes en este módulo, abre Claude desde el directorio más específic
 Checklists operacionales diarios (mañana / tarde / night audit). Definición de steps en JSONs duplicados en `backend/content/checklist/tasks/` y `frontend/content/checklist/tasks/` (regla de sync crítica). Backend tracking de estado en DB + cron de reset diario y purga semanal del event log. **Documentación completa en `backend/services/checklist/CLAUDE.md`** (arquitectura, lifecycle del run, regla de sync, endpoints, gotchas, frontend).
 
 ### Logbook System
-- Tracks hotel operational notes and tasks
-- Supports read/unread status (stored in `logbook_history` table)
-- Has comment system for entries
-- Frontend: `app/dashboard/logbook/`
-- Backend: `controllers/logbook/`, `services/logbook/`
+
+Libro de incidencias operativas del hotel: entradas con importancia, comentarios, read/unread per user, solve/reopen, soft delete con recovery, audit log completo en `logbook_history` + `logbook_comments_history`. Solo el autor edita/borra sus propias entradas (no hay admin override). **Documentación completa en `backend/services/logbook/CLAUDE.md`** (tablas, endpoints, mapeo importance ES↔EN, hook `useLogbooks`, gotchas).
 
 ### Parking System
 - Manages hotel parking spaces and bookings
