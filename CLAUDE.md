@@ -232,9 +232,8 @@ Plazas (-2/-3), vehículos, reservas con lifecycle reserved → checked_in → c
 - Demo user (`username: demo`) is **disabled** (`is_active=0`) since 2026-05-12. See `aiven/15_demo_user.sql` for context.
 
 ### Maintenance System
-- Tracks maintenance requests and tasks
-- Status workflow: pending → in-progress → completed
-- Frontend: `app/dashboard/maintenance/`
+
+Partes de mantenimiento (averías técnicas). Workflow de 7 estados (`reported → assigned → in_progress → waiting → completed → closed`, más `canceled`), prioridades 4-niveles, asignación interna o externa, imágenes (Cloudinary, 5 MB máx), historial completo. **Único módulo donde el rol `mantenimiento` sí entra.** Documentación completa en `frontend/app/components/maintenance/CLAUDE.md` (workflow, endpoints, patrones de UI, gotchas).
 
 ### Messaging System
 - Internal messaging between staff
