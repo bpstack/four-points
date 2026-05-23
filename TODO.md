@@ -152,7 +152,7 @@ Módulos identificados a priori (a refinar en el inventario):
 
 - [x] **Scheduling** — ✅ cerrado 2026-05-23 (commit `04959a4`). 3 archivos: solver Python + backend TS + frontend.
 - [x] **Logbook** — ✅ cerrado 2026-05-23. 1 archivo en `backend/services/logbook/`.
-- [ ] **Parking**
+- [x] **Parking** — ✅ cerrado 2026-05-23. 2 archivos: `backend/services/parking/` + `frontend/app/dashboard/parking/`.
 - [ ] **Maintenance**
 - [ ] **Messaging**
 - [x] **Checklist** — ✅ cerrado 2026-05-23. Sync rule entre frontend/backend JSON documentada. 1 archivo en `backend/services/checklist/`.
@@ -225,8 +225,8 @@ Orden sugerido (de más a menos complejo, para amortizar el aprendizaje):
 1. ✅ Scheduling (3 archivos: solver Python, backend, frontend grid) — cerrado 2026-05-23, commit `04959a4`
 2. ✅ Checklist (regla de sync frontend/backend JSON documentada) — cerrado 2026-05-23
 3. ✅ Logbook — cerrado 2026-05-23
-4. ⏳ Parking
-5. Maintenance
+4. ✅ Parking — cerrado 2026-05-23 (2 archivos)
+5. ⏳ Maintenance
 6. Restaurant / F&B
 7. Messaging
 8. Cashier / Backoffice (revisar si justifican archivo propio)

@@ -221,10 +221,8 @@ Checklists operacionales diarios (mañana / tarde / night audit). Definición de
 Libro de incidencias operativas del hotel: entradas con importancia, comentarios, read/unread per user, solve/reopen, soft delete con recovery, audit log completo en `logbook_history` + `logbook_comments_history`. Solo el autor edita/borra sus propias entradas (no hay admin override). **Documentación completa en `backend/services/logbook/CLAUDE.md`** (tablas, endpoints, mapeo importance ES↔EN, hook `useLogbooks`, gotchas).
 
 ### Parking System
-- Manages hotel parking spaces and bookings
-- Multiple sub-routes: stats, bookings, analytics
-- Frontend: `app/dashboard/parking/`
-- Backend: Multiple route files in `routes/parking/`
+
+Plazas (-2/-3), vehículos, reservas con lifecycle reserved → checked_in → completed (+ canceled/no_show), stats con 3 modos (hoy / día / rango), analytics de tendencias. **Referencia interna del proyecto para patrones responsive.** Documentación completa en `backend/services/parking/CLAUDE.md` (backend: controllers en clase, booking_code vs id, cálculo de días, PDF facturación inactivo) y `frontend/app/dashboard/parking/CLAUDE.md` (tres vistas — dashboard / bookings list / status real-time; patrones responsive con ejemplos de código).
 
 ### Authentication System
 - JWT (`jsonwebtoken`), signed with `SECRET_JWT_KEY`. Tokens are stateless (no DB lookup per request).
