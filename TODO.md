@@ -154,14 +154,14 @@ Módulos identificados a priori (a refinar en el inventario):
 - [x] **Logbook** — ✅ cerrado 2026-05-23. 1 archivo en `backend/services/logbook/`.
 - [x] **Parking** — ✅ cerrado 2026-05-23. 2 archivos: `backend/services/parking/` + `frontend/app/dashboard/parking/`.
 - [x] **Maintenance** — ✅ cerrado 2026-05-23. 1 archivo en `frontend/app/components/maintenance/`.
-- [ ] **Messaging**
+- [x] **Messaging** — decidido: queda en raíz (baja complejidad). No necesita archivo propio.
 - [x] **Checklist** — ✅ cerrado 2026-05-23. Sync rule entre frontend/backend JSON documentada. 1 archivo en `backend/services/checklist/`.
 - [x] **Auth** — confirmado: queda en raíz (transversal, no necesita archivo propio).
-- [ ] **Cashier**
-- [ ] **Backoffice**
+- [x] **Cashier** — ✅ cerrado 2026-05-24. 2 archivos: `backend/services/cashier/` + `frontend/app/components/cashier/`.
+- [x] **Backoffice** — ✅ cerrado 2026-05-24. 1 archivo: `backend/services/backoffice/`.
 - [x] **Restaurant / F&B** — ✅ cerrado 2026-05-23. 1 archivo en `backend/services/fnb/`.
-- [ ] **DB / migraciones** — `backend/db-mysql/` candidato propio
-- [ ] **Otros** (revisar `backend/services/` y `frontend/app/dashboard/` exhaustivamente)
+- [x] **DB / migraciones** — ✅ cerrado 2026-05-24. 1 archivo: `backend/db-mysql/`.
+- [x] **Otros** — revisado. Blacklist ✅ `backend/services/blacklist/`. Group ✅ `backend/services/group/` + `frontend/app/components/groups/`. Conciliation ⛔ skip (decisión usuario).
 
 Entregable de la Fase 1: tabla en este TODO con módulo → ubicación(es) → necesita CLAUDE.md sí/no → dónde.
 
@@ -288,11 +288,8 @@ Razones que llevaron a esta decisión (registradas para no reabrir el debate):
    - ✅ **Blacklist** — cerrado 2026-05-24. `backend/services/blacklist/CLAUDE.md` (combined backend+frontend).
    - ✅ **Backoffice/bo** — cerrado 2026-05-24. `backend/services/backoffice/CLAUDE.md` (combined backend+frontend).
    - ⛔ **Conciliation** — SKIP por decisión explícita del usuario (2026-05-24). No crear CLAUDE.md para este módulo.
-4. **Decisión pendiente sobre `backend/services/cashier/` y `backend/services/group/`:** **estos directorios no existen** (todo el módulo vive en controllers/repositories/routes directamente). Hay dos opciones para ubicar el CLAUDE.md:
-   - **Opción A:** crear el directorio `backend/services/<modulo>/` solo para alojar el `CLAUDE.md` (no añade servicios reales, es solo punto de anclaje semántico). Pro: consistente con scheduling/checklist/logbook/parking/fnb. Contra: añade un directorio "vacío" que puede confundir.
-   - **Opción B:** colocarlo en `backend/controllers/<modulo>/CLAUDE.md` o `backend/repositories/<modulo>/CLAUDE.md`. Pro: vive donde está el código. Contra: rompe la convención que arrastramos.
-   - **Recomendación a futuro tú:** Opción A — la convención manda. Ya se hizo así con maintenance al revés (no hay services/maintenance/ pero su CLAUDE.md vive en components/maintenance/). Coherencia > pureza estructural.
-5. **Fase 3 (adelgazar raíz a ≤100 líneas) y Fase 4 (validación + índice final):** todavía no tocadas. Hacerlas al final, cuando todos los módulos de Fase 2 estén cerrados.
+4. ✅ **Decisión Opción A resuelta** — `backend/services/<modulo>/` creado como anchor aunque no haya services. Aplicado en cashier, group, backoffice, blacklist.
+5. ✅ **Fase 3 y Fase 4 cerradas 2026-05-24** — raíz en 101 líneas, module index + cross-module navigation guide añadidos.
 
 ### Convención de idioma — confirmada
 
