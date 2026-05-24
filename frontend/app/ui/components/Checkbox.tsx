@@ -52,7 +52,7 @@ export const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(
       <label
         htmlFor={inputId}
         className={[
-          'group inline-flex items-center gap-2.5 px-2 py-1.5 rounded-md',
+          'group relative inline-flex items-center gap-2.5 px-2 py-1.5 rounded-md',
           'cursor-pointer transition-colors select-none',
           'hover:bg-surface-hover',
           disabled ? 'opacity-50 pointer-events-none' : '',
