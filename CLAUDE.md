@@ -81,6 +81,16 @@ Each entry below points to a `CLAUDE.md` with module-specific context. Open Clau
 | **Blacklist** (banned guests, Cloudinary photos, audit trail) | `backend/services/blacklist/` |
 | **DB / Migrations** (policy, schema, idempotent scripts) | `backend/db-mysql/` |
 
+## Cross-Module Navigation
+
+When working inside a module and encountering a concept, endpoint, or behaviour that belongs to another module:
+
+1. **Don't guess** from the 1-line entry in the Module Index above — that entry only tells you where the doc is, not what's in it.
+2. **Read the target module's CLAUDE.md** (path shown in the index) before making any decision that touches that module.
+3. Then return to the original task with full context.
+
+The Module Index is a discovery map, not a summary. If something in the codebase seems undocumented, check whether a sibling module's CLAUDE.md covers it before assuming it isn't documented.
+
 ## Adding a New Module
 
 When a new module grows complex enough to warrant its own doc:
