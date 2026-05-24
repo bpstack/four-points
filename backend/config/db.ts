@@ -90,16 +90,22 @@ logger.info({ environment: environment.toUpperCase(), host: config.host, port: c
 // ========================================
 const pool: Pool = mysql.createPool(config) // ← MODIFICADO (añadido tipo)
 
-// Verificar conexión al inicio
-pool
-  .getConnection()
-  .then((connection) => {
-    logger.info('Conexión MySQL exitosa')
-    connection.release()
-  })
-  .catch((err) => {
-    logger.error({ err }, 'Error de conexión MySQL')
-    process.exit(1)
-  })
+// Verify connection at startup with retries (Aiven can timeout on cold start)
+async function connectWithRetry(retries = 3, delayMs = 3000): Promise<void> {
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      const connection = await pool.getConnection()
+      logger.info('Conexión MySQL exitosa')
+      connection.release()
+      return
+    } catch (err) {
+      logger.error({ err, attempt, retries }, 'Error de conexión MySQL')
+      if (attempt === retries) process.exit(1)
+      await new Promise((r) => setTimeout(r, delayMs))
+    }
+  }
+}
+
+connectWithRetry()
 
 export default pool
