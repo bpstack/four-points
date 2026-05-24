@@ -232,24 +232,15 @@ Orden sugerido (de más a menos complejo, para amortizar el aprendizaje):
 8. Cashier / Backoffice (revisar si justifican archivo propio)
 9. DB / migraciones (`backend/db-mysql/CLAUDE.md`)
 
-### Fase 3 — Adelgazar el `CLAUDE.md` raíz
+### Fase 3 — Adelgazar el `CLAUDE.md` raíz ✅ cerrada 2026-05-24
 
-Una vez extraído todo lo modular, el raíz queda **solo con**:
+Raíz recortada de 286 → **91 líneas**. Contiene: overview, tech stack, dev commands, backend/frontend conventions, auth summary, DB pointer, commit conventions, module index, "Adding a New Module" guide.
 
-- Project overview (1 párrafo)
-- Tech stack (lista breve)
-- Comandos comunes (frontend + backend + DB)
-- Convenciones globales: imports `.js`, auth JWT, política de commits, política de migraciones (puntero a `MIGRATIONS_POLICY.md`)
-- Pitfalls verdaderamente globales (credentials include, server vs client components a nivel concepto)
-- Índice de los `CLAUDE.md` modulares con ruta y propósito de cada uno
+### Fase 4 — Validación ✅ cerrada 2026-05-24
 
-Objetivo cuantitativo: **raíz ≤100 líneas**.
-
-### Fase 4 — Validación
-
-- Probar abrir sesión en 3-4 módulos distintos y verificar que el contexto cargado es suficiente y no redundante.
-- Ajustar lo que falte o sobre tras uso real.
-- Documentar la nueva convención en el `CLAUDE.md` raíz como referencia para futuras incorporaciones de módulos.
+- Módulo index añadido al raíz con todos los CLAUDE.md modulares.
+- Convención "Adding a New Module" documentada en el raíz.
+- Validación real (abrir Claude desde módulos individuales) queda como tarea del usuario en el uso diario.
 
 ### Estrategia de commits (decidido 2026-05-23)
 

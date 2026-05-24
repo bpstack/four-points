@@ -1,286 +1,91 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
-
-## Project Overview
-
-**Four-Points** is a full-stack hotel Property Management System (PMS) built with Next.js frontend and Express backend. The system manages hotel operations including logbooks, parking, scheduling, maintenance, cashier, backoffice, and more.
+Full-stack hotel PMS. Next.js 14 (App Router) frontend + Express 5 backend. TypeScript throughout. pnpm workspaces.
 
 ## Tech Stack
 
-### Frontend
-- **Framework**: Next.js 14 (App Router)
-- **Language**: TypeScript
-- **Styling**: Tailwind CSS
-- **State Management**: Zustand, React Query (@tanstack/react-query)
-- **UI Components**: NextUI, Headless UI, Heroicons
-- **Form Handling**: React Hook Form + Zod validation
-- **Package Manager**: pnpm
+- **Frontend**: Next.js 14, TypeScript, Tailwind CSS, Zustand, React Query, NextUI, React Hook Form + Zod
+- **Backend**: Express 5, TypeScript (ES modules), MySQL (local + Aiven), tsx (no build step), Vitest
+- **Auth**: JWT in HttpOnly cookies — `access_token` (15 min) + `refresh_token` (7 d), same `SECRET_JWT_KEY`
+- **External**: Cloudinary (images/PDFs), Nodemailer (email, optional)
 
-### Backend
-- **Framework**: Express 5.1.0
-- **Language**: TypeScript (ES modules, `type: "module"`)
-- **Database**: MySQL (local + Aiven cloud)
-- **Runtime**: tsx (no build step needed)
-- **Authentication**: JWT in HttpOnly cookies (access 15 min + refresh 7 d)
-- **Validation**: Zod
-- **Testing**: Vitest
-- **Package Manager**: pnpm
+## Dev Commands
 
-## Common Commands
-
-### Frontend (`/frontend`)
 ```bash
-pnpm dev              # Start Next.js dev server with Turbopack (port 3000)
-pnpm build            # Build production bundle
-pnpm start            # Start production server
-pnpm lint             # Run ESLint
-pnpm format           # Format code with Prettier
+# Frontend (port 3000)
+cd frontend && pnpm dev          # Turbopack dev server
+cd frontend && pnpm build && pnpm start
+
+# Backend (port 4000)
+cd backend && pnpm dev:local     # local MySQL
+cd backend && pnpm dev:aiven     # Aiven cloud MySQL
+cd backend && pnpm typecheck && pnpm test
+
+# DB_ENVIRONMENT=local | aiven  controls which DB the backend connects to
 ```
 
-### Backend (`/backend`)
-```bash
-pnpm dev              # Start backend with tsx watch (port 4000)
-pnpm dev:local        # Use local MySQL database
-pnpm dev:aiven        # Use Aiven cloud database
-pnpm start            # Start backend without watch
-pnpm typecheck        # Run TypeScript type checking
-pnpm test             # Run all tests with Vitest
-pnpm test:watch       # Run tests in watch mode
-pnpm test:coverage    # Run tests with coverage report
-```
-
-### Database
-- SQL scripts in `backend/db-mysql/`. Full migration policy and schema overview: **`backend/db-mysql/CLAUDE.md`**.
-- **Never** run `MASTER_INSTALL.sql` or `aiven/NN_*.sql` against a DB with data.
-- New schema change → new `scripts/YYYYMMDD_*.sql` (idempotent) + register in `INDEX.md`.
-
-## Architecture
-
-### Backend Architecture
-
-The backend follows a layered architecture pattern:
-
-```
-index.ts → routes → controllers → services → repositories → models
-                         ↓
-                    validations (Zod)
-```
-
-**Key Patterns:**
-- **ES Modules**: All files use `.js` extensions in imports despite being TypeScript
-- **Modular Services**: Each domain (auth, logbook, parking, scheduling, etc.) has its own:
-  - `controllers/` - HTTP request handling
-  - `services/` - Business logic
-  - `repositories/` - Database access
-  - `routes/` - Express route definitions
-  - `validations/` - Zod schemas
-  - `models/` - TypeScript types/interfaces
-
-**Database Access:**
-- Two MySQL configurations: local and Aiven (cloud)
-- Environment variable `DB_ENVIRONMENT` controls which DB to use
-- Connection pool managed in `config/config.ts`
-
-**Authentication System:**
-- JWT (`jsonwebtoken`) signed with `SECRET_JWT_KEY`. Access token 15 min, refresh 7 d (same secret).
-- Both tokens travel in **HttpOnly cookies** (`access_token`, `refresh_token`); `Authorization: Bearer` is accepted as fallback.
-- In production cookies are scoped to `.four-points.stackbp.es` (`controllers/auth/auth-controllers.ts:31`).
-- Authentication middleware: `middlewares/authenticateToken.ts` (verifies JWT, then delegates to `demoRestriction`).
-- Role-based access control via `middlewares/roleCheck.ts`.
-- Frontend sends `credentials: 'include'` in all fetch requests.
-- **No `express-session`, no MySQL `sessions` table, no `authenticateSession.ts`.** Older docs referenced a planned JWT→sessions migration that was never implemented; the system is and stays JWT.
-
-**CORS Configuration:**
-- Allows `localhost:3000`, Vercel domains, and production domains
-- Dynamic origin validation with Vercel preview pattern matching
-- Credentials enabled for cookie transmission
-
-### Frontend Architecture
-
-The frontend uses Next.js App Router with server and client components:
-
-**Directory Structure:**
-```
-app/
-├── (auth)/          # Auth routes (login)
-├── dashboard/       # Protected dashboard routes
-│   ├── logbooks/
-│   ├── parking/
-│   ├── scheduling/
-│   └── ...
-├── components/      # Reusable UI components
-├── lib/            # Utilities, API clients, types
-│   ├── apiClient.ts        # Client-side API wrapper
-│   ├── serverFetch.ts      # Server-side API wrapper
-│   ├── auth/               # Auth utilities
-│   ├── schemas/            # Zod validation schemas
-│   └── [domain]/           # Domain-specific utilities
-├── stores/         # Zustand stores
-└── ui/             # Design system components
-```
-
-**Key Patterns:**
-- **Server vs Client Components**: By default components are server components. Use `'use client'` directive when:
-  - Component has interactivity (onClick, onChange, etc.)
-  - Component uses React hooks (useState, useEffect, etc.)
-  - Component accesses browser APIs
-- **Data Fetching**: Use React Query for client-side data fetching, server actions for mutations
-- **API Communication**:
-  - Client-side: `apiClient.ts` (wraps fetch with auth)
-  - Server-side: `serverFetch.ts` (for Server Components/Actions)
-- **Authentication**:
-  - Global `AuthContext` provides `user`, `login`, `logout`, `isAuthenticated`
-  - Protected routes use `useAuthContext()` hook
-  - Dashboard layout handles auth redirect logic
-
-**Font System:**
-- Fonts configured in `app/ui/fonts-design/`
-- Change active font in `fonts.helper.ts` (ACTIVE_FONTS variable)
-- Apply via Tailwind classes: `font-sans`, `font-display`
-
-### Scheduling System (Complex Feature)
-
-Manages monthly staff schedules with manual cell-by-cell editing + real-time validation, plus auto-generation via a CP-SAT solver (Python). The most complex module in the project; its documentation is split across module files:
-
-- **`backend/services/scheduling/CLAUDE.md`** — TS backend: module concepts (month states, cell locking, constraint flow, retroactive), validator, TS constraints, soft-weights, build-solver-input, solver-client, controllers, endpoints, shift types, configuration tables, historical importer, **full cross-language guide for adding a new constraint**.
-- **`backend/scheduling-solver/CLAUDE.md`** — Python CP-SAT solver: daemon, model, hard constraints, soft objective (S1-S4), cross-month with virtual days, infeasibility analyzer, local setup, tests, debug helpers.
-- **`frontend/app/components/scheduling/CLAUDE.md`** — grid UI, config modals, auth gate (admin-only), React Query, shift styles, PDF export, responsive patterns, DayPicker + i18n gotchas.
-
-When working in this module, open Claude from the most specific directory possible so it loads only the relevant context; the module-wide concepts live in the TS backend's `CLAUDE.md`.
-
-## Important Development Notes
-
-### Backend Notes
-
-1. **Import Extensions**: Always use `.js` extension in imports despite TypeScript:
-   ```typescript
-   import { something } from './file.js'  // Correct
-   import { something } from './file'     // Wrong
-   ```
-
-2. **No Build Step**: Backend uses `tsx` directly, no compilation needed
-
-3. **Environment Files**:
-   - `.env` for backend configuration
-   - Two database modes: `DB_ENVIRONMENT=local` or `DB_ENVIRONMENT=aiven`
-
-4. **Auth is JWT** (HttpOnly cookies). The repo briefly contained plans to switch to `express-session`; those plans were dropped. Do not reintroduce `req.session` or look for a `sessions` table — it does not exist.
-
-5. **Cron Jobs**: `services/cron/cron-service.ts` runs scheduled tasks, started in `index.ts`
-
-6. **Error Handling**: Global error handler in `index.ts` catches all unhandled errors
-
-7. **Testing**: Tests use Vitest and are located in `tests/` directory
-
-### Frontend Notes
-
-1. **Server Component First**: Default to server components, only add `'use client'` when needed
-
-2. **Data Fetching**:
-   - Server Components: Use `serverFetch` or direct fetch
-   - Client Components: Use React Query with `apiClient`
-   - Always include `credentials: 'include'` in fetch options
-
-3. **Authentication Flow**:
-   - Login → Backend sets `access_token` and `refresh_token` HttpOnly cookies
-   - Frontend `AuthProvider` calls `GET /api/auth/me` on mount; on 401 it retries via `POST /api/auth/refresh-token`
-   - `useAuthContext()` provides auth state globally
-
-4. **Environment Variables**:
-   - Client-accessible: `NEXT_PUBLIC_API_URL`
-   - Server-only: Can use non-prefixed vars in Server Components
-
-5. **Proxy vs Direct**: Frontend calls backend directly at `localhost:4000`, no Next.js API routes proxy
-
-6. **Theme System**: Uses `next-themes` for dark/light mode switching
-
-7. **Form Validation**: Use React Hook Form + Zod schemas from `lib/schemas/`
-
-### Common Pitfalls to Avoid
-
-1. **Don't mix server and client patterns**: Can't use `useState` in server components or `async` component functions in client components
-
-2. **Don't forget credentials**: All API calls must include `credentials: 'include'` for auth cookies
-
-3. **Don't modify code without permission**: Always ask before making code changes
-
-4. **Database changes**: Coordinate SQL migrations between local and Aiven databases
-
-5. **Module resolution**: Backend imports must use `.js` extension even for `.ts` files
-
-## Module-Specific Guidance
-
-### Checklist System
-
-Daily operational checklists (morning / afternoon / night audit). Step definitions live in JSON files duplicated at `backend/content/checklist/tasks/` and `frontend/content/checklist/tasks/` (critical sync rule). Backend tracks state in the DB + cron jobs for daily reset and weekly event-log purge. **Full doc in `backend/services/checklist/CLAUDE.md`** (architecture, run lifecycle, sync rule, endpoints, gotchas, frontend).
-
-### Logbook System
-
-Hotel incident log: importance-tagged entries, comments, per-user read/unread, solve/reopen, soft delete with recovery, full audit log in `logbook_history` + `logbook_comments_history`. Only the author edits/deletes their own entries (no admin override). **Full doc in `backend/services/logbook/CLAUDE.md`** (tables, endpoints, ES↔EN importance mapping, `useLogbooks` hook, gotchas).
-
-### Parking System
-
-Spots (-2/-3), vehicles, bookings with the reserved → checked_in → completed lifecycle (+ canceled/no_show), stats with 3 modes (today / day / range), trend analytics. **The project's internal reference for responsive patterns.** Full docs in `backend/services/parking/CLAUDE.md` (backend: class-based controllers, booking_code vs id, day-count calculation, inactive PDF invoicing) and `frontend/app/dashboard/parking/CLAUDE.md` (three views — dashboard / bookings list / real-time status; responsive patterns with code examples).
-
-### Authentication System
-- JWT (`jsonwebtoken`), signed with `SECRET_JWT_KEY`. Tokens are stateless (no DB lookup per request).
-- Cookies: `access_token` (15 min) and `refresh_token` (7 d), both HttpOnly + SameSite=lax.
-- Production cookie domain: `.four-points.stackbp.es`.
-- Roles defined in `roles` table (admin, recepcionista, mantenimiento, group-admin, demo-admin). Enforcement in `middlewares/roleCheck.ts`.
-- Demo user (`username: demo`) is **disabled** (`is_active=0`) since 2026-05-12. See `aiven/15_demo_user.sql` for context.
-
-### Maintenance System
-
-Maintenance reports (technical faults). 7-state workflow (`reported → assigned → in_progress → waiting → completed → closed`, plus `canceled`), 4-level priorities, internal or external assignment, images (Cloudinary, 5 MB max), full history. **The only module where the `mantenimiento` role is allowed in.** Full doc in `frontend/app/components/maintenance/CLAUDE.md` (workflow, endpoints, UI patterns, gotchas).
-
-### F&B / Restaurant System
-
-Daily F&B revenue ingestion from Opera PDFs (dedicated parser) + manual entry + monthly/daily views with charts. The Daily Revenue tab is the only one in production; the Inventory / Orders / Stats tabs are **mocked** as phase-2 placeholders. `pdf-parse` pinned to v1 due to OOM on Render. Full doc in `backend/services/fnb/CLAUDE.md` (Opera codes, parser algorithm, endpoints, SQL pivot, which tabs are mock).
-
-### Messaging System
-- Internal messaging between staff
-- Real-time notifications
-- Frontend: `app/dashboard/messages/`
-
-## Code Search Commands
-
-For searching code in Windows PowerShell:
-```powershell
-# Search in TypeScript/JavaScript files
-Get-ChildItem -Recurse -Include *.ts,*.tsx -Path app | Select-String "pattern"
-
-# Exclude node_modules and dist
-Get-ChildItem -Recurse -Include *.js,*.ts -Exclude node_modules,dist | Select-String "pattern"
-```
-
-## Database Information
-
-- **Database Name**: `hotel_db`. ~50 tables + 3 views. Full schema reference in `backend/db-mysql/INDEX.md`.
-- **Migration policy**: incremental-only since 2026-05-20. Full doc: **`backend/db-mysql/CLAUDE.md`**.
-- **Backups**: `backend/db-mysql/backup/`
-
-## External Services
-
-- **Cloudinary**: Image upload and storage
-- **Nodemailer**: Email notifications (configured but optional)
-
-## Development Workflow
-
-1. Start backend: `cd backend && pnpm dev:local`
-2. Start frontend: `cd frontend && pnpm dev`
-3. Access app at `http://localhost:3000`
-4. API available at `http://localhost:4000`
-
-## Commit conventions
-
-- **Language:** subject and body in **English**. UI strings, Spanish identifiers and file paths may remain in their original language inside the body when necessary.
-- **Format:** [Conventional Commits](https://www.conventionalcommits.org/) (`feat:`, `fix:`, `docs:`, `chore:`, `refactor:`, `test:`, `perf:`, `build:`, `ci:`, `style:`). Optional scope: `feat(scheduling/solver): ...`.
-- **Subject:** imperative mood, ≤ 72 characters, no trailing period.
-- **Body:** explain the *why*, not the *what*. Use bullets when there are 3+ independent points. Reference files/functions only when the diff doesn't make them obvious. Avoid vague messages (`fix bug`, `update code`, `wip`).
-- **Footers:** reserve for issue references (`Refs #123`, `Closes #45`) and similar metadata.
-
-## Notes
-
-- The system uses Spanish for UI and some code comments
-- Development mode bypass exists for auth (check `DashboardLayout` for DEV_MODE)
+## Backend Conventions
+
+- **Imports**: always use `.js` extension even in TypeScript — `import { x } from './file.js'`
+- **No build**: `tsx` runs TypeScript directly; no `tsc` or `dist/` involved
+- **Auth**: JWT only. No `express-session`, no `sessions` table — that migration was planned and dropped. Never reintroduce `req.session`.
+- **Layering**: `routes → controllers → services → repositories → models`. Validations (Zod) sit between controller and service.
+- **Cron**: `services/cron/cron-service.ts`, started in `index.ts`
+- **Errors**: global error handler in `index.ts`; module-specific codes in `config/error-codes.ts`
+
+## Frontend Conventions
+
+- **Server components by default** — add `'use client'` only for interactivity, hooks, or browser APIs
+- **API calls**: client-side → `lib/apiClient.ts`; server-side → `lib/serverFetch.ts`. Always `credentials: 'include'`.
+- **Auth state**: `AuthContext` (provides `user`, `login`, `logout`). Protected routes use `useAuthContext()`.
+- **Env vars**: `NEXT_PUBLIC_API_URL` for client; non-prefixed vars only in Server Components
+- **Theme**: `next-themes` — dark/light via `.dark` class on `<html>`
+- **Forms**: React Hook Form + Zod schemas from `lib/schemas/`
+
+## Auth System
+
+- Roles: `admin`, `recepcionista`, `mantenimiento`, `group-admin`, `demo-admin` (in `roles` table)
+- Middleware: `middlewares/authenticateToken.ts` → `middlewares/roleCheck.ts`
+- Production cookie domain: `.four-points.stackbp.es`
+- Demo user (`username: demo`) disabled since 2026-05-12 (`is_active=0`)
+
+## DB / Migrations
+
+- Scripts in `backend/db-mysql/`. Policy and schema overview: **`backend/db-mysql/CLAUDE.md`**
+- **Never** run `MASTER_INSTALL.sql` or `aiven/NN_*.sql` against a DB with data
+- New schema change → `scripts/YYYYMMDD_*.sql` (idempotent) + row in `INDEX.md`
+
+## Commit Conventions
+
+- **Language**: subject and body in English
+- **Format**: Conventional Commits — `feat:`, `fix:`, `docs:`, `chore:`, `refactor:`, `test:`, `perf:`, `build:`, `ci:`, `style:`. Optional scope: `feat(scheduling/solver): …`
+- **Subject**: imperative mood, ≤ 72 chars, no trailing period
+- **Body**: explain the *why*. Bullets for 3+ independent points. No vague messages (`fix bug`, `wip`)
+- **Footers**: `Refs #123`, `Closes #45` and similar metadata only
+
+## Module Index
+
+Each entry below points to a `CLAUDE.md` with module-specific context. Open Claude from the module's directory to load only the relevant files.
+
+| Module | CLAUDE.md location(s) |
+|---|---|
+| **Scheduling** (CP-SAT solver, grid UI) | `backend/services/scheduling/` · `backend/scheduling-solver/` · `frontend/app/components/scheduling/` |
+| **Checklist** (daily ops checklists, JSON sync rule) | `backend/services/checklist/` |
+| **Logbook** (incident log, read/unread, audit trail) | `backend/services/logbook/` |
+| **Parking** (bookings lifecycle, responsive reference) | `backend/services/parking/` · `frontend/app/dashboard/parking/` |
+| **Maintenance** (7-state workflow, Cloudinary images) | `frontend/app/components/maintenance/` |
+| **F&B / Restaurant** (Opera PDF parser, daily revenue) | `backend/services/fnb/` |
+| **Cashier** (shifts, denominations, vouchers, PDF export) | `backend/services/cashier/` · `frontend/app/components/cashier/` |
+| **Group Tracking** (bookings, payments, 4-status tracks) | `backend/services/group/` · `frontend/app/components/groups/` |
+| **Backoffice** (suppliers, invoices, assets, batch-pay) | `backend/services/backoffice/` |
+| **Blacklist** (banned guests, Cloudinary photos, audit trail) | `backend/services/blacklist/` |
+| **DB / Migrations** (policy, schema, idempotent scripts) | `backend/db-mysql/` |
+
+## Adding a New Module
+
+When a new module grows complex enough to warrant its own doc:
+
+1. Create `CLAUDE.md` in the most specific relevant directory (`backend/services/<module>/` or `frontend/app/components/<module>/`). If no `services/` dir exists, create it as a documentation anchor.
+2. Write it in idiomatic technical English. Make it self-contained — a reader in that directory should not need the root to understand the module.
+3. Add a row to the **Module Index** table above.
+4. Commit as `docs(claude): split <module> module context into module file`.
