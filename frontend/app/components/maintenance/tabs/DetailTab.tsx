@@ -122,35 +122,45 @@ export function DetailTab() {
       reported: {
         color:
           'bg-yellow-50 text-yellow-700 border border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-400 dark:border-yellow-800',
+        cardBg:
+          'bg-yellow-50/60 dark:bg-yellow-950/20 border-yellow-200/70 dark:border-yellow-800/40',
         label: t('status.reported'),
       },
       assigned: {
         color:
           'bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-800',
+        cardBg: 'bg-blue-50/60 dark:bg-blue-950/20 border-blue-200/70 dark:border-blue-800/40',
         label: t('status.assigned'),
       },
       in_progress: {
         color:
           'bg-purple-50 text-purple-700 border border-purple-200 dark:bg-purple-900/20 dark:text-purple-400 dark:border-purple-800',
+        cardBg:
+          'bg-purple-50/60 dark:bg-purple-950/20 border-purple-200/70 dark:border-purple-800/40',
         label: t('status.inProgress'),
       },
       waiting: {
         color:
           'bg-orange-50 text-orange-700 border border-orange-200 dark:bg-orange-900/20 dark:text-orange-400 dark:border-orange-800',
+        cardBg:
+          'bg-orange-50/60 dark:bg-orange-950/20 border-orange-200/70 dark:border-orange-800/40',
         label: t('status.waiting'),
       },
       completed: {
         color:
           'bg-green-50 text-green-700 border border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800',
+        cardBg: 'bg-green-50/60 dark:bg-green-950/20 border-green-200/70 dark:border-green-800/40',
         label: t('status.completed'),
       },
       closed: {
         color: 'bg-surface-sunken text-fg-muted border border-border',
+        cardBg: 'bg-surface border-border',
         label: t('status.closed'),
       },
       canceled: {
         color:
           'bg-red-50 text-red-700 border border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800',
+        cardBg: 'bg-red-50/60 dark:bg-red-950/20 border-red-200/70 dark:border-red-800/40',
         label: t('status.canceled'),
       },
     }
@@ -216,7 +226,7 @@ export function DetailTab() {
         {/* Left Column - Main Information */}
         <div className="lg:col-span-2 space-y-6">
           {/* Status & Priority */}
-          <div className="bg-surface rounded-md border border-border p-4">
+          <div className={`rounded-md border p-4 ${statusConfig.cardBg}`}>
             <div className="flex items-center justify-between gap-4">
               {/* Estado */}
               <div className="flex-1">
@@ -314,151 +324,163 @@ export function DetailTab() {
             </div>
           </div>
 
-          {/* Main Info */}
-          <div className="bg-surface rounded-md border border-border p-4">
-            <h3 className="text-sm font-semibold text-fg flex items-center gap-2 mb-4">
-              <FiFileText className="w-4 h-4" />
-              {t('detail.sections.reportInfo')}
-            </h3>
+          {/* 2x2 grid: Report Info | Location / Assignment | Dates */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            {/* Main Info */}
+            <div className="bg-blue-50/60 dark:bg-blue-950/20 rounded-md border border-blue-200/70 dark:border-blue-800/40 p-4">
+              <h3 className="text-sm font-semibold text-fg flex items-center gap-2 mb-4">
+                <FiFileText className="w-4 h-4 text-blue-500 dark:text-blue-400" />
+                {t('detail.sections.reportInfo')}
+              </h3>
 
-            <div className="space-y-3">
-              <div>
-                <label className="text-xs text-fg-subtle">{t('detail.labels.title')}</label>
-                <p className="text-sm text-fg mt-1">{currentReport.title}</p>
-              </div>
-
-              <div>
-                <label className="text-xs text-fg-subtle">{t('detail.labels.description')}</label>
-                <p className="text-sm text-fg mt-1 whitespace-pre-wrap">
-                  {currentReport.description}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Location */}
-          <div className="bg-surface rounded-md border border-border p-4">
-            <h3 className="text-sm font-semibold text-fg flex items-center gap-2 mb-4">
-              <FiMapPin className="w-4 h-4" />
-              {t('detail.sections.location')}
-            </h3>
-
-            <div className="space-y-3">
-              <div>
-                <label className="text-xs text-fg-subtle">{t('detail.labels.type')}</label>
-                <p className="text-sm text-fg mt-1">
-                  {getLocationTypeLabel(currentReport.location_type)}
-                </p>
-              </div>
-
-              {currentReport.room_number && (
+              <div className="space-y-3">
                 <div>
-                  <label className="text-xs text-fg-subtle">{t('detail.labels.room')}</label>
-                  <p className="text-sm text-fg mt-1">{currentReport.room_number}</p>
+                  <label className="text-xs text-fg-subtle">{t('detail.labels.title')}</label>
+                  <p className="text-sm text-fg mt-1">{currentReport.title}</p>
                 </div>
-              )}
 
-              <div>
-                <label className="text-xs text-fg-subtle">{t('detail.labels.description')}</label>
-                <p className="text-sm text-fg mt-1">{currentReport.location_description}</p>
-              </div>
-
-              {currentReport.room_out_of_service && (
-                <div className="pt-2">
-                  <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded text-xs font-medium bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400">
-                    <FiAlertCircle className="w-3.5 h-3.5" />
-                    {t('detail.labels.roomOutOfService')}
-                  </span>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Assignment */}
-          <div className="bg-surface rounded-md border border-border p-4">
-            <h3 className="text-sm font-semibold text-fg flex items-center gap-2 mb-4">
-              <FiUser className="w-4 h-4" />
-              {t('detail.sections.assignment')}
-            </h3>
-
-            <div className="space-y-3">
-              {currentReport.assigned_type === 'internal' && (
                 <div>
-                  <label className="text-xs text-fg-subtle">
-                    {t('detail.labels.internalStaff')}
-                  </label>
-                  <p className="text-sm text-fg mt-1">
-                    {currentReport.assigned_to_name || t('detail.labels.assignedUser')}
+                  <label className="text-xs text-fg-subtle">{t('detail.labels.description')}</label>
+                  <p className="text-sm text-fg mt-1 whitespace-pre-wrap">
+                    {currentReport.description}
                   </p>
                 </div>
-              )}
+              </div>
+            </div>
 
-              {currentReport.assigned_type === 'external' && (
-                <>
+            {/* Location */}
+            <div className="bg-emerald-50/60 dark:bg-emerald-950/20 rounded-md border border-emerald-200/70 dark:border-emerald-800/40 p-4">
+              <h3 className="text-sm font-semibold text-fg flex items-center gap-2 mb-4">
+                <FiMapPin className="w-4 h-4 text-emerald-500 dark:text-emerald-400" />
+                {t('detail.sections.location')}
+              </h3>
+
+              <div className="space-y-3">
+                <div>
+                  <label className="text-xs text-fg-subtle">{t('detail.labels.type')}</label>
+                  <p className="text-sm text-fg mt-1">
+                    {getLocationTypeLabel(currentReport.location_type)}
+                  </p>
+                </div>
+
+                {currentReport.room_number && (
+                  <div>
+                    <label className="text-xs text-fg-subtle">{t('detail.labels.room')}</label>
+                    <p className="text-sm text-fg mt-1">{currentReport.room_number}</p>
+                  </div>
+                )}
+
+                <div>
+                  <label className="text-xs text-fg-subtle">{t('detail.labels.description')}</label>
+                  <p className="text-sm text-fg mt-1">{currentReport.location_description}</p>
+                </div>
+
+                {currentReport.room_out_of_service && (
+                  <div className="pt-2">
+                    <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded text-xs font-medium bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400">
+                      <FiAlertCircle className="w-3.5 h-3.5" />
+                      {t('detail.labels.roomOutOfService')}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Assignment */}
+            <div className="bg-violet-50/60 dark:bg-violet-950/20 rounded-md border border-violet-200/70 dark:border-violet-800/40 p-4">
+              <h3 className="text-sm font-semibold text-fg flex items-center gap-2 mb-4">
+                <FiUser className="w-4 h-4 text-violet-500 dark:text-violet-400" />
+                {t('detail.sections.assignment')}
+              </h3>
+
+              <div className="space-y-3">
+                {currentReport.assigned_type === 'internal' && (
                   <div>
                     <label className="text-xs text-fg-subtle">
-                      {t('detail.labels.externalCompany')}
+                      {t('detail.labels.internalStaff')}
                     </label>
                     <p className="text-sm text-fg mt-1">
-                      {currentReport.external_company_name || '-'}
+                      {currentReport.assigned_to_name || t('detail.labels.assignedUser')}
                     </p>
                   </div>
-                  {currentReport.external_contact && (
+                )}
+
+                {currentReport.assigned_type === 'external' && (
+                  <>
                     <div>
-                      <label className="text-xs text-fg-subtle">{t('detail.labels.contact')}</label>
-                      <p className="text-sm text-fg mt-1">{currentReport.external_contact}</p>
+                      <label className="text-xs text-fg-subtle">
+                        {t('detail.labels.externalCompany')}
+                      </label>
+                      <p className="text-sm text-fg mt-1">
+                        {currentReport.external_company_name || '-'}
+                      </p>
                     </div>
-                  )}
-                </>
-              )}
+                    {currentReport.external_contact && (
+                      <div>
+                        <label className="text-xs text-fg-subtle">
+                          {t('detail.labels.contact')}
+                        </label>
+                        <p className="text-sm text-fg mt-1">{currentReport.external_contact}</p>
+                      </div>
+                    )}
+                  </>
+                )}
 
-              {!currentReport.assigned_type && (
-                <p className="text-sm text-fg-subtle">{t('detail.labels.notAssigned')}</p>
-              )}
-            </div>
-          </div>
-
-          {/* Timestamps */}
-          <div className="bg-surface rounded-md border border-border p-4">
-            <h3 className="text-sm font-semibold text-fg flex items-center gap-2 mb-4">
-              <FiClock className="w-4 h-4" />
-              {t('detail.sections.dates')}
-            </h3>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <label className="text-xs text-fg-subtle">{t('detail.labels.reported')}</label>
-                <p className="text-sm text-fg mt-1">{formatDateTime(currentReport.report_date)}</p>
+                {!currentReport.assigned_type && (
+                  <p className="text-sm text-fg-subtle">{t('detail.labels.notAssigned')}</p>
+                )}
               </div>
+            </div>
 
-              {currentReport.started_at && (
-                <div>
-                  <label className="text-xs text-fg-subtle">{t('detail.labels.started')}</label>
-                  <p className="text-sm text-fg mt-1">{formatDateTime(currentReport.started_at)}</p>
-                </div>
-              )}
+            {/* Timestamps */}
+            <div className="bg-amber-50/60 dark:bg-amber-950/20 rounded-md border border-amber-200/70 dark:border-amber-800/40 p-4">
+              <h3 className="text-sm font-semibold text-fg flex items-center gap-2 mb-4">
+                <FiClock className="w-4 h-4 text-amber-500 dark:text-amber-400" />
+                {t('detail.sections.dates')}
+              </h3>
 
-              {currentReport.resolved_at && (
+              <div className="space-y-3">
                 <div>
-                  <label className="text-xs text-fg-subtle">{t('detail.labels.resolved')}</label>
+                  <label className="text-xs text-fg-subtle">{t('detail.labels.reported')}</label>
                   <p className="text-sm text-fg mt-1">
-                    {formatDateTime(currentReport.resolved_at)}
+                    {formatDateTime(currentReport.report_date)}
                   </p>
                 </div>
-              )}
 
-              {currentReport.closed_at && (
-                <div>
-                  <label className="text-xs text-fg-subtle">{t('detail.labels.closed')}</label>
-                  <p className="text-sm text-fg mt-1">{formatDateTime(currentReport.closed_at)}</p>
-                </div>
-              )}
+                {currentReport.started_at && (
+                  <div>
+                    <label className="text-xs text-fg-subtle">{t('detail.labels.started')}</label>
+                    <p className="text-sm text-fg mt-1">
+                      {formatDateTime(currentReport.started_at)}
+                    </p>
+                  </div>
+                )}
+
+                {currentReport.resolved_at && (
+                  <div>
+                    <label className="text-xs text-fg-subtle">{t('detail.labels.resolved')}</label>
+                    <p className="text-sm text-fg mt-1">
+                      {formatDateTime(currentReport.resolved_at)}
+                    </p>
+                  </div>
+                )}
+
+                {currentReport.closed_at && (
+                  <div>
+                    <label className="text-xs text-fg-subtle">{t('detail.labels.closed')}</label>
+                    <p className="text-sm text-fg mt-1">
+                      {formatDateTime(currentReport.closed_at)}
+                    </p>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
           {/* Resolution Notes */}
-          <div className="bg-surface rounded-md border border-border p-4">
-            <h3 className="text-sm font-semibold text-fg mb-3">
+          <div className="bg-teal-50/60 dark:bg-teal-950/20 rounded-md border border-teal-200/70 dark:border-teal-800/40 p-4">
+            <h3 className="text-sm font-semibold text-fg flex items-center gap-2 mb-3">
+              <FiEdit2 className="w-4 h-4 text-teal-500 dark:text-teal-400" />
               {t('detail.sections.resolutionNotes')}
             </h3>
             {currentReport.resolution_notes ? (
