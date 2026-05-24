@@ -26,7 +26,14 @@ import {
   IoWarningOutline,
   IoPersonOutline,
 } from 'react-icons/io5'
-import { FiAlertTriangle, FiLogIn, FiLogOut, FiClock } from 'react-icons/fi'
+import {
+  FiAlertTriangle,
+  FiLogIn,
+  FiLogOut,
+  FiClock,
+  FiImage,
+  FiMessageSquare,
+} from 'react-icons/fi'
 
 interface BlacklistDetailClientProps {
   entry: BlacklistEntry
@@ -196,27 +203,57 @@ export function BlacklistDetailClient({
         <div className="grid grid-cols-1 min-[1400px]:grid-cols-4 gap-6">
           {/* Left Column - Main Content */}
           <div className="min-[1400px]:col-span-3 space-y-5">
-            {/* Documento */}
-            <Card className="bg-surface border-border">
-              <h3 className="text-sm font-semibold text-fg mb-4 flex items-center gap-2">
-                <IoDocumentTextOutline size={18} />
-                {t('detail.documentInfo')}
-              </h3>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <div className="text-xs text-fg-muted mb-1">{t('detail.documentType')}</div>
-                  <div className="text-sm font-medium text-fg">
-                    {DOCUMENT_TYPES[entry.document_type]}
+            {/* 2x2 grid: Document | Reason / Comments | Images */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              {/* Documento */}
+              <div className="bg-blue-50/60 dark:bg-blue-950/20 rounded-xl border border-blue-200/70 dark:border-blue-800/40 p-4">
+                <h3 className="text-sm font-semibold text-fg mb-4 flex items-center gap-2">
+                  <IoDocumentTextOutline size={18} className="text-blue-500 dark:text-blue-400" />
+                  {t('detail.documentInfo')}
+                </h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <div className="text-xs text-fg-muted mb-1">{t('detail.documentType')}</div>
+                    <div className="text-sm font-medium text-fg">
+                      {DOCUMENT_TYPES[entry.document_type]}
+                    </div>
                   </div>
-                </div>
-                <div>
-                  <div className="text-xs text-fg-muted mb-1">{t('detail.documentNumber')}</div>
-                  <div className="text-sm font-medium text-fg font-mono">
-                    {entry.document_number}
+                  <div>
+                    <div className="text-xs text-fg-muted mb-1">{t('detail.documentNumber')}</div>
+                    <div className="text-sm font-medium text-fg font-mono">
+                      {entry.document_number}
+                    </div>
                   </div>
                 </div>
               </div>
-            </Card>
+
+              {/* Motivo */}
+              <div className="bg-orange-50/60 dark:bg-orange-950/20 rounded-xl border border-orange-200/70 dark:border-orange-800/40 p-4">
+                <h3 className="text-sm font-semibold text-fg mb-4 flex items-center gap-2">
+                  <IoWarningOutline size={18} className="text-orange-500 dark:text-orange-400" />
+                  {t('detail.incidentReason')}
+                </h3>
+                <p className="text-sm text-fg whitespace-pre-wrap">{entry.reason}</p>
+              </div>
+
+              {/* Comentarios */}
+              <div className="bg-violet-50/60 dark:bg-violet-950/20 rounded-xl border border-violet-200/70 dark:border-violet-800/40 p-4">
+                <h3 className="text-sm font-semibold text-fg mb-4 flex items-center gap-2">
+                  <FiMessageSquare className="w-4 h-4 text-violet-500 dark:text-violet-400" />
+                  {t('detail.additionalComments')}
+                </h3>
+                <p className="text-sm text-fg whitespace-pre-wrap">{entry.comments}</p>
+              </div>
+
+              {/* Imagenes */}
+              <div className="bg-teal-50/60 dark:bg-teal-950/20 rounded-xl border border-teal-200/70 dark:border-teal-800/40 p-4">
+                <h3 className="text-sm font-semibold text-fg mb-4 flex items-center gap-2">
+                  <FiImage className="w-4 h-4 text-teal-500 dark:text-teal-400" />
+                  {t('detail.photoEvidence')} ({entry.images.length})
+                </h3>
+                <ImageGallery images={entry.images} alt={`Evidencia de ${entry.guest_name}`} />
+              </div>
+            </div>
 
             {/* Fechas - Only visible on mobile/tablet */}
             <Card className="dark:bg-surface border-border min-[1400px]:hidden">
@@ -244,31 +281,6 @@ export function BlacklistDetailClient({
                   </div>
                 </div>
               </div>
-            </Card>
-
-            {/* Motivo */}
-            <Card className="dark:bg-surface border-border">
-              <h3 className="text-sm font-semibold text-fg mb-4 flex items-center gap-2">
-                <IoWarningOutline size={18} />
-                {t('detail.incidentReason')}
-              </h3>
-              <p className="text-sm text-fg whitespace-pre-wrap">{entry.reason}</p>
-            </Card>
-
-            {/* Comentarios */}
-            <Card className="dark:bg-surface border-border">
-              <h3 className="text-sm font-semibold text-fg mb-4">
-                {t('detail.additionalComments')}
-              </h3>
-              <p className="text-sm text-fg whitespace-pre-wrap">{entry.comments}</p>
-            </Card>
-
-            {/* Imagenes */}
-            <Card className="dark:bg-surface border-border">
-              <h3 className="text-sm font-semibold text-fg mb-4">
-                {t('detail.photoEvidence')} ({entry.images.length})
-              </h3>
-              <ImageGallery images={entry.images} alt={`Evidencia de ${entry.guest_name}`} />
             </Card>
 
             {/* Informacion - Only visible on mobile/tablet */}
