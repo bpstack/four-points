@@ -291,10 +291,12 @@ Razones que llevaron a esta decisión (registradas para no reabrir el debate):
 1. **Push pendiente:** `git push origin main` para subir los 6 commits del split + el de traducción si quedó algo sin pushear. Comprobar primero con `git log origin/main..HEAD`.
 2. **Verificación rápida del split:** abrir Claude desde `backend/scheduling-solver/`, `backend/services/logbook/`, `frontend/app/dashboard/parking/`, etc., y confirmar que el contexto cargado es coherente. Si algo chirría, ajustar antes de seguir.
 3. **Continuar Fase 2 — módulos pendientes** (en orden sugerido):
-   - **Cashier** (17 backend + 26 componentes + lib export PDF de 687 líneas; muy denso). Probablemente 2 archivos: `backend/services/cashier/` (no existe el dir todavía, ver nota abajo) o `backend/controllers/cashier/` + `frontend/app/components/cashier/`. Decidir en la exploración.
-   - **Group** (17 backend + 30 componentes, multi-tenancy). 2 archivos: `backend/services/group/` o `controllers/group/` + `frontend/app/components/groups/`.
-   - **DB / migraciones** (`backend/db-mysql/CLAUDE.md`): política de migraciones incrementales, prohibición de MASTER_INSTALL, INDEX.md. Único archivo.
-   - **Conciliation, Blacklist, Backoffice/bo** marcados como "Evaluar" en el inventario — leer código y decidir si justifican archivo propio. Si no, su sección breve en el raíz es suficiente.
+   - ✅ **Cashier** — cerrado 2026-05-24. 2 archivos: `backend/services/cashier/CLAUDE.md` + `frontend/app/components/cashier/CLAUDE.md`. Dir `backend/services/cashier/` creado (Opción A).
+   - ✅ **Group** — cerrado 2026-05-24. 2 archivos: `backend/services/group/CLAUDE.md` + `frontend/app/components/groups/CLAUDE.md`.
+   - ✅ **DB / migraciones** — cerrado 2026-05-24. `backend/db-mysql/CLAUDE.md`.
+   - ✅ **Blacklist** — cerrado 2026-05-24. `backend/services/blacklist/CLAUDE.md` (combined backend+frontend).
+   - ✅ **Backoffice/bo** — cerrado 2026-05-24. `backend/services/backoffice/CLAUDE.md` (combined backend+frontend).
+   - ⛔ **Conciliation** — SKIP por decisión explícita del usuario (2026-05-24). No crear CLAUDE.md para este módulo.
 4. **Decisión pendiente sobre `backend/services/cashier/` y `backend/services/group/`:** **estos directorios no existen** (todo el módulo vive en controllers/repositories/routes directamente). Hay dos opciones para ubicar el CLAUDE.md:
    - **Opción A:** crear el directorio `backend/services/<modulo>/` solo para alojar el `CLAUDE.md` (no añade servicios reales, es solo punto de anclaje semántico). Pro: consistente con scheduling/checklist/logbook/parking/fnb. Contra: añade un directorio "vacío" que puede confundir.
    - **Opción B:** colocarlo en `backend/controllers/<modulo>/CLAUDE.md` o `backend/repositories/<modulo>/CLAUDE.md`. Pro: vive donde está el código. Contra: rompe la convención que arrastramos.
