@@ -73,22 +73,23 @@ Si esa versión exacta no está indexada, usa la minor más cercana por debajo y
 
 ### Versiones instaladas (fuente de verdad: los `package.json`)
 
-| Librería                | Versión     | Workspace | Nota                                                               |
-| ----------------------- | ----------- | --------- | ------------------------------------------------------------------ |
-| `next`                  | **16.0.8**  | frontend  | App Router + Turbopack. React 19.1.1                               |
-| `@tanstack/react-query` | **5.90.11** | frontend  | v5: `isPending`, objeto único en `useQuery({...})`                 |
-| `zod`                   | **3.25.17** | frontend  | ⚠️ v3                                                              |
-| `zod`                   | **4.0.5**   | backend   | ⚠️ v4 — API distinta a la del frontend                             |
-| `next-intl`             | **4.6.1**   | frontend  | v4: `routing.ts` + `createNavigation`                              |
-| `pdf-lib`               | **1.17.1**  | frontend  | Verificar antes de tocar embebido de fuentes/imágenes              |
-| `cloudinary`            | **2.8.0**   | backend   | SDK v2, API distinta a la v1 de la mayoría de ejemplos             |
-| `tailwindcss`           | **3.4.17**  | frontend  | **v3, no v4** — nada de `@import "tailwindcss"` ni `@theme`        |
-| `express`               | **5.1.0**   | backend   | v5: async errors automáticos, path-to-regexp 8, `req.query` getter |
-| `zustand`               | **5.0.8**   | frontend  | v5 sin selectores por defecto                                      |
-| `react-hook-form`       | **7.66.0**  | frontend  | Con `@hookform/resolvers` 5.x (breaking vs 3.x)                    |
-| `react-day-picker`      | **9.11.1**  | frontend  | v9 renombró props y variables CSS                                  |
-| `multer`                | **2.0.2**   | backend   | v2 rompe respecto a la 1.x de los ejemplos habituales              |
-| `vitest`                | **4.x**     | backend   | API de mocks distinta a v1/v2                                      |
+| Librería                | Versión     | Workspace | Nota                                                                                                   |
+| ----------------------- | ----------- | --------- | ------------------------------------------------------------------------------------------------------ |
+| `next`                  | **16.0.8**  | frontend  | App Router + Turbopack. React 19.1.1                                                                   |
+| `@tanstack/react-query` | **5.90.11** | frontend  | v5: `isPending`, objeto único en `useQuery({...})`                                                     |
+| `zod`                   | **3.25.17** | frontend  | ⚠️ v3                                                                                                  |
+| `zod`                   | **4.0.5**   | backend   | ⚠️ v4 — API distinta a la del frontend                                                                 |
+| `next-intl`             | **4.6.1**   | frontend  | v4: `routing.ts` + `createNavigation`                                                                  |
+| `pdf-lib`               | **1.17.1**  | frontend  | Verificar antes de tocar embebido de fuentes/imágenes                                                  |
+| `cloudinary`            | **2.8.0**   | backend   | SDK v2, API distinta a la v1 de la mayoría de ejemplos                                                 |
+| `tailwindcss`           | **3.4.17**  | frontend  | **v3, no v4** — nada de `@import "tailwindcss"` ni `@theme`                                            |
+| `express`               | **5.1.0**   | backend   | v5: async errors automáticos, path-to-regexp 8, `req.query` getter                                     |
+| `zustand`               | **5.0.8**   | frontend  | v5 sin selectores por defecto                                                                          |
+| `react-hook-form`       | **7.66.0**  | frontend  | Con `@hookform/resolvers` 5.x (breaking vs 3.x)                                                        |
+| `react-day-picker`      | **9.11.1**  | frontend  | v9 renombró props y variables CSS                                                                      |
+| `multer`                | **2.0.2**   | backend   | v2 rompe respecto a la 1.x de los ejemplos habituales                                                  |
+| `pdf-parse`             | **1.1.1**   | backend   | **Fijado a v1 a propósito — no actualizar** (v2 → OOM en Render). Ver `backend/services/fnb/CLAUDE.md` |
+| `vitest`                | **4.x**     | backend   | API de mocks distinta a v1/v2                                                                          |
 
 **Zod está en dos majors distintas.** Nunca copies un schema entre `frontend/lib/schemas/` y
 `backend/validations/` sin consultar la doc de ambas: en v4 cambian los mensajes de error
@@ -101,6 +102,10 @@ Dependencias declaradas pero **sin uso real** en `frontend/`: `next-auth` (5.0.0
 
 - Context7 sirve para **verificar**, no para migrar. No actualices versiones ni "modernices" código
   existente que funciona sin petición explícita.
+- Un `CLAUDE.md` de módulo puede fijar una versión por motivos operativos (memoria en Render,
+  compatibilidad con el host…). **Esa nota manda sobre esta tabla y sobre la doc oficial** — son
+  restricciones de infraestructura que Context7 no conoce. `pdf-parse` en `services/fnb/` es el
+  ejemplo vivo.
 - Si detectas una API deprecada en código ya existente, **señálalo en la respuesta pero no lo cambies**.
 - Si la doc actual recomienda un patrón distinto al del repo, sigue la convención del repo y menciona
   la discrepancia.

@@ -55,7 +55,7 @@ incorrecto porque la versión instalada **no es la que se asume por defecto**:
 | `@nextui-org/react` | **2.6.11**                   | Paquete `@nextui-org`, no el rebrand `@heroui`                                                                                                            |
 | `recharts`          | **3.5.1**                    | v3 cambió tipados y algunos defaults respecto a v2                                                                                                        |
 | `pdfjs-dist`        | **5.4.449**                  | Configuración del worker distinta según major; sensible al bundler                                                                                        |
-| `pdf-parse`         | **1.1.1** (backend)          | Sin mantenimiento; el import por defecto ejecuta código de test. Ver cómo lo envuelve `services/fnb/` antes de tocarlo                                    |
+| `pdf-parse`         | **1.1.1** (backend)          | **Fijado a v1 a propósito — no actualizar.** v2 provoca OOM en el free tier de Render. Razón y medición en `backend/services/fnb/CLAUDE.md`               |
 | `xlsx`              | **0.18.5**                   | Distribuido fuera del registro público de npm; no asumir API de versiones más nuevas                                                                      |
 | `zustand`           | **5.0.8**                    | v5 eliminó los selectores por defecto y el export legacy `create` sin currying                                                                            |
 | `react-hook-form`   | **7.66.0**                   | Con `@hookform/resolvers` 5.x, que sí es breaking respecto a 3.x                                                                                          |
@@ -75,6 +75,10 @@ no NextAuth. Si alguna vez se limpian, que sea en un commit `chore:` aparte.
 
 - context7 sirve para **verificar**, no para migrar. No apliques cambios de versión ni "modernices"
   código existente que funciona sin que se pida explícitamente.
+- Un `CLAUDE.md` de módulo puede fijar una versión por motivos operativos (memoria en Render,
+  compatibilidad con el host…). **Esa nota manda sobre esta tabla y sobre lo que diga la doc oficial** —
+  son restricciones de infraestructura que context7 no conoce. `pdf-parse` en `services/fnb/` es el
+  ejemplo vivo.
 - Si la doc actual recomienda un patrón distinto al que ya usa el repo, **no reescribas**: señálalo
   en la respuesta y sigue la convención existente salvo que el usuario decida lo contrario.
 - Aplica solo a código nuevo o modificado en la tarea en curso.
