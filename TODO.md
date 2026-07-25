@@ -8,6 +8,61 @@
 
 - **Sprint 2** — quedan H1-13 Sentry (bloqueado por DSN externo) y H1-17 Cloudflare Access (tarea panel).
 - **CLAUDE.md restructure** ✅ completo. Doc del sistema en `docs/claude-system.md`.
+- **Setup por máquina** — al clonar en otro equipo, ver la sección de abajo (hooks de Git, Context7, venv del solver).
+
+---
+
+## Setup por máquina — hacer al clonar en un equipo nuevo
+
+Cosas que **no viajan con el repo** y hay que repetir en cada ordenador. Si te cambias de equipo,
+esta es la lista.
+
+### 1. Activar los hooks de Git (30 s) — importante
+
+```bash
+git config core.hooksPath .githooks
+```
+
+Los hooks están versionados en `.githooks/`, pero `core.hooksPath` es config local (`.git/config`) y
+no se clona. **Sin este comando los hooks están en disco pero inertes**, y se pierde:
+
+- `commit-msg` — bloquea atribución de IA en los mensajes de commit.
+- `pre-push` — bloquea push desde sesiones no interactivas (agentes) y force-push contra `main`.
+
+Comprobar que está activo: `git config --get core.hooksPath` debe responder `.githooks`.
+
+### 2. Registrar el MCP de Context7 (una vez por máquina)
+
+```bash
+# Claude Code
+claude mcp add --scope user --header "CONTEXT7_API_KEY: $CONTEXT7_API_KEY" \
+  --transport http context7 https://mcp.context7.com/mcp
+claude mcp list      # debe salir context7 → Connected
+```
+
+Para OpenCode: bloque `mcp.context7` en `~/.config/opencode/opencode.json` (ver `AGENTS.md`) +
+`export CONTEXT7_API_KEY="…"` en `.bashrc` / `.zshrc`. Verificar con `opencode mcp list`.
+
+En WSL la config va **dentro** del WSL, no en PowerShell — tiene su propio `$HOME`.
+
+### 3. Venv del solver Python
+
+```bash
+cd backend/scheduling-solver
+python -m venv venv
+venv/Scripts/pip install ortools pydantic pytest    # Windows
+# venv/bin/pip install ortools pydantic pytest      # Linux/Mac
+```
+
+El venv está gitignoreado. Sin él, la generación automática de horarios no arranca.
+
+### Checklist por equipo
+
+| Equipo               | Hooks | Context7 | Venv solver |
+| -------------------- | ----- | -------- | ----------- |
+| PC Windows (2026-07) | ✅    | ✅       | ✅          |
+| PC Linux             | ⬜    | ⬜       | ⬜          |
+| Portátil de trabajo  | ⬜    | ⬜       | ⬜          |
 
 ---
 
