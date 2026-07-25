@@ -5,6 +5,7 @@
 **Propósito:** Documento maestro de auditoría técnica y roadmap estratégico previo a la introducción de datos reales de empresa en producción.
 
 > **Cómo leer este documento**
+>
 > - **FASE 1** documenta el estado real del sistema (arquitectura, demo, auth, deuda). No prescribe cambios.
 > - **FASE 2** propone el roadmap progresivo, con prioridad, complejidad, riesgo y dependencia.
 > - Cada hallazgo cita `archivo:línea` para que cualquier afirmación sea verificable.
@@ -16,20 +17,21 @@
 
 Tras revisar el documento, el dueño confirmó las siguientes decisiones. Estas son ahora invariantes del plan; cualquier nuevo plan o sesión IA debe respetarlas.
 
-| Decisión | Resolución | Notas |
-|---|---|---|
-| **D-1 · Demo público** | Deshabilitar definitivamente según §5.2 plan de transición | ✅ Ejecutado 2026-05-12: `is_active=0` en aiven + password rotado + seed comentado en MASTER_INSTALL |
-| **D-2 · Cloudflare Access** | Sí, delante de `four-points.stackbp.es` | ⏳ Pendiente Sprint 2 (H1-17). Zero Trust Access free tier (≤50 usuarios) |
-| **D-3 · Refresh token rotation** | ~~Implementar antes de datos reales~~ → **DESCARTADO a esta escala (revisado 2026-05-15)** | Ver §0.2 para razonamiento. Reabrir si crecimiento a 50+ usuarios, apertura pública o compliance regulado |
-| **D-4 · Multi-tenancy** | Diferida indefinidamente | Reabrir solo si HotelCode capta primer cliente externo |
-| **D-5 · Alcance Sprint 2** | Reducido a infraestructura mínima + Cloudflare Access (2026-05-15) | H2-1 descartado, H1-16 desagregado, ver §0.2 |
-| **D-6 · Refactor timezone** | Centralizar lógica de fechas Madrid en backend + frontend; UTC solo para timestamps de auditoría | ✅ Ejecutado 2026-05-16 en 7 commits (`d7039d8` → `84899b2`). Ver §0.3 |
+| Decisión                         | Resolución                                                                                       | Notas                                                                                                     |
+| -------------------------------- | ------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------- |
+| **D-1 · Demo público**           | Deshabilitar definitivamente según §5.2 plan de transición                                       | ✅ Ejecutado 2026-05-12: `is_active=0` en aiven + password rotado + seed comentado en MASTER_INSTALL      |
+| **D-2 · Cloudflare Access**      | Sí, delante de `four-points.stackbp.es`                                                          | ⏳ Pendiente Sprint 2 (H1-17). Zero Trust Access free tier (≤50 usuarios)                                 |
+| **D-3 · Refresh token rotation** | ~~Implementar antes de datos reales~~ → **DESCARTADO a esta escala (revisado 2026-05-15)**       | Ver §0.2 para razonamiento. Reabrir si crecimiento a 50+ usuarios, apertura pública o compliance regulado |
+| **D-4 · Multi-tenancy**          | Diferida indefinidamente                                                                         | Reabrir solo si HotelCode capta primer cliente externo                                                    |
+| **D-5 · Alcance Sprint 2**       | Reducido a infraestructura mínima + Cloudflare Access (2026-05-15)                               | H2-1 descartado, H1-16 desagregado, ver §0.2                                                              |
+| **D-6 · Refactor timezone**      | Centralizar lógica de fechas Madrid en backend + frontend; UTC solo para timestamps de auditoría | ✅ Ejecutado 2026-05-16 en 7 commits (`d7039d8` → `84899b2`). Ver §0.3                                    |
 
 ### 0.1 Coordinación con el merge schedule+checklist ✅ COMPLETADO
 
 **Estado actualizado 2026-05-12:** `feature/ai-schedule-generator` mergeado a `main` (PR #3, merge commit `f34e20d`). Sprint 0 también cerrado el mismo día. Próximo paso: Sprint 1 cuando `main` esté estable ≥24h.
 
 **Bloqueadores del merge — todos cerrados:**
+
 - ✅ Migración Aiven de `scheduling_employee_requests` (B-2). Aplicado vía `scripts/20260512_add_scheduling_solver_runs_and_requests.sql`.
 - ✅ Fase 3 paso 1 — tabla `scheduling_solver_runs` + hook controller que persiste cada outcome.
 - ✅ Fase 3 paso 2 — UX de infeasibilidad: motor heurístico Python + botón Aplicar y reintentar.
@@ -67,6 +69,7 @@ Tras revisar el documento, el dueño confirmó las siguientes decisiones. Estas 
 ```
 
 **Razonamiento:**
+
 1. **Sprint 0 (paralelo al scheduler)**: solo se tocan documentación, SQL del demo, y se escriben tests. Cero impacto en código de producción que se esté tocando en el merge schedule+checklist. Riesgo de conflicto de merge: nulo.
 2. **No mezclar auth con scheduler**: el refresh token rotation toca el flujo de login y exige migración de tabla. Si rompe algo, queremos `main` "tranquilo" para diagnosticar. Mezclarlo con la entrada del scheduler en `main` multiplica las superficies de bug en una misma ventana de inestabilidad.
 3. **Tests auth (H1-15) primero**: antes de tocar el módulo de auth en Sprint 1, los tests de regresión deben estar en `main`. Esto es la red de seguridad que hace que cualquier cambio posterior sea reversible.
@@ -88,13 +91,13 @@ Tras análisis objetivo del alcance de Sprint 2 con el dueño, se revisó el pla
 
 Razonamiento:
 
-| Amenaza | Probabilidad | ¿H2-1 lo mitiga? | ¿Hay alternativa más barata? |
-|---|---|---|---|
-| XSS roba refresh token | Muy baja — cookies son `HttpOnly`, JS no las puede leer | N/A | Ya mitigado |
-| Empleado pierde portátil con sesión activa | Real pero infrecuente | Sí | Rotar `SECRET_JWT_KEY` en Render (relogea a ≤30 usuarios) |
-| Empleado deshonesto exfiltra cookies | Muy baja — requiere acceso físico | Sí | Mismo "botón nuclear" |
-| Fuga refresh en logs | Baja — controlable con buena instrumentación | Sí | Auditar logs (1 vez) |
-| Atacante externo penetra CF Access | Muy baja — Google OAuth previa | Discutible | CF Access (H1-17) ya planificado |
+| Amenaza                                    | Probabilidad                                            | ¿H2-1 lo mitiga? | ¿Hay alternativa más barata?                              |
+| ------------------------------------------ | ------------------------------------------------------- | ---------------- | --------------------------------------------------------- |
+| XSS roba refresh token                     | Muy baja — cookies son `HttpOnly`, JS no las puede leer | N/A              | Ya mitigado                                               |
+| Empleado pierde portátil con sesión activa | Real pero infrecuente                                   | Sí               | Rotar `SECRET_JWT_KEY` en Render (relogea a ≤30 usuarios) |
+| Empleado deshonesto exfiltra cookies       | Muy baja — requiere acceso físico                       | Sí               | Mismo "botón nuclear"                                     |
+| Fuga refresh en logs                       | Baja — controlable con buena instrumentación            | Sí               | Auditar logs (1 vez)                                      |
+| Atacante externo penetra CF Access         | Muy baja — Google OAuth previa                          | Discutible       | CF Access (H1-17) ya planificado                          |
 
 Coste de implementación de H2-1: tabla `refresh_tokens` + migración local + migración Aiven + cambios en `login`/`refresh`/`logout`/`updatePassword` + tests + ventana de despliegue arriesgada (rompe sesiones activas si hay bug). Coste alto. Riesgo residual cubierto: bajo.
 
@@ -104,28 +107,28 @@ Coste de implementación de H2-1: tabla `refresh_tokens` + migración local + mi
 
 El item original "render.yaml + vercel.json" mezclaba cosas de valor real (security headers, pin de versiones) con ceremonia (Blueprint IaC con un solo servicio):
 
-| Sub-item | Decisión | Razón |
-|---|---|---|
-| **H1-16.1** Pinear deps Python (`requirements.txt`, fijar ortools/pydantic) | ✅ Sprint 2 | Único riesgo silencioso con probabilidad no despreciable: hoy `pip install ortools pydantic` sin versión → cada deploy descarga lo último → pandas/numpy/ortools incompatible rompe el build |
-| **H1-16.2** `.python-version` con `3.11` | ⚠️ Opcional | 1 min, valor marginal — Render no cambia el default de buildpack Python con frecuencia |
-| **H1-16.3** `engines.node` o `.nvmrc` con `22.16.0` | ⚠️ Opcional | 2 min, valor marginal — Node 22 es LTS hasta 2027 |
-| **H1-16.4** `frontend/vercel.json` security headers | ✅ Sprint 2 | Valor objetivo medible (HSTS, X-Frame-Options, etc. → securityheaders.com puntúa A) |
-| **H1-16.5** `backend/render.yaml` Blueprint | ⏸️ Diferido | Valor real de IaC aparece con ≥2 entornos o ≥2 servicios. Hoy: 1+1+1 → ceremonia. Receta lista en `TODO.md` para cuando se reabra |
-| **H1-16.6** `^` → exacto en deps | ❌ Descartado | `pnpm-lock.yaml` ya pinea las versiones efectivas. Cambio cosmético sin estabilidad nueva |
+| Sub-item                                                                    | Decisión      | Razón                                                                                                                                                                                        |
+| --------------------------------------------------------------------------- | ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **H1-16.1** Pinear deps Python (`requirements.txt`, fijar ortools/pydantic) | ✅ Sprint 2   | Único riesgo silencioso con probabilidad no despreciable: hoy `pip install ortools pydantic` sin versión → cada deploy descarga lo último → pandas/numpy/ortools incompatible rompe el build |
+| **H1-16.2** `.python-version` con `3.11`                                    | ⚠️ Opcional   | 1 min, valor marginal — Render no cambia el default de buildpack Python con frecuencia                                                                                                       |
+| **H1-16.3** `engines.node` o `.nvmrc` con `22.16.0`                         | ⚠️ Opcional   | 2 min, valor marginal — Node 22 es LTS hasta 2027                                                                                                                                            |
+| **H1-16.4** `frontend/vercel.json` security headers                         | ✅ Sprint 2   | Valor objetivo medible (HSTS, X-Frame-Options, etc. → securityheaders.com puntúa A)                                                                                                          |
+| **H1-16.5** `backend/render.yaml` Blueprint                                 | ⏸️ Diferido   | Valor real de IaC aparece con ≥2 entornos o ≥2 servicios. Hoy: 1+1+1 → ceremonia. Receta lista en `TODO.md` para cuando se reabra                                                            |
+| **H1-16.6** `^` → exacto en deps                                            | ❌ Descartado | `pnpm-lock.yaml` ya pinea las versiones efectivas. Cambio cosmético sin estabilidad nueva                                                                                                    |
 
 ### 0.3 Refactor timezone — completado (2026-05-16)
 
 Refactor ejecutado tras detectar bugs reales de timezone en producción (Render UTC + lógica de negocio Madrid). 7 commits clean, separados por scope, todos pusheados y verificados en prod:
 
-| Commit | Lote | Scope |
-|---|---|---|
-| `d7039d8` | B | docs: revise sprint 2 scope + rewrite timezone plan |
-| `d0c6c71` | A | chore: pin Node 22.16.0 + Python 3.11 + vercel.json security headers + Zod `.trim()` |
-| `5a2049b` | A.1 | fix: `app.set('trust proxy', 1)` para `express-rate-limit` con IP real cliente |
-| `fa3de26` | C | refactor: centralizar `getTodayMadrid()` + timezone Madrid en crons |
-| `b1d2a20` | D | fix: auto-close lazy en `getRunState()` (workaround cron-sleep Render free tier) |
-| `acb281a` | E | refactor: 14 sitios en 9 archivos backend con `getNowMadrid()` / `getLastDayOfMonth()` |
-| `84899b2` | F | fix: `timeZone: 'Europe/Madrid'` explícito en helpers frontend + `parseInputDate` robusto a ISO |
+| Commit    | Lote | Scope                                                                                           |
+| --------- | ---- | ----------------------------------------------------------------------------------------------- |
+| `d7039d8` | B    | docs: revise sprint 2 scope + rewrite timezone plan                                             |
+| `d0c6c71` | A    | chore: pin Node 22.16.0 + Python 3.11 + vercel.json security headers + Zod `.trim()`            |
+| `5a2049b` | A.1  | fix: `app.set('trust proxy', 1)` para `express-rate-limit` con IP real cliente                  |
+| `fa3de26` | C    | refactor: centralizar `getTodayMadrid()` + timezone Madrid en crons                             |
+| `b1d2a20` | D    | fix: auto-close lazy en `getRunState()` (workaround cron-sleep Render free tier)                |
+| `acb281a` | E    | refactor: 14 sitios en 9 archivos backend con `getNowMadrid()` / `getLastDayOfMonth()`          |
+| `84899b2` | F    | fix: `timeZone: 'Europe/Madrid'` explícito en helpers frontend + `parseInputDate` robusto a ISO |
 
 **Arquitectura canon resultante:**
 
@@ -138,6 +141,7 @@ Europe/Madrid → lógica de negocio: hotel_date, cierres diarios, turnos, cajas
 - **Fuente única frontend**: `frontend/app/lib/helpers/date.ts` con `timeZone: 'Europe/Madrid'` forzado en todos los helpers.
 
 **Bugs reales corregidos:**
+
 - Crons `'0 7 * * *'` y batch payment día 10 disparaban en UTC, no Madrid (1-2h de desfase real).
 - `getOccupancyByLevel` en `stats.repository.ts:152` ignoraba el parámetro `date` y usaba NOW UTC.
 - `cashier-daily.repository.ts:272` calculaba `endDate` del mes con `new Date(year, month, 0).toISOString()` → en Render UTC devolvía el día 30 en lugar del 31 los meses con 31 días.
@@ -229,6 +233,7 @@ Four-Points es un PMS (Property Management System) hotelero monorepo con dos ser
 ### 1.2 Stack confirmado (no asumido — leído de `package.json`)
 
 **Backend (`backend/package.json`)**
+
 - `express@5.1.0` — versión recién publicada, riesgo de incompatibilidades sutiles con middlewares antiguos.
 - `tsx` (sin build step). El runtime ejecuta TypeScript directamente.
 - `mysql2@3.14.2` — driver, parametrizado.
@@ -240,6 +245,7 @@ Four-Points es un PMS (Property Management System) hotelero monorepo con dos ser
 - **No instalados**: `express-session`, `connect-redis`, `helmet`, `hpp`, `express-mongo-sanitize`.
 
 **Frontend (`frontend/package.json`)**
+
 - `next@16.0.8` + `react@19.1.1` — bleeding edge.
 - `tailwindcss@3.4.17`, `@nextui-org/react@2.6.11`.
 - `@tanstack/react-query@5.90.11`, `react-hook-form@7.66.0`.
@@ -297,13 +303,13 @@ four-points/
 
 ### 1.5 Servicios externos
 
-| Servicio | Uso | Variables |
-|---|---|---|
-| Aiven MySQL | DB de producción | `AIVEN_DB_HOST`, `AIVEN_DB_PORT`, `AIVEN_DB_USER`, `AIVEN_PASSWORD`, `AIVEN_DB_NAME` |
-| Cloudinary | Avatares, exports PDF | `CLOUDINARY_*` (inferido) |
-| Render | Hosting backend | Variables Render: `NODE_ENV`, todas las anteriores, `SECRET_JWT_KEY` |
-| Vercel | Hosting frontend | `NEXT_PUBLIC_API_URL`, `FRONTEND_URL` |
-| Nodemailer | Email (configurado, opcional) | sin definir aquí |
+| Servicio    | Uso                           | Variables                                                                            |
+| ----------- | ----------------------------- | ------------------------------------------------------------------------------------ |
+| Aiven MySQL | DB de producción              | `AIVEN_DB_HOST`, `AIVEN_DB_PORT`, `AIVEN_DB_USER`, `AIVEN_PASSWORD`, `AIVEN_DB_NAME` |
+| Cloudinary  | Avatares, exports PDF         | `CLOUDINARY_*` (inferido)                                                            |
+| Render      | Hosting backend               | Variables Render: `NODE_ENV`, todas las anteriores, `SECRET_JWT_KEY`                 |
+| Vercel      | Hosting frontend              | `NEXT_PUBLIC_API_URL`, `FRONTEND_URL`                                                |
+| Nodemailer  | Email (configurado, opcional) | sin definir aquí                                                                     |
 
 ### 1.6 Flujo de datos típico (login)
 
@@ -343,6 +349,7 @@ const DEMO_ALLOWED_ROUTES: Array<{ method: string; pattern: RegExp }> = [
 ```
 
 **Permitido para demo:**
+
 - `GET *` (todos los reads) — explícito en `demoRestriction.ts:89-92`.
 - 4 endpoints `POST` listados arriba.
 
@@ -395,25 +402,27 @@ const DEMO_ALLOWED_ROUTES: Array<{ method: string; pattern: RegExp }> = [
 
 **`CLAUDE.md` está obsoleto.** Afirma (líneas 25, 85-89, 354) que el sistema "migró de JWT a sesiones" con `express-session` y `middlewares/authenticateSession.ts`. **Esto es falso en el código actual.** Verificación:
 
-| Aspecto | Documentado en CLAUDE.md | Realidad en el código |
-|---|---|---|
-| Mecanismo | Sessions con `express-session` | JWT en HttpOnly cookies |
-| Middleware | `authenticateSession.ts` | `authenticateToken.ts` (el otro file no existe) |
+| Aspecto          | Documentado en CLAUDE.md                        | Realidad en el código                                            |
+| ---------------- | ----------------------------------------------- | ---------------------------------------------------------------- |
+| Mecanismo        | Sessions con `express-session`                  | JWT en HttpOnly cookies                                          |
+| Middleware       | `authenticateSession.ts`                        | `authenticateToken.ts` (el otro file no existe)                  |
 | Tabla `sessions` | "session data stored in MySQL `sessions` table" | Tabla mencionada en README pero **ningún código la lee/escribe** |
-| Secret | `SESSION_SECRET` | `SECRET_JWT_KEY` |
-| Paquete | `express-session` | No instalado en `package.json` |
-| `req.session` | implícito | **0 ocurrencias** en grep |
+| Secret           | `SESSION_SECRET`                                | `SECRET_JWT_KEY`                                                 |
+| Paquete          | `express-session`                               | No instalado en `package.json`                                   |
+| `req.session`    | implícito                                       | **0 ocurrencias** en grep                                        |
 
 **Acción requerida (§7)**: actualizar CLAUDE.md y README.md para reflejar la realidad. Hasta entonces, cualquier asistente IA o desarrollador que lea la documentación va a tomar decisiones equivocadas.
 
 ### 3.2 Flujo JWT actual
 
 `backend/services/auth/tokenService.ts`:
+
 - `generateAccessToken()` → `jwt.sign(payload, SECRET_JWT_KEY, { expiresIn: '15m' })`
 - `generateRefreshToken()` → `jwt.sign(payload, SECRET_JWT_KEY, { expiresIn: '7d' })`
 - `verifyToken()` → `jwt.verify(token, SECRET_JWT_KEY)` (mismo secret para ambos)
 
 `backend/controllers/auth/auth-controllers.ts:50-110` (login):
+
 1. Bcrypt compare → genera ambos tokens.
 2. Setea cookies `access_token` y `refresh_token` con:
    - `httpOnly: true`
@@ -424,6 +433,7 @@ const DEMO_ALLOWED_ROUTES: Array<{ method: string; pattern: RegExp }> = [
 3. **Devuelve también el refresh token en el JSON body** del response (comentario en código indica "el proxy de Next.js lo necesita"). Esto reduce el beneficio del HttpOnly: si hay XSS, el JS puede leer la respuesta inicial si el frontend la cachea.
 
 `backend/middlewares/authenticateToken.ts`:
+
 - Lee `req.cookies.access_token` (preferido) o `Authorization: Bearer <token>`.
 - Verifica con `jwt.verify`.
 - Adjunta `req.user = { id, username, email: '', role }` desde el payload.
@@ -433,21 +443,22 @@ const DEMO_ALLOWED_ROUTES: Array<{ method: string; pattern: RegExp }> = [
 
 `backend/middlewares/roleCheck.ts` define ~12 funciones middleware:
 
-| Middleware | Roles permitidos | Uso |
-|---|---|---|
-| `isAdmin` | admin, demo-admin | Lectura admin general |
-| `isRealAdmin` | **admin solamente** | Escrituras admin (registro de usuarios, etc.) |
-| `isOwnerOrAdmin` | owner del recurso \| admin/demo-admin | Self-service |
-| `canManageGroups` | admin, group-admin, demo-admin | Reservas grupales |
-| `canViewGroups` | admin, recepcionista, group-admin, mantenimiento, demo-admin | — |
-| `canManageCashier` | admin, recepcionista, group-admin, demo-admin | Caja |
-| `canViewReports` | admin, demo-admin | — |
-| `canAccessMaintenance` | todos | — |
-| `excludeMantenimiento` | bloquea mantenimiento | Sandbox del rol |
-| `canResetChecklist` | admin, recepcionista, demo-admin | — |
-| `canAccessBackoffice` | admin, demo-admin | Facturas/proveedores |
+| Middleware             | Roles permitidos                                             | Uso                                           |
+| ---------------------- | ------------------------------------------------------------ | --------------------------------------------- |
+| `isAdmin`              | admin, demo-admin                                            | Lectura admin general                         |
+| `isRealAdmin`          | **admin solamente**                                          | Escrituras admin (registro de usuarios, etc.) |
+| `isOwnerOrAdmin`       | owner del recurso \| admin/demo-admin                        | Self-service                                  |
+| `canManageGroups`      | admin, group-admin, demo-admin                               | Reservas grupales                             |
+| `canViewGroups`        | admin, recepcionista, group-admin, mantenimiento, demo-admin | —                                             |
+| `canManageCashier`     | admin, recepcionista, group-admin, demo-admin                | Caja                                          |
+| `canViewReports`       | admin, demo-admin                                            | —                                             |
+| `canAccessMaintenance` | todos                                                        | —                                             |
+| `excludeMantenimiento` | bloquea mantenimiento                                        | Sandbox del rol                               |
+| `canResetChecklist`    | admin, recepcionista, demo-admin                             | —                                             |
+| `canAccessBackoffice`  | admin, demo-admin                                            | Facturas/proveedores                          |
 
 **Roles definidos en DB (`db-mysql/aiven/`):**
+
 - 1 = `recepcionista`
 - 2 = `admin`
 - 3 = `mantenimiento`
@@ -494,84 +505,103 @@ app.use(cors({
 #### 🔴 Críticos (bloquean introducción de datos reales)
 
 ##### S-1 · `loginLimiter` desactivado
+
 - **Archivo**: `backend/routes/auth/auth-routes.ts:46` — `router.post('/login', /* loginLimiter, */ login)`
 - **Riesgo**: brute force ilimitado contra cualquier cuenta (incluida la tuya como admin real).
 - **Por qué importa especialmente con datos reales**: tu cuenta admin tiene acceso completo. Sin rate limit, un atacante con conocimiento del username admin puede probar passwords sin freno hasta que se quede sin energía.
 
 ##### S-2 · `apiLimiter` definido pero nunca aplicado
+
 - **Archivo**: `backend/middlewares/rateLimiter.ts` (definido) — sin uso en `index.ts` ni en routers.
 - **Riesgo**: cualquier endpoint autenticado es susceptible a abuso (scraping de datos, DoS por inundación).
 
 ##### S-3 · `helmet` no instalado
+
 - **Archivo**: ausente de `backend/package.json`.
 - **Riesgo**: ausencia de cabeceras `X-Frame-Options`, `X-Content-Type-Options`, `HSTS`, `Referrer-Policy`, `Content-Security-Policy`. Esto baja varias capas defensivas de XSS, clickjacking y MIME-sniffing.
 
 ##### S-4 · `express.json()` sin `limit`
+
 - **Archivo**: `backend/index.ts:83`.
 - **Riesgo**: payloads de 100KB son el default no documentado de Express 5; sin límite explícito un atacante puede mandar JSON gigantes y agotar memoria del proceso (especialmente crítico con Render free tier de 512MB).
 
 ##### S-5 · CORS acepta requests sin `Origin`
+
 - **Archivo**: `backend/index.ts:61-63`.
 - **Riesgo**: cURL, Postman y cualquier cliente que omita Origin pasa el filtro. **No es CORS bypass real** (CORS protege al browser, no al servidor), pero combinado con S-1 facilita brute force scripted.
 
 ##### S-6 · Refresh token devuelto en el body del response
+
 - **Archivo**: `backend/controllers/auth/auth-controllers.ts` (login y refresh endpoints).
 - **Riesgo**: contradice el modelo de seguridad HttpOnly. Si una XSS llega a ejecutarse antes de que el frontend tire el body del response, el token es legible por JS. Además queda en logs de Render si se loguea el response body.
 
 #### 🟡 Altos
 
 ##### S-7 · `/api/auth/refresh-token` sin rate limit
+
 - **Archivo**: `backend/routes/auth/auth-routes.ts:47`.
 - **Riesgo**: un atacante con un refresh token (incluso uno antiguo robado) puede pedir nuevos pares ilimitadamente. No hay revocación porque no hay tabla de tokens emitidos.
 
 ##### S-8 · No existe revocación de refresh tokens
+
 - **Patrón**: stateless puro; cualquier token válido firmado con `SECRET_JWT_KEY` se acepta hasta que expire.
 - **Riesgo**: si un refresh token se compromete (XSS, body leak, log leak), **es válido durante 7 días sin posibilidad de invalidarlo manualmente**. Cambio de password no invalida tokens emitidos previamente.
 - **Mitigación correcta**: tabla `refresh_tokens` con `id`/`user_id`/`hash`/`revoked_at`/`expires_at`, rotación en cada refresh, blacklist al logout.
 
 ##### S-9 · Frontend `DEV_MODE` hardcoded
+
 - **Archivo**: `frontend/app/lib/auth/useAuth.tsx:17` — `const DEV_MODE = false`.
 - **Riesgo**: si en algún momento se setea a `true` y se commitea, bypassea toda la auth en producción. Mejor sacarlo del código (basarse en `process.env.NODE_ENV` en su lugar, o eliminarlo si no aporta hoy).
 
 ##### S-10 · No hay logging de eventos de seguridad
+
 - **Patrón**: solo `console.warn` para CORS bloqueado y rate limit hit; no se persiste.
 - **Riesgo**: imposible detectar campañas de brute force, accesos sospechosos, o anomalías post-incident. Sin audit trail para compliance.
 
 ##### S-11 · Credenciales DB en variables de entorno sin rotación documentada
+
 - **Archivo**: `backend/config/db.ts`.
 - **Status**: las variables existen pero no hay procedimiento de rotación. Si filtras un `.env` o un developer ve los logs, no hay forma rápida de rotar y validar que nada se rompe.
 
 ##### S-12 · Tabla `users` sin `last_login`, `failed_attempts`, `locked_until`
+
 - **Archivo**: schema en `db-mysql/aiven/`.
 - **Riesgo**: no se puede implementar lockout por usuario (solo por IP+username vía rate limiter). Atacantes con botnet (cada IP intenta 5 veces) pueden seguir indefinidamente sobre la misma cuenta.
 
 #### 🟠 Medios
 
 ##### S-13 · Mensajes de error que filtran información
+
 - **Síntoma**: registro de usuario distingue "username ya en uso" vs "datos inválidos" → enumeración. Login distingue "token expirado" vs "token inválido".
 - **Mitigación**: en producción, devolver mensajes genéricos (`401 Unauthorized` sin detalle).
 
 ##### S-14 · Sin CSRF token explícito
+
 - **Patrón**: confianza total en `SameSite=lax` + `credentials: include`.
 - **Riesgo**: aunque `lax` cubre el caso típico, hay edge cases (top-level navigation con POST formulario, browsers viejos). Para un PMS con datos sensibles, un token CSRF en operaciones mutativas es prudente.
 
 ##### S-15 · Sin observabilidad (Sentry / Datadog / APM)
+
 - **Síntoma**: ningún paquete instalado. Errores en producción solo visibles en logs de Render (que rotan).
 - **Riesgo operativo**: imposible diagnosticar incidentes a posteriori. Crítico cuando entren datos reales — si algo se corrompe, no tienes traza.
 
 ##### S-16 · Sin `.env.example`
+
 - **Síntoma**: ausente en backend y frontend.
 - **Riesgo**: onboarding y despliegue dependen de que recuerdes todas las vars. Riesgo operativo cuando vuelvas dentro de 6 meses.
 
 #### 🔵 Bajos
 
 ##### S-17 · Discrepancia de versión Zod entre backend (4.x) y frontend (3.x)
+
 - Si compartes esquemas (no parece ser el caso hoy), problemas de API.
 
 ##### S-18 · `passport` y `passport-jwt` instalados sin usar
+
 - Aumenta superficie de ataque y peso del bundle innecesariamente.
 
 ##### S-19 · `cookie-parser` sin secret de firma
+
 - Las cookies HttpOnly no necesitan firmarse cuando el contenido es un JWT (que ya se firma a sí mismo). No es un riesgo real, pero si algún día metes cookies que no sean JWT, recordar que están sin firmar.
 
 ### 3.6 Lo que está bien hecho
@@ -591,15 +621,15 @@ app.use(cors({
 
 ### 4.1 Discrepancias entre código y documentación
 
-| Documento | Línea | Afirmación | Realidad |
-|---|---|---|---|
-| `CLAUDE.md` | 25 | "Cookie-based sessions with JWT" | Solo JWT en cookies; no hay sessions |
-| `CLAUDE.md` | 85 | "Cookie-based with `express-session`" | `express-session` no instalado |
-| `CLAUDE.md` | 86 | "Session data stored in MySQL `sessions` table" | Tabla no se usa |
-| `CLAUDE.md` | 88 | "Authentication middleware: `middlewares/authenticateSession.ts`" | Archivo no existe |
-| `CLAUDE.md` | 354 | "Migrated from JWT to sessions" | Migración nunca implementada |
-| `README.md` | ~155 | `express-session` instalado | No está en package.json |
-| `README.md` | ~284 | tabla `sessions` activa | Sin lectores/escritores |
+| Documento   | Línea | Afirmación                                                        | Realidad                             |
+| ----------- | ----- | ----------------------------------------------------------------- | ------------------------------------ |
+| `CLAUDE.md` | 25    | "Cookie-based sessions with JWT"                                  | Solo JWT en cookies; no hay sessions |
+| `CLAUDE.md` | 85    | "Cookie-based with `express-session`"                             | `express-session` no instalado       |
+| `CLAUDE.md` | 86    | "Session data stored in MySQL `sessions` table"                   | Tabla no se usa                      |
+| `CLAUDE.md` | 88    | "Authentication middleware: `middlewares/authenticateSession.ts`" | Archivo no existe                    |
+| `CLAUDE.md` | 354   | "Migrated from JWT to sessions"                                   | Migración nunca implementada         |
+| `README.md` | ~155  | `express-session` instalado                                       | No está en package.json              |
+| `README.md` | ~284  | tabla `sessions` activa                                           | Sin lectores/escritores              |
 
 **Acción**: actualizar ambos documentos como parte del primer ticket de saneamiento. Mientras existan estas discrepancias, cualquier IA o desarrollador nuevo tomará decisiones erradas (intentará registrar `app.use(session(...))`, buscará `req.session.user`, etc.).
 
@@ -612,6 +642,7 @@ app.use(cors({
 ### 4.3 Bloqueadores de despliegue heredados (de `TODO.md`)
 
 #### B-1 · Solver Python: venv no se construye en Render
+
 - `TODO.md:8-46` documenta el problema en detalle.
 - `backend/scheduling-solver/venv/` está en `.gitignore`.
 - El backend hace `spawn('venv/bin/python')` que falla `ENOENT` en Render.
@@ -622,11 +653,13 @@ app.use(cors({
 - **Coste**: ortools instala ~350MB y tarda 5-10 minutos; en Render free tier puede agotar memoria del builder.
 
 #### B-2 · Tabla `scheduling_employee_requests` no está en `MASTER_INSTALL_AIVEN.sql`
+
 - `TODO.md:120-130`.
 - El DDL existe localmente en `scripts/20260425_create_scheduling_employee_requests.sql`.
 - Si el solver intenta leer requests aprobados, fallará en la primera consulta.
 
 #### B-3 · `Promise.allSettled` faltante en scheduler
+
 - `TODO.md:118` — en `schedule-generate.controller.ts:117`.
 - Si la recalculación de `free_number` falla después de aplicar el schedule, queda numeración inconsistente.
 
@@ -639,6 +672,7 @@ app.use(cors({
 ### 4.5 Falta de infraestructura como código
 
 Sin `render.yaml`, `vercel.json`, `Dockerfile` ni GitHub Actions:
+
 - La configuración de despliegue vive solo en los paneles web. Si pierdes acceso o el servicio cambia, recuperarse cuesta.
 - No hay CI: nadie corre los tests antes de mergear. `pnpm test` se ejecuta solo cuando lo lanzas manualmente.
 - No hay typecheck en pre-merge.
@@ -684,6 +718,7 @@ Vitest está instalado y hay tests del scheduler (corpus, parity, benchmark). **
 **Opción A con demo deshabilitado, no con demo modificado.**
 
 Razonamiento:
+
 1. La auditoría confirma que **no hay aislamiento de datos**. Cualquier diseño donde demo y datos reales convivan en el mismo schema es estructuralmente comprometido.
 2. HotelCode (Astro, marketing) ya cumple el rol de exposición pública. No necesitas que Four-Points sea públicamente accesible.
 3. Mantener el demo activo añade superficie de ataque (S-2, S-3 inactivos lo amplifican) sin beneficio real ahora que el portfolio se mueve a HotelCode.
@@ -714,73 +749,73 @@ Si quieres seguridad extra mientras la plataforma sigue accesible solo a ti y a 
 > **Criterio de cierre:** docs alineadas con realidad, demo deshabilitado en producción, suite de tests auth en verde. **TODOS los criterios cumplidos.**
 > **Garantía cumplida:** ninguna de estas tareas tocó código en juego en el merge schedule+checklist. Sprint 0 se ejecutó tras el merge para asegurar la base.
 
-| ID | Acción | Estado |
-|---|---|---|
-| H1-1 | Actualizar CLAUDE.md y README.md (auth real es JWT, no sessions) | ✅ |
-| H1-12 | Deshabilitar usuario demo (`is_active=0` en Aiven + comentario en MASTER_INSTALL.sql + password rotado a hash aleatorio) | ✅ |
-| H1-15 | Tests de regresión sobre login/refresh/logout/demo whitelist (red de seguridad para Sprint 1) | ✅ 28 tests verdes (tokenService 9 + demoRestriction 15 + UserRepository.login 4) |
+| ID    | Acción                                                                                                                   | Estado                                                                            |
+| ----- | ------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------- |
+| H1-1  | Actualizar CLAUDE.md y README.md (auth real es JWT, no sessions)                                                         | ✅                                                                                |
+| H1-12 | Deshabilitar usuario demo (`is_active=0` en Aiven + comentario en MASTER_INSTALL.sql + password rotado a hash aleatorio) | ✅                                                                                |
+| H1-15 | Tests de regresión sobre login/refresh/logout/demo whitelist (red de seguridad para Sprint 1)                            | ✅ 28 tests verdes (tokenService 9 + demoRestriction 15 + UserRepository.login 4) |
 
 ### Horizonte 1 (Sprint 1) — Auth hardening + observabilidad
 
 > **Criterio de cierre:** ningún hallazgo crítico de §3.5 abierto, observabilidad básica activa, refresh token rotation funcionando.
 > **Estado:** la mayoría cerrado en PR #5 (2026-05-12). H1-14 cerrado en PR #6 (2026-05-12). H1-13 (Sentry) bloqueado por alta externa.
 
-| ID | Acción | Estado |
-|---|---|---|
-| H1-2 | Habilitar `loginLimiter` en `/login` (5 intentos/15min, clave IP+username) | ✅ PR #5 |
-| H1-3 | `apiLimiter` global en `/api/*` (300 req/15min) | ✅ PR #5 |
-| H1-4 | `helmet` instalado; CSP deshabilitado (API pura JSON) | ✅ PR #5 |
-| H1-5 | `express.json({ limit: '2mb' })` | ✅ PR #5 |
-| H1-6 | CORS sin Origin — mantenido (Render healthcheck); riesgo mitigado por H1-2/H1-8 | ⚠️ intencional |
-| H1-7 | `refreshToken` eliminado del body de login y refresh | ✅ PR #5 |
-| H1-8 | `refreshLimiter` en `/refresh-token` (30 req/15min) | ✅ PR #5 |
-| H1-9 | `passport` + `passport-jwt` eliminados de `package.json` | ✅ PR #5 |
-| H1-10 | `DEV_MODE` + `DEV_USER` eliminados de `useAuth.tsx` | ✅ PR #5 |
-| H1-11 | `.env.example` en backend y frontend | ✅ ya existía |
-| H1-14 | Pino logger estructurado (JSON prod, pretty dev) | ✅ PR #6 |
-| H1-13 | Sentry | ⏸️ pendiente alta de cuenta en sentry.io |
-| H1-16.1 | Pinear deps Python (`requirements.txt` + cambio script `build`) | ✅ 2026-05-16 (`ortools==9.15.6755`, `pydantic==2.13.4`) |
-| H1-16.2 | `.python-version` con `3.11` | ✅ 2026-05-16 (commit `d0c6c71`) |
-| H1-16.3 | `engines.node` `22.16.0` en `backend/package.json` y `frontend/package.json` | ✅ 2026-05-16 (commit `d0c6c71`) |
-| H1-16.4 | `frontend/vercel.json` security headers | ✅ 2026-05-16 (commit `d0c6c71`, grade A en securityheaders.com) |
-| H1-16.5 | `backend/render.yaml` Blueprint | ⏸️ Diferido (cuando haya 2º entorno) |
-| H1-16.6 | `^` → exacto en deps | ❌ Descartado (lockfile ya cubre) |
-| **H1-17** | **Cloudflare Zero Trust Access** | ⏳ Sprint 2 (tarea panel-only) |
-| H1-18 | `app.set('trust proxy', 1)` para `express-rate-limit` con IP real cliente detrás de Render | ✅ 2026-05-16 (commit `5a2049b`, fix descubierto durante refactor timezone) |
-| H1-19 | Refactor timezone (centralización Madrid/UTC) | ✅ 2026-05-16 (commits `fa3de26` + `b1d2a20` + `acb281a` + `84899b2`, ver §0.3) |
-| **H2-1** | **Refresh token rotation** | ❌ Descartado a esta escala (revisado 2026-05-15, ver §0.2) |
+| ID        | Acción                                                                                     | Estado                                                                          |
+| --------- | ------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------- |
+| H1-2      | Habilitar `loginLimiter` en `/login` (5 intentos/15min, clave IP+username)                 | ✅ PR #5                                                                        |
+| H1-3      | `apiLimiter` global en `/api/*` (300 req/15min)                                            | ✅ PR #5                                                                        |
+| H1-4      | `helmet` instalado; CSP deshabilitado (API pura JSON)                                      | ✅ PR #5                                                                        |
+| H1-5      | `express.json({ limit: '2mb' })`                                                           | ✅ PR #5                                                                        |
+| H1-6      | CORS sin Origin — mantenido (Render healthcheck); riesgo mitigado por H1-2/H1-8            | ⚠️ intencional                                                                  |
+| H1-7      | `refreshToken` eliminado del body de login y refresh                                       | ✅ PR #5                                                                        |
+| H1-8      | `refreshLimiter` en `/refresh-token` (30 req/15min)                                        | ✅ PR #5                                                                        |
+| H1-9      | `passport` + `passport-jwt` eliminados de `package.json`                                   | ✅ PR #5                                                                        |
+| H1-10     | `DEV_MODE` + `DEV_USER` eliminados de `useAuth.tsx`                                        | ✅ PR #5                                                                        |
+| H1-11     | `.env.example` en backend y frontend                                                       | ✅ ya existía                                                                   |
+| H1-14     | Pino logger estructurado (JSON prod, pretty dev)                                           | ✅ PR #6                                                                        |
+| H1-13     | Sentry                                                                                     | ⏸️ pendiente alta de cuenta en sentry.io                                        |
+| H1-16.1   | Pinear deps Python (`requirements.txt` + cambio script `build`)                            | ✅ 2026-05-16 (`ortools==9.15.6755`, `pydantic==2.13.4`)                        |
+| H1-16.2   | `.python-version` con `3.11`                                                               | ✅ 2026-05-16 (commit `d0c6c71`)                                                |
+| H1-16.3   | `engines.node` `22.16.0` en `backend/package.json` y `frontend/package.json`               | ✅ 2026-05-16 (commit `d0c6c71`)                                                |
+| H1-16.4   | `frontend/vercel.json` security headers                                                    | ✅ 2026-05-16 (commit `d0c6c71`, grade A en securityheaders.com)                |
+| H1-16.5   | `backend/render.yaml` Blueprint                                                            | ⏸️ Diferido (cuando haya 2º entorno)                                            |
+| H1-16.6   | `^` → exacto en deps                                                                       | ❌ Descartado (lockfile ya cubre)                                               |
+| **H1-17** | **Cloudflare Zero Trust Access**                                                           | ⏳ Sprint 2 (tarea panel-only)                                                  |
+| H1-18     | `app.set('trust proxy', 1)` para `express-rate-limit` con IP real cliente detrás de Render | ✅ 2026-05-16 (commit `5a2049b`, fix descubierto durante refactor timezone)     |
+| H1-19     | Refactor timezone (centralización Madrid/UTC)                                              | ✅ 2026-05-16 (commits `fa3de26` + `b1d2a20` + `acb281a` + `84899b2`, ver §0.3) |
+| **H2-1**  | **Refresh token rotation**                                                                 | ❌ Descartado a esta escala (revisado 2026-05-15, ver §0.2)                     |
 
 ### Horizonte 2 — Medio plazo (1-2 meses, post estabilización)
 
 > Histórico: H2-1 (refresh token rotation) y H2-10 (Cloudflare) se promovieron a Sprint 1/2 por D-3 y D-2.
 > Revisado 2026-05-15: H2-1 vuelve a Horizonte 2 con estado **descartado** salvo cambio de escala (ver §0.2). H1-17 (Cloudflare) mantiene su sitio en Sprint 2.
 
-| ID | Acción | Complejidad | Riesgo |
-|---|---|---|---|
-| H2-2 | Añadir columnas `last_login`, `failed_login_count`, `locked_until` en `users` | Baja | Migración Aiven; coordinar con local |
-| H2-3 | Lockout por usuario tras N intentos fallidos | Media | UX: necesita endpoint de unlock o desbloqueo automático |
-| H2-4 | CSRF token explícito para mutaciones | Media | Frontend debe leer y enviar token |
-| H2-5 | Auditar cobertura Zod en todos los endpoints | Media | Bajo |
-| H2-6 | GitHub Actions con lint + typecheck + test pre-merge | Media | Acelera dev pero requiere disciplina |
-| H2-7 | Logging estructurado de eventos de auth (login OK/KO, password change, role change) | Media | Decidir destino: tabla `security_audit_log` o servicio externo |
-| H2-8 | Resolver bloqueadores `TODO.md` que sigan abiertos tras el merge (B-1 venv Render, B-3 allSettled, MIN_NIGHTS_REQUIRED hardcoded) | Variable | Críticos para que scheduling funcione en prod |
-| H2-9 | Mensajes de error genéricos en producción (no leak enumerate users) | Baja | Bajo |
-| H2-11 | **Audit log básico** (tabla `security_audit_log`: usuario, ts, acción, IP) — alternativa a H2-1 más útil a esta escala. GDPR-relevante | Media | Bajo (es agregar tabla y middleware, no toca auth core) |
-| H2-12 | **2FA opcional para admins** (TOTP con `otplib`) — corta blast radius del usuario admin si se compromete | Media | Bajo (es opcional, se activa por usuario) |
-| H2-13 | **Endpoint admin "listar/expulsar sesiones"** — campo `tokens_invalidated_after` en `users` + check en `authenticateToken`. Cubre caso "perdí el portátil" sin la complejidad de H2-1 | Media | Bajo si tests cubren login post-expulsión |
+| ID    | Acción                                                                                                                                                                                | Complejidad | Riesgo                                                         |
+| ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- | -------------------------------------------------------------- |
+| H2-2  | Añadir columnas `last_login`, `failed_login_count`, `locked_until` en `users`                                                                                                         | Baja        | Migración Aiven; coordinar con local                           |
+| H2-3  | Lockout por usuario tras N intentos fallidos                                                                                                                                          | Media       | UX: necesita endpoint de unlock o desbloqueo automático        |
+| H2-4  | CSRF token explícito para mutaciones                                                                                                                                                  | Media       | Frontend debe leer y enviar token                              |
+| H2-5  | Auditar cobertura Zod en todos los endpoints                                                                                                                                          | Media       | Bajo                                                           |
+| H2-6  | GitHub Actions con lint + typecheck + test pre-merge                                                                                                                                  | Media       | Acelera dev pero requiere disciplina                           |
+| H2-7  | Logging estructurado de eventos de auth (login OK/KO, password change, role change)                                                                                                   | Media       | Decidir destino: tabla `security_audit_log` o servicio externo |
+| H2-8  | Resolver bloqueadores `TODO.md` que sigan abiertos tras el merge (B-1 venv Render, B-3 allSettled, MIN_NIGHTS_REQUIRED hardcoded)                                                     | Variable    | Críticos para que scheduling funcione en prod                  |
+| H2-9  | Mensajes de error genéricos en producción (no leak enumerate users)                                                                                                                   | Baja        | Bajo                                                           |
+| H2-11 | **Audit log básico** (tabla `security_audit_log`: usuario, ts, acción, IP) — alternativa a H2-1 más útil a esta escala. GDPR-relevante                                                | Media       | Bajo (es agregar tabla y middleware, no toca auth core)        |
+| H2-12 | **2FA opcional para admins** (TOTP con `otplib`) — corta blast radius del usuario admin si se compromete                                                                              | Media       | Bajo (es opcional, se activa por usuario)                      |
+| H2-13 | **Endpoint admin "listar/expulsar sesiones"** — campo `tokens_invalidated_after` en `users` + check en `authenticateToken`. Cubre caso "perdí el portátil" sin la complejidad de H2-1 | Media       | Bajo si tests cubren login post-expulsión                      |
 
 ### Horizonte 3 — Largo plazo (3-6 meses, evolución estructural)
 
-| ID | Acción | Complejidad | Riesgo |
-|---|---|---|---|
-| H3-1 | Decidir y, si aplica, implementar multi-tenancy si HotelCode capta clientes | Muy alta | Refactor profundo |
-| H3-2 | Migración real de JWT stateless a sessions con Redis o tabla, si rotación de tokens se vuelve crítica | Alta | Cambio de paradigma; planificar bien |
-| H3-3 | Pasar a esquemas Zod compartidos backend/frontend (alinear versiones) | Media | Bajo si se hace en paquete `shared/` |
-| H3-4 | Consolidar versión de Zod (subir frontend a 4 o bajar backend a 3) | Media | Probar todos los formularios |
-| H3-5 | Sustituir `console.*` residuales por logger estructurado | Baja-Media | Reescritura masiva pero mecánica |
-| H3-6 | Plan de rotación de secrets (script + procedimiento documentado) | Media | Bajo si está documentado |
-| H3-7 | APM (Datadog APM, New Relic, OpenTelemetry) para latencias por endpoint | Alta | Coste $/mes |
-| H3-8 | Backup verificado de Aiven con prueba periódica de restore | Media | Crítico cuando datos reales son insustituibles |
+| ID   | Acción                                                                                                | Complejidad | Riesgo                                         |
+| ---- | ----------------------------------------------------------------------------------------------------- | ----------- | ---------------------------------------------- |
+| H3-1 | Decidir y, si aplica, implementar multi-tenancy si HotelCode capta clientes                           | Muy alta    | Refactor profundo                              |
+| H3-2 | Migración real de JWT stateless a sessions con Redis o tabla, si rotación de tokens se vuelve crítica | Alta        | Cambio de paradigma; planificar bien           |
+| H3-3 | Pasar a esquemas Zod compartidos backend/frontend (alinear versiones)                                 | Media       | Bajo si se hace en paquete `shared/`           |
+| H3-4 | Consolidar versión de Zod (subir frontend a 4 o bajar backend a 3)                                    | Media       | Probar todos los formularios                   |
+| H3-5 | Sustituir `console.*` residuales por logger estructurado                                              | Baja-Media  | Reescritura masiva pero mecánica               |
+| H3-6 | Plan de rotación de secrets (script + procedimiento documentado)                                      | Media       | Bajo si está documentado                       |
+| H3-7 | APM (Datadog APM, New Relic, OpenTelemetry) para latencias por endpoint                               | Alta        | Coste $/mes                                    |
+| H3-8 | Backup verificado de Aiven con prueba periódica de restore                                            | Media       | Crítico cuando datos reales son insustituibles |
 
 ## 7. Plan de mitigación detallado
 
@@ -834,10 +869,12 @@ PR #3 mergeado a `main` (commit `f34e20d`). Todos los bloqueadores listados orig
 7. **H1-17 Cloudflare Zero Trust Access** — capa de Google OAuth delante del frontend. Solo panel CF, sin código. Guía paso a paso en `TODO.md §"Guía Cloudflare Zero Trust Access"`.
 
 **Diferidos:**
+
 - **H1-16.5** `render.yaml` Blueprint → reabrir cuando haya staging o 2º hotel.
 - **H1-16.6** `^` → exacto en deps → no hacer, `pnpm-lock.yaml` ya pinea las versiones.
 
 **Descartado a esta escala:**
+
 - **H2-1** Refresh token rotation → ver §0.2 para razonamiento detallado.
 
 **Después → datos reales empiezan a entrar.** A partir de aquí, el horizonte 2 se hace con la plataforma viva, lo que aumenta el riesgo de cada cambio.
@@ -864,28 +901,29 @@ PR #3 mergeado a `main` (commit `f34e20d`). Todos los bloqueadores listados orig
 
 ### A. Glosario de archivos críticos
 
-| Función | Archivo |
-|---|---|
-| Bootstrap backend | `backend/index.ts` |
-| Config DB | `backend/config/db.ts` |
-| Config app | `backend/config/config.ts` |
-| Auth controller | `backend/controllers/auth/auth-controllers.ts` |
-| Auth routes | `backend/routes/auth/auth-routes.ts` |
-| Token service | `backend/services/auth/tokenService.ts` |
-| Middleware token | `backend/middlewares/authenticateToken.ts` |
-| Middleware demo | `backend/middlewares/demoRestriction.ts` |
-| Middleware roles | `backend/middlewares/roleCheck.ts` |
-| Rate limiters | `backend/middlewares/rateLimiter.ts` |
-| Demo seed | `backend/db-mysql/aiven/15_demo_user.sql` |
-| Master install Aiven | `backend/db-mysql/MASTER_INSTALL_AIVEN.sql` |
-| Master install local | `backend/db-mysql/MASTER_INSTALL_LOCAL.sql` |
-| Auth context FE | `frontend/app/lib/auth/useAuth.tsx` |
-| API client FE | `frontend/app/lib/apiClient.ts` |
-| Server fetch FE | `frontend/app/lib/serverFetch.ts` |
+| Función              | Archivo                                        |
+| -------------------- | ---------------------------------------------- |
+| Bootstrap backend    | `backend/index.ts`                             |
+| Config DB            | `backend/config/db.ts`                         |
+| Config app           | `backend/config/config.ts`                     |
+| Auth controller      | `backend/controllers/auth/auth-controllers.ts` |
+| Auth routes          | `backend/routes/auth/auth-routes.ts`           |
+| Token service        | `backend/services/auth/tokenService.ts`        |
+| Middleware token     | `backend/middlewares/authenticateToken.ts`     |
+| Middleware demo      | `backend/middlewares/demoRestriction.ts`       |
+| Middleware roles     | `backend/middlewares/roleCheck.ts`             |
+| Rate limiters        | `backend/middlewares/rateLimiter.ts`           |
+| Demo seed            | `backend/db-mysql/aiven/15_demo_user.sql`      |
+| Master install Aiven | `backend/db-mysql/MASTER_INSTALL_AIVEN.sql`    |
+| Master install local | `backend/db-mysql/MASTER_INSTALL_LOCAL.sql`    |
+| Auth context FE      | `frontend/app/lib/auth/useAuth.tsx`            |
+| API client FE        | `frontend/app/lib/apiClient.ts`                |
+| Server fetch FE      | `frontend/app/lib/serverFetch.ts`              |
 
 ### B. Variables de entorno (consolidado)
 
 **Backend (Render)**
+
 ```
 NODE_ENV=production
 PORT=4000
@@ -907,6 +945,7 @@ LOG_LEVEL=info
 ```
 
 **Frontend (Vercel)**
+
 ```
 NEXT_PUBLIC_API_URL=https://api.four-points.stackbp.es
 NEXTAUTH_SECRET=<si se usa next-auth>
@@ -939,13 +978,13 @@ curl -i https://api.four-points.stackbp.es/api/auth/login -X POST \
 
 ### D. Decisiones tomadas (ver §0)
 
-| Pregunta | Decisión | Fecha |
-|---|---|---|
-| ¿Demo público o privado? | **Deshabilitado definitivamente** según §5.2 | 2026-05-10 |
-| ¿Cloudflare Access? | **Sí** delante de four-points.stackbp.es (Sprint 2 H1-17) | 2026-05-10 |
+| Pregunta                        | Decisión                                                                          | Fecha                            |
+| ------------------------------- | --------------------------------------------------------------------------------- | -------------------------------- |
+| ¿Demo público o privado?        | **Deshabilitado definitivamente** según §5.2                                      | 2026-05-10                       |
+| ¿Cloudflare Access?             | **Sí** delante de four-points.stackbp.es (Sprint 2 H1-17)                         | 2026-05-10                       |
 | ¿Cuándo refresh token rotation? | ~~Antes de datos reales~~ → **Descartado a esta escala** (revierte D-3, ver §0.2) | 2026-05-10 → revisado 2026-05-15 |
-| ¿Multi-tenancy? | **Diferida indefinidamente**; reabrir solo si HotelCode capta cliente externo | 2026-05-10 |
-| ¿Alcance Sprint 2? | **Reducido** a infraestructura mínima + CF Access tras análisis de escala real | 2026-05-15 |
+| ¿Multi-tenancy?                 | **Diferida indefinidamente**; reabrir solo si HotelCode capta cliente externo     | 2026-05-10                       |
+| ¿Alcance Sprint 2?              | **Reducido** a infraestructura mínima + CF Access tras análisis de escala real    | 2026-05-15                       |
 
 ### E. Decisiones aún abiertas (no bloqueantes)
 

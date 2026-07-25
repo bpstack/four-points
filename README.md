@@ -13,23 +13,23 @@ This document describes the backend architecture. The backend repository is **pr
 
 ## Tech Stack
 
-| Technology             | Purpose                                    |
-| ---------------------- | ------------------------------------------ |
-| **Node.js 20+**        | Runtime environment                        |
-| **Express 5**          | Web framework (latest major version)       |
-| **TypeScript**         | Type-safe development                      |
-| **MySQL 8**            | Relational database                        |
-| **jsonwebtoken + bcrypt** | Authentication (JWT in HttpOnly cookies) |
-| **Zod 4**              | Request validation & schema definitions    |
-| **Cloudinary**         | Image and PDF cloud storage                |
-| **Multer**             | File upload handling (multipart/form-data) |
-| **Archiver**           | ZIP file generation for bulk downloads     |
-| **node-cron**          | Scheduled background tasks                 |
-| **nodemailer**         | Email notifications                        |
-| **bcrypt**             | Password hashing (10 rounds)               |
-| **express-rate-limit** | API rate limiting                          |
-| **dayjs**              | Date manipulation & formatting             |
-| **Axios**              | External API calls                         |
+| Technology                | Purpose                                    |
+| ------------------------- | ------------------------------------------ |
+| **Node.js 20+**           | Runtime environment                        |
+| **Express 5**             | Web framework (latest major version)       |
+| **TypeScript**            | Type-safe development                      |
+| **MySQL 8**               | Relational database                        |
+| **jsonwebtoken + bcrypt** | Authentication (JWT in HttpOnly cookies)   |
+| **Zod 4**                 | Request validation & schema definitions    |
+| **Cloudinary**            | Image and PDF cloud storage                |
+| **Multer**                | File upload handling (multipart/form-data) |
+| **Archiver**              | ZIP file generation for bulk downloads     |
+| **node-cron**             | Scheduled background tasks                 |
+| **nodemailer**            | Email notifications                        |
+| **bcrypt**                | Password hashing (10 rounds)               |
+| **express-rate-limit**    | API rate limiting                          |
+| **dayjs**                 | Date manipulation & formatting             |
+| **Axios**                 | External API calls                         |
 
 ---
 
@@ -104,22 +104,22 @@ POST   /api/auth/refresh        # Refresh access token
 
 ### Token Configuration
 
-| Token   | Duration | Storage        |
-| ------- | -------- | -------------- |
+| Token   | Duration | Storage         |
+| ------- | -------- | --------------- |
 | Access  | 15 min   | HttpOnly cookie |
 | Refresh | 7 days   | HttpOnly cookie |
 
 ### Security Measures
 
-| Measure              | Implementation                    |
-| -------------------- | --------------------------------- |
-| XSS Protection       | HttpOnly cookies, no localStorage |
-| CSRF Protection      | SameSite cookies, CORS whitelist  |
-| SQL Injection        | Parameterized queries (mysql2)    |
-| Rate Limiting        | 100 requests / 15 min per IP      |
-| Password Hashing     | bcrypt (10 rounds)                |
-| Input Validation     | Zod schemas on all endpoints      |
-| Error Sanitization   | Generic errors in production      |
+| Measure            | Implementation                    |
+| ------------------ | --------------------------------- |
+| XSS Protection     | HttpOnly cookies, no localStorage |
+| CSRF Protection    | SameSite cookies, CORS whitelist  |
+| SQL Injection      | Parameterized queries (mysql2)    |
+| Rate Limiting      | 100 requests / 15 min per IP      |
+| Password Hashing   | bcrypt (10 rounds)                |
+| Input Validation   | Zod schemas on all endpoints      |
+| Error Sanitization | Generic errors in production      |
 
 ---
 
@@ -201,12 +201,12 @@ All other write operations return `403 Forbidden`.
 
 ### File Handling
 
-| Feature          | Technology          | Usage                                           |
-| ---------------- | ------------------- | ----------------------------------------------- |
-| Image Upload     | Multer + Cloudinary | Avatars, maintenance photos, blacklist evidence |
-| PDF Upload       | Multer + Cloudinary | Invoice documents, contracts                    |
-| ZIP Generation   | Archiver            | Bulk export of images/documents                 |
-| Email Attachments| Nodemailer          | Reports, notifications with files               |
+| Feature           | Technology          | Usage                                           |
+| ----------------- | ------------------- | ----------------------------------------------- |
+| Image Upload      | Multer + Cloudinary | Avatars, maintenance photos, blacklist evidence |
+| PDF Upload        | Multer + Cloudinary | Invoice documents, contracts                    |
+| ZIP Generation    | Archiver            | Bulk export of images/documents                 |
+| Email Attachments | Nodemailer          | Reports, notifications with files               |
 
 ---
 
@@ -242,11 +242,11 @@ backend/
 
 ## Deployment
 
-| Service       | Provider   | Purpose              |
-| ------------- | ---------- | -------------------- |
-| Backend       | Render     | Auto-deploy from main|
-| Database      | Aiven      | Managed MySQL 8      |
-| Media Storage | Cloudinary | Images and PDFs      |
+| Service       | Provider   | Purpose               |
+| ------------- | ---------- | --------------------- |
+| Backend       | Render     | Auto-deploy from main |
+| Database      | Aiven      | Managed MySQL 8       |
+| Media Storage | Cloudinary | Images and PDFs       |
 
 ---
 

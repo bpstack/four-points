@@ -41,7 +41,6 @@ Una vez activo, registrar el hallazgo en `SCHEDULING-DECISIONS-LOG.md`.
 
 ---
 
-
 ## Módulo Scheduling Solver — pendientes
 
 > Fase 1 ✅ + Fase 2 ✅ (en código). Fase 3 🟡 en progreso. Decisiones en `SCHEDULING-DECISIONS-LOG.md`.
@@ -58,18 +57,18 @@ Una vez activo, registrar el hallazgo en `SCHEDULING-DECISIONS-LOG.md`.
 
 > Solo apuntados; **no iniciar nada de esto hasta que entren datos reales y se conozca el patrón de uso real.**
 
-| ID | Item | Por qué importa |
-|---|---|---|
-| H2-11 | Audit log básico (`security_audit_log`) | GDPR + investigación incidentes. Alternativa práctica al descartado H2-1 |
-| H2-12 | 2FA opcional para admins (TOTP `otplib`) | Corta blast radius del usuario con más privilegios |
-| H2-13 | Endpoint admin "listar/expulsar sesiones" | Caso "perdí el portátil" sin la complejidad de H2-1 |
-| H2-2 | Columnas `last_login`, `failed_login_count`, `locked_until` en `users` | Base para H2-3 |
-| H2-3 | Lockout por usuario tras N intentos fallidos | UX + tabla de unlock |
-| H2-7 | Logging estructurado eventos auth | Coordina con H2-11 |
-| H2-9 | Mensajes error genéricos en prod (no leak enumerate users) | Quickie defensivo |
-| H2-5 | Auditar cobertura Zod en todos los endpoints | Una vez, sistemático |
-| H2-6 | GitHub Actions CI (lint + typecheck + test pre-merge) | Acelera dev cuando haya más manos |
-| H2-4 | CSRF token explícito para mutaciones | Más relevante si crece la superficie pública |
+| ID    | Item                                                                   | Por qué importa                                                          |
+| ----- | ---------------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| H2-11 | Audit log básico (`security_audit_log`)                                | GDPR + investigación incidentes. Alternativa práctica al descartado H2-1 |
+| H2-12 | 2FA opcional para admins (TOTP `otplib`)                               | Corta blast radius del usuario con más privilegios                       |
+| H2-13 | Endpoint admin "listar/expulsar sesiones"                              | Caso "perdí el portátil" sin la complejidad de H2-1                      |
+| H2-2  | Columnas `last_login`, `failed_login_count`, `locked_until` en `users` | Base para H2-3                                                           |
+| H2-3  | Lockout por usuario tras N intentos fallidos                           | UX + tabla de unlock                                                     |
+| H2-7  | Logging estructurado eventos auth                                      | Coordina con H2-11                                                       |
+| H2-9  | Mensajes error genéricos en prod (no leak enumerate users)             | Quickie defensivo                                                        |
+| H2-5  | Auditar cobertura Zod en todos los endpoints                           | Una vez, sistemático                                                     |
+| H2-6  | GitHub Actions CI (lint + typecheck + test pre-merge)                  | Acelera dev cuando haya más manos                                        |
+| H2-4  | CSRF token explícito para mutaciones                                   | Más relevante si crece la superficie pública                             |
 
 ---
 
@@ -118,7 +117,6 @@ Aplicado el 2026-05-20 en `rest.py` (ver `SCHEDULING-DECISIONS-LOG.md`). Funcion
 **Fix propuesto:** Cambiar el replace-all por un diff selectivo: solo `DELETE` las filas de empleados que se eliminaron de la lista, solo `INSERT` los nuevos que se añaden. Los que permanecen no se tocan → `start_date`/`end_date` se preservan.
 
 **Archivos afectados:** `backend/repositories/scheduling/scheduling-repository.ts` (`setSchedulableEmployees`).
-
 
 ---
 

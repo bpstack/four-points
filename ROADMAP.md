@@ -27,12 +27,13 @@ JWT con refresh tokens, cookies HttpOnly, rate limiting, restricciones de demo y
 
 2 tablas principales en `backend/db-mysql/aiven/02_core_tables.sql` + `18_user_avatar.sql`:
 
-| Tabla | Propósito |
-|---|---|
-| `roles` | Roles del sistema (id, name). Seed: 1=recepcionista, 2=admin, 3=mantenimiento, 6=group-admin |
+| Tabla   | Propósito                                                                                                          |
+| ------- | ------------------------------------------------------------------------------------------------------------------ |
+| `roles` | Roles del sistema (id, name). Seed: 1=recepcionista, 2=admin, 3=mantenimiento, 6=group-admin                       |
 | `users` | Usuarios (UUID, username, email, password bcrypt, role_id FK, is_active, avatar_url, avatar_public_id, timestamps) |
 
 **Campos destacados de `users`:**
+
 - `id` — CHAR(36), UUID generado en creación
 - `password` — hash bcrypt (SALT_ROUNDS configurable, default 10)
 - `is_active` — TINYINT(1), soft-delete (0 = eliminado)
@@ -40,21 +41,23 @@ JWT con refresh tokens, cookies HttpOnly, rate limiting, restricciones de demo y
 
 ### 1.2 Sistema de roles
 
-| Rol | ID | Acceso |
-|---|---|---|
-| **admin** | 2 | Acceso total: crear usuarios, reset passwords, backoffice, reports, todos los módulos |
-| **recepcionista** | 1 (default) | Operaciones generales: logbooks, parking, cashier. Sin backoffice ni scheduling |
-| **group-admin** | 6 | Gestión de grupos, cashier, reports. Sin backoffice |
-| **mantenimiento** | 3 | Solo módulo de mantenimiento. Bloqueado por `excludeMantenimiento` en el resto |
-| **demo-admin** | runtime | Solo lectura excepto whitelist (logout, parking booking, logbook comment, maintenance report). Intentos bloqueados se registran en `demo_activity` |
+| Rol               | ID          | Acceso                                                                                                                                             |
+| ----------------- | ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **admin**         | 2           | Acceso total: crear usuarios, reset passwords, backoffice, reports, todos los módulos                                                              |
+| **recepcionista** | 1 (default) | Operaciones generales: logbooks, parking, cashier. Sin backoffice ni scheduling                                                                    |
+| **group-admin**   | 6           | Gestión de grupos, cashier, reports. Sin backoffice                                                                                                |
+| **mantenimiento** | 3           | Solo módulo de mantenimiento. Bloqueado por `excludeMantenimiento` en el resto                                                                     |
+| **demo-admin**    | runtime     | Solo lectura excepto whitelist (logout, parking booking, logbook comment, maintenance report). Intentos bloqueados se registran en `demo_activity` |
 
 ### 1.3 Backend — Endpoints API
 
 #### Públicos (sin auth)
+
 - ✅ `POST /api/auth/login` — Login con username/password, devuelve access token (15 min) + refresh token (7 días) en cookies HttpOnly
 - ✅ `POST /api/auth/refresh-token` — Regenera ambos tokens (sliding sessions)
 
 #### Protegidos (usuario autenticado)
+
 - ✅ `GET /api/auth/me` — Datos del usuario actual (password excluido)
 - ✅ `POST /api/auth/logout` — Limpia cookies de autenticación
 - ✅ `PATCH /api/auth/me/profile` — Cambiar username (requiere password actual, sanitización XSS, rate limited)
@@ -63,6 +66,7 @@ JWT con refresh tokens, cookies HttpOnly, rate limiting, restricciones de demo y
 - ✅ `DELETE /api/auth/me/avatar` — Eliminar avatar (borra de Cloudinary automáticamente)
 
 #### Solo admin
+
 - ✅ `POST /api/auth/register` — Crear usuario (solo admin real, no demo-admin)
 - ✅ `GET /api/users` — Listar todos los usuarios activos
 - ✅ `GET /api/users/role/:role` — Filtrar por rol
@@ -117,6 +121,7 @@ middlewares/
 ### 1.6 Frontend — Arquitectura
 
 #### Páginas y componentes
+
 - ✅ `app/(auth)/login/page.tsx` — Login page (validación real-time, dark mode, theme switcher, branding 4P)
 - ✅ `app/dashboard/profile/page.tsx` — Perfil con panel dinámico (?panel=settings|messages|notifications)
 - ✅ `app/components/profile/ProfileSidebar.tsx` — Avatar upload/delete, edición de username, cambio de password, nav links
@@ -124,34 +129,40 @@ middlewares/
 - ✅ `app/components/auth/NewUserModal.tsx` — SlidePanel para crear usuarios (username, email, password, rol)
 
 #### Auth context y hooks
+
 - ✅ `app/lib/auth/useAuth.tsx` — AuthContext con user, loading, isAuthenticated, login, logout, refreshUser. DEV_MODE disponible
 - ✅ `app/lib/auth/authService.ts` — Wrapper API: login, logout, me
 - ✅ `app/lib/auth/cookieHandler.ts` — Utilidades para cookies HttpOnly en Next.js API routes
 
 #### Proxies API (Next.js API routes)
+
 - ✅ `app/api/auth/login/route.ts` — Valida origin, proxy a backend, setea cookies
 - ✅ `app/api/auth/logout/route.ts` — Limpia cookies, notifica backend (non-blocking)
 - ✅ `app/api/auth/register/route.ts` — Requiere access_token, proxy a backend
 
 #### API client y types
+
 - ✅ `app/lib/users/queries.ts` — usersApi (CRUD admin) + authApi (login, register)
 - ✅ `app/lib/users/types.ts` — Types frontend
 
 ### 1.7 Funcionalidades de usuario
 
 #### Autenticación
+
 - ✅ **Login** — Username + password, tokens en cookies HttpOnly, redirect a dashboard
 - ✅ **Logout** — Limpia cookies local + notifica backend
 - ✅ **Refresh automático** — Sliding sessions con regeneración de ambos tokens
 - ✅ **Verificación de sesión** — Check automático en cambio de ruta (solo rutas protegidas)
 
 #### Perfil de usuario
+
 - ✅ **Ver perfil** — Sidebar con avatar, nombre, rol
 - ✅ **Editar username** — Inline edit, requiere password actual, sanitización
 - ✅ **Cambiar contraseña** — Requiere actual, validación de fortaleza, fuerza re-login
 - ✅ **Avatar** — Upload a Cloudinary (2MB, JPEG/PNG/WebP/GIF), eliminar, preview
 
 #### Gestión de usuarios (admin)
+
 - ✅ **Listar usuarios** — Todos los activos con roles
 - ✅ **Crear usuario** — Modal con username, email, password, rol
 - ✅ **Editar usuario** — Inline editing de username/email/rol
@@ -161,18 +172,19 @@ middlewares/
 - ✅ **Color por rol** — admin=purple, group-admin=blue, recepcionista=green, mantenimiento=orange
 
 #### Control de acceso
+
 - ✅ **Middlewares de rol** — isAdmin, isRealAdmin, isOwnerOrAdmin, canManageGroups, canManageCashier, excludeMantenimiento, etc.
 - ✅ **Demo-admin** — Whitelist de operaciones, bloqueos registrados en BD
 - ✅ **Rutas públicas** — Login, refresh-token (sin auth requerida)
 
 ### 1.8 Observaciones y mejoras potenciales
 
-| # | Estado | Observación |
-|---|---|---|
-| 1 | ℹ️ | **JWT vs Sessions** — CLAUDE.md menciona migración de JWT a sessions, pero el código actual sigue usando JWT con refresh tokens. El sistema funciona correctamente con JWT |
-| 2 | ⚠️ | **Register solo via admin** — No hay registro público (self-signup). Es intencional para un PMS hotelero pero vale documentarlo |
-| 3 | ⚠️ | **SettingsPanel.tsx tiene múltiples tabs** (Users, Security, Reports, Notifications, Departments) — Los tabs de Security y Reports podrían necesitar revisión para verificar que están completamente implementados |
-| 4 | ℹ️ | **Auto-asignación de notificaciones** — Al crear un admin/group-admin se le asignan automáticamente las notificaciones existentes recientes |
+| #   | Estado | Observación                                                                                                                                                                                                        |
+| --- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1   | ℹ️     | **JWT vs Sessions** — CLAUDE.md menciona migración de JWT a sessions, pero el código actual sigue usando JWT con refresh tokens. El sistema funciona correctamente con JWT                                         |
+| 2   | ⚠️     | **Register solo via admin** — No hay registro público (self-signup). Es intencional para un PMS hotelero pero vale documentarlo                                                                                    |
+| 3   | ⚠️     | **SettingsPanel.tsx tiene múltiples tabs** (Users, Security, Reports, Notifications, Departments) — Los tabs de Security y Reports podrían necesitar revisión para verificar que están completamente implementados |
+| 4   | ℹ️     | **Auto-asignación de notificaciones** — Al crear un admin/group-admin se le asignan automáticamente las notificaciones existentes recientes                                                                        |
 
 ---
 
@@ -185,14 +197,15 @@ comentarlas, marcar como leídas/resueltas y mantener un historial completo de a
 
 4 tablas en `backend/db-mysql/aiven/03_logbook_tables.sql`:
 
-| Tabla | Propósito |
-|---|---|
-| `logbooks` | Entradas principales (message, importance_level, department_id, is_solved, soft-delete) |
-| `logbook_comments` | Comentarios por entrada (comment, importance_level, department_id, soft-delete) |
-| `logbook_reads` | Tracking de lectura por usuario (clave compuesta logbook_id + user_id) |
-| `logbook_history` | Auditoría completa (action: create/update/delete/read/unread/solve/reopen, previous_content, new_content) |
+| Tabla              | Propósito                                                                                                 |
+| ------------------ | --------------------------------------------------------------------------------------------------------- |
+| `logbooks`         | Entradas principales (message, importance_level, department_id, is_solved, soft-delete)                   |
+| `logbook_comments` | Comentarios por entrada (comment, importance_level, department_id, soft-delete)                           |
+| `logbook_reads`    | Tracking de lectura por usuario (clave compuesta logbook_id + user_id)                                    |
+| `logbook_history`  | Auditoría completa (action: create/update/delete/read/unread/solve/reopen, previous_content, new_content) |
 
 **Campos destacados de `logbooks`:**
+
 - `importance_level` — enum: baja / media / alta / urgente
 - `is_solved` — 0/1, con `solved_at` y `solved_by`
 - `date` — fecha personalizable (opcional)
@@ -203,11 +216,13 @@ comentarlas, marcar como leídas/resueltas y mantener un historial completo de a
 Base: `/api/logbooks` — Middleware: `authenticateToken` + `excludeMantenimiento`
 
 #### CRUD principal
+
 - ✅ `POST /` — Crear entrada (message 3-5000 chars, department, priority, date opcional)
 - ✅ `PUT /:id` — Editar entrada (solo autor, tracking de cambios en historial)
 - ✅ `DELETE /:id` — Soft-delete (solo autor, registra contenido previo en historial)
 
 #### Consultas y filtros
+
 - ✅ `GET /all` — Listar todas (paginado: limit/offset, default 100, max 500)
 - ✅ `GET /day/:day` — Filtrar por fecha YYYY-MM-DD (uso principal del frontend)
 - ✅ `GET /department/:departmentId` — Filtrar por departamento
@@ -216,6 +231,7 @@ Base: `/api/logbooks` — Middleware: `authenticateToken` + `excludeMantenimient
 - ✅ `GET /trashed` — Entradas eliminadas (papelera)
 
 #### Comentarios
+
 - ✅ `POST /:logbookId/comments` — Crear comentario (puede actualizar campos del padre)
 - ✅ `GET /:logbookId/comments` — Listar comentarios (excluye soft-deleted)
 - ✅ `PUT /:logbookId/comments/:id` — Editar comentario (autor o admin)
@@ -223,6 +239,7 @@ Base: `/api/logbooks` — Middleware: `authenticateToken` + `excludeMantenimient
 - ✅ `GET /:logbookId/comments/:commentId/history` — Historial del comentario
 
 #### Estado y lectura
+
 - ✅ `POST /:logbookId/read` — Marcar como leído (upsert)
 - ✅ `DELETE /:logbookId/read` — Desmarcar lectura
 - ✅ `PUT /:logbookId/solve` — Marcar como resuelto (guarda solved_by + solved_at)
@@ -231,6 +248,7 @@ Base: `/api/logbooks` — Middleware: `authenticateToken` + `excludeMantenimient
 - ✅ `GET /:logbookId/solved` — Info del usuario que resolvió
 
 #### Historial
+
 - ✅ `GET /:logbookId/history` — Historial completo de la entrada
 
 ### 1.3 Backend — Arquitectura
@@ -264,6 +282,7 @@ routes/logbook/
 ### 1.4 Frontend — Arquitectura
 
 #### Páginas y componentes
+
 - ✅ `app/dashboard/logbooks/page.tsx` — Página wrapper
 - ✅ `app/components/logbooks/LogbooksContainer.tsx` — Contenedor principal (estado de fecha, navegación mensual, HorizontalDatePicker)
 - ✅ `app/components/logbooks/LogbooksList.tsx` — Renderizado principal (~500 líneas: entradas, comentarios, acciones, avatares de lectores)
@@ -273,6 +292,7 @@ routes/logbook/
 - ✅ `app/components/logbooks/EditCommentModal.tsx` — Modal edición de comentario
 
 #### Hooks y API
+
 - ✅ `app/lib/logbooks/hooks/useLogbooks.ts` — Hook principal (React Query, mutations para CRUD, toggle status/read, toasts i18n)
 - ✅ `app/lib/logbooks/hooks/useDepartments.ts` — Fetch y formateo de departamentos
 - ✅ `app/lib/logbooks/queries.ts` — API client (`logbooksApi` con todos los métodos)
@@ -280,40 +300,47 @@ routes/logbook/
 - ✅ `app/lib/logbooks/validations.ts` — Zod schemas cliente (mirror de backend)
 
 #### i18n
+
 - ✅ `messages/en/logbook.json` + `messages/es/logbook.json` — Traducciones EN/ES
 
 ### 1.5 Funcionalidades de usuario
 
 #### Gestión de entradas
+
 - ✅ **Crear entrada** — Message (3-5000 chars), departamento, prioridad (baja/media/alta/urgente), fecha opcional
 - ✅ **Editar entrada** — Solo el autor puede editar; cambios registrados en historial
 - ✅ **Eliminar entrada** — Soft-delete, solo el autor; contenido previo guardado en historial
 - ⚠️ **Papelera** — Endpoint `GET /trashed` funciona pero no hay vista frontend para consultar ni restaurar entradas eliminadas
 
 #### Sistema de comentarios
+
 - ✅ **Crear comentario** — Cualquier usuario; puede establecer prioridad y departamento por comentario
 - ✅ **Editar comentario** — Solo autor o admin
 - ✅ **Eliminar comentario** — Soft-delete, solo autor o admin
 - ⚠️ **Historial por comentario** — Endpoint existe y funciona, pero no hay componente en UI que lo muestre
 
 #### Tracking de estado
+
 - ✅ **Marcar como leído/no leído** — Por usuario, patrón upsert; avatares circulares de lectores (max 8 visibles + "+N")
 - ✅ **Marcar como resuelto** — Guarda quién y cuándo resolvió
 - ✅ **Reabrir** — Limpia estado de resolución; registrado en historial
 
 #### Filtrado y navegación
+
 - ✅ **Por fecha** — HorizontalDatePicker + navegación mensual (prev/next/today); uso principal de la UI
 - ⚠️ **Por departamento** — Endpoint dedicado con paginación, sin selector en la UI
 - ⚠️ **Por autor** — Endpoint dedicado con paginación, sin selector en la UI
 - ⚠️ **Por prioridad** — Endpoint dedicado con validación de enum, sin selector en la UI
 
 #### Auditoría
+
 - ✅ **Historial completo** — Acciones: create/update/delete/read/unread/solve/reopen
 - ✅ **Contenido anterior/nuevo** — Almacenado en JSON
 - ✅ **Información del editor** — user_id, username, email en cada registro
 - ⚠️ **Vista de historial** — El historial se registra correctamente en backend pero no hay componente frontend para visualizarlo
 
 #### UI/UX
+
 - ✅ **Colores por prioridad** — rojo=urgente, naranja=alta, amarillo=media, verde=baja
 - ✅ **Dark mode** — Soporte completo via next-themes
 - ✅ **Responsive** — flex-wrap headers, overflow-x-auto
@@ -331,12 +358,12 @@ routes/logbook/
 
 ### 1.7 Observaciones y mejoras potenciales
 
-| # | Estado | Observación |
-|---|---|---|
-| 1 | ⚠️ | **Vista de historial sin UI** — El endpoint `GET /:logbookId/history` funciona pero no hay componente frontend para visualizarlo |
-| 2 | ⚠️ | **Papelera sin UI** — El endpoint `GET /trashed` funciona pero no hay vista para consultar entradas eliminadas ni opción de restaurar |
-| 3 | ⚠️ | **Filtros avanzados sin UI** — Los endpoints de filtro por departamento/autor/prioridad existen pero la UI solo filtra por fecha |
-| 4 | ⚠️ | **LogbooksList.tsx extenso** (~500 líneas) — Candidato a extraer sub-componentes (lista de comentarios, acciones por entrada, etc.) |
+| #   | Estado | Observación                                                                                                                           |
+| --- | ------ | ------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | ⚠️     | **Vista de historial sin UI** — El endpoint `GET /:logbookId/history` funciona pero no hay componente frontend para visualizarlo      |
+| 2   | ⚠️     | **Papelera sin UI** — El endpoint `GET /trashed` funciona pero no hay vista para consultar entradas eliminadas ni opción de restaurar |
+| 3   | ⚠️     | **Filtros avanzados sin UI** — Los endpoints de filtro por departamento/autor/prioridad existen pero la UI solo filtra por fecha      |
+| 4   | ⚠️     | **LogbooksList.tsx extenso** (~500 líneas) — Candidato a extraer sub-componentes (lista de comentarios, acciones por entrada, etc.)   |
 
 ---
 
@@ -349,23 +376,26 @@ completo (reserva → check-in → check-out), estadísticas en tiempo real y an
 
 5 tablas en `backend/db-mysql/aiven/04_parking_tables.sql` + triggers/funciones en `05`, procedures en `06`, seed en `07`/`08`:
 
-| Tabla | Propósito |
-|---|---|
-| `parking_spots` | Plazas físicas (levels: -2, -3; types: normal, ancha, mas_ancha, esquina, accesible, estrecha_bicis) |
-| `parking_vehicles` | Registro de vehículos (plate_number, owner_name, model) |
-| `parking_bookings` | Reservas con booking_code auto-generado (PK-YYYYMMDD-####), status, payment, source |
-| `parking_availability` | Disponibilidad diaria por plaza |
-| `parking_rates` | Tarifas por días |
+| Tabla                  | Propósito                                                                                            |
+| ---------------------- | ---------------------------------------------------------------------------------------------------- |
+| `parking_spots`        | Plazas físicas (levels: -2, -3; types: normal, ancha, mas_ancha, esquina, accesible, estrecha_bicis) |
+| `parking_vehicles`     | Registro de vehículos (plate_number, owner_name, model)                                              |
+| `parking_bookings`     | Reservas con booking_code auto-generado (PK-YYYYMMDD-####), status, payment, source                  |
+| `parking_availability` | Disponibilidad diaria por plaza                                                                      |
+| `parking_rates`        | Tarifas por días                                                                                     |
 
 **Triggers:**
+
 - `trg_generate_booking_code` — Auto-genera código PK-YYYYMMDD-#### en INSERT
 - `trg_update_availability_on_booking` — Marca plaza no disponible en rango de fechas al crear reserva
 
 **Funciones:**
+
 - `check_availability(spot_id, date_from, date_to)` — Boolean de disponibilidad
 - `get_total_availability(date)` — Conteo de plazas disponibles
 
 **Enums destacados:**
+
 - Status: reserved / checked_in / completed / canceled / no_show
 - Payment method: cash / card / transfer / agency
 - Booking source: direct / booking_com / expedia / airbnb / agency_other
@@ -375,10 +405,12 @@ completo (reserva → check-in → check-out), estadísticas en tiempo real y an
 Base: `/api/parking` — Middleware: `authenticateToken` + `excludeMantenimiento`
 
 #### Plazas
+
 - ✅ `GET /spots` — Listar todas (con filtros por level y type)
 - ✅ `GET /spots/available` — Plazas disponibles por fecha o rango (max 60 días)
 
 #### Vehículos
+
 - ✅ `GET /vehicles` — Listar todos (filtros: plate_number, owner_name)
 - ✅ `POST /vehicles` — Registrar vehículo (normalización de matrícula, detección de duplicados)
 - ✅ `GET /vehicles/search?q=` — Búsqueda full-text (matrícula o propietario)
@@ -386,6 +418,7 @@ Base: `/api/parking` — Middleware: `authenticateToken` + `excludeMantenimiento
 - ✅ `DELETE /vehicles/:id` — Eliminar (solo admin, verifica FK con reservas)
 
 #### Reservas
+
 - ✅ `GET /bookings` — Listar con filtros avanzados y paginación (default 50, max 500)
 - ✅ `GET /bookings?quickFilter=` — Filtros rápidos dashboard (arrivals_pending, arrivals_inside, departures_pending, departures_completed, etc.)
 - ✅ `GET /bookings?startDate=X&endDate=Y` — Filtro por rango de fechas
@@ -400,11 +433,13 @@ Base: `/api/parking` — Middleware: `authenticateToken` + `excludeMantenimiento
 - ✅ `GET /bookings/overdue/list` — Reservas con check-out vencido
 
 #### Estadísticas
+
 - ✅ `GET /stats` — Stats diarias o por rango (ocupación, pendientes, completados, tasa de ocupación %)
 - ✅ `GET /stats/pending-checkins` — Check-ins pendientes por fecha
 - ✅ `GET /stats/pending-checkouts` — Check-outs pendientes por fecha
 
 #### Analytics
+
 - ⚠️ `GET /stats/analytics/trends` — Tendencias de ocupación últimos N días
 - ⚠️ `GET /stats/analytics/comparison` — Comparación entre dos periodos
 - ⚠️ `GET /stats/analytics/performance` — Ranking por nivel de ocupación
@@ -444,6 +479,7 @@ services/parking/
 ### 3.4 Frontend — Arquitectura
 
 #### Páginas
+
 - ✅ `app/dashboard/parking/page.tsx` — Dashboard principal (SSR con prefetch)
 - ✅ `app/dashboard/parking/bookings/page.tsx` — Lista de reservas con filtros
 - ✅ `app/dashboard/parking/bookings/new/page.tsx` — Crear reserva (wizard)
@@ -451,18 +487,21 @@ services/parking/
 - ✅ `app/dashboard/parking/status/page.tsx` — Estado en tiempo real del parking
 
 #### Componentes principales
+
 - ✅ `ParkingDashboardClient.tsx` — Dashboard con stats cards, ocupación por nivel, pendientes, filtros fecha/nivel
 - ✅ `BookingsListClient.tsx` — Lista con quick filters, filtros avanzados, paginación, búsqueda, acciones por reserva
 - ✅ `BookingDetailClient.tsx` — Detalle completo con modales de check-in/out/edit/payment
 - ✅ `ParkingStatusClient.tsx` — Grid interactivo del parking, acciones rápidas, alertas de overdue
 
 #### Componentes de reservas
+
 - ✅ `CheckInModal.tsx` — Check-in con override de fecha/hora
 - ✅ `CheckOutModal.tsx` — Check-out con captura de pago
 - ✅ `EditBookingModal.tsx` — Edición de reserva (antes de check-in)
 - ✅ `PaymentModal.tsx` — Registro de pago independiente
 
 #### Componentes compartidos
+
 - ✅ `StatusBadge.tsx` — Badge por estado (reserved=blue, checked_in=purple, completed=green, canceled=gray, no_show=orange)
 - ✅ `ActionDropdown.tsx` — Menú contextual por reserva (acciones dinámicas según estado, portal rendering)
 - ✅ `VehicleSearchModal.tsx` — Búsqueda de vehículos con debounce
@@ -470,6 +509,7 @@ services/parking/
 - ✅ `StatusPanels.tsx` — Sidebar con resumen de ocupación y operaciones pendientes
 
 #### API y hooks
+
 - ✅ `app/lib/parking/queries.ts` — parkingApi (spots, vehicles, bookings, stats, overdue)
 - ✅ `app/lib/parking/types.ts` — Types frontend completos
 - ✅ `app/lib/parking/actions.ts` — Server actions con auth
@@ -478,17 +518,20 @@ services/parking/
 ### 3.5 Funcionalidades de usuario
 
 #### Gestión de plazas
+
 - ✅ **Listar plazas** — Por nivel (-2, -3) y tipo (normal, ancha, accesible, etc.)
 - ✅ **Consultar disponibilidad** — Por fecha o rango (max 60 días)
 - ✅ **Grid interactivo** — Vista en tiempo real del estado de cada plaza
 
 #### Gestión de vehículos
+
 - ✅ **Registrar vehículo** — Matrícula (3-12 chars, normalizada a mayúsculas), propietario, modelo
 - ✅ **Buscar vehículos** — Full-text por matrícula o propietario
 - ✅ **Editar/eliminar** — Con protección FK (no eliminar si tiene reservas)
 - ✅ **Detección de duplicados** — Por matrícula
 
 #### Ciclo de vida de reservas
+
 - ✅ **Crear reserva** — Wizard con selección de plaza, vehículo, fechas, fuente de reserva
 - ✅ **Check-in** — Desde estado reserved, con override de hora, validación de ocupación
 - ✅ **Check-out** — Desde checked_in, con captura de pago (importe, método, referencia)
@@ -498,6 +541,7 @@ services/parking/
 - ✅ **Editar** — Campos de pago en cualquier estado; otros campos solo en reserved/checked_in
 
 #### Quick filters (dashboard)
+
 - ✅ **arrivals_pending** — Reservadas con entrada hoy
 - ✅ **arrivals_inside** — Todos los checked_in
 - ✅ **departures_pending** — Checked_in con salida hoy
@@ -505,12 +549,14 @@ services/parking/
 - ✅ **Overdue** — Check-outs vencidos
 
 #### Estadísticas
+
 - ✅ **Stats diarias** — Total/ocupadas/disponibles, pendientes, completados, tasa de ocupación %
 - ✅ **Stats por rango** — Consolidadas con medias diarias (semanal, mensual, N días)
 - ✅ **Ocupación por nivel** — Desglose por planta
 - ✅ **Pendientes** — Check-ins y check-outs pendientes por fecha
 
 #### UI/UX
+
 - ✅ **Dark mode** — Soporte completo
 - ✅ **Responsive** — overflow-x-auto en tablas, min-w en grids (patrón de referencia del proyecto)
 - ✅ **Modales** — Sistema completo para todas las acciones
@@ -530,16 +576,16 @@ services/parking/
 
 ### 3.7 Observaciones y mejoras potenciales
 
-| # | Estado | Observación |
-|---|---|---|
-| 1 | ⚠️ | **Analytics parcialmente implementados** — Los 4 endpoints de analytics existen pero usan cálculos placeholder; trends, comparison, performance y booking-analysis necesitan lógica completa |
-| 2 | ⚠️ | **PDF/Facturación stub** — `invoicePdfService.ts` existe pero está vacío/comentado. Sin generación de facturas |
-| 3 | ⚠️ | **Status page en refactoring** — Componentes de `/status/` tienen comentarios sobre fases de refactoring; podría necesitar verificación |
-| 4 | ❌ | **Sin tests** — No se encontraron archivos de test para el módulo de parking |
-| 5 | ℹ️ | **Sin operaciones bulk** — No hay check-in/out masivo |
-| 6 | ℹ️ | **Pricing básico** — Solo lookup por días, sin pricing dinámico ni override de tarifas |
-| 7 | ℹ️ | **Sin notificaciones** — No hay emails/SMS de confirmación de reserva |
-| 8 | ℹ️ | **Sin export** — No hay exportación CSV/Excel de reservas o stats |
+| #   | Estado | Observación                                                                                                                                                                                  |
+| --- | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | ⚠️     | **Analytics parcialmente implementados** — Los 4 endpoints de analytics existen pero usan cálculos placeholder; trends, comparison, performance y booking-analysis necesitan lógica completa |
+| 2   | ⚠️     | **PDF/Facturación stub** — `invoicePdfService.ts` existe pero está vacío/comentado. Sin generación de facturas                                                                               |
+| 3   | ⚠️     | **Status page en refactoring** — Componentes de `/status/` tienen comentarios sobre fases de refactoring; podría necesitar verificación                                                      |
+| 4   | ❌     | **Sin tests** — No se encontraron archivos de test para el módulo de parking                                                                                                                 |
+| 5   | ℹ️     | **Sin operaciones bulk** — No hay check-in/out masivo                                                                                                                                        |
+| 6   | ℹ️     | **Pricing básico** — Solo lookup por días, sin pricing dinámico ni override de tarifas                                                                                                       |
+| 7   | ℹ️     | **Sin notificaciones** — No hay emails/SMS de confirmación de reserva                                                                                                                        |
+| 8   | ℹ️     | **Sin export** — No hay exportación CSV/Excel de reservas o stats                                                                                                                            |
 
 ---
 
@@ -553,51 +599,54 @@ exportación PDF y 7 reglas de validación activas.
 
 10 tablas en `backend/db-mysql/aiven/19_scheduling.sql`:
 
-| Tabla | Propósito |
-|---|---|
-| `scheduling_config` | Configuración del sistema (20+ parámetros: staffing, horas descanso, bloques noche, libre mensual, etc.) |
-| `scheduling_shifts` | Tipos de turno (M, T, N, P, PI, B, V, L, FO, IT, E, A) con horarios, horas, colores, flags trabajo/pagado |
-| `scheduling_employees` | Empleados inscritos en el sistema de turnos |
-| `scheduling_employee_contracts` | Contratos anuales por empleado (dias_trabajo, horas_anuales, dias_vacaciones, etc.) |
-| `scheduling_employee_rules` | Reglas por empleado (turno fijo, sin fines de semana, max/min turnos, etc.) |
-| `scheduling_months` | Meses de planificación (status: draft/published, notas, published_by/at) |
-| `scheduling_days` | Días de cada mes (festivo, nombre festivo, ocupación %, llegadas/salidas, notas) |
-| `scheduling_assignments` | Asignaciones turno-empleado-día (con source_constraint_id para bloqueo, libre_number) |
-| `scheduling_constraints` | Restricciones/solicitudes (vacation, sick_leave, sick_day, training, holiday, request_off/shift/no_shift) con status pending/approved/rejected |
-| `scheduling_history` | Auditoría (created, published, unpublished, assignment_changed, constraint_added/approved/rejected, manual_edit, reset) |
+| Tabla                           | Propósito                                                                                                                                      |
+| ------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| `scheduling_config`             | Configuración del sistema (20+ parámetros: staffing, horas descanso, bloques noche, libre mensual, etc.)                                       |
+| `scheduling_shifts`             | Tipos de turno (M, T, N, P, PI, B, V, L, FO, IT, E, A) con horarios, horas, colores, flags trabajo/pagado                                      |
+| `scheduling_employees`          | Empleados inscritos en el sistema de turnos                                                                                                    |
+| `scheduling_employee_contracts` | Contratos anuales por empleado (dias_trabajo, horas_anuales, dias_vacaciones, etc.)                                                            |
+| `scheduling_employee_rules`     | Reglas por empleado (turno fijo, sin fines de semana, max/min turnos, etc.)                                                                    |
+| `scheduling_months`             | Meses de planificación (status: draft/published, notas, published_by/at)                                                                       |
+| `scheduling_days`               | Días de cada mes (festivo, nombre festivo, ocupación %, llegadas/salidas, notas)                                                               |
+| `scheduling_assignments`        | Asignaciones turno-empleado-día (con source_constraint_id para bloqueo, libre_number)                                                          |
+| `scheduling_constraints`        | Restricciones/solicitudes (vacation, sick_leave, sick_day, training, holiday, request_off/shift/no_shift) con status pending/approved/rejected |
+| `scheduling_history`            | Auditoría (created, published, unpublished, assignment_changed, constraint_added/approved/rejected, manual_edit, reset)                        |
 
 **Diseño clave:**
+
 - Constraints aprobados → auto-sync a assignments + bloqueo de celdas (source_constraint_id)
 - Estados de mes: `draft` (editable) ↔ `published` (bloqueado para visualización)
 - Constraints retroactivos permitidos (admin puede añadir para fechas pasadas)
 
 ### 4.2 Tipos de turno
 
-| Código | Nombre | Tipo | Horas |
-|---|---|---|---|
-| M | Mañana | Trabajo | 8h |
-| T | Tarde | Trabajo | 8h |
-| N | Noche | Trabajo | 10h |
-| P | Presencia | Trabajo | 24h |
-| PI | Personal Intervención | Trabajo | 24h |
-| L | Libre | Descanso | — |
-| V | Vacaciones | Ausencia | — |
-| B | Bonificable/Festivo | Ausencia | — |
-| E | Enfermedad | Ausencia | — |
-| IT | Incapacidad Temporal | Ausencia | — |
-| FO | Formación | Ausencia | — |
-| A | Ausencia injustificada | Ausencia | — |
+| Código | Nombre                 | Tipo     | Horas |
+| ------ | ---------------------- | -------- | ----- |
+| M      | Mañana                 | Trabajo  | 8h    |
+| T      | Tarde                  | Trabajo  | 8h    |
+| N      | Noche                  | Trabajo  | 10h   |
+| P      | Presencia              | Trabajo  | 24h   |
+| PI     | Personal Intervención  | Trabajo  | 24h   |
+| L      | Libre                  | Descanso | —     |
+| V      | Vacaciones             | Ausencia | —     |
+| B      | Bonificable/Festivo    | Ausencia | —     |
+| E      | Enfermedad             | Ausencia | —     |
+| IT     | Incapacidad Temporal   | Ausencia | —     |
+| FO     | Formación              | Ausencia | —     |
+| A      | Ausencia injustificada | Ausencia | —     |
 
 ### 4.3 Backend — Endpoints API
 
 Base: `/api/scheduling` — Middleware: `authenticateToken` + `excludeMantenimiento` (admin para operaciones sensibles)
 
 #### Configuración
+
 - ✅ `GET /config` — Toda la configuración
 - ✅ `GET /config/map` — Config como mapa clave-valor tipado
 - ✅ `PATCH /config` — Actualizar config (admin)
 
 #### Turnos
+
 - ✅ `GET /shifts` — Listar todos los tipos de turno
 - ✅ `GET /shifts/:id` — Detalle de turno
 - ✅ `POST /shifts` — Crear turno (admin)
@@ -605,6 +654,7 @@ Base: `/api/scheduling` — Middleware: `authenticateToken` + `excludeMantenimie
 - ✅ `DELETE /shifts/:id` — Eliminar turno (admin)
 
 #### Meses
+
 - ✅ `GET /months` — Listar meses (con filtros año/status)
 - ✅ `GET /months/:id` — Mes completo (días, asignaciones, constraints, stats)
 - ✅ `GET /months/:id/info` — Panel de info (constraints aprobados + reglas empleados)
@@ -616,14 +666,17 @@ Base: `/api/scheduling` — Middleware: `authenticateToken` + `excludeMantenimie
 - ✅ `PATCH /months/:id/unpublish` — Despublicar (admin)
 
 #### Días
+
 - ✅ `PATCH /days/:id` — Actualizar día (festivo, notas, etc.)
 - ✅ `POST /days/bulk` — Actualización masiva de días
 
 #### Asignaciones
+
 - ✅ `PATCH /assignments/:id` — Editar celda individual (retorna 409 si celda bloqueada)
 - ✅ `POST /assignments/bulk` — Edición masiva de celdas
 
 #### Constraints
+
 - ✅ `GET /constraints` — Listar por mes
 - ✅ `POST /constraints` — Crear constraint
 - ✅ `PUT /constraints/:id` — Editar constraint
@@ -631,6 +684,7 @@ Base: `/api/scheduling` — Middleware: `authenticateToken` + `excludeMantenimie
 - ✅ `DELETE /constraints/:id` — Eliminar constraint
 
 #### Reglas de empleado
+
 - ✅ `GET /employee-rules` — Todas las reglas
 - ✅ `GET /employee-rules/employee/:id` — Reglas por empleado
 - ✅ `POST /employee-rules` — Crear regla (admin)
@@ -638,6 +692,7 @@ Base: `/api/scheduling` — Middleware: `authenticateToken` + `excludeMantenimie
 - ✅ `DELETE /employee-rules/:id` — Eliminar regla (admin)
 
 #### Empleados
+
 - ✅ `GET /employees` — Empleados planificables
 - ✅ `GET /employees/all` — Todos con status de inclusión
 - ✅ `POST /employees` — Añadir empleado al sistema
@@ -645,6 +700,7 @@ Base: `/api/scheduling` — Middleware: `authenticateToken` + `excludeMantenimie
 - ✅ `PUT /employees` — Establecer lista completa de empleados
 
 #### Contratos
+
 - ✅ `GET /contracts/:year` — Contratos por año
 - ✅ `GET /contracts/:year/:employeeId` — Contrato individual
 - ✅ `POST /contracts` — Crear contrato
@@ -655,24 +711,27 @@ Base: `/api/scheduling` — Middleware: `authenticateToken` + `excludeMantenimie
 - ✅ `GET /contracts/calculate-proportional` — Calcular contrato proporcional
 
 #### Totales anuales
+
 - ✅ `GET /annual-totals/:year` — Totales calculados desde meses publicados (convenio vs disfrutados vs pendiente)
 
 #### Historial
+
 - ✅ `GET /history/:monthId` — Auditoría del mes
 
 ### 4.4 Sistema de validación (7 constraints activos)
 
-| Prioridad | Constraint | Regla | Severidad |
-|---|---|---|---|
-| 100 | **Coverage** | Min/max personal por turno por día (1M, 1T, 1N min; 2M, 2T, 1N max) | ERROR (0 staff) / WARNING |
-| 100 | **Night Block** | Noches consecutivas obligatorias (min 3, recomendado 4-6) | ERROR si dispersas |
-| 95 | **Consecutive Rest** | Min 2 días de descanso consecutivos en ventana rodante de 7 días | ERROR |
-| 90 | **Max Consecutive Work** | Máximo 6 días laborables consecutivos (regulación laboral) | ERROR |
-| 85 | **Rotation Continuity** | T→M en días consecutivos = ERROR (solo 8h entre turnos) | ERROR |
-| 75 | **Employee Rules** | Turno fijo, sin fines de semana, max/min turnos por mes | WARNING/INFO |
-| 70 | **Monthly Libre** | 7-10 días libres por mes (incluye V, B, IT, E, FO además de L) | WARNING |
+| Prioridad | Constraint               | Regla                                                               | Severidad                 |
+| --------- | ------------------------ | ------------------------------------------------------------------- | ------------------------- |
+| 100       | **Coverage**             | Min/max personal por turno por día (1M, 1T, 1N min; 2M, 2T, 1N max) | ERROR (0 staff) / WARNING |
+| 100       | **Night Block**          | Noches consecutivas obligatorias (min 3, recomendado 4-6)           | ERROR si dispersas        |
+| 95        | **Consecutive Rest**     | Min 2 días de descanso consecutivos en ventana rodante de 7 días    | ERROR                     |
+| 90        | **Max Consecutive Work** | Máximo 6 días laborables consecutivos (regulación laboral)          | ERROR                     |
+| 85        | **Rotation Continuity**  | T→M en días consecutivos = ERROR (solo 8h entre turnos)             | ERROR                     |
+| 75        | **Employee Rules**       | Turno fijo, sin fines de semana, max/min turnos por mes             | WARNING/INFO              |
+| 70        | **Monthly Libre**        | 7-10 días libres por mes (incluye V, B, IT, E, FO además de L)      | WARNING                   |
 
 **Arquitectura:**
+
 - Base abstracta con `check()` y `fix()` (opcional)
 - Registry que ejecuta todos en orden de prioridad
 - Resultado: `ValidationResult { isValid, errors[], warnings[], stats }`
@@ -717,10 +776,12 @@ routes/scheduling/
 ### 4.6 Frontend — Arquitectura
 
 #### Páginas
+
 - ✅ `app/dashboard/scheduling/page.tsx` — Página principal (Suspense + skeleton)
 - ✅ `app/dashboard/scheduling/config/page.tsx` — Configuración (Suspense + skeleton)
 
 #### Componentes principales
+
 - ✅ `SchedulingClient.tsx` — Orquestador: selección mes/año (URL-based), edición de celdas, validación, publicar/despublicar, reset, PDF export, festivos
 - ✅ `ScheduleGrid.tsx` — Grid mensual interactivo (30+ columnas, drag-to-select bulk, celdas bloqueadas visualmente distintas, DOM directo para performance)
 - ✅ `SchedulingConfigClient.tsx` — Panel de config con 7 tabs (employees, totals, general, rules, requests, shift-stats, presencias) + todos los modales
@@ -734,17 +795,20 @@ routes/scheduling/
 - ✅ `ShiftLegend.tsx` — Leyenda de turnos con colores
 
 #### API y utilidades
+
 - ✅ `app/lib/scheduling/queries.ts` — React Query hooks completos (config, shifts, months, constraints, rules, contracts, totals, history, employees, validation)
 - ✅ `app/lib/scheduling/types.ts` — Types frontend (~300 líneas)
 - ✅ `app/lib/scheduling/export-pdf.ts` — Exportación PDF (A4 landscape, colores matching web, multi-page, pdf-lib)
 - ✅ `app/lib/scheduling/shift-styles.ts` — Sistema de colores por turno (light + dark mode)
 
 #### i18n
+
 - ✅ `messages/es/scheduling.json` + `messages/en/scheduling.json` — 500+ claves cada uno
 
 ### 4.7 Funcionalidades de usuario
 
 #### Gestión de meses
+
 - ✅ **Crear mes** — Inicializa grid con días y asignaciones vacías
 - ✅ **Publicar/despublicar** — Cambia estado draft ↔ published
 - ✅ **Reset** — Borra asignaciones y re-seed desde constraints aprobados
@@ -752,6 +816,7 @@ routes/scheduling/
 - ✅ **Selector visual** — Pills por mes con estado coloreado
 
 #### Edición de turnos
+
 - ✅ **Celda individual** — Click → menú de turno → asignar (retorna 409 si bloqueada)
 - ✅ **Selección múltiple** — Drag-to-select → asignar turno a múltiples celdas
 - ✅ **Celdas vacías editables** — Celdas sin asignación en BD se crean vía upsert al editar (antes lanzaban error)
@@ -760,12 +825,14 @@ routes/scheduling/
 - ✅ **Validación en tiempo real** — Feedback inmediato de errores/warnings tras edición
 
 #### Sistema de constraints
+
 - ✅ **Crear solicitud** — vacation, sick_leave, sick_day, training, holiday, request_off/shift/no_shift
 - ✅ **Aprobar/rechazar** — Admin aprueba → auto-sync a asignaciones + bloqueo de celdas
 - ✅ **Constraints retroactivos** — Admin puede añadir para fechas pasadas
 - ✅ **Panel de info** — Vista de constraints aprobados y reglas activas por mes
 
 #### Reglas de empleado
+
 - ✅ **Turno fijo** (fixed_shift) — Empleado solo trabaja un tipo de turno
 - ✅ **Sin fines de semana** (no_weekends) — No trabaja sábado/domingo
 - ✅ **Max/min turnos** — Límites por código de turno por mes
@@ -773,19 +840,23 @@ routes/scheduling/
 - ✅ **Días fijos** (fixed_days) — Solo trabaja en días específicos
 
 #### Contratos y totales
+
 - ✅ **Gestión de contratos** — Crear/editar contratos anuales por empleado
 - ✅ **Inicialización masiva** — Inicializar contratos para año completo o individualmente
 - ✅ **Cálculo proporcional** — Para contratos parciales
 - ✅ **Totales anuales** — Calculados automáticamente desde meses publicados (convenio vs disfrutados vs pendiente)
 
 #### Festivos
+
 - ✅ **Gestionar festivos** — Toggle día festivo + nombre editable inline
 - ✅ **Tooltip festivo** — Visible en grid
 
 #### Exportación
+
 - ✅ **PDF** — A4 landscape, grid completo con colores, multi-página, paginación
 
 #### Presencias
+
 - ✅ **Conversión de horario** — Convierte códigos de turno (M/T/N/PI/P→P, Lxx→L, resto sin cambio) al formato del documento oficial de presencias
 - ✅ **Cálculo de horas nocturnas** — T=1h (22:00-23:00), N=7h (23:00-6:00), resto=0h. Calculado sobre el código original antes de convertir
 - ✅ **Bloque 1 (Presencias)** — Output tab-separado por empleado: 28/30/31 códigos convertidos + total presencias. Listo para pegar en pestaña "Presencias" del Excel oficial
@@ -794,6 +865,7 @@ routes/scheduling/
 - ✅ **Limpiar** — Resetea input y resultado
 
 #### UI/UX
+
 - ✅ **Dark mode** — Colores de turno adaptados (light + dark palette)
 - ✅ **Responsive** — overflow-x-auto, columnas sticky
 - ✅ **Estado en URL** — Mes/año/tab persisten en searchParams
@@ -802,16 +874,16 @@ routes/scheduling/
 
 ### 4.8 Observaciones y mejoras potenciales
 
-| # | Estado | Observación |
-|---|---|---|
-| 1 | ℹ️ | **Sin generación automática** — El sistema es 100% manual (celda a celda). No hay algoritmo de auto-generación de horarios. Es decisión de diseño documentada |
-| 2 | ⚠️ | **Controller monolítico** — `scheduling-controller.ts` tiene ~67KB. Candidato fuerte a dividir en sub-controllers por dominio (months, assignments, constraints, etc.) |
-| 3 | ⚠️ | **Métodos fix() incompletos** — Algunos constraints tienen `fix()` parcialmente implementado (rotation-continuity lo tiene, max-consecutive-work tiene stub) |
-| 4 | ℹ️ | **Archive/AI eliminado** — CLAUDE.md menciona `services/scheduling/archive/` con fases/scoring/AI pero el directorio no existe en el código actual (limpieza intencional) |
-| 5 | ℹ️ | **Soft markers no implementados** — Prefijos REQUEST_, AVOID_, PREFER_ definidos en utils pero no usados en la UI actual |
-| 6 | ⚠️ | **SchedulingConfigClient.tsx extenso** (~3000 líneas) — Contiene 7 tabs + todos los modales (employees, totals, general, rules, requests, shift-stats, presencias). Candidato fuerte a extracción de componentes por tab en `config/` |
-| 7 | ℹ️ | **Presencias — integración pendiente** — La tab de Presencias funciona con input manual (paste desde Excel). Cuando el scheduling esté estable, leer directamente desde `scheduling_assignments` eliminando el textarea. Endpoint previsto: `GET /presencias/:monthId` |
-| 8 | ℹ️ | **Presencias — exportación Excel pendiente** — Futuro: exportar directamente el documento oficial de presencias (.xlsx) con formato completo (cabeceras, leyenda, ambas pestañas) sin necesidad de copy-paste |
+| #   | Estado | Observación                                                                                                                                                                                                                                                            |
+| --- | ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | ℹ️     | **Sin generación automática** — El sistema es 100% manual (celda a celda). No hay algoritmo de auto-generación de horarios. Es decisión de diseño documentada                                                                                                          |
+| 2   | ⚠️     | **Controller monolítico** — `scheduling-controller.ts` tiene ~67KB. Candidato fuerte a dividir en sub-controllers por dominio (months, assignments, constraints, etc.)                                                                                                 |
+| 3   | ⚠️     | **Métodos fix() incompletos** — Algunos constraints tienen `fix()` parcialmente implementado (rotation-continuity lo tiene, max-consecutive-work tiene stub)                                                                                                           |
+| 4   | ℹ️     | **Archive/AI eliminado** — CLAUDE.md menciona `services/scheduling/archive/` con fases/scoring/AI pero el directorio no existe en el código actual (limpieza intencional)                                                                                              |
+| 5   | ℹ️     | **Soft markers no implementados** — Prefijos `REQUEST_`, `AVOID_`, `PREFER_` definidos en utils pero no usados en la UI actual                                                                                                                                         |
+| 6   | ⚠️     | **SchedulingConfigClient.tsx extenso** (~3000 líneas) — Contiene 7 tabs + todos los modales (employees, totals, general, rules, requests, shift-stats, presencias). Candidato fuerte a extracción de componentes por tab en `config/`                                  |
+| 7   | ℹ️     | **Presencias — integración pendiente** — La tab de Presencias funciona con input manual (paste desde Excel). Cuando el scheduling esté estable, leer directamente desde `scheduling_assignments` eliminando el textarea. Endpoint previsto: `GET /presencias/:monthId` |
+| 8   | ℹ️     | **Presencias — exportación Excel pendiente** — Futuro: exportar directamente el documento oficial de presencias (.xlsx) con formato completo (cabeceras, leyenda, ambas pestañas) sin necesidad de copy-paste                                                          |
 
 ---
 
@@ -825,13 +897,14 @@ asignación interna/externa, notas de resolución y auditoría completa.
 
 3 tablas en `backend/db-mysql/aiven/13_maintenance.sql`:
 
-| Tabla | Propósito |
-|---|---|
-| `maintenance_reports` | Reportes principales (ID formato DDMMYY-XXX auto-generado, title, description, location, status, priority, assignment, soft-delete) |
-| `maintenance_images` | Imágenes asociadas (max 5 por reporte, Cloudinary URL + public_id, auto_delete_on_close flag) — FK CASCADE |
+| Tabla                 | Propósito                                                                                                                                             |
+| --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `maintenance_reports` | Reportes principales (ID formato DDMMYY-XXX auto-generado, title, description, location, status, priority, assignment, soft-delete)                   |
+| `maintenance_images`  | Imágenes asociadas (max 5 por reporte, Cloudinary URL + public_id, auto_delete_on_close flag) — FK CASCADE                                            |
 | `maintenance_history` | Auditoría completa (9 acciones: created, status_changed, priority_changed, updated, assigned, resolved, closed, deleted, restored) con old/new values |
 
 **Campos destacados de `maintenance_reports`:**
+
 - `id` — Formato DDMMYY-XXX, auto-generado secuencial
 - `location_type` — enum: room / common_area / exterior / facilities / other
 - `status` — 7 estados: reported → assigned → in_progress → waiting → completed → closed / canceled
@@ -846,6 +919,7 @@ asignación interna/externa, notas de resolución y auditoría completa.
 Base: `/api/maintenance` — Middleware: `authenticateToken` + `canAccessMaintenance`
 
 #### CRUD principal
+
 - ✅ `POST /` — Crear reporte (title 3-150, description 10+, location, priority, assignment opcional)
 - ✅ `GET /` — Listar con filtros avanzados y paginación (status, priority, location_type, assigned_to, created_by, room_number, search, date range)
 - ✅ `GET /:id` — Detalle completo con imágenes e historial
@@ -854,17 +928,20 @@ Base: `/api/maintenance` — Middleware: `authenticateToken` + `canAccessMainten
 - ✅ `PATCH /:id/restore` — Restaurar reporte eliminado
 
 #### Estado, prioridad y asignación
+
 - ✅ `PATCH /:id/status` — Cambiar estado (auto-gestiona timestamps: started_at, resolved_at, closed_at)
 - ✅ `PATCH /:id/priority` — Cambiar prioridad
 - ✅ `PATCH /:id/assign` — Asignar a interno/externo (auto-setea status='assigned')
 - ✅ `PATCH /:id/resolution-notes` — Añadir notas de resolución timestamped
 
 #### Imágenes
+
 - ✅ `GET /:id/images` — Listar imágenes del reporte
 - ✅ `POST /:id/images` — Subir imagen (multer memory, 5MB max, JPEG/PNG/WebP/GIF, Cloudinary)
 - ✅ `DELETE /:id/images/:imageId` — Eliminar imagen (Cloudinary + BD)
 
 #### Historial y estadísticas
+
 - ✅ `GET /:id/history` — Historial completo del reporte
 - ✅ `GET /stats` — Estadísticas globales (total, por status, por priority, por location_type, habitaciones fuera de servicio)
 
@@ -895,22 +972,27 @@ db-mysql/aiven/
 ### 5.4 Frontend — Arquitectura
 
 #### Páginas
+
 - ✅ `app/dashboard/maintenance/page.tsx` — Lista (server component, prefetch via server action)
 - ✅ `app/dashboard/maintenance/[id]/page.tsx` — Detalle (client component, fetch en useEffect)
 
 #### Componentes principales
+
 - ✅ `MaintenanceListClient.tsx` — Lista con búsqueda, filtros (status, priority, location, fecha), paginación, click para detalle
 - ✅ `ReportDetailClient.tsx` — Orquestador de detalle con tabs (Detail/History), modales de edición y confirmación
 
 #### Tabs de detalle
+
 - ✅ `DetailTab.tsx` — Vista completa: status/priority editables inline, info del reporte, ubicación, asignación, fechas, notas de resolución, galería de imágenes con lightbox
 - ✅ `HistoryTab.tsx` — Timeline de cambios con badges coloreados por acción, old/new values, usuario y timestamp
 
 #### Paneles/modales
+
 - ✅ `CreateReportPanel.tsx` — SlidePanel con React Hook Form + Zod, campos dinámicos (room si location=room, company si external), drag-and-drop de imágenes, preview antes de crear
 - ✅ `EditReportPanel.tsx` — Similar a Create pero pre-poblado, gestión de imágenes existentes vs nuevas
 
 #### Layout y shared
+
 - ✅ `ReportHeader.tsx` — Header con back button, título, ID, status badge, timestamps, acciones
 - ✅ `TabNavigation.tsx` — Tabs Detail/History con estado en URL query params
 - ✅ `ConfirmDialog.tsx` — Diálogo de confirmación con variantes (danger/warning/primary)
@@ -918,6 +1000,7 @@ db-mysql/aiven/
 - ✅ `EmptyState.tsx` — Estado vacío con icono y mensaje
 
 #### Hooks, API y store
+
 - ✅ `hooks/useMaintenanceList.ts` — React Query wrapper con mutations (create, update, status, priority, delete, restore) + invalidación automática + toasts
 - ✅ `maintenanceApi.ts` — API client centralizado (CRUD + images + stats)
 - ✅ `useMaintenanceStore.ts` — Zustand store para página de detalle (report, images, history, filters, loading states, refresh methods)
@@ -925,11 +1008,13 @@ db-mysql/aiven/
 - ✅ `maintenance-schemas.ts` — Zod schema para formularios
 
 #### i18n
+
 - ✅ `messages/en/maintenance.json` + `messages/es/maintenance.json` — ~250 claves cada uno
 
 ### 5.5 Funcionalidades de usuario
 
 #### Gestión de reportes
+
 - ✅ **Crear reporte** — Título, descripción, ubicación (5 tipos), prioridad, asignación opcional, imágenes drag-and-drop
 - ✅ **Editar reporte** — Panel lateral con todos los campos editables
 - ✅ **Eliminar/restaurar** — Soft-delete con opción de restaurar
@@ -937,6 +1022,7 @@ db-mysql/aiven/
 - ✅ **Filtros combinables** — Status + priority + location_type + fecha (día o rango)
 
 #### Flujo de estados
+
 - ✅ **reported → assigned** — Auto al asignar responsable
 - ✅ **→ in_progress** — Marca started_at automáticamente
 - ✅ **→ waiting** — En espera (materiales, proveedor, etc.)
@@ -945,11 +1031,13 @@ db-mysql/aiven/
 - ✅ **Edición inline** — Status y priority editables directamente en la vista de detalle
 
 #### Asignación
+
 - ✅ **Interna** — Dropdown de usuarios del sistema
 - ✅ **Externa** — Empresa + contacto (campos dinámicos)
 - ✅ **Sin asignar** — Opción válida
 
 #### Imágenes
+
 - ✅ **Upload** — Max 5 por reporte, 5MB cada una, JPEG/PNG/WebP/GIF
 - ✅ **Cloudinary** — Almacenamiento externo con public_id para gestión
 - ✅ **Preview/lightbox** — Thumbnails + vista expandida
@@ -957,18 +1045,22 @@ db-mysql/aiven/
 - ✅ **Drag-and-drop** — En panel de creación/edición
 
 #### Notas de resolución
+
 - ✅ **Añadir notas** — Timestamped con username, acumulativas
 - ✅ **Historial de notas** — Visibles en la vista de detalle
 
 #### Auditoría
+
 - ✅ **9 tipos de acción** — created, status_changed, priority_changed, updated, assigned, resolved, closed, deleted, restored
 - ✅ **Valores old/new** — Cambios tracked con campo + valores anteriores/nuevos
 - ✅ **Timeline visual** — Tab de historial con badges coloreados
 
 #### Estadísticas
+
 - ✅ **Dashboard stats** — Total, por status, por priority, por location_type, habitaciones fuera de servicio
 
 #### UI/UX
+
 - ✅ **Dark mode** — Completo
 - ✅ **Responsive** — Mobile + desktop
 - ✅ **Toasts i18n** — En todas las operaciones
@@ -988,16 +1080,16 @@ db-mysql/aiven/
 
 ### 5.7 Observaciones y mejoras potenciales
 
-| # | Estado | Observación |
-|---|---|---|
-| 1 | ⚠️ | **`auto_delete_on_close` es código muerto** — El flag existe en `maintenance_images` pero no hay lógica que ejecute la limpieza automática de imágenes al cerrar un reporte. Feature a medio implementar |
-| 2 | ⚠️ | **Data fetching inconsistente** — La lista usa server action (SSR prefetch) pero el detalle usa `useEffect` con fetch client-side. Patrón mixto dentro del mismo módulo |
-| 3 | ⚠️ | **State management mixto** — Lista usa React Query (cache, invalidación, mutations) pero detalle usa Zustand con llamadas directas a API. Dos enfoques distintos en el mismo módulo |
-| 4 | ⚠️ | **UI de papelera/restaurar incompleta** — Endpoint `PATCH /:id/restore` y filtro de deleted existen en backend, pero no hay toggle visible en la UI para ver reportes eliminados ni botón de restaurar |
-| 5 | ⚠️ | **Sin capa de services** — Controllers llaman directamente a repositories. Funcional pero inconsistente con el patrón de otros módulos del proyecto |
-| 6 | ❌ | **Sin tests** — No se encontraron archivos de test para el módulo de maintenance |
-| 7 | ℹ️ | **Sin notificaciones** — No hay alertas push/email cuando se asigna un reporte o cambia de estado |
-| 8 | ℹ️ | **Sin SLA tracking** — No hay tiempos objetivo de resolución por prioridad ni alertas de SLA vencido |
+| #   | Estado | Observación                                                                                                                                                                                              |
+| --- | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | ⚠️     | **`auto_delete_on_close` es código muerto** — El flag existe en `maintenance_images` pero no hay lógica que ejecute la limpieza automática de imágenes al cerrar un reporte. Feature a medio implementar |
+| 2   | ⚠️     | **Data fetching inconsistente** — La lista usa server action (SSR prefetch) pero el detalle usa `useEffect` con fetch client-side. Patrón mixto dentro del mismo módulo                                  |
+| 3   | ⚠️     | **State management mixto** — Lista usa React Query (cache, invalidación, mutations) pero detalle usa Zustand con llamadas directas a API. Dos enfoques distintos en el mismo módulo                      |
+| 4   | ⚠️     | **UI de papelera/restaurar incompleta** — Endpoint `PATCH /:id/restore` y filtro de deleted existen en backend, pero no hay toggle visible en la UI para ver reportes eliminados ni botón de restaurar   |
+| 5   | ⚠️     | **Sin capa de services** — Controllers llaman directamente a repositories. Funcional pero inconsistente con el patrón de otros módulos del proyecto                                                      |
+| 6   | ❌     | **Sin tests** — No se encontraron archivos de test para el módulo de maintenance                                                                                                                         |
+| 7   | ℹ️     | **Sin notificaciones** — No hay alertas push/email cuando se asigna un reporte o cambia de estado                                                                                                        |
+| 8   | ℹ️     | **Sin SLA tracking** — No hay tiempos objetivo de resolución por prioridad ni alertas de SLA vencido                                                                                                     |
 
 ---
 
@@ -1011,19 +1103,20 @@ reporting mensual con gráficos y exportación PDF.
 
 9 tablas en `backend/db-mysql/aiven/11_cashier.sql`:
 
-| Tabla | Propósito |
-|---|---|
-| `payment_methods` | Catálogo de métodos de pago (Card, BACS, Web Payment, Transfer, Other) |
-| `cashier_vouchers` | Pool global de vales (amount, reason, type income/expense, status pending/justified/cancelled) |
-| `cashier_shifts` | Entidad principal — 4 turnos/día (shift_date + shift_type UNIQUE, status, initial_fund €200, income, cash_counted/expected/difference, payments_total, grand_total) |
-| `cashier_shift_users` | Responsables por turno (primary + secondary, UK shift_id+user_id) |
-| `cashier_denominations` | Conteo físico de efectivo por turno (€200→€0.01, quantity, total GENERATED ALWAYS) |
-| `cashier_payments` | Pagos electrónicos por turno (payment_method_id + amount, UK shift_id+method_id) |
-| `cashier_shift_vouchers` | Many-to-many turnos↔vales (PK compuesta, CASCADE ambos lados) |
-| `cashier_daily` | Agregados diarios (totales por método, grand_total, status open/closed) |
-| `cashier_history` | Auditoría (9 acciones, shift_id, table_affected, field_changed, old/new values) |
+| Tabla                    | Propósito                                                                                                                                                           |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `payment_methods`        | Catálogo de métodos de pago (Card, BACS, Web Payment, Transfer, Other)                                                                                              |
+| `cashier_vouchers`       | Pool global de vales (amount, reason, type income/expense, status pending/justified/cancelled)                                                                      |
+| `cashier_shifts`         | Entidad principal — 4 turnos/día (shift_date + shift_type UNIQUE, status, initial_fund €200, income, cash_counted/expected/difference, payments_total, grand_total) |
+| `cashier_shift_users`    | Responsables por turno (primary + secondary, UK shift_id+user_id)                                                                                                   |
+| `cashier_denominations`  | Conteo físico de efectivo por turno (€200→€0.01, quantity, total GENERATED ALWAYS)                                                                                  |
+| `cashier_payments`       | Pagos electrónicos por turno (payment_method_id + amount, UK shift_id+method_id)                                                                                    |
+| `cashier_shift_vouchers` | Many-to-many turnos↔vales (PK compuesta, CASCADE ambos lados)                                                                                                      |
+| `cashier_daily`          | Agregados diarios (totales por método, grand_total, status open/closed)                                                                                             |
+| `cashier_history`        | Auditoría (9 acciones, shift_id, table_affected, field_changed, old/new values)                                                                                     |
 
 **Diseño clave:**
+
 - 4 turnos por día: night / morning / afternoon / closing
 - Denominaciones con `total` GENERATED ALWAYS (columna computada, previene errores de cálculo)
 - `income_breakdown` JSON para futuro tracking multi-departamento
@@ -1034,6 +1127,7 @@ reporting mensual con gráficos y exportación PDF.
 Base: `/api/cashier` — Middleware: `authenticateToken` + `excludeMantenimiento` + roles específicos
 
 #### Día (daily)
+
 - ✅ `GET /daily/:date` — Detalles completos del día
 - ✅ `POST /daily/:date/initialize` — Crear los 4 turnos del día
 - ✅ `PATCH /daily/:date/close` — Cerrar día (requiere 4 turnos cerrados)
@@ -1042,6 +1136,7 @@ Base: `/api/cashier` — Middleware: `authenticateToken` + `excludeMantenimiento
 - ✅ `GET /daily/:date` — Resumen compacto
 
 #### Turnos (shifts)
+
 - ✅ `GET /shifts/:id` — Detalle con users, denominations, payments, vouchers
 - ✅ `GET /shifts` — Listar con filtros (fecha, tipo, status, usuario)
 - ✅ `PATCH /shifts/:id` — Actualizar
@@ -1051,6 +1146,7 @@ Base: `/api/cashier` — Middleware: `authenticateToken` + `excludeMantenimiento
 - ✅ `DELETE /shifts/:id` — Eliminar (solo admin, solo si open)
 
 #### Vales (vouchers)
+
 - ✅ `GET /vouchers` — Listar con filtros y paginación
 - ✅ `GET /vouchers/active` — Solo vales activos
 - ✅ `GET /vouchers/:id` — Detalle
@@ -1062,6 +1158,7 @@ Base: `/api/cashier` — Middleware: `authenticateToken` + `excludeMantenimiento
 - ✅ `GET /vouchers/stats` — Estadísticas agregadas
 
 #### Denominaciones (cash counting)
+
 - ✅ `GET /shifts/:shiftId/denominations` — Listar denominaciones
 - ✅ `PUT /shifts/:shiftId/denominations` — Reemplazar todas (bulk)
 - ✅ `POST /shifts/:shiftId/denominations` — Crear individual
@@ -1069,6 +1166,7 @@ Base: `/api/cashier` — Middleware: `authenticateToken` + `excludeMantenimiento
 - ✅ `DELETE /denominations/:id` — Eliminar
 
 #### Pagos electrónicos
+
 - ✅ `GET /shifts/:shiftId/payments` — Listar por turno
 - ✅ `GET /shifts/:shiftId/payments/summary` — Resumen por método
 - ✅ `PUT /shifts/:shiftId/payments` — Reemplazar todos (bulk)
@@ -1077,12 +1175,14 @@ Base: `/api/cashier` — Middleware: `authenticateToken` + `excludeMantenimiento
 - ✅ `DELETE /payments/:id` — Eliminar
 
 #### Historial y auditoría
+
 - ✅ `GET /history` — Historial completo con filtros (acción, tabla, fecha)
 - ✅ `GET /history/stats` — Estadísticas agregadas
 - ✅ `GET /history/shift/:shiftId` — Historial por turno
 - ✅ `GET /history/recent` — Últimas N entradas
 
 #### Reportes
+
 - ✅ `GET /reports/dashboard` — Overview del día (admin)
 - ✅ `GET /reports/daily/:date` — Reporte diario detallado
 - ✅ `GET /reports/period?from_date=...&to_date=...` — Análisis por período (max 31 días)
@@ -1125,12 +1225,14 @@ routes/cashier/
 ### 6.4 Frontend — Arquitectura
 
 #### Páginas
+
 - ✅ `app/dashboard/cashier/page.tsx` — Dashboard principal (stats rápidas, alertas de inicialización, vales pendientes, acciones rápidas)
 - ✅ `app/dashboard/cashier/hotel/page.tsx` — Operaciones diarias (tabs por turno, ShiftCard, sidebar resumen, responsive 1400px+)
 - ✅ `app/dashboard/cashier/logs/page.tsx` — Auditoría (DateNavigator, filtros acción/usuario, tabla paginada, stats sidebar)
 - ✅ `app/dashboard/cashier/reports/page.tsx` — Analytics (3 tabs: Summary/Payments/Vouchers, gráficos pie/bar, MonthlyReport tabla)
 
 #### Componentes principales (~26 componentes, 3500+ LOC)
+
 - ✅ `ShiftCard.tsx` (~400 LOC) — Editor de turno: denominaciones, pagos, vales, cierre
 - ✅ `ShiftTabs.tsx` — Navegación por tabs de turno
 - ✅ `ShiftUsersManager.tsx` — Asignar/quitar responsables
@@ -1140,17 +1242,20 @@ routes/cashier/
 - ✅ `CreateVoucherModal.tsx` — Crear vale con validación
 
 #### Modales
+
 - ✅ `InitializeDayModal.tsx` — Crear 4 turnos del día
 - ✅ `CloseDayModal.tsx` — Cerrar día (valida 4 turnos cerrados)
 - ✅ `CloseShiftModal.tsx` — Cerrar turno individual
 - ✅ `ReopenDayModal.tsx` — Reabrir con motivo
 
 #### Reportes
+
 - ✅ `MonthlyReport.tsx` — Tabla con desglose diario
 - ✅ `PaymentChart.tsx` — Gráfico Recharts (pie/bar) de métodos de pago
 - ✅ `VouchersHistory.tsx` — Tabla filtrable de vales
 
 #### Layout y utils
+
 - ✅ `DaySummarySidebar.tsx` — Sidebar derecho (desktop)
 - ✅ `DateNavigator.tsx` — Selector de fecha/mes
 - ✅ `CashierCalendarNav.tsx` — Widget de calendario
@@ -1158,44 +1263,52 @@ routes/cashier/
 - ✅ `LoadingState.tsx` / `ErrorState.tsx` / `UninitializedDayState.tsx` — Estados
 
 #### API, hooks y store
+
 - ✅ `app/lib/cashier/queries.ts` (~400 LOC) — React Query hooks completos (useDailyDetails, useShiftDetails, useVoucherStats, useInitializeDay, useCloseDay, useDenominations, usePayments, useHistoryLogs, useMonthlyReport, useDashboardOverview...)
 - ✅ `app/lib/cashier/types.ts` — ~298 líneas (mirror backend, string decimals)
 - ✅ `app/lib/cashier/exportDailyPdf.ts` (~500 LOC) — PDF con jsPDF+autoTable (header, shifts, denominations, payments, vouchers)
 - ✅ `useCashierStore` (Zustand) — Estado UI: selectedDate, activeTab, modales, filtros logs/reports, chartViewMode
 
 #### i18n
+
 - ✅ `messages/es/cashier.json` — ~370 claves en español
 
 ### 6.5 Funcionalidades de usuario
 
 #### Operaciones diarias
+
 - ✅ **Inicializar día** — Crea 4 turnos automáticamente (night, morning, afternoon, closing)
 - ✅ **Cerrar día** — Requiere los 4 turnos cerrados previamente
 - ✅ **Reabrir día** — Para correcciones (con motivo)
 
 #### Gestión de turnos
+
 - ✅ **Editor de turno (ShiftCard)** — Denominaciones, pagos electrónicos, vales, notas
 - ✅ **Cerrar/reabrir turno** — Con validación de discrepancia (>€0.50 requiere comentario)
 - ✅ **Asignar responsables** — Primary + secondary por turno
 - ✅ **Tabs por tipo** — Night / Morning / Afternoon / Closing
 
 #### Conteo de efectivo
+
 - ✅ **Grid de denominaciones** — €200, €100, €50, €20, €10, €5, €2, €1, €0.50, €0.20, €0.10, €0.05, €0.02, €0.01
 - ✅ **Total automático** — Columna GENERATED ALWAYS en BD
 - ✅ **Bulk replace** — Reemplazar todas las denominaciones de un turno
 
 #### Pagos electrónicos
+
 - ✅ **Por método** — Card, BACS, Web Payment, Transfer, Other
 - ✅ **Resumen por turno** — Total por método
 - ✅ **Bulk replace** — Reemplazar todos los pagos de un turno
 
 #### Vales (vouchers)
+
 - ✅ **Crear vale** — Amount + reason (5-1000 chars), income/expense
 - ✅ **Límite 5 por turno** — Validado en backend
 - ✅ **Lifecycle** — pending → justified / cancelled
 - ✅ **Stats** — Totales, pendientes, justificados, cancelados
 
 #### Reportes y analytics
+
 - ✅ **Dashboard** — Stats del día: grand total, cash, electronic, estado de turnos
 - ✅ **Reporte mensual** — Tabla con desglose diario + totales
 - ✅ **Gráficos** — Pie/bar chart de métodos de pago (Recharts)
@@ -1203,12 +1316,14 @@ routes/cashier/
 - ✅ **PDF export** — Reporte diario completo (jsPDF + autoTable)
 
 #### Auditoría
+
 - ✅ **9 tipos de acción** — created, updated, deleted, status_changed, adjustment, voucher_created, voucher_repaid, daily_closed, daily_reopened
 - ✅ **Filtros** — Por acción, usuario, fecha
 - ✅ **Stats** — Total entries, usuarios activos, acción más frecuente
 - ✅ **Paginación** — En tabla de historial
 
 #### UI/UX
+
 - ✅ **Dark mode** — Completo
 - ✅ **Responsive** — Breakpoint 1400px+ para layout desktop, mobile cards
 - ✅ **Alertas** — Día no inicializado, vales pendientes
@@ -1226,16 +1341,16 @@ routes/cashier/
 
 ### 6.7 Observaciones y mejoras potenciales
 
-| # | Estado | Observación |
-|---|---|---|
-| 1 | ⚠️ | **Sin checks de rol en frontend** — Los botones admin (reopen, delete) son visibles para todos; solo backend middleware bloquea. Debería ocultar/deshabilitar en UI según rol |
-| 2 | ⚠️ | **Period report sin UI** — Endpoint `GET /reports/period` existe pero no hay interfaz para accederlo |
-| 3 | ⚠️ | **Export de logs stub** — Funcionalidad de export en logs solo hace console.log, no está implementada |
-| 4 | ⚠️ | **Manejo de decimales con parseFloat()** — DECIMAL viene como string del backend; parseFloat() puede causar errores de precisión en operaciones monetarias. Considerar decimal.js |
-| 5 | ⚠️ | **Console.logs en producción** — Múltiples console.log/error en controllers y componentes que deberían eliminarse o usar debug library |
-| 6 | ❌ | **Sin tests** — No se encontraron archivos de test |
-| 7 | ℹ️ | **income_breakdown JSON** — Campo preparado para tracking multi-departamento futuro, actualmente sin uso |
-| 8 | ℹ️ | **i18n solo español** — A diferencia de otros módulos, no se encontró `messages/en/cashier.json` |
+| #   | Estado | Observación                                                                                                                                                                       |
+| --- | ------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | ⚠️     | **Sin checks de rol en frontend** — Los botones admin (reopen, delete) son visibles para todos; solo backend middleware bloquea. Debería ocultar/deshabilitar en UI según rol     |
+| 2   | ⚠️     | **Period report sin UI** — Endpoint `GET /reports/period` existe pero no hay interfaz para accederlo                                                                              |
+| 3   | ⚠️     | **Export de logs stub** — Funcionalidad de export en logs solo hace console.log, no está implementada                                                                             |
+| 4   | ⚠️     | **Manejo de decimales con parseFloat()** — DECIMAL viene como string del backend; parseFloat() puede causar errores de precisión en operaciones monetarias. Considerar decimal.js |
+| 5   | ⚠️     | **Console.logs en producción** — Múltiples console.log/error en controllers y componentes que deberían eliminarse o usar debug library                                            |
+| 6   | ❌     | **Sin tests** — No se encontraron archivos de test                                                                                                                                |
+| 7   | ℹ️     | **income_breakdown JSON** — Campo preparado para tracking multi-departamento futuro, actualmente sin uso                                                                          |
+| 8   | ℹ️     | **i18n solo español** — A diferencia de otros módulos, no se encontró `messages/en/cashier.json`                                                                                  |
 
 ---
 
@@ -1249,20 +1364,22 @@ por cron (día 10), exportación Excel/PDF/ZIP, y gestión de activos (stamps/si
 
 5 tablas + 3 vistas en `backend/db-mysql/aiven/16_backoffice.sql`:
 
-| Tabla | Propósito |
-|---|---|
-| `bo_categories` | Categorías de gasto (23 pre-seeded: administration, maintenance, supplies, marketing, HR...). UK: cost_center+department |
-| `bo_suppliers` | Proveedores (name UK, CIF, periodicity, payment_method, bank_account, contact info, soft-delete via is_active) |
-| `bo_invoices` | Facturas completas (invoice_number, amounts with/without VAT, status workflow, PDF original+validated en Cloudinary, validation tracking, audit fields, hard-delete) |
-| `bo_invoice_history` | Auditoría de facturas (7 acciones: created/updated/validated/rejected/paid/deleted/restored, field_changed, old/new values) — CASCADE delete |
-| `bo_assets` | Sellos y firmas (type stamp/signature, Cloudinary URL, is_default — uno por tipo) |
+| Tabla                | Propósito                                                                                                                                                            |
+| -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `bo_categories`      | Categorías de gasto (23 pre-seeded: administration, maintenance, supplies, marketing, HR...). UK: cost_center+department                                             |
+| `bo_suppliers`       | Proveedores (name UK, CIF, periodicity, payment_method, bank_account, contact info, soft-delete via is_active)                                                       |
+| `bo_invoices`        | Facturas completas (invoice_number, amounts with/without VAT, status workflow, PDF original+validated en Cloudinary, validation tracking, audit fields, hard-delete) |
+| `bo_invoice_history` | Auditoría de facturas (7 acciones: created/updated/validated/rejected/paid/deleted/restored, field_changed, old/new values) — CASCADE delete                         |
+| `bo_assets`          | Sellos y firmas (type stamp/signature, Cloudinary URL, is_default — uno por tipo)                                                                                    |
 
 **Vistas:**
+
 - `v_bo_invoices_detail` — Factura + proveedor + categoría + usuario (JOINs)
 - `v_bo_suppliers_stats` — Proveedor con stats calculadas (total facturas, pendientes, pagadas, YTD, última factura)
 - `v_bo_monthly_summary` — Agregados mensuales por año/mes (count, amounts por status)
 
 **Enums:**
+
 - Status: pending → validated → paid / rejected
 - Payment method: transfer / direct_debit
 - Periodicity: monthly / bimonthly / quarterly / annual / on_demand
@@ -1273,11 +1390,13 @@ por cron (día 10), exportación Excel/PDF/ZIP, y gestión de activos (stamps/si
 Base: `/api/backoffice` — Middleware: `authenticateToken` + `canAccessBackoffice` (admin + demo-admin lectura) + `isRealAdmin` (escritura)
 
 #### Categorías
+
 - ✅ `GET /categories` — Listar activas
 - ✅ `GET /categories/:id` — Detalle
 - ✅ `POST /categories` — Crear (cost_center, department, description)
 
 #### Proveedores
+
 - ✅ `GET /suppliers` — Listar con filtros y paginación (category, periodicity, payment_method, search)
 - ✅ `GET /suppliers/:id` — Detalle con stats y lista de facturas
 - ✅ `POST /suppliers` — Crear (validación nombre duplicado)
@@ -1285,6 +1404,7 @@ Base: `/api/backoffice` — Middleware: `authenticateToken` + `canAccessBackoffi
 - ✅ `DELETE /suppliers/:id` — Soft-delete (protección si tiene facturas activas)
 
 #### Facturas — CRUD
+
 - ✅ `GET /invoices` — Listar con filtros avanzados (status comma-separated, supplier, category, payment_method, date range, search, include_deleted). Paginación: default 50, max 100
 - ✅ `GET /invoices/:id` — Detalle con historial
 - ✅ `POST /invoices` — Crear con auto-history
@@ -1292,34 +1412,40 @@ Base: `/api/backoffice` — Middleware: `authenticateToken` + `canAccessBackoffi
 - ✅ `DELETE /invoices/:id` — HARD DELETE con limpieza Cloudinary (original + validated PDFs)
 
 #### Facturas — Workflow de estado
+
 - ✅ `POST /invoices/:id/validate` — pending → validated (con PDF validado, notas)
 - ✅ `POST /invoices/:id/reject` — pending → rejected (con notas)
 - ✅ `POST /invoices/:id/unvalidate` — validated → pending (deshacer validación)
 - ✅ `POST /invoices/:id/pay` — validated → paid (pago manual individual)
 
 #### Facturas — PDF
+
 - ✅ `POST /invoices/:id/pdf` — Upload PDF a Cloudinary (original o validated, reemplaza anterior)
 - ✅ `GET /invoices/:id/pdf-url` — URL firmada de 1 hora
 - ✅ `GET /invoices/:id/pdf-download` — Proxy download con 4 estrategias fallback
 - ✅ `POST /invoices/download-zip` — ZIP de hasta 100 PDFs validados (filename: `{Supplier}_{Invoice}_{Month}_validado.pdf`)
 
 #### Batch Payment (cierre de mes)
+
 - ✅ `GET /invoices/batch-pay/preview` — Preview: facturas validated del mes anterior
 - ✅ `POST /invoices/batch-pay` — Ejecutar: marcar todas como paid (paid_date = invoice_date)
 - ✅ `GET /invoices/batch-pay/revert/preview` — Preview reversión
 - ✅ `POST /invoices/batch-pay/revert` — Revertir: paid → validated para el mes
 
 #### Activos (stamps/signatures)
+
 - ✅ `GET /assets` — Listar (defaults primero)
 - ✅ `POST /assets` — Crear (upload imagen a Cloudinary, auto-gestión de default)
 - ✅ `DELETE /assets/:id` — Eliminar (Cloudinary + BD)
 - ✅ `PATCH /assets/:id/default` — Establecer como default (uno por tipo)
 
 #### Estadísticas
+
 - ✅ `GET /stats` — Resumen: pending count/amount, overdue, paid this month/all-time, suppliers
 - ✅ `GET /monthly-summary` — Desglose mensual por año
 
 #### Cron automático
+
 - ✅ **Día 10 de cada mes a las 23:59** — Batch payment automático del mes anterior
 
 ### 7.3 Backend — Arquitectura
@@ -1344,15 +1470,18 @@ services/cron/
 ### 7.4 Frontend — Arquitectura
 
 #### Página
+
 - ✅ `app/dashboard/bo/page.tsx` — Server Component con Suspense: StatsCards + TabsNavigation + TabContent (data prefetch paralelo)
 
 #### Tabs (lazy-loaded)
+
 - ✅ `PendingInvoicesTab.tsx` — Facturas pending/validated con filtros, resumen por mes/método, acciones (validate, reject, pay, export, delete)
 - ✅ `PaidInvoicesTab.tsx` — Facturas pagadas, batch close/reopen month, paginación URL-based
 - ✅ `SuppliersTab.tsx` — Lista de proveedores con stats YTD, panel de detalle con últimas 10 facturas
 - ✅ `SettingsTab.tsx` — Upload/gestión de stamps y signatures (Cloudinary)
 
 #### Modales
+
 - ✅ `InvoiceFormModal.tsx` — Crear/editar factura (React Hook Form + Zod, cálculo VAT automático)
 - ✅ `SupplierFormModal.tsx` — Crear/editar proveedor (validación IBAN, nombre duplicado)
 - ✅ `SupplierInvoicesModal.tsx` — Ver facturas de un proveedor
@@ -1362,34 +1491,40 @@ services/cron/
 - ✅ `ConfirmDialog.tsx` — Confirmación genérica
 
 #### Componentes
+
 - ✅ `StatsCards.tsx` — 6 métricas (Server Component)
 - ✅ `TabsNavigation.tsx` — 4 tabs (Client)
 - ✅ `TabContent.tsx` — Render dinámico del tab activo
 
 #### API y utilidades
+
 - ✅ `app/lib/backoffice/backofficeApi.ts` (~513 LOC) — API client completo (CRUD invoices, suppliers, assets, batch payment, PDF operations, ZIP download)
 - ✅ `app/lib/backoffice/data.ts` (~352 LOC) — Server-only data fetching con cache (serverFetch + cookies)
 - ✅ `app/lib/backoffice/types.ts` (~353 LOC) — Types + constants + helpers (formatCurrency, calculateVat, getStatusBadgeClasses)
 - ✅ `app/lib/backoffice/export-utils.ts` (~335 LOC) — Excel export (2 sheets: detalle + resumen) + PDF export (A4 landscape, tabla multi-page)
 
 #### i18n
+
 - ✅ `messages/es/backoffice.json` — ~525+ claves en español
 
 ### 7.5 Funcionalidades de usuario
 
 #### Gestión de facturas
+
 - ✅ **Crear factura** — Número, proveedor (dropdown), categoría, fecha, importes (con cálculo VAT auto), método pago, fechas recepción/vencimiento/periodo, notas
 - ✅ **Editar factura** — Actualización parcial con tracking en historial
 - ✅ **Eliminar factura** — Hard delete con limpieza de PDFs en Cloudinary
 - ✅ **Filtros avanzados** — Status (multi-select), proveedor, categoría, método pago, rango fechas, búsqueda texto
 
 #### Workflow de validación
+
 - ✅ **Validar** — pending → validated, con PDF editor para añadir sello+firma
 - ✅ **Rechazar** — pending → rejected, con notas de motivo
 - ✅ **Revertir validación** — validated → pending (deshacer)
 - ✅ **Marcar pagada** — validated → paid (manual individual)
 
 #### PDF
+
 - ✅ **Upload** — Original y validated, Cloudinary, reemplazo automático del anterior
 - ✅ **Visor** — Dual tabs (original/validated), embedded
 - ✅ **Editor** — Añadir sellos, firmas, texto, highlights. Multi-page, zoom, undo/redo
@@ -1397,22 +1532,26 @@ services/cron/
 - ✅ **ZIP batch** — Hasta 100 PDFs validados en un ZIP
 
 #### Batch payment (cierre de mes)
+
 - ✅ **Preview** — Ver facturas validated del mes que se van a cerrar
 - ✅ **Ejecutar** — Marcar todas como paid (paid_date = invoice_date)
 - ✅ **Cron automático** — Día 10 a las 23:59 para mes anterior
 - ✅ **Revertir** — Reabrir mes: paid → validated
 
 #### Proveedores
+
 - ✅ **CRUD** — Con validación nombre duplicado, IBAN, soft-delete
 - ✅ **Stats** — YTD total, count facturas, pendientes, última factura
 - ✅ **Ver facturas** — Modal con últimas facturas del proveedor
 
 #### Activos (stamps/signatures)
+
 - ✅ **Upload** — PNG/WebP, Cloudinary
 - ✅ **Default** — Uno por tipo (stamp/signature)
 - ✅ **Gestión** — Preview, delete, set-default
 
 #### Exportación
+
 - ✅ **Excel** — 2 hojas (detalle + resumen), columnas auto-dimensionadas
 - ✅ **PDF** — A4 landscape, tabla multi-page, totales
 - ✅ **ZIP** — Batch download de PDFs validados
@@ -1430,17 +1569,17 @@ services/cron/
 
 ### 7.7 Observaciones y mejoras potenciales
 
-| # | Estado | Observación |
-|---|---|---|
-| 1 | ⚠️ | **Hard delete de facturas** — Eliminación permanente sin soft-delete. Una factura eliminada pierde todo el historial (CASCADE). Considerar soft-delete como en otros módulos |
-| 2 | ⚠️ | **Batch payment timezone** — Cron job a las 23:59 del día 10 sin manejo de timezone offset. Podría fallar en edge cases de zona horaria |
-| 3 | ⚠️ | **PDF download frágil** — 4 estrategias fallback indica problemas recurrentes con URLs de Cloudinary. Podría simplificarse si se resuelve el problema raíz |
-| 4 | ⚠️ | **PdfEditorModal muy extenso** — ~1000+ líneas con lógica de renderizado, herramientas, y manipulación de PDF. Candidato fuerte a extracción de sub-componentes |
-| 5 | ⚠️ | **Controller monolítico** — ~1800 líneas en un solo archivo. Candidato a dividir por dominio (invoices, suppliers, assets, batch) |
-| 6 | ⚠️ | **Detección de duplicados** — No hay warning para invoice_number duplicado (mismo proveedor podría tener facturas repetidas) |
-| 7 | ❌ | **Sin tests** — No se encontraron archivos de test para backoffice |
-| 8 | ℹ️ | **demo-admin** — Solo lectura (GET), escritura bloqueada por isRealAdmin. Funcional para demos |
-| 9 | ℹ️ | **Supplier invoices modal** — Muestra facturas pero sin paginación (solo fetch inicial) |
+| #   | Estado | Observación                                                                                                                                                                  |
+| --- | ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | ⚠️     | **Hard delete de facturas** — Eliminación permanente sin soft-delete. Una factura eliminada pierde todo el historial (CASCADE). Considerar soft-delete como en otros módulos |
+| 2   | ⚠️     | **Batch payment timezone** — Cron job a las 23:59 del día 10 sin manejo de timezone offset. Podría fallar en edge cases de zona horaria                                      |
+| 3   | ⚠️     | **PDF download frágil** — 4 estrategias fallback indica problemas recurrentes con URLs de Cloudinary. Podría simplificarse si se resuelve el problema raíz                   |
+| 4   | ⚠️     | **PdfEditorModal muy extenso** — ~1000+ líneas con lógica de renderizado, herramientas, y manipulación de PDF. Candidato fuerte a extracción de sub-componentes              |
+| 5   | ⚠️     | **Controller monolítico** — ~1800 líneas en un solo archivo. Candidato a dividir por dominio (invoices, suppliers, assets, batch)                                            |
+| 6   | ⚠️     | **Detección de duplicados** — No hay warning para invoice_number duplicado (mismo proveedor podría tener facturas repetidas)                                                 |
+| 7   | ❌     | **Sin tests** — No se encontraron archivos de test para backoffice                                                                                                           |
+| 8   | ℹ️     | **demo-admin** — Solo lectura (GET), escritura bloqueada por isRealAdmin. Funcional para demos                                                                               |
+| 9   | ℹ️     | **Supplier invoices modal** — Muestra facturas pero sin paginación (solo fetch inicial)                                                                                      |
 
 ---
 
@@ -1453,13 +1592,14 @@ y **Chat AI** (asistente de ayuda) deliberadamente archivado/deshabilitado.
 
 3 tablas en `backend/db-mysql/aiven/14_messages.sql`:
 
-| Tabla | Propósito |
-|---|---|
-| `conversations` | Conversaciones (type: dm/group, name para grupos, created_by) |
+| Tabla                       | Propósito                                                                                                                   |
+| --------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| `conversations`             | Conversaciones (type: dm/group, name para grupos, created_by)                                                               |
 | `conversation_participants` | Participantes (user_id, is_admin, is_active soft-delete, last_read_at para tracking no leídos). UK: conversation_id+user_id |
-| `messages` | Mensajes (content TEXT, notify flag, is_edited, edited_at, deleted_at soft-delete). FULLTEXT INDEX en content |
+| `messages`                  | Mensajes (content TEXT, notify flag, is_edited, edited_at, deleted_at soft-delete). FULLTEXT INDEX en content               |
 
 **Constantes del sistema:**
+
 - Max content: 5000 chars
 - Max participantes por grupo: 10
 - Retención: 90 días (cleanup automático via MySQL Event)
@@ -1472,6 +1612,7 @@ y **Chat AI** (asistente de ayuda) deliberadamente archivado/deshabilitado.
 Base: `/api/messages` — Middleware: `authenticateToken`
 
 #### Conversaciones
+
 - ✅ `GET /conversations` — Listar conversaciones del usuario (ordenadas por última actividad)
 - ✅ `POST /conversations` — Crear DM o grupo (previene DMs duplicados)
 - ✅ `GET /conversations/:id` — Detalle con participantes
@@ -1485,6 +1626,7 @@ Base: `/api/messages` — Middleware: `authenticateToken`
 - ✅ `GET /conversations/all` — Ver todas las conversaciones (solo system admin)
 
 #### Mensajes
+
 - ✅ `GET /conversations/:id/messages` — Mensajes paginados (cursor-based, before_id)
 - ✅ `POST /conversations/:id/messages` — Enviar mensaje (con notify flag opcional)
 - ✅ `PATCH /:messageId` — Editar mensaje propio
@@ -1493,6 +1635,7 @@ Base: `/api/messages` — Middleware: `authenticateToken`
 - ✅ `GET /search` — Búsqueda FULLTEXT + fallback LIKE
 
 #### Chat AI (archivado)
+
 - 🔴 `POST /api/chat/message` — Devuelve mensaje de archivado, no funcional
 - 🔴 `GET /api/chat/status` — Devuelve available: false
 
@@ -1523,14 +1666,17 @@ services/chat/
 ```
 
 **Sistema de permisos (error codes específicos):**
+
 - 50+ códigos de error `MESSAGES_*` (MESSAGES_DM_ONE_PARTICIPANT, MESSAGES_GROUP_MAX_PARTICIPANTS, MESSAGES_ONLY_OWN_EDIT, etc.)
 
 ### 8.4 Frontend — Arquitectura
 
 #### Integración en perfil
+
 - ✅ `app/dashboard/profile/page.tsx` — Panel dinámico: `?panel=messages` abre MessagesPanel, `&chat=123` auto-abre conversación
 
 #### Componente principal
+
 - ✅ `app/components/profile/MessagesPanel.tsx` — (~890 líneas) UI completa de mensajería:
   - Lista de conversaciones con búsqueda y badges de no leídos
   - Vista de chat con thread de mensajes
@@ -1543,23 +1689,28 @@ services/chat/
   - Layout split desktop / mobile (lista oculta al seleccionar chat)
 
 #### Hooks
+
 - ✅ `useConversations.ts` — fetch, select, create, remove, leave, markAsRead, optimistic updates
 - ✅ `useChat.ts` — fetch con cursor pagination, send, edit, remove, loadMore, editingState, auto-scroll refs
 - ✅ `useUserSearch.ts` — debounced search, selectedUsers, isGroup detection, canCreate
 
 #### API y types
+
 - ✅ `app/lib/messaging/queries.ts` — API client (conversations CRUD + messages CRUD + search + unread)
 - ✅ `app/lib/messaging/types.ts` — Types completos (Conversation, Message, Participant, UserSearchResult, responses)
 
 #### Chat AI (frontend archivado)
+
 - 🔴 `app/components/chat/HelpChatModal.tsx` — Componente existe pero no está conectado a ningún botón en la UI actual
 
 #### i18n
+
 - ✅ `messages/en/messages.json` + `messages/es/messages.json` — Traducciones completas
 
 ### 8.5 Funcionalidades de usuario
 
 #### Mensajería interna (Messages) ✅
+
 - ✅ **DMs** — Conversaciones 1:1, previene duplicados (reutiliza existente)
 - ✅ **Grupos** — Hasta 10 participantes, nombre obligatorio
 - ✅ **Enviar mensajes** — Con flag `notify` para notificación urgente a todos los participantes
@@ -1577,7 +1728,8 @@ services/chat/
 - ✅ **Responsive** — Split view desktop, mobile con lista oculta al abrir chat
 
 #### Chat AI 🔴
-- 🔴 **Archivado** — Servicio retorna error fijo: *"El servicio de chat con IA ha sido archivado"*
+
+- 🔴 **Archivado** — Servicio retorna error fijo: _"El servicio de chat con IA ha sido archivado"_
 
 ### 8.6 Patrones de implementación
 
@@ -1591,17 +1743,17 @@ services/chat/
 
 ### 8.7 Observaciones y mejoras potenciales
 
-| # | Estado | Observación |
-|---|---|---|
-| 1 | ⚠️ | **Sin real-time** — Polling/refresh únicamente, sin WebSocket. Para mensajería frecuente puede ser lento |
-| 2 | ⚠️ | **Chat AI archivado con código muerto** — Controllers, servicio, tipos, componente y queries existen pero están completamente deshabilitados. Candidato a eliminar o documentar decisión |
-| 3 | ⚠️ | **app-knowledge.ts desactualizado** — 403 líneas de documentación legacy que menciona Next.js 16 (el proyecto usa 14). No está activa |
-| 4 | ⚠️ | **Sin rate limiting** — No hay límite de mensajes por usuario/tiempo. Riesgo de spam |
-| 5 | ⚠️ | **Sin transacciones DB** — Operaciones concurrentes podrían generar race conditions |
-| 6 | ℹ️ | **Retención 90 días** — Mensajes eliminados automáticamente. El usuario podría no saberlo |
-| 7 | ℹ️ | **Sin adjuntos** — Las traducciones i18n mencionan `attachments` pero la funcionalidad no está implementada |
-| 8 | ℹ️ | **Sin threading** — Mensajes lineales únicamente, sin respuestas anidadas |
-| 9 | ℹ️ | **Sin "leído por"** — Solo se rastrea last_read_at por conversación, no confirmación de lectura por mensaje |
+| #   | Estado | Observación                                                                                                                                                                              |
+| --- | ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | ⚠️     | **Sin real-time** — Polling/refresh únicamente, sin WebSocket. Para mensajería frecuente puede ser lento                                                                                 |
+| 2   | ⚠️     | **Chat AI archivado con código muerto** — Controllers, servicio, tipos, componente y queries existen pero están completamente deshabilitados. Candidato a eliminar o documentar decisión |
+| 3   | ⚠️     | **app-knowledge.ts desactualizado** — 403 líneas de documentación legacy que menciona Next.js 16 (el proyecto usa 14). No está activa                                                    |
+| 4   | ⚠️     | **Sin rate limiting** — No hay límite de mensajes por usuario/tiempo. Riesgo de spam                                                                                                     |
+| 5   | ⚠️     | **Sin transacciones DB** — Operaciones concurrentes podrían generar race conditions                                                                                                      |
+| 6   | ℹ️     | **Retención 90 días** — Mensajes eliminados automáticamente. El usuario podría no saberlo                                                                                                |
+| 7   | ℹ️     | **Sin adjuntos** — Las traducciones i18n mencionan `attachments` pero la funcionalidad no está implementada                                                                              |
+| 8   | ℹ️     | **Sin threading** — Mensajes lineales únicamente, sin respuestas anidadas                                                                                                                |
+| 9   | ℹ️     | **Sin "leído por"** — Solo se rastrea last_read_at por conversación, no confirmación de lectura por mensaje                                                                              |
 
 ---
 
@@ -1615,16 +1767,17 @@ de auditoría y notificaciones automáticas.
 
 6 tablas en `backend/db-mysql/aiven/10_group-tracking.sql`:
 
-| Tabla | Propósito |
-|---|---|
-| `hotel_groups` | Grupo principal (nombre, agency, arrival/departure, status, pax count, totales) |
-| `group_contacts` | Contactos del grupo (nombre, email, teléfono, rol, is_primary) |
-| `group_rooms` | Habitaciones asignadas (type, quantity, rate, rooming_status, deadline) |
-| `group_status` | Estado detallado (booking_confirmed, contract_signed, rooming_list, balance_status + fechas) |
-| `group_payments` | Pagos del grupo (amount, due_date, status, payment_date, notes) |
-| `group_history` | Auditoría (action: created/updated/status_changed/payment_updated/deleted, field_changed, old/new values) |
+| Tabla            | Propósito                                                                                                 |
+| ---------------- | --------------------------------------------------------------------------------------------------------- |
+| `hotel_groups`   | Grupo principal (nombre, agency, arrival/departure, status, pax count, totales)                           |
+| `group_contacts` | Contactos del grupo (nombre, email, teléfono, rol, is_primary)                                            |
+| `group_rooms`    | Habitaciones asignadas (type, quantity, rate, rooming_status, deadline)                                   |
+| `group_status`   | Estado detallado (booking_confirmed, contract_signed, rooming_list, balance_status + fechas)              |
+| `group_payments` | Pagos del grupo (amount, due_date, status, payment_date, notes)                                           |
+| `group_history`  | Auditoría (action: created/updated/status_changed/payment_updated/deleted, field_changed, old/new values) |
 
 **Enums:**
+
 - GroupStatus: inquiry / confirmed / on_hold / cancelled / completed
 - RoomType: single / double / suite
 - RoomingStatus: pending / received / confirmed
@@ -1636,10 +1789,12 @@ de auditoría y notificaciones automáticas.
 Base: `/api/groups` — Middleware: `authenticateToken` + `canManageGroups` / `canViewGroups`
 
 #### Dashboard
+
 - ✅ `GET /dashboard/overview` — KPIs: grupos activos, por llegar, pagos pendientes, balance total
 - ✅ `GET /dashboard/timeline` — Timeline de llegadas/salidas del mes
 
 #### CRUD principal
+
 - ✅ `GET /` — Listar grupos con filtros y paginación
 - ✅ `GET /:id` — Detalle completo con contactos, habitaciones, pagos, estado
 - ✅ `POST /` — Crear grupo
@@ -1647,6 +1802,7 @@ Base: `/api/groups` — Middleware: `authenticateToken` + `canManageGroups` / `c
 - ✅ `DELETE /:id` — Eliminar grupo
 
 #### Estado
+
 - ✅ `GET /:id/status` — Obtener estado del grupo
 - ✅ `PUT /:id/status/booking` — Actualizar estado de booking
 - ✅ `PUT /:id/status/contract` — Actualizar estado de contrato
@@ -1654,6 +1810,7 @@ Base: `/api/groups` — Middleware: `authenticateToken` + `canManageGroups` / `c
 - ✅ `PUT /:id/status/balance` — Actualizar estado de balance
 
 #### Pagos
+
 - ✅ `GET /:id/payments` — Pagos del grupo
 - ✅ `POST /:id/payments` — Crear pago
 - ✅ `PUT /:id/payments/:paymentId` — Editar pago
@@ -1664,6 +1821,7 @@ Base: `/api/groups` — Middleware: `authenticateToken` + `canManageGroups` / `c
 - ✅ `GET /payments/overdue` — Pagos vencidos (todos los grupos)
 
 #### Contactos
+
 - ✅ `GET /:id/contacts` — Contactos del grupo
 - ✅ `POST /:id/contacts` — Crear contacto
 - ✅ `PUT /:id/contacts/:contactId` — Editar contacto
@@ -1671,12 +1829,14 @@ Base: `/api/groups` — Middleware: `authenticateToken` + `canManageGroups` / `c
 - ✅ `GET /:id/contacts/primary` — Contacto principal
 
 #### Habitaciones
+
 - ✅ `GET /:id/rooms` — Habitaciones del grupo
 - ✅ `POST /:id/rooms` — Crear/actualizar habitación
 - ✅ `PUT /:id/rooms/:roomId` — Editar habitación
 - ✅ `DELETE /:id/rooms/:roomId` — Eliminar habitación
 
 #### Historial y notificaciones
+
 - ✅ `GET /:id/history` — Historial de auditoría del grupo
 - ✅ `GET /:id/notifications` — Notificaciones del grupo
 - ✅ `POST /:id/notifications` — Crear notificación manual para grupo
@@ -1715,11 +1875,13 @@ models/group/
 ### 9.4 Frontend — Arquitectura
 
 #### Páginas
+
 - ✅ `app/dashboard/groups/page.tsx` — Lista de grupos
 - ✅ `app/dashboard/groups/[id]/page.tsx` — Detalle del grupo
 - ✅ `app/dashboard/groups/loading.tsx` / `error.tsx` — Estados
 
 #### Componentes (~22 archivos)
+
 - ✅ `GroupsListClient.tsx` — Lista con filtros
 - ✅ `GroupDetailClient.tsx` — Orquestador con tabs y panels
 - **Tabs**: OverviewTab, PaymentsTab, ContactsTab, RoomsTab, StatusTab, HistoryTab
@@ -1730,10 +1892,12 @@ models/group/
 - ✅ `NotificationModal.tsx` — Modal de notificaciones para grupo
 
 #### API y types
+
 - ✅ `app/lib/groups/queries.ts` — ~23KB React Query hooks completos (getAll, getById, create, update, delete, dashboard, payments, contacts, rooms, status, history)
 - ✅ `app/lib/groups/types.ts` — Types frontend completos
 
 #### i18n
+
 - ✅ `messages/es/groups.json` — ~18KB en español
 
 ### 9.5 Funcionalidades de usuario
@@ -1749,13 +1913,13 @@ models/group/
 
 ### 9.6 Observaciones y mejoras potenciales
 
-| # | Estado | Observación |
-|---|---|---|
-| 1 | ⚠️ | **Estado duplicado (HIGH PRIORITY)** — `hotel_groups.status` y `group_status.booking_confirmed` rastrean información solapada. TODO documentado en el código. Requiere refactoring de BD + código |
-| 2 | ❌ | **Validaciones Zod vacías** — `group-schemas.ts` existe pero está completamente vacío. Sin validación de input en backend |
-| 3 | ⚠️ | **Email service parcial** — `email-service.ts` existe (~166 líneas) pero sin integración real de envío SMTP |
-| 4 | ❌ | **Sin tests** — No se encontraron archivos de test |
-| 5 | ℹ️ | **i18n solo español** — Sin `messages/en/groups.json` |
+| #   | Estado | Observación                                                                                                                                                                                       |
+| --- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | ⚠️     | **Estado duplicado (HIGH PRIORITY)** — `hotel_groups.status` y `group_status.booking_confirmed` rastrean información solapada. TODO documentado en el código. Requiere refactoring de BD + código |
+| 2   | ❌     | **Validaciones Zod vacías** — `group-schemas.ts` existe pero está completamente vacío. Sin validación de input en backend                                                                         |
+| 3   | ⚠️     | **Email service parcial** — `email-service.ts` existe (~166 líneas) pero sin integración real de envío SMTP                                                                                       |
+| 4   | ❌     | **Sin tests** — No se encontraron archivos de test                                                                                                                                                |
+| 5   | ℹ️     | **i18n solo español** — Sin `messages/en/groups.json`                                                                                                                                             |
 
 ---
 
@@ -1769,12 +1933,13 @@ bell icon, modal de centro de notificaciones y badge de no leídos.
 
 2 tablas en `backend/db-mysql/aiven/17_notifications.sql`:
 
-| Tabla | Propósito |
-|---|---|
-| `notifications` | Notificaciones (module, related_to, priority, status, group_id, link, title, body, scheduled_for, sent_at, email_sent_at) |
-| `notification_recipients` | Receptores (notification_id, user_id, read_at). UK: notification_id+user_id |
+| Tabla                     | Propósito                                                                                                                 |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `notifications`           | Notificaciones (module, related_to, priority, status, group_id, link, title, body, scheduled_for, sent_at, email_sent_at) |
+| `notification_recipients` | Receptores (notification_id, user_id, read_at). UK: notification_id+user_id                                               |
 
 **Enums:**
+
 - Module: groups / parking / logbooks / system
 - Related_to: payment / rooming / balance / contract / arrival / general
 - Priority: low / medium / high / urgent
@@ -1794,6 +1959,7 @@ Base: `/api/notifications` — Middleware: `authenticateToken` + `canViewGroups`
 - ✅ `DELETE /notifications/:id` — Eliminar (solo admin)
 
 Integrado en Groups:
+
 - ✅ `GET /groups/:id/notifications` — Notificaciones de un grupo específico
 - ✅ `POST /groups/:id/notifications` — Crear notificación manual para grupo
 
@@ -1828,6 +1994,7 @@ models/notifications/
 - ✅ `NotificationsList.tsx` / `NotificationsHeader.tsx` — Wrappers
 
 #### Hooks y queries
+
 - ✅ `useNotificationsQuery()` — Todas (2 min stale)
 - ✅ `useUnreadNotificationsQuery()` — No leídas (1 min stale)
 - ✅ `useUnreadCountQuery()` — Count con 30s stale + 1min refetch
@@ -1835,6 +2002,7 @@ models/notifications/
 - ✅ `useMarkAllAsReadMutation()` — Bulk
 
 #### i18n
+
 - ✅ `messages/es/notifications.json`
 
 ### 10.5 Funcionalidades de usuario
@@ -1849,12 +2017,12 @@ models/notifications/
 
 ### 10.6 Observaciones y mejoras potenciales
 
-| # | Estado | Observación |
-|---|---|---|
-| 1 | ⚠️ | **Email delivery no implementado** — La BD tiene campos email_sent/email_sent_at y `markEmailSent()` existe en el repositorio, pero no hay envío real de emails |
-| 2 | ⚠️ | **Módulos parking y logbooks** — Los enums incluyen parking y logbooks como módulos, pero no hay generadores de notificaciones para ellos |
-| 3 | ℹ️ | **Sin preferencias de usuario** — No hay opt-out ni configuración de notificaciones por usuario |
-| 4 | ℹ️ | **Sin historial de notificaciones enviadas** — Solo existe el estado actual, sin log de entrega |
+| #   | Estado | Observación                                                                                                                                                     |
+| --- | ------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | ⚠️     | **Email delivery no implementado** — La BD tiene campos email_sent/email_sent_at y `markEmailSent()` existe en el repositorio, pero no hay envío real de emails |
+| 2   | ⚠️     | **Módulos parking y logbooks** — Los enums incluyen parking y logbooks como módulos, pero no hay generadores de notificaciones para ellos                       |
+| 3   | ℹ️     | **Sin preferencias de usuario** — No hay opt-out ni configuración de notificaciones por usuario                                                                 |
+| 4   | ℹ️     | **Sin historial de notificaciones enviadas** — Solo existe el estado actual, sin log de entrega                                                                 |
 
 ---
 
@@ -1867,8 +2035,8 @@ como catálogo de referencia usado por el módulo de Logbooks para categorizar e
 
 1 tabla en `backend/db-mysql/aiven/02_core_tables.sql`:
 
-| Tabla | Propósito |
-|---|---|
+| Tabla         | Propósito                                                    |
+| ------------- | ------------------------------------------------------------ |
 | `departments` | Departamentos (id INT, name VARCHAR UNIQUE). Ordered by name |
 
 ### 11.2 Backend — Endpoints API
@@ -1907,13 +2075,13 @@ El módulo de Logbooks usa `useDepartments` hook propio para consumir este endpo
 
 ### 11.5 Observaciones y mejoras potenciales
 
-| # | Estado | Observación |
-|---|---|---|
-| 1 | ❌ | **Sin UI** — Toda la gestión de departamentos está en backend pero no hay página ni componentes frontend |
-| 2 | ❌ | **Sin relaciones en BD** — No hay FK desde otras tablas a departments (excepto logbooks que usa department_id). No se puede saber qué usuarios pertenecen a qué departamento |
-| 3 | ❌ | **Sin validaciones Zod** — Ni en backend ni en frontend |
-| 4 | ℹ️ | **Gestionado via Settings de Auth** — El tab de "Departments" en SettingsPanel del módulo de Auth podría ser la UI destinada para esto |
-| 5 | ℹ️ | **Uso real** — Principalmente consumido por Logbooks para categorizar entradas por departamento |
+| #   | Estado | Observación                                                                                                                                                                  |
+| --- | ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | ❌     | **Sin UI** — Toda la gestión de departamentos está en backend pero no hay página ni componentes frontend                                                                     |
+| 2   | ❌     | **Sin relaciones en BD** — No hay FK desde otras tablas a departments (excepto logbooks que usa department_id). No se puede saber qué usuarios pertenecen a qué departamento |
+| 3   | ❌     | **Sin validaciones Zod** — Ni en backend ni en frontend                                                                                                                      |
+| 4   | ℹ️     | **Gestionado via Settings de Auth** — El tab de "Departments" en SettingsPanel del módulo de Auth podría ser la UI destinada para esto                                       |
+| 5   | ℹ️     | **Uso real** — Principalmente consumido por Logbooks para categorizar entradas por departamento                                                                              |
 
 ---
 
@@ -1926,12 +2094,12 @@ con workflow de estados (draft → confirmed → closed) y resumen mensual agreg
 
 4 tablas en `backend/db-mysql/aiven/09_conciliation.sql`:
 
-| Tabla | Propósito |
-|---|---|
-| `conciliation_summary` | Cabecera diaria (date UNIQUE, total_reception, total_housekeeping, difference GENERATED, status draft/confirmed/closed, soft-delete) |
-| `conciliation_reception` | 5 líneas de recepción por día (reason enum, direction add/subtract, value, room_number, notes, soft-delete) — FK CASCADE |
-| `conciliation_housekeeping` | 7 líneas de housekeeping por día (mismos campos) — FK CASCADE |
-| `conciliation_monthly_summary` | Metadatos de cierre mensual (year, month, status, closed_by, closed_at). UNIQUE (year, month) |
+| Tabla                          | Propósito                                                                                                                            |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `conciliation_summary`         | Cabecera diaria (date UNIQUE, total_reception, total_housekeeping, difference GENERATED, status draft/confirmed/closed, soft-delete) |
+| `conciliation_reception`       | 5 líneas de recepción por día (reason enum, direction add/subtract, value, room_number, notes, soft-delete) — FK CASCADE             |
+| `conciliation_housekeeping`    | 7 líneas de housekeeping por día (mismos campos) — FK CASCADE                                                                        |
+| `conciliation_monthly_summary` | Metadatos de cierre mensual (year, month, status, closed_by, closed_at). UNIQUE (year, month)                                        |
 
 **Motivos de recepción (5):** base_rooms, no_show, room_change, gratuity, other
 **Motivos de housekeeping (7):** cleaned, do_not_disturb, ooo_cleaned, pending_cleaned, pending_to_clean, room_clean, other
@@ -1942,6 +2110,7 @@ con workflow de estados (draft → confirmed → closed) y resumen mensual agreg
 Base: `/api/conciliations` — Middleware: `authenticateToken` + `excludeMantenimiento`
 
 #### Conciliación diaria
+
 - ✅ `GET /conciliations` — Listar todas
 - ✅ `GET /conciliations/:id` — Detalle con todas las líneas (recepción + housekeeping)
 - ✅ `GET /conciliations/day/:date` — Por fecha (null si no existe)
@@ -1952,6 +2121,7 @@ Base: `/api/conciliations` — Middleware: `authenticateToken` + `excludeManteni
 - ✅ `DELETE /conciliations/:id` — Soft-delete (solo admin)
 
 #### Resumen mensual
+
 - ✅ `GET /conciliations/monthly-summary/:year/:month` — Totales del mes con desglose por motivo
 - ✅ `GET /conciliations/monthly-summary/:year/:month/validation` — Verificar si el mes puede cerrarse
 - ✅ `PATCH /conciliations/monthly-summary/:year/:month/status` — Cerrar/reabrir mes
@@ -1997,13 +2167,13 @@ services/conciliation/
 
 ### 12.6 Observaciones y mejoras potenciales
 
-| # | Estado | Observación |
-|---|---|---|
-| 1 | ⚠️ | **Sin edición individual de líneas** — Solo se puede editar el formulario completo (todas las líneas a la vez), no una línea individual |
-| 2 | ⚠️ | **Totales mensuales sin caché** — Se recalculan on-demand (30+ queries si el mes está completo) |
-| 3 | ⚠️ | **Sin auditoría por línea** — Solo hay created_by/updated_by en el summary. Los cambios individuales en líneas no se rastrean |
-| 4 | ⚠️ | **Sin Zod** — Validación inline en controllers, no schemas reutilizables |
-| 5 | ℹ️ | **Check admin comentado** — En `conciliation-monthly.controller.ts` hay un check de admin comentado (línea ~144-150) |
+| #   | Estado | Observación                                                                                                                             |
+| --- | ------ | --------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | ⚠️     | **Sin edición individual de líneas** — Solo se puede editar el formulario completo (todas las líneas a la vez), no una línea individual |
+| 2   | ⚠️     | **Totales mensuales sin caché** — Se recalculan on-demand (30+ queries si el mes está completo)                                         |
+| 3   | ⚠️     | **Sin auditoría por línea** — Solo hay created_by/updated_by en el summary. Los cambios individuales en líneas no se rastrean           |
+| 4   | ⚠️     | **Sin Zod** — Validación inline en controllers, no schemas reutilizables                                                                |
+| 5   | ℹ️     | **Check admin comentado** — En `conciliation-monthly.controller.ts` hay un check de admin comentado (línea ~144-150)                    |
 
 ---
 
@@ -2016,8 +2186,8 @@ por campo (JSON), imágenes vía Cloudinary, filtros avanzados y estadísticas.
 
 1 tabla en `backend/db-mysql/aiven/12_blacklist.sql`:
 
-| Tabla | Propósito |
-|---|---|
+| Tabla               | Propósito                                                                                                                                                                            |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `blacklist_entries` | Entradas (guest_name, document_type/number, check_in/out dates, reason, severity MEDIUM default, comments, images JSON, status ACTIVE/DELETED, audit_trail JSON, soft-delete fields) |
 
 **Índices:** document_number, check_in/out dates, severity, status+severity compuesto, status+created_at compuesto
@@ -2086,12 +2256,12 @@ services/cloudinary/
 
 ### 13.6 Observaciones y mejoras potenciales
 
-| # | Estado | Observación |
-|---|---|---|
-| 1 | ⚠️ | **Audit trail como JSON en columna** — No normalizado. Funcional pero difícil de consultar, indexar o paginar el historial |
-| 2 | ⚠️ | **Imágenes como JSON en columna** — Misma limitación: sin tabla separada de imágenes |
-| 3 | ℹ️ | **Sin rate limiting** en upload de imágenes |
-| 4 | ℹ️ | **Cloudinary con lazy config** — Se configura en el primer uso (previene timing issues con dotenv) |
+| #   | Estado | Observación                                                                                                                |
+| --- | ------ | -------------------------------------------------------------------------------------------------------------------------- |
+| 1   | ⚠️     | **Audit trail como JSON en columna** — No normalizado. Funcional pero difícil de consultar, indexar o paginar el historial |
+| 2   | ⚠️     | **Imágenes como JSON en columna** — Misma limitación: sin tabla separada de imágenes                                       |
+| 3   | ℹ️     | **Sin rate limiting** en upload de imágenes                                                                                |
+| 4   | ℹ️     | **Cloudinary con lazy config** — Se configura en el primer uso (previene timing issues con dotenv)                         |
 
 ---
 
@@ -2107,6 +2277,7 @@ Base: `/api/search` — Middleware: `authenticateToken`
 - ✅ `GET /search?q=query` — Búsqueda global (mínimo 2 chars, o 11 para códigos "PK-")
 
 **Módulos indexados (LIMIT 10 cada uno, paralelo con Promise.all):**
+
 - Parking: booking_code, plate_number, owner_name
 - Maintenance: id, title, room_number, location_description (excluye soft-deleted)
 - Groups: name, agency
@@ -2131,13 +2302,13 @@ repositories/search/
 
 ### 14.4 Observaciones y mejoras potenciales
 
-| # | Estado | Observación |
-|---|---|---|
-| 1 | ⚠️ | **Sin paginación** — LIMIT 10 hardcodeado por módulo, sin offset ni "ver más" |
-| 2 | ⚠️ | **LIKE % simple** — Sin full-text indexes, puede ser lento con tablas grandes |
-| 3 | ⚠️ | **Sin scoring** — Todos los resultados tienen igual relevancia, sin ranking |
-| 4 | ⚠️ | **Módulos no cubiertos** — Logbooks, cashier, scheduling, backoffice no están indexados |
-| 5 | ℹ️ | **Lógica PK- en frontend** — La detección de códigos de parking solo en el hook, sin optimización backend |
+| #   | Estado | Observación                                                                                               |
+| --- | ------ | --------------------------------------------------------------------------------------------------------- |
+| 1   | ⚠️     | **Sin paginación** — LIMIT 10 hardcodeado por módulo, sin offset ni "ver más"                             |
+| 2   | ⚠️     | **LIKE % simple** — Sin full-text indexes, puede ser lento con tablas grandes                             |
+| 3   | ⚠️     | **Sin scoring** — Todos los resultados tienen igual relevancia, sin ranking                               |
+| 4   | ⚠️     | **Módulos no cubiertos** — Logbooks, cashier, scheduling, backoffice no están indexados                   |
+| 5   | ℹ️     | **Lógica PK- en frontend** — La detección de códigos de parking solo en el hook, sin optimización backend |
 
 ---
 
@@ -2178,12 +2349,12 @@ repositories/activity/
 
 ### 15.4 Observaciones y mejoras potenciales
 
-| # | Estado | Observación |
-|---|---|---|
-| 1 | ❌ | **Sin UI** — Solo API + types. No hay página de actividad ni componente de timeline |
-| 2 | ⚠️ | **Filtros no combinables** — La prioridad es: date > user_id > source > all. No se puede filtrar por date + user_id simultáneamente |
-| 3 | ⚠️ | **Sin paginación** — Solo límite (max 50), sin offset |
-| 4 | ℹ️ | **Scheduling y parking no incluidos** — Los módulos scheduling y parking no tienen sus historiales en el UNION |
+| #   | Estado | Observación                                                                                                                         |
+| --- | ------ | ----------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | ❌     | **Sin UI** — Solo API + types. No hay página de actividad ni componente de timeline                                                 |
+| 2   | ⚠️     | **Filtros no combinables** — La prioridad es: date > user_id > source > all. No se puede filtrar por date + user_id simultáneamente |
+| 3   | ⚠️     | **Sin paginación** — Solo límite (max 50), sin offset                                                                               |
+| 4   | ℹ️     | **Scheduling y parking no incluidos** — Los módulos scheduling y parking no tienen sus historiales en el UNION                      |
 
 ---
 
@@ -2201,13 +2372,14 @@ disponibilidad gestionada automáticamente via triggers MySQL, y soporte de pago
 
 Comparte tablas con el módulo de Parking. Las tablas clave para bookings son:
 
-| Tabla | Propósito |
-|---|---|
-| `parking_bookings` | Reservas (booking_code PK-YYYYMMDD-NNNN auto, spot_id, vehicle_id, operator_id, expected/actual checkin/checkout, status enum, total_amount, payment_amount/method/reference/date, booking_source, external_booking_id, notes, audit trail) |
-| `parking_availability` | Disponibilidad por plaza/día (is_available, booking_id). Gestionada 100% por triggers |
-| `parking_rates` | Tarifas por duración (días) para auto-cálculo de precio |
+| Tabla                  | Propósito                                                                                                                                                                                                                                   |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `parking_bookings`     | Reservas (booking_code PK-YYYYMMDD-NNNN auto, spot_id, vehicle_id, operator_id, expected/actual checkin/checkout, status enum, total_amount, payment_amount/method/reference/date, booking_source, external_booking_id, notes, audit trail) |
+| `parking_availability` | Disponibilidad por plaza/día (is_available, booking_id). Gestionada 100% por triggers                                                                                                                                                       |
+| `parking_rates`        | Tarifas por duración (días) para auto-cálculo de precio                                                                                                                                                                                     |
 
 **5 triggers automáticos:**
+
 - `trg_generate_booking_code` — Auto-genera PK-YYYYMMDD-NNNN en INSERT
 - `trg_update_availability_on_booking` — Bloquea fechas en availability al crear reserva
 - `trg_free_availability_on_status_change` — Libera fechas al completar/cancelar/no_show
@@ -2215,6 +2387,7 @@ Comparte tablas con el módulo de Parking. Las tablas clave para bookings son:
 - `trg_update_availability_on_date_change` — Libera fechas antiguas y ocupa nuevas al cambiar fechas/plaza
 
 **Enums:**
+
 - Status: reserved / checked_in / completed / canceled / no_show
 - Payment method: cash / card / transfer / agency
 - Booking source: direct / booking_com / expedia / airbnb / agency_other
@@ -2235,6 +2408,7 @@ Base: `/api/parking/bookings` — Middleware: `authenticateToken` + `excludeMant
 - ✅ `PUT /bookings/:code/no-show` — No-show (solo desde reserved)
 
 **Quick filters disponibles:**
+
 - arrivals_pending, arrivals_inside, arrivals_total
 - departures_pending, departures_completed, departures_total
 
@@ -2256,6 +2430,7 @@ models/parking/
 ```
 
 **Formato de respuesta anidado:**
+
 ```json
 {
   "spot": { id, number, level, type },
@@ -2269,6 +2444,7 @@ models/parking/
 ```
 
 **Lógica de pricing (3 niveles):**
+
 1. Si `total_amount` en request → usar ese valor
 2. Si no → consultar `parking_rates` para la duración (días)
 3. Si no hay tarifa → calcular días × €15 (default hardcodeado)
@@ -2276,6 +2452,7 @@ models/parking/
 ### 17.4 Frontend — Arquitectura
 
 #### Páginas
+
 - ✅ `app/dashboard/parking/bookings/page.tsx` — Lista (server component, server action para datos iniciales)
 - ✅ `app/dashboard/parking/bookings/new/page.tsx` — Wizard full-page
 - ✅ `app/dashboard/parking/bookings/[code]/page.tsx` — Detalle dinámico
@@ -2284,12 +2461,13 @@ models/parking/
 
 El wizard existe en **dos variantes** con el mismo estado interno:
 
-| Variante | Uso | Estilo |
-|---|---|---|
-| `full` | Página dedicada `/bookings/new` | GitHub-style, progress bar |
-| `modal` | SlidePanel dentro de otros componentes | Emerald/teal, footer con botones |
+| Variante | Uso                                    | Estilo                           |
+| -------- | -------------------------------------- | -------------------------------- |
+| `full`   | Página dedicada `/bookings/new`        | GitHub-style, progress bar       |
+| `modal`  | SlidePanel dentro de otros componentes | Emerald/teal, footer con botones |
 
 **Estructura interna:**
+
 ```
 BookingWizard/
 ├── index.tsx                  # Orquestador (244 líneas)
@@ -2304,6 +2482,7 @@ BookingWizard/
 ```
 
 **`useBookingWizard.ts` (454 líneas):**
+
 - Gestiona todo el estado del wizard: step actual, vehículo, fechas, plaza seleccionada, UI flags
 - Vehicle: search API (live), create new, select existing
 - Availability: consulta plazas disponibles para rango de fechas, filtra conflictos
@@ -2311,6 +2490,7 @@ BookingWizard/
 - Calendar UI: control open/close de los date pickers
 
 **`DateSpotStep.tsx` (variante full):**
+
 - Date pickers para check-in y check-out con time pickers (default 15:00 entrada, 15:00 salida)
 - Indicador de días de duración
 - Botón "Buscar plazas disponibles" (con loading)
@@ -2319,10 +2499,12 @@ BookingWizard/
 - Campos: precio manual (opcional), fuente de reserva, ID externo, notas
 
 **`ConfirmationStep.tsx`:**
+
 - Resumen completo: vehículo, plaza, fechas + horas, días, precio
 - "Precio auto" si no se especificó importe
 
 #### Otros componentes de booking
+
 - ✅ `CreateBookingPanel.tsx` (~499 líneas) — Alternativa: SlidePanel con formulario único (misma funcionalidad que wizard pero en un paso). Permite pre-seleccionar fecha y plaza
 - ✅ `BookingsListClient.tsx` — Lista completa con filtros de status, quick filters, date range, búsqueda, paginación
 - ✅ `BookingDetailClient.tsx` — Detalle con cards, modales de acción, refresh
@@ -2332,6 +2514,7 @@ BookingWizard/
 - ✅ `PaymentModal.tsx` — Registrar pago (importe, método, referencia)
 
 #### API y state
+
 - ✅ `app/lib/parking/queries.ts` — parkingApi (createBooking, getBookingByCode, checkIn/Out, cancel, update, delete, createVehicle, getAllVehicles)
 - ✅ `app/lib/parking/actions.ts` — Server action `getBookings()` con Bearer token
 - ✅ `app/lib/parking/types.ts` — Types completos incluyendo ParkingBooking, Stats, PendingCheckin/Checkout
@@ -2339,11 +2522,13 @@ BookingWizard/
 **State management:** useState local en `useBookingWizard`, sin React Query ni Zustand para el wizard. Lista sin React Query (datos desde server action).
 
 #### i18n
+
 - ✅ `messages/es/booking.json` + `messages/en/booking.json` — Traducciones completas (wizard, steps, confirmation, sources, errors, toasts)
 
 ### 17.5 Funcionalidades de usuario
 
 #### Crear reserva (wizard)
+
 - ✅ **Step 1 — Vehículo** — Buscar existente (live filter por matrícula/propietario) o crear nuevo
 - ✅ **Step 2 — Fechas y plaza** — Date pickers con time, buscar plazas disponibles, grid de selección
 - ✅ **Step 3 — Confirmación** — Resumen completo antes de confirmar
@@ -2352,18 +2537,21 @@ BookingWizard/
 - ✅ **ID externo** — Para tracking de reservas de terceros
 
 #### Ciclo de vida
+
 - ✅ **Check-in** — Transición reserved → checked_in, registra actual_checkin, valida plaza libre
 - ✅ **Check-out** — Transición checked_in → completed, registra actual_checkout, captura pago
 - ✅ **Cancelar** — Desde reserved o checked_in, libera plaza automáticamente
 - ✅ **No-show** — Desde reserved, queda registrado para auditoría
 
 #### Pago
+
 - ✅ **Durante check-out** — Amount, método (cash/card/transfer/agency), referencia
 - ✅ **Por separado** — PaymentModal desde el detalle de la reserva
 - ✅ **Parcial** — Se calcula pending_amount (total - paid)
 - ✅ **payment_date automático** — Se setea al registrar un importe
 
 #### Disponibilidad
+
 - ✅ **100% automática** — Triggers MySQL gestionan availability sin intervención de la app
 - ✅ **Validación en insert** — Trigger rechaza si plaza no disponible
 - ✅ **Liberación automática** — Al completar, cancelar o no-show
@@ -2371,14 +2559,14 @@ BookingWizard/
 
 ### 17.6 Observaciones y mejoras potenciales
 
-| # | Estado | Observación |
-|---|---|---|
-| 1 | ⚠️ | **Sin React Query en booking list** — La lista usa server action para carga inicial pero sin React Query para refetch/cache en cliente. Inconsistente con otros módulos |
-| 2 | ⚠️ | **Precio default hardcodeado** — €15/día como fallback si no hay tarifa en `parking_rates`. Debería ser configurable |
-| 3 | ⚠️ | **Dos componentes de creación** — BookingWizard y CreateBookingPanel ofrecen la misma funcionalidad con lógicas distintas. Duplicidad de código |
-| 4 | ⚠️ | **Sin paginación en overdue** — El endpoint de overdue devuelve todos los resultados sin limit/offset |
-| 5 | ℹ️ | **Módulo compartido con Parking** — Backend y BD son los mismos. La separación es solo a nivel de frontend components |
-| 6 | ℹ️ | **Sin React Query en wizard** — useBookingWizard usa useState local puro, sin caché ni invalidación |
+| #   | Estado | Observación                                                                                                                                                             |
+| --- | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | ⚠️     | **Sin React Query en booking list** — La lista usa server action para carga inicial pero sin React Query para refetch/cache en cliente. Inconsistente con otros módulos |
+| 2   | ⚠️     | **Precio default hardcodeado** — €15/día como fallback si no hay tarifa en `parking_rates`. Debería ser configurable                                                    |
+| 3   | ⚠️     | **Dos componentes de creación** — BookingWizard y CreateBookingPanel ofrecen la misma funcionalidad con lógicas distintas. Duplicidad de código                         |
+| 4   | ⚠️     | **Sin paginación en overdue** — El endpoint de overdue devuelve todos los resultados sin limit/offset                                                                   |
+| 5   | ℹ️     | **Módulo compartido con Parking** — Backend y BD son los mismos. La separación es solo a nivel de frontend components                                                   |
+| 6   | ℹ️     | **Sin React Query en wizard** — useBookingWizard usa useState local puro, sin caché ni invalidación                                                                     |
 
 ---
 
@@ -2402,14 +2590,15 @@ El módulo Profile no tiene tablas propias más allá de las ya documentadas en 
 
 Los endpoints de perfil están bajo el controlador de Auth (`backend/controllers/auth/`):
 
-| Método | Ruta | Descripción |
-|--------|------|-------------|
-| `PATCH` | `/api/auth/me/profile` | Cambiar username (requiere contraseña actual) |
-| `PATCH` | `/api/auth/me/password` | Cambiar contraseña (requiere current, new, confirm) |
-| `POST`  | `/api/auth/me/avatar` | Subir avatar (multer, máx 2MB, JPEG/PNG/WebP/GIF) |
-| `DELETE`| `/api/auth/me/avatar` | Eliminar avatar (limpia Cloudinary y BD) |
+| Método   | Ruta                    | Descripción                                         |
+| -------- | ----------------------- | --------------------------------------------------- |
+| `PATCH`  | `/api/auth/me/profile`  | Cambiar username (requiere contraseña actual)       |
+| `PATCH`  | `/api/auth/me/password` | Cambiar contraseña (requiere current, new, confirm) |
+| `POST`   | `/api/auth/me/avatar`   | Subir avatar (multer, máx 2MB, JPEG/PNG/WebP/GIF)   |
+| `DELETE` | `/api/auth/me/avatar`   | Eliminar avatar (limpia Cloudinary y BD)            |
 
 El resto de funcionalidades del panel de ajustes usa endpoints ya documentados en sus módulos respectivos:
+
 - Usuarios: `GET/PATCH/DELETE /api/users/{id}` (Módulo 1)
 - Departamentos: `GET/POST/PATCH/DELETE /api/departments` (Módulo 11)
 - Notificaciones globales: `POST /api/notifications` (Módulo 10)
@@ -2450,6 +2639,7 @@ app/components/profile/
 **`ProfileSidebar.tsx` (714 líneas):**
 
 **Avatar:**
+
 - Muestra la `avatar_url` de Cloudinary o genera un avatar de gradiente a partir del username
 - Hover overlay con icono de cámara → dropdown: subir foto / eliminar
 - Restricciones: máx 2MB, formatos JPEG/PNG/WebP/GIF
@@ -2457,6 +2647,7 @@ app/components/profile/
 - Llama `refreshUser()` tras éxito para actualizar el `AuthContext` global
 
 **Cambio de username:**
+
 - Modo inline de edición (click sobre el nombre)
 - Requiere confirmación con contraseña actual
 - Validación: mín 3 chars, solo alfanumérico + guion bajo
@@ -2464,6 +2655,7 @@ app/components/profile/
 - Toast de éxito durante 3 segundos
 
 **Cambio de contraseña:**
+
 - Tres campos: contraseña actual, nueva, confirmación
 - Toggle de visibilidad (ojo) en cada campo
 - Validación: mín 6 chars, nueva ≠ actual, confirmación coincide
@@ -2472,6 +2664,7 @@ app/components/profile/
 - Al éxito: redirige al login con `?message=password_changed`
 
 **Navegación:**
+
 - 4 botones: Messages, Notifications, Settings (+ icono)
 - Estado activo en azul (sincronizado con query param `?panel=`)
 - Labels e iconos de react-icons/fi
@@ -2481,6 +2674,7 @@ app/components/profile/
 **`SettingsPanel.tsx` (1194 líneas)** — Panel de administración con 5 pestañas:
 
 **Pestaña Users (solo admin):**
+
 - Tabla de todos los usuarios del sistema
 - Edición inline: username, email, rol (guardar/cancelar por fila)
 - Modal para crear nuevo usuario (`NewUserModal`)
@@ -2489,28 +2683,33 @@ app/components/profile/
 - API: `GET /api/users`, `PATCH /api/users/{id}`, `DELETE /api/users/{id}`
 
 **Pestaña Departments (solo admin):**
+
 - CRUD completo de departamentos vía `departmentsApi`
 - Añadir y editar a través de `CenterModal`
 - Nombres formateados con `formatDepartmentName` (capitalización + reglas especiales)
 - Ordenación automática alfabética tras operaciones
 
 **Pestaña Notifications:**
+
 - Componente `GlobalNotificationModal` para enviar notificaciones a todo el sistema
 - Botón para comprobar notificaciones pendientes
 - Resultado con toast y estado de éxito/fallo
 
 **Pestaña Security:**
+
 - `SecuritySettings` — componente stub con implementación mínima
 - Muestra info de sesión activa y opción de logout
 - ⚠️ Sin funcionalidades reales implementadas aún
 
 **Pestaña Reports (solo admin, lazy-loaded):**
+
 - `ReportsTab` cargado con `React.lazy` + `Suspense`
 - 5 secciones: Overview, Logbooks, Maintenance, Groups, Cashier
 - Sidebar de navegación entre secciones
 - Cada sección carga datos de forma independiente con filtros de fecha
 
 **Comportamiento responsive de tabs:**
+
 - Móvil: dropdown centrado como overlay modal
 - Desktop: pestañas horizontales con subrayado en activo
 - Estado persistido en URL via `?tab=users|departments|notifications|security|reports`
@@ -2520,12 +2719,14 @@ app/components/profile/
 **`MessagesPanel.tsx` (890 líneas)** — Reuso del sistema de mensajería (Módulo 8) dentro del perfil:
 
 **Lista de conversaciones:**
+
 - Búsqueda por nombre
 - Badge de mensajes no leídos
 - Preview del último mensaje + timestamp
 - Avatar generado por gradiente o icono para grupos
 
 **Vista de chat:**
+
 - Auto-scroll al fondo al abrir y al enviar
 - Load more para cargar mensajes anteriores
 - Mensajes propios a la derecha, ajenos a la izquierda
@@ -2533,6 +2734,7 @@ app/components/profile/
 - Etiqueta "editado" + timestamp en mensajes modificados
 
 **Nueva conversación:**
+
 - Búsqueda de usuarios con debounce (300ms)
 - Tags removibles de usuarios seleccionados
 - Campo de nombre de grupo cuando hay 2+ usuarios
@@ -2540,6 +2742,7 @@ app/components/profile/
 - Crear DM individual o chat grupal
 
 **Notificación urgente:**
+
 - Toggle de campana en el input → marca el mensaje como urgente
 - El receptor recibe una notificación especial
 
@@ -2548,6 +2751,7 @@ app/components/profile/
 ### 18.7 NotificationsPanel — Centro de notificaciones
 
 **`NotificationsPanel.tsx` (110 líneas):**
+
 - Filtro Todas / No leídas
 - Marcar todas como leídas (botón en header)
 - Eliminar notificación individual
@@ -2558,12 +2762,14 @@ app/components/profile/
 ### 18.8 Reports — Informes por módulo
 
 **`ReportsTab.tsx` (210 líneas)** — Orquestador con lazy loading:
+
 - Sidebar de navegación con iconos y descripciones
 - Botón de refresh en header
 - Cada sección envuelta en `Suspense` con `SectionSkeleton`
 - Secciones lazy: OverviewSection, LogbooksSection, MaintenanceSection, GroupsSection, CashierSection
 
 **`OverviewSection`:**
+
 - Actividad unificada de: cashier, groups, logbook, maintenance
 - Colores e iconos distintos por fuente
 - Tabla: fuente, acción, usuario, ID de registro, timestamp
@@ -2571,18 +2777,21 @@ app/components/profile/
 - Estado inicial "Load Activity" (no carga automáticamente)
 
 **`LogbooksSection`:**
+
 - Lista entradas de logbook con badges de importancia y estado
 - Filas expandibles con historial de ediciones (texto anterior tachado, nuevo en negrita)
 - Filtros: fecha, modo (todas/papelera), prioridad
 - Límite por defecto: 50 registros
 
 **`MaintenanceSection`:**
+
 - Reportes con estado (reported, pending, in_progress, resolved, closed) con colores
 - Iconos de prioridad (alta: triángulo alerta, urgente: círculo alerta)
 - Filas expandibles con historial de cambios campo por campo (antiguo → nuevo)
 - Filtros: fecha, estado, prioridad, incluir eliminados
 
 **`GroupsSection`:**
+
 - Stats globales: total, confirmados, pendientes, mostrados
 - Búsqueda por ID de grupo
 - Expandible con historial de cambios (tabla afectada, campo, old → new)
@@ -2590,6 +2799,7 @@ app/components/profile/
 - Filtros: fecha, estado
 
 **`CashierSection`:**
+
 - 3 modos de vista: Dashboard / Vouchers / Historia
 - **Dashboard:** resumen del día (total, efectivo, otros métodos, turnos abiertos/cerrados), alerta de vouchers pendientes, informe diario por fecha
 - **Vouchers:** estado (pending/justified/cancelled) con iconos, importe, concepto, fechas
@@ -2597,6 +2807,7 @@ app/components/profile/
 - Turnos: morning, afternoon, night, audit (desde i18n)
 
 **`DateFilter`:**
+
 - Wrapper de `SimpleCalendar` con botón que muestra la fecha seleccionada
 - Botón de limpiar cuando hay fecha activa
 - Cierre al hacer click fuera
@@ -2604,6 +2815,7 @@ app/components/profile/
 ### 18.9 Funcionalidades de usuario
 
 #### Perfil personal
+
 - ✅ **Ver datos de cuenta** — Username, email, rol, avatar en sidebar
 - ✅ **Cambiar username** — Inline con confirmación de contraseña
 - ✅ **Cambiar contraseña** — Formulario con validación completa
@@ -2611,17 +2823,20 @@ app/components/profile/
 - ✅ **Navegar a paneles** — Botones de nav hacia mensajes, notificaciones y ajustes
 
 #### Mensajería (dentro del perfil)
+
 - ✅ **Ver conversaciones** — DMs y grupos con unread count
 - ✅ **Chatear** — Envío, edición y borrado de mensajes propios
 - ✅ **Crear conversación** — DM individual o chat de grupo con búsqueda de usuarios
 - ✅ **Mensajes urgentes** — Toggle de campana para notificación especial
 
 #### Notificaciones
+
 - ✅ **Ver notificaciones** — Con filtro por estado (todas/no leídas)
 - ✅ **Marcar como leídas** — Individual o todas a la vez
 - ✅ **Eliminar notificaciones** — Borrado individual
 
 #### Administración (solo admin)
+
 - ✅ **Gestión de usuarios** — Crear, editar (username/email/rol), resetear contraseña, eliminar
 - ✅ **Gestión de departamentos** — CRUD completo con formateo de nombres
 - ✅ **Notificaciones globales** — Enviar notificación a todos los usuarios
@@ -2630,16 +2845,16 @@ app/components/profile/
 
 ### 18.10 Observaciones y mejoras potenciales
 
-| # | Estado | Observación |
-|---|---|---|
-| 1 | ❌ | **Security tab sin implementar** — `SecuritySettings.tsx` es un stub vacío. La pestaña aparece en el menú pero no ofrece ninguna funcionalidad real. Se podría usar para: gestión de sesiones activas, 2FA, historial de accesos |
-| 2 | ⚠️ | **SettingsPanel excesivamente grande** — 1194 líneas en un solo archivo que contiene 5 tabs con lógica compleja. Candidato claro a refactorizar en sub-componentes por tab |
-| 3 | ⚠️ | **MessagesPanel duplica lógica con Messages module** — La funcionalidad de mensajería está implementada dos veces: en `/dashboard/messages/` (Módulo 8) y aquí en MessagesPanel. Hooks compartidos pero UI completamente separada |
-| 4 | ⚠️ | **OverviewSection no carga automáticamente** — El usuario debe pulsar "Load Activity" explícitamente. Inconsistente con las otras secciones que cargan al montar |
-| 5 | ⚠️ | **GroupsSection usa MXN hardcodeado** — La sección de grupos formatea moneda con `MXN` locale hardcodeado en el componente, ignorando la moneda real del grupo |
-| 6 | ⚠️ | **ReportsTab solo visible para admin** — Las secciones de informes son de solo lectura y podrían ser útiles para roles como recepcionista con permisos acotados |
-| 7 | ℹ️ | **Lazy loading en ReportsTab** — Buena práctica: las 5 secciones de informes se cargan con `React.lazy` + `Suspense`, evitando impacto en el tiempo de carga inicial del perfil |
-| 8 | ℹ️ | **Estado de panel en URL** — El panel activo y la pestaña activa de settings se persisten en query params (`?panel=` y `?tab=`), permitiendo compartir/bookmarkear estados concretos |
+| #   | Estado | Observación                                                                                                                                                                                                                       |
+| --- | ------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | ❌     | **Security tab sin implementar** — `SecuritySettings.tsx` es un stub vacío. La pestaña aparece en el menú pero no ofrece ninguna funcionalidad real. Se podría usar para: gestión de sesiones activas, 2FA, historial de accesos  |
+| 2   | ⚠️     | **SettingsPanel excesivamente grande** — 1194 líneas en un solo archivo que contiene 5 tabs con lógica compleja. Candidato claro a refactorizar en sub-componentes por tab                                                        |
+| 3   | ⚠️     | **MessagesPanel duplica lógica con Messages module** — La funcionalidad de mensajería está implementada dos veces: en `/dashboard/messages/` (Módulo 8) y aquí en MessagesPanel. Hooks compartidos pero UI completamente separada |
+| 4   | ⚠️     | **OverviewSection no carga automáticamente** — El usuario debe pulsar "Load Activity" explícitamente. Inconsistente con las otras secciones que cargan al montar                                                                  |
+| 5   | ⚠️     | **GroupsSection usa MXN hardcodeado** — La sección de grupos formatea moneda con `MXN` locale hardcodeado en el componente, ignorando la moneda real del grupo                                                                    |
+| 6   | ⚠️     | **ReportsTab solo visible para admin** — Las secciones de informes son de solo lectura y podrían ser útiles para roles como recepcionista con permisos acotados                                                                   |
+| 7   | ℹ️     | **Lazy loading en ReportsTab** — Buena práctica: las 5 secciones de informes se cargan con `React.lazy` + `Suspense`, evitando impacto en el tiempo de carga inicial del perfil                                                   |
+| 8   | ℹ️     | **Estado de panel en URL** — El panel activo y la pestaña activa de settings se persisten en query params (`?panel=` y `?tab=`), permitiendo compartir/bookmarkear estados concretos                                              |
 
 ---
 
@@ -2657,18 +2872,18 @@ El módulo Demo implementa un modo de solo lectura para usuarios con rol `demo-a
 
 **Tabla: `demo_activity_log`**
 
-| Campo | Tipo | Descripción |
-|-------|------|-------------|
-| `id` | INT AUTO_INCREMENT PK | Identificador |
-| `timestamp` | DATETIME | Momento del intento |
-| `user_id` | VARCHAR(36) | ID del usuario demo |
-| `username` | VARCHAR(100) | Username para referencia rápida |
-| `method` | VARCHAR(10) | Método HTTP (POST/PATCH/DELETE) |
-| `route` | VARCHAR(255) | Ruta intentada |
-| `body_preview` | TEXT | Primeros 500 chars del body |
-| `ip_address` | VARCHAR(45) | IP del cliente |
-| `user_agent` | TEXT | User agent del navegador |
-| `blocked` | BOOLEAN | True = intento bloqueado |
+| Campo          | Tipo                  | Descripción                     |
+| -------------- | --------------------- | ------------------------------- |
+| `id`           | INT AUTO_INCREMENT PK | Identificador                   |
+| `timestamp`    | DATETIME              | Momento del intento             |
+| `user_id`      | VARCHAR(36)           | ID del usuario demo             |
+| `username`     | VARCHAR(100)          | Username para referencia rápida |
+| `method`       | VARCHAR(10)           | Método HTTP (POST/PATCH/DELETE) |
+| `route`        | VARCHAR(255)          | Ruta intentada                  |
+| `body_preview` | TEXT                  | Primeros 500 chars del body     |
+| `ip_address`   | VARCHAR(45)           | IP del cliente                  |
+| `user_agent`   | TEXT                  | User agent del navegador        |
+| `blocked`      | BOOLEAN               | True = intento bloqueado        |
 
 Índices en: `timestamp`, `username`, `route`.
 
@@ -2690,6 +2905,7 @@ backend/
 ```
 
 **Flujo de ejecución:**
+
 ```
 authenticateToken.ts
   └─> llama demoRestriction()
@@ -2704,12 +2920,12 @@ authenticateToken.ts
 
 Invocado desde `authenticateToken.ts` tras validar la sesión. Funciona con whitelist de rutas permitidas (regex-based):
 
-| Ruta permitida | Descripción |
-|----------------|-------------|
-| `POST /api/auth/logout` | Poder cerrar sesión |
-| `POST /api/parking/bookings` | Crear reservas de parking |
+| Ruta permitida                     | Descripción                   |
+| ---------------------------------- | ----------------------------- |
+| `POST /api/auth/logout`            | Poder cerrar sesión           |
+| `POST /api/parking/bookings`       | Crear reservas de parking     |
 | `POST /api/logbooks/{id}/comments` | Añadir comentarios a entradas |
-| `POST /api/maintenance` | Crear partes de mantenimiento |
+| `POST /api/maintenance`            | Crear partes de mantenimiento |
 
 Cualquier otra petición de escritura devuelve `403 { message: "Acción no disponible en modo demo", demo: true }`.
 
@@ -2719,12 +2935,12 @@ El log a `demo_activity_log` es **asíncrono** (no bloquea la respuesta).
 
 Todos protegidos con `isRealAdmin` — los usuarios `demo-admin` no pueden acceder a sus propios logs:
 
-| Método | Ruta | Descripción |
-|--------|------|-------------|
-| `GET` | `/api/demo-activity/logs` | Logs paginados con filtros (username, método, ruta, fecha, bloqueado) |
-| `GET` | `/api/demo-activity/stats` | Estadísticas: total bloqueados, usuarios únicos, rutas más intentadas, actividad por día |
-| `GET` | `/api/demo-activity/export` | Descarga archivo `registrosDemo.md` |
-| `DELETE` | `/api/demo-activity/cleanup` | Purga logs antiguos (default 90 días, mín 30) |
+| Método   | Ruta                         | Descripción                                                                              |
+| -------- | ---------------------------- | ---------------------------------------------------------------------------------------- |
+| `GET`    | `/api/demo-activity/logs`    | Logs paginados con filtros (username, método, ruta, fecha, bloqueado)                    |
+| `GET`    | `/api/demo-activity/stats`   | Estadísticas: total bloqueados, usuarios únicos, rutas más intentadas, actividad por día |
+| `GET`    | `/api/demo-activity/export`  | Descarga archivo `registrosDemo.md`                                                      |
+| `DELETE` | `/api/demo-activity/cleanup` | Purga logs antiguos (default 90 días, mín 30)                                            |
 
 #### `demo-activity-repository.ts`
 
@@ -2738,23 +2954,24 @@ Todos protegidos con `isRealAdmin` — los usuarios `demo-admin` no pueden acced
 
 El middleware `roleCheck.ts` distingue entre `admin` y `demo-admin` en las funciones de acceso:
 
-| Función | Permite demo-admin | Uso |
-|---------|:-----------------:|-----|
-| `isAdmin` | ✅ | Acceso general de admin |
-| `isOwnerOrAdmin` | ✅ | Acceso a recursos propios o como admin |
-| `canManageGroups` | ✅ | Ver/gestionar grupos (escritura bloqueada por demoRestriction) |
-| `canViewGroups` | ✅ | Ver grupos |
-| `canManageCashier` | ✅ | Acceso al cajero (visual) |
-| `canViewReports` | ✅ | Ver informes |
-| `canAccessMaintenance` | ✅ | Módulo de mantenimiento |
-| `canAccessBackoffice` | ✅ | Backoffice (solo lectura vía demoRestriction) |
-| `isRealAdmin` | ❌ | Bloquea explícitamente con "Acceso de solo lectura" |
+| Función                | Permite demo-admin | Uso                                                            |
+| ---------------------- | :----------------: | -------------------------------------------------------------- |
+| `isAdmin`              |         ✅         | Acceso general de admin                                        |
+| `isOwnerOrAdmin`       |         ✅         | Acceso a recursos propios o como admin                         |
+| `canManageGroups`      |         ✅         | Ver/gestionar grupos (escritura bloqueada por demoRestriction) |
+| `canViewGroups`        |         ✅         | Ver grupos                                                     |
+| `canManageCashier`     |         ✅         | Acceso al cajero (visual)                                      |
+| `canViewReports`       |         ✅         | Ver informes                                                   |
+| `canAccessMaintenance` |         ✅         | Módulo de mantenimiento                                        |
+| `canAccessBackoffice`  |         ✅         | Backoffice (solo lectura vía demoRestriction)                  |
+| `isRealAdmin`          |         ❌         | Bloquea explícitamente con "Acceso de solo lectura"            |
 
 `isRealAdmin` se usa en: creación de usuarios, rutas de backoffice de escritura, y todos los endpoints de `demo-activity`.
 
 ### 19.4 Frontend
 
 **`isAdminRole()` helper** (`frontend/app/lib/helpers/utils.ts`):
+
 ```typescript
 export function isAdminRole(role: string | undefined | null): boolean {
   const normalizedRole = role?.toLowerCase().trim()
@@ -2764,14 +2981,15 @@ export function isAdminRole(role: string | undefined | null): boolean {
 
 El usuario `demo-admin` ve exactamente la misma UI que un admin real. La restricción es puramente backend. Componentes que usan `isAdminRole`:
 
-| Componente | Efecto |
-|------------|--------|
-| `SettingsPanel.tsx` | Muestra pestañas Users, Departments, Reports (igual que admin) |
-| `app/dashboard/page.tsx` | Muestra sección BackOffice en el dashboard |
-| `nav-links.tsx` | Muestra los mismos links de nav que admin |
-| `scheduling/layout.tsx` | Permite acceso a la vista de scheduling |
+| Componente               | Efecto                                                         |
+| ------------------------ | -------------------------------------------------------------- |
+| `SettingsPanel.tsx`      | Muestra pestañas Users, Departments, Reports (igual que admin) |
+| `app/dashboard/page.tsx` | Muestra sección BackOffice en el dashboard                     |
+| `nav-links.tsx`          | Muestra los mismos links de nav que admin                      |
+| `scheduling/layout.tsx`  | Permite acceso a la vista de scheduling                        |
 
 **Detección de error demo en `apiClient.ts`:**
+
 - Detecta `response.json().demo === true` en respuestas 403
 - Muestra toast especial: `🔒 "Modo Demo: Esta acción no está disponible"` (4000ms, colores ámbar)
 - `ApiError` incluye flag `isDemo: boolean`
@@ -2780,6 +2998,7 @@ El usuario `demo-admin` ve exactamente la misma UI que un admin real. La restric
 ### 19.5 Funcionalidades del usuario demo
 
 #### Lo que puede hacer
+
 - ✅ **Ver todos los módulos** — Dashboard, logbook, parking, scheduling, maintenance, cashier, backoffice, grupos, mensajes
 - ✅ **Crear reservas de parking** — Única acción de escritura en parking
 - ✅ **Añadir comentarios en logbooks** — Participación sin modificar entradas
@@ -2787,6 +3006,7 @@ El usuario `demo-admin` ve exactamente la misma UI que un admin real. La restric
 - ✅ **Cerrar sesión** — Siempre disponible
 
 #### Lo que no puede hacer (bloqueado con toast 🔒)
+
 - ❌ Crear/editar/eliminar usuarios
 - ❌ Crear/editar/cerrar entradas de logbook
 - ❌ Editar/cerrar partes de mantenimiento
@@ -2803,15 +3023,15 @@ El usuario `demo-admin` ve exactamente la misma UI que un admin real. La restric
 
 ### 19.7 Observaciones y mejoras potenciales
 
-| # | Estado | Observación |
-|---|---|---|
-| 1 | ⚠️ | **Sin indicador visual de modo demo** — El usuario demo ve la misma UI que un admin real. No hay banner, badge ni aviso de que está en modo demo hasta que intenta una acción bloqueada. Podría añadirse un indicador persistente en el header/sidebar |
-| 2 | ⚠️ | **Whitelist de rutas mantenida manualmente** — Al añadir nuevas rutas al sistema, hay que recordar actualizar `DEMO_ALLOWED_ROUTES` en `demoRestriction.ts`. No hay tests que verifiquen esta cobertura |
-| 3 | ⚠️ | **Sin dashboard de actividad demo en frontend** — Los endpoints de `demo-activity` existen en backend pero no hay ninguna página en el frontend para que los admins consulten los logs o estadísticas de uso demo |
-| 4 | ⚠️ | **Instalación desactivada por defecto** — El script SQL está comentado en `MASTER_INSTALL.sql`. Fácil de olvidar al instalar en un nuevo entorno |
-| 5 | ℹ️ | **Diseño no invasivo** — Para eliminar el modo demo basta con: borrar `demoRestriction.ts`, eliminar su import en `authenticateToken.ts`, y borrar las rutas y el SQL. El resto del código no se ve afectado |
-| 6 | ℹ️ | **Logging asíncrono** — Los intentos bloqueados se loguean sin bloquear la respuesta HTTP. No afecta a la latencia del sistema |
-| 7 | ℹ️ | **Sin tests** — No existe ningún fichero de test para el middleware `demoRestriction` ni para el controller de actividad demo |
+| #   | Estado | Observación                                                                                                                                                                                                                                            |
+| --- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1   | ⚠️     | **Sin indicador visual de modo demo** — El usuario demo ve la misma UI que un admin real. No hay banner, badge ni aviso de que está en modo demo hasta que intenta una acción bloqueada. Podría añadirse un indicador persistente en el header/sidebar |
+| 2   | ⚠️     | **Whitelist de rutas mantenida manualmente** — Al añadir nuevas rutas al sistema, hay que recordar actualizar `DEMO_ALLOWED_ROUTES` en `demoRestriction.ts`. No hay tests que verifiquen esta cobertura                                                |
+| 3   | ⚠️     | **Sin dashboard de actividad demo en frontend** — Los endpoints de `demo-activity` existen en backend pero no hay ninguna página en el frontend para que los admins consulten los logs o estadísticas de uso demo                                      |
+| 4   | ⚠️     | **Instalación desactivada por defecto** — El script SQL está comentado en `MASTER_INSTALL.sql`. Fácil de olvidar al instalar en un nuevo entorno                                                                                                       |
+| 5   | ℹ️     | **Diseño no invasivo** — Para eliminar el modo demo basta con: borrar `demoRestriction.ts`, eliminar su import en `authenticateToken.ts`, y borrar las rutas y el SQL. El resto del código no se ve afectado                                           |
+| 6   | ℹ️     | **Logging asíncrono** — Los intentos bloqueados se loguean sin bloquear la respuesta HTTP. No afecta a la latencia del sistema                                                                                                                         |
+| 7   | ℹ️     | **Sin tests** — No existe ningún fichero de test para el middleware `demoRestriction` ni para el controller de actividad demo                                                                                                                          |
 
 ---
 
@@ -2826,18 +3046,21 @@ Los middlewares del backend se encuentran en `backend/middlewares/`. Actualmente
 ### A.1 Middlewares implementados
 
 #### `authenticateToken.ts` — Autenticación JWT
+
 - **Módulos que lo usan:** Todas las rutas protegidas (aplicado globalmente desde `index.ts`)
 - **Función:** Verifica el token JWT desde la cookie `access_token` o el header `Authorization: Bearer <token>`. Si es válido, setea `req.user` con `{id, username, email, role}`. Diferencia entre token expirado (401 "Token expirado") e inválido (401 "Token inválido").
 - **Integración demo:** Tras autenticar, llama a `demoRestriction()` si el rol es `demo-admin`.
 - **Observaciones:** El campo `email` no se extrae del token (queda vacío); el comentario en el código indica que se puede obtener de la BD si es necesario.
 
 #### `demoRestriction.ts` — Restricción de escritura para demo-admin
+
 - **Módulos que lo usa:** Aplicado automáticamente desde `authenticateToken.ts` para todos los usuarios con role `demo-admin`.
 - **Función:** Intercepta todas las peticiones de escritura (POST/PATCH/PUT/DELETE). Las GETs siempre pasan. Las escrituras se comparan contra una whitelist hardcodeada. Si no están en la whitelist, devuelve `403 { demo: true }` y loguea el intento asíncronamente en `demo_activity_log`.
 - **Whitelist actual:** `POST /api/auth/logout`, `POST /api/parking/bookings`, `POST /api/logbooks/{id}/comments`, `POST /api/maintenance`.
 - **Diseño no invasivo:** Puede eliminarse borrando el fichero y su import en `authenticateToken.ts`.
 
 #### `rateLimiter.ts` — Rate limiting por tipo de endpoint
+
 - **Módulos que lo usan:**
   - Auth: `loginLimiter` en `POST /auth/login`
   - Auth: `passwordChangeLimiter` en `PATCH /auth/me/password`
@@ -2846,43 +3069,44 @@ Los middlewares del backend se encuentran en `backend/middlewares/`. Actualmente
 - **Función:** Previene ataques de fuerza bruta y abuso de API. Usa `express-rate-limit`.
 - **Limitadores exportados:**
 
-| Limitador | Límite | Ventana | Clave |
-|-----------|--------|---------|-------|
-| `loginLimiter` | 5 intentos | 15 min | IP + username |
-| `passwordChangeLimiter` | 3 intentos | 1 hora | user ID o IP |
-| `profileUpdateLimiter` | 5 intentos | 15 min | user ID o IP |
-| `apiLimiter` | 100 peticiones | 15 min | IP |
+| Limitador               | Límite         | Ventana | Clave         |
+| ----------------------- | -------------- | ------- | ------------- |
+| `loginLimiter`          | 5 intentos     | 15 min  | IP + username |
+| `passwordChangeLimiter` | 3 intentos     | 1 hora  | user ID o IP  |
+| `profileUpdateLimiter`  | 5 intentos     | 15 min  | user ID o IP  |
+| `apiLimiter`            | 100 peticiones | 15 min  | IP            |
 
 - **Observaciones:** IPv6 localhost (`::1`) normalizado a `127.0.0.1`. Loguea warnings de seguridad con IP.
 
 #### `roleCheck.ts` — Control de acceso basado en roles (RBAC)
+
 - **Módulos que lo usan:** Aplicado en rutas específicas según el módulo.
 - **Función:** Exporta múltiples funciones middleware que verifican el rol del usuario en `req.user.role`. Si no tiene el rol requerido, devuelve `403`.
 - **Funciones disponibles y dónde se aplican:**
 
-| Función | Roles permitidos | Aplicado en |
-|---------|-----------------|-------------|
-| `isAdmin` | admin, demo-admin | Rutas generales de admin |
-| `isOwnerOrAdmin` | owner + admin/demo-admin | Recursos propios |
-| `canManageGroups` | admin, group-admin, demo-admin | Rutas de grupos |
-| `canViewGroups` | admin, recepcionista, group-admin, mantenimiento, demo-admin | Vista de grupos |
-| `canManageCashier` | admin, recepcionista, group-admin, demo-admin | Módulo cajero |
-| `canViewReports` | admin, demo-admin | Informes |
-| `canAccessMaintenance` | Todos excepto... | Módulo mantenimiento |
-| `excludeMantenimiento` | Bloquea mantenimiento | Módulos generales |
-| `canAccessBackoffice` | admin, demo-admin | Backoffice |
-| `isRealAdmin` | admin ONLY | Operaciones sensibles (crear users, escritura backoffice) |
+| Función                | Roles permitidos                                             | Aplicado en                                               |
+| ---------------------- | ------------------------------------------------------------ | --------------------------------------------------------- |
+| `isAdmin`              | admin, demo-admin                                            | Rutas generales de admin                                  |
+| `isOwnerOrAdmin`       | owner + admin/demo-admin                                     | Recursos propios                                          |
+| `canManageGroups`      | admin, group-admin, demo-admin                               | Rutas de grupos                                           |
+| `canViewGroups`        | admin, recepcionista, group-admin, mantenimiento, demo-admin | Vista de grupos                                           |
+| `canManageCashier`     | admin, recepcionista, group-admin, demo-admin                | Módulo cajero                                             |
+| `canViewReports`       | admin, demo-admin                                            | Informes                                                  |
+| `canAccessMaintenance` | Todos excepto...                                             | Módulo mantenimiento                                      |
+| `excludeMantenimiento` | Bloquea mantenimiento                                        | Módulos generales                                         |
+| `canAccessBackoffice`  | admin, demo-admin                                            | Backoffice                                                |
+| `isRealAdmin`          | admin ONLY                                                   | Operaciones sensibles (crear users, escritura backoffice) |
 
 ### A.2 Middlewares que podrían implementarse
 
-| # | Middleware | Descripción | Prioridad |
-|---|-----------|-------------|-----------|
-| 1 | **Request logging** | Loguear todas las peticiones (método, ruta, tiempo de respuesta, status code) en desarrollo/producción. Útil para depurar y auditar. | Media |
-| 2 | **Input sanitization** | Middleware global que sanitize todos los inputs (strip HTML, prevenir XSS) antes de llegar a los controllers. Actualmente la validación Zod rechaza datos malformados pero no sanitiza. | Alta |
-| 3 | **File upload validation** | Centralizar la validación de uploads (tipo MIME real — no solo extensión, tamaño máximo) en un único middleware en lugar de tenerla dispersa por controllers. | Media |
-| 4 | **CORS dinámico mejorado** | El CORS actual permite dominios Vercel con regex. Podría añadirse un middleware de lista blanca de IPs para entornos de producción. | Baja |
-| 5 | **Refresh token middleware** | Actualmente el refresh de tokens es manual en cada cliente. Un middleware que detecte access tokens a punto de expirar y los renueve automáticamente simplificaría el flujo. | Media |
-| 6 | **Audit trail global** | Middleware que loguee todas las operaciones de escritura (POST/PATCH/DELETE) de forma centralizada, similar a `demo_activity_log` pero para todos los usuarios. Actualmente cada módulo implementa su propio historial. | Baja |
+| #   | Middleware                   | Descripción                                                                                                                                                                                                             | Prioridad |
+| --- | ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- |
+| 1   | **Request logging**          | Loguear todas las peticiones (método, ruta, tiempo de respuesta, status code) en desarrollo/producción. Útil para depurar y auditar.                                                                                    | Media     |
+| 2   | **Input sanitization**       | Middleware global que sanitize todos los inputs (strip HTML, prevenir XSS) antes de llegar a los controllers. Actualmente la validación Zod rechaza datos malformados pero no sanitiza.                                 | Alta      |
+| 3   | **File upload validation**   | Centralizar la validación de uploads (tipo MIME real — no solo extensión, tamaño máximo) en un único middleware en lugar de tenerla dispersa por controllers.                                                           | Media     |
+| 4   | **CORS dinámico mejorado**   | El CORS actual permite dominios Vercel con regex. Podría añadirse un middleware de lista blanca de IPs para entornos de producción.                                                                                     | Baja      |
+| 5   | **Refresh token middleware** | Actualmente el refresh de tokens es manual en cada cliente. Un middleware que detecte access tokens a punto de expirar y los renueve automáticamente simplificaría el flujo.                                            | Media     |
+| 6   | **Audit trail global**       | Middleware que loguee todas las operaciones de escritura (POST/PATCH/DELETE) de forma centralizada, similar a `demo_activity_log` pero para todos los usuarios. Actualmente cada módulo implementa su propio historial. | Baja      |
 
 ---
 
@@ -2893,11 +3117,13 @@ Los servicios están en `backend/services/`. Contienen la lógica de negocio que
 ### B.1 Servicios implementados
 
 #### `services/auth/tokenService.ts` — Gestión de tokens JWT
+
 - **Módulo:** Auth & Users (Módulo 1)
 - **Funciones:** `generateAccessToken(user)` (15 min), `generateRefreshToken(user)` (7 días), `verifyToken(token)` (valida + decodifica, lanza excepción en expiración)
 - **Payload del token:** `{id, username, role}` — el email no se incluye (comentario indica que se puede obtener de BD si es necesario)
 
 #### `services/blacklist/cloudinary-service.ts` — Gestión de imágenes y ficheros en Cloudinary
+
 - **Módulo:** Blacklist (Módulo 13) + compartido con otros módulos (avatares, backoffice)
 - **Funciones:**
   - `uploadImage()` — Imágenes con límite 1200×1200px, calidad automática
@@ -2911,16 +3137,19 @@ Los servicios están en `backend/services/`. Contienen la lógica de negocio que
 - **Observaciones:** Configuración lazy (solo inicializa en el primer uso). Las PDFs reciben URLs firmadas de 1h; las imágenes tienen URLs permanentes.
 
 #### `services/chat/` — Servicio de chat con IA (ARCHIVADO)
+
 - **Módulo:** Chat AI (inactivo)
 - **Estado:** `chat-service.ts` retorna error "El servicio de chat con IA ha sido archivado" — completamente desactivado.
 - **`app-knowledge.ts`** — 340+ líneas de base de conocimiento del PMS (scheduling, auth, roles, módulos). Preservada para uso futuro (entrenamiento IA o RAG).
 
 #### `services/conciliation/logic.ts` — Lógica de conciliación
+
 - **Módulo:** Conciliation (Módulo 12)
 - **Funciones:** `getDirection(reason, type)` (mapea razón a sumar/restar), `calculateDelta(value, direction)` (aplica dirección)
 - **Lógica:** Recepción: base_rooms/room_change/gratuity → suma; no_show → resta. Housekeeping: todas las acciones → suma.
 
 #### `services/cron/cron-service.ts` — Tareas programadas
+
 - **Módulo:** Transversal (arranca desde `index.ts`)
 - **Trabajos activos:**
   - **Notificaciones:** Diariamente a las 7:00 AM — ejecuta `NotificationGeneratorService.processPendingNotifications()`
@@ -2929,27 +3158,32 @@ Los servicios están en `backend/services/`. Contienen la lógica de negocio que
 - **Observaciones:** Flag `isRunning` previene doble inicialización. El usuario del sistema para batch payment es `'system-cron'` — no se valida que exista en la BD.
 
 #### `services/group/email-service.ts` — Envío de emails (Nodemailer)
+
 - **Módulo:** Groups (Módulo 9)
 - **Funciones:** `sendNotification(notification)` (todos los destinatarios), `sendEmail(to, subject, message, priority)`, `verifyConnection()`
 - **Config:** SMTP desde env vars: `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM`
 - **Observaciones:** Si faltan las env vars, falla silenciosamente. Template HTML con prioridad coloreada. `urgent` se mapea a `high` de nodemailer.
 
 #### `services/group/group-history-service.ts` — Historial de grupos
+
 - **Módulo:** Groups (Módulo 9)
 - **Funciones:** `logGroupCreated()`, `logGroupUpdated()` (solo campos cambiados), `logStatusChanged()`, `logPaymentUpdated()`, `logDeleted()`, `logChange()` genérico, `getGroupHistory()`
 - **Lógica:** Serializa todos los valores (objetos → JSON). Solo loguea campos que realmente cambiaron en updates.
 
 #### `services/group/payment-calculator-service.ts` — Cálculo de pagos de grupos
+
 - **Módulo:** Groups (Módulo 9)
 - **Funciones:** `recalculatePayments()`, `calculateAmount()`, `calculatePercentage()`, `calculateBalance()`, `isPaymentComplete()`, `isPaymentPartial()`
 - **Observaciones:** Redondea a 2 decimales. Lógica matemática simple, sin estado.
 
 #### `services/logbook/logbookHistory-service.ts` — Historial de logbook
+
 - **Módulo:** Logbooks (Módulo 2)
 - **Funciones:** `logAction()` genérico, `updateLogbookHistory()` (verifica autoría), `deleteLogbookHistory()`
 - **Lógica:** Verifica que solo el autor puede actualizar su propia entrada. Guarda el contenido anterior antes de actualizar.
 
 #### `services/notifications/notification-generator-service.ts` — Generación de notificaciones automáticas
+
 - **Módulo:** Notifications (Módulo 10) — foco en grupos
 - **Funciones públicas:**
   - `generatePaymentReminder()` — X días antes del vencimiento de un pago
@@ -2963,22 +3197,24 @@ Los servicios están en `backend/services/`. Contienen la lógica de negocio que
   - `getConfig()` — Devuelve configuración de timing
 - **Configuración de timing:**
 
-| Tipo | Días de antelación |
-|------|--------------------|
-| `payment_upcoming` | 15, 7 días antes |
-| `payment_overdue` | 0 (el mismo día) |
-| `rooming_list` | 15, 7 días antes del deadline |
-| `arrival` | 3 días antes |
-| `contract_unsigned` | 10, 5 días antes — **NO IMPLEMENTADO** |
-| `balance_pending` | 7 días después del checkout — **NO IMPLEMENTADO** |
+| Tipo                | Días de antelación                                |
+| ------------------- | ------------------------------------------------- |
+| `payment_upcoming`  | 15, 7 días antes                                  |
+| `payment_overdue`   | 0 (el mismo día)                                  |
+| `rooming_list`      | 15, 7 días antes del deadline                     |
+| `arrival`           | 3 días antes                                      |
+| `contract_unsigned` | 10, 5 días antes — **NO IMPLEMENTADO**            |
+| `balance_pending`   | 7 días después del checkout — **NO IMPLEMENTADO** |
 
 - **Observaciones:** Prevención de duplicados (últimas 48h por tipo + ID). URLs directas a tabs específicas del módulo de grupos. Notificaciones futuras (campo `scheduled_for`).
 
 #### `services/parking/invoicePdfService.ts` — PDF de facturas de parking (PENDIENTE)
+
 - **Módulo:** Parking (Módulo 3)
 - **Estado:** Completamente comentado. Planificado con almacenamiento dual (disco local O AWS S3) pero sin implementar.
 
 #### `services/scheduling/` — Sistema completo de validación de scheduling
+
 - **Módulo:** Scheduling (Módulo 4)
 - Ver Módulo 4 para documentación detallada. En resumen:
   - `schedule-validator.ts` (875 líneas) — Validador completo del mes
@@ -2988,14 +3224,14 @@ Los servicios están en `backend/services/`. Contienen la lógica de negocio que
 
 ### B.2 Servicios que podrían implementarse
 
-| # | Servicio | Módulo | Descripción |
-|---|---------|--------|-------------|
-| 1 | **PDF de facturas parking** | Parking | `invoicePdfService.ts` existe pero está completamente comentado. Completar integración con almacenamiento (local o S3) |
-| 2 | **Notificaciones: contract_unsigned** | Notifications | Config existe (`contract_unsigned: [10, 5]`) pero la lógica de generación no está implementada |
-| 3 | **Notificaciones: balance_pending** | Notifications | Config existe (`balance_pending: [7]`) pero la lógica de generación no está implementada |
-| 4 | **Export service centralizado** | Transversal | Actualmente los exports de Excel/PDF están dispersos por módulos (grupos, cashier, scheduling). Un servicio centralizado evitaría duplicación |
-| 5 | **Image resize/optimization** | Blacklist / Profile | La compresión de imágenes se delega a Cloudinary. Para uploads locales o casos sin Cloudinary, podría añadirse un servicio de procesamiento de imágenes con `sharp` |
-| 6 | **Audit service global** | Transversal | Cada módulo implementa su propio historial de cambios (logbook_history, maintenance_history, group_history). Un servicio genérico `AuditService.log()` evitaría la duplicación |
+| #   | Servicio                              | Módulo              | Descripción                                                                                                                                                                    |
+| --- | ------------------------------------- | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1   | **PDF de facturas parking**           | Parking             | `invoicePdfService.ts` existe pero está completamente comentado. Completar integración con almacenamiento (local o S3)                                                         |
+| 2   | **Notificaciones: contract_unsigned** | Notifications       | Config existe (`contract_unsigned: [10, 5]`) pero la lógica de generación no está implementada                                                                                 |
+| 3   | **Notificaciones: balance_pending**   | Notifications       | Config existe (`balance_pending: [7]`) pero la lógica de generación no está implementada                                                                                       |
+| 4   | **Export service centralizado**       | Transversal         | Actualmente los exports de Excel/PDF están dispersos por módulos (grupos, cashier, scheduling). Un servicio centralizado evitaría duplicación                                  |
+| 5   | **Image resize/optimization**         | Blacklist / Profile | La compresión de imágenes se delega a Cloudinary. Para uploads locales o casos sin Cloudinary, podría añadirse un servicio de procesamiento de imágenes con `sharp`            |
+| 6   | **Audit service global**              | Transversal         | Cada módulo implementa su propio historial de cambios (logbook_history, maintenance_history, group_history). Un servicio genérico `AuditService.log()` evitaría la duplicación |
 
 ---
 
@@ -3006,18 +3242,21 @@ Las validaciones se encuentran en `backend/validations/`. Hay 9 directorios con 
 ### C.1 Validaciones implementadas
 
 #### `validations/auth/user-validation.ts` — Auth & Users (Módulo 1)
+
 - `userSchema` — Crear usuario: username (mín 3 chars), email, password (mín 6 chars), role (opcional)
 - `updateProfileSchema` — Cambiar username: 3-50 chars, solo alfanumérico + guion bajo, requiere `currentPassword`
 - `updatePasswordSchema` — Cambiar contraseña: current + new (6-100 chars) + confirm. Reglas: nueva ≠ actual; confirm = nueva
 - Helper `getValidationErrors()` — Extrae errores de un `ZodError` como array de strings
 
 #### `validations/blacklist/schemas.ts` — Blacklist (Módulo 13)
+
 - `createBlacklistSchema` — Crear entrada: guest_name (letras+espacios, 3-255), document (5-20 chars, auto-uppercase), fechas YYYY-MM-DD (checkout > checkin), reason (10-1000 chars), severity (LOW/MEDIUM/HIGH/CRITICAL), comments (10-2000 chars), images (máx 5 URLs)
 - `updateBlacklistSchema` — Todos los campos opcionales, mismas reglas cuando están presentes
 - `blacklistFiltersSchema` — Filtros de búsqueda: search, document, severity, status, date range, page (default 1), limit (máx 100, default 50)
 - `idParamSchema` — ID debe ser entero positivo
 
 #### `validations/cashier/cashier-validation.ts` — Cashier (Módulo 6)
+
 - `CreateShiftSchema` — Crear turno: shift_date, tipo (morning/afternoon/night/closing), 2 UUIDs responsables, initial_fund (default €200), comments (máx 2000)
 - `CloseShiftSchema` — Cerrar turno: cash_counted, cash_expected, difference, totales. Regla: si difference > €0.50, comments obligatorio
 - `DenominationSchema` — 14 denominaciones de euro: [200, 100, 50, 20, 10, 5, 2, 1, 0.5, 0.2, 0.1, 0.05, 0.02, 0.01]
@@ -3027,16 +3266,19 @@ Las validaciones se encuentran en `backend/validations/`. Hay 9 directorios con 
 - Query schemas para turnos, vouchers e informes con paginación
 
 #### `validations/group/group-schemas.ts` — Groups (Módulo 9)
+
 - ⚠️ **FICHERO VACÍO — SIN VALIDACIONES IMPLEMENTADAS**
 - El módulo de grupos no tiene ningún schema Zod. Los datos de entrada no se validan en el backend.
 
 #### `validations/logbook/logbook-schemas.ts` — Logbooks (Módulo 2)
+
 - `createLogbookSchema` — Crear entrada: message (3-5000 chars), importance_level (baja/media/alta/urgente), department_id (int positivo), author_id (UUID), date opcional (YYYY-MM-DD)
 - `updateLogbookSchema` — Todos opcionales, mínimo 1 campo
 - `createCommentSchema` — comment (3-5000 chars), department_id y importance_level opcionales
 - `updateCommentSchema` — Todos opcionales, mínimo 1 campo
 
 #### `validations/maintenance/schemas.ts` — Maintenance (Módulo 5)
+
 - `createReportSchema` — title (3-150), description (10+), location_type, location_description (3-200), room_number (si location=room, obligatorio), room_out_of_service, priority (default medium), assigned_to UUID, assigned_type (internal/external)
 - `updateReportSchema` — Todos opcionales, mismas validaciones condicionales
 - `updateStatusSchema` — new_status (enum 7 estados), notes opcional
@@ -3046,10 +3288,12 @@ Las validaciones se encuentran en `backend/validations/`. Hay 9 directorios con 
 - `reportFiltersSchema` — Filtros completos con paginación (máx 100/página)
 
 #### `validations/parking/booking-validation.ts` — Parking Bookings (Módulo 3 / 17)
+
 - `createBookingSchema` — spot_number (int positivo), level_code (enum: '-2' o '-3'), vehicle_id (int positivo), expected_checkin/checkout (datetime con dayjs), booking_source (default 'direct'), notes (máx 500). Reglas: check-in no puede ser en el pasado; checkout >= checkin
 - `updateBookingSchema` — Todos opcionales
 
 #### `validations/parking/vehicle-validation.ts` — Parking Vehicles (Módulo 3)
+
 - `plateNumberSchema` — 3-12 chars, uppercase, alfanumérico + espacios/guiones, normalizado (colapsa múltiples espacios/guiones)
 - `ownerNameSchema` — 3-35 chars, permite acentos + apóstrofo, normalizado. Regex: `/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ0-9\s'\-]+$/`
 - `modelSchema` — 3-35 chars opcional, permite acentos + puntos/guiones
@@ -3057,6 +3301,7 @@ Las validaciones se encuentran en `backend/validations/`. Hay 9 directorios con 
 - Helper `normalizeSpacesAndDashes()` — Normaliza separadores en matrículas y nombres
 
 #### `validations/scheduling/scheduling-schemas.ts` — Scheduling (Módulo 4)
+
 - `createMonthSchema` — year (2020-2100), month (1-12), notes opcional
 - `updateMonthSchema` — status o notes, mínimo 1
 - `updateAssignmentSchema` — shift_code (1-5 chars), notes
@@ -3068,18 +3313,18 @@ Las validaciones se encuentran en `backend/validations/`. Hay 9 directorios con 
 
 ### C.2 Validaciones que podrían implementarse / faltan
 
-| # | Estado | Módulo | Descripción |
-|---|--------|--------|-------------|
-| 1 | ❌ | **Groups** | `group-schemas.ts` está vacío. Falta validación de: crear/actualizar grupo (name, agency, fechas de llegada/salida, total, currency, status), crear/actualizar pago (concept, amount, due_date, percentage), actualizar rooming list, filtros de búsqueda |
-| 2 | ❌ | **Departments** | No existe fichero de validación. Las operaciones CRUD de departamentos no tienen schemas Zod (name validado solo por la BD) |
-| 3 | ❌ | **Notifications** | No existe fichero de validación. La generación manual de notificaciones y las consultas de filtrado no tienen schemas Zod |
-| 4 | ❌ | **Messages / Chat** | No existe fichero de validación. Envío de mensajes, creación de conversaciones y búsqueda de usuarios no tienen schemas Zod |
-| 5 | ❌ | **Backoffice** | No existe fichero de validación. Operaciones CRUD de facturas, proveedores y otros recursos del backoffice no tienen schemas Zod |
-| 6 | ❌ | **Conciliation** | No existe fichero de validación. Los datos de conciliación no se validan con Zod |
-| 7 | ❌ | **Demo Activity** | No existe fichero de validación. Los filtros de consulta de logs de demo no tienen schemas |
-| 8 | ⚠️ | **Parking levels** | `level_code` en `createBookingSchema` solo acepta `'-2'` o `'-3'`. Si se añaden más plantas, hay que actualizar manualmente el enum |
-| 9 | ⚠️ | **Maintenance ID format** | El `idParamSchema` acepta formato DDMMYY-XXX pero no valida que el DDMMYY sea una fecha real (podría aceptar `320699-001`) |
-| 10 | ⚠️ | **Cashier denomination** | La lista de 14 denominaciones está hardcodeada en el schema. Si cambia la política de moneda (ej. MXN en lugar de EUR), habría que actualizar el schema |
+| #   | Estado | Módulo                    | Descripción                                                                                                                                                                                                                                               |
+| --- | ------ | ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | ❌     | **Groups**                | `group-schemas.ts` está vacío. Falta validación de: crear/actualizar grupo (name, agency, fechas de llegada/salida, total, currency, status), crear/actualizar pago (concept, amount, due_date, percentage), actualizar rooming list, filtros de búsqueda |
+| 2   | ❌     | **Departments**           | No existe fichero de validación. Las operaciones CRUD de departamentos no tienen schemas Zod (name validado solo por la BD)                                                                                                                               |
+| 3   | ❌     | **Notifications**         | No existe fichero de validación. La generación manual de notificaciones y las consultas de filtrado no tienen schemas Zod                                                                                                                                 |
+| 4   | ❌     | **Messages / Chat**       | No existe fichero de validación. Envío de mensajes, creación de conversaciones y búsqueda de usuarios no tienen schemas Zod                                                                                                                               |
+| 5   | ❌     | **Backoffice**            | No existe fichero de validación. Operaciones CRUD de facturas, proveedores y otros recursos del backoffice no tienen schemas Zod                                                                                                                          |
+| 6   | ❌     | **Conciliation**          | No existe fichero de validación. Los datos de conciliación no se validan con Zod                                                                                                                                                                          |
+| 7   | ❌     | **Demo Activity**         | No existe fichero de validación. Los filtros de consulta de logs de demo no tienen schemas                                                                                                                                                                |
+| 8   | ⚠️     | **Parking levels**        | `level_code` en `createBookingSchema` solo acepta `'-2'` o `'-3'`. Si se añaden más plantas, hay que actualizar manualmente el enum                                                                                                                       |
+| 9   | ⚠️     | **Maintenance ID format** | El `idParamSchema` acepta formato DDMMYY-XXX pero no valida que el DDMMYY sea una fecha real (podría aceptar `320699-001`)                                                                                                                                |
+| 10  | ⚠️     | **Cashier denomination**  | La lista de 14 denominaciones está hardcodeada en el schema. Si cambia la política de moneda (ej. MXN en lugar de EUR), habría que actualizar el schema                                                                                                   |
 
 ---
 
@@ -3089,33 +3334,33 @@ Las validaciones se encuentran en `backend/validations/`. Hay 9 directorios con 
 
 Actualmente hay tests en `backend/tests/`. Sin embargo, la cobertura es parcial:
 
-| Área | Estado |
-|------|--------|
-| Scheduling validator | ⚠️ Tests presentes pero incompleta |
-| Constraints de scheduling | ⚠️ Tests parciales |
-| Controllers / Services | ❌ Sin tests unitarios |
-| Middlewares (rateLimiter, demoRestriction) | ❌ Sin tests |
-| Repositories | ❌ Sin tests de integración |
-| Validaciones Zod | ❌ Sin tests de schemas |
+| Área                                       | Estado                             |
+| ------------------------------------------ | ---------------------------------- |
+| Scheduling validator                       | ⚠️ Tests presentes pero incompleta |
+| Constraints de scheduling                  | ⚠️ Tests parciales                 |
+| Controllers / Services                     | ❌ Sin tests unitarios             |
+| Middlewares (rateLimiter, demoRestriction) | ❌ Sin tests                       |
+| Repositories                               | ❌ Sin tests de integración        |
+| Validaciones Zod                           | ❌ Sin tests de schemas            |
 
 ### D.2 Variables de entorno
 
 Las siguientes variables de entorno son necesarias pero no tienen valores por defecto (si faltan, algunos módulos fallan silenciosamente):
 
-| Variable | Módulo | Consecuencia si falta |
-|----------|--------|----------------------|
-| `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM` | Groups (emails) | Envío de emails falla silenciosamente |
-| `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` | Blacklist, Profile (avatares), Backoffice | Uploads de imágenes fallan |
-| `SECRET_JWT_KEY` | Auth | Todos los tokens inválidos (fallo crítico) |
-| `DB_ENVIRONMENT` | Global | Usa BD incorrecta (local vs Aiven) |
+| Variable                                                               | Módulo                                    | Consecuencia si falta                      |
+| ---------------------------------------------------------------------- | ----------------------------------------- | ------------------------------------------ |
+| `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM`        | Groups (emails)                           | Envío de emails falla silenciosamente      |
+| `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` | Blacklist, Profile (avatares), Backoffice | Uploads de imágenes fallan                 |
+| `SECRET_JWT_KEY`                                                       | Auth                                      | Todos los tokens inválidos (fallo crítico) |
+| `DB_ENVIRONMENT`                                                       | Global                                    | Usa BD incorrecta (local vs Aiven)         |
 
 ### D.3 Cron jobs
 
-| Job | Schedule | Función | Observaciones |
-|-----|----------|---------|---------------|
-| Notificaciones | Diario 7:00 AM | Genera notificaciones automáticas de grupos | Ejecutable manualmente via endpoint admin |
-| Batch payment | Día 10 del mes 23:59 | Marca facturas validadas del mes anterior como pagadas | Usuario 'system-cron' — no validado en BD |
-| Message cleanup | MySQL Event | Limpia mensajes antiguos | Configurado directamente en MySQL, no en Node |
+| Job             | Schedule             | Función                                                | Observaciones                                 |
+| --------------- | -------------------- | ------------------------------------------------------ | --------------------------------------------- |
+| Notificaciones  | Diario 7:00 AM       | Genera notificaciones automáticas de grupos            | Ejecutable manualmente via endpoint admin     |
+| Batch payment   | Día 10 del mes 23:59 | Marca facturas validadas del mes anterior como pagadas | Usuario 'system-cron' — no validado en BD     |
+| Message cleanup | MySQL Event          | Limpia mensajes antiguos                               | Configurado directamente en MySQL, no en Node |
 
 ---
 
@@ -3127,12 +3372,12 @@ El frontend usa **Zustand** para estado local de UI y **React Query** (@tanstack
 
 Configurado en `ThemeProvider.tsx` con `QueryClientProvider`:
 
-| Opción | Valor | Propósito |
-|--------|-------|-----------|
-| `staleTime` | 30 segundos | Datos considerados frescos durante 30s (evita refetches innecesarios) |
-| `gcTime` | 5 minutos | Cache en memoria durante 5 min tras desmontar componente |
-| `refetchOnWindowFocus` | `false` | No refetch automático al volver a la pestaña |
-| `retry` | 1 | Un solo reintento en caso de error |
+| Opción                 | Valor       | Propósito                                                             |
+| ---------------------- | ----------- | --------------------------------------------------------------------- |
+| `staleTime`            | 30 segundos | Datos considerados frescos durante 30s (evita refetches innecesarios) |
+| `gcTime`               | 5 minutos   | Cache en memoria durante 5 min tras desmontar componente              |
+| `refetchOnWindowFocus` | `false`     | No refetch automático al volver a la pestaña                          |
+| `retry`                | 1           | Un solo reintento en caso de error                                    |
 
 - **DevTools:** `ReactQueryDevtools` habilitado solo en desarrollo (`initialIsOpen: false`, posición bottom-right)
 - **Patrón de uso:** Cada módulo tiene su propio `queries.ts` (ej: `app/lib/logbooks/queries.ts`) con hooks que usan `useQuery`/`useMutation`
@@ -3147,20 +3392,24 @@ Configurado en `ThemeProvider.tsx` con `QueryClientProvider`:
 El store más complejo del proyecto. Gestiona 3 vistas del módulo de cajero:
 
 **Estado Hotel (fecha + UI):**
+
 - `selectedDate`, `currentDate`, `selectedDay` — Navegación de fecha
 - `activeTab: ShiftType` — Tab de turno activo (morning/afternoon/night/closing)
 - `activeModal: ModalType` — Modal abierto (initializeDay/closeDay/reopenDay/closeShift/null)
 - `modalData` — Datos del modal activo
 
 **Estado Logs:**
+
 - `logsDate`, `logsActionFilter`, `logsUserFilter` — Filtros de historial
 - `logsLimit` (50), `logsOffset` — Paginación
 
 **Estado Reports:**
+
 - `reportsYear`, `reportsMonth`, `reportsTab` (summary/payments/vouchers)
 - `chartViewMode` (pie/bar)
 
 **Computed:**
+
 - `getCurrentMonth(locale)` — Nombre del mes localizado
 - `getLogsFormattedDate(locale)` — Fecha de logs formateada
 - `getReportsDisplayLabel(locale)` — Etiqueta de reports (ej: "Marzo 2026")
@@ -3168,6 +3417,7 @@ El store más complejo del proyecto. Gestiona 3 vistas del módulo de cajero:
 **Actions:** Navegación temporal (prev/next/today para cada vista), modales, tabs, reset completo
 
 **Selector hooks optimizados:**
+
 - `useSelectedDate()`, `useActiveTab()`, `useActiveModal()`, `useIsModalOpen(modal)`
 - `useLogsDate()`, `useLogsFilters()` (con `useShallow`)
 - `useReportsDate()`, `useReportsTab()`, `useChartViewMode()`
@@ -3175,11 +3425,13 @@ El store más complejo del proyecto. Gestiona 3 vistas del módulo de cajero:
 #### `useGroupStore.ts` — Estado del módulo Groups (~200 líneas)
 
 **Data (viene de API — fetch directo, no React Query):**
+
 - `currentGroup: GroupWithDetails | null`
 - `payments: GroupPayment[]`, `contacts: GroupContact[]`, `rooms: GroupRoom[]`
 - `status: GroupStatusRecord | null`
 
 **UI:**
+
 - `activeTab` — Tab del detalle de grupo (overview, payments, contacts, rooms, etc.)
 - `activePanelId` — SlidePanel abierto ('new', 'edit-5', null)
 - `highlightId` — Item resaltado tras creación/edición
@@ -3193,10 +3445,12 @@ El store más complejo del proyecto. Gestiona 3 vistas del módulo de cajero:
 #### `useMaintenanceStore.ts` — Estado del módulo Maintenance (~150 líneas)
 
 **Data:**
+
 - `currentReport: ReportWithDetails | null`
 - `images: MaintenanceImage[]`, `history: MaintenanceHistory[]`
 
 **UI:**
+
 - `filters: ReportFilters`
 - `activeTab` — Tab del detalle (detail, images, history)
 - `highlightId`
@@ -3217,20 +3471,20 @@ El store más limpio. **Solo UI**, data fetching via React Query (`lib/notificat
 
 ### E.3 Patrón de evolución observado
 
-| Store | Data fetching | Complejidad | Patrón |
-|-------|--------------|-------------|--------|
-| `useNotificationStore` | React Query (separado) | Baja | ✅ Recomendado: Zustand solo para UI |
-| `useCashierStore` | React Query (separado) | Alta | ✅ Zustand para UI compleja, React Query para data |
-| `useGroupStore` | Dentro del store (fetch directo) | Media | ⚠️ Legacy: mezcla data + UI |
-| `useMaintenanceStore` | Dentro del store (fetch directo) | Media | ⚠️ Legacy: mezcla data + UI |
+| Store                  | Data fetching                    | Complejidad | Patrón                                             |
+| ---------------------- | -------------------------------- | ----------- | -------------------------------------------------- |
+| `useNotificationStore` | React Query (separado)           | Baja        | ✅ Recomendado: Zustand solo para UI               |
+| `useCashierStore`      | React Query (separado)           | Alta        | ✅ Zustand para UI compleja, React Query para data |
+| `useGroupStore`        | Dentro del store (fetch directo) | Media       | ⚠️ Legacy: mezcla data + UI                        |
+| `useMaintenanceStore`  | Dentro del store (fetch directo) | Media       | ⚠️ Legacy: mezcla data + UI                        |
 
 ### E.4 Observaciones y mejoras potenciales
 
-| # | Estado | Observación |
-|---|---|---|
-| 1 | ⚠️ | **useGroupStore y useMaintenanceStore mezclan data y UI** — Podrían migrar el data fetching a React Query para consistencia con cashier/notifications |
-| 2 | ℹ️ | **Selector hooks** — useCashierStore exporta selectores optimizados con `useShallow` para evitar re-renders. Los otros stores no lo hacen |
-| 3 | ℹ️ | **Ningún store persiste a localStorage** — Excepto `SIDEBAR_COLLAPSED_KEY` en el dashboard layout (fuera de Zustand) |
+| #   | Estado | Observación                                                                                                                                           |
+| --- | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | ⚠️     | **useGroupStore y useMaintenanceStore mezclan data y UI** — Podrían migrar el data fetching a React Query para consistencia con cashier/notifications |
+| 2   | ℹ️     | **Selector hooks** — useCashierStore exporta selectores optimizados con `useShallow` para evitar re-renders. Los otros stores no lo hacen             |
+| 3   | ℹ️     | **Ningún store persiste a localStorage** — Excepto `SIDEBAR_COLLAPSED_KEY` en el dashboard layout (fuera de Zustand)                                  |
 
 ---
 
@@ -3242,29 +3496,31 @@ El frontend tiene 2 clientes API: `apiClient.ts` para Client Components y `serve
 
 **Métodos exportados:**
 
-| Método | Uso |
-|--------|-----|
-| `apiClient.get<T>(url, options?)` | GET con JSON response |
-| `apiClient.post<T>(url, data?, options?)` | POST con JSON body |
-| `apiClient.patch<T>(url, data?, options?)` | PATCH con JSON body |
-| `apiClient.put<T>(url, data?, options?)` | PUT con JSON body |
-| `apiClient.delete<T>(url, options?)` | DELETE (maneja respuestas vacías) |
-| `apiClient.postFormData<T>(url, formData, options?)` | POST multipart (uploads) |
-| `apiClient.getBlob(url, options?)` | GET que retorna Blob (descargas) |
+| Método                                               | Uso                               |
+| ---------------------------------------------------- | --------------------------------- |
+| `apiClient.get<T>(url, options?)`                    | GET con JSON response             |
+| `apiClient.post<T>(url, data?, options?)`            | POST con JSON body                |
+| `apiClient.patch<T>(url, data?, options?)`           | PATCH con JSON body               |
+| `apiClient.put<T>(url, data?, options?)`             | PUT con JSON body                 |
+| `apiClient.delete<T>(url, options?)`                 | DELETE (maneja respuestas vacías) |
+| `apiClient.postFormData<T>(url, formData, options?)` | POST multipart (uploads)          |
+| `apiClient.getBlob(url, options?)`                   | GET que retorna Blob (descargas)  |
 
 **Autenticación:**
+
 - Cookies HttpOnly — viajan automáticamente con `credentials: 'include'`
 - No se almacenan tokens en localStorage/sessionStorage
 - `getAuthHeaders()` retorna `{}` — las cookies se gestionan por el navegador
 
 **Auto-refresh de tokens (circuit breaker):**
 
-| Parámetro | Valor | Propósito |
-|-----------|-------|-----------|
-| `MAX_REFRESH_ATTEMPTS` | 3 | Máximo de intentos antes de redirigir a login |
-| `REFRESH_COOLDOWN_MS` | 5.000 ms | Tiempo entre reseteos del contador de intentos |
+| Parámetro              | Valor    | Propósito                                      |
+| ---------------------- | -------- | ---------------------------------------------- |
+| `MAX_REFRESH_ATTEMPTS` | 3        | Máximo de intentos antes de redirigir a login  |
+| `REFRESH_COOLDOWN_MS`  | 5.000 ms | Tiempo entre reseteos del contador de intentos |
 
 **Flujo de auto-refresh:**
+
 1. Request recibe 401
 2. Verifica circuit breaker (< 3 intentos en ventana de 5s)
 3. Si ya hay refresh en curso → encola el request en `failedQueue`
@@ -3273,6 +3529,7 @@ El frontend tiene 2 clientes API: `apiClient.ts` para Client Components y `serve
 6. Si refresh falla → limpia cookies, redirige a `/login`
 
 **Rutas excluidas de auto-refresh:**
+
 - `/auth/login`, `/auth/logout`, `/auth/refresh-token`, `/auth/register`
 - Nota: `/auth/me` SÍ hace refresh (se usa para validar sesión)
 
@@ -3291,6 +3548,7 @@ class ApiError extends Error {
 - **Códigos de error:** El `code` del backend (ej: `AUTH_INVALID_CREDENTIALS`) se captura para traducción i18n en el frontend
 
 **`clearAuthCookiesAndRedirect()`:**
+
 - Previene múltiples redirects simultáneos (flag `__redirectingToLogin`)
 - Limpia cookies manualmente, resetea estado del módulo, `window.location.replace('/login')`
 
@@ -3298,18 +3556,20 @@ class ApiError extends Error {
 
 **Funciones exportadas:**
 
-| Función | Uso |
-|---------|-----|
-| `serverFetch<T>(endpoint, options?)` | Fetch autenticado para Server Components |
-| `serverFetchPublic<T>(endpoint, options?)` | Fetch público (sin auth, cacheable) |
+| Función                                    | Uso                                      |
+| ------------------------------------------ | ---------------------------------------- |
+| `serverFetch<T>(endpoint, options?)`       | Fetch autenticado para Server Components |
+| `serverFetchPublic<T>(endpoint, options?)` | Fetch público (sin auth, cacheable)      |
 
 **`serverFetch` (autenticado):**
+
 - Lee la cookie `access_token` con `cookies()` de Next.js
 - La reenvía en el header `Cookie: access_token=...`
 - `cache: 'no-store'` — No cachea requests autenticados
 - Retorna `null` si no hay token o si falla (no lanza errores)
 
 **`serverFetchPublic` (público):**
+
 - Sin cookies, cacheable por Next.js
 - Retorna `null` en caso de error
 
@@ -3318,17 +3578,18 @@ class ApiError extends Error {
 ### F.3 URL de API
 
 La URL base se configura en `app/lib/env.ts`:
+
 - `API_BASE_URL` — URL para el cliente (client-side)
 - `SERVER_API_BASE_URL` — URL para server components (server-side)
 - En producción: ambas apuntan al backend en Render
 
 ### F.4 Observaciones y mejoras potenciales
 
-| # | Estado | Observación |
-|---|---|---|
-| 1 | ℹ️ | **postFormData y getBlob** reimplementan la lógica de auto-refresh por separado (no reutilizan `fetchWithRefresh`). Podrían refactorizarse para usar un único punto de refresh |
-| 2 | ℹ️ | **Console.log en producción** — El apiClient loguea todas las peticiones en consola. Podría condicionarse a NODE_ENV |
-| 3 | ℹ️ | **Circuit breaker efectivo** — Previene loops infinitos de refresh. Patrón sólido |
+| #   | Estado | Observación                                                                                                                                                                    |
+| --- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1   | ℹ️     | **postFormData y getBlob** reimplementan la lógica de auto-refresh por separado (no reutilizan `fetchWithRefresh`). Podrían refactorizarse para usar un único punto de refresh |
+| 2   | ℹ️     | **Console.log en producción** — El apiClient loguea todas las peticiones en consola. Podría condicionarse a NODE_ENV                                                           |
+| 3   | ℹ️     | **Circuit breaker efectivo** — Previene loops infinitos de refresh. Patrón sólido                                                                                              |
 
 ---
 
@@ -3339,6 +3600,7 @@ La URL base se configura en `app/lib/env.ts`:
 Layout raíz de toda la aplicación. Integra:
 
 **Providers (orden de wrapping):**
+
 ```
 <html> (lang dinámico, CSS font variables)
   <NextIntlClientProvider>       ← i18n
@@ -3359,6 +3621,7 @@ Layout raíz de toda la aplicación. Integra:
 ```
 
 **Metadata y SEO:**
+
 - Title template: `%s | Four Points`
 - Open Graph configurado (tipo website, locale es_ES)
 - PWA manifest (`/manifest.json`)
@@ -3367,15 +3630,18 @@ Layout raíz de toda la aplicación. Integra:
 - `formatDetection: false` para teléfonos, emails, direcciones
 
 **Viewport:**
+
 - `themeColor` dinámico: `#ffffff` (light) / `#010409` (dark)
 - `userScalable: false`, `viewportFit: cover` (PWA-ready)
 
 **Fonts:**
+
 - Sistema dinámico via CSS variables (`--font-primary`, `--font-display`)
 - Configurado en `fonts.helper.ts` con ACTIVE_FONTS switchable
 - Actualmente: Poppins (primary) + Ubuntu (display)
 
 **Analytics:**
+
 - Google Analytics (GA4): ID `G-ZYSZ6THVDW` via script tag
 - Vercel Analytics: componente `<Analytics />`
 
@@ -3384,21 +3650,25 @@ Layout raíz de toda la aplicación. Integra:
 Layout protegido para todas las rutas del dashboard. Client Component (`'use client'`).
 
 **Autenticación:**
+
 - Verifica `user` del `useAuth()` context
 - Si no hay usuario → `window.location.href = '/login'` (con flag `redirecting` para evitar loops)
 - Muestra `<DashboardSkeleton />` durante loading
 
 **Sidebar:**
+
 - Colapsable (estado persistido en `localStorage` con key `sidebar-collapsed`)
 - Mobile: overlay con backdrop semitransparente, desliza desde la izquierda
 - Desktop: estático, transición 300ms entre collapsed (64px) y expanded (256px)
 - Componente: `<SideNav>` con props `onClose`, `collapsed`, `onToggleCollapse`
 
 **Header (64px):**
+
 - **Izquierda:** Hamburger (mobile) + breadcrumbs (desktop)
 - **Derecha:** Búsqueda (GlobalSearch desktop / MobileSearchModal), theme toggle, NotificationBell, ProfileDropdown
 
 **Breadcrumbs:**
+
 - Generados dinámicamente desde `pathname.split('/')`
 - Último segmento: texto estático. Anteriores: links clicables
 - Capitalización y reemplazo de guiones por espacios
@@ -3407,9 +3677,9 @@ Layout protegido para todas las rutas del dashboard. Client Component (`'use cli
 
 ### G.3 Route Groups
 
-| Grupo | Ruta | Layout | Propósito |
-|-------|------|--------|-----------|
-| `(auth)` | `/login` | Público (sin sidebar) | Autenticación |
+| Grupo        | Ruta           | Layout                              | Propósito                  |
+| ------------ | -------------- | ----------------------------------- | -------------------------- |
+| `(auth)`     | `/login`       | Público (sin sidebar)               | Autenticación              |
 | `dashboard/` | `/dashboard/*` | Dashboard layout (sidebar + header) | Todas las rutas protegidas |
 
 ### G.4 Error Boundaries
@@ -3417,11 +3687,13 @@ Layout protegido para todas las rutas del dashboard. Client Component (`'use cli
 **Componente reutilizable: `app/ui/errors/ModuleError.tsx`**
 
 Componente genérico para error boundaries de módulos. Recibe:
+
 - `error: Error & { digest? }` — El error capturado
 - `reset: () => void` — Función de Next.js para reintentar
 - `translationNamespace: string` — Namespace i18n del módulo
 
 **Funcionalidades:**
+
 - Loguea el error en consola con prefijo del módulo
 - Muestra card de error con icono, título y descripción (traducidos)
 - Detalles técnicos expandibles solo en desarrollo
@@ -3429,6 +3701,7 @@ Componente genérico para error boundaries de módulos. Recibe:
 - Texto de ayuda al pie
 
 **Traducciones requeridas por módulo** (en `messages/{locale}/{module}.json`):
+
 ```json
 {
   "error": {
@@ -3446,20 +3719,21 @@ Componente genérico para error boundaries de módulos. Recibe:
 
 **Módulos con error boundary implementado (10):**
 
-| Módulo | Fichero |
-|--------|---------|
-| Blacklist | `app/dashboard/blacklist/error.tsx` |
-| Backoffice | `app/dashboard/bo/error.tsx` |
-| Cashier | `app/dashboard/cashier/error.tsx` |
+| Módulo       | Fichero                                |
+| ------------ | -------------------------------------- |
+| Blacklist    | `app/dashboard/blacklist/error.tsx`    |
+| Backoffice   | `app/dashboard/bo/error.tsx`           |
+| Cashier      | `app/dashboard/cashier/error.tsx`      |
 | Conciliation | `app/dashboard/conciliation/error.tsx` |
-| Groups | `app/dashboard/groups/error.tsx` |
-| Logbooks | `app/dashboard/logbooks/error.tsx` |
-| Maintenance | `app/dashboard/maintenance/error.tsx` |
-| Parking | `app/dashboard/parking/error.tsx` |
-| Profile | `app/dashboard/profile/error.tsx` |
-| Restaurant | `app/dashboard/restaurant/error.tsx` |
+| Groups       | `app/dashboard/groups/error.tsx`       |
+| Logbooks     | `app/dashboard/logbooks/error.tsx`     |
+| Maintenance  | `app/dashboard/maintenance/error.tsx`  |
+| Parking      | `app/dashboard/parking/error.tsx`      |
+| Profile      | `app/dashboard/profile/error.tsx`      |
+| Restaurant   | `app/dashboard/restaurant/error.tsx`   |
 
 Todos siguen el mismo patrón de 2 líneas:
+
 ```tsx
 export default function XxxError({ error, reset }) {
   return <ModuleError error={error} reset={reset} translationNamespace="xxx" />
@@ -3471,6 +3745,7 @@ export default function XxxError({ error, reset }) {
 ### G.5 Not-Found Pages
 
 Actualmente solo implementadas en Blacklist:
+
 - `app/dashboard/blacklist/not-found.tsx` — 404 general del módulo
 - `app/dashboard/blacklist/[id]/not-found.tsx` — Registro no encontrado
 
@@ -3478,12 +3753,12 @@ Ambas usan traducciones i18n y tienen botones de navegación (volver al listado,
 
 ### G.6 Observaciones y mejoras potenciales
 
-| # | Estado | Observación |
-|---|---|---|
-| 1 | ⚠️ | **6 módulos sin error boundary** — Scheduling, Booking, Messages, Search, Notifications, Dashboard. Si fallan, el error sube al layout padre |
-| 2 | ⚠️ | **Not-found solo en Blacklist** — Los demás módulos no tienen página 404 personalizada |
-| 3 | ℹ️ | **Breadcrumbs simples** — Generados por split de pathname. No tienen traducciones ni labels customizables |
-| 4 | ℹ️ | **Auth redirect con window.location** — No usa next/navigation para mantener compatibilidad con middleware de cookies |
+| #   | Estado | Observación                                                                                                                                  |
+| --- | ------ | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | ⚠️     | **6 módulos sin error boundary** — Scheduling, Booking, Messages, Search, Notifications, Dashboard. Si fallan, el error sube al layout padre |
+| 2   | ⚠️     | **Not-found solo en Blacklist** — Los demás módulos no tienen página 404 personalizada                                                       |
+| 3   | ℹ️     | **Breadcrumbs simples** — Generados por split de pathname. No tienen traducciones ni labels customizables                                    |
+| 4   | ℹ️     | **Auth redirect con window.location** — No usa next/navigation para mantener compatibilidad con middleware de cookies                        |
 
 ---
 
@@ -3524,6 +3799,7 @@ app/ui/
 ### H.2 Calendarios
 
 #### `DatePickerInput.tsx` — Input con dropdown de calendario
+
 - Portal-based rendering (evita problemas de z-index y overflow)
 - Posicionamiento automático (arriba/abajo según espacio disponible)
 - Soporte de rango de fechas (min/max)
@@ -3532,6 +3808,7 @@ app/ui/
 - Formato configurable
 
 #### `HorizontalDatePicker.tsx` — Selector horizontal de días
+
 - Barra horizontal scrollable con los días del mes
 - Navegación por mes (prev/next/today)
 - Día actual resaltado, día seleccionado con indicador
@@ -3539,6 +3816,7 @@ app/ui/
 - Usado en: Logbooks, Cashier
 
 #### `simplecalendar.tsx` — Calendario mensual
+
 - Grid de 7 columnas (L M X J V S D)
 - Navegación mensual
 - Días del mes anterior/siguiente en gris
@@ -3546,6 +3824,7 @@ app/ui/
 - Usado en: Parking (reservas), Logbooks (crear entrada con fecha)
 
 #### `timepicker.tsx` — Selector de hora
+
 - Intervalos de 30 minutos (00:00, 00:30, 01:00, ...)
 - Dropdown con scroll
 - Formato 24h
@@ -3554,6 +3833,7 @@ app/ui/
 ### H.3 Paneles y diálogos
 
 #### `CenterModal.tsx` — Modal centrado
+
 - Basado en Headless UI `Dialog`
 - Overlay con transición de opacidad
 - Tamaños: `sm`, `md`, `lg`, `xl`
@@ -3562,6 +3842,7 @@ app/ui/
 - Cierre con Escape o click fuera
 
 #### `SlidePanel.tsx` — Panel lateral deslizante
+
 - Se desliza desde la derecha
 - Overlay semitransparente
 - **Indicador de pasos** para wizards multi-step
@@ -3571,6 +3852,7 @@ app/ui/
 - Usado en: Logbooks (crear entrada), Parking (crear reserva), Cashier (crear turno)
 
 #### `ConfirmDialog.tsx` — Diálogo de confirmación
+
 - Dos variantes: `danger` (rojo, eliminar) y `warning` (amarillo, advertencia)
 - Icono contextual (FiAlertTriangle para warning, FiTrash2 para danger)
 - Botones: confirmar (con loading spinner) y cancelar
@@ -3580,6 +3862,7 @@ app/ui/
 ### H.4 Skeletons
 
 `skeletons.tsx` — Loaders con animación shimmer:
+
 - Skeleton de tabla (filas con celdas animadas)
 - Skeleton de card (bloques rectangulares)
 - Animación definida en Tailwind: keyframe `shimmer` con gradiente translúcido
@@ -3587,6 +3870,7 @@ app/ui/
 ### H.5 Navegación
 
 #### `sidenav.tsx` — Sidebar principal
+
 - **Collapsed mode:** Solo iconos (64px ancho)
 - **Expanded mode:** Iconos + labels (256px ancho)
 - Botón toggle collapse (desktop) / close (mobile)
@@ -3595,6 +3879,7 @@ app/ui/
 - Fixed en desktop, overlay en mobile
 
 #### `nav-links.tsx` — Links con RBAC
+
 - Links principales con icono y label
 - **Dropdowns anidados** para módulos con sub-rutas
 - **Control de acceso basado en roles:**
@@ -3609,6 +3894,7 @@ app/ui/
 #### `fonts.helper.ts` — Selector de fuentes
 
 Variable `ACTIVE_FONTS` que define las fuentes activas:
+
 - `primary` — Fuente principal del texto (actualmente: **Poppins**)
 - `display` — Fuente de títulos y headings (actualmente: **Ubuntu**)
 
@@ -3619,37 +3905,37 @@ Cambiar `ACTIVE_FONTS` cambia globalmente las fuentes sin tocar componentes.
 
 Componentes organizados por dominio (20 directorios):
 
-| Directorio | Módulo | Contenido |
-|-----------|--------|-----------|
-| `_utils/` | Shared | Utilidades comunes |
-| `auth/` | Auth | NewUserModal, LoginForm |
-| `blacklist/` | Blacklist | Cards, forms, detail views, UI components propios |
-| `bo/` | Backoffice | Facturas, proveedores, assets |
-| `booking/` | Booking | Componentes de reservas |
-| `cashier/` | Cashier | Turnos, vouchers, reports, denominations |
-| `chat/` | Chat | Chat con IA (archivado) |
-| `conciliation/` | Conciliation | Formularios de conciliación |
-| `dashboard/` | Dashboard | DashboardSkeleton, widgets |
-| `groups/` | Groups | Pagos, contactos, rooms, historial |
-| `layout/` | Layout | LanguageSwitcher, ProfileDropdown |
-| `logbooks/` | Logbooks | Entries, comments, edit modals |
-| `maintenance/` | Maintenance | Reports, images, status |
-| `notifications/` | Notifications | NotificationBell, dropdown |
-| `parking/` | Parking | Spots, bookings, vehicles, stats |
-| `profile/` | Profile | Settings panels |
-| `restaurant/` | Restaurant | Componentes de restaurante |
-| `scheduling/` | Scheduling | Matriz de horarios |
-| `search/` | Search | GlobalSearch, MobileSearchModal |
-| `theme/` | Theme | SetThemeButton, ThemeSwitcher |
+| Directorio       | Módulo        | Contenido                                         |
+| ---------------- | ------------- | ------------------------------------------------- |
+| `_utils/`        | Shared        | Utilidades comunes                                |
+| `auth/`          | Auth          | NewUserModal, LoginForm                           |
+| `blacklist/`     | Blacklist     | Cards, forms, detail views, UI components propios |
+| `bo/`            | Backoffice    | Facturas, proveedores, assets                     |
+| `booking/`       | Booking       | Componentes de reservas                           |
+| `cashier/`       | Cashier       | Turnos, vouchers, reports, denominations          |
+| `chat/`          | Chat          | Chat con IA (archivado)                           |
+| `conciliation/`  | Conciliation  | Formularios de conciliación                       |
+| `dashboard/`     | Dashboard     | DashboardSkeleton, widgets                        |
+| `groups/`        | Groups        | Pagos, contactos, rooms, historial                |
+| `layout/`        | Layout        | LanguageSwitcher, ProfileDropdown                 |
+| `logbooks/`      | Logbooks      | Entries, comments, edit modals                    |
+| `maintenance/`   | Maintenance   | Reports, images, status                           |
+| `notifications/` | Notifications | NotificationBell, dropdown                        |
+| `parking/`       | Parking       | Spots, bookings, vehicles, stats                  |
+| `profile/`       | Profile       | Settings panels                                   |
+| `restaurant/`    | Restaurant    | Componentes de restaurante                        |
+| `scheduling/`    | Scheduling    | Matriz de horarios                                |
+| `search/`        | Search        | GlobalSearch, MobileSearchModal                   |
+| `theme/`         | Theme         | SetThemeButton, ThemeSwitcher                     |
 
 ### H.8 Observaciones y mejoras potenciales
 
-| # | Estado | Observación |
-|---|---|---|
-| 1 | ℹ️ | **Headless UI** — CenterModal y SlidePanel usan `@headlessui/react` para accesibilidad (focus trap, Escape, aria) |
-| 2 | ℹ️ | **NextUI** — Algunos componentes usan NextUI (`@nextui-org/react`) pero los core panels/modals son custom |
-| 3 | ⚠️ | **Sin Storybook** — No hay catálogo visual de componentes. La documentación es implícita por uso |
-| 4 | ℹ️ | **Patrón portal** — DatePickerInput usa `createPortal` para evitar problemas de z-index en tablas/modales |
+| #   | Estado | Observación                                                                                                       |
+| --- | ------ | ----------------------------------------------------------------------------------------------------------------- |
+| 1   | ℹ️     | **Headless UI** — CenterModal y SlidePanel usan `@headlessui/react` para accesibilidad (focus trap, Escape, aria) |
+| 2   | ℹ️     | **NextUI** — Algunos componentes usan NextUI (`@nextui-org/react`) pero los core panels/modals son custom         |
+| 3   | ⚠️     | **Sin Storybook** — No hay catálogo visual de componentes. La documentación es implícita por uso                  |
+| 4   | ℹ️     | **Patrón portal** — DatePickerInput usa `createPortal` para evitar problemas de z-index en tablas/modales         |
 
 ---
 
@@ -3660,6 +3946,7 @@ Sistema de internacionalización completo con **next-intl** v4.6.1. Soporte para
 ### I.1 Configuración
 
 **Ficheros:**
+
 - `app/i18n/config.ts` — Definición de locales, cookie name, labels
 - `app/i18n/request.ts` — Lógica de detección de idioma y carga de traducciones
 
@@ -3669,12 +3956,12 @@ Sistema de internacionalización completo con **next-intl** v4.6.1. Soporte para
 
 ### I.2 Detección automática de idioma (prioridad)
 
-| # | Fuente | Método | Ejemplo |
-|---|--------|--------|---------|
-| 1 | Cookie | `NEXT_LOCALE` cookie (preferencia del usuario) | `NEXT_LOCALE=en` |
-| 2 | Geolocalización | Header `x-vercel-ip-country` (solo Vercel) | `ES` → `es`, `US` → `en` |
-| 3 | Navegador | Header `Accept-Language` | `es-ES,es;q=0.9,en;q=0.8` → `es` |
-| 4 | Fallback | Default locale | `es` |
+| #   | Fuente          | Método                                         | Ejemplo                          |
+| --- | --------------- | ---------------------------------------------- | -------------------------------- |
+| 1   | Cookie          | `NEXT_LOCALE` cookie (preferencia del usuario) | `NEXT_LOCALE=en`                 |
+| 2   | Geolocalización | Header `x-vercel-ip-country` (solo Vercel)     | `ES` → `es`, `US` → `en`         |
+| 3   | Navegador       | Header `Accept-Language`                       | `es-ES,es;q=0.9,en;q=0.8` → `es` |
+| 4   | Fallback        | Default locale                                 | `es`                             |
 
 **Países hispanohablantes auto-detectados (21):**
 ES, MX, AR, CO, PE, VE, CL, EC, GT, CU, BO, DO, HN, PY, SV, NI, CR, PA, UY, PR, GQ
@@ -3683,40 +3970,42 @@ ES, MX, AR, CO, PE, VE, CL, EC, GT, CU, BO, DO, HN, PY, SV, NI, CR, PA, UY, PR, 
 
 20 módulos de traducción, cada uno en `messages/{locale}/{module}.json`:
 
-| Módulo | Fichero | Contenido |
-|--------|---------|-----------|
-| `common` | common.json | Textos globales (botones, estados, acciones) |
-| `dashboard` | dashboard.json | Textos del dashboard principal |
-| `parking` | parking.json | Módulo de parking |
-| `logbooks` | logbooks.json | Módulo de logbooks |
-| `logbook` | logbook.json | Textos internos de logbook |
-| `groups` | groups.json | Módulo de grupos |
-| `cashier` | cashier.json | Módulo de cajero |
-| `maintenance` | maintenance.json | Módulo de mantenimiento |
-| `blacklist` | blacklist.json | Módulo de blacklist |
-| `backoffice` | backoffice.json | Módulo de backoffice |
-| `messages` | messages.json | Módulo de mensajes/chat |
-| `profile` | profile.json | Módulo de perfil |
-| `conciliation` | conciliation.json | Módulo de conciliación |
-| `auth` | auth.json | Autenticación y login |
-| `errors` | errors.json | Mensajes de error (vinculado a error-codes.ts del backend) |
-| `validation` | validation.json | Errores de validación de formularios |
-| `restaurant` | restaurant.json | Módulo de restaurante |
-| `booking` | booking.json | Módulo de reservas |
-| `notifications` | notifications.json | Módulo de notificaciones |
-| `scheduling` | scheduling.json | Módulo de scheduling |
+| Módulo          | Fichero            | Contenido                                                  |
+| --------------- | ------------------ | ---------------------------------------------------------- |
+| `common`        | common.json        | Textos globales (botones, estados, acciones)               |
+| `dashboard`     | dashboard.json     | Textos del dashboard principal                             |
+| `parking`       | parking.json       | Módulo de parking                                          |
+| `logbooks`      | logbooks.json      | Módulo de logbooks                                         |
+| `logbook`       | logbook.json       | Textos internos de logbook                                 |
+| `groups`        | groups.json        | Módulo de grupos                                           |
+| `cashier`       | cashier.json       | Módulo de cajero                                           |
+| `maintenance`   | maintenance.json   | Módulo de mantenimiento                                    |
+| `blacklist`     | blacklist.json     | Módulo de blacklist                                        |
+| `backoffice`    | backoffice.json    | Módulo de backoffice                                       |
+| `messages`      | messages.json      | Módulo de mensajes/chat                                    |
+| `profile`       | profile.json       | Módulo de perfil                                           |
+| `conciliation`  | conciliation.json  | Módulo de conciliación                                     |
+| `auth`          | auth.json          | Autenticación y login                                      |
+| `errors`        | errors.json        | Mensajes de error (vinculado a error-codes.ts del backend) |
+| `validation`    | validation.json    | Errores de validación de formularios                       |
+| `restaurant`    | restaurant.json    | Módulo de restaurante                                      |
+| `booking`       | booking.json       | Módulo de reservas                                         |
+| `notifications` | notifications.json | Módulo de notificaciones                                   |
+| `scheduling`    | scheduling.json    | Módulo de scheduling                                       |
 
 **Total:** 40 ficheros (20 módulos × 2 idiomas)
 
 ### I.4 Integración en el código
 
 **Server Components:**
+
 ```tsx
 import { getLocale, getMessages } from 'next-intl/server'
 // En root layout: <NextIntlClientProvider messages={messages}>
 ```
 
 **Client Components:**
+
 ```tsx
 import { useTranslations } from 'next-intl'
 const t = useTranslations('parking')
@@ -3724,6 +4013,7 @@ const t = useTranslations('parking')
 ```
 
 **Cambio de idioma:**
+
 - `components/layout/LanguageSwitcher.tsx` — Componente con banderas (🇪🇸/🇬🇧)
 - Setea cookie `NEXT_LOCALE` y recarga la página
 
@@ -3738,11 +4028,11 @@ Frontend: t(`errors.${error.code}`) → "Credenciales inválidas" / "Invalid cre
 
 ### I.6 Observaciones y mejoras potenciales
 
-| # | Estado | Observación |
-|---|---|---|
-| 1 | ℹ️ | **next-intl sin routing** — No usa prefijos de ruta (`/es/`, `/en/`). El locale se detecta por cookie/header. Single URL para ambos idiomas |
-| 2 | ⚠️ | **Módulos `logbooks` y `logbook` separados** — Podría consolidarse en uno solo |
-| 3 | ℹ️ | **Graceful degradation** — Si un fichero de traducción no existe, se loguea warning y se salta (no rompe la app) |
+| #   | Estado | Observación                                                                                                                                 |
+| --- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | ℹ️     | **next-intl sin routing** — No usa prefijos de ruta (`/es/`, `/en/`). El locale se detecta por cookie/header. Single URL para ambos idiomas |
+| 2   | ⚠️     | **Módulos `logbooks` y `logbook` separados** — Podría consolidarse en uno solo                                                              |
+| 3   | ℹ️     | **Graceful degradation** — Si un fichero de traducción no existe, se loguea warning y se salta (no rompe la app)                            |
 
 ---
 
@@ -3755,22 +4045,22 @@ Frontend: t(`errors.${error.code}`) → "Credenciales inválidas" / "Invalid cre
 
 **Configuración en ThemeProvider.tsx:**
 
-| Opción | Valor | Efecto |
-|--------|-------|--------|
-| `attribute` | `"class"` | Aplica `class="dark"` al `<html>` |
-| `defaultTheme` | `"system"` | Detecta preferencia del OS |
-| `enableSystem` | `true` | Escucha cambios en `prefers-color-scheme` |
-| `disableTransitionOnChange` | `false` | Permite transiciones al cambiar tema |
+| Opción                      | Valor      | Efecto                                    |
+| --------------------------- | ---------- | ----------------------------------------- |
+| `attribute`                 | `"class"`  | Aplica `class="dark"` al `<html>`         |
+| `defaultTheme`              | `"system"` | Detecta preferencia del OS                |
+| `enableSystem`              | `true`     | Escucha cambios en `prefers-color-scheme` |
+| `disableTransitionOnChange` | `false`    | Permite transiciones al cambiar tema      |
 
 ### J.2 Colores principales
 
-| Contexto | Light | Dark |
-|----------|-------|------|
-| Background (body) | `bg-white` | `bg-[#010409]` |
-| Card/Surface | `bg-white` | `bg-[#151b23]` o `bg-[#0D1117]` |
-| Border | `border-gray-200` | `border-gray-800` |
-| Text primary | `text-gray-900` | `text-gray-100` |
-| Text secondary | `text-gray-600` | `text-gray-400` |
+| Contexto          | Light             | Dark                            |
+| ----------------- | ----------------- | ------------------------------- |
+| Background (body) | `bg-white`        | `bg-[#010409]`                  |
+| Card/Surface      | `bg-white`        | `bg-[#151b23]` o `bg-[#0D1117]` |
+| Border            | `border-gray-200` | `border-gray-800`               |
+| Text primary      | `text-gray-900`   | `text-gray-100`                 |
+| Text secondary    | `text-gray-600`   | `text-gray-400`                 |
 
 ### J.3 Componentes de tema
 
@@ -3780,6 +4070,7 @@ Frontend: t(`errors.${error.code}`) → "Credenciales inválidas" / "Invalid cre
 ### J.4 Tailwind CSS
 
 **Config en `tailwind.config.ts`:**
+
 - `darkMode: 'class'` — Activación por clase CSS
 - Custom blue palette override
 - Font families via CSS variables: `fontFamily: { sans: ['var(--font-primary)'], display: ['var(--font-display)'] }`
@@ -3789,10 +4080,10 @@ Frontend: t(`errors.${error.code}`) → "Credenciales inválidas" / "Invalid cre
 
 ### J.5 Observaciones
 
-| # | Estado | Observación |
-|---|---|---|
-| 1 | ℹ️ | **GitHub-inspired dark** — El color `#010409` es el background de GitHub en dark mode |
-| 2 | ℹ️ | **13 columnas grid** — Tailwind config incluye `gridTemplateColumns: { '13': 'repeat(13, minmax(0, 1fr))' }` para el scheduling |
+| #   | Estado | Observación                                                                                                                     |
+| --- | ------ | ------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | ℹ️     | **GitHub-inspired dark** — El color `#010409` es el background de GitHub en dark mode                                           |
+| 2   | ℹ️     | **13 columnas grid** — Tailwind config incluye `gridTemplateColumns: { '13': 'repeat(13, minmax(0, 1fr))' }` para el scheduling |
 
 ---
 
@@ -3805,27 +4096,28 @@ Frontend: t(`errors.${error.code}`) → "Credenciales inválidas" / "Invalid cre
 
 **Entornos soportados:**
 
-| Entorno | Variable | Host | SSL | Uso |
-|---------|----------|------|-----|-----|
-| **local** | `DB_ENVIRONMENT=local` | `localhost:3306` | ❌ (rejectUnauthorized: false) | Desarrollo |
-| **aiven** | `DB_ENVIRONMENT=aiven` | `AIVEN_DB_HOST:AIVEN_PORT` | ✅ (con certificado CA) | Producción |
+| Entorno   | Variable               | Host                       | SSL                            | Uso        |
+| --------- | ---------------------- | -------------------------- | ------------------------------ | ---------- |
+| **local** | `DB_ENVIRONMENT=local` | `localhost:3306`           | ❌ (rejectUnauthorized: false) | Desarrollo |
+| **aiven** | `DB_ENVIRONMENT=aiven` | `AIVEN_DB_HOST:AIVEN_PORT` | ✅ (con certificado CA)        | Producción |
 
 **Selección:** Variable de entorno `DB_ENVIRONMENT` determina qué configuración usar.
 
 **Variables de entorno por entorno:**
 
-| Local | Aiven |
-|-------|-------|
-| `LOCAL_DB_HOST` | `AIVEN_DB_HOST` |
-| `LOCAL_DB_PORT` | `AIVEN_PORT` |
-| `LOCAL_DB_USER` | `AIVEN_DB_USER` |
-| `LOCAL_DB_PASSWORD` | `AIVEN_PASSWORD` |
-| `LOCAL_DB_NAME` | `AIVEN_DB_NAME` |
-| — | `AIVEN_CA_CERT` (PEM) |
+| Local               | Aiven                 |
+| ------------------- | --------------------- |
+| `LOCAL_DB_HOST`     | `AIVEN_DB_HOST`       |
+| `LOCAL_DB_PORT`     | `AIVEN_PORT`          |
+| `LOCAL_DB_USER`     | `AIVEN_DB_USER`       |
+| `LOCAL_DB_PASSWORD` | `AIVEN_PASSWORD`      |
+| `LOCAL_DB_NAME`     | `AIVEN_DB_NAME`       |
+| —                   | `AIVEN_CA_CERT` (PEM) |
 
 **DB name por defecto:** `hotel_db`
 
 **Validación al arrancar:**
+
 1. Loguea configuración (sin contraseñas): host, port, db, user, SSL status
 2. Ejecuta `pool.getConnection()` para verificar
 3. Si falla → `process.exit(1)` (el servidor no arranca)
@@ -3834,19 +4126,19 @@ Frontend: t(`errors.${error.code}`) → "Credenciales inválidas" / "Invalid cre
 
 **Ubicación:** `backend/db-mysql/`
 
-| Fichero | Propósito |
-|---------|-----------|
-| `MASTER_INSTALL_LOCAL.sql` | Instalación completa para desarrollo local |
-| `MASTER_INSTALL_AIVEN.sql` | Instalación para Aiven (producción) |
-| `aiven/01_init.sql` ... `aiven/XX_*.sql` | Scripts individuales por tabla/feature |
-| `backup/` | Backups de la base de datos |
+| Fichero                                  | Propósito                                  |
+| ---------------------------------------- | ------------------------------------------ |
+| `MASTER_INSTALL_LOCAL.sql`               | Instalación completa para desarrollo local |
+| `MASTER_INSTALL_AIVEN.sql`               | Instalación para Aiven (producción)        |
+| `aiven/01_init.sql` ... `aiven/XX_*.sql` | Scripts individuales por tabla/feature     |
+| `backup/`                                | Backups de la base de datos                |
 
 ### K.3 Observaciones
 
-| # | Estado | Observación |
-|---|---|---|
-| 1 | ℹ️ | **Sin ORM** — Queries raw con `pool.execute()` y parámetros preparados. Previene SQL injection por diseño |
-| 2 | ℹ️ | **Pool global** — Un único pool exportado, creado al importar el módulo. No hay re-conexión automática (la validación al arrancar es suficiente para mysql2 pools) |
+| #   | Estado | Observación                                                                                                                                                        |
+| --- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1   | ℹ️     | **Sin ORM** — Queries raw con `pool.execute()` y parámetros preparados. Previene SQL injection por diseño                                                          |
+| 2   | ℹ️     | **Pool global** — Un único pool exportado, creado al importar el módulo. No hay re-conexión automática (la validación al arrancar es suficiente para mysql2 pools) |
 
 ---
 
@@ -3860,25 +4152,26 @@ Sistema centralizado de códigos de error para **toda** la API. Formato: `MODULE
 
 **Códigos por módulo:**
 
-| Módulo | Prefijo | Ejemplo | Cantidad aprox |
-|--------|---------|---------|----------------|
-| Auth | `AUTH_` | `AUTH_INVALID_CREDENTIALS`, `AUTH_TOKEN_EXPIRED`, `AUTH_REGISTER_SUCCESS` | 30+ |
-| Backoffice | `BACKOFFICE_` | `BACKOFFICE_INVOICE_NOT_FOUND`, `BACKOFFICE_ASSET_CREATED` | 40+ |
-| Blacklist | `BLACKLIST_` | `BLACKLIST_ENTRY_NOT_FOUND`, `BLACKLIST_DUPLICATE_DOCUMENT` | 20+ |
-| Cashier | `CASHIER_` | `CASHIER_SHIFT_NOT_FOUND`, `CASHIER_ALREADY_CLOSED` | 30+ |
-| Conciliation | `CONCILIATION_` | `CONCILIATION_ENTRY_NOT_FOUND` | 10+ |
-| Departments | `DEPARTMENTS_` | `DEPARTMENTS_NOT_FOUND`, `DEPARTMENTS_HAS_DEPENDENCIES` | 10+ |
-| Groups | `GROUP_` | `GROUP_NOT_FOUND`, `GROUP_PAYMENT_DELETED` | 25+ |
-| Logbook | `LOGBOOK_` | `LOGBOOK_NOT_FOUND`, `LOGBOOK_COMMENT_UPDATED` | 20+ |
-| Maintenance | `MAINTENANCE_` | `MAINTENANCE_REPORT_NOT_FOUND`, `MAINTENANCE_IMAGE_UPLOADED` | 20+ |
-| Messages | `MESSAGES_` | `MESSAGES_CONVERSATION_NOT_FOUND` | 10+ |
-| Notifications | `NOTIFICATIONS_` | `NOTIFICATIONS_NOT_FOUND`, `NOTIFICATIONS_MARKED_READ` | 10+ |
-| Parking | `PARKING_` | `PARKING_BOOKING_NOT_FOUND`, `PARKING_SPOT_NOT_AVAILABLE` | 25+ |
-| Activity | `ACTIVITY_` | `ACTIVITY_FETCH_ERROR` | 5+ |
+| Módulo        | Prefijo          | Ejemplo                                                                   | Cantidad aprox |
+| ------------- | ---------------- | ------------------------------------------------------------------------- | -------------- |
+| Auth          | `AUTH_`          | `AUTH_INVALID_CREDENTIALS`, `AUTH_TOKEN_EXPIRED`, `AUTH_REGISTER_SUCCESS` | 30+            |
+| Backoffice    | `BACKOFFICE_`    | `BACKOFFICE_INVOICE_NOT_FOUND`, `BACKOFFICE_ASSET_CREATED`                | 40+            |
+| Blacklist     | `BLACKLIST_`     | `BLACKLIST_ENTRY_NOT_FOUND`, `BLACKLIST_DUPLICATE_DOCUMENT`               | 20+            |
+| Cashier       | `CASHIER_`       | `CASHIER_SHIFT_NOT_FOUND`, `CASHIER_ALREADY_CLOSED`                       | 30+            |
+| Conciliation  | `CONCILIATION_`  | `CONCILIATION_ENTRY_NOT_FOUND`                                            | 10+            |
+| Departments   | `DEPARTMENTS_`   | `DEPARTMENTS_NOT_FOUND`, `DEPARTMENTS_HAS_DEPENDENCIES`                   | 10+            |
+| Groups        | `GROUP_`         | `GROUP_NOT_FOUND`, `GROUP_PAYMENT_DELETED`                                | 25+            |
+| Logbook       | `LOGBOOK_`       | `LOGBOOK_NOT_FOUND`, `LOGBOOK_COMMENT_UPDATED`                            | 20+            |
+| Maintenance   | `MAINTENANCE_`   | `MAINTENANCE_REPORT_NOT_FOUND`, `MAINTENANCE_IMAGE_UPLOADED`              | 20+            |
+| Messages      | `MESSAGES_`      | `MESSAGES_CONVERSATION_NOT_FOUND`                                         | 10+            |
+| Notifications | `NOTIFICATIONS_` | `NOTIFICATIONS_NOT_FOUND`, `NOTIFICATIONS_MARKED_READ`                    | 10+            |
+| Parking       | `PARKING_`       | `PARKING_BOOKING_NOT_FOUND`, `PARKING_SPOT_NOT_AVAILABLE`                 | 25+            |
+| Activity      | `ACTIVITY_`      | `ACTIVITY_FETCH_ERROR`                                                    | 5+             |
 
 **Nota:** Incluye tanto códigos de error como códigos de éxito (ej: `BACKOFFICE_ASSET_CREATED`, `LOGBOOK_COMMENT_UPDATED`). Los de éxito se usan para traducir toasts en el frontend.
 
 **Uso en controllers:**
+
 ```typescript
 import { ERROR_CODES } from '../config/error-codes'
 res.status(404).json({ error: 'Not found', code: ERROR_CODES.PARKING_BOOKING_NOT_FOUND })
@@ -3887,6 +4180,7 @@ res.status(404).json({ error: 'Not found', code: ERROR_CODES.PARKING_BOOKING_NOT
 ### L.2 Backend — Global Error Handler
 
 En `backend/index.ts`:
+
 - Middleware global de errores (4 parámetros Express)
 - Loguea el error completo en consola
 - Retorna `{ error: 'Internal server error' }` con status 500
@@ -3898,9 +4192,9 @@ En `app/lib/apiClient.ts`:
 
 ```typescript
 class ApiError extends Error {
-  demo: boolean    // true = restricción modo demo
-  status: number   // HTTP status
-  code?: string    // Código del backend (para i18n)
+  demo: boolean // true = restricción modo demo
+  status: number // HTTP status
+  code?: string // Código del backend (para i18n)
 }
 ```
 
@@ -3921,11 +4215,11 @@ Frontend: messages/es/errors.json → { "PARKING_SPOT_NOT_AVAILABLE": "La plaza 
 
 ### L.6 Observaciones y mejoras potenciales
 
-| # | Estado | Observación |
-|---|---|---|
-| 1 | ℹ️ | **~200+ códigos** — Cobertura completa de todos los módulos |
-| 2 | ⚠️ | **Códigos de éxito y error mezclados** — Podría separarse en SUCCESS_CODES y ERROR_CODES para claridad |
-| 3 | ⚠️ | **No todos los controllers usan error codes** — Algunos todavía devuelven mensajes en texto plano sin `code` |
+| #   | Estado | Observación                                                                                                  |
+| --- | ------ | ------------------------------------------------------------------------------------------------------------ |
+| 1   | ℹ️     | **~200+ códigos** — Cobertura completa de todos los módulos                                                  |
+| 2   | ⚠️     | **Códigos de éxito y error mezclados** — Podría separarse en SUCCESS_CODES y ERROR_CODES para claridad       |
+| 3   | ⚠️     | **No todos los controllers usan error codes** — Algunos todavía devuelven mensajes en texto plano sin `code` |
 
 ---
 
@@ -3937,6 +4231,7 @@ Frontend: messages/es/errors.json → { "PARKING_SPOT_NOT_AVAILABLE": "La plaza 
 **Frontend:** `apiClient.postFormData()` para enviar FormData
 
 **Flujo:**
+
 ```
 Frontend (FormData) → Multer (memory buffer) → Controller → Cloudinary SDK → URL almacenada en BD
 ```
@@ -3945,12 +4240,12 @@ Frontend (FormData) → Multer (memory buffer) → Controller → Cloudinary SDK
 
 Multer se configura **por ruta** (no globalmente). Usa `memoryStorage()` — los ficheros nunca tocan disco.
 
-| Endpoint | Módulo | Límite | Tipos permitidos |
-|----------|--------|--------|-----------------|
-| `POST /api/auth/me/avatar` | Profile | 2 MB | JPEG, PNG, WebP, GIF |
-| `POST /api/blacklist/:id/images` | Blacklist | configurable | JPEG, PNG, WebP, GIF |
-| `POST /api/backoffice/invoices/:id/pdf` | Backoffice | configurable | PDF only |
-| `POST /api/backoffice/assets` | Backoffice | configurable | JPEG, PNG, WebP (seals, signatures) |
+| Endpoint                                | Módulo     | Límite       | Tipos permitidos                    |
+| --------------------------------------- | ---------- | ------------ | ----------------------------------- |
+| `POST /api/auth/me/avatar`              | Profile    | 2 MB         | JPEG, PNG, WebP, GIF                |
+| `POST /api/blacklist/:id/images`        | Blacklist  | configurable | JPEG, PNG, WebP, GIF                |
+| `POST /api/backoffice/invoices/:id/pdf` | Backoffice | configurable | PDF only                            |
+| `POST /api/backoffice/assets`           | Backoffice | configurable | JPEG, PNG, WebP (seals, signatures) |
 
 ### M.3 Cloudinary
 
@@ -3959,46 +4254,47 @@ Multer se configura **por ruta** (no globalmente). Usa `memoryStorage()` — los
 
 **Funciones:**
 
-| Función | Propósito | Config |
-|---------|-----------|--------|
-| `uploadImage()` | Upload imagen general | Max 1200×1200px, calidad auto |
-| `uploadAvatar()` | Upload avatar de perfil | 400×400px cuadrado, 95% calidad, WebP |
-| `uploadPdf()` | Upload PDF (raw file) | Acceso público |
-| `deleteImage()` | Eliminar imagen por publicId | — |
-| `deleteFile()` | Eliminar raw file por publicId | — |
-| `extractPublicId()` | Extraer publicId de URL Cloudinary | — |
-| `generateSignedUrl()` | URL firmada con expiración | 1h por defecto |
-| `generateSignedUrlFromUrl()` | Wrapper para signed URLs desde URL | — |
+| Función                      | Propósito                          | Config                                |
+| ---------------------------- | ---------------------------------- | ------------------------------------- |
+| `uploadImage()`              | Upload imagen general              | Max 1200×1200px, calidad auto         |
+| `uploadAvatar()`             | Upload avatar de perfil            | 400×400px cuadrado, 95% calidad, WebP |
+| `uploadPdf()`                | Upload PDF (raw file)              | Acceso público                        |
+| `deleteImage()`              | Eliminar imagen por publicId       | —                                     |
+| `deleteFile()`               | Eliminar raw file por publicId     | —                                     |
+| `extractPublicId()`          | Extraer publicId de URL Cloudinary | —                                     |
+| `generateSignedUrl()`        | URL firmada con expiración         | 1h por defecto                        |
+| `generateSignedUrlFromUrl()` | Wrapper para signed URLs desde URL | —                                     |
 
 **Carpetas en Cloudinary:**
 
-| Carpeta | Módulo |
-|---------|--------|
-| `avatars/` | Profile (avatares de usuario) |
-| `blacklist/` | Blacklist (imágenes de registros) |
-| `backoffice/invoices/` | Backoffice (PDFs de facturas) |
+| Carpeta                | Módulo                            |
+| ---------------------- | --------------------------------- |
+| `avatars/`             | Profile (avatares de usuario)     |
+| `blacklist/`           | Blacklist (imágenes de registros) |
+| `backoffice/invoices/` | Backoffice (PDFs de facturas)     |
 
 **Inicialización lazy:** Solo se configura Cloudinary en el primer uso (no al arrancar el servidor).
 
 **URLs:**
+
 - Imágenes: URLs permanentes (públicas)
 - PDFs/raw files: URLs firmadas con expiración de 1h (acceso temporal)
 
 ### M.4 Variables de entorno
 
-| Variable | Propósito |
-|----------|-----------|
+| Variable                | Propósito                   |
+| ----------------------- | --------------------------- |
 | `CLOUDINARY_CLOUD_NAME` | Nombre del cloud Cloudinary |
-| `CLOUDINARY_API_KEY` | API key |
-| `CLOUDINARY_API_SECRET` | API secret |
+| `CLOUDINARY_API_KEY`    | API key                     |
+| `CLOUDINARY_API_SECRET` | API secret                  |
 
 ### M.5 Observaciones y mejoras potenciales
 
-| # | Estado | Observación |
-|---|---|---|
-| 1 | ℹ️ | **Memory storage** — Los ficheros nunca se escriben en disco. Seguro pero limita el tamaño máximo a la memoria disponible |
-| 2 | ⚠️ | **Validación de MIME type** — Se valida por extensión/header, no por magic bytes (excepto donde se indica). Podría añadirse `file-type` para validación real |
-| 3 | ℹ️ | **cloudinary-service.ts en blacklist/** — El servicio está en el directorio de blacklist pero es compartido por todos los módulos. Podría moverse a `services/shared/` |
+| #   | Estado | Observación                                                                                                                                                            |
+| --- | ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | ℹ️     | **Memory storage** — Los ficheros nunca se escriben en disco. Seguro pero limita el tamaño máximo a la memoria disponible                                              |
+| 2   | ⚠️     | **Validación de MIME type** — Se valida por extensión/header, no por magic bytes (excepto donde se indica). Podría añadirse `file-type` para validación real           |
+| 3   | ℹ️     | **cloudinary-service.ts en blacklist/** — El servicio está en el directorio de blacklist pero es compartido por todos los módulos. Podría moverse a `services/shared/` |
 
 ---
 
@@ -4010,35 +4306,37 @@ Multer se configura **por ruta** (no globalmente). Usa `memoryStorage()` — los
 
 **Origins permitidos:**
 
-| Origin | Entorno |
-|--------|---------|
-| `http://localhost:3000` | Desarrollo |
-| `https://four-points.stackbp.es` | Producción (custom domain) |
-| `https://four-points.vercel.app` | Producción (Vercel) |
-| `https://api.four-points.stackbp.es` | API (custom domain) |
-| `https://four-points.onrender.com` | Backend directo (Render) |
-| `*.vercel.app` (regex) | Previews de Vercel |
+| Origin                               | Entorno                    |
+| ------------------------------------ | -------------------------- |
+| `http://localhost:3000`              | Desarrollo                 |
+| `https://four-points.stackbp.es`     | Producción (custom domain) |
+| `https://four-points.vercel.app`     | Producción (Vercel)        |
+| `https://api.four-points.stackbp.es` | API (custom domain)        |
+| `https://four-points.onrender.com`   | Backend directo (Render)   |
+| `*.vercel.app` (regex)               | Previews de Vercel         |
 
 **Validación dinámica:**
+
 - Función que verifica si el origin está en la lista o match del regex de Vercel previews
 - Requests sin origin (Postman, server-side) son permitidos
 
 **Headers permitidos:**
 
-| Parámetro | Valor |
-|-----------|-------|
-| `methods` | GET, POST, PUT, DELETE, PATCH, OPTIONS |
-| `allowedHeaders` | Content-Type, Authorization, Cookie |
-| `exposedHeaders` | Set-Cookie |
-| `credentials` | `true` (necesario para cookies HttpOnly cross-origin) |
+| Parámetro        | Valor                                                 |
+| ---------------- | ----------------------------------------------------- |
+| `methods`        | GET, POST, PUT, DELETE, PATCH, OPTIONS                |
+| `allowedHeaders` | Content-Type, Authorization, Cookie                   |
+| `exposedHeaders` | Set-Cookie                                            |
+| `credentials`    | `true` (necesario para cookies HttpOnly cross-origin) |
 
 ### N.2 Security Headers
 
-| Header | Configuración | Propósito |
-|--------|--------------|-----------|
+| Header         | Configuración                                 | Propósito                          |
+| -------------- | --------------------------------------------- | ---------------------------------- |
 | `x-powered-by` | Deshabilitado (`app.disable('x-powered-by')`) | Oculta que el servidor usa Express |
 
 **Headers NO configurados actualmente:**
+
 - Content-Security-Policy (CSP)
 - X-Frame-Options
 - X-Content-Type-Options
@@ -4047,20 +4345,20 @@ Multer se configura **por ruta** (no globalmente). Usa `memoryStorage()` — los
 
 ### N.3 Cookie Security
 
-| Cookie | HttpOnly | Secure | SameSite | Expiry |
-|--------|----------|--------|----------|--------|
-| `access_token` | ✅ | ✅ (prod) | Lax | 15 min |
-| `refresh_token` | ✅ | ✅ (prod) | Lax | 7 días |
+| Cookie          | HttpOnly | Secure    | SameSite | Expiry |
+| --------------- | -------- | --------- | -------- | ------ |
+| `access_token`  | ✅       | ✅ (prod) | Lax      | 15 min |
+| `refresh_token` | ✅       | ✅ (prod) | Lax      | 7 días |
 
 ### N.4 Observaciones y mejoras potenciales
 
-| # | Estado | Observación |
-|---|---|---|
-| 1 | ⚠️ | **Sin CSP headers** — Content-Security-Policy no está configurado. Podría añadirse para prevenir XSS y data injection |
-| 2 | ⚠️ | **Sin X-Frame-Options** — No se previene el clickjacking. Añadir `X-Frame-Options: DENY` |
-| 3 | ⚠️ | **Sin X-Content-Type-Options** — Añadir `nosniff` para prevenir MIME type sniffing |
-| 4 | ⚠️ | **Sin HSTS** — En producción debería forzar HTTPS |
-| 5 | ℹ️ | **Vercel preview regex** — Permite cualquier subdominio `.vercel.app`. Seguro para previews pero amplio |
+| #   | Estado | Observación                                                                                                           |
+| --- | ------ | --------------------------------------------------------------------------------------------------------------------- |
+| 1   | ⚠️     | **Sin CSP headers** — Content-Security-Policy no está configurado. Podría añadirse para prevenir XSS y data injection |
+| 2   | ⚠️     | **Sin X-Frame-Options** — No se previene el clickjacking. Añadir `X-Frame-Options: DENY`                              |
+| 3   | ⚠️     | **Sin X-Content-Type-Options** — Añadir `nosniff` para prevenir MIME type sniffing                                    |
+| 4   | ⚠️     | **Sin HSTS** — En producción debería forzar HTTPS                                                                     |
+| 5   | ℹ️     | **Vercel preview regex** — Permite cualquier subdominio `.vercel.app`. Seguro para previews pero amplio               |
 
 ---
 
@@ -4068,107 +4366,108 @@ Multer se configura **por ruta** (no globalmente). Usa `memoryStorage()` — los
 
 ### O.1 Frontend — `next.config.ts`
 
-| Configuración | Valor | Propósito |
-|--------------|-------|-----------|
-| Plugin next-intl | `createNextIntlPlugin()` | Internacionalización |
-| `serverExternalPackages` | `['@react-icons/all-files']` | Optimización de imports |
-| `images.remotePatterns` | `unsplash.com`, `res.cloudinary.com` | Dominios permitidos para `next/image` |
+| Configuración            | Valor                                | Propósito                             |
+| ------------------------ | ------------------------------------ | ------------------------------------- |
+| Plugin next-intl         | `createNextIntlPlugin()`             | Internacionalización                  |
+| `serverExternalPackages` | `['@react-icons/all-files']`         | Optimización de imports               |
+| `images.remotePatterns`  | `unsplash.com`, `res.cloudinary.com` | Dominios permitidos para `next/image` |
 
 ### O.2 Frontend — `tailwind.config.ts`
 
-| Configuración | Detalle |
-|--------------|---------|
-| `darkMode` | `'class'` |
-| `fontFamily.sans` | `var(--font-primary)` (Poppins) |
-| `fontFamily.display` | `var(--font-display)` (Ubuntu) |
-| `gridTemplateColumns.13` | Grid de 13 columnas (para scheduling) |
-| `colors.blue` | Override completo del azul (50-950) |
-| `animation.shimmer` | Keyframe para skeleton loaders |
-| `animation.pulse-green` | Keyframe para indicadores de status en vivo |
-| Plugins | `@tailwindcss/forms`, custom scrollbar |
+| Configuración            | Detalle                                     |
+| ------------------------ | ------------------------------------------- |
+| `darkMode`               | `'class'`                                   |
+| `fontFamily.sans`        | `var(--font-primary)` (Poppins)             |
+| `fontFamily.display`     | `var(--font-display)` (Ubuntu)              |
+| `gridTemplateColumns.13` | Grid de 13 columnas (para scheduling)       |
+| `colors.blue`            | Override completo del azul (50-950)         |
+| `animation.shimmer`      | Keyframe para skeleton loaders              |
+| `animation.pulse-green`  | Keyframe para indicadores de status en vivo |
+| Plugins                  | `@tailwindcss/forms`, custom scrollbar      |
 
 ### O.3 Frontend — `tsconfig.json`
 
-| Configuración | Valor |
-|--------------|-------|
-| `target` | ES2017 |
-| `module` | esnext |
-| `moduleResolution` | bundler |
-| Path aliases | `@/*` → `./` , `@/app/*` → `./app/*` |
-| `strict` | true |
-| Plugins | `next` (TypeScript plugin) |
+| Configuración      | Valor                                |
+| ------------------ | ------------------------------------ |
+| `target`           | ES2017                               |
+| `module`           | esnext                               |
+| `moduleResolution` | bundler                              |
+| Path aliases       | `@/*` → `./` , `@/app/*` → `./app/*` |
+| `strict`           | true                                 |
+| Plugins            | `next` (TypeScript plugin)           |
 
 ### O.4 Backend — `tsconfig.json`
 
-| Configuración | Valor |
-|--------------|-------|
-| `target` | ES2022 |
-| `module` | ESNext |
-| `moduleResolution` | Bundler |
-| `outDir` | `./dist` |
-| `strict` | true |
-| `noUnusedLocals` | true |
-| `noUnusedParameters` | true |
-| `esModuleInterop` | true |
-| `resolveJsonModule` | true |
+| Configuración        | Valor    |
+| -------------------- | -------- |
+| `target`             | ES2022   |
+| `module`             | ESNext   |
+| `moduleResolution`   | Bundler  |
+| `outDir`             | `./dist` |
+| `strict`             | true     |
+| `noUnusedLocals`     | true     |
+| `noUnusedParameters` | true     |
+| `esModuleInterop`    | true     |
+| `resolveJsonModule`  | true     |
 
 ### O.5 Backend — `vitest.config.ts`
 
-| Configuración | Valor |
-|--------------|-------|
-| `environment` | node |
-| `include` | `tests/**/*.test.ts` |
-| `coverage.provider` | v8 |
-| `coverage.include` | `services/scheduling/**/*.ts` |
-| `testTimeout` | 10.000 ms |
-| `globals` | true |
+| Configuración       | Valor                         |
+| ------------------- | ----------------------------- |
+| `environment`       | node                          |
+| `include`           | `tests/**/*.test.ts`          |
+| `coverage.provider` | v8                            |
+| `coverage.include`  | `services/scheduling/**/*.ts` |
+| `testTimeout`       | 10.000 ms                     |
+| `globals`           | true                          |
 
 ### O.6 Dependencias destacadas
 
 #### Frontend (`package.json`)
 
-| Categoría | Dependencias |
-|-----------|-------------|
-| **Framework** | next 16.0.8, react 19.1.0, react-dom 19.1.0 |
+| Categoría      | Dependencias                                                 |
+| -------------- | ------------------------------------------------------------ |
+| **Framework**  | next 16.0.8, react 19.1.0, react-dom 19.1.0                  |
 | **UI Library** | @nextui-org/react, @headlessui/react 2.2.4, @heroicons/react |
-| **State** | zustand 5.0.5, @tanstack/react-query 5.81.5 |
-| **Forms** | react-hook-form 7.56.4, @hookform/resolvers |
-| **i18n** | next-intl 4.6.1 |
-| **Theme** | next-themes 0.4.6 |
-| **Charts** | recharts 2.15.3 |
-| **Icons** | react-icons 5.5.0 |
-| **Dates** | date-fns 4.1.0, dayjs 1.11.13 |
-| **Excel** | xlsx 0.18.5 |
-| **Auth** | next-auth 5.0.0-beta.25 |
-| **Toast** | react-hot-toast 2.5.2 |
-| **Analytics** | @vercel/analytics 1.5.0 |
-| **Validation** | zod 3.25.42 |
-| **TypeScript** | 5.7.3 |
+| **State**      | zustand 5.0.5, @tanstack/react-query 5.81.5                  |
+| **Forms**      | react-hook-form 7.56.4, @hookform/resolvers                  |
+| **i18n**       | next-intl 4.6.1                                              |
+| **Theme**      | next-themes 0.4.6                                            |
+| **Charts**     | recharts 2.15.3                                              |
+| **Icons**      | react-icons 5.5.0                                            |
+| **Dates**      | date-fns 4.1.0, dayjs 1.11.13                                |
+| **Excel**      | xlsx 0.18.5                                                  |
+| **Auth**       | next-auth 5.0.0-beta.25                                      |
+| **Toast**      | react-hot-toast 2.5.2                                        |
+| **Analytics**  | @vercel/analytics 1.5.0                                      |
+| **Validation** | zod 3.25.42                                                  |
+| **TypeScript** | 5.7.3                                                        |
 
 #### Backend (`package.json`)
 
-| Categoría | Dependencias |
-|-----------|-------------|
-| **Framework** | express 5.1.0 |
-| **Database** | mysql2 3.14.2 |
-| **Auth** | jsonwebtoken 9.0.2, passport 0.7.0, bcrypt 6.0.0 |
-| **Upload** | multer 2.0.0, cloudinary 2.8.0 |
-| **Cron** | node-cron 3.0.3 |
-| **Email** | nodemailer 6.10.1 |
-| **Validation** | zod 3.25.42 |
-| **HTTP** | axios 1.8.4, cors 2.8.5, cookie-parser 1.4.7 |
-| **Files** | archiver 7.0.1 |
-| **AI** | @anthropic-ai/sdk 0.52.0 |
-| **Dates** | dayjs 1.11.13 |
-| **Runtime** | tsx 4.19.4 |
-| **TypeScript** | 5.9.3 |
-| **Test** | vitest 3.2.1 |
+| Categoría      | Dependencias                                     |
+| -------------- | ------------------------------------------------ |
+| **Framework**  | express 5.1.0                                    |
+| **Database**   | mysql2 3.14.2                                    |
+| **Auth**       | jsonwebtoken 9.0.2, passport 0.7.0, bcrypt 6.0.0 |
+| **Upload**     | multer 2.0.0, cloudinary 2.8.0                   |
+| **Cron**       | node-cron 3.0.3                                  |
+| **Email**      | nodemailer 6.10.1                                |
+| **Validation** | zod 3.25.42                                      |
+| **HTTP**       | axios 1.8.4, cors 2.8.5, cookie-parser 1.4.7     |
+| **Files**      | archiver 7.0.1                                   |
+| **AI**         | @anthropic-ai/sdk 0.52.0                         |
+| **Dates**      | dayjs 1.11.13                                    |
+| **Runtime**    | tsx 4.19.4                                       |
+| **TypeScript** | 5.9.3                                            |
+| **Test**       | vitest 3.2.1                                     |
 
 ### O.7 Package Manager y Scripts
 
 **Package manager:** npm (no pnpm ni yarn)
 
 **Frontend scripts:**
+
 ```bash
 npm run dev       # next dev --turbopack
 npm run build     # next build
@@ -4177,6 +4476,7 @@ npm run lint      # next lint
 ```
 
 **Backend scripts:**
+
 ```bash
 npm run dev       # tsx watch --clear-screen=false backend/index.ts
 npm run build     # tsc
@@ -4193,15 +4493,16 @@ npm run test:coverage # vitest run --coverage
 
 ### P.1 Plataformas
 
-| Componente | Plataforma | Dominio |
-|-----------|-----------|---------|
-| Frontend | Vercel | `four-points.vercel.app` / `four-points.stackbp.es` |
-| Backend | Render | `four-points.onrender.com` / `api.four-points.stackbp.es` |
-| Database | Aiven | MySQL 8.0 cloud |
+| Componente | Plataforma | Dominio                                                   |
+| ---------- | ---------- | --------------------------------------------------------- |
+| Frontend   | Vercel     | `four-points.vercel.app` / `four-points.stackbp.es`       |
+| Backend    | Render     | `four-points.onrender.com` / `api.four-points.stackbp.es` |
+| Database   | Aiven      | MySQL 8.0 cloud                                           |
 
 ### P.2 CI/CD
 
 **Estado:** No hay CI/CD automatizado.
+
 - Sin GitHub Actions
 - Sin Dockerfile
 - Sin `.gitlab-ci.yml`
@@ -4210,20 +4511,22 @@ npm run test:coverage # vitest run --coverage
 ### P.3 Variables de entorno en producción
 
 **Frontend (Vercel):**
+
 - `NEXT_PUBLIC_API_URL` — URL pública del backend
 - `API_BASE_URL` — URL del backend para server-side
 
 **Backend (Render):**
+
 - Todas las variables de Sección D.2 + Sección K.1
 - `DB_ENVIRONMENT=aiven`
 
 ### P.4 Observaciones y mejoras potenciales
 
-| # | Estado | Observación |
-|---|---|---|
-| 1 | ⚠️ | **Sin CI/CD** — No hay tests automáticos en push ni deploy automatizado del backend |
-| 2 | ⚠️ | **Sin Docker** — El proyecto no tiene Dockerfile. Podría facilitar replicación de entornos |
-| 3 | ℹ️ | **Vercel auto-deploy** — El frontend se despliega automáticamente al pushear a main. El backend en Render requiere trigger manual o auto-deploy configurado |
+| #   | Estado | Observación                                                                                                                                                 |
+| --- | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | ⚠️     | **Sin CI/CD** — No hay tests automáticos en push ni deploy automatizado del backend                                                                         |
+| 2   | ⚠️     | **Sin Docker** — El proyecto no tiene Dockerfile. Podría facilitar replicación de entornos                                                                  |
+| 3   | ℹ️     | **Vercel auto-deploy** — El frontend se despliega automáticamente al pushear a main. El backend en Render requiere trigger manual o auto-deploy configurado |
 
 ---
 
@@ -4234,6 +4537,7 @@ npm run test:coverage # vitest run --coverage
 Criterio aplicado al `package.json` de `backend/` y `frontend/`:
 
 **Fijar versión exacta (sin `^`) cuando:**
+
 - Seguridad / auth: `bcrypt`, `jsonwebtoken`, `passport`, `passport-jwt`, `cookie-parser`, `cors`, `express-rate-limit`
 - Driver de base de datos: `mysql2`, `postgres`
 - Framework de aplicación: `express`, `next`, `react`, `react-dom`
@@ -4245,6 +4549,7 @@ Criterio aplicado al `package.json` de `backend/` y `frontend/`:
 - Auth cliente: `js-cookie`
 
 **Mantener con `^` (utilidades estables, semver estricto):**
+
 - `dayjs`, `clsx`, `date-fns`, `tailwind-merge`, `use-debounce`
 - `@heroicons/react`, `@headlessui/react`, `react-hot-toast`, `react-icons`
 - `xlsx`, `uuid`, `next-themes`, `@vercel/analytics`, `@tailwindcss/forms`
@@ -4253,9 +4558,8 @@ Criterio aplicado al `package.json` de `backend/` y `frontend/`:
 
 ### Q.2 Deuda pendiente
 
-| # | Item | Estado | Notas |
-|---|------|--------|-------|
-| 1 | **Zod version mismatch** — backend en `4.0.5`, frontend en `^3.25.17` (v3 legacy) | ⚠️ Pendiente | Los schemas no se comparten entre repos hoy → riesgo runtime = 0. Sin embargo, v3 está en legacy y la divergencia crece. Migrar frontend a v4 cuando haya ventana: los 4 archivos afectados (`app/lib/schemas/group-schemas.ts`, `app/lib/maintenance/maintenance-schemas.ts`, `app/lib/logbooks/validations.ts`, `app/lib/blacklist/blacklistSchema.ts`) usan APIs v3 (`required_error`, `invalid_type_error`, `errorMap`) que cambiaron en v4 al parámetro unificado `error`. Estimación: ~2-3 h incluyendo tests Vitest + smoke test manual de formularios. |
-| 2 | **Deps sospechosas en frontend** — `mysql2`, `postgres` y `bcrypt` aparecen como dependencias de cliente | ⚠️ Revisar | Un bundle de Next.js no debería incluir drivers de BD ni `bcrypt`. Puede que: (a) se usen solo en Server Components / Server Actions y Next.js las excluya del bundle cliente — verificar con `next build` y análisis de bundle, (b) sean arrastre de un boilerplate Next.js (el ejemplo `next-learn` usa `postgres` + `bcrypt` para el tutorial de auth) y estén sin uso real. Acción: buscar importaciones reales con `grep -r "from ['\"](mysql2\|postgres\|bcrypt)['\"]" frontend/app` y, si no se usan, eliminarlas. |
-| 3 | **`next-auth` peer mismatch** — `5.0.0-beta.25` declara peer `next@"^14 \|\| ^15"` pero está instalado con `next@16.0.8` | ℹ️ Informativo | Funciona en la práctica (pnpm no bloquea), pero es frágil. Vigilar releases estables de `next-auth` v5. |
-
+| #   | Item                                                                                                                     | Estado         | Notas                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| --- | ------------------------------------------------------------------------------------------------------------------------ | -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | **Zod version mismatch** — backend en `4.0.5`, frontend en `^3.25.17` (v3 legacy)                                        | ⚠️ Pendiente   | Los schemas no se comparten entre repos hoy → riesgo runtime = 0. Sin embargo, v3 está en legacy y la divergencia crece. Migrar frontend a v4 cuando haya ventana: los 4 archivos afectados (`app/lib/schemas/group-schemas.ts`, `app/lib/maintenance/maintenance-schemas.ts`, `app/lib/logbooks/validations.ts`, `app/lib/blacklist/blacklistSchema.ts`) usan APIs v3 (`required_error`, `invalid_type_error`, `errorMap`) que cambiaron en v4 al parámetro unificado `error`. Estimación: ~2-3 h incluyendo tests Vitest + smoke test manual de formularios. |
+| 2   | **Deps sospechosas en frontend** — `mysql2`, `postgres` y `bcrypt` aparecen como dependencias de cliente                 | ⚠️ Revisar     | Un bundle de Next.js no debería incluir drivers de BD ni `bcrypt`. Puede que: (a) se usen solo en Server Components / Server Actions y Next.js las excluya del bundle cliente — verificar con `next build` y análisis de bundle, (b) sean arrastre de un boilerplate Next.js (el ejemplo `next-learn` usa `postgres` + `bcrypt` para el tutorial de auth) y estén sin uso real. Acción: buscar importaciones reales con `grep -r "from ['\"](mysql2\|postgres\|bcrypt)['\"]" frontend/app` y, si no se usan, eliminarlas.                                      |
+| 3   | **`next-auth` peer mismatch** — `5.0.0-beta.25` declara peer `next@"^14 \|\| ^15"` pero está instalado con `next@16.0.8` | ℹ️ Informativo | Funciona en la práctica (pnpm no bloquea), pero es frágil. Vigilar releases estables de `next-auth` v5.                                                                                                                                                                                                                                                                                                                                                                                                                                                        |

@@ -9,6 +9,7 @@
 > **Vigencia:** vivo durante la migración. Cuando termine, este archivo se archiva o se borra y las decisiones relevantes se promueven a `ROADMAP.md` (proyecto completo) y/o a `CLAUDE.md` (instrucciones permanentes para agentes).
 >
 > **Qué NO contiene:**
+>
 > - Catálogo de reglas del convenio/operativas → ver `SCHEDULING-CONSTRAINTS.md`
 > - Histórico de decisiones de diseño y su justificación → ver `SCHEDULING-DECISIONS-LOG.md`
 > - Roadmap general del proyecto Four-Points → ver `ROADMAP.md`
@@ -84,6 +85,7 @@ Estas decisiones **no se revisan** salvo que aparezca evidencia objetiva que las
 **Daemon Python persistente (migrado desde CLI en 2026-04-30).** Node mantiene un único proceso Python vivo durante toda la vida del servidor. OR-Tools se importa una sola vez al arrancar. Cada petición envía una línea JSON por stdin y lee la respuesta por stdout (newline-delimited protocol).
 
 Motivos del cambio a daemon (ver `SCHEDULING-DECISIONS-LOG.md` entrada 2026-04-30):
+
 - En Windows con Windows Defender, el import de OR-Tools puede tardar 1-20 minutos por DLL scan. Con spawn-por-petición, cada generación pagaba ese coste; con daemon se paga una sola vez.
 - En Linux/producción también mejora: elimina ~3s de startup Python por petición.
 - El protocolo JSON por stdin/stdout no cambia respecto al plan CLI original; solo cambia quién lo invoca.
@@ -103,13 +105,14 @@ Archivos clave: `scheduling-solver/daemon.py` (proceso Python), `services/schedu
 
 `main.py` sigue existiendo como entry point CLI **solo para debugging manual** (ej: probar un input JSON suelto en consola). El flujo productivo NO lo usa — todas las generaciones reales pasan por el daemon. Adicionalmente, existen scripts de debug en el backend para inspeccionar el sistema:
 
-| Script | Propósito |
-| ------ | --------- |
-| `debug-compare.js` | Consultar base de datos y listar meses existentes |
-| `debug-month.js` | Ver asignaciones de un mes específico |
-| `debug-sept.js` | Debug completo del mes septiembre 2026: empleados, locked cells, input/output del solver |
+| Script             | Propósito                                                                                |
+| ------------------ | ---------------------------------------------------------------------------------------- |
+| `debug-compare.js` | Consultar base de datos y listar meses existentes                                        |
+| `debug-month.js`   | Ver asignaciones de un mes específico                                                    |
+| `debug-sept.js`    | Debug completo del mes septiembre 2026: empleados, locked cells, input/output del solver |
 
 **Uso**:
+
 ```bash
 cd backend
 node debug-sept.js    # Debug mes específico
@@ -258,13 +261,15 @@ interface SolverError {
 
 ### 3.3 Cambios de DB
 
-**⚠ Gap detectado 2026-04-24 (bloqueante para Fase 1):** el esquema actual **no** soporta peticiones por fecha o rango de fechas, ni reglas de empleado con vigencia temporal. El contrato del solver ya contempla `lockedCells` con `reason: 'approved_request'` (§3.1), pero no hay tabla donde vivan esas peticiones. Evidencia: las hojas del Excel real tienen notas tipo *"EMP_05 librar 28/29"* como texto libre. Detalle y tipos de petición en `SCHEDULING-CONSTRAINTS.md` §"Inputs del sistema — Peticiones".
+**⚠ Gap detectado 2026-04-24 (bloqueante para Fase 1):** el esquema actual **no** soporta peticiones por fecha o rango de fechas, ni reglas de empleado con vigencia temporal. El contrato del solver ya contempla `lockedCells` con `reason: 'approved_request'` (§3.1), pero no hay tabla donde vivan esas peticiones. Evidencia: las hojas del Excel real tienen notas tipo _"EMP_05 librar 28/29"_ como texto libre. Detalle y tipos de petición en `SCHEDULING-CONSTRAINTS.md` §"Inputs del sistema — Peticiones".
 
 **Requerido antes de Fase 1 (decidido 2026-04-25):**
+
 - Crear tabla `scheduling_employee_requests` (DDL completo en `SCHEDULING-CONSTRAINTS.md` §7.5). Campos: `employee_id`, `date_from`, `date_to`, `request_type` ENUM(`shift_preference`, `shift_exclusion`, `bonificable`, `baja_temporal`, `vacation`), `requested_value`, `status`, `created_by`, `approved_by`, `notes`.
 - `scheduling_employee_rules` **no** se modifica: las reglas con vigencia temporal (ej: EMP_07 sin `M` durante 3 meses) se modelan como `shift_exclusion` con rango largo en la nueva tabla.
 
 **Propuestos para Fase 2** (cuando tuneemos soft constraints):
+
 - Añadir columna `enforcement ENUM('hard','soft')` a una futura tabla `scheduling_constraint_definitions` **si** decidimos que el tipo hard/soft de cada regla es configurable por hotel. Por ahora es hardcoded en el código.
 - Nada más.
 
@@ -333,27 +338,27 @@ Cada fase tiene **criterios de cierre medibles**. No se avanza a la siguiente ha
 
 **Trabajo implementado:**
 
-| Componente | Estado | Notas |
-|---|---|---|
-| Setup Python + estructura | ✅ | `scheduling-solver/` con venv, pyproject.toml, main.py, schemas.py |
-| H1 — Cobertura mínima M/T/N | ✅ | `constraints/coverage.py` |
-| H4 — Máx. días consecutivos | ✅ | `constraints/rest.py` |
-| H5 — ≥2 libres en ventana 7d | ✅ | `constraints/rest.py` |
-| H6 — Libres mensuales min/max | ✅ | `constraints/libres.py` |
-| H7 — Celdas bloqueadas | ✅ | `constraints/locked_cells.py` |
-| H2 — Bloques de noche | ✅ | `constraints/night_block.py` (adelantado de Fase 2) |
-| H3 — Transiciones prohibidas | ✅ | `constraints/transitions.py` (adelantado de Fase 2) |
-| Bloques mínimos M/T | ✅ | `constraints/day_blocks.py` (adelantado de Fase 2) |
-| Reglas de empleado (noWeekends, fixedShift) | ✅ | `constraints/employee_rules.py` (adelantado de Fase 2) |
-| fixedDays → lockedCells | ✅ | Pre-expansión en `build-solver-input.ts` (no en Python) |
-| `scheduling_employee_requests` aprobadas → lockedCells | ✅ | `build-solver-input.ts` fuente 2 |
-| Cross-month tail (previousMonthTail) | ✅ | Variables virtuales (-7..-1) en model.py; todas las constraints iteran sobre all_days |
-| `solver-client.ts` | ✅ | Spawn Python, stdin/stdout, timeout, error handling |
-| `build-solver-input.ts` | ✅ | 3 fuentes de lockedCells: assignments bloqueados, requests, fixedDays |
-| Endpoint `POST /months/:id/generate` | ✅ | `controllers/scheduling/schedule-generate.controller.ts` |
-| Frontend botón + modal infeasible (versión básica) | ✅ | `SchedulingClient.tsx`. UX enriquecida (renderizar `conflictingConstraints` + `suggestedRelaxations` accionables) queda para Fase 3 paso 2. |
-| Corpus vs solver (Python pytest) | ✅ | `scheduling-solver/tests/test_corpus.py` — 44/44 verdes |
-| Parity validator TS | ✅ | `tests/scheduling/solver-parity.test.ts` — 4/4 verdes, 0 hard errors |
+| Componente                                             | Estado | Notas                                                                                                                                       |
+| ------------------------------------------------------ | ------ | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| Setup Python + estructura                              | ✅     | `scheduling-solver/` con venv, pyproject.toml, main.py, schemas.py                                                                          |
+| H1 — Cobertura mínima M/T/N                            | ✅     | `constraints/coverage.py`                                                                                                                   |
+| H4 — Máx. días consecutivos                            | ✅     | `constraints/rest.py`                                                                                                                       |
+| H5 — ≥2 libres en ventana 7d                           | ✅     | `constraints/rest.py`                                                                                                                       |
+| H6 — Libres mensuales min/max                          | ✅     | `constraints/libres.py`                                                                                                                     |
+| H7 — Celdas bloqueadas                                 | ✅     | `constraints/locked_cells.py`                                                                                                               |
+| H2 — Bloques de noche                                  | ✅     | `constraints/night_block.py` (adelantado de Fase 2)                                                                                         |
+| H3 — Transiciones prohibidas                           | ✅     | `constraints/transitions.py` (adelantado de Fase 2)                                                                                         |
+| Bloques mínimos M/T                                    | ✅     | `constraints/day_blocks.py` (adelantado de Fase 2)                                                                                          |
+| Reglas de empleado (noWeekends, fixedShift)            | ✅     | `constraints/employee_rules.py` (adelantado de Fase 2)                                                                                      |
+| fixedDays → lockedCells                                | ✅     | Pre-expansión en `build-solver-input.ts` (no en Python)                                                                                     |
+| `scheduling_employee_requests` aprobadas → lockedCells | ✅     | `build-solver-input.ts` fuente 2                                                                                                            |
+| Cross-month tail (previousMonthTail)                   | ✅     | Variables virtuales (-7..-1) en model.py; todas las constraints iteran sobre all_days                                                       |
+| `solver-client.ts`                                     | ✅     | Spawn Python, stdin/stdout, timeout, error handling                                                                                         |
+| `build-solver-input.ts`                                | ✅     | 3 fuentes de lockedCells: assignments bloqueados, requests, fixedDays                                                                       |
+| Endpoint `POST /months/:id/generate`                   | ✅     | `controllers/scheduling/schedule-generate.controller.ts`                                                                                    |
+| Frontend botón + modal infeasible (versión básica)     | ✅     | `SchedulingClient.tsx`. UX enriquecida (renderizar `conflictingConstraints` + `suggestedRelaxations` accionables) queda para Fase 3 paso 2. |
+| Corpus vs solver (Python pytest)                       | ✅     | `scheduling-solver/tests/test_corpus.py` — 44/44 verdes                                                                                     |
+| Parity validator TS                                    | ✅     | `tests/scheduling/solver-parity.test.ts` — 4/4 verdes, 0 hard errors                                                                        |
 
 **Bugs corregidos en el cierre (2026-04-30):**
 
@@ -368,6 +373,7 @@ Cada fase tiene **criterios de cierre medibles**. No se avanza a la siguiente ha
 - `build-solver-input.ts`: `minNightBlock`, `maxNightBlock`, `prefNightBlock` no se enviaban al solver — Python usaba defaults del schema. Ahora se leen de `configMap` y se envían explícitamente.
 
 **Diferido a pre-producción (no bloqueante para Fase 1):**
+
 - Migración Aiven de `scheduling_employee_requests` — aplicar `scripts/20260425_create_scheduling_employee_requests.sql` en Aiven + actualizar `aiven/19_scheduling.sql` + `MASTER_INSTALL.sql`.
 
 **Criterios de cierre:**
@@ -449,15 +455,15 @@ Distinción registrada 2026-05-09 tras pregunta del manager:
 
 ## 5. Riesgos conocidos
 
-| Riesgo | Probabilidad | Impacto | Mitigación |
-|---|---|---|---|
-| Formulación CP-SAT lenta para 30+ empleados | Media | Alto | PoC en Fase 0; si es lento, explorar decomposición por semanas o warm-start |
-| Divergencia validator TS vs. solver Python | Alta | Alto | Corpus de tests compartido desde Fase 0; en CI correr ambos contra el mismo corpus |
-| Pesos de soft constraints mal tuneados → horarios "raros" | Alta | Medio | Fase 2 dedica trabajo específico al tuneo con meses reales |
-| ~~Python no disponible en el deployment target~~ ✅ resuelto | — | — | El Node buildpack de Render incluye `python3`. `package.json` `build` script crea venv + instala ortools+pydantic desde `requirements.txt`. Versiones pineadas (`ortools==9.15.6755`, `pydantic==2.13.4`) y Python 3.11 anclado vía `.python-version` (2026-05-16). Funciona en producción de forma reproducible |
-| ~~Cálculo del último día del mes incorrecto en `findByMonth`~~ ✅ resuelto 2026-05-16 | — | — | `employee-requests-repository.ts:18` usaba `new Date(year, month, 0).toISOString().slice(0,10)` que en runtime con offset positivo (Madrid local con `dev:aiven`) devolvía un día menos del esperado (ej. `2026-05-30` en vez de `2026-05-31`), perdiendo requests del último día del mes que el solver debería tratar como lockedCells. En Render UTC no se manifestaba pero localmente sí. Fix: nuevo helper `getLastDayOfMonth(year, month)` en `config/date-utils.ts` (independiente del TZ runtime). Mismo cambio aplicado en `cashier-daily-repository.ts` y `conciliation-monthly.repository.ts` (commit `acb281a`) |
-| Cambios de convenio invalidan constraints | Baja | Medio | `SCHEDULING-CONSTRAINTS.md` es fácil de actualizar; lógica cambia en 2 sitios + tests |
-| UNSAT opaco (el solver dice "no hay solución" sin explicar) | Media | Medio | `sufficient_assumptions_for_infeasibility` de CP-SAT + trabajo dedicado en Fase 3 |
+| Riesgo                                                                                | Probabilidad | Impacto | Mitigación                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| ------------------------------------------------------------------------------------- | ------------ | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Formulación CP-SAT lenta para 30+ empleados                                           | Media        | Alto    | PoC en Fase 0; si es lento, explorar decomposición por semanas o warm-start                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| Divergencia validator TS vs. solver Python                                            | Alta         | Alto    | Corpus de tests compartido desde Fase 0; en CI correr ambos contra el mismo corpus                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| Pesos de soft constraints mal tuneados → horarios "raros"                             | Alta         | Medio   | Fase 2 dedica trabajo específico al tuneo con meses reales                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| ~~Python no disponible en el deployment target~~ ✅ resuelto                          | —            | —       | El Node buildpack de Render incluye `python3`. `package.json` `build` script crea venv + instala ortools+pydantic desde `requirements.txt`. Versiones pineadas (`ortools==9.15.6755`, `pydantic==2.13.4`) y Python 3.11 anclado vía `.python-version` (2026-05-16). Funciona en producción de forma reproducible                                                                                                                                                                                                                                                                                                           |
+| ~~Cálculo del último día del mes incorrecto en `findByMonth`~~ ✅ resuelto 2026-05-16 | —            | —       | `employee-requests-repository.ts:18` usaba `new Date(year, month, 0).toISOString().slice(0,10)` que en runtime con offset positivo (Madrid local con `dev:aiven`) devolvía un día menos del esperado (ej. `2026-05-30` en vez de `2026-05-31`), perdiendo requests del último día del mes que el solver debería tratar como lockedCells. En Render UTC no se manifestaba pero localmente sí. Fix: nuevo helper `getLastDayOfMonth(year, month)` en `config/date-utils.ts` (independiente del TZ runtime). Mismo cambio aplicado en `cashier-daily-repository.ts` y `conciliation-monthly.repository.ts` (commit `acb281a`) |
+| Cambios de convenio invalidan constraints                                             | Baja         | Medio   | `SCHEDULING-CONSTRAINTS.md` es fácil de actualizar; lógica cambia en 2 sitios + tests                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| UNSAT opaco (el solver dice "no hay solución" sin explicar)                           | Media        | Medio   | `sufficient_assumptions_for_infeasibility` de CP-SAT + trabajo dedicado en Fase 3                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
 
 ---
 
@@ -478,43 +484,42 @@ Distinción registrada 2026-05-09 tras pregunta del manager:
 - Cada decisión de diseño nueva que surja durante la implementación: registrarla en `SCHEDULING-DECISIONS-LOG.md` (append-only) y, si altera algo invariante aquí, actualizar la sección correspondiente con un changelog al final.
 - Si una fase se estanca > 50% sobre estimación: detener, replantear en este archivo, no seguir empujando.
 
-
------------------------
+---
 
 Plan escrito. Resumen de lo que tienes ahora:
 
-  Estructura final del documento                                                                                                        
-   
-  7 secciones en ~12KB densos:                                                                                                          
-                                                                                                                                      
-  1. Contexto y norte — estado actual, problema, arquitectura de 3 capas, criterio global de éxito medible                              
-  2. Decisiones invariantes — 7 decisiones que no se renegocian (solver, lenguaje, integración CLI, SoT de constraints, hard/soft,
-  compatibilidad manual, celdas bloqueadas)
-  3. Contratos de datos — schemas TS completos de input/output del CLI, contrato de exit codes, ubicación de archivos
-  4. Plan de fases — Fase 0 (1-2 sem), 1 (3-5 sem), 2 (4-6 sem), 3 (2-3 sem), cada una con trabajo y checklist de criterios de cierre
-  medibles
-  5. Riesgos conocidos — tabla con probabilidad, impacto y mitigación
-  6. Referencias cruzadas
-  7. Cómo mantener vivo el documento
+Estructura final del documento
 
-  Lo que NO hay (deliberadamente)
+7 secciones en ~12KB densos:
 
-  - Cronograma día-a-día (es ficción)
-  - Código de ejemplo del solver (es descubrimiento de Fase 1)
-  - Prompts del LLM o diseño de Capa 3 (muy lejos)
-  - Detalles de UI (no es plan técnico del core)
+1. Contexto y norte — estado actual, problema, arquitectura de 3 capas, criterio global de éxito medible
+2. Decisiones invariantes — 7 decisiones que no se renegocian (solver, lenguaje, integración CLI, SoT de constraints, hard/soft,
+   compatibilidad manual, celdas bloqueadas)
+3. Contratos de datos — schemas TS completos de input/output del CLI, contrato de exit codes, ubicación de archivos
+4. Plan de fases — Fase 0 (1-2 sem), 1 (3-5 sem), 2 (4-6 sem), 3 (2-3 sem), cada una con trabajo y checklist de criterios de cierre
+   medibles
+5. Riesgos conocidos — tabla con probabilidad, impacto y mitigación
+6. Referencias cruzadas
+7. Cómo mantener vivo el documento
 
-  Qué revisar tú ahora
+Lo que NO hay (deliberadamente)
 
-  Lee el documento y fíjate especialmente en:
+- Cronograma día-a-día (es ficción)
+- Código de ejemplo del solver (es descubrimiento de Fase 1)
+- Prompts del LLM o diseño de Capa 3 (muy lejos)
+- Detalles de UI (no es plan técnico del core)
 
-  1. Sección 2 (invariantes) — si alguna decisión ahí no te cuadra, es MUCHO más barato replantearla hoy que en Fase 2.
-  2. Criterios de cierre de cada fase — ¿son realistas? ¿Falta alguno? Estos son el freno que evita que las fases se alarguen sine die.
-  3. Riesgos — ¿falta alguno que te preocupe?
+Qué revisar tú ahora
 
-  Siguiente acción
+Lee el documento y fíjate especialmente en:
 
-  Cuando valides el plan, lo lógico es pasar a Fase 0 paso 1: completar SCHEDULING-CONSTRAINTS.md. Eso lo hacemos en otra sesión con el
-  validator TS delante, extrayendo cada constraint actual, clasificándola y documentándola.
+1. Sección 2 (invariantes) — si alguna decisión ahí no te cuadra, es MUCHO más barato replantearla hoy que en Fase 2.
+2. Criterios de cierre de cada fase — ¿son realistas? ¿Falta alguno? Estos son el freno que evita que las fases se alarguen sine die.
+3. Riesgos — ¿falta alguno que te preocupe?
 
-  Pásame feedback, lagunas, objeciones o luz verde.
+Siguiente acción
+
+Cuando valides el plan, lo lógico es pasar a Fase 0 paso 1: completar SCHEDULING-CONSTRAINTS.md. Eso lo hacemos en otra sesión con el
+validator TS delante, extrayendo cada constraint actual, clasificándola y documentándola.
+
+Pásame feedback, lagunas, objeciones o luz verde.
