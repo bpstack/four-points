@@ -1,0 +1,65 @@
+#!/bin/sh
+#
+# pre-push — el push requiere una persona detrás.
+#
+# Regla de proyecto: commitear en local no autoriza a publicar. El push afecta
+# estado compartido (CI/CD, deploy en Render, colaboradores), así que exige
+# confirmación explícita del propietario del repo.
+#
+# Cómo funciona:
+#   - Sesión interactiva (terminal con TTY): pide confirmación y sigue.
+#   - Sesión no interactiva (agente de IA, script): rechaza.
+#     Un agente puede crear commits, pero no publicarlos por su cuenta.
+#
+# Autorizar un push automatizado puntual:  FP_PUSH_OK=1 git push
+# Saltar el hook por completo:             git push --no-verify
+
+remote_name="$1"
+
+# Rechazar reescritura de historia en main/master (push no fast-forward).
+# Esta guarda va ANTES de FP_PUSH_OK: no es puenteable con la variable de
+# entorno, solo con --no-verify de forma consciente.
+zero=0000000000000000000000000000000000000000
+while read -r local_ref local_sha remote_ref remote_sha; do
+  case "$remote_ref" in
+    refs/heads/main | refs/heads/master) ;;
+    *) continue ;;
+  esac
+  # Rama nueva o borrado: nada que reescribir
+  [ "$remote_sha" = "$zero" ] && continue
+  [ "$local_sha" = "$zero" ] && continue
+  # Si el remoto no es ancestro del local, el push reescribe historia
+  if ! git merge-base --is-ancestor "$remote_sha" "$local_sha" 2>/dev/null; then
+    echo "" >&2
+    echo "✖ pre-push: esto reescribe la historia de $remote_ref (push no fast-forward)." >&2
+    echo "  Requiere orden directa del propietario. Abortado." >&2
+    echo "" >&2
+    exit 1
+  fi
+done
+
+# Escape hatch para CI o para un push automatizado ya autorizado por el usuario.
+# No puentea la guarda de force-push de arriba.
+if [ "$FP_PUSH_OK" = "1" ]; then
+  exit 0
+fi
+
+if [ ! -t 1 ]; then
+  echo "" >&2
+  echo "✖ pre-push: push bloqueado — sesión no interactiva." >&2
+  echo "" >&2
+  echo "  Destino: $remote_name" >&2
+  echo "  Los commits locales se quedan donde están; no se ha publicado nada." >&2
+  echo "" >&2
+  echo "  Si eres un agente: para aquí y pide autorización explícita al usuario." >&2
+  echo "  Si esto es CI o un push ya autorizado:  FP_PUSH_OK=1 git push" >&2
+  echo "" >&2
+  exit 1
+fi
+
+printf "Vas a publicar en '%s'. ¿Confirmas? [y/N] " "$remote_name" > /dev/tty
+read -r reply < /dev/tty
+case "$reply" in
+  [yY]|[yY][eE][sS]|[sS]|[sS][iI]) exit 0 ;;
+  *) echo "Push cancelado." >&2; exit 1 ;;
+esac
