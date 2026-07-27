@@ -880,7 +880,7 @@ routes/scheduling/
 | 2   | ⚠️     | **Controller monolítico** — `scheduling-controller.ts` tiene ~67KB. Candidato fuerte a dividir en sub-controllers por dominio (months, assignments, constraints, etc.)                                                                                                 |
 | 3   | ⚠️     | **Métodos fix() incompletos** — Algunos constraints tienen `fix()` parcialmente implementado (rotation-continuity lo tiene, max-consecutive-work tiene stub)                                                                                                           |
 | 4   | ℹ️     | **Archive/AI eliminado** — CLAUDE.md menciona `services/scheduling/archive/` con fases/scoring/AI pero el directorio no existe en el código actual (limpieza intencional)                                                                                              |
-| 5   | ℹ️     | **Soft markers no implementados** — Prefijos `REQUEST_`, `AVOID_`, `PREFER_` definidos en utils pero no usados en la UI actual                                                                                                                                         |
+| 5   | ℹ️     | **Soft markers no implementados** — Prefijos REQUEST*, AVOID*, PREFER\_ definidos en utils pero no usados en la UI actual                                                                                                                                              |
 | 6   | ⚠️     | **SchedulingConfigClient.tsx extenso** (~3000 líneas) — Contiene 7 tabs + todos los modales (employees, totals, general, rules, requests, shift-stats, presencias). Candidato fuerte a extracción de componentes por tab en `config/`                                  |
 | 7   | ℹ️     | **Presencias — integración pendiente** — La tab de Presencias funciona con input manual (paste desde Excel). Cuando el scheduling esté estable, leer directamente desde `scheduling_assignments` eliminando el textarea. Endpoint previsto: `GET /presencias/:monthId` |
 | 8   | ℹ️     | **Presencias — exportación Excel pendiente** — Futuro: exportar directamente el documento oficial de presencias (.xlsx) con formato completo (cabeceras, leyenda, ambas pestañas) sin necesidad de copy-paste                                                          |
@@ -4192,9 +4192,9 @@ En `app/lib/apiClient.ts`:
 
 ```typescript
 class ApiError extends Error {
-  demo: boolean // true = restricción modo demo
-  status: number // HTTP status
-  code?: string // Código del backend (para i18n)
+  demo: boolean    // true = restricción modo demo
+  status: number   // HTTP status
+  code?: string    // Código del backend (para i18n)
 }
 ```
 
