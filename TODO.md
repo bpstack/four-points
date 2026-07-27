@@ -1,68 +1,16 @@
 # TODO — Four-Points PMS
 
-> **Lista accionable para la próxima sesión.** Curada. Decisiones de scheduling en `SCHEDULING-DECISIONS-LOG.md` y `SCHEDULING-CONSTRAINTS.md`. Arquitectura del solver en `docs/backend/scheduling/`.
+> **Lista accionable para la próxima sesión.** Curada — no replica las tablas de `Global-Plan.md` ni `SCHEDULING-SOLVER-PLAN.md`, solo lo que el siguiente agente debería tocar primero.
+>
+> Roadmap completo en `Global-Plan.md`. Plan del solver en `SCHEDULING-SOLVER-PLAN.md`. Decisiones de scheduling en `SCHEDULING-DECISIONS-LOG.md` y `SCHEDULING-CONSTRAINTS.md`.
 
 ---
 
-## Estado breve (2026-05-24)
+## Estado breve (2026-05-16)
 
-- **Sprint 2** — quedan H1-13 Sentry (bloqueado por DSN externo) y H1-17 Cloudflare Access (tarea panel).
-- **CLAUDE.md restructure** ✅ completo. Doc del sistema en `docs/claude-system.md`.
-- **Setup por máquina** — al clonar en otro equipo, ver la sección de abajo (hooks de Git, Context7, venv del solver).
-
----
-
-## Setup por máquina — hacer al clonar en un equipo nuevo
-
-Cosas que **no viajan con el repo** y hay que repetir en cada ordenador. Si te cambias de equipo,
-esta es la lista.
-
-### 1. Activar los hooks de Git (30 s) — importante
-
-```bash
-git config core.hooksPath .githooks
-```
-
-Los hooks están versionados en `.githooks/`, pero `core.hooksPath` es config local (`.git/config`) y
-no se clona. **Sin este comando los hooks están en disco pero inertes**, y se pierde:
-
-- `commit-msg` — bloquea atribución de IA en los mensajes de commit.
-- `pre-push` — bloquea push desde sesiones no interactivas (agentes) y force-push contra `main`.
-
-Comprobar que está activo: `git config --get core.hooksPath` debe responder `.githooks`.
-
-### 2. Registrar el MCP de Context7 (una vez por máquina)
-
-```bash
-# Claude Code
-claude mcp add --scope user --header "CONTEXT7_API_KEY: $CONTEXT7_API_KEY" \
-  --transport http context7 https://mcp.context7.com/mcp
-claude mcp list      # debe salir context7 → Connected
-```
-
-Para OpenCode: bloque `mcp.context7` en `~/.config/opencode/opencode.json` (ver `AGENTS.md`) +
-`export CONTEXT7_API_KEY="…"` en `.bashrc` / `.zshrc`. Verificar con `opencode mcp list`.
-
-En WSL la config va **dentro** del WSL, no en PowerShell — tiene su propio `$HOME`.
-
-### 3. Venv del solver Python
-
-```bash
-cd backend/scheduling-solver
-python -m venv venv
-venv/Scripts/pip install ortools pydantic pytest    # Windows
-# venv/bin/pip install ortools pydantic pytest      # Linux/Mac
-```
-
-El venv está gitignoreado. Sin él, la generación automática de horarios no arranca.
-
-### Checklist por equipo
-
-| Equipo               | Hooks | Context7 | Venv solver |
-| -------------------- | ----- | -------- | ----------- |
-| PC Windows (2026-07) | ✅    | ✅       | ✅          |
-| PC Linux             | ⬜    | ⬜       | ⬜          |
-| Portátil de trabajo  | ⬜    | ⬜       | ⬜          |
+- **Sprint 2** 🚧 al 80% — 5 items cerrados (H1-16.1/2/3/4 + H1-18 trust proxy + H1-19 refactor timezone). Quedan **H1-13 Sentry** (bloqueado externo) y **H1-17 Cloudflare Access** (panel).
+- Refactor timezone Madrid/UTC completo en backend + frontend (7 commits). Detalle en `Global-Plan.md §0.3`.
+- Housekeeping cerrado: Prettier global, Zod comentarios 500 + contador UI, `docs/` ahora versionada en repo, protección desmarcar trabajo ajeno (modal confirmación) (commits `d75c940`, `41c4df8`, `3157d01`, este push).
 
 ---
 
@@ -77,7 +25,7 @@ Cuando tengas DSN:
 3. Envoltorio del error handler global para capturar errores no manejados.
 4. Sentry free tier: 5k errores/mes — suficiente para esta escala.
 
-Una vez activo, registrar el hallazgo en `SCHEDULING-DECISIONS-LOG.md`.
+Una vez activo, cerrar el §3.5 hallazgo de observabilidad de `Global-Plan.md`.
 
 ### H1-17 Cloudflare Zero Trust Access ⏳ (tarea panel, ~30 min)
 
@@ -96,21 +44,59 @@ Una vez activo, registrar el hallazgo en `SCHEDULING-DECISIONS-LOG.md`.
 
 ---
 
+## Módulo Checklist — pendientes técnicos
+
+> Módulo en producción (F1, F2, F3, F5 entregadas). Documentación completa en `docs/checklists/checklist.md`.
+
+- [ ] **Tests Vitest checklist** (~1h) — crear `backend/tests/checklist/`. Cobertura mínima:
+  - `getRunState` crea run nuevo si no existe para `hotel_date` Madrid de hoy.
+  - `getRunState` devuelve run existente (idempotencia).
+  - `getRunState` cierra runs viejos (`hotel_date < today`) en la primera llamada del día (auto-close lazy, ya en prod desde commit `b1d2a20`).
+  - `toggleStep(stepId, done=true)` inserta row en `checklist_step_state` con `done_by_user_id` y `done_at`.
+  - `toggleStep` registra event_log con `kind='step_done'`/`'step_undone'`.
+  - `closeStaleRuns` con DB vacía es noop (`affectedRows=0`).
+  - `closeStaleRuns` con run viejo marca `reset_at=NOW()`, `reset_reason='cron'`, `reset_by_user_id='system-cron'`.
+  - Comentarios: `.trim()` rechaza solo-espacios (regresión del fix 2026-05-15).
+
+- [ ] **Historial en Reports** (2-3h) — añadir sección `checklist` a `ReportSection` en `frontend/app/components/profile/reports/types.ts:134` + crear `ChecklistSection.tsx`. Mostrará runs por checklist (fecha, turno, pasos completados, autor). **Requiere endpoint nuevo:** `GET /api/checklists/:id/history?limit=N`. Datos en `checklist_runs` + `checklist_step_state` + `checklist_event_log`. UI: `/dashboard/profile?panel=settings&tab=reports`. TODO con detalle ya en `reports/types.ts:136-140`.
+
+- [ ] **Zod validación `stepId` contra el JSON** (45 min) — `toggleStepSchema` (`validations/checklist/checklist-schemas.ts:5`) solo valida `done: z.boolean()`. Debería rechazar `stepId` que no existe en el checklist JSON. Recomendado: opción (a) — función dedicada en el controller que cargue el JSON y compruebe existencia. Mantiene Zod desacoplado del filesystem.
+
+- [ ] **Retención `checklist_event_log`** (decisión + 1-2h implementación, no urgente) — tabla crece sin límite (~3000 rows/año con 3 checklists diarios). Documentar estrategia antes:
+  - Opción A: cron mensual archive a `checklist_event_log_archive` rows > 1 año.
+  - Opción B: purge directo > 2 años (más simple).
+  - Actualizar `docs/checklists/checklist.md` cuando se decida.
+
+### Pendientes de contenido (manager, no dev)
+
+- [ ] `tasks/morning-shift.json` — pasos reales turno de mañana.
+- [ ] `tasks/housekeeping-daily.json` — tareas reales housekeeping.
+- [ ] Procedimientos: `guides/fidelizacion-postcheckin.md`, `guides/balancing-opera.md`.
+- [ ] Referencias: `references/shift-f3.md`, `references/reports-t122.md`.
+
+### Futuro (evaluar con uso real)
+
+- Reactivar upload de imágenes en F3 cuando se decidan límites Cloudinary y formatos.
+- Si hay multi-hotel (`HotelCode`), reabrir F4 (editor admin UI).
+- Reset por turno (06:30/14:00/23:00) si el flujo operativo lo pide. Schema: `daily_reset_overrides` JSON en `checklist_config`.
+
+---
+
 ## Módulo Scheduling Solver — pendientes
 
-> Fase 1 ✅ + Fase 2 ✅ (en código). Fase 3 🟡 en progreso. Decisiones en `SCHEDULING-DECISIONS-LOG.md`.
+> Plan técnico completo en `SCHEDULING-SOLVER-PLAN.md`. Fase 1 ✅ + Fase 2 ✅ (en código). Fase 3 🟡 en progreso.
 
 - [ ] **Fase 3 criterio abierto: `scheduling_solver_runs` ≥ 30 runs de producción** (bloqueado por uso real). El logging estructurado está implementado (commit `f34e20d`), solo falta acumular datos. Cuando llegues a 30 runs, hacer query agregada para detectar patrones (status, soft penalty, breakdown) y registrar findings en `SCHEDULING-DECISIONS-LOG.md`.
 
 - [ ] **Fase 3 criterio abierto: UX de infeasibilidad probada con ≥ 3 escenarios reales** — motor `_analyze_infeasibility` ya implementado (commit `f34e20d`), pero solo testeado con corpus sintético. Hacer 3 generaciones con configs imposibles a propósito (ej: 2 empleados rotatorios + cobertura mínima 3) → comprobar que las relajaciones sugeridas son aplicables y arreglan el infeasibility.
 
-- [ ] **Fase 2 punto 4 diferido — tuning de pesos soft S1/S2/S3/S4** (bloqueado por uso productivo). Cuando el manager valide 3 meses consecutivos en producción, analizar el `softPenaltyBreakdown` real y los diffs entre matriz solver-generada y matriz final editada por el manager (en `scheduling_solver_runs`). Cada patrón recurrente = señal para subir/bajar un peso.
+- [ ] **Fase 2 punto 4 diferido — tuning de pesos soft S1/S2/S3/S4** (bloqueado por uso productivo). Cuando el manager valide 3 meses consecutivos en producción, analizar el `softPenaltyBreakdown` real y los diffs entre matriz solver-generada y matriz final editada por el manager (en `scheduling_solver_runs`). Cada patrón recurrente = señal para subir/bajar un peso. Detalle del método en `SCHEDULING-SOLVER-PLAN.md §4 Después de Fase 3 - Bucle de feedback`.
 
 ---
 
 ## Horizonte 2 — post-datos reales
 
-> Solo apuntados; **no iniciar nada de esto hasta que entren datos reales y se conozca el patrón de uso real.**
+> Solo apuntados; detalle y razonamiento en `Global-Plan.md §6 Roadmap por horizontes`. **No iniciar nada de esto hasta que entren datos reales y se conozca el patrón de uso real.**
 
 | ID    | Item                                                                   | Por qué importa                                                          |
 | ----- | ---------------------------------------------------------------------- | ------------------------------------------------------------------------ |
@@ -124,54 +110,6 @@ Una vez activo, registrar el hallazgo en `SCHEDULING-DECISIONS-LOG.md`.
 | H2-5  | Auditar cobertura Zod en todos los endpoints                           | Una vez, sistemático                                                     |
 | H2-6  | GitHub Actions CI (lint + typecheck + test pre-merge)                  | Acelera dev cuando haya más manos                                        |
 | H2-4  | CSRF token explícito para mutaciones                                   | Más relevante si crece la superficie pública                             |
-
----
-
-## Scheduling solver — deuda técnica detectada al importar histórico
-
-### H5: alinear semántica Python ↔ TS validator ↔ spec (~30-60 min)
-
-**Spec documentado** (`SCHEDULING-CONSTRAINTS.md §H5`): "≥2 días **consecutivos** de descanso en ventana 7 días" (necesita par `L,L`).
-
-**TS validator** (`services/scheduling/constraints/consecutive-rest.constraint.ts`): correcto — exige par consecutivo.
-
-**Python solver** (`scheduling-solver/constraints/rest.py`): drift histórico — implementa `sum(rest) ≥ 2`, no exige consecutivos. Más laxo.
-
-Resultado actual: el solver puede generar schedules que el validator marca como inválidos (par no encontrado pero suma ≥2). El parity test no lo cazó porque los fixtures actuales casualmente no exhiben el caso degenerado (`L M M M M L M` = 2 rest no consecutivos en 7 días).
-
-**Acción:** reescribir `rest.py` H5 con boolean indicator `is_consecutive_rest_pair_in_window[w]` reificado sobre pares de días adyacentes (`L_d ∧ L_{d+1}`), exigir suma ≥ 1 por ventana. Verificar parity post-cambio.
-
-### H4 vs H5: contradicción de bound efectivo (~1-2h de discusión + cambio)
-
-H4 dice `maxConsecutiveWorkDays = 6`. H5 (ventana 7 días, ≥2 rest **consecutivos**) implica efectivamente `max consecutive work = 5` (un par WWWWWWL en 7 días → solo 1 rest, viola H5).
-
-H4 está muerto: H5 siempre le gana.
-
-**Decisión pendiente:**
-
-- **Opción A**: aceptar el bound real (5 consecutivos) y bajar H4 a 5. Honesto, evita confusión.
-- **Opción B**: cambiar H5 a ventana 8 días (`≥2 rest en 8 días`). Permitiría patrón hostelero "6 trabajo + 2 descanso", muy común. Cambio más invasivo: afecta `rest.py`, validator TS, fixtures que asumen 7, documentación.
-
-Si se elige B, evaluar también si esto resolvería retroactivamente el caso Andrés (6 M al cierre de mayo) sin necesitar la excepción cross-month que añadimos el 2026-05-20.
-
-### Cross-month "doomed windows" — fix aplicado, monitorizar
-
-Aplicado el 2026-05-20 en `rest.py` (ver `SCHEDULING-DECISIONS-LOG.md`). Funciona para el caso Andrés real y para F31/F52. Pero:
-
-- Mismo patrón puede aparecer en otros constraints con ventana deslizante cross-month (`night_block.py` ventana max-block, `day_blocks.py`). Auditarlos por completitud cuando aparezca un INFEASIBLE similar.
-- Si más adelante se rehace H5 a "consecutive pair" (item anterior), revisar si la lógica de skip cross-month sigue siendo correcta o necesita ajuste.
-
----
-
-## Bug: setSchedulableEmployees borra start_date/end_date
-
-**Descripción:** El endpoint `PUT /api/scheduling/employees` hace un `DELETE FROM scheduling_employees` total seguido de un `INSERT (employee_id, added_by)`. Cualquier `start_date`/`end_date` configurado previamente (ej: Clara, Cristina, Víctor) se pierde silenciosamente si un admin guarda la lista desde `EmployeesTab`.
-
-**Reproducción:** Ir a `/config` → pestaña Empleados → desmarcar y volver a marcar cualquier empleado con fechas → guardar → las fechas desaparecen.
-
-**Fix propuesto:** Cambiar el replace-all por un diff selectivo: solo `DELETE` las filas de empleados que se eliminaron de la lista, solo `INSERT` los nuevos que se añaden. Los que permanecen no se tocan → `start_date`/`end_date` se preservan.
-
-**Archivos afectados:** `backend/repositories/scheduling/scheduling-repository.ts` (`setSchedulableEmployees`).
 
 ---
 
