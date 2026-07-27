@@ -1,6 +1,11 @@
 # CLAUDE.md
 
-Full-stack hotel PMS. Next.js 16 (App Router) frontend + Express 5 backend. TypeScript throughout. pnpm workspaces.
+Full-stack hotel PMS. Next.js 16 (App Router) frontend + Express 5 backend. TypeScript throughout.
+
+⚠️ **`frontend/` and `backend/` are two independent pnpm projects, not a workspace.** There is no
+root `package.json` and no `pnpm-workspace.yaml`: each side has its own `package.json` and its own
+`pnpm-lock.yaml`. Always `cd` into one of them before running `pnpm`, and never assume a dependency
+present on one side exists on the other — that is exactly how the two Zod majors coexist.
 
 ## Tech Stack
 
@@ -21,18 +26,18 @@ instalada** — no la última publicada, no la que recuerdes.
 2. `query-docs` con el ID resuelto, la versión de la tabla y el tema concreto (p. ej. `"Server Actions caching"`).
 3. Si la versión exacta no está indexada, usa la minor más cercana **por debajo** y di explícitamente en la respuesta qué versión consultaste.
 
-### Versiones instaladas (fuente de verdad: los `package.json`)
+### Versiones instaladas (fuente de verdad: los **lockfiles**, no los rangos `^` de los `package.json`)
 
 | Librería                | Versión     | Workspace | Nota                                                                                          |
 | ----------------------- | ----------- | --------- | --------------------------------------------------------------------------------------------- |
 | `next`                  | **16.0.8**  | frontend  | App Router + Turbopack (`next dev --turbopack`). React 19.1.1                                 |
 | `@tanstack/react-query` | **5.90.11** | frontend  | v5: `isPending` (no `isLoading` para mutaciones), objeto único en `useQuery({...})`           |
-| `zod`                   | **3.25.17** | frontend  | ⚠️ v3                                                                                         |
+| `zod`                   | **3.25.76** | frontend  | ⚠️ v3. El rango es `^3.25.17`: resuelve a 3.25.76, mira el lockfile                           |
 | `zod`                   | **4.0.5**   | backend   | ⚠️ v4 — API distinta a la del frontend                                                        |
 | `next-intl`             | **4.6.1**   | frontend  | v4: `routing.ts` + `createNavigation`, no la API v2/v3                                        |
 | `pdf-lib`               | **1.17.1**  | frontend  | API estable desde hace años; verificar igualmente antes de tocar embebido de fuentes/imágenes |
 
-**Zod está en dos versiones mayores distintas.** Nunca copies un schema de `frontend/lib/schemas/`
+**Zod está en dos versiones mayores distintas.** Nunca copies un schema de `frontend/app/lib/schemas/`
 a `backend/validations/` (ni al revés) sin consultar la doc de ambas majors: en v4 cambian los mensajes
 de error personalizados, `.error` / `z.ZodError`, y varios helpers de `z.string()` pasaron a funciones
 de nivel superior. Al consultar context7, indica siempre la versión del workspace en el que trabajas.
@@ -67,7 +72,8 @@ Backend, menor riesgo pero verificar si se tocan: `nodemailer` 7, `node-cron` 4,
 ### Dependencias declaradas pero no usadas
 
 `next-auth` (5.0.0-beta.25), `bcrypt`, `mysql2`, `postgres` y `uuid` están en
-`frontend/package.json` pero no se importan en ningún sitio de `app/` ni `lib/`. **No las uses como
+`frontend/package.json` pero no se importan en ningún sitio de `app/` (que es donde vive todo el
+código del frontend, `lib/` incluido). **No las uses como
 referencia ni construyas nada sobre ellas** — en particular, la auth es JWT propia (ver _Auth System_),
 no NextAuth. Si alguna vez se limpian, que sea en un commit `chore:` aparte.
 
@@ -120,11 +126,12 @@ listas y énfasis.
 ## Frontend Conventions
 
 - **Server components by default** — add `'use client'` only for interactivity, hooks, or browser APIs
-- **API calls**: client-side → `lib/apiClient.ts`; server-side → `lib/serverFetch.ts`. Always `credentials: 'include'`.
+- **Paths**: everything lives under `frontend/app/` — there is **no `frontend/lib/`**. The utilities directory is `frontend/app/lib/`.
+- **API calls**: client-side → `app/lib/apiClient.ts`; server-side → `app/lib/serverFetch.ts`. Always `credentials: 'include'`.
 - **Auth state**: `AuthContext` (provides `user`, `login`, `logout`). Protected routes use `useAuthContext()`.
 - **Env vars**: `NEXT_PUBLIC_API_URL` for client; non-prefixed vars only in Server Components
 - **Theme**: `next-themes` — dark/light via `.dark` class on `<html>`
-- **Forms**: React Hook Form + Zod schemas from `lib/schemas/`
+- **Forms**: React Hook Form + Zod schemas from `app/lib/schemas/`
 
 ## Auth System
 

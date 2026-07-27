@@ -71,27 +71,37 @@ en cascada no pedidos.
 Flujo: `resolve-library-id` → `query-docs` con el ID, **la versión de la tabla** y el tema concreto.
 Si esa versión exacta no está indexada, usa la minor más cercana por debajo y di cuál consultaste.
 
-### Versiones instaladas (fuente de verdad: los `package.json`)
+### Versiones instaladas (fuente de verdad: los **lockfiles**, no los rangos `^` de los `package.json`)
 
-| Librería                | Versión     | Workspace | Nota                                                                                                   |
-| ----------------------- | ----------- | --------- | ------------------------------------------------------------------------------------------------------ |
-| `next`                  | **16.0.8**  | frontend  | App Router + Turbopack. React 19.1.1                                                                   |
-| `@tanstack/react-query` | **5.90.11** | frontend  | v5: `isPending`, objeto único en `useQuery({...})`                                                     |
-| `zod`                   | **3.25.17** | frontend  | ⚠️ v3                                                                                                  |
-| `zod`                   | **4.0.5**   | backend   | ⚠️ v4 — API distinta a la del frontend                                                                 |
-| `next-intl`             | **4.6.1**   | frontend  | v4: `routing.ts` + `createNavigation`                                                                  |
-| `pdf-lib`               | **1.17.1**  | frontend  | Verificar antes de tocar embebido de fuentes/imágenes                                                  |
-| `cloudinary`            | **2.8.0**   | backend   | SDK v2, API distinta a la v1 de la mayoría de ejemplos                                                 |
-| `tailwindcss`           | **3.4.17**  | frontend  | **v3, no v4** — nada de `@import "tailwindcss"` ni `@theme`                                            |
-| `express`               | **5.1.0**   | backend   | v5: async errors automáticos, path-to-regexp 8, `req.query` getter                                     |
-| `zustand`               | **5.0.8**   | frontend  | v5 sin selectores por defecto                                                                          |
-| `react-hook-form`       | **7.66.0**  | frontend  | Con `@hookform/resolvers` 5.x (breaking vs 3.x)                                                        |
-| `react-day-picker`      | **9.11.1**  | frontend  | v9 renombró props y variables CSS                                                                      |
-| `multer`                | **2.0.2**   | backend   | v2 rompe respecto a la 1.x de los ejemplos habituales                                                  |
-| `pdf-parse`             | **1.1.1**   | backend   | **Fijado a v1 a propósito — no actualizar** (v2 → OOM en Render). Ver `backend/services/fnb/CLAUDE.md` |
-| `vitest`                | **4.x**     | backend   | API de mocks distinta a v1/v2                                                                          |
+| Librería                | Versión                      | Workspace | Nota                                                                                                                                                               |
+| ----------------------- | ---------------------------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `next`                  | **16.0.8**                   | frontend  | App Router + Turbopack. React 19.1.1                                                                                                                               |
+| `@tanstack/react-query` | **5.90.11**                  | frontend  | v5: `isPending`, objeto único en `useQuery({...})`                                                                                                                 |
+| `zod`                   | **3.25.76**                  | frontend  | ⚠️ v3. El rango es `^3.25.17`: resuelve a 3.25.76, mira el lockfile                                                                                                |
+| `zod`                   | **4.0.5**                    | backend   | ⚠️ v4 — API distinta a la del frontend                                                                                                                             |
+| `next-intl`             | **4.6.1**                    | frontend  | v4: `routing.ts` + `createNavigation`                                                                                                                              |
+| `pdf-lib`               | **1.17.1**                   | frontend  | Verificar antes de tocar embebido de fuentes/imágenes                                                                                                              |
+| `cloudinary`            | **2.8.0**                    | backend   | SDK v2, API distinta a la v1 de la mayoría de ejemplos                                                                                                             |
+| `tailwindcss`           | **3.4.17**                   | frontend  | **v3, no v4** — nada de `@import "tailwindcss"` ni `@theme`                                                                                                        |
+| `express`               | **5.1.0**                    | backend   | v5: async errors automáticos, path-to-regexp 8, `req.query` getter                                                                                                 |
+| `zustand`               | **5.0.8**                    | frontend  | v5 sin selectores por defecto                                                                                                                                      |
+| `react-hook-form`       | **7.66.0**                   | frontend  | Con `@hookform/resolvers` 5.x (breaking vs 3.x)                                                                                                                    |
+| `react-day-picker`      | **9.11.1**                   | frontend  | v9 renombró props y variables CSS                                                                                                                                  |
+| `multer`                | **2.0.2**                    | backend   | v2 rompe respecto a la 1.x de los ejemplos habituales                                                                                                              |
+| `pdf-parse`             | **1.1.1**                    | backend   | **Fijado a v1 a propósito — no actualizar** (v2 → OOM en Render). Ver `backend/services/fnb/CLAUDE.md`                                                             |
+| `vitest`                | **4.0.16**                   | backend   | API de mocks y `environment` distinta a v1/v2                                                                                                                      |
+| `framer-motion`         | **12.23.22**                 | frontend  | ⚠️ v12 se sigue publicando como `framer-motion`, pero el paquete actual del proyecto upstream es `motion`. Importa de `framer-motion`, **nunca** de `motion/react` |
+| `date-fns`              | **4.1.0**                    | frontend  | v4 añade el sistema de timezones y cambia varios imports respecto a v2/v3                                                                                          |
+| `@nextui-org/react`     | **2.6.11**                   | frontend  | Paquete `@nextui-org`, **no** el rebrand `@heroui`                                                                                                                 |
+| `recharts`              | **3.5.1**                    | frontend  | v3 cambió tipados y algunos defaults respecto a v2                                                                                                                 |
+| `pdfjs-dist`            | **5.4.449**                  | frontend  | Configuración del worker distinta según major; sensible al bundler                                                                                                 |
+| `xlsx`                  | **0.18.5**                   | frontend  | Distribuido fuera del registro público de npm; no asumir API de versiones más nuevas                                                                               |
+| `typescript`            | 5.7.3 front / **5.9.3** back | ambos     | Versiones distintas por proyecto                                                                                                                                   |
 
-**Zod está en dos majors distintas.** Nunca copies un schema entre `frontend/lib/schemas/` y
+Menor riesgo, pero verificar si se tocan: `nodemailer` 7.0.10, `node-cron` 4.2.1, `express-rate-limit`
+8.2.1, `helmet` 8.1.0, `pino` 10.3.1, `archiver` 7.0.1, `mysql2` 3.14.2 (backend) / 3.15.0 (frontend).
+
+**Zod está en dos majors distintas.** Nunca copies un schema entre `frontend/app/lib/schemas/` y
 `backend/validations/` sin consultar la doc de ambas: en v4 cambian los mensajes de error
 personalizados, `z.ZodError` y varios helpers de `z.string()`. Indica siempre el workspace al consultar.
 
@@ -561,8 +571,8 @@ Append a brief entry to `SCHEDULING-DECISIONS-LOG.md` with the date, the rule, w
 - Tracks hotel operational notes and tasks
 - Supports read/unread status (stored in `logbook_history` table)
 - Has comment system for entries
-- Frontend: `app/dashboard/logbook/`
-- Backend: `controllers/logbook/`, `services/logbook/`
+- Frontend: `app/dashboard/logbooks/` (plural)
+- Backend: `controllers/logbook/`, `services/logbook/` (singular — el plural es solo la ruta del frontend)
 
 ### Parking System
 
@@ -589,7 +599,9 @@ Append a brief entry to `SCHEDULING-DECISIONS-LOG.md` with the date, the rule, w
 
 - Internal messaging between staff
 - Real-time notifications
-- Frontend: `app/dashboard/messages/`
+- ⚠️ **There is no `app/dashboard/messages/` route.** The UI is a panel inside the profile page:
+  `app/components/profile/MessagesPanel.tsx`, with hooks and queries in `app/lib/messaging/`
+- Backend: `controllers/messages/`, `repositories/messages/`, `routes/messages/messages-routes.ts`
 
 ## Code Search Commands
 
@@ -625,4 +637,7 @@ Get-ChildItem -Recurse -Include *.js,*.ts -Exclude node_modules,dist | Select-St
 ## Notes
 
 - The system uses Spanish for UI and some code comments
-- Development mode bypass exists for auth (check `DashboardLayout` for DEV_MODE)
+- ⚠️ **There is no dev-mode auth bypass.** Older docs mentioned a `DEV_MODE` flag in a
+  `DashboardLayout` component: neither the flag nor that component exists anywhere in the repo.
+  Auth is enforced in every environment by `app/dashboard/layout.tsx`, which calls `useAuth()` and
+  redirects when there is no user. Do not write code that assumes it can be skipped locally.
