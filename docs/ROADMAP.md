@@ -17,12 +17,13 @@ cosa va a `TODO.md`.
 | Fase | Qué produce                                                                | Depende de |
 | ---- | -------------------------------------------------------------------------- | ---------- |
 | 1    | `docs/` nueva por módulos, escrita desde el código; lo antiguo archivado   | —          |
-| 2    | Clon con el historial limpio y auditado en local + `docs/GITCLEAN.md`      | 1          |
+| 1b   | Lo trascendental de `docs/_archive/` rescatado a `docs/` o a `TODO.md`     | 1          |
+| 2    | Clon con el historial limpio y auditado en local + `docs/GITCLEAN.md`      | 1, 1b      |
 | 3    | Tareas pendientes repartidas en `docs/README.md`, `ROADMAP.md` y `TODO.md` | 1          |
 | 4    | Repositorio público nuevo con el historial limpio                          | 2, 3       |
 
-El orden de 1 → 2 → 3 lo fija ADR-001. La fase 4 depende de ADR-006, que sigue
-🔶 propuesta.
+El orden de 1 → 2 → 3 lo fija ADR-001; la 1b se intercala antes de la 2
+(ADR-022). La fase 4 depende de ADR-006, que sigue 🔶 propuesta.
 
 ---
 
@@ -31,7 +32,22 @@ El orden de 1 → 2 → 3 lo fija ADR-001. La fase 4 depende de ADR-006, que sig
 Los 12 módulos documentados y revisados con `security` L3, más el `README.md` de
 la raíz (ADR-008). Detalle en `docs/_archive/roadmap-history.md` (local).
 
-## Fase 2 — Limpieza del historial ← **actual**
+## Fase 1b — Rescate del archivo ← **actual**
+
+Revisar `docs/_archive/` fichero a fichero, **poco a poco y en detalle**: lo
+trascendental pasa a `docs/` (simplificándolo) o a `TODO.md`; lo demás se
+descarta de forma explícita. Los pendientes del `TODO.md` antiguo ya están en
+`TODO-old.md`, que se vacía en esta fase. Hecho: los dos `SCHEDULING-*` de la
+raíz (ADR-021).
+
+Candidatos detectados, sin leer todavía a fondo: `SCHEDULING-SOLVER-PLAN.md`
+(plan, riesgos y bucle de ajuste de pesos), `docs/backend/scheduling/`
+(`solver-setup.md`: entorno Python, protocolo stdin/stdout, estados del daemon),
+y la documentación de operación (`environment-variables.md`,
+`productionAuthSetup.md`, `Render.md`, `security-implementation.md`,
+`i18n-roadmap.md`).
+
+## Fase 2 — Limpieza del historial
 
 Análisis, propuesta, limpieza con `git-filter-repo` y auditoría, sobre un clon y
 sin push. La lista de privados la aprueba el propietario (ADR-005). Hallazgo

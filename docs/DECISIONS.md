@@ -128,7 +128,8 @@
 
 ## ADR-010 — Cómo se archivó la documentación antigua, y qué se quedó fuera
 
-- **Estado:** ✅ aceptada (2026-09-28)
+- **Estado:** ✅ aceptada (2026-09-28) · 📌 los dos `SCHEDULING-*` revisados por
+  [ADR-021](#adr-021--los-dos-scheduling--de-la-raíz-pasan-a-docsscheduling-en-inglés)
 - **Fecha:** 2026-09-28
 - **Decisión:**
   - **Se movieron 52 ficheros** a `docs/_archive/`, **conservando su ruta
@@ -362,3 +363,56 @@
 - **Pendiente:** decidir cómo quedan fuera del repositorio público: hoy están
   versionados en `docs/`, así que habrá que sacarlos del historial que se
   publique (fase 2) o moverlos a otro sitio.
+
+## ADR-021 — Los dos `SCHEDULING-*` de la raíz pasan a `docs/scheduling/`, en inglés
+
+- **Estado:** ✅ aceptada (2026-09-28)
+- **Fecha:** 2026-09-28
+- **Decisión:**
+  - `SCHEDULING-CONSTRAINTS.md` → `docs/scheduling/constraints.md` y
+    `SCHEDULING-DECISIONS-LOG.md` → `docs/scheduling/decisions.md`, **traducidos
+    al inglés**: son documentación pública (ADR-020).
+  - **Los originales en español se archivan** en `docs/_archive/` con su ruta
+    original (`docs/_archive/SCHEDULING-CONSTRAINTS.md` y
+    `docs/_archive/SCHEDULING-DECISIONS-LOG.md`), como el resto del archivo
+    (ADR-010), y salen del repositorio.
+  - **Los nombres del personal se sustituyen por roles** («management employee»,
+    «a rotating employee»). Las secciones y los identificadores de reglas
+    (§1–§10, H1–H8, S1–S14) se conservan, para que las referencias del código
+    sigan valiendo.
+  - `constraints.md` sigue siendo la **fuente de verdad** de las reglas. Lo que
+    el solver implementa de verdad (sus ficheros y sus cuatro pesos) pasa a su
+    §11, y `solver.md` y el `README.md` del módulo solo resumen y enlazan: se
+    quita la duplicación.
+  - Lo que se comprobó desfasado frente al código se marca ⚠️ sin borrar lo
+    anterior (H2, H6/S12, H5 y los pesos).
+  - En `decisions.md`, la primera entrada (una conversación pegada tal cual) se
+    condensa a su razonamiento; el resto se traduce como estaba.
+  - Se actualizan las referencias en los `AGENTS.md`, el código, los tests, el
+    `backend/README.md` y los scripts de `backend/db-mysql/scripts/`.
+    **`backend/db-mysql/aiven/19_scheduling.sql` no se toca**: es uno de los
+    scripts de instalación ya aplicados en producción, que no se modifican, y su
+    comentario queda apuntando al nombre antiguo.
+- **Motivo:** ADR-010 los dejó en la raíz «hasta escribir la doc nueva de
+  `scheduling`», y esa doc ya está escrita. Decisión del propietario.
+- **Revisa:** ADR-010 en lo que dejaba los dos ficheros en la raíz.
+
+## ADR-022 — El archivo se rescata poco a poco antes de la fase 2; los pendientes antiguos, a `TODO-old.md`
+
+- **Estado:** ✅ aceptada (2026-09-28)
+- **Fecha:** 2026-09-28
+- **Decisión:**
+  - Antes de la fase 2 se hace una **pasada de rescate de `docs/_archive/`**,
+    poco a poco y en detalle: de cada fichero se decide si algo pasa a la
+    documentación (simplificándolo), a `TODO.md` o se descarta.
+  - Los pendientes del `TODO.md` antiguo de la raíz se traen **todos** a
+    `docs/TODO-old.md`, un quinto fichero de trabajo (en español, no se
+    publica). Se vacía moviendo o borrando sus puntos, y se borra al quedar
+    vacío.
+  - `docs/_archive/` sigue solo en el PC principal: el propietario puede
+    consultarlo desde los otros equipos.
+- **Motivo:** escribir la documentación desde el código (ADR-004) dejó fuera el
+  «porqué» y el «qué falta» que vivían en la documentación antigua: los
+  pendientes de Sentry, Cloudflare Access, el horizonte 2 de seguridad,
+  checklist y la fase 3 del solver no estaban en ningún fichero vigente.
+- **Revisa:** ADR-020 en la lista de ficheros de trabajo, que eran cuatro.
