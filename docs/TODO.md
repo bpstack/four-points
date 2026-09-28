@@ -21,6 +21,22 @@ hace que alguien reimplemente lo que ya existe.
 > Las entradas de **seguridad** describen debilidades explotables: **resolverlas
 > o quitarlas de este fichero antes de publicar el repositorio**.
 
+- [ ] **Scheduling: un recepcionista puede aprobarse sus propias solicitudes** —
+      `PUT /constraints/:id` no pide `isAdmin` y `updateConstraintSchema` acepta
+      `status: 'approved'` (sin `approved_by`). Al reiniciar o crear el mes,
+      esas celdas quedan bloqueadas. _Comprobado por mí el 2026-09-28._
+- [ ] **Scheduling: cualquier rol edita o borra restricciones ajenas o ya
+      aprobadas** — sin comprobar autor ni estado y sin historial; al borrar una
+      aprobada, la clave foránea (`SET NULL`, comprobado en Aiven) deja la celda
+      con su código pero sin bloqueo. La interfaz es solo de `admin`: estas
+      rutas abiertas no tienen uso legítimo. _Comprobado por mí el 2026-09-28._
+      (sin historial, según el revisor)
+- [ ] **Datos personales del personal en el repo** —
+      `backend/scripts/import-planning-2026.ts` (commit `3387826`) tiene
+      escritos 13 nombres de personal (2 con apellido) asociados a sus usuarios,
+      tal como aparecen en el Excel `PLANNING 2026.xlsx`; en Aiven, 9 de los 10
+      usuarios de horarios son nombres de pila. Revisar en la fase 2 junto con
+      Clara y los Excel archivados. _Comprobado por mí el 2026-09-28._
 - [ ] **Groups: inyección SQL en el orden del listado** — `sort` y `order` pasan
       de la URL a `ORDER BY g.${sortField} ${sortOrder}` sin filtrar
       (`group-repository.ts`). `GET /api/groups` lo alcanza cualquier rol que ve
@@ -400,8 +416,55 @@ hace que alguien reimplemente lo que ya existe.
       _Según la revisión `security` L3 del 2026-09-28 (fichero y línea en el
       informe); no repasado por mí._
 
+- [ ] **Scheduling: generar un mes deja vacías las celdas de días fijos y
+      solicitudes aprobadas** — el solver las recibe como bloqueadas, la
+      generación no las reinserta y el borrado previo se las lleva. En Aiven, en
+      los meses 126 y 130 (generados por el solver) el empleado con días fijos
+      tiene 0 celdas. _Comprobado por mí el 2026-09-28._
+- [ ] **Scheduling: datos de salud expuestos y guardados sin plazo** — bajas
+      (`IT`, `E`) y sus notas visibles para todos los roles salvo
+      `mantenimiento`; `scheduling_solver_runs` guarda para siempre la entrada
+      completa (con las bajas de cada usuario) y un INFEASIBLE las vuelca al
+      log. _Según la revisión `security` L3 del 2026-09-28 (fichero y línea en
+      el informe); no repasado por mí._
+- [ ] **Scheduling: un mes publicado se puede modificar** — editar celdas y
+      aprobar restricciones no miran el estado del mes, y `PUT /months/:id`
+      vuelve a borrador sin pasar por `unpublish`. _Según la revisión `security`
+      L3 del 2026-09-28 (fichero y línea en el informe); no repasado por mí._
+- [ ] **Scheduling: `setSchedulableEmployees` pierde las fechas de alta y baja**
+      — borra la tabla entera y la vuelve a llenar. _Comprobado por mí el
+      2026-09-28._
+- [ ] **Scheduling: el solver no es determinista** — no recibe semilla y CP-SAT
+      busca en paralelo: dos ejecuciones del mismo mes pueden dar horarios
+      distintos. Decidir si se fija semilla y un solo hilo. _Comprobado por mí
+      el 2026-09-28._
+- [ ] **Corregir los `AGENTS.md` de scheduling** — `PI` es «Personal
+      Intervención» y `FO` «Formación» (no «Internal Support» ni «Day Off»); los
+      pesos no están reflejados entre validador y solver (12 claves frente a 4,
+      solo coincide `min_work_block_short`). _Comprobado por mí el 2026-09-28._
+
 ## 🟢 Baja
 
+- [ ] **Scheduling: reiniciar un mes no usa transacción** — si falla a mitad, el
+      mes queda vacío. _Comprobado por mí el 2026-09-28._
+- [ ] **Scheduling: comprobar si `LI` debe contar como descanso en el solver** —
+      falta en `REST_SHIFTS` de `rest.py`. _Sin comprobar su efecto._
+- [ ] **Scheduling: validación incompleta** — ediciones masivas sin límite de
+      tamaño, listas de empleados validadas a mano, `day_id` de otro mes
+      aceptado y comprobación de bloqueo fuera de transacción. _Según la
+      revisión `security` L3 del 2026-09-28 (fichero y línea en el informe); no
+      repasado por mí._
+- [ ] **Scheduling: el daemon del solver puede quedar bloqueado** — el semáforo
+      se retiene durante el arranque (hasta 30 min) con cola sin límite. _Según
+      la revisión `security` L3 del 2026-09-28 (fichero y línea en el informe);
+      no repasado por mí._
+- [ ] **Scheduling: errores del solver y del arranque devueltos al cliente.**
+      _Según la revisión `security` L3 del 2026-09-28 (fichero y línea en el
+      informe); no repasado por mí._
+- [ ] **Importador del Excel** — borra también las celdas bloqueadas, sin
+      transacción ni comprobar si el mes está publicado. _Según la revisión
+      `security` L3 del 2026-09-28 (fichero y línea en el informe); no repasado
+      por mí._
 - [ ] **Groups: recordatorios repetidos cada 48 h** — los de pago se buscan en
       un rango de días y se deduplican por título en una ventana de 48 h: el
       mismo pago se vuelve a avisar con «vence en 15 días» aunque falten 2, y

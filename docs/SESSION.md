@@ -23,7 +23,7 @@ archivada en `docs/_archive/` (ADR-010); lo hecho se registra en
 
 ## ⚠️ Empieza por aquí
 
-1. **Siguiente módulo: `scheduling`**, escrito **directamente en inglés**
+1. **Siguiente módulo: `checklist`**, escrito **directamente en inglés**
    (ADR-020) y con su revisión `security` L3 (ADR-018).
 2. **Idiomas:** se trabaja en español; la documentación pública de `docs/` va en
    inglés y no cita ADR ni `TODO.md`. `DECISIONS.md`, `ROADMAP.md`, `SESSION.md`
