@@ -194,6 +194,11 @@ hace que alguien reimplemente lo que ya existe.
 
 ## 🟡 Media
 
+- [ ] **Documentar el módulo `fnb` (aplazado)** — el propietario lo dejó para
+      más adelante el 2026-09-28. Mismo método que el resto:
+      `docs/fnb/README.md` en inglés contrastado con el código y Aiven, revisión
+      `security` L3 y hallazgos a este fichero. Ojo con `pdf-parse`, fijado a v1
+      a propósito (`backend/services/fnb/AGENTS.md`).
 - [ ] **Subir el mínimo de las contraseñas** — hoy son 6 caracteres
       (`backend/validations/auth/user-validation.ts`). _Comprobado el
       2026-09-28._
