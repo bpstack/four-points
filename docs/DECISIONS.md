@@ -184,3 +184,30 @@
   crecer no obliga a mover nada ni rompe enlaces.
 - **Rechazado:** un fichero por módulo (`docs/parking.md`). Obligaría a
   convertirlo en carpeta y cambiar sus enlaces en cuanto creciera.
+
+## ADR-012 — Los nombres de ficheros y carpetas de `docs/` van en inglés
+
+- **Estado:** ✅ aceptada (2026-09-28)
+- **Fecha:** 2026-09-28
+- **Decisión:** todo fichero y carpeta que se cree en `docs/` lleva nombre en
+  inglés (`general/messages/README.md`, `roadmap-history.md`, `GITCLEAN.md`…).
+  El contenido se escribe en español.
+- **Motivo:** decisión del propietario, coherente con su norma general: textos
+  en español; nombres de fichero, claves de configuración e identificadores en
+  inglés. Así los nombres casan con los del código (`services/parking`,
+  `components/groups`…) y las rutas no llevan tildes ni espacios.
+
+## ADR-013 — La mensajería interna se documenta en `general/messages/`
+
+- **Estado:** ✅ aceptada (2026-09-28)
+- **Fecha:** 2026-09-28
+- **Decisión:** la mensajería interna tiene su propia carpeta, pero **dentro de
+  `general/`** (`docs/general/messages/README.md`), no al nivel de los módulos
+  funcionales. `general/README.md` solo la resume y enlaza. Completa ADR-011.
+- **Motivo:** es una función común a todos los roles —incluido
+  `mantenimiento`— y vive dentro del perfil, no en una sección propia del menú;
+  pero su tamaño (~4 k líneas entre backend y frontend, medido el 2026-09-28)
+  no cabe en un párrafo de `general/`.
+- **Rechazado:** una carpeta de módulo `docs/messages/` (la pondría al nivel de
+  parking o caja, que son áreas del hotel) y dejarla solo como párrafo en
+  `general/README.md` (se quedaría corta).
