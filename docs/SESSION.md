@@ -34,8 +34,8 @@ archivada en `docs/_archive/` (ADR-010); lo hecho se registra en
 ## Hallazgos
 
 **Método por módulo** (ADR-018): documentar → revisión `security` L3 → comprobar
-lo grave → `TODO.md`. Primera ronda hecha el 2026-09-28 sobre general,
-mensajería, logbook y parking.
+lo grave → `TODO.md`. Aplicado el 2026-09-28 a los 11 módulos (general con
+mensajería y base de datos incluidas); `fnb` queda aplazado.
 
 Los hallazgos de la lectura del código (seguridad, docs desalineadas, código
 muerto, decisiones previas a publicar) están en `TODO.md`. Los de prioridad alta
@@ -45,10 +45,6 @@ muerto, decisiones previas a publicar) están en `TODO.md`. Los de prioridad alt
 
 - **Cómo quedan fuera del repo público los cuatro ficheros de trabajo**
   (ADR-020): hoy están versionados en `docs/`.
-- **Área para la ficha `## Security` de `AGENTS.md`** (propuesta del revisor de
-  maintenance): añadir `backend/services/blacklist/cloudinary-service.ts` a
-  _File upload_. No se ha tocado porque el propietario está fusionando los
-  `CLAUDE.md` en `AGENTS.md`.
 - **Volcados de BD en `main`: se deja para más adelante** (decisión del
   propietario, 2026-09-28). Cuatro ficheros versionados en `HEAD` y subidos al
   remoto privado:
@@ -69,9 +65,10 @@ muerto, decisiones previas a publicar) están en `TODO.md`. Los de prioridad alt
 
 ## Cuidado con esto
 
-- **Los `CLAUDE.md` de módulo no son fuente fiable**: el de logbook citaba tres
-  tablas que nunca existieron. Se contrastan siempre con el código y la BD, y
-  están pendientes de fusionarse en `AGENTS.md` (ver `TODO.md`).
+- **Los `CLAUDE.md`/`AGENTS.md` de módulo no son fuente fiable**: el de logbook
+  citaba tres tablas que nunca existieron, y varios más tenían datos
+  desactualizados. Se contrastan siempre con el código y la BD; las correcciones
+  encontradas quedan en `TODO.md` y siguen sin aplicarse a los `AGENTS.md`.
 - **Nada de `docs/_archive/` se publica**, tampoco `roadmap-history.md`
   (ADR-009). Si algo de ahí debe ser público, se copia fuera.
 - **El antiguo `TODO.md` de la raíz (ahora en `docs/_archive/TODO.md`) tiene una
