@@ -29,14 +29,14 @@ backend/db-mysql/
 
 **Incremental-only.** Rails/Django/Flyway style.
 
-| Rule | Detail |
-|---|---|
-| `aiven/NN_*.sql` are **frozen** | Snapshot of install base at 2026-05-20. Each file has a `⚠️ FROZEN` header. **Never edit.** |
-| New schema change | New file in `scripts/YYYYMMDD_<description>.sql`. Idempotent. Applied to live DB. |
-| **Register in `INDEX.md`** | Add a row to the "Migraciones incrementales" table: date, file, description, status per env (`✅ local · ✅ Aiven`, `⏳ pendiente`). |
-| Never modify a committed script | If something went wrong, create a new `YYYYMMDD_fix_…sql` that corrects it. |
-| Apply order | Local first (`pnpm dev:local`), then Aiven. Update `INDEX.md` status after each. |
-| Charset / collation | Always `utf8mb4` / `utf8mb4_0900_ai_ci`. |
+| Rule                            | Detail                                                                                                                               |
+| ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `aiven/NN_*.sql` are **frozen** | Snapshot of install base at 2026-05-20. Each file has a `⚠️ FROZEN` header. **Never edit.**                                          |
+| New schema change               | New file in `scripts/YYYYMMDD_<description>.sql`. Idempotent. Applied to live DB.                                                    |
+| **Register in `INDEX.md`**      | Add a row to the "Migraciones incrementales" table: date, file, description, status per env (`✅ local · ✅ Aiven`, `⏳ pendiente`). |
+| Never modify a committed script | If something went wrong, create a new `YYYYMMDD_fix_…sql` that corrects it.                                                          |
+| Apply order                     | Local first (`pnpm dev:local`), then Aiven. Update `INDEX.md` status after each.                                                     |
+| Charset / collation             | Always `utf8mb4` / `utf8mb4_0900_ai_ci`.                                                                                             |
 
 ## Writing an idempotent script
 
@@ -96,13 +96,13 @@ See `aiven/aiven-conexion.md` for connection details. SSL required.
 
 ### Roles
 
-| ID | Name | Description |
-|---|---|---|
-| 1 | `recepcionista` | Standard user |
-| 2 | `admin` | Full admin |
-| 3 | `mantenimiento` | Maintenance staff |
-| 6 | `group-admin` | Group administrator |
-| 7 | `demo-admin` | Demo user (disabled since 2026-05-12) |
+| ID  | Name            | Description                           |
+| --- | --------------- | ------------------------------------- |
+| 1   | `recepcionista` | Standard user                         |
+| 2   | `admin`         | Full admin                            |
+| 3   | `mantenimiento` | Maintenance staff                     |
+| 6   | `group-admin`   | Group administrator                   |
+| 7   | `demo-admin`    | Demo user (disabled since 2026-05-12) |
 
 ## Backups
 
