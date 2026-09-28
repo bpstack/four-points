@@ -23,8 +23,9 @@ archivada en `docs/_archive/` (ADR-010); lo hecho se registra en
 
 ## ⚠️ Empieza por aquí
 
-1. **Escribir `docs/parking/README.md`** leyendo todo su código y la BD real
-   (ADR-014), y contrastándolo con `docs/_archive/` y sus dos `CLAUDE.md`.
+1. **Escribir `docs/general/database/README.md`** (ADR-016) contrastando
+   `backend/db-mysql/` con Aiven, la única BD (ADR-015). Hasta entonces, el
+   enlace a `database/` de `general/README.md` está roto.
 2. **Siguiente módulo** de la fase 1 en `ROADMAP.md`.
 3. **Material de consulta:** `docs/_archive/` refleja las rutas originales
    (`docs/_archive/docs/backend/…`, `docs/_archive/frontend/docs/…`,

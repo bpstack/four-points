@@ -18,9 +18,14 @@ hace que alguien reimplemente lo que ya existe.
 
 ## 🔴 Alta
 
-> Seguridad. **Resolver o quitar de este fichero antes de publicar el
-> repositorio**: describen debilidades explotables.
+> Las entradas de **seguridad** describen debilidades explotables: **resolverlas
+> o quitarlas de este fichero antes de publicar el repositorio**.
 
+- [ ] **Parking: el calendario de disponibilidad de producción se acaba el
+      2026-12-26** — `parking_availability` en Aiven cubre del 2025-12-26 al 2026-12-26 y nada lo amplía: no hay evento MySQL
+      ni código que llame a `generate_availability`. Después de esa fecha no se
+      bloquea ningún día y se pueden solapar reservas. _Comprobado el
+      2026-09-28 en ambas BD._
 - [ ] **Rotar todas las credenciales al terminar la preparación** —
       `SECRET_JWT_KEY`, contraseñas de MySQL (local y Aiven), claves de
       Cloudinary, SMTP si se usa, y las claves de IA que siguen en
@@ -122,8 +127,51 @@ hace que alguien reimplemente lo que ya existe.
   - _`frontend/app/`: `components/cashier`, `components/groups`,
     `components/maintenance`, `components/scheduling` y `dashboard/parking`._
 
+- [ ] **Parking: borrar una reserva no libera sus días** — `DELETE` en
+      `bookings.repository.ts` borra la fila, la clave foránea pone
+      `booking_id` a `NULL` en `parking_availability`, pero `is_available`
+      sigue a `0` y no hay trigger de borrado. Se puede hacer desde el detalle
+      de una reserva `reserved`. _Comprobado el 2026-09-28: hoy hay 0 días
+      bloqueados sin reserva en ambas BD._
+- [ ] **MySQL de Aiven en UTC** — `time_zone=SYSTEM` con el sistema en UTC.
+      `CURDATE()` y `NOW()` de la BD (filtros rápidos de parking, código
+      `PK-AAAAMMDD` del trigger, `CURRENT_TIMESTAMP` de las tablas) van 1–2 h
+      por detrás de Madrid: entre las 00:00 y las 02:00 «hoy» sigue siendo ayer.
+      _Comprobado el 2026-09-28._
+- [ ] **Parking: el mapa de estado deja de ver reservas a partir de 50** —
+      `useParkingStatus` pide `getAllBookings({})` y el backend devuelve 50 por
+      defecto, ordenadas por entrada prevista descendente: una estancia larga ya
+      `checked_in` puede salir del mapa. _Latente: hoy hay 13 reservas en
+      Aiven._
+- [ ] **Corregir los `CLAUDE.md` de parking** — backend: cita
+      `parking_invoices` (no existe), omite `parking_availability` y los
+      triggers, dice que la tarifa va por tipo de plaza (va por días), que
+      23:00→10:00 son 2 días (es 1), que las acciones son `POST` (son `PUT`),
+      que el código es `BK-0042` (es `PK-AAAAMMDD-NNNN`) y no documenta
+      `DELETE /bookings/:code`. Frontend: afirma sondeo en el mapa y
+      exportación del listado, que no existen. _Comprobado el 2026-09-28._
+
+- [ ] **Quitar el soporte de BD local del código** (ADR-015) — `DB_ENVIRONMENT`
+      y el preset `local` de `backend/config/db.ts`, el script `dev:local`, las
+      variables `LOCAL_DB_*` y las menciones a «local primero» en
+      `backend/db-mysql/`.
+- [ ] **Comprobar que los scripts del repo reproducen Aiven** — hoy Aiven es la
+      única BD y `backend/db-mysql/` la fuente de verdad (ADR-016), pero nadie
+      ha verificado que coincidan. Pista: la BD local, instalada desde esos
+      scripts, difería de Aiven en `demo_activity_log`,
+      `notifications.module`, `roles.name` y 7 claves foráneas (comparación del 2026-09-28).
+
 ## 🟢 Baja
 
+- [ ] **Parking: código sin uso** — los 4 endpoints de
+      `/api/parking/stats/analytics` no los llama la interfaz;
+      `getOccupancy` (`frontend/app/lib/parking/queries.ts`) apunta a
+      `/stats/occupancy`, que no existe, y nadie la llama;
+      `backend/services/parking/invoicePdfService.ts` está entero comentado.
+- [ ] **Parking: salto de precio a partir de 31 días** — las tarifas llegan a
+      30 días (250 € en Aiven); a partir de 31 se cobran 15 €/día (465 €).
+- [ ] **Parking: el mapa de estado no se refresca solo** — los cambios de otro
+      usuario no aparecen hasta recargar.
 - [ ] **Logbook: editar una entrada ajena devuelve 500** — el servicio lanza un
       `Error` genérico y el controlador responde `500` en vez de `403`.
 - [ ] **Logbook: comprobación de `isAdmin` que nunca se cumple** — los

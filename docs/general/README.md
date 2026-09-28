@@ -58,9 +58,10 @@ y responde `403` si no corresponde.
 
 ## Qué datos maneja
 
-- **MySQL 8**, en una sola base (`hotel_db`): local para desarrollo y Aiven en
-  producción. Esquema, índice de tablas y política de migraciones en
-  [`backend/db-mysql/CLAUDE.md`](../../backend/db-mysql/CLAUDE.md).
+- **MySQL 8** en Aiven, una sola base (`hotel_db`) con datos de prueba, que
+  usan tanto el despliegue como el desarrollo (ADR-015). Resumen en
+  [`database/`](database/README.md); esquema, scripts y política de
+  migraciones en [`backend/db-mysql/`](../../backend/db-mysql/).
 - **Usuarios y roles**: tablas `users` y `roles`. Las contraseñas se guardan con
   bcrypt. Borrar un usuario no lo elimina: se desactiva y se renombra.
 - **Ficheros** (avatares, fotos de mantenimiento y de lista negra, PDF de
@@ -160,13 +161,12 @@ lockfile. Node ≥ 22.16.
 ## Desarrollo local
 
 ```bash
-cd backend && pnpm install && pnpm dev:local   # API; el frontend la busca en :4000
+cd backend && pnpm install && pnpm dev:aiven   # API contra Aiven; el frontend la busca en :4000
 cd frontend && pnpm install && pnpm dev        # http://localhost:3000
 ```
 
 Variables del backend: `PORT` (4000 en local), `NODE_ENV`, `SECRET_JWT_KEY`,
-`SALT_ROUNDS`, `DB_ENVIRONMENT` (`local` | `aiven`), `LOCAL_DB_*`,
-`AIVEN_DB_*` + `AIVEN_PASSWORD`, `CLOUDINARY_*`, `LOG_LEVEL`, `FRONTEND_URL`.
+`SALT_ROUNDS`, `DB_ENVIRONMENT=aiven`, `AIVEN_DB_*` + `AIVEN_PASSWORD`, `CLOUDINARY_*`, `LOG_LEVEL`, `FRONTEND_URL`.
 Del frontend: `NEXT_PUBLIC_API_URL`, `NEXT_SERVER_API_URL` (opcional) y
 `NEXT_PUBLIC_APP_URL`, que la ruta de creación de usuarios usa para aceptar el
 origen de la petición.

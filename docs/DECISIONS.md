@@ -234,3 +234,36 @@
   rotarán después.
 - **Rechazado:** que el propietario ejecute cada consulta a mano. Es más lento
   y el acceso se va a revocar igualmente con la rotación.
+
+## ADR-015 — Una sola base de datos: Aiven, con datos de prueba
+
+- **Estado:** ✅ aceptada (2026-09-28)
+- **Fecha:** 2026-09-28
+- **Decisión:** el proyecto trabaja contra **una única BD, la de Aiven**, que
+  solo contiene datos de ejemplo. No se mantiene una BD local de desarrollo ni
+  se documenta como parte del proyecto; lo que describa la BD local se trata
+  como historia.
+- **Motivo:** decisión del propietario: Aiven es un entorno de prueba en
+  producción y perder sus datos no tiene consecuencias. Mantener dos bases no
+  aporta: la comparación del 2026-09-28 mostró que ya habían divergido (una
+  tabla, dos columnas, 7 claves foráneas y un trigger distintos), y analizar y
+  documentar contra una sola simplifica el trabajo.
+- **Rechazado:** una BD de desarrollo reproducible desde los scripts del repo.
+  Protege datos que aquí no hay que proteger.
+- **Pendiente:** el código sigue soportando la BD local (`DB_ENVIRONMENT`,
+  `pnpm dev:local`, variables `LOCAL_DB_*`); quitarlo es una tarea de
+  `TODO.md`. Si algún día Aiven guarda datos reales, esta decisión se revisa.
+
+## ADR-016 — La BD se documenta en `general/database/`; `backend/db-mysql/` sigue como fuente
+
+- **Estado:** ✅ aceptada (2026-09-28)
+- **Fecha:** 2026-09-28
+- **Decisión:** se crea `docs/general/database/README.md`, que resume la BD
+  contrastándola con Aiven. `backend/db-mysql/` (scripts y sus cinco `.md`)
+  **se queda tal como está** y sigue siendo la fuente de verdad del esquema y
+  de las migraciones; la doc nueva la resume y enlaza, y evoluciona poco a poco
+  con ella. Completa ADR-011 y ADR-013.
+- **Motivo:** los cinco documentos de `backend/db-mysql/` (744 líneas) se
+  solapan, pero son los que acompañan a los scripts y a la política de
+  migraciones; moverlos rompería esa relación.
+- **Rechazado:** archivar esos documentos y sustituirlos por la doc nueva.
