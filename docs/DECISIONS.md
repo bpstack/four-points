@@ -97,6 +97,8 @@
 
 - **Estado:** ✅ aceptada (2026-09-28) · 📌 `roadmap-history.md` revisado por
   [ADR-009](#adr-009--todo-lo-archivado-vive-en-docs_archive-y-git-lo-ignora-entero)
+  · 📌 idioma revisado por
+  [ADR-019](#adr-019--la-documentación-de-docs-se-escribe-en-inglés)
 - **Fecha:** 2026-09-28
 - **Decisión:**
   - En la raíz queda un `README.md` breve que enlaza a `docs/`.
@@ -310,3 +312,29 @@
   dato del documento de parking.
 - **Rechazado:** dejar la revisión para el final. Un hallazgo puede cambiar lo
   que el documento del módulo dice que hace.
+
+## ADR-019 — La documentación de `docs/` se escribe en inglés
+
+- **Estado:** ✅ aceptada (2026-09-28)
+- **Fecha:** 2026-09-28
+- **Decisión:**
+  - Todo lo que se publica en `docs/` pasa a **inglés**: los documentos de
+    módulo, `DECISIONS.md`, `ROADMAP.md`, `TODO.md` y `SESSION.md`.
+  - Los documentos ya escritos (general, mensajería, base de datos, logbook,
+    parking y maintenance) los traduce el propietario con otra IA y el agente
+    revisa que la traducción no cambie ningún dato. Los módulos siguientes se
+    escriben directamente en inglés.
+  - El historial local de `docs/_archive/` puede quedarse en español.
+  - Es una **excepción, solo para `docs/`**, a la norma general del propietario
+    («textos en español; nombres de fichero, claves e identificadores en
+    inglés»). Las conversaciones con el agente siguen en español.
+- **Motivo:** el objetivo es un repositorio open source real, cuyo público lee
+  inglés. El código, los nombres de fichero (ADR-012), los commits y los
+  `AGENTS.md` ya están en inglés; `docs/` era la única pieza en español.
+  Traducir con 6 documentos escritos cuesta menos que hacerlo al final.
+- **Rechazado:**
+  - Mantener `docs/` en español: limita el público del proyecto publicado.
+  - Documentación bilingüe: duplica el mantenimiento y las dos versiones acaban
+    desincronizándose.
+- **Revisa:** ADR-008 en el idioma de `README.md`, `ROADMAP.md`, `TODO.md`,
+  `DECISIONS.md` y `SESSION.md`, que allí se fijaba en español.

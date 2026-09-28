@@ -15,7 +15,7 @@ propio fichero) o ruido (se borra).
 
 Preparación del repositorio para publicarlo como open source. Plan en
 `OPEN-SOURCE.md` (raíz); orden de fases en `ROADMAP.md`;
-decisiones en `DECISIONS.md` (ADR-001 a ADR-018).
+decisiones en `DECISIONS.md` (ADR-001 a ADR-019).
 
 Fase actual: **1 — Documentación nueva**. La documentación antigua ya está
 archivada en `docs/_archive/` (ADR-010); lo hecho se registra en
@@ -23,8 +23,11 @@ archivada en `docs/_archive/` (ADR-010); lo hecho se registra en
 
 ## ⚠️ Empieza por aquí
 
-1. **Siguiente módulo** de la fase 1 en `ROADMAP.md` (`groups`).
-2. **Material de consulta:** `docs/_archive/` refleja las rutas originales
+1. **Traducción de `docs/` al inglés** (ADR-019): la hace el propietario con
+   otra IA. Mientras tanto el agente no toca `docs/`. Al terminar, el agente
+   revisa que no cambie ningún dato.
+2. **Siguiente módulo** de la fase 1 en `ROADMAP.md` (`groups`), ya en inglés.
+3. **Material de consulta:** `docs/_archive/` refleja las rutas originales
    (`docs/_archive/docs/backend/…`, `docs/_archive/frontend/docs/…`,
    `docs/_archive/Global-Plan.md`…).
 
