@@ -26,17 +26,12 @@ El orden de 1 → 2 → 3 lo fija ADR-001. La fase 4 depende de ADR-006, que sig
 
 ---
 
-## Fase 1 — Documentación nueva ← **actual**
+## Fase 1 — Documentación nueva ✅ cerrada (2026-09-28)
 
-Criterios: ADR-004 (manda el código) y ADR-011 (una carpeta por módulo, que
-empieza con un `README.md`). La documentación antigua está en `docs/_archive/`
-(ADR-010). Cada módulo responde a las seis preguntas de `OPEN-SOURCE.md`: qué
-problema resuelve, quién lo usa, qué puede hacer, qué datos maneja, qué reglas
-cumple y cómo viaja la información.
+Los 12 módulos documentados y revisados con `security` L3, más el `README.md` de
+la raíz (ADR-008). Detalle en `docs/_archive/roadmap-history.md` (local).
 
-- [ ] **Una carpeta por módulo** — _aplazado, `fnb`_.
-
-## Fase 2 — Limpieza del historial
+## Fase 2 — Limpieza del historial ← **actual**
 
 Análisis, propuesta, limpieza con `git-filter-repo` y auditoría, sobre un clon y
 sin push. La lista de privados la aprueba el propietario (ADR-005). Hallazgo

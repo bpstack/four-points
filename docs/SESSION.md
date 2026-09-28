@@ -17,15 +17,17 @@ Preparación del repositorio para publicarlo como open source. Plan en
 `OPEN-SOURCE.md` (raíz); orden de fases en `ROADMAP.md`; decisiones en
 `DECISIONS.md` (ADR-001 a ADR-020).
 
-Fase actual: **1 — Documentación nueva**. La documentación antigua ya está
-archivada en `docs/_archive/` (ADR-010); lo hecho se registra en
-`docs/_archive/roadmap-history.md` (local).
+Fase actual: **2 — Limpieza del historial**. La fase 1 quedó cerrada el
+2026-09-28 (los 12 módulos documentados, `README.md` de la raíz escrito);
+detalle en `docs/_archive/roadmap-history.md` (local).
 
 ## ⚠️ Empieza por aquí
 
-1. **Todos los módulos están documentados y revisados con `security` L3**
-   (ADR-018), salvo `fnb`, que queda aplazado (ver `TODO.md`). El `README.md` de
-   la raíz (ADR-008) ya está escrito. Solo queda `fnb` para cerrar la fase 1.
+1. **Fase 1 cerrada.** Los 12 módulos están documentados y revisados con
+   `security` L3 (ADR-018), incluido `fnb`, y el `README.md` de la raíz
+   (ADR-008) está escrito. Siguiente paso real: fase 2, limpieza del historial
+   (ver "Esperando decisión" más abajo — varias cosas dependen de decisiones del
+   propietario antes de poder arrancarla).
 2. **Idiomas:** se trabaja en español; la documentación pública de `docs/` va en
    inglés y no cita ADR ni `TODO.md`. `DECISIONS.md`, `ROADMAP.md`, `SESSION.md`
    y `TODO.md` siguen en español y no se publicarán.
@@ -34,8 +36,8 @@ archivada en `docs/_archive/` (ADR-010); lo hecho se registra en
 ## Hallazgos
 
 **Método por módulo** (ADR-018): documentar → revisión `security` L3 → comprobar
-lo grave → `TODO.md`. Aplicado el 2026-09-28 a los 11 módulos (general con
-mensajería y base de datos incluidas); `fnb` queda aplazado.
+lo grave → `TODO.md`. Aplicado el 2026-09-28 a los 12 módulos (general con
+mensajería y base de datos incluidas).
 
 Los hallazgos de la lectura del código (seguridad, docs desalineadas, código
 muerto, decisiones previas a publicar) están en `TODO.md`. Los de prioridad alta

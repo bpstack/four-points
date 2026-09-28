@@ -32,6 +32,24 @@ hace que alguien reimplemente lo que ya existe.
       un id adivinado o filtrado se puede borrar cualquier imagen del cloud
       name, también de otros módulos (mismo patrón que backoffice). _Comprobado
       por mí el 2026-09-28._
+- [ ] **Fnb: cualquier rol con acceso puede borrar o fabricar ingresos, sin capa
+      de autorización por operación** — `canAccessFnb` protege todo el router
+      con la misma lista de roles (`admin`, `recepcionista`, `group-admin`,
+      `demo-admin`); `DELETE /day/:date` (borra todas las filas de un día) y
+      `POST /entries` (alta manual de ingresos) no piden más privilegio que
+      `GET /categories`. Un `recepcionista` o `group-admin` puede borrar la
+      facturación F&B de un día entero o inventar cifras con una sola petición,
+      sin confirmación ni segundo factor. `backend/routes/fnb/fnb-routes.ts` +
+      `backend/middlewares/roleCheck.ts` (`canAccessFnb`). _Comprobado por mí el
+      2026-09-28._
+- [ ] **Fnb: ninguna mutación de ingresos deja rastro de quién la hizo** —
+      `upsertMany` sobrescribe el importe anterior (`ON DUPLICATE KEY UPDATE`) y
+      `deleteDay` borra filas sin dejar ningún registro de usuario, valor
+      anterior u origen del cambio, a diferencia de otros módulos del proyecto
+      (blacklist, logbook) que sí llevan una auditoría. Un dato financiero
+      alterado o borrado no se puede reconstruir ni revertir.
+      `backend/repositories/fnb/fnb.repository.ts`. _Comprobado por mí el
+      2026-09-28._
 - [ ] **Backoffice: inyección SQL por los nombres de campo** — `updateSupplier`
       y `updateInvoice` construyen `clave = ?` con las claves del cuerpo, que el
       controlador pasa entero. Además se puede fijar `status`, `paid_date`,
@@ -229,11 +247,31 @@ hace que alguien reimplemente lo que ya existe.
 
 ## 🟡 Media
 
-- [ ] **Documentar el módulo `fnb` (aplazado)** — el propietario lo dejó para
-      más adelante el 2026-09-28. Mismo método que el resto:
-      `docs/fnb/README.md` en inglés contrastado con el código y Aiven, revisión
-      `security` L3 y hallazgos a este fichero. Ojo con `pdf-parse`, fijado a v1
-      a propósito (`backend/services/fnb/AGENTS.md`).
+- [ ] **Fnb: `manualEntry` acepta cualquier número, incluido negativo o
+      absurdamente grande** — `z.record(z.string(), z.number())` en
+      `backend/controllers/fnb/fnb-manual.controller.ts` no tiene `.min()`,
+      `.max()` ni `.finite()`; se puede maquillar un descuadre con un importe
+      negativo o corromper los totales mensuales con una cifra irreal, sin
+      ninguna comprobación posterior en el repositorio. _Comprobado por mí el
+      2026-09-28._
+- [ ] **Fnb: el PDF subido no se valida por contenido, solo por extensión o
+      mimetype declarado** — el `fileFilter` de `fnb-routes.ts` acepta
+      `application/octet-stream` o cualquier nombre terminado en `.pdf`; el
+      buffer llega a `pdf-parse` sin comprobar la cabecera `%PDF-`, y no hay
+      timeout en `parseOperaPdf`, así que un fichero no-PDF o mal formado puede
+      colgar la petición sin límite de tiempo (el límite de 10&nbsp;MB no cubre
+      la complejidad interna del fichero). _Comprobado por mí el 2026-09-28._
+- [ ] **Fnb: `DELETE /api/fnb/day/:date` borra cualquier fecha sin límite** — el
+      controlador solo valida el formato `YYYY-MM-DD`; cualquier rol con acceso
+      al módulo puede borrar un día de hace años, incluido un periodo ya
+      cerrado, sin ninguna comprobación de negocio. _Comprobado por mí el
+      2026-09-28._
+- [ ] **Corregir el `AGENTS.md` de `fnb`** — dice que `trackedCodesSet` en
+      `fnb-categories.cache.ts` "refresca cada N segundos (TTL)"; en realidad la
+      caché no tiene TTL y solo se invalida manualmente con
+      `invalidateCategories()`, que hoy solo se llama en los tests. En
+      producción, un cambio en `fnb_category` no se ve sin reiniciar el backend.
+      _Comprobado por mí el 2026-09-28._
 - [ ] **Subir el mínimo de las contraseñas** — hoy son 6 caracteres
       (`backend/validations/auth/user-validation.ts`). _Comprobado el
       2026-09-28._
@@ -617,6 +655,12 @@ hace que alguien reimplemente lo que ya existe.
       con regex, pero es frágil: si se relaja esa validación o se resalta texto
       libre (`reason`/`comments`), se abre XSS. _Según la revisión `security` L3
       del 2026-09-28 (fichero y línea en el informe); no repasado por mí._
+- [ ] **Fnb: `console.log` sin pasar por el logger del proyecto** — el
+      controlador de subida (`backend/controllers/fnb/fnb-upload.controller.ts`)
+      usa `console.log` directo en vez de `backend/config/logger.ts`; hoy solo
+      registra nombre/tamaño/mimetype, pero al no pasar por el logger
+      documentado, cualquier dato que se añada ahí en el futuro escapa al
+      pipeline de logs del resto de la app. _Comprobado por mí el 2026-09-28._
 - [ ] **Backoffice: notas `IMPORTANT-PRODUCTION.MD` obsoletas** en
       `frontend/app/components/bo/`: hablan de datos inventados que ya no se
       usan. _Comprobado por mí el 2026-09-28._

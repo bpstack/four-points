@@ -19,6 +19,7 @@ Full documentation lives in [`docs/`](docs/general/README.md):
 - [Scheduling](docs/scheduling/README.md) ([solver](docs/scheduling/solver.md))
 - [Checklist](docs/checklist/README.md)
 - [Cashier](docs/cashier/README.md)
+- [F&B](docs/fnb/README.md)
 - [Backoffice](docs/backoffice/README.md)
 - [Blacklist](docs/blacklist/README.md)
 - [Conciliation](docs/conciliation/README.md)
