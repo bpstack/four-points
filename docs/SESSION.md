@@ -23,7 +23,7 @@ archivada en `docs/_archive/` (ADR-010); lo hecho se registra en
 
 ## ⚠️ Empieza por aquí
 
-1. **Siguiente módulo: `backoffice`** (`fnb` queda aplazado, ver `TODO.md`),
+1. **Siguiente módulo: `blacklist`** (`fnb` queda aplazado, ver `TODO.md`),
    escrito **directamente en inglés** (ADR-020) y con su revisión `security` L3
    (ADR-018).
 2. **Idiomas:** se trabaja en español; la documentación pública de `docs/` va en

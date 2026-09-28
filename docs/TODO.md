@@ -21,6 +21,30 @@ hace que alguien reimplemente lo que ya existe.
 > Las entradas de **seguridad** describen debilidades explotables: **resolverlas
 > o quitarlas de este fichero antes de publicar el repositorio**.
 
+- [ ] **Backoffice: inyección SQL por los nombres de campo** — `updateSupplier`
+      y `updateInvoice` construyen `clave = ?` con las claves del cuerpo, que el
+      controlador pasa entero. Además se puede fijar `status`, `paid_date`,
+      `validated_by`, `validated_pdf_url` o `created_by`. Requiere `admin`
+      (cualquiera puede serlo). _Comprobado por mí el 2026-09-28._
+- [ ] **Backoffice: SSRF en la descarga de PDF** — `createInvoice` mete el
+      cuerpo entero (`original_pdf_url` del cliente) y `validateInvoice` toma
+      `validated_pdf_url` del cuerpo; `/pdf-download` y el ZIP hacen `axios.get`
+      a esa URL sin comprobar el dominio y devuelven los bytes. `/pdf-download`
+      no exige `isRealAdmin` (también `demo-admin`). _Comprobado por mí el
+      2026-09-28._
+- [ ] **Backoffice: borrado arbitrario en Cloudinary** — los `public_id` de los
+      PDF llegan del cliente y el borrado de factura los destruye. _Comprobado
+      por mí el 2026-09-28._ (origen del `public_id`, según el revisor)
+- [ ] **Backoffice: PDFs de facturas, sello y firma públicos en Cloudinary** —
+      `uploadPdf` usa `type: 'upload'` y `access_mode: 'public'`; las facturas
+      llevan CIF, IBAN e importes, y la URL firmada no protege nada. Con el
+      sello y la firma públicos se puede fabricar una factura «validada».
+      _Comprobado por mí el 2026-09-28._
+- [ ] **Backoffice: sin máquina de estados** — se paga una factura pendiente o
+      rechazada, se valida una pagada, se cambian importes tras validar o pagar,
+      y el historial guarda un estado anterior fijo. _Según la revisión
+      `security` L3 del 2026-09-28 (fichero y línea en el informe); no repasado
+      por mí._
 - [ ] **Cashier: inyección SQL en el orden de los listados** —
       `ORDER BY     ${sortField} ${sortOrder}` con `sort` y `order` de la URL en
       los repositorios de turnos, días e historial (y vales, según el revisor).
@@ -513,8 +537,37 @@ hace que alguien reimplemente lo que ya existe.
       se usa) y que el trigger mantiene bien los totales (los infla).
       _Comprobado por mí el 2026-09-28._
 
+- [ ] **Backoffice: borrar una factura borra también su historial** — borrado
+      definitivo, con las columnas de borrado lógico sin usar. _Comprobado por
+      mí el 2026-09-28._
+- [ ] **Backoffice: integridad del PDF validado** — se puede validar sin PDF o
+      con cualquier PDF, sin enlace entre el original y la copia sellada. _Según
+      la revisión `security` L3 del 2026-09-28 (fichero y línea en el informe);
+      no repasado por mí._
+- [ ] **Backoffice: sin validación de importes ni fechas** — importes negativos,
+      facturas duplicadas (sin UNIQUE por proveedor y número) y `paid_date`
+      libre. _Según la revisión `security` L3 del 2026-09-28 (fichero y línea en
+      el informe); no repasado por mí._
+- [ ] **Backoffice: inyección de fórmulas en la exportación CSV** de facturas
+      pagadas. _Según la revisión `security` L3 del 2026-09-28 (fichero y línea
+      en el informe); no repasado por mí._
+- [ ] **Backoffice: subidas y descargas sin comprobar contenido ni tamaño** —
+      solo el tipo declarado por el navegador; las descargas del ZIP no tienen
+      límite de tamaño y siguen redirecciones. _Según la revisión `security` L3
+      del 2026-09-28 (fichero y línea en el informe); no repasado por mí._
+
 ## 🟢 Baja
 
+- [ ] **Backoffice: notas `IMPORTANT-PRODUCTION.MD` obsoletas** en
+      `frontend/app/components/bo/`: hablan de datos inventados que ya no se
+      usan. _Comprobado por mí el 2026-09-28._
+- [ ] **Backoffice: `demo-admin` ve IBAN, CIF y datos de contacto completos** de
+      los proveedores. _Según la revisión `security` L3 del 2026-09-28 (fichero
+      y línea en el informe); no repasado por mí._
+- [ ] **Corregir el `AGENTS.md` de backoffice** — los activos son el sello y la
+      firma (no imágenes de proveedores), hay PDF original y validado, el
+      borrado es definitivo y la máquina de estados no se aplica. _Comprobado
+      por mí el 2026-09-28._
 - [ ] **Cashier: la exportación a PDF puede romperse con emojis** en los textos
       (Helvetica estándar). _Sin comprobar en ejecución._
 - [ ] **Checklist: comentarios e imágenes no comprueban que el paso exista**
