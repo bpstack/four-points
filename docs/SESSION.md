@@ -15,7 +15,7 @@ propio fichero) o ruido (se borra).
 
 Preparación del repositorio para publicarlo como open source. Plan en
 `OPEN-SOURCE.md` (raíz); orden de fases en `ROADMAP.md`; decisiones en
-`DECISIONS.md` (ADR-001 a ADR-019).
+`DECISIONS.md` (ADR-001 a ADR-020).
 
 Fase actual: **1 — Documentación nueva**. La documentación antigua ya está
 archivada en `docs/_archive/` (ADR-010); lo hecho se registra en
@@ -23,13 +23,12 @@ archivada en `docs/_archive/` (ADR-010); lo hecho se registra en
 
 ## ⚠️ Empieza por aquí
 
-1. **Traducción de `docs/` al inglés** (ADR-019): la hace el propietario con
-   otra IA. Mientras tanto el agente no toca `docs/`. Al terminar, el agente
-   revisa que no cambie ningún dato.
-2. **Siguiente módulo** de la fase 1 en `ROADMAP.md` (`groups`), ya en inglés.
-3. **Material de consulta:** `docs/_archive/` refleja las rutas originales
-   (`docs/_archive/docs/backend/…`, `docs/_archive/frontend/docs/…`,
-   `docs/_archive/Global-Plan.md`…).
+1. **Siguiente módulo: `groups`**, escrito **directamente en inglés** (ADR-020)
+   y con su revisión `security` L3 (ADR-018).
+2. **Idiomas:** se trabaja en español; la documentación pública de `docs/` va en
+   inglés y no cita ADR ni `TODO.md`. `DECISIONS.md`, `ROADMAP.md`, `SESSION.md`
+   y `TODO.md` siguen en español y no se publicarán.
+3. **Material de consulta:** `docs/_archive/` refleja las rutas originales.
 
 ## Hallazgos
 
@@ -43,6 +42,8 @@ muerto, decisiones previas a publicar) están en `TODO.md`. Los de prioridad alt
 
 ## Esperando decisión
 
+- **Cómo quedan fuera del repo público los cuatro ficheros de trabajo**
+  (ADR-020): hoy están versionados en `docs/`.
 - **Área para la ficha `## Security` de `AGENTS.md`** (propuesta del revisor de
   maintenance): añadir `backend/services/blacklist/cloudinary-service.ts` a
   _File upload_. No se ha tocado porque el propietario está fusionando los

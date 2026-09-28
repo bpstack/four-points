@@ -316,7 +316,8 @@
 
 ## ADR-019 — La documentación de `docs/` se escribe en inglés
 
-- **Estado:** ✅ aceptada (2026-09-28)
+- **Estado:** ✅ aceptada (2026-09-28) · 📌 alcance revisado por
+  [ADR-020](#adr-020--solo-la-documentación-pública-va-en-inglés-los-ficheros-de-trabajo-en-español-y-fuera-del-repo-público)
 - **Fecha:** 2026-09-28
 - **Decisión:**
   - Todo lo que se publica en `docs/` pasa a **inglés**: los documentos de
@@ -339,3 +340,25 @@
     desincronizándose.
 - **Revisa:** ADR-008 en el idioma de `README.md`, `ROADMAP.md`, `TODO.md`,
   `DECISIONS.md` y `SESSION.md`, que allí se fijaba en español.
+
+## ADR-020 — Solo la documentación pública va en inglés; los ficheros de trabajo, en español y fuera del repo público
+
+- **Estado:** ✅ aceptada (2026-09-28)
+- **Fecha:** 2026-09-28
+- **Decisión:**
+  - **Documentación pública** (la que irá al repositorio open source): en
+    **inglés**. Hoy son los `README.md` de `docs/general/` (con `messages/` y
+    `database/`), `docs/logbook/`, `docs/parking/` y `docs/maintenance/`, más
+    los módulos que falten y el `README.md` de la raíz.
+  - **Ficheros de trabajo** (`DECISIONS.md`, `ROADMAP.md`, `SESSION.md` y
+    `TODO.md`): siguen en **español** y **no se publican**.
+  - Se trabaja en español; la documentación oficial se escribe en inglés.
+  - La documentación pública **no cita** ADR, `TODO.md` ni otros ficheros de
+    trabajo: para un lector del repositorio público serían referencias a nada.
+- **Motivo:** decisión del propietario. Esos cuatro ficheros son herramientas
+  internas del trabajo —y `TODO.md` describe debilidades de seguridad que no
+  deben publicarse—, así que traducirlos no aporta.
+- **Revisa:** ADR-019, que incluía esos cuatro ficheros en la traducción.
+- **Pendiente:** decidir cómo quedan fuera del repositorio público: hoy están
+  versionados en `docs/`, así que habrá que sacarlos del historial que se
+  publique (fase 2) o moverlos a otro sitio.

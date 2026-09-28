@@ -134,7 +134,7 @@ hace que alguien reimplemente lo que ya existe.
 - [ ] **Subir el mínimo de las contraseñas** — hoy son 6 caracteres
       (`backend/validations/auth/user-validation.ts`). _Comprobado el
       2026-09-28._
-- [ ] **Corregir el `CLAUDE.md` raíz sobre next-intl** — dice `routing.ts` +
+- [ ] **Corregir el `AGENTS.md` raíz sobre next-intl** — dice `routing.ts` +
       `createNavigation`, pero no existe `routing.ts`: el idioma va por cookie
       `NEXT_LOCALE`, geolocalización de Vercel y `Accept-Language`
       (`frontend/app/i18n/request.ts`). También cita Nodemailer como servicio
@@ -171,7 +171,7 @@ hace que alguien reimplemente lo que ya existe.
       `event_scheduler=ON` y el evento está `ENABLED` (última ejecución en
       Aiven: 2026-09-27)._
 
-- [ ] **Corregir `backend/services/logbook/CLAUDE.md`** — describe tres tablas
+- [ ] **Corregir `backend/services/logbook/AGENTS.md`** — describe tres tablas
       (`logbook_solved`, `logbook_pending`, `logbook_comments_history`) que
       ningún script SQL crea y ningún código usa: resolver y reabrir escriben en
       columnas de `logbooks` (`is_solved`, `solved_at`, `solved_by`) y el
@@ -187,22 +187,17 @@ hace que alguien reimplemente lo que ya existe.
       repo `harness` (`C:\Users\dz\projects\harness` en el PC principal):
       soportar repos sin `package.json` ni lockfile en la raíz (aquí `frontend/`
       y `backend/` son dos proyectos pnpm independientes) y `AGENTS.md`
-      anidados. Después, implantar la capa 1 en este repo. Va **antes** de
-      fusionar los `CLAUDE.md` en `AGENTS.md`. _Comprobado el 2026-09-28 en
-      `lib/detect.mjs` y `commands/init-project.md` del harness (ADR-017)._
-- [ ] **Fusionar cada `CLAUDE.md` en el `AGENTS.md` de su directorio** — el
-      contenido pasa a `AGENTS.md` (se crea si no existe) y cada `CLAUDE.md`
-      queda como puntero que redirige a él. Cómo se gestionan después los
-      `AGENTS.md` se decide más adelante. Al fusionar, corregir lo que el código
-      desmiente (ver las entradas de `CLAUDE.md` en esta lista). _Inventario del
-      2026-09-28: 17 `CLAUDE.md` versionados y un solo `AGENTS.md` (raíz, con
-      contenido propio duplicado). Ninguno es todavía un puntero. Los otros 16
-      directorios no tienen `AGENTS.md`:_
-  - _`backend/`: `db-mysql`, `scheduling-solver` y, en `services/`,
-    `backoffice`, `blacklist`, `cashier`, `checklist`, `fnb`, `group`,
-    `logbook`, `parking` y `scheduling`._
-  - _`frontend/app/`: `components/cashier`, `components/groups`,
-    `components/maintenance`, `components/scheduling` y `dashboard/parking`._
+      anidados. Después, implantar la capa 1 en este repo. _Comprobado el
+      2026-09-28 en `lib/detect.mjs` y `commands/init-project.md` del harness
+      (ADR-017)._
+- [ ] **Corregir los `AGENTS.md` de módulo** — la fusión (commit `4d7528f`) los
+      renombró con el contenido intacto, así que siguen diciendo lo que el
+      código desmiente (ver las entradas de logbook y parking en esta lista) y
+      empiezan con el título `# CLAUDE.md — …`.
+- [ ] **Comprobar que Claude Code carga los `AGENTS.md` de las subcarpetas** —
+      los `CLAUDE.md` de módulo se borraron en vez de quedar como punteros; si
+      Claude Code solo lee `CLAUDE.md` por directorio, ese contexto se pierde.
+      _Sin comprobar._
 
 - [ ] **Parking: borrar una reserva no libera sus días** — `DELETE` en
       `bookings.repository.ts` borra la fila, la clave foránea pone `booking_id`
@@ -220,7 +215,7 @@ hace que alguien reimplemente lo que ya existe.
       defecto, ordenadas por entrada prevista descendente: una estancia larga ya
       `checked_in` puede salir del mapa. _Latente: hoy hay 13 reservas en
       Aiven._
-- [ ] **Corregir los `CLAUDE.md` de parking** — backend: cita `parking_invoices`
+- [ ] **Corregir los `AGENTS.md` de parking** — backend: cita `parking_invoices`
       (no existe), omite `parking_availability` y los triggers, dice que la
       tarifa va por tipo de plaza (va por días), que 23:00→10:00 son 2 días (es
       1), que las acciones son `POST` (son `PUT`), que el código es `BK-0042`

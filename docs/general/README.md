@@ -58,7 +58,7 @@ if it does not match.
 ## What data it handles
 
 - **MySQL 8** on Aiven, a single database (`hotel_db`) with test data, used by
-  both the deployment and development (ADR-015). Summary in
+  both the deployment and development. Summary in
   [`database/`](database/README.md); schema, scripts and migration policy in
   [`backend/db-mysql/`](../../backend/db-mysql/).
 - **Users and roles**: tables `users` and `roles`. Passwords are stored with

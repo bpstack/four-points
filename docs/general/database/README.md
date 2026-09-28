@@ -2,8 +2,8 @@
 
 Summary of the database, cross-referenced with Aiven on 2026-09-28. The source
 of truth for the schema and migrations is
-[`backend/db-mysql/`](../../../backend/db-mysql/) (ADR-016); this document
-summarises and links to it. Project overview in [`../README.md`](../README.md).
+[`backend/db-mysql/`](../../../backend/db-mysql/); this document summarises and
+links to it. Project overview in [`../README.md`](../README.md).
 
 ## What problem it solves
 
@@ -20,9 +20,8 @@ without breaking existing data.
 
 ## What it contains
 
-**A single database, `hotel_db`, on MySQL 8 on Aiven**, with test data
-(ADR-015). There is no local development database. Today it has **66 tables and
-3 views**.
+**A single database, `hotel_db`, on MySQL 8 on Aiven**, with test data. There is
+no local development database. Today it has **66 tables and 3 views**.
 
 Tables by module:
 
@@ -94,4 +93,4 @@ backend (repositories) ─► mysql2 pool ─► TLS ─► MySQL on Aiven (hote
 - **`backup/`**: database dumps.
 - **Five documents** that overlap: `CLAUDE.md`, `README.md`, `INDEX.md`,
   `MIGRATIONS_POLICY.md` and `MIGRATION_GUIDE.md`. Several data they give are
-  outdated (see `TODO.md`).
+  outdated.
