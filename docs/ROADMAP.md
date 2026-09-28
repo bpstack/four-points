@@ -14,16 +14,17 @@ cosa va a `TODO.md`.
 
 ## Fases
 
-| Fase | Qué produce                                                                | Depende de |
-| ---- | -------------------------------------------------------------------------- | ---------- |
-| 1    | `docs/` nueva por módulos, escrita desde el código; lo antiguo archivado   | —          |
-| 1b   | Lo trascendental de `docs/_archive/` rescatado a `docs/` o a `TODO.md`     | 1          |
-| 2    | Clon con el historial limpio y auditado en local + `docs/GITCLEAN.md`      | 1, 1b      |
-| 3    | Tareas pendientes repartidas en `docs/README.md`, `ROADMAP.md` y `TODO.md` | 1          |
-| 4    | Repositorio público nuevo con el historial limpio                          | 2, 3       |
+| Fase | Qué produce                                                              | Depende de |
+| ---- | ------------------------------------------------------------------------ | ---------- |
+| 1    | `docs/` nueva por módulos, escrita desde el código; lo antiguo archivado | —          |
+| 1b   | Lo trascendental de `docs/_archive/` rescatado a `docs/` o a `TODO.md`   | 1          |
+| 1c   | Todo `TODO.md` resuelto y probado en producción                          | 1b         |
+| 2    | Clon con el historial limpio (todas las ramas) + `docs/GITCLEAN.md`      | 1c         |
+| 4    | Repositorio público nuevo con el historial limpio (todas las ramas)      | 2          |
 
-El orden de 1 → 2 → 3 lo fija ADR-001; la 1b se intercala antes de la 2
-(ADR-022). La fase 4 depende de ADR-006, que sigue 🔶 propuesta.
+El orden lo fija ADR-001, revisado por ADR-022 (fase 1b) y ADR-027 (fase 1c, que
+además absorbe la antigua fase 3 de tareas pendientes). La fase 4 sigue ADR-006,
+ya aceptada.
 
 ---
 
@@ -38,19 +39,29 @@ Lo trascendental de `docs/_archive/` rescatado a `docs/` y `TODO.md`, comprobado
 contra el código; `TODO-old.md` vaciado y borrado. Detalle en
 `docs/_archive/roadmap-history.md` (local).
 
-## Fase 2 — Limpieza del historial ← **actual**
+## Fase 1c — Resolver `TODO.md` y probarlo en producción ← **actual**
+
+Todo `TODO.md`, de 🔴 a 🟢, arreglado y probado en producción (Render, Vercel y
+Aiven) antes de tocar el historial (ADR-027). Cada punto se borra de `TODO.md`
+cuando está hecho y probado.
+
+- **Orden:** primero los fallos transversales de autenticación (quién puede
+  hacerse `admin`, tokens intercambiables, usuario desactivado, refresco que no
+  mira la BD…), que afectan a todo; después, módulo a módulo, de 🔴 a 🟢.
+- **Flujo:** por lotes (un tema o un módulo) en `main`. El agente arregla,
+  verifica en local y commitea; el propietario hace push cuando quiere probarlo
+  en producción y cuenta el resultado.
+- Hecho al empezar: los 4 volcados de BD fuera del árbol (`git rm --cached` +
+  `.gitignore`); del historial se quitan en la fase 2.
+
+## Fase 2 — Limpieza del historial
 
 Análisis, propuesta, limpieza con `git-filter-repo` y auditoría, sobre un clon y
-sin push. La lista de privados la aprueba el propietario (ADR-005). Hallazgo
-previo: volcados de BD en `backend/db-mysql/backup/` (ver `SESSION.md`).
-
-## Fase 3 — Tareas pendientes
-
-Trasladar a `docs/` los pendientes reales (tests de `scheduling` y otros),
-partiendo de las plantillas del harness. El `TODO.md` de la raíz tiene entradas
-locales que no deben pasar al público.
+sin push, **en todas las ramas** (ADR-026). La lista de privados la aprueba el
+propietario (ADR-005). Hallazgo previo: volcados de BD en
+`backend/db-mysql/backup/` (ver `SESSION.md`).
 
 ## Fase 4 — Publicación
 
-Crear el repositorio público y subir el historial limpio. Rotar las credenciales
-que aparezcan en lo eliminado (ADR-007). Decidir qué ramas se publican.
+Crear el repositorio público y subir el historial limpio de todas las ramas
+(ADR-026). Rotar las credenciales que aparezcan en lo eliminado (ADR-007).

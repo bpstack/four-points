@@ -14,7 +14,8 @@
 
 ## ADR-001 — El repositorio se prepara para publicarse en tres fases ordenadas
 
-- **Estado:** ✅ aceptada (2026-09-28)
+- **Estado:** ✅ aceptada (2026-09-28) · 📌 orden revisado por
+  [ADR-027](#adr-027--antes-del-clon-limpio-se-resuelve-todo-todomd-y-se-prueba-en-producción)
 - **Fecha:** 2026-09-28
 - **Decisión:** primero la documentación nueva, después la limpieza del
   historial de Git y, por último, la organización de las tareas pendientes.
@@ -74,7 +75,8 @@
 
 ## ADR-006 — Se publica un repositorio nuevo a partir de un clon limpio, con su historial
 
-- **Estado:** 🔶 propuesta (2026-09-28)
+- **Estado:** ✅ aceptada (2026-09-28, por el propietario; ver
+  [ADR-027](#adr-027--antes-del-clon-limpio-se-resuelve-todo-todomd-y-se-prueba-en-producción))
 - **Fecha:** 2026-09-28
 - **Decisión:** la limpieza se hace sobre un clon con `git-filter-repo`, que
   conserva todos los commits, mensajes, autores y fechas, y solo quita las rutas
@@ -344,7 +346,8 @@
 
 ## ADR-020 — Solo la documentación pública va en inglés; los ficheros de trabajo, en español y fuera del repo público
 
-- **Estado:** ✅ aceptada (2026-09-28)
+- **Estado:** ✅ aceptada (2026-09-28) · 📌 publicación revisada por
+  [ADR-026](#adr-026--se-publica-todo-ficheros-de-trabajo-todas-las-ramas-y-los-agentsmd)
 - **Fecha:** 2026-09-28
 - **Decisión:**
   - **Documentación pública** (la que irá al repositorio open source): en
@@ -467,3 +470,41 @@
 - **Reabrir si:** llega un segundo hotel o cliente externo (multi-tenancy), o un
   segundo entorno o servicio (`render.yaml`).
 - **Origen:** `docs/_archive/Global-Plan.md`, decisiones D-4 y H1-16.5.
+
+## ADR-026 — Se publica todo: ficheros de trabajo, todas las ramas y los `AGENTS.md`
+
+- **Estado:** ✅ aceptada (2026-09-28)
+- **Fecha:** 2026-09-28
+- **Decisión:**
+  - **Los cuatro ficheros de trabajo** (`DECISIONS.md`, `ROADMAP.md`,
+    `SESSION.md`, `TODO.md`) **se quedan en el repositorio público**, en
+    español, mientras se siga trabajando.
+  - **Se publican todas las ramas**, no solo `main`. La limpieza del historial
+    (fase 2) repasa todas buscando información sensible.
+  - **Se publican los `AGENTS.md` y `CLAUDE.md`**, sin cambios de fondo.
+  - Sigue en pie: nada de `docs/_archive/` se publica (ADR-009), y la
+    documentación pública no cita ADR ni `TODO.md` (ADR-020).
+- **Motivo:** decisión del propietario. Son temporales y no hace falta
+  esconderlos. El riesgo de publicar `TODO.md` —describe fallos de seguridad—
+  desaparece porque se publica cuando ya estén resueltos (ADR-027).
+- **Revisa:** ADR-020 en que los ficheros de trabajo «no se publican» y en su
+  pendiente de cómo sacarlos del repositorio público.
+
+## ADR-027 — Antes del clon limpio se resuelve todo `TODO.md` y se prueba en producción
+
+- **Estado:** ✅ aceptada (2026-09-28)
+- **Fecha:** 2026-09-28
+- **Decisión:**
+  - Se hace **todo `TODO.md`** y se prueba en producción **antes** de limpiar el
+    historial. Es una fase nueva, la **1c**, entre la 1b y la 2.
+  - **ADR-006 queda aceptada**: se publica un repositorio nuevo a partir de un
+    clon limpio con su historial, pero ese clon se hace después de la 1c.
+  - **Se elimina la fase 3** (repartir las tareas pendientes): la 1c resuelve
+    `TODO.md` entero y los ficheros de trabajo se publican (ADR-026).
+  - **Los volcados de BD salen ya del árbol** (`git rm --cached` y
+    `backend/db-mysql/backup/*.sql` en `.gitignore`); del historial, en la
+    fase 2.
+- **Motivo:** decisión del propietario. Publicar con los fallos abiertos los
+  expondría, y limpiar el historial antes obligaría a repetir la limpieza por
+  todo lo que se commitee después.
+- **Revisa:** ADR-001 en el orden de las fases.

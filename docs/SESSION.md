@@ -15,21 +15,23 @@ propio fichero) o ruido (se borra).
 
 Preparación del repositorio para publicarlo como open source. Plan en
 `OPEN-SOURCE.md` (raíz); orden de fases en `ROADMAP.md`; decisiones en
-`DECISIONS.md` (ADR-001 a ADR-025).
+`DECISIONS.md` (ADR-001 a ADR-027).
 
-Fase actual: **2 — Limpieza del historial**. Las fases 1 y 1b quedaron cerradas
-el 2026-09-28; detalle en `docs/_archive/roadmap-history.md` (local).
+Fase actual: **1c — Resolver `TODO.md` y probarlo en producción** (ADR-027). Las
+fases 1 y 1b quedaron cerradas el 2026-09-28; detalle en
+`docs/_archive/roadmap-history.md` (local).
 
 ## ⚠️ Empieza por aquí
 
-1. **Fase 1b cerrada**: lo trascendental del archivo está en `docs/` y
-   `TODO.md`; lo demás sigue en `_archive/` (criterio del propietario:
-   simplicidad). Siguiente: fase 2, que depende de las decisiones de "Esperando
-   decisión". Nada se sube (push) hasta que todo esté arreglado.
-2. **Idiomas:** se trabaja en español; la documentación pública de `docs/` va en
+1. **Fase 1c**: se hace todo `TODO.md`, de 🔴 a 🟢, y se prueba en producción
+   antes de limpiar el historial. El clon limpio y el repo público nuevo
+   (ADR-006, ya aceptada) vienen después.
+2. **Qué se publica** (ADR-026): los ficheros de trabajo, todas las ramas y los
+   `AGENTS.md`/`CLAUDE.md`. No se publica `docs/_archive/`.
+3. **Idiomas:** se trabaja en español; la documentación pública de `docs/` va en
    inglés y no cita ADR ni `TODO.md`. `DECISIONS.md`, `ROADMAP.md`, `SESSION.md`
-   y `TODO.md` siguen en español y no se publicarán.
-3. **Material de consulta:** `docs/_archive/` refleja las rutas originales.
+   y `TODO.md` siguen en español.
+4. **Material de consulta:** `docs/_archive/` refleja las rutas originales.
 
 ## Hallazgos
 
@@ -38,30 +40,24 @@ lo grave → `TODO.md`. Aplicado el 2026-09-28 a los 12 módulos (general con
 mensajería y base de datos incluidas).
 
 Los hallazgos de la lectura del código (seguridad, docs desalineadas, código
-muerto, decisiones previas a publicar) están en `TODO.md`. Los de prioridad alta
-**hay que resolverlos o sacarlos de ahí antes de publicar**.
+muerto, decisiones previas a publicar) están en `TODO.md`, y **se resuelven
+todos antes de publicar** (ADR-027).
 
 ## Esperando decisión
 
-- **Cómo quedan fuera del repo público los cuatro ficheros de trabajo**
-  (ADR-020): hoy están versionados en `docs/`.
-- **Volcados de BD en `main`: se deja para más adelante** (decisión del
-  propietario, 2026-09-28). Cuatro ficheros versionados en `HEAD` y subidos al
-  remoto privado:
-  - `backend/db-mysql/backup/backup_hotel_db_aiven_20260226_010814.sql`
-  - `backend/db-mysql/backup/backup_hotel_db_aiven_20260512_112814.sql`
-  - `backend/db-mysql/backup/backup_hotel_db_local_20260226_011428.sql`
-  - `backend/db-mysql/backup/backup_hotel_db_local_20260512_112901.sql`
+Nada ahora mismo. Cómo se trabaja en la 1c (orden y flujo de push) está en
+`ROADMAP.md`.
 
-  En el historial hay además `backup_hotel_db-aiven.sql` y
-  `backup_hotel_db-local.sql`, ya borrados. Entraron en `dad3cdc`, `f5d47d6` y
-  `7ac45e7`. **No se han abierto.** Se eliminan del historial en la fase 2.
+## Volcados de BD
 
-- **ADR-006 (repo nuevo desde clon limpio)** sigue 🔶 propuesta.
-- **¿Se publican los `CLAUDE.md` / `AGENTS.md`**, o se quitan antes de publicar?
-- **Qué ramas se publican** además de `main`: `chore/audit-prep-sprint-0`,
-  `feature/ai-schedule-generator`, `feature/auth-hardening`,
-  `feature/observability-pino`. Sin tags. Se decide más adelante.
+Los cuatro `backend/db-mysql/backup/backup_hotel_db_{aiven,local}_2026*.sql`
+salieron del árbol el 2026-09-28 (`git rm --cached`; siguen en el disco del PC
+`dz`, ignorados por `.gitignore`). En el historial siguen estos cuatro y además
+`backup_hotel_db-aiven.sql` y `backup_hotel_db-local.sql`; entraron en
+`dad3cdc`, `f5d47d6` y `7ac45e7`. **No se han abierto.** Se eliminan del
+historial en la fase 2, en todas las ramas: `main`, `chore/audit-prep-sprint-0`,
+`feature/ai-schedule-generator`, `feature/auth-hardening` y
+`feature/observability-pino` (sin tags).
 
 ## Cuidado con esto
 
