@@ -297,12 +297,14 @@ hace que alguien reimplemente lo que ya existe.
       `Permissions-Policy`, pero no CSP ni `Cross-Origin-Opener-Policy`; HSTS
       sin `preload`, Google Analytics sin SRI y anuncia `X-Powered-By:
 Next.js`. _Comprobado con `curl -I` el 2026-09-28._
-- [ ] **La API está detrás de Cloudflare y el backend confía en un solo
-      proxy** — las respuestas llevan `Server: cloudflare` delante de Render, y
-      `backend/index.ts` pone `trust proxy 1`. Lo probable es que `req.ip` sea
-      la IP de Cloudflare: los límites por IP (login incluido) mezclarían a
-      usuarios distintos. _Cabeceras comprobadas con `curl` el 2026-09-28; el
-      valor real de `req.ip` no._
+- [ ] **Comprobar qué IP ve el backend (`trust proxy 1`)** — Render sirve sus
+      aplicaciones a través de su propia red de Cloudflare (no es una
+      configuración del proyecto: `stackbp.es` usa los DNS de `dns-parking.com`
+      y `four-points.onrender.com` responde igual con `Server: cloudflare`).
+      Con al menos dos intermediarios y `trust proxy 1` en `backend/index.ts`,
+      `req.ip` podría ser la de un intermediario: los límites por IP (login
+      incluido) mezclarían a usuarios distintos. _DNS y cabeceras comprobados
+      el 2026-09-28; el valor real de `req.ip`, no._
 - [ ] **Datos de personas reales en el repo** — `20260520_insert_user_example.sql`
       crea a una empleada real con su periodo de trabajo (confirmado por el
       propietario el 2026-09-28): cambiar el nombre antes de publicar, en el
