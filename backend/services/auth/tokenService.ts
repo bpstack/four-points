@@ -8,6 +8,7 @@ import type { TokenPayload } from '../../models/auth/index.js'
 // Refresh token: 7 días
 const ACCESS_TOKEN_EXPIRY = '15m'
 const REFRESH_TOKEN_EXPIRY = '7d'
+const JWT_ALGORITHM = 'HS256' as const
 
 interface UserForToken {
   id: string
@@ -31,7 +32,7 @@ export function generateAccessToken(user: UserForToken): string {
     type: 'access',
   }
 
-  return jwt.sign(payload, SECRET_JWT_KEY, { expiresIn: ACCESS_TOKEN_EXPIRY })
+  return jwt.sign(payload, SECRET_JWT_KEY, { expiresIn: ACCESS_TOKEN_EXPIRY, algorithm: JWT_ALGORITHM })
 }
 
 /**
@@ -49,7 +50,7 @@ export function generateRefreshToken(user: UserForToken): string {
     type: 'refresh',
   }
 
-  return jwt.sign(payload, SECRET_JWT_KEY, { expiresIn: REFRESH_TOKEN_EXPIRY })
+  return jwt.sign(payload, SECRET_JWT_KEY, { expiresIn: REFRESH_TOKEN_EXPIRY, algorithm: JWT_ALGORITHM })
 }
 
 /**
@@ -57,7 +58,7 @@ export function generateRefreshToken(user: UserForToken): string {
  */
 export function verifyToken(token: string): TokenPayload {
   try {
-    return jwt.verify(token, SECRET_JWT_KEY) as TokenPayload
+    return jwt.verify(token, SECRET_JWT_KEY, { algorithms: [JWT_ALGORITHM] }) as TokenPayload
   } catch (error) {
     if (error instanceof Error) {
       if (error.name === 'TokenExpiredError') {

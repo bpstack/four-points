@@ -47,6 +47,8 @@ const avatarUpload = multer({
 
 router.post('/login', loginIpLimiter, loginLimiter, login)
 router.post('/refresh-token', refreshLimiter, refreshToken)
+// Public: only clears the HttpOnly cookies, which the browser cannot do itself once the access token expired
+router.post('/logout', logout)
 
 // ========================================
 // ADMIN ONLY ROUTES
@@ -60,7 +62,6 @@ router.post('/register', authenticateToken, isRealAdmin, register)
 // ========================================
 
 router.get('/me', authenticateToken, me)
-router.post('/logout', authenticateToken, logout)
 
 // Profile management (with rate limiting)
 router.patch('/me/profile', authenticateToken, profileUpdateLimiter, updateProfile)

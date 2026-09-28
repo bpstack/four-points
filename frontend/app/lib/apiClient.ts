@@ -18,6 +18,10 @@ const isClient = typeof window !== 'undefined'
 
 import { API_BASE_URL } from '@/app/lib/env'
 
+// URLs can carry personal data (e.g. document numbers in blacklist search): no logs in production
+const debug: (...args: unknown[]) => void =
+  process.env.NODE_ENV === 'production' ? () => undefined : console.log.bind(console)
+
 // Cola para manejar refresh concurrente
 let isRefreshing = false
 let refreshAttempts = 0 // Circuit breaker para evitar loops infinitos
@@ -76,8 +80,12 @@ function clearAuthCookiesAndRedirect(): void {
   }
   ;(window as unknown as { __redirectingToLogin?: boolean }).__redirectingToLogin = true
 
-  document.cookie = 'access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT'
-  document.cookie = 'refresh_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT'
+  // HttpOnly cookies can only be cleared by the backend
+  fetch(`${API_BASE_URL}/api/auth/logout`, {
+    method: 'POST',
+    credentials: 'include',
+    keepalive: true,
+  }).catch(() => undefined)
 
   // Reset estado del modulo
   isRefreshing = false
@@ -91,7 +99,7 @@ function clearAuthCookiesAndRedirect(): void {
 async function refreshSession(): Promise<void> {
   const refreshUrl = `${API_BASE_URL}/api/auth/refresh-token`
 
-  console.log('[apiClient] 🔄 Intentando refresh token...')
+  debug('[apiClient] 🔄 Intentando refresh token...')
 
   const refreshOptions: RequestInit = {
     method: 'POST',
@@ -103,11 +111,11 @@ async function refreshSession(): Promise<void> {
   const refreshResponse = await fetch(refreshUrl, refreshOptions)
 
   if (!refreshResponse.ok) {
-    console.log('[apiClient] ❌ Refresh falló:', refreshResponse.status)
+    debug('[apiClient] ❌ Refresh falló:', refreshResponse.status)
     throw new Error(`Refresh failed: ${refreshResponse.status}`)
   }
 
-  console.log('[apiClient] ✅ Refresh exitoso')
+  debug('[apiClient] ✅ Refresh exitoso')
   await refreshResponse.json().catch(() => null)
 }
 
@@ -130,7 +138,7 @@ async function fetchWithRefresh(url: string, options: FetchOptions = {}): Promis
 
   let response = await fetch(url, finalOptions)
 
-  console.log(`[apiClient] ${finalOptions.method || 'GET'} ${url} → ${response.status}`)
+  debug(`[apiClient] ${finalOptions.method || 'GET'} ${url} → ${response.status}`)
 
   // Rutas que no deben intentar auto-refresh de token
   // NOTA: /auth/me SÍ debe hacer refresh ya que es usada para validar sesión
@@ -151,7 +159,7 @@ async function fetchWithRefresh(url: string, options: FetchOptions = {}): Promis
       refreshAttempts = 0
     }
 
-    console.log(
+    debug(
       '[apiClient] 🔑 Recibido 401, intentando refresh... (intento',
       refreshAttempts + 1,
       'de',
@@ -161,7 +169,7 @@ async function fetchWithRefresh(url: string, options: FetchOptions = {}): Promis
 
     // Circuit breaker: si ya intentamos demasiadas veces, redirigir al login
     if (refreshAttempts >= MAX_REFRESH_ATTEMPTS) {
-      console.log('[apiClient] ⛔ Máximo de intentos de refresh alcanzado, redirigiendo a login')
+      debug('[apiClient] ⛔ Máximo de intentos de refresh alcanzado, redirigiendo a login')
       clearAuthCookiesAndRedirect()
       throw new Error('Max refresh attempts reached')
     }
@@ -181,7 +189,7 @@ async function fetchWithRefresh(url: string, options: FetchOptions = {}): Promis
     try {
       await refreshSession()
 
-      console.log('[apiClient] ✅ Refresh exitoso')
+      debug('[apiClient] ✅ Refresh exitoso')
       resetRefreshAttempts() // Reset counter on success
       isRefreshing = false
       processQueue()
@@ -198,7 +206,7 @@ async function fetchWithRefresh(url: string, options: FetchOptions = {}): Promis
 
       response = await fetch(url, retryOptions)
     } catch (error) {
-      console.log('[apiClient] ❌ Refresh falló, redirigiendo a login...', error)
+      debug('[apiClient] ❌ Refresh falló, redirigiendo a login...', error)
       isRefreshing = false
       processQueue(error)
       clearAuthCookiesAndRedirect()

@@ -2,7 +2,7 @@
 
 import { apiClient } from '@/app/lib/apiClient'
 import { API_BASE_URL } from '@/app/lib/env'
-import type { LoginCredentials, RegisterData, UpdateUserData, AuthResponse } from './types'
+import type { LoginCredentials, UpdateUserData, AuthResponse } from './types'
 
 const API_URL = API_BASE_URL
 
@@ -59,22 +59,6 @@ export const authApi = {
     if (!res.ok) {
       const errorData = await res.json().catch(() => null)
       throw new Error(errorData?.message || 'Failed to login')
-    }
-
-    return res.json()
-  },
-
-  // Registro - No usa apiClient porque no requiere auth previa
-  register: async (data: RegisterData): Promise<AuthResponse> => {
-    const res = await fetch(`${API_URL}/api/auth/register`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    })
-
-    if (!res.ok) {
-      const errorData = await res.json().catch(() => null)
-      throw new Error(errorData?.message || 'Failed to register')
     }
 
     return res.json()

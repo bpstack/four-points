@@ -6,6 +6,8 @@ import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { FiUser, FiAlertCircle, FiUserPlus } from 'react-icons/fi'
 import { toast } from 'react-hot-toast'
+import { apiClient, ApiError } from '@/app/lib/apiClient'
+import { API_BASE_URL } from '@/app/lib/env'
 import {
   SlidePanel,
   SlidePanelFooterButtons,
@@ -37,19 +39,7 @@ export default function NewUserModal({ isOpen, onClose, onSuccess }: NewUserModa
     setError(null)
 
     try {
-      const response = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || t('errors.errorCreating'))
-      }
+      await apiClient.post(`${API_BASE_URL}/api/auth/register`, formData)
 
       // Success
       toast.success(t('newUser.success'))
@@ -57,7 +47,13 @@ export default function NewUserModal({ isOpen, onClose, onSuccess }: NewUserModa
       onSuccess()
       onClose()
     } catch (err) {
-      const message = err instanceof Error ? err.message : t('errors.errorCreating')
+      const fieldErrors =
+        err instanceof ApiError
+          ? (err.body?.errors as Record<string, string> | undefined)
+          : undefined
+      const message =
+        (fieldErrors && Object.values(fieldErrors)[0]) ||
+        (err instanceof ApiError && err.status < 500 ? err.message : t('errors.errorCreating'))
       setError(message)
       toast.error(message)
     } finally {

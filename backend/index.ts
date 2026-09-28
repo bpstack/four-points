@@ -63,9 +63,6 @@ const allowedOrigins = [
   process.env.FRONTEND_URL, // URL adicional si es necesario
 ].filter(Boolean) as string[]
 
-// Patrón para permitir todos los previews de Vercel (cualquier subdominio)
-const vercelPreviewPattern = /\.vercel\.app$/
-
 app.use(
   cors({
     origin: (origin, callback) => {
@@ -74,8 +71,7 @@ app.use(
         callback(null, true)
         return
       }
-      // Permitir orígenes en la lista o previews de Vercel
-      if (allowedOrigins.includes(origin) || vercelPreviewPattern.test(origin)) {
+      if (allowedOrigins.includes(origin)) {
         callback(null, true)
       } else {
         logger.warn({ origin }, '[CORS] Blocked origin')
