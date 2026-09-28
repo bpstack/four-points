@@ -23,12 +23,76 @@ archivada en `docs/_archive/` (ADR-010); lo hecho se registra en
 
 ## ⚠️ Empieza por aquí
 
-1. **Escribir `docs/general/README.md`** leyendo el código (ADR-004) y
-   contrastándolo con `docs/_archive/`. Estructura y lista de módulos en
-   ADR-011.
-2. **Material de consulta:** `docs/_archive/` refleja las rutas originales
+1. **Revisión de `docs/general/README.md` por el propietario.** Escrito el
+   2026-09-28 tras leer el código de arranque, config, middlewares, auth, cron,
+   notificaciones, mensajería, perfil, `proxy.ts`, i18n y proveedores del
+   frontend. Tras el OK, sale del `ROADMAP.md`.
+2. **Decidir qué hacer con los hallazgos** de la sección siguiente.
+3. **Siguiente módulo** de la fase 1 en `ROADMAP.md`.
+4. **Material de consulta:** `docs/_archive/` refleja las rutas originales
    (`docs/_archive/docs/backend/…`, `docs/_archive/frontend/docs/…`,
    `docs/_archive/Global-Plan.md`…).
+
+## Hallazgos al escribir `docs/general/` (2026-09-28)
+
+🔴 **Seguridad — resolver o sacar de aquí antes de publicar** (no están en la
+documentación pública):
+
+- **Un usuario desactivado o borrado sigue entrando**: ni `authenticateToken`
+  ni `refreshToken` (`backend/controllers/auth/auth-controllers.ts`) consultan
+  la BD, y cada renovación emite otro `refresh_token` de 7 días.
+- **Access y refresh token son intercambiables**: mismo secreto y sin campo de
+  tipo (`backend/services/auth/tokenService.ts`). Un `refresh_token` enviado
+  como `Bearer` pasa `authenticateToken`, y un `access_token` sirve para
+  renovar.
+- **Los tokens también viajan en el cuerpo JSON**: `login` y `refresh`
+  devuelven `token`, y `updateProfile` además `refreshToken`. Anula parte de la
+  ventaja de las cookies HttpOnly.
+- **La protección contra timing attacks del login puede no funcionar**:
+  `DUMMY_HASH` (`backend/repositories/auth/user-repository.ts`) no es un hash
+  bcrypt válido; si `bcrypt.compare` falla rápido, se puede distinguir un
+  usuario inexistente. **No comprobado**: hay que medirlo.
+- **Contraseñas de 6 caracteres mínimo** (`validations/auth/user-validation.ts`).
+
+**Documentación y código desalineados:**
+
+- **`CLAUDE.md` raíz dice que next-intl usa `routing.ts` + `createNavigation`**:
+  no existe `routing.ts`; el idioma va por cookie `NEXT_LOCALE`, geolocalización
+  de Vercel y `Accept-Language` (`frontend/app/i18n/request.ts`). También cita
+  Nodemailer como externo, y no se usa (ver abajo).
+- **`.env.example` desactualizados.** Backend: faltan `DB_ENVIRONMENT`,
+  `LOG_LEVEL` y `FRONTEND_URL`; sobran `AI_ENABLED`, `CLAUDE_*` y `GEMINI_*`,
+  que ningún código lee. Frontend: falta `NEXT_PUBLIC_APP_URL` y sobra
+  `NEXT_PUBLIC_APP_NAME`, que no se usa.
+- **`NEXT_PUBLIC_APP_URL` en producción**: si no está definida en Vercel, crear
+  usuarios desde la UI devolvería `403 Origen no permitido`. No se puede
+  comprobar desde aquí.
+- **Comentario incorrecto** en `canAccessFnb` (`middlewares/roleCheck.ts`): no
+  menciona `group-admin`, que sí tiene acceso.
+
+**Código muerto** (candidato a un `chore:` aparte):
+
+- `backend/services/group/email-service.ts` (Nodemailer): nadie lo importa.
+- `frontend/app/api/auth/{login,logout,me,refresh}` y
+  `_backup_httponly_cookies/`, más `app/lib/auth/cookieHandler.ts`: solo se usa
+  `app/api/auth/register`.
+- `app.set('view engine', 'ejs')` en `backend/index.ts`, sin `ejs` instalado.
+
+**Para decidir antes de publicar:**
+
+- **Licencia**: solo existe `frontend/LICENSE`, «MIT (Modified -
+  Non-Commercial)». Una licencia no comercial no es open source según la OSI, y
+  la raíz no tiene ninguna.
+- **Analítica**: el frontend carga Google Analytics (`G-ZYSZ6THVDW`) y Vercel
+  Analytics (`frontend/app/layout.tsx`).
+- **Páginas de prueba públicas**: `/design-system` y `/fonts-test` no están
+  protegidas por `proxy.ts`.
+- **Mensajería interna** (~4 k líneas entre backend y frontend) está documentada
+  dentro de `general/`. ¿Merece carpeta propia (`docs/messages/`)?
+- **Cron en el plan gratuito de Render**: los trabajos corren dentro del proceso
+  del backend; si Render lo duerme por inactividad, no se ejecutan. **No
+  comprobado** en este repo.
+- **Sin CI** (no hay `.github/`) y **sin tests en el frontend**.
 
 ## Esperando decisión
 
