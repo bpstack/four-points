@@ -451,7 +451,8 @@
   `demoRestriction` siguen en el código.
 - **Motivo:** sin multi-tenancy, el demo y los datos reales comparten las mismas
   tablas. Conservar el código permite reabrirlo si se separan los datos.
-- ❓ No comprobado en la BD que `demo` siga inactivo hoy.
+- ✅ Comprobado en Aiven el 2026-09-29 (API como `admin`): ningún usuario activo
+  con rol `demo-admin` ni con «demo» en el nombre.
 - **Origen:** `docs/_archive/Global-Plan.md`, decisión D-1 y §5.
 
 ## ADR-025 — Sin multi-tenancy ni `render.yaml` hasta que haga falta
