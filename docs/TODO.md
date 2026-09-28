@@ -21,6 +21,21 @@ hace que alguien reimplemente lo que ya existe.
 > Las entradas de **seguridad** describen debilidades explotables: **resolverlas
 > o quitarlas de este fichero antes de publicar el repositorio**.
 
+- [ ] **Groups: inyección SQL en el orden del listado** — `sort` y `order` pasan
+      de la URL a `ORDER BY g.${sortField} ${sortOrder}` sin filtrar
+      (`group-repository.ts`). `GET /api/groups` lo alcanza cualquier rol que ve
+      grupos, también `mantenimiento`: permite leer toda la BD, hashes de
+      contraseñas incluidos. _Comprobado por mí el 2026-09-28._
+- [ ] **Groups: inyección SQL por los nombres de campo en las ediciones** — los
+      `PUT` de grupo, pago, contacto y habitación construyen `clave = ?` con las
+      claves del cuerpo, y el controlador pasa el cuerpo entero. Un
+      `group-admin` (o cualquiera que se haga admin) puede leer o escribir
+      cualquier columna. _Comprobado por mí el 2026-09-28._ (pago, contacto y
+      habitación, según el revisor)
+- [ ] **Groups: ninguna ruta valida con Zod** — asignación masiva: por `PUT` se
+      puede mover un pago a otro grupo, cambiar `created_by`, `status`,
+      `amount_paid` o poner importes negativos. _Comprobado por mí el
+      2026-09-28._ (casos concretos, según el revisor)
 - [ ] **Maintenance: sin permisos dentro del módulo** — cualquier rol con acceso
       (también `mantenimiento` y `recepcionista`) crea, edita, cambia de estado,
       asigna, borra y restaura cualquier parte: el controlador no mira rol ni
@@ -367,8 +382,37 @@ hace que alguien reimplemente lo que ya existe.
 - [ ] **Maintenance: cambio e historial sin transacción** — un fallo entre ambos
       deja cambios sin registrar. _Comprobado por mí el 2026-09-28._
 
+- [ ] **Groups: lógica de pagos incoherente** — se acepta un `amount_paid` mayor
+      que el importe, `paid` sin haber pagado nada, recálculos que no tocan el
+      estado y porcentajes que suman más de 100. _Según la revisión `security`
+      L3 del 2026-09-28 (fichero y línea en el informe); no repasado por mí._
+- [ ] **Groups: borrar un grupo borra su historial** — no se registra el borrado
+      y `group_history` tiene `ON DELETE CASCADE`; ninguna mutación va en
+      transacción con su registro. _Comprobado por mí el 2026-09-28._
+      (transacciones, según el revisor)
+- [ ] **Groups: dos rutas de pago no comprueban que el pago sea del grupo de la
+      URL** (`updatePaymentStatus`, `updateAmountPaid`). _Según la revisión
+      `security` L3 del 2026-09-28 (fichero y línea en el informe); no repasado
+      por mí._
+- [ ] **Notificaciones manuales: destinatarios y textos sin validar** —
+      cualquier id de usuario (inactivos incluidos), prioridad sin comprobar,
+      título y mensaje sin límite; los errores devuelven el mensaje de MySQL.
+      _Según la revisión `security` L3 del 2026-09-28 (fichero y línea en el
+      informe); no repasado por mí._
+
 ## 🟢 Baja
 
+- [ ] **Groups: recordatorios repetidos cada 48 h** — los de pago se buscan en
+      un rango de días y se deduplican por título en una ventana de 48 h: el
+      mismo pago se vuelve a avisar con «vence en 15 días» aunque falten 2, y
+      los vencidos se repiten sin fin. _Según la revisión `security` L3 del
+      2026-09-28 (fichero y línea en el informe); no repasado por mí._
+- [ ] **Groups: `limit` del historial sin cota.** _Según la revisión `security`
+      L3 del 2026-09-28 (fichero y línea en el informe); no repasado por mí._
+- [ ] **Groups: contactos (email y teléfono) visibles para todos los roles**,
+      también `mantenimiento` (ASVS L3: solo los datos mínimos). _Según la
+      revisión `security` L3 del 2026-09-28 (fichero y línea en el informe); no
+      repasado por mí._
 - [ ] **Maintenance: identificador `DDMMAA-NNN` frágil** — se calcula leyendo el
       último del día (dos altas a la vez chocan y dan 500) con la hora del
       servidor; a partir del parte 1000 del día el id no cumple el formato y el
