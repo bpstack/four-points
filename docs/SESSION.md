@@ -23,7 +23,7 @@ archivada en `docs/_archive/` (ADR-010); lo hecho se registra en
 
 ## ⚠️ Empieza por aquí
 
-1. **Siguiente módulo** de la fase 1 en `ROADMAP.md`.
+1. **Siguiente módulo** de la fase 1 en `ROADMAP.md` (`groups`).
 2. **Material de consulta:** `docs/_archive/` refleja las rutas originales
    (`docs/_archive/docs/backend/…`, `docs/_archive/frontend/docs/…`,
    `docs/_archive/Global-Plan.md`…).
@@ -40,6 +40,10 @@ alta **hay que resolverlos o sacarlos de ahí antes de publicar**.
 
 ## Esperando decisión
 
+- **Área para la ficha `## Security` de `AGENTS.md`** (propuesta del revisor de
+  maintenance): añadir `backend/services/blacklist/cloudinary-service.ts` a
+  _File upload_. No se ha tocado porque el propietario está fusionando los
+  `CLAUDE.md` en `AGENTS.md`.
 - **Volcados de BD en `main`: se deja para más adelante** (decisión del
   propietario, 2026-09-28). Cuatro ficheros versionados en `HEAD` y subidos al
   remoto privado:

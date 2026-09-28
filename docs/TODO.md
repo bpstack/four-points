@@ -21,6 +21,15 @@ hace que alguien reimplemente lo que ya existe.
 > Las entradas de **seguridad** describen debilidades explotables: **resolverlas
 > o quitarlas de este fichero antes de publicar el repositorio**.
 
+- [ ] **Maintenance: sin permisos dentro del módulo** — cualquier rol con
+      acceso (también `mantenimiento` y `recepcionista`) crea, edita, cambia de
+      estado, asigna, borra y restaura cualquier parte: el controlador no mira
+      rol ni autoría. _Comprobado por mí el 2026-09-28._
+- [ ] **Maintenance: los errores 500 devuelven el mensaje de MySQL** — 15
+      respuestas con `message: error.message` en
+      `maintenance-controller.ts`, saltándose el manejador global. Filtra
+      tablas, columnas y claves foráneas, y sirve para saber si un id de usuario
+      existe. _Comprobado por mí el 2026-09-28._
 - [ ] **Backoffice: el pago en lote paga todos los meses con un objeto** —
       `executeBatchPayment` pasa `year` y `month` del cuerpo sin validar. Si se
       envía un objeto en vez de un número, mysql2 lo convierte en una
@@ -311,8 +320,43 @@ Next.js`. _Comprobado con `curl -I` el 2026-09-28._
       script, en la BD y en el historial (fase 2). Revisar si hay más nombres
       reales de personal en scripts, tests o datos de ejemplo.
 
+- [ ] **Maintenance: la edición general se salta las reglas** — `PATCH /:id`
+      admite `status` (sin fechas de inicio o cierre ni la acción correcta en el
+      historial) y `resolution_notes` (reescribe el campo entero, así que se
+      pueden inventar o borrar notas con autor). _Comprobado por mí el 2026-09-28._
+- [ ] **Maintenance: sin flujo de estados en el backend** — cualquier estado
+      pasa a cualquier otro y un parte cerrado se reabre por la API. Cancelar se
+      registra en el historial como «cerrado». _Comprobado por mí el 2026-09-28._
+- [ ] **Maintenance: partes borrados visibles y modificables** —
+      `include_deleted` funciona para cualquier rol (la pantalla lo presenta como
+      solo de administración), el detalle, las fotos y el historial de un parte
+      borrado se leen, y se le pueden añadir notas y fotos. _Comprobado por mí el 2026-09-28._ (escrituras,
+      según el revisor)
+- [ ] **Maintenance: fotos públicas y que no se borran** — Cloudinary las sirve
+      sin firmar, con un `public_id` predecible; el borrado lógico no las toca,
+      `auto_delete_on_close` se guarda pero nadie lo usa, y subir o borrar fotos
+      no queda en el historial. _Comprobado por mí el 2026-09-28._
+- [ ] **Maintenance: la asignación no valida al destinatario** — vale un usuario
+      inactivo, de cualquier rol o inexistente, y la edición no comprueba que
+      tipo interno o externo encaje con el resto de campos. _Según la revisión `security` L3 del 2026-09-28 (fichero y línea en el informe); no repasado por mí._
+- [ ] **Maintenance: cambio e historial sin transacción** — un fallo entre
+      ambos deja cambios sin registrar. _Comprobado por mí el 2026-09-28._
+
 ## 🟢 Baja
 
+- [ ] **Maintenance: identificador `DDMMAA-NNN` frágil** — se calcula leyendo
+      el último del día (dos altas a la vez chocan y dan 500) con la hora del
+      servidor; a partir del parte 1000 del día el id no cumple el formato y el
+      parte queda inaccesible. _Comprobado por mí el 2026-09-28._ (el límite de 1000, según el revisor)
+- [ ] **Maintenance: validación incompleta** — textos largos sin `.max()`
+      (descripción, notas) que acaban en 500, `deleteImage` sin validar
+      parámetros y el límite de 5 fotos se salta subiendo en paralelo. _Según la revisión `security` L3 del 2026-09-28 (fichero y línea en el informe); no repasado por mí._
+- [ ] **Maintenance: `public_id` con el nombre original sin sanear.** _Según la revisión `security` L3 del 2026-09-28 (fichero y línea en el informe); no repasado por mí._
+- [ ] **Informes: la sección de mantenimiento filtra por estados que no
+      existen** — `MaintenanceSection.tsx` envía `pending` y `resolved`, que el
+      backend rechaza. _Según la revisión `security` L3 del 2026-09-28 (fichero y línea en el informe); no repasado por mí._
+- [ ] **Maintenance: comprobar si Cloudinary quita los metadatos EXIF/GPS** de
+      las fotos. _Sin comprobar._
 - [ ] **El API no envía `Cache-Control: no-store`** — afecta a lista negra, caja y PDFs de facturas. _Comprobado con `curl` el 2026-09-28._
 - [ ] **`apiClient` escribe cada URL en la consola en producción** — la búsqueda
       de lista negra manda el documento (DNI) en la URL, que acaba en consola y
