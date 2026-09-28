@@ -113,6 +113,15 @@ Una vez activo, cerrar el §3.5 hallazgo de observabilidad de `Global-Plan.md`.
 
 ---
 
+## Mantenimiento local — PC principal (`dz`)
+
+- [ ] **Revisar si se pueden borrar las copias de seguridad de la limpieza de permisos** (creadas el 2026-09-28). Tras varias sesiones de `claude` sin avisos al arrancar, borrar ambas:
+  - `C:\Users\dz\.claude\settings.json.bak` — copia previa a quitar el hook `SessionStart` roto (apuntaba a `harness/scripts/probe-node.mjs`, borrado del harness el 2026-09-16).
+  - `C:\Users\dz\projects\Four-Points\.claude\settings.local.json.bak` — copia previa a reducir las reglas `permissions.allow` de 32 a 3 (rotas, duplicadas y las que permitían leer `.env` sin preguntar).
+  - Criterio: no aparece `SessionStart:startup hook error` ni el aviso de regla con comodín. Ninguno de los dos ficheros está versionado (el primero está fuera del repo, el segundo lo ignora `.gitignore`).
+
+---
+
 ## Untracked intencional (no tocar)
 
 `migration-nextjs-to-vite.md` y `react-query-doubts.md` en raíz son notas personales del usuario sobre análisis futuro de arquitectura/rendimiento (potencial migración Next→Vite, refactor React Query). Untracked a propósito mientras evolucionan. **No commitearlas, no borrarlas, no proponer moverlas.**
