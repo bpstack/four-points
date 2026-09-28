@@ -23,8 +23,9 @@ archivada en `docs/_archive/` (ADR-010); lo hecho se registra en
 
 ## ⚠️ Empieza por aquí
 
-1. **Escribir `docs/general/messages/README.md`** (mensajería interna), leyendo
-   su código. Va dentro de `general/` por decisión del propietario.
+1. **Escribir `docs/logbook/README.md`** (libro de consigna), leyendo todo su
+   código y contrastándolo con `docs/_archive/` y
+   `backend/services/logbook/CLAUDE.md`.
 2. **Siguiente módulo** de la fase 1 en `ROADMAP.md`.
 3. **Material de consulta:** `docs/_archive/` refleja las rutas originales
    (`docs/_archive/docs/backend/…`, `docs/_archive/frontend/docs/…`,

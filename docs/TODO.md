@@ -71,8 +71,31 @@ hace que alguien reimplemente lo que ya existe.
 - [ ] **CI mínimo** — no hay `.github/`: instalar con lockfile congelado, lint,
       formato y tipos en cada push.
 
+- [ ] **Avisar a los usuarios de que un `admin` puede leer sus mensajes** —
+      `getConversation` y `getMessages`
+      (`backend/controllers/messages/`) dejan leer cualquier conversación al
+      rol `admin`, aunque no participe. Decidir si se mantiene y, si es así,
+      decirlo en la interfaz. _Comprobado el 2026-09-28._
+- [ ] **Comprobar que la retención de mensajes funciona en Aiven** — depende
+      del evento MySQL `cleanup_old_messages`, que solo corre con
+      `event_scheduler=ON`. Ese evento borra además cada día las conversaciones
+      sin mensajes, incluidas las recién creadas y aún vacías. _No comprobado
+      en la BD._
+
 ## 🟢 Baja
 
+- [ ] **Mensajería: exponer en la interfaz lo que el backend ya ofrece** —
+      renombrar grupo, añadir y quitar participantes, buscar en mensajes,
+      contador global de no leídos y vista de todas las conversaciones para
+      `admin`. Las funciones existen en `frontend/app/lib/messaging/queries.ts`
+      pero nadie las llama. _Comprobado el 2026-09-28 con búsqueda de usos._
+- [ ] **Mensajería sin tiempo real** — los mensajes nuevos solo aparecen al
+      reabrir la conversación. Valorar un sondeo periódico como el de las
+      notificaciones. _Comprobado el 2026-09-28: no hay intervalo ni
+      WebSocket._
+- [ ] **Notificaciones de mensajes con `module: 'system'`** — el enum de
+      notificaciones no incluye `messages` y el controlador lo fuerza con
+      `as any` (`backend/controllers/messages/message-controller.ts`).
 - [ ] **Quitar código muerto** (en un `chore:` aparte) —
       `backend/services/group/email-service.ts` (nadie lo importa);
       `frontend/app/api/auth/{login,logout,me,refresh}` y

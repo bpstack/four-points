@@ -18,13 +18,17 @@ permisos según su rol.
 
 El personal del hotel, cada uno con **un rol**:
 
-| Rol             | A qué accede                                                                                                                                                                                                     |
-| --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `admin`         | Todo. Es el único que crea usuarios, gestiona departamentos, ve informes y escribe en backoffice                                                                                                                 |
-| `recepcionista` | Módulos operativos: consigna, parking, caja, lista negra, conciliación, checklist, F&B, mantenimiento. Los grupos solo los consulta                                                                              |
-| `group-admin`   | Lo mismo que recepción y, además, gestiona grupos y recibe sus avisos                                                                                                                                            |
-| `mantenimiento` | Solo el módulo de mantenimiento, más las funciones comunes (perfil, mensajes, notificaciones, búsqueda)                                                                                                          |
-| `demo-admin`    | Ve todo como `admin`, pero solo puede escribir en una lista blanca (cerrar sesión, crear una reserva de parking, comentar en consigna, abrir un parte de mantenimiento). Cada intento bloqueado queda registrado |
+- **`admin`**: todo. Es el único que crea usuarios, gestiona departamentos, ve
+  informes y escribe en backoffice.
+- **`recepcionista`**: módulos operativos (consigna, parking, caja, lista negra,
+  conciliación, checklist, F&B, mantenimiento). Los grupos solo los consulta.
+- **`group-admin`**: lo mismo que recepción y, además, gestiona grupos y recibe
+  sus avisos.
+- **`mantenimiento`**: solo el módulo de mantenimiento, más las funciones comunes
+  (perfil, mensajes, notificaciones, búsqueda).
+- **`demo-admin`**: ve todo como `admin`, pero solo puede escribir en una lista
+  blanca (cerrar sesión, crear una reserva de parking, comentar en consigna, abrir
+  un parte de mantenimiento). Cada intento bloqueado queda registrado.
 
 El menú lateral solo oculta a quien no es administrador los enlaces de backoffice
 y horarios. **Quien decide de verdad es el backend**: cada ruta comprueba el rol
@@ -43,8 +47,9 @@ y responde `403` si no corresponde.
 - **Perfil** (`/dashboard/profile`): datos propios, avatar, cambio de usuario y
   de contraseña (ambos piden la contraseña actual). En _Ajustes_, los
   administradores gestionan usuarios, departamentos e informes.
-- **Mensajería interna**: conversaciones entre usuarios, con participantes,
-  edición y borrado de mensajes. Vive dentro del perfil.
+- **Mensajería interna**: conversaciones directas y grupos entre usuarios, con
+  mensajes urgentes que llegan como notificación. Vive dentro del perfil.
+  Detalle en [`messages/`](messages/README.md).
 - **Notificaciones**: campana en la cabecera, que se refresca cada minuto. Las
   genera el sistema (avisos de grupos: pagos, rooming list, llegadas), un
   `admin` a mano o un mensaje nuevo.
@@ -131,12 +136,14 @@ Navegador ──────────────► Frontend  (Next.js · Ve
 
 ## Stack
 
-| Parte    | Tecnología                                                                                                                |
-| -------- | ------------------------------------------------------------------------------------------------------------------------- |
-| Frontend | Next.js 16 (App Router, Turbopack) · React 19 · Tailwind CSS 3 · NextUI · React Query 5 · Zustand 5 · next-intl 4 · Zod 3 |
-| Backend  | Express 5 · TypeScript ejecutado con `tsx` (sin compilar) · mysql2 · Zod 4 · pino · node-cron · multer                    |
-| Horarios | Python 3.11 · OR-Tools (CP-SAT), como proceso persistente lanzado por el backend                                          |
-| Tests    | Vitest en el backend (auth, checklist, F&B, horarios) y pytest en el solver. El frontend no tiene tests                   |
+- **Frontend**: Next.js 16 (App Router, Turbopack), React 19, Tailwind CSS 3,
+  NextUI, React Query 5, Zustand 5, next-intl 4 y Zod 3.
+- **Backend**: Express 5 y TypeScript ejecutado con `tsx` (sin compilar),
+  mysql2, Zod 4, pino, node-cron y multer.
+- **Horarios**: Python 3.11 y OR-Tools (CP-SAT), como proceso persistente
+  lanzado por el backend.
+- **Tests**: Vitest en el backend (auth, checklist, F&B, horarios) y pytest en
+  el solver. El frontend no tiene tests.
 
 `frontend/` y `backend/` son dos proyectos pnpm independientes, cada uno con su
 lockfile. Node ≥ 22.16.

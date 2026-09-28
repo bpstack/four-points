@@ -34,8 +34,6 @@ empieza con un `README.md`). La documentación antigua está en `docs/_archive/`
 problema resuelve, quién lo usa, qué puede hacer, qué datos maneja, qué reglas
 cumple y cómo viaja la información.
 
-- [ ] **`docs/general/messages/`** — _mensajería interna, dentro de `general/`
-      (ADR-013)_.
 - [ ] **Una carpeta por módulo** — _`logbook`, `parking`, `maintenance`,
       `groups`, `scheduling`, `checklist`, `cashier`, `fnb`, `backoffice`,
       `blacklist`, `conciliation`_.
