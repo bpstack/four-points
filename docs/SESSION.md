@@ -15,7 +15,7 @@ propio fichero) o ruido (se borra).
 
 Preparación del repositorio para publicarlo como open source. Plan en
 `OPEN-SOURCE.md` (raíz); orden de fases en `ROADMAP.md`;
-decisiones en `DECISIONS.md` (ADR-001 a ADR-012).
+decisiones en `DECISIONS.md` (ADR-001 a ADR-018).
 
 Fase actual: **1 — Documentación nueva**. La documentación antigua ya está
 archivada en `docs/_archive/` (ADR-010); lo hecho se registra en
@@ -32,6 +32,10 @@ archivada en `docs/_archive/` (ADR-010); lo hecho se registra en
    `docs/_archive/Global-Plan.md`…).
 
 ## Hallazgos
+
+**Método por módulo** (ADR-018): documentar → revisión `security` L3 → comprobar
+lo grave → `TODO.md`. Primera ronda hecha el 2026-09-28 sobre general,
+mensajería, logbook y parking.
 
 Los hallazgos de la lectura del código (seguridad, docs desalineadas, código
 muerto, decisiones previas a publicar) están en `TODO.md`. Los de prioridad

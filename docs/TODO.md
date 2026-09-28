@@ -21,6 +21,45 @@ hace que alguien reimplemente lo que ya existe.
 > Las entradas de **seguridad** describen debilidades explotables: **resolverlas
 > o quitarlas de este fichero antes de publicar el repositorio**.
 
+- [ ] **Cualquier usuario puede hacerse `admin`** — `PUT /api/users/:id`
+      pasa `isOwnerOrAdmin` para el propio usuario y `updateUser`
+      (`backend/controllers/auth/user-controllers.ts`) guarda el `role` del
+      cuerpo. Tampoco pide la contraseña actual ni valida `email`. _Comprobado por mí el 2026-09-28._
+- [ ] **El límite de intentos de login se esquiva** — la clave es
+      `login-<ip>-<username tal cual>` (`backend/middlewares/rateLimiter.ts`)
+      y `users` usa `utf8mb4_0900_ai_ci`: `admin`, `Admin` y `ádmin` son la
+      misma cuenta con 5 intentos cada una. Además no hay límite por IP para
+      probar muchas cuentas. _Comprobado por mí el 2026-09-28._
+- [ ] **`mantenimiento` lee la lista negra por la búsqueda global** —
+      `/api/search` solo exige sesión y devuelve `guest_name` y
+      `document_number` de la lista negra, matrículas y grupos; `%` y `_` no
+      se escapan (`?q=%%` lista lo último de cada módulo). `/api/activity`
+      tiene el mismo hueco con menos datos. _Comprobado por mí el 2026-09-28._
+- [ ] **Logbook: un comentario cambia la prioridad o el departamento de una
+      entrada ajena** — si el comentario trae esos campos, el controlador
+      actualiza la entrada sin comprobar autoría ni registrar el valor
+      anterior. _Comprobado por mí el 2026-09-28._
+- [ ] **Logbook: el historial no es atómico** — no hay ninguna transacción en
+      el módulo: un fallo entre el cambio y su registro deja cambios sin
+      auditar o borrados auditados que no ocurrieron. _Comprobado por mí el 2026-09-28._
+- [ ] **Parking: doble reserva al cambiar fechas** — `PUT` solo comprueba la
+      disponibilidad si cambia la plaza, y el trigger de cambio de fechas marca
+      los días sin mirar si ya son de otra reserva; el de cambio de estado
+      libera días sin comprobar que sean suyos. _Comprobado por mí el 2026-09-28._ Lo de los triggers, según
+      el revisor.
+- [ ] **Parking: carrera al crear reserva y en la entrada** — las
+      comprobaciones de disponibilidad son lecturas sin bloqueo: dos peticiones
+      simultáneas pasan las dos. Y sin filas de calendario (tras el 2026-12-26)
+      el control deja pasar cualquier reserva. _Según la revisión `security` L3 del 2026-09-28 (fichero y línea en el informe); no repasado por mí._
+- [ ] **Parking: importes cobrados editables siempre** — `PUT` acepta
+      `payment_amount`, método y referencia en cualquier estado (también
+      `completed`), sin validar el signo y sin historial. _Comprobado por mí el 2026-09-28._
+- [ ] **Mensajería: un expulsado sigue editando y borrando sus mensajes** —
+      `isSender` no comprueba que siga siendo participante. _Comprobado por mí el 2026-09-28._
+- [ ] **Mensajería: directorio de emails y roles de toda la plantilla** —
+      `GET /api/messages/users` devuelve `email` y rol de todos los usuarios
+      activos, sin límite, a cualquier rol; `getParticipants` también devuelve
+      emails y `last_read_at` ajenos. _Comprobado por mí el 2026-09-28._
 - [ ] **Parking: el calendario de disponibilidad de producción se acaba el
       2026-12-26** — `parking_availability` en Aiven cubre del 2025-12-26 al 2026-12-26 y nada lo amplía: no hay evento MySQL
       ni código que llame a `generate_availability`. Después de esa fecha no se
@@ -168,8 +207,79 @@ hace que alguien reimplemente lo que ya existe.
       scripts, difería de Aiven en `demo_activity_log`,
       `notifications.module`, `roles.name` y 7 claves foráneas (comparación del 2026-09-28).
 
+- [ ] **Los cambios de rol y de contraseña no surten efecto** — el refresco
+      copia el rol del token sin mirar la BD: quien pierde un rol lo conserva
+      mientras siga renovando; cambiar la contraseña, `logout` o el reseteo por
+      un `admin` no revocan nada. _Según la revisión `security` L3 del 2026-09-28 (fichero y línea en el informe); no repasado por mí._
+- [ ] **Redirección abierta tras el login** — `useAuth.tsx` hace
+      `router.push(callbackUrl)` sin comprobar que sea una ruta interna. _Según la revisión `security` L3 del 2026-09-28 (fichero y línea en el informe); no repasado por mí._
+      No probado en ejecución.
+- [ ] **CSRF solo depende de `SameSite=Lax`** — sin token ni cabecera
+      obligatoria; CORS acepta con credenciales cualquier `*.vercel.app`. No
+      verificado si Render tiene `NODE_ENV=production` (sin él, las cookies
+      salen sin `Secure`). _Según la revisión `security` L3 del 2026-09-28 (fichero y línea en el informe); no repasado por mí._
+- [ ] **El frontend no tiene Content-Security-Policy** (`frontend/vercel.json`).
+      _Según la revisión `security` L3 del 2026-09-28 (fichero y línea en el informe); no repasado por mí._
+- [ ] **Contraseñas en claro en el registro del modo demo** —
+      `demoRestriction` guarda los primeros 500 caracteres del cuerpo, que en
+      un cambio de contraseña bloqueado incluyen las contraseñas. _Según la revisión `security` L3 del 2026-09-28 (fichero y línea en el informe); no repasado por mí._
+- [ ] **Logbook: papelera e historial solo ocultos en la pantalla** — el backend
+      da `/trashed`, `include_trashed`, el historial y los comentarios de
+      entradas borradas a cualquier rol con acceso. _Según la revisión `security` L3 del 2026-09-28 (fichero y línea en el informe); no repasado por mí._
+- [ ] **Logbook: se pueden resolver, reabrir y marcar como leídas entradas
+      borradas** — los `UPDATE` no filtran `deleted_at`. _Según la revisión `security` L3 del 2026-09-28 (fichero y línea en el informe); no repasado por mí._
+- [ ] **Logbook: validación incompleta** — un mensaje de solo espacios se
+      guarda vacío (verificado ejecutando Zod 4.0.5); la fecha admite cualquier
+      día, y una imposible (`2026-02-31`) da 500; parámetros de ruta y un
+      `offset` negativo sin validar. _Comprobado por mí el 2026-09-28._
+- [ ] **Emails de más en las respuestas de logbook** — `author_email` en todos
+      los listados y `editor_email` en el historial, que la pantalla no usa; el
+      borrado copia la fila entera al historial. _Según la revisión `security` L3 del 2026-09-28 (fichero y línea en el informe); no repasado por mí._
+- [ ] **Parking: rutas de edición sin Zod** — `updateBookingSchema` existe pero
+      nadie lo usa; entrada y salida aceptan fechas reales arbitrarias. _Según la revisión `security` L3 del 2026-09-28 (fichero y línea en el informe); no repasado por mí._
+- [ ] **Parking: `GET /vehicles` vuelca todos los vehículos** (matrícula y
+      titular) sin paginar ni filtrar. _Según la revisión `security` L3 del 2026-09-28 (fichero y línea en el informe); no repasado por mí._
+- [ ] **Parking: el origen y la referencia externa se pierden al crear** — el
+      controlador los pasa como `source` y `external_id`, y la validación
+      espera `booking_source` y `external_booking_id`: siempre queda
+      `direct`. _Comprobado por mí el 2026-09-28._
+- [ ] **Mensajería: sin validación de entrada ni transacción al crear** —
+      `participant_ids` y `user_ids` sin comprobar (tipos, duplicados,
+      usuarios inexistentes o inactivos); un id inválido deja una conversación
+      huérfana. _Según la revisión `security` L3 del 2026-09-28 (fichero y línea en el informe); no repasado por mí._
+- [ ] **Mensajería: avisos urgentes sin límite** — solo el límite global de 300
+      peticiones cada 15 min por IP. _Según la revisión `security` L3 del 2026-09-28 (fichero y línea en el informe); no repasado por mí._
+- [ ] **Mensajería: la copia del mensaje en la notificación no se borra
+      nunca** — ni al borrar o editar el mensaje ni a los 90 días; no hay
+      limpieza de notificaciones. El borrado lógico deja el texto íntegro. _Comprobado por mí el 2026-09-28._
+- [ ] **Mensajería: quien entra en un grupo ve todo el historial**, también lo
+      escrito mientras estaba fuera si se le readmite. Decidir si es la regla.
+      _Comprobado por mí el 2026-09-28._
+- [ ] **Mensajería: el creador de un DM puede borrarlo entero**, mensajes del
+      otro incluidos, sin registro. _Según la revisión `security` L3 del 2026-09-28 (fichero y línea en el informe); no repasado por mí._
+
 ## 🟢 Baja
 
+- [ ] **JWT sin algoritmo fijado** — `jwt.verify` sin `algorithms`,
+      `issuer` ni `audience`; hoy no explotable con jsonwebtoken 9. _Según la revisión `security` L3 del 2026-09-28 (fichero y línea en el informe); no repasado por mí._
+- [ ] **Configuración débil sin control al arrancar** — no se comprueba la
+      longitud de `SECRET_JWT_KEY` ni un mínimo de `SALT_ROUNDS`. _Según la revisión `security` L3 del 2026-09-28 (fichero y línea en el informe); no repasado por mí._
+- [ ] **Comprobación de origen débil en `/api/auth/register`** — usa
+      `startsWith` y deja pasar peticiones sin `Origin`. _Según la revisión `security` L3 del 2026-09-28 (fichero y línea en el informe); no repasado por mí._
+- [ ] **Datos sensibles en los logs** — usernames de logins fallidos, `redact`
+      de un solo nivel y, probablemente, `err.sql` de mysql2 con los valores
+      (textos, matrículas, hashes). _Según la revisión `security` L3 del 2026-09-28 (fichero y línea en el informe); no repasado por mí._ No verificado en ejecución.
+- [ ] **Parking: `listAvailableSpots` devuelve el mensaje de error de MySQL** al
+      cliente. _Según la revisión `security` L3 del 2026-09-28 (fichero y línea en el informe); no repasado por mí._
+- [ ] **Parking: cambiar solo la planta puede mover la reserva a otra plaza** —
+      usa el id de la plaza como número. _Según la revisión `security` L3 del 2026-09-28 (fichero y línea en el informe); no repasado por mí._
+- [ ] **Logbook: comentarios borrados que se pueden editar y volver a borrar**,
+      y un historial que registra cada comentario dos veces y cada lectura sin
+      límite. _Según la revisión `security` L3 del 2026-09-28 (fichero y línea en el informe); no repasado por mí._
+- [ ] **Mensajería: `limit` sin validar, `LIKE` sin escapar y fallo de la
+      búsqueda FULLTEXT silenciado.** _Según la revisión `security` L3 del 2026-09-28 (fichero y línea en el informe); no repasado por mí._
+- [ ] **Registrar decisiones de autorización** — ni los 403 ni los accesos de un
+      `admin` a conversaciones ajenas quedan en el log (ASVS L3). _Según la revisión `security` L3 del 2026-09-28 (fichero y línea en el informe); no repasado por mí._
 - [ ] **Parking: código sin uso** — los 4 endpoints de
       `/api/parking/stats/analytics` no los llama la interfaz;
       `getOccupancy` (`frontend/app/lib/parking/queries.ts`) apunta a

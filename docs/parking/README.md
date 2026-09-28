@@ -30,7 +30,8 @@ edita, cobra y cierra reservas. Solo un `admin` puede borrar un vehículo.
 - **Nueva reserva**: plaza, vehículo (se busca por matrícula o titular, o se da
   de alta), fechas previstas, origen (directa, Booking, Expedia, Airbnb,
   agencia), referencia externa y notas. El precio se calcula solo, pero se puede
-  fijar a mano.
+  fijar a mano. **Hoy el origen y la referencia externa se pierden al crear** la
+  reserva (queda «directa»); solo se guardan si después se edita.
 - **Detalle de una reserva** (`/dashboard/parking/bookings/<código>`): editar
   fechas o plaza, registrar entrada y salida, cobrar y borrar.
 

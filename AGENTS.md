@@ -225,15 +225,21 @@ como objetivo (`docs/DECISIONS.md` ADR-017), no es el estado actual.
 
 - Authentication, Session, JWT tokens → `backend/controllers/auth/`, `backend/services/auth/`,
   `backend/middlewares/authenticateToken.ts`, `frontend/app/lib/auth/`, `frontend/proxy.ts`
-- Authorization → `backend/middlewares/roleCheck.ts`, `backend/middlewares/demoRestriction.ts`
+- Authorization → `backend/middlewares/roleCheck.ts`, `backend/middlewares/demoRestriction.ts`;
+  la autorización por objeto vive en los controladores (p. ej. `backend/controllers/messages/`) y
+  en los `WHERE` de `backend/repositories/`
 - API, Validation / errors → `backend/routes/`, `backend/controllers/`, `backend/validations/`,
   `backend/index.ts`
 - File upload → rutas con multer en `backend/routes/`: `auth`, `backoffice`, `blacklist`,
   `checklist`, `fnb`, `maintenance`
-- Data protection / privacy → `blacklist`, `cashier`, usuarios (`backend/repositories/auth/`)
+- Data protection / privacy → `blacklist`, `cashier`, usuarios (`backend/repositories/auth/`),
+  vehículos de parking (`parking_vehicles`) y mensajería (`backend/repositories/messages/`)
 - Configuration / DevOps → `backend/config/`, `frontend/vercel.json`, `frontend/next.config.ts`,
   `.env*`
-- Logging / monitoring → `backend/config/logger.ts`
+- Logging / monitoring → `backend/config/logger.ts`; rastro de auditoría de negocio en
+  `backend/services/logbook/` y `backend/repositories/logbook/logbookHistory-repository.ts`
+- Validation / errors (acceso a datos) → `backend/repositories/` y los triggers y procedimientos
+  de `backend/db-mysql/` (disponibilidad de parking, código de reserva)
 - Frontend → `frontend/app/`
 
 ## Architecture

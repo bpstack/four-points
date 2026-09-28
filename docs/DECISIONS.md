@@ -293,3 +293,20 @@
   existen, y su migración de `CLAUDE.md` solo contempla un par por directorio,
   no 17 repartidos. Adaptarlo es trabajo en otro repositorio y pararía la
   preparación para publicar.
+
+## ADR-018 — Cada módulo documentado pasa una revisión de seguridad L3
+
+- **Estado:** ✅ aceptada (2026-09-28)
+- **Fecha:** 2026-09-28
+- **Decisión:** al terminar la documentación de un módulo, el agente `security`
+  del harness lo revisa en modo solo lectura con nivel L3 (ADR-017). Se le pasan
+  los hallazgos ya conocidos para que distinga los nuevos. El agente principal
+  comprueba en el código los hallazgos graves antes de pasarlos a `TODO.md`;
+  los demás se anotan como «según la revisión», sin darlos por comprobados.
+  Estamos documentando: **no se arregla nada** en esta fase.
+- **Motivo:** la primera ronda (general, mensajería, logbook y parking, el
+  2026-09-28) encontró fallos que la lectura para documentar no había visto,
+  entre ellos que cualquier usuario podía hacerse `admin`. También corrigió un
+  dato del documento de parking.
+- **Rechazado:** dejar la revisión para el final. Un hallazgo puede cambiar lo
+  que el documento del módulo dice que hace.
