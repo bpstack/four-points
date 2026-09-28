@@ -125,9 +125,9 @@ iterate over `all_days_e = virt_days + day_numbers`. The ones that do not
   and would produce an artificial INFEASIBLE when generating the new month.
   `rest.py` **explicitly skips** these "doomed" windows — validating the
   previous month is the previous month's responsibility. Full reasoning in
-  `SCHEDULING-DECISIONS-LOG.md` (entry 2026-05-20). Outstanding debt: the TS
+  `docs/scheduling/decisions.md` (entry 2026-05-20). Outstanding debt: the TS
   validator does not apply this same exemption yet → potential drift. See
-  `SCHEDULING-CONSTRAINTS.md §H5`.
+  `docs/scheduling/constraints.md §H5`.
 
 - **H6 libres.** The monthly minimum is reduced by the number of locked
   special-rest days (V/B/E/IT/FO/A) the employee already has.
@@ -269,10 +269,10 @@ cd .. && pnpm vitest run tests/scheduling/solver-parity.test.ts   # 0 hard error
 ```
 
 If parity fails, the solver and the TS validator disagree: check what
-`SCHEDULING-CONSTRAINTS.md` says (the source of truth) and fix the side that
-drifts.
+`docs/scheduling/constraints.md` says (the source of truth) and fix the side
+that drifts.
 
-6. Document the decision in `SCHEDULING-DECISIONS-LOG.md` (date, rule,
+6. Document the decision in `docs/scheduling/decisions.md` (date, rule,
    hard/soft, weight if applicable).
 
 ## Debug helpers (live in `backend/`, not here)
@@ -291,10 +291,10 @@ Typical use: edit the `monthId` inside the script and `node debug-sept.js`.
 
 ## Cross references
 
-- `SCHEDULING-CONSTRAINTS.md` (repo root) — textual specification of the rules.
-  Source of truth when code and constraints disagree.
-- `SCHEDULING-DECISIONS-LOG.md` (repo root) — decision log (why each constraint
-  is hard/soft, why the weights, what was tried and discarded).
+- `docs/scheduling/constraints.md` — textual specification of the rules. Source
+  of truth when code and constraints disagree.
+- `docs/scheduling/decisions.md` — decision log (why each constraint is
+  hard/soft, why the weights, what was tried and discarded).
 - `SCHEDULING-SOLVER-PLAN.md` (repo root) — original solver plan. Historical,
   not updated; the code is the current truth.
 - `backend/services/scheduling/build-solver-input.ts` — the TS side that

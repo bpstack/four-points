@@ -39,7 +39,7 @@ export function employeeId(index: number): string {
 
 /**
  * Returns the canonical default config used across all fixtures unless overridden.
- * Values match SCHEDULING-CONSTRAINTS.md §4 (unified parameters).
+ * Values match docs/scheduling/constraints.md §4 (unified parameters).
  */
 export function defaultConfig(): SchedulingConfigMap {
   return {
@@ -110,7 +110,7 @@ export function buildDaysFromFixture(fixtureDays: FixtureDay[]): SchedulingDayRo
 
 /**
  * Returns the canonical shift set used in fixtures.
- * Based on SCHEDULING-CONSTRAINTS.md §1.1.
+ * Based on docs/scheduling/constraints.md §1.1.
  */
 export function buildShifts(): SchedulingShiftRow[] {
   const shifts: Array<{

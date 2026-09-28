@@ -206,7 +206,7 @@ write('F01-empty-month', {
 // ---- F02: Perfect month (coverage disabled, all constraints pass) ----
 // NOTE: this fixture disables coverage (noCoverageConfig). It tests that *non-coverage* constraints
 // (libre count, work blocks, rolling rest, weekend-off, etc.) all pass on a clean schedule.
-// A stronger "perfect month with coverage ON" fixture is deferred — see SCHEDULING-DECISIONS-LOG.md
+// A stronger "perfect month with coverage ON" fixture is deferred — see docs/scheduling/decisions.md
 // 2026-04-25 entry on coverage-disabled fixtures (F02/F22/F23). When the Python solver lands in
 // Fase 1 it will exercise the coverage-on case naturally.
 write('F02-perfect-month', {

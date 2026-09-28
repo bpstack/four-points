@@ -439,5 +439,5 @@ Para documentación detallada consultar:
 - **Checklist**: `docs/backend/checklist.md`
 - **DB**: `backend/db-mysql/INDEX.md`, `MIGRATIONS_POLICY.md`
 - **Testing**: `docs/backend/testing/README.md`
-- **Restricciones de scheduling**: `SCHEDULING-CONSTRAINTS.md`
+- **Restricciones de scheduling**: `docs/scheduling/constraints.md`
 - **Variables de entorno**: `docs/backend/enviroments/environment-variables.md`

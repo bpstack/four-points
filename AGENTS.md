@@ -643,12 +643,12 @@ closed loop.
 
 **Step 1 — Decide hard vs soft and document it.**
 
-Open `SCHEDULING-CONSTRAINTS.md`. If the rule is hard (a violation invalidates
-the schedule), add it to §2 with an `H` ID. If it is soft (a violation is
-acceptable but penalised), add it to §3 with an `S` ID, choose a tentative
-weight in the 1-10 range, and explain _why_ that weight relative to the others.
-The weight will be tuned in production; the relative ordering is what matters
-here.
+Open `docs/scheduling/constraints.md`. If the rule is hard (a violation
+invalidates the schedule), add it to §2 with an `H` ID. If it is soft (a
+violation is acceptable but penalised), add it to §3 with an `S` ID, choose a
+tentative weight in the 1-10 range, and explain _why_ that weight relative to
+the others. The weight will be tuned in production; the relative ordering is
+what matters here.
 
 If the rule depends on continuity across the month boundary, also list it in
 §9.5 (cross-month invariant) so future readers know to wire
@@ -744,11 +744,12 @@ All four must be green. If parity fails, the validator and solver disagree
 somewhere; if `test_corpus.py` errors, the Python constraint has a bug; if
 `corpus.test.ts` fails, the TS validator does. The error message points at the
 divergence — fix the side that disagrees with the spec in
-`SCHEDULING-CONSTRAINTS.md` (the spec is the source of truth, not the code).
+`docs/scheduling/constraints.md` (the spec is the source of truth, not the
+code).
 
 **Step 6 — Document the decision.**
 
-Append a brief entry to `SCHEDULING-DECISIONS-LOG.md` with the date, the rule,
+Append a brief entry to `docs/scheduling/decisions.md` with the date, the rule,
 why it's hard or soft, and the chosen weight if applicable. This is the audit
 trail that lets a future agent (or you, six months later) understand why a
 constraint exists without spelunking through git history.

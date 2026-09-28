@@ -1,6 +1,6 @@
 // services/scheduling/soft-weights.ts
 // Soft penalty weights for schedule quality scoring.
-// Source of truth: SCHEDULING-CONSTRAINTS.md §6.
+// Source of truth: docs/scheduling/constraints.md §3.
 //
 // These are TENTATIVE initial values; will be tuned in Phase 2 with manager feedback.
 // Kept in sync with the solver Python (Phase 1 will import via JSON or controlled duplication).

@@ -115,11 +115,11 @@ Use deterministic IDs: `E0000000-0000-0000-0000-000000000001` (employee 1), `E00
 
 ### Constraint: don't fix fixtures to match bugs
 
-If a fixture reveals a bug in the validator, document it in `SCHEDULING-DECISIONS-LOG.md` and fix the validator in step B. Do NOT adjust the expected output to match wrong validator behavior.
+If a fixture reveals a bug in the validator, document it in `docs/scheduling/decisions.md` and fix the validator in step B. Do NOT adjust the expected output to match wrong validator behavior.
 
 ## Config defaults
 
-The `defaultConfig()` function (in `factory.ts`) returns values from `SCHEDULING-CONSTRAINTS.md §4`:
+The `defaultConfig()` function (in `factory.ts`) returns values from `docs/scheduling/constraints.md §4`:
 
 | Key                    | Value |
 | ---------------------- | ----- |

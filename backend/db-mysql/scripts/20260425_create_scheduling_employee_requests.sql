@@ -1,7 +1,7 @@
 -- ============================================================
 -- 20260425_create_scheduling_employee_requests.sql
 -- Crea la tabla scheduling_employee_requests.
--- Origen: SCHEDULING-CONSTRAINTS.md §7.5 (cerrado 2026-04-25).
+-- Origen: docs/scheduling/constraints.md §7.5 (cerrado 2026-04-25).
 -- Bloqueante de Fase 1 del solver.
 --
 -- IMPORTANTE: Solo aplicar en LOCAL hasta que se valide en pruebas.

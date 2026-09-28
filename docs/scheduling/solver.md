@@ -51,38 +51,12 @@ Built by `backend/services/scheduling/build-solver-input.ts` from the database:
   rules hold across the change of month.
 - **Night history** of past published months, to spread nights fairly.
 
-## Mandatory rules
+## Rules and preferences
 
-Each rule lives in its own file in `constraints/`:
-
-- **Locked cells** (`locked_cells.py`): kept as they are. The solver only
-  assigns `M`, `T`, `N` and `L`; every other code comes from a locked cell.
-- **Coverage** (`coverage.py`): minimum and maximum staff per shift and day,
-  except on holidays.
-- **Rest** (`rest.py`): at least 2 rest days in any 7-day window, and a maximum
-  of consecutive working days. Windows already broken by the previous month's
-  tail are skipped, so they do not make the month impossible.
-- **Days off** (`libres.py`): a monthly minimum and maximum of days off; special
-  absences count towards rest.
-- **Nights** (`night_block.py`): whoever works nights does one block of
-  consecutive nights within the configured size, and at most one new block per
-  month.
-- **Transitions** (`transitions.py`): after a night, only another night or rest;
-  no afternoon followed by a morning (only 8 hours of rest).
-- **Blocks** (`day_blocks.py`): morning and afternoon shifts in blocks of at
-  least 3 days.
-- **Employee rules** (`employee_rules.py`): no weekends, fixed shift.
-
-## Preferences (penalties)
-
-Minimised together, each with a weight:
-
-| Preference                                | Weight |
-| ----------------------------------------- | ------ |
-| Uneven nights between employees           | 10     |
-| Short morning or afternoon block          | 3      |
-| Isolated day off (no adjacent day off)    | 2      |
-| Shift other than the employee's preferred | 1      |
+The rules the solver enforces (one file per rule in `constraints/`) and the
+preferences it minimises, with their weights, are in
+[`constraints.md`](constraints.md): the catalogue in §2–§3 and what the solver
+actually implements in §11.
 
 ## Output
 

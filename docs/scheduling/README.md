@@ -2,7 +2,8 @@
 
 Monthly staff rosters for the front desk: who works which shift on each day of
 the month. Screens under `/dashboard/scheduling`. The automatic generator has
-its own document: [`solver.md`](solver.md). Project overview in
+its own document: [`solver.md`](solver.md); the rules, their catalogue:
+[`constraints.md`](constraints.md). Project overview in
 [`../general/README.md`](../general/README.md).
 
 ## What problem it solves
@@ -74,13 +75,11 @@ Twelve tables (`backend/db-mysql/aiven/19_scheduling.sql` plus migrations in
 
 ## What rules it follows
 
-- **Mandatory rules** (checked by both the grid validator and the solver):
-  minimum and maximum staff per shift and day (not on holidays); at least 2 rest
-  days in any 7-day window; a maximum of consecutive working days; a monthly
-  range of days off; nights in one block of a given size per month; no afternoon
-  shift followed by a morning shift, and after a night only another night or
-  rest; morning and afternoon shifts in blocks of at least 3 days; and each
-  employee's own rules.
+The full catalogue is in [`constraints.md`](constraints.md), and why each rule
+is the way it is, in [`decisions.md`](decisions.md).
+
+- **Mandatory rules** invalidate the month when broken (coverage, rest, night
+  blocks, transitions between shifts, each employee's own rules).
 - **Preferences** add a penalty instead of invalidating the month (for example,
   uneven nights between employees or isolated days off). A month can be valid
   and still have a high penalty.

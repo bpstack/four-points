@@ -19,7 +19,7 @@
 
 -- =========================================================
 -- TABLA: scheduling_employee_requests
--- Origen: SCHEDULING-CONSTRAINTS.md §7.5 (2026-04-25)
+-- Origen: docs/scheduling/constraints.md §7.5 (2026-04-25)
 -- Idéntica a aiven/19_scheduling.sql (Tabla 11).
 -- =========================================================
 CREATE TABLE IF NOT EXISTS scheduling_employee_requests (
