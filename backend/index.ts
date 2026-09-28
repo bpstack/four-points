@@ -114,6 +114,19 @@ app.get('/', (_req: Request, res: Response) => {
   })
 })
 
+// TEMPORARY: diagnose the proxy chain for 'trust proxy'. Remove once the value is fixed.
+app.get('/debug-ip', (req: Request, res: Response) => {
+  res.json({
+    ip: req.ip,
+    ips: req.ips,
+    remoteAddress: req.socket.remoteAddress,
+    xForwardedFor: req.get('x-forwarded-for') ?? null,
+    cfConnectingIp: req.get('cf-connecting-ip') ?? null,
+    trueClientIp: req.get('true-client-ip') ?? null,
+    xRealIp: req.get('x-real-ip') ?? null,
+  })
+})
+
 // Rutas de autenticación
 app.use('/api/auth', authRoutes)
 
