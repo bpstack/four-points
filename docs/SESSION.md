@@ -62,5 +62,3 @@ archivada en `docs/_archive/` (ADR-010); lo hecho se registra en
 - **Candidatos a privados para la fase 2**, además de los volcados: los dos
   Excel archivados (`PLANNING 2026.xlsx`, `Presencias - Marzo.xlsx`),
   que siguen en el historial.
-- **Quedan carpetas vacías** en `docs/` y `frontend/docs/` tras archivar. Git no
-  las ve; se pueden borrar a mano.
