@@ -21,6 +21,38 @@ hace que alguien reimplemente lo que ya existe.
 > Las entradas de **seguridad** describen debilidades explotables: **resolverlas
 > o quitarlas de este fichero antes de publicar el repositorio**.
 
+- [ ] **Cashier: inyección SQL en el orden de los listados** —
+      `ORDER BY     ${sortField} ${sortOrder}` con `sort` y `order` de la URL en
+      los repositorios de turnos, días e historial (y vales, según el revisor).
+      `GET /shifts` y `/daily` los alcanza cualquier rol salvo `mantenimiento`.
+      _Comprobado por mí el 2026-09-28._
+- [ ] **Cashier: ninguna ruta valida con Zod** — `cashier-validation.ts` no lo
+      importa nadie: importes negativos o absurdos y billetes de cualquier
+      valor. _Comprobado por mí el 2026-09-28._
+- [ ] **Cashier: turnos y días cerrados siguen editables** por cualquier rol con
+      acceso de escritura; el trigger reescribe los totales del día. _Según la
+      revisión `security` L3 del 2026-09-28 (fichero y línea en el informe); no
+      repasado por mí._
+- [ ] **Cashier: el total diario de efectivo se infla** — el trigger
+      `trg_cashier_shift_update_daily` suma el efectivo del turno una vez por
+      cada pago electrónico (LEFT JOIN). En Aiven, el 2026-01-05 guarda 4000,00
+      € frente a 2200,00 € reales. Además hay otros dos cálculos de totales que
+      compiten con él. _Comprobado por mí el 2026-09-28._ (los otros dos
+      cálculos, según el revisor)
+- [ ] **Cashier: el descuadre calculado en el servidor siempre es 0** —
+      `income = contado − fondo` y luego `esperado = fondo + income`; los vales
+      se ignoran. Los informes nunca muestran descuadre. _Comprobado por mí el
+      2026-09-28._
+- [ ] **Cashier: operaciones que fallan siempre en producción** — justificar,
+      cancelar y editar vales, y editar pagos o recuentos sueltos escriben
+      columnas que no existen en Aiven (`justified_at`, `cancelled_at`,
+      `updated_at`) o la columna generada `total`. En Aiven hay 0 vales.
+      _Comprobado por mí el 2026-09-28._
+- [ ] **Cashier: autoría falsificable y cambios de dinero sin rastro** — el
+      `shift_id` de un pago, el `created_by` de un vale y el `opened_by` del día
+      salen del cuerpo; pagos y recuentos no dejan historial y las ediciones no
+      guardan valores anteriores. _Según la revisión `security` L3 del
+      2026-09-28 (fichero y línea en el informe); no repasado por mí._
 - [ ] **Scheduling: un recepcionista puede aprobarse sus propias solicitudes** —
       `PUT /constraints/:id` no pide `isAdmin` y `updateConstraintSchema` acepta
       `status: 'approved'` (sin `approved_by`). Al reiniciar o crear el mes,
@@ -463,8 +495,23 @@ hace que alguien reimplemente lo que ya existe.
       como si fuera una alta. _Según la revisión `security` L3 del 2026-09-28
       (fichero y línea en el informe); no repasado por mí._
 
+- [ ] **Cashier: ciclo de vida de los vales y cierres sin bloqueo** — se puede
+      justificar un vale cancelado y cambiar el importe de uno justificado; el
+      límite de 5 vales y los cierres de turno y día se comprueban antes de
+      escribir, sin bloqueo. _Según la revisión `security` L3 del 2026-09-28
+      (fichero y línea en el informe); no repasado por mí._
+- [ ] **Cashier: el historial y los totales se ven sin `canViewReports`** —
+      `GET /shifts/:id/history`, `/daily` y `/vouchers/stats`. _Según la
+      revisión `security` L3 del 2026-09-28 (fichero y línea en el informe); no
+      repasado por mí._
+- [ ] **Corregir el `AGENTS.md` de cashier** — dice que hay validación Zod (no
+      se usa) y que el trigger mantiene bien los totales (los infla).
+      _Comprobado por mí el 2026-09-28._
+
 ## 🟢 Baja
 
+- [ ] **Cashier: la exportación a PDF puede romperse con emojis** en los textos
+      (Helvetica estándar). _Sin comprobar en ejecución._
 - [ ] **Checklist: comentarios e imágenes no comprueban que el paso exista**
       (solo marcar lo hace). _Comprobado por mí el 2026-09-28._
 - [ ] **Checklist: `checklist_config` existe pero no se usa.** _Comprobado por

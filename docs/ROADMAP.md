@@ -34,7 +34,7 @@ empieza con un `README.md`). La documentación antigua está en `docs/_archive/`
 problema resuelve, quién lo usa, qué puede hacer, qué datos maneja, qué reglas
 cumple y cómo viaja la información.
 
-- [ ] **Una carpeta por módulo** — _`cashier`, `fnb`, `backoffice`, `blacklist`,
+- [ ] **Una carpeta por módulo** — _`fnb`, `backoffice`, `blacklist`,
       `conciliation`_.
 - [ ] **`README.md` de la raíz breve, que enlaza a `docs/`** — _al final, cuando
       exista lo que enlaza (ADR-008)_.
