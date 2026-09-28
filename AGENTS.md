@@ -214,6 +214,28 @@ Notas:
   la protección de force-push sobre `main`.
 - `--no-verify` salta los hooks. Usarlo es una decisión consciente del propietario, nunca de un agente.
 
+## Security
+
+**L3** — estimated on 2026-09-28: hay login y cuentas de usuario, datos personales (usuarios,
+lista negra de huéspedes con fotos, caja) y backend propio; el nivel L3 lo declara el propietario
+como objetivo (`docs/DECISIONS.md` ADR-017), no es el estado actual.
+**Re-estimate when:** Aiven pase a guardar datos reales de huéspedes o personal.
+
+**Areas:**
+
+- Authentication, Session, JWT tokens → `backend/controllers/auth/`, `backend/services/auth/`,
+  `backend/middlewares/authenticateToken.ts`, `frontend/app/lib/auth/`, `frontend/proxy.ts`
+- Authorization → `backend/middlewares/roleCheck.ts`, `backend/middlewares/demoRestriction.ts`
+- API, Validation / errors → `backend/routes/`, `backend/controllers/`, `backend/validations/`,
+  `backend/index.ts`
+- File upload → rutas con multer en `backend/routes/`: `auth`, `backoffice`, `blacklist`,
+  `checklist`, `fnb`, `maintenance`
+- Data protection / privacy → `blacklist`, `cashier`, usuarios (`backend/repositories/auth/`)
+- Configuration / DevOps → `backend/config/`, `frontend/vercel.json`, `frontend/next.config.ts`,
+  `.env*`
+- Logging / monitoring → `backend/config/logger.ts`
+- Frontend → `frontend/app/`
+
 ## Architecture
 
 ### Backend Architecture
