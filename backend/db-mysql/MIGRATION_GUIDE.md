@@ -19,29 +19,29 @@ mysql -u root -p < 02_core_tables.sql
 
 ### Scripts disponibles (01-19)
 
-| # | Archivo | Descripción |
-|---|---------|-------------|
-| 01 | `01_create_database.sql` | Crea BD con UTF-8 |
-| 02 | `02_core_tables.sql` | Roles, departments, users |
-| 03 | `03_logbook_tables.sql` | Sistema de bitácora |
-| 04 | `04_parking_tables.sql` | Tablas de parking |
-| 05 | `05_parking_functions_triggers.sql` | Funciones y triggers |
-| 06 | `06_parking_procedures.sql` | Procedimientos almacenados |
-| 07 | `07_parking_initial_data.sql` | Datos iniciales (plazas + tarifas) |
-| 08 | `08_parking_sample_data.sql` | Datos de ejemplo (opcional) |
-| 09 | `09_conciliation.sql` | Conciliación bancaria |
-| 10 | `10_group-tracking.sql` | Seguimiento de grupos |
-| 11 | `11_cashier.sql` | Sistema de caja |
-| 12 | `12_blacklist.sql` | Lista negra |
-| 13 | `13_maintenance.sql` | Mantenimiento |
-| 14 | `14_messages.sql` | Mensajería |
-| 15 | `15_demo_user.sql` | Usuario demo |
-| 16 | `16_backoffice.sql` | Backoffice |
-| 17 | `17_notifications.sql` | Notificaciones |
-| 18 | `18_user_avatar.sql` | Avatares de usuario |
-| 19 | `19_scheduling.sql` | Programación de turnos |
-| 20 | `20_checklist.sql` | Checklists operativos (runs, step_state, event_log, config, comments, attachments) |
-| 99 | `99_verification.sql` | Verificación de instalación |
+| #   | Archivo                             | Descripción                                                                        |
+| --- | ----------------------------------- | ---------------------------------------------------------------------------------- |
+| 01  | `01_create_database.sql`            | Crea BD con UTF-8                                                                  |
+| 02  | `02_core_tables.sql`                | Roles, departments, users                                                          |
+| 03  | `03_logbook_tables.sql`             | Sistema de bitácora                                                                |
+| 04  | `04_parking_tables.sql`             | Tablas de parking                                                                  |
+| 05  | `05_parking_functions_triggers.sql` | Funciones y triggers                                                               |
+| 06  | `06_parking_procedures.sql`         | Procedimientos almacenados                                                         |
+| 07  | `07_parking_initial_data.sql`       | Datos iniciales (plazas + tarifas)                                                 |
+| 08  | `08_parking_sample_data.sql`        | Datos de ejemplo (opcional)                                                        |
+| 09  | `09_conciliation.sql`               | Conciliación bancaria                                                              |
+| 10  | `10_group-tracking.sql`             | Seguimiento de grupos                                                              |
+| 11  | `11_cashier.sql`                    | Sistema de caja                                                                    |
+| 12  | `12_blacklist.sql`                  | Lista negra                                                                        |
+| 13  | `13_maintenance.sql`                | Mantenimiento                                                                      |
+| 14  | `14_messages.sql`                   | Mensajería                                                                         |
+| 15  | `15_demo_user.sql`                  | Usuario demo                                                                       |
+| 16  | `16_backoffice.sql`                 | Backoffice                                                                         |
+| 17  | `17_notifications.sql`              | Notificaciones                                                                     |
+| 18  | `18_user_avatar.sql`                | Avatares de usuario                                                                |
+| 19  | `19_scheduling.sql`                 | Programación de turnos                                                             |
+| 20  | `20_checklist.sql`                  | Checklists operativos (runs, step_state, event_log, config, comments, attachments) |
+| 99  | `99_verification.sql`               | Verificación de instalación                                                        |
 
 > **Política de migraciones (vigente desde 2026-05-20):** Los archivos `aiven/NN_*.sql` están **congelados** como snapshot del schema base. Todo cambio posterior vive únicamente en `scripts/AAAAMMDD_*.sql`. Para reconstruir la BD desde cero: `MASTER_INSTALL.sql` + todos los `scripts/*.sql` en orden cronológico. Ver `MIGRATIONS_POLICY.md`.
 
@@ -180,16 +180,20 @@ db-mysql/
 ## 🆘 TROUBLESHOOTING
 
 ### Error: "Foreign key constraint fails"
+
 - Asegúrate de ejecutar los scripts en orden
 - Verifica que la tabla `users` existe antes de crear `parking_bookings`
 
 ### Error: "Trigger already exists"
+
 - Los scripts incluyen `DROP TRIGGER IF EXISTS`
 
 ### Error: "Function does not exist"
+
 - Verifica que ejecutaste `05_parking_functions_triggers.sql`
 
 ### Disponibilidad no se actualiza (Parking)
+
 ```sql
 CALL sync_parking_availability();
 SHOW TRIGGERS LIKE 'parking_bookings';

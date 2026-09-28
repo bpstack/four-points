@@ -64,22 +64,26 @@ mysql -u root -p < aiven/99_verification.sql
 ## 📊 Módulos del Sistema
 
 ### Core (01-03)
+
 - **Usuarios**: Roles, departamentos, usuarios
 - **Logbook**: Bitácora con comentarios e historial de lecturas
 
 ### Parking (04-08)
+
 - **Gestión automática de disponibilidad** (triggers)
 - **Códigos de reserva únicos**: `PK-YYYYMMDD-0001`
 - **Control de solapamientos** (validación por trigger)
 - **Auditoría completa**: created_by, updated_by
 
 ### Scheduling (19)
+
 - **Programación mensual de turnos**
 - **Estados**: `draft` (editable) / `published` (bloqueado)
 - **Constraints**: Validación de reglas de negocio
 - **Bloqueo de celdas**: Assignments con source_constraint_id
 
 ### Otros módulos
+
 - **Conciliation**: Conciliación bancaria
 - **Group Tracking**: Seguimiento de grupos hoteleros
 - **Cashier**: Sistema de caja
@@ -103,7 +107,7 @@ mysql -u root -p < aiven/99_verification.sql
 ✅ No permite reservas en fechas ocupadas  
 ✅ Genera booking_code único automáticamente  
 ✅ Actualiza disponibilidad al crear/modificar reservas  
-✅ Libera disponibilidad al cancelar/completar  
+✅ Libera disponibilidad al cancelar/completar
 
 ---
 
