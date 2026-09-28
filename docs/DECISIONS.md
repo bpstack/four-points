@@ -267,3 +267,29 @@
   solapan, pero son los que acompañan a los scripts y a la política de
   migraciones; moverlos rompería esa relación.
 - **Rechazado:** archivar esos documentos y sustituirlos por la doc nueva.
+
+## ADR-017 — El nivel de seguridad objetivo es L3 (OWASP ASVS 5.0)
+
+- **Estado:** ✅ aceptada (2026-09-28)
+- **Fecha:** 2026-09-28
+- **Decisión:** el proyecto se revisa contra el **nivel L3** de OWASP ASVS 5.0.
+  Es el **objetivo**, no el estado actual: los hallazgos de seguridad de
+  `TODO.md` se miden contra él. El agente `security` del harness usa L3 al
+  revisar cualquier parte del código.
+- **Motivo:** decisión del propietario, porque es el objetivo principal del
+  proyecto. Las señales del harness (login, datos personales, backend propio)
+  darían L2 por sí solas; L3 solo lo puede declarar el propietario, y lo
+  declara aquí.
+- **Consecuencias:**
+  - Las revisiones de seguridad citan requisitos versionados de ASVS L3,
+    copiados de `~/.claude/reference/security/`, y señalan también riesgos
+    mitigados cuando un solo fallo lo comprometería todo.
+  - El nivel se declara también en el `AGENTS.md` raíz, sección `## Security`,
+    que es donde lo lee el agente.
+  - Implantar el harness en este repo (capa 1 de `AGENTS.md`) queda para
+    después y requiere adaptarlo: ver `TODO.md`.
+- **Rechazado:** implantar el harness antes de seguir. `init-project` detecta el
+  gestor de paquetes por el `package.json` o el lockfile de la raíz, que aquí no
+  existen, y su migración de `CLAUDE.md` solo contempla un par por directorio,
+  no 17 repartidos. Adaptarlo es trabajo en otro repositorio y pararía la
+  preparación para publicar.

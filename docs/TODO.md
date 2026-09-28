@@ -113,6 +113,13 @@ hace que alguien reimplemente lo que ya existe.
       `568bc98` y `2be5df9`) y en las BD local y Aiven, donde solo existen
       `logbooks`, `logbook_comments`, `logbook_reads` y `logbook_history`._
 
+- [ ] **Adaptar el harness a repos con varios proyectos e implantarlo** —
+      en `c:Usersdzprojectsharness`: soportar repos sin `package.json`
+      ni lockfile en la raíz (aquí `frontend/` y `backend/` son dos proyectos
+      pnpm independientes) y `AGENTS.md` anidados. Después, implantar la capa 1
+      en este repo. Va **antes** de fusionar los `CLAUDE.md` en `AGENTS.md`.
+      _Comprobado el 2026-09-28 en `lib/detect.mjs` y
+      `commands/init-project.md` del harness (ADR-017)._
 - [ ] **Fusionar cada `CLAUDE.md` en el `AGENTS.md` de su directorio** —
       el contenido pasa a `AGENTS.md` (se crea si no existe) y cada
       `CLAUDE.md` queda como puntero que redirige a él. Cómo se gestionan
