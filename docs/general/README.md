@@ -156,6 +156,18 @@ lockfile. Node ≥ 22.16.
 | DB       | Aiven      | MySQL with TLS; CA certificate in `backend/config/certs/`               |
 | Files    | Cloudinary |                                                                         |
 
+- **DNS**: `four-points.stackbp.es` is a CNAME to Vercel and
+  `api.four-points.stackbp.es` a CNAME to `four-points.onrender.com`.
+- **`NODE_ENV=production` is required on the backend.** Only then are the
+  session cookies `Secure` and scoped to `.four-points.stackbp.es`, so the
+  frontend and the API share them. Without it, login succeeds but every
+  following request answers `401`.
+- **Closing every session at once**: both tokens are signed with
+  `SECRET_JWT_KEY` and the server stores no sessions, so changing that variable
+  on Render and redeploying logs everyone out.
+- The build and start commands are set in the Render and Vercel dashboards;
+  there is no `render.yaml` in the repository.
+
 ## Local development
 
 ```bash
@@ -168,3 +180,14 @@ Backend variables: `PORT` (4000 locally), `NODE_ENV`, `SECRET_JWT_KEY`,
 `CLOUDINARY_*`, `LOG_LEVEL`, `FRONTEND_URL`. Frontend: `NEXT_PUBLIC_API_URL`,
 `NEXT_SERVER_API_URL` (optional) and `NEXT_PUBLIC_APP_URL`, which the user
 creation route uses to accept the request origin.
+
+**Tests**: `pnpm test` in `backend/` (also `test:watch` and `test:coverage`).
+Some suites (login, checklist, F&B, scheduling requests) use the configured
+database, which is the shared Aiven one: the F&B suite writes to the year 2099
+and deletes it afterwards. The solver's own tests are described in
+[`../scheduling/solver.md`](../scheduling/solver.md).
+
+**Languages**: Spanish (default) and English with next-intl, one JSON file per
+module in `frontend/messages/es` and `frontend/messages/en`. The language comes
+from the `NEXT_LOCALE` cookie, then the visitor's country (Vercel header), then
+the browser, then Spanish.

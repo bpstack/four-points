@@ -77,6 +77,36 @@ identical between two runs of the same month**: no random seed is passed and
 CP-SAT searches in parallel, so it can reach different rosters with the same
 penalty.
 
+## Running it locally
+
+- **Versions** are pinned: Python 3.11
+  (`backend/scheduling-solver/.python-version`) and `ortools` and `pydantic` at
+  exact versions in `requirements.txt`, which is what the deployment installs.
+  To upgrade, edit `requirements.txt`; reverting the change restores the
+  previous versions.
+- **Setup, once**, from `backend/scheduling-solver/`:
+
+  ```bash
+  python -m venv venv
+  venv/Scripts/pip install -r requirements.txt pytest   # Windows
+  venv/bin/pip install -r requirements.txt pytest       # Linux/macOS
+  ```
+
+  `venv/` is ignored by Git.
+
+- **Running**: starting the backend starts the solver process too. The first
+  start on Windows can take minutes while Windows Defender scans OR-Tools;
+  excluding `venv/` from Defender avoids it.
+- **Standalone**: `venv/Scripts/python daemon.py` prints `{"status":"ready"}`
+  once OR-Tools is loaded, then reads one `SolverInput` JSON per line from
+  standard input and answers one line per request. `main.py` does the same for a
+  single input and exits; production does not use it.
+- **When a month is `infeasible`**: usually too many locked cells (vacations,
+  leave) for the minimum coverage, a minimum staff too high for the available
+  employees, or an unfinished night block from the previous month colliding with
+  locked cells at the start of this one. The output lists the colliding rules,
+  and every run's full input is in `scheduling_solver_runs`.
+
 ## How it is tested
 
 - A shared corpus of cases (`backend/tests/scheduling-corpus/fixtures/`) run
@@ -86,3 +116,14 @@ penalty.
   pass the TypeScript validator with no errors.
 - Stress and benchmark tests for the daemon (`test_daemon_stress.py`,
   `test_benchmark.py`).
+
+```bash
+# from backend/
+pnpm run test:corpus                                # validator against the corpus
+pnpm exec vitest run tests/scheduling/solver-parity.test.ts
+# from backend/scheduling-solver/
+venv/Scripts/python -m pytest tests/                # solver corpus and daemon
+venv/Scripts/python -m pytest tests/test_benchmark.py --runbenchmark   # 30×31, off by default
+```
+
+All of them must pass after changing a rule.
