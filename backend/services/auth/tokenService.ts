@@ -13,6 +13,7 @@ interface UserForToken {
   id: string
   username?: string
   role?: string
+  type?: 'access' | 'refresh'
 }
 
 /**
@@ -27,6 +28,7 @@ export function generateAccessToken(user: UserForToken): string {
     id: user.id,
     username: user.username || '',
     role: user.role || 'user',
+    type: 'access',
   }
 
   return jwt.sign(payload, SECRET_JWT_KEY, { expiresIn: ACCESS_TOKEN_EXPIRY })
@@ -40,12 +42,11 @@ export function generateRefreshToken(user: UserForToken): string {
     throw new Error('Usuario inválido para generar Refresh Token')
   }
 
-  // ✅ IMPORTANTE: Incluir los mismos datos que el access token
-  // para poder regenerarlo sin consultar la BD
   const payload: Omit<TokenPayload, 'iat' | 'exp'> = {
     id: user.id,
     username: user.username || '',
     role: user.role || 'user',
+    type: 'refresh',
   }
 
   return jwt.sign(payload, SECRET_JWT_KEY, { expiresIn: REFRESH_TOKEN_EXPIRY })

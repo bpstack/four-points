@@ -39,9 +39,14 @@ export function authenticateToken(req: Request, res: Response, next: NextFunctio
     // Verifica el token usando tokenService
     const decoded = verifyToken(token)
 
-    // Verifica que el payload contenga el id
+    // Verifica que el payload contenga el id y sea un access token
     if (!decoded?.id) {
       res.status(401).json({ error: 'Token inválido: no contiene id de usuario' })
+      return
+    }
+
+    if (decoded.type !== 'access') {
+      res.status(401).json({ error: 'Token inválido: tipo incorrecto' })
       return
     }
 

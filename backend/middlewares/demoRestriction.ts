@@ -50,6 +50,17 @@ function isAllowedForDemo(method: string, originalUrl: string): boolean {
  * Registra intentos bloqueados en la base de datos
  * Ejecuta de forma asíncrona sin bloquear la respuesta
  */
+const SENSITIVE_FIELDS = new Set(['password', 'currentPassword', 'newPassword', 'confirmPassword'])
+
+function sanitizeBodyForLog(body: unknown): string {
+  if (!body || typeof body !== 'object') return JSON.stringify(body).substring(0, 500)
+  const cleaned: Record<string, unknown> = {}
+  for (const [k, v] of Object.entries(body as Record<string, unknown>)) {
+    cleaned[k] = SENSITIVE_FIELDS.has(k) ? '[REDACTED]' : v
+  }
+  return JSON.stringify(cleaned).substring(0, 500)
+}
+
 function logBlockedAttempt(req: Request, userId: string | undefined, username: string, fullPath: string): void {
   // Ejecutar sin await para no bloquear la respuesta
   DemoActivityRepository.logActivity({
@@ -57,7 +68,7 @@ function logBlockedAttempt(req: Request, userId: string | undefined, username: s
     username: username,
     method: req.method,
     route: fullPath,
-    body_preview: JSON.stringify(req.body).substring(0, 500),
+    body_preview: sanitizeBodyForLog(req.body),
     ip_address: req.ip || req.socket.remoteAddress || null,
     user_agent: req.get('user-agent') || null,
     blocked: true,

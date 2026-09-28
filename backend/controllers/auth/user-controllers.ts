@@ -65,10 +65,13 @@ export const updateUser = async (req: Request, res: Response): Promise<void> => 
   try {
     const { username, email, role } = req.body as UpdateUserDTO
 
+    // Only admins can change roles
+    const resolvedRole = req.user?.role === 'admin' ? role : undefined
+
     const updatedUser = await UserRepository.update(req.params.id, {
       username,
       email,
-      role,
+      role: resolvedRole,
     })
 
     if (!updatedUser) {

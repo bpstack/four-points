@@ -154,7 +154,8 @@ export class UserRepository {
     
     // Always perform password comparison to prevent timing attacks
     // Even if user doesn't exist, we compare against a dummy hash
-    const DUMMY_HASH = '$2b$10$dummyhashfortimingatttacksprevent'
+    // Hash generated once with bcrypt.hash('dummy-password-for-timing', 10)
+    const DUMMY_HASH = '$2b$10$NZRVB2LhoSY6QTIjXL9PjeglXTf0F0uyXSM42Nh89IFBEhi8jU2U6'
     const passwordToCompare = user?.password || DUMMY_HASH
     const isPasswordValid = await bcrypt.compare(password, passwordToCompare)
     

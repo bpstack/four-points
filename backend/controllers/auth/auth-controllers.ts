@@ -74,10 +74,11 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       id: user.id,
       username: user.username,
       role: user.role,
+      type: 'access',
     }
 
     const accessToken = generateAccessToken(tokenPayload)
-    const refreshToken = generateRefreshToken(tokenPayload)
+    const refreshToken = generateRefreshToken({ ...tokenPayload, type: 'refresh' })
 
     // Set cookies
     res.cookie('access_token', accessToken, {
@@ -98,7 +99,6 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     res.status(200).json({
       success: true,
       user: userWithoutPassword,
-      token: accessToken,
     })
   } catch {
     res.status(401).json({
@@ -149,8 +149,9 @@ export const register = async (req: Request, res: Response): Promise<void> => {
 /**
  * Refrescar access token usando el refresh token
  * Acepta token desde cookies O Authorization header
+ * Consulta la BD para verificar que el usuario sigue activo y obtener el rol actual
  */
-export const refreshToken = (req: Request, res: Response): void => {
+export const refreshToken = async (req: Request, res: Response): Promise<void> => {
   // 1. Try to get from cookies (production)
   let token = req.cookies.refresh_token as string | undefined
 
@@ -173,17 +174,40 @@ export const refreshToken = (req: Request, res: Response): void => {
   try {
     const payload = verifyToken(token) as TokenPayload
 
+    if (payload.type !== 'refresh') {
+      res.clearCookie('access_token', cookieOptions)
+      res.clearCookie('refresh_token', cookieOptions)
+      res.status(403).json({
+        error: ERROR_CODES.AUTH_REFRESH_TOKEN_INVALID,
+        code: ERROR_CODES.AUTH_REFRESH_TOKEN_INVALID,
+      })
+      return
+    }
+
+    // Verify user still exists and is active; use current role from DB
+    const user = await UserRepository.getById(payload.id)
+    if (!user || !user.is_active) {
+      res.clearCookie('access_token', cookieOptions)
+      res.clearCookie('refresh_token', cookieOptions)
+      res.status(403).json({
+        error: ERROR_CODES.AUTH_REFRESH_TOKEN_INVALID,
+        code: ERROR_CODES.AUTH_REFRESH_TOKEN_INVALID,
+      })
+      return
+    }
+
     const tokenPayload: TokenPayload = {
-      id: payload.id,
-      username: payload.username,
-      role: payload.role,
+      id: user.id,
+      username: user.username,
+      role: user.role,
+      type: 'access',
     }
 
     // Generate new access token
     const newAccessToken = generateAccessToken(tokenPayload)
 
     // Generate new refresh token (sliding sessions)
-    const newRefreshToken = generateRefreshToken(tokenPayload)
+    const newRefreshToken = generateRefreshToken({ ...tokenPayload, type: 'refresh' })
 
     // Set cookies
     res.cookie('access_token', newAccessToken, {
@@ -196,10 +220,7 @@ export const refreshToken = (req: Request, res: Response): void => {
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 días (debe coincidir con tokenService.ts)
     })
 
-    res.status(200).json({
-      success: true,
-      token: newAccessToken,
-    })
+    res.status(200).json({ success: true })
   } catch {
     res.clearCookie('access_token', cookieOptions)
     res.clearCookie('refresh_token', cookieOptions)
@@ -288,10 +309,11 @@ export const updateProfile = async (req: Request, res: Response): Promise<void> 
       id: updatedUser.id,
       username: updatedUser.username,
       role: updatedUser.role,
+      type: 'access',
     }
 
     const accessToken = generateAccessToken(tokenPayload)
-    const refreshToken = generateRefreshToken(tokenPayload)
+    const refreshToken = generateRefreshToken({ ...tokenPayload, type: 'refresh' })
 
     // Actualizar cookies
     res.cookie('access_token', accessToken, {
@@ -309,8 +331,6 @@ export const updateProfile = async (req: Request, res: Response): Promise<void> 
       message: SUCCESS_CODES.AUTH_PROFILE_UPDATED,
       code: SUCCESS_CODES.AUTH_PROFILE_UPDATED,
       user: updatedUser,
-      token: accessToken,
-      refreshToken: refreshToken,
     })
   } catch (error) {
     const err = error as Error

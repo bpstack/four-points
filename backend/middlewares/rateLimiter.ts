@@ -34,7 +34,7 @@ export const loginLimiter = rateLimit({
   legacyHeaders: false,
   // Use IP + username combination as key for more granular limiting
   keyGenerator: (req: Request) => {
-    const username = req.body?.username || ''
+    const username = (req.body?.username || '').toLowerCase()
     const ip = getIpKey(req)
     return `login-${ip}-${username}`
   },

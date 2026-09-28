@@ -128,7 +128,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setLoading(false)
 
         const searchParams = new URLSearchParams(window.location.search)
-        const callbackUrl = searchParams.get('callbackUrl') || '/dashboard'
+        const raw = searchParams.get('callbackUrl') || '/dashboard'
+        // Only allow internal paths (start with / but not //)
+        const callbackUrl = raw.startsWith('/') && !raw.startsWith('//') ? raw : '/dashboard'
         router.push(callbackUrl)
       } catch (error) {
         setLoading(false)

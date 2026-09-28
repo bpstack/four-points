@@ -105,6 +105,7 @@ export interface TokenPayload {
   id: string
   username: string
   role: string
+  type: 'access' | 'refresh'
   iat?: number
   exp?: number
 }
