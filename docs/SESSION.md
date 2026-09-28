@@ -23,11 +23,8 @@ archivada en `docs/_archive/` (ADR-010); lo hecho se registra en
 
 ## ⚠️ Empieza por aquí
 
-1. **Revisión de `docs/logbook/README.md` por el propietario.** Escrito el
-   2026-09-28 tras leer rutas, controladores, servicio, repositorios, esquema,
-   validaciones, hooks, componentes, Informes y panel de inicio. El
-   `CLAUDE.md` del módulo resultó muy desalineado con el código (ver
-   `TODO.md`). Tras el OK, sigue `parking`.
+1. **Escribir `docs/parking/README.md`** leyendo todo su código y la BD real
+   (ADR-014), y contrastándolo con `docs/_archive/` y sus dos `CLAUDE.md`.
 2. **Siguiente módulo** de la fase 1 en `ROADMAP.md`.
 3. **Material de consulta:** `docs/_archive/` refleja las rutas originales
    (`docs/_archive/docs/backend/…`, `docs/_archive/frontend/docs/…`,
