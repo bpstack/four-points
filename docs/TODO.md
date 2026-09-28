@@ -171,7 +171,7 @@ hace que alguien reimplemente lo que ya existe.
       `logbooks`, `logbook_comments`, `logbook_reads` y `logbook_history`._
 
 - [ ] **Adaptar el harness a repos con varios proyectos e implantarlo** —
-      en `c:Usersdzprojectsharness`: soportar repos sin `package.json`
+      en el repo `harness` (`C:\Users\dz\projects\harness` en el PC principal): soportar repos sin `package.json`
       ni lockfile en la raíz (aquí `frontend/` y `backend/` son dos proyectos
       pnpm independientes) y `AGENTS.md` anidados. Después, implantar la capa 1
       en este repo. Va **antes** de fusionar los `CLAUDE.md` en `AGENTS.md`.
