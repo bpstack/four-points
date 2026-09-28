@@ -183,6 +183,12 @@ Prettier con la config de la raíz (`.prettierrc`): tablas GitHub-flavored aline
 preserve` (no se re-fluye la prosa) y `embeddedLanguageFormatting: off` (**no** se reformatea el código
 dentro de los bloques ` ``` ` — respeta el estilo original de los ejemplos).
 
+**Tablas solo para celdas cortas.** Prettier alinea las tablas pero no puede partir una celda, así
+que una frase larga ensancha toda la tabla y el editor la descuadra. Si alguna fila supera las 100
+columnas (`printWidth`) o una celda lleva más de una frase, usa una lista
+(`- **clave**: descripción`) en lugar de una tabla. Vale para cualquier `.md` del repo (`docs/`
+incluido) al crear una tabla o tocar una existente; las antiguas se corrigen cuando se editan.
+
 ```bash
 ./frontend/node_modules/.bin/prettier --write "*.md"
 ```

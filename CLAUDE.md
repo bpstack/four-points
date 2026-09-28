@@ -114,6 +114,12 @@ El `.prettierrc` de la raíz solo cubre los `.md` del nivel superior; cada works
 para código. `proseWrap: "preserve"` evita que se re-fluya la prosa: únicamente se normalizan tablas,
 listas y énfasis.
 
+**Tablas solo para celdas cortas.** Prettier alinea las tablas pero no puede partir una celda, así
+que una frase larga ensancha toda la tabla y el editor la descuadra. Si alguna fila supera las 100
+columnas (`printWidth`) o una celda lleva más de una frase, usa una lista
+(`- **clave**: descripción`) en lugar de una tabla. Vale para cualquier `.md` del repo (`docs/`
+incluido) al crear una tabla o tocar una existente; las antiguas se corrigen cuando se editan.
+
 ## Backend Conventions
 
 - **Imports**: always use `.js` extension even in TypeScript — `import { x } from './file.js'`
