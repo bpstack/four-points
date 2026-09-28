@@ -36,6 +36,7 @@ const updateUserSchema = z
   })
   .refine((d) => d.username !== undefined || d.email !== undefined || d.role !== undefined, {
     message: 'No hay campos para actualizar',
+    path: ['body'],
   })
 
 // Esquema para actualizar contraseña

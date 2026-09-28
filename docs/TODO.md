@@ -165,18 +165,6 @@ hace que alguien reimplemente lo que ya existe.
       historial desde `f5d47d6` y en el remoto privado. Sacarlos del historial
       en la fase 2 y rotar (ver la entrada de rotación). _Comprobado por mí el
       2026-09-28._
-- [ ] **`PUT /api/users/:id` sin validar** — el propio usuario cambia su
-      `email` sin contraseña actual ni validación de formato
-      (`backend/controllers/auth/user-controllers.ts`); un cuerpo con solo
-      `role` de alguien que no es `admin` responde 500 en vez de 400/403. El
-      rol ya no se puede cambiar sin ser `admin`. _Comprobado en producción el
-      2026-09-29._
-- [ ] **El límite de intentos de login se esquiva** — la clave
-      (`backend/middlewares/rateLimiter.ts`) ya pasa el usuario a minúsculas,
-      pero `users` usa `utf8mb4_0900_ai_ci`: `admin` y `ádmin` siguen siendo la
-      misma cuenta con 5 intentos cada una. No hay límite por IP para probar
-      muchas cuentas, y el contador se parte en producción (ver la entrada de
-      `trust proxy`). _Comprobado en producción el 2026-09-29._
 - [ ] **`mantenimiento` lee la lista negra por la búsqueda global** —
       `/api/search` solo exige sesión y devuelve `guest_name` y
       `document_number` de la lista negra, matrículas y grupos; `%` y `_` no se
@@ -462,17 +450,14 @@ hace que alguien reimplemente lo que ya existe.
       `Permissions-Policy`, pero no CSP ni `Cross-Origin-Opener-Policy`; HSTS
       sin `preload`, Google Analytics sin SRI y anuncia `X-Powered-By: Next.js`.
       _Comprobado con `curl -I` el 2026-09-28._
-- [ ] **Comprobar qué IP ve el backend (`trust proxy 1`)** — Render sirve sus
-      aplicaciones a través de su propia red de Cloudflare (no es una
-      configuración del proyecto: `stackbp.es` usa los DNS de `dns-parking.com`
-      y `four-points.onrender.com` responde igual con `Server: cloudflare`). Con
-      al menos dos intermediarios y `trust proxy 1` en `backend/index.ts`,
-      `req.ip` podría ser la de un intermediario: los límites por IP (login
-      incluido) mezclarían a usuarios distintos. _DNS y cabeceras comprobados el
-      2026-09-28; el valor real de `req.ip`, no._ Síntoma visto el 2026-09-29:
-      7 intentos de login seguidos desde un mismo cliente, y el sexto volvió a
-      `ratelimit-remaining: 4` (otro contador) mientras el séptimo dio 429 con
-      el primero; `req.ip` no es estable entre peticiones.
+- [ ] **`trust proxy 3` depende de la red de Render** — `backend/index.ts`
+      confía en 3 saltos (Cloudflare, balanceador `10.x` de Render y un proxy
+      local `::1`), la cadena vista el 2026-09-29. Si Render quita un salto,
+      `req.ip` pasa a ser lo que envíe el cliente en `X-Forwarded-For` y los
+      límites de login se esquivan; si añade uno, vuelve a ser una IP de
+      Cloudflare compartida. Nada avisa del cambio. Opciones: leer
+      `CF-Connecting-IP` (lo fija Cloudflare) o una comprobación periódica: 2
+      intentos de login fallidos seguidos deben dar `ratelimit-remaining` 4 y 3.
 - [ ] **Datos de personas reales en el repo** —
       `20260520_insert_user_example.sql` crea a una empleada real con su periodo
       de trabajo (confirmado por el propietario el 2026-09-28): cambiar el
