@@ -1,1 +1,0 @@
-https://www.aitmpl.com/component/skill/react-best-practices

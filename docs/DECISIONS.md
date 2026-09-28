@@ -122,3 +122,41 @@
 - **Rechazado:** `_archive/` en la raíz para lo antiguo y `docs/_archive/`
   versionado para `roadmap-history.md`. Eran dos carpetas de archivo con
   reglas distintas.
+
+## ADR-010 — Cómo se archivó la documentación antigua, y qué se quedó fuera
+
+- **Estado:** ✅ aceptada (2026-09-28)
+- **Fecha:** 2026-09-28
+- **Decisión:**
+  - **Se movieron 52 ficheros** a `docs/_archive/`, **conservando su ruta
+    original** dentro del archivo (`docs/backend/auth/x.md` →
+    `docs/_archive/docs/backend/auth/x.md`), para saber siempre de dónde vino
+    cada uno. Son los 5 `.md` de proyecto de la raíz (`Global-Plan`, `README`,
+    `ROADMAP`, `SCHEDULING-SOLVER-PLAN`, `TODO`), los 44 de la antigua `docs/`
+    y los 3 de `frontend/docs/`.
+  - **Se quedan donde estaban `SCHEDULING-CONSTRAINTS.md` y
+    `SCHEDULING-DECISIONS-LOG.md`**, hasta escribir la doc nueva de
+    `scheduling`.
+  - **Los enlaces que quedan rotos no se arreglan ahora**: `backend/README.md`
+    (enlaces a `docs/backend/…`) y comentarios de código que citan
+    `Global-Plan.md` o `SCHEDULING-SOLVER-PLAN.md`. Se corrigen al escribir la
+    doc de cada módulo.
+- **Motivo:**
+  - Los dos `SCHEDULING-*` no son documentación antigua: tres `CLAUDE.md`,
+    `AGENTS.md`, `backend/services/scheduling/soft-weights.ts` y los tests del
+    solver citan `SCHEDULING-CONSTRAINTS.md` como fuente de verdad, y el flujo
+    de trabajo manda añadir entradas a `SCHEDULING-DECISIONS-LOG.md`.
+    Archivarlos dejaría a los agentes buscando ficheros que no existen.
+  - Arreglar los enlaces antes de tener la doc nueva sería apuntarlos a un
+    destino que todavía no existe.
+- **Consecuencias que hay que recordar:**
+  - **Para Git, archivar es borrar**: `docs/_archive/` está ignorado (ADR-009),
+    así que el commit registra 51 borrados (el fichero 52,
+    `frontend/docs/fnb/FNB-FRONTEND.md`, ya estaba ignorado). **El contenido
+    sigue en el historial**: lo privado se limpia igualmente en la fase 2.
+  - **Dos Excel archivados parecen datos reales del personal**
+    (`docs/checklists/PLANNING 2026.xlsx` y
+    `docs/frontend/schedule/Presencias - Marzo.xlsx`). No se han
+    abierto. Son candidatos a privados para la fase 2.
+- **Rechazado:** aplanar el archivo en una sola carpeta (se pierde el origen de
+  cada fichero) y usar `git mv` (versionaría el destino, que debe ser local).

@@ -28,14 +28,11 @@ El orden de 1 → 2 → 3 lo fija ADR-001. La fase 4 depende de ADR-006, que sig
 
 ## Fase 1 — Documentación nueva ← **actual**
 
-Criterios: ADR-003 (qué se archiva), ADR-004 (manda el código) y ADR-009
-(dónde se archiva). Cada módulo responde a las seis preguntas de
+Criterio: ADR-004 (manda el código). La documentación antigua ya está en
+`docs/_archive/` (ADR-010). Cada módulo responde a las seis preguntas de
 `OPEN-SOURCE.md`: qué problema resuelve, quién lo usa, qué puede hacer, qué
 datos maneja, qué reglas cumple y cómo viaja la información.
 
-- [ ] **Archivar la documentación antigua en `docs/_archive/`** — _antes,
-      enseñar la lista exacta de lo que se mueve; ni `CLAUDE.md`/`AGENTS.md`,
-      ni `frontend/content/checklist/`, ni las docs operativas_.
 - [ ] **Decidir la estructura de `docs/`** — _un fichero por módulo o una
       carpeta por módulo; se decide con el primero y queda en `DECISIONS.md`_.
 - [ ] **Módulo general** — _stack, arquitectura, autenticación, despliegue:

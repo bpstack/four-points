@@ -15,17 +15,19 @@ propio fichero) o ruido (se borra).
 
 Preparación del repositorio para publicarlo como open source. Plan en
 `OPEN-SOURCE.md` (raíz, sin versionar); orden de fases en `ROADMAP.md`;
-decisiones en `DECISIONS.md` (ADR-001 a ADR-009).
+decisiones en `DECISIONS.md` (ADR-001 a ADR-010).
 
-Fase actual: **1 — Documentación nueva**. Creados `DECISIONS.md`,
-`SESSION.md` y `ROADMAP.md`; `docs/_archive/` ya está en `.gitignore`
-pero todavía vacío.
+Fase actual: **1 — Documentación nueva**. La documentación antigua ya está
+archivada en `docs/_archive/` (ADR-010); lo hecho se registra en
+`docs/_archive/roadmap-history.md` (local).
 
 ## ⚠️ Empieza por aquí
 
-1. **Archivar la documentación antigua en `docs/_archive/`** (ADR-003,
-   ADR-009). Antes, enseñar al propietario la lista exacta de lo que se mueve.
-2. Seguir con los pasos de la fase 1 en `ROADMAP.md`.
+1. **Decidir la estructura de `docs/`** (fichero o carpeta por módulo) y
+   empezar por el módulo general. Siguiente paso de la fase 1 en `ROADMAP.md`.
+2. **Material de consulta:** `docs/_archive/` refleja las rutas originales
+   (`docs/_archive/docs/backend/…`, `docs/_archive/frontend/docs/…`,
+   `docs/_archive/Global-Plan.md`…).
 
 ## Esperando decisión
 
@@ -51,7 +53,14 @@ pero todavía vacío.
 
 - **Nada de `docs/_archive/` se publica**, tampoco `roadmap-history.md`
   (ADR-009). Si algo de ahí debe ser público, se copia fuera.
-- **`TODO.md` de la raíz tiene una entrada local del PC `dz`** (_Mantenimiento
-  local_): no debe pasar al `docs/TODO.md` público.
-- **Las docs operativas se dejan como están** (ADR-003): no moverlas al
-  archivar.
+- **El antiguo `TODO.md` de la raíz (ahora en `docs/_archive/TODO.md`) tiene
+  una entrada local del PC `dz`** (_Mantenimiento local_: borrar los `.bak` de
+  la limpieza de permisos): no debe pasar al `docs/TODO.md` público.
+- **Enlaces rotos conocidos** tras archivar: `backend/README.md` (enlaces a
+  `docs/backend/…`) y comentarios que citan `Global-Plan.md` o
+  `SCHEDULING-SOLVER-PLAN.md`. Se arreglan al escribir cada módulo (ADR-010).
+- **Candidatos a privados para la fase 2**, además de los volcados: los dos
+  Excel archivados (`PLANNING 2026.xlsx`, `Presencias - Marzo.xlsx`),
+  que siguen en el historial.
+- **Quedan carpetas vacías** en `docs/` y `frontend/docs/` tras archivar. Git no
+  las ve; se pueden borrar a mano.
