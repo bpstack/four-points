@@ -21,6 +21,17 @@ hace que alguien reimplemente lo que ya existe.
 > Las entradas de **seguridad** describen debilidades explotables: **resolverlas
 > o quitarlas de este fichero antes de publicar el repositorio**.
 
+- [ ] **Blacklist: cualquier usuario edita, borra o restaura la entrada de
+      otro** — sin comprobar `created_by` ni ningún control por fila; a
+      diferencia de otros módulos (p. ej. mensajería), aquí no hay ninguna capa
+      de autorización de objeto. Está documentado como intencional en el
+      `AGENTS.md` del módulo, pero conviene registrarlo como riesgo aceptado en
+      vez de dejarlo implícito. _Comprobado por mí el 2026-09-28._
+- [ ] **Blacklist: `DELETE /upload/:publicId` borra cualquier recurso de
+      Cloudinary** — el `publicId` no se comprueba contra ninguna entrada; con
+      un id adivinado o filtrado se puede borrar cualquier imagen del cloud
+      name, también de otros módulos (mismo patrón que backoffice). _Comprobado
+      por mí el 2026-09-28._
 - [ ] **Backoffice: inyección SQL por los nombres de campo** — `updateSupplier`
       y `updateInvoice` construyen `clave = ?` con las claves del cuerpo, que el
       controlador pasa entero. Además se puede fijar `status`, `paid_date`,
@@ -556,8 +567,33 @@ hace que alguien reimplemente lo que ya existe.
       límite de tamaño y siguen redirecciones. _Según la revisión `security` L3
       del 2026-09-28 (fichero y línea en el informe); no repasado por mí._
 
+- [ ] **Blacklist: el tipo de imagen solo se valida por el mimetype que declara
+      el cliente** — sin comprobar los bytes reales del fichero antes de subirlo
+      a Cloudinary. _Según la revisión `security` L3 del 2026-09-28 (fichero y
+      línea en el informe); no repasado por mí._
+- [ ] **Blacklist: el array `images` acepta cualquier URL** — el esquema solo
+      valida que sea una URL, no que venga del `uploadImage` del propio módulo;
+      se puede guardar como «foto» cualquier enlace externo. _Según la revisión
+      `security` L3 del 2026-09-28 (fichero y línea en el informe); no repasado
+      por mí._
+- [ ] **Corregir el `AGENTS.md` de blacklist** — el esquema real usa
+      `guest_name` (no `name`), `comments` (no `description`), y tiene dos
+      columnas que el documento no menciona (`check_in_date`/`check_out_date` y
+      `severity`); el borrado usa `status` ACTIVE/DELETED, no un booleano
+      `is_deleted`, y el filtro es `status=ALL`, no `includeDeleted`.
+      _Comprobado por mí el 2026-09-28._
+
 ## 🟢 Baja
 
+- [ ] **Blacklist: filtro `created_by` sin restricción** — permite listar o
+      filtrar por cualquier usuario creador, exponiendo patrones de uso por
+      operador. _Según la revisión `security` L3 del 2026-09-28 (fichero y línea
+      en el informe); no repasado por mí._
+- [ ] **Blacklist: resaltado de búsqueda con `dangerouslySetInnerHTML`** — hoy
+      no explotable porque el backend restringe `guest_name`/`document_number`
+      con regex, pero es frágil: si se relaja esa validación o se resalta texto
+      libre (`reason`/`comments`), se abre XSS. _Según la revisión `security` L3
+      del 2026-09-28 (fichero y línea en el informe); no repasado por mí._
 - [ ] **Backoffice: notas `IMPORTANT-PRODUCTION.MD` obsoletas** en
       `frontend/app/components/bo/`: hablan de datos inventados que ya no se
       usan. _Comprobado por mí el 2026-09-28._
