@@ -57,8 +57,8 @@ Tres tablas (`backend/db-mysql/aiven/14_messages.sql`):
   ser añadido, se reactiva.
 - **Retención de 90 días**: un evento de MySQL (`cleanup_old_messages`) borra
   cada día los mensajes de más de 90 días y las conversaciones que se quedan sin
-  mensajes. Solo funciona si el programador de eventos de MySQL está activo en
-  el servidor.
+  mensajes. Necesita el programador de eventos de MySQL (`event_scheduler`)
+  activo, como lo está en local y en Aiven.
 - **No leído** = mensaje de otra persona posterior al último momento en que
   abriste esa conversación (`last_read_at`).
 

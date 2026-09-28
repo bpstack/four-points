@@ -21,6 +21,19 @@ hace que alguien reimplemente lo que ya existe.
 > Seguridad. **Resolver o quitar de este fichero antes de publicar el
 > repositorio**: describen debilidades explotables.
 
+- [ ] **Rotar todas las credenciales al terminar la preparación** —
+      `SECRET_JWT_KEY`, contraseñas de MySQL (local y Aiven), claves de
+      Cloudinary, SMTP si se usa, y las claves de IA que siguen en
+      `backend/.env` aunque ningún código las lea (`ANTHROPIC_API_KEY`,
+      `CLAUDE_API_KEY`, `GEMINI_API_KEY`, `GROQ_API_KEY`, `MINIMAX_API_KEY`,
+      `OPENAI_COMPAT_API_KEY`). El agente tuvo acceso a `.env`, BD y
+      volcados desde el 2026-09-28 (ADR-014), y el repositorio ha contenido
+      volcados de la BD (ADR-007).
+- [ ] **Logbook: cualquiera puede crear entradas en nombre de otro** —
+      `createLogbook` (`backend/controllers/logbook/logbook-controllers.ts`)
+      guarda el `author_id` que manda el cliente, no `req.user.id`. Rompe la
+      autoría y el historial del módulo. _Comprobado el 2026-09-28: el esquema
+      Zod lo exige en el cuerpo y el frontend lo rellena con `user.id`._
 - [ ] **Un usuario desactivado o borrado sigue entrando** — ni
       `authenticateToken` (`backend/middlewares/`) ni `refreshToken`
       (`backend/controllers/auth/auth-controllers.ts`) consultan la BD, y cada
@@ -76,14 +89,40 @@ hace que alguien reimplemente lo que ya existe.
       (`backend/controllers/messages/`) dejan leer cualquier conversación al
       rol `admin`, aunque no participe. Decidir si se mantiene y, si es así,
       decirlo en la interfaz. _Comprobado el 2026-09-28._
-- [ ] **Comprobar que la retención de mensajes funciona en Aiven** — depende
-      del evento MySQL `cleanup_old_messages`, que solo corre con
-      `event_scheduler=ON`. Ese evento borra además cada día las conversaciones
-      sin mensajes, incluidas las recién creadas y aún vacías. _No comprobado
-      en la BD._
+- [ ] **La retención de mensajes borra las conversaciones vacías** — el evento
+      MySQL `cleanup_old_messages` borra cada día, además de los mensajes de más
+      de 90 días, toda conversación sin mensajes, incluidas las recién creadas y
+      aún sin estrenar. _Comprobado el 2026-09-28 en local y Aiven:
+      `event_scheduler=ON` y el evento está `ENABLED` (última ejecución en
+      Aiven: 2026-09-27)._
+
+- [ ] **Corregir `backend/services/logbook/CLAUDE.md`** — describe tres tablas
+      (`logbook_solved`, `logbook_pending`, `logbook_comments_history`) que
+      ningún script SQL crea y ningún código usa: resolver y reabrir escriben en
+      columnas de `logbooks` (`is_solved`, `solved_at`, `solved_by`) y el
+      historial de comentarios va a `logbook_history` con `type = 'comment'`.
+      Además dice `is_deleted` (es `deleted_at`), `/api/logbook` (es
+      `/api/logbooks`) y actualizaciones optimistas que `useLogbooks` no hace.
+      _Comprobado el 2026-09-28 en el código, los `.sql` versionados, el
+      historial de Git (los nombres solo aparecen en los commits de docs
+      `568bc98` y `2be5df9`) y en las BD local y Aiven, donde solo existen
+      `logbooks`, `logbook_comments`, `logbook_reads` y `logbook_history`._
 
 ## 🟢 Baja
 
+- [ ] **Logbook: editar una entrada ajena devuelve 500** — el servicio lanza un
+      `Error` genérico y el controlador responde `500` en vez de `403`.
+- [ ] **Logbook: comprobación de `isAdmin` que nunca se cumple** — los
+      controladores de comentarios leen `req.user.isAdmin`, que
+      `authenticateToken` no rellena. Quitarla o decidir si el `admin` puede
+      editar comentarios ajenos.
+- [ ] **Logbook: papelera y filtros sin interfaz** — `/trashed`, `/author`,
+      `/department` y `/priority` existen en el backend y en
+      `queries.ts`, pero la pantalla del módulo no los usa (Informes usa
+      `/all` con filtros). Tampoco hay forma de restaurar lo borrado.
+- [ ] **Panel de inicio: una petición por día** — con el periodo _mes_ lanza
+      hasta 31 peticiones a `/api/logbooks/day/` (`frontend/app/dashboard/page.tsx`);
+      `/all?date_from=&date_to=` lo haría en una.
 - [ ] **Mensajería: exponer en la interfaz lo que el backend ya ofrece** —
       renombrar grupo, añadir y quitar participantes, buscar en mensajes,
       contador global de no leídos y vista de todas las conversaciones para

@@ -211,3 +211,26 @@
 - **Rechazado:** una carpeta de módulo `docs/messages/` (la pondría al nivel de
   parking o caja, que son áreas del hotel) y dejarla solo como párrafo en
   `general/README.md` (se quedaría corta).
+
+## ADR-014 — Acceso temporal del agente a `.env`, base de datos y volcados
+
+- **Estado:** ✅ aceptada (2026-09-28)
+- **Fecha:** 2026-09-28
+- **Decisión:** mientras dure la preparación para publicar, el agente puede
+  leer los `.env`, conectarse a las bases de datos (local y Aiven) y abrir los
+  volcados de `backend/db-mysql/backup/`. Suspende, **solo para este trabajo**,
+  la norma general del propietario de no leer `.env`, credenciales ni volcados
+  sin permiso explícito.
+- **Condiciones:**
+  - Las consultas a la BD son **de solo lectura** (`SELECT`, `SHOW`,
+    `DESCRIBE`) salvo orden expresa para otra cosa.
+  - Los valores secretos **no se imprimen** en la salida ni se copian a ningún
+    documento: se cargan en el proceso que los usa y se nombran solo por su
+    clave.
+  - **Todas las credenciales se rotan al terminar** (ver ADR-007 y `TODO.md`).
+- **Motivo:** documentar desde el código deja preguntas que solo la BD real
+  responde; el primer caso fue confirmar si existen tablas que solo cita el
+  `CLAUDE.md` de logbook. El propietario asume el riesgo porque las claves se
+  rotarán después.
+- **Rechazado:** que el propietario ejecute cada consulta a mano. Es más lento
+  y el acceso se va a revocar igualmente con la rotación.
