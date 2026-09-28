@@ -58,15 +58,14 @@ frontend/app/components/restaurant/tabs/
 The system assumes **fixed Opera codes** mapped to 7 stable columns. Defined as
 `CATEGORY_CODES` in `repositories/fnb/fnb.repository.ts`:
 
-| Column               | Opera code | Meaning                                      |
-| -------------------- | ---------- | -------------------------------------------- |
-| `breakfast_included` | `21110`    | Included breakfast (BB rate)                 |
-| `breakfast_excluded` | `21124`    | Extra breakfast (non-BB guest who orders it) |
-| `breakfast_directo`  | `21120`    | Walk-in breakfast (not tied to a booking)    |
-| `lunch_food`         | `21111`    | Lunch — food                                 |
-| `lunch_bev`          | `21267`    | Lunch — beverages                            |
-| `dinner_food`        | `21112`    | Dinner — food                                |
-| `dinner_bev`         | `21307`    | Dinner — beverages                           |
+- **`breakfast_included`** — `21110` — Included breakfast (BB rate)
+- **`breakfast_excluded`** — `21124` — Extra breakfast (non-BB guest who orders
+  it)
+- **`breakfast_directo`** — `21120` — Walk-in breakfast (not tied to a booking)
+- **`lunch_food`** — `21111` — Lunch — food
+- **`lunch_bev`** — `21267` — Lunch — beverages
+- **`dinner_food`** — `21112` — Dinner — food
+- **`dinner_bev`** — `21307` — Dinner — beverages
 
 **If Opera renames a code or you add a new category:**
 
@@ -118,14 +117,15 @@ it might become viable again. Don't upgrade without measuring.
 
 ## Endpoints
 
-| Method and route                          | Purpose                                                    |
-| ----------------------------------------- | ---------------------------------------------------------- |
-| `GET /api/fnb/categories`                 | List of active categories (drives `trackedCodesSet`)       |
-| `GET /api/fnb/monthly?year=YYYY&month=MM` | Monthly pivot: one row per day of the month                |
-| `GET /api/fnb/daily?date=YYYY-MM-DD`      | Detail of a specific day                                   |
-| `POST /api/fnb/upload`                    | PDF upload (`multipart/form-data`, field `pdf`, 10 MB max) |
-| `POST /api/fnb/entries`                   | Manual entry (when no PDF is available)                    |
-| `DELETE /api/fnb/day/:date`               | Delete all records for a day                               |
+- **`GET /api/fnb/categories`**: list of active categories (drives
+  `trackedCodesSet`)
+- **`GET /api/fnb/monthly?year=YYYY&month=MM`**: monthly pivot: one row per day
+  of the month
+- **`GET /api/fnb/daily?date=YYYY-MM-DD`**: detail of a specific day
+- **`POST /api/fnb/upload`**: PDF upload (`multipart/form-data`, field `pdf`, 10
+  MB max)
+- **`POST /api/fnb/entries`**: manual entry (when no PDF is available)
+- **`DELETE /api/fnb/day/:date`**: delete all records for a day
 
 The whole subroute sits behind `authenticateToken` + `canAccessFnb`. Allowed
 roles: `admin`, `recepcionista`, `demo-admin`, **`group-admin`** (the last one

@@ -25,15 +25,14 @@ reported ──► assigned ──► in_progress ──► completed ──► 
 
 **7 statuses** defined in `frontend/app/lib/maintenance/maintenance.ts`:
 
-| Status        | Meaning                                                                               |
-| ------------- | ------------------------------------------------------------------------------------- |
-| `reported`    | Just created, unassigned                                                              |
-| `assigned`    | Assigned to someone (internal or external) but not started                            |
-| `in_progress` | Work is happening                                                                     |
-| `waiting`     | Blocked on something external (waiting for parts, quote, etc.)                        |
-| `completed`   | Resolved, pending formal closure                                                      |
-| `closed`      | Closed for good. The UI doesn't expose a reopen from `closed`, but the API allows it. |
-| `canceled`    | Canceled (duplicate, doesn't apply, etc.)                                             |
+- **`reported`**: Just created, unassigned
+- **`assigned`**: Assigned to someone (internal or external) but not started
+- **`in_progress`**: Work is happening
+- **`waiting`**: Blocked on something external (waiting for parts, quote, etc.)
+- **`completed`**: Resolved, pending formal closure
+- **`closed`**: Closed for good. The UI doesn't expose a reopen from `closed`,
+  but the API allows it.
+- **`canceled`**: Canceled (duplicate, doesn't apply, etc.)
 
 **The backend does NOT enforce the status workflow:** any status can go to any
 other, and a `closed` report can be reopened through the API. Canceling sets
@@ -96,23 +95,23 @@ frontend/app/lib/maintenance/
 
 ## Backend — endpoints
 
-| Method and route                              | Purpose                                                                                                                                                            |
-| --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `GET /api/maintenance`                        | List with filters: status, priority, location_type, assigned_to, created_by, room_number, search, date_from, date_to, include_deleted; pagination `page` + `limit` |
-| `GET /api/maintenance/stats`                  | Aggregate statistics                                                                                                                                               |
-| `GET /api/maintenance/:id`                    | Detail with images + history                                                                                                                                       |
-| `POST /api/maintenance`                       | Create report                                                                                                                                                      |
-| `PATCH /api/maintenance/:id`                  | General update                                                                                                                                                     |
-| `PATCH /api/maintenance/:id/status`           | Status-only change (with `notes?`)                                                                                                                                 |
-| `PATCH /api/maintenance/:id/priority`         | Priority-only change                                                                                                                                               |
-| `PATCH /api/maintenance/:id/resolution-notes` | Append resolution notes                                                                                                                                            |
-| `PATCH /api/maintenance/:id/assign`           | Assign (internal or external)                                                                                                                                      |
-| `DELETE /api/maintenance/:id`                 | Soft delete                                                                                                                                                        |
-| `PATCH /api/maintenance/:id/restore`          | Restore                                                                                                                                                            |
-| `GET /api/maintenance/:id/images`             | List images                                                                                                                                                        |
-| `POST /api/maintenance/:id/images`            | Upload image (multipart, 5 MB max)                                                                                                                                 |
-| `DELETE /api/maintenance/:id/images/:imageId` | Delete image                                                                                                                                                       |
-| `GET /api/maintenance/:id/history`            | Change history                                                                                                                                                     |
+- `GET /api/maintenance` — List with filters: status, priority, location_type,
+  assigned_to, created_by, room_number, search, date_from, date_to,
+  include_deleted; pagination `page` + `limit`
+- `GET /api/maintenance/stats` — Aggregate statistics
+- `GET /api/maintenance/:id` — Detail with images + history
+- `POST /api/maintenance` — Create report
+- `PATCH /api/maintenance/:id` — General update
+- `PATCH /api/maintenance/:id/status` — Status-only change (with `notes?`)
+- `PATCH /api/maintenance/:id/priority` — Priority-only change
+- `PATCH /api/maintenance/:id/resolution-notes` — Append resolution notes
+- `PATCH /api/maintenance/:id/assign` — Assign (internal or external)
+- `DELETE /api/maintenance/:id` — Soft delete
+- `PATCH /api/maintenance/:id/restore` — Restore
+- `GET /api/maintenance/:id/images` — List images
+- `POST /api/maintenance/:id/images` — Upload image (multipart, 5 MB max)
+- `DELETE /api/maintenance/:id/images/:imageId` — Delete image
+- `GET /api/maintenance/:id/history` — Change history
 
 **Middleware:** every route sits behind `authenticateToken` +
 `canAccessMaintenance`. This middleware **lets the mantenimiento role in** —

@@ -121,15 +121,19 @@ Monthly table of employees × days. Critical patterns:
 Container for 7 tabs, navigated via `?tab=<tabName>` in the query string. Each
 tab is an independent client component that loads its own data:
 
-| Tab           | File                                         | Purpose                                                                                    |
-| ------------- | -------------------------------------------- | ------------------------------------------------------------------------------------------ |
-| `employees`   | `EmployeesTab.tsx`                           | Schedulable employee list + add/remove checkbox + start_date/end_date                      |
-| `totals`      | `TotalsTab.tsx` (wraps `EmployeeTotals.tsx`) | Annual view of totals (M/T/N/L/V/B/etc.) per employee                                      |
-| `general`     | `GeneralConfigTab.tsx`                       | Editor for `scheduling_config`: min/max staff, rest hours, libre ranges, night block, etc. |
-| `rules`       | `RulesTab.tsx`                               | Per-employee rules: fixedShift, fixedDays, noWeekends, shiftPriority                       |
-| `requests`    | `RequestsTab.tsx`                            | Request management (vacations/IT/bonificables): approve / reject / edit                    |
-| `shift-stats` | `ShiftStatsTab.tsx`                          | Per-shift stats across the year                                                            |
-| `presencias`  | `PresenciasTab.tsx`                          | Editor specifically for employees with `fixedShift='P'` and `fixedDays`                    |
+- **`employees`** (`EmployeesTab.tsx`): Schedulable employee list + add/remove
+  checkbox + start_date/end_date
+- **`totals`** (`TotalsTab.tsx` (wraps `EmployeeTotals.tsx`)): Annual view of
+  totals (M/T/N/L/V/B/etc.) per employee
+- **`general`** (`GeneralConfigTab.tsx`): Editor for `scheduling_config`:
+  min/max staff, rest hours, libre ranges, night block, etc.
+- **`rules`** (`RulesTab.tsx`): Per-employee rules: fixedShift, fixedDays,
+  noWeekends, shiftPriority
+- **`requests`** (`RequestsTab.tsx`): Request management
+  (vacations/IT/bonificables): approve / reject / edit
+- **`shift-stats`** (`ShiftStatsTab.tsx`): Per-shift stats across the year
+- **`presencias`** (`PresenciasTab.tsx`): Editor specifically for employees with
+  `fixedShift='P'` and `fixedDays`
 
 `'react-day-picker/style.css'` is imported in `SchedulingConfigClient.tsx`
 (shared by several tabs that use DayPicker for dates).

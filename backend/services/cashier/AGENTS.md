@@ -15,17 +15,24 @@ periods.
 
 ## DB tables
 
-| Table                    | Purpose                                                                                            |
-| ------------------------ | -------------------------------------------------------------------------------------------------- |
-| `payment_methods`        | Reference table for payment types (cash, card, BACS, web, transfer, other)                         |
-| `cashier_shifts`         | One row per shift per day. Holds `shift_type`, `status`, `initial_fund`, `opened_by`, `closed_by`. |
-| `cashier_shift_users`    | Many-to-many: which users worked each shift (primary + secondary).                                 |
-| `cashier_daily`          | One row per calendar day. Aggregates totals via a MySQL trigger on `cashier_shifts`.               |
-| `cashier_denominations`  | Bill/coin denomination breakdown per shift (counted physical cash).                                |
-| `cashier_payments`       | Payment entries per shift grouped by method (electronic).                                          |
-| `cashier_vouchers`       | Vouchers (vales) — income or expense, lifecycle: `pending → justified / cancelled`.                |
-| `cashier_shift_vouchers` | Many-to-many: which vouchers belong to which shift.                                                |
-| `cashier_history`        | Audit log of every mutation on a shift (created, updated, status_changed, voucher_created, etc.)   |
+- **`payment_methods`**: Reference table for payment types (cash, card, BACS,
+  web, transfer, other)
+- **`cashier_shifts`**: One row per shift per day. Holds `shift_type`, `status`,
+  `initial_fund`, `opened_by`, `closed_by`.
+- **`cashier_shift_users`**: Many-to-many: which users worked each shift
+  (primary + secondary).
+- **`cashier_daily`**: One row per calendar day. Aggregates totals via a MySQL
+  trigger on `cashier_shifts`.
+- **`cashier_denominations`**: Bill/coin denomination breakdown per shift
+  (counted physical cash).
+- **`cashier_payments`**: Payment entries per shift grouped by method
+  (electronic).
+- **`cashier_vouchers`**: Vouchers (vales) — income or expense, lifecycle:
+  `pending → justified / cancelled`.
+- **`cashier_shift_vouchers`**: Many-to-many: which vouchers belong to which
+  shift.
+- **`cashier_history`**: Audit log of every mutation on a shift (created,
+  updated, status_changed, voucher_created, etc.)
 
 **Trigger:** `trg_cashier_shift_update_daily` on `cashier_shifts` — after any
 shift UPDATE, recomputes `cashier_daily` totals (total cash, total payments,
@@ -100,53 +107,64 @@ patches.
 
 ## Role boundaries
 
-| Operation                                                     | Roles allowed                                                              |
-| ------------------------------------------------------------- | -------------------------------------------------------------------------- |
-| Read daily, shifts, vouchers                                  | all authenticated (excl. `mantenimiento`)                                  |
-| Create/update/close shifts, payments, denominations, vouchers | `admin`, `recepcionista`, `group-admin`, `demo-admin` (`canManageCashier`) |
-| Reopen shifts or days, delete any resource                    | `admin` only (`isAdmin`)                                                   |
-| Reports, history, stats                                       | `admin`, `demo-admin` (`canViewReports`)                                   |
+- **Read daily, shifts, vouchers** — all authenticated (excl. `mantenimiento`)
+- **Create/update/close shifts, payments, denominations, vouchers** — `admin`,
+  `recepcionista`, `group-admin`, `demo-admin` (`canManageCashier`)
+- **Reopen shifts or days, delete any resource** — `admin` only (`isAdmin`)
+- **Reports, history, stats** — `admin`, `demo-admin` (`canViewReports`)
 
 `mantenimiento` role is excluded at the router level (`excludeMantenimiento`).
 
 ## Endpoints summary
 
-| Method   | Route                                        | Auth                   | Purpose                                            |
-| -------- | -------------------------------------------- | ---------------------- | -------------------------------------------------- |
-| GET      | `/api/cashier/daily/:date`                   | all                    | Full day with 4 shifts                             |
-| POST     | `/api/cashier/daily/:date/initialize`        | canManageCashier       | Create the 4 shifts                                |
-| PATCH    | `/api/cashier/daily/:date/close`             | canManageCashier       | Close the day                                      |
-| PATCH    | `/api/cashier/daily/:date/reopen`            | isAdmin                | Reopen closed day                                  |
-| GET      | `/api/cashier/daily/:date/summary`           | all                    | Day summary                                        |
-| GET      | `/api/cashier/daily`                         | all                    | Paginated list of days                             |
-| GET      | `/api/cashier/reports/monthly/:year/:month`  | canViewReports         | Monthly aggregate                                  |
-| GET      | `/api/cashier/shifts`                        | all                    | Filtered list                                      |
-| GET      | `/api/cashier/shifts/:id`                    | all                    | Shift detail + denominations + payments + vouchers |
-| PATCH    | `/api/cashier/shifts/:id`                    | canManageCashier       | Update shift                                       |
-| PATCH    | `/api/cashier/shifts/:id/close`              | canManageCashier       | Close shift                                        |
-| PATCH    | `/api/cashier/shifts/:id/reopen`             | isAdmin                | Reopen shift                                       |
-| PUT      | `/api/cashier/shifts/:id/users`              | isAdmin                | Replace shift users                                |
-| DELETE   | `/api/cashier/shifts/:id`                    | isAdmin                | Delete (only if open)                              |
-| GET      | `/api/cashier/shifts/:id/history`            | all                    | Shift audit log                                    |
-| GET/POST | `/api/cashier/shifts/:shiftId/payments`      | all / canManageCashier | List / create payment                              |
-| PUT      | `/api/cashier/shifts/:shiftId/payments`      | canManageCashier       | Bulk replace payments                              |
-| GET/POST | `/api/cashier/shifts/:shiftId/denominations` | all / canManageCashier | List / create denomination                         |
-| PUT      | `/api/cashier/shifts/:shiftId/denominations` | canManageCashier       | Bulk replace denominations                         |
-| GET/POST | `/api/cashier/vouchers`                      | all / canManageCashier | List / (implicit via shift)                        |
-| POST     | `/api/cashier/shifts/:shiftId/vouchers`      | canManageCashier       | Create voucher on shift                            |
-| PATCH    | `/api/cashier/vouchers/:id`                  | canManageCashier       | Update voucher                                     |
-| PATCH    | `/api/cashier/vouchers/:id/justify`          | canManageCashier       | Mark as justified                                  |
-| PATCH    | `/api/cashier/vouchers/:id/cancel`           | isAdmin                | Cancel voucher                                     |
-| DELETE   | `/api/cashier/vouchers/:id`                  | isAdmin                | Delete (only if pending)                           |
-| GET      | `/api/cashier/reports/dashboard`             | canViewReports         | Today's dashboard overview                         |
-| GET      | `/api/cashier/reports/daily/:date`           | canViewReports         | Full day report                                    |
-| GET      | `/api/cashier/reports/period`                | canViewReports         | Period breakdown                                   |
-| GET      | `/api/cashier/reports/vouchers-history`      | canViewReports         | All vouchers history                               |
-| GET      | `/api/cashier/reports/shifts-summary`        | canViewReports         | Shifts grouped by type                             |
-| GET      | `/api/cashier/history`                       | canViewReports         | Full history with filters                          |
-| GET      | `/api/cashier/history/stats`                 | canViewReports         | History stats                                      |
-| GET      | `/api/cashier/history/shift/:shiftId`        | canViewReports         | History for one shift                              |
-| GET      | `/api/cashier/history/recent`                | canViewReports         | Recent activity                                    |
+- **GET** `/api/cashier/daily/:date` — all · Full day with 4 shifts
+- **POST** `/api/cashier/daily/:date/initialize` — canManageCashier · Create the
+  4 shifts
+- **PATCH** `/api/cashier/daily/:date/close` — canManageCashier · Close the day
+- **PATCH** `/api/cashier/daily/:date/reopen` — isAdmin · Reopen closed day
+- **GET** `/api/cashier/daily/:date/summary` — all · Day summary
+- **GET** `/api/cashier/daily` — all · Paginated list of days
+- **GET** `/api/cashier/reports/monthly/:year/:month` — canViewReports · Monthly
+  aggregate
+- **GET** `/api/cashier/shifts` — all · Filtered list
+- **GET** `/api/cashier/shifts/:id` — all · Shift detail + denominations +
+  payments + vouchers
+- **PATCH** `/api/cashier/shifts/:id` — canManageCashier · Update shift
+- **PATCH** `/api/cashier/shifts/:id/close` — canManageCashier · Close shift
+- **PATCH** `/api/cashier/shifts/:id/reopen` — isAdmin · Reopen shift
+- **PUT** `/api/cashier/shifts/:id/users` — isAdmin · Replace shift users
+- **DELETE** `/api/cashier/shifts/:id` — isAdmin · Delete (only if open)
+- **GET** `/api/cashier/shifts/:id/history` — all · Shift audit log
+- **GET/POST** `/api/cashier/shifts/:shiftId/payments` — all / canManageCashier
+  · List / create payment
+- **PUT** `/api/cashier/shifts/:shiftId/payments` — canManageCashier · Bulk
+  replace payments
+- **GET/POST** `/api/cashier/shifts/:shiftId/denominations` — all /
+  canManageCashier · List / create denomination
+- **PUT** `/api/cashier/shifts/:shiftId/denominations` — canManageCashier · Bulk
+  replace denominations
+- **GET/POST** `/api/cashier/vouchers` — all / canManageCashier · List /
+  (implicit via shift)
+- **POST** `/api/cashier/shifts/:shiftId/vouchers` — canManageCashier · Create
+  voucher on shift
+- **PATCH** `/api/cashier/vouchers/:id` — canManageCashier · Update voucher
+- **PATCH** `/api/cashier/vouchers/:id/justify` — canManageCashier · Mark as
+  justified
+- **PATCH** `/api/cashier/vouchers/:id/cancel` — isAdmin · Cancel voucher
+- **DELETE** `/api/cashier/vouchers/:id` — isAdmin · Delete (only if pending)
+- **GET** `/api/cashier/reports/dashboard` — canViewReports · Today's dashboard
+  overview
+- **GET** `/api/cashier/reports/daily/:date` — canViewReports · Full day report
+- **GET** `/api/cashier/reports/period` — canViewReports · Period breakdown
+- **GET** `/api/cashier/reports/vouchers-history` — canViewReports · All
+  vouchers history
+- **GET** `/api/cashier/reports/shifts-summary` — canViewReports · Shifts
+  grouped by type
+- **GET** `/api/cashier/history` — canViewReports · Full history with filters
+- **GET** `/api/cashier/history/stats` — canViewReports · History stats
+- **GET** `/api/cashier/history/shift/:shiftId` — canViewReports · History for
+  one shift
+- **GET** `/api/cashier/history/recent` — canViewReports · Recent activity
 
 ## Known gotchas
 

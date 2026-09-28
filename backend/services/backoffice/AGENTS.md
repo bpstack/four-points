@@ -15,13 +15,16 @@ single operation.
 
 ## DB tables
 
-| Table                | Purpose                                                                                            |
-| -------------------- | -------------------------------------------------------------------------------------------------- |
-| `bo_categories`      | Invoice categories (e.g. food, maintenance, utilities). Reference table.                           |
-| `bo_suppliers`       | Suppliers: name, category, contact info, active/inactive status                                    |
-| `bo_invoices`        | Invoices: amount, due date, status (`pending→validated/rejected→paid`), optional PDF in Cloudinary |
-| `bo_invoice_history` | Audit log of invoice status changes (who validated, rejected, paid + notes)                        |
-| `bo_assets`          | Images attached to suppliers (stored in Cloudinary). One can be marked as default.                 |
+- **`bo_categories`**: Invoice categories (e.g. food, maintenance, utilities).
+  Reference table.
+- **`bo_suppliers`**: Suppliers: name, category, contact info, active/inactive
+  status
+- **`bo_invoices`**: Invoices: amount, due date, status
+  (`pending→validated/rejected→paid`), optional PDF in Cloudinary
+- **`bo_invoice_history`**: Audit log of invoice status changes (who validated,
+  rejected, paid + notes)
+- **`bo_assets`**: Images attached to suppliers (stored in Cloudinary). One can
+  be marked as default.
 
 **SQL views** (frozen in `16_backoffice.sql`):
 
@@ -95,10 +98,10 @@ A `revertBatchPayment` endpoint exists for undo (also with a preview).
 
 ## Role boundaries
 
-| Operation                                                                                        | Roles                                         |
-| ------------------------------------------------------------------------------------------------ | --------------------------------------------- |
-| Read anything (stats, categories, suppliers, invoices, assets)                                   | `admin`, `demo-admin` (`canAccessBackoffice`) |
-| Create/update/delete suppliers, invoices, assets; validate/reject/pay invoices; batch operations | `admin` only (`isRealAdmin`)                  |
+- **Read anything** (stats, categories, suppliers, invoices, assets) — `admin`,
+  `demo-admin` (`canAccessBackoffice`)
+- **Create/update/delete suppliers, invoices, assets; validate/reject/pay
+  invoices; batch operations** — `admin` only (`isRealAdmin`)
 
 `canAccessBackoffice` = `['admin', 'demo-admin']`. `isRealAdmin` = `['admin']`
 only.

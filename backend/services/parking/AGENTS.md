@@ -40,13 +40,17 @@ backend/routes/parking/
 
 ## DB tables
 
-| Table                  | Purpose                                                                                                                            |
-| ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| `parking_spots`        | Physical spots: number, level_code (-2/-3), spot_type, availability                                                                |
-| `parking_vehicles`     | Registered vehicles (plate, owner, type). Shared across bookings                                                                   |
-| `parking_bookings`     | Bookings: spot, vehicle, expected dates, actual dates, status, source, payment, total                                              |
-| `parking_rates`        | Rates by number of days (1–30). Not by spot type. Over 30 days there is no rate and 15 €/day is used                               |
-| `parking_availability` | Precomputed calendar: one row per spot and day, kept by the triggers in `backend/db-mysql/aiven/05_parking_functions_triggers.sql` |
+- **`parking_spots`**: physical spots: number, level_code (-2/-3), spot_type,
+  availability
+- **`parking_vehicles`**: registered vehicles (plate, owner, type). Shared
+  across bookings
+- **`parking_bookings`**: bookings: spot, vehicle, expected dates, actual dates,
+  status, source, payment, total
+- **`parking_rates`**: rates by number of days (1–30). Not by spot type. Over 30
+  days there is no rate and 15 €/day is used
+- **`parking_availability`**: precomputed calendar: one row per spot and day,
+  kept by the triggers in
+  `backend/db-mysql/aiven/05_parking_functions_triggers.sql`
 
 **Note:** there is no `parking_invoices` table.
 
@@ -63,13 +67,11 @@ both sides**.
 
 ### Booking status
 
-| Status       | Meaning                                  |
-| ------------ | ---------------------------------------- |
-| `reserved`   | Booking created, waiting for arrival     |
-| `checked_in` | Vehicle arrived, using the spot          |
-| `completed`  | Vehicle left correctly                   |
-| `canceled`   | Booking canceled (slot not used)         |
-| `no_show`    | Customer didn't show up on expected date |
+- **`reserved`**: Booking created, waiting for arrival
+- **`checked_in`**: Vehicle arrived, using the spot
+- **`completed`**: Vehicle left correctly
+- **`canceled`**: Booking canceled (slot not used)
+- **`no_show`**: Customer didn't show up on expected date
 
 ### Booking source
 
@@ -146,35 +148,43 @@ recurring peaks.
 
 ## Endpoints
 
-| Method and route                               | Purpose                                                                                     |
-| ---------------------------------------------- | ------------------------------------------------------------------------------------------- |
-| **Spots & Vehicles (`/api/parking`)**          |                                                                                             |
-| `GET /spots`                                   | List of spots                                                                               |
-| `GET /spots/available`                         | Available spots right now                                                                   |
-| `GET /vehicles` / `POST /vehicles`             | Search / create vehicle                                                                     |
-| `GET /vehicles/search`                         | Autocomplete search                                                                         |
-| `PUT /vehicles/:id`                            | Edit vehicle                                                                                |
-| `DELETE /vehicles/:id`                         | Delete (admin-only via `isAdmin`)                                                           |
-| **Bookings (`/api/parking/bookings`)**         |                                                                                             |
-| `GET /`                                        | List (filters: status, date, spot_id, vehicle_id, plate_number, owner_name, booking_source) |
-| `POST /`                                       | Create booking                                                                              |
-| `GET /:code`                                   | Detail by booking_code                                                                      |
-| `PUT /:code`                                   | Edit booking                                                                                |
-| `DELETE /:code`                                | Delete booking (only for `reserved`, hard delete)                                           |
-| `PUT /:code/checkin`                           | Mark actual entry                                                                           |
-| `PUT /:code/checkout`                          | Mark exit + payment (stores payment fields, does not recompute total_amount)                |
-| `PUT /:code/cancel`                            | Cancel                                                                                      |
-| `PUT /:code/no-show`                           | No-show (manual only, no cron)                                                              |
-| `GET /overdue/list`                            | Bookings with `expected_checkout` past and still `checked_in`                               |
-| **Stats (`/api/parking/stats`)**               |                                                                                             |
-| `GET /`                                        | Dashboard stats (3 modes: today / day / range)                                              |
-| `GET /pending-checkins`                        | Bookings expected to arrive today (or `?date=...`)                                          |
-| `GET /pending-checkouts`                       | Bookings expected to leave today                                                            |
-| **Analytics (`/api/parking/stats/analytics`)** |                                                                                             |
-| `GET /trends`                                  | Occupancy trends across the last N days                                                     |
-| `GET /comparison`                              | Period comparison                                                                           |
-| `GET /performance`                             | Level performance metrics                                                                   |
-| `GET /booking-analysis`                        | Booking metrics (completed, canceled, no-shows)                                             |
+**Spots & Vehicles (`/api/parking`)**
+
+- `GET /spots` — List of spots
+- `GET /spots/available` — Available spots right now
+- `GET /vehicles` / `POST /vehicles` — Search / create vehicle
+- `GET /vehicles/search` — Autocomplete search
+- `PUT /vehicles/:id` — Edit vehicle
+- `DELETE /vehicles/:id` — Delete (admin-only via `isAdmin`)
+
+**Bookings (`/api/parking/bookings`)**
+
+- `GET /` — List (filters: status, date, spot_id, vehicle_id, plate_number,
+  owner_name, booking_source)
+- `POST /` — Create booking
+- `GET /:code` — Detail by booking_code
+- `PUT /:code` — Edit booking
+- `DELETE /:code` — Delete booking (only for `reserved`, hard delete)
+- `PUT /:code/checkin` — Mark actual entry
+- `PUT /:code/checkout` — Mark exit + payment (stores payment fields, does not
+  recompute total_amount)
+- `PUT /:code/cancel` — Cancel
+- `PUT /:code/no-show` — No-show (manual only, no cron)
+- `GET /overdue/list` — Bookings with `expected_checkout` past and still
+  `checked_in`
+
+**Stats (`/api/parking/stats`)**
+
+- `GET /` — Dashboard stats (3 modes: today / day / range)
+- `GET /pending-checkins` — Bookings expected to arrive today (or `?date=...`)
+- `GET /pending-checkouts` — Bookings expected to leave today
+
+**Analytics (`/api/parking/stats/analytics`)**
+
+- `GET /trends` — Occupancy trends across the last N days
+- `GET /comparison` — Period comparison
+- `GET /performance` — Level performance metrics
+- `GET /booking-analysis` — Booking metrics (completed, canceled, no-shows)
 
 The whole subroute sits behind `authenticateToken` + `excludeMantenimiento`.
 Mantenimiento doesn't enter. Some specific mutations require `isAdmin` (e.g.

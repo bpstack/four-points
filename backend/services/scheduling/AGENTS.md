@@ -293,18 +293,19 @@ setSchedulableEmployees".
 
 ## Main endpoints
 
-| Method and route                | Purpose                                                  |
-| ------------------------------- | -------------------------------------------------------- |
-| `GET /months/:id`               | Full month data (days, assignments, constraints, stats)  |
-| `GET /months/:id/info`          | Approved constraints + employee rules for the side panel |
-| `POST /months/:id/generate`     | Run CP-SAT solver, apply matrix to assignments           |
-| `POST /months/:id/reset`        | Wipe all assignments, re-seed from approved constraints  |
-| `POST /months/:id/unpublish`    | Back to draft (controlled transition)                    |
-| `PATCH /assignments/:id`        | Update single cell (409 if locked)                       |
-| `POST /assignments/bulk`        | Bulk update; respects locks                              |
-| `POST /constraints/:id/approve` | Approve/reject + auto-sync assignments                   |
-| `GET /employee-rules`           | Rules list in camelCase for the panel                    |
-| `PUT /scheduling/employees`     | Set schedulable employees list (⚠️ see bug above)        |
+- `GET /months/:id` — Full month data (days, assignments, constraints, stats)
+- `GET /months/:id/info` — Approved constraints + employee rules for the side
+  panel
+- `POST /months/:id/generate` — Run CP-SAT solver, apply matrix to assignments
+- `POST /months/:id/reset` — Wipe all assignments, re-seed from approved
+  constraints
+- `POST /months/:id/unpublish` — Back to draft (controlled transition)
+- `PATCH /assignments/:id` — Update single cell (409 if locked)
+- `POST /assignments/bulk` — Bulk update; respects locks
+- `POST /constraints/:id/approve` — Approve/reject + auto-sync assignments
+- `GET /employee-rules` — Rules list in camelCase for the panel
+- `PUT /scheduling/employees` — Set schedulable employees list (⚠️ see bug
+  above)
 
 Full routing in `routes/scheduling/scheduling-routes.ts` with
 `authenticateToken` + `isAdmin` / `excludeMantenimiento` per endpoint.

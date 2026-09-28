@@ -75,13 +75,13 @@ so that cross-month continuity is uniform.
 
 **Relevant shift sets in `model.py`:**
 
-| Constant            | Members            | Use                                                                                                               |
-| ------------------- | ------------------ | ----------------------------------------------------------------------------------------------------------------- |
-| `ASSIGNABLE_SHIFTS` | M, T, N, L         | What the solver can freely assign                                                                                 |
-| `WORK_SHIFTS`       | M, T, N            | For shiftPriority and standard work metrics                                                                       |
-| `ALL_WORK_SHIFTS`   | M, T, N, P, PI     | Work-block detection for S4 — includes P/PI to stay in parity with the TS validator's `isWorkShift`               |
-| `_SPECIAL_REST`     | V, B, E, IT, FO, A | Special rest types (vacation, sick leave, etc.) — never assigned freely by the solver; only enter via lockedCells |
-| `TAIL_LENGTH = 7`   | —                  | Days from the previous month projected as virtual                                                                 |
+- **`ASSIGNABLE_SHIFTS`** — M, T, N, L — What the solver can freely assign
+- **`WORK_SHIFTS`** — M, T, N — For shiftPriority and standard work metrics
+- **`ALL_WORK_SHIFTS`** — M, T, N, P, PI — Work-block detection for S4 —
+  includes P/PI to stay in parity with the TS validator's `isWorkShift`
+- **`_SPECIAL_REST`** — V, B, E, IT, FO, A — Special rest types (vacation, sick
+  leave, etc.) — never assigned freely by the solver; only enter via lockedCells
+- **`TAIL_LENGTH = 7`** — Days from the previous month projected as virtual
 
 The `all_shifts_needed` set materialized into variables is
 `ASSIGNABLE_SHIFTS ∪ (codes seen in lockedCells) ∪ (codes seen in previousMonthTail)`.
@@ -158,12 +158,18 @@ W_SHIFT_PRIORITY   = 1    # S3
 W_SHORT_WORK_BLOCK = 3    # S4 (per missing day; 1-day → ×2, 2-day → ×1)
 ```
 
-| ID     | What it penalizes                                                 | How it's measured                                                      | Breakdown in `softPenaltyBreakdown` |
-| ------ | ----------------------------------------------------------------- | ---------------------------------------------------------------------- | ----------------------------------- |
-| **S1** | Night imbalance across rotary employees                           | `range(total_N)` = max - min over `nightsHistory + nights this month`  | Yes: key `night_balance`            |
-| **S2** | "Isolated" L (no L adjacent on the previous or next day)          | Boolean indicator `iso[e,d]` per candidate L cell                      | No (contributes to total)           |
-| **S3** | Work day on a shift different from the employee's `shiftPriority` | Direct sum of `x[e, d, s]` with `s != priority`                        | No (contributes to total)           |
-| **S4** | Short work block (1-2 consecutive days when the minimum is 3)     | Indicators `short1` (×2) and `short2` (×1); includes virtual tail days | Yes: key `min_work_block_short`     |
+Each row: what it penalizes — how it's measured — breakdown in
+`softPenaltyBreakdown`.
+
+- **S1** — Night imbalance across rotary employees — `range(total_N)` = max -
+  min over `nightsHistory + nights this month` — Yes: key `night_balance`
+- **S2** — "Isolated" L (no L adjacent on the previous or next day) — Boolean
+  indicator `iso[e,d]` per candidate L cell — No (contributes to total)
+- **S3** — Work day on a shift different from the employee's `shiftPriority` —
+  Direct sum of `x[e, d, s]` with `s != priority` — No (contributes to total)
+- **S4** — Short work block (1-2 consecutive days when the minimum is 3) —
+  Indicators `short1` (×2) and `short2` (×1); includes virtual tail days — Yes:
+  key `min_work_block_short`
 
 S2/S3 contribute to the `softPenalty` total but are not broken down individually
 — a conscious decision because they aren't actionable on their own. If at some
@@ -214,12 +220,19 @@ practice we use the inline pins above for local dev.
 
 ## Tests
 
-| Suite                             | Command                                                                   | Approx time | Coverage                                                                                                                                                 |
-| --------------------------------- | ------------------------------------------------------------------------- | ----------: | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Python corpus                     | `venv/Scripts/python -m pytest tests/test_corpus.py`                      |        ~5 s | Repo fixtures (`backend/tests/scheduling-corpus/fixtures/`) — all must parse and SOLVABLE ones must return status='ok'                                   |
-| Daemon stress                     | `venv/Scripts/python -m pytest tests/test_daemon_stress.py`               |        ~5 s | Startup, invalid JSON, invalid schema, recovery after error                                                                                              |
-| Benchmark                         | `venv/Scripts/python -m pytest tests/test_benchmark.py --runbenchmark`    |    ~30-60 s | 30 employees × 31 days — perf check, opt-in                                                                                                              |
-| **Parity (lives on the TS side)** | from `backend/`: `pnpm vitest run tests/scheduling/solver-parity.test.ts` |        ~5 s | Solver output → TS validator → 0 hard errors. Detects drift between Python and TS logic. **The most worthwhile test to run when touching a constraint.** |
+- **Python corpus** — `venv/Scripts/python -m pytest tests/test_corpus.py` — ~5
+  s — Repo fixtures (`backend/tests/scheduling-corpus/fixtures/`) — all must
+  parse and SOLVABLE ones must return status='ok'
+- **Daemon stress** —
+  `venv/Scripts/python -m pytest tests/test_daemon_stress.py` — ~5 s — Startup,
+  invalid JSON, invalid schema, recovery after error
+- **Benchmark** —
+  `venv/Scripts/python -m pytest tests/test_benchmark.py --runbenchmark` —
+  ~30-60 s — 30 employees × 31 days — perf check, opt-in
+- **Parity (lives on the TS side)** — from `backend/`:
+  `pnpm vitest run tests/scheduling/solver-parity.test.ts` — ~5 s — Solver
+  output → TS validator → 0 hard errors. Detects drift between Python and TS
+  logic. **The most worthwhile test to run when touching a constraint.**
 
 `SOLVABLE_FIXTURES` in `tests/test_corpus.py` and `PARITY_FIXTURES` in the TS
 test are the two lists to keep in sync when you add a solver-reachable fixture.

@@ -17,14 +17,18 @@ stakeholders when key milestones are reached.
 
 ## DB tables
 
-| Table            | Purpose                                                                         |
-| ---------------- | ------------------------------------------------------------------------------- |
-| `hotel_groups`   | Master record: name, agency, dates, total amount, pax count, status, notes      |
-| `group_contacts` | Contacts for the group (name, role, phone, email). One can be primary.          |
-| `group_rooms`    | Room type allocations: single / double_bed / twin_beds + count + notes          |
-| `group_status`   | One row per group tracking 4 status fields: booking, contract, rooming, balance |
-| `group_payments` | Scheduled payments: amount, percentage, due date, status, method                |
-| `group_history`  | Audit log of all mutations with `table_affected`, `old_value`/`new_value` JSON  |
+- **`hotel_groups`**: master record: name, agency, dates, total amount, pax
+  count, status, notes
+- **`group_contacts`**: contacts for the group (name, role, phone, email). One
+  can be primary.
+- **`group_rooms`**: room type allocations: single / double_bed / twin_beds +
+  count + notes
+- **`group_status`**: one row per group tracking 4 status fields: booking,
+  contract, rooming, balance
+- **`group_payments`**: scheduled payments: amount, percentage, due date,
+  status, method
+- **`group_history`**: audit log of all mutations with `table_affected`,
+  `old_value`/`new_value` JSON
 
 **Known design debt:** `hotel_groups.status` (`GroupStatus` enum) and
 `group_status.booking_confirmed` both represent booking-level status — they are
@@ -101,51 +105,66 @@ the notification is saved but the email is skipped silently.
 
 ## Role boundaries
 
-| Operation                                               | Roles allowed                                                  |
-| ------------------------------------------------------- | -------------------------------------------------------------- |
-| Read groups, contacts, rooms, payments, status, history | all authenticated (`canViewGroups` — includes `mantenimiento`) |
-| Create/update groups, contacts, rooms, payments, status | `admin`, `group-admin`, `demo-admin` (`canManageGroups`)       |
-| Delete group                                            | `admin` only (`canManageGroups` + `isAdmin`)                   |
+- **Read groups, contacts, rooms, payments, status, history**: all authenticated
+  (`canViewGroups` — includes `mantenimiento`)
+- **Create/update groups, contacts, rooms, payments, status**: `admin`,
+  `group-admin`, `demo-admin` (`canManageGroups`)
+- **Delete group**: `admin` only (`canManageGroups` + `isAdmin`)
 
 `mantenimiento` can **view** groups (needed for notification access from the
 profile page) but cannot create or modify anything.
 
 ## Endpoints summary
 
-| Method | Route                                             | Auth                      | Purpose                                                        |
-| ------ | ------------------------------------------------- | ------------------------- | -------------------------------------------------------------- |
-| GET    | `/api/groups/dashboard/overview`                  | canViewGroups             | Dashboard stats                                                |
-| GET    | `/api/groups/dashboard/timeline`                  | canViewGroups             | Timeline view                                                  |
-| GET    | `/api/groups`                                     | canViewGroups             | List with filters (status, dates, agency, pagination)          |
-| GET    | `/api/groups/:id`                                 | canViewGroups             | Group detail (joins contacts + rooms + payments + status)      |
-| POST   | `/api/groups`                                     | canManageGroups           | Create group                                                   |
-| PUT    | `/api/groups/:id`                                 | canManageGroups           | Update group (triggers payment recalculation if total changes) |
-| DELETE | `/api/groups/:id`                                 | canManageGroups + isAdmin | Delete group (cascades to all sub-tables)                      |
-| GET    | `/api/groups/payments/upcoming`                   | canViewGroups             | Upcoming payments across all groups                            |
-| GET    | `/api/groups/payments/overdue`                    | canViewGroups             | Overdue payments                                               |
-| GET    | `/api/groups/:id/payments`                        | canViewGroups             | Payments for a group                                           |
-| POST   | `/api/groups/:id/payments`                        | canManageGroups           | Create payment                                                 |
-| PUT    | `/api/groups/:id/payments/:paymentId`             | canManageGroups           | Update payment                                                 |
-| PATCH  | `/api/groups/:id/payments/:paymentId/status`      | canManageGroups           | Update payment status                                          |
-| PATCH  | `/api/groups/:id/payments/:paymentId/amount-paid` | canManageGroups           | Record partial payment                                         |
-| DELETE | `/api/groups/:id/payments/:paymentId`             | canManageGroups           | Delete payment                                                 |
-| GET    | `/api/groups/:id/status`                          | canViewGroups             | All 4 status tracks                                            |
-| PUT    | `/api/groups/:id/status/booking`                  | canManageGroups           | Update booking status                                          |
-| PUT    | `/api/groups/:id/status/contract`                 | canManageGroups           | Update contract status                                         |
-| PUT    | `/api/groups/:id/status/rooming`                  | canManageGroups           | Update rooming status                                          |
-| PUT    | `/api/groups/:id/status/balance`                  | canManageGroups           | Update balance status                                          |
-| GET    | `/api/groups/:id/rooms`                           | canViewGroups             | Room allocations                                               |
-| POST   | `/api/groups/:id/rooms`                           | canManageGroups           | Create or upsert room                                          |
-| PUT    | `/api/groups/:id/rooms/:roomId`                   | canManageGroups           | Update room                                                    |
-| DELETE | `/api/groups/:id/rooms/:roomId`                   | canManageGroups           | Delete room                                                    |
-| GET    | `/api/groups/:id/contacts`                        | canViewGroups             | Contact list                                                   |
-| GET    | `/api/groups/:id/contacts/primary`                | canViewGroups             | Primary contact                                                |
-| POST   | `/api/groups/:id/contacts`                        | canManageGroups           | Create contact                                                 |
-| PUT    | `/api/groups/:id/contacts/:contactId`             | canManageGroups           | Update contact                                                 |
-| DELETE | `/api/groups/:id/contacts/:contactId`             | canManageGroups           | Delete contact                                                 |
-| GET    | `/api/groups/:id/history`                         | canViewGroups             | Audit history                                                  |
-| GET    | `/api/groups/:id/notifications`                   | canViewGroups             | Notifications for group                                        |
-| POST   | `/api/groups/:id/notifications`                   | canManageGroups           | Create manual notification                                     |
+- **GET** `/api/groups/dashboard/overview` — canViewGroups · Dashboard stats
+- **GET** `/api/groups/dashboard/timeline` — canViewGroups · Timeline view
+- **GET** `/api/groups` — canViewGroups · List with filters (status, dates,
+  agency, pagination)
+- **GET** `/api/groups/:id` — canViewGroups · Group detail (joins contacts +
+  rooms + payments + status)
+- **POST** `/api/groups` — canManageGroups · Create group
+- **PUT** `/api/groups/:id` — canManageGroups · Update group (triggers payment
+  recalculation if total changes)
+- **DELETE** `/api/groups/:id` — canManageGroups + isAdmin · Delete group
+  (cascades to all sub-tables)
+- **GET** `/api/groups/payments/upcoming` — canViewGroups · Upcoming payments
+  across all groups
+- **GET** `/api/groups/payments/overdue` — canViewGroups · Overdue payments
+- **GET** `/api/groups/:id/payments` — canViewGroups · Payments for a group
+- **POST** `/api/groups/:id/payments` — canManageGroups · Create payment
+- **PUT** `/api/groups/:id/payments/:paymentId` — canManageGroups · Update
+  payment
+- **PATCH** `/api/groups/:id/payments/:paymentId/status` — canManageGroups ·
+  Update payment status
+- **PATCH** `/api/groups/:id/payments/:paymentId/amount-paid` — canManageGroups
+  · Record partial payment
+- **DELETE** `/api/groups/:id/payments/:paymentId` — canManageGroups · Delete
+  payment
+- **GET** `/api/groups/:id/status` — canViewGroups · All 4 status tracks
+- **PUT** `/api/groups/:id/status/booking` — canManageGroups · Update booking
+  status
+- **PUT** `/api/groups/:id/status/contract` — canManageGroups · Update contract
+  status
+- **PUT** `/api/groups/:id/status/rooming` — canManageGroups · Update rooming
+  status
+- **PUT** `/api/groups/:id/status/balance` — canManageGroups · Update balance
+  status
+- **GET** `/api/groups/:id/rooms` — canViewGroups · Room allocations
+- **POST** `/api/groups/:id/rooms` — canManageGroups · Create or upsert room
+- **PUT** `/api/groups/:id/rooms/:roomId` — canManageGroups · Update room
+- **DELETE** `/api/groups/:id/rooms/:roomId` — canManageGroups · Delete room
+- **GET** `/api/groups/:id/contacts` — canViewGroups · Contact list
+- **GET** `/api/groups/:id/contacts/primary` — canViewGroups · Primary contact
+- **POST** `/api/groups/:id/contacts` — canManageGroups · Create contact
+- **PUT** `/api/groups/:id/contacts/:contactId` — canManageGroups · Update
+  contact
+- **DELETE** `/api/groups/:id/contacts/:contactId` — canManageGroups · Delete
+  contact
+- **GET** `/api/groups/:id/history` — canViewGroups · Audit history
+- **GET** `/api/groups/:id/notifications` — canViewGroups · Notifications for
+  group
+- **POST** `/api/groups/:id/notifications` — canManageGroups · Create manual
+  notification
 
 ## Known gotchas
 

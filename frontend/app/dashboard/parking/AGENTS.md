@@ -65,13 +65,15 @@ frontend/app/lib/parking/
 
 ## Routes (URL → component)
 
-| URL                                 | Component / source                                                |
-| ----------------------------------- | ----------------------------------------------------------------- |
-| `/dashboard/parking`                | `page.tsx` (Server, SSR stats) → `ParkingDashboardClient.tsx`     |
-| `/dashboard/parking/bookings`       | `bookings/page.tsx` (Server, SSR list) → `BookingsListClient.tsx` |
-| `/dashboard/parking/bookings/new`   | `bookings/new/page.tsx` (create form)                             |
-| `/dashboard/parking/bookings/:code` | `bookings/[code]/page.tsx` → `BookingDetailClient.tsx`            |
-| `/dashboard/parking/status`         | `status/page.tsx` → `ParkingStatusClient.tsx` (real-time view)    |
+- **`/dashboard/parking`**: `page.tsx` (Server, SSR stats) →
+  `ParkingDashboardClient.tsx`
+- **`/dashboard/parking/bookings`**: `bookings/page.tsx` (Server, SSR list) →
+  `BookingsListClient.tsx`
+- **`/dashboard/parking/bookings/new`**: `bookings/new/page.tsx` (create form)
+- **`/dashboard/parking/bookings/:code`**: `bookings/[code]/page.tsx` →
+  `BookingDetailClient.tsx`
+- **`/dashboard/parking/status`**: `status/page.tsx` → `ParkingStatusClient.tsx`
+  (real-time view)
 
 **Note:** `/dashboard/parking` (root) is the **KPI/stats dashboard**. `/status`
 is the **real-time occupancy view** (spot map per level). They're distinct,

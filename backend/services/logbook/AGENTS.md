@@ -16,12 +16,12 @@ mutation is audited in `logbook_history`. Deletes are soft (recoverable from
 
 ## DB tables
 
-| Table              | Purpose                                                                                                                    |
-| ------------------ | -------------------------------------------------------------------------------------------------------------------------- |
-| `logbooks`         | Main entries. `deleted_at` for soft delete. `is_solved`, `solved_at`, `solved_by` for solve/reopen.                        |
-| `logbook_comments` | Per-entry comments. Also `deleted_at` for soft delete.                                                                     |
-| `logbook_reads`    | (user_id, logbook_id, read_at) — who read what and when.                                                                   |
-| `logbook_history`  | Audit log of changes on both logbooks and comments. Uses a `type` column (`'logbook'` or `'comment'`) to distinguish them. |
+- **`logbooks`**: main entries. `deleted_at` for soft delete. `is_solved`,
+  `solved_at`, `solved_by` for solve/reopen.
+- **`logbook_comments`**: per-entry comments. Also `deleted_at` for soft delete.
+- **`logbook_reads`**: (user_id, logbook_id, read_at) — who read what and when.
+- **`logbook_history`**: audit log of changes on both logbooks and comments.
+  Uses a `type` column (`'logbook'` or `'comment'`) to distinguish them.
 
 **Note:** `logbook_solved`, `logbook_pending` and `logbook_comments_history` do
 not exist. Solving/reopening updates `logbooks.is_solved`, `solved_at`,
@@ -102,25 +102,24 @@ it, who reopened it.
 
 Route prefix: `/api/logbooks` (mounted in `backend/index.ts`).
 
-| Method and route                                              | Purpose                                        |
-| ------------------------------------------------------------- | ---------------------------------------------- |
-| `POST /api/logbooks/`                                         | Create logbook                                 |
-| `PUT /api/logbooks/:id`                                       | Update (author only)                           |
-| `DELETE /api/logbooks/:id`                                    | Soft delete (author only)                      |
-| `GET /api/logbooks/all`                                       | All logbooks (filters via query)               |
-| `GET /api/logbooks/department/:departmentId`                  | Filter by department                           |
-| `GET /api/logbooks/author/:authorId`                          | Filter by author                               |
-| `GET /api/logbooks/priority/:importance`                      | Filter by importance                           |
-| `GET /api/logbooks/day/:day`                                  | Filter by day (YYYY-MM-DD)                     |
-| `GET /api/logbooks/trashed`                                   | List of deleted entries (soft delete recovery) |
-| `GET /api/logbooks/:logbookId/history`                        | Audit of the entry                             |
-| `POST/GET/PUT/DELETE /api/logbooks/:logbookId/comments[/:id]` | Comment CRUD                                   |
-| `GET /api/logbooks/:logbookId/comments/:commentId/history`    | Audit of a comment                             |
-| `POST/DELETE /api/logbooks/:logbookId/read`                   | Mark/unmark as read                            |
-| `PUT /api/logbooks/:logbookId/solve`                          | Mark as solved                                 |
-| `PUT /api/logbooks/:logbookId/pending`                        | Reopen                                         |
-| `GET /api/logbooks/:logbookId/readers`                        | List of who has read it                        |
-| `GET /api/logbooks/:logbookId/solved`                         | Who solved it (if it's solved)                 |
+- `POST /api/logbooks/` — Create logbook
+- `PUT /api/logbooks/:id` — Update (author only)
+- `DELETE /api/logbooks/:id` — Soft delete (author only)
+- `GET /api/logbooks/all` — All logbooks (filters via query)
+- `GET /api/logbooks/department/:departmentId` — Filter by department
+- `GET /api/logbooks/author/:authorId` — Filter by author
+- `GET /api/logbooks/priority/:importance` — Filter by importance
+- `GET /api/logbooks/day/:day` — Filter by day (YYYY-MM-DD)
+- `GET /api/logbooks/trashed` — List of deleted entries (soft delete recovery)
+- `GET /api/logbooks/:logbookId/history` — Audit of the entry
+- `POST/GET/PUT/DELETE /api/logbooks/:logbookId/comments[/:id]` — Comment CRUD
+- `GET /api/logbooks/:logbookId/comments/:commentId/history` — Audit of a
+  comment
+- `POST/DELETE /api/logbooks/:logbookId/read` — Mark/unmark as read
+- `PUT /api/logbooks/:logbookId/solve` — Mark as solved
+- `PUT /api/logbooks/:logbookId/pending` — Reopen
+- `GET /api/logbooks/:logbookId/readers` — List of who has read it
+- `GET /api/logbooks/:logbookId/solved` — Who solved it (if it's solved)
 
 The whole subroute sits behind `authenticateToken` + `excludeMantenimiento`.
 Mantenimiento doesn't enter.

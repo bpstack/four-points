@@ -23,11 +23,12 @@ holds the currently viewed group and UI navigation state.
 
 Key slices:
 
-| Field           | Type                       | Purpose                                                                           |
-| --------------- | -------------------------- | --------------------------------------------------------------------------------- |
-| `currentGroup`  | `GroupWithDetails \| null` | The group being viewed in the detail page                                         |
-| `activeTab`     | `string`                   | Active tab in GroupDetailClient (overview/payments/contacts/rooms/status/history) |
-| `activePanelId` | `string \| null`           | Which side panel is open (payment/contact/room/editGroup)                         |
+- **`currentGroup`** (`GroupWithDetails | null`): The group being viewed in the
+  detail page
+- **`activeTab`** (`string`): Active tab in GroupDetailClient
+  (overview/payments/contacts/rooms/status/history)
+- **`activePanelId`** (`string | null`): Which side panel is open
+  (payment/contact/room/editGroup)
 
 **Note:** The `GroupDetailClient.tsx` uses URL query params
 (`?tab=...&panel=...`) as the navigation source of truth — the store's
@@ -77,21 +78,20 @@ All data fetching and mutations go through named hooks exported from
 
 Key hooks:
 
-| Hook                       | Purpose                                                                     |
-| -------------------------- | --------------------------------------------------------------------------- |
-| `useGroups(filters)`       | Paginated group list                                                        |
-| `useGroup(id)`             | Single group with full detail (joined contacts + rooms + payments + status) |
-| `useGroupPayments(id)`     | Payment list for a group                                                    |
-| `useGroupContacts(id)`     | Contact list                                                                |
-| `useGroupRooms(id)`        | Room allocations                                                            |
-| `useGroupStatus(id)`       | 4 status tracks                                                             |
-| `useGroupHistory(id)`      | Audit history                                                               |
-| `useCreateGroup()`         | Mutation — create group                                                     |
-| `useUpdateGroup()`         | Mutation — update group master data                                         |
-| `useCreatePayment()`       | Mutation — add payment to group                                             |
-| `useUpdatePayment()`       | Mutation — update payment fields                                            |
-| `useUpdatePaymentStatus()` | Mutation — change payment status                                            |
-| `useUpdateBookingStatus()` | Mutation — update booking track                                             |
+- **`useGroups(filters)`**: Paginated group list
+- **`useGroup(id)`**: Single group with full detail (joined contacts + rooms +
+  payments + status)
+- **`useGroupPayments(id)`**: Payment list for a group
+- **`useGroupContacts(id)`**: Contact list
+- **`useGroupRooms(id)`**: Room allocations
+- **`useGroupStatus(id)`**: 4 status tracks
+- **`useGroupHistory(id)`**: Audit history
+- **`useCreateGroup()`**: Mutation — create group
+- **`useUpdateGroup()`**: Mutation — update group master data
+- **`useCreatePayment()`**: Mutation — add payment to group
+- **`useUpdatePayment()`**: Mutation — update payment fields
+- **`useUpdatePaymentStatus()`**: Mutation — change payment status
+- **`useUpdateBookingStatus()`**: Mutation — update booking track
 
 Cache keys follow the pattern `['groups', id]`, `['groups', id, 'payments']`,
 etc.

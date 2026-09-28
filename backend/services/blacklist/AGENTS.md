@@ -93,17 +93,17 @@ backoffice module. Do not move or rename it without updating both importers.
 
 ## Endpoints
 
-| Method | Route                             | Auth                      | Purpose                      |
-| ------ | --------------------------------- | ------------------------- | ---------------------------- |
-| GET    | `/api/blacklist`                  | all (excl. mantenimiento) | Paginated list with filters  |
-| GET    | `/api/blacklist/stats`            | all                       | Entry counts + stats         |
-| GET    | `/api/blacklist/:id`              | all                       | Full entry with audit trail  |
-| POST   | `/api/blacklist`                  | all                       | Create entry                 |
-| PATCH  | `/api/blacklist/:id`              | all                       | Update entry                 |
-| DELETE | `/api/blacklist/:id`              | all                       | Soft delete                  |
-| PATCH  | `/api/blacklist/:id/restore`      | all                       | Restore soft-deleted entry   |
-| POST   | `/api/blacklist/upload`           | all                       | Upload image to Cloudinary   |
-| DELETE | `/api/blacklist/upload/:publicId` | all                       | Delete image from Cloudinary |
+- **GET** `/api/blacklist` — all (excl. mantenimiento) · Paginated list with
+  filters
+- **GET** `/api/blacklist/stats` — all · Entry counts + stats
+- **GET** `/api/blacklist/:id` — all · Full entry with audit trail
+- **POST** `/api/blacklist` — all · Create entry
+- **PATCH** `/api/blacklist/:id` — all · Update entry
+- **DELETE** `/api/blacklist/:id` — all · Soft delete
+- **PATCH** `/api/blacklist/:id/restore` — all · Restore soft-deleted entry
+- **POST** `/api/blacklist/upload` — all · Upload image to Cloudinary
+- **DELETE** `/api/blacklist/upload/:publicId` — all · Delete image from
+  Cloudinary
 
 All routes sit behind `authenticateToken` + `excludeMantenimiento`. No
 admin-only mutations — any authenticated non-maintenance user can create, edit,

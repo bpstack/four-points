@@ -146,10 +146,10 @@ indexed UPDATE — so it runs before every `getRunState`.
 
 ### Cron jobs (`backend/services/cron/cron-service.ts`)
 
-| Cron         | Schedule (Madrid) | Function                                                                     |
-| ------------ | ----------------- | ---------------------------------------------------------------------------- |
-| `30 6 * * *` | Daily 06:30       | `checklistDailyReset()` → closes the previous day's runs.                    |
-| `0 4 * * 1`  | Monday 04:00      | `purgeOldEventLogs(7)` → drops `checklist_event_log` rows older than 7 days. |
+- **`30 6 * * *`** — Daily 06:30 — `checklistDailyReset()` → closes the previous
+  day's runs.
+- **`0 4 * * 1`** — Monday 04:00 — `purgeOldEventLogs(7)` → drops
+  `checklist_event_log` rows older than 7 days.
 
 **Event log retention: 7 days.** Operational data, not long-term audit. If at
 some point you need a longer history (compliance, KPIs), promote to a separate
@@ -172,14 +172,15 @@ that renders from the same JSON, so the happy path doesn't need the belt.
 
 ## Endpoints
 
-| Method and route                                                 | Purpose                                                      |
-| ---------------------------------------------------------------- | ------------------------------------------------------------ |
-| `GET /api/checklists/:id/run`                                    | Current run state for today (auto-create + auto-close stale) |
-| `GET /api/checklists/:id/history?limit=N`                        | Last N closed runs                                           |
-| `PATCH /api/checklists/:id/steps/:stepId`                        | Toggle done/undone                                           |
-| `POST /api/checklists/:id/reset`                                 | Manual reset (requires `canResetChecklist`)                  |
-| `GET/POST/DELETE /:id/steps/:stepId/comments[/:commentId]`       | Comment CRUD                                                 |
-| `GET/POST/DELETE /:id/steps/:stepId/attachments[/:attachmentId]` | Attachment CRUD (multer + Cloudinary)                        |
+- **`GET /api/checklists/:id/run`**: Current run state for today (auto-create
+  - auto-close stale)
+- **`GET /api/checklists/:id/history?limit=N`**: Last N closed runs
+- **`PATCH /api/checklists/:id/steps/:stepId`**: Toggle done/undone
+- **`POST /api/checklists/:id/reset`**: Manual reset (requires
+  `canResetChecklist`)
+- **`GET/POST/DELETE /:id/steps/:stepId/comments[/:commentId]`**: Comment CRUD
+- **`GET/POST/DELETE /:id/steps/:stepId/attachments[/:attachmentId]`**:
+  Attachment CRUD (multer + Cloudinary)
 
 The whole subroute sits behind `authenticateToken` + `excludeMantenimiento`.
 Mantenimiento doesn't enter. Reset additionally requires `canResetChecklist`

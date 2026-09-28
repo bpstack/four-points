@@ -26,14 +26,14 @@ store is the single source of navigation truth for the cashier views.
 
 Key slices:
 
-| Selector             | Type                  | Purpose                                                   |
-| -------------------- | --------------------- | --------------------------------------------------------- |
-| `useSelectedDate()`  | `string` (YYYY-MM-DD) | Active date in the hotel view                             |
-| `useActiveTab()`     | `ShiftType`           | Which shift tab is open (night/morning/afternoon/closing) |
-| `useActiveModal()`   | `ModalType \| null`   | Which modal is open (initializeDay, closeDay, reopenDay)  |
-| `useLogsDate()`      | range                 | Active date range in the logs view                        |
-| `useReportsTab()`    | `string`              | Active tab in the reports view                            |
-| `useChartViewMode()` | `string`              | Payment chart display mode                                |
+- **`useSelectedDate()`** (`string` (YYYY-MM-DD)): Active date in the hotel view
+- **`useActiveTab()`** (`ShiftType`): Which shift tab is open
+  (night/morning/afternoon/closing)
+- **`useActiveModal()`** (`ModalType | null`): Which modal is open
+  (initializeDay, closeDay, reopenDay)
+- **`useLogsDate()`** (range): Active date range in the logs view
+- **`useReportsTab()`** (`string`): Active tab in the reports view
+- **`useChartViewMode()`** (`string`): Payment chart display mode
 
 Exported selectors are fine-grained (`useSelectedDate`, `useActiveTab`, etc.) to
 avoid unnecessary re-renders — always use the selector, not
@@ -79,21 +79,21 @@ dashboard/cashier/reports/page.tsx
 All data fetching and mutations go through named hooks in
 `frontend/app/lib/cashier/queries.ts`. Key ones:
 
-| Hook                               | Purpose                                                      |
-| ---------------------------------- | ------------------------------------------------------------ |
-| `useDailyDetails(date)`            | Full day with 4 shifts — main data source for hotel/page.tsx |
-| `useShiftDetails(id)`              | Single shift with denominations + payments + vouchers        |
-| `useUpdateShift()`                 | Mutation for updating shift fields                           |
-| `useCloseShift()`                  | Mutation for closing a shift                                 |
-| `useReopenShift()`                 | Mutation for reopening (admin)                               |
-| `useInitializeDay()`               | Mutation that creates the 4 shifts                           |
-| `useCloseDay()` / `useReopenDay()` | Day-level close/reopen                                       |
-| `useReplaceDenominations()`        | Bulk replace denomination list (PUT)                         |
-| `useReplacePayments()`             | Bulk replace payment list (PUT)                              |
-| `useCreateVoucher()`               | Create voucher on a shift                                    |
-| `useJustifyVoucher()`              | Mark voucher as justified                                    |
-| `useDashboardOverview()`           | Reports dashboard data                                       |
-| `useMonthlyReport(year, month)`    | Monthly aggregate                                            |
+- **`useDailyDetails(date)`**: Full day with 4 shifts — main data source for
+  hotel/page.tsx
+- **`useShiftDetails(id)`**: Single shift with denominations + payments +
+  vouchers
+- **`useUpdateShift()`**: Mutation for updating shift fields
+- **`useCloseShift()`**: Mutation for closing a shift
+- **`useReopenShift()`**: Mutation for reopening (admin)
+- **`useInitializeDay()`**: Mutation that creates the 4 shifts
+- **`useCloseDay()` / `useReopenDay()`**: Day-level close/reopen
+- **`useReplaceDenominations()`**: Bulk replace denomination list (PUT)
+- **`useReplacePayments()`**: Bulk replace payment list (PUT)
+- **`useCreateVoucher()`**: Create voucher on a shift
+- **`useJustifyVoucher()`**: Mark voucher as justified
+- **`useDashboardOverview()`**: Reports dashboard data
+- **`useMonthlyReport(year, month)`**: Monthly aggregate
 
 Cache keys follow the pattern in `cashierKeys`: `['cashier', 'daily', date]`,
 `['cashier', 'shift', id]`, etc. Mutations invalidate the relevant keys after
