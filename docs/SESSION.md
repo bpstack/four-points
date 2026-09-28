@@ -24,8 +24,8 @@ archivada en `docs/_archive/` (ADR-010); lo hecho se registra en
 ## ⚠️ Empieza por aquí
 
 1. **Todos los módulos están documentados y revisados con `security` L3**
-   (ADR-018), salvo `fnb`, que queda aplazado (ver `TODO.md`). Siguiente paso de
-   la fase 1: el `README.md` de la raíz (ADR-008), una vez exista lo que enlaza.
+   (ADR-018), salvo `fnb`, que queda aplazado (ver `TODO.md`). El `README.md` de
+   la raíz (ADR-008) ya está escrito. Solo queda `fnb` para cerrar la fase 1.
 2. **Idiomas:** se trabaja en español; la documentación pública de `docs/` va en
    inglés y no cita ADR ni `TODO.md`. `DECISIONS.md`, `ROADMAP.md`, `SESSION.md`
    y `TODO.md` siguen en español y no se publicarán.
