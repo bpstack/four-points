@@ -583,8 +583,31 @@ hace que alguien reimplemente lo que ya existe.
       `is_deleted`, y el filtro es `status=ALL`, no `includeDeleted`.
       _Comprobado por mí el 2026-09-28._
 
+- [ ] **Conciliation: sin validación Zod, a diferencia del resto del proyecto**
+      — no existe `backend/validations/conciliation/`. Se acepta `value`
+      negativo o fuera de rango, y `date` sin comprobar el formato, antes de
+      llegar al repositorio. _Comprobado por mí el 2026-09-28._
+- [ ] **Conciliation: un `reason` que no sea uno de los válidos falla en
+      silencio** — el `UPDATE ... WHERE reason = ?` no encuentra fila y no
+      avisa; el usuario cree que guardó el ajuste y se pierde. _Según la
+      revisión `security` L3 del 2026-09-28 (fichero y línea en el informe); no
+      repasado por mí._
+- [ ] **Conciliation: el cierre mensual tiene una carrera** — la validación
+      (lectura) y el cambio de estado (escritura) no comparten transacción ni
+      bloqueo; dos administradores cerrando días distintos del mismo mes a la
+      vez pueden dejarlo inconsistente. _Según la revisión `security` L3 del
+      2026-09-28 (fichero y línea en el informe); no repasado por mí._
+
 ## 🟢 Baja
 
+- [ ] **Conciliation: `GET /api/conciliations` sin paginar ni filtrar** —
+      devuelve todo el histórico a cualquier rol con acceso. _Según la revisión
+      `security` L3 del 2026-09-28 (fichero y línea en el informe); no repasado
+      por mí._
+- [ ] **Conciliation: comentario de código muerto en el controlador mensual**
+      que sugiere una comprobación de admin que ya hace la ruta; quitarlo para
+      no confundir en un futuro refactor. _Según la revisión `security` L3 del
+      2026-09-28 (fichero y línea en el informe); no repasado por mí._
 - [ ] **Blacklist: filtro `created_by` sin restricción** — permite listar o
       filtrar por cualquier usuario creador, exponiendo patrones de uso por
       operador. _Según la revisión `security` L3 del 2026-09-28 (fichero y línea
