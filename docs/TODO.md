@@ -21,6 +21,24 @@ hace que alguien reimplemente lo que ya existe.
 > Las entradas de **seguridad** describen debilidades explotables: **resolverlas
 > o quitarlas de este fichero antes de publicar el repositorio**.
 
+- [ ] **Backoffice: el pago en lote paga todos los meses con un objeto** —
+      `executeBatchPayment` pasa `year` y `month` del cuerpo sin validar. Si se
+      envía un objeto en vez de un número, mysql2 lo convierte en una
+      comparación de columna y la condición de fecha deja de filtrar
+      (reproducido con `mysql2.format`): se pagan las facturas validadas de
+      cualquier mes. `revertBatchPayment` lee el cuerpo igual (no seguido hasta
+      el repositorio). _Comprobado por mí el 2026-09-28._
+- [ ] **Contraseñas de la BD escritas en 17 ficheros versionados** — casi
+      todos en `backend/db-mysql/scripts/` (los 10 de `basics/`,
+      `add-libre-number.ts`, `backfill-libre-numbers.ts`,
+      `set-holidays-2026.ts`, `backup-aiven.sh`, `backup-local.sh`,
+      `check-collation.sh`, `recreate-local.sh`), 14 de ellos con el host de
+      Aiven; más `backend/tests/auth/user-repository-login.test.ts` (usuario y
+      contraseña de una cuenta de prueba) y dos scripts SQL con contraseñas en
+      claro en comentarios (`20260520_insert_user_example.sql`,
+      `20260512_add_scheduling_solver_runs_and_requests.sql`). Están en el
+      historial desde `f5d47d6` y en el remoto privado. Sacarlos del historial
+      en la fase 2 y rotar (ver la entrada de rotación). _Comprobado por mí el 2026-09-28._
 - [ ] **Cualquier usuario puede hacerse `admin`** — `PUT /api/users/:id`
       pasa `isOwnerOrAdmin` para el propio usuario y `updateUser`
       (`backend/controllers/auth/user-controllers.ts`) guarda el `role` del
@@ -258,8 +276,57 @@ hace que alguien reimplemente lo que ya existe.
 - [ ] **Mensajería: el creador de un DM puede borrarlo entero**, mensajes del
       otro incluidos, sin registro. _Según la revisión `security` L3 del 2026-09-28 (fichero y línea en el informe); no repasado por mí._
 
+- [ ] **Los documentos de `backend/db-mysql/` están desactualizados** — citan
+      `aiven/aiven-conexion.md` (no existe), «~50 tablas» (Aiven tiene 66 y 3
+      vistas), volcados con nombres que no son los actuales y la política «local
+      primero» (ADR-015). `MASTER_INSTALL.sql` solo llega al 2026-05-20. Se
+      corrigen poco a poco, con `docs/general/database/` como resumen
+      (ADR-016). _Comprobado por mí el 2026-09-28._
+
+- [ ] **El pago automático del día 10 no ha funcionado nunca** — el cron
+      escribe `updated_by = 'system-cron'`, que es clave foránea a `users`, y ese
+      usuario no existe en Aiven (0 facturas pagadas por el cron). Además el
+      pago en lote no va en una transacción. _Comprobado por mí el 2026-09-28._
+- [ ] **Cualquier rol lanza a mano la generación de notificaciones** — la ruta
+      usa `canViewGroups` (incluye `mantenimiento`); sin clave única, varias
+      peticiones a la vez crean avisos duplicados. _Según la revisión `security` L3 del 2026-09-28 (fichero y línea en el informe); no repasado por mí._
+- [ ] **`direct_link` de las notificaciones admite cualquier URL** — un `admin`
+      puede enviar un aviso que, al pulsarlo, lleva a una web externa. _Según la revisión `security` L3 del 2026-09-28 (fichero y línea en el informe); no repasado por mí._
+- [ ] **Cabeceras del frontend en producción incompletas para L3** — Vercel
+      sirve HSTS, `X-Frame-Options`, `nosniff`, `Referrer-Policy` y
+      `Permissions-Policy`, pero no CSP ni `Cross-Origin-Opener-Policy`; HSTS
+      sin `preload`, Google Analytics sin SRI y anuncia `X-Powered-By:
+Next.js`. _Comprobado con `curl -I` el 2026-09-28._
+- [ ] **La API está detrás de Cloudflare y el backend confía en un solo
+      proxy** — las respuestas llevan `Server: cloudflare` delante de Render, y
+      `backend/index.ts` pone `trust proxy 1`. Lo probable es que `req.ip` sea
+      la IP de Cloudflare: los límites por IP (login incluido) mezclarían a
+      usuarios distintos. _Cabeceras comprobadas con `curl` el 2026-09-28; el
+      valor real de `req.ip` no._
+- [ ] **Datos de personas reales en el repo** — `20260520_insert_user_example.sql`
+      crea a una empleada real con su periodo de trabajo (confirmado por el
+      propietario el 2026-09-28): cambiar el nombre antes de publicar, en el
+      script, en la BD y en el historial (fase 2). Revisar si hay más nombres
+      reales de personal en scripts, tests o datos de ejemplo.
+
 ## 🟢 Baja
 
+- [ ] **El API no envía `Cache-Control: no-store`** — afecta a lista negra, caja y PDFs de facturas. _Comprobado con `curl` el 2026-09-28._
+- [ ] **`apiClient` escribe cada URL en la consola en producción** — la búsqueda
+      de lista negra manda el documento (DNI) en la URL, que acaba en consola y
+      en logs de acceso. _Según la revisión `security` L3 del 2026-09-28 (fichero y línea en el informe); no repasado por mí._
+- [ ] **`apiClient` intenta borrar desde JS cookies HttpOnly** — no hace nada:
+      si el refresco falla, redirige a `/login` con la sesión viva. _Según la revisión `security` L3 del 2026-09-28 (fichero y línea en el informe); no repasado por mí._
+- [ ] **El controlador de notificaciones devuelve `error.message` de MySQL** al
+      cliente. _Según la revisión `security` L3 del 2026-09-28 (fichero y línea en el informe); no repasado por mí._
+- [ ] **Un preflight CORS rechazado responde 500** y deja un error en el log por intento. _Comprobado con `curl` el 2026-09-28._
+- [ ] **Ids sin codificar en las URL de `blacklistApi.ts`** (informativo). _Según la revisión `security` L3 del 2026-09-28 (fichero y línea en el informe); no repasado por mí._
+- [ ] **Procedimientos de BD sin uso** — de las 2 funciones y 5 procedimientos
+      de parking, el código solo llama a `check_availability`; el resto
+      (incluido `generate_availability`, que amplía el calendario) no los usa
+      nadie. _Comprobado por mí el 2026-09-28._
+- [ ] **Certificado de Aiven duplicado** — en `backend/db-mysql/aiven/` y en
+      `backend/config/certs/`. _Comprobado por mí el 2026-09-28._
 - [ ] **JWT sin algoritmo fijado** — `jwt.verify` sin `algorithms`,
       `issuer` ni `audience`; hoy no explotable con jsonwebtoken 9. _Según la revisión `security` L3 del 2026-09-28 (fichero y línea en el informe); no repasado por mí._
 - [ ] **Configuración débil sin control al arrancar** — no se comprueba la

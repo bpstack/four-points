@@ -34,8 +34,6 @@ empieza con un `README.md`). La documentación antigua está en `docs/_archive/`
 problema resuelve, quién lo usa, qué puede hacer, qué datos maneja, qué reglas
 cumple y cómo viaja la información.
 
-- [ ] **`docs/general/database/`** — _resumen de la BD contrastado con Aiven;
-      `backend/db-mysql/` sigue como fuente (ADR-016)_.
 - [ ] **Una carpeta por módulo** — _`maintenance`,
       `groups`, `scheduling`, `checklist`, `cashier`, `fnb`, `backoffice`,
       `blacklist`, `conciliation`_.
