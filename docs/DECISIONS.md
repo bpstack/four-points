@@ -5,7 +5,8 @@
 
 > **Se añade, nunca se reescribe.** Una decisión que cambia **no se edita**: se
 > escribe otra nueva que la revisa, y la antigua se marca con un enlace a ella.
-> Saber que algo se decidió, y por qué cambió, vale más que la versión final sola.
+> Saber que algo se decidió, y por qué cambió, vale más que la versión final
+> sola.
 >
 > El **porqué** vive aquí; el estado actual vive en `SESSION.md`.
 
@@ -76,8 +77,8 @@
 - **Estado:** 🔶 propuesta (2026-09-28)
 - **Fecha:** 2026-09-28
 - **Decisión:** la limpieza se hace sobre un clon con `git-filter-repo`, que
-  conserva todos los commits, mensajes, autores y fechas, y solo quita las
-  rutas privadas (los hashes cambian). Ese historial reescrito se sube a un
+  conserva todos los commits, mensajes, autores y fechas, y solo quita las rutas
+  privadas (los hashes cambian). Ese historial reescrito se sube a un
   repositorio nuevo y público. El repositorio actual sigue privado.
 - **Motivo:** hacer público el repositorio actual exigiría `push --force` sobre
   `main`, y GitHub puede seguir sirviendo commits antiguos por su hash o desde
@@ -102,13 +103,13 @@
 - **Fecha:** 2026-09-28
 - **Decisión:**
   - En la raíz queda un `README.md` breve que enlaza a `docs/`.
-  - `README.md`, `ROADMAP.md`, `TODO.md`, `DECISIONS.md` y `SESSION.md` viven
-    en `docs/`, partiendo de las plantillas de
+  - `README.md`, `ROADMAP.md`, `TODO.md`, `DECISIONS.md` y `SESSION.md` viven en
+    `docs/`, partiendo de las plantillas de
     `c:\Users\dz\projects\harness\templates\`, y se escriben en español.
   - Lo que se va terminando sale de `docs/` y se registra en
     `docs/_archive/roadmap-history.md`.
-- **Motivo:** mantener `docs/` limpio. GitHub muestra el `README.md` de la
-  raíz, así que tiene que existir, pero corto.
+- **Motivo:** mantener `docs/` limpio. GitHub muestra el `README.md` de la raíz,
+  así que tiene que existir, pero corto.
 
 ## ADR-009 — Todo lo archivado vive en `docs/_archive/` y Git lo ignora entero
 
@@ -116,14 +117,14 @@
 - **Fecha:** 2026-09-28
 - **Decisión:** la documentación antigua y `roadmap-history.md` van a
   `docs/_archive/`, y la carpeta entera está en `.gitignore`. Revisa la
-  ubicación de ADR-002 (decía `_archive/`) y el carácter de
-  `roadmap-history.md` en ADR-008, que ahora también es local.
+  ubicación de ADR-002 (decía `_archive/`) y el carácter de `roadmap-history.md`
+  en ADR-008, que ahora también es local.
 - **Motivo:** una sola carpeta de archivo, fuera de lo que se publica. El
   histórico de lo terminado sirve al trabajo diario, no al lector del
   repositorio público.
 - **Rechazado:** `_archive/` en la raíz para lo antiguo y `docs/_archive/`
-  versionado para `roadmap-history.md`. Eran dos carpetas de archivo con
-  reglas distintas.
+  versionado para `roadmap-history.md`. Eran dos carpetas de archivo con reglas
+  distintas.
 
 ## ADR-010 — Cómo se archivó la documentación antigua, y qué se quedó fuera
 
@@ -134,8 +135,8 @@
     original** dentro del archivo (`docs/backend/auth/x.md` →
     `docs/_archive/docs/backend/auth/x.md`), para saber siempre de dónde vino
     cada uno. Son los 5 `.md` de proyecto de la raíz (`Global-Plan`, `README`,
-    `ROADMAP`, `SCHEDULING-SOLVER-PLAN`, `TODO`), los 44 de la antigua `docs/`
-    y los 3 de `frontend/docs/`.
+    `ROADMAP`, `SCHEDULING-SOLVER-PLAN`, `TODO`), los 44 de la antigua `docs/` y
+    los 3 de `frontend/docs/`.
   - **Se quedan donde estaban `SCHEDULING-CONSTRAINTS.md` y
     `SCHEDULING-DECISIONS-LOG.md`**, hasta escribir la doc nueva de
     `scheduling`.
@@ -171,19 +172,19 @@
   - Cada módulo es una carpeta `docs/<modulo>/` que **empieza con un único
     `README.md`**, que responde a las seis preguntas de `OPEN-SOURCE.md`.
   - **Solo se separa otro fichero** cuando hay un subsistema con entidad propia
-    (el solver de `scheduling`, la exportación PDF de `cashier`…), no por
-    llegar a un número de páginas.
+    (el solver de `scheduling`, la exportación PDF de `cashier`…), no por llegar
+    a un número de páginas.
   - **Carpetas** (nombres en inglés): `general`, `logbook`, `parking`,
     `maintenance`, `groups`, `scheduling`, `checklist`, `cashier`, `fnb`,
     `backoffice`, `blacklist`, `conciliation`.
   - **`auth`, `notifications` y `profile` se documentan dentro de `general/`**:
     son transversales (`profile` es la pantalla de ajustes del usuario).
 - **Motivo:** medición del 2026-09-28 (ficheros `.ts`/`.tsx`/`.py`/`.sql` cuyo
-  nombre contiene el del módulo). `scheduling` suma ~88 ficheros y ~23 k
-  líneas, con un solver en Python aparte; `backoffice`, `parking`, `cashier` y
-  `groups` pasan de ~10 k líneas cada uno. Casi la mitad de los módulos
-  necesitarán más de un fichero; si todos son carpeta desde el principio,
-  crecer no obliga a mover nada ni rompe enlaces.
+  nombre contiene el del módulo). `scheduling` suma ~88 ficheros y ~23 k líneas,
+  con un solver en Python aparte; `backoffice`, `parking`, `cashier` y `groups`
+  pasan de ~10 k líneas cada uno. Casi la mitad de los módulos necesitarán más
+  de un fichero; si todos son carpeta desde el principio, crecer no obliga a
+  mover nada ni rompe enlaces.
 - **Rechazado:** un fichero por módulo (`docs/parking.md`). Obligaría a
   convertirlo en carpeta y cambiar sus enlaces en cuanto creciera.
 
@@ -206,10 +207,10 @@
 - **Decisión:** la mensajería interna tiene su propia carpeta, pero **dentro de
   `general/`** (`docs/general/messages/README.md`), no al nivel de los módulos
   funcionales. `general/README.md` solo la resume y enlaza. Completa ADR-011.
-- **Motivo:** es una función común a todos los roles —incluido
-  `mantenimiento`— y vive dentro del perfil, no en una sección propia del menú;
-  pero su tamaño (~4 k líneas entre backend y frontend, medido el 2026-09-28)
-  no cabe en un párrafo de `general/`.
+- **Motivo:** es una función común a todos los roles —incluido `mantenimiento`—
+  y vive dentro del perfil, no en una sección propia del menú; pero su tamaño
+  (~4 k líneas entre backend y frontend, medido el 2026-09-28) no cabe en un
+  párrafo de `general/`.
 - **Rechazado:** una carpeta de módulo `docs/messages/` (la pondría al nivel de
   parking o caja, que son áreas del hotel) y dejarla solo como párrafo en
   `general/README.md` (se quedaría corta).
@@ -218,14 +219,14 @@
 
 - **Estado:** ✅ aceptada (2026-09-28)
 - **Fecha:** 2026-09-28
-- **Decisión:** mientras dure la preparación para publicar, el agente puede
-  leer los `.env`, conectarse a las bases de datos (local y Aiven) y abrir los
+- **Decisión:** mientras dure la preparación para publicar, el agente puede leer
+  los `.env`, conectarse a las bases de datos (local y Aiven) y abrir los
   volcados de `backend/db-mysql/backup/`. Suspende, **solo para este trabajo**,
   la norma general del propietario de no leer `.env`, credenciales ni volcados
   sin permiso explícito.
 - **Condiciones:**
-  - Las consultas a la BD son **de solo lectura** (`SELECT`, `SHOW`,
-    `DESCRIBE`) salvo orden expresa para otra cosa.
+  - Las consultas a la BD son **de solo lectura** (`SELECT`, `SHOW`, `DESCRIBE`)
+    salvo orden expresa para otra cosa.
   - Los valores secretos **no se imprimen** en la salida ni se copian a ningún
     documento: se cargan en el proceso que los usa y se nombran solo por su
     clave.
@@ -234,8 +235,8 @@
   responde; el primer caso fue confirmar si existen tablas que solo cita el
   `CLAUDE.md` de logbook. El propietario asume el riesgo porque las claves se
   rotarán después.
-- **Rechazado:** que el propietario ejecute cada consulta a mano. Es más lento
-  y el acceso se va a revocar igualmente con la rotación.
+- **Rechazado:** que el propietario ejecute cada consulta a mano. Es más lento y
+  el acceso se va a revocar igualmente con la rotación.
 
 ## ADR-015 — Una sola base de datos: Aiven, con datos de prueba
 
@@ -253,18 +254,18 @@
 - **Rechazado:** una BD de desarrollo reproducible desde los scripts del repo.
   Protege datos que aquí no hay que proteger.
 - **Pendiente:** el código sigue soportando la BD local (`DB_ENVIRONMENT`,
-  `pnpm dev:local`, variables `LOCAL_DB_*`); quitarlo es una tarea de
-  `TODO.md`. Si algún día Aiven guarda datos reales, esta decisión se revisa.
+  `pnpm dev:local`, variables `LOCAL_DB_*`); quitarlo es una tarea de `TODO.md`.
+  Si algún día Aiven guarda datos reales, esta decisión se revisa.
 
 ## ADR-016 — La BD se documenta en `general/database/`; `backend/db-mysql/` sigue como fuente
 
 - **Estado:** ✅ aceptada (2026-09-28)
 - **Fecha:** 2026-09-28
 - **Decisión:** se crea `docs/general/database/README.md`, que resume la BD
-  contrastándola con Aiven. `backend/db-mysql/` (scripts y sus cinco `.md`)
-  **se queda tal como está** y sigue siendo la fuente de verdad del esquema y
-  de las migraciones; la doc nueva la resume y enlaza, y evoluciona poco a poco
-  con ella. Completa ADR-011 y ADR-013.
+  contrastándola con Aiven. `backend/db-mysql/` (scripts y sus cinco `.md`) **se
+  queda tal como está** y sigue siendo la fuente de verdad del esquema y de las
+  migraciones; la doc nueva la resume y enlaza, y evoluciona poco a poco con
+  ella. Completa ADR-011 y ADR-013.
 - **Motivo:** los cinco documentos de `backend/db-mysql/` (744 líneas) se
   solapan, pero son los que acompañan a los scripts y a la política de
   migraciones; moverlos rompería esa relación.
@@ -280,16 +281,16 @@
   revisar cualquier parte del código.
 - **Motivo:** decisión del propietario, porque es el objetivo principal del
   proyecto. Las señales del harness (login, datos personales, backend propio)
-  darían L2 por sí solas; L3 solo lo puede declarar el propietario, y lo
-  declara aquí.
+  darían L2 por sí solas; L3 solo lo puede declarar el propietario, y lo declara
+  aquí.
 - **Consecuencias:**
   - Las revisiones de seguridad citan requisitos versionados de ASVS L3,
     copiados de `~/.claude/reference/security/`, y señalan también riesgos
     mitigados cuando un solo fallo lo comprometería todo.
   - El nivel se declara también en el `AGENTS.md` raíz, sección `## Security`,
     que es donde lo lee el agente.
-  - Implantar el harness en este repo (capa 1 de `AGENTS.md`) queda para
-    después y requiere adaptarlo: ver `TODO.md`.
+  - Implantar el harness en este repo (capa 1 de `AGENTS.md`) queda para después
+    y requiere adaptarlo: ver `TODO.md`.
 - **Rechazado:** implantar el harness antes de seguir. `init-project` detecta el
   gestor de paquetes por el `package.json` o el lockfile de la raíz, que aquí no
   existen, y su migración de `CLAUDE.md` solo contempla un par por directorio,
@@ -303,9 +304,9 @@
 - **Decisión:** al terminar la documentación de un módulo, el agente `security`
   del harness lo revisa en modo solo lectura con nivel L3 (ADR-017). Se le pasan
   los hallazgos ya conocidos para que distinga los nuevos. El agente principal
-  comprueba en el código los hallazgos graves antes de pasarlos a `TODO.md`;
-  los demás se anotan como «según la revisión», sin darlos por comprobados.
-  Estamos documentando: **no se arregla nada** en esta fase.
+  comprueba en el código los hallazgos graves antes de pasarlos a `TODO.md`; los
+  demás se anotan como «según la revisión», sin darlos por comprobados. Estamos
+  documentando: **no se arregla nada** en esta fase.
 - **Motivo:** la primera ronda (general, mensajería, logbook y parking, el
   2026-09-28) encontró fallos que la lectura para documentar no había visto,
   entre ellos que cualquier usuario podía hacerse `admin`. También corrigió un

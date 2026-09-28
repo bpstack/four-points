@@ -1,79 +1,80 @@
-# Mensajería interna
+# Internal messaging
 
-Chat entre usuarios de la aplicación. Vive en el perfil
-(`/dashboard/profile?panel=messages`). Resumen general en
+Chat between application users. It lives in the profile
+(`/dashboard/profile?panel=messages`). General summary in
 [`../README.md`](../README.md).
 
-## Qué problema resuelve
+## What problem it solves
 
-Da a los compañeros de distintos turnos y departamentos un canal propio dentro
-de la aplicación, con los mismos usuarios y permisos, para avisos que no
-encajan en un módulo concreto. Un mensaje puede marcarse como urgente para que
-llegue también como notificación.
+It gives colleagues from different shifts and departments their own channel
+inside the application, with the same users and permissions, for notices that do
+not fit in a specific module. A message can be marked as urgent so that it also
+arrives as a notification.
 
-## Quién lo usa
+## Who uses it
 
-**Todos los roles**, incluido `mantenimiento`: las rutas solo exigen sesión
-iniciada. Dentro de cada conversación hay dos niveles:
+**All roles**, including `mantenimiento`: the routes only require a session.
+Within each conversation there are two levels:
 
-- **Participante**: lee, escribe, edita y borra **sus** mensajes, y puede salir.
-- **Administrador del grupo**: quien lo crea. Puede renombrarlo, añadir y
-  quitar participantes, y borrarlo entero.
+- **Participant**: reads, writes, edits and deletes **their** messages, and can
+  leave.
+- **Group administrator**: whoever creates it. They can rename it, add and
+  remove participants, and delete the entire thing.
 
-Un usuario con rol `admin` en la aplicación puede además **leer cualquier
-conversación**, aunque no participe, borrar cualquier mensaje y cualquier
-conversación, y listar todas.
+A user with the `admin` role in the application can also **read any
+conversation**, even if they do not participate, delete any message and any
+conversation, and list them all.
 
-## Qué puede hacer
+## What it can do
 
-- **Conversaciones directas** entre dos personas. Si ya existe una con esa
-  persona, se reabre en vez de crear otra.
-- **Grupos** con nombre (máx. 100 caracteres) y hasta **10 participantes**
-  contando al creador.
-- **Enviar** mensajes de hasta 5000 caracteres, **editarlos** (quedan marcados
-  como editados) y **borrarlos**.
-- **Mensaje urgente**: al activarlo, cada participante recibe una notificación
-  de prioridad alta con enlace directo a la conversación.
-- **No leídos** por conversación, en la lista lateral.
-- **Salir** de un grupo. Si sale el administrador, el rol pasa al participante
-  más antiguo; si no queda nadie, la conversación se borra.
+- **Direct conversations** between two people. If one already exists with that
+  person, it is reopened instead of creating another.
+- **Groups** with a name (max. 100 characters) and up to **10 participants**
+  including the creator.
+- **Send** messages of up to 5000 characters, **edit them** (they are marked as
+  edited) and **delete them**.
+- **Urgent message**: when activated, each participant receives a high priority
+  notification with a direct link to the conversation.
+- **Unread** per conversation, in the side list.
+- **Leave** a group. If the administrator leaves, the role passes to the oldest
+  participant; if nobody is left, the conversation is deleted.
 
-**El backend ofrece, pero la interfaz no usa todavía**: renombrar un grupo,
-añadir o quitar participantes después de crearlo, buscar en el texto de los
-mensajes, el contador global de no leídos y la vista de todas las
-conversaciones para `admin`.
+**The backend offers, but the interface does not use yet**: renaming a group,
+adding or removing participants after creation, searching in message text, the
+global unread counter and the view of all conversations for `admin`.
 
-## Qué datos maneja
+## What data it handles
 
-Tres tablas (`backend/db-mysql/aiven/14_messages.sql`):
+Three tables (`backend/db-mysql/aiven/14_messages.sql`):
 
-- **`conversations`**: tipo (`dm` o `group`), nombre del grupo y creador.
-- **`conversation_participants`**: quién está en cada conversación, si es
-  administrador, si sigue activo y cuándo leyó por última vez.
-- **`messages`**: texto, autor, marca de urgente, edición y borrado.
+- **`conversations`**: type (`dm` or `group`), group name and creator.
+- **`conversation_participants`**: who is in each conversation, whether they are
+  an administrator, whether they are still active and when they last read.
+- **`messages`**: text, author, urgent flag, edit and delete.
 
-- **Nada se borra de verdad al usar la aplicación**: un mensaje borrado solo se
-  marca (`deleted_at`) y quien sale de un grupo queda como inactivo. Si vuelve a
-  ser añadido, se reactiva.
-- **Retención de 90 días**: un evento de MySQL (`cleanup_old_messages`) borra
-  cada día los mensajes de más de 90 días y las conversaciones que se quedan sin
-  mensajes. Necesita el programador de eventos de MySQL (`event_scheduler`)
-  activo, como lo está en local y en Aiven.
-- **No leído** = mensaje de otra persona posterior al último momento en que
-  abriste esa conversación (`last_read_at`).
+- **Nothing is truly deleted when using the application**: a deleted message is
+  only marked (`deleted_at`) and whoever leaves a group stays as inactive. If
+  they are added again, they are reactivated.
+- **90-day retention**: a MySQL event (`cleanup_old_messages`) deletes every day
+  the messages older than 90 days and the conversations that are left without
+  messages. It needs the MySQL event scheduler (`event_scheduler`) active, as it
+  is on local and Aiven.
+- **Unread** = a message from another person after the last moment you opened
+  that conversation (`last_read_at`).
 
-## Qué reglas cumple
+## What rules it follows
 
-- Solo un participante activo puede leer y escribir en una conversación; la
-  excepción es el `admin` de la aplicación, que puede leer.
-- Solo el autor edita sus mensajes. Borrarlos pueden el autor y un `admin`.
-- Una conversación directa tiene exactamente dos personas y no admite más.
-- Nombre, participantes y contenido se validan en el controlador; los mensajes
-  se guardan sin espacios al principio ni al final.
-- Se cargan los 50 mensajes más recientes (máximo 100 por petición) y se puede
-  paginar hacia atrás desde el más antiguo cargado.
+- Only an active participant can read and write in a conversation; the exception
+  is the application's `admin`, who can read.
+- Only the author edits their messages. Deleting can be done by the author and
+  an `admin`.
+- A direct conversation has exactly two people and does not accept more.
+- Name, participants and content are validated in the controller; messages are
+  saved without spaces at the beginning or end.
+- The 50 most recent messages are loaded (maximum 100 per request) and
+  pagination is possible backwards from the oldest loaded.
 
-## Cómo viaja la información
+## How information flows
 
 ```
 MessagesPanel.tsx ─► useConversations / useChat / useUserSearch
@@ -84,18 +85,18 @@ MessagesPanel.tsx ─► useConversations / useChat / useUserSearch
                      conversation-controller / message-controller
                                                   │
                      conversation-repository / message-repository ─► MySQL
-                                                  │ (si es urgente)
-                                    NotificationRepository ─► campana de notificaciones
+                                                  │ (if urgent)
+                                    NotificationRepository ─► notification bell
 ```
 
-1. Al abrir el panel se piden las conversaciones del usuario, con el último
-   mensaje y los no leídos de cada una.
-2. Al elegir una conversación se cargan sus últimos mensajes y se marca como
-   leída. El parámetro `?chat=<id>` de la URL abre una conversación
-   directamente: es el enlace que llevan las notificaciones.
-3. Al enviar, el mensaje se guarda y, si es urgente, se crea una notificación
-   para el resto de participantes.
-4. **No hay tiempo real**: ni WebSocket ni sondeo periódico. Los mensajes nuevos
-   aparecen al volver a abrir la conversación o recargar. La única vía casi
-   inmediata es el mensaje urgente, porque la campana de notificaciones se
-   refresca cada minuto.
+1. When opening the panel, the user's conversations are requested, with the last
+   message and the unread count of each.
+2. When choosing a conversation, its latest messages are loaded and it is marked
+   as read. The `?chat=<id>` URL parameter opens a conversation directly: it is
+   the link that notifications carry.
+3. When sending, the message is saved and, if it is urgent, a notification is
+   created for the rest of the participants.
+4. **There is no real time**: neither WebSocket nor periodic polling. New
+   messages appear when reopening the conversation or reloading. The only nearly
+   immediate way is the urgent message, because the notification bell refreshes
+   every minute.

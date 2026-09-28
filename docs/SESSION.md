@@ -14,8 +14,8 @@ propio fichero) o ruido (se borra).
 ## Estado
 
 Preparación del repositorio para publicarlo como open source. Plan en
-`OPEN-SOURCE.md` (raíz); orden de fases en `ROADMAP.md`;
-decisiones en `DECISIONS.md` (ADR-001 a ADR-019).
+`OPEN-SOURCE.md` (raíz); orden de fases en `ROADMAP.md`; decisiones en
+`DECISIONS.md` (ADR-001 a ADR-019).
 
 Fase actual: **1 — Documentación nueva**. La documentación antigua ya está
 archivada en `docs/_archive/` (ADR-010); lo hecho se registra en
@@ -38,8 +38,8 @@ lo grave → `TODO.md`. Primera ronda hecha el 2026-09-28 sobre general,
 mensajería, logbook y parking.
 
 Los hallazgos de la lectura del código (seguridad, docs desalineadas, código
-muerto, decisiones previas a publicar) están en `TODO.md`. Los de prioridad
-alta **hay que resolverlos o sacarlos de ahí antes de publicar**.
+muerto, decisiones previas a publicar) están en `TODO.md`. Los de prioridad alta
+**hay que resolverlos o sacarlos de ahí antes de publicar**.
 
 ## Esperando decisión
 
@@ -72,9 +72,9 @@ alta **hay que resolverlos o sacarlos de ahí antes de publicar**.
   están pendientes de fusionarse en `AGENTS.md` (ver `TODO.md`).
 - **Nada de `docs/_archive/` se publica**, tampoco `roadmap-history.md`
   (ADR-009). Si algo de ahí debe ser público, se copia fuera.
-- **El antiguo `TODO.md` de la raíz (ahora en `docs/_archive/TODO.md`) tiene
-  una entrada local del PC `dz`** (_Mantenimiento local_: borrar los `.bak` de
-  la limpieza de permisos): no debe pasar al `docs/TODO.md` público.
+- **El antiguo `TODO.md` de la raíz (ahora en `docs/_archive/TODO.md`) tiene una
+  entrada local del PC `dz`** (_Mantenimiento local_: borrar los `.bak` de la
+  limpieza de permisos): no debe pasar al `docs/TODO.md` público.
 - **Enlaces rotos conocidos** tras archivar: `backend/README.md` (enlaces a
   `docs/backend/…`) y comentarios que citan `Global-Plan.md` o
   `SCHEDULING-SOLVER-PLAN.md`. Se arreglan al escribir cada módulo (ADR-010).

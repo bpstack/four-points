@@ -1,97 +1,97 @@
-# Base de datos
+# Database
 
-Resumen de la base de datos, contrastado con Aiven el 2026-09-28. La fuente de
-verdad del esquema y de las migraciones es
-[`backend/db-mysql/`](../../../backend/db-mysql/) (ADR-016); este documento la
-resume y enlaza. Visión general del proyecto en [`../README.md`](../README.md).
+Summary of the database, cross-referenced with Aiven on 2026-09-28. The source
+of truth for the schema and migrations is
+[`backend/db-mysql/`](../../../backend/db-mysql/) (ADR-016); this document
+summarises and links to it. Project overview in [`../README.md`](../README.md).
 
-## Qué problema resuelve
+## What problem it solves
 
-Guarda todo lo que la aplicación maneja —usuarios, avisos, reservas, caja,
-grupos, horarios…— en un solo sitio, y fija cómo se cambia su estructura sin
-romper los datos que ya hay.
+It stores everything the application handles —users, notices, bookings, cashier,
+groups, scheduling…— in a single place, and sets how its structure is changed
+without breaking existing data.
 
-## Quién la usa
+## Who uses it
 
-- **El backend**, a través de un _pool_ de conexiones (`backend/config/db.ts`).
-  Es el único que se conecta: el frontend nunca habla con la BD.
-- **Quien cambia el esquema**, con los scripts de `backend/db-mysql/scripts/`.
+- **The backend**, through a connection pool (`backend/config/db.ts`). It is the
+  only one that connects: the frontend never talks to the database.
+- **Whoever changes the schema**, with the scripts in
+  `backend/db-mysql/scripts/`.
 
-## Qué contiene
+## What it contains
 
-**Una sola base, `hotel_db`, en MySQL 8 sobre Aiven**, con datos de prueba
-(ADR-015). No hay base local de desarrollo. Hoy tiene **66 tablas y 3 vistas**.
+**A single database, `hotel_db`, on MySQL 8 on Aiven**, with test data
+(ADR-015). There is no local development database. Today it has **66 tables and
+3 views**.
 
-Tablas por módulo:
+Tables by module:
 
-- **Núcleo**: `users`, `roles`, `departments`.
-- **Logbook** (4), **parking** (5), **grupos** (5 + `hotel_groups`), **caja**
-  (8 + `payment_methods`), **conciliación** (4), **lista negra** (1),
-  **mantenimiento** (3), **mensajería** (3), **notificaciones** (2),
-  **backoffice** (5 tablas + 3 vistas `v_bo_*`), **horarios** (12),
-  **checklist** (6), **F&B** (2).
-- **Modo demo**: `demo_activity_log`.
+- **Core**: `users`, `roles`, `departments`.
+- **Logbook** (4), **parking** (5), **groups** (5 + `hotel_groups`), **cashier**
+  (8 + `payment_methods`), **conciliation** (4), **blacklist** (1),
+  **maintenance** (3), **messaging** (3), **notifications** (2), **backoffice**
+  (5 tables + 3 views `v_bo_*`), **scheduling** (12), **checklist** (6), **F&B**
+  (2).
+- **Demo mode**: `demo_activity_log`.
 
-**Roles** (tabla `roles`): 1 `recepcionista`, 2 `admin`, 3 `mantenimiento`, 6
-`group-admin`, 7 `demo-admin` (el usuario demo está desactivado).
+**Roles** (table `roles`): 1 `recepcionista`, 2 `admin`, 3 `mantenimiento`, 6
+`group-admin`, 7 `demo-admin` (the demo user is deactivated).
 
-**Lógica que vive en la propia BD** (no en el código):
+**Logic that lives in the database itself** (not in the code):
 
-- **Triggers**: 5 en `parking_bookings` (generan el código de reserva y
-  mantienen el calendario de disponibilidad; ver
-  [`docs/parking/`](../../parking/README.md)) y 1 en `cashier_shifts`.
-- **Funciones y procedimientos** de parking: 2 funciones y 5 procedimientos. El
-  código solo usa `check_availability`; el resto, incluido el que genera el
-  calendario (`generate_availability`), nadie lo llama.
-- **Evento** `cleanup_old_messages`: cada día borra los mensajes de más de 90
-  días (ver [`messages/`](../messages/README.md)).
+- **Triggers**: 5 on `parking_bookings` (they generate the booking code and
+  maintain the availability calendar; see
+  [`docs/parking/`](../../parking/README.md)) and 1 on `cashier_shifts`.
+- **Parking functions and procedures**: 2 functions and 5 procedures. The code
+  only uses `check_availability`; the rest, including the one that generates the
+  calendar (`generate_availability`), is not called by anyone.
+- **Event** `cleanup_old_messages`: every day it deletes messages older than 90
+  days (see [`messages/`](../messages/README.md)).
 
-## Qué reglas cumple
+## What rules it follows
 
-- **Todo cambio de esquema es un script nuevo** en
-  `backend/db-mysql/scripts/AAAAMMDD_descripcion.sql`, **idempotente** (se
-  puede ejecutar dos veces sin romper nada) y registrado en
-  `backend/db-mysql/INDEX.md`. Un script ya commiteado no se edita: si falló,
-  se escribe otro que lo corrija.
-- **`aiven/` es el esquema base congelado** a fecha 2026-05-20. El nombre
-  engaña: no es «la BD de Aiven», sino la instalación inicial que ejecuta
-  `MASTER_INSTALL.sql`. Nunca se ejecuta contra una base con datos.
-- **Juego de caracteres**: `utf8mb4` con `utf8mb4_0900_ai_ci`, que no distingue
-  mayúsculas ni tildes al comparar textos.
-- **Hora**: el servidor de Aiven está en **UTC**. Lo que la BD calcula con
-  `NOW()` o `CURDATE()` va 1–2 horas por detrás de Madrid; el backend calcula
-  «hoy» en hora de Madrid por su cuenta.
-- **Conexión cifrada**: TLS con el certificado de Aiven en
+- **Every schema change is a new script** in
+  `backend/db-mysql/scripts/AAAAMMDD_descripcion.sql`, **idempotent** (it can be
+  run twice without breaking anything) and recorded in
+  `backend/db-mysql/INDEX.md`. A committed script is not edited: if it failed,
+  another one is written that fixes it.
+- **`aiven/` is the frozen base schema** as of 2026-05-20. The name is
+  misleading: it is not "the Aiven database", but the initial installation that
+  runs `MASTER_INSTALL.sql`. It is never run against a database with data.
+- **Character set**: `utf8mb4` with `utf8mb4_0900_ai_ci`, which does not
+  distinguish case or accents when comparing texts.
+- **Time**: the Aiven server is in **UTC**. What the database calculates with
+  `NOW()` or `CURDATE()` runs 1–2 hours behind Madrid; the backend calculates
+  "today" in Madrid time on its own.
+- **Encrypted connection**: TLS with the Aiven certificate in
   `backend/config/certs/`.
 
-**Estado de las migraciones**: las 15 que registra `INDEX.md` están aplicadas en
-Aiven (comprobado el 2026-09-28).
+**Migration status**: the 15 recorded in `INDEX.md` are applied on Aiven
+(verified on 2026-09-28).
 
-## Cómo viaja la información
+## How information flows
 
 ```
-backend (repositorios) ─► pool mysql2 ─► TLS ─► MySQL en Aiven (hotel_db)
+backend (repositories) ─► mysql2 pool ─► TLS ─► MySQL on Aiven (hotel_db)
                                                    │
-                                   triggers · procedimientos · evento diario
+                                   triggers · procedures · daily event
 ```
 
-1. El backend lee `DB_ENVIRONMENT=aiven` y las variables `AIVEN_*`, abre un
-   _pool_ con TLS y, al arrancar, prueba la conexión hasta 3 veces (Aiven puede
-   tardar en despertar).
-2. Los repositorios lanzan consultas parametrizadas (`?`); algunas escrituras
-   usan transacciones.
-3. Parte del trabajo lo hace la BD sola: los triggers de parking al insertar o
-   cambiar una reserva y el evento de limpieza de mensajes.
+1. The backend reads `DB_ENVIRONMENT=aiven` and the `AIVEN_*` variables, opens a
+   pool with TLS and, on startup, tests the connection up to 3 times (Aiven may
+   take time to wake up).
+2. Repositories run parameterised queries (`?`); some writes use transactions.
+3. Part of the work is done by the database alone: the parking triggers when
+   inserting or changing a booking and the message cleanup event.
 
-## Qué hay en `backend/db-mysql/`
+## What is in `backend/db-mysql/`
 
-- **`aiven/`**: los 20 scripts del esquema base (`01`–`20`, más `99` de
-  verificación) y una copia del certificado de Aiven.
-- **`scripts/`**: las 15 migraciones incrementales y utilidades: copias de
-  seguridad, recreación de la base local, comprobación de _collation_,
-  arreglos de datos de un solo uso y scripts de consulta rápida en
-  `scripts/basics/`.
-- **`backup/`**: volcados de la base.
-- **Cinco documentos** que se solapan: `CLAUDE.md`, `README.md`, `INDEX.md`,
-  `MIGRATIONS_POLICY.md` y `MIGRATION_GUIDE.md`. Varios datos que dan están
-  desactualizados (ver `TODO.md`).
+- **`aiven/`**: the 20 scripts of the base schema (`01`–`20`, plus `99` for
+  verification) and a copy of the Aiven certificate.
+- **`scripts/`**: the 15 incremental migrations and utilities: backups, local
+  database recreation, collation check, one-off data fixes and quick query
+  scripts in `scripts/basics/`.
+- **`backup/`**: database dumps.
+- **Five documents** that overlap: `CLAUDE.md`, `README.md`, `INDEX.md`,
+  `MIGRATIONS_POLICY.md` and `MIGRATION_GUIDE.md`. Several data they give are
+  outdated (see `TODO.md`).

@@ -1,172 +1,170 @@
 # General — Four-Points
 
-Lo que afecta al proyecto en su conjunto: qué es, quién lo usa, cómo está
-construido y cómo viaja la información. Cada módulo funcional tiene su propia
-carpeta en `docs/`.
+What affects the project as a whole: what it is, who uses it, how it is built
+and how information flows. Each functional module has its own folder in `docs/`.
 
-## Qué problema resuelve
+## What problem it solves
 
-La operativa interna de un hotel —lo que no gestiona el PMS comercial— suele
-repartirse entre hojas de cálculo, papel y mensajes sueltos. Four-Points la
-reúne en una sola aplicación web: libro de consigna, parking, mantenimiento,
-grupos, caja, lista negra, horarios del personal, checklists de turno, ingresos
-de F&B y backoffice de facturas. Complementa al PMS del hotel (Opera, del que
-importa informes en PDF), no lo sustituye. Cada persona tiene su usuario y
-permisos según su rol.
+A hotel's internal operations —what the commercial PMS does not manage— are
+usually split between spreadsheets, paper and loose messages. Four-Points brings
+them together in a single web application: logbook, parking, maintenance,
+groups, cashier, blacklist, staff scheduling, shift checklists, F&B revenue and
+invoice backoffice. It complements the hotel's PMS (Opera, from which it imports
+PDF reports), it does not replace it. Each person has their own user and
+permissions according to their role.
 
-## Quién lo usa
+## Who uses it
 
-El personal del hotel, cada uno con **un rol**:
+Hotel staff, each with **a role**:
 
-- **`admin`**: todo. Es el único que crea usuarios, gestiona departamentos, ve
-  informes y escribe en backoffice.
-- **`recepcionista`**: módulos operativos (consigna, parking, caja, lista negra,
-  conciliación, checklist, F&B, mantenimiento). Los grupos solo los consulta.
-- **`group-admin`**: lo mismo que recepción y, además, gestiona grupos y recibe
-  sus avisos.
-- **`mantenimiento`**: solo el módulo de mantenimiento, más las funciones comunes
-  (perfil, mensajes, notificaciones, búsqueda).
-- **`demo-admin`**: ve todo como `admin`, pero solo puede escribir en una lista
-  blanca (cerrar sesión, crear una reserva de parking, comentar en consigna, abrir
-  un parte de mantenimiento). Cada intento bloqueado queda registrado.
+- **`admin`**: everything. They are the only one who creates users, manages
+  departments, sees reports and writes in backoffice.
+- **`recepcionista`**: operational modules (logbook, parking, cashier,
+  blacklist, conciliation, checklist, F&B, maintenance). They only query groups.
+- **`group-admin`**: the same as reception and, additionally, manages groups and
+  receives their notices.
+- **`mantenimiento`**: only the maintenance module, plus the common functions
+  (profile, messages, notifications, search).
+- **`demo-admin`**: sees everything as `admin`, but can only write in a
+  whitelist (log out, create a parking booking, comment in the logbook, open a
+  maintenance report). Each blocked attempt is recorded.
 
-El menú lateral solo oculta a quien no es administrador los enlaces de backoffice
-y horarios. **Quien decide de verdad es el backend**: cada ruta comprueba el rol
-y responde `403` si no corresponde.
+The side menu only hides backoffice and scheduling links from non-admins. **The
+backend is what actually decides**: each route checks the role and returns `403`
+if it does not match.
 
-## Qué puede hacer
+## What it can do
 
-**Módulos funcionales** — cada uno documentado en su carpeta: `logbook`,
-`parking`, `maintenance`, `groups`, `scheduling`, `checklist`, `cashier`, `fnb`,
+**Functional modules** — each documented in its folder: `logbook`, `parking`,
+`maintenance`, `groups`, `scheduling`, `checklist`, `cashier`, `fnb`,
 `backoffice`, `blacklist`, `conciliation`.
 
-**Funciones comunes a toda la aplicación** (se documentan aquí):
+**Functions common to the whole application** (documented here):
 
-- **Acceso**: inicio de sesión con usuario y contraseña. No hay registro
-  público: los usuarios los crea un `admin`.
-- **Perfil** (`/dashboard/profile`): datos propios, avatar, cambio de usuario y
-  de contraseña (ambos piden la contraseña actual). En _Ajustes_, los
-  administradores gestionan usuarios, departamentos e informes.
-- **Mensajería interna**: conversaciones directas y grupos entre usuarios, con
-  mensajes urgentes que llegan como notificación. Vive dentro del perfil.
-  Detalle en [`messages/`](messages/README.md).
-- **Notificaciones**: campana en la cabecera, que se refresca cada minuto. Las
-  genera el sistema (avisos de grupos: pagos, rooming list, llegadas), un
-  `admin` a mano o un mensaje nuevo.
-- **Búsqueda global** y **actividad reciente** en el panel de inicio.
-- **Idioma** español o inglés y **tema** claro u oscuro.
+- **Access**: login with username and password. There is no public registration:
+  users are created by an `admin`.
+- **Profile** (`/dashboard/profile`): own data, avatar, username and password
+  change (both ask for the current password). In _Settings_, administrators
+  manage users, departments and reports.
+- **Internal messaging**: direct conversations and groups between users, with
+  urgent messages that arrive as a notification. It lives inside the profile.
+  Detail in [`messages/`](messages/README.md).
+- **Notifications**: bell in the header, which refreshes every minute. They are
+  generated by the system (group notices: payments, rooming list, arrivals), an
+  `admin` manually or a new message.
+- **Global search** and **recent activity** on the home panel.
+- **Language** Spanish or English and **theme** light or dark.
 
-## Qué datos maneja
+## What data it handles
 
-- **MySQL 8** en Aiven, una sola base (`hotel_db`) con datos de prueba, que
-  usan tanto el despliegue como el desarrollo (ADR-015). Resumen en
-  [`database/`](database/README.md); esquema, scripts y política de
-  migraciones en [`backend/db-mysql/`](../../backend/db-mysql/).
-- **Usuarios y roles**: tablas `users` y `roles`. Las contraseñas se guardan con
-  bcrypt. Borrar un usuario no lo elimina: se desactiva y se renombra.
-- **Ficheros** (avatares, fotos de mantenimiento y de lista negra, PDF de
-  facturas): en **Cloudinary**, no en el servidor.
-- **Hora**: todo lo que depende del día se calcula en `Europe/Madrid`.
+- **MySQL 8** on Aiven, a single database (`hotel_db`) with test data, used by
+  both the deployment and development (ADR-015). Summary in
+  [`database/`](database/README.md); schema, scripts and migration policy in
+  [`backend/db-mysql/`](../../backend/db-mysql/).
+- **Users and roles**: tables `users` and `roles`. Passwords are stored with
+  bcrypt. Deleting a user does not remove them: they are deactivated and
+  renamed.
+- **Files** (avatars, maintenance and blacklist photos, invoice PDF): in
+  **Cloudinary**, not on the server.
+- **Time**: everything that depends on the day is calculated in `Europe/Madrid`.
 
-## Qué reglas cumple
+## What rules it follows
 
-**Sesión**
+**Session**
 
-- Al iniciar sesión el backend emite dos JWT en cookies HttpOnly:
-  `access_token` (15 min) y `refresh_token` (7 días). En producción las cookies
-  valen para todo `.four-points.stackbp.es`.
-- Cuando una petición recibe `401`, el cliente pide un token nuevo y la repite.
-  Cada renovación emite también un `refresh_token` nuevo, así que la sesión se
-  alarga mientras se use.
-- Las sesiones **no se guardan en base de datos**: no hay forma de cerrarlas
-  desde el servidor antes de que caduquen. Cambiar la contraseña borra las
-  cookies del navegador desde el que se hace.
+- On login the backend issues two JWTs in HttpOnly cookies: `access_token` (15
+  min) and `refresh_token` (7 days). In production the cookies are valid for all
+  of `.four-points.stackbp.es`.
+- When a request receives `401`, the client asks for a new token and repeats it.
+  Each renewal also issues a new `refresh_token`, so the session is extended as
+  long as it is used.
+- Sessions **are not stored in the database**: there is no way to close them
+  from the server before they expire. Changing the password deletes the cookies
+  from the browser where it is done.
 
-**Protección**
+**Protection**
 
-- Límites de peticiones por IP: 300 cada 15 min en toda la API; 5 intentos de
-  login cada 15 min por IP y usuario; 3 cambios de contraseña por hora.
-- Cabeceras de seguridad con Helmet en el backend y en Vercel. CORS acepta los
-  dominios propios, las previsualizaciones de Vercel y las peticiones sin
-  cabecera `Origin` (herramientas, servidor a servidor).
-- En producción, los errores no controlados devuelven un mensaje genérico.
+- Request limits per IP: 300 every 15 min across the whole API; 5 login attempts
+  every 15 min per IP and user; 3 password changes per hour.
+- Security headers with Helmet on the backend and on Vercel. CORS accepts own
+  domains, Vercel previews and requests without the `Origin` header (tools,
+  server to server).
+- In production, unhandled errors return a generic message.
 
-**Base de datos**
+**Database**
 
-- Todo cambio de esquema es un script nuevo, idempotente, en
-  `backend/db-mysql/scripts/` y registrado en su `INDEX.md`. Nunca se ejecuta
-  la instalación completa contra una base con datos.
+- Every schema change is a new, idempotent script in `backend/db-mysql/scripts/`
+  and recorded in its `INDEX.md`. The full installation is never run against a
+  database with data.
 
-**Tareas programadas** (hora de Madrid, dentro del proceso del backend)
+**Scheduled tasks** (Madrid time, inside the backend process)
 
-| Cuándo          | Qué hace                                                           |
-| --------------- | ------------------------------------------------------------------ |
-| Cada día, 06:30 | Reinicia los checklists del día                                    |
-| Cada día, 07:00 | Envía las notificaciones programadas y genera los avisos de grupos |
-| Lunes, 04:00    | Borra el registro de eventos de checklist de más de 7 días         |
-| Día 10, 23:59   | Marca como pagadas las facturas validadas del mes anterior         |
+| When             | What it does                                              |
+| ---------------- | --------------------------------------------------------- |
+| Every day, 06:30 | Resets the day's checklists                               |
+| Every day, 07:00 | Sends scheduled notifications and generates group notices |
+| Monday, 04:00    | Deletes checklist event logs older than 7 days            |
+| 10th, 23:59      | Marks validated invoices from the previous month as paid  |
 
-## Cómo viaja la información
+## How information flows
 
 ```
-Navegador ──────────────► Frontend  (Next.js · Vercel)
-    │                        │  componentes de servidor: serverFetch
-    │  fetch + cookies       ▼
+Browser ──────────────► Frontend  (Next.js · Vercel)
+    │                      │  server components: serverFetch
+    │  fetch + cookies     ▼
     └──────────────────► Backend   (Express · Render)
-                             │  rutas → controladores → servicios → repositorios
-                             ├──► MySQL        (Aiven)
-                             ├──► Cloudinary   (ficheros)
-                             └──► Solver Python (horarios, proceso hijo)
+                            │  routes → controllers → services → repositories
+                            ├──► MySQL        (Aiven)
+                            ├──► Cloudinary   (files)
+                            └──► Python solver (scheduling, child process)
 ```
 
-1. El navegador llama **directamente** al backend
-   (`api.four-points.stackbp.es`) con `credentials: 'include'`, a través de
-   `app/lib/apiClient.ts`, que también renueva el token. No hay un proxy
-   intermedio: la única excepción es la creación de usuarios, que pasa por
-   `app/api/auth/register`.
-2. Los componentes de servidor usan `app/lib/serverFetch.ts`, que reenvía la
-   cookie de acceso al backend.
-3. `proxy.ts` (el middleware de Next.js 16) redirige al login si no hay
-   cookies de sesión. Solo mira si existen y si han caducado: la firma la
-   comprueba el backend.
-4. En el backend, cada petición pasa por `authenticateToken` → comprobación de
-   rol → controlador → validación con Zod → servicio → repositorio → MySQL.
-5. El estado de servidor en el cliente lo gestiona React Query; Zustand guarda
-   el estado local de algunos módulos (caja, grupos, mantenimiento,
-   notificaciones).
+1. The browser calls the backend **directly** (`api.four-points.stackbp.es`)
+   with `credentials: 'include'`, through `app/lib/apiClient.ts`, which also
+   renews the token. There is no intermediate proxy: the only exception is user
+   creation, which goes through `app/api/auth/register`.
+2. Server components use `app/lib/serverFetch.ts`, which forwards the access
+   cookie to the backend.
+3. `proxy.ts` (the Next.js 16 middleware) redirects to login if there are no
+   session cookies. It only checks whether they exist and whether they have
+   expired: the signature is verified by the backend.
+4. On the backend, every request goes through `authenticateToken` → role check →
+   controller → validation with Zod → service → repository → MySQL.
+5. Server state on the client is managed by React Query; Zustand stores local
+   state for some modules (cashier, groups, maintenance, notifications).
 
 ## Stack
 
 - **Frontend**: Next.js 16 (App Router, Turbopack), React 19, Tailwind CSS 3,
-  NextUI, React Query 5, Zustand 5, next-intl 4 y Zod 3.
-- **Backend**: Express 5 y TypeScript ejecutado con `tsx` (sin compilar),
-  mysql2, Zod 4, pino, node-cron y multer.
-- **Horarios**: Python 3.11 y OR-Tools (CP-SAT), como proceso persistente
-  lanzado por el backend.
-- **Tests**: Vitest en el backend (auth, checklist, F&B, horarios) y pytest en
-  el solver. El frontend no tiene tests.
+  NextUI, React Query 5, Zustand 5, next-intl 4 and Zod 3.
+- **Backend**: Express 5 and TypeScript run with `tsx` (no compilation), mysql2,
+  Zod 4, pino, node-cron and multer.
+- **Scheduling**: Python 3.11 and OR-Tools (CP-SAT), as a persistent process
+  launched by the backend.
+- **Tests**: Vitest on the backend (auth, checklist, F&B, scheduling) and pytest
+  on the solver. The frontend has no tests.
 
-`frontend/` y `backend/` son dos proyectos pnpm independientes, cada uno con su
+`frontend/` and `backend/` are two independent pnpm projects, each with its own
 lockfile. Node ≥ 22.16.
 
-## Despliegue
+## Deployment
 
-| Pieza    | Dónde      | Detalle                                                                  |
-| -------- | ---------- | ------------------------------------------------------------------------ |
-| Frontend | Vercel     | `four-points.stackbp.es`, región `cdg1` (París)                          |
-| Backend  | Render     | `api.four-points.stackbp.es`. El build crea el entorno Python del solver |
-| BD       | Aiven      | MySQL con TLS; certificado CA en `backend/config/certs/`                 |
-| Ficheros | Cloudinary |                                                                          |
+| Piece    | Where      | Detail                                                                  |
+| -------- | ---------- | ----------------------------------------------------------------------- |
+| Frontend | Vercel     | `four-points.stackbp.es`, region `cdg1` (Paris)                         |
+| Backend  | Render     | `api.four-points.stackbp.es`. The build creates the solver's Python env |
+| DB       | Aiven      | MySQL with TLS; CA certificate in `backend/config/certs/`               |
+| Files    | Cloudinary |                                                                         |
 
-## Desarrollo local
+## Local development
 
 ```bash
-cd backend && pnpm install && pnpm dev:aiven   # API contra Aiven; el frontend la busca en :4000
+cd backend && pnpm install && pnpm dev:aiven   # API against Aiven; frontend looks for it on :4000
 cd frontend && pnpm install && pnpm dev        # http://localhost:3000
 ```
 
-Variables del backend: `PORT` (4000 en local), `NODE_ENV`, `SECRET_JWT_KEY`,
-`SALT_ROUNDS`, `DB_ENVIRONMENT=aiven`, `AIVEN_DB_*` + `AIVEN_PASSWORD`, `CLOUDINARY_*`, `LOG_LEVEL`, `FRONTEND_URL`.
-Del frontend: `NEXT_PUBLIC_API_URL`, `NEXT_SERVER_API_URL` (opcional) y
-`NEXT_PUBLIC_APP_URL`, que la ruta de creación de usuarios usa para aceptar el
-origen de la petición.
+Backend variables: `PORT` (4000 locally), `NODE_ENV`, `SECRET_JWT_KEY`,
+`SALT_ROUNDS`, `DB_ENVIRONMENT=aiven`, `AIVEN_DB_*` + `AIVEN_PASSWORD`,
+`CLOUDINARY_*`, `LOG_LEVEL`, `FRONTEND_URL`. Frontend: `NEXT_PUBLIC_API_URL`,
+`NEXT_SERVER_API_URL` (optional) and `NEXT_PUBLIC_APP_URL`, which the user
+creation route uses to accept the request origin.

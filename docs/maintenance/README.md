@@ -1,96 +1,97 @@
-# Mantenimiento (maintenance)
+# Maintenance
 
-Partes de averías e incidencias técnicas del hotel. Pantallas bajo
-`/dashboard/maintenance`. Visión general del proyecto en
+Reports for the hotel's breakdowns and technical incidents. Screens under
+`/dashboard/maintenance`. Project overview in
 [`../general/README.md`](../general/README.md).
 
-## Qué problema resuelve
+## What problem it solves
 
-Una avería (una ducha que gotea, un aire acondicionado que no enfría, una
-puerta rota) tiene que llegar a quien la arregla y no perderse por el camino.
-El módulo registra cada incidencia como un **parte**, con dónde está, qué
-urgencia tiene y quién se encarga, y la sigue hasta cerrarla, con fotos y un
-historial de todo lo que le ha pasado. También indica qué habitaciones están
-fuera de servicio por una avería abierta.
+A breakdown (a dripping shower, an air conditioner that does not cool, a broken
+door) must reach whoever fixes it and not get lost on the way. The module
+records each incident as a **report**, with where it is, how urgent it is and
+who handles it, and follows it until it is closed, with photos and a history of
+everything that has happened to it. It also indicates which rooms are out of
+service due to an open breakdown.
 
-## Quién lo usa
+## Who uses it
 
-**Todos los roles**, y es el módulo principal del rol `mantenimiento`, que no
-tiene acceso a casi ningún otro. Dentro del módulo **no hay diferencias entre
-roles**: cualquiera con acceso crea, edita, cambia de estado, asigna, borra y
-restaura cualquier parte.
+**All roles**, and it is the main module of the `mantenimiento` role, which does
+not have access to almost any other. Within the module **there are no
+differences between roles**: anyone with access creates, edits, changes the
+state of, assigns, deletes and restores any report.
 
-## Qué puede hacer
+## What it can do
 
-- **Listado** con filtros (estado, prioridad, tipo de ubicación, asignado,
-  creador, habitación, texto, rango de fechas e incluir borrados), paginación
-  y estadísticas.
-- **Crear un parte**: título, descripción, ubicación, prioridad y, si se sabe,
-  a quién se asigna. Si la ubicación es una habitación, el número es
-  obligatorio y se puede marcar como **fuera de servicio**.
-- **Detalle** en dos pestañas: la ficha (con acciones rápidas para cambiar
-  estado, prioridad y asignación, y añadir notas de resolución) y el historial.
-- **Asignar** a un usuario de la aplicación (**interno**) o a una empresa
-  externa, con su nombre y contacto.
-- **Fotos**: subir imágenes (JPEG, PNG, WebP o GIF, hasta 5 MB) y borrarlas.
-- **Borrar y restaurar** partes: el borrado es lógico.
+- **List** with filters (state, priority, location type, assigned, creator,
+  room, text, date range and include deleted), pagination and statistics.
+- **Create a report**: title, description, location, priority and, if known, who
+  it is assigned to. If the location is a room, the number is mandatory and it
+  can be marked as **out of service**.
+- **Detail** in two tabs: the card (with quick actions to change state, priority
+  and assignment, and add resolution notes) and the history.
+- **Assign** to an application user (**internal**) or to an external company,
+  with their name and contact.
+- **Photos**: upload images (JPEG, PNG, WebP or GIF, up to 5 MB) and delete
+  them.
+- **Delete and restore** reports: the deletion is a soft delete.
 
-## Qué datos maneja
+## What data it handles
 
-Tres tablas (`backend/db-mysql/aiven/13_maintenance.sql`):
+Three tables (`backend/db-mysql/aiven/13_maintenance.sql`):
 
-- **`maintenance_reports`**: el parte — título, descripción, ubicación
-  (habitación, zona común, exterior, instalaciones u otra), prioridad, estado,
-  asignación, fechas de inicio, resolución y cierre, notas de resolución,
-  habitación fuera de servicio y borrado lógico.
-- **`maintenance_images`**: las fotos, guardadas en **Cloudinary**; aquí solo
-  queda su referencia.
-- **`maintenance_history`**: cada cambio, con quién lo hizo, qué campo cambió y
-  el valor anterior y el nuevo.
+- **`maintenance_reports`**: the report — title, description, location (room,
+  common area, exterior, facilities or other), priority, state, assignment,
+  start, resolution and closing dates, resolution notes, room out of service and
+  soft delete.
+- **`maintenance_images`**: the photos, stored in **Cloudinary**; only their
+  reference remains here.
+- **`maintenance_history`**: each change, with who made it, which field changed
+  and the previous and new value.
 
-El **identificador** de un parte es `DDMMAA-NNN`: fecha de creación y número del
-día (por ejemplo, `280926-001`).
+The **identifier** of a report is `DDMMAA-NNN`: creation date and number of the
+day (for example, `280926-001`).
 
-## Qué reglas cumple
+## What rules it follows
 
-**Estados**
+**States**
 
 ```
 reported ─► assigned ─► in_progress ─► completed ─► closed
                              │
-                          waiting            (canceled desde cualquiera)
+                          waiting            (canceled from any)
 ```
 
-- Siete estados: reportado, asignado, en curso, en espera, completado, cerrado y
-  cancelado. Cuatro prioridades: baja, media, alta y urgente.
-- **El backend no obliga a seguir el orden**: cualquier estado puede pasar a
-  cualquier otro. Al pasar a en curso, completado o cerrado se guarda la fecha
-  correspondiente. **Cancelar guarda la fecha de cierre y se registra en el
-  historial como «cerrado»**: ahí no se distingue un parte cancelado de uno
-  cerrado.
-- **La interfaz no ofrece reabrir un parte cerrado**, pero la API lo permite.
+- Seven states: reported, assigned, in progress, waiting, completed, closed and
+  canceled. Four priorities: low, medium, high and urgent.
+- **The backend does not enforce an order**: any state can go to any other. When
+  moving to in progress, completed or closed the corresponding date is saved.
+  **Cancel saves the closing date and is recorded in the history as "closed"**:
+  a canceled report is not distinguished from a closed one there.
+- **The interface does not offer reopening a closed report**, but the API allows
+  it.
 
-**Validación e historial**
+**Validation and history**
 
-- Todas las rutas que escriben validan los datos con Zod, incluida la regla de
-  que una habitación necesita número.
-- Crear, editar, cambiar estado, prioridad o asignación, añadir notas, borrar y
-  restaurar quedan en `maintenance_history`. **Subir o borrar fotos, no.**
-- El cambio y su registro en el historial no van en una transacción.
+- All routes that write validate data with Zod, including the rule that a room
+  needs a number.
+- Creating, editing, changing state, priority or assignment, adding notes,
+  deleting and restoring are recorded in `maintenance_history`. **Uploading or
+  deleting photos, not.**
+- The change and its history entry do not go in a transaction.
 
-**Otros**
+**Others**
 
-- Las fotos se aceptan según el tipo que declara el navegador, con un máximo de
-  5 MB, y Cloudinary las procesa como imagen.
-- Cada foto guarda un «borrar al cerrar» (`auto_delete_on_close`) que **nadie
-  usa**: al cerrar un parte, sus fotos se quedan.
-- El número del día del identificador se calcula buscando el último parte de
-  esa fecha, con la hora del servidor.
+- Photos are accepted according to the type declared by the browser, with a
+  maximum of 5 MB, and Cloudinary processes them as an image.
+- Each photo saves a "delete on close" (`auto_delete_on_close`) that **nobody
+  uses**: when closing a report, its photos stay.
+- The number of the day of the identifier is calculated by looking for the last
+  report of that date, with the server's time.
 
-## Cómo viaja la información
+## How information flows
 
 ```
-page.tsx (servidor) ─► getMaintenance ─► GET /api/maintenance
+page.tsx (server) ─► getMaintenance ─► GET /api/maintenance
 MaintenanceListClient ─► useMaintenanceList (React Query) ─┐
 ReportDetailClient · DetailTab · HistoryTab ───────────────┼─► maintenanceApi ─► apiClient
                                                            │
@@ -98,15 +99,15 @@ ReportDetailClient · DetailTab · HistoryTab ───────────�
                                                            │
              authenticateToken ─► canAccessMaintenance ─► MaintenanceController
                                                            │
-                          MaintenanceRepository ─► MySQL + historial
-                          CloudinaryService ─► fotos
+                          MaintenanceRepository ─► MySQL + history
+                          CloudinaryService ─► photos
 ```
 
-1. El listado se carga en el servidor y llega ya pintado; en cuanto se filtra,
-   React Query pide los datos de nuevo.
-2. Cada acción llama a su ruta (estado, prioridad, notas…) o a la edición
-   general; asignar se hace desde la edición general, no desde la ruta
-   `/assign`, que la interfaz no usa.
-3. El repositorio escribe el cambio y después su entrada de historial.
-4. Las fotos se suben a Cloudinary desde el backend y su referencia se guarda en
-   `maintenance_images`.
+1. The list is loaded on the server and arrives already painted; as soon as it
+   is filtered, React Query requests the data again.
+2. Each action calls its route (state, priority, notes…) or the general edit;
+   assigning is done from the general edit, not from the `/assign` route, which
+   the interface does not use.
+3. The repository writes the change and then its history entry.
+4. Photos are uploaded to Cloudinary from the backend and their reference is
+   saved in `maintenance_images`.

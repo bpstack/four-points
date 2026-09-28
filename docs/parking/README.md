@@ -1,63 +1,64 @@
 # Parking
 
-Reservas del aparcamiento del hotel. Pantallas bajo `/dashboard/parking`.
-Visión general del proyecto en [`../general/README.md`](../general/README.md).
+Bookings for the hotel's car park. Screens under `/dashboard/parking`. Project
+overview in [`../general/README.md`](../general/README.md).
 
-## Qué problema resuelve
+## What problem it solves
 
-El hotel alquila plazas de garaje a sus clientes por días. Hay que saber qué
-plaza está libre en cada fecha, no reservar dos veces la misma, registrar
-quién entra y sale, y cobrar lo que corresponde. El módulo lleva el calendario
-de cada plaza, el ciclo de vida de cada reserva y el cobro, con un mapa del
-garaje en tiempo real y estadísticas de ocupación.
+The hotel rents parking spaces to its clients by the day. It is necessary to
+know which space is free on each date, not book the same one twice, record who
+comes in and out, and charge the right amount. The module keeps each space's
+calendar, each booking's lifecycle and the charging, with a real-time garage map
+and occupancy statistics.
 
-## Quién lo usa
+## Who uses it
 
-Todos los roles **menos `mantenimiento`**. Cualquier usuario con acceso crea,
-edita, cobra y cierra reservas. Solo un `admin` puede borrar un vehículo.
+All roles **except `mantenimiento`**. Any user with access creates, edits,
+charges and closes bookings. Only an `admin` can delete a vehicle.
 
-## Qué puede hacer
+## What it can do
 
-- **Panel** (`/dashboard/parking`): ocupación, entradas y salidas previstas y
-  plazas libres de hoy, de otro día o de un rango de fechas.
-- **Mapa de estado** (`/dashboard/parking/status`): cada plaza de cada planta
-  con su situación (libre, reservada, ocupada) y acciones directas: entrada,
-  salida, cancelar, no presentado y reservas vencidas.
-- **Listado de reservas** (`/dashboard/parking/bookings`): búsqueda por texto,
-  estado, rango de fechas y filtros rápidos del día (entradas, salidas,
-  dentro…), con paginación. El backend admite además filtrar por plaza,
-  matrícula, titular u origen, pero la pantalla no lo ofrece.
-- **Nueva reserva**: plaza, vehículo (se busca por matrícula o titular, o se da
-  de alta), fechas previstas, origen (directa, Booking, Expedia, Airbnb,
-  agencia), referencia externa y notas. El precio se calcula solo, pero se puede
-  fijar a mano. **Hoy el origen y la referencia externa se pierden al crear** la
-  reserva (queda «directa»); solo se guardan si después se edita.
-- **Detalle de una reserva** (`/dashboard/parking/bookings/<código>`): editar
-  fechas o plaza, registrar entrada y salida, cobrar y borrar.
+- **Panel** (`/dashboard/parking`): occupancy, expected entries and exits and
+  free spaces for today, another day or a date range.
+- **Status map** (`/dashboard/parking/status`): each space on each floor with
+  its situation (free, reserved, occupied) and direct actions: entry, exit,
+  cancel, no-show and expired bookings.
+- **Booking list** (`/dashboard/parking/bookings`): search by text, state, date
+  range and quick filters for the day (entries, exits, inside…), with
+  pagination. The backend also allows filtering by space, licence plate, owner
+  or origin, but the screen does not offer it.
+- **New booking**: space, vehicle (searched by licence plate or owner, or
+  registered), expected dates, origin (direct, Booking, Expedia, Airbnb,
+  agency), external reference and notes. The price is calculated automatically,
+  but can be set manually. **Today the origin and external reference are lost
+  when creating** the booking (it stays "direct"); they are only saved if it is
+  edited afterwards.
+- **Booking detail** (`/dashboard/parking/bookings/<code>`): edit dates or
+  space, register entry and exit, charge and delete.
 
-## Qué datos maneja
+## What data it handles
 
-Cinco tablas (`backend/db-mysql/aiven/04_parking_tables.sql`):
+Five tables (`backend/db-mysql/aiven/04_parking_tables.sql`):
 
-- **`parking_spots`**: las plazas — planta (`-2` o `-3`), número, tipo y si
-  está activa. Hoy son 20: 10 por planta.
-- **`parking_vehicles`**: matrícula, titular, modelo y notas. Un vehículo se
-  reutiliza entre reservas.
-- **`parking_bookings`**: la reserva — código, plaza, vehículo, fechas previstas
-  y reales, estado, importe, cobro (importe, método, referencia, fecha), origen
-  y quién la creó y modificó.
-- **`parking_rates`**: precio según el **número de días**, de 1 a 30. No depende
-  del tipo de plaza.
-- **`parking_availability`**: un **calendario precalculado**, con una fila por
-  plaza y día que dice si está libre y qué reserva la ocupa.
+- **`parking_spots`**: the spaces — floor (`-2` or `-3`), number, type and
+  whether it is active. Today there are 20: 10 per floor.
+- **`parking_vehicles`**: licence plate, owner, model and notes. A vehicle is
+  reused between bookings.
+- **`parking_bookings`**: the booking — code, space, vehicle, expected and real
+  dates, state, amount, payment (amount, method, reference, date), origin and
+  who created and modified it.
+- **`parking_rates`**: price according to the **number of days**, from 1 to 30.
+  It does not depend on the space type.
+- **`parking_availability`**: a **precalculated calendar**, with one row per
+  space and day that says whether it is free and which booking occupies it.
 
-Parte de la lógica vive **en la base de datos**: los triggers de
-`05_parking_functions_triggers.sql` generan el código de reserva y mantienen el
-calendario al día.
+Part of the logic lives **in the database**: the triggers in
+`05_parking_functions_triggers.sql` generate the booking code and keep the
+calendar up to date.
 
-## Qué reglas cumple
+## What rules it follows
 
-**Estados de una reserva**
+**Booking states**
 
 ```
 reserved ──► checked_in ──► completed
@@ -66,62 +67,62 @@ reserved ──► checked_in ──► completed
     └──► no_show
 ```
 
-- La entrada solo se registra en una reserva `reserved`, y la salida en una
-  `checked_in`. Cancelar vale para ambas; «no presentado», solo para
-  `reserved`.
-- Solo se puede **borrar** una reserva `reserved`. El borrado es definitivo.
-- Una reserva **vencida** es la que sigue `checked_in` después de su salida
-  prevista.
+- Entry is only registered on a `reserved` booking, and exit on a `checked_in`
+  one. Cancel is valid for both; "no-show" only for `reserved`.
+- Only a `reserved` booking can be **deleted**. The deletion is definitive.
+- An **expired** booking is one that stays `checked_in` after its expected exit.
 
-**Disponibilidad**
+**Availability**
 
-- Una reserva ocupa su plaza desde el día de entrada hasta el día anterior a la
-  salida. Al crearla o moverla, si algún día ya está ocupado, el backend la
-  rechaza; al crearla, un trigger de la BD lo comprueba otra vez.
-- Al pasar a `completed`, `canceled` o `no_show`, los días se liberan solos.
-- El calendario solo cubre las fechas que se han generado de antemano
-  (procedimiento `generate_availability`).
+- A booking occupies its space from the entry day to the day before the exit.
+  When creating or moving it, if any day is already occupied, the backend
+  rejects it; when creating, a database trigger checks it again.
+- When moving to `completed`, `canceled` or `no_show`, the days are freed
+  automatically.
+- The calendar only covers the dates that have been generated in advance
+  (procedure `generate_availability`).
 
-**Precio**
+**Price**
 
-- Se cuentan días de calendario entre la entrada y la salida previstas, con un
-  mínimo de 1: entrar el día 25 a las 23:00 y salir el 26 a las 10:00 es 1 día.
-- El precio sale de `parking_rates` para ese número de días. Hay paquetes: 7
-  días cuestan menos que 6, y 30 menos que 29. A partir de 31 días no hay
-  tarifa y se cobran 15 € por día.
-- Al cobrar se guarda lo pagado aparte del importe calculado, con método
-  (efectivo, tarjeta, transferencia, agencia) y referencia.
+- Calendar days between expected entry and exit are counted, with a minimum of
+  1: entering on the 25th at 23:00 and leaving on the 26th at 10:00 is 1 day.
+- The price comes from `parking_rates` for that number of days. There are
+  packages: 7 days cost less than 6, and 30 less than 29. From 31 days there is
+  no rate and 15 € per day are charged.
+- When charging, what is paid is saved separately from the calculated amount,
+  with method (cash, card, transfer, agency) and reference.
 
-**Otros**
+**Others**
 
-- El código de reserva lo genera la BD: `PK-AAAAMMDD-NNNN` (fecha de creación y
-  número del día). Es lo que se ve en las URL; el `id` interno no se muestra.
-- Quien crea o modifica una reserva se toma de la sesión, no de lo que envía el
-  navegador.
-- Los listados devuelven 50 reservas por defecto y 500 como máximo.
+- The booking code is generated by the database: `PK-AAAAMMDD-NNNN` (creation
+  date and number of the day). It is what is seen in URLs; the internal `id` is
+  not shown.
+- Who creates or modifies a booking is taken from the session, not from what the
+  browser sends.
+- Listings return 50 bookings by default and 500 as maximum.
 
-## Cómo viaja la información
+## How information flows
 
 ```
-page.tsx (servidor) ─► getParkingDashboardStats ─► GET /api/parking/stats
+page.tsx (server) ─► getParkingDashboardStats ─► GET /api/parking/stats
 ParkingStatusClient ─► useParkingStatus (React Query) ─┐
 BookingsListClient / BookingDetailClient ──────────────┼─► parkingApi (queries.ts) ─► apiClient
                                                        │
                    /api/parking/{spots,vehicles,bookings,stats}
                                         │
-      parking · bookings · stats controllers ─► repositorios ─► MySQL
+      parking · bookings · stats controllers ─► repositories ─► MySQL
                                                                   │
                                               triggers ─► parking_availability
 ```
 
-1. El panel se carga en el servidor (acción `getParkingDashboardStats`) y llega
-   ya con los datos del día.
-2. El mapa de estado pide plazas, reservas, vencidas y estadísticas con React
-   Query. **No se refresca solo**: cada acción vuelve a pedir los datos, pero los
-   cambios que hace otra persona no aparecen hasta recargar.
-3. Crear, mover, cerrar o cancelar una reserva escribe en `parking_bookings`
-   dentro de una transacción; los triggers actualizan el calendario en la misma
-   operación.
-4. `/api/parking/stats` funciona en tres modos: sin parámetros (hoy), con
-   `date` (un día) o con `startDate` y `endDate` (un rango, sin entradas y
-   salidas pendientes).
+1. The panel is loaded on the server (`getParkingDashboardStats` action) and
+   arrives with the day's data already.
+2. The status map requests spaces, bookings, expired ones and statistics with
+   React Query. **It does not refresh on its own**: each action requests the
+   data again, but changes made by another person do not appear until reloading.
+3. Creating, moving, closing or cancelling a booking writes to
+   `parking_bookings` within a transaction; the triggers update the calendar in
+   the same operation.
+4. `/api/parking/stats` works in three modes: without parameters (today), with
+   `date` (one day) or with `startDate` and `endDate` (a range, without pending
+   entries and exits).

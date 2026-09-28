@@ -2,8 +2,8 @@
 
 > **Qué responde:** en qué orden se hace el trabajo y por qué ese orden. ·
 > **Quién lo lee:** quien abre o cierra una fase, **no en cada sesión**. ·
-> **Cómo se poda:** al cerrar una fase, su detalle se reduce a un resultado y
-> un puntero.
+> **Cómo se poda:** al cerrar una fase, su detalle se reduce a un resultado y un
+> puntero.
 
 🔴 **Lo terminado sale del plan.** Una fase cerrada se queda en una o dos
 líneas; su detalle pasa a `docs/_archive/roadmap-history.md` (local, ADR-009).
@@ -34,8 +34,8 @@ empieza con un `README.md`). La documentación antigua está en `docs/_archive/`
 problema resuelve, quién lo usa, qué puede hacer, qué datos maneja, qué reglas
 cumple y cómo viaja la información.
 
-- [ ] **Una carpeta por módulo** — _`groups`, `scheduling`, `checklist`, `cashier`, `fnb`, `backoffice`,
-      `blacklist`, `conciliation`_.
+- [ ] **Una carpeta por módulo** — _`groups`, `scheduling`, `checklist`,
+      `cashier`, `fnb`, `backoffice`, `blacklist`, `conciliation`_.
 - [ ] **`README.md` de la raíz breve, que enlaza a `docs/`** — _al final, cuando
       exista lo que enlaza (ADR-008)_.
 
