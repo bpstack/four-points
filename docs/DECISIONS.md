@@ -160,3 +160,27 @@
     abierto. Son candidatos a privados para la fase 2.
 - **Rechazado:** aplanar el archivo en una sola carpeta (se pierde el origen de
   cada fichero) y usar `git mv` (versionaría el destino, que debe ser local).
+
+## ADR-011 — `docs/` tiene una carpeta por módulo, y cada una empieza con un solo `README.md`
+
+- **Estado:** ✅ aceptada (2026-09-28)
+- **Fecha:** 2026-09-28
+- **Decisión:**
+  - Cada módulo es una carpeta `docs/<modulo>/` que **empieza con un único
+    `README.md`**, que responde a las seis preguntas de `OPEN-SOURCE.md`.
+  - **Solo se separa otro fichero** cuando hay un subsistema con entidad propia
+    (el solver de `scheduling`, la exportación PDF de `cashier`…), no por
+    llegar a un número de páginas.
+  - **Carpetas** (nombres en inglés): `general`, `logbook`, `parking`,
+    `maintenance`, `groups`, `scheduling`, `checklist`, `cashier`, `fnb`,
+    `backoffice`, `blacklist`, `conciliation`.
+  - **`auth`, `notifications` y `profile` se documentan dentro de `general/`**:
+    son transversales (`profile` es la pantalla de ajustes del usuario).
+- **Motivo:** medición del 2026-09-28 (ficheros `.ts`/`.tsx`/`.py`/`.sql` cuyo
+  nombre contiene el del módulo). `scheduling` suma ~88 ficheros y ~23 k
+  líneas, con un solver en Python aparte; `backoffice`, `parking`, `cashier` y
+  `groups` pasan de ~10 k líneas cada uno. Casi la mitad de los módulos
+  necesitarán más de un fichero; si todos son carpeta desde el principio,
+  crecer no obliga a mover nada ni rompe enlaces.
+- **Rechazado:** un fichero por módulo (`docs/parking.md`). Obligaría a
+  convertirlo en carpeta y cambiar sus enlaces en cuanto creciera.

@@ -28,18 +28,17 @@ El orden de 1 → 2 → 3 lo fija ADR-001. La fase 4 depende de ADR-006, que sig
 
 ## Fase 1 — Documentación nueva ← **actual**
 
-Criterio: ADR-004 (manda el código). La documentación antigua ya está en
-`docs/_archive/` (ADR-010). Cada módulo responde a las seis preguntas de
-`OPEN-SOURCE.md`: qué problema resuelve, quién lo usa, qué puede hacer, qué
-datos maneja, qué reglas cumple y cómo viaja la información.
+Criterios: ADR-004 (manda el código) y ADR-011 (una carpeta por módulo, que
+empieza con un `README.md`). La documentación antigua está en `docs/_archive/`
+(ADR-010). Cada módulo responde a las seis preguntas de `OPEN-SOURCE.md`: qué
+problema resuelve, quién lo usa, qué puede hacer, qué datos maneja, qué reglas
+cumple y cómo viaja la información.
 
-- [ ] **Decidir la estructura de `docs/`** — _un fichero por módulo o una
-      carpeta por módulo; se decide con el primero y queda en `DECISIONS.md`_.
-- [ ] **Módulo general** — _stack, arquitectura, autenticación, despliegue:
-      todo lo que afecta al proyecto en su conjunto_.
-- [ ] **Un documento por módulo** — _logbook, parking, maintenance, groups,
-      scheduling, checklist, cashier, F&B, backoffice, blacklist, y los que
-      aparezcan al leer el código_.
+- [ ] **`docs/general/`** — _stack, arquitectura, despliegue, y los
+      transversales `auth`, `notifications` y `profile` (ADR-011)_.
+- [ ] **Una carpeta por módulo** — _`logbook`, `parking`, `maintenance`,
+      `groups`, `scheduling`, `checklist`, `cashier`, `fnb`, `backoffice`,
+      `blacklist`, `conciliation`_.
 - [ ] **`README.md` de la raíz breve, que enlaza a `docs/`** — _al final, cuando
       exista lo que enlaza (ADR-008)_.
 

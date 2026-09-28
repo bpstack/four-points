@@ -15,7 +15,7 @@ propio fichero) o ruido (se borra).
 
 Preparación del repositorio para publicarlo como open source. Plan en
 `OPEN-SOURCE.md` (raíz, sin versionar); orden de fases en `ROADMAP.md`;
-decisiones en `DECISIONS.md` (ADR-001 a ADR-010).
+decisiones en `DECISIONS.md` (ADR-001 a ADR-011).
 
 Fase actual: **1 — Documentación nueva**. La documentación antigua ya está
 archivada en `docs/_archive/` (ADR-010); lo hecho se registra en
@@ -23,8 +23,9 @@ archivada en `docs/_archive/` (ADR-010); lo hecho se registra en
 
 ## ⚠️ Empieza por aquí
 
-1. **Decidir la estructura de `docs/`** (fichero o carpeta por módulo) y
-   empezar por el módulo general. Siguiente paso de la fase 1 en `ROADMAP.md`.
+1. **Escribir `docs/general/README.md`** leyendo el código (ADR-004) y
+   contrastándolo con `docs/_archive/`. Estructura y lista de módulos en
+   ADR-011.
 2. **Material de consulta:** `docs/_archive/` refleja las rutas originales
    (`docs/_archive/docs/backend/…`, `docs/_archive/frontend/docs/…`,
    `docs/_archive/Global-Plan.md`…).
@@ -61,4 +62,5 @@ archivada en `docs/_archive/` (ADR-010); lo hecho se registra en
   `SCHEDULING-SOLVER-PLAN.md`. Se arreglan al escribir cada módulo (ADR-010).
 - **Candidatos a privados para la fase 2**, además de los volcados: los dos
   Excel archivados (`PLANNING 2026.xlsx`, `Presencias - Marzo.xlsx`),
-  que siguen en el historial.
+  que siguen en el historial, y los 18 `.http` de `backend/API REST/`
+  (peticiones de prueba; suelen llevar tokens o contraseñas). Ninguno abierto.
