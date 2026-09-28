@@ -165,16 +165,18 @@ hace que alguien reimplemente lo que ya existe.
       historial desde `f5d47d6` y en el remoto privado. Sacarlos del historial
       en la fase 2 y rotar (ver la entrada de rotación). _Comprobado por mí el
       2026-09-28._
-- [ ] **Cualquier usuario puede hacerse `admin`** — `PUT /api/users/:id` pasa
-      `isOwnerOrAdmin` para el propio usuario y `updateUser`
-      (`backend/controllers/auth/user-controllers.ts`) guarda el `role` del
-      cuerpo. Tampoco pide la contraseña actual ni valida `email`. _Comprobado
-      por mí el 2026-09-28._
-- [ ] **El límite de intentos de login se esquiva** — la clave es
-      `login-<ip>-<username tal cual>` (`backend/middlewares/rateLimiter.ts`) y
-      `users` usa `utf8mb4_0900_ai_ci`: `admin`, `Admin` y `ádmin` son la misma
-      cuenta con 5 intentos cada una. Además no hay límite por IP para probar
-      muchas cuentas. _Comprobado por mí el 2026-09-28._
+- [ ] **`PUT /api/users/:id` sin validar** — el propio usuario cambia su
+      `email` sin contraseña actual ni validación de formato
+      (`backend/controllers/auth/user-controllers.ts`); un cuerpo con solo
+      `role` de alguien que no es `admin` responde 500 en vez de 400/403. El
+      rol ya no se puede cambiar sin ser `admin`. _Comprobado en producción el
+      2026-09-29._
+- [ ] **El límite de intentos de login se esquiva** — la clave
+      (`backend/middlewares/rateLimiter.ts`) ya pasa el usuario a minúsculas,
+      pero `users` usa `utf8mb4_0900_ai_ci`: `admin` y `ádmin` siguen siendo la
+      misma cuenta con 5 intentos cada una. No hay límite por IP para probar
+      muchas cuentas, y el contador se parte en producción (ver la entrada de
+      `trust proxy`). _Comprobado en producción el 2026-09-29._
 - [ ] **`mantenimiento` lee la lista negra por la búsqueda global** —
       `/api/search` solo exige sesión y devuelve `guest_name` y
       `document_number` de la lista negra, matrículas y grupos; `%` y `_` no se
@@ -227,26 +229,12 @@ hace que alguien reimplemente lo que ya existe.
       guarda el `author_id` que manda el cliente, no `req.user.id`. Rompe la
       autoría y el historial del módulo. _Comprobado el 2026-09-28: el esquema
       Zod lo exige en el cuerpo y el frontend lo rellena con `user.id`._
-- [ ] **Un usuario desactivado o borrado sigue entrando** — ni
-      `authenticateToken` (`backend/middlewares/`) ni `refreshToken`
-      (`backend/controllers/auth/auth-controllers.ts`) consultan la BD, y cada
-      renovación emite otro `refresh_token` de 7 días. _Comprobado el 2026-09-28
-      leyendo ambos: ninguno llama al repositorio de usuarios._ No choca con
-      ADR-023 (sin almacén de sesiones): basta con leer el usuario en la BD al
-      renovar, sin tabla de tokens.
-- [ ] **Access y refresh token son intercambiables** — mismo secreto y sin campo
-      de tipo (`backend/services/auth/tokenService.ts`). Un `refresh_token`
-      enviado como `Bearer` pasa `authenticateToken`, y un `access_token` sirve
-      para renovar. _Comprobado el 2026-09-28: el payload de ambos es
-      `{ id, username, role }`._
-- [ ] **Los tokens también viajan en el cuerpo JSON** — `login` y `refresh`
-      devuelven `token`, y `updateProfile` además `refreshToken`, lo que anula
-      parte de la ventaja de las cookies HttpOnly. _Comprobado el 2026-09-28 en
-      `auth-controllers.ts`._
 - [ ] **Medir la protección contra timing attacks del login** — `DUMMY_HASH`
-      (`backend/repositories/auth/user-repository.ts`) no es un hash bcrypt
-      válido; si `bcrypt.compare` falla rápido, se distingue un usuario
-      inexistente. _**No comprobado**: hay que medir tiempos de respuesta._
+      (`backend/repositories/auth/user-repository.ts`) ya es un hash bcrypt
+      válido de coste 10, pero no se ha medido que un usuario inexistente
+      tarde lo mismo que uno real con contraseña mala. _**No comprobado**:
+      medir con una cuenta desechable para no bloquear al `admin` (el límite
+      de intentos va por IP y usuario)._
 
 ## 🟡 Media
 
@@ -395,32 +383,14 @@ hace que alguien reimplemente lo que ya existe.
       scripts, difería de Aiven en `demo_activity_log`, `notifications.module`,
       `roles.name` y 7 claves foráneas (comparación del 2026-09-28).
 
-- [ ] **Los cambios de rol y de contraseña no surten efecto** — el refresco
-      copia el rol del token sin mirar la BD: quien pierde un rol lo conserva
-      mientras siga renovando; cambiar la contraseña, `logout` o el reseteo por
-      un `admin` no revocan nada. _Según la revisión `security` L3 del
-      2026-09-28 (fichero y línea en el informe). Comprobado el 2026-09-28:
-      `refreshToken` (`auth-controllers.ts`) firma los tokens nuevos con el
-      `role` del token viejo._ La parte del rol se arregla leyendo el usuario al
-      renovar; que `logout` o cambiar la contraseña no revoquen nada es la
-      decisión de ADR-023.
-- [ ] **Redirección abierta tras el login** — `useAuth.tsx` hace
-      `router.push(callbackUrl)` sin comprobar que sea una ruta interna. _Según
-      la revisión `security` L3 del 2026-09-28 (fichero y línea en el informe);
-      no repasado por mí._ No probado en ejecución.
 - [ ] **CSRF solo depende de `SameSite=Lax`** — sin token ni cabecera
-      obligatoria; CORS acepta con credenciales cualquier `*.vercel.app`. No
-      verificado si Render tiene `NODE_ENV=production` (sin él, las cookies
-      salen sin `Secure`). _Según la revisión `security` L3 del 2026-09-28
-      (fichero y línea en el informe); no repasado por mí._
+      obligatoria; CORS acepta con credenciales cualquier `*.vercel.app`. Render
+      sí tiene `NODE_ENV=production`: las cookies salen con `Secure`
+      (_comprobado el 2026-09-29_). _Según la revisión `security` L3 del
+      2026-09-28 (fichero y línea en el informe); no repasado por mí._
 - [ ] **El frontend no tiene Content-Security-Policy** (`frontend/vercel.json`).
       _Según la revisión `security` L3 del 2026-09-28 (fichero y línea en el
       informe); no repasado por mí._
-- [ ] **Contraseñas en claro en el registro del modo demo** — `demoRestriction`
-      guarda los primeros 500 caracteres del cuerpo, que en un cambio de
-      contraseña bloqueado incluyen las contraseñas. _Según la revisión
-      `security` L3 del 2026-09-28 (fichero y línea en el informe); no repasado
-      por mí._
 - [ ] **Logbook: papelera e historial solo ocultos en la pantalla** — el backend
       da `/trashed`, `include_trashed`, el historial y los comentarios de
       entradas borradas a cualquier rol con acceso. _Según la revisión
@@ -499,7 +469,10 @@ hace que alguien reimplemente lo que ya existe.
       al menos dos intermediarios y `trust proxy 1` en `backend/index.ts`,
       `req.ip` podría ser la de un intermediario: los límites por IP (login
       incluido) mezclarían a usuarios distintos. _DNS y cabeceras comprobados el
-      2026-09-28; el valor real de `req.ip`, no._
+      2026-09-28; el valor real de `req.ip`, no._ Síntoma visto el 2026-09-29:
+      7 intentos de login seguidos desde un mismo cliente, y el sexto volvió a
+      `ratelimit-remaining: 4` (otro contador) mientras el séptimo dio 429 con
+      el primero; `req.ip` no es estable entre peticiones.
 - [ ] **Datos de personas reales en el repo** —
       `20260520_insert_user_example.sql` crea a una empleada real con su periodo
       de trabajo (confirmado por el propietario el 2026-09-28): cambiar el
