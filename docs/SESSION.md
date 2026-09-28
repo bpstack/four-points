@@ -14,7 +14,7 @@ propio fichero) o ruido (se borra).
 ## Estado
 
 Preparación del repositorio para publicarlo como open source. Plan en
-`OPEN-SOURCE.md` (raíz, sin versionar); orden de fases en `ROADMAP.md`;
+`OPEN-SOURCE.md` (raíz); orden de fases en `ROADMAP.md`;
 decisiones en `DECISIONS.md` (ADR-001 a ADR-012).
 
 Fase actual: **1 — Documentación nueva**. La documentación antigua ya está
