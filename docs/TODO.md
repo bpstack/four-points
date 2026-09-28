@@ -443,8 +443,41 @@ hace que alguien reimplemente lo que ya existe.
       pesos no están reflejados entre validador y solver (12 claves frente a 4,
       solo coincide `min_work_block_short`). _Comprobado por mí el 2026-09-28._
 
+- [ ] **Checklist: el reinicio manual no funciona** — `resetRun` cierra el run y
+      crea otro del mismo día, pero la clave única
+      `uk_run (hotel_id,     checklist_id, hotel_date)` lo impide: 500. Después
+      `getOrCreateRun` devuelve el run cerrado y los cambios del día se escriben
+      en él. Sin transacción ni test. En Aiven nadie lo ha usado (0 cierres
+      manuales). _Comprobado por mí el 2026-09-28._
+- [ ] **Checklist: subida de imágenes sin límite de tamaño en multer** — el
+      fichero entero se carga en memoria antes de comprobar los 5 MB: en el plan
+      gratuito de Render puede agotar la memoria. _Comprobado por mí el
+      2026-09-28._
+- [ ] **Checklist: `:id` sin validar** — el backend lee
+      `<carpeta de tareas>/<id>.json` con el id decodificado (path traversal
+      limitado a ficheros `.json`, sin devolver su contenido), y cualquier id
+      inventado crea una fila en `checklist_runs`. _Según la revisión `security`
+      L3 del 2026-09-28 (fichero y línea en el informe); no repasado por mí._
+- [ ] **Checklist: borrar comentarios e imágenes de días cerrados** — el autor
+      puede reescribir el histórico, y el evento se registra en el run de hoy y
+      como si fuera una alta. _Según la revisión `security` L3 del 2026-09-28
+      (fichero y línea en el informe); no repasado por mí._
+
 ## 🟢 Baja
 
+- [ ] **Checklist: comentarios e imágenes no comprueban que el paso exista**
+      (solo marcar lo hace). _Comprobado por mí el 2026-09-28._
+- [ ] **Checklist: `checklist_config` existe pero no se usa.** _Comprobado por
+      mí el 2026-09-28._
+- [ ] **Checklist: fechas de `/history` sin validar** (un parámetro repetido da
+      500), respuestas con campos internos (`user_id`, `public_id`) y
+      `checklist-report.ts` imprime los comentarios sin filtrar caracteres de
+      control. _Según la revisión `security` L3 del 2026-09-28 (fichero y línea
+      en el informe); no repasado por mí._
+- [ ] **Corregir el `AGENTS.md` de checklist** — la validación de pasos está al
+      revés (se valida al marcar, no en comentarios ni imágenes) y las tablas se
+      llaman `checklist_step_comments` y `checklist_step_attachments`.
+      _Comprobado por mí el 2026-09-28._
 - [ ] **Scheduling: reiniciar un mes no usa transacción** — si falla a mitad, el
       mes queda vacío. _Comprobado por mí el 2026-09-28._
 - [ ] **Scheduling: comprobar si `LI` debe contar como descanso en el solver** —
