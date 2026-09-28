@@ -1,10 +1,13 @@
-# CLAUDE.md — DB / Migrations
+# AGENTS.md — DB / Migrations
 
-> Single doc for `backend/db-mysql/`. Covers the migration policy, the frozen baseline, how to write a new incremental script, and how to reconstruct the schema from scratch. **Read this before touching any table.**
+> Single doc for `backend/db-mysql/`. Covers the migration policy, the frozen
+> baseline, how to write a new incremental script, and how to reconstruct the
+> schema from scratch. **Read this before touching any table.**
 
 ## The rule in one sentence
 
-Every schema change goes in a new `scripts/YYYYMMDD_<description>.sql` file, idempotent, registered in `INDEX.md`. Nothing else.
+Every schema change goes in a new `scripts/YYYYMMDD_<description>.sql` file,
+idempotent, registered in `INDEX.md`. Nothing else.
 
 ## Layout
 
@@ -63,7 +66,8 @@ INSERT IGNORE INTO some_table (id, name) VALUES (1, 'value');
 CREATE TABLE IF NOT EXISTS new_table (…);
 ```
 
-Reference implementation: `scripts/20260519_add_scheduling_employee_display_order.sql`.
+Reference implementation:
+`scripts/20260519_add_scheduling_employee_display_order.sql`.
 
 ## Reconstruct from scratch
 
@@ -77,7 +81,8 @@ for f in scripts/*.sql; do mysql -u root -p hotel_db < "$f"; done
 
 Idempotency guarantees applying all scripts twice leaves the DB intact.
 
-**Never run `MASTER_INSTALL.sql` or `aiven/NN_*.sql` against a DB that already has data.** They will overwrite or duplicate rows.
+**Never run `MASTER_INSTALL.sql` or `aiven/NN_*.sql` against a DB that already
+has data.** They will overwrite or duplicate rows.
 
 ## Connecting to Aiven (production)
 
@@ -91,7 +96,9 @@ See `aiven/aiven-conexion.md` for connection details. SSL required.
 
 - **Name:** `hotel_db`
 - **Engine:** MySQL 8.0+ (`utf8mb4_0900_ai_ci`)
-- **~50 tables + 3 views** across core, logbook, parking, conciliation, groups, cashier, blacklist, maintenance, messages, notifications, backoffice, scheduling, checklist, F&B.
+- **~50 tables + 3 views** across core, logbook, parking, conciliation, groups,
+  cashier, blacklist, maintenance, messages, notifications, backoffice,
+  scheduling, checklist, F&B.
 - Full table list in `INDEX.md`.
 
 ### Roles
@@ -106,14 +113,25 @@ See `aiven/aiven-conexion.md` for connection details. SSL required.
 
 ## Backups
 
-Stored in `backup/`: `backup_hotel_db-local.sql` and `backup_hotel_db-aiven.sql`. Refresh with `scripts/backup-local.sh` / `backup-aiven.sh`.
+Stored in `backup/`: `backup_hotel_db-local.sql` and
+`backup_hotel_db-aiven.sql`. Refresh with `scripts/backup-local.sh` /
+`backup-aiven.sh`.
 
 ## Known gotchas
 
-1. **`MASTER_INSTALL.sql` is out of date.** It reflects the schema as of 2026-05-20, not today. For the current schema, you need baseline + all `scripts/` in order.
-2. **Retroactive scripts.** Scripts tagged `[RETROACTIVE]` in `INDEX.md` document schema changes that were made by directly editing `aiven/NN_*.sql` before the incremental-only policy existed (pre-2026-04-25). They are idempotent no-ops against the current live DB — they exist purely for traceability.
-3. **`INDEX.md` is the source of truth for what's applied.** If a script is missing from the table, it's not tracked. Keep it up to date.
-4. **Two TS companion scripts.** `add-libre-number.ts` and `backfill-libre-numbers.ts` in `scripts/` are one-time data fixers (not schema migrations). They ran once and are kept for reference; do not re-run.
+1. **`MASTER_INSTALL.sql` is out of date.** It reflects the schema as of
+   2026-05-20, not today. For the current schema, you need baseline + all
+   `scripts/` in order.
+2. **Retroactive scripts.** Scripts tagged `[RETROACTIVE]` in `INDEX.md`
+   document schema changes that were made by directly editing `aiven/NN_*.sql`
+   before the incremental-only policy existed (pre-2026-04-25). They are
+   idempotent no-ops against the current live DB — they exist purely for
+   traceability.
+3. **`INDEX.md` is the source of truth for what's applied.** If a script is
+   missing from the table, it's not tracked. Keep it up to date.
+4. **Two TS companion scripts.** `add-libre-number.ts` and
+   `backfill-libre-numbers.ts` in `scripts/` are one-time data fixers (not
+   schema migrations). They ran once and are kept for reference; do not re-run.
 
 ## Cross references
 

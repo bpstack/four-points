@@ -40,7 +40,8 @@ side exists on the other — that is exactly how the two Zod majors coexist.
   same `SECRET_JWT_KEY`
 - **Validation**: Zod
 - **Testing**: Vitest
-- **External Services**: Cloudinary (images/PDFs), Nodemailer (email, optional)
+- **External Services**: Cloudinary (images/PDFs). Nodemailer is declared as a
+  dependency but not imported anywhere — email is not in use
 - **Package Manager**: pnpm
 
 ## Up-to-date Documentation (Context7 MCP)
@@ -87,7 +88,9 @@ Flow: `resolve-library-id` → `query-docs` with the ID, **the version from the
 table**, and the specific topic. If that exact version is not indexed, use the
 closest minor below and state which one you consulted.
 
-### Installed Versions (source of truth: the **lockfiles**, not the `^` ranges in `package.json`)
+### Installed Versions (source of truth: the **lockfiles**, not the `^` ranges
+
+in `package.json`)
 
 - **`next`** 16.0.8 (frontend) — App Router + Turbopack. React 19.1.1
 - **`@tanstack/react-query`** 5.90.11 (frontend) — v5: `isPending`, single
@@ -95,35 +98,38 @@ closest minor below and state which one you consulted.
 - **`zod`** 3.25.76 (frontend) — ⚠️ v3. Range is `^3.25.17`: resolves to
   3.25.76, check the lockfile
 - **`zod`** 4.0.5 (backend) — ⚠️ v4 — different API from frontend
-- **`next-intl`** 4.6.1 (frontend) — v4: `routing.ts` + `createNavigation`
-- **`pdf-lib`** 1.17.1 (frontend) — Verify before touching font/image embedding
+- **`next-intl`** 4.6.1 (frontend) — v4: locale resolved in
+  `frontend/app/i18n/request.ts`: cookie `NEXT_LOCALE`, then Vercel header
+  `x-vercel-ip-country`, then `Accept-Language`, default `es`. No `routing.ts`,
+  no locale in the URL
+- **`pdf-lib`** 1.17.1 (frontend) — Verify font/image embedding before use
 - **`cloudinary`** 2.8.0 (backend) — SDK v2, API different from v1 in most
   examples
 - **`tailwindcss`** 3.4.17 (frontend) — **v3, not v4** — no
   `@import "tailwindcss"` or `@theme`
-- **`express`** 5.1.0 (backend) — v5: automatic async errors, path-to-regexp 8,
+- **`express`** 5.1.0 (backend) — v5: async errors automatic, path-to-regexp 8,
   `req.query` getter
 - **`zustand`** 5.0.8 (frontend) — v5 without default selectors
 - **`react-hook-form`** 7.66.0 (frontend) — With `@hookform/resolvers` 5.x
   (breaking vs 3.x)
-- **`react-day-picker`** 9.11.1 (frontend) — v9 renamed props and CSS variables
+- **`react-day-picker`** 9.11.1 (frontend) — v9 renamed props and CSS vars
 - **`multer`** 2.0.2 (backend) — v2 breaks from the 1.x in common examples
-- **`pdf-parse`** 1.1.1 (backend) — **Pinned to v1 on purpose — do not upgrade**
-  (v2 → OOM on Render). See `backend/services/fnb/CLAUDE.md`
+- **`pdf-parse`** 1.1.1 (backend) — **Pinned to v1** (v2 → OOM on Render). See
+  `backend/services/fnb/CLAUDE.md`
 - **`vitest`** 4.0.16 (backend) — Mock API and `environment` different from
   v1/v2
 - **`framer-motion`** 12.23.22 (frontend) — ⚠️ v12 still publishes as
   `framer-motion`, but the current upstream package is `motion`. Import from
   `framer-motion`, **never** from `motion/react`
-- **`date-fns`** 4.1.0 (frontend) — v4 adds timezone system and changes several
-  imports from v2/v3
-- **`@nextui-org/react`** 2.6.11 (frontend) — Package `@nextui-org`, **not** the
+- **`date-fns`** 4.1.0 (frontend) — v4 adds timezone system, changes imports
+  from v2/v3
+- **`@nextui-org/react`** 2.6.11 (frontend) — Package `@nextui-org`, **not**
   `@heroui` rebrand
 - **`recharts`** 3.5.1 (frontend) — v3 changed types and some defaults from v2
 - **`pdfjs-dist`** 5.4.449 (frontend) — Worker configuration differs by major;
   bundler-sensitive
-- **`xlsx`** 0.18.5 (frontend) — Distributed outside the public npm registry; do
-  not assume API from newer versions
+- **`xlsx`** 0.18.5 (frontend) — Outside public npm registry; do not assume
+  newer API
 - **`typescript`** 5.7.3 (frontend) / 5.9.3 (backend) — Different versions per
   project
 
@@ -184,9 +190,8 @@ pnpm test:coverage    # Run tests with coverage report
 
 - SQL scripts are in `backend/db-mysql/`. Policy and schema overview:
   `backend/db-mysql/CLAUDE.md`
-- ⚠️ **Never** run `MASTER_INSTALL*.sql` or `aiven/NN_*.sql` against a database
-  that already holds data — both local and Aiven are populated. These are
-  first-install scripts only.
+- ⚠️ **Never** run `MASTER_INSTALL*.sql` or `aiven/NN_*.sql` against a DB with
+  data — both local and Aiven are populated. First-install scripts only.
 - Any schema change goes in a new idempotent
   `backend/db-mysql/scripts/YYYYMMDD_*.sql`, plus a row in the "Migraciones
   incrementales" table of `backend/db-mysql/INDEX.md`.
@@ -198,6 +203,17 @@ Prettier with the root config (`.prettierrc`): aligned GitHub-flavored tables,
 `embeddedLanguageFormatting: off` (**no** reformatting code inside ` ``` `
 blocks — respect the original style).
 
+**The same Markdown rule applies everywhere.** Prettier uses the nearest config,
+so `backend/.prettierrc` and `frontend/.prettierrc` repeat it in a `*.md`
+override (80 columns, `proseWrap: always`); their code settings are unchanged.
+`frontend/.prettierignore` leaves out the checklist guides and references in
+`frontend/content/checklist/`, which the app renders, until they are edited on
+purpose.
+
+**Lines over 80 columns are only acceptable** inside code blocks and where the
+line is a single unbreakable piece (a long inline code span or link). Prose and
+tables are not an exception: see the next rule.
+
 **Tables only for short cells.** Prettier aligns tables but cannot break a cell,
 so a long sentence widens the whole table and the editor misaligns it. If any
 row exceeds 80 columns (`printWidth`) or a cell has more than one sentence, use
@@ -206,7 +222,7 @@ the repo (including `docs/`) when creating or editing a table; old ones are
 fixed when touched.
 
 ```bash
-./frontend/node_modules/.bin/prettier --write "*.md"
+./frontend/node_modules/.bin/prettier --write "*.md" "docs/**/*.md" "**/AGENTS.md"
 ```
 
 ## Commit and Push Conventions
@@ -289,7 +305,8 @@ data.
 - Logging / monitoring → `backend/config/logger.ts`; business audit trail in
   `backend/services/logbook/` and
   `backend/repositories/logbook/logbookHistory-repository.ts`
-- Validation / errors (data access) → `backend/repositories/` and the triggers y
+- Validation / errors (data access) → `backend/repositories/` and the triggers
+  and procedures in `backend/db-mysql/` (parking availability, booking code)
   procedimientos de `backend/db-mysql/` (disponibilidad de parking, código de
   reserva)
 - Frontend → `frontend/app/`
@@ -940,7 +957,9 @@ Get-ChildItem -Recurse -Include *.js,*.ts -Exclude node_modules,dist | Select-St
 ## External Services
 
 - **Cloudinary**: Image upload and storage
-- **Nodemailer**: Email notifications (configured but optional)
+- **Nodemailer**: declared as a dependency but
+  `backend/services/group/email-service.ts` is not imported by any file — email
+  sending is not in use
 
 ## Development Workflow
 
