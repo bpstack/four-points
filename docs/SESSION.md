@@ -61,6 +61,9 @@ alta **hay que resolverlos o sacarlos de ahí antes de publicar**.
 
 ## Cuidado con esto
 
+- **Los `CLAUDE.md` de módulo no son fuente fiable**: el de logbook citaba tres
+  tablas que nunca existieron. Se contrastan siempre con el código y la BD, y
+  están pendientes de fusionarse en `AGENTS.md` (ver `TODO.md`).
 - **Nada de `docs/_archive/` se publica**, tampoco `roadmap-history.md`
   (ADR-009). Si algo de ahí debe ser público, se copia fuera.
 - **El antiguo `TODO.md` de la raíz (ahora en `docs/_archive/TODO.md`) tiene

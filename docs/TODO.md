@@ -108,6 +108,20 @@ hace que alguien reimplemente lo que ya existe.
       `568bc98` y `2be5df9`) y en las BD local y Aiven, donde solo existen
       `logbooks`, `logbook_comments`, `logbook_reads` y `logbook_history`._
 
+- [ ] **Fusionar cada `CLAUDE.md` en el `AGENTS.md` de su directorio** —
+      el contenido pasa a `AGENTS.md` (se crea si no existe) y cada
+      `CLAUDE.md` queda como puntero que redirige a él. Cómo se gestionan
+      después los `AGENTS.md` se decide más adelante. Al fusionar, corregir
+      lo que el código desmiente (ver las entradas de `CLAUDE.md` en esta
+      lista). _Inventario del 2026-09-28: 17 `CLAUDE.md` versionados y un
+      solo `AGENTS.md` (raíz, con contenido propio duplicado). Ninguno es
+      todavía un puntero. Los otros 16 directorios no tienen `AGENTS.md`:_
+  - _`backend/`: `db-mysql`, `scheduling-solver` y, en `services/`,
+    `backoffice`, `blacklist`, `cashier`, `checklist`, `fnb`, `group`,
+    `logbook`, `parking` y `scheduling`._
+  - _`frontend/app/`: `components/cashier`, `components/groups`,
+    `components/maintenance`, `components/scheduling` y `dashboard/parking`._
+
 ## 🟢 Baja
 
 - [ ] **Logbook: editar una entrada ajena devuelve 500** — el servicio lanza un
