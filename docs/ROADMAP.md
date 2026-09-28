@@ -57,9 +57,9 @@ cuando está hecho y probado.
 ## Fase 2 — Limpieza del historial
 
 Análisis, propuesta, limpieza con `git-filter-repo` y auditoría, sobre un clon y
-sin push, **en todas las ramas** (ADR-026). La lista de privados la aprueba el
-propietario (ADR-005). Hallazgo previo: volcados de BD en
-`backend/db-mysql/backup/` (ver `SESSION.md`).
+sin push, **en todas las ramas** (ADR-026). Reglas, procedimiento y candidatos
+conocidos en `GITCLEAN.md`; la lista de privados la aprueba el propietario
+(ADR-005).
 
 ## Fase 4 — Publicación
 

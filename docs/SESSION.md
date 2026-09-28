@@ -13,9 +13,10 @@ propio fichero) o ruido (se borra).
 
 ## Estado
 
-Preparación del repositorio para publicarlo como open source. Plan en
-`OPEN-SOURCE.md` (raíz); orden de fases en `ROADMAP.md`; decisiones en
-`DECISIONS.md` (ADR-001 a ADR-027).
+Preparación del repositorio para publicarlo como open source. Orden de fases en
+`ROADMAP.md`; decisiones en `DECISIONS.md` (ADR-001 a ADR-028); procedimiento de
+la limpieza del historial en `GITCLEAN.md`. El plan original (`OPEN-SOURCE.md`)
+está en `docs/_archive/`.
 
 Fase actual: **1c — Resolver `TODO.md` y probarlo en producción** (ADR-027). Las
 fases 1 y 1b quedaron cerradas el 2026-09-28; detalle en

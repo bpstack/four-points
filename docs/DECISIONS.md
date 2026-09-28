@@ -508,3 +508,19 @@
   expondría, y limpiar el historial antes obligaría a repetir la limpieza por
   todo lo que se commitee después.
 - **Revisa:** ADR-001 en el orden de las fases.
+
+## ADR-028 — `OPEN-SOURCE.md` se archiva; su parte vigente pasa a `docs/GITCLEAN.md`
+
+- **Estado:** ✅ aceptada (2026-09-28)
+- **Fecha:** 2026-09-28
+- **Decisión:**
+  - La sección 2 de `OPEN-SOURCE.md` (limpieza del historial: objetivo, reglas y
+    procedimiento) pasa a `docs/GITCLEAN.md`, en español, con lo decidido
+    después (ADR-006, ADR-026, ADR-027) y los candidatos a privados conocidos.
+  - El original se archiva en `docs/_archive/OPEN-SOURCE.md` y sale del
+    repositorio. Las ADR que lo citan (001, 004, 011) no se tocan.
+  - La raíz queda solo con `README.md`, `AGENTS.md` y `CLAUDE.md`; toda la
+    documentación vive en `docs/`.
+- **Motivo:** decisión del propietario: la documentación, dentro de `docs/`. De
+  las tres secciones del plan, la 1 está cumplida (fase 1, ADR-004 y ADR-011) y
+  la 3 la eliminó ADR-027; solo la 2 sigue vigente.
