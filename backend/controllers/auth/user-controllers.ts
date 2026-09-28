@@ -4,6 +4,7 @@ import { Request, Response } from 'express'
 import { UserRepository } from '../../repositories/auth/user-repository.js'
 import type { UpdateUserDTO } from '../../models/auth/index.js'
 import { logger } from '../../config/logger.js'
+import { validateUpdateUser, getValidationErrors } from '../../validations/auth/user-validation.js'
 
 // ============================================
 // USER CONTROLLERS
@@ -59,20 +60,18 @@ export const getUsersByRole = async (req: Request, res: Response): Promise<void>
 
 /**
  * Actualiza un usuario por ID
- * Accesible para el propio usuario o administradores
+ * Solo administradores (isRealAdmin en la ruta)
  */
 export const updateUser = async (req: Request, res: Response): Promise<void> => {
+  const validation = validateUpdateUser(req.body)
+  if (!validation.success) {
+    res.status(400).json({ errors: getValidationErrors(validation) })
+    return
+  }
+
   try {
-    const { username, email, role } = req.body as UpdateUserDTO
-
-    // Only admins can change roles
-    const resolvedRole = req.user?.role === 'admin' ? role : undefined
-
-    const updatedUser = await UserRepository.update(req.params.id, {
-      username,
-      email,
-      role: resolvedRole,
-    })
+    const { username, email, role } = validation.data as UpdateUserDTO
+    const updatedUser = await UserRepository.update(req.params.id, { username, email, role })
 
     if (!updatedUser) {
       res.status(404).json({ error: 'Usuario no encontrado' })
@@ -81,6 +80,19 @@ export const updateUser = async (req: Request, res: Response): Promise<void> => 
 
     res.status(200).json(updatedUser)
   } catch (error) {
+    const message = error instanceof Error ? error.message : ''
+    if (message === 'Usuario no encontrado') {
+      res.status(404).json({ error: message })
+      return
+    }
+    if (message.startsWith('Rol no válido')) {
+      res.status(400).json({ error: 'Rol no válido' })
+      return
+    }
+    if (message === 'El nombre de usuario o email ya existe') {
+      res.status(409).json({ error: message })
+      return
+    }
     logger.error({ err: error }, 'Error updateUser')
     res.status(500).json({ error: 'Error al actualizar usuario' })
   }

@@ -34,7 +34,11 @@ export const loginLimiter = rateLimit({
   legacyHeaders: false,
   // Use IP + username combination as key for more granular limiting
   keyGenerator: (req: Request) => {
-    const username = (req.body?.username || '').toLowerCase()
+    // Match utf8mb4_0900_ai_ci: 'Admin' and 'ádmin' are the same account
+    const username = String(req.body?.username || '')
+      .normalize('NFD')
+      .replace(/\p{M}/gu, '')
+      .toLowerCase()
     const ip = getIpKey(req)
     return `login-${ip}-${username}`
   },
@@ -43,6 +47,25 @@ export const loginLimiter = rateLimit({
       { event: 'rate_limit_exceeded', kind: 'login', ip: getIpKey(req), username: req.body?.username },
       '[SECURITY] login rate limit exceeded'
     )
+    res.status(429).json({
+      error: 'Demasiados intentos de inicio de sesión. Intenta de nuevo en 15 minutos.',
+    })
+  },
+})
+
+/**
+ * Per-IP cap on failed logins, across all usernames (credential stuffing).
+ * Only failures count: hotel staff share one public IP.
+ */
+export const loginIpLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  skipSuccessfulRequests: true,
+  standardHeaders: false,
+  legacyHeaders: false,
+  keyGenerator: (req: Request) => `login-ip-${getIpKey(req)}`,
+  handler: (req: Request, res: Response) => {
+    logger.warn({ event: 'rate_limit_exceeded', kind: 'login_ip', ip: getIpKey(req) }, '[SECURITY] login IP rate limit exceeded')
     res.status(429).json({
       error: 'Demasiados intentos de inicio de sesión. Intenta de nuevo en 15 minutos.',
     })

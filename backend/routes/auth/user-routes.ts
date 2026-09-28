@@ -11,7 +11,7 @@ import {
 } from '../../controllers/auth/user-controllers.js'
 
 import { authenticateToken } from '../../middlewares/authenticateToken.js'
-import { isAdmin, isOwnerOrAdmin } from '../../middlewares/roleCheck.js'
+import { isAdmin, isOwnerOrAdmin, isRealAdmin } from '../../middlewares/roleCheck.js'
 
 const router: Router = express.Router()
 
@@ -28,12 +28,13 @@ router.get('/', isAdmin, getAllUsers)
 router.get('/role/:role', isAdmin, getUsersByRole)
 router.delete('/:id', isAdmin, deleteUser)
 router.post('/:id/reset-password', isAdmin, resetUserPassword)
+// Users edit their own username via PATCH /api/auth/me/profile (requires current password)
+router.put('/:id', isRealAdmin, updateUser)
 
 // ========================================
 // OWNER OR ADMIN ROUTES
 // ========================================
 
 router.get('/:id', isOwnerOrAdmin, getUserById)
-router.put('/:id', isOwnerOrAdmin, updateUser)
 
 export default router

@@ -16,6 +16,7 @@ import {
 import { authenticateToken } from '../../middlewares/authenticateToken.js'
 import {
   loginLimiter,
+  loginIpLimiter,
   refreshLimiter,
   passwordChangeLimiter,
   profileUpdateLimiter,
@@ -44,7 +45,7 @@ const avatarUpload = multer({
 // PUBLIC ROUTES (no authentication)
 // ========================================
 
-router.post('/login', loginLimiter, login)
+router.post('/login', loginIpLimiter, loginLimiter, login)
 router.post('/refresh-token', refreshLimiter, refreshToken)
 
 // ========================================

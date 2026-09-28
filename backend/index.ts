@@ -40,9 +40,9 @@ import fnbRoutes from './routes/fnb/fnb-routes.js'
 
 const app = express()
 
-// Detrás del proxy de Render: una capa. Permite que req.ip y express-rate-limit
-// usen la IP real del cliente del header X-Forwarded-For en vez de la IP del proxy.
-app.set('trust proxy', 1)
+// Render chain (checked 2026-09-29): client -> Cloudflare -> Render LB (10.x) -> local proxy (::1).
+// Trust exactly those 3 hops so req.ip is the client and a client-sent X-Forwarded-For is ignored.
+app.set('trust proxy', 3)
 
 // ========================================
 // CONFIGURACIÓN DE SEGURIDAD
@@ -111,19 +111,6 @@ app.get('/', (_req: Request, res: Response) => {
     status: 'online',
     message: 'API funcionando correctamente',
     timestamp: new Date().toISOString(),
-  })
-})
-
-// TEMPORARY: diagnose the proxy chain for 'trust proxy'. Remove once the value is fixed.
-app.get('/debug-ip', (req: Request, res: Response) => {
-  res.json({
-    ip: req.ip,
-    ips: req.ips,
-    remoteAddress: req.socket.remoteAddress,
-    xForwardedFor: req.get('x-forwarded-for') ?? null,
-    cfConnectingIp: req.get('cf-connecting-ip') ?? null,
-    trueClientIp: req.get('true-client-ip') ?? null,
-    xRealIp: req.get('x-real-ip') ?? null,
   })
 })
 
