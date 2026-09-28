@@ -212,6 +212,9 @@ hace que alguien reimplemente lo que ya existe.
       desde el 2026-09-28 (ADR-014), y el repositorio ha contenido volcados de
       la BD (ADR-007). **Dejar escrito el procedimiento** (qué variable, en qué
       panel, cómo comprobar que todo sigue funcionando): no existe ninguno.
+      `SECRET_JWT_KEY` ya se cambió el 2026-09-29 en Render y en local (el
+      backend exige ahora 32 caracteres o más); el propietario lo generó sin
+      pasarlo por el agente.
 - [ ] **Logbook: cualquiera puede crear entradas en nombre de otro** —
       `createLogbook` (`backend/controllers/logbook/logbook-controllers.ts`)
       guarda el `author_id` que manda el cliente, no `req.user.id`. Rompe la
@@ -282,10 +285,6 @@ hace que alguien reimplemente lo que ya existe.
       `GEMINI_*`. Frontend: falta `NEXT_PUBLIC_APP_URL`; sobra
       `NEXT_PUBLIC_APP_NAME`. _Comprobado el 2026-09-28 contra los `process.env`
       del código versionado._
-- [ ] **Confirmar `NEXT_PUBLIC_APP_URL` en Vercel** — sin ella, crear usuarios
-      desde la UI devuelve `403 Origen no permitido`
-      (`frontend/app/api/auth/register/route.ts`). _No se puede comprobar desde
-      el repo._
 - [ ] **Comprobar si los cron se ejecutan en Render** — corren dentro del
       proceso del backend; si el plan gratuito lo duerme por inactividad, no se
       disparan. _No comprobado._
@@ -372,10 +371,12 @@ hace que alguien reimplemente lo que ya existe.
       `roles.name` y 7 claves foráneas (comparación del 2026-09-28).
 
 - [ ] **CSRF solo depende de `SameSite=Lax`** — sin token ni cabecera
-      obligatoria; CORS acepta con credenciales cualquier `*.vercel.app`. Render
-      sí tiene `NODE_ENV=production`: las cookies salen con `Secure`
-      (_comprobado el 2026-09-29_). _Según la revisión `security` L3 del
-      2026-09-28 (fichero y línea en el informe); no repasado por mí._
+      obligatoria, y el «sitio» de `SameSite` es todo `stackbp.es`, así que
+      cualquier otro subdominio cuenta como propio. Exigir una cabecera propia
+      en las peticiones que modifican obliga a tocar las más de 25 llamadas
+      `fetch` del frontend que no pasan por `apiClient` (server actions de
+      blacklist, groups y parking; backoffice). El comodín `*.vercel.app` de
+      CORS ya se quitó (_comprobado en producción el 2026-09-29_).
 - [ ] **El frontend no tiene Content-Security-Policy** (`frontend/vercel.json`).
       _Según la revisión `security` L3 del 2026-09-28 (fichero y línea en el
       informe); no repasado por mí._
@@ -723,14 +724,6 @@ hace que alguien reimplemente lo que ya existe.
       las fotos. _Sin comprobar._
 - [ ] **El API no envía `Cache-Control: no-store`** — afecta a lista negra, caja
       y PDFs de facturas. _Comprobado con `curl` el 2026-09-28._
-- [ ] **`apiClient` escribe cada URL en la consola en producción** — la búsqueda
-      de lista negra manda el documento (DNI) en la URL, que acaba en consola y
-      en logs de acceso. _Según la revisión `security` L3 del 2026-09-28
-      (fichero y línea en el informe); no repasado por mí._
-- [ ] **`apiClient` intenta borrar desde JS cookies HttpOnly** — no hace nada:
-      si el refresco falla, redirige a `/login` con la sesión viva. _Según la
-      revisión `security` L3 del 2026-09-28 (fichero y línea en el informe); no
-      repasado por mí._
 - [ ] **El controlador de notificaciones devuelve `error.message` de MySQL** al
       cliente. _Según la revisión `security` L3 del 2026-09-28 (fichero y línea
       en el informe); no repasado por mí._
@@ -745,18 +738,6 @@ hace que alguien reimplemente lo que ya existe.
       nadie. _Comprobado por mí el 2026-09-28._
 - [ ] **Certificado de Aiven duplicado** — en `backend/db-mysql/aiven/` y en
       `backend/config/certs/`. _Comprobado por mí el 2026-09-28._
-- [ ] **JWT sin algoritmo fijado** — `jwt.verify` sin `algorithms`, `issuer` ni
-      `audience`; hoy no explotable con jsonwebtoken 9. _Según la revisión
-      `security` L3 del 2026-09-28 (fichero y línea en el informe); no repasado
-      por mí._
-- [ ] **Configuración débil sin control al arrancar** — no se comprueba la
-      longitud de `SECRET_JWT_KEY` ni un mínimo de `SALT_ROUNDS`. _Según la
-      revisión `security` L3 del 2026-09-28 (fichero y línea en el informe); no
-      repasado por mí._
-- [ ] **Comprobación de origen débil en `/api/auth/register`** — usa
-      `startsWith` y deja pasar peticiones sin `Origin`. _Según la revisión
-      `security` L3 del 2026-09-28 (fichero y línea en el informe); no repasado
-      por mí._
 - [ ] **Datos sensibles en los logs** — usernames de logins fallidos, `redact`
       de un solo nivel y, probablemente, `err.sql` de mysql2 con los valores
       (textos, matrículas, hashes). _Según la revisión `security` L3 del
