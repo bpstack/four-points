@@ -15,21 +15,17 @@ propio fichero) o ruido (se borra).
 
 Preparación del repositorio para publicarlo como open source. Plan en
 `OPEN-SOURCE.md` (raíz); orden de fases en `ROADMAP.md`; decisiones en
-`DECISIONS.md` (ADR-001 a ADR-022).
+`DECISIONS.md` (ADR-001 a ADR-025).
 
-Fase actual: **1b — Rescate del archivo** (ADR-022), antes de la fase 2. La fase
-1 quedó cerrada el 2026-09-28 (los 12 módulos documentados, `README.md` de la
-raíz escrito); detalle en `docs/_archive/roadmap-history.md` (local).
+Fase actual: **2 — Limpieza del historial**. Las fases 1 y 1b quedaron cerradas
+el 2026-09-28; detalle en `docs/_archive/roadmap-history.md` (local).
 
 ## ⚠️ Empieza por aquí
 
-1. **Fase 1b en curso: rescate de `docs/_archive/`, poco a poco y en detalle.**
-   Hecho: `SCHEDULING-CONSTRAINTS.md` y `SCHEDULING-DECISIONS-LOG.md` pasaron a
-   `docs/scheduling/constraints.md` y `decisions.md`, en inglés y sin nombres
-   del personal; los originales, a `docs/_archive/` (ADR-021). Los pendientes
-   del `TODO.md` antiguo están en `TODO-old.md`, que se vacía en esta fase.
-   Siguientes candidatos: los de la fase 1b en `ROADMAP.md`. Nada se sube (push)
-   hasta que todo esté arreglado.
+1. **Fase 1b cerrada**: lo trascendental del archivo está en `docs/` y
+   `TODO.md`; lo demás sigue en `_archive/` (criterio del propietario:
+   simplicidad). Siguiente: fase 2, que depende de las decisiones de "Esperando
+   decisión". Nada se sube (push) hasta que todo esté arreglado.
 2. **Idiomas:** se trabaja en español; la documentación pública de `docs/` va en
    inglés y no cita ADR ni `TODO.md`. `DECISIONS.md`, `ROADMAP.md`, `SESSION.md`
    y `TODO.md` siguen en español y no se publicarán.
@@ -75,8 +71,6 @@ muerto, decisiones previas a publicar) están en `TODO.md`. Los de prioridad alt
   encontradas quedan en `TODO.md` y siguen sin aplicarse a los `AGENTS.md`.
 - **Nada de `docs/_archive/` se publica**, tampoco `roadmap-history.md`
   (ADR-009). Si algo de ahí debe ser público, se copia fuera.
-- **`TODO-old.md` tiene una entrada local del PC `dz`** (_Mantenimiento local_:
-  borrar los `.bak` de la limpieza de permisos): no debe pasar a `TODO.md`.
 - **`backend/db-mysql/aiven/19_scheduling.sql` sigue citando
   `SCHEDULING-CONSTRAINTS.md §7.5`** en un comentario: los scripts 01–19 no se
   tocan (ADR-021). La sección equivalente es

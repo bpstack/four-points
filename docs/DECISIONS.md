@@ -416,3 +416,54 @@
   pendientes de Sentry, Cloudflare Access, el horizonte 2 de seguridad,
   checklist y la fase 3 del solver no estaban en ningún fichero vigente.
 - **Revisa:** ADR-020 en la lista de ficheros de trabajo, que eran cuatro.
+
+## ADR-023 — El servidor no guarda sesiones: no hay revocación de tokens
+
+- **Estado:** ✅ aceptada (2026-05-15, recuperada del plan archivado el
+  2026-09-28)
+- **Fecha:** 2026-05-15
+- **Decisión:** no se crea una tabla de `refresh_tokens` ni se rotan o revocan
+  tokens en el servidor. Para cerrar todas las sesiones a la vez se cambia
+  `SECRET_JWT_KEY` en Render (lo documenta `docs/general/README.md`).
+- **Motivo:** las cookies son `HttpOnly`, así que un XSS no las lee; perder un
+  portátil o una fuga se cubren rotando la clave, que desconecta a menos de 30
+  usuarios. La tabla exigía migración, cambios en login, renovación, logout y
+  contraseña, y un despliegue que podía romper las sesiones activas. Coste alto
+  para un riesgo residual bajo.
+- **Alcance:** no cubre que la renovación vuelva a leer el usuario en la BD
+  (rol, activo o borrado). Eso sigue siendo un fallo en `TODO.md` y se arregla
+  sin tabla.
+- **Reabrir si:** pasa de 50 usuarios, se abre a tráfico público o entra en un
+  marco regulado (PCI, ePrivacy estricta…).
+- **Origen:** `docs/_archive/Global-Plan.md`, decisión D-3 y §0.2.
+
+## ADR-024 — El demo público queda deshabilitado, sin borrar su código
+
+- **Estado:** ✅ aceptada (2026-05-12, recuperada del plan archivado el
+  2026-09-28)
+- **Fecha:** 2026-05-12
+- **Decisión:** el usuario `demo` se desactiva (`is_active = 0`, script
+  `backend/db-mysql/scripts/20260512_disable_demo_user.sql`) y su alta queda
+  comentada en `MASTER_INSTALL.sql`. El rol `demo-admin` y el middleware
+  `demoRestriction` siguen en el código.
+- **Motivo:** sin multi-tenancy, el demo y los datos reales comparten las mismas
+  tablas. Conservar el código permite reabrirlo si se separan los datos.
+- ❓ No comprobado en la BD que `demo` siga inactivo hoy.
+- **Origen:** `docs/_archive/Global-Plan.md`, decisión D-1 y §5.
+
+## ADR-025 — Sin multi-tenancy ni `render.yaml` hasta que haga falta
+
+- **Estado:** ✅ aceptada (2026-05-15, recuperada del plan archivado el
+  2026-09-28)
+- **Fecha:** 2026-05-15
+- **Decisión:**
+  - **Multi-tenancy diferida**: un solo hotel. Algunas tablas ya llevan
+    `hotel_id` fijo a 1 (checklist).
+  - **Sin Blueprint de Render (`render.yaml`)**: la configuración de despliegue
+    vive en los paneles de Render y Vercel.
+- **Motivo:** con un servicio, un entorno y un cliente, las dos cosas son
+  ceremonia. El precio aceptado es que la configuración de despliegue no está en
+  el repositorio.
+- **Reabrir si:** llega un segundo hotel o cliente externo (multi-tenancy), o un
+  segundo entorno o servicio (`render.yaml`).
+- **Origen:** `docs/_archive/Global-Plan.md`, decisiones D-4 y H1-16.5.

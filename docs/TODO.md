@@ -220,7 +220,8 @@ hace que alguien reimplemente lo que ya existe.
       `CLAUDE_API_KEY`, `GEMINI_API_KEY`, `GROQ_API_KEY`, `MINIMAX_API_KEY`,
       `OPENAI_COMPAT_API_KEY`). El agente tuvo acceso a `.env`, BD y volcados
       desde el 2026-09-28 (ADR-014), y el repositorio ha contenido volcados de
-      la BD (ADR-007).
+      la BD (ADR-007). **Dejar escrito el procedimiento** (qué variable, en qué
+      panel, cómo comprobar que todo sigue funcionando): no existe ninguno.
 - [ ] **Logbook: cualquiera puede crear entradas en nombre de otro** —
       `createLogbook` (`backend/controllers/logbook/logbook-controllers.ts`)
       guarda el `author_id` que manda el cliente, no `req.user.id`. Rompe la
@@ -230,7 +231,9 @@ hace que alguien reimplemente lo que ya existe.
       `authenticateToken` (`backend/middlewares/`) ni `refreshToken`
       (`backend/controllers/auth/auth-controllers.ts`) consultan la BD, y cada
       renovación emite otro `refresh_token` de 7 días. _Comprobado el 2026-09-28
-      leyendo ambos: ninguno llama al repositorio de usuarios._
+      leyendo ambos: ninguno llama al repositorio de usuarios._ No choca con
+      ADR-023 (sin almacén de sesiones): basta con leer el usuario en la BD al
+      renovar, sin tabla de tokens.
 - [ ] **Access y refresh token son intercambiables** — mismo secreto y sin campo
       de tipo (`backend/services/auth/tokenService.ts`). Un `refresh_token`
       enviado como `Bearer` pasa `authenticateToken`, y un `access_token` sirve
@@ -247,6 +250,24 @@ hace que alguien reimplemente lo que ya existe.
 
 ## 🟡 Media
 
+- [ ] **Probar una restauración del backup de Aiven** antes de meter datos
+      reales — Aiven hace copias automáticas y existe
+      `backend/db-mysql/scripts/backup-aiven.sh`, pero no consta que se haya
+      probado a restaurar ninguna. Del plan archivado (`Global-Plan.md`, H3-8).
+- [ ] **Sentry para los errores** — no está instalado (_comprobado el
+      2026-09-28_). Esperaba un DSN. Cuando lo haya: `@sentry/node` en el
+      backend (`Sentry.init` al principio de `index.ts` y envolver el manejador
+      global de errores) y `@sentry/nextjs` en el frontend. El plan gratuito
+      (5000 errores al mes) basta.
+- [ ] **Cloudflare Zero Trust Access delante del frontend** — login con Google
+      antes de llegar a la app, solo para el equipo (gratis hasta 50 usuarios).
+      Hoy `four-points.stackbp.es` apunta directo a Vercel (_comprobado con DNS
+      el 2026-09-28_). Pasos: el DNS de `stackbp.es` en Cloudflare; el CNAME del
+      frontend con proxy activado (nube naranja); activar Zero Trust; Google
+      como proveedor de identidad; una aplicación _self-hosted_ para
+      `four-points.stackbp.es` con la lista de correos del equipo; probar en
+      incógnito. ⚠️ **No poner `api.four-points.stackbp.es` detrás**: el
+      navegador no podría llamar al API.
 - [ ] **Fnb: `manualEntry` acepta cualquier número, incluido negativo o
       absurdamente grande** — `z.record(z.string(), z.number())` en
       `backend/controllers/fnb/fnb-manual.controller.ts` no tiene `.min()`,
@@ -378,7 +399,11 @@ hace que alguien reimplemente lo que ya existe.
       copia el rol del token sin mirar la BD: quien pierde un rol lo conserva
       mientras siga renovando; cambiar la contraseña, `logout` o el reseteo por
       un `admin` no revocan nada. _Según la revisión `security` L3 del
-      2026-09-28 (fichero y línea en el informe); no repasado por mí._
+      2026-09-28 (fichero y línea en el informe). Comprobado el 2026-09-28:
+      `refreshToken` (`auth-controllers.ts`) firma los tokens nuevos con el
+      `role` del token viejo._ La parte del rol se arregla leyendo el usuario al
+      renovar; que `logout` o cambiar la contraseña no revoquen nada es la
+      decisión de ADR-023.
 - [ ] **Redirección abierta tras el login** — `useAuth.tsx` hace
       `router.push(callbackUrl)` sin comprobar que sea una ruta interna. _Según
       la revisión `security` L3 del 2026-09-28 (fichero y línea en el informe);
@@ -663,7 +688,9 @@ hace que alguien reimplemente lo que ya existe.
       pipeline de logs del resto de la app. _Comprobado por mí el 2026-09-28._
 - [ ] **Backoffice: notas `IMPORTANT-PRODUCTION.MD` obsoletas** en
       `frontend/app/components/bo/`: hablan de datos inventados que ya no se
-      usan. _Comprobado por mí el 2026-09-28._
+      usan. _Comprobado por mí el 2026-09-28._ Quitar también ese código:
+      `USE_MOCK_DATA` y `MOCK_INVOICES` en `PaidInvoicesTab.tsx` y
+      `_generateMockInvoices` en `SupplierInvoicesModal.tsx`.
 - [ ] **Backoffice: `demo-admin` ve IBAN, CIF y datos de contacto completos** de
       los proveedores. _Según la revisión `security` L3 del 2026-09-28 (fichero
       y línea en el informe); no repasado por mí._
@@ -834,10 +861,40 @@ hace que alguien reimplemente lo que ya existe.
       `_backup_httponly_cookies/`, más `frontend/app/lib/auth/cookieHandler.ts`
       (solo se usa `app/api/auth/register`); `app.set('view engine', 'ejs')` en
       `backend/index.ts`, sin `ejs` instalado. _Comprobado el 2026-09-28 con
-      búsqueda de imports._
+      búsqueda de imports._ Además: las dependencias del frontend `mysql2`,
+      `postgres`, `bcrypt` y `next-auth`, que nada importa; y los
+      `backend/debug-*.js`, con ids de mes fijos (`debug-sept.js` sale tras
+      listar los meses): arreglarlos o quitarlos, y con ellos su mención en
+      `backend/scheduling-solver/AGENTS.md`. _Comprobado el 2026-09-28._
+- [ ] **`backend/tests/README.md` está desfasado** — describe suites que ya no
+      existen (`phases.test.ts`, `ai-validator.test.ts`…). Reescribirlo en dos
+      líneas o borrarlo: cómo lanzar los tests ya está en
+      `docs/general/README.md`.
+- [ ] **Zod 3 en el frontend y Zod 4 en el backend** (`^3.25.17` frente a
+      `4.0.5`) — unificar si se llegan a compartir esquemas.
+- [ ] **Presencias a mano** — la pestaña de presencias de `scheduling` pide
+      pegar el texto en un `textarea`; podría leerse de
+      `scheduling_assignments`.
 - [ ] **Proteger o quitar `/design-system` y `/fonts-test`** — son páginas de
       prueba y `proxy.ts` no las protege.
 - [ ] **Corregir el comentario de `canAccessFnb`**
       (`backend/middlewares/roleCheck.ts`) — no menciona `group-admin`, que sí
       tiene acceso.
 - [ ] **Tests en el frontend** — hoy no hay ninguno.
+- [ ] **Scheduling: cerrar la fase 3 del solver con uso real** — bloqueado hasta
+      que se generen meses de verdad. (1) Con ≥30 generaciones en
+      `scheduling_solver_runs`, buscar patrones (estado, penalización, desglose)
+      y anotarlos en `docs/scheduling/decisions.md`. (2) Probar el análisis de
+      `infeasible` con 3 casos imposibles a propósito (p. ej. 2 rotatorios y
+      cobertura mínima 3) y ver si las relajaciones que sugiere sirven. (3)
+      Ajustar los pesos: guardar la matriz publicada (falta la columna
+      `published_matrix`; hoy solo está `solver_matrix`), compararla con la del
+      solver y retocar pesos cada 2-3 meses; método en `decisions.md`, entrada
+      2026-05-09.
+- [ ] **Checklist: contenido que falta** (lo escribe el manager, no desarrollo)
+      — `tasks/housekeeping-daily.json` y las guías `fidelizacion-postcheckin.md` y
+      `balancing-opera.md` en `frontend/content/checklist/`.
+- [ ] **Seguridad cuando haya datos reales** (ideas del plan antiguo, no fallos)
+      — registro de auditoría de seguridad, 2FA opcional para `admin`, log
+      estructurado de los eventos de login y errores genéricos que no dejen
+      averiguar si un usuario existe.

@@ -32,22 +32,13 @@ El orden de 1 → 2 → 3 lo fija ADR-001; la 1b se intercala antes de la 2
 Los 12 módulos documentados y revisados con `security` L3, más el `README.md` de
 la raíz (ADR-008). Detalle en `docs/_archive/roadmap-history.md` (local).
 
-## Fase 1b — Rescate del archivo ← **actual**
+## Fase 1b — Rescate del archivo ✅ cerrada (2026-09-28)
 
-Revisar `docs/_archive/` fichero a fichero, **poco a poco y en detalle**: lo
-trascendental pasa a `docs/` (simplificándolo) o a `TODO.md`; lo demás se
-descarta de forma explícita. Los pendientes del `TODO.md` antiguo ya están en
-`TODO-old.md`, que se vacía en esta fase. Hecho: los dos `SCHEDULING-*` de la
-raíz (ADR-021).
+Lo trascendental de `docs/_archive/` rescatado a `docs/` y `TODO.md`, comprobado
+contra el código; `TODO-old.md` vaciado y borrado. Detalle en
+`docs/_archive/roadmap-history.md` (local).
 
-Candidatos detectados, sin leer todavía a fondo: `SCHEDULING-SOLVER-PLAN.md`
-(plan, riesgos y bucle de ajuste de pesos), `docs/backend/scheduling/`
-(`solver-setup.md`: entorno Python, protocolo stdin/stdout, estados del daemon),
-y la documentación de operación (`environment-variables.md`,
-`productionAuthSetup.md`, `Render.md`, `security-implementation.md`,
-`i18n-roadmap.md`).
-
-## Fase 2 — Limpieza del historial
+## Fase 2 — Limpieza del historial ← **actual**
 
 Análisis, propuesta, limpieza con `git-filter-repo` y auditoría, sobre un clon y
 sin push. La lista de privados la aprueba el propietario (ADR-005). Hallazgo
