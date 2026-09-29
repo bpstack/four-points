@@ -36,15 +36,6 @@ export default function LoginPage() {
     }
   }
 
-  const validatePassword = (value: string) => {
-    if (value.length === 0) return
-    if (value.length < 6) {
-      setFieldErrors((prev) => ({ ...prev, password: t('errors.passwordMinLength') }))
-    } else {
-      setFieldErrors((prev) => ({ ...prev, password: '' }))
-    }
-  }
-
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
@@ -156,15 +147,13 @@ export default function LoginPage() {
                 <input
                   id="password"
                   type={showPassword ? 'text' : 'password'}
-                  placeholder={t('login.passwordMinHint')}
+                  placeholder={t('login.passwordPlaceholder')}
                   value={password}
                   onChange={(e) => {
                     setPassword(e.target.value)
                     if (fieldErrors.password) setFieldErrors({ ...fieldErrors, password: '' })
                   }}
-                  onBlur={(e) => validatePassword(e.target.value)}
                   required
-                  minLength={6}
                   className={`block w-full rounded-md border bg-surface-sunken py-2 pl-9 pr-10 text-sm text-fg placeholder-fg-subtle transition-colors focus:outline-none focus:ring-2 ${
                     fieldErrors.password
                       ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20'

@@ -8,6 +8,7 @@ import { FiUser, FiAlertCircle, FiUserPlus } from 'react-icons/fi'
 import { toast } from 'react-hot-toast'
 import { apiClient, ApiError } from '@/app/lib/apiClient'
 import { API_BASE_URL } from '@/app/lib/env'
+import { PASSWORD_MIN_LENGTH } from '@/app/lib/auth/passwordPolicy'
 import {
   SlidePanel,
   SlidePanelFooterButtons,
@@ -72,7 +73,7 @@ export default function NewUserModal({ isOpen, onClose, onSuccess }: NewUserModa
     formData.username.trim() &&
     formData.email.trim() &&
     formData.password.trim() &&
-    formData.password.length >= 6
+    formData.password.length >= PASSWORD_MIN_LENGTH
 
   return (
     <SlidePanel
@@ -150,7 +151,7 @@ export default function NewUserModal({ isOpen, onClose, onSuccess }: NewUserModa
             onChange={handleChange}
             placeholder={t('newUser.passwordPlaceholder')}
             required
-            minLength={6}
+            minLength={PASSWORD_MIN_LENGTH}
             className={inputClassName}
             disabled={loading}
           />

@@ -39,6 +39,7 @@ import { CenterModal, CenterModalFooterButtons, FormField, inputClassName } from
 import { GlobalNotificationModal } from '@/app/components/notifications/GlobalNotificationModal'
 import { SelectDropdown } from '@/app/ui/components/SelectDropdown'
 import { Checkbox } from '@/app/ui/components'
+import { PASSWORD_MIN_LENGTH } from '@/app/lib/auth/passwordPolicy'
 
 // Types
 interface User {
@@ -763,8 +764,8 @@ function UserTable({ users, onDelete }: { users: User[]; onDelete: (id: string) 
 
   const handleResetPassword = async () => {
     if (!resetPasswordModal || !newPassword) return
-    if (newPassword.length < 6) {
-      toast.error('La contraseña debe tener al menos 6 caracteres')
+    if (newPassword.length < PASSWORD_MIN_LENGTH) {
+      toast.error(`La contraseña debe tener al menos ${PASSWORD_MIN_LENGTH} caracteres`)
       return
     }
     if (newPassword !== confirmPassword) {
@@ -939,7 +940,9 @@ function UserTable({ users, onDelete }: { users: User[]; onDelete: (id: string) 
             onSubmit={handleResetPassword}
             submitText={resettingPassword ? 'Guardando...' : 'Guardar'}
             submitDisabled={
-              resettingPassword || newPassword.length < 6 || newPassword !== confirmPassword
+              resettingPassword ||
+              newPassword.length < PASSWORD_MIN_LENGTH ||
+              newPassword !== confirmPassword
             }
             isSubmitting={resettingPassword}
           />
@@ -952,7 +955,7 @@ function UserTable({ users, onDelete }: { users: User[]; onDelete: (id: string) 
                 type={showPassword ? 'text' : 'password'}
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
-                placeholder="Mínimo 6 caracteres"
+                placeholder={`Mínimo ${PASSWORD_MIN_LENGTH} caracteres`}
                 className={inputClassName}
                 autoFocus
               />
@@ -1142,11 +1145,7 @@ function SettingRow({
         <p className="text-sm font-medium text-fg">{label}</p>
         <p className="text-xs text-fg-subtle">{description}</p>
       </div>
-      <Checkbox
-        defaultChecked={defaultChecked}
-        hideLabel
-        label={label}
-      />
+      <Checkbox defaultChecked={defaultChecked} hideLabel label={label} />
     </div>
   )
 }

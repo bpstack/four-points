@@ -29,7 +29,7 @@
       "current": "Contraseña actual",
       "new": "Nueva contraseña",
       "confirm": "Confirmar nueva contraseña",
-      "minChars": "Mínimo 6 caracteres",
+      "minChars": "Mínimo 12 caracteres",
       "repeatPlaceholder": "Repite la nueva contraseña",
       "currentPlaceholder": "Contraseña actual",
       "warning": "Al cambiar tu contraseña, se cerrará tu sesión y deberás iniciar sesión nuevamente."
@@ -56,7 +56,7 @@
       "enterCurrentPassword": "Ingresa tu contraseña actual para confirmar",
       "enterPassword": "Ingresa tu contraseña actual",
       "enterNewPassword": "Ingresa la nueva contraseña",
-      "passwordMinLength": "La nueva contraseña debe tener al menos 6 caracteres",
+      "passwordMinLength": "La nueva contraseña debe tener al menos 12 caracteres",
       "passwordsNoMatch": "Las contraseñas no coinciden",
       "passwordMustDiffer": "La nueva contraseña debe ser diferente a la actual"
     },

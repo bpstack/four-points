@@ -4,7 +4,7 @@ import { Request, Response } from 'express'
 import { UserRepository } from '../../repositories/auth/user-repository.js'
 import type { UpdateUserDTO } from '../../models/auth/index.js'
 import { logger } from '../../config/logger.js'
-import { validateUpdateUser, getValidationErrors } from '../../validations/auth/user-validation.js'
+import { validateUpdateUser, getValidationErrors, newPasswordSchema } from '../../validations/auth/user-validation.js'
 
 // ============================================
 // USER CONTROLLERS
@@ -124,12 +124,12 @@ export const deleteUser = async (req: Request, res: Response): Promise<void> => 
  */
 export const resetUserPassword = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { newPassword } = req.body
-
-    if (!newPassword || newPassword.length < 6) {
-      res.status(400).json({ error: 'La contraseña debe tener al menos 6 caracteres' })
+    const parsed = newPasswordSchema.safeParse(req.body?.newPassword)
+    if (!parsed.success) {
+      res.status(400).json({ error: parsed.error.issues[0].message })
       return
     }
+    const newPassword = parsed.data
 
     const success = await UserRepository.resetPassword(req.params.id, newPassword)
 

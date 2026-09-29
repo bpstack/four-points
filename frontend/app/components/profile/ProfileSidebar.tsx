@@ -27,6 +27,7 @@ import {
   FiUpload,
 } from 'react-icons/fi'
 import { cn } from '@/app/lib/helpers/utils'
+import { PASSWORD_MIN_LENGTH } from '@/app/lib/auth/passwordPolicy'
 
 const API_URL = API_BASE_URL
 const MAX_FILE_SIZE = 2 * 1024 * 1024 // 2MB
@@ -179,7 +180,7 @@ export function ProfileSidebar() {
       return
     }
 
-    if (newPassword.length < 6) {
+    if (newPassword.length < PASSWORD_MIN_LENGTH) {
       setPasswordError(t('validation.passwordMinLength'))
       return
     }
@@ -669,28 +670,17 @@ function NavButton({
         <div
           className={cn(
             'p-2 rounded-md',
-            active
-              ? 'bg-accent/10 text-accent'
-              : 'bg-surface-hover text-fg-subtle'
+            active ? 'bg-accent/10 text-accent' : 'bg-surface-hover text-fg-subtle'
           )}
         >
           {icon}
         </div>
         <div>
-          <p
-            className={cn(
-              'text-sm font-medium',
-              active ? 'text-accent' : 'text-fg'
-            )}
-          >
-            {label}
-          </p>
+          <p className={cn('text-sm font-medium', active ? 'text-accent' : 'text-fg')}>{label}</p>
           <p className="text-xs text-fg-subtle">{description}</p>
         </div>
       </div>
-      <FiChevronRight
-        className={cn('w-4 h-4', active ? 'text-accent' : 'text-fg-subtle')}
-      />
+      <FiChevronRight className={cn('w-4 h-4', active ? 'text-accent' : 'text-fg-subtle')} />
     </button>
   )
 }

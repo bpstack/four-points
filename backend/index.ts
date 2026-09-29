@@ -75,7 +75,8 @@ app.use(
         callback(null, true)
       } else {
         logger.warn({ origin }, '[CORS] Blocked origin')
-        callback(new Error('Not allowed by CORS'))
+        // Must stay an error: callback(null, false) would let simple requests reach the routes
+        callback(Object.assign(new Error('Origen no permitido'), { status: 403 }))
       }
     },
     credentials: true,
@@ -190,6 +191,11 @@ interface HttpError extends Error {
 }
 
 app.use((err: HttpError, req: Request, res: Response, _next: NextFunction) => {
+  if (err.status && err.status < 500) {
+    res.status(err.status).json({ error: err.message })
+    return
+  }
+
   logger.error({ err, path: req.path, method: req.method }, 'Unhandled error')
 
   res.status(err.status || 500).json({

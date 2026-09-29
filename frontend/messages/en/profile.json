@@ -29,7 +29,7 @@
       "current": "Current password",
       "new": "New password",
       "confirm": "Confirm new password",
-      "minChars": "Minimum 6 characters",
+      "minChars": "Minimum 12 characters",
       "repeatPlaceholder": "Repeat new password",
       "currentPlaceholder": "Current password",
       "warning": "When changing your password, you will be logged out and need to sign in again."
@@ -56,7 +56,7 @@
       "enterCurrentPassword": "Enter your current password to confirm",
       "enterPassword": "Enter your current password",
       "enterNewPassword": "Enter new password",
-      "passwordMinLength": "New password must be at least 6 characters",
+      "passwordMinLength": "New password must be at least 12 characters",
       "passwordsNoMatch": "Passwords do not match",
       "passwordMustDiffer": "New password must be different from current"
     },

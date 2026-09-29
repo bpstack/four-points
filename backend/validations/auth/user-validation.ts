@@ -3,11 +3,20 @@
 import { z } from 'zod'
 import type { ValidationErrors } from '../../models/auth/index.js'
 
+// Applies to new, changed and reset passwords; login accepts older shorter ones
+export const PASSWORD_MIN_LENGTH = 12
+const PASSWORD_MAX_LENGTH = 72 // bcrypt ignores bytes beyond 72
+
+export const newPasswordSchema = z
+  .string()
+  .min(PASSWORD_MIN_LENGTH, `La contraseña debe tener al menos ${PASSWORD_MIN_LENGTH} caracteres`)
+  .max(PASSWORD_MAX_LENGTH, `La contraseña no puede exceder ${PASSWORD_MAX_LENGTH} caracteres`)
+
 // Esquema de validación para un nuevo usuario
 const userSchema = z.object({
   username: z.string().min(3, 'Username must be at least 3 characters long'),
   email: z.string().email('Invalid email address'),
-  password: z.string().min(6, 'Password must be at least 6 characters long'),
+  password: newPasswordSchema,
   role: z.string().optional(),
 })
 
@@ -42,10 +51,7 @@ const updateUserSchema = z
 // Esquema para actualizar contraseña
 const updatePasswordSchema = z.object({
   currentPassword: z.string().min(1, 'La contraseña actual es requerida'),
-  newPassword: z
-    .string()
-    .min(6, 'La nueva contraseña debe tener al menos 6 caracteres')
-    .max(100, 'La contraseña no puede exceder 100 caracteres'),
+  newPassword: newPasswordSchema,
   confirmPassword: z.string().min(1, 'Confirma la nueva contraseña'),
 }).refine((data) => data.newPassword === data.confirmPassword, {
   message: 'Las contraseñas no coinciden',
@@ -102,8 +108,8 @@ export const Validation = {
   username: (value: unknown): string =>
     z.string().min(3, 'Username must be at least 3 characters long').parse(value),
 
-  password: (value: unknown): string =>
-    z.string().min(6, 'Password must be at least 6 characters long').parse(value),
+  // Login only: existing passwords may predate PASSWORD_MIN_LENGTH
+  password: (value: unknown): string => z.string().min(1, 'Password is required').parse(value),
 
   role: (value: unknown): string | undefined => z.string().optional().parse(value),
 }
