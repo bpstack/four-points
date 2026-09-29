@@ -71,12 +71,6 @@ hace que alguien reimplemente lo que ya existe.
       acceso de escritura; el trigger reescribe los totales del día. _Según la
       revisión `security` L3 del 2026-09-28 (fichero y línea en el informe); no
       repasado por mí._
-- [ ] **Cashier: el total diario de efectivo se infla** — el trigger
-      `trg_cashier_shift_update_daily` suma el efectivo del turno una vez por
-      cada pago electrónico (LEFT JOIN). En Aiven, el 2026-01-05 guarda 4000,00
-      € frente a 2200,00 € reales. Además hay otros dos cálculos de totales que
-      compiten con él. _Comprobado por mí el 2026-09-28._ (los otros dos
-      cálculos, según el revisor)
 - [ ] **Cashier: el descuadre calculado en el servidor siempre es 0** —
       `income = contado − fondo` y luego `esperado = fondo + income`; los vales
       se ignoran. Los informes nunca muestran descuadre. _Comprobado por mí el
