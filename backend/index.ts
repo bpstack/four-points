@@ -53,9 +53,10 @@ app.disable('x-powered-by')
 // CSP deshabilitado — API pura JSON, no sirve HTML ni assets
 app.use(helmet({ contentSecurityPolicy: false }))
 
-// CORS (antes de todo)
+// CORS (antes de todo). Also the CSRF defence: a request carrying any other Origin
+// is rejected before the routes, including simple (non-preflighted) requests.
 const allowedOrigins = [
-  'http://localhost:3000',
+  ...(process.env.NODE_ENV === 'production' ? [] : ['http://localhost:3000']),
   'https://four-points.stackbp.es',
   'https://four-points.vercel.app',
   'https://api.four-points.stackbp.es',

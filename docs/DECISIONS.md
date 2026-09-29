@@ -525,3 +525,28 @@
 - **Motivo:** decisión del propietario: la documentación, dentro de `docs/`. De
   las tres secciones del plan, la 1 está cumplida (fase 1, ADR-004 y ADR-011) y
   la 3 la eliminó ADR-027; solo la 2 sigue vigente.
+
+## ADR-029 — CSRF: lista de orígenes del CORS más `SameSite=Lax`, sin token ni cabecera propia
+
+- **Estado:** ✅ aceptada (2026-09-29)
+- **Fecha:** 2026-09-29
+- **Decisión:**
+  - La defensa contra CSRF es la comprobación de origen del CORS en
+    `backend/index.ts`: toda petición con un `Origin` que no esté en la lista
+    recibe 403 **antes de llegar a las rutas**, también las simples que el
+    navegador no somete a preflight (`text/plain`, `multipart`), las de otro
+    subdominio de `stackbp.es` y `Origin: null`. Junto a las cookies
+    `SameSite=Lax`, basta.
+  - Ese rechazo **debe seguir siendo un error** del callback de `cors`: con
+    `callback(null, false)` las peticiones simples llegarían a las rutas.
+  - No se añade token CSRF ni cabecera obligatoria.
+  - **Ninguna ruta GET puede modificar datos**: una navegación normal envía las
+    cookies `Lax` sin `Origin`. Excepción revisada: `GET /api/checklists/:id/run`
+    abre el run del día y cierra los atrasados; es idempotente.
+  - `http://localhost:3000` solo está en la lista fuera de producción.
+- **Motivo:** los navegadores envían `Origin` en toda petición POST, PUT, PATCH
+  y DELETE, así que comprobarlo es la defensa de «verificar el origen» de OWASP.
+  Una cabecera obligatoria no añade nada y obligaría a tocar más de 25 llamadas
+  `fetch` del frontend. Comprobado en producción el 2026-09-29 con una sesión
+  de `admin` válida: los orígenes ajenos, del mismo sitio y `null` reciben 403;
+  el propio pasa.
