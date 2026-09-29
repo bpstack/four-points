@@ -87,6 +87,11 @@ describe('payments', () => {
     expect(r.success && r.data).toEqual({ amount: 10 })
   })
 
+  it('rejects an update left empty after stripping unknown keys', () => {
+    expect(updatePaymentSchema.safeParse({ group_id: 999 }).success).toBe(false)
+    expect(updateRoomSchema.safeParse({ group_id: 5 }).success).toBe(false)
+  })
+
   it('rejects negative amount_paid and non-numeric values', () => {
     expect(amountPaidSchema.safeParse({ amount_paid: -50 }).success).toBe(false)
     expect(amountPaidSchema.safeParse({ amount_paid: '100' }).success).toBe(false)

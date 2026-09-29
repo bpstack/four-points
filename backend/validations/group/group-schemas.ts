@@ -83,8 +83,15 @@ const paymentFields = {
   notes: text(500).nullish(),
 }
 
+// Unknown keys are stripped, so an update can end up empty: 400, not a repository error
+const hasFields = (d: object) => Object.keys(d).length > 0
+const noFieldsError = { message: 'No hay campos para actualizar', path: ['body'] }
+
 export const createPaymentSchema = z.object(paymentFields)
-export const updatePaymentSchema = z.object(paymentFields).partial()
+export const updatePaymentSchema = z
+  .object(paymentFields)
+  .partial()
+  .refine(hasFields, noFieldsError)
 export const paymentStatusSchema = z.object({ status: z.enum(PaymentStatus) })
 export const amountPaidSchema = z.object({ amount_paid: money })
 
@@ -96,7 +103,10 @@ const contactFields = {
 }
 
 export const createContactSchema = z.object(contactFields)
-export const updateContactSchema = z.object(contactFields).partial()
+export const updateContactSchema = z
+  .object(contactFields)
+  .partial()
+  .refine(hasFields, noFieldsError)
 
 const roomFields = {
   room_type: z.enum(RoomType),
@@ -106,7 +116,10 @@ const roomFields = {
 }
 
 export const createRoomSchema = z.object(roomFields)
-export const updateRoomSchema = z.object(roomFields).partial()
+export const updateRoomSchema = z
+  .object(roomFields)
+  .partial()
+  .refine(hasFields, noFieldsError)
 
 export const bookingSchema = z.object({
   confirmed: z.boolean(),
