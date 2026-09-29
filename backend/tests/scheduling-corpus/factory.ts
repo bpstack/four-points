@@ -8,10 +8,7 @@ import type {
   SchedulingDayRow,
   SchedulingShiftRow,
 } from '../../models/scheduling/index.js'
-import type {
-  Employee,
-  PreviousMonthHistory,
-} from '../../services/scheduling/types/index.js'
+import type { Employee, PreviousMonthHistory } from '../../services/scheduling/types/index.js'
 import type {
   FixtureConfig,
   FixtureEmployee,
@@ -368,4 +365,3 @@ export function buildPreviousMonthHistory(data: FixturePreviousMonthHistory): Pr
     endedWithNight: new Map(Object.entries(data.endedWithNight).map(([k, v]) => [k, Boolean(v)])),
   }
 }
-

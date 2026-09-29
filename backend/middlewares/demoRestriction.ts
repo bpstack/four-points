@@ -61,7 +61,12 @@ function sanitizeBodyForLog(body: unknown): string {
   return JSON.stringify(cleaned).substring(0, 500)
 }
 
-function logBlockedAttempt(req: Request, userId: string | undefined, username: string, fullPath: string): void {
+function logBlockedAttempt(
+  req: Request,
+  userId: string | undefined,
+  username: string,
+  fullPath: string
+): void {
   // Ejecutar sin await para no bloquear la respuesta
   DemoActivityRepository.logActivity({
     user_id: userId || null,
@@ -114,7 +119,8 @@ export function demoRestriction(req: Request, res: Response, next: NextFunction)
 
   res.status(403).json({
     success: false,
-    error: 'Acción no disponible en modo demo. Esta es una cuenta de demostración con funcionalidad limitada.',
+    error:
+      'Acción no disponible en modo demo. Esta es una cuenta de demostración con funcionalidad limitada.',
     demo: true,
   })
 }

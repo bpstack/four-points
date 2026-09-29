@@ -46,7 +46,10 @@ export async function deleteCommentController(req: Request, res: Response): Prom
   try {
     const { id, commentId } = req.params
     const deleted = await commentsService.removeComment(
-      id, Number(commentId), req.user!.id, isAdmin(req)
+      id,
+      Number(commentId),
+      req.user!.id,
+      isAdmin(req)
     )
     if (!deleted) {
       res.status(403).json({ error: 'No tienes permiso para eliminar este comentario' })
@@ -91,8 +94,13 @@ export async function addAttachmentController(req: Request, res: Response): Prom
       return
     }
     const attachment = await commentsService.addAttachment(
-      id, stepId, req.user!.id,
-      req.file.buffer, req.file.originalname, req.file.mimetype, req.file.size
+      id,
+      stepId,
+      req.user!.id,
+      req.file.buffer,
+      req.file.originalname,
+      req.file.mimetype,
+      req.file.size
     )
     res.status(201).json(attachment)
   } catch (err) {
@@ -106,7 +114,10 @@ export async function deleteAttachmentController(req: Request, res: Response): P
   try {
     const { id, attachmentId } = req.params
     const deleted = await commentsService.removeAttachment(
-      id, Number(attachmentId), req.user!.id, isAdmin(req)
+      id,
+      Number(attachmentId),
+      req.user!.id,
+      isAdmin(req)
     )
     if (!deleted) {
       res.status(403).json({ error: 'No tienes permiso para eliminar este adjunto' })

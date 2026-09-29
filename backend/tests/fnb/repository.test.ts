@@ -38,8 +38,8 @@ describe('fnb repository', () => {
     if (!dbAvailable) return
     const cats = await repo.getCategories()
     expect(cats.length).toBeGreaterThanOrEqual(7)
-    const codes = cats.map(c => c.code)
-    for (const c of ['21110','21124','21120','21111','21267','21112','21307']) {
+    const codes = cats.map((c) => c.code)
+    for (const c of ['21110', '21124', '21120', '21111', '21267', '21112', '21307']) {
       expect(codes).toContain(c)
     }
   })
@@ -56,14 +56,12 @@ describe('fnb repository', () => {
     expect(rows).toHaveLength(2)
 
     // Update via UPSERT — same date+code, new amount
-    await repo.upsertMany(TEST_DATE, [
-      { code: '21110', amount: 999 },
-    ])
+    await repo.upsertMany(TEST_DATE, [{ code: '21110', amount: 999 }])
     rows = await repo.getDailyEntries(TEST_DATE, TEST_DATE)
-    const r21110 = rows.find(r => r.category_code === '21110')
+    const r21110 = rows.find((r) => r.category_code === '21110')
     expect(r21110?.amount).toBe(999)
     // Other code untouched
-    const r21111 = rows.find(r => r.category_code === '21111')
+    const r21111 = rows.find((r) => r.category_code === '21111')
     expect(r21111?.amount).toBe(200)
   })
 
@@ -76,12 +74,12 @@ describe('fnb repository', () => {
     expect(result).toHaveLength(31)
 
     // Day 15 should have the value
-    const day15 = result.find(r => r.date === TEST_DATE)
+    const day15 = result.find((r) => r.date === TEST_DATE)
     expect(day15?.breakfast_included).toBe(50)
     expect(day15?.breakfast_total).toBe(50)
 
     // Day 1 should be empty zeros
-    const day1 = result.find(r => r.date === `${TEST_YEAR}-01-01`)
+    const day1 = result.find((r) => r.date === `${TEST_YEAR}-01-01`)
     expect(day1?.fnb_total).toBe(0)
   })
 
@@ -98,12 +96,12 @@ describe('fnb repository', () => {
   it('getMonthlyData computes totals without float drift', async () => {
     if (!dbAvailable) return
     await repo.upsertMany(TEST_DATE, [
-      { code: '21110', amount: 100.10 },
-      { code: '21124', amount: 200.20 },
-      { code: '21120', amount: 300.30 },
+      { code: '21110', amount: 100.1 },
+      { code: '21124', amount: 200.2 },
+      { code: '21120', amount: 300.3 },
     ])
     const result = await repo.getMonthlyData(TEST_YEAR, TEST_MONTH)
-    const day15 = result.find(r => r.date === TEST_DATE)!
+    const day15 = result.find((r) => r.date === TEST_DATE)!
     expect(day15.breakfast_total).toBe(600.6)
   })
 
@@ -115,7 +113,7 @@ describe('fnb repository', () => {
       { code: '21124', amount: -59.09 }, // Excel had real negative values
     ])
     const result = await repo.getMonthlyData(TEST_YEAR, TEST_MONTH)
-    const day = result.find(r => r.date === TEST_DATE)!
+    const day = result.find((r) => r.date === TEST_DATE)!
     expect(day.breakfast_excluded).toBe(-59.09)
     expect(day.breakfast_total).toBe(-59.09)
   })

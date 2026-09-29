@@ -705,7 +705,10 @@ export async function createMonth(req: Request, res: Response): Promise<void> {
     // Save assignments if any
     if (assignments.length > 0) {
       await repo.createAssignmentsBulk(monthId, assignments)
-      logger.info({ monthId, assignmentsCount: assignments.length }, '[createMonth] Initialized assignments')
+      logger.info(
+        { monthId, assignmentsCount: assignments.length },
+        '[createMonth] Initialized assignments'
+      )
 
       // Number libre pairs immediately after seeding
       const uniqueEmployees = new Set(assignments.map((a) => a.employee_id))
@@ -767,7 +770,10 @@ export async function resetMonth(req: Request, res: Response): Promise<void> {
     // Save assignments if any
     if (assignments.length > 0) {
       await repo.createAssignmentsBulk(monthId, assignments)
-      logger.info({ monthId, assignmentsCount: assignments.length }, '[resetMonth] Initialized assignments')
+      logger.info(
+        { monthId, assignmentsCount: assignments.length },
+        '[resetMonth] Initialized assignments'
+      )
 
       // Number libre pairs immediately after seeding
       const uniqueEmployees = new Set(assignments.map((a) => a.employee_id))
@@ -1432,9 +1438,15 @@ export async function validateSchedule(req: Request, res: Response): Promise<voi
       return
     }
 
-    logger.info({ monthId, totalErrors: result.stats.totalErrors, totalWarnings: result.stats.totalWarnings }, '[ValidateSchedule] validation summary')
+    logger.info(
+      { monthId, totalErrors: result.stats.totalErrors, totalWarnings: result.stats.totalWarnings },
+      '[ValidateSchedule] validation summary'
+    )
     if (result.errors.length > 0) {
-      logger.info({ monthId, errors: result.errors.map((e) => e.message).slice(0, 5) }, '[ValidateSchedule] error details')
+      logger.info(
+        { monthId, errors: result.errors.map((e) => e.message).slice(0, 5) },
+        '[ValidateSchedule] error details'
+      )
     }
 
     res.json(result)
@@ -1542,10 +1554,7 @@ export async function removeSchedulableEmployee(req: Request, res: Response): Pr
   }
 }
 
-export async function setSchedulableEmployeeDates(
-  req: Request,
-  res: Response
-): Promise<void> {
+export async function setSchedulableEmployeeDates(req: Request, res: Response): Promise<void> {
   try {
     const { employeeId } = req.params
     const parsed = updateEmployeeDatesSchema.safeParse(req.body)
@@ -1563,10 +1572,7 @@ export async function setSchedulableEmployeeDates(
   }
 }
 
-export async function setSchedulableEmployeesOrder(
-  req: Request,
-  res: Response
-): Promise<void> {
+export async function setSchedulableEmployeesOrder(req: Request, res: Response): Promise<void> {
   try {
     const { orderedIds } = req.body
     if (!Array.isArray(orderedIds) || orderedIds.some((id) => typeof id !== 'string')) {
@@ -1939,13 +1945,20 @@ export async function getShiftStats(req: Request, res: Response): Promise<void> 
     const rows = await repo.getShiftCountsByYear(year)
 
     // Pivot: group by employee, collect shift → count map
-    const empMap = new Map<string, { employeeId: string; employeeName: string; counts: Record<string, number> }>()
+    const empMap = new Map<
+      string,
+      { employeeId: string; employeeName: string; counts: Record<string, number> }
+    >()
     const codesSet = new Set<string>()
 
     for (const row of rows) {
       codesSet.add(row.shiftCode)
       if (!empMap.has(row.employeeId)) {
-        empMap.set(row.employeeId, { employeeId: row.employeeId, employeeName: row.employeeName, counts: {} })
+        empMap.set(row.employeeId, {
+          employeeId: row.employeeId,
+          employeeName: row.employeeName,
+          counts: {},
+        })
       }
       empMap.get(row.employeeId)!.counts[row.shiftCode] = row.count
     }

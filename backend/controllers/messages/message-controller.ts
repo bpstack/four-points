@@ -412,9 +412,7 @@ export class MessageController {
     try {
       // Obtener participantes (excepto el sender)
       const participants = await ConversationRepository.getParticipants(conversationId)
-      const recipientIds = participants
-        .filter((p) => p.user_id !== senderId)
-        .map((p) => p.user_id)
+      const recipientIds = participants.filter((p) => p.user_id !== senderId).map((p) => p.user_id)
 
       if (recipientIds.length === 0) return
 

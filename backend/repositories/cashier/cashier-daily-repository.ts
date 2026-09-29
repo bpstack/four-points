@@ -292,10 +292,10 @@ export class CashierDailyRepository {
       )
       const cashCounted = Number(denomRows[0]?.total) || 0
       const initialFund = Number(shift.initial_fund) || 0
-      
+
       // income = cash_counted - initial_fund
       if (cashCounted > 0) {
-        totalCash += (cashCounted - initialFund)
+        totalCash += cashCounted - initialFund
       }
     }
 
@@ -323,7 +323,12 @@ export class CashierDailyRepository {
       const methodName = (row.method_name || '').toUpperCase()
       const amount = Number(row.total) || 0
 
-      if (methodName.includes('TARJETA') || methodName.includes('CARD') || methodName.includes('CRÉDITO') || methodName.includes('DÉBITO')) {
+      if (
+        methodName.includes('TARJETA') ||
+        methodName.includes('CARD') ||
+        methodName.includes('CRÉDITO') ||
+        methodName.includes('DÉBITO')
+      ) {
         totalCard += amount
       } else if (methodName.includes('BACS')) {
         totalBacs += amount
@@ -336,7 +341,8 @@ export class CashierDailyRepository {
       }
     }
 
-    const grandTotal = totalCash + totalCard + totalBacs + totalWebPayment + totalTransfer + totalOther
+    const grandTotal =
+      totalCash + totalCard + totalBacs + totalWebPayment + totalTransfer + totalOther
 
     const totals = {
       total_cash: totalCash,
@@ -408,7 +414,7 @@ export class CashierDailyRepository {
           const cashCounted = Number(denomRows[0]?.total) || 0
           const initialFund = Number(shift.initial_fund) || 0
           if (cashCounted > 0) {
-            dayCash += (cashCounted - initialFund)
+            dayCash += cashCounted - initialFund
           }
         }
 

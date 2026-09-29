@@ -917,15 +917,16 @@ export async function createScheduleValidator(monthId: number): Promise<Schedule
   const month = await repo.getMonthById(monthId)
   if (!month) return null
 
-  const [config, shifts, days, assignments, allRules, schedulableUsers, prevTailRows] = await Promise.all([
-    repo.getConfigMap(),
-    repo.getAllShifts(),
-    repo.getDaysByMonth(monthId),
-    repo.getAssignmentsByMonth(monthId),
-    repo.getAllEmployeeRules(),
-    repo.getSchedulableEmployees(),
-    repo.getPreviousMonthEndAssignments(month.year, month.month, 7),
-  ])
+  const [config, shifts, days, assignments, allRules, schedulableUsers, prevTailRows] =
+    await Promise.all([
+      repo.getConfigMap(),
+      repo.getAllShifts(),
+      repo.getDaysByMonth(monthId),
+      repo.getAssignmentsByMonth(monthId),
+      repo.getAllEmployeeRules(),
+      repo.getSchedulableEmployees(),
+      repo.getPreviousMonthEndAssignments(month.year, month.month, 7),
+    ])
 
   // Build rules map for quick lookup
   const rulesMap = new Map<string, SchedulingEmployeeRuleWithEmployee[]>()

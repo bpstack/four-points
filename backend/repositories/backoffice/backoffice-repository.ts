@@ -230,10 +230,9 @@ export class BackofficeRepository {
   }
 
   static async hardDeleteSupplier(id: number): Promise<boolean> {
-    const [result] = await pool.query<ResultSetHeader>(
-      `DELETE FROM bo_suppliers WHERE id = ?`,
-      [id]
-    )
+    const [result] = await pool.query<ResultSetHeader>(`DELETE FROM bo_suppliers WHERE id = ?`, [
+      id,
+    ])
     return result.affectedRows > 0
   }
 
@@ -634,7 +633,10 @@ export class BackofficeRepository {
       )
     }
 
-    logger.info({ affectedRows: result.affectedRows, month, year }, '[BackofficeRepository.markValidatedInvoicesAsPaid] Marked invoices as paid')
+    logger.info(
+      { affectedRows: result.affectedRows, month, year },
+      '[BackofficeRepository.markValidatedInvoicesAsPaid] Marked invoices as paid'
+    )
 
     return { count: result.affectedRows, invoiceIds }
   }
@@ -744,7 +746,10 @@ export class BackofficeRepository {
       )
     }
 
-    logger.info({ affectedRows: result.affectedRows, month, year }, '[BackofficeRepository.revertPaidInvoicesToValidated] Reverted invoices to validated')
+    logger.info(
+      { affectedRows: result.affectedRows, month, year },
+      '[BackofficeRepository.revertPaidInvoicesToValidated] Reverted invoices to validated'
+    )
 
     return { count: result.affectedRows, invoiceIds }
   }
@@ -752,15 +757,21 @@ export class BackofficeRepository {
   /**
    * Get invoice PDF info for Cloudinary deletion
    */
-  static async getInvoicePdfInfo(
+  static async getInvoicePdfInfo(id: number): Promise<{
     id: number
-  ): Promise<{ id: number; original_pdf_public_id: string | null; validated_pdf_public_id: string | null } | null> {
+    original_pdf_public_id: string | null
+    validated_pdf_public_id: string | null
+  } | null> {
     const [rows] = await pool.query<RowDataPacket[]>(
       `SELECT id, original_pdf_public_id, validated_pdf_public_id FROM bo_invoices WHERE id = ?`,
       [id]
     )
     if (rows.length === 0) return null
-    return rows[0] as { id: number; original_pdf_public_id: string | null; validated_pdf_public_id: string | null }
+    return rows[0] as {
+      id: number
+      original_pdf_public_id: string | null
+      validated_pdf_public_id: string | null
+    }
   }
 
   /**

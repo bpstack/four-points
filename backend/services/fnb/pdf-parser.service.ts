@@ -30,11 +30,17 @@ function extractDate(text: string): string | null {
   return null
 }
 
-function extractEntries(text: string, trackedCodes: Set<string>): { code: string; amount: number }[] {
-  const lines = text.split('\n').map(l => l.trim()).filter(Boolean)
+function extractEntries(
+  text: string,
+  trackedCodes: Set<string>
+): { code: string; amount: number }[] {
+  const lines = text
+    .split('\n')
+    .map((l) => l.trim())
+    .filter(Boolean)
   const codeRe = /^\d{5}$/
 
-  const codes:  string[] = []
+  const codes: string[] = []
   const values: number[] = []
   let phase: 'codes' | 'descriptions' | 'values' = 'codes'
 
@@ -62,7 +68,10 @@ function extractEntries(text: string, trackedCodes: Set<string>): { code: string
       }
       // Require decimal point — filters "2026 2026 2026" year header lines
       if (/^[\d,.\s-]+$/.test(line) && /\d\.\d/.test(line) && values.length < codes.length) {
-        const nums = line.split(/\s+/).map(p => parseFloat(p.replace(',', ''))).filter(n => !isNaN(n))
+        const nums = line
+          .split(/\s+/)
+          .map((p) => parseFloat(p.replace(',', '')))
+          .filter((n) => !isNaN(n))
         if (nums.length >= 1) values.push(nums[0])
       }
     }

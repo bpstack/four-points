@@ -25,7 +25,10 @@ export class EmailService {
       const recipients = await NotificationRepository.getRecipients(notification.id)
 
       if (recipients.length === 0) {
-        logger.info({ notificationId: notification.id }, 'No hay destinatarios para la notificación')
+        logger.info(
+          { notificationId: notification.id },
+          'No hay destinatarios para la notificación'
+        )
         return
       }
 

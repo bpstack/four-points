@@ -10,13 +10,17 @@ export async function uploadPdf(req: Request, res: Response) {
     return
   }
 
-  console.log(`[fnb-upload] File received: ${file.originalname} (${file.mimetype}, ${file.size} bytes)`)
+  console.log(
+    `[fnb-upload] File received: ${file.originalname} (${file.mimetype}, ${file.size} bytes)`
+  )
 
   const parsed = await parseOperaPdf(file.buffer)
   console.log(`[fnb-upload] Parsed: date=${parsed.date}, entries=${parsed.entries.length}`)
 
   if (!parsed.date) {
-    res.status(422).json({ error: 'No se pudo extraer la fecha del PDF (filtro "Date DD/MM/YY" no encontrado)' })
+    res
+      .status(422)
+      .json({ error: 'No se pudo extraer la fecha del PDF (filtro "Date DD/MM/YY" no encontrado)' })
     return
   }
   if (!parsed.entries.length) {
@@ -25,13 +29,13 @@ export async function uploadPdf(req: Request, res: Response) {
   }
 
   const categories = await loadCategories()
-  const catMap = Object.fromEntries(categories.map(c => [c.code, c]))
+  const catMap = Object.fromEntries(categories.map((c) => [c.code, c]))
 
   await repo.upsertMany(parsed.date, parsed.entries)
 
   res.json({
     date: parsed.date,
-    updated: parsed.entries.map(e => ({
+    updated: parsed.entries.map((e) => ({
       code: e.code,
       name: catMap[e.code]?.name ?? e.code,
       amount: e.amount,

@@ -3,11 +3,7 @@
 // Creado: 2026-04-25 — Fase 1 del solver.
 
 export type SchedulingRequestType =
-  | 'shift_preference'
-  | 'shift_exclusion'
-  | 'bonificable'
-  | 'baja_temporal'
-  | 'vacation'
+  'shift_preference' | 'shift_exclusion' | 'bonificable' | 'baja_temporal' | 'vacation'
 
 export type SchedulingRequestStatus = 'pending' | 'approved' | 'rejected'
 

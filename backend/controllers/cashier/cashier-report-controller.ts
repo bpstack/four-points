@@ -36,13 +36,13 @@ export class CashierReportController {
         // Obtener total de pagos electrónicos
         const payments = await CashierPaymentRepository.getByShift(shift.id)
         const paymentsTotal = payments.reduce((sum, p) => sum + Number(p.amount), 0)
-        
+
         // Solo calcular si hay denominaciones o pagos registrados
         // (evita valores negativos de turnos vacíos con solo fondo inicial)
         if (cashCounted > 0 || paymentsTotal > 0) {
           const initialFund = Number(shift.initial_fund) || 0
           const income = cashCounted - initialFund
-          
+
           totalCashToday += income
           totalPaymentsToday += paymentsTotal
         }
@@ -185,7 +185,7 @@ export class CashierReportController {
       const startDate = new Date(from_date as string)
       const endDate = new Date(to_date as string)
       const daysDiff = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24))
-      
+
       if (daysDiff > MAX_DAYS) {
         return res.status(400).json({
           success: false,
@@ -227,9 +227,9 @@ export class CashierReportController {
       const averageDailyCash = uniqueDates.length > 0 ? totalCash / uniqueDates.length : 0
 
       // ✅ OPTIMIZADO: Batch query para payments (evita N+1)
-      const shiftIds = shifts.map(s => s.id)
+      const shiftIds = shifts.map((s) => s.id)
       const allPayments = await CashierPaymentRepository.getByShifts(shiftIds)
-      
+
       // Agrupar payments por método de pago
       const paymentsMap = new Map<number, { name: string; total: number }>()
       for (const payment of allPayments) {
@@ -303,7 +303,7 @@ export class CashierReportController {
   static async getVouchersHistory(req: Request, res: Response): Promise<Response> {
     try {
       const { status, from_date, to_date, limit = '100' } = req.query
-      
+
       // Limitar a máximo 500 registros
       const MAX_LIMIT = 500
       const requestedLimit = Math.min(parseInt(limit as string) || 100, MAX_LIMIT)

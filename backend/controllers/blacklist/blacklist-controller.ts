@@ -52,7 +52,10 @@ export class BlacklistController {
         filters_applied: filters,
       })
     } catch (error: any) {
-      logger.error({ err: error, event: 'blacklist_getAll_error' }, '[BlacklistController.getAll] Error')
+      logger.error(
+        { err: error, event: 'blacklist_getAll_error' },
+        '[BlacklistController.getAll] Error'
+      )
       res.status(500).json({
         success: false,
         error: ERROR_CODES.BLACKLIST_FETCH_RECORDS_ERROR,
@@ -99,7 +102,10 @@ export class BlacklistController {
         audit_trail: entry.audit_trail || [],
       })
     } catch (error: any) {
-      logger.error({ err: error, event: 'blacklist_getById_error' }, '[BlacklistController.getById] Error')
+      logger.error(
+        { err: error, event: 'blacklist_getById_error' },
+        '[BlacklistController.getById] Error'
+      )
       res.status(500).json({
         success: false,
         error: ERROR_CODES.BLACKLIST_FETCH_RECORD_ERROR,
@@ -160,7 +166,10 @@ export class BlacklistController {
         entry,
       })
     } catch (error: any) {
-      logger.error({ err: error, event: 'blacklist_create_error' }, '[BlacklistController.create] Error')
+      logger.error(
+        { err: error, event: 'blacklist_create_error' },
+        '[BlacklistController.create] Error'
+      )
       res.status(500).json({
         success: false,
         error: ERROR_CODES.BLACKLIST_CREATE_RECORD_ERROR,
@@ -244,7 +253,10 @@ export class BlacklistController {
         entry,
       })
     } catch (error: any) {
-      logger.error({ err: error, event: 'blacklist_update_error' }, '[BlacklistController.update] Error')
+      logger.error(
+        { err: error, event: 'blacklist_update_error' },
+        '[BlacklistController.update] Error'
+      )
       res.status(500).json({
         success: false,
         error: ERROR_CODES.BLACKLIST_UPDATE_RECORD_ERROR,
@@ -300,7 +312,10 @@ export class BlacklistController {
         code: SUCCESS_CODES.BLACKLIST_RECORD_DELETED,
       })
     } catch (error: any) {
-      logger.error({ err: error, event: 'blacklist_delete_error' }, '[BlacklistController.delete] Error')
+      logger.error(
+        { err: error, event: 'blacklist_delete_error' },
+        '[BlacklistController.delete] Error'
+      )
       res.status(500).json({
         success: false,
         error: ERROR_CODES.BLACKLIST_DELETE_RECORD_ERROR,
@@ -357,7 +372,10 @@ export class BlacklistController {
         entry,
       })
     } catch (error: any) {
-      logger.error({ err: error, event: 'blacklist_restore_error' }, '[BlacklistController.restore] Error')
+      logger.error(
+        { err: error, event: 'blacklist_restore_error' },
+        '[BlacklistController.restore] Error'
+      )
       res.status(500).json({
         success: false,
         error: ERROR_CODES.BLACKLIST_RESTORE_RECORD_ERROR,
@@ -376,7 +394,10 @@ export class BlacklistController {
 
       res.json({ success: true, ...stats })
     } catch (error: any) {
-      logger.error({ err: error, event: 'blacklist_getStats_error' }, '[BlacklistController.getStats] Error')
+      logger.error(
+        { err: error, event: 'blacklist_getStats_error' },
+        '[BlacklistController.getStats] Error'
+      )
       res.status(500).json({
         success: false,
         error: ERROR_CODES.BLACKLIST_FETCH_STATS_ERROR,
@@ -448,7 +469,10 @@ export class BlacklistController {
         format: result.format,
       })
     } catch (error: any) {
-      logger.error({ err: error, event: 'blacklist_uploadImage_error' }, '[BlacklistController.uploadImage] Error')
+      logger.error(
+        { err: error, event: 'blacklist_uploadImage_error' },
+        '[BlacklistController.uploadImage] Error'
+      )
       res.status(500).json({
         success: false,
         error: ERROR_CODES.BLACKLIST_UPLOAD_IMAGE_ERROR,
@@ -498,7 +522,10 @@ export class BlacklistController {
         return
       }
 
-      logger.info({ publicId: decodedPublicId }, '[BlacklistController.deleteImage] Imagen eliminada')
+      logger.info(
+        { publicId: decodedPublicId },
+        '[BlacklistController.deleteImage] Imagen eliminada'
+      )
 
       res.json({
         success: true,
@@ -506,7 +533,10 @@ export class BlacklistController {
         code: SUCCESS_CODES.BLACKLIST_IMAGE_DELETED,
       })
     } catch (error: any) {
-      logger.error({ err: error, event: 'blacklist_deleteImage_error' }, '[BlacklistController.deleteImage] Error')
+      logger.error(
+        { err: error, event: 'blacklist_deleteImage_error' },
+        '[BlacklistController.deleteImage] Error'
+      )
       res.status(500).json({
         success: false,
         error: ERROR_CODES.BLACKLIST_DELETE_IMAGE_ERROR,

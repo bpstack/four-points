@@ -33,7 +33,13 @@ export const logger = pino({
     : {}),
   // Redactar campos sensibles si aparecen accidentalmente
   redact: {
-    paths: ['*.password', '*.token', '*.refreshToken', 'req.headers.authorization', 'req.headers.cookie'],
+    paths: [
+      '*.password',
+      '*.token',
+      '*.refreshToken',
+      'req.headers.authorization',
+      'req.headers.cookie',
+    ],
     censor: '[REDACTED]',
   },
 })

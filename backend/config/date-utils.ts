@@ -69,7 +69,9 @@ export const getEndOfDayMadrid = (date: DateInput): Dayjs => {
  * que es frágil porque depende del timezone del runtime.
  */
 export const getLastDayOfMonth = (year: number, month: number): string => {
-  return dayjs(`${year}-${String(month).padStart(2, '0')}-01`).endOf('month').format('YYYY-MM-DD')
+  return dayjs(`${year}-${String(month).padStart(2, '0')}-01`)
+    .endOf('month')
+    .format('YYYY-MM-DD')
 }
 
 export default {

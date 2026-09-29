@@ -79,7 +79,11 @@ export function cloneMatrix(matrix: ScheduleMatrix): ScheduleMatrix {
 /**
  * Count how many employees have a specific shift on a day
  */
-export function countShiftOnDay(matrix: ScheduleMatrix, dayNumber: number, shiftCode: string): number {
+export function countShiftOnDay(
+  matrix: ScheduleMatrix,
+  dayNumber: number,
+  shiftCode: string
+): number {
   let count = 0
   for (const employeeId of Object.keys(matrix)) {
     if (matrix[employeeId][dayNumber] === shiftCode) {
@@ -131,7 +135,11 @@ export function countShiftForEmployee(
 /**
  * Count libre days for an employee
  */
-export function countLibreDays(matrix: ScheduleMatrix, days: DayInfo[], employeeId: string): number {
+export function countLibreDays(
+  matrix: ScheduleMatrix,
+  days: DayInfo[],
+  employeeId: string
+): number {
   let count = 0
   for (const day of days) {
     const shift = matrix[employeeId][day.dayNumber]
@@ -164,7 +172,11 @@ export function getDaysWithShift(
 /**
  * Check if employee is available on a day (not already assigned a fixed shift)
  */
-export function isEmployeeAvailable(matrix: ScheduleMatrix, employeeId: string, dayNumber: number): boolean {
+export function isEmployeeAvailable(
+  matrix: ScheduleMatrix,
+  employeeId: string,
+  dayNumber: number
+): boolean {
   const current = matrix[employeeId][dayNumber]
   return isEmptyOrSoftMarker(current)
 }
@@ -172,7 +184,11 @@ export function isEmployeeAvailable(matrix: ScheduleMatrix, employeeId: string, 
 /**
  * Check if employee has REQUEST_OFF on a day
  */
-export function hasRequestOff(matrix: ScheduleMatrix, employeeId: string, dayNumber: number): boolean {
+export function hasRequestOff(
+  matrix: ScheduleMatrix,
+  employeeId: string,
+  dayNumber: number
+): boolean {
   return matrix[employeeId][dayNumber] === 'REQUEST_OFF'
 }
 
@@ -269,7 +285,12 @@ export function hasConsecutiveLibreDays(
   for (let i = 0; i < sortedDays.length; i++) {
     const shift = matrix[employeeId][sortedDays[i].dayNumber]
     const isLibre =
-      isLibreShift(shift) || shift === 'V' || shift === 'B' || shift === 'IT' || shift === 'E' || shift === 'FO'
+      isLibreShift(shift) ||
+      shift === 'V' ||
+      shift === 'B' ||
+      shift === 'IT' ||
+      shift === 'E' ||
+      shift === 'FO'
 
     if (isLibre) {
       if (i > 0 && sortedDays[i].dayNumber === sortedDays[i - 1].dayNumber + 1) {
@@ -315,7 +336,7 @@ export function getEmployeeWeekShift(
 /**
  * Check if converting days to libre would create a work block smaller than minWorkBlock
  * This is used to ensure we don't create 1-2 day work blocks when assigning libre
- * 
+ *
  * @param matrix Current schedule matrix
  * @param days All days in the month
  * @param employeeId Employee to check
@@ -332,14 +353,14 @@ export function wouldCreateSmallWorkBlock(
 ): boolean {
   const sortedDays = [...days].sort((a, b) => a.dayNumber - b.dayNumber)
   const libreSet = new Set(libreDays)
-  
+
   // Simulate the matrix with the new libre days
   const simulatedShifts: { dayNumber: number; isWork: boolean }[] = []
-  
+
   for (const day of sortedDays) {
     const currentShift = matrix[employeeId][day.dayNumber]
     let isWork: boolean
-    
+
     if (libreSet.has(day.dayNumber)) {
       // This day would become libre
       isWork = false
@@ -349,16 +370,16 @@ export function wouldCreateSmallWorkBlock(
       // Already libre or absence
       isWork = false
     }
-    
+
     simulatedShifts.push({ dayNumber: day.dayNumber, isWork })
   }
-  
+
   // Find all work blocks and check their size
   let currentBlockSize = 0
-  
+
   for (let i = 0; i < simulatedShifts.length; i++) {
     const { isWork } = simulatedShifts[i]
-    
+
     if (isWork) {
       currentBlockSize++
     } else {
@@ -369,12 +390,12 @@ export function wouldCreateSmallWorkBlock(
       currentBlockSize = 0
     }
   }
-  
+
   // Check final block
   if (currentBlockSize > 0 && currentBlockSize < minWorkBlock) {
     return true
   }
-  
+
   return false
 }
 

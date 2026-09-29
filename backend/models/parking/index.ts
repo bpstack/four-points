@@ -291,12 +291,12 @@ export interface CreateReservationDTO {
 // ============================================
 
 export type QuickFilterType =
-  | 'arrivals_pending'    // reserved + entrada hoy
-  | 'arrivals_inside'     // checked_in (todos)
-  | 'arrivals_total'      // reserved entrada hoy + checked_in
-  | 'departures_pending'  // checked_in + salida hoy
-  | 'departures_completed'// completed hoy
-  | 'departures_total'    // checked_in salida hoy + completed hoy
+  | 'arrivals_pending' // reserved + entrada hoy
+  | 'arrivals_inside' // checked_in (todos)
+  | 'arrivals_total' // reserved entrada hoy + checked_in
+  | 'departures_pending' // checked_in + salida hoy
+  | 'departures_completed' // completed hoy
+  | 'departures_total' // checked_in salida hoy + completed hoy
 
 export interface BookingFilters {
   id?: number
@@ -319,9 +319,9 @@ export interface QuickFilterParams {
 }
 
 export interface DateFilterParams {
-  startDate: string           // Fecha entrada (requerido) - YYYY-MM-DD
-  endDate?: string            // Fecha salida (opcional) - YYYY-MM-DD
-  status?: BookingStatus      // Filtro de estado opcional
+  startDate: string // Fecha entrada (requerido) - YYYY-MM-DD
+  endDate?: string // Fecha salida (opcional) - YYYY-MM-DD
+  status?: BookingStatus // Filtro de estado opcional
   page?: number
   limit?: number
 }

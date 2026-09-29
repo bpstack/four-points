@@ -50,11 +50,18 @@ describe('group create/update (mass assignment)', () => {
   })
 
   it('accepts total_amount null (empty number field serialises NaN as null)', () => {
-    expect(createGroupSchema.safeParse({ ...frontendPayload, total_amount: null }).success).toBe(true)
+    expect(createGroupSchema.safeParse({ ...frontendPayload, total_amount: null }).success).toBe(
+      true
+    )
   })
 
   it('strips created_by, updated_by and id from the body', () => {
-    const r = updateGroupSchema.safeParse({ name: 'X', created_by: 'evil', updated_by: 'evil', id: 9 })
+    const r = updateGroupSchema.safeParse({
+      name: 'X',
+      created_by: 'evil',
+      updated_by: 'evil',
+      id: 9,
+    })
     expect(r.success && r.data).toEqual({ name: 'X' })
   })
 
@@ -62,7 +69,8 @@ describe('group create/update (mass assignment)', () => {
     expect(updateGroupSchema.safeParse({ total_amount: -1 }).success).toBe(false)
     expect(updateGroupSchema.safeParse({ status: 'hacked' }).success).toBe(false)
     expect(
-      updateGroupSchema.safeParse({ arrival_date: '2026-10-05', departure_date: '2026-10-01' }).success
+      updateGroupSchema.safeParse({ arrival_date: '2026-10-05', departure_date: '2026-10-01' })
+        .success
     ).toBe(false)
   })
 })
@@ -101,10 +109,12 @@ describe('payments', () => {
 
 describe('contacts, rooms and status', () => {
   it('accepts an empty contact email, rejects a malformed one', () => {
-    expect(createContactSchema.safeParse({ contact_name: 'Ana', contact_email: '' }).success).toBe(true)
-    expect(createContactSchema.safeParse({ contact_name: 'Ana', contact_email: 'nope' }).success).toBe(
-      false
+    expect(createContactSchema.safeParse({ contact_name: 'Ana', contact_email: '' }).success).toBe(
+      true
     )
+    expect(
+      createContactSchema.safeParse({ contact_name: 'Ana', contact_email: 'nope' }).success
+    ).toBe(false)
   })
 
   it('strips group_id from room updates and rejects unknown room types', () => {

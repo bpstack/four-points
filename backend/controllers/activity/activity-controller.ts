@@ -4,7 +4,10 @@
  */
 
 import { Request, Response } from 'express'
-import { ActivityRepository, ActivitySource } from '../../repositories/activity/activity-repository.js'
+import {
+  ActivityRepository,
+  ActivitySource,
+} from '../../repositories/activity/activity-repository.js'
 import { ERROR_CODES } from '../../config/error-codes.js'
 import { logger } from '../../config/logger.js'
 

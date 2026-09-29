@@ -151,27 +151,36 @@ export class UserRepository {
     )
 
     const user = rows[0]
-    
+
     // Always perform password comparison to prevent timing attacks
     // Even if user doesn't exist, we compare against a dummy hash
     // Hash generated once with bcrypt.hash('dummy-password-for-timing', 10)
     const DUMMY_HASH = '$2b$10$NZRVB2LhoSY6QTIjXL9PjeglXTf0F0uyXSM42Nh89IFBEhi8jU2U6'
     const passwordToCompare = user?.password || DUMMY_HASH
     const isPasswordValid = await bcrypt.compare(password, passwordToCompare)
-    
+
     // Now check if user exists (after timing-safe comparison)
     if (!user) {
-      logger.warn({ event: 'login_failed', reason: 'user_not_found', username }, '[SECURITY] login failed')
+      logger.warn(
+        { event: 'login_failed', reason: 'user_not_found', username },
+        '[SECURITY] login failed'
+      )
       throw new Error('Credenciales inválidas')
     }
 
     if (!user.is_active) {
-      logger.warn({ event: 'login_failed', reason: 'inactive_user', username }, '[SECURITY] login failed')
+      logger.warn(
+        { event: 'login_failed', reason: 'inactive_user', username },
+        '[SECURITY] login failed'
+      )
       throw new Error('Usuario inactivo')
     }
 
     if (!isPasswordValid) {
-      logger.warn({ event: 'login_failed', reason: 'invalid_password', username }, '[SECURITY] login failed')
+      logger.warn(
+        { event: 'login_failed', reason: 'invalid_password', username },
+        '[SECURITY] login failed'
+      )
       throw new Error('Credenciales inválidas')
     }
 
@@ -421,7 +430,10 @@ export class UserRepository {
 
       await dbConnection.commit()
 
-      logger.info({ event: 'user_soft_deleted', from: user.username, to: deletedUsername }, '[AUTH] user soft deleted')
+      logger.info(
+        { event: 'user_soft_deleted', from: user.username, to: deletedUsername },
+        '[AUTH] user soft deleted'
+      )
 
       return result.affectedRows > 0
     } catch (err) {
@@ -441,10 +453,10 @@ export class UserRepository {
     { username, currentPassword }: UpdateProfileDTO
   ): Promise<User> {
     const dbConnection = await db.getConnection()
-    
+
     // Sanitize username for XSS prevention
     const sanitizedUsername = sanitizeUsername(username)
-    
+
     try {
       await dbConnection.beginTransaction()
 
@@ -493,7 +505,10 @@ export class UserRepository {
 
       await dbConnection.commit()
 
-      logger.info({ event: 'profile_updated', userId, newUsername: sanitizedUsername }, '[AUTH] profile updated')
+      logger.info(
+        { event: 'profile_updated', userId, newUsername: sanitizedUsername },
+        '[AUTH] profile updated'
+      )
 
       // 5. Devolver usuario actualizado
       const updatedUser = await this.getById(userId)
@@ -589,10 +604,10 @@ export class UserRepository {
       const hashedPassword = await bcrypt.hash(newPassword, SALT_ROUNDS)
 
       // Actualizar contraseña
-      await db.query(
-        'UPDATE users SET password = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
-        [hashedPassword, userId]
-      )
+      await db.query('UPDATE users SET password = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?', [
+        hashedPassword,
+        userId,
+      ])
 
       logger.info({ event: 'password_reset_by_admin', userId }, '[AUTH] password reset by admin')
 

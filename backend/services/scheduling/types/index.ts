@@ -52,12 +52,7 @@ export interface PreviousMonthHistory {
 export type WarningSeverity = 'info' | 'warning' | 'error'
 
 export type WarningType =
-  | 'coverage'
-  | 'night_block'
-  | 'rest'
-  | 'hours'
-  | 'constraint'
-  | 'validation'
+  'coverage' | 'night_block' | 'rest' | 'hours' | 'constraint' | 'validation'
 
 export interface GenerationWarning {
   type: WarningType

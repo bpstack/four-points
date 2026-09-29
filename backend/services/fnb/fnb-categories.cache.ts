@@ -27,13 +27,16 @@ export function invalidateCategories(): void {
 // Helpers (await loadCategories first)
 export async function trackedCodesSet(): Promise<Set<string>> {
   const cats = await loadCategories()
-  return new Set(cats.map(c => c.code))
+  return new Set(cats.map((c) => c.code))
 }
 
 export async function codesByGroup(): Promise<Record<FnbGroupType, string[]>> {
   const cats = await loadCategories()
-  return cats.reduce((acc, c) => {
-    (acc[c.group_type] ??= []).push(c.code)
-    return acc
-  }, { breakfast: [], lunch: [], dinner: [] } as Record<FnbGroupType, string[]>)
+  return cats.reduce(
+    (acc, c) => {
+      ;(acc[c.group_type] ??= []).push(c.code)
+      return acc
+    },
+    { breakfast: [], lunch: [], dinner: [] } as Record<FnbGroupType, string[]>
+  )
 }

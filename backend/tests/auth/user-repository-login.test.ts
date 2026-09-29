@@ -82,8 +82,8 @@ describe('UserRepository.login — integration', () => {
       // Skipped silently if demo is not present (e.g. fresh local DB without seed).
       return
     }
-    await expect(
-      UserRepository.login({ username: 'demo', password: 'whatever' })
-    ).rejects.toThrow(/inactivo/i)
+    await expect(UserRepository.login({ username: 'demo', password: 'whatever' })).rejects.toThrow(
+      /inactivo/i
+    )
   })
 })

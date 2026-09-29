@@ -32,7 +32,10 @@ export function generateAccessToken(user: UserForToken): string {
     type: 'access',
   }
 
-  return jwt.sign(payload, SECRET_JWT_KEY, { expiresIn: ACCESS_TOKEN_EXPIRY, algorithm: JWT_ALGORITHM })
+  return jwt.sign(payload, SECRET_JWT_KEY, {
+    expiresIn: ACCESS_TOKEN_EXPIRY,
+    algorithm: JWT_ALGORITHM,
+  })
 }
 
 /**
@@ -50,7 +53,10 @@ export function generateRefreshToken(user: UserForToken): string {
     type: 'refresh',
   }
 
-  return jwt.sign(payload, SECRET_JWT_KEY, { expiresIn: REFRESH_TOKEN_EXPIRY, algorithm: JWT_ALGORITHM })
+  return jwt.sign(payload, SECRET_JWT_KEY, {
+    expiresIn: REFRESH_TOKEN_EXPIRY,
+    algorithm: JWT_ALGORITHM,
+  })
 }
 
 /**

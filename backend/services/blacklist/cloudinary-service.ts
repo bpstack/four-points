@@ -21,8 +21,13 @@ function ensureConfigured(): void {
   const apiSecret = process.env.CLOUDINARY_API_SECRET
 
   if (!cloudName || !apiKey || !apiSecret) {
-    logger.error({ cloud_name: !!cloudName, api_key: !!apiKey, api_secret: !!apiSecret }, '[CloudinaryService] Missing configuration')
-    throw new Error('Cloudinary configuration missing. Check CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET')
+    logger.error(
+      { cloud_name: !!cloudName, api_key: !!apiKey, api_secret: !!apiSecret },
+      '[CloudinaryService] Missing configuration'
+    )
+    throw new Error(
+      'Cloudinary configuration missing. Check CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET'
+    )
   }
 
   cloudinary.config({
@@ -32,7 +37,7 @@ function ensureConfigured(): void {
   })
 
   isConfigured = true
-    logger.info({ cloud: cloudName }, '[CloudinaryService] Configured successfully')
+  logger.info({ cloud: cloudName }, '[CloudinaryService] Configured successfully')
 }
 
 export interface CloudinaryUploadResult {
@@ -59,7 +64,7 @@ export class CloudinaryService {
     folder: string = 'blacklist'
   ): Promise<CloudinaryUploadResult> {
     ensureConfigured()
-    
+
     return new Promise((resolve, reject) => {
       // Subir usando upload_stream
       const uploadStream = cloudinary.uploader.upload_stream(
@@ -113,7 +118,7 @@ export class CloudinaryService {
     folder: string = 'avatars'
   ): Promise<CloudinaryUploadResult> {
     ensureConfigured()
-    
+
     return new Promise((resolve, reject) => {
       const uploadStream = cloudinary.uploader.upload_stream(
         {
@@ -159,29 +164,32 @@ export class CloudinaryService {
    */
   static async deleteImage(publicId: string): Promise<boolean> {
     ensureConfigured()
-    
+
     try {
       logger.debug({ publicId }, '[CloudinaryService] Attempting to delete image')
-      
+
       const result = await cloudinary.uploader.destroy(publicId, {
         resource_type: 'image',
         invalidate: true,
       })
-      
+
       logger.info({ result }, '[CloudinaryService] Delete result')
-      
+
       // 'ok' = eliminado exitosamente, 'not found' = ya no existe (también consideramos éxito)
       if (result.result === 'ok' || result.result === 'not found') {
         return true
       }
-      
+
       // Si el resultado es diferente, logueamos y lanzamos error
       logger.error({ result }, '[CloudinaryService] Unexpected delete result')
       throw new Error(`Cloudinary delete returned: ${result.result}`)
     } catch (error: any) {
       logger.error({ err: error }, '[CloudinaryService] Delete error')
       logger.error({ err: error, details: error }, '[CloudinaryService] Delete error details')
-      throw new Error(`Error al eliminar imagen de Cloudinary: ${error.message || 'Unknown error'}`, { cause: error })
+      throw new Error(
+        `Error al eliminar imagen de Cloudinary: ${error.message || 'Unknown error'}`,
+        { cause: error }
+      )
     }
   }
 
@@ -213,14 +221,14 @@ export class CloudinaryService {
     folder: string = 'backoffice/invoices'
   ): Promise<CloudinaryUploadResult> {
     ensureConfigured()
-    
+
     return new Promise((resolve, reject) => {
       // Generar public_id limpio
       const cleanFilename = filename
         .replace(/\.[^/.]+$/, '') // Quitar extensión
         .replace(/[^a-zA-Z0-9_-]/g, '_') // Solo caracteres seguros
         .substring(0, 50) // Limitar longitud
-      
+
       const publicId = `pdf_${Date.now()}_${cleanFilename}`
 
       // Subir usando upload_stream como raw
@@ -246,7 +254,15 @@ export class CloudinaryService {
             return
           }
 
-          logger.info({ url: result.secure_url, publicId: result.public_id, resourceType: result.resource_type, format: result.format }, '[CloudinaryService] PDF uploaded successfully')
+          logger.info(
+            {
+              url: result.secure_url,
+              publicId: result.public_id,
+              resourceType: result.resource_type,
+              format: result.format,
+            },
+            '[CloudinaryService] PDF uploaded successfully'
+          )
 
           resolve({
             url: result.url,
@@ -269,9 +285,12 @@ export class CloudinaryService {
    * @param publicId - ID público del archivo
    * @param resourceType - Tipo de recurso ('image' o 'raw')
    */
-  static async deleteFile(publicId: string, resourceType: 'image' | 'raw' = 'image'): Promise<boolean> {
+  static async deleteFile(
+    publicId: string,
+    resourceType: 'image' | 'raw' = 'image'
+  ): Promise<boolean> {
     ensureConfigured()
-    
+
     try {
       const result = await cloudinary.uploader.destroy(publicId, { resource_type: resourceType })
       return result.result === 'ok'
@@ -293,7 +312,7 @@ export class CloudinaryService {
     expiresInSeconds: number = 3600
   ): string {
     ensureConfigured()
-    
+
     const timestamp = Math.floor(Date.now() / 1000) + expiresInSeconds
 
     const signedUrl = cloudinary.url(publicId, {

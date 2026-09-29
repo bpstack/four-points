@@ -44,7 +44,12 @@ export const loginLimiter = rateLimit({
   },
   handler: (req: Request, res: Response) => {
     logger.warn(
-      { event: 'rate_limit_exceeded', kind: 'login', ip: getIpKey(req), username: req.body?.username },
+      {
+        event: 'rate_limit_exceeded',
+        kind: 'login',
+        ip: getIpKey(req),
+        username: req.body?.username,
+      },
       '[SECURITY] login rate limit exceeded'
     )
     res.status(429).json({
@@ -65,7 +70,10 @@ export const loginIpLimiter = rateLimit({
   legacyHeaders: false,
   keyGenerator: (req: Request) => `login-ip-${getIpKey(req)}`,
   handler: (req: Request, res: Response) => {
-    logger.warn({ event: 'rate_limit_exceeded', kind: 'login_ip', ip: getIpKey(req) }, '[SECURITY] login IP rate limit exceeded')
+    logger.warn(
+      { event: 'rate_limit_exceeded', kind: 'login_ip', ip: getIpKey(req) },
+      '[SECURITY] login IP rate limit exceeded'
+    )
     res.status(429).json({
       error: 'Demasiados intentos de inicio de sesión. Intenta de nuevo en 15 minutos.',
     })
@@ -93,7 +101,12 @@ export const passwordChangeLimiter = rateLimit({
   },
   handler: (req: Request, res: Response) => {
     logger.warn(
-      { event: 'rate_limit_exceeded', kind: 'password_change', userId: req.user?.id, ip: getIpKey(req) },
+      {
+        event: 'rate_limit_exceeded',
+        kind: 'password_change',
+        userId: req.user?.id,
+        ip: getIpKey(req),
+      },
       '[SECURITY] password change rate limit exceeded'
     )
     res.status(429).json({
@@ -123,7 +136,12 @@ export const profileUpdateLimiter = rateLimit({
   },
   handler: (req: Request, res: Response) => {
     logger.warn(
-      { event: 'rate_limit_exceeded', kind: 'profile_update', userId: req.user?.id, ip: getIpKey(req) },
+      {
+        event: 'rate_limit_exceeded',
+        kind: 'profile_update',
+        userId: req.user?.id,
+        ip: getIpKey(req),
+      },
       '[SECURITY] profile update rate limit exceeded'
     )
     res.status(429).json({

@@ -29,11 +29,15 @@ export async function manualEntry(req: Request, res: Response) {
   await repo.upsertMany(date, entries)
 
   const categories = await loadCategories()
-  const catMap = Object.fromEntries(categories.map(c => [c.code, c]))
+  const catMap = Object.fromEntries(categories.map((c) => [c.code, c]))
 
   res.json({
     date,
-    updated: entries.map(e => ({ code: e.code, name: catMap[e.code]?.name ?? e.code, amount: e.amount })),
+    updated: entries.map((e) => ({
+      code: e.code,
+      name: catMap[e.code]?.name ?? e.code,
+      amount: e.amount,
+    })),
     totals: repo.computeTotals(entries),
   })
 }

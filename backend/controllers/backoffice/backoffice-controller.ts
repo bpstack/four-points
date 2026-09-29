@@ -516,11 +516,23 @@ export class BackofficeController {
         return
       }
 
-      const { invoice_number, supplier_id, amount_without_vat, amount_with_vat, invoice_date, payment_method } =
-        req.body
+      const {
+        invoice_number,
+        supplier_id,
+        amount_without_vat,
+        amount_with_vat,
+        invoice_date,
+        payment_method,
+      } = req.body
 
       // Validaciones básicas
-      if (!invoice_number || !supplier_id || !amount_without_vat || !amount_with_vat || !invoice_date) {
+      if (
+        !invoice_number ||
+        !supplier_id ||
+        !amount_without_vat ||
+        !amount_with_vat ||
+        !invoice_date
+      ) {
         res.status(400).json({
           success: false,
           error: ERROR_CODES.BACKOFFICE_INVOICE_FIELDS_REQUIRED,
@@ -629,7 +641,16 @@ export class BackofficeController {
       const { id } = req.params
       const { validated_pdf_url, validated_pdf_public_id, validation_notes } = req.body
 
-      logger.debug({ id, userId: req.user.id, validated_pdf_url: validated_pdf_url || '(not provided)', validated_pdf_public_id: validated_pdf_public_id || '(not provided)', validation_notes: validation_notes || '(not provided)' }, '[BackofficeController.validateInvoice] Starting validation')
+      logger.debug(
+        {
+          id,
+          userId: req.user.id,
+          validated_pdf_url: validated_pdf_url || '(not provided)',
+          validated_pdf_public_id: validated_pdf_public_id || '(not provided)',
+          validation_notes: validation_notes || '(not provided)',
+        },
+        '[BackofficeController.validateInvoice] Starting validation'
+      )
 
       const validated = await BackofficeRepository.validateInvoice(
         Number(id),
@@ -647,7 +668,14 @@ export class BackofficeController {
       }
 
       const invoice = await BackofficeRepository.getInvoiceById(Number(id))
-      logger.info({ id: invoice?.id, status: invoice?.status, validatedPdfUrl: invoice?.validated_pdf_url || '(null)' }, '[BackofficeController.validateInvoice] Result')
+      logger.info(
+        {
+          id: invoice?.id,
+          status: invoice?.status,
+          validatedPdfUrl: invoice?.validated_pdf_url || '(null)',
+        },
+        '[BackofficeController.validateInvoice] Result'
+      )
 
       res.json({
         success: true,
@@ -856,7 +884,14 @@ export class BackofficeController {
         return
       }
 
-      logger.info({ id: invoice.id, originalPdfPublicId: invoice.original_pdf_public_id, validatedPdfPublicId: invoice.validated_pdf_public_id }, '[BackofficeController.deleteInvoice] Deleting invoice')
+      logger.info(
+        {
+          id: invoice.id,
+          originalPdfPublicId: invoice.original_pdf_public_id,
+          validatedPdfPublicId: invoice.validated_pdf_public_id,
+        },
+        '[BackofficeController.deleteInvoice] Deleting invoice'
+      )
 
       // Eliminar PDFs de Cloudinary (opción estricta: falla todo si Cloudinary falla)
       if (invoice.original_pdf_public_id) {
@@ -936,7 +971,10 @@ export class BackofficeController {
       const { id } = req.params
       const { type } = req.query // 'original' o 'validated'
 
-      logger.info({ id, type, userId: req.user.id }, '[BackofficeController.uploadInvoicePdf] Starting upload')
+      logger.info(
+        { id, type, userId: req.user.id },
+        '[BackofficeController.uploadInvoicePdf] Starting upload'
+      )
 
       if (!type || !['original', 'validated'].includes(type as string)) {
         res.status(400).json({
@@ -960,9 +998,8 @@ export class BackofficeController {
 
       // Obtener los public_ids para poder borrar el anterior después
       const pdfInfo = await BackofficeRepository.getInvoicePdfInfo(Number(id))
-      const previousPublicId = type === 'original' 
-        ? pdfInfo?.original_pdf_public_id 
-        : pdfInfo?.validated_pdf_public_id
+      const previousPublicId =
+        type === 'original' ? pdfInfo?.original_pdf_public_id : pdfInfo?.validated_pdf_public_id
 
       if (!req.file) {
         res.status(400).json({
@@ -1003,7 +1040,10 @@ export class BackofficeController {
         'backoffice/invoices'
       )
 
-      logger.info({ secureUrl: cloudinaryResult.secure_url, publicId: cloudinaryResult.public_id }, '[BackofficeController.uploadInvoicePdf] Cloudinary result')
+      logger.info(
+        { secureUrl: cloudinaryResult.secure_url, publicId: cloudinaryResult.public_id },
+        '[BackofficeController.uploadInvoicePdf] Cloudinary result'
+      )
 
       // Actualizar en BD
       logger.debug({ type }, '[BackofficeController.uploadInvoicePdf] Updating DB with type')
@@ -1019,17 +1059,30 @@ export class BackofficeController {
       // Borrar el archivo anterior de Cloudinary (solo si había uno y el upload fue exitoso)
       if (previousPublicId && updateResult) {
         try {
-          logger.debug({ previousPublicId }, '[BackofficeController.uploadInvoicePdf] Deleting previous PDF')
+          logger.debug(
+            { previousPublicId },
+            '[BackofficeController.uploadInvoicePdf] Deleting previous PDF'
+          )
           await CloudinaryService.deleteFile(previousPublicId, 'raw')
           logger.debug('[BackofficeController.uploadInvoicePdf] Previous PDF deleted successfully')
         } catch (deleteError: any) {
           // Log pero no fallar - el nuevo archivo ya está subido
-          logger.warn({ err: deleteError }, '[BackofficeController.uploadInvoicePdf] Failed to delete previous PDF')
+          logger.warn(
+            { err: deleteError },
+            '[BackofficeController.uploadInvoicePdf] Failed to delete previous PDF'
+          )
         }
       }
 
       const updatedInvoice = await BackofficeRepository.getInvoiceById(Number(id))
-      logger.info({ id: updatedInvoice?.id, originalPdfUrl: updatedInvoice?.original_pdf_url, validatedPdfUrl: updatedInvoice?.validated_pdf_url }, '[BackofficeController.uploadInvoicePdf] Updated invoice')
+      logger.info(
+        {
+          id: updatedInvoice?.id,
+          originalPdfUrl: updatedInvoice?.original_pdf_url,
+          validatedPdfUrl: updatedInvoice?.validated_pdf_url,
+        },
+        '[BackofficeController.uploadInvoicePdf] Updated invoice'
+      )
 
       res.json({
         success: true,
@@ -1181,7 +1234,10 @@ export class BackofficeController {
         return
       }
 
-      logger.info({ id: asset.id, name: asset.name, cloudinaryPublicId: asset.cloudinary_public_id }, '[BackofficeController.deleteAsset] Deleting asset')
+      logger.info(
+        { id: asset.id, name: asset.name, cloudinaryPublicId: asset.cloudinary_public_id },
+        '[BackofficeController.deleteAsset] Deleting asset'
+      )
 
       // Eliminar de Cloudinary primero (opción estricta: falla todo si Cloudinary falla)
       if (asset.cloudinary_public_id) {
@@ -1253,7 +1309,7 @@ export class BackofficeController {
    * POST /api/backoffice/invoices/download-zip
    * Descargar múltiples facturas validadas como ZIP
    * Body: { invoice_ids: number[] }
-   * 
+   *
    * Rules:
    * - Max 100 invoices per ZIP
    * - All invoices must be validated or paid (status = 'validated' or 'paid')
@@ -1297,14 +1353,14 @@ export class BackofficeController {
       }
 
       // Check if all requested invoices were found
-      const foundIds = new Set(invoices.map(inv => inv.id))
+      const foundIds = new Set(invoices.map((inv) => inv.id))
       const notFoundIds = invoice_ids.filter((id: number) => !foundIds.has(id))
       if (notFoundIds.length > 0) {
         res.status(404).json({
           success: false,
           error: ERROR_CODES.BACKOFFICE_INVOICES_NOT_FOUND,
           code: ERROR_CODES.BACKOFFICE_INVOICES_NOT_FOUND,
-          not_found_ids: notFoundIds
+          not_found_ids: notFoundIds,
         })
         return
       }
@@ -1312,7 +1368,7 @@ export class BackofficeController {
       // Check all invoices are validated or paid and have validated_pdf_url
       // Note: 'paid' invoices were previously validated, so they should also be allowed
       const invalidInvoices = invoices.filter(
-        inv => (inv.status !== 'validated' && inv.status !== 'paid') || !inv.validated_pdf_url
+        (inv) => (inv.status !== 'validated' && inv.status !== 'paid') || !inv.validated_pdf_url
       )
 
       if (invalidInvoices.length > 0) {
@@ -1320,17 +1376,20 @@ export class BackofficeController {
           success: false,
           error: ERROR_CODES.BACKOFFICE_INVOICE_NOT_VALIDATED,
           code: ERROR_CODES.BACKOFFICE_INVOICE_NOT_VALIDATED,
-          invalid_invoices: invalidInvoices.map(inv => ({
+          invalid_invoices: invalidInvoices.map((inv) => ({
             id: inv.id,
             invoice_number: inv.invoice_number,
             status: inv.status,
-            has_validated_pdf: !!inv.validated_pdf_url
-          }))
+            has_validated_pdf: !!inv.validated_pdf_url,
+          })),
         })
         return
       }
 
-      logger.info({ invoicesCount: invoices.length }, '[BackofficeController.downloadValidatedInvoicesZip] Creating ZIP')
+      logger.info(
+        { invoicesCount: invoices.length },
+        '[BackofficeController.downloadValidatedInvoicesZip] Creating ZIP'
+      )
 
       // Create ZIP archive
       const archive = archiver('zip', { zlib: { level: 5 } })
@@ -1338,7 +1397,10 @@ export class BackofficeController {
       // Set response headers
       const timestamp = new Date().toISOString().slice(0, 10).replace(/-/g, '')
       res.setHeader('Content-Type', 'application/zip')
-      res.setHeader('Content-Disposition', `attachment; filename="facturas_validadas_${timestamp}.zip"`)
+      res.setHeader(
+        'Content-Disposition',
+        `attachment; filename="facturas_validadas_${timestamp}.zip"`
+      )
 
       // Pipe archive to response
       archive.pipe(res)
@@ -1356,8 +1418,20 @@ export class BackofficeController {
 
       // Helper to get month name in Spanish
       const getSpanishMonth = (date: Date): string => {
-        const months = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-          'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
+        const months = [
+          'Enero',
+          'Febrero',
+          'Marzo',
+          'Abril',
+          'Mayo',
+          'Junio',
+          'Julio',
+          'Agosto',
+          'Septiembre',
+          'Octubre',
+          'Noviembre',
+          'Diciembre',
+        ]
         return months[date.getMonth()]
       }
 
@@ -1365,7 +1439,10 @@ export class BackofficeController {
       for (const invoice of invoices) {
         try {
           const pdfUrl = invoice.validated_pdf_url!
-          logger.debug({ invoiceNumber: invoice.invoice_number }, '[BackofficeController.downloadValidatedInvoicesZip] Downloading')
+          logger.debug(
+            { invoiceNumber: invoice.invoice_number },
+            '[BackofficeController.downloadValidatedInvoicesZip] Downloading'
+          )
 
           // Try to download the PDF
           let pdfBuffer: Buffer | null = null
@@ -1378,7 +1455,10 @@ export class BackofficeController {
             })
             pdfBuffer = Buffer.from(response.data)
           } catch (err: any) {
-            logger.warn({ invoiceNumber: invoice.invoice_number, err }, '[downloadValidatedInvoicesZip] Direct download failed')
+            logger.warn(
+              { invoiceNumber: invoice.invoice_number, err },
+              '[downloadValidatedInvoicesZip] Direct download failed'
+            )
           }
 
           // Method 2: Signed URL
@@ -1391,12 +1471,18 @@ export class BackofficeController {
               })
               pdfBuffer = Buffer.from(response.data)
             } catch (err: any) {
-              logger.warn({ invoiceNumber: invoice.invoice_number, err }, '[downloadValidatedInvoicesZip] Signed URL failed')
+              logger.warn(
+                { invoiceNumber: invoice.invoice_number, err },
+                '[downloadValidatedInvoicesZip] Signed URL failed'
+              )
             }
           }
 
           if (!pdfBuffer) {
-            logger.error({ invoiceNumber: invoice.invoice_number }, '[downloadValidatedInvoicesZip] Failed to download PDF')
+            logger.error(
+              { invoiceNumber: invoice.invoice_number },
+              '[downloadValidatedInvoicesZip] Failed to download PDF'
+            )
             continue // Skip this invoice but continue with others
           }
 
@@ -1410,9 +1496,11 @@ export class BackofficeController {
           // Add to archive
           archive.append(pdfBuffer, { name: filename })
           logger.debug({ filename }, '[downloadValidatedInvoicesZip] Added')
-
         } catch (err: any) {
-          logger.error({ invoiceId: invoice.id, err }, '[downloadValidatedInvoicesZip] Error processing invoice')
+          logger.error(
+            { invoiceId: invoice.id, err },
+            '[downloadValidatedInvoicesZip] Error processing invoice'
+          )
           // Continue with other invoices
         }
       }
@@ -1420,7 +1508,6 @@ export class BackofficeController {
       // Finalize the archive
       await archive.finalize()
       logger.info('[BackofficeController.downloadValidatedInvoicesZip] ZIP created successfully')
-
     } catch (error: any) {
       logger.error({ err: error }, '[BackofficeController.downloadValidatedInvoicesZip] Error')
       // Only send error if headers haven't been sent
@@ -1548,7 +1635,9 @@ export class BackofficeController {
           timeout: 30000,
         })
         pdfBuffer = Buffer.from(response.data)
-        logger.debug('[BackofficeController.downloadInvoicePdf] Downloaded successfully from direct URL')
+        logger.debug(
+          '[BackofficeController.downloadInvoicePdf] Downloaded successfully from direct URL'
+        )
       } catch (err: any) {
         lastError = err
         logger.warn({ err }, '[BackofficeController.downloadInvoicePdf] Direct URL failed')
@@ -1559,13 +1648,18 @@ export class BackofficeController {
         try {
           // Añadir fl_attachment para forzar descarga
           const attachmentUrl = pdfUrl.replace('/image/upload/', '/image/upload/fl_attachment/')
-          logger.debug({ attachmentUrl }, '[BackofficeController.downloadInvoicePdf] Trying attachment URL')
+          logger.debug(
+            { attachmentUrl },
+            '[BackofficeController.downloadInvoicePdf] Trying attachment URL'
+          )
           const response = await axios.get(attachmentUrl, {
             responseType: 'arraybuffer',
             timeout: 30000,
           })
           pdfBuffer = Buffer.from(response.data)
-          logger.debug('[BackofficeController.downloadInvoicePdf] Downloaded successfully from attachment URL')
+          logger.debug(
+            '[BackofficeController.downloadInvoicePdf] Downloaded successfully from attachment URL'
+          )
         } catch (err: any) {
           lastError = err
           logger.warn({ err }, '[BackofficeController.downloadInvoicePdf] Attachment URL failed')
@@ -1582,7 +1676,9 @@ export class BackofficeController {
             timeout: 30000,
           })
           pdfBuffer = Buffer.from(response.data)
-          logger.debug('[BackofficeController.downloadInvoicePdf] Downloaded successfully from signed URL')
+          logger.debug(
+            '[BackofficeController.downloadInvoicePdf] Downloaded successfully from signed URL'
+          )
         } catch (err: any) {
           lastError = err
           logger.warn({ err }, '[BackofficeController.downloadInvoicePdf] Signed URL failed')
@@ -1604,7 +1700,9 @@ export class BackofficeController {
             timeout: 30000,
           })
           pdfBuffer = Buffer.from(response.data)
-          logger.debug('[BackofficeController.downloadInvoicePdf] Downloaded successfully from alternate URL')
+          logger.debug(
+            '[BackofficeController.downloadInvoicePdf] Downloaded successfully from alternate URL'
+          )
         } catch (err: any) {
           lastError = err
           logger.warn({ err }, '[BackofficeController.downloadInvoicePdf] Alternate URL failed')
@@ -1612,7 +1710,10 @@ export class BackofficeController {
       }
 
       if (!pdfBuffer) {
-        logger.error({ err: lastError }, '[BackofficeController.downloadInvoicePdf] All download methods failed')
+        logger.error(
+          { err: lastError },
+          '[BackofficeController.downloadInvoicePdf] All download methods failed'
+        )
         throw lastError || new Error('No se pudo descargar el PDF')
       }
 
@@ -1620,14 +1721,17 @@ export class BackofficeController {
       // Formato: factura_NUMERO_TIPO.pdf (ej: factura_FV202312001_original.pdf)
       const safeInvoiceNumber = invoice.invoice_number.replace(/[/\\?%*:|"<>]/g, '-')
       const filename = `factura_${safeInvoiceNumber}_${type}.pdf`
-      
+
       // Enviar el PDF al cliente
       res.setHeader('Content-Type', 'application/pdf')
       res.setHeader('Content-Disposition', `attachment; filename="${filename}"`)
       res.setHeader('Content-Length', pdfBuffer.length)
       res.send(pdfBuffer)
     } catch (error: any) {
-      logger.error({ err: error, responseStatus: error.response?.status }, '[BackofficeController.downloadInvoicePdf] Error')
+      logger.error(
+        { err: error, responseStatus: error.response?.status },
+        '[BackofficeController.downloadInvoicePdf] Error'
+      )
       res.status(500).json({
         success: false,
         error: ERROR_CODES.BACKOFFICE_DOWNLOAD_PDF_ERROR,
@@ -1728,9 +1832,12 @@ export class BackofficeController {
 
       // Import CronService dynamically to avoid circular dependency
       const { CronService } = await import('../../services/cron/cron-service.js')
-      
-      logger.info({ userId: req.user.id, month, year }, '[BackofficeController.executeBatchPayment] Executing batch payment')
-      
+
+      logger.info(
+        { userId: req.user.id, month, year },
+        '[BackofficeController.executeBatchPayment] Executing batch payment'
+      )
+
       const result = await CronService.runBatchPaymentNow(year, month, req.user.id)
 
       if (result.success) {
@@ -1837,10 +1944,17 @@ export class BackofficeController {
         return
       }
 
-      logger.info({ userId: req.user.id, month, year }, '[BackofficeController.revertBatchPayment] Reverting batch payment')
+      logger.info(
+        { userId: req.user.id, month, year },
+        '[BackofficeController.revertBatchPayment] Reverting batch payment'
+      )
 
       const startTime = Date.now()
-      const result = await BackofficeRepository.revertPaidInvoicesToValidated(year, month, req.user.id)
+      const result = await BackofficeRepository.revertPaidInvoicesToValidated(
+        year,
+        month,
+        req.user.id
+      )
       const duration = Date.now() - startTime
 
       res.json({

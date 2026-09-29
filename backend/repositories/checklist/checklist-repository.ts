@@ -9,7 +9,10 @@ import type { ChecklistRun, StepState, ResultSetHeader } from '../../models/chec
 // RUNS
 // ──────────────────────────────────────────────────────────
 
-export async function findActiveRun(checklistId: string, hotelDate: string): Promise<ChecklistRun | null> {
+export async function findActiveRun(
+  checklistId: string,
+  hotelDate: string
+): Promise<ChecklistRun | null> {
   const [rows] = await db.execute<ChecklistRun[]>(
     `SELECT * FROM checklist_runs
      WHERE checklist_id = ? AND hotel_id = 1 AND hotel_date = ? AND reset_at IS NULL
@@ -24,10 +27,9 @@ export async function createRun(checklistId: string, hotelDate: string): Promise
     `INSERT INTO checklist_runs (checklist_id, hotel_id, hotel_date) VALUES (?, 1, ?)`,
     [checklistId, hotelDate]
   )
-  const [rows] = await db.execute<ChecklistRun[]>(
-    `SELECT * FROM checklist_runs WHERE id = ?`,
-    [(result as unknown as ResultSetHeader).insertId]
-  )
+  const [rows] = await db.execute<ChecklistRun[]>(`SELECT * FROM checklist_runs WHERE id = ?`, [
+    (result as unknown as ResultSetHeader).insertId,
+  ])
   return rows[0]
 }
 
@@ -51,7 +53,11 @@ export async function getOrCreateRun(checklistId: string): Promise<ChecklistRun>
   }
 }
 
-export async function closeRun(runId: number, userId: string, reason: 'cron' | 'manual'): Promise<void> {
+export async function closeRun(
+  runId: number,
+  userId: string,
+  reason: 'cron' | 'manual'
+): Promise<void> {
   await db.execute(
     `UPDATE checklist_runs SET reset_at = NOW(), reset_by_user_id = ?, reset_reason = ? WHERE id = ?`,
     [userId, reason, runId]
@@ -121,7 +127,17 @@ export async function getRunHistory(
   limit: number,
   dateFrom?: string,
   dateTo?: string
-): Promise<{ run: ChecklistRun; steps: { step_id: string; done: boolean; done_by_username: string | null; done_at: string | null }[] }[]> {
+): Promise<
+  {
+    run: ChecklistRun
+    steps: {
+      step_id: string
+      done: boolean
+      done_by_username: string | null
+      done_at: string | null
+    }[]
+  }[]
+> {
   // LIMIT embedded directly — prepared statements don't support LIMIT ? in all MySQL versions
   const safeLimit = Math.max(1, Math.min(Math.floor(limit), 100))
 
@@ -149,7 +165,15 @@ export async function getRunHistory(
 
   // db.query (not execute) for dynamic IN clause to avoid prepared statement cache issues
   const runIds = runs.map((r) => r.id)
-  const [stepRows] = await db.query<(RowDataPacket & { run_id: number; step_id: string; done: boolean; done_by_username: string | null; done_at: string | null })[]>(
+  const [stepRows] = await db.query<
+    (RowDataPacket & {
+      run_id: number
+      step_id: string
+      done: boolean
+      done_by_username: string | null
+      done_at: string | null
+    })[]
+  >(
     `SELECT css.run_id, css.step_id, css.done, css.done_at, u.username AS done_by_username
      FROM checklist_step_state css
      LEFT JOIN users u ON u.id = css.done_by_user_id

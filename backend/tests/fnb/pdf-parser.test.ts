@@ -41,16 +41,16 @@ describe('parseOperaPdf', () => {
     const buffer = readFileSync(FIXTURE)
     const result = await parseOperaPdf(buffer)
 
-    const byCode = Object.fromEntries(result.entries.map(e => [e.code, e.amount]))
+    const byCode = Object.fromEntries(result.entries.map((e) => [e.code, e.amount]))
 
     expect(result.entries).toHaveLength(7)
     expect(byCode['21110']).toBe(330.91) // Breakfast Included
-    expect(byCode['21124']).toBe(20)     // Breakfast Excluded
+    expect(byCode['21124']).toBe(20) // Breakfast Excluded
     expect(byCode['21120']).toBe(278.91) // Breakfast Directo FB
-    expect(byCode['21111']).toBe(65)     // Lunch Food
-    expect(byCode['21267']).toBe(106.4)  // Lunch Beverage
+    expect(byCode['21111']).toBe(65) // Lunch Food
+    expect(byCode['21267']).toBe(106.4) // Lunch Beverage
     expect(byCode['21112']).toBe(107.73) // Dinner Food
-    expect(byCode['21307']).toBe(127.2)  // Dinner Beverage
+    expect(byCode['21307']).toBe(127.2) // Dinner Beverage
   })
 
   it('extracts the grand total', async () => {

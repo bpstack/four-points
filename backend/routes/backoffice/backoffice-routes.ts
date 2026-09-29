@@ -2,7 +2,7 @@
 /**
  * Rutas para el módulo Back Office
  * Gestión de proveedores, facturas, categorías y assets
- * 
+ *
  * Permisos:
  * - admin: CRUD completo
  * - demo-admin: solo lectura (GET)
@@ -117,11 +117,7 @@ router.delete('/suppliers/:id', isRealAdmin, BackofficeController.deleteSupplier
  * @desc    Marcar proveedor como inactivo (preserva histórico)
  * @access  Private (admin only)
  */
-router.post(
-  '/suppliers/:id/inactivate',
-  isRealAdmin,
-  BackofficeController.inactivateSupplier
-)
+router.post('/suppliers/:id/inactivate', isRealAdmin, BackofficeController.inactivateSupplier)
 
 /**
  * @route   POST /api/backoffice/suppliers/:id/activate
@@ -257,7 +253,12 @@ router.delete('/invoices/:id', isRealAdmin, BackofficeController.deleteInvoice)
  * @query   type (original/validated)
  * @file    pdf (multipart/form-data)
  */
-router.post('/invoices/:id/pdf', isRealAdmin, upload.single('pdf'), BackofficeController.uploadInvoicePdf)
+router.post(
+  '/invoices/:id/pdf',
+  isRealAdmin,
+  upload.single('pdf'),
+  BackofficeController.uploadInvoicePdf
+)
 
 /**
  * @route   GET /api/backoffice/invoices/:id/pdf-url

@@ -113,9 +113,12 @@ class ParkingBookingsController {
         success: true,
         total: result.pagination.total,
         pagination: result.pagination,
-        filters: Object.keys(filters).filter(k => !['page', 'limit'].includes(k)).length > 0 
-          ? Object.fromEntries(Object.entries(filters).filter(([k]) => !['page', 'limit'].includes(k)))
-          : null,
+        filters:
+          Object.keys(filters).filter((k) => !['page', 'limit'].includes(k)).length > 0
+            ? Object.fromEntries(
+                Object.entries(filters).filter(([k]) => !['page', 'limit'].includes(k))
+              )
+            : null,
         bookings: result.bookings,
       })
     } catch (error) {
@@ -225,11 +228,7 @@ class ParkingBookingsController {
         expected_checkout: data.expected_checkout,
         total_amount: data.total_amount,
         booking_source: data.booking_source as
-          | 'direct'
-          | 'booking.com'
-          | 'expedia'
-          | 'other'
-          | undefined,
+          'direct' | 'booking.com' | 'expedia' | 'other' | undefined,
         external_booking_id: data.external_booking_id,
         notes: data.notes,
         created_by: req.user!.id, // UUID string, no parseInt
@@ -315,7 +314,10 @@ class ParkingBookingsController {
       logger.error({ err: error }, 'Error en checkIn:')
       const errorMessage = (error as Error).message
 
-      if (errorMessage === ERROR_CODES.PARKING_BOOKING_NOT_FOUND || errorMessage === 'Reserva no encontrada') {
+      if (
+        errorMessage === ERROR_CODES.PARKING_BOOKING_NOT_FOUND ||
+        errorMessage === 'Reserva no encontrada'
+      ) {
         res.status(404).json({
           success: false,
           error: ERROR_CODES.PARKING_BOOKING_NOT_FOUND,
@@ -324,7 +326,10 @@ class ParkingBookingsController {
         return
       }
 
-      if (errorMessage.includes('No se puede hacer check-in') || errorMessage.includes('estado actual es')) {
+      if (
+        errorMessage.includes('No se puede hacer check-in') ||
+        errorMessage.includes('estado actual es')
+      ) {
         res.status(400).json({
           success: false,
           error: errorMessage,
@@ -343,7 +348,10 @@ class ParkingBookingsController {
       }
 
       // Log detallado para debugging
-      logger.error({ message: errorMessage, stack: (error as Error).stack }, 'Error no manejado en checkIn')
+      logger.error(
+        { message: errorMessage, stack: (error as Error).stack },
+        'Error no manejado en checkIn'
+      )
 
       res.status(500).json({
         success: false,
@@ -619,7 +627,10 @@ class ParkingBookingsController {
         notes !== undefined
 
       // For non-payment updates, restrict to reserved/checked_in status
-      if (hasOtherUpdates && ['completed', 'canceled', 'no_show'].includes(existingBooking.status)) {
+      if (
+        hasOtherUpdates &&
+        ['completed', 'canceled', 'no_show'].includes(existingBooking.status)
+      ) {
         res.status(400).json({
           success: false,
           error: ERROR_CODES.PARKING_CANNOT_UPDATE_STATUS,

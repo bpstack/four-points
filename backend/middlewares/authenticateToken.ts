@@ -9,7 +9,7 @@ import { logger } from '../config/logger.js'
  * Middleware para verificar el token de acceso JWT.
  * ✅ Busca el token en cookies (HttpOnly) o en Authorization header
  * Prioridad: cookies > header (las cookies son más seguras)
- * 
+ *
  * DEMO: Después de autenticar, también verifica restricciones demo.
  * Para eliminar esta funcionalidad, quitar la llamada a demoRestriction().
  */

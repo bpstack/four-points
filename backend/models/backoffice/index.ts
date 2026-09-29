@@ -12,7 +12,8 @@ export type InvoiceStatus = 'pending' | 'validated' | 'rejected' | 'paid'
 export type PaymentMethod = 'transfer' | 'direct_debit'
 export type Periodicity = 'monthly' | 'bimonthly' | 'quarterly' | 'annual' | 'on_demand'
 export type AssetType = 'stamp' | 'signature'
-export type HistoryAction = 'created' | 'updated' | 'validated' | 'rejected' | 'paid' | 'deleted' | 'restored'
+export type HistoryAction =
+  'created' | 'updated' | 'validated' | 'rejected' | 'paid' | 'deleted' | 'restored'
 
 // ========================================
 // CATEGORÍAS

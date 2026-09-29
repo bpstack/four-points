@@ -112,8 +112,16 @@ export async function getConfigMap(): Promise<SchedulingConfigMap> {
     // New validations with defaults from business rules
     minMonthlyLibre: parseInt(map['min_monthly_libre'] || '8'),
     maxMonthlyLibre: parseInt(map['max_monthly_libre'] || '12'),
-    prefMonthlyLibre: parseInt(map['pref_monthly_libre'] ||
-      String(Math.round((parseInt(map['min_monthly_libre'] || '8') + parseInt(map['max_monthly_libre'] || '12')) / 2))),
+    prefMonthlyLibre: parseInt(
+      map['pref_monthly_libre'] ||
+        String(
+          Math.round(
+            (parseInt(map['min_monthly_libre'] || '8') +
+              parseInt(map['max_monthly_libre'] || '12')) /
+              2
+          )
+        )
+    ),
     maxConsecutiveWorkDays: parseInt(map['max_consecutive_work_days'] || '6'),
     minConsecutiveLibre: parseInt(map['min_consecutive_libre'] || '2'),
   }
@@ -346,7 +354,10 @@ export async function getPreviousMonthEndAssignments(
     return [] // No previous month exists
   }
 
-  logger.info({ status: prevMonthRecord.status, year: prevYear, month: prevMonth }, '[getPreviousMonthEndAssignments] Using previous month for continuity')
+  logger.info(
+    { status: prevMonthRecord.status, year: prevYear, month: prevMonth },
+    '[getPreviousMonthEndAssignments] Using previous month for continuity'
+  )
 
   // Get assignments for last N days of previous month
   const [rows] = await db.execute<RowDataPacket[]>(
@@ -376,9 +387,9 @@ export async function getPreviousMonthEndAssignments(
  * Incluye meses publicados y en borrador (draft).
  * Un único GROUP BY — muy eficiente incluso con muchos meses y empleados.
  */
-export async function getShiftCountsByYear(year: number): Promise<
-  Array<{ employeeId: string; employeeName: string; shiftCode: string; count: number }>
-> {
+export async function getShiftCountsByYear(
+  year: number
+): Promise<Array<{ employeeId: string; employeeName: string; shiftCode: string; count: number }>> {
   const [rows] = await db.execute<RowDataPacket[]>(
     `SELECT
        sa.employee_id      AS employeeId,
@@ -845,7 +856,11 @@ export async function applyGeneratedSchedule(
 
     if (toInsert.length > 0) {
       const values = toInsert.map((a) => [
-        monthId, a.day_id, a.employee_id, a.shift_code, a.source_constraint_id ?? null,
+        monthId,
+        a.day_id,
+        a.employee_id,
+        a.shift_code,
+        a.source_constraint_id ?? null,
       ])
       const placeholders = values.map(() => '(?, ?, ?, ?, ?, NULL, NOW(), NOW())').join(', ')
       await connection.query(
@@ -1371,18 +1386,16 @@ export async function setSchedulableEmployeeDates(
  * Pass the full ordered list — the order index in the array becomes the value.
  * Employees not present in the payload are left untouched.
  */
-export async function setSchedulableEmployeesOrder(
-  orderedIds: string[]
-): Promise<void> {
+export async function setSchedulableEmployeesOrder(orderedIds: string[]): Promise<void> {
   if (orderedIds.length === 0) return
   const conn = await db.getConnection()
   try {
     await conn.beginTransaction()
     for (let i = 0; i < orderedIds.length; i++) {
-      await conn.query(
-        `UPDATE scheduling_employees SET display_order = ? WHERE employee_id = ?`,
-        [i, orderedIds[i]]
-      )
+      await conn.query(`UPDATE scheduling_employees SET display_order = ? WHERE employee_id = ?`, [
+        i,
+        orderedIds[i],
+      ])
     }
     await conn.commit()
   } catch (err) {

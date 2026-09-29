@@ -244,7 +244,11 @@ export class ConversationRepository {
       VALUES (?, ?, ?)
       ON DUPLICATE KEY UPDATE is_active = 1, joined_at = CURRENT_TIMESTAMP
     `
-    const [result] = await db.query<ResultSetHeader>(query, [conversationId, userId, isAdmin ? 1 : 0])
+    const [result] = await db.query<ResultSetHeader>(query, [
+      conversationId,
+      userId,
+      isAdmin ? 1 : 0,
+    ])
     return result.affectedRows > 0
   }
 
@@ -353,7 +357,10 @@ export class ConversationRepository {
   /**
    * Transferir admin al siguiente participante mas antiguo
    */
-  static async transferAdmin(conversationId: number, currentAdminId: string): Promise<string | null> {
+  static async transferAdmin(
+    conversationId: number,
+    currentAdminId: string
+  ): Promise<string | null> {
     // Buscar el participante mas antiguo que no sea el admin actual
     const query = `
       SELECT user_id FROM conversation_participants

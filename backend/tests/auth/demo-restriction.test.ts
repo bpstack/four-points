@@ -14,7 +14,8 @@ vi.mock('../../repositories/demo/demo-activity-repository.js', () => ({
 }))
 
 const { demoRestriction } = await import('../../middlewares/demoRestriction.js')
-const { DemoActivityRepository } = await import('../../repositories/demo/demo-activity-repository.js')
+const { DemoActivityRepository } =
+  await import('../../repositories/demo/demo-activity-repository.js')
 
 function buildReq(overrides: Partial<Request> = {}): Request {
   return {
@@ -142,10 +143,16 @@ describe('demoRestriction — blocked-attempt log', () => {
       user: { id: 'demo', role: 'demo-admin' } as any,
       method: 'PATCH',
       originalUrl: '/api/auth/me/password',
-      body: { currentPassword: 'old-secret-1', newPassword: 'new-secret-2', confirmPassword: 'new-secret-2', note: 'keep' },
+      body: {
+        currentPassword: 'old-secret-1',
+        newPassword: 'new-secret-2',
+        confirmPassword: 'new-secret-2',
+        note: 'keep',
+      },
     })
     demoRestriction(req, buildRes(), next)
-    const logged = (DemoActivityRepository.logActivity as any).mock.calls[0][0].body_preview as string
+    const logged = (DemoActivityRepository.logActivity as any).mock.calls[0][0]
+      .body_preview as string
     expect(logged).not.toMatch(/secret/)
     expect(JSON.parse(logged)).toEqual({
       currentPassword: '[REDACTED]',

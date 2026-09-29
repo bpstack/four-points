@@ -2,7 +2,12 @@
 // Shared validation helpers for objective scheduling tests
 // These validate actual business rules, not just code execution
 
-import type { ScheduleMatrix, DayInfo, Employee, GeneratorContext } from '../../services/scheduling/types/index.js'
+import type {
+  ScheduleMatrix,
+  DayInfo,
+  Employee,
+  GeneratorContext,
+} from '../../services/scheduling/types/index.js'
 
 // Re-export from utils if available, or define inline
 export function isWorkShift(shift: string | undefined): boolean {
@@ -49,14 +54,14 @@ export function validateNightBlocksAreConsecutive(
   employeeId: string
 ): ValidationResult {
   const errors: string[] = []
-  
+
   if (!matrix[employeeId]) {
     return { valid: true, errors: [] }
   }
 
   const nightDays = days
-    .filter(d => matrix[employeeId][d.dayNumber] === 'N')
-    .map(d => d.dayNumber)
+    .filter((d) => matrix[employeeId][d.dayNumber] === 'N')
+    .map((d) => d.dayNumber)
     .sort((a, b) => a - b)
 
   if (nightDays.length === 0) {
@@ -66,7 +71,9 @@ export function validateNightBlocksAreConsecutive(
   // Check if all nights are consecutive
   for (let i = 1; i < nightDays.length; i++) {
     if (nightDays[i] !== nightDays[i - 1] + 1) {
-      errors.push(`Employee ${employeeId}: Night shifts are not consecutive. Days: ${nightDays.join(', ')}`)
+      errors.push(
+        `Employee ${employeeId}: Night shifts are not consecutive. Days: ${nightDays.join(', ')}`
+      )
       break
     }
   }
@@ -85,17 +92,19 @@ export function validateMinimumNightBlock(
   minBlock: number = 3
 ): ValidationResult {
   const errors: string[] = []
-  
+
   if (!matrix[employeeId]) {
     return { valid: true, errors: [] }
   }
 
   const nightDays = days
-    .filter(d => matrix[employeeId][d.dayNumber] === 'N')
-    .map(d => d.dayNumber)
+    .filter((d) => matrix[employeeId][d.dayNumber] === 'N')
+    .map((d) => d.dayNumber)
 
   if (nightDays.length > 0 && nightDays.length < minBlock) {
-    errors.push(`Employee ${employeeId}: Only ${nightDays.length} night shifts (minimum ${minBlock} required)`)
+    errors.push(
+      `Employee ${employeeId}: Only ${nightDays.length} night shifts (minimum ${minBlock} required)`
+    )
   }
 
   return { valid: errors.length === 0, errors }
@@ -112,13 +121,13 @@ export function validateNoSmallWorkBlocks(
   minBlock: number = 3
 ): ValidationResult {
   const errors: string[] = []
-  
+
   if (!matrix[employeeId]) {
     return { valid: true, errors: [] }
   }
 
   const sortedDays = [...days].sort((a, b) => a.dayNumber - b.dayNumber)
-  
+
   let blockStart = -1
   let blockSize = 0
 
@@ -141,7 +150,9 @@ export function validateNoSmallWorkBlocks(
 
   // Check final block
   if (blockSize > 0 && blockSize < minBlock) {
-    errors.push(`Employee ${employeeId}: Work block of ${blockSize} days at end of month, minimum is ${minBlock}`)
+    errors.push(
+      `Employee ${employeeId}: Work block of ${blockSize} days at end of month, minimum is ${minBlock}`
+    )
   }
 
   return { valid: errors.length === 0, errors }
@@ -158,13 +169,13 @@ export function validateMaxConsecutiveWork(
   maxConsecutive: number = 6
 ): ValidationResult {
   const errors: string[] = []
-  
+
   if (!matrix[employeeId]) {
     return { valid: true, errors: [] }
   }
 
   const sortedDays = [...days].sort((a, b) => a.dayNumber - b.dayNumber)
-  
+
   let consecutiveWork = 0
   let streakStart = -1
 
@@ -196,7 +207,7 @@ export function validateConsecutiveLibrePerWeek(
   employeeId: string
 ): ValidationResult {
   const errors: string[] = []
-  
+
   if (!matrix[employeeId]) {
     return { valid: true, errors: [] }
   }
@@ -252,7 +263,7 @@ export function validate48hRestAfterNights(
   employeeId: string
 ): ValidationResult {
   const errors: string[] = []
-  
+
   if (!matrix[employeeId]) {
     return { valid: true, errors: [] }
   }
@@ -260,12 +271,13 @@ export function validate48hRestAfterNights(
   const sortedDays = [...days].sort((a, b) => a.dayNumber - b.dayNumber)
 
   // Find night blocks
-  const nightDays = sortedDays.filter(d => matrix[employeeId][d.dayNumber] === 'N')
+  const nightDays = sortedDays.filter((d) => matrix[employeeId][d.dayNumber] === 'N')
   if (nightDays.length === 0) return { valid: true, errors: [] }
 
   // Find end of each night block
   for (let i = 0; i < nightDays.length; i++) {
-    const isEndOfBlock = i === nightDays.length - 1 || nightDays[i + 1].dayNumber !== nightDays[i].dayNumber + 1
+    const isEndOfBlock =
+      i === nightDays.length - 1 || nightDays[i + 1].dayNumber !== nightDays[i].dayNumber + 1
 
     if (isEndOfBlock) {
       const lastNightDay = nightDays[i].dayNumber
@@ -273,7 +285,7 @@ export function validate48hRestAfterNights(
       const returnDay = lastNightDay + 2
 
       // Check rest day (must NOT be work)
-      const restDayInfo = sortedDays.find(d => d.dayNumber === restDay)
+      const restDayInfo = sortedDays.find((d) => d.dayNumber === restDay)
       if (restDayInfo) {
         const restShift = matrix[employeeId][restDay]
         if (isWorkShift(restShift)) {
@@ -284,7 +296,7 @@ export function validate48hRestAfterNights(
       }
 
       // Check return day - should not be M (only 24h rest if M)
-      const returnDayInfo = sortedDays.find(d => d.dayNumber === returnDay)
+      const returnDayInfo = sortedDays.find((d) => d.dayNumber === returnDay)
       if (returnDayInfo) {
         const returnShift = matrix[employeeId][returnDay]
         if (returnShift === 'M') {
@@ -311,7 +323,7 @@ export function validateMonthlyLibreDays(
   max: number = 12
 ): ValidationResult {
   const errors: string[] = []
-  
+
   if (!matrix[employeeId]) {
     return { valid: true, errors: [] }
   }
@@ -325,7 +337,9 @@ export function validateMonthlyLibreDays(
   }
 
   if (libreDays < min) {
-    errors.push(`Employee ${employeeId}: Only ${libreDays} libre/rest days in month (minimum ${min})`)
+    errors.push(
+      `Employee ${employeeId}: Only ${libreDays} libre/rest days in month (minimum ${min})`
+    )
   }
   if (libreDays > max) {
     errors.push(`Employee ${employeeId}: ${libreDays} libre/rest days in month (maximum ${max})`)
@@ -367,7 +381,9 @@ export function validateDailyCoverage(
       errors.push(`Day ${day.dayNumber}: Morning coverage ${morningCount} < ${minMorning} minimum`)
     }
     if (afternoonCount < minAfternoon) {
-      errors.push(`Day ${day.dayNumber}: Afternoon coverage ${afternoonCount} < ${minAfternoon} minimum`)
+      errors.push(
+        `Day ${day.dayNumber}: Afternoon coverage ${afternoonCount} < ${minAfternoon} minimum`
+      )
     }
     if (nightCount < minNight) {
       errors.push(`Day ${day.dayNumber}: Night coverage ${nightCount} < ${minNight} minimum`)
@@ -494,7 +510,13 @@ export function validateScheduleComprehensive(
     }
 
     // Monthly libre days
-    const monthlyResult = validateMonthlyLibreDays(matrix, days, emp.id, minMonthlyLibre, maxMonthlyLibre)
+    const monthlyResult = validateMonthlyLibreDays(
+      matrix,
+      days,
+      emp.id,
+      minMonthlyLibre,
+      maxMonthlyLibre
+    )
     if (!monthlyResult.valid) {
       allWarnings.push(...monthlyResult.errors) // Monthly libre is warning level
       byRule.monthlyLibre += monthlyResult.errors.length
@@ -503,7 +525,14 @@ export function validateScheduleComprehensive(
   }
 
   // Coverage validation (applies to whole schedule)
-  const coverageResult = validateDailyCoverage(matrix, days, employees, minMorning, minAfternoon, minNight)
+  const coverageResult = validateDailyCoverage(
+    matrix,
+    days,
+    employees,
+    minMorning,
+    minAfternoon,
+    minNight
+  )
   if (!coverageResult.valid) {
     allWarnings.push(...coverageResult.errors) // Coverage is warning level
     byRule.coverage += coverageResult.errors.length
@@ -527,7 +556,15 @@ export function validateScheduleComprehensive(
 
 export function createMockDays(count: number = 31, startDayOfWeek: number = 1): DayInfo[] {
   const days: DayInfo[] = []
-  const dayOfWeekMap: Array<'D' | 'L' | 'M' | 'X' | 'J' | 'V' | 'S'> = ['D', 'L', 'M', 'X', 'J', 'V', 'S']
+  const dayOfWeekMap: Array<'D' | 'L' | 'M' | 'X' | 'J' | 'V' | 'S'> = [
+    'D',
+    'L',
+    'M',
+    'X',
+    'J',
+    'V',
+    'S',
+  ]
 
   for (let i = 1; i <= count; i++) {
     const dayOfWeekIndex = (startDayOfWeek + i - 2) % 7
@@ -544,7 +581,11 @@ export function createMockDays(count: number = 31, startDayOfWeek: number = 1): 
   return days
 }
 
-export function createMockEmployee(id: string, name: string, rules: Employee['rules'] = {}): Employee {
+export function createMockEmployee(
+  id: string,
+  name: string,
+  rules: Employee['rules'] = {}
+): Employee {
   return { id, name, rules }
 }
 

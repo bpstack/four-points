@@ -26,7 +26,10 @@ const updateProfileSchema = z.object({
     .string()
     .min(3, 'El nombre de usuario debe tener al menos 3 caracteres')
     .max(50, 'El nombre de usuario no puede exceder 50 caracteres')
-    .regex(/^[a-zA-Z0-9_]+$/, 'El nombre de usuario solo puede contener letras, números y guiones bajos'),
+    .regex(
+      /^[a-zA-Z0-9_]+$/,
+      'El nombre de usuario solo puede contener letras, números y guiones bajos'
+    ),
   currentPassword: z.string().min(1, 'La contraseña actual es requerida'),
 })
 
@@ -38,7 +41,10 @@ const updateUserSchema = z
       .trim()
       .min(3, 'El nombre de usuario debe tener al menos 3 caracteres')
       .max(50, 'El nombre de usuario no puede exceder 50 caracteres')
-      .regex(/^[a-zA-Z0-9_.-]+$/, 'El nombre de usuario solo puede contener letras, números, _, . y -')
+      .regex(
+        /^[a-zA-Z0-9_.-]+$/,
+        'El nombre de usuario solo puede contener letras, números, _, . y -'
+      )
       .optional(),
     email: z.string().trim().email('Email no válido').max(255).optional(),
     role: z.string().trim().min(1).max(50).optional(),
@@ -49,17 +55,20 @@ const updateUserSchema = z
   })
 
 // Esquema para actualizar contraseña
-const updatePasswordSchema = z.object({
-  currentPassword: z.string().min(1, 'La contraseña actual es requerida'),
-  newPassword: newPasswordSchema,
-  confirmPassword: z.string().min(1, 'Confirma la nueva contraseña'),
-}).refine((data) => data.newPassword === data.confirmPassword, {
-  message: 'Las contraseñas no coinciden',
-  path: ['confirmPassword'],
-}).refine((data) => data.currentPassword !== data.newPassword, {
-  message: 'La nueva contraseña debe ser diferente a la actual',
-  path: ['newPassword'],
-})
+const updatePasswordSchema = z
+  .object({
+    currentPassword: z.string().min(1, 'La contraseña actual es requerida'),
+    newPassword: newPasswordSchema,
+    confirmPassword: z.string().min(1, 'Confirma la nueva contraseña'),
+  })
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    message: 'Las contraseñas no coinciden',
+    path: ['confirmPassword'],
+  })
+  .refine((data) => data.currentPassword !== data.newPassword, {
+    message: 'La nueva contraseña debe ser diferente a la actual',
+    path: ['newPassword'],
+  })
 
 export type UserInput = z.infer<typeof userSchema>
 export type UserValidationResult = ReturnType<typeof userSchema.safeParse>
@@ -88,7 +97,10 @@ export function validateUpdatePassword(input: unknown): UpdatePasswordValidation
 }
 
 // ❌ Formatea errores de validación en un objeto plano
-export function getValidationErrors(result: { success: boolean; error?: z.ZodError }): ValidationErrors | null {
+export function getValidationErrors(result: {
+  success: boolean
+  error?: z.ZodError
+}): ValidationErrors | null {
   if (result.success) return null
   if (!result.error) return null
 

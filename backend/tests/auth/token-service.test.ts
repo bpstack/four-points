@@ -13,9 +13,8 @@ beforeAll(() => {
 })
 
 // Import after env setup so config.ts reads the test secret.
-const { generateAccessToken, generateRefreshToken, verifyToken } = await import(
-  '../../services/auth/tokenService.js'
-)
+const { generateAccessToken, generateRefreshToken, verifyToken } =
+  await import('../../services/auth/tokenService.js')
 
 const VALID_USER = { id: 'user-uuid-1', username: 'alice', role: 'admin' }
 

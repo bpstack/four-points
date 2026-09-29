@@ -552,7 +552,12 @@ export class CashierShiftRepository {
       const methodName = (row.method_name || '').toUpperCase()
       const amount = Number(row.total) || 0
 
-      if (methodName.includes('TARJETA') || methodName.includes('CARD') || methodName.includes('CRÉDITO') || methodName.includes('DÉBITO')) {
+      if (
+        methodName.includes('TARJETA') ||
+        methodName.includes('CARD') ||
+        methodName.includes('CRÉDITO') ||
+        methodName.includes('DÉBITO')
+      ) {
         totalCard += amount
       } else if (methodName.includes('BACS')) {
         totalBacs += amount
@@ -630,10 +635,10 @@ export class CashierShiftRepository {
       )
       const cashCounted = Number(denomRows[0]?.total) || 0
       const initialFund = Number(shift.initial_fund) || 0
-      
+
       // Solo sumar si hay datos registrados
       if (cashCounted > 0) {
-        totalCash += (cashCounted - initialFund)
+        totalCash += cashCounted - initialFund
       }
 
       // Pagos por método
@@ -652,7 +657,12 @@ export class CashierShiftRepository {
         const methodName = (row.method_name || '').toUpperCase()
         const amount = Number(row.total) || 0
 
-        if (methodName.includes('TARJETA') || methodName.includes('CARD') || methodName.includes('CRÉDITO') || methodName.includes('DÉBITO')) {
+        if (
+          methodName.includes('TARJETA') ||
+          methodName.includes('CARD') ||
+          methodName.includes('CRÉDITO') ||
+          methodName.includes('DÉBITO')
+        ) {
           totalCard += amount
         } else if (methodName.includes('BACS')) {
           totalBacs += amount
@@ -666,7 +676,8 @@ export class CashierShiftRepository {
       }
     }
 
-    const grandTotal = totalCash + totalCard + totalBacs + totalWebPayment + totalTransfer + totalOther
+    const grandTotal =
+      totalCash + totalCard + totalBacs + totalWebPayment + totalTransfer + totalOther
 
     // Actualizar cashier_daily
     await db.query(
@@ -681,7 +692,16 @@ export class CashierShiftRepository {
          grand_total = ?,
          updated_at = NOW()
        WHERE DATE(date) = ?`,
-      [totalCash, totalCard, totalBacs, totalWebPayment, totalTransfer, totalOther, grandTotal, shiftDate]
+      [
+        totalCash,
+        totalCard,
+        totalBacs,
+        totalWebPayment,
+        totalTransfer,
+        totalOther,
+        grandTotal,
+        shiftDate,
+      ]
     )
   }
 }

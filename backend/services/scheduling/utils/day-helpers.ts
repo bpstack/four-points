@@ -44,9 +44,7 @@ export function getWeeksInMonth(days: DayInfo[]): WeekInfo[] {
  * Get days for a specific week
  */
 export function getDaysInWeek(days: DayInfo[], weekNumber: number): DayInfo[] {
-  return days
-    .filter((d) => d.weekNumber === weekNumber)
-    .sort((a, b) => a.dayNumber - b.dayNumber)
+  return days.filter((d) => d.weekNumber === weekNumber).sort((a, b) => a.dayNumber - b.dayNumber)
 }
 
 /**

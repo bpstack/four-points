@@ -189,7 +189,7 @@ export class CashierPaymentRepository {
    */
   static async getByShifts(shiftIds: number[]): Promise<CashierPayment[]> {
     if (shiftIds.length === 0) return []
-    
+
     const placeholders = shiftIds.map(() => '?').join(',')
     const query = `
       SELECT 

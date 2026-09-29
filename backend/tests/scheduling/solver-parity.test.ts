@@ -91,8 +91,8 @@ function fixtureToSolverInput(fixture: CorpusFixture): SolverInput {
       maxMonthlyLibre: inp.config.maxMonthlyLibre,
       maxConsecutiveWorkDays: inp.config.maxConsecutiveWorkDays,
     },
-    nightsHistory: {},  // no histórico en tests — S1 usa balanceo solo dentro del mes
-    options: { timeoutSeconds: 30, optimizationLevel: 'fast', seed: 42 },  // 'fast' intencional en tests (vs 'balanced' en prod)
+    nightsHistory: {}, // no histórico en tests — S1 usa balanceo solo dentro del mes
+    options: { timeoutSeconds: 30, optimizationLevel: 'fast', seed: 42 }, // 'fast' intencional en tests (vs 'balanced' en prod)
   }
 }
 
@@ -107,7 +107,7 @@ function matrixToFixtureAssignments(
     result[empId] = {}
     for (const [dayNumStr, shift] of Object.entries(dayMap)) {
       const dayNum = Number(dayNumStr)
-      if (dayNum > 0) result[empId][dayNum] = shift  // skip virtual days (negative keys)
+      if (dayNum > 0) result[empId][dayNum] = shift // skip virtual days (negative keys)
     }
   }
   return result
@@ -148,81 +148,65 @@ const PARITY_FIXTURES = [
 ]
 
 // Fixtures that are provably infeasible for the solver (coverage or hard constraints)
-const INFEASIBLE_FIXTURES = [
-  'F51-coverage-minimums-active',
-]
+const INFEASIBLE_FIXTURES = ['F51-coverage-minimums-active']
 
-describe(
-  'Solver → validator parity (0 hard errors)',
-  () => {
-    for (const fixtureId of PARITY_FIXTURES) {
-      it(
-        `[${fixtureId}] solver output has 0 hard errors`,
-        async () => {
-          const fixture = loadFixture(fixtureId)
-          const solverInput = fixtureToSolverInput(fixture)
+describe('Solver → validator parity (0 hard errors)', () => {
+  for (const fixtureId of PARITY_FIXTURES) {
+    it(`[${fixtureId}] solver output has 0 hard errors`, async () => {
+      const fixture = loadFixture(fixtureId)
+      const solverInput = fixtureToSolverInput(fixture)
 
-          const output = await runSolver(solverInput)
+      const output = await runSolver(solverInput)
 
-          expect(output.status).toBe('ok')
-          if (output.status !== 'ok') return
+      expect(output.status).toBe('ok')
+      if (output.status !== 'ok') return
 
-          // Build validator inputs from solver matrix
-          const days = buildDaysFromFixture(fixture.input.days)
-          const shifts = buildShifts()
-          const employees = buildEmployees(fixture.input.employees)
-          const assignments = buildAssignments(
-            matrixToFixtureAssignments(output.matrix),
-            days,
-            employees
-          )
-          const configMap = mergeConfig(fixture.input.config)
-          const previousMonthHistory = fixture.input.previousMonthHistory
-            ? buildPreviousMonthHistory(fixture.input.previousMonthHistory)
-            : null
-
-          const validator = new ScheduleValidator(
-            fixture.input.monthId,
-            fixture.input.year,
-            fixture.input.month,
-            configMap,
-            shifts,
-            days,
-            employees,
-            assignments,
-            previousMonthHistory
-          )
-
-          const result = validator.validate()
-
-          const errorMessages = result.errors
-            .map((e) => `[${e.type}/${e.severity}] emp=${e.employeeId} day=${e.day}: ${e.message}`)
-            .join('\n')
-
-          expect(result.errors, `Hard errors found:\n${errorMessages}`).toHaveLength(0)
-        },
-        60_000  // 60s timeout — Python startup + solve time
+      // Build validator inputs from solver matrix
+      const days = buildDaysFromFixture(fixture.input.days)
+      const shifts = buildShifts()
+      const employees = buildEmployees(fixture.input.employees)
+      const assignments = buildAssignments(
+        matrixToFixtureAssignments(output.matrix),
+        days,
+        employees
       )
-    }
-  }
-)
+      const configMap = mergeConfig(fixture.input.config)
+      const previousMonthHistory = fixture.input.previousMonthHistory
+        ? buildPreviousMonthHistory(fixture.input.previousMonthHistory)
+        : null
 
-describe(
-  'Solver infeasibility (fixtures with unsolvable constraints)',
-  () => {
-    for (const fixtureId of INFEASIBLE_FIXTURES) {
-      it(
-        `[${fixtureId}] solver returns infeasible`,
-        async () => {
-          const fixture = loadFixture(fixtureId)
-          const solverInput = fixtureToSolverInput(fixture)
-
-          const output = await runSolver(solverInput)
-
-          expect(output.status).toBe('infeasible')
-        },
-        60_000
+      const validator = new ScheduleValidator(
+        fixture.input.monthId,
+        fixture.input.year,
+        fixture.input.month,
+        configMap,
+        shifts,
+        days,
+        employees,
+        assignments,
+        previousMonthHistory
       )
-    }
+
+      const result = validator.validate()
+
+      const errorMessages = result.errors
+        .map((e) => `[${e.type}/${e.severity}] emp=${e.employeeId} day=${e.day}: ${e.message}`)
+        .join('\n')
+
+      expect(result.errors, `Hard errors found:\n${errorMessages}`).toHaveLength(0)
+    }, 60_000) // 60s timeout — Python startup + solve time
   }
-)
+})
+
+describe('Solver infeasibility (fixtures with unsolvable constraints)', () => {
+  for (const fixtureId of INFEASIBLE_FIXTURES) {
+    it(`[${fixtureId}] solver returns infeasible`, async () => {
+      const fixture = loadFixture(fixtureId)
+      const solverInput = fixtureToSolverInput(fixture)
+
+      const output = await runSolver(solverInput)
+
+      expect(output.status).toBe('infeasible')
+    }, 60_000)
+  }
+})

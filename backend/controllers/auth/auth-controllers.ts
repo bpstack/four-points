@@ -379,7 +379,9 @@ export const updatePassword = async (req: Request, res: Response): Promise<void>
       return
     }
 
-    const { currentPassword, newPassword } = req.body as UpdatePasswordDTO & { confirmPassword: string }
+    const { currentPassword, newPassword } = req.body as UpdatePasswordDTO & {
+      confirmPassword: string
+    }
     const userId = req.user!.id
 
     // Actualizar contraseña

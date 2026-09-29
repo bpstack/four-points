@@ -196,10 +196,7 @@ export class MessageRepository {
         AND (cp.last_read_at IS NULL OR m.created_at > cp.last_read_at)
       GROUP BY m.conversation_id
     `
-    const [rows] = await db.query<UnreadByConversationResult[]>(query, [
-      userId,
-      userId,
-    ])
+    const [rows] = await db.query<UnreadByConversationResult[]>(query, [userId, userId])
     return rows
   }
 
@@ -232,7 +229,11 @@ export class MessageRepository {
   /**
    * Buscar en mensajes del usuario (fulltext)
    */
-  static async search(userId: string, searchTerm: string, limit: number = 50): Promise<MessageWithSender[]> {
+  static async search(
+    userId: string,
+    searchTerm: string,
+    limit: number = 50
+  ): Promise<MessageWithSender[]> {
     const query = `
       SELECT 
         m.*,
@@ -256,7 +257,11 @@ export class MessageRepository {
   /**
    * Buscar con LIKE (fallback si fulltext no funciona bien)
    */
-  static async searchLike(userId: string, searchTerm: string, limit: number = 50): Promise<MessageWithSender[]> {
+  static async searchLike(
+    userId: string,
+    searchTerm: string,
+    limit: number = 50
+  ): Promise<MessageWithSender[]> {
     const query = `
       SELECT 
         m.*,

@@ -43,7 +43,10 @@ export async function buildSolverInput(
           noWeekends: ruleMap['no_weekends'] === 'true',
           shiftPriority: ruleMap['shift_priority'] ?? undefined,
           fixedDays: fixedDaysRaw
-            ? fixedDaysRaw.split(',').map(Number).filter((n) => !isNaN(n))
+            ? fixedDaysRaw
+                .split(',')
+                .map(Number)
+                .filter((n) => !isNaN(n))
             : undefined,
         },
       }
@@ -75,8 +78,7 @@ export async function buildSolverInput(
     prefNightBlock: configMap.prefNightBlock ?? 5,
     minMonthlyLibre: configMap.minMonthlyLibre ?? 9,
     maxMonthlyLibre: configMap.maxMonthlyLibre ?? 11,
-    prefMonthlyLibre:
-      Math.round((configMap.minMonthlyLibre + configMap.maxMonthlyLibre) / 2),
+    prefMonthlyLibre: Math.round((configMap.minMonthlyLibre + configMap.maxMonthlyLibre) / 2),
     maxConsecutiveWorkDays: configMap.maxConsecutiveWorkDays ?? 6,
   }
 

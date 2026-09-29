@@ -74,7 +74,9 @@ export class GroupRepository {
     }
 
     // Interpolated into SQL: only allow-listed values
-    const sortField = GROUP_SORT_FIELDS.includes(filters.sort as never) ? filters.sort : 'arrival_date'
+    const sortField = GROUP_SORT_FIELDS.includes(filters.sort as never)
+      ? filters.sort
+      : 'arrival_date'
     const sortOrder = filters.order === 'DESC' ? 'DESC' : 'ASC'
     query += ` ORDER BY g.${sortField} ${sortOrder}`
 

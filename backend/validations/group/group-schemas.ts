@@ -52,12 +52,18 @@ const groupFields = {
   departure_date: dateString,
   status: z.enum(GroupStatus),
   total_amount: money.nullish(),
-  currency: z.string().trim().regex(/^[A-Z]{3}$/, 'Moneda no válida').optional(),
+  currency: z
+    .string()
+    .trim()
+    .regex(/^[A-Z]{3}$/, 'Moneda no válida')
+    .optional(),
   notes: text(2000).nullish(),
 }
 
 const departureNotBeforeArrival = (d: { arrival_date?: string; departure_date?: string }) =>
-  !d.arrival_date || !d.departure_date || d.departure_date.slice(0, 10) >= d.arrival_date.slice(0, 10)
+  !d.arrival_date ||
+  !d.departure_date ||
+  d.departure_date.slice(0, 10) >= d.arrival_date.slice(0, 10)
 const departureMessage = {
   message: 'La fecha de salida no puede ser anterior a la de llegada',
   path: ['departure_date'],
@@ -116,10 +122,7 @@ const roomFields = {
 }
 
 export const createRoomSchema = z.object(roomFields)
-export const updateRoomSchema = z
-  .object(roomFields)
-  .partial()
-  .refine(hasFields, noFieldsError)
+export const updateRoomSchema = z.object(roomFields).partial().refine(hasFields, noFieldsError)
 
 export const bookingSchema = z.object({
   confirmed: z.boolean(),

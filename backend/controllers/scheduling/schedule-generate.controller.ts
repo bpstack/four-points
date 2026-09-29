@@ -47,11 +47,23 @@ export async function generateSchedule(req: Request, res: Response): Promise<voi
   const solverInput = await buildSolverInput(monthId, month.year, month.month)
 
   if (solverInput.employees.length === 0) {
-    res.status(422).json({ error: 'No hay empleados asignados al scheduling. Añade empleados primero.' })
+    res
+      .status(422)
+      .json({ error: 'No hay empleados asignados al scheduling. Añade empleados primero.' })
     return
   }
 
-  logger.info({ monthId, year: month.year, month: month.month, employeesCount: solverInput.employees.length, daysCount: days.length, lockedEmployeesCount: Object.keys(solverInput.lockedCells).length }, '[generate] solver input built')
+  logger.info(
+    {
+      monthId,
+      year: month.year,
+      month: month.month,
+      employeesCount: solverInput.employees.length,
+      daysCount: days.length,
+      lockedEmployeesCount: Object.keys(solverInput.lockedCells).length,
+    },
+    '[generate] solver input built'
+  )
 
   const generatedBy = req.user?.id ?? null
 
@@ -85,7 +97,10 @@ export async function generateSchedule(req: Request, res: Response): Promise<voi
 
   // 5. Manejar resultado
   if (solverOutput.status === 'error') {
-    logger.error({ errorCode: solverOutput.errorCode, message: solverOutput.message }, '[generate] Solver error')
+    logger.error(
+      { errorCode: solverOutput.errorCode, message: solverOutput.message },
+      '[generate] Solver error'
+    )
     await recordSolverRun({
       monthId,
       generatedBy,
@@ -104,13 +119,19 @@ export async function generateSchedule(req: Request, res: Response): Promise<voi
 
   if (solverOutput.status === 'infeasible') {
     const tail = solverInput.previousMonthTail ?? {}
-    logger.warn({ employeesSummary: solverInput.employees.map(e => ({
-      id: e.id,
-      fixedShift: e.rules?.fixedShift,
-      lockedDays: Object.keys(solverInput.lockedCells[e.id] ?? {}).length,
-      lockedCells: solverInput.lockedCells[e.id] ?? {},
-      tail: tail[e.id] ?? [],
-    })), config: solverInput.config }, '[generate] Solver INFEASIBLE — input summary')
+    logger.warn(
+      {
+        employeesSummary: solverInput.employees.map((e) => ({
+          id: e.id,
+          fixedShift: e.rules?.fixedShift,
+          lockedDays: Object.keys(solverInput.lockedCells[e.id] ?? {}).length,
+          lockedCells: solverInput.lockedCells[e.id] ?? {},
+          tail: tail[e.id] ?? [],
+        })),
+        config: solverInput.config,
+      },
+      '[generate] Solver INFEASIBLE — input summary'
+    )
     await recordSolverRun({
       monthId,
       generatedBy,
@@ -145,13 +166,23 @@ export async function generateSchedule(req: Request, res: Response): Promise<voi
     }
   }
 
-  const toInsert: { day_id: number; employee_id: string; shift_code: string; source_constraint_id: null }[] = []
+  const toInsert: {
+    day_id: number
+    employee_id: string
+    shift_code: string
+    source_constraint_id: null
+  }[] = []
   for (const [empId, dayShifts] of Object.entries(success.matrix)) {
     for (const [dayNumStr, shiftCode] of Object.entries(dayShifts)) {
       if (lockedSet.has(`${empId}:${dayNumStr}`)) continue
       const dayId = dayMap.get(Number(dayNumStr))
       if (!dayId) continue
-      toInsert.push({ day_id: dayId, employee_id: empId, shift_code: shiftCode, source_constraint_id: null })
+      toInsert.push({
+        day_id: dayId,
+        employee_id: empId,
+        shift_code: shiftCode,
+        source_constraint_id: null,
+      })
     }
   }
 
@@ -184,9 +215,15 @@ export async function generateSchedule(req: Request, res: Response): Promise<voi
     .map((r, i) => (r.status === 'rejected' ? { empId: empIds[i], reason: r.reason } : null))
     .filter((x): x is { empId: string; reason: unknown } => x !== null)
   if (failed.length > 0) {
-    logger.error({ monthId, failedCount: failed.length, totalCount: empIds.length, failed }, '[generate] recálculos de libre_number fallaron')
+    logger.error(
+      { monthId, failedCount: failed.length, totalCount: empIds.length, failed },
+      '[generate] recálculos de libre_number fallaron'
+    )
   }
-  logger.info({ successCount: empIds.length - failed.length, totalCount: empIds.length }, '[generate] libres numerados')
+  logger.info(
+    { successCount: empIds.length - failed.length, totalCount: empIds.length },
+    '[generate] libres numerados'
+  )
 
   res.json({
     status: 'ok',

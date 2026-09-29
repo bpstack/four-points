@@ -269,7 +269,7 @@ export class NotificationGeneratorService {
     try {
       // Si es programada para el futuro, usar status 'pending', si no 'sent'
       const isScheduledForFuture = scheduledFor && scheduledFor > new Date()
-      
+
       const notificationData: CreateNotificationDTO = {
         module: NotificationModule.GROUPS,
         group_id: groupId,
@@ -507,7 +507,10 @@ export class NotificationGeneratorService {
         }
       }
 
-      logger.info({ paymentsUpcoming, paymentsOverdue, roomingLists, arrivals }, '✅ Verificación completada:')
+      logger.info(
+        { paymentsUpcoming, paymentsOverdue, roomingLists, arrivals },
+        '✅ Verificación completada:'
+      )
 
       return {
         paymentsUpcoming,

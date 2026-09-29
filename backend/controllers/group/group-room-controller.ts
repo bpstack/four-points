@@ -7,7 +7,11 @@ import { GroupHistoryService } from '../../services/group/group-history-service'
 import { CreateGroupRoomDTO, UpdateGroupRoomDTO } from '../../models/group/index'
 import { ERROR_CODES, SUCCESS_CODES } from '../../config/error-codes.js'
 import { logger } from '../../config/logger.js'
-import { createRoomSchema, updateRoomSchema, validationError } from '../../validations/group/group-schemas.js'
+import {
+  createRoomSchema,
+  updateRoomSchema,
+  validationError,
+} from '../../validations/group/group-schemas.js'
 
 export class GroupRoomController {
   /**

@@ -59,7 +59,7 @@ router.get('/trashed', async (req: Request, res: Response) => {
   try {
     const limit = req.query.limit ? parseInt(req.query.limit as string) : undefined
     const offset = req.query.offset ? parseInt(req.query.offset as string) : undefined
-    
+
     const trashed = await logbookRepo.getAllTrashedLogbooks({ limit, offset })
     res.json(trashed)
   } catch (err) {

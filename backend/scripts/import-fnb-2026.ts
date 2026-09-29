@@ -19,11 +19,11 @@ const XLSX_PATH = 'C:/Users/dz/OneDrive/Desktop/data-trans/DAILY REVENUE F&B 202
 
 // Row index (0-based) → Opera code
 const ROW_TO_CODE: Record<number, string> = {
-  3:  '21110', // Breakfast Included
-  4:  '21124', // Breakfast Excluded
-  5:  '21120', // Breakfast Directo FB
-  8:  '21111', // Lunch Food
-  9:  '21267', // Lunch Beverage
+  3: '21110', // Breakfast Included
+  4: '21124', // Breakfast Excluded
+  5: '21120', // Breakfast Directo FB
+  8: '21111', // Lunch Food
+  9: '21267', // Lunch Beverage
   11: '21112', // Dinner Food
   12: '21307', // Dinner Beverage
 }
@@ -31,8 +31,18 @@ const ROW_TO_CODE: Record<number, string> = {
 const SKIP_SHEETS = new Set(['RESUMEN'])
 
 const MONTH_BY_NAME: Record<string, number> = {
-  ENERO: 1, FEBRERO: 2, MARZO: 3, ABRIL: 4, MAYO: 5, JUNIO: 6,
-  JULIO: 7, AGOSTO: 8, SEPTIEMBRE: 9, OCTUBRE: 10, NOVIEMBRE: 11, DICIEMBRE: 12,
+  ENERO: 1,
+  FEBRERO: 2,
+  MARZO: 3,
+  ABRIL: 4,
+  MAYO: 5,
+  JUNIO: 6,
+  JULIO: 7,
+  AGOSTO: 8,
+  SEPTIEMBRE: 9,
+  OCTUBRE: 10,
+  NOVIEMBRE: 11,
+  DICIEMBRE: 12,
 }
 
 const TARGET_YEAR = 2026
@@ -63,7 +73,7 @@ async function importSheet(
     const rowIdx = parseInt(rowStr)
     for (let c = 2; c <= range.e.c; c++) {
       const day = c - 1
-      if (day < 1 || day > daysInMonth) continue  // skip TOTAL column
+      if (day < 1 || day > daysInMonth) continue // skip TOTAL column
 
       const cell = ws[xlsx.utils.encode_cell({ r: rowIdx, c })]
       // Skip truly-empty cells. Cells with explicit 0 keep amount=0.
@@ -84,7 +94,7 @@ async function importSheet(
   for (let i = 0; i < inserts.length; i += BATCH) {
     const batch = inserts.slice(i, i + BATCH)
     const placeholders = batch.map(() => '(?, ?, ?)').join(', ')
-    const values = batch.flatMap(r => [r.date, r.code, r.amount])
+    const values = batch.flatMap((r) => [r.date, r.code, r.amount])
     await pool.execute(
       `INSERT INTO fnb_daily_revenue (date, category_code, amount)
        VALUES ${placeholders}
@@ -99,15 +109,15 @@ async function importSheet(
 
 async function main() {
   const target = process.argv[2] ?? 'all'
-  const wb = xlsx.read(
-    await import('fs').then(f => f.readFileSync(XLSX_PATH)),
-    { type: 'buffer', cellDates: false }
-  )
+  const wb = xlsx.read(await import('fs').then((f) => f.readFileSync(XLSX_PATH)), {
+    type: 'buffer',
+    cellDates: false,
+  })
 
   console.log(`\nF&B Revenue Importer — target: ${target}`)
   console.log(`Sheets found: ${wb.SheetNames.join(', ')}\n`)
 
-  const sheets = wb.SheetNames.filter(name => {
+  const sheets = wb.SheetNames.filter((name) => {
     if (SKIP_SHEETS.has(name)) return false
     if (target === 'all') return true
     return name.toUpperCase() === target.toUpperCase()
@@ -122,7 +132,10 @@ async function main() {
   for (const sheet of sheets) {
     process.stdout.write(`  Importing ${sheet}... `)
     const ws = wb.Sheets[sheet]
-    if (!ws) { console.log('(missing)'); continue }
+    if (!ws) {
+      console.log('(missing)')
+      continue
+    }
     const { upserted } = await importSheet(ws, sheet)
     console.log(`${upserted} rows upserted`)
     total += upserted
@@ -132,7 +145,7 @@ async function main() {
   await pool.end()
 }
 
-main().catch(err => {
+main().catch((err) => {
   console.error('Import failed:', err)
   process.exit(1)
 })

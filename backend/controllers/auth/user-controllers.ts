@@ -4,7 +4,11 @@ import { Request, Response } from 'express'
 import { UserRepository } from '../../repositories/auth/user-repository.js'
 import type { UpdateUserDTO } from '../../models/auth/index.js'
 import { logger } from '../../config/logger.js'
-import { validateUpdateUser, getValidationErrors, newPasswordSchema } from '../../validations/auth/user-validation.js'
+import {
+  validateUpdateUser,
+  getValidationErrors,
+  newPasswordSchema,
+} from '../../validations/auth/user-validation.js'
 
 // ============================================
 // USER CONTROLLERS

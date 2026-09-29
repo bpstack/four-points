@@ -83,7 +83,17 @@ if (environment === 'aiven' && !config.host) {
 // ========================================
 // 📊 LOG DE CONFIGURACIÓN (sin passwords)
 // ========================================
-logger.info({ environment: environment.toUpperCase(), host: config.host, port: config.port, database: config.database, user: config.user, ssl: config.ssl ? 'Enabled' : 'Disabled' }, 'MySQL configuration')
+logger.info(
+  {
+    environment: environment.toUpperCase(),
+    host: config.host,
+    port: config.port,
+    database: config.database,
+    user: config.user,
+    ssl: config.ssl ? 'Enabled' : 'Disabled',
+  },
+  'MySQL configuration'
+)
 
 // ========================================
 // 🔌 POOL DE CONEXIONES

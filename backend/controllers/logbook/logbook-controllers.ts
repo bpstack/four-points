@@ -149,7 +149,14 @@ export async function getAllLogbooks(req: Request, res: Response): Promise<void>
 
     const hasFilters = date_from || date_to || importance_level || include_trashed
     const logbooks = hasFilters
-      ? await logbookRepo.getLogbooksFiltered({ limit, offset, date_from, date_to, importance_level, include_trashed })
+      ? await logbookRepo.getLogbooksFiltered({
+          limit,
+          offset,
+          date_from,
+          date_to,
+          importance_level,
+          include_trashed,
+        })
       : await logbookRepo.getAllLogbooks({ limit, offset })
 
     res.json(logbooks)
@@ -172,7 +179,7 @@ export async function getLogbooksByDepartment(req: Request, res: Response): Prom
     const { departmentId } = req.params
     const limit = req.query.limit ? parseInt(req.query.limit as string) : undefined
     const offset = req.query.offset ? parseInt(req.query.offset as string) : undefined
-    
+
     const logbooks = await logbookRepo.getLogbooksByDepartment(departmentId, { limit, offset })
     res.json(logbooks)
   } catch (err) {
@@ -194,7 +201,7 @@ export async function getLogbooksByAuthor(req: Request, res: Response): Promise<
     const { authorId } = req.params
     const limit = req.query.limit ? parseInt(req.query.limit as string) : undefined
     const offset = req.query.offset ? parseInt(req.query.offset as string) : undefined
-    
+
     const logbooks = await logbookRepo.getLogbooksByAuthor(authorId, { limit, offset })
     res.json(logbooks)
   } catch (err) {

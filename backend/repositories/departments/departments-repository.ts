@@ -173,10 +173,14 @@ export class DepartmentRepository {
       const mysqlError = error as MySQLError
       // Si hay registros relacionados (FK constraint)
       if (mysqlError.code === 'ER_ROW_IS_REFERENCED_2') {
-        throw new Error('No se puede eliminar el departamento porque tiene registros asociados', { cause: error })
+        throw new Error('No se puede eliminar el departamento porque tiene registros asociados', {
+          cause: error,
+        })
       }
 
-      throw new Error('Error al eliminar el departamento: ' + (error as Error).message, { cause: error })
+      throw new Error('Error al eliminar el departamento: ' + (error as Error).message, {
+        cause: error,
+      })
     }
   }
 }

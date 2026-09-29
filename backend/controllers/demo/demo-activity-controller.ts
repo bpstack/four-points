@@ -109,9 +109,7 @@ export class DemoActivityController {
    */
   static async cleanupOldLogs(req: Request, res: Response): Promise<void> {
     try {
-      const daysToKeep = req.query.daysToKeep 
-        ? Math.max(Number(req.query.daysToKeep), 30) 
-        : 90
+      const daysToKeep = req.query.daysToKeep ? Math.max(Number(req.query.daysToKeep), 30) : 90
 
       const deletedCount = await DemoActivityRepository.cleanOldLogs(daysToKeep)
 

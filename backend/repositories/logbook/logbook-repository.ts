@@ -84,7 +84,9 @@ export async function getById(id: number | string): Promise<LogbookWithAuthor | 
   return rows[0]
 }
 
-export async function getAllLogbooks(options: PaginationOptions = {}): Promise<LogbookWithAuthor[]> {
+export async function getAllLogbooks(
+  options: PaginationOptions = {}
+): Promise<LogbookWithAuthor[]> {
   const limit = sanitizeLimit(options.limit)
   const offset = options.offset || 0
 
@@ -112,7 +114,9 @@ interface LogbookFilterOptions extends PaginationOptions {
   include_trashed?: boolean
 }
 
-export async function getLogbooksFiltered(options: LogbookFilterOptions = {}): Promise<LogbookWithAuthor[]> {
+export async function getLogbooksFiltered(
+  options: LogbookFilterOptions = {}
+): Promise<LogbookWithAuthor[]> {
   const limit = sanitizeLimit(options.limit)
   const offset = options.offset || 0
   const params: (string | number)[] = []
@@ -165,7 +169,7 @@ export async function getLogbooksByDepartment(
 ): Promise<LogbookWithAuthor[]> {
   const limit = sanitizeLimit(options.limit)
   const offset = options.offset || 0
-  
+
   const [rows] = await db.query<LogbookWithAuthor[]>(
     `SELECT 
       l.*,
@@ -189,7 +193,7 @@ export async function getLogbooksByAuthor(
 ): Promise<LogbookWithAuthor[]> {
   const limit = sanitizeLimit(options.limit)
   const offset = options.offset || 0
-  
+
   const [rows] = await db.query<LogbookWithAuthor[]>(
     `SELECT 
       l.*,
@@ -242,7 +246,7 @@ export async function getLogbooksByDay(
 ): Promise<LogbookWithAuthor[]> {
   const limit = sanitizeLimit(options.limit)
   const offset = options.offset || 0
-  
+
   const [rows] = await db.query<LogbookWithAuthor[]>(
     `SELECT 
       l.*,
@@ -261,10 +265,12 @@ export async function getLogbooksByDay(
   return rows
 }
 
-export async function getAllTrashedLogbooks(options: PaginationOptions = {}): Promise<LogbookWithAuthor[]> {
+export async function getAllTrashedLogbooks(
+  options: PaginationOptions = {}
+): Promise<LogbookWithAuthor[]> {
   const limit = sanitizeLimit(options.limit)
   const offset = options.offset || 0
-  
+
   const [rows] = await db.query<LogbookWithAuthor[]>(
     `SELECT 
       l.*,

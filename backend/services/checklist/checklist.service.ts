@@ -5,7 +5,9 @@ import * as commentsRepo from '../../repositories/checklist/checklist-comments.r
 import { getTodayMadrid } from '../../config/date-utils.js'
 import type { ChecklistRunWithSteps } from '../../models/checklist/index.js'
 
-async function buildRunState(run: Awaited<ReturnType<typeof repo.getOrCreateRun>>): Promise<ChecklistRunWithSteps> {
+async function buildRunState(
+  run: Awaited<ReturnType<typeof repo.getOrCreateRun>>
+): Promise<ChecklistRunWithSteps> {
   const [steps, counts] = await Promise.all([
     repo.getStepStates(run.id),
     commentsRepo.getStepCounts(run.id),

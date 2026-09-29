@@ -472,10 +472,14 @@ export class ActivityRepository {
     `
 
     const [rows] = await db.query<ActivityRow[]>(query, [
-      dateFrom, dateTo,
-      dateFrom, dateTo,
-      dateFrom, dateTo,
-      dateFrom, dateTo,
+      dateFrom,
+      dateTo,
+      dateFrom,
+      dateTo,
+      dateFrom,
+      dateTo,
+      dateFrom,
+      dateTo,
       limit,
     ])
 
@@ -496,11 +500,49 @@ export class ActivityRepository {
     source: ActivitySource,
     limit: number
   ): Promise<UnifiedActivity[]> {
-    const tableMap: Record<ActivitySource, { table: string; idField: string; actionField: string; userField: string; timestampField: string; recordField: string }> = {
-      cashier: { table: 'cashier_history ch', idField: 'ch.id', actionField: 'ch.action', userField: 'ch.changed_by', timestampField: 'ch.changed_at', recordField: 'CAST(ch.shift_id AS CHAR)' },
-      groups: { table: 'group_history gh', idField: 'gh.id', actionField: 'gh.action', userField: 'gh.changed_by', timestampField: 'gh.changed_at', recordField: 'CAST(gh.group_id AS CHAR)' },
-      logbook: { table: 'logbook_history lh', idField: 'lh.id', actionField: 'lh.action', userField: 'lh.editor_id', timestampField: 'lh.created_at', recordField: 'CAST(lh.logbook_id AS CHAR)' },
-      maintenance: { table: 'maintenance_history mh', idField: 'mh.id', actionField: 'mh.action', userField: 'mh.changed_by', timestampField: 'mh.changed_at', recordField: 'mh.report_id' },
+    const tableMap: Record<
+      ActivitySource,
+      {
+        table: string
+        idField: string
+        actionField: string
+        userField: string
+        timestampField: string
+        recordField: string
+      }
+    > = {
+      cashier: {
+        table: 'cashier_history ch',
+        idField: 'ch.id',
+        actionField: 'ch.action',
+        userField: 'ch.changed_by',
+        timestampField: 'ch.changed_at',
+        recordField: 'CAST(ch.shift_id AS CHAR)',
+      },
+      groups: {
+        table: 'group_history gh',
+        idField: 'gh.id',
+        actionField: 'gh.action',
+        userField: 'gh.changed_by',
+        timestampField: 'gh.changed_at',
+        recordField: 'CAST(gh.group_id AS CHAR)',
+      },
+      logbook: {
+        table: 'logbook_history lh',
+        idField: 'lh.id',
+        actionField: 'lh.action',
+        userField: 'lh.editor_id',
+        timestampField: 'lh.created_at',
+        recordField: 'CAST(lh.logbook_id AS CHAR)',
+      },
+      maintenance: {
+        table: 'maintenance_history mh',
+        idField: 'mh.id',
+        actionField: 'mh.action',
+        userField: 'mh.changed_by',
+        timestampField: 'mh.changed_at',
+        recordField: 'mh.report_id',
+      },
     }
     const m = tableMap[source]
     const query = `
@@ -594,13 +636,7 @@ export class ActivityRepository {
       LIMIT ?
     `
 
-    const [rows] = await db.query<ActivityRow[]>(query, [
-      userId,
-      userId,
-      userId,
-      userId,
-      limit,
-    ])
+    const [rows] = await db.query<ActivityRow[]>(query, [userId, userId, userId, userId, limit])
 
     return rows.map((row) => ({
       id: `${row.source}-${row.id}`,

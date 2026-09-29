@@ -21,9 +21,7 @@ beforeAll(async () => {
 afterAll(async () => {
   if (dbAvailable) {
     // Clean up any test rows inserted by these tests
-    await db.query(
-      `DELETE FROM scheduling_employee_requests WHERE notes = 'test-integration-row'`
-    )
+    await db.query(`DELETE FROM scheduling_employee_requests WHERE notes = 'test-integration-row'`)
   }
 })
 
@@ -34,9 +32,7 @@ describe('scheduling_employee_requests — integration', () => {
       return
     }
 
-    const [rows] = await db.query(
-      'SELECT * FROM scheduling_employee_requests LIMIT 1'
-    )
+    const [rows] = await db.query('SELECT * FROM scheduling_employee_requests LIMIT 1')
     expect(Array.isArray(rows)).toBe(true)
   })
 
@@ -47,9 +43,7 @@ describe('scheduling_employee_requests — integration', () => {
     }
 
     // Insert a test row and verify findByMonth retrieves it
-    const [users]: any = await db.query(
-      `SELECT id FROM users LIMIT 1`
-    )
+    const [users]: any = await db.query(`SELECT id FROM users LIMIT 1`)
     if (!users.length) {
       console.warn('Skipping: no users found in local DB')
       return
@@ -65,9 +59,8 @@ describe('scheduling_employee_requests — integration', () => {
       [employeeId]
     )
 
-    const { findByMonth } = await import(
-      '../../repositories/scheduling/employee-requests-repository.js'
-    )
+    const { findByMonth } =
+      await import('../../repositories/scheduling/employee-requests-repository.js')
 
     const results = await findByMonth(2026, 1)
     const testRow = results.find((r) => r.notes === 'test-integration-row')

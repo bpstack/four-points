@@ -3,7 +3,10 @@
 import * as commentsRepo from '../../repositories/checklist/checklist-comments.repository.js'
 import * as checklistRepo from '../../repositories/checklist/checklist-repository.js'
 import { CloudinaryService } from '../blacklist/cloudinary-service.js'
-import type { Comment, Attachment } from '../../repositories/checklist/checklist-comments.repository.js'
+import type {
+  Comment,
+  Attachment,
+} from '../../repositories/checklist/checklist-comments.repository.js'
 
 async function resolveRun(checklistId: string): Promise<{ id: number }> {
   const run = await checklistRepo.getOrCreateRun(checklistId)
@@ -37,7 +40,8 @@ export async function removeComment(
 ): Promise<boolean> {
   const run = await resolveRun(checklistId)
   const deleted = await commentsRepo.deleteComment(commentId, userId, isAdmin)
-  if (deleted) await checklistRepo.logEvent(run.id, null, userId, 'comment', { deleted_comment_id: commentId })
+  if (deleted)
+    await checklistRepo.logEvent(run.id, null, userId, 'comment', { deleted_comment_id: commentId })
   return deleted
 }
 
@@ -60,8 +64,13 @@ export async function addAttachment(
   const run = await resolveRun(checklistId)
   const result = await CloudinaryService.uploadImage(fileBuffer, originalName, 'checklist')
   const attachment = await commentsRepo.createAttachment(
-    run.id, stepId, userId,
-    result.secure_url, result.public_id, mime, size
+    run.id,
+    stepId,
+    userId,
+    result.secure_url,
+    result.public_id,
+    mime,
+    size
   )
   await checklistRepo.logEvent(run.id, stepId, userId, 'attach', { attachment_id: attachment.id })
   return attachment
@@ -79,6 +88,8 @@ export async function removeAttachment(
   await CloudinaryService.deleteImage(attachment.public_id)
   await commentsRepo.deleteAttachment(attachmentId)
   const run = await resolveRun(checklistId)
-  await checklistRepo.logEvent(run.id, null, userId, 'attach', { deleted_attachment_id: attachmentId })
+  await checklistRepo.logEvent(run.id, null, userId, 'attach', {
+    deleted_attachment_id: attachmentId,
+  })
   return true
 }
