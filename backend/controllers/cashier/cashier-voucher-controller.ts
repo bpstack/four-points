@@ -12,6 +12,41 @@ import {
   dateRangeQuerySchema,
   validationError,
 } from '../../validations/cashier/cashier-validation.js'
+import type { CreateHistoryDTO } from '../../models/cashier/index.js'
+
+/** cashier_history.shift_id is a foreign key: without a shift there is nothing valid to log. */
+async function logVoucherChange(
+  req: Request,
+  shiftId: number | null | undefined,
+  entry: Omit<CreateHistoryDTO, 'shift_id' | 'changed_by'>
+): Promise<void> {
+  const userId = req.user?.id
+  if (!userId) return
+  if (!shiftId) {
+    logger.warn({ voucherId: entry.record_id }, '[cashier] voucher without shift, history skipped')
+    return
+  }
+  await CashierHistoryRepository.create({ ...entry, shift_id: shiftId, changed_by: userId })
+}
+
+const VOUCHER_ERRORS: Record<string, number> = {
+  'Vale no encontrado': 404,
+  'El vale ya está justificado': 409,
+  'El vale ya está cancelado': 409,
+  'Solo se pueden eliminar vales pendientes': 409,
+}
+
+/** Known domain errors keep their message; anything else is a generic 500 (no SQL details). */
+function sendVoucherError(res: Response, error: unknown, fallback: string): void {
+  const message = error instanceof Error ? error.message : ''
+  const status = VOUCHER_ERRORS[message]
+  if (status) {
+    res.status(status).json({ error: message })
+    return
+  }
+  logger.error({ err: error }, fallback)
+  res.status(500).json({ error: fallback })
+}
 
 export class CashierVoucherController {
   /**
@@ -161,22 +196,16 @@ export class CashierVoucherController {
 
       const updated = await CashierVoucherRepository.update(parseInt(id), parsed.data)
 
-      const userId = req.user?.id
-      if (userId) {
-        await CashierHistoryRepository.create({
-          shift_id: updated.shift_id || 0,
-          action: 'updated',
-          table_affected: 'cashier_vouchers',
-          record_id: updated.id,
-          changed_by: userId,
-          notes: 'Vale actualizado',
-        })
-      }
+      await logVoucherChange(req, updated.shift_id, {
+        action: 'updated',
+        table_affected: 'cashier_vouchers',
+        record_id: updated.id,
+        notes: 'Vale actualizado',
+      })
 
       res.json(updated)
-    } catch (error: any) {
-      logger.error({ err: error }, 'Error al actualizar vale')
-      res.status(500).json({ error: error.message || 'Error al actualizar vale' })
+    } catch (error) {
+      sendVoucherError(res, error, 'Error al actualizar vale')
     }
   }
 
@@ -196,25 +225,19 @@ export class CashierVoucherController {
 
       const justified = await CashierVoucherRepository.justify(parseInt(id), shift_id)
 
-      const userId = req.user?.id
-      if (userId) {
-        await CashierHistoryRepository.create({
-          shift_id,
-          action: 'updated',
-          table_affected: 'cashier_vouchers',
-          record_id: justified.id,
-          field_changed: 'status',
-          old_value: 'pending',
-          new_value: 'justified',
-          changed_by: userId,
-          notes: 'Vale justificado',
-        })
-      }
+      await logVoucherChange(req, shift_id, {
+        action: 'updated',
+        table_affected: 'cashier_vouchers',
+        record_id: justified.id,
+        field_changed: 'status',
+        old_value: 'pending',
+        new_value: 'justified',
+        notes: 'Vale justificado',
+      })
 
       res.json(justified)
-    } catch (error: any) {
-      logger.error({ err: error }, 'Error al justificar vale')
-      res.status(500).json({ error: error.message || 'Error al justificar vale' })
+    } catch (error) {
+      sendVoucherError(res, error, 'Error al justificar vale')
     }
   }
 
@@ -228,25 +251,19 @@ export class CashierVoucherController {
 
       const cancelled = await CashierVoucherRepository.cancel(parseInt(id))
 
-      const userId = req.user?.id
-      if (userId) {
-        await CashierHistoryRepository.create({
-          shift_id: cancelled.shift_id || 0,
-          action: 'updated',
-          table_affected: 'cashier_vouchers',
-          record_id: cancelled.id,
-          field_changed: 'status',
-          old_value: 'pending',
-          new_value: 'cancelled',
-          changed_by: userId,
-          notes: 'Vale cancelado',
-        })
-      }
+      await logVoucherChange(req, cancelled.shift_id, {
+        action: 'updated',
+        table_affected: 'cashier_vouchers',
+        record_id: cancelled.id,
+        field_changed: 'status',
+        old_value: 'pending',
+        new_value: 'cancelled',
+        notes: 'Vale cancelado',
+      })
 
       res.json(cancelled)
-    } catch (error: any) {
-      logger.error({ err: error }, 'Error al cancelar vale')
-      res.status(500).json({ error: error.message || 'Error al cancelar vale' })
+    } catch (error) {
+      sendVoucherError(res, error, 'Error al cancelar vale')
     }
   }
 
@@ -261,9 +278,8 @@ export class CashierVoucherController {
       await CashierVoucherRepository.delete(parseInt(id))
 
       res.json({ message: 'Vale eliminado correctamente' })
-    } catch (error: any) {
-      logger.error({ err: error }, 'Error al eliminar vale')
-      res.status(500).json({ error: error.message || 'Error al eliminar vale' })
+    } catch (error) {
+      sendVoucherError(res, error, 'Error al eliminar vale')
     }
   }
 

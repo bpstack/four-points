@@ -42,7 +42,9 @@ export class CashierVoucherRepository {
    */
   static async getById(id: number): Promise<CashierVoucher | null> {
     const query = `
-      SELECT v.*, u.username as created_by_username
+      SELECT v.*, u.username as created_by_username,
+        (SELECT csv.shift_id FROM cashier_shift_vouchers csv
+         WHERE csv.voucher_id = v.id ORDER BY csv.shift_id LIMIT 1) AS shift_id
       FROM cashier_vouchers v
       LEFT JOIN users u ON v.created_by = u.id
       WHERE v.id = ?
@@ -275,7 +277,8 @@ export class CashierVoucherRepository {
     const cancelled = await this.getById(id)
     if (!cancelled) throw new Error('Error al recuperar vale cancelado')
 
-    return cancelled
+    // The shift link was just removed: keep the shift it belonged to for the history
+    return { ...cancelled, shift_id: voucher.shift_id } as CashierVoucher
   }
 
   /**
