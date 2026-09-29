@@ -372,13 +372,6 @@ hace que alguien reimplemente lo que ya existe.
       scripts, difería de Aiven en `demo_activity_log`, `notifications.module`,
       `roles.name` y 7 claves foráneas (comparación del 2026-09-28).
 
-- [ ] **CSRF solo depende de `SameSite=Lax`** — sin token ni cabecera
-      obligatoria, y el «sitio» de `SameSite` es todo `stackbp.es`, así que
-      cualquier otro subdominio cuenta como propio. Exigir una cabecera propia
-      en las peticiones que modifican obliga a tocar las más de 25 llamadas
-      `fetch` del frontend que no pasan por `apiClient` (server actions de
-      blacklist, groups y parking; backoffice). El comodín `*.vercel.app` de
-      CORS ya se quitó (_comprobado en producción el 2026-09-29_).
 - [ ] **El frontend no tiene Content-Security-Policy** (`frontend/vercel.json`).
       _Según la revisión `security` L3 del 2026-09-28 (fichero y línea en el
       informe); no repasado por mí._
