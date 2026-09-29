@@ -199,7 +199,7 @@ export class CashierVoucherRepository {
 
     const query = `
       UPDATE cashier_vouchers 
-      SET ${updates.join(', ')}, updated_at = NOW()
+      SET ${updates.join(', ')}
       WHERE id = ?
     `
     params.push(id)
@@ -235,9 +235,7 @@ export class CashierVoucherRepository {
 
       // Asociar vale con turno
       await connection.query(
-        `INSERT INTO cashier_shift_vouchers (shift_id, voucher_id, created_at)
-         VALUES (?, ?, NOW())
-         ON DUPLICATE KEY UPDATE created_at = NOW()`,
+        'INSERT IGNORE INTO cashier_shift_vouchers (shift_id, voucher_id) VALUES (?, ?)',
         [shiftId, id]
       )
 

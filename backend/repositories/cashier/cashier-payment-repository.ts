@@ -68,13 +68,7 @@ export class CashierPaymentRepository {
    * Actualizar monto de un pago
    */
   static async update(id: number, amount: number): Promise<CashierPayment> {
-    const query = `
-      UPDATE cashier_payments 
-      SET amount = ?, updated_at = NOW()
-      WHERE id = ?
-    `
-
-    await db.query(query, [amount, id])
+    await db.query('UPDATE cashier_payments SET amount = ? WHERE id = ?', [amount, id])
 
     const updated = await this.getById(id)
     if (!updated) throw new Error('Pago no encontrado')

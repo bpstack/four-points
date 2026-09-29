@@ -9,22 +9,11 @@ export class CashierDenominationRepository {
    * Crear una denominación
    */
   static async create(shiftId: number, data: CreateDenominationDTO): Promise<CashierDenomination> {
-    const query = `
-      INSERT INTO cashier_denominations (
-        shift_id,
-        denomination,
-        quantity,
-        total
-      ) VALUES (?, ?, ?, ?)
-    `
-
-    const total = data.denomination * data.quantity
-    const [result] = await db.query<ResultSetHeader>(query, [
-      shiftId,
-      data.denomination,
-      data.quantity,
-      total,
-    ])
+    // `total` is a generated column (denomination * quantity)
+    const [result] = await db.query<ResultSetHeader>(
+      'INSERT INTO cashier_denominations (shift_id, denomination, quantity) VALUES (?, ?, ?)',
+      [shiftId, data.denomination, data.quantity]
+    )
 
     const created = await this.getById(result.insertId)
     if (!created) throw new Error('Error al recuperar denominación creada')
@@ -63,15 +52,8 @@ export class CashierDenominationRepository {
     const denomination = await this.getById(id)
     if (!denomination) throw new Error('Denominación no encontrada')
 
-    const total = denomination.denomination * quantity
-
-    const query = `
-      UPDATE cashier_denominations 
-      SET quantity = ?, total = ?, updated_at = NOW()
-      WHERE id = ?
-    `
-
-    await db.query(query, [quantity, total, id])
+    // `total` is a generated column (denomination * quantity)
+    await db.query('UPDATE cashier_denominations SET quantity = ? WHERE id = ?', [quantity, id])
 
     const updated = await this.getById(id)
     if (!updated) throw new Error('Error al recuperar denominación actualizada')
