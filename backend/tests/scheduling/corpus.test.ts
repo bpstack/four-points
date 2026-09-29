@@ -87,7 +87,6 @@ const fixtures = loadAllFixtures()
 
 describe('Scheduling corpus — validator parity', () => {
   for (const fixture of fixtures) {
-    const testFn = fixture.todo ? it.todo : it
 
     if (fixture.todo) {
       // it.todo only takes a string — register the pending test

@@ -3,7 +3,7 @@
 // No DB needed for parsing itself, but trackedCodesSet() loads from DB.
 // Test stubs trackedCodesSet by writing the 7 expected codes directly.
 
-import { describe, it, expect, beforeAll, vi } from 'vitest'
+import { describe, it, expect, beforeAll } from 'vitest'
 import { readFileSync } from 'fs'
 import { join, dirname } from 'path'
 import { fileURLToPath } from 'url'

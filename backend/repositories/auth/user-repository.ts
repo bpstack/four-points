@@ -93,7 +93,7 @@ export class UserRepository {
         err.code = 'ER_DUP_ENTRY'
         throw err
       }
-      throw new Error('Error interno al crear usuario')
+      throw new Error('Error interno al crear usuario', { cause: error })
     }
   }
 
@@ -131,7 +131,7 @@ export class UserRepository {
       Validation.username(username)
       Validation.password(password)
     } catch (err: any) {
-      throw new Error(err.message)
+      throw new Error(err.message, { cause: err })
     }
 
     const [rows] = await db.query<UserWithRole[]>(
@@ -203,7 +203,7 @@ export class UserRepository {
       return rows as User[]
     } catch (error) {
       logger.error({ err: error }, 'Error al obtener usuarios')
-      throw new Error('Error interno al obtener usuarios')
+      throw new Error('Error interno al obtener usuarios', { cause: error })
     }
   }
 
@@ -230,7 +230,7 @@ export class UserRepository {
       return (rows[0] as User) || null
     } catch (error) {
       logger.error({ err: error }, 'Error en getById')
-      throw new Error('Error interno al obtener usuario por ID')
+      throw new Error('Error interno al obtener usuario por ID', { cause: error })
     }
   }
 
@@ -256,7 +256,7 @@ export class UserRepository {
       return (rows[0] as User) || null
     } catch (error) {
       logger.error({ err: error }, 'Error en getByUsername')
-      throw new Error('Error interno al obtener usuario por username')
+      throw new Error('Error interno al obtener usuario por username', { cause: error })
     }
   }
 
@@ -283,7 +283,7 @@ export class UserRepository {
       return rows as User[]
     } catch (error) {
       logger.error({ err: error }, 'Error en getByRole')
-      throw new Error('Error interno al obtener usuarios por rol')
+      throw new Error('Error interno al obtener usuarios por rol', { cause: error })
     }
   }
 
@@ -367,10 +367,10 @@ export class UserRepository {
       }
 
       if (error.code === 'ER_DUP_ENTRY') {
-        throw new Error('El nombre de usuario o email ya existe')
+        throw new Error('El nombre de usuario o email ya existe', { cause: error })
       }
 
-      throw new Error('Error interno al actualizar usuario')
+      throw new Error('Error interno al actualizar usuario', { cause: error })
     } finally {
       dbConnection.release()
     }
@@ -427,7 +427,7 @@ export class UserRepository {
     } catch (err) {
       await dbConnection.rollback()
       logger.error({ err }, 'Error al eliminar usuario')
-      throw new Error('Error al eliminar el usuario')
+      throw new Error('Error al eliminar el usuario', { cause: err })
     } finally {
       dbConnection.release()
     }
@@ -636,7 +636,7 @@ export class UserRepository {
       return this.getById(userId)
     } catch (error) {
       logger.error({ err: error }, 'Error en updateAvatar')
-      throw new Error('Error interno al actualizar avatar')
+      throw new Error('Error interno al actualizar avatar', { cause: error })
     }
   }
 
@@ -668,7 +668,7 @@ export class UserRepository {
       return previousPublicId
     } catch (error) {
       logger.error({ err: error }, 'Error en deleteAvatar')
-      throw new Error('Error interno al eliminar avatar')
+      throw new Error('Error interno al eliminar avatar', { cause: error })
     }
   }
 

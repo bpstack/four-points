@@ -61,7 +61,7 @@ function extractEntries(text: string, trackedCodes: Set<string>): { code: string
         continue
       }
       // Require decimal point — filters "2026 2026 2026" year header lines
-      if (/^[\d,.\s\-]+$/.test(line) && /\d\.\d/.test(line) && values.length < codes.length) {
+      if (/^[\d,.\s-]+$/.test(line) && /\d\.\d/.test(line) && values.length < codes.length) {
         const nums = line.split(/\s+/).map(p => parseFloat(p.replace(',', ''))).filter(n => !isNaN(n))
         if (nums.length >= 1) values.push(nums[0])
       }

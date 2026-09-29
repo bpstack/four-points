@@ -62,12 +62,12 @@ export function verifyToken(token: string): TokenPayload {
   } catch (error) {
     if (error instanceof Error) {
       if (error.name === 'TokenExpiredError') {
-        throw new Error('Token expirado')
+        throw new Error('Token expirado', { cause: error })
       }
       if (error.name === 'JsonWebTokenError') {
-        throw new Error('Token inválido')
+        throw new Error('Token inválido', { cause: error })
       }
     }
-    throw new Error('Error al verificar token')
+    throw new Error('Error al verificar token', { cause: error })
   }
 }

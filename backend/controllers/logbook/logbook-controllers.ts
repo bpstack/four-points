@@ -213,7 +213,7 @@ export async function getLogbooksByAuthor(req: Request, res: Response): Promise<
 
 export async function getLogbooksByImportance(req: Request, res: Response): Promise<void> {
   try {
-    let importance = req.params.importance.trim().toLowerCase()
+    const importance = req.params.importance.trim().toLowerCase()
 
     const allowedLevels = ['baja', 'media', 'alta', 'urgente']
     if (!allowedLevels.includes(importance)) {

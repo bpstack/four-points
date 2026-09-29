@@ -59,7 +59,7 @@ export class DepartmentRepository {
         throw err
       }
 
-      throw new Error('Error interno al crear departamento')
+      throw new Error('Error interno al crear departamento', { cause: error })
     }
   }
 
@@ -78,7 +78,7 @@ export class DepartmentRepository {
       return rows
     } catch (error) {
       logger.error({ err: error }, 'Error al obtener departamentos')
-      throw new Error('Error interno al obtener departamentos')
+      throw new Error('Error interno al obtener departamentos', { cause: error })
     }
   }
 
@@ -98,7 +98,7 @@ export class DepartmentRepository {
       return rows[0] || null
     } catch (error) {
       logger.error({ err: error }, 'Error en getById')
-      throw new Error('Error interno al obtener departamento por ID')
+      throw new Error('Error interno al obtener departamento por ID', { cause: error })
     }
   }
 
@@ -146,10 +146,10 @@ export class DepartmentRepository {
       }
 
       if (err.code === 'ER_DUP_ENTRY') {
-        throw new Error('El nombre del departamento ya existe')
+        throw new Error('El nombre del departamento ya existe', { cause: error })
       }
 
-      throw new Error('Error interno al actualizar departamento')
+      throw new Error('Error interno al actualizar departamento', { cause: error })
     } finally {
       dbConnection.release()
     }
@@ -173,10 +173,10 @@ export class DepartmentRepository {
       const mysqlError = error as MySQLError
       // Si hay registros relacionados (FK constraint)
       if (mysqlError.code === 'ER_ROW_IS_REFERENCED_2') {
-        throw new Error('No se puede eliminar el departamento porque tiene registros asociados')
+        throw new Error('No se puede eliminar el departamento porque tiene registros asociados', { cause: error })
       }
 
-      throw new Error('Error al eliminar el departamento: ' + (error as Error).message)
+      throw new Error('Error al eliminar el departamento: ' + (error as Error).message, { cause: error })
     }
   }
 }

@@ -30,7 +30,7 @@ const plateNumberSchema = z
       .min(3, 'La matrícula debe tener al menos 3 caracteres')
       .max(12, 'La matrícula no puede superar 12 caracteres')
       .regex(
-        /^[A-Z0-9\s\-]+$/,
+        /^[A-Z0-9\s-]+$/,
         'La matrícula solo puede contener letras, números, espacios y guiones'
       )
   )
@@ -51,7 +51,7 @@ const ownerNameSchema = z
       .min(3, 'El nombre debe tener al menos 3 caracteres')
       .max(35, 'El nombre no puede superar 35 caracteres')
       .regex(
-        /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ0-9\s'\-]+$/,
+        /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ0-9\s'-]+$/,
         'El nombre solo puede contener letras, números, espacios, guiones y apóstrofes'
       )
   )
@@ -72,7 +72,7 @@ const modelSchema = z
     'El modelo debe tener entre 3 y 35 caracteres'
   )
   .refine(
-    (val) => !val || /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ0-9\s.\-]+$/.test(val),
+    (val) => !val || /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ0-9\s.-]+$/.test(val),
     'El modelo solo puede contener letras, números, espacios, puntos y guiones'
   )
 

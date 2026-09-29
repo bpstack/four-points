@@ -718,7 +718,7 @@ class ParkingBookingsRepository {
     const offset = (page - 1) * safeLimit
 
     // Build WHERE clause based on quickFilter type
-    let whereClause = ''
+    let whereClause: string
     const params: (string | number)[] = []
 
     switch (quickFilter) {
@@ -859,7 +859,7 @@ class ParkingBookingsRepository {
     // Build WHERE clause
     // Las fechas se almacenan como DATETIME en hora local de Madrid
     // Comparamos directamente el DATE de expected_checkin
-    let whereClause = ''
+    let whereClause: string
     const params: (string | number)[] = []
 
     if (endDate) {

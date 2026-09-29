@@ -955,15 +955,19 @@ export async function createScheduleValidator(monthId: number): Promise<Schedule
           if (!employee.rules.maxShiftPerMonth) {
             employee.rules.maxShiftPerMonth = {}
           }
-          const [shiftCode, maxStr] = rule.rule_value.split(':')
-          employee.rules.maxShiftPerMonth[shiftCode] = parseInt(maxStr)
+          {
+            const [shiftCode, maxStr] = rule.rule_value.split(':')
+            employee.rules.maxShiftPerMonth[shiftCode] = parseInt(maxStr)
+          }
           break
         case 'min_shift_per_month':
           if (!employee.rules.minShiftPerMonth) {
             employee.rules.minShiftPerMonth = {}
           }
-          const [shiftCode2, minStr] = rule.rule_value.split(':')
-          employee.rules.minShiftPerMonth[shiftCode2] = parseInt(minStr)
+          {
+            const [shiftCode, minStr] = rule.rule_value.split(':')
+            employee.rules.minShiftPerMonth[shiftCode] = parseInt(minStr)
+          }
           break
         case 'fixed_days':
           employee.rules.fixedDays = rule.rule_value.split(',').map(Number)

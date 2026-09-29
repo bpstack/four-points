@@ -1,0 +1,7 @@
+node_modules/
+dist/
+coverage/
+uploads/
+scheduling-solver/
+debug-*.js
+pnpm-lock.yaml

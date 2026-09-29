@@ -181,7 +181,7 @@ export class CloudinaryService {
     } catch (error: any) {
       logger.error({ err: error }, '[CloudinaryService] Delete error')
       logger.error({ err: error, details: error }, '[CloudinaryService] Delete error details')
-      throw new Error(`Error al eliminar imagen de Cloudinary: ${error.message || 'Unknown error'}`)
+      throw new Error(`Error al eliminar imagen de Cloudinary: ${error.message || 'Unknown error'}`, { cause: error })
     }
   }
 
@@ -277,7 +277,7 @@ export class CloudinaryService {
       return result.result === 'ok'
     } catch (error) {
       logger.error({ err: error }, '[CloudinaryService] Delete error')
-      throw new Error('Error al eliminar archivo de Cloudinary')
+      throw new Error('Error al eliminar archivo de Cloudinary', { cause: error })
     }
   }
 
