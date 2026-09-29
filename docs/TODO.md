@@ -678,6 +678,11 @@ hace que alguien reimplemente lo que ya existe.
       mismo pago se vuelve a avisar con «vence en 15 días» aunque falten 2, y
       los vencidos se repiten sin fin. _Según la revisión `security` L3 del
       2026-09-28 (fichero y línea en el informe); no repasado por mí._
+- [ ] **Groups: la ficha no se refresca tras editar el grupo** — después de
+      «Grupo actualizado correctamente» el balance sigue mostrando el importe
+      anterior (y el panel de pagos calcula los porcentajes sobre él) hasta que
+      otra acción recarga los datos; el backend sí guarda el valor nuevo.
+      _Comprobado en producción el 2026-09-29._
 - [ ] **Groups: contactos (email y teléfono) visibles para todos los roles**,
       también `mantenimiento` (ASVS L3: solo los datos mínimos). _Según la
       revisión `security` L3 del 2026-09-28 (fichero y línea en el informe); no
