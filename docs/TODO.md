@@ -221,11 +221,16 @@ hace que alguien reimplemente lo que ya existe.
       autoría y el historial del módulo. _Comprobado el 2026-09-28: el esquema
       Zod lo exige en el cuerpo y el frontend lo rellena con `user.id`._
 - [ ] **Medir la protección contra timing attacks del login** — `DUMMY_HASH`
-      (`backend/repositories/auth/user-repository.ts`) ya es un hash bcrypt
-      válido de coste 10, pero no se ha medido que un usuario inexistente
-      tarde lo mismo que uno real con contraseña mala. _**No comprobado**:
-      medir con una cuenta desechable para no bloquear al `admin` (el límite
-      de intentos va por IP y usuario)._
+      (`backend/repositories/auth/user-repository.ts`) es un hash bcrypt de
+      coste 10, igual que los 22 de Aiven (_comprobado el 2026-09-29_; si se
+      sube `SALT_ROUNDS`, el hash de relleno debe subir también). En local,
+      llamando a `UserRepository.login` 20 veces, real e inexistente tardan lo
+      mismo (53,5 frente a 53,9 ms). En producción, 5 intentos con contraseña
+      mala contra un usuario real dieron mediana 447 ms frente a 377 ms de
+      usuarios inexistentes, y las parejas de inexistentes no muestran efecto
+      de orden: **diferencia sin explicar**. Repetir con una muestra mayor
+      (varios usuarios desechables, porque el límite por usuario es 5 y el de
+      IP 20 fallos cada 15 min).
 
 ## 🟡 Media
 
