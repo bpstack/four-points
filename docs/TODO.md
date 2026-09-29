@@ -122,21 +122,6 @@ hace que alguien reimplemente lo que ya existe.
       tal como aparecen en el Excel `PLANNING 2026.xlsx`; en Aiven, 9 de los 10
       usuarios de horarios son nombres de pila. Revisar en la fase 2 junto con
       Clara y los Excel archivados. _Comprobado por mí el 2026-09-28._
-- [ ] **Groups: inyección SQL en el orden del listado** — `sort` y `order` pasan
-      de la URL a `ORDER BY g.${sortField} ${sortOrder}` sin filtrar
-      (`group-repository.ts`). `GET /api/groups` lo alcanza cualquier rol que ve
-      grupos, también `mantenimiento`: permite leer toda la BD, hashes de
-      contraseñas incluidos. _Comprobado por mí el 2026-09-28._
-- [ ] **Groups: inyección SQL por los nombres de campo en las ediciones** — los
-      `PUT` de grupo, pago, contacto y habitación construyen `clave = ?` con las
-      claves del cuerpo, y el controlador pasa el cuerpo entero. Un
-      `group-admin` (o cualquiera que se haga admin) puede leer o escribir
-      cualquier columna. _Comprobado por mí el 2026-09-28._ (pago, contacto y
-      habitación, según el revisor)
-- [ ] **Groups: ninguna ruta valida con Zod** — asignación masiva: por `PUT` se
-      puede mover un pago a otro grupo, cambiar `created_by`, `status`,
-      `amount_paid` o poner importes negativos. _Comprobado por mí el
-      2026-09-28._ (casos concretos, según el revisor)
 - [ ] **Maintenance: sin permisos dentro del módulo** — cualquier rol con acceso
       (también `mantenimiento` y `recepcionista`) crea, edita, cambia de estado,
       asigna, borra y restaura cualquier parte: el controlador no mira rol ni
@@ -296,7 +281,12 @@ hace que alguien reimplemente lo que ya existe.
 - [ ] **Decidir la analítica antes de publicar** — el frontend carga Google
       Analytics (`G-ZYSZ6THVDW`) y Vercel Analytics (`frontend/app/layout.tsx`).
 - [ ] **CI mínimo** — no hay `.github/`: instalar con lockfile congelado, lint,
-      formato y tipos en cada push.
+      formato y tipos en cada push. En el backend ya existen `pnpm lint`
+      (ESLint 10, 0 errores), `pnpm format:check` y `pnpm typecheck`
+      (_comprobado el 2026-09-29_).
+- [ ] **Backend: 341 usos de `any`** — `no-explicit-any` está como aviso en
+      `backend/eslint.config.js` para que el lint pase; tiparlos y volver a
+      ponerla como error.
 
 - [ ] **Avisar a los usuarios de que un `admin` puede leer sus mensajes** —
       `getConversation` y `getMessages` (`backend/controllers/messages/`) dejan
@@ -495,10 +485,6 @@ hace que alguien reimplemente lo que ya existe.
       y `group_history` tiene `ON DELETE CASCADE`; ninguna mutación va en
       transacción con su registro. _Comprobado por mí el 2026-09-28._
       (transacciones, según el revisor)
-- [ ] **Groups: dos rutas de pago no comprueban que el pago sea del grupo de la
-      URL** (`updatePaymentStatus`, `updateAmountPaid`). _Según la revisión
-      `security` L3 del 2026-09-28 (fichero y línea en el informe); no repasado
-      por mí._
 - [ ] **Notificaciones manuales: destinatarios y textos sin validar** —
       cualquier id de usuario (inactivos incluidos), prioridad sin comprobar,
       título y mensaje sin límite; los errores devuelven el mensaje de MySQL.
@@ -692,8 +678,6 @@ hace que alguien reimplemente lo que ya existe.
       mismo pago se vuelve a avisar con «vence en 15 días» aunque falten 2, y
       los vencidos se repiten sin fin. _Según la revisión `security` L3 del
       2026-09-28 (fichero y línea en el informe); no repasado por mí._
-- [ ] **Groups: `limit` del historial sin cota.** _Según la revisión `security`
-      L3 del 2026-09-28 (fichero y línea en el informe); no repasado por mí._
 - [ ] **Groups: contactos (email y teléfono) visibles para todos los roles**,
       también `mantenimiento` (ASVS L3: solo los datos mínimos). _Según la
       revisión `security` L3 del 2026-09-28 (fichero y línea en el informe); no
