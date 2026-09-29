@@ -1,15 +1,29 @@
 // @ts-check
 
 import js from '@eslint/js'
-import { defineConfig } from 'eslint/config'
+import { defineConfig, includeIgnoreFile } from 'eslint/config'
+import { fileURLToPath } from 'node:url'
 import tseslint from 'typescript-eslint'
 import prettierRecommended from 'eslint-plugin-prettier/recommended'
 import globals from 'globals'
 
+// Same files as Prettier and git: local-only files must not break the lint
+const gitignores = ['.gitignore', '../.gitignore'].map((p) =>
+  fileURLToPath(new URL(p, import.meta.url))
+)
+
 export default defineConfig(
+  includeIgnoreFile(gitignores, { gitignoreResolution: true }),
   {
     // debug-*.js: throwaway scripts, removal pending in docs/TODO.md
-    ignores: ['node_modules/', 'dist/', 'coverage/', 'uploads/', 'scheduling-solver/', 'debug-*.js'],
+    ignores: [
+      'node_modules/',
+      'dist/',
+      'coverage/',
+      'uploads/',
+      'scheduling-solver/',
+      'debug-*.js',
+    ],
   },
   {
     files: ['**/*.{js,ts}'],
