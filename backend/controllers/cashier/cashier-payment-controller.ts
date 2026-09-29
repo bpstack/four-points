@@ -108,6 +108,10 @@ export class CashierPaymentController {
 
       res.status(201).json(payment)
     } catch (error) {
+      if ((error as { code?: string }).code === 'ER_DUP_ENTRY') {
+        res.status(409).json({ error: 'El turno ya tiene un pago con ese método' })
+        return
+      }
       logger.error({ err: error }, 'Error al crear pago')
       res.status(500).json({ error: 'Error al crear pago' })
     }
