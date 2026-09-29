@@ -74,14 +74,6 @@ hace que alguien reimplemente lo que ya existe.
       y el historial guarda un estado anterior fijo. _Según la revisión
       `security` L3 del 2026-09-28 (fichero y línea en el informe); no repasado
       por mí._
-- [ ] **Cashier: inyección SQL en el orden de los listados** —
-      `ORDER BY     ${sortField} ${sortOrder}` con `sort` y `order` de la URL en
-      los repositorios de turnos, días e historial (y vales, según el revisor).
-      `GET /shifts` y `/daily` los alcanza cualquier rol salvo `mantenimiento`.
-      _Comprobado por mí el 2026-09-28._
-- [ ] **Cashier: ninguna ruta valida con Zod** — `cashier-validation.ts` no lo
-      importa nadie: importes negativos o absurdos y billetes de cualquier
-      valor. _Comprobado por mí el 2026-09-28._
 - [ ] **Cashier: turnos y días cerrados siguen editables** por cualquier rol con
       acceso de escritura; el trigger reescribe los totales del día. _Según la
       revisión `security` L3 del 2026-09-28 (fichero y línea en el informe); no
@@ -95,17 +87,20 @@ hace que alguien reimplemente lo que ya existe.
 - [ ] **Cashier: el descuadre calculado en el servidor siempre es 0** —
       `income = contado − fondo` y luego `esperado = fondo + income`; los vales
       se ignoran. Los informes nunca muestran descuadre. _Comprobado por mí el
-      2026-09-28._
+      2026-09-28._ Además, guardar el recuento sobrescribe el ingreso que el
+      usuario tecleó: en producción, 250,50 € pasó a 0,15 € (contado − fondo)
+      al guardar las denominaciones (_2026-09-29_).
 - [ ] **Cashier: operaciones que fallan siempre en producción** — justificar,
       cancelar y editar vales, y editar pagos o recuentos sueltos escriben
       columnas que no existen en Aiven (`justified_at`, `cancelled_at`,
       `updated_at`) o la columna generada `total`. En Aiven hay 0 vales.
       _Comprobado por mí el 2026-09-28._
-- [ ] **Cashier: autoría falsificable y cambios de dinero sin rastro** — el
-      `shift_id` de un pago, el `created_by` de un vale y el `opened_by` del día
-      salen del cuerpo; pagos y recuentos no dejan historial y las ediciones no
-      guardan valores anteriores. _Según la revisión `security` L3 del
-      2026-09-28 (fichero y línea en el informe); no repasado por mí._
+- [ ] **Cashier: cambios de dinero sin rastro** — pagos y recuentos no dejan
+      historial, las ediciones no guardan valores anteriores y borrar un turno
+      borra también su `cashier_history` (_visto en producción el 2026-09-29_).
+      _Según la revisión `security` L3 del 2026-09-28; no repasado por mí._ La
+      autoría ya no sale del cuerpo (`shift_id` del pago, `created_by` del vale,
+      `opened_by` del día; _comprobado en producción el 2026-09-29_).
 - [ ] **Scheduling: un recepcionista puede aprobarse sus propias solicitudes** —
       `PUT /constraints/:id` no pide `isAdmin` y `updateConstraintSchema` acepta
       `status: 'approved'` (sin `approved_by`). Al reiniciar o crear el mes,
