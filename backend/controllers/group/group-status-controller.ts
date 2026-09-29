@@ -3,12 +3,14 @@
 import { Request, Response } from 'express'
 import { GroupStatusRepository } from '../../repositories/group/group-status-repository'
 import { GroupHistoryService } from '../../services/group/group-history-service'
+import { UpdateRoomingRequest, UpdateBalanceRequest } from '../../models/group/index'
 import {
-  UpdateBookingRequest,
-  UpdateContractRequest,
-  UpdateRoomingRequest,
-  UpdateBalanceRequest,
-} from '../../models/group/index'
+  bookingSchema,
+  contractSchema,
+  roomingSchema,
+  balanceSchema,
+  validationError,
+} from '../../validations/group/group-schemas.js'
 import { ERROR_CODES, SUCCESS_CODES } from '../../config/error-codes.js'
 import { logger } from '../../config/logger.js'
 
@@ -51,7 +53,13 @@ export class GroupStatusController {
     try {
       const groupId = parseInt(req.params.id)
       const userId = req.user?.id
-      const { confirmed, date }: UpdateBookingRequest = req.body
+      const parsed = bookingSchema.safeParse(req.body)
+      if (!parsed.success) {
+        res.status(400).json(validationError(parsed.error))
+        return
+      }
+      const { confirmed } = parsed.data
+      const date = parsed.data.date || undefined
 
       if (!userId) {
         res.status(401).json({
@@ -121,7 +129,13 @@ export class GroupStatusController {
     try {
       const groupId = parseInt(req.params.id)
       const userId = req.user?.id
-      const { signed, date }: UpdateContractRequest = req.body
+      const parsed = contractSchema.safeParse(req.body)
+      if (!parsed.success) {
+        res.status(400).json(validationError(parsed.error))
+        return
+      }
+      const { signed } = parsed.data
+      const date = parsed.data.date || undefined
 
       if (!userId) {
         res.status(401).json({
@@ -191,7 +205,12 @@ export class GroupStatusController {
     try {
       const groupId = parseInt(req.params.id)
       const userId = req.user?.id
-      const roomingData: UpdateRoomingRequest = req.body
+      const parsed = roomingSchema.safeParse(req.body)
+      if (!parsed.success) {
+        res.status(400).json(validationError(parsed.error))
+        return
+      }
+      const roomingData = parsed.data as UpdateRoomingRequest
 
       if (!userId) {
         res.status(401).json({
@@ -251,7 +270,12 @@ export class GroupStatusController {
     try {
       const groupId = parseInt(req.params.id)
       const userId = req.user?.id
-      const balanceData: UpdateBalanceRequest = req.body
+      const parsed = balanceSchema.safeParse(req.body)
+      if (!parsed.success) {
+        res.status(400).json(validationError(parsed.error))
+        return
+      }
+      const balanceData = parsed.data as UpdateBalanceRequest
 
       if (!userId) {
         res.status(401).json({

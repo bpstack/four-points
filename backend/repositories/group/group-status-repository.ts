@@ -13,7 +13,6 @@
 import db from '../../config/db'
 import {
   GroupStatusRecord,
-  UpdateGroupStatusDTO,
   UpdateBookingDTO,
   UpdateContractDTO,
   UpdateRoomingDTO,
@@ -29,32 +28,6 @@ export class GroupStatusRepository {
     const query = `SELECT * FROM group_status WHERE group_id = ?`
     const [rows] = await db.query<GroupStatusRecord[]>(query, [groupId])
     return rows[0] || null
-  }
-
-  /**
-   * Actualizar estado completo
-   */
-  static async update(groupId: number, statusData: UpdateGroupStatusDTO): Promise<boolean> {
-    const fields: string[] = []
-    const values: any[] = []
-
-    Object.entries(statusData).forEach(([key, value]) => {
-      if (value !== undefined && key !== 'group_id') {
-        fields.push(`${key} = ?`)
-        values.push(value)
-      }
-    })
-
-    if (fields.length === 0) {
-      throw new Error('No hay campos para actualizar')
-    }
-
-    values.push(groupId)
-
-    const query = `UPDATE group_status SET ${fields.join(', ')} WHERE group_id = ?`
-    const [result] = await db.query<ResultSetHeader>(query, values)
-
-    return result.affectedRows > 0
   }
 
   /**

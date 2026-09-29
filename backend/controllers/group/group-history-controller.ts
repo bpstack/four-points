@@ -5,6 +5,7 @@ import { GroupHistoryService } from '../../services/group/group-history-service'
 import { GroupRepository } from '../../repositories/group/group-repository'
 import { ERROR_CODES } from '../../config/error-codes.js'
 import { logger } from '../../config/logger.js'
+import { groupHistoryQuerySchema, validationError } from '../../validations/group/group-schemas.js'
 
 export class GroupHistoryController {
   /**
@@ -14,7 +15,11 @@ export class GroupHistoryController {
   static async getGroupHistory(req: Request, res: Response): Promise<Response> {
     try {
       const groupId = parseInt(req.params.id)
-      const limit = req.query.limit ? parseInt(req.query.limit as string) : 100
+      const parsed = groupHistoryQuerySchema.safeParse(req.query)
+      if (!parsed.success) {
+        return res.status(400).json(validationError(parsed.error))
+      }
+      const limit = parsed.data.limit ?? 100
 
       if (isNaN(groupId)) {
         return res.status(400).json({

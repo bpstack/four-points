@@ -10,6 +10,7 @@ import {
   PaymentsSummary,
 } from '../../models/group/index'
 import { ResultSetHeader } from 'mysql2'
+import { buildSetClause } from './update-columns.js'
 
 export class GroupPaymentRepository {
   /**
@@ -119,15 +120,16 @@ export class GroupPaymentRepository {
    * Actualizar pago completo
    */
   static async update(id: number, paymentData: UpdateGroupPaymentDTO): Promise<boolean> {
-    const fields: string[] = []
-    const values: any[] = []
-
-    Object.entries(paymentData).forEach(([key, value]) => {
-      if (value !== undefined && key !== 'id') {
-        fields.push(`${key} = ?`)
-        values.push(value)
-      }
-    })
+    const { fields, values } = buildSetClause(paymentData, [
+      'payment_name',
+      'payment_order',
+      'percentage',
+      'amount',
+      'amount_paid',
+      'due_date',
+      'status',
+      'notes',
+    ])
 
     if (fields.length === 0) {
       throw new Error('No hay campos para actualizar')

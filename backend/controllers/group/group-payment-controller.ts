@@ -8,6 +8,14 @@ import { GroupHistoryService } from '../../services/group/group-history-service'
 import { CreateGroupPaymentDTO, UpdateGroupPaymentDTO } from '../../models/group/index'
 import { ERROR_CODES, SUCCESS_CODES } from '../../config/error-codes.js'
 import { logger } from '../../config/logger.js'
+import {
+  createPaymentSchema,
+  updatePaymentSchema,
+  paymentStatusSchema,
+  amountPaidSchema,
+  upcomingPaymentsQuerySchema,
+  validationError,
+} from '../../validations/group/group-schemas.js'
 
 export class GroupPaymentController {
   /**
@@ -91,25 +99,16 @@ export class GroupPaymentController {
         })
       }
 
-      const paymentData: CreateGroupPaymentDTO = {
-        group_id: groupId,
-        payment_name: req.body.payment_name,
-        payment_order: req.body.payment_order,
-        percentage: req.body.percentage,
-        amount: req.body.amount,
-        amount_paid: req.body.amount_paid || 0,
-        due_date: req.body.due_date,
-        status: req.body.status,
-        notes: req.body.notes,
+      const parsed = createPaymentSchema.safeParse(req.body)
+      if (!parsed.success) {
+        return res.status(400).json(validationError(parsed.error))
       }
 
-      if (!paymentData.payment_name || !paymentData.due_date) {
-        return res.status(400).json({
-          success: false,
-          error: ERROR_CODES.GROUP_PAYMENT_MISSING_FIELDS,
-          code: ERROR_CODES.GROUP_PAYMENT_MISSING_FIELDS,
-        })
-      }
+      const paymentData = {
+        ...parsed.data,
+        group_id: groupId,
+        amount_paid: parsed.data.amount_paid ?? 0,
+      } as CreateGroupPaymentDTO
 
       if (paymentData.percentage && group.total_amount) {
         paymentData.amount = PaymentCalculatorService.calculateAmount(
@@ -200,7 +199,11 @@ export class GroupPaymentController {
         })
       }
 
-      const updateData: UpdateGroupPaymentDTO = req.body
+      const parsed = updatePaymentSchema.safeParse(req.body)
+      if (!parsed.success) {
+        return res.status(400).json(validationError(parsed.error))
+      }
+      const updateData = parsed.data as UpdateGroupPaymentDTO
 
       const updated = await GroupPaymentRepository.update(paymentId, updateData)
 
@@ -244,11 +247,11 @@ export class GroupPaymentController {
    */
   static async updatePaymentStatus(req: Request, res: Response): Promise<Response> {
     try {
+      const groupId = parseInt(req.params.id)
       const paymentId = parseInt(req.params.paymentId)
       const userId = req.user?.id
-      const { status } = req.body
 
-      if (isNaN(paymentId)) {
+      if (isNaN(groupId) || isNaN(paymentId)) {
         return res.status(400).json({
           success: false,
           error: ERROR_CODES.INVALID_ID,
@@ -256,13 +259,11 @@ export class GroupPaymentController {
         })
       }
 
-      if (!status) {
-        return res.status(400).json({
-          success: false,
-          error: ERROR_CODES.MISSING_REQUIRED_FIELDS,
-          code: ERROR_CODES.MISSING_REQUIRED_FIELDS,
-        })
+      const parsed = paymentStatusSchema.safeParse(req.body)
+      if (!parsed.success) {
+        return res.status(400).json(validationError(parsed.error))
       }
+      const { status } = parsed.data
 
       if (!userId) {
         return res.status(401).json({
@@ -279,6 +280,14 @@ export class GroupPaymentController {
           success: false,
           error: ERROR_CODES.GROUP_PAYMENT_NOT_FOUND,
           code: ERROR_CODES.GROUP_PAYMENT_NOT_FOUND,
+        })
+      }
+
+      if (oldPayment.group_id !== groupId) {
+        return res.status(400).json({
+          success: false,
+          error: ERROR_CODES.GROUP_PAYMENT_NOT_IN_GROUP,
+          code: ERROR_CODES.GROUP_PAYMENT_NOT_IN_GROUP,
         })
       }
 
@@ -325,11 +334,11 @@ export class GroupPaymentController {
    */
   static async updateAmountPaid(req: Request, res: Response): Promise<Response> {
     try {
+      const groupId = parseInt(req.params.id)
       const paymentId = parseInt(req.params.paymentId)
       const userId = req.user?.id
-      const { amount_paid } = req.body
 
-      if (isNaN(paymentId)) {
+      if (isNaN(groupId) || isNaN(paymentId)) {
         return res.status(400).json({
           success: false,
           error: ERROR_CODES.INVALID_ID,
@@ -337,13 +346,11 @@ export class GroupPaymentController {
         })
       }
 
-      if (amount_paid === undefined || amount_paid < 0) {
-        return res.status(400).json({
-          success: false,
-          error: ERROR_CODES.GROUP_PAYMENT_INVALID_AMOUNT,
-          code: ERROR_CODES.GROUP_PAYMENT_INVALID_AMOUNT,
-        })
+      const parsed = amountPaidSchema.safeParse(req.body)
+      if (!parsed.success) {
+        return res.status(400).json(validationError(parsed.error))
       }
+      const { amount_paid } = parsed.data
 
       if (!userId) {
         return res.status(401).json({
@@ -360,6 +367,14 @@ export class GroupPaymentController {
           success: false,
           error: ERROR_CODES.GROUP_PAYMENT_NOT_FOUND,
           code: ERROR_CODES.GROUP_PAYMENT_NOT_FOUND,
+        })
+      }
+
+      if (oldPayment.group_id !== groupId) {
+        return res.status(400).json({
+          success: false,
+          error: ERROR_CODES.GROUP_PAYMENT_NOT_IN_GROUP,
+          code: ERROR_CODES.GROUP_PAYMENT_NOT_IN_GROUP,
         })
       }
 
@@ -477,7 +492,11 @@ export class GroupPaymentController {
    */
   static async getUpcomingPayments(req: Request, res: Response): Promise<Response> {
     try {
-      const days = req.query.days ? parseInt(req.query.days as string) : 7
+      const parsed = upcomingPaymentsQuerySchema.safeParse(req.query)
+      if (!parsed.success) {
+        return res.status(400).json(validationError(parsed.error))
+      }
+      const days = parsed.data.days ?? 7
 
       const payments = await GroupPaymentRepository.getUpcoming(days)
 

@@ -7,6 +7,7 @@ import { GroupHistoryService } from '../../services/group/group-history-service'
 import { CreateGroupRoomDTO, UpdateGroupRoomDTO } from '../../models/group/index'
 import { ERROR_CODES, SUCCESS_CODES } from '../../config/error-codes.js'
 import { logger } from '../../config/logger.js'
+import { createRoomSchema, updateRoomSchema, validationError } from '../../validations/group/group-schemas.js'
 
 export class GroupRoomController {
   /**
@@ -90,21 +91,16 @@ export class GroupRoomController {
         })
       }
 
-      const roomData: CreateGroupRoomDTO = {
-        group_id: groupId,
-        room_type: req.body.room_type,
-        quantity: req.body.quantity,
-        guests_per_room: req.body.guests_per_room || 1,
-        notes: req.body.notes,
+      const parsed = createRoomSchema.safeParse(req.body)
+      if (!parsed.success) {
+        return res.status(400).json(validationError(parsed.error))
       }
 
-      if (!roomData.room_type || !roomData.quantity) {
-        return res.status(400).json({
-          success: false,
-          error: ERROR_CODES.GROUP_ROOM_MISSING_FIELDS,
-          code: ERROR_CODES.GROUP_ROOM_MISSING_FIELDS,
-        })
-      }
+      const roomData = {
+        ...parsed.data,
+        group_id: groupId,
+        guests_per_room: parsed.data.guests_per_room ?? 1,
+      } as CreateGroupRoomDTO
 
       const result = await GroupRoomRepository.createOrUpdate(roomData)
 
@@ -179,7 +175,11 @@ export class GroupRoomController {
         })
       }
 
-      const updateData: UpdateGroupRoomDTO = req.body
+      const parsed = updateRoomSchema.safeParse(req.body)
+      if (!parsed.success) {
+        return res.status(400).json(validationError(parsed.error))
+      }
+      const updateData = parsed.data as UpdateGroupRoomDTO
 
       const updated = await GroupRoomRepository.update(roomId, updateData)
 

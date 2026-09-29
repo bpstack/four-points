@@ -11,6 +11,13 @@ import { CreateGroupDTO, UpdateGroupDTO, GroupFilters } from '../../models/group
 import { ERROR_CODES, SUCCESS_CODES } from '../../config/error-codes.js'
 import { getNowMadrid } from '../../config/date-utils.js'
 import { logger } from '../../config/logger.js'
+import {
+  groupListQuerySchema,
+  createGroupSchema,
+  updateGroupSchema,
+  timelineQuerySchema,
+  validationError,
+} from '../../validations/group/group-schemas.js'
 
 export class GroupController {
   /**
@@ -19,20 +26,12 @@ export class GroupController {
    */
   static async getAllGroups(req: Request, res: Response): Promise<Response> {
     try {
-      const filters: GroupFilters = {
-        status: req.query.status as any,
-        arrival_from: req.query.arrival_from as string,
-        arrival_to: req.query.arrival_to as string,
-        departure_from: req.query.departure_from as string,
-        departure_to: req.query.departure_to as string,
-        agency: req.query.agency as string,
-        sort: req.query.sort as string,
-        order: req.query.order as 'ASC' | 'DESC',
-        limit: req.query.limit ? parseInt(req.query.limit as string) : undefined,
-        offset: req.query.offset ? parseInt(req.query.offset as string) : undefined,
+      const parsed = groupListQuerySchema.safeParse(req.query)
+      if (!parsed.success) {
+        return res.status(400).json(validationError(parsed.error))
       }
 
-      const groups = await GroupRepository.getAll(filters)
+      const groups = await GroupRepository.getAll(parsed.data as GroupFilters)
 
       return res.status(200).json({
         success: true,
@@ -118,18 +117,12 @@ export class GroupController {
         })
       }
 
-      const groupData: CreateGroupDTO = {
-        ...req.body,
-        created_by: userId,
+      const parsed = createGroupSchema.safeParse(req.body)
+      if (!parsed.success) {
+        return res.status(400).json(validationError(parsed.error))
       }
 
-      if (!groupData.name || !groupData.arrival_date || !groupData.departure_date) {
-        return res.status(400).json({
-          success: false,
-          error: ERROR_CODES.GROUP_MISSING_REQUIRED_FIELDS,
-          code: ERROR_CODES.GROUP_MISSING_REQUIRED_FIELDS,
-        })
-      }
+      const groupData = { ...parsed.data, created_by: userId } as CreateGroupDTO
 
       const newGroup = await GroupRepository.create(groupData)
 
@@ -176,6 +169,11 @@ export class GroupController {
         })
       }
 
+      const parsed = updateGroupSchema.safeParse(req.body)
+      if (!parsed.success) {
+        return res.status(400).json(validationError(parsed.error))
+      }
+
       const oldGroup = await GroupRepository.getById(groupId)
 
       if (!oldGroup) {
@@ -186,10 +184,7 @@ export class GroupController {
         })
       }
 
-      const updateData: UpdateGroupDTO = {
-        ...req.body,
-        updated_by: userId,
-      }
+      const updateData = { ...parsed.data, updated_by: userId } as UpdateGroupDTO
 
       const updatedGroup = await GroupRepository.update(groupId, updateData)
 
@@ -315,7 +310,11 @@ export class GroupController {
    */
   static async getDashboardTimeline(req: Request, res: Response): Promise<Response> {
     try {
-      const year = req.query.year ? parseInt(req.query.year as string) : getNowMadrid().year()
+      const parsed = timelineQuerySchema.safeParse(req.query)
+      if (!parsed.success) {
+        return res.status(400).json(validationError(parsed.error))
+      }
+      const year = parsed.data.year ?? getNowMadrid().year()
 
       const timeline = await GroupRepository.getTimeline(year)
 

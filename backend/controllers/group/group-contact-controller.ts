@@ -7,6 +7,11 @@ import { GroupHistoryService } from '../../services/group/group-history-service'
 import { CreateGroupContactDTO, UpdateGroupContactDTO } from '../../models/group/index'
 import { ERROR_CODES, SUCCESS_CODES } from '../../config/error-codes.js'
 import { logger } from '../../config/logger.js'
+import {
+  createContactSchema,
+  updateContactSchema,
+  validationError,
+} from '../../validations/group/group-schemas.js'
 
 export class GroupContactController {
   /**
@@ -87,13 +92,16 @@ export class GroupContactController {
         })
       }
 
-      const contactData: CreateGroupContactDTO = {
-        group_id: groupId,
-        contact_name: req.body.contact_name,
-        contact_email: req.body.contact_email,
-        contact_phone: req.body.contact_phone,
-        is_primary: req.body.is_primary || false,
+      const parsed = createContactSchema.safeParse(req.body)
+      if (!parsed.success) {
+        return res.status(400).json(validationError(parsed.error))
       }
+
+      const contactData = {
+        ...parsed.data,
+        group_id: groupId,
+        is_primary: parsed.data.is_primary ?? false,
+      } as CreateGroupContactDTO
 
       const newContact = await GroupContactRepository.create(contactData)
 
@@ -169,7 +177,11 @@ export class GroupContactController {
         })
       }
 
-      const updateData: UpdateGroupContactDTO = req.body
+      const parsed = updateContactSchema.safeParse(req.body)
+      if (!parsed.success) {
+        return res.status(400).json(validationError(parsed.error))
+      }
+      const updateData = parsed.data as UpdateGroupContactDTO
 
       const updated = await GroupContactRepository.update(contactId, updateData)
 

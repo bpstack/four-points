@@ -7,6 +7,7 @@ import {
   UpdateGroupContactDTO,
 } from '../../models/group/index'
 import { ResultSetHeader } from 'mysql2'
+import { buildSetClause } from './update-columns.js'
 
 export class GroupContactRepository {
   /**
@@ -64,15 +65,12 @@ export class GroupContactRepository {
    * Actualizar contacto
    */
   static async update(id: number, contactData: UpdateGroupContactDTO): Promise<boolean> {
-    const fields: string[] = []
-    const values: any[] = []
-
-    Object.entries(contactData).forEach(([key, value]) => {
-      if (value !== undefined && key !== 'id' && key !== 'group_id') {
-        fields.push(`${key} = ?`)
-        values.push(value)
-      }
-    })
+    const { fields, values } = buildSetClause(contactData, [
+      'contact_name',
+      'contact_email',
+      'contact_phone',
+      'is_primary',
+    ])
 
     if (fields.length === 0) {
       throw new Error('No hay campos para actualizar')

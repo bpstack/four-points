@@ -8,6 +8,7 @@ import {
   RoomsSummary,
 } from '../../models/group/index'
 import { ResultSetHeader } from 'mysql2'
+import { buildSetClause } from './update-columns.js'
 
 export class GroupRoomRepository {
   /**
@@ -64,15 +65,12 @@ export class GroupRoomRepository {
    * Actualizar habitación
    */
   static async update(id: number, roomData: UpdateGroupRoomDTO): Promise<boolean> {
-    const fields: string[] = []
-    const values: any[] = []
-
-    Object.entries(roomData).forEach(([key, value]) => {
-      if (value !== undefined && key !== 'id' && key !== 'group_id') {
-        fields.push(`${key} = ?`)
-        values.push(value)
-      }
-    })
+    const { fields, values } = buildSetClause(roomData, [
+      'room_type',
+      'quantity',
+      'guests_per_room',
+      'notes',
+    ])
 
     if (fields.length === 0) {
       throw new Error('No hay campos para actualizar')

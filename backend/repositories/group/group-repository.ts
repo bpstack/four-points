@@ -22,6 +22,8 @@ import {
   GroupStatus,
 } from '../../models/group/index'
 import { ResultSetHeader } from 'mysql2'
+import { buildSetClause } from './update-columns.js'
+import { GROUP_SORT_FIELDS } from '../../validations/group/group-schemas.js'
 
 export class GroupRepository {
   /**
@@ -71,9 +73,9 @@ export class GroupRepository {
       params.push(`%${filters.agency}%`)
     }
 
-    // Ordenamiento
-    const sortField = filters.sort || 'arrival_date'
-    const sortOrder = filters.order || 'ASC'
+    // Interpolated into SQL: only allow-listed values
+    const sortField = GROUP_SORT_FIELDS.includes(filters.sort as never) ? filters.sort : 'arrival_date'
+    const sortOrder = filters.order === 'DESC' ? 'DESC' : 'ASC'
     query += ` ORDER BY g.${sortField} ${sortOrder}`
 
     // Paginación
@@ -188,16 +190,17 @@ export class GroupRepository {
    * ✅ CAMBIO: Ahora sincroniza booking_confirmed cuando cambia el status
    */
   static async update(id: number, groupData: UpdateGroupDTO): Promise<Group | null> {
-    const fields: string[] = []
-    const values: any[] = []
-
-    // Construir query dinámicamente
-    Object.entries(groupData).forEach(([key, value]) => {
-      if (value !== undefined && key !== 'id') {
-        fields.push(`${key} = ?`)
-        values.push(value)
-      }
-    })
+    const { fields, values } = buildSetClause(groupData, [
+      'name',
+      'agency',
+      'arrival_date',
+      'departure_date',
+      'status',
+      'total_amount',
+      'currency',
+      'notes',
+      'updated_by',
+    ])
 
     if (fields.length === 0) {
       throw new Error('No hay campos para actualizar')
