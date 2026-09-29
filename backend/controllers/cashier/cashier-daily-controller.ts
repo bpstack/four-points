@@ -4,9 +4,15 @@ import { Request, Response } from 'express'
 import { CashierDailyRepository } from '../../repositories/cashier/cashier-daily-repository.js'
 import { CashierShiftRepository } from '../../repositories/cashier/cashier-shift-repository.js'
 import { CashierHistoryRepository } from '../../repositories/cashier/cashier-history-repository.js'
-import { ShiftType } from '../../models/cashier/index.js'
+import { DailyStatus, ShiftType } from '../../models/cashier/index.js'
 import { ERROR_CODES, SUCCESS_CODES } from '../../config/error-codes.js'
 import { logger } from '../../config/logger.js'
+import {
+  initializeDaySchema,
+  closeDaySchema,
+  dailyListQuerySchema,
+  validationError,
+} from '../../validations/cashier/cashier-validation.js'
 
 export class CashierDailyController {
   /**
@@ -46,7 +52,22 @@ export class CashierDailyController {
   static async initializeDay(req: Request, res: Response): Promise<void> {
     try {
       const { date } = req.params
-      const { opened_by, primary_user_id, secondary_user_ids } = req.body
+      const opened_by = req.user?.id
+      if (!opened_by) {
+        res.status(401).json({
+          success: false,
+          error: ERROR_CODES.AUTH_USER_NOT_AUTHENTICATED,
+          code: ERROR_CODES.AUTH_USER_NOT_AUTHENTICATED,
+        })
+        return
+      }
+
+      const parsed = initializeDaySchema.safeParse(req.body)
+      if (!parsed.success) {
+        res.status(400).json(validationError(parsed.error))
+        return
+      }
+      const { primary_user_id, secondary_user_ids } = parsed.data
 
       // Verificar si el día ya existe
       const existingDaily = await CashierDailyRepository.getByDate(date)
@@ -127,7 +148,12 @@ export class CashierDailyController {
   static async closeDay(req: Request, res: Response): Promise<void> {
     try {
       const { date } = req.params
-      const { notes } = req.body
+      const parsed = closeDaySchema.safeParse(req.body ?? {})
+      if (!parsed.success) {
+        res.status(400).json(validationError(parsed.error))
+        return
+      }
+      const { notes } = parsed.data
       const userId = req.user?.id // Asumiendo que viene del middleware de auth
 
       if (!userId) {
@@ -291,24 +317,19 @@ export class CashierDailyController {
    */
   static async getAll(req: Request, res: Response): Promise<void> {
     try {
-      const {
-        from_date,
-        to_date,
-        status,
-        sort = 'date',
-        order = 'DESC',
-        limit = '50',
-        offset = '0',
-      } = req.query
+      const parsed = dailyListQuerySchema.safeParse(req.query)
+      if (!parsed.success) {
+        res.status(400).json(validationError(parsed.error))
+        return
+      }
 
       const filters = {
-        from_date: from_date as string,
-        to_date: to_date as string,
-        status: status as any,
-        sort: sort as string,
-        order: order as 'ASC' | 'DESC',
-        limit: parseInt(limit as string),
-        offset: parseInt(offset as string),
+        ...parsed.data,
+        status: parsed.data.status as DailyStatus | undefined,
+        sort: parsed.data.sort ?? 'date',
+        order: parsed.data.order ?? 'DESC',
+        limit: parsed.data.limit ?? 50,
+        offset: parsed.data.offset ?? 0,
       }
 
       const [data, total] = await Promise.all([

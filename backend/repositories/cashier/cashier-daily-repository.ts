@@ -1,6 +1,7 @@
 // repositories/cashier/cashier-daily-repository.ts
 
 import db from '../../config/db.js'
+import { SORT_FIELDS, safeSort, safeOrder } from '../../validations/cashier/cashier-validation.js'
 import { getLastDayOfMonth } from '../../config/date-utils.js'
 import { logger } from '../../config/logger.js'
 import {
@@ -157,8 +158,8 @@ export class CashierDailyRepository {
       params.push(filters.status)
     }
 
-    const sortField = filters.sort || 'date'
-    const sortOrder = filters.order || 'DESC'
+    const sortField = safeSort(filters.sort, SORT_FIELDS.daily, 'date')
+    const sortOrder = safeOrder(filters.order, 'DESC')
     query += ` ORDER BY ${sortField} ${sortOrder}`
 
     if (filters.limit) {

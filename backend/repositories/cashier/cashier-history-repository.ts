@@ -1,6 +1,7 @@
 // repositories/cashier/cashier-history-repository.ts
 
 import db from '../../config/db.js'
+import { SORT_FIELDS, safeSort, safeOrder } from '../../validations/cashier/cashier-validation.js'
 import { ResultSetHeader } from 'mysql2'
 import { CashierHistory, CreateHistoryDTO, HistoryFilters } from '../../models/cashier/index.js'
 
@@ -102,8 +103,8 @@ export class CashierHistoryRepository {
       params.push(filters.to_date)
     }
 
-    const sortField = filters.sort || 'changed_at'
-    const sortOrder = filters.order || 'DESC'
+    const sortField = safeSort(filters.sort, SORT_FIELDS.history, 'changed_at')
+    const sortOrder = safeOrder(filters.order, 'DESC')
     query += ` ORDER BY ${sortField} ${sortOrder}`
 
     if (filters.limit) {

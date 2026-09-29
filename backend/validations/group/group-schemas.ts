@@ -14,7 +14,7 @@ import { ERROR_CODES } from '../../config/error-codes.js'
 const dateString = z
   .string()
   .regex(/^\d{4}-\d{2}-\d{2}(T[\d:.]+(Z|[+-]\d{2}:\d{2})?)?$/, 'Fecha no válida')
-const money = z.number().finite().min(0, 'El importe no puede ser negativo').max(99_999_999)
+const money = z.number().min(0, 'El importe no puede ser negativo').max(99_999_999)
 const text = (max: number) => z.string().trim().max(max, `Máximo ${max} caracteres`)
 
 // Only these columns may be used to sort; they are interpolated into ORDER BY
@@ -81,7 +81,7 @@ export const updateGroupSchema = z
 const paymentFields = {
   payment_name: text(100).min(1, 'El nombre del pago es requerido'),
   payment_order: z.number().int().min(1).max(99).optional(),
-  percentage: z.number().finite().min(0).max(100).nullish(),
+  percentage: z.number().min(0).max(100).nullish(),
   amount: money.nullish(),
   amount_paid: money.optional(),
   due_date: dateString,

@@ -5,6 +5,12 @@ import { CashierDenominationRepository } from '../../repositories/cashier/cashie
 import { CashierHistoryRepository } from '../../repositories/cashier/cashier-history-repository.js'
 import { CashierShiftRepository } from '../../repositories/cashier/cashier-shift-repository.js'
 import { logger } from '../../config/logger.js'
+import {
+  replaceDenominationsSchema,
+  denominationSchema,
+  denominationQuantitySchema,
+  validationError,
+} from '../../validations/cashier/cashier-validation.js'
 
 export class CashierDenominationController {
   /**
@@ -36,7 +42,12 @@ export class CashierDenominationController {
   static async replaceAll(req: Request, res: Response): Promise<void> {
     try {
       const { shiftId } = req.params
-      const { denominations } = req.body
+      const parsed = replaceDenominationsSchema.safeParse(req.body)
+      if (!parsed.success) {
+        res.status(400).json(validationError(parsed.error))
+        return
+      }
+      const { denominations } = parsed.data
 
       await CashierDenominationRepository.replaceAllForShift(parseInt(shiftId), denominations)
 
@@ -72,7 +83,12 @@ export class CashierDenominationController {
   static async create(req: Request, res: Response): Promise<void> {
     try {
       const { shiftId } = req.params
-      const denominationData = req.body
+      const parsed = denominationSchema.safeParse(req.body)
+      if (!parsed.success) {
+        res.status(400).json(validationError(parsed.error))
+        return
+      }
+      const denominationData = parsed.data
 
       const denomination = await CashierDenominationRepository.create(
         parseInt(shiftId),
@@ -93,7 +109,12 @@ export class CashierDenominationController {
   static async update(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params
-      const { quantity } = req.body
+      const parsed = denominationQuantitySchema.safeParse(req.body)
+      if (!parsed.success) {
+        res.status(400).json(validationError(parsed.error))
+        return
+      }
+      const { quantity } = parsed.data
 
       const updated = await CashierDenominationRepository.update(parseInt(id), quantity)
 

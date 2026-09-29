@@ -4,6 +4,14 @@ import { Request, Response } from 'express'
 import { CashierVoucherRepository } from '../../repositories/cashier/cashier-voucher-repository.js'
 import { CashierHistoryRepository } from '../../repositories/cashier/cashier-history-repository.js'
 import { logger } from '../../config/logger.js'
+import {
+  voucherListQuerySchema,
+  createVoucherSchema,
+  updateVoucherSchema,
+  justifyVoucherSchema,
+  dateRangeQuerySchema,
+  validationError,
+} from '../../validations/cashier/cashier-validation.js'
 
 export class CashierVoucherController {
   /**
@@ -12,32 +20,18 @@ export class CashierVoucherController {
    */
   static async getAll(req: Request, res: Response): Promise<void> {
     try {
-      const {
-        status,
-        created_by,
-        from_date,
-        to_date,
-        min_amount,
-        max_amount,
-        shift_id,
-        sort = 'created_at',
-        order = 'DESC',
-        limit = '50',
-        offset = '0',
-      } = req.query
+      const parsed = voucherListQuerySchema.safeParse(req.query)
+      if (!parsed.success) {
+        res.status(400).json(validationError(parsed.error))
+        return
+      }
 
       const filters = {
-        status: status as any,
-        created_by: created_by as string,
-        from_date: from_date as string,
-        to_date: to_date as string,
-        min_amount: min_amount ? parseFloat(min_amount as string) : undefined,
-        max_amount: max_amount ? parseFloat(max_amount as string) : undefined,
-        shift_id: shift_id ? parseInt(shift_id as string) : undefined,
-        sort: sort as any,
-        order: order as 'ASC' | 'DESC',
-        limit: parseInt(limit as string),
-        offset: parseInt(offset as string),
+        ...parsed.data,
+        sort: parsed.data.sort ?? 'created_at',
+        order: parsed.data.order ?? 'DESC',
+        limit: parsed.data.limit ?? 50,
+        offset: parsed.data.offset ?? 0,
       }
 
       const [data, total] = await Promise.all([
@@ -109,7 +103,18 @@ export class CashierVoucherController {
   static async create(req: Request, res: Response): Promise<void> {
     try {
       const { shiftId } = req.params
-      const voucherData = req.body
+      const userId = req.user?.id
+      if (!userId) {
+        res.status(401).json({ error: 'Usuario no autenticado' })
+        return
+      }
+
+      const parsed = createVoucherSchema.safeParse(req.body)
+      if (!parsed.success) {
+        res.status(400).json(validationError(parsed.error))
+        return
+      }
+      const voucherData = { ...parsed.data, created_by: userId }
 
       // Verificar límite de 5 vales por turno
       const canAdd = await CashierVoucherRepository.canAddVoucherToShift(parseInt(shiftId))
@@ -148,9 +153,13 @@ export class CashierVoucherController {
   static async update(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params
-      const updateData = req.body
+      const parsed = updateVoucherSchema.safeParse(req.body)
+      if (!parsed.success) {
+        res.status(400).json(validationError(parsed.error))
+        return
+      }
 
-      const updated = await CashierVoucherRepository.update(parseInt(id), updateData)
+      const updated = await CashierVoucherRepository.update(parseInt(id), parsed.data)
 
       const userId = req.user?.id
       if (userId) {
@@ -178,7 +187,12 @@ export class CashierVoucherController {
   static async justify(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params
-      const { shift_id } = req.body
+      const parsed = justifyVoucherSchema.safeParse(req.body)
+      if (!parsed.success) {
+        res.status(400).json(validationError(parsed.error))
+        return
+      }
+      const { shift_id } = parsed.data
 
       const justified = await CashierVoucherRepository.justify(parseInt(id), shift_id)
 
@@ -259,9 +273,14 @@ export class CashierVoucherController {
    */
   static async getStats(req: Request, res: Response): Promise<void> {
     try {
-      const { from_date, to_date } = req.query
+      const parsed = dateRangeQuerySchema.safeParse(req.query)
+      if (!parsed.success) {
+        res.status(400).json(validationError(parsed.error))
+        return
+      }
+      const { from_date, to_date } = parsed.data
 
-      const stats = await CashierVoucherRepository.getStats(from_date as string, to_date as string)
+      const stats = await CashierVoucherRepository.getStats(from_date, to_date)
 
       res.json(stats)
     } catch (error) {

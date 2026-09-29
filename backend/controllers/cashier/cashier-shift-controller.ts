@@ -8,6 +8,14 @@ import { CashierPaymentRepository } from '../../repositories/cashier/cashier-pay
 import { CashierDenominationRepository } from '../../repositories/cashier/cashier-denomination-repository.js'
 import { CashierVoucherRepository } from '../../repositories/cashier/cashier-voucher-repository.js'
 import { logger } from '../../config/logger.js'
+import { ShiftStatus, ShiftType } from '../../models/cashier/index.js'
+import {
+  shiftListQuerySchema,
+  updateShiftSchema,
+  reopenSchema,
+  shiftUsersSchema,
+  validationError,
+} from '../../validations/cashier/cashier-validation.js'
 
 export class CashierShiftController {
   /**
@@ -52,32 +60,20 @@ export class CashierShiftController {
    */
   static async getAll(req: Request, res: Response): Promise<void> {
     try {
-      const {
-        shift_date,
-        from_date,
-        to_date,
-        shift_type,
-        status,
-        opened_by,
-        closed_by,
-        sort = 'shift_date',
-        order = 'DESC',
-        limit = '50',
-        offset = '0',
-      } = req.query
+      const parsed = shiftListQuerySchema.safeParse(req.query)
+      if (!parsed.success) {
+        res.status(400).json(validationError(parsed.error))
+        return
+      }
 
       const filters = {
-        shift_date: shift_date as string,
-        from_date: from_date as string,
-        to_date: to_date as string,
-        shift_type: shift_type as any,
-        status: status as any,
-        opened_by: opened_by as string,
-        closed_by: closed_by as string,
-        sort: sort as any,
-        order: order as 'ASC' | 'DESC',
-        limit: parseInt(limit as string),
-        offset: parseInt(offset as string),
+        ...parsed.data,
+        shift_type: parsed.data.shift_type as ShiftType | undefined,
+        status: parsed.data.status as ShiftStatus | undefined,
+        sort: parsed.data.sort ?? 'shift_date',
+        order: parsed.data.order ?? 'DESC',
+        limit: parsed.data.limit ?? 50,
+        offset: parsed.data.offset ?? 0,
       }
 
       const [data, total] = await Promise.all([
@@ -105,9 +101,13 @@ export class CashierShiftController {
   static async update(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params
-      const updateData = req.body
+      const parsed = updateShiftSchema.safeParse(req.body)
+      if (!parsed.success) {
+        res.status(400).json(validationError(parsed.error))
+        return
+      }
 
-      const updated = await CashierShiftRepository.update(parseInt(id), updateData)
+      const updated = await CashierShiftRepository.update(parseInt(id), parsed.data)
 
       // Registrar en historial
       const userId = req.user?.id
@@ -175,6 +175,12 @@ export class CashierShiftController {
         return
       }
 
+      const parsed = reopenSchema.safeParse(req.body ?? {})
+      if (!parsed.success) {
+        res.status(400).json(validationError(parsed.error))
+        return
+      }
+
       const reopened = await CashierShiftRepository.reopen(parseInt(id))
 
       // Registrar en historial
@@ -185,7 +191,7 @@ export class CashierShiftController {
         old_value: 'closed',
         new_value: 'open',
         changed_by: userId,
-        notes: req.body.reason || 'Turno reabierto',
+        notes: parsed.data.reason || 'Turno reabierto',
       })
 
       res.json(reopened)
@@ -202,7 +208,12 @@ export class CashierShiftController {
   static async updateUsers(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params
-      const { primary_user_id, secondary_user_ids } = req.body
+      const parsed = shiftUsersSchema.safeParse(req.body)
+      if (!parsed.success) {
+        res.status(400).json(validationError(parsed.error))
+        return
+      }
+      const { primary_user_id, secondary_user_ids } = parsed.data
 
       await CashierShiftUserRepository.setUsers(
         parseInt(id),

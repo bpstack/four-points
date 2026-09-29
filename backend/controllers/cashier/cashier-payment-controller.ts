@@ -5,6 +5,12 @@ import { CashierPaymentRepository } from '../../repositories/cashier/cashier-pay
 import { CashierHistoryRepository } from '../../repositories/cashier/cashier-history-repository.js'
 import { CashierShiftRepository } from '../../repositories/cashier/cashier-shift-repository.js'
 import { logger } from '../../config/logger.js'
+import {
+  replacePaymentsSchema,
+  paymentSchema,
+  paymentAmountSchema,
+  validationError,
+} from '../../validations/cashier/cashier-validation.js'
 
 export class CashierPaymentController {
   /**
@@ -48,7 +54,12 @@ export class CashierPaymentController {
   static async replaceAll(req: Request, res: Response): Promise<void> {
     try {
       const { shiftId } = req.params
-      const { payments } = req.body
+      const parsed = replacePaymentsSchema.safeParse(req.body)
+      if (!parsed.success) {
+        res.status(400).json(validationError(parsed.error))
+        return
+      }
+      const { payments } = parsed.data
       logger.debug({ shiftId }, '🔍 [Controller] replaceAll payments - shiftId:') // ✅ LOG
       logger.debug({ data: payments }, '🔍 [Controller] replaceAll payments - data:') // ✅ LOG
 
@@ -84,11 +95,15 @@ export class CashierPaymentController {
   static async create(req: Request, res: Response): Promise<void> {
     try {
       const { shiftId } = req.params
-      const paymentData = req.body
+      const parsed = paymentSchema.safeParse(req.body)
+      if (!parsed.success) {
+        res.status(400).json(validationError(parsed.error))
+        return
+      }
 
       const payment = await CashierPaymentRepository.create({
+        ...parsed.data,
         shift_id: parseInt(shiftId),
-        ...paymentData,
       })
 
       res.status(201).json(payment)
@@ -105,7 +120,12 @@ export class CashierPaymentController {
   static async update(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params
-      const { amount } = req.body
+      const parsed = paymentAmountSchema.safeParse(req.body)
+      if (!parsed.success) {
+        res.status(400).json(validationError(parsed.error))
+        return
+      }
+      const { amount } = parsed.data
 
       const updated = await CashierPaymentRepository.update(parseInt(id), amount)
 

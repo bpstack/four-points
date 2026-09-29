@@ -5,6 +5,12 @@ import { UserRepository } from '../../repositories/auth/user-repository.js'
 import db from '../../config/db.js'
 import type { HistoryWithDetails, HistoryAction } from '../../models/cashier/index.js'
 import { logger } from '../../config/logger.js'
+import {
+  historyListQuerySchema,
+  dateRangeQuerySchema,
+  recentHistoryQuerySchema,
+  validationError,
+} from '../../validations/cashier/cashier-validation.js'
 
 export class CashierHistoryController {
   /**
@@ -13,30 +19,17 @@ export class CashierHistoryController {
    */
   static async getAll(req: Request, res: Response): Promise<Response> {
     try {
-      const {
-        shift_id,
-        action,
-        table_affected,
-        changed_by,
-        from_date,
-        to_date,
-        limit,
-        offset,
-        sort,
-        order,
-      } = req.query
+      const parsed = historyListQuerySchema.safeParse(req.query)
+      if (!parsed.success) {
+        return res.status(400).json(validationError(parsed.error))
+      }
 
       const filters = {
-        shift_id: shift_id ? parseInt(shift_id as string) : undefined,
-        action: action as HistoryAction | undefined,
-        table_affected: table_affected as string | undefined,
-        changed_by: changed_by as string | undefined,
-        from_date: from_date as string | undefined,
-        to_date: to_date as string | undefined,
-        limit: limit ? parseInt(limit as string) : 50,
-        offset: offset ? parseInt(offset as string) : 0,
-        sort: sort as 'changed_at' | 'id' | undefined, // ✅ CORREGIDO
-        order: (order as 'ASC' | 'DESC') || 'DESC',
+        ...parsed.data,
+        action: parsed.data.action as HistoryAction | undefined,
+        limit: parsed.data.limit ?? 50,
+        offset: parsed.data.offset ?? 0,
+        order: parsed.data.order ?? 'DESC',
       }
 
       const history = await CashierHistoryRepository.getAll(filters)
@@ -84,12 +77,12 @@ export class CashierHistoryController {
    */
   static async getStats(req: Request, res: Response): Promise<Response> {
     try {
-      const { from_date, to_date } = req.query
-
-      const filters = {
-        from_date: from_date as string | undefined,
-        to_date: to_date as string | undefined,
+      const parsed = dateRangeQuerySchema.safeParse(req.query)
+      if (!parsed.success) {
+        return res.status(400).json(validationError(parsed.error))
       }
+      const { from_date, to_date } = parsed.data
+      const filters = { from_date, to_date }
 
       // Total de entradas
       const totalEntries = await CashierHistoryRepository.count(filters)
@@ -261,7 +254,11 @@ export class CashierHistoryController {
    */
   static async getRecent(req: Request, res: Response): Promise<Response> {
     try {
-      const limit = req.query.limit ? parseInt(req.query.limit as string) : 50
+      const parsed = recentHistoryQuerySchema.safeParse(req.query)
+      if (!parsed.success) {
+        return res.status(400).json(validationError(parsed.error))
+      }
+      const limit = parsed.data.limit ?? 50
 
       const history = await CashierHistoryRepository.getRecentActivity(limit)
 

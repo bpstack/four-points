@@ -15,6 +15,13 @@ import {
   canViewReports,
   excludeMantenimiento,
 } from '../../middlewares/roleCheck.js'
+import {
+  dateParam,
+  idParam,
+  yearParam,
+  monthParam,
+  validationError,
+} from '../../validations/cashier/cashier-validation.js'
 
 const router = express.Router()
 
@@ -24,6 +31,26 @@ const router = express.Router()
 // ============================================
 router.use(authenticateToken)
 router.use(excludeMantenimiento)
+
+// Malformed route params get a 400 before reaching any controller
+const paramSchemas = {
+  date: dateParam,
+  id: idParam,
+  shiftId: idParam,
+  year: yearParam,
+  month: monthParam,
+}
+for (const [name, schema] of Object.entries(paramSchemas)) {
+  router.param(name, (_req, res, next, value) => {
+    const parsed = schema.safeParse(value)
+    if (!parsed.success) {
+      const body = validationError(parsed.error)
+      res.status(400).json({ ...body, errors: { [name]: Object.values(body.errors)[0] } })
+      return
+    }
+    next()
+  })
+}
 
 // ============================================
 // 📅 DAILY ROUTES (Agregados Diarios)

@@ -1,6 +1,7 @@
 // repositories/cashier/cashier-voucher-repository.ts
 
 import db from '../../config/db.js'
+import { SORT_FIELDS, safeSort, safeOrder } from '../../validations/cashier/cashier-validation.js'
 import { ResultSetHeader } from 'mysql2'
 import {
   CashierVoucher,
@@ -103,8 +104,8 @@ export class CashierVoucherRepository {
       params.push(filters.shift_id)
     }
 
-    const sortField = filters.sort || 'created_at'
-    const sortOrder = filters.order || 'DESC'
+    const sortField = safeSort(filters.sort, SORT_FIELDS.vouchers, 'created_at')
+    const sortOrder = safeOrder(filters.order, 'DESC')
     query += ` ORDER BY v.${sortField} ${sortOrder}`
 
     if (filters.limit) {

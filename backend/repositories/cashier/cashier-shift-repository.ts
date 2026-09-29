@@ -1,6 +1,7 @@
 // repositories/cashier/cashier-shift-repository.ts
 
 import db from '../../config/db.js'
+import { SORT_FIELDS, safeSort, safeOrder } from '../../validations/cashier/cashier-validation.js'
 import { ResultSetHeader } from 'mysql2'
 import {
   CashierShift,
@@ -232,8 +233,8 @@ export class CashierShiftRepository {
       params.push(filters.closed_by)
     }
 
-    const sortField = filters.sort || 'shift_date'
-    const sortOrder = filters.order || 'DESC'
+    const sortField = safeSort(filters.sort, SORT_FIELDS.shifts, 'shift_date')
+    const sortOrder = safeOrder(filters.order, 'DESC')
     query += ` ORDER BY ${sortField} ${sortOrder}`
 
     if (filters.limit) {

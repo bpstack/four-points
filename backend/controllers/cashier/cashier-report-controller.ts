@@ -8,6 +8,11 @@ import { CashierPaymentRepository } from '../../repositories/cashier/cashier-pay
 import { ShiftStatus } from '../../models/cashier/index.js'
 import { getTodayMadrid } from '../../config/date-utils.js'
 import { logger } from '../../config/logger.js'
+import {
+  requiredDateRangeQuerySchema,
+  vouchersHistoryQuerySchema,
+  validationError,
+} from '../../validations/cashier/cashier-validation.js'
 
 export class CashierReportController {
   /**
@@ -170,15 +175,11 @@ export class CashierReportController {
    */
   static async getPeriodReport(req: Request, res: Response): Promise<Response> {
     try {
-      const { from_date, to_date } = req.query
-
-      // Validar parámetros
-      if (!from_date || !to_date) {
-        return res.status(400).json({
-          success: false,
-          error: 'Parámetros from_date y to_date son obligatorios',
-        })
+      const parsed = requiredDateRangeQuerySchema.safeParse(req.query)
+      if (!parsed.success) {
+        return res.status(400).json(validationError(parsed.error))
       }
+      const { from_date, to_date } = parsed.data
 
       // Validar rango máximo de 31 días
       const MAX_DAYS = 31
@@ -302,22 +303,22 @@ export class CashierReportController {
    */
   static async getVouchersHistory(req: Request, res: Response): Promise<Response> {
     try {
-      const { status, from_date, to_date, limit = '100' } = req.query
-
-      // Limitar a máximo 500 registros
-      const MAX_LIMIT = 500
-      const requestedLimit = Math.min(parseInt(limit as string) || 100, MAX_LIMIT)
+      const parsed = vouchersHistoryQuerySchema.safeParse(req.query)
+      if (!parsed.success) {
+        return res.status(400).json(validationError(parsed.error))
+      }
+      const { status, from_date, to_date } = parsed.data
 
       const vouchers = await CashierVoucherRepository.getAll({
-        status: status && status !== 'all' ? (status as any) : undefined,
-        from_date: from_date as string,
-        to_date: to_date as string,
-        limit: requestedLimit,
+        status: status && status !== 'all' ? status : undefined,
+        from_date,
+        to_date,
+        limit: parsed.data.limit ?? 100,
         sort: 'created_at',
         order: 'DESC',
       })
 
-      const stats = await CashierVoucherRepository.getStats(from_date as string, to_date as string)
+      const stats = await CashierVoucherRepository.getStats(from_date, to_date)
 
       return res.json({
         vouchers,
@@ -344,15 +345,11 @@ export class CashierReportController {
    */
   static async getShiftsSummary(req: Request, res: Response): Promise<Response> {
     try {
-      const from_date = req.query.from_date as string
-      const to_date = req.query.to_date as string
-
-      if (!from_date || !to_date) {
-        return res.status(400).json({
-          success: false,
-          error: 'Parámetros from_date y to_date son obligatorios',
-        })
+      const parsed = requiredDateRangeQuerySchema.safeParse(req.query)
+      if (!parsed.success) {
+        return res.status(400).json(validationError(parsed.error))
       }
+      const { from_date, to_date } = parsed.data
 
       const allShifts = await CashierShiftRepository.getAll({
         from_date,
