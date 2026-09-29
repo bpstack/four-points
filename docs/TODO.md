@@ -277,9 +277,6 @@ hace que alguien reimplemente lo que ya existe.
       `invalidateCategories()`, que hoy solo se llama en los tests. En
       producción, un cambio en `fnb_category` no se ve sin reiniciar el backend.
       _Comprobado por mí el 2026-09-28._
-- [ ] **Subir el mínimo de las contraseñas** — hoy son 6 caracteres
-      (`backend/validations/auth/user-validation.ts`). _Comprobado el
-      2026-09-28._
 - [ ] **Corregir el `AGENTS.md` raíz sobre next-intl** — dice `routing.ts` +
       `createNavigation`, pero no existe `routing.ts`: el idioma va por cookie
       `NEXT_LOCALE`, geolocalización de Vercel y `Accept-Language`
@@ -732,8 +729,6 @@ hace que alguien reimplemente lo que ya existe.
 - [ ] **El controlador de notificaciones devuelve `error.message` de MySQL** al
       cliente. _Según la revisión `security` L3 del 2026-09-28 (fichero y línea
       en el informe); no repasado por mí._
-- [ ] **Un preflight CORS rechazado responde 500** y deja un error en el log por
-      intento. _Comprobado con `curl` el 2026-09-28._
 - [ ] **Ids sin codificar en las URL de `blacklistApi.ts`** (informativo).
       _Según la revisión `security` L3 del 2026-09-28 (fichero y línea en el
       informe); no repasado por mí._
