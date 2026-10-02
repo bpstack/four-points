@@ -6,6 +6,7 @@
 
 import * as XLSX from 'xlsx'
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib'
+import { encodableFor } from '@/app/lib/helpers/pdfText'
 import type { InvoiceWithDetails } from './types'
 import { INVOICE_STATUS_LABELS, PAYMENT_METHOD_LABELS, formatCurrency } from './types'
 
@@ -264,7 +265,7 @@ export async function exportToPdf(
     ]
 
     for (let j = 0; j < columns.length; j++) {
-      currentPage.drawText(rowData[j], {
+      currentPage.drawText(encodableFor(font, rowData[j]), {
         x: columns[j].x + 3,
         y: yPosition - 8,
         size: 8,

@@ -6,7 +6,7 @@
 
 import { describe, it, expect } from 'vitest'
 import { PDFDocument, StandardFonts } from '../../../frontend/node_modules/pdf-lib/cjs/index.js'
-import { toEncodable } from '../../../frontend/app/lib/helpers/pdfText.js'
+import { toEncodable, encodableFor } from '../../../frontend/app/lib/helpers/pdfText.js'
 
 async function helvetica() {
   const doc = await PDFDocument.create()
@@ -38,5 +38,13 @@ describe('toEncodable', () => {
     for (const raw of ['Vale 😀 cliente', 'Łódź', '→ ok', '✨🎨 notas', '中文', 'á']) {
       expect(() => page.drawText(toEncodable(raw, supported), { font }), raw).not.toThrow()
     }
+  })
+
+  it('encodableFor reads the charset of the embedded font, and lets it measure the text', async () => {
+    const { font } = await helvetica()
+    const text = encodableFor(font, 'Proveedor 😀 Łódź')
+    expect(text).toBe('Proveedor ? ?ódz')
+    expect(font.widthOfTextAtSize(text, 8)).toBeGreaterThan(0)
+    expect(() => font.widthOfTextAtSize('😀', 8)).toThrow()
   })
 })

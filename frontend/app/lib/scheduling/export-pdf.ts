@@ -2,6 +2,7 @@
 // Export schedule grid to PDF format - Only the schedule matrix with employees and full month
 
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib'
+import { encodableFor } from '@/app/lib/helpers/pdfText'
 import type { SchedulingMonthFull, SchedulingDay } from './types'
 
 const MONTH_NAMES = [
@@ -197,7 +198,7 @@ export async function downloadSchedulePdf(monthData: SchedulingMonthFull): Promi
       })
 
       // Truncate name if too long
-      let displayName = employee.name
+      let displayName = encodableFor(font, employee.name)
       if (displayName.length > 18) {
         displayName = displayName.substring(0, 16) + '..'
       }

@@ -1,6 +1,6 @@
 // app/lib/cashier/exportDailyPdf.ts
 import { PDFDocument, StandardFonts, rgb, PDFPage, PDFFont } from 'pdf-lib'
-import { toEncodable } from '@/app/lib/helpers/pdfText'
+import { encodableFor } from '@/app/lib/helpers/pdfText'
 import type {
   CashierDaily,
   CashierShift,
@@ -60,17 +60,6 @@ const COLORS = {
   orange: rgb(0.8, 0.4, 0.0),
 }
 
-// Users, payment methods and vouchers are free text: keep only what the font encodes
-const charSets = new WeakMap<PDFFont, Set<number>>()
-function encodable(str: string, font: PDFFont): string {
-  let set = charSets.get(font)
-  if (!set) {
-    set = new Set(font.getCharacterSet())
-    charSets.set(font, set)
-  }
-  return toEncodable(str, set)
-}
-
 function drawShiftPage(
   page: PDFPage,
   shift: CashierShift,
@@ -90,7 +79,7 @@ function drawShiftPage(
     opts: { size?: number; font?: PDFFont; color?: ReturnType<typeof rgb> } = {}
   ) => {
     const f = opts.font || font
-    page.drawText(encodable(str, f), {
+    page.drawText(encodableFor(f, str), {
       x,
       y: yPos,
       size: opts.size || 10,
@@ -409,7 +398,7 @@ function drawDaySummaryPage(
     opts: { size?: number; font?: PDFFont; color?: ReturnType<typeof rgb> } = {}
   ) => {
     const f = opts.font || font
-    page.drawText(encodable(str, f), {
+    page.drawText(encodableFor(f, str), {
       x,
       y: yPos,
       size: opts.size || 10,
