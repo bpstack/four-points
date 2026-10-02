@@ -624,8 +624,7 @@ hace que alguien reimplemente lo que ya existe.
 - [ ] **Parking: código sin uso** — los 4 endpoints de
       `/api/parking/stats/analytics` no los llama la interfaz; `getOccupancy`
       (`frontend/app/lib/parking/queries.ts`) apunta a `/stats/occupancy`, que
-      no existe, y nadie la llama;
-      `backend/services/parking/invoicePdfService.ts` está entero comentado.
+      no existe, y nadie la llama.
 - [ ] **Parking: salto de precio a partir de 31 días** — las tarifas llegan a 30
       días (250 € en Aiven); a partir de 31 se cobran 15 €/día (465 €).
 - [ ] **Parking: el mapa de estado no se refresca solo** — los cambios de otro

@@ -15,8 +15,7 @@ dashboard, historical stats and trend analytics.
 
 ```
 backend/services/parking/
-   └── invoicePdfService.ts        (136 lines — entirely commented out: future PDF
-                                    invoicing with local or S3 storage. NOT active.)
+   └── (only this AGENTS.md: controllers call the repositories directly)
 
 backend/controllers/parking/
    ├── parking.controller.ts        (457 lines — spots + vehicles CRUD + search)
@@ -218,17 +217,11 @@ Booking dates are stored as MySQL `DATETIME` in Madrid local time.
 `limit` + `offset`, returns `PaginationInfo` with `total`, `page`, `totalPages`.
 Coordinated with the frontend grid that paginates them.
 
-## PDF invoicing — **inactive**
+## PDF invoicing — **does not exist**
 
-`invoicePdfService.ts` is **fully commented out**. It was the placeholder for
-invoicing with dual storage (local or S3 depending on `STORAGE.TYPE`). If at
-some point it gets activated, uncomment and:
-
-1. Install `pdfkit` and `aws-sdk` (or replace with an external service).
-2. Define `STORAGE.TYPE` in `config.ts` (`'local'` or `'s3'`).
-3. Configure AWS region + credentials if S3.
-
-Not a priority. If the client doesn't ask for it, don't activate it.
+There is no parking invoice PDF. The fully commented-out placeholder
+(`invoicePdfService.ts`, local or S3 storage) was removed on 2026-10-02; it is
+in the git history if the feature is ever built.
 
 ## Known gotchas
 

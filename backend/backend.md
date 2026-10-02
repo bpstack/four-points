@@ -503,12 +503,10 @@ Located in `backend/services/` (8 service files)
 | **Cloudinary** | `blacklist/cloudinary-service.ts` | Image upload management |
 | **Conciliation Logic** | `conciliation/logic.ts` | Room count calculations |
 | **Cron Service** | `cron/cron-service.ts` | Scheduled tasks |
-| **Email Service** | `group/email-service.ts` | Email notifications |
 | **Group History** | `group/group-history-service.ts` | Audit logging |
 | **Payment Calculator** | `group/payment-calculator-service.ts` | Payment calculations |
 | **Logbook History** | `logbook/logbookHistory-service.ts` | Read tracking |
 | **Notification Generator** | `notifications/notification-generator-service.ts` | Auto notifications |
-| **Invoice PDF** | `parking/invoicePdfService.ts` | PDF generation |
 | **Schedule Validator** | `scheduling/schedule-validator.ts` | Real-time schedule validation |
 
 ---
