@@ -369,10 +369,9 @@ hace que alguien reimplemente lo que ya existe.
       borradas** — los `UPDATE` no filtran `deleted_at`. _Según la revisión
       `security` L3 del 2026-09-28 (fichero y línea en el informe); no repasado
       por mí._
-- [ ] **Logbook: validación incompleta** — un mensaje de solo espacios se guarda
-      vacío (verificado ejecutando Zod 4.0.5); la fecha admite cualquier día, y
-      una imposible (`2026-02-31`) da 500; parámetros de ruta y un `offset`
-      negativo sin validar. _Comprobado por mí el 2026-09-28._
+- [ ] **Logbook: la fecha de una entrada admite cualquier día** — pasado o
+      futuro, sin límite. Decidir qué rango tiene sentido. _Comprobado por mí el
+      2026-09-28._
 - [ ] **Emails de más en las respuestas de logbook** — `author_email` en todos
       los listados y `editor_email` en el historial, que la pantalla no usa; el
       borrado copia la fila entera al historial. _Según la revisión `security`

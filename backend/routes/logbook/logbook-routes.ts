@@ -13,6 +13,7 @@ import {
   getLogbooksByDay,
   getLogbookHistory,
   deleteLogbookController,
+  parseListQuery,
 } from '../../controllers/logbook/logbook-controllers.js'
 
 import {
@@ -33,10 +34,12 @@ import {
 } from '../../controllers/logbook/logbookReads-controllers.js'
 
 import { logger } from '../../config/logger.js'
+import { LOGBOOK_PARAM_RULES } from '../../validations/logbook/logbook-schemas.js'
 
 // Middlewares
 import { authenticateToken } from '../../middlewares/authenticateToken.js'
 import { excludeMantenimiento } from '../../middlewares/roleCheck.js'
+import { validateParams } from '../../middlewares/validateParams.js'
 
 // Repository (for trashed route)
 import * as logbookRepo from '../../repositories/logbook/logbook-repository.js'
@@ -51,14 +54,18 @@ const router: Router = express.Router()
 router.use(authenticateToken)
 router.use(excludeMantenimiento)
 
+// Answer 400 for an invalid :id, :day… before any controller runs
+validateParams(router, LOGBOOK_PARAM_RULES)
+
 // ========================================
 // SPECIAL ROUTES (before :id params)
 // ========================================
 
 router.get('/trashed', async (req: Request, res: Response) => {
   try {
-    const limit = req.query.limit ? parseInt(req.query.limit as string) : undefined
-    const offset = req.query.offset ? parseInt(req.query.offset as string) : undefined
+    const query = parseListQuery(req, res)
+    if (!query) return
+    const { limit, offset } = query
 
     const trashed = await logbookRepo.getAllTrashedLogbooks({ limit, offset })
     res.json(trashed)
