@@ -47,7 +47,7 @@ export function isPublicIdInFolder(publicId: unknown, folder: string): publicId 
     !publicId.endsWith('/') &&
     !publicId.includes('//') &&
     !publicId.split('/').includes('..') &&
-    !/[\u0000-\u001f\\]/.test(publicId)
+    ![...publicId].some((c) => c === '\\' || c.charCodeAt(0) < 32)
   )
 }
 
