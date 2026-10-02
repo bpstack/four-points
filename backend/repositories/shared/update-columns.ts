@@ -1,4 +1,4 @@
-// repositories/group/update-columns.ts
+// repositories/shared/update-columns.ts
 
 /**
  * Builds the SET clause of a dynamic UPDATE from an allow-list of columns.

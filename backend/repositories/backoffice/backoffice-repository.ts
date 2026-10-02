@@ -8,6 +8,9 @@ import pool from '../../config/db.js'
 import { RowDataPacket, ResultSetHeader } from 'mysql2'
 import { getNowMadrid } from '../../config/date-utils.js'
 import { logger } from '../../config/logger.js'
+import { buildSetClause } from '../shared/update-columns.js'
+import { SUPPLIER_UPDATE_COLUMNS, INVOICE_UPDATE_COLUMNS } from './backoffice-columns.js'
+
 import {
   Category,
   Supplier,
@@ -193,15 +196,8 @@ export class BackofficeRepository {
       is_active: boolean
     }>
   ): Promise<boolean> {
-    const fields: string[] = []
-    const values: any[] = []
-
-    Object.entries(data).forEach(([key, value]) => {
-      if (value !== undefined) {
-        fields.push(`${key} = ?`)
-        values.push(value)
-      }
-    })
+    // Column names are interpolated: only allow-listed keys reach the SQL
+    const { fields, values } = buildSetClause(data, SUPPLIER_UPDATE_COLUMNS)
 
     if (fields.length === 0) return false
 
@@ -423,15 +419,8 @@ export class BackofficeRepository {
     }>,
     userId: string
   ): Promise<boolean> {
-    const fields: string[] = []
-    const values: any[] = []
-
-    Object.entries(data).forEach(([key, value]) => {
-      if (value !== undefined) {
-        fields.push(`${key} = ?`)
-        values.push(value)
-      }
-    })
+    // Column names are interpolated: only allow-listed keys reach the SQL
+    const { fields, values } = buildSetClause(data, INVOICE_UPDATE_COLUMNS)
 
     if (fields.length === 0) return false
 

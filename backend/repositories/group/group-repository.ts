@@ -22,7 +22,7 @@ import {
   GroupStatus,
 } from '../../models/group/index'
 import { ResultSetHeader } from 'mysql2'
-import { buildSetClause } from './update-columns.js'
+import { buildSetClause } from '../shared/update-columns.js'
 import { GROUP_SORT_FIELDS } from '../../validations/group/group-schemas.js'
 
 export class GroupRepository {

@@ -15,7 +15,7 @@ import {
   roomingSchema,
   groupHistoryQuerySchema,
 } from '../../validations/group/group-schemas.js'
-import { buildSetClause } from '../../repositories/group/update-columns.js'
+import { buildSetClause } from '../../repositories/shared/update-columns.js'
 
 describe('group list query (ORDER BY injection)', () => {
   it('rejects a sort field outside the allow-list', () => {

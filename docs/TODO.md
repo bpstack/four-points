@@ -73,11 +73,6 @@ hace que alguien reimplemente lo que ya existe.
       alterado o borrado no se puede reconstruir ni revertir.
       `backend/repositories/fnb/fnb.repository.ts`. _Comprobado por mí el
       2026-09-28._
-- [ ] **Backoffice: inyección SQL por los nombres de campo** — `updateSupplier`
-      y `updateInvoice` construyen `clave = ?` con las claves del cuerpo, que el
-      controlador pasa entero. Además se puede fijar `status`, `paid_date`,
-      `validated_by`, `validated_pdf_url` o `created_by`. Requiere `admin`
-      (cualquiera puede serlo). _Comprobado por mí el 2026-09-28._
 - [ ] **Backoffice: SSRF en la descarga de PDF** — `createInvoice` mete el
       cuerpo entero (`original_pdf_url` del cliente) y `validateInvoice` toma
       `validated_pdf_url` del cuerpo; `/pdf-download` y el ZIP hacen `axios.get`
