@@ -1,7 +1,6 @@
 # AGENTS.md — Parking (backend)
 
-> Backend for the hotel parking module: bookings, vehicles, spots, stats and
-> analytics. The UI has its own file at
+> Backend for the hotel parking module: bookings, vehicles, spots and stats. The UI has its own file at
 > `frontend/app/dashboard/parking/CLAUDE.md`. This doc covers the HTTP contract,
 > booking logic, states and server-side gotchas.
 
@@ -9,7 +8,8 @@
 
 Manages the hotel's parking spots (two levels `-2` and `-3`), their types,
 bookings, vehicles, and check-in/check-out. Also serves the real-time status
-dashboard, historical stats and trend analytics.
+dashboard and historical stats. (A trend analytics API under
+`/api/parking/stats/analytics` had no caller and was removed on 2026-10-02.)
 
 ## Layout
 
@@ -21,20 +21,18 @@ backend/controllers/parking/
    ├── parking.controller.ts        (457 lines — spots + vehicles CRUD + search)
    ├── bookings.controller.ts       (843 lines — the core: list, create, edit,
    │                                  check-in, check-out, cancel, no-show, overdue)
-   ├── stats.controller.ts          (629 lines — dashboard stats with single-date
-   │                                  vs range modes)
-   └── analytics.controller.ts      (379 lines — trends, comparisons, recommendations)
+   └── stats.controller.ts          (629 lines — dashboard stats with single-date
+                                      vs range modes)
 
 backend/repositories/parking/
    ├── parking.repository.ts        (328 lines — spots, vehicles, invoice metadata)
    ├── bookings.repository.ts       (1102 lines — bookings with joins; the densest one)
-   └── stats.repository.ts          (718 lines — aggregations for stats/analytics)
+   └── stats.repository.ts          (718 lines — aggregations for stats)
 
 backend/routes/parking/
    ├── parking.routes.ts            (46 lines — /spots, /vehicles)
    ├── bookings.routes.ts           (159 lines — /bookings, /bookings/:code, /overdue)
-   ├── stats.routes.ts              (74 lines — /stats, /stats/pending-checkins, /stats/pending-checkouts)
-   └── analytics.routes.ts          (101 lines — /stats/analytics/trends, etc.)
+   └── stats.routes.ts              (74 lines — /stats, /stats/pending-checkins, /stats/pending-checkouts)
 ```
 
 ## DB tables
@@ -122,7 +120,7 @@ stores the payment fields.
 spot isn't occupied in the `[expected_checkin, expected_checkout)` range.
 Overlaps return 409.
 
-## Stats and analytics
+## Stats
 
 ### `/stats` — three modes
 
@@ -137,13 +135,6 @@ Overlaps return 409.
 
 Documented inline in `stats.routes.ts` with use cases. If the UI changes, read
 those comments — they're well-maintained.
-
-### `/stats/analytics/trends`
-
-Trends across the last N days (default 7). Returns average occupancy per level,
-peak, min, trend direction (`increasing` / `declining` / `stable`) and
-auto-generated recommendations. Useful for spotting underused levels or
-recurring peaks.
 
 ## Endpoints
 
@@ -178,13 +169,6 @@ recurring peaks.
 - `GET /pending-checkins` — Bookings expected to arrive today (or `?date=...`)
 - `GET /pending-checkouts` — Bookings expected to leave today
 
-**Analytics (`/api/parking/stats/analytics`)**
-
-- `GET /trends` — Occupancy trends across the last N days
-- `GET /comparison` — Period comparison
-- `GET /performance` — Level performance metrics
-- `GET /booking-analysis` — Booking metrics (completed, canceled, no-shows)
-
 The whole subroute sits behind `authenticateToken` + `excludeMantenimiento`.
 Mantenimiento doesn't enter. Some specific mutations require `isAdmin` (e.g.
 `DELETE /vehicles/:id`).
@@ -198,7 +182,7 @@ order when modifying.
 ### Class-based controllers
 
 Unlike the rest of the backend (free-standing exported functions),
-`bookings.controller.ts`, `stats.controller.ts` and `analytics.controller.ts`
+`bookings.controller.ts` and `stats.controller.ts`
 export as **classes with static methods**
 (`ParkingBookingsController.getBookings`, etc.). This is inherited from the
 first scaffold of the module. **Not a bug and not urgent debt**: it works, it's

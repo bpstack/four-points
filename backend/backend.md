@@ -147,7 +147,6 @@ import logbookRoutes from './routes/logbook/logbook-routes.js'
 import parkingRoutes from './routes/parking/parking.routes.js'
 import parkingStatsRoutes from './routes/parking/stats.routes.js'
 import parkingBookingsRoutes from './routes/parking/bookings.routes.js'
-import parkingAnalyticsRoutes from './routes/parking/analytics.routes.js'
 import departmentsRoutes from './routes/departments/departments-routes.js'
 import conciliationRoutes from './routes/conciliation/conciliation.routes.js'
 import groupRoutes from './routes/group/group-routes.js'
@@ -218,7 +217,6 @@ app.use('/api/logbooks', logbookRoutes)
 app.use('/api/parking', parkingRoutes)
 app.use('/api/parking/stats', parkingStatsRoutes)
 app.use('/api/parking/bookings', parkingBookingsRoutes)
-app.use('/api/parking/stats/analytics', parkingAnalyticsRoutes)
 app.use('/api/departments', departmentsRoutes)
 app.use('/api/conciliations', conciliationRoutes)
 app.use('/api/groups', groupRoutes)
@@ -356,7 +354,7 @@ Helper functions for date manipulation using dayjs.
 | ------ | ---------- | ----------- |
 | **Users** | `/api/users` | user-controllers.ts |
 | **Groups** | `/api/groups` | group-controller.ts, contact, payment, room, history |
-| **Parking** | `/api/parking` | parking.controller.ts, bookings, stats, analytics |
+| **Parking** | `/api/parking` | parking.controller.ts, bookings, stats |
 | **Logbooks** | `/api/logbooks` | logbook-controllers.ts, comments, reads |
 | **Cashier** | `/api/cashier` | shift, denomination, payment, daily, report, voucher |
 | **Maintenance** | `/api/maintenance` | maintenance-controller.ts |
@@ -399,7 +397,6 @@ Located in `backend/controllers/` (20+ controller files)
 - `parking.controller.ts` - Spaces, rates, levels
 - `bookings.controller.ts` - Booking CRUD, check-in/out
 - `stats.controller.ts` - Dashboard statistics
-- `analytics.controller.ts` - Analytics and reports
 
 **Cashier:**
 - `cashier-shift-controller.ts` - Shift management

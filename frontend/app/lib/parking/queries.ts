@@ -15,7 +15,6 @@ import type {
   BookingResponse,
   BookingsResponse,
   StatsResponse,
-  OccupancyResponse,
   PendingCheckinsResponse,
   PendingCheckoutsResponse,
   FullStatsResponse,
@@ -247,17 +246,6 @@ export const parkingApi = {
    */
   getStats: async (date?: string): Promise<StatsResponse> => {
     const url = date ? `${API_URL}/api/parking/stats?date=${date}` : `${API_URL}/api/parking/stats`
-    return apiClient.get(url)
-  },
-
-  /**
-   * Obtiene ocupación por planta
-   * @param date - Fecha en formato YYYY-MM-DD (opcional, default: hoy)
-   */
-  getOccupancy: async (date?: string): Promise<OccupancyResponse> => {
-    const url = date
-      ? `${API_URL}/api/parking/stats/occupancy?date=${date}`
-      : `${API_URL}/api/parking/stats/occupancy`
     return apiClient.get(url)
   },
 

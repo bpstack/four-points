@@ -600,10 +600,6 @@ hace que alguien reimplemente lo que ya existe.
       `admin` a conversaciones ajenas quedan en el log (ASVS L3). _Según la
       revisión `security` L3 del 2026-09-28 (fichero y línea en el informe); no
       repasado por mí._
-- [ ] **Parking: código sin uso** — los 4 endpoints de
-      `/api/parking/stats/analytics` no los llama la interfaz; `getOccupancy`
-      (`frontend/app/lib/parking/queries.ts`) apunta a `/stats/occupancy`, que
-      no existe, y nadie la llama.
 - [ ] **Parking: salto de precio a partir de 31 días** — las tarifas llegan a 30
       días (250 € en Aiven); a partir de 31 se cobran 15 €/día (465 €).
 - [ ] **Parking: el mapa de estado no se refresca solo** — los cambios de otro

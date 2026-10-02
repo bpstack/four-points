@@ -847,7 +847,7 @@ constraint exists without spelunking through git history.
 ### Parking System
 
 - Manages hotel parking spaces and bookings
-- Multiple sub-routes: stats, bookings, analytics
+- Multiple sub-routes: stats, bookings
 - Frontend: `app/dashboard/parking/`
 - Backend: Multiple route files in `routes/parking/`
 

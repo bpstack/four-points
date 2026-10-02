@@ -18,7 +18,6 @@ import logbookRoutes from './routes/logbook/logbook-routes.js'
 import parkingRoutes from './routes/parking/parking.routes.js'
 import parkingStatsRoutes from './routes/parking/stats.routes.js'
 import parkingBookingsRoutes from './routes/parking/bookings.routes.js'
-import parkingAnalyticsRoutes from './routes/parking/analytics.routes.js'
 import departmentsRoutes from './routes/departments/departments-routes.js'
 import conciliationRoutes from './routes/conciliation/conciliation.routes.js'
 import groupRoutes from './routes/group/group-routes.js'
@@ -127,9 +126,6 @@ app.use('/api/parking/stats', parkingStatsRoutes)
 
 // Rutas de bookings
 app.use('/api/parking/bookings', parkingBookingsRoutes)
-
-// Rutas de analytics
-app.use('/api/parking/stats/analytics', parkingAnalyticsRoutes)
 
 // Rutas de departamentos
 app.use('/api/departments', departmentsRoutes)
