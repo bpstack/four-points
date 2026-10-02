@@ -18,6 +18,7 @@ import type {
   PaginatedBookingsResult,
   BookingStatus,
 } from '../../models/parking/index.js'
+import { likeContains } from '../shared/like.js'
 
 interface CountRow extends RowDataPacket {
   total: number
@@ -98,12 +99,12 @@ class ParkingBookingsRepository {
 
     if (filters.plate_number) {
       whereClause += ' AND v.plate_number LIKE ?'
-      params.push(`%${filters.plate_number}%`)
+      params.push(likeContains(filters.plate_number))
     }
 
     if (filters.owner_name) {
       whereClause += ' AND v.owner_name LIKE ?'
-      params.push(`%${filters.owner_name}%`)
+      params.push(likeContains(filters.owner_name))
     }
 
     if (filters.booking_source) {
@@ -700,6 +701,12 @@ class ParkingBookingsRepository {
     try {
       await connection.beginTransaction()
 
+      // Free its days first: the foreign key only sets booking_id to NULL and
+      // there is no delete trigger, so they stayed blocked
+      await connection.query(
+        'UPDATE parking_availability SET is_available = TRUE, booking_id = NULL WHERE booking_id = ?',
+        [id]
+      )
       await connection.query('DELETE FROM parking_bookings WHERE id = ?', [id])
 
       await connection.commit()

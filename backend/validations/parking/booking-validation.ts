@@ -71,3 +71,9 @@ export const updateBookingBodySchema = z.object({
   payment_method: z.enum(['cash', 'card', 'transfer', 'agency']).nullable().optional(),
   payment_reference: z.string().max(100).nullable().optional(),
 })
+
+// GET /bookings paging; the repository already caps the limit at 500
+export const bookingsPageSchema = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(500).default(50),
+})

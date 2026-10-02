@@ -5,6 +5,7 @@
 import { Request, Response } from 'express'
 import ParkingBookingsRepository from '../../repositories/parking/bookings.repository.js'
 import {
+  bookingsPageSchema,
   createBookingSchema,
   updateBookingBodySchema,
 } from '../../validations/parking/booking-validation.js'
@@ -32,8 +33,19 @@ class ParkingBookingsController {
   // ============================================
   getBookings = async (req: Request, res: Response): Promise<void> => {
     try {
-      const page = req.query.page ? parseInt(String(req.query.page)) : 1
-      const limit = req.query.limit ? parseInt(String(req.query.limit)) : 50
+      const paging = bookingsPageSchema.safeParse({
+        page: req.query.page || undefined,
+        limit: req.query.limit || undefined,
+      })
+      if (!paging.success) {
+        res.status(400).json({
+          success: false,
+          error: ERROR_CODES.INVALID_DATA,
+          code: ERROR_CODES.INVALID_DATA,
+        })
+        return
+      }
+      const { page, limit } = paging.data
 
       // Priority 1: quickFilter (filtros compuestos del dashboard)
       if (req.query.quickFilter) {

@@ -267,12 +267,6 @@ hace que alguien reimplemente lo que ya existe.
       Claude Code solo lee `CLAUDE.md` por directorio, ese contexto se pierde.
       _Sin comprobar._
 
-- [ ] **Parking: borrar una reserva no libera sus días** — `DELETE` en
-      `bookings.repository.ts` borra la fila, la clave foránea pone `booking_id`
-      a `NULL` en `parking_availability`, pero `is_available` sigue a `0` y no
-      hay trigger de borrado. Se puede hacer desde el detalle de una reserva
-      `reserved`. _Comprobado el 2026-09-28: hoy hay 0 días bloqueados sin
-      reserva en ambas BD._
 - [ ] **MySQL de Aiven en UTC** — `time_zone=SYSTEM` con el sistema en UTC.
       `CURDATE()` y `NOW()` de la BD (filtros rápidos de parking, código
       `PK-AAAAMMDD` del trigger, `CURRENT_TIMESTAMP` de las tablas) van 1–2 h
