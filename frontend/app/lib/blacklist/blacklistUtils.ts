@@ -84,11 +84,6 @@ export function formatDateTime(dateString: string): string {
 // ========================================
 // VALIDAR RANGO DE FECHAS
 // ========================================
-export function isValidDateRange(from: Date | string, to: Date | string): boolean {
-  const fromDate = typeof from === 'string' ? new Date(from) : from
-  const toDate = typeof to === 'string' ? new Date(to) : to
-  return toDate > fromDate
-}
 
 // ========================================
 // CALCULAR DÍAS DE HOSPEDAJE
@@ -104,61 +99,22 @@ export function calculateStayDays(checkIn: string, checkOut: string): number {
 // ========================================
 // GENERAR NOMBRE DE ARCHIVO PARA EXPORT
 // ========================================
-export function generateExportFilename(): string {
-  const now = new Date()
-  const timestamp = now.toISOString().split('T')[0].replace(/-/g, '')
-  return `blacklist_export_${timestamp}.xlsx`
-}
 
 // ========================================
 // SANITIZAR DOCUMENTO (uppercase, sin espacios)
 // ========================================
-export function sanitizeDocument(doc: string): string {
-  return doc.toUpperCase().replace(/\s+/g, '').trim()
-}
 
 // ========================================
 // VALIDAR FORMATO DNI/NIE ESPAÑOL
 // ========================================
-export function isValidSpanishDocument(type: string, number: string): boolean {
-  if (type === 'DNI') {
-    const dniRegex = /^[0-9]{8}[A-Z]$/
-    return dniRegex.test(number)
-  }
-
-  if (type === 'NIE') {
-    const nieRegex = /^[XYZ][0-9]{7}[A-Z]$/
-    return nieRegex.test(number)
-  }
-
-  return true // Para otros tipos, no validamos formato específico
-}
 
 // ========================================
 // OBTENER COLOR DE SEVERIDAD
 // ========================================
-export function getSeverityColor(severity: string): string {
-  const colors = {
-    LOW: 'text-blue-600 dark:text-blue-400',
-    MEDIUM: 'text-yellow-600 dark:text-yellow-400',
-    HIGH: 'text-orange-600 dark:text-orange-400',
-    CRITICAL: 'text-red-600 dark:text-red-400',
-  }
-  return colors[severity as keyof typeof colors] || colors.LOW
-}
 
 // ========================================
 // OBTENER ICONO DE SEVERIDAD
 // ========================================
-export function getSeverityIcon(severity: string): string {
-  const icons = {
-    LOW: '🔵',
-    MEDIUM: '🟡',
-    HIGH: '🟠',
-    CRITICAL: '🔴',
-  }
-  return icons[severity as keyof typeof icons] || icons.LOW
-}
 
 // ========================================
 // TRUNCAR TEXTO
@@ -191,10 +147,3 @@ export function debounce<T extends (...args: unknown[]) => unknown>(
 // ========================================
 // OBTENER INICIALES DE USUARIO
 // ========================================
-export function getUserInitials(username: string): string {
-  const parts = username.split(' ')
-  if (parts.length >= 2) {
-    return (parts[0][0] + parts[1][0]).toUpperCase()
-  }
-  return username.substring(0, 2).toUpperCase()
-}

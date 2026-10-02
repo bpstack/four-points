@@ -9,12 +9,6 @@ export interface ConciliationFormProps {
   onUpdate: () => void
 }
 
-export interface TotalsCardProps {
-  totalReception: number
-  totalHousekeeping: number
-  difference: number
-}
-
 export interface Note {
   id: string
   text: string

@@ -11,7 +11,6 @@ import { useMaintenanceList, type MaintenanceMessages } from './hooks/useMainten
 import { CreateReportPanel } from './panels/CreateReportPanel'
 import DatePickerInput from '@/app/ui/calendar/DatePickerInput'
 import { SelectDropdown } from '@/app/ui/components/SelectDropdown'
-import type { DropdownOption } from '@/app/ui/components/SelectDropdown'
 import {
   FiPlus,
   FiSearch,

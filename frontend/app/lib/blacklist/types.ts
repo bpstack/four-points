@@ -62,31 +62,6 @@ export interface BlacklistFormData {
 // ✅ NUEVOS: Tipos específicos derivados de Zod
 // Estos coinciden exactamente con lo que devuelven los schemas
 
-export interface BlacklistCreateFormData {
-  guest_name: string
-  document_type: 'DNI' | 'PASSPORT' | 'NIE' | 'OTHER'
-  document_number: string
-  check_in_date: Date
-  check_out_date: Date
-  reason: string
-  severity: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL'
-  images: File[]
-  comments: string
-}
-
-export interface BlacklistEditFormData {
-  guest_name: string
-  document_type: 'DNI' | 'PASSPORT' | 'NIE' | 'OTHER'
-  document_number: string
-  check_in_date: Date
-  check_out_date: Date
-  reason: string
-  severity: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL'
-  comments: string
-  new_images?: File[]
-  existing_images?: string[]
-}
-
 // FILTROS Y BÚSQUEDA
 // ========================================
 
@@ -153,13 +128,6 @@ export const SEVERITY_LEVELS = {
   MEDIUM: 'Media',
   HIGH: 'Alta',
   CRITICAL: 'Crítica',
-} as const
-
-export const SEVERITY_COLORS = {
-  LOW: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300',
-  MEDIUM: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300',
-  HIGH: 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300',
-  CRITICAL: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300',
 } as const
 
 export const STATUS_COLORS = {

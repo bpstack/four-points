@@ -336,10 +336,7 @@ export const useCashierStore = create<CashierStore>((set, get) => ({
 export const useSelectedDate = () => useCashierStore((s) => s.selectedDate)
 export const useActiveTab = () => useCashierStore((s) => s.activeTab)
 export const useActiveModal = () => useCashierStore((s) => s.activeModal)
-export const useIsModalOpen = (modal: ModalType) => useCashierStore((s) => s.activeModal === modal)
 
-// Logs selectors
-export const useLogsDate = () => useCashierStore((s) => s.logsDate)
 export const useLogsFilters = () =>
   useCashierStore(
     useShallow((s) => ({

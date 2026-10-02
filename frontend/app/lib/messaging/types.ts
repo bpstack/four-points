@@ -126,26 +126,3 @@ export interface UnreadCountResponse {
 // UI TYPES (para componentes)
 // ===============================================
 
-export interface ConversationListItem {
-  id: number
-  type: ConversationType
-  name: string // Para DMs: username del otro usuario, para grupos: nombre del grupo
-  avatar?: string
-  lastMessage: string
-  lastMessageTime: Date | null
-  unreadCount: number
-  isOnline?: boolean
-  role?: string // Para DMs: rol del otro usuario
-}
-
-export interface ChatMessage {
-  id: number
-  content: string
-  senderId: string
-  senderName: string
-  senderRole?: string
-  timestamp: Date
-  isOwn: boolean
-  isEdited: boolean
-  isDeleted: boolean
-}

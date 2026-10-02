@@ -15,14 +15,6 @@ export const STATUS_CONFIG: Record<BookingStatus, { label: string; tone: BadgeTo
   no_show: { label: 'No presentado', tone: 'warning' },
 }
 
-export const BOOKING_SOURCES: Record<string, string> = {
-  direct: 'Directo',
-  booking_com: 'Booking.com',
-  expedia: 'Expedia',
-  airbnb: 'Airbnb',
-  agency_other: 'Otra Agencia',
-}
-
 export const PAYMENT_METHODS: Record<string, string> = {
   cash: 'Efectivo',
   card: 'Tarjeta',
@@ -30,11 +22,3 @@ export const PAYMENT_METHODS: Record<string, string> = {
   agency: 'Agencia',
 }
 
-export const SPOT_TYPES: Record<string, string> = {
-  normal: 'Normal',
-  ancha: 'Ancha',
-  mas_ancha: 'Muy Ancha',
-  esquina: 'Esquina',
-  accesible: 'Accesible',
-  estrecha_bicis: 'Bicis/Motos',
-}

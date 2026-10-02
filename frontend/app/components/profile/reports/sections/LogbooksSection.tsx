@@ -22,7 +22,7 @@ import {
 import type { LogbookEntry, LogbookHistoryEntry } from '../types'
 import DateRangePicker, { getDefaultDateRange, type DateRange } from '../DateRangePicker'
 import { SelectDropdown } from '@/app/ui/components/SelectDropdown'
-import { ReportError, ReportListSkeleton, formatReportDate, formatReportDateTime } from '../utils'
+import { ReportError, ReportListSkeleton, formatReportDateTime } from '../utils'
 
 const API_URL = API_BASE_URL
 const DEFAULT_LIMIT = 50

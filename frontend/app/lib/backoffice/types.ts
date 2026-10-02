@@ -172,13 +172,6 @@ export interface Asset {
   created_at: string
 }
 
-export interface AssetFormData {
-  type: AssetType
-  name: string
-  is_default?: boolean
-  image: File
-}
-
 // ========================================
 // FILTROS
 // ========================================
@@ -310,11 +303,6 @@ export const INVOICE_STATUS_COLORS: Record<InvoiceStatus, string> = {
   paid: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400',
 }
 
-export const ASSET_TYPE_LABELS: Record<AssetType, string> = {
-  stamp: 'Sello',
-  signature: 'Firma',
-}
-
 // ========================================
 // HELPERS
 // ========================================
@@ -327,21 +315,6 @@ export function formatCurrency(amount: number): string {
     style: 'currency',
     currency: 'EUR',
   }).format(amount)
-}
-
-/**
- * Obtiene el color de badge según el estado de la factura
- */
-export function getStatusBadgeClasses(status: InvoiceStatus): string {
-  return INVOICE_STATUS_COLORS[status] || 'bg-gray-100 text-gray-800'
-}
-
-/**
- * Calcula el IVA desde los importes
- */
-export function calculateVat(amountWithVat: number, amountWithoutVat: number): number {
-  if (amountWithoutVat === 0) return 0
-  return ((amountWithVat - amountWithoutVat) / amountWithoutVat) * 100
 }
 
 /**

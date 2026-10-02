@@ -49,22 +49,6 @@ export function useNotificationsQuery() {
 }
 
 /**
- * Fetch unread notifications only
- */
-export function useUnreadNotificationsQuery() {
-  return useQuery({
-    queryKey: notificationKeys.unread(),
-    queryFn: async () => {
-      const response = await apiClient.get<NotificationsResponse>(
-        `${API_URL}/api/notifications/unread`
-      )
-      return response.data || []
-    },
-    staleTime: 1000 * 60 * 1, // 1 minute
-  })
-}
-
-/**
  * Fetch unread count (lightweight query for bell badge)
  */
 export function useUnreadCountQuery() {

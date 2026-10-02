@@ -10,8 +10,6 @@ import { API_BASE_URL } from '@/app/lib/env'
 import DateRangePicker, { getDefaultDateRange, type DateRange } from '../DateRangePicker'
 import DateFilter from '../DateFilter'
 import {
-  FiDollarSign,
-  FiLoader,
   FiAlertCircle,
   FiUser,
   FiCalendar,

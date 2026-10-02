@@ -252,20 +252,6 @@ export interface UpdateGroupPaymentDTO {
   notes?: string
 }
 
-export interface UpdateGroupStatusDTO {
-  booking_confirmed?: boolean
-  booking_confirmed_date?: string
-  contract_signed?: boolean
-  contract_signed_date?: string
-  rooming_status?: RoomingStatus
-  rooming_requested_date?: string
-  rooming_received_date?: string
-  rooming_deadline?: string
-  balance_status?: BalanceStatus
-  balance_requested_date?: string
-  balance_paid_date?: string
-}
-
 export interface UpdateBookingDTO {
   confirmed: boolean
   date?: string

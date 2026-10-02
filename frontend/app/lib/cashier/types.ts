@@ -87,16 +87,6 @@ export interface CashierVoucher {
   shift_id?: number | null
 }
 
-export interface VoucherStats {
-  total_count: number
-  pending_count: number
-  pending_amount: string
-  justified_count: number
-  justified_amount: string
-  cancelled_count: number
-  cancelled_amount: string
-}
-
 // ═══════════════════════════════════════════════════════
 // DENOMINATIONS & PAYMENTS
 // ═══════════════════════════════════════════════════════
@@ -154,12 +144,6 @@ export interface CreateVoucherDTO {
   amount: number
   reason: string
   created_by: string
-  notes?: string
-}
-
-export interface UpdateVoucherDTO {
-  amount?: number
-  reason?: string
   notes?: string
 }
 

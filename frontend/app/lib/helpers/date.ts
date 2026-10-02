@@ -71,16 +71,6 @@ export const formatMadridDateLong = (date: Date | string): string => {
 }
 
 /**
- * Calculate date offset from today (in Madrid timezone)
- * Returns in YYYY-MM-DD format for API calls
- */
-export const getDateWithOffset = (days: number): string => {
-  const today = new Date(getMadridDate() + 'T12:00:00')
-  today.setDate(today.getDate() + days)
-  return today.toISOString().split('T')[0]
-}
-
-/**
  * Get start and end of current week (Monday-Sunday) in Madrid timezone.
  * Returns YYYY-MM-DD strings for API calls.
  */
@@ -144,22 +134,6 @@ export const formatDateRange = (startDate: string, endDate: string): string => {
   })
 
   return `${startFormatted} - ${endFormatted}`
-}
-
-/**
- * Convert YYYY-MM-DD to DD/MM/YYYY for display.
- */
-export const formatApiDate = (apiDate: string): string => {
-  const [year, month, day] = apiDate.split('-')
-  return `${day}/${month}/${year}`
-}
-
-/**
- * Convert DD/MM/YYYY to YYYY-MM-DD for API calls.
- */
-export const parseDisplayDate = (displayDate: string): string => {
-  const [day, month, year] = displayDate.split('/')
-  return `${year}-${month}-${day}`
 }
 
 // ============================================
@@ -238,28 +212,6 @@ export const isSameDay = (date1: Date | string, date2: Date | string): boolean =
   })
 
   return formatter.format(d1) === formatter.format(d2)
-}
-
-/**
- * Get relative time string (e.g., "hace 5 minutos", "hace 2 horas").
- */
-export const getRelativeTime = (date: Date | string): string => {
-  const dateObj = typeof date === 'string' ? parseInputDate(date) : date
-  const now = new Date()
-  const diffMs = now.getTime() - dateObj.getTime()
-  const diffMins = Math.floor(diffMs / 60000)
-  const diffHours = Math.floor(diffMs / 3600000)
-  const diffDays = Math.floor(diffMs / 86400000)
-
-  if (diffMins < 1) return 'ahora mismo'
-  if (diffMins === 1) return 'hace 1 minuto'
-  if (diffMins < 60) return `hace ${diffMins} minutos`
-  if (diffHours === 1) return 'hace 1 hora'
-  if (diffHours < 24) return `hace ${diffHours} horas`
-  if (diffDays === 1) return 'ayer'
-  if (diffDays < 7) return `hace ${diffDays} días`
-
-  return formatMadridDate(dateObj)
 }
 
 // ============================================

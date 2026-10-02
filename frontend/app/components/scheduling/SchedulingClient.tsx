@@ -518,8 +518,6 @@ export function SchedulingClient() {
     return map
   }, [shifts])
 
-  const loading = loadingMonths || loadingMonth
-
   return (
     <div className="min-h-screen bg-bg p-4 md:p-6">
       <div className="max-w-[1800px] space-y-5">

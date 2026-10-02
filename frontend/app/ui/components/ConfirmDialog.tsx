@@ -80,7 +80,9 @@ export function ConfirmDialog({
     startTransition(async () => {
       try {
         await onConfirm()
-      } catch {}
+      } catch {
+        // onConfirm reports its own errors; the dialog only stops waiting
+      }
     })
   }
 

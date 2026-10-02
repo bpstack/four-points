@@ -39,7 +39,6 @@ export function BookingCard({ status, groupId }: BookingCardProps) {
   const queryClient = useQueryClient()
 
   const {
-    register,
     handleSubmit,
     reset,
     watch,

@@ -129,9 +129,3 @@ export function textVariant(
 // Exportar configuración para uso en otros archivos
 export { FONT_CONFIG }
 
-// Type helpers para TypeScript
-export type TypographyPreset = keyof typeof typography.preset
-export type FontFamily = keyof typeof typography.family
-export type FontSize = keyof typeof typography.size
-export type FontWeight = keyof typeof typography.weight
-export type LineHeight = keyof typeof typography.leading

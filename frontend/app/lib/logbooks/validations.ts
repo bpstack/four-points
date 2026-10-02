@@ -25,20 +25,9 @@ export const commentTextSchema = z
   .max(5000, 'El comentario no puede exceder 5000 caracteres')
   .trim()
 
-export const dateSchema = z
-  .string()
-  .regex(/^\d{4}-\d{2}-\d{2}$/, 'Formato de fecha inválido (YYYY-MM-DD)')
-
 // ════════════════════════════════════════════════════════════
 // LOGBOOK SCHEMAS
 // ════════════════════════════════════════════════════════════
-
-export const createLogbookSchema = z.object({
-  message: messageSchema,
-  importance_level: importanceLevelEnum,
-  department_id: departmentIdSchema,
-  date: dateSchema.optional(),
-})
 
 export const updateLogbookSchema = z
   .object({
@@ -54,12 +43,6 @@ export const updateLogbookSchema = z
 // COMMENT SCHEMAS
 // ════════════════════════════════════════════════════════════
 
-export const createCommentSchema = z.object({
-  comment: commentTextSchema,
-  department_id: departmentIdSchema.optional(),
-  importance_level: importanceLevelEnum.optional(),
-})
-
 export const updateCommentSchema = z
   .object({
     comment: commentTextSchema.optional(),
@@ -74,8 +57,4 @@ export const updateCommentSchema = z
 // TYPES
 // ════════════════════════════════════════════════════════════
 
-export type CreateLogbookInput = z.infer<typeof createLogbookSchema>
-export type UpdateLogbookInput = z.infer<typeof updateLogbookSchema>
-export type CreateCommentInput = z.infer<typeof createCommentSchema>
-export type UpdateCommentInput = z.infer<typeof updateCommentSchema>
 export type ImportanceLevel = z.infer<typeof importanceLevelEnum>

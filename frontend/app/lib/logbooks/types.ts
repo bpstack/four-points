@@ -49,13 +49,6 @@ export interface LogEntry {
 }
 
 // ========== DTOs ==========
-export interface CreateLogbookDto {
-  author_id: string
-  message: string
-  importance_level: 'baja' | 'media' | 'alta' | 'urgente'
-  department_id: number
-  date: string // formato YYYY-MM-DD
-}
 
 // ========== ENTIDADES AUXILIARES ==========
 export interface Department {
@@ -72,20 +65,4 @@ export interface User {
 }
 
 // ========== HISTORIAL ==========
-export interface LogbookHistory {
-  id: number
-  logbook_id: number
-  action: string
-  changes: string
-  user_id: string
-  created_at: string
-}
 
-export interface CommentHistory {
-  id: number
-  comment_id: number
-  action: string
-  changes: string
-  user_id: string
-  created_at: string
-}

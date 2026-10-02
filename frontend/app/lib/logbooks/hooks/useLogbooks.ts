@@ -371,4 +371,3 @@ export function useLogbooks({ date, enabled = true, messages }: UseLogbooksOptio
   }
 }
 
-export type UseLogbooksReturn = ReturnType<typeof useLogbooks>

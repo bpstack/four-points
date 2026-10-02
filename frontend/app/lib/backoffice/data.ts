@@ -57,14 +57,6 @@ async function getAuthHeaders(): Promise<Record<string, string>> {
   return {}
 }
 
-/**
- * Check if user has auth cookie
- */
-export async function hasAuthCookie(): Promise<boolean> {
-  const cookieStore = await cookies()
-  return !!cookieStore.get('access_token')?.value
-}
-
 // ========================================
 // HELPER: Server-side fetch with auth
 // ========================================
