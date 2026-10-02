@@ -565,10 +565,6 @@ hace que alguien reimplemente lo que ya existe.
       devuelve todo el histórico a cualquier rol con acceso. _Según la revisión
       `security` L3 del 2026-09-28 (fichero y línea en el informe); no repasado
       por mí._
-- [ ] **Conciliation: comentario de código muerto en el controlador mensual**
-      que sugiere una comprobación de admin que ya hace la ruta; quitarlo para
-      no confundir en un futuro refactor. _Según la revisión `security` L3 del
-      2026-09-28 (fichero y línea en el informe); no repasado por mí._
 - [ ] **Blacklist: filtro `created_by` sin restricción** — permite listar o
       filtrar por cualquier usuario creador, exponiendo patrones de uso por
       operador. _Según la revisión `security` L3 del 2026-09-28 (fichero y línea
