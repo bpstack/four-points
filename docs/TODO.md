@@ -16,6 +16,29 @@ hace que alguien reimplemente lo que ya existe.
 
 ---
 
+## Rama `claude/compassionate-planck-gh6aof`
+
+- [ ] **Llevar la rama a `main` sin la historia sobrante** — tiene 4 commits
+      con autor `Claude <noreply@anthropic.com>`: los dos de fnb
+      (`f9d1541`, `2ed0abb`), sus reverts (`8584e93`, `6a67ab3`) y el de
+      validación de logbook (`ec8e901`), que sí vale. Los de fnb y sus reverts
+      se anulan: no cambian código. Dos opciones:
+  1. **Squash merge (recomendada).** Fusionar el PR con «Squash and merge»:
+     entra en `main` un único commit con autor `bpstack` y ninguno de los
+     anteriores; después borrar la rama. No reescribe historia.
+  2. **Rehacer la rama a mano** y forzar el push (solo a la rama, nunca a
+     `main`):
+     ```bash
+     git fetch origin
+     git checkout -B limpia origin/main
+     git cherry-pick ec8e901 && git commit --amend --reset-author --no-edit
+     git cherry-pick 0a47a7f dba54de 7f8ea41 a592aae cdb871a df41041
+     git diff df41041 HEAD   # vacío: mismo código
+     git push --force-with-lease origin limpia:claude/compassionate-planck-gh6aof
+     ```
+     Los hashes cambian si se añaden más commits a la rama antes: repasar
+     `git log origin/main..origin/claude/compassionate-planck-gh6aof`.
+
 ## 🔴 Alta
 
 > Las entradas de **seguridad** describen debilidades explotables: **resolverlas
