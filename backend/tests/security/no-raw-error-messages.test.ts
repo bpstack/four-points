@@ -16,10 +16,6 @@ const controllersDir = join(backend, 'controllers')
 const ALLOWED = new Set([
   // "errores del solver y del arranque devueltos al cliente"
   'controllers/scheduling/schedule-generate.controller.ts',
-  // "Cashier: los 500 de turnos, pagos y recuentos devuelven error.message"
-  'controllers/cashier/cashier-shift-controller.ts',
-  'controllers/cashier/cashier-payment-controller.ts',
-  'controllers/cashier/cashier-denomination-controller.ts',
 ])
 
 function listTs(dir: string): string[] {

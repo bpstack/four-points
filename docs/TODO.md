@@ -549,13 +549,6 @@ hace que alguien reimplemente lo que ya existe.
       `GET /shifts/:id/history`, `/daily` y `/vouchers/stats`. _Según la
       revisión `security` L3 del 2026-09-28 (fichero y línea en el informe); no
       repasado por mí._
-- [ ] **Cashier: los 500 de turnos, pagos y recuentos devuelven
-      `error.message`** — `cashier-shift`, `cashier-payment` y
-      `cashier-denomination` responden `error: error.message || '…'`: si falla
-      MySQL, sale su texto; si es un error propio («Pago no encontrado»), llega
-      como 500. Pasar los errores conocidos a 404/409 (como los vales en
-      `02d82d2`) y el resto a un mensaje genérico; después quitarlos de la lista
-      `ALLOWED` de `backend/tests/security/no-raw-error-messages.test.ts`.
 - [ ] **Corregir el `AGENTS.md` de cashier** — dice que hay validación Zod (no
       se usa) y que el trigger mantiene bien los totales (los infla).
       _Comprobado por mí el 2026-09-28._

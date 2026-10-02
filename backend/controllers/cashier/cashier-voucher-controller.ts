@@ -4,6 +4,7 @@ import { Request, Response } from 'express'
 import { CashierVoucherRepository } from '../../repositories/cashier/cashier-voucher-repository.js'
 import { CashierHistoryRepository } from '../../repositories/cashier/cashier-history-repository.js'
 import { logger } from '../../config/logger.js'
+import { sendCashierError } from './cashier-errors.js'
 import {
   voucherListQuerySchema,
   createVoucherSchema,
@@ -27,25 +28,6 @@ async function logVoucherChange(
     return
   }
   await CashierHistoryRepository.create({ ...entry, shift_id: shiftId, changed_by: userId })
-}
-
-const VOUCHER_ERRORS: Record<string, number> = {
-  'Vale no encontrado': 404,
-  'El vale ya está justificado': 409,
-  'El vale ya está cancelado': 409,
-  'Solo se pueden eliminar vales pendientes': 409,
-}
-
-/** Known domain errors keep their message; anything else is a generic 500 (no SQL details). */
-function sendVoucherError(res: Response, error: unknown, fallback: string): void {
-  const message = error instanceof Error ? error.message : ''
-  const status = VOUCHER_ERRORS[message]
-  if (status) {
-    res.status(status).json({ error: message })
-    return
-  }
-  logger.error({ err: error }, fallback)
-  res.status(500).json({ error: fallback })
 }
 
 export class CashierVoucherController {
@@ -205,7 +187,7 @@ export class CashierVoucherController {
 
       res.json(updated)
     } catch (error) {
-      sendVoucherError(res, error, 'Error al actualizar vale')
+      sendCashierError(res, error, 'Error al actualizar vale')
     }
   }
 
@@ -237,7 +219,7 @@ export class CashierVoucherController {
 
       res.json(justified)
     } catch (error) {
-      sendVoucherError(res, error, 'Error al justificar vale')
+      sendCashierError(res, error, 'Error al justificar vale')
     }
   }
 
@@ -263,7 +245,7 @@ export class CashierVoucherController {
 
       res.json(cancelled)
     } catch (error) {
-      sendVoucherError(res, error, 'Error al cancelar vale')
+      sendCashierError(res, error, 'Error al cancelar vale')
     }
   }
 
@@ -279,7 +261,7 @@ export class CashierVoucherController {
 
       res.json({ message: 'Vale eliminado correctamente' })
     } catch (error) {
-      sendVoucherError(res, error, 'Error al eliminar vale')
+      sendCashierError(res, error, 'Error al eliminar vale')
     }
   }
 

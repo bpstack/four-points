@@ -5,6 +5,7 @@ import { CashierDenominationRepository } from '../../repositories/cashier/cashie
 import { CashierHistoryRepository } from '../../repositories/cashier/cashier-history-repository.js'
 import { CashierShiftRepository } from '../../repositories/cashier/cashier-shift-repository.js'
 import { logger } from '../../config/logger.js'
+import { sendCashierError } from './cashier-errors.js'
 import {
   replaceDenominationsSchema,
   denominationSchema,
@@ -119,9 +120,8 @@ export class CashierDenominationController {
       const updated = await CashierDenominationRepository.update(parseInt(id), quantity)
 
       res.json(updated)
-    } catch (error: any) {
-      logger.error({ err: error }, 'Error al actualizar denominación')
-      res.status(500).json({ error: error.message || 'Error al actualizar denominación' })
+    } catch (error) {
+      sendCashierError(res, error, 'Error al actualizar denominación')
     }
   }
 
