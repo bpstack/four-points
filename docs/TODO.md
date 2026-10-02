@@ -284,10 +284,6 @@ hace que alguien reimplemente lo que ya existe.
       anidados. Después, implantar la capa 1 en este repo. _Comprobado el
       2026-09-28 en `lib/detect.mjs` y `commands/init-project.md` del harness
       (ADR-017)._
-- [ ] **Corregir los `AGENTS.md` de módulo** — la fusión (commit `4d7528f`) los
-      renombró con el contenido intacto, así que siguen diciendo lo que el
-      código desmiente (ver las entradas de logbook y parking en esta lista) y
-      empiezan con el título `# CLAUDE.md — …`.
 - [ ] **Comprobar que Claude Code carga los `AGENTS.md` de las subcarpetas** —
       los `CLAUDE.md` de módulo se borraron en vez de quedar como punteros; si
       Claude Code solo lee `CLAUDE.md` por directorio, ese contexto se pierde.
@@ -309,14 +305,6 @@ hace que alguien reimplemente lo que ya existe.
       defecto, ordenadas por entrada prevista descendente: una estancia larga ya
       `checked_in` puede salir del mapa. _Latente: hoy hay 13 reservas en
       Aiven._
-- [ ] **Corregir los `AGENTS.md` de parking** — backend: cita `parking_invoices`
-      (no existe), omite `parking_availability` y los triggers, dice que la
-      tarifa va por tipo de plaza (va por días), que 23:00→10:00 son 2 días (es
-      1), que las acciones son `POST` (son `PUT`), que el código es `BK-0042`
-      (es `PK-AAAAMMDD-NNNN`) y no documenta `DELETE /bookings/:code`. Frontend:
-      afirma sondeo en el mapa y exportación del listado, que no existen.
-      _Comprobado el 2026-09-28._
-
 - [ ] **Quitar el soporte de BD local del código** (ADR-015) — `DB_ENVIRONMENT`
       y el preset `local` de `backend/config/db.ts`, el script `dev:local`, las
       variables `LOCAL_DB_*` y las menciones a «local primero» en
