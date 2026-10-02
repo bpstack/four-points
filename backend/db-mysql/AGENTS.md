@@ -91,7 +91,7 @@ has data.** They will overwrite or duplicate rows.
 ## Connecting to Aiven (production)
 
 ```bash
-mysql -h HOST -P PORT -u USER -p --ssl-ca=aiven/ca-certificate.pem hotel_db
+mysql -h HOST -P PORT -u USER -p --ssl-ca=../config/certs/ca-certificate.pem hotel_db
 ```
 
 See `aiven/aiven-conexion.md` for connection details. SSL required.

@@ -25,8 +25,7 @@ db-mysql/
 │   ├── 18_user_avatar.sql
 │   ├── 19_scheduling.sql
 │   ├── 99_verification.sql
-│   ├── aiven-conexion.md
-│   └── ca-certificate.pem
+│   └── aiven-conexion.md
 │
 ├── backup/
 │   ├── backup_hotel_db-local.sql
@@ -123,7 +122,7 @@ mysql -u root -p < MASTER_INSTALL.sql
 
 ```bash
 # Ver aiven/aiven-conexion.md para detalles de conexión
-mysql -h HOST -P PORT -u USER -p --ssl-ca=aiven/ca-certificate.pem < MASTER_INSTALL.sql
+mysql -h HOST -P PORT -u USER -p --ssl-ca=../config/certs/ca-certificate.pem < MASTER_INSTALL.sql
 ```
 
 ---

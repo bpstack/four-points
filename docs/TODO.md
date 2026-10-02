@@ -656,8 +656,6 @@ hace que alguien reimplemente lo que ya existe.
       de parking, el código solo llama a `check_availability`; el resto
       (incluido `generate_availability`, que amplía el calendario) no los usa
       nadie. _Comprobado por mí el 2026-09-28._
-- [ ] **Certificado de Aiven duplicado** — en `backend/db-mysql/aiven/` y en
-      `backend/config/certs/`. _Comprobado por mí el 2026-09-28._
 - [ ] **Datos sensibles en los logs** — usernames de logins fallidos, `redact`
       de un solo nivel y, probablemente, `err.sql` de mysql2 con los valores
       (textos, matrículas, hashes). _Según la revisión `security` L3 del
