@@ -3,6 +3,7 @@
 // Versión profesional con booking_code
 // ============================================
 import pool from '../../config/db.js'
+import { targetSpot, type SpotRef } from '../../services/parking/target-spot.js'
 import { ResultSetHeader, RowDataPacket } from 'mysql2/promise'
 import type {
   BookingWithDetailsRow,
@@ -25,6 +26,8 @@ interface CountRow extends RowDataPacket {
 interface SpotIdRow extends RowDataPacket {
   id: number
 }
+
+interface CurrentSpotRow extends RowDataPacket, SpotRef {}
 
 interface AvailabilityCountRow extends RowDataPacket {
   unavailable: number
@@ -565,8 +568,13 @@ class ParkingBookingsRepository {
       let spot_id = booking[0].spot_id
 
       if (updateData.spot_number || updateData.level_code) {
-        const spotNum = updateData.spot_number ?? booking[0].spot_id
-        const levelCode = updateData.level_code ?? '-2'
+        const [currentSpot] = await connection.query<CurrentSpotRow[]>(
+          'SELECT spot_number, level_code FROM parking_spots WHERE id = ?',
+          [booking[0].spot_id]
+        )
+        const target = targetSpot(updateData, currentSpot[0])
+        const spotNum = target.spot_number
+        const levelCode = target.level_code
 
         const [spotRows] = await connection.query<SpotIdRow[]>(
           'SELECT id FROM parking_spots WHERE spot_number = ? AND level_code = ? AND is_active = TRUE',

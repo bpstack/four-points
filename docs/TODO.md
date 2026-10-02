@@ -537,9 +537,6 @@ hace que alguien reimplemente lo que ya existe.
       (textos, matrículas, hashes). _Según la revisión `security` L3 del
       2026-09-28 (fichero y línea en el informe); no repasado por mí._ No
       verificado en ejecución.
-- [ ] **Parking: cambiar solo la planta puede mover la reserva a otra plaza** —
-      usa el id de la plaza como número. _Según la revisión `security` L3 del
-      2026-09-28 (fichero y línea en el informe); no repasado por mí._
 - [ ] **Logbook: el historial registra cada comentario dos veces y cada
       lectura sin límite.** (Editar o volver a borrar un comentario borrado ya
       no es posible desde el 2026-10-02.) _Según la revisión `security` L3 del
