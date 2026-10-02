@@ -121,8 +121,8 @@ Browser ──────────────► Frontend  (Next.js · Verc
 
 1. The browser calls the backend **directly** (`api.four-points.stackbp.es`)
    with `credentials: 'include'`, through `app/lib/apiClient.ts`, which also
-   renews the token. There is no intermediate proxy: the only exception is user
-   creation, which goes through `app/api/auth/register`.
+   renews the token. There is no intermediate proxy: the frontend has no
+   `app/api` routes (the unused ones were removed on 2026-10-02).
 2. Server components use `app/lib/serverFetch.ts`, which forwards the access
    cookie to the backend.
 3. `proxy.ts` (the Next.js 16 middleware) redirects to login if there are no

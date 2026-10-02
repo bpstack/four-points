@@ -100,7 +100,7 @@ A comprehensive, full-stack **Hotel Management System** designed for real-world 
 
 ### Authentication
 
-Authentication is handled entirely by the **backend** via JWT tokens in HttpOnly cookies. The frontend has no client-side password hashing — `bcrypt` and `next-auth` are not used.
+Authentication is handled entirely by the **backend** via JWT tokens in HttpOnly cookies. The frontend has no client-side password hashing and no NextAuth.
 
 ### Dev Dependencies
 
@@ -286,7 +286,6 @@ frontend/
 │   │   │   └── types.ts
 │   │   ├── auth/
 │   │   │   ├── authService.ts
-│   │   │   ├── cookieHandler.ts
 │   │   │   └── useAuth.tsx
 │   │   ├── apiClient.ts     # Centralized API client (490 líneas)
 │   │   ├── backoffice/

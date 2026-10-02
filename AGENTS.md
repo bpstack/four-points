@@ -141,9 +141,9 @@ Lower risk, but verify when touched: `node-cron` 4.2.1,
 for both: in v4, custom error messages, `z.ZodError`, and several `z.string()`
 helpers changed. Always indicate the workspace when querying.
 
-Dependencies declared but **not actually used** in `frontend/`: `next-auth`
-(5.0.0-beta.25), `bcrypt`, `mysql2`, `postgres`, `uuid`. Do not build anything
-on them — auth is custom JWT, not NextAuth.
+Auth is custom JWT handled by the backend, not NextAuth. The unused frontend
+dependencies (`next-auth`, `bcrypt`, `mysql2`, `postgres`, `uuid`) were removed
+on 2026-10-02.
 
 ### Limits
 

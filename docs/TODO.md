@@ -624,14 +624,9 @@ hace que alguien reimplemente lo que ya existe.
 - [ ] **Mensajería sin tiempo real** — los mensajes nuevos solo aparecen al
       reabrir la conversación. Valorar un sondeo periódico como el de las
       notificaciones. _Comprobado el 2026-09-28: no hay intervalo ni WebSocket._
-- [ ] **Quitar código muerto** (en un `chore:` aparte) —
-      `frontend/app/api/auth/{login,logout,me,refresh}` y
-      `_backup_httponly_cookies/`, más `frontend/app/lib/auth/cookieHandler.ts`
-      (solo se usa `app/api/auth/register`); y las dependencias del frontend
-      `mysql2`, `postgres`, `bcrypt` y `next-auth`, que nada importa. Los `backend/debug-*.js` que cita
-      `backend/scheduling-solver/AGENTS.md` no están en el repositorio:
-      quitar la mención o versionarlos. _Comprobado el 2026-09-28 con búsqueda
-      de imports; backend revisado el 2026-10-02._
+- [ ] **`backend/scheduling-solver/AGENTS.md` cita `backend/debug-*.js`**, que
+      no están en el repositorio: quitar la mención o versionarlos. (El resto
+      del código muerto de esta entrada se quitó el 2026-10-02.)
 - [ ] **Zod 3 en el frontend y Zod 4 en el backend** (`^3.25.17` frente a
       `4.0.5`) — unificar si se llegan a compartir esquemas.
 - [ ] **Presencias a mano** — la pestaña de presencias de `scheduling` pide
