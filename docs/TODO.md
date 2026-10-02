@@ -569,10 +569,6 @@ hace que alguien reimplemente lo que ya existe.
 - [ ] **Maintenance: el límite de 5 fotos se salta subiendo en paralelo** —
       se cuenta antes de subir, sin bloqueo. _Según la revisión `security` L3
       del 2026-09-28 (fichero y línea en el informe); no repasado por mí._
-- [ ] **Informes: la sección de mantenimiento filtra por estados que no
-      existen** — `MaintenanceSection.tsx` envía `pending` y `resolved`, que el
-      backend rechaza. _Según la revisión `security` L3 del 2026-09-28 (fichero
-      y línea en el informe); no repasado por mí._
 - [ ] **Maintenance: comprobar si Cloudinary quita los metadatos EXIF/GPS** de
       las fotos. _Sin comprobar._
 - [ ] **Procedimientos de BD sin uso** — de las 2 funciones y 5 procedimientos

@@ -28,12 +28,26 @@ import { ReportError, ReportListSkeleton, formatReportDateTime } from '../utils'
 const API_URL = API_BASE_URL
 const DEFAULT_LIMIT = 50
 
+// The statuses the backend uses (reportStatusEnum in
+// backend/validations/maintenance/schemas.ts); the filter sends them as is
+const STATUSES = [
+  'reported',
+  'assigned',
+  'in_progress',
+  'waiting',
+  'completed',
+  'closed',
+  'canceled',
+] as const
+
 const STATUS_COLORS: Record<string, string> = {
   reported: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
-  pending: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
+  assigned: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
   in_progress: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
-  resolved: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
+  waiting: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400',
+  completed: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
   closed: 'bg-surface-hover text-fg-muted',
+  canceled: 'bg-surface-hover text-fg-muted',
 }
 
 const PRIORITY_COLORS: Record<string, string> = {
@@ -59,13 +73,7 @@ export default function MaintenanceSection() {
   const [historyLoading, setHistoryLoading] = useState(false)
 
   const STATUS_LABELS = useMemo(
-    () => ({
-      reported: t('status.reported'),
-      pending: t('status.pending'),
-      in_progress: t('status.in_progress'),
-      resolved: t('status.resolved'),
-      closed: t('status.closed'),
-    }),
+    () => Object.fromEntries(STATUSES.map((s) => [s, t(`status.${s}`)])) as Record<string, string>,
     [t]
   )
 
@@ -152,11 +160,7 @@ export default function MaintenanceSection() {
           onChange={setStatusFilter}
           options={[
             { value: 'all', label: t('status.all') },
-            { value: 'reported', label: t('status.reported') },
-            { value: 'pending', label: t('status.pending') },
-            { value: 'in_progress', label: t('status.in_progress') },
-            { value: 'resolved', label: t('status.resolved') },
-            { value: 'closed', label: t('status.closed') },
+            ...STATUSES.map((s) => ({ value: s, label: t(`status.${s}`) })),
           ]}
           className="w-40"
         />
@@ -189,9 +193,8 @@ export default function MaintenanceSection() {
       {!loading && !error && reports.length > 0 && (
         <div className="space-y-2">
           {reports.map((report) => {
-            const statusColor = STATUS_COLORS[report.status] || STATUS_COLORS.pending
-            const statusLabel =
-              STATUS_LABELS[report.status as keyof typeof STATUS_LABELS] || STATUS_LABELS.pending
+            const statusColor = STATUS_COLORS[report.status] || STATUS_COLORS.reported
+            const statusLabel = STATUS_LABELS[report.status] || report.status
             const priorityColor = PRIORITY_COLORS[report.priority] || PRIORITY_COLORS.medium
             const priorityLabel =
               PRIORITY_LABELS[report.priority as keyof typeof PRIORITY_LABELS] ||
@@ -204,7 +207,12 @@ export default function MaintenanceSection() {
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-2 flex-wrap">
-                        <span className={cn('px-2 py-0.5 rounded-full text-xs font-medium', statusColor)}>
+                        <span
+                          className={cn(
+                            'px-2 py-0.5 rounded-full text-xs font-medium',
+                            statusColor
+                          )}
+                        >
                           {statusLabel}
                         </span>
                         <span className={cn('text-xs font-medium', priorityColor)}>
@@ -284,10 +292,14 @@ export default function MaintenanceSection() {
                                   <span className="text-accent">{entry.field_changed}</span>
                                 )}
                                 <span className="text-gray-400">—</span>
-                                <span className="text-fg">{entry.user_name || entry.changed_by}</span>
+                                <span className="text-fg">
+                                  {entry.user_name || entry.changed_by}
+                                </span>
                               </div>
                               {entry.old_value && (
-                                <p className="text-gray-500 line-through truncate">{entry.old_value}</p>
+                                <p className="text-gray-500 line-through truncate">
+                                  {entry.old_value}
+                                </p>
                               )}
                               {entry.new_value && (
                                 <p className="text-fg truncate">{entry.new_value}</p>
