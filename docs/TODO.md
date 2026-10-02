@@ -626,9 +626,6 @@ hace que alguien reimplemente lo que ya existe.
       se retiene durante el arranque (hasta 30 min) con cola sin límite. _Según
       la revisión `security` L3 del 2026-09-28 (fichero y línea en el informe);
       no repasado por mí._
-- [ ] **Scheduling: errores del solver y del arranque devueltos al cliente.**
-      _Según la revisión `security` L3 del 2026-09-28 (fichero y línea en el
-      informe); no repasado por mí._
 - [ ] **Importador del Excel** — borra también las celdas bloqueadas, sin
       transacción ni comprobar si el mes está publicado. _Según la revisión
       `security` L3 del 2026-09-28 (fichero y línea en el informe); no repasado

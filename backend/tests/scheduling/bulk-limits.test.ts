@@ -62,3 +62,12 @@ describe('employee lists', () => {
     expect(schedulableEmployeesSchema.safeParse({ employeeIds: ids(501) }).success).toBe(false)
   })
 })
+
+describe('solverErrorMessage', () => {
+  it('tells a timeout apart and never echoes solver internals', async () => {
+    const { solverErrorMessage } = await import('../../services/scheduling/solver-errors.js')
+    expect(solverErrorMessage('TIMEOUT')).toMatch(/tiempo límite/)
+    expect(solverErrorMessage('INTERNAL')).toBe('Error interno del solver al generar el horario')
+    expect(solverErrorMessage(undefined)).toBe('Error interno del solver al generar el horario')
+  })
+})

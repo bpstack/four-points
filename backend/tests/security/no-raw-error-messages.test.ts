@@ -1,6 +1,7 @@
 // tests/security/no-raw-error-messages.test.ts
-// Guards against 5xx responses that echo the caught error's message: for a
-// database failure that is MySQL's text, with table, column and key names.
+// Guards against 5xx responses that echo an error's message (any `x.message`,
+// `x.sql` or `x.sqlMessage`): for a database failure that is MySQL's text,
+// with table, column and key names; for the solver, process and daemon output.
 // Reads the controller sources; no database or server needed.
 
 import { describe, it, expect } from 'vitest'
@@ -11,13 +12,8 @@ import { fileURLToPath } from 'node:url'
 const backend = join(dirname(fileURLToPath(import.meta.url)), '..', '..')
 const controllersDir = join(backend, 'controllers')
 
-// Known and tracked in docs/TODO.md; remove a file from here when its entry
-// is fixed
-const ALLOWED = new Set([
-  // "errores del solver y del arranque devueltos al cliente"
-  'controllers/scheduling/schedule-generate.controller.ts',
-])
-
+// Known and tracked in docs/TODO.md; add a file here only with its entry
+const ALLOWED = new Set<string>([])
 function listTs(dir: string): string[] {
   return readdirSync(dir, { withFileTypes: true }).flatMap((e) =>
     e.isDirectory() ? listTs(join(dir, e.name)) : e.name.endsWith('.ts') ? [join(dir, e.name)] : []
@@ -40,7 +36,7 @@ describe('5xx responses', () => {
 
   it.each(files)('%s does not send the caught error message', (file) => {
     const leaks = serverErrorBodies(readFileSync(join(backend, file), 'utf8')).filter((body) =>
-      /\b(err|error)\.(message|sqlMessage|sql)\b/.test(body)
+      /\b[A-Za-z_$][\w$]*\.(message|sqlMessage|sql)\b/.test(body)
     )
     expect(leaks).toEqual([])
   })
