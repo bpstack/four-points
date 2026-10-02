@@ -97,7 +97,6 @@ export class BlacklistRepository {
       document,
       severity,
       status = 'ACTIVE',
-      created_by,
       from_date,
       to_date,
       page = 1,
@@ -139,12 +138,6 @@ export class BlacklistRepository {
     if (severity) {
       query += ` AND b.severity = ?`
       params.push(severity)
-    }
-
-    // Filtro por usuario creador
-    if (created_by) {
-      query += ` AND b.created_by = ?`
-      params.push(created_by)
     }
 
     // Filtro por rango de fechas (check_in_date)

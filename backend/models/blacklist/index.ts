@@ -95,7 +95,6 @@ export interface BlacklistFilters {
   document?: string // Filtrar por documento específico
   severity?: SeverityLevel
   status?: EntryStatus | 'ALL'
-  created_by?: string // UUID del usuario creador
   from_date?: string // Rango fecha inicio (check_in)
   to_date?: string // Rango fecha fin (check_in)
   page?: number

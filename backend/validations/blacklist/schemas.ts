@@ -165,7 +165,6 @@ export const blacklistFiltersSchema = z.object({
   document: z.string().max(20).optional(),
   severity: severityEnum.optional(),
   status: statusFilterEnum.optional(),
-  created_by: z.string().uuid('created_by debe ser un UUID válido').optional(),
   from_date: z
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/, 'from_date debe tener formato YYYY-MM-DD')

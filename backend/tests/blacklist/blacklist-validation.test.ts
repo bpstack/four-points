@@ -6,6 +6,7 @@ import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
 import {
   createBlacklistSchema,
   updateBlacklistSchema,
+  blacklistFiltersSchema,
 } from '../../validations/blacklist/schemas.js'
 
 const entry = {
@@ -86,5 +87,16 @@ describe('images', () => {
       expect(createBlacklistSchema.safeParse({ ...entry, images: [url] }).success, url).toBe(false)
       expect(updateBlacklistSchema.safeParse({ images: [url] }).success, url).toBe(false)
     }
+  })
+})
+
+describe('blacklist list filters', () => {
+  it('ignore created_by: the list is not filtered by who added an entry', () => {
+    const parsed = blacklistFiltersSchema.parse({
+      created_by: '0b6f6b1e-6c3f-4c8e-9f1a-2d3c4b5a6e7f',
+      severity: 'HIGH',
+    })
+    expect(parsed).not.toHaveProperty('created_by')
+    expect(parsed.severity).toBe('HIGH')
   })
 })

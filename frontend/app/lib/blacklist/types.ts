@@ -70,7 +70,6 @@ export interface BlacklistFilters {
   document?: string // Filtrar por documento
   severity?: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL'
   status?: 'ACTIVE' | 'DELETED' | 'ALL'
-  created_by?: string // Filtrar por usuario creador
   from_date?: string // Rango fecha inicio
   to_date?: string // Rango fecha fin
   page?: number

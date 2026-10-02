@@ -21,7 +21,6 @@ export const blacklistApi = {
     if (filters?.document) params.append('document', filters.document)
     if (filters?.severity) params.append('severity', filters.severity)
     if (filters?.status) params.append('status', filters.status)
-    if (filters?.created_by) params.append('created_by', filters.created_by)
     if (filters?.from_date) params.append('from_date', filters.from_date)
     if (filters?.to_date) params.append('to_date', filters.to_date)
     if (filters?.page) params.append('page', filters.page.toString())
