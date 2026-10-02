@@ -515,10 +515,6 @@ hace que alguien reimplemente lo que ya existe.
       `GET /shifts/:id/history`, `/daily` y `/vouchers/stats`. _Según la
       revisión `security` L3 del 2026-09-28 (fichero y línea en el informe); no
       repasado por mí._
-- [ ] **Corregir el `AGENTS.md` de cashier** — dice que hay validación Zod (no
-      se usa) y que el trigger mantiene bien los totales (los infla).
-      _Comprobado por mí el 2026-09-28._
-
 - [ ] **Backoffice: borrar una factura borra también su historial** — borrado
       definitivo, con las columnas de borrado lógico sin usar. _Comprobado por
       mí el 2026-09-28._

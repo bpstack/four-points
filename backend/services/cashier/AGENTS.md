@@ -34,9 +34,14 @@ periods.
 - **`cashier_history`**: Audit log of every mutation on a shift (created,
   updated, status_changed, voucher_created, etc.)
 
-**Trigger:** `trg_cashier_shift_update_daily` on `cashier_shifts` — after any
-shift UPDATE, recomputes `cashier_daily` totals (total cash, total payments,
-grand total) automatically. No manual sync needed.
+**Trigger:** `trg_cashier_shift_update_daily` on `cashier_shifts` — after a
+shift UPDATE that changes `status`, `income` or `payments_total`, recomputes
+the `cashier_daily` totals of that date. ⚠️ It is wrong: it sums `income` over
+`cashier_shifts LEFT JOIN cashier_payments`, so each shift's cash counts once
+per electronic payment and `total_cash` is inflated (2026-01-05 in Aiven:
+4000,00 € stored, 2200,00 € real). `cashier-daily-repository.ts` and
+`cashier-shift-repository.ts` also compute totals of their own. See
+`docs/TODO.md`.
 
 ## Enums (models/cashier/index.ts)
 
@@ -168,10 +173,10 @@ patches.
 
 ## Known gotchas
 
-1. **DB trigger handles daily totals.** Don't manually update `cashier_daily`
-   totals — the trigger `trg_cashier_shift_update_daily` does it automatically
-   after every shift UPDATE. If totals look wrong, check the trigger, not the
-   application code.
+1. **Daily totals are not reliable yet.** The trigger
+   `trg_cashier_shift_update_daily` inflates `total_cash` (see above) and two
+   repository functions compute totals too. Until that is fixed, check all
+   three when a daily total looks wrong.
 2. **`can_close` is a computed field.** `getDetailsByDate` in the daily
    repository computes whether all 4 shifts are closed and injects
    `can_close: boolean` into the response. The controller trusts this field — it
