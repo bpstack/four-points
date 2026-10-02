@@ -237,7 +237,7 @@ export const useBookingWizard = ({
 
     try {
       const allSpots = await parkingApi.getAllSpots()
-      const bookingsResponse = await parkingApi.getAllBookings({})
+      const bookings = await parkingApi.getOccupyingBookings()
 
       const checkinDate = new Date(
         `${state.reservationData.expected_checkin_date}T${state.reservationData.expected_checkin_time}`
@@ -249,7 +249,7 @@ export const useBookingWizard = ({
       const available = allSpots.filter((spot: ParkingSpot) => {
         if (!spot.is_active) return false
 
-        const hasConflict = bookingsResponse.bookings?.some((booking: ParkingBooking) => {
+        const hasConflict = bookings.some((booking: ParkingBooking) => {
           if (booking.spot.id !== spot.id) return false
           if (!['reserved', 'checked_in'].includes(booking.status)) return false
 

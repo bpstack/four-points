@@ -2,6 +2,7 @@
 
 import apiClient from '@/app/lib/apiClient'
 import { API_BASE_URL } from '@/app/lib/env'
+import { fetchAllPages } from '@/app/lib/helpers/pagination'
 import type {
   ParkingSpot,
   ParkingVehicle,
@@ -174,6 +175,21 @@ export const parkingApi = {
     if (filters?.page) query.append('page', String(filters.page))
     if (filters?.limit) query.append('limit', String(filters.limit))
     return apiClient.get(`${API_URL}/api/parking/bookings?${query}`)
+  },
+
+  /**
+   * Reservas que ocupan plaza (reserved y checked_in), todas las páginas
+   */
+  getOccupyingBookings: async (): Promise<ParkingBooking[]> => {
+    const byStatus = await Promise.all(
+      ['reserved', 'checked_in'].map((status) =>
+        fetchAllPages(async (page) => {
+          const res = await parkingApi.getAllBookings({ status, page, limit: 500 })
+          return { items: res.bookings ?? [], totalPages: res.pagination?.totalPages ?? 1 }
+        })
+      )
+    )
+    return byStatus.flat()
   },
 
   /**

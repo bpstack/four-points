@@ -295,11 +295,6 @@ hace que alguien reimplemente lo que ya existe.
       `PK-AAAAMMDD` del trigger, `CURRENT_TIMESTAMP` de las tablas) van 1–2 h
       por detrás de Madrid: entre las 00:00 y las 02:00 «hoy» sigue siendo ayer.
       _Comprobado el 2026-09-28._
-- [ ] **Parking: el mapa de estado deja de ver reservas a partir de 50** —
-      `useParkingStatus` pide `getAllBookings({})` y el backend devuelve 50 por
-      defecto, ordenadas por entrada prevista descendente: una estancia larga ya
-      `checked_in` puede salir del mapa. _Latente: hoy hay 13 reservas en
-      Aiven._
 - [ ] **Quitar el soporte de BD local del código** (ADR-015) — `DB_ENVIRONMENT`
       y el preset `local` de `backend/config/db.ts`, el script `dev:local`, las
       variables `LOCAL_DB_*` y las menciones a «local primero» en

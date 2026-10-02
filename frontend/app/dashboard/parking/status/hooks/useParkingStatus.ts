@@ -136,7 +136,7 @@ export function useParkingStatus(selectedDate: string, messages: ParkingStatusMe
     error: bookingsError,
   } = useQuery({
     queryKey: bookingsKey(selectedDate),
-    queryFn: async () => parkingApi.getAllBookings({}),
+    queryFn: async () => parkingApi.getOccupyingBookings(),
     staleTime: 60 * 1000,
     gcTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,
@@ -168,7 +168,7 @@ export function useParkingStatus(selectedDate: string, messages: ParkingStatusMe
 
   const availabilityData: AvailabilityData | null =
     (statsData?.dashboard.availability as AvailabilityData | null) ?? null
-  const allBookings = bookingsData?.bookings ?? []
+  const allBookings = bookingsData ?? []
   const activeBookings = deriveActiveBookings(allBookings, selectedDate)
   const overdueBookings = overdueData?.bookings ?? []
   const spots: ParkingSpotDisplay[] = spotsData ? deriveSpots(spotsData, activeBookings) : []
