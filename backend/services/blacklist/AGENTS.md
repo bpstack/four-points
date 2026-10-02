@@ -93,6 +93,8 @@ backoffice module. Do not move or rename it without updating both importers.
   `deleted_by`/`deleted_at`, appends `{ action: 'restored' }` to audit trail.
 - `getAll` by default lists `status = 'ACTIVE'` only. Pass `status=DELETED` for
   the deleted ones or `status=ALL` for both.
+- No screen calls the restore endpoint yet; the unused `restoreBlacklist`
+  server action was removed on 2026-10-02.
 
 ## Endpoints
 
