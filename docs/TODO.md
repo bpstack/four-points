@@ -716,10 +716,6 @@ hace que alguien reimplemente lo que ya existe.
       `backend/scheduling-solver/AGENTS.md` no están en el repositorio:
       quitar la mención o versionarlos. _Comprobado el 2026-09-28 con búsqueda
       de imports; backend revisado el 2026-10-02._
-- [ ] **`backend/tests/README.md` está desfasado** — describe suites que ya no
-      existen (`phases.test.ts`, `ai-validator.test.ts`…). Reescribirlo en dos
-      líneas o borrarlo: cómo lanzar los tests ya está en
-      `docs/general/README.md`.
 - [ ] **Zod 3 en el frontend y Zod 4 en el backend** (`^3.25.17` frente a
       `4.0.5`) — unificar si se llegan a compartir esquemas.
 - [ ] **Presencias a mano** — la pestaña de presencias de `scheduling` pide
