@@ -232,6 +232,13 @@ hace que alguien reimplemente lo que ya existe.
       `four-points.stackbp.es` con la lista de correos del equipo; probar en
       incógnito. ⚠️ **No poner `api.four-points.stackbp.es` detrás**: el
       navegador no podría llamar al API.
+- [ ] **Fnb: `manualEntry` acepta cualquier número, incluido negativo o
+      absurdamente grande** — `z.record(z.string(), z.number())` en
+      `backend/controllers/fnb/fnb-manual.controller.ts` no tiene `.min()`,
+      `.max()` ni `.finite()`; se puede maquillar un descuadre con un importe
+      negativo o corromper los totales mensuales con una cifra irreal, sin
+      ninguna comprobación posterior en el repositorio. _Comprobado por mí el
+      2026-09-28._
 - [ ] **Fnb: el PDF subido no se valida por contenido, solo por extensión o
       mimetype declarado** — el `fileFilter` de `fnb-routes.ts` acepta
       `application/octet-stream` o cualquier nombre terminado en `.pdf`; el
