@@ -47,3 +47,15 @@ export function isPublicIdInFolder(publicId: unknown, folder: string): publicId 
     !publicId.endsWith('/')
   )
 }
+
+/** True for a URL of our cloud whose file sits in `folder` (e.g. blacklist). */
+export function isOwnCloudinaryFileIn(
+  value: unknown,
+  folder: string,
+  cloudName: string | undefined = process.env.CLOUDINARY_CLOUD_NAME
+): boolean {
+  return (
+    isOwnCloudinaryUrl(value, cloudName) &&
+    new URL(value as string).pathname.includes(`/${folder}/`)
+  )
+}

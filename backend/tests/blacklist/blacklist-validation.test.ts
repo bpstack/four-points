@@ -2,7 +2,7 @@
 // Regression tests for blacklist input validation: blank texts stored empty
 // and impossible dates (Date.parse accepts 2026-02-31) that reached MySQL.
 
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
 import {
   createBlacklistSchema,
   updateBlacklistSchema,
@@ -57,5 +57,34 @@ describe('updateBlacklistSchema', () => {
 
   it('accepts a partial update', () => {
     expect(updateBlacklistSchema.safeParse({ severity: 'LOW' }).success).toBe(true)
+  })
+})
+
+describe('images', () => {
+  beforeAll(() => {
+    vi.stubEnv('CLOUDINARY_CLOUD_NAME', 'fourpoints')
+  })
+  afterAll(() => {
+    vi.unstubAllEnvs()
+  })
+
+  const own =
+    'https://res.cloudinary.com/fourpoints/image/upload/v1727/blacklist/blacklist_1727_foto.jpg'
+
+  it('accepts photos uploaded through the blacklist upload', () => {
+    expect(createBlacklistSchema.safeParse({ ...entry, images: [own] }).success).toBe(true)
+    expect(updateBlacklistSchema.safeParse({ images: [own] }).success).toBe(true)
+  })
+
+  it('rejects any other URL', () => {
+    for (const url of [
+      'https://evil.example/foto.jpg',
+      'https://res.cloudinary.com/othercloud/image/upload/v1/blacklist/x.jpg',
+      'https://res.cloudinary.com/fourpoints/image/upload/v1/avatars/avatar_1_me.jpg',
+      'https://res.cloudinary.com/fourpoints/raw/upload/v1/backoffice/invoices/pdf_1.pdf',
+    ]) {
+      expect(createBlacklistSchema.safeParse({ ...entry, images: [url] }).success, url).toBe(false)
+      expect(updateBlacklistSchema.safeParse({ images: [url] }).success, url).toBe(false)
+    }
   })
 })

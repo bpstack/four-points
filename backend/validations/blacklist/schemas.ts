@@ -7,6 +7,17 @@
 import { z } from 'zod'
 // Date.parse accepts 2026-02-31 (as 3 March), which MySQL then rejects
 import { isCalendarDate } from '../common/calendar-date.js'
+import { isOwnCloudinaryFileIn, CLOUDINARY_FOLDERS } from '../../services/uploads/cloudinary-url.js'
+
+// Only images uploaded through POST /api/blacklist/upload: any other URL
+// (an external site, another module's file) would be shown as a guest photo
+const blacklistImageUrl = z
+  .string()
+  .url('Cada imagen debe ser una URL válida')
+  .refine(
+    (url) => isOwnCloudinaryFileIn(url, CLOUDINARY_FOLDERS.blacklist),
+    'Cada imagen debe haberse subido desde la lista negra'
+  )
 
 // ========================================
 // ENUMS (reutilizables)
@@ -68,7 +79,7 @@ export const createBlacklistSchema = z
       .max(2000, 'Los comentarios no pueden exceder 2000 caracteres'),
 
     images: z
-      .array(z.string().url('Cada imagen debe ser una URL válida'))
+      .array(blacklistImageUrl)
       .max(5, 'No puedes incluir más de 5 imágenes')
       .optional()
       .default([]),
@@ -131,10 +142,7 @@ export const updateBlacklistSchema = z
       .max(2000, 'Los comentarios no pueden exceder 2000 caracteres')
       .optional(),
 
-    images: z
-      .array(z.string().url('Cada imagen debe ser una URL válida'))
-      .max(5, 'No puedes incluir más de 5 imágenes')
-      .optional(),
+    images: z.array(blacklistImageUrl).max(5, 'No puedes incluir más de 5 imágenes').optional(),
   })
   .refine(
     (data) => {

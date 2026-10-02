@@ -546,11 +546,6 @@ hace que alguien reimplemente lo que ya existe.
       límite de tamaño y siguen redirecciones. _Según la revisión `security` L3
       del 2026-09-28 (fichero y línea en el informe); no repasado por mí._
 
-- [ ] **Blacklist: el array `images` acepta cualquier URL** — el esquema solo
-      valida que sea una URL, no que venga del `uploadImage` del propio módulo;
-      se puede guardar como «foto» cualquier enlace externo. _Según la revisión
-      `security` L3 del 2026-09-28 (fichero y línea en el informe); no repasado
-      por mí._
 - [ ] **Corregir el `AGENTS.md` de blacklist** — el esquema real usa
       `guest_name` (no `name`), `comments` (no `description`), y tiene dos
       columnas que el documento no menciona (`check_in_date`/`check_out_date` y
