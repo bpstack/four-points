@@ -28,6 +28,7 @@ import { backofficeApi } from '@/app/lib/backoffice/backofficeApi'
 import toast from 'react-hot-toast'
 import { SelectDropdown } from '@/app/ui/components/SelectDropdown'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { csvCell } from '@/app/lib/helpers/csv'
 
 interface PaidInvoicesTabLazyProps {
   initialInvoices: InvoiceWithDetails[]
@@ -369,7 +370,7 @@ export function PaidInvoicesTabLazy({
 
     const csvContent = [
       headers.join(';'),
-      ...rows.map((row) => row.map((cell) => `"${cell}"`).join(';')),
+      ...rows.map((row) => row.map(csvCell).join(';')),
     ].join('\n')
 
     // Create and download file

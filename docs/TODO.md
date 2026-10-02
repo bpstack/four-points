@@ -488,9 +488,6 @@ hace que alguien reimplemente lo que ya existe.
       facturas duplicadas (sin UNIQUE por proveedor y número) y `paid_date`
       libre. _Según la revisión `security` L3 del 2026-09-28 (fichero y línea en
       el informe); no repasado por mí._
-- [ ] **Backoffice: inyección de fórmulas en la exportación CSV** de facturas
-      pagadas. _Según la revisión `security` L3 del 2026-09-28 (fichero y línea
-      en el informe); no repasado por mí._
 - [ ] **Backoffice: subidas y descargas sin comprobar contenido ni tamaño** —
       solo el tipo declarado por el navegador; las descargas del ZIP no tienen
       límite de tamaño y siguen redirecciones. _Según la revisión `security` L3
