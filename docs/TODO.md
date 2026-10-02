@@ -742,16 +742,15 @@ hace que alguien reimplemente lo que ya existe.
       notificaciones no incluye `messages` y el controlador lo fuerza con
       `as any` (`backend/controllers/messages/message-controller.ts`).
 - [ ] **Quitar código muerto** (en un `chore:` aparte) —
-      `backend/services/group/email-service.ts` (nadie lo importa);
       `frontend/app/api/auth/{login,logout,me,refresh}` y
       `_backup_httponly_cookies/`, más `frontend/app/lib/auth/cookieHandler.ts`
-      (solo se usa `app/api/auth/register`); `app.set('view engine', 'ejs')` en
-      `backend/index.ts`, sin `ejs` instalado. _Comprobado el 2026-09-28 con
-      búsqueda de imports._ Además: las dependencias del frontend `mysql2`,
-      `postgres`, `bcrypt` y `next-auth`, que nada importa; y los
-      `backend/debug-*.js`, con ids de mes fijos (`debug-sept.js` sale tras
-      listar los meses): arreglarlos o quitarlos, y con ellos su mención en
-      `backend/scheduling-solver/AGENTS.md`. _Comprobado el 2026-09-28._
+      (solo se usa `app/api/auth/register`); las dependencias del frontend
+      `mysql2`, `postgres`, `bcrypt` y `next-auth`, que nada importa; y
+      `nodemailer` y `@types/nodemailer` en el backend, sin uso desde que se
+      quitó `email-service.ts`. Los `backend/debug-*.js` que cita
+      `backend/scheduling-solver/AGENTS.md` no están en el repositorio:
+      quitar la mención o versionarlos. _Comprobado el 2026-09-28 con búsqueda
+      de imports; backend revisado el 2026-10-02._
 - [ ] **`backend/tests/README.md` está desfasado** — describe suites que ya no
       existen (`phases.test.ts`, `ai-validator.test.ts`…). Reescribirlo en dos
       líneas o borrarlo: cómo lanzar los tests ya está en
