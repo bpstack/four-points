@@ -73,8 +73,7 @@ backend/repositories/cashier/
 ├── cashier-history-repository.ts     (215 lines)
 ├── cashier-payment-repository.ts     (207 lines — includes replaceAll bulk)
 ├── cashier-denomination-repository.ts (150 lines — includes replaceAll bulk)
-├── cashier-shift-user-repository.ts  (176 lines)
-└── cashier-payment-method-repository.ts (81 lines)
+└── cashier-shift-user-repository.ts  (176 lines)
 
 backend/routes/cashier/cashier-routes.ts   (412 lines)
 backend/validations/cashier/cashier-validation.ts (202 lines — Zod)

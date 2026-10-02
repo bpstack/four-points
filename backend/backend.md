@@ -453,7 +453,6 @@ repositories/
 │   ├── cashier-daily-repository.ts
 │   ├── cashier-denomination-repository.ts
 │   ├── cashier-history-repository.ts
-│   ├── cashier-payment-method-repository.ts
 │   ├── cashier-payment-repository.ts
 │   ├── cashier-shift-repository.ts
 │   ├── cashier-shift-user-repository.ts
@@ -501,7 +500,6 @@ Located in `backend/services/` (8 service files)
 | ------- | ---- | ------- |
 | **Token Service** | `auth/tokenService.ts` | JWT generation and verification |
 | **Cloudinary** | `blacklist/cloudinary-service.ts` | Image upload management |
-| **Conciliation Logic** | `conciliation/logic.ts` | Room count calculations |
 | **Cron Service** | `cron/cron-service.ts` | Scheduled tasks |
 | **Group History** | `group/group-history-service.ts` | Audit logging |
 | **Payment Calculator** | `group/payment-calculator-service.ts` | Payment calculations |

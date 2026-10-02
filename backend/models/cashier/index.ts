@@ -41,13 +41,6 @@ export type HistoryAction =
 // DATABASE MODELS (representan las tablas)
 // ═══════════════════════════════════════════════════════
 
-export interface PaymentMethod extends RowDataPacket {
-  id: number
-  name: string
-  is_active: boolean
-  created_at: Date
-}
-
 export interface CashierVoucher extends RowDataPacket {
   id: number
   amount: number
