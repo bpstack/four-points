@@ -682,8 +682,6 @@ hace que alguien reimplemente lo que ya existe.
       y línea en el informe); no repasado por mí._
 - [ ] **Maintenance: comprobar si Cloudinary quita los metadatos EXIF/GPS** de
       las fotos. _Sin comprobar._
-- [ ] **El API no envía `Cache-Control: no-store`** — afecta a lista negra, caja
-      y PDFs de facturas. _Comprobado con `curl` el 2026-09-28._
 - [ ] **Ids sin codificar en las URL de `blacklistApi.ts`** (informativo).
       _Según la revisión `security` L3 del 2026-09-28 (fichero y línea en el
       informe); no repasado por mí._

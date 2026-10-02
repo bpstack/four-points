@@ -8,6 +8,7 @@ import { PORT } from './config/config.js'
 import { logServerInfo } from './config/startup-logger.js'
 import { logger } from './config/logger.js'
 import { apiLimiter } from './middlewares/rateLimiter.js'
+import { noStore } from './middlewares/noStore.js'
 
 import { CronService } from './services/cron/cron-service.js'
 import { warmupSolver } from './services/scheduling/solver-client.js'
@@ -93,6 +94,8 @@ app.use(
 app.use(express.json({ limit: '2mb' }))
 app.use(cookieParser())
 app.use('/api', apiLimiter)
+// Personal and financial data must not stay in browser or proxy caches
+app.use('/api', noStore)
 
 // ========================================
 // RUTAS
