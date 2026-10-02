@@ -9,6 +9,8 @@ import { authenticateToken } from '../../middlewares/authenticateToken.js'
 import { isAdmin, excludeMantenimiento } from '../../middlewares/roleCheck.js'
 import * as conciliationCtrl from '../../controllers/conciliation/conciliation.controller.js'
 import monthlyRoutes from './conciliation-monthly.routes.js'
+import { validateParams } from '../../middlewares/validateParams.js'
+import { CONCILIATION_PARAM_RULES } from '../../validations/conciliation/conciliation-schemas.js'
 
 const router = Router()
 
@@ -18,6 +20,9 @@ const router = Router()
 // ============================================
 router.use(authenticateToken)
 router.use(excludeMantenimiento)
+
+// Answer 400 for an invalid :id or :date before any controller runs
+validateParams(router, CONCILIATION_PARAM_RULES)
 
 // ============================================
 // MONTAR RUTAS DE RESUMEN MENSUAL

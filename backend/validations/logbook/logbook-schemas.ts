@@ -2,6 +2,7 @@
 
 import { z } from 'zod'
 import { ERROR_CODES } from '../../config/error-codes.js'
+import { calendarDateSchema } from '../common/calendar-date.js'
 
 // ============================================
 // BASE SCHEMAS
@@ -26,17 +27,6 @@ const commentSchema = z
   .trim()
   .min(3, 'El comentario debe tener al menos 3 caracteres')
   .max(5000, 'El comentario no puede exceder 5000 caracteres')
-
-// The format alone lets 2026-02-31 through, and MySQL then fails with a 500
-function isCalendarDate(value: string): boolean {
-  const d = new Date(`${value}T00:00:00Z`)
-  return !Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === value
-}
-
-const calendarDateSchema = z
-  .string()
-  .regex(/^\d{4}-\d{2}-\d{2}$/, 'Formato de fecha inválido. Usa YYYY-MM-DD')
-  .refine(isCalendarDate, 'La fecha no existe')
 
 const dateSchema = calendarDateSchema.optional()
 
