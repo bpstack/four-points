@@ -7,19 +7,22 @@
 ## What it does
 
 Registry of individuals banned from the hotel. Each entry records the person's
-name, document type and number (DNI/Passport/NIE/Other), reason for the ban, one
-or more photos (stored in Cloudinary as a JSON array), a free-text description,
-and a full audit trail of all changes. Entries can be soft-deleted and later
+name, document type and number (DNI/Passport/NIE/Other), the stay dates, the
+reason for the ban, a severity, up to five photos (Cloudinary URLs in a JSON
+array), free-text comments, and a full audit trail of all changes. Entries can be soft-deleted and later
 restored. All users except `mantenimiento` can read the list; creating, editing,
 and deleting requires authentication.
 
 ## DB table — `blacklist_entries`
 
-Single table: `id`, `name`, `document_type` (enum: DNI/PASSPORT/NIE/OTHER),
-`document_number`, `reason`, `description`, `images` (JSON array of Cloudinary
-URLs + public IDs), `audit_trail` (JSON array of `AuditEntry` objects),
-`is_deleted` (soft delete flag), `deleted_by`, `deleted_at`, `created_by`,
-`created_at`, `updated_at`.
+Single table (`backend/db-mysql/aiven/12_blacklist.sql`): `id`, `guest_name`,
+`document_type` (enum: DNI/PASSPORT/NIE/OTHER), `document_number`,
+`check_in_date`, `check_out_date`, `reason`, `severity` (enum:
+LOW/MEDIUM/HIGH/CRITICAL), `comments`, `images` (JSON array of Cloudinary URLs;
+since 2026-10-02 only URLs of our cloud inside `blacklist/` are accepted),
+`status` (enum: ACTIVE/DELETED — the soft delete), `deleted_at`, `deleted_by`,
+`created_by`, `created_at`, `updated_at`, `audit_trail` (JSON array of
+`AuditEntry` objects).
 
 The `audit_trail` column is an in-row JSON log — every create, update, and
 delete appends an `AuditEntry` `{ action, changed_by, timestamp, changes }` to
@@ -84,12 +87,12 @@ backoffice module. Do not move or rename it without updating both importers.
 
 ## Soft delete / restore
 
-- `DELETE /:id` — sets `is_deleted = 1`, records `deleted_by` and `deleted_at`,
+- `DELETE /:id` — sets `status = 'DELETED'`, records `deleted_by` and `deleted_at`,
   appends `{ action: 'deleted' }` to audit trail.
-- `PATCH /:id/restore` — sets `is_deleted = 0`, clears
+- `PATCH /:id/restore` — sets `status = 'ACTIVE'`, clears
   `deleted_by`/`deleted_at`, appends `{ action: 'restored' }` to audit trail.
-- `getAll` by default excludes soft-deleted entries. To include them, pass
-  `includeDeleted=true` in filters.
+- `getAll` by default lists `status = 'ACTIVE'` only. Pass `status=DELETED` for
+  the deleted ones or `status=ALL` for both.
 
 ## Endpoints
 
@@ -103,7 +106,7 @@ backoffice module. Do not move or rename it without updating both importers.
 - **PATCH** `/api/blacklist/:id/restore` — all · Restore soft-deleted entry
 - **POST** `/api/blacklist/upload` — all · Upload image to Cloudinary
 - **DELETE** `/api/blacklist/upload/:publicId` — all · Delete image from
-  Cloudinary
+  Cloudinary (only ids inside `blacklist/`; any other answers 403)
 
 All routes sit behind `authenticateToken` + `excludeMantenimiento`. No
 admin-only mutations — any authenticated non-maintenance user can create, edit,

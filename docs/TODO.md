@@ -510,13 +510,6 @@ hace que alguien reimplemente lo que ya existe.
       límite de tamaño y siguen redirecciones. _Según la revisión `security` L3
       del 2026-09-28 (fichero y línea en el informe); no repasado por mí._
 
-- [ ] **Corregir el `AGENTS.md` de blacklist** — el esquema real usa
-      `guest_name` (no `name`), `comments` (no `description`), y tiene dos
-      columnas que el documento no menciona (`check_in_date`/`check_out_date` y
-      `severity`); el borrado usa `status` ACTIVE/DELETED, no un booleano
-      `is_deleted`, y el filtro es `status=ALL`, no `includeDeleted`.
-      _Comprobado por mí el 2026-09-28._
-
 - [ ] **Conciliation: el cierre mensual tiene una carrera** — la validación
       (lectura) y el cambio de estado (escritura) no comparten transacción ni
       bloqueo; dos administradores cerrando días distintos del mismo mes a la
