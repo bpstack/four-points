@@ -15,6 +15,7 @@ import {
 import { CloudinaryService } from '../../services/blacklist/cloudinary-service.js'
 import { ERROR_CODES, SUCCESS_CODES } from '../../config/error-codes.js'
 import { logger } from '../../config/logger.js'
+import { isOwnCloudinaryUrl } from '../../services/uploads/cloudinary-url.js'
 
 // ========================================
 // CONTROLLER
@@ -541,6 +542,16 @@ export class BackofficeController {
         return
       }
 
+      // The PDF must be one we uploaded: the server later downloads this URL
+      if (req.body.original_pdf_url && !isOwnCloudinaryUrl(req.body.original_pdf_url)) {
+        res.status(400).json({
+          success: false,
+          error: ERROR_CODES.INVALID_DATA,
+          code: ERROR_CODES.INVALID_DATA,
+        })
+        return
+      }
+
       // Verificar que el proveedor existe
       const supplier = await BackofficeRepository.getSupplierById(Number(supplier_id))
       if (!supplier) {
@@ -640,6 +651,16 @@ export class BackofficeController {
 
       const { id } = req.params
       const { validated_pdf_url, validated_pdf_public_id, validation_notes } = req.body
+
+      // The PDF must be one we uploaded: the server later downloads this URL
+      if (validated_pdf_url && !isOwnCloudinaryUrl(validated_pdf_url)) {
+        res.status(400).json({
+          success: false,
+          error: ERROR_CODES.INVALID_DATA,
+          code: ERROR_CODES.INVALID_DATA,
+        })
+        return
+      }
 
       logger.debug(
         {
@@ -1439,6 +1460,11 @@ export class BackofficeController {
       for (const invoice of invoices) {
         try {
           const pdfUrl = invoice.validated_pdf_url!
+          // Never fetch a stored URL outside our Cloudinary cloud (SSRF)
+          if (!isOwnCloudinaryUrl(pdfUrl)) {
+            logger.warn({ invoiceId: invoice.id }, '[downloadValidatedInvoicesZip] URL refused')
+            continue
+          }
           logger.debug(
             { invoiceNumber: invoice.invoice_number },
             '[BackofficeController.downloadValidatedInvoicesZip] Downloading'
@@ -1617,6 +1643,17 @@ export class BackofficeController {
           success: false,
           error: ERROR_CODES.BACKOFFICE_INVOICE_NOT_FOUND,
           code: ERROR_CODES.BACKOFFICE_INVOICE_NOT_FOUND,
+        })
+        return
+      }
+
+      // Never fetch a stored URL outside our Cloudinary cloud (SSRF)
+      if (!isOwnCloudinaryUrl(pdfUrl)) {
+        logger.warn({ invoiceId: id }, '[downloadInvoicePdf] PDF URL outside Cloudinary refused')
+        res.status(422).json({
+          success: false,
+          error: ERROR_CODES.INVALID_DATA,
+          code: ERROR_CODES.INVALID_DATA,
         })
         return
       }

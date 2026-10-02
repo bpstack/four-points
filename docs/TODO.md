@@ -73,12 +73,10 @@ hace que alguien reimplemente lo que ya existe.
       alterado o borrado no se puede reconstruir ni revertir.
       `backend/repositories/fnb/fnb.repository.ts`. _Comprobado por mí el
       2026-09-28._
-- [ ] **Backoffice: SSRF en la descarga de PDF** — `createInvoice` mete el
-      cuerpo entero (`original_pdf_url` del cliente) y `validateInvoice` toma
-      `validated_pdf_url` del cuerpo; `/pdf-download` y el ZIP hacen `axios.get`
-      a esa URL sin comprobar el dominio y devuelven los bytes. `/pdf-download`
-      no exige `isRealAdmin` (también `demo-admin`). _Comprobado por mí el
-      2026-09-28._
+- [ ] **Backoffice: `/pdf-download` no exige `isRealAdmin`** — también lo usa
+      `demo-admin`. La URL descargada ya se limita a nuestra nube de Cloudinary
+      (`isOwnCloudinaryUrl`, 2026-10-02); `axios` sigue las redirecciones de
+      esa URL. _Comprobado por mí el 2026-09-28._
 - [ ] **Backoffice: borrado arbitrario en Cloudinary** — los `public_id` de los
       PDF llegan del cliente y el borrado de factura los destruye. _Comprobado
       por mí el 2026-09-28._ (origen del `public_id`, según el revisor)
