@@ -36,11 +36,12 @@ export function parseListQuery(req: Request, res: Response): LogbookListQuery | 
 export async function createLogbook(req: Request, res: Response): Promise<void> {
   try {
     const validatedData = createLogbookSchema.parse(req.body)
-    const logbook = await logbookRepo.createLogbook(validatedData)
+    const authorId = req.user!.id
+    const logbook = await logbookRepo.createLogbook({ ...validatedData, author_id: authorId })
 
     await historyService.logAction({
       logbook_id: logbook.id,
-      editor_id: validatedData.author_id,
+      editor_id: authorId,
       action: 'create',
       new_content: validatedData.message,
       department_id: validatedData.department_id,

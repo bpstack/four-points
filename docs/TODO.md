@@ -195,11 +195,6 @@ hace que alguien reimplemente lo que ya existe.
       `SECRET_JWT_KEY` ya se cambió el 2026-09-29 en Render y en local (el
       backend exige ahora 32 caracteres o más); el propietario lo generó sin
       pasarlo por el agente.
-- [ ] **Logbook: cualquiera puede crear entradas en nombre de otro** —
-      `createLogbook` (`backend/controllers/logbook/logbook-controllers.ts`)
-      guarda el `author_id` que manda el cliente, no `req.user.id`. Rompe la
-      autoría y el historial del módulo. _Comprobado el 2026-09-28: el esquema
-      Zod lo exige en el cuerpo y el frontend lo rellena con `user.id`._
 - [ ] **Medir la protección contra timing attacks del login** — `DUMMY_HASH`
       (`backend/repositories/auth/user-repository.ts`) es un hash bcrypt de
       coste 10, igual que los 22 de Aiven (_comprobado el 2026-09-29_; si se

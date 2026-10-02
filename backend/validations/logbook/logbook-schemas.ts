@@ -50,9 +50,10 @@ export const createLogbookSchema = z.object({
   message: messageSchema,
   importance_level: importanceLevelEnum,
   department_id: departmentIdSchema,
-  author_id: authorIdSchema,
   date: dateSchema,
 })
+// No author_id: the author is always the logged-in user (req.user.id). An
+// author_id sent by older clients is stripped, not trusted.
 
 export const updateLogbookSchema = createLogbookSchema
   .pick({

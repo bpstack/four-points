@@ -37,6 +37,13 @@ describe('messages and comments', () => {
   })
 })
 
+describe('authorship', () => {
+  it('drops an author_id sent by the client; the controller uses req.user.id', () => {
+    const parsed = createLogbookSchema.parse({ ...entry, author_id: author })
+    expect(parsed).not.toHaveProperty('author_id')
+  })
+})
+
 describe('dates', () => {
   it('accepts real days, including 29 February of a leap year', () => {
     expect(createLogbookSchema.safeParse({ ...entry, date: '2026-09-28' }).success).toBe(true)
