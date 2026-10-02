@@ -15,6 +15,7 @@ import {
   mergeByTimestamp,
 } from '../../services/activity/activity-access.js'
 import { logger } from '../../config/logger.js'
+import { isCalendarDate } from '../../validations/common/calendar-date.js'
 
 export class ActivityController {
   /**
@@ -49,8 +50,7 @@ export class ActivityController {
         return
       }
 
-      const datePattern = /^\d{4}-\d{2}-\d{2}$/
-      if (date && !datePattern.test(date)) {
+      if (date && !isCalendarDate(date)) {
         res.status(400).json({
           success: false,
           error: ERROR_CODES.ACTIVITY_INVALID_DATE_FORMAT,
@@ -58,7 +58,7 @@ export class ActivityController {
         })
         return
       }
-      if ((dateFrom && !datePattern.test(dateFrom)) || (dateTo && !datePattern.test(dateTo))) {
+      if ((dateFrom && !isCalendarDate(dateFrom)) || (dateTo && !isCalendarDate(dateTo))) {
         res.status(400).json({
           success: false,
           error: ERROR_CODES.ACTIVITY_INVALID_DATE_FORMAT,

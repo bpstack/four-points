@@ -1,6 +1,7 @@
 // validations/scheduling/scheduling-schemas.ts
 
 import { z } from 'zod'
+import { isCalendarDate } from '../common/calendar-date.js'
 
 // ============================================
 // BASE SCHEMAS
@@ -53,6 +54,7 @@ const monthSchema = z
 const dateSchema = z
   .string()
   .regex(/^\d{4}-\d{2}-\d{2}$/, 'Formato de fecha inválido. Usa YYYY-MM-DD')
+  .refine(isCalendarDate, 'La fecha no existe')
 
 const employeeIdSchema = z.string().uuid('El employee_id debe ser un UUID válido')
 

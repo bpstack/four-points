@@ -8,6 +8,7 @@ import { CashierPaymentRepository } from '../../repositories/cashier/cashier-pay
 import { ShiftStatus } from '../../models/cashier/index.js'
 import { getTodayMadrid } from '../../config/date-utils.js'
 import { logger } from '../../config/logger.js'
+import { isCalendarDate } from '../../validations/common/calendar-date.js'
 import {
   requiredDateRangeQuerySchema,
   vouchersHistoryQuerySchema,
@@ -96,7 +97,7 @@ export class CashierReportController {
       const date = req.params.date
 
       // Validar formato de fecha
-      if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+      if (!isCalendarDate(date)) {
         return res.status(400).json({
           success: false,
           error: 'Formato de fecha inválido (debe ser YYYY-MM-DD)',

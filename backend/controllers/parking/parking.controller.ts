@@ -9,6 +9,7 @@ import {
 import { getTodayMadrid } from '../../config/date-utils.js'
 import type { LevelCode } from '../../models/parking/index.js'
 import { logger } from '../../config/logger.js'
+import { isCalendarDate } from '../../validations/common/calendar-date.js'
 
 interface MySQLError extends Error {
   code?: string
@@ -304,12 +305,9 @@ export const searchVehicles = async (req: Request, res: Response): Promise<void>
 
 function isValidDate(dateString: string): boolean {
   // Validar formato YYYY-MM-DD
-  const regex = /^\d{4}-\d{2}-\d{2}$/
-  if (!regex.test(dateString)) return false
-
-  // Validar que sea una fecha real
-  const date = new Date(dateString + 'T00:00:00Z')
-  return date instanceof Date && !isNaN(date.getTime())
+  // new Date('2026-02-31T00:00:00Z') is a valid date (3 March), so check the
+  // day really exists
+  return isCalendarDate(dateString)
 }
 // -------------------
 

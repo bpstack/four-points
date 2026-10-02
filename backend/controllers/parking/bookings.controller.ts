@@ -9,6 +9,7 @@ import { getNowMadrid } from '../../config/date-utils.js'
 import { ERROR_CODES, SUCCESS_CODES } from '../../config/error-codes.js'
 import type { BookingFilters, UpdateBookingDTO } from '../../models/parking/index.js'
 import { logger } from '../../config/logger.js'
+import { isCalendarDate } from '../../validations/common/calendar-date.js'
 
 class ParkingBookingsController {
   // ============================================
@@ -54,8 +55,7 @@ class ParkingBookingsController {
         const status = req.query.status as BookingFilters['status'] | undefined
 
         // Validar formato de fechas (YYYY-MM-DD)
-        const dateRegex = /^\d{4}-\d{2}-\d{2}$/
-        if (!dateRegex.test(startDate)) {
+        if (!isCalendarDate(startDate)) {
           res.status(400).json({
             success: false,
             error: ERROR_CODES.PARKING_INVALID_START_DATE,
@@ -63,7 +63,7 @@ class ParkingBookingsController {
           })
           return
         }
-        if (endDate && !dateRegex.test(endDate)) {
+        if (endDate && !isCalendarDate(endDate)) {
           res.status(400).json({
             success: false,
             error: ERROR_CODES.PARKING_INVALID_END_DATE,

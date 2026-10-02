@@ -1,6 +1,7 @@
 // validations/group/group-schemas.ts
 
 import { z } from 'zod'
+import { isCalendarDate } from '../common/calendar-date.js'
 import {
   GroupStatus,
   RoomType,
@@ -14,6 +15,7 @@ import { ERROR_CODES } from '../../config/error-codes.js'
 const dateString = z
   .string()
   .regex(/^\d{4}-\d{2}-\d{2}(T[\d:.]+(Z|[+-]\d{2}:\d{2})?)?$/, 'Fecha no válida')
+  .refine((v) => isCalendarDate(v.slice(0, 10)), 'La fecha no existe')
 const money = z.number().min(0, 'El importe no puede ser negativo').max(99_999_999)
 const text = (max: number) => z.string().trim().max(max, `Máximo ${max} caracteres`)
 

@@ -34,6 +34,7 @@ import type {
   AnnualTotalsResponse,
 } from '../../models/scheduling/index.js'
 import { logger } from '../../config/logger.js'
+import { isCalendarDate } from '../../validations/common/calendar-date.js'
 
 function isDateInRange(date: string, start: string, end: string): boolean {
   return date >= start && date <= end
@@ -1840,8 +1841,7 @@ export async function initializeContractForEmployee(req: Request, res: Response)
 
     // Validate startDate format if provided
     if (startDate) {
-      const dateRegex = /^\d{4}-\d{2}-\d{2}$/
-      if (!dateRegex.test(startDate)) {
+      if (!isCalendarDate(startDate)) {
         res.status(400).json({ error: 'Formato de fecha inválido. Use YYYY-MM-DD' })
         return
       }
@@ -1904,8 +1904,7 @@ export async function calculateProportionalContract(req: Request, res: Response)
       return
     }
 
-    const dateRegex = /^\d{4}-\d{2}-\d{2}$/
-    if (!dateRegex.test(startDate)) {
+    if (!isCalendarDate(startDate)) {
       res.status(400).json({ error: 'Formato de fecha inválido. Use YYYY-MM-DD' })
       return
     }

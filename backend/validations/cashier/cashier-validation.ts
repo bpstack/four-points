@@ -1,9 +1,13 @@
 // validations/cashier/cashier-validation.ts
 
 import { z } from 'zod'
+import { isCalendarDate } from '../common/calendar-date.js'
 import { ERROR_CODES } from '../../config/error-codes.js'
 
-const date = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Fecha no válida (AAAA-MM-DD)')
+const date = z
+  .string()
+  .regex(/^\d{4}-\d{2}-\d{2}$/, 'Fecha no válida (AAAA-MM-DD)')
+  .refine(isCalendarDate, 'La fecha no existe')
 const money = z.number().min(0, 'El importe no puede ser negativo').max(10_000_000)
 const text = (max: number) => z.string().trim().max(max, `Máximo ${max} caracteres`)
 const limit = (max: number) => z.coerce.number().int().min(1).max(max)

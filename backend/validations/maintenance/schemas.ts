@@ -5,6 +5,7 @@
  */
 
 import { z } from 'zod'
+import { isCalendarDate } from '../common/calendar-date.js'
 import { ERROR_CODES } from '../../config/error-codes.js'
 
 // description, resolution_notes and history notes are TEXT columns (65,535
@@ -248,15 +249,18 @@ export const reportFiltersSchema = z.object({
   date: z
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/, 'date debe tener formato YYYY-MM-DD')
+    .refine(isCalendarDate, 'La fecha no existe')
     .optional(),
   // Range filters (keep for backwards compatibility)
   date_from: z
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/, 'date_from debe tener formato YYYY-MM-DD')
+    .refine(isCalendarDate, 'La fecha no existe')
     .optional(),
   date_to: z
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/, 'date_to debe tener formato YYYY-MM-DD')
+    .refine(isCalendarDate, 'La fecha no existe')
     .optional(),
   include_deleted: z
     .string()

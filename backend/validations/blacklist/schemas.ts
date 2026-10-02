@@ -163,10 +163,12 @@ export const blacklistFiltersSchema = z.object({
   from_date: z
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/, 'from_date debe tener formato YYYY-MM-DD')
+    .refine(isCalendarDate, 'La fecha no existe')
     .optional(),
   to_date: z
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/, 'to_date debe tener formato YYYY-MM-DD')
+    .refine(isCalendarDate, 'La fecha no existe')
     .optional(),
   page: z.coerce.number().int('page debe ser entero').positive('page debe ser positivo').default(1),
   limit: z.coerce
