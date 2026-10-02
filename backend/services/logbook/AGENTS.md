@@ -124,6 +124,18 @@ Route prefix: `/api/logbooks` (mounted in `backend/index.ts`).
 The whole subroute sits behind `authenticateToken` + `excludeMantenimiento`.
 Mantenimiento doesn't enter.
 
+Input checks (since 2026-10-02):
+
+- Every `:id`, `:logbookId`, `:commentId`, `:departmentId`, `:authorId` and
+  `:day` is validated by `validateParams(router, LOGBOOK_PARAM_RULES)`
+  (`middlewares/validateParams.ts`) before any controller runs: 400 if invalid.
+- `limit` (1-500), `offset` (≥ 0) and the report filters go through
+  `logbookListQuerySchema`; dates must be real calendar days.
+- The author of a new entry is always `req.user.id`; an `author_id` in the body
+  is stripped.
+- Editing someone else's entry answers 403 `LOGBOOK_ONLY_AUTHOR_UPDATE`
+  (`controllers/logbook/logbook-errors.ts`).
+
 **Important:** `GET /trashed` is declared **before** the `:id` routes so Express
 doesn't capture it as an id. If you reorder, mind that order.
 

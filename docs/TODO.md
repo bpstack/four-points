@@ -277,18 +277,6 @@ hace que alguien reimplemente lo que ya existe.
       `event_scheduler=ON` y el evento está `ENABLED` (última ejecución en
       Aiven: 2026-09-27)._
 
-- [ ] **Corregir `backend/services/logbook/AGENTS.md`** — describe tres tablas
-      (`logbook_solved`, `logbook_pending`, `logbook_comments_history`) que
-      ningún script SQL crea y ningún código usa: resolver y reabrir escriben en
-      columnas de `logbooks` (`is_solved`, `solved_at`, `solved_by`) y el
-      historial de comentarios va a `logbook_history` con `type = 'comment'`.
-      Además dice `is_deleted` (es `deleted_at`), `/api/logbook` (es
-      `/api/logbooks`) y actualizaciones optimistas que `useLogbooks` no hace.
-      _Comprobado el 2026-09-28 en el código, los `.sql` versionados, el
-      historial de Git (los nombres solo aparecen en los commits de docs
-      `568bc98` y `2be5df9`) y en las BD local y Aiven, donde solo existen
-      `logbooks`, `logbook_comments`, `logbook_reads` y `logbook_history`._
-
 - [ ] **Adaptar el harness a repos con varios proyectos e implantarlo** — en el
       repo `harness` (`C:\Users\dz\projects\harness` en el PC principal):
       soportar repos sin `package.json` ni lockfile en la raíz (aquí `frontend/`
