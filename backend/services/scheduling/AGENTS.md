@@ -149,8 +149,10 @@ To add a new constraint to the validator, see § "Adding a new constraint" below
 
 Numeric table with the soft-catalog weights. **Source of truth for weights:**
 this file. The textual spec is in `docs/scheduling/constraints.md §3`. The same
-weights are mirrored in `model.py` on the Python solver so both sides produce
-comparable numbers.
+weights are **not** mirrored in the Python solver: `model.py` has four weights
+of its own (`W_NIGHT_BALANCE`, `W_ISOLATED_L`, `W_SHIFT_PRIORITY`,
+`W_SHORT_WORK_BLOCK`) against the twelve keys here, and only
+`min_work_block_short` (3) matches by name and value (checked 2026-10-02).
 
 **JSDoc `@emitter` convention:** every weight carries an `@emitter <path>` tag
 pointing at the file that currently emits that soft penalty. If you add a new
@@ -316,7 +318,7 @@ Full routing in `routes/scheduling/scheduling-routes.ts` with
 - `M` — Morning
 - `T` — Afternoon
 - `N` — Night
-- `PI` — Internal Support
+- `PI` — Personal Intervención (work shift, 09:00–17:00)
 - `P` — Presencia (requires `fixedShift=P` + `fixedDays` or it gets excluded
   from the solver)
 
@@ -327,7 +329,7 @@ Full routing in `routes/scheduling/scheduling-routes.ts` with
 - `B` — Bonificable (compensated holiday — locked)
 - `E` — Sick day (eventual, point-in-time — locked)
 - `IT` — Incapacidad Temporal (extended sick leave — locked)
-- `FO` — Day Off (compensatory off — locked)
+- `FO` — Formación (training day, not a work shift — locked)
 - `A` — Unjustified absence (locked, usually entered after the fact)
 - `LI` — Libre Disposición (extra free day outside the weekly rotation — locked)
 

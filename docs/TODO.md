@@ -466,11 +466,6 @@ hace que alguien reimplemente lo que ya existe.
       busca en paralelo: dos ejecuciones del mismo mes pueden dar horarios
       distintos. Decidir si se fija semilla y un solo hilo. _Comprobado por mí
       el 2026-09-28._
-- [ ] **Corregir los `AGENTS.md` de scheduling** — `PI` es «Personal
-      Intervención» y `FO` «Formación» (no «Internal Support» ni «Day Off»); los
-      pesos no están reflejados entre validador y solver (12 claves frente a 4,
-      solo coincide `min_work_block_short`). _Comprobado por mí el 2026-09-28._
-
 - [ ] **Checklist: el reinicio manual no funciona** — `resetRun` cierra el run y
       crea otro del mismo día, pero la clave única
       `uk_run (hotel_id,     checklist_id, hotel_date)` lo impide: 500. Después

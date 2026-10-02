@@ -63,7 +63,7 @@ export const SOFT_WEIGHTS = {
   shift_variety_low: 1,
   /**
    * Rotation pattern continuity broken (incl. cross-month), flat per employee
-   * @emitter constraints/rotation-continuity.constraint.ts
+   * @emitter schedule-validator.ts (VALIDATION 4c)
    */
   rotation_continuity_break: 4,
   /**
