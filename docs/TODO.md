@@ -644,9 +644,6 @@ hace que alguien reimplemente lo que ya existe.
 - [ ] **Mensajería sin tiempo real** — los mensajes nuevos solo aparecen al
       reabrir la conversación. Valorar un sondeo periódico como el de las
       notificaciones. _Comprobado el 2026-09-28: no hay intervalo ni WebSocket._
-- [ ] **Notificaciones de mensajes con `module: 'system'`** — el enum de
-      notificaciones no incluye `messages` y el controlador lo fuerza con
-      `as any` (`backend/controllers/messages/message-controller.ts`).
 - [ ] **Quitar código muerto** (en un `chore:` aparte) —
       `frontend/app/api/auth/{login,logout,me,refresh}` y
       `_backup_httponly_cookies/`, más `frontend/app/lib/auth/cookieHandler.ts`

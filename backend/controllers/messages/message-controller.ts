@@ -8,6 +8,12 @@ import { MESSAGE_CONSTANTS } from '../../models/messages/index.js'
 import { ERROR_CODES, SUCCESS_CODES } from '../../config/error-codes.js'
 import { logger } from '../../config/logger.js'
 import {
+  NotificationModule,
+  NotificationRelatedTo,
+  NotificationPriority,
+  NotificationStatus,
+} from '../../models/notifications/index.js'
+import {
   messagePageQuerySchema,
   searchQuerySchema,
 } from '../../validations/messages/message-schemas.js'
@@ -437,14 +443,14 @@ export class MessageController {
 
       // Crear notificacion
       const notification = await NotificationRepository.create({
-        module: 'system' as any, // Usamos system ya que 'messages' no esta en el enum aun
-        related_to: 'message' as any,
+        module: NotificationModule.MESSAGES,
+        related_to: NotificationRelatedTo.MESSAGE,
         related_id: messageId,
         direct_link: `/dashboard/profile?panel=messages&chat=${conversationId}`,
         title: `Mensaje de ${senderName}`,
         message: contentPreview,
-        priority: 'high' as any,
-        status: 'sent' as any,
+        priority: NotificationPriority.HIGH,
+        status: NotificationStatus.SENT,
       })
 
       // Añadir recipients
