@@ -141,7 +141,9 @@ hace que alguien reimplemente lo que ya existe.
       contraseña de una cuenta de prueba) y dos scripts SQL con contraseñas en
       claro en comentarios (`20260520_insert_user_example.sql`,
       `20260512_add_scheduling_solver_runs_and_requests.sql`). Están en el
-      historial desde `f5d47d6` y en el remoto privado. Sacarlos del historial
+      historial desde `f5d47d6` y en el remoto privado. `backend/.env.example`
+      también llevaba host, usuario y contraseñas de Aiven hasta el 2026-10-02
+      (ya sin valores, pero siguen en el historial). Sacarlos del historial
       en la fase 2 y rotar (ver la entrada de rotación). _Comprobado por mí el
       2026-09-28._
 - [ ] **Logbook: un comentario cambia la prioridad o el departamento de una
@@ -252,11 +254,6 @@ hace que alguien reimplemente lo que ya existe.
       `NEXT_LOCALE`, geolocalización de Vercel y `Accept-Language`
       (`frontend/app/i18n/request.ts`). También cita Nodemailer como servicio
       externo y no se usa. _Comprobado el 2026-09-28._
-- [ ] **Actualizar los `.env.example`** — backend: faltan `DB_ENVIRONMENT`,
-      `LOG_LEVEL` y `FRONTEND_URL`; sobran `AI_ENABLED`, `CLAUDE_*` y
-      `GEMINI_*`. Frontend: falta `NEXT_PUBLIC_APP_URL`; sobra
-      `NEXT_PUBLIC_APP_NAME`. _Comprobado el 2026-09-28 contra los `process.env`
-      del código versionado._
 - [ ] **Comprobar si los cron se ejecutan en Render** — corren dentro del
       proceso del backend; si el plan gratuito lo duerme por inactividad, no se
       disparan. _No comprobado._
