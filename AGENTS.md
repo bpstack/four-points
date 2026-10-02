@@ -40,8 +40,7 @@ side exists on the other — that is exactly how the two Zod majors coexist.
   same `SECRET_JWT_KEY`
 - **Validation**: Zod
 - **Testing**: Vitest
-- **External Services**: Cloudinary (images/PDFs). Nodemailer is declared as a
-  dependency but not imported anywhere — email is not in use
+- **External Services**: Cloudinary (images/PDFs). No email sending
 - **Package Manager**: pnpm
 
 ## Up-to-date Documentation (Context7 MCP)
@@ -133,7 +132,7 @@ in `package.json`)
 - **`typescript`** 5.7.3 (frontend) / 5.9.3 (backend) — Different versions per
   project
 
-Lower risk, but verify when touched: `nodemailer` 7.0.10, `node-cron` 4.2.1,
+Lower risk, but verify when touched: `node-cron` 4.2.1,
 `express-rate-limit` 8.2.1, `helmet` 8.1.0, `pino` 10.3.1, `archiver` 7.0.1,
 `mysql2` 3.14.2 (backend) / 3.15.0 (frontend).
 
@@ -958,9 +957,8 @@ Get-ChildItem -Recurse -Include *.js,*.ts -Exclude node_modules,dist | Select-St
 ## External Services
 
 - **Cloudinary**: Image upload and storage
-- **Nodemailer**: declared as a dependency but not imported anywhere (the
-  unused `email-service.ts` was removed on 2026-10-02) — email sending is not
-  in use
+- **Email**: none. The unused `email-service.ts` and the `nodemailer`
+  dependency were removed on 2026-10-02
 
 ## Development Workflow
 

@@ -650,10 +650,8 @@ hace que alguien reimplemente lo que ya existe.
 - [ ] **Quitar código muerto** (en un `chore:` aparte) —
       `frontend/app/api/auth/{login,logout,me,refresh}` y
       `_backup_httponly_cookies/`, más `frontend/app/lib/auth/cookieHandler.ts`
-      (solo se usa `app/api/auth/register`); las dependencias del frontend
-      `mysql2`, `postgres`, `bcrypt` y `next-auth`, que nada importa; y
-      `nodemailer` y `@types/nodemailer` en el backend, sin uso desde que se
-      quitó `email-service.ts`. Los `backend/debug-*.js` que cita
+      (solo se usa `app/api/auth/register`); y las dependencias del frontend
+      `mysql2`, `postgres`, `bcrypt` y `next-auth`, que nada importa. Los `backend/debug-*.js` que cita
       `backend/scheduling-solver/AGENTS.md` no están en el repositorio:
       quitar la mención o versionarlos. _Comprobado el 2026-09-28 con búsqueda
       de imports; backend revisado el 2026-10-02._
