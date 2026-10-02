@@ -429,10 +429,6 @@ hace que alguien reimplemente lo que ya existe.
       usa `canViewGroups` (incluye `mantenimiento`); sin clave única, varias
       peticiones a la vez crean avisos duplicados. _Según la revisión `security`
       L3 del 2026-09-28 (fichero y línea en el informe); no repasado por mí._
-- [ ] **`direct_link` de las notificaciones admite cualquier URL** — un `admin`
-      puede enviar un aviso que, al pulsarlo, lleva a una web externa. _Según la
-      revisión `security` L3 del 2026-09-28 (fichero y línea en el informe); no
-      repasado por mí._
 - [ ] **Cabeceras del frontend en producción incompletas para L3** — Vercel
       sirve HSTS, `X-Frame-Options`, `nosniff`, `Referrer-Policy` y
       `Permissions-Policy`, pero no CSP ni `Cross-Origin-Opener-Policy`; HSTS
@@ -487,12 +483,10 @@ hace que alguien reimplemente lo que ya existe.
       y `group_history` tiene `ON DELETE CASCADE`; ninguna mutación va en
       transacción con su registro. _Comprobado por mí el 2026-09-28._
       (transacciones, según el revisor)
-- [ ] **Notificaciones manuales: destinatarios y textos sin validar** —
-      cualquier id de usuario (inactivos incluidos), prioridad sin comprobar,
-      título y mensaje sin límite.
-      _Según la revisión `security` L3 del 2026-09-28 (fichero y línea en el
-      informe); no repasado por mí._
-
+- [ ] **Notificaciones manuales: se pueden enviar a usuarios inactivos** — el
+      formato, los repetidos, la prioridad y los textos ya se validan; que el
+      usuario exista y esté activo, no. _Según la revisión `security` L3 del
+      2026-09-28 (fichero y línea en el informe); no repasado por mí._
 - [ ] **Scheduling: generar un mes deja vacías las celdas de días fijos y
       solicitudes aprobadas** — el solver las recibe como bloqueadas, la
       generación no las reinserta y el borrado previo se las lleva. En Aiven, en
