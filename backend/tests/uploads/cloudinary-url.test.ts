@@ -4,7 +4,11 @@
 // URLs inside our own Cloudinary cloud may be fetched.
 
 import { describe, it, expect } from 'vitest'
-import { isOwnCloudinaryUrl } from '../../services/uploads/cloudinary-url.js'
+import {
+  isOwnCloudinaryUrl,
+  isPublicIdInFolder,
+  CLOUDINARY_FOLDERS,
+} from '../../services/uploads/cloudinary-url.js'
 
 const cloud = 'fourpoints'
 const ok = (url: string) => isOwnCloudinaryUrl(url, cloud)
@@ -43,5 +47,42 @@ describe('isOwnCloudinaryUrl', () => {
       false
     )
     expect(isOwnCloudinaryUrl(42, cloud)).toBe(false)
+  })
+})
+
+// Regression tests for arbitrary deletes in Cloudinary: public ids came from
+// the client (blacklist DELETE /upload/:publicId, invoice bodies) and were
+// destroyed without checking which module they belong to.
+describe('isPublicIdInFolder', () => {
+  it('accepts ids the modules really create', () => {
+    expect(
+      isPublicIdInFolder('blacklist/blacklist_1727000000000_foto', CLOUDINARY_FOLDERS.blacklist)
+    ).toBe(true)
+    expect(
+      isPublicIdInFolder(
+        'backoffice/invoices/pdf_1727000000000_factura_123',
+        CLOUDINARY_FOLDERS.invoices
+      )
+    ).toBe(true)
+  })
+
+  it("rejects other modules' files and malformed ids", () => {
+    for (const id of [
+      'avatars/avatar_1727_me',
+      'maintenance/maintenance_1727_grifo',
+      'backoffice/invoices/pdf_1',
+      'backoffice/assets/sello',
+      'blacklistx/foto',
+      'blacklist',
+      'blacklist/',
+      'blacklist//foto',
+      'blacklist/../avatars/me',
+      'blacklist/foto.jpg',
+      '',
+    ]) {
+      expect(isPublicIdInFolder(id, CLOUDINARY_FOLDERS.blacklist), id).toBe(false)
+    }
+    expect(isPublicIdInFolder('backoffice/assets/sello', CLOUDINARY_FOLDERS.invoices)).toBe(false)
+    expect(isPublicIdInFolder(null, CLOUDINARY_FOLDERS.invoices)).toBe(false)
   })
 })

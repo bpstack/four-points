@@ -26,3 +26,24 @@ export function isOwnCloudinaryUrl(
     url.pathname.startsWith(`/${cloudName}/`)
   )
 }
+
+// Cloudinary folders each module uploads to (services/blacklist/cloudinary-service.ts)
+export const CLOUDINARY_FOLDERS = {
+  blacklist: 'blacklist',
+  invoices: 'backoffice/invoices',
+} as const
+
+/**
+ * True when `publicId` names a file inside `folder`. Public ids reach the
+ * delete calls from the client or from stored rows the client wrote, so
+ * without this a request could destroy any file of the cloud.
+ */
+export function isPublicIdInFolder(publicId: unknown, folder: string): publicId is string {
+  return (
+    typeof publicId === 'string' &&
+    publicId.startsWith(`${folder}/`) &&
+    /^[A-Za-z0-9_\-/]+$/.test(publicId) &&
+    !publicId.includes('//') &&
+    !publicId.endsWith('/')
+  )
+}

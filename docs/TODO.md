@@ -50,11 +50,11 @@ hace que alguien reimplemente lo que ya existe.
       de autorización de objeto. Está documentado como intencional en el
       `AGENTS.md` del módulo, pero conviene registrarlo como riesgo aceptado en
       vez de dejarlo implícito. _Comprobado por mí el 2026-09-28._
-- [ ] **Blacklist: `DELETE /upload/:publicId` borra cualquier recurso de
-      Cloudinary** — el `publicId` no se comprueba contra ninguna entrada; con
-      un id adivinado o filtrado se puede borrar cualquier imagen del cloud
-      name, también de otros módulos (mismo patrón que backoffice). _Comprobado
-      por mí el 2026-09-28._
+- [ ] **Blacklist: `DELETE /upload/:publicId` borra cualquier imagen de la
+      lista negra** — desde el 2026-10-02 solo admite ids de la carpeta
+      `blacklist/`, pero no comprueba que la imagen sea de una entrada que el
+      usuario pueda tocar (ver la entrada anterior sobre autorización por fila).
+      _Comprobado por mí el 2026-09-28._
 - [ ] **Fnb: cualquier rol con acceso puede borrar o fabricar ingresos, sin capa
       de autorización por operación** — `canAccessFnb` protege todo el router
       con la misma lista de roles (`admin`, `recepcionista`, `group-admin`,
@@ -77,9 +77,6 @@ hace que alguien reimplemente lo que ya existe.
       `demo-admin`. La URL descargada ya se limita a nuestra nube de Cloudinary
       (`isOwnCloudinaryUrl`, 2026-10-02); `axios` sigue las redirecciones de
       esa URL. _Comprobado por mí el 2026-09-28._
-- [ ] **Backoffice: borrado arbitrario en Cloudinary** — los `public_id` de los
-      PDF llegan del cliente y el borrado de factura los destruye. _Comprobado
-      por mí el 2026-09-28._ (origen del `public_id`, según el revisor)
 - [ ] **Backoffice: PDFs de facturas, sello y firma públicos en Cloudinary** —
       `uploadPdf` usa `type: 'upload'` y `access_mode: 'public'`; las facturas
       llevan CIF, IBAN e importes, y la URL firmada no protege nada. Con el

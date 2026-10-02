@@ -17,6 +17,7 @@ import type { BlacklistFilters } from '../../models/blacklist/index.js'
 import { ERROR_CODES, SUCCESS_CODES } from '../../config/error-codes.js'
 import { logger } from '../../config/logger.js'
 import { isImageFile } from '../../services/uploads/image-signature.js'
+import { isPublicIdInFolder, CLOUDINARY_FOLDERS } from '../../services/uploads/cloudinary-url.js'
 
 // ========================================
 // CONTROLLER
@@ -510,6 +511,17 @@ export class BlacklistController {
 
       // Decodificar el publicId (puede venir con / codificado)
       const decodedPublicId = decodeURIComponent(publicId)
+
+      // Only blacklist images: any other id would delete files of other
+      // modules (invoices, maintenance photos, avatars)
+      if (!isPublicIdInFolder(decodedPublicId, CLOUDINARY_FOLDERS.blacklist)) {
+        res.status(403).json({
+          success: false,
+          error: ERROR_CODES.FORBIDDEN,
+          code: ERROR_CODES.FORBIDDEN,
+        })
+        return
+      }
 
       const deleted = await CloudinaryService.deleteImage(decodedPublicId)
 

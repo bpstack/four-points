@@ -15,7 +15,11 @@ import {
 import { CloudinaryService } from '../../services/blacklist/cloudinary-service.js'
 import { ERROR_CODES, SUCCESS_CODES } from '../../config/error-codes.js'
 import { logger } from '../../config/logger.js'
-import { isOwnCloudinaryUrl } from '../../services/uploads/cloudinary-url.js'
+import {
+  isOwnCloudinaryUrl,
+  isPublicIdInFolder,
+  CLOUDINARY_FOLDERS,
+} from '../../services/uploads/cloudinary-url.js'
 
 // ========================================
 // CONTROLLER
@@ -543,7 +547,11 @@ export class BackofficeController {
       }
 
       // The PDF must be one we uploaded: the server later downloads this URL
-      if (req.body.original_pdf_url && !isOwnCloudinaryUrl(req.body.original_pdf_url)) {
+      if (
+        (req.body.original_pdf_url && !isOwnCloudinaryUrl(req.body.original_pdf_url)) ||
+        (req.body.original_pdf_public_id &&
+          !isPublicIdInFolder(req.body.original_pdf_public_id, CLOUDINARY_FOLDERS.invoices))
+      ) {
         res.status(400).json({
           success: false,
           error: ERROR_CODES.INVALID_DATA,
@@ -653,7 +661,11 @@ export class BackofficeController {
       const { validated_pdf_url, validated_pdf_public_id, validation_notes } = req.body
 
       // The PDF must be one we uploaded: the server later downloads this URL
-      if (validated_pdf_url && !isOwnCloudinaryUrl(validated_pdf_url)) {
+      if (
+        (validated_pdf_url && !isOwnCloudinaryUrl(validated_pdf_url)) ||
+        (validated_pdf_public_id &&
+          !isPublicIdInFolder(validated_pdf_public_id, CLOUDINARY_FOLDERS.invoices))
+      ) {
         res.status(400).json({
           success: false,
           error: ERROR_CODES.INVALID_DATA,
@@ -915,12 +927,13 @@ export class BackofficeController {
       )
 
       // Eliminar PDFs de Cloudinary (opción estricta: falla todo si Cloudinary falla)
-      if (invoice.original_pdf_public_id) {
+      // Only files in the invoices folder: stored ids may have come from a client
+      if (isPublicIdInFolder(invoice.original_pdf_public_id, CLOUDINARY_FOLDERS.invoices)) {
         await CloudinaryService.deleteFile(invoice.original_pdf_public_id, 'raw')
         logger.info('[BackofficeController.deleteInvoice] Original PDF deleted from Cloudinary')
       }
 
-      if (invoice.validated_pdf_public_id) {
+      if (isPublicIdInFolder(invoice.validated_pdf_public_id, CLOUDINARY_FOLDERS.invoices)) {
         await CloudinaryService.deleteFile(invoice.validated_pdf_public_id, 'raw')
         logger.info('[BackofficeController.deleteInvoice] Validated PDF deleted from Cloudinary')
       }
@@ -1078,7 +1091,7 @@ export class BackofficeController {
       logger.debug({ updateResult }, '[BackofficeController.uploadInvoicePdf] DB update result')
 
       // Borrar el archivo anterior de Cloudinary (solo si había uno y el upload fue exitoso)
-      if (previousPublicId && updateResult) {
+      if (isPublicIdInFolder(previousPublicId, CLOUDINARY_FOLDERS.invoices) && updateResult) {
         try {
           logger.debug(
             { previousPublicId },
