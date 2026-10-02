@@ -16,6 +16,10 @@ import { CloudinaryService } from '../../services/blacklist/cloudinary-service.j
 import { ERROR_CODES, SUCCESS_CODES } from '../../config/error-codes.js'
 import { logger } from '../../config/logger.js'
 import {
+  executeBatchPaymentSchema,
+  revertBatchPaymentSchema,
+} from '../../validations/backoffice/batch-payment.js'
+import {
   isOwnCloudinaryUrl,
   isPublicIdInFolder,
   CLOUDINARY_FOLDERS,
@@ -1878,7 +1882,16 @@ export class BackofficeController {
         return
       }
 
-      const { year, month } = req.body
+      const parsed = executeBatchPaymentSchema.safeParse(req.body ?? {})
+      if (!parsed.success) {
+        res.status(400).json({
+          success: false,
+          error: ERROR_CODES.BACKOFFICE_INVALID_MONTH,
+          code: ERROR_CODES.BACKOFFICE_INVALID_MONTH,
+        })
+        return
+      }
+      const { year, month } = parsed.data
 
       // Import CronService dynamically to avoid circular dependency
       const { CronService } = await import('../../services/cron/cron-service.js')
@@ -1974,25 +1987,16 @@ export class BackofficeController {
         return
       }
 
-      const { year, month } = req.body
-
-      if (!year || !month) {
-        res.status(400).json({
-          success: false,
-          error: ERROR_CODES.BACKOFFICE_YEAR_MONTH_REQUIRED,
-          code: ERROR_CODES.BACKOFFICE_YEAR_MONTH_REQUIRED,
-        })
+      const parsed = revertBatchPaymentSchema.safeParse(req.body ?? {})
+      if (!parsed.success) {
+        const missing = req.body?.year === undefined || req.body?.month === undefined
+        const code = missing
+          ? ERROR_CODES.BACKOFFICE_YEAR_MONTH_REQUIRED
+          : ERROR_CODES.BACKOFFICE_INVALID_MONTH
+        res.status(400).json({ success: false, error: code, code })
         return
       }
-
-      if (month < 1 || month > 12) {
-        res.status(400).json({
-          success: false,
-          error: ERROR_CODES.BACKOFFICE_INVALID_MONTH,
-          code: ERROR_CODES.BACKOFFICE_INVALID_MONTH,
-        })
-        return
-      }
+      const { year, month } = parsed.data
 
       logger.info(
         { userId: req.user.id, month, year },

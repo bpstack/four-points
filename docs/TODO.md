@@ -134,13 +134,6 @@ hace que alguien reimplemente lo que ya existe.
       (también `mantenimiento` y `recepcionista`) crea, edita, cambia de estado,
       asigna, borra y restaura cualquier parte: el controlador no mira rol ni
       autoría. _Comprobado por mí el 2026-09-28._
-- [ ] **Backoffice: el pago en lote paga todos los meses con un objeto** —
-      `executeBatchPayment` pasa `year` y `month` del cuerpo sin validar. Si se
-      envía un objeto en vez de un número, mysql2 lo convierte en una
-      comparación de columna y la condición de fecha deja de filtrar
-      (reproducido con `mysql2.format`): se pagan las facturas validadas de
-      cualquier mes. `revertBatchPayment` lee el cuerpo igual (no seguido hasta
-      el repositorio). _Comprobado por mí el 2026-09-28._
 - [ ] **Contraseñas de la BD escritas en 17 ficheros versionados** — casi todos
       en `backend/db-mysql/scripts/` (los 10 de `basics/`,
       `add-libre-number.ts`, `backfill-libre-numbers.ts`,
