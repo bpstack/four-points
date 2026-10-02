@@ -5,6 +5,8 @@
  */
 
 import { z } from 'zod'
+// Date.parse accepts 2026-02-31 (as 3 March), which MySQL then rejects
+import { isCalendarDate } from '../common/calendar-date.js'
 
 // ========================================
 // ENUMS (reutilizables)
@@ -26,44 +28,44 @@ export const createBlacklistSchema = z
   .object({
     guest_name: z
       .string({ message: 'El nombre es obligatorio' })
+      .trim()
       .min(3, 'El nombre debe tener al menos 3 caracteres')
       .max(255, 'El nombre no puede exceder 255 caracteres')
-      .regex(/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/, 'El nombre solo puede contener letras y espacios')
-      .trim(),
+      .regex(/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/, 'El nombre solo puede contener letras y espacios'),
 
     document_type: documentTypeEnum,
 
     document_number: z
       .string({ message: 'El número de documento es obligatorio' })
+      .trim()
       .min(5, 'El documento debe tener al menos 5 caracteres')
       .max(20, 'El documento no puede exceder 20 caracteres')
       .regex(/^[A-Z0-9-]+$/i, 'El documento solo puede contener letras, números y guiones')
-      .trim()
       .transform((val) => val.toUpperCase()),
 
     check_in_date: z
       .string({ message: 'La fecha de entrada es obligatoria' })
       .regex(/^\d{4}-\d{2}-\d{2}$/, 'Formato de fecha inválido. Use YYYY-MM-DD')
-      .refine((date) => !isNaN(Date.parse(date)), 'Fecha de entrada inválida'),
+      .refine(isCalendarDate, 'Fecha de entrada inválida'),
 
     check_out_date: z
       .string({ message: 'La fecha de salida es obligatoria' })
       .regex(/^\d{4}-\d{2}-\d{2}$/, 'Formato de fecha inválido. Use YYYY-MM-DD')
-      .refine((date) => !isNaN(Date.parse(date)), 'Fecha de salida inválida'),
+      .refine(isCalendarDate, 'Fecha de salida inválida'),
 
     reason: z
       .string({ message: 'El motivo es obligatorio' })
+      .trim()
       .min(10, 'El motivo debe tener al menos 10 caracteres')
-      .max(1000, 'El motivo no puede exceder 1000 caracteres')
-      .trim(),
+      .max(1000, 'El motivo no puede exceder 1000 caracteres'),
 
     severity: severityEnum,
 
     comments: z
       .string({ message: 'Los comentarios son obligatorios' })
+      .trim()
       .min(10, 'Los comentarios deben tener al menos 10 caracteres')
-      .max(2000, 'Los comentarios no pueden exceder 2000 caracteres')
-      .trim(),
+      .max(2000, 'Los comentarios no pueden exceder 2000 caracteres'),
 
     images: z
       .array(z.string().url('Cada imagen debe ser una URL válida'))
@@ -84,49 +86,49 @@ export const updateBlacklistSchema = z
   .object({
     guest_name: z
       .string()
+      .trim()
       .min(3, 'El nombre debe tener al menos 3 caracteres')
       .max(255, 'El nombre no puede exceder 255 caracteres')
       .regex(/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/, 'El nombre solo puede contener letras y espacios')
-      .trim()
       .optional(),
 
     document_type: documentTypeEnum.optional(),
 
     document_number: z
       .string()
+      .trim()
       .min(5, 'El documento debe tener al menos 5 caracteres')
       .max(20, 'El documento no puede exceder 20 caracteres')
       .regex(/^[A-Z0-9-]+$/i, 'El documento solo puede contener letras, números y guiones')
-      .trim()
       .transform((val) => val.toUpperCase())
       .optional(),
 
     check_in_date: z
       .string()
       .regex(/^\d{4}-\d{2}-\d{2}$/, 'Formato de fecha inválido. Use YYYY-MM-DD')
-      .refine((date) => !isNaN(Date.parse(date)), 'Fecha de entrada inválida')
+      .refine(isCalendarDate, 'Fecha de entrada inválida')
       .optional(),
 
     check_out_date: z
       .string()
       .regex(/^\d{4}-\d{2}-\d{2}$/, 'Formato de fecha inválido. Use YYYY-MM-DD')
-      .refine((date) => !isNaN(Date.parse(date)), 'Fecha de salida inválida')
+      .refine(isCalendarDate, 'Fecha de salida inválida')
       .optional(),
 
     reason: z
       .string()
+      .trim()
       .min(10, 'El motivo debe tener al menos 10 caracteres')
       .max(1000, 'El motivo no puede exceder 1000 caracteres')
-      .trim()
       .optional(),
 
     severity: severityEnum.optional(),
 
     comments: z
       .string()
+      .trim()
       .min(10, 'Los comentarios deben tener al menos 10 caracteres')
       .max(2000, 'Los comentarios no pueden exceder 2000 caracteres')
-      .trim()
       .optional(),
 
     images: z
