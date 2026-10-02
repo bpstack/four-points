@@ -148,10 +148,15 @@ export class MessageRepository {
   }
 
   /**
-   * Verificar si usuario es el sender
+   * Verificar si usuario es el sender y sigue en la conversación
    */
   static async isSender(messageId: number, userId: string): Promise<boolean> {
-    const query = `SELECT 1 FROM messages WHERE id = ? AND sender_id = ?`
+    const query = `
+      SELECT 1 FROM messages m
+      JOIN conversation_participants cp
+        ON cp.conversation_id = m.conversation_id AND cp.user_id = m.sender_id AND cp.is_active = 1
+      WHERE m.id = ? AND m.sender_id = ?
+    `
     const [rows] = await db.query<any[]>(query, [messageId, userId])
     return rows.length > 0
   }

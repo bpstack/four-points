@@ -163,9 +163,6 @@ hace que alguien reimplemente lo que ya existe.
       `completed`, y el código lo declara intencionado) y sin historial. El
       signo, el `ENUM` del método y las longitudes ya se validan
       (2026-10-02). _Comprobado por mí el 2026-09-28._
-- [ ] **Mensajería: un expulsado sigue editando y borrando sus mensajes** —
-      `isSender` no comprueba que siga siendo participante. _Comprobado por mí
-      el 2026-09-28._
 - [ ] **Mensajería: directorio de emails y roles de toda la plantilla** —
       `GET /api/messages/users` devuelve `email` y rol de todos los usuarios
       activos, sin límite, a cualquier rol; `getParticipants` también devuelve
