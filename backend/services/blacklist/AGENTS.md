@@ -127,13 +127,9 @@ app/dashboard/blacklist/
 app/components/blacklist/
 ├── BlacklistDetailClient.tsx      ← detail orchestrator (323 lines)
 ├── mains/
-│   ├── BlacklistTable.tsx         ← list table with filters + pagination (327 lines)
-│   ├── BlacklistModal.tsx         ← detail view modal from list (395 lines)
 │   ├── BlacklistForm.tsx          ← shared create/edit form (435 lines)
 │   ├── ImageGallery.tsx           ← photo display + delete (339 lines)
-│   ├── SearchBar.tsx              ← search + filter bar (337 lines)
 │   ├── AuditTrail.tsx             ← renders the JSON audit trail (308 lines)
-│   ├── Pagination.tsx             (206 lines)
 │   └── DeleteButton.tsx           (56 lines)
 ├── panels/
 │   ├── CreateBlacklistPanel.tsx   ← slide-in create panel (418 lines)
@@ -141,8 +137,7 @@ app/components/blacklist/
 ├── layout/
 │   └── BlacklistDetailSummaryPanel.tsx  (157 lines)
 └── ui/
-    ├── ImageUploader.tsx          ← handles Cloudinary upload flow (287 lines)
-    └── DataRangePicker.tsx        (81 lines)
+    └── ImageUploader.tsx          ← handles Cloudinary upload flow (287 lines)
 
 app/lib/blacklist/
 ├── blacklistApi.ts   ← all HTTP calls

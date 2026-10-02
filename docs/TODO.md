@@ -333,7 +333,7 @@ hace que alguien reimplemente lo que ya existe.
       titular) sin paginar ni filtrar. _Según la revisión `security` L3 del
       2026-09-28 (fichero y línea en el informe); no repasado por mí._
 - [ ] **Parking: el origen y la referencia externa se pierden al crear** — el
-      frontend (`useBookingWizard.ts`, `CreateBookingPanel.tsx`) envía `source`
+      frontend (`useBookingWizard.ts`) envía `source`
       y `external_id`; el controlador lee `booking_source` y
       `external_booking_id` y además los pasa a Zod con los nombres cambiados:
       siempre queda `direct`. **Decidir antes de arreglar:** los formularios

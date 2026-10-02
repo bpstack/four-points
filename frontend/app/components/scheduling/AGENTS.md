@@ -161,14 +161,12 @@ There's a specific `downloadSchedulePdf(monthId)` wrapper that delegates to
 `lib/scheduling/export-pdf.ts` to build the PDF in the browser (no backend PDF
 endpoint).
 
-## Server fetching — `lib/scheduling/server.ts`
+## Server fetching
 
-Helpers for Server Components or Server Actions that need scheduling data. Uses
-`serverFetch` (not `apiClient`) so request cookies are forwarded correctly.
-**Don't use from client components.**
-
-In practice, the module is almost entirely client-side (Suspense + React Query)
-— `server.ts` is for the odd SSR or server-side export case.
+The module is entirely client-side (Suspense + React Query). The unused
+`lib/scheduling/server.ts` helpers were removed on 2026-10-02; if a Server
+Component ever needs scheduling data, use `serverFetch` (not `apiClient`) so the
+request cookies are forwarded.
 
 ## PDF export — `lib/scheduling/export-pdf.ts`
 
