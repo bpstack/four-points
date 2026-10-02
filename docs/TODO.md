@@ -487,6 +487,7 @@ hace que alguien reimplemente lo que ya existe.
       formato, los repetidos, la prioridad y los textos ya se validan; que el
       usuario exista y esté activo, no. _Según la revisión `security` L3 del
       2026-09-28 (fichero y línea en el informe); no repasado por mí._
+
 - [ ] **Scheduling: generar un mes deja vacías las celdas de días fijos y
       solicitudes aprobadas** — el solver las recibe como bloqueadas, la
       generación no las reinserta y el borrado previo se las lleva. En Aiven, en
