@@ -3,10 +3,8 @@
 import * as commentsRepo from '../../repositories/checklist/checklist-comments.repository.js'
 import * as checklistRepo from '../../repositories/checklist/checklist-repository.js'
 import { CloudinaryService } from '../blacklist/cloudinary-service.js'
-import type {
-  Comment,
-  Attachment,
-} from '../../repositories/checklist/checklist-comments.repository.js'
+import { withoutPublicId, type PublicAttachment } from './attachment-response.js'
+import type { Comment } from '../../repositories/checklist/checklist-comments.repository.js'
 
 async function resolveRun(checklistId: string): Promise<{ id: number }> {
   const run = await checklistRepo.getOrCreateRun(checklistId)
@@ -47,9 +45,12 @@ export async function removeComment(
 
 // ── Attachments ───────────────────────────────────────────
 
-export async function getAttachments(checklistId: string, stepId: string): Promise<Attachment[]> {
+export async function getAttachments(
+  checklistId: string,
+  stepId: string
+): Promise<PublicAttachment[]> {
   const run = await resolveRun(checklistId)
-  return commentsRepo.getAttachments(run.id, stepId)
+  return (await commentsRepo.getAttachments(run.id, stepId)).map(withoutPublicId)
 }
 
 export async function addAttachment(
@@ -60,7 +61,7 @@ export async function addAttachment(
   originalName: string,
   mime: string,
   size: number
-): Promise<Attachment> {
+): Promise<PublicAttachment> {
   const run = await resolveRun(checklistId)
   const result = await CloudinaryService.uploadImage(fileBuffer, originalName, 'checklist')
   const attachment = await commentsRepo.createAttachment(
@@ -73,7 +74,7 @@ export async function addAttachment(
     size
   )
   await checklistRepo.logEvent(run.id, stepId, userId, 'attach', { attachment_id: attachment.id })
-  return attachment
+  return withoutPublicId(attachment)
 }
 
 export async function removeAttachment(

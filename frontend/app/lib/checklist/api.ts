@@ -46,7 +46,6 @@ export interface AttachmentDto {
   user_id: string
   username: string
   file_url: string
-  public_id: string
   mime: string
   size: number
   uploaded_at: string
