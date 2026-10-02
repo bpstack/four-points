@@ -5,52 +5,39 @@
  */
 
 // ========================================
-// NORMALIZAR TEXTO (sin acentos)
-// ========================================
-export function normalizeText(text: string): string {
-  return text
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '') // Eliminar diacríticos
-    .trim()
-}
-
-// ========================================
 // HIGHLIGHT DE COINCIDENCIAS
 // ========================================
-export function highlightMatches(text: string, searchTerm: string): string {
-  if (!searchTerm) return text
 
-  const normalizedText = normalizeText(text)
-  const normalizedSearch = normalizeText(searchTerm)
-
-  // Buscar coincidencias sin importar acentos
-  const regex = new RegExp(`(${escapeRegex(normalizedSearch)})`, 'gi')
-
-  // Encontrar posiciones de coincidencias
-  let result = text
-  const matches = normalizedText.matchAll(regex)
-
-  for (const match of matches) {
-    if (match.index !== undefined) {
-      const start = match.index
-      const end = start + searchTerm.length
-      const originalText = text.substring(start, end)
-      result = result.replace(
-        originalText,
-        `<mark class="bg-yellow-200 dark:bg-yellow-800">${originalText}</mark>`
-      )
-    }
-  }
-
-  return result
+// One UTF-16 unit in, one unit out (lower case, no accent), so indexes in the
+// folded text are indexes in the original
+function foldChar(c: string): string {
+  return c.normalize('NFD')[0].toLowerCase()[0] ?? c
 }
 
-// ========================================
-// ESCAPAR CARACTERES ESPECIALES REGEX
-// ========================================
-function escapeRegex(str: string): string {
-  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+export interface HighlightPart {
+  text: string
+  match: boolean
+}
+
+/**
+ * Splits `text` into parts that match `searchTerm` (ignoring case and
+ * accents) and parts that do not. Rendered as React nodes, never as HTML.
+ */
+export function splitHighlight(text: string, searchTerm: string): HighlightPart[] {
+  const chars = text.split('')
+  const term = searchTerm.trim().split('').map(foldChar).join('')
+  if (!term) return [{ text, match: false }]
+
+  const folded = chars.map(foldChar).join('')
+  const parts: HighlightPart[] = []
+  let from = 0
+  for (let at = folded.indexOf(term); at !== -1; at = folded.indexOf(term, at + term.length)) {
+    if (at > from) parts.push({ text: chars.slice(from, at).join(''), match: false })
+    parts.push({ text: chars.slice(at, at + term.length).join(''), match: true })
+    from = at + term.length
+  }
+  if (from < chars.length) parts.push({ text: chars.slice(from).join(''), match: false })
+  return parts
 }
 
 // ========================================

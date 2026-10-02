@@ -26,7 +26,8 @@ import { Badge } from '@/app/ui/components'
 import { SelectDropdown } from '@/app/ui/components/SelectDropdown'
 import { CreateBlacklistPanel } from '@/app/components/blacklist/panels/CreateBlacklistPanel'
 import type { BlacklistEntry, BlacklistFilters } from '@/app/lib/blacklist/types'
-import { formatDate, highlightMatches, truncateText } from '@/app/lib/blacklist/blacklistUtils'
+import { formatDate, truncateText } from '@/app/lib/blacklist/blacklistUtils'
+import { Highlight } from '@/app/components/blacklist/ui/Highlight'
 import { blacklistApi } from '@/app/lib/blacklist/blacklistApi'
 
 type SeverityFilter = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL' | 'all'
@@ -123,7 +124,6 @@ export default function BlacklistPage() {
     }
     return configs[severity]
   }
-
 
   return (
     <>
@@ -284,13 +284,19 @@ export default function BlacklistPage() {
                               <div className="h-3 bg-surface-hover rounded w-20 mb-1.5" />
                               <div className="h-2.5 bg-surface-hover rounded w-20" />
                             </td>
-                            <td className="px-3 py-2.5"><div className="h-5 bg-surface-hover rounded-full w-16" /></td>
-                            <td className="px-3 py-2.5"><div className="h-5 bg-surface-hover rounded-full w-14" /></td>
+                            <td className="px-3 py-2.5">
+                              <div className="h-5 bg-surface-hover rounded-full w-16" />
+                            </td>
+                            <td className="px-3 py-2.5">
+                              <div className="h-5 bg-surface-hover rounded-full w-14" />
+                            </td>
                             <td className="px-3 py-2.5">
                               <div className="h-3 bg-surface-hover rounded w-20 mb-1.5" />
                               <div className="h-2.5 bg-surface-hover rounded w-16" />
                             </td>
-                            <td className="px-3 py-2.5"><div className="h-7 bg-surface-hover rounded w-7 ml-auto" /></td>
+                            <td className="px-3 py-2.5">
+                              <div className="h-7 bg-surface-hover rounded w-7 ml-auto" />
+                            </td>
                           </tr>
                         ))
                       ) : entries.length === 0 ? (
@@ -314,14 +320,9 @@ export default function BlacklistPage() {
                                     <IoWarning className="text-red-500 flex-shrink-0" size={14} />
                                   )}
                                   <div>
-                                    <div
-                                      className="text-xs font-medium text-fg"
-                                      dangerouslySetInnerHTML={{
-                                        __html: searchTerm
-                                          ? highlightMatches(entry.guest_name, searchTerm)
-                                          : entry.guest_name,
-                                      }}
-                                    />
+                                    <div className="text-xs font-medium text-fg">
+                                      <Highlight text={entry.guest_name} search={searchTerm} />
+                                    </div>
                                     <div className="text-[10px] text-fg-subtle mt-0.5">
                                       {truncateText(entry.reason, 40)}
                                     </div>
@@ -330,14 +331,9 @@ export default function BlacklistPage() {
                               </td>
                               <td className="px-3 py-2">
                                 <div>
-                                  <div
-                                    className="text-xs text-fg font-mono"
-                                    dangerouslySetInnerHTML={{
-                                      __html: searchTerm
-                                        ? highlightMatches(entry.document_number, searchTerm)
-                                        : entry.document_number,
-                                    }}
-                                  />
+                                  <div className="text-xs text-fg font-mono">
+                                    <Highlight text={entry.document_number} search={searchTerm} />
+                                  </div>
                                   <div className="text-[10px] text-fg-subtle mt-0.5">
                                     {entry.document_type}
                                   </div>
@@ -398,7 +394,10 @@ export default function BlacklistPage() {
               <div className="md:hidden space-y-2">
                 {loading ? (
                   Array.from({ length: 5 }).map((_, i) => (
-                    <div key={i} className="bg-surface rounded-md border border-border p-3 animate-pulse space-y-2">
+                    <div
+                      key={i}
+                      className="bg-surface rounded-md border border-border p-3 animate-pulse space-y-2"
+                    >
                       <div className="flex items-start justify-between">
                         <div className="space-y-1.5 flex-1">
                           <div className="h-3 bg-surface-hover rounded w-40" />
@@ -437,23 +436,13 @@ export default function BlacklistPage() {
                               {entry.severity === 'CRITICAL' && (
                                 <IoWarning className="text-red-500 flex-shrink-0" size={14} />
                               )}
-                              <h3
-                                className="font-semibold text-xs text-fg truncate"
-                                dangerouslySetInnerHTML={{
-                                  __html: searchTerm
-                                    ? highlightMatches(entry.guest_name, searchTerm)
-                                    : entry.guest_name,
-                                }}
-                              />
+                              <h3 className="font-semibold text-xs text-fg truncate">
+                                <Highlight text={entry.guest_name} search={searchTerm} />
+                              </h3>
                             </div>
-                            <p
-                              className="text-[10px] text-fg-muted mt-0.5 font-mono"
-                              dangerouslySetInnerHTML={{
-                                __html: searchTerm
-                                  ? highlightMatches(entry.document_number, searchTerm)
-                                  : entry.document_number,
-                              }}
-                            />
+                            <p className="text-[10px] text-fg-muted mt-0.5 font-mono">
+                              <Highlight text={entry.document_number} search={searchTerm} />
+                            </p>
                           </div>
                           <button
                             onClick={(e) => {

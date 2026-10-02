@@ -512,11 +512,6 @@ hace que alguien reimplemente lo que ya existe.
       filtrar por cualquier usuario creador, exponiendo patrones de uso por
       operador. _Según la revisión `security` L3 del 2026-09-28 (fichero y línea
       en el informe); no repasado por mí._
-- [ ] **Blacklist: resaltado de búsqueda con `dangerouslySetInnerHTML`** — hoy
-      no explotable porque el backend restringe `guest_name`/`document_number`
-      con regex, pero es frágil: si se relaja esa validación o se resalta texto
-      libre (`reason`/`comments`), se abre XSS. _Según la revisión `security` L3
-      del 2026-09-28 (fichero y línea en el informe); no repasado por mí._
 - [ ] **Fnb: `console.log` sin pasar por el logger del proyecto** — el
       controlador de subida (`backend/controllers/fnb/fnb-upload.controller.ts`)
       usa `console.log` directo en vez de `backend/config/logger.ts`; hoy solo
