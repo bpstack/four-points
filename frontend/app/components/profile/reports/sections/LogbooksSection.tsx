@@ -36,8 +36,14 @@ const PRIORITY_COLORS: Record<string, string> = {
 
 // Fields to omit from history diff (internal IDs, noise)
 const IGNORED_DIFF_KEYS = new Set([
-  'id', 'logbook_id', 'comment_id', 'user_id', 'author_id',
-  'department_id', 'updated_at', 'created_at',
+  'id',
+  'logbook_id',
+  'comment_id',
+  'user_id',
+  'author_id',
+  'department_id',
+  'updated_at',
+  'created_at',
 ])
 
 const FIELD_LABELS: Record<string, string> = {
@@ -56,15 +62,17 @@ function renderDiff(prev: unknown, next: unknown): React.ReactNode {
 
   const toEntries = (val: unknown) => {
     if (val == null || typeof val !== 'object') return []
-    return Object.entries(val as Record<string, unknown>).filter(
-      ([k]) => !IGNORED_DIFF_KEYS.has(k)
-    )
+    return Object.entries(val as Record<string, unknown>).filter(([k]) => !IGNORED_DIFF_KEYS.has(k))
   }
 
   if (typeof prev === 'object' || typeof next === 'object') {
-    const prevObj = (prev != null && typeof prev === 'object') ? prev as Record<string, unknown> : {}
-    const nextObj = (next != null && typeof next === 'object') ? next as Record<string, unknown> : {}
-    const allKeys = [...new Set([...toEntries(prevObj).map(([k]) => k), ...toEntries(nextObj).map(([k]) => k)])]
+    const prevObj =
+      prev != null && typeof prev === 'object' ? (prev as Record<string, unknown>) : {}
+    const nextObj =
+      next != null && typeof next === 'object' ? (next as Record<string, unknown>) : {}
+    const allKeys = [
+      ...new Set([...toEntries(prevObj).map(([k]) => k), ...toEntries(nextObj).map(([k]) => k)]),
+    ]
 
     const changedKeys = allKeys.filter(
       (k) => JSON.stringify(prevObj[k]) !== JSON.stringify(nextObj[k])
@@ -76,20 +84,12 @@ function renderDiff(prev: unknown, next: unknown): React.ReactNode {
       <div className="space-y-1 mt-1">
         {changedKeys.map((k) => (
           <div key={k} className="flex items-start gap-1.5 flex-wrap text-xs">
-            <span className="text-fg-subtle font-medium shrink-0">
-              {FIELD_LABELS[k] ?? k}:
-            </span>
+            <span className="text-fg-subtle font-medium shrink-0">{FIELD_LABELS[k] ?? k}:</span>
             {prevObj[k] != null && (
-              <span className="line-through text-gray-400 break-all">
-                {String(prevObj[k])}
-              </span>
+              <span className="line-through text-gray-400 break-all">{String(prevObj[k])}</span>
             )}
-            {prevObj[k] != null && nextObj[k] != null && (
-              <span className="text-gray-400">→</span>
-            )}
-            {nextObj[k] != null && (
-              <span className="text-fg break-all">{String(nextObj[k])}</span>
-            )}
+            {prevObj[k] != null && nextObj[k] != null && <span className="text-gray-400">→</span>}
+            {nextObj[k] != null && <span className="text-fg break-all">{String(nextObj[k])}</span>}
           </div>
         ))}
       </div>
@@ -99,12 +99,8 @@ function renderDiff(prev: unknown, next: unknown): React.ReactNode {
   // Plain strings
   return (
     <div className="space-y-0.5 mt-1 text-xs">
-      {prev != null && (
-        <p className="line-through text-gray-400 break-all">{String(prev)}</p>
-      )}
-      {next != null && (
-        <p className="text-fg break-all">{String(next)}</p>
-      )}
+      {prev != null && <p className="line-through text-gray-400 break-all">{String(prev)}</p>}
+      {next != null && <p className="text-fg break-all">{String(next)}</p>}
     </div>
   )
 }
@@ -240,7 +236,12 @@ export default function LogbooksSection() {
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-2 flex-wrap">
-                        <span className={cn('px-2 py-0.5 rounded-full text-xs font-medium', priorityColor)}>
+                        <span
+                          className={cn(
+                            'px-2 py-0.5 rounded-full text-xs font-medium',
+                            priorityColor
+                          )}
+                        >
                           {priorityLabel}
                         </span>
                         {!!logbook.is_solved && (

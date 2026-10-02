@@ -81,7 +81,8 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     ].join(' ')
 
     if (as === 'a') {
-      const { href, target, rel, ...anchorRest } = rest as React.AnchorHTMLAttributes<HTMLAnchorElement>
+      const { href, target, rel, ...anchorRest } =
+        rest as React.AnchorHTMLAttributes<HTMLAnchorElement>
       return (
         <a className={cls} href={href} target={target} rel={rel} {...anchorRest}>
           {children}

@@ -173,7 +173,9 @@ export default function StatusPanels({
                 </button>
               </div>
               <p className="text-xs text-fg-muted font-medium">
-                {t('statusPanels.spot')} {spot.spot_number} • {t(`spotTypes.${spot.spot_type}` as Parameters<typeof t>[0]) || spot.spot_type.replace('_', ' ')}
+                {t('statusPanels.spot')} {spot.spot_number} •{' '}
+                {t(`spotTypes.${spot.spot_type}` as Parameters<typeof t>[0]) ||
+                  spot.spot_type.replace('_', ' ')}
               </p>
               {spot.booking?.vehicle && (
                 <p className="text-xs font-mono text-fg-subtle mt-1">
@@ -240,7 +242,9 @@ export default function StatusPanels({
                   </button>
                 </div>
                 <p className="text-xs text-fg-muted font-medium">
-                  {t('statusPanels.spot')} {spot.spot_number} • {t(`spotTypes.${spot.spot_type}` as Parameters<typeof t>[0]) || spot.spot_type.replace('_', ' ')}
+                  {t('statusPanels.spot')} {spot.spot_number} •{' '}
+                  {t(`spotTypes.${spot.spot_type}` as Parameters<typeof t>[0]) ||
+                    spot.spot_type.replace('_', ' ')}
                 </p>
                 {spot.booking?.vehicle && (
                   <p className="text-xs font-mono text-fg-subtle mt-1">

@@ -128,18 +128,18 @@ export function CheckOutModal({ booking, onClose, onConfirm }: CheckOutModalProp
           </div>
 
           <SelectDropdown<string>
-              value={data.payment_method}
-              onChange={(v) => setData({ ...data, payment_method: v })}
-              options={[
-                { value: 'cash', label: t('paymentMethods.cash') },
-                { value: 'card', label: t('paymentMethods.card') },
-                { value: 'transfer', label: t('paymentMethods.transfer') },
-                { value: 'other', label: t('paymentMethods.other') },
-              ]}
-              label={t('checkOutModal.paymentMethod')}
-              size="md"
-              className="w-full"
-            />
+            value={data.payment_method}
+            onChange={(v) => setData({ ...data, payment_method: v })}
+            options={[
+              { value: 'cash', label: t('paymentMethods.cash') },
+              { value: 'card', label: t('paymentMethods.card') },
+              { value: 'transfer', label: t('paymentMethods.transfer') },
+              { value: 'other', label: t('paymentMethods.other') },
+            ]}
+            label={t('checkOutModal.paymentMethod')}
+            size="md"
+            className="w-full"
+          />
 
           <div>
             <label className="block text-sm font-medium text-fg mb-1">

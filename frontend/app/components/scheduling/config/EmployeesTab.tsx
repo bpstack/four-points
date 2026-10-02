@@ -170,10 +170,7 @@ export function EmployeesTab() {
                   <span className="text-sm text-fg">{formatUsername(employee.username)}</span>
                 </div>
                 {employee.is_schedulable && !hasChanges && (
-                  <div
-                    className="flex items-center gap-0.5"
-                    onClick={(e) => e.stopPropagation()}
-                  >
+                  <div className="flex items-center gap-0.5" onClick={(e) => e.stopPropagation()}>
                     <button
                       type="button"
                       onClick={() => moveSchedulable(orderIndex, -1)}

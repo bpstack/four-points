@@ -398,4 +398,3 @@ export function useHistoryStats(filters?: { from_date?: string; to_date?: string
     staleTime: 1 * 60 * 1000, // 1 minuto
   })
 }
-

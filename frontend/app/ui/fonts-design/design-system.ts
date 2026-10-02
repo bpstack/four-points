@@ -128,4 +128,3 @@ export function textVariant(
 
 // Exportar configuración para uso en otros archivos
 export { FONT_CONFIG }
-

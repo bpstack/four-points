@@ -148,23 +148,23 @@ export function PaymentModal({ booking, onClose, onConfirm }: PaymentModalProps)
               </div>
 
               <SelectDropdown<string>
-                  value={data.payment_method}
-                  onChange={(v) =>
-                    setData({
-                      ...data,
-                      payment_method: v as 'cash' | 'card' | 'transfer' | 'agency',
-                    })
-                  }
-                  options={[
-                    { value: 'cash', label: t('paymentMethods.cash') },
-                    { value: 'card', label: t('paymentMethods.card') },
-                    { value: 'transfer', label: t('paymentMethods.transfer') },
-                    { value: 'other', label: t('paymentMethods.other') },
-                  ]}
-                  label={t('paymentModal.paymentMethod')}
-                  size="md"
-                  className="w-full"
-                />
+                value={data.payment_method}
+                onChange={(v) =>
+                  setData({
+                    ...data,
+                    payment_method: v as 'cash' | 'card' | 'transfer' | 'agency',
+                  })
+                }
+                options={[
+                  { value: 'cash', label: t('paymentMethods.cash') },
+                  { value: 'card', label: t('paymentMethods.card') },
+                  { value: 'transfer', label: t('paymentMethods.transfer') },
+                  { value: 'other', label: t('paymentMethods.other') },
+                ]}
+                label={t('paymentModal.paymentMethod')}
+                size="md"
+                className="w-full"
+              />
 
               <div>
                 <label className="block text-sm font-medium text-fg mb-1">

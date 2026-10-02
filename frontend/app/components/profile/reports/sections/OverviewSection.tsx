@@ -7,15 +7,7 @@ import { useTranslations } from 'next-intl'
 import { apiClient } from '@/app/lib/apiClient'
 import { cn } from '@/app/lib/helpers/utils'
 import { API_BASE_URL } from '@/app/lib/env'
-import {
-  FiClock,
-  FiUser,
-  FiFilter,
-  FiBook,
-  FiTool,
-  FiUsers,
-  FiDollarSign,
-} from 'react-icons/fi'
+import { FiClock, FiUser, FiFilter, FiBook, FiTool, FiUsers, FiDollarSign } from 'react-icons/fi'
 import { SelectDropdown } from '@/app/ui/components/SelectDropdown'
 import DateRangePicker, { getDefaultDateRange, type DateRange } from '../DateRangePicker'
 import { ReportError, ReportTableSkeleton, formatReportDateTime } from '../utils'
@@ -139,11 +131,21 @@ export default function OverviewSection() {
           <table className="w-full text-sm">
             <thead className="bg-surface-hover">
               <tr>
-                <th className="px-4 py-3 text-left font-medium text-fg-subtle">{t('table.source')}</th>
-                <th className="px-4 py-3 text-left font-medium text-fg-subtle">{t('table.action')}</th>
-                <th className="px-4 py-3 text-left font-medium text-fg-subtle">{t('table.user')}</th>
-                <th className="px-4 py-3 text-left font-medium text-fg-subtle">{t('table.record')}</th>
-                <th className="px-4 py-3 text-left font-medium text-fg-subtle">{t('table.date')}</th>
+                <th className="px-4 py-3 text-left font-medium text-fg-subtle">
+                  {t('table.source')}
+                </th>
+                <th className="px-4 py-3 text-left font-medium text-fg-subtle">
+                  {t('table.action')}
+                </th>
+                <th className="px-4 py-3 text-left font-medium text-fg-subtle">
+                  {t('table.user')}
+                </th>
+                <th className="px-4 py-3 text-left font-medium text-fg-subtle">
+                  {t('table.record')}
+                </th>
+                <th className="px-4 py-3 text-left font-medium text-fg-subtle">
+                  {t('table.date')}
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
@@ -172,7 +174,9 @@ export default function OverviewSection() {
                   <td className="px-4 py-3 text-fg-subtle font-mono text-xs">
                     {item.record_id ? `#${item.record_id}` : '-'}
                   </td>
-                  <td className="px-4 py-3 text-fg-subtle text-xs">{formatReportDateTime(item.timestamp)}</td>
+                  <td className="px-4 py-3 text-fg-subtle text-xs">
+                    {formatReportDateTime(item.timestamp)}
+                  </td>
                 </tr>
               ))}
             </tbody>

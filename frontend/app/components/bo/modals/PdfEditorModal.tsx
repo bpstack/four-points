@@ -839,7 +839,10 @@ export function PdfEditorModal({
                   <SelectDropdown<number>
                     value={textFontSize}
                     onChange={setTextFontSize}
-                    options={[8, 10, 12, 14, 16, 18, 24].map((s) => ({ value: s, label: String(s) }))}
+                    options={[8, 10, 12, 14, 16, 18, 24].map((s) => ({
+                      value: s,
+                      label: String(s),
+                    }))}
                     label={t('modals.pdfEditor.fontSize')}
                     className="flex-1"
                   />

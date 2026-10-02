@@ -160,7 +160,9 @@ export function EditReportPanel({ isOpen, onClose, report, onSuccess }: EditRepo
       setDeletingImageId(imageId)
       await maintenanceApi.deleteImage(report.id, imageId)
       setExistingImages((prev) => prev.filter((img) => img.id !== imageId))
-      await queryClient.invalidateQueries({ queryKey: maintenanceKeys.detail(report.id.toString()) })
+      await queryClient.invalidateQueries({
+        queryKey: maintenanceKeys.detail(report.id.toString()),
+      })
       toast.success(t('panels.edit.toast.imageDeleted'))
     } catch (error) {
       console.error('Error deleting image:', error)

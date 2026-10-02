@@ -232,7 +232,10 @@ export function InventoryTab() {
         <SelectDropdown<string>
           value={selectedCategory}
           onChange={setSelectedCategory}
-          options={categories.map((cat) => ({ value: cat.id, label: `${t(cat.labelKey)} (${cat.count})` }))}
+          options={categories.map((cat) => ({
+            value: cat.id,
+            label: `${t(cat.labelKey)} (${cat.count})`,
+          }))}
           className="w-48"
         />
 

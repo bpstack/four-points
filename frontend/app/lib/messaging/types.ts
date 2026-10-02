@@ -125,4 +125,3 @@ export interface UnreadCountResponse {
 // ===============================================
 // UI TYPES (para componentes)
 // ===============================================
-

@@ -370,4 +370,3 @@ export function useLogbooks({ date, enabled = true, messages }: UseLogbooksOptio
     mapPriorityToBackend,
   }
 }
-

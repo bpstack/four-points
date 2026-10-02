@@ -8,4 +8,3 @@ export const defaultLocale: Locale = 'es'
 
 // Cookie name for storing user locale preference
 export const LOCALE_COOKIE = 'NEXT_LOCALE'
-

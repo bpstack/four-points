@@ -21,4 +21,3 @@ export const PAYMENT_METHODS: Record<string, string> = {
   transfer: 'Transferencia',
   agency: 'Agencia',
 }
-

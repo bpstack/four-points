@@ -520,7 +520,9 @@ function AddRequestModal({ initialYear, initialMonth, onClose, onSuccess }: AddR
   // Pre-resolve the month for the initially selected period so the submit
   // button is enabled even if the user doesn't change the date.
   useEffect(() => {
-    void ensureMonthForDate(defaultStart).then(setMonthId).catch(() => setMonthId(null))
+    void ensureMonthForDate(defaultStart)
+      .then(setMonthId)
+      .catch(() => setMonthId(null))
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [defaultStart])
 
@@ -605,7 +607,9 @@ function AddRequestModal({ initialYear, initialMonth, onClose, onSuccess }: AddR
                 setStartDate(val)
                 if (val && endDate && val > endDate) setEndDate(val)
                 if (val) {
-                  void ensureMonthForDate(val).then(setMonthId).catch(() => setMonthId(null))
+                  void ensureMonthForDate(val)
+                    .then(setMonthId)
+                    .catch(() => setMonthId(null))
                 }
               }}
               clearable={false}
