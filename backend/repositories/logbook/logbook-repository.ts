@@ -73,7 +73,6 @@ export async function getById(id: number | string): Promise<LogbookWithAuthor | 
     `SELECT 
       l.*,
       u.username as author_name,
-      u.email as author_email,
       d.name as department_name
     FROM logbooks l
     LEFT JOIN users u ON l.author_id = u.id
@@ -94,7 +93,6 @@ export async function getAllLogbooks(
     `SELECT
       l.*,
       u.username as author_name,
-      u.email as author_email,
       d.name as department_name
     FROM logbooks l
     LEFT JOIN users u ON l.author_id = u.id
@@ -150,7 +148,6 @@ export async function getLogbooksFiltered(
     `SELECT
       l.*,
       u.username as author_name,
-      u.email as author_email,
       d.name as department_name
     FROM logbooks l
     LEFT JOIN users u ON l.author_id = u.id
@@ -174,7 +171,6 @@ export async function getLogbooksByDepartment(
     `SELECT 
       l.*,
       u.username as author_name,
-      u.email as author_email,
       d.name as department_name
     FROM logbooks l
     LEFT JOIN users u ON l.author_id = u.id
@@ -198,7 +194,6 @@ export async function getLogbooksByAuthor(
     `SELECT 
       l.*,
       u.username as author_name,
-      u.email as author_email,
       d.name as department_name
     FROM logbooks l
     LEFT JOIN users u ON l.author_id = u.id
@@ -227,7 +222,6 @@ export async function getLogbooksByImportance(
     `SELECT 
       l.*,
       u.username as author_name,
-      u.email as author_email,
       d.name as department_name
     FROM logbooks l
     LEFT JOIN users u ON l.author_id = u.id
@@ -251,7 +245,6 @@ export async function getLogbooksByDay(
     `SELECT 
       l.*,
       u.username as author_name,
-      u.email as author_email,
       d.name as department_name
     FROM logbooks l
     LEFT JOIN users u ON l.author_id = u.id
@@ -275,7 +268,6 @@ export async function getAllTrashedLogbooks(
     `SELECT 
       l.*,
       u.username as author_name,
-      u.email as author_email,
       d.name as department_name
     FROM logbooks l
     LEFT JOIN users u ON l.author_id = u.id

@@ -33,7 +33,6 @@ export interface LogbookRow extends RowDataPacket {
 
 export interface LogbookWithAuthor extends LogbookRow {
   author_name: string
-  author_email: string
   department_name?: string
 }
 
@@ -192,7 +191,6 @@ export interface CommentHistoryParams {
 export interface HistoryEditor {
   id: string
   username: string
-  email: string
 }
 
 export interface HistoryLogbookInfo {
