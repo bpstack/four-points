@@ -9,7 +9,9 @@
     "dev": "next dev --turbopack",
     "start": "next start",
     "lint": "eslint . --ext .js,.ts,.jsx,.tsx",
-    "format": "prettier --write ."
+    "typecheck": "tsc --noEmit",
+    "format": "prettier --write .",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx}\""
   },
   "dependencies": {
     "@headlessui/react": "^2.2.9",

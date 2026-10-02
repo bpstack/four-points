@@ -246,10 +246,6 @@ hace que alguien reimplemente lo que ya existe.
       source según la OSI, y la raíz no tiene ninguna.
 - [ ] **Decidir la analítica antes de publicar** — el frontend carga Google
       Analytics (`G-ZYSZ6THVDW`) y Vercel Analytics (`frontend/app/layout.tsx`).
-- [ ] **CI mínimo** — no hay `.github/`: instalar con lockfile congelado, lint,
-      formato y tipos en cada push. En el backend ya existen `pnpm lint`
-      (ESLint 10, 0 errores), `pnpm format:check` y `pnpm typecheck`
-      (_comprobado el 2026-09-29_).
 - [ ] **Backend: 341 usos de `any`** — `no-explicit-any` está como aviso en
       `backend/eslint.config.js` para que el lint pase; tiparlos y volver a
       ponerla como error.

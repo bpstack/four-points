@@ -11,9 +11,7 @@ export default function FontsTestPage() {
       <div className="max-w-5xl mx-auto space-y-12">
         {/* Header */}
         <div className="bg-surface rounded-xl p-8 shadow-sm">
-          <h1 className={typography.preset.h1 + ' text-fg mb-2'}>
-            🎨 Sistema de Fuentes
-          </h1>
+          <h1 className={typography.preset.h1 + ' text-fg mb-2'}>🎨 Sistema de Fuentes</h1>
           <p className={typography.preset.lead + ' text-fg-muted'}>
             Prueba y visualiza diferentes combinaciones de fuentes
           </p>
@@ -26,9 +24,7 @@ export default function FontsTestPage() {
           </h2>
           <div className="grid md:grid-cols-2 gap-4">
             <div className="bg-surface rounded-lg p-4">
-              <div className="text-sm font-medium text-fg-muted mb-1">
-                Fuente Principal
-              </div>
+              <div className="text-sm font-medium text-fg-muted mb-1">Fuente Principal</div>
               <div className={typography.preset.h4 + ' text-fg'}>
                 {ACTIVE_FONTS.primary.variable.replace('--font-', '')}
               </div>
@@ -37,9 +33,7 @@ export default function FontsTestPage() {
               </div>
             </div>
             <div className="bg-surface rounded-lg p-4">
-              <div className="text-sm font-medium text-fg-muted mb-1">
-                Fuente Display
-              </div>
+              <div className="text-sm font-medium text-fg-muted mb-1">Fuente Display</div>
               <div className={typography.preset.h4 + ' text-fg'}>
                 {ACTIVE_FONTS.display.variable.replace('--font-', '')}
               </div>
@@ -52,52 +46,36 @@ export default function FontsTestPage() {
 
         {/* Presets de Tipografía */}
         <section className="bg-surface rounded-xl p-8 shadow-sm">
-          <h2 className={typography.preset.h2 + ' text-fg mb-6'}>
-            Jerarquía Tipográfica
-          </h2>
+          <h2 className={typography.preset.h2 + ' text-fg mb-6'}>Jerarquía Tipográfica</h2>
 
           <div className="space-y-6">
             {/* Headings */}
             <div>
-              <div className="text-xs font-mono text-fg-muted mb-2">
-                typography.preset.h1
-              </div>
-              <h1 className={typography.preset.h1 + ' text-fg'}>
-                The quick brown fox jumps
-              </h1>
+              <div className="text-xs font-mono text-fg-muted mb-2">typography.preset.h1</div>
+              <h1 className={typography.preset.h1 + ' text-fg'}>The quick brown fox jumps</h1>
             </div>
 
             <div>
-              <div className="text-xs font-mono text-fg-muted mb-2">
-                typography.preset.h2
-              </div>
-              <h2 className={typography.preset.h2 + ' text-fg'}>
-                The quick brown fox jumps over
-              </h2>
+              <div className="text-xs font-mono text-fg-muted mb-2">typography.preset.h2</div>
+              <h2 className={typography.preset.h2 + ' text-fg'}>The quick brown fox jumps over</h2>
             </div>
 
             <div>
-              <div className="text-xs font-mono text-fg-muted mb-2">
-                typography.preset.h3
-              </div>
+              <div className="text-xs font-mono text-fg-muted mb-2">typography.preset.h3</div>
               <h3 className={typography.preset.h3 + ' text-fg'}>
                 The quick brown fox jumps over the lazy
               </h3>
             </div>
 
             <div>
-              <div className="text-xs font-mono text-fg-muted mb-2">
-                typography.preset.h4
-              </div>
+              <div className="text-xs font-mono text-fg-muted mb-2">typography.preset.h4</div>
               <h4 className={typography.preset.h4 + ' text-fg'}>
                 The quick brown fox jumps over the lazy dog
               </h4>
             </div>
 
             <div className="border-t border-border pt-6 mt-6">
-              <div className="text-xs font-mono text-fg-muted mb-2">
-                typography.preset.body
-              </div>
+              <div className="text-xs font-mono text-fg-muted mb-2">typography.preset.body</div>
               <p className={typography.preset.body + ' text-fg-muted'}>
                 Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor
                 incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud
@@ -106,9 +84,7 @@ export default function FontsTestPage() {
             </div>
 
             <div>
-              <div className="text-xs font-mono text-fg-muted mb-2">
-                typography.preset.lead
-              </div>
+              <div className="text-xs font-mono text-fg-muted mb-2">typography.preset.lead</div>
               <p className={typography.preset.lead + ' text-fg-muted'}>
                 Un texto destacado que captura la atención del lector con un tamaño ligeramente
                 mayor y más espacio entre líneas.
@@ -116,9 +92,7 @@ export default function FontsTestPage() {
             </div>
 
             <div>
-              <div className="text-xs font-mono text-fg-muted mb-2">
-                typography.preset.small
-              </div>
+              <div className="text-xs font-mono text-fg-muted mb-2">typography.preset.small</div>
               <p className={typography.preset.small + ' text-fg-muted'}>
                 Texto secundario, labels, metadatos y descripciones cortas.
               </p>
@@ -128,9 +102,7 @@ export default function FontsTestPage() {
 
         {/* Fuentes Disponibles */}
         <section className="bg-surface rounded-xl p-8 shadow-sm">
-          <h2 className={typography.preset.h2 + ' text-fg mb-6'}>
-            📚 Fuentes Disponibles
-          </h2>
+          <h2 className={typography.preset.h2 + ' text-fg mb-6'}>📚 Fuentes Disponibles</h2>
 
           <div className="grid gap-6">
             {Object.entries(AVAILABLE_FONTS).map(([key, font]) => (
@@ -138,9 +110,7 @@ export default function FontsTestPage() {
                 <div className="flex items-start justify-between mb-4">
                   <div>
                     <div className="flex items-center gap-2 mb-1">
-                      <h3 className={typography.preset.h4 + ' text-fg'}>
-                        {font.name}
-                      </h3>
+                      <h3 className={typography.preset.h4 + ' text-fg'}>{font.name}</h3>
                       <span
                         className={`px-2 py-0.5 text-xs font-medium rounded ${
                           font.type === 'system'
@@ -151,14 +121,8 @@ export default function FontsTestPage() {
                         {font.type === 'system' ? '⚡ Sistema' : '☁️ Google'}
                       </span>
                     </div>
-                    <p className={typography.preset.small + ' text-fg-muted'}>
-                      {font.description}
-                    </p>
-                    <p
-                      className={
-                        typography.preset.caption + ' text-fg-muted mt-1'
-                      }
-                    >
+                    <p className={typography.preset.small + ' text-fg-muted'}>{font.description}</p>
+                    <p className={typography.preset.caption + ' text-fg-muted mt-1'}>
                       Mejor para: {font.bestFor}
                     </p>
                   </div>
@@ -171,9 +135,7 @@ export default function FontsTestPage() {
                   <p className="text-base text-fg-muted">
                     Pack my box with five dozen liquor jugs. How vexingly quick daft zebras jump!
                   </p>
-                  <p className="text-sm text-fg-muted">
-                    0123456789 - ¿? ¡! @#$%&*() 😀 🎨 ✨
-                  </p>
+                  <p className="text-sm text-fg-muted">0123456789 - ¿? ¡! @#$%&*() 😀 🎨 ✨</p>
                 </div>
               </div>
             ))}
@@ -182,9 +144,7 @@ export default function FontsTestPage() {
 
         {/* Combinaciones Recomendadas */}
         <section className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-xl p-8">
-          <h2 className={typography.preset.h2 + ' text-fg mb-4'}>
-            🎯 Combinaciones Recomendadas
-          </h2>
+          <h2 className={typography.preset.h2 + ' text-fg mb-4'}>🎯 Combinaciones Recomendadas</h2>
           <p className={typography.preset.body + ' text-fg-muted mb-6'}>
             Copia una de estas combinaciones en{' '}
             <code className="bg-gray-800 text-yellow-400 px-2 py-1 rounded text-sm">
@@ -195,9 +155,7 @@ export default function FontsTestPage() {
           <div className="grid md:grid-cols-2 gap-4">
             {Object.entries(FONT_COMBINATIONS).map(([key, combo]) => (
               <div key={key} className="bg-surface rounded-lg p-6">
-                <h3 className={typography.preset.h4 + ' text-fg mb-2'}>
-                  {combo.name}
-                </h3>
+                <h3 className={typography.preset.h4 + ' text-fg mb-2'}>{combo.name}</h3>
                 <p className={typography.preset.small + ' text-fg-muted mb-4'}>
                   {combo.description}
                 </p>
