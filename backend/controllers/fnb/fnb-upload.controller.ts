@@ -2,6 +2,7 @@ import type { Request, Response } from 'express'
 import { parseOperaPdf } from '../../services/fnb/pdf-parser.service.js'
 import { loadCategories } from '../../services/fnb/fnb-categories.cache.js'
 import * as repo from '../../repositories/fnb/fnb.repository.js'
+import { logger } from '../../config/logger.js'
 
 export async function uploadPdf(req: Request, res: Response) {
   const file = (req as any).file as Express.Multer.File | undefined
@@ -10,12 +11,13 @@ export async function uploadPdf(req: Request, res: Response) {
     return
   }
 
-  console.log(
-    `[fnb-upload] File received: ${file.originalname} (${file.mimetype}, ${file.size} bytes)`
+  logger.info(
+    { name: file.originalname, mimetype: file.mimetype, bytes: file.size },
+    '[fnb-upload] file received'
   )
 
   const parsed = await parseOperaPdf(file.buffer)
-  console.log(`[fnb-upload] Parsed: date=${parsed.date}, entries=${parsed.entries.length}`)
+  logger.info({ date: parsed.date, entries: parsed.entries.length }, '[fnb-upload] parsed')
 
   if (!parsed.date) {
     res

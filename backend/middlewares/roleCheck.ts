@@ -232,7 +232,7 @@ export const canResetChecklist: RoleCheckMiddleware = (req, res, next) => {
 
 /**
  * Verifica acceso al módulo F&B Revenue
- * Roles permitidos: admin, recepcionista, demo-admin
+ * Roles permitidos: admin, recepcionista, demo-admin, group-admin
  */
 export const canAccessFnb: RoleCheckMiddleware = (req, res, next) => {
   const allowedRoles = ['admin', 'recepcionista', 'demo-admin', 'group-admin']

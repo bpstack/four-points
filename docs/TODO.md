@@ -238,12 +238,6 @@ hace que alguien reimplemente lo que ya existe.
       al módulo puede borrar un día de hace años, incluido un periodo ya
       cerrado, sin ninguna comprobación de negocio. _Comprobado por mí el
       2026-09-28._
-- [ ] **Corregir el `AGENTS.md` de `fnb`** — dice que `trackedCodesSet` en
-      `fnb-categories.cache.ts` "refresca cada N segundos (TTL)"; en realidad la
-      caché no tiene TTL y solo se invalida manualmente con
-      `invalidateCategories()`, que hoy solo se llama en los tests. En
-      producción, un cambio en `fnb_category` no se ve sin reiniciar el backend.
-      _Comprobado por mí el 2026-09-28._
 - [ ] **Comprobar si los cron se ejecutan en Render** — corren dentro del
       proceso del backend; si el plan gratuito lo duerme por inactividad, no se
       disparan. _No comprobado._
@@ -500,12 +494,6 @@ hace que alguien reimplemente lo que ya existe.
       devuelve todo el histórico a cualquier rol con acceso. _Según la revisión
       `security` L3 del 2026-09-28 (fichero y línea en el informe); no repasado
       por mí._
-- [ ] **Fnb: `console.log` sin pasar por el logger del proyecto** — el
-      controlador de subida (`backend/controllers/fnb/fnb-upload.controller.ts`)
-      usa `console.log` directo en vez de `backend/config/logger.ts`; hoy solo
-      registra nombre/tamaño/mimetype, pero al no pasar por el logger
-      documentado, cualquier dato que se añada ahí en el futuro escapa al
-      pipeline de logs del resto de la app. _Comprobado por mí el 2026-09-28._
 - [ ] **Backoffice: `demo-admin` ve IBAN, CIF y datos de contacto completos** de
       los proveedores. _Según la revisión `security` L3 del 2026-09-28 (fichero
       y línea en el informe); no repasado por mí._
@@ -601,9 +589,6 @@ hace que alguien reimplemente lo que ya existe.
       `scheduling_assignments`.
 - [ ] **Proteger o quitar `/design-system` y `/fonts-test`** — son páginas de
       prueba y `proxy.ts` no las protege.
-- [ ] **Corregir el comentario de `canAccessFnb`**
-      (`backend/middlewares/roleCheck.ts`) — no menciona `group-admin`, que sí
-      tiene acceso.
 - [ ] **Tests en el frontend** — hoy no hay ninguno.
 - [ ] **Scheduling: cerrar la fase 3 del solver con uso real** — bloqueado hasta
       que se generen meses de verdad. (1) Con ≥30 generaciones en

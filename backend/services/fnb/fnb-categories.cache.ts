@@ -1,13 +1,14 @@
 import pool from '../../config/db.js'
 import type { FnbCategory, FnbGroupType } from '../../models/fnb/fnb.models.js'
 
-// Single source of truth: fnb_category table. Cached at first access.
+// Single source of truth: fnb_category table. Cached at first access for the
+// life of the process: a change to the table needs a backend restart.
 // All hardcoded code lists (parser, manual controller, repo) should source from here.
 
 let cache: FnbCategory[] | null = null
 
-export async function loadCategories(force = false): Promise<FnbCategory[]> {
-  if (cache && !force) return cache
+export async function loadCategories(): Promise<FnbCategory[]> {
+  if (cache) return cache
   const [rows] = await pool.execute<any[]>(
     'SELECT code, name, group_type, display_order FROM fnb_category ORDER BY display_order'
   )
