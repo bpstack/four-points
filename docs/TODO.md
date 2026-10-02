@@ -471,7 +471,7 @@ hace que alguien reimplemente lo que ya existe.
 ## 🟢 Baja
 
 - [ ] **Retirar el rol `demo-admin`** — el usuario demo está deshabilitado
-      (`is_active = 0`, el login lo rechaza), pero el rol sigue en los
+      (según el dueño, 2026-10-02; no comprobado en la BD), pero el rol sigue en los
       middlewares de `roleCheck.ts`, en `demoRestriction`, en las rutas `/demo`
       y en el frontend (`isAdminRole`). Las reglas añadidas el 2026-10-02 ya no
       lo incluyen. Decidir si se quita del todo.
