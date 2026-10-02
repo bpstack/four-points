@@ -131,23 +131,3 @@ export class ConstraintRegistry {
     return this.constraints.size
   }
 }
-
-// Global registry instance
-let globalRegistry: ConstraintRegistry | null = null
-
-/**
- * Get the global constraint registry
- */
-export function getConstraintRegistry(): ConstraintRegistry {
-  if (!globalRegistry) {
-    globalRegistry = new ConstraintRegistry()
-  }
-  return globalRegistry
-}
-
-/**
- * Create a new isolated registry (for testing)
- */
-export function createConstraintRegistry(): ConstraintRegistry {
-  return new ConstraintRegistry()
-}

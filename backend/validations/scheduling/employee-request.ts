@@ -13,8 +13,6 @@ export const requestTypeSchema = z.enum([
   'vacation',
 ])
 
-export const requestStatusSchema = z.enum(['pending', 'approved', 'rejected'])
-
 export const createEmployeeRequestSchema = z
   .object({
     employee_id: z.string().uuid(),
@@ -34,5 +32,3 @@ export const createEmployeeRequestSchema = z
     message: 'date_from debe ser <= date_to',
     path: ['date_from'],
   })
-
-export type CreateEmployeeRequestInput = z.infer<typeof createEmployeeRequestSchema>

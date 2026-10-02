@@ -291,22 +291,3 @@ export const constraintQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(100).default(50),
   offset: z.coerce.number().int().min(0).default(0),
 })
-
-// ============================================
-// INFERRED TYPES
-// ============================================
-
-export type CreateMonthInput = z.infer<typeof createMonthSchema>
-export type UpdateMonthInput = z.infer<typeof updateMonthSchema>
-export type UpdateDayInput = z.infer<typeof updateDaySchema>
-export type BulkUpdateDaysInput = z.infer<typeof bulkUpdateDaysSchema>
-export type UpdateAssignmentInput = z.infer<typeof updateAssignmentSchema>
-export type BulkUpdateAssignmentsInput = z.infer<typeof bulkUpdateAssignmentsSchema>
-export type CreateConstraintInput = z.infer<typeof createConstraintSchema>
-export type UpdateConstraintInput = z.infer<typeof updateConstraintSchema>
-export type ApproveConstraintInput = z.infer<typeof approveConstraintSchema>
-export type CreateEmployeeRuleInput = z.infer<typeof createEmployeeRuleSchema>
-export type UpdateEmployeeRuleInput = z.infer<typeof updateEmployeeRuleSchema>
-export type UpdateConfigInput = z.infer<typeof updateConfigSchema>
-export type MonthQueryInput = z.infer<typeof monthQuerySchema>
-export type ConstraintQueryInput = z.infer<typeof constraintQuerySchema>

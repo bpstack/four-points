@@ -34,18 +34,6 @@ export const reportPriorityEnum = z.enum(['low', 'medium', 'high', 'urgent'])
 
 export const assignedTypeEnum = z.enum(['internal', 'external'])
 
-export const historyActionEnum = z.enum([
-  'created',
-  'status_changed',
-  'priority_changed',
-  'updated',
-  'assigned',
-  'resolved',
-  'closed',
-  'deleted',
-  'restored',
-])
-
 // ========================================
 // SCHEMA: CREAR REPORTE
 // ========================================
@@ -349,8 +337,5 @@ export type CreateReportInput = z.infer<typeof createReportSchema>
 export type UpdateReportInput = z.infer<typeof updateReportSchema>
 export type UpdateStatusInput = z.infer<typeof updateStatusSchema>
 export type UpdatePriorityInput = z.infer<typeof updatePrioritySchema>
-export type AddResolutionNotesInput = z.infer<typeof addResolutionNotesSchema>
-export type ReportFiltersInput = z.infer<typeof reportFiltersSchema>
 export type IdParamInput = z.infer<typeof idParamSchema>
 export type AddImageInput = z.infer<typeof addImageSchema>
-export type AssignReportInput = z.infer<typeof assignReportSchema>

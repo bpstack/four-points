@@ -71,6 +71,3 @@ export const CONCILIATION_PARAM_RULES = [
   ['id', z.coerce.number().int().min(1), ERROR_CODES.INVALID_ID],
   ['date', calendarDateSchema, ERROR_CODES.INVALID_DATE_FORMAT],
 ] as const
-
-export type CreateConciliationInput = z.infer<typeof createConciliationSchema>
-export type UpdateFormInput = z.infer<typeof updateFormSchema>

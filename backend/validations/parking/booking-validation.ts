@@ -49,12 +49,6 @@ export const createBookingSchema = z
     }
   )
 
-export const updateBookingSchema = createBookingSchema.partial()
-
-// Type exports
-export type CreateBookingInput = z.infer<typeof createBookingSchema>
-export type UpdateBookingInput = z.infer<typeof updateBookingSchema>
-
 // PUT /bookings/:code body. Mirrors the parking_bookings columns: amounts are
 // DECIMAL(10,2) and never negative, payment_method is an ENUM, references and
 // external ids are VARCHAR(100)/(64). Before, any value reached MySQL (a

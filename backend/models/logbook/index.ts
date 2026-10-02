@@ -66,17 +66,6 @@ export interface LogbookHistoryRow extends RowDataPacket {
   created_at: Date
 }
 
-export interface LogbookReadRow extends RowDataPacket {
-  id: number
-  logbook_id: number
-  user_id: string
-  read_at: Date
-}
-
-export interface LogbookReadWithUser extends LogbookReadRow {
-  username: string
-}
-
 // ============================================
 // DTOs (Data Transfer Objects)
 // ============================================

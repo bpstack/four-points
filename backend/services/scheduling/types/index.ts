@@ -132,10 +132,3 @@ export interface ConstraintResult {
   /** Breakdown by SoftWeightKey for traceability */
   softPenaltyBreakdown?: Record<string, number>
 }
-
-export interface IConstraint {
-  name: string
-  priority: number
-  check(context: GeneratorContext): ConstraintResult
-  fix?(context: GeneratorContext): boolean
-}

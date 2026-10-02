@@ -27,8 +27,6 @@ export const documentTypeEnum = z.enum(['DNI', 'PASSPORT', 'NIE', 'OTHER'])
 
 export const severityEnum = z.enum(['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'])
 
-export const statusEnum = z.enum(['ACTIVE', 'DELETED'])
-
 export const statusFilterEnum = z.enum(['ACTIVE', 'DELETED', 'ALL'])
 
 // ========================================
@@ -202,7 +200,4 @@ export const idParamSchema = z.object({
 // TIPOS INFERIDOS
 // ========================================
 
-export type CreateBlacklistInput = z.infer<typeof createBlacklistSchema>
-export type UpdateBlacklistInput = z.infer<typeof updateBlacklistSchema>
-export type BlacklistFiltersInput = z.infer<typeof blacklistFiltersSchema>
 export type IdParamInput = z.infer<typeof idParamSchema>

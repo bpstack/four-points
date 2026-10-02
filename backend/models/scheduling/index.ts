@@ -334,22 +334,6 @@ export interface SchedulingShift {
   isActive: boolean
 }
 
-export interface SchedulingEmployee {
-  id: string
-  name: string
-  email: string
-  rules: SchedulingEmployeeRule[]
-}
-
-export interface SchedulingEmployeeRule {
-  id: number
-  ruleType: EmployeeRuleType
-  ruleValue: string
-  priority: number
-  isActive: boolean
-  notes: string | null
-}
-
 export interface SchedulingDay {
   id: number
   dayNumber: number
@@ -361,14 +345,6 @@ export interface SchedulingDay {
   occupancyPct: number | null
   arrivals: number | null
   departures: number | null
-  notes: string | null
-}
-
-export interface SchedulingAssignment {
-  id: number
-  dayId: number
-  employeeId: string
-  shiftCode: string
   notes: string | null
 }
 
@@ -452,10 +428,6 @@ export interface FullMonthResponse {
 // GENERATION TYPES
 // ============================================
 
-export interface GenerationOptions {
-  forceRegenerate?: boolean
-}
-
 export interface GenerationWarning {
   type: 'coverage' | 'hours' | 'rest' | 'constraint' | 'night_block' | 'validation' | 'other'
   severity: 'info' | 'warning' | 'error'
@@ -463,19 +435,6 @@ export interface GenerationWarning {
   day?: number
   employeeId?: string
   employeeName?: string
-}
-
-export interface GenerationResult {
-  success: boolean
-  monthId: number
-  assignmentsCount: number
-  generationTimeMs: number
-  warnings: GenerationWarning[]
-  stats: {
-    byEmployee: EmployeeStats[]
-    byDay: DailyStats[]
-  }
-  attempt?: number // Which attempt succeeded (if retrying)
 }
 
 export interface ValidationResult {

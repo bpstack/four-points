@@ -113,10 +113,6 @@ export async function upsertStepState(
   }
 }
 
-export async function deleteStepStates(runId: number): Promise<void> {
-  await db.execute(`DELETE FROM checklist_step_state WHERE run_id = ?`, [runId])
-}
-
 // ──────────────────────────────────────────────────────────
 // EVENT LOG
 // ──────────────────────────────────────────────────────────

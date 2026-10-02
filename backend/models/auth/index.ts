@@ -3,27 +3,8 @@
 import { RowDataPacket } from 'mysql2'
 
 // ============================================
-// ENUMS
-// ============================================
-
-export type UserRole = 'admin' | 'recepcionista' | 'group-admin' | 'mantenimiento'
-
-// ============================================
 // DATABASE MODELS
 // ============================================
-
-export interface UserRow extends RowDataPacket {
-  id: string
-  username: string
-  email: string
-  password: string
-  role_id: number
-  is_active: number | boolean
-  created_at: Date
-  updated_at: Date | null
-  avatar_url: string | null
-  avatar_public_id: string | null
-}
 
 export interface UserWithRole extends RowDataPacket {
   id: string
@@ -94,13 +75,6 @@ export interface UpdatePasswordDTO {
 // AUTH RESPONSE TYPES
 // ============================================
 
-export interface AuthResponse {
-  success: boolean
-  user: User
-  token?: string
-  refreshToken?: string
-}
-
 export interface TokenPayload {
   id: string
   username: string
@@ -108,12 +82,6 @@ export interface TokenPayload {
   type: 'access' | 'refresh'
   iat?: number
   exp?: number
-}
-
-export interface RefreshTokenResponse {
-  success: boolean
-  token: string
-  refreshToken?: string
 }
 
 // ============================================
@@ -126,16 +94,6 @@ export interface CookieOptions {
   sameSite: 'strict' | 'lax' | 'none'
   path: string
   maxAge?: number
-}
-
-// ============================================
-// REQUEST EXTENSIONS
-// ============================================
-
-export interface AuthenticatedUser {
-  id: string
-  username: string
-  role: string
 }
 
 // ============================================

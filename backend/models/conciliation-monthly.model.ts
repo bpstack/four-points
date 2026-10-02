@@ -56,13 +56,6 @@ export interface IMonthlySummaryResponse {
 }
 
 /**
- * Request para actualizar status del resumen mensual
- */
-export interface IUpdateMonthlySummaryStatusRequest {
-  status: 'draft' | 'confirmed' | 'closed'
-}
-
-/**
  * Validación de cierre mensual
  */
 export interface IMonthlyCloseValidation {

@@ -105,8 +105,4 @@ export const logbookListQuerySchema = z.object({
 // INFERRED TYPES
 // ============================================
 
-export type CreateLogbookInput = z.infer<typeof createLogbookSchema>
-export type UpdateLogbookInput = z.infer<typeof updateLogbookSchema>
-export type CreateCommentInput = z.infer<typeof createCommentSchema>
-export type UpdateCommentInput = z.infer<typeof updateCommentSchema>
 export type LogbookListQuery = z.infer<typeof logbookListQuerySchema>

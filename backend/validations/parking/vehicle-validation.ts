@@ -93,23 +93,3 @@ export const updateVehicleSchema = z.object({
   owner_name: ownerNameSchema.optional(),
   model: modelSchema.optional(),
 })
-
-/**
- * Schema para búsqueda por matrícula
- */
-export const searchByPlateSchema = z.object({
-  plate_number: plateNumberSchema,
-})
-
-/**
- * Schema para búsqueda por propietario
- */
-export const searchByOwnerSchema = z.object({
-  owner_name: ownerNameSchema,
-})
-
-// Type exports
-export type RegisterVehicleInput = z.infer<typeof registerVehicleSchema>
-export type UpdateVehicleInput = z.infer<typeof updateVehicleSchema>
-export type SearchByPlateInput = z.infer<typeof searchByPlateSchema>
-export type SearchByOwnerInput = z.infer<typeof searchByOwnerSchema>

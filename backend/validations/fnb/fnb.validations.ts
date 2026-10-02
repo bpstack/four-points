@@ -15,6 +15,3 @@ export const fnbDateQuerySchema = z.object({
     .regex(/^\d{4}-\d{2}-\d{2}$/)
     .optional(),
 })
-
-export type FnbMonthQuery = z.infer<typeof fnbMonthQuerySchema>
-export type FnbDateQuery = z.infer<typeof fnbDateQuerySchema>

@@ -66,14 +66,6 @@ export async function getAllConfig(): Promise<SchedulingConfigRow[]> {
   return rows
 }
 
-export async function getConfigByKey(key: string): Promise<SchedulingConfigRow | undefined> {
-  const [rows] = await db.execute<SchedulingConfigRow[]>(
-    'SELECT * FROM scheduling_config WHERE config_key = ?',
-    [key]
-  )
-  return rows[0]
-}
-
 export async function updateConfig(key: string, data: UpdateConfigDTO): Promise<boolean> {
   const [result] = await db.execute<ResultSetHeader>(
     `UPDATE scheduling_config 
@@ -508,29 +500,6 @@ export async function getDayById(id: number): Promise<SchedulingDayRow | undefin
   return rows[0]
 }
 
-export async function createDay(data: CreateDayDTO): Promise<number> {
-  const [result] = await db.execute<ResultSetHeader>(
-    `INSERT INTO scheduling_days 
-     (month_id, day_number, date, day_of_week, week_number, is_holiday, holiday_name, 
-      occupancy_pct, arrivals, departures, notes, created_at, updated_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())`,
-    [
-      data.month_id,
-      data.day_number,
-      data.date,
-      data.day_of_week,
-      data.week_number,
-      data.is_holiday ? 1 : 0,
-      data.holiday_name ?? null,
-      data.occupancy_pct ?? null,
-      data.arrivals ?? null,
-      data.departures ?? null,
-      data.notes ?? null,
-    ]
-  )
-  return result.insertId
-}
-
 export async function createDaysBulk(days: CreateDayDTO[]): Promise<void> {
   if (days.length === 0) return
 
@@ -640,10 +609,6 @@ export async function bulkUpdateDays(
   return updatedCount
 }
 
-export async function deleteAllDaysByMonth(monthId: number): Promise<void> {
-  await db.execute('DELETE FROM scheduling_days WHERE month_id = ?', [monthId])
-}
-
 // ============================================
 // ASSIGNMENTS
 // ============================================
@@ -700,23 +665,6 @@ export async function getAssignmentByDayEmployee(
     [dayId, employeeId]
   )
   return rows[0]
-}
-
-export async function createAssignment(data: CreateAssignmentDTO): Promise<number> {
-  const [result] = await db.execute<ResultSetHeader>(
-    `INSERT INTO scheduling_assignments 
-     (month_id, day_id, employee_id, shift_code, source_constraint_id, notes, created_at, updated_at)
-     VALUES (?, ?, ?, ?, ?, ?, NOW(), NOW())`,
-    [
-      data.month_id,
-      data.day_id,
-      data.employee_id,
-      data.shift_code,
-      data.source_constraint_id ?? null,
-      data.notes ?? null,
-    ]
-  )
-  return result.insertId
 }
 
 export async function createAssignmentsBulk(
@@ -1540,47 +1488,6 @@ export async function updateContract(
     params
   )
   return result.affectedRows > 0
-}
-
-export async function upsertContract(data: CreateEmployeeContractDTO): Promise<number> {
-  // Use INSERT ... ON DUPLICATE KEY UPDATE for better performance
-  // Avoids extra SELECT query before INSERT/UPDATE
-  const [result] = await db.execute<ResultSetHeader>(
-    `INSERT INTO scheduling_employee_contracts 
-     (employee_id, year, dias_trabajo, horas_anuales, dias_vacaciones, 
-      dias_libre_semanal, dias_bonificables, dias_it, dias_laborables_ano, 
-      observaciones, created_by, created_at, updated_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
-     ON DUPLICATE KEY UPDATE 
-       dias_trabajo = VALUES(dias_trabajo),
-       horas_anuales = VALUES(horas_anuales),
-       dias_vacaciones = VALUES(dias_vacaciones),
-       dias_libre_semanal = VALUES(dias_libre_semanal),
-       dias_bonificables = VALUES(dias_bonificables),
-       dias_it = VALUES(dias_it),
-       dias_laborables_ano = VALUES(dias_laborables_ano),
-       observaciones = VALUES(observaciones),
-       updated_at = NOW()`,
-    [
-      data.employee_id,
-      data.year,
-      data.dias_trabajo ?? 225,
-      data.horas_anuales ?? 1800,
-      data.dias_vacaciones ?? 30,
-      data.dias_libre_semanal ?? 90,
-      data.dias_bonificables ?? 20,
-      data.dias_it ?? 0,
-      data.dias_laborables_ano ?? 365,
-      data.observaciones ?? null,
-      data.created_by ?? null,
-    ]
-  )
-  // insertId is the new ID on insert, or 0 on update
-  if (result.insertId === 0) {
-    const existing = await getContractByEmployeeYear(data.employee_id, data.year)
-    return existing?.id ?? 0
-  }
-  return result.insertId
 }
 
 export async function deleteContract(id: number): Promise<boolean> {

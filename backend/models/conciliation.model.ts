@@ -1,10 +1,6 @@
 // models/conciliation.model.ts
 
 // =========================================================
-// MODELS - SISTEMA DE CONCILIACIÓN (Form-based)
-// =========================================================
-
-// =========================================================
 // ENUMS - Reasons disponibles
 // =========================================================
 
@@ -115,16 +111,6 @@ export interface IConciliationDetail extends IConciliationSummary {
 // =========================================================
 
 /**
- * DTO para crear una nueva conciliación
- * Se inicializa con TODAS las entries en 0
- */
-export interface ICreateConciliationRequest {
-  date: string
-  notes?: string
-  department_id?: number
-}
-
-/**
  * DTO para actualizar el formulario completo
  * Contiene TODAS las entries (incluso las de valor 0)
  */
@@ -142,32 +128,4 @@ export interface IUpdateFormRequest {
     notes?: string
   }>
   notes?: string // Notas generales de la conciliación
-}
-
-/**
- * DTO para actualizar el estado de una conciliación
- */
-export interface IUpdateStatusRequest {
-  status: ConciliationStatus
-}
-
-/**
- * Respuesta al crear una conciliación
- */
-export interface ICreateConciliationResponse {
-  message: string
-  id: number
-  conciliation: IConciliationDetail
-}
-
-/**
- * Respuesta al actualizar el formulario
- */
-export interface IUpdateFormResponse {
-  message: string
-  totals: {
-    total_reception: number
-    total_housekeeping: number
-    difference: number
-  }
 }

@@ -116,9 +116,9 @@ Storage: the assignment stores only `L` (or the base code). The numbering is
 - **Evidence:** a single exception in 5 months of spreadsheet (treated as an
   outlier).
 - **Implementation:** the solver forbids `N` followed by `M`/`T`/`PI`/`P`
-  (`transitions.py`). ❓ The validator side was described as implicit in
-  `rotation-continuity.constraint.ts`, with an explicit N→X check still to be
-  added; not re-checked.
+  (`transitions.py`). The validator does not check it:
+  `rotation-continuity.constraint.ts` was never registered by
+  `schedule-validator.ts` and was removed on 2026-10-02.
 
 ### H4 — Maximum consecutive working days
 
@@ -169,10 +169,10 @@ Storage: the assignment stores only `L` (or the base code). The numbering is
 - ⚠️ _Corrected 2026-09-28._ The manager revised this on 2026-05-02: `T → M` on
   consecutive days with no day off **is an error (hard)**, and so is an `M ↔ T`
   change at the month boundary with no rest (see [`decisions.md`](decisions.md),
-  entry 2026-05-09 "rotation continuity"). The code applies it as hard on both
-  sides: `rotation-continuity.constraint.ts` emits `severity: 'error'` and
-  `transitions.py` forbids `T → M`. S12 is therefore not a soft rule in
-  practice.
+  entry 2026-05-09 "rotation continuity"). Only the solver applies it, as
+  hard: `transitions.py` forbids `T → M`. S12 is therefore not a soft rule in
+  practice. (`rotation-continuity.constraint.ts` emitted `severity: 'error'`
+  but `schedule-validator.ts` never registered it; removed on 2026-10-02.)
 
 ### H7 — Locked cells are respected
 
@@ -504,8 +504,8 @@ valid.
      boundary use the context of N-1);
    - **rest between shifts** (`consecutive-rest.constraint`): rest on day 1 vs
      the last shift of N-1;
-   - **rotation continuity / T→M** (`rotation-continuity.constraint`): the
-     "previous shift" of day 1 is the last shift of N-1.
+   - **rotation continuity / T→M**: only in the solver; the validator
+     constraint was never registered and was removed on 2026-10-02.
 
    **Validator:** `PreviousMonthHistory` is wired and read by the four
    constraints (completed 2026-04-26).
@@ -584,6 +584,7 @@ classes in its `ConstraintRegistry` (`CoverageConstraint` and
 `EmployeeRulesConstraint`) and runs most other checks inline. There is one class
 per rule in `backend/services/scheduling/constraints/` (`coverage`,
 `night-block`, `consecutive-rest`, `max-consecutive-work`, `monthly-libre`,
-`rotation-continuity`, `employee-rules`); ❓ which of the other five
-`validate()` reaches, and how, was not traced. Soft weights in
+`employee-rules`). `schedule-validator.ts` registers only `coverage` and
+`employee-rules`; the other four are exercised by
+`tests/scheduling/constraints.test.ts` only (checked 2026-10-02). Soft weights in
 `soft-weights.ts`.

@@ -61,7 +61,6 @@ services/scheduling/
    │   ├── max-consecutive-work.constraint.ts  (H4: max consecutive work days)
    │   ├── monthly-libre.constraint.ts (H6: monthly libres [min, max])
    │   ├── night-block.constraint.ts   (H2: night blocks [min, max])
-   │   ├── rotation-continuity.constraint.ts (rotational pattern continuity)
    │   └── employee-rules.constraint.ts (noWeekends, fixedShift, fixedDays)
    ├── utils/
    │   ├── matrix.ts                   (isWorkShift, isLibreShift, getEmployeeShiftCounts...)

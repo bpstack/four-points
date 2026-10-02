@@ -447,9 +447,6 @@ export const ERROR_CODES = {
   ACTIVITY_FETCH_ERROR: 'ACTIVITY_FETCH_ERROR',
 } as const
 
-// Type for error codes
-export type ErrorCode = (typeof ERROR_CODES)[keyof typeof ERROR_CODES]
-
 // ============================================================================
 // SUCCESS CODES (for messages that need translation too)
 // ============================================================================
@@ -575,5 +572,3 @@ export const SUCCESS_CODES = {
   PARKING_BOOKING_UPDATED: 'PARKING_BOOKING_UPDATED',
   PARKING_BOOKING_DELETED: 'PARKING_BOOKING_DELETED',
 } as const
-
-export type SuccessCode = (typeof SUCCESS_CODES)[keyof typeof SUCCESS_CODES]

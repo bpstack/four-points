@@ -70,11 +70,8 @@ const updatePasswordSchema = z
     path: ['newPassword'],
   })
 
-export type UserInput = z.infer<typeof userSchema>
 export type UserValidationResult = ReturnType<typeof userSchema.safeParse>
-export type UpdateProfileInput = z.infer<typeof updateProfileSchema>
 export type UpdateProfileValidationResult = ReturnType<typeof updateProfileSchema.safeParse>
-export type UpdatePasswordInput = z.infer<typeof updatePasswordSchema>
 export type UpdatePasswordValidationResult = ReturnType<typeof updatePasswordSchema.safeParse>
 
 // ✔️ Validación completa para creación de usuario
