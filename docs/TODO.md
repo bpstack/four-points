@@ -587,10 +587,6 @@ hace que alguien reimplemente lo que ya existe.
       días (250 € en Aiven); a partir de 31 se cobran 15 €/día (465 €).
 - [ ] **Parking: el mapa de estado no se refresca solo** — los cambios de otro
       usuario no aparecen hasta recargar.
-- [ ] **Logbook: comprobación de `isAdmin` que nunca se cumple** — los
-      controladores de comentarios leen `req.user.isAdmin`, que
-      `authenticateToken` no rellena. Quitarla o decidir si el `admin` puede
-      editar comentarios ajenos.
 - [ ] **Logbook: papelera y filtros sin interfaz** — `/trashed`, `/author`,
       `/department` y `/priority` existen en el backend y en `queries.ts`, pero
       la pantalla del módulo no los usa (Informes usa `/all` con filtros).
@@ -607,9 +603,6 @@ hace que alguien reimplemente lo que ya existe.
 - [ ] **Mensajería sin tiempo real** — los mensajes nuevos solo aparecen al
       reabrir la conversación. Valorar un sondeo periódico como el de las
       notificaciones. _Comprobado el 2026-09-28: no hay intervalo ni WebSocket._
-- [ ] **`backend/scheduling-solver/AGENTS.md` cita `backend/debug-*.js`**, que
-      no están en el repositorio: quitar la mención o versionarlos. (El resto
-      del código muerto de esta entrada se quitó el 2026-10-02.)
 - [ ] **Zod 3 en el frontend y Zod 4 en el backend** (`^3.25.17` frente a
       `4.0.5`) — unificar si se llegan a compartir esquemas.
 - [ ] **Presencias a mano** — la pestaña de presencias de `scheduling` pide
