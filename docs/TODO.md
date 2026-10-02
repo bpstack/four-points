@@ -540,11 +540,6 @@ hace que alguien reimplemente lo que ya existe.
       (Helvetica estándar). _Sin comprobar en ejecución._
 - [ ] **Checklist: `checklist_config` existe pero no se usa.** _Comprobado por
       mí el 2026-09-28._
-- [ ] **Checklist: `checklist-report.ts` imprime los comentarios sin filtrar
-      caracteres de control.** (`public_id` ya no sale en las respuestas desde
-      el 2026-10-02; `user_id` sí, porque decide quién ve el botón de borrar.)
-      _Según la revisión `security` L3 del 2026-09-28 (fichero y línea en el
-      informe); no repasado por mí._
 - [ ] **Scheduling: reiniciar un mes no usa transacción** — si falla a mitad, el
       mes queda vacío. _Comprobado por mí el 2026-09-28._
 - [ ] **Scheduling: comprobar si `LI` debe contar como descanso en el solver** —

@@ -15,6 +15,7 @@
 
 import db from '../config/db.js'
 import { getTodayMadrid } from '../config/date-utils.js'
+import { printable } from '../services/text/control-chars.js'
 
 const CHECKLIST_ID = process.argv[2] ?? 'cl-night-audit'
 const HOTEL_DATE = process.argv[3] ?? getTodayMadrid()
@@ -91,7 +92,9 @@ async function main() {
   console.log(`\nComentarios (${comments.length}):`)
   if (comments.length) {
     comments.forEach((c: any) =>
-      console.log(`  [${fmt(c.created_at)}] ${c.step_id} | ${c.autor ?? '—'}: ${c.comentario}`)
+      console.log(
+        `  [${fmt(c.created_at)}] ${c.step_id} | ${printable(c.autor ?? '—')}: ${printable(c.comentario)}`
+      )
     )
   } else {
     console.log('  (ninguno)')
