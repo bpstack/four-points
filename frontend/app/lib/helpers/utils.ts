@@ -67,3 +67,13 @@ export function isAdminRole(role: string | undefined | null): boolean {
   const normalizedRole = role.toLowerCase().trim()
   return normalizedRole === 'admin' || normalizedRole === 'demo-admin'
 }
+
+/**
+ * Roles del middleware canManageGroups del backend (admin, group-admin,
+ * demo-admin): gestionan grupos y lanzan a mano los avisos pendientes
+ */
+export function canManageGroupsRole(role: string | undefined | null): boolean {
+  if (!role) return false
+  const normalizedRole = role.toLowerCase().trim()
+  return isAdminRole(normalizedRole) || normalizedRole === 'group-admin'
+}
