@@ -163,8 +163,9 @@ hace que alguien reimplemente lo que ya existe.
       2026-09-28 (fichero y línea en el informe); no repasado por mí._
 - [ ] **Parking: importes cobrados editables siempre** — `PUT` acepta
       `payment_amount`, método y referencia en cualquier estado (también
-      `completed`), sin validar el signo y sin historial. _Comprobado por mí el
-      2026-09-28._
+      `completed`, y el código lo declara intencionado) y sin historial. El
+      signo, el `ENUM` del método y las longitudes ya se validan
+      (2026-10-02). _Comprobado por mí el 2026-09-28._
 - [ ] **Mensajería: un expulsado sigue editando y borrando sus mensajes** —
       `isSender` no comprueba que siga siendo participante. _Comprobado por mí
       el 2026-09-28._
@@ -365,10 +366,10 @@ hace que alguien reimplemente lo que ya existe.
       los listados y `editor_email` en el historial, que la pantalla no usa; el
       borrado copia la fila entera al historial. _Según la revisión `security`
       L3 del 2026-09-28 (fichero y línea en el informe); no repasado por mí._
-- [ ] **Parking: rutas de edición sin Zod** — `updateBookingSchema` existe pero
-      nadie lo usa; entrada y salida aceptan fechas reales arbitrarias. _Según
-      la revisión `security` L3 del 2026-09-28 (fichero y línea en el informe);
-      no repasado por mí._
+- [ ] **Parking: entrada y salida aceptan fechas reales arbitrarias** — el
+      cuerpo del `PUT` ya se valida con Zod (2026-10-02), pero las fechas de
+      entrada y salida reales no. _Según la revisión `security` L3 del
+      2026-09-28 (fichero y línea en el informe); no repasado por mí._
 - [ ] **Parking: `GET /vehicles` vuelca todos los vehículos** (matrícula y
       titular) sin paginar ni filtrar. _Según la revisión `security` L3 del
       2026-09-28 (fichero y línea en el informe); no repasado por mí._

@@ -9,8 +9,9 @@ import { RowDataPacket, ResultSetHeader } from 'mysql2'
 export type SpotType = 'standard' | 'large' | 'handicapped' | 'electric'
 export type LevelCode = '-2' | '-3'
 export type BookingStatus = 'reserved' | 'checked_in' | 'completed' | 'canceled' | 'no_show'
-export type BookingSource = 'direct' | 'booking.com' | 'expedia' | 'other'
-export type PaymentMethod = 'cash' | 'card' | 'transfer' | 'pending'
+// Same values as the ENUM columns of parking_bookings (db-mysql/aiven/04_parking_tables.sql)
+export type BookingSource = 'direct' | 'booking_com' | 'expedia' | 'airbnb' | 'agency_other'
+export type PaymentMethod = 'cash' | 'card' | 'transfer' | 'agency'
 
 // ============================================
 // DATABASE MODELS (RowDataPacket for queries)

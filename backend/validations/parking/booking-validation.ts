@@ -54,3 +54,26 @@ export const updateBookingSchema = createBookingSchema.partial()
 // Type exports
 export type CreateBookingInput = z.infer<typeof createBookingSchema>
 export type UpdateBookingInput = z.infer<typeof updateBookingSchema>
+
+// PUT /bookings/:code body. Mirrors the parking_bookings columns: amounts are
+// DECIMAL(10,2) and never negative, payment_method is an ENUM, references and
+// external ids are VARCHAR(100)/(64). Before, any value reached MySQL (a
+// negative payment was stored, a bad ENUM or text ended in a 500).
+// booking_source is left as it is: its allowed values are still to be decided
+// (docs/TODO.md)
+const amount = z.union([z.null(), z.coerce.number().finite().min(0).max(99_999_999.99)])
+
+export const updateBookingBodySchema = z.object({
+  expected_checkin: z.string().optional(),
+  expected_checkout: z.string().optional(),
+  spot_number: z.coerce.number().int().positive().optional(),
+  level_code: z.enum(['-2', '-3']).optional(),
+  vehicle_id: z.union([z.null(), z.coerce.number().int().positive()]).optional(),
+  total_amount: amount.optional(),
+  booking_source: z.string().optional(),
+  external_booking_id: z.string().max(64).nullable().optional(),
+  notes: z.string().max(16000).nullable().optional(),
+  payment_amount: amount.optional(),
+  payment_method: z.enum(['cash', 'card', 'transfer', 'agency']).nullable().optional(),
+  payment_reference: z.string().max(100).nullable().optional(),
+})
