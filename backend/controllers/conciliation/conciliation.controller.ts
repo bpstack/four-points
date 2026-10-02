@@ -1,4 +1,6 @@
 // controllers/conciliation/conciliation.controller.ts
+// Route params (:id, :date) arrive validated by validateParams in
+// routes/conciliation/conciliation.routes.ts
 
 // =========================================================
 // CONTROLLER - SISTEMA DE CONCILIACIÓN (Form-based)
@@ -40,15 +42,6 @@ export async function getById(req: Request, res: Response): Promise<void> {
   try {
     const id = Number(req.params.id)
 
-    if (isNaN(id)) {
-      res.status(400).json({
-        success: false,
-        error: ERROR_CODES.INVALID_ID,
-        code: ERROR_CODES.INVALID_ID,
-      })
-      return
-    }
-
     const conciliation = await conciliationRepo.getById(id)
     res.status(200).json({ success: true, data: conciliation })
   } catch (error: any) {
@@ -76,15 +69,6 @@ export async function getById(req: Request, res: Response): Promise<void> {
 export async function getByDay(req: Request, res: Response): Promise<void> {
   try {
     const { date } = req.params
-
-    if (!date) {
-      res.status(400).json({
-        success: false,
-        error: ERROR_CODES.CONCILIATION_DATE_REQUIRED,
-        code: ERROR_CODES.CONCILIATION_DATE_REQUIRED,
-      })
-      return
-    }
 
     // Obtener por fecha
     const summary = await conciliationRepo.getByDate(date)
@@ -307,15 +291,6 @@ export async function recalculateTotals(req: Request, res: Response): Promise<vo
   try {
     const id = Number(req.params.id)
 
-    if (isNaN(id)) {
-      res.status(400).json({
-        success: false,
-        error: ERROR_CODES.INVALID_ID,
-        code: ERROR_CODES.INVALID_ID,
-      })
-      return
-    }
-
     // Verificar que la conciliación no esté cerrada
     const conciliation = await conciliationRepo.getById(id)
     if (conciliation.status === 'closed') {
@@ -368,15 +343,6 @@ export async function recalculateTotals(req: Request, res: Response): Promise<vo
 export async function remove(req: Request, res: Response): Promise<void> {
   try {
     const id = Number(req.params.id)
-
-    if (isNaN(id)) {
-      res.status(400).json({
-        success: false,
-        error: ERROR_CODES.INVALID_ID,
-        code: ERROR_CODES.INVALID_ID,
-      })
-      return
-    }
 
     // Verificar que existe
     await conciliationRepo.getById(id)

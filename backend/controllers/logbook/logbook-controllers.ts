@@ -1,4 +1,6 @@
 // controllers/logbook/logbook-controllers.ts
+// Route params (:id, :logbookId, :day...) arrive validated by validateParams in
+// routes/logbook/logbook-routes.ts
 
 import { Request, Response } from 'express'
 import * as logbookRepo from '../../repositories/logbook/logbook-repository.js'
@@ -7,7 +9,6 @@ import * as historyRepo from '../../repositories/logbook/logbookHistory-reposito
 import {
   createLogbookSchema,
   updateLogbookSchema,
-  dayParam,
   logbookListQuerySchema,
   type LogbookListQuery,
 } from '../../validations/logbook/logbook-schemas.js'
@@ -115,17 +116,7 @@ export async function updateLogbookController(req: Request, res: Response): Prom
 // ============================================
 
 export async function getLogbookHistory(req: Request, res: Response): Promise<void> {
-  const logbookIdRaw = req.params.logbookId
-  const logbookId = Number(logbookIdRaw)
-
-  if (!Number.isInteger(logbookId)) {
-    res.status(400).json({
-      success: false,
-      error: ERROR_CODES.INVALID_ID,
-      code: ERROR_CODES.INVALID_ID,
-    })
-    return
-  }
+  const logbookId = Number(req.params.logbookId)
 
   try {
     const data = await historyRepo.getHistoryByLogbookId(logbookId)
@@ -271,15 +262,6 @@ export async function getLogbooksByImportance(req: Request, res: Response): Prom
 export async function getLogbooksByDay(req: Request, res: Response): Promise<void> {
   try {
     const { day } = req.params
-
-    if (!dayParam.safeParse(day).success) {
-      res.status(400).json({
-        success: false,
-        error: ERROR_CODES.INVALID_DATE_FORMAT,
-        code: ERROR_CODES.INVALID_DATE_FORMAT,
-      })
-      return
-    }
 
     const query = parseListQuery(req, res)
     if (!query) return

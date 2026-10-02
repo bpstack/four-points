@@ -1,8 +1,9 @@
 // controllers/checklist/checklist-controllers.ts
+// Route params (:id, :stepId) arrive validated by validateChecklistParams in
+// routes/checklist/checklist-routes.ts
 
 import { Request, Response } from 'express'
 import * as checklistService from '../../services/checklist/checklist.service.js'
-import { getValidStepIds } from '../../services/checklist/checklist-content.js'
 import {
   toggleStepSchema,
   historyQuerySchema,
@@ -27,12 +28,6 @@ export async function toggleStepController(req: Request, res: Response): Promise
     const { id, stepId } = req.params
     const userId = req.user!.id
     const { done } = toggleStepSchema.parse(req.body)
-
-    const validIds = getValidStepIds(id)
-    if (validIds !== null && !validIds.has(stepId)) {
-      res.status(400).json({ error: 'Paso no válido' })
-      return
-    }
 
     const state = await checklistService.toggleStep(id, stepId, done, userId)
     res.json(state)
