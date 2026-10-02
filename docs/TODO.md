@@ -545,10 +545,6 @@ hace que alguien reimplemente lo que ya existe.
 - [ ] **Backoffice: `demo-admin` ve IBAN, CIF y datos de contacto completos** de
       los proveedores. _Según la revisión `security` L3 del 2026-09-28 (fichero
       y línea en el informe); no repasado por mí._
-- [ ] **Corregir el `AGENTS.md` de backoffice** — los activos son el sello y la
-      firma (no imágenes de proveedores), hay PDF original y validado, el
-      borrado es definitivo y la máquina de estados no se aplica. _Comprobado
-      por mí el 2026-09-28._
 - [ ] **Cashier: la exportación a PDF puede romperse con emojis** en los textos
       (Helvetica estándar). _Sin comprobar en ejecución._
 - [ ] **Checklist: `checklist_config` existe pero no se usa.** _Comprobado por
