@@ -145,10 +145,6 @@ hace que alguien reimplemente lo que ya existe.
       historial desde `f5d47d6` y en el remoto privado. Sacarlos del historial
       en la fase 2 y rotar (ver la entrada de rotación). _Comprobado por mí el
       2026-09-28._
-- [ ] **`mantenimiento` lee actividad de módulos vetados por `/api/activity`**
-      — solo exige sesión y devuelve actividad reciente de caja, grupos,
-      logbook y mantenimiento a cualquier rol. La búsqueda global (`/api/search`)
-      ya filtra por rol y escapa `%` y `_`. _Comprobado por mí el 2026-09-28._
 - [ ] **Logbook: un comentario cambia la prioridad o el departamento de una
       entrada ajena** — si el comentario trae esos campos, el controlador
       actualiza la entrada sin comprobar autoría ni registrar el valor anterior.
