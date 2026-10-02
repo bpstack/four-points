@@ -39,12 +39,15 @@ export const CLOUDINARY_FOLDERS = {
  * without this a request could destroy any file of the cloud.
  */
 export function isPublicIdInFolder(publicId: unknown, folder: string): publicId is string {
+  // The folder prefix is what matters. Ids stored before names were sanitised
+  // keep the original file name (spaces, accents), so they are allowed
   return (
     typeof publicId === 'string' &&
     publicId.startsWith(`${folder}/`) &&
-    /^[A-Za-z0-9_\-/]+$/.test(publicId) &&
+    !publicId.endsWith('/') &&
     !publicId.includes('//') &&
-    !publicId.endsWith('/')
+    !publicId.split('/').includes('..') &&
+    !/[\u0000-\u001f\\]/.test(publicId)
   )
 }
 
@@ -58,4 +61,17 @@ export function isOwnCloudinaryFileIn(
     isOwnCloudinaryUrl(value, cloudName) &&
     new URL(value as string).pathname.includes(`/${folder}/`)
   )
+}
+
+/**
+ * File name part of a new public_id: no extension, only letters, digits,
+ * "_" and "-", at most 50 characters. The original name could carry "/"
+ * (a nested folder), spaces or any other character into the id.
+ */
+export function safePublicName(filename: string): string {
+  const name = filename
+    .replace(/\.[^/.]+$/, '')
+    .replace(/[^a-zA-Z0-9_-]/g, '_')
+    .substring(0, 50)
+  return name || 'file'
 }

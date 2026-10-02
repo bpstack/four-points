@@ -5,6 +5,7 @@
 
 import { describe, it, expect } from 'vitest'
 import {
+  safePublicName,
   isOwnCloudinaryUrl,
   isPublicIdInFolder,
   CLOUDINARY_FOLDERS,
@@ -54,6 +55,12 @@ describe('isOwnCloudinaryUrl', () => {
 // the client (blacklist DELETE /upload/:publicId, invoice bodies) and were
 // destroyed without checking which module they belong to.
 describe('isPublicIdInFolder', () => {
+  it('accepts ids stored before names were sanitised', () => {
+    expect(
+      isPublicIdInFolder('blacklist/blacklist_1727_Foto señor 2', CLOUDINARY_FOLDERS.blacklist)
+    ).toBe(true)
+  })
+
   it('accepts ids the modules really create', () => {
     expect(
       isPublicIdInFolder('blacklist/blacklist_1727000000000_foto', CLOUDINARY_FOLDERS.blacklist)
@@ -77,12 +84,27 @@ describe('isPublicIdInFolder', () => {
       'blacklist/',
       'blacklist//foto',
       'blacklist/../avatars/me',
-      'blacklist/foto.jpg',
       '',
     ]) {
       expect(isPublicIdInFolder(id, CLOUDINARY_FOLDERS.blacklist), id).toBe(false)
     }
     expect(isPublicIdInFolder('backoffice/assets/sello', CLOUDINARY_FOLDERS.invoices)).toBe(false)
     expect(isPublicIdInFolder(null, CLOUDINARY_FOLDERS.invoices)).toBe(false)
+  })
+})
+
+describe('safePublicName', () => {
+  it('keeps a plain name and drops the extension', () => {
+    expect(safePublicName('grifo-baño_204.jpg')).toBe('grifo-ba_o_204')
+  })
+
+  it('removes slashes, spaces and anything else from the id', () => {
+    expect(safePublicName('../../avatars/admin.png')).toBe('______avatars_admin')
+    expect(safePublicName('IMG 2024 (1).jpeg')).toBe('IMG_2024__1_')
+    expect(safePublicName('a'.repeat(80) + '.jpg')).toHaveLength(50)
+  })
+
+  it('never returns an empty name', () => {
+    expect(safePublicName('.jpg')).toBe('file')
   })
 })
