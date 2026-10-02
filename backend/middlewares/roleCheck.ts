@@ -252,6 +252,25 @@ export const canAccessFnb: RoleCheckMiddleware = (req, res, next) => {
 }
 
 /**
+ * Lanzar a mano la generación de notificaciones pendientes
+ * Roles permitidos: admin, group-admin (demo-admin está deshabilitado)
+ */
+export const canRunNotificationCheck: RoleCheckMiddleware = (req, res, next) => {
+  const allowedRoles = ['admin', 'group-admin']
+
+  if (!req.user?.role) {
+    res.status(403).json({ error: 'No se pudo verificar el rol del usuario' })
+    return
+  }
+
+  if (allowedRoles.includes(req.user.role.toLowerCase())) {
+    next()
+  } else {
+    res.status(403).json({ error: 'Acceso denegado. Se requiere rol de admin o group-admin' })
+  }
+}
+
+/**
  * Verifica que el usuario sea admin real (NO demo-admin)
  * Uso: Para operaciones de escritura en backoffice
  * demo-admin tiene acceso de solo lectura

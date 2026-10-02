@@ -14,7 +14,7 @@ import { notificationsApi } from '@/app/lib/groups'
 import { departmentsApi } from '@/app/lib/departments'
 import { formatDepartmentName } from '@/app/lib/logbooks/hooks/useDepartments'
 import { cn } from '@/app/lib/helpers/utils'
-import { canManageGroupsRole, isAdminRole } from '@/app/lib/helpers/utils'
+import { canRunNotificationCheckRole, isAdminRole } from '@/app/lib/helpers/utils'
 import { toast } from 'react-hot-toast'
 import {
   FiUsers,
@@ -1002,9 +1002,9 @@ function UserTable({ users, onDelete }: { users: User[]; onDelete: (id: string) 
 function NotificationsSettings() {
   const t = useTranslations('profile.settings.notifications')
   const { user } = useAuth()
-  // Same roles as the backend routes: POST / is isAdmin, check-pending canManageGroups
+  // Same roles as the backend routes: POST / is isAdmin, check-pending canRunNotificationCheck
   const canCreate = isAdminRole(user?.role)
-  const canCheckPending = canManageGroupsRole(user?.role)
+  const canCheckPending = canRunNotificationCheckRole(user?.role)
   const [checkingNotifications, setCheckingNotifications] = useState(false)
   const [notificationResult, setNotificationResult] = useState<{
     type: 'success' | 'error'

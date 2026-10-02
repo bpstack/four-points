@@ -470,6 +470,11 @@ hace que alguien reimplemente lo que ya existe.
 
 ## 🟢 Baja
 
+- [ ] **Retirar el rol `demo-admin`** — el usuario demo está deshabilitado
+      (`is_active = 0`, el login lo rechaza), pero el rol sigue en los
+      middlewares de `roleCheck.ts`, en `demoRestriction`, en las rutas `/demo`
+      y en el frontend (`isAdminRole`). Las reglas añadidas el 2026-10-02 ya no
+      lo incluyen. Decidir si se quita del todo.
 - [ ] **Conciliation: `GET /api/conciliations` sin paginar ni filtrar** —
       devuelve todo el histórico a cualquier rol con acceso. _Según la revisión
       `security` L3 del 2026-09-28 (fichero y línea en el informe); no repasado

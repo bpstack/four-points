@@ -69,11 +69,10 @@ export function isAdminRole(role: string | undefined | null): boolean {
 }
 
 /**
- * Roles del middleware canManageGroups del backend (admin, group-admin,
- * demo-admin): gestionan grupos y lanzan a mano los avisos pendientes
+ * Roles del middleware canRunNotificationCheck del backend: lanzan a mano la
+ * generación de avisos pendientes (demo-admin está deshabilitado)
  */
-export function canManageGroupsRole(role: string | undefined | null): boolean {
-  if (!role) return false
-  const normalizedRole = role.toLowerCase().trim()
-  return isAdminRole(normalizedRole) || normalizedRole === 'group-admin'
+export function canRunNotificationCheckRole(role: string | undefined | null): boolean {
+  const normalizedRole = role?.toLowerCase().trim()
+  return normalizedRole === 'admin' || normalizedRole === 'group-admin'
 }

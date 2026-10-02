@@ -31,9 +31,7 @@ export function openableModules<M extends AppModule>(
   return new Set(modules.filter((m) => canOpenModule(role, m)))
 }
 
-// Same roles as the isAdmin middleware: demo-admin sees everything an admin
-// sees, and demoRestriction limits its writes
+// Only admin: the demo-admin user is disabled, so new rules leave that role out
 export function isAdminRole(role: string | undefined): boolean {
-  const r = role?.toLowerCase()
-  return r === 'admin' || r === 'demo-admin'
+  return role?.toLowerCase() === 'admin'
 }

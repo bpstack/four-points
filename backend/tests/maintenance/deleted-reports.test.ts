@@ -24,13 +24,16 @@ function method(source: string, name: string): string {
 }
 
 describe('isAdminRole', () => {
-  it('matches the isAdmin middleware', () => {
-    const middleware = read('middlewares', 'roleCheck.ts')
-    expect(middleware).toMatch(
-      /export const isAdmin: RoleCheckMiddleware[\s\S]*?allowedRoles = \['admin', 'demo-admin'\]/
-    )
-    for (const role of ['admin', 'demo-admin', 'ADMIN']) expect(isAdminRole(role), role).toBe(true)
-    for (const role of ['recepcionista', 'group-admin', 'mantenimiento', '', undefined]) {
+  it('is admin only: the demo-admin user is disabled', () => {
+    for (const role of ['admin', 'ADMIN']) expect(isAdminRole(role), role).toBe(true)
+    for (const role of [
+      'demo-admin',
+      'recepcionista',
+      'group-admin',
+      'mantenimiento',
+      '',
+      undefined,
+    ]) {
       expect(isAdminRole(role), String(role)).toBe(false)
     }
   })

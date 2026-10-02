@@ -2,7 +2,7 @@
 
 import { Router } from 'express'
 import { authenticateToken as verifyToken } from '../../middlewares/authenticateToken.js'
-import { canManageGroups, canViewGroups, isAdmin } from '../../middlewares/roleCheck.js'
+import { canRunNotificationCheck, canViewGroups, isAdmin } from '../../middlewares/roleCheck.js'
 import { NotificationController } from '../../controllers/notifications/notification-controller.js'
 
 const router = Router()
@@ -27,7 +27,7 @@ router.post('/', verifyToken, isAdmin, NotificationController.createGeneralNotif
 router.post(
   '/check-pending',
   verifyToken,
-  canManageGroups,
+  canRunNotificationCheck,
   NotificationController.checkPendingNotifications
 )
 // Marcar todas como leídas
