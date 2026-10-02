@@ -526,10 +526,6 @@ hace que alguien reimplemente lo que ya existe.
       `getOrCreateRun` devuelve el run cerrado y los cambios del día se escriben
       en él. Sin transacción ni test. En Aiven nadie lo ha usado (0 cierres
       manuales). _Comprobado por mí el 2026-09-28._
-- [ ] **Checklist: subida de imágenes sin límite de tamaño en multer** — el
-      fichero entero se carga en memoria antes de comprobar los 5 MB: en el plan
-      gratuito de Render puede agotar la memoria. _Comprobado por mí el
-      2026-09-28._
 - [ ] **Checklist: `:id` sin validar** — el backend lee
       `<carpeta de tareas>/<id>.json` con el id decodificado (path traversal
       limitado a ficheros `.json`, sin devolver su contenido), y cualquier id
