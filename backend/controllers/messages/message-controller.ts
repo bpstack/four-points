@@ -7,6 +7,10 @@ import { NotificationRepository } from '../../repositories/notifications/notific
 import { MESSAGE_CONSTANTS } from '../../models/messages/index.js'
 import { ERROR_CODES, SUCCESS_CODES } from '../../config/error-codes.js'
 import { logger } from '../../config/logger.js'
+import {
+  messagePageQuerySchema,
+  searchQuerySchema,
+} from '../../validations/messages/message-schemas.js'
 
 export class MessageController {
   /**
@@ -47,10 +51,15 @@ export class MessageController {
       }
 
       // Parametros de paginacion
-      const beforeId = req.query.before ? parseInt(req.query.before as string) : undefined
-      const limit = req.query.limit
-        ? Math.min(parseInt(req.query.limit as string), 100)
-        : MESSAGE_CONSTANTS.DEFAULT_MESSAGES_LIMIT
+      const page = messagePageQuerySchema.safeParse(req.query)
+      if (!page.success) {
+        return res.status(400).json({
+          success: false,
+          error: ERROR_CODES.INVALID_DATA,
+          code: ERROR_CODES.INVALID_DATA,
+        })
+      }
+      const { before: beforeId, limit } = page.data
 
       const messages = await MessageRepository.getByConversationId(conversationId, {
         before_id: beforeId,
@@ -355,7 +364,15 @@ export class MessageController {
   static async searchMessages(req: Request, res: Response): Promise<Response> {
     try {
       const userId = req.user?.id
-      const searchTerm = req.query.q as string
+      const query = searchQuerySchema.safeParse(req.query)
+      if (!query.success) {
+        return res.status(400).json({
+          success: false,
+          error: ERROR_CODES.INVALID_DATA,
+          code: ERROR_CODES.INVALID_DATA,
+        })
+      }
+      const { q: searchTerm, limit } = query.data
 
       if (!userId) {
         return res.status(401).json({
@@ -373,14 +390,13 @@ export class MessageController {
         })
       }
 
-      const limit = req.query.limit ? parseInt(req.query.limit as string) : 50
-
       // Intentar fulltext primero, fallback a LIKE
       let messages
       try {
         messages = await MessageRepository.search(userId, searchTerm.trim(), limit)
-      } catch {
-        // Fallback a LIKE si fulltext falla
+      } catch (err) {
+        // Fallback a LIKE si fulltext falla; logged so a broken index is noticed
+        logger.warn({ err }, '[messages] FULLTEXT search failed, using LIKE')
         messages = await MessageRepository.searchLike(userId, searchTerm.trim(), limit)
       }
 

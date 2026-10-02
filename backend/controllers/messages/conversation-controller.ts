@@ -9,6 +9,12 @@ import {
 } from '../../models/messages/index.js'
 import { ERROR_CODES, SUCCESS_CODES } from '../../config/error-codes.js'
 import { logger } from '../../config/logger.js'
+import {
+  createConversationSchema,
+  addParticipantsSchema,
+  searchQuerySchema,
+  allConversationsQuerySchema,
+} from '../../validations/messages/message-schemas.js'
 
 export class ConversationController {
   /**
@@ -127,16 +133,17 @@ export class ConversationController {
         })
       }
 
-      const { type, name, participant_ids } = req.body as CreateConversationDTO
-
-      // Validaciones
-      if (!type || !participant_ids || participant_ids.length === 0) {
+      // type dm/group and participant_ids as unique user ids, not the creator
+      const parsed = createConversationSchema.safeParse(req.body)
+      if (!parsed.success || parsed.data.participant_ids.includes(userId)) {
         return res.status(400).json({
           success: false,
           error: ERROR_CODES.MESSAGES_MISSING_REQUIRED_FIELDS,
           code: ERROR_CODES.MESSAGES_MISSING_REQUIRED_FIELDS,
+          details: parsed.success ? undefined : parsed.error.issues,
         })
       }
+      const { type, name, participant_ids } = parsed.data as CreateConversationDTO
 
       if (type === ConversationType.DM) {
         // DM: solo puede haber 1 participante adicional
@@ -473,7 +480,7 @@ export class ConversationController {
         })
       }
 
-      if (!user_ids || !Array.isArray(user_ids) || user_ids.length === 0) {
+      if (!addParticipantsSchema.safeParse({ user_ids }).success) {
         return res.status(400).json({
           success: false,
           error: ERROR_CODES.MESSAGES_SPECIFY_USER,
@@ -678,7 +685,15 @@ export class ConversationController {
   static async searchUsers(req: Request, res: Response): Promise<Response> {
     try {
       const userId = req.user?.id
-      const search = req.query.q as string
+      const query = searchQuerySchema.safeParse(req.query)
+      if (!query.success) {
+        return res.status(400).json({
+          success: false,
+          error: ERROR_CODES.INVALID_DATA,
+          code: ERROR_CODES.INVALID_DATA,
+        })
+      }
+      const search = query.data.q
 
       if (!userId) {
         return res.status(401).json({
@@ -735,7 +750,15 @@ export class ConversationController {
         })
       }
 
-      const limit = req.query.limit ? parseInt(req.query.limit as string) : 100
+      const query = allConversationsQuerySchema.safeParse(req.query)
+      if (!query.success) {
+        return res.status(400).json({
+          success: false,
+          error: ERROR_CODES.INVALID_DATA,
+          code: ERROR_CODES.INVALID_DATA,
+        })
+      }
+      const { limit } = query.data
       const conversations = await ConversationRepository.getAll(limit)
 
       return res.status(200).json({

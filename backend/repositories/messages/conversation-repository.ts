@@ -2,6 +2,7 @@
 
 import db from '../../config/db.js'
 import { ResultSetHeader } from 'mysql2'
+import { likeContains } from '../../services/search/search-access.js'
 import {
   Conversation,
   ConversationWithDetails,
@@ -422,7 +423,7 @@ export class ConversationRepository {
       ORDER BY u.username ASC
       LIMIT ?
     `
-    const searchPattern = `%${searchTerm}%`
+    const searchPattern = likeContains(searchTerm)
     const [rows] = await db.query<UserSearchResult[]>(query, [
       currentUserId,
       currentUserId,

@@ -395,9 +395,9 @@ hace que alguien reimplemente lo que ya existe.
       controlador los pasa como `source` y `external_id`, y la validación espera
       `booking_source` y `external_booking_id`: siempre queda `direct`.
       _Comprobado por mí el 2026-09-28._
-- [ ] **Mensajería: sin validación de entrada ni transacción al crear** —
-      `participant_ids` y `user_ids` sin comprobar (tipos, duplicados, usuarios
-      inexistentes o inactivos); un id inválido deja una conversación huérfana.
+- [ ] **Mensajería: crear una conversación no va en transacción** — el formato
+      y los repetidos de `participant_ids` y `user_ids` ya se validan, pero un
+      usuario inexistente o inactivo deja la conversación creada a medias.
       _Según la revisión `security` L3 del 2026-09-28 (fichero y línea en el
       informe); no repasado por mí._
 - [ ] **Mensajería: avisos urgentes sin límite** — solo el límite global de 300
@@ -699,9 +699,6 @@ hace que alguien reimplemente lo que ya existe.
       y un historial que registra cada comentario dos veces y cada lectura sin
       límite. _Según la revisión `security` L3 del 2026-09-28 (fichero y línea
       en el informe); no repasado por mí._
-- [ ] **Mensajería: `limit` sin validar, `LIKE` sin escapar y fallo de la
-      búsqueda FULLTEXT silenciado.** _Según la revisión `security` L3 del
-      2026-09-28 (fichero y línea en el informe); no repasado por mí._
 - [ ] **Registrar decisiones de autorización** — ni los 403 ni los accesos de un
       `admin` a conversaciones ajenas quedan en el log (ASVS L3). _Según la
       revisión `security` L3 del 2026-09-28 (fichero y línea en el informe); no

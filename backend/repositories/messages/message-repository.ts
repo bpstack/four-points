@@ -2,6 +2,7 @@
 
 import db from '../../config/db.js'
 import { ResultSetHeader } from 'mysql2'
+import { likeContains } from '../../services/search/search-access.js'
 import {
   Message,
   MessageWithSender,
@@ -278,7 +279,11 @@ export class MessageRepository {
       ORDER BY m.created_at DESC
       LIMIT ?
     `
-    const [rows] = await db.query<MessageWithSender[]>(query, [userId, `%${searchTerm}%`, limit])
+    const [rows] = await db.query<MessageWithSender[]>(query, [
+      userId,
+      likeContains(searchTerm),
+      limit,
+    ])
     return rows
   }
 
