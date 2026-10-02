@@ -16,6 +16,7 @@ import {
 import type { BlacklistFilters } from '../../models/blacklist/index.js'
 import { ERROR_CODES, SUCCESS_CODES } from '../../config/error-codes.js'
 import { logger } from '../../config/logger.js'
+import { isImageFile } from '../../services/uploads/image-signature.js'
 
 // ========================================
 // CONTROLLER
@@ -432,9 +433,8 @@ export class BlacklistController {
         return
       }
 
-      // Validar tipo de archivo
-      const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
-      if (!allowedTypes.includes(req.file.mimetype)) {
+      // Validar tipo de archivo por sus bytes, no por el tipo que declara el cliente
+      if (!isImageFile(req.file.buffer)) {
         res.status(400).json({
           success: false,
           error: ERROR_CODES.BLACKLIST_INVALID_FILE_TYPE,

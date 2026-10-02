@@ -568,10 +568,6 @@ hace que alguien reimplemente lo que ya existe.
       límite de tamaño y siguen redirecciones. _Según la revisión `security` L3
       del 2026-09-28 (fichero y línea en el informe); no repasado por mí._
 
-- [ ] **Blacklist: el tipo de imagen solo se valida por el mimetype que declara
-      el cliente** — sin comprobar los bytes reales del fichero antes de subirlo
-      a Cloudinary. _Según la revisión `security` L3 del 2026-09-28 (fichero y
-      línea en el informe); no repasado por mí._
 - [ ] **Blacklist: el array `images` acepta cualquier URL** — el esquema solo
       valida que sea una URL, no que venga del `uploadImage` del propio módulo;
       se puede guardar como «foto» cualquier enlace externo. _Según la revisión

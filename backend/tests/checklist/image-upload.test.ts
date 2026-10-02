@@ -29,9 +29,18 @@ afterAll(() => {
   server.close()
 })
 
-async function upload(bytes: number, type: string, field = 'file') {
+const JPEG_START = [0xff, 0xd8, 0xff, 0xe0]
+
+// A file of `bytes` bytes that starts like a JPEG unless `raw` is set
+function file(bytes: number, raw = false): Uint8Array {
+  const data = new Uint8Array(bytes)
+  if (!raw) data.set(JPEG_START)
+  return data
+}
+
+async function upload(bytes: number, type: string, field = 'file', raw = false) {
   const form = new FormData()
-  form.append(field, new Blob([new Uint8Array(bytes)], { type }), 'foto.jpg')
+  form.append(field, new Blob([file(bytes, raw)], { type }), 'foto.jpg')
   const res = await fetch(url, { method: 'POST', body: form })
   return { status: res.status, body: await res.json() }
 }
@@ -56,6 +65,13 @@ describe('singleImage', () => {
 
   it('answers 400 for a file that is not an image', async () => {
     expect(await upload(100, 'application/pdf')).toEqual({
+      status: 400,
+      body: { error: 'Solo se permiten imágenes (JPG, PNG, WebP, GIF)' },
+    })
+  })
+
+  it('answers 400 for a file that only claims to be an image', async () => {
+    expect(await upload(1024, 'image/jpeg', 'file', true)).toEqual({
       status: 400,
       body: { error: 'Solo se permiten imágenes (JPG, PNG, WebP, GIF)' },
     })
