@@ -232,13 +232,6 @@ hace que alguien reimplemente lo que ya existe.
       `four-points.stackbp.es` con la lista de correos del equipo; probar en
       incógnito. ⚠️ **No poner `api.four-points.stackbp.es` detrás**: el
       navegador no podría llamar al API.
-- [ ] **Fnb: el PDF subido no se valida por contenido, solo por extensión o
-      mimetype declarado** — el `fileFilter` de `fnb-routes.ts` acepta
-      `application/octet-stream` o cualquier nombre terminado en `.pdf`; el
-      buffer llega a `pdf-parse` sin comprobar la cabecera `%PDF-`, y no hay
-      timeout en `parseOperaPdf`, así que un fichero no-PDF o mal formado puede
-      colgar la petición sin límite de tiempo (el límite de 10&nbsp;MB no cubre
-      la complejidad interna del fichero). _Comprobado por mí el 2026-09-28._
 - [ ] **Fnb: `DELETE /api/fnb/day/:date` borra cualquier fecha sin límite** — el
       controlador solo valida el formato `YYYY-MM-DD`; cualquier rol con acceso
       al módulo puede borrar un día de hace años, incluido un periodo ya
