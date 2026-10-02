@@ -97,7 +97,9 @@ frontend/app/lib/maintenance/
 
 - `GET /api/maintenance` — List with filters: status, priority, location_type,
   assigned_to, created_by, room_number, search, date_from, date_to,
-  include_deleted; pagination `page` + `limit`
+  include_deleted (admin and demo-admin only, 403 otherwise); pagination
+  `page` + `limit`. A deleted report takes no edits, notes or photo changes
+  (400).
 - `GET /api/maintenance/stats` — Aggregate statistics
 - `GET /api/maintenance/:id` — Detail with images + history
 - `POST /api/maintenance` — Create report

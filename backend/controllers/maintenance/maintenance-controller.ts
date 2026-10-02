@@ -20,6 +20,7 @@ import {
 } from '../../validations/maintenance/schemas.js'
 import type { ReportFilters } from '../../models/maintenance/index.js'
 import { logger } from '../../config/logger.js'
+import { isAdminRole } from '../../services/auth/module-access.js'
 
 // ========================================
 // CONTROLLER
@@ -47,6 +48,11 @@ export class MaintenanceController {
       }
 
       const filters: ReportFilters = parseResult.data
+
+      if (filters.include_deleted && !isAdminRole(req.user?.role)) {
+        res.status(403).json({ error: 'Solo administración ve los reportes eliminados' })
+        return
+      }
 
       const { reports, pagination } = await MaintenanceRepository.getAll(filters)
 
@@ -310,6 +316,10 @@ export class MaintenanceController {
       })
     } catch (error: any) {
       logger.error({ err: error }, '[MaintenanceController.addResolutionNotes] Error')
+      if (error.message.includes('eliminado')) {
+        res.status(400).json({ error: error.message })
+        return
+      }
       res.status(500).json({
         error: 'Error al agregar las notas',
       })
@@ -486,6 +496,11 @@ export class MaintenanceController {
         return
       }
 
+      if (report.is_deleted) {
+        res.status(400).json({ error: 'No se puede modificar un reporte eliminado' })
+        return
+      }
+
       // Verificar límite de imágenes
       if (report.images.length >= 5) {
         res.status(400).json({ error: 'El reporte ya tiene el máximo de 5 imágenes' })
@@ -557,6 +572,16 @@ export class MaintenanceController {
       }
 
       const { id, imageId } = req.params
+
+      const report = await MaintenanceRepository.getById(id)
+      if (!report) {
+        res.status(404).json({ error: 'Reporte no encontrado' })
+        return
+      }
+      if (report.is_deleted) {
+        res.status(400).json({ error: 'No se puede modificar un reporte eliminado' })
+        return
+      }
 
       // Obtener imagen
       const image = await MaintenanceRepository.getImageById(Number(imageId))

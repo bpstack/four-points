@@ -685,6 +685,10 @@ export class MaintenanceRepository {
       return null
     }
 
+    if (current.is_deleted) {
+      throw new Error('No se puede actualizar un reporte eliminado')
+    }
+
     const query = `
       UPDATE maintenance_reports 
       SET resolution_notes = CONCAT(IFNULL(resolution_notes, ''), '\n\n[', NOW(), ' - ', ?, ']\n', ?),

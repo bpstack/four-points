@@ -383,11 +383,10 @@ hace que alguien reimplemente lo que ya existe.
       pasa a cualquier otro y un parte cerrado se reabre por la API. Cancelar se
       registra en el historial como «cerrado». _Comprobado por mí el
       2026-09-28._
-- [ ] **Maintenance: partes borrados visibles y modificables** —
-      `include_deleted` funciona para cualquier rol (la pantalla lo presenta
-      como solo de administración), el detalle, las fotos y el historial de un
-      parte borrado se leen, y se le pueden añadir notas y fotos. _Comprobado
-      por mí el 2026-09-28._ (escrituras, según el revisor)
+- [ ] **Maintenance: el detalle, las fotos y el historial de un parte borrado
+      los lee cualquier rol con acceso.** Decidir si solo administración.
+      (Listarlos con `include_deleted` y añadirles notas o fotos ya no es
+      posible desde el 2026-10-02.) _Comprobado por mí el 2026-09-28._
 - [ ] **Maintenance: fotos públicas y que no se borran** — Cloudinary las sirve
       sin firmar, con un `public_id` predecible; el borrado lógico no las toca,
       `auto_delete_on_close` se guarda pero nadie lo usa, y subir o borrar fotos
