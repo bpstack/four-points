@@ -141,10 +141,6 @@ hace que alguien reimplemente lo que ya existe.
       (ya sin valores, pero siguen en el historial). Sacarlos del historial
       en la fase 2 y rotar (ver la entrada de rotación). _Comprobado por mí el
       2026-09-28._
-- [ ] **Logbook: un comentario cambia la prioridad o el departamento de una
-      entrada ajena** — si el comentario trae esos campos, el controlador
-      actualiza la entrada sin comprobar autoría ni registrar el valor anterior.
-      _Comprobado por mí el 2026-09-28._
 - [ ] **Logbook: el historial no es atómico** — no hay ninguna transacción en el
       módulo: un fallo entre el cambio y su registro deja cambios sin auditar o
       borrados auditados que no ocurrieron. _Comprobado por mí el 2026-09-28._
@@ -350,10 +346,10 @@ hace que alguien reimplemente lo que ya existe.
       `updated_by = 'system-cron'`, que es clave foránea a `users`, y ese
       usuario no existe en Aiven (0 facturas pagadas por el cron). Además el
       pago en lote no va en una transacción. _Comprobado por mí el 2026-09-28._
-- [ ] **Cualquier rol lanza a mano la generación de notificaciones** — la ruta
-      usa `canViewGroups` (incluye `mantenimiento`); sin clave única, varias
-      peticiones a la vez crean avisos duplicados. _Según la revisión `security`
-      L3 del 2026-09-28 (fichero y línea en el informe); no repasado por mí._
+- [ ] **La generación manual de notificaciones crea avisos duplicados** con
+      varias peticiones a la vez: no hay clave única. (Desde el 2026-10-02 solo
+      la lanzan admin y group-admin.) _Según la revisión `security` L3 del
+      2026-09-28; no repasado por mí._
 - [ ] **Cabeceras del frontend en producción incompletas para L3** — Vercel
       sirve HSTS, `X-Frame-Options`, `nosniff`, `Referrer-Policy` y
       `Permissions-Policy`, pero no CSP ni `Cross-Origin-Opener-Policy`; HSTS
@@ -383,10 +379,6 @@ hace que alguien reimplemente lo que ya existe.
       pasa a cualquier otro y un parte cerrado se reabre por la API. Cancelar se
       registra en el historial como «cerrado». _Comprobado por mí el
       2026-09-28._
-- [ ] **Maintenance: el detalle, las fotos y el historial de un parte borrado
-      los lee cualquier rol con acceso.** Decidir si solo administración.
-      (Listarlos con `include_deleted` y añadirles notas o fotos ya no es
-      posible desde el 2026-10-02.) _Comprobado por mí el 2026-09-28._
 - [ ] **Maintenance: fotos públicas y que no se borran** — Cloudinary las sirve
       sin firmar, con un `public_id` predecible; el borrado lógico no las toca,
       `auto_delete_on_close` se guarda pero nadie lo usa, y subir o borrar fotos

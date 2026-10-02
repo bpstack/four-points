@@ -19,6 +19,10 @@ mutation is audited in `logbook_history`. Deletes are soft (recoverable from
 - **`logbooks`**: main entries. `deleted_at` for soft delete. `is_solved`,
   `solved_at`, `solved_by` for solve/reopen.
 - **`logbook_comments`**: per-entry comments. Also `deleted_at` for soft delete.
+  A comment carries `department_id` and `importance_level`, and creating or
+  editing one also sets them on the entry. Any user with access can do this on
+  any entry: it is intended (decided 2026-10-02), so a comment can re-route or
+  escalate an entry. Only the author edits or deletes their own comment.
 - **`logbook_reads`**: (user_id, logbook_id, read_at) — who read what and when.
 - **`logbook_history`**: audit log of changes on both logbooks and comments.
   Uses a `type` column (`'logbook'` or `'comment'`) to distinguish them.
