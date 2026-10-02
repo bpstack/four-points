@@ -13,6 +13,7 @@ import {
 } from '../../validations/logbook/logbook-schemas.js'
 import { ERROR_CODES, SUCCESS_CODES } from '../../config/error-codes.js'
 import { logger } from '../../config/logger.js'
+import { sendLogbookError } from './logbook-errors.js'
 
 // Validates limit, offset and filters; answers 400 and returns null when invalid
 export function parseListQuery(req: Request, res: Response): LogbookListQuery | null {
@@ -104,12 +105,8 @@ export async function updateLogbookController(req: Request, res: Response): Prom
       return
     }
 
-    logger.error({ err: error }, 'Error updating logbook')
-    res.status(500).json({
-      success: false,
-      error: ERROR_CODES.LOGBOOK_FETCH_ERROR,
-      code: ERROR_CODES.LOGBOOK_FETCH_ERROR,
-    })
+    // Editing someone else's entry is a 403, a missing one a 404
+    sendLogbookError(res, error, ERROR_CODES.LOGBOOK_FETCH_ERROR)
   }
 }
 

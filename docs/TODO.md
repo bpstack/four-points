@@ -718,8 +718,6 @@ hace que alguien reimplemente lo que ya existe.
       días (250 € en Aiven); a partir de 31 se cobran 15 €/día (465 €).
 - [ ] **Parking: el mapa de estado no se refresca solo** — los cambios de otro
       usuario no aparecen hasta recargar.
-- [ ] **Logbook: editar una entrada ajena devuelve 500** — el servicio lanza un
-      `Error` genérico y el controlador responde `500` en vez de `403`.
 - [ ] **Logbook: comprobación de `isAdmin` que nunca se cumple** — los
       controladores de comentarios leen `req.user.isAdmin`, que
       `authenticateToken` no rellena. Quitarla o decidir si el `admin` puede

@@ -301,6 +301,7 @@
     "LOGBOOK_NOT_FOUND": "Logbook no encontrado",
     "LOGBOOK_NOT_SOLVED": "Logbook no solucionado o inexistente",
     "LOGBOOK_ONLY_AUTHOR_DELETE": "Solo el autor puede eliminar este logbook",
+    "LOGBOOK_ONLY_AUTHOR_UPDATE": "Solo el autor puede editar este logbook",
     "LOGBOOK_CREATE_ERROR": "Error al crear el logbook",
     "LOGBOOK_FETCH_ERROR": "Error al obtener logbooks",
     "LOGBOOK_FETCH_BY_DEPARTMENT_ERROR": "Error al obtener logbooks por departamento",
