@@ -392,9 +392,15 @@ hace que alguien reimplemente lo que ya existe.
       titular) sin paginar ni filtrar. _Según la revisión `security` L3 del
       2026-09-28 (fichero y línea en el informe); no repasado por mí._
 - [ ] **Parking: el origen y la referencia externa se pierden al crear** — el
-      controlador los pasa como `source` y `external_id`, y la validación espera
-      `booking_source` y `external_booking_id`: siempre queda `direct`.
-      _Comprobado por mí el 2026-09-28._
+      frontend (`useBookingWizard.ts`, `CreateBookingPanel.tsx`) envía `source`
+      y `external_id`; el controlador lee `booking_source` y
+      `external_booking_id` y además los pasa a Zod con los nombres cambiados:
+      siempre queda `direct`. **Decidir antes de arreglar:** los formularios
+      ofrecen `phone`, `email`, `walkin` y `booking` (`DateOnlyStep.tsx`), que el
+      `ENUM` de `parking_bookings.booking_source` no admite (`direct`,
+      `booking_com`, `expedia`, `airbnb`, `agency_other`); conservar el origen
+      sin ampliar el `ENUM` o mapear esos valores haría fallar la reserva.
+      _Comprobado por mí el 2026-09-28; detalle del 2026-10-02._
 - [ ] **Mensajería: crear una conversación no va en transacción** — el formato
       y los repetidos de `participant_ids` y `user_ids` ya se validan, pero un
       usuario inexistente o inactivo deja la conversación creada a medias.
