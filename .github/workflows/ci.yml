@@ -24,6 +24,9 @@ jobs:
           node-version: 22
       - run: corepack enable
       - run: pnpm install --frozen-lockfile
+      # tests/frontend loads pdf-lib from the frontend's node_modules
+      - run: pnpm install --frozen-lockfile
+        working-directory: frontend
       - run: pnpm lint
       - run: pnpm format:check
       - run: pnpm typecheck
