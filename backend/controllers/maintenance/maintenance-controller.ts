@@ -26,6 +26,12 @@ import { isAdminRole } from '../../services/auth/module-access.js'
 // CONTROLLER
 // ========================================
 
+// Exists, and is not deleted unless the user is an admin
+async function visibleReport(id: string, role: string | undefined): Promise<boolean> {
+  const deleted = await MaintenanceRepository.isDeleted(id)
+  return deleted === false || (deleted === true && isAdminRole(role))
+}
+
 export class MaintenanceController {
   // ========================================
   // REPORTS CRUD
@@ -79,7 +85,8 @@ export class MaintenanceController {
 
       const report = await MaintenanceRepository.getById(id)
 
-      if (!report) {
+      // A deleted report only exists for admins
+      if (!report || (report.is_deleted && !isAdminRole(req.user?.role))) {
         res.status(404).json({
           error: 'Reporte no encontrado',
         })
@@ -465,6 +472,11 @@ export class MaintenanceController {
     try {
       const { id } = req.params
 
+      if (!(await visibleReport(id, req.user?.role))) {
+        res.status(404).json({ error: 'Reporte no encontrado' })
+        return
+      }
+
       const images = await MaintenanceRepository.getImagesByReportId(id)
 
       res.json({ images })
@@ -624,6 +636,11 @@ export class MaintenanceController {
   static async getHistory(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params
+
+      if (!(await visibleReport(id, req.user?.role))) {
+        res.status(404).json({ error: 'Reporte no encontrado' })
+        return
+      }
 
       const history = await MaintenanceRepository.getHistoryByReportId(id)
 

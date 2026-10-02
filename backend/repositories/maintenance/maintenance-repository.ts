@@ -377,6 +377,14 @@ export class MaintenanceRepository {
   /**
    * Obtener reporte por ID con imágenes e historial
    */
+  static async isDeleted(id: string): Promise<boolean | null> {
+    const [rows] = await db.query<RowDataPacket[]>(
+      'SELECT is_deleted FROM maintenance_reports WHERE id = ?',
+      [id]
+    )
+    return rows.length ? Boolean(rows[0].is_deleted) : null
+  }
+
   static async getById(id: string): Promise<ReportWithDetails | null> {
     // Obtener reporte
     const reportQuery = `

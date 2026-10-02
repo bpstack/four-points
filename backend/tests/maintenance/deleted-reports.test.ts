@@ -1,7 +1,8 @@
 // tests/maintenance/deleted-reports.test.ts
 // Any role could list deleted reports with include_deleted (the screen shows
-// that filter to admins only), and a deleted report still took notes and
-// photos. Tests the role rule and reads the handler sources; no database.
+// that filter to admins only) and read their detail, photos and history, and
+// a deleted report still took notes and photos. Tests the role rule and reads
+// the handler sources; no database.
 
 import { describe, it, expect } from 'vitest'
 import { readFileSync } from 'node:fs'
@@ -39,6 +40,20 @@ describe('deleted maintenance reports', () => {
   it('only admins list them', () => {
     expect(method(controller, 'getAll')).toMatch(
       /if \(filters\.include_deleted && !isAdminRole\(req\.user\?\.role\)\) \{\s*res\.status\(403\)/
+    )
+  })
+
+  it('only admins read one: detail, photos and history answer 404 otherwise', () => {
+    expect(method(controller, 'getById')).toMatch(
+      /if \(!report \|\| \(report\.is_deleted && !isAdminRole\(req\.user\?\.role\)\)\) \{\s*res\.status\(404\)/
+    )
+    for (const name of ['getImages', 'getHistory']) {
+      expect(method(controller, name), name).toMatch(
+        /if \(!\(await visibleReport\(id, req\.user\?\.role\)\)\) \{\s*res\.status\(404\)/
+      )
+    }
+    expect(controller).toContain(
+      'return deleted === false || (deleted === true && isAdminRole(role))'
     )
   })
 
