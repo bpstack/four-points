@@ -6,6 +6,7 @@
 
 import db from '../../config/db.js'
 import type { RowDataPacket } from 'mysql2'
+import { likeContains, type SearchModule } from '../../services/search/search-access.js'
 
 // ========================================
 // TYPES
@@ -104,7 +105,7 @@ const LIMIT = 10
  * Search parking bookings by code or plate
  */
 async function searchParking(query: string): Promise<ParkingSearchResult[]> {
-  const searchPattern = `%${query}%`
+  const searchPattern = likeContains(query)
 
   const [rows] = await db.query<ParkingRow[]>(
     `SELECT 
@@ -140,7 +141,7 @@ async function searchParking(query: string): Promise<ParkingSearchResult[]> {
  * Search maintenance reports by ID, title, or room number
  */
 async function searchMaintenance(query: string): Promise<MaintenanceSearchResult[]> {
-  const searchPattern = `%${query}%`
+  const searchPattern = likeContains(query)
 
   const [rows] = await db.query<MaintenanceRow[]>(
     `SELECT 
@@ -177,7 +178,7 @@ async function searchMaintenance(query: string): Promise<MaintenanceSearchResult
  * Search groups by name or agency
  */
 async function searchGroups(query: string): Promise<GroupSearchResult[]> {
-  const searchPattern = `%${query}%`
+  const searchPattern = likeContains(query)
 
   const [rows] = await db.query<GroupRow[]>(
     `SELECT 
@@ -209,7 +210,7 @@ async function searchGroups(query: string): Promise<GroupSearchResult[]> {
  * Search blacklist by name or document
  */
 async function searchBlacklist(query: string): Promise<BlacklistSearchResult[]> {
-  const searchPattern = `%${query}%`
+  const searchPattern = likeContains(query)
 
   const [rows] = await db.query<BlacklistRow[]>(
     `SELECT 
@@ -239,16 +240,19 @@ async function searchBlacklist(query: string): Promise<BlacklistSearchResult[]> 
 }
 
 /**
- * Global search across all modules
- * Executes all searches in parallel for better performance
+ * Global search across the modules the caller may read
+ * Executes the allowed searches in parallel; the others return no rows
  */
-export async function globalSearch(query: string): Promise<SearchResult> {
-  // Execute all searches in parallel
+export async function globalSearch(
+  query: string,
+  modules: ReadonlySet<SearchModule>
+): Promise<SearchResult> {
+  const none = Promise.resolve([])
   const [parking, maintenance, groups, blacklist] = await Promise.all([
-    searchParking(query),
-    searchMaintenance(query),
-    searchGroups(query),
-    searchBlacklist(query),
+    modules.has('parking') ? searchParking(query) : none,
+    modules.has('maintenance') ? searchMaintenance(query) : none,
+    modules.has('groups') ? searchGroups(query) : none,
+    modules.has('blacklist') ? searchBlacklist(query) : none,
   ])
 
   return {
