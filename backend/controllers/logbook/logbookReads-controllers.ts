@@ -37,8 +37,9 @@ export async function readLogbookController(req: Request, res: Response): Promis
       code: SUCCESS_CODES.LOGBOOK_READ_SUCCESS,
     })
   } catch (err) {
+    const error = err as CustomError
     logger.error({ err }, 'Error en readLogbook')
-    res.status(500).json({
+    res.status(error.status ?? 500).json({
       success: false,
       error: ERROR_CODES.LOGBOOK_READ_ERROR,
       code: ERROR_CODES.LOGBOOK_READ_ERROR,

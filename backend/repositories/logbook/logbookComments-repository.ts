@@ -63,7 +63,7 @@ export async function addComment(
 
 export async function getById(id: number | string): Promise<LogbookCommentRow | undefined> {
   const [rows] = await db.query<LogbookCommentRow[]>(
-    'SELECT * FROM logbook_comments WHERE id = ?',
+    'SELECT * FROM logbook_comments WHERE id = ? AND deleted_at IS NULL',
     [id]
   )
   return rows[0]
@@ -121,7 +121,7 @@ export async function updateComment(
   // If no fields were sent (only timestamp), return true
   if (updates.length === 1) return true
 
-  const sql = `UPDATE logbook_comments SET ${updates.join(', ')} WHERE id = ?`
+  const sql = `UPDATE logbook_comments SET ${updates.join(', ')} WHERE id = ? AND deleted_at IS NULL`
   params.push(id as number)
 
   const [result] = await db.execute<ResultSetHeader>(sql, params)
@@ -134,7 +134,7 @@ export async function updateComment(
 
 export async function softDeleteComment(id: number | string): Promise<boolean> {
   const [result] = await db.execute<ResultSetHeader>(
-    `UPDATE logbook_comments SET deleted_at = NOW() WHERE id = ?`,
+    `UPDATE logbook_comments SET deleted_at = NOW() WHERE id = ? AND deleted_at IS NULL`,
     [id]
   )
   return result.affectedRows > 0

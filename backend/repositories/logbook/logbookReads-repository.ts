@@ -42,13 +42,19 @@ export async function logBookReadByUser({
     throw new Error('logbookId y userId no pueden ser undefined o null')
   }
 
-  // Record the read
+  // Record the read, only for an entry that exists and is not deleted
   const [result] = await db.execute<ResultSetHeader>(
     `INSERT INTO logbook_reads (logbook_id, user_id, read_at)
-    VALUES (?, ?, NOW())
+    SELECT l.id, ?, NOW() FROM logbooks l WHERE l.id = ? AND l.deleted_at IS NULL
     ON DUPLICATE KEY UPDATE read_at = NOW()`,
-    [logbookId, userId]
+    [userId, logbookId]
   )
+
+  if (result.affectedRows === 0) {
+    const err: CustomError = new Error('Logbook no encontrado')
+    err.status = 404
+    throw err
+  }
 
   // Log to history
   await logbookHistoryRepo.addHistory(
@@ -154,7 +160,7 @@ export async function logbookSolvedByUser({
     SET is_solved = 1,
         solved_at  = NOW(),
         solved_by  = ?
-    WHERE id = ?`,
+    WHERE id = ? AND deleted_at IS NULL`,
     [userId, logbookId]
   )
 
@@ -196,7 +202,7 @@ export async function markLogbookPending({
         solved_at  = NULL,
         solved_by  = NULL,
         updated_at = NOW()
-    WHERE id = ?`,
+    WHERE id = ? AND deleted_at IS NULL`,
     [logbookId]
   )
 

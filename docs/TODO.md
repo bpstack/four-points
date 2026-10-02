@@ -303,10 +303,6 @@ hace que alguien reimplemente lo que ya existe.
       entradas borradas a cualquier rol con acceso. _Según la revisión
       `security` L3 del 2026-09-28 (fichero y línea en el informe); no repasado
       por mí._
-- [ ] **Logbook: se pueden resolver, reabrir y marcar como leídas entradas
-      borradas** — los `UPDATE` no filtran `deleted_at`. _Según la revisión
-      `security` L3 del 2026-09-28 (fichero y línea en el informe); no repasado
-      por mí._
 - [ ] **Logbook: la fecha de una entrada admite cualquier día** — pasado o
       futuro, sin límite. Decidir qué rango tiene sentido. _Comprobado por mí el
       2026-09-28._
@@ -548,10 +544,10 @@ hace que alguien reimplemente lo que ya existe.
 - [ ] **Parking: cambiar solo la planta puede mover la reserva a otra plaza** —
       usa el id de la plaza como número. _Según la revisión `security` L3 del
       2026-09-28 (fichero y línea en el informe); no repasado por mí._
-- [ ] **Logbook: comentarios borrados que se pueden editar y volver a borrar**,
-      y un historial que registra cada comentario dos veces y cada lectura sin
-      límite. _Según la revisión `security` L3 del 2026-09-28 (fichero y línea
-      en el informe); no repasado por mí._
+- [ ] **Logbook: el historial registra cada comentario dos veces y cada
+      lectura sin límite.** (Editar o volver a borrar un comentario borrado ya
+      no es posible desde el 2026-10-02.) _Según la revisión `security` L3 del
+      2026-09-28; no repasado por mí._
 - [ ] **Registrar decisiones de autorización** — ni los 403 ni los accesos de un
       `admin` a conversaciones ajenas quedan en el log (ASVS L3). _Según la
       revisión `security` L3 del 2026-09-28 (fichero y línea en el informe); no
