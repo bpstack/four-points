@@ -78,8 +78,8 @@ Images are uploaded in two steps:
 2. The frontend collects the returned URLs/publicIds and includes them in the
    `images` array when calling `POST /` or `PATCH /:id`.
 
-`DELETE /api/blacklist/upload/:publicId` — deletes an image from Cloudinary
-(used when the user removes a photo before saving).
+Removing a photo before saving only drops it from the form: the file stays in
+Cloudinary (there is no delete endpoint, see "Route order" below).
 
 **Important:** `CloudinaryService` is in
 `backend/services/blacklist/cloudinary-service.ts` and is also imported by the
@@ -105,16 +105,15 @@ backoffice module. Do not move or rename it without updating both importers.
 - **DELETE** `/api/blacklist/:id` — all · Soft delete
 - **PATCH** `/api/blacklist/:id/restore` — all · Restore soft-deleted entry
 - **POST** `/api/blacklist/upload` — all · Upload image to Cloudinary
-- **DELETE** `/api/blacklist/upload/:publicId` — all · Delete image from
-  Cloudinary (only ids inside `blacklist/`; any other answers 403)
 
 All routes sit behind `authenticateToken` + `excludeMantenimiento`. No
 admin-only mutations — any authenticated non-maintenance user can create, edit,
 and delete entries.
 
-**Route order:** `POST /upload` and `DELETE /upload/:publicId` are declared
-**before** `GET /:id` and `DELETE /:id` to prevent Express matching `upload` as
-an ID parameter.
+**Route order:** `POST /upload` is declared **before** the `/:id` routes so
+Express does not match `upload` as an ID parameter. There is no endpoint to
+delete an uploaded image: `DELETE /upload/:publicId` had no caller and was
+removed on 2026-10-02.
 
 ## Frontend layout
 

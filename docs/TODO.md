@@ -50,11 +50,6 @@ hace que alguien reimplemente lo que ya existe.
       de autorización de objeto. Está documentado como intencional en el
       `AGENTS.md` del módulo, pero conviene registrarlo como riesgo aceptado en
       vez de dejarlo implícito. _Comprobado por mí el 2026-09-28._
-- [ ] **Blacklist: `DELETE /upload/:publicId` borra cualquier imagen de la
-      lista negra** — desde el 2026-10-02 solo admite ids de la carpeta
-      `blacklist/`, pero no comprueba que la imagen sea de una entrada que el
-      usuario pueda tocar (ver la entrada anterior sobre autorización por fila).
-      _Comprobado por mí el 2026-09-28._
 - [ ] **Fnb: cualquier rol con acceso puede borrar o fabricar ingresos, sin capa
       de autorización por operación** — `canAccessFnb` protege todo el router
       con la misma lista de roles (`admin`, `recepcionista`, `group-admin`,
@@ -585,9 +580,6 @@ hace que alguien reimplemente lo que ya existe.
       y línea en el informe); no repasado por mí._
 - [ ] **Maintenance: comprobar si Cloudinary quita los metadatos EXIF/GPS** de
       las fotos. _Sin comprobar._
-- [ ] **Ids sin codificar en las URL de `blacklistApi.ts`** (informativo).
-      _Según la revisión `security` L3 del 2026-09-28 (fichero y línea en el
-      informe); no repasado por mí._
 - [ ] **Procedimientos de BD sin uso** — de las 2 funciones y 5 procedimientos
       de parking, el código solo llama a `check_availability`; el resto
       (incluido `generate_availability`, que amplía el calendario) no los usa
