@@ -526,11 +526,6 @@ hace que alguien reimplemente lo que ya existe.
       `getOrCreateRun` devuelve el run cerrado y los cambios del día se escriben
       en él. Sin transacción ni test. En Aiven nadie lo ha usado (0 cierres
       manuales). _Comprobado por mí el 2026-09-28._
-- [ ] **Checklist: `:id` sin validar** — el backend lee
-      `<carpeta de tareas>/<id>.json` con el id decodificado (path traversal
-      limitado a ficheros `.json`, sin devolver su contenido), y cualquier id
-      inventado crea una fila en `checklist_runs`. _Según la revisión `security`
-      L3 del 2026-09-28 (fichero y línea en el informe); no repasado por mí._
 - [ ] **Checklist: borrar comentarios e imágenes de días cerrados** — el autor
       puede reescribir el histórico, y el evento se registra en el run de hoy y
       como si fuera una alta. _Según la revisión `security` L3 del 2026-09-28
@@ -625,8 +620,6 @@ hace que alguien reimplemente lo que ya existe.
       por mí el 2026-09-28._
 - [ ] **Cashier: la exportación a PDF puede romperse con emojis** en los textos
       (Helvetica estándar). _Sin comprobar en ejecución._
-- [ ] **Checklist: comentarios e imágenes no comprueban que el paso exista**
-      (solo marcar lo hace). _Comprobado por mí el 2026-09-28._
 - [ ] **Checklist: `checklist_config` existe pero no se usa.** _Comprobado por
       mí el 2026-09-28._
 - [ ] **Checklist: fechas de `/history` sin validar** (un parámetro repetido da

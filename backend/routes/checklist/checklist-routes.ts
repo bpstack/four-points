@@ -4,6 +4,7 @@ import express, { Router } from 'express'
 import { authenticateToken } from '../../middlewares/authenticateToken.js'
 import { excludeMantenimiento, canResetChecklist } from '../../middlewares/roleCheck.js'
 import { singleImage } from '../../middlewares/imageUpload.js'
+import { validateChecklistParams } from '../../middlewares/checklistParams.js'
 import {
   getRunController,
   toggleStepController,
@@ -23,6 +24,10 @@ const router: Router = express.Router()
 
 router.use(authenticateToken)
 router.use(excludeMantenimiento)
+
+// Unknown checklist, step or record ids answer before any handler (and the
+// database) sees them
+validateChecklistParams(router)
 
 // ── Run & steps ───────────────────────────────────────────
 // GET  /api/checklists/:id/run
