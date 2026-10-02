@@ -669,11 +669,9 @@ hace que alguien reimplemente lo que ya existe.
       servidor; a partir del parte 1000 del día el id no cumple el formato y el
       parte queda inaccesible. _Comprobado por mí el 2026-09-28._ (el límite de
       1000, según el revisor)
-- [ ] **Maintenance: validación incompleta** — textos largos sin `.max()`
-      (descripción, notas) que acaban en 500, `deleteImage` sin validar
-      parámetros y el límite de 5 fotos se salta subiendo en paralelo. _Según la
-      revisión `security` L3 del 2026-09-28 (fichero y línea en el informe); no
-      repasado por mí._
+- [ ] **Maintenance: el límite de 5 fotos se salta subiendo en paralelo** —
+      se cuenta antes de subir, sin bloqueo. _Según la revisión `security` L3
+      del 2026-09-28 (fichero y línea en el informe); no repasado por mí._
 - [ ] **Maintenance: `public_id` con el nombre original sin sanear.** _Según la
       revisión `security` L3 del 2026-09-28 (fichero y línea en el informe); no
       repasado por mí._

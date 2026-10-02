@@ -8,6 +8,8 @@ import { Router } from 'express'
 import { MaintenanceController } from '../../controllers/maintenance/maintenance-controller.js'
 import { authenticateToken } from '../../middlewares/authenticateToken.js'
 import { singleImage } from '../../middlewares/imageUpload.js'
+import { validateParams } from '../../middlewares/validateParams.js'
+import { MAINTENANCE_PARAM_RULES } from '../../validations/maintenance/schemas.js'
 import { canAccessMaintenance } from '../../middlewares/roleCheck.js'
 
 const router = Router()
@@ -15,6 +17,9 @@ const router = Router()
 // Aplicar autenticación y verificación de rol a todas las rutas
 router.use(authenticateToken)
 router.use(canAccessMaintenance)
+
+// Answer 400 for an invalid :id or :imageId before any controller runs
+validateParams(router, MAINTENANCE_PARAM_RULES)
 
 // ========================================
 // RUTAS DE REPORTES
