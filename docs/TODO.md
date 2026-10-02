@@ -553,10 +553,6 @@ hace que alguien reimplemente lo que ya existe.
       `checklist-report.ts` imprime los comentarios sin filtrar caracteres de
       control. _Según la revisión `security` L3 del 2026-09-28 (fichero y línea
       en el informe); no repasado por mí._
-- [ ] **Corregir el `AGENTS.md` de checklist** — la validación de pasos está al
-      revés (se valida al marcar, no en comentarios ni imágenes) y las tablas se
-      llaman `checklist_step_comments` y `checklist_step_attachments`.
-      _Comprobado por mí el 2026-09-28._
 - [ ] **Scheduling: reiniciar un mes no usa transacción** — si falla a mitad, el
       mes queda vacío. _Comprobado por mí el 2026-09-28._
 - [ ] **Scheduling: comprobar si `LI` debe contar como descanso en el solver** —
