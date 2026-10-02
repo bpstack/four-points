@@ -299,18 +299,6 @@ export const searchVehicles = async (req: Request, res: Response): Promise<void>
 
 // SPOTS DISPONIBLES
 
-// ============================================
-// HELPER: Validar formato de fecha
-// ============================================
-
-function isValidDate(dateString: string): boolean {
-  // Validar formato YYYY-MM-DD
-  // new Date('2026-02-31T00:00:00Z') is a valid date (3 March), so check the
-  // day really exists
-  return isCalendarDate(dateString)
-}
-// -------------------
-
 export const listAvailableSpots = async (req: Request, res: Response): Promise<void> => {
   try {
     const { date, start_date, end_date, level } = req.query as {
@@ -332,7 +320,7 @@ export const listAvailableSpots = async (req: Request, res: Response): Promise<v
     // CASO 1: Fecha específica
     if (date) {
       // Validar formato
-      if (!isValidDate(date)) {
+      if (!isCalendarDate(date)) {
         res.status(400).json({
           error: 'Formato de fecha inválido',
           expected: 'YYYY-MM-DD',
@@ -369,7 +357,7 @@ export const listAvailableSpots = async (req: Request, res: Response): Promise<v
       }
 
       // Validar formato
-      if (!isValidDate(start_date) || !isValidDate(end_date)) {
+      if (!isCalendarDate(start_date) || !isCalendarDate(end_date)) {
         res.status(400).json({
           error: 'Formato de fecha inválido',
           expected: 'YYYY-MM-DD',
