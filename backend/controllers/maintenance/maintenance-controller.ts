@@ -2,6 +2,8 @@
 /**
  * Controller para el módulo Maintenance
  * Maneja las peticiones HTTP y respuestas
+ * Route params (:id, :imageId) arrive validated by validateParams in
+ * routes/maintenance/maintenance-routes.ts
  */
 
 import type { Request, Response } from 'express'
@@ -14,7 +16,6 @@ import {
   updatePrioritySchema,
   addResolutionNotesSchema,
   reportFiltersSchema,
-  idParamSchema,
   assignReportSchema,
 } from '../../validations/maintenance/schemas.js'
 import type { ReportFilters } from '../../models/maintenance/index.js'
@@ -68,17 +69,7 @@ export class MaintenanceController {
    */
   static async getById(req: Request, res: Response): Promise<void> {
     try {
-      const parseResult = idParamSchema.safeParse(req.params)
-
-      if (!parseResult.success) {
-        res.status(400).json({
-          error: 'ID inválido',
-          details: parseResult.error.flatten().fieldErrors,
-        })
-        return
-      }
-
-      const { id } = parseResult.data
+      const { id } = req.params
 
       const report = await MaintenanceRepository.getById(id)
 
@@ -146,15 +137,6 @@ export class MaintenanceController {
         return
       }
 
-      const idResult = idParamSchema.safeParse(req.params)
-      if (!idResult.success) {
-        res.status(400).json({
-          error: 'ID inválido',
-          details: idResult.error.flatten().fieldErrors,
-        })
-        return
-      }
-
       const bodyResult = updateReportSchema.safeParse(req.body)
       if (!bodyResult.success) {
         res.status(400).json({
@@ -164,7 +146,7 @@ export class MaintenanceController {
         return
       }
 
-      const { id } = idResult.data
+      const { id } = req.params
       const data = bodyResult.data
 
       const report = await MaintenanceRepository.update(id, data, req.user.id, req.user.username)
@@ -203,15 +185,6 @@ export class MaintenanceController {
         return
       }
 
-      const idResult = idParamSchema.safeParse(req.params)
-      if (!idResult.success) {
-        res.status(400).json({
-          error: 'ID inválido',
-          details: idResult.error.flatten().fieldErrors,
-        })
-        return
-      }
-
       const bodyResult = updateStatusSchema.safeParse(req.body)
       if (!bodyResult.success) {
         res.status(400).json({
@@ -221,7 +194,7 @@ export class MaintenanceController {
         return
       }
 
-      const { id } = idResult.data
+      const { id } = req.params
       const { status, notes } = bodyResult.data
 
       const report = await MaintenanceRepository.updateStatus(
@@ -260,15 +233,6 @@ export class MaintenanceController {
         return
       }
 
-      const idResult = idParamSchema.safeParse(req.params)
-      if (!idResult.success) {
-        res.status(400).json({
-          error: 'ID inválido',
-          details: idResult.error.flatten().fieldErrors,
-        })
-        return
-      }
-
       const bodyResult = updatePrioritySchema.safeParse(req.body)
       if (!bodyResult.success) {
         res.status(400).json({
@@ -278,7 +242,7 @@ export class MaintenanceController {
         return
       }
 
-      const { id } = idResult.data
+      const { id } = req.params
       const { priority } = bodyResult.data
 
       const report = await MaintenanceRepository.updatePriority(
@@ -316,15 +280,6 @@ export class MaintenanceController {
         return
       }
 
-      const idResult = idParamSchema.safeParse(req.params)
-      if (!idResult.success) {
-        res.status(400).json({
-          error: 'ID inválido',
-          details: idResult.error.flatten().fieldErrors,
-        })
-        return
-      }
-
       const bodyResult = addResolutionNotesSchema.safeParse(req.body)
       if (!bodyResult.success) {
         res.status(400).json({
@@ -334,7 +289,7 @@ export class MaintenanceController {
         return
       }
 
-      const { id } = idResult.data
+      const { id } = req.params
       const { notes } = bodyResult.data
 
       const report = await MaintenanceRepository.addResolutionNotes(
@@ -372,15 +327,6 @@ export class MaintenanceController {
         return
       }
 
-      const idResult = idParamSchema.safeParse(req.params)
-      if (!idResult.success) {
-        res.status(400).json({
-          error: 'ID inválido',
-          details: idResult.error.flatten().fieldErrors,
-        })
-        return
-      }
-
       const bodyResult = assignReportSchema.safeParse(req.body)
       if (!bodyResult.success) {
         res.status(400).json({
@@ -390,7 +336,7 @@ export class MaintenanceController {
         return
       }
 
-      const { id } = idResult.data
+      const { id } = req.params
       const data = bodyResult.data
 
       // Actualizar asignación y cambiar estado a 'assigned'
@@ -435,16 +381,7 @@ export class MaintenanceController {
         return
       }
 
-      const parseResult = idParamSchema.safeParse(req.params)
-      if (!parseResult.success) {
-        res.status(400).json({
-          error: 'ID inválido',
-          details: parseResult.error.flatten().fieldErrors,
-        })
-        return
-      }
-
-      const { id } = parseResult.data
+      const { id } = req.params
 
       const deleted = await MaintenanceRepository.delete(id, req.user.id, req.user.username)
 
@@ -479,16 +416,7 @@ export class MaintenanceController {
         return
       }
 
-      const parseResult = idParamSchema.safeParse(req.params)
-      if (!parseResult.success) {
-        res.status(400).json({
-          error: 'ID inválido',
-          details: parseResult.error.flatten().fieldErrors,
-        })
-        return
-      }
-
-      const { id } = parseResult.data
+      const { id } = req.params
 
       const report = await MaintenanceRepository.restore(id, req.user.id, req.user.username)
 
@@ -525,16 +453,7 @@ export class MaintenanceController {
    */
   static async getImages(req: Request, res: Response): Promise<void> {
     try {
-      const parseResult = idParamSchema.safeParse(req.params)
-      if (!parseResult.success) {
-        res.status(400).json({
-          error: 'ID inválido',
-          details: parseResult.error.flatten().fieldErrors,
-        })
-        return
-      }
-
-      const { id } = parseResult.data
+      const { id } = req.params
 
       const images = await MaintenanceRepository.getImagesByReportId(id)
 
@@ -558,16 +477,7 @@ export class MaintenanceController {
         return
       }
 
-      const parseResult = idParamSchema.safeParse(req.params)
-      if (!parseResult.success) {
-        res.status(400).json({
-          error: 'ID inválido',
-          details: parseResult.error.flatten().fieldErrors,
-        })
-        return
-      }
-
-      const { id } = parseResult.data
+      const { id } = req.params
 
       // Verificar que el reporte existe
       const report = await MaintenanceRepository.getById(id)
@@ -648,11 +558,6 @@ export class MaintenanceController {
 
       const { id, imageId } = req.params
 
-      if (!id || !imageId) {
-        res.status(400).json({ error: 'ID de reporte e imagen son requeridos' })
-        return
-      }
-
       // Obtener imagen
       const image = await MaintenanceRepository.getImageById(Number(imageId))
       if (!image) {
@@ -693,16 +598,7 @@ export class MaintenanceController {
    */
   static async getHistory(req: Request, res: Response): Promise<void> {
     try {
-      const parseResult = idParamSchema.safeParse(req.params)
-      if (!parseResult.success) {
-        res.status(400).json({
-          error: 'ID inválido',
-          details: parseResult.error.flatten().fieldErrors,
-        })
-        return
-      }
-
-      const { id } = parseResult.data
+      const { id } = req.params
 
       const history = await MaintenanceRepository.getHistoryByReportId(id)
 
