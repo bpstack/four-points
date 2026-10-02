@@ -958,9 +958,9 @@ Get-ChildItem -Recurse -Include *.js,*.ts -Exclude node_modules,dist | Select-St
 ## External Services
 
 - **Cloudinary**: Image upload and storage
-- **Nodemailer**: declared as a dependency but
-  `backend/services/group/email-service.ts` is not imported by any file — email
-  sending is not in use
+- **Nodemailer**: declared as a dependency but not imported anywhere (the
+  unused `email-service.ts` was removed on 2026-10-02) — email sending is not
+  in use
 
 ## Development Workflow
 

@@ -249,11 +249,6 @@ hace que alguien reimplemente lo que ya existe.
       `invalidateCategories()`, que hoy solo se llama en los tests. En
       producción, un cambio en `fnb_category` no se ve sin reiniciar el backend.
       _Comprobado por mí el 2026-09-28._
-- [ ] **Corregir el `AGENTS.md` raíz sobre next-intl** — dice `routing.ts` +
-      `createNavigation`, pero no existe `routing.ts`: el idioma va por cookie
-      `NEXT_LOCALE`, geolocalización de Vercel y `Accept-Language`
-      (`frontend/app/i18n/request.ts`). También cita Nodemailer como servicio
-      externo y no se usa. _Comprobado el 2026-09-28._
 - [ ] **Comprobar si los cron se ejecutan en Render** — corren dentro del
       proceso del backend; si el plan gratuito lo duerme por inactividad, no se
       disparan. _No comprobado._
