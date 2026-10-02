@@ -130,9 +130,10 @@ frontend/
 │   │   │   ├── TabsNavigation.tsx
 │   │   │   ├── TabContent.tsx
 │   │   │   └── tabs/
-│   │   │       ├── PendingInvoicesTab.tsx
-│   │   │       ├── PaidInvoicesTab.tsx
-│   │   │       └── SettingsTab.tsx
+│   │   │       ├── PendingInvoicesTabLazy.tsx
+│   │   │       ├── PaidInvoicesTabLazy.tsx
+│   │   │       ├── SuppliersTabLazy.tsx
+│   │   │       └── SettingsTabLazy.tsx
 │   │   ├── booking/
 │   │   │   ├── BookingWizard/
 │   │   │   │   ├── index.tsx

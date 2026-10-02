@@ -523,11 +523,6 @@ hace que alguien reimplemente lo que ya existe.
       registra nombre/tamaño/mimetype, pero al no pasar por el logger
       documentado, cualquier dato que se añada ahí en el futuro escapa al
       pipeline de logs del resto de la app. _Comprobado por mí el 2026-09-28._
-- [ ] **Backoffice: notas `IMPORTANT-PRODUCTION.MD` obsoletas** en
-      `frontend/app/components/bo/`: hablan de datos inventados que ya no se
-      usan. _Comprobado por mí el 2026-09-28._ Quitar también ese código:
-      `USE_MOCK_DATA` y `MOCK_INVOICES` en `PaidInvoicesTab.tsx` y
-      `_generateMockInvoices` en `SupplierInvoicesModal.tsx`.
 - [ ] **Backoffice: `demo-admin` ve IBAN, CIF y datos de contacto completos** de
       los proveedores. _Según la revisión `security` L3 del 2026-09-28 (fichero
       y línea en el informe); no repasado por mí._
