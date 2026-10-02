@@ -110,16 +110,19 @@ export const updateDaySchema = z
   })
 
 export const bulkUpdateDaysSchema = z.object({
-  days: z.array(
-    z.object({
-      day_id: z.number().int().positive(),
-      is_holiday: z.boolean().optional(),
-      holiday_name: z.string().max(100).optional().nullable(),
-      occupancy_pct: z.number().min(0).max(100).optional().nullable(),
-      arrivals: z.number().int().min(0).optional().nullable(),
-      departures: z.number().int().min(0).optional().nullable(),
-    })
-  ),
+  days: z
+    .array(
+      z.object({
+        day_id: z.number().int().positive(),
+        is_holiday: z.boolean().optional(),
+        holiday_name: z.string().max(100).optional().nullable(),
+        occupancy_pct: z.number().min(0).max(100).optional().nullable(),
+        arrivals: z.number().int().min(0).optional().nullable(),
+        departures: z.number().int().min(0).optional().nullable(),
+      })
+    )
+    // One month at most: the route edits the days of a single month
+    .max(31),
 })
 
 // ============================================
@@ -132,14 +135,29 @@ export const updateAssignmentSchema = z.object({
 })
 
 export const bulkUpdateAssignmentsSchema = z.object({
-  assignments: z.array(
-    z.object({
-      day_id: z.number().int().positive('El day_id debe ser un número positivo'),
-      employee_id: employeeIdSchema,
-      shift_code: shiftCodeSchema,
-    })
-  ),
+  assignments: z
+    .array(
+      z.object({
+        day_id: z.number().int().positive('El day_id debe ser un número positivo'),
+        employee_id: employeeIdSchema,
+        shift_code: shiftCodeSchema,
+      })
+    )
+    // A month of 31 days for up to 160 employees; the list used to be unbounded
+    .max(5000),
 })
+
+// Users are UUIDs; a repeated id would duplicate or reorder an employee twice
+const employeeIdList = z
+  .array(employeeIdSchema)
+  .max(500)
+  .refine((ids) => new Set(ids).size === ids.length, 'Hay empleados repetidos')
+
+// PUT /schedulable-employees
+export const schedulableEmployeesSchema = z.object({ employeeIds: employeeIdList })
+
+// PATCH /schedulable-employees/order
+export const schedulableEmployeesOrderSchema = z.object({ orderedIds: employeeIdList })
 
 // ============================================
 // SCHEDULABLE EMPLOYEE DATES

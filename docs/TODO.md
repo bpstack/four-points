@@ -617,11 +617,11 @@ hace que alguien reimplemente lo que ya existe.
       mes queda vacío. _Comprobado por mí el 2026-09-28._
 - [ ] **Scheduling: comprobar si `LI` debe contar como descanso en el solver** —
       falta en `REST_SHIFTS` de `rest.py`. _Sin comprobar su efecto._
-- [ ] **Scheduling: validación incompleta** — ediciones masivas sin límite de
-      tamaño, listas de empleados validadas a mano, `day_id` de otro mes
-      aceptado y comprobación de bloqueo fuera de transacción. _Según la
-      revisión `security` L3 del 2026-09-28 (fichero y línea en el informe); no
-      repasado por mí._
+- [ ] **Scheduling: `day_id` de otro mes aceptado** y comprobación de bloqueo
+      fuera de transacción en las ediciones masivas. El tamaño de las listas y
+      los ids de empleado ya se validan (2026-10-02). _Según la revisión
+      `security` L3 del 2026-09-28 (fichero y línea en el informe); no repasado
+      por mí._
 - [ ] **Scheduling: el daemon del solver puede quedar bloqueado** — el semáforo
       se retiene durante el arranque (hasta 30 min) con cola sin límite. _Según
       la revisión `security` L3 del 2026-09-28 (fichero y línea en el informe);

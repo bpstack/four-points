@@ -13,6 +13,8 @@ import {
   bulkUpdateAssignmentsSchema,
   createConstraintSchema,
   updateConstraintSchema,
+  schedulableEmployeesSchema,
+  schedulableEmployeesOrderSchema,
   approveConstraintSchema,
   createEmployeeRuleSchema,
   updateEmployeeRuleSchema,
@@ -1575,11 +1577,12 @@ export async function setSchedulableEmployeeDates(req: Request, res: Response): 
 
 export async function setSchedulableEmployeesOrder(req: Request, res: Response): Promise<void> {
   try {
-    const { orderedIds } = req.body
-    if (!Array.isArray(orderedIds) || orderedIds.some((id) => typeof id !== 'string')) {
-      res.status(400).json({ error: 'orderedIds must be an array of string IDs' })
+    const parsed = schedulableEmployeesOrderSchema.safeParse(req.body)
+    if (!parsed.success) {
+      res.status(400).json({ error: 'orderedIds must be an array of unique employee ids' })
       return
     }
+    const { orderedIds } = parsed.data
 
     await repo.setSchedulableEmployeesOrder(orderedIds)
     res.json({ success: true, message: 'Orden de empleados actualizado' })
@@ -1591,13 +1594,14 @@ export async function setSchedulableEmployeesOrder(req: Request, res: Response):
 
 export async function setSchedulableEmployees(req: Request, res: Response): Promise<void> {
   try {
-    const { employeeIds } = req.body
+    const parsed = schedulableEmployeesSchema.safeParse(req.body)
     const userId = req.user?.id
 
-    if (!Array.isArray(employeeIds)) {
-      res.status(400).json({ error: 'employeeIds debe ser un array' })
+    if (!parsed.success) {
+      res.status(400).json({ error: 'employeeIds debe ser una lista de empleados sin repetir' })
       return
     }
+    const { employeeIds } = parsed.data
 
     await repo.setSchedulableEmployees(employeeIds, userId)
     res.json({ success: true, message: `${employeeIds.length} empleados configurados` })
