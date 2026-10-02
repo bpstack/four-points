@@ -205,10 +205,12 @@ export const updateConstraintSchema = z
     start_date: dateSchema.optional(),
     end_date: dateSchema.optional(),
     shift_code: shiftCodeSchema.optional().nullable(),
-    status: constraintStatusEnum.optional(),
     priority: z.number().int().min(1).max(7).optional(),
     notes: notesSchema,
   })
+  // No status: approving or rejecting goes through PUT /constraints/:id/approve
+  // (admin only). Accepting it here let anyone approve their own request.
+  // Unknown keys are stripped, so a status sent here is ignored
   .partial()
   .refine((data) => Object.keys(data).length > 0, {
     message: 'Debes proporcionar al menos un campo para actualizar',
