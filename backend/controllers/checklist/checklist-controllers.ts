@@ -3,7 +3,10 @@
 import { Request, Response } from 'express'
 import * as checklistService from '../../services/checklist/checklist.service.js'
 import { getValidStepIds } from '../../services/checklist/checklist-content.js'
-import { toggleStepSchema } from '../../validations/checklist/checklist-schemas.js'
+import {
+  toggleStepSchema,
+  historyQuerySchema,
+} from '../../validations/checklist/checklist-schemas.js'
 import { logger } from '../../config/logger.js'
 
 // GET /api/checklists/:id/run
@@ -61,9 +64,12 @@ export async function resetRunController(req: Request, res: Response): Promise<v
 export async function getHistoryController(req: Request, res: Response): Promise<void> {
   try {
     const { id } = req.params
-    const limit = Math.min(Number(req.query.limit) || 30, 100)
-    const dateFrom = req.query.date_from as string | undefined
-    const dateTo = req.query.date_to as string | undefined
+    const parsed = historyQuerySchema.safeParse(req.query)
+    if (!parsed.success) {
+      res.status(400).json({ error: 'Datos inválidos', details: parsed.error.issues })
+      return
+    }
+    const { limit, date_from: dateFrom, date_to: dateTo } = parsed.data
     const history = await checklistService.getHistory(id, limit, dateFrom, dateTo)
     res.json(history)
   } catch (err) {

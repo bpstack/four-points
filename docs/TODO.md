@@ -622,8 +622,7 @@ hace que alguien reimplemente lo que ya existe.
       (Helvetica estándar). _Sin comprobar en ejecución._
 - [ ] **Checklist: `checklist_config` existe pero no se usa.** _Comprobado por
       mí el 2026-09-28._
-- [ ] **Checklist: fechas de `/history` sin validar** (un parámetro repetido da
-      500), respuestas con campos internos (`user_id`, `public_id`) y
+- [ ] **Checklist: respuestas con campos internos** (`user_id`, `public_id`) y
       `checklist-report.ts` imprime los comentarios sin filtrar caracteres de
       control. _Según la revisión `security` L3 del 2026-09-28 (fichero y línea
       en el informe); no repasado por mí._
