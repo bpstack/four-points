@@ -44,7 +44,6 @@ export class NotificationController {
         success: false,
         error: ERROR_CODES.NOTIFICATIONS_FETCH_ERROR,
         code: ERROR_CODES.NOTIFICATIONS_FETCH_ERROR,
-        message: error.message,
       })
     }
   }
@@ -85,7 +84,6 @@ export class NotificationController {
         success: false,
         error: ERROR_CODES.NOTIFICATIONS_FETCH_UNREAD_ERROR,
         code: ERROR_CODES.NOTIFICATIONS_FETCH_UNREAD_ERROR,
-        message: error.message,
       })
     }
   }
@@ -120,7 +118,6 @@ export class NotificationController {
         success: false,
         error: ERROR_CODES.NOTIFICATIONS_FETCH_COUNT_ERROR,
         code: ERROR_CODES.NOTIFICATIONS_FETCH_COUNT_ERROR,
-        message: error.message,
       })
     }
   }
@@ -166,7 +163,6 @@ export class NotificationController {
         success: false,
         error: ERROR_CODES.NOTIFICATIONS_PROCESS_ERROR,
         code: ERROR_CODES.NOTIFICATIONS_PROCESS_ERROR,
-        message: error.message,
       })
     }
   }
@@ -200,7 +196,6 @@ export class NotificationController {
         success: false,
         error: ERROR_CODES.NOTIFICATIONS_FETCH_GROUP_ERROR,
         code: ERROR_CODES.NOTIFICATIONS_FETCH_GROUP_ERROR,
-        message: error.message,
       })
     }
   }
@@ -261,7 +256,6 @@ export class NotificationController {
         success: false,
         error: ERROR_CODES.NOTIFICATIONS_MARK_READ_ERROR,
         code: ERROR_CODES.NOTIFICATIONS_MARK_READ_ERROR,
-        message: error.message,
       })
     }
   }
@@ -296,7 +290,6 @@ export class NotificationController {
         success: false,
         error: ERROR_CODES.NOTIFICATIONS_MARK_ALL_ERROR,
         code: ERROR_CODES.NOTIFICATIONS_MARK_ALL_ERROR,
-        message: error.message,
       })
     }
   }
@@ -369,7 +362,6 @@ export class NotificationController {
         success: false,
         error: ERROR_CODES.NOTIFICATIONS_CREATE_ERROR,
         code: ERROR_CODES.NOTIFICATIONS_CREATE_ERROR,
-        message: error.message,
       })
     }
   }
@@ -445,7 +437,6 @@ export class NotificationController {
         success: false,
         error: ERROR_CODES.NOTIFICATIONS_CREATE_ERROR,
         code: ERROR_CODES.NOTIFICATIONS_CREATE_ERROR,
-        message: error.message,
       })
     }
   }
@@ -497,7 +488,6 @@ export class NotificationController {
         success: false,
         error: ERROR_CODES.NOTIFICATIONS_DELETE_ERROR,
         code: ERROR_CODES.NOTIFICATIONS_DELETE_ERROR,
-        message: error.message,
       })
     }
   }

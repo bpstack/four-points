@@ -121,11 +121,6 @@ hace que alguien reimplemente lo que ya existe.
       (también `mantenimiento` y `recepcionista`) crea, edita, cambia de estado,
       asigna, borra y restaura cualquier parte: el controlador no mira rol ni
       autoría. _Comprobado por mí el 2026-09-28._
-- [ ] **Maintenance: los errores 500 devuelven el mensaje de MySQL** — 15
-      respuestas con `message: error.message` en `maintenance-controller.ts`,
-      saltándose el manejador global. Filtra tablas, columnas y claves foráneas,
-      y sirve para saber si un id de usuario existe. _Comprobado por mí el
-      2026-09-28._
 - [ ] **Backoffice: el pago en lote paga todos los meses con un objeto** —
       `executeBatchPayment` pasa `year` y `month` del cuerpo sin validar. Si se
       envía un objeto en vez de un número, mysql2 lo convierte en una
@@ -471,7 +466,7 @@ hace que alguien reimplemente lo que ya existe.
       (transacciones, según el revisor)
 - [ ] **Notificaciones manuales: destinatarios y textos sin validar** —
       cualquier id de usuario (inactivos incluidos), prioridad sin comprobar,
-      título y mensaje sin límite; los errores devuelven el mensaje de MySQL.
+      título y mensaje sin límite.
       _Según la revisión `security` L3 del 2026-09-28 (fichero y línea en el
       informe); no repasado por mí._
 
@@ -531,6 +526,13 @@ hace que alguien reimplemente lo que ya existe.
       `GET /shifts/:id/history`, `/daily` y `/vouchers/stats`. _Según la
       revisión `security` L3 del 2026-09-28 (fichero y línea en el informe); no
       repasado por mí._
+- [ ] **Cashier: los 500 de turnos, pagos y recuentos devuelven
+      `error.message`** — `cashier-shift`, `cashier-payment` y
+      `cashier-denomination` responden `error: error.message || '…'`: si falla
+      MySQL, sale su texto; si es un error propio («Pago no encontrado»), llega
+      como 500. Pasar los errores conocidos a 404/409 (como los vales en
+      `02d82d2`) y el resto a un mensaje genérico; después quitarlos de la lista
+      `ALLOWED` de `backend/tests/security/no-raw-error-messages.test.ts`.
 - [ ] **Corregir el `AGENTS.md` de cashier** — dice que hay validación Zod (no
       se usa) y que el trigger mantiene bien los totales (los infla).
       _Comprobado por mí el 2026-09-28._
@@ -683,9 +685,6 @@ hace que alguien reimplemente lo que ya existe.
       las fotos. _Sin comprobar._
 - [ ] **El API no envía `Cache-Control: no-store`** — afecta a lista negra, caja
       y PDFs de facturas. _Comprobado con `curl` el 2026-09-28._
-- [ ] **El controlador de notificaciones devuelve `error.message` de MySQL** al
-      cliente. _Según la revisión `security` L3 del 2026-09-28 (fichero y línea
-      en el informe); no repasado por mí._
 - [ ] **Ids sin codificar en las URL de `blacklistApi.ts`** (informativo).
       _Según la revisión `security` L3 del 2026-09-28 (fichero y línea en el
       informe); no repasado por mí._
@@ -700,9 +699,6 @@ hace que alguien reimplemente lo que ya existe.
       (textos, matrículas, hashes). _Según la revisión `security` L3 del
       2026-09-28 (fichero y línea en el informe); no repasado por mí._ No
       verificado en ejecución.
-- [ ] **Parking: `listAvailableSpots` devuelve el mensaje de error de MySQL** al
-      cliente. _Según la revisión `security` L3 del 2026-09-28 (fichero y línea
-      en el informe); no repasado por mí._
 - [ ] **Parking: cambiar solo la planta puede mover la reserva a otra plaza** —
       usa el id de la plaza como número. _Según la revisión `security` L3 del
       2026-09-28 (fichero y línea en el informe); no repasado por mí._

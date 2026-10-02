@@ -58,7 +58,6 @@ export class MaintenanceController {
       logger.error({ err: error }, '[MaintenanceController.getAll] Error')
       res.status(500).json({
         error: 'Error al obtener los reportes',
-        message: error.message,
       })
     }
   }
@@ -95,7 +94,6 @@ export class MaintenanceController {
       logger.error({ err: error }, '[MaintenanceController.getById] Error')
       res.status(500).json({
         error: 'Error al obtener el reporte',
-        message: error.message,
       })
     }
   }
@@ -133,7 +131,6 @@ export class MaintenanceController {
       logger.error({ err: error }, '[MaintenanceController.create] Error')
       res.status(500).json({
         error: 'Error al crear el reporte',
-        message: error.message,
       })
     }
   }
@@ -191,7 +188,6 @@ export class MaintenanceController {
 
       res.status(500).json({
         error: 'Error al actualizar el reporte',
-        message: error.message,
       })
     }
   }
@@ -249,7 +245,6 @@ export class MaintenanceController {
       logger.error({ err: error }, '[MaintenanceController.updateStatus] Error')
       res.status(500).json({
         error: 'Error al actualizar el estado',
-        message: error.message,
       })
     }
   }
@@ -306,7 +301,6 @@ export class MaintenanceController {
       logger.error({ err: error }, '[MaintenanceController.updatePriority] Error')
       res.status(500).json({
         error: 'Error al actualizar la prioridad',
-        message: error.message,
       })
     }
   }
@@ -363,7 +357,6 @@ export class MaintenanceController {
       logger.error({ err: error }, '[MaintenanceController.addResolutionNotes] Error')
       res.status(500).json({
         error: 'Error al agregar las notas',
-        message: error.message,
       })
     }
   }
@@ -427,7 +420,6 @@ export class MaintenanceController {
       logger.error({ err: error }, '[MaintenanceController.assignReport] Error')
       res.status(500).json({
         error: 'Error al asignar el reporte',
-        message: error.message,
       })
     }
   }
@@ -472,7 +464,6 @@ export class MaintenanceController {
 
       res.status(500).json({
         error: 'Error al eliminar el reporte',
-        message: error.message,
       })
     }
   }
@@ -520,7 +511,6 @@ export class MaintenanceController {
 
       res.status(500).json({
         error: 'Error al restaurar el reporte',
-        message: error.message,
       })
     }
   }
@@ -553,7 +543,6 @@ export class MaintenanceController {
       logger.error({ err: error }, '[MaintenanceController.getImages] Error')
       res.status(500).json({
         error: 'Error al obtener las imágenes',
-        message: error.message,
       })
     }
   }
@@ -642,7 +631,6 @@ export class MaintenanceController {
       logger.error({ err: error }, '[MaintenanceController.uploadImage] Error')
       res.status(500).json({
         error: 'Error al subir la imagen',
-        message: error.message,
       })
     }
   }
@@ -691,7 +679,6 @@ export class MaintenanceController {
       logger.error({ err: error }, '[MaintenanceController.deleteImage] Error')
       res.status(500).json({
         error: 'Error al eliminar la imagen',
-        message: error.message,
       })
     }
   }
@@ -724,7 +711,6 @@ export class MaintenanceController {
       logger.error({ err: error }, '[MaintenanceController.getHistory] Error')
       res.status(500).json({
         error: 'Error al obtener el historial',
-        message: error.message,
       })
     }
   }
@@ -746,7 +732,6 @@ export class MaintenanceController {
       logger.error({ err: error }, '[MaintenanceController.getStats] Error')
       res.status(500).json({
         error: 'Error al obtener estadísticas',
-        message: error.message,
       })
     }
   }

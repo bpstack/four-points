@@ -66,7 +66,6 @@ export class CashierHistoryController {
       return res.status(500).json({
         success: false,
         error: 'Error al obtener historial',
-        message: error.message,
       })
     }
   }
@@ -176,7 +175,6 @@ export class CashierHistoryController {
       return res.status(500).json({
         success: false,
         error: 'Error al obtener estadísticas de historial',
-        message: error.message,
       })
     }
   }
@@ -243,7 +241,6 @@ export class CashierHistoryController {
       return res.status(500).json({
         success: false,
         error: 'Error al obtener historial del turno',
-        message: error.message,
       })
     }
   }
@@ -291,7 +288,6 @@ export class CashierHistoryController {
       return res.status(500).json({
         success: false,
         error: 'Error al obtener actividad reciente',
-        message: error.message,
       })
     }
   }

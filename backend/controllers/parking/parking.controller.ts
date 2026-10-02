@@ -444,14 +444,12 @@ export const listAvailableSpots = async (req: Request, res: Response): Promise<v
     if (error.code && error.code.startsWith('ER_')) {
       res.status(500).json({
         error: 'Error en base de datos',
-        message: error.message,
       })
       return
     }
 
     res.status(500).json({
       error: 'Error al obtener plazas disponibles',
-      message: error.message,
     })
   }
 }

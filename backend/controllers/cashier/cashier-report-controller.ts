@@ -83,7 +83,6 @@ export class CashierReportController {
       return res.status(500).json({
         success: false,
         error: 'Error al obtener resumen del dashboard',
-        message: error.message,
       })
     }
   }
@@ -164,7 +163,6 @@ export class CashierReportController {
       return res.status(500).json({
         success: false,
         error: 'Error al obtener reporte diario',
-        message: error.message,
       })
     }
   }
@@ -292,7 +290,6 @@ export class CashierReportController {
       return res.status(500).json({
         success: false,
         error: 'Error al obtener reporte de período',
-        message: error.message,
       })
     }
   }
@@ -334,7 +331,6 @@ export class CashierReportController {
       return res.status(500).json({
         success: false,
         error: 'Error al obtener historial de vales',
-        message: error.message,
       })
     }
   }
@@ -386,7 +382,6 @@ export class CashierReportController {
       return res.status(500).json({
         success: false,
         error: 'Error al obtener resumen de turnos',
-        message: error.message,
       })
     }
   }
