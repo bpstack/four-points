@@ -3,7 +3,8 @@
 // blacklist or parking, and LIKE wildcards in the query must match literally.
 
 import { describe, it, expect } from 'vitest'
-import { searchableModules, likeContains } from '../../services/search/search-access.js'
+import { searchableModules } from '../../services/search/search-access.js'
+import { likeContains } from '../../repositories/shared/like.js'
 
 describe('searchableModules', () => {
   it('keeps mantenimiento to the modules its routes allow', () => {

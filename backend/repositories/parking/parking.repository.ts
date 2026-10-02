@@ -9,6 +9,7 @@ import type {
   AvailableSpotRow,
   LevelCode,
 } from '../../models/parking/index.js'
+import { likeContains } from '../shared/like.js'
 
 /* -----------------------------------------------------------------
  * PLAZAS
@@ -95,7 +96,7 @@ export const getVehicleByPlateNumber = async (
 export const getVehiclesByOwner = async (owner_name: string): Promise<ParkingVehicleRow[]> => {
   const [rows] = await db.execute<ParkingVehicleRow[]>(
     'SELECT * FROM parking_vehicles WHERE owner_name LIKE ? ORDER BY plate_number',
-    [`%${owner_name}%`]
+    [likeContains(owner_name)]
   )
   return rows
 }
@@ -163,7 +164,7 @@ export async function searchVehicles(searchTerm: string): Promise<ParkingVehicle
       OR UPPER(owner_name) LIKE ?
     ORDER BY created_at DESC
     LIMIT 20`,
-    [`%${normalizedTerm}%`, `%${normalizedTerm}%`]
+    [likeContains(normalizedTerm), likeContains(normalizedTerm)]
   )
 
   return rows

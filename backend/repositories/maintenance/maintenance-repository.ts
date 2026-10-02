@@ -19,6 +19,7 @@ import type {
   HistoryAction,
   AddImageInput,
 } from '../../models/maintenance/index.js'
+import { likeContains } from '../shared/like.js'
 
 // ========================================
 // INTERFACES INTERNAS (para tipado de queries)
@@ -306,7 +307,7 @@ export class MaintenanceRepository {
           ELSE ''
         END) LIKE ?
       )`)
-      const searchPattern = `%${search.trim()}%`
+      const searchPattern = likeContains(search.trim())
       whereParams.push(searchPattern, searchPattern, searchPattern, searchPattern, searchPattern)
     }
 

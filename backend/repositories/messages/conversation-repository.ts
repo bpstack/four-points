@@ -2,7 +2,7 @@
 
 import db from '../../config/db.js'
 import { ResultSetHeader } from 'mysql2'
-import { likeContains } from '../../services/search/search-access.js'
+import { likeContains } from '../shared/like.js'
 import {
   Conversation,
   ConversationWithDetails,

@@ -6,6 +6,7 @@
 
 import db from '../../config/db.js'
 import { RowDataPacket, ResultSetHeader } from 'mysql2'
+import { likeContains } from '../shared/like.js'
 
 // ========================================
 // TYPES
@@ -118,7 +119,7 @@ export class DemoActivityRepository {
 
     if (filters?.username) {
       whereClause += ' AND username LIKE ?'
-      params.push(`%${filters.username}%`)
+      params.push(likeContains(filters.username))
     }
 
     if (filters?.method) {
@@ -128,7 +129,7 @@ export class DemoActivityRepository {
 
     if (filters?.route) {
       whereClause += ' AND route LIKE ?'
-      params.push(`%${filters.route}%`)
+      params.push(likeContains(filters.route))
     }
 
     if (filters?.startDate) {

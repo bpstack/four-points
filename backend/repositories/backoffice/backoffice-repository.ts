@@ -23,6 +23,7 @@ import {
   Asset,
   SummaryStats,
 } from '../../models/backoffice/index.js'
+import { likeContains } from '../shared/like.js'
 
 // Re-exportar tipos para mantener compatibilidad
 export type {
@@ -109,7 +110,7 @@ export class BackofficeRepository {
 
     if (filters?.search) {
       baseQuery += ` AND (name LIKE ? OR notes LIKE ?)`
-      const search = `%${filters.search}%`
+      const search = likeContains(filters.search)
       params.push(search, search)
     }
 
@@ -287,7 +288,7 @@ export class BackofficeRepository {
 
     if (filters?.search) {
       whereClause += ` AND (invoice_number LIKE ? OR supplier_name LIKE ? OR notes LIKE ?)`
-      const search = `%${filters.search}%`
+      const search = likeContains(filters.search)
       params.push(search, search, search)
     }
 

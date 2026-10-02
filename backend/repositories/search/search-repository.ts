@@ -6,7 +6,8 @@
 
 import db from '../../config/db.js'
 import type { RowDataPacket } from 'mysql2'
-import { likeContains, type SearchModule } from '../../services/search/search-access.js'
+import { type SearchModule } from '../../services/search/search-access.js'
+import { likeContains } from '../shared/like.js'
 
 // ========================================
 // TYPES
