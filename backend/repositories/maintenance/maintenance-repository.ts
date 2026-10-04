@@ -522,7 +522,12 @@ export class MaintenanceRepository {
       if (newValue !== undefined && newValue !== oldValue) {
         fields.push(`${field} = ?`)
         values.push(newValue)
-        changes.push({ field, old: String(oldValue ?? ''), new: String(newValue ?? '') })
+        // Keep NULL as NULL in the history, as before the typing change
+        changes.push({
+          field,
+          old: oldValue == null ? null : String(oldValue),
+          new: newValue == null ? null : String(newValue),
+        })
       }
     }
 

@@ -70,7 +70,7 @@ describe('deleted maintenance reports', () => {
     '%s answers 400, not 500, for a deleted report',
     (name) => {
       expect(method(controller, name)).toMatch(
-        /if \(error\.message\.includes\('eliminado'\)\) \{\s*res\.status\(400\)/
+        /if \((?:error|err)\.message\??\.includes\('eliminado'\)\) \{\s*res\.status\(400\)/
       )
     }
   )
