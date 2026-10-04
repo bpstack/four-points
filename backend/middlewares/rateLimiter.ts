@@ -3,21 +3,16 @@
 import rateLimit from 'express-rate-limit'
 import type { Request, Response } from 'express'
 import { logger } from '../config/logger.js'
+import { clientIpKey } from '../config/client-ip.js'
 
 /**
- * Helper to get a consistent IP key (handles IPv6)
+ * Helper to get a consistent IP key (handles IPv6). Fails closed if Render's
+ * proxy chain changes (config/client-ip.ts)
  */
 function getIpKey(req: Request): string {
+  const ip = clientIpKey(req)
   // Normalize IPv6 localhost to IPv4 format for consistency
-  const ip = req.ip || 'unknown'
-  if (ip === '::1' || ip === '::ffff:127.0.0.1') {
-    return '127.0.0.1'
-  }
-  // Remove IPv6 prefix if present
-  if (ip.startsWith('::ffff:')) {
-    return ip.substring(7)
-  }
-  return ip
+  return ip === '::1' ? '127.0.0.1' : ip
 }
 
 /**

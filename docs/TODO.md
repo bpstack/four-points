@@ -94,14 +94,6 @@ sigue siendo donde se arregla este fichero y se prueba en el entorno preview.
       `Permissions-Policy`, pero no CSP ni `Cross-Origin-Opener-Policy`; HSTS
       sin `preload`, Google Analytics sin SRI y anuncia `X-Powered-By: Next.js`.
       _Comprobado con `curl -I` el 2026-09-28._
-- [ ] **`trust proxy 3` depende de la red de Render** — `backend/index.ts`
-      confía en 3 saltos (Cloudflare, balanceador `10.x` de Render y un proxy
-      local `::1`), la cadena vista el 2026-09-29. Si Render quita un salto,
-      `req.ip` pasa a ser lo que envíe el cliente en `X-Forwarded-For` y los
-      límites de login se esquivan; si añade uno, vuelve a ser una IP de
-      Cloudflare compartida. Nada avisa del cambio. Opciones: leer
-      `CF-Connecting-IP` (lo fija Cloudflare) o una comprobación periódica: 2
-      intentos de login fallidos seguidos deben dar `ratelimit-remaining` 4 y 3.
 - [ ] **Datos de personas reales en el repo** —
       `20260520_insert_user_example.sql` crea a una empleada real con su periodo
       de trabajo (confirmado por el propietario el 2026-09-28): cambiar el
@@ -118,11 +110,6 @@ sigue siendo donde se arregla este fichero y se prueba en el entorno preview.
       completa (con las bajas de cada usuario) y un INFEASIBLE las vuelca al
       log. _Según la revisión `security` L3 del 2026-09-28 (fichero y línea en
       el informe); no repasado por mí._
-
-### 🟢 Baja
-
-- [ ] **Proteger o quitar `/design-system` y `/fonts-test`** — son páginas de
-      prueba y `proxy.ts` no las protege.
 
 ## Después de publicar
 
