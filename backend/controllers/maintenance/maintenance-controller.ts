@@ -229,6 +229,12 @@ export class MaintenanceController {
       })
     } catch (error: any) {
       logger.error({ err: error }, '[MaintenanceController.updateStatus] Error')
+
+      if (error.message.includes('eliminado')) {
+        res.status(400).json({ error: error.message })
+        return
+      }
+
       res.status(500).json({
         error: 'Error al actualizar el estado',
       })
@@ -276,6 +282,12 @@ export class MaintenanceController {
       })
     } catch (error: any) {
       logger.error({ err: error }, '[MaintenanceController.updatePriority] Error')
+
+      if (error.message.includes('eliminado')) {
+        res.status(400).json({ error: error.message })
+        return
+      }
+
       res.status(500).json({
         error: 'Error al actualizar la prioridad',
       })
@@ -381,6 +393,12 @@ export class MaintenanceController {
       })
     } catch (error: any) {
       logger.error({ err: error }, '[MaintenanceController.assignReport] Error')
+
+      if (error.message.includes('eliminado')) {
+        res.status(400).json({ error: error.message })
+        return
+      }
+
       res.status(500).json({
         error: 'Error al asignar el reporte',
       })

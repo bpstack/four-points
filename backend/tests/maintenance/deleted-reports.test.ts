@@ -64,6 +64,17 @@ describe('deleted maintenance reports', () => {
     expect(method(controller, name)).toMatch(/if \(report\.is_deleted\) \{\s*res\.status\(400\)/)
   })
 
+  // The repository throws for a deleted report: the handler must answer 400,
+  // not the generic 500 (status, priority and assign did until 2026-10-04)
+  it.each(['update', 'updateStatus', 'updatePriority', 'addResolutionNotes', 'assignReport'])(
+    '%s answers 400, not 500, for a deleted report',
+    (name) => {
+      expect(method(controller, name)).toMatch(
+        /if \(error\.message\.includes\('eliminado'\)\) \{\s*res\.status\(400\)/
+      )
+    }
+  )
+
   it.each(['update', 'updateStatus', 'updatePriority', 'addResolutionNotes'])(
     'repository %s refuses a deleted report',
     (name) => {
