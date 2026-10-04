@@ -56,8 +56,8 @@ el historial.
     el propietario);
   - `messages.txt`: quita `Co-Authored-By: Claude…` y «Generated with Claude
     Code» de 3 mensajes de commit;
-  - renombrado de ruta: `night-audit-fb-daily.md` pasa a
-    `night-audit-fb-daily.md` (`--path-rename`);
+  - renombrado de ruta: la guía diaria del F&B, que llevaba en el nombre el
+    de una persona, pasa a `night-audit-fb-daily.md` (`--path-rename`);
   - `strip-blobs.txt`: los 2 blobs del informe Opera real de ingresos
     (`OperaPrint-sample.pdf`, su copia en `backend/test/data/` y el `.txt`
     que genera `pdf-parse`), hallado en el barrido de OpenCode y sustituido
@@ -75,7 +75,12 @@ el historial.
   `demo` está desactivado en Aiven y la contraseña documentada ya no vale
   (comprobado el 2026-10-05).
 
-- ⏳ Ejecución real en `work.git`, auditoría
+- ✅ Primera ejecución real en `work.git` (2026-10-05): el historial queda
+  limpio (0 secretos, nombres y datos reales en 5.651 objetos; autoría
+  `bpstack` y `GitHub`), pero las puntas no son idénticas: `main` aún no
+  tenía los arreglos de la rama (nombres, informe Opera) y una regla tocaba
+  una línea de este documento. Se repite tras fusionar la rama en `main`.
+- ⏳ Fusionar la rama en `main` (PR), repetir ensayo y ejecución, auditoría
   final y publicación (ADR-035).
 
 ## Reglas
