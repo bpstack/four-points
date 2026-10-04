@@ -48,6 +48,9 @@ class ParkingBookingsRepository {
    * [DATE(checkin), DATE(checkout)), the same days the calendar blocks.
    * Locks the spot row first, so two requests for the same spot run one after
    * the other inside their transactions instead of both passing the check.
+   * The count is a locking read (FOR SHARE): under REPEATABLE READ a plain read
+   * uses the snapshot taken before waiting for the lock, and would not see a
+   * booking committed meanwhile.
    * Reads the bookings, not parking_availability: the calendar can be missing
    * days or out of sync, the bookings are the source of truth.
    */
@@ -68,7 +71,8 @@ class ParkingBookingsRepository {
         AND id <> ?
         AND status IN ('reserved', 'checked_in')
         AND DATE(expected_checkin) < DATE(?)
-        AND DATE(expected_checkout) > DATE(?)`,
+        AND DATE(expected_checkout) > DATE(?)
+      FOR SHARE`,
       [spotId, excludeBookingId ?? 0, checkout, checkin]
     )
 
@@ -409,7 +413,8 @@ class ParkingBookingsRepository {
         WHERE spot_id = ? 
           AND id != ? 
           AND status = 'checked_in' 
-          AND (actual_checkout IS NULL OR actual_checkout > NOW())`,
+          AND (actual_checkout IS NULL OR actual_checkout > NOW())
+        FOR SHARE`,
         [booking[0].spot_id, id]
       )
 

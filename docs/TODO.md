@@ -77,6 +77,11 @@ sigue siendo donde se arregla este fichero y se prueba en el entorno preview.
 - [ ] **Logbook: el historial no es atómico** — no hay ninguna transacción en el
       módulo: un fallo entre el cambio y su registro deja cambios sin auditar o
       borrados auditados que no ocurrieron. _Comprobado por mí el 2026-09-28._
+- [ ] **Parking: dos reservas creadas a la vez chocan en `booking_code`** —
+      el trigger `trg_generate_booking_code` calcula el siguiente número con
+      `MAX()` sobre una lectura sin bloqueo; dos altas simultáneas (aunque sean
+      de plazas distintas) sacan el mismo código y una falla con 500. No hay
+      doble reserva, solo el error. _Visto en preview el 2026-10-04._
 - [ ] **Parking: cambios del cobro sin historial** — editar `payment_amount`,
       método o referencia no deja rastro del valor anterior. Que se pueda
       editar en cualquier estado es intencionado (ADR-032, 2026-10-04). El

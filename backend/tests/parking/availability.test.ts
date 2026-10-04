@@ -43,6 +43,10 @@ describe('_assertSpotFree', () => {
     expect(body).toContain('DATE(expected_checkout) > DATE(?)')
     expect(body).toContain('id <> ?')
   })
+
+  it('counts with a locking read, not the snapshot taken before the lock', () => {
+    expect(body).toMatch(/DATE\(expected_checkout\) > DATE\(\?\)\s*FOR SHARE/)
+  })
 })
 
 describe('create, update and check-in', () => {
@@ -60,6 +64,7 @@ describe('create, update and check-in', () => {
     const body = method('checkIn')
     expect(body.indexOf('FOR UPDATE')).toBeGreaterThan(-1)
     expect(body.indexOf('FOR UPDATE')).toBeLessThan(body.indexOf("status = 'checked_in'"))
+    expect(body).toContain('FOR SHARE')
   })
 })
 
