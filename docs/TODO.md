@@ -127,9 +127,11 @@ sigue siendo donde se arregla este fichero y se prueba en el entorno preview.
       source según la OSI, y la raíz no tiene ninguna.
 - [ ] **Decidir la analítica antes de publicar** — el frontend carga Google
       Analytics (`G-ZYSZ6THVDW`) y Vercel Analytics (`frontend/app/layout.tsx`).
-- [ ] **Backend: 341 usos de `any`** — `no-explicit-any` está como aviso en
-      `backend/eslint.config.js` para que el lint pase; tiparlos y volver a
-      ponerla como error.
+- [ ] **Backend: quedan 55 usos de `any`** — `no-explicit-any` está como aviso
+      en `backend/eslint.config.js` para que el lint pase. El 2026-10-04 se
+      tiparon controllers, services y repositories de los 15 módulos (de 316
+      avisos a 55); quedan auth, `config/db.ts`, cron, scripts y tests. Tiparlos
+      y volver a poner la regla como error.
 
 - [ ] **Avisar a los usuarios de que un `admin` puede leer sus mensajes** —
       `getConversation` y `getMessages` (`backend/controllers/messages/`) dejan
