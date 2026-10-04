@@ -71,12 +71,6 @@ hace que alguien reimplemente lo que ya existe.
       acceso de escritura; el trigger reescribe los totales del día. _Según la
       revisión `security` L3 del 2026-09-28 (fichero y línea en el informe); no
       repasado por mí._
-- [ ] **Cashier: el descuadre calculado en el servidor siempre es 0** —
-      `income = contado − fondo` y luego `esperado = fondo + income`; los vales
-      se ignoran. Los informes nunca muestran descuadre. _Comprobado por mí el
-      2026-09-28._ Además, guardar el recuento sobrescribe el ingreso que el
-      usuario tecleó: en producción, 250,50 € pasó a 0,15 € (contado − fondo)
-      al guardar las denominaciones (_2026-09-29_).
 - [ ] **Cashier: operaciones que fallan siempre en producción** — justificar,
       cancelar y editar vales, y editar pagos o recuentos sueltos escriben
       columnas que no existen en Aiven (`justified_at`, `cancelled_at`,
