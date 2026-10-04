@@ -184,13 +184,13 @@ export class CloudinaryService {
       // Si el resultado es diferente, logueamos y lanzamos error
       logger.error({ result }, '[CloudinaryService] Unexpected delete result')
       throw new Error(`Cloudinary delete returned: ${result.result}`)
-    } catch (error: any) {
+    } catch (error) {
+      const err = error as { message?: string }
       logger.error({ err: error }, '[CloudinaryService] Delete error')
       logger.error({ err: error, details: error }, '[CloudinaryService] Delete error details')
-      throw new Error(
-        `Error al eliminar imagen de Cloudinary: ${error.message || 'Unknown error'}`,
-        { cause: error }
-      )
+      throw new Error(`Error al eliminar imagen de Cloudinary: ${err.message || 'Unknown error'}`, {
+        cause: error,
+      })
     }
   }
 

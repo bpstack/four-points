@@ -52,7 +52,7 @@ export class BlacklistController {
         pagination,
         filters_applied: filters,
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error(
         { err: error, event: 'blacklist_getAll_error' },
         '[BlacklistController.getAll] Error'
@@ -102,7 +102,7 @@ export class BlacklistController {
         entry,
         audit_trail: entry.audit_trail || [],
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error(
         { err: error, event: 'blacklist_getById_error' },
         '[BlacklistController.getById] Error'
@@ -166,7 +166,7 @@ export class BlacklistController {
         code: SUCCESS_CODES.BLACKLIST_RECORD_CREATED,
         entry,
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error(
         { err: error, event: 'blacklist_create_error' },
         '[BlacklistController.create] Error'
@@ -253,7 +253,7 @@ export class BlacklistController {
         code: SUCCESS_CODES.BLACKLIST_RECORD_UPDATED,
         entry,
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error(
         { err: error, event: 'blacklist_update_error' },
         '[BlacklistController.update] Error'
@@ -312,7 +312,7 @@ export class BlacklistController {
         message: SUCCESS_CODES.BLACKLIST_RECORD_DELETED,
         code: SUCCESS_CODES.BLACKLIST_RECORD_DELETED,
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error(
         { err: error, event: 'blacklist_delete_error' },
         '[BlacklistController.delete] Error'
@@ -372,7 +372,7 @@ export class BlacklistController {
         code: SUCCESS_CODES.BLACKLIST_RECORD_RESTORED,
         entry,
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error(
         { err: error, event: 'blacklist_restore_error' },
         '[BlacklistController.restore] Error'
@@ -394,7 +394,7 @@ export class BlacklistController {
       const stats = await BlacklistRepository.getStats()
 
       res.json({ success: true, ...stats })
-    } catch (error: any) {
+    } catch (error) {
       logger.error(
         { err: error, event: 'blacklist_getStats_error' },
         '[BlacklistController.getStats] Error'
@@ -468,7 +468,7 @@ export class BlacklistController {
         height: result.height,
         format: result.format,
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error(
         { err: error, event: 'blacklist_uploadImage_error' },
         '[BlacklistController.uploadImage] Error'
