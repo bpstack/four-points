@@ -80,7 +80,19 @@ el historial.
   `bpstack` y `GitHub`), pero las puntas no son idénticas: `main` aún no
   tenía los arreglos de la rama (nombres, informe Opera) y una regla tocaba
   una línea de este documento. Se repite tras fusionar la rama en `main`.
-- ⏳ Fusionar la rama en `main` (PR), repetir ensayo y ejecución, auditoría
+- ✅ Rama fusionada en `main` (PR #9, `289c737`).
+- ✅ Ejecución definitiva en `work.git` (clon nuevo de GitHub, 2026-10-05),
+  auditada:
+  - 0 secretos, 0 dominios y nombres reales, 0 restos del informe Opera en
+    los 5.656 objetos (blobs y commits); las 16 menciones a
+    `Co-Authored-By: Claude` son las de `AGENTS.md` y este documento, que
+    describen la regla, no marcas en commits;
+  - autoría: solo `bpstack` y `GitHub` (merges desde la web);
+  - solo las dos ramas, sin tags ni remoto; 9,4 MB;
+  - **árbol de la punta idéntico** al de GitHub en las dos ramas (`main`
+    624 → 621 commits; la rama 622 → 619), así que los tests son los mismos
+    que pasaron en CI con la PR #9.
+- ⏳ Publicación
   final y publicación (ADR-035).
 
 ## Reglas

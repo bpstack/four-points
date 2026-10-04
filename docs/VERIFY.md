@@ -198,3 +198,5 @@ CI).
 | `a2cfbec` | test(fnb): replace the real Opera revenue report with a synthetic sample | Informe Opera real de ingresos en los fixtures (hallado en el barrido de OpenCode) | El texto extraído del PDF sintético tiene las mismas 344 líneas y estructura que el real (solo cambian cifras y nombre del hotel); backend 909 passed. No probado subiendo el PDF en la interfaz | ✅ 2026-10-05 |
 | `b3dcc62` | docs(gitclean): record the OpenCode sweep and the dry run | (documentación) | no aplica | — |
 | `5351fc5` | docs(gitclean): record the first real run and reword a line the rules touched | (documentación) | no aplica | — |
+| `23a9d9c` | docs(verify): add the rows for b3dcc62 and 5351fc5 | (documentación) | no aplica | — |
+| `289c737` | Merge pull request #9 from bpstack/claude/compassionate-planck-gh6aof | `main` con los arreglos previos a la limpieza | CI de la PR en verde (backend y frontend); árbol de `main` igual al de la rama. Despliegue de producción no revisado: solo cambian tests, documentación, un placeholder y el id de una guía | ✅ 2026-10-05 |
