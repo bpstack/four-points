@@ -196,3 +196,5 @@ CI).
 | `4c6a038` | chore: replace the remaining staff names with invented ones | Nombres reales del personal en el árbol (hallado al preparar las listas de la fase 2) | `git grep` en el árbol de los nombres del personal → solo el autor; ninguna fila del checklist en Aiven usa el id antiguo de la guía; tests de restricciones 37 passed. No probado en la interfaz | ✅ 2026-10-05 |
 | `141661a` | docs(gitclean): record the approved phase 2 lists | (documentación) | no aplica | — |
 | `a2cfbec` | test(fnb): replace the real Opera revenue report with a synthetic sample | Informe Opera real de ingresos en los fixtures (hallado en el barrido de OpenCode) | El texto extraído del PDF sintético tiene las mismas 344 líneas y estructura que el real (solo cambian cifras y nombre del hotel); backend 909 passed. No probado subiendo el PDF en la interfaz | ✅ 2026-10-05 |
+| `b3dcc62` | docs(gitclean): record the OpenCode sweep and the dry run | (documentación) | no aplica | — |
+| `5351fc5` | docs(gitclean): record the first real run and reword a line the rules touched | (documentación) | no aplica | — |
