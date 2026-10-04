@@ -550,3 +550,35 @@
   `fetch` del frontend. Comprobado en producción el 2026-09-29 con una sesión
   de `admin` válida: los orígenes ajenos, del mismo sitio y `null` reciben 403;
   el propio pasa.
+
+## ADR-030 — Entorno preview completo en subdominios de `four-points.stackbp.es`
+
+- **Estado:** ✅ aceptada (2026-10-04)
+- **Fecha:** 2026-10-04
+- **Decisión:**
+  - La rama `claude/compassionate-planck-gh6aof` se prueba con **su propio
+    backend**: un segundo servicio en Render (`four-points-api-preview`, plan
+    gratuito) que despliega la rama. El frontend de la rama apunta a él con un
+    `NEXT_PUBLIC_API_URL` limitado a esa rama en Vercel.
+  - Los dos viven bajo `four-points.stackbp.es`: `preview.` (Vercel) y
+    `api-preview.` (Render). El CORS se abre con la variable `FRONTEND_URL` del
+    servicio de preview, **sin cambiar código**.
+  - Usa **la base de datos de producción**. Todos los datos son de prueba, y
+    escribir en ella demuestra que la rama funciona de verdad.
+  - Nada de esto toca `main` ni el servicio `four-points-api`.
+- **Motivo:** la URL `*.vercel.app` de la preview no podía iniciar sesión: el
+  CORS de producción rechaza ese origen y, aunque lo aceptara, las cookies
+  `SameSite=Lax` con dominio `.four-points.stackbp.es` no viajan desde otro
+  sitio (ADR-029). Además, ese frontend llamaba al backend de `main`, así que
+  los arreglos de backend de la rama no se probaban en ningún sitio.
+- **Rechazado:**
+  - Añadir el origen `*.vercel.app` al CORS de producción: no resuelve las
+    cookies y debilita la defensa CSRF de ADR-029.
+  - Solo el dominio de Vercel contra el backend de `main`: valida el frontend,
+    no los arreglos de backend.
+  - `SameSite=None` en las cookies: cambio de seguridad en producción solo para
+    probar.
+- **Consecuencias:** los cron se ejecutan dos veces mientras el servicio de
+  preview está despierto, y una sesión iniciada en preview vale también en
+  producción. Detalle y pasos para retirarlo en `docs/general/README.md`
+  («Preview environment»).

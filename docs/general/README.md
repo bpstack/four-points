@@ -168,6 +168,53 @@ lockfile. Node ≥ 22.16.
 - The build and start commands are set in the Render and Vercel dashboards;
   there is no `render.yaml` in the repository.
 
+### Preview environment (branch `claude/compassionate-planck-gh6aof`)
+
+A second, complete stack to test a branch in production conditions before it is
+merged into `main`. Created on 2026-10-04 for phase 1c (ADR-027); why it looks
+like this is in ADR-030.
+
+| Piece    | Where  | Detail                                                                         |
+| -------- | ------ | ------------------------------------------------------------------------------ |
+| Frontend | Vercel | `preview.four-points.stackbp.es`, a project domain bound to the branch         |
+| Backend  | Render | service `four-points-api-preview` (free), `api-preview.four-points.stackbp.es` |
+| DB       | Aiven  | **the production database** — every write from preview is real                 |
+
+- **Render**: same root directory, build and start commands as
+  `four-points-api`, deploys the branch on every commit. Environment variables
+  are a copy of production's plus
+  `FRONTEND_URL=https://preview.four-points.stackbp.es`, the extra CORS origin
+  read by `backend/index.ts`.
+- **Vercel**: `NEXT_PUBLIC_API_URL=https://api-preview.four-points.stackbp.es`,
+  scoped to _Preview_ and to this branch only. The production value (_All
+  Environments_) is untouched.
+- **DNS** (Hostinger, nameservers `dns-parking.com`; there is no Cloudflare
+  account): `preview.four-points` CNAME to the same Vercel target as production,
+  `api-preview.four-points` CNAME to `four-points-api-preview.onrender.com`.
+- **Why not the `*.vercel.app` URL**: the API is on another site, so the
+  `SameSite=Lax` cookies are not sent and the CORS list rejects it. Under
+  `four-points.stackbp.es` both work without touching code.
+
+**Side effects to keep in mind**
+
+- **Shared cookies**: both APIs set the same cookie names on
+  `.four-points.stackbp.es` and sign them with the same `SECRET_JWT_KEY`.
+  Logging in on preview replaces the production session in that browser, and
+  the session is valid on both.
+- **Scheduled tasks run twice** while the preview service is awake: both
+  backends start the same `node-cron` jobs against the same database. Checklist
+  reset, log purge and batch payment are idempotent; the 07:00 notices may be
+  duplicated. Free services sleep after 15 minutes without traffic, so it only
+  happens if preview is awake at that time.
+- **Free limits**: the Render workspace has 750 instance hours a month shared by
+  every free service (if they run out, production is suspended too) and 2 custom
+  domains, both now in use.
+
+**Removing it when it is no longer needed**: delete the service
+`four-points-api-preview` on Render, the domain `preview.four-points.stackbp.es`
+and the branch-scoped `NEXT_PUBLIC_API_URL` on Vercel, and both CNAMEs on
+Hostinger. Nothing in `main` depends on it.
+
 ## Local development
 
 ```bash
