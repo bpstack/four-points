@@ -76,6 +76,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const needsPrimaryAlias = !activeFonts.primary.style?.fontFamily && activeFonts.primary.variable
   const needsDisplayAlias = !activeFonts.display.style?.fontFamily && activeFonts.display.variable
 
+  const gaId = process.env.NEXT_PUBLIC_GA_ID
+  const enableVercelAnalytics = process.env.NEXT_PUBLIC_VERCEL_ANALYTICS === 'true'
+
   return (
     <html
       lang={locale}
@@ -84,18 +87,22 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       style={Object.keys(fontVars).length > 0 ? (fontVars as React.CSSProperties) : undefined}
     >
       <head>
-        <Script
-          src="https://www.googletagmanager.com/gtag/js?id=G-ZYSZ6THVDW"
-          strategy="lazyOnload"
-        />
-        <Script id="google-analytics" strategy="lazyOnload">
-          {`
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-            gtag('config', 'G-ZYSZ6THVDW');
-          `}
-        </Script>
+        {gaId && (
+          <>
+            <Script
+              src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`}
+              strategy="lazyOnload"
+            />
+            <Script id="google-analytics" strategy="lazyOnload">
+              {`
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){dataLayer.push(arguments);}
+                gtag('js', new Date());
+                gtag('config', '${gaId}');
+              `}
+            </Script>
+          </>
+        )}
         {(needsPrimaryAlias || needsDisplayAlias) && (
           <style>{`
             :root {
@@ -109,7 +116,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <NextIntlClientProvider messages={messages}>
           <Providers>{children}</Providers>
         </NextIntlClientProvider>
-        <Analytics />
+        {enableVercelAnalytics && <Analytics />}
       </body>
     </html>
   )
