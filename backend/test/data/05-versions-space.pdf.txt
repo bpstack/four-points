@@ -1,0 +1,344 @@
+
+
+10/05/26
+04:53
+Revenue by Transaction Codes Net
+Revenue   Gross/Net Net
+Last Year Y/N N   Calendar/ Month to Date (Date 09/05/26) 
+Tax Columns N   Transaction Code All
+Filter
+Demo Hotel City Centre
+findeptcodes
+ Page 1 of 3
+7070I
+7080I
+10000
+10120
+10130
+10150
+10170
+10174
+10175
+10180
+10195
+10205
+10990
+10991
+12100
+12110
+12120
+12121
+12122
+12130
+12990
+12991
+14100
+14990
+15200
+15201
+15202
+16101
+16191
+16901
+16990
+16991
+16992
+16993
+16994
+16995
+16996
+16997
+16998
+17000
+17001
+17002
+17005
+17006
+17007
+Owner Revenue Posting
+Travel Agent Commission
+Room Charge(Manual)
+Retail
+Special Corporate
+Discount Rate
+Wholesale Rate
+Gov. / Military
+Associate Leisure
+Package Rate
+AAA Rate
+Prepay
+Rebate Transient
+Rebate Wholesaler
+Corporate Group Rate
+Association Group
+Other Group
+Wholesale Group
+Government Group
+Delayed Flight
+Rebate Group Rate
+Rebate Delayed Flights
+Contract Rate
+Rebate Contract Rate
+Internal - Deposit IVA 0%
+Internal - Deposit IVA 10%
+Internal - Deposit IVA 21%
+Guaranteed No Show (VAT)
+Rebate Guaranteed No Show (VAT)
+Rooms - Miscellaneous Income1
+Rebate - Miscellaneous Income
+programa de fidelización - Paid Upgrade Charge
+Rebate - MR Paid Upgrade Charge
+C+P Rewards Redemption
+Rebate C+P Rewards Redemption
+Rewards Redemptions
+Rebate programa de fidelización
+programa de fidelización Redemption Occupancy Pre
+Rebate programa de fidelización Redemption Occupa
+Early Check Out Fee
+Early Arrival Fee
+Late Check Out Fee
+Rebate Early Check Out Fee
+Rebate Early Arrival Fee
+Rebate Late Check Out Fee
+DAYMONTHYEAR
+ActualActualActual
+Description
+202620262026
+Trn.
+ 0.00 0.00 0.00
+ 0.00 0.00 0.00
+ 259.37 1,965.00 23,272.66
+ 3,686.78 25,119.57 304,246.68
+ 154.71 3,168.57 8,552.29
+ 68.73 2,158.10 14,231.78
+ 1,147.07 12,837.05 81,333.08
+ 0.00 0.00 0.00
+ 95.02 441.29 9,577.64
+ 179.62 4,455.46 34,176.80
+ 0.00 0.00 0.00
+ 3,545.62 28,165.84 269,979.64
+ 0.00 0.00 0.00
+ 0.00 0.00- 175.05
+ 0.00 0.00 19,747.64
+ 0.00 0.00 0.00
+ 0.00 0.00 0.00
+ 0.00 0.00 0.00
+ 0.00 0.00 0.00
+ 0.00 0.00 0.00
+ 0.00 0.00 0.00
+ 0.00 0.00 0.00
+ 0.00 0.00 0.00
+ 0.00 0.00- 26.46
+ 0.00 0.00 0.00
+ 0.00 275.62 2,014.30
+ 0.00 0.00 0.00
+ 141.61 314.06 520.53
+ 0.00 0.00 5,993.46
+ 0.00 0.00 23.45
+ 0.00 0.00 0.00
+ 0.00 0.00 0.00
+ 0.00 0.00 0.00
+ 0.00 0.00 0.00
+ 0.00 0.00 0.00
+ 0.00 0.00 393.17
+ 0.00 0.00 0.00
+ 0.00 0.00 0.00
+ 0.00 0.00 0.00
+ 0.00 0.00 0.00
+ 0.00 0.00 89.45
+ 19.91 26.18 638.18
+ 0.00 0.00 0.00
+ 0.00 0.00 0.00
+ 0.00 0.00 0.00
+Code
+
+10/05/26
+04:53
+Revenue by Transaction Codes Net
+Revenue   Gross/Net Net
+Last Year Y/N N   Calendar/ Month to Date (Date 09/05/26) 
+Tax Columns N   Transaction Code All
+Filter
+Demo Hotel City Centre
+findeptcodes
+ Page 2 of 3
+17010
+17015
+21100
+21110
+21111
+21112
+21113
+21120
+21124
+21125
+21190
+21191
+21192
+21193
+21194
+21195
+21227
+21235
+21237
+21267
+21307
+21810
+29100
+29101
+52121
+52122
+52123
+52126
+52191
+52192
+52193
+52196
+67120
+70200
+70900
+70990
+71010
+71031
+71032
+71033
+71045
+71200
+71300
+71400
+71550
+Guestroom Cancellation
+Rebate - Guestroom Cancellations
+F&B Miscellaneous charge
+Breakfast Buffet included
+Lunch Food
+Dinner Food
+Breakfast Complimentary
+Outlet01 Manual Breakfast Food
+Breakfast buffet excluded
+Breakast Take away
+Rebate F&B Miscellaneous charge
+Rebate Breakfast Buffet
+Rebate Lunch Food
+Rebate Dinner Food
+Rebate Breakfast buffet excluded
+Rebate Breakfast Take Away
+Breakfast Beverage
+Rebate Breakfast Beverage
+Rebate Outlet01 Breakfast Manual Food
+Outlet01 Lunch Manual Beverage
+Outlet01 Dinner Manual Beverage
+Platinum Welcome Gift Complimentary Break
+Package Loss Breakfast
+Package Profit Breakfast
+Outside Breakfast
+OutsideLunch
+Outside Dinner
+Outside Coffee Break
+Rebate Outside Breakfast
+Rebate Outside Lunch
+Rebate Outside Dinner
+Rebate Outside Coffee Break
+Meeting Room
+Laundry - Cleaning Services
+Laundry - Other Income
+Rebate - Laundry
+Guest Deposits (Adaptor etc)
+Lockers / Taquillas
+Luggage
+Damage / smoking fee
+Vending machine
+Garage-Monthly Parking
+Garage - Guest Parking
+Garage - Parking Partner
+Garage - Daily Parking
+DAYMONTHYEAR
+ActualActualActual
+Description
+202620262026
+Trn.
+ 0.00 0.00 40.41
+ 0.00 0.00 0.00
+ 0.00 0.00 0.00
+ 274.66 4,390.22 25,194.59
+ 51.35 527.42 2,472.85
+ 80.80 921.48 7,347.59
+ 0.00 0.00 0.00
+ 198.03 1,317.44 4,686.71
+ 13.40 159.79 3,411.42
+ 0.00 0.00 166.21
+ 0.00 0.00 0.00
+ 0.00 0.00- 9.10
+ 0.00 0.00 0.00
+ 0.00 0.00 0.00
+ 0.00 0.00 141.44
+ 0.00 0.00 21.99
+ 0.00 0.00 0.00
+ 0.00 0.00 0.00
+ 0.00 0.00 0.00
+ 77.67 755.97 5,651.07
+ 87.77 940.72 5,753.22
+ 0.00 0.00- 46.09
+ 0.00 0.00 0.00
+ 0.00 0.00 0.00
+ 0.00 0.00 0.00
+ 0.00 0.00 0.00
+ 0.00 0.00 0.00
+ 0.00 0.00 0.00
+ 0.00 0.00 0.00
+ 0.00 0.00 0.00
+ 0.00 0.00 0.00
+ 0.00 0.00 0.00
+ 0.00 0.00 0.00
+ 0.00 0.00 0.00
+ 0.00 0.00 0.00
+ 0.00 0.00 0.00
+ 0.00 0.00 0.00
+ 0.00 0.00 0.00
+ 0.00 0.00 0.00
+ 0.00 0.00 71.82
+ 0.00 0.00 0.00
+ 0.00 0.00 0.00
+ 57.27 366.00 6,851.59
+ 0.00 0.00 94.04
+ 0.00 0.00 1,905.46
+Code
+
+10/05/26
+04:53
+Revenue by Transaction Codes Net
+Revenue   Gross/Net Net
+Last Year Y/N N   Calendar/ Month to Date (Date 09/05/26) 
+Tax Columns N   Transaction Code All
+Filter
+Demo Hotel City Centre
+findeptcodes
+ Page 3 of 3
+71755
+71790
+71900
+71910
+75000
+75002
+75003
+Rebate Parking Partner
+Rebate - Parking
+Pet sanitazion fee
+Rebate -Pet Fee
+Miscellaneous 10%
+Miscellaneous 0%
+Miscellaneous 21%
+DAYMONTHYEAR
+ActualActualActual
+Description
+ 9,985.19 84,104.35 861,464.19Grand Total
+202620262026
+Trn.
+ 0.00 0.00 8.31
+ 0.00 0.00 0.00
+ 0.00 0.00 248.15
+ 0.00 0.00 110.62
+ 0.00 0.00 0.00
+ 0.00 0.00 0.00
+ 0.00 0.00 0.00
+Code

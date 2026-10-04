@@ -19,7 +19,7 @@ vi.mock('../../services/fnb/fnb-categories.cache.js', () => ({
 }))
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
-const FIXTURE = join(__dirname, 'fixtures', 'OperaPrint-sample.pdf')
+const FIXTURE = join(__dirname, 'fixtures', 'opera-revenue-sample.pdf')
 
 describe('isPdfBuffer', () => {
   it('accepts the Opera sample', () => {

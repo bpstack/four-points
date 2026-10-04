@@ -1,5 +1,6 @@
 // tests/fnb/pdf-parser.test.ts
-// Pure parser test against OperaPrint-sample.pdf fixture.
+// Pure parser test against opera-revenue-sample.pdf: a synthetic Opera
+// "Revenue by Transaction Codes" report with the real layout and made-up figures.
 // No DB needed for parsing itself, but trackedCodesSet() loads from DB.
 // Test stubs trackedCodesSet by writing the 7 expected codes directly.
 
@@ -13,7 +14,7 @@ import { invalidateCategories } from '../../services/fnb/fnb-categories.cache.js
 import { parseOperaPdf } from '../../services/fnb/pdf-parser.service.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
-const FIXTURE = join(__dirname, 'fixtures', 'OperaPrint-sample.pdf')
+const FIXTURE = join(__dirname, 'fixtures', 'opera-revenue-sample.pdf')
 
 let dbAvailable = false
 
@@ -44,20 +45,20 @@ describe('parseOperaPdf', () => {
     const byCode = Object.fromEntries(result.entries.map((e) => [e.code, e.amount]))
 
     expect(result.entries).toHaveLength(7)
-    expect(byCode['21110']).toBe(330.91) // Breakfast Included
-    expect(byCode['21124']).toBe(20) // Breakfast Excluded
-    expect(byCode['21120']).toBe(278.91) // Breakfast Directo FB
-    expect(byCode['21111']).toBe(65) // Lunch Food
-    expect(byCode['21267']).toBe(106.4) // Lunch Beverage
-    expect(byCode['21112']).toBe(107.73) // Dinner Food
-    expect(byCode['21307']).toBe(127.2) // Dinner Beverage
+    expect(byCode['21110']).toBe(274.66) // Breakfast Included
+    expect(byCode['21124']).toBe(13.4) // Breakfast Excluded
+    expect(byCode['21120']).toBe(198.03) // Breakfast Directo FB
+    expect(byCode['21111']).toBe(51.35) // Lunch Food
+    expect(byCode['21267']).toBe(77.67) // Lunch Beverage
+    expect(byCode['21112']).toBe(80.8) // Dinner Food
+    expect(byCode['21307']).toBe(87.77) // Dinner Beverage
   })
 
   it('extracts the grand total', async () => {
     if (!dbAvailable) return
     const buffer = readFileSync(FIXTURE)
     const result = await parseOperaPdf(buffer)
-    expect(result.grandTotal).toBe(14063.65)
+    expect(result.grandTotal).toBe(9985.19)
   })
 
   it('returns null date when the filter line is missing', async () => {
