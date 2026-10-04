@@ -52,7 +52,7 @@ INSERT INTO parking_vehicles (plate_number, owner_name, model) VALUES
 ('1480MNO', 'Andrés Herrera', 'Kia Sportage'),
 ('2591PQR', 'Silvia Aguilar', 'Mazda CX-3'),
 ('3602STU', 'Pablo Cortés', 'Suzuki Vitara'),
-('4713VWX', 'Laura Gallego', 'Mitsubishi ASX'),
+('4713VWX', 'Lucía Gallego', 'Mitsubishi ASX'),
 ('5824YZA', 'Iván Méndez', 'Jeep Compass'),
 ('6935BCD', 'Verónica Prieto', 'Fiat 500X'),
 ('7046EFG', 'Adrián Peña', 'Mini Cooper'),

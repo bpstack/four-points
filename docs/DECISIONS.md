@@ -474,7 +474,7 @@
 
 ## ADR-026 — Se publica todo: ficheros de trabajo, todas las ramas y los `AGENTS.md`
 
-- **Estado:** ✅ aceptada (2026-09-28)
+- **Estado:** ✅ aceptada (2026-09-28); en las ramas, revisada por ADR-035
 - **Fecha:** 2026-09-28
 - **Decisión:**
   - **Los cuatro ficheros de trabajo** (`DECISIONS.md`, `ROADMAP.md`,
@@ -702,3 +702,30 @@
   valores a reemplazar se guardan fuera del repositorio durante la limpieza.
 - **Revisa:** las reglas de `GITCLEAN.md` (antes solo se eliminaban ficheros y
   se cambiaba la autoría).
+
+## ADR-035 — Se publican dos ramas y el repositorio actual se archiva con otro nombre
+
+- **Estado:** ✅ aceptada (2026-10-05)
+- **Fecha:** 2026-10-05
+- **Decisión:**
+  - Se limpian y se publican **solo `main` y
+    `claude/compassionate-planck-gh6aof`**. `chore/audit-prep-sprint-0`,
+    `feature/ai-schedule-generator`, `feature/auth-hardening` y
+    `feature/observability-pino` no tienen ningún commit fuera de `main`.
+  - El repositorio actual se **renombra a `four-points-archive`**, sigue
+    privado y se marca como archivado (solo lectura). El nuevo, con el
+    historial limpio, se crea como **`four-points`**: primero privado, se
+    revisa y se pasa a público, con secret scanning y push protection.
+  - Orden para no subir historial viejo al repositorio nuevo: renombrar;
+    apuntar `origin` de los tres equipos a `four-points-archive` (o
+    sustituir esos clones); archivar; crear el nuevo; reconectar Vercel y
+    Render (se enlazan por ID y seguirían en el archivado).
+- **Motivo:** decisión del propietario. Las cuatro ramas no aportan nada que
+  no esté en `main` y cada rama más es historial que limpiar y auditar.
+  Mantener el nombre `four-points` conserva enlaces y README.
+- **Rechazado:** publicar todas las ramas (ADR-026 tal como estaba); un
+  nombre nuevo para el repositorio público.
+- **Consecuencias:** `GITCLEAN.md` cambia la lista de ramas. Tras crear el
+  nuevo repositorio, GitHub deja de redirigir `bpstack/four-points` al
+  archivado: un clon viejo sin el `origin` cambiado subiría al público.
+- **Revisa:** ADR-026 en las ramas que se publican.

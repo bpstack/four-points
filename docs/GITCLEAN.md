@@ -28,9 +28,60 @@ el historial.
   (ADR-027).
 - **Sobre un clon**, no sobre el repositorio actual, que sigue privado. El
   historial limpio se sube a un **repositorio nuevo y público** (ADR-006).
-- **Todas las ramas** se limpian y se publican (ADR-026): hoy `main`,
-  `chore/audit-prep-sprint-0`, `feature/ai-schedule-generator`,
-  `feature/auth-hardening` y `feature/observability-pino`. Sin tags.
+- **Solo dos ramas** se limpian y se publican (ADR-035): `main` y
+  `claude/compassionate-planck-gh6aof`. Las otras cuatro no tienen ningún commit
+  fuera de `main` (comprobado el 2026-10-05). Sin tags; las referencias
+  `pull/*` de GitHub no se publican.
+- **Dónde**: `C:\Users\dz\projects\four-points-phase2\`, fuera del
+  repositorio. `git-filter-repo` 2.47.0 está en
+  `C:\Users\dz\tools\git-filter-repo` (venv propio, 2026-10-05).
+
+### Estado (2026-10-05)
+
+- ✅ Paso 0: copia `four-points-backup.git` (`clone --mirror`, no se toca) y
+  `four-points-backup.bundle` (10,8 MB, `git bundle verify` correcto).
+- ✅ Análisis de rutas y secretos (abajo, «Candidatos conocidos»).
+- ✅ Paso 1: listas aprobadas por el propietario, fuera del repositorio:
+  - `paths.txt`: 20 reglas de borrado; añade
+    `EmailsDistListContent.tsx`, componente antiguo con la lista de correos
+    real;
+  - `replacements.txt`: secretos (los valores salen de `backend/.env`, no se
+    escriben a mano), correos y nombres de contactos reales, con los mismos
+    sustitutos que el árbol actual;
+  - `replacements-names.txt`: nombres del personal. En mayúsculas pasan a
+    `EMP_01`…`EMP_11`, como el corpus del solver; en el resto, a nombres
+    inventados (los mismos que el árbol desde `4c6a038`). `Salvador Pérez`
+    se queda como autor;
+  - `mailmap.txt`: `Claude`, `Azyd` y `bp` pasan a `bpstack` (los tres son
+    el propietario);
+  - `messages.txt`: quita `Co-Authored-By: Claude…` y «Generated with Claude
+    Code» de 3 mensajes de commit;
+  - renombrado de ruta: la guía diaria del F&B, que llevaba en el nombre el
+    de una persona, pasa a `night-audit-fb-daily.md` (`--path-rename`);
+  - `strip-blobs.txt`: los 2 blobs del informe Opera real de ingresos
+    (`OperaPrint-sample.pdf`, su copia en `backend/test/data/` y el `.txt`
+    que genera `pdf-parse`), hallado en el barrido de OpenCode y sustituido
+    en el árbol por una muestra sintética (`a2cfbec`)
+    (`--strip-blobs-with-ids`).
+- ✅ Barrido de OpenCode (2026-10-05): no añade secretos ni rutas nuevas;
+  sí el informe Opera. Su informe escribió en claro la contraseña y el host
+  de Aiven (ya tapados en el fichero): otro motivo para rotarla.
+- ✅ Ensayo (`--dry-run`) sobre un clon nuevo de GitHub con las dos ramas:
+  0 secretos, 0 dominios y nombres reales, 0 rutas borradas, autoría
+  `bpstack` (y `GitHub` en los merges web); 619 → 616 commits (3 solo
+  tocaban ficheros borrados).
+
+  Ninguna regla toca la punta de las dos ramas (comprobado). El usuario
+  `demo` está desactivado en Aiven y la contraseña documentada ya no vale
+  (comprobado el 2026-10-05).
+
+- ✅ Primera ejecución real en `work.git` (2026-10-05): el historial queda
+  limpio (0 secretos, nombres y datos reales en 5.651 objetos; autoría
+  `bpstack` y `GitHub`), pero las puntas no son idénticas: `main` aún no
+  tenía los arreglos de la rama (nombres, informe Opera) y una regla tocaba
+  una línea de este documento. Se repite tras fusionar la rama en `main`.
+- ⏳ Fusionar la rama en `main` (PR), repetir ensayo y ejecución, auditoría
+  final y publicación (ADR-035).
 
 ## Reglas
 
