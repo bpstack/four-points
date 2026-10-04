@@ -128,9 +128,10 @@ export async function generateSchedule(req: Request, res: Response): Promise<voi
         employeesSummary: solverInput.employees.map((e) => ({
           id: e.id,
           fixedShift: e.rules?.fixedShift,
+          // Counts only: the cells and the tail hold shift codes such as IT/E
+          // (sick leave), which are health data and must not reach the log
           lockedDays: Object.keys(solverInput.lockedCells[e.id] ?? {}).length,
-          lockedCells: solverInput.lockedCells[e.id] ?? {},
-          tail: tail[e.id] ?? [],
+          tailDays: (tail[e.id] ?? []).length,
         })),
         config: solverInput.config,
       },

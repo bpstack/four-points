@@ -64,3 +64,18 @@ describe('approved constraints keep the grid consistent', () => {
     expect(controller).toContain('if (assignment.source_constraint_id === c.id)')
   })
 })
+
+describe('health data', () => {
+  it('every scheduling route requires admin, reads included', () => {
+    expect(routes).toMatch(/router\.use\(authenticateToken\)\s*router\.use\(isAdmin\)/)
+  })
+
+  it('the INFEASIBLE log has counts, not the locked cells or the tail', () => {
+    const generate = read('controllers', 'scheduling', 'schedule-generate.controller.ts')
+    const start = generate.indexOf("solverOutput.status === 'infeasible'")
+    const block = generate.slice(start, generate.indexOf('recordSolverRun', start))
+    expect(block).toContain('lockedDays:')
+    expect(block).not.toMatch(/lockedCells:\s*solverInput/)
+    expect(block).not.toMatch(/tail:\s*tail\[/)
+  })
+})

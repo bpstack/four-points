@@ -104,12 +104,11 @@ sigue siendo donde se arregla este fichero y se prueba en el entorno preview.
       sin firmar, con un `public_id` predecible; el borrado lógico no las toca,
       `auto_delete_on_close` se guarda pero nadie lo usa, y subir o borrar fotos
       no queda en el historial. _Comprobado por mí el 2026-09-28._
-- [ ] **Scheduling: datos de salud expuestos y guardados sin plazo** — bajas
-      (`IT`, `E`) y sus notas visibles para todos los roles salvo
-      `mantenimiento`; `scheduling_solver_runs` guarda para siempre la entrada
-      completa (con las bajas de cada usuario) y un INFEASIBLE las vuelca al
-      log. _Según la revisión `security` L3 del 2026-09-28 (fichero y línea en
-      el informe); no repasado por mí._
+- [ ] **Scheduling: datos de salud guardados sin plazo** —
+      `scheduling_solver_runs` guarda para siempre la entrada completa del
+      solver (con las bajas `IT`/`E` de cada usuario) y su matriz. Decidir el
+      plazo de retención. La lectura ya es solo de `admin` y el log de un
+      INFEASIBLE ya no las incluye (2026-10-04).
 
 ## Después de publicar
 
@@ -355,7 +354,8 @@ sigue siendo donde se arregla este fichero y se prueba en el entorno preview.
       `/dashboard/scheduling` es solo de `admin` y el resto no ve el cuadrante.
       El dueño quiere que los demás (salvo `mantenimiento`) vean el cuadrante
       publicado, sin edición ni configuración. Funcionalidad nueva, sin prisa
-      (2026-10-04).
+      (2026-10-04). Necesita su propio endpoint sin bajas ni notas: la API de
+      scheduling es solo de admin por los datos de salud.
 - [ ] **Backoffice: rechazar facturas no tiene UI** — el estado `rejected` y
       `POST /invoices/:id/reject` existen, pero ningún botón los usa y ninguna
       pestaña muestra las rechazadas. Una factura incorrecta hoy se borra. El
