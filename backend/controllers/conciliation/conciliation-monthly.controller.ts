@@ -152,9 +152,9 @@ export async function updateMonthlySummaryStatus(req: Request, res: Response): P
       month,
       status,
     })
-  } catch (error: any) {
-    // Error de validación al intentar cerrar
-    if (error.message?.includes('No se puede cerrar')) {
+  } catch (error) {
+    const err = error as { message?: string }
+    if (err.message?.includes('No se puede cerrar')) {
       res.status(400).json({
         success: false,
         error: ERROR_CODES.CONCILIATION_CLOSED_CANNOT_MODIFY,

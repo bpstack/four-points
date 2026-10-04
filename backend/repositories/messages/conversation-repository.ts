@@ -293,7 +293,7 @@ export class ConversationRepository {
       SELECT 1 FROM conversation_participants 
       WHERE conversation_id = ? AND user_id = ? AND is_active = 1
     `
-    const [rows] = await db.query<any[]>(query, [conversationId, userId])
+    const [rows] = await db.query<CountResult[]>(query, [conversationId, userId])
     return rows.length > 0
   }
 
@@ -305,7 +305,7 @@ export class ConversationRepository {
       SELECT 1 FROM conversation_participants 
       WHERE conversation_id = ? AND user_id = ? AND is_admin = 1 AND is_active = 1
     `
-    const [rows] = await db.query<any[]>(query, [conversationId, userId])
+    const [rows] = await db.query<CountResult[]>(query, [conversationId, userId])
     return rows.length > 0
   }
 

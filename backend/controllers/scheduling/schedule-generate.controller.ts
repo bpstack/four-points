@@ -14,7 +14,7 @@ import { solverErrorMessage } from '../../services/scheduling/solver-errors.js'
 async function recordSolverRun(data: SolverRunRecord): Promise<void> {
   try {
     await repo.insertSolverRun(data)
-  } catch (err: any) {
+  } catch (err) {
     logger.error({ err }, '[generate] Fallo persistiendo scheduling_solver_runs')
   }
 }
@@ -76,7 +76,7 @@ export async function generateSchedule(req: Request, res: Response): Promise<voi
   let solverOutput: SolverOutput
   try {
     solverOutput = await runSolver(solverInput, abortController.signal)
-  } catch (err: any) {
+  } catch (err) {
     const elapsed = Date.now() - startMs
     logger.error({ err, elapsed }, '[generate] Error invocando solver')
     await recordSolverRun({

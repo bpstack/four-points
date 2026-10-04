@@ -115,7 +115,7 @@ export class BlacklistRepository {
       LEFT JOIN users u2 ON b.deleted_by = u2.id
       WHERE 1=1
     `
-    const params: any[] = []
+    const params: (string | number)[] = []
 
     // Filtro por status
     if (status !== 'ALL') {
@@ -289,7 +289,7 @@ export class BlacklistRepository {
     // Detectar campos que cambiaron
     const changes: Record<string, { old: unknown; new: unknown }> = {}
     const fields: string[] = []
-    const values: any[] = []
+    const values: (string | number | null)[] = []
 
     if (data.guest_name !== undefined && data.guest_name !== current.guest_name) {
       changes.guest_name = { old: current.guest_name, new: data.guest_name }
@@ -486,7 +486,7 @@ export class BlacklistRepository {
       FROM blacklist_entries
       WHERE document_number = ? AND status = 'ACTIVE'
     `
-    const params: any[] = [documentNumber]
+    const params: (string | number)[] = [documentNumber]
 
     if (excludeId) {
       query += ' AND id != ?'

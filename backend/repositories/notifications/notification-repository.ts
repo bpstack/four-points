@@ -8,6 +8,8 @@ import {
   CreateNotificationDTO,
   NotificationFilters,
   NotificationStatus,
+  NotificationPriority,
+  NotificationModule,
 } from '../../models/notifications/index'
 import { ResultSetHeader } from 'mysql2'
 
@@ -38,7 +40,7 @@ export class NotificationRepository {
       )
     `
 
-    const params: any[] = [userId]
+    const params: (string | number | NotificationPriority | NotificationModule)[] = [userId]
 
     // Filtros opcionales
     if (filters.status) {

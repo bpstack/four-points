@@ -85,7 +85,7 @@ export class MessageController {
         has_more: hasMore,
         oldest_id: messages.length > 0 ? messages[0].id : null,
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, 'Error en getMessages')
       return res.status(500).json({
         success: false,
@@ -176,7 +176,7 @@ export class MessageController {
         message: SUCCESS_CODES.MESSAGES_SENT,
         code: SUCCESS_CODES.MESSAGES_SENT,
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, 'Error en sendMessage')
       return res.status(500).json({
         success: false,
@@ -255,7 +255,7 @@ export class MessageController {
         message: SUCCESS_CODES.MESSAGES_EDITED,
         code: SUCCESS_CODES.MESSAGES_EDITED,
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, 'Error en editMessage')
       return res.status(500).json({
         success: false,
@@ -317,7 +317,7 @@ export class MessageController {
         message: SUCCESS_CODES.MESSAGES_DELETED,
         code: SUCCESS_CODES.MESSAGES_DELETED,
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, 'Error en deleteMessage')
       return res.status(500).json({
         success: false,
@@ -353,7 +353,7 @@ export class MessageController {
           by_conversation: byConversation,
         },
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, 'Error en getUnreadCount')
       return res.status(500).json({
         success: false,
@@ -411,7 +411,7 @@ export class MessageController {
         data: messages,
         count: messages.length,
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, 'Error en searchMessages')
       return res.status(500).json({
         success: false,

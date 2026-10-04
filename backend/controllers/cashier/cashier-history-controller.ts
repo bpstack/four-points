@@ -1,4 +1,5 @@
 import { Request, Response } from 'express'
+import { RowDataPacket } from 'mysql2'
 import { CashierHistoryRepository } from '../../repositories/cashier/cashier-history-repository.js'
 import { CashierShiftRepository } from '../../repositories/cashier/cashier-shift-repository.js'
 import { UserRepository } from '../../repositories/auth/user-repository.js'
@@ -61,7 +62,7 @@ export class CashierHistoryController {
         success: true,
         data: enrichedHistory,
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, 'Error en getAll (history)')
       return res.status(500).json({
         success: false,
@@ -103,7 +104,7 @@ export class CashierHistoryController {
       if (from_date) params.push(from_date as string)
       if (to_date) params.push(to_date as string)
 
-      const [actionsBreakdown] = await db.query<any[]>(query, params)
+      const [actionsBreakdown] = await db.query<RowDataPacket[]>(query, params)
 
       // Usuarios más activos
       const usersQuery = `
@@ -119,7 +120,7 @@ export class CashierHistoryController {
         LIMIT 10
       `
 
-      const [usersStats] = await db.query<any[]>(usersQuery, params)
+      const [usersStats] = await db.query<RowDataPacket[]>(usersQuery, params)
 
       // Enriquecer con usernames
       const mostActiveUsers = await Promise.all(
@@ -170,7 +171,7 @@ export class CashierHistoryController {
           recent_activity: enrichedRecent,
         },
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, 'Error en getStats (history)')
       return res.status(500).json({
         success: false,
@@ -236,7 +237,7 @@ export class CashierHistoryController {
           history: enrichedHistory,
         },
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, 'Error en getByShift (history)')
       return res.status(500).json({
         success: false,
@@ -283,7 +284,7 @@ export class CashierHistoryController {
         success: true,
         data: enrichedHistory,
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, 'Error en getRecent (history)')
       return res.status(500).json({
         success: false,

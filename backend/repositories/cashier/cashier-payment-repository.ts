@@ -1,7 +1,7 @@
 // repositories/cashier/cashier-payment-repository.ts
 
 import db from '../../config/db.js'
-import { ResultSetHeader } from 'mysql2'
+import { ResultSetHeader, RowDataPacket } from 'mysql2'
 import { CashierPayment, CreatePaymentDTO } from '../../models/cashier/index.js'
 
 export class CashierPaymentRepository {
@@ -42,8 +42,8 @@ export class CashierPaymentRepository {
       WHERE cp.id = ?
     `
 
-    const [rows] = await db.query<any[]>(query, [id])
-    return rows[0] || null
+    const [rows] = await db.query<RowDataPacket[]>(query, [id])
+    return (rows[0] as CashierPayment) || null
   }
 
   /**
@@ -100,7 +100,7 @@ export class CashierPaymentRepository {
       WHERE shift_id = ? AND payment_method_id = ?
     `
 
-    const [rows] = await db.query<any[]>(query, [shiftId, paymentMethodId])
+    const [rows] = await db.query<RowDataPacket[]>(query, [shiftId, paymentMethodId])
     return rows[0]?.total || 0
   }
 
@@ -125,8 +125,12 @@ export class CashierPaymentRepository {
       ORDER BY pm.id ASC
     `
 
-    const [rows] = await db.query<any[]>(query, [shiftId])
-    return rows
+    const [rows] = await db.query<RowDataPacket[]>(query, [shiftId])
+    return rows as {
+      payment_method_id: number
+      payment_method_name: string
+      total_amount: number
+    }[]
   }
 
   /**
@@ -174,7 +178,7 @@ export class CashierPaymentRepository {
       WHERE shift_id = ?
     `
 
-    const [rows] = await db.query<any[]>(query, [shiftId])
+    const [rows] = await db.query<RowDataPacket[]>(query, [shiftId])
     return (rows[0]?.count || 0) > 0
   }
 

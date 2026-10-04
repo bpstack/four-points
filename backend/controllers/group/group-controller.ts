@@ -38,7 +38,7 @@ export class GroupController {
         data: groups,
         count: groups.length,
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, 'Error en getAllGroups')
       return res.status(500).json({
         success: false,
@@ -91,7 +91,7 @@ export class GroupController {
           balance,
         },
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, 'Error en getGroupById')
       return res.status(500).json({
         success: false,
@@ -134,7 +134,7 @@ export class GroupController {
         code: SUCCESS_CODES.GROUP_CREATED,
         data: newGroup,
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, 'Error en createGroup')
       return res.status(500).json({
         success: false,
@@ -208,7 +208,7 @@ export class GroupController {
         code: SUCCESS_CODES.GROUP_UPDATED,
         data: updatedGroup,
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, 'Error en updateGroup')
       return res.status(500).json({
         success: false,
@@ -268,7 +268,7 @@ export class GroupController {
         message: SUCCESS_CODES.GROUP_DELETED,
         code: SUCCESS_CODES.GROUP_DELETED,
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, 'Error en deleteGroup')
       return res.status(500).json({
         success: false,
@@ -294,7 +294,7 @@ export class GroupController {
           payments: paymentsSummary,
         },
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, 'Error en getDashboardOverview')
       return res.status(500).json({
         success: false,
@@ -323,7 +323,7 @@ export class GroupController {
         data: timeline,
         year,
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, 'Error en getDashboardTimeline')
       return res.status(500).json({
         success: false,

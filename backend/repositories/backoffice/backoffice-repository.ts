@@ -84,7 +84,7 @@ export class BackofficeRepository {
     limit: number = 100
   ): Promise<{ suppliers: SupplierWithStats[]; total: number }> {
     let baseQuery = `FROM v_bo_suppliers_stats WHERE 1=1`
-    const params: any[] = []
+    const params: (string | number | boolean | null)[] = []
 
     if (filters?.is_active !== undefined) {
       baseQuery += ` AND is_active = ?`
@@ -243,7 +243,7 @@ export class BackofficeRepository {
     limit: number = 50
   ): Promise<{ invoices: InvoiceWithDetails[]; total: number }> {
     let whereClause = `WHERE 1=1`
-    const params: any[] = []
+    const params: (string | number | boolean | null)[] = []
 
     if (!filters?.include_deleted) {
       whereClause += ` AND is_deleted = 0`
@@ -457,7 +457,7 @@ export class BackofficeRepository {
       `updated_by = ?`,
       `updated_at = NOW()`,
     ]
-    const params: any[] = [userId, userId]
+    const params: (string | number | null)[] = [userId, userId]
 
     // Only update validated_pdf_url if explicitly provided (not undefined)
     if (data.validated_pdf_url !== undefined) {
@@ -869,7 +869,7 @@ export class BackofficeRepository {
 
   static async getAllAssets(type?: 'stamp' | 'signature'): Promise<Asset[]> {
     let query = `SELECT * FROM bo_assets`
-    const params: any[] = []
+    const params: (string | number | boolean | null)[] = []
 
     if (type) {
       query += ` WHERE type = ?`
@@ -979,7 +979,7 @@ export class BackofficeRepository {
     }
   }
 
-  static async getMonthlySummary(year?: number): Promise<any[]> {
+  static async getMonthlySummary(year?: number): Promise<RowDataPacket[]> {
     const targetYear = year || getNowMadrid().year()
     const [rows] = await pool.query<RowDataPacket[]>(
       `SELECT * FROM v_bo_monthly_summary WHERE year = ? ORDER BY month DESC`,

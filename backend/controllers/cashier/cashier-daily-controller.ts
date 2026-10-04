@@ -210,7 +210,7 @@ export class CashierDailyController {
         code: SUCCESS_CODES.CASHIER_DAY_CLOSED,
         data: closedDaily,
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, 'Error al cerrar día')
       res.status(500).json({
         success: false,
@@ -259,7 +259,7 @@ export class CashierDailyController {
         code: SUCCESS_CODES.CASHIER_DAY_REOPENED,
         data: reopened,
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, 'Error al reabrir día')
       res.status(500).json({
         success: false,

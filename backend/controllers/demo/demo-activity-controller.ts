@@ -44,7 +44,7 @@ export class DemoActivityController {
           hasMore: offset + logs.length < total,
         },
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, '[DemoActivityController.getLogs] Error')
       res.status(500).json({
         success: false,
@@ -69,7 +69,7 @@ export class DemoActivityController {
         days,
         stats,
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, '[DemoActivityController.getStats] Error')
       res.status(500).json({
         success: false,
@@ -93,7 +93,7 @@ export class DemoActivityController {
       res.setHeader('Content-Type', 'text/markdown; charset=utf-8')
       res.setHeader('Content-Disposition', 'attachment; filename="registrosDemo.md"')
       res.send(markdown)
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, '[DemoActivityController.exportToMarkdown] Error')
       res.status(500).json({
         success: false,
@@ -119,7 +119,7 @@ export class DemoActivityController {
         deletedCount,
         daysToKeep,
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, '[DemoActivityController.cleanupOldLogs] Error')
       res.status(500).json({
         success: false,

@@ -28,7 +28,7 @@ import {
  * Convierte seguro cualquier valor a número
  * Maneja null, undefined, strings vacíos, etc.
  */
-const safeNumber = (value: any): number => {
+const safeNumber = (value: unknown): number => {
   if (value === null || value === undefined || value === '') {
     return 0
   }
@@ -356,7 +356,10 @@ export class ConciliationMonthlyRepository {
   /**
    * Método para debug: obtener datos crudos del mes
    */
-  async getRawMonthlyData(year: number, month: number): Promise<any> {
+  async getRawMonthlyData(
+    year: number,
+    month: number
+  ): Promise<{ reception: RowDataPacket[]; housekeeping: RowDataPacket[] }> {
     // Recepción cruda
     const [receptionRaw] = await pool.query<RowDataPacket[]>(
       `SELECT cs.date, cr.reason, cr.direction, cr.value

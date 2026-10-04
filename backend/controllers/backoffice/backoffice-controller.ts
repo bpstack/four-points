@@ -61,7 +61,7 @@ export class BackofficeController {
     try {
       const categories = await BackofficeRepository.getAllCategories()
       res.json({ success: true, categories })
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, '[BackofficeController.getCategories] Error')
       res.status(500).json({
         success: false,
@@ -90,7 +90,7 @@ export class BackofficeController {
       }
 
       res.json({ success: true, category })
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, '[BackofficeController.getCategoryById] Error')
       res.status(500).json({
         success: false,
@@ -131,7 +131,7 @@ export class BackofficeController {
         code: SUCCESS_CODES.BACKOFFICE_CATEGORY_CREATED,
         category,
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, '[BackofficeController.createCategory] Error')
       res.status(500).json({
         success: false,
@@ -175,7 +175,7 @@ export class BackofficeController {
           totalPages: Math.ceil(total / limit),
         },
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, '[BackofficeController.getSuppliers] Error')
       res.status(500).json({
         success: false,
@@ -207,7 +207,7 @@ export class BackofficeController {
       const invoices = await BackofficeRepository.getInvoicesBySupplier(Number(id))
 
       res.json({ success: true, supplier, invoices })
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, '[BackofficeController.getSupplierById] Error')
       res.status(500).json({
         success: false,
@@ -277,7 +277,7 @@ export class BackofficeController {
         code: SUCCESS_CODES.BACKOFFICE_SUPPLIER_CREATED,
         supplier,
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, '[BackofficeController.createSupplier] Error')
       res.status(500).json({
         success: false,
@@ -327,7 +327,7 @@ export class BackofficeController {
         code: SUCCESS_CODES.BACKOFFICE_SUPPLIER_UPDATED,
         supplier,
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, '[BackofficeController.updateSupplier] Error')
       res.status(500).json({
         success: false,
@@ -372,7 +372,7 @@ export class BackofficeController {
         message: SUCCESS_CODES.BACKOFFICE_SUPPLIER_DELETED,
         code: SUCCESS_CODES.BACKOFFICE_SUPPLIER_DELETED,
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, '[BackofficeController.deleteSupplier] Error')
       res.status(500).json({
         success: false,
@@ -406,7 +406,7 @@ export class BackofficeController {
         message: SUCCESS_CODES.BACKOFFICE_SUPPLIER_INACTIVATED,
         code: SUCCESS_CODES.BACKOFFICE_SUPPLIER_INACTIVATED,
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, '[BackofficeController.inactivateSupplier] Error')
       res.status(500).json({
         success: false,
@@ -440,7 +440,7 @@ export class BackofficeController {
         message: SUCCESS_CODES.BACKOFFICE_SUPPLIER_ACTIVATED,
         code: SUCCESS_CODES.BACKOFFICE_SUPPLIER_ACTIVATED,
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, '[BackofficeController.activateSupplier] Error')
       res.status(500).json({
         success: false,
@@ -487,7 +487,7 @@ export class BackofficeController {
         },
         filters_applied: filters,
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, '[BackofficeController.getInvoices] Error')
       res.status(500).json({
         success: false,
@@ -519,7 +519,7 @@ export class BackofficeController {
       const history = await BackofficeRepository.getInvoiceHistory(Number(id))
 
       res.json({ success: true, invoice, history })
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, '[BackofficeController.getInvoiceById] Error')
       res.status(500).json({
         success: false,
@@ -609,7 +609,7 @@ export class BackofficeController {
         code: SUCCESS_CODES.BACKOFFICE_INVOICE_CREATED,
         invoice,
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, '[BackofficeController.createInvoice] Error')
       res.status(500).json({
         success: false,
@@ -651,7 +651,7 @@ export class BackofficeController {
         code: SUCCESS_CODES.BACKOFFICE_INVOICE_UPDATED,
         invoice,
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, '[BackofficeController.updateInvoice] Error')
       res.status(500).json({
         success: false,
@@ -731,7 +731,7 @@ export class BackofficeController {
         code: SUCCESS_CODES.BACKOFFICE_INVOICE_VALIDATED,
         invoice,
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, '[BackofficeController.validateInvoice] Error')
       res.status(500).json({
         success: false,
@@ -783,7 +783,7 @@ export class BackofficeController {
         code: SUCCESS_CODES.BACKOFFICE_INVOICE_REJECTED,
         invoice,
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, '[BackofficeController.rejectInvoice] Error')
       res.status(500).json({
         success: false,
@@ -834,7 +834,7 @@ export class BackofficeController {
         code: SUCCESS_CODES.BACKOFFICE_VALIDATION_REVERTED,
         invoice,
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, '[BackofficeController.unvalidateInvoice] Error')
       res.status(500).json({
         success: false,
@@ -886,7 +886,7 @@ export class BackofficeController {
         code: SUCCESS_CODES.BACKOFFICE_INVOICE_PAID,
         invoice,
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, '[BackofficeController.markAsPaid] Error')
       res.status(500).json({
         success: false,
@@ -1006,7 +1006,7 @@ export class BackofficeController {
         message: SUCCESS_CODES.BACKOFFICE_INVOICE_DELETED,
         code: SUCCESS_CODES.BACKOFFICE_INVOICE_DELETED,
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, '[BackofficeController.deleteInvoice] Error')
       res.status(500).json({
         success: false,
@@ -1027,7 +1027,7 @@ export class BackofficeController {
       const history = await BackofficeRepository.getInvoiceHistory(Number(id))
 
       res.json({ success: true, history })
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, '[BackofficeController.getInvoiceHistory] Error')
       res.status(500).json({
         success: false,
@@ -1160,7 +1160,7 @@ export class BackofficeController {
           )
           await CloudinaryService.deleteFile(previousPublicId, 'raw')
           logger.debug('[BackofficeController.uploadInvoicePdf] Previous PDF deleted successfully')
-        } catch (deleteError: any) {
+        } catch (deleteError) {
           // Log pero no fallar - el nuevo archivo ya está subido
           logger.warn(
             { err: deleteError },
@@ -1185,7 +1185,7 @@ export class BackofficeController {
         code: SUCCESS_CODES.BACKOFFICE_PDF_UPLOADED,
         invoice: updatedInvoice,
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, '[BackofficeController.uploadInvoicePdf] Error')
       res.status(500).json({
         success: false,
@@ -1210,7 +1210,7 @@ export class BackofficeController {
       const assets = await BackofficeRepository.getAllAssets(type)
 
       res.json({ success: true, assets })
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, '[BackofficeController.getAssets] Error')
       res.status(500).json({
         success: false,
@@ -1300,7 +1300,7 @@ export class BackofficeController {
         code: SUCCESS_CODES.BACKOFFICE_ASSET_CREATED,
         asset,
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, '[BackofficeController.createAsset] Error')
       res.status(500).json({
         success: false,
@@ -1349,7 +1349,7 @@ export class BackofficeController {
         message: SUCCESS_CODES.BACKOFFICE_ASSET_DELETED,
         code: SUCCESS_CODES.BACKOFFICE_ASSET_DELETED,
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, '[BackofficeController.deleteAsset] Error')
       res.status(500).json({
         success: false,
@@ -1386,7 +1386,7 @@ export class BackofficeController {
         code: SUCCESS_CODES.BACKOFFICE_ASSET_DEFAULT_SET,
         asset: { ...asset, is_default: true },
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, '[BackofficeController.setDefaultAsset] Error')
       res.status(500).json({
         success: false,
@@ -1554,7 +1554,7 @@ export class BackofficeController {
               timeout: 30000,
             })
             pdfBuffer = Buffer.from(response.data)
-          } catch (err: any) {
+          } catch (err) {
             logger.warn(
               { invoiceNumber: invoice.invoice_number, err },
               '[downloadValidatedInvoicesZip] Direct download failed'
@@ -1570,7 +1570,7 @@ export class BackofficeController {
                 timeout: 30000,
               })
               pdfBuffer = Buffer.from(response.data)
-            } catch (err: any) {
+            } catch (err) {
               logger.warn(
                 { invoiceNumber: invoice.invoice_number, err },
                 '[downloadValidatedInvoicesZip] Signed URL failed'
@@ -1596,7 +1596,7 @@ export class BackofficeController {
           // Add to archive
           archive.append(pdfBuffer, { name: filename })
           logger.debug({ filename }, '[downloadValidatedInvoicesZip] Added')
-        } catch (err: any) {
+        } catch (err) {
           logger.error(
             { invoiceId: invoice.id, err },
             '[downloadValidatedInvoicesZip] Error processing invoice'
@@ -1608,7 +1608,7 @@ export class BackofficeController {
       // Finalize the archive
       await archive.finalize()
       logger.info('[BackofficeController.downloadValidatedInvoicesZip] ZIP created successfully')
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, '[BackofficeController.downloadValidatedInvoicesZip] Error')
       // Only send error if headers haven't been sent
       if (!res.headersSent) {
@@ -1672,7 +1672,7 @@ export class BackofficeController {
         url: signedUrl,
         expires_in: 3600,
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, '[BackofficeController.getInvoicePdfUrl] Error')
       res.status(500).json({
         success: false,
@@ -1736,7 +1736,7 @@ export class BackofficeController {
 
       // Intentar múltiples métodos de descarga
       let pdfBuffer: Buffer | null = null
-      let lastError: any = null
+      let lastError: unknown = null
 
       // Método 1: URL directa (funciona para archivos públicos)
       try {
@@ -1749,7 +1749,7 @@ export class BackofficeController {
         logger.debug(
           '[BackofficeController.downloadInvoicePdf] Downloaded successfully from direct URL'
         )
-      } catch (err: any) {
+      } catch (err) {
         lastError = err
         logger.warn({ err }, '[BackofficeController.downloadInvoicePdf] Direct URL failed')
       }
@@ -1771,7 +1771,7 @@ export class BackofficeController {
           logger.debug(
             '[BackofficeController.downloadInvoicePdf] Downloaded successfully from attachment URL'
           )
-        } catch (err: any) {
+        } catch (err) {
           lastError = err
           logger.warn({ err }, '[BackofficeController.downloadInvoicePdf] Attachment URL failed')
         }
@@ -1790,7 +1790,7 @@ export class BackofficeController {
           logger.debug(
             '[BackofficeController.downloadInvoicePdf] Downloaded successfully from signed URL'
           )
-        } catch (err: any) {
+        } catch (err) {
           lastError = err
           logger.warn({ err }, '[BackofficeController.downloadInvoicePdf] Signed URL failed')
         }
@@ -1814,7 +1814,7 @@ export class BackofficeController {
           logger.debug(
             '[BackofficeController.downloadInvoicePdf] Downloaded successfully from alternate URL'
           )
-        } catch (err: any) {
+        } catch (err) {
           lastError = err
           logger.warn({ err }, '[BackofficeController.downloadInvoicePdf] Alternate URL failed')
         }
@@ -1838,9 +1838,10 @@ export class BackofficeController {
       res.setHeader('Content-Disposition', `attachment; filename="${filename}"`)
       res.setHeader('Content-Length', pdfBuffer.length)
       res.send(pdfBuffer)
-    } catch (error: any) {
+    } catch (error) {
+      const err = error as { response?: { status?: number } }
       logger.error(
-        { err: error, responseStatus: error.response?.status },
+        { err: error, responseStatus: err.response?.status },
         '[BackofficeController.downloadInvoicePdf] Error'
       )
       res.status(500).json({
@@ -1860,7 +1861,7 @@ export class BackofficeController {
       const stats = await BackofficeRepository.getSummaryStats()
 
       res.json({ success: true, ...stats })
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, '[BackofficeController.getStats] Error')
       res.status(500).json({
         success: false,
@@ -1881,7 +1882,7 @@ export class BackofficeController {
       const summary = await BackofficeRepository.getMonthlySummary(year)
 
       res.json({ success: true, summary })
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, '[BackofficeController.getMonthlySummary] Error')
       res.status(500).json({
         success: false,
@@ -1913,7 +1914,7 @@ export class BackofficeController {
         success: true,
         ...preview,
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, '[BackofficeController.previewBatchPayment] Error')
       res.status(500).json({
         success: false,
@@ -1971,7 +1972,7 @@ export class BackofficeController {
           code: ERROR_CODES.BACKOFFICE_BATCH_PAYMENT_ERROR,
         })
       }
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, '[BackofficeController.executeBatchPayment] Error')
       res.status(500).json({
         success: false,
@@ -2018,7 +2019,7 @@ export class BackofficeController {
         count: preview.count,
         total_amount: preview.total_amount,
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, '[BackofficeController.previewRevertBatchPayment] Error')
       res.status(500).json({
         success: false,
@@ -2076,7 +2077,7 @@ export class BackofficeController {
         month,
         duration,
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, '[BackofficeController.revertBatchPayment] Error')
       res.status(500).json({
         success: false,

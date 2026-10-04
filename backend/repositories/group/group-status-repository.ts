@@ -104,7 +104,7 @@ export class GroupStatusRepository {
     const { rooming_status, rooming_requested_date, rooming_received_date } = roomingData
 
     const fields: string[] = []
-    const values: any[] = []
+    const values: (string | number | Date | null)[] = []
 
     // ✅ CAMBIO 1: SIEMPRE actualizar el status
     if (rooming_status !== undefined) {
@@ -140,7 +140,7 @@ export class GroupStatusRepository {
     const { balance_status, balance_requested_date, balance_paid_date } = balanceData
 
     const fields: string[] = []
-    const values: any[] = []
+    const values: (string | number | Date | null)[] = []
 
     if (balance_status !== undefined) {
       fields.push('balance_status = ?')
