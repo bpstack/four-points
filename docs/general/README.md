@@ -230,6 +230,12 @@ like this is in ADR-030.
   every free service (if they run out, production is suspended too) and 2 custom
   domains, both now in use.
 
+**After a merge into `main`**: keep working on the same branch, so the
+preview keeps its domain, variable and Render service. A merge commit has the
+branch as a parent, so it only needs a fast-forward:
+`git switch claude/compassionate-planck-gh6aof && git merge --ff-only origin/main`.
+PR #7 merged the first round on 2026-10-04 (`942fdfa`).
+
 **Removing it when it is no longer needed**: delete the service
 `four-points-api-preview` on Render, the domain `preview.four-points.stackbp.es`
 and the branch-scoped `NEXT_PUBLIC_API_URL` on Vercel, and both CNAMEs on

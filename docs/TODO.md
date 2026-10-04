@@ -18,11 +18,8 @@ hace que alguien reimplemente lo que ya existe.
 
 ## Rama `claude/compassionate-planck-gh6aof`
 
-- [ ] **Llevar la rama a `main` con merge normal, sin squash** (ADR-031) —
-      cuando `docs/VERIFY.md` no tenga ⏳ ni ❌ abiertos: PR con «Create a
-      merge commit». Los 5 commits con autor `Claude` se quedan; su autor se
-      corrige en la fase 2 (`GITCLEAN.md`). Después, decidir si se retira el
-      entorno preview (pasos en `docs/general/README.md`).
+Fusionada en `main` el 2026-10-04 (PR #7, commit de merge `942fdfa`). La rama
+sigue siendo donde se arregla este fichero y se prueba en el entorno preview.
 
 ## 🔴 Alta
 
