@@ -5,12 +5,7 @@ import { useTranslations } from 'next-intl'
 import { apiClient } from '@/app/lib/apiClient'
 import { API_BASE_URL } from '@/app/lib/env'
 import { cn } from '@/app/lib/helpers/utils'
-import {
-  FiCheckSquare,
-  FiCalendar,
-  FiUser,
-  FiClock,
-} from 'react-icons/fi'
+import { FiCheckSquare, FiCalendar, FiUser, FiClock } from 'react-icons/fi'
 import DateRangePicker, { getDefaultDateRange, type DateRange } from '../DateRangePicker'
 import { ReportError } from '../utils'
 

@@ -3,6 +3,7 @@
 // Versión profesional con booking_code
 // ============================================
 import pool from '../../config/db.js'
+import { targetSpot, type SpotRef } from '../../services/parking/target-spot.js'
 import { ResultSetHeader, RowDataPacket } from 'mysql2/promise'
 import type {
   BookingWithDetailsRow,
@@ -17,6 +18,7 @@ import type {
   PaginatedBookingsResult,
   BookingStatus,
 } from '../../models/parking/index.js'
+import { likeContains } from '../shared/like.js'
 
 interface CountRow extends RowDataPacket {
   total: number
@@ -25,6 +27,8 @@ interface CountRow extends RowDataPacket {
 interface SpotIdRow extends RowDataPacket {
   id: number
 }
+
+interface CurrentSpotRow extends RowDataPacket, SpotRef {}
 
 interface AvailabilityCountRow extends RowDataPacket {
   unavailable: number
@@ -95,12 +99,12 @@ class ParkingBookingsRepository {
 
     if (filters.plate_number) {
       whereClause += ' AND v.plate_number LIKE ?'
-      params.push(`%${filters.plate_number}%`)
+      params.push(likeContains(filters.plate_number))
     }
 
     if (filters.owner_name) {
       whereClause += ' AND v.owner_name LIKE ?'
-      params.push(`%${filters.owner_name}%`)
+      params.push(likeContains(filters.owner_name))
     }
 
     if (filters.booking_source) {
@@ -565,8 +569,13 @@ class ParkingBookingsRepository {
       let spot_id = booking[0].spot_id
 
       if (updateData.spot_number || updateData.level_code) {
-        const spotNum = updateData.spot_number ?? booking[0].spot_id
-        const levelCode = updateData.level_code ?? '-2'
+        const [currentSpot] = await connection.query<CurrentSpotRow[]>(
+          'SELECT spot_number, level_code FROM parking_spots WHERE id = ?',
+          [booking[0].spot_id]
+        )
+        const target = targetSpot(updateData, currentSpot[0])
+        const spotNum = target.spot_number
+        const levelCode = target.level_code
 
         const [spotRows] = await connection.query<SpotIdRow[]>(
           'SELECT id FROM parking_spots WHERE spot_number = ? AND level_code = ? AND is_active = TRUE',
@@ -692,6 +701,12 @@ class ParkingBookingsRepository {
     try {
       await connection.beginTransaction()
 
+      // Free its days first: the foreign key only sets booking_id to NULL and
+      // there is no delete trigger, so they stayed blocked
+      await connection.query(
+        'UPDATE parking_availability SET is_available = TRUE, booking_id = NULL WHERE booking_id = ?',
+        [id]
+      )
       await connection.query('DELETE FROM parking_bookings WHERE id = ?', [id])
 
       await connection.commit()

@@ -268,15 +268,6 @@ export interface StatsResponse {
   stats: Stats
 }
 
-export interface OccupancyResponse {
-  success: boolean
-  date: string
-  data: {
-    levels: OccupancyLevel[]
-    summary: OccupancyLevel
-  }
-}
-
 export interface PendingCheckinsResponse {
   success: boolean
   date: string

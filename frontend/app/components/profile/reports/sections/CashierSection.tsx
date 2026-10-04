@@ -10,8 +10,6 @@ import { API_BASE_URL } from '@/app/lib/env'
 import DateRangePicker, { getDefaultDateRange, type DateRange } from '../DateRangePicker'
 import DateFilter from '../DateFilter'
 import {
-  FiDollarSign,
-  FiLoader,
   FiAlertCircle,
   FiUser,
   FiCalendar,
@@ -252,9 +250,7 @@ export default function CashierSection() {
               onClick={() => setViewMode(mode)}
               className={cn(
                 'px-3 py-1.5 text-xs font-medium rounded-md transition-colors',
-                viewMode === mode
-                  ? 'bg-surface text-fg shadow-sm'
-                  : 'text-fg-muted hover:text-fg'
+                viewMode === mode ? 'bg-surface text-fg shadow-sm' : 'text-fg-muted hover:text-fg'
               )}
             >
               {t(`views.${mode}`)}
@@ -376,7 +372,10 @@ export default function CashierSection() {
                   </div>
                 </div>
                 <button
-                  onClick={() => { setViewMode('vouchers'); setVoucherStatus('pending') }}
+                  onClick={() => {
+                    setViewMode('vouchers')
+                    setVoucherStatus('pending')
+                  }}
                   className="text-xs font-medium text-yellow-700 dark:text-yellow-300 hover:underline"
                 >
                   {t('vouchersSummary.viewVouchers')} →
@@ -423,7 +422,8 @@ export default function CashierSection() {
               <div className="bg-surface-sunken rounded-lg p-4 text-center">
                 <p className="text-xl font-bold text-fg">{dailyReport.summary.shifts_count}</p>
                 <p className="text-xs text-fg-subtle mt-1">
-                  {t('dashboard.shifts')} ({t('dashboard.shiftsClosed', { count: dailyReport.summary.shifts_closed })})
+                  {t('dashboard.shifts')} (
+                  {t('dashboard.shiftsClosed', { count: dailyReport.summary.shifts_closed })})
                 </p>
               </div>
             </div>
@@ -453,8 +453,10 @@ export default function CashierSection() {
                       : 'text-red-800 dark:text-red-200'
                   )}
                 >
-                  {t('difference.title')}: {formatCurrency(dailyReport.summary.total_difference)}
-                  {' '}— {dailyReport.summary.total_difference > 0 ? t('difference.surplus') : t('difference.shortage')}
+                  {t('difference.title')}: {formatCurrency(dailyReport.summary.total_difference)} —{' '}
+                  {dailyReport.summary.total_difference > 0
+                    ? t('difference.surplus')
+                    : t('difference.shortage')}
                 </p>
               </div>
             </div>
@@ -465,20 +467,33 @@ export default function CashierSection() {
               <table className="w-full text-sm">
                 <thead className="bg-surface-sunken">
                   <tr>
-                    <th className="px-4 py-3 text-left font-medium text-fg-subtle">{t('shiftDetail.shift')}</th>
-                    <th className="px-4 py-3 text-right font-medium text-fg-subtle">{t('shiftDetail.income')}</th>
-                    <th className="px-4 py-3 text-right font-medium text-fg-subtle">{t('shiftDetail.inBox')}</th>
-                    <th className="px-4 py-3 text-center font-medium text-fg-subtle">{t('shiftDetail.status')}</th>
+                    <th className="px-4 py-3 text-left font-medium text-fg-subtle">
+                      {t('shiftDetail.shift')}
+                    </th>
+                    <th className="px-4 py-3 text-right font-medium text-fg-subtle">
+                      {t('shiftDetail.income')}
+                    </th>
+                    <th className="px-4 py-3 text-right font-medium text-fg-subtle">
+                      {t('shiftDetail.inBox')}
+                    </th>
+                    <th className="px-4 py-3 text-center font-medium text-fg-subtle">
+                      {t('shiftDetail.status')}
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
                   {dailyReport.shifts.map((shiftData) => (
                     <tr key={shiftData.shift.id} className="hover:bg-surface-hover">
                       <td className="px-4 py-3 text-fg font-medium">
-                        {SHIFT_TYPES[shiftData.shift.shift_type as keyof typeof SHIFT_TYPES] || shiftData.shift.shift_type}
+                        {SHIFT_TYPES[shiftData.shift.shift_type as keyof typeof SHIFT_TYPES] ||
+                          shiftData.shift.shift_type}
                       </td>
-                      <td className="px-4 py-3 text-right text-fg">{formatCurrency(shiftData.total_income)}</td>
-                      <td className="px-4 py-3 text-right text-fg-muted">{formatCurrency(shiftData.expected_in_box)}</td>
+                      <td className="px-4 py-3 text-right text-fg">
+                        {formatCurrency(shiftData.total_income)}
+                      </td>
+                      <td className="px-4 py-3 text-right text-fg-muted">
+                        {formatCurrency(shiftData.expected_in_box)}
+                      </td>
                       <td className="px-4 py-3 text-center">
                         {shiftData.is_balanced ? (
                           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
@@ -530,7 +545,9 @@ export default function CashierSection() {
                       </span>
                     </div>
                     <p className="text-sm font-medium text-fg mb-1">{voucher.concept}</p>
-                    <p className="text-xs text-fg-subtle">{t('voucher.for')}: {voucher.recipient}</p>
+                    <p className="text-xs text-fg-subtle">
+                      {t('voucher.for')}: {voucher.recipient}
+                    </p>
                     <div className="flex items-center gap-4 text-xs text-fg-subtle mt-2 flex-wrap">
                       <span className="inline-flex items-center gap-1">
                         <FiCalendar className="w-3.5 h-3.5" />
@@ -546,7 +563,9 @@ export default function CashierSection() {
                   </div>
                   <div className="text-right flex-shrink-0">
                     <p className="text-lg font-bold text-fg">{formatCurrency(voucher.amount)}</p>
-                    <p className="text-xs text-gray-400">{t('voucher.shift')} #{voucher.shift_id}</p>
+                    <p className="text-xs text-gray-400">
+                      {t('voucher.shift')} #{voucher.shift_id}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -561,11 +580,21 @@ export default function CashierSection() {
           <table className="w-full text-sm">
             <thead className="bg-surface-sunken">
               <tr>
-                <th className="px-4 py-3 text-left font-medium text-fg-subtle">{t('historyTable.action')}</th>
-                <th className="px-4 py-3 text-left font-medium text-fg-subtle">{t('historyTable.table')}</th>
-                <th className="px-4 py-3 text-left font-medium text-fg-subtle">{t('historyTable.field')}</th>
-                <th className="px-4 py-3 text-left font-medium text-fg-subtle">{t('historyTable.user')}</th>
-                <th className="px-4 py-3 text-left font-medium text-fg-subtle">{t('historyTable.date')}</th>
+                <th className="px-4 py-3 text-left font-medium text-fg-subtle">
+                  {t('historyTable.action')}
+                </th>
+                <th className="px-4 py-3 text-left font-medium text-fg-subtle">
+                  {t('historyTable.table')}
+                </th>
+                <th className="px-4 py-3 text-left font-medium text-fg-subtle">
+                  {t('historyTable.field')}
+                </th>
+                <th className="px-4 py-3 text-left font-medium text-fg-subtle">
+                  {t('historyTable.user')}
+                </th>
+                <th className="px-4 py-3 text-left font-medium text-fg-subtle">
+                  {t('historyTable.date')}
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
@@ -580,7 +609,9 @@ export default function CashierSection() {
                       <span className="text-fg">{entry.username || entry.changed_by}</span>
                     </div>
                   </td>
-                  <td className="px-4 py-3 text-fg-subtle text-xs">{formatReportDateTime(entry.changed_at)}</td>
+                  <td className="px-4 py-3 text-fg-subtle text-xs">
+                    {formatReportDateTime(entry.changed_at)}
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -595,7 +626,8 @@ export default function CashierSection() {
           <p>
             {voucherStatus !== 'all'
               ? t('empty.noVouchersWithStatus', {
-                  status: VOUCHER_STATUS_LABELS[voucherStatus as keyof typeof VOUCHER_STATUS_LABELS],
+                  status:
+                    VOUCHER_STATUS_LABELS[voucherStatus as keyof typeof VOUCHER_STATUS_LABELS],
                 })
               : t('empty.noVouchers')}
           </p>
@@ -617,7 +649,11 @@ export default function CashierSection() {
       )}
       {!loading && viewMode === 'history' && historyData.length > 0 && (
         <div className="text-xs text-fg-subtle text-right">
-          {t('showing', { count: historyData.length, type: t('record_plural'), max: DEFAULT_LIMIT })}
+          {t('showing', {
+            count: historyData.length,
+            type: t('record_plural'),
+            max: DEFAULT_LIMIT,
+          })}
         </div>
       )}
     </div>

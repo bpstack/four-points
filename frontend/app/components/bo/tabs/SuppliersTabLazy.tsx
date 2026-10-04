@@ -105,7 +105,11 @@ export function SuppliersTabLazy({
     retry: false,
   })
 
-  const suppliers = data?.suppliers ?? (isActiveTab ? initialSuppliers : [])
+  // Memoised so the empty fallback array is not a new value on every render
+  const suppliers = useMemo(
+    () => data?.suppliers ?? (isActiveTab ? initialSuppliers : []),
+    [data?.suppliers, isActiveTab, initialSuppliers]
+  )
   const serverPagination = data?.pagination ?? pagination
 
   const invalidateSuppliers = () => {

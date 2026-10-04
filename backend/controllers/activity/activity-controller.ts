@@ -9,7 +9,13 @@ import {
   ActivitySource,
 } from '../../repositories/activity/activity-repository.js'
 import { ERROR_CODES } from '../../config/error-codes.js'
+import {
+  ACTIVITY_SOURCES,
+  readableSources,
+  mergeByTimestamp,
+} from '../../services/activity/activity-access.js'
 import { logger } from '../../config/logger.js'
+import { isCalendarDate } from '../../validations/common/calendar-date.js'
 
 export class ActivityController {
   /**
@@ -44,8 +50,7 @@ export class ActivityController {
         return
       }
 
-      const datePattern = /^\d{4}-\d{2}-\d{2}$/
-      if (date && !datePattern.test(date)) {
+      if (date && !isCalendarDate(date)) {
         res.status(400).json({
           success: false,
           error: ERROR_CODES.ACTIVITY_INVALID_DATE_FORMAT,
@@ -53,35 +58,54 @@ export class ActivityController {
         })
         return
       }
-      if ((dateFrom && !datePattern.test(dateFrom)) || (dateTo && !datePattern.test(dateTo))) {
+      if ((dateFrom && !isCalendarDate(dateFrom)) || (dateTo && !isCalendarDate(dateTo))) {
         res.status(400).json({
           success: false,
           error: ERROR_CODES.ACTIVITY_INVALID_DATE_FORMAT,
           code: ERROR_CODES.ACTIVITY_INVALID_DATE_FORMAT,
         })
         return
+      }
+
+      // Only sources whose module this role can open (mantenimiento: no
+      // cashier or logbook)
+      const readable = readableSources(req.user?.role)
+      if (source && !readable.has(source)) {
+        res.status(403).json({
+          success: false,
+          error: ERROR_CODES.FORBIDDEN,
+          code: ERROR_CODES.FORBIDDEN,
+        })
+        return
+      }
+
+      const fetchActivity = (src?: ActivitySource) => {
+        if (dateFrom || dateTo) {
+          const to = dateTo || new Date().toISOString().slice(0, 10)
+          let from = dateFrom
+          if (!from) {
+            const d = new Date(to)
+            d.setDate(d.getDate() - 30)
+            from = d.toISOString().slice(0, 10)
+          }
+          return ActivityRepository.getActivityByDateRange(from, to, limit, src)
+        }
+        if (date) return ActivityRepository.getActivityByDate(date, limit, src)
+        if (userId) return ActivityRepository.getActivityByUser(userId, limit)
+        if (src) return ActivityRepository.getActivityBySource(src, limit)
+        return ActivityRepository.getRecentActivity(limit)
       }
 
       let activities
-
-      if (dateFrom || dateTo) {
-        const to = dateTo || new Date().toISOString().slice(0, 10)
-        let from = dateFrom
-        if (!from) {
-          const d = new Date(to)
-          d.setDate(d.getDate() - 30)
-          from = d.toISOString().slice(0, 10)
-        }
-        activities = await ActivityRepository.getActivityByDateRange(from, to, limit, source)
-      } else if (date) {
-        activities = await ActivityRepository.getActivityByDate(date, limit, source)
-      } else if (userId) {
-        activities = await ActivityRepository.getActivityByUser(userId, limit)
-      } else if (source) {
-        activities = await ActivityRepository.getActivityBySource(source, limit)
+      if (source || userId || readable.size === ACTIVITY_SOURCES.length) {
+        activities = await fetchActivity(source)
       } else {
-        activities = await ActivityRepository.getRecentActivity(limit)
+        // One query per readable source, so the limit is filled with them
+        const lists = await Promise.all([...readable].map((src) => fetchActivity(src)))
+        activities = mergeByTimestamp(lists, limit)
       }
+      // getActivityByUser has no source filter
+      activities = activities.filter((a) => readable.has(a.source))
 
       res.json({
         success: true,

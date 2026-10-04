@@ -8,6 +8,9 @@ import pool from '../../config/db.js'
 import { RowDataPacket, ResultSetHeader } from 'mysql2'
 import { getNowMadrid } from '../../config/date-utils.js'
 import { logger } from '../../config/logger.js'
+import { buildSetClause } from '../shared/update-columns.js'
+import { SUPPLIER_UPDATE_COLUMNS, INVOICE_UPDATE_COLUMNS } from './backoffice-columns.js'
+
 import {
   Category,
   Supplier,
@@ -20,6 +23,7 @@ import {
   Asset,
   SummaryStats,
 } from '../../models/backoffice/index.js'
+import { likeContains } from '../shared/like.js'
 
 // Re-exportar tipos para mantener compatibilidad
 export type {
@@ -106,7 +110,7 @@ export class BackofficeRepository {
 
     if (filters?.search) {
       baseQuery += ` AND (name LIKE ? OR notes LIKE ?)`
-      const search = `%${filters.search}%`
+      const search = likeContains(filters.search)
       params.push(search, search)
     }
 
@@ -193,15 +197,8 @@ export class BackofficeRepository {
       is_active: boolean
     }>
   ): Promise<boolean> {
-    const fields: string[] = []
-    const values: any[] = []
-
-    Object.entries(data).forEach(([key, value]) => {
-      if (value !== undefined) {
-        fields.push(`${key} = ?`)
-        values.push(value)
-      }
-    })
+    // Column names are interpolated: only allow-listed keys reach the SQL
+    const { fields, values } = buildSetClause(data, SUPPLIER_UPDATE_COLUMNS)
 
     if (fields.length === 0) return false
 
@@ -291,7 +288,7 @@ export class BackofficeRepository {
 
     if (filters?.search) {
       whereClause += ` AND (invoice_number LIKE ? OR supplier_name LIKE ? OR notes LIKE ?)`
-      const search = `%${filters.search}%`
+      const search = likeContains(filters.search)
       params.push(search, search, search)
     }
 
@@ -423,15 +420,8 @@ export class BackofficeRepository {
     }>,
     userId: string
   ): Promise<boolean> {
-    const fields: string[] = []
-    const values: any[] = []
-
-    Object.entries(data).forEach(([key, value]) => {
-      if (value !== undefined) {
-        fields.push(`${key} = ?`)
-        values.push(value)
-      }
-    })
+    // Column names are interpolated: only allow-listed keys reach the SQL
+    const { fields, values } = buildSetClause(data, INVOICE_UPDATE_COLUMNS)
 
     if (fields.length === 0) return false
 

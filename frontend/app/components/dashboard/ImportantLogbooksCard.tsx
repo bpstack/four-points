@@ -41,7 +41,6 @@ const getPriorityColor = (priority: string) => {
   }
 }
 
-
 export function ImportantLogbooksCard({
   entries,
   loading,

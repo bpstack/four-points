@@ -84,28 +84,9 @@ export interface CreateConversationDTO {
   participant_ids: string[] // IDs de usuarios a incluir
 }
 
-export interface CreateMessageDTO {
-  conversation_id: number
-  content: string
-  notify?: boolean
-}
-
-export interface UpdateMessageDTO {
-  content: string
-}
-
-export interface AddParticipantsDTO {
-  user_ids: string[]
-}
-
 // ===============================================
 // FILTERS & PAGINATION
 // ===============================================
-
-export interface ConversationFilters {
-  type?: ConversationType
-  search?: string // Buscar por nombre de grupo o participante
-}
 
 export interface MessageFilters {
   before_id?: number // Para paginacion cursor-based
@@ -113,33 +94,9 @@ export interface MessageFilters {
   search?: string // Busqueda fulltext
 }
 
-export interface PaginationParams {
-  page?: number
-  limit?: number
-}
-
 // ===============================================
 // RESPONSE TYPES
 // ===============================================
-
-export interface ConversationListResponse {
-  conversations: ConversationWithDetails[]
-  total: number
-}
-
-export interface MessageListResponse {
-  messages: MessageWithSender[]
-  has_more: boolean
-  oldest_id?: number
-}
-
-export interface UnreadCountResponse {
-  total_unread: number
-  by_conversation: {
-    conversation_id: number
-    unread_count: number
-  }[]
-}
 
 export interface UserSearchResult extends RowDataPacket {
   id: string

@@ -136,13 +136,6 @@ export const FONT_COMBINATIONS = {
 // ============= 🔧 HELPERS =============
 
 /**
- * Obtiene las clases CSS necesarias para el <html>
- */
-export function getFontVariables(): string {
-  return `${ACTIVE_FONTS.primary.variable} ${ACTIVE_FONTS.display.variable}`
-}
-
-/**
  * Aplica una combinación predefinida
  * @example
  * // En fonts.helper.ts:
@@ -153,22 +146,6 @@ export function applyFontCombination(combination: keyof typeof FONT_COMBINATIONS
   return {
     primary: combo.primary,
     display: combo.display,
-  }
-}
-
-/**
- * Para debugging: muestra la configuración actual
- */
-export function getCurrentFontConfig() {
-  return {
-    primary: {
-      variable: ACTIVE_FONTS.primary.variable,
-      className: ACTIVE_FONTS.primary.className,
-    },
-    display: {
-      variable: ACTIVE_FONTS.display.variable,
-      className: ACTIVE_FONTS.display.className,
-    },
   }
 }
 

@@ -95,7 +95,6 @@ export interface BlacklistFilters {
   document?: string // Filtrar por documento específico
   severity?: SeverityLevel
   status?: EntryStatus | 'ALL'
-  created_by?: string // UUID del usuario creador
   from_date?: string // Rango fecha inicio (check_in)
   to_date?: string // Rango fecha fin (check_in)
   page?: number
@@ -113,17 +112,6 @@ export interface PaginationInfo {
   per_page: number
   has_next: boolean
   has_prev: boolean
-}
-
-export interface BlacklistResponse {
-  entries: BlacklistEntry[]
-  pagination: PaginationInfo
-  filters_applied: BlacklistFilters
-}
-
-export interface BlacklistDetailResponse {
-  entry: BlacklistEntry
-  audit_trail: AuditEntry[]
 }
 
 // ========================================
@@ -152,34 +140,9 @@ export interface ImageUploadResponse {
 }
 
 // ========================================
-// CONSTANTES
-// ========================================
-
-export const DOCUMENT_TYPES: Record<DocumentType, string> = {
-  DNI: 'DNI',
-  PASSPORT: 'Pasaporte',
-  NIE: 'NIE',
-  OTHER: 'Otro',
-}
-
-export const SEVERITY_LEVELS: Record<SeverityLevel, string> = {
-  LOW: 'Baja',
-  MEDIUM: 'Media',
-  HIGH: 'Alta',
-  CRITICAL: 'Crítica',
-}
-
-export const ENTRY_STATUS: Record<EntryStatus, string> = {
-  ACTIVE: 'Activo',
-  DELETED: 'Eliminado',
-}
-
-// ========================================
 // VALORES POR DEFECTO
 // ========================================
 
 export const DEFAULT_PAGE = 1
 export const DEFAULT_LIMIT = 50
 export const MAX_LIMIT = 100
-export const MAX_IMAGES = 5
-export const MAX_IMAGE_SIZE_MB = 5

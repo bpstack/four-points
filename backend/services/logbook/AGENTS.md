@@ -19,6 +19,10 @@ mutation is audited in `logbook_history`. Deletes are soft (recoverable from
 - **`logbooks`**: main entries. `deleted_at` for soft delete. `is_solved`,
   `solved_at`, `solved_by` for solve/reopen.
 - **`logbook_comments`**: per-entry comments. Also `deleted_at` for soft delete.
+  A comment carries `department_id` and `importance_level`, and creating or
+  editing one also sets them on the entry. Any user with access can do this on
+  any entry: it is intended (decided 2026-10-02), so a comment can re-route or
+  escalate an entry. Only the author edits or deletes their own comment.
 - **`logbook_reads`**: (user_id, logbook_id, read_at) — who read what and when.
 - **`logbook_history`**: audit log of changes on both logbooks and comments.
   Uses a `type` column (`'logbook'` or `'comment'`) to distinguish them.
@@ -123,6 +127,18 @@ Route prefix: `/api/logbooks` (mounted in `backend/index.ts`).
 
 The whole subroute sits behind `authenticateToken` + `excludeMantenimiento`.
 Mantenimiento doesn't enter.
+
+Input checks (since 2026-10-02):
+
+- Every `:id`, `:logbookId`, `:commentId`, `:departmentId`, `:authorId` and
+  `:day` is validated by `validateParams(router, LOGBOOK_PARAM_RULES)`
+  (`middlewares/validateParams.ts`) before any controller runs: 400 if invalid.
+- `limit` (1-500), `offset` (≥ 0) and the report filters go through
+  `logbookListQuerySchema`; dates must be real calendar days.
+- The author of a new entry is always `req.user.id`; an `author_id` in the body
+  is stripped.
+- Editing someone else's entry answers 403 `LOGBOOK_ONLY_AUTHOR_UPDATE`
+  (`controllers/logbook/logbook-errors.ts`).
 
 **Important:** `GET /trashed` is declared **before** the `:id` routes so Express
 doesn't capture it as an id. If you reorder, mind that order.

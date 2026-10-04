@@ -116,15 +116,6 @@ export interface SchedulingDay {
   notes: string | null
 }
 
-export interface SchedulingAssignment {
-  id: number
-  dayId: number
-  employeeId: string
-  employeeName: string
-  shiftCode: string
-  notes: string | null
-}
-
 export interface SchedulingConstraint {
   id: number
   monthId: number
@@ -273,18 +264,6 @@ export interface GenerationWarning {
   employeeName?: string
 }
 
-export interface GenerationResult {
-  success: boolean
-  monthId: number
-  assignmentsCount: number
-  generationTimeMs: number
-  warnings: GenerationWarning[]
-  stats: {
-    byEmployee: EmployeeStats[]
-    byDay: DailyStats[]
-  }
-}
-
 // ============================================
 // VALIDATION RESULT
 // ============================================
@@ -405,35 +384,6 @@ export interface UpdateShiftDto {
 // ============================================
 // API RESPONSES
 // ============================================
-
-export interface MonthsListResponse {
-  months: SchedulingMonth[]
-  total: number
-}
-
-export interface MonthResponse {
-  month: SchedulingMonthFull
-}
-
-export interface GenerateResponse {
-  success: boolean
-  result: GenerationResult
-}
-
-export interface ConstraintsResponse {
-  constraints: SchedulingConstraint[]
-  total: number
-}
-
-export interface RulesResponse {
-  rules: SchedulingEmployeeRule[]
-  total: number
-}
-
-export interface HistoryResponse {
-  history: SchedulingHistory[]
-  total: number
-}
 
 // ============================================
 // EMPLOYEE CONTRACTS (Annual contract data)

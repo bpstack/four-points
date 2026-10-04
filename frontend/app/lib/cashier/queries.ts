@@ -110,14 +110,6 @@ export function useShiftDetails(shiftId: number) {
 // QUERIES - VOUCHERS
 // ═══════════════════════════════════════════════════════
 
-export function useVoucherStats() {
-  return useQuery({
-    queryKey: cashierKeys.voucherStats(),
-    queryFn: () => apiClient.get(`${API_BASE}/api/cashier/vouchers/stats`),
-    staleTime: 1 * 60 * 1000,
-  })
-}
-
 // ═══════════════════════════════════════════════════════
 // MUTATIONS - DAILY
 // ═══════════════════════════════════════════════════════
@@ -404,13 +396,5 @@ export function useHistoryStats(filters?: { from_date?: string; to_date?: string
       return response as { data: HistoryStats }
     },
     staleTime: 1 * 60 * 1000, // 1 minuto
-  })
-}
-
-export function useShiftHistory(shiftId: number) {
-  return useQuery({
-    queryKey: ['cashier', 'history', 'shift', shiftId],
-    queryFn: () => apiClient.get(`${API_BASE}/api/cashier/history/shift/${shiftId}`),
-    staleTime: 30 * 1000,
   })
 }

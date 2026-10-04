@@ -39,6 +39,8 @@ export interface CashierShift {
   denominations?: CashierDenomination[]
   payments?: CashierPayment[]
   vouchers?: CashierVoucher[]
+  // Vouchers still out of the drawer in this shift, carried across shifts and days
+  outstanding_vouchers_total?: number
 }
 
 // ═══════════════════════════════════════════════════════
@@ -85,16 +87,6 @@ export interface CashierVoucher {
   created_by: string | null
   created_by_username?: string
   shift_id?: number | null
-}
-
-export interface VoucherStats {
-  total_count: number
-  pending_count: number
-  pending_amount: string
-  justified_count: number
-  justified_amount: string
-  cancelled_count: number
-  cancelled_amount: string
 }
 
 // ═══════════════════════════════════════════════════════
@@ -154,12 +146,6 @@ export interface CreateVoucherDTO {
   amount: number
   reason: string
   created_by: string
-  notes?: string
-}
-
-export interface UpdateVoucherDTO {
-  amount?: number
-  reason?: string
   notes?: string
 }
 

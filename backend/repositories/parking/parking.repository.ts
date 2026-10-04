@@ -1,17 +1,15 @@
 // repositories/parking/parking.repository.ts
 
 import db from '../../config/db.js'
-import dayjs from 'dayjs'
 import { ResultSetHeader } from 'mysql2'
 import { getTodayMadrid } from '../../config/date-utils.js'
 import type {
   ParkingSpotRow,
   ParkingVehicleRow,
-  ParkingRateRow,
   AvailableSpotRow,
   LevelCode,
-  CreateReservationDTO,
 } from '../../models/parking/index.js'
+import { likeContains } from '../shared/like.js'
 
 /* -----------------------------------------------------------------
  * PLAZAS
@@ -98,7 +96,7 @@ export const getVehicleByPlateNumber = async (
 export const getVehiclesByOwner = async (owner_name: string): Promise<ParkingVehicleRow[]> => {
   const [rows] = await db.execute<ParkingVehicleRow[]>(
     'SELECT * FROM parking_vehicles WHERE owner_name LIKE ? ORDER BY plate_number',
-    [`%${owner_name}%`]
+    [likeContains(owner_name)]
   )
   return rows
 }
@@ -166,7 +164,7 @@ export async function searchVehicles(searchTerm: string): Promise<ParkingVehicle
       OR UPPER(owner_name) LIKE ?
     ORDER BY created_at DESC
     LIMIT 20`,
-    [`%${normalizedTerm}%`, `%${normalizedTerm}%`]
+    [likeContains(normalizedTerm), likeContains(normalizedTerm)]
   )
 
   return rows
@@ -231,98 +229,4 @@ export const getAvailableSpotsByDateRange = async (
     params
   )
   return rows
-}
-
-/* -----------------------------------------------------------------
- * RESERVAS
- * ----------------------------------------------------------------- */
-
-interface SpotIdRow {
-  id: number
-}
-
-interface VehicleIdRow {
-  id: number
-}
-
-interface AvailabilityCheckRow {
-  available: number
-}
-
-// Este lo puedes mantener si lo necesitas para otras cosas
-export const getVehicleIdByPlateNumber = async (plate_number: string): Promise<number | null> => {
-  const [rows] = await db.execute<(VehicleIdRow & import('mysql2').RowDataPacket)[]>(
-    'SELECT id FROM parking_vehicles WHERE plate_number = ?',
-    [plate_number]
-  )
-  return rows[0]?.id || null
-}
-
-// Para conversión spot_number → spot_id
-export const getSpotIdByNumberAndLevel = async (
-  spot_number: number,
-  level_code: LevelCode
-): Promise<number | null> => {
-  const [rows] = await db.execute<(SpotIdRow & import('mysql2').RowDataPacket)[]>(
-    'SELECT id FROM parking_spots WHERE spot_number = ? AND level_code = ?',
-    [spot_number, level_code]
-  )
-  return rows[0]?.id || null
-}
-
-// Para validar disponibilidad
-export const isSpotAvailable = async (
-  spot_id: number,
-  checkin: string,
-  checkout: string
-): Promise<boolean> => {
-  const startDate = dayjs(checkin).format('YYYY-MM-DD')
-  const endDate = dayjs(checkout).format('YYYY-MM-DD')
-
-  const [rows] = await db.execute<(AvailabilityCheckRow & import('mysql2').RowDataPacket)[]>(
-    'SELECT check_availability(?, ?, ?) as available',
-    [spot_id, startDate, endDate]
-  )
-
-  return rows[0]?.available === 1
-}
-
-// Para calcular precio
-export const calculatePriceByDays = async (days: number): Promise<ParkingRateRow | null> => {
-  const [rows] = await db.execute<ParkingRateRow[]>(
-    'SELECT price, description FROM parking_rates WHERE days = ?',
-    [days]
-  )
-  return rows[0] || null
-}
-
-// Para crear reserva
-export const createReservation = async ({
-  spot_id,
-  vehicle_id,
-  operator_id,
-  expected_checkin,
-  expected_checkout,
-  status = 'reserved',
-  booking_source = 'direct',
-  external_booking_id = null,
-  notes = null,
-}: CreateReservationDTO): Promise<[ResultSetHeader, unknown]> => {
-  const sql = `
-    INSERT INTO parking_bookings
-        (spot_id, vehicle_id, operator_id, expected_checkin, expected_checkout,
-        status, booking_source, external_booking_id, notes)
-    VALUES (?,?,?,?,?,?,?,?,?)`
-
-  return db.execute<ResultSetHeader>(sql, [
-    spot_id,
-    vehicle_id,
-    operator_id,
-    expected_checkin,
-    expected_checkout,
-    status,
-    booking_source,
-    external_booking_id,
-    notes,
-  ])
 }

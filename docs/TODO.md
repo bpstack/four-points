@@ -16,6 +16,14 @@ hace que alguien reimplemente lo que ya existe.
 
 ---
 
+## Rama `claude/compassionate-planck-gh6aof`
+
+- [ ] **Llevar la rama a `main` con merge normal, sin squash** (ADR-031) —
+      cuando `docs/VERIFY.md` no tenga ⏳ ni ❌ abiertos: PR con «Create a
+      merge commit». Los 5 commits con autor `Claude` se quedan; su autor se
+      corrige en la fase 2 (`GITCLEAN.md`). Después, decidir si se retira el
+      entorno preview (pasos en `docs/general/README.md`).
+
 ## 🔴 Alta
 
 > Las entradas de **seguridad** describen debilidades explotables: **resolverlas
@@ -27,11 +35,6 @@ hace que alguien reimplemente lo que ya existe.
       de autorización de objeto. Está documentado como intencional en el
       `AGENTS.md` del módulo, pero conviene registrarlo como riesgo aceptado en
       vez de dejarlo implícito. _Comprobado por mí el 2026-09-28._
-- [ ] **Blacklist: `DELETE /upload/:publicId` borra cualquier recurso de
-      Cloudinary** — el `publicId` no se comprueba contra ninguna entrada; con
-      un id adivinado o filtrado se puede borrar cualquier imagen del cloud
-      name, también de otros módulos (mismo patrón que backoffice). _Comprobado
-      por mí el 2026-09-28._
 - [ ] **Fnb: cualquier rol con acceso puede borrar o fabricar ingresos, sin capa
       de autorización por operación** — `canAccessFnb` protege todo el router
       con la misma lista de roles (`admin`, `recepcionista`, `group-admin`,
@@ -50,20 +53,10 @@ hace que alguien reimplemente lo que ya existe.
       alterado o borrado no se puede reconstruir ni revertir.
       `backend/repositories/fnb/fnb.repository.ts`. _Comprobado por mí el
       2026-09-28._
-- [ ] **Backoffice: inyección SQL por los nombres de campo** — `updateSupplier`
-      y `updateInvoice` construyen `clave = ?` con las claves del cuerpo, que el
-      controlador pasa entero. Además se puede fijar `status`, `paid_date`,
-      `validated_by`, `validated_pdf_url` o `created_by`. Requiere `admin`
-      (cualquiera puede serlo). _Comprobado por mí el 2026-09-28._
-- [ ] **Backoffice: SSRF en la descarga de PDF** — `createInvoice` mete el
-      cuerpo entero (`original_pdf_url` del cliente) y `validateInvoice` toma
-      `validated_pdf_url` del cuerpo; `/pdf-download` y el ZIP hacen `axios.get`
-      a esa URL sin comprobar el dominio y devuelven los bytes. `/pdf-download`
-      no exige `isRealAdmin` (también `demo-admin`). _Comprobado por mí el
-      2026-09-28._
-- [ ] **Backoffice: borrado arbitrario en Cloudinary** — los `public_id` de los
-      PDF llegan del cliente y el borrado de factura los destruye. _Comprobado
-      por mí el 2026-09-28._ (origen del `public_id`, según el revisor)
+- [ ] **Backoffice: `/pdf-download` no exige `isRealAdmin`** — también lo usa
+      `demo-admin`. La URL descargada ya se limita a nuestra nube de Cloudinary
+      (`isOwnCloudinaryUrl`, 2026-10-02); `axios` sigue las redirecciones de
+      esa URL. _Comprobado por mí el 2026-09-28._
 - [ ] **Backoffice: PDFs de facturas, sello y firma públicos en Cloudinary** —
       `uploadPdf` usa `type: 'upload'` y `access_mode: 'public'`; las facturas
       llevan CIF, IBAN e importes, y la URL firmada no protege nada. Con el
@@ -78,18 +71,6 @@ hace que alguien reimplemente lo que ya existe.
       acceso de escritura; el trigger reescribe los totales del día. _Según la
       revisión `security` L3 del 2026-09-28 (fichero y línea en el informe); no
       repasado por mí._
-- [ ] **Cashier: el total diario de efectivo se infla** — el trigger
-      `trg_cashier_shift_update_daily` suma el efectivo del turno una vez por
-      cada pago electrónico (LEFT JOIN). En Aiven, el 2026-01-05 guarda 4000,00
-      € frente a 2200,00 € reales. Además hay otros dos cálculos de totales que
-      compiten con él. _Comprobado por mí el 2026-09-28._ (los otros dos
-      cálculos, según el revisor)
-- [ ] **Cashier: el descuadre calculado en el servidor siempre es 0** —
-      `income = contado − fondo` y luego `esperado = fondo + income`; los vales
-      se ignoran. Los informes nunca muestran descuadre. _Comprobado por mí el
-      2026-09-28._ Además, guardar el recuento sobrescribe el ingreso que el
-      usuario tecleó: en producción, 250,50 € pasó a 0,15 € (contado − fondo)
-      al guardar las denominaciones (_2026-09-29_).
 - [ ] **Cashier: operaciones que fallan siempre en producción** — justificar,
       cancelar y editar vales, y editar pagos o recuentos sueltos escriben
       columnas que no existen en Aiven (`justified_at`, `cancelled_at`,
@@ -101,15 +82,13 @@ hace que alguien reimplemente lo que ya existe.
       _Según la revisión `security` L3 del 2026-09-28; no repasado por mí._ La
       autoría ya no sale del cuerpo (`shift_id` del pago, `created_by` del vale,
       `opened_by` del día; _comprobado en producción el 2026-09-29_).
-- [ ] **Scheduling: un recepcionista puede aprobarse sus propias solicitudes** —
-      `PUT /constraints/:id` no pide `isAdmin` y `updateConstraintSchema` acepta
-      `status: 'approved'` (sin `approved_by`). Al reiniciar o crear el mes,
-      esas celdas quedan bloqueadas. _Comprobado por mí el 2026-09-28._
 - [ ] **Scheduling: cualquier rol edita o borra restricciones ajenas o ya
       aprobadas** — sin comprobar autor ni estado y sin historial; al borrar una
       aprobada, la clave foránea (`SET NULL`, comprobado en Aiven) deja la celda
-      con su código pero sin bloqueo. La interfaz es solo de `admin`: estas
-      rutas abiertas no tienen uso legítimo. _Comprobado por mí el 2026-09-28._
+      con su código pero sin bloqueo. **Decidir antes de cerrar con
+      `isAdmin`:** el enlace a `/dashboard/scheduling/config` (pestaña de
+      solicitudes) se muestra a cualquier rol en `SchedulingClient.tsx` (_visto
+      el 2026-10-02_). _Comprobado por mí el 2026-09-28._
       (sin historial, según el revisor)
 - [ ] **Datos personales del personal en el repo** —
       `backend/scripts/import-planning-2026.ts` (commit `3387826`) tiene
@@ -121,18 +100,6 @@ hace que alguien reimplemente lo que ya existe.
       (también `mantenimiento` y `recepcionista`) crea, edita, cambia de estado,
       asigna, borra y restaura cualquier parte: el controlador no mira rol ni
       autoría. _Comprobado por mí el 2026-09-28._
-- [ ] **Maintenance: los errores 500 devuelven el mensaje de MySQL** — 15
-      respuestas con `message: error.message` en `maintenance-controller.ts`,
-      saltándose el manejador global. Filtra tablas, columnas y claves foráneas,
-      y sirve para saber si un id de usuario existe. _Comprobado por mí el
-      2026-09-28._
-- [ ] **Backoffice: el pago en lote paga todos los meses con un objeto** —
-      `executeBatchPayment` pasa `year` y `month` del cuerpo sin validar. Si se
-      envía un objeto en vez de un número, mysql2 lo convierte en una
-      comparación de columna y la condición de fecha deja de filtrar
-      (reproducido con `mysql2.format`): se pagan las facturas validadas de
-      cualquier mes. `revertBatchPayment` lee el cuerpo igual (no seguido hasta
-      el repositorio). _Comprobado por mí el 2026-09-28._
 - [ ] **Contraseñas de la BD escritas en 17 ficheros versionados** — casi todos
       en `backend/db-mysql/scripts/` (los 10 de `basics/`,
       `add-libre-number.ts`, `backfill-libre-numbers.ts`,
@@ -142,18 +109,11 @@ hace que alguien reimplemente lo que ya existe.
       contraseña de una cuenta de prueba) y dos scripts SQL con contraseñas en
       claro en comentarios (`20260520_insert_user_example.sql`,
       `20260512_add_scheduling_solver_runs_and_requests.sql`). Están en el
-      historial desde `f5d47d6` y en el remoto privado. Sacarlos del historial
+      historial desde `f5d47d6` y en el remoto privado. `backend/.env.example`
+      también llevaba host, usuario y contraseñas de Aiven hasta el 2026-10-02
+      (ya sin valores, pero siguen en el historial). Sacarlos del historial
       en la fase 2 y rotar (ver la entrada de rotación). _Comprobado por mí el
       2026-09-28._
-- [ ] **`mantenimiento` lee la lista negra por la búsqueda global** —
-      `/api/search` solo exige sesión y devuelve `guest_name` y
-      `document_number` de la lista negra, matrículas y grupos; `%` y `_` no se
-      escapan (`?q=%%` lista lo último de cada módulo). `/api/activity` tiene el
-      mismo hueco con menos datos. _Comprobado por mí el 2026-09-28._
-- [ ] **Logbook: un comentario cambia la prioridad o el departamento de una
-      entrada ajena** — si el comentario trae esos campos, el controlador
-      actualiza la entrada sin comprobar autoría ni registrar el valor anterior.
-      _Comprobado por mí el 2026-09-28._
 - [ ] **Logbook: el historial no es atómico** — no hay ninguna transacción en el
       módulo: un fallo entre el cambio y su registro deja cambios sin auditar o
       borrados auditados que no ocurrieron. _Comprobado por mí el 2026-09-28._
@@ -169,11 +129,9 @@ hace que alguien reimplemente lo que ya existe.
       2026-09-28 (fichero y línea en el informe); no repasado por mí._
 - [ ] **Parking: importes cobrados editables siempre** — `PUT` acepta
       `payment_amount`, método y referencia en cualquier estado (también
-      `completed`), sin validar el signo y sin historial. _Comprobado por mí el
-      2026-09-28._
-- [ ] **Mensajería: un expulsado sigue editando y borrando sus mensajes** —
-      `isSender` no comprueba que siga siendo participante. _Comprobado por mí
-      el 2026-09-28._
+      `completed`, y el código lo declara intencionado) y sin historial. El
+      signo, el `ENUM` del método y las longitudes ya se validan
+      (2026-10-02). _Comprobado por mí el 2026-09-28._
 - [ ] **Mensajería: directorio de emails y roles de toda la plantilla** —
       `GET /api/messages/users` devuelve `email` y rol de todos los usuarios
       activos, sin límite, a cualquier rol; `getParticipants` también devuelve
@@ -195,11 +153,6 @@ hace que alguien reimplemente lo que ya existe.
       `SECRET_JWT_KEY` ya se cambió el 2026-09-29 en Render y en local (el
       backend exige ahora 32 caracteres o más); el propietario lo generó sin
       pasarlo por el agente.
-- [ ] **Logbook: cualquiera puede crear entradas en nombre de otro** —
-      `createLogbook` (`backend/controllers/logbook/logbook-controllers.ts`)
-      guarda el `author_id` que manda el cliente, no `req.user.id`. Rompe la
-      autoría y el historial del módulo. _Comprobado el 2026-09-28: el esquema
-      Zod lo exige en el cuerpo y el frontend lo rellena con `user.id`._
 - [ ] **Medir la protección contra timing attacks del login** — `DUMMY_HASH`
       (`backend/repositories/auth/user-repository.ts`) es un hash bcrypt de
       coste 10, igual que los 22 de Aiven (_comprobado el 2026-09-29_; si se
@@ -251,22 +204,6 @@ hace que alguien reimplemente lo que ya existe.
       al módulo puede borrar un día de hace años, incluido un periodo ya
       cerrado, sin ninguna comprobación de negocio. _Comprobado por mí el
       2026-09-28._
-- [ ] **Corregir el `AGENTS.md` de `fnb`** — dice que `trackedCodesSet` en
-      `fnb-categories.cache.ts` "refresca cada N segundos (TTL)"; en realidad la
-      caché no tiene TTL y solo se invalida manualmente con
-      `invalidateCategories()`, que hoy solo se llama en los tests. En
-      producción, un cambio en `fnb_category` no se ve sin reiniciar el backend.
-      _Comprobado por mí el 2026-09-28._
-- [ ] **Corregir el `AGENTS.md` raíz sobre next-intl** — dice `routing.ts` +
-      `createNavigation`, pero no existe `routing.ts`: el idioma va por cookie
-      `NEXT_LOCALE`, geolocalización de Vercel y `Accept-Language`
-      (`frontend/app/i18n/request.ts`). También cita Nodemailer como servicio
-      externo y no se usa. _Comprobado el 2026-09-28._
-- [ ] **Actualizar los `.env.example`** — backend: faltan `DB_ENVIRONMENT`,
-      `LOG_LEVEL` y `FRONTEND_URL`; sobran `AI_ENABLED`, `CLAUDE_*` y
-      `GEMINI_*`. Frontend: falta `NEXT_PUBLIC_APP_URL`; sobra
-      `NEXT_PUBLIC_APP_NAME`. _Comprobado el 2026-09-28 contra los `process.env`
-      del código versionado._
 - [ ] **Comprobar si los cron se ejecutan en Render** — corren dentro del
       proceso del backend; si el plan gratuito lo duerme por inactividad, no se
       disparan. _No comprobado._
@@ -275,10 +212,6 @@ hace que alguien reimplemente lo que ya existe.
       source según la OSI, y la raíz no tiene ninguna.
 - [ ] **Decidir la analítica antes de publicar** — el frontend carga Google
       Analytics (`G-ZYSZ6THVDW`) y Vercel Analytics (`frontend/app/layout.tsx`).
-- [ ] **CI mínimo** — no hay `.github/`: instalar con lockfile congelado, lint,
-      formato y tipos en cada push. En el backend ya existen `pnpm lint`
-      (ESLint 10, 0 errores), `pnpm format:check` y `pnpm typecheck`
-      (_comprobado el 2026-09-29_).
 - [ ] **Backend: 341 usos de `any`** — `no-explicit-any` está como aviso en
       `backend/eslint.config.js` para que el lint pase; tiparlos y volver a
       ponerla como error.
@@ -295,18 +228,6 @@ hace que alguien reimplemente lo que ya existe.
       `event_scheduler=ON` y el evento está `ENABLED` (última ejecución en
       Aiven: 2026-09-27)._
 
-- [ ] **Corregir `backend/services/logbook/AGENTS.md`** — describe tres tablas
-      (`logbook_solved`, `logbook_pending`, `logbook_comments_history`) que
-      ningún script SQL crea y ningún código usa: resolver y reabrir escriben en
-      columnas de `logbooks` (`is_solved`, `solved_at`, `solved_by`) y el
-      historial de comentarios va a `logbook_history` con `type = 'comment'`.
-      Además dice `is_deleted` (es `deleted_at`), `/api/logbook` (es
-      `/api/logbooks`) y actualizaciones optimistas que `useLogbooks` no hace.
-      _Comprobado el 2026-09-28 en el código, los `.sql` versionados, el
-      historial de Git (los nombres solo aparecen en los commits de docs
-      `568bc98` y `2be5df9`) y en las BD local y Aiven, donde solo existen
-      `logbooks`, `logbook_comments`, `logbook_reads` y `logbook_history`._
-
 - [ ] **Adaptar el harness a repos con varios proyectos e implantarlo** — en el
       repo `harness` (`C:\Users\dz\projects\harness` en el PC principal):
       soportar repos sin `package.json` ni lockfile en la raíz (aquí `frontend/`
@@ -314,39 +235,16 @@ hace que alguien reimplemente lo que ya existe.
       anidados. Después, implantar la capa 1 en este repo. _Comprobado el
       2026-09-28 en `lib/detect.mjs` y `commands/init-project.md` del harness
       (ADR-017)._
-- [ ] **Corregir los `AGENTS.md` de módulo** — la fusión (commit `4d7528f`) los
-      renombró con el contenido intacto, así que siguen diciendo lo que el
-      código desmiente (ver las entradas de logbook y parking en esta lista) y
-      empiezan con el título `# CLAUDE.md — …`.
 - [ ] **Comprobar que Claude Code carga los `AGENTS.md` de las subcarpetas** —
       los `CLAUDE.md` de módulo se borraron en vez de quedar como punteros; si
       Claude Code solo lee `CLAUDE.md` por directorio, ese contexto se pierde.
       _Sin comprobar._
 
-- [ ] **Parking: borrar una reserva no libera sus días** — `DELETE` en
-      `bookings.repository.ts` borra la fila, la clave foránea pone `booking_id`
-      a `NULL` en `parking_availability`, pero `is_available` sigue a `0` y no
-      hay trigger de borrado. Se puede hacer desde el detalle de una reserva
-      `reserved`. _Comprobado el 2026-09-28: hoy hay 0 días bloqueados sin
-      reserva en ambas BD._
 - [ ] **MySQL de Aiven en UTC** — `time_zone=SYSTEM` con el sistema en UTC.
       `CURDATE()` y `NOW()` de la BD (filtros rápidos de parking, código
       `PK-AAAAMMDD` del trigger, `CURRENT_TIMESTAMP` de las tablas) van 1–2 h
       por detrás de Madrid: entre las 00:00 y las 02:00 «hoy» sigue siendo ayer.
       _Comprobado el 2026-09-28._
-- [ ] **Parking: el mapa de estado deja de ver reservas a partir de 50** —
-      `useParkingStatus` pide `getAllBookings({})` y el backend devuelve 50 por
-      defecto, ordenadas por entrada prevista descendente: una estancia larga ya
-      `checked_in` puede salir del mapa. _Latente: hoy hay 13 reservas en
-      Aiven._
-- [ ] **Corregir los `AGENTS.md` de parking** — backend: cita `parking_invoices`
-      (no existe), omite `parking_availability` y los triggers, dice que la
-      tarifa va por tipo de plaza (va por días), que 23:00→10:00 son 2 días (es
-      1), que las acciones son `POST` (son `PUT`), que el código es `BK-0042`
-      (es `PK-AAAAMMDD-NNNN`) y no documenta `DELETE /bookings/:code`. Frontend:
-      afirma sondeo en el mapa y exportación del listado, que no existen.
-      _Comprobado el 2026-09-28._
-
 - [ ] **Quitar el soporte de BD local del código** (ADR-015) — `DB_ENVIRONMENT`
       y el preset `local` de `backend/config/db.ts`, el script `dev:local`, las
       variables `LOCAL_DB_*` y las menciones a «local primero» en
@@ -365,32 +263,29 @@ hace que alguien reimplemente lo que ya existe.
       entradas borradas a cualquier rol con acceso. _Según la revisión
       `security` L3 del 2026-09-28 (fichero y línea en el informe); no repasado
       por mí._
-- [ ] **Logbook: se pueden resolver, reabrir y marcar como leídas entradas
-      borradas** — los `UPDATE` no filtran `deleted_at`. _Según la revisión
-      `security` L3 del 2026-09-28 (fichero y línea en el informe); no repasado
-      por mí._
-- [ ] **Logbook: validación incompleta** — un mensaje de solo espacios se guarda
-      vacío (verificado ejecutando Zod 4.0.5); la fecha admite cualquier día, y
-      una imposible (`2026-02-31`) da 500; parámetros de ruta y un `offset`
-      negativo sin validar. _Comprobado por mí el 2026-09-28._
-- [ ] **Emails de más en las respuestas de logbook** — `author_email` en todos
-      los listados y `editor_email` en el historial, que la pantalla no usa; el
-      borrado copia la fila entera al historial. _Según la revisión `security`
-      L3 del 2026-09-28 (fichero y línea en el informe); no repasado por mí._
-- [ ] **Parking: rutas de edición sin Zod** — `updateBookingSchema` existe pero
-      nadie lo usa; entrada y salida aceptan fechas reales arbitrarias. _Según
-      la revisión `security` L3 del 2026-09-28 (fichero y línea en el informe);
-      no repasado por mí._
+- [ ] **Logbook: la fecha de una entrada admite cualquier día** — pasado o
+      futuro, sin límite. Decidir qué rango tiene sentido. _Comprobado por mí el
+      2026-09-28._
+- [ ] **Parking: entrada y salida aceptan fechas reales arbitrarias** — el
+      cuerpo del `PUT` ya se valida con Zod (2026-10-02), pero las fechas de
+      entrada y salida reales no. _Según la revisión `security` L3 del
+      2026-09-28 (fichero y línea en el informe); no repasado por mí._
 - [ ] **Parking: `GET /vehicles` vuelca todos los vehículos** (matrícula y
       titular) sin paginar ni filtrar. _Según la revisión `security` L3 del
       2026-09-28 (fichero y línea en el informe); no repasado por mí._
 - [ ] **Parking: el origen y la referencia externa se pierden al crear** — el
-      controlador los pasa como `source` y `external_id`, y la validación espera
-      `booking_source` y `external_booking_id`: siempre queda `direct`.
-      _Comprobado por mí el 2026-09-28._
-- [ ] **Mensajería: sin validación de entrada ni transacción al crear** —
-      `participant_ids` y `user_ids` sin comprobar (tipos, duplicados, usuarios
-      inexistentes o inactivos); un id inválido deja una conversación huérfana.
+      frontend (`useBookingWizard.ts`) envía `source`
+      y `external_id`; el controlador lee `booking_source` y
+      `external_booking_id` y además los pasa a Zod con los nombres cambiados:
+      siempre queda `direct`. **Decidir antes de arreglar:** los formularios
+      ofrecen `phone`, `email`, `walkin` y `booking` (`DateOnlyStep.tsx`), que el
+      `ENUM` de `parking_bookings.booking_source` no admite (`direct`,
+      `booking_com`, `expedia`, `airbnb`, `agency_other`); conservar el origen
+      sin ampliar el `ENUM` o mapear esos valores haría fallar la reserva.
+      _Comprobado por mí el 2026-09-28; detalle del 2026-10-02._
+- [ ] **Mensajería: crear una conversación no va en transacción** — el formato
+      y los repetidos de `participant_ids` y `user_ids` ya se validan, pero un
+      usuario inexistente o inactivo deja la conversación creada a medias.
       _Según la revisión `security` L3 del 2026-09-28 (fichero y línea en el
       informe); no repasado por mí._
 - [ ] **Mensajería: avisos urgentes sin límite** — solo el límite global de 300
@@ -418,14 +313,10 @@ hace que alguien reimplemente lo que ya existe.
       `updated_by = 'system-cron'`, que es clave foránea a `users`, y ese
       usuario no existe en Aiven (0 facturas pagadas por el cron). Además el
       pago en lote no va en una transacción. _Comprobado por mí el 2026-09-28._
-- [ ] **Cualquier rol lanza a mano la generación de notificaciones** — la ruta
-      usa `canViewGroups` (incluye `mantenimiento`); sin clave única, varias
-      peticiones a la vez crean avisos duplicados. _Según la revisión `security`
-      L3 del 2026-09-28 (fichero y línea en el informe); no repasado por mí._
-- [ ] **`direct_link` de las notificaciones admite cualquier URL** — un `admin`
-      puede enviar un aviso que, al pulsarlo, lleva a una web externa. _Según la
-      revisión `security` L3 del 2026-09-28 (fichero y línea en el informe); no
-      repasado por mí._
+- [ ] **La generación manual de notificaciones crea avisos duplicados** con
+      varias peticiones a la vez: no hay clave única. (Desde el 2026-10-02 solo
+      la lanzan admin y group-admin.) _Según la revisión `security` L3 del
+      2026-09-28; no repasado por mí._
 - [ ] **Cabeceras del frontend en producción incompletas para L3** — Vercel
       sirve HSTS, `X-Frame-Options`, `nosniff`, `Referrer-Policy` y
       `Permissions-Policy`, pero no CSP ni `Cross-Origin-Opener-Policy`; HSTS
@@ -455,11 +346,6 @@ hace que alguien reimplemente lo que ya existe.
       pasa a cualquier otro y un parte cerrado se reabre por la API. Cancelar se
       registra en el historial como «cerrado». _Comprobado por mí el
       2026-09-28._
-- [ ] **Maintenance: partes borrados visibles y modificables** —
-      `include_deleted` funciona para cualquier rol (la pantalla lo presenta
-      como solo de administración), el detalle, las fotos y el historial de un
-      parte borrado se leen, y se le pueden añadir notas y fotos. _Comprobado
-      por mí el 2026-09-28._ (escrituras, según el revisor)
 - [ ] **Maintenance: fotos públicas y que no se borran** — Cloudinary las sirve
       sin firmar, con un `public_id` predecible; el borrado lógico no las toca,
       `auto_delete_on_close` se guarda pero nadie lo usa, y subir o borrar fotos
@@ -480,11 +366,10 @@ hace que alguien reimplemente lo que ya existe.
       y `group_history` tiene `ON DELETE CASCADE`; ninguna mutación va en
       transacción con su registro. _Comprobado por mí el 2026-09-28._
       (transacciones, según el revisor)
-- [ ] **Notificaciones manuales: destinatarios y textos sin validar** —
-      cualquier id de usuario (inactivos incluidos), prioridad sin comprobar,
-      título y mensaje sin límite; los errores devuelven el mensaje de MySQL.
-      _Según la revisión `security` L3 del 2026-09-28 (fichero y línea en el
-      informe); no repasado por mí._
+- [ ] **Notificaciones manuales: se pueden enviar a usuarios inactivos** — el
+      formato, los repetidos, la prioridad y los textos ya se validan; que el
+      usuario exista y esté activo, no. _Según la revisión `security` L3 del
+      2026-09-28 (fichero y línea en el informe); no repasado por mí._
 
 - [ ] **Scheduling: generar un mes deja vacías las celdas de días fijos y
       solicitudes aprobadas** — el solver las recibe como bloqueadas, la
@@ -508,26 +393,12 @@ hace que alguien reimplemente lo que ya existe.
       busca en paralelo: dos ejecuciones del mismo mes pueden dar horarios
       distintos. Decidir si se fija semilla y un solo hilo. _Comprobado por mí
       el 2026-09-28._
-- [ ] **Corregir los `AGENTS.md` de scheduling** — `PI` es «Personal
-      Intervención» y `FO` «Formación» (no «Internal Support» ni «Day Off»); los
-      pesos no están reflejados entre validador y solver (12 claves frente a 4,
-      solo coincide `min_work_block_short`). _Comprobado por mí el 2026-09-28._
-
 - [ ] **Checklist: el reinicio manual no funciona** — `resetRun` cierra el run y
       crea otro del mismo día, pero la clave única
       `uk_run (hotel_id,     checklist_id, hotel_date)` lo impide: 500. Después
       `getOrCreateRun` devuelve el run cerrado y los cambios del día se escriben
       en él. Sin transacción ni test. En Aiven nadie lo ha usado (0 cierres
       manuales). _Comprobado por mí el 2026-09-28._
-- [ ] **Checklist: subida de imágenes sin límite de tamaño en multer** — el
-      fichero entero se carga en memoria antes de comprobar los 5 MB: en el plan
-      gratuito de Render puede agotar la memoria. _Comprobado por mí el
-      2026-09-28._
-- [ ] **Checklist: `:id` sin validar** — el backend lee
-      `<carpeta de tareas>/<id>.json` con el id decodificado (path traversal
-      limitado a ficheros `.json`, sin devolver su contenido), y cualquier id
-      inventado crea una fila en `checklist_runs`. _Según la revisión `security`
-      L3 del 2026-09-28 (fichero y línea en el informe); no repasado por mí._
 - [ ] **Checklist: borrar comentarios e imágenes de días cerrados** — el autor
       puede reescribir el histórico, y el evento se registra en el run de hoy y
       como si fuera una alta. _Según la revisión `security` L3 del 2026-09-28
@@ -542,10 +413,6 @@ hace que alguien reimplemente lo que ya existe.
       `GET /shifts/:id/history`, `/daily` y `/vouchers/stats`. _Según la
       revisión `security` L3 del 2026-09-28 (fichero y línea en el informe); no
       repasado por mí._
-- [ ] **Corregir el `AGENTS.md` de cashier** — dice que hay validación Zod (no
-      se usa) y que el trigger mantiene bien los totales (los infla).
-      _Comprobado por mí el 2026-09-28._
-
 - [ ] **Backoffice: borrar una factura borra también su historial** — borrado
       definitivo, con las columnas de borrado lógico sin usar. _Comprobado por
       mí el 2026-09-28._
@@ -557,39 +424,11 @@ hace que alguien reimplemente lo que ya existe.
       facturas duplicadas (sin UNIQUE por proveedor y número) y `paid_date`
       libre. _Según la revisión `security` L3 del 2026-09-28 (fichero y línea en
       el informe); no repasado por mí._
-- [ ] **Backoffice: inyección de fórmulas en la exportación CSV** de facturas
-      pagadas. _Según la revisión `security` L3 del 2026-09-28 (fichero y línea
-      en el informe); no repasado por mí._
 - [ ] **Backoffice: subidas y descargas sin comprobar contenido ni tamaño** —
       solo el tipo declarado por el navegador; las descargas del ZIP no tienen
       límite de tamaño y siguen redirecciones. _Según la revisión `security` L3
       del 2026-09-28 (fichero y línea en el informe); no repasado por mí._
 
-- [ ] **Blacklist: el tipo de imagen solo se valida por el mimetype que declara
-      el cliente** — sin comprobar los bytes reales del fichero antes de subirlo
-      a Cloudinary. _Según la revisión `security` L3 del 2026-09-28 (fichero y
-      línea en el informe); no repasado por mí._
-- [ ] **Blacklist: el array `images` acepta cualquier URL** — el esquema solo
-      valida que sea una URL, no que venga del `uploadImage` del propio módulo;
-      se puede guardar como «foto» cualquier enlace externo. _Según la revisión
-      `security` L3 del 2026-09-28 (fichero y línea en el informe); no repasado
-      por mí._
-- [ ] **Corregir el `AGENTS.md` de blacklist** — el esquema real usa
-      `guest_name` (no `name`), `comments` (no `description`), y tiene dos
-      columnas que el documento no menciona (`check_in_date`/`check_out_date` y
-      `severity`); el borrado usa `status` ACTIVE/DELETED, no un booleano
-      `is_deleted`, y el filtro es `status=ALL`, no `includeDeleted`.
-      _Comprobado por mí el 2026-09-28._
-
-- [ ] **Conciliation: sin validación Zod, a diferencia del resto del proyecto**
-      — no existe `backend/validations/conciliation/`. Se acepta `value`
-      negativo o fuera de rango, y `date` sin comprobar el formato, antes de
-      llegar al repositorio. _Comprobado por mí el 2026-09-28._
-- [ ] **Conciliation: un `reason` que no sea uno de los válidos falla en
-      silencio** — el `UPDATE ... WHERE reason = ?` no encuentra fila y no
-      avisa; el usuario cree que guardó el ajuste y se pierde. _Según la
-      revisión `security` L3 del 2026-09-28 (fichero y línea en el informe); no
-      repasado por mí._
 - [ ] **Conciliation: el cierre mensual tiene una carrera** — la validación
       (lectura) y el cambio de estado (escritura) no comparten transacción ni
       bloqueo; dos administradores cerrando días distintos del mismo mes a la
@@ -598,72 +437,33 @@ hace que alguien reimplemente lo que ya existe.
 
 ## 🟢 Baja
 
+- [ ] **Retirar el rol `demo-admin`** — el usuario demo está deshabilitado
+      (según el dueño, 2026-10-02; no comprobado en la BD), pero el rol sigue en los
+      middlewares de `roleCheck.ts`, en `demoRestriction`, en las rutas `/demo`
+      y en el frontend (`isAdminRole`). Las reglas añadidas el 2026-10-02 ya no
+      lo incluyen. Decidir si se quita del todo.
 - [ ] **Conciliation: `GET /api/conciliations` sin paginar ni filtrar** —
       devuelve todo el histórico a cualquier rol con acceso. _Según la revisión
       `security` L3 del 2026-09-28 (fichero y línea en el informe); no repasado
       por mí._
-- [ ] **Conciliation: comentario de código muerto en el controlador mensual**
-      que sugiere una comprobación de admin que ya hace la ruta; quitarlo para
-      no confundir en un futuro refactor. _Según la revisión `security` L3 del
-      2026-09-28 (fichero y línea en el informe); no repasado por mí._
-- [ ] **Blacklist: filtro `created_by` sin restricción** — permite listar o
-      filtrar por cualquier usuario creador, exponiendo patrones de uso por
-      operador. _Según la revisión `security` L3 del 2026-09-28 (fichero y línea
-      en el informe); no repasado por mí._
-- [ ] **Blacklist: resaltado de búsqueda con `dangerouslySetInnerHTML`** — hoy
-      no explotable porque el backend restringe `guest_name`/`document_number`
-      con regex, pero es frágil: si se relaja esa validación o se resalta texto
-      libre (`reason`/`comments`), se abre XSS. _Según la revisión `security` L3
-      del 2026-09-28 (fichero y línea en el informe); no repasado por mí._
-- [ ] **Fnb: `console.log` sin pasar por el logger del proyecto** — el
-      controlador de subida (`backend/controllers/fnb/fnb-upload.controller.ts`)
-      usa `console.log` directo en vez de `backend/config/logger.ts`; hoy solo
-      registra nombre/tamaño/mimetype, pero al no pasar por el logger
-      documentado, cualquier dato que se añada ahí en el futuro escapa al
-      pipeline de logs del resto de la app. _Comprobado por mí el 2026-09-28._
-- [ ] **Backoffice: notas `IMPORTANT-PRODUCTION.MD` obsoletas** en
-      `frontend/app/components/bo/`: hablan de datos inventados que ya no se
-      usan. _Comprobado por mí el 2026-09-28._ Quitar también ese código:
-      `USE_MOCK_DATA` y `MOCK_INVOICES` en `PaidInvoicesTab.tsx` y
-      `_generateMockInvoices` en `SupplierInvoicesModal.tsx`.
 - [ ] **Backoffice: `demo-admin` ve IBAN, CIF y datos de contacto completos** de
       los proveedores. _Según la revisión `security` L3 del 2026-09-28 (fichero
       y línea en el informe); no repasado por mí._
-- [ ] **Corregir el `AGENTS.md` de backoffice** — los activos son el sello y la
-      firma (no imágenes de proveedores), hay PDF original y validado, el
-      borrado es definitivo y la máquina de estados no se aplica. _Comprobado
-      por mí el 2026-09-28._
-- [ ] **Cashier: la exportación a PDF puede romperse con emojis** en los textos
-      (Helvetica estándar). _Sin comprobar en ejecución._
-- [ ] **Checklist: comentarios e imágenes no comprueban que el paso exista**
-      (solo marcar lo hace). _Comprobado por mí el 2026-09-28._
 - [ ] **Checklist: `checklist_config` existe pero no se usa.** _Comprobado por
       mí el 2026-09-28._
-- [ ] **Checklist: fechas de `/history` sin validar** (un parámetro repetido da
-      500), respuestas con campos internos (`user_id`, `public_id`) y
-      `checklist-report.ts` imprime los comentarios sin filtrar caracteres de
-      control. _Según la revisión `security` L3 del 2026-09-28 (fichero y línea
-      en el informe); no repasado por mí._
-- [ ] **Corregir el `AGENTS.md` de checklist** — la validación de pasos está al
-      revés (se valida al marcar, no en comentarios ni imágenes) y las tablas se
-      llaman `checklist_step_comments` y `checklist_step_attachments`.
-      _Comprobado por mí el 2026-09-28._
 - [ ] **Scheduling: reiniciar un mes no usa transacción** — si falla a mitad, el
       mes queda vacío. _Comprobado por mí el 2026-09-28._
 - [ ] **Scheduling: comprobar si `LI` debe contar como descanso en el solver** —
       falta en `REST_SHIFTS` de `rest.py`. _Sin comprobar su efecto._
-- [ ] **Scheduling: validación incompleta** — ediciones masivas sin límite de
-      tamaño, listas de empleados validadas a mano, `day_id` de otro mes
-      aceptado y comprobación de bloqueo fuera de transacción. _Según la
-      revisión `security` L3 del 2026-09-28 (fichero y línea en el informe); no
-      repasado por mí._
+- [ ] **Scheduling: `day_id` de otro mes aceptado** y comprobación de bloqueo
+      fuera de transacción en las ediciones masivas. El tamaño de las listas y
+      los ids de empleado ya se validan (2026-10-02). _Según la revisión
+      `security` L3 del 2026-09-28 (fichero y línea en el informe); no repasado
+      por mí._
 - [ ] **Scheduling: el daemon del solver puede quedar bloqueado** — el semáforo
       se retiene durante el arranque (hasta 30 min) con cola sin límite. _Según
       la revisión `security` L3 del 2026-09-28 (fichero y línea en el informe);
       no repasado por mí._
-- [ ] **Scheduling: errores del solver y del arranque devueltos al cliente.**
-      _Según la revisión `security` L3 del 2026-09-28 (fichero y línea en el
-      informe); no repasado por mí._
 - [ ] **Importador del Excel** — borra también las celdas bloqueadas, sin
       transacción ni comprobar si el mes está publicado. _Según la revisión
       `security` L3 del 2026-09-28 (fichero y línea en el informe); no repasado
@@ -687,71 +487,32 @@ hace que alguien reimplemente lo que ya existe.
       servidor; a partir del parte 1000 del día el id no cumple el formato y el
       parte queda inaccesible. _Comprobado por mí el 2026-09-28._ (el límite de
       1000, según el revisor)
-- [ ] **Maintenance: validación incompleta** — textos largos sin `.max()`
-      (descripción, notas) que acaban en 500, `deleteImage` sin validar
-      parámetros y el límite de 5 fotos se salta subiendo en paralelo. _Según la
-      revisión `security` L3 del 2026-09-28 (fichero y línea en el informe); no
-      repasado por mí._
-- [ ] **Maintenance: `public_id` con el nombre original sin sanear.** _Según la
-      revisión `security` L3 del 2026-09-28 (fichero y línea en el informe); no
-      repasado por mí._
-- [ ] **Informes: la sección de mantenimiento filtra por estados que no
-      existen** — `MaintenanceSection.tsx` envía `pending` y `resolved`, que el
-      backend rechaza. _Según la revisión `security` L3 del 2026-09-28 (fichero
-      y línea en el informe); no repasado por mí._
+- [ ] **Maintenance: el límite de 5 fotos se salta subiendo en paralelo** —
+      se cuenta antes de subir, sin bloqueo. _Según la revisión `security` L3
+      del 2026-09-28 (fichero y línea en el informe); no repasado por mí._
 - [ ] **Maintenance: comprobar si Cloudinary quita los metadatos EXIF/GPS** de
       las fotos. _Sin comprobar._
-- [ ] **El API no envía `Cache-Control: no-store`** — afecta a lista negra, caja
-      y PDFs de facturas. _Comprobado con `curl` el 2026-09-28._
-- [ ] **El controlador de notificaciones devuelve `error.message` de MySQL** al
-      cliente. _Según la revisión `security` L3 del 2026-09-28 (fichero y línea
-      en el informe); no repasado por mí._
-- [ ] **Ids sin codificar en las URL de `blacklistApi.ts`** (informativo).
-      _Según la revisión `security` L3 del 2026-09-28 (fichero y línea en el
-      informe); no repasado por mí._
 - [ ] **Procedimientos de BD sin uso** — de las 2 funciones y 5 procedimientos
       de parking, el código solo llama a `check_availability`; el resto
       (incluido `generate_availability`, que amplía el calendario) no los usa
       nadie. _Comprobado por mí el 2026-09-28._
-- [ ] **Certificado de Aiven duplicado** — en `backend/db-mysql/aiven/` y en
-      `backend/config/certs/`. _Comprobado por mí el 2026-09-28._
 - [ ] **Datos sensibles en los logs** — usernames de logins fallidos, `redact`
       de un solo nivel y, probablemente, `err.sql` de mysql2 con los valores
       (textos, matrículas, hashes). _Según la revisión `security` L3 del
       2026-09-28 (fichero y línea en el informe); no repasado por mí._ No
       verificado en ejecución.
-- [ ] **Parking: `listAvailableSpots` devuelve el mensaje de error de MySQL** al
-      cliente. _Según la revisión `security` L3 del 2026-09-28 (fichero y línea
-      en el informe); no repasado por mí._
-- [ ] **Parking: cambiar solo la planta puede mover la reserva a otra plaza** —
-      usa el id de la plaza como número. _Según la revisión `security` L3 del
-      2026-09-28 (fichero y línea en el informe); no repasado por mí._
-- [ ] **Logbook: comentarios borrados que se pueden editar y volver a borrar**,
-      y un historial que registra cada comentario dos veces y cada lectura sin
-      límite. _Según la revisión `security` L3 del 2026-09-28 (fichero y línea
-      en el informe); no repasado por mí._
-- [ ] **Mensajería: `limit` sin validar, `LIKE` sin escapar y fallo de la
-      búsqueda FULLTEXT silenciado.** _Según la revisión `security` L3 del
-      2026-09-28 (fichero y línea en el informe); no repasado por mí._
+- [ ] **Logbook: el historial registra cada comentario dos veces y cada
+      lectura sin límite.** (Editar o volver a borrar un comentario borrado ya
+      no es posible desde el 2026-10-02.) _Según la revisión `security` L3 del
+      2026-09-28; no repasado por mí._
 - [ ] **Registrar decisiones de autorización** — ni los 403 ni los accesos de un
       `admin` a conversaciones ajenas quedan en el log (ASVS L3). _Según la
       revisión `security` L3 del 2026-09-28 (fichero y línea en el informe); no
       repasado por mí._
-- [ ] **Parking: código sin uso** — los 4 endpoints de
-      `/api/parking/stats/analytics` no los llama la interfaz; `getOccupancy`
-      (`frontend/app/lib/parking/queries.ts`) apunta a `/stats/occupancy`, que
-      no existe, y nadie la llama;
-      `backend/services/parking/invoicePdfService.ts` está entero comentado.
 - [ ] **Parking: salto de precio a partir de 31 días** — las tarifas llegan a 30
       días (250 € en Aiven); a partir de 31 se cobran 15 €/día (465 €).
 - [ ] **Parking: el mapa de estado no se refresca solo** — los cambios de otro
       usuario no aparecen hasta recargar.
-- [ ] **Logbook: editar una entrada ajena devuelve 500** — el servicio lanza un
-      `Error` genérico y el controlador responde `500` en vez de `403`.
-- [ ] **Logbook: comprobación de `isAdmin` que nunca se cumple** — los
-      controladores de comentarios leen `req.user.isAdmin`, que
-      `authenticateToken` no rellena. Quitarla o decidir si el `admin` puede
-      editar comentarios ajenos.
 - [ ] **Logbook: papelera y filtros sin interfaz** — `/trashed`, `/author`,
       `/department` y `/priority` existen en el backend y en `queries.ts`, pero
       la pantalla del módulo no los usa (Informes usa `/all` con filtros).
@@ -768,24 +529,6 @@ hace que alguien reimplemente lo que ya existe.
 - [ ] **Mensajería sin tiempo real** — los mensajes nuevos solo aparecen al
       reabrir la conversación. Valorar un sondeo periódico como el de las
       notificaciones. _Comprobado el 2026-09-28: no hay intervalo ni WebSocket._
-- [ ] **Notificaciones de mensajes con `module: 'system'`** — el enum de
-      notificaciones no incluye `messages` y el controlador lo fuerza con
-      `as any` (`backend/controllers/messages/message-controller.ts`).
-- [ ] **Quitar código muerto** (en un `chore:` aparte) —
-      `backend/services/group/email-service.ts` (nadie lo importa);
-      `frontend/app/api/auth/{login,logout,me,refresh}` y
-      `_backup_httponly_cookies/`, más `frontend/app/lib/auth/cookieHandler.ts`
-      (solo se usa `app/api/auth/register`); `app.set('view engine', 'ejs')` en
-      `backend/index.ts`, sin `ejs` instalado. _Comprobado el 2026-09-28 con
-      búsqueda de imports._ Además: las dependencias del frontend `mysql2`,
-      `postgres`, `bcrypt` y `next-auth`, que nada importa; y los
-      `backend/debug-*.js`, con ids de mes fijos (`debug-sept.js` sale tras
-      listar los meses): arreglarlos o quitarlos, y con ellos su mención en
-      `backend/scheduling-solver/AGENTS.md`. _Comprobado el 2026-09-28._
-- [ ] **`backend/tests/README.md` está desfasado** — describe suites que ya no
-      existen (`phases.test.ts`, `ai-validator.test.ts`…). Reescribirlo en dos
-      líneas o borrarlo: cómo lanzar los tests ya está en
-      `docs/general/README.md`.
 - [ ] **Zod 3 en el frontend y Zod 4 en el backend** (`^3.25.17` frente a
       `4.0.5`) — unificar si se llegan a compartir esquemas.
 - [ ] **Presencias a mano** — la pestaña de presencias de `scheduling` pide
@@ -793,9 +536,6 @@ hace que alguien reimplemente lo que ya existe.
       `scheduling_assignments`.
 - [ ] **Proteger o quitar `/design-system` y `/fonts-test`** — son páginas de
       prueba y `proxy.ts` no las protege.
-- [ ] **Corregir el comentario de `canAccessFnb`**
-      (`backend/middlewares/roleCheck.ts`) — no menciona `group-admin`, que sí
-      tiene acceso.
 - [ ] **Tests en el frontend** — hoy no hay ninguno.
 - [ ] **Scheduling: cerrar la fase 3 del solver con uso real** — bloqueado hasta
       que se generen meses de verdad. (1) Con ≥30 generaciones en

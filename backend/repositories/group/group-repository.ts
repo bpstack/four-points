@@ -22,8 +22,9 @@ import {
   GroupStatus,
 } from '../../models/group/index'
 import { ResultSetHeader } from 'mysql2'
-import { buildSetClause } from './update-columns.js'
+import { buildSetClause } from '../shared/update-columns.js'
 import { GROUP_SORT_FIELDS } from '../../validations/group/group-schemas.js'
+import { likeContains } from '../shared/like.js'
 
 export class GroupRepository {
   /**
@@ -70,7 +71,7 @@ export class GroupRepository {
 
     if (filters.agency) {
       query += ` AND g.agency LIKE ?`
-      params.push(`%${filters.agency}%`)
+      params.push(likeContains(filters.agency))
     }
 
     // Interpolated into SQL: only allow-listed values

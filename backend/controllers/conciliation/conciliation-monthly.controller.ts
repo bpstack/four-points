@@ -142,14 +142,7 @@ export async function updateMonthlySummaryStatus(req: Request, res: Response): P
       return
     }
 
-    // // Solo admin puede cerrar
-    // if (status === 'closed' && userRole !== 'admin') {
-    //   res.status(403).json({
-    //     error: 'Solo administradores pueden cerrar resúmenes mensuales',
-    //   })
-    //   return
-    // }
-
+    // Only admins reach this handler: the route uses isAdmin
     // Actualizar status (valida automáticamente si es 'closed')
     await conciliationMonthlyRepo.updateMonthlySummaryStatus(year, month, status, userId)
 

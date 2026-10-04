@@ -421,7 +421,11 @@ export function DailyRevenueTab() {
     staleTime: 60_000,
   })
 
-  const { mutate: doManual, isPending: savingManual } = useMutation<UploadResponse, Error, ManualEntryPayload>({
+  const { mutate: doManual, isPending: savingManual } = useMutation<
+    UploadResponse,
+    Error,
+    ManualEntryPayload
+  >({
     mutationFn: saveManualEntry,
     onSuccess: (result) => {
       qc.invalidateQueries({ queryKey: ['fnb-monthly'] })
@@ -473,21 +477,21 @@ export function DailyRevenueTab() {
   const lineData = rows.map((r) => ({
     day: dayLabel(r.date),
     breakfast: r.breakfast_total,
-    laCaseta:  r.la_caseta_total,
-    fnb:       r.fnb_total,
+    laCaseta: r.la_caseta_total,
+    fnb: r.fnb_total,
   }))
 
   const pieData = [
     { name: t('groups.breakfast'), value: totBreakfast },
-    { name: t('groups.lunch'),     value: r2(rows.reduce((s, r) => s + r.lunch_total, 0)) },
-    { name: t('groups.dinner'),    value: r2(rows.reduce((s, r) => s + r.dinner_total, 0)) },
+    { name: t('groups.lunch'), value: r2(rows.reduce((s, r) => s + r.lunch_total, 0)) },
+    { name: t('groups.dinner'), value: r2(rows.reduce((s, r) => s + r.dinner_total, 0)) },
   ].filter((d) => d.value > 0)
 
   const barData = rows.map((r) => ({
     day: dayLabel(r.date),
     breakfast: r.breakfast_total,
-    lunch:     r.lunch_total,
-    dinner:    r.dinner_total,
+    lunch: r.lunch_total,
+    dinner: r.dinner_total,
   }))
 
   // ── Month selector ──

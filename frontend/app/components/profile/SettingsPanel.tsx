@@ -14,7 +14,7 @@ import { notificationsApi } from '@/app/lib/groups'
 import { departmentsApi } from '@/app/lib/departments'
 import { formatDepartmentName } from '@/app/lib/logbooks/hooks/useDepartments'
 import { cn } from '@/app/lib/helpers/utils'
-import { isAdminRole } from '@/app/lib/helpers/utils'
+import { canRunNotificationCheckRole, isAdminRole } from '@/app/lib/helpers/utils'
 import { toast } from 'react-hot-toast'
 import {
   FiUsers,
@@ -1001,6 +1001,10 @@ function UserTable({ users, onDelete }: { users: User[]; onDelete: (id: string) 
 
 function NotificationsSettings() {
   const t = useTranslations('profile.settings.notifications')
+  const { user } = useAuth()
+  // Same roles as the backend routes: POST / is isAdmin, check-pending canRunNotificationCheck
+  const canCreate = isAdminRole(user?.role)
+  const canCheckPending = canRunNotificationCheckRole(user?.role)
   const [checkingNotifications, setCheckingNotifications] = useState(false)
   const [notificationResult, setNotificationResult] = useState<{
     type: 'success' | 'error'
@@ -1040,13 +1044,15 @@ function NotificationsSettings() {
               <h3 className="text-sm font-semibold text-fg">{t('title')}</h3>
               <p className="text-xs text-fg-subtle mt-0.5">{t('subtitle')}</p>
             </div>
-            <button
-              onClick={() => setIsNotificationModalOpen(true)}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-accent-fg bg-accent hover:bg-accent-hover rounded-lg transition-colors"
-            >
-              <FiPlus className="w-3.5 h-3.5" />
-              {t('createNotification')}
-            </button>
+            {canCreate && (
+              <button
+                onClick={() => setIsNotificationModalOpen(true)}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-accent-fg bg-accent hover:bg-accent-hover rounded-lg transition-colors"
+              >
+                <FiPlus className="w-3.5 h-3.5" />
+                {t('createNotification')}
+              </button>
+            )}
           </div>
         </div>
         <div className="p-4 space-y-3">
@@ -1058,16 +1064,18 @@ function NotificationsSettings() {
                 <p className="text-sm font-medium text-fg">{t('pushNotifications')}</p>
                 <p className="text-xs text-fg-subtle">{t('pushDesc')}</p>
               </div>
-              <button
-                onClick={handleCheckNotifications}
-                disabled={checkingNotifications}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-accent-fg bg-accent hover:bg-accent-hover disabled:opacity-60 rounded-lg transition-colors"
-              >
-                <FiRefreshCw
-                  className={cn('w-3.5 h-3.5', checkingNotifications && 'animate-spin')}
-                />
-                {checkingNotifications ? t('checking') : t('pushNotifications')}
-              </button>
+              {canCheckPending && (
+                <button
+                  onClick={handleCheckNotifications}
+                  disabled={checkingNotifications}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-accent-fg bg-accent hover:bg-accent-hover disabled:opacity-60 rounded-lg transition-colors"
+                >
+                  <FiRefreshCw
+                    className={cn('w-3.5 h-3.5', checkingNotifications && 'animate-spin')}
+                  />
+                  {checkingNotifications ? t('checking') : t('pushNotifications')}
+                </button>
+              )}
             </div>
             {notificationResult && (
               <div

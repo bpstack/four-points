@@ -1,7 +1,7 @@
 // app/lib/schemas/group-schemas.ts
 
 import { z } from 'zod'
-import { RoomType, RoomingStatus, BalanceStatus, GroupStatus } from '@/app/lib/groups'
+import { RoomType, RoomingStatus, GroupStatus } from '@/app/lib/groups'
 
 // ========================================
 // PAYMENT SCHEMAS
@@ -55,14 +55,6 @@ export type PaymentFormData = z.infer<typeof paymentSchema>
 // ========================================
 // QUICK UPDATE SCHEMAS
 // ========================================
-
-export const updatePaymentStatusSchema = z.object({
-  status: z.enum(['pending', 'requested', 'partial', 'paid']),
-})
-
-export const updateAmountPaidSchema = z.object({
-  amount_paid: z.number().min(0, 'El monto no puede ser negativo'),
-})
 
 // ========================================
 // CONTACT SCHEMAS
@@ -163,16 +155,9 @@ export const roomingSchema = z
     }
   )
 
-export const balanceSchema = z.object({
-  balance_status: z.nativeEnum(BalanceStatus),
-  balance_requested_date: z.string().optional(),
-  balance_paid_date: z.string().optional(),
-})
-
 export type BookingFormData = z.infer<typeof bookingSchema>
 export type ContractFormData = z.infer<typeof contractSchema>
 export type RoomingFormData = z.infer<typeof roomingSchema>
-export type BalanceFormData = z.infer<typeof balanceSchema>
 
 // ========================================
 // GROUP SCHEMAS

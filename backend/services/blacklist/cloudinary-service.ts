@@ -5,6 +5,7 @@
 
 import { v2 as cloudinary } from 'cloudinary'
 import { logger } from '../../config/logger.js'
+import { safePublicName } from '../uploads/cloudinary-url.js'
 
 // Flag para evitar configurar múltiples veces
 let isConfigured = false
@@ -71,7 +72,7 @@ export class CloudinaryService {
         {
           folder: folder,
           resource_type: 'image',
-          public_id: `${folder}_${Date.now()}_${filename.split('.')[0]}`,
+          public_id: `${folder}_${Date.now()}_${safePublicName(filename)}`,
           transformation: [
             { width: 1200, height: 1200, crop: 'limit' }, // Limitar tamaño máximo
             { quality: 'auto:good' }, // Optimizar calidad
@@ -124,7 +125,7 @@ export class CloudinaryService {
         {
           folder: folder,
           resource_type: 'image',
-          public_id: `avatar_${Date.now()}_${filename.split('.')[0]}`,
+          public_id: `avatar_${Date.now()}_${safePublicName(filename)}`,
           transformation: [
             { width: 400, height: 400, crop: 'fill', gravity: 'face' }, // Cuadrado, centrado en cara
             { quality: 95 }, // Alta calidad

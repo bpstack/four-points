@@ -222,7 +222,8 @@ export default function DateSpotStep({ state, actions }: DateSpotStepProps) {
                     {t('dates.spotNumber', { number: spot.spot_number })}
                   </div>
                   <div className="text-xs text-fg-muted capitalize mt-1 hidden sm:block">
-                    {tParking(`spotTypes.${spot.spot_type}` as Parameters<typeof tParking>[0]) || spot.spot_type.replace('_', ' ')}
+                    {tParking(`spotTypes.${spot.spot_type}` as Parameters<typeof tParking>[0]) ||
+                      spot.spot_type.replace('_', ' ')}
                   </div>
                 </button>
               ))}

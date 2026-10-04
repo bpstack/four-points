@@ -247,7 +247,12 @@ export default function GroupsSection() {
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-2">
-                        <span className={cn('px-2 py-0.5 rounded-full text-xs font-medium', statusColor)}>
+                        <span
+                          className={cn(
+                            'px-2 py-0.5 rounded-full text-xs font-medium',
+                            statusColor
+                          )}
+                        >
                           {statusLabel}
                         </span>
                         <span className="text-xs text-gray-400 font-mono">#{group.id}</span>
@@ -261,7 +266,8 @@ export default function GroupsSection() {
                       <div className="flex items-center gap-4 text-xs text-fg-subtle flex-wrap">
                         <span className="inline-flex items-center gap-1">
                           <FiCalendar className="w-3.5 h-3.5" />
-                          {formatReportDate(group.arrival_date)} — {formatReportDate(group.departure_date)}
+                          {formatReportDate(group.arrival_date)} —{' '}
+                          {formatReportDate(group.departure_date)}
                         </span>
                         {group.total_amount && (
                           <span className="inline-flex items-center gap-1">
@@ -319,7 +325,9 @@ export default function GroupsSection() {
                                 </span>
                               </div>
                               {entry.old_value && (
-                                <p className="text-gray-500 line-through truncate">{entry.old_value}</p>
+                                <p className="text-gray-500 line-through truncate">
+                                  {entry.old_value}
+                                </p>
                               )}
                               {entry.new_value && (
                                 <p className="text-fg truncate">{entry.new_value}</p>

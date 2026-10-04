@@ -8,8 +8,8 @@
 
 Internal expense management for the hotel: suppliers are organised by category,
 each supplier has invoices (with PDF attachments) that flow through a validation
-→ payment lifecycle, and assets (images) can be attached to suppliers. The
-module is **admin-only**. Stats and monthly summaries provide spending
+→ payment lifecycle, and the hotel's stamp and signature images (assets) are
+stored to mark validated invoices. The module is **admin-only**. Stats and monthly summaries provide spending
 visibility. A batch-pay endpoint marks multiple validated invoices as paid in a
 single operation.
 
@@ -20,11 +20,13 @@ single operation.
 - **`bo_suppliers`**: Suppliers: name, category, contact info, active/inactive
   status
 - **`bo_invoices`**: Invoices: amount, due date, status
-  (`pending→validated/rejected→paid`), optional PDF in Cloudinary
+  (`pending`/`validated`/`rejected`/`paid`), and two PDFs in Cloudinary: the
+  original (`original_pdf_url`, `original_pdf_public_id`) and the stamped copy
+  (`validated_pdf_url`, `validated_pdf_public_id`)
 - **`bo_invoice_history`**: Audit log of invoice status changes (who validated,
   rejected, paid + notes)
-- **`bo_assets`**: Images attached to suppliers (stored in Cloudinary). One can
-  be marked as default.
+- **`bo_assets`**: The hotel's stamp and signature images (`type` ENUM
+  `stamp`/`signature`, stored in Cloudinary). One per type can be the default.
 
 **SQL views** (frozen in `16_backoffice.sql`):
 
@@ -70,6 +72,10 @@ validated → paid    (isRealAdmin)    via markAsPaid or executeBatchPayment
 validated → unvalidated (isRealAdmin)  back to pending for correction
 ```
 
+⚠️ This is the intended flow, **not enforced**: the backend does not check the
+current status, so a pending or rejected invoice can be paid and a paid one
+validated (see `docs/TODO.md`).
+
 Every status change creates a row in `bo_invoice_history` with `changed_by`,
 `old_status`, `new_status`, and `notes`.
 
@@ -78,12 +84,19 @@ Every status change creates a row in `bo_invoice_history` with `changed_by`,
 PDFs are uploaded to **Cloudinary** (not the server filesystem).
 `uploadInvoicePdf` uses `multer` (`upload.single('pdf')`) as middleware to
 receive the file, then streams it to Cloudinary via `CloudinaryService`. The
-Cloudinary URL is stored in `bo_invoices.pdf_url` and the public ID in
-`bo_invoices.pdf_public_id`.
+`?type=original|validated` chooses the pair of columns: `original_pdf_url` /
+`original_pdf_public_id` or `validated_pdf_url` / `validated_pdf_public_id`.
+Replacing a PDF deletes the previous file (only ids inside
+`backoffice/invoices/`).
 
 `downloadInvoicePdf` fetches the PDF from Cloudinary via `axios` and streams it
 to the response with `Content-Type: application/pdf`. This avoids storing the
-PDF on the server.
+PDF on the server. Only URLs of our own cloud are fetched
+(`isOwnCloudinaryUrl`); any other stored URL answers 422.
+
+**Deleting an invoice is a hard delete**: it removes its PDFs from Cloudinary,
+its `bo_invoice_history` rows and the invoice row. The `deleted_at` columns are
+not used.
 
 `downloadValidatedInvoicesZip` downloads all validated invoices' PDFs from
 Cloudinary and bundles them into a ZIP using `archiver`, streamed directly to

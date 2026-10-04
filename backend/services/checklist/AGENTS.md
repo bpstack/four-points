@@ -16,8 +16,8 @@ that day's `run`.
 - `checklist_runs` — one "day" of the checklist (`checklist_id`, `hotel_date`,
   `reset_at`).
 - `checklist_step_state` — done/undone state per step of a run.
-- `checklist_comments` — comments per step.
-- `checklist_attachments` — per-step attachments (uploaded via Cloudinary).
+- `checklist_step_comments` — comments per step.
+- `checklist_step_attachments` — per-step attachments (uploaded via Cloudinary).
 - `checklist_event_log` — operational audit (check, uncheck, reset). **Purged
   weekly**, not long-term history.
 
@@ -47,8 +47,9 @@ directories. The mapping is done by `checklistIdToFilename(id)` in
 `services/checklist/checklist-content.ts`.
 
 **Backend helper:** `getValidStepIds(checklistId)` in `checklist-content.ts`
-returns the `Set<string>` of valid stepIds for a checklist, or `null` if the
-JSON is missing (fail-open: undocumented checklists are allowed). In-memory
+returns the `Set<string>` of valid stepIds for a checklist, or `null` if the id
+is malformed or the JSON is missing; `isKnownChecklist(id)` wraps it. A `null`
+means the checklist does not exist (404), see "Param validation". In-memory
 cached for the lifetime of the process — JSONs only change on deploy.
 
 **Current files (as of 2026-05-23):**
@@ -155,20 +156,22 @@ indexed UPDATE — so it runs before every `getRunState`.
 some point you need a longer history (compliance, KPIs), promote to a separate
 aggregated table — don't extend the retention on the raw table.
 
-### StepId validation flow
+### Param validation
+
+`validateChecklistParams(router)` (`backend/middlewares/checklistParams.ts`)
+checks every route before its handler runs, using the JSON definitions:
 
 ```
-POST /api/checklists/:id/steps/:stepId/comments
-   ↓
-addCommentController validates stepId with getValidStepIds(checklistId)
-   ↓
-  Set is null (checklist not in backend JSON) → fail-open, accept
-  Set exists and stepId NOT in it → 422
-  Set exists and stepId IS in it → continue to repo
+:id           unknown checklist (no JSON, or not "cl-word-word") → 404
+:stepId       not a step of that checklist                        → 400
+:commentId /
+:attachmentId not a positive integer                              → 400
 ```
 
-Same pattern on attachments. Toggle doesn't validate — stepIds come from the UI
-that renders from the same JSON, so the happy path doesn't need the belt.
+There is no fail-open any more: an invented checklist id used to create a row
+in `checklist_runs`, and comments and images were stored for steps that do not
+exist. Image uploads go through `singleImage('file')` (5 MB, JPG/PNG/WebP/GIF
+checked by their bytes).
 
 ## Endpoints
 

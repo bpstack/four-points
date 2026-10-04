@@ -5,24 +5,21 @@
  */
 
 import { Router } from 'express'
-import multer from 'multer'
 import { MaintenanceController } from '../../controllers/maintenance/maintenance-controller.js'
 import { authenticateToken } from '../../middlewares/authenticateToken.js'
+import { singleImage } from '../../middlewares/imageUpload.js'
+import { validateParams } from '../../middlewares/validateParams.js'
+import { MAINTENANCE_PARAM_RULES } from '../../validations/maintenance/schemas.js'
 import { canAccessMaintenance } from '../../middlewares/roleCheck.js'
 
 const router = Router()
 
-// Configurar multer para uploads en memoria
-const upload = multer({
-  storage: multer.memoryStorage(),
-  limits: {
-    fileSize: 5 * 1024 * 1024, // 5MB
-  },
-})
-
 // Aplicar autenticación y verificación de rol a todas las rutas
 router.use(authenticateToken)
 router.use(canAccessMaintenance)
+
+// Answer 400 for an invalid :id or :imageId before any controller runs
+validateParams(router, MAINTENANCE_PARAM_RULES)
 
 // ========================================
 // RUTAS DE REPORTES
@@ -132,7 +129,7 @@ router.get('/:id/images', MaintenanceController.getImages)
  * @access  Private
  * @file    image (multipart/form-data)
  */
-router.post('/:id/images', upload.single('image'), MaintenanceController.uploadImage)
+router.post('/:id/images', singleImage('image'), MaintenanceController.uploadImage)
 
 /**
  * @route   DELETE /api/maintenance/:id/images/:imageId

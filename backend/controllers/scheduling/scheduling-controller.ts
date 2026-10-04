@@ -13,6 +13,8 @@ import {
   bulkUpdateAssignmentsSchema,
   createConstraintSchema,
   updateConstraintSchema,
+  schedulableEmployeesSchema,
+  schedulableEmployeesOrderSchema,
   approveConstraintSchema,
   createEmployeeRuleSchema,
   updateEmployeeRuleSchema,
@@ -34,6 +36,7 @@ import type {
   AnnualTotalsResponse,
 } from '../../models/scheduling/index.js'
 import { logger } from '../../config/logger.js'
+import { isCalendarDate } from '../../validations/common/calendar-date.js'
 
 function isDateInRange(date: string, start: string, end: string): boolean {
   return date >= start && date <= end
@@ -1574,11 +1577,12 @@ export async function setSchedulableEmployeeDates(req: Request, res: Response): 
 
 export async function setSchedulableEmployeesOrder(req: Request, res: Response): Promise<void> {
   try {
-    const { orderedIds } = req.body
-    if (!Array.isArray(orderedIds) || orderedIds.some((id) => typeof id !== 'string')) {
-      res.status(400).json({ error: 'orderedIds must be an array of string IDs' })
+    const parsed = schedulableEmployeesOrderSchema.safeParse(req.body)
+    if (!parsed.success) {
+      res.status(400).json({ error: 'orderedIds must be an array of unique employee ids' })
       return
     }
+    const { orderedIds } = parsed.data
 
     await repo.setSchedulableEmployeesOrder(orderedIds)
     res.json({ success: true, message: 'Orden de empleados actualizado' })
@@ -1590,13 +1594,14 @@ export async function setSchedulableEmployeesOrder(req: Request, res: Response):
 
 export async function setSchedulableEmployees(req: Request, res: Response): Promise<void> {
   try {
-    const { employeeIds } = req.body
+    const parsed = schedulableEmployeesSchema.safeParse(req.body)
     const userId = req.user?.id
 
-    if (!Array.isArray(employeeIds)) {
-      res.status(400).json({ error: 'employeeIds debe ser un array' })
+    if (!parsed.success) {
+      res.status(400).json({ error: 'employeeIds debe ser una lista de empleados sin repetir' })
       return
     }
+    const { employeeIds } = parsed.data
 
     await repo.setSchedulableEmployees(employeeIds, userId)
     res.json({ success: true, message: `${employeeIds.length} empleados configurados` })
@@ -1840,8 +1845,7 @@ export async function initializeContractForEmployee(req: Request, res: Response)
 
     // Validate startDate format if provided
     if (startDate) {
-      const dateRegex = /^\d{4}-\d{2}-\d{2}$/
-      if (!dateRegex.test(startDate)) {
+      if (!isCalendarDate(startDate)) {
         res.status(400).json({ error: 'Formato de fecha inválido. Use YYYY-MM-DD' })
         return
       }
@@ -1904,8 +1908,7 @@ export async function calculateProportionalContract(req: Request, res: Response)
       return
     }
 
-    const dateRegex = /^\d{4}-\d{2}-\d{2}$/
-    if (!dateRegex.test(startDate)) {
+    if (!isCalendarDate(startDate)) {
       res.status(400).json({ error: 'Formato de fecha inválido. Use YYYY-MM-DD' })
       return
     }

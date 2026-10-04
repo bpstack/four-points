@@ -87,9 +87,7 @@ export function SelectDropdown<T extends string | number>({
 
   return (
     <div ref={containerRef} className={`relative ${className}`}>
-      {label && (
-        <label className="block text-xs font-medium text-fg-muted mb-1">{label}</label>
-      )}
+      {label && <label className="block text-xs font-medium text-fg-muted mb-1">{label}</label>}
       <button
         ref={buttonRef}
         type="button"

@@ -16,6 +16,7 @@ import type {
   PaginationInfo,
   BlacklistStats,
 } from '../../models/blacklist/index.js'
+import { likeContains } from '../shared/like.js'
 
 // ========================================
 // INTERFACES INTERNAS (para tipado de queries)
@@ -97,7 +98,6 @@ export class BlacklistRepository {
       document,
       severity,
       status = 'ACTIVE',
-      created_by,
       from_date,
       to_date,
       page = 1,
@@ -126,25 +126,19 @@ export class BlacklistRepository {
     // Búsqueda general (nombre o documento)
     if (q) {
       query += ` AND (b.guest_name LIKE ? OR b.document_number LIKE ?)`
-      params.push(`%${q}%`, `%${q}%`)
+      params.push(likeContains(q), likeContains(q))
     }
 
     // Filtro por documento específico
     if (document) {
       query += ` AND b.document_number LIKE ?`
-      params.push(`%${document}%`)
+      params.push(likeContains(document))
     }
 
     // Filtro por severidad
     if (severity) {
       query += ` AND b.severity = ?`
       params.push(severity)
-    }
-
-    // Filtro por usuario creador
-    if (created_by) {
-      query += ` AND b.created_by = ?`
-      params.push(created_by)
     }
 
     // Filtro por rango de fechas (check_in_date)

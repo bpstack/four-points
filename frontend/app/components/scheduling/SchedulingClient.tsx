@@ -310,7 +310,22 @@ export function SchedulingClient() {
       )
     },
     onError: (err: unknown) => {
-      const e = err as ApiError & { data?: { conflictingConstraints?: { constraintName: string; humanExplanation: string; employeeIds?: string[] }[]; suggestedRelaxations?: { constraint: string; currentValue: number; proposedValue: number; impact: string }[]; error?: string } }
+      const e = err as ApiError & {
+        data?: {
+          conflictingConstraints?: {
+            constraintName: string
+            humanExplanation: string
+            employeeIds?: string[]
+          }[]
+          suggestedRelaxations?: {
+            constraint: string
+            currentValue: number
+            proposedValue: number
+            impact: string
+          }[]
+          error?: string
+        }
+      }
       if (e?.status === 422 && e?.data?.conflictingConstraints) {
         setInfeasibleModal({
           open: true,
@@ -518,8 +533,6 @@ export function SchedulingClient() {
     return map
   }, [shifts])
 
-  const loading = loadingMonths || loadingMonth
-
   return (
     <div className="min-h-screen bg-bg p-4 md:p-6">
       <div className="max-w-[1800px] space-y-5">
@@ -538,8 +551,12 @@ export function SchedulingClient() {
               <FiSettings className="w-4 h-4 text-accent" />
             </div>
             <div className="flex flex-col items-start">
-              <span className="text-sm font-semibold text-accent leading-tight">{tActions('configButton')}</span>
-              <span className="text-xs text-fg-muted leading-tight mt-0.5 group-hover:text-fg-subtle transition-colors">{tActions('configSubtext')}</span>
+              <span className="text-sm font-semibold text-accent leading-tight">
+                {tActions('configButton')}
+              </span>
+              <span className="text-xs text-fg-muted leading-tight mt-0.5 group-hover:text-fg-subtle transition-colors">
+                {tActions('configSubtext')}
+              </span>
             </div>
             <span className="shrink-0 text-accent transition-all duration-200">
               <FiArrowRight className="w-4 h-4 group-hover:hidden" />

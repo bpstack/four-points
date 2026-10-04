@@ -16,6 +16,7 @@ import {
 import type { BlacklistFilters } from '../../models/blacklist/index.js'
 import { ERROR_CODES, SUCCESS_CODES } from '../../config/error-codes.js'
 import { logger } from '../../config/logger.js'
+import { isImageFile } from '../../services/uploads/image-signature.js'
 
 // ========================================
 // CONTROLLER
@@ -432,9 +433,8 @@ export class BlacklistController {
         return
       }
 
-      // Validar tipo de archivo
-      const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
-      if (!allowedTypes.includes(req.file.mimetype)) {
+      // Validar tipo de archivo por sus bytes, no por el tipo que declara el cliente
+      if (!isImageFile(req.file.buffer)) {
         res.status(400).json({
           success: false,
           error: ERROR_CODES.BLACKLIST_INVALID_FILE_TYPE,
@@ -477,70 +477,6 @@ export class BlacklistController {
         success: false,
         error: ERROR_CODES.BLACKLIST_UPLOAD_IMAGE_ERROR,
         code: ERROR_CODES.BLACKLIST_UPLOAD_IMAGE_ERROR,
-      })
-    }
-  }
-
-  /**
-   * DELETE /api/blacklist/upload/:publicId
-   * Eliminar imagen de Cloudinary
-   */
-  static async deleteImage(req: Request, res: Response): Promise<void> {
-    try {
-      // Verificar autenticación
-      if (!req.user?.id) {
-        res.status(401).json({
-          success: false,
-          error: ERROR_CODES.UNAUTHORIZED,
-          code: ERROR_CODES.UNAUTHORIZED,
-        })
-        return
-      }
-
-      const { publicId } = req.params
-
-      if (!publicId) {
-        res.status(400).json({
-          success: false,
-          error: ERROR_CODES.BLACKLIST_PUBLIC_ID_MISSING,
-          code: ERROR_CODES.BLACKLIST_PUBLIC_ID_MISSING,
-        })
-        return
-      }
-
-      // Decodificar el publicId (puede venir con / codificado)
-      const decodedPublicId = decodeURIComponent(publicId)
-
-      const deleted = await CloudinaryService.deleteImage(decodedPublicId)
-
-      if (!deleted) {
-        res.status(404).json({
-          success: false,
-          error: ERROR_CODES.BLACKLIST_IMAGE_NOT_FOUND,
-          code: ERROR_CODES.BLACKLIST_IMAGE_NOT_FOUND,
-        })
-        return
-      }
-
-      logger.info(
-        { publicId: decodedPublicId },
-        '[BlacklistController.deleteImage] Imagen eliminada'
-      )
-
-      res.json({
-        success: true,
-        message: SUCCESS_CODES.BLACKLIST_IMAGE_DELETED,
-        code: SUCCESS_CODES.BLACKLIST_IMAGE_DELETED,
-      })
-    } catch (error: any) {
-      logger.error(
-        { err: error, event: 'blacklist_deleteImage_error' },
-        '[BlacklistController.deleteImage] Error'
-      )
-      res.status(500).json({
-        success: false,
-        error: ERROR_CODES.BLACKLIST_DELETE_IMAGE_ERROR,
-        code: ERROR_CODES.BLACKLIST_DELETE_IMAGE_ERROR,
       })
     }
   }

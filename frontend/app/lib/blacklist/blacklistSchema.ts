@@ -154,22 +154,6 @@ export const blacklistEditSchema = z
 // SCHEMA DE FILTROS (para URL params)
 // ========================================
 
-export const filtersSchema = z.object({
-  q: z.string().optional(),
-  document: z.string().optional(),
-  severity: z.enum(['LOW', 'MEDIUM', 'HIGH', 'CRITICAL']).optional(),
-  status: z.enum(['ACTIVE', 'DELETED', 'ALL']).optional(),
-  created_by: z.string().uuid().optional(),
-  from_date: z.string().datetime().optional(),
-  to_date: z.string().datetime().optional(),
-  page: z.coerce.number().int().positive().default(1),
-  limit: z.coerce.number().int().positive().max(100).default(50),
-})
-
 // ========================================
 // TIPOS INFERIDOS
 // ========================================
-
-export type BlacklistSchemaType = z.infer<typeof blacklistSchema>
-export type BlacklistEditSchemaType = z.infer<typeof blacklistEditSchema>
-export type FiltersSchemaType = z.infer<typeof filtersSchema>

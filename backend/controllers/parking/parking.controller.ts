@@ -9,6 +9,7 @@ import {
 import { getTodayMadrid } from '../../config/date-utils.js'
 import type { LevelCode } from '../../models/parking/index.js'
 import { logger } from '../../config/logger.js'
+import { isCalendarDate } from '../../validations/common/calendar-date.js'
 
 interface MySQLError extends Error {
   code?: string
@@ -298,21 +299,6 @@ export const searchVehicles = async (req: Request, res: Response): Promise<void>
 
 // SPOTS DISPONIBLES
 
-// ============================================
-// HELPER: Validar formato de fecha
-// ============================================
-
-function isValidDate(dateString: string): boolean {
-  // Validar formato YYYY-MM-DD
-  const regex = /^\d{4}-\d{2}-\d{2}$/
-  if (!regex.test(dateString)) return false
-
-  // Validar que sea una fecha real
-  const date = new Date(dateString + 'T00:00:00Z')
-  return date instanceof Date && !isNaN(date.getTime())
-}
-// -------------------
-
 export const listAvailableSpots = async (req: Request, res: Response): Promise<void> => {
   try {
     const { date, start_date, end_date, level } = req.query as {
@@ -334,7 +320,7 @@ export const listAvailableSpots = async (req: Request, res: Response): Promise<v
     // CASO 1: Fecha específica
     if (date) {
       // Validar formato
-      if (!isValidDate(date)) {
+      if (!isCalendarDate(date)) {
         res.status(400).json({
           error: 'Formato de fecha inválido',
           expected: 'YYYY-MM-DD',
@@ -371,7 +357,7 @@ export const listAvailableSpots = async (req: Request, res: Response): Promise<v
       }
 
       // Validar formato
-      if (!isValidDate(start_date) || !isValidDate(end_date)) {
+      if (!isCalendarDate(start_date) || !isCalendarDate(end_date)) {
         res.status(400).json({
           error: 'Formato de fecha inválido',
           expected: 'YYYY-MM-DD',
@@ -444,14 +430,12 @@ export const listAvailableSpots = async (req: Request, res: Response): Promise<v
     if (error.code && error.code.startsWith('ER_')) {
       res.status(500).json({
         error: 'Error en base de datos',
-        message: error.message,
       })
       return
     }
 
     res.status(500).json({
       error: 'Error al obtener plazas disponibles',
-      message: error.message,
     })
   }
 }

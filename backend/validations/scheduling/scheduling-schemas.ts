@@ -1,6 +1,7 @@
 // validations/scheduling/scheduling-schemas.ts
 
 import { z } from 'zod'
+import { isCalendarDate } from '../common/calendar-date.js'
 
 // ============================================
 // BASE SCHEMAS
@@ -53,6 +54,7 @@ const monthSchema = z
 const dateSchema = z
   .string()
   .regex(/^\d{4}-\d{2}-\d{2}$/, 'Formato de fecha inválido. Usa YYYY-MM-DD')
+  .refine(isCalendarDate, 'La fecha no existe')
 
 const employeeIdSchema = z.string().uuid('El employee_id debe ser un UUID válido')
 
@@ -108,16 +110,19 @@ export const updateDaySchema = z
   })
 
 export const bulkUpdateDaysSchema = z.object({
-  days: z.array(
-    z.object({
-      day_id: z.number().int().positive(),
-      is_holiday: z.boolean().optional(),
-      holiday_name: z.string().max(100).optional().nullable(),
-      occupancy_pct: z.number().min(0).max(100).optional().nullable(),
-      arrivals: z.number().int().min(0).optional().nullable(),
-      departures: z.number().int().min(0).optional().nullable(),
-    })
-  ),
+  days: z
+    .array(
+      z.object({
+        day_id: z.number().int().positive(),
+        is_holiday: z.boolean().optional(),
+        holiday_name: z.string().max(100).optional().nullable(),
+        occupancy_pct: z.number().min(0).max(100).optional().nullable(),
+        arrivals: z.number().int().min(0).optional().nullable(),
+        departures: z.number().int().min(0).optional().nullable(),
+      })
+    )
+    // One month at most: the route edits the days of a single month
+    .max(31),
 })
 
 // ============================================
@@ -130,14 +135,29 @@ export const updateAssignmentSchema = z.object({
 })
 
 export const bulkUpdateAssignmentsSchema = z.object({
-  assignments: z.array(
-    z.object({
-      day_id: z.number().int().positive('El day_id debe ser un número positivo'),
-      employee_id: employeeIdSchema,
-      shift_code: shiftCodeSchema,
-    })
-  ),
+  assignments: z
+    .array(
+      z.object({
+        day_id: z.number().int().positive('El day_id debe ser un número positivo'),
+        employee_id: employeeIdSchema,
+        shift_code: shiftCodeSchema,
+      })
+    )
+    // A month of 31 days for up to 160 employees; the list used to be unbounded
+    .max(5000),
 })
+
+// Users are UUIDs; a repeated id would duplicate or reorder an employee twice
+const employeeIdList = z
+  .array(employeeIdSchema)
+  .max(500)
+  .refine((ids) => new Set(ids).size === ids.length, 'Hay empleados repetidos')
+
+// PUT /schedulable-employees
+export const schedulableEmployeesSchema = z.object({ employeeIds: employeeIdList })
+
+// PATCH /schedulable-employees/order
+export const schedulableEmployeesOrderSchema = z.object({ orderedIds: employeeIdList })
 
 // ============================================
 // SCHEDULABLE EMPLOYEE DATES
@@ -203,10 +223,12 @@ export const updateConstraintSchema = z
     start_date: dateSchema.optional(),
     end_date: dateSchema.optional(),
     shift_code: shiftCodeSchema.optional().nullable(),
-    status: constraintStatusEnum.optional(),
     priority: z.number().int().min(1).max(7).optional(),
     notes: notesSchema,
   })
+  // No status: approving or rejecting goes through PUT /constraints/:id/approve
+  // (admin only). Accepting it here let anyone approve their own request.
+  // Unknown keys are stripped, so a status sent here is ignored
   .partial()
   .refine((data) => Object.keys(data).length > 0, {
     message: 'Debes proporcionar al menos un campo para actualizar',
@@ -269,22 +291,3 @@ export const constraintQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(100).default(50),
   offset: z.coerce.number().int().min(0).default(0),
 })
-
-// ============================================
-// INFERRED TYPES
-// ============================================
-
-export type CreateMonthInput = z.infer<typeof createMonthSchema>
-export type UpdateMonthInput = z.infer<typeof updateMonthSchema>
-export type UpdateDayInput = z.infer<typeof updateDaySchema>
-export type BulkUpdateDaysInput = z.infer<typeof bulkUpdateDaysSchema>
-export type UpdateAssignmentInput = z.infer<typeof updateAssignmentSchema>
-export type BulkUpdateAssignmentsInput = z.infer<typeof bulkUpdateAssignmentsSchema>
-export type CreateConstraintInput = z.infer<typeof createConstraintSchema>
-export type UpdateConstraintInput = z.infer<typeof updateConstraintSchema>
-export type ApproveConstraintInput = z.infer<typeof approveConstraintSchema>
-export type CreateEmployeeRuleInput = z.infer<typeof createEmployeeRuleSchema>
-export type UpdateEmployeeRuleInput = z.infer<typeof updateEmployeeRuleSchema>
-export type UpdateConfigInput = z.infer<typeof updateConfigSchema>
-export type MonthQueryInput = z.infer<typeof monthQuerySchema>
-export type ConstraintQueryInput = z.infer<typeof constraintQuerySchema>

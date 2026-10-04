@@ -17,7 +17,7 @@ Patrón **solo incrementales**, estilo Rails/Django/Flyway. Una sola fuente de v
 3. **Registro obligatorio en `INDEX.md`** (tabla "Migraciones incrementales") con fecha, archivo, descripción, estado por entorno (`✅ local · ✅ Aiven`, `⏳ pendiente`, etc).
 4. **Nunca modificar un script commiteado**. Si algo salió mal, crear nuevo script `AAAAMMDD_fix_…sql` que lo enmiende.
 5. Las migraciones **deben ser idempotentes**: protegerse con `information_schema.COLUMNS`, `INSERT IGNORE`, `CREATE TABLE IF NOT EXISTS`, etc. Plantilla en `scripts/20260519_add_scheduling_employee_display_order.sql`.
-6. Aplicar primero en **local** (`pnpm dev:local`), luego en **Aiven**. Actualizar columna "Estado" de `INDEX.md`.
+6. Aplicar primero en **local**, luego en **Aiven**, con `scripts/apply-migration.sh local|aiven <fichero> [--dry-run]` (lee las credenciales de `backend/.env`; detalle en `AGENTS.md`, «Applying a migration»). Actualizar columna "Estado" de `INDEX.md`.
 7. Charset/collation siempre: `utf8mb4` / `utf8mb4_0900_ai_ci`.
 
 ### Reconstrucción desde cero

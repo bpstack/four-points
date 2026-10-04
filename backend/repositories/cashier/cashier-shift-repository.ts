@@ -2,7 +2,7 @@
 
 import db from '../../config/db.js'
 import { SORT_FIELDS, safeSort, safeOrder } from '../../validations/cashier/cashier-validation.js'
-import { ResultSetHeader } from 'mysql2'
+import { ResultSetHeader, type RowDataPacket } from 'mysql2'
 import {
   CashierShift,
   CashierShiftWithUsers,
@@ -11,6 +11,10 @@ import {
   ShiftType,
   ShiftFilters,
 } from '../../models/cashier/index.js'
+
+interface TotalRow extends RowDataPacket {
+  total: string | number
+}
 
 export class CashierShiftRepository {
   /**
@@ -111,6 +115,7 @@ export class CashierShiftRepository {
     // ✅ AÑADIR: Cargar vales
     const { CashierVoucherRepository } = await import('./cashier-voucher-repository.js')
     const vouchers = await CashierVoucherRepository.getByShift(id)
+    const outstanding_vouchers_total = await this.getOutstandingVouchersTotal(id)
 
     return {
       ...shift,
@@ -118,6 +123,7 @@ export class CashierShiftRepository {
       payments, // ✅ CRÍTICO
       denominations, // ✅ CRÍTICO
       vouchers, // ✅ CRÍTICO
+      outstanding_vouchers_total,
     }
   }
 
@@ -353,6 +359,9 @@ export class CashierShiftRepository {
     if (!shift) throw new Error('Turno no encontrado')
     if (shift.status === 'closed') throw new Error('El turno ya está cerrado')
 
+    // Totals as of closing: vouchers or income may have changed after the count
+    await this.recalculateTotals(id)
+
     const query = `
       UPDATE cashier_shifts
       SET 
@@ -518,6 +527,38 @@ export class CashierShiftRepository {
    * Se llama después de actualizar denominaciones o pagos
    * También actualiza cashier_daily con los totales del día
    */
+  /**
+   * Cash out of the drawer during a shift because of vouchers. A voucher is
+   * always cash taken from the fund, and it stays out from the shift it was
+   * created in until the shift that justifies it (replenished or withdrawn),
+   * across shifts and days. It counts in shift S when it is not cancelled, was
+   * created in S or before, and is still pending or was justified after S.
+   * Shifts of a day go night, morning, afternoon, closing. A voucher is linked
+   * to the shift that created it and to the one that justified it, so its
+   * first link is the creation and, once justified, its last link the
+   * justification.
+   */
+  static async getOutstandingVouchersTotal(shiftId: number): Promise<number> {
+    const position = (alias: string) =>
+      `CONCAT(${alias}.shift_date, '#', FIELD(${alias}.shift_type, 'night', 'morning', 'afternoon', 'closing'))`
+    const [rows] = await db.query<TotalRow[]>(
+      `SELECT COALESCE(SUM(v.amount), 0) AS total
+       FROM cashier_vouchers v
+       JOIN (
+         SELECT csv.voucher_id, MIN(${position('s')}) AS first_pos, MAX(${position('s')}) AS last_pos
+         FROM cashier_shift_vouchers csv
+         JOIN cashier_shifts s ON s.id = csv.shift_id
+         GROUP BY csv.voucher_id
+       ) links ON links.voucher_id = v.id
+       JOIN cashier_shifts cur ON cur.id = ?
+       WHERE v.status != 'cancelled'
+         AND links.first_pos <= ${position('cur')}
+         AND (v.status = 'pending' OR links.last_pos > ${position('cur')})`,
+      [shiftId]
+    )
+    return Number(rows[0]?.total) || 0
+  }
+
   static async recalculateTotals(shiftId: number): Promise<CashierShift> {
     // Obtener turno actual
     const shift = await this.getById(shiftId)
@@ -573,20 +614,24 @@ export class CashierShiftRepository {
 
     const paymentsTotal = totalCard + totalBacs + totalWebPayment + totalTransfer + totalOther
 
-    // Calcular valores
+    // Vales que siguen fuera del cajón en este turno (se arrastran entre turnos y días)
+    const vouchersTotal = await this.getOutstandingVouchersTotal(shiftId)
+
+    // income is the cash taken during the shift, entered by the user: it is not
+    // derived from the count (deriving it made the expected cash always equal
+    // the counted cash, so the difference was always 0)
     const initialFund = Number(shift.initial_fund) || 0
-    const income = cashCounted - initialFund // Ingresos = Efectivo contado - Fondo inicial
-    const cashExpected = initialFund + income // Efectivo esperado = Fondo + Ingresos
+    const income = Number(shift.income) || 0
+    const cashExpected = initialFund + income - vouchersTotal // Fondo + cobros en efectivo - vales
     const difference = cashCounted - cashExpected // Descuadre
-    const grandTotal = income + paymentsTotal // Gran total = Ingresos efectivo + Pagos electrónicos
+    const grandTotal = income + paymentsTotal // Cobros en efectivo + pagos electrónicos
 
     // Actualizar turno
     const updateQuery = `
-      UPDATE cashier_shifts 
-      SET 
+      UPDATE cashier_shifts
+      SET
         cash_counted = ?,
         cash_expected = ?,
-        income = ?,
         difference = ?,
         payments_total = ?,
         grand_total = ?,
@@ -597,7 +642,6 @@ export class CashierShiftRepository {
     await db.query(updateQuery, [
       cashCounted,
       cashExpected,
-      income,
       difference,
       paymentsTotal,
       grandTotal,

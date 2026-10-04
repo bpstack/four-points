@@ -100,7 +100,7 @@ A comprehensive, full-stack **Hotel Management System** designed for real-world 
 
 ### Authentication
 
-Authentication is handled entirely by the **backend** via JWT tokens in HttpOnly cookies. The frontend has no client-side password hashing — `bcrypt` and `next-auth` are not used.
+Authentication is handled entirely by the **backend** via JWT tokens in HttpOnly cookies. The frontend has no client-side password hashing and no NextAuth.
 
 ### Dev Dependencies
 
@@ -119,10 +119,7 @@ Authentication is handled entirely by the **backend** via JWT tokens in HttpOnly
 frontend/
 ├── app/
 │   ├── (auth)/              # Authentication pages (login)
-│   ├── api/                 # API Routes (Next.js)
 │   ├── components/          # React components
-│   │   ├── _utils/
-│   │   │   └── ClientBody.tsx
 │   │   ├── auth/
 │   │   │   └── NewUserModal.tsx
 │   │   ├── bo/
@@ -130,18 +127,18 @@ frontend/
 │   │   │   ├── TabsNavigation.tsx
 │   │   │   ├── TabContent.tsx
 │   │   │   └── tabs/
-│   │   │       ├── PendingInvoicesTab.tsx
-│   │   │       ├── PaidInvoicesTab.tsx
-│   │   │       └── SettingsTab.tsx
+│   │   │       ├── PendingInvoicesTabLazy.tsx
+│   │   │       ├── PaidInvoicesTabLazy.tsx
+│   │   │       ├── SuppliersTabLazy.tsx
+│   │   │       └── SettingsTabLazy.tsx
 │   │   ├── booking/
-│   │   │   ├── BookingWizard/
-│   │   │   │   ├── index.tsx
-│   │   │   │   ├── steps/
-│   │   │   │   │   ├── DateSpotStep.tsx
-│   │   │   │   │   ├── VehicleStep.tsx
-│   │   │   │   │   └── ConfirmationStep.tsx
-│   │   │   │   └── types.ts
-│   │   │   └── CreateBookingPanel.tsx
+│   │   │   └── BookingWizard/
+│   │   │       ├── index.tsx
+│   │   │       ├── steps/
+│   │   │       │   ├── DateSpotStep.tsx
+│   │   │       │   ├── VehicleStep.tsx
+│   │   │       │   └── ConfirmationStep.tsx
+│   │   │       └── types.ts
 │   │   ├── cashier/
 │   │   │   ├── CashierCalendarNav.tsx
 │   │   │   ├── CloseDayModal.tsx
@@ -193,8 +190,7 @@ frontend/
 │   │   │   ├── GlobalSearch.tsx
 │   │   │   └── MobileSearchModal.tsx
 │   │   └── theme/
-│   │       ├── SetThemeButton.tsx
-│   │       └── ThemeSwitcher.tsx
+│   │       └── SetThemeButton.tsx
 │   ├── dashboard/           # Dashboard pages
 │   │   ├── parking/         # Parking management
 │   │   │   ├── page.tsx     # Main parking page
@@ -286,7 +282,6 @@ frontend/
 │   │   │   └── types.ts
 │   │   ├── auth/
 │   │   │   ├── authService.ts
-│   │   │   ├── cookieHandler.ts
 │   │   │   └── useAuth.tsx
 │   │   ├── apiClient.ts     # Centralized API client (490 líneas)
 │   │   ├── backoffice/
@@ -316,7 +311,6 @@ frontend/
 │   │   │       └── group-schemas.ts
 │   │   ├── helpers/
 │   │   │   ├── date.ts
-│   │   │   ├── error-utils.ts
 │   │   │   └── utils.ts
 │   │   ├── logbooks/
 │   │   │   ├── hooks/
@@ -352,8 +346,7 @@ frontend/
 │   ├── stores/              # Zustand stores
 │   │   ├── useCashierStore.ts
 │   │   ├── useGroupStore.ts
-│   │   ├── useMaintenanceStore.ts
-│   │   └── useNotificationStore.ts
+│   │   └── useMaintenanceStore.ts
 │   ├── ui/                  # Base UI components
 │   │   ├── calendar/
 │   │   │   ├── DatePickerInput.tsx
@@ -585,14 +578,6 @@ interface MaintenanceStore {
   statusFilter: string
   setPriorityFilter: (priority: string) => void
   setStatusFilter: (status: string) => void
-}
-
-// useNotificationStore.ts
-interface NotificationStore {
-  unreadCount: number
-  isOpen: boolean
-  setUnreadCount: (count: number) => void
-  setIsOpen: (isOpen: boolean) => void
 }
 ```
 

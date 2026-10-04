@@ -5,6 +5,7 @@ import { CashierPaymentRepository } from '../../repositories/cashier/cashier-pay
 import { CashierHistoryRepository } from '../../repositories/cashier/cashier-history-repository.js'
 import { CashierShiftRepository } from '../../repositories/cashier/cashier-shift-repository.js'
 import { logger } from '../../config/logger.js'
+import { sendCashierError } from './cashier-errors.js'
 import {
   replacePaymentsSchema,
   paymentSchema,
@@ -134,9 +135,8 @@ export class CashierPaymentController {
       const updated = await CashierPaymentRepository.update(parseInt(id), amount)
 
       res.json(updated)
-    } catch (error: any) {
-      logger.error({ err: error }, 'Error al actualizar pago')
-      res.status(500).json({ error: error.message || 'Error al actualizar pago' })
+    } catch (error) {
+      sendCashierError(res, error, 'Error al actualizar pago')
     }
   }
 

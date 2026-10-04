@@ -31,7 +31,8 @@ db-mysql/
 │   ├── 20_checklist.sql           # Checklists operativos
 │   └── 99_verification.sql        # Verificación
 ├── scripts/                        # Incrementales — única fuente de verdad post-2026-05-20
-│   └── AAAAMMDD_*.sql              # Idempotentes, registrados en INDEX.md
+│   ├── AAAAMMDD_*.sql              # Idempotentes, registrados en INDEX.md
+│   └── apply-migration.sh          # Aplica una migración a local o Aiven (credenciales de backend/.env)
 ├── MASTER_INSTALL.sql              # Snapshot 2026-05-20 (base congelada)
 ├── INDEX.md                        # Índice general + tabla de incrementales
 ├── MIGRATIONS_POLICY.md            # Política vigente

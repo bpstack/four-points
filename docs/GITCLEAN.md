@@ -35,7 +35,8 @@ el historial.
 ## Reglas
 
 - Solo se eliminan los archivos identificados explícitamente como privados. Nada
-  más se modifica ni se borra.
+  más se modifica ni se borra, **salvo la autoría** de los commits listados en
+  «Autoría que se corrige» (ADR-031).
 - El contenido del proyecto no se altera más allá de lo imprescindible.
 - No se pierde ningún commit, rama, tag ni parte del historial que deba
   conservarse.
@@ -93,3 +94,23 @@ abierto**; la lista final la aprueba el propietario.
 - **Documentación antigua** con nombres del personal:
   `SCHEDULING-CONSTRAINTS.md` y `SCHEDULING-DECISIONS-LOG.md` (raíz, hasta el
   2026-09-28).
+
+## Autoría que se corrige
+
+Decidido en ADR-031 (2026-10-04). Se hace en la misma pasada de
+`git-filter-repo`, con `--mailmap`; no cambia el contenido de ningún commit.
+
+- **Obligatorio**: los 5 commits con autor `Claude <noreply@anthropic.com>`,
+  todos de la rama `claude/compassionate-planck-gh6aof` (`ec8e901`, `f9d1541`,
+  `2ed0abb`, `8584e93`, `6a67ab3`), pasan a `bpstack <contact.bstack@gmail.com>`.
+  Ninguna otra rama tiene commits de ese autor (_comprobado el 2026-10-04_).
+- **A confirmar en el paso 2 (Propuesta)**: unificar también `Azyd` y `bp`, los
+  dos con el mismo correo, en `bpstack`.
+
+```text
+# mailmap
+bpstack <contact.bstack@gmail.com> Claude <noreply@anthropic.com>
+```
+
+En la auditoría (paso 4) se comprueba además que
+`git log --all --format='%an <%ae>' | sort -u` ya no muestra `Claude`.

@@ -9,7 +9,7 @@ import SimpleCalendar from '@/app/ui/calendar/simplecalendar'
 
 export interface DateRange {
   from: string // YYYY-MM-DD
-  to: string   // YYYY-MM-DD
+  to: string // YYYY-MM-DD
 }
 
 interface DateRangePickerProps {
@@ -92,9 +92,10 @@ export default function DateRangePicker({ value, onChange }: DateRangePickerProp
         onClick={() => setActivePicker(activePicker === 'from' ? null : 'from')}
         className={`
           inline-flex items-center gap-1.5 px-2.5 py-1.5 text-sm font-medium rounded-l-lg border transition-colors
-          ${activePicker === 'from'
-            ? 'bg-accent/10 border-accent text-accent'
-            : 'bg-surface border-border text-fg hover:bg-surface-hover'
+          ${
+            activePicker === 'from'
+              ? 'bg-accent/10 border-accent text-accent'
+              : 'bg-surface border-border text-fg hover:bg-surface-hover'
           }
         `}
       >
@@ -113,9 +114,10 @@ export default function DateRangePicker({ value, onChange }: DateRangePickerProp
         className={`
           inline-flex items-center gap-1.5 px-2.5 py-1.5 text-sm font-medium border transition-colors
           ${!isDefault ? 'rounded-r-none border-r-0' : 'rounded-r-lg'}
-          ${activePicker === 'to'
-            ? 'bg-accent/10 border-accent text-accent'
-            : 'bg-surface border-border text-fg hover:bg-surface-hover'
+          ${
+            activePicker === 'to'
+              ? 'bg-accent/10 border-accent text-accent'
+              : 'bg-surface border-border text-fg hover:bg-surface-hover'
           }
         `}
       >

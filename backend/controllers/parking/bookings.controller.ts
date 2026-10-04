@@ -4,11 +4,16 @@
 // ============================================
 import { Request, Response } from 'express'
 import ParkingBookingsRepository from '../../repositories/parking/bookings.repository.js'
-import { createBookingSchema } from '../../validations/parking/booking-validation.js'
+import {
+  bookingsPageSchema,
+  createBookingSchema,
+  updateBookingBodySchema,
+} from '../../validations/parking/booking-validation.js'
 import { getNowMadrid } from '../../config/date-utils.js'
 import { ERROR_CODES, SUCCESS_CODES } from '../../config/error-codes.js'
-import type { BookingFilters, UpdateBookingDTO } from '../../models/parking/index.js'
+import type { BookingFilters, BookingSource, UpdateBookingDTO } from '../../models/parking/index.js'
 import { logger } from '../../config/logger.js'
+import { isCalendarDate } from '../../validations/common/calendar-date.js'
 
 class ParkingBookingsController {
   // ============================================
@@ -28,8 +33,19 @@ class ParkingBookingsController {
   // ============================================
   getBookings = async (req: Request, res: Response): Promise<void> => {
     try {
-      const page = req.query.page ? parseInt(String(req.query.page)) : 1
-      const limit = req.query.limit ? parseInt(String(req.query.limit)) : 50
+      const paging = bookingsPageSchema.safeParse({
+        page: req.query.page || undefined,
+        limit: req.query.limit || undefined,
+      })
+      if (!paging.success) {
+        res.status(400).json({
+          success: false,
+          error: ERROR_CODES.INVALID_DATA,
+          code: ERROR_CODES.INVALID_DATA,
+        })
+        return
+      }
+      const { page, limit } = paging.data
 
       // Priority 1: quickFilter (filtros compuestos del dashboard)
       if (req.query.quickFilter) {
@@ -54,8 +70,7 @@ class ParkingBookingsController {
         const status = req.query.status as BookingFilters['status'] | undefined
 
         // Validar formato de fechas (YYYY-MM-DD)
-        const dateRegex = /^\d{4}-\d{2}-\d{2}$/
-        if (!dateRegex.test(startDate)) {
+        if (!isCalendarDate(startDate)) {
           res.status(400).json({
             success: false,
             error: ERROR_CODES.PARKING_INVALID_START_DATE,
@@ -63,7 +78,7 @@ class ParkingBookingsController {
           })
           return
         }
-        if (endDate && !dateRegex.test(endDate)) {
+        if (endDate && !isCalendarDate(endDate)) {
           res.status(400).json({
             success: false,
             error: ERROR_CODES.PARKING_INVALID_END_DATE,
@@ -227,8 +242,7 @@ class ParkingBookingsController {
         expected_checkin: data.expected_checkin,
         expected_checkout: data.expected_checkout,
         total_amount: data.total_amount,
-        booking_source: data.booking_source as
-          'direct' | 'booking.com' | 'expedia' | 'other' | undefined,
+        booking_source: data.booking_source as BookingSource | undefined,
         external_booking_id: data.external_booking_id,
         notes: data.notes,
         created_by: req.user!.id, // UUID string, no parseInt
@@ -577,6 +591,18 @@ class ParkingBookingsController {
   updateBooking = async (req: Request, res: Response): Promise<void> => {
     try {
       const { code } = req.params
+      const parsedBody = updateBookingBodySchema.safeParse(req.body)
+      if (!parsedBody.success) {
+        res.status(400).json({
+          success: false,
+          message: parsedBody.error.issues[0].message,
+          errors: parsedBody.error.issues.map((err) => ({
+            field: err.path.join('.'),
+            message: err.message,
+          })),
+        })
+        return
+      }
       const {
         expected_checkin,
         expected_checkout,
@@ -591,7 +617,7 @@ class ParkingBookingsController {
         payment_amount,
         payment_method,
         payment_reference,
-      } = req.body
+      } = parsedBody.data
 
       if (!/^PK-\d{8}-\d{4}$/.test(code)) {
         res.status(400).json({
@@ -669,10 +695,7 @@ class ParkingBookingsController {
         }
       }
 
-      if (
-        total_amount !== undefined &&
-        (isNaN(parseFloat(total_amount)) || parseFloat(total_amount) < 0)
-      ) {
+      if (total_amount !== undefined && (total_amount === null || total_amount < 0)) {
         res.status(400).json({
           success: false,
           error: ERROR_CODES.PARKING_INVALID_AMOUNT,
@@ -688,14 +711,15 @@ class ParkingBookingsController {
       if (spot_number) updateData.spot_number = spot_number
       if (level_code) updateData.level_code = level_code
       if (vehicle_id !== undefined) updateData.vehicle_id = vehicle_id
-      if (total_amount !== undefined) updateData.total_amount = parseFloat(total_amount)
-      if (booking_source) updateData.booking_source = booking_source
+      if (total_amount !== undefined && total_amount !== null)
+        updateData.total_amount = total_amount
+      if (booking_source) updateData.booking_source = booking_source as BookingSource
       if (external_booking_id !== undefined) updateData.external_booking_id = external_booking_id
       if (notes !== undefined) updateData.notes = notes
 
       // Payment fields
       if (payment_amount !== undefined) {
-        updateData.payment_amount = payment_amount !== null ? parseFloat(payment_amount) : null
+        updateData.payment_amount = payment_amount
       }
       if (payment_method !== undefined) updateData.payment_method = payment_method
       if (payment_reference !== undefined) updateData.payment_reference = payment_reference

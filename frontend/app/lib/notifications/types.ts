@@ -1,7 +1,7 @@
 // app/lib/notifications/types.ts
 
 export type NotificationPriority = 'low' | 'medium' | 'high' | 'urgent'
-export type NotificationModule = 'groups' | 'parking' | 'logbooks' | 'system'
+export type NotificationModule = 'groups' | 'parking' | 'logbooks' | 'system' | 'messages'
 export type NotificationRelatedTo =
   | 'payment'
   | 'rooming'
@@ -9,6 +9,7 @@ export type NotificationRelatedTo =
   | 'contract'
   | 'arrival'
   | 'general'
+  | 'message'
 
 export interface Notification {
   id: number

@@ -16,29 +16,12 @@ export interface FnbDailyRevenue {
   updated_at: string
 }
 
-export interface FnbDayEntry {
-  date: string
-  categories: {
-    code: string
-    name: string
-    group_type: FnbGroupType
-    amount: number
-  }[]
-  totals: FnbTotals
-}
-
 export interface FnbTotals {
   breakfast: number
   lunch: number
   dinner: number
   la_caseta: number
   fnb_total: number
-}
-
-export interface FnbUploadResult {
-  date: string
-  updated: { code: string; name: string; amount: number }[]
-  totals: FnbTotals
 }
 
 export interface FnbMonthlyRow {

@@ -2,6 +2,8 @@
 /**
  * Controller para el módulo Maintenance
  * Maneja las peticiones HTTP y respuestas
+ * Route params (:id, :imageId) arrive validated by validateParams in
+ * routes/maintenance/maintenance-routes.ts
  */
 
 import type { Request, Response } from 'express'
@@ -14,15 +16,21 @@ import {
   updatePrioritySchema,
   addResolutionNotesSchema,
   reportFiltersSchema,
-  idParamSchema,
   assignReportSchema,
 } from '../../validations/maintenance/schemas.js'
 import type { ReportFilters } from '../../models/maintenance/index.js'
 import { logger } from '../../config/logger.js'
+import { isAdminRole } from '../../services/auth/module-access.js'
 
 // ========================================
 // CONTROLLER
 // ========================================
+
+// Exists, and is not deleted unless the user is an admin
+async function visibleReport(id: string, role: string | undefined): Promise<boolean> {
+  const deleted = await MaintenanceRepository.isDeleted(id)
+  return deleted === false || (deleted === true && isAdminRole(role))
+}
 
 export class MaintenanceController {
   // ========================================
@@ -47,6 +55,11 @@ export class MaintenanceController {
 
       const filters: ReportFilters = parseResult.data
 
+      if (filters.include_deleted && !isAdminRole(req.user?.role)) {
+        res.status(403).json({ error: 'Solo administración ve los reportes eliminados' })
+        return
+      }
+
       const { reports, pagination } = await MaintenanceRepository.getAll(filters)
 
       res.json({
@@ -58,7 +71,6 @@ export class MaintenanceController {
       logger.error({ err: error }, '[MaintenanceController.getAll] Error')
       res.status(500).json({
         error: 'Error al obtener los reportes',
-        message: error.message,
       })
     }
   }
@@ -69,21 +81,12 @@ export class MaintenanceController {
    */
   static async getById(req: Request, res: Response): Promise<void> {
     try {
-      const parseResult = idParamSchema.safeParse(req.params)
-
-      if (!parseResult.success) {
-        res.status(400).json({
-          error: 'ID inválido',
-          details: parseResult.error.flatten().fieldErrors,
-        })
-        return
-      }
-
-      const { id } = parseResult.data
+      const { id } = req.params
 
       const report = await MaintenanceRepository.getById(id)
 
-      if (!report) {
+      // A deleted report only exists for admins
+      if (!report || (report.is_deleted && !isAdminRole(req.user?.role))) {
         res.status(404).json({
           error: 'Reporte no encontrado',
         })
@@ -95,7 +98,6 @@ export class MaintenanceController {
       logger.error({ err: error }, '[MaintenanceController.getById] Error')
       res.status(500).json({
         error: 'Error al obtener el reporte',
-        message: error.message,
       })
     }
   }
@@ -133,7 +135,6 @@ export class MaintenanceController {
       logger.error({ err: error }, '[MaintenanceController.create] Error')
       res.status(500).json({
         error: 'Error al crear el reporte',
-        message: error.message,
       })
     }
   }
@@ -149,15 +150,6 @@ export class MaintenanceController {
         return
       }
 
-      const idResult = idParamSchema.safeParse(req.params)
-      if (!idResult.success) {
-        res.status(400).json({
-          error: 'ID inválido',
-          details: idResult.error.flatten().fieldErrors,
-        })
-        return
-      }
-
       const bodyResult = updateReportSchema.safeParse(req.body)
       if (!bodyResult.success) {
         res.status(400).json({
@@ -167,7 +159,7 @@ export class MaintenanceController {
         return
       }
 
-      const { id } = idResult.data
+      const { id } = req.params
       const data = bodyResult.data
 
       const report = await MaintenanceRepository.update(id, data, req.user.id, req.user.username)
@@ -191,7 +183,6 @@ export class MaintenanceController {
 
       res.status(500).json({
         error: 'Error al actualizar el reporte',
-        message: error.message,
       })
     }
   }
@@ -207,15 +198,6 @@ export class MaintenanceController {
         return
       }
 
-      const idResult = idParamSchema.safeParse(req.params)
-      if (!idResult.success) {
-        res.status(400).json({
-          error: 'ID inválido',
-          details: idResult.error.flatten().fieldErrors,
-        })
-        return
-      }
-
       const bodyResult = updateStatusSchema.safeParse(req.body)
       if (!bodyResult.success) {
         res.status(400).json({
@@ -225,7 +207,7 @@ export class MaintenanceController {
         return
       }
 
-      const { id } = idResult.data
+      const { id } = req.params
       const { status, notes } = bodyResult.data
 
       const report = await MaintenanceRepository.updateStatus(
@@ -247,9 +229,14 @@ export class MaintenanceController {
       })
     } catch (error: any) {
       logger.error({ err: error }, '[MaintenanceController.updateStatus] Error')
+
+      if (error.message.includes('eliminado')) {
+        res.status(400).json({ error: error.message })
+        return
+      }
+
       res.status(500).json({
         error: 'Error al actualizar el estado',
-        message: error.message,
       })
     }
   }
@@ -265,15 +252,6 @@ export class MaintenanceController {
         return
       }
 
-      const idResult = idParamSchema.safeParse(req.params)
-      if (!idResult.success) {
-        res.status(400).json({
-          error: 'ID inválido',
-          details: idResult.error.flatten().fieldErrors,
-        })
-        return
-      }
-
       const bodyResult = updatePrioritySchema.safeParse(req.body)
       if (!bodyResult.success) {
         res.status(400).json({
@@ -283,7 +261,7 @@ export class MaintenanceController {
         return
       }
 
-      const { id } = idResult.data
+      const { id } = req.params
       const { priority } = bodyResult.data
 
       const report = await MaintenanceRepository.updatePriority(
@@ -304,9 +282,14 @@ export class MaintenanceController {
       })
     } catch (error: any) {
       logger.error({ err: error }, '[MaintenanceController.updatePriority] Error')
+
+      if (error.message.includes('eliminado')) {
+        res.status(400).json({ error: error.message })
+        return
+      }
+
       res.status(500).json({
         error: 'Error al actualizar la prioridad',
-        message: error.message,
       })
     }
   }
@@ -322,15 +305,6 @@ export class MaintenanceController {
         return
       }
 
-      const idResult = idParamSchema.safeParse(req.params)
-      if (!idResult.success) {
-        res.status(400).json({
-          error: 'ID inválido',
-          details: idResult.error.flatten().fieldErrors,
-        })
-        return
-      }
-
       const bodyResult = addResolutionNotesSchema.safeParse(req.body)
       if (!bodyResult.success) {
         res.status(400).json({
@@ -340,7 +314,7 @@ export class MaintenanceController {
         return
       }
 
-      const { id } = idResult.data
+      const { id } = req.params
       const { notes } = bodyResult.data
 
       const report = await MaintenanceRepository.addResolutionNotes(
@@ -361,9 +335,12 @@ export class MaintenanceController {
       })
     } catch (error: any) {
       logger.error({ err: error }, '[MaintenanceController.addResolutionNotes] Error')
+      if (error.message.includes('eliminado')) {
+        res.status(400).json({ error: error.message })
+        return
+      }
       res.status(500).json({
         error: 'Error al agregar las notas',
-        message: error.message,
       })
     }
   }
@@ -379,15 +356,6 @@ export class MaintenanceController {
         return
       }
 
-      const idResult = idParamSchema.safeParse(req.params)
-      if (!idResult.success) {
-        res.status(400).json({
-          error: 'ID inválido',
-          details: idResult.error.flatten().fieldErrors,
-        })
-        return
-      }
-
       const bodyResult = assignReportSchema.safeParse(req.body)
       if (!bodyResult.success) {
         res.status(400).json({
@@ -397,7 +365,7 @@ export class MaintenanceController {
         return
       }
 
-      const { id } = idResult.data
+      const { id } = req.params
       const data = bodyResult.data
 
       // Actualizar asignación y cambiar estado a 'assigned'
@@ -425,9 +393,14 @@ export class MaintenanceController {
       })
     } catch (error: any) {
       logger.error({ err: error }, '[MaintenanceController.assignReport] Error')
+
+      if (error.message.includes('eliminado')) {
+        res.status(400).json({ error: error.message })
+        return
+      }
+
       res.status(500).json({
         error: 'Error al asignar el reporte',
-        message: error.message,
       })
     }
   }
@@ -443,16 +416,7 @@ export class MaintenanceController {
         return
       }
 
-      const parseResult = idParamSchema.safeParse(req.params)
-      if (!parseResult.success) {
-        res.status(400).json({
-          error: 'ID inválido',
-          details: parseResult.error.flatten().fieldErrors,
-        })
-        return
-      }
-
-      const { id } = parseResult.data
+      const { id } = req.params
 
       const deleted = await MaintenanceRepository.delete(id, req.user.id, req.user.username)
 
@@ -472,7 +436,6 @@ export class MaintenanceController {
 
       res.status(500).json({
         error: 'Error al eliminar el reporte',
-        message: error.message,
       })
     }
   }
@@ -488,16 +451,7 @@ export class MaintenanceController {
         return
       }
 
-      const parseResult = idParamSchema.safeParse(req.params)
-      if (!parseResult.success) {
-        res.status(400).json({
-          error: 'ID inválido',
-          details: parseResult.error.flatten().fieldErrors,
-        })
-        return
-      }
-
-      const { id } = parseResult.data
+      const { id } = req.params
 
       const report = await MaintenanceRepository.restore(id, req.user.id, req.user.username)
 
@@ -520,7 +474,6 @@ export class MaintenanceController {
 
       res.status(500).json({
         error: 'Error al restaurar el reporte',
-        message: error.message,
       })
     }
   }
@@ -535,16 +488,12 @@ export class MaintenanceController {
    */
   static async getImages(req: Request, res: Response): Promise<void> {
     try {
-      const parseResult = idParamSchema.safeParse(req.params)
-      if (!parseResult.success) {
-        res.status(400).json({
-          error: 'ID inválido',
-          details: parseResult.error.flatten().fieldErrors,
-        })
+      const { id } = req.params
+
+      if (!(await visibleReport(id, req.user?.role))) {
+        res.status(404).json({ error: 'Reporte no encontrado' })
         return
       }
-
-      const { id } = parseResult.data
 
       const images = await MaintenanceRepository.getImagesByReportId(id)
 
@@ -553,7 +502,6 @@ export class MaintenanceController {
       logger.error({ err: error }, '[MaintenanceController.getImages] Error')
       res.status(500).json({
         error: 'Error al obtener las imágenes',
-        message: error.message,
       })
     }
   }
@@ -569,21 +517,17 @@ export class MaintenanceController {
         return
       }
 
-      const parseResult = idParamSchema.safeParse(req.params)
-      if (!parseResult.success) {
-        res.status(400).json({
-          error: 'ID inválido',
-          details: parseResult.error.flatten().fieldErrors,
-        })
-        return
-      }
-
-      const { id } = parseResult.data
+      const { id } = req.params
 
       // Verificar que el reporte existe
       const report = await MaintenanceRepository.getById(id)
       if (!report) {
         res.status(404).json({ error: 'Reporte no encontrado' })
+        return
+      }
+
+      if (report.is_deleted) {
+        res.status(400).json({ error: 'No se puede modificar un reporte eliminado' })
         return
       }
 
@@ -642,7 +586,6 @@ export class MaintenanceController {
       logger.error({ err: error }, '[MaintenanceController.uploadImage] Error')
       res.status(500).json({
         error: 'Error al subir la imagen',
-        message: error.message,
       })
     }
   }
@@ -660,8 +603,13 @@ export class MaintenanceController {
 
       const { id, imageId } = req.params
 
-      if (!id || !imageId) {
-        res.status(400).json({ error: 'ID de reporte e imagen son requeridos' })
+      const report = await MaintenanceRepository.getById(id)
+      if (!report) {
+        res.status(404).json({ error: 'Reporte no encontrado' })
+        return
+      }
+      if (report.is_deleted) {
+        res.status(400).json({ error: 'No se puede modificar un reporte eliminado' })
         return
       }
 
@@ -691,7 +639,6 @@ export class MaintenanceController {
       logger.error({ err: error }, '[MaintenanceController.deleteImage] Error')
       res.status(500).json({
         error: 'Error al eliminar la imagen',
-        message: error.message,
       })
     }
   }
@@ -706,16 +653,12 @@ export class MaintenanceController {
    */
   static async getHistory(req: Request, res: Response): Promise<void> {
     try {
-      const parseResult = idParamSchema.safeParse(req.params)
-      if (!parseResult.success) {
-        res.status(400).json({
-          error: 'ID inválido',
-          details: parseResult.error.flatten().fieldErrors,
-        })
+      const { id } = req.params
+
+      if (!(await visibleReport(id, req.user?.role))) {
+        res.status(404).json({ error: 'Reporte no encontrado' })
         return
       }
-
-      const { id } = parseResult.data
 
       const history = await MaintenanceRepository.getHistoryByReportId(id)
 
@@ -724,7 +667,6 @@ export class MaintenanceController {
       logger.error({ err: error }, '[MaintenanceController.getHistory] Error')
       res.status(500).json({
         error: 'Error al obtener el historial',
-        message: error.message,
       })
     }
   }
@@ -746,7 +688,6 @@ export class MaintenanceController {
       logger.error({ err: error }, '[MaintenanceController.getStats] Error')
       res.status(500).json({
         error: 'Error al obtener estadísticas',
-        message: error.message,
       })
     }
   }

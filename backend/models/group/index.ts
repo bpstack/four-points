@@ -196,20 +196,6 @@ export interface UpdateGroupRoomDTO {
   notes?: string
 }
 
-export interface UpdateGroupStatusDTO {
-  booking_confirmed?: boolean
-  booking_confirmed_date?: Date | string
-  contract_signed?: boolean
-  contract_signed_date?: Date | string
-  rooming_status?: RoomingStatus
-  rooming_requested_date?: Date | string
-  rooming_received_date?: Date | string
-  rooming_deadline?: Date | string
-  balance_status?: BalanceStatus
-  balance_requested_date?: Date | string
-  balance_paid_date?: Date | string
-}
-
 export interface UpdateBookingDTO {
   confirmed: boolean
   date?: Date | string
@@ -370,21 +356,6 @@ export interface PaginatedResponse<T> {
 // ═══════════════════════════════════════════════════════
 // REQUEST TYPES - Para controllers
 // ═══════════════════════════════════════════════════════
-
-export interface UpdateGroupStatusRequest {
-  new_status: GroupStatus
-  notes?: string
-}
-
-export interface UpdateBookingRequest {
-  confirmed: boolean
-  date?: Date | string
-}
-
-export interface UpdateContractRequest {
-  signed: boolean
-  date?: Date | string
-}
 
 export interface UpdateRoomingRequest {
   rooming_status?: RoomingStatus

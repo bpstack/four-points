@@ -5,6 +5,7 @@
 
 import { Request, Response } from 'express'
 import { globalSearch } from '../../repositories/search/search-repository.js'
+import { searchableModules } from '../../services/search/search-access.js'
 import { logger } from '../../config/logger.js'
 
 /**
@@ -32,7 +33,8 @@ export async function search(req: Request, res: Response) {
     }
 
     // Perform search
-    const results = await globalSearch(query.trim())
+    // Only the modules this role can open (mantenimiento: no blacklist or parking)
+    const results = await globalSearch(query.trim(), searchableModules(req.user?.role))
 
     // Count total results
     const totalResults =

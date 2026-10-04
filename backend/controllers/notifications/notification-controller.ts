@@ -6,6 +6,10 @@ import { NotificationGeneratorService } from '../../services/notifications/notif
 import { NotificationFilters, NotificationPriority } from '../../models/notifications/index'
 import { ERROR_CODES, SUCCESS_CODES } from '../../config/error-codes.js'
 import { logger } from '../../config/logger.js'
+import {
+  generalNotificationSchema,
+  groupNotificationSchema,
+} from '../../validations/notifications/notification-schemas.js'
 
 export class NotificationController {
   /**
@@ -44,7 +48,6 @@ export class NotificationController {
         success: false,
         error: ERROR_CODES.NOTIFICATIONS_FETCH_ERROR,
         code: ERROR_CODES.NOTIFICATIONS_FETCH_ERROR,
-        message: error.message,
       })
     }
   }
@@ -85,7 +88,6 @@ export class NotificationController {
         success: false,
         error: ERROR_CODES.NOTIFICATIONS_FETCH_UNREAD_ERROR,
         code: ERROR_CODES.NOTIFICATIONS_FETCH_UNREAD_ERROR,
-        message: error.message,
       })
     }
   }
@@ -120,7 +122,6 @@ export class NotificationController {
         success: false,
         error: ERROR_CODES.NOTIFICATIONS_FETCH_COUNT_ERROR,
         code: ERROR_CODES.NOTIFICATIONS_FETCH_COUNT_ERROR,
-        message: error.message,
       })
     }
   }
@@ -166,7 +167,6 @@ export class NotificationController {
         success: false,
         error: ERROR_CODES.NOTIFICATIONS_PROCESS_ERROR,
         code: ERROR_CODES.NOTIFICATIONS_PROCESS_ERROR,
-        message: error.message,
       })
     }
   }
@@ -200,7 +200,6 @@ export class NotificationController {
         success: false,
         error: ERROR_CODES.NOTIFICATIONS_FETCH_GROUP_ERROR,
         code: ERROR_CODES.NOTIFICATIONS_FETCH_GROUP_ERROR,
-        message: error.message,
       })
     }
   }
@@ -261,7 +260,6 @@ export class NotificationController {
         success: false,
         error: ERROR_CODES.NOTIFICATIONS_MARK_READ_ERROR,
         code: ERROR_CODES.NOTIFICATIONS_MARK_READ_ERROR,
-        message: error.message,
       })
     }
   }
@@ -296,7 +294,6 @@ export class NotificationController {
         success: false,
         error: ERROR_CODES.NOTIFICATIONS_MARK_ALL_ERROR,
         code: ERROR_CODES.NOTIFICATIONS_MARK_ALL_ERROR,
-        message: error.message,
       })
     }
   }
@@ -326,15 +323,16 @@ export class NotificationController {
         })
       }
 
-      const { title, message, priority, userIds, scheduled_for } = req.body
-
-      if (!title || !message) {
+      const parsed = groupNotificationSchema.safeParse(req.body)
+      if (!parsed.success) {
         return res.status(400).json({
           success: false,
           error: ERROR_CODES.NOTIFICATIONS_MISSING_REQUIRED_FIELDS,
           code: ERROR_CODES.NOTIFICATIONS_MISSING_REQUIRED_FIELDS,
+          details: parsed.error.issues,
         })
       }
+      const { title, message, priority, userIds, scheduled_for } = parsed.data
 
       // Parsear scheduled_for si existe
       let scheduledDate: Date | undefined
@@ -369,7 +367,6 @@ export class NotificationController {
         success: false,
         error: ERROR_CODES.NOTIFICATIONS_CREATE_ERROR,
         code: ERROR_CODES.NOTIFICATIONS_CREATE_ERROR,
-        message: error.message,
       })
     }
   }
@@ -391,25 +388,21 @@ export class NotificationController {
         })
       }
 
-      const { title, message, priority, module, direct_link, scheduled_for, userIds } = req.body
-
-      if (!title || !message) {
+      // Title, message, module, an in-app direct_link and real user ids
+      const parsed = generalNotificationSchema.safeParse(req.body)
+      if (!parsed.success) {
+        const code =
+          parsed.error.issues[0]?.path[0] === 'module'
+            ? ERROR_CODES.NOTIFICATIONS_INVALID_MODULE
+            : ERROR_CODES.NOTIFICATIONS_MISSING_REQUIRED_FIELDS
         return res.status(400).json({
           success: false,
-          error: ERROR_CODES.NOTIFICATIONS_MISSING_REQUIRED_FIELDS,
-          code: ERROR_CODES.NOTIFICATIONS_MISSING_REQUIRED_FIELDS,
+          error: code,
+          code,
+          details: parsed.error.issues,
         })
       }
-
-      // Validar module si se proporciona
-      const validModules = ['groups', 'parking', 'logbooks', 'system']
-      if (module && !validModules.includes(module)) {
-        return res.status(400).json({
-          success: false,
-          error: ERROR_CODES.NOTIFICATIONS_INVALID_MODULE,
-          code: ERROR_CODES.NOTIFICATIONS_INVALID_MODULE,
-        })
-      }
+      const { title, message, priority, module, direct_link, scheduled_for, userIds } = parsed.data
 
       // Parsear scheduled_for si existe
       let scheduledDate: Date | undefined
@@ -445,7 +438,6 @@ export class NotificationController {
         success: false,
         error: ERROR_CODES.NOTIFICATIONS_CREATE_ERROR,
         code: ERROR_CODES.NOTIFICATIONS_CREATE_ERROR,
-        message: error.message,
       })
     }
   }
@@ -497,7 +489,6 @@ export class NotificationController {
         success: false,
         error: ERROR_CODES.NOTIFICATIONS_DELETE_ERROR,
         code: ERROR_CODES.NOTIFICATIONS_DELETE_ERROR,
-        message: error.message,
       })
     }
   }

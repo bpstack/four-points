@@ -74,12 +74,12 @@ The system assumes **fixed Opera codes** mapped to 7 stable columns. Defined as
    the frontend's `interface MonthlyRow` (`DailyRevenueTab.tsx`).
 3. Update `buildEmptyRow()` to include the new field defaulting to 0.
 4. If the new code should affect the parser filter, add it to `fnb_category`
-   (table) — `fnb-categories.cache.ts` picks it up dynamically.
+   (table) and restart the backend — `fnb-categories.cache.ts` reads it once.
 
-**`trackedCodesSet` code cache:** reads `fnb_category` and caches in process
-memory. Refreshes every N seconds (TTL defined in `fnb-categories.cache.ts`). If
-you add a code via direct SQL, the parser takes up to that TTL to start seeing
-it — alternative: restart the backend.
+**`trackedCodesSet` code cache:** reads `fnb_category` on first use and keeps
+it in process memory for the life of the process. There is no TTL:
+`invalidateCategories()` is only called by the tests, so a code added via
+direct SQL is not seen until the backend restarts.
 
 ## PDF parser — `parseOperaPdf(buffer)`
 
@@ -199,8 +199,8 @@ can upload PDFs and edit manually.
 2. **PDF date: filter line vs header.** The parser uses the filter
    (`Date DD/MM/YY`) **not the header**. The header is +1 day off and would
    corrupt data.
-3. **`trackedCodesSet` cache with TTL.** Changes to `fnb_category` take up to
-   the TTL to propagate to the parser. Restart the server to force.
+3. **`trackedCodesSet` cache without TTL.** Changes to `fnb_category` reach
+   the parser only after a backend restart.
 4. **`CATEGORY_CODES` is hardcoded** in the repo — specific Opera codes for the
    hotel. If the hotel changes or Opera renumbers, touch here.
 5. **Floats: use `r2()`.** Any amount sum must pass through `r2()` before going

@@ -8,6 +8,7 @@ import { logger } from '../../config/logger.js'
 import { buildSolverInput } from '../../services/scheduling/build-solver-input.js'
 import { runSolver } from '../../services/scheduling/solver-client.js'
 import type { SolverSuccess, SolverOutput } from '../../services/scheduling/types/solver.js'
+import { solverErrorMessage } from '../../services/scheduling/solver-errors.js'
 
 /** Persiste el registro del run; nunca lanza — error de log no debe romper la respuesta. */
 async function recordSolverRun(data: SolverRunRecord): Promise<void> {
@@ -90,7 +91,7 @@ export async function generateSchedule(req: Request, res: Response): Promise<voi
       solverMatrix: null,
       conflictingConstraints: null,
     })
-    res.status(500).json({ error: `Error invocando el solver: ${err.message}` })
+    res.status(500).json({ error: solverErrorMessage('INTERNAL'), errorCode: 'INTERNAL' })
     return
   }
   const elapsedMs = Date.now() - startMs
@@ -113,7 +114,10 @@ export async function generateSchedule(req: Request, res: Response): Promise<voi
       solverMatrix: null,
       conflictingConstraints: null,
     })
-    res.status(500).json({ error: solverOutput.message, errorCode: solverOutput.errorCode })
+    res.status(500).json({
+      error: solverErrorMessage(solverOutput.errorCode),
+      errorCode: solverOutput.errorCode,
+    })
     return
   }
 

@@ -5,52 +5,39 @@
  */
 
 // ========================================
-// NORMALIZAR TEXTO (sin acentos)
-// ========================================
-export function normalizeText(text: string): string {
-  return text
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '') // Eliminar diacríticos
-    .trim()
-}
-
-// ========================================
 // HIGHLIGHT DE COINCIDENCIAS
 // ========================================
-export function highlightMatches(text: string, searchTerm: string): string {
-  if (!searchTerm) return text
 
-  const normalizedText = normalizeText(text)
-  const normalizedSearch = normalizeText(searchTerm)
-
-  // Buscar coincidencias sin importar acentos
-  const regex = new RegExp(`(${escapeRegex(normalizedSearch)})`, 'gi')
-
-  // Encontrar posiciones de coincidencias
-  let result = text
-  const matches = normalizedText.matchAll(regex)
-
-  for (const match of matches) {
-    if (match.index !== undefined) {
-      const start = match.index
-      const end = start + searchTerm.length
-      const originalText = text.substring(start, end)
-      result = result.replace(
-        originalText,
-        `<mark class="bg-yellow-200 dark:bg-yellow-800">${originalText}</mark>`
-      )
-    }
-  }
-
-  return result
+// One UTF-16 unit in, one unit out (lower case, no accent), so indexes in the
+// folded text are indexes in the original
+function foldChar(c: string): string {
+  return c.normalize('NFD')[0].toLowerCase()[0] ?? c
 }
 
-// ========================================
-// ESCAPAR CARACTERES ESPECIALES REGEX
-// ========================================
-function escapeRegex(str: string): string {
-  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+export interface HighlightPart {
+  text: string
+  match: boolean
+}
+
+/**
+ * Splits `text` into parts that match `searchTerm` (ignoring case and
+ * accents) and parts that do not. Rendered as React nodes, never as HTML.
+ */
+export function splitHighlight(text: string, searchTerm: string): HighlightPart[] {
+  const chars = text.split('')
+  const term = searchTerm.trim().split('').map(foldChar).join('')
+  if (!term) return [{ text, match: false }]
+
+  const folded = chars.map(foldChar).join('')
+  const parts: HighlightPart[] = []
+  let from = 0
+  for (let at = folded.indexOf(term); at !== -1; at = folded.indexOf(term, at + term.length)) {
+    if (at > from) parts.push({ text: chars.slice(from, at).join(''), match: false })
+    parts.push({ text: chars.slice(at, at + term.length).join(''), match: true })
+    from = at + term.length
+  }
+  if (from < chars.length) parts.push({ text: chars.slice(from).join(''), match: false })
+  return parts
 }
 
 // ========================================
@@ -84,11 +71,6 @@ export function formatDateTime(dateString: string): string {
 // ========================================
 // VALIDAR RANGO DE FECHAS
 // ========================================
-export function isValidDateRange(from: Date | string, to: Date | string): boolean {
-  const fromDate = typeof from === 'string' ? new Date(from) : from
-  const toDate = typeof to === 'string' ? new Date(to) : to
-  return toDate > fromDate
-}
 
 // ========================================
 // CALCULAR DÍAS DE HOSPEDAJE
@@ -104,61 +86,22 @@ export function calculateStayDays(checkIn: string, checkOut: string): number {
 // ========================================
 // GENERAR NOMBRE DE ARCHIVO PARA EXPORT
 // ========================================
-export function generateExportFilename(): string {
-  const now = new Date()
-  const timestamp = now.toISOString().split('T')[0].replace(/-/g, '')
-  return `blacklist_export_${timestamp}.xlsx`
-}
 
 // ========================================
 // SANITIZAR DOCUMENTO (uppercase, sin espacios)
 // ========================================
-export function sanitizeDocument(doc: string): string {
-  return doc.toUpperCase().replace(/\s+/g, '').trim()
-}
 
 // ========================================
 // VALIDAR FORMATO DNI/NIE ESPAÑOL
 // ========================================
-export function isValidSpanishDocument(type: string, number: string): boolean {
-  if (type === 'DNI') {
-    const dniRegex = /^[0-9]{8}[A-Z]$/
-    return dniRegex.test(number)
-  }
-
-  if (type === 'NIE') {
-    const nieRegex = /^[XYZ][0-9]{7}[A-Z]$/
-    return nieRegex.test(number)
-  }
-
-  return true // Para otros tipos, no validamos formato específico
-}
 
 // ========================================
 // OBTENER COLOR DE SEVERIDAD
 // ========================================
-export function getSeverityColor(severity: string): string {
-  const colors = {
-    LOW: 'text-blue-600 dark:text-blue-400',
-    MEDIUM: 'text-yellow-600 dark:text-yellow-400',
-    HIGH: 'text-orange-600 dark:text-orange-400',
-    CRITICAL: 'text-red-600 dark:text-red-400',
-  }
-  return colors[severity as keyof typeof colors] || colors.LOW
-}
 
 // ========================================
 // OBTENER ICONO DE SEVERIDAD
 // ========================================
-export function getSeverityIcon(severity: string): string {
-  const icons = {
-    LOW: '🔵',
-    MEDIUM: '🟡',
-    HIGH: '🟠',
-    CRITICAL: '🔴',
-  }
-  return icons[severity as keyof typeof icons] || icons.LOW
-}
 
 // ========================================
 // TRUNCAR TEXTO
@@ -191,10 +134,3 @@ export function debounce<T extends (...args: unknown[]) => unknown>(
 // ========================================
 // OBTENER INICIALES DE USUARIO
 // ========================================
-export function getUserInitials(username: string): string {
-  const parts = username.split(' ')
-  if (parts.length >= 2) {
-    return (parts[0][0] + parts[1][0]).toUpperCase()
-  }
-  return username.substring(0, 2).toUpperCase()
-}

@@ -44,16 +44,6 @@ export function formatDate(date: string | Date, format: 'short' | 'long' = 'shor
 }
 
 /**
- * Calcula días entre dos fechas
- */
-export function daysBetween(date1: string | Date, date2: string | Date): number {
-  const d1 = typeof date1 === 'string' ? new Date(date1) : date1
-  const d2 = typeof date2 === 'string' ? new Date(date2) : date2
-  const diffTime = Math.abs(d2.getTime() - d1.getTime())
-  return Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-}
-
-/**
  * Calcula días hasta una fecha (positivo = futuro, negativo = pasado)
  */
 export function daysUntil(date: string | Date): number {
@@ -76,4 +66,13 @@ export function isAdminRole(role: string | undefined | null): boolean {
   if (!role) return false
   const normalizedRole = role.toLowerCase().trim()
   return normalizedRole === 'admin' || normalizedRole === 'demo-admin'
+}
+
+/**
+ * Roles del middleware canRunNotificationCheck del backend: lanzan a mano la
+ * generación de avisos pendientes (demo-admin está deshabilitado)
+ */
+export function canRunNotificationCheckRole(role: string | undefined | null): boolean {
+  const normalizedRole = role?.toLowerCase().trim()
+  return normalizedRole === 'admin' || normalizedRole === 'group-admin'
 }

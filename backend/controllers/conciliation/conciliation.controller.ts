@@ -1,4 +1,6 @@
 // controllers/conciliation/conciliation.controller.ts
+// Route params (:id, :date) arrive validated by validateParams in
+// routes/conciliation/conciliation.routes.ts
 
 // =========================================================
 // CONTROLLER - SISTEMA DE CONCILIACIÓN (Form-based)
@@ -6,7 +8,11 @@
 
 import { Request, Response } from 'express'
 import { conciliationRepo } from '../../repositories/conciliation/conciliation.repository.js'
-import { IUpdateFormRequest } from '../../models/conciliation.model.js'
+import {
+  createConciliationSchema,
+  updateFormSchema,
+  updateStatusSchema,
+} from '../../validations/conciliation/conciliation-schemas.js'
 import { ERROR_CODES, SUCCESS_CODES } from '../../config/error-codes.js'
 import { logger } from '../../config/logger.js'
 
@@ -36,15 +42,6 @@ export async function getById(req: Request, res: Response): Promise<void> {
   try {
     const id = Number(req.params.id)
 
-    if (isNaN(id)) {
-      res.status(400).json({
-        success: false,
-        error: ERROR_CODES.INVALID_ID,
-        code: ERROR_CODES.INVALID_ID,
-      })
-      return
-    }
-
     const conciliation = await conciliationRepo.getById(id)
     res.status(200).json({ success: true, data: conciliation })
   } catch (error: any) {
@@ -72,15 +69,6 @@ export async function getById(req: Request, res: Response): Promise<void> {
 export async function getByDay(req: Request, res: Response): Promise<void> {
   try {
     const { date } = req.params
-
-    if (!date) {
-      res.status(400).json({
-        success: false,
-        error: ERROR_CODES.CONCILIATION_DATE_REQUIRED,
-        code: ERROR_CODES.CONCILIATION_DATE_REQUIRED,
-      })
-      return
-    }
 
     // Obtener por fecha
     const summary = await conciliationRepo.getByDate(date)
@@ -110,17 +98,18 @@ export async function getByDay(req: Request, res: Response): Promise<void> {
  */
 export async function create(req: Request, res: Response): Promise<void> {
   try {
-    const { date, notes, department_id } = req.body
-    const userId = req.user?.id
-
-    if (!date) {
+    const parsed = createConciliationSchema.safeParse(req.body)
+    if (!parsed.success) {
       res.status(400).json({
         success: false,
-        error: ERROR_CODES.CONCILIATION_DATE_REQUIRED,
-        code: ERROR_CODES.CONCILIATION_DATE_REQUIRED,
+        error: ERROR_CODES.INVALID_DATA,
+        code: ERROR_CODES.INVALID_DATA,
+        details: parsed.error.issues,
       })
       return
     }
+    const { date, notes, department_id } = parsed.data
+    const userId = req.user?.id
 
     // Verificar si ya existe una conciliación para esa fecha
     const existing = await conciliationRepo.getByDate(date)
@@ -165,46 +154,22 @@ export async function create(req: Request, res: Response): Promise<void> {
 export async function updateForm(req: Request, res: Response): Promise<void> {
   try {
     const id = Number(req.params.id)
-    const formData: IUpdateFormRequest = req.body
     const userId = req.user?.id
 
-    if (isNaN(id)) {
-      res.status(400).json({
-        success: false,
-        error: ERROR_CODES.INVALID_ID,
-        code: ERROR_CODES.INVALID_ID,
-      })
+    // Every reason exactly once, integer values >= 0, bounded texts
+    const parsed = updateFormSchema.safeParse(req.body)
+    if (!parsed.success) {
+      const path = parsed.error.issues[0]?.path[0]
+      const code =
+        path === 'reception'
+          ? ERROR_CODES.CONCILIATION_INVALID_RECEPTION_ENTRIES
+          : path === 'housekeeping'
+            ? ERROR_CODES.CONCILIATION_INVALID_HOUSEKEEPING_ENTRIES
+            : ERROR_CODES.CONCILIATION_INCOMPLETE_DATA
+      res.status(400).json({ success: false, error: code, code, details: parsed.error.issues })
       return
     }
-
-    // Validar que vengan los datos requeridos
-    if (!formData.reception || !formData.housekeeping) {
-      res.status(400).json({
-        success: false,
-        error: ERROR_CODES.CONCILIATION_INCOMPLETE_DATA,
-        code: ERROR_CODES.CONCILIATION_INCOMPLETE_DATA,
-      })
-      return
-    }
-
-    // Validar que vengan todas las entries (5 reception + 7 housekeeping)
-    if (formData.reception.length !== 5) {
-      res.status(400).json({
-        success: false,
-        error: ERROR_CODES.CONCILIATION_INVALID_RECEPTION_ENTRIES,
-        code: ERROR_CODES.CONCILIATION_INVALID_RECEPTION_ENTRIES,
-      })
-      return
-    }
-
-    if (formData.housekeeping.length !== 7) {
-      res.status(400).json({
-        success: false,
-        error: ERROR_CODES.CONCILIATION_INVALID_HOUSEKEEPING_ENTRIES,
-        code: ERROR_CODES.CONCILIATION_INVALID_HOUSEKEEPING_ENTRIES,
-      })
-      return
-    }
+    const formData = parsed.data
 
     // Verificar que la conciliación no esté cerrada
     const conciliation = await conciliationRepo.getById(id)
@@ -258,20 +223,11 @@ export async function updateForm(req: Request, res: Response): Promise<void> {
 export async function updateStatus(req: Request, res: Response): Promise<void> {
   try {
     const id = Number(req.params.id)
-    const { status } = req.body
     const userId = req.user?.id
     const userRole = req.user?.role?.toLowerCase()
 
-    if (isNaN(id)) {
-      res.status(400).json({
-        success: false,
-        error: ERROR_CODES.INVALID_ID,
-        code: ERROR_CODES.INVALID_ID,
-      })
-      return
-    }
-
-    if (!status || !['draft', 'confirmed', 'closed'].includes(status)) {
+    const parsed = updateStatusSchema.safeParse(req.body)
+    if (!parsed.success) {
       res.status(400).json({
         success: false,
         error: ERROR_CODES.CONCILIATION_INVALID_STATUS,
@@ -279,6 +235,7 @@ export async function updateStatus(req: Request, res: Response): Promise<void> {
       })
       return
     }
+    const { status } = parsed.data
 
     const conciliation = await conciliationRepo.getById(id)
 
@@ -334,15 +291,6 @@ export async function recalculateTotals(req: Request, res: Response): Promise<vo
   try {
     const id = Number(req.params.id)
 
-    if (isNaN(id)) {
-      res.status(400).json({
-        success: false,
-        error: ERROR_CODES.INVALID_ID,
-        code: ERROR_CODES.INVALID_ID,
-      })
-      return
-    }
-
     // Verificar que la conciliación no esté cerrada
     const conciliation = await conciliationRepo.getById(id)
     if (conciliation.status === 'closed') {
@@ -395,15 +343,6 @@ export async function recalculateTotals(req: Request, res: Response): Promise<vo
 export async function remove(req: Request, res: Response): Promise<void> {
   try {
     const id = Number(req.params.id)
-
-    if (isNaN(id)) {
-      res.status(400).json({
-        success: false,
-        error: ERROR_CODES.INVALID_ID,
-        code: ERROR_CODES.INVALID_ID,
-      })
-      return
-    }
 
     // Verificar que existe
     await conciliationRepo.getById(id)

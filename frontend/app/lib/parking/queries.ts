@@ -2,6 +2,7 @@
 
 import apiClient from '@/app/lib/apiClient'
 import { API_BASE_URL } from '@/app/lib/env'
+import { fetchAllPages } from '@/app/lib/helpers/pagination'
 import type {
   ParkingSpot,
   ParkingVehicle,
@@ -15,7 +16,6 @@ import type {
   BookingResponse,
   BookingsResponse,
   StatsResponse,
-  OccupancyResponse,
   PendingCheckinsResponse,
   PendingCheckoutsResponse,
   FullStatsResponse,
@@ -178,6 +178,21 @@ export const parkingApi = {
   },
 
   /**
+   * Reservas que ocupan plaza (reserved y checked_in), todas las páginas
+   */
+  getOccupyingBookings: async (): Promise<ParkingBooking[]> => {
+    const byStatus = await Promise.all(
+      ['reserved', 'checked_in'].map((status) =>
+        fetchAllPages(async (page) => {
+          const res = await parkingApi.getAllBookings({ status, page, limit: 500 })
+          return { items: res.bookings ?? [], totalPages: res.pagination?.totalPages ?? 1 }
+        })
+      )
+    )
+    return byStatus.flat()
+  },
+
+  /**
    * Obtiene una reserva por CÓDIGO (PK-YYYYMMDD-####)
    * ✅ ACTUALIZADO: Ahora usa código en vez de ID
    */
@@ -247,17 +262,6 @@ export const parkingApi = {
    */
   getStats: async (date?: string): Promise<StatsResponse> => {
     const url = date ? `${API_URL}/api/parking/stats?date=${date}` : `${API_URL}/api/parking/stats`
-    return apiClient.get(url)
-  },
-
-  /**
-   * Obtiene ocupación por planta
-   * @param date - Fecha en formato YYYY-MM-DD (opcional, default: hoy)
-   */
-  getOccupancy: async (date?: string): Promise<OccupancyResponse> => {
-    const url = date
-      ? `${API_URL}/api/parking/stats/occupancy?date=${date}`
-      : `${API_URL}/api/parking/stats/occupancy`
     return apiClient.get(url)
   },
 

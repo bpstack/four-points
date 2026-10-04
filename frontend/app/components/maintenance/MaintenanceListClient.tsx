@@ -11,7 +11,6 @@ import { useMaintenanceList, type MaintenanceMessages } from './hooks/useMainten
 import { CreateReportPanel } from './panels/CreateReportPanel'
 import DatePickerInput from '@/app/ui/calendar/DatePickerInput'
 import { SelectDropdown } from '@/app/ui/components/SelectDropdown'
-import type { DropdownOption } from '@/app/ui/components/SelectDropdown'
 import {
   FiPlus,
   FiSearch,
@@ -501,15 +500,25 @@ export function MaintenanceListClient({
                       {isFetching ? (
                         Array.from({ length: 8 }).map((_, i) => (
                           <tr key={i} className="animate-pulse">
-                            <td className="px-3 py-2.5"><div className="h-3 bg-surface-hover rounded w-20" /></td>
+                            <td className="px-3 py-2.5">
+                              <div className="h-3 bg-surface-hover rounded w-20" />
+                            </td>
                             <td className="px-3 py-2.5">
                               <div className="h-3 bg-surface-hover rounded w-44 mb-1.5" />
                               <div className="h-2.5 bg-surface-hover rounded w-28" />
                             </td>
-                            <td className="px-3 py-2.5"><div className="h-3 bg-surface-hover rounded w-28" /></td>
-                            <td className="px-3 py-2.5"><div className="h-5 bg-surface-hover rounded-full w-16" /></td>
-                            <td className="px-3 py-2.5"><div className="h-5 bg-surface-hover rounded-full w-20" /></td>
-                            <td className="px-3 py-2.5"><div className="h-3 bg-surface-hover rounded w-20" /></td>
+                            <td className="px-3 py-2.5">
+                              <div className="h-3 bg-surface-hover rounded w-28" />
+                            </td>
+                            <td className="px-3 py-2.5">
+                              <div className="h-5 bg-surface-hover rounded-full w-16" />
+                            </td>
+                            <td className="px-3 py-2.5">
+                              <div className="h-5 bg-surface-hover rounded-full w-20" />
+                            </td>
+                            <td className="px-3 py-2.5">
+                              <div className="h-3 bg-surface-hover rounded w-20" />
+                            </td>
                           </tr>
                         ))
                       ) : reports.length === 0 ? (
@@ -607,7 +616,10 @@ export function MaintenanceListClient({
               <div className="md:hidden space-y-2">
                 {isFetching ? (
                   Array.from({ length: 5 }).map((_, i) => (
-                    <div key={i} className="bg-surface rounded-md border border-border p-3 animate-pulse space-y-2">
+                    <div
+                      key={i}
+                      className="bg-surface rounded-md border border-border p-3 animate-pulse space-y-2"
+                    >
                       <div className="flex items-center justify-between">
                         <div className="h-3 bg-surface-hover rounded w-40" />
                         <div className="h-5 bg-surface-hover rounded-full w-16" />

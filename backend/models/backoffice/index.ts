@@ -168,39 +168,9 @@ export interface SummaryStats {
 }
 
 // ========================================
-// CONSTANTES
-// ========================================
-
-export const INVOICE_STATUS: Record<InvoiceStatus, string> = {
-  pending: 'Pendiente',
-  validated: 'Validada',
-  rejected: 'Rechazada',
-  paid: 'Pagada',
-}
-
-export const PAYMENT_METHODS: Record<PaymentMethod, string> = {
-  transfer: 'Transferencia',
-  direct_debit: 'Domiciliación',
-}
-
-export const PERIODICITIES: Record<Periodicity, string> = {
-  monthly: 'Mensual',
-  bimonthly: 'Bimestral',
-  quarterly: 'Trimestral',
-  annual: 'Anual',
-  on_demand: 'Bajo demanda',
-}
-
-export const ASSET_TYPES: Record<AssetType, string> = {
-  stamp: 'Sello',
-  signature: 'Firma',
-}
-
-// ========================================
 // VALORES POR DEFECTO
 // ========================================
 
 export const DEFAULT_PAGE = 1
 export const DEFAULT_LIMIT = 50
 export const MAX_LIMIT = 100
-export const DEFAULT_VAT_PERCENTAGE = 21

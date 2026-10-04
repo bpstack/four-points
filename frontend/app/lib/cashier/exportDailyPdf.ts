@@ -1,5 +1,6 @@
 // app/lib/cashier/exportDailyPdf.ts
 import { PDFDocument, StandardFonts, rgb, PDFPage, PDFFont } from 'pdf-lib'
+import { encodableFor } from '@/app/lib/helpers/pdfText'
 import type {
   CashierDaily,
   CashierShift,
@@ -77,11 +78,12 @@ function drawShiftPage(
     yPos: number,
     opts: { size?: number; font?: PDFFont; color?: ReturnType<typeof rgb> } = {}
   ) => {
-    page.drawText(str, {
+    const f = opts.font || font
+    page.drawText(encodableFor(f, str), {
       x,
       y: yPos,
       size: opts.size || 10,
-      font: opts.font || font,
+      font: f,
       color: opts.color || COLORS.black,
     })
   }
@@ -395,11 +397,12 @@ function drawDaySummaryPage(
     yPos: number,
     opts: { size?: number; font?: PDFFont; color?: ReturnType<typeof rgb> } = {}
   ) => {
-    page.drawText(str, {
+    const f = opts.font || font
+    page.drawText(encodableFor(f, str), {
       x,
       y: yPos,
       size: opts.size || 10,
-      font: opts.font || font,
+      font: f,
       color: opts.color || COLORS.black,
     })
   }

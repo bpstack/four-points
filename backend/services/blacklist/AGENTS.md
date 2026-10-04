@@ -7,19 +7,22 @@
 ## What it does
 
 Registry of individuals banned from the hotel. Each entry records the person's
-name, document type and number (DNI/Passport/NIE/Other), reason for the ban, one
-or more photos (stored in Cloudinary as a JSON array), a free-text description,
-and a full audit trail of all changes. Entries can be soft-deleted and later
+name, document type and number (DNI/Passport/NIE/Other), the stay dates, the
+reason for the ban, a severity, up to five photos (Cloudinary URLs in a JSON
+array), free-text comments, and a full audit trail of all changes. Entries can be soft-deleted and later
 restored. All users except `mantenimiento` can read the list; creating, editing,
 and deleting requires authentication.
 
 ## DB table — `blacklist_entries`
 
-Single table: `id`, `name`, `document_type` (enum: DNI/PASSPORT/NIE/OTHER),
-`document_number`, `reason`, `description`, `images` (JSON array of Cloudinary
-URLs + public IDs), `audit_trail` (JSON array of `AuditEntry` objects),
-`is_deleted` (soft delete flag), `deleted_by`, `deleted_at`, `created_by`,
-`created_at`, `updated_at`.
+Single table (`backend/db-mysql/aiven/12_blacklist.sql`): `id`, `guest_name`,
+`document_type` (enum: DNI/PASSPORT/NIE/OTHER), `document_number`,
+`check_in_date`, `check_out_date`, `reason`, `severity` (enum:
+LOW/MEDIUM/HIGH/CRITICAL), `comments`, `images` (JSON array of Cloudinary URLs;
+since 2026-10-02 only URLs of our cloud inside `blacklist/` are accepted),
+`status` (enum: ACTIVE/DELETED — the soft delete), `deleted_at`, `deleted_by`,
+`created_by`, `created_at`, `updated_at`, `audit_trail` (JSON array of
+`AuditEntry` objects).
 
 The `audit_trail` column is an in-row JSON log — every create, update, and
 delete appends an `AuditEntry` `{ action, changed_by, timestamp, changes }` to
@@ -75,8 +78,8 @@ Images are uploaded in two steps:
 2. The frontend collects the returned URLs/publicIds and includes them in the
    `images` array when calling `POST /` or `PATCH /:id`.
 
-`DELETE /api/blacklist/upload/:publicId` — deletes an image from Cloudinary
-(used when the user removes a photo before saving).
+Removing a photo before saving only drops it from the form: the file stays in
+Cloudinary (there is no delete endpoint, see "Route order" below).
 
 **Important:** `CloudinaryService` is in
 `backend/services/blacklist/cloudinary-service.ts` and is also imported by the
@@ -84,12 +87,14 @@ backoffice module. Do not move or rename it without updating both importers.
 
 ## Soft delete / restore
 
-- `DELETE /:id` — sets `is_deleted = 1`, records `deleted_by` and `deleted_at`,
+- `DELETE /:id` — sets `status = 'DELETED'`, records `deleted_by` and `deleted_at`,
   appends `{ action: 'deleted' }` to audit trail.
-- `PATCH /:id/restore` — sets `is_deleted = 0`, clears
+- `PATCH /:id/restore` — sets `status = 'ACTIVE'`, clears
   `deleted_by`/`deleted_at`, appends `{ action: 'restored' }` to audit trail.
-- `getAll` by default excludes soft-deleted entries. To include them, pass
-  `includeDeleted=true` in filters.
+- `getAll` by default lists `status = 'ACTIVE'` only. Pass `status=DELETED` for
+  the deleted ones or `status=ALL` for both.
+- No screen calls the restore endpoint yet; the unused `restoreBlacklist`
+  server action was removed on 2026-10-02.
 
 ## Endpoints
 
@@ -102,16 +107,15 @@ backoffice module. Do not move or rename it without updating both importers.
 - **DELETE** `/api/blacklist/:id` — all · Soft delete
 - **PATCH** `/api/blacklist/:id/restore` — all · Restore soft-deleted entry
 - **POST** `/api/blacklist/upload` — all · Upload image to Cloudinary
-- **DELETE** `/api/blacklist/upload/:publicId` — all · Delete image from
-  Cloudinary
 
 All routes sit behind `authenticateToken` + `excludeMantenimiento`. No
 admin-only mutations — any authenticated non-maintenance user can create, edit,
 and delete entries.
 
-**Route order:** `POST /upload` and `DELETE /upload/:publicId` are declared
-**before** `GET /:id` and `DELETE /:id` to prevent Express matching `upload` as
-an ID parameter.
+**Route order:** `POST /upload` is declared **before** the `/:id` routes so
+Express does not match `upload` as an ID parameter. There is no endpoint to
+delete an uploaded image: `DELETE /upload/:publicId` had no caller and was
+removed on 2026-10-02.
 
 ## Frontend layout
 
@@ -125,13 +129,9 @@ app/dashboard/blacklist/
 app/components/blacklist/
 ├── BlacklistDetailClient.tsx      ← detail orchestrator (323 lines)
 ├── mains/
-│   ├── BlacklistTable.tsx         ← list table with filters + pagination (327 lines)
-│   ├── BlacklistModal.tsx         ← detail view modal from list (395 lines)
 │   ├── BlacklistForm.tsx          ← shared create/edit form (435 lines)
 │   ├── ImageGallery.tsx           ← photo display + delete (339 lines)
-│   ├── SearchBar.tsx              ← search + filter bar (337 lines)
 │   ├── AuditTrail.tsx             ← renders the JSON audit trail (308 lines)
-│   ├── Pagination.tsx             (206 lines)
 │   └── DeleteButton.tsx           (56 lines)
 ├── panels/
 │   ├── CreateBlacklistPanel.tsx   ← slide-in create panel (418 lines)
@@ -139,8 +139,7 @@ app/components/blacklist/
 ├── layout/
 │   └── BlacklistDetailSummaryPanel.tsx  (157 lines)
 └── ui/
-    ├── ImageUploader.tsx          ← handles Cloudinary upload flow (287 lines)
-    └── DataRangePicker.tsx        (81 lines)
+    └── ImageUploader.tsx          ← handles Cloudinary upload flow (287 lines)
 
 app/lib/blacklist/
 ├── blacklistApi.ts   ← all HTTP calls

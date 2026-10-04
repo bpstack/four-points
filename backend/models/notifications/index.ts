@@ -11,6 +11,7 @@ export enum NotificationModule {
   PARKING = 'parking',
   LOGBOOKS = 'logbooks',
   SYSTEM = 'system',
+  MESSAGES = 'messages',
 }
 
 export enum NotificationRelatedTo {
@@ -20,6 +21,7 @@ export enum NotificationRelatedTo {
   CONTRACT = 'contract',
   ARRIVAL = 'arrival',
   GENERAL = 'general',
+  MESSAGE = 'message',
 }
 
 export enum NotificationPriority {

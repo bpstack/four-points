@@ -77,7 +77,6 @@ interface HistoryJoinRow extends RowDataPacket {
   department_id: number | null
   editor_id: string | null
   editor_name: string | null
-  editor_email: string | null
   author_id: string | null
   message: string | null
   importance_level: string | null
@@ -101,7 +100,6 @@ export async function getHistoryByLogbookId(logbookId: number): Promise<HistoryB
         /* editor */
         u.id   AS editor_id,
         u.username AS editor_name,
-        u.email    AS editor_email,
         /* info opcional de logbook */
         l.author_id,
         l.message,
@@ -127,7 +125,6 @@ export async function getHistoryByLogbookId(logbookId: number): Promise<HistoryB
       ? {
           id: row.editor_id,
           username: row.editor_name || '',
-          email: row.editor_email || '',
         }
       : null,
     previousContent: safeJSON(row.previous_content),

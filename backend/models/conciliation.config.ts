@@ -140,24 +140,6 @@ export const HOUSEKEEPING_DIRECTION_MAP: Record<HousekeepingReason, Direction> =
 ) as Record<HousekeepingReason, Direction>
 
 // =========================================================
-// MAPAS DE LABELS (para uso rápido)
-// =========================================================
-
-/**
- * Mapa de labels por reason de RECEPTION
- */
-export const RECEPTION_LABELS: Record<ReceptionReason, string> = Object.fromEntries(
-  Object.entries(RECEPTION_CONFIG).map(([key, config]) => [key, config.label])
-) as Record<ReceptionReason, string>
-
-/**
- * Mapa de labels por reason de HOUSEKEEPING
- */
-export const HOUSEKEEPING_LABELS: Record<HousekeepingReason, string> = Object.fromEntries(
-  Object.entries(HOUSEKEEPING_CONFIG).map(([key, config]) => [key, config.label])
-) as Record<HousekeepingReason, string>
-
-// =========================================================
 // ARRAYS ORDENADOS (para iteraciones en frontend)
 // =========================================================
 
@@ -192,15 +174,6 @@ export const STATUS_LABELS = {
   closed: 'Cerrado',
 } as const
 
-/**
- * Colores por estado (para UI)
- */
-export const STATUS_COLORS = {
-  draft: 'bg-yellow-100 text-yellow-800 border-yellow-300',
-  confirmed: 'bg-blue-100 text-blue-800 border-blue-300',
-  closed: 'bg-green-100 text-green-800 border-green-300',
-} as const
-
 // =========================================================
 // FUNCIONES HELPER
 // =========================================================
@@ -217,39 +190,4 @@ export function getReceptionDirection(reason: ReceptionReason): Direction {
  */
 export function getHousekeepingDirection(reason: HousekeepingReason): Direction {
   return HOUSEKEEPING_DIRECTION_MAP[reason]
-}
-
-/**
- * Calcular el delta (valor con signo) según direction
- */
-export function calculateDelta(value: number, direction: Direction): number {
-  return direction === 'add' ? value : -value
-}
-
-/**
- * Obtener el label de un reason de RECEPTION
- */
-export function getReceptionLabel(reason: ReceptionReason): string {
-  return RECEPTION_LABELS[reason]
-}
-
-/**
- * Obtener el label de un reason de HOUSEKEEPING
- */
-export function getHousekeepingLabel(reason: HousekeepingReason): string {
-  return HOUSEKEEPING_LABELS[reason]
-}
-
-/**
- * Obtener la configuración completa de un reason de RECEPTION
- */
-export function getReceptionConfig(reason: ReceptionReason): ReceptionReasonConfig {
-  return RECEPTION_CONFIG[reason]
-}
-
-/**
- * Obtener la configuración completa de un reason de HOUSEKEEPING
- */
-export function getHousekeepingConfig(reason: HousekeepingReason): HousekeepingReasonConfig {
-  return HOUSEKEEPING_CONFIG[reason]
 }

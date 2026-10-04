@@ -2,7 +2,7 @@
 
 import { Router } from 'express'
 import { authenticateToken as verifyToken } from '../../middlewares/authenticateToken.js'
-import { canViewGroups, isAdmin } from '../../middlewares/roleCheck.js'
+import { canRunNotificationCheck, canViewGroups, isAdmin } from '../../middlewares/roleCheck.js'
 import { NotificationController } from '../../controllers/notifications/notification-controller.js'
 
 const router = Router()
@@ -23,11 +23,11 @@ router.get('/unread/count', verifyToken, canViewGroups, NotificationController.g
 // Crear notificación general (sin grupo específico)
 router.post('/', verifyToken, isAdmin, NotificationController.createGeneralNotification)
 
-// Verificar notificaciones pendientes (trigger manual)
+// Verificar notificaciones pendientes (trigger manual): admin y group-admin
 router.post(
   '/check-pending',
   verifyToken,
-  canViewGroups,
+  canRunNotificationCheck,
   NotificationController.checkPendingNotifications
 )
 // Marcar todas como leídas

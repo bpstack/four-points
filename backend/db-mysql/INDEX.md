@@ -25,8 +25,7 @@ db-mysql/
 │   ├── 18_user_avatar.sql
 │   ├── 19_scheduling.sql
 │   ├── 99_verification.sql
-│   ├── aiven-conexion.md
-│   └── ca-certificate.pem
+│   └── aiven-conexion.md
 │
 ├── backup/
 │   ├── backup_hotel_db-local.sql
@@ -102,6 +101,8 @@ db-mysql/
 | 2026-05-20 | `20260520_insert_user_example.sql`                      | Usuario `Clara` (recepcionista, role_id=1, is_active=1) + entrada en `scheduling_employees` con `start_date=2026-01-01` / `end_date=2026-02-26`. Trabajó Ene-Feb 2026. Idempotente (`INSERT IGNORE`).                                                                                                                                     | ✅ local · ✅ Aiven |
 | 2026-05-21 | `20260521_add_fnb_revenue.sql`                         | Módulo F&B Daily Revenue: `fnb_category` (seed 7 categorías Breakfast/Lunch/Dinner) + `fnb_daily_revenue` (valores diarios por código Opera). Idempotente.                                                                                                                                                                                 | ✅ local · ✅ Aiven |
 | 2026-09-29 | `20260929_add_cashier_voucher_status_dates.sql`        | `justified_at` y `cancelled_at` (DATETIME NULL) en `cashier_vouchers`. El backend las escribía y los informes muestran la fecha de justificación, pero nunca existieron: justificar y cancelar vales fallaban siempre. Idempotente (`information_schema`).                                                                                   | ✅ local · ✅ Aiven |
+| 2026-09-29 | `20260929_fix_cashier_daily_trigger.sql`               | Recrea `trg_cashier_shift_update_daily`: separa el cálculo de `income` (suma directa de `cashier_shifts`) del de pagos electrónicos (subquery agregado), eliminando la inflación por LEFT JOIN. No toca esquema; solo DDL del trigger. Aplicado manualmente en Aiven + recálculo de las 10 filas de `cashier_daily` desde origen.             | ✅ local · ✅ Aiven |
+| 2026-10-04 | `20261004_add_messages_to_notifications_module.sql`    | Añade `messages` al ENUM `notifications.module`. Desde `9be16b1` el aviso de mensaje urgente se guarda con ese módulo y el INSERT fallaba en silencio («Data truncated»). Solo cambia la columna si tiene la definición anterior exacta. En local ya estaba (BD montada desde el baseline); en Aiven se aplicó el 2026-10-04.                 | ✅ local · ✅ Aiven |
 
 ### Verificación (99)
 
@@ -123,7 +124,7 @@ mysql -u root -p < MASTER_INSTALL.sql
 
 ```bash
 # Ver aiven/aiven-conexion.md para detalles de conexión
-mysql -h HOST -P PORT -u USER -p --ssl-ca=aiven/ca-certificate.pem < MASTER_INSTALL.sql
+mysql -h HOST -P PORT -u USER -p --ssl-ca=../config/certs/ca-certificate.pem < MASTER_INSTALL.sql
 ```
 
 ---

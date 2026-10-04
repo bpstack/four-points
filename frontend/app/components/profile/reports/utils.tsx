@@ -28,7 +28,9 @@ export function formatReportDateTime(dateStr: string): string {
 
 // ─── Shared error block ───────────────────────────────────────────────────────
 
-interface ReportErrorProps { message: string }
+interface ReportErrorProps {
+  message: string
+}
 
 export function ReportError({ message }: ReportErrorProps) {
   return (
@@ -43,7 +45,9 @@ export function ReportError({ message }: ReportErrorProps) {
 
 // ─── Shared list skeleton (cards with badge + 2 lines) ───────────────────────
 
-interface ReportListSkeletonProps { rows?: number }
+interface ReportListSkeletonProps {
+  rows?: number
+}
 
 export function ReportListSkeleton({ rows = 5 }: ReportListSkeletonProps) {
   return (
@@ -64,7 +68,10 @@ export function ReportListSkeleton({ rows = 5 }: ReportListSkeletonProps) {
 
 // ─── Shared table skeleton ────────────────────────────────────────────────────
 
-interface ReportTableSkeletonProps { cols?: number; rows?: number }
+interface ReportTableSkeletonProps {
+  cols?: number
+  rows?: number
+}
 
 export function ReportTableSkeleton({ cols = 5, rows = 8 }: ReportTableSkeletonProps) {
   return (

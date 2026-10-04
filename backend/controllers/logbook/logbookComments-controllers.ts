@@ -120,9 +120,8 @@ export async function updateCommentController(req: Request, res: Response): Prom
       return
     }
 
-    // Check permissions
-    const isAdmin = (req.user as { isAdmin?: boolean })?.isAdmin
-    if (oldComment.user_id !== editorId && !isAdmin) {
+    // Only the author edits a comment
+    if (oldComment.user_id !== editorId) {
       res.status(403).json({
         success: false,
         error: ERROR_CODES.LOGBOOK_COMMENT_NO_PERMISSION,
@@ -215,8 +214,7 @@ export async function deleteCommentController(req: Request, res: Response): Prom
       return
     }
 
-    const isAdmin = (req.user as { isAdmin?: boolean })?.isAdmin
-    if (comment.user_id !== editorId && !isAdmin) {
+    if (comment.user_id !== editorId) {
       res.status(403).json({
         success: false,
         error: ERROR_CODES.LOGBOOK_COMMENT_NO_PERMISSION,

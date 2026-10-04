@@ -325,10 +325,12 @@
       "status": {
         "all": "Todos estados",
         "reported": "Reportado",
-        "pending": "Pendiente",
+        "assigned": "Asignado",
         "in_progress": "En Progreso",
-        "resolved": "Resuelto",
-        "closed": "Cerrado"
+        "waiting": "En Espera",
+        "completed": "Completado",
+        "closed": "Cerrado",
+        "canceled": "Cancelado"
       },
       "filters": {
         "deleted": "Eliminados"

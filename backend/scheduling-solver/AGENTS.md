@@ -198,8 +198,8 @@ lower `minMonthlyLibre` before lowering coverage (less disruptive). If nothing
 matches, generic fallback.
 
 When an INFEASIBLE appears in production that the analyzer can't diagnose,
-**don't blindly patch here**: use `debug-sept.js` (see below) to inspect the
-real `SolverInput`, identify the pattern, and then extend the analyzer with a
+**don't blindly patch here**: rebuild the real `SolverInput` for that month,
+identify the pattern, and then extend the analyzer with a
 new branch. One correct, specific message beats a thousand generic ones.
 
 ## Local setup
@@ -274,20 +274,6 @@ that drifts.
 
 6. Document the decision in `docs/scheduling/decisions.md` (date, rule,
    hard/soft, weight if applicable).
-
-## Debug helpers (live in `backend/`, not here)
-
-Three Node helpers connect directly to the local DB to inspect state without
-spinning up the full server:
-
-- `backend/debug-compare.js` — lists months in the DB with their state.
-- `backend/debug-month.js` — dumps all assignments for a month (edit ID inside).
-- `backend/debug-sept.js` — full debug dump for a hardcoded month: employees,
-  locked cells, the `SolverInput` JSON that would be sent, and the solver
-  output. **Useful when production returns INFEASIBLE and you want to reproduce
-  locally exactly what was sent.**
-
-Typical use: edit the `monthId` inside the script and `node debug-sept.js`.
 
 ## Cross references
 

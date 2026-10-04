@@ -8,6 +8,7 @@ import { CashierPaymentRepository } from '../../repositories/cashier/cashier-pay
 import { CashierDenominationRepository } from '../../repositories/cashier/cashier-denomination-repository.js'
 import { CashierVoucherRepository } from '../../repositories/cashier/cashier-voucher-repository.js'
 import { logger } from '../../config/logger.js'
+import { sendCashierError } from './cashier-errors.js'
 import { ShiftStatus, ShiftType } from '../../models/cashier/index.js'
 import {
   shiftListQuerySchema,
@@ -107,7 +108,11 @@ export class CashierShiftController {
         return
       }
 
-      const updated = await CashierShiftRepository.update(parseInt(id), parsed.data)
+      let updated = await CashierShiftRepository.update(parseInt(id), parsed.data)
+      // The expected cash and the difference depend on income
+      if (parsed.data.income !== undefined) {
+        updated = await CashierShiftRepository.recalculateTotals(updated.id)
+      }
 
       // Registrar en historial
       const userId = req.user?.id
@@ -121,9 +126,8 @@ export class CashierShiftController {
       }
 
       res.json(updated)
-    } catch (error: any) {
-      logger.error({ err: error }, 'Error al actualizar turno')
-      res.status(500).json({ error: error.message || 'Error al actualizar turno' })
+    } catch (error) {
+      sendCashierError(res, error, 'Error al actualizar turno')
     }
   }
 
@@ -155,9 +159,8 @@ export class CashierShiftController {
       })
 
       res.json(closed)
-    } catch (error: any) {
-      logger.error({ err: error }, 'Error al cerrar turno')
-      res.status(500).json({ error: error.message || 'Error al cerrar turno' })
+    } catch (error) {
+      sendCashierError(res, error, 'Error al cerrar turno')
     }
   }
 
@@ -195,9 +198,8 @@ export class CashierShiftController {
       })
 
       res.json(reopened)
-    } catch (error: any) {
-      logger.error({ err: error }, 'Error al reabrir turno')
-      res.status(500).json({ error: error.message || 'Error al reabrir turno' })
+    } catch (error) {
+      sendCashierError(res, error, 'Error al reabrir turno')
     }
   }
 
@@ -253,9 +255,8 @@ export class CashierShiftController {
       await CashierShiftRepository.delete(parseInt(id))
 
       res.json({ message: 'Turno eliminado correctamente' })
-    } catch (error: any) {
-      logger.error({ err: error }, 'Error al eliminar turno')
-      res.status(500).json({ error: error.message || 'Error al eliminar turno' })
+    } catch (error) {
+      sendCashierError(res, error, 'Error al eliminar turno')
     }
   }
 

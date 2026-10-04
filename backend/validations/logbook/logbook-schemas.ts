@@ -1,6 +1,8 @@
 // validations/logbook/logbook-schemas.ts
 
 import { z } from 'zod'
+import { ERROR_CODES } from '../../config/error-codes.js'
+import { calendarDateSchema } from '../common/calendar-date.js'
 
 // ============================================
 // BASE SCHEMAS
@@ -12,22 +14,21 @@ const departmentIdSchema = z.number().int().positive({
   message: 'El department_id debe ser un número entero positivo',
 })
 
+// trim() first: checks run in order, so a later trim() let "     " pass min(3)
+// and be stored as an empty message
 const messageSchema = z
   .string()
+  .trim()
   .min(3, 'El mensaje debe tener al menos 3 caracteres')
   .max(5000, 'El mensaje no puede exceder 5000 caracteres')
-  .trim()
 
 const commentSchema = z
   .string()
+  .trim()
   .min(3, 'El comentario debe tener al menos 3 caracteres')
   .max(5000, 'El comentario no puede exceder 5000 caracteres')
-  .trim()
 
-const dateSchema = z
-  .string()
-  .regex(/^\d{4}-\d{2}-\d{2}$/, 'Formato de fecha inválido. Usa YYYY-MM-DD')
-  .optional()
+const dateSchema = calendarDateSchema.optional()
 
 const authorIdSchema = z.string().uuid('El author_id debe ser un UUID válido')
 
@@ -39,9 +40,10 @@ export const createLogbookSchema = z.object({
   message: messageSchema,
   importance_level: importanceLevelEnum,
   department_id: departmentIdSchema,
-  author_id: authorIdSchema,
   date: dateSchema,
 })
+// No author_id: the author is always the logged-in user (req.user.id). An
+// author_id sent by older clients is stripped, not trusted.
 
 export const updateLogbookSchema = createLogbookSchema
   .pick({
@@ -71,10 +73,36 @@ export const updateCommentSchema = createCommentSchema
   })
 
 // ============================================
+// ROUTE PARAMS AND QUERY
+// ============================================
+
+export const logbookIdParam = z.coerce.number().int().min(1)
+export const departmentIdParam = z.coerce.number().int().min(1)
+export const authorIdParam = authorIdSchema
+export const dayParam = calendarDateSchema
+
+// Every :param used by routes/logbook/logbook-routes.ts
+export const LOGBOOK_PARAM_RULES = [
+  ['id', logbookIdParam, ERROR_CODES.INVALID_ID],
+  ['logbookId', logbookIdParam, ERROR_CODES.INVALID_ID],
+  ['commentId', logbookIdParam, ERROR_CODES.INVALID_ID],
+  ['departmentId', departmentIdParam, ERROR_CODES.INVALID_ID],
+  ['authorId', authorIdParam, ERROR_CODES.INVALID_ID],
+  ['day', dayParam, ERROR_CODES.INVALID_DATE_FORMAT],
+] as const
+
+// The repository caps limit at 500; a negative offset reached MySQL as is
+export const logbookListQuerySchema = z.object({
+  limit: z.coerce.number().int().min(1).max(500).optional(),
+  offset: z.coerce.number().int().min(0).optional(),
+  date_from: calendarDateSchema.optional(),
+  date_to: calendarDateSchema.optional(),
+  importance_level: importanceLevelEnum.optional(),
+  include_trashed: z.enum(['true', 'false']).optional(),
+})
+
+// ============================================
 // INFERRED TYPES
 // ============================================
 
-export type CreateLogbookInput = z.infer<typeof createLogbookSchema>
-export type UpdateLogbookInput = z.infer<typeof updateLogbookSchema>
-export type CreateCommentInput = z.infer<typeof createCommentSchema>
-export type UpdateCommentInput = z.infer<typeof updateCommentSchema>
+export type LogbookListQuery = z.infer<typeof logbookListQuerySchema>

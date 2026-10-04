@@ -29,7 +29,6 @@ export function ContractCard({ status, groupId }: ContractCardProps) {
   const queryClient = useQueryClient()
 
   const {
-    register,
     handleSubmit,
     reset,
     watch,

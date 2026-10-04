@@ -41,13 +41,6 @@ export type HistoryAction =
 // DATABASE MODELS (representan las tablas)
 // ═══════════════════════════════════════════════════════
 
-export interface PaymentMethod extends RowDataPacket {
-  id: number
-  name: string
-  is_active: boolean
-  created_at: Date
-}
-
 export interface CashierVoucher extends RowDataPacket {
   id: number
   amount: number
@@ -62,14 +55,6 @@ export interface CashierVoucher extends RowDataPacket {
   cancelled_at: Date | null
   created_at: Date
   created_by: string | null
-}
-
-export interface CashierShiftUser extends RowDataPacket {
-  id: number
-  shift_id: number
-  user_id: string
-  is_primary: boolean
-  created_at: Date
 }
 
 export interface CashierShift extends RowDataPacket {
@@ -131,11 +116,6 @@ export interface CashierPayment extends RowDataPacket {
   amount: number
 }
 
-export interface CashierShiftVoucher extends RowDataPacket {
-  shift_id: number
-  voucher_id: number
-}
-
 export interface CashierHistory extends RowDataPacket {
   id: number
   shift_id: number
@@ -182,20 +162,6 @@ export interface UpdateShiftDTO {
   comments?: string
 }
 
-export interface CloseShiftDTO {
-  cash_counted: number
-  cash_expected: number
-  difference: number
-  payments_total: number
-  grand_total: number
-  comments?: string
-}
-
-export interface CreateDailyDTO {
-  date: string
-  notes?: string
-}
-
 export interface CloseDailyDTO {
   notes?: string
 }
@@ -211,10 +177,6 @@ export interface UpdateVoucherDTO {
   amount?: number
   reason?: string
   notes?: string
-}
-
-export interface RepayVoucherDTO {
-  repaid_by: string
 }
 
 export interface CreateDenominationDTO {
@@ -238,11 +200,6 @@ export interface CreateHistoryDTO {
   new_value?: string
   changed_by: string
   notes?: string
-}
-
-export interface ManageShiftUsersDTO {
-  user_ids: string[]
-  primary_user_id: string
 }
 
 // ═══════════════════════════════════════════════════════
@@ -317,6 +274,8 @@ export interface CashierShiftWithUsers extends CashierShift {
   payments?: CashierPaymentWithMethod[]
   vouchers?: CashierVoucherWithUser[]
   active_vouchers_total?: number
+  // Vouchers still out of the drawer in this shift, carried across shifts and days
+  outstanding_vouchers_total?: number
 }
 
 export interface CashierDailyDetail extends CashierDaily {
@@ -336,12 +295,6 @@ export interface CashierPaymentWithMethod extends CashierPayment {
 export interface CashierVoucherWithUser extends CashierVoucher {
   created_by_username?: string
   repaid_by_username?: string
-  shift_date?: string
-  shift_type?: ShiftType
-}
-
-export interface CashierHistoryWithUser extends CashierHistory {
-  changed_by_username?: string
   shift_date?: string
   shift_type?: ShiftType
 }
@@ -367,44 +320,6 @@ export interface DashboardOverview extends RowDataPacket {
   grand_total_today: number
   active_vouchers_count: number
   active_vouchers_total: number
-}
-
-export interface ShiftSummary {
-  shift: CashierShiftWithUsers
-  expected_in_box: number
-  total_income: number
-  is_balanced: boolean
-}
-
-export interface DailyReport {
-  date: string
-  daily: CashierDailyDetail
-  shifts: ShiftSummary[]
-  summary: {
-    total_cash: number
-    total_card: number
-    total_bacs: number
-    total_web_payment: number
-    total_transfer: number
-    total_other: number
-    grand_total: number
-    total_vouchers: number
-    total_difference: number
-    shifts_count: number
-    shifts_closed: number
-  }
-}
-
-export interface PeriodReport {
-  from_date: string
-  to_date: string
-  total_shifts: number
-  total_cash: number
-  total_payments: number
-  grand_total: number
-  total_vouchers: number
-  average_daily_cash: number
-  days_with_discrepancy: number
 }
 
 export interface MonthlyCashierSummary {
@@ -441,14 +356,6 @@ export interface MonthlyCashierSummary {
   validation_errors: string[]
 }
 
-export interface VouchersSummary extends RowDataPacket {
-  total_vouchers: number
-  total_active: number
-  total_repaid: number
-  total_active_amount: number
-  oldest_active_date: Date | null
-}
-
 // ═══════════════════════════════════════════════════════
 // UTILITY TYPES
 // ═══════════════════════════════════════════════════════
@@ -461,36 +368,4 @@ export interface PaginatedResponse<T> {
   page: number
   limit: number
   totalPages: number
-}
-
-// ═══════════════════════════════════════════════════════
-// REQUEST TYPES - Para controllers
-// ═══════════════════════════════════════════════════════
-
-export interface UpdateShiftStatusRequest {
-  new_status: ShiftStatus
-  notes?: string
-}
-
-export interface ReopenShiftRequest {
-  reason: string
-}
-
-export interface UpdateDenominationsRequest {
-  denominations: CreateDenominationDTO[]
-}
-
-export interface UpdatePaymentsRequest {
-  payments: CreatePaymentDTO[]
-}
-
-export interface InitializeDayRequest {
-  date: string
-  opened_by: string
-  primary_user_id: string
-  secondary_user_ids?: string[]
-}
-
-export interface CloseDayRequest {
-  notes?: string
 }

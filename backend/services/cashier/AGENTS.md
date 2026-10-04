@@ -34,9 +34,14 @@ periods.
 - **`cashier_history`**: Audit log of every mutation on a shift (created,
   updated, status_changed, voucher_created, etc.)
 
-**Trigger:** `trg_cashier_shift_update_daily` on `cashier_shifts` — after any
-shift UPDATE, recomputes `cashier_daily` totals (total cash, total payments,
-grand total) automatically. No manual sync needed.
+**Trigger:** `trg_cashier_shift_update_daily` on `cashier_shifts` — after a
+shift UPDATE that changes `status`, `income` or `payments_total`, recomputes
+`cashier_daily` totals (total cash, total payments, grand total) automatically.
+No manual sync needed. **Fixed 2026-09-29**
+(`20260929_fix_cashier_daily_trigger.sql`): the original trigger inflated
+`total_cash` by summing `income` once per payment row (LEFT JOIN
+multiplication); the fix queries income directly from `cashier_shifts` and
+payments via an aggregated subquery.
 
 ## Enums (models/cashier/index.ts)
 
@@ -68,8 +73,7 @@ backend/repositories/cashier/
 ├── cashier-history-repository.ts     (215 lines)
 ├── cashier-payment-repository.ts     (207 lines — includes replaceAll bulk)
 ├── cashier-denomination-repository.ts (150 lines — includes replaceAll bulk)
-├── cashier-shift-user-repository.ts  (176 lines)
-└── cashier-payment-method-repository.ts (81 lines)
+└── cashier-shift-user-repository.ts  (176 lines)
 
 backend/routes/cashier/cashier-routes.ts   (412 lines)
 backend/validations/cashier/cashier-validation.ts (202 lines — Zod)
@@ -170,8 +174,11 @@ patches.
 
 1. **DB trigger handles daily totals.** Don't manually update `cashier_daily`
    totals — the trigger `trg_cashier_shift_update_daily` does it automatically
-   after every shift UPDATE. If totals look wrong, check the trigger, not the
-   application code.
+   after a shift UPDATE that changes those columns. **Three competing update
+   paths exist:** (a) the DB trigger, (b) `updateDailyTotals()` in
+   `cashier-shift-repository.ts` (called after saving payments/denominations),
+   (c) monthly reports calculated live. The trigger was fixed 2026-09-29 to
+   remove a LEFT JOIN row-multiplication bug.
 2. **`can_close` is a computed field.** `getDetailsByDate` in the daily
    repository computes whether all 4 shifts are closed and injects
    `can_close: boolean` into the response. The controller trusts this field — it

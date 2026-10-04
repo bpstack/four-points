@@ -9,8 +9,9 @@ import { RowDataPacket, ResultSetHeader } from 'mysql2'
 export type SpotType = 'standard' | 'large' | 'handicapped' | 'electric'
 export type LevelCode = '-2' | '-3'
 export type BookingStatus = 'reserved' | 'checked_in' | 'completed' | 'canceled' | 'no_show'
-export type BookingSource = 'direct' | 'booking.com' | 'expedia' | 'other'
-export type PaymentMethod = 'cash' | 'card' | 'transfer' | 'pending'
+// Same values as the ENUM columns of parking_bookings (db-mysql/aiven/04_parking_tables.sql)
+export type BookingSource = 'direct' | 'booking_com' | 'expedia' | 'airbnb' | 'agency_other'
+export type PaymentMethod = 'cash' | 'card' | 'transfer' | 'agency'
 
 // ============================================
 // DATABASE MODELS (RowDataPacket for queries)
@@ -60,23 +61,6 @@ export interface ParkingBookingRow extends RowDataPacket {
   updated_at: Date
   created_by: number | null
   updated_by: number | null
-}
-
-// Parking Availability
-export interface ParkingAvailabilityRow extends RowDataPacket {
-  id: number
-  spot_id: number
-  date: string
-  is_available: boolean
-  booking_id: number | null
-}
-
-// Parking Rates
-export interface ParkingRateRow extends RowDataPacket {
-  id: number
-  days: number
-  price: number
-  description: string | null
 }
 
 // ============================================
@@ -224,18 +208,6 @@ export interface AvailabilityByLevelRow extends RowDataPacket {
 // DTOs (Data Transfer Objects)
 // ============================================
 
-export interface RegisterVehicleDTO {
-  plate_number: string
-  owner_name: string
-  model?: string
-}
-
-export interface UpdateVehicleDTO {
-  plate_number?: string
-  owner_name?: string
-  model?: string
-}
-
 export interface CreateBookingDTO {
   spot_number: number
   level_code: LevelCode
@@ -274,29 +246,11 @@ export interface CheckoutDTO {
   payment_reference?: string | null
 }
 
-export interface CreateReservationDTO {
-  spot_id: number
-  vehicle_id: number
-  operator_id: number
-  expected_checkin: string
-  expected_checkout: string
-  status?: BookingStatus
-  booking_source?: BookingSource
-  external_booking_id?: string | null
-  notes?: string | null
-}
-
 // ============================================
 // BOOKING FILTERS
 // ============================================
 
-export type QuickFilterType =
-  | 'arrivals_pending' // reserved + entrada hoy
-  | 'arrivals_inside' // checked_in (todos)
-  | 'arrivals_total' // reserved entrada hoy + checked_in
-  | 'departures_pending' // checked_in + salida hoy
-  | 'departures_completed' // completed hoy
-  | 'departures_total' // checked_in salida hoy + completed hoy
+// checked_in salida hoy + completed hoy
 
 export interface BookingFilters {
   id?: number
@@ -308,20 +262,6 @@ export interface BookingFilters {
   owner_name?: string
   booking_source?: BookingSource
   // Pagination
-  page?: number
-  limit?: number
-}
-
-export interface QuickFilterParams {
-  quickFilter: QuickFilterType
-  page?: number
-  limit?: number
-}
-
-export interface DateFilterParams {
-  startDate: string // Fecha entrada (requerido) - YYYY-MM-DD
-  endDate?: string // Fecha salida (opcional) - YYYY-MM-DD
-  status?: BookingStatus // Filtro de estado opcional
   page?: number
   limit?: number
 }

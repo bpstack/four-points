@@ -1,4 +1,6 @@
 // controllers/logbook/logbook-controllers.ts
+// Route params (:id, :logbookId, :day...) arrive validated by validateParams in
+// routes/logbook/logbook-routes.ts
 
 import { Request, Response } from 'express'
 import * as logbookRepo from '../../repositories/logbook/logbook-repository.js'
@@ -7,9 +9,27 @@ import * as historyRepo from '../../repositories/logbook/logbookHistory-reposito
 import {
   createLogbookSchema,
   updateLogbookSchema,
+  logbookListQuerySchema,
+  type LogbookListQuery,
 } from '../../validations/logbook/logbook-schemas.js'
 import { ERROR_CODES, SUCCESS_CODES } from '../../config/error-codes.js'
 import { logger } from '../../config/logger.js'
+import { sendLogbookError } from './logbook-errors.js'
+
+// Validates limit, offset and filters; answers 400 and returns null when invalid
+export function parseListQuery(req: Request, res: Response): LogbookListQuery | null {
+  const parsed = logbookListQuerySchema.safeParse(req.query)
+  if (!parsed.success) {
+    res.status(400).json({
+      success: false,
+      error: ERROR_CODES.INVALID_DATA,
+      code: ERROR_CODES.INVALID_DATA,
+      details: parsed.error.issues,
+    })
+    return null
+  }
+  return parsed.data
+}
 
 // ============================================
 // CREATE LOGBOOK
@@ -18,11 +38,12 @@ import { logger } from '../../config/logger.js'
 export async function createLogbook(req: Request, res: Response): Promise<void> {
   try {
     const validatedData = createLogbookSchema.parse(req.body)
-    const logbook = await logbookRepo.createLogbook(validatedData)
+    const authorId = req.user!.id
+    const logbook = await logbookRepo.createLogbook({ ...validatedData, author_id: authorId })
 
     await historyService.logAction({
       logbook_id: logbook.id,
-      editor_id: validatedData.author_id,
+      editor_id: authorId,
       action: 'create',
       new_content: validatedData.message,
       department_id: validatedData.department_id,
@@ -85,12 +106,8 @@ export async function updateLogbookController(req: Request, res: Response): Prom
       return
     }
 
-    logger.error({ err: error }, 'Error updating logbook')
-    res.status(500).json({
-      success: false,
-      error: ERROR_CODES.LOGBOOK_FETCH_ERROR,
-      code: ERROR_CODES.LOGBOOK_FETCH_ERROR,
-    })
+    // Editing someone else's entry is a 403, a missing one a 404
+    sendLogbookError(res, error, ERROR_CODES.LOGBOOK_FETCH_ERROR)
   }
 }
 
@@ -99,17 +116,7 @@ export async function updateLogbookController(req: Request, res: Response): Prom
 // ============================================
 
 export async function getLogbookHistory(req: Request, res: Response): Promise<void> {
-  const logbookIdRaw = req.params.logbookId
-  const logbookId = Number(logbookIdRaw)
-
-  if (!Number.isInteger(logbookId)) {
-    res.status(400).json({
-      success: false,
-      error: ERROR_CODES.INVALID_ID,
-      code: ERROR_CODES.INVALID_ID,
-    })
-    return
-  }
+  const logbookId = Number(req.params.logbookId)
 
   try {
     const data = await historyRepo.getHistoryByLogbookId(logbookId)
@@ -140,12 +147,10 @@ export async function getLogbookHistory(req: Request, res: Response): Promise<vo
 
 export async function getAllLogbooks(req: Request, res: Response): Promise<void> {
   try {
-    const limit = req.query.limit ? parseInt(req.query.limit as string) : undefined
-    const offset = req.query.offset ? parseInt(req.query.offset as string) : undefined
-    const date_from = req.query.date_from as string | undefined
-    const date_to = req.query.date_to as string | undefined
-    const importance_level = req.query.importance_level as string | undefined
-    const include_trashed = req.query.include_trashed === 'true'
+    const query = parseListQuery(req, res)
+    if (!query) return
+    const { limit, offset, date_from, date_to, importance_level } = query
+    const include_trashed = query.include_trashed === 'true'
 
     const hasFilters = date_from || date_to || importance_level || include_trashed
     const logbooks = hasFilters
@@ -177,8 +182,9 @@ export async function getAllLogbooks(req: Request, res: Response): Promise<void>
 export async function getLogbooksByDepartment(req: Request, res: Response): Promise<void> {
   try {
     const { departmentId } = req.params
-    const limit = req.query.limit ? parseInt(req.query.limit as string) : undefined
-    const offset = req.query.offset ? parseInt(req.query.offset as string) : undefined
+    const query = parseListQuery(req, res)
+    if (!query) return
+    const { limit, offset } = query
 
     const logbooks = await logbookRepo.getLogbooksByDepartment(departmentId, { limit, offset })
     res.json(logbooks)
@@ -199,8 +205,9 @@ export async function getLogbooksByDepartment(req: Request, res: Response): Prom
 export async function getLogbooksByAuthor(req: Request, res: Response): Promise<void> {
   try {
     const { authorId } = req.params
-    const limit = req.query.limit ? parseInt(req.query.limit as string) : undefined
-    const offset = req.query.offset ? parseInt(req.query.offset as string) : undefined
+    const query = parseListQuery(req, res)
+    if (!query) return
+    const { limit, offset } = query
 
     const logbooks = await logbookRepo.getLogbooksByAuthor(authorId, { limit, offset })
     res.json(logbooks)
@@ -232,8 +239,9 @@ export async function getLogbooksByImportance(req: Request, res: Response): Prom
       return
     }
 
-    const limit = req.query.limit ? parseInt(req.query.limit as string) : undefined
-    const offset = req.query.offset ? parseInt(req.query.offset as string) : undefined
+    const query = parseListQuery(req, res)
+    if (!query) return
+    const { limit, offset } = query
 
     const logbooks = await logbookRepo.getLogbooksByImportance(importance, { limit, offset })
     res.json(logbooks)
@@ -255,17 +263,9 @@ export async function getLogbooksByDay(req: Request, res: Response): Promise<voi
   try {
     const { day } = req.params
 
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(day)) {
-      res.status(400).json({
-        success: false,
-        error: ERROR_CODES.INVALID_DATE_FORMAT,
-        code: ERROR_CODES.INVALID_DATE_FORMAT,
-      })
-      return
-    }
-
-    const limit = req.query.limit ? parseInt(req.query.limit as string) : undefined
-    const offset = req.query.offset ? parseInt(req.query.offset as string) : undefined
+    const query = parseListQuery(req, res)
+    if (!query) return
+    const { limit, offset } = query
 
     const logbooks = await logbookRepo.getLogbooksByDay(day, { limit, offset })
     res.json(logbooks)

@@ -5,6 +5,14 @@
  */
 
 import { z } from 'zod'
+import { isCalendarDate } from '../common/calendar-date.js'
+import { ERROR_CODES } from '../../config/error-codes.js'
+
+// description, resolution_notes and history notes are TEXT columns (65,535
+// bytes): 16,000 characters fit even at 4 bytes each. Longer texts used to
+// reach MySQL and end in a 500
+const TEXT_MAX = 16000
+const TEXT_MAX_MESSAGE = `El texto no puede exceder ${TEXT_MAX} caracteres`
 
 // ========================================
 // ENUMS (reutilizables)
@@ -26,18 +34,6 @@ export const reportPriorityEnum = z.enum(['low', 'medium', 'high', 'urgent'])
 
 export const assignedTypeEnum = z.enum(['internal', 'external'])
 
-export const historyActionEnum = z.enum([
-  'created',
-  'status_changed',
-  'priority_changed',
-  'updated',
-  'assigned',
-  'resolved',
-  'closed',
-  'deleted',
-  'restored',
-])
-
 // ========================================
 // SCHEMA: CREAR REPORTE
 // ========================================
@@ -46,27 +42,28 @@ export const createReportSchema = z
   .object({
     title: z
       .string({ message: 'El título es obligatorio' })
+      .trim()
       .min(3, 'El título debe tener al menos 3 caracteres')
-      .max(150, 'El título no puede exceder 150 caracteres')
-      .trim(),
+      .max(150, 'El título no puede exceder 150 caracteres'),
 
     description: z
       .string({ message: 'La descripción es obligatoria' })
+      .trim()
       .min(10, 'La descripción debe tener al menos 10 caracteres')
-      .trim(),
+      .max(TEXT_MAX, TEXT_MAX_MESSAGE),
 
     location_type: locationTypeEnum,
 
     location_description: z
       .string({ message: 'La descripción de ubicación es obligatoria' })
+      .trim()
       .min(3, 'La descripción de ubicación debe tener al menos 3 caracteres')
-      .max(200, 'La descripción de ubicación no puede exceder 200 caracteres')
-      .trim(),
+      .max(200, 'La descripción de ubicación no puede exceder 200 caracteres'),
 
     room_number: z
       .string()
-      .max(10, 'El número de habitación no puede exceder 10 caracteres')
       .trim()
+      .max(10, 'El número de habitación no puede exceder 10 caracteres')
       .optional()
       .nullable(),
 
@@ -80,15 +77,15 @@ export const createReportSchema = z
 
     external_company_name: z
       .string()
-      .max(150, 'El nombre de empresa no puede exceder 150 caracteres')
       .trim()
+      .max(150, 'El nombre de empresa no puede exceder 150 caracteres')
       .optional()
       .nullable(),
 
     external_contact: z
       .string()
-      .max(100, 'El contacto no puede exceder 100 caracteres')
       .trim()
+      .max(100, 'El contacto no puede exceder 100 caracteres')
       .optional()
       .nullable(),
   })
@@ -127,30 +124,31 @@ export const updateReportSchema = z
   .object({
     title: z
       .string()
+      .trim()
       .min(3, 'El título debe tener al menos 3 caracteres')
       .max(150, 'El título no puede exceder 150 caracteres')
-      .trim()
       .optional(),
 
     description: z
       .string()
-      .min(10, 'La descripción debe tener al menos 10 caracteres')
       .trim()
+      .min(10, 'La descripción debe tener al menos 10 caracteres')
+      .max(TEXT_MAX, TEXT_MAX_MESSAGE)
       .optional(),
 
     location_type: locationTypeEnum.optional(),
 
     location_description: z
       .string()
+      .trim()
       .min(3, 'La descripción de ubicación debe tener al menos 3 caracteres')
       .max(200, 'La descripción de ubicación no puede exceder 200 caracteres')
-      .trim()
       .optional(),
 
     room_number: z
       .string()
-      .max(10, 'El número de habitación no puede exceder 10 caracteres')
       .trim()
+      .max(10, 'El número de habitación no puede exceder 10 caracteres')
       .optional()
       .nullable(),
 
@@ -166,19 +164,19 @@ export const updateReportSchema = z
 
     external_company_name: z
       .string()
-      .max(150, 'El nombre de empresa no puede exceder 150 caracteres')
       .trim()
+      .max(150, 'El nombre de empresa no puede exceder 150 caracteres')
       .optional()
       .nullable(),
 
     external_contact: z
       .string()
-      .max(100, 'El contacto no puede exceder 100 caracteres')
       .trim()
+      .max(100, 'El contacto no puede exceder 100 caracteres')
       .optional()
       .nullable(),
 
-    resolution_notes: z.string().trim().optional().nullable(),
+    resolution_notes: z.string().trim().max(TEXT_MAX, TEXT_MAX_MESSAGE).optional().nullable(),
   })
   .refine(
     (data) => {
@@ -200,7 +198,7 @@ export const updateReportSchema = z
 
 export const updateStatusSchema = z.object({
   status: reportStatusEnum,
-  notes: z.string().trim().optional(),
+  notes: z.string().trim().max(TEXT_MAX, TEXT_MAX_MESSAGE).optional(),
 })
 
 // ========================================
@@ -218,8 +216,9 @@ export const updatePrioritySchema = z.object({
 export const addResolutionNotesSchema = z.object({
   notes: z
     .string({ message: 'Las notas son obligatorias' })
+    .trim()
     .min(5, 'Las notas deben tener al menos 5 caracteres')
-    .trim(),
+    .max(TEXT_MAX, TEXT_MAX_MESSAGE),
 })
 
 // ========================================
@@ -238,15 +237,18 @@ export const reportFiltersSchema = z.object({
   date: z
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/, 'date debe tener formato YYYY-MM-DD')
+    .refine(isCalendarDate, 'La fecha no existe')
     .optional(),
   // Range filters (keep for backwards compatibility)
   date_from: z
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/, 'date_from debe tener formato YYYY-MM-DD')
+    .refine(isCalendarDate, 'La fecha no existe')
     .optional(),
   date_to: z
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/, 'date_to debe tener formato YYYY-MM-DD')
+    .refine(isCalendarDate, 'La fecha no existe')
     .optional(),
   include_deleted: z
     .string()
@@ -266,6 +268,13 @@ export const idParamSchema = z.object({
     .string({ message: 'El ID es obligatorio' })
     .regex(/^\d{6}-\d{3}$/, 'El ID debe tener formato DDMMYY-XXX (ej: 120625-001)'),
 })
+
+// Route params of routes/maintenance/maintenance-routes.ts, checked before
+// any handler runs (deleteImage read :id and :imageId unchecked)
+export const MAINTENANCE_PARAM_RULES = [
+  ['id', idParamSchema.shape.id, ERROR_CODES.INVALID_ID],
+  ['imageId', z.coerce.number().int().min(1), ERROR_CODES.INVALID_ID],
+] as const
 
 // ========================================
 // SCHEMA: AGREGAR IMAGEN
@@ -328,8 +337,5 @@ export type CreateReportInput = z.infer<typeof createReportSchema>
 export type UpdateReportInput = z.infer<typeof updateReportSchema>
 export type UpdateStatusInput = z.infer<typeof updateStatusSchema>
 export type UpdatePriorityInput = z.infer<typeof updatePrioritySchema>
-export type AddResolutionNotesInput = z.infer<typeof addResolutionNotesSchema>
-export type ReportFiltersInput = z.infer<typeof reportFiltersSchema>
 export type IdParamInput = z.infer<typeof idParamSchema>
 export type AddImageInput = z.infer<typeof addImageSchema>
-export type AssignReportInput = z.infer<typeof assignReportSchema>

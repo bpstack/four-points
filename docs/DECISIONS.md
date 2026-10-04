@@ -550,3 +550,68 @@
   `fetch` del frontend. Comprobado en producción el 2026-09-29 con una sesión
   de `admin` válida: los orígenes ajenos, del mismo sitio y `null` reciben 403;
   el propio pasa.
+
+## ADR-030 — Entorno preview completo en subdominios de `four-points.stackbp.es`
+
+- **Estado:** ✅ aceptada (2026-10-04)
+- **Fecha:** 2026-10-04
+- **Decisión:**
+  - La rama `claude/compassionate-planck-gh6aof` se prueba con **su propio
+    backend**: un segundo servicio en Render (`four-points-api-preview`, plan
+    gratuito) que despliega la rama. El frontend de la rama apunta a él con un
+    `NEXT_PUBLIC_API_URL` limitado a esa rama en Vercel.
+  - Los dos viven bajo `four-points.stackbp.es`: `preview.` (Vercel) y
+    `api-preview.` (Render). El CORS se abre con la variable `FRONTEND_URL` del
+    servicio de preview, **sin cambiar código**.
+  - Usa **la base de datos de producción**. Todos los datos son de prueba, y
+    escribir en ella demuestra que la rama funciona de verdad.
+  - Nada de esto toca `main` ni el servicio `four-points-api`.
+- **Motivo:** la URL `*.vercel.app` de la preview no podía iniciar sesión: el
+  CORS de producción rechaza ese origen y, aunque lo aceptara, las cookies
+  `SameSite=Lax` con dominio `.four-points.stackbp.es` no viajan desde otro
+  sitio (ADR-029). Además, ese frontend llamaba al backend de `main`, así que
+  los arreglos de backend de la rama no se probaban en ningún sitio.
+- **Rechazado:**
+  - Añadir el origen `*.vercel.app` al CORS de producción: no resuelve las
+    cookies y debilita la defensa CSRF de ADR-029.
+  - Solo el dominio de Vercel contra el backend de `main`: valida el frontend,
+    no los arreglos de backend.
+  - `SameSite=None` en las cookies: cambio de seguridad en producción solo para
+    probar.
+- **Consecuencias:** los cron se ejecutan dos veces mientras el servicio de
+  preview está despierto, y una sesión iniciada en preview vale también en
+  producción. Detalle y pasos para retirarlo en `docs/general/README.md`
+  («Preview environment»).
+
+## ADR-031 — La rama entra en `main` con merge normal; la autoría de Claude se corrige en la fase 2
+
+- **Estado:** ✅ aceptada (2026-10-04)
+- **Fecha:** 2026-10-04
+- **Decisión:**
+  - `claude/compassionate-planck-gh6aof` entra en `main` con un **merge
+    normal** («Create a merge commit»), **no con squash**. Los commits llegan a
+    `main` uno a uno.
+  - Los **5 commits con autor `Claude <noreply@anthropic.com>`** (`ec8e901`,
+    `f9d1541`, `2ed0abb`, `8584e93`, `6a67ab3`) **no se rehacen ahora**: su
+    autor pasa a `bpstack` en la reescritura de la fase 2, con
+    `git-filter-repo --mailmap`, la misma pasada que quita los ficheros
+    privados (`GITCLEAN.md`).
+  - Los pares fnb y revert se quedan: se anulan entre sí y no cambian código.
+  - La lista de arreglos vive en `git log` y en `docs/VERIFY.md`, versionado.
+- **Motivo:** `TODO.md` borra lo terminado porque `git log` ya lo registra. Un
+  squash dejaría en `main` un único commit y, al borrar la rama, se perdería el
+  detalle de cada arreglo. La fase 2 ya reescribe el historial con
+  `git-filter-repo`, así que corregir el autor ahí no añade ninguna reescritura
+  más ni obliga a forzar el push de la rama.
+- **Rechazado:**
+  - **Squash merge** (lo que proponía `TODO.md`): pierde el detalle de cada
+    arreglo.
+  - **Rehacer la rama a mano** con `cherry-pick` y `--reset-author`: reescritura
+    extra y `push --force` a la rama, para un resultado que la fase 2 da gratis.
+  - **La lista en `docs/_archive/`**: está en `.gitignore` (ADR-009) y solo
+    existiría en un equipo.
+- **Consecuencias:** hasta la fase 2, `main` (privado) lleva esos 5 commits con
+  autor Claude. Si la fase 2 no llegara a hacerse, habría que corregirlos de
+  otra forma antes de publicar.
+- **Revisa:** el primer punto de `TODO.md` (proponía squash) y las reglas de
+  `GITCLEAN.md` (solo quitaban ficheros).

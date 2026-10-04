@@ -10,7 +10,7 @@ import {
   PaymentsSummary,
 } from '../../models/group/index'
 import { ResultSetHeader } from 'mysql2'
-import { buildSetClause } from './update-columns.js'
+import { buildSetClause } from '../shared/update-columns.js'
 
 export class GroupPaymentRepository {
   /**

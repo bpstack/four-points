@@ -37,13 +37,6 @@ router.use(excludeMantenimiento)
  */
 router.post('/upload', upload.single('image'), BlacklistController.uploadImage)
 
-/**
- * DELETE /api/blacklist/upload/:publicId
- * Eliminar imagen de Cloudinary
- * Nota: publicId debe enviarse URL-encoded si contiene "/"
- */
-router.delete('/upload/:publicId', BlacklistController.deleteImage)
-
 // ========================================
 // RUTAS PRINCIPALES
 // ========================================

@@ -24,6 +24,7 @@ import {
   FiRotateCcw,
 } from 'react-icons/fi'
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib'
+import { encodableFor } from '@/app/lib/helpers/pdfText'
 import * as pdfjsLib from 'pdfjs-dist'
 import { toast } from 'react-hot-toast'
 import { backofficeApi, type Asset } from '@/app/lib/backoffice'
@@ -692,7 +693,12 @@ export function PdfEditorModal({
                 return wrappedLines
               }
 
-              const lines = wrapText(element.text, helveticaFont, fontSize, maxWidth)
+              const lines = wrapText(
+                encodableFor(helveticaFont, element.text),
+                helveticaFont,
+                fontSize,
+                maxWidth
+              )
 
               lines.forEach((line, idx) => {
                 page.drawText(line, {
@@ -839,7 +845,10 @@ export function PdfEditorModal({
                   <SelectDropdown<number>
                     value={textFontSize}
                     onChange={setTextFontSize}
-                    options={[8, 10, 12, 14, 16, 18, 24].map((s) => ({ value: s, label: String(s) }))}
+                    options={[8, 10, 12, 14, 16, 18, 24].map((s) => ({
+                      value: s,
+                      label: String(s),
+                    }))}
                     label={t('modals.pdfEditor.fontSize')}
                     className="flex-1"
                   />

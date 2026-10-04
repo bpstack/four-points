@@ -19,6 +19,7 @@ import type {
   HistoryAction,
   AddImageInput,
 } from '../../models/maintenance/index.js'
+import { likeContains } from '../shared/like.js'
 
 // ========================================
 // INTERFACES INTERNAS (para tipado de queries)
@@ -306,7 +307,7 @@ export class MaintenanceRepository {
           ELSE ''
         END) LIKE ?
       )`)
-      const searchPattern = `%${search.trim()}%`
+      const searchPattern = likeContains(search.trim())
       whereParams.push(searchPattern, searchPattern, searchPattern, searchPattern, searchPattern)
     }
 
@@ -377,6 +378,14 @@ export class MaintenanceRepository {
   /**
    * Obtener reporte por ID con imágenes e historial
    */
+  static async isDeleted(id: string): Promise<boolean | null> {
+    const [rows] = await db.query<RowDataPacket[]>(
+      'SELECT is_deleted FROM maintenance_reports WHERE id = ?',
+      [id]
+    )
+    return rows.length ? Boolean(rows[0].is_deleted) : null
+  }
+
   static async getById(id: string): Promise<ReportWithDetails | null> {
     // Obtener reporte
     const reportQuery = `
@@ -683,6 +692,10 @@ export class MaintenanceRepository {
     const current = await this.getById(id)
     if (!current) {
       return null
+    }
+
+    if (current.is_deleted) {
+      throw new Error('No se puede actualizar un reporte eliminado')
     }
 
     const query = `

@@ -240,22 +240,6 @@ export interface Pagination {
 // ========================================
 
 /**
- * Respuesta de listado de reportes
- */
-export interface ReportListResponse {
-  reports: ReportListItem[]
-  pagination: Pagination
-  filters_applied: ReportFilters
-}
-
-/**
- * Respuesta de detalle de reporte
- */
-export interface ReportDetailResponse {
-  report: ReportWithDetails
-}
-
-/**
  * Respuesta de subida de imagen
  */
 export interface ImageUploadResponse {
@@ -272,49 +256,6 @@ export interface ImageUploadResponse {
 // CONSTANTES
 // ========================================
 
-export const LOCATION_TYPES: LocationType[] = [
-  'room',
-  'common_area',
-  'exterior',
-  'facilities',
-  'other',
-]
-
-export const REPORT_STATUSES: ReportStatus[] = [
-  'reported',
-  'assigned',
-  'in_progress',
-  'waiting',
-  'completed',
-  'closed',
-  'canceled',
-]
-
-export const REPORT_PRIORITIES: ReportPriority[] = ['low', 'medium', 'high', 'urgent']
-
-export const ASSIGNED_TYPES: AssignedType[] = ['internal', 'external']
-
-export const HISTORY_ACTIONS: HistoryAction[] = [
-  'created',
-  'status_changed',
-  'priority_changed',
-  'updated',
-  'assigned',
-  'resolved',
-  'closed',
-  'deleted',
-  'restored',
-]
-
-// Labels para UI
-export const LOCATION_TYPE_LABELS: Record<LocationType, string> = {
-  room: 'Habitación',
-  common_area: 'Área común',
-  exterior: 'Exterior',
-  facilities: 'Instalaciones',
-  other: 'Otro',
-}
-
 export const STATUS_LABELS: Record<ReportStatus, string> = {
   reported: 'Reportado',
   assigned: 'Asignado',
@@ -323,11 +264,4 @@ export const STATUS_LABELS: Record<ReportStatus, string> = {
   completed: 'Completado',
   closed: 'Cerrado',
   canceled: 'Cancelado',
-}
-
-export const PRIORITY_LABELS: Record<ReportPriority, string> = {
-  low: 'Baja',
-  medium: 'Media',
-  high: 'Alta',
-  urgent: 'Urgente',
 }

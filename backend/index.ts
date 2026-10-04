@@ -8,6 +8,7 @@ import { PORT } from './config/config.js'
 import { logServerInfo } from './config/startup-logger.js'
 import { logger } from './config/logger.js'
 import { apiLimiter } from './middlewares/rateLimiter.js'
+import { noStore } from './middlewares/noStore.js'
 
 import { CronService } from './services/cron/cron-service.js'
 import { warmupSolver } from './services/scheduling/solver-client.js'
@@ -17,7 +18,6 @@ import logbookRoutes from './routes/logbook/logbook-routes.js'
 import parkingRoutes from './routes/parking/parking.routes.js'
 import parkingStatsRoutes from './routes/parking/stats.routes.js'
 import parkingBookingsRoutes from './routes/parking/bookings.routes.js'
-import parkingAnalyticsRoutes from './routes/parking/analytics.routes.js'
 import departmentsRoutes from './routes/departments/departments-routes.js'
 import conciliationRoutes from './routes/conciliation/conciliation.routes.js'
 import groupRoutes from './routes/group/group-routes.js'
@@ -93,11 +93,8 @@ app.use(
 app.use(express.json({ limit: '2mb' }))
 app.use(cookieParser())
 app.use('/api', apiLimiter)
-
-// ========================================
-// MOTOR DE VISTAS (opcional, si usas EJS)
-// ========================================
-app.set('view engine', 'ejs')
+// Personal and financial data must not stay in browser or proxy caches
+app.use('/api', noStore)
 
 // ========================================
 // RUTAS
@@ -129,9 +126,6 @@ app.use('/api/parking/stats', parkingStatsRoutes)
 
 // Rutas de bookings
 app.use('/api/parking/bookings', parkingBookingsRoutes)
-
-// Rutas de analytics
-app.use('/api/parking/stats/analytics', parkingAnalyticsRoutes)
 
 // Rutas de departamentos
 app.use('/api/departments', departmentsRoutes)

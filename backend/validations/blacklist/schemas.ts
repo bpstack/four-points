@@ -5,6 +5,19 @@
  */
 
 import { z } from 'zod'
+// Date.parse accepts 2026-02-31 (as 3 March), which MySQL then rejects
+import { isCalendarDate } from '../common/calendar-date.js'
+import { isOwnCloudinaryFileIn, CLOUDINARY_FOLDERS } from '../../services/uploads/cloudinary-url.js'
+
+// Only images uploaded through POST /api/blacklist/upload: any other URL
+// (an external site, another module's file) would be shown as a guest photo
+const blacklistImageUrl = z
+  .string()
+  .url('Cada imagen debe ser una URL válida')
+  .refine(
+    (url) => isOwnCloudinaryFileIn(url, CLOUDINARY_FOLDERS.blacklist),
+    'Cada imagen debe haberse subido desde la lista negra'
+  )
 
 // ========================================
 // ENUMS (reutilizables)
@@ -13,8 +26,6 @@ import { z } from 'zod'
 export const documentTypeEnum = z.enum(['DNI', 'PASSPORT', 'NIE', 'OTHER'])
 
 export const severityEnum = z.enum(['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'])
-
-export const statusEnum = z.enum(['ACTIVE', 'DELETED'])
 
 export const statusFilterEnum = z.enum(['ACTIVE', 'DELETED', 'ALL'])
 
@@ -26,47 +37,47 @@ export const createBlacklistSchema = z
   .object({
     guest_name: z
       .string({ message: 'El nombre es obligatorio' })
+      .trim()
       .min(3, 'El nombre debe tener al menos 3 caracteres')
       .max(255, 'El nombre no puede exceder 255 caracteres')
-      .regex(/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/, 'El nombre solo puede contener letras y espacios')
-      .trim(),
+      .regex(/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/, 'El nombre solo puede contener letras y espacios'),
 
     document_type: documentTypeEnum,
 
     document_number: z
       .string({ message: 'El número de documento es obligatorio' })
+      .trim()
       .min(5, 'El documento debe tener al menos 5 caracteres')
       .max(20, 'El documento no puede exceder 20 caracteres')
       .regex(/^[A-Z0-9-]+$/i, 'El documento solo puede contener letras, números y guiones')
-      .trim()
       .transform((val) => val.toUpperCase()),
 
     check_in_date: z
       .string({ message: 'La fecha de entrada es obligatoria' })
       .regex(/^\d{4}-\d{2}-\d{2}$/, 'Formato de fecha inválido. Use YYYY-MM-DD')
-      .refine((date) => !isNaN(Date.parse(date)), 'Fecha de entrada inválida'),
+      .refine(isCalendarDate, 'Fecha de entrada inválida'),
 
     check_out_date: z
       .string({ message: 'La fecha de salida es obligatoria' })
       .regex(/^\d{4}-\d{2}-\d{2}$/, 'Formato de fecha inválido. Use YYYY-MM-DD')
-      .refine((date) => !isNaN(Date.parse(date)), 'Fecha de salida inválida'),
+      .refine(isCalendarDate, 'Fecha de salida inválida'),
 
     reason: z
       .string({ message: 'El motivo es obligatorio' })
+      .trim()
       .min(10, 'El motivo debe tener al menos 10 caracteres')
-      .max(1000, 'El motivo no puede exceder 1000 caracteres')
-      .trim(),
+      .max(1000, 'El motivo no puede exceder 1000 caracteres'),
 
     severity: severityEnum,
 
     comments: z
       .string({ message: 'Los comentarios son obligatorios' })
+      .trim()
       .min(10, 'Los comentarios deben tener al menos 10 caracteres')
-      .max(2000, 'Los comentarios no pueden exceder 2000 caracteres')
-      .trim(),
+      .max(2000, 'Los comentarios no pueden exceder 2000 caracteres'),
 
     images: z
-      .array(z.string().url('Cada imagen debe ser una URL válida'))
+      .array(blacklistImageUrl)
       .max(5, 'No puedes incluir más de 5 imágenes')
       .optional()
       .default([]),
@@ -84,55 +95,52 @@ export const updateBlacklistSchema = z
   .object({
     guest_name: z
       .string()
+      .trim()
       .min(3, 'El nombre debe tener al menos 3 caracteres')
       .max(255, 'El nombre no puede exceder 255 caracteres')
       .regex(/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/, 'El nombre solo puede contener letras y espacios')
-      .trim()
       .optional(),
 
     document_type: documentTypeEnum.optional(),
 
     document_number: z
       .string()
+      .trim()
       .min(5, 'El documento debe tener al menos 5 caracteres')
       .max(20, 'El documento no puede exceder 20 caracteres')
       .regex(/^[A-Z0-9-]+$/i, 'El documento solo puede contener letras, números y guiones')
-      .trim()
       .transform((val) => val.toUpperCase())
       .optional(),
 
     check_in_date: z
       .string()
       .regex(/^\d{4}-\d{2}-\d{2}$/, 'Formato de fecha inválido. Use YYYY-MM-DD')
-      .refine((date) => !isNaN(Date.parse(date)), 'Fecha de entrada inválida')
+      .refine(isCalendarDate, 'Fecha de entrada inválida')
       .optional(),
 
     check_out_date: z
       .string()
       .regex(/^\d{4}-\d{2}-\d{2}$/, 'Formato de fecha inválido. Use YYYY-MM-DD')
-      .refine((date) => !isNaN(Date.parse(date)), 'Fecha de salida inválida')
+      .refine(isCalendarDate, 'Fecha de salida inválida')
       .optional(),
 
     reason: z
       .string()
+      .trim()
       .min(10, 'El motivo debe tener al menos 10 caracteres')
       .max(1000, 'El motivo no puede exceder 1000 caracteres')
-      .trim()
       .optional(),
 
     severity: severityEnum.optional(),
 
     comments: z
       .string()
+      .trim()
       .min(10, 'Los comentarios deben tener al menos 10 caracteres')
       .max(2000, 'Los comentarios no pueden exceder 2000 caracteres')
-      .trim()
       .optional(),
 
-    images: z
-      .array(z.string().url('Cada imagen debe ser una URL válida'))
-      .max(5, 'No puedes incluir más de 5 imágenes')
-      .optional(),
+    images: z.array(blacklistImageUrl).max(5, 'No puedes incluir más de 5 imágenes').optional(),
   })
   .refine(
     (data) => {
@@ -157,14 +165,15 @@ export const blacklistFiltersSchema = z.object({
   document: z.string().max(20).optional(),
   severity: severityEnum.optional(),
   status: statusFilterEnum.optional(),
-  created_by: z.string().uuid('created_by debe ser un UUID válido').optional(),
   from_date: z
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/, 'from_date debe tener formato YYYY-MM-DD')
+    .refine(isCalendarDate, 'La fecha no existe')
     .optional(),
   to_date: z
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/, 'to_date debe tener formato YYYY-MM-DD')
+    .refine(isCalendarDate, 'La fecha no existe')
     .optional(),
   page: z.coerce.number().int('page debe ser entero').positive('page debe ser positivo').default(1),
   limit: z.coerce
@@ -190,7 +199,4 @@ export const idParamSchema = z.object({
 // TIPOS INFERIDOS
 // ========================================
 
-export type CreateBlacklistInput = z.infer<typeof createBlacklistSchema>
-export type UpdateBlacklistInput = z.infer<typeof updateBlacklistSchema>
-export type BlacklistFiltersInput = z.infer<typeof blacklistFiltersSchema>
 export type IdParamInput = z.infer<typeof idParamSchema>

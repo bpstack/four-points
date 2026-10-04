@@ -28,6 +28,7 @@ import { backofficeApi } from '@/app/lib/backoffice/backofficeApi'
 import toast from 'react-hot-toast'
 import { SelectDropdown } from '@/app/ui/components/SelectDropdown'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { csvCell } from '@/app/lib/helpers/csv'
 
 interface PaidInvoicesTabLazyProps {
   initialInvoices: InvoiceWithDetails[]
@@ -367,10 +368,9 @@ export function PaidInvoicesTabLazy({
       invoice.department || '',
     ])
 
-    const csvContent = [
-      headers.join(';'),
-      ...rows.map((row) => row.map((cell) => `"${cell}"`).join(';')),
-    ].join('\n')
+    const csvContent = [headers.join(';'), ...rows.map((row) => row.map(csvCell).join(';'))].join(
+      '\n'
+    )
 
     // Create and download file
     const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' })
@@ -874,7 +874,9 @@ export function PaidInvoicesTabLazy({
                     value={
                       selectedMonthYear
                         ? `${selectedMonthYear.year}-${selectedMonthYear.month}`
-                        : (getAvailableMonths()[0] ? `${getAvailableMonths()[0].year}-${getAvailableMonths()[0].month}` : '')
+                        : getAvailableMonths()[0]
+                          ? `${getAvailableMonths()[0].year}-${getAvailableMonths()[0].month}`
+                          : ''
                     }
                     onChange={(v) => {
                       const [year, month] = v.split('-').map(Number)

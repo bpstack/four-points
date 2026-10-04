@@ -370,5 +370,3 @@ export function useLogbooks({ date, enabled = true, messages }: UseLogbooksOptio
     mapPriorityToBackend,
   }
 }
-
-export type UseLogbooksReturn = ReturnType<typeof useLogbooks>
