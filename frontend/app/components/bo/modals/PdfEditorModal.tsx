@@ -198,7 +198,11 @@ export function PdfEditorModal({
         // Load PDF document only once
         if (!pdfDocRef.current) {
           // Use a copy to prevent ArrayBuffer detachment
-          pdfDocRef.current = await pdfjsLib.getDocument({ data: pdfBytes.slice(0) }).promise
+          // isEvalSupported: false — no eval for font rendering (CSP has no 'unsafe-eval')
+          pdfDocRef.current = await pdfjsLib.getDocument({
+            data: pdfBytes.slice(0),
+            isEvalSupported: false,
+          }).promise
           setTotalPages(pdfDocRef.current.numPages)
         }
 
