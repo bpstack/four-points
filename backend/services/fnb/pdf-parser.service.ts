@@ -7,8 +7,44 @@ export interface ParsedPdfData {
   grandTotal: number | null
 }
 
+// Thrown for uploads that are not a readable Opera PDF; the global error
+// handler answers with its status instead of 500
+export class FnbPdfError extends Error {
+  status = 422
+}
+
+const PDF_MAGIC = Buffer.from('%PDF-')
+// Opera's F&B report is 3 pages; anything far longer is not that report
+const MAX_PAGES = 20
+export const PARSE_TIMEOUT_MS = 15_000
+
+// PDF readers accept the header anywhere in the first 1024 bytes
+export function isPdfBuffer(buffer: Buffer): boolean {
+  return buffer.subarray(0, 1024).includes(PDF_MAGIC)
+}
+
+// Stops waiting for the parser; pdf.js cannot be aborted, so the page limit is
+// what bounds the work left running in the background
+export function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+  let timer: NodeJS.Timeout | undefined
+  const timeout = new Promise<never>((_, reject) => {
+    timer = setTimeout(() => reject(new FnbPdfError('El PDF tardó demasiado en procesarse')), ms)
+  })
+  return Promise.race([promise, timeout]).finally(() => clearTimeout(timer))
+}
+
 export async function parseOperaPdf(buffer: Buffer): Promise<ParsedPdfData> {
-  const data = await pdfParse(buffer)
+  if (!isPdfBuffer(buffer)) {
+    throw new FnbPdfError('El fichero no es un PDF')
+  }
+
+  let data: Awaited<ReturnType<typeof pdfParse>>
+  try {
+    data = await withTimeout(pdfParse(buffer, { max: MAX_PAGES }), PARSE_TIMEOUT_MS)
+  } catch (err) {
+    if (err instanceof FnbPdfError) throw err
+    throw new FnbPdfError('No se pudo leer el PDF')
+  }
   const text: string = data.text ?? ''
 
   const tracked = await trackedCodesSet()
