@@ -64,11 +64,11 @@ sigue siendo donde se arregla este fichero y se prueba en el entorno preview.
       el importador del Excel de horarios (`import-planning-2026.ts`, 13
       nombres), los 18 `.http` de `backend/API REST/` (contraseñas, tokens y
       usuarios) y los nombres de los comentarios de `aiven/19_scheduling.sql`
-      y `20251224_add_scheduling.sql`. Quedan: nombres de pila en los
-      fixtures del corpus del solver (`tests/scheduling-corpus/`) y los
-      usuarios de horarios en la BD (9 de 10 con nombre de pila). El autor de las guías del checklist y de los README es el
-      propietario y se queda. Todo sigue en el historial (fase 2,
-      `GITCLEAN.md`).
+      y `20251224_add_scheduling.sql`; los fixtures del corpus del solver
+      usan `EMP_01`…`EMP_07` desde `8af5a8b`. Quedan los usuarios de horarios
+      en la BD (9 de 10 con nombre de pila). El autor de las guías del
+      checklist y de los README es el propietario y se queda. Todo sigue en el
+      historial (fase 2, `GITCLEAN.md`).
       _Comprobado por mí el 2026-10-04._
 
 ## Después de publicar
