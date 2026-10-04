@@ -16,7 +16,7 @@ brought back without losing that trail.
 Every role **except `mantenimiento`**. There are no admin-only actions: any
 other authenticated user can create, edit, delete and restore entries — a
 deliberate choice, since reception staff need full access to keep the list
-current.
+current (confirmed by the owner, ADR-032).
 
 ## What it can do
 

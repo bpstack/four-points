@@ -24,6 +24,8 @@ Every role **except `mantenimiento`**:
 - **Only `admin`** reopens a shift or a day, cancels or deletes a voucher,
   deletes a shift and changes who worked a shift.
 - **Reports, history and statistics** are for `admin` (and `demo-admin`).
+- Closed shifts and closed days **stay editable** by those same roles. This is
+  deliberate for now (ADR-032).
 
 ## What it can do
 

@@ -26,22 +26,6 @@ sigue siendo donde se arregla este fichero y se prueba en el entorno preview.
 > Las entradas de **seguridad** describen debilidades explotables: **resolverlas
 > o quitarlas de este fichero antes de publicar el repositorio**.
 
-- [ ] **Blacklist: cualquier usuario edita, borra o restaura la entrada de
-      otro** — sin comprobar `created_by` ni ningún control por fila; a
-      diferencia de otros módulos (p. ej. mensajería), aquí no hay ninguna capa
-      de autorización de objeto. Está documentado como intencional en el
-      `AGENTS.md` del módulo, pero conviene registrarlo como riesgo aceptado en
-      vez de dejarlo implícito. _Comprobado por mí el 2026-09-28._
-- [ ] **Fnb: cualquier rol con acceso puede borrar o fabricar ingresos, sin capa
-      de autorización por operación** — `canAccessFnb` protege todo el router
-      con la misma lista de roles (`admin`, `recepcionista`, `group-admin`,
-      `demo-admin`); `DELETE /day/:date` (borra todas las filas de un día) y
-      `POST /entries` (alta manual de ingresos) no piden más privilegio que
-      `GET /categories`. Un `recepcionista` o `group-admin` puede borrar la
-      facturación F&B de un día entero o inventar cifras con una sola petición,
-      sin confirmación ni segundo factor. `backend/routes/fnb/fnb-routes.ts` +
-      `backend/middlewares/roleCheck.ts` (`canAccessFnb`). _Comprobado por mí el
-      2026-09-28._
 - [ ] **Fnb: ninguna mutación de ingresos deja rastro de quién la hizo** —
       `upsertMany` sobrescribe el importe anterior (`ON DUPLICATE KEY UPDATE`) y
       `deleteDay` borra filas sin dejar ningún registro de usuario, valor
@@ -64,10 +48,6 @@ sigue siendo donde se arregla este fichero y se prueba en el entorno preview.
       y el historial guarda un estado anterior fijo. _Según la revisión
       `security` L3 del 2026-09-28 (fichero y línea en el informe); no repasado
       por mí._
-- [ ] **Cashier: turnos y días cerrados siguen editables** por cualquier rol con
-      acceso de escritura; el trigger reescribe los totales del día. _Según la
-      revisión `security` L3 del 2026-09-28 (fichero y línea en el informe); no
-      repasado por mí._
 - [ ] **Cashier: operaciones que fallan siempre en producción** — justificar,
       cancelar y editar vales, y editar pagos o recuentos sueltos escriben
       columnas que no existen en Aiven (`justified_at`, `cancelled_at`,
@@ -93,10 +73,6 @@ sigue siendo donde se arregla este fichero y se prueba en el entorno preview.
       tal como aparecen en el Excel `PLANNING 2026.xlsx`; en Aiven, 9 de los 10
       usuarios de horarios son nombres de pila. Revisar en la fase 2 junto con
       Clara y los Excel archivados. _Comprobado por mí el 2026-09-28._
-- [ ] **Maintenance: sin permisos dentro del módulo** — cualquier rol con acceso
-      (también `mantenimiento` y `recepcionista`) crea, edita, cambia de estado,
-      asigna, borra y restaura cualquier parte: el controlador no mira rol ni
-      autoría. _Comprobado por mí el 2026-09-28._
 - [ ] **Contraseñas de la BD escritas en 17 ficheros versionados** — casi todos
       en `backend/db-mysql/scripts/` (los 10 de `basics/`,
       `add-libre-number.ts`, `backfill-libre-numbers.ts`,
@@ -196,11 +172,6 @@ sigue siendo donde se arregla este fichero y se prueba en el entorno preview.
       timeout en `parseOperaPdf`, así que un fichero no-PDF o mal formado puede
       colgar la petición sin límite de tiempo (el límite de 10&nbsp;MB no cubre
       la complejidad interna del fichero). _Comprobado por mí el 2026-09-28._
-- [ ] **Fnb: `DELETE /api/fnb/day/:date` borra cualquier fecha sin límite** — el
-      controlador solo valida el formato `YYYY-MM-DD`; cualquier rol con acceso
-      al módulo puede borrar un día de hace años, incluido un periodo ya
-      cerrado, sin ninguna comprobación de negocio. _Comprobado por mí el
-      2026-09-28._
 - [ ] **Comprobar si los cron se ejecutan en Render** — corren dentro del
       proceso del backend; si el plan gratuito lo duerme por inactividad, no se
       disparan. _No comprobado._

@@ -615,3 +615,26 @@
   otra forma antes de publicar.
 - **Revisa:** el primer punto de `TODO.md` (proponía squash) y las reglas de
   `GITCLEAN.md` (solo quitaban ficheros).
+
+## ADR-032 — Blacklist, F&B, mantenimiento y caja mantienen permisos simples
+
+- **Estado:** ✅ aceptada (2026-10-04)
+- **Fecha:** 2026-10-04
+- **Decisión:** por ahora, dentro de estos módulos no hay permisos por acción,
+  por autoría ni por estado:
+  - **Blacklist**: quien tiene acceso crea, edita, borra y restaura cualquier
+    entrada.
+  - **F&B**: quien tiene acceso sube el PDF, mete cifras a mano y borra el día
+    que sea, de cualquier fecha.
+  - **Mantenimiento**: quien tiene acceso crea, edita, cambia de estado,
+    asigna, borra y restaura cualquier parte.
+  - **Caja**: los turnos y los días cerrados siguen editables por los roles que
+    los gestionan.
+- **Motivo:** decisión del propietario. El hotel trabaja con pocas personas que
+  necesitan acceso completo, y mantenimiento ya guarda historial de cada cambio.
+- **Rechazado:** separar acciones de `admin` en F&B (borrar días, cifras a
+  mano) y en mantenimiento (borrar, restaurar, cambiar estado); bloquear la
+  edición de turnos y días cerrados.
+- **Consecuencias:** salen de `TODO.md` los cinco puntos que pedían esos
+  permisos. Siguen abiertos los que no son de permisos: validar los importes
+  manuales de F&B, el contenido del PDF y el rastro de cambios de dinero en caja.
