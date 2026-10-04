@@ -378,6 +378,11 @@ sigue siendo donde se arregla este fichero y se prueba en el entorno preview.
 
 ## 🟢 Baja
 
+- [ ] **Scheduling: vista de solo lectura para los demás roles** — hoy
+      `/dashboard/scheduling` es solo de `admin` y el resto no ve el cuadrante.
+      El dueño quiere que los demás (salvo `mantenimiento`) vean el cuadrante
+      publicado, sin edición ni configuración. Funcionalidad nueva, sin prisa
+      (2026-10-04).
 - [ ] **Backoffice: rechazar facturas no tiene UI** — el estado `rejected` y
       `POST /invoices/:id/reject` existen, pero ningún botón los usa y ninguna
       pestaña muestra las rechazadas. Una factura incorrecta hoy se borra. El
