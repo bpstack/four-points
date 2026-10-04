@@ -193,12 +193,12 @@ INSERT INTO hotel_groups (id, name, agency, arrival_date, departure_date, status
 
 -- Contactos de grupos
 INSERT INTO group_contacts (group_id, contact_name, contact_email, contact_phone, is_primary) VALUES
-  (1, 'Roberto Sánchez', 'r.sanchez@techcongress.com', '+34 612 345 678', 1),
-  (1, 'Laura Méndez', 'l.mendez@techcongress.com', '+34 698 765 432', 0),
-  (2, 'Carmen Ruiz', 'carmen@viajesDorados.es', '+34 654 321 098', 1),
-  (3, 'Isabel Martínez', 'isa.martinez@email.com', '+34 678 901 234', 1),
-  (4, 'Antonio López', 'a.lopez@deportesviajes.com', '+34 645 678 901', 1),
-  (5, 'Dr. Miguel Torres', 'm.torres@medtravel.com', '+34 632 109 876', 1);
+  (1, 'Roberto Sánchez', 'r.sanchez@techcongress.example', '+34 612 345 678', 1),
+  (1, 'Laura Méndez', 'l.mendez@techcongress.example', '+34 698 765 432', 0),
+  (2, 'Carmen Ruiz', 'carmen@viajesdorados.example', '+34 654 321 098', 1),
+  (3, 'Isabel Martínez', 'isa.martinez@example.com', '+34 678 901 234', 1),
+  (4, 'Antonio López', 'a.lopez@deportesviajes.example', '+34 645 678 901', 1),
+  (5, 'Dr. Miguel Torres', 'm.torres@medtravel.example', '+34 632 109 876', 1);
 
 -- Habitaciones de grupos
 INSERT INTO group_rooms (group_id, room_type, quantity, guests_per_room) VALUES
@@ -340,11 +340,11 @@ SELECT '✅ Maintenance mock creado (5 reportes)' AS resultado;
 -- =========================================================
 -- Insertar proveedores con IDs fijos
 INSERT INTO bo_suppliers (id, name, cif, default_category_id, periodicity, payment_method, email, is_active, created_by) VALUES
-  (1001, 'Electricidad Nacional SA', 'A12345678', 13, 'monthly', 'direct_debit', 'facturas@elecnacional.es', 1, '550e8400-e29b-41d4-a716-446655440001'),
-  (1002, 'Aguas del Sur', 'B87654321', 14, 'bimonthly', 'direct_debit', 'clientes@aguassur.es', 1, '550e8400-e29b-41d4-a716-446655440001'),
-  (1003, 'Lavandería Industrial López', 'B11223344', 8, 'monthly', 'transfer', 'admin@lavanderialopez.com', 1, '550e8400-e29b-41d4-a716-446655440001'),
-  (1004, 'Mantenimientos Técnicos SL', 'B55667788', 4, 'on_demand', 'transfer', 'info@mantectec.es', 1, '550e8400-e29b-41d4-a716-446655440001'),
-  (1005, 'Amenities Hotel Supply', 'A99887766', 10, 'quarterly', 'transfer', 'orders@amenitieshotel.com', 1, '550e8400-e29b-41d4-a716-446655440001');
+  (1001, 'Electricidad Nacional SA', 'A12345678', 13, 'monthly', 'direct_debit', 'facturas@elecnacional.example', 1, '550e8400-e29b-41d4-a716-446655440001'),
+  (1002, 'Aguas del Sur', 'B87654321', 14, 'bimonthly', 'direct_debit', 'clientes@aguassur.example', 1, '550e8400-e29b-41d4-a716-446655440001'),
+  (1003, 'Lavandería Industrial López', 'B11223344', 8, 'monthly', 'transfer', 'admin@lavanderialopez.example', 1, '550e8400-e29b-41d4-a716-446655440001'),
+  (1004, 'Mantenimientos Técnicos SL', 'B55667788', 4, 'on_demand', 'transfer', 'info@mantectec.example', 1, '550e8400-e29b-41d4-a716-446655440001'),
+  (1005, 'Amenities Hotel Supply', 'A99887766', 10, 'quarterly', 'transfer', 'orders@amenitieshotel.example', 1, '550e8400-e29b-41d4-a716-446655440001');
 
 -- Facturas usando los IDs fijos de suppliers
 INSERT INTO bo_invoices (invoice_number, supplier_id, category_id, amount_without_vat, amount_with_vat, vat_percentage, invoice_date, received_date, due_date, status, payment_method, created_by) VALUES

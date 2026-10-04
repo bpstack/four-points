@@ -125,6 +125,11 @@ propietario.
 - **Nombres reales del personal** en comentarios de `aiven/19_scheduling.sql`
   y `scripts/20251224_add_scheduling.sql` (anonimizados en el árbol el
   2026-10-04) y lo que quede según `TODO.md`.
+- **Correos reales de personas y empresas** en
+  `frontend/content/checklist/references/emails-dist-list.md` (lista de
+  distribución del night audit: dirección del hotel, empresa gestora y un
+  auditor, con nombres) y sus códigos en las guías del checklist;
+  sustituidos por contactos de ejemplo en el árbol el 2026-10-04.
 - En el análisis se busca cada valor en **todo** el historial (`git log -S`),
   no solo en estos ficheros: el reemplazo se aplica en cualquier fichero donde
   aparezca.
