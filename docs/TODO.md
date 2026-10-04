@@ -30,11 +30,6 @@ sigue siendo donde se arregla este fichero y se prueba en el entorno preview.
 
 ### 🔴 Alta
 
-- [ ] **Backoffice: PDFs de facturas, sello y firma públicos en Cloudinary** —
-      `uploadPdf` usa `type: 'upload'` y `access_mode: 'public'`; las facturas
-      llevan CIF, IBAN e importes, y la URL firmada no protege nada. Con el
-      sello y la firma públicos se puede fabricar una factura «validada».
-      _Comprobado por mí el 2026-09-28._
 - [ ] **Datos personales del personal en el repo** —
       `backend/scripts/import-planning-2026.ts` (commit `3387826`) tiene
       escritos 13 nombres de personal (2 con apellido) asociados a sus usuarios,
@@ -95,10 +90,7 @@ sigue siendo donde se arregla este fichero y se prueba en el entorno preview.
       nombre antes de publicar, en el script, en la BD y en el historial (fase
       2). Revisar si hay más nombres reales de personal en scripts, tests o
       datos de ejemplo.
-- [ ] **Maintenance: fotos públicas y que no se borran** — Cloudinary las sirve
-      sin firmar, con un `public_id` predecible; el borrado lógico no las toca,
-      `auto_delete_on_close` se guarda pero nadie lo usa, y subir o borrar fotos
-      no queda en el historial. _Comprobado por mí el 2026-09-28._
+
 ## Después de publicar
 
 > Mejoras sin brecha de seguridad: lógica de negocio, rastro de cambios,
@@ -129,6 +121,10 @@ sigue siendo donde se arregla este fichero y se prueba en el entorno preview.
 
 ### 🟡 Media
 
+- [ ] **Maintenance: las fotos no se borran con el parte** — ya son privadas
+      (solo la API las sirve), pero el borrado lógico no las toca,
+      `auto_delete_on_close` se guarda y nadie lo usa, y subir o borrar fotos
+      no queda en el historial. _Comprobado por mí el 2026-09-28._
 - [ ] **Scheduling: datos de salud guardados sin plazo** —
       `scheduling_solver_runs` guarda para siempre la entrada completa del
       solver (con las bajas `IT`/`E` de cada usuario) y su matriz. Decidir el
