@@ -202,7 +202,7 @@ export class CashierShiftRepository {
       FROM cashier_shifts 
       WHERE 1=1
     `
-    const params: any[] = []
+    const params: (string | number)[] = []
 
     if (filters.shift_date) {
       query += ' AND DATE(shift_date) = ?'
@@ -269,7 +269,7 @@ export class CashierShiftRepository {
    */
   static async count(filters: ShiftFilters = {}): Promise<number> {
     let query = 'SELECT COUNT(*) as total FROM cashier_shifts WHERE 1=1'
-    const params: any[] = []
+    const params: (string | number)[] = []
 
     if (filters.shift_date) {
       query += ' AND DATE(shift_date) = ?'
@@ -306,7 +306,7 @@ export class CashierShiftRepository {
       params.push(filters.closed_by)
     }
 
-    const [rows] = await db.query<any[]>(query, params)
+    const [rows] = await db.query<RowDataPacket[]>(query, params)
     return rows[0]?.total || 0
   }
 
@@ -315,7 +315,7 @@ export class CashierShiftRepository {
    */
   static async update(id: number, data: UpdateShiftDTO): Promise<CashierShift> {
     const updates: string[] = []
-    const params: any[] = []
+    const params: (string | number | null)[] = []
 
     if (data.income !== undefined) {
       updates.push('income = ?')
@@ -426,7 +426,7 @@ export class CashierShiftRepository {
       WHERE DATE(shift_date) = ? AND shift_type = ?
     `
 
-    const [rows] = await db.query<any[]>(query, [date, shiftType])
+    const [rows] = await db.query<RowDataPacket[]>(query, [date, shiftType])
     return (rows[0]?.count || 0) > 0
   }
 
@@ -499,7 +499,7 @@ export class CashierShiftRepository {
       WHERE csu.user_id = ?
     `
 
-    const params: any[] = [userId]
+    const params: (string | number)[] = [userId]
 
     if (fromDate) {
       query += ' AND DATE(cs.shift_date) >= ?'
@@ -511,9 +511,14 @@ export class CashierShiftRepository {
       params.push(toDate)
     }
 
-    const [rows] = await db.query<any[]>(query, params)
+    const [rows] = await db.query<RowDataPacket[]>(query, params)
     return (
-      rows[0] || {
+      (rows[0] as {
+        total_shifts: number
+        closed_shifts: number
+        open_shifts: number
+        total_income: number
+      }) || {
         total_shifts: 0,
         closed_shifts: 0,
         open_shifts: 0,
@@ -565,14 +570,14 @@ export class CashierShiftRepository {
     if (!shift) throw new Error('Turno no encontrado')
 
     // Calcular total de denominaciones (efectivo contado)
-    const [denomRows] = await db.query<any[]>(
+    const [denomRows] = await db.query<RowDataPacket[]>(
       'SELECT COALESCE(SUM(total), 0) as total FROM cashier_denominations WHERE shift_id = ?',
       [shiftId]
     )
     const cashCounted = Number(denomRows[0]?.total) || 0
 
     // Calcular total de pagos electrónicos por método
-    const [paymentRows] = await db.query<any[]>(
+    const [paymentRows] = await db.query<RowDataPacket[]>(
       `SELECT 
         pm.name as method_name,
         COALESCE(SUM(cp.amount), 0) as total
@@ -674,7 +679,7 @@ export class CashierShiftRepository {
 
     for (const shift of shifts) {
       // Efectivo (income = cash_counted - initial_fund)
-      const [denomRows] = await db.query<any[]>(
+      const [denomRows] = await db.query<RowDataPacket[]>(
         'SELECT COALESCE(SUM(total), 0) as total FROM cashier_denominations WHERE shift_id = ?',
         [shift.id]
       )
@@ -687,7 +692,7 @@ export class CashierShiftRepository {
       }
 
       // Pagos por método
-      const [paymentRows] = await db.query<any[]>(
+      const [paymentRows] = await db.query<RowDataPacket[]>(
         `SELECT 
           pm.name as method_name,
           COALESCE(SUM(cp.amount), 0) as total

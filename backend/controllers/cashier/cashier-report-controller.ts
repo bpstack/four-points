@@ -79,7 +79,7 @@ export class CashierReportController {
           },
         },
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, 'Error en getDashboardOverview')
       return res.status(500).json({
         success: false,
@@ -159,7 +159,7 @@ export class CashierReportController {
           },
         },
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, 'Error en getDailyReport')
       return res.status(500).json({
         success: false,
@@ -286,7 +286,7 @@ export class CashierReportController {
           daily_breakdown: dailyBreakdown,
         },
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, 'Error en getPeriodReport')
       return res.status(500).json({
         success: false,
@@ -327,7 +327,7 @@ export class CashierReportController {
           total_cancelled: (stats?.cancelled_amount ?? 0).toString(),
         },
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, 'Error al obtener historial de vales')
       return res.status(500).json({
         success: false,
@@ -378,7 +378,7 @@ export class CashierReportController {
           summary_by_type: summaryByType,
         },
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, 'Error en getShiftsSummary')
       return res.status(500).json({
         success: false,
