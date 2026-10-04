@@ -5,6 +5,7 @@ import { GroupPaymentRepository } from '../../repositories/group/group-payment-r
 import { GroupRepository } from '../../repositories/group/group-repository'
 import { UserRepository } from '../../repositories/auth/user-repository'
 import { PaymentStatus } from '../../models/group/index'
+import { User } from '../../models/auth/index'
 import {
   CreateNotificationDTO,
   NotificationPriority,
@@ -363,7 +364,7 @@ export class NotificationGeneratorService {
 
       const allUsers = [...groupAdmins, ...admins]
 
-      const userIds = allUsers.filter((user: any) => user && user.id).map((user: any) => user.id)
+      const userIds = allUsers.filter((user: User) => user && user.id).map((user: User) => user.id)
 
       if (userIds.length > 0) {
         await NotificationRepository.addRecipients(notificationId, userIds)

@@ -3,7 +3,11 @@
 import { Request, Response } from 'express'
 import { NotificationRepository } from '../../repositories/notifications/notification-repository'
 import { NotificationGeneratorService } from '../../services/notifications/notification-generator-service'
-import { NotificationFilters, NotificationPriority } from '../../models/notifications/index'
+import {
+  NotificationFilters,
+  NotificationPriority,
+  NotificationModule,
+} from '../../models/notifications/index'
 import { ERROR_CODES, SUCCESS_CODES } from '../../config/error-codes.js'
 import { logger } from '../../config/logger.js'
 import {
@@ -31,7 +35,7 @@ export class NotificationController {
       const filters: NotificationFilters = {
         status: req.query.status as 'read' | 'unread',
         priority: req.query.priority as NotificationPriority,
-        module: req.query.module as any,
+        module: req.query.module as NotificationModule | undefined,
         limit: req.query.limit ? parseInt(req.query.limit as string) : 50,
       }
 
@@ -42,7 +46,7 @@ export class NotificationController {
         data: notifications,
         count: notifications.length,
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, 'Error en getUserNotifications')
       return res.status(500).json({
         success: false,
@@ -71,7 +75,7 @@ export class NotificationController {
       const filters: NotificationFilters = {
         status: 'unread',
         priority: req.query.priority as NotificationPriority,
-        module: req.query.module as any,
+        module: req.query.module as NotificationModule | undefined,
         limit: req.query.limit ? parseInt(req.query.limit as string) : 50,
       }
 
@@ -82,7 +86,7 @@ export class NotificationController {
         data: notifications,
         count: notifications.length,
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, 'Error en getUnreadNotifications')
       return res.status(500).json({
         success: false,
@@ -116,7 +120,7 @@ export class NotificationController {
         success: true,
         count: notifications.length,
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, 'Error en getUnreadCount')
       return res.status(500).json({
         success: false,
@@ -161,7 +165,7 @@ export class NotificationController {
           duration: `${duration}ms`,
         },
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, 'Error en checkPendingNotifications')
       return res.status(500).json({
         success: false,
@@ -194,7 +198,7 @@ export class NotificationController {
         data: notifications,
         count: notifications.length,
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, 'Error en getGroupNotifications')
       return res.status(500).json({
         success: false,
@@ -254,7 +258,7 @@ export class NotificationController {
         message: SUCCESS_CODES.NOTIFICATIONS_MARKED_READ,
         code: SUCCESS_CODES.NOTIFICATIONS_MARKED_READ,
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, 'Error en markAsRead')
       return res.status(500).json({
         success: false,
@@ -288,7 +292,7 @@ export class NotificationController {
         code: SUCCESS_CODES.NOTIFICATIONS_ALL_MARKED_READ,
         count,
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, 'Error en markAllAsRead')
       return res.status(500).json({
         success: false,
@@ -361,7 +365,7 @@ export class NotificationController {
         message: SUCCESS_CODES.NOTIFICATIONS_CREATED,
         code: SUCCESS_CODES.NOTIFICATIONS_CREATED,
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, 'Error en createManualNotification')
       return res.status(500).json({
         success: false,
@@ -432,7 +436,7 @@ export class NotificationController {
         message: SUCCESS_CODES.NOTIFICATIONS_CREATED,
         code: SUCCESS_CODES.NOTIFICATIONS_CREATED,
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, 'Error en createGeneralNotification')
       return res.status(500).json({
         success: false,
@@ -483,7 +487,7 @@ export class NotificationController {
         message: SUCCESS_CODES.NOTIFICATIONS_DELETED,
         code: SUCCESS_CODES.NOTIFICATIONS_DELETED,
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, 'Error en deleteNotification')
       return res.status(500).json({
         success: false,
