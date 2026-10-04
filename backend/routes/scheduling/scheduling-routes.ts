@@ -185,16 +185,16 @@ router.get('/months/:id/constraints', getConstraintsByMonth)
 router.get('/constraints/by-period', getConstraintsByPeriod)
 
 // POST - Create constraint
-router.post('/constraints', createConstraint)
+router.post('/constraints', isAdmin, createConstraint)
 
 // PUT - Update constraint
-router.put('/constraints/:constraintId', updateConstraint)
+router.put('/constraints/:constraintId', isAdmin, updateConstraint)
 
 // PUT - Approve/reject constraint (admin only)
 router.put('/constraints/:constraintId/approve', isAdmin, approveConstraint)
 
 // DELETE - Delete constraint
-router.delete('/constraints/:constraintId', deleteConstraint)
+router.delete('/constraints/:constraintId', isAdmin, deleteConstraint)
 
 // ========================================
 // EMPLOYEE RULES ROUTES

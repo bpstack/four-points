@@ -54,14 +54,6 @@ sigue siendo donde se arregla este fichero y se prueba en el entorno preview.
       _Según la revisión `security` L3 del 2026-09-28; no repasado por mí._ La
       autoría ya no sale del cuerpo (`shift_id` del pago, `created_by` del vale,
       `opened_by` del día; _comprobado en producción el 2026-09-29_).
-- [ ] **Scheduling: cualquier rol edita o borra restricciones ajenas o ya
-      aprobadas** — sin comprobar autor ni estado y sin historial; al borrar una
-      aprobada, la clave foránea (`SET NULL`, comprobado en Aiven) deja la celda
-      con su código pero sin bloqueo. **Decidir antes de cerrar con
-      `isAdmin`:** el enlace a `/dashboard/scheduling/config` (pestaña de
-      solicitudes) se muestra a cualquier rol en `SchedulingClient.tsx` (_visto
-      el 2026-10-02_). _Comprobado por mí el 2026-09-28._
-      (sin historial, según el revisor)
 - [ ] **Datos personales del personal en el repo** —
       `backend/scripts/import-planning-2026.ts` (commit `3387826`) tiene
       escritos 13 nombres de personal (2 con apellido) asociados a sus usuarios,

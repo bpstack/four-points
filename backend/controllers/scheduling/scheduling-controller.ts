@@ -30,6 +30,7 @@ import type {
   EmployeeStats,
   DailyStats,
   SchedulingConstraint,
+  SchedulingConstraintRow,
   SchedulingShift,
   CreateDayDTO,
   EmployeeContract,
@@ -40,6 +41,55 @@ import { isCalendarDate } from '../../validations/common/calendar-date.js'
 
 function isDateInRange(date: string, start: string, end: string): boolean {
   return date >= start && date <= end
+}
+
+type ConstraintCells = Pick<
+  SchedulingConstraintRow,
+  'id' | 'month_id' | 'employee_id' | 'constraint_type' | 'start_date' | 'end_date' | 'shift_code'
+>
+
+const CONSTRAINT_TO_SHIFT_CODE: Record<string, string> = {
+  vacation: 'V',
+  sick_leave: 'IT',
+  sick_day: 'E',
+  training: 'FO',
+  holiday: 'B',
+  request_off: 'L',
+}
+
+// Cells of the constraint's employee inside its date range
+async function constraintAssignments(c: ConstraintCells) {
+  const monthDays = await repo.getDaysByMonth(c.month_id)
+  const affectedDays = monthDays.filter((d) => isDateInRange(d.date, c.start_date, c.end_date))
+  const assignments = []
+  for (const day of affectedDays) {
+    const assignment = await repo.getAssignmentByDayEmployee(day.id, c.employee_id)
+    if (assignment) assignments.push(assignment)
+  }
+  return assignments
+}
+
+// An approved constraint writes its code in its cells and locks them
+async function lockConstraintCells(c: ConstraintCells): Promise<void> {
+  const shiftCode = c.shift_code || CONSTRAINT_TO_SHIFT_CODE[c.constraint_type] || 'L'
+  for (const assignment of await constraintAssignments(c)) {
+    await repo.updateAssignment(assignment.id, {
+      shift_code: shiftCode,
+      source_constraint_id: c.id,
+    })
+  }
+}
+
+// Undo lockConstraintCells: the cells it locked go back to 'L' and unlocked
+async function releaseConstraintCells(c: ConstraintCells): Promise<void> {
+  for (const assignment of await constraintAssignments(c)) {
+    if (assignment.source_constraint_id === c.id) {
+      await repo.updateAssignment(assignment.id, {
+        shift_code: 'L',
+        source_constraint_id: null,
+      })
+    }
+  }
 }
 
 async function initializeMonthGrid(
@@ -1190,8 +1240,25 @@ export async function updateConstraint(req: Request, res: Response): Promise<voi
       return
     }
 
+    // An approved constraint moves its locked cells with it
+    if (existing.status === 'approved') await releaseConstraintCells(existing)
     await repo.updateConstraint(constraintId, data)
     const constraint = await repo.getConstraintById(constraintId)
+    if (constraint && constraint.status === 'approved') await lockConstraintCells(constraint)
+
+    await repo.createHistory(existing.month_id, 'manual_edit', req.user?.id ?? null, {
+      tableAffected: 'scheduling_constraints',
+      recordId: constraintId,
+      oldValue: JSON.stringify({
+        constraint_type: existing.constraint_type,
+        start_date: existing.start_date,
+        end_date: existing.end_date,
+        shift_code: existing.shift_code,
+      }),
+      newValue: JSON.stringify(data),
+      notes: 'Restricción editada',
+    })
+
     res.json(constraint)
   } catch (err) {
     if (handleZodError(err, res)) return
@@ -1225,43 +1292,11 @@ export async function approveConstraint(req: Request, res: Response): Promise<vo
     })
 
     // Sync assignments when approving or rejecting
-    const monthDays = await repo.getDaysByMonth(existing.month_id)
-    const affectedDays = monthDays.filter((d) =>
-      isDateInRange(d.date, existing.start_date, existing.end_date)
-    )
-
     if (data.status === 'approved') {
-      const constraintToShiftCode: Record<string, string> = {
-        vacation: 'V',
-        sick_leave: 'IT',
-        sick_day: 'E',
-        training: 'FO',
-        holiday: 'B',
-        request_off: 'L',
-      }
-      const shiftCode =
-        existing.shift_code || constraintToShiftCode[existing.constraint_type] || 'L'
-
-      for (const day of affectedDays) {
-        const assignment = await repo.getAssignmentByDayEmployee(day.id, existing.employee_id)
-        if (assignment) {
-          await repo.updateAssignment(assignment.id, {
-            shift_code: shiftCode,
-            source_constraint_id: constraintId,
-          })
-        }
-      }
+      await lockConstraintCells(existing)
     } else if (data.status === 'rejected' && existing.status === 'approved') {
       // Was approved before — clear the lock and reset to 'L'
-      for (const day of affectedDays) {
-        const assignment = await repo.getAssignmentByDayEmployee(day.id, existing.employee_id)
-        if (assignment && assignment.source_constraint_id === constraintId) {
-          await repo.updateAssignment(assignment.id, {
-            shift_code: 'L',
-            source_constraint_id: null,
-          })
-        }
-      }
+      await releaseConstraintCells(existing)
     }
 
     // Log history
@@ -1294,7 +1329,24 @@ export async function deleteConstraint(req: Request, res: Response): Promise<voi
       return
     }
 
+    // Deleting an approved constraint frees its cells; the foreign key alone
+    // left the code in the cell without its lock
+    if (existing.status === 'approved') await releaseConstraintCells(existing)
     await repo.deleteConstraint(constraintId)
+
+    await repo.createHistory(existing.month_id, 'manual_edit', req.user?.id ?? null, {
+      tableAffected: 'scheduling_constraints',
+      recordId: constraintId,
+      oldValue: JSON.stringify({
+        employee_id: existing.employee_id,
+        constraint_type: existing.constraint_type,
+        status: existing.status,
+        start_date: existing.start_date,
+        end_date: existing.end_date,
+      }),
+      notes: 'Restricción eliminada',
+    })
+
     res.json({ message: 'Restricción eliminada correctamente' })
   } catch (err) {
     logger.error({ err }, 'Error deleting constraint')
