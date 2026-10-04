@@ -616,7 +616,7 @@
 - **Revisa:** el primer punto de `TODO.md` (proponía squash) y las reglas de
   `GITCLEAN.md` (solo quitaban ficheros).
 
-## ADR-032 — Blacklist, F&B, mantenimiento y caja mantienen permisos simples
+## ADR-032 — Blacklist, F&B, mantenimiento, caja y parking mantienen permisos simples
 
 - **Estado:** ✅ aceptada (2026-10-04)
 - **Fecha:** 2026-10-04
@@ -630,11 +630,16 @@
     asigna, borra y restaura cualquier parte.
   - **Caja**: los turnos y los días cerrados siguen editables por los roles que
     los gestionan.
+  - **Parking** (añadido el 2026-10-04): el importe cobrado, el método y la
+    referencia de pago se pueden editar en cualquier estado de la reserva,
+    también `completed`.
 - **Motivo:** decisión del propietario. El hotel trabaja con pocas personas que
   necesitan acceso completo, y mantenimiento ya guarda historial de cada cambio.
 - **Rechazado:** separar acciones de `admin` en F&B (borrar días, cifras a
   mano) y en mantenimiento (borrar, restaurar, cambiar estado); bloquear la
-  edición de turnos y días cerrados.
+  edición de turnos y días cerrados; bloquear el cobro de parking según el
+  estado de la reserva.
 - **Consecuencias:** salen de `TODO.md` los cinco puntos que pedían esos
   permisos. Siguen abiertos los que no son de permisos: validar los importes
-  manuales de F&B, el contenido del PDF y el rastro de cambios de dinero en caja.
+  manuales de F&B, el contenido del PDF y el rastro de cambios de dinero en caja
+  y en el cobro de parking.

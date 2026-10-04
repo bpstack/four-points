@@ -14,7 +14,9 @@ and occupancy statistics.
 ## Who uses it
 
 All roles **except `mantenimiento`**. Any user with access creates, edits,
-charges and closes bookings. Only an `admin` can delete a vehicle.
+charges and closes bookings. Only an `admin` can delete a vehicle. The amount
+charged, its method and reference stay editable in any booking state, also
+`completed`. This is deliberate for now (ADR-032).
 
 ## What it can do
 

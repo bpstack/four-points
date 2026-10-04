@@ -95,9 +95,9 @@ sigue siendo donde se arregla este fichero y se prueba en el entorno preview.
       pasan las dos. Y sin filas de calendario (tras el 2026-12-26) el control
       deja pasar cualquier reserva. _Según la revisión `security` L3 del
       2026-09-28 (fichero y línea en el informe); no repasado por mí._
-- [ ] **Parking: importes cobrados editables siempre** — `PUT` acepta
-      `payment_amount`, método y referencia en cualquier estado (también
-      `completed`, y el código lo declara intencionado) y sin historial. El
+- [ ] **Parking: cambios del cobro sin historial** — editar `payment_amount`,
+      método o referencia no deja rastro del valor anterior. Que se pueda
+      editar en cualquier estado es intencionado (ADR-032, 2026-10-04). El
       signo, el `ENUM` del método y las longitudes ya se validan
       (2026-10-02). _Comprobado por mí el 2026-09-28._
 - [ ] **Mensajería: directorio de emails y roles de toda la plantilla** —
