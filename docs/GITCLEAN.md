@@ -32,9 +32,9 @@ el historial.
   `claude/compassionate-planck-gh6aof`. Las otras cuatro no tienen ningún commit
   fuera de `main` (comprobado el 2026-10-05). Sin tags; las referencias
   `pull/*` de GitHub no se publican.
-- **Dónde**: `C:Usersdzprojectsour-points-phase2`, fuera del repositorio.
-  `git-filter-repo` 2.47.0 está en `C:Usersdz	oolsgit-filter-repo` (venv
-  propio, 2026-10-05).
+- **Dónde**: `C:\Users\dz\projects\four-points-phase2\`, fuera del
+  repositorio. `git-filter-repo` 2.47.0 está en
+  `C:\Users\dz\tools\git-filter-repo` (venv propio, 2026-10-05).
 
 ### Estado (2026-10-05)
 
