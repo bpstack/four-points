@@ -5,7 +5,7 @@ import * as repo from '../../repositories/fnb/fnb.repository.js'
 import { logger } from '../../config/logger.js'
 
 export async function uploadPdf(req: Request, res: Response) {
-  const file = (req as any).file as Express.Multer.File | undefined
+  const file = (req as Request & { file?: Express.Multer.File }).file
   if (!file?.buffer) {
     res.status(400).json({ error: 'No PDF uploaded' })
     return

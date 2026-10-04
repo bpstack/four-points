@@ -1,4 +1,5 @@
 import pool from '../../config/db.js'
+import type { RowDataPacket } from 'mysql2'
 import type { FnbCategory, FnbGroupType } from '../../models/fnb/fnb.models.js'
 
 // Single source of truth: fnb_category table. Cached at first access for the
@@ -9,10 +10,10 @@ let cache: FnbCategory[] | null = null
 
 export async function loadCategories(): Promise<FnbCategory[]> {
   if (cache) return cache
-  const [rows] = await pool.execute<any[]>(
+  const [rows] = await pool.execute<RowDataPacket[]>(
     'SELECT code, name, group_type, display_order FROM fnb_category ORDER BY display_order'
   )
-  cache = rows.map((r: any) => ({
+  cache = rows.map((r) => ({
     code: r.code,
     name: r.name,
     group_type: r.group_type as FnbGroupType,

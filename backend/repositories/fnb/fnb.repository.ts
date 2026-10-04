@@ -1,4 +1,5 @@
 import pool from '../../config/db.js'
+import type { RowDataPacket, ResultSetHeader } from 'mysql2'
 import type {
   FnbCategory,
   FnbDailyRevenue,
@@ -32,10 +33,10 @@ const CATEGORY_CODES = {
 } as const
 
 export async function getCategories(): Promise<FnbCategory[]> {
-  const [rows] = await pool.execute<any[]>(
+  const [rows] = await pool.execute<RowDataPacket[]>(
     'SELECT code, name, group_type, display_order FROM fnb_category ORDER BY display_order'
   )
-  return rows
+  return rows as FnbCategory[]
 }
 
 function buildEmptyRow(date: string): FnbMonthlyRow {
@@ -57,7 +58,7 @@ function buildEmptyRow(date: string): FnbMonthlyRow {
 }
 
 export async function getMonthlyData(year: number, month: number): Promise<FnbMonthlyRow[]> {
-  const [rows] = await pool.execute<any[]>(
+  const [rows] = await pool.execute<RowDataPacket[]>(
     `SELECT
        d.date,
        COALESCE(MAX(CASE WHEN d.category_code = ? THEN d.amount END), 0) AS breakfast_included,
@@ -141,12 +142,12 @@ export async function getDailyEntries(from?: string, to?: string): Promise<FnbDa
   }
   if (conditions.length) sql += ` WHERE ${conditions.join(' AND ')}`
   sql += ' ORDER BY date DESC, category_code'
-  const [rows] = await pool.execute<any[]>(sql, params)
-  return rows.map((r: any) => ({
+  const [rows] = await pool.execute<RowDataPacket[]>(sql, params)
+  return rows.map((r) => ({
     ...r,
     date: fmtDate(r.date),
-    amount: parseFloat(r.amount),
-  }))
+    amount: parseFloat(r.amount as string),
+  })) as FnbDailyRevenue[]
 }
 
 export async function upsertMany(
@@ -164,7 +165,10 @@ export async function upsertMany(
 }
 
 export async function deleteDay(date: string): Promise<number> {
-  const [result] = await pool.execute<any>('DELETE FROM fnb_daily_revenue WHERE date = ?', [date])
+  const [result] = await pool.execute<ResultSetHeader>(
+    'DELETE FROM fnb_daily_revenue WHERE date = ?',
+    [date]
+  )
   return result.affectedRows ?? 0
 }
 
