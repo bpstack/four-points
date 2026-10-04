@@ -23,8 +23,9 @@ export default function CloseShiftModal({
   const t = useTranslations('cashier')
   const closeShiftMutation = useCloseShift()
 
-  // Calcular total de vales
-  const totalVouchers = shift.vouchers?.reduce((sum, v) => sum + parseFloat(v.amount), 0) || 0
+  // Vales fuera del cajón en este turno: un vale siempre es dinero que sale del fondo
+  // y se arrastra entre turnos y días hasta que se justifica. Lo calcula el backend
+  const totalVouchers = Number(shift.outstanding_vouchers_total) || 0
 
   // ✅ CORREGIDO: Validaciones - solo denominaciones son obligatorias
   // Los pagos electrónicos son opcionales (puede ser 0€ si todo fue en efectivo)

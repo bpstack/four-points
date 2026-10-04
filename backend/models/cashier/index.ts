@@ -274,6 +274,8 @@ export interface CashierShiftWithUsers extends CashierShift {
   payments?: CashierPaymentWithMethod[]
   vouchers?: CashierVoucherWithUser[]
   active_vouchers_total?: number
+  // Vouchers still out of the drawer in this shift, carried across shifts and days
+  outstanding_vouchers_total?: number
 }
 
 export interface CashierDailyDetail extends CashierDaily {

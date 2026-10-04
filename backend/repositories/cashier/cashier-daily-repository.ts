@@ -66,12 +66,14 @@ export class CashierDailyRepository {
     // ✅ CORREGIDO: Cargar TODAS las relaciones para cada shift
     const shiftsWithDetails = await Promise.all(
       shifts.map(async (shift) => {
-        const [users, denominations, payments, vouchers] = await Promise.all([
-          CashierShiftUserRepository.getByShiftId(shift.id),
-          CashierDenominationRepository.getByShift(shift.id),
-          CashierPaymentRepository.getByShift(shift.id),
-          CashierVoucherRepository.getByShift(shift.id),
-        ])
+        const [users, denominations, payments, vouchers, outstanding_vouchers_total] =
+          await Promise.all([
+            CashierShiftUserRepository.getByShiftId(shift.id),
+            CashierDenominationRepository.getByShift(shift.id),
+            CashierPaymentRepository.getByShift(shift.id),
+            CashierVoucherRepository.getByShift(shift.id),
+            CashierShiftRepository.getOutstandingVouchersTotal(shift.id),
+          ])
 
         return {
           ...shift,
@@ -79,6 +81,7 @@ export class CashierDailyRepository {
           denominations,
           payments,
           vouchers,
+          outstanding_vouchers_total,
         }
       })
     )

@@ -108,7 +108,11 @@ export class CashierShiftController {
         return
       }
 
-      const updated = await CashierShiftRepository.update(parseInt(id), parsed.data)
+      let updated = await CashierShiftRepository.update(parseInt(id), parsed.data)
+      // The expected cash and the difference depend on income
+      if (parsed.data.income !== undefined) {
+        updated = await CashierShiftRepository.recalculateTotals(updated.id)
+      }
 
       // Registrar en historial
       const userId = req.user?.id

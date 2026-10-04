@@ -39,6 +39,8 @@ export interface CashierShift {
   denominations?: CashierDenomination[]
   payments?: CashierPayment[]
   vouchers?: CashierVoucher[]
+  // Vouchers still out of the drawer in this shift, carried across shifts and days
+  outstanding_vouchers_total?: number
 }
 
 // ═══════════════════════════════════════════════════════
