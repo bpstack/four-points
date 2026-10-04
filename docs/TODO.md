@@ -52,13 +52,6 @@ sigue siendo donde se arregla este fichero y se prueba en el entorno preview.
       `SECRET_JWT_KEY` ya se cambió el 2026-09-29 en Render y en local (el
       backend exige ahora 32 caracteres o más); el propietario lo generó sin
       pasarlo por el agente.
-- [ ] **Login: el tiempo de respuesta puede delatar si un usuario existe** —
-      en preview, 18 intentos fallidos por tipo (2026-10-04): mediana 364 ms
-      con usuario real frente a 340 ms con inexistente (Mann-Whitney p ≈ 0,048),
-      aunque el mínimo es menor con usuario real (300 frente a 320 ms) y en
-      local el repositorio tarda lo mismo. Arreglado sin depender de la causa:
-      todo login fallido tarda al menos `LOGIN_FAILURE_MIN_MS` (600 ms).
-      Falta repetir la medida en preview con el arreglo desplegado.
 - [ ] **Nombres reales del personal en el repo** — el 2026-10-04 se quitaron
       del árbol el alta de una empleada (`20260520_insert_user_*.sql`),
       el importador del Excel de horarios (`import-planning-2026.ts`, 13
