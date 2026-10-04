@@ -7,17 +7,13 @@
 import { z } from 'zod'
 // Date.parse accepts 2026-02-31 (as 3 March), which MySQL then rejects
 import { isCalendarDate } from '../common/calendar-date.js'
-import { isOwnCloudinaryFileIn, CLOUDINARY_FOLDERS } from '../../services/uploads/cloudinary-url.js'
+import { isBlacklistImagePath } from '../../services/uploads/blacklist-images.js'
 
-// Only images uploaded through POST /api/blacklist/upload: any other URL
-// (an external site, another module's file) would be shown as a guest photo
+// Only the paths POST /api/blacklist/upload returns: any other value (an
+// external URL, another module's file) would be shown as a guest photo
 const blacklistImageUrl = z
   .string()
-  .url('Cada imagen debe ser una URL válida')
-  .refine(
-    (url) => isOwnCloudinaryFileIn(url, CLOUDINARY_FOLDERS.blacklist),
-    'Cada imagen debe haberse subido desde la lista negra'
-  )
+  .refine(isBlacklistImagePath, 'Cada imagen debe haberse subido desde la lista negra')
 
 // ========================================
 // ENUMS (reutilizables)

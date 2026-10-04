@@ -143,7 +143,8 @@ export const blacklistEditSchema = z
       ),
 
     // URLs de imágenes existentes (no se validan)
-    existing_images: z.array(z.string().url()).optional(),
+    // API paths of photos already saved (private files), not URLs
+    existing_images: z.array(z.string()).optional(),
   })
   .refine((data) => data.check_out_date > data.check_in_date, {
     message: 'La fecha de salida debe ser posterior a la fecha de entrada',

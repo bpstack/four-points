@@ -17,10 +17,15 @@ manager starts from a valid roster instead of a blank one.
 
 ## Who uses it
 
-Almost everything is for **`admin`** only. The exceptions, open to every role
-except `mantenimiento`, are viewing months and configuration, validating a
-month, and creating, editing or deleting constraints (vacations, sick leave,
-absences…). In the interface, only an `admin` approves constraints.
+Only **`admin`** uses scheduling, in the interface and in the API, reads
+included: months, cells, shifts, rules, contracts and constraints (vacations,
+sick leave, absences…). The grid and the constraints hold health data (sick
+leave codes `IT` and `E` and their notes), so no other role reads them.
+`/dashboard/scheduling` sends any other role back to the dashboard.
+
+Editing an approved constraint moves its locked cells to the new dates, and
+deleting it frees them (back to `L`); both leave a `manual_edit` entry in the
+month's history.
 
 ## What it can do
 

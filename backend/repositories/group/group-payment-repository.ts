@@ -9,34 +9,36 @@ import {
   PaymentStatus,
   PaymentsSummary,
 } from '../../models/group/index'
-import { ResultSetHeader } from 'mysql2'
+import { ResultSetHeader, RowDataPacket } from 'mysql2'
 import { buildSetClause } from '../shared/update-columns.js'
 
 export class GroupPaymentRepository {
   /**
    * Helper: Parsear decimales de MySQL a números
    */
-  private static parsePayment(payment: any): GroupPayment {
+  private static parsePayment(payment: RowDataPacket): GroupPayment {
+    const p = payment as Record<string, unknown>
     return {
-      ...payment,
-      percentage: payment.percentage ? parseFloat(payment.percentage) : null,
-      amount: parseFloat(payment.amount) || 0,
-      amount_paid: parseFloat(payment.amount_paid) || 0,
+      ...(payment as GroupPayment),
+      percentage: p.percentage ? parseFloat(String(p.percentage)) : null,
+      amount: parseFloat(String(p.amount)) || 0,
+      amount_paid: parseFloat(String(p.amount_paid)) || 0,
     }
   }
 
   /**
    * Helper: Parsear payment con info del grupo
    */
-  private static parsePaymentWithGroupInfo(payment: any): PaymentWithGroupInfo {
+  private static parsePaymentWithGroupInfo(payment: RowDataPacket): PaymentWithGroupInfo {
+    const p = payment as Record<string, unknown>
     return {
-      ...payment,
-      percentage: payment.percentage ? parseFloat(payment.percentage) : null,
-      amount: parseFloat(payment.amount) || 0,
-      amount_paid: parseFloat(payment.amount_paid) || 0,
-      group_total_amount: payment.group_total_amount
-        ? parseFloat(payment.group_total_amount)
-        : null,
+      ...(payment as PaymentWithGroupInfo),
+      percentage: p.percentage ? parseFloat(String(p.percentage)) : null,
+      amount: parseFloat(String(p.amount)) || 0,
+      amount_paid: parseFloat(String(p.amount_paid)) || 0,
+      group_total_amount: p.group_total_amount
+        ? parseFloat(String(p.group_total_amount))
+        : undefined,
     }
   }
 
@@ -50,7 +52,7 @@ export class GroupPaymentRepository {
       ORDER BY payment_order ASC, due_date ASC
     `
 
-    const [rows] = await db.query<any[]>(query, [groupId])
+    const [rows] = await db.query<RowDataPacket[]>(query, [groupId])
     return rows.map((row) => this.parsePayment(row))
   }
 
@@ -69,7 +71,7 @@ export class GroupPaymentRepository {
       WHERE gp.id = ?
     `
 
-    const [rows] = await db.query<any[]>(query, [id])
+    const [rows] = await db.query<RowDataPacket[]>(query, [id])
     return rows[0] ? this.parsePaymentWithGroupInfo(rows[0]) : null
   }
 
@@ -226,7 +228,7 @@ export class GroupPaymentRepository {
       ORDER BY gp.due_date ASC
     `
 
-    const [rows] = await db.query<any[]>(query, [days])
+    const [rows] = await db.query<RowDataPacket[]>(query, [days])
     return rows.map((row) => this.parsePaymentWithGroupInfo(row))
   }
 
@@ -247,7 +249,7 @@ export class GroupPaymentRepository {
       ORDER BY gp.due_date ASC
     `
 
-    const [rows] = await db.query<any[]>(query)
+    const [rows] = await db.query<RowDataPacket[]>(query)
     return rows.map((row) => this.parsePaymentWithGroupInfo(row))
   }
 
@@ -271,11 +273,11 @@ export class GroupPaymentRepository {
     // Parsear decimales manteniendo la estructura de RowDataPacket
     return {
       ...raw,
-      total_payments: parseInt(raw.total_payments as any) || 0,
-      total_paid: parseFloat(raw.total_paid as any) || 0,
-      total_pending: parseFloat(raw.total_pending as any) || 0,
-      total_partial: parseFloat(raw.total_partial as any) || 0,
-      total_expected: parseFloat(raw.total_expected as any) || 0,
+      total_payments: parseInt(String(raw.total_payments)) || 0,
+      total_paid: parseFloat(String(raw.total_paid)) || 0,
+      total_pending: parseFloat(String(raw.total_pending)) || 0,
+      total_partial: parseFloat(String(raw.total_partial)) || 0,
+      total_expected: parseFloat(String(raw.total_expected)) || 0,
     } as PaymentsSummary
   }
 }

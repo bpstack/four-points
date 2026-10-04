@@ -14,7 +14,7 @@ import { solverErrorMessage } from '../../services/scheduling/solver-errors.js'
 async function recordSolverRun(data: SolverRunRecord): Promise<void> {
   try {
     await repo.insertSolverRun(data)
-  } catch (err: any) {
+  } catch (err) {
     logger.error({ err }, '[generate] Fallo persistiendo scheduling_solver_runs')
   }
 }
@@ -76,7 +76,7 @@ export async function generateSchedule(req: Request, res: Response): Promise<voi
   let solverOutput: SolverOutput
   try {
     solverOutput = await runSolver(solverInput, abortController.signal)
-  } catch (err: any) {
+  } catch (err) {
     const elapsed = Date.now() - startMs
     logger.error({ err, elapsed }, '[generate] Error invocando solver')
     await recordSolverRun({
@@ -128,9 +128,10 @@ export async function generateSchedule(req: Request, res: Response): Promise<voi
         employeesSummary: solverInput.employees.map((e) => ({
           id: e.id,
           fixedShift: e.rules?.fixedShift,
+          // Counts only: the cells and the tail hold shift codes such as IT/E
+          // (sick leave), which are health data and must not reach the log
           lockedDays: Object.keys(solverInput.lockedCells[e.id] ?? {}).length,
-          lockedCells: solverInput.lockedCells[e.id] ?? {},
-          tail: tail[e.id] ?? [],
+          tailDays: (tail[e.id] ?? []).length,
         })),
         config: solverInput.config,
       },

@@ -4,6 +4,7 @@ import { Request, Response } from 'express'
 import * as commentsService from '../../services/checklist/checklist-comments.service.js'
 import { createCommentSchema } from '../../validations/checklist/checklist-schemas.js'
 import { logger } from '../../config/logger.js'
+import { fetchStoredFile, sendPrivateFile } from '../../services/uploads/private-files.js'
 
 function isAdmin(req: Request): boolean {
   return req.user?.role?.toLowerCase() === 'admin'
@@ -127,5 +128,21 @@ export async function deleteAttachmentController(req: Request, res: Response): P
   } catch (err) {
     logger.error({ err }, '[checklist] deleteAttachment')
     res.status(500).json({ error: 'Error al eliminar adjunto' })
+  }
+}
+
+// GET /api/checklists/attachments/:attachmentId/file
+// Private file: the API downloads it and serves it, the signed URL stays here
+export async function getAttachmentFileController(req: Request, res: Response): Promise<void> {
+  try {
+    const storedUrl = await commentsService.getAttachmentStoredUrl(Number(req.params.attachmentId))
+    if (!storedUrl) {
+      res.status(404).json({ error: 'Adjunto no encontrado' })
+      return
+    }
+    sendPrivateFile(res, await fetchStoredFile(storedUrl))
+  } catch (err) {
+    logger.error({ err }, '[checklist] getAttachmentFile')
+    res.status(500).json({ error: 'Error al obtener el adjunto' })
   }
 }

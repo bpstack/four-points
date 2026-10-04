@@ -95,7 +95,7 @@ export class MessageRepository {
       JOIN roles r ON r.id = u.role_id
       WHERE m.conversation_id = ? AND m.deleted_at IS NULL
     `
-    const params: any[] = [conversationId]
+    const params: (number | string)[] = [conversationId]
 
     // Cursor-based pagination (para scroll infinito)
     if (filters.before_id) {
@@ -121,7 +121,7 @@ export class MessageRepository {
       WHERE conversation_id = ? AND id < ? AND deleted_at IS NULL
       LIMIT 1
     `
-    const [rows] = await db.query<any[]>(query, [conversationId, beforeId])
+    const [rows] = await db.query<CountResult[]>(query, [conversationId, beforeId])
     return rows.length > 0
   }
 
@@ -157,7 +157,7 @@ export class MessageRepository {
         ON cp.conversation_id = m.conversation_id AND cp.user_id = m.sender_id AND cp.is_active = 1
       WHERE m.id = ? AND m.sender_id = ?
     `
-    const [rows] = await db.query<any[]>(query, [messageId, userId])
+    const [rows] = await db.query<CountResult[]>(query, [messageId, userId])
     return rows.length > 0
   }
 

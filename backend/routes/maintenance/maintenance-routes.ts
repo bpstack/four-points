@@ -124,6 +124,13 @@ router.patch('/:id/restore', MaintenanceController.restore)
 router.get('/:id/images', MaintenanceController.getImages)
 
 /**
+ * @route   GET /api/maintenance/:id/images/:imageId/file
+ * @desc    Foto del reporte: fichero privado que la API descarga y sirve
+ * @access  Private
+ */
+router.get('/:id/images/:imageId/file', MaintenanceController.getImageFile)
+
+/**
  * @route   POST /api/maintenance/:id/images
  * @desc    Subir imagen a un reporte
  * @access  Private

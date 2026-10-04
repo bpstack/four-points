@@ -136,7 +136,8 @@
       "totalMonth": "Total {month}",
       "directDebits": "Direct Debits",
       "transfers": "Transfers"
-    }
+    },
+    "revertPayment": "Revert payment"
   },
   "suppliers": {
     "tabs": {
@@ -381,6 +382,11 @@
       "description": "This action will revert all paid invoices from {month} to validated status. You can close the month again later.",
       "confirmButton": "Revert {count} Invoices"
     },
+    "revertPayment": {
+      "title": "Revert payment",
+      "message": "Invoice {number} will go back to validated and its payment date will be cleared.",
+      "confirmButton": "Revert payment"
+    },
     "pdfEditor": {
       "title": "Validate Invoice",
       "tools": "Tools",
@@ -529,7 +535,9 @@
     "previewError": "Error getting preview",
     "revertPaymentsError": "Error reverting payments",
     "unknownError": "Unknown error",
-    "downloadPdfError": "Error downloading PDF"
+    "downloadPdfError": "Error downloading PDF",
+    "paymentReverted": "Payment reverted",
+    "paymentRevertError": "Error reverting payment"
   },
   "csvHeaders": {
     "supplier": "Supplier",

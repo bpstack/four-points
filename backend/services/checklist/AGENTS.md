@@ -168,8 +168,8 @@ checks every route before its handler runs, using the JSON definitions:
 :attachmentId not a positive integer                              → 400
 ```
 
-There is no fail-open any more: an invented checklist id used to create a row
-in `checklist_runs`, and comments and images were stored for steps that do not
+There is no fail-open any more: an invented checklist id used to create a row in
+`checklist_runs`, and comments and images were stored for steps that do not
 exist. Image uploads go through `singleImage('file')` (5 MB, JPG/PNG/WebP/GIF
 checked by their bytes).
 

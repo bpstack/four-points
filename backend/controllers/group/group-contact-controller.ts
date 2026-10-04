@@ -4,7 +4,11 @@ import { Request, Response } from 'express'
 import { GroupContactRepository } from '../../repositories/group/group-contact-repository'
 import { GroupRepository } from '../../repositories/group/group-repository'
 import { GroupHistoryService } from '../../services/group/group-history-service'
-import { CreateGroupContactDTO, UpdateGroupContactDTO } from '../../models/group/index'
+import {
+  CreateGroupContactDTO,
+  UpdateGroupContactDTO,
+  HistoryAction,
+} from '../../models/group/index'
 import { ERROR_CODES, SUCCESS_CODES } from '../../config/error-codes.js'
 import { logger } from '../../config/logger.js'
 import {
@@ -47,7 +51,7 @@ export class GroupContactController {
         data: contacts,
         count: contacts.length,
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, 'Error en getContactsByGroup')
       return res.status(500).json({
         success: false,
@@ -108,7 +112,7 @@ export class GroupContactController {
       await GroupHistoryService.logChange(
         groupId,
         userId,
-        'created' as any,
+        HistoryAction.CREATED,
         'group_contacts',
         newContact.id,
         null,
@@ -123,7 +127,7 @@ export class GroupContactController {
         code: SUCCESS_CODES.GROUP_CONTACT_CREATED,
         data: newContact,
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, 'Error en createContact')
       return res.status(500).json({
         success: false,
@@ -196,7 +200,7 @@ export class GroupContactController {
       await GroupHistoryService.logChange(
         groupId,
         userId,
-        'updated' as any,
+        HistoryAction.UPDATED,
         'group_contacts',
         contactId,
         null,
@@ -210,7 +214,7 @@ export class GroupContactController {
         message: SUCCESS_CODES.GROUP_CONTACT_UPDATED,
         code: SUCCESS_CODES.GROUP_CONTACT_UPDATED,
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, 'Error en updateContact')
       return res.status(500).json({
         success: false,
@@ -281,7 +285,7 @@ export class GroupContactController {
         message: SUCCESS_CODES.GROUP_CONTACT_DELETED,
         code: SUCCESS_CODES.GROUP_CONTACT_DELETED,
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, 'Error en deleteContact')
       return res.status(500).json({
         success: false,
@@ -321,7 +325,7 @@ export class GroupContactController {
         success: true,
         data: primaryContact,
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, 'Error en getPrimaryContact')
       return res.status(500).json({
         success: false,

@@ -11,6 +11,7 @@ import {
 } from '../../repositories/logbook/logbookReads-repository.js'
 import { ERROR_CODES, SUCCESS_CODES } from '../../config/error-codes.js'
 import { logger } from '../../config/logger.js'
+import { withTransaction } from '../../config/transaction.js'
 
 // ============================================
 // CUSTOM ERROR TYPE
@@ -29,7 +30,7 @@ export async function readLogbookController(req: Request, res: Response): Promis
     const { logbookId } = req.params
     const userId = req.user!.id
 
-    const read = await logBookReadByUser({ logbookId, userId })
+    const read = await withTransaction(() => logBookReadByUser({ logbookId, userId }))
     res.status(201).json({
       success: true,
       data: read,
@@ -56,7 +57,7 @@ export async function unreadLogbookController(req: Request, res: Response): Prom
     const { logbookId } = req.params
     const userId = req.user!.id
 
-    const unread = await unmarkLogbookRead({ logbookId, userId })
+    const unread = await withTransaction(() => unmarkLogbookRead({ logbookId, userId }))
     res.status(200).json({
       success: true,
       data: unread,
@@ -82,7 +83,7 @@ export async function solveLogbookController(req: Request, res: Response): Promi
     const { logbookId } = req.params
     const userId = req.user!.id
 
-    const solved = await logbookSolvedByUser({ logbookId, userId })
+    const solved = await withTransaction(() => logbookSolvedByUser({ logbookId, userId }))
     res.status(200).json({
       success: true,
       data: solved,
@@ -109,7 +110,7 @@ export async function reopenLogbookController(req: Request, res: Response): Prom
     const { logbookId } = req.params
     const userId = req.user!.id
 
-    const pending = await markLogbookPending({ logbookId, userId })
+    const pending = await withTransaction(() => markLogbookPending({ logbookId, userId }))
     res.json({
       success: true,
       data: pending,

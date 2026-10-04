@@ -2,6 +2,7 @@
 
 import * as logbookRepo from '../../repositories/logbook/logbook-repository.js'
 import * as logbookHistoryRepo from '../../repositories/logbook/logbookHistory-repository.js'
+import { withTransaction } from '../../config/transaction.js'
 import type {
   LogActionParams,
   DeleteLogbookHistoryParams,
@@ -42,6 +43,15 @@ export async function logAction({
 // ============================================
 
 export async function updateLogbookHistory(
+  logbookId: number | string,
+  editorId: string,
+  updates: UpdateLogbookDTO
+): Promise<HistoryRecord> {
+  // The update and its history row commit together
+  return withTransaction(() => updateWithHistory(logbookId, editorId, updates))
+}
+
+async function updateWithHistory(
   logbookId: number | string,
   editorId: string,
   updates: UpdateLogbookDTO

@@ -87,10 +87,12 @@ backend (repositories) ─► mysql2 pool ─► TLS ─► MySQL on Aiven (hote
 
 - **`aiven/`**: the 20 scripts of the base schema (`01`–`20`, plus `99` for
   verification) and a copy of the Aiven certificate.
-- **`scripts/`**: the 15 incremental migrations and utilities: backups, local
-  database recreation, collation check, one-off data fixes and quick query
-  scripts in `scripts/basics/`.
-- **`backup/`**: database dumps.
+- **`scripts/`**: the incremental migrations and utilities: applying a
+  migration, local backup, local database recreation and collation check. All
+  read the credentials from `backend/.env`. The one-off data fixes and the
+  quick query scripts were removed on 2026-10-04 (they carried the Aiven
+  password).
+- **`backup/`**: database dumps, never committed.
 - **Five documents** that overlap: `CLAUDE.md`, `README.md`, `INDEX.md`,
   `MIGRATIONS_POLICY.md` and `MIGRATION_GUIDE.md`. Several data they give are
   outdated.

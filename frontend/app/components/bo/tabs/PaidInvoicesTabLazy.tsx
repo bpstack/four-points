@@ -2,7 +2,7 @@
 /**
  * Client Component - Paid Invoices Tab
  *
- * Read-only view with export capabilities.
+ * Paid invoices with export, and payment revert per invoice or per month.
  * Receives initial data from server.
  */
 
@@ -23,7 +23,7 @@ import {
 } from 'react-icons/fi'
 import type { InvoiceWithDetails, Category } from '@/app/lib/backoffice/types'
 import { formatCurrency, PAYMENT_METHOD_LABELS } from '@/app/lib/backoffice/types'
-import { PdfViewerModal } from '@/app/components/bo/modals'
+import { PdfViewerModal, ConfirmDialog } from '@/app/components/bo/modals'
 import { backofficeApi } from '@/app/lib/backoffice/backofficeApi'
 import toast from 'react-hot-toast'
 import { SelectDropdown } from '@/app/ui/components/SelectDropdown'
@@ -170,6 +170,9 @@ export function PaidInvoicesTabLazy({
     month: number
   } | null>(null)
 
+  // Revert one invoice's payment
+  const [unpayingInvoice, setUnpayingInvoice] = useState<InvoiceWithDetails | null>(null)
+
   // Client-side filtering
   const filteredInvoices = useMemo(
     () =>
@@ -283,6 +286,23 @@ export function PaidInvoicesTabLazy({
     } catch (error) {
       const message = error instanceof Error ? error.message : t('toast.revertPaymentsError')
       console.error('[handleExecuteRevert] Error:', error)
+      toast.error(message)
+    } finally {
+      setIsReverting(false)
+    }
+  }
+
+  // Revert one invoice's payment (paid -> validated)
+  const handleRevertPayment = async () => {
+    if (!unpayingInvoice) return
+
+    try {
+      await backofficeApi.revertPayment(unpayingInvoice.id)
+      toast.success(t('toast.paymentReverted'))
+      setUnpayingInvoice(null)
+      invalidatePaid()
+    } catch (error) {
+      const message = error instanceof Error ? error.message : t('toast.paymentRevertError')
       toast.error(message)
     }
   }
@@ -697,18 +717,27 @@ export function PaidInvoicesTabLazy({
                         <div className="text-[10px] text-fg-subtle">{invoice.department}</div>
                       </td>
                       <td className="px-3 py-2 text-right">
-                        <button
-                          onClick={() => handleOpenPdfViewer(invoice)}
-                          disabled={!hasPdf}
-                          title={hasPdf ? t('actions.viewPdf') : t('pending.noPdf')}
-                          className={`inline-flex items-center justify-center w-7 h-7 rounded transition-colors ${
-                            hasPdf
-                              ? 'text-fg-muted hover:text-purple-600 dark:hover:text-purple-400 hover:bg-surface-hover'
-                              : 'text-fg-subtle cursor-not-allowed'
-                          }`}
-                        >
-                          <FiFileText className="w-3.5 h-3.5" />
-                        </button>
+                        <div className="flex items-center justify-end gap-1">
+                          <button
+                            onClick={() => setUnpayingInvoice(invoice)}
+                            title={t('paid.revertPayment')}
+                            className="inline-flex items-center justify-center w-7 h-7 text-fg-muted hover:text-orange-600 dark:hover:text-orange-400 hover:bg-surface-hover rounded transition-colors"
+                          >
+                            <FiRotateCcw className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={() => handleOpenPdfViewer(invoice)}
+                            disabled={!hasPdf}
+                            title={hasPdf ? t('actions.viewPdf') : t('pending.noPdf')}
+                            className={`inline-flex items-center justify-center w-7 h-7 rounded transition-colors ${
+                              hasPdf
+                                ? 'text-fg-muted hover:text-purple-600 dark:hover:text-purple-400 hover:bg-surface-hover'
+                                : 'text-fg-subtle cursor-not-allowed'
+                            }`}
+                          >
+                            <FiFileText className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   )
@@ -784,17 +813,26 @@ export function PaidInvoicesTabLazy({
 
                 <div className="flex items-center justify-between pt-2 border-t border-border">
                   <span className="text-[10px] text-fg-muted">{invoice.cost_center}</span>
-                  <button
-                    onClick={() => handleOpenPdfViewer(invoice)}
-                    disabled={!hasPdf}
-                    className={`inline-flex items-center justify-center w-6 h-6 rounded transition-colors ${
-                      hasPdf
-                        ? 'text-fg-muted hover:text-purple-600 dark:hover:text-purple-400 hover:bg-surface-hover'
-                        : 'text-fg-subtle cursor-not-allowed'
-                    }`}
-                  >
-                    <FiFileText className="w-3 h-3" />
-                  </button>
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => setUnpayingInvoice(invoice)}
+                      title={t('paid.revertPayment')}
+                      className="inline-flex items-center justify-center w-6 h-6 text-fg-muted hover:text-orange-600 dark:hover:text-orange-400 hover:bg-surface-hover rounded transition-colors"
+                    >
+                      <FiRotateCcw className="w-3 h-3" />
+                    </button>
+                    <button
+                      onClick={() => handleOpenPdfViewer(invoice)}
+                      disabled={!hasPdf}
+                      className={`inline-flex items-center justify-center w-6 h-6 rounded transition-colors ${
+                        hasPdf
+                          ? 'text-fg-muted hover:text-purple-600 dark:hover:text-purple-400 hover:bg-surface-hover'
+                          : 'text-fg-subtle cursor-not-allowed'
+                      }`}
+                    >
+                      <FiFileText className="w-3 h-3" />
+                    </button>
+                  </div>
                 </div>
               </div>
             )
@@ -844,6 +882,19 @@ export function PaidInvoicesTabLazy({
           invoiceStatus={viewingPdfInvoice.status}
         />
       )}
+
+      {/* Revert one payment */}
+      <ConfirmDialog
+        isOpen={!!unpayingInvoice}
+        onClose={() => setUnpayingInvoice(null)}
+        onConfirm={handleRevertPayment}
+        title={t('modals.revertPayment.title')}
+        message={t('modals.revertPayment.message', {
+          number: unpayingInvoice?.invoice_number ?? '',
+        })}
+        confirmText={t('modals.revertPayment.confirmButton')}
+        variant="warning"
+      />
 
       {/* Revert Batch Payment Dialog */}
       {revertDialogOpen && (

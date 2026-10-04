@@ -18,7 +18,8 @@ service due to an open breakdown.
 **All roles**, and it is the main module of the `mantenimiento` role, which does
 not have access to almost any other. Within the module **there are no
 differences between roles**: anyone with access creates, edits, changes the
-state of, assigns, deletes and restores any report.
+state of, assigns, deletes and restores any report. This is deliberate for now
+(ADR-032); the report history records who did each change.
 
 ## What it can do
 

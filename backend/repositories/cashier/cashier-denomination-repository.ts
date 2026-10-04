@@ -1,7 +1,7 @@
 // repositories/cashier/cashier-denomination-repository.ts
 
 import db from '../../config/db.js'
-import { ResultSetHeader } from 'mysql2'
+import { ResultSetHeader, RowDataPacket } from 'mysql2'
 import { CashierDenomination, CreateDenominationDTO } from '../../models/cashier/index.js'
 
 export class CashierDenominationRepository {
@@ -85,7 +85,7 @@ export class CashierDenominationRepository {
       WHERE shift_id = ?
     `
 
-    const [rows] = await db.query<any[]>(query, [shiftId])
+    const [rows] = await db.query<RowDataPacket[]>(query, [shiftId])
     return rows[0]?.total_cash || 0
   }
 

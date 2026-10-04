@@ -2,7 +2,7 @@
 
 import db from '../../config/db.js'
 import { SORT_FIELDS, safeSort, safeOrder } from '../../validations/cashier/cashier-validation.js'
-import { ResultSetHeader } from 'mysql2'
+import { ResultSetHeader, RowDataPacket } from 'mysql2'
 import { CashierHistory, CreateHistoryDTO, HistoryFilters } from '../../models/cashier/index.js'
 
 export class CashierHistoryRepository {
@@ -71,7 +71,7 @@ export class CashierHistoryRepository {
    */
   static async getAll(filters: HistoryFilters = {}): Promise<CashierHistory[]> {
     let query = 'SELECT * FROM cashier_history WHERE 1=1'
-    const params: any[] = []
+    const params: (string | number)[] = []
 
     if (filters.shift_id) {
       query += ' AND shift_id = ?'
@@ -125,7 +125,7 @@ export class CashierHistoryRepository {
    */
   static async count(filters: HistoryFilters = {}): Promise<number> {
     let query = 'SELECT COUNT(*) as total FROM cashier_history WHERE 1=1'
-    const params: any[] = []
+    const params: (string | number)[] = []
 
     if (filters.shift_id) {
       query += ' AND shift_id = ?'
@@ -157,7 +157,7 @@ export class CashierHistoryRepository {
       params.push(filters.to_date)
     }
 
-    const [rows] = await db.query<any[]>(query, params)
+    const [rows] = await db.query<RowDataPacket[]>(query, params)
     return rows[0]?.total || 0
   }
 

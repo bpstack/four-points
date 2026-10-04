@@ -17,6 +17,12 @@ import type { BlacklistFilters } from '../../models/blacklist/index.js'
 import { ERROR_CODES, SUCCESS_CODES } from '../../config/error-codes.js'
 import { logger } from '../../config/logger.js'
 import { isImageFile } from '../../services/uploads/image-signature.js'
+import {
+  blacklistImagePath,
+  isBlacklistImageFile,
+  parseBlacklistImageFile,
+} from '../../services/uploads/blacklist-images.js'
+import { fetchStoredFile, sendPrivateFile } from '../../services/uploads/private-files.js'
 
 // ========================================
 // CONTROLLER
@@ -52,7 +58,7 @@ export class BlacklistController {
         pagination,
         filters_applied: filters,
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error(
         { err: error, event: 'blacklist_getAll_error' },
         '[BlacklistController.getAll] Error'
@@ -102,7 +108,7 @@ export class BlacklistController {
         entry,
         audit_trail: entry.audit_trail || [],
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error(
         { err: error, event: 'blacklist_getById_error' },
         '[BlacklistController.getById] Error'
@@ -166,7 +172,7 @@ export class BlacklistController {
         code: SUCCESS_CODES.BLACKLIST_RECORD_CREATED,
         entry,
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error(
         { err: error, event: 'blacklist_create_error' },
         '[BlacklistController.create] Error'
@@ -253,7 +259,7 @@ export class BlacklistController {
         code: SUCCESS_CODES.BLACKLIST_RECORD_UPDATED,
         entry,
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error(
         { err: error, event: 'blacklist_update_error' },
         '[BlacklistController.update] Error'
@@ -312,7 +318,7 @@ export class BlacklistController {
         message: SUCCESS_CODES.BLACKLIST_RECORD_DELETED,
         code: SUCCESS_CODES.BLACKLIST_RECORD_DELETED,
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error(
         { err: error, event: 'blacklist_delete_error' },
         '[BlacklistController.delete] Error'
@@ -372,7 +378,7 @@ export class BlacklistController {
         code: SUCCESS_CODES.BLACKLIST_RECORD_RESTORED,
         entry,
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error(
         { err: error, event: 'blacklist_restore_error' },
         '[BlacklistController.restore] Error'
@@ -394,7 +400,7 @@ export class BlacklistController {
       const stats = await BlacklistRepository.getStats()
 
       res.json({ success: true, ...stats })
-    } catch (error: any) {
+    } catch (error) {
       logger.error(
         { err: error, event: 'blacklist_getStats_error' },
         '[BlacklistController.getStats] Error'
@@ -404,6 +410,32 @@ export class BlacklistController {
         error: ERROR_CODES.BLACKLIST_FETCH_STATS_ERROR,
         code: ERROR_CODES.BLACKLIST_FETCH_STATS_ERROR,
       })
+    }
+  }
+
+  /**
+   * GET /api/blacklist/images/:file
+   * Foto de una entrada (fichero privado servido por la API)
+   */
+  static async getImage(req: Request, res: Response): Promise<void> {
+    const file = String(req.params.file)
+    if (!isBlacklistImageFile(file)) {
+      res.status(404).json({ success: false, error: ERROR_CODES.NOT_FOUND })
+      return
+    }
+    const { publicId, format } = parseBlacklistImageFile(file)
+    try {
+      let fetched
+      try {
+        fetched = await fetchStoredFile(CloudinaryService.privateImageUrl(publicId, format))
+      } catch {
+        // Uploaded before 2026-10-04 and not migrated yet: still public
+        fetched = await fetchStoredFile(CloudinaryService.publicImageUrl(publicId, format))
+      }
+      sendPrivateFile(res, fetched)
+    } catch (error) {
+      logger.warn({ err: error, file }, '[BlacklistController.getImage] Not available')
+      res.status(404).json({ success: false, error: ERROR_CODES.NOT_FOUND })
     }
   }
 
@@ -459,16 +491,18 @@ export class BlacklistController {
 
       logger.info({ publicId: result.public_id }, '[BlacklistController.uploadImage] Imagen subida')
 
+      // The file is private: the client gets the API path, never the signed URL
+      const path = blacklistImagePath(result.public_id, result.format)
       res.status(201).json({
         success: true,
-        url: result.url,
-        secure_url: result.secure_url,
+        url: path,
+        secure_url: path,
         public_id: result.public_id,
         width: result.width,
         height: result.height,
         format: result.format,
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error(
         { err: error, event: 'blacklist_uploadImage_error' },
         '[BlacklistController.uploadImage] Error'

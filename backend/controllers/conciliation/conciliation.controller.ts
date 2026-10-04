@@ -44,8 +44,9 @@ export async function getById(req: Request, res: Response): Promise<void> {
 
     const conciliation = await conciliationRepo.getById(id)
     res.status(200).json({ success: true, data: conciliation })
-  } catch (error: any) {
-    if (error.message === 'Conciliación no encontrada') {
+  } catch (error) {
+    const err = error as { message?: string }
+    if (err.message === 'Conciliación no encontrada') {
       res.status(404).json({
         success: false,
         error: ERROR_CODES.CONCILIATION_NOT_FOUND,
@@ -198,8 +199,9 @@ export async function updateForm(req: Request, res: Response): Promise<void> {
         difference: updated.difference,
       },
     })
-  } catch (error: any) {
-    if (error.message === 'Conciliación no encontrada') {
+  } catch (error) {
+    const err = error as { message?: string }
+    if (err.message === 'Conciliación no encontrada') {
       res.status(404).json({
         success: false,
         error: ERROR_CODES.CONCILIATION_NOT_FOUND,
@@ -265,8 +267,9 @@ export async function updateStatus(req: Request, res: Response): Promise<void> {
       success: true,
       status,
     })
-  } catch (error: any) {
-    if (error.message === 'Conciliación no encontrada') {
+  } catch (error) {
+    const err = error as { message?: string }
+    if (err.message === 'Conciliación no encontrada') {
       res.status(404).json({
         success: false,
         error: ERROR_CODES.CONCILIATION_NOT_FOUND,
@@ -317,8 +320,9 @@ export async function recalculateTotals(req: Request, res: Response): Promise<vo
         difference: updated.difference,
       },
     })
-  } catch (error: any) {
-    if (error.message === 'Conciliación no encontrada') {
+  } catch (error) {
+    const err = error as { message?: string }
+    if (err.message === 'Conciliación no encontrada') {
       res.status(404).json({
         success: false,
         error: ERROR_CODES.CONCILIATION_NOT_FOUND,
@@ -354,8 +358,9 @@ export async function remove(req: Request, res: Response): Promise<void> {
       message: SUCCESS_CODES.CONCILIATION_DELETED,
       code: SUCCESS_CODES.CONCILIATION_DELETED,
     })
-  } catch (error: any) {
-    if (error.message === 'Conciliación no encontrada') {
+  } catch (error) {
+    const err = error as { message?: string }
+    if (err.message === 'Conciliación no encontrada') {
       res.status(404).json({
         success: false,
         error: ERROR_CODES.CONCILIATION_NOT_FOUND,

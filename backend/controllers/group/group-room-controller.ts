@@ -4,7 +4,7 @@ import { Request, Response } from 'express'
 import { GroupRoomRepository } from '../../repositories/group/group-room-repository'
 import { GroupRepository } from '../../repositories/group/group-repository'
 import { GroupHistoryService } from '../../services/group/group-history-service'
-import { CreateGroupRoomDTO, UpdateGroupRoomDTO } from '../../models/group/index'
+import { CreateGroupRoomDTO, UpdateGroupRoomDTO, HistoryAction } from '../../models/group/index'
 import { ERROR_CODES, SUCCESS_CODES } from '../../config/error-codes.js'
 import { logger } from '../../config/logger.js'
 import {
@@ -50,7 +50,7 @@ export class GroupRoomController {
           summary,
         },
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, 'Error en getRoomsByGroup')
       return res.status(500).json({
         success: false,
@@ -111,7 +111,7 @@ export class GroupRoomController {
       await GroupHistoryService.logChange(
         groupId,
         userId,
-        'created' as any,
+        HistoryAction.CREATED,
         'group_rooms',
         result.insertId,
         null,
@@ -125,7 +125,7 @@ export class GroupRoomController {
         message: SUCCESS_CODES.GROUP_ROOM_SAVED,
         code: SUCCESS_CODES.GROUP_ROOM_SAVED,
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, 'Error en createOrUpdateRoom')
       return res.status(500).json({
         success: false,
@@ -198,7 +198,7 @@ export class GroupRoomController {
       await GroupHistoryService.logChange(
         groupId,
         userId,
-        'updated' as any,
+        HistoryAction.UPDATED,
         'group_rooms',
         roomId,
         null,
@@ -212,7 +212,7 @@ export class GroupRoomController {
         message: SUCCESS_CODES.GROUP_ROOM_UPDATED,
         code: SUCCESS_CODES.GROUP_ROOM_UPDATED,
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, 'Error en updateRoom')
       return res.status(500).json({
         success: false,
@@ -283,7 +283,7 @@ export class GroupRoomController {
         message: SUCCESS_CODES.GROUP_ROOM_DELETED,
         code: SUCCESS_CODES.GROUP_ROOM_DELETED,
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, 'Error en deleteRoom')
       return res.status(500).json({
         success: false,

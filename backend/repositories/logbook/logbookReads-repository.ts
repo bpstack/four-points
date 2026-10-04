@@ -1,6 +1,6 @@
 // repositories/logbook/logbookReads-repository.ts
 
-import db from '../../config/db.js'
+import { dbx } from '../../config/transaction.js'
 import * as logbookHistoryRepo from './logbookHistory-repository.js'
 import type {
   LogbookReadRecord,
@@ -43,7 +43,7 @@ export async function logBookReadByUser({
   }
 
   // Record the read, only for an entry that exists and is not deleted
-  const [result] = await db.execute<ResultSetHeader>(
+  const [result] = await dbx().execute<ResultSetHeader>(
     `INSERT INTO logbook_reads (logbook_id, user_id, read_at)
     SELECT l.id, ?, NOW() FROM logbooks l WHERE l.id = ? AND l.deleted_at IS NULL
     ON DUPLICATE KEY UPDATE read_at = NOW()`,
@@ -87,7 +87,7 @@ export async function unmarkLogbookRead({
     throw new Error('logbookId y userId no pueden ser undefined o null')
   }
 
-  await db.execute<ResultSetHeader>(
+  await dbx().execute<ResultSetHeader>(
     `DELETE FROM logbook_reads 
     WHERE logbook_id = ? AND user_id = ?`,
     [logbookId, userId]
@@ -117,7 +117,7 @@ export async function getUsersWhoReadLogbook(logbookId: number | string): Promis
     throw new Error('logbookId no puede ser undefined o null')
   }
 
-  const [rows] = await db.execute<ReaderRow[]>(
+  const [rows] = await dbx().execute<ReaderRow[]>(
     `SELECT 
       lr.user_id, 
       lr.read_at,
@@ -155,7 +155,7 @@ export async function logbookSolvedByUser({
     throw new Error('logbookId y userId no pueden ser undefined o null')
   }
 
-  const [result] = await db.execute<ResultSetHeader>(
+  const [result] = await dbx().execute<ResultSetHeader>(
     `UPDATE logbooks
     SET is_solved = 1,
         solved_at  = NOW(),
@@ -196,7 +196,7 @@ export async function markLogbookPending({
   logbookId: number | string
   userId: string
 }): Promise<LogbookPendingRecord> {
-  const [result] = await db.execute<ResultSetHeader>(
+  const [result] = await dbx().execute<ResultSetHeader>(
     `UPDATE logbooks
     SET is_solved = 0,
         solved_at  = NULL,
@@ -235,7 +235,7 @@ export async function getUsersWhoSolvedLogbook(logbookId: number): Promise<Logbo
     throw new Error('logbookId no puede ser undefined o null')
   }
 
-  const [rows] = await db.execute<SolverRow[]>(
+  const [rows] = await dbx().execute<SolverRow[]>(
     `SELECT
       l.solved_by   AS user_id,
       l.solved_at   AS solved_at

@@ -493,7 +493,8 @@
 
 ## ADR-027 — Antes del clon limpio se resuelve todo `TODO.md` y se prueba en producción
 
-- **Estado:** ✅ aceptada (2026-09-28)
+- **Estado:** ✅ aceptada (2026-09-28) · 📌 alcance revisado por
+  [ADR-033](#adr-033--la-fase-1c-se-limita-a-lo-que-hay-que-resolver-antes-de-publicar)
 - **Fecha:** 2026-09-28
 - **Decisión:**
   - Se hace **todo `TODO.md`** y se prueba en producción **antes** de limpiar el
@@ -615,3 +616,89 @@
   otra forma antes de publicar.
 - **Revisa:** el primer punto de `TODO.md` (proponía squash) y las reglas de
   `GITCLEAN.md` (solo quitaban ficheros).
+
+## ADR-032 — Blacklist, F&B, mantenimiento, caja, parking y mensajería mantienen permisos simples
+
+- **Estado:** ✅ aceptada (2026-10-04)
+- **Fecha:** 2026-10-04
+- **Decisión:** por ahora, dentro de estos módulos no hay permisos por acción,
+  por autoría ni por estado:
+  - **Blacklist**: quien tiene acceso crea, edita, borra y restaura cualquier
+    entrada.
+  - **F&B**: quien tiene acceso sube el PDF, mete cifras a mano y borra el día
+    que sea, de cualquier fecha.
+  - **Mantenimiento**: quien tiene acceso crea, edita, cambia de estado,
+    asigna, borra y restaura cualquier parte.
+  - **Caja**: los turnos y los días cerrados siguen editables por los roles que
+    los gestionan.
+  - **Parking** (añadido el 2026-10-04): el importe cobrado, el método y la
+    referencia de pago se pueden editar en cualquier estado de la reserva,
+    también `completed`.
+  - **Mensajería** (añadido el 2026-10-04): cualquier rol ve el nombre, el
+    email y el rol de todos los usuarios activos al empezar una conversación,
+    y la lista de participantes devuelve sus emails y `last_read_at`.
+- **Motivo:** decisión del propietario. El hotel trabaja con pocas personas que
+  necesitan acceso completo, y mantenimiento ya guarda historial de cada cambio.
+- **Rechazado:** separar acciones de `admin` en F&B (borrar días, cifras a
+  mano) y en mantenimiento (borrar, restaurar, cambiar estado); bloquear la
+  edición de turnos y días cerrados; bloquear el cobro de parking según el
+  estado de la reserva; ocultar emails y roles en el directorio de mensajería.
+- **Consecuencias:** salen de `TODO.md` los cinco puntos que pedían esos
+  permisos. Siguen abiertos los que no son de permisos: validar los importes
+  manuales de F&B, el contenido del PDF y el rastro de cambios de dinero en caja
+  y en el cobro de parking.
+
+## ADR-033 — La fase 1c se limita a lo que hay que resolver antes de publicar
+
+- **Estado:** ✅ aceptada (2026-10-04)
+- **Fecha:** 2026-10-04
+- **Decisión:**
+  - La fase 1c ya no resuelve **todo** `TODO.md`: solo la sección **«Antes de
+    publicar»**. Son las brechas de seguridad que alguien de fuera o un rol bajo
+    puede aprovechar, más las decisiones necesarias para publicar (licencia y
+    analítica).
+  - Los secretos y datos privados del repositorio (contraseñas en ficheros,
+    datos del personal) siguen en esa sección, pero se resuelven en la fase 2.
+    La rotación de credenciales se hace tras la fase 2 (ADR-007).
+  - El resto pasa a la sección **«Después de publicar»**: mejoras de lógica de
+    negocio, rastro de cambios, carreras sin consecuencia de seguridad,
+    operación, interfaz y calidad. Se trabajan en el repositorio público, sin
+    plazo.
+  - Las prioridades 🔴🟡🟢 se mantienen dentro de cada sección.
+- **Motivo:** decisión del propietario. El objetivo es cerrar las brechas y
+  publicar; las mejoras se pueden hacer en cualquier momento, y esperar a
+  todas retrasaría la publicación sin reducir el riesgo.
+- **Rechazado:** resolver todo `TODO.md` antes de la fase 2 (ADR-027 tal como
+  estaba).
+- **Consecuencias:** `TODO.md` se reorganiza en las dos secciones y
+  `ROADMAP.md` cambia la definición de la fase 1c. Los dudosos se clasificaron
+  como mejora: datos sensibles en los logs (no son públicos) y los informes de
+  caja sin `canViewReports` (un rol interno viendo totales).
+- **Revisa:** ADR-027 en el alcance de la fase 1c.
+
+## ADR-034 — La limpieza del historial es híbrida: eliminar, reemplazar y cambiar autoría
+
+- **Estado:** ✅ aceptada (2026-10-04)
+- **Fecha:** 2026-10-04
+- **Decisión:**
+  - La fase 2 hace tres operaciones con `git-filter-repo`, cada una sobre una
+    lista aprobada por el propietario (`GITCLEAN.md`):
+    1. **Eliminar** del historial los ficheros o directorios enteramente
+       privados (volcados, scripts con la contraseña de Aiven, Excel del
+       personal).
+    2. **Reemplazar contenido** (`--replace-text`) en los ficheros legítimos
+       que llevaron credenciales o nombres reales escritos: el fichero se
+       conserva y solo cambia el valor.
+    3. **Cambiar autoría** (`--mailmap`), como ya decía ADR-031.
+  - Se aplica poco a poco: cada operación se prueba y se audita en el clon
+    antes de la siguiente.
+  - Antes, en la rama, se quita del árbol lo que no hace falta en el repo
+    público y los scripts legítimos leen las credenciales de `backend/.env`.
+- **Motivo:** decisión del propietario. Borrar del historial un script útil
+  solo porque llevó una contraseña pierde su historia; reemplazar el valor la
+  conserva. Lo enteramente privado no tiene nada que conservar.
+- **Rechazado:** solo eliminar ficheros (la regla anterior de `GITCLEAN.md`).
+- **Consecuencias:** `GITCLEAN.md` clasifica los candidatos por operación. Los
+  valores a reemplazar se guardan fuera del repositorio durante la limpieza.
+- **Revisa:** las reglas de `GITCLEAN.md` (antes solo se eliminaban ficheros y
+  se cambiaba la autoría).

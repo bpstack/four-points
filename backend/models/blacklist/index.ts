@@ -27,7 +27,7 @@ export interface BlacklistEntry {
   reason: string
   severity: SeverityLevel
   comments: string
-  images: string[] // URLs de Cloudinary
+  images: string[] // API paths /api/blacklist/images/<file> (private files)
   status: EntryStatus
   deleted_at: string | null
   deleted_by: string | null
@@ -67,7 +67,7 @@ export interface CreateBlacklistDTO {
   reason: string
   severity: SeverityLevel
   comments: string
-  images: string[] // URLs ya subidas a Cloudinary
+  images: string[] // API paths returned by POST /api/blacklist/upload
 }
 
 // ========================================
@@ -83,7 +83,7 @@ export interface UpdateBlacklistDTO {
   reason?: string
   severity?: SeverityLevel
   comments?: string
-  images?: string[] // URLs (puede agregar/quitar)
+  images?: string[] // API paths (puede agregar/quitar)
 }
 
 // ========================================

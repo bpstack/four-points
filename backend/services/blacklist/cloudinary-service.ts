@@ -52,9 +52,60 @@ export interface CloudinaryUploadResult {
   bytes?: number
 }
 
+// Private files are uploaded as `authenticated`: their URL only works with
+// the signature Cloudinary adds to secure_url, so that URL must never reach a
+// browser. The API serves them through its own endpoints instead
+// (services/uploads/private-files.ts). Only avatars stay public.
+const PRIVATE_DELIVERY = 'authenticated'
+
+// Destroy whichever delivery type the file has: files uploaded before
+// 2026-10-04 are `upload` until migrated, newer ones `authenticated`
+async function destroyAnyType(
+  publicId: string,
+  resourceType: 'image' | 'raw'
+): Promise<{ result: string }> {
+  const first = await cloudinary.uploader.destroy(publicId, {
+    resource_type: resourceType,
+    type: PRIVATE_DELIVERY,
+    invalidate: true,
+  })
+  if (first.result !== 'not found') return first
+  return cloudinary.uploader.destroy(publicId, {
+    resource_type: resourceType,
+    type: 'upload',
+    invalidate: true,
+  })
+}
+
 export class CloudinaryService {
   /**
-   * Subir imagen a Cloudinary
+   * Signed delivery URL of a private image, for the server to download it.
+   * Never send it to a client: the signature does not expire
+   */
+  static privateImageUrl(publicId: string, format: string): string {
+    ensureConfigured()
+    return cloudinary.url(publicId, {
+      resource_type: 'image',
+      type: PRIVATE_DELIVERY,
+      sign_url: true,
+      secure: true,
+      format,
+    })
+  }
+
+  /** Delivery URL of a public (`upload`) image, for files not migrated yet */
+  static publicImageUrl(publicId: string, format: string): string {
+    ensureConfigured()
+    return cloudinary.url(publicId, {
+      resource_type: 'image',
+      type: 'upload',
+      secure: true,
+      format,
+    })
+  }
+
+  /**
+   * Subir imagen privada a Cloudinary (tipo `authenticated`)
    * @param fileBuffer - Buffer del archivo
    * @param filename - Nombre original del archivo
    * @param folder - Carpeta destino en Cloudinary (default: 'blacklist')
@@ -72,6 +123,7 @@ export class CloudinaryService {
         {
           folder: folder,
           resource_type: 'image',
+          type: PRIVATE_DELIVERY,
           public_id: `${folder}_${Date.now()}_${safePublicName(filename)}`,
           transformation: [
             { width: 1200, height: 1200, crop: 'limit' }, // Limitar tamaño máximo
@@ -169,10 +221,7 @@ export class CloudinaryService {
     try {
       logger.debug({ publicId }, '[CloudinaryService] Attempting to delete image')
 
-      const result = await cloudinary.uploader.destroy(publicId, {
-        resource_type: 'image',
-        invalidate: true,
-      })
+      const result = await destroyAnyType(publicId, 'image')
 
       logger.info({ result }, '[CloudinaryService] Delete result')
 
@@ -184,13 +233,13 @@ export class CloudinaryService {
       // Si el resultado es diferente, logueamos y lanzamos error
       logger.error({ result }, '[CloudinaryService] Unexpected delete result')
       throw new Error(`Cloudinary delete returned: ${result.result}`)
-    } catch (error: any) {
+    } catch (error) {
+      const err = error as { message?: string }
       logger.error({ err: error }, '[CloudinaryService] Delete error')
       logger.error({ err: error, details: error }, '[CloudinaryService] Delete error details')
-      throw new Error(
-        `Error al eliminar imagen de Cloudinary: ${error.message || 'Unknown error'}`,
-        { cause: error }
-      )
+      throw new Error(`Error al eliminar imagen de Cloudinary: ${err.message || 'Unknown error'}`, {
+        cause: error,
+      })
     }
   }
 
@@ -211,7 +260,7 @@ export class CloudinaryService {
   }
 
   /**
-   * Subir PDF a Cloudinary como recurso raw con acceso público
+   * Subir PDF privado a Cloudinary como recurso raw (tipo `authenticated`)
    * @param fileBuffer - Buffer del archivo PDF
    * @param filename - Nombre original del archivo
    * @param folder - Carpeta destino en Cloudinary
@@ -238,8 +287,7 @@ export class CloudinaryService {
           folder: folder,
           resource_type: 'raw', // Subir como archivo raw
           public_id: publicId,
-          type: 'upload',
-          access_mode: 'public', // Acceso público
+          type: PRIVATE_DELIVERY,
           overwrite: true,
           invalidate: true,
         },
@@ -293,74 +341,11 @@ export class CloudinaryService {
     ensureConfigured()
 
     try {
-      const result = await cloudinary.uploader.destroy(publicId, { resource_type: resourceType })
+      const result = await destroyAnyType(publicId, resourceType)
       return result.result === 'ok'
     } catch (error) {
       logger.error({ err: error }, '[CloudinaryService] Delete error')
       throw new Error('Error al eliminar archivo de Cloudinary', { cause: error })
-    }
-  }
-
-  /**
-   * Generar URL firmada para acceso temporal a un archivo
-   * @param publicId - ID público del archivo
-   * @param resourceType - Tipo de recurso ('image' o 'raw')
-   * @param expiresInSeconds - Tiempo de expiración en segundos (default: 1 hora)
-   */
-  static generateSignedUrl(
-    publicId: string,
-    resourceType: 'image' | 'raw' = 'raw',
-    expiresInSeconds: number = 3600
-  ): string {
-    ensureConfigured()
-
-    const timestamp = Math.floor(Date.now() / 1000) + expiresInSeconds
-
-    const signedUrl = cloudinary.url(publicId, {
-      resource_type: resourceType,
-      type: 'upload',
-      sign_url: true,
-      expires_at: timestamp,
-    })
-
-    logger.info({ publicId }, '[CloudinaryService] Generated signed URL')
-    return signedUrl
-  }
-
-  /**
-   * Generar URL firmada a partir de una URL de Cloudinary
-   * Extrae el public_id de la URL y genera una URL firmada
-   * @param url - URL completa de Cloudinary
-   * @param expiresInSeconds - Tiempo de expiración en segundos (default: 1 hora)
-   */
-  static generateSignedUrlFromUrl(url: string, expiresInSeconds: number = 3600): string {
-    try {
-      // Determinar resource_type desde la URL
-      // URL format: https://res.cloudinary.com/{cloud}/{resource_type}/upload/v{version}/{folder}/{public_id}.{format}
-      let resourceType: 'image' | 'raw' = 'raw'
-      if (url.includes('/image/upload/')) {
-        resourceType = 'image'
-      }
-
-      // Extraer public_id de la URL
-      // Example: https://res.cloudinary.com/xxx/raw/upload/v123/backoffice/invoices/pdf_123_name.pdf
-      const uploadMatch = url.match(/\/upload\/v\d+\/(.+)$/)
-      if (!uploadMatch) {
-        logger.error({ url }, '[CloudinaryService] Could not extract public_id from URL')
-        return url // Devolver URL original si no se puede parsear
-      }
-
-      // El public_id incluye carpetas pero NO la extensión
-      let publicId = uploadMatch[1]
-      // Remover extensión del archivo
-      publicId = publicId.replace(/\.[^/.]+$/, '')
-
-      logger.debug({ publicId, resourceType }, '[CloudinaryService] Extracted public_id')
-
-      return this.generateSignedUrl(publicId, resourceType, expiresInSeconds)
-    } catch (error) {
-      logger.error({ err: error }, '[CloudinaryService] Error generating signed URL')
-      return url // Devolver URL original en caso de error
     }
   }
 }

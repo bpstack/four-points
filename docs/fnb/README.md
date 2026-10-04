@@ -22,7 +22,8 @@ phase (product inventory, supplier orders) that has not started.
 
 Every role **except `mantenimiento`**: `admin`, `recepcionista`, `group-admin`
 and `demo-admin`. There are no admin-only actions — any of these roles can
-upload a PDF, edit a day by hand, or delete a day's revenue.
+upload a PDF, edit a day by hand, or delete a day's revenue, of any date. This
+is deliberate for now (ADR-032).
 
 ## What it can do
 

@@ -187,15 +187,18 @@ function parseReportListItem(row: ReportRow): ReportListItem {
   }
 }
 
+// Photos are private files: what leaves the repository is the API path that
+// serves them, never the signed Cloudinary URL or the public id. Deleting and
+// serving read those through getImageStorage
 function parseImageRow(row: ImageRow): MaintenanceImage {
   return {
     id: row.id,
     report_id: row.report_id,
     file_name: row.file_name,
-    file_path: row.file_path,
+    file_path: `/api/maintenance/${row.report_id}/images/${row.id}/file`,
     file_size: row.file_size,
     mime_type: row.mime_type,
-    public_id: row.public_id,
+    public_id: null,
     auto_delete_on_close: Boolean(row.auto_delete_on_close),
     uploaded_by: row.uploaded_by,
     uploaded_at:
@@ -254,7 +257,7 @@ export class MaintenanceRepository {
 
     // Construir condiciones WHERE una sola vez (se reutiliza en count + data)
     const conditions: string[] = []
-    const whereParams: any[] = []
+    const whereParams: (string | number | boolean)[] = []
 
     if (!include_deleted) {
       conditions.push(`r.is_deleted = FALSE`)
@@ -512,15 +515,22 @@ export class MaintenanceRepository {
 
     // Detectar campos que cambiaron
     const fields: string[] = []
-    const values: any[] = []
-    const changes: Array<{ field: string; old: any; new: any }> = []
+    const values: (string | number | boolean | null)[] = []
+    const changes: Array<{ field: string; old: string | null; new: string | null }> = []
 
-    const checkAndAdd = (field: string, newValue: any) => {
-      const oldValue = (current as any)[field]
+    const checkAndAdd = (field: string, newValue: string | number | boolean | null | undefined) => {
+      const oldValue = (current as unknown as Record<string, string | number | boolean | null>)[
+        field
+      ]
       if (newValue !== undefined && newValue !== oldValue) {
         fields.push(`${field} = ?`)
         values.push(newValue)
-        changes.push({ field, old: oldValue, new: newValue })
+        // Keep NULL as NULL in the history, as before the typing change
+        changes.push({
+          field,
+          old: oldValue == null ? null : String(oldValue),
+          new: newValue == null ? null : String(newValue),
+        })
       }
     }
 
@@ -837,6 +847,24 @@ export class MaintenanceRepository {
     )
 
     return result.affectedRows > 0
+  }
+
+  /**
+   * Stored Cloudinary URL and public id of an image, for the server only
+   */
+  static async getImageStorage(
+    imageId: number
+  ): Promise<{ report_id: string; file_path: string; public_id: string | null } | null> {
+    const [rows] = await db.query<ImageRow[]>(
+      'SELECT report_id, file_path, public_id FROM maintenance_images WHERE id = ?',
+      [imageId]
+    )
+    if (rows.length === 0) return null
+    return {
+      report_id: rows[0].report_id,
+      file_path: rows[0].file_path,
+      public_id: rows[0].public_id,
+    }
   }
 
   /**

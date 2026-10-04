@@ -23,9 +23,10 @@ import {
 } from 'react-icons/io5'
 import { clsx } from 'clsx'
 import { useTranslations } from 'next-intl'
+import { privateFileUrl } from '@/app/lib/helpers/private-file'
 
 interface ImageGalleryProps {
-  images: string[] // URLs de Cloudinary
+  images: string[] // API paths /api/blacklist/images/<file> (private files)
   alt?: string
 }
 
@@ -65,7 +66,8 @@ export function ImageGallery({ images, alt = 'Imagen de evidencia' }: ImageGalle
   // ========================================
   const downloadImage = async (url: string, filename: string) => {
     try {
-      const response = await fetch(url)
+      // Private file served by the API: the session cookie must go with it
+      const response = await fetch(privateFileUrl(url), { credentials: 'include' })
       const blob = await response.blob()
       const blobUrl = window.URL.createObjectURL(blob)
 
@@ -117,7 +119,8 @@ export function ImageGallery({ images, alt = 'Imagen de evidencia' }: ImageGalle
             className="relative aspect-square group overflow-hidden rounded-lg border border-border bg-surface-sunken hover:border-blue-500 dark:hover:border-blue-500 transition-all max-w-[200px]"
           >
             <Image
-              src={imageUrl}
+              src={privateFileUrl(imageUrl)}
+              unoptimized
               alt={`${alt} ${index + 1}`}
               fill
               className="object-cover transition-transform duration-300 group-hover:scale-110"
@@ -197,7 +200,8 @@ export function ImageGallery({ images, alt = 'Imagen de evidencia' }: ImageGalle
                 onClick={(e) => e.stopPropagation()}
               >
                 <Image
-                  src={images[currentImageIndex]}
+                  src={privateFileUrl(images[currentImageIndex])}
+                  unoptimized
                   alt={`${alt} ${currentImageIndex + 1}`}
                   fill
                   className="object-contain"
@@ -256,7 +260,8 @@ export function ImageGallery({ images, alt = 'Imagen de evidencia' }: ImageGalle
                       )}
                     >
                       <Image
-                        src={imageUrl}
+                        src={privateFileUrl(imageUrl)}
+                        unoptimized
                         alt={`Miniatura ${index + 1}`}
                         fill
                         className="object-cover"

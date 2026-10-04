@@ -56,6 +56,8 @@ Departments are the application's general ones (table `departments`).
 
 - **Everything is recorded in the history**: creating, editing and deleting
   entries and comments, and also reading, unmarking, resolving and reopening.
+  Each change and its history rows are written in one transaction: either
+  both are saved or neither is.
 - **Nothing is truly deleted**: entries and comments are only marked with
   `deleted_at`. There is no way to restore them from the interface.
 - **Only the author edits or deletes** their entry or comment.

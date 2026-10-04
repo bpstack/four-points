@@ -334,7 +334,12 @@ export function PendingInvoicesTabLazy({
       let successCount = 0
       let errorCount = 0
 
-      for (const id of selectedInvoices) {
+      // Only pending invoices can be validated; already validated ones in the selection are skipped
+      const pendingIds = filteredInvoices
+        .filter((inv) => selectedInvoices.includes(inv.id) && inv.status === 'pending')
+        .map((inv) => inv.id)
+
+      for (const id of pendingIds) {
         try {
           await backofficeApi.validateInvoice(id)
           successCount++
@@ -701,20 +706,25 @@ export function PendingInvoicesTabLazy({
                               <FiRotateCcw className="w-3.5 h-3.5" />
                             </button>
                           )}
-                          <button
-                            onClick={() => handleOpenEditInvoice(invoice)}
-                            title={t('actions.edit')}
-                            className="inline-flex items-center justify-center w-7 h-7 text-fg-muted hover:text-accent hover:bg-surface-hover rounded transition-colors"
-                          >
-                            <FiEdit2 className="w-3.5 h-3.5" />
-                          </button>
-                          <button
-                            onClick={() => handleOpenPdfUpload(invoice)}
-                            title={t('actions.uploadPdf')}
-                            className="inline-flex items-center justify-center w-7 h-7 text-fg-muted hover:text-orange-600 dark:hover:text-orange-400 hover:bg-surface-hover rounded transition-colors"
-                          >
-                            <FiUpload className="w-3.5 h-3.5" />
-                          </button>
+                          {/* A validated invoice is unvalidated before it can change */}
+                          {invoice.status === 'pending' && (
+                            <>
+                              <button
+                                onClick={() => handleOpenEditInvoice(invoice)}
+                                title={t('actions.edit')}
+                                className="inline-flex items-center justify-center w-7 h-7 text-fg-muted hover:text-accent hover:bg-surface-hover rounded transition-colors"
+                              >
+                                <FiEdit2 className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                onClick={() => handleOpenPdfUpload(invoice)}
+                                title={t('actions.uploadPdf')}
+                                className="inline-flex items-center justify-center w-7 h-7 text-fg-muted hover:text-orange-600 dark:hover:text-orange-400 hover:bg-surface-hover rounded transition-colors"
+                              >
+                                <FiUpload className="w-3.5 h-3.5" />
+                              </button>
+                            </>
+                          )}
                           <button
                             onClick={() => handleOpenPdfViewer(invoice)}
                             title={hasPdf ? t('actions.viewPdf') : t('pending.noPdf')}
@@ -877,18 +887,22 @@ export function PendingInvoicesTabLazy({
                       </button>
                     )}
 
-                    <button
-                      onClick={() => handleOpenEditInvoice(invoice)}
-                      className="inline-flex items-center justify-center w-6 h-6 text-fg-muted hover:text-accent hover:bg-surface-hover rounded transition-colors"
-                    >
-                      <FiEdit2 className="w-3 h-3" />
-                    </button>
-                    <button
-                      onClick={() => handleOpenPdfUpload(invoice)}
-                      className="inline-flex items-center justify-center w-6 h-6 text-fg-muted hover:text-orange-600 dark:hover:text-orange-400 hover:bg-surface-hover rounded transition-colors"
-                    >
-                      <FiUpload className="w-3 h-3" />
-                    </button>
+                    {invoice.status === 'pending' && (
+                      <>
+                        <button
+                          onClick={() => handleOpenEditInvoice(invoice)}
+                          className="inline-flex items-center justify-center w-6 h-6 text-fg-muted hover:text-accent hover:bg-surface-hover rounded transition-colors"
+                        >
+                          <FiEdit2 className="w-3 h-3" />
+                        </button>
+                        <button
+                          onClick={() => handleOpenPdfUpload(invoice)}
+                          className="inline-flex items-center justify-center w-6 h-6 text-fg-muted hover:text-orange-600 dark:hover:text-orange-400 hover:bg-surface-hover rounded transition-colors"
+                        >
+                          <FiUpload className="w-3 h-3" />
+                        </button>
+                      </>
+                    )}
                     <button
                       onClick={() => handleOpenPdfViewer(invoice)}
                       disabled={!hasPdf}

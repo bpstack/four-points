@@ -8,6 +8,7 @@ import {
   purgeOldEventLogs,
 } from '../checklist/checklist.service.js'
 import { logger } from '../../config/logger.js'
+import { extendAvailability } from '../../repositories/parking/parking.repository.js'
 
 /**
  * Servicio de tareas programadas (Cron Jobs)
@@ -120,11 +121,34 @@ export class CronService {
       { timezone: 'Europe/Madrid' }
     )
 
+    // ═══════════════════════════════════════════════════════
+    // PARKING CALENDAR - Al arrancar y todos los días a las 03:00 (Europe/Madrid)
+    // ═══════════════════════════════════════════════════════
+    // Mantiene parking_availability cubriendo los próximos 365 días.
+    // Al arrancar también, porque Render free duerme y puede saltarse el cron.
+    void this.runParkingCalendarNow()
+    cron.schedule('0 3 * * *', () => void this.runParkingCalendarNow(), {
+      timezone: 'Europe/Madrid',
+    })
+
     logger.info('Cron jobs iniciados')
     logger.info('   - Notificaciones: Todos los días a las 7:00 AM')
     logger.info('   - Batch Payment: Día 10 de cada mes a las 23:59')
     logger.info('   - Checklist Reset: Todos los días a las 6:30 AM (Europe/Madrid)')
     logger.info('   - Checklist Event Log Purge: Cada lunes a las 4:00 AM (Europe/Madrid)')
+    logger.info('   - Parking Calendar: Al arrancar y todos los días a las 3:00 AM (Europe/Madrid)')
+  }
+
+  /**
+   * Amplía el calendario de disponibilidad de parking (idempotente)
+   */
+  static async runParkingCalendarNow(): Promise<void> {
+    try {
+      const result = await extendAvailability(365)
+      logger.info(result, '[CRON] Calendario de parking ampliado')
+    } catch (error) {
+      logger.error({ err: error }, '[CRON] Error ampliando el calendario de parking')
+    }
   }
 
   /**

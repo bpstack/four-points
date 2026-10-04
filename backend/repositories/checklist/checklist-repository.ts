@@ -39,8 +39,9 @@ export async function getOrCreateRun(checklistId: string): Promise<ChecklistRun>
   if (existing) return existing
   try {
     return await createRun(checklistId, today)
-  } catch (err: any) {
-    if (err?.code === 'ER_DUP_ENTRY') {
+  } catch (err) {
+    const mysqlErr = err as { code?: string }
+    if (mysqlErr?.code === 'ER_DUP_ENTRY') {
       const retry = await findActiveRun(checklistId, today)
       if (retry) return retry
       const [rows] = await db.execute<ChecklistRun[]>(

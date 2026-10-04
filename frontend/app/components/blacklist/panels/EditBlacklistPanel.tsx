@@ -14,6 +14,7 @@ import { FiSave, FiCalendar, FiUpload, FiTrash2, FiX } from 'react-icons/fi'
 import toast from 'react-hot-toast'
 import SimpleCalendarCompact from '@/app/ui/calendar/SimpleCalendarCompact'
 import { DOCUMENT_TYPES, SEVERITY_LEVELS, BlacklistEntry } from '@/app/lib/blacklist/types'
+import { privateFileUrl } from '@/app/lib/helpers/private-file'
 import {
   SlidePanel,
   SlidePanelSection,
@@ -486,7 +487,7 @@ export function EditBlacklistPanel({ isOpen, onClose, entry, onSuccess }: EditBl
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
-                    src={url}
+                    src={privateFileUrl(url)}
                     alt={`Imagen ${index + 1}`}
                     className="w-full h-full object-cover"
                   />

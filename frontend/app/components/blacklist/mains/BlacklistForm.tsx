@@ -40,6 +40,7 @@ type BlacklistFormValues = {
 
 // ✅ Y también las constantes
 import { DOCUMENT_TYPES, SEVERITY_LEVELS } from '@/app/lib/blacklist/types'
+import { privateFileUrl } from '@/app/lib/helpers/private-file'
 
 interface BlacklistFormProps {
   mode: 'create' | 'edit'
@@ -353,7 +354,7 @@ export function BlacklistForm({ mode, initialData, onSuccess }: BlacklistFormPro
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
-                    src={url}
+                    src={privateFileUrl(url)}
                     alt={`Imagen existente ${index + 1}`}
                     className="w-full h-full object-cover"
                   />

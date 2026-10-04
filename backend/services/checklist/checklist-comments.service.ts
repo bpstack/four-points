@@ -94,3 +94,9 @@ export async function removeAttachment(
   })
   return true
 }
+
+// Stored Cloudinary URL of an attachment, for the server to serve it
+export async function getAttachmentStoredUrl(attachmentId: number): Promise<string | null> {
+  const attachment = await commentsRepo.findAttachment(attachmentId)
+  return attachment ? attachment.file_url : null
+}

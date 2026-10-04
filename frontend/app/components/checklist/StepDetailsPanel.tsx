@@ -9,6 +9,7 @@ import type { CommentDto, AttachmentDto } from '@/app/lib/checklist/api'
 import { useAuthContext } from '@/app/lib/auth/useAuth'
 import { formatTimestampSmart } from '@/app/lib/helpers/date'
 import Image from 'next/image'
+import { privateFileUrl } from '@/app/lib/helpers/private-file'
 
 // ── Comment list ──────────────────────────────────────────
 
@@ -161,8 +162,14 @@ function AttachmentList({ checklistId, stepId }: { checklistId: string; stepId: 
               key={a.id}
               className="relative group rounded overflow-hidden border border-border aspect-square"
             >
-              <a href={a.file_url} target="_blank" rel="noopener noreferrer">
-                <Image src={a.file_url} alt="" fill className="object-cover" />
+              <a href={privateFileUrl(a.file_url)} target="_blank" rel="noopener noreferrer">
+                <Image
+                  src={privateFileUrl(a.file_url)}
+                  alt=""
+                  fill
+                  unoptimized
+                  className="object-cover"
+                />
               </a>
               {(isAdmin || a.user_id === user?.id) && (
                 <button

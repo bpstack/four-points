@@ -1,6 +1,7 @@
 // repositories/cashier/cashier-daily-repository.ts
 
 import db from '../../config/db.js'
+import type { RowDataPacket } from 'mysql2'
 import { SORT_FIELDS, safeSort, safeOrder } from '../../validations/cashier/cashier-validation.js'
 import { getLastDayOfMonth } from '../../config/date-utils.js'
 import { logger } from '../../config/logger.js'
@@ -144,7 +145,7 @@ export class CashierDailyRepository {
     WHERE 1=1
   `
 
-    const params: any[] = []
+    const params: (string | number)[] = []
 
     if (filters.from_date) {
       query += ' AND DATE(date) >= ?'
@@ -251,7 +252,7 @@ export class CashierDailyRepository {
    */
   static async count(filters: DailyFilters): Promise<number> {
     let query = 'SELECT COUNT(*) as total FROM cashier_daily WHERE 1=1'
-    const params: any[] = []
+    const params: (string | number)[] = []
 
     if (filters.from_date) {
       query += ' AND DATE(date) >= ?'
@@ -268,7 +269,7 @@ export class CashierDailyRepository {
       params.push(filters.status)
     }
 
-    const [rows] = await db.query<any[]>(query, params)
+    const [rows] = await db.query<RowDataPacket[]>(query, params)
     return rows[0]?.total || 0
   }
 
@@ -280,7 +281,7 @@ export class CashierDailyRepository {
     // en lugar de leer de cashier_daily que puede tener datos desactualizados
 
     // 1. Obtener todos los turnos del periodo
-    const [shiftsRows] = await db.query<any[]>(
+    const [shiftsRows] = await db.query<RowDataPacket[]>(
       `SELECT id, DATE_FORMAT(shift_date, '%Y-%m-%d') as shift_date, initial_fund
        FROM cashier_shifts 
        WHERE DATE(shift_date) >= ? AND DATE(shift_date) <= ?`,
@@ -290,7 +291,7 @@ export class CashierDailyRepository {
     // 2. Calcular efectivo desde denominaciones
     let totalCash = 0
     for (const shift of shiftsRows) {
-      const [denomRows] = await db.query<any[]>(
+      const [denomRows] = await db.query<RowDataPacket[]>(
         'SELECT COALESCE(SUM(total), 0) as total FROM cashier_denominations WHERE shift_id = ?',
         [shift.id]
       )
@@ -304,7 +305,7 @@ export class CashierDailyRepository {
     }
 
     // 3. Calcular pagos electrónicos desde cashier_payments
-    const [paymentsQuery] = await db.query<any[]>(
+    const [paymentsQuery] = await db.query<RowDataPacket[]>(
       `SELECT 
         pm.name as method_name,
         COALESCE(SUM(cp.amount), 0) as total
@@ -403,7 +404,7 @@ export class CashierDailyRepository {
     const dailyBreakdown = await Promise.all(
       dailyRecords.map(async (day) => {
         // Obtener turnos del día
-        const [dayShifts] = await db.query<any[]>(
+        const [dayShifts] = await db.query<RowDataPacket[]>(
           `SELECT id, initial_fund FROM cashier_shifts WHERE DATE(shift_date) = ?`,
           [day.date]
         )
@@ -411,7 +412,7 @@ export class CashierDailyRepository {
         // Calcular efectivo del día
         let dayCash = 0
         for (const shift of dayShifts) {
-          const [denomRows] = await db.query<any[]>(
+          const [denomRows] = await db.query<RowDataPacket[]>(
             'SELECT COALESCE(SUM(total), 0) as total FROM cashier_denominations WHERE shift_id = ?',
             [shift.id]
           )
@@ -423,10 +424,10 @@ export class CashierDailyRepository {
         }
 
         // Calcular pagos del día
-        const shiftIds = dayShifts.map((s: any) => s.id)
+        const shiftIds = (dayShifts as RowDataPacket[]).map((s) => s.id as number)
         let dayPayments = 0
         if (shiftIds.length > 0) {
-          const [payRows] = await db.query<any[]>(
+          const [payRows] = await db.query<RowDataPacket[]>(
             `SELECT COALESCE(SUM(amount), 0) as total FROM cashier_payments WHERE shift_id IN (?)`,
             [shiftIds]
           )

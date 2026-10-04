@@ -4,9 +4,7 @@
 # Recreate Local MySQL Database with new collation
 # =============================================
 
-DB_NAME="hotel_db"
-DB_USER="root"
-DB_PASS="***REMOVED***"
+source "$(dirname "$0")/local-env.sh"
 SCRIPT_DIR="$(dirname "$0")"
 INSTALL_SCRIPT="$SCRIPT_DIR/../MASTER_INSTALL.sql"
 
@@ -17,7 +15,7 @@ sleep 5
 echo ""
 echo "🔴 Eliminando base de datos '$DB_NAME'..."
 
-mysql -u "$DB_USER" -p"$DB_PASS" -e "DROP DATABASE IF EXISTS $DB_NAME;"
+mysql -h "$DB_HOST" -u "$DB_USER" -e "DROP DATABASE IF EXISTS $DB_NAME;"
 
 if [ $? -eq 0 ]; then
     echo "✅ Base de datos eliminada"
@@ -29,7 +27,7 @@ fi
 echo ""
 echo "🟢 Creando base de datos con collation utf8mb4_0900_ai_ci..."
 
-mysql -u "$DB_USER" -p"$DB_PASS" -e "
+mysql -h "$DB_HOST" -u "$DB_USER" -e "
 CREATE DATABASE $DB_NAME
 CHARACTER SET utf8mb4
 COLLATE utf8mb4_0900_ai_ci;
@@ -45,7 +43,7 @@ fi
 echo ""
 echo "📥 Importando esquemas desde MASTER_INSTALL.sql..."
 
-mysql -u "$DB_USER" -p"$DB_PASS" "$DB_NAME" < "$INSTALL_SCRIPT"
+mysql -h "$DB_HOST" -u "$DB_USER" "$DB_NAME" < "$INSTALL_SCRIPT"
 
 if [ $? -eq 0 ]; then
     echo "✅ Esquemas importados correctamente"
@@ -59,7 +57,7 @@ echo "✅ Base de datos recreateada con éxito"
 echo ""
 echo "🔍 Verificando nuevo collation..."
 
-mysql -u "$DB_USER" -p"$DB_PASS" -e "
+mysql -h "$DB_HOST" -u "$DB_USER" -e "
 SELECT 
     DEFAULT_CHARACTER_SET_NAME AS charset,
     DEFAULT_COLLATION_NAME AS collation
@@ -70,4 +68,4 @@ WHERE SCHEMA_NAME = '$DB_NAME';
 echo ""
 echo "📊 Tablas creadas:"
 
-mysql -u "$DB_USER" -p"$DB_PASS" "$DB_NAME" -e "SHOW TABLES;"
+mysql -h "$DB_HOST" -u "$DB_USER" "$DB_NAME" -e "SHOW TABLES;"

@@ -2,7 +2,7 @@
 
 import db from '../../config/db.js'
 import { SORT_FIELDS, safeSort, safeOrder } from '../../validations/cashier/cashier-validation.js'
-import { ResultSetHeader } from 'mysql2'
+import { ResultSetHeader, RowDataPacket } from 'mysql2'
 import {
   CashierVoucher,
   CreateVoucherDTO,
@@ -50,8 +50,8 @@ export class CashierVoucherRepository {
       WHERE v.id = ?
     `
 
-    const [rows] = await db.query<any[]>(query, [id])
-    return rows[0] || null
+    const [rows] = await db.query<RowDataPacket[]>(query, [id])
+    return (rows[0] as CashierVoucher) || null
   }
 
   /**
@@ -64,7 +64,7 @@ export class CashierVoucherRepository {
       LEFT JOIN users u ON v.created_by = u.id
       WHERE 1=1
     `
-    const params: any[] = []
+    const params: (string | number)[] = []
 
     if (filters.status) {
       query += ' AND v.status = ?'
@@ -128,7 +128,7 @@ export class CashierVoucherRepository {
    */
   static async count(filters: VoucherFilters = {}): Promise<number> {
     let query = 'SELECT COUNT(*) as total FROM cashier_vouchers v WHERE 1=1'
-    const params: any[] = []
+    const params: (string | number)[] = []
 
     if (filters.status) {
       query += ' AND v.status = ?'
@@ -169,7 +169,7 @@ export class CashierVoucherRepository {
       params.push(filters.shift_id)
     }
 
-    const [rows] = await db.query<any[]>(query, params)
+    const [rows] = await db.query<RowDataPacket[]>(query, params)
     return rows[0]?.total || 0
   }
 
@@ -178,7 +178,7 @@ export class CashierVoucherRepository {
    */
   static async update(id: number, data: UpdateVoucherDTO): Promise<CashierVoucher> {
     const updates: string[] = []
-    const params: any[] = []
+    const params: (string | number)[] = []
 
     if (data.amount !== undefined) {
       updates.push('amount = ?')
@@ -320,7 +320,7 @@ export class CashierVoucherRepository {
       WHERE status IN ('pending', 'justified')
     `
 
-    const [rows] = await db.query<any[]>(query)
+    const [rows] = await db.query<RowDataPacket[]>(query)
     return rows[0]?.total || 0
   }
 
@@ -351,7 +351,7 @@ export class CashierVoucherRepository {
       WHERE shift_id = ?
     `
 
-    const [rows] = await db.query<any[]>(query, [shiftId])
+    const [rows] = await db.query<RowDataPacket[]>(query, [shiftId])
     return rows[0]?.total || 0
   }
 
@@ -421,7 +421,7 @@ export class CashierVoucherRepository {
       WHERE 1=1
     `
 
-    const params: any[] = []
+    const params: (string | number)[] = []
 
     if (fromDate) {
       query += ' AND DATE(created_at) >= ?'
@@ -433,9 +433,18 @@ export class CashierVoucherRepository {
       params.push(toDate)
     }
 
-    const [rows] = await db.query<any[]>(query, params)
+    const [rows] = await db.query<RowDataPacket[]>(query, params)
     return (
-      rows[0] || {
+      (rows[0] as {
+        total_vouchers: number
+        total_amount: number
+        pending_count: number
+        pending_amount: number
+        justified_count: number
+        justified_amount: number
+        cancelled_count: number
+        cancelled_amount: number
+      }) || {
         total_vouchers: 0,
         total_amount: 0,
         pending_count: 0,

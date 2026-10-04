@@ -18,13 +18,14 @@ cosa va a `TODO.md`.
 | ---- | ------------------------------------------------------------------------ | ---------- |
 | 1    | `docs/` nueva por módulos, escrita desde el código; lo antiguo archivado | —          |
 | 1b   | Lo trascendental de `docs/_archive/` rescatado a `docs/` o a `TODO.md`   | 1          |
-| 1c   | Todo `TODO.md` resuelto y probado en producción                          | 1b         |
+| 1c   | «Antes de publicar» de `TODO.md` resuelto y probado en producción        | 1b         |
 | 2    | Clon con el historial limpio (todas las ramas) + `docs/GITCLEAN.md`      | 1c         |
 | 4    | Repositorio público nuevo con el historial limpio (todas las ramas)      | 2          |
+| 5    | Demo pública en un entorno aparte, con datos ficticios y reinicio diario | 4          |
 
 El orden lo fija ADR-001, revisado por ADR-022 (fase 1b) y ADR-027 (fase 1c, que
-además absorbe la antigua fase 3 de tareas pendientes). La fase 4 sigue ADR-006,
-ya aceptada.
+además absorbe la antigua fase 3 de tareas pendientes). ADR-033 limita la 1c a lo
+que hay que resolver antes de publicar. La fase 4 sigue ADR-006, ya aceptada.
 
 ---
 
@@ -39,18 +40,20 @@ Lo trascendental de `docs/_archive/` rescatado a `docs/` y `TODO.md`, comprobado
 contra el código; `TODO-old.md` vaciado y borrado. Detalle en
 `docs/_archive/roadmap-history.md` (local).
 
-## Fase 1c — Resolver `TODO.md` y probarlo en producción ← **actual**
+## Fase 1c — Resolver «Antes de publicar» y probarlo en producción ← **actual**
 
-Todo `TODO.md`, de 🔴 a 🟢, arreglado y probado en producción (Render, Vercel y
-Aiven) antes de tocar el historial (ADR-027). Cada punto se borra de `TODO.md`
-cuando está hecho y probado.
+La sección «Antes de publicar» de `TODO.md`, de 🔴 a 🟢, arreglada y probada en
+producción (Render, Vercel y Aiven) antes de tocar el historial (ADR-027,
+alcance limitado por ADR-033). Cada punto se borra de `TODO.md` cuando está
+hecho y probado. «Después de publicar» queda para el repositorio público.
 
-- **Orden:** primero los fallos transversales de autenticación (quién puede
-  hacerse `admin`, tokens intercambiables, usuario desactivado, refresco que no
-  mira la BD…), que afectan a todo; después, módulo a módulo, de 🔴 a 🟢.
-- **Flujo:** por lotes (un tema o un módulo) en `main`. El agente arregla,
-  verifica en local y commitea; el propietario hace push cuando quiere probarlo
-  en producción y cuenta el resultado.
+- **Orden:** primero los fallos transversales de autenticación (hechos), después
+  las brechas de cada módulo, y al final las decisiones de publicación (licencia
+  y analítica). Los secretos y datos privados del repo se resuelven en la fase 2.
+- **Flujo:** en la rama `claude/compassionate-planck-gh6aof` y su entorno
+  preview (ADR-030). El agente arregla, verifica y commitea; el propietario hace
+  push, el agente lo prueba en preview y lo anota en `VERIFY.md`. A `main` entra
+  por PR con merge commit (ADR-031).
 - Hecho al empezar: los 4 volcados de BD fuera del árbol (`git rm --cached` +
   `.gitignore`); del historial se quitan en la fase 2.
 
@@ -65,3 +68,12 @@ conocidos en `GITCLEAN.md`; la lista de privados la aprueba el propietario
 
 Crear el repositorio público y subir el historial limpio de todas las ramas
 (ADR-026). Rotar las credenciales que aparezcan en lo eliminado (ADR-007).
+
+## Fase 5 — Demo pública
+
+Un entorno para que cualquiera pruebe la aplicación sin tocar producción:
+`demo.four-points.stackbp.es` con su propia BD (`hotel_demo` en Aiven), datos
+ficticios, secretos propios, usuarios demo públicos por rol y reinicio nocturno
+de la BD. Reutiliza la infraestructura del preview y el rol `demo-admin`.
+Diseño y decisiones pendientes en `TODO.md`, «Demo pública» (propuesta aceptada
+por el propietario el 2026-10-04).

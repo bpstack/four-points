@@ -17,6 +17,7 @@ import type {
   BlacklistStats,
 } from '../../models/blacklist/index.js'
 import { likeContains } from '../shared/like.js'
+import { toBlacklistImagePath } from '../../services/uploads/blacklist-images.js'
 
 // ========================================
 // INTERFACES INTERNAS (para tipado de queries)
@@ -68,7 +69,10 @@ function parseBlacklistRow(row: BlacklistRow): BlacklistEntry {
     reason: row.reason,
     severity: row.severity,
     comments: row.comments,
-    images: typeof row.images === 'string' ? JSON.parse(row.images) : row.images,
+    // API paths, never Cloudinary URLs (services/uploads/blacklist-images.ts)
+    images: ((typeof row.images === 'string' ? JSON.parse(row.images) : row.images) as string[])
+      .map(toBlacklistImagePath)
+      .filter((path): path is string => path !== null),
     status: row.status,
     deleted_at: row.deleted_at,
     deleted_by: row.deleted_by,
@@ -115,7 +119,7 @@ export class BlacklistRepository {
       LEFT JOIN users u2 ON b.deleted_by = u2.id
       WHERE 1=1
     `
-    const params: any[] = []
+    const params: (string | number)[] = []
 
     // Filtro por status
     if (status !== 'ALL') {
@@ -289,7 +293,7 @@ export class BlacklistRepository {
     // Detectar campos que cambiaron
     const changes: Record<string, { old: unknown; new: unknown }> = {}
     const fields: string[] = []
-    const values: any[] = []
+    const values: (string | number | null)[] = []
 
     if (data.guest_name !== undefined && data.guest_name !== current.guest_name) {
       changes.guest_name = { old: current.guest_name, new: data.guest_name }
@@ -486,7 +490,7 @@ export class BlacklistRepository {
       FROM blacklist_entries
       WHERE document_number = ? AND status = 'ACTIVE'
     `
-    const params: any[] = [documentNumber]
+    const params: (string | number)[] = [documentNumber]
 
     if (excludeId) {
       query += ' AND id != ?'

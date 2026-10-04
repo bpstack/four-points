@@ -34,9 +34,20 @@ el historial.
 
 ## Reglas
 
-- Solo se eliminan los archivos identificados explícitamente como privados. Nada
-  más se modifica ni se borra, **salvo la autoría** de los commits listados en
-  «Autoría que se corrige» (ADR-031).
+- Solo se hacen **tres operaciones**, cada una sobre una lista aprobada
+  (ADR-034):
+  1. **Eliminar** del historial ficheros o directorios enteramente privados
+     (`--invert-paths --path …`).
+  2. **Reemplazar contenido** en ficheros legítimos que llevaron credenciales o
+     datos privados escritos (`--replace-text`): cada valor se cambia por
+     `***REMOVED***` o por un sustituto neutro, y el fichero se conserva.
+  3. **Cambiar autoría** para unificar la identidad o quitar rastros de IA
+     (`--mailmap`), sin tocar el contenido.
+
+  Nada más se modifica ni se borra.
+- Se hace **poco a poco**: cada operación se prueba en el clon y se audita antes
+  de la siguiente. Los valores a reemplazar se guardan en un fichero fuera del
+  repositorio (no se versiona) y se borra al terminar.
 - El contenido del proyecto no se altera más allá de lo imprescindible.
 - No se pierde ningún commit, rama, tag ni parte del historial que deba
   conservarse.
@@ -77,23 +88,77 @@ historial sin romper ni alterar innecesariamente el resto del repositorio.**
 
 ## Candidatos conocidos
 
-Lista de partida para el análisis, comprobada el 2026-09-28. **Ninguno se ha
-abierto**; la lista final la aprueba el propietario.
+Lista de partida para el análisis, comprobada el 2026-09-28 y ampliada el
+2026-10-04. **Los volcados no se han abierto**; la lista final la aprueba el
+propietario.
+
+### 1. Eliminar (ficheros enteramente privados)
 
 - **Volcados de BD**: `backend/db-mysql/backup/backup_hotel_db_*.sql` (cuatro;
-  fuera del árbol desde el 2026-09-28) y los ya borrados
-  `backup_hotel_db-aiven.sql` y `backup_hotel_db-local.sql` (commits `dad3cdc`,
-  `f5d47d6` y `7ac45e7`).
+  versionados hasta el 2026-10-04, aunque `.gitignore` ya los ignoraba) y los
+  ya borrados `backup_hotel_db-aiven.sql` y `backup_hotel_db-local.sql`
+  (commits `dad3cdc`, `f5d47d6` y `7ac45e7`).
+- **Scripts con la contraseña de Aiven**, quitados del árbol el 2026-10-04:
+  `backend/db-mysql/scripts/basics/` (10), `add-libre-number.ts`,
+  `backfill-libre-numbers.ts`, `set-holidays-2026.ts` y `backup-aiven.sh`.
+- **Importador del Excel de horarios** con 13 nombres del personal:
+  `backend/scripts/import-planning-2026.ts` (quitado del árbol el 2026-10-04).
+- **Alta de una persona real**:
+  `backend/db-mysql/scripts/20260520_insert_user_*.sql` (quitado del árbol
+  el 2026-10-04).
 - **Excel con datos del personal**: `docs/checklists/PLANNING 2026.xlsx` y
   `docs/frontend/schedule/Presencias - Marzo.xlsx`.
-- **Peticiones de prueba**: los 18 ficheros de `backend/API REST/`, que pueden
-  llevar tokens o contraseñas.
-- **Nombres reales del personal**: `20260520_insert_user_example.sql` y
-  `backend/scripts/import-planning-2026.ts` (ver `TODO.md`). Si se arreglan en
-  la fase 1c, en el historial siguen.
+- **Peticiones de prueba**: los 18 ficheros de `backend/API REST/` (quitados
+  del árbol el 2026-10-04): llevan 12 contraseñas, 24 tokens JWT y nombres de
+  usuario. Los tokens están firmados con `SECRET_JWT_KEY`: otro motivo para
+  rotarla.
 - **Documentación antigua** con nombres del personal:
   `SCHEDULING-CONSTRAINTS.md` y `SCHEDULING-DECISIONS-LOG.md` (raíz, hasta el
   2026-09-28).
+- **Encontrados en el análisis del 2026-10-04** (rutas antiguas, ya fuera del
+  árbol):
+  - `API REST/` en la raíz (estructura anterior a `backend/`);
+  - `PLANNING 2026.xlsx` en la raíz y toda la carpeta `z.schedule-docs/`
+    (Excel y CSV de horarios y presencias del personal);
+  - `aiven-conexion.md`, en sus tres ubicaciones
+    (`db-mysql/mysql-Aiven/`, `backend/db-mysql/mysql-Aiven/` y
+    `backend/db-mysql/aiven/`): datos de conexión con la contraseña de Aiven.
+
+### 2. Reemplazar contenido (ficheros legítimos)
+
+- **Contraseña de la BD local** en `backup-local.sh`, `check-collation.sh` y
+  `recreate-local.sh` (leen `backend/.env` desde el 2026-10-04).
+- **Host, usuario y contraseñas de Aiven** en `backend/.env.example` (hasta el
+  2026-10-02).
+- **Nombres reales del personal** en comentarios de `aiven/19_scheduling.sql`
+  y `scripts/20251224_add_scheduling.sql` (anonimizados en el árbol el
+  2026-10-04) y lo que quede según `TODO.md`.
+- **Correos reales de personas y empresas** en
+  `frontend/content/checklist/references/emails-dist-list.md` (lista de
+  distribución del night audit: dirección del hotel, empresa gestora y un
+  auditor, con nombres) y sus códigos en las guías del checklist;
+  sustituidos por contactos de ejemplo en el árbol el 2026-10-04.
+- **Secretos encontrados en el análisis del 2026-10-04** (recuento de valores
+  distintos en todo el historial, sin abrir ninguno):
+  - 2 contraseñas de Aiven (`AVNS_…`) en 17 rutas. **Una es la que se usa
+    hoy** (39 apariciones): rotarla es obligatorio;
+  - 1 clave de Anthropic (`sk-ant-…`) en `backend/.env.example`; no es la de
+    `backend/.env` actual y el propietario confirma que está revocada
+    (2026-10-05);
+  - valores de `CLOUDINARY_API_SECRET` (`backend.md`, `backend/.env.example`)
+    y de `SECRET_JWT_KEY` (8 valores en 11 rutas, casi todos marcadores de
+    ejemplo); ninguno coincide con los de `backend/.env` actual;
+  - 9 tokens JWT distintos en 20 rutas;
+  - ninguna clave privada, ni de OpenAI, Google, Resend o GitHub, y ningún
+    `.env` real versionado nunca.
+- En el análisis se busca cada valor en **todo** el historial (`git log -S`),
+  no solo en estos ficheros: el reemplazo se aplica en cualquier fichero donde
+  aparezca. `git filter-repo --replace-text` acepta expresiones regulares
+  (`regex:…==>***REMOVED***`), útil para los tokens JWT.
+
+### 3. Cambiar autoría
+
+La sección siguiente.
 
 ## Autoría que se corrige
 

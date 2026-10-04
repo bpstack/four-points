@@ -28,6 +28,7 @@ import { encodableFor } from '@/app/lib/helpers/pdfText'
 import * as pdfjsLib from 'pdfjs-dist'
 import { toast } from 'react-hot-toast'
 import { backofficeApi, type Asset } from '@/app/lib/backoffice'
+import { privateFileUrl } from '@/app/lib/helpers/private-file'
 import { Spinner } from '@/app/ui/components'
 import { SelectDropdown } from '@/app/ui/components/SelectDropdown'
 
@@ -197,7 +198,11 @@ export function PdfEditorModal({
         // Load PDF document only once
         if (!pdfDocRef.current) {
           // Use a copy to prevent ArrayBuffer detachment
-          pdfDocRef.current = await pdfjsLib.getDocument({ data: pdfBytes.slice(0) }).promise
+          // isEvalSupported: false — no eval for font rendering (CSP has no 'unsafe-eval')
+          pdfDocRef.current = await pdfjsLib.getDocument({
+            data: pdfBytes.slice(0),
+            isEvalSupported: false,
+          }).promise
           setTotalPages(pdfDocRef.current.numPages)
         }
 
@@ -726,14 +731,18 @@ export function PdfEditorModal({
               })
             } else if (element.asset) {
               // Add stamp/signature image
-              const imageResponse = await fetch(element.asset.cloudinary_url)
+              // Served by the API (private file): the session cookie must go with it
+              const imageResponse = await fetch(privateFileUrl(element.asset.cloudinary_url), {
+                credentials: 'include',
+              })
+              if (!imageResponse.ok) throw new Error(`Asset ${imageResponse.status}`)
               const imageBytes = await imageResponse.arrayBuffer()
 
               let image
-              const url = element.asset.cloudinary_url.toLowerCase()
-              if (url.includes('.png') || url.includes('png')) {
+              const contentType = (imageResponse.headers.get('content-type') || '').toLowerCase()
+              if (contentType.includes('png')) {
                 image = await pdfDoc.embedPng(imageBytes)
-              } else if (url.includes('.jpg') || url.includes('.jpeg') || url.includes('jpg')) {
+              } else if (contentType.includes('jpeg') || contentType.includes('jpg')) {
                 image = await pdfDoc.embedJpg(imageBytes)
               } else {
                 try {
@@ -914,7 +923,7 @@ export function PdfEditorModal({
                     >
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
-                        src={stamp.cloudinary_url}
+                        src={privateFileUrl(stamp.cloudinary_url)}
                         alt={stamp.name}
                         className="w-full h-full object-contain"
                       />
@@ -944,7 +953,7 @@ export function PdfEditorModal({
                     >
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
-                        src={sig.cloudinary_url}
+                        src={privateFileUrl(sig.cloudinary_url)}
                         alt={sig.name}
                         className="w-full h-full object-contain"
                       />
@@ -1176,7 +1185,7 @@ export function PdfEditorModal({
                     {element.asset && (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
-                        src={element.asset.cloudinary_url}
+                        src={privateFileUrl(element.asset.cloudinary_url)}
                         alt={element.asset.name}
                         className="w-full h-full object-contain pointer-events-none"
                         draggable={false}

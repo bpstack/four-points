@@ -1,7 +1,7 @@
 // repositories/logbook/logbookHistory-repository.ts
 // CRUD simple sobre logbook_history
 
-import db from '../../config/db.js'
+import { dbx } from '../../config/transaction.js'
 import type {
   HistoryAction,
   HistoryType,
@@ -41,7 +41,7 @@ export async function addHistory(
   comment_id: number | null = null,
   department_id: number | null = null
 ): Promise<HistoryRecord> {
-  const [result] = await db.execute<ResultSetHeader>(
+  const [result] = await dbx().execute<ResultSetHeader>(
     `INSERT INTO logbook_history 
       (logbook_id, editor_id, type, action, previous_content, new_content, comment_id, department_id, created_at)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())`,
@@ -87,7 +87,7 @@ interface HistoryJoinRow extends RowDataPacket {
 }
 
 export async function getHistoryByLogbookId(logbookId: number): Promise<HistoryByLogbookResponse> {
-  const [rows] = await db.execute<HistoryJoinRow[]>(
+  const [rows] = await dbx().execute<HistoryJoinRow[]>(
     `SELECT
         lh.id,
         lh.type,

@@ -11,6 +11,7 @@ import {
 } from '../../validations/logbook/logbook-schemas.js'
 import { ERROR_CODES, SUCCESS_CODES } from '../../config/error-codes.js'
 import { logger } from '../../config/logger.js'
+import { withTransaction } from '../../config/transaction.js'
 
 // ============================================
 // CREATE COMMENT
@@ -33,39 +34,47 @@ export async function createCommentController(req: Request, res: Response): Prom
       return
     }
 
-    const newComment = await commentRepo.createComment({
-      logbook_id: Number(logbookId),
-      user_id: editorId,
-      comment: validatedData.comment,
-      department_id: validatedData.department_id,
-      importance_level: validatedData.importance_level,
-    })
-
-    // Update logbook if department/importance changed
-    if (validatedData.department_id !== undefined || validatedData.importance_level !== undefined) {
-      await logbookRepo.updateLogbook(logbookId, {
+    // The comment, the logbook change and both history rows commit together
+    const newComment = await withTransaction(async () => {
+      const created = await commentRepo.createComment({
+        logbook_id: Number(logbookId),
+        user_id: editorId,
+        comment: validatedData.comment,
         department_id: validatedData.department_id,
         importance_level: validatedData.importance_level,
       })
-    }
 
-    // Comment history
-    await commentHistoryRepo.createCommentAction({
-      logbook_id: Number(logbookId),
-      comment_id: newComment.id,
-      editor_id: editorId,
-      action: 'create',
-      previous_content: null,
-      current_content: newComment,
-    })
+      // Update logbook if department/importance changed
+      if (
+        validatedData.department_id !== undefined ||
+        validatedData.importance_level !== undefined
+      ) {
+        await logbookRepo.updateLogbook(logbookId, {
+          department_id: validatedData.department_id,
+          importance_level: validatedData.importance_level,
+        })
+      }
 
-    // General history
-    await logbookHistoryService.logAction({
-      logbook_id: Number(logbookId),
-      editor_id: editorId,
-      action: 'create',
-      department_id: validatedData.department_id ?? null,
-      new_content: `Comentario: ${validatedData.comment}`,
+      // Comment history
+      await commentHistoryRepo.createCommentAction({
+        logbook_id: Number(logbookId),
+        comment_id: created.id,
+        editor_id: editorId,
+        action: 'create',
+        previous_content: null,
+        current_content: created,
+      })
+
+      // General history
+      await logbookHistoryService.logAction({
+        logbook_id: Number(logbookId),
+        editor_id: editorId,
+        action: 'create',
+        department_id: validatedData.department_id ?? null,
+        new_content: `Comentario: ${validatedData.comment}`,
+      })
+
+      return created
     })
 
     res.status(201).json(newComment)
@@ -130,8 +139,37 @@ export async function updateCommentController(req: Request, res: Response): Prom
       return
     }
 
-    const updated = await commentRepo.updateComment(commentId, validatedData)
-    if (!updated) {
+    // The edit, the logbook change and the history row commit together
+    const result = await withTransaction(async () => {
+      const updated = await commentRepo.updateComment(commentId, validatedData)
+      if (!updated) return null
+
+      // Update logbook if department/importance changed
+      if (
+        validatedData.department_id !== undefined ||
+        validatedData.importance_level !== undefined
+      ) {
+        await logbookRepo.updateLogbook(logbookId, {
+          department_id: validatedData.department_id,
+          importance_level: validatedData.importance_level,
+        })
+      }
+
+      const fresh = await commentRepo.getById(commentId)
+
+      await commentHistoryRepo.createCommentAction({
+        logbook_id: Number(logbookId),
+        comment_id: Number(commentId),
+        editor_id: editorId,
+        action: 'update',
+        previous_content: oldComment,
+        current_content: fresh || null,
+      })
+
+      return { newComment: fresh }
+    })
+
+    if (!result) {
       res.status(500).json({
         success: false,
         error: ERROR_CODES.LOGBOOK_COMMENT_UPDATE_ERROR,
@@ -139,25 +177,7 @@ export async function updateCommentController(req: Request, res: Response): Prom
       })
       return
     }
-
-    // Update logbook if department/importance changed
-    if (validatedData.department_id !== undefined || validatedData.importance_level !== undefined) {
-      await logbookRepo.updateLogbook(logbookId, {
-        department_id: validatedData.department_id,
-        importance_level: validatedData.importance_level,
-      })
-    }
-
-    const newComment = await commentRepo.getById(commentId)
-
-    await commentHistoryRepo.createCommentAction({
-      logbook_id: Number(logbookId),
-      comment_id: Number(commentId),
-      editor_id: editorId,
-      action: 'update',
-      previous_content: oldComment,
-      current_content: newComment || null,
-    })
+    const { newComment } = result
 
     res.json({
       success: true,
@@ -223,7 +243,22 @@ export async function deleteCommentController(req: Request, res: Response): Prom
       return
     }
 
-    const deleted = await commentRepo.softDeleteComment(commentId)
+    // The soft delete and its history row commit together
+    const deleted = await withTransaction(async () => {
+      const done = await commentRepo.softDeleteComment(commentId)
+      if (!done) return false
+
+      await commentHistoryRepo.createCommentAction({
+        logbook_id: Number(logbookId),
+        comment_id: Number(commentId),
+        editor_id: editorId,
+        action: 'delete',
+        previous_content: comment,
+        current_content: null,
+      })
+      return true
+    })
+
     if (!deleted) {
       res.status(500).json({
         success: false,
@@ -232,15 +267,6 @@ export async function deleteCommentController(req: Request, res: Response): Prom
       })
       return
     }
-
-    await commentHistoryRepo.createCommentAction({
-      logbook_id: Number(logbookId),
-      comment_id: Number(commentId),
-      editor_id: editorId,
-      action: 'delete',
-      previous_content: comment,
-      current_content: null,
-    })
 
     res.json({
       success: true,

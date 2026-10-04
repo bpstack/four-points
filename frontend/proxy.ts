@@ -5,6 +5,8 @@ import type { NextRequest } from 'next/server'
 
 const protectedRoutes = ['/dashboard', '/profile', '/settings', '/admin']
 const authRoutes = ['/login', '/register', '/forgot-password']
+// Test pages for design work: served only by `next dev`, 404 in any build
+const devOnlyRoutes = ['/design-system', '/fonts-test']
 
 /**
  * Decodifica un JWT sin verificar firma (solo para leer el payload)
@@ -47,6 +49,13 @@ export function proxy(request: NextRequest) {
     pathname === '/favicon.ico'
   ) {
     return NextResponse.next()
+  }
+
+  if (
+    process.env.NODE_ENV === 'production' &&
+    devOnlyRoutes.some((route) => pathname === route || pathname.startsWith(`${route}/`))
+  ) {
+    return new NextResponse(null, { status: 404 })
   }
 
   const accessToken = request.cookies.get('access_token')?.value

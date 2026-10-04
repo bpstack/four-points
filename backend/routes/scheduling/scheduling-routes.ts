@@ -72,17 +72,20 @@ import { generateSchedule } from '../../controllers/scheduling/schedule-generate
 
 // Middlewares
 import { authenticateToken } from '../../middlewares/authenticateToken.js'
-import { isAdmin, excludeMantenimiento } from '../../middlewares/roleCheck.js'
+import { isAdmin } from '../../middlewares/roleCheck.js'
 
 const router: Router = express.Router()
 
 // ========================================
 // APPLY MIDDLEWARE TO ALL ROUTES
 // - authenticateToken: verify JWT
-// - excludeMantenimiento: block maintenance role
+// - isAdmin: scheduling is admin-only, reads included. The grid and the
+//   constraints hold health data (sick leave codes IT/E and their notes); the
+//   interface is admin-only too. A read-only view for other roles must get its
+//   own endpoint without those details (TODO)
 // ========================================
 router.use(authenticateToken)
-router.use(excludeMantenimiento)
+router.use(isAdmin)
 
 // ========================================
 // CONFIG ROUTES
@@ -185,16 +188,16 @@ router.get('/months/:id/constraints', getConstraintsByMonth)
 router.get('/constraints/by-period', getConstraintsByPeriod)
 
 // POST - Create constraint
-router.post('/constraints', createConstraint)
+router.post('/constraints', isAdmin, createConstraint)
 
 // PUT - Update constraint
-router.put('/constraints/:constraintId', updateConstraint)
+router.put('/constraints/:constraintId', isAdmin, updateConstraint)
 
 // PUT - Approve/reject constraint (admin only)
 router.put('/constraints/:constraintId/approve', isAdmin, approveConstraint)
 
 // DELETE - Delete constraint
-router.delete('/constraints/:constraintId', deleteConstraint)
+router.delete('/constraints/:constraintId', isAdmin, deleteConstraint)
 
 // ========================================
 // EMPLOYEE RULES ROUTES
@@ -287,6 +290,6 @@ router.get('/totals/:year', getAnnualTotals)
 // ========================================
 
 // GET /shift-stats?year=2026 — conteo de turnos por empleado (published + draft)
-router.get('/shift-stats', excludeMantenimiento, getShiftStats)
+router.get('/shift-stats', getShiftStats)
 
 export default router

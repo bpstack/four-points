@@ -240,6 +240,13 @@ router.post('/invoices/:id/unvalidate', isRealAdmin, BackofficeController.unvali
 router.post('/invoices/:id/pay', isRealAdmin, BackofficeController.markAsPaid)
 
 /**
+ * @route   POST /api/backoffice/invoices/:id/unpay
+ * @desc    Revertir el pago de una factura (paid -> validated)
+ * @access  Private (admin only)
+ */
+router.post('/invoices/:id/unpay', isRealAdmin, BackofficeController.revertPayment)
+
+/**
  * @route   DELETE /api/backoffice/invoices/:id
  * @desc    Eliminar factura (hard delete - eliminación permanente)
  * @access  Private (admin only)
@@ -261,16 +268,9 @@ router.post(
 )
 
 /**
- * @route   GET /api/backoffice/invoices/:id/pdf-url
- * @desc    Obtener URL firmada para visualizar PDF
- * @access  Private (admin, demo-admin)
- * @query   type (original/validated)
- */
-router.get('/invoices/:id/pdf-url', BackofficeController.getInvoicePdfUrl)
-
-/**
  * @route   GET /api/backoffice/invoices/:id/pdf-download
- * @desc    Descargar PDF (proxy para evitar CORS)
+ * @desc    PDF de la factura. Los ficheros son privados en Cloudinary: la API
+ *          los descarga y los sirve; su URL firmada no sale nunca del servidor
  * @access  Private (admin, demo-admin)
  * @query   type (original/validated)
  */
@@ -287,6 +287,13 @@ router.get('/invoices/:id/pdf-download', BackofficeController.downloadInvoicePdf
  * @query   type (stamp/signature) opcional
  */
 router.get('/assets', BackofficeController.getAssets)
+
+/**
+ * @route   GET /api/backoffice/assets/:id/file
+ * @desc    Imagen del sello o la firma (fichero privado servido por la API)
+ * @access  Private (admin, demo-admin)
+ */
+router.get('/assets/:id/file', BackofficeController.getAssetFile)
 
 /**
  * @route   POST /api/backoffice/assets

@@ -1,6 +1,7 @@
 // repositories/cashier/cashier-shift-user-repository.ts
 
 import db from '../../config/db.js'
+import type { RowDataPacket } from 'mysql2'
 
 export class CashierShiftUserRepository {
   /**
@@ -24,8 +25,8 @@ export class CashierShiftUserRepository {
       ORDER BY csu.is_primary DESC, u.username ASC
     `
 
-    const [rows] = await db.query<any[]>(query, [shiftId])
-    return rows
+    const [rows] = await db.query<RowDataPacket[]>(query, [shiftId])
+    return rows as { user_id: string; username: string; is_primary: boolean }[]
   }
 
   /**
@@ -39,7 +40,7 @@ export class CashierShiftUserRepository {
       LIMIT 1
     `
 
-    const [rows] = await db.query<any[]>(query, [shiftId])
+    const [rows] = await db.query<RowDataPacket[]>(query, [shiftId])
     return rows[0]?.user_id || null
   }
 
@@ -53,7 +54,7 @@ export class CashierShiftUserRepository {
       WHERE shift_id = ? AND user_id = ?
     `
 
-    const [rows] = await db.query<any[]>(query, [shiftId, userId])
+    const [rows] = await db.query<RowDataPacket[]>(query, [shiftId, userId])
     return (rows[0]?.count || 0) > 0
   }
 
@@ -137,7 +138,7 @@ export class CashierShiftUserRepository {
       WHERE shift_id = ?
     `
 
-    const [rows] = await db.query<any[]>(query, [shiftId])
+    const [rows] = await db.query<RowDataPacket[]>(query, [shiftId])
     return rows[0]?.total || 0
   }
 
@@ -156,7 +157,7 @@ export class CashierShiftUserRepository {
       WHERE csu.user_id = ?
     `
 
-    const params: any[] = [userId]
+    const params: (string | number)[] = [userId]
 
     if (fromDate) {
       query += ' AND cs.shift_date >= ?'
@@ -170,7 +171,7 @@ export class CashierShiftUserRepository {
 
     query += ' ORDER BY cs.shift_date DESC'
 
-    const [rows] = await db.query<any[]>(query, params)
+    const [rows] = await db.query<RowDataPacket[]>(query, params)
     return rows.map((r) => r.shift_id)
   }
 }

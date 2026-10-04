@@ -23,6 +23,7 @@ import {
   textareaClassName,
 } from '@/app/ui/panels'
 import { Checkbox } from '@/app/ui/components'
+import { privateFileUrl } from '@/app/lib/helpers/private-file'
 
 interface EditReportPanelProps {
   isOpen: boolean
@@ -364,7 +365,7 @@ export function EditReportPanel({ isOpen, onClose, report, onSuccess }: EditRepo
                 <div key={image.id} className="relative group">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
-                    src={image.file_path}
+                    src={privateFileUrl(image.file_path)}
                     alt={image.file_name}
                     className="w-full h-24 object-cover rounded-md border border-border"
                   />

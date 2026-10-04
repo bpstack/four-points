@@ -1,13 +1,14 @@
 // tests/checklist/attachment-response.test.ts
 // Regression test: checklist attachment responses carried the Cloudinary
-// public_id, which only the server needs (to delete the file).
+// public_id, which only the server needs (to delete the file), and the
+// signed Cloudinary URL of a private file: they carry the API path instead.
 
 import { describe, it, expect } from 'vitest'
 import { withoutPublicId } from '../../services/checklist/attachment-response.js'
 import type { Attachment } from '../../repositories/checklist/checklist-comments.repository.js'
 
 describe('withoutPublicId', () => {
-  it('drops public_id and keeps everything the frontend reads', () => {
+  it('drops public_id, swaps the Cloudinary URL for the API path, keeps the rest', () => {
     const row = {
       id: 7,
       run_id: 3,
@@ -22,6 +23,7 @@ describe('withoutPublicId', () => {
     } as unknown as Attachment
     const out = withoutPublicId(row)
     expect(out).not.toHaveProperty('public_id')
-    expect(out).toMatchObject({ id: 7, user_id: row.user_id, file_url: row.file_url })
+    expect(out).toMatchObject({ id: 7, user_id: row.user_id, mime: 'image/jpeg' })
+    expect(out.file_url).toBe('/api/checklists/attachments/7/file')
   })
 })

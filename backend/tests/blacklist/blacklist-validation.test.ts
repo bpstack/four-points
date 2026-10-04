@@ -3,6 +3,7 @@
 // and impossible dates (Date.parse accepts 2026-02-31) that reached MySQL.
 
 import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
+import { toBlacklistImagePath } from '../../services/uploads/blacklist-images.js'
 import {
   createBlacklistSchema,
   updateBlacklistSchema,
@@ -69,16 +70,28 @@ describe('images', () => {
     vi.unstubAllEnvs()
   })
 
-  const own =
-    'https://res.cloudinary.com/fourpoints/image/upload/v1727/blacklist/blacklist_1727_foto.jpg'
+  // Photos are private files: the upload returns this API path, never a URL
+  const own = '/api/blacklist/images/blacklist_1727_foto.jpg'
 
   it('accepts photos uploaded through the blacklist upload', () => {
     expect(createBlacklistSchema.safeParse({ ...entry, images: [own] }).success).toBe(true)
     expect(updateBlacklistSchema.safeParse({ images: [own] }).success).toBe(true)
   })
 
-  it('rejects any other URL', () => {
+  it('maps a stored Cloudinary URL from before 2026-10-04 to the same API path', () => {
+    expect(
+      toBlacklistImagePath(
+        'https://res.cloudinary.com/fourpoints/image/upload/v1727/blacklist/blacklist_1727_foto.jpg'
+      )
+    ).toBe(own)
+    expect(toBlacklistImagePath('https://evil.example/blacklist/blacklist_1_x.jpg')).toBeNull()
+  })
+
+  it('rejects any other value, including a Cloudinary URL', () => {
     for (const url of [
+      'https://res.cloudinary.com/fourpoints/image/upload/v1727/blacklist/blacklist_1727_foto.jpg',
+      '/api/blacklist/images/../../auth/me',
+      '/api/blacklist/images/blacklist_1_x.svg',
       'https://evil.example/foto.jpg',
       'https://res.cloudinary.com/othercloud/image/upload/v1/blacklist/x.jpg',
       'https://res.cloudinary.com/fourpoints/image/upload/v1/avatars/avatar_1_me.jpg',

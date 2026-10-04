@@ -1,6 +1,6 @@
 // repositories/logbook/logbookComments-repository.ts
 
-import db from '../../config/db.js'
+import { dbx } from '../../config/transaction.js'
 import type {
   LogbookCommentRow,
   LogbookCommentWithAuthor,
@@ -21,7 +21,7 @@ export async function createComment({
   department_id,
   importance_level,
 }: CreateCommentDTO): Promise<CreatedComment> {
-  const [result] = await db.execute<ResultSetHeader>(
+  const [result] = await dbx().execute<ResultSetHeader>(
     `INSERT INTO logbook_comments
     (logbook_id, user_id, comment, department_id, importance_level, created_at, updated_at)
     VALUES (?,?,?,?,?,NOW(),NOW())`,
@@ -43,7 +43,7 @@ export async function addComment(
   userId: string,
   comment: string
 ): Promise<CreatedComment> {
-  const [result] = await db.execute<ResultSetHeader>(
+  const [result] = await dbx().execute<ResultSetHeader>(
     `INSERT INTO logbook_comments (logbook_id, user_id, comment, created_at)
     VALUES (?, ?, ?, NOW())`,
     [logbookId, userId, comment]
@@ -62,7 +62,7 @@ export async function addComment(
 // ============================================
 
 export async function getById(id: number | string): Promise<LogbookCommentRow | undefined> {
-  const [rows] = await db.query<LogbookCommentRow[]>(
+  const [rows] = await dbx().query<LogbookCommentRow[]>(
     'SELECT * FROM logbook_comments WHERE id = ? AND deleted_at IS NULL',
     [id]
   )
@@ -72,7 +72,7 @@ export async function getById(id: number | string): Promise<LogbookCommentRow | 
 export async function getCommentByLogbookId(
   logbookId: number | string
 ): Promise<LogbookCommentWithAuthor[]> {
-  const [rows] = await db.query<LogbookCommentWithAuthor[]>(
+  const [rows] = await dbx().query<LogbookCommentWithAuthor[]>(
     `SELECT c.id,
             c.logbook_id,
             c.user_id,
@@ -124,7 +124,7 @@ export async function updateComment(
   const sql = `UPDATE logbook_comments SET ${updates.join(', ')} WHERE id = ? AND deleted_at IS NULL`
   params.push(id as number)
 
-  const [result] = await db.execute<ResultSetHeader>(sql, params)
+  const [result] = await dbx().execute<ResultSetHeader>(sql, params)
   return result.affectedRows > 0
 }
 
@@ -133,7 +133,7 @@ export async function updateComment(
 // ============================================
 
 export async function softDeleteComment(id: number | string): Promise<boolean> {
-  const [result] = await db.execute<ResultSetHeader>(
+  const [result] = await dbx().execute<ResultSetHeader>(
     `UPDATE logbook_comments SET deleted_at = NOW() WHERE id = ? AND deleted_at IS NULL`,
     [id]
   )

@@ -40,7 +40,7 @@ export class ConversationController {
         data: conversations,
         count: conversations.length,
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, 'Error en getMyConversations')
       return res.status(500).json({
         success: false,
@@ -107,7 +107,7 @@ export class ConversationController {
           participants,
         },
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, 'Error en getConversation')
       return res.status(500).json({
         success: false,
@@ -221,7 +221,7 @@ export class ConversationController {
         success: true,
         data: conversationWithDetails,
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, 'Error en createConversation')
       return res.status(500).json({
         success: false,
@@ -303,7 +303,7 @@ export class ConversationController {
         message: SUCCESS_CODES.MESSAGES_GROUP_UPDATED,
         code: SUCCESS_CODES.MESSAGES_GROUP_UPDATED,
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, 'Error en updateConversation')
       return res.status(500).json({
         success: false,
@@ -379,7 +379,7 @@ export class ConversationController {
         message: SUCCESS_CODES.MESSAGES_LEFT_CONVERSATION,
         code: SUCCESS_CODES.MESSAGES_LEFT_CONVERSATION,
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, 'Error en leaveConversation')
       return res.status(500).json({
         success: false,
@@ -444,7 +444,7 @@ export class ConversationController {
         message: SUCCESS_CODES.MESSAGES_CONVERSATION_DELETED,
         code: SUCCESS_CODES.MESSAGES_CONVERSATION_DELETED,
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, 'Error en deleteConversation')
       return res.status(500).json({
         success: false,
@@ -535,7 +535,7 @@ export class ConversationController {
         message: SUCCESS_CODES.MESSAGES_PARTICIPANTS_ADDED,
         code: SUCCESS_CODES.MESSAGES_PARTICIPANTS_ADDED,
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, 'Error en addParticipants')
       return res.status(500).json({
         success: false,
@@ -617,7 +617,7 @@ export class ConversationController {
         message: SUCCESS_CODES.MESSAGES_PARTICIPANT_REMOVED,
         code: SUCCESS_CODES.MESSAGES_PARTICIPANT_REMOVED,
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, 'Error en removeParticipant')
       return res.status(500).json({
         success: false,
@@ -668,7 +668,7 @@ export class ConversationController {
         message: SUCCESS_CODES.MESSAGES_MARKED_READ,
         code: SUCCESS_CODES.MESSAGES_MARKED_READ,
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, 'Error en markAsRead')
       return res.status(500).json({
         success: false,
@@ -715,7 +715,7 @@ export class ConversationController {
         data: users,
         count: users.length,
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, 'Error en searchUsers')
       return res.status(500).json({
         success: false,
@@ -766,7 +766,7 @@ export class ConversationController {
         data: conversations,
         count: conversations.length,
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, 'Error en getAllConversations')
       return res.status(500).json({
         success: false,

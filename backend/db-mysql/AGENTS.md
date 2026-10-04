@@ -140,9 +140,11 @@ See `aiven/aiven-conexion.md` for connection details. SSL required.
 
 ## Backups
 
-Stored in `backup/`: `backup_hotel_db-local.sql` and
-`backup_hotel_db-aiven.sql`. Refresh with `scripts/backup-local.sh` /
-`backup-aiven.sh`.
+Dumps go to `backup/` and are never committed (`.gitignore`): they hold real
+data. Make them with `backup/backup.ps1` (local and Aiven) or
+`scripts/backup-local.sh`. Every script reads the credentials from
+`backend/.env` (`scripts/local-env.sh` for the local ones); none may carry a
+password.
 
 ## Known gotchas
 
@@ -156,9 +158,11 @@ Stored in `backup/`: `backup_hotel_db-local.sql` and
    traceability.
 3. **`INDEX.md` is the source of truth for what's applied.** If a script is
    missing from the table, it's not tracked. Keep it up to date.
-4. **Two TS companion scripts.** `add-libre-number.ts` and
-   `backfill-libre-numbers.ts` in `scripts/` are one-time data fixers (not
-   schema migrations). They ran once and are kept for reference; do not re-run.
+4. **No one-off data scripts.** One-time data fixers (the old
+   `add-libre-number.ts` and `backfill-libre-numbers.ts`) and quick query
+   scripts were removed on 2026-10-04: they carried the Aiven password and
+   had already run. Write a new one only if it reads `backend/.env`, and drop
+   it once applied.
 5. **The frozen baseline is not the live schema.** `aiven/NN_*.sql` may list
    things the live databases never got: `aiven/17_notifications.sql` had
    `'messages'` in `notifications.module`, Aiven did not, and the urgent

@@ -42,6 +42,7 @@ const app = express()
 
 // Render chain (checked 2026-09-29): client -> Cloudflare -> Render LB (10.x) -> local proxy (::1).
 // Trust exactly those 3 hops so req.ip is the client and a client-sent X-Forwarded-For is ignored.
+// If the chain changes, the rate limits fail closed and log a warning (config/client-ip.ts).
 app.set('trust proxy', 3)
 
 // ========================================

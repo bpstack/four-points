@@ -6,6 +6,7 @@
 
 import pool from '../../config/db.js'
 import type { ResultSetHeader, RowDataPacket } from 'mysql2'
+import type { PoolConnection } from 'mysql2/promise'
 import {
   IConciliationSummary,
   IConciliationDetail,
@@ -304,26 +305,24 @@ export class ConciliationRepository {
    * Se usa internamente al actualizar el formulario
    */
   private async _recalculateTotalsInTransaction(
-    connection: any,
+    connection: PoolConnection,
     conciliationId: number
   ): Promise<void> {
-    // 1. Sumar reception (considerando direction)
     const [receptionRows] = await connection.query(
       `SELECT SUM(CASE WHEN direction = 'add' THEN value ELSE -value END) as total
       FROM conciliation_reception 
       WHERE conciliation_id = ? AND deleted_at IS NULL`,
       [conciliationId]
     )
-    const totalReception = (receptionRows as any)[0]?.total || 0
+    const totalReception = (receptionRows as RowDataPacket[])[0]?.total || 0
 
-    // 2. Sumar housekeeping (considerando direction)
     const [housekeepingRows] = await connection.query(
       `SELECT SUM(CASE WHEN direction = 'add' THEN value ELSE -value END) as total
       FROM conciliation_housekeeping 
       WHERE conciliation_id = ? AND deleted_at IS NULL`,
       [conciliationId]
     )
-    const totalHousekeeping = (housekeepingRows as any)[0]?.total || 0
+    const totalHousekeeping = (housekeepingRows as RowDataPacket[])[0]?.total || 0
 
     // 3. Actualizar el summary
     await connection.query(

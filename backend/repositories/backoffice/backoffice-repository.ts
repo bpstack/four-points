@@ -84,7 +84,7 @@ export class BackofficeRepository {
     limit: number = 100
   ): Promise<{ suppliers: SupplierWithStats[]; total: number }> {
     let baseQuery = `FROM v_bo_suppliers_stats WHERE 1=1`
-    const params: any[] = []
+    const params: (string | number | boolean | null)[] = []
 
     if (filters?.is_active !== undefined) {
       baseQuery += ` AND is_active = ?`
@@ -243,7 +243,7 @@ export class BackofficeRepository {
     limit: number = 50
   ): Promise<{ invoices: InvoiceWithDetails[]; total: number }> {
     let whereClause = `WHERE 1=1`
-    const params: any[] = []
+    const params: (string | number | boolean | null)[] = []
 
     if (!filters?.include_deleted) {
       whereClause += ` AND is_deleted = 0`
@@ -429,7 +429,7 @@ export class BackofficeRepository {
     values.push(userId, id)
 
     const [result] = await pool.query<ResultSetHeader>(
-      `UPDATE bo_invoices SET ${fields.join(', ')} WHERE id = ?`,
+      `UPDATE bo_invoices SET ${fields.join(', ')} WHERE id = ? AND status = 'pending'`,
       values
     )
 
@@ -457,7 +457,7 @@ export class BackofficeRepository {
       `updated_by = ?`,
       `updated_at = NOW()`,
     ]
-    const params: any[] = [userId, userId]
+    const params: (string | number | null)[] = [userId, userId]
 
     // Only update validated_pdf_url if explicitly provided (not undefined)
     if (data.validated_pdf_url !== undefined) {
@@ -478,7 +478,7 @@ export class BackofficeRepository {
     params.push(id) // WHERE id = ?
 
     const [result] = await pool.query<ResultSetHeader>(
-      `UPDATE bo_invoices SET ${setClauses.join(', ')} WHERE id = ?`,
+      `UPDATE bo_invoices SET ${setClauses.join(', ')} WHERE id = ? AND status = 'pending'`,
       params
     )
 
@@ -504,7 +504,7 @@ export class BackofficeRepository {
         validation_notes = ?,
         updated_by = ?,
         updated_at = NOW()
-       WHERE id = ?`,
+       WHERE id = ? AND status = 'pending'`,
       [notes, userId, id]
     )
 
@@ -554,12 +554,41 @@ export class BackofficeRepository {
         paid_date = ?,
         updated_by = ?,
         updated_at = NOW()
-       WHERE id = ?`,
+       WHERE id = ? AND status = 'validated'`,
       [paidDate, userId, id]
     )
 
     if (result.affectedRows > 0) {
       await this.addInvoiceHistory(id, 'paid', 'status', 'validated', 'paid', null, userId)
+    }
+
+    return result.affectedRows > 0
+  }
+
+  /**
+   * Revert the payment of one invoice (paid -> validated)
+   */
+  static async revertPayment(id: number, notes: string | null, userId: string): Promise<boolean> {
+    const [result] = await pool.query<ResultSetHeader>(
+      `UPDATE bo_invoices SET 
+        status = 'validated',
+        paid_date = NULL,
+        updated_by = ?,
+        updated_at = NOW()
+       WHERE id = ? AND status = 'paid'`,
+      [userId, id]
+    )
+
+    if (result.affectedRows > 0) {
+      await this.addInvoiceHistory(
+        id,
+        'updated',
+        'status',
+        'paid',
+        'validated',
+        notes || 'Pago revertido',
+        userId
+      )
     }
 
     return result.affectedRows > 0
@@ -794,7 +823,7 @@ export class BackofficeRepository {
         ${field}_public_id = ?,
         updated_by = ?,
         updated_at = NOW()
-       WHERE id = ?`,
+       WHERE id = ? AND status = 'pending'`,
       [url, publicId, userId, id]
     )
     return result.affectedRows > 0
@@ -840,7 +869,7 @@ export class BackofficeRepository {
 
   static async getAllAssets(type?: 'stamp' | 'signature'): Promise<Asset[]> {
     let query = `SELECT * FROM bo_assets`
-    const params: any[] = []
+    const params: (string | number | boolean | null)[] = []
 
     if (type) {
       query += ` WHERE type = ?`
@@ -950,7 +979,7 @@ export class BackofficeRepository {
     }
   }
 
-  static async getMonthlySummary(year?: number): Promise<any[]> {
+  static async getMonthlySummary(year?: number): Promise<RowDataPacket[]> {
     const targetYear = year || getNowMadrid().year()
     const [rows] = await pool.query<RowDataPacket[]>(
       `SELECT * FROM v_bo_monthly_summary WHERE year = ? ORDER BY month DESC`,

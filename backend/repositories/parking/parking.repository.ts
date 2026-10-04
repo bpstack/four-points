@@ -230,3 +230,50 @@ export const getAvailableSpotsByDateRange = async (
   )
   return rows
 }
+
+/* -----------------------------------------------------------------
+ * CALENDARIO DE DISPONIBILIDAD
+ * ----------------------------------------------------------------- */
+
+/**
+ * Keeps parking_availability covering the next `days` days for every spot.
+ * Nothing extended it before: generate_availability was never called, so the
+ * calendar ran out and from then on no day was blocked.
+ * Idempotent: inserts only the missing days, then blocks every free future day
+ * that falls inside an active booking (new days, and any day left out of sync).
+ * Blocked days are never freed here.
+ */
+export const extendAvailability = async (
+  days = 365
+): Promise<{ inserted: number; blocked: number }> => {
+  const today = getTodayMadrid()
+
+  const [insert] = await db.query<ResultSetHeader>(
+    `INSERT IGNORE INTO parking_availability (spot_id, date, is_available)
+    WITH RECURSIVE dates (d) AS (
+      SELECT CAST(? AS DATE)
+      UNION ALL
+      SELECT d + INTERVAL 1 DAY FROM dates WHERE d < CAST(? AS DATE) + INTERVAL ? DAY
+    )
+    SELECT ps.id, dates.d, TRUE
+    FROM parking_spots ps
+    CROSS JOIN dates`,
+    [today, today, days]
+  )
+
+  const [block] = await db.query<ResultSetHeader>(
+    `UPDATE parking_availability pa
+    INNER JOIN parking_bookings pb
+      ON pb.spot_id = pa.spot_id
+      AND pa.date >= DATE(pb.expected_checkin)
+      AND pa.date < DATE(pb.expected_checkout)
+      AND pb.status IN ('reserved', 'checked_in')
+    SET pa.is_available = FALSE, pa.booking_id = pb.id
+    WHERE pa.date >= CAST(? AS DATE)
+      AND pa.is_available = TRUE
+      AND pa.booking_id IS NULL`,
+    [today]
+  )
+
+  return { inserted: insert.affectedRows, blocked: block.affectedRows }
+}

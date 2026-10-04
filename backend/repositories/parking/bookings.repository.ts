@@ -4,7 +4,7 @@
 // ============================================
 import pool from '../../config/db.js'
 import { targetSpot, type SpotRef } from '../../services/parking/target-spot.js'
-import { ResultSetHeader, RowDataPacket } from 'mysql2/promise'
+import { ResultSetHeader, RowDataPacket, type PoolConnection } from 'mysql2/promise'
 import type {
   BookingWithDetailsRow,
   OverdueBookingRow,
@@ -30,8 +30,8 @@ interface SpotIdRow extends RowDataPacket {
 
 interface CurrentSpotRow extends RowDataPacket, SpotRef {}
 
-interface AvailabilityCountRow extends RowDataPacket {
-  unavailable: number
+interface OverlapCountRow extends RowDataPacket {
+  overlapping: number
 }
 
 interface RatePriceRow extends RowDataPacket {
@@ -43,6 +43,44 @@ interface OccupiedCountRow extends RowDataPacket {
 }
 
 class ParkingBookingsRepository {
+  /**
+   * Throws if another active booking holds the spot on any of the days
+   * [DATE(checkin), DATE(checkout)), the same days the calendar blocks.
+   * Locks the spot row first, so two requests for the same spot run one after
+   * the other inside their transactions instead of both passing the check.
+   * The count is a locking read (FOR SHARE): under REPEATABLE READ a plain read
+   * uses the snapshot taken before waiting for the lock, and would not see a
+   * booking committed meanwhile.
+   * Reads the bookings, not parking_availability: the calendar can be missing
+   * days or out of sync, the bookings are the source of truth.
+   */
+  async _assertSpotFree(
+    connection: PoolConnection,
+    spotId: number,
+    checkin: string | Date,
+    checkout: string | Date,
+    excludeBookingId: number | null,
+    message = 'La plaza no está disponible en las fechas seleccionadas'
+  ): Promise<void> {
+    await connection.query('SELECT id FROM parking_spots WHERE id = ? FOR UPDATE', [spotId])
+
+    const [rows] = await connection.query<OverlapCountRow[]>(
+      `SELECT COUNT(*) AS overlapping
+      FROM parking_bookings
+      WHERE spot_id = ?
+        AND id <> ?
+        AND status IN ('reserved', 'checked_in')
+        AND DATE(expected_checkin) < DATE(?)
+        AND DATE(expected_checkout) > DATE(?)
+      FOR SHARE`,
+      [spotId, excludeBookingId ?? 0, checkout, checkin]
+    )
+
+    if (rows[0].overlapping > 0) {
+      throw new Error(message)
+    }
+  }
+
   // ============================================
   // HELPER: Calcular días entre fechas
   // ============================================
@@ -291,20 +329,8 @@ class ParkingBookingsRepository {
 
       const spot_id = spotRows[0].id
 
-      // 2. Verificar disponibilidad
-      const [availCheck] = await connection.query<AvailabilityCountRow[]>(
-        `SELECT COUNT(*) AS unavailable 
-        FROM parking_availability 
-        WHERE spot_id = ? 
-          AND date >= DATE(?) 
-          AND date < DATE(?) 
-          AND is_available = FALSE`,
-        [spot_id, expected_checkin, expected_checkout]
-      )
-
-      if (availCheck[0].unavailable > 0) {
-        throw new Error('La plaza no está disponible en las fechas seleccionadas')
-      }
+      // 2. Verificar disponibilidad (bloquea la plaza hasta el commit)
+      await this._assertSpotFree(connection, spot_id, expected_checkin, expected_checkout, null)
 
       // 3. Calcular precio SOLO si no se proporciona manualmente
       let finalAmount = total_amount
@@ -376,13 +402,19 @@ class ParkingBookingsRepository {
         throw new Error(`No se puede hacer check-in: estado actual es '${booking[0].status}'`)
       }
 
+      // Lock the spot so two check-ins on it run one after the other
+      await connection.query('SELECT id FROM parking_spots WHERE id = ? FOR UPDATE', [
+        booking[0].spot_id,
+      ])
+
       const [occupied] = await connection.query<OccupiedCountRow[]>(
         `SELECT COUNT(*) AS count 
         FROM parking_bookings 
         WHERE spot_id = ? 
           AND id != ? 
           AND status = 'checked_in' 
-          AND (actual_checkout IS NULL OR actual_checkout > NOW())`,
+          AND (actual_checkout IS NULL OR actual_checkout > NOW())
+        FOR SHARE`,
         [booking[0].spot_id, id]
       )
 
@@ -587,28 +619,27 @@ class ParkingBookingsRepository {
         }
 
         spot_id = spotRows[0].id
+      }
 
-        if (spot_id !== booking[0].spot_id) {
-          const [availCheck] = await connection.query<AvailabilityCountRow[]>(
-            `SELECT COUNT(*) AS unavailable 
-            FROM parking_availability 
-            WHERE spot_id = ? 
-              AND date >= DATE(?) 
-              AND date < DATE(?) 
-              AND is_available = FALSE
-              AND (booking_id IS NULL OR booking_id != ?)`,
-            [
-              spot_id,
-              updateData.expected_checkin || booking[0].expected_checkin,
-              updateData.expected_checkout || booking[0].expected_checkout,
-              id,
-            ]
-          )
-
-          if (availCheck[0].unavailable > 0) {
-            throw new Error('La nueva plaza no está disponible en las fechas seleccionadas')
-          }
-        }
+      // A new spot or new dates must be free for an active booking. It used
+      // to be checked only when the spot changed, so moving the dates onto
+      // another booking's days went through
+      const spotChanged = spot_id !== booking[0].spot_id
+      const datesChanged = Boolean(updateData.expected_checkin || updateData.expected_checkout)
+      if (
+        (spotChanged || datesChanged) &&
+        (booking[0].status === 'reserved' || booking[0].status === 'checked_in')
+      ) {
+        await this._assertSpotFree(
+          connection,
+          spot_id,
+          updateData.expected_checkin || booking[0].expected_checkin,
+          updateData.expected_checkout || booking[0].expected_checkout,
+          id,
+          spotChanged
+            ? 'La nueva plaza no está disponible en las fechas seleccionadas'
+            : 'La plaza no está disponible en las fechas seleccionadas'
+        )
       }
 
       const fields: string[] = []
