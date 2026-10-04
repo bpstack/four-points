@@ -28,9 +28,24 @@ el historial.
   (ADR-027).
 - **Sobre un clon**, no sobre el repositorio actual, que sigue privado. El
   historial limpio se sube a un **repositorio nuevo y público** (ADR-006).
-- **Todas las ramas** se limpian y se publican (ADR-026): hoy `main`,
-  `chore/audit-prep-sprint-0`, `feature/ai-schedule-generator`,
-  `feature/auth-hardening` y `feature/observability-pino`. Sin tags.
+- **Solo dos ramas** se limpian y se publican (ADR-035): `main` y
+  `claude/compassionate-planck-gh6aof`. Las otras cuatro no tienen ningún commit
+  fuera de `main` (comprobado el 2026-10-05). Sin tags; las referencias
+  `pull/*` de GitHub no se publican.
+- **Dónde**: `C:Usersdzprojectsour-points-phase2`, fuera del repositorio.
+  `git-filter-repo` 2.47.0 está en `C:Usersdz	oolsgit-filter-repo` (venv
+  propio, 2026-10-05).
+
+### Estado (2026-10-05)
+
+- ✅ Paso 0: copia `four-points-backup.git` (`clone --mirror`, no se toca) y
+  `four-points-backup.bundle` (10,8 MB, `git bundle verify` correcto).
+- ✅ Análisis de rutas y secretos (abajo, «Candidatos conocidos»).
+- ⏳ Paso 1: listas definitivas (`paths.txt`, `replacements.txt`,
+  `mailmap.txt`), fuera del repositorio; las aprueba el propietario.
+- ⏳ Barrido independiente de OpenCode (solo lectura).
+- ⏳ Ensayo (`--dry-run`), las tres operaciones con su auditoría, auditoría
+  final y publicación (ADR-035).
 
 ## Reglas
 
