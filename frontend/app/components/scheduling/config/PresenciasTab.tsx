@@ -76,7 +76,7 @@ export function PresenciasTab() {
         <textarea
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder={'EMP_06\tP\tB\tL14\tP\t...\nMARTA R\tM\tT\tN\t...'}
+          placeholder={'LAURA\tP\tB\tL14\tP\t...\nMARTA R\tM\tT\tN\t...'}
           rows={10}
           spellCheck={false}
           className="w-full font-mono text-xs rounded-md border border-border bg-surface text-fg p-3 focus:outline-none focus:ring-2 focus:ring-accent/50 resize-y"
