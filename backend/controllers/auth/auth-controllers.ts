@@ -48,7 +48,18 @@ const cookieOptions: CookieOptions = {
  * Login de usuario
  * Genera access token (15min) y refresh token (8h) en cookies HttpOnly
  */
+// A failed login never answers before this: what the response time could
+// tell (real or unknown user, password checked or not) stays under the floor.
+// Above the p75 of failed logins measured on Render (~420 ms, 2026-10-04)
+export const LOGIN_FAILURE_MIN_MS = 600
+
+async function waitForFailureFloor(startedAt: number): Promise<void> {
+  const remaining = LOGIN_FAILURE_MIN_MS - (Date.now() - startedAt)
+  if (remaining > 0) await new Promise((resolve) => setTimeout(resolve, remaining))
+}
+
 export const login = async (req: Request, res: Response): Promise<void> => {
+  const startedAt = Date.now()
   try {
     const { username, password } = req.body as LoginDTO
 
@@ -63,6 +74,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     const user = await UserRepository.login({ username, password })
 
     if (!user) {
+      await waitForFailureFloor(startedAt)
       res.status(401).json({
         error: ERROR_CODES.AUTH_INVALID_CREDENTIALS,
         code: ERROR_CODES.AUTH_INVALID_CREDENTIALS,
@@ -101,6 +113,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       user: userWithoutPassword,
     })
   } catch {
+    await waitForFailureFloor(startedAt)
     res.status(401).json({
       error: ERROR_CODES.AUTH_INVALID_CREDENTIALS,
       code: ERROR_CODES.AUTH_INVALID_CREDENTIALS,

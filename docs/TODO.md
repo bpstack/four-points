@@ -52,20 +52,13 @@ sigue siendo donde se arregla este fichero y se prueba en el entorno preview.
       `SECRET_JWT_KEY` ya se cambió el 2026-09-29 en Render y en local (el
       backend exige ahora 32 caracteres o más); el propietario lo generó sin
       pasarlo por el agente.
-- [ ] **Medir la protección contra timing attacks del login** — `DUMMY_HASH`
-      (`backend/repositories/auth/user-repository.ts`) es un hash bcrypt de
-      coste 10, igual que los 22 de Aiven (_comprobado el 2026-09-29_; si se
-      sube `SALT_ROUNDS`, el hash de relleno debe subir también). En local,
-      llamando a `UserRepository.login` 20 veces, real e inexistente tardan lo
-      mismo (53,5 frente a 53,9 ms). En producción, 5 intentos con contraseña
-      mala contra un usuario real dieron mediana 447 ms frente a 377 ms de
-      usuarios inexistentes, y las parejas de inexistentes no muestran efecto
-      de orden: **diferencia sin explicar**. Repetir con una muestra mayor
-      (varios usuarios desechables, porque el límite por usuario es 5 y el de
-      IP 20 fallos cada 15 min).
-
-### 🟡 Media
-
+- [ ] **Login: el tiempo de respuesta puede delatar si un usuario existe** —
+      en preview, 18 intentos fallidos por tipo (2026-10-04): mediana 364 ms
+      con usuario real frente a 340 ms con inexistente (Mann-Whitney p ≈ 0,048),
+      aunque el mínimo es menor con usuario real (300 frente a 320 ms) y en
+      local el repositorio tarda lo mismo. Arreglado sin depender de la causa:
+      todo login fallido tarda al menos  (600 ms).
+      Falta repetir la medida en preview con el arreglo desplegado.
 - [ ] **El frontend no tiene Content-Security-Policy** (`frontend/vercel.json`).
       _Según la revisión `security` L3 del 2026-09-28 (fichero y línea en el
       informe); no repasado por mí._
@@ -75,10 +68,10 @@ sigue siendo donde se arregla este fichero y se prueba en el entorno preview.
       nombres), los 18 `.http` de `backend/API REST/` (contraseñas, tokens y
       usuarios) y los nombres de los comentarios de `aiven/19_scheduling.sql`
       y `20251224_add_scheduling.sql`. Quedan: nombres de pila en los
-      fixtures del corpus del solver (`tests/scheduling-corpus/`) y en un
-      comentario de `AuditTrail.tsx`, el autor de las guías del checklist y
-      de los README, y los usuarios de horarios en la BD (9 de 10 con nombre
-      de pila). Todo sigue en el historial (fase 2, `GITCLEAN.md`).
+      fixtures del corpus del solver (`tests/scheduling-corpus/`) y los
+      usuarios de horarios en la BD (9 de 10 con nombre de pila). El autor de las guías del checklist y de los README es el
+      propietario y se queda. Todo sigue en el historial (fase 2,
+      `GITCLEAN.md`).
       _Comprobado por mí el 2026-10-04._
 
 ## Después de publicar
