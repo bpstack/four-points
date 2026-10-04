@@ -1,6 +1,6 @@
 // repositories/logbook/logbookCommentsHistory-repository.ts
 
-import db from '../../config/db.js'
+import { dbx } from '../../config/transaction.js'
 import type {
   CommentHistoryParams,
   LogbookHistoryRow,
@@ -19,7 +19,7 @@ export async function createCommentAction({
   previous_content,
   current_content,
 }: CommentHistoryParams): Promise<number> {
-  const [result] = await db.execute<ResultSetHeader>(
+  const [result] = await dbx().execute<ResultSetHeader>(
     `INSERT INTO logbook_history
       (logbook_id, comment_id, editor_id, type, action,
         previous_content, new_content, created_at)
@@ -43,7 +43,7 @@ export async function createCommentAction({
 export async function getHistoryByCommentId(
   comment_id: number | string
 ): Promise<LogbookHistoryRow[]> {
-  const [rows] = await db.query<LogbookHistoryRow[]>(
+  const [rows] = await dbx().query<LogbookHistoryRow[]>(
     `SELECT *
       FROM logbook_history
       WHERE comment_id = ?

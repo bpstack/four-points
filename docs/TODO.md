@@ -65,9 +65,6 @@ sigue siendo donde se arregla este fichero y se prueba en el entorno preview.
       (ya sin valores, pero siguen en el historial). Sacarlos del historial
       en la fase 2 y rotar (ver la entrada de rotación). _Comprobado por mí el
       2026-09-28._
-- [ ] **Logbook: el historial no es atómico** — no hay ninguna transacción en el
-      módulo: un fallo entre el cambio y su registro deja cambios sin auditar o
-      borrados auditados que no ocurrieron. _Comprobado por mí el 2026-09-28._
 - [ ] **Parking: dos reservas creadas a la vez chocan en `booking_code`** —
       el trigger `trg_generate_booking_code` calcula el siguiente número con
       `MAX()` sobre una lectura sin bloqueo; dos altas simultáneas (aunque sean

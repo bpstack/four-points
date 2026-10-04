@@ -1,7 +1,7 @@
 // repositories/logbook/logbook-repository.ts
 // CRUD + soft-delete + filtros
 
-import db from '../../config/db.js'
+import { dbx } from '../../config/transaction.js'
 import { getTodayMadrid } from '../../config/date-utils.js'
 import type {
   LogbookWithAuthor,
@@ -44,7 +44,7 @@ export async function createLogbook({
 
   const today = getTodayMadrid() // YYYY-MM-DD en Europe/Madrid (hotel_date)
 
-  const [result] = await db.execute<ResultSetHeader>(
+  const [result] = await dbx().execute<ResultSetHeader>(
     `INSERT INTO logbooks
       (message, importance_level, department_id, author_id, created_at, updated_at, date)
     VALUES (?, ?, ?, ?, NOW(), NOW(), ?)`,
@@ -69,7 +69,7 @@ export async function createLogbook({
 // ============================================
 
 export async function getById(id: number | string): Promise<LogbookWithAuthor | undefined> {
-  const [rows] = await db.execute<LogbookWithAuthor[]>(
+  const [rows] = await dbx().execute<LogbookWithAuthor[]>(
     `SELECT 
       l.*,
       u.username as author_name,
@@ -89,7 +89,7 @@ export async function getAllLogbooks(
   const limit = sanitizeLimit(options.limit)
   const offset = options.offset || 0
 
-  const [rows] = await db.query<LogbookWithAuthor[]>(
+  const [rows] = await dbx().query<LogbookWithAuthor[]>(
     `SELECT
       l.*,
       u.username as author_name,
@@ -144,7 +144,7 @@ export async function getLogbooksFiltered(
 
   const where = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : ''
 
-  const [rows] = await db.query<LogbookWithAuthor[]>(
+  const [rows] = await dbx().query<LogbookWithAuthor[]>(
     `SELECT
       l.*,
       u.username as author_name,
@@ -167,7 +167,7 @@ export async function getLogbooksByDepartment(
   const limit = sanitizeLimit(options.limit)
   const offset = options.offset || 0
 
-  const [rows] = await db.query<LogbookWithAuthor[]>(
+  const [rows] = await dbx().query<LogbookWithAuthor[]>(
     `SELECT 
       l.*,
       u.username as author_name,
@@ -190,7 +190,7 @@ export async function getLogbooksByAuthor(
   const limit = sanitizeLimit(options.limit)
   const offset = options.offset || 0
 
-  const [rows] = await db.query<LogbookWithAuthor[]>(
+  const [rows] = await dbx().query<LogbookWithAuthor[]>(
     `SELECT 
       l.*,
       u.username as author_name,
@@ -218,7 +218,7 @@ export async function getLogbooksByImportance(
   const limit = sanitizeLimit(options.limit)
   const offset = options.offset || 0
 
-  const [rows] = await db.query<LogbookWithAuthor[]>(
+  const [rows] = await dbx().query<LogbookWithAuthor[]>(
     `SELECT 
       l.*,
       u.username as author_name,
@@ -241,7 +241,7 @@ export async function getLogbooksByDay(
   const limit = sanitizeLimit(options.limit)
   const offset = options.offset || 0
 
-  const [rows] = await db.query<LogbookWithAuthor[]>(
+  const [rows] = await dbx().query<LogbookWithAuthor[]>(
     `SELECT 
       l.*,
       u.username as author_name,
@@ -264,7 +264,7 @@ export async function getAllTrashedLogbooks(
   const limit = sanitizeLimit(options.limit)
   const offset = options.offset || 0
 
-  const [rows] = await db.query<LogbookWithAuthor[]>(
+  const [rows] = await dbx().query<LogbookWithAuthor[]>(
     `SELECT 
       l.*,
       u.username as author_name,
@@ -288,7 +288,7 @@ export async function updateLogbook(
   logbookId: number | string,
   { message, importance_level, department_id }: UpdateLogbookDTO
 ): Promise<boolean> {
-  const [result] = await db.execute<ResultSetHeader>(
+  const [result] = await dbx().execute<ResultSetHeader>(
     `UPDATE logbooks
     SET message = COALESCE(?, message),
         importance_level = COALESCE(?, importance_level),
@@ -305,7 +305,7 @@ export async function updateLogbook(
 // ============================================
 
 export async function softDeleteLogbook(logbookId: number | string): Promise<boolean> {
-  const [result] = await db.execute<ResultSetHeader>(
+  const [result] = await dbx().execute<ResultSetHeader>(
     'UPDATE logbooks SET deleted_at = NOW() WHERE id = ? AND deleted_at IS NULL',
     [logbookId]
   )

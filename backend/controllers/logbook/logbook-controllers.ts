@@ -15,6 +15,7 @@ import {
 import { ERROR_CODES, SUCCESS_CODES } from '../../config/error-codes.js'
 import { logger } from '../../config/logger.js'
 import { sendLogbookError } from './logbook-errors.js'
+import { withTransaction } from '../../config/transaction.js'
 
 // Validates limit, offset and filters; answers 400 and returns null when invalid
 export function parseListQuery(req: Request, res: Response): LogbookListQuery | null {
@@ -39,14 +40,19 @@ export async function createLogbook(req: Request, res: Response): Promise<void> 
   try {
     const validatedData = createLogbookSchema.parse(req.body)
     const authorId = req.user!.id
-    const logbook = await logbookRepo.createLogbook({ ...validatedData, author_id: authorId })
+    // The entry and its history row commit together
+    const logbook = await withTransaction(async () => {
+      const created = await logbookRepo.createLogbook({ ...validatedData, author_id: authorId })
 
-    await historyService.logAction({
-      logbook_id: logbook.id,
-      editor_id: authorId,
-      action: 'create',
-      new_content: validatedData.message,
-      department_id: validatedData.department_id,
+      await historyService.logAction({
+        logbook_id: created.id,
+        editor_id: authorId,
+        action: 'create',
+        new_content: validatedData.message,
+        department_id: validatedData.department_id,
+      })
+
+      return created
     })
 
     res.status(201).json(logbook)
@@ -307,15 +313,21 @@ export async function deleteLogbookController(req: Request, res: Response): Prom
       return
     }
 
-    const historyRecord = await historyService.deleteLogbookHistory({
-      logbook_id: Number(logbookId),
-      editor_id: editorId,
-      previous_content: logbook,
-      department_id: logbook.department_id,
+    // The soft delete and its history row commit together; the history used
+    // to be written first and stayed even when the delete did not happen
+    const historyRecord = await withTransaction(async () => {
+      const deleted = await logbookRepo.softDeleteLogbook(logbookId)
+      if (!deleted) return null
+
+      return historyService.deleteLogbookHistory({
+        logbook_id: Number(logbookId),
+        editor_id: editorId,
+        previous_content: logbook,
+        department_id: logbook.department_id,
+      })
     })
 
-    const deleted = await logbookRepo.softDeleteLogbook(logbookId)
-    if (!deleted) {
+    if (!historyRecord) {
       res.status(500).json({
         success: false,
         error: ERROR_CODES.LOGBOOK_DELETE_ERROR,
