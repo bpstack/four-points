@@ -582,3 +582,36 @@
   preview está despierto, y una sesión iniciada en preview vale también en
   producción. Detalle y pasos para retirarlo en `docs/general/README.md`
   («Preview environment»).
+
+## ADR-031 — La rama entra en `main` con merge normal; la autoría de Claude se corrige en la fase 2
+
+- **Estado:** ✅ aceptada (2026-10-04)
+- **Fecha:** 2026-10-04
+- **Decisión:**
+  - `claude/compassionate-planck-gh6aof` entra en `main` con un **merge
+    normal** («Create a merge commit»), **no con squash**. Los commits llegan a
+    `main` uno a uno.
+  - Los **5 commits con autor `Claude <noreply@anthropic.com>`** (`ec8e901`,
+    `f9d1541`, `2ed0abb`, `8584e93`, `6a67ab3`) **no se rehacen ahora**: su
+    autor pasa a `bpstack` en la reescritura de la fase 2, con
+    `git-filter-repo --mailmap`, la misma pasada que quita los ficheros
+    privados (`GITCLEAN.md`).
+  - Los pares fnb y revert se quedan: se anulan entre sí y no cambian código.
+  - La lista de arreglos vive en `git log` y en `docs/VERIFY.md`, versionado.
+- **Motivo:** `TODO.md` borra lo terminado porque `git log` ya lo registra. Un
+  squash dejaría en `main` un único commit y, al borrar la rama, se perdería el
+  detalle de cada arreglo. La fase 2 ya reescribe el historial con
+  `git-filter-repo`, así que corregir el autor ahí no añade ninguna reescritura
+  más ni obliga a forzar el push de la rama.
+- **Rechazado:**
+  - **Squash merge** (lo que proponía `TODO.md`): pierde el detalle de cada
+    arreglo.
+  - **Rehacer la rama a mano** con `cherry-pick` y `--reset-author`: reescritura
+    extra y `push --force` a la rama, para un resultado que la fase 2 da gratis.
+  - **La lista en `docs/_archive/`**: está en `.gitignore` (ADR-009) y solo
+    existiría en un equipo.
+- **Consecuencias:** hasta la fase 2, `main` (privado) lleva esos 5 commits con
+  autor Claude. Si la fase 2 no llegara a hacerse, habría que corregirlos de
+  otra forma antes de publicar.
+- **Revisa:** el primer punto de `TODO.md` (proponía squash) y las reglas de
+  `GITCLEAN.md` (solo quitaban ficheros).
