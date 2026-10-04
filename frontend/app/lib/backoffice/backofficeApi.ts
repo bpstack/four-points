@@ -253,6 +253,17 @@ export const backofficeApi = {
   },
 
   /**
+   * Revertir el pago de una factura (paid -> validated)
+   */
+  revertPayment: async (
+    id: number,
+    notes?: string
+  ): Promise<{ message: string; invoice: InvoiceWithDetails }> => {
+    const url = `${API_BASE}/api/backoffice/invoices/${id}/unpay`
+    return apiClient.post(url, { notes: notes || null })
+  },
+
+  /**
    * Eliminar factura (soft delete)
    */
   /**

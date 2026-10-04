@@ -136,7 +136,8 @@
       "totalMonth": "Total {month}",
       "directDebits": "Domiciliadas",
       "transfers": "Transferencias"
-    }
+    },
+    "revertPayment": "Revertir pago"
   },
   "suppliers": {
     "tabs": {
@@ -381,6 +382,11 @@
       "description": "Esta accion revertira todas las facturas pagadas de {month} a estado validado. Podras volver a cerrar el mes posteriormente.",
       "confirmButton": "Revertir {count} Facturas"
     },
+    "revertPayment": {
+      "title": "Revertir pago",
+      "message": "La factura {number} volvera a estado validado y se borrara su fecha de pago.",
+      "confirmButton": "Revertir pago"
+    },
     "pdfEditor": {
       "title": "Validar Factura",
       "tools": "Herramientas",
@@ -529,7 +535,9 @@
     "previewError": "Error al obtener preview",
     "revertPaymentsError": "Error al revertir pagos",
     "unknownError": "Error desconocido",
-    "downloadPdfError": "Error al descargar PDF"
+    "downloadPdfError": "Error al descargar PDF",
+    "paymentReverted": "Pago revertido",
+    "paymentRevertError": "Error al revertir el pago"
   },
   "csvHeaders": {
     "supplier": "Proveedor",

@@ -43,11 +43,6 @@ sigue siendo donde se arregla este fichero y se prueba en el entorno preview.
       llevan CIF, IBAN e importes, y la URL firmada no protege nada. Con el
       sello y la firma públicos se puede fabricar una factura «validada».
       _Comprobado por mí el 2026-09-28._
-- [ ] **Backoffice: sin máquina de estados** — se paga una factura pendiente o
-      rechazada, se valida una pagada, se cambian importes tras validar o pagar,
-      y el historial guarda un estado anterior fijo. _Según la revisión
-      `security` L3 del 2026-09-28 (fichero y línea en el informe); no repasado
-      por mí._
 - [ ] **Cashier: operaciones que fallan siempre en producción** — justificar,
       cancelar y editar vales, y editar pagos o recuentos sueltos escriben
       columnas que no existen en Aiven (`justified_at`, `cancelled_at`,
@@ -391,6 +386,11 @@ sigue siendo donde se arregla este fichero y se prueba en el entorno preview.
 
 ## 🟢 Baja
 
+- [ ] **Backoffice: rechazar facturas no tiene UI** — el estado `rejected` y
+      `POST /invoices/:id/reject` existen, pero ningún botón los usa y ninguna
+      pestaña muestra las rechazadas. Una factura incorrecta hoy se borra. El
+      dueño decidió el 2026-10-04 no añadirlo porque casi nunca pasa; si se
+      añade, hace falta también reabrir (`rejected` → `pending`).
 - [ ] **Retirar el rol `demo-admin`** — el usuario demo está deshabilitado
       (según el dueño, 2026-10-02; no comprobado en la BD), pero el rol sigue en los
       middlewares de `roleCheck.ts`, en `demoRestriction`, en las rutas `/demo`

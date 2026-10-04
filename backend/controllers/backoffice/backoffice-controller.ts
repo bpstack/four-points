@@ -25,6 +25,25 @@ import {
   CLOUDINARY_FOLDERS,
 } from '../../services/uploads/cloudinary-url.js'
 
+// An invoice action changed no row: the invoice does not exist (404) or its
+// status does not allow the action (409)
+async function respondActionNotApplied(res: Response, id: number): Promise<void> {
+  const invoice = await BackofficeRepository.getInvoiceById(id)
+  if (!invoice) {
+    res.status(404).json({
+      success: false,
+      error: ERROR_CODES.BACKOFFICE_INVOICE_NOT_FOUND,
+      code: ERROR_CODES.BACKOFFICE_INVOICE_NOT_FOUND,
+    })
+    return
+  }
+  res.status(409).json({
+    success: false,
+    error: ERROR_CODES.BACKOFFICE_INVALID_STATUS,
+    code: ERROR_CODES.BACKOFFICE_INVALID_STATUS,
+  })
+}
+
 // ========================================
 // CONTROLLER
 // ========================================
@@ -620,11 +639,7 @@ export class BackofficeController {
       const updated = await BackofficeRepository.updateInvoice(Number(id), req.body, req.user.id)
 
       if (!updated) {
-        res.status(404).json({
-          success: false,
-          error: ERROR_CODES.BACKOFFICE_INVOICE_NOT_FOUND,
-          code: ERROR_CODES.BACKOFFICE_INVOICE_NOT_FOUND,
-        })
+        await respondActionNotApplied(res, Number(id))
         return
       }
 
@@ -696,11 +711,7 @@ export class BackofficeController {
       )
 
       if (!validated) {
-        res.status(404).json({
-          success: false,
-          error: ERROR_CODES.BACKOFFICE_INVOICE_NOT_FOUND,
-          code: ERROR_CODES.BACKOFFICE_INVOICE_NOT_FOUND,
-        })
+        await respondActionNotApplied(res, Number(id))
         return
       }
 
@@ -760,11 +771,7 @@ export class BackofficeController {
       const rejected = await BackofficeRepository.rejectInvoice(Number(id), notes, req.user.id)
 
       if (!rejected) {
-        res.status(404).json({
-          success: false,
-          error: ERROR_CODES.BACKOFFICE_INVOICE_NOT_FOUND,
-          code: ERROR_CODES.BACKOFFICE_INVOICE_NOT_FOUND,
-        })
+        await respondActionNotApplied(res, Number(id))
         return
       }
 
@@ -867,11 +874,7 @@ export class BackofficeController {
       const paid = await BackofficeRepository.markAsPaid(Number(id), paid_date, req.user.id)
 
       if (!paid) {
-        res.status(404).json({
-          success: false,
-          error: ERROR_CODES.BACKOFFICE_INVOICE_NOT_FOUND,
-          code: ERROR_CODES.BACKOFFICE_INVOICE_NOT_FOUND,
-        })
+        await respondActionNotApplied(res, Number(id))
         return
       }
 
@@ -889,6 +892,49 @@ export class BackofficeController {
         success: false,
         error: ERROR_CODES.BACKOFFICE_MARK_PAID_ERROR,
         code: ERROR_CODES.BACKOFFICE_MARK_PAID_ERROR,
+      })
+    }
+  }
+
+  /**
+   * POST /api/backoffice/invoices/:id/unpay
+   * Revertir el pago de una factura (paid -> validated)
+   */
+  static async revertPayment(req: Request, res: Response): Promise<void> {
+    try {
+      if (!req.user?.id) {
+        res.status(401).json({
+          success: false,
+          error: ERROR_CODES.UNAUTHORIZED,
+          code: ERROR_CODES.UNAUTHORIZED,
+        })
+        return
+      }
+
+      const { id } = req.params
+      const notes = typeof req.body?.notes === 'string' ? req.body.notes : null
+
+      const reverted = await BackofficeRepository.revertPayment(Number(id), notes, req.user.id)
+
+      if (!reverted) {
+        await respondActionNotApplied(res, Number(id))
+        return
+      }
+
+      const invoice = await BackofficeRepository.getInvoiceById(Number(id))
+
+      res.json({
+        success: true,
+        message: SUCCESS_CODES.BACKOFFICE_PAYMENT_REVERTED,
+        code: SUCCESS_CODES.BACKOFFICE_PAYMENT_REVERTED,
+        invoice,
+      })
+    } catch (error) {
+      logger.error({ err: error }, '[BackofficeController.revertPayment] Error')
+      res.status(500).json({
+        success: false,
+        error: ERROR_CODES.BACKOFFICE_REVERT_PAYMENT_ERROR,
+        code: ERROR_CODES.BACKOFFICE_REVERT_PAYMENT_ERROR,
       })
     }
   }
@@ -1030,6 +1076,17 @@ export class BackofficeController {
           success: false,
           error: ERROR_CODES.BACKOFFICE_INVOICE_NOT_FOUND,
           code: ERROR_CODES.BACKOFFICE_INVOICE_NOT_FOUND,
+        })
+        return
+      }
+
+      // Only a pending invoice takes a new PDF; checked before the upload so a
+      // refused request leaves no file in Cloudinary
+      if (invoice.status !== 'pending') {
+        res.status(409).json({
+          success: false,
+          error: ERROR_CODES.BACKOFFICE_INVALID_STATUS,
+          code: ERROR_CODES.BACKOFFICE_INVALID_STATUS,
         })
         return
       }

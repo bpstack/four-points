@@ -240,6 +240,13 @@ router.post('/invoices/:id/unvalidate', isRealAdmin, BackofficeController.unvali
 router.post('/invoices/:id/pay', isRealAdmin, BackofficeController.markAsPaid)
 
 /**
+ * @route   POST /api/backoffice/invoices/:id/unpay
+ * @desc    Revertir el pago de una factura (paid -> validated)
+ * @access  Private (admin only)
+ */
+router.post('/invoices/:id/unpay', isRealAdmin, BackofficeController.revertPayment)
+
+/**
  * @route   DELETE /api/backoffice/invoices/:id
  * @desc    Eliminar factura (hard delete - eliminación permanente)
  * @access  Private (admin only)
