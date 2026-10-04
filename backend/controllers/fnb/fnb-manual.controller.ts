@@ -1,15 +1,10 @@
 import type { Request, Response } from 'express'
-import { z } from 'zod'
 import * as repo from '../../repositories/fnb/fnb.repository.js'
 import { trackedCodesSet, loadCategories } from '../../services/fnb/fnb-categories.cache.js'
-
-const bodySchema = z.object({
-  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-  values: z.record(z.string(), z.number()),
-})
+import { fnbManualEntrySchema } from '../../validations/fnb/fnb.validations.js'
 
 export async function manualEntry(req: Request, res: Response) {
-  const parsed = bodySchema.safeParse(req.body)
+  const parsed = fnbManualEntrySchema.safeParse(req.body)
   if (!parsed.success) {
     res.status(400).json({ error: 'Invalid body', details: parsed.error.flatten() })
     return
