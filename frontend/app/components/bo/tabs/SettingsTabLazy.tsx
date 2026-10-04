@@ -15,6 +15,7 @@ import { useTranslations } from 'next-intl'
 import { backofficeApi, type Asset } from '@/app/lib/backoffice'
 import { ConfirmDialog } from '@/app/ui/components'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { privateFileUrl } from '@/app/lib/helpers/private-file'
 
 interface SettingsTabLazyProps {
   initialAssets: Asset[]
@@ -183,7 +184,7 @@ export function SettingsTabLazy({ initialAssets }: SettingsTabLazyProps) {
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src={asset.cloudinary_url}
+            src={privateFileUrl(asset.cloudinary_url)}
             alt={asset.name}
             className="max-w-full max-h-full object-contain"
           />

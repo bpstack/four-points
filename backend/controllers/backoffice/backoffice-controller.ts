@@ -5,7 +5,6 @@
  */
 
 import type { Request, Response } from 'express'
-import axios from 'axios'
 import archiver from 'archiver'
 import {
   BackofficeRepository,
@@ -24,6 +23,8 @@ import {
   isPublicIdInFolder,
   CLOUDINARY_FOLDERS,
 } from '../../services/uploads/cloudinary-url.js'
+import { fetchStoredFile, sendPrivateFile } from '../../services/uploads/private-files.js'
+import { presentAsset, presentInvoice, presentInvoiceOrNull } from './backoffice-files.js'
 
 // An invoice action changed no row: the invoice does not exist (404) or its
 // status does not allow the action (409)
@@ -206,7 +207,7 @@ export class BackofficeController {
       // Obtener también las facturas del proveedor
       const invoices = await BackofficeRepository.getInvoicesBySupplier(Number(id))
 
-      res.json({ success: true, supplier, invoices })
+      res.json({ success: true, supplier, invoices: invoices.map(presentInvoice) })
     } catch (error) {
       logger.error({ err: error }, '[BackofficeController.getSupplierById] Error')
       res.status(500).json({
@@ -478,7 +479,7 @@ export class BackofficeController {
 
       res.json({
         success: true,
-        invoices,
+        invoices: invoices.map(presentInvoice),
         pagination: {
           page,
           limit,
@@ -518,7 +519,7 @@ export class BackofficeController {
       // Obtener historial de la factura
       const history = await BackofficeRepository.getInvoiceHistory(Number(id))
 
-      res.json({ success: true, invoice, history })
+      res.json({ success: true, invoice: presentInvoice(invoice), history })
     } catch (error) {
       logger.error({ err: error }, '[BackofficeController.getInvoiceById] Error')
       res.status(500).json({
@@ -607,7 +608,7 @@ export class BackofficeController {
         success: true,
         message: SUCCESS_CODES.BACKOFFICE_INVOICE_CREATED,
         code: SUCCESS_CODES.BACKOFFICE_INVOICE_CREATED,
-        invoice,
+        invoice: presentInvoiceOrNull(invoice),
       })
     } catch (error) {
       logger.error({ err: error }, '[BackofficeController.createInvoice] Error')
@@ -649,7 +650,7 @@ export class BackofficeController {
         success: true,
         message: SUCCESS_CODES.BACKOFFICE_INVOICE_UPDATED,
         code: SUCCESS_CODES.BACKOFFICE_INVOICE_UPDATED,
-        invoice,
+        invoice: presentInvoiceOrNull(invoice),
       })
     } catch (error) {
       logger.error({ err: error }, '[BackofficeController.updateInvoice] Error')
@@ -729,7 +730,7 @@ export class BackofficeController {
         success: true,
         message: SUCCESS_CODES.BACKOFFICE_INVOICE_VALIDATED,
         code: SUCCESS_CODES.BACKOFFICE_INVOICE_VALIDATED,
-        invoice,
+        invoice: presentInvoiceOrNull(invoice),
       })
     } catch (error) {
       logger.error({ err: error }, '[BackofficeController.validateInvoice] Error')
@@ -781,7 +782,7 @@ export class BackofficeController {
         success: true,
         message: SUCCESS_CODES.BACKOFFICE_INVOICE_REJECTED,
         code: SUCCESS_CODES.BACKOFFICE_INVOICE_REJECTED,
-        invoice,
+        invoice: presentInvoiceOrNull(invoice),
       })
     } catch (error) {
       logger.error({ err: error }, '[BackofficeController.rejectInvoice] Error')
@@ -832,7 +833,7 @@ export class BackofficeController {
         success: true,
         message: SUCCESS_CODES.BACKOFFICE_VALIDATION_REVERTED,
         code: SUCCESS_CODES.BACKOFFICE_VALIDATION_REVERTED,
-        invoice,
+        invoice: presentInvoiceOrNull(invoice),
       })
     } catch (error) {
       logger.error({ err: error }, '[BackofficeController.unvalidateInvoice] Error')
@@ -884,7 +885,7 @@ export class BackofficeController {
         success: true,
         message: SUCCESS_CODES.BACKOFFICE_INVOICE_PAID,
         code: SUCCESS_CODES.BACKOFFICE_INVOICE_PAID,
-        invoice,
+        invoice: presentInvoiceOrNull(invoice),
       })
     } catch (error) {
       logger.error({ err: error }, '[BackofficeController.markAsPaid] Error')
@@ -927,7 +928,7 @@ export class BackofficeController {
         success: true,
         message: SUCCESS_CODES.BACKOFFICE_PAYMENT_REVERTED,
         code: SUCCESS_CODES.BACKOFFICE_PAYMENT_REVERTED,
-        invoice,
+        invoice: presentInvoiceOrNull(invoice),
       })
     } catch (error) {
       logger.error({ err: error }, '[BackofficeController.revertPayment] Error')
@@ -1183,7 +1184,7 @@ export class BackofficeController {
         success: true,
         message: SUCCESS_CODES.BACKOFFICE_PDF_UPLOADED,
         code: SUCCESS_CODES.BACKOFFICE_PDF_UPLOADED,
-        invoice: updatedInvoice,
+        invoice: presentInvoiceOrNull(updatedInvoice),
       })
     } catch (error) {
       logger.error({ err: error }, '[BackofficeController.uploadInvoicePdf] Error')
@@ -1209,9 +1210,35 @@ export class BackofficeController {
 
       const assets = await BackofficeRepository.getAllAssets(type)
 
-      res.json({ success: true, assets })
+      res.json({ success: true, assets: assets.map(presentAsset) })
     } catch (error) {
       logger.error({ err: error }, '[BackofficeController.getAssets] Error')
+      res.status(500).json({
+        success: false,
+        error: ERROR_CODES.BACKOFFICE_FETCH_ASSETS_ERROR,
+        code: ERROR_CODES.BACKOFFICE_FETCH_ASSETS_ERROR,
+      })
+    }
+  }
+
+  /**
+   * GET /api/backoffice/assets/:id/file
+   * Imagen de un sello o firma (fichero privado servido por la API)
+   */
+  static async getAssetFile(req: Request, res: Response): Promise<void> {
+    try {
+      const asset = await BackofficeRepository.getAssetById(Number(req.params.id))
+      if (!asset) {
+        res.status(404).json({
+          success: false,
+          error: ERROR_CODES.BACKOFFICE_ASSET_NOT_FOUND,
+          code: ERROR_CODES.BACKOFFICE_ASSET_NOT_FOUND,
+        })
+        return
+      }
+      sendPrivateFile(res, await fetchStoredFile(asset.cloudinary_url))
+    } catch (error) {
+      logger.error({ err: error }, '[BackofficeController.getAssetFile] Error')
       res.status(500).json({
         success: false,
         error: ERROR_CODES.BACKOFFICE_FETCH_ASSETS_ERROR,
@@ -1298,7 +1325,7 @@ export class BackofficeController {
         success: true,
         message: SUCCESS_CODES.BACKOFFICE_ASSET_CREATED,
         code: SUCCESS_CODES.BACKOFFICE_ASSET_CREATED,
-        asset,
+        asset: asset ? presentAsset(asset) : null,
       })
     } catch (error) {
       logger.error({ err: error }, '[BackofficeController.createAsset] Error')
@@ -1384,7 +1411,7 @@ export class BackofficeController {
         success: true,
         message: SUCCESS_CODES.BACKOFFICE_ASSET_DEFAULT_SET,
         code: SUCCESS_CODES.BACKOFFICE_ASSET_DEFAULT_SET,
-        asset: { ...asset, is_default: true },
+        asset: presentAsset({ ...asset, is_default: true }),
       })
     } catch (error) {
       logger.error({ err: error }, '[BackofficeController.setDefaultAsset] Error')
@@ -1544,43 +1571,12 @@ export class BackofficeController {
             '[BackofficeController.downloadValidatedInvoicesZip] Downloading'
           )
 
-          // Try to download the PDF
-          let pdfBuffer: Buffer | null = null
-
-          // Method 1: Direct URL
+          let pdfBuffer: Buffer
           try {
-            const response = await axios.get(pdfUrl, {
-              responseType: 'arraybuffer',
-              timeout: 30000,
-            })
-            pdfBuffer = Buffer.from(response.data)
+            pdfBuffer = (await fetchStoredFile(pdfUrl)).buffer
           } catch (err) {
-            logger.warn(
-              { invoiceNumber: invoice.invoice_number, err },
-              '[downloadValidatedInvoicesZip] Direct download failed'
-            )
-          }
-
-          // Method 2: Signed URL
-          if (!pdfBuffer) {
-            try {
-              const signedUrl = CloudinaryService.generateSignedUrlFromUrl(pdfUrl, 3600)
-              const response = await axios.get(signedUrl, {
-                responseType: 'arraybuffer',
-                timeout: 30000,
-              })
-              pdfBuffer = Buffer.from(response.data)
-            } catch (err) {
-              logger.warn(
-                { invoiceNumber: invoice.invoice_number, err },
-                '[downloadValidatedInvoicesZip] Signed URL failed'
-              )
-            }
-          }
-
-          if (!pdfBuffer) {
             logger.error(
-              { invoiceNumber: invoice.invoice_number },
+              { invoiceNumber: invoice.invoice_number, err },
               '[downloadValidatedInvoicesZip] Failed to download PDF'
             )
             continue // Skip this invoice but continue with others
@@ -1624,63 +1620,6 @@ export class BackofficeController {
   // ========================================
   // ESTADÍSTICAS
   // ========================================
-
-  /**
-   * GET /api/backoffice/invoices/:id/pdf-url
-   * Obtener URL firmada para visualizar PDF
-   */
-  static async getInvoicePdfUrl(req: Request, res: Response): Promise<void> {
-    try {
-      const { id } = req.params
-      const { type } = req.query // 'original' o 'validated'
-
-      if (!type || !['original', 'validated'].includes(type as string)) {
-        res.status(400).json({
-          success: false,
-          error: ERROR_CODES.BACKOFFICE_PDF_TYPE_REQUIRED,
-          code: ERROR_CODES.BACKOFFICE_PDF_TYPE_REQUIRED,
-        })
-        return
-      }
-
-      const invoice = await BackofficeRepository.getInvoiceById(Number(id))
-      if (!invoice) {
-        res.status(404).json({
-          success: false,
-          error: ERROR_CODES.BACKOFFICE_INVOICE_NOT_FOUND,
-          code: ERROR_CODES.BACKOFFICE_INVOICE_NOT_FOUND,
-        })
-        return
-      }
-
-      const pdfUrl = type === 'original' ? invoice.original_pdf_url : invoice.validated_pdf_url
-
-      if (!pdfUrl) {
-        res.status(404).json({
-          success: false,
-          error: ERROR_CODES.BACKOFFICE_INVOICE_NOT_FOUND,
-          code: ERROR_CODES.BACKOFFICE_INVOICE_NOT_FOUND,
-        })
-        return
-      }
-
-      // Generar URL firmada válida por 1 hora
-      const signedUrl = CloudinaryService.generateSignedUrlFromUrl(pdfUrl, 3600)
-
-      res.json({
-        success: true,
-        url: signedUrl,
-        expires_in: 3600,
-      })
-    } catch (error) {
-      logger.error({ err: error }, '[BackofficeController.getInvoicePdfUrl] Error')
-      res.status(500).json({
-        success: false,
-        error: ERROR_CODES.BACKOFFICE_GET_PDF_URL_ERROR,
-        code: ERROR_CODES.BACKOFFICE_GET_PDF_URL_ERROR,
-      })
-    }
-  }
 
   /**
    * GET /api/backoffice/invoices/:id/pdf-download
@@ -1732,112 +1671,15 @@ export class BackofficeController {
         return
       }
 
-      logger.debug({ pdfUrl }, '[BackofficeController.downloadInvoicePdf] Downloading from')
+      // The stored URL is signed (private file): fetched here, never sent out
+      const file = await fetchStoredFile(pdfUrl)
 
-      // Intentar múltiples métodos de descarga
-      let pdfBuffer: Buffer | null = null
-      let lastError: unknown = null
-
-      // Método 1: URL directa (funciona para archivos públicos)
-      try {
-        logger.debug('[BackofficeController.downloadInvoicePdf] Trying direct URL...')
-        const response = await axios.get(pdfUrl, {
-          responseType: 'arraybuffer',
-          timeout: 30000,
-        })
-        pdfBuffer = Buffer.from(response.data)
-        logger.debug(
-          '[BackofficeController.downloadInvoicePdf] Downloaded successfully from direct URL'
-        )
-      } catch (err) {
-        lastError = err
-        logger.warn({ err }, '[BackofficeController.downloadInvoicePdf] Direct URL failed')
-      }
-
-      // Método 2: Si es una URL de Cloudinary image/upload, intentar añadir fl_attachment
-      if (!pdfBuffer && pdfUrl.includes('/image/upload/')) {
-        try {
-          // Añadir fl_attachment para forzar descarga
-          const attachmentUrl = pdfUrl.replace('/image/upload/', '/image/upload/fl_attachment/')
-          logger.debug(
-            { attachmentUrl },
-            '[BackofficeController.downloadInvoicePdf] Trying attachment URL'
-          )
-          const response = await axios.get(attachmentUrl, {
-            responseType: 'arraybuffer',
-            timeout: 30000,
-          })
-          pdfBuffer = Buffer.from(response.data)
-          logger.debug(
-            '[BackofficeController.downloadInvoicePdf] Downloaded successfully from attachment URL'
-          )
-        } catch (err) {
-          lastError = err
-          logger.warn({ err }, '[BackofficeController.downloadInvoicePdf] Attachment URL failed')
-        }
-      }
-
-      // Método 3: Intentar URL firmada
-      if (!pdfBuffer) {
-        try {
-          const signedUrl = CloudinaryService.generateSignedUrlFromUrl(pdfUrl, 3600)
-          logger.debug({ signedUrl }, '[BackofficeController.downloadInvoicePdf] Trying signed URL')
-          const response = await axios.get(signedUrl, {
-            responseType: 'arraybuffer',
-            timeout: 30000,
-          })
-          pdfBuffer = Buffer.from(response.data)
-          logger.debug(
-            '[BackofficeController.downloadInvoicePdf] Downloaded successfully from signed URL'
-          )
-        } catch (err) {
-          lastError = err
-          logger.warn({ err }, '[BackofficeController.downloadInvoicePdf] Signed URL failed')
-        }
-      }
-
-      // Método 4: Si tiene .pdf en la URL, intentar sin extensión o vice versa
-      if (!pdfBuffer) {
-        try {
-          let altUrl = pdfUrl
-          if (pdfUrl.endsWith('.pdf')) {
-            altUrl = pdfUrl.replace('.pdf', '')
-          } else {
-            altUrl = pdfUrl + '.pdf'
-          }
-          logger.debug({ altUrl }, '[BackofficeController.downloadInvoicePdf] Trying alternate URL')
-          const response = await axios.get(altUrl, {
-            responseType: 'arraybuffer',
-            timeout: 30000,
-          })
-          pdfBuffer = Buffer.from(response.data)
-          logger.debug(
-            '[BackofficeController.downloadInvoicePdf] Downloaded successfully from alternate URL'
-          )
-        } catch (err) {
-          lastError = err
-          logger.warn({ err }, '[BackofficeController.downloadInvoicePdf] Alternate URL failed')
-        }
-      }
-
-      if (!pdfBuffer) {
-        logger.error(
-          { err: lastError },
-          '[BackofficeController.downloadInvoicePdf] All download methods failed'
-        )
-        throw lastError || new Error('No se pudo descargar el PDF')
-      }
-
-      // Generar nombre de archivo descriptivo
       // Formato: factura_NUMERO_TIPO.pdf (ej: factura_FV202312001_original.pdf)
       const safeInvoiceNumber = invoice.invoice_number.replace(/[/\\?%*:|"<>]/g, '-')
-      const filename = `factura_${safeInvoiceNumber}_${type}.pdf`
-
-      // Enviar el PDF al cliente
-      res.setHeader('Content-Type', 'application/pdf')
-      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`)
-      res.setHeader('Content-Length', pdfBuffer.length)
-      res.send(pdfBuffer)
+      sendPrivateFile(res, file, {
+        contentType: 'application/pdf',
+        filename: `factura_${safeInvoiceNumber}_${type}.pdf`,
+      })
     } catch (error) {
       const err = error as { response?: { status?: number } }
       logger.error(

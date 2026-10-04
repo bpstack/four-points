@@ -291,17 +291,6 @@ export const backofficeApi = {
   },
 
   /**
-   * Obtener URL firmada para visualizar PDF
-   */
-  getInvoicePdfUrl: async (
-    id: number,
-    type: 'original' | 'validated'
-  ): Promise<{ url: string; expires_in: number }> => {
-    const url = `${API_BASE}/api/backoffice/invoices/${id}/pdf-url?type=${type}`
-    return apiClient.get(url)
-  },
-
-  /**
    * Obtener URL para descargar PDF (proxy del backend)
    */
   getInvoicePdfDownloadUrl: (id: number, type: 'original' | 'validated'): string => {
