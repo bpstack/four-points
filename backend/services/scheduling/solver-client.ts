@@ -194,11 +194,12 @@ async function _runWithDaemon(input: SolverInput, signal?: AbortSignal): Promise
   // Asegurar que el daemon está corriendo (puede tardar mucho la primera vez)
   try {
     await startDaemon()
-  } catch (err: any) {
+  } catch (err) {
+    const errObj = err as { message?: string }
     return {
       status: 'error',
       errorCode: 'INTERNAL',
-      message: `No se pudo iniciar el daemon: ${err.message}`,
+      message: `No se pudo iniciar el daemon: ${errObj.message}`,
     }
   }
 
@@ -241,9 +242,9 @@ async function _runWithDaemon(input: SolverInput, signal?: AbortSignal): Promise
   let responseLine: string
   try {
     responseLine = await responsePromise
-  } catch (err: any) {
-    // Daemon murió (py.on('close') → _pendingReject) o timeout lo mató
-    return { status: 'error', errorCode: 'INTERNAL', message: err.message }
+  } catch (err) {
+    const errObj = err as { message?: string }
+    return { status: 'error', errorCode: 'INTERNAL', message: errObj.message ?? 'Unknown error' }
   } finally {
     clearTimeout(timeoutHandle)
     signal?.removeEventListener('abort', onAbort)

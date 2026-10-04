@@ -893,7 +893,7 @@ export async function fixMonthDates(monthId: number, year: number, month: number
       'UPDATE scheduling_days SET date = ? WHERE month_id = ? AND day_number = ?',
       [correctDate, monthId, day]
     )
-    fixedCount += (result as any).affectedRows
+    fixedCount += (result as ResultSetHeader).affectedRows
   }
   return fixedCount
 }
