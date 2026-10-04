@@ -254,7 +254,7 @@ export class MaintenanceRepository {
 
     // Construir condiciones WHERE una sola vez (se reutiliza en count + data)
     const conditions: string[] = []
-    const whereParams: any[] = []
+    const whereParams: (string | number | boolean)[] = []
 
     if (!include_deleted) {
       conditions.push(`r.is_deleted = FALSE`)
@@ -512,15 +512,17 @@ export class MaintenanceRepository {
 
     // Detectar campos que cambiaron
     const fields: string[] = []
-    const values: any[] = []
-    const changes: Array<{ field: string; old: any; new: any }> = []
+    const values: (string | number | boolean | null)[] = []
+    const changes: Array<{ field: string; old: string | null; new: string | null }> = []
 
-    const checkAndAdd = (field: string, newValue: any) => {
-      const oldValue = (current as any)[field]
+    const checkAndAdd = (field: string, newValue: string | number | boolean | null | undefined) => {
+      const oldValue = (current as unknown as Record<string, string | number | boolean | null>)[
+        field
+      ]
       if (newValue !== undefined && newValue !== oldValue) {
         fields.push(`${field} = ?`)
         values.push(newValue)
-        changes.push({ field, old: oldValue, new: newValue })
+        changes.push({ field, old: String(oldValue ?? ''), new: String(newValue ?? '') })
       }
     }
 

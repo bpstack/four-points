@@ -67,7 +67,7 @@ export class MaintenanceController {
         pagination,
         filters_applied: filters,
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, '[MaintenanceController.getAll] Error')
       res.status(500).json({
         error: 'Error al obtener los reportes',
@@ -94,7 +94,7 @@ export class MaintenanceController {
       }
 
       res.json({ report })
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, '[MaintenanceController.getById] Error')
       res.status(500).json({
         error: 'Error al obtener el reporte',
@@ -131,7 +131,7 @@ export class MaintenanceController {
         message: 'Reporte creado correctamente',
         report,
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, '[MaintenanceController.create] Error')
       res.status(500).json({
         error: 'Error al crear el reporte',
@@ -173,11 +173,12 @@ export class MaintenanceController {
         message: 'Reporte actualizado correctamente',
         report,
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, '[MaintenanceController.update] Error')
 
-      if (error.message.includes('eliminado')) {
-        res.status(400).json({ error: error.message })
+      const err = error as { message?: string }
+      if (err.message?.includes('eliminado')) {
+        res.status(400).json({ error: err.message })
         return
       }
 
@@ -227,11 +228,12 @@ export class MaintenanceController {
         message: 'Estado actualizado correctamente',
         report,
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, '[MaintenanceController.updateStatus] Error')
 
-      if (error.message.includes('eliminado')) {
-        res.status(400).json({ error: error.message })
+      const err = error as { message?: string }
+      if (err.message?.includes('eliminado')) {
+        res.status(400).json({ error: err.message })
         return
       }
 
@@ -280,11 +282,12 @@ export class MaintenanceController {
         message: 'Prioridad actualizada correctamente',
         report,
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, '[MaintenanceController.updatePriority] Error')
 
-      if (error.message.includes('eliminado')) {
-        res.status(400).json({ error: error.message })
+      const err = error as { message?: string }
+      if (err.message?.includes('eliminado')) {
+        res.status(400).json({ error: err.message })
         return
       }
 
@@ -333,10 +336,11 @@ export class MaintenanceController {
         message: 'Notas agregadas correctamente',
         report,
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, '[MaintenanceController.addResolutionNotes] Error')
-      if (error.message.includes('eliminado')) {
-        res.status(400).json({ error: error.message })
+      const err = error as { message?: string }
+      if (err.message?.includes('eliminado')) {
+        res.status(400).json({ error: err.message })
         return
       }
       res.status(500).json({
@@ -391,11 +395,12 @@ export class MaintenanceController {
         message: 'Reporte asignado correctamente',
         report,
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, '[MaintenanceController.assignReport] Error')
 
-      if (error.message.includes('eliminado')) {
-        res.status(400).json({ error: error.message })
+      const err = error as { message?: string }
+      if (err.message?.includes('eliminado')) {
+        res.status(400).json({ error: err.message })
         return
       }
 
@@ -426,11 +431,12 @@ export class MaintenanceController {
       }
 
       res.json({ message: 'Reporte eliminado correctamente' })
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, '[MaintenanceController.delete] Error')
 
-      if (error.message.includes('ya está eliminado')) {
-        res.status(400).json({ error: error.message })
+      const err = error as { message?: string }
+      if (err.message?.includes('ya está eliminado')) {
+        res.status(400).json({ error: err.message })
         return
       }
 
@@ -464,11 +470,12 @@ export class MaintenanceController {
         message: 'Reporte restaurado correctamente',
         report,
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, '[MaintenanceController.restore] Error')
 
-      if (error.message.includes('no está eliminado')) {
-        res.status(400).json({ error: error.message })
+      const err = error as { message?: string }
+      if (err.message?.includes('no está eliminado')) {
+        res.status(400).json({ error: err.message })
         return
       }
 
@@ -498,7 +505,7 @@ export class MaintenanceController {
       const images = await MaintenanceRepository.getImagesByReportId(id)
 
       res.json({ images })
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, '[MaintenanceController.getImages] Error')
       res.status(500).json({
         error: 'Error al obtener las imágenes',
@@ -582,7 +589,7 @@ export class MaintenanceController {
         message: 'Imagen subida correctamente',
         image,
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, '[MaintenanceController.uploadImage] Error')
       res.status(500).json({
         error: 'Error al subir la imagen',
@@ -635,7 +642,7 @@ export class MaintenanceController {
       await MaintenanceRepository.deleteImage(Number(imageId))
 
       res.json({ message: 'Imagen eliminada correctamente' })
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, '[MaintenanceController.deleteImage] Error')
       res.status(500).json({
         error: 'Error al eliminar la imagen',
@@ -663,7 +670,7 @@ export class MaintenanceController {
       const history = await MaintenanceRepository.getHistoryByReportId(id)
 
       res.json({ history })
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, '[MaintenanceController.getHistory] Error')
       res.status(500).json({
         error: 'Error al obtener el historial',
@@ -684,7 +691,7 @@ export class MaintenanceController {
       const stats = await MaintenanceRepository.getStats()
 
       res.json(stats)
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, '[MaintenanceController.getStats] Error')
       res.status(500).json({
         error: 'Error al obtener estadísticas',
