@@ -493,7 +493,8 @@
 
 ## ADR-027 — Antes del clon limpio se resuelve todo `TODO.md` y se prueba en producción
 
-- **Estado:** ✅ aceptada (2026-09-28)
+- **Estado:** ✅ aceptada (2026-09-28) · 📌 alcance revisado por
+  [ADR-033](#adr-033--la-fase-1c-se-limita-a-lo-que-hay-que-resolver-antes-de-publicar)
 - **Fecha:** 2026-09-28
 - **Decisión:**
   - Se hace **todo `TODO.md`** y se prueba en producción **antes** de limpiar el
@@ -646,3 +647,31 @@
   permisos. Siguen abiertos los que no son de permisos: validar los importes
   manuales de F&B, el contenido del PDF y el rastro de cambios de dinero en caja
   y en el cobro de parking.
+
+## ADR-033 — La fase 1c se limita a lo que hay que resolver antes de publicar
+
+- **Estado:** ✅ aceptada (2026-10-04)
+- **Fecha:** 2026-10-04
+- **Decisión:**
+  - La fase 1c ya no resuelve **todo** `TODO.md`: solo la sección **«Antes de
+    publicar»**. Son las brechas de seguridad que alguien de fuera o un rol bajo
+    puede aprovechar, más las decisiones necesarias para publicar (licencia y
+    analítica).
+  - Los secretos y datos privados del repositorio (contraseñas en ficheros,
+    datos del personal) siguen en esa sección, pero se resuelven en la fase 2.
+    La rotación de credenciales se hace tras la fase 2 (ADR-007).
+  - El resto pasa a la sección **«Después de publicar»**: mejoras de lógica de
+    negocio, rastro de cambios, carreras sin consecuencia de seguridad,
+    operación, interfaz y calidad. Se trabajan en el repositorio público, sin
+    plazo.
+  - Las prioridades 🔴🟡🟢 se mantienen dentro de cada sección.
+- **Motivo:** decisión del propietario. El objetivo es cerrar las brechas y
+  publicar; las mejoras se pueden hacer en cualquier momento, y esperar a
+  todas retrasaría la publicación sin reducir el riesgo.
+- **Rechazado:** resolver todo `TODO.md` antes de la fase 2 (ADR-027 tal como
+  estaba).
+- **Consecuencias:** `TODO.md` se reorganiza en las dos secciones y
+  `ROADMAP.md` cambia la definición de la fase 1c. Los dudosos se clasificaron
+  como mejora: datos sensibles en los logs (no son públicos) y los informes de
+  caja sin `canViewReports` (un rol interno viendo totales).
+- **Revisa:** ADR-027 en el alcance de la fase 1c.

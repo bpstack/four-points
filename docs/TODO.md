@@ -21,30 +21,20 @@ hace que alguien reimplemente lo que ya existe.
 Fusionada en `main` el 2026-10-04 (PR #7, commit de merge `942fdfa`). La rama
 sigue siendo donde se arregla este fichero y se prueba en el entorno preview.
 
-## 🔴 Alta
+## Antes de publicar
 
-> Las entradas de **seguridad** describen debilidades explotables: **resolverlas
-> o quitarlas de este fichero antes de publicar el repositorio**.
+> Lo que hay que resolver antes de la limpieza del historial y la publicación
+> (ADR-033): brechas que alguien de fuera o un rol bajo puede aprovechar, los
+> secretos y datos privados del repo (se resuelven en la fase 2) y las
+> decisiones para publicar. **Resolverlo o quitarlo de aquí antes de publicar.**
 
-- [ ] **Fnb: ninguna mutación de ingresos deja rastro de quién la hizo** —
-      `upsertMany` sobrescribe el importe anterior (`ON DUPLICATE KEY UPDATE`) y
-      `deleteDay` borra filas sin dejar ningún registro de usuario, valor
-      anterior u origen del cambio, a diferencia de otros módulos del proyecto
-      (blacklist, logbook) que sí llevan una auditoría. Un dato financiero
-      alterado o borrado no se puede reconstruir ni revertir.
-      `backend/repositories/fnb/fnb.repository.ts`. _Comprobado por mí el
-      2026-09-28._
+### 🔴 Alta
+
 - [ ] **Backoffice: PDFs de facturas, sello y firma públicos en Cloudinary** —
       `uploadPdf` usa `type: 'upload'` y `access_mode: 'public'`; las facturas
       llevan CIF, IBAN e importes, y la URL firmada no protege nada. Con el
       sello y la firma públicos se puede fabricar una factura «validada».
       _Comprobado por mí el 2026-09-28._
-- [ ] **Cashier: cambios de dinero sin rastro** — pagos y recuentos no dejan
-      historial, las ediciones no guardan valores anteriores y borrar un turno
-      borra también su `cashier_history` (_visto en producción el 2026-09-29_).
-      _Según la revisión `security` L3 del 2026-09-28; no repasado por mí._ La
-      autoría ya no sale del cuerpo (`shift_id` del pago, `created_by` del vale,
-      `opened_by` del día; _comprobado en producción el 2026-09-29_).
 - [ ] **Datos personales del personal en el repo** —
       `backend/scripts/import-planning-2026.ts` (commit `3387826`) tiene
       escritos 13 nombres de personal (2 con apellido) asociados a sus usuarios,
@@ -65,16 +55,6 @@ sigue siendo donde se arregla este fichero y se prueba en el entorno preview.
       (ya sin valores, pero siguen en el historial). Sacarlos del historial
       en la fase 2 y rotar (ver la entrada de rotación). _Comprobado por mí el
       2026-09-28._
-- [ ] **Parking: dos reservas creadas a la vez chocan en `booking_code`** —
-      el trigger `trg_generate_booking_code` calcula el siguiente número con
-      `MAX()` sobre una lectura sin bloqueo; dos altas simultáneas (aunque sean
-      de plazas distintas) sacan el mismo código y una falla con 500. No hay
-      doble reserva, solo el error. _Visto en preview el 2026-10-04._
-- [ ] **Parking: cambios del cobro sin historial** — editar `payment_amount`,
-      método o referencia no deja rastro del valor anterior. Que se pueda
-      editar en cualquier estado es intencionado (ADR-032, 2026-10-04). El
-      signo, el `ENUM` del método y las longitudes ya se validan
-      (2026-10-02). _Comprobado por mí el 2026-09-28._
 - [ ] **Rotar todas las credenciales al terminar la preparación** —
       `SECRET_JWT_KEY`, contraseñas de MySQL (local y Aiven), claves de
       Cloudinary, SMTP si se usa, y las claves de IA que siguen en
@@ -99,8 +79,86 @@ sigue siendo donde se arregla este fichero y se prueba en el entorno preview.
       (varios usuarios desechables, porque el límite por usuario es 5 y el de
       IP 20 fallos cada 15 min).
 
-## 🟡 Media
+### 🟡 Media
 
+- [ ] **Decidir la licencia antes de publicar** — solo existe
+      `frontend/LICENSE`, «MIT (Modified - Non-Commercial)», que no es open
+      source según la OSI, y la raíz no tiene ninguna.
+- [ ] **Decidir la analítica antes de publicar** — el frontend carga Google
+      Analytics (`G-ZYSZ6THVDW`) y Vercel Analytics (`frontend/app/layout.tsx`).
+- [ ] **El frontend no tiene Content-Security-Policy** (`frontend/vercel.json`).
+      _Según la revisión `security` L3 del 2026-09-28 (fichero y línea en el
+      informe); no repasado por mí._
+- [ ] **Cabeceras del frontend en producción incompletas para L3** — Vercel
+      sirve HSTS, `X-Frame-Options`, `nosniff`, `Referrer-Policy` y
+      `Permissions-Policy`, pero no CSP ni `Cross-Origin-Opener-Policy`; HSTS
+      sin `preload`, Google Analytics sin SRI y anuncia `X-Powered-By: Next.js`.
+      _Comprobado con `curl -I` el 2026-09-28._
+- [ ] **`trust proxy 3` depende de la red de Render** — `backend/index.ts`
+      confía en 3 saltos (Cloudflare, balanceador `10.x` de Render y un proxy
+      local `::1`), la cadena vista el 2026-09-29. Si Render quita un salto,
+      `req.ip` pasa a ser lo que envíe el cliente en `X-Forwarded-For` y los
+      límites de login se esquivan; si añade uno, vuelve a ser una IP de
+      Cloudflare compartida. Nada avisa del cambio. Opciones: leer
+      `CF-Connecting-IP` (lo fija Cloudflare) o una comprobación periódica: 2
+      intentos de login fallidos seguidos deben dar `ratelimit-remaining` 4 y 3.
+- [ ] **Datos de personas reales en el repo** —
+      `20260520_insert_user_example.sql` crea a una empleada real con su periodo
+      de trabajo (confirmado por el propietario el 2026-09-28): cambiar el
+      nombre antes de publicar, en el script, en la BD y en el historial (fase
+      2). Revisar si hay más nombres reales de personal en scripts, tests o
+      datos de ejemplo.
+- [ ] **Maintenance: fotos públicas y que no se borran** — Cloudinary las sirve
+      sin firmar, con un `public_id` predecible; el borrado lógico no las toca,
+      `auto_delete_on_close` se guarda pero nadie lo usa, y subir o borrar fotos
+      no queda en el historial. _Comprobado por mí el 2026-09-28._
+- [ ] **Scheduling: datos de salud expuestos y guardados sin plazo** — bajas
+      (`IT`, `E`) y sus notas visibles para todos los roles salvo
+      `mantenimiento`; `scheduling_solver_runs` guarda para siempre la entrada
+      completa (con las bajas de cada usuario) y un INFEASIBLE las vuelca al
+      log. _Según la revisión `security` L3 del 2026-09-28 (fichero y línea en
+      el informe); no repasado por mí._
+
+### 🟢 Baja
+
+- [ ] **Proteger o quitar `/design-system` y `/fonts-test`** — son páginas de
+      prueba y `proxy.ts` no las protege.
+
+## Después de publicar
+
+> Mejoras sin brecha de seguridad: lógica de negocio, rastro de cambios,
+> carreras, operación, interfaz y calidad. Se trabajan en el repositorio
+> público, sin plazo (ADR-033).
+
+### 🔴 Alta
+
+- [ ] **Fnb: ninguna mutación de ingresos deja rastro de quién la hizo** —
+      `upsertMany` sobrescribe el importe anterior (`ON DUPLICATE KEY UPDATE`) y
+      `deleteDay` borra filas sin dejar ningún registro de usuario, valor
+      anterior u origen del cambio, a diferencia de otros módulos del proyecto
+      (blacklist, logbook) que sí llevan una auditoría. Un dato financiero
+      alterado o borrado no se puede reconstruir ni revertir.
+      `backend/repositories/fnb/fnb.repository.ts`. _Comprobado por mí el
+      2026-09-28._
+- [ ] **Cashier: cambios de dinero sin rastro** — pagos y recuentos no dejan
+      historial, las ediciones no guardan valores anteriores y borrar un turno
+      borra también su `cashier_history` (_visto en producción el 2026-09-29_).
+      _Según la revisión `security` L3 del 2026-09-28; no repasado por mí._ La
+      autoría ya no sale del cuerpo (`shift_id` del pago, `created_by` del vale,
+      `opened_by` del día; _comprobado en producción el 2026-09-29_).
+- [ ] **Parking: cambios del cobro sin historial** — editar `payment_amount`,
+      método o referencia no deja rastro del valor anterior. Que se pueda
+      editar en cualquier estado es intencionado (ADR-032, 2026-10-04). El
+      signo, el `ENUM` del método y las longitudes ya se validan
+      (2026-10-02). _Comprobado por mí el 2026-09-28._
+
+### 🟡 Media
+
+- [ ] **Parking: dos reservas creadas a la vez chocan en `booking_code`** —
+      el trigger `trg_generate_booking_code` calcula el siguiente número con
+      `MAX()` sobre una lectura sin bloqueo; dos altas simultáneas (aunque sean
+      de plazas distintas) sacan el mismo código y una falla con 500. No hay
+      doble reserva, solo el error. _Visto en preview el 2026-10-04._
 - [ ] **Probar una restauración del backup de Aiven** antes de meter datos
       reales — Aiven hace copias automáticas y existe
       `backend/db-mysql/scripts/backup-aiven.sh`, pero no consta que se haya
@@ -122,17 +180,11 @@ sigue siendo donde se arregla este fichero y se prueba en el entorno preview.
 - [ ] **Comprobar si los cron se ejecutan en Render** — corren dentro del
       proceso del backend; si el plan gratuito lo duerme por inactividad, no se
       disparan. _No comprobado._
-- [ ] **Decidir la licencia antes de publicar** — solo existe
-      `frontend/LICENSE`, «MIT (Modified - Non-Commercial)», que no es open
-      source según la OSI, y la raíz no tiene ninguna.
-- [ ] **Decidir la analítica antes de publicar** — el frontend carga Google
-      Analytics (`G-ZYSZ6THVDW`) y Vercel Analytics (`frontend/app/layout.tsx`).
 - [ ] **Backend: quedan 55 usos de `any`** — `no-explicit-any` está como aviso
       en `backend/eslint.config.js` para que el lint pase. El 2026-10-04 se
       tiparon controllers, services y repositories de los 15 módulos (de 316
       avisos a 55); quedan auth, `config/db.ts`, cron, scripts y tests. Tiparlos
       y volver a poner la regla como error.
-
 - [ ] **Avisar a los usuarios de que un `admin` puede leer sus mensajes** —
       `getConversation` y `getMessages` (`backend/controllers/messages/`) dejan
       leer cualquier conversación al rol `admin`, aunque no participe. Decidir
@@ -144,7 +196,6 @@ sigue siendo donde se arregla este fichero y se prueba en el entorno preview.
       aún sin estrenar. _Comprobado el 2026-09-28 en local y Aiven:
       `event_scheduler=ON` y el evento está `ENABLED` (última ejecución en
       Aiven: 2026-09-27)._
-
 - [ ] **Adaptar el harness a repos con varios proyectos e implantarlo** — en el
       repo `harness` (`C:\Users\dz\projects\harness` en el PC principal):
       soportar repos sin `package.json` ni lockfile en la raíz (aquí `frontend/`
@@ -156,7 +207,6 @@ sigue siendo donde se arregla este fichero y se prueba en el entorno preview.
       los `CLAUDE.md` de módulo se borraron en vez de quedar como punteros; si
       Claude Code solo lee `CLAUDE.md` por directorio, ese contexto se pierde.
       _Sin comprobar._
-
 - [ ] **MySQL de Aiven en UTC** — `time_zone=SYSTEM` con el sistema en UTC.
       `CURDATE()` y `NOW()` de la BD (filtros rápidos de parking, código
       `PK-AAAAMMDD` del trigger, `CURRENT_TIMESTAMP` de las tablas) van 1–2 h
@@ -171,10 +221,6 @@ sigue siendo donde se arregla este fichero y se prueba en el entorno preview.
       ha verificado que coincidan. Pista: la BD local, instalada desde esos
       scripts, difería de Aiven en `demo_activity_log`, `notifications.module`,
       `roles.name` y 7 claves foráneas (comparación del 2026-09-28).
-
-- [ ] **El frontend no tiene Content-Security-Policy** (`frontend/vercel.json`).
-      _Según la revisión `security` L3 del 2026-09-28 (fichero y línea en el
-      informe); no repasado por mí._
 - [ ] **Logbook: papelera e historial solo ocultos en la pantalla** — el backend
       da `/trashed`, `include_trashed`, el historial y los comentarios de
       entradas borradas a cualquier rol con acceso. _Según la revisión
@@ -218,14 +264,12 @@ sigue siendo donde se arregla este fichero y se prueba en el entorno preview.
 - [ ] **Mensajería: el creador de un DM puede borrarlo entero**, mensajes del
       otro incluidos, sin registro. _Según la revisión `security` L3 del
       2026-09-28 (fichero y línea en el informe); no repasado por mí._
-
 - [ ] **Los documentos de `backend/db-mysql/` están desactualizados** — citan
       `aiven/aiven-conexion.md` (no existe), «~50 tablas» (Aiven tiene 66 y 3
       vistas), volcados con nombres que no son los actuales y la política «local
       primero» (ADR-015). `MASTER_INSTALL.sql` solo llega al 2026-05-20. Se
       corrigen poco a poco, con `docs/general/database/` como resumen (ADR-016).
       _Comprobado por mí el 2026-09-28._
-
 - [ ] **El pago automático del día 10 no ha funcionado nunca** — el cron escribe
       `updated_by = 'system-cron'`, que es clave foránea a `users`, y ese
       usuario no existe en Aiven (0 facturas pagadas por el cron). Además el
@@ -234,26 +278,6 @@ sigue siendo donde se arregla este fichero y se prueba en el entorno preview.
       varias peticiones a la vez: no hay clave única. (Desde el 2026-10-02 solo
       la lanzan admin y group-admin.) _Según la revisión `security` L3 del
       2026-09-28; no repasado por mí._
-- [ ] **Cabeceras del frontend en producción incompletas para L3** — Vercel
-      sirve HSTS, `X-Frame-Options`, `nosniff`, `Referrer-Policy` y
-      `Permissions-Policy`, pero no CSP ni `Cross-Origin-Opener-Policy`; HSTS
-      sin `preload`, Google Analytics sin SRI y anuncia `X-Powered-By: Next.js`.
-      _Comprobado con `curl -I` el 2026-09-28._
-- [ ] **`trust proxy 3` depende de la red de Render** — `backend/index.ts`
-      confía en 3 saltos (Cloudflare, balanceador `10.x` de Render y un proxy
-      local `::1`), la cadena vista el 2026-09-29. Si Render quita un salto,
-      `req.ip` pasa a ser lo que envíe el cliente en `X-Forwarded-For` y los
-      límites de login se esquivan; si añade uno, vuelve a ser una IP de
-      Cloudflare compartida. Nada avisa del cambio. Opciones: leer
-      `CF-Connecting-IP` (lo fija Cloudflare) o una comprobación periódica: 2
-      intentos de login fallidos seguidos deben dar `ratelimit-remaining` 4 y 3.
-- [ ] **Datos de personas reales en el repo** —
-      `20260520_insert_user_example.sql` crea a una empleada real con su periodo
-      de trabajo (confirmado por el propietario el 2026-09-28): cambiar el
-      nombre antes de publicar, en el script, en la BD y en el historial (fase
-      2). Revisar si hay más nombres reales de personal en scripts, tests o
-      datos de ejemplo.
-
 - [ ] **Maintenance: la edición general se salta las reglas** — `PATCH /:id`
       admite `status` (sin fechas de inicio o cierre ni la acción correcta en el
       historial) y `resolution_notes` (reescribe el campo entero, así que se
@@ -263,10 +287,6 @@ sigue siendo donde se arregla este fichero y se prueba en el entorno preview.
       pasa a cualquier otro y un parte cerrado se reabre por la API. Cancelar se
       registra en el historial como «cerrado». _Comprobado por mí el
       2026-09-28._
-- [ ] **Maintenance: fotos públicas y que no se borran** — Cloudinary las sirve
-      sin firmar, con un `public_id` predecible; el borrado lógico no las toca,
-      `auto_delete_on_close` se guarda pero nadie lo usa, y subir o borrar fotos
-      no queda en el historial. _Comprobado por mí el 2026-09-28._
 - [ ] **Maintenance: la asignación no valida al destinatario** — vale un usuario
       inactivo, de cualquier rol o inexistente, y la edición no comprueba que
       tipo interno o externo encaje con el resto de campos. _Según la revisión
@@ -274,7 +294,6 @@ sigue siendo donde se arregla este fichero y se prueba en el entorno preview.
       por mí._
 - [ ] **Maintenance: cambio e historial sin transacción** — un fallo entre ambos
       deja cambios sin registrar. _Comprobado por mí el 2026-09-28._
-
 - [ ] **Groups: lógica de pagos incoherente** — se acepta un `amount_paid` mayor
       que el importe, `paid` sin haber pagado nada, recálculos que no tocan el
       estado y porcentajes que suman más de 100. _Según la revisión `security`
@@ -287,18 +306,11 @@ sigue siendo donde se arregla este fichero y se prueba en el entorno preview.
       formato, los repetidos, la prioridad y los textos ya se validan; que el
       usuario exista y esté activo, no. _Según la revisión `security` L3 del
       2026-09-28 (fichero y línea en el informe); no repasado por mí._
-
 - [ ] **Scheduling: generar un mes deja vacías las celdas de días fijos y
       solicitudes aprobadas** — el solver las recibe como bloqueadas, la
       generación no las reinserta y el borrado previo se las lleva. En Aiven, en
       los meses 126 y 130 (generados por el solver) el empleado con días fijos
       tiene 0 celdas. _Comprobado por mí el 2026-09-28._
-- [ ] **Scheduling: datos de salud expuestos y guardados sin plazo** — bajas
-      (`IT`, `E`) y sus notas visibles para todos los roles salvo
-      `mantenimiento`; `scheduling_solver_runs` guarda para siempre la entrada
-      completa (con las bajas de cada usuario) y un INFEASIBLE las vuelca al
-      log. _Según la revisión `security` L3 del 2026-09-28 (fichero y línea en
-      el informe); no repasado por mí._
 - [ ] **Scheduling: un mes publicado se puede modificar** — editar celdas y
       aprobar restricciones no miran el estado del mes, y `PUT /months/:id`
       vuelve a borrador sin pasar por `unpublish`. _Según la revisión `security`
@@ -320,7 +332,6 @@ sigue siendo donde se arregla este fichero y se prueba en el entorno preview.
       puede reescribir el histórico, y el evento se registra en el run de hoy y
       como si fuera una alta. _Según la revisión `security` L3 del 2026-09-28
       (fichero y línea en el informe); no repasado por mí._
-
 - [ ] **Cashier: ciclo de vida de los vales y cierres sin bloqueo** — se puede
       justificar un vale cancelado y cambiar el importe de uno justificado; el
       límite de 5 vales y los cierres de turno y día se comprueban antes de
@@ -345,14 +356,13 @@ sigue siendo donde se arregla este fichero y se prueba en el entorno preview.
       solo el tipo declarado por el navegador; las descargas del ZIP no tienen
       límite de tamaño y siguen redirecciones. _Según la revisión `security` L3
       del 2026-09-28 (fichero y línea en el informe); no repasado por mí._
-
 - [ ] **Conciliation: el cierre mensual tiene una carrera** — la validación
       (lectura) y el cambio de estado (escritura) no comparten transacción ni
       bloqueo; dos administradores cerrando días distintos del mismo mes a la
       vez pueden dejarlo inconsistente. _Según la revisión `security` L3 del
       2026-09-28 (fichero y línea en el informe); no repasado por mí._
 
-## 🟢 Baja
+### 🟢 Baja
 
 - [ ] **Scheduling: vista de solo lectura para los demás roles** — hoy
       `/dashboard/scheduling` es solo de `admin` y el resto no ve el cuadrante.
@@ -465,8 +475,6 @@ sigue siendo donde se arregla este fichero y se prueba en el entorno preview.
 - [ ] **Presencias a mano** — la pestaña de presencias de `scheduling` pide
       pegar el texto en un `textarea`; podría leerse de
       `scheduling_assignments`.
-- [ ] **Proteger o quitar `/design-system` y `/fonts-test`** — son páginas de
-      prueba y `proxy.ts` no las protege.
 - [ ] **Tests en el frontend** — hoy no hay ninguno.
 - [ ] **Scheduling: cerrar la fase 3 del solver con uso real** — bloqueado hasta
       que se generen meses de verdad. (1) Con ≥30 generaciones en
