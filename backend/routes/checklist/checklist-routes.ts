@@ -16,6 +16,7 @@ import {
   addCommentController,
   deleteCommentController,
   getAttachmentsController,
+  getAttachmentFileController,
   addAttachmentController,
   deleteAttachmentController,
 } from '../../controllers/checklist/checklist-comments-controllers.js'
@@ -28,6 +29,9 @@ router.use(excludeMantenimiento)
 // Unknown checklist, step or record ids answer before any handler (and the
 // database) sees them
 validateChecklistParams(router)
+
+// GET  /api/checklists/attachments/:attachmentId/file (private file served by the API)
+router.get('/attachments/:attachmentId/file', getAttachmentFileController)
 
 // ── Run & steps ───────────────────────────────────────────
 // GET  /api/checklists/:id/run

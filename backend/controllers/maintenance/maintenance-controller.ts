@@ -21,6 +21,7 @@ import {
 import type { ReportFilters } from '../../models/maintenance/index.js'
 import { logger } from '../../config/logger.js'
 import { isAdminRole } from '../../services/auth/module-access.js'
+import { fetchStoredFile, sendPrivateFile } from '../../services/uploads/private-files.js'
 
 // ========================================
 // CONTROLLER
@@ -514,6 +515,33 @@ export class MaintenanceController {
   }
 
   /**
+   * GET /api/maintenance/:id/images/:imageId/file
+   * Foto de un reporte (fichero privado servido por la API), con la misma
+   * visibilidad que el reporte
+   */
+  static async getImageFile(req: Request, res: Response): Promise<void> {
+    try {
+      const { id, imageId } = req.params
+
+      if (!(await visibleReport(id, req.user?.role))) {
+        res.status(404).json({ error: 'Reporte no encontrado' })
+        return
+      }
+
+      const storage = await MaintenanceRepository.getImageStorage(Number(imageId))
+      if (!storage || storage.report_id !== id) {
+        res.status(404).json({ error: 'Imagen no encontrada' })
+        return
+      }
+
+      sendPrivateFile(res, await fetchStoredFile(storage.file_path))
+    } catch (error) {
+      logger.error({ err: error }, '[MaintenanceController.getImageFile] Error')
+      res.status(500).json({ error: 'Error al obtener la imagen' })
+    }
+  }
+
+  /**
    * POST /api/maintenance/:id/images
    * Subir imagen a un reporte
    */
@@ -633,9 +661,10 @@ export class MaintenanceController {
         return
       }
 
-      // Eliminar de Cloudinary si tiene public_id
-      if (image.public_id) {
-        await CloudinaryService.deleteImage(image.public_id)
+      // Eliminar de Cloudinary si tiene public_id (solo lo lee el servidor)
+      const storage = await MaintenanceRepository.getImageStorage(Number(imageId))
+      if (storage?.public_id) {
+        await CloudinaryService.deleteImage(storage.public_id)
       }
 
       // Eliminar de BD

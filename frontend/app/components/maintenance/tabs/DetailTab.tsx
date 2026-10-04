@@ -24,6 +24,7 @@ import {
 } from 'react-icons/fi'
 import toast from 'react-hot-toast'
 import { SelectDropdown } from '@/app/ui/components/SelectDropdown'
+import { privateFileUrl } from '@/app/lib/helpers/private-file'
 
 export function DetailTab() {
   const t = useTranslations('maintenance')
@@ -572,7 +573,7 @@ export function DetailTab() {
                   >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
-                      src={image.file_path}
+                      src={privateFileUrl(image.file_path)}
                       alt={image.file_name}
                       className="w-full h-32 object-contain bg-surface-sunken rounded-md border border-border"
                     />
@@ -604,7 +605,7 @@ export function DetailTab() {
                     >
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
-                        src={image.file_path}
+                        src={privateFileUrl(image.file_path)}
                         alt={image.file_name}
                         className="w-full h-48 object-contain bg-surface-sunken rounded-md border border-border"
                       />
@@ -644,7 +645,7 @@ export function DetailTab() {
           </button>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src={expandedImage}
+            src={privateFileUrl(expandedImage)}
             alt={t('detail.images.expanded')}
             className="max-w-full max-h-[90vh] object-contain rounded-lg"
             onClick={(e) => e.stopPropagation()}
