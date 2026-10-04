@@ -143,8 +143,8 @@ propietario.
   - 2 contraseñas de Aiven (`AVNS_…`) en 17 rutas. **Una es la que se usa
     hoy** (39 apariciones): rotarla es obligatorio;
   - 1 clave de Anthropic (`sk-ant-…`) en `backend/.env.example`; no es la de
-    `backend/.env` actual, pero hay que revocarla en la consola de Anthropic
-    si sigue activa;
+    `backend/.env` actual y el propietario confirma que está revocada
+    (2026-10-05);
   - valores de `CLOUDINARY_API_SECRET` (`backend.md`, `backend/.env.example`)
     y de `SECRET_JWT_KEY` (8 valores en 11 rutas, casi todos marcadores de
     ejemplo); ninguno coincide con los de `backend/.env` actual;
