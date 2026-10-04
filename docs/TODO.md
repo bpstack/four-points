@@ -75,11 +75,6 @@ sigue siendo donde se arregla este fichero y se prueba en el entorno preview.
 - [ ] **El frontend no tiene Content-Security-Policy** (`frontend/vercel.json`).
       _Según la revisión `security` L3 del 2026-09-28 (fichero y línea en el
       informe); no repasado por mí._
-- [ ] **Cabeceras del frontend en producción incompletas para L3** — Vercel
-      sirve HSTS, `X-Frame-Options`, `nosniff`, `Referrer-Policy` y
-      `Permissions-Policy`, pero no CSP ni `Cross-Origin-Opener-Policy`; HSTS
-      sin `preload`, Google Analytics sin SRI y anuncia `X-Powered-By: Next.js`.
-      _Comprobado con `curl -I` el 2026-09-28._
 - [ ] **Datos de personas reales en el repo** — el script que daba de alta a
       una empleada real se quitó el 2026-10-04, pero su nombre sigue en
       `backend/scripts/import-planning-2026.ts`, en
