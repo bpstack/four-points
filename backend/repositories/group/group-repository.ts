@@ -41,7 +41,7 @@ export class GroupRepository {
     LEFT JOIN users u2 ON g.updated_by = u2.id
     WHERE 1=1
   `
-    const params: any[] = []
+    const params: (string | number | Date)[] = []
 
     // Filtros dinámicos
     if (filters.status) {

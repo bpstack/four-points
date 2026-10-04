@@ -5,7 +5,11 @@ import { GroupPaymentRepository } from '../../repositories/group/group-payment-r
 import { GroupRepository } from '../../repositories/group/group-repository'
 import { PaymentCalculatorService } from '../../services/group/payment-calculator-service'
 import { GroupHistoryService } from '../../services/group/group-history-service'
-import { CreateGroupPaymentDTO, UpdateGroupPaymentDTO } from '../../models/group/index'
+import {
+  CreateGroupPaymentDTO,
+  UpdateGroupPaymentDTO,
+  HistoryAction,
+} from '../../models/group/index'
 import { ERROR_CODES, SUCCESS_CODES } from '../../config/error-codes.js'
 import { logger } from '../../config/logger.js'
 import {
@@ -54,7 +58,7 @@ export class GroupPaymentController {
           balance,
         },
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, 'Error en getPaymentsByGroup')
       return res.status(500).json({
         success: false,
@@ -130,7 +134,7 @@ export class GroupPaymentController {
       await GroupHistoryService.logChange(
         groupId,
         userId,
-        'created' as any,
+        HistoryAction.CREATED,
         'group_payments',
         newPayment.id,
         null,
@@ -145,7 +149,7 @@ export class GroupPaymentController {
         code: SUCCESS_CODES.GROUP_PAYMENT_CREATED,
         data: newPayment,
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, 'Error en createPayment')
       return res.status(500).json({
         success: false,
@@ -231,7 +235,7 @@ export class GroupPaymentController {
         code: SUCCESS_CODES.GROUP_PAYMENT_UPDATED,
         data: updatedPayment,
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, 'Error en updatePayment')
       return res.status(500).json({
         success: false,
@@ -304,7 +308,7 @@ export class GroupPaymentController {
       await GroupHistoryService.logChange(
         oldPayment.group_id,
         userId,
-        'payment_updated' as any,
+        HistoryAction.PAYMENT_UPDATED,
         'group_payments',
         paymentId,
         'status',
@@ -318,7 +322,7 @@ export class GroupPaymentController {
         message: SUCCESS_CODES.GROUP_PAYMENT_UPDATED,
         code: SUCCESS_CODES.GROUP_PAYMENT_UPDATED,
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, 'Error en updatePaymentStatus')
       return res.status(500).json({
         success: false,
@@ -391,7 +395,7 @@ export class GroupPaymentController {
       await GroupHistoryService.logChange(
         oldPayment.group_id,
         userId,
-        'payment_updated' as any,
+        HistoryAction.PAYMENT_UPDATED,
         'group_payments',
         paymentId,
         'amount_paid',
@@ -405,7 +409,7 @@ export class GroupPaymentController {
         message: SUCCESS_CODES.GROUP_PAYMENT_UPDATED,
         code: SUCCESS_CODES.GROUP_PAYMENT_UPDATED,
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, 'Error en updateAmountPaid')
       return res.status(500).json({
         success: false,
@@ -476,7 +480,7 @@ export class GroupPaymentController {
         message: SUCCESS_CODES.GROUP_PAYMENT_DELETED,
         code: SUCCESS_CODES.GROUP_PAYMENT_DELETED,
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, 'Error en deletePayment')
       return res.status(500).json({
         success: false,
@@ -506,7 +510,7 @@ export class GroupPaymentController {
         count: payments.length,
         days,
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, 'Error en getUpcomingPayments')
       return res.status(500).json({
         success: false,
@@ -529,7 +533,7 @@ export class GroupPaymentController {
         data: payments,
         count: payments.length,
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, 'Error en getOverduePayments')
       return res.status(500).json({
         success: false,

@@ -1,7 +1,12 @@
 // services/group/group-history-service.ts
 
 import { GroupHistoryRepository } from '../../repositories/group/group-history-repository'
-import { CreateGroupHistoryDTO, HistoryAction, GroupHistory } from '../../models/group/index'
+import {
+  CreateGroupHistoryDTO,
+  HistoryAction,
+  GroupHistory,
+  CreateGroupDTO,
+} from '../../models/group/index'
 
 export class GroupHistoryService {
   /**
@@ -10,7 +15,7 @@ export class GroupHistoryService {
   static async logGroupCreated(
     groupId: number,
     createdBy: string,
-    groupData: any
+    groupData: CreateGroupDTO
   ): Promise<GroupHistory> {
     const historyData: CreateGroupHistoryDTO = {
       group_id: groupId,
@@ -31,24 +36,26 @@ export class GroupHistoryService {
   static async logGroupUpdated(
     groupId: number,
     updatedBy: string,
-    oldData: any,
-    newData: any,
+    oldData: object,
+    newData: object,
     changedFields?: string[]
   ): Promise<GroupHistory[]> {
     const historyRecords: GroupHistory[] = []
+    const old = oldData as Record<string, unknown>
+    const nw = newData as Record<string, unknown>
 
-    const fieldsToLog = changedFields || Object.keys(newData)
+    const fieldsToLog = changedFields || Object.keys(nw)
 
     for (const field of fieldsToLog) {
-      if (oldData[field] !== newData[field]) {
+      if (old[field] !== nw[field]) {
         const historyData: CreateGroupHistoryDTO = {
           group_id: groupId,
           action: HistoryAction.UPDATED,
           table_affected: 'groups',
           record_id: groupId,
           field_changed: field,
-          old_value: this.serializeValue(oldData[field]) ?? undefined, // ✅ FIX
-          new_value: this.serializeValue(newData[field]) ?? undefined, // ✅ FIX
+          old_value: this.serializeValue(old[field]) ?? undefined, // ✅ FIX
+          new_value: this.serializeValue(nw[field]) ?? undefined, // ✅ FIX
           changed_by: updatedBy,
           notes: `Campo "${field}" actualizado`,
         }
@@ -68,8 +75,8 @@ export class GroupHistoryService {
     groupId: number,
     changedBy: string,
     statusType: string,
-    oldValue: any,
-    newValue: any
+    oldValue: unknown,
+    newValue: unknown
   ): Promise<GroupHistory> {
     const historyData: CreateGroupHistoryDTO = {
       group_id: groupId,
@@ -92,23 +99,25 @@ export class GroupHistoryService {
     groupId: number,
     paymentId: number,
     changedBy: string,
-    oldData: any,
-    newData: any,
+    oldData: object,
+    newData: object,
     changedFields?: string[]
   ): Promise<GroupHistory[]> {
     const historyRecords: GroupHistory[] = []
-    const fieldsToLog = changedFields || Object.keys(newData)
+    const old = oldData as Record<string, unknown>
+    const nw = newData as Record<string, unknown>
+    const fieldsToLog = changedFields || Object.keys(nw)
 
     for (const field of fieldsToLog) {
-      if (oldData[field] !== newData[field]) {
+      if (old[field] !== nw[field]) {
         const historyData: CreateGroupHistoryDTO = {
           group_id: groupId,
           action: HistoryAction.PAYMENT_UPDATED,
           table_affected: 'group_payments',
           record_id: paymentId,
           field_changed: field,
-          old_value: this.serializeValue(oldData[field]) ?? undefined, // ✅ FIX
-          new_value: this.serializeValue(newData[field]) ?? undefined, // ✅ FIX
+          old_value: this.serializeValue(old[field]) ?? undefined, // ✅ FIX
+          new_value: this.serializeValue(nw[field]) ?? undefined, // ✅ FIX
           changed_by: changedBy,
           notes: `Pago #${paymentId}: Campo "${field}" actualizado`,
         }
@@ -129,7 +138,7 @@ export class GroupHistoryService {
     deletedBy: string,
     tableName: string,
     recordId: number,
-    deletedData: any
+    deletedData: unknown
   ): Promise<GroupHistory> {
     const historyData: CreateGroupHistoryDTO = {
       group_id: groupId,
@@ -154,8 +163,8 @@ export class GroupHistoryService {
     tableName: string,
     recordId: number | null,
     fieldChanged: string | null,
-    oldValue: any,
-    newValue: any,
+    oldValue: unknown,
+    newValue: unknown,
     notes?: string
   ): Promise<GroupHistory> {
     const historyData: CreateGroupHistoryDTO = {
@@ -177,7 +186,7 @@ export class GroupHistoryService {
    * Serializar valor para guardarlo como string
    * ✅ Ahora retorna string | null (compatible con conversión a undefined)
    */
-  private static serializeValue(value: any): string | null {
+  private static serializeValue(value: unknown): string | null {
     if (value === null || value === undefined) {
       return null
     }

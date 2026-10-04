@@ -46,7 +46,7 @@ export class GroupHistoryController {
         data: history,
         count: history.length,
       })
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, 'Error en getGroupHistory')
       return res.status(500).json({
         success: false,
