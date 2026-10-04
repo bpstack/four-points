@@ -39,7 +39,7 @@ MINIMAL_INPUT = {
     "year": 2026,
     "month": 1,
     "employees": [
-        {"id": "A", "name": "Marta"},
+        {"id": "A", "name": "EMP_01"},
         {"id": "B", "name": "Bob"},
     ],
     "days": [
