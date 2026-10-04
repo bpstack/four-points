@@ -37,6 +37,12 @@ router.use(excludeMantenimiento)
  */
 router.post('/upload', upload.single('image'), BlacklistController.uploadImage)
 
+/**
+ * GET /api/blacklist/images/:file
+ * Foto de una entrada: fichero privado que la API descarga y sirve
+ */
+router.get('/images/:file', BlacklistController.getImage)
+
 // ========================================
 // RUTAS PRINCIPALES
 // ========================================

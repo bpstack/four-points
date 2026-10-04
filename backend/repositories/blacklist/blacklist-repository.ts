@@ -17,6 +17,7 @@ import type {
   BlacklistStats,
 } from '../../models/blacklist/index.js'
 import { likeContains } from '../shared/like.js'
+import { toBlacklistImagePath } from '../../services/uploads/blacklist-images.js'
 
 // ========================================
 // INTERFACES INTERNAS (para tipado de queries)
@@ -68,7 +69,10 @@ function parseBlacklistRow(row: BlacklistRow): BlacklistEntry {
     reason: row.reason,
     severity: row.severity,
     comments: row.comments,
-    images: typeof row.images === 'string' ? JSON.parse(row.images) : row.images,
+    // API paths, never Cloudinary URLs (services/uploads/blacklist-images.ts)
+    images: ((typeof row.images === 'string' ? JSON.parse(row.images) : row.images) as string[])
+      .map(toBlacklistImagePath)
+      .filter((path): path is string => path !== null),
     status: row.status,
     deleted_at: row.deleted_at,
     deleted_by: row.deleted_by,

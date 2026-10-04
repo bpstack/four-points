@@ -17,6 +17,12 @@ import type { BlacklistFilters } from '../../models/blacklist/index.js'
 import { ERROR_CODES, SUCCESS_CODES } from '../../config/error-codes.js'
 import { logger } from '../../config/logger.js'
 import { isImageFile } from '../../services/uploads/image-signature.js'
+import {
+  blacklistImagePath,
+  isBlacklistImageFile,
+  parseBlacklistImageFile,
+} from '../../services/uploads/blacklist-images.js'
+import { fetchStoredFile, sendPrivateFile } from '../../services/uploads/private-files.js'
 
 // ========================================
 // CONTROLLER
@@ -408,6 +414,32 @@ export class BlacklistController {
   }
 
   /**
+   * GET /api/blacklist/images/:file
+   * Foto de una entrada (fichero privado servido por la API)
+   */
+  static async getImage(req: Request, res: Response): Promise<void> {
+    const file = String(req.params.file)
+    if (!isBlacklistImageFile(file)) {
+      res.status(404).json({ success: false, error: ERROR_CODES.NOT_FOUND })
+      return
+    }
+    const { publicId, format } = parseBlacklistImageFile(file)
+    try {
+      let fetched
+      try {
+        fetched = await fetchStoredFile(CloudinaryService.privateImageUrl(publicId, format))
+      } catch {
+        // Uploaded before 2026-10-04 and not migrated yet: still public
+        fetched = await fetchStoredFile(CloudinaryService.publicImageUrl(publicId, format))
+      }
+      sendPrivateFile(res, fetched)
+    } catch (error) {
+      logger.warn({ err: error, file }, '[BlacklistController.getImage] Not available')
+      res.status(404).json({ success: false, error: ERROR_CODES.NOT_FOUND })
+    }
+  }
+
+  /**
    * POST /api/blacklist/upload
    * Subir imagen a Cloudinary
    */
@@ -459,10 +491,12 @@ export class BlacklistController {
 
       logger.info({ publicId: result.public_id }, '[BlacklistController.uploadImage] Imagen subida')
 
+      // The file is private: the client gets the API path, never the signed URL
+      const path = blacklistImagePath(result.public_id, result.format)
       res.status(201).json({
         success: true,
-        url: result.url,
-        secure_url: result.secure_url,
+        url: path,
+        secure_url: path,
         public_id: result.public_id,
         width: result.width,
         height: result.height,

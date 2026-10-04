@@ -79,6 +79,32 @@ async function destroyAnyType(
 
 export class CloudinaryService {
   /**
+   * Signed delivery URL of a private image, for the server to download it.
+   * Never send it to a client: the signature does not expire
+   */
+  static privateImageUrl(publicId: string, format: string): string {
+    ensureConfigured()
+    return cloudinary.url(publicId, {
+      resource_type: 'image',
+      type: PRIVATE_DELIVERY,
+      sign_url: true,
+      secure: true,
+      format,
+    })
+  }
+
+  /** Delivery URL of a public (`upload`) image, for files not migrated yet */
+  static publicImageUrl(publicId: string, format: string): string {
+    ensureConfigured()
+    return cloudinary.url(publicId, {
+      resource_type: 'image',
+      type: 'upload',
+      secure: true,
+      format,
+    })
+  }
+
+  /**
    * Subir imagen privada a Cloudinary (tipo `authenticated`)
    * @param fileBuffer - Buffer del archivo
    * @param filename - Nombre original del archivo

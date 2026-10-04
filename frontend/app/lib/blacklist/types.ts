@@ -17,7 +17,7 @@ export interface BlacklistEntry {
   check_out_date: string // Fecha salida (ISO)
   reason: string // Motivo de inclusión en blacklist
   severity: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL'
-  images: string[] // URLs de Cloudinary
+  images: string[] // API paths /api/blacklist/images/<file> (private files)
   comments: string // Comentarios del recepcionista
   status: 'ACTIVE' | 'DELETED' // Estado del registro
   created_by: string // ID del usuario que creó
@@ -55,7 +55,7 @@ export interface BlacklistFormData {
   check_out_date: Date | string
   reason: string
   severity: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL'
-  images: File[] | string[] // Files al crear, URLs al editar
+  images: File[] | string[] // Files al crear, API paths al editar
   comments: string
 }
 
