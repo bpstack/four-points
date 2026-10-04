@@ -92,10 +92,6 @@ sigue siendo donde se arregla este fichero y se prueba en el entorno preview.
       editar en cualquier estado es intencionado (ADR-032, 2026-10-04). El
       signo, el `ENUM` del método y las longitudes ya se validan
       (2026-10-02). _Comprobado por mí el 2026-09-28._
-- [ ] **Mensajería: directorio de emails y roles de toda la plantilla** —
-      `GET /api/messages/users` devuelve `email` y rol de todos los usuarios
-      activos, sin límite, a cualquier rol; `getParticipants` también devuelve
-      emails y `last_read_at` ajenos. _Comprobado por mí el 2026-09-28._
 - [ ] **Parking: el calendario de disponibilidad de producción se acaba el
       2026-12-26** — `parking_availability` en Aiven cubre del 2025-12-26 al
       2026-12-26 y nada lo amplía: no hay evento MySQL ni código que llame a
