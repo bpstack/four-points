@@ -41,8 +41,27 @@ el historial.
 - ✅ Paso 0: copia `four-points-backup.git` (`clone --mirror`, no se toca) y
   `four-points-backup.bundle` (10,8 MB, `git bundle verify` correcto).
 - ✅ Análisis de rutas y secretos (abajo, «Candidatos conocidos»).
-- ⏳ Paso 1: listas definitivas (`paths.txt`, `replacements.txt`,
-  `mailmap.txt`), fuera del repositorio; las aprueba el propietario.
+- ✅ Paso 1: listas aprobadas por el propietario, fuera del repositorio:
+  - `paths.txt`: 20 reglas de borrado; añade
+    `EmailsDistListContent.tsx`, componente antiguo con la lista de correos
+    real;
+  - `replacements.txt`: secretos (los valores salen de `backend/.env`, no se
+    escriben a mano), correos y nombres de contactos reales, con los mismos
+    sustitutos que el árbol actual;
+  - `replacements-names.txt`: nombres del personal. En mayúsculas pasan a
+    `EMP_01`…`EMP_11`, como el corpus del solver; en el resto, a nombres
+    inventados (los mismos que el árbol desde `4c6a038`). `Salvador Pérez`
+    se queda como autor;
+  - `mailmap.txt`: `Claude`, `Azyd` y `bp` pasan a `bpstack` (los tres son
+    el propietario);
+  - `messages.txt`: quita `Co-Authored-By: Claude…` y «Generated with Claude
+    Code» de 3 mensajes de commit;
+  - renombrado de ruta: `night-audit-fb-daily.md` pasa a
+    `night-audit-fb-daily.md` (`--path-rename`).
+
+  Ninguna regla toca la punta de las dos ramas (comprobado). El usuario
+  `demo` está desactivado en Aiven y la contraseña documentada ya no vale
+  (comprobado el 2026-10-05).
 - ⏳ Barrido independiente de OpenCode (solo lectura).
 - ⏳ Ensayo (`--dry-run`), las tres operaciones con su auditoría, auditoría
   final y publicación (ADR-035).
