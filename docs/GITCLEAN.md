@@ -57,13 +57,25 @@ el historial.
   - `messages.txt`: quita `Co-Authored-By: Claude…` y «Generated with Claude
     Code» de 3 mensajes de commit;
   - renombrado de ruta: `night-audit-fb-daily.md` pasa a
-    `night-audit-fb-daily.md` (`--path-rename`).
+    `night-audit-fb-daily.md` (`--path-rename`);
+  - `strip-blobs.txt`: los 2 blobs del informe Opera real de ingresos
+    (`OperaPrint-sample.pdf`, su copia en `backend/test/data/` y el `.txt`
+    que genera `pdf-parse`), hallado en el barrido de OpenCode y sustituido
+    en el árbol por una muestra sintética (`a2cfbec`)
+    (`--strip-blobs-with-ids`).
+- ✅ Barrido de OpenCode (2026-10-05): no añade secretos ni rutas nuevas;
+  sí el informe Opera. Su informe escribió en claro la contraseña y el host
+  de Aiven (ya tapados en el fichero): otro motivo para rotarla.
+- ✅ Ensayo (`--dry-run`) sobre un clon nuevo de GitHub con las dos ramas:
+  0 secretos, 0 dominios y nombres reales, 0 rutas borradas, autoría
+  `bpstack` (y `GitHub` en los merges web); 619 → 616 commits (3 solo
+  tocaban ficheros borrados).
 
   Ninguna regla toca la punta de las dos ramas (comprobado). El usuario
   `demo` está desactivado en Aiven y la contraseña documentada ya no vale
   (comprobado el 2026-10-05).
-- ⏳ Barrido independiente de OpenCode (solo lectura).
-- ⏳ Ensayo (`--dry-run`), las tres operaciones con su auditoría, auditoría
+
+- ⏳ Ejecución real en `work.git`, auditoría
   final y publicación (ADR-035).
 
 ## Reglas
