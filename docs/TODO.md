@@ -57,11 +57,8 @@ sigue siendo donde se arregla este fichero y se prueba en el entorno preview.
       con usuario real frente a 340 ms con inexistente (Mann-Whitney p ≈ 0,048),
       aunque el mínimo es menor con usuario real (300 frente a 320 ms) y en
       local el repositorio tarda lo mismo. Arreglado sin depender de la causa:
-      todo login fallido tarda al menos  (600 ms).
+      todo login fallido tarda al menos `LOGIN_FAILURE_MIN_MS` (600 ms).
       Falta repetir la medida en preview con el arreglo desplegado.
-- [ ] **El frontend no tiene Content-Security-Policy** (`frontend/vercel.json`).
-      _Según la revisión `security` L3 del 2026-09-28 (fichero y línea en el
-      informe); no repasado por mí._
 - [ ] **Nombres reales del personal en el repo** — el 2026-10-04 se quitaron
       del árbol el alta de una empleada (`20260520_insert_user_*.sql`),
       el importador del Excel de horarios (`import-planning-2026.ts`, 13
