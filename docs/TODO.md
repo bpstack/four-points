@@ -34,10 +34,6 @@ sigue siendo donde se arregla este fichero y se prueba en el entorno preview.
       alterado o borrado no se puede reconstruir ni revertir.
       `backend/repositories/fnb/fnb.repository.ts`. _Comprobado por mí el
       2026-09-28._
-- [ ] **Backoffice: `/pdf-download` no exige `isRealAdmin`** — también lo usa
-      `demo-admin`. La URL descargada ya se limita a nuestra nube de Cloudinary
-      (`isOwnCloudinaryUrl`, 2026-10-02); `axios` sigue las redirecciones de
-      esa URL. _Comprobado por mí el 2026-09-28._
 - [ ] **Backoffice: PDFs de facturas, sello y firma públicos en Cloudinary** —
       `uploadPdf` usa `type: 'upload'` y `access_mode: 'public'`; las facturas
       llevan CIF, IBAN e importes, y la URL firmada no protege nada. Con el
@@ -374,11 +370,15 @@ sigue siendo donde se arregla este fichero y se prueba en el entorno preview.
       pestaña muestra las rechazadas. Una factura incorrecta hoy se borra. El
       dueño decidió el 2026-10-04 no añadirlo porque casi nunca pasa; si se
       añade, hace falta también reabrir (`rejected` → `pending`).
-- [ ] **Retirar el rol `demo-admin`** — el usuario demo está deshabilitado
-      (según el dueño, 2026-10-02; no comprobado en la BD), pero el rol sigue en los
-      middlewares de `roleCheck.ts`, en `demoRestriction`, en las rutas `/demo`
-      y en el frontend (`isAdminRole`). Las reglas añadidas el 2026-10-02 ya no
-      lo incluyen. Decidir si se quita del todo.
+- [ ] **Retirar el rol `demo-admin`** — el único usuario con ese rol, `demo`,
+      está desactivado (`is_active = 0`, comprobado en Aiven el 2026-10-04),
+      pero el rol sigue en los middlewares de `roleCheck.ts`, en
+      `demoRestriction`, en las rutas `/demo` y en el frontend (`isAdminRole`).
+      Las reglas añadidas el 2026-10-02 ya no lo incluyen. Mientras exista,
+      `demo-admin` entra en backoffice y lee los PDFs de facturas por
+      `/pdf-url`, `/pdf-download` y el ZIP (antes un punto 🔴 aparte; se
+      movió aquí el 2026-10-04 porque no hay ninguna cuenta activa). Decidir si
+      se quita del todo.
 - [ ] **Conciliation: `GET /api/conciliations` sin paginar ni filtrar** —
       devuelve todo el histórico a cualquier rol con acceso. _Según la revisión
       `security` L3 del 2026-09-28 (fichero y línea en el informe); no repasado
