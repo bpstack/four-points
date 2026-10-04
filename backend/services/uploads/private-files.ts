@@ -44,6 +44,9 @@ export function sendPrivateFile(
   res.setHeader('Content-Length', file.buffer.length)
   res.setHeader('Cache-Control', 'private, max-age=300')
   res.setHeader('X-Content-Type-Options', 'nosniff')
+  // helmet sends same-origin, which blocks <img> on the frontend: it is
+  // another origin of the same site (four-points.stackbp.es vs api.…)
+  res.setHeader('Cross-Origin-Resource-Policy', 'same-site')
   if (options.filename) {
     const safe = options.filename.replace(/[^\w.-]/g, '_')
     res.setHeader('Content-Disposition', `inline; filename="${safe}"`)

@@ -7,7 +7,8 @@ import { describe, it, expect } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { join, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { fetchStoredFile } from '../../services/uploads/private-files.js'
+import type { Response } from 'express'
+import { fetchStoredFile, sendPrivateFile } from '../../services/uploads/private-files.js'
 import {
   presentAsset,
   presentInvoice,
@@ -60,6 +61,21 @@ describe('maintenance responses', () => {
     const parse = repo.slice(repo.indexOf('function parseImageRow'))
     expect(parse).toContain('file_path: `/api/maintenance/${row.report_id}/images/${row.id}/file`')
     expect(parse).toContain('public_id: null')
+  })
+})
+
+describe('sendPrivateFile', () => {
+  it('lets the frontend, another origin of the same site, show the file in <img>', () => {
+    const headers: Record<string, unknown> = {}
+    const res = {
+      setHeader: (key: string, value: unknown) => {
+        headers[key] = value
+      },
+      send: () => undefined,
+    } as unknown as Response
+    sendPrivateFile(res, { buffer: Buffer.from('x'), contentType: 'image/png' })
+    expect(headers['Cross-Origin-Resource-Policy']).toBe('same-site')
+    expect(headers['Cache-Control']).toBe('private, max-age=300')
   })
 })
 
