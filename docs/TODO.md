@@ -77,26 +77,11 @@ sigue siendo donde se arregla este fichero y se prueba en el entorno preview.
 - [ ] **Logbook: el historial no es atómico** — no hay ninguna transacción en el
       módulo: un fallo entre el cambio y su registro deja cambios sin auditar o
       borrados auditados que no ocurrieron. _Comprobado por mí el 2026-09-28._
-- [ ] **Parking: doble reserva al cambiar fechas** — `PUT` solo comprueba la
-      disponibilidad si cambia la plaza, y el trigger de cambio de fechas marca
-      los días sin mirar si ya son de otra reserva; el de cambio de estado
-      libera días sin comprobar que sean suyos. _Comprobado por mí el
-      2026-09-28._ Lo de los triggers, según el revisor.
-- [ ] **Parking: carrera al crear reserva y en la entrada** — las comprobaciones
-      de disponibilidad son lecturas sin bloqueo: dos peticiones simultáneas
-      pasan las dos. Y sin filas de calendario (tras el 2026-12-26) el control
-      deja pasar cualquier reserva. _Según la revisión `security` L3 del
-      2026-09-28 (fichero y línea en el informe); no repasado por mí._
 - [ ] **Parking: cambios del cobro sin historial** — editar `payment_amount`,
       método o referencia no deja rastro del valor anterior. Que se pueda
       editar en cualquier estado es intencionado (ADR-032, 2026-10-04). El
       signo, el `ENUM` del método y las longitudes ya se validan
       (2026-10-02). _Comprobado por mí el 2026-09-28._
-- [ ] **Parking: el calendario de disponibilidad de producción se acaba el
-      2026-12-26** — `parking_availability` en Aiven cubre del 2025-12-26 al
-      2026-12-26 y nada lo amplía: no hay evento MySQL ni código que llame a
-      `generate_availability`. Después de esa fecha no se bloquea ningún día y
-      se pueden solapar reservas. _Comprobado el 2026-09-28 en ambas BD._
 - [ ] **Rotar todas las credenciales al terminar la preparación** —
       `SECRET_JWT_KEY`, contraseñas de MySQL (local y Aiven), claves de
       Cloudinary, SMTP si se usa, y las claves de IA que siguen en

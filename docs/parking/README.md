@@ -77,12 +77,16 @@ reserved ──► checked_in ──► completed
 **Availability**
 
 - A booking occupies its space from the entry day to the day before the exit.
-  When creating or moving it, if any day is already occupied, the backend
-  rejects it; when creating, a database trigger checks it again.
-- When moving to `completed`, `canceled` or `no_show`, the days are freed
-  automatically.
-- The calendar only covers the dates that have been generated in advance
-  (procedure `generate_availability`).
+  When creating it, or changing its space or dates while it is `reserved` or
+  `checked_in`, the backend rejects it if another active booking holds any of
+  those days. The check reads the bookings themselves and locks the space row
+  first, so two requests for the same space at the same time cannot both pass.
+  When creating, a database trigger checks the calendar again.
+- When moving to `completed`, `canceled` or `no_show`, the booking's own days
+  are freed automatically; days of other bookings are never touched.
+- The calendar (`parking_availability`) covers the next 365 days. The backend
+  extends it when it starts and every day at 03:00 (Madrid), adding only the
+  missing days and blocking those inside active bookings.
 
 **Price**
 
