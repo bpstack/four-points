@@ -104,12 +104,6 @@ sigue siendo donde se arregla este fichero y se prueba en el entorno preview.
       sin firmar, con un `public_id` predecible; el borrado lógico no las toca,
       `auto_delete_on_close` se guarda pero nadie lo usa, y subir o borrar fotos
       no queda en el historial. _Comprobado por mí el 2026-09-28._
-- [ ] **Scheduling: datos de salud guardados sin plazo** —
-      `scheduling_solver_runs` guarda para siempre la entrada completa del
-      solver (con las bajas `IT`/`E` de cada usuario) y su matriz. Decidir el
-      plazo de retención. La lectura ya es solo de `admin` y el log de un
-      INFEASIBLE ya no las incluye (2026-10-04).
-
 ## Después de publicar
 
 > Mejoras sin brecha de seguridad: lógica de negocio, rastro de cambios,
@@ -139,6 +133,13 @@ sigue siendo donde se arregla este fichero y se prueba en el entorno preview.
       (2026-10-02). _Comprobado por mí el 2026-09-28._
 
 ### 🟡 Media
+
+- [ ] **Scheduling: datos de salud guardados sin plazo** —
+      `scheduling_solver_runs` guarda para siempre la entrada completa del
+      solver (con las bajas `IT`/`E` de cada usuario) y su matriz. Decidir el
+      plazo cuando haya datos reales (RGPD); el dueño lo dejó para después de
+      publicar el 2026-10-04. La lectura ya es solo de `admin` y el log de un
+      INFEASIBLE ya no las incluye (2026-10-04).
 
 - [ ] **Parking: dos reservas creadas a la vez chocan en `booking_code`** —
       el trigger `trg_generate_booking_code` calcula el siguiente número con
