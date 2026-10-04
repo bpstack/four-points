@@ -39,11 +39,6 @@ sigue siendo donde se arregla este fichero y se prueba en el entorno preview.
       llevan CIF, IBAN e importes, y la URL firmada no protege nada. Con el
       sello y la firma públicos se puede fabricar una factura «validada».
       _Comprobado por mí el 2026-09-28._
-- [ ] **Cashier: operaciones que fallan siempre en producción** — justificar,
-      cancelar y editar vales, y editar pagos o recuentos sueltos escriben
-      columnas que no existen en Aiven (`justified_at`, `cancelled_at`,
-      `updated_at`) o la columna generada `total`. En Aiven hay 0 vales.
-      _Comprobado por mí el 2026-09-28._
 - [ ] **Cashier: cambios de dinero sin rastro** — pagos y recuentos no dejan
       historial, las ediciones no guardan valores anteriores y borrar un turno
       borra también su `cashier_history` (_visto en producción el 2026-09-29_).
