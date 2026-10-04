@@ -470,18 +470,9 @@ git log.
 
 ## Historical Excel importer
 
-`backend/scripts/import-planning-2026.ts` (tsx + xlsx) loads
-`PLANNING 2026.xlsx` (January-May) into `scheduling_months` / `scheduling_days`
-/ `scheduling_assignments` in _draft_ state. Idempotent per month. Explicit
-employee allowlist (excludes other-department staff). Code mapping
-`L1..L9 → L+libre_number`, `PI1 → FO`, `BT → IT`. Usage:
-
-```bash
-pnpm exec cross-env DB_ENVIRONMENT=aiven tsx --env-file=.env scripts/import-planning-2026.ts [Enero|...|all]
-```
-
-Useful when setting up a clean DB or replicating historical state for
-integration tests.
+The one-off importer that loaded `PLANNING 2026.xlsx` (January-May) into
+`scheduling_*` in draft state was removed on 2026-10-04: it held the real
+names of the staff and had already run. The months stay in the database.
 
 ## Cross-month gotcha (H4/H5) — outstanding debt
 

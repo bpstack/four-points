@@ -30,12 +30,6 @@ sigue siendo donde se arregla este fichero y se prueba en el entorno preview.
 
 ### 🔴 Alta
 
-- [ ] **Datos personales del personal en el repo** —
-      `backend/scripts/import-planning-2026.ts` (commit `3387826`) tiene
-      escritos 13 nombres de personal (2 con apellido) asociados a sus usuarios,
-      tal como aparecen en el Excel `PLANNING 2026.xlsx`; en Aiven, 9 de los 10
-      usuarios de horarios son nombres de pila. Revisar en la fase 2 junto con
-      Clara y los Excel archivados. _Comprobado por mí el 2026-09-28._
 - [ ] **Contraseñas de la BD en el historial** — fuera del árbol desde el
       2026-10-04: se quitaron los 14 ficheros con la de Aiven (`basics/`,
       `add-libre-number.ts`, `backfill-libre-numbers.ts`,
@@ -75,15 +69,17 @@ sigue siendo donde se arregla este fichero y se prueba en el entorno preview.
 - [ ] **El frontend no tiene Content-Security-Policy** (`frontend/vercel.json`).
       _Según la revisión `security` L3 del 2026-09-28 (fichero y línea en el
       informe); no repasado por mí._
-- [ ] **Datos de personas reales en el repo** — el script que daba de alta a
-      una empleada real se quitó el 2026-10-04, pero su nombre sigue en
-      `backend/scripts/import-planning-2026.ts`, en
-      `backend/API REST/parking/parking-api.http`, en un comentario
-      (`uuid-…`) de `aiven/19_scheduling.sql` y
-      `scripts/20251224_add_scheduling.sql`, y en la BD.
-      Quitar o reemplazar en el árbol y en el historial (fase 2). Revisar si
-      hay más nombres reales de personal en scripts, tests o datos de
-      ejemplo.
+- [ ] **Nombres reales del personal en el repo** — el 2026-10-04 se quitaron
+      del árbol el alta de una empleada (`20260520_insert_user_*.sql`),
+      el importador del Excel de horarios (`import-planning-2026.ts`, 13
+      nombres), los 18 `.http` de `backend/API REST/` (contraseñas, tokens y
+      usuarios) y los nombres de los comentarios de `aiven/19_scheduling.sql`
+      y `20251224_add_scheduling.sql`. Quedan: nombres de pila en los
+      fixtures del corpus del solver (`tests/scheduling-corpus/`) y en un
+      comentario de `AuditTrail.tsx`, el autor de las guías del checklist y
+      de los README, y los usuarios de horarios en la BD (9 de 10 con nombre
+      de pila). Todo sigue en el historial (fase 2, `GITCLEAN.md`).
+      _Comprobado por mí el 2026-10-04._
 
 ## Después de publicar
 

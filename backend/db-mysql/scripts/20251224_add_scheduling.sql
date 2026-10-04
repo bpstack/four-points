@@ -140,7 +140,7 @@ CREATE TABLE IF NOT EXISTS scheduling_employee_contracts (
 
 -- =========================================================
 -- TABLA 5: scheduling_employee_rules
--- Reglas específicas por empleado (Salvador, Andrés, Ana R, etc.)
+-- Reglas específicas por empleado (turno fijo, sin fines de semana, etc.)
 -- =========================================================
 CREATE TABLE IF NOT EXISTS scheduling_employee_rules (
   id INT NOT NULL AUTO_INCREMENT,
@@ -360,14 +360,14 @@ INSERT INTO scheduling_shifts (code, name, start_time, end_time, hours, color, i
 --   (employee_id, year, dias_trabajo, horas_anuales, dias_vacaciones, 
 --    dias_libre_semanal, dias_bonificables, dias_laborables_ano, observaciones)
 -- VALUES
---   ('uuid-ana-r', 2025, 223, 1784, 30, 90, 20, 363, '2 LI ENERO'),
---   ('uuid-hugo', 2025, 225, 1800, 30, 90, 20, 365, NULL),
---   ('uuid-irene', 2025, 225, 1800, 30, 90, 20, 365, NULL),
---   ('uuid-salvador', 2025, 219, 1752, 30, 90, 20, 359, '3 LI ABRIL // 3 LI SEPT'),
---   ('uuid-pablo', 2025, 222, 1776, 30, 90, 20, 362, '3 LI ABRIL'),
---   ('uuid-elena', 2025, 225, 1800, 30, 90, 20, 365, NULL),
---   ('uuid-Clara', 2025, 225, 1800, 30, 90, 20, 365, NULL),
---   ('uuid-andres', 2025, 225, 1800, 30, 90, 20, 365, NULL);
+--   ('uuid-employee-1', 2025, 223, 1784, 30, 90, 20, 363, '2 LI ENERO'),
+--   ('uuid-employee-2', 2025, 225, 1800, 30, 90, 20, 365, NULL),
+--   ('uuid-employee-3', 2025, 225, 1800, 30, 90, 20, 365, NULL),
+--   ('uuid-employee-4', 2025, 219, 1752, 30, 90, 20, 359, '3 LI ABRIL // 3 LI SEPT'),
+--   ('uuid-employee-5', 2025, 222, 1776, 30, 90, 20, 362, '3 LI ABRIL'),
+--   ('uuid-employee-6', 2025, 225, 1800, 30, 90, 20, 365, NULL),
+--   ('uuid-employee-7', 2025, 225, 1800, 30, 90, 20, 365, NULL),
+--   ('uuid-employee-8', 2025, 225, 1800, 30, 90, 20, 365, NULL);
 
 -- =========================================================
 -- VERIFICACIÓN

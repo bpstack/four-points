@@ -101,13 +101,17 @@ propietario.
 - **Scripts con la contraseña de Aiven**, quitados del árbol el 2026-10-04:
   `backend/db-mysql/scripts/basics/` (10), `add-libre-number.ts`,
   `backfill-libre-numbers.ts`, `set-holidays-2026.ts` y `backup-aiven.sh`.
+- **Importador del Excel de horarios** con 13 nombres del personal:
+  `backend/scripts/import-planning-2026.ts` (quitado del árbol el 2026-10-04).
 - **Alta de una persona real**:
-  `backend/db-mysql/scripts/20260520_insert_user_example.sql` (quitado del árbol
+  `backend/db-mysql/scripts/20260520_insert_user_*.sql` (quitado del árbol
   el 2026-10-04).
 - **Excel con datos del personal**: `docs/checklists/PLANNING 2026.xlsx` y
   `docs/frontend/schedule/Presencias - Marzo.xlsx`.
-- **Peticiones de prueba**: los 18 ficheros de `backend/API REST/`, que pueden
-  llevar tokens o contraseñas.
+- **Peticiones de prueba**: los 18 ficheros de `backend/API REST/` (quitados
+  del árbol el 2026-10-04): llevan 12 contraseñas, 24 tokens JWT y nombres de
+  usuario. Los tokens están firmados con `SECRET_JWT_KEY`: otro motivo para
+  rotarla.
 - **Documentación antigua** con nombres del personal:
   `SCHEDULING-CONSTRAINTS.md` y `SCHEDULING-DECISIONS-LOG.md` (raíz, hasta el
   2026-09-28).
@@ -118,9 +122,9 @@ propietario.
   `recreate-local.sh` (leen `backend/.env` desde el 2026-10-04).
 - **Host, usuario y contraseñas de Aiven** en `backend/.env.example` (hasta el
   2026-10-02).
-- **Nombres reales del personal** en `backend/scripts/import-planning-2026.ts`
-  y en comentarios de `aiven/19_scheduling.sql` y
-  `scripts/20251224_add_scheduling.sql` (ver `TODO.md`).
+- **Nombres reales del personal** en comentarios de `aiven/19_scheduling.sql`
+  y `scripts/20251224_add_scheduling.sql` (anonimizados en el árbol el
+  2026-10-04) y lo que quede según `TODO.md`.
 - En el análisis se busca cada valor en **todo** el historial (`git log -S`),
   no solo en estos ficheros: el reemplazo se aplica en cualquier fichero donde
   aparezca.
