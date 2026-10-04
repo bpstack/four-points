@@ -21,6 +21,7 @@ cosa va a `TODO.md`.
 | 1c   | «Antes de publicar» de `TODO.md` resuelto y probado en producción        | 1b         |
 | 2    | Clon con el historial limpio (todas las ramas) + `docs/GITCLEAN.md`      | 1c         |
 | 4    | Repositorio público nuevo con el historial limpio (todas las ramas)      | 2          |
+| 5    | Demo pública en un entorno aparte, con datos ficticios y reinicio diario | 4          |
 
 El orden lo fija ADR-001, revisado por ADR-022 (fase 1b) y ADR-027 (fase 1c, que
 además absorbe la antigua fase 3 de tareas pendientes). ADR-033 limita la 1c a lo
@@ -67,3 +68,12 @@ conocidos en `GITCLEAN.md`; la lista de privados la aprueba el propietario
 
 Crear el repositorio público y subir el historial limpio de todas las ramas
 (ADR-026). Rotar las credenciales que aparezcan en lo eliminado (ADR-007).
+
+## Fase 5 — Demo pública
+
+Un entorno para que cualquiera pruebe la aplicación sin tocar producción:
+`demo.four-points.stackbp.es` con su propia BD (`hotel_demo` en Aiven), datos
+ficticios, secretos propios, usuarios demo públicos por rol y reinicio nocturno
+de la BD. Reutiliza la infraestructura del preview y el rol `demo-admin`.
+Diseño y decisiones pendientes en `TODO.md`, «Demo pública» (propuesta aceptada
+por el propietario el 2026-10-04).

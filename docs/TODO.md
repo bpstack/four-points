@@ -362,15 +362,38 @@ sigue siendo donde se arregla este fichero y se prueba en el entorno preview.
       pestaña muestra las rechazadas. Una factura incorrecta hoy se borra. El
       dueño decidió el 2026-10-04 no añadirlo porque casi nunca pasa; si se
       añade, hace falta también reabrir (`rejected` → `pending`).
-- [ ] **Retirar el rol `demo-admin`** — el único usuario con ese rol, `demo`,
-      está desactivado (`is_active = 0`, comprobado en Aiven el 2026-10-04),
-      pero el rol sigue en los middlewares de `roleCheck.ts`, en
-      `demoRestriction`, en las rutas `/demo` y en el frontend (`isAdminRole`).
-      Las reglas añadidas el 2026-10-02 ya no lo incluyen. Mientras exista,
-      `demo-admin` entra en backoffice y lee los PDFs de facturas por
-      `/pdf-url`, `/pdf-download` y el ZIP (antes un punto 🔴 aparte; se
-      movió aquí el 2026-10-04 porque no hay ninguna cuenta activa). Decidir si
-      se quita del todo.
+- [ ] **Demo pública** (fase 5 de `ROADMAP.md`; propuesta aceptada por el dueño
+      el 2026-10-04) — un entorno aparte que la gente pueda probar sin tocar
+      producción:
+      - **BD propia**: base `hotel_demo` en el mismo servicio Aiven, con datos
+        inventados de un hotel ficticio.
+      - **Backend y frontend propios** en `demo.four-points.stackbp.es`,
+        reutilizando la infraestructura del preview al acabar la fase 1c (sin
+        más horas de Render).
+      - **Secretos propios**: otro `SECRET_JWT_KEY` y otras credenciales; un
+        token de la demo nunca vale en producción.
+      - **Reinicio nocturno**: un cron borra y vuelve a sembrar la BD demo.
+      - **Usuarios demo públicos** en la pantalla de login: `demo_admin`,
+        `demo_recepcion`, `demo_mantenimiento`.
+      - **Nivel de libertad** (recomendado: admin casi completo): crear, editar y
+        borrar de todo, porque el reinicio lo arregla. Bloqueado: cambiar
+        contraseñas, crear o borrar usuarios, subidas a Cloudinary (desactivadas
+        o en una carpeta `demo/` vaciada cada noche) y límites de peticiones más
+        estrictos. La alternativa es solo lectura con la lista blanca de
+        `demoRestriction` (más segura, demo pobre).
+      - **Nunca** sobre la BD de producción: cuando haya datos reales del hotel,
+        cualquier demo ahí queda descartada.
+- [ ] **Reutilizar el rol `demo-admin` para la demo pública** (antes «retirarlo»;
+      ver «Demo pública» y la fase 5 de `ROADMAP.md`) — el único usuario con
+      ese rol, `demo`, está desactivado (`is_active = 0`, comprobado en Aiven el
+      2026-10-04). El rol sigue en los middlewares de `roleCheck.ts`, en
+      `demoRestriction` (lista blanca de escrituras y registro de intentos
+      bloqueados), en las rutas `/demo` y en el frontend (`isAdminRole`). Las
+      reglas añadidas el 2026-10-02 ya no lo incluyen. En producción, mientras
+      exista, `demo-admin` entra en backoffice y lee los PDFs de facturas por
+      `/pdf-url`, `/pdf-download` y el ZIP (antes un punto 🔴 aparte; se movió
+      aquí el 2026-10-04 porque no hay ninguna cuenta activa): en la demo vale,
+      en producción no debe haber cuentas con ese rol.
 - [ ] **Conciliation: `GET /api/conciliations` sin paginar ni filtrar** —
       devuelve todo el histórico a cualquier rol con acceso. _Según la revisión
       `security` L3 del 2026-09-28 (fichero y línea en el informe); no repasado
