@@ -115,6 +115,14 @@ propietario.
 - **Documentación antigua** con nombres del personal:
   `SCHEDULING-CONSTRAINTS.md` y `SCHEDULING-DECISIONS-LOG.md` (raíz, hasta el
   2026-09-28).
+- **Encontrados en el análisis del 2026-10-04** (rutas antiguas, ya fuera del
+  árbol):
+  - `API REST/` en la raíz (estructura anterior a `backend/`);
+  - `PLANNING 2026.xlsx` en la raíz y toda la carpeta `z.schedule-docs/`
+    (Excel y CSV de horarios y presencias del personal);
+  - `aiven-conexion.md`, en sus tres ubicaciones
+    (`db-mysql/mysql-Aiven/`, `backend/db-mysql/mysql-Aiven/` y
+    `backend/db-mysql/aiven/`): datos de conexión con la contraseña de Aiven.
 
 ### 2. Reemplazar contenido (ficheros legítimos)
 
@@ -130,9 +138,23 @@ propietario.
   distribución del night audit: dirección del hotel, empresa gestora y un
   auditor, con nombres) y sus códigos en las guías del checklist;
   sustituidos por contactos de ejemplo en el árbol el 2026-10-04.
+- **Secretos encontrados en el análisis del 2026-10-04** (recuento de valores
+  distintos en todo el historial, sin abrir ninguno):
+  - 2 contraseñas de Aiven (`AVNS_…`) en 17 rutas. **Una es la que se usa
+    hoy** (39 apariciones): rotarla es obligatorio;
+  - 1 clave de Anthropic (`sk-ant-…`) en `backend/.env.example`; no es la de
+    `backend/.env` actual, pero hay que revocarla en la consola de Anthropic
+    si sigue activa;
+  - valores de `CLOUDINARY_API_SECRET` (`backend.md`, `backend/.env.example`)
+    y de `SECRET_JWT_KEY` (8 valores en 11 rutas, casi todos marcadores de
+    ejemplo); ninguno coincide con los de `backend/.env` actual;
+  - 9 tokens JWT distintos en 20 rutas;
+  - ninguna clave privada, ni de OpenAI, Google, Resend o GitHub, y ningún
+    `.env` real versionado nunca.
 - En el análisis se busca cada valor en **todo** el historial (`git log -S`),
   no solo en estos ficheros: el reemplazo se aplica en cualquier fichero donde
-  aparezca.
+  aparezca. `git filter-repo --replace-text` acepta expresiones regulares
+  (`regex:…==>***REMOVED***`), útil para los tokens JWT.
 
 ### 3. Cambiar autoría
 
