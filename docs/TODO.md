@@ -18,10 +18,6 @@ hace que alguien reimplemente lo que ya existe.
 
 ## Rama `claude/compassionate-planck-gh6aof`
 
-- [ ] **Probar en producción todos los arreglos de la rama** — en el entorno
-      preview (`docs/general/README.md`, «Preview environment»), siguiendo
-      `docs/VERIFY.md`: cada fila pasa de ⏳ a ✅ o ❌. Lo que falle vuelve a
-      este fichero como punto nuevo.
 - [ ] **Llevar la rama a `main` con merge normal, sin squash** (ADR-031) —
       cuando `docs/VERIFY.md` no tenga ⏳ ni ❌ abiertos: PR con «Create a
       merge commit». Los 5 commits con autor `Claude` se quedan; su autor se

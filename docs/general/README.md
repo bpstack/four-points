@@ -220,6 +220,12 @@ like this is in ADR-030.
   reset, log purge and batch payment are idempotent; the 07:00 notices may be
   duplicated. Free services sleep after 15 minutes without traffic, so it only
   happens if preview is awake at that time.
+- **Vercel toolbar on preview**: Vercel injects its feedback toolbar
+  (`feedback.js`) and the "Vercel Authentication" protection into preview
+  deployments only. They log `OPTIONS` 400 and `/.well-known/vercel/jwe` 503
+  in the console and some `?_rsc=` prefetches answer 503. It is not the
+  app: production shows none of it. The toolbar can be turned off in Vercel →
+  Settings → General.
 - **Free limits**: the Render workspace has 750 instance hours a month shared by
   every free service (if they run out, production is suspended too) and 2 custom
   domains, both now in use.
