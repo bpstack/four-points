@@ -19,7 +19,8 @@ backend/db-mysql/
 ├── scripts/           # Incremental migrations — the single source of truth
 │   ├── 20251220_add_backoffice.sql
 │   ├── 20251222_add_user_avatar_columns.sql
-│   └── … (chronological order)
+│   ├── … (chronological order)
+│   └── apply-migration.sh  # Applies one migration to local or Aiven
 ├── backup/            # DB dumps (local + Aiven)
 ├── MASTER_INSTALL.sql # Runs all aiven/ files in order. Empty DB only.
 ├── MIGRATIONS_POLICY.md
@@ -41,8 +42,8 @@ backend/db-mysql/
   `⏳ pendiente`).
 - **Never modify a committed script**: If something went wrong, create a new
   `YYYYMMDD_fix_…sql` that corrects it.
-- **Apply order**: Local first (`pnpm dev:local`), then Aiven. Update `INDEX.md`
-  status after each.
+- **Apply order**: Local first, then Aiven, with `scripts/apply-migration.sh`
+  (see "Applying a migration"). Update `INDEX.md` status after each.
 - **Charset / collation**: Always `utf8mb4` / `utf8mb4_0900_ai_ci`.
 
 ## Writing an idempotent script
@@ -87,6 +88,28 @@ Idempotency guarantees applying all scripts twice leaves the DB intact.
 
 **Never run `MASTER_INSTALL.sql` or `aiven/NN_*.sql` against a DB that already
 has data.** They will overwrite or duplicate rows.
+
+## Applying a migration
+
+`scripts/apply-migration.sh` runs one `scripts/YYYYMMDD_*.sql` against local or
+Aiven. It reads the credentials from `backend/.env` (`LOCAL_DB_*`, or
+`AIVEN_DB_*` and `AIVEN_PASSWORD`), passes the password through `MYSQL_PWD`
+so it never shows in the command line, and verifies Aiven's TLS certificate
+with `config/certs/ca-certificate.pem`. It refuses any other file.
+
+```bash
+cd backend/db-mysql/scripts
+./apply-migration.sh local 20261004_add_messages_to_notifications_module.sql --dry-run
+./apply-migration.sh local 20261004_add_messages_to_notifications_module.sql
+./apply-migration.sh aiven 20261004_add_messages_to_notifications_module.sql --dry-run
+./apply-migration.sh aiven 20261004_add_messages_to_notifications_module.sql
+```
+
+- `--dry-run` only checks the connection and prints the target; nothing runs.
+- Each script prints its own result (a skip message or the new definition),
+  so the output shows whether it changed anything.
+- Running it twice is the idempotency check: the second run must skip.
+- Then set the row's status in `INDEX.md` (`✅ local · ✅ Aiven`).
 
 ## Connecting to Aiven (production)
 
@@ -136,6 +159,11 @@ Stored in `backup/`: `backup_hotel_db-local.sql` and
 4. **Two TS companion scripts.** `add-libre-number.ts` and
    `backfill-libre-numbers.ts` in `scripts/` are one-time data fixers (not
    schema migrations). They ran once and are kept for reference; do not re-run.
+5. **The frozen baseline is not the live schema.** `aiven/NN_*.sql` may list
+   things the live databases never got: `aiven/17_notifications.sql` had
+   `'messages'` in `notifications.module`, Aiven did not, and the urgent
+   message notices failed silently until `20261004_add_messages_to_notifications_module.sql`.
+   Before relying on a column, check `information_schema` on the target DB.
 
 ## Cross references
 
