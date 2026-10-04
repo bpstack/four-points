@@ -107,19 +107,19 @@ SELECT '✅ Departamentos verificados' AS resultado;
 
 -- =========================================================
 -- PASO 3: USUARIOS MOCK
--- Password para todos: notherelol (hash bcrypt)
+-- Contraseña de todos (solo para desarrollo local): Test1234!
 -- =========================================================
 INSERT INTO users (id, username, email, password, role_id, is_active) VALUES
   -- Admin
-  ('mock-user-0001-0000-000000000001', 'admin', 'admin@four-points.local', '$2b$10$pZjPFMPYBfvEzRwXMDJWte1NSyzruUo029Aifccj/qC7ayDQbMpOe', 2, 1),
+  ('mock-user-0001-0000-000000000001', 'admin', 'admin@four-points.local', '$2b$10$OvW63s62aNQt/MPvL1dip.w5//PkSXNkUTGDJdvKs89ZNm8ePeTBy', 2, 1),
   -- Recepcionistas
-  ('mock-user-0002-0000-000000000001', 'carlos.garcia', 'carlos@four-points.local', '$2b$10$pZjPFMPYBfvEzRwXMDJWte1NSyzruUo029Aifccj/qC7ayDQbMpOe', 1, 1),
-  ('mock-user-0003-0000-000000000001', 'maria.lopez', 'maria@four-points.local', '$2b$10$pZjPFMPYBfvEzRwXMDJWte1NSyzruUo029Aifccj/qC7ayDQbMpOe', 1, 1),
-  ('mock-user-0004-0000-000000000001', 'pedro.martinez', 'pedro@four-points.local', '$2b$10$pZjPFMPYBfvEzRwXMDJWte1NSyzruUo029Aifccj/qC7ayDQbMpOe', 1, 1),
+  ('mock-user-0002-0000-000000000001', 'carlos.garcia', 'carlos@four-points.local', '$2b$10$OvW63s62aNQt/MPvL1dip.w5//PkSXNkUTGDJdvKs89ZNm8ePeTBy', 1, 1),
+  ('mock-user-0003-0000-000000000001', 'maria.lopez', 'maria@four-points.local', '$2b$10$OvW63s62aNQt/MPvL1dip.w5//PkSXNkUTGDJdvKs89ZNm8ePeTBy', 1, 1),
+  ('mock-user-0004-0000-000000000001', 'pedro.martinez', 'pedro@four-points.local', '$2b$10$OvW63s62aNQt/MPvL1dip.w5//PkSXNkUTGDJdvKs89ZNm8ePeTBy', 1, 1),
   -- Mantenimiento
-  ('mock-user-0005-0000-000000000001', 'juan.fernandez', 'juan@four-points.local', '$2b$10$pZjPFMPYBfvEzRwXMDJWte1NSyzruUo029Aifccj/qC7ayDQbMpOe', 3, 1),
+  ('mock-user-0005-0000-000000000001', 'juan.fernandez', 'juan@four-points.local', '$2b$10$OvW63s62aNQt/MPvL1dip.w5//PkSXNkUTGDJdvKs89ZNm8ePeTBy', 3, 1),
   -- Group Admin
-  ('mock-user-0006-0000-000000000001', 'ana.torres', 'ana@four-points.local', '$2b$10$pZjPFMPYBfvEzRwXMDJWte1NSyzruUo029Aifccj/qC7ayDQbMpOe', 6, 1);
+  ('mock-user-0006-0000-000000000001', 'ana.torres', 'ana@four-points.local', '$2b$10$OvW63s62aNQt/MPvL1dip.w5//PkSXNkUTGDJdvKs89ZNm8ePeTBy', 6, 1);
 
 SELECT '✅ Usuarios mock creados (6 usuarios)' AS resultado;
 
@@ -428,6 +428,5 @@ UNION ALL SELECT 'Messages', COUNT(*) FROM messages
 UNION ALL SELECT 'Notifications', COUNT(*) FROM notifications;
 
 SELECT '========================================' AS mensaje;
-SELECT 'Usuario demo preservado: demo / demo987654' AS mensaje;
 SELECT 'Usuarios mock password: Test1234!' AS mensaje;
 SELECT '========================================' AS mensaje;

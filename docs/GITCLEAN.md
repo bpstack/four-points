@@ -34,9 +34,20 @@ el historial.
 
 ## Reglas
 
-- Solo se eliminan los archivos identificados explícitamente como privados. Nada
-  más se modifica ni se borra, **salvo la autoría** de los commits listados en
-  «Autoría que se corrige» (ADR-031).
+- Solo se hacen **tres operaciones**, cada una sobre una lista aprobada
+  (ADR-034):
+  1. **Eliminar** del historial ficheros o directorios enteramente privados
+     (`--invert-paths --path …`).
+  2. **Reemplazar contenido** en ficheros legítimos que llevaron credenciales o
+     datos privados escritos (`--replace-text`): cada valor se cambia por
+     `***REMOVED***` o por un sustituto neutro, y el fichero se conserva.
+  3. **Cambiar autoría** para unificar la identidad o quitar rastros de IA
+     (`--mailmap`), sin tocar el contenido.
+
+  Nada más se modifica ni se borra.
+- Se hace **poco a poco**: cada operación se prueba en el clon y se audita antes
+  de la siguiente. Los valores a reemplazar se guardan en un fichero fuera del
+  repositorio (no se versiona) y se borra al terminar.
 - El contenido del proyecto no se altera más allá de lo imprescindible.
 - No se pierde ningún commit, rama, tag ni parte del historial que deba
   conservarse.
@@ -77,23 +88,46 @@ historial sin romper ni alterar innecesariamente el resto del repositorio.**
 
 ## Candidatos conocidos
 
-Lista de partida para el análisis, comprobada el 2026-09-28. **Ninguno se ha
-abierto**; la lista final la aprueba el propietario.
+Lista de partida para el análisis, comprobada el 2026-09-28 y ampliada el
+2026-10-04. **Los volcados no se han abierto**; la lista final la aprueba el
+propietario.
+
+### 1. Eliminar (ficheros enteramente privados)
 
 - **Volcados de BD**: `backend/db-mysql/backup/backup_hotel_db_*.sql` (cuatro;
-  fuera del árbol desde el 2026-09-28) y los ya borrados
-  `backup_hotel_db-aiven.sql` y `backup_hotel_db-local.sql` (commits `dad3cdc`,
-  `f5d47d6` y `7ac45e7`).
+  versionados hasta el 2026-10-04, aunque `.gitignore` ya los ignoraba) y los
+  ya borrados `backup_hotel_db-aiven.sql` y `backup_hotel_db-local.sql`
+  (commits `dad3cdc`, `f5d47d6` y `7ac45e7`).
+- **Scripts con la contraseña de Aiven**, quitados del árbol el 2026-10-04:
+  `backend/db-mysql/scripts/basics/` (10), `add-libre-number.ts`,
+  `backfill-libre-numbers.ts`, `set-holidays-2026.ts` y `backup-aiven.sh`.
+- **Alta de una persona real**:
+  `backend/db-mysql/scripts/20260520_insert_user_example.sql` (quitado del árbol
+  el 2026-10-04).
 - **Excel con datos del personal**: `docs/checklists/PLANNING 2026.xlsx` y
   `docs/frontend/schedule/Presencias - Marzo.xlsx`.
 - **Peticiones de prueba**: los 18 ficheros de `backend/API REST/`, que pueden
   llevar tokens o contraseñas.
-- **Nombres reales del personal**: `20260520_insert_user_example.sql` y
-  `backend/scripts/import-planning-2026.ts` (ver `TODO.md`). Si se arreglan en
-  la fase 1c, en el historial siguen.
 - **Documentación antigua** con nombres del personal:
   `SCHEDULING-CONSTRAINTS.md` y `SCHEDULING-DECISIONS-LOG.md` (raíz, hasta el
   2026-09-28).
+
+### 2. Reemplazar contenido (ficheros legítimos)
+
+- **Contraseña de la BD local** en `backup-local.sh`, `check-collation.sh` y
+  `recreate-local.sh` (leen `backend/.env` desde el 2026-10-04).
+- **Host, usuario y contraseñas de Aiven** en `backend/.env.example` (hasta el
+  2026-10-02).
+- **Nombres reales del personal** en `backend/scripts/import-planning-2026.ts`
+  y en comentarios de `aiven/19_scheduling.sql` y
+  `scripts/20251224_add_scheduling.sql` (ver `TODO.md`).
+- En el análisis se busca cada valor en **todo** el historial (`git log -S`),
+  no solo en estos ficheros: el reemplazo se aplica en cualquier fichero donde
+  aparezca.
+
+### 3. Cambiar autoría
+
+La sección siguiente.
 
 ## Autoría que se corrige
 

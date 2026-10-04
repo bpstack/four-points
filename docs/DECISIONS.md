@@ -675,3 +675,30 @@
   como mejora: datos sensibles en los logs (no son públicos) y los informes de
   caja sin `canViewReports` (un rol interno viendo totales).
 - **Revisa:** ADR-027 en el alcance de la fase 1c.
+
+## ADR-034 — La limpieza del historial es híbrida: eliminar, reemplazar y cambiar autoría
+
+- **Estado:** ✅ aceptada (2026-10-04)
+- **Fecha:** 2026-10-04
+- **Decisión:**
+  - La fase 2 hace tres operaciones con `git-filter-repo`, cada una sobre una
+    lista aprobada por el propietario (`GITCLEAN.md`):
+    1. **Eliminar** del historial los ficheros o directorios enteramente
+       privados (volcados, scripts con la contraseña de Aiven, Excel del
+       personal).
+    2. **Reemplazar contenido** (`--replace-text`) en los ficheros legítimos
+       que llevaron credenciales o nombres reales escritos: el fichero se
+       conserva y solo cambia el valor.
+    3. **Cambiar autoría** (`--mailmap`), como ya decía ADR-031.
+  - Se aplica poco a poco: cada operación se prueba y se audita en el clon
+    antes de la siguiente.
+  - Antes, en la rama, se quita del árbol lo que no hace falta en el repo
+    público y los scripts legítimos leen las credenciales de `backend/.env`.
+- **Motivo:** decisión del propietario. Borrar del historial un script útil
+  solo porque llevó una contraseña pierde su historia; reemplazar el valor la
+  conserva. Lo enteramente privado no tiene nada que conservar.
+- **Rechazado:** solo eliminar ficheros (la regla anterior de `GITCLEAN.md`).
+- **Consecuencias:** `GITCLEAN.md` clasifica los candidatos por operación. Los
+  valores a reemplazar se guardan fuera del repositorio durante la limpieza.
+- **Revisa:** las reglas de `GITCLEAN.md` (antes solo se eliminaban ficheros y
+  se cambiaba la autoría).

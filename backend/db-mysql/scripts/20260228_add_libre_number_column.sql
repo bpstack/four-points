@@ -6,9 +6,8 @@
 -- pairs (1-45). Used by the scheduling solver and the UI to keep L-pairs
 -- consistent across the month.
 --
--- Companion TypeScript scripts (also part of the same commit):
---   * scripts/add-libre-number.ts       (one-off DDL helper)
---   * scripts/backfill-libre-numbers.ts (backfill existing assignments)
+-- The same commit had two one-off TypeScript scripts (DDL helper and backfill
+-- of existing assignments). Both ran and were removed on 2026-10-04.
 --
 -- Idempotent: checks information_schema before ALTER.
 -- Verified live in Aiven 2026-05-20.

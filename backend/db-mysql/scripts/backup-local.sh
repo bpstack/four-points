@@ -5,9 +5,7 @@
 # =============================================
 
 # Configuración
-DB_NAME="hotel_db"
-DB_USER="root"
-DB_PASS="***REMOVED***"
+source "$(dirname "$0")/local-env.sh"
 BACKUP_DIR="$(dirname "$0")/../backup"
 DATE=$(date +%Y%m%d_%H%M%S)
 
@@ -20,7 +18,7 @@ FILENAME="backup_${DB_NAME}_local_${DATE}.sql"
 echo "📦 Creando backup local de $DB_NAME..."
 
 # Ejecutar backup
-mysqldump -u "$DB_USER" -p"$DB_PASS" "$DB_NAME" > "$BACKUP_DIR/$FILENAME"
+mysqldump -h "$DB_HOST" -u "$DB_USER" "$DB_NAME" > "$BACKUP_DIR/$FILENAME"
 
 if [ $? -eq 0 ]; then
     echo "✅ Backup creado: $FILENAME"

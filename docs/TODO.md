@@ -36,20 +36,16 @@ sigue siendo donde se arregla este fichero y se prueba en el entorno preview.
       tal como aparecen en el Excel `PLANNING 2026.xlsx`; en Aiven, 9 de los 10
       usuarios de horarios son nombres de pila. Revisar en la fase 2 junto con
       Clara y los Excel archivados. _Comprobado por mí el 2026-09-28._
-- [ ] **Contraseñas de la BD escritas en 17 ficheros versionados** — casi todos
-      en `backend/db-mysql/scripts/` (los 10 de `basics/`,
+- [ ] **Contraseñas de la BD en el historial** — fuera del árbol desde el
+      2026-10-04: se quitaron los 14 ficheros con la de Aiven (`basics/`,
       `add-libre-number.ts`, `backfill-libre-numbers.ts`,
-      `set-holidays-2026.ts`, `backup-aiven.sh`, `backup-local.sh`,
-      `check-collation.sh`, `recreate-local.sh`), 14 de ellos con el host de
-      Aiven; más `backend/tests/auth/user-repository-login.test.ts` (usuario y
-      contraseña de una cuenta de prueba) y dos scripts SQL con contraseñas en
-      claro en comentarios (`20260520_insert_user_example.sql`,
-      `20260512_add_scheduling_solver_runs_and_requests.sql`). Están en el
-      historial desde `f5d47d6` y en el remoto privado. `backend/.env.example`
-      también llevaba host, usuario y contraseñas de Aiven hasta el 2026-10-02
-      (ya sin valores, pero siguen en el historial). Sacarlos del historial
-      en la fase 2 y rotar (ver la entrada de rotación). _Comprobado por mí el
-      2026-09-28._
+      `set-holidays-2026.ts`, `backup-aiven.sh`) y los 3 scripts locales
+      leen `backend/.env`. Siguen en el historial desde `f5d47d6`, junto con
+      los 4 volcados de `backup/` (versionados hasta el 2026-10-04) y
+      `backend/.env.example` hasta el 2026-10-02. Se limpian en la fase 2
+      (`GITCLEAN.md`) y después se rotan. `user-repository-login.test.ts`
+      solo crea un usuario de prueba con su contraseña (no existe en Aiven) y
+      no hace falta tocarlo. _Comprobado por mí el 2026-10-04._
 - [ ] **Rotar todas las credenciales al terminar la preparación** —
       `SECRET_JWT_KEY`, contraseñas de MySQL (local y Aiven), claves de
       Cloudinary, SMTP si se usa, y las claves de IA que siguen en
@@ -84,12 +80,15 @@ sigue siendo donde se arregla este fichero y se prueba en el entorno preview.
       `Permissions-Policy`, pero no CSP ni `Cross-Origin-Opener-Policy`; HSTS
       sin `preload`, Google Analytics sin SRI y anuncia `X-Powered-By: Next.js`.
       _Comprobado con `curl -I` el 2026-09-28._
-- [ ] **Datos de personas reales en el repo** —
-      `20260520_insert_user_example.sql` crea a una empleada real con su periodo
-      de trabajo (confirmado por el propietario el 2026-09-28): cambiar el
-      nombre antes de publicar, en el script, en la BD y en el historial (fase
-      2). Revisar si hay más nombres reales de personal en scripts, tests o
-      datos de ejemplo.
+- [ ] **Datos de personas reales en el repo** — el script que daba de alta a
+      una empleada real se quitó el 2026-10-04, pero su nombre sigue en
+      `backend/scripts/import-planning-2026.ts`, en
+      `backend/API REST/parking/parking-api.http`, en un comentario
+      (`uuid-…`) de `aiven/19_scheduling.sql` y
+      `scripts/20251224_add_scheduling.sql`, y en la BD.
+      Quitar o reemplazar en el árbol y en el historial (fase 2). Revisar si
+      hay más nombres reales de personal en scripts, tests o datos de
+      ejemplo.
 
 ## Después de publicar
 
@@ -139,7 +138,7 @@ sigue siendo donde se arregla este fichero y se prueba en el entorno preview.
       doble reserva, solo el error. _Visto en preview el 2026-10-04._
 - [ ] **Probar una restauración del backup de Aiven** antes de meter datos
       reales — Aiven hace copias automáticas y existe
-      `backend/db-mysql/scripts/backup-aiven.sh`, pero no consta que se haya
+      `backend/db-mysql/backup/backup.ps1`, pero no consta que se haya
       probado a restaurar ninguna. Del plan archivado (`Global-Plan.md`, H3-8).
 - [ ] **Sentry para los errores** — no está instalado (_comprobado el
       2026-09-28_). Esperaba un DSN. Cuando lo haya: `@sentry/node` en el
