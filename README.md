@@ -33,3 +33,7 @@ cd frontend && pnpm install && pnpm dev        # http://localhost:3000
 
 Node ≥ 22.16, pnpm. `frontend/` and `backend/` are independent pnpm projects,
 each with its own lockfile.
+
+## License
+
+This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.

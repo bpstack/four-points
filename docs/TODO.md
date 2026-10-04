@@ -81,11 +81,6 @@ sigue siendo donde se arregla este fichero y se prueba en el entorno preview.
 
 ### 🟡 Media
 
-- [ ] **Decidir la licencia antes de publicar** — solo existe
-      `frontend/LICENSE`, «MIT (Modified - Non-Commercial)», que no es open
-      source según la OSI, y la raíz no tiene ninguna.
-- [ ] **Decidir la analítica antes de publicar** — el frontend carga Google
-      Analytics (`G-ZYSZ6THVDW`) y Vercel Analytics (`frontend/app/layout.tsx`).
 - [ ] **El frontend no tiene Content-Security-Policy** (`frontend/vercel.json`).
       _Según la revisión `security` L3 del 2026-09-28 (fichero y línea en el
       informe); no repasado por mí._
