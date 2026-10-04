@@ -195,6 +195,20 @@ like this is in ADR-030.
   `SameSite=Lax` cookies are not sent and the CORS list rejects it. Under
   `four-points.stackbp.es` both work without touching code.
 
+**Test users** (created on 2026-10-04 to verify `docs/VERIFY.md` role by role)
+
+| User        | Role            | Email                    |
+| ----------- | --------------- | ------------------------ |
+| `qa_recep`  | `recepcionista` | `qa_recep@qa.invalid`    |
+| `qa_gadmin` | `group-admin`   | `qa_gadmin@qa.invalid`   |
+| `qa_mant`   | `mantenimiento` | `qa_mant@qa.invalid`     |
+
+- They live in the production database, so production sees them too.
+- Their random passwords, and the `admin` one used for the tests, are only in
+  `docs/_archive/verify/creds.env` on the main PC (`dz`). Git ignores that
+  folder (ADR-009); the helper `fp.sh` next to it logs in with them.
+- Any data a test creates starts with `QA-`.
+
 **Side effects to keep in mind**
 
 - **Shared cookies**: both APIs set the same cookie names on
@@ -213,7 +227,8 @@ like this is in ADR-030.
 **Removing it when it is no longer needed**: delete the service
 `four-points-api-preview` on Render, the domain `preview.four-points.stackbp.es`
 and the branch-scoped `NEXT_PUBLIC_API_URL` on Vercel, and both CNAMEs on
-Hostinger. Nothing in `main` depends on it.
+Hostinger. Delete or deactivate the `qa_*` users and the `QA-` test data, and
+`docs/_archive/verify/`. Nothing in `main` depends on it.
 
 ## Local development
 
