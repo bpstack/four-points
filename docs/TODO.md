@@ -280,6 +280,12 @@ preview.
 
 ### 🟢 Baja
 
+- [ ] **Artículo en el blog del portfolio sobre el motor de horarios** — cómo
+      se modelaron los cuadrantes de recepción con OR-Tools (CP-SAT): reglas
+      duras y blandas, bloques de noches, continuidad entre meses y el daemon
+      de Python. Enlazar la demo y el repo. Es el gancho para promocionar el
+      proyecto. Se escribe en el repo `portfolio-bp`, no aquí. _Decidido el
+      2026-10-05._
 - [ ] **`excludeMantenimiento` es una lista de exclusión** — parking, lista
       negra, caja, partes, conciliación y departamentos dejan pasar cualquier
       rol salvo `mantenimiento`, y `services/auth/module-access.ts` lo replica.
