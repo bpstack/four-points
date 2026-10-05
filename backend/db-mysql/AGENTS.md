@@ -24,7 +24,6 @@ backend/db-mysql/
 ├── backup/            # DB dumps (local + Aiven)
 ├── MASTER_INSTALL.sql # Runs all aiven/ files in order. Empty DB only.
 ├── MIGRATIONS_POLICY.md
-├── MIGRATION_GUIDE.md
 ├── INDEX.md           # Full table index + incremental migration log
 └── mock-data.sql      # Clears module data and loads fictitious data (keeps users and scheduling)
 ```
@@ -172,4 +171,4 @@ password.
 
 - `MIGRATIONS_POLICY.md` — full policy rationale and when to change the model.
 - `INDEX.md` — module-by-module table list + full incremental migration log.
-- `MIGRATION_GUIDE.md` — initial install guide (scripts 01-19 walkthrough).
+- Fresh install: `pnpm setup:local` (`scripts/setup-local.ts`), never `MASTER_INSTALL.sql` by hand.

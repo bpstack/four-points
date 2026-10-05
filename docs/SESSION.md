@@ -21,13 +21,13 @@ y auditado (`GITCLEAN.md`).
 El historial limpio está en `bpstack/four-points`, **todavía privado**. El
 original sigue privado como `four-points-archive`. Vercel y Render despliegan ya
 desde el nuevo, en producción y en preview (`VERIFY.md`, «Cambio al repositorio
-nuevo»). Decisiones en `DECISIONS.md`, hasta ADR-039.
+nuevo»). Decisiones en `DECISIONS.md`, hasta ADR-040.
 
-La demo pública (fase 5) está hecha en código y probada en preview el
-2026-10-05: cuenta demo con botón, bloqueos, límites, reinicio diario,
-Configuración → Demo, instalación local con `pnpm setup:local` y `demo-admin`
-retirado. Base de horarios guardada (octubre a diciembre de 2026, generados
-con el solver). `DEMO_MODE` y `NEXT_PUBLIC_DEMO_MODE` solo están en preview.
+La demo pública (fase 5) está en producción desde el 2026-10-05: cuenta demo
+con botón, bloqueos, límites, reinicio diario, Configuración → Demo y base de
+horarios (octubre a diciembre de 2026). `pnpm setup:local` instala en local
+con admin completo y la misma base de horarios (`scheduling-seed.sql`). La
+documentación obsoleta está archivada (ADR-040).
 
 ## ⚠️ Empieza por aquí
 
@@ -44,10 +44,11 @@ con el solver). `DEMO_MODE` y `NEXT_PUBLIC_DEMO_MODE` solo están en preview.
 
 ## Siguiente
 
-1. PR a `main`, poner `DEMO_MODE` y `NEXT_PUBLIC_DEMO_MODE` en producción y
-   probar el botón demo en la web (`TODO.md`, «Demo pública en la propia web:
-   lo que falta»).
-2. Pasar `four-points` a público y activar secret scanning y push protection.
+1. Pasar `four-points` a público y activar secret scanning y push protection.
+   Historial revisado contra `backend/.env` el 2026-10-05 (`ROADMAP.md`,
+   fase 4).
+2. Archivar `GITCLEAN.md`, `VERIFY.md`, `ROADMAP.md` y `SESSION.md` como
+   dice ADR-040, cuando ya no hagan falta.
 3. «Después de publicar» de `TODO.md`, empezando por la rotación de
    credenciales (se puede adelantar).
 
@@ -75,7 +76,6 @@ Nada ahora mismo.
   se bloquea en la ruta con `denyDemo`/`denyDemoWrites` o en
   `demoRestriction`. Una ruta nueva que escriba fuera de lo que reinicia el
   mock (usuarios, catálogos, configuración) necesita su guarda.
-- **Enlaces rotos conocidos** tras archivar: `backend/README.md` (enlaces a
-  `docs/backend/…`) y comentarios que citan `Global-Plan.md` o
+- **Enlaces rotos conocidos** tras archivar: comentarios que citan `Global-Plan.md` o
   `SCHEDULING-SOLVER-PLAN.md`. Se arreglan al escribir cada módulo (ADR-010).
   _Sin repasar desde el 2026-09-28._

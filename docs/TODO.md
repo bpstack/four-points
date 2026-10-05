@@ -18,8 +18,9 @@ hace que alguien reimplemente lo que ya existe.
 
 ## Rama `claude/compassionate-planck-gh6aof`
 
-Fusionada en `main` el 2026-10-05 (PR #10, commit de merge `0953e94`). La rama
-sigue siendo donde se arregla este fichero y se prueba en el entorno preview.
+Última fusión en `main`: 2026-10-05 (PR #4, commit de merge `15a8531`). La
+rama sigue siendo donde se arregla este fichero y se prueba en el entorno
+preview.
 
 ## Después de publicar
 
@@ -309,15 +310,6 @@ sigue siendo donde se arregla este fichero y se prueba en el entorno preview.
       pestaña muestra las rechazadas. Una factura incorrecta hoy se borra. El
       dueño decidió el 2026-10-04 no añadirlo porque casi nunca pasa; si se
       añade, hace falta también reabrir (`rejected` → `pending`).
-- [ ] **Demo pública en la propia web: lo que falta** (fase 5 de `ROADMAP.md`,
-      ADR-037 y ADR-038) — el código está hecho y probado en preview el
-      2026-10-05 (cuenta demo, bloqueos, límites, reinicio diario, pestaña
-      Configuración → Demo, `setup:local`) y la base de horarios guardada
-      (octubre a diciembre de 2026, generados con el solver; los meses que
-      venían de bajas reales se borraron). Queda:
-      1. **Producción:** tras el merge, `DEMO_MODE=true` en el servicio de
-         producción de Render y `NEXT_PUBLIC_DEMO_MODE=true` en Production de
-         Vercel (hoy solo están en preview). Probar el botón en la web.
 - [ ] **Conciliation: `GET /api/conciliations` sin paginar ni filtrar** —
       devuelve todo el histórico a cualquier rol con acceso. _Según la revisión
       `security` L3 del 2026-09-28 (fichero y línea en el informe); no repasado

@@ -55,17 +55,19 @@ Historial de `main` y `claude/compassionate-planck-gh6aof` reescrito y auditado
 ## Fase 4 — Publicación ← **actual**
 
 El historial limpio está en `bpstack/four-points`, todavía privado; Vercel y
-Render despliegan desde él y el original está archivado. Pasar a público (con
-secret scanning y push protection) espera a la demo de la fase 5 (ADR-037). La
-rotación de credenciales (ADR-007) no bloquea: va en «Después de publicar» de
-`TODO.md`.
+Render despliegan desde él y el original está archivado. La demo de la fase 5
+ya está en producción, así que solo falta pasarlo a público y activar secret
+scanning y push protection. Comprobado el 2026-10-05: ningún valor de
+`backend/.env` aparece en los 662 commits de todas las ramas, salvo dos valores
+públicos por defecto (el usuario `avnadmin` de Aiven y `localhost:11434` de
+Ollama). La rotación de credenciales (ADR-007) no bloquea: va en «Después de
+publicar» de `TODO.md`.
 
-## Fase 5 — Demo pública
+## Fase 5 — Demo pública ✅ cerrada (2026-10-05)
 
 Que cualquiera pruebe la aplicación en la propia web, que es solo un escaparate
 (ADR-037): un admin demo restringido que entra con un botón, datos ficticios,
 generación de horarios y reinicio diario; y quien quiera verlo todo lo instala
-en local con admin completo (ADR-038, ADR-039). Hecho en código y probado en
-preview el 2026-10-05; lo que falta, en `TODO.md`, «Demo pública en la propia
-web: lo que falta». El repositorio se hace público cuando la demo esté en
-producción.
+en local con admin completo (ADR-038, ADR-039). En producción desde el
+2026-10-05 (PR #3 y #4, `DEMO_MODE` en Render y Vercel), probada en preview y
+en la web.

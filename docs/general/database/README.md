@@ -100,6 +100,6 @@ backend (repositories) ─► mysql2 pool ─► TLS ─► MySQL on Aiven (hote
   quick query scripts were removed on 2026-10-04 (they carried the Aiven
   password).
 - **`backup/`**: database dumps, never committed.
-- **Five documents** that overlap: `CLAUDE.md`, `README.md`, `INDEX.md`,
-  `MIGRATIONS_POLICY.md` and `MIGRATION_GUIDE.md`. Several data they give are
-  outdated.
+- **Four documents** that overlap: `CLAUDE.md`, `README.md`, `INDEX.md` and
+  `MIGRATIONS_POLICY.md`. Several data they give are outdated.
+  `MIGRATION_GUIDE.md` was archived on 2026-10-05 (ADR-040).
