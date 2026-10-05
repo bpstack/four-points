@@ -87,7 +87,8 @@
       "departments": "Departamentos",
       "notifications": "Notificaciones",
       "security": "Seguridad",
-      "reports": "Reportes"
+      "reports": "Reportes",
+      "demo": "Demo"
     },
     "users": {
       "title": "Gestión de Usuarios",
@@ -156,6 +157,27 @@
       "groupAdmin": "Admin de Grupos",
       "receptionist": "Recepcionista",
       "maintenance": "Mantenimiento"
+    },
+    "demo": {
+      "title": "Demo pública",
+      "description": "Cada día, con la primera entrada a la demo, se vuelven a cargar los datos ficticios de todos los módulos y se restaura la base de horarios guardada. Desde aquí puedes hacerlo a mano.",
+      "lastReset": "Último reinicio",
+      "snapshot": "Base de horarios guardada",
+      "never": "Nunca",
+      "noSnapshot": "Sin guardar: el reinicio no toca los horarios",
+      "auto": "automático",
+      "manual": "a mano",
+      "ok": "correcto",
+      "failed": "falló",
+      "resetButton": "Reiniciar los datos ahora",
+      "snapshotButton": "Guardar horarios actuales como base",
+      "resetWarning": "Se borran los datos de todos los módulos (partes, parking, grupos, caja…) y se cargan los ficticios. Los horarios vuelven a la base guardada. Los usuarios no se tocan.",
+      "snapshotWarning": "Los horarios actuales, con su configuración, pasan a ser la base que se restaura cada día. Sustituye a la base anterior.",
+      "confirm": "Confirmar",
+      "resetDone": "Datos de la demo reiniciados",
+      "snapshotDone": "Base de horarios guardada",
+      "loadError": "No se pudo cargar el estado de la demo",
+      "actionError": "No se pudo completar. Puede que ya haya un reinicio en marcha."
     }
   },
   "messages": {

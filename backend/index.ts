@@ -31,6 +31,7 @@ import backofficeRoutes from './routes/backoffice/backoffice-routes.js'
 import schedulingRoutes from './routes/scheduling/scheduling-routes.js'
 import searchRoutes from './routes/search/search-routes.js'
 import demoActivityRoutes from './routes/demo/demo-activity-routes.js'
+import demoResetRoutes from './routes/demo/demo-reset-routes.js'
 import checklistRoutes from './routes/checklist/checklist-routes.js'
 import fnbRoutes from './routes/fnb/fnb-routes.js'
 
@@ -166,6 +167,8 @@ app.use('/api/search', searchRoutes)
 
 // Rutas de actividad demo (solo admin)
 app.use('/api/demo-activity', demoActivityRoutes)
+// Demo reset and scheduling base (only with DEMO_MODE=true)
+app.use('/api/demo', demoResetRoutes)
 app.use('/api/checklists', checklistRoutes)
 app.use('/api/fnb', fnbRoutes)
 

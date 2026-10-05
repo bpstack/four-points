@@ -10,10 +10,12 @@ process.env.SECRET_JWT_KEY ??= 'test-secret-key-for-vitest-only-not-prod'
 vi.mock('../../repositories/auth/user-repository.js', () => ({
   UserRepository: { getDemoUser: vi.fn() },
 }))
+vi.mock('../../services/demo/demo-reset.service.js', () => ({ resetIfStale: vi.fn() }))
 
 const { UserRepository } = await import('../../repositories/auth/user-repository.js')
 const { demoLogin } = await import('../../controllers/auth/auth-controllers.js')
 const { verifyToken } = await import('../../services/auth/tokenService.js')
+const { resetIfStale } = await import('../../services/demo/demo-reset.service.js')
 
 function fakeRes() {
   const res = {
@@ -70,6 +72,7 @@ describe('demoLogin', () => {
     const refresh = verifyToken(res.cookies.refresh_token)
     expect(access).toMatchObject({ id: 'd1', role: 'admin', demo: true, type: 'access' })
     expect(refresh).toMatchObject({ id: 'd1', demo: true, type: 'refresh' })
+    expect(resetIfStale).toHaveBeenCalledOnce()
   })
 
   it('answers 500 without the error text when the database fails', async () => {

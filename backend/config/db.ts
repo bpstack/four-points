@@ -122,4 +122,7 @@ async function connectWithRetry(retries = 3, delayMs = 3000): Promise<void> {
 
 connectWithRetry()
 
+// For one-off connections with other options (services/demo: multipleStatements)
+export { config as dbConfig }
+
 export default pool

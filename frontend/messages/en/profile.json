@@ -87,7 +87,8 @@
       "departments": "Departments",
       "notifications": "Notifications",
       "security": "Security",
-      "reports": "Reports"
+      "reports": "Reports",
+      "demo": "Demo"
     },
     "users": {
       "title": "User Management",
@@ -156,6 +157,27 @@
       "groupAdmin": "Group Admin",
       "receptionist": "Receptionist",
       "maintenance": "Maintenance"
+    },
+    "demo": {
+      "title": "Public demo",
+      "description": "Every day, on the first demo entry, the fictitious data of every module is loaded again and the saved scheduling base is restored. You can also do it by hand here.",
+      "lastReset": "Last reset",
+      "snapshot": "Saved scheduling base",
+      "never": "Never",
+      "noSnapshot": "Not saved: the reset leaves schedules alone",
+      "auto": "automatic",
+      "manual": "by hand",
+      "ok": "ok",
+      "failed": "failed",
+      "resetButton": "Reset the data now",
+      "snapshotButton": "Save current schedules as the base",
+      "resetWarning": "The data of every module (logbooks, parking, groups, cashier…) is deleted and the fictitious data loaded. Schedules go back to the saved base. Users are not touched.",
+      "snapshotWarning": "The current schedules, with their configuration, become the base restored every day. It replaces the previous base.",
+      "confirm": "Confirm",
+      "resetDone": "Demo data reset",
+      "snapshotDone": "Scheduling base saved",
+      "loadError": "Could not load the demo status",
+      "actionError": "Could not finish. A reset may already be running."
     }
   },
   "messages": {

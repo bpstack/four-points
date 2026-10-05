@@ -13,6 +13,7 @@ import {
   generateRefreshToken,
   verifyToken,
 } from '../../services/auth/tokenService.js'
+import { resetIfStale } from '../../services/demo/demo-reset.service.js'
 import { CloudinaryService } from '../../services/blacklist/cloudinary-service.js'
 import { ERROR_CODES, SUCCESS_CODES } from '../../config/error-codes.js'
 import { logger } from '../../config/logger.js'
@@ -142,6 +143,9 @@ export const demoLogin = async (_req: Request, res: Response): Promise<void> => 
       })
       return
     }
+
+    // First entry of the day: back to the mock data and the scheduling base
+    await resetIfStale()
 
     const tokenPayload: TokenPayload = {
       id: user.id,
