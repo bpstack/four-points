@@ -25,11 +25,11 @@ Hotel staff, each with **a role**:
   receives their notices.
 - **`mantenimiento`**: only the maintenance module, plus the common functions
   (profile, messages, notifications, search).
-- **Public demo account** (`users.is_demo = 1`, only where `DEMO_MODE=true`):
-  an `admin` entered with the demo button, without a password. It can do
-  everything the daily reset undoes, but not manage users, departments or the
-  scheduling configuration, upload files, or reset the demo. Each blocked
-  attempt is recorded.
+- **Public demo account** (`users.is_demo = 1`, only where `DEMO_MODE=true`): an
+  `admin` entered with the demo button, without a password. It can do everything
+  the daily reset undoes, but not manage users, departments or the scheduling
+  configuration, upload files, or reset the demo. Each blocked attempt is
+  recorded. Details in [`../demo/README.md`](../demo/README.md).
 
 The side menu only hides backoffice and scheduling links from non-admins. **The
 backend is what actually decides**: each route checks the role and returns `403`
@@ -197,13 +197,13 @@ like this is in ADR-030.
   `SameSite=Lax` cookies are not sent and the CORS list rejects it. Under
   `four-points.stackbp.es` both work without touching code.
 
-**Test users** (created on 2026-10-04 to verify `docs/VERIFY.md` role by role)
+**Test users** (created on 2026-10-04 to verify the pre-release fixes role by role)
 
-| User        | Role            | Email                    |
-| ----------- | --------------- | ------------------------ |
-| `qa_recep`  | `recepcionista` | `qa_recep@qa.invalid`    |
-| `qa_gadmin` | `group-admin`   | `qa_gadmin@qa.invalid`   |
-| `qa_mant`   | `mantenimiento` | `qa_mant@qa.invalid`     |
+| User        | Role            | Email                  |
+| ----------- | --------------- | ---------------------- |
+| `qa_recep`  | `recepcionista` | `qa_recep@qa.invalid`  |
+| `qa_gadmin` | `group-admin`   | `qa_gadmin@qa.invalid` |
+| `qa_mant`   | `mantenimiento` | `qa_mant@qa.invalid`   |
 
 - They live in the production database, so production sees them too.
 - Their random passwords, and the `admin` one used for the tests, are only in
@@ -215,8 +215,8 @@ like this is in ADR-030.
 
 - **Shared cookies**: both APIs set the same cookie names on
   `.four-points.stackbp.es` and sign them with the same `SECRET_JWT_KEY`.
-  Logging in on preview replaces the production session in that browser, and
-  the session is valid on both.
+  Logging in on preview replaces the production session in that browser, and the
+  session is valid on both.
 - **Scheduled tasks run twice** while the preview service is awake: both
   backends start the same `node-cron` jobs against the same database. Checklist
   reset, log purge and batch payment are idempotent; the 07:00 notices may be
@@ -224,17 +224,17 @@ like this is in ADR-030.
   happens if preview is awake at that time.
 - **Vercel toolbar on preview**: Vercel injects its feedback toolbar
   (`feedback.js`) and the "Vercel Authentication" protection into preview
-  deployments only. They log `OPTIONS` 400 and `/.well-known/vercel/jwe` 503
-  in the console and some `?_rsc=` prefetches answer 503. It is not the
-  app: production shows none of it. The toolbar can be turned off in Vercel →
+  deployments only. They log `OPTIONS` 400 and `/.well-known/vercel/jwe` 503 in
+  the console and some `?_rsc=` prefetches answer 503. It is not the app:
+  production shows none of it. The toolbar can be turned off in Vercel →
   Settings → General.
 - **Free limits**: the Render workspace has 750 instance hours a month shared by
   every free service (if they run out, production is suspended too) and 2 custom
   domains, both now in use.
 
-**After a merge into `main`**: keep working on the same branch, so the
-preview keeps its domain, variable and Render service. A merge commit has the
-branch as a parent, so it only needs a fast-forward:
+**After a merge into `main`**: keep working on the same branch, so the preview
+keeps its domain, variable and Render service. A merge commit has the branch as
+a parent, so it only needs a fast-forward:
 `git switch claude/compassionate-planck-gh6aof && git merge --ff-only origin/main`.
 PR #7 merged the first round on 2026-10-04 (`942fdfa`).
 
@@ -257,8 +257,8 @@ cd frontend && pnpm dev         # http://localhost:3000
 
 Backend variables: `PORT` (4000 locally), `NODE_ENV`, `SECRET_JWT_KEY`,
 `SALT_ROUNDS`, `DB_ENVIRONMENT` (`local` or `aiven`), `LOCAL_DB_*` or
-`AIVEN_DB_*` + `AIVEN_PASSWORD`, `CLOUDINARY_*`, `LOG_LEVEL`, `FRONTEND_URL`
-and `DEMO_MODE` (`true` only where the public demo runs). Frontend:
+`AIVEN_DB_*` + `AIVEN_PASSWORD`, `CLOUDINARY_*`, `LOG_LEVEL`, `FRONTEND_URL` and
+`DEMO_MODE` (`true` only where the public demo runs). Frontend:
 `NEXT_PUBLIC_API_URL`, `NEXT_SERVER_API_URL` (optional), `NEXT_PUBLIC_APP_URL`,
 which the user creation route uses to accept the request origin, and
 `NEXT_PUBLIC_DEMO_MODE`, which shows the demo button on the login page.
