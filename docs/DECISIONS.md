@@ -708,6 +708,8 @@
 
 - **Estado:** ✅ aceptada (2026-10-05) · 📌 orden revisado por
   [ADR-036](#adr-036--el-original-se-archiva-al-final-y-la-rotación-va-después-de-publicar)
+  · 📌 momento de publicar revisado por
+  [ADR-037](#adr-037--la-demo-va-en-la-propia-web-y-el-repositorio-se-publica-después)
 - **Fecha:** 2026-10-05
 - **Decisión:**
   - Se limpian y se publican **solo `main` y
@@ -753,3 +755,24 @@
   prueba. El procedimiento describe paneles, equipos y claves concretas que no
   sirven a quien lea el repositorio.
 - **Revisa:** ADR-035 en el orden; ADR-007 en el momento de la rotación.
+
+## ADR-037 — La demo va en la propia web y el repositorio se publica después
+
+- **Estado:** ✅ aceptada (2026-10-05)
+- **Fecha:** 2026-10-05
+- **Decisión:**
+  - `four-points.stackbp.es` es solo un escaparate: la demo pública va en esa
+    misma web y su BD, con usuarios demo por rol, datos ficticios
+    (`mock-data.sql`) y reinicio diario, también de los horarios.
+  - Los usuarios demo ven toda la app y pueden generar horarios, pero no tocan
+    la configuración: ni usuarios, ni roles, ni contraseñas.
+  - El repositorio se hace público cuando la demo esté lista.
+- **Motivo:** decisión del propietario. Nadie usa la web para trabajar, y una
+  segunda web con su BD gastaría más horas del plan gratuito de Render. Sin
+  demo, quien llegue al repositorio no tiene cómo probar la aplicación:
+  `MASTER_INSTALL.sql` no crea ningún usuario.
+- **Rechazado:** la demo aparte en `demo.four-points.stackbp.es` con la BD
+  `hotel_demo` (plan del 2026-10-04); publicar antes de la demo.
+- **Consecuencias:** si la web llega a usarse de verdad, la demo se separa
+  entonces. Fase 5 antes de terminar la 4.
+- **Revisa:** ADR-035 en el momento de hacer público el repositorio.

@@ -38,13 +38,15 @@ nuevo»). Decisiones en `DECISIONS.md`, hasta ADR-036.
 
 ## Siguiente
 
-1. Push de la rama y comprobar que Vercel y Render despliegan solos desde el
-   repositorio nuevo (queda sin comprobar en `VERIFY.md`).
-2. Fusionar la rama en `main` por PR con merge commit (ADR-031).
-3. Archivar `four-points-archive` (ADR-036).
-4. Pasar `four-points` a público y activar secret scanning y push protection.
-5. Después, «Después de publicar» de `TODO.md`, empezando por la rotación de
-   credenciales.
+1. Planificar y construir la demo en la propia web: `TODO.md`, «Demo pública en
+   la propia web» (ADR-037).
+2. Pasar `four-points` a público y activar secret scanning y push protection.
+3. «Después de publicar» de `TODO.md`, empezando por la rotación de
+   credenciales (se puede adelantar).
+
+Hecho el 2026-10-05: Vercel y Render despliegan solos desde este repositorio
+(producción y preview), `four-points-archive` está archivado y Aiven tiene
+usuarios anonimizados y datos ficticios (`mock-data.sql`).
 
 ## Esperando decisión
 

@@ -299,27 +299,31 @@ sigue siendo donde se arregla este fichero y se prueba en el entorno preview.
       pestaña muestra las rechazadas. Una factura incorrecta hoy se borra. El
       dueño decidió el 2026-10-04 no añadirlo porque casi nunca pasa; si se
       añade, hace falta también reabrir (`rejected` → `pending`).
-- [ ] **Demo pública** (fase 5 de `ROADMAP.md`; propuesta aceptada por el dueño
-      el 2026-10-04) — un entorno aparte que la gente pueda probar sin tocar
-      producción:
-      - **BD propia**: base `hotel_demo` en el mismo servicio Aiven, con datos
-        inventados de un hotel ficticio.
-      - **Backend y frontend propios** en `demo.four-points.stackbp.es`,
-        reutilizando la infraestructura del preview al acabar la fase 1c (sin
-        más horas de Render).
-      - **Secretos propios**: otro `SECRET_JWT_KEY` y otras credenciales; un
-        token de la demo nunca vale en producción.
-      - **Reinicio nocturno**: un cron borra y vuelve a sembrar la BD demo.
-      - **Usuarios demo públicos** en la pantalla de login: `demo_admin`,
-        `demo_recepcion`, `demo_mantenimiento`.
-      - **Nivel de libertad** (recomendado: admin casi completo): crear, editar y
-        borrar de todo, porque el reinicio lo arregla. Bloqueado: cambiar
-        contraseñas, crear o borrar usuarios, subidas a Cloudinary (desactivadas
-        o en una carpeta `demo/` vaciada cada noche) y límites de peticiones más
-        estrictos. La alternativa es solo lectura con la lista blanca de
-        `demoRestriction` (más segura, demo pobre).
-      - **Nunca** sobre la BD de producción: cuando haya datos reales del hotel,
-        cualquier demo ahí queda descartada.
+- [ ] **Demo pública en la propia web** (fase 5 de `ROADMAP.md`) — la web es
+      solo un escaparate (decidido por el dueño el 2026-10-05), así que la demo
+      va en `four-points.stackbp.es` con su BD, sin subdominio ni BD aparte
+      como proponía el plan del 2026-10-04. Si algún día se usa de verdad, la
+      demo se separa entonces.
+      - **Usuarios demo públicos por rol** (admin, recepción, mantenimiento y
+        grupos), con la contraseña a la vista en el login. Las cuentas del
+        dueño (`admin`, `qa_*`) siguen aparte, con contraseñas solo suyas.
+      - **Acceso:** ven toda la app y pueden crear, editar y borrar, porque se
+        reinicia. Bloqueado: la configuración (crear, editar o borrar usuarios
+        y roles, y cambiar contraseñas), subir ficheros a Cloudinary (o carpeta
+        `demo/` vaciada cada noche) y límites de peticiones más estrictos.
+      - **Generar horarios:** abrir el solver al rol demo (hoy toda la ruta de
+        horarios es solo `admin`). Con un límite por usuario o IP y un tiempo
+        máximo: el solver carga OR-Tools en el plan gratuito de Render (512 MB)
+        y el semáforo solo lo hace secuencial.
+      - **Reinicio diario:** un cron vuelve a cargar `mock-data.sql` y también
+        horarios, que el mock no toca: borrar los meses creados por la demo y
+        restaurar una base fija de meses y asignaciones. Esa base se genera
+        con el solver; no se saca de los meses actuales, que vienen de bajas
+        reales.
+      - **Arranque en local:** documentar cómo crear el primer admin y los
+        departamentos antes del mock; `MASTER_INSTALL.sql` no crea ninguno.
+      - **Al hacerlo:** ADR que revisa la propuesta del subdominio y la fase 5
+        de `ROADMAP.md`. El repositorio se hace público cuando la demo esté.
 - [ ] **Reutilizar el rol `demo-admin` para la demo pública** (antes «retirarlo»;
       ver «Demo pública» y la fase 5 de `ROADMAP.md`) — el único usuario con
       ese rol, `demo`, está desactivado (`is_active = 0`, comprobado en Aiven el

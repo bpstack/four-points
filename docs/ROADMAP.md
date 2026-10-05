@@ -54,16 +54,16 @@ Historial de `main` y `claude/compassionate-planck-gh6aof` reescrito y auditado
 
 ## Fase 4 — Publicación ← **actual**
 
-El historial limpio está en `bpstack/four-points`, todavía privado, y Vercel y
-Render ya despliegan desde él. Falta archivar el repositorio original, pasar el
-nuevo a público y activar secret scanning y push protection. La rotación de
-credenciales (ADR-007) no bloquea: va en «Después de publicar» de `TODO.md`.
+El historial limpio está en `bpstack/four-points`, todavía privado; Vercel y
+Render despliegan desde él y el original está archivado. Pasar a público (con
+secret scanning y push protection) espera a la demo de la fase 5 (ADR-037). La
+rotación de credenciales (ADR-007) no bloquea: va en «Después de publicar» de
+`TODO.md`.
 
 ## Fase 5 — Demo pública
 
-Un entorno para que cualquiera pruebe la aplicación sin tocar producción:
-`demo.four-points.stackbp.es` con su propia BD (`hotel_demo` en Aiven), datos
-ficticios, secretos propios, usuarios demo públicos por rol y reinicio nocturno
-de la BD. Reutiliza la infraestructura del preview y el rol `demo-admin`.
-Diseño y decisiones pendientes en `TODO.md`, «Demo pública» (propuesta aceptada
-por el propietario el 2026-10-04).
+Que cualquiera pruebe la aplicación en la propia web, que es solo un escaparate
+(2026-10-05): usuarios demo públicos por rol, datos ficticios, generación de
+horarios y reinicio diario. Reutiliza el rol `demo-admin`. Diseño y decisiones
+pendientes en `TODO.md`, «Demo pública en la propia web». El repositorio se hace
+público cuando la demo esté lista.
