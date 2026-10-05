@@ -11,6 +11,7 @@
     "setup:local": "cross-env DB_ENVIRONMENT=local tsx scripts/setup-local.ts",
     "demo:user": "cross-env DB_ENVIRONMENT=local tsx scripts/create-demo-user.ts",
     "demo:user:aiven": "cross-env DB_ENVIRONMENT=aiven tsx scripts/create-demo-user.ts",
+    "seed:scheduling:export": "cross-env DB_ENVIRONMENT=aiven tsx scripts/export-scheduling-seed.ts",
     "build": "python3 -m venv scheduling-solver/venv && scheduling-solver/venv/bin/pip install --no-cache-dir -r scheduling-solver/requirements.txt",
     "start": "tsx index.ts",
     "typecheck": "tsc --noEmit",

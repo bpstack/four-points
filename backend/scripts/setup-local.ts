@@ -7,7 +7,9 @@
  * 2. departamentos que usan los módulos y el mock;
  * 3. el admin local `admin` / `fourpoints-local`, público y documentado en el
  *    README: solo puede existir en una BD local;
- * 4. datos ficticios (mock-data.sql).
+ * 4. la base de horarios de la demo (scheduling-seed.sql): empleados, contratos
+ *    y meses ficticios;
+ * 5. datos ficticios del resto de módulos (mock-data.sql).
  *
  * MASTER_INSTALL.sql borra y crea `hotel_db`: el script se niega a seguir si
  * la BD no es local, si no se llama hotel_db o si ya tiene tablas (salvo
@@ -120,7 +122,7 @@ async function main(): Promise<void> {
       )
     }
 
-    console.log('1/4 Tablas (MASTER_INSTALL.sql)')
+    console.log('1/5 Tablas (MASTER_INSTALL.sql)')
     await conn.query(await readSqlScript(join(DB_DIR, 'MASTER_INSTALL.sql'), DB_DIR, fixBaseline))
     await conn.query(`USE \`${DATABASE}\``)
 
@@ -132,12 +134,12 @@ async function main(): Promise<void> {
       await conn.query(await readSqlScript(join(DB_DIR, 'scripts', file)))
     }
 
-    console.log('2/4 Departamentos')
+    console.log('2/5 Departamentos')
     await conn.query('INSERT IGNORE INTO departments (name) VALUES ?', [
       DEPARTMENTS.map((name) => [name]),
     ])
 
-    console.log('3/4 Admin')
+    console.log('3/5 Admin')
     const [roles] = await conn.query<RowDataPacket[]>("SELECT id FROM roles WHERE name = 'admin'")
     await conn.query(
       `INSERT INTO users (id, username, email, password, role_id, created_at, is_active)
@@ -151,7 +153,10 @@ async function main(): Promise<void> {
       ]
     )
 
-    console.log('4/4 Datos ficticios (mock-data.sql)')
+    console.log('4/5 Horarios (scheduling-seed.sql)')
+    await conn.query(await readSqlScript(join(DB_DIR, 'scheduling-seed.sql')))
+
+    console.log('5/5 Datos ficticios (mock-data.sql)')
     // MASTER_INSTALL.sql leaves safe updates on for this session; the mock empties whole tables
     await conn.query('SET SQL_SAFE_UPDATES = 0')
     await conn.query(await readSqlScript(join(DB_DIR, 'mock-data.sql')))

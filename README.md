@@ -47,7 +47,8 @@ cp frontend/.env.example frontend/.env.local
 #    port 3306, set LOCAL_DB_PORT=3307 for Docker)
 docker compose --env-file backend/.env up -d
 
-# 3. Database: tables, departments, the local admin and fictitious data.
+# 3. Database: tables, departments, the local admin and fictitious data,
+#    a scheduling base included (10 employees, three months already solved).
 #    It creates hotel_db and refuses to touch one that already has tables
 #    (add -- --force to replace it)
 cd backend && pnpm install && pnpm setup:local
