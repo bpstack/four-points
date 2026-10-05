@@ -18,51 +18,8 @@ hace que alguien reimplemente lo que ya existe.
 
 ## Rama `claude/compassionate-planck-gh6aof`
 
-Fusionada en `main` el 2026-10-04 (PR #7, commit de merge `5ccb64f`). La rama
+Fusionada en `main` el 2026-10-05 (PR #10, commit de merge `0953e94`). La rama
 sigue siendo donde se arregla este fichero y se prueba en el entorno preview.
-
-## Antes de publicar
-
-> Lo que hay que resolver antes de la limpieza del historial y la publicación
-> (ADR-033): brechas que alguien de fuera o un rol bajo puede aprovechar, los
-> secretos y datos privados del repo (se resuelven en la fase 2) y las
-> decisiones para publicar. **Resolverlo o quitarlo de aquí antes de publicar.**
-
-### 🔴 Alta
-
-- [ ] **Contraseñas de la BD en el historial** — fuera del árbol desde el
-      2026-10-04: se quitaron los 14 ficheros con la de Aiven (`basics/`,
-      `add-libre-number.ts`, `backfill-libre-numbers.ts`,
-      `set-holidays-2026.ts`, `backup-aiven.sh`) y los 3 scripts locales
-      leen `backend/.env`. Siguen en el historial desde `d04504f`, junto con
-      los 4 volcados de `backup/` (versionados hasta el 2026-10-04) y
-      `backend/.env.example` hasta el 2026-10-02. Se limpian en la fase 2
-      (`GITCLEAN.md`) y después se rotan. `user-repository-login.test.ts`
-      solo crea un usuario de prueba con su contraseña (no existe en Aiven) y
-      no hace falta tocarlo. _Comprobado por mí el 2026-10-04._
-- [ ] **Rotar todas las credenciales al terminar la preparación** —
-      `SECRET_JWT_KEY`, contraseñas de MySQL (local y Aiven), claves de
-      Cloudinary, SMTP si se usa, y las claves de IA que siguen en
-      `backend/.env` aunque ningún código las lea (`ANTHROPIC_API_KEY`,
-      `CLAUDE_API_KEY`, `GEMINI_API_KEY`, `GROQ_API_KEY`, `MINIMAX_API_KEY`,
-      `OPENAI_COMPAT_API_KEY`). El agente tuvo acceso a `.env`, BD y volcados
-      desde el 2026-09-28 (ADR-014), y el repositorio ha contenido volcados de
-      la BD (ADR-007). **Dejar escrito el procedimiento** (qué variable, en qué
-      panel, cómo comprobar que todo sigue funcionando): no existe ninguno.
-      `SECRET_JWT_KEY` ya se cambió el 2026-09-29 en Render y en local (el
-      backend exige ahora 32 caracteres o más); el propietario lo generó sin
-      pasarlo por el agente.
-- [ ] **Nombres reales del personal en el repo** — el 2026-10-04 se quitaron
-      del árbol el alta de una empleada (`20260520_insert_user_*.sql`),
-      el importador del Excel de horarios (`import-planning-2026.ts`, 13
-      nombres), los 18 `.http` de `backend/API REST/` (contraseñas, tokens y
-      usuarios) y los nombres de los comentarios de `aiven/19_scheduling.sql`
-      y `20251224_add_scheduling.sql`; los fixtures del corpus del solver
-      usan `EMP_01`…`EMP_07` desde `7328f13`. Quedan los usuarios de horarios
-      en la BD (9 de 10 con nombre de pila). El autor de las guías del
-      checklist y de los README es el propietario y se queda. Todo sigue en el
-      historial (fase 2, `GITCLEAN.md`).
-      _Comprobado por mí el 2026-10-04._
 
 ## Después de publicar
 
@@ -72,6 +29,11 @@ sigue siendo donde se arregla este fichero y se prueba en el entorno preview.
 
 ### 🔴 Alta
 
+- [ ] **Rotar las credenciales de producción** — contraseña de la BD y claves
+      de Cloudinary, y revocar las claves de servicios que ningún código usa.
+      El historial publicado no las contiene, pero siguen en copias privadas
+      (ADR-007). El procedimiento está fuera del repositorio.
+      `SECRET_JWT_KEY` ya se cambió el 2026-09-29.
 - [ ] **Fnb: ninguna mutación de ingresos deja rastro de quién la hizo** —
       `upsertMany` sobrescribe el importe anterior (`ON DUPLICATE KEY UPDATE`) y
       `deleteDay` borra filas sin dejar ningún registro de usuario, valor
@@ -94,6 +56,17 @@ sigue siendo donde se arregla este fichero y se prueba en el entorno preview.
 
 ### 🟡 Media
 
+- [ ] **Borrar los datos de prueba de Aiven** — la BD de producción solo
+      tiene datos de prueba (incluidos usuarios de horarios con nombre de
+      pila). Si el borrado se retrasa o se da acceso a gente de fuera, antes
+      renombrarlos (`Empleado 01`…).
+- [ ] **Render: comprobar qué versión de Node usa** — `engines` pide
+      `>=22.16.0` sin tope y, según la documentación de Render, un rango
+      abierto se resuelve a la última versión; el log de producción muestra el
+      aviso `DEP0205`, que podría ser de una versión posterior. Mirarlo en el
+      log de build y, si no es la 22, acotar `engines` (`>=22.16.0 <23`) o
+      fijar `NODE_VERSION`.
+      _No comprobado._
 - [ ] **Maintenance: las fotos no se borran con el parte** — ya son privadas
       (solo la API las sirve), pero el borrado lógico no las toca,
       `auto_delete_on_close` se guarda y nadie lo usa, y subir o borrar fotos
