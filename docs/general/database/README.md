@@ -31,10 +31,12 @@ Tables by module:
   **maintenance** (3), **messaging** (3), **notifications** (2), **backoffice**
   (5 tables + 3 views `v_bo_*`), **scheduling** (12), **checklist** (6), **F&B**
   (2).
-- **Demo mode**: `demo_activity_log`.
+- **Public demo**: `demo_activity_log` (blocked attempts), `demo_reset_log`
+  (daily resets and saved scheduling bases) and the `demo_snapshot_scheduling_*`
+  copies the reset restores, created when an admin saves the base.
 
 **Roles** (table `roles`): 1 `recepcionista`, 2 `admin`, 3 `mantenimiento`, 6
-`group-admin`, 7 `demo-admin` (the demo user is deactivated).
+`group-admin`. The public demo account is an `admin` with `users.is_demo = 1`.
 
 **Logic that lives in the database itself** (not in the code):
 
@@ -57,6 +59,11 @@ Tables by module:
 - **`aiven/` is the frozen base schema** as of 2026-05-20. The name is
   misleading: it is not "the Aiven database", but the initial installation that
   runs `MASTER_INSTALL.sql`. It is never run against a database with data.
+  Two of its files fail on an empty server (a duplicate foreign key name in
+  `11_cashier.sql`, a foreign key to a later table in `19_scheduling.sql`):
+  `pnpm setup:local` fixes both in memory, and
+  `20261005_complete_fresh_install.sql` adds what an install made by hand
+  misses.
 - **Character set**: `utf8mb4` with `utf8mb4_0900_ai_ci`, which does not
   distinguish case or accents when comparing texts.
 - **Time**: the Aiven server is in **UTC**. What the database calculates with

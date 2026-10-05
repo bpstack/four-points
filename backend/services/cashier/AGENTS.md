@@ -113,9 +113,9 @@ patches.
 
 - **Read daily, shifts, vouchers** — all authenticated (excl. `mantenimiento`)
 - **Create/update/close shifts, payments, denominations, vouchers** — `admin`,
-  `recepcionista`, `group-admin`, `demo-admin` (`canManageCashier`)
+  `recepcionista`, `group-admin` (`canManageCashier`)
 - **Reopen shifts or days, delete any resource** — `admin` only (`isAdmin`)
-- **Reports, history, stats** — `admin`, `demo-admin` (`canViewReports`)
+- **Reports, history, stats** — `admin` (`canViewReports`)
 
 `mantenimiento` role is excluded at the router level (`excludeMantenimiento`).
 

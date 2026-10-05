@@ -12,7 +12,7 @@ describe('readableSources', () => {
   })
 
   it('gives the other roles every source', () => {
-    for (const role of ['admin', 'recepcionista', 'group-admin', 'demo-admin']) {
+    for (const role of ['admin', 'recepcionista', 'group-admin']) {
       expect(readableSources(role).size).toBe(4)
     }
   })

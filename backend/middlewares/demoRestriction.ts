@@ -1,50 +1,16 @@
 // middlewares/demoRestriction.ts
 /**
- * Middleware para restringir acciones de escritura a usuarios demo.
+ * Restricciones de la cuenta demo pública (users.is_demo, ADR-038).
  *
- * El usuario demo puede VER todo (igual que admin), pero solo puede
- * hacer escrituras específicas (whitelist).
- *
- * DISEÑO NO INVASIVO: Fácil de eliminar - solo quitar este archivo
- * y la línea en index.ts que lo importa.
+ * La cuenta demo es un admin: ve y cambia todo lo que se reinicia cada día.
+ * Se le bloquea lo que podría romper la app o tocar otras cuentas:
+ * - en todas las rutas: subir ficheros (demoRestriction)
+ * - en cada ruta sensible: denyDemo o denyDemoWrites
  */
 
 import { Request, Response, NextFunction } from 'express'
 import { DemoActivityRepository } from '../repositories/demo/demo-activity-repository.js'
 import { logger } from '../config/logger.js'
-
-// Rol del usuario demo
-const DEMO_ROLE = 'demo-admin'
-
-/**
- * Rutas que el usuario demo SÍ puede usar (whitelist).
- * Formato: { method: 'POST|PATCH|PUT|DELETE', pattern: RegExp }
- */
-const DEMO_ALLOWED_ROUTES: Array<{ method: string; pattern: RegExp }> = [
-  // Auth - puede hacer logout
-  { method: 'POST', pattern: /^\/api\/auth\/logout$/ },
-
-  // Parking - puede crear reservas de prueba
-  { method: 'POST', pattern: /^\/api\/parking\/bookings$/ },
-
-  // Logbooks - puede agregar comentarios
-  { method: 'POST', pattern: /^\/api\/logbooks\/\d+\/comments$/ },
-
-  // Maintenance - puede crear reportes de prueba
-  { method: 'POST', pattern: /^\/api\/maintenance$/ },
-]
-
-/**
- * Verifica si una ruta está en la whitelist para demo
- * Usa originalUrl para obtener la ruta completa (incluyendo /api/...)
- */
-function isAllowedForDemo(method: string, originalUrl: string): boolean {
-  // Quitar query string si existe
-  const pathOnly = originalUrl.split('?')[0]
-  return DEMO_ALLOWED_ROUTES.some(
-    (route) => route.method === method && route.pattern.test(pathOnly)
-  )
-}
 
 /**
  * Registra intentos bloqueados en la base de datos
@@ -53,7 +19,9 @@ function isAllowedForDemo(method: string, originalUrl: string): boolean {
 const SENSITIVE_FIELDS = new Set(['password', 'currentPassword', 'newPassword', 'confirmPassword'])
 
 function sanitizeBodyForLog(body: unknown): string {
-  if (!body || typeof body !== 'object') return JSON.stringify(body).substring(0, 500)
+  // Express 5 leaves req.body undefined without a JSON body (DELETE, uploads)
+  if (!body || typeof body !== 'object')
+    return String(JSON.stringify(body ?? null)).substring(0, 500)
   const cleaned: Record<string, unknown> = {}
   for (const [k, v] of Object.entries(body as Record<string, unknown>)) {
     cleaned[k] = SENSITIVE_FIELDS.has(k) ? '[REDACTED]' : v
@@ -83,39 +51,8 @@ function logBlockedAttempt(
   })
 }
 
-/**
- * Middleware que restringe escrituras para usuarios demo.
- *
- * - GET requests: siempre permitidos
- * - POST/PUT/PATCH/DELETE: solo si están en whitelist
- */
-export function demoRestriction(req: Request, res: Response, next: NextFunction): void {
-  // Si no hay usuario autenticado, dejar pasar (authenticateToken ya lo manejará)
-  if (!req.user) {
-    next()
-    return
-  }
-
-  // Si no es usuario demo, dejar pasar sin restricciones
-  if (req.user.role !== DEMO_ROLE) {
-    next()
-    return
-  }
-
-  // GET siempre permitido para demo (puede ver todo)
-  if (req.method === 'GET') {
-    next()
-    return
-  }
-
-  // Verificar si la ruta está en whitelist (usar originalUrl para ruta completa)
-  if (isAllowedForDemo(req.method, req.originalUrl)) {
-    next()
-    return
-  }
-
-  // Bloquear y registrar en BD
-  logBlockedAttempt(req, req.user.id, req.user.username || 'demo-user', req.originalUrl)
+function block(req: Request, res: Response): void {
+  logBlockedAttempt(req, req.user?.id, req.user?.username || 'demo-user', req.originalUrl)
 
   res.status(403).json({
     success: false,
@@ -123,4 +60,49 @@ export function demoRestriction(req: Request, res: Response, next: NextFunction)
       'Acción no disponible en modo demo. Esta es una cuenta de demostración con funcionalidad limitada.',
     demo: true,
   })
+}
+
+// Uploads go to Cloudinary and the daily reset does not clean them; checking the
+// header blocks every upload route before multer reads the body
+function isMultipart(req: Request): boolean {
+  return String(req.headers['content-type'] || '')
+    .toLowerCase()
+    .includes('multipart')
+}
+
+/**
+ * Runs inside authenticateToken, on every authenticated request.
+ * The demo account (users.is_demo) cannot upload files; the rest is
+ * limited per route with denyDemo and denyDemoWrites.
+ */
+export function demoRestriction(req: Request, res: Response, next: NextFunction): void {
+  if (req.user?.isDemo && isMultipart(req)) {
+    block(req, res)
+    return
+  }
+
+  next()
+}
+
+/**
+ * Blocks the demo account from a route entirely (reads too). Declared on the
+ * route itself, so it does not depend on how the URL is written.
+ */
+export function denyDemo(req: Request, res: Response, next: NextFunction): void {
+  if (req.user?.isDemo) {
+    block(req, res)
+    return
+  }
+  next()
+}
+
+/**
+ * Lets the demo account read a route but not change anything through it.
+ */
+export function denyDemoWrites(req: Request, res: Response, next: NextFunction): void {
+  if (req.user?.isDemo && !['GET', 'HEAD', 'OPTIONS'].includes(req.method)) {
+    block(req, res)
+    return
+  }
+  next()
 }

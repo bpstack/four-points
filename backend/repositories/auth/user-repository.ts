@@ -141,6 +141,7 @@ export class UserRepository {
         u.email,
         u.password,
         u.is_active,
+        u.is_demo,
         u.created_at,
         u.avatar_url,
         r.name AS role
@@ -174,6 +175,15 @@ export class UserRepository {
         '[SECURITY] login failed'
       )
       throw new Error('Usuario inactivo')
+    }
+
+    // The demo account has no usable password: it is entered only through POST /api/auth/demo
+    if (user.is_demo) {
+      logger.warn(
+        { event: 'login_failed', reason: 'demo_account', username },
+        '[SECURITY] login failed'
+      )
+      throw new Error('Credenciales inválidas')
     }
 
     if (!isPasswordValid) {
@@ -228,6 +238,7 @@ export class UserRepository {
           u.email,
           u.created_at,
           u.is_active,
+          u.is_demo,
           u.updated_at,
           u.avatar_url,
           r.name AS role
@@ -241,6 +252,29 @@ export class UserRepository {
       logger.error({ err: error }, 'Error en getById')
       throw new Error('Error interno al obtener usuario por ID', { cause: error })
     }
+  }
+
+  /**
+   * The public demo account (users.is_demo), if there is an active one
+   */
+  static async getDemoUser(): Promise<User | null> {
+    const [rows] = await db.query<UserWithRole[]>(
+      `SELECT
+        u.id,
+        u.username,
+        u.email,
+        u.created_at,
+        u.is_active,
+        u.is_demo,
+        u.avatar_url,
+        r.name AS role
+      FROM users u
+      INNER JOIN roles r ON r.id = u.role_id
+      WHERE u.is_demo = 1 AND u.is_active = 1
+      ORDER BY u.created_at, u.id
+      LIMIT 1`
+    )
+    return (rows[0] as User) || null
   }
 
   /**

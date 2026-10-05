@@ -13,6 +13,7 @@ import {
   generateRefreshToken,
   verifyToken,
 } from '../../services/auth/tokenService.js'
+import { resetIfStale } from '../../services/demo/demo-reset.service.js'
 import { CloudinaryService } from '../../services/blacklist/cloudinary-service.js'
 import { ERROR_CODES, SUCCESS_CODES } from '../../config/error-codes.js'
 import { logger } from '../../config/logger.js'
@@ -86,6 +87,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       id: user.id,
       username: user.username,
       role: user.role,
+      demo: Boolean(user.is_demo),
       type: 'access',
     }
 
@@ -118,6 +120,55 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       error: ERROR_CODES.AUTH_INVALID_CREDENTIALS,
       code: ERROR_CODES.AUTH_INVALID_CREDENTIALS,
     })
+  }
+}
+
+/**
+ * Entrada a la demo pública, sin contraseña (ADR-038)
+ * Solo existe con DEMO_MODE=true; la cuenta demo la limita demoRestriction
+ */
+export const demoLogin = async (_req: Request, res: Response): Promise<void> => {
+  if (process.env.DEMO_MODE !== 'true') {
+    res.status(404).json({ error: 'Ruta no encontrada' })
+    return
+  }
+
+  try {
+    const user = await UserRepository.getDemoUser()
+    if (!user) {
+      logger.error({ event: 'demo_login_failed' }, '[AUTH] no active demo account')
+      res.status(503).json({
+        error: ERROR_CODES.AUTH_DEMO_UNAVAILABLE,
+        code: ERROR_CODES.AUTH_DEMO_UNAVAILABLE,
+      })
+      return
+    }
+
+    // First entry of the day: back to the mock data and the scheduling base
+    await resetIfStale()
+
+    const tokenPayload: TokenPayload = {
+      id: user.id,
+      username: user.username,
+      role: user.role,
+      demo: true,
+      type: 'access',
+    }
+
+    res.cookie('access_token', generateAccessToken(tokenPayload), {
+      ...cookieOptions,
+      maxAge: 15 * 60 * 1000,
+    })
+    res.cookie('refresh_token', generateRefreshToken({ ...tokenPayload, type: 'refresh' }), {
+      ...cookieOptions,
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    })
+
+    logger.info({ event: 'demo_login' }, '[AUTH] demo login')
+    res.status(200).json({ success: true, user })
+  } catch (error) {
+    logger.error({ err: error }, '[AUTH] demo login error')
+    res.status(500).json({ error: ERROR_CODES.INTERNAL_ERROR, code: ERROR_CODES.INTERNAL_ERROR })
   }
 }
 
@@ -213,6 +264,7 @@ export const refreshToken = async (req: Request, res: Response): Promise<void> =
       id: user.id,
       username: user.username,
       role: user.role,
+      demo: Boolean(user.is_demo),
       type: 'access',
     }
 

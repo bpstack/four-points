@@ -9,6 +9,8 @@ import type { Request, Response } from 'express'
 vi.mock('../../repositories/auth/user-repository.js', () => ({
   UserRepository: { login: vi.fn() },
 }))
+// The demo reset opens its own database connection: not part of this test
+vi.mock('../../services/demo/demo-reset.service.js', () => ({ resetIfStale: vi.fn() }))
 
 const { UserRepository } = await import('../../repositories/auth/user-repository.js')
 const { login, LOGIN_FAILURE_MIN_MS } = await import('../../controllers/auth/auth-controllers.js')

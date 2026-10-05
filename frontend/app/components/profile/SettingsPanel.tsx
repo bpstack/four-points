@@ -6,7 +6,7 @@ import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { apiClient, isDemoError } from '@/app/lib/apiClient'
-import { API_BASE_URL } from '@/app/lib/env'
+import { API_BASE_URL, DEMO_MODE } from '@/app/lib/env'
 import { useAuth } from '@/app/lib/auth/useAuth'
 import NewUserModal from '@/app/components/auth/NewUserModal'
 import { UsersTableSkeleton } from '@/app/ui/skeletons'
@@ -35,6 +35,7 @@ import {
   FiEyeOff,
 } from 'react-icons/fi'
 import { ReportsTab } from './reports'
+import { DemoTab } from './DemoTab'
 import { CenterModal, CenterModalFooterButtons, FormField, inputClassName } from '@/app/ui/panels'
 import { GlobalNotificationModal } from '@/app/components/notifications/GlobalNotificationModal'
 import { SelectDropdown } from '@/app/ui/components/SelectDropdown'
@@ -60,7 +61,7 @@ interface FormattedDepartment extends Department {
   displayName: string
 }
 
-type SettingsTab = 'users' | 'notifications' | 'security' | 'reports' | 'departments'
+type SettingsTab = 'users' | 'notifications' | 'security' | 'reports' | 'departments' | 'demo'
 
 const API_URL = API_BASE_URL
 
@@ -91,6 +92,8 @@ export function SettingsPanel() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const isUserAdmin = isAdminRole(currentUser?.role)
+  // Demo reset: only where the demo is on, and never for the demo account itself
+  const showDemoTab = DEMO_MODE && isUserAdmin && !currentUser?.is_demo
   const t = useTranslations('profile.settings')
 
   // Define tabs with translations (inside component to access t())
@@ -121,8 +124,18 @@ export function SettingsPanel() {
           icon: <FiFileText className="w-4 h-4" />,
           adminOnly: true,
         },
+        ...(showDemoTab
+          ? [
+              {
+                id: 'demo' as const,
+                label: t('tabs.demo'),
+                icon: <FiRefreshCw className="w-4 h-4" />,
+                adminOnly: true,
+              },
+            ]
+          : []),
       ],
-      [t]
+      [t, showDemoTab]
     )
 
   const activeTab =
@@ -298,6 +311,7 @@ export function SettingsPanel() {
         {activeTab === 'notifications' && <NotificationsSettings />}
         {activeTab === 'security' && <SecuritySettings />}
         {activeTab === 'reports' && isUserAdmin && <ReportsTab />}
+        {activeTab === 'demo' && showDemoTab && <DemoTab />}
       </div>
 
       {/* Modal */}

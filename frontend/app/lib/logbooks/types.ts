@@ -62,6 +62,8 @@ export interface User {
   email?: string
   role?: string
   avatar_url?: string | null
+  // Public demo account (ADR-038)
+  is_demo?: number | boolean
 }
 
 // ========== HISTORIAL ==========

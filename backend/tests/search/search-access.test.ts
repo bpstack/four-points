@@ -12,7 +12,7 @@ describe('searchableModules', () => {
   })
 
   it('gives the other roles every module', () => {
-    for (const role of ['admin', 'recepcionista', 'group-admin', 'demo-admin', 'ADMIN']) {
+    for (const role of ['admin', 'recepcionista', 'group-admin', 'ADMIN']) {
       expect([...searchableModules(role)].sort()).toEqual([
         'blacklist',
         'groups',

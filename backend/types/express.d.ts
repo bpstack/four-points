@@ -8,6 +8,8 @@ declare global {
         username: string
         email: string
         role: string
+        // Public demo account, restricted by demoRestriction
+        isDemo?: boolean
       }
     }
   }

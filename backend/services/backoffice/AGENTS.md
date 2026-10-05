@@ -111,13 +111,14 @@ A `revertBatchPayment` endpoint exists for undo (also with a preview).
 
 ## Role boundaries
 
-- **Read anything** (stats, categories, suppliers, invoices, assets) — `admin`,
-  `demo-admin` (`canAccessBackoffice`)
+- **Read anything** (stats, categories, suppliers, invoices, assets) — `admin`
+  (`canAccessBackoffice`)
 - **Create/update/delete suppliers, invoices, assets; validate/reject/pay
-  invoices; batch operations** — `admin` only (`isRealAdmin`)
+  invoices; batch operations** — `admin` only (`isAdmin`)
 
-`canAccessBackoffice` = `['admin', 'demo-admin']`. `isRealAdmin` = `['admin']`
-only.
+`canAccessBackoffice` = `isAdmin` = `['admin']`. The public demo account is an
+admin: it cannot create categories or upload PDFs/assets (`denyDemo`,
+`demoRestriction`).
 
 ## Frontend layout
 

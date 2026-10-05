@@ -5,14 +5,15 @@
  *
  * Permisos:
  * - admin: CRUD completo
- * - demo-admin: solo lectura (GET)
+ * - cuenta demo (admin): todo salvo subir ficheros y crear categorías
  */
 
 import { Router } from 'express'
 import multer from 'multer'
 import { BackofficeController } from '../../controllers/backoffice/backoffice-controller.js'
 import { authenticateToken } from '../../middlewares/authenticateToken.js'
-import { canAccessBackoffice, isRealAdmin } from '../../middlewares/roleCheck.js'
+import { canAccessBackoffice, isAdmin } from '../../middlewares/roleCheck.js'
+import { denyDemo } from '../../middlewares/demoRestriction.js'
 
 const router = Router()
 
@@ -35,14 +36,14 @@ router.use(canAccessBackoffice)
 /**
  * @route   GET /api/backoffice/stats
  * @desc    Obtener estadísticas generales
- * @access  Private (admin, demo-admin)
+ * @access  Private (admin)
  */
 router.get('/stats', BackofficeController.getStats)
 
 /**
  * @route   GET /api/backoffice/stats/monthly
  * @desc    Obtener resumen mensual
- * @access  Private (admin, demo-admin)
+ * @access  Private (admin)
  * @query   year (opcional)
  */
 router.get('/stats/monthly', BackofficeController.getMonthlySummary)
@@ -54,14 +55,14 @@ router.get('/stats/monthly', BackofficeController.getMonthlySummary)
 /**
  * @route   GET /api/backoffice/categories
  * @desc    Obtener todas las categorías
- * @access  Private (admin, demo-admin)
+ * @access  Private (admin)
  */
 router.get('/categories', BackofficeController.getCategories)
 
 /**
  * @route   GET /api/backoffice/categories/:id
  * @desc    Obtener categoría por ID
- * @access  Private (admin, demo-admin)
+ * @access  Private (admin)
  */
 router.get('/categories/:id', BackofficeController.getCategoryById)
 
@@ -70,7 +71,8 @@ router.get('/categories/:id', BackofficeController.getCategoryById)
  * @desc    Crear nueva categoría
  * @access  Private (admin only)
  */
-router.post('/categories', isRealAdmin, BackofficeController.createCategory)
+// Categories are a catalog the daily reset keeps: the demo account cannot add them
+router.post('/categories', isAdmin, denyDemo, BackofficeController.createCategory)
 
 // ========================================
 // RUTAS DE PROVEEDORES
@@ -79,7 +81,7 @@ router.post('/categories', isRealAdmin, BackofficeController.createCategory)
 /**
  * @route   GET /api/backoffice/suppliers
  * @desc    Obtener todos los proveedores con filtros
- * @access  Private (admin, demo-admin)
+ * @access  Private (admin)
  * @query   category_id, periodicity, payment_method, is_active, search
  */
 router.get('/suppliers', BackofficeController.getSuppliers)
@@ -87,7 +89,7 @@ router.get('/suppliers', BackofficeController.getSuppliers)
 /**
  * @route   GET /api/backoffice/suppliers/:id
  * @desc    Obtener proveedor por ID con estadísticas y facturas
- * @access  Private (admin, demo-admin)
+ * @access  Private (admin)
  */
 router.get('/suppliers/:id', BackofficeController.getSupplierById)
 
@@ -96,35 +98,35 @@ router.get('/suppliers/:id', BackofficeController.getSupplierById)
  * @desc    Crear nuevo proveedor
  * @access  Private (admin only)
  */
-router.post('/suppliers', isRealAdmin, BackofficeController.createSupplier)
+router.post('/suppliers', isAdmin, BackofficeController.createSupplier)
 
 /**
  * @route   PATCH /api/backoffice/suppliers/:id
  * @desc    Actualizar proveedor
  * @access  Private (admin only)
  */
-router.patch('/suppliers/:id', isRealAdmin, BackofficeController.updateSupplier)
+router.patch('/suppliers/:id', isAdmin, BackofficeController.updateSupplier)
 
 /**
  * @route   DELETE /api/backoffice/suppliers/:id
  * @desc    Eliminar proveedor permanentemente (solo si no tiene facturas)
  * @access  Private (admin only)
  */
-router.delete('/suppliers/:id', isRealAdmin, BackofficeController.deleteSupplier)
+router.delete('/suppliers/:id', isAdmin, BackofficeController.deleteSupplier)
 
 /**
  * @route   POST /api/backoffice/suppliers/:id/inactivate
  * @desc    Marcar proveedor como inactivo (preserva histórico)
  * @access  Private (admin only)
  */
-router.post('/suppliers/:id/inactivate', isRealAdmin, BackofficeController.inactivateSupplier)
+router.post('/suppliers/:id/inactivate', isAdmin, BackofficeController.inactivateSupplier)
 
 /**
  * @route   POST /api/backoffice/suppliers/:id/activate
  * @desc    Reactivar proveedor inactivo
  * @access  Private (admin only)
  */
-router.post('/suppliers/:id/activate', isRealAdmin, BackofficeController.activateSupplier)
+router.post('/suppliers/:id/activate', isAdmin, BackofficeController.activateSupplier)
 
 // ========================================
 // RUTAS DE FACTURAS
@@ -133,7 +135,7 @@ router.post('/suppliers/:id/activate', isRealAdmin, BackofficeController.activat
 /**
  * @route   GET /api/backoffice/invoices
  * @desc    Obtener todas las facturas con filtros y paginación
- * @access  Private (admin, demo-admin)
+ * @access  Private (admin)
  * @query   status, supplier_id, category_id, payment_method, date_from, date_to, search, include_deleted, page, limit
  */
 router.get('/invoices', BackofficeController.getInvoices)
@@ -141,7 +143,7 @@ router.get('/invoices', BackofficeController.getInvoices)
 /**
  * @route   POST /api/backoffice/invoices/download-zip
  * @desc    Descargar múltiples facturas validadas como ZIP
- * @access  Private (admin, demo-admin)
+ * @access  Private (admin)
  * @body    invoice_ids: number[] (max 100)
  */
 router.post('/invoices/download-zip', BackofficeController.downloadValidatedInvoicesZip)
@@ -149,7 +151,7 @@ router.post('/invoices/download-zip', BackofficeController.downloadValidatedInvo
 /**
  * @route   GET /api/backoffice/invoices/batch-pay/preview
  * @desc    Preview batch payment - muestra cuántas facturas se marcarían como pagadas
- * @access  Private (admin, demo-admin)
+ * @access  Private (admin)
  * @query   year, month (opcional, default: mes anterior)
  */
 router.get('/invoices/batch-pay/preview', BackofficeController.previewBatchPayment)
@@ -160,12 +162,12 @@ router.get('/invoices/batch-pay/preview', BackofficeController.previewBatchPayme
  * @access  Private (admin only)
  * @body    { year?: number, month?: number } (opcional, default: mes anterior)
  */
-router.post('/invoices/batch-pay', isRealAdmin, BackofficeController.executeBatchPayment)
+router.post('/invoices/batch-pay', isAdmin, BackofficeController.executeBatchPayment)
 
 /**
  * @route   GET /api/backoffice/invoices/batch-pay/revert/preview
  * @desc    Preview revert batch payment - muestra cuántas facturas se revertirían a validated
- * @access  Private (admin, demo-admin)
+ * @access  Private (admin)
  * @query   year, month (requeridos)
  */
 router.get('/invoices/batch-pay/revert/preview', BackofficeController.previewRevertBatchPayment)
@@ -176,19 +178,19 @@ router.get('/invoices/batch-pay/revert/preview', BackofficeController.previewRev
  * @access  Private (admin only)
  * @body    { year: number, month: number } (requeridos)
  */
-router.post('/invoices/batch-pay/revert', isRealAdmin, BackofficeController.revertBatchPayment)
+router.post('/invoices/batch-pay/revert', isAdmin, BackofficeController.revertBatchPayment)
 
 /**
  * @route   GET /api/backoffice/invoices/:id
  * @desc    Obtener factura por ID con historial
- * @access  Private (admin, demo-admin)
+ * @access  Private (admin)
  */
 router.get('/invoices/:id', BackofficeController.getInvoiceById)
 
 /**
  * @route   GET /api/backoffice/invoices/:id/history
  * @desc    Obtener historial de una factura
- * @access  Private (admin, demo-admin)
+ * @access  Private (admin)
  */
 router.get('/invoices/:id/history', BackofficeController.getInvoiceHistory)
 
@@ -198,14 +200,14 @@ router.get('/invoices/:id/history', BackofficeController.getInvoiceHistory)
  * @access  Private (admin only)
  * @body    invoice_number, supplier_id, amount_without_vat, amount_with_vat, invoice_date, payment_method, etc.
  */
-router.post('/invoices', isRealAdmin, BackofficeController.createInvoice)
+router.post('/invoices', isAdmin, BackofficeController.createInvoice)
 
 /**
  * @route   PATCH /api/backoffice/invoices/:id
  * @desc    Actualizar factura
  * @access  Private (admin only)
  */
-router.patch('/invoices/:id', isRealAdmin, BackofficeController.updateInvoice)
+router.patch('/invoices/:id', isAdmin, BackofficeController.updateInvoice)
 
 /**
  * @route   POST /api/backoffice/invoices/:id/validate
@@ -213,7 +215,7 @@ router.patch('/invoices/:id', isRealAdmin, BackofficeController.updateInvoice)
  * @access  Private (admin only)
  * @body    validated_pdf_url, validated_pdf_public_id, validation_notes (opcional)
  */
-router.post('/invoices/:id/validate', isRealAdmin, BackofficeController.validateInvoice)
+router.post('/invoices/:id/validate', isAdmin, BackofficeController.validateInvoice)
 
 /**
  * @route   POST /api/backoffice/invoices/:id/reject
@@ -221,7 +223,7 @@ router.post('/invoices/:id/validate', isRealAdmin, BackofficeController.validate
  * @access  Private (admin only)
  * @body    notes (requerido)
  */
-router.post('/invoices/:id/reject', isRealAdmin, BackofficeController.rejectInvoice)
+router.post('/invoices/:id/reject', isAdmin, BackofficeController.rejectInvoice)
 
 /**
  * @route   POST /api/backoffice/invoices/:id/unvalidate
@@ -229,7 +231,7 @@ router.post('/invoices/:id/reject', isRealAdmin, BackofficeController.rejectInvo
  * @access  Private (admin only)
  * @body    notes (opcional)
  */
-router.post('/invoices/:id/unvalidate', isRealAdmin, BackofficeController.unvalidateInvoice)
+router.post('/invoices/:id/unvalidate', isAdmin, BackofficeController.unvalidateInvoice)
 
 /**
  * @route   POST /api/backoffice/invoices/:id/pay
@@ -237,21 +239,21 @@ router.post('/invoices/:id/unvalidate', isRealAdmin, BackofficeController.unvali
  * @access  Private (admin only)
  * @body    paid_date (requerido)
  */
-router.post('/invoices/:id/pay', isRealAdmin, BackofficeController.markAsPaid)
+router.post('/invoices/:id/pay', isAdmin, BackofficeController.markAsPaid)
 
 /**
  * @route   POST /api/backoffice/invoices/:id/unpay
  * @desc    Revertir el pago de una factura (paid -> validated)
  * @access  Private (admin only)
  */
-router.post('/invoices/:id/unpay', isRealAdmin, BackofficeController.revertPayment)
+router.post('/invoices/:id/unpay', isAdmin, BackofficeController.revertPayment)
 
 /**
  * @route   DELETE /api/backoffice/invoices/:id
  * @desc    Eliminar factura (hard delete - eliminación permanente)
  * @access  Private (admin only)
  */
-router.delete('/invoices/:id', isRealAdmin, BackofficeController.deleteInvoice)
+router.delete('/invoices/:id', isAdmin, BackofficeController.deleteInvoice)
 
 /**
  * @route   POST /api/backoffice/invoices/:id/pdf
@@ -262,7 +264,7 @@ router.delete('/invoices/:id', isRealAdmin, BackofficeController.deleteInvoice)
  */
 router.post(
   '/invoices/:id/pdf',
-  isRealAdmin,
+  isAdmin,
   upload.single('pdf'),
   BackofficeController.uploadInvoicePdf
 )
@@ -271,7 +273,7 @@ router.post(
  * @route   GET /api/backoffice/invoices/:id/pdf-download
  * @desc    PDF de la factura. Los ficheros son privados en Cloudinary: la API
  *          los descarga y los sirve; su URL firmada no sale nunca del servidor
- * @access  Private (admin, demo-admin)
+ * @access  Private (admin)
  * @query   type (original/validated)
  */
 router.get('/invoices/:id/pdf-download', BackofficeController.downloadInvoicePdf)
@@ -283,7 +285,7 @@ router.get('/invoices/:id/pdf-download', BackofficeController.downloadInvoicePdf
 /**
  * @route   GET /api/backoffice/assets
  * @desc    Obtener todos los assets
- * @access  Private (admin, demo-admin)
+ * @access  Private (admin)
  * @query   type (stamp/signature) opcional
  */
 router.get('/assets', BackofficeController.getAssets)
@@ -291,7 +293,7 @@ router.get('/assets', BackofficeController.getAssets)
 /**
  * @route   GET /api/backoffice/assets/:id/file
  * @desc    Imagen del sello o la firma (fichero privado servido por la API)
- * @access  Private (admin, demo-admin)
+ * @access  Private (admin)
  */
 router.get('/assets/:id/file', BackofficeController.getAssetFile)
 
@@ -302,20 +304,20 @@ router.get('/assets/:id/file', BackofficeController.getAssetFile)
  * @body    type (stamp/signature), name, is_default (opcional)
  * @file    image (multipart/form-data) - PNG o WebP
  */
-router.post('/assets', isRealAdmin, upload.single('image'), BackofficeController.createAsset)
+router.post('/assets', isAdmin, upload.single('image'), BackofficeController.createAsset)
 
 /**
  * @route   DELETE /api/backoffice/assets/:id
  * @desc    Eliminar asset
  * @access  Private (admin only)
  */
-router.delete('/assets/:id', isRealAdmin, BackofficeController.deleteAsset)
+router.delete('/assets/:id', isAdmin, BackofficeController.deleteAsset)
 
 /**
  * @route   PATCH /api/backoffice/assets/:id/default
  * @desc    Establecer asset como predeterminado
  * @access  Private (admin only)
  */
-router.patch('/assets/:id/default', isRealAdmin, BackofficeController.setDefaultAsset)
+router.patch('/assets/:id/default', isAdmin, BackofficeController.setDefaultAsset)
 
 export default router

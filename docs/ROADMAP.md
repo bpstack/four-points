@@ -21,7 +21,7 @@ cosa va a `TODO.md`.
 | 1c   | «Antes de publicar» de `TODO.md` resuelto y probado en producción        | 1b         |
 | 2    | Clon con el historial limpio (dos ramas) + `docs/GITCLEAN.md`            | 1c         |
 | 4    | Repositorio público nuevo con el historial limpio (dos ramas)            | 2          |
-| 5    | Demo pública en un entorno aparte, con datos ficticios y reinicio diario | 4          |
+| 5    | Demo pública en la propia web, con datos ficticios y reinicio diario     | 4          |
 
 El orden lo fija ADR-001, revisado por ADR-022 (fase 1b) y ADR-027 (fase 1c, que
 además absorbe la antigua fase 3 de tareas pendientes). ADR-033 limita la 1c a lo
@@ -54,16 +54,18 @@ Historial de `main` y `claude/compassionate-planck-gh6aof` reescrito y auditado
 
 ## Fase 4 — Publicación ← **actual**
 
-El historial limpio está en `bpstack/four-points`, todavía privado, y Vercel y
-Render ya despliegan desde él. Falta archivar el repositorio original, pasar el
-nuevo a público y activar secret scanning y push protection. La rotación de
-credenciales (ADR-007) no bloquea: va en «Después de publicar» de `TODO.md`.
+El historial limpio está en `bpstack/four-points`, todavía privado; Vercel y
+Render despliegan desde él y el original está archivado. Pasar a público (con
+secret scanning y push protection) espera a la demo de la fase 5 (ADR-037). La
+rotación de credenciales (ADR-007) no bloquea: va en «Después de publicar» de
+`TODO.md`.
 
 ## Fase 5 — Demo pública
 
-Un entorno para que cualquiera pruebe la aplicación sin tocar producción:
-`demo.four-points.stackbp.es` con su propia BD (`hotel_demo` en Aiven), datos
-ficticios, secretos propios, usuarios demo públicos por rol y reinicio nocturno
-de la BD. Reutiliza la infraestructura del preview y el rol `demo-admin`.
-Diseño y decisiones pendientes en `TODO.md`, «Demo pública» (propuesta aceptada
-por el propietario el 2026-10-04).
+Que cualquiera pruebe la aplicación en la propia web, que es solo un escaparate
+(ADR-037): un admin demo restringido que entra con un botón, datos ficticios,
+generación de horarios y reinicio diario; y quien quiera verlo todo lo instala
+en local con admin completo (ADR-038, ADR-039). Hecho en código y probado en
+preview el 2026-10-05; lo que falta, en `TODO.md`, «Demo pública en la propia
+web: lo que falta». El repositorio se hace público cuando la demo esté en
+producción.

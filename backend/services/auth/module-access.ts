@@ -8,7 +8,7 @@
 export type AppModule = 'parking' | 'maintenance' | 'groups' | 'blacklist' | 'cashier' | 'logbook'
 
 const allButMaintenanceRole = (role: string) => role !== 'mantenimiento'
-const staffRoles = ['admin', 'recepcionista', 'group-admin', 'mantenimiento', 'demo-admin']
+const staffRoles = ['admin', 'recepcionista', 'group-admin', 'mantenimiento']
 
 const MODULE_ACCESS: Record<AppModule, (role: string) => boolean> = {
   parking: allButMaintenanceRole, // excludeMantenimiento
@@ -31,7 +31,7 @@ export function openableModules<M extends AppModule>(
   return new Set(modules.filter((m) => canOpenModule(role, m)))
 }
 
-// Only admin: the demo-admin user is disabled, so new rules leave that role out
+// Only admin (the public demo account is an admin too, limited by demoRestriction)
 export function isAdminRole(role: string | undefined): boolean {
   return role?.toLowerCase() === 'admin'
 }

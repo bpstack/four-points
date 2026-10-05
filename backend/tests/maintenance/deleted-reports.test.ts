@@ -24,7 +24,7 @@ function method(source: string, name: string): string {
 }
 
 describe('isAdminRole', () => {
-  it('is admin only: the demo-admin user is disabled', () => {
+  it('is admin only (demo-admin is a retired role)', () => {
     for (const role of ['admin', 'ADMIN']) expect(isAdminRole(role), role).toBe(true)
     for (const role of [
       'demo-admin',

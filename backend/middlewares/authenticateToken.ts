@@ -3,6 +3,7 @@
 import { Request, Response, NextFunction } from 'express'
 import { verifyToken } from '../services/auth/tokenService.js'
 import { demoRestriction } from './demoRestriction.js'
+import { demoWriteLimiter } from './rateLimiter.js'
 import { logger } from '../config/logger.js'
 
 /**
@@ -56,11 +57,8 @@ export function authenticateToken(req: Request, res: Response, next: NextFunctio
       username: decoded.username,
       email: '', // No está en el token, se puede obtener de la BD si es necesario
       role: decoded.role,
+      isDemo: decoded.demo === true,
     }
-
-    // ✅ DEMO: Verificar restricciones de usuario demo
-    // Para eliminar: quitar esta línea y el import de demoRestriction
-    demoRestriction(req, res, next)
   } catch (error) {
     // Diferencia entre token expirado y token inválido
     let message = 'Token inválido'
@@ -74,5 +72,9 @@ export function authenticateToken(req: Request, res: Response, next: NextFunctio
     }
 
     res.status(401).json({ error: message })
+    return
   }
+
+  // Demo account restrictions, outside the try: an error here is not a bad token
+  demoRestriction(req, res, () => demoWriteLimiter(req, res, next))
 }

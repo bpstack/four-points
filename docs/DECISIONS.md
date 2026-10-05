@@ -244,7 +244,8 @@
 
 ## ADR-015 — Una sola base de datos: Aiven, con datos de prueba
 
-- **Estado:** ✅ aceptada (2026-09-28)
+- **Estado:** ✅ aceptada (2026-09-28) · 📌 BD local revisada por
+  [ADR-039](#adr-039--la-bd-local-vuelve-como-instalación-documentada-aiven-sigue-siendo-la-única-compartida)
 - **Fecha:** 2026-09-28
 - **Decisión:** el proyecto trabaja contra **una única BD, la de Aiven**, que
   solo contiene datos de ejemplo. No se mantiene una BD local de desarrollo ni
@@ -708,6 +709,8 @@
 
 - **Estado:** ✅ aceptada (2026-10-05) · 📌 orden revisado por
   [ADR-036](#adr-036--el-original-se-archiva-al-final-y-la-rotación-va-después-de-publicar)
+  · 📌 momento de publicar revisado por
+  [ADR-037](#adr-037--la-demo-va-en-la-propia-web-y-el-repositorio-se-publica-después)
 - **Fecha:** 2026-10-05
 - **Decisión:**
   - Se limpian y se publican **solo `main` y
@@ -753,3 +756,89 @@
   prueba. El procedimiento describe paneles, equipos y claves concretas que no
   sirven a quien lea el repositorio.
 - **Revisa:** ADR-035 en el orden; ADR-007 en el momento de la rotación.
+
+## ADR-037 — La demo va en la propia web y el repositorio se publica después
+
+- **Estado:** ✅ aceptada (2026-10-05) · 📌 usuarios demo y acceso revisados
+  por
+  [ADR-038](#adr-038--un-solo-admin-demo-restringido-y-la-instalación-local-con-mysql-en-docker)
+- **Fecha:** 2026-10-05
+- **Decisión:**
+  - `four-points.stackbp.es` es solo un escaparate: la demo pública va en esa
+    misma web y su BD, con usuarios demo por rol, datos ficticios
+    (`mock-data.sql`) y reinicio diario, también de los horarios.
+  - Los usuarios demo ven toda la app y pueden generar horarios, pero no tocan
+    la configuración: ni usuarios, ni roles, ni contraseñas.
+  - El repositorio se hace público cuando la demo esté lista.
+- **Motivo:** decisión del propietario. Nadie usa la web para trabajar, y una
+  segunda web con su BD gastaría más horas del plan gratuito de Render. Sin
+  demo, quien llegue al repositorio no tiene cómo probar la aplicación:
+  `MASTER_INSTALL.sql` no crea ningún usuario.
+- **Rechazado:** la demo aparte en `demo.four-points.stackbp.es` con la BD
+  `hotel_demo` (plan del 2026-10-04); publicar antes de la demo.
+- **Consecuencias:** si la web llega a usarse de verdad, la demo se separa
+  entonces. Fase 5 antes de terminar la 4.
+- **Revisa:** ADR-035 en el momento de hacer público el repositorio.
+
+## ADR-038 — Un solo admin demo restringido y la instalación local con MySQL en Docker
+
+- **Estado:** ✅ aceptada (2026-10-05)
+- **Fecha:** 2026-10-05
+- **Decisión:**
+  - **Un solo usuario demo, con rol admin**, en lugar de uno por rol: como
+    admin ve todos los módulos. Se entra con un botón «Probar la demo» en el
+    login, sin contraseña: el usuario tiene una aleatoria que nadie conoce, y el
+    botón y su ruta solo existen con `DEMO_MODE=true` en el backend.
+  - **Marca `is_demo`** en el usuario, que viaja en el token. Un middleware
+    bloquea solo lo prohibido: gestión de usuarios y contraseñas, el propio
+    perfil, departamentos, toda subida de ficheros (cualquier `multipart`), el
+    registro de la demo y la configuración de horarios (turnos, parámetros,
+    empleados y contratos). Generar horarios, crear meses y peticiones sí. El
+    rol `demo-admin` se retira.
+  - **Reinicio diario** con la primera entrada a la demo del día: recarga
+    `mock-data.sql` y restaura una foto de las tablas de horarios guardada en la
+    BD.
+  - **En local, admin completo**, sin modo demo. MySQL en Docker, opcional y
+    **solo MySQL** (un `docker-compose.yml`); backend y frontend arrancan con
+    pnpm como ahora. `pnpm setup:local` crea las tablas, el primer admin y los
+    departamentos, y carga el mock.
+- **Motivo:** simplicidad, decisión del propietario. Un admin demo prueba toda
+  la app de una vez, y un botón no obliga a escribir nada. Con roles reales,
+  los permisos funcionan igual que para cualquier usuario y la restricción vive
+  en un solo sitio. Render gratuito se duerme, así que un cron a hora fija
+  puede no ejecutarse. Docker ahorra instalar MySQL; meter en él backend,
+  frontend y solver sería un segundo sistema que producción no usa.
+- **Rechazado:** usuarios demo por rol y contraseña pública en el login
+  (ADR-037); lista blanca de escrituras con el rol `demo-admin`; reinicio por
+  GitHub Actions (credenciales de Aiven en GitHub y tareas programadas que se
+  desactivan tras 60 días sin actividad); la app entera en Docker.
+- **Consecuencias:** CSRF sigue cubierto por `SameSite=Lax` y el rechazo de
+  orígenes ajenos; se añade un test. Para XSS se comprueba que un enlace
+  `javascript:` en las notas del checklist no se ejecuta. Límites nuevos para
+  el solver y las escrituras del usuario demo. El README pasa a explicar la
+  instalación local.
+- **Revisa:** ADR-037 en los usuarios demo y su acceso.
+
+## ADR-039 — La BD local vuelve como instalación documentada; Aiven sigue siendo la única compartida
+
+- **Estado:** ✅ aceptada (2026-10-05)
+- **Fecha:** 2026-10-05
+- **Decisión:**
+  - **Aiven** sigue siendo la única BD del proyecto que se comparte:
+    producción, preview y la demo pública.
+  - **La BD local** vuelve a ser parte documentada del proyecto: quien clona el
+    repositorio la monta con `pnpm setup:local` (con MySQL propio o en Docker)
+    y el propietario puede seguir usando la suya con `pnpm dev:local`. Se
+    mantienen `DB_ENVIRONMENT`, el preset `local` y `LOCAL_DB_*`.
+- **Motivo:** ADR-038: quien quiera ver la aplicación entera la instala en
+  local con un admin completo. Y lo que ADR-015 rechazaba ya existe: una
+  instalación desde los scripts del repositorio, comprobada el 2026-10-05 en
+  un MySQL limpio, deja la misma estructura que Aiven (1161 de 1161 columnas,
+  índices, claves, triggers y procedimientos) y los mismos catálogos.
+- **Rechazado:** quitar el soporte de BD local (la tarea pendiente de
+  ADR-015).
+- **Consecuencias:** las migraciones se siguen aplicando en local y en Aiven
+  (`INDEX.md`). Dos fallos del baseline congelado, que impedían instalar desde
+  cero, se corrigen en `setup:local` y con
+  `20261005_complete_fresh_install.sql` sin tocar `aiven/` (ADR-021).
+- **Revisa:** ADR-015 en la BD local.

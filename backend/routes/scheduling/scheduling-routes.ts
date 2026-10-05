@@ -73,6 +73,8 @@ import { generateSchedule } from '../../controllers/scheduling/schedule-generate
 // Middlewares
 import { authenticateToken } from '../../middlewares/authenticateToken.js'
 import { isAdmin } from '../../middlewares/roleCheck.js'
+import { denyDemoWrites } from '../../middlewares/demoRestriction.js'
+import { demoGenerateLimiter } from '../../middlewares/rateLimiter.js'
 
 const router: Router = express.Router()
 
@@ -86,6 +88,10 @@ const router: Router = express.Router()
 // ========================================
 router.use(authenticateToken)
 router.use(isAdmin)
+
+// The demo account cannot change the configuration; months, assignments,
+// requests and generating stay open, and are reset daily (ADR-038)
+router.use(['/config', '/shifts', '/rules', '/employees', '/contracts'], denyDemoWrites)
 
 // ========================================
 // CONFIG ROUTES
@@ -149,7 +155,7 @@ router.delete('/months/:id', isAdmin, deleteMonth)
 router.post('/months/:id/validate', validateSchedule)
 
 // POST - Generate schedule with CP-SAT solver (admin only)
-router.post('/months/:id/generate', isAdmin, generateSchedule)
+router.post('/months/:id/generate', isAdmin, demoGenerateLimiter, generateSchedule)
 
 // POST - Reset month (clear assignments, re-load approved constraints)
 router.post('/months/:id/reset', isAdmin, resetMonth)

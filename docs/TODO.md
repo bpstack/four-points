@@ -136,15 +136,6 @@ sigue siendo donde se arregla este fichero y se prueba en el entorno preview.
       `PK-AAAAMMDD` del trigger, `CURRENT_TIMESTAMP` de las tablas) van 1–2 h
       por detrás de Madrid: entre las 00:00 y las 02:00 «hoy» sigue siendo ayer.
       _Comprobado el 2026-09-28._
-- [ ] **Quitar el soporte de BD local del código** (ADR-015) — `DB_ENVIRONMENT`
-      y el preset `local` de `backend/config/db.ts`, el script `dev:local`, las
-      variables `LOCAL_DB_*` y las menciones a «local primero» en
-      `backend/db-mysql/`.
-- [ ] **Comprobar que los scripts del repo reproducen Aiven** — hoy Aiven es la
-      única BD y `backend/db-mysql/` la fuente de verdad (ADR-016), pero nadie
-      ha verificado que coincidan. Pista: la BD local, instalada desde esos
-      scripts, difería de Aiven en `demo_activity_log`, `notifications.module`,
-      `roles.name` y 7 claves foráneas (comparación del 2026-09-28).
 - [ ] **Logbook: papelera e historial solo ocultos en la pantalla** — el backend
       da `/trashed`, `include_trashed`, el historial y los comentarios de
       entradas borradas a cualquier rol con acceso. _Según la revisión
@@ -288,6 +279,20 @@ sigue siendo donde se arregla este fichero y se prueba en el entorno preview.
 
 ### 🟢 Baja
 
+- [ ] **`excludeMantenimiento` es una lista de exclusión** — parking, lista
+      negra, caja, partes, conciliación y departamentos dejan pasar cualquier
+      rol salvo `mantenimiento`, y `services/auth/module-access.ts` lo replica.
+      Hoy solo hay roles conocidos (el rol va en el token firmado y sale de
+      `roles`), pero un rol nuevo tendría acceso sin que nadie lo decida. Pasar
+      a lista de permitidos. _Comprobado el 2026-10-05 al retirar
+      `demo-admin`._
+- [ ] **`20260512_disable_demo_user.sql` desactivaría la cuenta demo** si se
+      volviera a ejecutar (`UPDATE users SET is_active = 0 WHERE username =
+      'demo'`). `setup:local` no la ejecuta (es anterior al baseline); no
+      aplicarla a mano. _Comprobado el 2026-10-05._
+- [ ] **Configuración: `?tab=` de una pestaña sin permiso deja el contenido en
+      blanco** — p. ej. recepción con `?tab=users`; debería caer en la primera
+      pestaña disponible. _Visto el 2026-10-05._
 - [ ] **Scheduling: vista de solo lectura para los demás roles** — hoy
       `/dashboard/scheduling` es solo de `admin` y el resto no ve el cuadrante.
       El dueño quiere que los demás (salvo `mantenimiento`) vean el cuadrante
@@ -299,45 +304,19 @@ sigue siendo donde se arregla este fichero y se prueba en el entorno preview.
       pestaña muestra las rechazadas. Una factura incorrecta hoy se borra. El
       dueño decidió el 2026-10-04 no añadirlo porque casi nunca pasa; si se
       añade, hace falta también reabrir (`rejected` → `pending`).
-- [ ] **Demo pública** (fase 5 de `ROADMAP.md`; propuesta aceptada por el dueño
-      el 2026-10-04) — un entorno aparte que la gente pueda probar sin tocar
-      producción:
-      - **BD propia**: base `hotel_demo` en el mismo servicio Aiven, con datos
-        inventados de un hotel ficticio.
-      - **Backend y frontend propios** en `demo.four-points.stackbp.es`,
-        reutilizando la infraestructura del preview al acabar la fase 1c (sin
-        más horas de Render).
-      - **Secretos propios**: otro `SECRET_JWT_KEY` y otras credenciales; un
-        token de la demo nunca vale en producción.
-      - **Reinicio nocturno**: un cron borra y vuelve a sembrar la BD demo.
-      - **Usuarios demo públicos** en la pantalla de login: `demo_admin`,
-        `demo_recepcion`, `demo_mantenimiento`.
-      - **Nivel de libertad** (recomendado: admin casi completo): crear, editar y
-        borrar de todo, porque el reinicio lo arregla. Bloqueado: cambiar
-        contraseñas, crear o borrar usuarios, subidas a Cloudinary (desactivadas
-        o en una carpeta `demo/` vaciada cada noche) y límites de peticiones más
-        estrictos. La alternativa es solo lectura con la lista blanca de
-        `demoRestriction` (más segura, demo pobre).
-      - **Nunca** sobre la BD de producción: cuando haya datos reales del hotel,
-        cualquier demo ahí queda descartada.
-- [ ] **Reutilizar el rol `demo-admin` para la demo pública** (antes «retirarlo»;
-      ver «Demo pública» y la fase 5 de `ROADMAP.md`) — el único usuario con
-      ese rol, `demo`, está desactivado (`is_active = 0`, comprobado en Aiven el
-      2026-10-04). El rol sigue en los middlewares de `roleCheck.ts`, en
-      `demoRestriction` (lista blanca de escrituras y registro de intentos
-      bloqueados), en las rutas `/demo` y en el frontend (`isAdminRole`). Las
-      reglas añadidas el 2026-10-02 ya no lo incluyen. En producción, mientras
-      exista, `demo-admin` entra en backoffice y lee los PDFs de facturas por
-      `/pdf-url`, `/pdf-download` y el ZIP (antes un punto 🔴 aparte; se movió
-      aquí el 2026-10-04 porque no hay ninguna cuenta activa): en la demo vale,
-      en producción no debe haber cuentas con ese rol.
+- [ ] **Demo pública en la propia web: lo que falta** (fase 5 de `ROADMAP.md`,
+      ADR-037 y ADR-038) — el código está hecho y probado en preview el
+      2026-10-05 (cuenta demo, bloqueos, límites, reinicio diario, pestaña
+      Configuración → Demo, `setup:local`) y la base de horarios guardada
+      (octubre a diciembre de 2026, generados con el solver; los meses que
+      venían de bajas reales se borraron). Queda:
+      1. **Producción:** tras el merge, `DEMO_MODE=true` en el servicio de
+         producción de Render y `NEXT_PUBLIC_DEMO_MODE=true` en Production de
+         Vercel (hoy solo están en preview). Probar el botón en la web.
 - [ ] **Conciliation: `GET /api/conciliations` sin paginar ni filtrar** —
       devuelve todo el histórico a cualquier rol con acceso. _Según la revisión
       `security` L3 del 2026-09-28 (fichero y línea en el informe); no repasado
       por mí._
-- [ ] **Backoffice: `demo-admin` ve IBAN, CIF y datos de contacto completos** de
-      los proveedores. _Según la revisión `security` L3 del 2026-09-28 (fichero
-      y línea en el informe); no repasado por mí._
 - [ ] **Checklist: `checklist_config` existe pero no se usa.** _Comprobado por
       mí el 2026-09-28._
 - [ ] **Scheduling: reiniciar un mes no usa transacción** — si falla a mitad, el

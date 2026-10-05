@@ -25,9 +25,11 @@ Hotel staff, each with **a role**:
   receives their notices.
 - **`mantenimiento`**: only the maintenance module, plus the common functions
   (profile, messages, notifications, search).
-- **`demo-admin`**: sees everything as `admin`, but can only write in a
-  whitelist (log out, create a parking booking, comment in the logbook, open a
-  maintenance report). Each blocked attempt is recorded.
+- **Public demo account** (`users.is_demo = 1`, only where `DEMO_MODE=true`):
+  an `admin` entered with the demo button, without a password. It can do
+  everything the daily reset undoes, but not manage users, departments or the
+  scheduling configuration, upload files, or reset the demo. Each blocked
+  attempt is recorded.
 
 The side menu only hides backoffice and scheduling links from non-admins. **The
 backend is what actually decides**: each route checks the role and returns `403`
@@ -244,16 +246,22 @@ Hostinger. Delete or deactivate the `qa_*` users and the `QA-` test data, and
 
 ## Local development
 
+Installing from scratch (MySQL in Docker or your own, `pnpm setup:local`, the
+local admin `admin` / `fourpoints-local`) is in the root
+[`README.md`](../../README.md#run-it-locally). Day to day:
+
 ```bash
-cd backend && pnpm install && pnpm dev:aiven   # API against Aiven; frontend looks for it on :4000
-cd frontend && pnpm install && pnpm dev        # http://localhost:3000
+cd backend && pnpm dev:local    # API on :4000 against the local MySQL (dev:aiven: against Aiven)
+cd frontend && pnpm dev         # http://localhost:3000
 ```
 
 Backend variables: `PORT` (4000 locally), `NODE_ENV`, `SECRET_JWT_KEY`,
-`SALT_ROUNDS`, `DB_ENVIRONMENT=aiven`, `AIVEN_DB_*` + `AIVEN_PASSWORD`,
-`CLOUDINARY_*`, `LOG_LEVEL`, `FRONTEND_URL`. Frontend: `NEXT_PUBLIC_API_URL`,
-`NEXT_SERVER_API_URL` (optional) and `NEXT_PUBLIC_APP_URL`, which the user
-creation route uses to accept the request origin.
+`SALT_ROUNDS`, `DB_ENVIRONMENT` (`local` or `aiven`), `LOCAL_DB_*` or
+`AIVEN_DB_*` + `AIVEN_PASSWORD`, `CLOUDINARY_*`, `LOG_LEVEL`, `FRONTEND_URL`
+and `DEMO_MODE` (`true` only where the public demo runs). Frontend:
+`NEXT_PUBLIC_API_URL`, `NEXT_SERVER_API_URL` (optional), `NEXT_PUBLIC_APP_URL`,
+which the user creation route uses to accept the request origin, and
+`NEXT_PUBLIC_DEMO_MODE`, which shows the demo button on the login page.
 
 **Tests**: `pnpm test` in `backend/` (also `test:watch` and `test:coverage`).
 Some suites (login, checklist, F&B, scheduling requests) use the configured

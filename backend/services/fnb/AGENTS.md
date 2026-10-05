@@ -128,7 +128,7 @@ it might become viable again. Don't upgrade without measuring.
 - **`DELETE /api/fnb/day/:date`**: delete all records for a day
 
 The whole subroute sits behind `authenticateToken` + `canAccessFnb`. Allowed
-roles: `admin`, `recepcionista`, `demo-admin`, **`group-admin`** (the last one
+roles: `admin`, `recepcionista`, **`group-admin`** (the last one
 added in `00bab83`).
 
 **About `/entries` (manual):** the manual path exists for when Opera doesn't
@@ -188,7 +188,7 @@ monthlyExpenses) is also hardcoded — part of the mocked phase.
 
 ## Auth
 
-`canAccessFnb` allows: `admin`, `group-admin`, `demo-admin`, `recepcionista`.
+`canAccessFnb` allows: `admin`, `group-admin`, `recepcionista`.
 **Mantenimiento blocked.** No admin-only restrictions on endpoints — reception
 can upload PDFs and edit manually.
 
