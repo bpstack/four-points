@@ -231,3 +231,24 @@ Vercel y Render se reconectaron de `four-points-archive` a `bpstack/four-points`
 | `d197ad6` | docs(todo): drop the local path of the harness repository | (documentación) | no aplica | — |
 | `5b216a0` | docs(roadmap): close phases 1c and 2 and make publication current | (documentación) | no aplica | — |
 | `0f237d0` | docs(decisions): record the publication order and when to rotate | (documentación) | no aplica | — |
+| `2009f39` | docs(verify): record the switch to the new repository | (documentación) | no aplica | — |
+| `8194031` | docs(session): move the session to the publication phase | (documentación) | no aplica | — |
+| `0bb4c1f` | fix(db): require the Aiven user and port instead of defaulting them | Puerto y usuario de Aiven por defecto en el código | Producción arranca y conecta tras el merge (PR #2) | ✅ 2026-10-05 |
+| `a474007` | chore(db): rewrite the mock data without users and for the current schema | Datos ficticios para Aiven | Cargado en local y en Aiven; horarios intactos | ✅ 2026-10-05 |
+| `a889999` | docs: plan the demo on the showcase site before going public | (documentación) | no aplica | — |
+| `e332b8a` | docs: settle the demo design and the local install | (documentación) | no aplica | — |
+| `5789e83` | feat(auth): restrict the public demo account with an is_demo flag | Demo: marca `is_demo` y bloqueos | Preview, sesión demo real: 18 rutas, lecturas 200 y bloqueadas 403 | ✅ 2026-10-05 |
+| `a306d36` | docs(db): mark the is_demo migration as applied on Aiven | (documentación) | no aplica | — |
+| `8553963` | fix(auth): answer 403 to blocked demo requests without a JSON body | — | Local: DELETE y subidas bloqueadas dan 403, no 500/401 | ✅ 2026-10-05 |
+| `7507d58` | feat(auth): enter the public demo with one button, without a password | Demo: entrada con botón | Preview: botón visible, entra como Demo · Admin; login con contraseña de `demo` da 401 | ✅ 2026-10-05 |
+| `d8c23af` | feat(auth): rate limit the demo account's writes and schedule generation | Demo: límites | `demo-limits.test.ts` (5/h por IP, 30/h en total, 60 escrituras/15 min) | 🧪 |
+| `db8b356` | feat(demo): reset the demo data daily and from Settings | Demo: reinicio diario | Preview: primer reinicio del día registrado en Aiven (734 ms); local: base de horarios restaurada, fallo deshecho; pestaña Demo solo para admins | ✅ 2026-10-05 |
+| `a2395a7` | docs(db): mark the demo reset log migration as applied on Aiven | (documentación) | no aplica | — |
+| `7e7ed39` | test(auth): mock the demo reset in the login timing test | — | CI en verde | ✅ 2026-10-05 |
+| `ee9cbc0` | fix(db): load the mock data on a database with a single admin | — | `setup:local` en un MySQL limpio carga el mock | ✅ 2026-10-05 |
+| `a8882c4` | feat(db): install a local database from scratch with pnpm setup:local | Demo: instalación local | MySQL 8.0 limpio en Docker: estructura igual que Aiven (1161 de 1161) y mismos catálogos; la app entra con el admin | ✅ 2026-10-05 |
+| `9336716` | feat(db): give the local install a documented admin password | — | `setup-local.test.ts` | 🧪 |
+| `e3a642c` | fix(db): group the backoffice monthly summary view by its period | — (hallazgo del 2026-10-05) | `GET /api/backoffice/stats/monthly` en preview da 200; la vista coincide con un cálculo directo | ✅ 2026-10-05 |
+| `9991d79` | test(security): check the CSRF defence and the session cookies by behaviour | Demo: CSRF | `csrf-origin.test.ts` (servidor Express real), `session-cookies.test.ts`; preview: origen ajeno da 403 | ✅ 2026-10-05 |
+| `4449b7a` | fix(checklist): render unsafe links in step notes as plain text | Demo: XSS | `safe-href.test.ts` (11 URL maliciosas) | 🧪 |
+| `143882d` | refactor(auth): retire the demo-admin role | Retirar `demo-admin` | ⏳ preview tras el push; la migración del rol, pendiente en Aiven | ⏳ |

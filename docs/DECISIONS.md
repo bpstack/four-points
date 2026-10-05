@@ -244,7 +244,8 @@
 
 ## ADR-015 — Una sola base de datos: Aiven, con datos de prueba
 
-- **Estado:** ✅ aceptada (2026-09-28)
+- **Estado:** ✅ aceptada (2026-09-28) · 📌 BD local revisada por
+  [ADR-039](#adr-039--la-bd-local-vuelve-como-instalación-documentada-aiven-sigue-siendo-la-única-compartida)
 - **Fecha:** 2026-09-28
 - **Decisión:** el proyecto trabaja contra **una única BD, la de Aiven**, que
   solo contiene datos de ejemplo. No se mantiene una BD local de desarrollo ni
@@ -817,3 +818,27 @@
   el solver y las escrituras del usuario demo. El README pasa a explicar la
   instalación local.
 - **Revisa:** ADR-037 en los usuarios demo y su acceso.
+
+## ADR-039 — La BD local vuelve como instalación documentada; Aiven sigue siendo la única compartida
+
+- **Estado:** ✅ aceptada (2026-10-05)
+- **Fecha:** 2026-10-05
+- **Decisión:**
+  - **Aiven** sigue siendo la única BD del proyecto que se comparte:
+    producción, preview y la demo pública.
+  - **La BD local** vuelve a ser parte documentada del proyecto: quien clona el
+    repositorio la monta con `pnpm setup:local` (con MySQL propio o en Docker)
+    y el propietario puede seguir usando la suya con `pnpm dev:local`. Se
+    mantienen `DB_ENVIRONMENT`, el preset `local` y `LOCAL_DB_*`.
+- **Motivo:** ADR-038: quien quiera ver la aplicación entera la instala en
+  local con un admin completo. Y lo que ADR-015 rechazaba ya existe: una
+  instalación desde los scripts del repositorio, comprobada el 2026-10-05 en
+  un MySQL limpio, deja la misma estructura que Aiven (1161 de 1161 columnas,
+  índices, claves, triggers y procedimientos) y los mismos catálogos.
+- **Rechazado:** quitar el soporte de BD local (la tarea pendiente de
+  ADR-015).
+- **Consecuencias:** las migraciones se siguen aplicando en local y en Aiven
+  (`INDEX.md`). Dos fallos del baseline congelado, que impedían instalar desde
+  cero, se corrigen en `setup:local` y con
+  `20261005_complete_fresh_install.sql` sin tocar `aiven/` (ADR-021).
+- **Revisa:** ADR-015 en la BD local.

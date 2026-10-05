@@ -136,15 +136,6 @@ sigue siendo donde se arregla este fichero y se prueba en el entorno preview.
       `PK-AAAAMMDD` del trigger, `CURRENT_TIMESTAMP` de las tablas) van 1–2 h
       por detrás de Madrid: entre las 00:00 y las 02:00 «hoy» sigue siendo ayer.
       _Comprobado el 2026-09-28._
-- [ ] **Quitar el soporte de BD local del código** (ADR-015) — `DB_ENVIRONMENT`
-      y el preset `local` de `backend/config/db.ts`, el script `dev:local`, las
-      variables `LOCAL_DB_*` y las menciones a «local primero» en
-      `backend/db-mysql/`.
-- [ ] **Comprobar que los scripts del repo reproducen Aiven** — hoy Aiven es la
-      única BD y `backend/db-mysql/` la fuente de verdad (ADR-016), pero nadie
-      ha verificado que coincidan. Pista: la BD local, instalada desde esos
-      scripts, difería de Aiven en `demo_activity_log`, `notifications.module`,
-      `roles.name` y 7 claves foráneas (comparación del 2026-09-28).
 - [ ] **Logbook: papelera e historial solo ocultos en la pantalla** — el backend
       da `/trashed`, `include_trashed`, el historial y los comentarios de
       entradas borradas a cualquier rol con acceso. _Según la revisión
@@ -288,6 +279,20 @@ sigue siendo donde se arregla este fichero y se prueba en el entorno preview.
 
 ### 🟢 Baja
 
+- [ ] **`excludeMantenimiento` es una lista de exclusión** — parking, lista
+      negra, caja, partes, conciliación y departamentos dejan pasar cualquier
+      rol salvo `mantenimiento`, y `services/auth/module-access.ts` lo replica.
+      Hoy solo hay roles conocidos (el rol va en el token firmado y sale de
+      `roles`), pero un rol nuevo tendría acceso sin que nadie lo decida. Pasar
+      a lista de permitidos. _Comprobado el 2026-10-05 al retirar
+      `demo-admin`._
+- [ ] **`20260512_disable_demo_user.sql` desactivaría la cuenta demo** si se
+      volviera a ejecutar (`UPDATE users SET is_active = 0 WHERE username =
+      'demo'`). `setup:local` no la ejecuta (es anterior al baseline); no
+      aplicarla a mano. _Comprobado el 2026-10-05._
+- [ ] **Configuración: `?tab=` de una pestaña sin permiso deja el contenido en
+      blanco** — p. ej. recepción con `?tab=users`; debería caer en la primera
+      pestaña disponible. _Visto el 2026-10-05._
 - [ ] **Scheduling: vista de solo lectura para los demás roles** — hoy
       `/dashboard/scheduling` es solo de `admin` y el resto no ve el cuadrante.
       El dueño quiere que los demás (salvo `mantenimiento`) vean el cuadrante
@@ -299,57 +304,23 @@ sigue siendo donde se arregla este fichero y se prueba en el entorno preview.
       pestaña muestra las rechazadas. Una factura incorrecta hoy se borra. El
       dueño decidió el 2026-10-04 no añadirlo porque casi nunca pasa; si se
       añade, hace falta también reabrir (`rejected` → `pending`).
-- [ ] **Demo pública en la propia web** (fase 5 de `ROADMAP.md`, ADR-037 y
-      ADR-038) — la web es solo un escaparate, así que la demo va en
-      `four-points.stackbp.es` con su BD. Un paso por PR, probado en preview:
-      1. **Marca `is_demo`** en `users` (migración en `scripts/`), en el token y
-         en un middleware que bloquea, para usuarios demo: `/api/users` (salvo
-         lecturas), `/api/auth/register`, `/api/auth/me/*`, escrituras en
-         `/api/departments`, toda petición `multipart`, `/api/demo-activity` y
-         la configuración de horarios (turnos, `config`, empleados y
-         contratos). Tests de cada bloqueo y de que el resto pasa.
-      2. **Un solo usuario demo, rol admin**, con contraseña aleatoria que nadie
-         conoce. Ruta de entrada sin contraseña y botón «Probar la demo» en el
-         login, los dos solo con `DEMO_MODE=true`; la ruta con límite propio.
-         Las cuentas del dueño (`admin`, `qa_*`) siguen aparte.
-      3. **Límites:** generar horarios unas 5 veces por hora por IP y usuario
-         (el solver ya tiene 30 s de máximo y va de uno en uno; Render
-         gratuito tiene 512 MB) y escrituras más estrictas para el usuario
-         demo.
-      4. **Reinicio diario** con la primera entrada a la demo del día: recarga
-         `mock-data.sql` (fechas relativas a hoy; hay que poder ejecutarlo desde
-         Node, y hoy usa `DELIMITER`) y restaura una foto de las tablas de
-         horarios guardada en la BD. La base de horarios se genera una vez con
-         el solver; no se saca de los meses actuales, que vienen de bajas
-         reales. Ojo: el mock elige autores por rol y verá al usuario demo.
-      5. **Instalación local con admin completo:** `docker-compose.yml` solo
-         con MySQL (opcional), `pnpm setup:local` (tablas con
-         `MASTER_INSTALL.sql`, primer admin con contraseña que da quien
-         instala, departamentos y mock) y README en inglés con los pasos y el
-         entorno de Python del solver. Comprobar antes que `MASTER_INSTALL.sql`
-         deja una BD igual que la actual.
-      6. **Seguridad:** test de que un `POST` desde otro origen recibe 403
-         (CSRF) y de que un enlace `javascript:` en las notas del checklist no
-         se ejecuta (XSS).
-      7. **Retirar `demo-admin`** (ver entrada siguiente) y documentar.
-- [ ] **Retirar el rol `demo-admin`** (lo sustituye la marca `is_demo`,
-      ADR-038) — el único usuario con
-      ese rol, `demo`, está desactivado (`is_active = 0`, comprobado en Aiven el
-      2026-10-04). El rol sigue en los middlewares de `roleCheck.ts`, en
-      `demoRestriction` (lista blanca de escrituras y registro de intentos
-      bloqueados), en las rutas `/demo` y en el frontend (`isAdminRole`). Las
-      reglas añadidas el 2026-10-02 ya no lo incluyen. En producción, mientras
-      exista, `demo-admin` entra en backoffice y lee los PDFs de facturas por
-      `/pdf-url`, `/pdf-download` y el ZIP (antes un punto 🔴 aparte; se movió
-      aquí el 2026-10-04 porque no hay ninguna cuenta activa). Retirarlo
-      incluye la migración que quita el usuario `demo` y el rol.
+- [ ] **Demo pública en la propia web: lo que falta** (fase 5 de `ROADMAP.md`,
+      ADR-037 y ADR-038) — el código está hecho y probado en preview el
+      2026-10-05 (cuenta demo, bloqueos, límites, reinicio diario, pestaña
+      Configuración → Demo, `setup:local`). Queda:
+      1. **Base de horarios:** borrar los meses actuales de Aiven (vienen de
+         bajas reales), generar 2 o 3 meses limpios con el solver y pulsar
+         «Guardar horarios actuales como base». Hasta entonces el reinicio no
+         toca horarios y lo que genere un visitante se queda.
+      2. **Aplicar en Aiven `20261005_drop_demo_admin_role.sql`** (borra el rol
+         sin usuarios; enseñar antes qué borra).
+      3. **Producción:** tras el merge, `DEMO_MODE=true` en el servicio de
+         producción de Render y `NEXT_PUBLIC_DEMO_MODE=true` en Production de
+         Vercel (hoy solo están en preview). Probar el botón en la web.
 - [ ] **Conciliation: `GET /api/conciliations` sin paginar ni filtrar** —
       devuelve todo el histórico a cualquier rol con acceso. _Según la revisión
       `security` L3 del 2026-09-28 (fichero y línea en el informe); no repasado
       por mí._
-- [ ] **Backoffice: `demo-admin` ve IBAN, CIF y datos de contacto completos** de
-      los proveedores. _Según la revisión `security` L3 del 2026-09-28 (fichero
-      y línea en el informe); no repasado por mí._
 - [ ] **Checklist: `checklist_config` existe pero no se usa.** _Comprobado por
       mí el 2026-09-28._
 - [ ] **Scheduling: reiniciar un mes no usa transacción** — si falla a mitad, el

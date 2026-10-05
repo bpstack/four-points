@@ -21,7 +21,12 @@ y auditado (`GITCLEAN.md`).
 El historial limpio está en `bpstack/four-points`, **todavía privado**. El
 original sigue privado como `four-points-archive`. Vercel y Render despliegan ya
 desde el nuevo, en producción y en preview (`VERIFY.md`, «Cambio al repositorio
-nuevo»). Decisiones en `DECISIONS.md`, hasta ADR-038.
+nuevo»). Decisiones en `DECISIONS.md`, hasta ADR-039.
+
+La demo pública (fase 5) está hecha en código y probada en preview el
+2026-10-05: cuenta demo con botón, bloqueos, límites, reinicio diario,
+Configuración → Demo, instalación local con `pnpm setup:local` y `demo-admin`
+retirado. `DEMO_MODE` y `NEXT_PUBLIC_DEMO_MODE` solo están en preview.
 
 ## ⚠️ Empieza por aquí
 
@@ -38,10 +43,12 @@ nuevo»). Decisiones en `DECISIONS.md`, hasta ADR-038.
 
 ## Siguiente
 
-1. Construir la demo en la propia web, paso a paso: `TODO.md`, «Demo pública
-   en la propia web» (ADR-037, ADR-038). Empieza por la marca `is_demo`.
-2. Pasar `four-points` a público y activar secret scanning y push protection.
-3. «Después de publicar» de `TODO.md`, empezando por la rotación de
+1. Terminar la demo: `TODO.md`, «Demo pública en la propia web: lo que
+   falta» (base de horarios, migración del rol en Aiven, variables en
+   producción tras el merge).
+2. PR a `main` y probar el botón demo en la web.
+3. Pasar `four-points` a público y activar secret scanning y push protection.
+4. «Después de publicar» de `TODO.md`, empezando por la rotación de
    credenciales (se puede adelantar).
 
 Hecho el 2026-10-05: Vercel y Render despliegan solos desde este repositorio
@@ -64,6 +71,10 @@ Nada ahora mismo.
   `SCHEDULING-CONSTRAINTS.md §7.5`** en un comentario: los scripts 01–19 no se
   tocan (ADR-021). La sección equivalente es
   `docs/scheduling/constraints.md §7.5`.
+- **La cuenta demo es un admin** (`users.is_demo = 1`): lo que no deba tocar
+  se bloquea en la ruta con `denyDemo`/`denyDemoWrites` o en
+  `demoRestriction`. Una ruta nueva que escriba fuera de lo que reinicia el
+  mock (usuarios, catálogos, configuración) necesita su guarda.
 - **Enlaces rotos conocidos** tras archivar: `backend/README.md` (enlaces a
   `docs/backend/…`) y comentarios que citan `Global-Plan.md` o
   `SCHEDULING-SOLVER-PLAN.md`. Se arreglan al escribir cada módulo (ADR-010).

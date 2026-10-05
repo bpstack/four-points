@@ -65,5 +65,7 @@ rotación de credenciales (ADR-007) no bloquea: va en «Después de publicar» d
 Que cualquiera pruebe la aplicación en la propia web, que es solo un escaparate
 (ADR-037): un admin demo restringido que entra con un botón, datos ficticios,
 generación de horarios y reinicio diario; y quien quiera verlo todo lo instala
-en local con admin completo (ADR-038). Pasos en `TODO.md`, «Demo pública en la
-propia web». El repositorio se hace público cuando la demo esté lista.
+en local con admin completo (ADR-038, ADR-039). Hecho en código y probado en
+preview el 2026-10-05; lo que falta, en `TODO.md`, «Demo pública en la propia
+web: lo que falta». El repositorio se hace público cuando la demo esté en
+producción.
