@@ -80,7 +80,7 @@ export default function Page() {
             </span>
             <br />
             <span className="bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 bg-clip-text text-transparent">
-              for desktop y mobile
+              for desktop and mobile
             </span>
           </h1>
 
@@ -108,7 +108,7 @@ export default function Page() {
               className="group relative px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-xl overflow-hidden transition-all hover:shadow-2xl hover:shadow-blue-500/50 dark:hover:shadow-blue-400/30 transform hover:scale-105"
             >
               <span className="relative z-10 flex items-center gap-2">
-                Get Started
+                Try the live demo
                 <svg
                   className="w-5 h-5 transform group-hover:translate-x-1 transition-transform"
                   fill="none"
@@ -127,10 +127,10 @@ export default function Page() {
             </Link>
 
             <Link
-              href="https://www.stackbp.es/"
+              href="https://github.com/bpstack/four-points"
               className="px-8 py-4 bg-surface text-fg font-semibold rounded-xl border border-border hover:border-accent transition-all transform hover:scale-105"
             >
-              Live demo →
+              Source code →
             </Link>
           </div>
         </div>
@@ -229,18 +229,21 @@ export default function Page() {
             {[
               {
                 icon: '⚡',
-                title: 'Lightning Fast',
-                description: 'Optimized performance for instant responses',
+                title: 'Built from real operations',
+                description:
+                  'Logbook, parking, cashier, groups, maintenance and more, from years at a front desk',
               },
               {
                 icon: '🔒',
-                title: 'Secure by Default',
-                description: 'Enterprise-grade security and data protection',
+                title: 'Shift scheduling solver',
+                description:
+                  'Monthly front-desk rosters generated with OR-Tools constraint programming',
               },
               {
                 icon: '🌍',
-                title: 'Works Everywhere',
-                description: 'Cloud-synced across all your devices',
+                title: 'Open source',
+                description:
+                  'MIT licensed, with a one-click demo and a local install with full admin access',
               },
             ].map((feature, index) => (
               <div
@@ -267,11 +270,11 @@ export default function Page() {
             Project overview & Source Code
           </h2>
           <p className="text-xl text-fg-muted mb-8">
-            Including design methodology and implementation details. Private backend repository,
-            public frontend.
+            Frontend, backend and the scheduling solver, under the MIT licence, with instructions to
+            run it locally.
           </p>
           <Link
-            href="https://github.com/bpstack"
+            href="https://github.com/bpstack/four-points"
             className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-xl hover:shadow-2xl hover:shadow-blue-500/50 dark:hover:shadow-blue-400/30 transition-all transform hover:scale-105"
           >
             Source code available on GitHub
@@ -290,7 +293,7 @@ export default function Page() {
       {/* Footer */}
       <footer className="relative border-t border-border py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto text-center text-fg-muted">
-          <p className="text-sm">© 2025 for-Points. All rights reserved.</p>
+          <p className="text-sm">© 2026 Four-Points · MIT License</p>
         </div>
       </footer>
     </div>
