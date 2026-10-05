@@ -462,8 +462,8 @@ sigue siendo donde se arregla este fichero y se prueba en el entorno preview.
       solver y retocar pesos cada 2-3 meses; método en `decisions.md`, entrada
       2026-05-09.
 - [ ] **Checklist: contenido que falta** (lo escribe el manager, no desarrollo)
-      — `tasks/housekeeping-daily.json` y las guías `fidelizacion-postcheckin.md` y
-      `balancing-opera.md` en `frontend/content/checklist/`.
+      — una tarea de pisos y dos guías de recepción, vacías,
+      en el repo privado `four-points-content` (`checklist/`).
 - [ ] **Seguridad cuando haya datos reales** (ideas del plan antiguo, no fallos)
       — registro de auditoría de seguridad, 2FA opcional para `admin`, log
       estructurado de los eventos de login y errores genéricos que no dejen
