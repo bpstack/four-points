@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { safeHref } from '@/app/lib/helpers/safeHref'
 
 function parseNoteText(text: string) {
   const parts: React.ReactNode[] = []
@@ -10,10 +11,17 @@ function parseNoteText(text: string) {
     if (match.index > lastIndex) {
       parts.push(text.slice(lastIndex, match.index))
     }
+    // A link that is not safe (javascript:, data:…) stays as plain text
+    const href = safeHref(match[2])
+    if (!href) {
+      parts.push(match[1])
+      lastIndex = regex.lastIndex
+      continue
+    }
     parts.push(
       <Link
         key={match.index}
-        href={match[2]}
+        href={href}
         className="underline text-amber-900 dark:text-amber-200 hover:text-amber-600 dark:hover:text-amber-100"
       >
         {match[1]}
