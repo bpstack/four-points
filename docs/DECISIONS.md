@@ -89,7 +89,8 @@
 
 ## ADR-007 — Toda credencial que aparezca en lo limpiado se rota
 
-- **Estado:** ✅ aceptada (2026-09-28)
+- **Estado:** ✅ aceptada (2026-09-28) · 📌 momento revisado por
+  [ADR-036](#adr-036--el-original-se-archiva-al-final-y-la-rotación-va-después-de-publicar)
 - **Fecha:** 2026-09-28
 - **Decisión:** si alguna ruta eliminada del historial contenía credenciales o
   hashes de contraseñas, se rotan aunque la limpieza haya salido bien.
@@ -106,8 +107,8 @@
 - **Decisión:**
   - En la raíz queda un `README.md` breve que enlaza a `docs/`.
   - `README.md`, `ROADMAP.md`, `TODO.md`, `DECISIONS.md` y `SESSION.md` viven en
-    `docs/`, partiendo de las plantillas de
-    `c:\Users\dz\projects\harness\templates\`, y se escriben en español.
+    `docs/`, partiendo de las plantillas del repo `harness` (privado), y se
+    escriben en español.
   - Lo que se va terminando sale de `docs/` y se registra en
     `docs/_archive/roadmap-history.md`.
 - **Motivo:** mantener `docs/` limpio. GitHub muestra el `README.md` de la raíz,
@@ -592,8 +593,8 @@
   - `claude/compassionate-planck-gh6aof` entra en `main` con un **merge
     normal** («Create a merge commit»), **no con squash**. Los commits llegan a
     `main` uno a uno.
-  - Los **5 commits con autor `Claude <noreply@anthropic.com>`** (`ec8e901`,
-    `f9d1541`, `2ed0abb`, `8584e93`, `6a67ab3`) **no se rehacen ahora**: su
+  - Los **5 commits con autor `Claude <noreply@anthropic.com>`** (`c4719b2`,
+    `8af5641`, `9c583eb`, `1d5b3ca`, `d432c30`) **no se rehacen ahora**: su
     autor pasa a `bpstack` en la reescritura de la fase 2, con
     `git-filter-repo --mailmap`, la misma pasada que quita los ficheros
     privados (`GITCLEAN.md`).
@@ -705,7 +706,8 @@
 
 ## ADR-035 — Se publican dos ramas y el repositorio actual se archiva con otro nombre
 
-- **Estado:** ✅ aceptada (2026-10-05)
+- **Estado:** ✅ aceptada (2026-10-05) · 📌 orden revisado por
+  [ADR-036](#adr-036--el-original-se-archiva-al-final-y-la-rotación-va-después-de-publicar)
 - **Fecha:** 2026-10-05
 - **Decisión:**
   - Se limpian y se publican **solo `main` y
@@ -729,3 +731,25 @@
   nuevo repositorio, GitHub deja de redirigir `bpstack/four-points` al
   archivado: un clon viejo sin el `origin` cambiado subiría al público.
 - **Revisa:** ADR-026 en las ramas que se publican.
+
+## ADR-036 — El original se archiva al final y la rotación va después de publicar
+
+- **Estado:** ✅ aceptada (2026-10-05)
+- **Fecha:** 2026-10-05
+- **Decisión:**
+  - **Orden de la publicación:** renombrar el original a
+    `four-points-archive`; crear `four-points` privado con el historial
+    limpio; sustituir los clones locales por clones nuevos (no se cambia el
+    `origin`); reconectar Vercel y Render, producción y preview; y solo
+    entonces archivar el original y pasar el nuevo a público.
+  - **La rotación de credenciales no bloquea la publicación:** se hace
+    después, en «Después de publicar» de `TODO.md`.
+  - **El procedimiento de rotación queda fuera del repositorio**, con el
+    propietario.
+- **Motivo:** decisión del propietario. Un repositorio archivado no admite
+  push: mientras producción despliegue desde el original, tiene que poder
+  recibir un arreglo urgente. El historial
+  publicado no contiene credenciales y la BD de producción solo tiene datos de
+  prueba. El procedimiento describe paneles, equipos y claves concretas que no
+  sirven a quien lea el repositorio.
+- **Revisa:** ADR-035 en el orden; ADR-007 en el momento de la rotación.
