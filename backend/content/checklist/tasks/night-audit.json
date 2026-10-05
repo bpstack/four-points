@@ -1,0 +1,281 @@
+{
+  "id": "cl-night-audit",
+  "type": "tasks",
+  "title": "Cierre nocturno (Night Audit)",
+  "category": "daily-tasks",
+  "department": "reception",
+  "shift": "night",
+  "version": "2.0",
+  "author": "Salvador Pérez",
+  "updated": "2026-05-07",
+  "description": "Procedimiento completo de cierre de turno noche. Reset diario a las 06:30.",
+  "sections": [
+    {
+      "id": "s1",
+      "title": "Pre-cierre (23:00 - 00:00)",
+      "steps": [
+        { "id": "s1-1", "text": "Leer consigna completa" },
+        { "id": "s1-2", "text": "Revisar llegadas del día, asignar habitaciones" },
+        { "id": "s1-3", "text": "Verificar si queda algo por cobrar" },
+        { "id": "s1-4", "text": "Revisar emails del día" },
+        { "id": "s1-5", "text": "Cerrar puertas si se ve oportuno" },
+        {
+          "id": "s1-6",
+          "text": "Imprimir downtime en Miscellaneous (A214, B206, D108, T122, A106)",
+          "note": "NO imprimir los que llegan al correo. Imprimir en Miscellaneous ya que están actualizados"
+        },
+        { "id": "s1-7", "text": "Mandar al GM la consigna del día anterior" },
+        {
+          "id": "s1-8",
+          "text": "Cierre de caja: Haz click en el enlace para ver el procedimiento detallado",
+          "ref": "guide:night-audit-caja-cierre"
+        },
+        {
+          "id": "s1-9",
+          "text": "Anotar números de cashier en Daily Shift (turnos de día: separados por comas, sin espacios)"
+        },
+        {
+          "id": "s1-10",
+          "text": "Anotar precios actuales antes del cambio de día",
+          "note": "Necesario para posibles walk-ins"
+        },
+        {
+          "id": "s1-11",
+          "text": "Cancelar reservas de Booking con pago a la llegada si no han llegado"
+        },
+        { "id": "s1-12", "text": "Revisar no shows de días anteriores" },
+        {
+          "id": "s1-13",
+          "text": "Revisar reservas pendientes de llegada: si alguna está sin cobrar, cancelar inmediatamente",
+          "note": "Todas deben tener pago antes de cerrar"
+        }
+      ]
+    },
+    {
+      "id": "s2",
+      "title": "Cambio de día (00:00 - 01:00)",
+      "steps": [
+        {
+          "id": "s2-1",
+          "text": "Exchange Rate PF/FF a las 00:01 (NEW, nunca Edit)",
+          "ref": "guide:night-audit-exchange-rate",
+          "note": "Impacta en puntos del programa y cargos a la propiedad. No usar Edit ni eliminar el código"
+        },
+        {
+          "id": "s2-2",
+          "text": "Ejecutar Night Audit en Opera (System → End of Day)",
+          "ref": "guide:night-audit-cierre-opera",
+          "note": "Si falla, contactar IT antes de reintentar"
+        },
+        {
+          "id": "s2-3",
+          "text": "Reservas sin check-in se marcan automáticamente como No Show",
+          "ref": "guide:night-audit-no-show"
+        }
+      ]
+    },
+    {
+      "id": "s3",
+      "title": "Post-cierre / Día siguiente (04:00+)",
+      "steps": [
+        { "id": "s3-1", "text": "Hacer cierre a las 4:00 AM" },
+        {
+          "id": "s3-2",
+          "text": "Generar partes de policía (plataforma de registro de viajeros)",
+          "ref": "guide:night-audit-registro-viajeros"
+        },
+        {
+          "id": "s3-3",
+          "text": "Comprobar y corregir registros en la plataforma de registro diariamente"
+        },
+        {
+          "id": "s3-4",
+          "text": "Imprimir hoja Night y anotar: FOS, libres limpias, libres sucias, OOO"
+        },
+        {
+          "id": "s3-5",
+          "text": "Rooms Management → Housekeeping → Statistics: anotar Total Clean, Total Dirty, Total OOO, Total OOS, Not Reserved Clean, Not Reserved Dirty"
+        },
+        {
+          "id": "s3-6",
+          "text": "Cobrar reservas (depósito, etc.)",
+          "note": "A partir de las 06:00 se pueden cobrar TC de Expedia"
+        },
+        {
+          "id": "s3-7",
+          "text": "Apuntar reservas de Booking con pago a la llegada y añadir ALERT"
+        },
+        {
+          "id": "s3-8",
+          "text": "Escanear partes de viajeros, guardar en Night Auditor → Partes Viajeros, triturar papel"
+        },
+        {
+          "id": "s3-9",
+          "text": "Gestionar No Shows +1 noche: reinstate + check-in (revisar rates antes)",
+          "ref": "guide:night-audit-no-show",
+          "note": "Flex: solo primera noche. No flex: todo el importe. Revisar rates para mantener precio"
+        },
+        {
+          "id": "s3-10",
+          "text": "Facturar No Shows de 1 noche: Billing → Post → Settlement → código 16191 (balance a 0)",
+          "ref": "guide:night-audit-no-show"
+        },
+        { "id": "s3-11", "text": "Dejar nota en consigna de los no shows de la noche" },
+        {
+          "id": "s3-12",
+          "text": "Reflejar no shows en Excel No Show (completar todas las celdas)"
+        },
+        {
+          "id": "s3-13",
+          "text": "Facturar reservas sin respuesta antes de fin de turno y marcar en OTA (Booking, Expedia, Hotelbeds)"
+        }
+      ]
+    },
+    {
+      "id": "s4",
+      "title": "Documentos diarios",
+      "steps": [
+        {
+          "id": "s4-1",
+          "text": "Manager Flash (día anterior, Calendar, Date, Month to Date, quitar Last Year)",
+          "ref": "reference:reports-manager-flash"
+        },
+        {
+          "id": "s4-2",
+          "text": "History & Forecast: mes en curso + 2 meses siguientes (3 informes, día 1 al 30/31)",
+          "ref": "reference:reports-history-forecast"
+        },
+        {
+          "id": "s4-3",
+          "text": "Detailed Availability: mes actual y siguiente (R136)",
+          "ref": "reference:reports-r136-detailed-availability"
+        },
+        {
+          "id": "s4-4",
+          "text": "Negative Postings: D120, casilla Negative Postings, Preview",
+          "ref": "reference:reports-d120-negative-postings"
+        },
+        {
+          "id": "s4-5",
+          "text": "Enviar Manager Flash + History&Forecast + Negative Postings a GM y DM"
+        },
+        {
+          "id": "s4-6",
+          "text": "Trial Balance D156 → enviar a auditor externo y guardar en Night Auditor → Documentos Auditor",
+          "ref": "reference:reports-d156-trial-balance"
+        },
+        { "id": "s4-7", "text": "Enviar Negative Postings al auditor externo" },
+        {
+          "id": "s4-8",
+          "text": "Enviar a F&B Manager: captura consigna, R118, control desayunos, Daily Revenue F&B, captura de la plataforma de registro"
+        },
+        {
+          "id": "s4-9",
+          "text": "Rellenar Excel control de desayunos con datos del Manager Flash (total personas alojadas del día anterior)"
+        },
+        {
+          "id": "s4-10",
+          "text": "Daily Revenue F&B: rellenar con D114 del día anterior, total debe coincidir con Food and Beverage Revenue del Manager Flash",
+          "ref": "reference:reports-d114"
+        },
+        {
+          "id": "s4-11",
+          "text": "Imprimir R118 Detailed para restaurante (disponible a las 06:00)",
+          "ref": ["reference:reports-r118-detailed", "reference:member-list"],
+          "note": "Incluir listado miembros Breakfast Gift: Diamante, Platino, VIP (desayuno gratuito)"
+        },
+        {
+          "id": "s4-12",
+          "text": "Rellenar Excel de control del programa de fidelización con salidas del día (habitación, nivel member, hora salida), imprimir para pisos",
+          "ref": "reference:member-list"
+        }
+      ]
+    },
+    {
+      "id": "s5",
+      "title": "Documentos último día de mes",
+      "steps": [
+        {
+          "id": "s5-1",
+          "text": "Financial Transaction Summary: mes actual, Group By Transaction Code → para GM"
+        },
+        {
+          "id": "s5-2",
+          "text": "Para auditor externo: Deposit Ledger + Manager Flash + Reservation Statistics → guardar y enviar"
+        },
+        {
+          "id": "s5-3",
+          "text": "Manager Flash del mes finalizado (2 versiones: con TAX y sin TAX) → para Dirección"
+        }
+      ]
+    },
+    {
+      "id": "s6",
+      "title": "Arqueo de caja (último día de mes)",
+      "steps": [
+        {
+          "id": "s6-1",
+          "text": "D120 para ver cash por períodos de días",
+          "note": "Sumar días desde la última vez que fue al banco"
+        },
+        { "id": "s6-2", "text": "Comprobar que concuerda con lo juntado en los sobres" },
+        { "id": "s6-3", "text": "Excel de arqueo en Compartido → enviar a FIN, copia a DM y GM" }
+      ]
+    },
+    {
+      "id": "s7",
+      "title": "Tareas varias durante el turno",
+      "steps": [
+        { "id": "s7-1", "text": "Responder emails, mensajes y comentarios de extranets" },
+        {
+          "id": "s7-2",
+          "text": "Reponer partes de entrada en desks, tickets de maletas y keyholders de llaves"
+        },
+        {
+          "id": "s7-3",
+          "text": "Cada domingo: colocar hoja lubricante en trituradora del back office",
+          "note": "Bajo el mostrador izquierdo, balda de abajo"
+        },
+        {
+          "id": "s7-4",
+          "text": "Control de lavandería: rellenar Excel con datos del albarán",
+          "ref": "guide:night-audit-lavanderia"
+        },
+        {
+          "id": "s7-5",
+          "text": "Asignar las plazas del parking concertado del día (revisar en consigna y en su Excel)"
+        },
+        {
+          "id": "s7-6",
+          "text": "Reiniciar los 2 ordenadores (1 vez por bloque de turnos de noche)"
+        },
+        {
+          "id": "s7-7",
+          "text": "Mantener recepción limpia (basura, destructoras, polvo mostradores)"
+        },
+        { "id": "s7-8", "text": "Volver a hacer caja por si se cobró algo después del cierre" },
+        { "id": "s7-9", "text": "Dar turno al compañero" }
+      ]
+    },
+    {
+      "id": "s8",
+      "title": "Puntos críticos",
+      "steps": [
+        {
+          "id": "s8-1",
+          "text": "Upgrades de TWW a DBW o cambios de tipología son MUY PELIGROSOS",
+          "ref": "guide:night-audit-crs-discrepancies"
+        },
+        { "id": "s8-2", "text": "Siempre revisar Conciliation en CRS una por una" },
+        {
+          "id": "s8-3",
+          "text": "Si se cambia TWW a DBW en reserva de varias noches, CRS NO se actualiza → riesgo OVERBOOKING"
+        },
+        {
+          "id": "s8-4",
+          "text": "Miscellaneous / Inventory Reconciliation / Reservation Reconciliation para mostrar la realidad en CRS"
+        }
+      ]
+    }
+  ]
+}

@@ -4,8 +4,8 @@
  * Idempotent one-shot importer: reads "DAILY REVENUE F&B 2026.xlsx"
  * and upserts values into fnb_daily_revenue (DB_ENVIRONMENT=local).
  *
- * Usage:
- *   pnpm exec cross-env DB_ENVIRONMENT=local tsx --env-file=.env scripts/import-fnb-2026.ts [MARZO|ABRIL|MAYO|all]
+ * Usage (FNB_XLSX_PATH: path to the workbook):
+ *   pnpm exec cross-env DB_ENVIRONMENT=local FNB_XLSX_PATH=<file.xlsx> tsx --env-file=.env scripts/import-fnb-2026.ts [MARZO|ABRIL|MAYO|all]
  */
 
 import xlsx from 'xlsx'
@@ -15,7 +15,7 @@ import { fileURLToPath } from 'url'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
-const XLSX_PATH = 'C:/Users/dz/OneDrive/Desktop/data-trans/DAILY REVENUE F&B 2026.xlsx'
+const XLSX_PATH = process.env.FNB_XLSX_PATH
 
 // Row index (0-based) → Opera code
 const ROW_TO_CODE: Record<number, string> = {
@@ -109,6 +109,7 @@ async function importSheet(
 
 async function main() {
   const target = process.argv[2] ?? 'all'
+  if (!XLSX_PATH) throw new Error('Set FNB_XLSX_PATH to the path of the F&B workbook')
   const wb = xlsx.read(await import('fs').then((f) => f.readFileSync(XLSX_PATH)), {
     type: 'buffer',
     cellDates: false,

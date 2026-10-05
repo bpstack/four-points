@@ -198,3 +198,15 @@ CI).
 | `a2cfbec` | test(fnb): replace the real Opera revenue report with a synthetic sample | Informe Opera real de ingresos en los fixtures (hallado en el barrido de OpenCode) | El texto extraído del PDF sintético tiene las mismas 344 líneas y estructura que el real (solo cambian cifras y nombre del hotel); backend 909 passed. No probado subiendo el PDF en la interfaz | ✅ 2026-10-05 |
 | `b3dcc62` | docs(gitclean): record the OpenCode sweep and the dry run | (documentación) | no aplica | — |
 | `5351fc5` | docs(gitclean): record the first real run and reword a line the rules touched | (documentación) | no aplica | — |
+| `23a9d9c` | docs(verify): add the rows for b3dcc62 and 5351fc5 | (documentación) | no aplica | — |
+| `289c737` | Merge pull request #9 from bpstack/claude/compassionate-planck-gh6aof | `main` con los arreglos previos a la limpieza | CI de la PR en verde (backend y frontend); árbol de `main` igual al de la rama. Despliegue de producción no revisado: solo cambian tests, documentación, un placeholder y el id de una guía | ✅ 2026-10-05 |
+| `a2da823` | docs(gitclean): record the final rewrite and its audit | (documentación) | no aplica | — |
+| `21dfe77` | feat(checklist): load the hotel's real content from a private repository at build time | (revertido en `b5e9c8e`) | no aplica | — |
+| `21beff1` | chore(checklist): replace the hotel's procedures with example content | (revertido en `b5e9c8e`) | no aplica | — |
+| `bce10ac` | chore: parametrize the hotel name and the local paths | Nombre del hotel y rutas personales en el código | El pie impreso lee `NEXT_PUBLIC_HOTEL_NAME` con «Hotel PMS» por defecto; CI en verde. Pie impreso no revisado en el preview | ✅ 2026-10-05 |
+| `a2e1338` | chore(frontend): replace the screenshots that showed a staff user | Capturas con un usuario del personal | Revisado por el propietario en el preview | ✅ 2026-10-05 |
+| `b6f7ef9` | test(fnb): remove chain and partner names from the synthetic Opera sample | Nombres de la cadena y del partner en la muestra | CI en verde (backend) | ✅ 2026-10-05 |
+| `b18057c` | docs: describe the hotel's files without their names | (documentación) | no aplica | — |
+| `b5e9c8e` | revert(checklist): keep the procedures in the repository instead of a private one | Contenido del checklist | CI en verde; ver `6b6aa0f` | ✅ 2026-10-05 |
+| `6b6aa0f` | chore(checklist): generalize the hotel's procedures | Nombres de la cadena, sus sistemas y partners en el checklist | Las 22 referencias `guide:`/`reference:` de las tareas apuntan a ficheros existentes; tareas del backend idénticas a las del frontend; el propietario abrió los enlaces en el preview | ✅ 2026-10-05 |
+| `3a0fdd0` | style(checklist): format the night audit tasks | (formato) | no aplica | — |
