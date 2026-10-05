@@ -52,12 +52,12 @@ historial (ADR-027, ADR-033), PR #7 a #10. Detalle en
 Historial de `main` y `claude/compassionate-planck-gh6aof` reescrito y auditado
 (ADR-035). Resultado en `GITCLEAN.md`.
 
-## Fase 4 — Publicación ← **actual**
+## Fase 4 — Publicación ✅ cerrada (2026-10-05)
 
-El historial limpio está en `bpstack/four-points`, todavía privado; Vercel y
-Render despliegan desde él y el original está archivado. La demo de la fase 5
-ya está en producción, así que solo falta pasarlo a público y activar secret
-scanning y push protection. Comprobado el 2026-10-05: ningún valor de
+`bpstack/four-points` es público desde el 2026-10-05 (tras la PR #5,
+`a40c6a4`), con secret scanning y push protection activados y sin alertas
+al publicar. Vercel y Render despliegan desde él y el original está
+archivado. Comprobado el 2026-10-05: ningún valor de
 `backend/.env` aparece en los 662 commits de todas las ramas, salvo dos valores
 públicos por defecto (el usuario `avnadmin` de Aiven y `localhost:11434` de
 Ollama). La rotación de credenciales (ADR-007) no bloquea: va en «Después de

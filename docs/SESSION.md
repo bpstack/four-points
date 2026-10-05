@@ -13,12 +13,13 @@ propio fichero) o ruido (se borra).
 
 ## Estado
 
-Fase actual: **4 — Publicación** (`ROADMAP.md`). Las fases 1c y 2 quedaron
+Fases 4 y 5 cerradas: **el repositorio es público** desde el 2026-10-05, con
+secret scanning y push protection activados. Toca «Después de publicar». Las fases 1c y 2 quedaron
 cerradas el 2026-10-05: las brechas de «Antes de publicar» arregladas y
 probadas, y el historial de `main` y `claude/compassionate-planck-gh6aof` limpio
 y auditado (`GITCLEAN.md`).
 
-El historial limpio está en `bpstack/four-points`, **todavía privado**. El
+El historial limpio está en `bpstack/four-points`, **público**. El
 original sigue privado como `four-points-archive`. Vercel y Render despliegan ya
 desde el nuevo, en producción y en preview (`VERIFY.md`, «Cambio al repositorio
 nuevo»). Decisiones en `DECISIONS.md`, hasta ADR-040.
@@ -44,12 +45,9 @@ documentación obsoleta está archivada (ADR-040).
 
 ## Siguiente
 
-1. Pasar `four-points` a público y activar secret scanning y push protection.
-   Historial revisado contra `backend/.env` el 2026-10-05 (`ROADMAP.md`,
-   fase 4).
-2. Archivar `GITCLEAN.md`, `VERIFY.md`, `ROADMAP.md` y `SESSION.md` como
+1. Archivar `GITCLEAN.md`, `VERIFY.md`, `ROADMAP.md` y `SESSION.md` como
    dice ADR-040, cuando ya no hagan falta.
-3. «Después de publicar» de `TODO.md`, empezando por la rotación de
+2. «Después de publicar» de `TODO.md`, empezando por la rotación de
    credenciales (se puede adelantar).
 
 Hecho el 2026-10-05: Vercel y Render despliegan solos desde este repositorio
