@@ -74,9 +74,9 @@ describe('checklist route params', () => {
 
   it('lets real checklists and steps through', async () => {
     expect((await call('GET', '/cl-morning-shift/run')).status).toBe(200)
-    expect((await call('PATCH', '/cl-morning-shift/steps/s5-2')).status).toBe(200)
-    expect((await call('POST', '/cl-night-audit/steps/s1-6/comments')).status).toBe(200)
-    expect((await call('DELETE', '/cl-night-audit/steps/s1-6/comments/42')).status).toBe(200)
+    expect((await call('PATCH', '/cl-morning-shift/steps/s5-4')).status).toBe(200)
+    expect((await call('POST', '/cl-night-audit/steps/s1-10/comments')).status).toBe(200)
+    expect((await call('DELETE', '/cl-night-audit/steps/s1-10/comments/42')).status).toBe(200)
     expect((await call('DELETE', '/cl-night-audit/steps/s1-1/attachments/7')).status).toBe(200)
   })
 
@@ -89,8 +89,8 @@ describe('checklist route params', () => {
   })
 
   it('answers 400 for a step of another checklist or an invented one', async () => {
-    // s6-1 exists in night-audit but not in morning-shift
-    expect(await call('POST', '/cl-morning-shift/steps/s6-1/comments')).toEqual({
+    // s1-10 exists in night-audit but not in morning-shift
+    expect(await call('POST', '/cl-morning-shift/steps/s1-10/comments')).toEqual({
       status: 400,
       body: { error: 'Paso no válido' },
     })

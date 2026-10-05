@@ -31,12 +31,6 @@ backend/content/checklist/tasks/<name>.json   ← stepId validation (backend)
 frontend/content/checklist/tasks/<name>.json  ← UI rendering (frontend)
 ```
 
-These are the **example** checklists. In production both apps read the hotel's
-real content, downloaded at build time from a private repository into
-`content-private/checklist/` (gitignored; see `docs/checklist/README.md` and
-`scripts/fetch-checklist-content.mjs`). Never copy real procedures into this
-repository.
-
 **When you add, rename or remove a step, section or checklist, update BOTH files
 in the same commit.** The backend uses its copy to validate that incoming
 `stepId`s exist before writing to the DB; the frontend uses its copy to render
@@ -228,11 +222,10 @@ frontend/content/checklist/
 
 ### Loader
 
-`loader.ts` reads `frontend/content-private/checklist/` when it exists (the real
-content, downloaded at build time) or `frontend/content/checklist/` (the
-example) at server boot, parses it, and builds the `Catalog` in memory. Cached
-for the lifetime of the server (`let _catalog: Catalog | null`). Server
-Components (`[id]/page.tsx`) call `getChecklistById(id)` which hits the cache.
+`loader.ts` reads `frontend/content/checklist/` at server boot, parses it, and
+builds the `Catalog` in memory. Cached for the lifetime of the server
+(`let _catalog: Catalog | null`). Server Components (`[id]/page.tsx`) call
+`getChecklistById(id)` which hits the cache.
 
 **Markdown items** are parsed with `gray-matter` (YAML frontmatter + body MD).
 The loader serializes YAML dates to strings (`serializeDates`) so React doesn't

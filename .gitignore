@@ -78,9 +78,3 @@ Sin título.png
 docs/_archive/
 # DB dumps: never versioned (ADR-027)
 backend/db-mysql/backup/*.sql
-
-# --------------------------------------------
-# Private checklist content (downloaded at build time,
-# scripts/fetch-checklist-content.mjs). Never commit it.
-# --------------------------------------------
-content-private/

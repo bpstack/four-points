@@ -8,7 +8,7 @@
     "dev": "tsx watch index.ts",
     "dev:local": "cross-env DB_ENVIRONMENT=local tsx watch index.ts",
     "dev:aiven": "cross-env DB_ENVIRONMENT=aiven tsx watch index.ts",
-    "build": "node ../scripts/fetch-checklist-content.mjs backend && python3 -m venv scheduling-solver/venv && scheduling-solver/venv/bin/pip install --no-cache-dir -r scheduling-solver/requirements.txt",
+    "build": "python3 -m venv scheduling-solver/venv && scheduling-solver/venv/bin/pip install --no-cache-dir -r scheduling-solver/requirements.txt",
     "start": "tsx index.ts",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
