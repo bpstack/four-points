@@ -14,7 +14,9 @@ propio fichero) o ruido (se borra).
 ## Estado
 
 Fases 4 y 5 cerradas: **el repositorio es público** desde el 2026-10-05, con
-secret scanning y push protection activados. Toca «Después de publicar». Las fases 1c y 2 quedaron
+secret scanning y push protection activados. Toca «Después de publicar».
+
+Las fases 1c y 2 quedaron
 cerradas el 2026-10-05: las brechas de «Antes de publicar» arregladas y
 probadas, y el historial de `main` y `claude/compassionate-planck-gh6aof` limpio
 y auditado (`GITCLEAN.md`).
@@ -60,6 +62,10 @@ Nada ahora mismo.
 
 ## Cuidado con esto
 
+- **`main` está protegida** (ruleset `protect-main`, 2026-10-05): solo entra
+  por PR, con los checks `backend` y `frontend` en verde y como merge commit
+  (sin squash ni rebase); no admite force push ni borrado. Se trabaja en
+  `claude/compassionate-planck-gh6aof`, que no tiene reglas.
 - **Los `CLAUDE.md`/`AGENTS.md` de módulo no son fuente fiable**: el de logbook
   citaba tres tablas que nunca existieron, y varios más tenían datos
   desactualizados. Se contrastan siempre con el código y la BD; las correcciones
