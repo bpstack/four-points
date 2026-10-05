@@ -1,6 +1,6 @@
 ﻿param([ValidateSet('aiven','local','both')][string]$Target = 'both')
 $ErrorActionPreference = 'Stop'
-$envFile = 'C:\Users\dz\projects\Four-Points\backend\.env'
+$envFile = Join-Path $PSScriptRoot '..\..\.env'
 $backupDir = $PSScriptRoot
 $envVars = @{}
 Get-Content $envFile | ForEach-Object {

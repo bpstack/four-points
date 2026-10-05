@@ -4,6 +4,9 @@ import type { ChecklistMeta } from '@/app/lib/checklist/types'
 import { SHIFT_LABELS, DEPT_LABELS } from '@/app/lib/checklist/types'
 import { FiPrinter } from 'react-icons/fi'
 
+// Name printed in the footer of printed checklists; each deployment sets its own
+const PRINT_ORG_NAME = process.env.NEXT_PUBLIC_HOTEL_NAME || 'Hotel PMS'
+
 const TYPE_LABELS = { tasks: 'Tareas', guide: 'Guía', reference: 'Referencia' }
 const TYPE_COLORS = {
   tasks: 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300',
@@ -54,6 +57,7 @@ export function ChecklistHeader({ item }: { item: ChecklistMeta }) {
           onClick={() => {
             const content = document.querySelector('.checklist-print-content')
             if (content) {
+              content.setAttribute('data-print-org', PRINT_ORG_NAME)
               content.setAttribute(
                 'data-print-date',
                 new Date().toLocaleDateString('es-ES', {

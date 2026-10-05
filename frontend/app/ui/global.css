@@ -144,7 +144,7 @@ main,
 
   /* Footer */
   .checklist-print-content::after {
-    content: 'Demo Hotel  ·  ' attr(data-print-date);
+    content: attr(data-print-org) '  ·  ' attr(data-print-date);
     display: block;
     margin-top: 1cm;
     padding-top: 6px;
