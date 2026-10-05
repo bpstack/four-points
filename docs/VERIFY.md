@@ -51,8 +51,10 @@ Vercel y Render se reconectaron de `four-points-archive` a `bpstack/four-points`
 - **Preview:** la rama en `d9e7230`. Vercel _Ready_; el dominio está tras la
   protección de Vercel y lo abrió el propietario. Render _live_ con la misma
   comprobación y `api-preview` responde 200.
-- Los cuatro despliegues se lanzaron a mano; el despliegue automático con un
-  push al repositorio nuevo **queda sin comprobar** hasta el primer push.
+- Los cuatro despliegues se lanzaron a mano. Después, cada push ha desplegado
+  solo en Vercel (18 despliegues automáticos de producción y preview el
+  2026-10-05, según GitHub). Render no informa a GitHub de sus despliegues:
+  el automático no se comprobó desde aquí.
 
 ## Arreglos
 

@@ -108,9 +108,11 @@ el historial.
   las dos ramas; el original pasa a `four-points-archive`, privado. Vercel y
   Render despliegan ya desde el nuevo, en producción y en preview. Las
   referencias a commits de los documentos apuntan a los hashes nuevos.
-- ⏳ Archivar `four-points-archive`, pasar `four-points` a público y activar
-  secret scanning y push protection (GitHub no los deja activar en un
-  repositorio privado gratuito).
+- ✅ Publicación (2026-10-05): `four-points-archive` archivado y privado;
+  `four-points` público, con secret scanning y push protection activados y
+  sin alertas. Antes, ningún valor de `backend/.env` aparecía en los 662
+  commits de todas las ramas (solo `avnadmin` y `localhost:11434`, valores
+  públicos por defecto).
 
 ## Reglas
 
