@@ -1,0 +1,90 @@
+{
+  "id": "cl-afternoon-shift",
+  "type": "tasks",
+  "title": "Turno de tarde",
+  "category": "daily-tasks",
+  "department": "reception",
+  "shift": "afternoon",
+  "version": "1.0",
+  "author": "Salvador Pérez",
+  "updated": "2026-05-07",
+  "description": "Checklist del turno de tarde. Horarios orientativos.",
+  "sections": [
+    {
+      "id": "s1",
+      "title": "15:00 - 17:00 — Revisión de pisos",
+      "steps": [
+        { "id": "s1-1", "text": "Leer consigna completa" },
+        {
+          "id": "s1-2",
+          "text": "Revisar/actualizar en Opera habitaciones limpiadas durante la mañana"
+        },
+        { "id": "s1-3", "text": "Identificar habitaciones pendientes de limpieza por la tarde" },
+        { "id": "s1-4", "text": "Pedir nombre y contacto WhatsApp a la persona de pisos" },
+        {
+          "id": "s1-5",
+          "text": "Anotar objetos perdidos recepcionados por pisos en el Excel correspondiente"
+        }
+      ]
+    },
+    {
+      "id": "s2",
+      "title": "17:30 — Cierre de limpieza",
+      "steps": [
+        {
+          "id": "s2-1",
+          "text": "Revisar posibles habitaciones que hayan quedado sucias por algún motivo"
+        },
+        { "id": "s2-2", "text": "Comunicar a pisos para que quede todo limpio antes de las 18:00" }
+      ]
+    },
+    {
+      "id": "s3",
+      "title": "18:00 - 21:30 — Asignaciones y check-ins",
+      "steps": [
+        { "id": "s3-1", "text": "Asignar habitaciones y hacer check-ins" },
+        { "id": "s3-2", "text": "Cobrar reservas" },
+        { "id": "s3-3", "text": "Revisar las opiniones de clientes" },
+        { "id": "s3-4", "text": "Revisar reconciliación" },
+        {
+          "id": "s3-5",
+          "text": "Revisar disponibilidad y evitar overbooking reasignando si es necesario"
+        },
+        {
+          "id": "s3-6",
+          "text": "Revisar posibles habitaciones sucias por cambios o late check-outs - anotad en consigna"
+        },
+        { "id": "s3-7", "text": "Verificar que están todos los packages de desayunos incluidos" },
+        { "id": "s3-8", "text": "Revisar y actualizar parking mirando las cámaras" },
+        {
+          "id": "s3-9",
+          "text": "Estar atentos a previsión salidas/clientes del día siguiente para Pisos (preguntarán por WhatsApp)",
+          "ref": "reference:shift-f3"
+        }
+      ]
+    },
+    {
+      "id": "s4",
+      "title": "22:00 - 22:30 — Cierre de caja",
+      "steps": [
+        { "id": "s4-1", "text": "Revisar caja: que todos los pagos estén metidos" },
+        { "id": "s4-2", "text": "Sacar caja sobre las 22:30" }
+      ]
+    },
+    {
+      "id": "s5",
+      "title": "Tareas principales durante todo el turno",
+      "steps": [
+        { "id": "s5-1", "text": "Responder llamadas" },
+        { "id": "s5-2", "text": "Revisar correo" },
+        { "id": "s5-3", "text": "Revisar extranets" },
+        { "id": "s5-4", "text": "Revisar las opiniones de clientes" },
+        {
+          "id": "s5-5",
+          "text": "Meter todos los pagos de reservas con check-in",
+          "note": "No puede haber reservas sin pago con check-in hecho"
+        }
+      ]
+    }
+  ]
+}

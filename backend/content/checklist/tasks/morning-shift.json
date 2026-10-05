@@ -1,0 +1,112 @@
+{
+  "id": "cl-morning-shift",
+  "type": "tasks",
+  "title": "Turno de mañana",
+  "category": "daily-tasks",
+  "department": "reception",
+  "shift": "morning",
+  "version": "1.0",
+  "author": "Salvador Pérez",
+  "updated": "2026-05-07",
+  "description": "Checklist del turno de mañana. Horarios orientativos.",
+  "sections": [
+    {
+      "id": "s1",
+      "title": "7:00 - 7:30 — Inicio y preparación de documentos",
+      "steps": [
+        {
+          "id": "s1-1",
+          "text": "Leer consigna completa (información para pisos, mantenimiento, restaurante, back office)"
+        },
+        {
+          "id": "s1-2",
+          "text": "Preparar Housekeeping para pisos",
+          "ref": "reference:housekeeping-pisos"
+        },
+        {
+          "id": "s1-3",
+          "text": "Preparar T122 para pisos (Vacant + Occupied)",
+          "ref": "reference:reports-t122"
+        },
+        {
+          "id": "s1-4",
+          "text": "Preparar T122 de mantenimiento (solo Vacants)",
+          "ref": "reference:reports-t122"
+        },
+        {
+          "id": "s1-5",
+          "text": "Listado de miembros Oro (14:00), Diamante, Platino y VIP (16:00)",
+          "ref": "reference:member-list"
+        }
+      ]
+    },
+    {
+      "id": "s2",
+      "title": "7:00 - 8:30 — Revisión de salidas",
+      "steps": [
+        { "id": "s2-1", "text": "Revisar salidas del día" },
+        { "id": "s2-2", "text": "Verificar que los balances estén cobrados y routed correctamente" }
+      ]
+    },
+    {
+      "id": "s3",
+      "title": "Todo el turno — Comunicación con pisos",
+      "steps": [
+        { "id": "s3-1", "text": "Enviar salidas del día a gobernanta durante todo el turno" }
+      ]
+    },
+    {
+      "id": "s4",
+      "title": "9:00 - 12:00 — Gestión operativa",
+      "steps": [
+        {
+          "id": "s4-1",
+          "text": "Comunicación con mantenimiento: permiso de entrada en habitaciones para resolución de averías"
+        },
+        {
+          "id": "s4-2",
+          "text": "Actualizar T122 con vacants para que mantenimiento pueda ir trabajando"
+        },
+        { "id": "s4-3", "text": "Revisar disponibilidad y actualizar reconciliación" },
+        {
+          "id": "s4-4",
+          "text": "Revisar habitaciones libres limpias disponibles para posibles earlies"
+        },
+        { "id": "s4-5", "text": "Revisar y actualizar Excel de parking" },
+        { "id": "s4-6", "text": "Revisar y contestar las opiniones de clientes" },
+        { "id": "s4-7", "text": "Revisar y contestar correo" },
+        { "id": "s4-8", "text": "Revisar y contestar extranets" }
+      ]
+    },
+    {
+      "id": "s5",
+      "title": "12:00 - 14:00 — Entradas viajeros y cierres desayunos",
+      "steps": [
+        { "id": "s5-1", "text": "Solicitar lista de habitaciones limpias a pisos" },
+        { "id": "s5-2", "text": "Actualizar habitaciones limpias en Opera" },
+        { "id": "s5-3", "text": "Ofrecer entradas anticipadas si es posible" },
+        { "id": "s5-4", "text": "Solicitar listado de desayunos a restaurante y anotar en Excel" },
+        { "id": "s5-5", "text": "Revisar parking: dar salida del Excel a las plazas libres" }
+      ]
+    },
+    {
+      "id": "s6",
+      "title": "14:30 — Cierre de caja",
+      "steps": [{ "id": "s6-1", "text": "Preparar caja para cierre" }]
+    },
+    {
+      "id": "s7",
+      "title": "Tareas comunes al turno",
+      "steps": [
+        { "id": "s7-1", "text": "Opiniones de clientes" },
+        { "id": "s7-2", "text": "Correos" },
+        { "id": "s7-3", "text": "Teléfono" },
+        { "id": "s7-4", "text": "Extranets" },
+        {
+          "id": "s7-5",
+          "text": "Actualización de estado de habitaciones con mantenimiento y housekeeping"
+        }
+      ]
+    }
+  ]
+}
