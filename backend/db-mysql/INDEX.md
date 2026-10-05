@@ -34,7 +34,6 @@ db-mysql/
 ├── MASTER_INSTALL.sql        # Instalación completa (apunta a aiven/)
 ├── INDEX.md
 ├── README.md
-├── MIGRATION_GUIDE.md
 ├── cleanup-scheduling.sql
 └── mock-data.sql        # Vacía los módulos y carga datos ficticios (no toca usuarios ni horarios)
 ```

@@ -71,7 +71,7 @@ Esos cambios se han reconstruido a posteriori como scripts marcados `[RETROACTIV
 ## Archivos relacionados
 
 - `INDEX.md` — índice general, tabla "Migraciones incrementales"
-- `MIGRATION_GUIDE.md` — guía de instalación inicial (scripts 01-20 congelados)
+- `pnpm setup:local` — instalación local desde cero (`scripts/setup-local.ts`)
 - `README.md` — overview de la carpeta
 - `scripts/` — scripts incrementales, ordenados por fecha. Única fuente de verdad para cambios desde 2026-05-20.
 - `aiven/NN_*.sql` — snapshot congelado del install base. No editar.

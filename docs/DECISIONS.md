@@ -842,3 +842,31 @@
   cero, se corrigen en `setup:local` y con
   `20261005_complete_fresh_install.sql` sin tocar `aiven/` (ADR-021).
 - **Revisa:** ADR-015 en la BD local.
+
+## ADR-040 — La documentación obsoleta se archiva fuera del repositorio
+
+- **Estado:** ✅ aceptada (2026-10-05)
+- **Fecha:** 2026-10-05
+- **Decisión:** un documento que ya no describe el proyecto se mueve a
+  `docs/_archive/<su ruta original>` (en `.gitignore`: solo en el equipo del
+  propietario) y se borra del repositorio. Se apunta aquí con el último commit
+  que lo contiene: `git show <commit>:<ruta>` lo recupera.
+- **Archivados el 2026-10-05** (último commit: `da7c643`):
+
+  | Ruta | Por qué |
+  | --- | --- |
+  | `backend/backend.md` | Duplicaba `backend/README.md` en inglés; decía que el backend era privado y describía la demo antigua (lista blanca de rutas) |
+  | `backend/README.md` | 442 líneas de arquitectura repetidas en `docs/`; sustituido por un README corto |
+  | `frontend/README.md` | 877 líneas con Next 14 / React 18 y la demo antigua; sustituido por un README corto |
+  | `backend/db-mysql/MIGRATION_GUIDE.md` | Mandaba instalar con `MASTER_INSTALL.sql` a mano, que falla desde cero; lo sustituye `pnpm setup:local` (ADR-039) |
+  | `frontend/messages/cmd.md` | Una línea con un comando de búsqueda |
+  | `frontend/app/dashboard/conciliation/nota.md` | Idea sin hacer: una descripción obligatoria en cada entrada de la conciliación (habitaciones OOO que restan) |
+
+- **Motivo:** el repositorio va a ser público; un documento con datos falsos
+  confunde más que su ausencia, y los README largos repetían `docs/` sin
+  mantenerse.
+- **Rechazado:** actualizarlos en el sitio. Era más trabajo y seguían
+  duplicando `docs/general`.
+- **Consecuencias:** los documentos del proceso de publicación (`GITCLEAN.md`,
+  `VERIFY.md`, `ROADMAP.md`, `SESSION.md`) se archivan igual cuando el
+  repositorio sea público.

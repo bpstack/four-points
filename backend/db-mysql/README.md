@@ -36,7 +36,6 @@ db-mysql/
 ├── MASTER_INSTALL.sql              # Snapshot 2026-05-20 (base congelada)
 ├── INDEX.md                        # Índice general + tabla de incrementales
 ├── MIGRATIONS_POLICY.md            # Política vigente
-├── MIGRATION_GUIDE.md              # Guía de instalación
 └── README.md                       # Este archivo
 ```
 
@@ -45,14 +44,13 @@ db-mysql/
 ### Instalación completa
 
 ```bash
-# Un solo comando (recomendado)
-mysql -u root -p < MASTER_INSTALL.sql
-
-# O desde el directorio aiven/
-cd aiven/
-mysql -u root -p < 01_create_database.sql
-# ... ejecutar en orden
+# Desde backend/: tablas, migraciones, admin local y datos ficticios
+pnpm setup:local
 ```
+
+No ejecutes `MASTER_INSTALL.sql` a mano: borra `hotel_db`, no aplica las
+migraciones de `scripts/` y tiene dos fallos del baseline que solo
+`setup:local` corrige (ADR-039).
 
 ### Verificación
 
@@ -142,7 +140,7 @@ WHERE status = 'completed'
 
 ## 🆘 Troubleshooting
 
-Ver [MIGRATION_GUIDE.md](MIGRATION_GUIDE.md) para solución de problemas comunes.
+Una instalación que falla: vuelve a lanzar `pnpm setup:local -- --force` (ver «Instalación completa»).
 
 ---
 
@@ -156,7 +154,7 @@ Ver [MIGRATION_GUIDE.md](MIGRATION_GUIDE.md) para solución de problemas comunes
 
 ## 🔗 Enlaces Útiles
 
-- [Guía de Migración](MIGRATION_GUIDE.md)
+- [Política de migraciones](MIGRATIONS_POLICY.md)
 - [Índice de Tablas](INDEX.md)
 - [Script de Verificación](aiven/99_verification.sql)
 
