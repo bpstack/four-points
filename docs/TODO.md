@@ -307,14 +307,10 @@ sigue siendo donde se arregla este fichero y se prueba en el entorno preview.
 - [ ] **Demo pública en la propia web: lo que falta** (fase 5 de `ROADMAP.md`,
       ADR-037 y ADR-038) — el código está hecho y probado en preview el
       2026-10-05 (cuenta demo, bloqueos, límites, reinicio diario, pestaña
-      Configuración → Demo, `setup:local`). Queda:
-      1. **Base de horarios:** borrar los meses actuales de Aiven (vienen de
-         bajas reales), generar 2 o 3 meses limpios con el solver y pulsar
-         «Guardar horarios actuales como base». Hasta entonces el reinicio no
-         toca horarios y lo que genere un visitante se queda.
-      2. **Aplicar en Aiven `20261005_drop_demo_admin_role.sql`** (borra el rol
-         sin usuarios; enseñar antes qué borra).
-      3. **Producción:** tras el merge, `DEMO_MODE=true` en el servicio de
+      Configuración → Demo, `setup:local`) y la base de horarios guardada
+      (octubre a diciembre de 2026, generados con el solver; los meses que
+      venían de bajas reales se borraron). Queda:
+      1. **Producción:** tras el merge, `DEMO_MODE=true` en el servicio de
          producción de Render y `NEXT_PUBLIC_DEMO_MODE=true` en Production de
          Vercel (hoy solo están en preview). Probar el botón en la web.
 - [ ] **Conciliation: `GET /api/conciliations` sin paginar ni filtrar** —

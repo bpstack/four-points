@@ -251,4 +251,4 @@ Vercel y Render se reconectaron de `four-points-archive` a `bpstack/four-points`
 | `e3a642c` | fix(db): group the backoffice monthly summary view by its period | — (hallazgo del 2026-10-05) | `GET /api/backoffice/stats/monthly` en preview da 200; la vista coincide con un cálculo directo | ✅ 2026-10-05 |
 | `9991d79` | test(security): check the CSRF defence and the session cookies by behaviour | Demo: CSRF | `csrf-origin.test.ts` (servidor Express real), `session-cookies.test.ts`; preview: origen ajeno da 403 | ✅ 2026-10-05 |
 | `4449b7a` | fix(checklist): render unsafe links in step notes as plain text | Demo: XSS | `safe-href.test.ts` (11 URL maliciosas) | 🧪 |
-| `143882d` | refactor(auth): retire the demo-admin role | Retirar `demo-admin` | ⏳ preview tras el push; la migración del rol, pendiente en Aiven | ⏳ |
+| `143882d` | refactor(auth): retire the demo-admin role | Retirar `demo-admin` | Preview tras el push: la entrada demo, los bloqueos y horarios funcionan; rol borrado en Aiven (no tenía usuarios) | ✅ 2026-10-05 |

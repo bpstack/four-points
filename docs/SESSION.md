@@ -26,7 +26,8 @@ nuevo»). Decisiones en `DECISIONS.md`, hasta ADR-039.
 La demo pública (fase 5) está hecha en código y probada en preview el
 2026-10-05: cuenta demo con botón, bloqueos, límites, reinicio diario,
 Configuración → Demo, instalación local con `pnpm setup:local` y `demo-admin`
-retirado. `DEMO_MODE` y `NEXT_PUBLIC_DEMO_MODE` solo están en preview.
+retirado. Base de horarios guardada (octubre a diciembre de 2026, generados
+con el solver). `DEMO_MODE` y `NEXT_PUBLIC_DEMO_MODE` solo están en preview.
 
 ## ⚠️ Empieza por aquí
 
@@ -43,12 +44,11 @@ retirado. `DEMO_MODE` y `NEXT_PUBLIC_DEMO_MODE` solo están en preview.
 
 ## Siguiente
 
-1. Terminar la demo: `TODO.md`, «Demo pública en la propia web: lo que
-   falta» (base de horarios, migración del rol en Aiven, variables en
-   producción tras el merge).
-2. PR a `main` y probar el botón demo en la web.
-3. Pasar `four-points` a público y activar secret scanning y push protection.
-4. «Después de publicar» de `TODO.md`, empezando por la rotación de
+1. PR a `main`, poner `DEMO_MODE` y `NEXT_PUBLIC_DEMO_MODE` en producción y
+   probar el botón demo en la web (`TODO.md`, «Demo pública en la propia web:
+   lo que falta»).
+2. Pasar `four-points` a público y activar secret scanning y push protection.
+3. «Después de publicar» de `TODO.md`, empezando por la rotación de
    credenciales (se puede adelantar).
 
 Hecho el 2026-10-05: Vercel y Render despliegan solos desde este repositorio
