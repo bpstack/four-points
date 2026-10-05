@@ -86,14 +86,14 @@ Guaranteed No Show (VAT)
 Rebate Guaranteed No Show (VAT)
 Rooms - Miscellaneous Income1
 Rebate - Miscellaneous Income
-programa de fidelización - Paid Upgrade Charge
+Loyalty Program - Paid Upgrade Charge
 Rebate - MR Paid Upgrade Charge
-C+P Rewards Redemption
-Rebate C+P Rewards Redemption
+Partner Rewards Redemption
+Rebate Partner Rewards Redemption
 Rewards Redemptions
-Rebate programa de fidelización
-programa de fidelización Redemption Occupancy Pre
-Rebate programa de fidelización Redemption Occupa
+Rebate Loyalty Program
+Loyalty Program Redemption Occupancy Pre
+Rebate Loyalty Program Redemption Occupa
 Early Check Out Fee
 Early Arrival Fee
 Late Check Out Fee
