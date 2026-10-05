@@ -40,6 +40,20 @@ CI).
   `OPTIONS /…` con 400, `/.well-known/vercel/jwe` con 503 y prefetch `?_rsc=`
   con 503. En producción la misma navegación no da ninguna petición fallida.
 
+## Cambio al repositorio nuevo (2026-10-05)
+
+Vercel y Render se reconectaron de `four-points-archive` a `bpstack/four-points`
+(ADR-036) y se desplegó desde él en los cuatro entornos:
+
+- **Producción:** `main` en `0953e94`. Vercel _Ready_ y `four-points.stackbp.es`
+  responde; Render _live_, conecta con la BD, arranca los cron y el solver, y
+  `api.four-points.stackbp.es` responde 200.
+- **Preview:** la rama en `d9e7230`. Vercel _Ready_; el dominio está tras la
+  protección de Vercel y lo abrió el propietario. Render _live_ con la misma
+  comprobación y `api-preview` responde 200.
+- Los cuatro despliegues se lanzaron a mano; el despliegue automático con un
+  push al repositorio nuevo **queda sin comprobar** hasta el primer push.
+
 ## Arreglos
 
 | Commit | Qué cambia | Punto de `TODO.md` que cierra | Prueba | Resultado |
@@ -210,3 +224,10 @@ CI).
 | `a9e8842` | revert(checklist): keep the procedures in the repository instead of a private one | Contenido del checklist | CI en verde; ver `fa85339` | ✅ 2026-10-05 |
 | `fa85339` | chore(checklist): generalize the hotel's procedures | Nombres de la cadena, sus sistemas y partners en el checklist | Las 22 referencias `guide:`/`reference:` de las tareas apuntan a ficheros existentes; tareas del backend idénticas a las del frontend; el propietario abrió los enlaces en el preview | ✅ 2026-10-05 |
 | `563b5b1` | style(checklist): format the night audit tasks | (formato) | no aplica | — |
+| `fb877ac` | docs: point commit references to the rewritten history | (documentación) | Los 176 hashes citados existen en el repositorio nuevo, con el mismo asunto que en el original (uno solo cambia en los hashes que cita) | ✅ 2026-10-05 |
+| `2b84b0a` | build: pin the Node major version in .nvmrc | — | no aplica | — |
+| `aab1848` | docs(todo): close the pre-publication section | (documentación) | no aplica | — |
+| `2fd2f56` | docs(gitclean): record the third pass, its audit and the private publication | (documentación) | no aplica | — |
+| `d197ad6` | docs(todo): drop the local path of the harness repository | (documentación) | no aplica | — |
+| `5b216a0` | docs(roadmap): close phases 1c and 2 and make publication current | (documentación) | no aplica | — |
+| `0f237d0` | docs(decisions): record the publication order and when to rotate | (documentación) | no aplica | — |
