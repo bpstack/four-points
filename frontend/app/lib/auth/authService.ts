@@ -36,6 +36,18 @@ export const authLogin = {
     return data
   },
 
+  // Demo entry without password (ADR-038)
+  demo: async () => {
+    const res = await fetch(`${API_BASE}/demo`, {
+      method: 'POST',
+      credentials: 'include',
+      cache: 'no-store',
+    })
+
+    if (!res.ok) throw new Error('demo-unavailable')
+    return res.json()
+  },
+
   logout: async () => {
     console.log(`[authLogin.logout] Cerrando sesión... (${isDev ? 'DEV' : 'PROD'})`)
 

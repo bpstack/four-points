@@ -76,6 +76,26 @@ export const loginIpLimiter = rateLimit({
 })
 
 /**
+ * Rate limiter for the demo entry (POST /api/auth/demo), per IP
+ */
+export const demoLoginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: (req: Request) => `demo-login-${getIpKey(req)}`,
+  handler: (req: Request, res: Response) => {
+    logger.warn(
+      { event: 'rate_limit_exceeded', kind: 'demo_login', ip: getIpKey(req) },
+      '[SECURITY] demo login rate limit exceeded'
+    )
+    res.status(429).json({
+      error: 'Demasiadas entradas a la demo. Intenta de nuevo en 15 minutos.',
+    })
+  },
+})
+
+/**
  * Rate limiter for password change attempts
  * Stricter limits to prevent brute force on password verification
  */

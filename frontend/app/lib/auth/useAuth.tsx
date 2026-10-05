@@ -39,6 +39,7 @@ interface AuthContextType {
   loading: boolean
   isAuthenticated: boolean
   login: (username: string, password: string) => Promise<void>
+  loginDemo: () => Promise<void>
   logout: () => Promise<void>
   refreshUser: () => Promise<void>
 }
@@ -112,14 +113,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [pathname, fetchUserData, user])
 
   /**
-   * Login de usuario
+   * Inicio de sesión común: guarda el usuario y va a la página de destino
    */
-  const login = useCallback(
-    async (username: string, password: string) => {
+  const startSession = useCallback(
+    async (signIn: () => Promise<{ user: User }>) => {
       setLoading(true)
 
       try {
-        const data = await authLogin.login(username, password)
+        const data = await signIn()
 
         setUser({
           ...data.user,
@@ -143,6 +144,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
     [router]
   )
+
+  /**
+   * Login de usuario
+   */
+  const login = useCallback(
+    async (username: string, password: string) => {
+      await startSession(() => authLogin.login(username, password))
+    },
+    [startSession]
+  )
+
+  /**
+   * Entrada a la demo pública, sin contraseña
+   */
+  const loginDemo = useCallback(async () => {
+    await startSession(() => authLogin.demo())
+  }, [startSession])
 
   /**
    * Logout de usuario
@@ -179,10 +197,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       loading,
       isAuthenticated: !!user,
       login,
+      loginDemo,
       logout,
       refreshUser,
     }),
-    [user, loading, login, logout, refreshUser]
+    [user, loading, login, loginDemo, logout, refreshUser]
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

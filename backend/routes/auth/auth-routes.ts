@@ -3,6 +3,7 @@
 import express, { Router } from 'express'
 import {
   login,
+  demoLogin,
   register,
   refreshToken,
   logout,
@@ -17,6 +18,7 @@ import { denyDemo } from '../../middlewares/demoRestriction.js'
 import { singleImage } from '../../middlewares/imageUpload.js'
 import {
   loginLimiter,
+  demoLoginLimiter,
   loginIpLimiter,
   refreshLimiter,
   passwordChangeLimiter,
@@ -34,6 +36,8 @@ router.post('/login', loginIpLimiter, loginLimiter, login)
 router.post('/refresh-token', refreshLimiter, refreshToken)
 // Public: only clears the HttpOnly cookies, which the browser cannot do itself once the access token expired
 router.post('/logout', logout)
+// Demo entry without password; answers 404 unless DEMO_MODE=true (ADR-038)
+router.post('/demo', demoLoginLimiter, demoLogin)
 
 // ========================================
 // ADMIN ONLY ROUTES

@@ -15,6 +15,7 @@ import { Fa4 } from 'react-icons/fa6'
 import { TbTransformPointTopLeft } from 'react-icons/tb'
 import { SimpleThemeButton } from '@/app/components/theme/SetThemeButton'
 import { useAuth } from '@/app/lib/auth/useAuth'
+import { DEMO_MODE } from '@/app/lib/env'
 import Link from 'next/link'
 
 export default function LoginPage() {
@@ -25,7 +26,7 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null)
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
   const [success, setSuccess] = useState(false)
-  const { login, loading } = useAuth()
+  const { login, loginDemo, loading } = useAuth()
 
   const validateUsername = (value: string) => {
     if (value.length === 0) return
@@ -50,6 +51,16 @@ export default function LoginPage() {
       } else {
         setError(error.message || t('errors.invalidCredentials'))
       }
+    }
+  }
+
+  const handleDemo = async () => {
+    setError(null)
+    setFieldErrors({})
+    try {
+      await loginDemo()
+    } catch {
+      setError(t('errors.demoUnavailable'))
     }
   }
 
@@ -195,6 +206,20 @@ export default function LoginPage() {
               {!loading && !success && <ArrowRightIcon className="ml-2 h-4 w-4" />}
             </button>
           </form>
+
+          {DEMO_MODE && (
+            <div className="mt-6 border-t border-border pt-5">
+              <button
+                type="button"
+                onClick={handleDemo}
+                disabled={loading || success}
+                className="flex w-full items-center justify-center rounded-md border border-accent px-4 py-2.5 text-sm font-semibold text-accent transition-colors duration-200 hover:bg-accent/10 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {t('login.liveDemo')}
+              </button>
+              <p className="mt-2 text-center text-xs text-fg-muted">{t('login.demoHint')}</p>
+            </div>
+          )}
         </div>
       </div>
     </main>
