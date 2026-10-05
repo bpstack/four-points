@@ -121,7 +121,7 @@ sigue siendo donde se arregla este fichero y se prueba en el entorno preview.
       `event_scheduler=ON` y el evento está `ENABLED` (última ejecución en
       Aiven: 2026-09-27)._
 - [ ] **Adaptar el harness a repos con varios proyectos e implantarlo** — en el
-      repo `harness` (`C:\Users\dz\projects\harness` en el PC principal):
+      repo `harness`, privado y local:
       soportar repos sin `package.json` ni lockfile en la raíz (aquí `frontend/`
       y `backend/` son dos proyectos pnpm independientes) y `AGENTS.md`
       anidados. Después, implantar la capa 1 en este repo. _Comprobado el
