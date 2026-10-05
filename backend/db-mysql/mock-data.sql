@@ -264,7 +264,7 @@ INSERT INTO cashier_shifts (id, shift_date, shift_type, status, initial_fund, in
   (5, CURDATE(), 'night', 'closed', 200.00, 120.00, 300.00, 300.00, 0.00, 150.00, 270.00, @recep2, @recep2, NOW() - INTERVAL 3 HOUR),
   (6, CURDATE(), 'morning', 'open', 200.00, 0.00, 0.00, 180.00, 0.00, 0.00, 0.00, @recep1, NULL, NULL);
 
-INSERT INTO cashier_shift_users (shift_id, user_id, is_primary) VALUES
+INSERT IGNORE INTO cashier_shift_users (shift_id, user_id, is_primary) VALUES
   (1, @recep2, 1), (2, @recep1, 1), (2, @recep2, 0), (3, @recep2, 1),
   (4, @recep1, 1), (5, @recep2, 1), (6, @recep1, 1);
 
