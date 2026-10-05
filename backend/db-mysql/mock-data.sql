@@ -1,53 +1,112 @@
 -- =========================================================
--- MOCK DATA SQL - Four Points Hotel PMS
+-- MOCK DATA - Four-Points
 -- =========================================================
--- Descripción: Script para limpiar BD y cargar datos de demo
--- PRESERVA: Usuario demo (demo-user-0000-0000-000000000001)
--- PRESERVA: Roles, departamentos, métodos de pago, 
---           parking_spots, parking_rates, bo_categories
+-- Vacía los datos de los módulos y carga unos pocos registros ficticios en
+-- cada uno, con fechas relativas a hoy, para que ninguna pantalla salga vacía.
+--
+-- NO TOCA: usuarios, roles, departamentos, métodos de pago, plazas y tarifas
+-- de parking, categorías de backoffice y F&B, todo el módulo de horarios
+-- (scheduling_*) ni la configuración del checklist.
+--
+-- NO CREA USUARIOS: usa los que ya existen, por rol. Necesita al menos un
+-- usuario `admin` activo; si no lo hay, se para antes de borrar nada. Los
+-- demás roles que falten se sustituyen por ese admin.
+--
+-- Todos los nombres, documentos, matrículas, correos y teléfonos son
+-- inventados. Las imágenes y PDF ya subidos a Cloudinary no se borran.
+--
+-- Uso: mysql ... <base de datos> < mock-data.sql
 -- =========================================================
 
-USE hotel_db;
+-- ---------------------------------------------------------
+-- Usuarios existentes por rol
+-- ---------------------------------------------------------
+SET @admin := (
+  SELECT u.id FROM users u JOIN roles r ON r.id = u.role_id
+  WHERE r.name = 'admin' AND u.is_active = 1
+  ORDER BY (u.username = 'admin') DESC, u.created_at, u.id LIMIT 1
+);
+SET @recep1 := COALESCE((
+  SELECT u.id FROM users u JOIN roles r ON r.id = u.role_id
+  WHERE r.name = 'recepcionista' AND u.is_active = 1
+  ORDER BY u.created_at, u.id LIMIT 1
+), @admin);
+SET @recep2 := COALESCE((
+  SELECT u.id FROM users u JOIN roles r ON r.id = u.role_id
+  WHERE r.name = 'recepcionista' AND u.is_active = 1
+  ORDER BY u.created_at, u.id LIMIT 1 OFFSET 1
+), @recep1);
+SET @mant := COALESCE((
+  SELECT u.id FROM users u JOIN roles r ON r.id = u.role_id
+  WHERE r.name = 'mantenimiento' AND u.is_active = 1
+  ORDER BY u.created_at, u.id LIMIT 1
+), @admin);
+SET @groups := COALESCE((
+  SELECT u.id FROM users u JOIN roles r ON r.id = u.role_id
+  WHERE r.name = 'group-admin' AND u.is_active = 1
+  ORDER BY u.created_at, u.id LIMIT 1
+), @admin);
 
--- =========================================================
--- CONFIGURACIÓN INICIAL
--- =========================================================
+DROP PROCEDURE IF EXISTS mock_require_admin;
+DELIMITER $$
+CREATE PROCEDURE mock_require_admin()
+BEGIN
+  IF @admin IS NULL THEN
+    SIGNAL SQLSTATE '45000'
+      SET MESSAGE_TEXT = 'mock-data: no hay ningún usuario admin activo; no se ha borrado nada';
+  END IF;
+END$$
+DELIMITER ;
+CALL mock_require_admin();
+DROP PROCEDURE mock_require_admin;
+
+-- ---------------------------------------------------------
+-- Catálogos por nombre (los ids cambian entre instalaciones).
+-- Un departamento que no exista queda en NULL; un método de pago que no
+-- exista no genera pagos.
+-- ---------------------------------------------------------
+SET @dep_pisos    := (SELECT id FROM departments WHERE name = 'pisos' LIMIT 1);
+SET @dep_mant     := (SELECT id FROM departments WHERE name = 'mantenimiento' LIMIT 1);
+SET @dep_reservas := (SELECT id FROM departments WHERE name = 'reservas' LIMIT 1);
+SET @dep_clientes := (SELECT id FROM departments WHERE name = 'clientes' LIMIT 1);
+SET @dep_grupos   := (SELECT id FROM departments WHERE name = 'grupos' LIMIT 1);
+
+SET @pm_card     := (SELECT id FROM payment_methods WHERE UPPER(name) LIKE '%TARJETA%' LIMIT 1);
+SET @pm_bacs     := (SELECT id FROM payment_methods WHERE UPPER(name) LIKE '%BACS%' LIMIT 1);
+SET @pm_web      := (SELECT id FROM payment_methods WHERE UPPER(name) LIKE '%WEB%' LIMIT 1);
+SET @pm_transfer := (SELECT id FROM payment_methods WHERE UPPER(name) LIKE '%TRANSFER%' LIMIT 1);
+
+SET @cat_rep  := (SELECT id FROM bo_categories WHERE department = 'REPARACIONES Y MATERIALES' LIMIT 1);
+SET @cat_lav  := (SELECT id FROM bo_categories WHERE department LIKE 'LAVANDER%' LIMIT 1);
+SET @cat_ame  := (SELECT id FROM bo_categories WHERE department = 'AMENITIES' LIMIT 1);
+SET @cat_elec := (SELECT id FROM bo_categories WHERE department = 'ELECTRICIDAD' LIMIT 1);
+SET @cat_agua := (SELECT id FROM bo_categories WHERE department = 'AGUA' LIMIT 1);
+
+-- Todo lo que sigue se aplica entero o no se aplica
+START TRANSACTION;
+
+-- ---------------------------------------------------------
+-- 1. Vaciar los datos de los módulos
+-- ---------------------------------------------------------
 SET FOREIGN_KEY_CHECKS = 0;
-SET SQL_SAFE_UPDATES = 0;
 
-SELECT '========================================' AS mensaje;
-SELECT '🧹 LIMPIANDO BASE DE DATOS...' AS mensaje;
-SELECT '========================================' AS mensaje;
-
--- =========================================================
--- PASO 1: DELETE DE TODAS LAS TABLAS (orden FK correcto)
--- Preservamos: roles, departments, parking_spots, 
---              parking_rates, payment_methods, bo_categories
--- =========================================================
-
--- Mensajería y Notificaciones x
-DELETE FROM messages; 
+DELETE FROM messages;
 DELETE FROM conversation_participants;
 DELETE FROM conversations;
 DELETE FROM notification_recipients;
 DELETE FROM notifications;
 
--- Backoffice x
 DELETE FROM bo_invoice_history;
 DELETE FROM bo_invoices;
 DELETE FROM bo_suppliers;
 DELETE FROM bo_assets;
--- NO BORRAR: bo_categories (seed data)
 
--- Mantenimiento x
 DELETE FROM maintenance_history;
 DELETE FROM maintenance_images;
 DELETE FROM maintenance_reports;
 
--- Blacklist x
 DELETE FROM blacklist_entries;
 
--- Cashier x
 DELETE FROM cashier_history;
 DELETE FROM cashier_shift_vouchers;
 DELETE FROM cashier_denominations;
@@ -56,15 +115,12 @@ DELETE FROM cashier_shift_users;
 DELETE FROM cashier_vouchers;
 DELETE FROM cashier_daily;
 DELETE FROM cashier_shifts;
--- NO BORRAR: payment_methods (seed data)
 
--- Conciliación x
 DELETE FROM conciliation_housekeeping;
 DELETE FROM conciliation_reception;
 DELETE FROM conciliation_monthly_summary;
 DELETE FROM conciliation_summary;
 
--- Groups x 
 DELETE FROM group_history;
 DELETE FROM group_payments;
 DELETE FROM group_status;
@@ -72,361 +128,331 @@ DELETE FROM group_rooms;
 DELETE FROM group_contacts;
 DELETE FROM hotel_groups;
 
--- Parking x
-DELETE FROM parking_availability;
+UPDATE parking_availability SET is_available = TRUE, booking_id = NULL;
+DELETE FROM parking_availability WHERE date < CURDATE();
 DELETE FROM parking_bookings;
 DELETE FROM parking_vehicles;
--- NO BORRAR: parking_spots (seed data)
--- NO BORRAR: parking_rates (seed data)
 
--- Logbooks
 DELETE FROM logbook_history;
 DELETE FROM logbook_reads;
 DELETE FROM logbook_comments;
 DELETE FROM logbooks;
 
--- Users (excepto demo)
-DELETE FROM users WHERE id != 'demo-user-0000-0000-000000000001';
+DELETE FROM checklist_event_log;
+DELETE FROM checklist_step_attachments;
+DELETE FROM checklist_step_comments;
+DELETE FROM checklist_step_state;
+DELETE FROM checklist_runs;
 
--- NO BORRAR: roles (seed data)
--- NO BORRAR: departments (seed data)
+DELETE FROM fnb_daily_revenue;
 
-SELECT '✅ Tablas limpiadas (preservando seed data y demo user)' AS resultado;
+-- demo_activity_log solo existe en las BD con el usuario demo instalado
+SET @has_demo_log := (SELECT COUNT(*) FROM information_schema.tables
+                      WHERE table_schema = DATABASE() AND table_name = 'demo_activity_log');
+SET @sql := IF(@has_demo_log > 0, 'DELETE FROM demo_activity_log', 'DO 0');
+PREPARE clear_demo_log FROM @sql;
+EXECUTE clear_demo_log;
+DEALLOCATE PREPARE clear_demo_log;
 
--- =========================================================
--- PASO 2: INSERTAR DEPARTAMENTOS SI NO EXISTEN
--- =========================================================
-INSERT IGNORE INTO departments (id, name) VALUES
-  (1, 'Recepción'),
-  (2, 'Mantenimiento'),
-  (3, 'Pisos'),
-  (4, 'Administración'),
-  (5, 'Restauración');
+SET FOREIGN_KEY_CHECKS = 1;
 
-SELECT '✅ Departamentos verificados' AS resultado;
+-- ---------------------------------------------------------
+-- 2. Logbook
+-- ---------------------------------------------------------
+INSERT INTO logbooks (id, author_id, message, importance_level, department_id, date, is_solved, solved_at, solved_by, created_at) VALUES
+  (1, @recep1, 'Huésped de la 302 pide salida tardía hasta las 14:00. Confirmado con dirección.', 'media', @dep_reservas, CURDATE(), 1, NOW(), @recep1, NOW() - INTERVAL 3 HOUR),
+  (2, @recep1, 'Mañana a las 10:00 llega el grupo Congreso Tecnología. Preparar bebida de bienvenida.', 'alta', @dep_grupos, CURDATE(), 0, NULL, NULL, NOW() - INTERVAL 2 HOUR),
+  (3, @recep2, 'Avería en el ascensor de servicio. El técnico viene mañana a primera hora.', 'urgente', @dep_mant, CURDATE(), 0, NULL, NULL, NOW() - INTERVAL 1 HOUR),
+  (4, @recep2, 'Cliente habitual en la 501: almohadas extra y periódico cada mañana.', 'alta', @dep_clientes, CURDATE() - INTERVAL 1 DAY, 0, NULL, NULL, NOW() - INTERVAL 1 DAY),
+  (5, @recep1, 'Quejas de ruido en la planta 4 por obras en el edificio de al lado. Se ofrece cambio de habitación.', 'media', @dep_clientes, CURDATE() - INTERVAL 1 DAY, 1, NOW() - INTERVAL 20 HOUR, @admin, NOW() - INTERVAL 1 DAY),
+  (6, @recep2, 'El aire acondicionado de la 205 no enfría. Huésped trasladado a la 207.', 'alta', @dep_mant, CURDATE() - INTERVAL 2 DAY, 1, NOW() - INTERVAL 1 DAY, @mant, NOW() - INTERVAL 2 DAY),
+  (7, @recep1, 'Objetos olvidados en la 118: cargador y un libro. Guardados en objetos perdidos.', 'baja', @dep_pisos, CURDATE() - INTERVAL 2 DAY, 0, NULL, NULL, NOW() - INTERVAL 2 DAY),
+  (8, @admin, 'Recordatorio: inspección de seguridad contra incendios el viernes.', 'alta', @dep_reservas, CURDATE() - INTERVAL 3 DAY, 0, NULL, NULL, NOW() - INTERVAL 3 DAY);
 
--- =========================================================
--- PASO 3: USUARIOS MOCK
--- Contraseña de todos (solo para desarrollo local): Test1234!
--- =========================================================
-INSERT INTO users (id, username, email, password, role_id, is_active) VALUES
-  -- Admin
-  ('mock-user-0001-0000-000000000001', 'admin', 'admin@four-points.local', '$2b$10$OvW63s62aNQt/MPvL1dip.w5//PkSXNkUTGDJdvKs89ZNm8ePeTBy', 2, 1),
-  -- Recepcionistas
-  ('mock-user-0002-0000-000000000001', 'carlos.garcia', 'carlos@four-points.local', '$2b$10$OvW63s62aNQt/MPvL1dip.w5//PkSXNkUTGDJdvKs89ZNm8ePeTBy', 1, 1),
-  ('mock-user-0003-0000-000000000001', 'maria.lopez', 'maria@four-points.local', '$2b$10$OvW63s62aNQt/MPvL1dip.w5//PkSXNkUTGDJdvKs89ZNm8ePeTBy', 1, 1),
-  ('mock-user-0004-0000-000000000001', 'pedro.martinez', 'pedro@four-points.local', '$2b$10$OvW63s62aNQt/MPvL1dip.w5//PkSXNkUTGDJdvKs89ZNm8ePeTBy', 1, 1),
-  -- Mantenimiento
-  ('mock-user-0005-0000-000000000001', 'juan.fernandez', 'juan@four-points.local', '$2b$10$OvW63s62aNQt/MPvL1dip.w5//PkSXNkUTGDJdvKs89ZNm8ePeTBy', 3, 1),
-  -- Group Admin
-  ('mock-user-0006-0000-000000000001', 'ana.torres', 'ana@four-points.local', '$2b$10$OvW63s62aNQt/MPvL1dip.w5//PkSXNkUTGDJdvKs89ZNm8ePeTBy', 6, 1);
+INSERT INTO logbook_comments (logbook_id, user_id, comment, department_id, created_at) VALUES
+  (1, @recep2, 'Confirmado con el huésped: sale a las 14:00.', @dep_reservas, NOW() - INTERVAL 2 HOUR),
+  (2, @groups, 'Bebida de bienvenida encargada para 45 personas.', @dep_grupos, NOW() - INTERVAL 1 HOUR),
+  (3, @mant, 'Técnico confirmado para mañana a las 8:00.', @dep_mant, NOW() - INTERVAL 30 MINUTE),
+  (6, @mant, 'Aire reparado. La 205 vuelve a estar disponible.', @dep_mant, NOW() - INTERVAL 1 DAY);
 
-SELECT '✅ Usuarios mock creados (6 usuarios)' AS resultado;
+INSERT INTO logbook_history (logbook_id, editor_id, department_id, type, action, new_content, created_at)
+SELECT id, author_id, department_id, 'logbook', 'create', message, created_at FROM logbooks;
 
--- =========================================================
--- PASO 4: LOGBOOKS MOCK
--- =========================================================
-INSERT INTO logbooks (author_id, message, importance_level, department_id, date, is_solved) VALUES
-  ('mock-user-0002-0000-000000000001', 'Huésped de habitación 302 solicita late checkout hasta las 14:00. Confirmado con dirección.', 'media', 1, CURDATE(), 1),
-  ('mock-user-0002-0000-000000000001', 'Grupo Viajes Sol llega mañana a las 10:00. Preparar welcome drink.', 'alta', 1, CURDATE(), 0),
-  ('mock-user-0003-0000-000000000001', 'Avería en ascensor de servicio. Técnico viene mañana a primera hora.', 'urgente', 2, CURDATE(), 0),
-  ('mock-user-0004-0000-000000000001', 'Cliente VIP Mr. Johnson en hab. 501. Preferencia: almohadas extra y periódico cada mañana.', 'alta', 1, DATE_SUB(CURDATE(), INTERVAL 1 DAY), 0),
-  ('mock-user-0002-0000-000000000001', 'Queja de ruido en planta 4 por obras en edificio colindante. Informado cliente con descuento 10%.', 'media', 1, DATE_SUB(CURDATE(), INTERVAL 1 DAY), 1),
-  ('mock-user-0003-0000-000000000001', 'Fallo en aire acondicionado hab. 205. Cliente reubicado a 207.', 'alta', 2, DATE_SUB(CURDATE(), INTERVAL 2 DAY), 1),
-  ('mock-user-0004-0000-000000000001', 'Objetos olvidados en hab. 118: cargador iPhone y libro. Guardado en lost&found.', 'baja', 1, DATE_SUB(CURDATE(), INTERVAL 2 DAY), 0),
-  ('mock-user-0002-0000-000000000001', 'Recordatorio: Inspección de bomberos programada para el viernes.', 'alta', 4, DATE_SUB(CURDATE(), INTERVAL 3 DAY), 0);
-  
-  
-  -- Hay que verificar las ids porque no seran las mismas en cada ejecucion
-  SELECT id, message FROM logbooks;
+INSERT INTO logbook_reads (logbook_id, user_id, read_at) VALUES
+  (1, @admin, NOW() - INTERVAL 2 HOUR),
+  (3, @admin, NOW() - INTERVAL 30 MINUTE),
+  (4, @recep1, NOW() - INTERVAL 20 HOUR);
 
--- Comentarios en logbooks
-INSERT INTO logbook_comments (logbook_id, user_id, comment, department_id) 
-VALUES   
-  (99, 'mock-user-0003-0000-000000000001', 'Confirmado con el huésped. Saldrá a las 14:00.', 1),   
-  (100, 'mock-user-0004-0000-000000000001', 'Welcome drink preparado: 25 copas de cava.', 1),   
-  (101, 'mock-user-0005-0000-000000000001', 'Técnico confirmado para mañana 8:00. Empresa: Ascensores Madrid.', 2),   
-  (104, 'mock-user-0005-0000-000000000001', 'AC reparado. Hab. 205 disponible de nuevo.', 2);
-
-SELECT '✅ Logbooks mock creados (8 entradas + 4 comentarios)' AS resultado;
-
--- =========================================================
--- PASO 5: PARKING - VEHÍCULOS Y RESERVAS
--- =========================================================
-INSERT INTO parking_vehicles (plate_number, owner_name, model, notes) VALUES
-  ('1234ABC', 'García Sánchez, Juan', 'Seat León', 'Cliente frecuente'),
-  ('5678DEF', 'López Martín, María', 'Renault Clio', NULL),
-  ('9012GHI', 'Fernández Ruiz, Pedro', 'Ford Focus', 'Preferencia plaza cubierta'),
-  ('3456JKL', 'Torres Gil, Ana', 'VW Golf', NULL),
-  ('7890MNO', 'Martínez Díaz, Carlos', 'Toyota Corolla', 'Coche eléctrico'),
-  ('2345PQR', 'Rodríguez López, Laura', 'Peugeot 308', NULL),
-  ('6789STU', 'Sánchez Moreno, Miguel', 'Opel Astra', NULL),
-  ('0123VWX', 'Jiménez Romero, Elena', 'Nissan Qashqai', 'SUV grande');
-
--- Reservas de parking (activas y completadas)
-INSERT INTO parking_bookings (booking_code, spot_id, vehicle_id, operator_id, expected_checkin, expected_checkout, actual_checkin, actual_checkout, status, total_amount, payment_amount, payment_method, booking_source, created_by) VALUES
-  -- Reservas activas (checked_in)
-  ('PK-001', 1, 1, 'mock-user-0002-0000-000000000001', DATE_SUB(CURDATE(), INTERVAL 2 DAY), DATE_ADD(CURDATE(), INTERVAL 3 DAY), DATE_SUB(CURDATE(), INTERVAL 2 DAY), NULL, 'checked_in', 63.00, 63.00, 'card', 'direct', 'mock-user-0002-0000-000000000001'),
-  ('PK-002', 3, 2, 'mock-user-0003-0000-000000000001', DATE_SUB(CURDATE(), INTERVAL 1 DAY), DATE_ADD(CURDATE(), INTERVAL 2 DAY), DATE_SUB(CURDATE(), INTERVAL 1 DAY), NULL, 'checked_in', 39.00, 39.00, 'cash', 'booking_com', 'mock-user-0003-0000-000000000001'),
-  ('PK-003', 5, 3, 'mock-user-0002-0000-000000000001', CURDATE(), DATE_ADD(CURDATE(), INTERVAL 7 DAY), CURDATE(), NULL, 'checked_in', 84.00, 84.00, 'transfer', 'direct', 'mock-user-0002-0000-000000000001'),
-  -- Reservas futuras (reserved)
-  ('PK-004', 7, 4, 'mock-user-0004-0000-000000000001', DATE_ADD(CURDATE(), INTERVAL 1 DAY), DATE_ADD(CURDATE(), INTERVAL 4 DAY), NULL, NULL, 'reserved', 39.00, NULL, NULL, 'expedia', 'mock-user-0004-0000-000000000001'),
-  ('PK-005', 11, 5, 'mock-user-0002-0000-000000000001', DATE_ADD(CURDATE(), INTERVAL 2 DAY), DATE_ADD(CURDATE(), INTERVAL 5 DAY), NULL, NULL, 'reserved', 39.00, NULL, NULL, 'direct', 'mock-user-0002-0000-000000000001'),
-  -- Completadas
-  ('PK-006', 2, 6, 'mock-user-0003-0000-000000000001', DATE_SUB(CURDATE(), INTERVAL 10 DAY), DATE_SUB(CURDATE(), INTERVAL 7 DAY), DATE_SUB(CURDATE(), INTERVAL 10 DAY), DATE_SUB(CURDATE(), INTERVAL 7 DAY), 'completed', 39.00, 39.00, 'card', 'direct', 'mock-user-0003-0000-000000000001'),
-  ('PK-007', 4, 7, 'mock-user-0002-0000-000000000001', DATE_SUB(CURDATE(), INTERVAL 8 DAY), DATE_SUB(CURDATE(), INTERVAL 6 DAY), DATE_SUB(CURDATE(), INTERVAL 8 DAY), DATE_SUB(CURDATE(), INTERVAL 6 DAY), 'completed', 27.00, 27.00, 'cash', 'booking_com', 'mock-user-0002-0000-000000000001');
-
--- Regenerar disponibilidad
+-- ---------------------------------------------------------
+-- 3. Parking (el código de reserva y el calendario los ponen los triggers)
+-- ---------------------------------------------------------
 CALL generate_availability();
 
-SELECT '✅ Parking mock creado (8 vehículos + 7 reservas)' AS resultado;
+INSERT INTO parking_vehicles (id, plate_number, owner_name, model, notes) VALUES
+  (1, '0001AAA', 'Cliente Ejemplo Uno', 'Utilitario', 'Cliente habitual'),
+  (2, '0002BBB', 'Cliente Ejemplo Dos', 'Compacto', NULL),
+  (3, '0003CCC', 'Cliente Ejemplo Tres', 'Berlina', 'Prefiere plaza ancha'),
+  (4, '0004DDD', 'Cliente Ejemplo Cuatro', 'Compacto', NULL),
+  (5, '0005FFF', 'Cliente Ejemplo Cinco', 'Eléctrico', 'Necesita cargador'),
+  (6, '0006GGG', 'Cliente Ejemplo Seis', 'Familiar', NULL),
+  (7, '0007HHH', 'Cliente Ejemplo Siete', 'Todoterreno', 'Vehículo grande');
 
--- =========================================================
--- PASO 6: GRUPOS HOTELEROS
--- =========================================================
+INSERT INTO parking_bookings (spot_id, vehicle_id, operator_id, expected_checkin, expected_checkout, actual_checkin, actual_checkout, status, total_amount, payment_amount, payment_method, payment_date, booking_source, created_by) VALUES
+  (1, 1, @recep1, CURDATE() - INTERVAL 2 DAY + INTERVAL 12 HOUR, CURDATE() + INTERVAL 3 DAY + INTERVAL 12 HOUR, CURDATE() - INTERVAL 2 DAY + INTERVAL 13 HOUR, NULL, 'checked_in', 75.00, 75.00, 'card', NOW() - INTERVAL 2 DAY, 'direct', @recep1),
+  (3, 2, @recep2, CURDATE() - INTERVAL 1 DAY + INTERVAL 12 HOUR, CURDATE() + INTERVAL 2 DAY + INTERVAL 12 HOUR, CURDATE() - INTERVAL 1 DAY + INTERVAL 16 HOUR, NULL, 'checked_in', 45.00, 45.00, 'cash', NOW() - INTERVAL 1 DAY, 'booking_com', @recep2),
+  (5, 3, @recep1, CURDATE() + INTERVAL 12 HOUR, CURDATE() + INTERVAL 7 DAY + INTERVAL 12 HOUR, CURDATE() + INTERVAL 13 HOUR, NULL, 'checked_in', 105.00, NULL, NULL, NULL, 'direct', @recep1),
+  (7, 4, @recep2, CURDATE() + INTERVAL 1 DAY + INTERVAL 12 HOUR, CURDATE() + INTERVAL 4 DAY + INTERVAL 12 HOUR, NULL, NULL, 'reserved', 45.00, NULL, NULL, NULL, 'expedia', @recep2),
+  (11, 5, @recep1, CURDATE() + INTERVAL 2 DAY + INTERVAL 12 HOUR, CURDATE() + INTERVAL 5 DAY + INTERVAL 12 HOUR, NULL, NULL, 'reserved', 45.00, NULL, NULL, NULL, 'direct', @recep1),
+  (2, 6, @recep2, CURDATE() - INTERVAL 10 DAY + INTERVAL 12 HOUR, CURDATE() - INTERVAL 7 DAY + INTERVAL 12 HOUR, CURDATE() - INTERVAL 10 DAY + INTERVAL 14 HOUR, CURDATE() - INTERVAL 7 DAY + INTERVAL 11 HOUR, 'completed', 45.00, 45.00, 'card', NOW() - INTERVAL 7 DAY, 'direct', @recep2),
+  (4, 7, @recep1, CURDATE() - INTERVAL 8 DAY + INTERVAL 12 HOUR, CURDATE() - INTERVAL 6 DAY + INTERVAL 12 HOUR, CURDATE() - INTERVAL 8 DAY + INTERVAL 15 HOUR, CURDATE() - INTERVAL 6 DAY + INTERVAL 10 HOUR, 'completed', 30.00, 30.00, 'cash', NOW() - INTERVAL 6 DAY, 'booking_com', @recep1);
+
+-- ---------------------------------------------------------
+-- 4. Grupos
+-- ---------------------------------------------------------
 INSERT INTO hotel_groups (id, name, agency, arrival_date, departure_date, status, total_amount, currency, notes, created_by) VALUES
-  (1, 'Congreso Tecnología 2025', 'Viajes Corporativos SA', DATE_ADD(CURDATE(), INTERVAL 15 DAY), DATE_ADD(CURDATE(), INTERVAL 18 DAY), 'confirmed', 12500.00, 'EUR', 'Grupo de 45 personas. Requieren sala de reuniones.', 'mock-user-0006-0000-000000000001'),
-  (2, 'Tour Seniors Andalucía', 'Viajes Dorados', DATE_ADD(CURDATE(), INTERVAL 7 DAY), DATE_ADD(CURDATE(), INTERVAL 9 DAY), 'pending', 4800.00, 'EUR', 'Grupo de 24 personas mayores. Preferencia plantas bajas.', 'mock-user-0006-0000-000000000001'),
-  (3, 'Boda Martínez-García', NULL, DATE_ADD(CURDATE(), INTERVAL 30 DAY), DATE_ADD(CURDATE(), INTERVAL 32 DAY), 'confirmed', 8900.00, 'EUR', 'Reserva habitación nupcial + 15 dobles para invitados.', 'mock-user-0006-0000-000000000001'),
-  (4, 'Equipo Fútbol Juvenil', 'Deportes Viajes', DATE_ADD(CURDATE(), INTERVAL 21 DAY), DATE_ADD(CURDATE(), INTERVAL 23 DAY), 'pending', 3200.00, 'EUR', '16 jugadores + 4 staff. Necesitan desayuno temprano 7:00.', 'mock-user-0006-0000-000000000001'),
-  (5, 'Seminario Médicos', 'MedTravel', DATE_SUB(CURDATE(), INTERVAL 5 DAY), DATE_SUB(CURDATE(), INTERVAL 2 DAY), 'completed', 9500.00, 'EUR', 'Grupo finalizado sin incidencias.', 'mock-user-0006-0000-000000000001');
+  (1, 'Congreso Tecnología', 'Agencia Ejemplo Congresos', CURDATE() + INTERVAL 1 DAY, CURDATE() + INTERVAL 4 DAY, 'confirmed', 12500.00, 'EUR', 'Grupo de 45 personas. Necesitan sala de reuniones.', @groups),
+  (2, 'Viaje Cultural Sénior', 'Agencia Ejemplo Viajes', CURDATE() + INTERVAL 7 DAY, CURDATE() + INTERVAL 9 DAY, 'pending', 4800.00, 'EUR', 'Grupo de 24 personas. Preferencia por plantas bajas.', @groups),
+  (3, 'Boda Ejemplo', NULL, CURDATE() + INTERVAL 30 DAY, CURDATE() + INTERVAL 32 DAY, 'confirmed', 8900.00, 'EUR', 'Suite nupcial y 15 dobles para invitados.', @groups),
+  (4, 'Equipo Deportivo Juvenil', 'Agencia Ejemplo Deportes', CURDATE() + INTERVAL 21 DAY, CURDATE() + INTERVAL 23 DAY, 'pending', 3200.00, 'EUR', '16 jugadores y 4 técnicos. Desayuno temprano a las 7:00.', @groups),
+  (5, 'Jornadas Sanitarias', 'Agencia Ejemplo Eventos', CURDATE() - INTERVAL 5 DAY, CURDATE() - INTERVAL 2 DAY, 'completed', 9500.00, 'EUR', 'Grupo terminado sin incidencias.', @groups);
 
--- Contactos de grupos
 INSERT INTO group_contacts (group_id, contact_name, contact_email, contact_phone, is_primary) VALUES
-  (1, 'Roberto Sánchez', 'r.sanchez@techcongress.example', '+34 612 345 678', 1),
-  (1, 'Laura Méndez', 'l.mendez@techcongress.example', '+34 698 765 432', 0),
-  (2, 'Carmen Ruiz', 'carmen@viajesdorados.example', '+34 654 321 098', 1),
-  (3, 'Isabel Martínez', 'isa.martinez@example.com', '+34 678 901 234', 1),
-  (4, 'Antonio López', 'a.lopez@deportesviajes.example', '+34 645 678 901', 1),
-  (5, 'Dr. Miguel Torres', 'm.torres@medtravel.example', '+34 632 109 876', 1);
+  (1, 'Contacto Congreso', 'congreso@example.com', '+34 600 000 001', 1),
+  (1, 'Contacto Congreso Suplente', 'congreso.suplente@example.com', '+34 600 000 002', 0),
+  (2, 'Contacto Viajes', 'viajes@example.com', '+34 600 000 003', 1),
+  (3, 'Contacto Boda', 'boda@example.com', '+34 600 000 004', 1),
+  (4, 'Contacto Deportes', 'deportes@example.com', '+34 600 000 005', 1),
+  (5, 'Contacto Eventos', 'eventos@example.com', '+34 600 000 006', 1);
 
--- Habitaciones de grupos
 INSERT INTO group_rooms (group_id, room_type, quantity, guests_per_room) VALUES
-  (1, 'single', 10, 1),
-  (1, 'double_bed', 15, 2),
-  (1, 'twin_beds', 5, 2),
+  (1, 'single', 10, 1), (1, 'double_bed', 15, 2), (1, 'twin_beds', 5, 2),
   (2, 'double_bed', 12, 2),
   (3, 'double_bed', 16, 2),
-  (4, 'twin_beds', 8, 2),
-  (4, 'double_bed', 2, 2),
-  (5, 'single', 20, 1),
-  (5, 'double_bed', 10, 2);
+  (4, 'twin_beds', 8, 2), (4, 'double_bed', 2, 2),
+  (5, 'single', 20, 1), (5, 'double_bed', 10, 2);
 
--- Estado de grupos
-INSERT INTO group_status (group_id, booking_confirmed, booking_confirmed_date, contract_signed, contract_signed_date, rooming_status, balance_status) VALUES
-  (1, 1, DATE_SUB(CURDATE(), INTERVAL 30 DAY), 1, DATE_SUB(CURDATE(), INTERVAL 25 DAY), 'received', 'partial'),
-  (2, 1, DATE_SUB(CURDATE(), INTERVAL 10 DAY), 0, NULL, 'requested', 'pending'),
-  (3, 1, DATE_SUB(CURDATE(), INTERVAL 45 DAY), 1, DATE_SUB(CURDATE(), INTERVAL 40 DAY), 'received', 'partial'),
-  (4, 1, DATE_SUB(CURDATE(), INTERVAL 7 DAY), 0, NULL, 'pending', 'pending'),
-  (5, 1, DATE_SUB(CURDATE(), INTERVAL 60 DAY), 1, DATE_SUB(CURDATE(), INTERVAL 55 DAY), 'received', 'paid');
+INSERT INTO group_status (group_id, booking_confirmed, booking_confirmed_date, contract_signed, contract_signed_date, rooming_status, rooming_requested_date, rooming_received_date, balance_status) VALUES
+  (1, 1, NOW() - INTERVAL 30 DAY, 1, NOW() - INTERVAL 25 DAY, 'received', NOW() - INTERVAL 10 DAY, NOW() - INTERVAL 5 DAY, 'partial'),
+  (2, 1, NOW() - INTERVAL 10 DAY, 0, NULL, 'requested', NOW() - INTERVAL 2 DAY, NULL, 'pending'),
+  (3, 1, NOW() - INTERVAL 45 DAY, 1, NOW() - INTERVAL 40 DAY, 'received', NOW() - INTERVAL 20 DAY, NOW() - INTERVAL 15 DAY, 'partial'),
+  (4, 1, NOW() - INTERVAL 7 DAY, 0, NULL, 'pending', NULL, NULL, 'pending'),
+  (5, 1, NOW() - INTERVAL 60 DAY, 1, NOW() - INTERVAL 55 DAY, 'received', NOW() - INTERVAL 20 DAY, NOW() - INTERVAL 12 DAY, 'paid');
 
--- Pagos de grupos
 INSERT INTO group_payments (group_id, payment_name, payment_order, percentage, amount, amount_paid, due_date, status) VALUES
-  (1, 'Depósito inicial', 1, 30.00, 3750.00, 3750.00, DATE_SUB(CURDATE(), INTERVAL 20 DAY), 'paid'),
-  (1, 'Segundo pago', 2, 40.00, 5000.00, 2500.00, DATE_ADD(CURDATE(), INTERVAL 7 DAY), 'partial'),
-  (1, 'Pago final', 3, 30.00, 3750.00, 0.00, DATE_ADD(CURDATE(), INTERVAL 14 DAY), 'pending'),
-  (2, 'Depósito', 1, 50.00, 2400.00, 0.00, DATE_ADD(CURDATE(), INTERVAL 3 DAY), 'requested'),
-  (2, 'Resto', 2, 50.00, 2400.00, 0.00, DATE_ADD(CURDATE(), INTERVAL 6 DAY), 'pending'),
-  (3, 'Señal', 1, 20.00, 1780.00, 1780.00, DATE_SUB(CURDATE(), INTERVAL 30 DAY), 'paid'),
-  (3, 'Pago final', 2, 80.00, 7120.00, 3000.00, DATE_ADD(CURDATE(), INTERVAL 25 DAY), 'partial'),
-  (4, 'Pago único', 1, 100.00, 3200.00, 0.00, DATE_ADD(CURDATE(), INTERVAL 14 DAY), 'pending'),
-  (5, 'Pago completo', 1, 100.00, 9500.00, 9500.00, DATE_SUB(CURDATE(), INTERVAL 10 DAY), 'paid');
+  (1, 'Depósito inicial', 1, 30.00, 3750.00, 3750.00, CURDATE() - INTERVAL 20 DAY, 'paid'),
+  (1, 'Segundo pago', 2, 40.00, 5000.00, 2500.00, CURDATE() + INTERVAL 7 DAY, 'partial'),
+  (1, 'Pago final', 3, 30.00, 3750.00, 0.00, CURDATE() + INTERVAL 14 DAY, 'pending'),
+  (2, 'Depósito', 1, 50.00, 2400.00, 0.00, CURDATE() + INTERVAL 3 DAY, 'requested'),
+  (2, 'Resto', 2, 50.00, 2400.00, 0.00, CURDATE() + INTERVAL 6 DAY, 'pending'),
+  (3, 'Señal', 1, 20.00, 1780.00, 1780.00, CURDATE() - INTERVAL 30 DAY, 'paid'),
+  (3, 'Pago final', 2, 80.00, 7120.00, 3000.00, CURDATE() + INTERVAL 25 DAY, 'partial'),
+  (4, 'Pago único', 1, 100.00, 3200.00, 0.00, CURDATE() + INTERVAL 14 DAY, 'pending'),
+  (5, 'Pago completo', 1, 100.00, 9500.00, 9500.00, CURDATE() - INTERVAL 10 DAY, 'paid');
 
-SELECT '✅ Grupos mock creados (5 grupos + contactos + habitaciones + pagos)' AS resultado;
+INSERT INTO group_history (group_id, action, table_affected, record_id, changed_by, changed_at, notes)
+SELECT id, 'created', 'hotel_groups', id, created_by, created_at, 'Grupo creado' FROM hotel_groups;
 
--- =========================================================
--- PASO 7: CASHIER (TURNOS DE CAJA)
--- =========================================================
--- Crear turnos para los últimos 3 días
-INSERT INTO cashier_shifts (shift_date, shift_type, status, initial_fund, income, cash_counted, cash_expected, payments_total, grand_total, opened_by, closed_by_id, closed_at) VALUES
-  -- Hace 2 días - todos cerrados
-  (DATE_SUB(CURDATE(), INTERVAL 2 DAY), 'night', 'closed', 200.00, 450.00, 200.00, 200.00, 320.00, 770.00, 'mock-user-0004-0000-000000000001', 'mock-user-0004-0000-000000000001', DATE_SUB(NOW(), INTERVAL 2 DAY)),
-  (DATE_SUB(CURDATE(), INTERVAL 2 DAY), 'morning', 'closed', 200.00, 890.00, 200.00, 200.00, 650.00, 1540.00, 'mock-user-0002-0000-000000000001', 'mock-user-0002-0000-000000000001', DATE_SUB(NOW(), INTERVAL 2 DAY)),
-  (DATE_SUB(CURDATE(), INTERVAL 2 DAY), 'afternoon', 'closed', 200.00, 560.00, 195.00, 200.00, 420.00, 980.00, 'mock-user-0003-0000-000000000001', 'mock-user-0003-0000-000000000001', DATE_SUB(NOW(), INTERVAL 2 DAY)),
-  (DATE_SUB(CURDATE(), INTERVAL 2 DAY), 'closing', 'closed', 200.00, 320.00, 200.00, 200.00, 180.00, 500.00, 'mock-user-0004-0000-000000000001', 'mock-user-0004-0000-000000000001', DATE_SUB(NOW(), INTERVAL 2 DAY)),
-  -- Ayer - todos cerrados
-  (DATE_SUB(CURDATE(), INTERVAL 1 DAY), 'night', 'closed', 200.00, 380.00, 200.00, 200.00, 290.00, 670.00, 'mock-user-0004-0000-000000000001', 'mock-user-0004-0000-000000000001', DATE_SUB(NOW(), INTERVAL 1 DAY)),
-  (DATE_SUB(CURDATE(), INTERVAL 1 DAY), 'morning', 'closed', 200.00, 1250.00, 198.00, 200.00, 890.00, 2140.00, 'mock-user-0002-0000-000000000001', 'mock-user-0002-0000-000000000001', DATE_SUB(NOW(), INTERVAL 1 DAY)),
-  (DATE_SUB(CURDATE(), INTERVAL 1 DAY), 'afternoon', 'closed', 200.00, 720.00, 200.00, 200.00, 540.00, 1260.00, 'mock-user-0003-0000-000000000001', 'mock-user-0003-0000-000000000001', DATE_SUB(NOW(), INTERVAL 1 DAY)),
-  (DATE_SUB(CURDATE(), INTERVAL 1 DAY), 'closing', 'closed', 200.00, 410.00, 200.00, 200.00, 220.00, 630.00, 'mock-user-0004-0000-000000000001', 'mock-user-0004-0000-000000000001', DATE_SUB(NOW(), INTERVAL 1 DAY)),
-  -- Hoy - turno mañana en progreso
-  (CURDATE(), 'night', 'closed', 200.00, 290.00, 200.00, 200.00, 150.00, 440.00, 'mock-user-0004-0000-000000000001', 'mock-user-0004-0000-000000000001', NOW()),
-  (CURDATE(), 'morning', 'in_progress', 200.00, 680.00, 0.00, 200.00, 450.00, 1130.00, 'mock-user-0002-0000-000000000001', NULL, NULL);
+-- ---------------------------------------------------------
+-- 5. Caja: ayer cerrado entero; hoy, noche cerrada y mañana abierta.
+-- Esperado = fondo + cobros en efectivo - vales pendientes.
+-- ---------------------------------------------------------
+INSERT INTO cashier_shifts (id, shift_date, shift_type, status, initial_fund, income, cash_counted, cash_expected, difference, payments_total, grand_total, opened_by, closed_by_id, closed_at) VALUES
+  (1, CURDATE() - INTERVAL 1 DAY, 'night', 'closed', 200.00, 150.00, 350.00, 350.00, 0.00, 290.00, 440.00, @recep2, @recep2, NOW() - INTERVAL 1 DAY),
+  (2, CURDATE() - INTERVAL 1 DAY, 'morning', 'closed', 200.00, 420.00, 615.00, 620.00, -5.00, 890.00, 1310.00, @recep1, @recep1, NOW() - INTERVAL 1 DAY),
+  (3, CURDATE() - INTERVAL 1 DAY, 'afternoon', 'closed', 200.00, 310.00, 510.00, 510.00, 0.00, 540.00, 850.00, @recep2, @recep2, NOW() - INTERVAL 1 DAY),
+  (4, CURDATE() - INTERVAL 1 DAY, 'closing', 'closed', 200.00, 90.00, 290.00, 290.00, 0.00, 220.00, 310.00, @recep1, @recep1, NOW() - INTERVAL 1 DAY),
+  (5, CURDATE(), 'night', 'closed', 200.00, 120.00, 300.00, 300.00, 0.00, 150.00, 270.00, @recep2, @recep2, NOW() - INTERVAL 3 HOUR),
+  (6, CURDATE(), 'morning', 'open', 200.00, 0.00, 0.00, 180.00, 0.00, 0.00, 0.00, @recep1, NULL, NULL);
 
--- Responsables de turnos
 INSERT INTO cashier_shift_users (shift_id, user_id, is_primary) VALUES
-  (1, 'mock-user-0004-0000-000000000001', 1),
-  (2, 'mock-user-0002-0000-000000000001', 1),
-  (3, 'mock-user-0003-0000-000000000001', 1),
-  (4, 'mock-user-0004-0000-000000000001', 1),
-  (5, 'mock-user-0004-0000-000000000001', 1),
-  (6, 'mock-user-0002-0000-000000000001', 1),
-  (6, 'mock-user-0003-0000-000000000001', 0),
-  (7, 'mock-user-0003-0000-000000000001', 1),
-  (8, 'mock-user-0004-0000-000000000001', 1),
-  (9, 'mock-user-0004-0000-000000000001', 1),
-  (10, 'mock-user-0002-0000-000000000001', 1);
+  (1, @recep2, 1), (2, @recep1, 1), (2, @recep2, 0), (3, @recep2, 1),
+  (4, @recep1, 1), (5, @recep2, 1), (6, @recep1, 1);
 
--- Pagos electrónicos por turno
-INSERT INTO cashier_payments (shift_id, payment_method_id, amount) VALUES
-  (1, 1, 220.00), (1, 2, 50.00), (1, 4, 50.00),
-  (2, 1, 450.00), (2, 3, 120.00), (2, 4, 80.00),
-  (3, 1, 320.00), (3, 2, 100.00),
-  (4, 1, 180.00),
-  (5, 1, 190.00), (5, 4, 100.00),
-  (6, 1, 650.00), (6, 2, 140.00), (6, 3, 100.00),
-  (7, 1, 380.00), (7, 4, 160.00),
-  (8, 1, 220.00),
-  (9, 1, 100.00), (9, 2, 50.00),
-  (10, 1, 350.00), (10, 3, 100.00);
+INSERT INTO cashier_payments (shift_id, payment_method_id, amount)
+SELECT p.shift_id, p.method_id, p.amount FROM (
+            SELECT 1 shift_id, @pm_card method_id, 190.00 amount
+  UNION ALL SELECT 1, @pm_transfer, 100.00
+  UNION ALL SELECT 2, @pm_card, 650.00
+  UNION ALL SELECT 2, @pm_bacs, 140.00
+  UNION ALL SELECT 2, @pm_web, 100.00
+  UNION ALL SELECT 3, @pm_card, 380.00
+  UNION ALL SELECT 3, @pm_transfer, 160.00
+  UNION ALL SELECT 4, @pm_card, 220.00
+  UNION ALL SELECT 5, @pm_card, 100.00
+  UNION ALL SELECT 5, @pm_bacs, 50.00
+) p WHERE p.method_id IS NOT NULL;
 
-SELECT '✅ Cashier mock creado (10 turnos + pagos)' AS resultado;
+-- Totales de los turnos cerrados a partir de los pagos que se hayan creado
+UPDATE cashier_shifts s
+SET s.payments_total = (SELECT COALESCE(SUM(amount), 0) FROM cashier_payments WHERE shift_id = s.id),
+    s.grand_total = s.income + (SELECT COALESCE(SUM(amount), 0) FROM cashier_payments WHERE shift_id = s.id);
 
--- =========================================================
--- PASO 8: CONCILIACIÓN
--- =========================================================
-INSERT INTO conciliation_summary (date, total_reception, total_housekeeping, notes, created_by, status) VALUES
-  (DATE_SUB(CURDATE(), INTERVAL 2 DAY), 85, 87, 'Diferencia por 2 no-shows', 'mock-user-0002-0000-000000000001', 'closed'),
-  (DATE_SUB(CURDATE(), INTERVAL 1 DAY), 92, 92, 'Cuadrado perfecto', 'mock-user-0003-0000-000000000001', 'closed'),
-  (CURDATE(), 78, 0, 'Pendiente conteo pisos', 'mock-user-0002-0000-000000000001', 'draft');
+-- Efectivo contado de los turnos cerrados, en billetes de 50 y 10 y monedas de 5
+INSERT INTO cashier_denominations (shift_id, denomination, quantity)
+SELECT id, 50.00, FLOOR(cash_counted / 50) FROM cashier_shifts WHERE status = 'closed';
+INSERT INTO cashier_denominations (shift_id, denomination, quantity)
+SELECT id, 10.00, FLOOR(MOD(cash_counted, 50) / 10) FROM cashier_shifts WHERE status = 'closed';
+INSERT INTO cashier_denominations (shift_id, denomination, quantity)
+SELECT id, 5.00, MOD(cash_counted, 10) / 5 FROM cashier_shifts WHERE status = 'closed';
+
+-- Un vale ya justificado (ayer) y otro pendiente desde la noche de hoy
+INSERT INTO cashier_vouchers (id, amount, reason, status, justified_at, created_at, created_by) VALUES
+  (1, 15.00, 'Compra de material de oficina', 'justified', NOW() - INTERVAL 1 DAY + INTERVAL 2 HOUR, NOW() - INTERVAL 1 DAY, @recep1),
+  (2, 20.00, 'Taxi para un huésped', 'pending', NULL, NOW() - INTERVAL 4 HOUR, @recep2);
+INSERT INTO cashier_shift_vouchers (shift_id, voucher_id) VALUES (2, 1), (5, 2);
+
+-- El trigger de cashier_shifts puede haber creado filas al ajustar los totales
+DELETE FROM cashier_daily;
+INSERT INTO cashier_daily (date, total_cash, total_card, total_bacs, total_web_payment, total_transfer, total_other, grand_total, status, closed_by, closed_at)
+SELECT s.shift_date,
+       SUM(s.income),
+       COALESCE((SELECT SUM(p.amount) FROM cashier_payments p JOIN cashier_shifts x ON x.id = p.shift_id WHERE x.shift_date = s.shift_date AND p.payment_method_id = @pm_card), 0),
+       COALESCE((SELECT SUM(p.amount) FROM cashier_payments p JOIN cashier_shifts x ON x.id = p.shift_id WHERE x.shift_date = s.shift_date AND p.payment_method_id = @pm_bacs), 0),
+       COALESCE((SELECT SUM(p.amount) FROM cashier_payments p JOIN cashier_shifts x ON x.id = p.shift_id WHERE x.shift_date = s.shift_date AND p.payment_method_id = @pm_web), 0),
+       COALESCE((SELECT SUM(p.amount) FROM cashier_payments p JOIN cashier_shifts x ON x.id = p.shift_id WHERE x.shift_date = s.shift_date AND p.payment_method_id = @pm_transfer), 0),
+       0.00,
+       SUM(s.grand_total),
+       'closed', @admin, NOW() - INTERVAL 1 DAY + INTERVAL 1 HOUR
+FROM cashier_shifts s
+WHERE s.shift_date = CURDATE() - INTERVAL 1 DAY
+GROUP BY s.shift_date;
+
+INSERT INTO cashier_history (shift_id, action, table_affected, record_id, changed_by, changed_at, notes)
+SELECT id, 'created', 'cashier_shifts', id, opened_by, created_at, 'Turno abierto' FROM cashier_shifts;
+
+-- ---------------------------------------------------------
+-- 6. Conciliación
+-- ---------------------------------------------------------
+INSERT INTO conciliation_summary (id, date, total_reception, total_housekeeping, notes, created_by, status) VALUES
+  (1, CURDATE() - INTERVAL 2 DAY, 85, 87, 'Diferencia por dos no-shows', @recep1, 'closed'),
+  (2, CURDATE() - INTERVAL 1 DAY, 92, 92, 'Cuadra', @recep2, 'closed'),
+  (3, CURDATE(), 78, 0, 'Falta el conteo de pisos', @recep1, 'draft');
 
 INSERT INTO conciliation_reception (conciliation_id, reason, direction, value, notes, created_by) VALUES
-  (1, 'base_rooms', 'add', 87, 'Ocupación base', 'mock-user-0002-0000-000000000001'),
-  (1, 'no_show', 'subtract', 2, 'Dos no-shows', 'mock-user-0002-0000-000000000001'),
-  (2, 'base_rooms', 'add', 92, 'Ocupación base', 'mock-user-0003-0000-000000000001'),
-  (3, 'base_rooms', 'add', 80, 'Ocupación base', 'mock-user-0002-0000-000000000001'),
-  (3, 'no_show', 'subtract', 2, 'No-shows', 'mock-user-0002-0000-000000000001');
+  (1, 'base_rooms', 'add', 87, 'Ocupación base', @recep1),
+  (1, 'no_show', 'subtract', 2, 'Dos no-shows', @recep1),
+  (2, 'base_rooms', 'add', 92, 'Ocupación base', @recep2),
+  (3, 'base_rooms', 'add', 80, 'Ocupación base', @recep1),
+  (3, 'no_show', 'subtract', 2, 'No-shows', @recep1);
 
 INSERT INTO conciliation_housekeeping (conciliation_id, reason, direction, value, notes, created_by) VALUES
-  (1, 'cleaned', 'add', 85, 'Habitaciones limpiadas', 'mock-user-0002-0000-000000000001'),
-  (1, 'do_not_disturb', 'add', 2, 'DND', 'mock-user-0002-0000-000000000001'),
-  (2, 'cleaned', 'add', 90, 'Habitaciones limpiadas', 'mock-user-0003-0000-000000000001'),
-  (2, 'pending_cleaned', 'add', 2, 'Pendientes', 'mock-user-0003-0000-000000000001');
+  (1, 'cleaned', 'add', 85, 'Habitaciones limpias', @recep1),
+  (1, 'do_not_disturb', 'add', 2, 'No molestar', @recep1),
+  (2, 'cleaned', 'add', 90, 'Habitaciones limpias', @recep2),
+  (2, 'pending_cleaned', 'add', 2, 'Pendientes', @recep2);
 
-SELECT '✅ Conciliación mock creada (3 días)' AS resultado;
-
--- =========================================================
--- PASO 9: BLACKLIST
--- =========================================================
+-- ---------------------------------------------------------
+-- 7. Lista negra (personas y documentos inventados)
+-- ---------------------------------------------------------
 INSERT INTO blacklist_entries (guest_name, document_type, document_number, check_in_date, check_out_date, reason, severity, comments, images, created_by) VALUES
-  ('John Smith', 'PASSPORT', 'AB123456', DATE_SUB(CURDATE(), INTERVAL 60 DAY), DATE_SUB(CURDATE(), INTERVAL 57 DAY), 'Daños en habitación', 'HIGH', 'Rotura de TV y manchas en alfombra. Factura pendiente de 450€.', '[]', 'mock-user-0002-0000-000000000001'),
-  ('María García Ruiz', 'DNI', '12345678A', DATE_SUB(CURDATE(), INTERVAL 30 DAY), DATE_SUB(CURDATE(), INTERVAL 28 DAY), 'Comportamiento agresivo', 'CRITICAL', 'Agresión verbal a personal. Policía intervenida.', '[]', 'mock-user-0003-0000-000000000001'),
-  ('Robert Johnson', 'PASSPORT', 'CD789012', DATE_SUB(CURDATE(), INTERVAL 90 DAY), DATE_SUB(CURDATE(), INTERVAL 88 DAY), 'Impago', 'MEDIUM', 'Marchó sin pagar minibar. Importe: 85€.', '[]', 'mock-user-0002-0000-000000000001');
+  ('Huésped Ejemplo A', 'PASSPORT', 'XX0000001', CURDATE() - INTERVAL 60 DAY, CURDATE() - INTERVAL 57 DAY, 'Daños en la habitación', 'HIGH', 'Televisor roto y manchas en la moqueta. Factura pendiente de 450 €.', JSON_ARRAY(), @recep1),
+  ('Huésped Ejemplo B', 'DNI', '00000000T', CURDATE() - INTERVAL 30 DAY, CURDATE() - INTERVAL 28 DAY, 'Comportamiento agresivo', 'CRITICAL', 'Insultos al personal de recepción.', JSON_ARRAY(), @recep2),
+  ('Huésped Ejemplo C', 'PASSPORT', 'XX0000002', CURDATE() - INTERVAL 90 DAY, CURDATE() - INTERVAL 88 DAY, 'Impago', 'MEDIUM', 'Se fue sin pagar el minibar: 85 €.', JSON_ARRAY(), @recep1);
 
-SELECT '✅ Blacklist mock creada (3 entradas)' AS resultado;
+-- ---------------------------------------------------------
+-- 8. Mantenimiento
+-- ---------------------------------------------------------
+SET @d0 := DATE_FORMAT(CURDATE(), '%d%m%y');
+SET @d1 := DATE_FORMAT(CURDATE() - INTERVAL 1 DAY, '%d%m%y');
+SET @d2 := DATE_FORMAT(CURDATE() - INTERVAL 2 DAY, '%d%m%y');
 
--- =========================================================
--- PASO 10: MAINTENANCE
--- =========================================================
-INSERT INTO maintenance_reports (id, report_date, title, description, location_type, location_description, room_number, room_out_of_service, priority, status, assigned_to, assigned_type, created_by) VALUES
-  (CONCAT(DATE_FORMAT(CURDATE(), '%d%m%y'), '-001'), NOW(), 'Fuga de agua en baño', 'Goteo constante en grifo de lavabo', 'room', 'Baño habitación', '205', 0, 'high', 'in_progress', 'mock-user-0005-0000-000000000001', 'internal', 'mock-user-0002-0000-000000000001'),
-  (CONCAT(DATE_FORMAT(CURDATE(), '%d%m%y'), '-002'), NOW(), 'Bombilla fundida', 'Luz de mesilla no funciona', 'room', 'Habitación', '312', 0, 'low', 'reported', NULL, NULL, 'mock-user-0003-0000-000000000001'),
-  (CONCAT(DATE_FORMAT(CURDATE(), '%d%m%y'), '-003'), NOW(), 'AC no enfría', 'Aire acondicionado expulsa aire caliente', 'room', 'Habitación', '418', 1, 'urgent', 'assigned', 'mock-user-0005-0000-000000000001', 'internal', 'mock-user-0002-0000-000000000001'),
-  (CONCAT(DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL 1 DAY), '%d%m%y'), '-001'), DATE_SUB(NOW(), INTERVAL 1 DAY), 'Puerta atascada', 'Puerta de acceso a piscina no cierra bien', 'common_area', 'Zona piscina', NULL, 0, 'medium', 'completed', 'mock-user-0005-0000-000000000001', 'internal', 'mock-user-0004-0000-000000000001'),
-  (CONCAT(DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL 2 DAY), '%d%m%y'), '-001'), DATE_SUB(NOW(), INTERVAL 2 DAY), 'Revisión ascensores', 'Mantenimiento preventivo mensual', 'facilities', 'Ascensores', NULL, 0, 'medium', 'waiting', NULL, 'external', 'mock-user-0001-0000-000000000001');
+INSERT INTO maintenance_reports (id, report_date, title, description, location_type, location_description, room_number, room_out_of_service, priority, status, assigned_to, assigned_type, external_company_name, started_at, resolved_at, resolution_notes, created_by) VALUES
+  (CONCAT(@d0, '-001'), NOW() - INTERVAL 3 HOUR, 'Fuga de agua en el baño', 'Gotea el grifo del lavabo', 'room', 'Baño de la habitación', '205', 0, 'high', 'in_progress', @mant, 'internal', NULL, NOW() - INTERVAL 2 HOUR, NULL, NULL, @recep1),
+  (CONCAT(@d0, '-002'), NOW() - INTERVAL 2 HOUR, 'Bombilla fundida', 'No funciona la luz de la mesilla', 'room', 'Habitación', '312', 0, 'low', 'reported', NULL, NULL, NULL, NULL, NULL, NULL, @recep2),
+  (CONCAT(@d0, '-003'), NOW() - INTERVAL 1 HOUR, 'El aire no enfría', 'El aire acondicionado echa aire caliente', 'room', 'Habitación', '418', 1, 'urgent', 'assigned', @mant, 'internal', NULL, NULL, NULL, NULL, @recep1),
+  (CONCAT(@d1, '-001'), NOW() - INTERVAL 1 DAY, 'Puerta atascada', 'La puerta de la piscina no cierra bien', 'common_area', 'Zona de piscina', NULL, 0, 'medium', 'completed', @mant, 'internal', NULL, NOW() - INTERVAL 1 DAY, NOW() - INTERVAL 20 HOUR, 'Bisagra ajustada', @recep2),
+  (CONCAT(@d2, '-001'), NOW() - INTERVAL 2 DAY, 'Revisión de ascensores', 'Mantenimiento preventivo mensual', 'facilities', 'Ascensores', NULL, 0, 'medium', 'waiting', NULL, 'external', 'Empresa Ejemplo Ascensores', NULL, NULL, NULL, @admin);
 
--- Historial de mantenimiento
-INSERT INTO maintenance_history (report_id, action, field_changed, old_value, new_value, changed_by) VALUES
-  (CONCAT(DATE_FORMAT(CURDATE(), '%d%m%y'), '-001'), 'created', NULL, NULL, NULL, 'mock-user-0002-0000-000000000001'),
-  (CONCAT(DATE_FORMAT(CURDATE(), '%d%m%y'), '-001'), 'assigned', 'assigned_to', NULL, 'mock-user-0005-0000-000000000001', 'mock-user-0001-0000-000000000001'),
-  (CONCAT(DATE_FORMAT(CURDATE(), '%d%m%y'), '-001'), 'status_changed', 'status', 'reported', 'in_progress', 'mock-user-0005-0000-000000000001'),
-  (CONCAT(DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL 1 DAY), '%d%m%y'), '-001'), 'created', NULL, NULL, NULL, 'mock-user-0004-0000-000000000001'),
-  (CONCAT(DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL 1 DAY), '%d%m%y'), '-001'), 'status_changed', 'status', 'in_progress', 'completed', 'mock-user-0005-0000-000000000001');
+INSERT INTO maintenance_history (report_id, action, changed_by, changed_at)
+SELECT id, 'created', created_by, report_date FROM maintenance_reports;
+INSERT INTO maintenance_history (report_id, action, field_changed, old_value, new_value, changed_by, changed_at) VALUES
+  (CONCAT(@d0, '-001'), 'assigned', 'assigned_to', NULL, @mant, @admin, NOW() - INTERVAL 150 MINUTE),
+  (CONCAT(@d0, '-001'), 'status_changed', 'status', 'assigned', 'in_progress', @mant, NOW() - INTERVAL 2 HOUR),
+  (CONCAT(@d1, '-001'), 'status_changed', 'status', 'in_progress', 'completed', @mant, NOW() - INTERVAL 20 HOUR);
 
-SELECT '✅ Maintenance mock creado (5 reportes)' AS resultado;
-
--- =========================================================
--- PASO 11: BACKOFFICE (PROVEEDORES Y FACTURAS)
--- =========================================================
--- Insertar proveedores con IDs fijos
+-- ---------------------------------------------------------
+-- 9. Backoffice (proveedores y facturas inventados, sin PDF)
+-- Categorías buscadas por nombre al principio del script
+-- ---------------------------------------------------------
 INSERT INTO bo_suppliers (id, name, cif, default_category_id, periodicity, payment_method, email, is_active, created_by) VALUES
-  (1001, 'Electricidad Nacional SA', 'A12345678', 13, 'monthly', 'direct_debit', 'facturas@elecnacional.example', 1, '550e8400-e29b-41d4-a716-446655440001'),
-  (1002, 'Aguas del Sur', 'B87654321', 14, 'bimonthly', 'direct_debit', 'clientes@aguassur.example', 1, '550e8400-e29b-41d4-a716-446655440001'),
-  (1003, 'Lavandería Industrial López', 'B11223344', 8, 'monthly', 'transfer', 'admin@lavanderialopez.example', 1, '550e8400-e29b-41d4-a716-446655440001'),
-  (1004, 'Mantenimientos Técnicos SL', 'B55667788', 4, 'on_demand', 'transfer', 'info@mantectec.example', 1, '550e8400-e29b-41d4-a716-446655440001'),
-  (1005, 'Amenities Hotel Supply', 'A99887766', 10, 'quarterly', 'transfer', 'orders@amenitieshotel.example', 1, '550e8400-e29b-41d4-a716-446655440001');
+  (1, 'Proveedor Ejemplo Electricidad', 'A00000001', @cat_elec, 'monthly', 'direct_debit', 'facturas@electricidad.example', 1, @admin),
+  (2, 'Proveedor Ejemplo Agua', 'B00000002', @cat_agua, 'bimonthly', 'direct_debit', 'clientes@agua.example', 1, @admin),
+  (3, 'Proveedor Ejemplo Lavandería', 'B00000003', @cat_lav, 'monthly', 'transfer', 'admin@lavanderia.example', 1, @admin),
+  (4, 'Proveedor Ejemplo Reparaciones', 'B00000004', @cat_rep, 'on_demand', 'transfer', 'info@reparaciones.example', 1, @admin),
+  (5, 'Proveedor Ejemplo Amenities', 'A00000005', @cat_ame, 'quarterly', 'transfer', 'pedidos@amenities.example', 1, @admin);
 
--- Facturas usando los IDs fijos de suppliers
-INSERT INTO bo_invoices (invoice_number, supplier_id, category_id, amount_without_vat, amount_with_vat, vat_percentage, invoice_date, received_date, due_date, status, payment_method, created_by) VALUES
-  ('ELEC-2025-001', 1001, 13, 2450.00, 2964.50, 21.00, DATE_SUB(CURDATE(), INTERVAL 15 DAY), DATE_SUB(CURDATE(), INTERVAL 14 DAY), DATE_ADD(CURDATE(), INTERVAL 15 DAY), 'validated', 'direct_debit', '550e8400-e29b-41d4-a716-446655440001'),
-  ('ELEC-2025-002', 1001, 13, 2680.00, 3242.80, 21.00, DATE_SUB(CURDATE(), INTERVAL 5 DAY), DATE_SUB(CURDATE(), INTERVAL 4 DAY), DATE_ADD(CURDATE(), INTERVAL 25 DAY), 'pending', 'direct_debit', '550e8400-e29b-41d4-a716-446655440001'),
-  ('AGU-12345', 1002, 14, 890.00, 979.00, 10.00, DATE_SUB(CURDATE(), INTERVAL 20 DAY), DATE_SUB(CURDATE(), INTERVAL 18 DAY), DATE_SUB(CURDATE(), INTERVAL 5 DAY), 'paid', 'direct_debit', '550e8400-e29b-41d4-a716-446655440001'),
-  ('LAV-2025-089', 1003, 8, 1250.00, 1512.50, 21.00, DATE_SUB(CURDATE(), INTERVAL 10 DAY), DATE_SUB(CURDATE(), INTERVAL 9 DAY), DATE_ADD(CURDATE(), INTERVAL 20 DAY), 'pending', 'transfer', '550e8400-e29b-41d4-a716-446655440001'),
-  ('MT-2025-045', 1004, 4, 650.00, 786.50, 21.00, DATE_SUB(CURDATE(), INTERVAL 8 DAY), DATE_SUB(CURDATE(), INTERVAL 7 DAY), DATE_ADD(CURDATE(), INTERVAL 22 DAY), 'validated', 'transfer', '550e8400-e29b-41d4-a716-446655440001'),
-  ('AME-Q1-2025', 1005, 10, 3200.00, 3872.00, 21.00, DATE_SUB(CURDATE(), INTERVAL 30 DAY), DATE_SUB(CURDATE(), INTERVAL 28 DAY), DATE_SUB(CURDATE(), INTERVAL 10 DAY), 'paid', 'transfer', '550e8400-e29b-41d4-a716-446655440001');
+INSERT INTO bo_invoices (id, invoice_number, supplier_id, category_id, amount_without_vat, amount_with_vat, vat_percentage, invoice_date, received_date, due_date, paid_date, status, payment_method, validated_by, validated_at, created_by) VALUES
+  (1, 'ELEC-0001', 1, @cat_elec, 2450.00, 2964.50, 21.00, CURDATE() - INTERVAL 15 DAY, CURDATE() - INTERVAL 14 DAY, CURDATE() + INTERVAL 15 DAY, NULL, 'validated', 'direct_debit', @admin, NOW() - INTERVAL 10 DAY, @admin),
+  (2, 'ELEC-0002', 1, @cat_elec, 2680.00, 3242.80, 21.00, CURDATE() - INTERVAL 5 DAY, CURDATE() - INTERVAL 4 DAY, CURDATE() + INTERVAL 25 DAY, NULL, 'pending', 'direct_debit', NULL, NULL, @admin),
+  (3, 'AGUA-0001', 2, @cat_agua, 890.00, 979.00, 10.00, CURDATE() - INTERVAL 20 DAY, CURDATE() - INTERVAL 18 DAY, CURDATE() - INTERVAL 5 DAY, CURDATE() - INTERVAL 5 DAY, 'paid', 'direct_debit', @admin, NOW() - INTERVAL 15 DAY, @admin),
+  (4, 'LAV-0089', 3, @cat_lav, 1250.00, 1512.50, 21.00, CURDATE() - INTERVAL 10 DAY, CURDATE() - INTERVAL 9 DAY, CURDATE() + INTERVAL 20 DAY, NULL, 'pending', 'transfer', NULL, NULL, @admin),
+  (5, 'REP-0045', 4, @cat_rep, 650.00, 786.50, 21.00, CURDATE() - INTERVAL 8 DAY, CURDATE() - INTERVAL 7 DAY, CURDATE() + INTERVAL 22 DAY, NULL, 'validated', 'transfer', @admin, NOW() - INTERVAL 5 DAY, @admin),
+  (6, 'AME-0001', 5, @cat_ame, 3200.00, 3872.00, 21.00, CURDATE() - INTERVAL 30 DAY, CURDATE() - INTERVAL 28 DAY, CURDATE() - INTERVAL 10 DAY, CURDATE() - INTERVAL 10 DAY, 'paid', 'transfer', @admin, NOW() - INTERVAL 20 DAY, @admin);
 
-SELECT '✅ Backoffice mock creado (5 proveedores + 6 facturas)' AS resultado;
+INSERT INTO bo_invoice_history (invoice_id, action, changed_by, changed_at)
+SELECT id, 'created', created_by, received_date FROM bo_invoices;
+INSERT INTO bo_invoice_history (invoice_id, action, field_changed, old_value, new_value, changed_by, changed_at)
+SELECT id, 'validated', 'status', 'pending', 'validated', validated_by, validated_at FROM bo_invoices WHERE validated_at IS NOT NULL;
+INSERT INTO bo_invoice_history (invoice_id, action, field_changed, old_value, new_value, changed_by, changed_at)
+SELECT id, 'paid', 'status', 'validated', 'paid', @admin, paid_date FROM bo_invoices WHERE status = 'paid';
 
--- =========================================================
--- PASO 12: MENSAJERÍA
--- =========================================================
--- Conversación DM y grupo con usuario admin
+-- ---------------------------------------------------------
+-- 10. F&B: ingresos de los últimos 30 días por categoría
+-- ---------------------------------------------------------
+INSERT INTO fnb_daily_revenue (date, category_code, amount)
+WITH RECURSIVE days (n) AS (SELECT 1 UNION ALL SELECT n + 1 FROM days WHERE n < 30)
+SELECT CURDATE() - INTERVAL d.n DAY, c.code,
+       ROUND(base.amount * (0.75 + MOD(d.n * 7 + CAST(c.code AS UNSIGNED), 50) / 100), 2)
+FROM days d
+JOIN fnb_category c
+JOIN (SELECT '21110' code, 900.00 amount UNION ALL SELECT '21124', 350.00
+      UNION ALL SELECT '21120', 180.00 UNION ALL SELECT '21111', 620.00
+      UNION ALL SELECT '21267', 240.00 UNION ALL SELECT '21112', 780.00
+      UNION ALL SELECT '21307', 410.00) base ON base.code = c.code;
+
+-- ---------------------------------------------------------
+-- 11. Mensajería y notificaciones
+-- ---------------------------------------------------------
 INSERT INTO conversations (id, type, name, created_by) VALUES
-  (1001, 'dm', NULL, '550e8400-e29b-41d4-a716-446655440001'),
-  (1002, 'group', 'Recepción Mañana', '550e8400-e29b-41d4-a716-446655440001');
+  (1, 'dm', NULL, @admin),
+  (2, 'group', 'Recepción', @admin);
 
-INSERT INTO conversation_participants (conversation_id, user_id, is_admin, is_active) VALUES
-  (1001, '550e8400-e29b-41d4-a716-446655440001', 1, 1),
-  (1002, '550e8400-e29b-41d4-a716-446655440001', 1, 1);
+INSERT IGNORE INTO conversation_participants (conversation_id, user_id, is_admin, is_active) VALUES
+  (1, @admin, 1, 1), (1, @recep1, 0, 1),
+  (2, @admin, 1, 1), (2, @recep1, 0, 1), (2, @recep2, 0, 1);
 
 INSERT INTO messages (conversation_id, sender_id, content, created_at) VALUES
-  (1001, '550e8400-e29b-41d4-a716-446655440001', 'Mensaje de prueba en DM', DATE_SUB(NOW(), INTERVAL 2 HOUR)),
-  (1001, '550e8400-e29b-41d4-a716-446655440001', 'Segundo mensaje de prueba', DATE_SUB(NOW(), INTERVAL 1 HOUR)),
-  (1002, '550e8400-e29b-41d4-a716-446655440001', 'Buenos días equipo. Recordad que hoy llega el grupo Viajes Sol.', DATE_SUB(NOW(), INTERVAL 4 HOUR)),
-  (1002, '550e8400-e29b-41d4-a716-446655440001', 'Las llaves están preparadas en el sobre del grupo.', DATE_SUB(NOW(), INTERVAL 2 HOUR));
+  (1, @admin, '¿Puedes revisar la conciliación de hoy antes de las 12?', NOW() - INTERVAL 2 HOUR),
+  (1, @recep1, 'Sí, en cuanto pisos me pase el conteo.', NOW() - INTERVAL 1 HOUR),
+  (2, @admin, 'Buenos días. Mañana llega el grupo Congreso Tecnología.', NOW() - INTERVAL 4 HOUR),
+  (2, @recep2, 'Las llaves del grupo ya están preparadas.', NOW() - INTERVAL 2 HOUR);
 
-SELECT '✅ Mensajería mock creada (2 conversaciones + 4 mensajes)' AS resultado;
+INSERT INTO notifications (id, module, group_id, related_to, title, message, priority, status, scheduled_for, sent_at) VALUES
+  (1, 'groups', 1, 'payment', 'Pago pendiente: Congreso Tecnología', 'El segundo pago de 5000 € vence en 7 días.', 'high', 'sent', NULL, NOW() - INTERVAL 1 DAY),
+  (2, 'groups', 2, 'rooming', 'Rooming pendiente: Viaje Cultural Sénior', 'Faltan 7 días para la llegada y no hay rooming.', 'urgent', 'sent', NULL, NOW() - INTERVAL 5 HOUR),
+  (3, 'groups', 4, 'arrival', 'Llegada próxima: Equipo Deportivo Juvenil', 'El grupo llega en 21 días. Revisar preparativos.', 'medium', 'pending', CURDATE() + INTERVAL 14 DAY, NULL),
+  (4, 'system', NULL, 'general', 'Mantenimiento programado', 'La aplicación no estará disponible el domingo de 02:00 a 04:00.', 'low', 'sent', NULL, NOW() - INTERVAL 2 DAY);
 
--- =========================================================
--- PASO 13: NOTIFICACIONES
--- =========================================================
-INSERT INTO notifications (module, group_id, related_to, title, message, priority, status, scheduled_for) VALUES
-  ('groups', 1, 'payment', 'Pago pendiente - Congreso Tecnología', 'El segundo pago de 5000€ vence en 7 días', 'high', 'sent', NULL),
-  ('groups', 2, 'rooming', 'Rooming pendiente - Tour Seniors', 'Faltan 5 días para llegada y no tenemos rooming', 'urgent', 'sent', NULL),
-  ('groups', 4, 'arrival', 'Llegada próxima - Equipo Fútbol', 'El grupo llega en 21 días. Verificar preparativos.', 'medium', 'pending', DATE_ADD(CURDATE(), INTERVAL 14 DAY)),
-  ('system', NULL, 'general', 'Mantenimiento programado', 'El sistema estará en mantenimiento el domingo de 02:00 a 04:00', 'low', 'sent', NULL);
+INSERT IGNORE INTO notification_recipients (notification_id, user_id, is_read, read_at) VALUES
+  (1, @groups, 1, NOW() - INTERVAL 20 HOUR), (1, @admin, 0, NULL),
+  (2, @groups, 0, NULL), (2, @admin, 0, NULL),
+  (3, @groups, 0, NULL),
+  (4, @admin, 1, NOW() - INTERVAL 2 DAY), (4, @recep1, 1, NOW() - INTERVAL 1 DAY),
+  (4, @recep2, 0, NULL), (4, @mant, 0, NULL);
 
-INSERT INTO notification_recipients (notification_id, user_id, is_read, read_at) VALUES
-  (1, 'mock-user-0006-0000-000000000001', 1, DATE_SUB(NOW(), INTERVAL 1 DAY)),
-  (1, 'mock-user-0001-0000-000000000001', 0, NULL),
-  (2, 'mock-user-0006-0000-000000000001', 0, NULL),
-  (3, 'mock-user-0006-0000-000000000001', 0, NULL),
-  (4, 'mock-user-0001-0000-000000000001', 1, DATE_SUB(NOW(), INTERVAL 2 DAY)),
-  (4, 'mock-user-0002-0000-000000000001', 1, DATE_SUB(NOW(), INTERVAL 1 DAY)),
-  (4, 'mock-user-0003-0000-000000000001', 0, NULL),
-  (4, 'mock-user-0004-0000-000000000001', 0, NULL);
-
-SELECT '✅ Notificaciones mock creadas (4 notificaciones)' AS resultado;
-
--- =========================================================
--- FINALIZACIÓN
--- =========================================================
-SET FOREIGN_KEY_CHECKS = 1;
-SET SQL_SAFE_UPDATES = 1;
-
-SELECT '========================================' AS mensaje;
-SELECT '✅ MOCK DATA CARGADO CORRECTAMENTE' AS mensaje;
-SELECT '========================================' AS mensaje;
-
+-- ---------------------------------------------------------
 -- Resumen
-SELECT 'RESUMEN DE DATOS CARGADOS:' AS titulo;
-SELECT 'Usuarios' AS tabla, COUNT(*) AS registros FROM users
-UNION ALL SELECT 'Logbooks', COUNT(*) FROM logbooks
-UNION ALL SELECT 'Logbook Comments', COUNT(*) FROM logbook_comments
-UNION ALL SELECT 'Parking Vehicles', COUNT(*) FROM parking_vehicles
-UNION ALL SELECT 'Parking Bookings', COUNT(*) FROM parking_bookings
-UNION ALL SELECT 'Hotel Groups', COUNT(*) FROM hotel_groups
-UNION ALL SELECT 'Group Payments', COUNT(*) FROM group_payments
-UNION ALL SELECT 'Cashier Shifts', COUNT(*) FROM cashier_shifts
-UNION ALL SELECT 'Conciliation', COUNT(*) FROM conciliation_summary
-UNION ALL SELECT 'Blacklist', COUNT(*) FROM blacklist_entries
-UNION ALL SELECT 'Maintenance', COUNT(*) FROM maintenance_reports
-UNION ALL SELECT 'Suppliers', COUNT(*) FROM bo_suppliers
-UNION ALL SELECT 'Invoices', COUNT(*) FROM bo_invoices
-UNION ALL SELECT 'Conversations', COUNT(*) FROM conversations
-UNION ALL SELECT 'Messages', COUNT(*) FROM messages
-UNION ALL SELECT 'Notifications', COUNT(*) FROM notifications;
+-- ---------------------------------------------------------
+COMMIT;
 
-SELECT '========================================' AS mensaje;
-SELECT 'Usuarios mock password: Test1234!' AS mensaje;
-SELECT '========================================' AS mensaje;
+SELECT 'logbooks' tabla, COUNT(*) filas FROM logbooks
+UNION ALL SELECT 'parking_bookings', COUNT(*) FROM parking_bookings
+UNION ALL SELECT 'hotel_groups', COUNT(*) FROM hotel_groups
+UNION ALL SELECT 'cashier_shifts', COUNT(*) FROM cashier_shifts
+UNION ALL SELECT 'conciliation_summary', COUNT(*) FROM conciliation_summary
+UNION ALL SELECT 'blacklist_entries', COUNT(*) FROM blacklist_entries
+UNION ALL SELECT 'maintenance_reports', COUNT(*) FROM maintenance_reports
+UNION ALL SELECT 'bo_invoices', COUNT(*) FROM bo_invoices
+UNION ALL SELECT 'fnb_daily_revenue', COUNT(*) FROM fnb_daily_revenue
+UNION ALL SELECT 'messages', COUNT(*) FROM messages
+UNION ALL SELECT 'notifications', COUNT(*) FROM notifications;

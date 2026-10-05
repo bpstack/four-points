@@ -36,7 +36,7 @@ db-mysql/
 ├── README.md
 ├── MIGRATION_GUIDE.md
 ├── cleanup-scheduling.sql
-└── mock-data.sql
+└── mock-data.sql        # Vacía los módulos y carga datos ficticios (no toca usuarios ni horarios)
 ```
 
 ---

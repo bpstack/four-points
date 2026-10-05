@@ -26,7 +26,7 @@ backend/db-mysql/
 ├── MIGRATIONS_POLICY.md
 ├── MIGRATION_GUIDE.md
 ├── INDEX.md           # Full table index + incremental migration log
-└── mock-data.sql
+└── mock-data.sql      # Clears module data and loads fictitious data (keeps users and scheduling)
 ```
 
 ## Migration policy (since 2026-05-20)
