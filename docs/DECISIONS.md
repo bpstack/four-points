@@ -871,15 +871,18 @@
   `VERIFY.md`, `ROADMAP.md`, `SESSION.md`) se archivan igual cuando el
   repositorio sea público.
 
-## ADR-041 — El ROADMAP se archiva al cerrar la publicación
+## ADR-041 — Los documentos de la publicación se archivan juntos
 
 - **Estado:** ✅ aceptada (2026-10-05)
 - **Fecha:** 2026-10-05
-- **Decisión:** `docs/ROADMAP.md` pasa a `docs/_archive/docs/ROADMAP.md`
-  (último commit que lo contiene: `e87581b`). Lo pendiente vive solo en
-  `TODO.md`, y si un punto depende de otro se dice en el propio punto.
-- **Motivo:** describía las fases para publicar el repositorio y todas
-  quedaron cerradas el 2026-10-05 (la 3 se absorbió en la 1c). Un plan
-  terminado que sigue en la raíz de `docs/` parece trabajo vivo.
-- **Consecuencias:** las ADR anteriores que citan `ROADMAP.md` no se tocan:
-  `git show e87581b:docs/ROADMAP.md` lo recupera. Aplica ADR-040.
+- **Decisión:** `ROADMAP.md`, `GITCLEAN.md` y `VERIFY.md` pasan a
+  `docs/_archive/open-source-release/`, con un README que dice qué es cada
+  uno. Último commit que los contiene: `025e76c`
+  (`git show 025e76c:docs/<fichero>`). Lo pendiente vive solo en `TODO.md`, y si
+  un punto depende de otro se dice en el propio punto.
+- **Motivo:** describían el paso de privado a público, que terminó el
+  2026-10-05: todas las fases cerradas, el historial reescrito y auditado,
+  ninguna fila de `VERIFY.md` sin probar o fallida (194 filas). Juntos cuentan
+  el proceso entero; sueltos en `docs/` parecían trabajo vivo.
+- **Consecuencias:** las ADR anteriores que los citan no se tocan; el comando
+  de arriba los recupera. `SESSION.md` sigue en `docs/`. Aplica ADR-040.

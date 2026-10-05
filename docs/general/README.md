@@ -197,7 +197,7 @@ like this is in ADR-030.
   `SameSite=Lax` cookies are not sent and the CORS list rejects it. Under
   `four-points.stackbp.es` both work without touching code.
 
-**Test users** (created on 2026-10-04 to verify `docs/VERIFY.md` role by role)
+**Test users** (created on 2026-10-04 to verify the pre-release fixes role by role)
 
 | User        | Role            | Email                  |
 | ----------- | --------------- | ---------------------- |

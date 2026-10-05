@@ -19,12 +19,12 @@ secret scanning y push protection activados. Toca «Después de publicar».
 Las fases 1c y 2 quedaron
 cerradas el 2026-10-05: las brechas de «Antes de publicar» arregladas y
 probadas, y el historial de `main` y `claude/compassionate-planck-gh6aof` limpio
-y auditado (`GITCLEAN.md`).
+y auditado.
 
-El historial limpio está en `bpstack/four-points`, **público**. El
-original sigue privado como `four-points-archive`. Vercel y Render despliegan ya
-desde el nuevo, en producción y en preview (`VERIFY.md`, «Cambio al repositorio
-nuevo»). Decisiones en `DECISIONS.md`, hasta ADR-040.
+El historial limpio está en `bpstack/four-points`, **público**. El original
+está archivado y privado como `four-points-archive`. Vercel y Render despliegan
+desde el nuevo, en producción y en preview. Decisiones en `DECISIONS.md`, hasta
+ADR-041.
 
 La demo pública (fase 5) está en producción desde el 2026-10-05: cuenta demo
 con botón, bloqueos, límites, reinicio diario, Configuración → Demo y base de
@@ -43,12 +43,13 @@ documentación obsoleta está archivada (ADR-040).
    `AGENTS.md`).
 3. **Idiomas:** se trabaja en español; la documentación pública de `docs/` va en
    inglés y no cita ADR ni `TODO.md`. `DECISIONS.md`,
-   `SESSION.md`, `TODO.md`, `VERIFY.md` y `GITCLEAN.md` siguen en español.
+   `SESSION.md` y `TODO.md` siguen en español.
 
 ## Siguiente
 
-1. Archivar `GITCLEAN.md`, `VERIFY.md` y `SESSION.md` como dice ADR-040,
-   cuando ya no hagan falta. `ROADMAP.md` ya está archivado (ADR-041).
+1. Los documentos de la publicación (`ROADMAP.md`, `GITCLEAN.md`,
+   `VERIFY.md`) están archivados en `docs/_archive/open-source-release/`
+   (ADR-041).
 2. «Después de publicar» de `TODO.md`, empezando por la rotación de
    credenciales (se puede adelantar).
 
