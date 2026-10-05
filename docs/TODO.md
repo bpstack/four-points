@@ -18,7 +18,7 @@ hace que alguien reimplemente lo que ya existe.
 
 ## Rama `claude/compassionate-planck-gh6aof`
 
-Fusionada en `main` el 2026-10-04 (PR #7, commit de merge `942fdfa`). La rama
+Fusionada en `main` el 2026-10-04 (PR #7, commit de merge `5ccb64f`). La rama
 sigue siendo donde se arregla este fichero y se prueba en el entorno preview.
 
 ## Antes de publicar
@@ -34,7 +34,7 @@ sigue siendo donde se arregla este fichero y se prueba en el entorno preview.
       2026-10-04: se quitaron los 14 ficheros con la de Aiven (`basics/`,
       `add-libre-number.ts`, `backfill-libre-numbers.ts`,
       `set-holidays-2026.ts`, `backup-aiven.sh`) y los 3 scripts locales
-      leen `backend/.env`. Siguen en el historial desde `f5d47d6`, junto con
+      leen `backend/.env`. Siguen en el historial desde `d04504f`, junto con
       los 4 volcados de `backup/` (versionados hasta el 2026-10-04) y
       `backend/.env.example` hasta el 2026-10-02. Se limpian en la fase 2
       (`GITCLEAN.md`) y después se rotan. `user-repository-login.test.ts`
@@ -58,7 +58,7 @@ sigue siendo donde se arregla este fichero y se prueba en el entorno preview.
       nombres), los 18 `.http` de `backend/API REST/` (contraseñas, tokens y
       usuarios) y los nombres de los comentarios de `aiven/19_scheduling.sql`
       y `20251224_add_scheduling.sql`; los fixtures del corpus del solver
-      usan `EMP_01`…`EMP_07` desde `8af5a8b`. Quedan los usuarios de horarios
+      usan `EMP_01`…`EMP_07` desde `7328f13`. Quedan los usuarios de horarios
       en la BD (9 de 10 con nombre de pila). El autor de las guías del
       checklist y de los README es el propietario y se queda. Todo sigue en el
       historial (fase 2, `GITCLEAN.md`).

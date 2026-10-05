@@ -592,8 +592,8 @@
   - `claude/compassionate-planck-gh6aof` entra en `main` con un **merge
     normal** («Create a merge commit»), **no con squash**. Los commits llegan a
     `main` uno a uno.
-  - Los **5 commits con autor `Claude <noreply@anthropic.com>`** (`ec8e901`,
-    `f9d1541`, `2ed0abb`, `8584e93`, `6a67ab3`) **no se rehacen ahora**: su
+  - Los **5 commits con autor `Claude <noreply@anthropic.com>`** (`c4719b2`,
+    `8af5641`, `9c583eb`, `1d5b3ca`, `d432c30`) **no se rehacen ahora**: su
     autor pasa a `bpstack` en la reescritura de la fase 2, con
     `git-filter-repo --mailmap`, la misma pasada que quita los ficheros
     privados (`GITCLEAN.md`).

@@ -50,7 +50,7 @@ el historial.
     sustitutos que el árbol actual;
   - `replacements-names.txt`: nombres del personal. En mayúsculas pasan a
     `EMP_01`…`EMP_11`, como el corpus del solver; en el resto, a nombres
-    inventados (los mismos que el árbol desde `4c6a038`). `Salvador Pérez`
+    inventados (los mismos que el árbol desde `42f6ac0`). `Salvador Pérez`
     se queda como autor;
   - `mailmap.txt`: `Claude`, `Azyd` y `bp` pasan a `bpstack` (los tres son
     el propietario);
@@ -61,7 +61,7 @@ el historial.
   - `strip-blobs.txt`: los 2 blobs del informe Opera real de ingresos
     (`OperaPrint-sample.pdf`, su copia en `backend/test/data/` y el `.txt`
     que genera `pdf-parse`), hallado en el barrido de OpenCode y sustituido
-    en el árbol por una muestra sintética (`a2cfbec`)
+    en el árbol por una muestra sintética (`c50b09a`)
     (`--strip-blobs-with-ids`).
 - ✅ Barrido de OpenCode (2026-10-05): no añade secretos ni rutas nuevas;
   sí el informe Opera. Su informe escribió en claro la contraseña y el host
@@ -80,7 +80,7 @@ el historial.
   `bpstack` y `GitHub`), pero las puntas no son idénticas: `main` aún no
   tenía los arreglos de la rama (nombres, informe Opera) y una regla tocaba
   una línea de este documento. Se repite tras fusionar la rama en `main`.
-- ✅ Rama fusionada en `main` (PR #9, `289c737`).
+- ✅ Rama fusionada en `main` (PR #9, `2d1005a`).
 - ✅ Ejecución definitiva en `work.git` (clon nuevo de GitHub, 2026-10-05),
   auditada:
   - 0 secretos, 0 dominios y nombres reales, 0 restos del informe Opera en
@@ -160,7 +160,7 @@ propietario.
 - **Volcados de BD**: `backend/db-mysql/backup/backup_hotel_db_*.sql` (cuatro;
   versionados hasta el 2026-10-04, aunque `.gitignore` ya los ignoraba) y los
   ya borrados `backup_hotel_db-aiven.sql` y `backup_hotel_db-local.sql`
-  (commits `dad3cdc`, `f5d47d6` y `7ac45e7`).
+  (commits `f3d9898`, `d04504f` y `8109e5e`).
 - **Scripts con la contraseña de Aiven**, quitados del árbol el 2026-10-04:
   `backend/db-mysql/scripts/basics/` (10), `add-libre-number.ts`,
   `backfill-libre-numbers.ts`, `set-holidays-2026.ts` y `backup-aiven.sh`.
@@ -229,8 +229,8 @@ Decidido en ADR-031 (2026-10-04). Se hace en la misma pasada de
 `git-filter-repo`, con `--mailmap`; no cambia el contenido de ningún commit.
 
 - **Obligatorio**: los 5 commits con autor `Claude <noreply@anthropic.com>`,
-  todos de la rama `claude/compassionate-planck-gh6aof` (`ec8e901`, `f9d1541`,
-  `2ed0abb`, `8584e93`, `6a67ab3`), pasan a `bpstack <contact.bstack@gmail.com>`.
+  todos de la rama `claude/compassionate-planck-gh6aof` (`c4719b2`, `8af5641`,
+  `9c583eb`, `1d5b3ca`, `d432c30`), pasan a `bpstack <contact.bstack@gmail.com>`.
   Ninguna otra rama tiene commits de ese autor (_comprobado el 2026-10-04_).
 - **A confirmar en el paso 2 (Propuesta)**: unificar también `Azyd` y `bp`, los
   dos con el mismo correo, en `bpstack`.

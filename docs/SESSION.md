@@ -55,7 +55,7 @@ Los cuatro `backend/db-mysql/backup/backup_hotel_db_{aiven,local}_2026*.sql`
 salieron del árbol el 2026-09-28 (`git rm --cached`; siguen en el disco del PC
 `dz`, ignorados por `.gitignore`). En el historial siguen estos cuatro y además
 `backup_hotel_db-aiven.sql` y `backup_hotel_db-local.sql`; entraron en
-`dad3cdc`, `f5d47d6` y `7ac45e7`. **No se han abierto.** Se eliminan del
+`f3d9898`, `d04504f` y `8109e5e`. **No se han abierto.** Se eliminan del
 historial en la fase 2, en todas las ramas: `main`, `chore/audit-prep-sprint-0`,
 `feature/ai-schedule-generator`, `feature/auth-hardening` y
 `feature/observability-pino` (sin tags).
