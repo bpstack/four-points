@@ -9,6 +9,14 @@
 > sola.
 >
 > El **porqué** vive aquí; el estado actual vive en `SESSION.md`.
+>
+> **Documentos archivados:** lo que salió del repositorio está listado en
+> [ADR-040](#adr-040--la-documentación-obsoleta-se-archiva-fuera-del-repositorio)
+> (documentación obsoleta) y
+> [ADR-041](#adr-041--los-documentos-de-la-publicación-se-archivan-juntos) (el
+> proceso de publicación: `ROADMAP.md`, `GITCLEAN.md`, `VERIFY.md`), con el
+> comando que recupera cada uno del historial. La copia local está en
+> `docs/_archive/`, que git ignora.
 
 ---
 
@@ -877,8 +885,15 @@
 - **Fecha:** 2026-10-05
 - **Decisión:** `ROADMAP.md`, `GITCLEAN.md` y `VERIFY.md` pasan a
   `docs/_archive/open-source-release/`, con un README que dice qué es cada
-  uno. Último commit que los contiene: `025e76c`
-  (`git show 025e76c:docs/<fichero>`). Lo pendiente vive solo en `TODO.md`, y si
+  uno. Se recuperan del historial público:
+
+  | Fichero | Comando |
+  | --- | --- |
+  | `ROADMAP.md` | `git show 5f0daa2:docs/ROADMAP.md` |
+  | `GITCLEAN.md` | `git show 025e76c:docs/GITCLEAN.md` |
+  | `VERIFY.md` | `git show 025e76c:docs/VERIFY.md` |
+
+  Lo pendiente vive solo en `TODO.md`, y si
   un punto depende de otro se dice en el propio punto.
 - **Motivo:** describían el paso de privado a público, que terminó el
   2026-10-05: todas las fases cerradas, el historial reescrito y auditado,
