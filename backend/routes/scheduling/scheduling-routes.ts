@@ -73,6 +73,7 @@ import { generateSchedule } from '../../controllers/scheduling/schedule-generate
 // Middlewares
 import { authenticateToken } from '../../middlewares/authenticateToken.js'
 import { isAdmin } from '../../middlewares/roleCheck.js'
+import { denyDemoWrites } from '../../middlewares/demoRestriction.js'
 
 const router: Router = express.Router()
 
@@ -86,6 +87,10 @@ const router: Router = express.Router()
 // ========================================
 router.use(authenticateToken)
 router.use(isAdmin)
+
+// The demo account cannot change the configuration; months, assignments,
+// requests and generating stay open, and are reset daily (ADR-038)
+router.use(['/config', '/shifts', '/rules', '/employees', '/contracts'], denyDemoWrites)
 
 // ========================================
 // CONFIG ROUTES

@@ -14,6 +14,7 @@ interface UserForToken {
   id: string
   username?: string
   role?: string
+  demo?: boolean
   type?: 'access' | 'refresh'
 }
 
@@ -29,6 +30,7 @@ export function generateAccessToken(user: UserForToken): string {
     id: user.id,
     username: user.username || '',
     role: user.role || 'user',
+    ...(user.demo ? { demo: true } : {}),
     type: 'access',
   }
 
@@ -50,6 +52,7 @@ export function generateRefreshToken(user: UserForToken): string {
     id: user.id,
     username: user.username || '',
     role: user.role || 'user',
+    ...(user.demo ? { demo: true } : {}),
     type: 'refresh',
   }
 

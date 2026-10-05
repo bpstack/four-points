@@ -13,6 +13,7 @@ export interface UserWithRole extends RowDataPacket {
   password?: string
   role: string
   is_active: number | boolean
+  is_demo?: number | boolean
   created_at: Date
   updated_at?: Date | null
   avatar_url?: string | null
@@ -34,6 +35,7 @@ export interface User {
   email: string
   role: string
   is_active: number | boolean
+  is_demo?: number | boolean
   created_at: Date
   updated_at?: Date | null
   avatar_url?: string | null
@@ -79,6 +81,8 @@ export interface TokenPayload {
   id: string
   username: string
   role: string
+  // Public demo account (users.is_demo); absent for everyone else
+  demo?: boolean
   type: 'access' | 'refresh'
   iat?: number
   exp?: number

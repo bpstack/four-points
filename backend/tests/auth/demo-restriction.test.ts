@@ -13,7 +13,8 @@ vi.mock('../../repositories/demo/demo-activity-repository.js', () => ({
   },
 }))
 
-const { demoRestriction } = await import('../../middlewares/demoRestriction.js')
+const { demoRestriction, denyDemo, denyDemoWrites } =
+  await import('../../middlewares/demoRestriction.js')
 const { DemoActivityRepository } =
   await import('../../repositories/demo/demo-activity-repository.js')
 
@@ -21,6 +22,7 @@ function buildReq(overrides: Partial<Request> = {}): Request {
   return {
     method: 'GET',
     originalUrl: '/',
+    headers: {},
     body: {},
     ip: '127.0.0.1',
     socket: { remoteAddress: '127.0.0.1' } as any,
@@ -160,5 +162,88 @@ describe('demoRestriction — blocked-attempt log', () => {
       confirmPassword: '[REDACTED]',
       note: 'keep',
     })
+  })
+})
+
+// The public demo account (users.is_demo) is a real admin: only what is
+// declared here or on the route is blocked
+const DEMO_USER = { id: 'd1', username: 'demo', role: 'admin', isDemo: true } as any
+const OWNER = { id: 'a1', username: 'admin', role: 'admin' } as any
+
+describe('demoRestriction — demo account (is_demo)', () => {
+  it.each(['multipart/form-data; boundary=x', 'Multipart/Form-Data', 'multipart/mixed'])(
+    'blocks any upload (content-type %s)',
+    (contentType) => {
+      const req = buildReq({
+        user: DEMO_USER,
+        method: 'POST',
+        originalUrl: '/api/maintenance/1/images',
+        headers: { 'content-type': contentType } as any,
+      })
+      const res = buildRes()
+      demoRestriction(req, res, next)
+      expect(next).not.toHaveBeenCalled()
+      expect(res.status).toHaveBeenCalledWith(403)
+      expect(DemoActivityRepository.logActivity).toHaveBeenCalledOnce()
+    }
+  )
+
+  it('lets JSON writes through (the route decides)', () => {
+    const req = buildReq({
+      user: DEMO_USER,
+      method: 'DELETE',
+      originalUrl: '/api/parking/bookings/ABC',
+      headers: { 'content-type': 'application/json' } as any,
+    })
+    const res = buildRes()
+    demoRestriction(req, res, next)
+    expect(next).toHaveBeenCalledOnce()
+  })
+
+  it('lets the owner upload', () => {
+    const req = buildReq({
+      user: OWNER,
+      method: 'POST',
+      headers: { 'content-type': 'multipart/form-data; boundary=x' } as any,
+    })
+    const res = buildRes()
+    demoRestriction(req, res, next)
+    expect(next).toHaveBeenCalledOnce()
+  })
+})
+
+describe('denyDemo', () => {
+  it.each(['GET', 'POST', 'DELETE'])('blocks the demo account on %s', (method) => {
+    const res = buildRes()
+    denyDemo(buildReq({ user: DEMO_USER, method }), res, next)
+    expect(next).not.toHaveBeenCalled()
+    expect(res.status).toHaveBeenCalledWith(403)
+  })
+
+  it('lets the owner through', () => {
+    const res = buildRes()
+    denyDemo(buildReq({ user: OWNER, method: 'POST' }), res, next)
+    expect(next).toHaveBeenCalledOnce()
+  })
+})
+
+describe('denyDemoWrites', () => {
+  it.each(['GET', 'HEAD', 'OPTIONS'])('lets the demo account %s', (method) => {
+    const res = buildRes()
+    denyDemoWrites(buildReq({ user: DEMO_USER, method }), res, next)
+    expect(next).toHaveBeenCalledOnce()
+  })
+
+  it.each(['POST', 'PUT', 'PATCH', 'DELETE'])('blocks the demo account on %s', (method) => {
+    const res = buildRes()
+    denyDemoWrites(buildReq({ user: DEMO_USER, method }), res, next)
+    expect(next).not.toHaveBeenCalled()
+    expect(res.status).toHaveBeenCalledWith(403)
+  })
+
+  it('lets the owner write', () => {
+    const res = buildRes()
+    denyDemoWrites(buildReq({ user: OWNER, method: 'DELETE' }), res, next)
+    expect(next).toHaveBeenCalledOnce()
   })
 })

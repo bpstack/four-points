@@ -141,6 +141,7 @@ export class UserRepository {
         u.email,
         u.password,
         u.is_active,
+        u.is_demo,
         u.created_at,
         u.avatar_url,
         r.name AS role
@@ -228,6 +229,7 @@ export class UserRepository {
           u.email,
           u.created_at,
           u.is_active,
+          u.is_demo,
           u.updated_at,
           u.avatar_url,
           r.name AS role

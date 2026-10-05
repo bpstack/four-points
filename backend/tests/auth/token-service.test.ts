@@ -73,3 +73,17 @@ describe('tokenService — error cases', () => {
     expect(() => verifyToken(expired)).toThrow(/expirado/i)
   })
 })
+
+describe('tokenService — demo claim', () => {
+  it('marks the demo account in both tokens', () => {
+    const user = { ...VALID_USER, demo: true }
+    expect(verifyToken(generateAccessToken(user)).demo).toBe(true)
+    expect(verifyToken(generateRefreshToken(user)).demo).toBe(true)
+  })
+
+  it('leaves the claim out for everyone else', () => {
+    for (const user of [VALID_USER, { ...VALID_USER, demo: false }]) {
+      expect(verifyToken(generateAccessToken(user))).not.toHaveProperty('demo')
+    }
+  })
+})

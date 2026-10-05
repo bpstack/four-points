@@ -13,6 +13,7 @@ import {
   deleteAvatar,
 } from '../../controllers/auth/auth-controllers.js'
 import { authenticateToken } from '../../middlewares/authenticateToken.js'
+import { denyDemo } from '../../middlewares/demoRestriction.js'
 import { singleImage } from '../../middlewares/imageUpload.js'
 import {
   loginLimiter,
@@ -39,7 +40,7 @@ router.post('/logout', logout)
 // ========================================
 
 // Solo admins reales pueden crear usuarios (no demo-admin)
-router.post('/register', authenticateToken, isRealAdmin, register)
+router.post('/register', authenticateToken, denyDemo, isRealAdmin, register)
 
 // ========================================
 // PROTECTED ROUTES (require authentication)
@@ -48,11 +49,18 @@ router.post('/register', authenticateToken, isRealAdmin, register)
 router.get('/me', authenticateToken, me)
 
 // Profile management (with rate limiting)
-router.patch('/me/profile', authenticateToken, profileUpdateLimiter, updateProfile)
-router.patch('/me/password', authenticateToken, passwordChangeLimiter, updatePassword)
+// The demo account cannot change its username, password or avatar (it is shared)
+router.patch('/me/profile', authenticateToken, denyDemo, profileUpdateLimiter, updateProfile)
+router.patch('/me/password', authenticateToken, denyDemo, passwordChangeLimiter, updatePassword)
 
 // Avatar management
-router.post('/me/avatar', authenticateToken, singleImage('avatar', 2 * 1024 * 1024), uploadAvatar)
-router.delete('/me/avatar', authenticateToken, deleteAvatar)
+router.post(
+  '/me/avatar',
+  authenticateToken,
+  denyDemo,
+  singleImage('avatar', 2 * 1024 * 1024),
+  uploadAvatar
+)
+router.delete('/me/avatar', authenticateToken, denyDemo, deleteAvatar)
 
 export default router

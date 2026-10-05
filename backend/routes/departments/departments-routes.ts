@@ -11,6 +11,7 @@ import {
 
 import { authenticateToken } from '../../middlewares/authenticateToken.js'
 import { isAdmin, excludeMantenimiento } from '../../middlewares/roleCheck.js'
+import { denyDemoWrites } from '../../middlewares/demoRestriction.js'
 
 const router = Router()
 
@@ -20,6 +21,8 @@ const router = Router()
 // ========================================
 router.use(authenticateToken)
 router.use(excludeMantenimiento)
+// Departments are configuration: the demo account only reads them
+router.use(denyDemoWrites)
 
 // ========================================
 // RUTAS

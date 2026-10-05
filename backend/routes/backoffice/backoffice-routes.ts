@@ -13,6 +13,7 @@ import multer from 'multer'
 import { BackofficeController } from '../../controllers/backoffice/backoffice-controller.js'
 import { authenticateToken } from '../../middlewares/authenticateToken.js'
 import { canAccessBackoffice, isRealAdmin } from '../../middlewares/roleCheck.js'
+import { denyDemo } from '../../middlewares/demoRestriction.js'
 
 const router = Router()
 
@@ -70,7 +71,8 @@ router.get('/categories/:id', BackofficeController.getCategoryById)
  * @desc    Crear nueva categoría
  * @access  Private (admin only)
  */
-router.post('/categories', isRealAdmin, BackofficeController.createCategory)
+// Categories are a catalog the daily reset keeps: the demo account cannot add them
+router.post('/categories', isRealAdmin, denyDemo, BackofficeController.createCategory)
 
 // ========================================
 // RUTAS DE PROVEEDORES

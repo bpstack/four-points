@@ -8,11 +8,14 @@ import { Router } from 'express'
 import { DemoActivityController } from '../../controllers/demo/demo-activity-controller.js'
 import { authenticateToken } from '../../middlewares/authenticateToken.js'
 import { isRealAdmin } from '../../middlewares/roleCheck.js'
+import { denyDemo } from '../../middlewares/demoRestriction.js'
 
 const router = Router()
 
 // Aplicar autenticación y verificar que es admin real
 router.use(authenticateToken)
+// The log holds visitors' IPs: never for the demo account, which is an admin
+router.use(denyDemo)
 router.use(isRealAdmin)
 
 // ========================================

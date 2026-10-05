@@ -86,6 +86,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       id: user.id,
       username: user.username,
       role: user.role,
+      demo: Boolean(user.is_demo),
       type: 'access',
     }
 
@@ -213,6 +214,7 @@ export const refreshToken = async (req: Request, res: Response): Promise<void> =
       id: user.id,
       username: user.username,
       role: user.role,
+      demo: Boolean(user.is_demo),
       type: 'access',
     }
 
