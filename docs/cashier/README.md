@@ -18,12 +18,12 @@ when every shift is closed.
 Every role **except `mantenimiento`**:
 
 - **Everyone with access** sees days, shifts and vouchers.
-- **`admin`, `recepcionista`, `group-admin` and `demo-admin`** start a day, fill
-  in and close shifts, record payments and counts, create vouchers and close the
+- **`admin`, `recepcionista` and `group-admin`** start a day, fill in and close
+  shifts, record payments and counts, create vouchers and close the
   day.
 - **Only `admin`** reopens a shift or a day, cancels or deletes a voucher,
   deletes a shift and changes who worked a shift.
-- **Reports, history and statistics** are for `admin` (and `demo-admin`).
+- **Reports, history and statistics** are for `admin`.
 - Closed shifts and closed days **stay editable** by those same roles. This is
   deliberate for now (ADR-032).
 

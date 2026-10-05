@@ -108,7 +108,7 @@ the notification is saved but the email is skipped silently.
 - **Read groups, contacts, rooms, payments, status, history**: all authenticated
   (`canViewGroups` — includes `mantenimiento`)
 - **Create/update groups, contacts, rooms, payments, status**: `admin`,
-  `group-admin`, `demo-admin` (`canManageGroups`)
+  `group-admin` (`canManageGroups`)
 - **Delete group**: `admin` only (`canManageGroups` + `isAdmin`)
 
 `mantenimiento` can **view** groups (needed for notification access from the

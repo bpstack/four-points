@@ -20,8 +20,8 @@ phase (product inventory, supplier orders) that has not started.
 
 ## Who uses it
 
-Every role **except `mantenimiento`**: `admin`, `recepcionista`, `group-admin`
-and `demo-admin`. There are no admin-only actions — any of these roles can
+Every role **except `mantenimiento`**: `admin`, `recepcionista` and
+`group-admin`. There are no admin-only actions — any of these roles can
 upload a PDF, edit a day by hand, or delete a day's revenue, of any date. This
 is deliberate for now (ADR-032).
 

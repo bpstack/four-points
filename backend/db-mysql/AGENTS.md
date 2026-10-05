@@ -136,7 +136,6 @@ See `aiven/aiven-conexion.md` for connection details. SSL required.
 | 2   | `admin`         | Full admin                            |
 | 3   | `mantenimiento` | Maintenance staff                     |
 | 6   | `group-admin`   | Group administrator                   |
-| 7   | `demo-admin`    | Demo user (disabled since 2026-05-12) |
 
 ## Backups
 

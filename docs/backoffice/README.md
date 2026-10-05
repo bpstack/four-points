@@ -15,8 +15,7 @@ in one step.
 
 ## Who uses it
 
-Only **`admin`**. `demo-admin` can see it but not change anything. No other role
-has access.
+Only **`admin`**. No other role has access.
 
 ## What it can do
 
