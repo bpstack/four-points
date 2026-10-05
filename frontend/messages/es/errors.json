@@ -75,6 +75,7 @@
   },
   "codes": {
     "INTERNAL_ERROR": "Error interno del servidor",
+    "STORAGE_NOT_CONFIGURED": "El almacenamiento de archivos no está configurado. Consulta la documentación para configurar Cloudinary.",
     "INVALID_DATA": "Datos inválidos",
     "INVALID_ID": "ID inválido",
     "INVALID_DATE_FORMAT": "Formato de fecha inválido",

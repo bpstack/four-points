@@ -25,6 +25,7 @@ import {
   profileUpdateLimiter,
 } from '../../middlewares/rateLimiter.js'
 import { isAdmin } from '../../middlewares/roleCheck.js'
+import { requireStorage } from '../../middlewares/requireStorage.js'
 
 const router: Router = express.Router()
 
@@ -62,6 +63,7 @@ router.post(
   '/me/avatar',
   authenticateToken,
   denyDemo,
+  requireStorage,
   singleImage('avatar', 2 * 1024 * 1024),
   uploadAvatar
 )

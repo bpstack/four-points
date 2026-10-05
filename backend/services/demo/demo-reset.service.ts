@@ -25,6 +25,7 @@ import db, { dbConfig } from '../../config/db.js'
 import { formatDateMadrid, getTodayMadrid } from '../../config/date-utils.js'
 import { logger } from '../../config/logger.js'
 import { readSqlScript } from '../db/sql-script.js'
+import { SNAPSHOT_TABLES } from './snapshot-tables.js'
 
 const MOCK_FILE = join(
   dirname(fileURLToPath(import.meta.url)),
@@ -36,21 +37,7 @@ const MOCK_FILE = join(
 
 const LOCK_NAME = 'four_points_demo_reset'
 
-// Every scheduling table: the base is the whole module, configuration included
-export const SNAPSHOT_TABLES = [
-  'scheduling_config',
-  'scheduling_shifts',
-  'scheduling_employees',
-  'scheduling_employee_contracts',
-  'scheduling_employee_rules',
-  'scheduling_employee_requests',
-  'scheduling_months',
-  'scheduling_days',
-  'scheduling_constraints',
-  'scheduling_assignments',
-  'scheduling_history',
-  'scheduling_solver_runs',
-] as const
+export { SNAPSHOT_TABLES }
 
 const snapshotName = (table: string) => `demo_snapshot_${table}`
 

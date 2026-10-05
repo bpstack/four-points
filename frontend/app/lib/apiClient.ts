@@ -17,6 +17,7 @@ interface FetchOptions extends RequestInit {
 const isClient = typeof window !== 'undefined'
 
 import { API_BASE_URL } from '@/app/lib/env'
+import { errorCodeMessage } from '@/app/lib/helpers/errorCodeMessage'
 
 // URLs can carry personal data (e.g. document numbers in blacklist search): no logs in production
 const debug: (...args: unknown[]) => void =
@@ -263,7 +264,9 @@ async function handleApiError(response: Response): Promise<never> {
     error: `HTTP ${response.status}: ${response.statusText}`,
   }))
 
-  const message = errorData.error || errorData.message || `Request failed: ${response.status}`
+  const translated = isClient && errorCodeMessage(errorData.code, document.documentElement.lang)
+  const message =
+    translated || errorData.error || errorData.message || `Request failed: ${response.status}`
   const isDemo = errorData.demo === true
   const errorCode = errorData.code // Capture error code for i18n
 

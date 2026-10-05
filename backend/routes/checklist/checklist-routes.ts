@@ -4,6 +4,7 @@ import express, { Router } from 'express'
 import { authenticateToken } from '../../middlewares/authenticateToken.js'
 import { excludeMantenimiento, canResetChecklist } from '../../middlewares/roleCheck.js'
 import { singleImage } from '../../middlewares/imageUpload.js'
+import { requireStorage } from '../../middlewares/requireStorage.js'
 import { validateChecklistParams } from '../../middlewares/checklistParams.js'
 import {
   getRunController,
@@ -61,7 +62,12 @@ router.delete('/:id/steps/:stepId/comments/:commentId', deleteCommentController)
 router.get('/:id/steps/:stepId/attachments', getAttachmentsController)
 
 // POST /api/checklists/:id/steps/:stepId/attachments
-router.post('/:id/steps/:stepId/attachments', singleImage('file'), addAttachmentController)
+router.post(
+  '/:id/steps/:stepId/attachments',
+  requireStorage,
+  singleImage('file'),
+  addAttachmentController
+)
 
 // DELETE /api/checklists/:id/steps/:stepId/attachments/:attachmentId
 router.delete('/:id/steps/:stepId/attachments/:attachmentId', deleteAttachmentController)

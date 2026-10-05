@@ -9,6 +9,7 @@ import multer from 'multer'
 import { BlacklistController } from '../../controllers/blacklist/blacklist-controller.js'
 import { authenticateToken } from '../../middlewares/authenticateToken.js'
 import { excludeMantenimiento } from '../../middlewares/roleCheck.js'
+import { requireStorage } from '../../middlewares/requireStorage.js'
 
 const router = Router()
 
@@ -35,7 +36,7 @@ router.use(excludeMantenimiento)
  * POST /api/blacklist/upload
  * Subir imagen a Cloudinary
  */
-router.post('/upload', upload.single('image'), BlacklistController.uploadImage)
+router.post('/upload', requireStorage, upload.single('image'), BlacklistController.uploadImage)
 
 /**
  * GET /api/blacklist/images/:file

@@ -47,9 +47,9 @@ cp frontend/.env.example frontend/.env.local
 #    port 3306, set LOCAL_DB_PORT=3307 for Docker)
 docker compose --env-file backend/.env up -d
 
-# 3. Database: tables, departments, the local admin and fictitious data.
-#    It creates hotel_db and refuses to touch one that already has tables
-#    (add -- --force to replace it)
+# 3. Database: tables, the local admin and fictitious data in every module
+#    (scheduling included). It creates hotel_db and refuses to touch one that
+#    already has tables (add -- --force to replace it)
 cd backend && pnpm install && pnpm setup:local
 
 # 4. Scheduling solver (once)
@@ -57,9 +57,9 @@ cd scheduling-solver && python -m venv venv
 venv/Scripts/pip install -r requirements.txt   # Linux/macOS: venv/bin/pip
 cd ..
 
-# 5. Run
-pnpm dev:local                                  # API on :4000
-cd ../frontend && pnpm install && pnpm dev      # http://localhost:3000
+# 5. Run, in two terminals
+pnpm dev:local                                  # backend/: API on :4000
+cd frontend && pnpm install && pnpm dev         # http://localhost:3000
 ```
 
 Sign in as **`admin`** / **`fourpoints-local`**: a full administrator,
@@ -67,8 +67,9 @@ users, roles and settings included. The password is public on purpose:
 `setup:local` only runs against a local database, so this account never
 exists anywhere else. Change it in Profile if you like.
 
-Files (photos, PDFs) need a Cloudinary account in `backend/.env`; without it
-everything else works.
+Uploading photos and PDFs needs a Cloudinary account in `backend/.env`.
+Without it everything else works, and an upload just says storage is not
+configured.
 
 ## License
 
