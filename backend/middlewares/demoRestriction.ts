@@ -54,7 +54,9 @@ function isAllowedForDemo(method: string, originalUrl: string): boolean {
 const SENSITIVE_FIELDS = new Set(['password', 'currentPassword', 'newPassword', 'confirmPassword'])
 
 function sanitizeBodyForLog(body: unknown): string {
-  if (!body || typeof body !== 'object') return JSON.stringify(body).substring(0, 500)
+  // Express 5 leaves req.body undefined without a JSON body (DELETE, uploads)
+  if (!body || typeof body !== 'object')
+    return String(JSON.stringify(body ?? null)).substring(0, 500)
   const cleaned: Record<string, unknown> = {}
   for (const [k, v] of Object.entries(body as Record<string, unknown>)) {
     cleaned[k] = SENSITIVE_FIELDS.has(k) ? '[REDACTED]' : v

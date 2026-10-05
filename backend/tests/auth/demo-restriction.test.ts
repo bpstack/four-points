@@ -247,3 +247,26 @@ describe('denyDemoWrites', () => {
     expect(next).toHaveBeenCalledOnce()
   })
 })
+
+describe('blocking a request without a JSON body', () => {
+  it.each(['DELETE', 'POST'])('answers 403 on %s with req.body undefined', (method) => {
+    const res = buildRes()
+    denyDemo(buildReq({ user: DEMO_USER, method, body: undefined }), res, next)
+    expect(res.status).toHaveBeenCalledWith(403)
+    expect(DemoActivityRepository.logActivity).toHaveBeenCalledWith(
+      expect.objectContaining({ body_preview: 'null' })
+    )
+  })
+
+  it('answers 403 on an upload before multer reads the body', () => {
+    const req = buildReq({
+      user: DEMO_USER,
+      method: 'POST',
+      body: undefined,
+      headers: { 'content-type': 'multipart/form-data; boundary=x' } as any,
+    })
+    const res = buildRes()
+    demoRestriction(req, res, next)
+    expect(res.status).toHaveBeenCalledWith(403)
+  })
+})

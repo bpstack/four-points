@@ -59,10 +59,6 @@ export function authenticateToken(req: Request, res: Response, next: NextFunctio
       // demo-admin is the old demo role, restricted the same way until it is retired
       isDemo: decoded.demo === true || decoded.role === 'demo-admin',
     }
-
-    // ✅ DEMO: Verificar restricciones de usuario demo
-    // Para eliminar: quitar esta línea y el import de demoRestriction
-    demoRestriction(req, res, next)
   } catch (error) {
     // Diferencia entre token expirado y token inválido
     let message = 'Token inválido'
@@ -76,5 +72,9 @@ export function authenticateToken(req: Request, res: Response, next: NextFunctio
     }
 
     res.status(401).json({ error: message })
+    return
   }
+
+  // Demo account restrictions, outside the try: an error here is not a bad token
+  demoRestriction(req, res, next)
 }
