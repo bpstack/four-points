@@ -758,7 +758,9 @@
 
 ## ADR-037 — La demo va en la propia web y el repositorio se publica después
 
-- **Estado:** ✅ aceptada (2026-10-05)
+- **Estado:** ✅ aceptada (2026-10-05) · 📌 usuarios demo y acceso revisados
+  por
+  [ADR-038](#adr-038--un-solo-admin-demo-restringido-y-la-instalación-local-con-mysql-en-docker)
 - **Fecha:** 2026-10-05
 - **Decisión:**
   - `four-points.stackbp.es` es solo un escaparate: la demo pública va en esa
@@ -776,3 +778,42 @@
 - **Consecuencias:** si la web llega a usarse de verdad, la demo se separa
   entonces. Fase 5 antes de terminar la 4.
 - **Revisa:** ADR-035 en el momento de hacer público el repositorio.
+
+## ADR-038 — Un solo admin demo restringido y la instalación local con MySQL en Docker
+
+- **Estado:** ✅ aceptada (2026-10-05)
+- **Fecha:** 2026-10-05
+- **Decisión:**
+  - **Un solo usuario demo, con rol admin**, en lugar de uno por rol: como
+    admin ve todos los módulos. Se entra con un botón «Probar la demo» en el
+    login, sin contraseña: el usuario tiene una aleatoria que nadie conoce, y el
+    botón y su ruta solo existen con `DEMO_MODE=true` en el backend.
+  - **Marca `is_demo`** en el usuario, que viaja en el token. Un middleware
+    bloquea solo lo prohibido: gestión de usuarios y contraseñas, el propio
+    perfil, departamentos, toda subida de ficheros (cualquier `multipart`), el
+    registro de la demo y la configuración de horarios (turnos, parámetros,
+    empleados y contratos). Generar horarios, crear meses y peticiones sí. El
+    rol `demo-admin` se retira.
+  - **Reinicio diario** con la primera entrada a la demo del día: recarga
+    `mock-data.sql` y restaura una foto de las tablas de horarios guardada en la
+    BD.
+  - **En local, admin completo**, sin modo demo. MySQL en Docker, opcional y
+    **solo MySQL** (un `docker-compose.yml`); backend y frontend arrancan con
+    pnpm como ahora. `pnpm setup:local` crea las tablas, el primer admin y los
+    departamentos, y carga el mock.
+- **Motivo:** simplicidad, decisión del propietario. Un admin demo prueba toda
+  la app de una vez, y un botón no obliga a escribir nada. Con roles reales,
+  los permisos funcionan igual que para cualquier usuario y la restricción vive
+  en un solo sitio. Render gratuito se duerme, así que un cron a hora fija
+  puede no ejecutarse. Docker ahorra instalar MySQL; meter en él backend,
+  frontend y solver sería un segundo sistema que producción no usa.
+- **Rechazado:** usuarios demo por rol y contraseña pública en el login
+  (ADR-037); lista blanca de escrituras con el rol `demo-admin`; reinicio por
+  GitHub Actions (credenciales de Aiven en GitHub y tareas programadas que se
+  desactivan tras 60 días sin actividad); la app entera en Docker.
+- **Consecuencias:** CSRF sigue cubierto por `SameSite=Lax` y el rechazo de
+  orígenes ajenos; se añade un test. Para XSS se comprueba que un enlace
+  `javascript:` en las notas del checklist no se ejecuta. Límites nuevos para
+  el solver y las escrituras del usuario demo. El README pasa a explicar la
+  instalación local.
+- **Revisa:** ADR-037 en los usuarios demo y su acceso.

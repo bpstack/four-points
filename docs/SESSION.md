@@ -21,7 +21,7 @@ y auditado (`GITCLEAN.md`).
 El historial limpio está en `bpstack/four-points`, **todavía privado**. El
 original sigue privado como `four-points-archive`. Vercel y Render despliegan ya
 desde el nuevo, en producción y en preview (`VERIFY.md`, «Cambio al repositorio
-nuevo»). Decisiones en `DECISIONS.md`, hasta ADR-036.
+nuevo»). Decisiones en `DECISIONS.md`, hasta ADR-038.
 
 ## ⚠️ Empieza por aquí
 
@@ -38,8 +38,8 @@ nuevo»). Decisiones en `DECISIONS.md`, hasta ADR-036.
 
 ## Siguiente
 
-1. Planificar y construir la demo en la propia web: `TODO.md`, «Demo pública en
-   la propia web» (ADR-037).
+1. Construir la demo en la propia web, paso a paso: `TODO.md`, «Demo pública
+   en la propia web» (ADR-037, ADR-038). Empieza por la marca `is_demo`.
 2. Pasar `four-points` a público y activar secret scanning y push protection.
 3. «Después de publicar» de `TODO.md`, empezando por la rotación de
    credenciales (se puede adelantar).

@@ -21,7 +21,7 @@ cosa va a `TODO.md`.
 | 1c   | «Antes de publicar» de `TODO.md` resuelto y probado en producción        | 1b         |
 | 2    | Clon con el historial limpio (dos ramas) + `docs/GITCLEAN.md`            | 1c         |
 | 4    | Repositorio público nuevo con el historial limpio (dos ramas)            | 2          |
-| 5    | Demo pública en un entorno aparte, con datos ficticios y reinicio diario | 4          |
+| 5    | Demo pública en la propia web, con datos ficticios y reinicio diario     | 4          |
 
 El orden lo fija ADR-001, revisado por ADR-022 (fase 1b) y ADR-027 (fase 1c, que
 además absorbe la antigua fase 3 de tareas pendientes). ADR-033 limita la 1c a lo
@@ -63,7 +63,7 @@ rotación de credenciales (ADR-007) no bloquea: va en «Después de publicar» d
 ## Fase 5 — Demo pública
 
 Que cualquiera pruebe la aplicación en la propia web, que es solo un escaparate
-(2026-10-05): usuarios demo públicos por rol, datos ficticios, generación de
-horarios y reinicio diario. Reutiliza el rol `demo-admin`. Diseño y decisiones
-pendientes en `TODO.md`, «Demo pública en la propia web». El repositorio se hace
-público cuando la demo esté lista.
+(ADR-037): un admin demo restringido que entra con un botón, datos ficticios,
+generación de horarios y reinicio diario; y quien quiera verlo todo lo instala
+en local con admin completo (ADR-038). Pasos en `TODO.md`, «Demo pública en la
+propia web». El repositorio se hace público cuando la demo esté lista.

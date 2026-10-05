@@ -299,33 +299,41 @@ sigue siendo donde se arregla este fichero y se prueba en el entorno preview.
       pestaña muestra las rechazadas. Una factura incorrecta hoy se borra. El
       dueño decidió el 2026-10-04 no añadirlo porque casi nunca pasa; si se
       añade, hace falta también reabrir (`rejected` → `pending`).
-- [ ] **Demo pública en la propia web** (fase 5 de `ROADMAP.md`) — la web es
-      solo un escaparate (decidido por el dueño el 2026-10-05), así que la demo
-      va en `four-points.stackbp.es` con su BD, sin subdominio ni BD aparte
-      como proponía el plan del 2026-10-04. Si algún día se usa de verdad, la
-      demo se separa entonces.
-      - **Usuarios demo públicos por rol** (admin, recepción, mantenimiento y
-        grupos), con la contraseña a la vista en el login. Las cuentas del
-        dueño (`admin`, `qa_*`) siguen aparte, con contraseñas solo suyas.
-      - **Acceso:** ven toda la app y pueden crear, editar y borrar, porque se
-        reinicia. Bloqueado: la configuración (crear, editar o borrar usuarios
-        y roles, y cambiar contraseñas), subir ficheros a Cloudinary (o carpeta
-        `demo/` vaciada cada noche) y límites de peticiones más estrictos.
-      - **Generar horarios:** abrir el solver al rol demo (hoy toda la ruta de
-        horarios es solo `admin`). Con un límite por usuario o IP y un tiempo
-        máximo: el solver carga OR-Tools en el plan gratuito de Render (512 MB)
-        y el semáforo solo lo hace secuencial.
-      - **Reinicio diario:** un cron vuelve a cargar `mock-data.sql` y también
-        horarios, que el mock no toca: borrar los meses creados por la demo y
-        restaurar una base fija de meses y asignaciones. Esa base se genera
-        con el solver; no se saca de los meses actuales, que vienen de bajas
-        reales.
-      - **Arranque en local:** documentar cómo crear el primer admin y los
-        departamentos antes del mock; `MASTER_INSTALL.sql` no crea ninguno.
-      - **Al hacerlo:** ADR que revisa la propuesta del subdominio y la fase 5
-        de `ROADMAP.md`. El repositorio se hace público cuando la demo esté.
-- [ ] **Reutilizar el rol `demo-admin` para la demo pública** (antes «retirarlo»;
-      ver «Demo pública» y la fase 5 de `ROADMAP.md`) — el único usuario con
+- [ ] **Demo pública en la propia web** (fase 5 de `ROADMAP.md`, ADR-037 y
+      ADR-038) — la web es solo un escaparate, así que la demo va en
+      `four-points.stackbp.es` con su BD. Un paso por PR, probado en preview:
+      1. **Marca `is_demo`** en `users` (migración en `scripts/`), en el token y
+         en un middleware que bloquea, para usuarios demo: `/api/users` (salvo
+         lecturas), `/api/auth/register`, `/api/auth/me/*`, escrituras en
+         `/api/departments`, toda petición `multipart`, `/api/demo-activity` y
+         la configuración de horarios (turnos, `config`, empleados y
+         contratos). Tests de cada bloqueo y de que el resto pasa.
+      2. **Un solo usuario demo, rol admin**, con contraseña aleatoria que nadie
+         conoce. Ruta de entrada sin contraseña y botón «Probar la demo» en el
+         login, los dos solo con `DEMO_MODE=true`; la ruta con límite propio.
+         Las cuentas del dueño (`admin`, `qa_*`) siguen aparte.
+      3. **Límites:** generar horarios unas 5 veces por hora por IP y usuario
+         (el solver ya tiene 30 s de máximo y va de uno en uno; Render
+         gratuito tiene 512 MB) y escrituras más estrictas para el usuario
+         demo.
+      4. **Reinicio diario** con la primera entrada a la demo del día: recarga
+         `mock-data.sql` (fechas relativas a hoy; hay que poder ejecutarlo desde
+         Node, y hoy usa `DELIMITER`) y restaura una foto de las tablas de
+         horarios guardada en la BD. La base de horarios se genera una vez con
+         el solver; no se saca de los meses actuales, que vienen de bajas
+         reales. Ojo: el mock elige autores por rol y verá al usuario demo.
+      5. **Instalación local con admin completo:** `docker-compose.yml` solo
+         con MySQL (opcional), `pnpm setup:local` (tablas con
+         `MASTER_INSTALL.sql`, primer admin con contraseña que da quien
+         instala, departamentos y mock) y README en inglés con los pasos y el
+         entorno de Python del solver. Comprobar antes que `MASTER_INSTALL.sql`
+         deja una BD igual que la actual.
+      6. **Seguridad:** test de que un `POST` desde otro origen recibe 403
+         (CSRF) y de que un enlace `javascript:` en las notas del checklist no
+         se ejecuta (XSS).
+      7. **Retirar `demo-admin`** (ver entrada siguiente) y documentar.
+- [ ] **Retirar el rol `demo-admin`** (lo sustituye la marca `is_demo`,
+      ADR-038) — el único usuario con
       ese rol, `demo`, está desactivado (`is_active = 0`, comprobado en Aiven el
       2026-10-04). El rol sigue en los middlewares de `roleCheck.ts`, en
       `demoRestriction` (lista blanca de escrituras y registro de intentos
@@ -333,8 +341,8 @@ sigue siendo donde se arregla este fichero y se prueba en el entorno preview.
       reglas añadidas el 2026-10-02 ya no lo incluyen. En producción, mientras
       exista, `demo-admin` entra en backoffice y lee los PDFs de facturas por
       `/pdf-url`, `/pdf-download` y el ZIP (antes un punto 🔴 aparte; se movió
-      aquí el 2026-10-04 porque no hay ninguna cuenta activa): en la demo vale,
-      en producción no debe haber cuentas con ese rol.
+      aquí el 2026-10-04 porque no hay ninguna cuenta activa). Retirarlo
+      incluye la migración que quita el usuario `demo` y el rol.
 - [ ] **Conciliation: `GET /api/conciliations` sin paginar ni filtrar** —
       devuelve todo el histórico a cualquier rol con acceso. _Según la revisión
       `security` L3 del 2026-09-28 (fichero y línea en el informe); no repasado
