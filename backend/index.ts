@@ -2,13 +2,13 @@
 
 import express, { Request, Response, NextFunction } from 'express'
 import cookieParser from 'cookie-parser'
-import cors from 'cors'
 import helmet from 'helmet'
 import { PORT } from './config/config.js'
 import { logServerInfo } from './config/startup-logger.js'
 import { logger } from './config/logger.js'
 import { apiLimiter } from './middlewares/rateLimiter.js'
 import { noStore } from './middlewares/noStore.js'
+import { corsMiddleware } from './config/cors.js'
 
 import { CronService } from './services/cron/cron-service.js'
 import { warmupSolver } from './services/scheduling/solver-client.js'
@@ -55,39 +55,8 @@ app.disable('x-powered-by')
 // CSP deshabilitado — API pura JSON, no sirve HTML ni assets
 app.use(helmet({ contentSecurityPolicy: false }))
 
-// CORS (antes de todo). Also the CSRF defence: a request carrying any other Origin
-// is rejected before the routes, including simple (non-preflighted) requests.
-const allowedOrigins = [
-  ...(process.env.NODE_ENV === 'production' ? [] : ['http://localhost:3000']),
-  'https://four-points.stackbp.es',
-  'https://four-points.vercel.app',
-  'https://api.four-points.stackbp.es',
-  'https://four-points.onrender.com',
-  process.env.FRONTEND_URL, // URL adicional si es necesario
-].filter(Boolean) as string[]
-
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      // Permitir requests sin origin (Postman, server-to-server, mobile apps)
-      if (!origin) {
-        callback(null, true)
-        return
-      }
-      if (allowedOrigins.includes(origin)) {
-        callback(null, true)
-      } else {
-        logger.warn({ origin }, '[CORS] Blocked origin')
-        // Must stay an error: callback(null, false) would let simple requests reach the routes
-        callback(Object.assign(new Error('Origen no permitido'), { status: 403 }))
-      }
-    },
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
-    exposedHeaders: ['Set-Cookie'],
-  })
-)
+// CORS (antes de todo); also the CSRF defence (config/cors.ts)
+app.use(corsMiddleware())
 
 // ========================================
 // MIDDLEWARES GLOBALES
