@@ -9,7 +9,7 @@ import { Router, type Request, type Response, type NextFunction } from 'express'
 import { getStatus, resetNow, saveSnapshot } from '../../controllers/demo/demo-reset-controller.js'
 import { authenticateToken } from '../../middlewares/authenticateToken.js'
 import { denyDemo } from '../../middlewares/demoRestriction.js'
-import { isRealAdmin } from '../../middlewares/roleCheck.js'
+import { isAdmin } from '../../middlewares/roleCheck.js'
 import { isDemoMode } from '../../services/demo/demo-reset.service.js'
 
 const router = Router()
@@ -24,7 +24,7 @@ router.use((_req: Request, res: Response, next: NextFunction) => {
 router.use(authenticateToken)
 // The demo account is an admin: it must not reset the demo for everyone
 router.use(denyDemo)
-router.use(isRealAdmin)
+router.use(isAdmin)
 
 router.get('/status', getStatus)
 router.post('/reset', resetNow)

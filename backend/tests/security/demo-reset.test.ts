@@ -53,7 +53,7 @@ describe('demo reset routes', () => {
   it('block the demo account before checking the admin role', () => {
     const auth = routes.indexOf('router.use(authenticateToken)')
     const deny = routes.indexOf('router.use(denyDemo)')
-    const admin = routes.indexOf('router.use(isRealAdmin)')
+    const admin = routes.indexOf('router.use(isAdmin)')
     expect(auth).toBeGreaterThan(-1)
     expect(deny).toBeGreaterThan(auth)
     expect(admin).toBeGreaterThan(deny)

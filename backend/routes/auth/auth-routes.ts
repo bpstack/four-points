@@ -24,7 +24,7 @@ import {
   passwordChangeLimiter,
   profileUpdateLimiter,
 } from '../../middlewares/rateLimiter.js'
-import { isRealAdmin } from '../../middlewares/roleCheck.js'
+import { isAdmin } from '../../middlewares/roleCheck.js'
 
 const router: Router = express.Router()
 
@@ -43,8 +43,8 @@ router.post('/demo', demoLoginLimiter, demoLogin)
 // ADMIN ONLY ROUTES
 // ========================================
 
-// Solo admins reales pueden crear usuarios (no demo-admin)
-router.post('/register', authenticateToken, denyDemo, isRealAdmin, register)
+// Solo admins pueden crear usuarios (nunca la cuenta demo)
+router.post('/register', authenticateToken, denyDemo, isAdmin, register)
 
 // ========================================
 // PROTECTED ROUTES (require authentication)

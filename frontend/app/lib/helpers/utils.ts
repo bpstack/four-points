@@ -56,21 +56,21 @@ export function daysUntil(date: string | Date): number {
 }
 
 /**
- * Verifica si el usuario tiene rol de administrador (incluye demo-admin)
+ * Verifica si el usuario tiene rol de administrador
  * Usado para mostrar/ocultar elementos de UI admin-only
  *
- * NOTA: demo-admin puede VER todo pero sus escrituras están limitadas
- * por el middleware demoRestriction en el backend.
+ * La cuenta demo pública también es admin: el backend limita lo que puede
+ * cambiar (demoRestriction).
  */
 export function isAdminRole(role: string | undefined | null): boolean {
   if (!role) return false
   const normalizedRole = role.toLowerCase().trim()
-  return normalizedRole === 'admin' || normalizedRole === 'demo-admin'
+  return normalizedRole === 'admin'
 }
 
 /**
  * Roles del middleware canRunNotificationCheck del backend: lanzan a mano la
- * generación de avisos pendientes (demo-admin está deshabilitado)
+ * generación de avisos pendientes
  */
 export function canRunNotificationCheckRole(role: string | undefined | null): boolean {
   const normalizedRole = role?.toLowerCase().trim()

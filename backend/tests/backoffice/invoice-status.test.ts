@@ -69,7 +69,7 @@ describe('controller', () => {
 
   it('unpay is admin only', () => {
     expect(routes).toContain(
-      "router.post('/invoices/:id/unpay', isRealAdmin, BackofficeController.revertPayment)"
+      "router.post('/invoices/:id/unpay', isAdmin, BackofficeController.revertPayment)"
     )
   })
 })

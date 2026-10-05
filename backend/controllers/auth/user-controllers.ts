@@ -64,7 +64,7 @@ export const getUsersByRole = async (req: Request, res: Response): Promise<void>
 
 /**
  * Actualiza un usuario por ID
- * Solo administradores (isRealAdmin en la ruta)
+ * Solo administradores (isAdmin en la ruta)
  */
 export const updateUser = async (req: Request, res: Response): Promise<void> => {
   const validation = validateUpdateUser(req.body)

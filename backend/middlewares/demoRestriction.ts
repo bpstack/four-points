@@ -6,46 +6,11 @@
  * Se le bloquea lo que podría romper la app o tocar otras cuentas:
  * - en todas las rutas: subir ficheros (demoRestriction)
  * - en cada ruta sensible: denyDemo o denyDemoWrites
- *
- * El rol demo-admin (antiguo) mantiene su lista blanca hasta que se retire.
  */
 
 import { Request, Response, NextFunction } from 'express'
 import { DemoActivityRepository } from '../repositories/demo/demo-activity-repository.js'
 import { logger } from '../config/logger.js'
-
-// Rol demo antiguo, con su lista blanca de escrituras
-const DEMO_ROLE = 'demo-admin'
-
-/**
- * Rutas que el usuario demo SÍ puede usar (whitelist).
- * Formato: { method: 'POST|PATCH|PUT|DELETE', pattern: RegExp }
- */
-const DEMO_ALLOWED_ROUTES: Array<{ method: string; pattern: RegExp }> = [
-  // Auth - puede hacer logout
-  { method: 'POST', pattern: /^\/api\/auth\/logout$/ },
-
-  // Parking - puede crear reservas de prueba
-  { method: 'POST', pattern: /^\/api\/parking\/bookings$/ },
-
-  // Logbooks - puede agregar comentarios
-  { method: 'POST', pattern: /^\/api\/logbooks\/\d+\/comments$/ },
-
-  // Maintenance - puede crear reportes de prueba
-  { method: 'POST', pattern: /^\/api\/maintenance$/ },
-]
-
-/**
- * Verifica si una ruta está en la whitelist para demo
- * Usa originalUrl para obtener la ruta completa (incluyendo /api/...)
- */
-function isAllowedForDemo(method: string, originalUrl: string): boolean {
-  // Quitar query string si existe
-  const pathOnly = originalUrl.split('?')[0]
-  return DEMO_ALLOWED_ROUTES.some(
-    (route) => route.method === method && route.pattern.test(pathOnly)
-  )
-}
 
 /**
  * Registra intentos bloqueados en la base de datos
@@ -107,21 +72,10 @@ function isMultipart(req: Request): boolean {
 
 /**
  * Runs inside authenticateToken, on every authenticated request.
- *
- * - demo-admin (old demo role): only the whitelisted writes
- * - demo account (users.is_demo): no file uploads; the rest is limited per
- *   route with denyDemo and denyDemoWrites
+ * The demo account (users.is_demo) cannot upload files; the rest is
+ * limited per route with denyDemo and denyDemoWrites.
  */
 export function demoRestriction(req: Request, res: Response, next: NextFunction): void {
-  if (req.user?.role === DEMO_ROLE) {
-    if (req.method === 'GET' || isAllowedForDemo(req.method, req.originalUrl)) {
-      next()
-      return
-    }
-    block(req, res)
-    return
-  }
-
   if (req.user?.isDemo && isMultipart(req)) {
     block(req, res)
     return

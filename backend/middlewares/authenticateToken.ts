@@ -57,8 +57,7 @@ export function authenticateToken(req: Request, res: Response, next: NextFunctio
       username: decoded.username,
       email: '', // No está en el token, se puede obtener de la BD si es necesario
       role: decoded.role,
-      // demo-admin is the old demo role, restricted the same way until it is retired
-      isDemo: decoded.demo === true || decoded.role === 'demo-admin',
+      isDemo: decoded.demo === true,
     }
   } catch (error) {
     // Diferencia entre token expirado y token inválido
