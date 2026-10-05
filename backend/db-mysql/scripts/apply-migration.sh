@@ -51,13 +51,13 @@ if [[ "$TARGET" == "local" ]]; then
   SSL_ARGS=()
 else
   DB_HOST="$(env_get AIVEN_DB_HOST)"
-  DB_PORT="$(env_get AIVEN_DB_PORT)";  DB_PORT="${DB_PORT:-23225}"
-  DB_USER="$(env_get AIVEN_DB_USER)";  DB_USER="${DB_USER:-avnadmin}"
+  DB_PORT="$(env_get AIVEN_DB_PORT)"
+  DB_USER="$(env_get AIVEN_DB_USER)"
   DB_NAME="$(env_get AIVEN_DB_NAME)";  DB_NAME="${DB_NAME:-hotel_db}"
   export MYSQL_PWD="$(env_get AIVEN_PASSWORD)"
   SSL_ARGS=(--ssl-ca="$SSL_CA" --ssl-mode=VERIFY_CA)
 fi
-[[ -n "$DB_HOST" && -n "$MYSQL_PWD" ]] || { echo "❌ Faltan credenciales de $TARGET en backend/.env"; exit 1; }
+[[ -n "$DB_HOST" && -n "$DB_PORT" && -n "$DB_USER" && -n "$MYSQL_PWD" ]] || { echo "❌ Faltan credenciales de $TARGET en backend/.env"; exit 1; }
 
 MYSQL=(mysql -h "$DB_HOST" -P "$DB_PORT" -u "$DB_USER" "${SSL_ARGS[@]}" --default-character-set=utf8mb4 "$DB_NAME")
 

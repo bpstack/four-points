@@ -45,8 +45,8 @@ const presets: Record<string, DBConfig> = {
   },
   aiven: {
     host: process.env.AIVEN_DB_HOST || '', // ← MODIFICADO (añadido fallback)
-    port: parseInt(process.env.AIVEN_DB_PORT || '23225'), // ← MODIFICADO (añadido fallback)
-    user: process.env.AIVEN_DB_USER || 'avnadmin',
+    port: parseInt(process.env.AIVEN_DB_PORT || ''),
+    user: process.env.AIVEN_DB_USER || '',
     password: process.env.AIVEN_PASSWORD,
     database: process.env.AIVEN_DB_NAME || 'hotel_db',
     ssl: isDevelopment
@@ -78,6 +78,10 @@ if (!config.password) {
 
 if (environment === 'aiven' && !config.host) {
   throw new Error('❌ Falta AIVEN_DB_HOST en .env')
+}
+
+if (environment === 'aiven' && (!config.user || !Number.isInteger(config.port))) {
+  throw new Error('❌ Faltan AIVEN_DB_USER o AIVEN_DB_PORT en .env')
 }
 
 // ========================================
