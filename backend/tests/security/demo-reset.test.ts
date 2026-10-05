@@ -4,14 +4,12 @@
 // file is sent as one multi-statement query, so its DELIMITER blocks must turn
 // into plain SQL. Reads the sources; no database needed.
 
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { join, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-vi.mock('../../config/db.js', () => ({ default: {}, dbConfig: {} }))
-
-const { toMultiStatement } = await import('../../services/demo/demo-reset.service.js')
+import { toMultiStatement } from '../../services/db/sql-script.js'
 
 const backend = join(dirname(fileURLToPath(import.meta.url)), '..', '..')
 const read = (...p: string[]) => readFileSync(join(backend, ...p), 'utf8')

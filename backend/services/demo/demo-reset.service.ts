@@ -17,7 +17,6 @@
  * repositorio y nunca lleva datos de la petición.
  */
 
-import { readFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import mysql from 'mysql2/promise'
@@ -25,6 +24,7 @@ import type { Connection, RowDataPacket } from 'mysql2/promise'
 import db, { dbConfig } from '../../config/db.js'
 import { formatDateMadrid, getTodayMadrid } from '../../config/date-utils.js'
 import { logger } from '../../config/logger.js'
+import { readSqlScript } from '../db/sql-script.js'
 
 const MOCK_FILE = join(
   dirname(fileURLToPath(import.meta.url)),
@@ -62,29 +62,6 @@ export interface DemoResetResult {
 }
 
 export const isDemoMode = (): boolean => process.env.DEMO_MODE === 'true'
-
-/**
- * mock-data.sql for one multi-statement query: DELIMITER is a command of the
- * mysql client, not SQL. The server already parses CREATE PROCEDURE ... END as
- * one statement, so the custom delimiter goes back to ';'.
- */
-export function toMultiStatement(sql: string): string {
-  let delimiter = ';'
-  const out: string[] = []
-  for (const line of sql.split(/\r?\n/)) {
-    const change = /^\s*DELIMITER\s+(\S+)\s*$/i.exec(line)
-    if (change) {
-      delimiter = change[1]
-      continue
-    }
-    out.push(
-      delimiter !== ';' && line.trimEnd().endsWith(delimiter)
-        ? line.trimEnd().slice(0, -delimiter.length) + ';'
-        : line
-    )
-  }
-  return out.join('\n')
-}
 
 async function openConnection(): Promise<Connection> {
   return mysql.createConnection({ ...dbConfig, multipleStatements: true })
@@ -167,7 +144,7 @@ export async function resetDemoData(
   try {
     const result = await withLock(async (conn) => {
       logId = await startLog('reset', trigger, userId)
-      const mock = toMultiStatement(await readFile(MOCK_FILE, 'utf8'))
+      const mock = await readSqlScript(MOCK_FILE)
       try {
         await conn.query(mock)
       } catch (error) {
