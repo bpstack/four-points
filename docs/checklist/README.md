@@ -46,6 +46,23 @@ files.
   which the backend uses to check that a step exists. Both copies must stay
   identical (today they are).
 
+**The repository only ships example content.** A hotel's real procedures stay in
+a private repository with the same layout under `checklist/`. At build time,
+`scripts/fetch-checklist-content.mjs` downloads it into
+`frontend/content-private/checklist/` and `backend/content-private/checklist/`
+(both gitignored), and the app reads that folder instead of the example one. It
+runs as part of `pnpm build` in each app when these variables are set:
+
+| Variable                  | Value                                    |
+| ------------------------- | ---------------------------------------- |
+| `CHECKLIST_CONTENT_REPO`  | `owner/name` of the private repository   |
+| `CHECKLIST_CONTENT_TOKEN` | read-only token for that repository      |
+| `CHECKLIST_CONTENT_REF`   | branch, tag or commit (optional, `main`) |
+
+Without them, the example content is used. With them, a failed download stops
+the build, so production never falls back to the example by accident. Task and
+step ids are stored in the database: keep them stable in the private content.
+
 Changing a checklist means editing those files and deploying: there is no editor
 in the interface, on purpose, because steps keep stable ids and the content is
 versioned with the code. To see what was done in a day's run:

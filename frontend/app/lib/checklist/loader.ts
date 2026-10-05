@@ -3,7 +3,12 @@ import path from 'path'
 import matter from 'gray-matter'
 import type { Catalog, CategoryMeta, ChecklistItem, ChecklistMeta } from './types'
 
-const CONTENT_DIR = path.join(process.cwd(), 'content', 'checklist')
+// The hotel's real content is downloaded at build time into content-private/
+// (scripts/fetch-checklist-content.mjs); without it, the example content
+const PRIVATE_CONTENT_DIR = path.join(process.cwd(), 'content-private', 'checklist')
+const CONTENT_DIR = fs.existsSync(PRIVATE_CONTENT_DIR)
+  ? PRIVATE_CONTENT_DIR
+  : path.join(process.cwd(), 'content', 'checklist')
 
 // ---------------------------------------------------------------------------
 // In‑memory caches — built once per server lifetime (static content)

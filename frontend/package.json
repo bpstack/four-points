@@ -5,7 +5,7 @@
     "node": ">=22.16.0"
   },
   "scripts": {
-    "build": "next build",
+    "build": "node ../scripts/fetch-checklist-content.mjs frontend && next build",
     "dev": "next dev --turbopack",
     "start": "next start",
     "lint": "eslint . --ext .js,.ts,.jsx,.tsx",

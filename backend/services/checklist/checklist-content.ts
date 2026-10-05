@@ -1,22 +1,27 @@
 // services/checklist/checklist-content.ts
 //
-// Loads checklist JSON definitions from backend/content/checklist/tasks/.
-// Used to validate stepIds before writing to DB.
+// Loads checklist JSON definitions to validate stepIds before writing to DB.
 //
-// ⚠️  SYNC REQUIRED: JSON files are duplicated from frontend/content/checklist/tasks/.
-// When checklist content changes (steps added/removed/renamed), update BOTH locations:
-//   - frontend/content/checklist/tasks/<name>.json   (UI rendering)
-//   - backend/content/checklist/tasks/<name>.json    (stepId validation)
+// The hotel's real tasks live in a private repo and are downloaded at build
+// time into backend/content-private/checklist/tasks/ (gitignored, see
+// scripts/fetch-checklist-content.mjs). Without them, the example tasks in
+// backend/content/checklist/tasks/ are used.
+//
+// ⚠️  SYNC REQUIRED: the example JSON files are duplicated from
+// frontend/content/checklist/tasks/. When they change, update BOTH locations.
 // Convention: checklist ID "cl-<name>" maps to file "<name>.json"
-// Example: "cl-morning-shift" → "backend/content/checklist/tasks/morning-shift.json"
+// Example: "cl-morning-shift" → "<tasks dir>/morning-shift.json"
 
-import { readFileSync } from 'fs'
+import { existsSync, readFileSync } from 'fs'
 import { fileURLToPath } from 'url'
 import { join, dirname } from 'path'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
-const TASKS_DIR = join(__dirname, '../../content/checklist/tasks')
+const PRIVATE_TASKS_DIR = join(__dirname, '../../content-private/checklist/tasks')
+const TASKS_DIR = existsSync(PRIVATE_TASKS_DIR)
+  ? PRIVATE_TASKS_DIR
+  : join(__dirname, '../../content/checklist/tasks')
 
 interface ChecklistJson {
   id: string

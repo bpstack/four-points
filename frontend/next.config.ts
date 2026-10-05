@@ -72,6 +72,10 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  // The checklist loader picks its folder at runtime: trace both
+  outputFileTracingIncludes: {
+    '/**': ['./content/checklist/**/*', './content-private/checklist/**/*'],
+  },
   experimental: {
     optimizePackageImports: ['react-icons'],
   },
