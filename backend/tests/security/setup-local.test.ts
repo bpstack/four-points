@@ -48,7 +48,9 @@ describe('setup:local guards', () => {
     )
   })
 
-  it('never prints or stores a fixed admin password', () => {
-    expect(setup).toContain('crypto.randomBytes(12)')
+  it('uses the public local admin password documented in the README', () => {
+    const readme = readFileSync(join(backend, '..', 'README.md'), 'utf8')
+    expect(setup).toContain("LOCAL_ADMIN_PASSWORD = 'fourpoints-local'")
+    expect(readme).toContain('fourpoints-local')
   })
 })

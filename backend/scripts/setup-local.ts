@@ -5,7 +5,8 @@
  * completo (ADR-038):
  * 1. tablas: MASTER_INSTALL.sql y las migraciones posteriores a su baseline;
  * 2. departamentos que usan los módulos y el mock;
- * 3. un admin con contraseña aleatoria, que se muestra una sola vez;
+ * 3. el admin local `admin` / `fourpoints-local`, público y documentado en el
+ *    README: solo puede existir en una BD local;
  * 4. datos ficticios (mock-data.sql).
  *
  * MASTER_INSTALL.sql borra y crea `hotel_db`: el script se niega a seguir si
@@ -13,7 +14,7 @@
  * --force).
  *
  * Uso:
- *   pnpm setup:local                    # admin `admin`
+ *   pnpm setup:local                    # admin `admin` / `fourpoints-local`
  *   pnpm setup:local -- --admin maria   # otro nombre
  *   pnpm setup:local -- --force         # borra una hotel_db que ya exista
  */
@@ -49,6 +50,8 @@ const DEPARTMENTS = [
 ]
 
 const LOCAL_HOSTS = new Set(['localhost', '127.0.0.1', '::1'])
+
+export const LOCAL_ADMIN_PASSWORD = 'fourpoints-local'
 
 // Bugs of the frozen baseline (aiven/NN, ADR-021) that stop a fresh install;
 // on Aiven those tables were created another way. Fixed here, in memory, as
@@ -100,6 +103,8 @@ async function main(): Promise<void> {
   }
 
   const adminName = arg('admin') ?? 'admin'
+  // Public on purpose (README): this script only runs against a local database
+  const password = LOCAL_ADMIN_PASSWORD
   const { database: _db, ...server } = dbConfig
   const conn = await mysql.createConnection({ ...server, multipleStatements: true })
 
@@ -133,7 +138,6 @@ async function main(): Promise<void> {
     ])
 
     console.log('3/4 Admin')
-    const password = crypto.randomBytes(12).toString('base64url')
     const [roles] = await conn.query<RowDataPacket[]>("SELECT id FROM roles WHERE name = 'admin'")
     await conn.query(
       `INSERT INTO users (id, username, email, password, role_id, created_at, is_active)
@@ -155,7 +159,7 @@ async function main(): Promise<void> {
     console.log('\nListo. Entra en http://localhost:3000 con:')
     console.log(`  usuario:    ${adminName}`)
     console.log(`  contraseña: ${password}`)
-    console.log('Guárdala: no se vuelve a mostrar. Puedes cambiarla en Perfil.')
+    console.log('Es la contraseña pública del README: cámbiala en Perfil si quieres.')
   } finally {
     await conn.end()
   }
