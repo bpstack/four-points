@@ -870,3 +870,16 @@
 - **Consecuencias:** los documentos del proceso de publicación (`GITCLEAN.md`,
   `VERIFY.md`, `ROADMAP.md`, `SESSION.md`) se archivan igual cuando el
   repositorio sea público.
+
+## ADR-041 — El ROADMAP se archiva al cerrar la publicación
+
+- **Estado:** ✅ aceptada (2026-10-05)
+- **Fecha:** 2026-10-05
+- **Decisión:** `docs/ROADMAP.md` pasa a `docs/_archive/docs/ROADMAP.md`
+  (último commit que lo contiene: `e87581b`). Lo pendiente vive solo en
+  `TODO.md`, y si un punto depende de otro se dice en el propio punto.
+- **Motivo:** describía las fases para publicar el repositorio y todas
+  quedaron cerradas el 2026-10-05 (la 3 se absorbió en la 1c). Un plan
+  terminado que sigue en la raíz de `docs/` parece trabajo vivo.
+- **Consecuencias:** las ADR anteriores que citan `ROADMAP.md` no se tocan:
+  `git show e87581b:docs/ROADMAP.md` lo recupera. Aplica ADR-040.

@@ -7,7 +7,7 @@
 🔴 **Lo terminado sale de la lista.** Este fichero no tiene archivo detrás: lo
 hecho se borra y queda en `git log`.
 
-📌 **Si un punto necesita que otro se haga antes, va en `ROADMAP.md`**, no aquí.
+📌 **Si un punto necesita que otro se haga antes, se dice en el propio punto.**
 
 ⚠️ **Antes de dar algo por pendiente, mira el código.** Un TODO desactualizado
 hace que alguien reimplemente lo que ya existe.

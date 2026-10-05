@@ -42,13 +42,13 @@ documentación obsoleta está archivada (ADR-040).
    `git config core.hooksPath .githooks` (no viene con el clon; ver
    `AGENTS.md`).
 3. **Idiomas:** se trabaja en español; la documentación pública de `docs/` va en
-   inglés y no cita ADR ni `TODO.md`. `DECISIONS.md`, `ROADMAP.md`,
+   inglés y no cita ADR ni `TODO.md`. `DECISIONS.md`,
    `SESSION.md`, `TODO.md`, `VERIFY.md` y `GITCLEAN.md` siguen en español.
 
 ## Siguiente
 
-1. Archivar `GITCLEAN.md`, `VERIFY.md`, `ROADMAP.md` y `SESSION.md` como
-   dice ADR-040, cuando ya no hagan falta.
+1. Archivar `GITCLEAN.md`, `VERIFY.md` y `SESSION.md` como dice ADR-040,
+   cuando ya no hagan falta. `ROADMAP.md` ya está archivado (ADR-041).
 2. «Después de publicar» de `TODO.md`, empezando por la rotación de
    credenciales (se puede adelantar).
 
