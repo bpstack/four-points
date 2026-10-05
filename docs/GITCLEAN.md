@@ -32,9 +32,8 @@ el historial.
   `claude/compassionate-planck-gh6aof`. Las otras cuatro no tienen ningún commit
   fuera de `main` (comprobado el 2026-10-05). Sin tags; las referencias
   `pull/*` de GitHub no se publican.
-- **Dónde**: `C:\Users\dz\projects\four-points-phase2\`, fuera del
-  repositorio. `git-filter-repo` 2.47.0 está en
-  `C:\Users\dz\tools\git-filter-repo` (venv propio, 2026-10-05).
+- **Dónde**: una carpeta de trabajo fuera del repositorio, con
+  `git-filter-repo` 2.47.0 en un entorno virtual propio (2026-10-05).
 
 ### Estado (2026-10-05)
 
@@ -92,8 +91,26 @@ el historial.
   - **árbol de la punta idéntico** al de GitHub en las dos ramas (`main`
     624 → 621 commits; la rama 622 → 619), así que los tests son los mismos
     que pasaron en CI con la PR #9.
-- ⏳ Publicación
-  final y publicación (ADR-035).
+- ✅ Tercera pasada en `work.git` (2026-10-05), tras fusionar la PR #10, que
+  generalizó las guías del checklist: las mismas listas, ampliadas con rutas,
+  reemplazos y mensajes nuevos. Además quita del historial los 2 blobs del
+  informe Opera, 120 versiones antiguas de las guías del checklist y una
+  imagen confidencial, y mantiene el renombrado de la guía del F&B. 12
+  commits quedan vacíos (solo tocaban lo borrado) y se podan: `main` queda en
+  624 commits y la rama en 621, con el árbol de las dos puntas idéntico al del
+  repositorio original.
+- ✅ Auditoría de la tercera pasada, hecha dos veces por separado (los 4.960
+  blobs, mensajes y rutas): 0 secretos, 0 datos personales, 0 referencias al
+  hotel, la cadena o sus socios y 0 rastros de IA en los commits; autoría
+  `bpstack` y `GitHub`. Comprobar siempre que el volcado de blobs no sale
+  vacío antes de dar una búsqueda por limpia.
+- ✅ Publicación en privado (ADR-035, 2026-10-05): `bpstack/four-points` con
+  las dos ramas; el original pasa a `four-points-archive`, privado. Vercel y
+  Render despliegan ya desde el nuevo, en producción y en preview. Las
+  referencias a commits de los documentos apuntan a los hashes nuevos.
+- ⏳ Archivar `four-points-archive`, pasar `four-points` a público y activar
+  secret scanning y push protection (GitHub no los deja activar en un
+  repositorio privado gratuito).
 
 ## Reglas
 
