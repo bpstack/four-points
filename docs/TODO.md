@@ -293,6 +293,11 @@ sigue siendo donde se arregla este fichero y se prueba en el entorno preview.
 - [ ] **Configuración: `?tab=` de una pestaña sin permiso deja el contenido en
       blanco** — p. ej. recepción con `?tab=users`; debería caer en la primera
       pestaña disponible. _Visto el 2026-10-05._
+- [ ] **Errores del backend sin traducir** — `messages/{es,en}/errors.json`
+      tiene ~200 textos en `codes` que nadie usa: la UI muestra el `error` del
+      backend, en español. `app/lib/helpers/errorCodeMessage.ts` ya los traduce
+      para `STORAGE_NOT_CONFIGURED`; extenderlo a los demás códigos revisando
+      que no se pierda detalle del mensaje. _Visto el 2026-10-05._
 - [ ] **Scheduling: vista de solo lectura para los demás roles** — hoy
       `/dashboard/scheduling` es solo de `admin` y el resto no ve el cuadrante.
       El dueño quiere que los demás (salvo `mantenimiento`) vean el cuadrante

@@ -75,6 +75,7 @@
   },
   "codes": {
     "INTERNAL_ERROR": "Internal server error",
+    "STORAGE_NOT_CONFIGURED": "File storage is not configured. See the documentation to set up Cloudinary.",
     "INVALID_DATA": "Invalid data",
     "INVALID_ID": "Invalid ID",
     "INVALID_DATE_FORMAT": "Invalid date format",

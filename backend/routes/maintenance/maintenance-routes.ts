@@ -11,6 +11,7 @@ import { singleImage } from '../../middlewares/imageUpload.js'
 import { validateParams } from '../../middlewares/validateParams.js'
 import { MAINTENANCE_PARAM_RULES } from '../../validations/maintenance/schemas.js'
 import { canAccessMaintenance } from '../../middlewares/roleCheck.js'
+import { requireStorage } from '../../middlewares/requireStorage.js'
 
 const router = Router()
 
@@ -136,7 +137,7 @@ router.get('/:id/images/:imageId/file', MaintenanceController.getImageFile)
  * @access  Private
  * @file    image (multipart/form-data)
  */
-router.post('/:id/images', singleImage('image'), MaintenanceController.uploadImage)
+router.post('/:id/images', requireStorage, singleImage('image'), MaintenanceController.uploadImage)
 
 /**
  * @route   DELETE /api/maintenance/:id/images/:imageId

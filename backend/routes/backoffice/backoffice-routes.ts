@@ -14,6 +14,7 @@ import { BackofficeController } from '../../controllers/backoffice/backoffice-co
 import { authenticateToken } from '../../middlewares/authenticateToken.js'
 import { canAccessBackoffice, isAdmin } from '../../middlewares/roleCheck.js'
 import { denyDemo } from '../../middlewares/demoRestriction.js'
+import { requireStorage } from '../../middlewares/requireStorage.js'
 
 const router = Router()
 
@@ -265,6 +266,7 @@ router.delete('/invoices/:id', isAdmin, BackofficeController.deleteInvoice)
 router.post(
   '/invoices/:id/pdf',
   isAdmin,
+  requireStorage,
   upload.single('pdf'),
   BackofficeController.uploadInvoicePdf
 )
@@ -304,7 +306,13 @@ router.get('/assets/:id/file', BackofficeController.getAssetFile)
  * @body    type (stamp/signature), name, is_default (opcional)
  * @file    image (multipart/form-data) - PNG o WebP
  */
-router.post('/assets', isAdmin, upload.single('image'), BackofficeController.createAsset)
+router.post(
+  '/assets',
+  isAdmin,
+  requireStorage,
+  upload.single('image'),
+  BackofficeController.createAsset
+)
 
 /**
  * @route   DELETE /api/backoffice/assets/:id
