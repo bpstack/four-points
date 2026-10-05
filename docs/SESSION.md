@@ -76,6 +76,6 @@ historial en la fase 2, en todas las ramas: `main`, `chore/audit-prep-sprint-0`,
   `docs/backend/…`) y comentarios que citan `Global-Plan.md` o
   `SCHEDULING-SOLVER-PLAN.md`. Se arreglan al escribir cada módulo (ADR-010).
 - **Candidatos a privados para la fase 2**, además de los volcados: los dos
-  Excel archivados (`PLANNING 2026.xlsx`, `Presencias - Marzo.xlsx`),
+  Excel archivados (`PLANNING 2026.xlsx`, el Excel de presencias),
   que siguen en el historial, y los 18 `.http` de `backend/API REST/`
   (peticiones de prueba; suelen llevar tokens o contraseñas). Ninguno abierto.

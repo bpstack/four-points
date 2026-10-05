@@ -162,7 +162,7 @@
     sigue en el historial**: lo privado se limpia igualmente en la fase 2.
   - **Dos Excel archivados parecen datos reales del personal**
     (`docs/checklists/PLANNING 2026.xlsx` y
-    `docs/frontend/schedule/Presencias - Marzo.xlsx`). No se han
+    el Excel de presencias del personal en `docs/frontend/schedule/`). No se han
     abierto. Son candidatos a privados para la fase 2.
 - **Rechazado:** aplanar el archivo en una sola carpeta (se pierde el origen de
   cada fichero) y usar `git mv` (versionaría el destino, que debe ser local).

@@ -170,7 +170,7 @@ propietario.
   `backend/db-mysql/scripts/20260520_insert_user_*.sql` (quitado del árbol
   el 2026-10-04).
 - **Excel con datos del personal**: `docs/checklists/PLANNING 2026.xlsx` y
-  `docs/frontend/schedule/Presencias - Marzo.xlsx`.
+  el Excel de presencias del personal en `docs/frontend/schedule/`.
 - **Peticiones de prueba**: los 18 ficheros de `backend/API REST/` (quitados
   del árbol el 2026-10-04): llevan 12 contraseñas, 24 tokens JWT y nombres de
   usuario. Los tokens están firmados con `SECRET_JWT_KEY`: otro motivo para
