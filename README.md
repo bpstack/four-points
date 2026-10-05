@@ -23,6 +23,7 @@ Full documentation lives in [`docs/`](docs/general/README.md):
 - [Backoffice](docs/backoffice/README.md)
 - [Blacklist](docs/blacklist/README.md)
 - [Conciliation](docs/conciliation/README.md)
+- [Public demo](docs/demo/README.md) — how the demo account works and when it resets
 
 ## Try it
 
