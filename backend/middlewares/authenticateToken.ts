@@ -3,6 +3,7 @@
 import { Request, Response, NextFunction } from 'express'
 import { verifyToken } from '../services/auth/tokenService.js'
 import { demoRestriction } from './demoRestriction.js'
+import { demoWriteLimiter } from './rateLimiter.js'
 import { logger } from '../config/logger.js'
 
 /**
@@ -76,5 +77,5 @@ export function authenticateToken(req: Request, res: Response, next: NextFunctio
   }
 
   // Demo account restrictions, outside the try: an error here is not a bad token
-  demoRestriction(req, res, next)
+  demoRestriction(req, res, () => demoWriteLimiter(req, res, next))
 }

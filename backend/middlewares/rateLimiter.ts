@@ -95,6 +95,68 @@ export const demoLoginLimiter = rateLimit({
   },
 })
 
+// The demo account is shared by every visitor, so its limits go by IP, plus a
+// total cap where one Render instance is at stake (ADR-038)
+const READ_METHODS = ['GET', 'HEAD', 'OPTIONS']
+
+function demoLimitHandler(kind: string, error: string) {
+  return (req: Request, res: Response) => {
+    logger.warn(
+      { event: 'rate_limit_exceeded', kind, ip: getIpKey(req) },
+      '[SECURITY] demo rate limit exceeded'
+    )
+    res.status(429).json({ error })
+  }
+}
+
+/**
+ * Demo account writes, per IP
+ */
+export const demoWriteLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 60,
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: (req: Request) => !req.user?.isDemo || READ_METHODS.includes(req.method),
+  keyGenerator: (req: Request) => `demo-write-${getIpKey(req)}`,
+  handler: demoLimitHandler(
+    'demo_write',
+    'Demasiados cambios en la demo. Intenta de nuevo en 15 minutos.'
+  ),
+})
+
+/**
+ * Schedule generation by the demo account: the solver loads OR-Tools on a
+ * 512 MB instance and runs one at a time. Per IP, and in total
+ */
+const demoGeneratePerIp = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: (req: Request) => !req.user?.isDemo,
+  keyGenerator: (req: Request) => `demo-generate-${getIpKey(req)}`,
+  handler: demoLimitHandler(
+    'demo_generate',
+    'Has generado demasiados horarios en la demo. Intenta de nuevo en una hora.'
+  ),
+})
+
+const demoGenerateTotal = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 30,
+  standardHeaders: false,
+  legacyHeaders: false,
+  skip: (req: Request) => !req.user?.isDemo,
+  keyGenerator: () => 'demo-generate-total',
+  handler: demoLimitHandler(
+    'demo_generate_total',
+    'La demo ha generado demasiados horarios esta hora. Intenta de nuevo más tarde.'
+  ),
+})
+
+export const demoGenerateLimiter = [demoGeneratePerIp, demoGenerateTotal]
+
 /**
  * Rate limiter for password change attempts
  * Stricter limits to prevent brute force on password verification

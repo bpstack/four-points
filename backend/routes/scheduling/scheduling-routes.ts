@@ -74,6 +74,7 @@ import { generateSchedule } from '../../controllers/scheduling/schedule-generate
 import { authenticateToken } from '../../middlewares/authenticateToken.js'
 import { isAdmin } from '../../middlewares/roleCheck.js'
 import { denyDemoWrites } from '../../middlewares/demoRestriction.js'
+import { demoGenerateLimiter } from '../../middlewares/rateLimiter.js'
 
 const router: Router = express.Router()
 
@@ -154,7 +155,7 @@ router.delete('/months/:id', isAdmin, deleteMonth)
 router.post('/months/:id/validate', validateSchedule)
 
 // POST - Generate schedule with CP-SAT solver (admin only)
-router.post('/months/:id/generate', isAdmin, generateSchedule)
+router.post('/months/:id/generate', isAdmin, demoGenerateLimiter, generateSchedule)
 
 // POST - Reset month (clear assignments, re-load approved constraints)
 router.post('/months/:id/reset', isAdmin, resetMonth)
