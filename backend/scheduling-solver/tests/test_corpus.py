@@ -1,7 +1,7 @@
 """
 test_corpus.py — Corpus de fixtures del scheduler contra el solver Python.
 
-Objetivo (SCHEDULING-SOLVER-PLAN.md Fase 1):
+Objetivo (docs/scheduling/decisions.md, entrada 2026-04-22):
   - Ningún fixture produce status='error' (sin crashes internos).
   - Fixtures con parámetros claramente resolubles → status='ok'.
 
