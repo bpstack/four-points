@@ -25,7 +25,7 @@ function buildReq(overrides: Partial<Request> = {}): Request {
     headers: {},
     body: {},
     ip: '127.0.0.1',
-    socket: { remoteAddress: '127.0.0.1' } as any,
+    socket: { remoteAddress: '127.0.0.1' } as unknown,
     get: () => undefined,
     user: undefined,
     ...overrides,
@@ -47,8 +47,13 @@ beforeEach(() => {
 
 // The public demo account (users.is_demo) is a real admin: only what is
 // declared here or on the route is blocked
-const DEMO_USER = { id: 'd1', username: 'demo', role: 'admin', isDemo: true } as any
-const OWNER = { id: 'a1', username: 'admin', role: 'admin' } as any
+const DEMO_USER = {
+  id: 'd1',
+  username: 'demo',
+  role: 'admin',
+  isDemo: true,
+} as unknown as Request['user']
+const OWNER = { id: 'a1', username: 'admin', role: 'admin' } as unknown as Request['user']
 
 describe('demoRestriction — pass-through cases', () => {
   it('lets through requests without an authenticated user (handled upstream)', () => {
@@ -61,7 +66,7 @@ describe('demoRestriction — pass-through cases', () => {
 
   it('lets through any non-demo role (admin, recepcionista, etc.)', () => {
     const req = buildReq({
-      user: { id: 'u1', role: 'admin' } as any,
+      user: { id: 'u1', role: 'admin' } as unknown as Request['user'],
       method: 'DELETE',
       originalUrl: '/api/parking/bookings/123',
     })
@@ -85,8 +90,9 @@ describe('demoRestriction — blocked-attempt log', () => {
       },
     })
     denyDemo(req, buildRes(), next)
-    const logged = (DemoActivityRepository.logActivity as any).mock.calls[0][0]
-      .body_preview as string
+    const logged = (
+      DemoActivityRepository.logActivity as unknown as { mock: { calls: unknown[][] } }
+    ).mock.calls[0][0].body_preview as string
     expect(logged).not.toMatch(/secret/)
     expect(JSON.parse(logged)).toEqual({
       currentPassword: '[REDACTED]',
@@ -105,7 +111,7 @@ describe('demoRestriction — demo account (is_demo)', () => {
         user: DEMO_USER,
         method: 'POST',
         originalUrl: '/api/maintenance/1/images',
-        headers: { 'content-type': contentType } as any,
+        headers: { 'content-type': contentType } as unknown as Request['headers'],
       })
       const res = buildRes()
       demoRestriction(req, res, next)
@@ -120,7 +126,7 @@ describe('demoRestriction — demo account (is_demo)', () => {
       user: DEMO_USER,
       method: 'DELETE',
       originalUrl: '/api/parking/bookings/ABC',
-      headers: { 'content-type': 'application/json' } as any,
+      headers: { 'content-type': 'application/json' } as unknown as Request['headers'],
     })
     const res = buildRes()
     demoRestriction(req, res, next)
@@ -131,7 +137,9 @@ describe('demoRestriction — demo account (is_demo)', () => {
     const req = buildReq({
       user: OWNER,
       method: 'POST',
-      headers: { 'content-type': 'multipart/form-data; boundary=x' } as any,
+      headers: {
+        'content-type': 'multipart/form-data; boundary=x',
+      } as unknown as Request['headers'],
     })
     const res = buildRes()
     demoRestriction(req, res, next)
@@ -190,7 +198,9 @@ describe('blocking a request without a JSON body', () => {
       user: DEMO_USER,
       method: 'POST',
       body: undefined,
-      headers: { 'content-type': 'multipart/form-data; boundary=x' } as any,
+      headers: {
+        'content-type': 'multipart/form-data; boundary=x',
+      } as unknown as Request['headers'],
     })
     const res = buildRes()
     demoRestriction(req, res, next)
