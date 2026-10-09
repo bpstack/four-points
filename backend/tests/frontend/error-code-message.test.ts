@@ -35,6 +35,63 @@ describe('errorCodeMessage', () => {
     )
   })
 
+  it('gives departments messages in Spanish and in English', () => {
+    expect(errorCodeMessage('DEPARTMENTS_NAME_REQUIRED', 'es')).toMatch(
+      /^El nombre del departamento es requerido/
+    )
+    expect(errorCodeMessage('DEPARTMENTS_NAME_REQUIRED', 'en')).toMatch(
+      /^Department name is required/
+    )
+    expect(errorCodeMessage('DEPARTMENTS_DUPLICATE', 'es')).toMatch(
+      /^Ya existe un departamento/
+    )
+    expect(errorCodeMessage('DEPARTMENTS_DUPLICATE', 'en')).toMatch(
+      /^A department with that name already exists/
+    )
+    expect(errorCodeMessage('DEPARTMENTS_HAS_RECORDS', 'es')).toMatch(
+      /^No se puede eliminar un departamento/
+    )
+    expect(errorCodeMessage('DEPARTMENTS_HAS_RECORDS', 'en')).toMatch(
+      /^Cannot delete department/
+    )
+    expect(errorCodeMessage('DEPARTMENTS_NOT_FOUND', 'es')).toMatch(
+      /^Departamento no encontrado/
+    )
+    expect(errorCodeMessage('DEPARTMENTS_NOT_FOUND', 'en')).toMatch(
+      /^Department not found/
+    )
+    expect(errorCodeMessage('DEPARTMENTS_CREATE_ERROR', 'es')).toMatch(
+      /^Error al crear departamento/
+    )
+    expect(errorCodeMessage('DEPARTMENTS_CREATE_ERROR', 'en')).toMatch(
+      /^Error creating department/
+    )
+    expect(errorCodeMessage('DEPARTMENTS_FETCH_ERROR', 'es')).toMatch(
+      /^Error al recuperar departamentos/
+    )
+    expect(errorCodeMessage('DEPARTMENTS_FETCH_ERROR', 'en')).toMatch(
+      /^Error fetching departments/
+    )
+    expect(errorCodeMessage('DEPARTMENTS_FETCH_ONE_ERROR', 'es')).toMatch(
+      /^Error al obtener departamento/
+    )
+    expect(errorCodeMessage('DEPARTMENTS_FETCH_ONE_ERROR', 'en')).toMatch(
+      /^Error fetching department/
+    )
+    expect(errorCodeMessage('DEPARTMENTS_UPDATE_ERROR', 'es')).toMatch(
+      /^Error al actualizar departamento/
+    )
+    expect(errorCodeMessage('DEPARTMENTS_UPDATE_ERROR', 'en')).toMatch(
+      /^Error updating department/
+    )
+    expect(errorCodeMessage('DEPARTMENTS_DELETE_ERROR', 'es')).toMatch(
+      /^Error al eliminar departamento/
+    )
+    expect(errorCodeMessage('DEPARTMENTS_DELETE_ERROR', 'en')).toMatch(
+      /^Error deleting department/
+    )
+  })
+
   it('falls back to Spanish for a language without messages', () => {
     expect(errorCodeMessage('STORAGE_NOT_CONFIGURED', 'fr')).toBe(
       errorCodeMessage('STORAGE_NOT_CONFIGURED', 'es')
