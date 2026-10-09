@@ -143,10 +143,10 @@ export const resetUserPassword = async (req: Request, res: Response): Promise<vo
     }
 
     res.status(200).json({ message: 'Contraseña actualizada correctamente' })
-  } catch (error: any) {
+  } catch (error) {
     logger.error({ err: error }, 'Error resetUserPassword')
-    if (error.message === 'Usuario no encontrado') {
-      res.status(404).json({ error: error.message })
+    if ((error as Error).message === 'Usuario no encontrado') {
+      res.status(404).json({ error: (error as Error).message })
       return
     }
     res.status(500).json({ error: 'Error al resetear contraseña' })

@@ -86,10 +86,12 @@ export class UserRepository {
         created_at: new Date(createdAt),
         is_active: 1,
       }
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, 'Error creating user')
-      if (error.code === 'ER_DUP_ENTRY') {
-        const err = new Error('El nombre de usuario o email ya existe') as any
+      if ((error as { code?: string }).code === 'ER_DUP_ENTRY') {
+        const err = new Error('El nombre de usuario o email ya existe') as Error & {
+          code?: string
+        }
         err.code = 'ER_DUP_ENTRY'
         throw err
       }
@@ -130,8 +132,8 @@ export class UserRepository {
     try {
       Validation.username(username)
       Validation.password(password)
-    } catch (err: any) {
-      throw new Error(err.message, { cause: err })
+    } catch (err) {
+      throw new Error((err as Error).message, { cause: err })
     }
 
     const [rows] = await db.query<UserWithRole[]>(
@@ -397,19 +399,22 @@ export class UserRepository {
       // Devolver el usuario completo actualizado
       const updatedUser = await this.getById(id)
       return updatedUser
-    } catch (error: any) {
+    } catch (error) {
       await dbConnection.rollback()
       logger.error({ err: error }, 'Error en update')
 
+      const message = (error as Error).message
+      const code = (error as { code?: string }).code
+
       if (
-        error.message.includes('no encontrado') ||
-        error.message.includes('no válido') ||
-        error.message.includes('No hay campos')
+        message.includes('no encontrado') ||
+        message.includes('no válido') ||
+        message.includes('No hay campos')
       ) {
         throw error
       }
 
-      if (error.code === 'ER_DUP_ENTRY') {
+      if (code === 'ER_DUP_ENTRY') {
         throw new Error('El nombre de usuario o email ya existe', { cause: error })
       }
 
@@ -551,7 +556,7 @@ export class UserRepository {
       }
 
       return updatedUser
-    } catch (error: any) {
+    } catch (error) {
       await dbConnection.rollback()
       logger.error({ err: error }, 'Error en updateProfile')
       throw error
@@ -613,7 +618,7 @@ export class UserRepository {
       logger.info({ event: 'password_changed', userId }, '[AUTH] password changed')
 
       return true
-    } catch (error: any) {
+    } catch (error) {
       await dbConnection.rollback()
       logger.error({ err: error }, 'Error en updatePassword')
       throw error
@@ -646,7 +651,7 @@ export class UserRepository {
       logger.info({ event: 'password_reset_by_admin', userId }, '[AUTH] password reset by admin')
 
       return true
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, 'Error en resetPassword')
       throw error
     }
