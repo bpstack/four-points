@@ -26,7 +26,7 @@ interface DBConfig {
   user: string
   password: string | undefined
   database: string
-  ssl?: any
+  ssl?: object
 }
 
 // ========================================
