@@ -64,10 +64,17 @@ describe('excludeMantenimiento', () => {
     expect(next).toHaveBeenCalled()
     expect(res.status).not.toHaveBeenCalled()
   })
+
+  it('blocks unknown role "auditor" with 403', () => {
+    const { req, res, next } = createMockReqRes('auditor')
+    excludeMantenimiento(req, res, next)
+    expect(next).not.toHaveBeenCalled()
+    expect(res.status).toHaveBeenCalledWith(403)
+  })
 })
 
 describe('canOpenModule', () => {
-  const roles = ['admin', 'recepcionista', 'group-admin', 'mantenimiento'] as const
+  const roles = ['admin', 'recepcionista', 'group-admin', 'mantenimiento', 'auditor'] as const
   const modules: AppModule[] = [
     'parking',
     'maintenance',
@@ -77,8 +84,8 @@ describe('canOpenModule', () => {
     'logbook',
   ]
 
-  // Expected results based on current implementation:
-  // - parking, blacklist, cashier, logbook: allButMaintenanceRole (all except mantenimiento)
+  // Expected results based on implementation:
+  // - parking, blacklist, cashier, logbook: frontDeskRoles (admin, recepcionista, group-admin)
   // - maintenance: staffRoles (admin, recepcionista, group-admin, mantenimiento)
   // - groups: staffRoles (admin, recepcionista, group-admin, mantenimiento)
   const expected: Record<string, Record<AppModule, boolean>> = {
@@ -110,6 +117,14 @@ describe('canOpenModule', () => {
       parking: false,
       maintenance: true,
       groups: true,
+      blacklist: false,
+      cashier: false,
+      logbook: false,
+    },
+    auditor: {
+      parking: false,
+      maintenance: false,
+      groups: false,
       blacklist: false,
       cashier: false,
       logbook: false,

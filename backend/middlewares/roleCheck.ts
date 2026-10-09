@@ -159,24 +159,24 @@ export const canAccessMaintenance: RoleCheckMiddleware = (req, res, next) => {
 }
 
 /**
- * Excluye al rol mantenimiento de acceder a módulos generales
+ * Verifica que el usuario tenga uno de los roles de mostrador
  * Uso: Para rutas de logbook, parking, blacklist, etc.
- * El rol mantenimiento SOLO puede acceder a /api/maintenance
+ * Solo admin, recepcionista y group-admin pueden acceder; el resto (mantenimiento, etc.) no.
  */
 export const excludeMantenimiento: RoleCheckMiddleware = (req, res, next) => {
-  const blockedRoles = ['mantenimiento']
+  const allowedRoles = ['admin', 'recepcionista', 'group-admin']
 
   if (!req.user?.role) {
     res.status(403).json({ error: 'No se pudo verificar el rol del usuario' })
     return
   }
 
-  if (blockedRoles.includes(req.user.role.toLowerCase())) {
+  if (allowedRoles.includes(req.user.role.toLowerCase())) {
+    next()
+  } else {
     res.status(403).json({
       error: 'Acceso denegado. Tu rol solo tiene acceso al módulo de mantenimiento',
     })
-  } else {
-    next()
   }
 }
 

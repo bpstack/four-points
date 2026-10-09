@@ -7,14 +7,14 @@
 
 export type AppModule = 'parking' | 'maintenance' | 'groups' | 'blacklist' | 'cashier' | 'logbook'
 
-const allButMaintenanceRole = (role: string) => role !== 'mantenimiento'
+const frontDeskRoles = (role: string) => ['admin', 'recepcionista', 'group-admin'].includes(role)
 const staffRoles = ['admin', 'recepcionista', 'group-admin', 'mantenimiento']
 
 const MODULE_ACCESS: Record<AppModule, (role: string) => boolean> = {
-  parking: allButMaintenanceRole, // excludeMantenimiento
-  blacklist: allButMaintenanceRole, // excludeMantenimiento
-  cashier: allButMaintenanceRole, // excludeMantenimiento
-  logbook: allButMaintenanceRole, // excludeMantenimiento
+  parking: frontDeskRoles, // excludeMantenimiento
+  blacklist: frontDeskRoles, // excludeMantenimiento
+  cashier: frontDeskRoles, // excludeMantenimiento
+  logbook: frontDeskRoles, // excludeMantenimiento
   maintenance: (role) => staffRoles.includes(role), // canAccessMaintenance
   groups: (role) => staffRoles.includes(role), // canViewGroups
 }
