@@ -8,7 +8,9 @@ import en from '../../../messages/en/errors.json'
 
 // Codes whose backend text is not meant for the user
 const TRANSLATED = new Set([
-  'STORAGE_NOT_CONFIGURED',
+  'ACTIVITY_FETCH_ERROR',
+  'ACTIVITY_INVALID_DATE_FORMAT',
+  'ACTIVITY_INVALID_SOURCE',
   'BACKOFFICE_ASSET_NOT_FOUND',
   'BACKOFFICE_BATCH_PAYMENT_ERROR',
   'BACKOFFICE_BATCH_PAYMENT_PREVIEW_ERROR',
@@ -66,6 +68,7 @@ const TRANSLATED = new Set([
   'BACKOFFICE_UPLOAD_PDF_ERROR',
   'BACKOFFICE_VALIDATE_INVOICE_ERROR',
   'BACKOFFICE_YEAR_MONTH_REQUIRED',
+  'STORAGE_NOT_CONFIGURED',
 ])
 
 const byLocale: Record<string, Record<string, string>> = { es: es.codes, en: en.codes }

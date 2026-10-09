@@ -14,6 +14,27 @@ describe('errorCodeMessage', () => {
     )
   })
 
+  it('gives activity messages in Spanish and in English', () => {
+    expect(errorCodeMessage('ACTIVITY_INVALID_SOURCE', 'es')).toMatch(
+      /^Fuente inválida/
+    )
+    expect(errorCodeMessage('ACTIVITY_INVALID_SOURCE', 'en')).toMatch(
+      /^Invalid source/
+    )
+    expect(errorCodeMessage('ACTIVITY_INVALID_DATE_FORMAT', 'es')).toMatch(
+      /^Formato de fecha inválido/
+    )
+    expect(errorCodeMessage('ACTIVITY_INVALID_DATE_FORMAT', 'en')).toMatch(
+      /^Invalid date format/
+    )
+    expect(errorCodeMessage('ACTIVITY_FETCH_ERROR', 'es')).toMatch(
+      /^Error al obtener actividad/
+    )
+    expect(errorCodeMessage('ACTIVITY_FETCH_ERROR', 'en')).toMatch(
+      /^Error fetching recent activity/
+    )
+  })
+
   it('falls back to Spanish for a language without messages', () => {
     expect(errorCodeMessage('STORAGE_NOT_CONFIGURED', 'fr')).toBe(
       errorCodeMessage('STORAGE_NOT_CONFIGURED', 'es')
