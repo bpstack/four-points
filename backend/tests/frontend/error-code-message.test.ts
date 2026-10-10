@@ -224,6 +224,9 @@ describe('errorCodeMessage', () => {
       expect(errorCodeMessage('BLACKLIST_RECORD_CREATED', 'es')).toBeUndefined()
       // Orphan code (in ES/EN but not in ERROR_CODES)
       expect(errorCodeMessage('BLACKLIST_PUBLIC_ID_MISSING', 'es')).toBeUndefined()
+      // Success messages are in "success" section, not "codes"
+      expect(errorCodeMessage('LOGBOOK_UPDATED', 'es')).toBeUndefined()
+      expect(errorCodeMessage('LOGBOOK_COMMENT_DELETED', 'es')).toBeUndefined()
     })
   })
 
@@ -248,6 +251,46 @@ describe('errorCodeMessage', () => {
     ]
 
     it.each(blacklistCodes)('%s returns non-empty text in es and en', (code) => {
+      const esText = errorCodeMessage(code, 'es')
+      const enText = errorCodeMessage(code, 'en')
+      expect(esText).toBeTruthy()
+      expect(typeof esText).toBe('string')
+      expect(esText!.length).toBeGreaterThan(0)
+      expect(enText).toBeTruthy()
+      expect(typeof enText).toBe('string')
+      expect(enText!.length).toBeGreaterThan(0)
+    })
+  })
+
+  describe('LOGBOOK codes', () => {
+    const logbookCodes = [
+      'LOGBOOK_COMMENT_CREATE_ERROR',
+      'LOGBOOK_COMMENT_DELETE_ERROR',
+      'LOGBOOK_COMMENT_NOT_FOUND',
+      'LOGBOOK_COMMENT_NOT_IN_LOGBOOK',
+      'LOGBOOK_COMMENT_NO_PERMISSION',
+      'LOGBOOK_COMMENT_UPDATE_ERROR',
+      'LOGBOOK_CREATE_ERROR',
+      'LOGBOOK_DELETE_ERROR',
+      'LOGBOOK_FETCH_BY_AUTHOR_ERROR',
+      'LOGBOOK_FETCH_BY_DAY_ERROR',
+      'LOGBOOK_FETCH_BY_DEPARTMENT_ERROR',
+      'LOGBOOK_FETCH_BY_IMPORTANCE_ERROR',
+      'LOGBOOK_FETCH_ERROR',
+      'LOGBOOK_FETCH_READERS_ERROR',
+      'LOGBOOK_FETCH_SOLVER_ERROR',
+      'LOGBOOK_INVALID_IMPORTANCE',
+      'LOGBOOK_NOT_FOUND',
+      'LOGBOOK_NOT_SOLVED',
+      'LOGBOOK_ONLY_AUTHOR_DELETE',
+      'LOGBOOK_ONLY_AUTHOR_UPDATE',
+      'LOGBOOK_READ_ERROR',
+      'LOGBOOK_REOPEN_ERROR',
+      'LOGBOOK_SOLVE_ERROR',
+      'LOGBOOK_UNREAD_ERROR',
+    ]
+
+    it.each(logbookCodes)('%s returns non-empty text in es and en', (code) => {
       const esText = errorCodeMessage(code, 'es')
       const enText = errorCodeMessage(code, 'en')
       expect(esText).toBeTruthy()
