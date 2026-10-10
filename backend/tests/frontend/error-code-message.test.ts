@@ -227,6 +227,8 @@ describe('errorCodeMessage', () => {
       // Success messages are in "success" section, not "codes"
       expect(errorCodeMessage('LOGBOOK_UPDATED', 'es')).toBeUndefined()
       expect(errorCodeMessage('LOGBOOK_COMMENT_DELETED', 'es')).toBeUndefined()
+      expect(errorCodeMessage('CONCILIATION_CREATED', 'es')).toBeUndefined()
+      expect(errorCodeMessage('CONCILIATION_DELETED', 'es')).toBeUndefined()
     })
   })
 
@@ -291,6 +293,45 @@ describe('errorCodeMessage', () => {
     ]
 
     it.each(logbookCodes)('%s returns non-empty text in es and en', (code) => {
+      const esText = errorCodeMessage(code, 'es')
+      const enText = errorCodeMessage(code, 'en')
+      expect(esText).toBeTruthy()
+      expect(typeof esText).toBe('string')
+      expect(esText!.length).toBeGreaterThan(0)
+      expect(enText).toBeTruthy()
+      expect(typeof enText).toBe('string')
+      expect(enText!.length).toBeGreaterThan(0)
+    })
+  })
+
+  describe('CONCILIATION codes', () => {
+    const conciliationCodes = [
+      'CONCILIATION_ADMIN_ONLY_CLOSE',
+      'CONCILIATION_ALREADY_EXISTS',
+      'CONCILIATION_CLOSED_CANNOT_MODIFY',
+      'CONCILIATION_CREATE_ERROR',
+      'CONCILIATION_DATE_REQUIRED',
+      'CONCILIATION_DELETE_ERROR',
+      'CONCILIATION_FETCH_ERROR',
+      'CONCILIATION_FETCH_ONE_ERROR',
+      'CONCILIATION_INCOMPLETE_DATA',
+      'CONCILIATION_INVALID_HOUSEKEEPING_ENTRIES',
+      'CONCILIATION_INVALID_MONTH',
+      'CONCILIATION_INVALID_RECEPTION_ENTRIES',
+      'CONCILIATION_INVALID_STATUS',
+      'CONCILIATION_INVALID_YEAR',
+      'CONCILIATION_INVALID_YEAR_MONTH',
+      'CONCILIATION_MONTHLY_FETCH_ERROR',
+      'CONCILIATION_MONTHLY_MISSING_DAYS_ERROR',
+      'CONCILIATION_MONTHLY_UPDATE_STATUS_ERROR',
+      'CONCILIATION_MONTHLY_VALIDATE_ERROR',
+      'CONCILIATION_NOT_FOUND',
+      'CONCILIATION_RECALCULATE_ERROR',
+      'CONCILIATION_UPDATE_FORM_ERROR',
+      'CONCILIATION_UPDATE_STATUS_ERROR',
+    ]
+
+    it.each(conciliationCodes)('%s returns non-empty text in es and en', (code) => {
       const esText = errorCodeMessage(code, 'es')
       const enText = errorCodeMessage(code, 'en')
       expect(esText).toBeTruthy()
