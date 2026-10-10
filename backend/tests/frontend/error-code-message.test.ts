@@ -221,6 +221,41 @@ describe('errorCodeMessage', () => {
       // Success messages are in "success" section, not "codes"
       expect(errorCodeMessage('NOTIFICATIONS_PROCESSED', 'es')).toBeUndefined()
       expect(errorCodeMessage('NOTIFICATIONS_CREATED', 'es')).toBeUndefined()
+      expect(errorCodeMessage('BLACKLIST_RECORD_CREATED', 'es')).toBeUndefined()
+      // Orphan code (in ES/EN but not in ERROR_CODES)
+      expect(errorCodeMessage('BLACKLIST_PUBLIC_ID_MISSING', 'es')).toBeUndefined()
+    })
+  })
+
+  describe('BLACKLIST codes', () => {
+    const blacklistCodes = [
+      'BLACKLIST_CREATE_RECORD_ERROR',
+      'BLACKLIST_DELETE_IMAGE_ERROR',
+      'BLACKLIST_DELETE_RECORD_ERROR',
+      'BLACKLIST_DOCUMENT_EXISTS',
+      'BLACKLIST_FETCH_RECORD_ERROR',
+      'BLACKLIST_FETCH_RECORDS_ERROR',
+      'BLACKLIST_FETCH_STATS_ERROR',
+      'BLACKLIST_FILE_TOO_LARGE',
+      'BLACKLIST_IMAGE_NOT_FOUND',
+      'BLACKLIST_INVALID_FILE_TYPE',
+      'BLACKLIST_INVALID_SEARCH_PARAMS',
+      'BLACKLIST_NO_IMAGE_SENT',
+      'BLACKLIST_RECORD_NOT_FOUND',
+      'BLACKLIST_RESTORE_RECORD_ERROR',
+      'BLACKLIST_UPDATE_RECORD_ERROR',
+      'BLACKLIST_UPLOAD_IMAGE_ERROR',
+    ]
+
+    it.each(blacklistCodes)('%s returns non-empty text in es and en', (code) => {
+      const esText = errorCodeMessage(code, 'es')
+      const enText = errorCodeMessage(code, 'en')
+      expect(esText).toBeTruthy()
+      expect(typeof esText).toBe('string')
+      expect(esText!.length).toBeGreaterThan(0)
+      expect(enText).toBeTruthy()
+      expect(typeof enText).toBe('string')
+      expect(enText!.length).toBeGreaterThan(0)
     })
   })
 })
