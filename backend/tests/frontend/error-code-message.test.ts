@@ -229,6 +229,8 @@ describe('errorCodeMessage', () => {
       expect(errorCodeMessage('LOGBOOK_COMMENT_DELETED', 'es')).toBeUndefined()
       expect(errorCodeMessage('CONCILIATION_CREATED', 'es')).toBeUndefined()
       expect(errorCodeMessage('CONCILIATION_DELETED', 'es')).toBeUndefined()
+      expect(errorCodeMessage('PARKING_BOOKING_CREATED', 'es')).toBeUndefined()
+      expect(errorCodeMessage('PARKING_BOOKING_DELETED', 'es')).toBeUndefined()
     })
   })
 
@@ -332,6 +334,60 @@ describe('errorCodeMessage', () => {
     ]
 
     it.each(conciliationCodes)('%s returns non-empty text in es and en', (code) => {
+      const esText = errorCodeMessage(code, 'es')
+      const enText = errorCodeMessage(code, 'en')
+      expect(esText).toBeTruthy()
+      expect(typeof esText).toBe('string')
+      expect(esText!.length).toBeGreaterThan(0)
+      expect(enText).toBeTruthy()
+      expect(typeof enText).toBe('string')
+      expect(enText!.length).toBeGreaterThan(0)
+    })
+  })
+
+  describe('PARKING codes', () => {
+    const parkingCodes = [
+      'PARKING_ANALYZE_BOOKINGS_ERROR',
+      'PARKING_BOOKING_NOT_FOUND',
+      'PARKING_CANCEL_ERROR',
+      'PARKING_CANNOT_DELETE_STARTED',
+      'PARKING_CANNOT_DELETE_STATUS',
+      'PARKING_CANNOT_UPDATE_STATUS',
+      'PARKING_CHECKIN_ERROR',
+      'PARKING_CHECKOUT_ERROR',
+      'PARKING_COMPARE_PERIODS_ERROR',
+      'PARKING_COMPARISON_DATES_REQUIRED',
+      'PARKING_CREATE_BOOKING_ERROR',
+      'PARKING_DATE_RANGE_REQUIRED',
+      'PARKING_DELETE_BOOKING_ERROR',
+      'PARKING_END_BEFORE_START',
+      'PARKING_FETCH_AVAILABILITY_ERROR',
+      'PARKING_FETCH_BOOKING_ERROR',
+      'PARKING_FETCH_BOOKINGS_ERROR',
+      'PARKING_FETCH_DASHBOARD_ERROR',
+      'PARKING_FETCH_DELAYED_ERROR',
+      'PARKING_FETCH_OCCUPANCY_ERROR',
+      'PARKING_FETCH_PENDING_CHECKINS_ERROR',
+      'PARKING_FETCH_PENDING_CHECKOUTS_ERROR',
+      'PARKING_FETCH_PERFORMANCE_ERROR',
+      'PARKING_FETCH_RANGE_OCCUPANCY_ERROR',
+      'PARKING_FETCH_RANGE_STATS_ERROR',
+      'PARKING_FETCH_STATS_ERROR',
+      'PARKING_FETCH_TRENDS_ERROR',
+      'PARKING_INVALID_AMOUNT',
+      'PARKING_INVALID_CODE_FORMAT',
+      'PARKING_INVALID_DATE',
+      'PARKING_INVALID_DATE_FORMAT',
+      'PARKING_INVALID_DATES',
+      'PARKING_INVALID_END_DATE',
+      'PARKING_INVALID_START_DATE',
+      'PARKING_NO_FIELDS_TO_UPDATE',
+      'PARKING_NOSHOW_ERROR',
+      'PARKING_START_BEFORE_END',
+      'PARKING_UPDATE_BOOKING_ERROR',
+    ]
+
+    it.each(parkingCodes)('%s returns non-empty text in es and en', (code) => {
       const esText = errorCodeMessage(code, 'es')
       const enText = errorCodeMessage(code, 'en')
       expect(esText).toBeTruthy()
