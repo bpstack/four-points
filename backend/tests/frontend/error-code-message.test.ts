@@ -183,4 +183,44 @@ describe('errorCodeMessage', () => {
       expect(errorCodeMessage('BACKOFFICE_DELETE_SUPPLIER_ERROR', 'es')).toBeUndefined()
     })
   })
+
+  describe('NOTIFICATIONS codes', () => {
+    const notificationsCodes = [
+      'NOTIFICATIONS_CREATE_ERROR',
+      'NOTIFICATIONS_DELETE_ERROR',
+      'NOTIFICATIONS_FETCH_COUNT_ERROR',
+      'NOTIFICATIONS_FETCH_ERROR',
+      'NOTIFICATIONS_FETCH_GROUP_ERROR',
+      'NOTIFICATIONS_FETCH_UNREAD_ERROR',
+      'NOTIFICATIONS_INVALID_GROUP_ID',
+      'NOTIFICATIONS_INVALID_ID',
+      'NOTIFICATIONS_INVALID_MODULE',
+      'NOTIFICATIONS_INVALID_SCHEDULED_DATE',
+      'NOTIFICATIONS_MARK_ALL_ERROR',
+      'NOTIFICATIONS_MARK_ERROR',
+      'NOTIFICATIONS_MARK_READ_ERROR',
+      'NOTIFICATIONS_MISSING_REQUIRED_FIELDS',
+      'NOTIFICATIONS_NOT_FOUND',
+      'NOTIFICATIONS_PROCESS_ERROR',
+    ]
+
+    it.each(notificationsCodes)('%s returns non-empty text in es and en', (code) => {
+      const esText = errorCodeMessage(code, 'es')
+      const enText = errorCodeMessage(code, 'en')
+      expect(esText).toBeTruthy()
+      expect(typeof esText).toBe('string')
+      expect(esText!.length).toBeGreaterThan(0)
+      expect(enText).toBeTruthy()
+      expect(typeof enText).toBe('string')
+      expect(enText!.length).toBeGreaterThan(0)
+    })
+
+    it('excludes codes without translation', () => {
+      expect(errorCodeMessage('AUTH_DEMO_UNAVAILABLE', 'es')).toBeUndefined()
+      expect(errorCodeMessage('AUTH_DEMO_UNAVAILABLE', 'en')).toBeUndefined()
+      // Success messages are in "success" section, not "codes"
+      expect(errorCodeMessage('NOTIFICATIONS_PROCESSED', 'es')).toBeUndefined()
+      expect(errorCodeMessage('NOTIFICATIONS_CREATED', 'es')).toBeUndefined()
+    })
+  })
 })
