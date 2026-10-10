@@ -15,21 +15,13 @@ describe('errorCodeMessage', () => {
   })
 
   it('gives activity messages in Spanish and in English', () => {
-    expect(errorCodeMessage('ACTIVITY_INVALID_SOURCE', 'es')).toMatch(
-      /^Fuente inválida/
-    )
-    expect(errorCodeMessage('ACTIVITY_INVALID_SOURCE', 'en')).toMatch(
-      /^Invalid source/
-    )
+    expect(errorCodeMessage('ACTIVITY_INVALID_SOURCE', 'es')).toMatch(/^Fuente inválida/)
+    expect(errorCodeMessage('ACTIVITY_INVALID_SOURCE', 'en')).toMatch(/^Invalid source/)
     expect(errorCodeMessage('ACTIVITY_INVALID_DATE_FORMAT', 'es')).toMatch(
       /^Formato de fecha inválido/
     )
-    expect(errorCodeMessage('ACTIVITY_INVALID_DATE_FORMAT', 'en')).toMatch(
-      /^Invalid date format/
-    )
-    expect(errorCodeMessage('ACTIVITY_FETCH_ERROR', 'es')).toMatch(
-      /^Error al obtener actividad/
-    )
+    expect(errorCodeMessage('ACTIVITY_INVALID_DATE_FORMAT', 'en')).toMatch(/^Invalid date format/)
+    expect(errorCodeMessage('ACTIVITY_FETCH_ERROR', 'es')).toMatch(/^Error al obtener actividad/)
     expect(errorCodeMessage('ACTIVITY_FETCH_ERROR', 'en')).toMatch(
       /^Error fetching recent activity/
     )
@@ -42,36 +34,24 @@ describe('errorCodeMessage', () => {
     expect(errorCodeMessage('DEPARTMENTS_NAME_REQUIRED', 'en')).toMatch(
       /^Department name is required/
     )
-    expect(errorCodeMessage('DEPARTMENTS_DUPLICATE', 'es')).toMatch(
-      /^Ya existe un departamento/
-    )
+    expect(errorCodeMessage('DEPARTMENTS_DUPLICATE', 'es')).toMatch(/^Ya existe un departamento/)
     expect(errorCodeMessage('DEPARTMENTS_DUPLICATE', 'en')).toMatch(
       /^A department with that name already exists/
     )
     expect(errorCodeMessage('DEPARTMENTS_HAS_RECORDS', 'es')).toMatch(
       /^No se puede eliminar un departamento/
     )
-    expect(errorCodeMessage('DEPARTMENTS_HAS_RECORDS', 'en')).toMatch(
-      /^Cannot delete department/
-    )
-    expect(errorCodeMessage('DEPARTMENTS_NOT_FOUND', 'es')).toMatch(
-      /^Departamento no encontrado/
-    )
-    expect(errorCodeMessage('DEPARTMENTS_NOT_FOUND', 'en')).toMatch(
-      /^Department not found/
-    )
+    expect(errorCodeMessage('DEPARTMENTS_HAS_RECORDS', 'en')).toMatch(/^Cannot delete department/)
+    expect(errorCodeMessage('DEPARTMENTS_NOT_FOUND', 'es')).toMatch(/^Departamento no encontrado/)
+    expect(errorCodeMessage('DEPARTMENTS_NOT_FOUND', 'en')).toMatch(/^Department not found/)
     expect(errorCodeMessage('DEPARTMENTS_CREATE_ERROR', 'es')).toMatch(
       /^Error al crear departamento/
     )
-    expect(errorCodeMessage('DEPARTMENTS_CREATE_ERROR', 'en')).toMatch(
-      /^Error creating department/
-    )
+    expect(errorCodeMessage('DEPARTMENTS_CREATE_ERROR', 'en')).toMatch(/^Error creating department/)
     expect(errorCodeMessage('DEPARTMENTS_FETCH_ERROR', 'es')).toMatch(
       /^Error al recuperar departamentos/
     )
-    expect(errorCodeMessage('DEPARTMENTS_FETCH_ERROR', 'en')).toMatch(
-      /^Error fetching departments/
-    )
+    expect(errorCodeMessage('DEPARTMENTS_FETCH_ERROR', 'en')).toMatch(/^Error fetching departments/)
     expect(errorCodeMessage('DEPARTMENTS_FETCH_ONE_ERROR', 'es')).toMatch(
       /^Error al obtener departamento/
     )
@@ -81,15 +61,11 @@ describe('errorCodeMessage', () => {
     expect(errorCodeMessage('DEPARTMENTS_UPDATE_ERROR', 'es')).toMatch(
       /^Error al actualizar departamento/
     )
-    expect(errorCodeMessage('DEPARTMENTS_UPDATE_ERROR', 'en')).toMatch(
-      /^Error updating department/
-    )
+    expect(errorCodeMessage('DEPARTMENTS_UPDATE_ERROR', 'en')).toMatch(/^Error updating department/)
     expect(errorCodeMessage('DEPARTMENTS_DELETE_ERROR', 'es')).toMatch(
       /^Error al eliminar departamento/
     )
-    expect(errorCodeMessage('DEPARTMENTS_DELETE_ERROR', 'en')).toMatch(
-      /^Error deleting department/
-    )
+    expect(errorCodeMessage('DEPARTMENTS_DELETE_ERROR', 'en')).toMatch(/^Error deleting department/)
   })
 
   it('falls back to Spanish for a language without messages', () => {
