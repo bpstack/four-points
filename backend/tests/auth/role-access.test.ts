@@ -4,6 +4,7 @@
 // change the implementation but keep these tests green.
 
 import { describe, it, expect, vi } from 'vitest'
+import type { Request, Response } from 'express'
 import { excludeMantenimiento } from '../../middlewares/roleCheck.js'
 import { canOpenModule, type AppModule } from '../../services/auth/module-access.js'
 import { readFileSync } from 'fs'
@@ -13,11 +14,11 @@ import { resolve } from 'path'
 function createMockReqRes(role?: string) {
   const req = {
     user: role ? { role } : undefined,
-  } as any
+  } as unknown as Request
   const res = {
     status: vi.fn().mockReturnThis(),
     json: vi.fn().mockReturnThis(),
-  } as any
+  } as unknown as Response
   const next = vi.fn()
   return { req, res, next }
 }
