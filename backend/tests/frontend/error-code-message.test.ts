@@ -235,6 +235,8 @@ describe('errorCodeMessage', () => {
       expect(errorCodeMessage('GROUP_UPDATED', 'es')).toBeUndefined()
       expect(errorCodeMessage('MESSAGES_SENT', 'es')).toBeUndefined()
       expect(errorCodeMessage('MESSAGES_EDITED', 'es')).toBeUndefined()
+      expect(errorCodeMessage('CASHIER_DAY_INITIALIZED', 'es')).toBeUndefined()
+      expect(errorCodeMessage('CASHIER_VOUCHER_CREATED', 'es')).toBeUndefined()
     })
   })
 
@@ -508,6 +510,67 @@ describe('errorCodeMessage', () => {
     ]
 
     it.each(messagesCodes)('%s returns non-empty text in es and en', (code) => {
+      const esText = errorCodeMessage(code, 'es')
+      const enText = errorCodeMessage(code, 'en')
+      expect(esText).toBeTruthy()
+      expect(typeof esText).toBe('string')
+      expect(esText!.length).toBeGreaterThan(0)
+      expect(enText).toBeTruthy()
+      expect(typeof enText).toBe('string')
+      expect(enText!.length).toBeGreaterThan(0)
+    })
+  })
+
+  describe('CASHIER codes', () => {
+    const cashierCodes = [
+      'CASHIER_CLOSE_DAY_ERROR',
+      'CASHIER_CREATE_DENOMINATION_ERROR',
+      'CASHIER_CREATE_PAYMENT_ERROR',
+      'CASHIER_CREATE_VOUCHER_ERROR',
+      'CASHIER_DATE_RANGE_REQUIRED',
+      'CASHIER_DAY_ALREADY_INITIALIZED',
+      'CASHIER_DAY_CANNOT_CLOSE',
+      'CASHIER_DAY_NOT_FOUND',
+      'CASHIER_DELETE_DENOMINATION_ERROR',
+      'CASHIER_DELETE_PAYMENT_ERROR',
+      'CASHIER_FETCH_DAILY_REPORT_ERROR',
+      'CASHIER_FETCH_DAY_ERROR',
+      'CASHIER_FETCH_DAYS_ERROR',
+      'CASHIER_FETCH_DASHBOARD_ERROR',
+      'CASHIER_FETCH_DENOMINATIONS_ERROR',
+      'CASHIER_FETCH_HISTORY_ERROR',
+      'CASHIER_FETCH_HISTORY_STATS_ERROR',
+      'CASHIER_FETCH_MONTHLY_SUMMARY_ERROR',
+      'CASHIER_FETCH_PAYMENT_SUMMARY_ERROR',
+      'CASHIER_FETCH_PAYMENTS_ERROR',
+      'CASHIER_FETCH_PERIOD_REPORT_ERROR',
+      'CASHIER_FETCH_RECENT_ACTIVITY_ERROR',
+      'CASHIER_FETCH_SHIFT_ERROR',
+      'CASHIER_FETCH_SHIFT_HISTORY_ERROR',
+      'CASHIER_FETCH_SHIFT_SUMMARY_ERROR',
+      'CASHIER_FETCH_SHIFTS_ERROR',
+      'CASHIER_FETCH_SUMMARY_ERROR',
+      'CASHIER_FETCH_VOUCHER_ERROR',
+      'CASHIER_FETCH_VOUCHER_HISTORY_ERROR',
+      'CASHIER_FETCH_VOUCHER_STATS_ERROR',
+      'CASHIER_FETCH_VOUCHERS_ERROR',
+      'CASHIER_FETCH_ACTIVE_VOUCHERS_ERROR',
+      'CASHIER_INIT_DAY_ERROR',
+      'CASHIER_INVALID_DATE_FORMAT',
+      'CASHIER_INVALID_DATE_RANGE',
+      'CASHIER_INVALID_SHIFT_ID',
+      'CASHIER_INVALID_YEAR_MONTH',
+      'CASHIER_REOPEN_DAY_ERROR',
+      'CASHIER_SHIFT_NOT_FOUND',
+      'CASHIER_SHIFTS_ALREADY_EXIST',
+      'CASHIER_UPDATE_DENOMINATIONS_ERROR',
+      'CASHIER_UPDATE_PAYMENTS_ERROR',
+      'CASHIER_UPDATE_USERS_ERROR',
+      'CASHIER_VOUCHER_MAX_REACHED',
+      'CASHIER_VOUCHER_NOT_FOUND',
+    ]
+
+    it.each(cashierCodes)('%s returns non-empty text in es and en', (code) => {
       const esText = errorCodeMessage(code, 'es')
       const enText = errorCodeMessage(code, 'en')
       expect(esText).toBeTruthy()
