@@ -233,6 +233,8 @@ describe('errorCodeMessage', () => {
       expect(errorCodeMessage('PARKING_BOOKING_DELETED', 'es')).toBeUndefined()
       expect(errorCodeMessage('GROUP_CREATED', 'es')).toBeUndefined()
       expect(errorCodeMessage('GROUP_UPDATED', 'es')).toBeUndefined()
+      expect(errorCodeMessage('MESSAGES_SENT', 'es')).toBeUndefined()
+      expect(errorCodeMessage('MESSAGES_EDITED', 'es')).toBeUndefined()
     })
   })
 
@@ -448,6 +450,64 @@ describe('errorCodeMessage', () => {
     ]
 
     it.each(groupCodes)('%s returns non-empty text in es and en', (code) => {
+      const esText = errorCodeMessage(code, 'es')
+      const enText = errorCodeMessage(code, 'en')
+      expect(esText).toBeTruthy()
+      expect(typeof esText).toBe('string')
+      expect(esText!.length).toBeGreaterThan(0)
+      expect(enText).toBeTruthy()
+      expect(typeof enText).toBe('string')
+      expect(enText!.length).toBeGreaterThan(0)
+    })
+  })
+
+  describe('MESSAGES codes', () => {
+    const messagesCodes = [
+      'MESSAGES_ADD_PARTICIPANTS_ERROR',
+      'MESSAGES_ADMIN_ONLY_ADD',
+      'MESSAGES_ADMIN_ONLY_EDIT',
+      'MESSAGES_ADMIN_ONLY_REMOVE',
+      'MESSAGES_ADMIN_ONLY_VIEW_ALL',
+      'MESSAGES_ADMIN_OR_SYSTEM_DELETE',
+      'MESSAGES_CONVERSATION_NOT_FOUND',
+      'MESSAGES_CREATE_CONVERSATION_ERROR',
+      'MESSAGES_DELETE_CONVERSATION_ERROR',
+      'MESSAGES_DELETE_MESSAGE_ERROR',
+      'MESSAGES_DM_ONE_PARTICIPANT',
+      'MESSAGES_EDIT_MESSAGE_ERROR',
+      'MESSAGES_EMPTY_MESSAGE',
+      'MESSAGES_FETCH_CONVERSATION_ERROR',
+      'MESSAGES_FETCH_CONVERSATIONS_ERROR',
+      'MESSAGES_FETCH_MESSAGES_ERROR',
+      'MESSAGES_FETCH_UNREAD_ERROR',
+      'MESSAGES_GROUP_MAX_PARTICIPANTS',
+      'MESSAGES_GROUP_NAME_REQUIRED',
+      'MESSAGES_GROUP_NAME_TOO_LONG',
+      'MESSAGES_GROUPS_ONLY_ADD',
+      'MESSAGES_GROUPS_ONLY_EDIT',
+      'MESSAGES_GROUPS_ONLY_REMOVE',
+      'MESSAGES_INVALID_CONVERSATION_ID',
+      'MESSAGES_INVALID_MESSAGE_ID',
+      'MESSAGES_LEAVE_CONVERSATION_ERROR',
+      'MESSAGES_MARK_READ_ERROR',
+      'MESSAGES_MESSAGE_NOT_FOUND',
+      'MESSAGES_MESSAGE_TOO_LONG',
+      'MESSAGES_MISSING_REQUIRED_FIELDS',
+      'MESSAGES_NO_ACCESS',
+      'MESSAGES_NOT_PARTICIPANT',
+      'MESSAGES_ONLY_OWN_DELETE',
+      'MESSAGES_ONLY_OWN_EDIT',
+      'MESSAGES_REMOVE_PARTICIPANT_ERROR',
+      'MESSAGES_SEARCH_MESSAGES_ERROR',
+      'MESSAGES_SEARCH_MIN_LENGTH',
+      'MESSAGES_SEARCH_USERS_ERROR',
+      'MESSAGES_SEND_MESSAGE_ERROR',
+      'MESSAGES_SPECIFY_USER',
+      'MESSAGES_UPDATE_CONVERSATION_ERROR',
+      'MESSAGES_USE_LEAVE_OPTION',
+    ]
+
+    it.each(messagesCodes)('%s returns non-empty text in es and en', (code) => {
       const esText = errorCodeMessage(code, 'es')
       const enText = errorCodeMessage(code, 'en')
       expect(esText).toBeTruthy()
