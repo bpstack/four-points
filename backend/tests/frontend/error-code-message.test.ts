@@ -231,6 +231,8 @@ describe('errorCodeMessage', () => {
       expect(errorCodeMessage('CONCILIATION_DELETED', 'es')).toBeUndefined()
       expect(errorCodeMessage('PARKING_BOOKING_CREATED', 'es')).toBeUndefined()
       expect(errorCodeMessage('PARKING_BOOKING_DELETED', 'es')).toBeUndefined()
+      expect(errorCodeMessage('GROUP_CREATED', 'es')).toBeUndefined()
+      expect(errorCodeMessage('GROUP_UPDATED', 'es')).toBeUndefined()
     })
   })
 
@@ -388,6 +390,64 @@ describe('errorCodeMessage', () => {
     ]
 
     it.each(parkingCodes)('%s returns non-empty text in es and en', (code) => {
+      const esText = errorCodeMessage(code, 'es')
+      const enText = errorCodeMessage(code, 'en')
+      expect(esText).toBeTruthy()
+      expect(typeof esText).toBe('string')
+      expect(esText!.length).toBeGreaterThan(0)
+      expect(enText).toBeTruthy()
+      expect(typeof enText).toBe('string')
+      expect(enText!.length).toBeGreaterThan(0)
+    })
+  })
+
+  describe('GROUP codes', () => {
+    const groupCodes = [
+      'GROUP_CONTACT_CREATE_ERROR',
+      'GROUP_CONTACT_DELETE_ERROR',
+      'GROUP_CONTACT_FETCH_ERROR',
+      'GROUP_CONTACT_FETCH_PRIMARY_ERROR',
+      'GROUP_CONTACT_NOT_FOUND',
+      'GROUP_CONTACT_NOT_IN_GROUP',
+      'GROUP_CONTACT_PRIMARY_NOT_FOUND',
+      'GROUP_CONTACT_UPDATE_ERROR',
+      'GROUP_CREATE_ERROR',
+      'GROUP_DELETE_ERROR',
+      'GROUP_FETCH_DASHBOARD_ERROR',
+      'GROUP_FETCH_ERROR',
+      'GROUP_FETCH_ONE_ERROR',
+      'GROUP_FETCH_TIMELINE_ERROR',
+      'GROUP_HISTORY_FETCH_ERROR',
+      'GROUP_INVALID_ID',
+      'GROUP_MISSING_REQUIRED_FIELDS',
+      'GROUP_NOT_FOUND',
+      'GROUP_PAYMENT_CREATE_ERROR',
+      'GROUP_PAYMENT_DELETE_ERROR',
+      'GROUP_PAYMENT_FETCH_ERROR',
+      'GROUP_PAYMENT_INVALID_AMOUNT',
+      'GROUP_PAYMENT_MISSING_FIELDS',
+      'GROUP_PAYMENT_NOT_FOUND',
+      'GROUP_PAYMENT_NOT_IN_GROUP',
+      'GROUP_PAYMENT_UPDATE_ERROR',
+      'GROUP_ROOM_DELETE_ERROR',
+      'GROUP_ROOM_FETCH_ERROR',
+      'GROUP_ROOM_MISSING_FIELDS',
+      'GROUP_ROOM_NOT_FOUND',
+      'GROUP_ROOM_NOT_IN_GROUP',
+      'GROUP_ROOM_SAVE_ERROR',
+      'GROUP_ROOM_UPDATE_ERROR',
+      'GROUP_STATUS_CONFIRMED_REQUIRED',
+      'GROUP_STATUS_FETCH_ERROR',
+      'GROUP_STATUS_NOT_FOUND',
+      'GROUP_STATUS_SIGNED_REQUIRED',
+      'GROUP_STATUS_UPDATE_BALANCE_ERROR',
+      'GROUP_STATUS_UPDATE_BOOKING_ERROR',
+      'GROUP_STATUS_UPDATE_CONTRACT_ERROR',
+      'GROUP_STATUS_UPDATE_ROOMING_ERROR',
+      'GROUP_UPDATE_ERROR',
+    ]
+
+    it.each(groupCodes)('%s returns non-empty text in es and en', (code) => {
       const esText = errorCodeMessage(code, 'es')
       const enText = errorCodeMessage(code, 'en')
       expect(esText).toBeTruthy()
