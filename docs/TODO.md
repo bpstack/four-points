@@ -300,11 +300,15 @@ preview.
 - [ ] **Configuración: `?tab=` de una pestaña sin permiso deja el contenido en
       blanco** — p. ej. recepción con `?tab=users`; debería caer en la primera
       pestaña disponible. _Visto el 2026-10-05._
-- [ ] **Errores del backend sin traducir** — `messages/{es,en}/errors.json`
-      tiene ~200 textos en `codes` que nadie usa: la UI muestra el `error` del
-      backend, en español. `app/lib/helpers/errorCodeMessage.ts` ya los traduce
-      para `STORAGE_NOT_CONFIGURED`; extenderlo a los demás códigos revisando
-      que no se pierda detalle del mensaje. _Visto el 2026-10-05._
+- [ ] **Errores que aún llegan sin traducir** — los códigos del backend ya se
+      traducen en el cliente (`app/lib/helpers/errorCodeMessage.ts`; un test
+      exige texto en es y en para cada `ERROR_CODES.X`). Quedan: las server
+      actions de blacklist, groups y parking (`app/dashboard/*/actions/`,
+      `app/lib/parking/actions.ts`) lanzan `errorData.error`, que es el código
+      en crudo, y en el servidor no hay `document` para leer el idioma;
+      maintenance responde con textos fijos en español sin `code`; el 409 del
+      reinicio de la demo y el subtítulo del login (`login/page.tsx`) también
+      van fijos en español. _Comprobado el 2026-10-11._
 - [ ] **Scheduling: vista de solo lectura para los demás roles** — hoy
       `/dashboard/scheduling` es solo de `admin` y el resto no ve el cuadrante.
       El dueño quiere que los demás (salvo `mantenimiento`) vean el cuadrante
