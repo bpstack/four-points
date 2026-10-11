@@ -133,18 +133,8 @@ export class CashierVoucherController {
       }
       const voucherData = { ...parsed.data, created_by: userId }
 
-      // Verificar límite de 5 vales por turno
-      const canAdd = await CashierVoucherRepository.canAddVoucherToShift(parseInt(shiftId))
-      if (!canAdd) {
-        res.status(400).json({ error: 'El turno ya tiene el máximo de 5 vales' })
-        return
-      }
-
-      // Crear vale
-      const voucher = await CashierVoucherRepository.create(voucherData)
-
-      // Asociar con turno
-      await CashierVoucherRepository.associateWithShift(voucher.id, parseInt(shiftId))
+      // Crear el vale y asociarlo al turno (límite de 5, en una transacción)
+      const voucher = await CashierVoucherRepository.createForShift(voucherData, parseInt(shiftId))
 
       // Registrar en historial
       await CashierHistoryRepository.create({
@@ -158,8 +148,7 @@ export class CashierVoucherController {
 
       res.status(201).json(voucher)
     } catch (error) {
-      logger.error({ err: error }, 'Error al crear vale')
-      res.status(500).json({ error: 'Error al crear vale' })
+      sendCashierError(res, error, 'Error al crear vale')
     }
   }
 

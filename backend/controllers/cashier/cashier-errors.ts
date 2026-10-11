@@ -17,6 +17,10 @@ export const CASHIER_DOMAIN_ERRORS: Record<string, number> = {
   'El vale ya está justificado': 409,
   'El vale ya está cancelado': 409,
   'Solo se pueden eliminar vales pendientes': 409,
+  'Solo se pueden modificar vales pendientes': 409,
+  'Solo se pueden justificar vales pendientes': 409,
+  'Solo se pueden cancelar vales pendientes': 409,
+  'El turno ya tiene el máximo de 5 vales': 400,
 }
 
 /** Known domain errors keep their message; anything else is a generic 500 (no SQL details). */

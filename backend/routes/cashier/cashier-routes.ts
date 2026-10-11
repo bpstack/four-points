@@ -100,7 +100,7 @@ router.get('/daily/:date/summary', authenticateToken, CashierDailyController.get
  * GET /api/cashier/daily
  * Listar días con paginación
  */
-router.get('/daily', authenticateToken, CashierDailyController.getAll)
+router.get('/daily', authenticateToken, canViewReports, CashierDailyController.getAll)
 
 /**
  * GET /api/cashier/reports/monthly/:year/:month
@@ -163,7 +163,12 @@ router.delete('/shifts/:id', authenticateToken, isAdmin, CashierShiftController.
  * GET /api/cashier/shifts/:id/history
  * Obtener historial de un turno
  */
-router.get('/shifts/:id/history', authenticateToken, CashierShiftController.getHistory)
+router.get(
+  '/shifts/:id/history',
+  authenticateToken,
+  canViewReports,
+  CashierShiftController.getHistory
+)
 
 // ============================================
 // 🎫 VOUCHER ROUTES (Vales)
@@ -185,7 +190,7 @@ router.get('/vouchers/active', authenticateToken, CashierVoucherController.getAc
  * GET /api/cashier/vouchers/stats
  * Obtener estadísticas de vales
  */
-router.get('/vouchers/stats', authenticateToken, CashierVoucherController.getStats)
+router.get('/vouchers/stats', authenticateToken, canViewReports, CashierVoucherController.getStats)
 
 /**
  * GET /api/cashier/vouchers/:id
