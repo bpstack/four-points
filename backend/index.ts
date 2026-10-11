@@ -8,6 +8,7 @@ import { logServerInfo } from './config/startup-logger.js'
 import { logger } from './config/logger.js'
 import { apiLimiter } from './middlewares/rateLimiter.js'
 import { noStore } from './middlewares/noStore.js'
+import { logAccessDenied } from './middlewares/accessLog.js'
 import { corsMiddleware } from './config/cors.js'
 
 import { CronService } from './services/cron/cron-service.js'
@@ -66,6 +67,8 @@ app.use(cookieParser())
 app.use('/api', apiLimiter)
 // Personal and financial data must not stay in browser or proxy caches
 app.use('/api', noStore)
+// Every 403 leaves a trace in the log
+app.use('/api', logAccessDenied)
 
 // ========================================
 // RUTAS

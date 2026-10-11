@@ -93,6 +93,17 @@ if it does not match.
   server to server).
 - In production, unhandled errors return a generic message.
 
+**Log**
+
+- Every `403` is logged (`access_denied`: user, role, method and path, without
+  the query string), and so is every time an `admin` reads, lists or deletes
+  conversations or messages they are not in (`admin_override`).
+- Passwords and tokens are hidden at the first three levels of each entry, and
+  so is the SQL of a failed query (`err.sql`), which carries its values.
+- Failed logins keep the username that was typed (decided on 2026-10-12, left
+  as is): it is what reveals a brute-force attack, although someone may type
+  their password in that field.
+
 **Database**
 
 - Every schema change is a new, idempotent script in `backend/db-mysql/scripts/`

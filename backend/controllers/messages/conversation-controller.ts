@@ -9,6 +9,7 @@ import {
 } from '../../models/messages/index.js'
 import { ERROR_CODES, SUCCESS_CODES } from '../../config/error-codes.js'
 import { logger } from '../../config/logger.js'
+import { logAdminOverride } from '../../middlewares/accessLog.js'
 import {
   createConversationSchema,
   addParticipantsSchema,
@@ -86,6 +87,7 @@ export class ConversationController {
           code: ERROR_CODES.MESSAGES_NO_ACCESS,
         })
       }
+      if (!isParticipant) logAdminOverride(req, 'read_conversation', { conversationId })
 
       const conversation = await ConversationRepository.getByIdWithDetails(conversationId, userId)
 
@@ -435,6 +437,7 @@ export class ConversationController {
           code: ERROR_CODES.MESSAGES_ADMIN_OR_SYSTEM_DELETE,
         })
       }
+      if (!isConversationAdmin) logAdminOverride(req, 'delete_conversation', { conversationId })
 
       // Eliminar conversacion completa (mensajes se eliminan por CASCADE)
       await ConversationRepository.deleteComplete(conversationId)
@@ -760,6 +763,7 @@ export class ConversationController {
       }
       const { limit } = query.data
       const conversations = await ConversationRepository.getAll(limit)
+      logAdminOverride(req, 'list_all_conversations', { count: conversations.length })
 
       return res.status(200).json({
         success: true,
