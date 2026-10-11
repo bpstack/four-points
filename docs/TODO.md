@@ -145,10 +145,6 @@ preview.
 - [ ] **Logbook: la fecha de una entrada admite cualquier día** — pasado o
       futuro, sin límite. Decidir qué rango tiene sentido. _Comprobado por mí el
       2026-09-28._
-- [ ] **Parking: entrada y salida aceptan fechas reales arbitrarias** — el
-      cuerpo del `PUT` ya se valida con Zod (2026-10-02), pero las fechas de
-      entrada y salida reales no. _Según la revisión `security` L3 del
-      2026-09-28 (fichero y línea en el informe); no repasado por mí._
 - [ ] **Parking: `GET /vehicles` vuelca todos los vehículos** (matrícula y
       titular) sin paginar ni filtrar. _Según la revisión `security` L3 del
       2026-09-28 (fichero y línea en el informe); no repasado por mí._
