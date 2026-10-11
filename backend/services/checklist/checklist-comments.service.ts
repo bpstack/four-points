@@ -11,6 +11,21 @@ async function resolveRun(checklistId: string): Promise<{ id: number }> {
   return run
 }
 
+// Result of deleting a comment or an attachment. A closed day (its run has
+// reset_at) is history: since 2026-10-11 only admin may delete there
+export type RemoveResult = 'deleted' | 'not_found' | 'forbidden' | 'closed'
+
+function canRemove(
+  item: { user_id: string; run_closed: boolean | number },
+  userId: string,
+  isAdmin: boolean
+): RemoveResult | null {
+  if (isAdmin) return null
+  if (item.user_id !== userId) return 'forbidden'
+  if (item.run_closed) return 'closed'
+  return null
+}
+
 // ── Comments ──────────────────────────────────────────────
 
 export async function getComments(checklistId: string, stepId: string): Promise<Comment[]> {
@@ -31,16 +46,20 @@ export async function addComment(
 }
 
 export async function removeComment(
-  checklistId: string,
   commentId: number,
   userId: string,
   isAdmin: boolean
-): Promise<boolean> {
-  const run = await resolveRun(checklistId)
-  const deleted = await commentsRepo.deleteComment(commentId, userId, isAdmin)
-  if (deleted)
-    await checklistRepo.logEvent(run.id, null, userId, 'comment', { deleted_comment_id: commentId })
-  return deleted
+): Promise<RemoveResult> {
+  const comment = await commentsRepo.findComment(commentId)
+  if (!comment) return 'not_found'
+  const refused = canRemove(comment, userId, isAdmin)
+  if (refused) return refused
+  await commentsRepo.deleteComment(commentId)
+  // Logged in the comment's own run, not in today's
+  await checklistRepo.logEvent(comment.run_id, null, userId, 'comment', {
+    deleted_comment_id: commentId,
+  })
+  return 'deleted'
 }
 
 // ── Attachments ───────────────────────────────────────────
@@ -78,21 +97,21 @@ export async function addAttachment(
 }
 
 export async function removeAttachment(
-  checklistId: string,
   attachmentId: number,
   userId: string,
   isAdmin: boolean
-): Promise<boolean> {
+): Promise<RemoveResult> {
   const attachment = await commentsRepo.findAttachment(attachmentId)
-  if (!attachment) return false
-  if (!isAdmin && attachment.user_id !== userId) return false
+  if (!attachment) return 'not_found'
+  const refused = canRemove(attachment, userId, isAdmin)
+  if (refused) return refused
   await CloudinaryService.deleteImage(attachment.public_id)
   await commentsRepo.deleteAttachment(attachmentId)
-  const run = await resolveRun(checklistId)
-  await checklistRepo.logEvent(run.id, null, userId, 'attach', {
+  // Logged in the attachment's own run, not in today's
+  await checklistRepo.logEvent(attachment.run_id, null, userId, 'attach', {
     deleted_attachment_id: attachmentId,
   })
-  return true
+  return 'deleted'
 }
 
 // Stored Cloudinary URL of an attachment, for the server to serve it

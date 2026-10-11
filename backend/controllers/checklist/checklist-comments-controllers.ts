@@ -6,6 +6,20 @@ import { createCommentSchema } from '../../validations/checklist/checklist-schem
 import { logger } from '../../config/logger.js'
 import { fetchStoredFile, sendPrivateFile } from '../../services/uploads/private-files.js'
 
+// Answers a refused delete; returns true when it did
+function refuseRemove(
+  res: Response,
+  result: commentsService.RemoveResult,
+  what: 'comentario' | 'adjunto'
+): boolean {
+  if (result === 'deleted') return false
+  if (result === 'not_found') res.status(404).json({ error: `No existe ese ${what}` })
+  else if (result === 'closed')
+    res.status(409).json({ error: 'El día está cerrado: solo un administrador puede borrar' })
+  else res.status(403).json({ error: `No tienes permiso para eliminar este ${what}` })
+  return true
+}
+
 function isAdmin(req: Request): boolean {
   return req.user?.role?.toLowerCase() === 'admin'
 }
@@ -45,17 +59,13 @@ export async function addCommentController(req: Request, res: Response): Promise
 // DELETE /api/checklists/:id/steps/:stepId/comments/:commentId
 export async function deleteCommentController(req: Request, res: Response): Promise<void> {
   try {
-    const { id, commentId } = req.params
-    const deleted = await commentsService.removeComment(
-      id,
+    const { commentId } = req.params
+    const result = await commentsService.removeComment(
       Number(commentId),
       req.user!.id,
       isAdmin(req)
     )
-    if (!deleted) {
-      res.status(403).json({ error: 'No tienes permiso para eliminar este comentario' })
-      return
-    }
+    if (refuseRemove(res, result, 'comentario')) return
     res.json({ success: true })
   } catch (err) {
     logger.error({ err }, '[checklist] deleteComment')
@@ -113,17 +123,13 @@ export async function addAttachmentController(req: Request, res: Response): Prom
 // DELETE /api/checklists/:id/steps/:stepId/attachments/:attachmentId
 export async function deleteAttachmentController(req: Request, res: Response): Promise<void> {
   try {
-    const { id, attachmentId } = req.params
-    const deleted = await commentsService.removeAttachment(
-      id,
+    const { attachmentId } = req.params
+    const result = await commentsService.removeAttachment(
       Number(attachmentId),
       req.user!.id,
       isAdmin(req)
     )
-    if (!deleted) {
-      res.status(403).json({ error: 'No tienes permiso para eliminar este adjunto' })
-      return
-    }
+    if (refuseRemove(res, result, 'adjunto')) return
     res.json({ success: true })
   } catch (err) {
     logger.error({ err }, '[checklist] deleteAttachment')
