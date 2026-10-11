@@ -297,9 +297,6 @@ preview.
       volviera a ejecutar (`UPDATE users SET is_active = 0 WHERE username =
       'demo'`). `setup:local` no la ejecuta (es anterior al baseline); no
       aplicarla a mano. _Comprobado el 2026-10-05._
-- [ ] **Configuración: `?tab=` de una pestaña sin permiso deja el contenido en
-      blanco** — p. ej. recepción con `?tab=users`; debería caer en la primera
-      pestaña disponible. _Visto el 2026-10-05._
 - [ ] **Errores del backend sin traducir** — `messages/{es,en}/errors.json`
       tiene ~200 textos en `codes` que nadie usa: la UI muestra el `error` del
       backend, en español. `app/lib/helpers/errorCodeMessage.ts` ya los traduce
