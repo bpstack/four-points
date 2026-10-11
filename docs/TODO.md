@@ -306,28 +306,6 @@ preview.
       dueño decidió el 2026-10-11 dejarlo así; si se le da pantalla, cerrar el
       mes debe bloquear sus días y comprobar con el mes bloqueado. _Comprobado
       el 2026-10-11._
-- [ ] **Scheduling: el daemon del solver puede quedar bloqueado** — el semáforo
-      se retiene durante el arranque (hasta 30 min) con cola sin límite. _Según
-      la revisión `security` L3 del 2026-09-28 (fichero y línea en el informe);
-      no repasado por mí._
-- [ ] **Importador del Excel** — borra también las celdas bloqueadas, sin
-      transacción ni comprobar si el mes está publicado. _Según la revisión
-      `security` L3 del 2026-09-28 (fichero y línea en el informe); no repasado
-      por mí._
-- [ ] **Groups: recordatorios repetidos cada 48 h** — los de pago se buscan en
-      un rango de días y se deduplican por título en una ventana de 48 h: el
-      mismo pago se vuelve a avisar con «vence en 15 días» aunque falten 2, y
-      los vencidos se repiten sin fin. _Según la revisión `security` L3 del
-      2026-09-28 (fichero y línea en el informe); no repasado por mí._
-- [ ] **Groups: la ficha no se refresca tras editar el grupo** — después de
-      «Grupo actualizado correctamente» el balance sigue mostrando el importe
-      anterior (y el panel de pagos calcula los porcentajes sobre él) hasta que
-      otra acción recarga los datos; el backend sí guarda el valor nuevo.
-      _Comprobado en producción el 2026-09-29._
-- [ ] **Groups: contactos (email y teléfono) visibles para todos los roles**,
-      también `mantenimiento` (ASVS L3: solo los datos mínimos). _Según la
-      revisión `security` L3 del 2026-09-28 (fichero y línea en el informe); no
-      repasado por mí._
 - [ ] **Maintenance: identificador `DDMMAA-NNN` frágil** — se calcula leyendo el
       último del día (dos altas a la vez chocan y dan 500) con la hora del
       servidor; a partir del parte 1000 del día el id no cumple el formato y el
