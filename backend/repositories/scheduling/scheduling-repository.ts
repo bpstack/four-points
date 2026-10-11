@@ -1361,13 +1361,31 @@ export async function setSchedulableEmployees(
   employeeIds: string[],
   addedBy?: string
 ): Promise<void> {
-  // Clear existing
-  await db.query(`DELETE FROM scheduling_employees`)
-
-  // Insert new ones
-  if (employeeIds.length > 0) {
-    const values = employeeIds.map((id) => [id, addedBy || null])
-    await db.query(`INSERT INTO scheduling_employees (employee_id, added_by) VALUES ?`, [values])
+  // Remove the ones left out and add the new ones; those that stay keep
+  // their row (start_date, end_date, display_order, added_by). Clearing the
+  // table and filling it again lost all of that
+  const connection = await db.getConnection()
+  try {
+    await connection.beginTransaction()
+    if (employeeIds.length === 0) {
+      await connection.query(`DELETE FROM scheduling_employees`)
+    } else {
+      await connection.query(`DELETE FROM scheduling_employees WHERE employee_id NOT IN (?)`, [
+        employeeIds,
+      ])
+      const values = employeeIds.map((id) => [id, addedBy || null])
+      await connection.query(
+        `INSERT INTO scheduling_employees (employee_id, added_by) VALUES ?
+         ON DUPLICATE KEY UPDATE employee_id = employee_id`,
+        [values]
+      )
+    }
+    await connection.commit()
+  } catch (error) {
+    await connection.rollback()
+    throw error
+  } finally {
+    connection.release()
   }
 }
 
