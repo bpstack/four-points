@@ -69,6 +69,8 @@ Four tables (`backend/db-mysql/aiven/09_conciliation.sql`):
   month does not lock its days: an `admin` can still reopen or delete them
   (left as is on 2026-10-11, see `docs/TODO.md`).
 - **Deleting a day's reconciliation is only for `admin`.**
+- **`GET /api/conciliations` returns every day, without paging or filters**,
+  to any role with access. No screen uses it; left as is on 2026-10-12.
 
 ## How information flows
 

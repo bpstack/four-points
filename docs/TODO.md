@@ -306,21 +306,6 @@ preview.
       dueño decidió el 2026-10-11 dejarlo así; si se le da pantalla, cerrar el
       mes debe bloquear sus días y comprobar con el mes bloqueado. _Comprobado
       el 2026-10-11._
-- [ ] **Conciliation: `GET /api/conciliations` sin paginar ni filtrar** —
-      devuelve todo el histórico a cualquier rol con acceso. _Según la revisión
-      `security` L3 del 2026-09-28 (fichero y línea en el informe); no repasado
-      por mí._
-- [ ] **Checklist: `checklist_config` existe pero no se usa.** _Comprobado por
-      mí el 2026-09-28._
-- [ ] **Scheduling: reiniciar un mes no usa transacción** — si falla a mitad, el
-      mes queda vacío. _Comprobado por mí el 2026-09-28._
-- [ ] **Scheduling: comprobar si `LI` debe contar como descanso en el solver** —
-      falta en `REST_SHIFTS` de `rest.py`. _Sin comprobar su efecto._
-- [ ] **Scheduling: `day_id` de otro mes aceptado** y comprobación de bloqueo
-      fuera de transacción en las ediciones masivas. El tamaño de las listas y
-      los ids de empleado ya se validan (2026-10-02). _Según la revisión
-      `security` L3 del 2026-09-28 (fichero y línea en el informe); no repasado
-      por mí._
 - [ ] **Scheduling: el daemon del solver puede quedar bloqueado** — el semáforo
       se retiene durante el arranque (hasta 30 min) con cola sin límite. _Según
       la revisión `security` L3 del 2026-09-28 (fichero y línea en el informe);

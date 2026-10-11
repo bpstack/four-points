@@ -61,7 +61,8 @@ from `backend/`.
 - **`checklist_step_comments`** and **`checklist_step_attachments`**: comments
   and images per step.
 - **`checklist_event_log`**: every tick, untick and restart.
-- **`checklist_config`**: exists but is not used.
+- **`checklist_config`**: exists but is not used: the 06:30 reset and the
+  `Europe/Madrid` zone are written in the code. Left as is on 2026-10-12.
 
 ## What rules it follows
 
