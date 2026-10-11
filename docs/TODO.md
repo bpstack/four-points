@@ -229,20 +229,14 @@ preview.
       `uk_run (hotel_id,     checklist_id, hotel_date)` lo impide: 500. Después
       `getOrCreateRun` devuelve el run cerrado y los cambios del día se escriben
       en él. Sin transacción ni test. En Aiven nadie lo ha usado (0 cierres
-      manuales). _Comprobado por mí el 2026-09-28._
-- [ ] **Checklist: borrar comentarios e imágenes de días cerrados** — el autor
-      puede reescribir el histórico, y el evento se registra en el run de hoy y
-      como si fuera una alta. _Según la revisión `security` L3 del 2026-09-28
-      (fichero y línea en el informe); no repasado por mí._
-- [ ] **Cashier: ciclo de vida de los vales y cierres sin bloqueo** — se puede
-      justificar un vale cancelado y cambiar el importe de uno justificado; el
-      límite de 5 vales y los cierres de turno y día se comprueban antes de
-      escribir, sin bloqueo. _Según la revisión `security` L3 del 2026-09-28
-      (fichero y línea en el informe); no repasado por mí._
-- [ ] **Cashier: el historial y los totales se ven sin `canViewReports`** —
-      `GET /shifts/:id/history`, `/daily` y `/vouchers/stats`. _Según la
-      revisión `security` L3 del 2026-09-28 (fichero y línea en el informe); no
-      repasado por mí._
+      manuales) y la pantalla no lo llama: decidido el 2026-10-11 dejar el
+      endpoint como está; antes de usarlo, cambiar la clave única. _Comprobado
+      el 2026-10-11._
+- [ ] **Cashier: los cierres de turno y de día no bloquean** — se comprueban
+      antes de escribir, sin bloqueo: un pago o un vale puede entrar en un turno
+      que otro usuario está cerrando. El ciclo de los vales y su límite de 5 ya
+      van en transacción (2026-10-11). _Según la revisión `security` L3 del
+      2026-09-28; no repasado._
 - [ ] **Backoffice: borrar una factura borra también su historial** — borrado
       definitivo, con las columnas de borrado lógico sin usar. _Comprobado por
       mí el 2026-09-28._
