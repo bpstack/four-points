@@ -2,9 +2,42 @@
 // The text the user sees for a backend error code, in each page language.
 
 import { describe, it, expect } from 'vitest'
-import { errorCodeMessage } from '../../../frontend/app/lib/helpers/errorCodeMessage.js'
+import { readdirSync, readFileSync } from 'fs'
+import { join, resolve } from 'path'
+import {
+  errorBodyMessage,
+  errorCodeMessage,
+} from '../../../frontend/app/lib/helpers/errorCodeMessage.js'
+
+// Every ERROR_CODES.X the backend source mentions (tests and the catalogue aside)
+function backendErrorCodes(): string[] {
+  const root = resolve(__dirname, '../..')
+  const skip = new Set(['node_modules', 'tests', 'scheduling-solver', 'db-mysql'])
+  const codes = new Set<string>()
+  const walk = (dir: string) => {
+    for (const entry of readdirSync(dir, { withFileTypes: true })) {
+      if (entry.isDirectory()) {
+        if (!skip.has(entry.name) && !entry.name.startsWith('.')) walk(join(dir, entry.name))
+      } else if (entry.name.endsWith('.ts') && entry.name !== 'error-codes.ts') {
+        const source = readFileSync(join(dir, entry.name), 'utf-8')
+        for (const m of source.matchAll(/ERROR_CODES\.([A-Z0-9_]+)/g)) codes.add(m[1])
+      }
+    }
+  }
+  walk(root)
+  return [...codes].sort()
+}
 
 describe('errorCodeMessage', () => {
+  it('has a text in es and en for every error code the backend sends', () => {
+    const codes = backendErrorCodes()
+    expect(codes.length).toBeGreaterThan(250)
+    const missing = codes.filter(
+      (code) => !errorCodeMessage(code, 'es') || !errorCodeMessage(code, 'en')
+    )
+    expect(missing).toEqual([])
+  })
+
   it('gives the storage message in Spanish and in English', () => {
     expect(errorCodeMessage('STORAGE_NOT_CONFIGURED', 'es')).toMatch(
       /^El almacenamiento de archivos no está configurado/
@@ -150,14 +183,6 @@ describe('errorCodeMessage', () => {
       expect(typeof enText).toBe('string')
       expect(enText!.length).toBeGreaterThan(0)
     })
-
-    it('excludes BACKOFFICE codes without translation', () => {
-      expect(errorCodeMessage('BACKOFFICE_SUPPLIER_INACTIVE_EXISTS', 'es')).toBeUndefined()
-      expect(errorCodeMessage('BACKOFFICE_SUPPLIER_HAS_INVOICES', 'es')).toBeUndefined()
-      expect(errorCodeMessage('BACKOFFICE_INACTIVATE_SUPPLIER_ERROR', 'es')).toBeUndefined()
-      expect(errorCodeMessage('BACKOFFICE_ACTIVATE_SUPPLIER_ERROR', 'es')).toBeUndefined()
-      expect(errorCodeMessage('BACKOFFICE_DELETE_SUPPLIER_ERROR', 'es')).toBeUndefined()
-    })
   })
 
   describe('NOTIFICATIONS codes', () => {
@@ -192,8 +217,6 @@ describe('errorCodeMessage', () => {
     })
 
     it('excludes codes without translation', () => {
-      expect(errorCodeMessage('AUTH_DEMO_UNAVAILABLE', 'es')).toBeUndefined()
-      expect(errorCodeMessage('AUTH_DEMO_UNAVAILABLE', 'en')).toBeUndefined()
       // Success messages are in "success" section, not "codes"
       expect(errorCodeMessage('NOTIFICATIONS_PROCESSED', 'es')).toBeUndefined()
       expect(errorCodeMessage('NOTIFICATIONS_CREATED', 'es')).toBeUndefined()
@@ -555,6 +578,26 @@ describe('errorCodeMessage', () => {
       expect(enText).toBeTruthy()
       expect(typeof enText).toBe('string')
       expect(enText!.length).toBeGreaterThan(0)
+    })
+  })
+
+  describe('errorBodyMessage', () => {
+    it('translates a known code (no document here: Spanish)', () => {
+      expect(
+        errorBodyMessage({ error: 'AUTH_INVALID_CREDENTIALS', code: 'AUTH_INVALID_CREDENTIALS' })
+      ).toBe(errorCodeMessage('AUTH_INVALID_CREDENTIALS', 'es'))
+    })
+
+    it('keeps the backend text when the code is unknown or missing', () => {
+      expect(errorBodyMessage({ error: 'Texto del backend', code: 'NO_SUCH_CODE' })).toBe(
+        'Texto del backend'
+      )
+      expect(errorBodyMessage({ error: 'Texto del backend' })).toBe('Texto del backend')
+    })
+
+    it('gives undefined when there is nothing to show', () => {
+      expect(errorBodyMessage(null)).toBeUndefined()
+      expect(errorBodyMessage({ error: 42 })).toBeUndefined()
     })
   })
 })
