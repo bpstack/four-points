@@ -1352,3 +1352,21 @@ day"; `services/scheduling/AGENTS.md`: "outside the weekly rotation").
 **Why.** The owner's priority is a solver that keeps working: counting `LI`
 as rest would change two hard rules and the rosters of every month with an
 `LI`, with no reported problem behind it.
+
+## 2026-10-12 — Solver daemon: startup limit and queue left as they are
+
+**Context.** `services/scheduling/solver-client.ts` takes the semaphore before
+waiting for the daemon, waits up to 30 minutes for it to start on every
+platform (the limit was set for Windows with Defender) and queues requests
+without a limit.
+
+**Decision.** Keep it.
+
+**Why.** The risk is low: only `admin` generates, the demo account is limited
+to 5 generations per IP and 30 in total per hour, the daemon starts in 1–3 s
+when it is warm, and a request cancelled while it waits returns before
+calling the solver.
+
+**If it is revisited.** A shorter startup limit outside Windows and a cap on
+the queue that answers "solver busy".
+
