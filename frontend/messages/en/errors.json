@@ -290,6 +290,8 @@
     "GROUP_ROOM_DELETE_ERROR": "Error deleting room",
     "GROUP_PAYMENT_MISSING_FIELDS": "Missing required fields: payment name, due date",
     "GROUP_PAYMENT_INVALID_AMOUNT": "Payment must have an amount greater than 0",
+    "GROUP_PAYMENT_OVERPAID": "The amount paid cannot exceed the payment amount",
+    "GROUP_PAYMENT_PERCENTAGE_OVER_100": "The group's payment percentages add up to more than 100",
     "GROUP_PAYMENT_NOT_FOUND": "Payment not found",
     "GROUP_PAYMENT_NOT_IN_GROUP": "Payment does not belong to this group",
     "GROUP_PAYMENT_FETCH_ERROR": "Error fetching payments",
