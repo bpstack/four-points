@@ -9,6 +9,7 @@ import { buildSolverInput } from '../../services/scheduling/build-solver-input.j
 import { runSolver } from '../../services/scheduling/solver-client.js'
 import type { SolverSuccess, SolverOutput } from '../../services/scheduling/types/solver.js'
 import { solverErrorMessage } from '../../services/scheduling/solver-errors.js'
+import { generatedRows } from '../../services/scheduling/generated-rows.js'
 
 /** Persiste el registro del run; nunca lanza — error de log no debe romper la respuesta. */
 async function recordSolverRun(data: SolverRunRecord): Promise<void> {
@@ -164,32 +165,12 @@ export async function generateSchedule(req: Request, res: Response): Promise<voi
   const success = solverOutput as SolverSuccess
   const dayMap = new Map(days.map((d) => [d.day_number, d.id]))
 
-  const lockedSet = new Set<string>()
-  for (const [empId, dayDayMap] of Object.entries(solverInput.lockedCells)) {
-    for (const dayNum of Object.keys(dayDayMap)) {
-      lockedSet.add(`${empId}:${dayNum}`)
-    }
-  }
-
-  const toInsert: {
-    day_id: number
-    employee_id: string
-    shift_code: string
-    source_constraint_id: null
-  }[] = []
-  for (const [empId, dayShifts] of Object.entries(success.matrix)) {
-    for (const [dayNumStr, shiftCode] of Object.entries(dayShifts)) {
-      if (lockedSet.has(`${empId}:${dayNumStr}`)) continue
-      const dayId = dayMap.get(Number(dayNumStr))
-      if (!dayId) continue
-      toInsert.push({
-        day_id: dayId,
-        employee_id: empId,
-        shift_code: shiftCode,
-        source_constraint_id: null,
-      })
-    }
-  }
+  const persisted = new Set(
+    (await repo.getAssignmentsByMonth(monthId))
+      .filter((a) => a.source_constraint_id !== null)
+      .map((a) => `${a.employee_id}:${a.day_id}`)
+  )
+  const toInsert = generatedRows(success.matrix, solverInput.lockedCells, dayMap, persisted)
 
   const { deleted, inserted } = await repo.applyGeneratedSchedule(monthId, toInsert)
   logger.info({ monthId, deleted, inserted }, '[generate] transacción completada')
