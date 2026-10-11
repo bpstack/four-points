@@ -58,6 +58,13 @@ Part of the logic lives **in the database**: the triggers in
 `05_parking_functions_triggers.sql` generate the booking code and keep the
 calendar up to date.
 
+The database also has 2 functions (`check_availability`,
+`get_total_availability`) and 5 procedures (`06_parking_procedures.sql`) that
+**nothing calls**, neither the code nor the triggers; only the local seeds run
+`generate_availability`, which the backend replaced with `extendAvailability`.
+`daily_parking_maintenance` would mark expired bookings as no-shows if someone
+ran it by hand. They stay in the database (decided on 2026-10-12).
+
 ## What rules it follows
 
 **Booking states**

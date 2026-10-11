@@ -154,9 +154,10 @@ preview.
         con Node en UTC contra la MySQL local, `NOW()` sale 2 h movido (p. ej.
         `pnpm dev:aiven` desde un equipo en Madrid).
       - «Hoy» en UTC está mal entre las 00:00 y las 02:00 de Madrid:
-        `toISOString()` en 26 sitios del frontend y 6 del backend, y
+        `toISOString()` en 26 sitios del frontend y 6 del backend,
         `CURDATE()`/`NOW()` en Aiven (19 consultas con `CURDATE()`: filtros de
-        parking, código `PK-AAAAMMDD` del trigger, `CURRENT_TIMESTAMP`).
+        parking, código `PK-AAAAMMDD` del trigger, `CURRENT_TIMESTAMP`) y el
+        identificador `DDMMAA-NNN` de Maintenance (fecha de Node).
       - 15 sitios del frontend cortan por la `T` fechas del servidor (grupos,
         lista negra, parking, horarios, checklist, caja, backoffice).
 
@@ -306,33 +307,8 @@ preview.
       dueño decidió el 2026-10-11 dejarlo así; si se le da pantalla, cerrar el
       mes debe bloquear sus días y comprobar con el mes bloqueado. _Comprobado
       el 2026-10-11._
-- [ ] **Maintenance: identificador `DDMMAA-NNN` frágil** — se calcula leyendo el
-      último del día (dos altas a la vez chocan y dan 500) con la hora del
-      servidor; a partir del parte 1000 del día el id no cumple el formato y el
-      parte queda inaccesible. _Comprobado por mí el 2026-09-28._ (el límite de
-      1000, según el revisor)
-- [ ] **Maintenance: el límite de 5 fotos se salta subiendo en paralelo** —
-      se cuenta antes de subir, sin bloqueo. _Según la revisión `security` L3
-      del 2026-09-28 (fichero y línea en el informe); no repasado por mí._
 - [ ] **Maintenance: comprobar si Cloudinary quita los metadatos EXIF/GPS** de
       las fotos. _Sin comprobar._
-- [ ] **Procedimientos de BD sin uso** — de las 2 funciones y 5 procedimientos
-      de parking, el código solo llama a `check_availability`; el resto
-      (incluido `generate_availability`, que amplía el calendario) no los usa
-      nadie. _Comprobado por mí el 2026-09-28._
-- [ ] **Datos sensibles en los logs** — usernames de logins fallidos, `redact`
-      de un solo nivel y, probablemente, `err.sql` de mysql2 con los valores
-      (textos, matrículas, hashes). _Según la revisión `security` L3 del
-      2026-09-28 (fichero y línea en el informe); no repasado por mí._ No
-      verificado en ejecución.
-- [ ] **Logbook: el historial registra cada comentario dos veces y cada
-      lectura sin límite.** (Editar o volver a borrar un comentario borrado ya
-      no es posible desde el 2026-10-02.) _Según la revisión `security` L3 del
-      2026-09-28; no repasado por mí._
-- [ ] **Registrar decisiones de autorización** — ni los 403 ni los accesos de un
-      `admin` a conversaciones ajenas quedan en el log (ASVS L3). _Según la
-      revisión `security` L3 del 2026-09-28 (fichero y línea en el informe); no
-      repasado por mí._
 - [ ] **Parking: salto de precio a partir de 31 días** — las tarifas llegan a 30
       días (250 € en Aiven); a partir de 31 se cobran 15 €/día (465 €).
 - [ ] **Parking: el mapa de estado no se refresca solo** — los cambios de otro
