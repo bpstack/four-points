@@ -1337,3 +1337,18 @@ hand; the owner chose speed over reproducibility.
 **If it is revisited.** Set `random_seed`, `interleave_search = True` and a
 fixed `num_workers` in `model.py`, and replace `max_time_in_seconds` with
 `max_deterministic_time` for months that reach the limit.
+
+## 2026-10-12 — `LI` does not count as rest in the solver
+
+**Context.** `LI` (Libre Disposición) is not in `REST_SHIFTS` of
+`constraints/rest.py` nor in `_SPECIAL_REST` of `constraints/libres.py`: a
+locked `LI` neither counts towards the two free days of any 7-day window nor
+lowers the monthly minimum of `L`. Whoever has an `LI` also gets every
+regular free day.
+
+**Decision.** Keep it. It matches the catalogue (`README.md`: "extra free
+day"; `services/scheduling/AGENTS.md`: "outside the weekly rotation").
+
+**Why.** The owner's priority is a solver that keeps working: counting `LI`
+as rest would change two hard rules and the rosters of every month with an
+`LI`, with no reported problem behind it.
