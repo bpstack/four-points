@@ -8,6 +8,16 @@ import timezone from 'dayjs/plugin/timezone.js'
 dayjs.extend(utc)
 dayjs.extend(timezone)
 
+// The values of the parking_bookings.booking_source ENUM
+export const BOOKING_SOURCES = [
+  'direct',
+  'booking_com',
+  'expedia',
+  'airbnb',
+  'agency_other',
+] as const
+const bookingSource = z.enum(BOOKING_SOURCES)
+
 const dateTimeSchema = z
   .string()
   .min(1, 'La fecha es requerida')
@@ -22,8 +32,8 @@ export const createBookingSchema = z
     expected_checkin: dateTimeSchema,
     expected_checkout: dateTimeSchema,
     total_amount: z.number().positive().optional(),
-    booking_source: z.string().optional().default('direct'),
-    external_booking_id: z.string().optional(),
+    booking_source: bookingSource.optional().default('direct'),
+    external_booking_id: z.string().max(64).optional(),
     notes: z.string().max(500).optional(),
   })
   .refine(
@@ -53,8 +63,7 @@ export const createBookingSchema = z
 // DECIMAL(10,2) and never negative, payment_method is an ENUM, references and
 // external ids are VARCHAR(100)/(64). Before, any value reached MySQL (a
 // negative payment was stored, a bad ENUM or text ended in a 500).
-// booking_source is left as it is: its allowed values are still to be decided
-// (docs/TODO.md)
+// booking_source is one of the ENUM values
 const amount = z.union([z.null(), z.coerce.number().finite().min(0).max(99_999_999.99)])
 
 export const updateBookingBodySchema = z.object({
@@ -64,7 +73,7 @@ export const updateBookingBodySchema = z.object({
   level_code: z.enum(['-2', '-3']).optional(),
   vehicle_id: z.union([z.null(), z.coerce.number().int().positive()]).optional(),
   total_amount: amount.optional(),
-  booking_source: z.string().optional(),
+  booking_source: bookingSource.optional(),
   external_booking_id: z.string().max(64).nullable().optional(),
   notes: z.string().max(16000).nullable().optional(),
   payment_amount: amount.optional(),
