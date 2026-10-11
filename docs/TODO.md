@@ -224,22 +224,6 @@ preview.
       el importe de un grupo dejó 7 filas `updated` (`arrival_date`,
       `created_at`, `updated_by`…). La comparación de `logGroupUpdated` trata
       como distintos valores iguales (fechas, nulos). _Visto el 2026-10-11._
-- [ ] **Scheduling: generar un mes deja vacías las celdas de días fijos y
-      solicitudes aprobadas** — el solver las recibe como bloqueadas, la
-      generación no las reinserta y el borrado previo se las lleva. En Aiven, en
-      los meses 126 y 130 (generados por el solver) el empleado con días fijos
-      tiene 0 celdas. _Comprobado por mí el 2026-09-28._
-- [ ] **Scheduling: un mes publicado se puede modificar** — editar celdas y
-      aprobar restricciones no miran el estado del mes, y `PUT /months/:id`
-      vuelve a borrador sin pasar por `unpublish`. _Según la revisión `security`
-      L3 del 2026-09-28 (fichero y línea en el informe); no repasado por mí._
-- [ ] **Scheduling: `setSchedulableEmployees` pierde las fechas de alta y baja**
-      — borra la tabla entera y la vuelve a llenar. _Comprobado por mí el
-      2026-09-28._
-- [ ] **Scheduling: el solver no es determinista** — no recibe semilla y CP-SAT
-      busca en paralelo: dos ejecuciones del mismo mes pueden dar horarios
-      distintos. Decidir si se fija semilla y un solo hilo. _Comprobado por mí
-      el 2026-09-28._
 - [ ] **Checklist: el reinicio manual no funciona** — `resetRun` cierra el run y
       crea otro del mismo día, pero la clave única
       `uk_run (hotel_id,     checklist_id, hotel_date)` lo impide: 500. Después
