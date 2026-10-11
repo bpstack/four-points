@@ -420,7 +420,9 @@ export class BlacklistController {
   static async getImage(req: Request, res: Response): Promise<void> {
     const file = String(req.params.file)
     if (!isBlacklistImageFile(file)) {
-      res.status(404).json({ success: false, error: ERROR_CODES.NOT_FOUND })
+      res
+        .status(404)
+        .json({ success: false, error: ERROR_CODES.NOT_FOUND, code: ERROR_CODES.NOT_FOUND })
       return
     }
     const { publicId, format } = parseBlacklistImageFile(file)
@@ -435,7 +437,9 @@ export class BlacklistController {
       sendPrivateFile(res, fetched)
     } catch (error) {
       logger.warn({ err: error, file }, '[BlacklistController.getImage] Not available')
-      res.status(404).json({ success: false, error: ERROR_CODES.NOT_FOUND })
+      res
+        .status(404)
+        .json({ success: false, error: ERROR_CODES.NOT_FOUND, code: ERROR_CODES.NOT_FOUND })
     }
   }
 

@@ -21,7 +21,9 @@ function answer(res: Response, result: DemoResetResult): void {
     return
   }
   if (result.status === 'failed') {
-    res.status(500).json({ success: false, error: ERROR_CODES.INTERNAL_ERROR })
+    res
+      .status(500)
+      .json({ success: false, error: ERROR_CODES.INTERNAL_ERROR, code: ERROR_CODES.INTERNAL_ERROR })
     return
   }
   res.status(200).json({ success: true, data: result })
@@ -32,7 +34,9 @@ export async function getStatus(_req: Request, res: Response): Promise<void> {
     res.status(200).json({ success: true, data: await getDemoStatus() })
   } catch (error) {
     logger.error({ err: error }, '[DEMO] status error')
-    res.status(500).json({ success: false, error: ERROR_CODES.INTERNAL_ERROR })
+    res
+      .status(500)
+      .json({ success: false, error: ERROR_CODES.INTERNAL_ERROR, code: ERROR_CODES.INTERNAL_ERROR })
   }
 }
 
