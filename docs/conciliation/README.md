@@ -38,6 +38,8 @@ reconciliation or closes a month.
 - **Monthly summary**: totals for the month, which days are missing, and whether
   the month can be closed.
 - **Close the month**, only once every day of the month exists and is closed.
+  It exists only in the API (`PATCH /monthly-summary/:year/:month/status`): no
+  screen calls it.
 
 ## What data it handles
 
@@ -63,7 +65,9 @@ Four tables (`backend/db-mysql/aiven/09_conciliation.sql`):
 - **A closed day cannot be edited** — not its adjustments, not its totals —
   except by an `admin`. `confirmed` is not a locking state.
 - **A month closes only when every one of its days exists and is closed.**
-  Missing or still-open days block it and are listed by day number.
+  Missing or still-open days block it and are listed by day number. A closed
+  month does not lock its days: an `admin` can still reopen or delete them
+  (left as is on 2026-10-11, see `docs/TODO.md`).
 - **Deleting a day's reconciliation is only for `admin`.**
 
 ## How information flows

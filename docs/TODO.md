@@ -237,26 +237,6 @@ preview.
       que otro usuario está cerrando. El ciclo de los vales y su límite de 5 ya
       van en transacción (2026-10-11). _Según la revisión `security` L3 del
       2026-09-28; no repasado._
-- [ ] **Backoffice: borrar una factura borra también su historial** — borrado
-      definitivo, con las columnas de borrado lógico sin usar. _Comprobado por
-      mí el 2026-09-28._
-- [ ] **Backoffice: integridad del PDF validado** — se puede validar sin PDF o
-      con cualquier PDF, sin enlace entre el original y la copia sellada. _Según
-      la revisión `security` L3 del 2026-09-28 (fichero y línea en el informe);
-      no repasado por mí._
-- [ ] **Backoffice: sin validación de importes ni fechas** — importes negativos,
-      facturas duplicadas (sin UNIQUE por proveedor y número) y `paid_date`
-      libre. _Según la revisión `security` L3 del 2026-09-28 (fichero y línea en
-      el informe); no repasado por mí._
-- [ ] **Backoffice: subidas y descargas sin comprobar contenido ni tamaño** —
-      solo el tipo declarado por el navegador; las descargas del ZIP no tienen
-      límite de tamaño y siguen redirecciones. _Según la revisión `security` L3
-      del 2026-09-28 (fichero y línea en el informe); no repasado por mí._
-- [ ] **Conciliation: el cierre mensual tiene una carrera** — la validación
-      (lectura) y el cambio de estado (escritura) no comparten transacción ni
-      bloqueo; dos administradores cerrando días distintos del mismo mes a la
-      vez pueden dejarlo inconsistente. _Según la revisión `security` L3 del
-      2026-09-28 (fichero y línea en el informe); no repasado por mí._
 
 ### 🟢 Baja
 
@@ -296,6 +276,14 @@ preview.
       pestaña muestra las rechazadas. Una factura incorrecta hoy se borra. El
       dueño decidió el 2026-10-04 no añadirlo porque casi nunca pasa; si se
       añade, hace falta también reabrir (`rejected` → `pending`).
+- [ ] **Conciliation: el cierre mensual no tiene pantalla ni congela los
+      días** — `PATCH /monthly-summary/:year/:month/status` solo existe en la
+      API (`useUpdateMonthlySummaryStatus` no lo usa ningún componente), y con
+      el mes cerrado un admin puede reabrir o borrar cualquiera de sus días. La
+      comprobación de que todos los días están cerrados va sin bloqueo. El
+      dueño decidió el 2026-10-11 dejarlo así; si se le da pantalla, cerrar el
+      mes debe bloquear sus días y comprobar con el mes bloqueado. _Comprobado
+      el 2026-10-11._
 - [ ] **Conciliation: `GET /api/conciliations` sin paginar ni filtrar** —
       devuelve todo el histórico a cualquier rol con acceso. _Según la revisión
       `security` L3 del 2026-09-28 (fichero y línea en el informe); no repasado
