@@ -269,9 +269,33 @@ export class GroupRepository {
   /**
    * Eliminar grupo
    */
-  static async delete(id: number): Promise<boolean> {
-    const [result] = await db.query<ResultSetHeader>('DELETE FROM hotel_groups WHERE id = ?', [id])
-    return result.affectedRows > 0
+  static async delete(id: number, deletedBy: string, snapshot: unknown): Promise<boolean> {
+    // The group goes, its history stays: group_history has no foreign key to
+    // hotel_groups since 20261011_keep_group_history_on_delete.sql. The delete
+    // and its history row commit or roll back together
+    const connection = await db.getConnection()
+    try {
+      await connection.beginTransaction()
+      const [result] = await connection.query<ResultSetHeader>(
+        'DELETE FROM hotel_groups WHERE id = ?',
+        [id]
+      )
+      if (result.affectedRows > 0) {
+        await connection.query(
+          `INSERT INTO group_history
+           (group_id, action, table_affected, record_id, old_value, changed_by, notes)
+           VALUES (?, 'deleted', 'hotel_groups', ?, ?, ?, 'Grupo eliminado')`,
+          [id, id, JSON.stringify(snapshot), deletedBy]
+        )
+      }
+      await connection.commit()
+      return result.affectedRows > 0
+    } catch (error) {
+      await connection.rollback()
+      throw error
+    } finally {
+      connection.release()
+    }
   }
 
   /**
