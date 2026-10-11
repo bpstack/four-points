@@ -2,7 +2,12 @@
 
 import { Router } from 'express'
 import { authenticateToken as verifyToken } from '../../middlewares/authenticateToken.js'
-import { canManageGroups, canViewGroups, isAdmin } from '../../middlewares/roleCheck.js'
+import {
+  canManageGroups,
+  canViewGroupContacts,
+  canViewGroups,
+  isAdmin,
+} from '../../middlewares/roleCheck.js'
 
 // Controllers
 import { GroupController } from '../../controllers/group/group-controller.js'
@@ -122,12 +127,17 @@ router.delete('/:id/rooms/:roomId', verifyToken, canManageGroups, GroupRoomContr
 // RUTAS DE CONTACTOS
 // ═══════════════════════════════════════════════════════
 
-router.get('/:id/contacts', verifyToken, canViewGroups, GroupContactController.getContactsByGroup)
+router.get(
+  '/:id/contacts',
+  verifyToken,
+  canViewGroupContacts,
+  GroupContactController.getContactsByGroup
+)
 
 router.get(
   '/:id/contacts/primary',
   verifyToken,
-  canViewGroups,
+  canViewGroupContacts,
   GroupContactController.getPrimaryContact
 )
 

@@ -16,6 +16,8 @@ lines in parallel, and sends in-app reminders before the important dates.
 
 - **Every role can view groups**, including `recepcionista` and `mantenimiento`
   (the latter needs it to open group notifications from the profile).
+  `mantenimiento` does not see the contacts (email and phone), neither in their
+  tab nor in the history (decided on 2026-10-12).
 - **`admin` and `group-admin`** create and edit groups, payments,
   contacts, rooms and statuses, and send manual notifications.
 - **Only `admin`** deletes a group.

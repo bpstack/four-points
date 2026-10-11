@@ -10,12 +10,7 @@ import toast from 'react-hot-toast'
 import { useTranslations } from 'next-intl'
 
 import { contactSchema, type ContactFormData } from '@/app/lib/schemas/group-schemas'
-import {
-  useGroupContacts,
-  useCreateContact,
-  useUpdateContact,
-  type GroupContact,
-} from '@/app/lib/groups'
+import { useCreateContact, useUpdateContact, type GroupContact } from '@/app/lib/groups'
 import { useGroupStore } from '@/app/stores/useGroupStore'
 import {
   SlidePanel,
@@ -41,7 +36,6 @@ export function ContactPanel({ isOpen, onClose, contact, groupId }: ContactPanel
   const groupIdFromStore = currentGroup?.id
   const effectiveGroupId = groupIdFromStore ?? groupId
 
-  const { data: _contactsData } = useGroupContacts(effectiveGroupId)
   const createContactMutation = useCreateContact(effectiveGroupId)
   const updateContactMutation = useUpdateContact(effectiveGroupId, contact?.id)
 

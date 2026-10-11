@@ -5,6 +5,7 @@ import { GroupHistoryService } from '../../services/group/group-history-service'
 import { GroupRepository } from '../../repositories/group/group-repository'
 import { ERROR_CODES } from '../../config/error-codes.js'
 import { logger } from '../../config/logger.js'
+import { canSeeGroupContacts } from '../../middlewares/roleCheck.js'
 import { groupHistoryQuerySchema, validationError } from '../../validations/group/group-schemas.js'
 
 export class GroupHistoryController {
@@ -39,7 +40,12 @@ export class GroupHistoryController {
         })
       }
 
-      const history = await GroupHistoryService.getGroupHistory(groupId, limit)
+      // Contact entries keep the email and phone as JSON: only for the roles
+      // that may see the contacts themselves
+      const all = await GroupHistoryService.getGroupHistory(groupId, limit)
+      const history = canSeeGroupContacts(req.user?.role)
+        ? all
+        : all.filter((h) => h.table_affected !== 'group_contacts')
 
       return res.status(200).json({
         success: true,

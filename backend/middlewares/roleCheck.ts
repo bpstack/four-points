@@ -95,6 +95,28 @@ export const canViewGroups: RoleCheckMiddleware = (req, res, next) => {
   }
 }
 
+// Email and phone of a group's contacts: not mantenimiento, which views groups
+// only to open its notifications (decided on 2026-10-12)
+const GROUP_CONTACT_ROLES = ['admin', 'recepcionista', 'group-admin']
+
+export function canSeeGroupContacts(role: string | undefined): boolean {
+  return !!role && GROUP_CONTACT_ROLES.includes(role.toLowerCase())
+}
+
+/**
+ * Verifica que el usuario pueda ver los contactos de un grupo
+ * Uso: GET /api/groups/:id/contacts y /contacts/primary
+ */
+export const canViewGroupContacts: RoleCheckMiddleware = (req, res, next) => {
+  if (canSeeGroupContacts(req.user?.role)) {
+    next()
+  } else {
+    res.status(403).json({
+      error: 'Acceso denegado. No tienes permisos para ver los contactos del grupo',
+    })
+  }
+}
+
 /**
  * Verifica que el usuario pueda gestionar caja
  * Uso: Para crear, editar, cerrar turnos, vales, etc.
