@@ -165,6 +165,15 @@ function handleZodError(err: unknown, res: Response): boolean {
 // CONFIG
 // ============================================
 
+// A published month is read-only: its cells, days and constraints change only
+// after POST /months/:id/unpublish. Answers 409 and returns true when it is
+async function refusePublished(monthId: number, res: Response): Promise<boolean> {
+  const month = await repo.getMonthById(monthId)
+  if (month?.status !== 'published') return false
+  res.status(409).json({ error: 'El mes está publicado: despublícalo para editarlo' })
+  return true
+}
+
 export async function getAllConfig(_req: Request, res: Response): Promise<void> {
   try {
     const config = await repo.getAllConfig()
@@ -867,6 +876,11 @@ export async function updateMonth(req: Request, res: Response): Promise<void> {
       return
     }
 
+    if (existing.status === 'published' && data.status === 'draft') {
+      res.status(409).json({ error: 'Para volver a borrador, despublica el mes' })
+      return
+    }
+
     // Handle status changes
     if (data.status === 'published' && existing.status !== 'published') {
       await repo.updateMonth(monthId, {
@@ -934,6 +948,7 @@ export async function updateDay(req: Request, res: Response): Promise<void> {
       res.status(404).json({ error: 'Día no encontrado' })
       return
     }
+    if (await refusePublished(existing.month_id, res)) return
 
     await repo.updateDay(dayId, data)
     const day = await repo.getDayById(dayId)
@@ -961,6 +976,7 @@ export async function bulkUpdateDays(req: Request, res: Response): Promise<void>
       res.status(404).json({ error: 'Mes no encontrado' })
       return
     }
+    if (await refusePublished(monthId, res)) return
 
     const updatedCount = await repo.bulkUpdateDays(data.days)
 
@@ -996,6 +1012,7 @@ export async function updateAssignment(req: Request, res: Response): Promise<voi
       res.status(404).json({ error: 'Asignación no encontrada' })
       return
     }
+    if (await refusePublished(existing.month_id, res)) return
 
     if (existing.source_constraint_id) {
       res.status(409).json({
@@ -1055,6 +1072,7 @@ export async function bulkUpdateAssignments(req: Request, res: Response): Promis
       res.status(404).json({ error: 'Mes no encontrado' })
       return
     }
+    if (await refusePublished(monthId, res)) return
 
     // Validate all shift codes
     const shifts = await repo.getAllShifts()
@@ -1203,6 +1221,7 @@ export async function createConstraint(req: Request, res: Response): Promise<voi
       res.status(404).json({ error: 'Mes no encontrado' })
       return
     }
+    if (await refusePublished(data.month_id, res)) return
 
     const constraintId = await repo.createConstraint({
       ...data,
@@ -1239,6 +1258,7 @@ export async function updateConstraint(req: Request, res: Response): Promise<voi
       res.status(404).json({ error: 'Restricción no encontrada' })
       return
     }
+    if (await refusePublished(existing.month_id, res)) return
 
     // An approved constraint moves its locked cells with it
     if (existing.status === 'approved') await releaseConstraintCells(existing)
@@ -1283,6 +1303,7 @@ export async function approveConstraint(req: Request, res: Response): Promise<vo
       res.status(404).json({ error: 'Restricción no encontrada' })
       return
     }
+    if (await refusePublished(existing.month_id, res)) return
 
     await repo.updateConstraint(constraintId, {
       status: data.status,
@@ -1328,6 +1349,7 @@ export async function deleteConstraint(req: Request, res: Response): Promise<voi
       res.status(404).json({ error: 'Restricción no encontrada' })
       return
     }
+    if (await refusePublished(existing.month_id, res)) return
 
     // Deleting an approved constraint frees its cells; the foreign key alone
     // left the code in the cell without its lock
