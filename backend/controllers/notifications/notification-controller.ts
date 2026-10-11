@@ -9,6 +9,7 @@ import {
   NotificationModule,
 } from '../../models/notifications/index'
 import { ERROR_CODES, SUCCESS_CODES } from '../../config/error-codes.js'
+import { UserRepository } from '../../repositories/auth/user-repository.js'
 import { logger } from '../../config/logger.js'
 import {
   generalNotificationSchema,
@@ -351,6 +352,19 @@ export class NotificationController {
         }
       }
 
+      // Only users that exist and are active can receive it (checked before
+      // creating the notification, so a bad id leaves nothing behind)
+      if (
+        userIds?.length &&
+        (await UserRepository.getActiveIds(userIds)).length !== userIds.length
+      ) {
+        return res.status(400).json({
+          success: false,
+          error: ERROR_CODES.NOTIFICATIONS_INVALID_RECIPIENTS,
+          code: ERROR_CODES.NOTIFICATIONS_INVALID_RECIPIENTS,
+        })
+      }
+
       await NotificationGeneratorService.generateManualNotification(
         groupId,
         title,
@@ -419,6 +433,19 @@ export class NotificationController {
             code: ERROR_CODES.NOTIFICATIONS_INVALID_SCHEDULED_DATE,
           })
         }
+      }
+
+      // Only users that exist and are active can receive it (checked before
+      // creating the notification, so a bad id leaves nothing behind)
+      if (
+        userIds?.length &&
+        (await UserRepository.getActiveIds(userIds)).length !== userIds.length
+      ) {
+        return res.status(400).json({
+          success: false,
+          error: ERROR_CODES.NOTIFICATIONS_INVALID_RECIPIENTS,
+          code: ERROR_CODES.NOTIFICATIONS_INVALID_RECIPIENTS,
+        })
       }
 
       await NotificationGeneratorService.generateGeneralNotification({

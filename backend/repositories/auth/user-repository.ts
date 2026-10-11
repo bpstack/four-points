@@ -5,7 +5,7 @@ import bcrypt from 'bcrypt'
 import crypto from 'crypto'
 import { SALT_ROUNDS } from '../../config/config.js'
 import db from '../../config/db.js'
-import { ResultSetHeader } from 'mysql2'
+import { ResultSetHeader, type RowDataPacket } from 'mysql2'
 import { logger } from '../../config/logger.js'
 import type {
   User,
@@ -224,6 +224,16 @@ export class UserRepository {
       logger.error({ err: error }, 'Error al obtener usuarios')
       throw new Error('Error interno al obtener usuarios', { cause: error })
     }
+  }
+
+  /** Of the given ids, the ones that exist and are active */
+  static async getActiveIds(ids: readonly string[]): Promise<string[]> {
+    if (ids.length === 0) return []
+    const [rows] = await db.query<(RowDataPacket & { id: string })[]>(
+      'SELECT id FROM users WHERE is_active = 1 AND id IN (?)',
+      [ids]
+    )
+    return rows.map((r) => r.id)
   }
 
   /**
