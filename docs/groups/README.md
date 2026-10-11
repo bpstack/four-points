@@ -84,7 +84,10 @@ Six tables (`backend/db-mysql/aiven/10_group-tracking.sql`):
   - arrivals, 3 days before.
   - The configuration also lists reminders for unsigned contracts and pending
     balances, but **they are never generated**.
-  - A reminder is not created twice for the same payment or group and date.
+  - Duplicates are only checked within 48 hours: a payment due in 2 days gets
+    both the "15 days" and the "7 days" reminder every two days, and an
+    overdue payment is reminded every two days until it is paid; the rooming
+    list behaves the same. Left as is on 2026-10-12.
 - **No emails are sent**: the module includes an email service, but nothing
   calls it. All notifications are in-app.
 
