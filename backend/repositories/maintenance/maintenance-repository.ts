@@ -92,6 +92,12 @@ interface CountRow extends RowDataPacket {
 // HELPERS: Parsear filas de BD a objetos
 // ========================================
 
+// Times create tries a new id when another report took it
+const ID_ATTEMPTS = 5
+
+// Photos a report can hold
+export const MAX_REPORT_IMAGES = 5
+
 /**
  * Genera un ID único con formato DDMMYY-XXX
  * Ejemplo: 120625-001, 120625-002, etc.
@@ -436,9 +442,6 @@ export class MaintenanceRepository {
     userId: string,
     username: string
   ): Promise<ReportWithDetails> {
-    // Generar ID con formato DDMMYY-XXX
-    const id = await generateReportId()
-
     const query = `
       INSERT INTO maintenance_reports (
         id,
@@ -459,7 +462,6 @@ export class MaintenanceRepository {
     `
 
     const params = [
-      id,
       data.title,
       data.description,
       data.location_type,
@@ -475,19 +477,36 @@ export class MaintenanceRepository {
     ]
 
     // The report and its history rows commit or roll back together
-    await withTransaction(async () => {
-      await dbx().query<ResultSetHeader>(query, params)
+    const insert = () =>
+      withTransaction(async () => {
+        // Generar ID con formato DDMMYY-XXX
+        const id = await generateReportId()
+        await dbx().query<ResultSetHeader>(query, [id, ...params])
 
-      await this.addHistoryEntry(id, 'created', userId, username)
+        await this.addHistoryEntry(id, 'created', userId, username)
 
-      // Si se asignó, agregar entrada de asignación
-      if (data.assigned_to || data.external_company_name) {
-        await this.addHistoryEntry(id, 'assigned', userId, username, {
-          field_changed: 'assigned_to',
-          new_value: data.assigned_to || data.external_company_name || null,
-        })
+        // Si se asignó, agregar entrada de asignación
+        if (data.assigned_to || data.external_company_name) {
+          await this.addHistoryEntry(id, 'assigned', userId, username, {
+            field_changed: 'assigned_to',
+            new_value: data.assigned_to || data.external_company_name || null,
+          })
+        }
+        return id
+      })
+
+    // Two reports created at once read the same last id: the one that loses
+    // retries with the next number, in a new transaction that sees the winner
+    let id: string
+    for (let attempt = 1; ; attempt++) {
+      try {
+        id = await insert()
+        break
+      } catch (error) {
+        const duplicate = (error as { code?: string }).code === 'ER_DUP_ENTRY'
+        if (!duplicate || attempt >= ID_ATTEMPTS) throw error
       }
-    })
+    }
 
     const created = await this.getById(id)
     if (!created) {
@@ -818,13 +837,15 @@ export class MaintenanceRepository {
   }
 
   /**
-   * Agregar imagen a un reporte
+   * Agregar imagen a un reporte. Null when the report already holds
+   * MAX_REPORT_IMAGES: the count runs under a lock on the report, so uploads
+   * in parallel cannot go past the limit
    */
   static async addImage(
     reportId: string,
     data: AddImageInput,
     userId: string
-  ): Promise<MaintenanceImage> {
+  ): Promise<MaintenanceImage | null> {
     const query = `
       INSERT INTO maintenance_images (
         report_id, file_name, file_path, file_size, mime_type, public_id, auto_delete_on_close, uploaded_by
@@ -842,13 +863,23 @@ export class MaintenanceRepository {
       userId,
     ]
 
-    const [result] = await dbx().query<ResultSetHeader>(query, params)
+    return withTransaction(async () => {
+      await dbx().query('SELECT id FROM maintenance_reports WHERE id = ? FOR UPDATE', [reportId])
+      const [count] = await dbx().query<CountRow[]>(
+        'SELECT COUNT(*) as total FROM maintenance_images WHERE report_id = ?',
+        [reportId]
+      )
+      if ((count[0]?.total ?? 0) >= MAX_REPORT_IMAGES) return null
 
-    const [rows] = await dbx().query<ImageRow[]>('SELECT * FROM maintenance_images WHERE id = ?', [
-      result.insertId,
-    ])
+      const [result] = await dbx().query<ResultSetHeader>(query, params)
 
-    return parseImageRow(rows[0])
+      const [rows] = await dbx().query<ImageRow[]>(
+        'SELECT * FROM maintenance_images WHERE id = ?',
+        [result.insertId]
+      )
+
+      return parseImageRow(rows[0])
+    })
   }
 
   /**
