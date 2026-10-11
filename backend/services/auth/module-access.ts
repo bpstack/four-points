@@ -7,7 +7,10 @@
 
 export type AppModule = 'parking' | 'maintenance' | 'groups' | 'blacklist' | 'cashier' | 'logbook'
 
-const frontDeskRoles = (role: string) => ['admin', 'recepcionista', 'group-admin'].includes(role)
+// Front-desk modules: an allowlist, so a new role gets no access until someone decides it
+export const FRONT_DESK_ROLES: readonly string[] = ['admin', 'recepcionista', 'group-admin']
+
+const frontDeskRoles = (role: string) => FRONT_DESK_ROLES.includes(role)
 const staffRoles = ['admin', 'recepcionista', 'group-admin', 'mantenimiento']
 
 const MODULE_ACCESS: Record<AppModule, (role: string) => boolean> = {

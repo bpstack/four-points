@@ -1,6 +1,7 @@
 // middlewares/roleCheck.ts
 
 import { Request, Response, NextFunction } from 'express'
+import { FRONT_DESK_ROLES } from '../services/auth/module-access.js'
 
 type RoleCheckMiddleware = (req: Request, res: Response, next: NextFunction) => void
 
@@ -164,18 +165,16 @@ export const canAccessMaintenance: RoleCheckMiddleware = (req, res, next) => {
  * Solo admin, recepcionista y group-admin pueden acceder; el resto (mantenimiento, etc.) no.
  */
 export const excludeMantenimiento: RoleCheckMiddleware = (req, res, next) => {
-  const allowedRoles = ['admin', 'recepcionista', 'group-admin']
-
   if (!req.user?.role) {
     res.status(403).json({ error: 'No se pudo verificar el rol del usuario' })
     return
   }
 
-  if (allowedRoles.includes(req.user.role.toLowerCase())) {
+  if (FRONT_DESK_ROLES.includes(req.user.role.toLowerCase())) {
     next()
   } else {
     res.status(403).json({
-      error: 'Acceso denegado. Tu rol solo tiene acceso al módulo de mantenimiento',
+      error: 'Acceso denegado. Tu rol no tiene acceso a este módulo',
     })
   }
 }
