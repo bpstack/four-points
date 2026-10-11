@@ -1097,32 +1097,12 @@ export class BackofficeController {
       const previousPublicId =
         type === 'original' ? pdfInfo?.original_pdf_public_id : pdfInfo?.validated_pdf_public_id
 
+      // Type, bytes and size were checked by singleInvoicePdf (backofficeUpload.ts)
       if (!req.file) {
         res.status(400).json({
           success: false,
           error: ERROR_CODES.BACKOFFICE_NO_FILE_SENT,
           code: ERROR_CODES.BACKOFFICE_NO_FILE_SENT,
-        })
-        return
-      }
-
-      // Validar tipo de archivo
-      if (req.file.mimetype !== 'application/pdf') {
-        res.status(400).json({
-          success: false,
-          error: ERROR_CODES.BACKOFFICE_PDF_ONLY,
-          code: ERROR_CODES.BACKOFFICE_PDF_ONLY,
-        })
-        return
-      }
-
-      // Validar tamaño (máx 10MB)
-      const maxSize = 10 * 1024 * 1024
-      if (req.file.size > maxSize) {
-        res.status(400).json({
-          success: false,
-          error: ERROR_CODES.BACKOFFICE_FILE_TOO_LARGE,
-          code: ERROR_CODES.BACKOFFICE_FILE_TOO_LARGE,
         })
         return
       }
@@ -1282,22 +1262,12 @@ export class BackofficeController {
         return
       }
 
+      // Type, bytes and size were checked by singleAssetImage (backofficeUpload.ts)
       if (!req.file) {
         res.status(400).json({
           success: false,
           error: ERROR_CODES.BACKOFFICE_NO_IMAGE_SENT,
           code: ERROR_CODES.BACKOFFICE_NO_IMAGE_SENT,
-        })
-        return
-      }
-
-      // Validar tipo de archivo
-      const allowedTypes = ['image/png', 'image/webp']
-      if (!allowedTypes.includes(req.file.mimetype)) {
-        res.status(400).json({
-          success: false,
-          error: ERROR_CODES.BACKOFFICE_INVALID_IMAGE_TYPE,
-          code: ERROR_CODES.BACKOFFICE_INVALID_IMAGE_TYPE,
         })
         return
       }

@@ -66,6 +66,9 @@ PDFs and images are stored in **Cloudinary**; the database keeps their URLs.
 - **Deleting an invoice is permanent** and also deletes its history.
 - **The automatic payment on the 10th does not work today**: it records the
   change as a system user that does not exist, and the database rejects it.
+- **Uploads are checked by their bytes**, not only the type the browser
+  declares: a PDF for invoices, a PNG or WebP for stamps and signatures, up to
+  10 MB (413 above it).
 - **PDFs are downloaded through the backend**, which fetches them from
   Cloudinary. The files themselves are uploaded with public delivery, so their
   Cloudinary URLs also work without logging in.
