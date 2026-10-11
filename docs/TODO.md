@@ -30,6 +30,13 @@ preview.
 
 ### 🔴 Alta
 
+- [ ] **Aplicar en Aiven `20261011_keep_group_history_on_delete.sql` antes de
+      desplegar el borrado de grupos** — el código escribe una fila de
+      historial tras borrar el grupo; con la clave foránea todavía en Aiven
+      ese insert falla y el borrado se deshace (500). Preview y producción
+      usan Aiven: aplicarla antes de que la rama llegue a compassionate, con
+      `scripts/apply-migration.sh aiven <fichero> --dry-run` primero, y
+      marcarla en `backend/db-mysql/INDEX.md`. Ya aplicada en local.
 - [ ] **Rotar las credenciales de producción** — contraseña de la BD y claves
       de Cloudinary, y revocar las claves de servicios que ningún código usa.
       El historial publicado no las contiene, pero siguen en copias privadas
@@ -208,20 +215,15 @@ preview.
       tipo interno o externo encaje con el resto de campos. _Según la revisión
       `security` L3 del 2026-09-28 (fichero y línea en el informe); no repasado
       por mí._
-- [ ] **Maintenance: cambio e historial sin transacción** — un fallo entre ambos
-      deja cambios sin registrar. _Comprobado por mí el 2026-09-28._
-- [ ] **Groups: lógica de pagos incoherente** — se acepta un `amount_paid` mayor
-      que el importe, `paid` sin haber pagado nada, recálculos que no tocan el
-      estado y porcentajes que suman más de 100. _Según la revisión `security`
-      L3 del 2026-09-28 (fichero y línea en el informe); no repasado por mí._
-- [ ] **Groups: borrar un grupo borra su historial** — no se registra el borrado
-      y `group_history` tiene `ON DELETE CASCADE`; ninguna mutación va en
-      transacción con su registro. _Comprobado por mí el 2026-09-28._
-      (transacciones, según el revisor)
-- [ ] **Notificaciones manuales: se pueden enviar a usuarios inactivos** — el
-      formato, los repetidos, la prioridad y los textos ya se validan; que el
-      usuario exista y esté activo, no. _Según la revisión `security` L3 del
-      2026-09-28 (fichero y línea en el informe); no repasado por mí._
+- [ ] **Groups: las mutaciones no van en transacción con su historial** — el
+      historial se escribe en el controlador, fuera de las transacciones del
+      repositorio: un fallo entre ambos deja cambios sin registrar. El borrado
+      del grupo ya va junto a su fila de historial (2026-10-11). _Comprobado
+      el 2026-10-11._
+- [ ] **Groups: el historial registra campos que no cambiaron** — editar solo
+      el importe de un grupo dejó 7 filas `updated` (`arrival_date`,
+      `created_at`, `updated_by`…). La comparación de `logGroupUpdated` trata
+      como distintos valores iguales (fechas, nulos). _Visto el 2026-10-11._
 - [ ] **Scheduling: generar un mes deja vacías las celdas de días fijos y
       solicitudes aprobadas** — el solver las recibe como bloqueadas, la
       generación no las reinserta y el borrado previo se las lleva. En Aiven, en
