@@ -22,7 +22,6 @@ import type {
   UpdateMonthDTO,
   CreateDayDTO,
   UpdateDayDTO,
-  CreateAssignmentDTO,
   UpdateAssignmentDTO,
   BulkAssignmentDTO,
   CreateConstraintDTO,
@@ -572,6 +571,20 @@ export async function updateDay(id: number, data: UpdateDayDTO): Promise<boolean
   return result.affectedRows > 0
 }
 
+/**
+ * How many of `dayIds` (distinct) are days of `monthId`. The bulk edits use it
+ * to refuse days of another month: uk_day_employee would otherwise rewrite
+ * that month's cell, published or not.
+ */
+export async function countDaysInMonth(monthId: number, dayIds: number[]): Promise<number> {
+  if (dayIds.length === 0) return 0
+  const [rows] = await db.query<RowDataPacket[]>(
+    'SELECT COUNT(*) AS n FROM scheduling_days WHERE month_id = ? AND id IN (?)',
+    [monthId, dayIds]
+  )
+  return Number(rows[0].n)
+}
+
 export async function bulkUpdateDays(
   days: Array<{ day_id: number; is_holiday?: boolean; holiday_name?: string | null }>
 ): Promise<number> {
@@ -721,33 +734,49 @@ export async function updateAssignment(id: number, data: UpdateAssignmentDTO): P
   return result.affectedRows > 0
 }
 
-export async function upsertAssignment(data: CreateAssignmentDTO): Promise<number> {
-  // Use INSERT ... ON DUPLICATE KEY UPDATE for better performance
-  // Avoids extra SELECT query before INSERT/UPDATE
-  const [result] = await db.execute<ResultSetHeader>(
-    `INSERT INTO scheduling_assignments 
-     (month_id, day_id, employee_id, shift_code, source_constraint_id, notes, created_at, updated_at)
-     VALUES (?, ?, ?, ?, ?, ?, NOW(), NOW())
-     ON DUPLICATE KEY UPDATE 
-       shift_code = VALUES(shift_code),
-       notes = VALUES(notes),
-       updated_at = NOW()`,
-    [
-      data.month_id,
-      data.day_id,
-      data.employee_id,
-      data.shift_code,
-      data.source_constraint_id ?? null,
-      data.notes ?? null,
-    ]
-  )
-  // insertId is the new ID on insert, or 0 on update
-  // For updates, we need to fetch the existing ID
-  if (result.insertId === 0) {
-    const existing = await getAssignmentByDayEmployee(data.day_id, data.employee_id)
-    return existing?.id ?? 0
+/**
+ * Writes the cells of a bulk edit in one transaction. The cells locked by an
+ * approved request are read FOR UPDATE inside it: if any is in the edit,
+ * nothing is written and `locked` is true.
+ */
+export async function bulkUpsertAssignments(
+  monthId: number,
+  assignments: { day_id: number; employee_id: string; shift_code: string }[]
+): Promise<{ locked: boolean }> {
+  const connection = await db.getConnection()
+  try {
+    await connection.beginTransaction()
+
+    const pairs = assignments.map((a) => [a.day_id, a.employee_id])
+    const [locked] = await connection.query<RowDataPacket[]>(
+      `SELECT id FROM scheduling_assignments
+       WHERE (day_id, employee_id) IN (?) AND source_constraint_id IS NOT NULL
+       FOR UPDATE`,
+      [pairs]
+    )
+    if (locked.length > 0) {
+      await connection.rollback()
+      return { locked: true }
+    }
+
+    for (const a of assignments) {
+      await connection.execute(
+        `INSERT INTO scheduling_assignments
+         (month_id, day_id, employee_id, shift_code, source_constraint_id, notes, created_at, updated_at)
+         VALUES (?, ?, ?, ?, NULL, NULL, NOW(), NOW())
+         ON DUPLICATE KEY UPDATE shift_code = VALUES(shift_code), updated_at = NOW()`,
+        [monthId, a.day_id, a.employee_id, a.shift_code]
+      )
+    }
+
+    await connection.commit()
+    return { locked: false }
+  } catch (err) {
+    await connection.rollback()
+    throw err
+  } finally {
+    connection.release()
   }
-  return result.insertId
 }
 
 export async function recalculateLibreNumbers(employeeId: string, year: number): Promise<void> {
@@ -784,8 +813,60 @@ export async function recalculateLibreNumbers(employeeId: string, year: number):
   )
 }
 
-export async function deleteAllAssignmentsByMonth(monthId: number): Promise<void> {
-  await db.execute('DELETE FROM scheduling_assignments WHERE month_id = ?', [monthId])
+/**
+ * Resets a month in one transaction: corrects the day dates, deletes every
+ * cell and inserts `seed` (an L per day and employee, or the code of an
+ * approved request). A failure leaves the month as it was. Returns the days
+ * whose date was corrected.
+ */
+export async function resetMonthAssignments(
+  monthId: number,
+  year: number,
+  month: number,
+  seed: BulkAssignmentDTO[]
+): Promise<number> {
+  const connection = await db.getConnection()
+  try {
+    await connection.beginTransaction()
+
+    const daysInMonth = new Date(year, month, 0).getDate()
+    let fixedCount = 0
+    for (let day = 1; day <= daysInMonth; day++) {
+      const correctDate = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+      const [result] = await connection.execute<ResultSetHeader>(
+        'UPDATE scheduling_days SET date = ? WHERE month_id = ? AND day_number = ?',
+        [correctDate, monthId, day]
+      )
+      fixedCount += result.affectedRows
+    }
+
+    await connection.execute('DELETE FROM scheduling_assignments WHERE month_id = ?', [monthId])
+
+    if (seed.length > 0) {
+      const values = seed.map((a) => [
+        monthId,
+        a.day_id,
+        a.employee_id,
+        a.shift_code,
+        a.source_constraint_id ?? null,
+      ])
+      const placeholders = values.map(() => '(?, ?, ?, ?, ?, NULL, NOW(), NOW())').join(', ')
+      await connection.query(
+        `INSERT INTO scheduling_assignments
+         (month_id, day_id, employee_id, shift_code, source_constraint_id, notes, created_at, updated_at)
+         VALUES ${placeholders}`,
+        values.flat()
+      )
+    }
+
+    await connection.commit()
+    return fixedCount
+  } catch (err) {
+    await connection.rollback()
+    throw err
+  } finally {
+    connection.release()
+  }
 }
 
 /** Borra las asignaciones no bloqueadas e inserta las nuevas en una sola transacción. */
@@ -881,21 +962,6 @@ export async function getAnnualLCountByEmployee(
     [year]
   )
   return rows as { employee_id: string; employee_name: string; libre_count: number }[]
-}
-
-export async function fixMonthDates(monthId: number, year: number, month: number): Promise<number> {
-  const daysInMonth = new Date(year, month, 0).getDate()
-
-  let fixedCount = 0
-  for (let day = 1; day <= daysInMonth; day++) {
-    const correctDate = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
-    const [result] = await db.execute(
-      'UPDATE scheduling_days SET date = ? WHERE month_id = ? AND day_number = ?',
-      [correctDate, monthId, day]
-    )
-    fixedCount += (result as ResultSetHeader).affectedRows
-  }
-  return fixedCount
 }
 
 // ============================================

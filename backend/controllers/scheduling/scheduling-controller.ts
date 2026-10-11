@@ -174,6 +174,16 @@ async function refusePublished(monthId: number, res: Response): Promise<boolean>
   return true
 }
 
+// A bulk edit carries day ids: all must be days of the month in the URL, or a
+// day of another month (published or not) would be written through this one.
+// Answers 400 and returns true when one is not
+async function refuseForeignDays(monthId: number, dayIds: number[], res: Response) {
+  const unique = [...new Set(dayIds)]
+  if ((await repo.countDaysInMonth(monthId, unique)) === unique.length) return false
+  res.status(400).json({ error: 'Hay días que no pertenecen a este mes' })
+  return true
+}
+
 export async function getAllConfig(_req: Request, res: Response): Promise<void> {
   try {
     const config = await repo.getAllConfig()
@@ -818,25 +828,23 @@ export async function resetMonth(req: Request, res: Response): Promise<void> {
       return
     }
 
-    // Fix dates in scheduling_days (timezone issue fix)
-    const fixedCount = await repo.fixMonthDates(monthId, month.year, month.month)
-    logger.info({ monthId, fixedCount }, '[resetMonth] Fixed day dates')
-
-    // Delete all assignments
-    await repo.deleteAllAssignmentsByMonth(monthId)
-    logger.info({ monthId }, '[resetMonth] Deleted all assignments')
-
-    // Re-pre-load approved constraints as assignments
+    // The new grid: an L per day and employee, or the code of an approved request
     const assignments = await initializeMonthGrid(monthId)
 
-    // Save assignments if any
-    if (assignments.length > 0) {
-      await repo.createAssignmentsBulk(monthId, assignments)
-      logger.info(
-        { monthId, assignmentsCount: assignments.length },
-        '[resetMonth] Initialized assignments'
-      )
+    // Dates fixed, cells deleted and the grid inserted in one transaction: a
+    // failure leaves the month as it was, not empty
+    const fixedCount = await repo.resetMonthAssignments(
+      monthId,
+      month.year,
+      month.month,
+      assignments
+    )
+    logger.info(
+      { monthId, fixedCount, assignmentsCount: assignments.length },
+      '[resetMonth] Month reset'
+    )
 
+    if (assignments.length > 0) {
       // Number libre pairs immediately after seeding
       const uniqueEmployees = new Set(assignments.map((a) => a.employee_id))
       for (const empId of uniqueEmployees) {
@@ -977,6 +985,14 @@ export async function bulkUpdateDays(req: Request, res: Response): Promise<void>
       return
     }
     if (await refusePublished(monthId, res)) return
+    if (
+      await refuseForeignDays(
+        monthId,
+        data.days.map((d) => d.day_id),
+        res
+      )
+    )
+      return
 
     const updatedCount = await repo.bulkUpdateDays(data.days)
 
@@ -1085,29 +1101,24 @@ export async function bulkUpdateAssignments(req: Request, res: Response): Promis
       }
     }
 
-    // Prevent editing locked cells (preloaded from approved constraints)
-    for (const assignment of data.assignments) {
-      const existing = await repo.getAssignmentByDayEmployee(
-        assignment.day_id,
-        assignment.employee_id
+    if (
+      await refuseForeignDays(
+        monthId,
+        data.assignments.map((a) => a.day_id),
+        res
       )
-      if (existing?.source_constraint_id) {
-        res.status(409).json({
-          error:
-            'Hay celdas bloqueadas por peticiones aprobadas. No se pueden editar desde bulk update.',
-        })
-        return
-      }
-    }
+    )
+      return
 
-    // Upsert each assignment
-    for (const assignment of data.assignments) {
-      await repo.upsertAssignment({
-        month_id: monthId,
-        day_id: assignment.day_id,
-        employee_id: assignment.employee_id,
-        shift_code: assignment.shift_code,
+    // Cells locked by approved requests are checked and the rest written in
+    // one transaction
+    const { locked } = await repo.bulkUpsertAssignments(monthId, data.assignments)
+    if (locked) {
+      res.status(409).json({
+        error:
+          'Hay celdas bloqueadas por peticiones aprobadas. No se pueden editar desde bulk update.',
       })
+      return
     }
 
     const affectedEmployees = new Set(data.assignments.map((a) => a.employee_id))
