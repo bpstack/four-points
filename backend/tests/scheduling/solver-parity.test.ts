@@ -1,8 +1,7 @@
 // tests/scheduling/solver-parity.test.ts
 // Parity test: solver output must pass ScheduleValidator with 0 hard errors.
 //
-// docs/scheduling/decisions.md, entrada 2026-04-22:
-//   "Output del solver pasa ScheduleValidator.validate() con 0 hard errors."
+// See docs/scheduling/solver.md, «How it is tested».
 //
 // Each test case: build SolverInput from a corpus fixture → run solver → validate matrix.
 
