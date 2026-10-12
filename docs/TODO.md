@@ -41,7 +41,11 @@ preview.
       de Cloudinary, y revocar las claves de servicios que ningún código usa.
       El historial publicado no las contiene, pero siguen en copias privadas
       (ADR-007). El procedimiento está fuera del repositorio.
-      `SECRET_JWT_KEY` ya se cambió el 2026-09-29.
+      `SECRET_JWT_KEY` ya se cambió el 2026-09-29. Además, el historial
+      publicado sí trae la contraseña en claro de un usuario de la aplicación
+      (`test-login.js`, commit `8595ec0`, con su hash): cambiarla en toda
+      cuenta que la use, en Aiven y fuera. Decisión del dueño (2026-10-12):
+      se rota y el historial no se reescribe.
 - [ ] **Fnb: ninguna mutación de ingresos deja rastro de quién la hizo** —
       `upsertMany` sobrescribe el importe anterior (`ON DUPLICATE KEY UPDATE`) y
       `deleteDay` borra filas sin dejar ningún registro de usuario, valor
