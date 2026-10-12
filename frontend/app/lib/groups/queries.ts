@@ -438,12 +438,13 @@ export const useGroupPayments = (id?: number) => {
   })
 }
 
-export const useGroupContacts = (id?: number) => {
+// `allowed`: false for the roles that may not see contacts (canViewGroupContacts)
+export const useGroupContacts = (id?: number, allowed = true) => {
   return useQuery({
     queryKey: id ? groupsKeys.contacts(id) : ['groups', 'contacts', 'none'],
     queryFn: () => groupsApi.getContacts(id as number),
     select: (res) => res.data,
-    enabled: typeof id === 'number' && !Number.isNaN(id),
+    enabled: allowed && typeof id === 'number' && !Number.isNaN(id),
     ...defaultQueryOptions,
   })
 }

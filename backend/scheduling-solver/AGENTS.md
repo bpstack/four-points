@@ -199,8 +199,8 @@ matches, generic fallback.
 
 When an INFEASIBLE appears in production that the analyzer can't diagnose,
 **don't blindly patch here**: rebuild the real `SolverInput` for that month,
-identify the pattern, and then extend the analyzer with a
-new branch. One correct, specific message beats a thousand generic ones.
+identify the pattern, and then extend the analyzer with a new branch. One
+correct, specific message beats a thousand generic ones.
 
 ## Local setup
 
@@ -280,9 +280,8 @@ that drifts.
 - `docs/scheduling/constraints.md` — textual specification of the rules. Source
   of truth when code and constraints disagree.
 - `docs/scheduling/decisions.md` — decision log (why each constraint is
-  hard/soft, why the weights, what was tried and discarded).
-- `SCHEDULING-SOLVER-PLAN.md` (repo root) — original solver plan. Historical,
-  not updated; the code is the current truth.
+  hard/soft, why the weights, what was tried and discarded); the 2026-04-22
+  entry keeps the original phases.
 - `backend/services/scheduling/build-solver-input.ts` — the TS side that
   assembles `SolverInput`. Any new field here needs its counterpart there.
 - `backend/services/scheduling/solver-client.ts` — daemon process management,

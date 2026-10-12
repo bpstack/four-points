@@ -7,7 +7,10 @@
  */
 
 import type { Request, Response } from 'express'
-import { MaintenanceRepository } from '../../repositories/maintenance/maintenance-repository.js'
+import {
+  MaintenanceRepository,
+  MAX_REPORT_IMAGES,
+} from '../../repositories/maintenance/maintenance-repository.js'
 import { CloudinaryService } from '../../services/blacklist/cloudinary-service.js'
 import {
   createReportSchema,
@@ -27,7 +30,9 @@ import { fetchStoredFile, sendPrivateFile } from '../../services/uploads/private
 // CONTROLLER
 // ========================================
 
-// Exists, and is not deleted unless the user is an admin
+const FULL_REPORT_MESSAGE = `El reporte ya tiene el máximo de ${MAX_REPORT_IMAGES} imágenes`
+
+// Exists,and is not deleted unless the user is an admin
 async function visibleReport(id: string, role: string | undefined): Promise<boolean> {
   const deleted = await MaintenanceRepository.isDeleted(id)
   return deleted === false || (deleted === true && isAdminRole(role))
@@ -567,8 +572,8 @@ export class MaintenanceController {
       }
 
       // Verificar límite de imágenes
-      if (report.images.length >= 5) {
-        res.status(400).json({ error: 'El reporte ya tiene el máximo de 5 imágenes' })
+      if (report.images.length >= MAX_REPORT_IMAGES) {
+        res.status(400).json({ error: FULL_REPORT_MESSAGE })
         return
       }
 
@@ -612,6 +617,13 @@ export class MaintenanceController {
         },
         req.user.id
       )
+
+      // Another upload filled the report while this one went to Cloudinary
+      if (!image) {
+        await CloudinaryService.deleteImage(cloudinaryResult.public_id)
+        res.status(400).json({ error: FULL_REPORT_MESSAGE })
+        return
+      }
 
       res.status(201).json({
         message: 'Imagen subida correctamente',

@@ -105,11 +105,6 @@ preview.
 - [ ] **Comprobar si los cron se ejecutan en Render** — corren dentro del
       proceso del backend; si el plan gratuito lo duerme por inactividad, no se
       disparan. _No comprobado._
-- [ ] **Backend: quedan 55 usos de `any`** — `no-explicit-any` está como aviso
-      en `backend/eslint.config.js` para que el lint pase. El 2026-10-04 se
-      tiparon controllers, services y repositories de los 15 módulos (de 316
-      avisos a 55); quedan auth, `config/db.ts`, cron, scripts y tests. Tiparlos
-      y volver a poner la regla como error.
 - [ ] **Avisar a los usuarios de que un `admin` puede leer sus mensajes** —
       `getConversation` y `getMessages` (`backend/controllers/messages/`) dejan
       leer cualquier conversación al rol `admin`, aunque no participe. Decidir
@@ -145,23 +140,9 @@ preview.
 - [ ] **Logbook: la fecha de una entrada admite cualquier día** — pasado o
       futuro, sin límite. Decidir qué rango tiene sentido. _Comprobado por mí el
       2026-09-28._
-- [ ] **Parking: entrada y salida aceptan fechas reales arbitrarias** — el
-      cuerpo del `PUT` ya se valida con Zod (2026-10-02), pero las fechas de
-      entrada y salida reales no. _Según la revisión `security` L3 del
-      2026-09-28 (fichero y línea en el informe); no repasado por mí._
 - [ ] **Parking: `GET /vehicles` vuelca todos los vehículos** (matrícula y
       titular) sin paginar ni filtrar. _Según la revisión `security` L3 del
       2026-09-28 (fichero y línea en el informe); no repasado por mí._
-- [ ] **Parking: el origen y la referencia externa se pierden al crear** — el
-      frontend (`useBookingWizard.ts`) envía `source`
-      y `external_id`; el controlador lee `booking_source` y
-      `external_booking_id` y además los pasa a Zod con los nombres cambiados:
-      siempre queda `direct`. **Decidir antes de arreglar:** los formularios
-      ofrecen `phone`, `email`, `walkin` y `booking` (`DateOnlyStep.tsx`), que el
-      `ENUM` de `parking_bookings.booking_source` no admite (`direct`,
-      `booking_com`, `expedia`, `airbnb`, `agency_other`); conservar el origen
-      sin ampliar el `ENUM` o mapear esos valores haría fallar la reserva.
-      _Comprobado por mí el 2026-09-28; detalle del 2026-10-02._
 - [ ] **Mensajería: crear una conversación no va en transacción** — el formato
       y los repetidos de `participant_ids` y `user_ids` ya se validan, pero un
       usuario inexistente o inactivo deja la conversación creada a medias.
@@ -286,29 +267,25 @@ preview.
       de Python. Enlazar la demo y el repo. Es el gancho para promocionar el
       proyecto. Se escribe en el repo `portfolio-bp`, no aquí. _Decidido el
       2026-10-05._
-- [ ] **`excludeMantenimiento` es una lista de exclusión** — parking, lista
-      negra, caja, partes, conciliación y departamentos dejan pasar cualquier
-      rol salvo `mantenimiento`, y `services/auth/module-access.ts` lo replica.
-      Hoy solo hay roles conocidos (el rol va en el token firmado y sale de
-      `roles`), pero un rol nuevo tendría acceso sin que nadie lo decida. Pasar
-      a lista de permitidos. _Comprobado el 2026-10-05 al retirar
-      `demo-admin`._
 - [ ] **`20260512_disable_demo_user.sql` desactivaría la cuenta demo** si se
       volviera a ejecutar (`UPDATE users SET is_active = 0 WHERE username =
       'demo'`). `setup:local` no la ejecuta (es anterior al baseline); no
       aplicarla a mano. _Comprobado el 2026-10-05._
-- [ ] **Configuración: `?tab=` de una pestaña sin permiso deja el contenido en
-      blanco** — p. ej. recepción con `?tab=users`; debería caer en la primera
-      pestaña disponible. _Visto el 2026-10-05._
 - [ ] **Errores que aún llegan sin traducir** — los códigos del backend ya se
       traducen en el cliente (`app/lib/helpers/errorCodeMessage.ts`; un test
-      exige texto en es y en para cada `ERROR_CODES.X`). Quedan: las server
-      actions de blacklist, groups y parking (`app/dashboard/*/actions/`,
-      `app/lib/parking/actions.ts`) lanzan `errorData.error`, que es el código
-      en crudo, y en el servidor no hay `document` para leer el idioma;
-      maintenance responde con textos fijos en español sin `code`; el 409 del
-      reinicio de la demo y el subtítulo del login (`login/page.tsx`) también
-      van fijos en español. _Comprobado el 2026-10-11._
+      exige texto en es y en para cada `ERROR_CODES.X` y cada `code: 'X'`).
+      Quedan: las server actions de blacklist, groups y parking
+      (`app/dashboard/*/actions/`, `app/lib/parking/actions.ts`) lanzan
+      `errorData.error`, que es el código en crudo, y en el servidor no hay
+      `document` para leer el idioma; unas 380 respuestas 4xx/5xx del backend
+      llevan un texto fijo (casi siempre en español) y ningún `code`, así que
+      en inglés se ven en español: scheduling ~135, maintenance ~56, parking
+      ~59 (`parking.controller.ts`, `stats.controller.ts` y los 400 de
+      check-out, cancelar y no-show), middlewares ~39 (`roleCheck.ts`,
+      `rateLimiter.ts`…), cashier ~39, checklist ~20, auth ~13 y algunas de
+      fnb, demo y search; el 409 del reinicio de la demo y el subtítulo del
+      login (`login/page.tsx`) también van fijos en español. Ir módulo a
+      módulo (B5.n). _Medido el 2026-10-12._
 - [ ] **Scheduling: vista de solo lectura para los demás roles** — hoy
       `/dashboard/scheduling` es solo de `admin` y el resto no ve el cuadrante.
       El dueño quiere que los demás (salvo `mantenimiento`) vean el cuadrante

@@ -376,9 +376,9 @@ export const useBookingWizard = ({
         vehicle_id: state.vehicleId ?? undefined,
         expected_checkin: checkinISO,
         expected_checkout: checkoutISO,
-        source: state.reservationData.booking_source || 'direct',
+        booking_source: state.reservationData.booking_source || 'direct',
         total_amount: totalAmount,
-        external_id: state.reservationData.external_booking_id || undefined,
+        external_booking_id: state.reservationData.external_booking_id || undefined,
         notes: state.reservationData.notes || undefined,
       }
 

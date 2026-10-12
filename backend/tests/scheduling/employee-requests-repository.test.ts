@@ -5,6 +5,7 @@
 
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import db from '../../config/db.js'
+import type { RowDataPacket } from 'mysql2'
 
 // Only run integration tests when DB is available
 let dbAvailable = false
@@ -43,7 +44,7 @@ describe('scheduling_employee_requests — integration', () => {
     }
 
     // Insert a test row and verify findByMonth retrieves it
-    const [users]: any = await db.query(`SELECT id FROM users LIMIT 1`)
+    const [users] = await db.query<RowDataPacket[]>(`SELECT id FROM users LIMIT 1`)
     if (!users.length) {
       console.warn('Skipping: no users found in local DB')
       return

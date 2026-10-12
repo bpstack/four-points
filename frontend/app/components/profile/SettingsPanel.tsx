@@ -15,6 +15,7 @@ import { departmentsApi } from '@/app/lib/departments'
 import { formatDepartmentName } from '@/app/lib/logbooks/hooks/useDepartments'
 import { cn } from '@/app/lib/helpers/utils'
 import { canRunNotificationCheckRole, isAdminRole } from '@/app/lib/helpers/utils'
+import { resolveSettingsTab } from '@/app/lib/helpers/settingsTab'
 import { toast } from 'react-hot-toast'
 import {
   FiUsers,
@@ -138,8 +139,12 @@ export function SettingsPanel() {
       [t, showDemoTab]
     )
 
-  const activeTab =
-    (searchParams.get('tab') as SettingsTab) || (isUserAdmin ? 'users' : 'notifications')
+  const availableTabs = tabs.filter((tab) => !tab.adminOnly || isUserAdmin)
+
+  const activeTab = resolveSettingsTab(
+    searchParams.get('tab'),
+    availableTabs.map((t) => t.id)
+  ) as SettingsTab
 
   const [users, setUsers] = useState<User[]>([])
   const [loading, setLoading] = useState(false)
@@ -150,7 +155,6 @@ export function SettingsPanel() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
 
-  const availableTabs = tabs.filter((tab) => !tab.adminOnly || isUserAdmin)
   const activeTabConfig = availableTabs.find((t) => t.id === activeTab) || availableTabs[0]
 
   useEffect(() => {

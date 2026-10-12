@@ -12,8 +12,8 @@ Manages monthly staff schedules through **manual cell-by-cell editing with
 real-time validation**, plus optional **auto-generation** via a CP-SAT solver
 (Python).
 
-**Month states:** `draft` (editable, validation surfaces warnings) ↔
-`published` (read-only for staff).
+**Month states:** `draft` (editable, validation surfaces warnings) ↔ `published`
+(read-only for staff).
 
 **Cell locking.** Assignments with `source_constraint_id` are **locked**: they
 come from approvals (vacations, IT, etc.) and can't be overwritten from the UI
@@ -471,8 +471,8 @@ git log.
 ## Historical Excel importer
 
 The one-off importer that loaded `PLANNING 2026.xlsx` (January-May) into
-`scheduling_*` in draft state was removed on 2026-10-04: it held the real
-names of the staff and had already run. The months stay in the database.
+`scheduling_*` in draft state was removed on 2026-10-04: it held the real names
+of the staff and had already run. The months stay in the database.
 
 ## Cross-month gotcha (H4/H5) — outstanding debt
 
@@ -496,8 +496,7 @@ logic in `consecutive-rest.constraint.ts` and
 - `docs/scheduling/constraints.md` — full textual specification. Source of
   truth.
 - `docs/scheduling/decisions.md` — decision log (why hard/soft, why the weights,
-  what was tried).
-- `SCHEDULING-SOLVER-PLAN.md` (root) — original plan. Historical.
-- `TODO.md` (root) — known module bugs (setSchedulableEmployees, H5 cross-month
+  what was tried); the 2026-04-22 entry keeps the original phases.
+- `docs/TODO.md` — known module bugs (setSchedulableEmployees, H5 cross-month
   debt, etc.).
-- `frontend/app/components/scheduling/CLAUDE.md` — the UI side of the module.
+- `frontend/app/components/scheduling/AGENTS.md` — the UI side of the module.
