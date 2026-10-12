@@ -440,6 +440,15 @@ class ParkingBookingsController {
         return
       }
 
+      if (errorMessage === ERROR_CODES.PARKING_INVALID_DATES) {
+        res.status(400).json({
+          success: false,
+          error: ERROR_CODES.PARKING_INVALID_DATES,
+          code: ERROR_CODES.PARKING_INVALID_DATES,
+        })
+        return
+      }
+
       if (errorMessage.includes('No se puede hacer check-out')) {
         res.status(400).json({
           success: false,

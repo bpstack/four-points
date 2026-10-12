@@ -3,6 +3,7 @@
 // Versión profesional con booking_code
 // ============================================
 import pool from '../../config/db.js'
+import { ERROR_CODES } from '../../config/error-codes.js'
 import { targetSpot, type SpotRef } from '../../services/parking/target-spot.js'
 import { ResultSetHeader, RowDataPacket, type PoolConnection } from 'mysql2/promise'
 import type {
@@ -465,6 +466,12 @@ class ParkingBookingsRepository {
 
       if (booking[0].status !== 'checked_in') {
         throw new Error(`No se puede hacer check-out: estado actual es '${booking[0].status}'`)
+      }
+
+      // The check-out cannot be earlier than the check-in it closes
+      const checkin = booking[0].actual_checkin
+      if (checkin && actual_checkout.getTime() < new Date(checkin).getTime()) {
+        throw new Error(ERROR_CODES.PARKING_INVALID_DATES)
       }
 
       const payment_date = payment_amount ? new Date() : null
