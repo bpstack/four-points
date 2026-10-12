@@ -12,32 +12,6 @@ import {
 
 export class CashierVoucherRepository {
   /**
-   * Crear un vale
-   */
-  static async create(data: CreateVoucherDTO): Promise<CashierVoucher> {
-    const query = `
-      INSERT INTO cashier_vouchers (
-        amount,
-        reason,
-        created_by,
-        notes
-      ) VALUES (?, ?, ?, ?)
-    `
-
-    const [result] = await db.query<ResultSetHeader>(query, [
-      data.amount,
-      data.reason,
-      data.created_by,
-      data.notes || null,
-    ])
-
-    const created = await this.getById(result.insertId)
-    if (!created) throw new Error('Error al recuperar vale creado')
-
-    return created
-  }
-
-  /**
    * Obtener vale por ID
    */
   static async getById(id: number): Promise<CashierVoucher | null> {
@@ -199,14 +173,19 @@ export class CashierVoucherRepository {
       throw new Error('No hay campos para actualizar')
     }
 
+    // Justified and cancelled are final (2026-10-11): only a pending voucher changes
+    const current = await this.getById(id)
+    if (!current) throw new Error('Vale no encontrado')
+
     const query = `
-      UPDATE cashier_vouchers 
+      UPDATE cashier_vouchers
       SET ${updates.join(', ')}
-      WHERE id = ?
+      WHERE id = ? AND status = 'pending'
     `
     params.push(id)
 
-    await db.query(query, params)
+    const [result] = await db.query<ResultSetHeader>(query, params)
+    if (result.affectedRows === 0) throw new Error('Solo se pueden modificar vales pendientes')
 
     const updated = await this.getById(id)
     if (!updated) throw new Error('Error al recuperar vale actualizado')
@@ -221,19 +200,23 @@ export class CashierVoucherRepository {
     const voucher = await this.getById(id)
     if (!voucher) throw new Error('Vale no encontrado')
     if (voucher.status === 'justified') throw new Error('El vale ya está justificado')
+    if (voucher.status !== 'pending') throw new Error('Solo se pueden justificar vales pendientes')
 
     const connection = await db.getConnection()
 
     try {
       await connection.beginTransaction()
 
-      // Actualizar estado del vale
-      await connection.query(
-        `UPDATE cashier_vouchers 
-         SET status = 'justified', justified_at = NOW() 
-         WHERE id = ?`,
+      // Actualizar estado del vale (solo si sigue pendiente)
+      const [updated] = await connection.query<ResultSetHeader>(
+        `UPDATE cashier_vouchers
+         SET status = 'justified', justified_at = NOW()
+         WHERE id = ? AND status = 'pending'`,
         [id]
       )
+      if (updated.affectedRows === 0) {
+        throw new Error('Solo se pueden justificar vales pendientes')
+      }
 
       // Asociar vale con turno
       await connection.query(
@@ -262,14 +245,16 @@ export class CashierVoucherRepository {
     const voucher = await this.getById(id)
     if (!voucher) throw new Error('Vale no encontrado')
     if (voucher.status === 'cancelled') throw new Error('El vale ya está cancelado')
+    if (voucher.status !== 'pending') throw new Error('Solo se pueden cancelar vales pendientes')
 
     const query = `
       UPDATE cashier_vouchers
       SET status = 'cancelled', cancelled_at = NOW()
-      WHERE id = ?
+      WHERE id = ? AND status = 'pending'
     `
 
-    await db.query(query, [id])
+    const [result] = await db.query<ResultSetHeader>(query, [id])
+    if (result.affectedRows === 0) throw new Error('Solo se pueden cancelar vales pendientes')
 
     // Eliminar asociación con turnos si existe
     await db.query('DELETE FROM cashier_shift_vouchers WHERE voucher_id = ?', [id])
@@ -356,29 +341,49 @@ export class CashierVoucherRepository {
   }
 
   /**
-   * Verificar si se puede añadir más vales a un turno (límite: 5)
+   * Crear un vale en un turno: comprueba el límite de 5 y lo asocia en una sola
+   * transacción, con el turno bloqueado, para que dos altas a la vez no lo salten
+   * ni dejen un vale sin turno
    */
-  static async canAddVoucherToShift(shiftId: number): Promise<boolean> {
-    const count = await this.countByShift(shiftId)
-    return count < 5
-  }
+  static async createForShift(data: CreateVoucherDTO, shiftId: number): Promise<CashierVoucher> {
+    const connection = await db.getConnection()
+    let voucherId: number
+    try {
+      await connection.beginTransaction()
 
-  /**
-   * Asociar vale existente con un turno
-   */
-  static async associateWithShift(voucherId: number, shiftId: number): Promise<void> {
-    // Verificar límite de 5 vales por turno
-    const canAdd = await this.canAddVoucherToShift(shiftId)
-    if (!canAdd) {
-      throw new Error('El turno ya tiene el máximo de 5 vales')
+      const [shift] = await connection.query<RowDataPacket[]>(
+        'SELECT id FROM cashier_shifts WHERE id = ? FOR UPDATE',
+        [shiftId]
+      )
+      if (!shift[0]) throw new Error('Turno no encontrado')
+
+      const [count] = await connection.query<RowDataPacket[]>(
+        'SELECT COUNT(*) AS total FROM cashier_shift_vouchers WHERE shift_id = ?',
+        [shiftId]
+      )
+      if (Number(count[0].total) >= 5) throw new Error('El turno ya tiene el máximo de 5 vales')
+
+      const [result] = await connection.query<ResultSetHeader>(
+        'INSERT INTO cashier_vouchers (amount, reason, created_by, notes) VALUES (?, ?, ?, ?)',
+        [data.amount, data.reason, data.created_by, data.notes || null]
+      )
+      voucherId = result.insertId
+      await connection.query(
+        'INSERT INTO cashier_shift_vouchers (shift_id, voucher_id) VALUES (?, ?)',
+        [shiftId, voucherId]
+      )
+
+      await connection.commit()
+    } catch (error) {
+      await connection.rollback()
+      throw error
+    } finally {
+      connection.release()
     }
 
-    const query = `
-      INSERT INTO cashier_shift_vouchers (shift_id, voucher_id)
-      VALUES (?, ?)
-      `
-
-    await db.query(query, [shiftId, voucherId])
+    const created = await this.getById(voucherId)
+    if (!created) throw new Error('Error al recuperar vale creado')
+    return created
   }
 
   /**
