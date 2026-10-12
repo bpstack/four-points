@@ -60,19 +60,27 @@ export async function createComment(
   return rows[0]
 }
 
-export async function deleteComment(
-  commentId: number,
-  userId: string,
-  isAdmin: boolean
-): Promise<boolean> {
+// The comment with its run, to check who may delete it and whether its day is closed
+export async function findComment(
+  commentId: number
+): Promise<{ user_id: string; run_id: number; run_closed: boolean } | null> {
   const [rows] = await db.execute<RowDataPacket[]>(
-    `SELECT user_id FROM checklist_step_comments WHERE id = ?`,
+    `SELECT c.user_id, c.run_id, r.reset_at IS NOT NULL AS run_closed
+     FROM checklist_step_comments c
+     JOIN checklist_runs r ON r.id = c.run_id
+     WHERE c.id = ?`,
     [commentId]
   )
-  if (!rows[0]) return false
-  if (!isAdmin && rows[0].user_id !== userId) return false
+  if (!rows[0]) return null
+  return {
+    user_id: rows[0].user_id,
+    run_id: rows[0].run_id,
+    run_closed: Boolean(rows[0].run_closed),
+  }
+}
+
+export async function deleteComment(commentId: number): Promise<void> {
   await db.execute(`DELETE FROM checklist_step_comments WHERE id = ?`, [commentId])
-  return true
 }
 
 // ── Attachments ───────────────────────────────────────────
@@ -113,10 +121,15 @@ export async function createAttachment(
   return rows[0]
 }
 
-export async function findAttachment(attachmentId: number): Promise<Attachment | null> {
-  const [rows] = await db.execute<Attachment[]>(
-    `SELECT a.*, u.username FROM checklist_step_attachments a
-     JOIN users u ON u.id = a.user_id WHERE a.id = ?`,
+export async function findAttachment(
+  attachmentId: number
+): Promise<(Attachment & { run_closed: number }) | null> {
+  const [rows] = await db.execute<(Attachment & { run_closed: number })[]>(
+    `SELECT a.*, u.username, r.reset_at IS NOT NULL AS run_closed
+     FROM checklist_step_attachments a
+     JOIN users u ON u.id = a.user_id
+     JOIN checklist_runs r ON r.id = a.run_id
+     WHERE a.id = ?`,
     [attachmentId]
   )
   return rows[0] ?? null
