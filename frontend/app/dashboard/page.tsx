@@ -109,12 +109,12 @@ export default function DashboardHome() {
           }
         }
 
-        const responses = await Promise.all(
-          dates.map((date) => logbooksApi.getLogbooksByDay(date).catch(() => []))
-        )
-
+        // One request for the whole period (one per page), not one per day
+        const range = [...dates].sort()
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const allLogbooks: any[] = responses.flat().filter(Boolean)
+        const allLogbooks: any[] = await logbooksApi
+          .getLogbooksInRange(range[0], range[range.length - 1])
+          .catch(() => [])
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const logbooksInPeriod = allLogbooks.filter((entry: any) => {

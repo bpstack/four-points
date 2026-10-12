@@ -3,9 +3,13 @@
 
 import apiClient from '@/app/lib/apiClient'
 import { API_BASE_URL } from '@/app/lib/env'
+import type { LogbookEntry } from './types'
 // Types available in ./types if needed: LogbookEntry, LogbookComment
 
 const API_URL = API_BASE_URL
+
+// Largest page /api/logbooks/all accepts
+const RANGE_PAGE = 500
 
 // =============== LOGBOOKS API ===============
 
@@ -60,6 +64,18 @@ export const logbooksApi = {
     } catch (error) {
       console.error('getLogbooksByDay failed:', error)
       throw error
+    }
+  },
+
+  // Entries whose day falls between two dates (YYYY-MM-DD), every page
+  getLogbooksInRange: async (dateFrom: string, dateTo: string): Promise<LogbookEntry[]> => {
+    const entries: LogbookEntry[] = []
+    for (let offset = 0; ; offset += RANGE_PAGE) {
+      const page = await apiClient.get<LogbookEntry[]>(
+        `${API_URL}/api/logbooks/all?date_from=${dateFrom}&date_to=${dateTo}&limit=${RANGE_PAGE}&offset=${offset}`
+      )
+      entries.push(...page)
+      if (page.length < RANGE_PAGE) return entries
     }
   },
 
