@@ -58,7 +58,6 @@ backend/scheduling-solver/venv/
 # Claude Code Templates & Skills
 # --------------------------------------------
 .claude/
-**/skills-lock.json
 
 # --------------------------------------------
 # Local Scripts
