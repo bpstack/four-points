@@ -1,9 +1,8 @@
 # AGENTS.md
 
-This file provides guidance to agent CLIs — **OpenCode** and Codex — when
-working with code in this repository. Claude Code reads `CLAUDE.md` instead;
-both files must stay in sync on shared policy (Context7 usage, DB migrations,
-commit conventions).
+This file provides guidance to agent CLIs — Claude Code (through the
+`@AGENTS.md` import in `CLAUDE.md`), **OpenCode** and Codex — when working with
+code in this repository.
 
 ## Project Overview
 
@@ -283,6 +282,9 @@ is declared by the owner as the target (`docs/DECISIONS.md` ADR-017), not the
 current state. **Re-estimate when:** Aiven starts storing real guest or staff
 data.
 
+The same level line is repeated in `backend/AGENTS.md` (and in
+`frontend/AGENTS.md` once it exists); a re-estimate changes all of them.
+
 **Areas:**
 
 - Authentication, Session, JWT tokens → `backend/controllers/auth/`,
@@ -306,8 +308,6 @@ data.
   `backend/repositories/logbook/logbookHistory-repository.ts`
 - Validation / errors (data access) → `backend/repositories/` and the triggers
   and procedures in `backend/db-mysql/` (parking availability, booking code)
-  procedimientos de `backend/db-mysql/` (disponibilidad de parking, código de
-  reserva)
 - Frontend → `frontend/app/`
 
 ## Architecture

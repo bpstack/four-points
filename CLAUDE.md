@@ -1,3 +1,4 @@
-# CLAUDE.md
+@AGENTS.md
 
-This file has been migrated to `AGENTS.md`. Please refer to `AGENTS.md` for all project documentation.
+This file has been migrated to `AGENTS.md`. Please refer to `AGENTS.md` for all
+project documentation.
