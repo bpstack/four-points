@@ -9,7 +9,8 @@ import {
   errorCodeMessage,
 } from '../../../frontend/app/lib/helpers/errorCodeMessage.js'
 
-// Every ERROR_CODES.X the backend source mentions (tests and the catalogue aside)
+// Every ERROR_CODES.X the backend source mentions (tests and the catalogue aside),
+// plus any code written as a bare string (`code: 'X'`)
 function backendErrorCodes(): string[] {
   const root = resolve(__dirname, '../..')
   const skip = new Set(['node_modules', 'tests', 'scheduling-solver', 'db-mysql'])
@@ -21,6 +22,7 @@ function backendErrorCodes(): string[] {
       } else if (entry.name.endsWith('.ts') && entry.name !== 'error-codes.ts') {
         const source = readFileSync(join(dir, entry.name), 'utf-8')
         for (const m of source.matchAll(/ERROR_CODES\.([A-Z0-9_]+)/g)) codes.add(m[1])
+        for (const m of source.matchAll(/\bcode:\s*['"`]([A-Z][A-Z0-9_]+)['"`]/g)) codes.add(m[1])
       }
     }
   }

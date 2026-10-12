@@ -431,6 +431,8 @@
     "PARKING_FETCH_BOOKING_ERROR": "Error al obtener reserva",
     "PARKING_CREATE_BOOKING_ERROR": "Error al crear reserva",
     "PARKING_CHECKIN_ERROR": "Error al realizar check-in",
+    "PARKING_CHECKIN_INVALID_STATUS": "Solo se puede hacer check-in de una reserva en estado Reservado",
+    "PARKING_SPOT_OCCUPIED": "La plaza ya está ocupada por otra reserva",
     "PARKING_CHECKOUT_ERROR": "Error al realizar check-out",
     "PARKING_CANCEL_ERROR": "Error al cancelar reserva",
     "PARKING_NOSHOW_ERROR": "Error al marcar como no-show",
