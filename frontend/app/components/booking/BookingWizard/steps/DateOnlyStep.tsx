@@ -165,11 +165,10 @@ export default function DateOnlyStep({ state, actions }: DateOnlyStepProps) {
               className={selectClassName}
             >
               <option value="direct">{t('sources.direct')}</option>
-              <option value="booking">{t('sources.booking_com')}</option>
+              <option value="booking_com">{t('sources.booking_com')}</option>
               <option value="airbnb">{t('sources.airbnb')}</option>
-              <option value="phone">{t('sources.phone')}</option>
-              <option value="email">{t('sources.email')}</option>
-              <option value="walkin">{t('sources.walkin')}</option>
+              <option value="expedia">{t('sources.expedia')}</option>
+              <option value="agency_other">{t('sources.agency_other')}</option>
             </select>
           </FormField>
         </div>

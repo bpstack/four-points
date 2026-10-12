@@ -84,10 +84,7 @@
     "booking_com": "Booking.com",
     "airbnb": "Airbnb",
     "expedia": "Expedia",
-    "agency_other": "Other Agency",
-    "phone": "Phone",
-    "email": "Email",
-    "walkin": "Walk-in"
+    "agency_other": "Other agency"
   },
   "confirmation": {
     "title": "Confirm Booking",

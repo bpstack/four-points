@@ -214,8 +214,8 @@ class ParkingBookingsController {
         expected_checkin,
         expected_checkout,
         total_amount: total_amount ? parseFloat(total_amount) : undefined,
-        source: booking_source,
-        external_id: external_booking_id,
+        booking_source,
+        external_booking_id,
         notes,
       })
 
