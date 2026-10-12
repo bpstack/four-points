@@ -1,6 +1,6 @@
 """
 schemas.py — Contratos de input/output entre Node y el solver Python.
-Corresponde a SCHEDULING-SOLVER-PLAN.md §3.1-§3.2.
+Corresponde a docs/scheduling/solver.md, «Input» y «Output».
 """
 
 from __future__ import annotations
