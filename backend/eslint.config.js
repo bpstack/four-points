@@ -32,8 +32,7 @@ export default defineConfig(
       globals: globals.node,
     },
     rules: {
-      // 341 existing uses: warn until they are typed, so new code is still flagged
-      '@typescript-eslint/no-explicit-any': 'warn',
+      '@typescript-eslint/no-explicit-any': 'error',
       'prefer-const': ['error', { destructuring: 'all' }],
       '@typescript-eslint/no-unused-vars': [
         'error',

@@ -157,7 +157,7 @@ export class CronService {
    */
   static async runNotificationsNow(): Promise<{
     success: boolean
-    results?: any
+    results?: unknown
     error?: string
     duration?: number
   }> {

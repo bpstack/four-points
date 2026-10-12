@@ -105,11 +105,6 @@ preview.
 - [ ] **Comprobar si los cron se ejecutan en Render** — corren dentro del
       proceso del backend; si el plan gratuito lo duerme por inactividad, no se
       disparan. _No comprobado._
-- [ ] **Backend: quedan 55 usos de `any`** — `no-explicit-any` está como aviso
-      en `backend/eslint.config.js` para que el lint pase. El 2026-10-04 se
-      tiparon controllers, services y repositories de los 15 módulos (de 316
-      avisos a 55); quedan auth, `config/db.ts`, cron, scripts y tests. Tiparlos
-      y volver a poner la regla como error.
 - [ ] **Avisar a los usuarios de que un `admin` puede leer sus mensajes** —
       `getConversation` y `getMessages` (`backend/controllers/messages/`) dejan
       leer cualquier conversación al rol `admin`, aunque no participe. Decidir
