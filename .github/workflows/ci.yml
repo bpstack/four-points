@@ -21,7 +21,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version-file: backend/.nvmrc
       - run: corepack enable
       - run: pnpm install --frozen-lockfile
       # tests/frontend loads pdf-lib from the frontend's node_modules
@@ -41,7 +41,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version-file: frontend/.nvmrc
       - run: corepack enable
       - run: pnpm install --frozen-lockfile
       - run: pnpm lint
