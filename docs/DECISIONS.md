@@ -286,7 +286,9 @@
 
 ## ADR-017 — El nivel de seguridad objetivo es L3 (OWASP ASVS 5.0)
 
-- **Estado:** ✅ aceptada (2026-09-28)
+- **Estado:** ✅ aceptada (2026-09-28) · 📌 implantación del harness revisada
+  por
+  [ADR-042](#adr-042--el-harness-se-implanta-por-subproyecto-empezando-por-backend)
 - **Fecha:** 2026-09-28
 - **Decisión:** el proyecto se revisa contra el **nivel L3** de OWASP ASVS 5.0.
   Es el **objetivo**, no el estado actual: los hallazgos de seguridad de
@@ -901,3 +903,31 @@
   el proceso entero; sueltos en `docs/` parecían trabajo vivo.
 - **Consecuencias:** las ADR anteriores que los citan no se tocan; el comando
   de arriba los recupera. `SESSION.md` sigue en `docs/`. Aplica ADR-040.
+
+## ADR-042 — El harness se implanta por subproyecto, empezando por `backend/`
+
+- **Estado:** ✅ aceptada (2026-10-12)
+- **Fecha:** 2026-10-12
+- **Decisión:** `backend/` se trata como proyecto independiente para el harness:
+  capa 1 en `backend/AGENTS.md`, `backend/CLAUDE.md` con `@AGENTS.md`. El
+  `AGENTS.md` raíz se queda con lo común a los dos subproyectos y el `CLAUDE.md`
+  raíz lo importa. Cada `AGENTS.md` de módulo lleva al lado un `CLAUDE.md` de
+  una línea (`@AGENTS.md`). El estado y las decisiones siguen en el `docs/` raíz
+  (excepción declarada en `backend/AGENTS.md`). `frontend/` queda para después.
+- **Motivo:** ADR-017 aplazaba la implantación hasta adaptar el harness a repos
+  sin `package.json` en la raíz. Apuntado a `backend/`, el generador ya detecta
+  pnpm por `packageManager`, y el otro bloqueo que citaba (17 `CLAUDE.md`
+  anidados) ya no existía: se habían borrado. Sin los punteros, Claude Code no
+  cargaba los `AGENTS.md` de módulo: comprobado el 2026-10-12 leyendo
+  `backend/services/parking/` (no cargó) y `backend/services/fnb/` con puntero
+  (cargó).
+- **Consecuencias:**
+  - El nivel de seguridad (ADR-017) sigue siendo uno para toda la aplicación;
+    las áreas se repartirán entre `backend/AGENTS.md` y `frontend/AGENTS.md`
+    cuando se reestructure el `AGENTS.md` raíz.
+  - El generador, apuntado a `backend/`, avisa de que faltan `.gitattributes` y
+    CI, y no es así: los dos están en la raíz y cubren `backend/`.
+  - Al aceptarla, ADR-017 se marca como revisada por esta.
+- **Rechazado:** implantar la capa 1 solo en el `AGENTS.md` raíz. El generador
+  no ve ahí gestor de paquetes (`manager none`), y las reglas de cada
+  subproyecto acabarían mezcladas en un solo fichero.

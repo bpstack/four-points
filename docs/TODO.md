@@ -65,13 +65,6 @@ preview.
       tiene datos de prueba (incluidos usuarios de horarios con nombre de
       pila). Si el borrado se retrasa o se da acceso a gente de fuera, antes
       renombrarlos (`Empleado 01`…).
-- [ ] **Render: comprobar qué versión de Node usa** — `engines` pide
-      `>=22.16.0` sin tope y, según la documentación de Render, un rango
-      abierto se resuelve a la última versión; el log de producción muestra el
-      aviso `DEP0205`, que podría ser de una versión posterior. Mirarlo en el
-      log de build y, si no es la 22, acotar `engines` (`>=22.16.0 <23`) o
-      fijar `NODE_VERSION`.
-      _No comprobado._
 - [ ] **Maintenance: las fotos no se borran con el parte** — ya son privadas
       (solo la API las sirve), pero el borrado lógico no las toca,
       `auto_delete_on_close` se guarda y nadie lo usa, y subir o borrar fotos
@@ -120,17 +113,11 @@ preview.
       aún sin estrenar. _Comprobado el 2026-09-28 en local y Aiven:
       `event_scheduler=ON` y el evento está `ENABLED` (última ejecución en
       Aiven: 2026-09-27)._
-- [ ] **Adaptar el harness a repos con varios proyectos e implantarlo** — en el
-      repo `harness`, privado y local:
-      soportar repos sin `package.json` ni lockfile en la raíz (aquí `frontend/`
-      y `backend/` son dos proyectos pnpm independientes) y `AGENTS.md`
-      anidados. Después, implantar la capa 1 en este repo. _Comprobado el
-      2026-09-28 en `lib/detect.mjs` y `commands/init-project.md` del harness
-      (ADR-017)._
-- [ ] **Comprobar que Claude Code carga los `AGENTS.md` de las subcarpetas** —
-      los `CLAUDE.md` de módulo se borraron en vez de quedar como punteros; si
-      Claude Code solo lee `CLAUDE.md` por directorio, ese contexto se pierde.
-      _Sin comprobar._
+- [ ] **Implantar el harness en `frontend/`** — como en `backend/` (ADR-042):
+      `/init-project` apuntando a `frontend/`, sin crear `frontend/docs/`, con
+      la excepción de las reglas 12 y 13 y `npx autoskills --dry-run`. Después,
+      repartir el `AGENTS.md` raíz: lo común se queda, lo de cada subproyecto va
+      a su `AGENTS.md`, también las áreas de `## Security`.
 - [ ] **Fechas y «hoy» dependen de la zona horaria de cada pieza** — navegador
       en Madrid, Node en la del proceso (Madrid en local; Render sin comprobar,
       UTC si no tiene `TZ`) y MySQL en la suya (Madrid en local; Aiven en UTC,
@@ -317,3 +304,8 @@ preview.
       — registro de auditoría de seguridad, 2FA opcional para `admin`, log
       estructurado de los eventos de login y errores genéricos que no dejen
       averiguar si un usuario existe.
+- [ ] **Subir el backend a Node 24** — producción va en 22 (Render, 22.23.3 vía
+      `.nvmrc` raíz) y el frontend ya en 24 (Vercel). Cambiar `backend/.nvmrc`,
+      el `.nvmrc` raíz que lee Render y `engines` a `24.x`, y probarlo antes en
+      preview (pdf-parse v1, solver, cron). _Comprobado en los logs de Render y
+      Vercel el 2026-10-12._
