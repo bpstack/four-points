@@ -30,13 +30,6 @@ preview.
 
 ### 🔴 Alta
 
-- [ ] **Aplicar en Aiven `20261011_keep_group_history_on_delete.sql` antes de
-      desplegar el borrado de grupos** — el código escribe una fila de
-      historial tras borrar el grupo; con la clave foránea todavía en Aiven
-      ese insert falla y el borrado se deshace (500). Preview y producción
-      usan Aiven: aplicarla antes de que la rama llegue a compassionate, con
-      `scripts/apply-migration.sh aiven <fichero> --dry-run` primero, y
-      marcarla en `backend/db-mysql/INDEX.md`. Ya aplicada en local.
 - [ ] **Rotar las credenciales de producción** — contraseña de la BD y claves
       de Cloudinary, y revocar las claves de servicios que ningún código usa.
       El historial publicado no las contiene, pero siguen en copias privadas

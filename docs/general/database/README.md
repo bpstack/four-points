@@ -75,8 +75,10 @@ Tables by module:
   repository because the backend and `apply-migration.sh` need it (decided on
   2026-10-12).
 
-**Migration status**: the 15 recorded in `INDEX.md` are applied on Aiven
-(verified on 2026-09-28).
+**Migration status**: the 26 recorded in `INDEX.md` are applied on Aiven
+(the last two, `20261011_keep_group_history_on_delete.sql` and
+`20261012_unique_invoice_supplier_number.sql`, applied and verified on
+2026-10-12).
 
 ## How information flows
 
