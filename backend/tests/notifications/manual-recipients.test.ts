@@ -7,6 +7,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import type { Request, Response } from 'express'
 
+// The controller also loads NotificationRepository: without this the pool's
+// config needs a real database password (CI has none)
+vi.mock('../../config/db.js', () => ({ default: { query: vi.fn(), getConnection: vi.fn() } }))
 vi.mock('../../repositories/auth/user-repository.js', () => ({
   UserRepository: { getActiveIds: vi.fn() },
 }))
