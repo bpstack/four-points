@@ -7,7 +7,7 @@
 Lo que no encaje aquí es una decisión (a `DECISIONS.md`), un hallazgo (a su
 propio fichero) o ruido (se borra).
 
-**Última actualización:** 2026-10-05
+**Última actualización:** 2026-10-12
 
 ---
 
@@ -29,6 +29,11 @@ y auditado, publicación y demo. Sus documentos (`ROADMAP.md`, `GITCLEAN.md`,
   ficticios y la base de horarios de la demo (`scheduling-seed.sql`).
 - **Repositorio original:** `four-points-archive`, archivado y privado.
 - **Decisiones:** `DECISIONS.md`, hasta ADR-041.
+- **Revisión de OpenCode, cerrada el 2026-10-12:** sus 20 ramas `opencode/*`
+  están fusionadas en esta rama (PR #7–#26) y probadas en preview; las
+  migraciones `20261011_keep_group_history_on_delete.sql` y
+  `20261012_unique_invoice_supplier_number.sql`, aplicadas en Aiven. Aún no
+  están en `main`.
 
 ## ⚠️ Empieza por aquí
 
@@ -48,14 +53,22 @@ y auditado, publicación y demo. Sus documentos (`ROADMAP.md`, `GITCLEAN.md`,
 
 ## Siguiente
 
-«Después de publicar» de `TODO.md`, por prioridad:
+1. **PR de esta rama a `main`** con merge commit, y comprobar producción en el
+   navegador (Aiven ya tiene las migraciones). Después, adelantar esta rama a
+   `main` (`git merge --ff-only origin/main`).
 
-1. **Rotar las credenciales de producción** (BD, clave JWT, Cloudinary, claves
-   de IA). Ninguna está en el historial; se hace en los paneles y se comprueba
-   que producción y preview siguen funcionando.
-2. **Rastro de cambios en dinero:** ingresos de F&B, pagos y recuentos de caja,
+Luego, «Después de publicar» de `TODO.md`, por prioridad:
+
+2. **Rotar las credenciales de producción** (BD, clave JWT, Cloudinary, claves
+   de IA). Ninguna de ellas está en el historial, pero sí la contraseña en
+   claro de un usuario de la aplicación (`test-login.js`, commit `8595ec0`):
+   cambiarla también. Se hace en los paneles y se comprueba que producción y
+   preview siguen funcionando.
+3. **Rastro de cambios en dinero:** ingresos de F&B, pagos y recuentos de caja,
    cobros de parking.
-3. Las de prioridad media, empezando por las comprobaciones cortas (versión de
+4. **Fechas y «hoy» según la zona horaria de cada pieza**, como tarea propia
+   (decidido el 2026-10-12).
+5. Las de prioridad media, empezando por las comprobaciones cortas (versión de
    Node y cron en Render) y el pago automático del día 10, que nunca ha
    funcionado.
 
@@ -81,8 +94,10 @@ Nada ahora mismo.
   se contrastan siempre con el código y la BD.
 - **Nada de `docs/_archive/` se publica** (git lo ignora). Si algo de ahí debe
   ser público, se copia fuera.
-- **Enlaces rotos conocidos:** 10 ficheros fuera de `docs/` citan
+- **Enlaces rotos conocidos:** 3 ficheros fuera de `docs/` citan todavía
   `Global-Plan.md`, `SCHEDULING-SOLVER-PLAN.md` o `SCHEDULING-CONSTRAINTS.md`,
-  ya archivados. Uno es `backend/db-mysql/aiven/19_scheduling.sql`, que no se
-  toca (ADR-021); la sección equivalente es `docs/scheduling/constraints.md
-  §7.5`. Los demás se arreglan al escribir cada módulo (ADR-010).
+  ya archivados: `backend/db-mysql/MASTER_INSTALL.sql`,
+  `backend/db-mysql/aiven/19_scheduling.sql` y
+  `backend/db-mysql/scripts/20260512_add_scheduling_solver_runs_and_requests.sql`.
+  Son SQL ya aplicados y no se tocan (ADR-021); la sección equivalente es
+  `docs/scheduling/constraints.md §7.5`.

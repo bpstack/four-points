@@ -1,7 +1,7 @@
 """
 main.py — CLI entry point del solver.
 
-Protocolo (SCHEDULING-SOLVER-PLAN.md §3.4):
+Protocolo (docs/scheduling/solver.md, «Where it runs»):
   stdin  → JSON con SolverInput
   stdout → JSON con SolverOutput
   stderr → logs de debug

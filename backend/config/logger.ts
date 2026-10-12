@@ -17,6 +17,22 @@ import pino from 'pino'
 const isDev = process.env.NODE_ENV !== 'production'
 const level = process.env.LOG_LEVEL ?? (isDev ? 'debug' : 'info')
 
+const SECRET_KEYS = ['password', 'currentPassword', 'newPassword', 'token', 'refreshToken']
+
+// Redactar campos sensibles si aparecen accidentalmente. pino has no
+// recursive wildcard: secrets are hidden at the first three levels. The SQL
+// of a failed db.query carries its values interpolated (texts, plates,
+// hashes); err.code and err.message stay
+export const redact = {
+  paths: [
+    ...SECRET_KEYS.flatMap((key) => [key, `*.${key}`, `*.*.${key}`]),
+    'req.headers.authorization',
+    'req.headers.cookie',
+    '*.sql',
+  ],
+  censor: '[REDACTED]',
+}
+
 export const logger = pino({
   level,
   ...(isDev
@@ -31,15 +47,5 @@ export const logger = pino({
         },
       }
     : {}),
-  // Redactar campos sensibles si aparecen accidentalmente
-  redact: {
-    paths: [
-      '*.password',
-      '*.token',
-      '*.refreshToken',
-      'req.headers.authorization',
-      'req.headers.cookie',
-    ],
-    censor: '[REDACTED]',
-  },
+  redact,
 })

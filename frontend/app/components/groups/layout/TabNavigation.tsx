@@ -7,6 +7,8 @@ import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { cn } from '@/app/lib/helpers/utils'
 import { FiChevronDown, FiCheck } from 'react-icons/fi'
+import { useAuthContext } from '@/app/lib/auth/useAuth'
+import { canViewGroupContacts } from '@/app/lib/groups/contact-access'
 
 type Tab = 'overview' | 'payments' | 'contacts' | 'rooms' | 'status' | 'history'
 
@@ -23,8 +25,9 @@ export function TabNavigation(_props: TabNavigationProps) {
   const [isOpen, setIsOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const t = useTranslations('groups')
+  const { user } = useAuthContext()
 
-  const tabs: { id: Tab; label: string }[] = [
+  const allTabs: { id: Tab; label: string }[] = [
     { id: 'overview', label: t('tabs.overview') },
     { id: 'payments', label: t('tabs.payments') },
     { id: 'contacts', label: t('tabs.contacts') },
@@ -32,6 +35,8 @@ export function TabNavigation(_props: TabNavigationProps) {
     { id: 'status', label: t('tabs.status') },
     { id: 'history', label: t('tabs.history') },
   ]
+  // mantenimiento opens groups for its notifications, not for the contacts
+  const tabs = allTabs.filter((tab) => tab.id !== 'contacts' || canViewGroupContacts(user?.role))
 
   const activeTabConfig = tabs.find((tab) => tab.id === activeTab) || tabs[0]
 

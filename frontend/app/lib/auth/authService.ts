@@ -8,6 +8,7 @@
 
 import { apiClient } from '@/app/lib/apiClient'
 import { API_BASE_URL } from '@/app/lib/env'
+import { errorBodyMessage } from '@/app/lib/helpers/errorCodeMessage'
 
 const isDev = process.env.NODE_ENV === 'development'
 
@@ -27,7 +28,7 @@ export const authLogin = {
 
     if (!res.ok) {
       const data = await res.json().catch(() => null)
-      const message = data?.error || data?.message || 'Login failed'
+      const message = errorBodyMessage(data) || data?.message || 'Login failed'
       throw new Error(message)
     }
 

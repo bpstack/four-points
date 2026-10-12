@@ -7,6 +7,7 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import bcrypt from 'bcrypt'
 import db from '../../config/db.js'
 import { UserRepository } from '../../repositories/auth/user-repository.js'
+import type { RowDataPacket } from 'mysql2'
 
 const TEST_USERNAME = 'authtest_user_h115'
 const TEST_PASSWORD = 'CorrectHorseBattery42!'
@@ -35,7 +36,7 @@ beforeAll(async () => {
   )
 
   // Usuario inactivo: reusa el demo si existe y is_active=0 (caso real tras H1-12).
-  const [rows] = await db.query<any[]>(
+  const [rows] = await db.query<RowDataPacket[]>(
     `SELECT id FROM users WHERE username = 'demo' AND is_active = 0 LIMIT 1`
   )
   inactiveUserId = rows[0]?.id ?? null
@@ -57,7 +58,7 @@ describe('UserRepository.login — integration', () => {
     expect(user.username).toBe(TEST_USERNAME)
     expect(user.email).toBe(TEST_EMAIL)
     expect(user.role).toBe('admin')
-    expect((user as any).password).toBeUndefined()
+    expect((user as Record<string, unknown>).password).toBeUndefined()
   })
 
   it('rejects with "Credenciales inválidas" when password is wrong', async () => {

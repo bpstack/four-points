@@ -306,10 +306,7 @@ export function EditBookingModal({
                       { value: 'booking_com', label: t('bookingSources.booking_com') },
                       { value: 'expedia', label: t('bookingSources.expedia') },
                       { value: 'airbnb', label: t('bookingSources.airbnb') },
-                      { value: 'phone', label: t('bookingSources.phone') },
-                      { value: 'email', label: t('bookingSources.email') },
-                      { value: 'walkin', label: t('bookingSources.walkin') },
-                      { value: 'other', label: t('bookingSources.other') },
+                      { value: 'agency_other', label: t('bookingSources.agency_other') },
                     ]}
                     label={t('editModal.bookingSource')}
                     size="md"

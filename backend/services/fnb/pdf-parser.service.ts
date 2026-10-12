@@ -1,5 +1,6 @@
 import pdfParse from 'pdf-parse'
 import { trackedCodesSet } from './fnb-categories.cache.js'
+import { isPdfBuffer } from '../uploads/pdf-signature.js'
 
 export interface ParsedPdfData {
   date: string | null // YYYY-MM-DD
@@ -13,15 +14,9 @@ export class FnbPdfError extends Error {
   status = 422
 }
 
-const PDF_MAGIC = Buffer.from('%PDF-')
 // Opera's F&B report is 3 pages; anything far longer is not that report
 const MAX_PAGES = 20
 export const PARSE_TIMEOUT_MS = 15_000
-
-// PDF readers accept the header anywhere in the first 1024 bytes
-export function isPdfBuffer(buffer: Buffer): boolean {
-  return buffer.subarray(0, 1024).includes(PDF_MAGIC)
-}
 
 // Stops waiting for the parser; pdf.js cannot be aborted, so the page limit is
 // what bounds the work left running in the background

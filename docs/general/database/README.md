@@ -70,10 +70,15 @@ Tables by module:
   `NOW()` or `CURDATE()` runs 1–2 hours behind Madrid; the backend calculates
   "today" in Madrid time on its own.
 - **Encrypted connection**: TLS with the Aiven certificate in
-  `backend/config/certs/`.
+  `backend/config/certs/`. It is the project's public CA certificate (no
+  private key) and names the Aiven project by its id; it stays in the
+  repository because the backend and `apply-migration.sh` need it (decided on
+  2026-10-12).
 
-**Migration status**: the 15 recorded in `INDEX.md` are applied on Aiven
-(verified on 2026-09-28).
+**Migration status**: the 26 recorded in `INDEX.md` are applied on Aiven
+(the last two, `20261011_keep_group_history_on_delete.sql` and
+`20261012_unique_invoice_supplier_number.sql`, applied and verified on
+2026-10-12).
 
 ## How information flows
 

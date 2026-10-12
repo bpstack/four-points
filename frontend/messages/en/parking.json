@@ -407,10 +407,7 @@
     "booking_com": "Booking.com",
     "expedia": "Expedia",
     "airbnb": "Airbnb",
-    "phone": "Phone",
-    "email": "Email",
-    "walkin": "Walk-in",
-    "other": "Other"
+    "agency_other": "Other agency"
   },
   "statusPageNav": {
     "title": "Parking Control",

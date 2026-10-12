@@ -3,12 +3,17 @@
 // secure_url is signed and works for anyone forever, so no API response may
 // carry it: responses carry the API path that serves the file.
 
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi, afterEach } from 'vitest'
+import axios from 'axios'
 import { readFileSync } from 'node:fs'
 import { join, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import type { Response } from 'express'
-import { fetchStoredFile, sendPrivateFile } from '../../services/uploads/private-files.js'
+import {
+  fetchStoredFile,
+  MAX_STORED_FILE_BYTES,
+  sendPrivateFile,
+} from '../../services/uploads/private-files.js'
 import {
   presentAsset,
   presentInvoice,
@@ -80,9 +85,28 @@ describe('sendPrivateFile', () => {
 })
 
 describe('fetchStoredFile', () => {
+  afterEach(() => {
+    vi.restoreAllMocks()
+    vi.unstubAllEnvs()
+  })
+
   it('refuses a URL outside our Cloudinary cloud before any request', async () => {
     await expect(fetchStoredFile('https://evil.example/x.pdf')).rejects.toThrow(
       'outside our Cloudinary cloud'
     )
+  })
+
+  // The ZIP of validated invoices downloads up to 100 of them into memory
+  it('follows no redirect and stops at 20 MB', async () => {
+    vi.stubEnv('CLOUDINARY_CLOUD_NAME', 'fourpoints')
+    const get = vi
+      .spyOn(axios, 'get')
+      .mockResolvedValue({ data: new ArrayBuffer(1), headers: {} })
+    await fetchStoredFile(SIGNED)
+    expect(get).toHaveBeenCalledWith(
+      SIGNED,
+      expect.objectContaining({ maxRedirects: 0, maxContentLength: MAX_STORED_FILE_BYTES })
+    )
+    expect(MAX_STORED_FILE_BYTES).toBe(20 * 1024 * 1024)
   })
 })

@@ -214,8 +214,8 @@ class ParkingBookingsController {
         expected_checkin,
         expected_checkout,
         total_amount: total_amount ? parseFloat(total_amount) : undefined,
-        source: booking_source,
-        external_id: external_booking_id,
+        booking_source,
+        external_booking_id,
         notes,
       })
 
@@ -347,7 +347,7 @@ class ParkingBookingsController {
         res.status(400).json({
           success: false,
           error: errorMessage,
-          code: 'PARKING_CHECKIN_INVALID_STATUS',
+          code: ERROR_CODES.PARKING_CHECKIN_INVALID_STATUS,
         })
         return
       }
@@ -356,7 +356,7 @@ class ParkingBookingsController {
         res.status(409).json({
           success: false,
           error: errorMessage,
-          code: 'PARKING_SPOT_OCCUPIED',
+          code: ERROR_CODES.PARKING_SPOT_OCCUPIED,
         })
         return
       }
@@ -436,6 +436,15 @@ class ParkingBookingsController {
           success: false,
           error: ERROR_CODES.PARKING_BOOKING_NOT_FOUND,
           code: ERROR_CODES.PARKING_BOOKING_NOT_FOUND,
+        })
+        return
+      }
+
+      if (errorMessage === ERROR_CODES.PARKING_INVALID_DATES) {
+        res.status(400).json({
+          success: false,
+          error: ERROR_CODES.PARKING_INVALID_DATES,
+          code: ERROR_CODES.PARKING_INVALID_DATES,
         })
         return
       }

@@ -62,10 +62,23 @@ PDFs and images are stored in **Cloudinary**; the database keeps their URLs.
   or payment.
 - **The batch payment only takes validated invoices**, and only validated or
   paid invoices with a stamped PDF can go into a ZIP.
+- **An invoice can be validated without a stamped PDF**, on purpose (decided on
+  2026-10-11): the screen validates without a PDF and in bulk. The stamp is
+  placed in the browser, so the server cannot tell whether the stamped copy
+  comes from the original.
+- **Amounts cannot be negative**, a supplier cannot have two invoices with the
+  same number (`uk_invoice_supplier_number`, case-insensitive), and a payment
+  date must be a real day between the invoice date and today (decided on
+  2026-10-11).
 - **Changes are logged** in `bo_invoice_history`.
-- **Deleting an invoice is permanent** and also deletes its history.
+- **Deleting an invoice is permanent** and also deletes its history and its
+  PDFs. Kept on purpose (decided on 2026-10-11): deleting is how a wrong entry
+  is corrected, since rejecting has no screen.
 - **The automatic payment on the 10th does not work today**: it records the
   change as a system user that does not exist, and the database rejects it.
+- **Uploads are checked by their bytes**, not only the type the browser
+  declares: a PDF for invoices, a PNG or WebP for stamps and signatures, up to
+  10 MB (413 above it).
 - **PDFs are downloaded through the backend**, which fetches them from
   Cloudinary. The files themselves are uploaded with public delivery, so their
   Cloudinary URLs also work without logging in.

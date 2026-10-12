@@ -7,6 +7,7 @@ import { NotificationRepository } from '../../repositories/notifications/notific
 import { MESSAGE_CONSTANTS } from '../../models/messages/index.js'
 import { ERROR_CODES, SUCCESS_CODES } from '../../config/error-codes.js'
 import { logger } from '../../config/logger.js'
+import { logAdminOverride } from '../../middlewares/accessLog.js'
 import {
   NotificationModule,
   NotificationRelatedTo,
@@ -55,6 +56,7 @@ export class MessageController {
           code: ERROR_CODES.MESSAGES_NO_ACCESS,
         })
       }
+      if (!isParticipant) logAdminOverride(req, 'read_messages', { conversationId })
 
       // Parametros de paginacion
       const page = messagePageQuerySchema.safeParse(req.query)
@@ -302,6 +304,7 @@ export class MessageController {
           code: ERROR_CODES.MESSAGES_ONLY_OWN_DELETE,
         })
       }
+      if (!isSender) logAdminOverride(req, 'delete_message', { messageId })
 
       const deleted = await MessageRepository.delete(messageId)
       if (!deleted) {

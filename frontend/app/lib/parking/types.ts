@@ -318,8 +318,8 @@ export interface CreateBookingDto {
   expected_checkin: string
   expected_checkout: string
   total_amount?: number
-  source?: string
-  external_id?: string
+  booking_source?: string
+  external_booking_id?: string
   notes?: string
 }
 

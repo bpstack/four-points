@@ -1,6 +1,7 @@
 // middlewares/roleCheck.ts
 
 import { Request, Response, NextFunction } from 'express'
+import { FRONT_DESK_ROLES } from '../services/auth/module-access.js'
 
 type RoleCheckMiddleware = (req: Request, res: Response, next: NextFunction) => void
 
@@ -95,6 +96,28 @@ export const canViewGroups: RoleCheckMiddleware = (req, res, next) => {
   }
 }
 
+// Email and phone of a group's contacts: not mantenimiento, which views groups
+// only to open its notifications (decided on 2026-10-12)
+const GROUP_CONTACT_ROLES = ['admin', 'recepcionista', 'group-admin']
+
+export function canSeeGroupContacts(role: string | undefined): boolean {
+  return !!role && GROUP_CONTACT_ROLES.includes(role.toLowerCase())
+}
+
+/**
+ * Verifica que el usuario pueda ver los contactos de un grupo
+ * Uso: GET /api/groups/:id/contacts y /contacts/primary
+ */
+export const canViewGroupContacts: RoleCheckMiddleware = (req, res, next) => {
+  if (canSeeGroupContacts(req.user?.role)) {
+    next()
+  } else {
+    res.status(403).json({
+      error: 'Acceso denegado. No tienes permisos para ver los contactos del grupo',
+    })
+  }
+}
+
 /**
  * Verifica que el usuario pueda gestionar caja
  * Uso: Para crear, editar, cerrar turnos, vales, etc.
@@ -159,24 +182,22 @@ export const canAccessMaintenance: RoleCheckMiddleware = (req, res, next) => {
 }
 
 /**
- * Excluye al rol mantenimiento de acceder a módulos generales
+ * Verifica que el usuario tenga uno de los roles de mostrador
  * Uso: Para rutas de logbook, parking, blacklist, etc.
- * El rol mantenimiento SOLO puede acceder a /api/maintenance
+ * Solo admin, recepcionista y group-admin pueden acceder; el resto (mantenimiento, etc.) no.
  */
 export const excludeMantenimiento: RoleCheckMiddleware = (req, res, next) => {
-  const blockedRoles = ['mantenimiento']
-
   if (!req.user?.role) {
     res.status(403).json({ error: 'No se pudo verificar el rol del usuario' })
     return
   }
 
-  if (blockedRoles.includes(req.user.role.toLowerCase())) {
-    res.status(403).json({
-      error: 'Acceso denegado. Tu rol solo tiene acceso al módulo de mantenimiento',
-    })
-  } else {
+  if (FRONT_DESK_ROLES.includes(req.user.role.toLowerCase())) {
     next()
+  } else {
+    res.status(403).json({
+      error: 'Acceso denegado. Tu rol no tiene acceso a este módulo',
+    })
   }
 }
 

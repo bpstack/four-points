@@ -14,9 +14,14 @@ export interface FetchedFile {
   contentType: string
 }
 
+// No upload is over 10 MB (backoffice PDFs; images are 5 MB): the margin covers
+// the stored format, and anything bigger is not one of our files
+export const MAX_STORED_FILE_BYTES = 20 * 1024 * 1024
+
 /**
  * Downloads a stored Cloudinary URL. Throws if the URL is not in our cloud
- * (SSRF) or Cloudinary does not answer 2xx. No redirects are followed.
+ * (SSRF), Cloudinary does not answer 2xx or the file is over
+ * MAX_STORED_FILE_BYTES. No redirects are followed.
  */
 export async function fetchStoredFile(storedUrl: string): Promise<FetchedFile> {
   if (!isOwnCloudinaryUrl(storedUrl)) {
@@ -26,6 +31,7 @@ export async function fetchStoredFile(storedUrl: string): Promise<FetchedFile> {
     responseType: 'arraybuffer',
     timeout: 30000,
     maxRedirects: 0,
+    maxContentLength: MAX_STORED_FILE_BYTES,
   })
   const contentType = String(response.headers['content-type'] || 'application/octet-stream')
   return { buffer: Buffer.from(response.data), contentType }

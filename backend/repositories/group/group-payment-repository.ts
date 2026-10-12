@@ -160,34 +160,6 @@ export class GroupPaymentRepository {
   }
 
   /**
-   * Actualizar cantidad pagada (pagos parciales)
-   */
-  static async updateAmountPaid(id: number, amountPaid: number): Promise<boolean> {
-    const payment = await this.getById(id)
-
-    if (!payment) {
-      throw new Error('Pago no encontrado')
-    }
-
-    // Calcular nuevo estado automáticamente
-    let newStatus = PaymentStatus.PENDING
-    if (amountPaid >= payment.amount) {
-      newStatus = PaymentStatus.PAID
-    } else if (amountPaid > 0) {
-      newStatus = PaymentStatus.PARTIAL
-    }
-
-    const query = `
-      UPDATE group_payments 
-      SET amount_paid = ?, status = ?, status_updated_at = NOW()
-      WHERE id = ?
-    `
-
-    const [result] = await db.query<ResultSetHeader>(query, [amountPaid, newStatus, id])
-    return result.affectedRows > 0
-  }
-
-  /**
    * Eliminar pago
    */
   static async delete(id: number): Promise<boolean> {
@@ -203,7 +175,14 @@ export class GroupPaymentRepository {
   static async recalculateAmounts(groupId: number, totalAmount: number): Promise<number> {
     const query = `
       UPDATE group_payments 
-      SET amount = (? * percentage / 100)
+      SET amount = (? * percentage / 100),
+          -- The status follows the new amount (MySQL assigns left to right)
+          status = CASE
+            WHEN amount > 0 AND amount_paid >= amount THEN 'paid'
+            WHEN amount_paid > 0 THEN 'partial'
+            WHEN status IN ('paid', 'partial') THEN 'pending'
+            ELSE status
+          END
       WHERE group_id = ? AND percentage IS NOT NULL
     `
 

@@ -9,22 +9,14 @@
  */
 
 import { Router } from 'express'
-import multer from 'multer'
 import { BackofficeController } from '../../controllers/backoffice/backoffice-controller.js'
 import { authenticateToken } from '../../middlewares/authenticateToken.js'
 import { canAccessBackoffice, isAdmin } from '../../middlewares/roleCheck.js'
 import { denyDemo } from '../../middlewares/demoRestriction.js'
 import { requireStorage } from '../../middlewares/requireStorage.js'
+import { singleAssetImage, singleInvoicePdf } from '../../middlewares/backofficeUpload.js'
 
 const router = Router()
-
-// Configurar multer para uploads en memoria
-const upload = multer({
-  storage: multer.memoryStorage(),
-  limits: {
-    fileSize: 10 * 1024 * 1024, // 10MB para PDFs
-  },
-})
 
 // Aplicar autenticación y verificación de acceso a backoffice
 router.use(authenticateToken)
@@ -267,7 +259,7 @@ router.post(
   '/invoices/:id/pdf',
   isAdmin,
   requireStorage,
-  upload.single('pdf'),
+  singleInvoicePdf('pdf'),
   BackofficeController.uploadInvoicePdf
 )
 
@@ -310,7 +302,7 @@ router.post(
   '/assets',
   isAdmin,
   requireStorage,
-  upload.single('image'),
+  singleAssetImage('image'),
   BackofficeController.createAsset
 )
 

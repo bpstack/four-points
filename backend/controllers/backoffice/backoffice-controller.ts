@@ -19,12 +19,35 @@ import {
   revertBatchPaymentSchema,
 } from '../../validations/backoffice/batch-payment.js'
 import {
+  hasValidAmounts,
+  isDuplicateEntry,
+  isValidPaidDate,
+} from '../../validations/backoffice/invoice.js'
+import { formatDateMadrid, getTodayMadrid } from '../../config/date-utils.js'
+import {
   isOwnCloudinaryUrl,
   isPublicIdInFolder,
   CLOUDINARY_FOLDERS,
 } from '../../services/uploads/cloudinary-url.js'
 import { fetchStoredFile, sendPrivateFile } from '../../services/uploads/private-files.js'
 import { presentAsset, presentInvoice, presentInvoiceOrNull } from './backoffice-files.js'
+
+function respondInvalidAmount(res: Response): void {
+  res.status(400).json({
+    success: false,
+    error: ERROR_CODES.BACKOFFICE_INVALID_AMOUNT,
+    code: ERROR_CODES.BACKOFFICE_INVALID_AMOUNT,
+  })
+}
+
+// uk_invoice_supplier_number: the supplier already has an invoice with that number
+function respondDuplicateInvoice(res: Response): void {
+  res.status(409).json({
+    success: false,
+    error: ERROR_CODES.BACKOFFICE_INVOICE_DUPLICATE,
+    code: ERROR_CODES.BACKOFFICE_INVOICE_DUPLICATE,
+  })
+}
 
 // An invoice action changed no row: the invoice does not exist (404) or its
 // status does not allow the action (409)
@@ -570,6 +593,11 @@ export class BackofficeController {
         return
       }
 
+      if (!hasValidAmounts(req.body)) {
+        respondInvalidAmount(res)
+        return
+      }
+
       // The PDF must be one we uploaded: the server later downloads this URL
       if (
         (req.body.original_pdf_url && !isOwnCloudinaryUrl(req.body.original_pdf_url)) ||
@@ -611,6 +639,10 @@ export class BackofficeController {
         invoice: presentInvoiceOrNull(invoice),
       })
     } catch (error) {
+      if (isDuplicateEntry(error)) {
+        respondDuplicateInvoice(res)
+        return
+      }
       logger.error({ err: error }, '[BackofficeController.createInvoice] Error')
       res.status(500).json({
         success: false,
@@ -637,6 +669,11 @@ export class BackofficeController {
 
       const { id } = req.params
 
+      if (!hasValidAmounts(req.body)) {
+        respondInvalidAmount(res)
+        return
+      }
+
       const updated = await BackofficeRepository.updateInvoice(Number(id), req.body, req.user.id)
 
       if (!updated) {
@@ -653,6 +690,10 @@ export class BackofficeController {
         invoice: presentInvoiceOrNull(invoice),
       })
     } catch (error) {
+      if (isDuplicateEntry(error)) {
+        respondDuplicateInvoice(res)
+        return
+      }
       logger.error({ err: error }, '[BackofficeController.updateInvoice] Error')
       res.status(500).json({
         success: false,
@@ -868,6 +909,26 @@ export class BackofficeController {
           success: false,
           error: ERROR_CODES.BACKOFFICE_PAYMENT_DATE_REQUIRED,
           code: ERROR_CODES.BACKOFFICE_PAYMENT_DATE_REQUIRED,
+        })
+        return
+      }
+
+      const current = await BackofficeRepository.getInvoiceById(Number(id))
+      if (!current) {
+        res.status(404).json({
+          success: false,
+          error: ERROR_CODES.BACKOFFICE_INVOICE_NOT_FOUND,
+          code: ERROR_CODES.BACKOFFICE_INVOICE_NOT_FOUND,
+        })
+        return
+      }
+
+      // A real day, not before the invoice nor in the future
+      if (!isValidPaidDate(paid_date, formatDateMadrid(current.invoice_date), getTodayMadrid())) {
+        res.status(400).json({
+          success: false,
+          error: ERROR_CODES.BACKOFFICE_INVALID_PAYMENT_DATE,
+          code: ERROR_CODES.BACKOFFICE_INVALID_PAYMENT_DATE,
         })
         return
       }
@@ -1097,32 +1158,12 @@ export class BackofficeController {
       const previousPublicId =
         type === 'original' ? pdfInfo?.original_pdf_public_id : pdfInfo?.validated_pdf_public_id
 
+      // Type, bytes and size were checked by singleInvoicePdf (backofficeUpload.ts)
       if (!req.file) {
         res.status(400).json({
           success: false,
           error: ERROR_CODES.BACKOFFICE_NO_FILE_SENT,
           code: ERROR_CODES.BACKOFFICE_NO_FILE_SENT,
-        })
-        return
-      }
-
-      // Validar tipo de archivo
-      if (req.file.mimetype !== 'application/pdf') {
-        res.status(400).json({
-          success: false,
-          error: ERROR_CODES.BACKOFFICE_PDF_ONLY,
-          code: ERROR_CODES.BACKOFFICE_PDF_ONLY,
-        })
-        return
-      }
-
-      // Validar tamaño (máx 10MB)
-      const maxSize = 10 * 1024 * 1024
-      if (req.file.size > maxSize) {
-        res.status(400).json({
-          success: false,
-          error: ERROR_CODES.BACKOFFICE_FILE_TOO_LARGE,
-          code: ERROR_CODES.BACKOFFICE_FILE_TOO_LARGE,
         })
         return
       }
@@ -1282,22 +1323,12 @@ export class BackofficeController {
         return
       }
 
+      // Type, bytes and size were checked by singleAssetImage (backofficeUpload.ts)
       if (!req.file) {
         res.status(400).json({
           success: false,
           error: ERROR_CODES.BACKOFFICE_NO_IMAGE_SENT,
           code: ERROR_CODES.BACKOFFICE_NO_IMAGE_SENT,
-        })
-        return
-      }
-
-      // Validar tipo de archivo
-      const allowedTypes = ['image/png', 'image/webp']
-      if (!allowedTypes.includes(req.file.mimetype)) {
-        res.status(400).json({
-          success: false,
-          error: ERROR_CODES.BACKOFFICE_INVALID_IMAGE_TYPE,
-          code: ERROR_CODES.BACKOFFICE_INVALID_IMAGE_TYPE,
         })
         return
       }

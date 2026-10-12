@@ -1,7 +1,7 @@
 """
 test_benchmark.py — Benchmark sintético: 30 empleados × 31 días.
 
-Criterio de cierre Fase 2 (SCHEDULING-SOLVER-PLAN.md):
+Criterio de cierre Fase 2 (docs/scheduling/decisions.md, entrada 2026-05-09):
   - 30 empleados × 31 días resueltos en < 30 segundos con horario factible.
   - Validación: no hard errors en validator (delegada a tests/scheduling/ TS, aquí
     sólo medimos status/tiempo del solver).

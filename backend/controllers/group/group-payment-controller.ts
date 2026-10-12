@@ -6,9 +6,15 @@ import { GroupRepository } from '../../repositories/group/group-repository'
 import { PaymentCalculatorService } from '../../services/group/payment-calculator-service'
 import { GroupHistoryService } from '../../services/group/group-history-service'
 import {
+  checkPercentages,
+  PaymentRuleError,
+  reconcilePayment,
+} from '../../services/group/payment-rules.js'
+import {
   CreateGroupPaymentDTO,
   UpdateGroupPaymentDTO,
   HistoryAction,
+  PaymentStatus,
 } from '../../models/group/index'
 import { ERROR_CODES, SUCCESS_CODES } from '../../config/error-codes.js'
 import { logger } from '../../config/logger.js'
@@ -20,6 +26,12 @@ import {
   upcomingPaymentsQuerySchema,
   validationError,
 } from '../../validations/group/group-schemas.js'
+
+// A broken payment rule answers 400 with its code; anything else is rethrown
+function ruleError(res: Response, error: unknown): Response {
+  if (!(error instanceof PaymentRuleError)) throw error
+  return res.status(400).json({ success: false, error: error.code, code: error.code })
+}
 
 export class GroupPaymentController {
   /**
@@ -129,6 +141,25 @@ export class GroupPaymentController {
         })
       }
 
+      try {
+        if (paymentData.percentage != null) {
+          checkPercentages(
+            await GroupPaymentRepository.getByGroupId(groupId),
+            paymentData.percentage
+          )
+        }
+        Object.assign(
+          paymentData,
+          reconcilePayment({
+            amount: paymentData.amount,
+            amountPaid: paymentData.amount_paid ?? 0,
+            status: paymentData.status,
+          })
+        )
+      } catch (error) {
+        return ruleError(res, error)
+      }
+
       const newPayment = await GroupPaymentRepository.create(paymentData)
 
       await GroupHistoryService.logChange(
@@ -208,6 +239,32 @@ export class GroupPaymentController {
         return res.status(400).json(validationError(parsed.error))
       }
       const updateData = parsed.data as UpdateGroupPaymentDTO
+
+      try {
+        if (updateData.percentage != null) {
+          const others = (await GroupPaymentRepository.getByGroupId(groupId)).filter(
+            (p) => p.id !== paymentId
+          )
+          checkPercentages(others, updateData.percentage)
+        }
+        if (
+          updateData.amount != null ||
+          updateData.amount_paid !== undefined ||
+          updateData.status !== undefined
+        ) {
+          Object.assign(
+            updateData,
+            reconcilePayment({
+              amount: updateData.amount ?? oldPayment.amount,
+              amountPaid: updateData.amount_paid ?? oldPayment.amount_paid,
+              status: updateData.status,
+              current: oldPayment.status,
+            })
+          )
+        }
+      } catch (error) {
+        return ruleError(res, error)
+      }
 
       const updated = await GroupPaymentRepository.update(paymentId, updateData)
 
@@ -295,7 +352,12 @@ export class GroupPaymentController {
         })
       }
 
-      const updated = await GroupPaymentRepository.updateStatus(paymentId, status)
+      // Marking it paid by hand fills in what was paid
+      const filled = status === PaymentStatus.PAID ? Number(oldPayment.amount) : null
+      const updated =
+        filled === null
+          ? await GroupPaymentRepository.updateStatus(paymentId, status)
+          : await GroupPaymentRepository.update(paymentId, { status, amount_paid: filled })
 
       if (!updated) {
         return res.status(500).json({
@@ -316,6 +378,19 @@ export class GroupPaymentController {
         status,
         'Estado de pago actualizado'
       )
+      if (filled !== null && Number(oldPayment.amount_paid) !== filled) {
+        await GroupHistoryService.logChange(
+          oldPayment.group_id,
+          userId,
+          HistoryAction.PAYMENT_UPDATED,
+          'group_payments',
+          paymentId,
+          'amount_paid',
+          oldPayment.amount_paid,
+          filled,
+          'Cantidad pagada completada al marcar el pago como pagado'
+        )
+      }
 
       return res.status(200).json({
         success: true,
@@ -382,7 +457,18 @@ export class GroupPaymentController {
         })
       }
 
-      const updated = await GroupPaymentRepository.updateAmountPaid(paymentId, amount_paid)
+      let next: ReturnType<typeof reconcilePayment>
+      try {
+        next = reconcilePayment({
+          amount: oldPayment.amount,
+          amountPaid: amount_paid,
+          current: oldPayment.status,
+        })
+      } catch (error) {
+        return ruleError(res, error)
+      }
+
+      const updated = await GroupPaymentRepository.update(paymentId, next)
 
       if (!updated) {
         return res.status(500).json({

@@ -28,6 +28,7 @@ import type {
 } from '@/app/lib/backoffice/types'
 import { formatCurrency, INVOICE_STATUS_COLORS } from '@/app/lib/backoffice/types'
 import { backofficeApi } from '@/app/lib/backoffice/backofficeApi'
+import { errorBodyMessage } from '@/app/lib/helpers/errorCodeMessage'
 import toast from 'react-hot-toast'
 
 interface SupplierInvoicesModalProps {
@@ -114,7 +115,7 @@ export function SupplierInvoicesModal({
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({ error: t('toast.unknownError') }))
-        throw new Error(errorData.error || `Error ${response.status}`)
+        throw new Error(errorBodyMessage(errorData) || `Error ${response.status}`)
       }
 
       // Create blob and trigger download
