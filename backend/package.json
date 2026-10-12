@@ -21,7 +21,8 @@
     "test:corpus": "vitest run tests/scheduling/corpus.test.ts",
     "lint": "eslint .",
     "format": "prettier --write \"**/*.{ts,js}\"",
-    "format:check": "prettier --check \"**/*.{ts,js}\""
+    "format:check": "prettier --check \"**/*.{ts,js}\"",
+    "verify": "pnpm run lint --max-warnings=0 && pnpm run format:check && pnpm run typecheck && pnpm run test"
   },
   "keywords": [],
   "author": "",

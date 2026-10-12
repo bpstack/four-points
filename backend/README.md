@@ -18,13 +18,13 @@ see the [root README](../README.md).
 
 ## Commands
 
-| Command                                              | Does                                                               |
-| ---------------------------------------------------- | ------------------------------------------------------------------ |
-| `pnpm setup:local`                                   | Builds a local `hotel_db` with fictitious data and the local admin |
-| `pnpm dev:local`                                     | API on :4000 against the local database                            |
-| `pnpm test`                                          | Unit and integration tests                                         |
-| `pnpm test:corpus`                                   | Solver corpus (needs the Python venv)                              |
-| `pnpm typecheck` · `pnpm lint` · `pnpm format:check` | What CI runs                                                       |
+| Command                | Does                                                                |
+| ---------------------- | ------------------------------------------------------------------- |
+| `pnpm run setup:local` | Builds a local `hotel_db` with fictitious data and the local admin  |
+| `pnpm run dev:local`   | API on :4000 against the local database                             |
+| `pnpm run test`        | Unit and integration tests                                          |
+| `pnpm run test:corpus` | Solver corpus (needs the Python venv)                               |
+| `pnpm run verify`      | What CI runs: lint (no warnings), format check, typecheck and tests |
 
 Each module has an `AGENTS.md` under `services/` with its rules; the product
 documentation lives in [`docs/`](../docs/general/README.md).
