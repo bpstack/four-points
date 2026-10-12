@@ -285,11 +285,21 @@ preview.
       volviera a ejecutar (`UPDATE users SET is_active = 0 WHERE username =
       'demo'`). `setup:local` no la ejecuta (es anterior al baseline); no
       aplicarla a mano. _Comprobado el 2026-10-05._
-- [ ] **Errores del backend sin traducir** — `messages/{es,en}/errors.json`
-      tiene ~200 textos en `codes` que nadie usa: la UI muestra el `error` del
-      backend, en español. `app/lib/helpers/errorCodeMessage.ts` ya los traduce
-      para `STORAGE_NOT_CONFIGURED`; extenderlo a los demás códigos revisando
-      que no se pierda detalle del mensaje. _Visto el 2026-10-05._
+- [ ] **Errores que aún llegan sin traducir** — los códigos del backend ya se
+      traducen en el cliente (`app/lib/helpers/errorCodeMessage.ts`; un test
+      exige texto en es y en para cada `ERROR_CODES.X` y cada `code: 'X'`).
+      Quedan: las server actions de blacklist, groups y parking
+      (`app/dashboard/*/actions/`, `app/lib/parking/actions.ts`) lanzan
+      `errorData.error`, que es el código en crudo, y en el servidor no hay
+      `document` para leer el idioma; unas 380 respuestas 4xx/5xx del backend
+      llevan un texto fijo (casi siempre en español) y ningún `code`, así que
+      en inglés se ven en español: scheduling ~135, maintenance ~56, parking
+      ~59 (`parking.controller.ts`, `stats.controller.ts` y los 400 de
+      check-out, cancelar y no-show), middlewares ~39 (`roleCheck.ts`,
+      `rateLimiter.ts`…), cashier ~39, checklist ~20, auth ~13 y algunas de
+      fnb, demo y search; el 409 del reinicio de la demo y el subtítulo del
+      login (`login/page.tsx`) también van fijos en español. Ir módulo a
+      módulo (B5.n). _Medido el 2026-10-12._
 - [ ] **Scheduling: vista de solo lectura para los demás roles** — hoy
       `/dashboard/scheduling` es solo de `admin` y el resto no ve el cuadrante.
       El dueño quiere que los demás (salvo `mantenimiento`) vean el cuadrante

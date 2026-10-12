@@ -347,7 +347,7 @@ class ParkingBookingsController {
         res.status(400).json({
           success: false,
           error: errorMessage,
-          code: 'PARKING_CHECKIN_INVALID_STATUS',
+          code: ERROR_CODES.PARKING_CHECKIN_INVALID_STATUS,
         })
         return
       }
@@ -356,7 +356,7 @@ class ParkingBookingsController {
         res.status(409).json({
           success: false,
           error: errorMessage,
-          code: 'PARKING_SPOT_OCCUPIED',
+          code: ERROR_CODES.PARKING_SPOT_OCCUPIED,
         })
         return
       }

@@ -5,6 +5,7 @@
  */
 
 import { apiClient } from '@/app/lib/apiClient'
+import { errorBodyMessage } from '@/app/lib/helpers/errorCodeMessage'
 import type {
   Category,
   SupplierWithStats,
@@ -357,7 +358,7 @@ export const backofficeApi = {
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({ error: 'Error desconocido' }))
-      throw new Error(errorData.error || `Error ${response.status}`)
+      throw new Error(errorBodyMessage(errorData) || `Error ${response.status}`)
     }
 
     return response.blob()
