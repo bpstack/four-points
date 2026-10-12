@@ -404,6 +404,7 @@
     "NOTIFICATIONS_MISSING_REQUIRED_FIELDS": "Faltan campos obligatorios: título, mensaje",
     "NOTIFICATIONS_INVALID_SCHEDULED_DATE": "Formato de fecha inválido para scheduled_for",
     "NOTIFICATIONS_INVALID_MODULE": "Módulo inválido. Valores permitidos: groups, parking, logbooks, system",
+    "NOTIFICATIONS_INVALID_RECIPIENTS": "Algún destinatario no existe o no está activo",
     "NOTIFICATIONS_NOT_FOUND": "Notificación no encontrada",
     "NOTIFICATIONS_FETCH_ERROR": "Error al obtener notificaciones",
     "NOTIFICATIONS_FETCH_UNREAD_ERROR": "Error al obtener notificaciones no leídas",

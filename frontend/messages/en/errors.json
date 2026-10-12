@@ -404,6 +404,7 @@
     "NOTIFICATIONS_MISSING_REQUIRED_FIELDS": "Missing required fields: title, message",
     "NOTIFICATIONS_INVALID_SCHEDULED_DATE": "Invalid date format for scheduled_for",
     "NOTIFICATIONS_INVALID_MODULE": "Invalid module. Allowed values: groups, parking, logbooks, system",
+    "NOTIFICATIONS_INVALID_RECIPIENTS": "Some recipient does not exist or is not active",
     "NOTIFICATIONS_NOT_FOUND": "Notification not found",
     "NOTIFICATIONS_FETCH_ERROR": "Error fetching notifications",
     "NOTIFICATIONS_FETCH_UNREAD_ERROR": "Error fetching unread notifications",
