@@ -6,12 +6,8 @@ import { describe, it, expect, vi } from 'vitest'
 import { readFileSync } from 'fs'
 import { join, dirname } from 'path'
 import { fileURLToPath } from 'url'
-import {
-  FnbPdfError,
-  isPdfBuffer,
-  parseOperaPdf,
-  withTimeout,
-} from '../../services/fnb/pdf-parser.service.js'
+import { FnbPdfError, parseOperaPdf, withTimeout } from '../../services/fnb/pdf-parser.service.js'
+import { isPdfBuffer } from '../../services/uploads/pdf-signature.js'
 
 // The categories cache imports the DB pool; none of these cases reach it
 vi.mock('../../services/fnb/fnb-categories.cache.js', () => ({
