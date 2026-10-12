@@ -279,7 +279,11 @@ When you touch this file:
 - Almost every function takes `monthId` or `year/month` — they're per-month, not
   global.
 - Assignments with `source_constraint_id !== null` are locked: respect that
-  invariant in any bulk update query.
+  invariant in any bulk update query. `bulkUpsertAssignments` reads them
+  `FOR UPDATE` inside its transaction.
+- A bulk edit must only carry days of its own month: check with
+  `countDaysInMonth` first. `uk_day_employee` would otherwise rewrite the cell
+  of another month, published or not.
 - `getSchedulableEmployeesForMonth(year, month)` applies `start_date`/`end_date`
   filtering. For raw employee lists (Totals tab, etc.) use
   `getAllEmployeesWithStatus`.
@@ -299,10 +303,11 @@ setSchedulableEmployees".
   panel
 - `POST /months/:id/generate` — Run CP-SAT solver, apply matrix to assignments
 - `POST /months/:id/reset` — Wipe all assignments, re-seed from approved
-  constraints
+  constraints, in one transaction (`resetMonthAssignments`)
 - `POST /months/:id/unpublish` — Back to draft (controlled transition)
 - `PATCH /assignments/:id` — Update single cell (409 if locked)
-- `POST /assignments/bulk` — Bulk update; respects locks
+- `PUT /months/:id/assignments` — Bulk update; respects locks, 400 for a day
+  of another month
 - `POST /constraints/:id/approve` — Approve/reject + auto-sync assignments
 - `GET /employee-rules` — Rules list in camelCase for the panel
 - `PUT /scheduling/employees` — Set schedulable employees list (⚠️ see bug
