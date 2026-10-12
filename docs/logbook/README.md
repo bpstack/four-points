@@ -37,6 +37,11 @@ All roles **except `mantenimiento`**, which does not have access to the module.
 - **Edit and delete** own entries. Deleting does not remove: the entry goes to
   the trash.
 
+**The backend offers, but the module screen does not use**: the trash
+(`/trashed`) and the lists by author, department and priority (Reports uses
+`/all` with its own filters, deleted ones included). Nothing restores a deleted
+entry, not even the backend. Not planned (decided on 2026-10-12).
+
 ## What data it handles
 
 Four tables (`backend/db-mysql/aiven/03_logbook_tables.sql`):
@@ -58,6 +63,10 @@ Departments are the application's general ones (table `departments`).
   entries and comments, and also reading, unmarking, resolving and reopening.
   Each change and its history rows are written in one transaction: either
   both are saved or neither is.
+- **A comment leaves two history rows** (one of the comment, one of the entry),
+  and **each read or unmark adds one**, with no limit; all of them show in the
+  entry's history in Reports and in the recent activity. Left as is (decided
+  on 2026-10-12).
 - **Nothing is truly deleted**: entries and comments are only marked with
   `deleted_at`. There is no way to restore them from the interface.
 - **Only the author edits or deletes** their entry or comment.
