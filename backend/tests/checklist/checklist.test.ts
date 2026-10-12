@@ -9,6 +9,7 @@ import * as repo from '../../repositories/checklist/checklist-repository.js'
 import * as service from '../../services/checklist/checklist.service.js'
 import { getTodayMadrid } from '../../config/date-utils.js'
 import { createCommentSchema } from '../../validations/checklist/checklist-schemas.js'
+import type { RowDataPacket } from 'mysql2'
 
 const TEST_CHECKLIST_ID = 'vitest-integration-checklist'
 const TEST_STEP_ID = 'vitest-step-1'
@@ -55,7 +56,7 @@ describe('closeStaleRuns', () => {
 
     await repo.closeStaleRuns()
 
-    const [rows]: any = await db.query(
+    const [rows] = await db.query<RowDataPacket[]>(
       `SELECT reset_at FROM checklist_runs WHERE checklist_id = ? AND hotel_date = ?`,
       [TEST_CHECKLIST_ID, today]
     )
@@ -72,7 +73,7 @@ describe('closeStaleRuns', () => {
     const affected = await repo.closeStaleRuns()
     expect(affected).toBeGreaterThanOrEqual(1)
 
-    const [rows]: any = await db.query(
+    const [rows] = await db.query<RowDataPacket[]>(
       `SELECT reset_at, reset_reason, reset_by_user_id
        FROM checklist_runs WHERE checklist_id = ? AND hotel_date = ?`,
       [TEST_CHECKLIST_ID, STALE_DATE]
@@ -123,7 +124,7 @@ describe('getRunState', () => {
 
     await service.getRunState(TEST_CHECKLIST_ID)
 
-    const [rows]: any = await db.query(
+    const [rows] = await db.query<RowDataPacket[]>(
       `SELECT reset_at FROM checklist_runs WHERE checklist_id = ? AND hotel_date = ?`,
       [TEST_CHECKLIST_ID, STALE_DATE]
     )
@@ -141,7 +142,7 @@ describe('toggleStep', () => {
 
     await service.toggleStep(TEST_CHECKLIST_ID, TEST_STEP_ID, true, TEST_USER_ID)
 
-    const [rows]: any = await db.query(
+    const [rows] = await db.query<RowDataPacket[]>(
       `SELECT css.done, css.done_by_user_id, css.done_at
        FROM checklist_step_state css
        JOIN checklist_runs cr ON cr.id = css.run_id
@@ -160,7 +161,7 @@ describe('toggleStep', () => {
     await service.toggleStep(TEST_CHECKLIST_ID, TEST_STEP_ID, true, TEST_USER_ID)
     await service.toggleStep(TEST_CHECKLIST_ID, TEST_STEP_ID, false, TEST_USER_ID)
 
-    const [rows]: any = await db.query(
+    const [rows] = await db.query<RowDataPacket[]>(
       `SELECT css.done, css.done_by_user_id, css.done_at
        FROM checklist_step_state css
        JOIN checklist_runs cr ON cr.id = css.run_id
@@ -177,7 +178,7 @@ describe('toggleStep', () => {
 
     await service.toggleStep(TEST_CHECKLIST_ID, TEST_STEP_ID, true, TEST_USER_ID)
 
-    const [rows]: any = await db.query(
+    const [rows] = await db.query<RowDataPacket[]>(
       `SELECT cel.action FROM checklist_event_log cel
        JOIN checklist_runs cr ON cr.id = cel.run_id
        WHERE cr.checklist_id = ? AND cel.step_id = ?
@@ -193,14 +194,14 @@ describe('toggleStep', () => {
     await service.toggleStep(TEST_CHECKLIST_ID, TEST_STEP_ID, true, TEST_USER_ID)
     await service.toggleStep(TEST_CHECKLIST_ID, TEST_STEP_ID, false, TEST_USER_ID)
 
-    const [rows]: any = await db.query(
+    const [rows] = await db.query<RowDataPacket[]>(
       `SELECT cel.action FROM checklist_event_log cel
        JOIN checklist_runs cr ON cr.id = cel.run_id
        WHERE cr.checklist_id = ? AND cel.step_id = ?
        ORDER BY cel.at ASC`,
       [TEST_CHECKLIST_ID, TEST_STEP_ID]
     )
-    const actions = rows.map((r: any) => r.action)
+    const actions = rows.map((r) => r.action)
     expect(actions).toEqual(['check', 'uncheck'])
   })
 })

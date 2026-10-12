@@ -16,16 +16,38 @@
 import db from '../config/db.js'
 import { getTodayMadrid } from '../config/date-utils.js'
 import { printable } from '../services/text/control-chars.js'
+import type { RowDataPacket } from 'mysql2'
 
 const CHECKLIST_ID = process.argv[2] ?? 'cl-night-audit'
 const HOTEL_DATE = process.argv[3] ?? getTodayMadrid()
 
-const fmt = (d: any) =>
+const fmt = (d: unknown) =>
   d instanceof Date ? d.toISOString().slice(0, 19).replace('T', ' ') : String(d).slice(0, 19)
+
+interface RunRow extends RowDataPacket {
+  id: number
+  checklist_id: string
+  hotel_date: string | Date
+  started_at: string | Date
+}
+
+interface StepRow extends RowDataPacket {
+  step_id: string
+  done: number
+  done_at: string | Date | null
+  done_by: string | null
+}
+
+interface CommentRow extends RowDataPacket {
+  step_id: string
+  comentario: string
+  created_at: string | Date
+  autor: string | null
+}
 
 async function main() {
   // 1. Encontrar el run
-  const [runs] = await (db as any).query(
+  const [runs] = await db.query<RunRow[]>(
     `SELECT id, checklist_id, hotel_date, started_at
      FROM checklist_runs
      WHERE checklist_id = ? AND DATE(hotel_date) = ? AND reset_at IS NULL
@@ -43,7 +65,7 @@ async function main() {
   console.log(`\n=== ${run.checklist_id} | ${HOTEL_DATE} (run_id=${run.id}) ===\n`)
 
   // 2. Tareas completadas
-  const [steps] = await (db as any).query(
+  const [steps] = await db.query<StepRow[]>(
     `SELECT
        css.step_id,
        css.done,
@@ -56,12 +78,12 @@ async function main() {
     [run.id]
   )
 
-  const done = steps.filter((s: any) => s.done === 1)
-  const pending = steps.filter((s: any) => s.done !== 1)
+  const done = steps.filter((s) => s.done === 1)
+  const pending = steps.filter((s) => s.done !== 1)
 
   console.log(`Completadas (${done.length}):`)
   if (done.length) {
-    done.forEach((s: any) =>
+    done.forEach((s) =>
       console.log(`  ✓ ${s.step_id.padEnd(12)}  ${fmt(s.done_at)}  por: ${s.done_by ?? '—'}`)
     )
   } else {
@@ -70,13 +92,13 @@ async function main() {
 
   console.log(`\nPendientes (${pending.length}):`)
   if (pending.length) {
-    pending.forEach((s: any) => console.log(`  · ${s.step_id}`))
+    pending.forEach((s) => console.log(`  · ${s.step_id}`))
   } else {
     console.log('  (ninguna)')
   }
 
   // 3. Comentarios
-  const [comments] = await (db as any).query(
+  const [comments] = await db.query<CommentRow[]>(
     `SELECT
        csc.step_id,
        csc.body  AS comentario,
@@ -91,7 +113,7 @@ async function main() {
 
   console.log(`\nComentarios (${comments.length}):`)
   if (comments.length) {
-    comments.forEach((c: any) =>
+    comments.forEach((c) =>
       console.log(
         `  [${fmt(c.created_at)}] ${c.step_id} | ${printable(c.autor ?? '—')}: ${printable(c.comentario)}`
       )
@@ -104,6 +126,6 @@ async function main() {
 main()
   .then(() => process.exit(0))
   .catch((e) => {
-    console.error(e.message)
+    console.error((e as Error).message)
     process.exit(1)
   })

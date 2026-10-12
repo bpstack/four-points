@@ -105,11 +105,6 @@ preview.
 - [ ] **Comprobar si los cron se ejecutan en Render** — corren dentro del
       proceso del backend; si el plan gratuito lo duerme por inactividad, no se
       disparan. _No comprobado._
-- [ ] **Backend: quedan 55 usos de `any`** — `no-explicit-any` está como aviso
-      en `backend/eslint.config.js` para que el lint pase. El 2026-10-04 se
-      tiparon controllers, services y repositories de los 15 módulos (de 316
-      avisos a 55); quedan auth, `config/db.ts`, cron, scripts y tests. Tiparlos
-      y volver a poner la regla como error.
 - [ ] **Avisar a los usuarios de que un `admin` puede leer sus mensajes** —
       `getConversation` y `getMessages` (`backend/controllers/messages/`) dejan
       leer cualquier conversación al rol `admin`, aunque no participe. Decidir
@@ -286,20 +281,10 @@ preview.
       de Python. Enlazar la demo y el repo. Es el gancho para promocionar el
       proyecto. Se escribe en el repo `portfolio-bp`, no aquí. _Decidido el
       2026-10-05._
-- [ ] **`excludeMantenimiento` es una lista de exclusión** — parking, lista
-      negra, caja, partes, conciliación y departamentos dejan pasar cualquier
-      rol salvo `mantenimiento`, y `services/auth/module-access.ts` lo replica.
-      Hoy solo hay roles conocidos (el rol va en el token firmado y sale de
-      `roles`), pero un rol nuevo tendría acceso sin que nadie lo decida. Pasar
-      a lista de permitidos. _Comprobado el 2026-10-05 al retirar
-      `demo-admin`._
 - [ ] **`20260512_disable_demo_user.sql` desactivaría la cuenta demo** si se
       volviera a ejecutar (`UPDATE users SET is_active = 0 WHERE username =
       'demo'`). `setup:local` no la ejecuta (es anterior al baseline); no
       aplicarla a mano. _Comprobado el 2026-10-05._
-- [ ] **Configuración: `?tab=` de una pestaña sin permiso deja el contenido en
-      blanco** — p. ej. recepción con `?tab=users`; debería caer en la primera
-      pestaña disponible. _Visto el 2026-10-05._
 - [ ] **Errores que aún llegan sin traducir** — los códigos del backend ya se
       traducen en el cliente (`app/lib/helpers/errorCodeMessage.ts`; un test
       exige texto en es y en para cada `ERROR_CODES.X` y cada `code: 'X'`).
