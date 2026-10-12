@@ -13,6 +13,7 @@
 // IMPORTANTE: Este archivo depende directamente del diseño actual duplicado.
 
 import { useEffect } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { useGroupStore } from '@/app/stores/useGroupStore'
@@ -24,7 +25,10 @@ import {
   useGroupPayments,
   useGroupContacts,
   useGroupRooms,
+  groupsKeys,
+  canViewGroupContacts,
 } from '@/app/lib/groups'
+import { useAuthContext } from '@/app/lib/auth/useAuth'
 import { GroupHeader } from './layout/GroupHeader'
 import { TabNavigation } from './layout/TabNavigation'
 import { GroupDetailSummaryPanel } from './layout/GroupDetailSummaryPanel'
@@ -47,23 +51,36 @@ interface GroupDetailClientProps {
 export function GroupDetailClient({ initialGroup }: GroupDetailClientProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const activeTab = searchParams.get('tab') || 'overview'
+  const requestedTab = searchParams.get('tab') || 'overview'
   const panel = searchParams.get('panel')
   const highlightId = searchParams.get('highlight')
   const t = useTranslations('groups')
 
   const { currentGroup, setCurrentGroup, setActiveTab, setHighlight } = useGroupStore()
 
-  const { data: _groupData } = useGroup(currentGroup?.id)
+  const queryClient = useQueryClient()
+  const { user } = useAuthContext()
+  const showContacts = canViewGroupContacts(user?.role)
+  // ?tab=contacts for a role without contacts opens the summary
+  const activeTab = requestedTab === 'contacts' && !showContacts ? 'overview' : requestedTab
+
+  // The page paints the store; the query keeps it fresh after an edit.
+  // initialGroup.id, not currentGroup: the store may still hold the group of
+  // the previous page during the first render
+  const { data: groupData } = useGroup(initialGroup.id)
   const { data: paymentsData } = useGroupPayments(currentGroup?.id)
   const payments = paymentsData?.payments ?? []
-  const { data: contacts = [] } = useGroupContacts(currentGroup?.id)
+  const { data: contacts = [] } = useGroupContacts(currentGroup?.id, showContacts)
   const { data: rooms = [] } = useGroupRooms(currentGroup?.id)
 
   // Inicializar grupo en el store
   useEffect(() => {
     setCurrentGroup(initialGroup)
   }, [initialGroup, setCurrentGroup])
+
+  useEffect(() => {
+    if (groupData) setCurrentGroup(groupData)
+  }, [groupData, setCurrentGroup])
 
   // Sincronizar activeTab con query params
   useEffect(() => {
@@ -85,8 +102,12 @@ export function GroupDetailClient({ initialGroup }: GroupDetailClientProps) {
     router.push(`?${params.toString()}`, { scroll: false })
   }
 
+  // EditGroupPanel calls the API directly: refetch the group and, under the
+  // same key prefix, its payments, status and rooms (the balance depends on
+  // the total)
   const handleEditSuccess = () => {
-    // Las mutaciones ya invalidan los queries necesarios vía React Query
+    if (!currentGroup) return
+    void queryClient.invalidateQueries({ queryKey: groupsKeys.detail(currentGroup.id) })
   }
 
   // Payment Panel Logic
