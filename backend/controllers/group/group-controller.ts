@@ -253,7 +253,7 @@ export class GroupController {
         })
       }
 
-      const deleted = await GroupRepository.delete(groupId)
+      const deleted = await GroupRepository.delete(groupId, userId, group)
 
       if (!deleted) {
         return res.status(500).json({
