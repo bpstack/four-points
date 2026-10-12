@@ -290,6 +290,8 @@
     "GROUP_ROOM_DELETE_ERROR": "Error al eliminar habitación",
     "GROUP_PAYMENT_MISSING_FIELDS": "Faltan campos obligatorios: nombre del pago, fecha de vencimiento",
     "GROUP_PAYMENT_INVALID_AMOUNT": "El pago debe tener un monto mayor a 0",
+    "GROUP_PAYMENT_OVERPAID": "Lo pagado no puede superar el importe del pago",
+    "GROUP_PAYMENT_PERCENTAGE_OVER_100": "Los porcentajes de los pagos del grupo suman más de 100",
     "GROUP_PAYMENT_NOT_FOUND": "Pago no encontrado",
     "GROUP_PAYMENT_NOT_IN_GROUP": "El pago no pertenece a este grupo",
     "GROUP_PAYMENT_FETCH_ERROR": "Error al obtener pagos",
