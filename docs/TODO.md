@@ -311,21 +311,6 @@ preview.
       las fotos. _Sin comprobar._
 - [ ] **Parking: salto de precio a partir de 31 días** — las tarifas llegan a 30
       días (250 € en Aiven); a partir de 31 se cobran 15 €/día (465 €).
-- [ ] **Parking: el mapa de estado no se refresca solo** — los cambios de otro
-      usuario no aparecen hasta recargar.
-- [ ] **Logbook: papelera y filtros sin interfaz** — `/trashed`, `/author`,
-      `/department` y `/priority` existen en el backend y en `queries.ts`, pero
-      la pantalla del módulo no los usa (Informes usa `/all` con filtros).
-      Tampoco hay forma de restaurar lo borrado.
-- [ ] **Panel de inicio: una petición por día** — con el periodo _mes_ lanza
-      hasta 31 peticiones a `/api/logbooks/day/`
-      (`frontend/app/dashboard/page.tsx`); `/all?date_from=&date_to=` lo haría
-      en una.
-- [ ] **Mensajería: exponer en la interfaz lo que el backend ya ofrece** —
-      renombrar grupo, añadir y quitar participantes, buscar en mensajes,
-      contador global de no leídos y vista de todas las conversaciones para
-      `admin`. Las funciones existen en `frontend/app/lib/messaging/queries.ts`
-      pero nadie las llama. _Comprobado el 2026-09-28 con búsqueda de usos._
 - [ ] **Mensajería sin tiempo real** — los mensajes nuevos solo aparecen al
       reabrir la conversación. Valorar un sondeo periódico como el de las
       notificaciones. _Comprobado el 2026-09-28: no hay intervalo ni WebSocket._
@@ -334,7 +319,9 @@ preview.
 - [ ] **Presencias a mano** — la pestaña de presencias de `scheduling` pide
       pegar el texto en un `textarea`; podría leerse de
       `scheduling_assignments`.
-- [ ] **Tests en el frontend** — hoy no hay ninguno.
+- [ ] **Ejecutor de tests en el frontend** — no tiene: sus tests viven en
+      `backend/tests/` (10 ficheros: 7 importan funciones del frontend y 3 leen
+      su código) y no cubren componentes ni hooks. _Contado el 2026-10-12._
 - [ ] **Scheduling: cerrar la fase 3 del solver con uso real** — bloqueado hasta
       que se generen meses de verdad. (1) Con ≥30 generaciones en
       `scheduling_solver_runs`, buscar patrones (estado, penalización, desglose)

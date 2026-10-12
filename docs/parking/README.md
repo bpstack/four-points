@@ -133,6 +133,7 @@ BookingsListClient / BookingDetailClient ─────────────
 2. The status map requests spaces, bookings, expired ones and statistics with
    React Query. **It does not refresh on its own**: each action requests the
    data again, but changes made by another person do not appear until reloading.
+   Left as is (decided on 2026-10-12).
 3. Creating, moving, closing or cancelling a booking writes to
    `parking_bookings` within a transaction; the triggers update the calendar in
    the same operation.

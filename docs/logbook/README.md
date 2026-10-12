@@ -37,6 +37,11 @@ All roles **except `mantenimiento`**, which does not have access to the module.
 - **Edit and delete** own entries. Deleting does not remove: the entry goes to
   the trash.
 
+**The backend offers, but the module screen does not use**: the trash
+(`/trashed`) and the lists by author, department and priority (Reports uses
+`/all` with its own filters, deleted ones included). Nothing restores a deleted
+entry, not even the backend. Not planned (decided on 2026-10-12).
+
 ## What data it handles
 
 Four tables (`backend/db-mysql/aiven/03_logbook_tables.sql`):

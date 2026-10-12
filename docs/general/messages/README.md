@@ -41,7 +41,8 @@ conversation, and list them all.
 
 **The backend offers, but the interface does not use yet**: renaming a group,
 adding or removing participants after creation, searching in message text, the
-global unread counter and the view of all conversations for `admin`.
+global unread counter and the view of all conversations for `admin`. They are
+not planned (decided on 2026-10-12).
 
 ## What data it handles
 
