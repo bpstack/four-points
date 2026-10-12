@@ -4,7 +4,7 @@
  * Acceso a datos con MySQL - 3 tablas relacionadas
  */
 
-import db from '../../config/db.js'
+import { dbx, withTransaction } from '../../config/transaction.js'
 import type { ResultSetHeader, RowDataPacket } from 'mysql2'
 import type {
   MaintenanceReport,
@@ -92,6 +92,12 @@ interface CountRow extends RowDataPacket {
 // HELPERS: Parsear filas de BD a objetos
 // ========================================
 
+// Times create tries a new id when another report took it
+const ID_ATTEMPTS = 5
+
+// Photos a report can hold
+export const MAX_REPORT_IMAGES = 5
+
 /**
  * Genera un ID único con formato DDMMYY-XXX
  * Ejemplo: 120625-001, 120625-002, etc.
@@ -104,7 +110,7 @@ async function generateReportId(): Promise<string> {
   const datePrefix = `${day}${month}${year}`
 
   // Buscar el último número del día
-  const [rows] = await db.query<RowDataPacket[]>(
+  const [rows] = await dbx().query<RowDataPacket[]>(
     `SELECT id FROM maintenance_reports 
      WHERE id LIKE ? 
      ORDER BY id DESC 
@@ -334,7 +340,7 @@ export class MaintenanceRepository {
 
     // Count query (reutiliza los mismos params)
     const countQuery = `SELECT COUNT(*) as total FROM maintenance_reports r ${whereClause}`
-    const [countResult] = await db.query<CountRow[]>(countQuery, whereParams)
+    const [countResult] = await dbx().query<CountRow[]>(countQuery, whereParams)
     const total = countResult[0]?.total || 0
 
     // Data query
@@ -359,7 +365,7 @@ export class MaintenanceRepository {
         r.report_date DESC
       LIMIT ? OFFSET ?
     `
-    const [rows] = await db.query<ReportRow[]>(dataQuery, [...whereParams, limit, offset])
+    const [rows] = await dbx().query<ReportRow[]>(dataQuery, [...whereParams, limit, offset])
 
     // Calcular paginación
     const totalPages = Math.ceil(total / limit)
@@ -382,7 +388,7 @@ export class MaintenanceRepository {
    * Obtener reporte por ID con imágenes e historial
    */
   static async isDeleted(id: string): Promise<boolean | null> {
-    const [rows] = await db.query<RowDataPacket[]>(
+    const [rows] = await dbx().query<RowDataPacket[]>(
       'SELECT is_deleted FROM maintenance_reports WHERE id = ?',
       [id]
     )
@@ -404,7 +410,7 @@ export class MaintenanceRepository {
       WHERE r.id = ?
     `
 
-    const [reportRows] = await db.query<ReportRow[]>(reportQuery, [id])
+    const [reportRows] = await dbx().query<ReportRow[]>(reportQuery, [id])
 
     if (reportRows.length === 0) {
       return null
@@ -436,9 +442,6 @@ export class MaintenanceRepository {
     userId: string,
     username: string
   ): Promise<ReportWithDetails> {
-    // Generar ID con formato DDMMYY-XXX
-    const id = await generateReportId()
-
     const query = `
       INSERT INTO maintenance_reports (
         id,
@@ -459,7 +462,6 @@ export class MaintenanceRepository {
     `
 
     const params = [
-      id,
       data.title,
       data.description,
       data.location_type,
@@ -474,17 +476,36 @@ export class MaintenanceRepository {
       userId,
     ]
 
-    await db.query<ResultSetHeader>(query, params)
+    // The report and its history rows commit or roll back together
+    const insert = () =>
+      withTransaction(async () => {
+        // Generar ID con formato DDMMYY-XXX
+        const id = await generateReportId()
+        await dbx().query<ResultSetHeader>(query, [id, ...params])
 
-    // Crear entrada de historial
-    await this.addHistoryEntry(id, 'created', userId, username)
+        await this.addHistoryEntry(id, 'created', userId, username)
 
-    // Si se asignó, agregar entrada de asignación
-    if (data.assigned_to || data.external_company_name) {
-      await this.addHistoryEntry(id, 'assigned', userId, username, {
-        field_changed: 'assigned_to',
-        new_value: data.assigned_to || data.external_company_name || null,
+        // Si se asignó, agregar entrada de asignación
+        if (data.assigned_to || data.external_company_name) {
+          await this.addHistoryEntry(id, 'assigned', userId, username, {
+            field_changed: 'assigned_to',
+            new_value: data.assigned_to || data.external_company_name || null,
+          })
+        }
+        return id
       })
+
+    // Two reports created at once read the same last id: the one that loses
+    // retries with the next number, in a new transaction that sees the winner
+    let id: string
+    for (let attempt = 1; ; attempt++) {
+      try {
+        id = await insert()
+        break
+      } catch (error) {
+        const duplicate = (error as { code?: string }).code === 'ER_DUP_ENTRY'
+        if (!duplicate || attempt >= ID_ATTEMPTS) throw error
+      }
     }
 
     const created = await this.getById(id)
@@ -559,36 +580,38 @@ export class MaintenanceRepository {
     // Ejecutar update
     values.push(id)
     const query = `UPDATE maintenance_reports SET ${fields.join(', ')} WHERE id = ?`
-    await db.query<ResultSetHeader>(query, values)
+    await withTransaction(async () => {
+      await dbx().query<ResultSetHeader>(query, values)
 
-    // Agregar entradas de historial para cada cambio significativo
-    for (const change of changes) {
-      if (change.field === 'status') {
-        await this.addHistoryEntry(id, 'status_changed', userId, username, {
-          field_changed: 'status',
-          old_value: change.old,
-          new_value: change.new,
-        })
-      } else if (change.field === 'priority') {
-        await this.addHistoryEntry(id, 'priority_changed', userId, username, {
-          field_changed: 'priority',
-          old_value: change.old,
-          new_value: change.new,
-        })
-      } else if (change.field === 'assigned_to' || change.field === 'assigned_type') {
-        await this.addHistoryEntry(id, 'assigned', userId, username, {
-          field_changed: change.field,
-          old_value: change.old,
-          new_value: change.new,
-        })
-      } else {
-        await this.addHistoryEntry(id, 'updated', userId, username, {
-          field_changed: change.field,
-          old_value: String(change.old),
-          new_value: String(change.new),
-        })
+      // Agregar entradas de historial para cada cambio significativo
+      for (const change of changes) {
+        if (change.field === 'status') {
+          await this.addHistoryEntry(id, 'status_changed', userId, username, {
+            field_changed: 'status',
+            old_value: change.old,
+            new_value: change.new,
+          })
+        } else if (change.field === 'priority') {
+          await this.addHistoryEntry(id, 'priority_changed', userId, username, {
+            field_changed: 'priority',
+            old_value: change.old,
+            new_value: change.new,
+          })
+        } else if (change.field === 'assigned_to' || change.field === 'assigned_type') {
+          await this.addHistoryEntry(id, 'assigned', userId, username, {
+            field_changed: change.field,
+            old_value: change.old,
+            new_value: change.new,
+          })
+        } else {
+          await this.addHistoryEntry(id, 'updated', userId, username, {
+            field_changed: change.field,
+            old_value: String(change.old),
+            new_value: String(change.new),
+          })
+        }
       }
-    }
+    })
 
     return this.getById(id)
   }
@@ -639,14 +662,16 @@ export class MaintenanceRepository {
       WHERE id = ?
     `
 
-    await db.query<ResultSetHeader>(query, [status, userId, id])
+    await withTransaction(async () => {
+      await dbx().query<ResultSetHeader>(query, [status, userId, id])
 
-    // Agregar entrada de historial
-    await this.addHistoryEntry(id, historyAction, userId, username, {
-      field_changed: 'status',
-      old_value: oldStatus,
-      new_value: status,
-      notes,
+      // Agregar entrada de historial
+      await this.addHistoryEntry(id, historyAction, userId, username, {
+        field_changed: 'status',
+        old_value: oldStatus,
+        new_value: status,
+        notes,
+      })
     })
 
     return this.getById(id)
@@ -678,13 +703,15 @@ export class MaintenanceRepository {
       WHERE id = ?
     `
 
-    await db.query<ResultSetHeader>(query, [priority, userId, id])
+    await withTransaction(async () => {
+      await dbx().query<ResultSetHeader>(query, [priority, userId, id])
 
-    // Agregar entrada de historial
-    await this.addHistoryEntry(id, 'priority_changed', userId, username, {
-      field_changed: 'priority',
-      old_value: oldPriority,
-      new_value: priority,
+      // Agregar entrada de historial
+      await this.addHistoryEntry(id, 'priority_changed', userId, username, {
+        field_changed: 'priority',
+        old_value: oldPriority,
+        new_value: priority,
+      })
     })
 
     return this.getById(id)
@@ -715,13 +742,15 @@ export class MaintenanceRepository {
       WHERE id = ?
     `
 
-    await db.query<ResultSetHeader>(query, [username, notes, userId, id])
+    await withTransaction(async () => {
+      await dbx().query<ResultSetHeader>(query, [username, notes, userId, id])
 
-    // Agregar entrada de historial
-    await this.addHistoryEntry(id, 'updated', userId, username, {
-      field_changed: 'resolution_notes',
-      new_value: notes,
-      notes: 'Notas de resolución agregadas',
+      // Agregar entrada de historial
+      await this.addHistoryEntry(id, 'updated', userId, username, {
+        field_changed: 'resolution_notes',
+        new_value: notes,
+        notes: 'Notas de resolución agregadas',
+      })
     })
 
     return this.getById(id)
@@ -746,12 +775,14 @@ export class MaintenanceRepository {
       WHERE id = ?
     `
 
-    const [result] = await db.query<ResultSetHeader>(query, [userId, userId, id])
+    return withTransaction(async () => {
+      const [result] = await dbx().query<ResultSetHeader>(query, [userId, userId, id])
 
-    // Agregar entrada de historial
-    await this.addHistoryEntry(id, 'deleted', userId, username)
+      // Agregar entrada de historial
+      await this.addHistoryEntry(id, 'deleted', userId, username)
 
-    return result.affectedRows > 0
+      return result.affectedRows > 0
+    })
   }
 
   /**
@@ -777,10 +808,12 @@ export class MaintenanceRepository {
       WHERE id = ?
     `
 
-    await db.query<ResultSetHeader>(query, [userId, id])
+    await withTransaction(async () => {
+      await dbx().query<ResultSetHeader>(query, [userId, id])
 
-    // Agregar entrada de historial
-    await this.addHistoryEntry(id, 'restored', userId, username)
+      // Agregar entrada de historial
+      await this.addHistoryEntry(id, 'restored', userId, username)
+    })
 
     return this.getById(id)
   }
@@ -799,18 +832,20 @@ export class MaintenanceRepository {
       ORDER BY uploaded_at DESC
     `
 
-    const [rows] = await db.query<ImageRow[]>(query, [reportId])
+    const [rows] = await dbx().query<ImageRow[]>(query, [reportId])
     return rows.map(parseImageRow)
   }
 
   /**
-   * Agregar imagen a un reporte
+   * Agregar imagen a un reporte. Null when the report already holds
+   * MAX_REPORT_IMAGES: the count runs under a lock on the report, so uploads
+   * in parallel cannot go past the limit
    */
   static async addImage(
     reportId: string,
     data: AddImageInput,
     userId: string
-  ): Promise<MaintenanceImage> {
+  ): Promise<MaintenanceImage | null> {
     const query = `
       INSERT INTO maintenance_images (
         report_id, file_name, file_path, file_size, mime_type, public_id, auto_delete_on_close, uploaded_by
@@ -828,20 +863,30 @@ export class MaintenanceRepository {
       userId,
     ]
 
-    const [result] = await db.query<ResultSetHeader>(query, params)
+    return withTransaction(async () => {
+      await dbx().query('SELECT id FROM maintenance_reports WHERE id = ? FOR UPDATE', [reportId])
+      const [count] = await dbx().query<CountRow[]>(
+        'SELECT COUNT(*) as total FROM maintenance_images WHERE report_id = ?',
+        [reportId]
+      )
+      if ((count[0]?.total ?? 0) >= MAX_REPORT_IMAGES) return null
 
-    const [rows] = await db.query<ImageRow[]>('SELECT * FROM maintenance_images WHERE id = ?', [
-      result.insertId,
-    ])
+      const [result] = await dbx().query<ResultSetHeader>(query, params)
 
-    return parseImageRow(rows[0])
+      const [rows] = await dbx().query<ImageRow[]>(
+        'SELECT * FROM maintenance_images WHERE id = ?',
+        [result.insertId]
+      )
+
+      return parseImageRow(rows[0])
+    })
   }
 
   /**
    * Eliminar imagen
    */
   static async deleteImage(imageId: number): Promise<boolean> {
-    const [result] = await db.query<ResultSetHeader>(
+    const [result] = await dbx().query<ResultSetHeader>(
       'DELETE FROM maintenance_images WHERE id = ?',
       [imageId]
     )
@@ -855,7 +900,7 @@ export class MaintenanceRepository {
   static async getImageStorage(
     imageId: number
   ): Promise<{ report_id: string; file_path: string; public_id: string | null } | null> {
-    const [rows] = await db.query<ImageRow[]>(
+    const [rows] = await dbx().query<ImageRow[]>(
       'SELECT report_id, file_path, public_id FROM maintenance_images WHERE id = ?',
       [imageId]
     )
@@ -871,7 +916,7 @@ export class MaintenanceRepository {
    * Obtener imagen por ID
    */
   static async getImageById(imageId: number): Promise<MaintenanceImage | null> {
-    const [rows] = await db.query<ImageRow[]>('SELECT * FROM maintenance_images WHERE id = ?', [
+    const [rows] = await dbx().query<ImageRow[]>('SELECT * FROM maintenance_images WHERE id = ?', [
       imageId,
     ])
 
@@ -898,7 +943,7 @@ export class MaintenanceRepository {
       ORDER BY h.changed_at DESC
     `
 
-    const [rows] = await db.query<HistoryRow[]>(query, [reportId])
+    const [rows] = await dbx().query<HistoryRow[]>(query, [reportId])
     return rows.map(parseHistoryRow)
   }
 
@@ -933,7 +978,7 @@ export class MaintenanceRepository {
       userId,
     ]
 
-    await db.query<ResultSetHeader>(query, params)
+    await dbx().query<ResultSetHeader>(query, params)
   }
 
   // ========================================
@@ -979,11 +1024,11 @@ export class MaintenanceRepository {
       `,
     }
 
-    const [totalResult] = await db.query<CountRow[]>(queries.total)
-    const [statusResult] = await db.query<RowDataPacket[]>(queries.byStatus)
-    const [priorityResult] = await db.query<RowDataPacket[]>(queries.byPriority)
-    const [locationResult] = await db.query<RowDataPacket[]>(queries.byLocation)
-    const [roomsResult] = await db.query<CountRow[]>(queries.roomsOut)
+    const [totalResult] = await dbx().query<CountRow[]>(queries.total)
+    const [statusResult] = await dbx().query<RowDataPacket[]>(queries.byStatus)
+    const [priorityResult] = await dbx().query<RowDataPacket[]>(queries.byPriority)
+    const [locationResult] = await dbx().query<RowDataPacket[]>(queries.byLocation)
+    const [roomsResult] = await dbx().query<CountRow[]>(queries.roomsOut)
 
     const byStatus: Record<string, number> = {}
     for (const row of statusResult) {

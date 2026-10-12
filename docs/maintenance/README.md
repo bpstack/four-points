@@ -78,16 +78,24 @@ reported ─► assigned ─► in_progress ─► completed ─► closed
 - Creating, editing, changing state, priority or assignment, adding notes,
   deleting and restoring are recorded in `maintenance_history`. **Uploading or
   deleting photos, not.**
-- The change and its history entry do not go in a transaction.
+- Each change and its history entries commit or roll back together, in one
+  transaction.
 
 **Others**
 
 - Photos are accepted according to the type declared by the browser, with a
   maximum of 5 MB, and Cloudinary processes them as an image.
+- A report holds at most 5 photos. The count is repeated under a lock on the
+  report when the photo is saved: an upload that loses the race against another
+  is removed from Cloudinary and answers 400.
 - Each photo saves a "delete on close" (`auto_delete_on_close`) that **nobody
   uses**: when closing a report, its photos stay.
 - The number of the day of the identifier is calculated by looking for the last
-  report of that date, with the server's time.
+  report of that date, with the server's time. Two reports created at once read
+  the same number: the second one retries with the next (up to 5 attempts).
+- **Up to 999 reports a day** (decided on 2026-10-12, left as is): the 1000th
+  gets an identifier the API rejects, and from then on every report of that day
+  fails. A hotel does not get near that volume.
 
 ## How information flows
 
