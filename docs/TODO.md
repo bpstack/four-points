@@ -286,13 +286,6 @@ preview.
       de Python. Enlazar la demo y el repo. Es el gancho para promocionar el
       proyecto. Se escribe en el repo `portfolio-bp`, no aquí. _Decidido el
       2026-10-05._
-- [ ] **`excludeMantenimiento` es una lista de exclusión** — parking, lista
-      negra, caja, partes, conciliación y departamentos dejan pasar cualquier
-      rol salvo `mantenimiento`, y `services/auth/module-access.ts` lo replica.
-      Hoy solo hay roles conocidos (el rol va en el token firmado y sale de
-      `roles`), pero un rol nuevo tendría acceso sin que nadie lo decida. Pasar
-      a lista de permitidos. _Comprobado el 2026-10-05 al retirar
-      `demo-admin`._
 - [ ] **`20260512_disable_demo_user.sql` desactivaría la cuenta demo** si se
       volviera a ejecutar (`UPDATE users SET is_active = 0 WHERE username =
       'demo'`). `setup:local` no la ejecuta (es anterior al baseline); no
