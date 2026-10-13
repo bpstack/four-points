@@ -1,5 +1,10 @@
 # AGENTS.md — Logbook
 
+**Up:** [`backend/AGENTS.md`](../../AGENTS.md) — `backend/` rules ·
+[`frontend/AGENTS.md`](../../../frontend/AGENTS.md) — `frontend/` rules, since
+this doc covers both sides · [root `AGENTS.md`](../../../AGENTS.md) — shared
+rules and module map.
+
 > Single doc for the logbook module (hotel incident log / operational notes).
 > Covers backend and frontend. The state logic (per-user read/unread,
 > solved/pending, soft delete + trashed, history audit) is the densest part of

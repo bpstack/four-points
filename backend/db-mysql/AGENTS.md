@@ -1,5 +1,8 @@
 # AGENTS.md — DB / Migrations
 
+**Up:** [`backend/AGENTS.md`](../AGENTS.md) — `backend/` rules ·
+[root `AGENTS.md`](../../AGENTS.md) — shared rules and module map.
+
 > Single doc for `backend/db-mysql/`. Covers the migration policy, the frozen
 > baseline, how to write a new incremental script, and how to reconstruct the
 > schema from scratch. **Read this before touching any table.**
@@ -92,9 +95,9 @@ has data.** They will overwrite or duplicate rows.
 
 `scripts/apply-migration.sh` runs one `scripts/YYYYMMDD_*.sql` against local or
 Aiven. It reads the credentials from `backend/.env` (`LOCAL_DB_*`, or
-`AIVEN_DB_*` and `AIVEN_PASSWORD`), passes the password through `MYSQL_PWD`
-so it never shows in the command line, and verifies Aiven's TLS certificate
-with `config/certs/ca-certificate.pem`. It refuses any other file.
+`AIVEN_DB_*` and `AIVEN_PASSWORD`), passes the password through `MYSQL_PWD` so
+it never shows in the command line, and verifies Aiven's TLS certificate with
+`config/certs/ca-certificate.pem`. It refuses any other file.
 
 ```bash
 cd backend/db-mysql/scripts
@@ -105,8 +108,8 @@ cd backend/db-mysql/scripts
 ```
 
 - `--dry-run` only checks the connection and prints the target; nothing runs.
-- Each script prints its own result (a skip message or the new definition),
-  so the output shows whether it changed anything.
+- Each script prints its own result (a skip message or the new definition), so
+  the output shows whether it changed anything.
 - Running it twice is the idempotency check: the second run must skip.
 - Then set the row's status in `INDEX.md` (`✅ local · ✅ Aiven`).
 
@@ -129,12 +132,12 @@ See `aiven/aiven-conexion.md` for connection details. SSL required.
 
 ### Roles
 
-| ID  | Name            | Description                           |
-| --- | --------------- | ------------------------------------- |
-| 1   | `recepcionista` | Standard user                         |
-| 2   | `admin`         | Full admin                            |
-| 3   | `mantenimiento` | Maintenance staff                     |
-| 6   | `group-admin`   | Group administrator                   |
+| ID  | Name            | Description         |
+| --- | --------------- | ------------------- |
+| 1   | `recepcionista` | Standard user       |
+| 2   | `admin`         | Full admin          |
+| 3   | `mantenimiento` | Maintenance staff   |
+| 6   | `group-admin`   | Group administrator |
 
 ## Backups
 
@@ -158,17 +161,19 @@ password.
    missing from the table, it's not tracked. Keep it up to date.
 4. **No one-off data scripts.** One-time data fixers (the old
    `add-libre-number.ts` and `backfill-libre-numbers.ts`) and quick query
-   scripts were removed on 2026-10-04: they carried the Aiven password and
-   had already run. Write a new one only if it reads `backend/.env`, and drop
-   it once applied.
+   scripts were removed on 2026-10-04: they carried the Aiven password and had
+   already run. Write a new one only if it reads `backend/.env`, and drop it
+   once applied.
 5. **The frozen baseline is not the live schema.** `aiven/NN_*.sql` may list
    things the live databases never got: `aiven/17_notifications.sql` had
-   `'messages'` in `notifications.module`, Aiven did not, and the urgent
-   message notices failed silently until `20261004_add_messages_to_notifications_module.sql`.
-   Before relying on a column, check `information_schema` on the target DB.
+   `'messages'` in `notifications.module`, Aiven did not, and the urgent message
+   notices failed silently until
+   `20261004_add_messages_to_notifications_module.sql`. Before relying on a
+   column, check `information_schema` on the target DB.
 
 ## Cross references
 
 - `MIGRATIONS_POLICY.md` — full policy rationale and when to change the model.
 - `INDEX.md` — module-by-module table list + full incremental migration log.
-- Fresh install: `pnpm setup:local` (`scripts/setup-local.ts`), never `MASTER_INSTALL.sql` by hand.
+- Fresh install: `pnpm setup:local` (`scripts/setup-local.ts`), never
+  `MASTER_INSTALL.sql` by hand.

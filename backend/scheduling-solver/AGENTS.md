@@ -1,8 +1,13 @@
 # AGENTS.md — Scheduling Solver (Python / CP-SAT)
 
-> Context specific to this directory. The root `CLAUDE.md` covers the scheduling
-> system end-to-end (UI + backend TS + solver). This file focuses on the Python
-> side: daemon, CP-SAT model, constraints, tests and deploy.
+**Up:** [`backend/AGENTS.md`](../AGENTS.md) — `backend/` rules ·
+[root `AGENTS.md`](../../AGENTS.md) — shared rules and module map.
+
+> Context specific to this directory. The rest of the scheduling system is in
+> `backend/services/scheduling/AGENTS.md` (TS validator, endpoints, the
+> cross-language guide) and `frontend/app/components/scheduling/AGENTS.md` (UI).
+> This file focuses on the Python side: daemon, CP-SAT model, constraints, tests
+> and deploy.
 
 ## Purpose
 
@@ -240,8 +245,8 @@ test are the two lists to keep in sync when you add a solver-reachable fixture.
 ## Adding a new constraint (Python side)
 
 > Full cross-language guide (TS validator + Python solver + fixtures) lives in
-> the root `CLAUDE.md`, § "Adding a new constraint". This section covers only
-> the Python side.
+> `backend/services/scheduling/AGENTS.md`, § "Adding a new constraint (full
+> cross-language guide)". This section covers only the Python side.
 
 1. Create `constraints/<name>.py` with the standard signature
    `apply(model, x, input, employees, days, virtual_days_by_emp=None)`. Look at

@@ -1,5 +1,10 @@
 # AGENTS.md — Backoffice (bo)
 
+**Up:** [`backend/AGENTS.md`](../../AGENTS.md) — `backend/` rules ·
+[`frontend/AGENTS.md`](../../../frontend/AGENTS.md) — `frontend/` rules, since
+this doc covers both sides · [root `AGENTS.md`](../../../AGENTS.md) — shared
+rules and module map.
+
 > Combined doc for the backoffice module (backend + frontend). Covers the data
 > model, invoice lifecycle, PDF handling via Cloudinary, batch payment, and the
 > server-component-first frontend pattern.
@@ -9,9 +14,9 @@
 Internal expense management for the hotel: suppliers are organised by category,
 each supplier has invoices (with PDF attachments) that flow through a validation
 → payment lifecycle, and the hotel's stamp and signature images (assets) are
-stored to mark validated invoices. The module is **admin-only**. Stats and monthly summaries provide spending
-visibility. A batch-pay endpoint marks multiple validated invoices as paid in a
-single operation.
+stored to mark validated invoices. The module is **admin-only**. Stats and
+monthly summaries provide spending visibility. A batch-pay endpoint marks
+multiple validated invoices as paid in a single operation.
 
 ## DB tables
 

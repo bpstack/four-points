@@ -1,9 +1,12 @@
 # AGENTS.md — Cashier (frontend)
 
+**Up:** [`frontend/AGENTS.md`](../../../AGENTS.md) — `frontend/` rules ·
+[root `AGENTS.md`](../../../../AGENTS.md) — shared rules and module map.
+
 > Frontend doc for the cashier module. Covers the route structure, Zustand
 > store, React Query hooks, component roles, and the PDF export. For the data
 > model, enums, endpoints, and role rules see
-> `backend/services/cashier/CLAUDE.md`.
+> `backend/services/cashier/AGENTS.md`.
 
 ## Route structure
 
@@ -148,7 +151,7 @@ Dictionary at `frontend/i18n/<locale>/cashier.json`.
 
 ## Cross references
 
-- `backend/services/cashier/CLAUDE.md` — data model, enums, endpoints, role
+- `backend/services/cashier/AGENTS.md` — data model, enums, endpoints, role
   middleware.
 - `frontend/app/stores/useCashierStore.ts` — full Zustand store.
 - `frontend/app/lib/cashier/queries.ts` — all React Query hooks.

@@ -1,7 +1,10 @@
 # AGENTS.md — Parking (frontend)
 
+**Up:** [`frontend/AGENTS.md`](../../../AGENTS.md) — `frontend/` rules ·
+[root `AGENTS.md`](../../../../AGENTS.md) — shared rules and module map.
+
 > UI for the parking module. Backend documented at
-> `backend/services/parking/CLAUDE.md`. **This module is the project's internal
+> `backend/services/parking/AGENTS.md`. **This module is the project's internal
 > reference for responsive patterns** — when in doubt about how to do a wide
 > table or a mobile-friendly dashboard in another module, look here first.
 
@@ -241,7 +244,7 @@ daily.
 
 ## Cross references
 
-- `backend/services/parking/CLAUDE.md` — full backend for the module.
+- `backend/services/parking/AGENTS.md` — full backend for the module.
 - `frontend/app/components/parking/helpers/constants.ts` — frontend copy of the
   enums.
 - `frontend/app/components/parking/` — module's shared components (list, badges,

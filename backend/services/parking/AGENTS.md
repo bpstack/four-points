@@ -1,8 +1,11 @@
 # AGENTS.md — Parking (backend)
 
-> Backend for the hotel parking module: bookings, vehicles, spots and stats. The UI has its own file at
-> `frontend/app/dashboard/parking/CLAUDE.md`. This doc covers the HTTP contract,
-> booking logic, states and server-side gotchas.
+**Up:** [`backend/AGENTS.md`](../../AGENTS.md) — `backend/` rules ·
+[root `AGENTS.md`](../../../AGENTS.md) — shared rules and module map.
+
+> Backend for the hotel parking module: bookings, vehicles, spots and stats. The
+> UI has its own file at `frontend/app/dashboard/parking/AGENTS.md`. This doc
+> covers the HTTP contract, booking logic, states and server-side gotchas.
 
 ## What it does
 
@@ -182,12 +185,11 @@ order when modifying.
 ### Class-based controllers
 
 Unlike the rest of the backend (free-standing exported functions),
-`bookings.controller.ts` and `stats.controller.ts`
-export as **classes with static methods**
-(`ParkingBookingsController.getBookings`, etc.). This is inherited from the
-first scaffold of the module. **Not a bug and not urgent debt**: it works, it's
-internally consistent. If you add a new controller here, follow the class
-pattern to keep internal coherence.
+`bookings.controller.ts` and `stats.controller.ts` export as **classes with
+static methods** (`ParkingBookingsController.getBookings`, etc.). This is
+inherited from the first scaffold of the module. **Not a bug and not urgent
+debt**: it works, it's internally consistent. If you add a new controller here,
+follow the class pattern to keep internal coherence.
 
 ### Date handling
 
@@ -227,7 +229,7 @@ in the git history if the feature is ever built.
 
 ## Cross references
 
-- `frontend/app/dashboard/parking/CLAUDE.md` — the module's UI side.
+- `frontend/app/dashboard/parking/AGENTS.md` — the module's UI side.
 - `frontend/app/components/parking/helpers/constants.ts` — the frontend copy of
   the enums.
 - `backend/models/parking/index.ts` — every TS type for the module.

@@ -1,5 +1,10 @@
 # AGENTS.md — F&B / Restaurant
 
+**Up:** [`backend/AGENTS.md`](../../AGENTS.md) — `backend/` rules ·
+[`frontend/AGENTS.md`](../../../frontend/AGENTS.md) — `frontend/` rules, since
+this doc covers both sides · [root `AGENTS.md`](../../../AGENTS.md) — shared
+rules and module map.
+
 > Food & Beverage module. Recent (2026-05) and evolving. Main tab in production:
 > **Daily Revenue** (Opera PDF parsing + manual entry). The Inventory / Orders /
 > Stats tabs are **mocked** placeholders. **Single file** because the module is
@@ -76,10 +81,10 @@ The system assumes **fixed Opera codes** mapped to 7 stable columns. Defined as
 4. If the new code should affect the parser filter, add it to `fnb_category`
    (table) and restart the backend — `fnb-categories.cache.ts` reads it once.
 
-**`trackedCodesSet` code cache:** reads `fnb_category` on first use and keeps
-it in process memory for the life of the process. There is no TTL:
-`invalidateCategories()` is only called by the tests, so a code added via
-direct SQL is not seen until the backend restarts.
+**`trackedCodesSet` code cache:** reads `fnb_category` on first use and keeps it
+in process memory for the life of the process. There is no TTL:
+`invalidateCategories()` is only called by the tests, so a code added via direct
+SQL is not seen until the backend restarts.
 
 ## PDF parser — `parseOperaPdf(buffer)`
 
@@ -128,8 +133,8 @@ it might become viable again. Don't upgrade without measuring.
 - **`DELETE /api/fnb/day/:date`**: delete all records for a day
 
 The whole subroute sits behind `authenticateToken` + `canAccessFnb`. Allowed
-roles: `admin`, `recepcionista`, **`group-admin`** (the last one
-added in `00bab83`).
+roles: `admin`, `recepcionista`, **`group-admin`** (the last one added in
+`00bab83`).
 
 **About `/entries` (manual):** the manual path exists for when Opera doesn't
 generate the PDF, or when the day has F&B revenue without an Opera record
@@ -188,9 +193,9 @@ monthlyExpenses) is also hardcoded — part of the mocked phase.
 
 ## Auth
 
-`canAccessFnb` allows: `admin`, `group-admin`, `recepcionista`.
-**Mantenimiento blocked.** No admin-only restrictions on endpoints — reception
-can upload PDFs and edit manually.
+`canAccessFnb` allows: `admin`, `group-admin`, `recepcionista`. **Mantenimiento
+blocked.** No admin-only restrictions on endpoints — reception can upload PDFs
+and edit manually.
 
 ## Known gotchas
 
@@ -199,8 +204,8 @@ can upload PDFs and edit manually.
 2. **PDF date: filter line vs header.** The parser uses the filter
    (`Date DD/MM/YY`) **not the header**. The header is +1 day off and would
    corrupt data.
-3. **`trackedCodesSet` cache without TTL.** Changes to `fnb_category` reach
-   the parser only after a backend restart.
+3. **`trackedCodesSet` cache without TTL.** Changes to `fnb_category` reach the
+   parser only after a backend restart.
 4. **`CATEGORY_CODES` is hardcoded** in the repo — specific Opera codes for the
    hotel. If the hotel changes or Opera renumbers, touch here.
 5. **Floats: use `r2()`.** Any amount sum must pass through `r2()` before going

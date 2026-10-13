@@ -1,8 +1,11 @@
 # AGENTS.md — Scheduling (frontend)
 
+**Up:** [`frontend/AGENTS.md`](../../../AGENTS.md) — `frontend/` rules ·
+[root `AGENTS.md`](../../../../AGENTS.md) — shared rules and module map.
+
 > UI for the scheduling module. Business logic (validator, constraints, solver)
-> lives in the backend — read `backend/services/scheduling/CLAUDE.md` when the
-> task crosses the boundary, and `backend/scheduling-solver/CLAUDE.md` when it
+> lives in the backend — read `backend/services/scheduling/AGENTS.md` when the
+> task crosses the boundary, and `backend/scheduling-solver/AGENTS.md` when it
 > touches the Python solver.
 
 ## Layout
@@ -228,7 +231,7 @@ both languages** in the same commit.
 
 Defined exhaustively in `app/lib/scheduling/shift-styles.ts` (Tailwind color
 mapping). The semantics of each code (M, T, N, P, PI, L, V, B, E, IT, FO, A, LI)
-is documented in `backend/services/scheduling/CLAUDE.md` § Shift types — that's
+is documented in `backend/services/scheduling/AGENTS.md` § Shift types — that's
 the source of truth. If you add a new code:
 
 1. Backend: add it to `scheduling_shifts` (DB) and to the validator / solver as
@@ -248,9 +251,9 @@ the source of truth. If you add a new code:
 
 ## Cross references
 
-- `backend/services/scheduling/CLAUDE.md` — TS backend: validator, constraints,
+- `backend/services/scheduling/AGENTS.md` — TS backend: validator, constraints,
   endpoints, shift type semantics, configuration tables, historical importer.
-- `backend/scheduling-solver/CLAUDE.md` — Python solver: daemon, CP-SAT, hard
+- `backend/scheduling-solver/AGENTS.md` — Python solver: daemon, CP-SAT, hard
   constraints, soft objective.
 - `frontend/app/lib/scheduling/types.ts` — DTOs shared with the backend; keep
   manually in sync when they change.

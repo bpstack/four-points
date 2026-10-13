@@ -1,8 +1,11 @@
 # AGENTS.md — Group Tracking (backend)
 
+**Up:** [`backend/AGENTS.md`](../../AGENTS.md) — `backend/` rules ·
+[root `AGENTS.md`](../../../AGENTS.md) — shared rules and module map.
+
 > Backend doc for the group tracking module. Covers the data model, lifecycle,
 > payment calculator, services, role boundaries, and all endpoints. For the
-> React UI see `frontend/app/components/groups/CLAUDE.md`.
+> React UI see `frontend/app/components/groups/AGENTS.md`.
 
 ## What it does
 
@@ -199,5 +202,5 @@ profile page) but cannot create or modify anything.
 - `backend/middlewares/roleCheck.ts:84` — `canViewGroups` definition.
 - `backend/db-mysql/aiven/10_group-tracking.sql` — frozen schema baseline (6
   tables).
-- `frontend/app/components/groups/CLAUDE.md` — UI, tab navigation, panels, React
+- `frontend/app/components/groups/AGENTS.md` — UI, tab navigation, panels, React
   Query.

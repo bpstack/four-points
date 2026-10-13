@@ -1,5 +1,10 @@
 # AGENTS.md — Checklist
 
+**Up:** [`backend/AGENTS.md`](../../AGENTS.md) — `backend/` rules ·
+[`frontend/AGENTS.md`](../../../frontend/AGENTS.md) — `frontend/` rules, since
+this doc covers both sides · [root `AGENTS.md`](../../../AGENTS.md) — shared
+rules and module map.
+
 > Single doc for the checklist module. Covers backend, frontend and the **JSON
 > sync rule** that is the module's main gotcha. No separate frontend file
 > because the state logic lives here.

@@ -1,8 +1,11 @@
 # AGENTS.md — Cashier (backend)
 
+**Up:** [`backend/AGENTS.md`](../../AGENTS.md) — `backend/` rules ·
+[root `AGENTS.md`](../../../AGENTS.md) — shared rules and module map.
+
 > Backend doc for the cashier module. Covers the data model, shift/day
 > lifecycle, role boundaries, and all endpoints. For the React UI see
-> `frontend/app/components/cashier/CLAUDE.md`.
+> `frontend/app/components/cashier/AGENTS.md`.
 
 ## What it does
 
@@ -200,4 +203,4 @@ patches.
 - `backend/middlewares/roleCheck.ts:106` — `canManageCashier` definition.
 - `backend/middlewares/roleCheck.ts:128` — `canViewReports` definition.
 - `backend/db-mysql/aiven/11_cashier.sql` — frozen schema baseline.
-- `frontend/app/components/cashier/CLAUDE.md` — UI, PDF export, React Query.
+- `frontend/app/components/cashier/AGENTS.md` — UI, PDF export, React Query.

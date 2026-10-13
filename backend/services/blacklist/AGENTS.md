@@ -1,5 +1,10 @@
 # AGENTS.md — Blacklist
 
+**Up:** [`backend/AGENTS.md`](../../AGENTS.md) — `backend/` rules ·
+[`frontend/AGENTS.md`](../../../frontend/AGENTS.md) — `frontend/` rules, since
+this doc covers both sides · [root `AGENTS.md`](../../../AGENTS.md) — shared
+rules and module map.
+
 > Combined doc for the blacklist module (backend + frontend). Covers the data
 > model, audit trail pattern, image handling via Cloudinary, soft
 > delete/restore, and the frontend component map.
@@ -9,9 +14,9 @@
 Registry of individuals banned from the hotel. Each entry records the person's
 name, document type and number (DNI/Passport/NIE/Other), the stay dates, the
 reason for the ban, a severity, up to five photos (Cloudinary URLs in a JSON
-array), free-text comments, and a full audit trail of all changes. Entries can be soft-deleted and later
-restored. All users except `mantenimiento` can read the list; creating, editing,
-and deleting requires authentication.
+array), free-text comments, and a full audit trail of all changes. Entries can
+be soft-deleted and later restored. All users except `mantenimiento` can read
+the list; creating, editing, and deleting requires authentication.
 
 ## DB table — `blacklist_entries`
 
@@ -87,14 +92,14 @@ backoffice module. Do not move or rename it without updating both importers.
 
 ## Soft delete / restore
 
-- `DELETE /:id` — sets `status = 'DELETED'`, records `deleted_by` and `deleted_at`,
-  appends `{ action: 'deleted' }` to audit trail.
+- `DELETE /:id` — sets `status = 'DELETED'`, records `deleted_by` and
+  `deleted_at`, appends `{ action: 'deleted' }` to audit trail.
 - `PATCH /:id/restore` — sets `status = 'ACTIVE'`, clears
   `deleted_by`/`deleted_at`, appends `{ action: 'restored' }` to audit trail.
 - `getAll` by default lists `status = 'ACTIVE'` only. Pass `status=DELETED` for
   the deleted ones or `status=ALL` for both.
-- No screen calls the restore endpoint yet; the unused `restoreBlacklist`
-  server action was removed on 2026-10-02.
+- No screen calls the restore endpoint yet; the unused `restoreBlacklist` server
+  action was removed on 2026-10-02.
 
 ## Endpoints
 

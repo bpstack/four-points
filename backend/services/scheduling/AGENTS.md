@@ -1,9 +1,12 @@
 # AGENTS.md — Scheduling (TS backend)
 
+**Up:** [`backend/AGENTS.md`](../../AGENTS.md) — `backend/` rules ·
+[root `AGENTS.md`](../../../AGENTS.md) — shared rules and module map.
+
 > Context for the backend TS piece of the scheduling module: validator, TS
 > constraints, registry, soft weights, solver-input builder, Python daemon
 > client, controllers and repository. The Python solver has its own file at
-> `backend/scheduling-solver/CLAUDE.md` — read that alongside this one when the
+> `backend/scheduling-solver/AGENTS.md` — read that alongside this one when the
 > task crosses the boundary.
 
 ## What the module does
@@ -12,8 +15,8 @@ Manages monthly staff schedules through **manual cell-by-cell editing with
 real-time validation**, plus optional **auto-generation** via a CP-SAT solver
 (Python).
 
-**Month states:** `draft` (editable, validation surfaces warnings) ↔ `published`
-(read-only for staff).
+**Month states:** `draft` (editable, validation surfaces warnings) ↔
+`published` (read-only for staff).
 
 **Cell locking.** Assignments with `source_constraint_id` are **locked**: they
 come from approvals (vacations, IT, etc.) and can't be overwritten from the UI
@@ -212,7 +215,7 @@ the Python schema.
 ## `solver-client.ts`
 
 Wraps the persistent Python daemon. Details on the daemon side in
-`backend/scheduling-solver/CLAUDE.md`; here's what matters on the Node side.
+`backend/scheduling-solver/AGENTS.md`; here's what matters on the Node side.
 
 **State machine:**
 
@@ -306,8 +309,8 @@ setSchedulableEmployees".
   constraints, in one transaction (`resetMonthAssignments`)
 - `POST /months/:id/unpublish` — Back to draft (controlled transition)
 - `PATCH /assignments/:id` — Update single cell (409 if locked)
-- `PUT /months/:id/assignments` — Bulk update; respects locks, 400 for a day
-  of another month
+- `PUT /months/:id/assignments` — Bulk update; respects locks, 400 for a day of
+  another month
 - `POST /constraints/:id/approve` — Approve/reject + auto-sync assignments
 - `GET /employee-rules` — Rules list in camelCase for the panel
 - `PUT /scheduling/employees` — Set schedulable employees list (⚠️ see bug
@@ -416,7 +419,7 @@ per-employee state (libre counts, weekend off check, M/T variety…), inline it 
 
 ### Step 3 — Implement in the Python solver
 
-→ Full detail in `backend/scheduling-solver/CLAUDE.md` § "Adding a new
+→ Full detail in `backend/scheduling-solver/AGENTS.md` § "Adding a new
 constraint (Python side)". Summary:
 
 1. Create `backend/scheduling-solver/constraints/<rule_name>.py` with signature
@@ -496,7 +499,7 @@ logic in `consecutive-rest.constraint.ts` and
 
 ## Cross references
 
-- `backend/scheduling-solver/CLAUDE.md` — the Python solver (daemon, CP-SAT
+- `backend/scheduling-solver/AGENTS.md` — the Python solver (daemon, CP-SAT
   model, constraints, tests).
 - `docs/scheduling/constraints.md` — full textual specification. Source of
   truth.

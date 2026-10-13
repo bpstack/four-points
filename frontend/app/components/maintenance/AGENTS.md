@@ -1,5 +1,10 @@
 # AGENTS.md — Maintenance
 
+**Up:** [`frontend/AGENTS.md`](../../../AGENTS.md) — `frontend/` rules ·
+[`backend/AGENTS.md`](../../../../backend/AGENTS.md) — `backend/` rules, since
+this doc covers both sides · [root `AGENTS.md`](../../../../AGENTS.md) — shared
+rules and module map.
+
 > Hotel maintenance report module. **Single file** because the module isn't big
 > enough to justify a backend/frontend split; the file lives in
 > `frontend/app/components/maintenance/` where most of the code surface area is.

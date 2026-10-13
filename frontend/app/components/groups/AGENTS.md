@@ -1,9 +1,12 @@
 # AGENTS.md — Group Tracking (frontend)
 
+**Up:** [`frontend/AGENTS.md`](../../../AGENTS.md) — `frontend/` rules ·
+[root `AGENTS.md`](../../../../AGENTS.md) — shared rules and module map.
+
 > Frontend doc for the group tracking module. Covers the route structure,
 > Zustand store, tab/panel navigation pattern, component map, and React Query
 > hooks. For the data model, enums, endpoints, and role rules see
-> `backend/services/group/CLAUDE.md`.
+> `backend/services/group/AGENTS.md`.
 
 ## Route structure
 
@@ -118,7 +121,7 @@ user's attention to the new item.
 card manages one of the four status tracks independently:
 
 - **BookingCard** — `booking_confirmed`, `booking_date` → maps to `GroupStatus`
-  on the master record too (design debt, see backend CLAUDE.md).
+  on the master record too (design debt, see the backend AGENTS.md).
 - **ContractCard** — `contract_status` + `contract_date`, `contract_notes`.
 - **RoomingCard** — `rooming_status` + rooming list upload/notes.
 - **BalanceCard** — `balance_status` + `balance_date`, `balance_notes`.
@@ -169,7 +172,7 @@ Dictionary at `frontend/i18n/<locale>/groups.json`.
 
 ## Cross references
 
-- `backend/services/group/CLAUDE.md` — data model, enums, endpoints, role
+- `backend/services/group/AGENTS.md` — data model, enums, endpoints, role
   middleware.
 - `frontend/app/stores/useGroupStore.ts` — Zustand store.
 - `frontend/app/lib/groups/queries.ts` — all React Query hooks.
