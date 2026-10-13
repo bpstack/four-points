@@ -128,6 +128,15 @@ OOMs on Render free tier. v2 loads full PDF.js into memory; v1 is light. If at
 some point Node is upgraded or the host changes, **test v2 before upgrading** —
 it might become viable again. Don't upgrade without measuring.
 
+**Import from `lib/`, never the package entry.** v1's `index.js` ships a debug
+block: imported from ESM, `module.parent` is undefined, so it reads
+`./test/data/05-versions-space.pdf` from the working directory, writes a `.txt`
+next to it, and crashes with ENOENT if the file is missing. That is why
+`backend/test/data/` used to exist. `pdf-parser.service.ts` imports
+`pdf-parse/lib/pdf-parse.js` (the same function without the block, typed in
+`types/pdf-parse.d.ts`), so no `test/` folder is needed. The real fixture is
+`tests/fnb/fixtures/opera-revenue-sample.pdf`.
+
 ## Endpoints
 
 - **`GET /api/fnb/categories`**: list of active categories (drives
@@ -208,7 +217,8 @@ and edit manually.
 ## Known gotchas
 
 1. **pdf-parse v1 pinned.** Don't upgrade without testing OOM on Render.
-   Documented in commit `954043c`.
+   Documented in commit `954043c`. Import it from `pdf-parse/lib/pdf-parse.js`:
+   the package entry needs a `./test/data/` PDF in the working directory.
 2. **PDF date: filter line vs header.** The parser uses the filter
    (`Date DD/MM/YY`) **not the header**. The header is +1 day off and would
    corrupt data.
