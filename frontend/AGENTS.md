@@ -119,9 +119,15 @@ _Global skills in `~/.claude/skills/` are the machine's, not the project's._
 <!-- layer1:end -->
 
 `frontend/` is one of two independent pnpm projects inside the `Four-Points`
-repo (the other is `backend/`). The root `AGENTS.md` holds the rules shared by
-both — commits, security, Context7, DB migrations — and is loaded through the
-root `CLAUDE.md`.
+repo (the other is `backend/`). The root [`AGENTS.md`](../AGENTS.md) holds what
+both share — Context7 policy, Markdown formatting, commits and hooks, the
+security level, the frontend ↔ backend contract and the module map — and is
+loaded through the root `CLAUDE.md`. OpenCode started inside `frontend/` loads
+only this file: read the root one too.
+
+This file also covers the stack, commands, architecture and module docs of
+`frontend/`. Paths are relative to `frontend/` unless they start with
+`backend/`.
 
 ## Exceptions
 
@@ -167,3 +173,161 @@ re-estimate changes all three. Paths below are relative to `frontend/`.
 
 - **A prompt that asks for several tasks at once** → work them **one at a
   time**, each with the context specific to it, when the work touches code.
+
+## Stack
+
+- **Next.js 16** (App Router, Turbopack in dev) with **React 19**, on Node 24
+  (`.nvmrc`, `engines: 24.x`), pnpm 10.28.0. TypeScript 5.7.3.
+- **Styling**: Tailwind CSS **v3**; UI from NextUI (`@nextui-org`), Headless UI,
+  Heroicons and `react-icons`.
+- **State**: Zustand stores in `app/stores/`; server data through React Query.
+- **Forms**: React Hook Form + Zod **v3**.
+- **i18n**: `next-intl`. **Theme**: `next-themes`. PDFs with `pdf-lib` and
+  `pdfjs-dist`, charts with `recharts`, spreadsheets with `xlsx`.
+- No auth library: `next-auth`, `bcrypt`, `mysql2`, `postgres` and `uuid` were
+  removed on 2026-10-02 as unused.
+
+## Installed Versions
+
+From `pnpm-lock.yaml`, checked on 2026-10-13. Query Context7 at these versions
+(root `AGENTS.md` § Up-to-date Documentation).
+
+- **`next`** 16.0.8 — App Router + Turbopack. React 19.1.1
+- **`@tanstack/react-query`** 5.90.11 — v5: `isPending`, single object in
+  `useQuery({...})`
+- **`zod`** 3.25.76 — ⚠️ v3, a different API from the v4 in `backend/`. The
+  range is `^3.25.17`: check the lockfile
+- **`next-intl`** 4.6.1 — v4 (see § i18n below)
+- **`tailwindcss`** 3.4.17 — **v3, not v4**: no `@import "tailwindcss"` or
+  `@theme`
+- **`zustand`** 5.0.8 — v5 without default selectors
+- **`react-hook-form`** 7.66.0 — with `@hookform/resolvers` 5.2.2 (breaking vs
+  3.x)
+- **`react-day-picker`** 9.11.1 — v9 renamed props and CSS vars
+- **`framer-motion`** 12.23.22 — v12 still publishes as `framer-motion`, but the
+  current upstream package is `motion`. Import from `framer-motion`, **never**
+  from `motion/react`
+- **`date-fns`** 4.1.0 — v4 adds the timezone system, changes imports from v2/v3
+- **`@nextui-org/react`** 2.6.11 — package `@nextui-org`, **not** the `@heroui`
+  rebrand
+- **`recharts`** 3.5.1 — v3 changed types and some defaults from v2
+- **`pdf-lib`** 1.17.1 — verify font/image embedding before use
+- **`pdfjs-dist`** 5.4.449 — worker configuration differs by major;
+  bundler-sensitive
+- **`xlsx`** 0.18.5 — outside the public npm registry; do not assume a newer API
+- **`typescript`** 5.7.3 — `backend/` runs 5.9.3
+
+## Commands
+
+```bash
+pnpm dev              # Next.js dev server with Turbopack (port 3000)
+pnpm build            # production bundle
+pnpm start            # production server
+pnpm lint             # ESLint
+pnpm typecheck        # tsc --noEmit
+pnpm format           # Prettier (format:check to only check)
+pnpm verify           # lint + format:check + typecheck — what CI runs
+```
+
+There is no test suite in `frontend/`.
+
+## Architecture
+
+```
+app/
+├── (auth)/          # login
+├── dashboard/       # protected routes, one folder per module
+├── components/      # UI per module (components/<module>/)
+├── lib/             # apiClient, serverFetch, env, auth/, and lib/<module>/
+├── stores/          # Zustand stores
+├── i18n/            # next-intl config and locale resolution
+└── ui/              # design system: dashboard shell, fonts, tokens, global.css
+messages/<locale>/   # translations, one JSON per namespace
+content/checklist/   # checklist guides rendered by the app
+proxy.ts             # route protection
+```
+
+- **Everything lives under `app/`** — there is **no `frontend/lib/`**; the
+  utilities directory is `app/lib/`.
+- **Server components by default.** `'use client'` only when the component has
+  interactivity, uses React hooks or browser APIs. Never `useState` in a server
+  component, never an `async` client component.
+- **Data fetching**: client components use React Query with
+  `app/lib/apiClient.ts`; server components use `app/lib/serverFetch.ts`. A few
+  modules also have server actions (`app/dashboard/<module>/actions/`,
+  `app/lib/parking/actions.ts`).
+- **Every call carries `credentials: 'include'`** — `apiClient` adds it, and
+  retries once through `/api/auth/refresh-token` on a 401.
+- **Environment**: all API URLs come from `app/lib/env.ts` —
+  `NEXT_PUBLIC_API_URL` (browser), `NEXT_SERVER_API_URL` (server, falls back to
+  the public one) and `NEXT_PUBLIC_DEMO_MODE`. Only `NEXT_PUBLIC_*` reaches the
+  browser.
+- **Forms**: React Hook Form + Zod; schemas live with their module
+  (`app/lib/<module>/`, plus `app/lib/schemas/` for groups).
+- **Theme**: `next-themes` (`app/lib/theme/ThemeProvider.tsx`) toggles the
+  `.dark` class on `<html>`.
+- **Fonts**: configured in `app/ui/fonts-design/`; the active set is
+  `ACTIVE_FONTS` in `fonts.helper.ts`, applied with `font-sans` and
+  `font-display`.
+
+### i18n
+
+`next-intl` v4 with locales `es` and `en`. The locale is resolved in
+`app/i18n/request.ts`: cookie `NEXT_LOCALE`, then Vercel's
+`x-vercel-ip-country`, then `Accept-Language`, default `es`. No `routing.ts` and
+no locale in the URL. Messages in `messages/<locale>/<namespace>.json`.
+
+## Authentication and Route Protection
+
+The contract with the backend is in the root `AGENTS.md`; here, the frontend
+side.
+
+- **`app/lib/auth/useAuth.tsx`** — the `AuthProvider` calls `GET /api/auth/me`
+  on mount; `useAuth()` (alias `useAuthContext`) gives `user`, `login`, `logout`
+  and `isAuthenticated`.
+- **`proxy.ts`** redirects by the presence and `exp` of the JWT cookie,
+  **without verifying it**; `app/dashboard/layout.tsx` redirects when
+  `useAuth()` has no user. Real enforcement is the backend's.
+- ⚠️ **There is no dev-mode auth bypass.** Older docs mentioned a `DEV_MODE`
+  flag and a `DashboardLayout` component: neither exists. Do not write code that
+  assumes auth can be skipped locally.
+- Role checks in the UI only hide navigation and screens.
+
+## Messaging
+
+No module doc yet. ⚠️ **There is no `app/dashboard/messages/` route**: the UI is
+a panel inside the profile page, `app/components/profile/MessagesPanel.tsx`,
+with hooks and queries in `app/lib/messaging/`. The backend side is in
+`backend/AGENTS.md` § Messaging.
+
+## Module Docs
+
+Read the module's `AGENTS.md` before touching it. Where the backend has its own
+doc, it is listed after the `·`.
+
+- **Scheduling** —
+  [`app/components/scheduling/`](app/components/scheduling/AGENTS.md) · backend:
+  `backend/services/scheduling/`, solver: `backend/scheduling-solver/`
+- **Parking** (the responsive reference) —
+  [`app/dashboard/parking/`](app/dashboard/parking/AGENTS.md) · backend:
+  `backend/services/parking/`
+- **Cashier** — [`app/components/cashier/`](app/components/cashier/AGENTS.md) ·
+  backend: `backend/services/cashier/`
+- **Group Tracking** —
+  [`app/components/groups/`](app/components/groups/AGENTS.md) · backend:
+  `backend/services/group/`
+- **Maintenance** (both sides) —
+  [`app/components/maintenance/`](app/components/maintenance/AGENTS.md)
+
+These modules keep a single doc in `backend/` that covers their UI too:
+
+- **Checklist** (UI in `app/components/checklist/`, guides in
+  `content/checklist/`) — `backend/services/checklist/AGENTS.md`
+- **Logbook** (UI in `app/components/logbooks/`, route `app/dashboard/logbooks/`
+  — plural here, singular in the backend) — `backend/services/logbook/AGENTS.md`
+- **F&B / Restaurant** (UI in `app/components/restaurant/`) —
+  `backend/services/fnb/AGENTS.md`
+- **Backoffice** (UI in `app/components/bo/`) —
+  `backend/services/backoffice/AGENTS.md`
+- **Blacklist** (UI in `app/components/blacklist/`) —
+  `backend/services/blacklist/AGENTS.md`

@@ -119,9 +119,14 @@ _Global skills in `~/.claude/skills/` are the machine's, not the project's._
 <!-- layer1:end -->
 
 `backend/` is one of two independent pnpm projects inside the `Four-Points` repo
-(the other is `frontend/`). The root `AGENTS.md` holds the rules shared by both
-— commits, security, Context7, DB migrations — and is loaded through the root
-`CLAUDE.md`.
+(the other is `frontend/`). The root [`AGENTS.md`](../AGENTS.md) holds what both
+share — Context7 policy, Markdown formatting, commits and hooks, the security
+level, the frontend ↔ backend contract and the module map — and is loaded
+through the root `CLAUDE.md`. OpenCode started inside `backend/` loads only this
+file: read the root one too.
+
+This file also covers the stack, commands, architecture and module docs of
+`backend/`. Paths are relative to `backend/` unless they start with `frontend/`.
 
 ## Exceptions
 
@@ -166,3 +171,146 @@ Paths below are relative to `backend/`.
 
 - **A prompt that asks for several tasks at once** → work them **one at a
   time**, each with the context specific to it, when the work touches code.
+
+## Stack
+
+- **Express 5.1.0** on Node 22 (`.nvmrc`, `engines: 22.x`), pnpm 10.28.0.
+- **TypeScript 5.9.3**, ES modules (`"type": "module"`), run directly by **tsx**
+  — no compile step. `pnpm build` only creates the Python venv for the
+  scheduling solver; it is Render's build command.
+- **MySQL** through `mysql2`, against a local DB or Aiven (cloud).
+- **Zod 4** for validation, **Vitest** for tests, **pino** for logs.
+- **Cloudinary** for images and PDFs. No email sending: `email-service.ts` and
+  `nodemailer` were removed on 2026-10-02.
+
+## Installed Versions
+
+From `pnpm-lock.yaml`, checked on 2026-10-13. Query Context7 at these versions
+(root `AGENTS.md` § Up-to-date Documentation).
+
+- **`express`** 5.1.0 — v5: async errors automatic, path-to-regexp 8,
+  `req.query` getter
+- **`zod`** 4.0.5 — ⚠️ v4, a different API from the v3 in `frontend/`
+- **`cloudinary`** 2.8.0 — SDK v2, API different from v1 in most examples
+- **`multer`** 2.0.2 — v2 breaks from the 1.x in common examples
+- **`pdf-parse`** 1.1.1 — **pinned to v1** (v2 → OOM on Render). See
+  `services/fnb/AGENTS.md`
+- **`vitest`** 4.0.16 — mock API and `environment` different from v1/v2
+- **`typescript`** 5.9.3 — `frontend/` runs 5.7.3
+
+Lower risk, but verify when touched: `node-cron` 4.2.1, `express-rate-limit`
+8.2.1, `helmet` 8.1.0, `pino` 10.3.1, `archiver` 7.0.1, `mysql2` 3.14.2,
+`jsonwebtoken` 9.0.2.
+
+## Commands
+
+```bash
+pnpm dev              # tsx watch; DB from DB_ENVIRONMENT (default local)
+pnpm dev:local        # local MySQL
+pnpm dev:aiven        # Aiven cloud DB
+pnpm start            # without watch
+pnpm setup:local      # fresh local install: tables, first admin, departments, mock data
+pnpm typecheck        # tsc --noEmit
+pnpm lint             # ESLint
+pnpm format           # Prettier (format:check to only check)
+pnpm test             # all tests with Vitest (test:watch, test:coverage)
+pnpm test:corpus      # scheduling corpus only
+pnpm verify           # lint + format:check + typecheck + test — what CI runs
+```
+
+The port comes from `PORT` (4000 in `.env.example`; the code falls back to
+3000). `demo:user`, `demo:user:aiven` and `seed:scheduling:export` are one-off
+scripts in `scripts/`.
+
+## Architecture
+
+```
+index.ts → routes → controllers → services → repositories → models
+                         ↓
+                    validations (Zod)
+```
+
+- **Imports use the `.js` extension** even for `.ts` files:
+  `import { x } from './file.js'`, never `'./file'`.
+- **One folder per domain in each layer**: `routes/<domain>/`,
+  `controllers/<domain>/`, `services/<domain>/`, `repositories/<domain>/`,
+  `validations/`, `models/<domain>/`.
+- **Database**: the pool is in `config/db.ts`; `config/db-config.ts` picks the
+  connection by `DB_ENVIRONMENT` (`local` by default, or `aiven`). Transactions
+  through `config/transaction.ts`.
+- **Errors**: Express 5 forwards async errors to the global handler in
+  `index.ts`; module-specific codes in `config/error-codes.ts`.
+- **CORS** (`config/cors.ts`): a fixed list of origins — `localhost:3000`
+  outside production, the production and Vercel domains — plus `FRONTEND_URL`.
+  Credentials enabled. It is also the CSRF defence: any other origin gets a 403
+  before reaching a route.
+- **Cron jobs**: `services/cron/cron-service.ts`, started from `index.ts`.
+- **Tests**: Vitest, in `tests/`, one folder per domain.
+
+## Authentication
+
+The contract with the frontend is in the root `AGENTS.md`; here, where it lives.
+
+- **JWT** (`jsonwebtoken`), signed with `SECRET_JWT_KEY`, stateless — no DB
+  lookup per request. The cookies are set in
+  `controllers/auth/auth-controllers.ts`; `COOKIE_DOMAIN` applies only in
+  production.
+- **`middlewares/authenticateToken.ts`** reads the `access_token` cookie
+  (`Authorization: Bearer` as fallback), verifies it and then runs
+  `demoRestriction`.
+- **Roles** are enforced in `middlewares/roleCheck.ts` (`canManageGroups`,
+  `canAccessFnb`…). Object-level checks live in controllers and in the `WHERE`
+  clauses of `repositories/`.
+- **Demo** (ADR-038): only with `DEMO_MODE=true`. The account is an admin with
+  `users.is_demo = 1`, carried in the token; `middlewares/demoRestriction.ts`
+  blocks what the demo must not touch, and a route that writes outside what the
+  daily reset restores needs its own `denyDemo` / `denyDemoWrites` guard. There
+  is no `demo-admin` role any more.
+- **Never reintroduce** `express-session`, `req.session` or a `sessions` table:
+  they were planned once and dropped.
+
+## Database
+
+- Database `hotel_db`, local and on Aiven — **both have data**.
+- ⚠️ **Never** run `MASTER_INSTALL*.sql` or `db-mysql/aiven/NN_*.sql` against
+  them: first-install scripts only. A fresh install is `pnpm setup:local`.
+- Any schema change goes in a new idempotent `db-mysql/scripts/YYYYMMDD_*.sql`,
+  applied to local and Aiven, plus a row in the "Migraciones incrementales"
+  table of `db-mysql/INDEX.md`.
+- Policy, schema overview, roles and backups:
+  [`db-mysql/AGENTS.md`](db-mysql/AGENTS.md). Read it before touching any table.
+
+## Messaging
+
+No module doc yet. Internal messages between staff: `controllers/messages/`,
+`repositories/messages/` (object-level authorization in the queries) and
+`routes/messages/messages-routes.ts`. The UI side is in `frontend/AGENTS.md` §
+Messaging.
+
+## Module Docs
+
+Read the module's `AGENTS.md` before touching it. Where the UI has its own doc,
+it is listed after the `·`.
+
+- **Scheduling** (TS validator, constraints, endpoints) —
+  [`services/scheduling/`](services/scheduling/AGENTS.md) · UI:
+  `frontend/app/components/scheduling/`
+- **Scheduling solver** (Python, CP-SAT daemon) —
+  [`scheduling-solver/`](scheduling-solver/AGENTS.md)
+- **Parking** — [`services/parking/`](services/parking/AGENTS.md) · UI:
+  `frontend/app/dashboard/parking/`
+- **Cashier** — [`services/cashier/`](services/cashier/AGENTS.md) · UI:
+  `frontend/app/components/cashier/`
+- **Group Tracking** — [`services/group/`](services/group/AGENTS.md) · UI:
+  `frontend/app/components/groups/`
+- **Checklist** (both sides, JSON sync rule) —
+  [`services/checklist/`](services/checklist/AGENTS.md)
+- **Logbook** (both sides) — [`services/logbook/`](services/logbook/AGENTS.md)
+- **F&B / Restaurant** (both sides) — [`services/fnb/`](services/fnb/AGENTS.md)
+- **Backoffice** (both sides) —
+  [`services/backoffice/`](services/backoffice/AGENTS.md)
+- **Blacklist** (both sides) —
+  [`services/blacklist/`](services/blacklist/AGENTS.md)
+- **DB / Migrations** — [`db-mysql/`](db-mysql/AGENTS.md)
+- **Maintenance** — its backend side is documented with the UI, in
+  `frontend/app/components/maintenance/AGENTS.md`
