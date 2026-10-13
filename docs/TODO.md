@@ -304,8 +304,9 @@ preview.
       — registro de auditoría de seguridad, 2FA opcional para `admin`, log
       estructurado de los eventos de login y errores genéricos que no dejen
       averiguar si un usuario existe.
-- [ ] **Subir el backend a Node 24** — producción va en 22 (Render, 22.23.3 vía
-      `.nvmrc` raíz) y el frontend ya en 24 (Vercel). Cambiar `backend/.nvmrc`,
-      el `.nvmrc` raíz que lee Render y `engines` a `24.x`, y probarlo antes en
-      preview (pdf-parse v1, solver, cron). _Comprobado en los logs de Render y
-      Vercel el 2026-10-12._
+- [ ] **Subir el backend a Node 24** — producción va en 22 (Render, 22.23.3) y
+      el frontend ya en 24 (Vercel). Desde f934b4d Render lee `backend/.nvmrc`,
+      no el `.nvmrc` raíz, que ya no usan ni Render ni CI. Cambiar
+      `backend/.nvmrc` y `engines` a `24.x`, y probarlo antes en preview
+      (pdf-parse v1, solver, cron). _Comprobado en los logs de Render y Vercel
+      el 2026-10-12, y en el deploy preview de 72b5d3c el 2026-10-13._
