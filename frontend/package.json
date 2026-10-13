@@ -11,7 +11,8 @@
     "lint": "eslint . --ext .js,.ts,.jsx,.tsx",
     "typecheck": "tsc --noEmit",
     "format": "prettier --write .",
-    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx}\""
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx}\"",
+    "verify": "pnpm run lint --max-warnings=0 && pnpm run format:check && pnpm run typecheck"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.9",
