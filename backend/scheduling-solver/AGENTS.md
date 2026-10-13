@@ -133,8 +133,9 @@ passed for convenience (avoids re-extracting them from `input`).
   `rest.py` **explicitly skips** these "doomed" windows — validating the
   previous month is the previous month's responsibility. Full reasoning in
   `docs/scheduling/decisions.md` (entry 2026-05-20). Outstanding debt, drift
-  with the TS validator: its H4 adds the previous month's streak without this
-  exemption, and its H5 only checks windows inside the month. See
+  with the TS validator: the live one checks H4 and H5 only inside the month
+  (and H5 as a warning), so cross-month windows are enforced here and not there.
+  Details in `backend/services/scheduling/AGENTS.md` § "Cross-month gotcha". See
   `docs/scheduling/constraints.md §H5`.
 
 - **H6 libres.** The monthly minimum is reduced by the number of locked
