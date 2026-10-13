@@ -57,15 +57,15 @@ Validated by the frontend Zod schema (`reportSchema.refine()` in
 
 ```
 backend/controllers/maintenance/
-   └── maintenance-controller.ts        (753 lines — class with static methods
+   └── maintenance-controller.ts        (~740 lines — class with static methods
                                           MaintenanceController.getAll, create, etc.)
 
 backend/repositories/maintenance/
-   └── maintenance-repository.ts        (970 lines — all module SQL;
+   └── maintenance-repository.ts        (~1050 lines — all module SQL;
                                           includes images and history)
 
 backend/routes/maintenance/
-   └── maintenance-routes.ts            (155 lines — 14 routes)
+   └── maintenance-routes.ts            (160 lines — 16 routes)
 
 backend/validations/maintenance/
    └── schemas.ts                       (Zod schemas: create, update, status, priority,
@@ -78,7 +78,7 @@ frontend/app/dashboard/maintenance/
    └── actions/getMaintenance.ts        (server action for SSR)
 
 frontend/app/components/maintenance/
-   ├── MaintenanceListClient.tsx        (766 lines — list with filters and modals)
+   ├── MaintenanceListClient.tsx        (~780 lines — list with filters and modals)
    ├── ReportDetailClient.tsx           (124 lines — detail wrapper)
    ├── hooks/useMaintenanceList.ts      (185 lines — React Query with keys factory)
    ├── layout/
@@ -86,9 +86,9 @@ frontend/app/components/maintenance/
    │   └── TabNavigation.tsx
    ├── panels/
    │   ├── CreateReportPanel.tsx        (359 lines — create form)
-   │   └── EditReportPanel.tsx          (454 lines — edit form)
+   │   └── EditReportPanel.tsx          (~460 lines — edit form)
    ├── tabs/
-   │   ├── DetailTab.tsx                (634 lines — main tab of the detail view)
+   │   ├── DetailTab.tsx                (~660 lines — main tab of the detail view)
    │   └── HistoryTab.tsx               (166 lines — change history)
    └── shared/                          (EmptyState, LoadingSpinner)
 
@@ -116,6 +116,8 @@ frontend/app/lib/maintenance/
 - `DELETE /api/maintenance/:id` — Soft delete
 - `PATCH /api/maintenance/:id/restore` — Restore
 - `GET /api/maintenance/:id/images` — List images
+- `GET /api/maintenance/:id/images/:imageId/file` — Serve one image (private
+  file, through the backend)
 - `POST /api/maintenance/:id/images` — Upload image (multipart, 5 MB max)
 - `DELETE /api/maintenance/:id/images/:imageId` — Delete image
 - `GET /api/maintenance/:id/history` — Change history
@@ -124,9 +126,13 @@ frontend/app/lib/maintenance/
 `canAccessMaintenance`. This middleware **lets the mantenimiento role in** —
 unlike most modules that exclude it.
 
-**Images:** multer in-memory + Cloudinary. Hard cap of 5 MB per file in the
-multer middleware. Accepted types: jpeg, png, webp, gif (by client-declared
-mimetype).
+**Images:** `requireStorage` (answers first when Cloudinary is not configured)
+
+- `singleImage('image')` from `middlewares/imageUpload.ts` (multer in-memory, 5
+  MB, jpeg/png/webp/gif by client-declared mimetype) + Cloudinary. Uploads are
+  **private** (`authenticated`) since 2026-10-04: the browser never gets a
+  Cloudinary URL, it asks `/:id/images/:imageId/file` and the backend fetches
+  and sends the file (`services/uploads/private-files.ts`).
 
 ## Class-based controller pattern
 
@@ -152,19 +158,19 @@ Every important change is logged with one of these `action` values:
 Visible in `HistoryTab.tsx`. **Rule:** any mutation that touches the report's
 status or assignment must go through the repo via a call that also writes to
 `maintenance_history`. If you add a new mutation, make sure it logs; if the
-`action` doesn't fit the existing set, extend the enum on the TS side and on the
-DB side (CHECK constraint). **Uploading or deleting images is NOT written to
-`maintenance_history`.**
+`action` doesn't fit the existing set, extend the type on the TS side and the
+`action` ENUM column on the DB side (with a migration). **Uploading or deleting
+images is NOT written to `maintenance_history`.**
 
 ## Frontend — patterns
 
-### `useMaintenanceList(filters, page, limit, initialData, messages)`
+### `useMaintenanceList({ filters, page, limit, initialData, messages })`
 
-List orchestrator hook. Takes `initialData` from SSR (for first paint with no
-spinner) and only uses it when no filters are active — once the user filters,
-the server cache is discarded and a fresh fetch runs. Same `messages` injection
-pattern as logbook: i18n toasts are passed in from the container so the hook
-stays i18n-agnostic.
+List orchestrator hook (`page` 1 and `limit` 100 by default). Takes
+`initialData` from SSR (for first paint with no spinner) and only uses it when
+no filters are active — once the user filters, the server cache is discarded and
+a fresh fetch runs. Same `messages` injection pattern as logbook: i18n toasts
+are passed in from the container so the hook stays i18n-agnostic.
 
 ### `maintenanceKeys` factory
 
@@ -173,6 +179,9 @@ maintenanceKeys.list(filters) // ['maintenance', 'list', filters]
 maintenanceKeys.detail(id) // ['maintenance', 'detail', id]
 maintenanceKeys.stats() // ['maintenance', 'stats']
 ```
+
+It lives in `hooks/useMaintenanceList.ts`, with `lists()` and `details()` as the
+prefixes to invalidate.
 
 Unlike parking (which has no factory), there's one here because the invalidation
 hierarchy is more complex (editing a report has to invalidate both its detail
@@ -184,7 +193,7 @@ and any lists containing it).
 `HistoryTab`). The URL preserves the active tab in the query string so F5 keeps
 the view.
 
-`DetailTab.tsx` (634 lines) is the bulk of the detail UI: header, description,
+`DetailTab.tsx` (~660 lines) is the bulk of the detail UI: header, description,
 location, assignment, image preview gallery, inline actions to change
 status/priority/assignment, resolution-notes form.
 
@@ -199,7 +208,7 @@ any field within permissions. Both validate against the same `reportSchema` Zod
 
 `canAccessMaintenance` allows:
 
-- `admin`, `group-admin`, `demo-admin`
+- `admin`, `group-admin`
 - `recepcionista`
 - **`mantenimiento`** (this is the module they do enter)
 
@@ -218,15 +227,18 @@ for mantenimiento is key.
 3. **`closed` status is final in the UI, but not in the backend.** The UI
    doesn't expose a reopen from `closed`, but the API allows it. If you need a
    reopen in the UI, add it; check `maintenance_history.action` for coherence.
-4. **`DetailTab.tsx` at 634 lines and `MaintenanceListClient.tsx` at 766
+4. **`DetailTab.tsx` at ~660 lines and `MaintenanceListClient.tsx` at ~780
    lines.** On the radar for split if they grow more, not urgent.
-5. **Image upload capped at 5 MB.** Hardcoded in the multer config in
-   `routes/maintenance/maintenance-routes.ts`. Accepted types: jpeg, png, webp,
-   gif. If the requirement changes, adjust there.
+5. **Image upload capped at 5 MB.** `MAX_IMAGE_BYTES` and `IMAGE_MIME_TYPES` in
+   `middlewares/imageUpload.ts`, shared with the other image uploads. Accepted
+   types: jpeg, png, webp, gif. If the requirement changes, adjust there — it
+   changes every module that uses it.
 
 ## Cross references
 
 - `backend/middlewares/roleCheck.ts → canAccessMaintenance` — the allowed roles.
 - `backend/services/blacklist/cloudinary-service.ts` — the Cloudinary helper
   this module also uses for image uploads.
+- `backend/services/uploads/private-files.ts` — fetching and sending the private
+  files.
 - `frontend/app/lib/maintenance/maintenance.ts` — all types and enums.
