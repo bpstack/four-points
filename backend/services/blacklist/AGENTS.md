@@ -13,19 +13,19 @@ rules and module map.
 
 Registry of individuals banned from the hotel. Each entry records the person's
 name, document type and number (DNI/Passport/NIE/Other), the stay dates, the
-reason for the ban, a severity, up to five photos (Cloudinary URLs in a JSON
-array), free-text comments, and a full audit trail of all changes. Entries can
-be soft-deleted and later restored. All users except `mantenimiento` can read
-the list; creating, editing, and deleting requires authentication.
+reason for the ban, a severity, up to five photos (API paths in a JSON array),
+free-text comments, and a full audit trail of all changes. Entries can be
+soft-deleted and later restored. All users except `mantenimiento` can read the
+list; creating, editing, and deleting requires authentication.
 
 ## DB table — `blacklist_entries`
 
 Single table (`backend/db-mysql/aiven/12_blacklist.sql`): `id`, `guest_name`,
 `document_type` (enum: DNI/PASSPORT/NIE/OTHER), `document_number`,
 `check_in_date`, `check_out_date`, `reason`, `severity` (enum:
-LOW/MEDIUM/HIGH/CRITICAL), `comments`, `images` (JSON array of Cloudinary URLs;
-since 2026-10-02 only URLs of our cloud inside `blacklist/` are accepted),
-`status` (enum: ACTIVE/DELETED — the soft delete), `deleted_at`, `deleted_by`,
+LOW/MEDIUM/HIGH/CRITICAL), `comments`, `images` (JSON array of API paths,
+`/api/blacklist/images/<file>`; the validation accepts nothing else), `status`
+(enum: ACTIVE/DELETED — the soft delete), `deleted_at`, `deleted_by`,
 `created_by`, `created_at`, `updated_at`, `audit_trail` (JSON array of
 `AuditEntry` objects).
 
@@ -37,13 +37,18 @@ the array. There is no separate history table.
 
 ```
 backend/controllers/blacklist/
-└── blacklist-controller.ts    (517 lines)
+└── blacklist-controller.ts    (~520 lines)
 
 backend/repositories/blacklist/
-└── blacklist-repository.ts    (565 lines — includes audit trail management)
+└── blacklist-repository.ts    (~560 lines — includes audit trail management)
 
 backend/services/blacklist/
-└── cloudinary-service.ts      (shared with backoffice — Cloudinary upload/delete)
+└── cloudinary-service.ts      (shared Cloudinary upload/delete/private delivery)
+
+backend/services/uploads/
+├── blacklist-images.ts        (photo file name ↔ API path)
+├── image-signature.ts         (checks the file's bytes are an image)
+└── private-files.ts           (fetch and send private files)
 
 backend/routes/blacklist/blacklist-routes.ts
 backend/validations/blacklist/schemas.ts   (Zod — createBlacklistSchema, updateBlacklistSchema, blacklistFiltersSchema)
@@ -77,18 +82,24 @@ export, consider streaming rows rather than loading all at once.
 
 Images are uploaded in two steps:
 
-1. `POST /api/blacklist/upload` — uploads the file to Cloudinary via
-   `CloudinaryService`. Returns `{ url, publicId }`. Frontend calls this before
-   saving the entry.
-2. The frontend collects the returned URLs/publicIds and includes them in the
-   `images` array when calling `POST /` or `PATCH /:id`.
+1. `POST /api/blacklist/upload` — checks the bytes are an image (5 MB max) and
+   uploads it to Cloudinary as a **private** file via `CloudinaryService`.
+   Returns `{ url, secure_url, public_id, ... }`, where `url` is the API path
+   `/api/blacklist/images/<file>`, never a Cloudinary URL. Frontend calls this
+   before saving the entry.
+2. The frontend collects the returned paths and includes them in the `images`
+   array when calling `POST /` or `PATCH /:id`.
+3. `GET /api/blacklist/images/:file` builds the signed URL on the server and
+   sends the file, so the signature never reaches the browser. Photos uploaded
+   before 2026-10-04 were migrated by `scripts/migrate-private-files.ts`.
 
 Removing a photo before saving only drops it from the form: the file stays in
 Cloudinary (there is no delete endpoint, see "Route order" below).
 
 **Important:** `CloudinaryService` is in
-`backend/services/blacklist/cloudinary-service.ts` and is also imported by the
-backoffice module. Do not move or rename it without updating both importers.
+`backend/services/blacklist/cloudinary-service.ts` and is also imported by auth
+(avatars), backoffice, maintenance and checklist. Do not move or rename it
+without updating every importer.
 
 ## Soft delete / restore
 
@@ -111,40 +122,43 @@ backoffice module. Do not move or rename it without updating both importers.
 - **PATCH** `/api/blacklist/:id` — all · Update entry
 - **DELETE** `/api/blacklist/:id` — all · Soft delete
 - **PATCH** `/api/blacklist/:id/restore` — all · Restore soft-deleted entry
-- **POST** `/api/blacklist/upload` — all · Upload image to Cloudinary
+- **POST** `/api/blacklist/upload` — all · Upload image (private) to Cloudinary
+- **GET** `/api/blacklist/images/:file` — all · Serve one photo
 
 All routes sit behind `authenticateToken` + `excludeMantenimiento`. No
 admin-only mutations — any authenticated non-maintenance user can create, edit,
 and delete entries.
 
-**Route order:** `POST /upload` is declared **before** the `/:id` routes so
-Express does not match `upload` as an ID parameter. There is no endpoint to
-delete an uploaded image: `DELETE /upload/:publicId` had no caller and was
-removed on 2026-10-02.
+**Route order:** `POST /upload`, `GET /images/:file` and `GET /stats` are
+declared **before** the `/:id` routes so Express does not match them as an ID
+parameter. There is no endpoint to delete an uploaded image:
+`DELETE /upload/:publicId` had no caller and was removed on 2026-10-02.
 
 ## Frontend layout
 
 ```
 app/dashboard/blacklist/
-├── page.tsx              ← list page
+├── page.tsx              ← list page (+ error, loading, not-found)
 ├── new/page.tsx          ← create form
 ├── [id]/page.tsx         ← detail page
-└── [id]/edit/page.tsx    ← edit form (with not-found.tsx)
+├── [id]/edit/page.tsx    ← edit form (with not-found.tsx)
+└── actions/              ← server actions: create, update, delete, getById
 
 app/components/blacklist/
-├── BlacklistDetailClient.tsx      ← detail orchestrator (323 lines)
+├── BlacklistDetailClient.tsx      ← detail orchestrator (335 lines)
 ├── mains/
-│   ├── BlacklistForm.tsx          ← shared create/edit form (435 lines)
-│   ├── ImageGallery.tsx           ← photo display + delete (339 lines)
+│   ├── BlacklistForm.tsx          ← shared create/edit form (436 lines)
+│   ├── ImageGallery.tsx           ← photo display + delete (344 lines)
 │   ├── AuditTrail.tsx             ← renders the JSON audit trail (308 lines)
 │   └── DeleteButton.tsx           (56 lines)
 ├── panels/
 │   ├── CreateBlacklistPanel.tsx   ← slide-in create panel (418 lines)
-│   └── EditBlacklistPanel.tsx     ← slide-in edit panel (563 lines — largest)
+│   └── EditBlacklistPanel.tsx     ← slide-in edit panel (564 lines — largest)
 ├── layout/
 │   └── BlacklistDetailSummaryPanel.tsx  (157 lines)
 └── ui/
-    └── ImageUploader.tsx          ← handles Cloudinary upload flow (287 lines)
+    ├── ImageUploader.tsx          ← handles the upload flow (287 lines)
+    └── Highlight.tsx              ← highlights the search term in results
 
 app/lib/blacklist/
 ├── blacklistApi.ts   ← all HTTP calls
@@ -156,7 +170,7 @@ app/lib/blacklist/
 ## Known gotchas
 
 1. **Two-step image upload.** The image is uploaded to Cloudinary first
-   (`POST /upload`), then the returned URL/publicId is included in the entry
+   (`POST /upload`), then the returned API path is included in the entry
    payload. If the user cancels after uploading, the image stays in Cloudinary
    orphaned. There is no cleanup job for orphaned images — they accumulate until
    manually purged from the Cloudinary dashboard.
@@ -164,7 +178,7 @@ app/lib/blacklist/
    entry. For long-lived entries with many edits, this column can grow large.
    Currently there is no truncation. If you notice slow queries on
    heavily-edited entries, consider offloading history to a separate table.
-3. **`EditBlacklistPanel` is 563 lines.** It handles the full edit form
+3. **`EditBlacklistPanel` is 564 lines.** It handles the full edit form
    including image management and audit trail display. If adding non-trivial
    features, extract subcomponents first.
 4. **`CloudinaryService` shared with backoffice.** Lives in
@@ -179,7 +193,8 @@ app/lib/blacklist/
 - `backend/repositories/blacklist/blacklist-repository.ts` — audit trail append
   logic, soft delete, restore.
 - `backend/services/blacklist/cloudinary-service.ts` — Cloudinary upload/delete
-  (shared with backoffice).
+  (shared with auth, backoffice, maintenance and checklist).
+- `backend/services/uploads/blacklist-images.ts` — photo name ↔ API path.
 - `backend/db-mysql/aiven/12_blacklist.sql` — frozen schema.
 - `frontend/app/lib/blacklist/blacklistApi.ts` — client-side API calls.
 - `frontend/app/components/blacklist/ui/ImageUploader.tsx` — two-step Cloudinary
