@@ -931,3 +931,42 @@
 - **Rechazado:** implantar la capa 1 solo en el `AGENTS.md` raíz. El generador
   no ve ahí gestor de paquetes (`manager none`), y las reglas de cada
   subproyecto acabarían mezcladas en un solo fichero.
+
+## ADR-043 — Los `AGENTS.md` se organizan en tres niveles enlazados
+
+- **Estado:** ✅ aceptada (2026-10-13)
+- **Fecha:** 2026-10-13
+- **Decisión:**
+  - El `AGENTS.md` raíz se queda con lo común: Context7, formato Markdown,
+    commits y hooks, el nivel de seguridad, el contrato entre frontend y backend
+    y el mapa de módulos. Stack, versiones instaladas, comandos y arquitectura
+    de cada lado pasan a `backend/AGENTS.md` y `frontend/AGENTS.md`, que ya
+    tenían sus áreas de seguridad.
+  - La sección de Scheduling del raíz se borra sin moverla: estaba entera en los
+    tres `AGENTS.md` del módulo.
+  - Los enlaces son explícitos en los tres sentidos: el raíz enlaza a los
+    subproyectos y a los módulos; cada subproyecto lista sus módulos; cada
+    módulo abre con una línea **Up** a su subproyecto (a los dos, si cubre ambos
+    lados) y al raíz, y enlaza a su pareja del otro lado.
+  - Los enlaces entre documentos apuntan a `AGENTS.md`, no al `CLAUDE.md` de una
+    línea que lo importa.
+  - Clientes soportados: Claude Code y OpenCode. Codex sale del `AGENTS.md` raíz
+    porque el propietario no lo usa.
+- **Motivo:** OpenCode solo carga el primer `AGENTS.md` que encuentra subiendo
+  desde donde arranca (comprobado en su documentación el 2026-10-13): arrancado
+  en `backend/` no ve el raíz, y arrancado en la raíz no ve ningún otro. Sin
+  enlaces, cada nivel queda aislado. Claude Code los carga por directorio
+  (ADR-042), pero los enlaces también le dicen qué leer cuando una tarea cruza
+  de un lado a otro.
+- **Consecuencias:**
+  - Un módulo nuevo se añade en dos listas: el mapa del raíz y la de su
+    subproyecto (o las dos, si cubre ambos lados). Lo dice «Adding a New Module»
+    del raíz.
+  - Al repartir se corrigió lo que había caducado en el raíz: el rol
+    `demo-admin` y el usuario demo desactivado (ADR-038), el pool en
+    `config/config.ts` (está en `config/db.ts`), el patrón de previews de Vercel
+    en CORS (no existe), `mysql2` en el frontend y los `debug-*.js` de
+    scheduling, que no existen.
+- **Rechazado:** copiar en cada nivel lo de los niveles de arriba. Se
+  desincroniza, y la capa 1 del harness ya repite en cada subproyecto lo que no
+  puede faltar (commits, push, Context7).

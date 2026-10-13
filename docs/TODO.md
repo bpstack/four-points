@@ -113,11 +113,6 @@ preview.
       aún sin estrenar. _Comprobado el 2026-09-28 en local y Aiven:
       `event_scheduler=ON` y el evento está `ENABLED` (última ejecución en
       Aiven: 2026-09-27)._
-- [ ] **Implantar el harness en `frontend/`** — como en `backend/` (ADR-042):
-      `/init-project` apuntando a `frontend/`, sin crear `frontend/docs/`, con
-      la excepción de las reglas 12 y 13 y `npx autoskills --dry-run`. Después,
-      repartir el `AGENTS.md` raíz: lo común se queda, lo de cada subproyecto va
-      a su `AGENTS.md`, también las áreas de `## Security`.
 - [ ] **Fechas y «hoy» dependen de la zona horaria de cada pieza** — navegador
       en Madrid, Node en la del proceso (Madrid en local; Render sin comprobar,
       UTC si no tiene `TZ`) y MySQL en la suya (Madrid en local; Aiven en UTC,
