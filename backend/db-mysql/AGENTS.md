@@ -17,19 +17,27 @@ idempotent, registered in `INDEX.md`. Nothing else.
 ```
 backend/db-mysql/
 ├── aiven/             # FROZEN baseline snapshot (2026-05-20). Never edit.
-│   ├── 01_create_database.sql … 19_scheduling.sql
+│   ├── 01_create_database.sql … 20_checklist.sql
 │   └── 99_verification.sql
 ├── scripts/           # Incremental migrations — the single source of truth
 │   ├── 20251220_add_backoffice.sql
 │   ├── 20251222_add_user_avatar_columns.sql
 │   ├── … (chronological order)
-│   └── apply-migration.sh  # Applies one migration to local or Aiven
-├── backup/            # DB dumps (local + Aiven)
+│   ├── apply-migration.sh  # Applies one migration to local or Aiven
+│   ├── local-env.sh        # Local credentials from backend/.env, sourced by the others
+│   ├── backup-local.sh     # Dumps the local DB into backup/
+│   ├── check-collation.sh  # Shows the local DB collation
+│   └── recreate-local.sh   # ⚠️ Drops the local DB and runs MASTER_INSTALL.sql only
+├── backup/            # DB dumps (local + Aiven), git-ignored; backup.ps1
 ├── MASTER_INSTALL.sql # Runs all aiven/ files in order. Empty DB only.
 ├── MIGRATIONS_POLICY.md
 ├── INDEX.md           # Full table index + incremental migration log
-└── mock-data.sql      # Clears module data and loads fictitious data (keeps users and scheduling)
+├── mock-data.sql      # Clears module data and loads fictitious data (keeps users and scheduling)
+└── scheduling-seed.sql # Demo scheduling base: employees, contracts, months
 ```
+
+`recreate-local.sh` predates `pnpm setup:local` and does less: no baseline
+fixes, no incremental scripts, no admin. Use `pnpm setup:local` instead.
 
 ## Migration policy (since 2026-05-20)
 
@@ -79,12 +87,19 @@ Reference implementation:
 ## Reconstruct from scratch
 
 ```bash
-# 1. Frozen baseline (snapshot 2026-05-20)
-mysql -u root -p < MASTER_INSTALL.sql
-
-# 2. All incrementals in chronological order
-for f in scripts/*.sql; do mysql -u root -p hotel_db < "$f"; done
+cd backend
+pnpm setup:local          # refuses a DB that is not local or already has tables
+pnpm setup:local -- --force   # drops an existing local hotel_db first
 ```
+
+`scripts/setup-local.ts` runs `MASTER_INSTALL.sql`, then only the incremental
+scripts from `20260521` on (the earlier ones are already in the baseline), then
+the departments, a local admin (`admin` / `fourpoints-local`),
+`scheduling-seed.sql` and `mock-data.sql`. Running `MASTER_INSTALL.sql` by hand
+fails: the frozen baseline has a duplicated key name in `cashier_history` and
+creates `scheduling_assignments` before the table it references. The script
+patches both in memory; `20261005_complete_fresh_install.sql` creates what the
+baseline leaves out.
 
 Idempotency guarantees applying all scripts twice leaves the DB intact.
 
@@ -119,15 +134,17 @@ cd backend/db-mysql/scripts
 mysql -h HOST -P PORT -u USER -p --ssl-ca=../config/certs/ca-certificate.pem hotel_db
 ```
 
-See `aiven/aiven-conexion.md` for connection details. SSL required.
+Host, port, user and password are the `AIVEN_DB_*` and `AIVEN_PASSWORD`
+variables of `backend/.env`. SSL required.
 
 ## DB at a glance
 
 - **Name:** `hotel_db`
 - **Engine:** MySQL 8.0+ (`utf8mb4_0900_ai_ci`)
-- **~50 tables + 3 views** across core, logbook, parking, conciliation, groups,
-  cashier, blacklist, maintenance, messages, notifications, backoffice,
-  scheduling, checklist, F&B.
+- **67 tables + 3 views** declared between the baseline and `scripts/`, across
+  core, logbook, parking, conciliation, groups, cashier, blacklist, maintenance,
+  messages, notifications, backoffice, scheduling, checklist, F&B and demo. The
+  demo also creates `demo_snapshot_scheduling_*` tables at runtime.
 - Full table list in `INDEX.md`.
 
 ### Roles
