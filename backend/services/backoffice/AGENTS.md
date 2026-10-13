@@ -43,7 +43,7 @@ multiple validated invoices as paid in a single operation.
 
 ```
 InvoiceStatus: 'pending' | 'validated' | 'rejected' | 'paid'
-AssetType:     (string — image type/mime)
+AssetType:     'stamp' | 'signature'
 ```
 
 `INVOICE_STATUS` constant maps each status to a display label.
@@ -52,11 +52,14 @@ AssetType:     (string — image type/mime)
 
 ```
 backend/controllers/backoffice/
-└── backoffice-controller.ts   (1863 lines — all domains: categories, suppliers,
-                                invoices, assets, stats, batch-pay, PDF upload/download/zip)
+├── backoffice-controller.ts   (~1960 lines — all domains: categories, suppliers,
+│                               invoices, assets, stats, batch-pay, PDF upload/download/zip)
+└── backoffice-files.ts        (swaps the signed Cloudinary URLs for the API paths
+                                that serve them before any invoice/asset leaves the API)
 
 backend/repositories/backoffice/
-└── backoffice-repository.ts   (960 lines)
+├── backoffice-repository.ts   (~990 lines)
+└── backoffice-columns.ts      (column lists)
 
 backend/routes/backoffice/backoffice-routes.ts
 backend/services/backoffice/   (this dir — documentation anchor, no service files yet)
@@ -71,33 +74,39 @@ PDF and asset uploads.
 
 ```
 created → pending
-pending → validated (isRealAdmin)    validated invoice appears in batch-pay previews
-        → rejected  (isRealAdmin)    adds rejection note to bo_invoice_history
-validated → paid    (isRealAdmin)    via markAsPaid or executeBatchPayment
-validated → unvalidated (isRealAdmin)  back to pending for correction
+pending → validated (isAdmin)    validated invoice appears in batch-pay previews
+        → rejected  (isAdmin)    adds rejection note to bo_invoice_history
+validated → paid    (isAdmin)    via markAsPaid or executeBatchPayment
+validated → pending (isAdmin)    unvalidate, for correction
+paid → validated    (isAdmin)    unpay (revertPayment) or the batch revert
 ```
 
-⚠️ This is the intended flow, **not enforced**: the backend does not check the
-current status, so a pending or rejected invoice can be paid and a paid one
-validated (see `docs/TODO.md`).
+**Enforced in the repository:** each `UPDATE` carries the status it starts from
+(`WHERE id = ? AND status = 'pending'`, `'validated'`, `'paid'`), so a
+transition from any other status changes nothing. Editing an invoice is also
+only possible while `pending`. Rejected invoices have no UI yet
+(`docs/TODO.md`).
 
 Every status change creates a row in `bo_invoice_history` with `changed_by`,
 `old_status`, `new_status`, and `notes`.
 
 ## PDF handling
 
-PDFs are uploaded to **Cloudinary** (not the server filesystem).
-`uploadInvoicePdf` uses `multer` (`upload.single('pdf')`) as middleware to
-receive the file, then streams it to Cloudinary via `CloudinaryService`. The
-`?type=original|validated` chooses the pair of columns: `original_pdf_url` /
-`original_pdf_public_id` or `validated_pdf_url` / `validated_pdf_public_id`.
-Replacing a PDF deletes the previous file (only ids inside
-`backoffice/invoices/`).
+PDFs are uploaded to **Cloudinary** (not the server filesystem) as **private**
+files. `POST /invoices/:id/pdf` runs `requireStorage` and
+`singleInvoicePdf('pdf')` from `middlewares/backofficeUpload.ts` (10 MB,
+`application/pdf` and real PDF bytes), then `uploadInvoicePdf` sends it to
+Cloudinary via `CloudinaryService`. The `?type=original|validated` chooses the
+pair of columns: `original_pdf_url` / `original_pdf_public_id` or
+`validated_pdf_url` / `validated_pdf_public_id`. Replacing a PDF deletes the
+previous file (only ids inside `backoffice/invoices/`).
 
-`downloadInvoicePdf` fetches the PDF from Cloudinary via `axios` and streams it
-to the response with `Content-Type: application/pdf`. This avoids storing the
-PDF on the server. Only URLs of our own cloud are fetched
-(`isOwnCloudinaryUrl`); any other stored URL answers 422.
+`downloadInvoicePdf` fetches the private PDF with `fetchStoredFile`
+(`services/uploads/private-files.ts`, `axios` inside) and sends it with
+`Content-Type: application/pdf`; the signed URL never leaves the server. Only
+URLs of our own cloud are fetched (`isOwnCloudinaryUrl`); any other stored URL
+answers 422. Stamps and signatures are served the same way by
+`GET /assets/:id/file`.
 
 **Deleting an invoice is a hard delete**: it removes its PDFs from Cloudinary,
 its `bo_invoice_history` rows and the invoice row. The `deleted_at` columns are
@@ -111,8 +120,9 @@ the response.
 
 `previewBatchPayment` returns the list of validated invoices that would be
 affected (grouped by supplier). `executeBatchPayment` marks them all as paid,
-logging each one to `bo_invoice_history`. Both endpoints are `isRealAdmin` only.
-A `revertBatchPayment` endpoint exists for undo (also with a preview).
+logging each one to `bo_invoice_history`; it needs `isAdmin` (the preview only
+the module access, which is admin anyway). A `revertBatchPayment` endpoint
+exists for undo (also with a preview).
 
 ## Role boundaries
 
@@ -128,27 +138,31 @@ admin: it cannot create categories or upload PDFs/assets (`denyDemo`,
 ## Frontend layout
 
 The frontend is **server-component-first** — initial data is fetched on the
-server in `page.tsx` and passed to client components as props. There are no
-React Query hooks; mutations go through `backofficeApi.ts` directly.
+server in `page.tsx` (one `Promise.all`) and passed to client components as
+props. The tabs then take over with React Query (`useQuery` with their own keys,
+invalidated after each mutation); mutations go through `backofficeApi.ts`.
 
 ```
 app/dashboard/bo/
 └── page.tsx            ← server component (fetches stats, categories, invoices, suppliers, assets)
     ├── StatsCards      ← summary KPI cards (114 lines)
-    ├── TabsNavigation  ← tab switcher: Pending / Paid / Suppliers / Assets (69 lines)
+    ├── TabsNavigation  ← tab switcher: pending / paid / suppliers / settings (69 lines)
     └── TabContent      ← renders the active tab content (105 lines)
 
 app/components/bo/
-├── StatsCards.tsx
-├── StatsCardsSkeleton.tsx
-├── TabsNavigation.tsx
-└── TabContent.tsx
+├── StatsCards.tsx, StatsCardsSkeleton.tsx, TabsNavigation.tsx, TabContent.tsx
+├── tabs/               ← PendingInvoicesTabLazy (~1140), PaidInvoicesTabLazy (~1010),
+│                         SuppliersTabLazy (~670), SettingsTabLazy (stamps/signatures)
+└── modals/             ← InvoiceFormModal, SupplierFormModal, SupplierInvoicesModal,
+                          PdfUploadModal, PdfViewerModal, PdfEditorModal (~1235 lines:
+                          places the stamp/signature on the PDF in the browser
+                          with pdf-lib, preview with pdfjs-dist)
 
 app/lib/backoffice/
-├── backofficeApi.ts    ← all HTTP calls via apiClient (528 lines)
-├── data.ts             ← server-side fetch helpers (used in page.tsx, 351 lines)
-├── types.ts            ← TypeScript types (352 lines)
-├── export-utils.ts     ← client-side export helpers (335 lines)
+├── backofficeApi.ts    ← all HTTP calls via apiClient (~530 lines)
+├── data.ts             ← server-side fetch helpers (used in page.tsx, ~340 lines)
+├── types.ts            ← TypeScript types (~325 lines)
+├── export-utils.ts     ← client-side export helpers (~335 lines)
 └── index.ts            ← barrel export
 ```
 
@@ -159,15 +173,15 @@ them.
 
 ## Known gotchas
 
-1. **`CloudinaryService` is shared with Blacklist.**
-   `backend/services/blacklist/cloudinary-service.ts` is imported by both the
-   blacklist module and the backoffice module. If you refactor or move that
-   service, update both importers.
-2. **PDF download proxied through the backend.** The frontend never talks to
-   Cloudinary directly — it calls
-   `GET /api/backoffice/invoices/:id/pdf-download` which proxies through the
-   backend. This hides Cloudinary credentials from the browser and allows auth
-   on the endpoint.
+1. **`CloudinaryService` is shared.**
+   `backend/services/blacklist/cloudinary-service.ts` is imported by blacklist,
+   backoffice, auth, maintenance and checklist. If you refactor or move that
+   service, update every importer.
+2. **Files proxied through the backend.** The frontend never talks to Cloudinary
+   directly — it calls `GET /api/backoffice/invoices/:id/pdf-download` or
+   `GET /assets/:id/file`. The files are private: the signed URL stays on the
+   server, and `backoffice-files.ts` replaces it with the API path in every
+   response.
 3. **ZIP download is streaming.** `downloadValidatedInvoicesZip` pipes to the
    response as it builds. Do not buffer the entire ZIP in memory — the current
    implementation uses `archiver`'s pipe correctly. Avoid large refactors that
@@ -188,10 +202,11 @@ them.
 
 - `backend/controllers/backoffice/backoffice-controller.ts` — all 35+ controller
   methods.
+- `backend/middlewares/backofficeUpload.ts` — PDF and stamp/signature uploads.
 - `backend/repositories/backoffice/backoffice-repository.ts` — DB access layer.
 - `backend/services/blacklist/cloudinary-service.ts` — shared Cloudinary
   upload/delete helper.
-- `backend/middlewares/roleCheck.ts:194` — `canAccessBackoffice` definition.
+- `backend/middlewares/roleCheck.ts` → `canAccessBackoffice` (admin).
 - `backend/db-mysql/aiven/16_backoffice.sql` — frozen schema (5 tables + 3
   views).
 - `frontend/app/lib/backoffice/backofficeApi.ts` — client-side API calls.
