@@ -59,6 +59,16 @@ preview.
       signo, el `ENUM` del método y las longitudes ya se validan
       (2026-10-02). _Comprobado por mí el 2026-09-28._
 
+- [ ] **Grupos: el detalle del grupo da los contactos a `mantenimiento`** —
+      `GET /api/groups/:id` (`controllers/group/group-controller.ts`, detalle)
+      devuelve `contacts` con email y teléfono a cualquier rol de
+      `canViewGroups`. El commit `e7a5443` (decisión del 2026-10-12) protegió
+      `/contacts`, `/contacts/primary` y el historial con
+      `canViewGroupContacts`, pero este endpoint se quedó fuera; el frontend
+      oculta la pestaña, pero `useGroup` recibe los datos igual. Quitar los
+      contactos del detalle para esos roles y añadir el test. _Comprobado por
+      mí el 2026-10-13 leyendo el código._
+
 ### 🟡 Media
 
 - [ ] **Borrar los datos de prueba de Aiven** — la BD de producción solo
@@ -221,6 +231,23 @@ preview.
       van en transacción (2026-10-11). _Según la revisión `security` L3 del
       2026-09-28; no repasado._
 
+- [ ] **Scheduling: las reglas H2, H4, H5 y libres están duplicadas y no
+      coinciden** — `validate()` solo registra `CoverageConstraint` y
+      `EmployeeRulesConstraint`; H2, H4, H5 y los libres se aplican en línea
+      en `runFinalValidation()`. Las clases `night-block`,
+      `max-consecutive-work`, `consecutive-rest` y `monthly-libre` solo las usa
+      `tests/scheduling/constraints.test.ts` y se comportan distinto (H4 suma
+      la racha del mes anterior; H5 es error, en línea es aviso).
+      `docs/scheduling/constraints.md` y los `@emitter` de `soft-weights.ts`
+      apuntan a esas clases. Decidir cuál es la buena, dejar una sola y
+      alinear la especificación. _Comprobado por mí el 2026-10-13._
+- [ ] **Scheduling: tras generar, las celdas de peticiones aprobadas y de
+      `fixedDays` quedan editables** — `applyGeneratedSchedule()` las inserta
+      desde `generatedRows()` sin `source_constraint_id`, así que no salen
+      bloqueadas en la parrilla ni devuelven 409 al editarlas. Decidir si es
+      lo querido o si deben bloquearse como las de restricciones aprobadas.
+      _Comprobado por mí el 2026-10-13 leyendo el código._
+
 ### 🟢 Baja
 
 - [ ] **Artículo en el blog del portfolio sobre el motor de horarios** — cómo
@@ -305,3 +332,13 @@ preview.
       `backend/.nvmrc` y `engines` a `24.x`, y probarlo antes en preview
       (pdf-parse v1, solver, cron). _Comprobado en los logs de Render y Vercel
       el 2026-10-12, y en el deploy preview de 72b5d3c el 2026-10-13._
+- [ ] **Parking: `SpotType` no coincide con la BD** — en
+      `backend/models/parking/index.ts` es `standard | large | handicapped |
+      electric`; el `ENUM` de `parking_spots.spot_type` es `normal | ancha |
+      mas_ancha | esquina | accesible | estrecha_bicis`. El tipo no protege
+      nada hoy. _Comprobado por mí el 2026-10-13._
+- [ ] **Solver: el venv local no coincide con producción** — en el equipo
+      principal corre Python 3.13.5 y `.python-version` fija 3.11, y no tiene
+      `pytest`, así que la suite de Python no se puede lanzar. Recrearlo con
+      3.11 e instalar `requirements.txt` + `pytest` (lo hace el dueño).
+      _Comprobado el 2026-10-13._
