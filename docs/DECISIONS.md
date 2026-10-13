@@ -952,12 +952,12 @@
     línea que lo importa.
   - Clientes soportados: Claude Code y OpenCode. Codex sale del `AGENTS.md` raíz
     porque el propietario no lo usa.
-- **Motivo:** OpenCode solo carga el primer `AGENTS.md` que encuentra subiendo
-  desde donde arranca (comprobado en su documentación el 2026-10-13): arrancado
-  en `backend/` no ve el raíz, y arrancado en la raíz no ve ningún otro. Sin
-  enlaces, cada nivel queda aislado. Claude Code los carga por directorio
-  (ADR-042), pero los enlaces también le dicen qué leer cuando una tarea cruza
-  de un lado a otro.
+- **Motivo:** los dos clientes cargan solos el `AGENTS.md` del directorio de
+  arranque y los de encima, y el de un módulo al leer un fichero suyo (OpenCode
+  comprobado en su código, versión 1.18.12, el 2026-10-13; Claude Code, en
+  ADR-042). Ninguno carga el del otro lado: un documento de módulo del backend
+  no trae `frontend/AGENTS.md`. Los enlaces dicen qué leer cuando una tarea
+  cruza de un lado a otro, y desde el raíz, qué hay debajo.
 - **Consecuencias:**
   - Un módulo nuevo se añade en dos listas: el mapa del raíz y la de su
     subproyecto (o las dos, si cubre ambos lados). Lo dice «Adding a New Module»
@@ -967,6 +967,9 @@
     `config/config.ts` (está en `config/db.ts`), el patrón de previews de Vercel
     en CORS (no existe), `mysql2` en el frontend y los `debug-*.js` de
     scheduling, que no existen.
-- **Rechazado:** copiar en cada nivel lo de los niveles de arriba. Se
-  desincroniza, y la capa 1 del harness ya repite en cada subproyecto lo que no
-  puede faltar (commits, push, Context7).
+- **Rechazado:**
+  - Declarar `instructions` en `opencode.json` para que OpenCode cargue el raíz:
+    ya lo carga.
+  - Copiar en cada nivel lo de los niveles de arriba. Se desincroniza, y la capa
+    1 del harness ya repite en cada subproyecto lo que no puede faltar (commits,
+    push, Context7).

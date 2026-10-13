@@ -122,8 +122,7 @@ _Global skills in `~/.claude/skills/` are the machine's, not the project's._
 (the other is `frontend/`). The root [`AGENTS.md`](../AGENTS.md) holds what both
 share — Context7 policy, Markdown formatting, commits and hooks, the security
 level, the frontend ↔ backend contract and the module map — and is loaded
-through the root `CLAUDE.md`. OpenCode started inside `backend/` loads only this
-file: read the root one too.
+through the root `CLAUDE.md`.
 
 This file also covers the stack, commands, architecture and module docs of
 `backend/`. Paths are relative to `backend/` unless they start with `frontend/`.

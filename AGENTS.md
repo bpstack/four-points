@@ -40,14 +40,17 @@ to the other.
 Every `AGENTS.md` has a one-line `CLAUDE.md` next to it (`@AGENTS.md`), so
 Claude Code loads it (ADR-042).
 
-⚠️ **What gets loaded depends on the client:**
+**What gets loaded:**
 
 - **Claude Code** — this file at start; a subproject or module `AGENTS.md` as
   soon as it reads a file in that directory.
-- **OpenCode** — only the **first** `AGENTS.md` found walking up from the
-  directory where it was started. Started in `backend/`, it does not see this
-  file; started here, it sees none of the others. The links are the way in: open
-  the file they point to.
+- **OpenCode** — at start, every `AGENTS.md` from the directory where it was
+  started up to the repo root (started in `backend/`: `backend/AGENTS.md` and
+  this file); a module one as soon as it reads a file below it. Checked in its
+  source at the installed version, 1.18.12.
+- **Neither loads the other side on its own.** A backend module doc does not
+  bring in `frontend/AGENTS.md`, nor the reverse: when a task crosses sides,
+  follow the links.
 
 Public, human-facing docs per module live in `docs/<module>/` (English). State
 and decisions live in `docs/SESSION.md` and `docs/DECISIONS.md`, shared by both
@@ -195,8 +198,8 @@ this is not a recommendation.
   Proper names, technical identifiers and paths can remain in their original
   language.
 - **Format: Conventional Commits** — `feat:`, `fix:`, `docs:`, `chore:`,
-  `refactor:`, `test:`, `perf:`, `build:`, `ci:`, `style:`. Optional scope:
-  `feat(scheduling/solver): …`
+  `refactor:`, `test:`, `perf:`, `build:`, `ci:`, `style:`, `revert:`. Optional
+  scope: `feat(scheduling/solver): …`
 - **Subject** in imperative mood, ≤ 72 characters, no trailing period.
 - **Body**: explain the _why_, not the _what_ (the diff already tells that).
   Bullets when there are 3+ independent points. No vague messages (`fix bug`,
@@ -322,15 +325,3 @@ When a new module grows complex enough to warrant its own doc:
    changes.
 2. **Database changes**: coordinate SQL migrations between local and Aiven
    databases — see `backend/AGENTS.md` § Database.
-
-## Code Search Commands
-
-For searching code in Windows PowerShell:
-
-```powershell
-# Search in TypeScript/JavaScript files
-Get-ChildItem -Recurse -Include *.ts,*.tsx -Path app | Select-String "pattern"
-
-# Exclude node_modules and dist
-Get-ChildItem -Recurse -Include *.js,*.ts -Exclude node_modules,dist | Select-String "pattern"
-```
