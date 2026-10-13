@@ -18,18 +18,19 @@ dashboard and historical stats. (A trend analytics API under
 
 ```
 backend/services/parking/
-   └── (only this AGENTS.md: controllers call the repositories directly)
+   └── target-spot.ts               (the spot a booking update points to; the
+                                      controllers call the repositories directly)
 
 backend/controllers/parking/
-   ├── parking.controller.ts        (457 lines — spots + vehicles CRUD + search)
-   ├── bookings.controller.ts       (843 lines — the core: list, create, edit,
+   ├── parking.controller.ts        (~440 lines — spots + vehicles CRUD + search)
+   ├── bookings.controller.ts       (~890 lines — the core: list, create, edit,
    │                                  check-in, check-out, cancel, no-show, overdue)
    └── stats.controller.ts          (629 lines — dashboard stats with single-date
                                       vs range modes)
 
 backend/repositories/parking/
-   ├── parking.repository.ts        (328 lines — spots, vehicles, invoice metadata)
-   ├── bookings.repository.ts       (1102 lines — bookings with joins; the densest one)
+   ├── parking.repository.ts        (~280 lines — spots, vehicles, availability)
+   ├── bookings.repository.ts       (~1150 lines — bookings with joins; the densest one)
    └── stats.repository.ts          (718 lines — aggregations for stats)
 
 backend/routes/parking/
@@ -50,7 +51,9 @@ backend/routes/parking/
   days there is no rate and 15 €/day is used
 - **`parking_availability`**: precomputed calendar: one row per spot and day,
   kept by the triggers in
-  `backend/db-mysql/aiven/05_parking_functions_triggers.sql`
+  `backend/db-mysql/aiven/05_parking_functions_triggers.sql`; a job in
+  `services/cron/cron-service.ts` (`extendAvailability`, at startup and daily at
+  03:00) keeps it covering the next 365 days
 
 **Note:** there is no `parking_invoices` table.
 
@@ -61,9 +64,14 @@ frontend never exposes `id` to the user.
 
 ## States and enums (backend ↔ frontend sync)
 
-The following values are duplicated in
-`frontend/app/components/parking/helpers/constants.ts`. If you add one, **update
-both sides**.
+Booking status and payment method are duplicated in
+`frontend/app/components/parking/helpers/constants.ts`; the rest live only in
+the backend (`models/parking/index.ts`) and the DB ENUMs. If you add a status or
+a method, **update both sides**.
+
+⚠️ `SpotType` in `models/parking/index.ts` (`standard`, `large`, `handicapped`,
+`electric`) does not match the `spot_type` ENUM of the DB, which is the list
+below (checked 2026-10-13).
 
 ### Booking status
 
@@ -152,8 +160,8 @@ those comments — they're well-maintained.
 
 **Bookings (`/api/parking/bookings`)**
 
-- `GET /` — List (filters: status, date, spot_id, vehicle_id, plate_number,
-  owner_name, booking_source)
+- `GET /` — List (filters: id, status, date, spot_id, vehicle_id, plate_number,
+  owner_name, booking_source; or `quickFilter`, or `startDate`/`endDate`)
 - `POST /` — Create booking
 - `GET /:code` — Detail by booking_code
 - `PUT /:code` — Edit booking
@@ -199,9 +207,14 @@ Booking dates are stored as MySQL `DATETIME` in Madrid local time.
 
 ### Filters and pagination
 
-`GET /bookings` accepts multiple combinable filters (AND). Pagination via
-`limit` + `offset`, returns `PaginationInfo` with `total`, `page`, `totalPages`.
-Coordinated with the frontend grid that paginates them.
+`GET /bookings` has three modes, checked in this order: `quickFilter` (the
+dashboard's composite filters: `arrivals_pending`, `arrivals_inside`,
+`arrivals_total`, `departures_pending`, `departures_completed`,
+`departures_total`), a date range (`startDate`, optional `endDate` and
+`status`), or the combinable filters (AND) listed under Endpoints. Pagination
+via `page` + `limit`; the response carries
+`pagination: { page, limit, total, totalPages }`. Coordinated with the frontend
+grid that paginates them.
 
 ## PDF invoicing — **does not exist**
 
@@ -224,8 +237,8 @@ in the git history if the feature is ever built.
    with curl.
 5. **Madrid time hardcoded:** everything assumes Madrid time. Multi-tenant
    across different timezones would need a refactor (not on the near horizon).
-6. **Frontend ↔ backend enum duplication:** the list lives in
-   `helpers/constants.ts` on the frontend. Keep them in sync.
+6. **Frontend ↔ backend enum duplication:** status and payment method live in
+   `helpers/constants.ts` on the frontend too. Keep them in sync.
 
 ## Cross references
 
