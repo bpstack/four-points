@@ -19,6 +19,7 @@ import type {
   HistoryAction,
   AddImageInput,
 } from '../../models/maintenance/index.js'
+import { getNowMadrid } from '../../config/date-utils.js'
 import { likeContains } from '../shared/like.js'
 
 // ========================================
@@ -103,11 +104,8 @@ export const MAX_REPORT_IMAGES = 5
  * Ejemplo: 120625-001, 120625-002, etc.
  */
 async function generateReportId(): Promise<string> {
-  const now = new Date()
-  const day = String(now.getDate()).padStart(2, '0')
-  const month = String(now.getMonth() + 1).padStart(2, '0')
-  const year = String(now.getFullYear()).slice(-2)
-  const datePrefix = `${day}${month}${year}`
+  // The hotel day in Madrid: in UTC a report at 00:30 would carry yesterday (ADR-047)
+  const datePrefix = getNowMadrid().format('DDMMYY')
 
   // Buscar el último número del día
   const [rows] = await dbx().query<RowDataPacket[]>(

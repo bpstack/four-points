@@ -24,6 +24,7 @@ import {
 import { ResultSetHeader } from 'mysql2'
 import { buildSetClause } from '../shared/update-columns.js'
 import { GROUP_SORT_FIELDS } from '../../validations/group/group-schemas.js'
+import { sqlHotelToday } from '../shared/hotel-clock.js'
 import { likeContains } from '../shared/like.js'
 
 export class GroupRepository {
@@ -354,11 +355,11 @@ export class GroupRepository {
         g.*,
         gs.rooming_status,
         gs.rooming_received_date,
-        DATEDIFF(g.arrival_date, CURDATE()) as days_until_arrival
+        DATEDIFF(g.arrival_date, ${sqlHotelToday()}) as days_until_arrival
       FROM hotel_groups g
       LEFT JOIN group_status gs ON g.id = gs.group_id
       WHERE g.status IN ('confirmed', 'in_progress')
-      AND g.arrival_date = DATE_ADD(CURDATE(), INTERVAL ? DAY)
+      AND g.arrival_date = DATE_ADD(${sqlHotelToday()}, INTERVAL ? DAY)
       ORDER BY g.arrival_date ASC
     `
 
@@ -375,12 +376,12 @@ export class GroupRepository {
       SELECT 
         g.*,
         gs.rooming_status,
-        DATEDIFF(g.arrival_date, CURDATE()) as days_until_arrival
+        DATEDIFF(g.arrival_date, ${sqlHotelToday()}) as days_until_arrival
       FROM hotel_groups g
       LEFT JOIN group_status gs ON g.id = gs.group_id
       WHERE g.status IN ('confirmed', 'in_progress')
       AND (gs.rooming_status IS NULL OR gs.rooming_status != 'received')
-      AND g.arrival_date BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL ? DAY)
+      AND g.arrival_date BETWEEN ${sqlHotelToday()} AND DATE_ADD(${sqlHotelToday()}, INTERVAL ? DAY)
       ORDER BY g.arrival_date ASC
     `
 

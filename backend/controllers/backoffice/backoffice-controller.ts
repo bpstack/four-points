@@ -1548,7 +1548,7 @@ export class BackofficeController {
       const archive = archiver('zip', { zlib: { level: 5 } })
 
       // Set response headers
-      const timestamp = new Date().toISOString().slice(0, 10).replace(/-/g, '')
+      const timestamp = getTodayMadrid().replace(/-/g, '')
       res.setHeader('Content-Type', 'application/zip')
       res.setHeader(
         'Content-Disposition',

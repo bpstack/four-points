@@ -9,7 +9,7 @@ import {
   createBookingSchema,
   updateBookingBodySchema,
 } from '../../validations/parking/booking-validation.js'
-import { getNowMadrid } from '../../config/date-utils.js'
+import { getHotelNowDate, parseHotelTime } from '../../config/date-utils.js'
 import { ERROR_CODES, SUCCESS_CODES } from '../../config/error-codes.js'
 import type { BookingFilters, BookingSource, UpdateBookingDTO } from '../../models/parking/index.js'
 import { logger } from '../../config/logger.js'
@@ -298,7 +298,7 @@ class ParkingBookingsController {
       // Convertir code → id
       const id = await this._getBookingIdFromCode(code)
 
-      const checkinDate = actual_checkin ? new Date(actual_checkin) : getNowMadrid().toDate()
+      const checkinDate = actual_checkin ? parseHotelTime(actual_checkin) : getHotelNowDate()
 
       if (actual_checkin && isNaN(checkinDate.getTime())) {
         res.status(400).json({
@@ -396,7 +396,7 @@ class ParkingBookingsController {
 
       const id = await this._getBookingIdFromCode(code)
 
-      const checkoutDate = actual_checkout ? new Date(actual_checkout) : getNowMadrid().toDate()
+      const checkoutDate = actual_checkout ? parseHotelTime(actual_checkout) : getHotelNowDate()
 
       if (actual_checkout && isNaN(checkoutDate.getTime())) {
         res.status(400).json({
@@ -679,11 +679,11 @@ class ParkingBookingsController {
       // Validar fechas si se proporcionan
       if (expected_checkin || expected_checkout) {
         const checkin = expected_checkin
-          ? new Date(expected_checkin)
-          : new Date(existingBooking.schedule.expected_checkin)
+          ? parseHotelTime(expected_checkin)
+          : parseHotelTime(existingBooking.schedule.expected_checkin)
         const checkout = expected_checkout
-          ? new Date(expected_checkout)
-          : new Date(existingBooking.schedule.expected_checkout)
+          ? parseHotelTime(expected_checkout)
+          : parseHotelTime(existingBooking.schedule.expected_checkout)
 
         if (isNaN(checkin.getTime()) || isNaN(checkout.getTime())) {
           res.status(400).json({
@@ -820,8 +820,8 @@ class ParkingBookingsController {
         return
       }
 
-      const now = getNowMadrid().toDate()
-      const checkin = new Date(booking.schedule.expected_checkin)
+      const now = getHotelNowDate()
+      const checkin = parseHotelTime(booking.schedule.expected_checkin)
 
       if (now >= checkin) {
         res.status(400).json({

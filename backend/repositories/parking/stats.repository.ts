@@ -3,7 +3,8 @@
 // ============================================
 import pool from '../../config/db.js'
 import { RowDataPacket } from 'mysql2/promise'
-import { formatDateMadrid } from '../../config/date-utils.js'
+import { formatDateMadrid, toHotelTime } from '../../config/date-utils.js'
+import { sqlHotelNow } from '../shared/hotel-clock.js'
 import type {
   DailyStatsRow,
   OccupancyByLevelRow,
@@ -320,8 +321,8 @@ class ParkingStatsRepository {
           }
         : null,
       schedule: {
-        expected_checkin: row.expected_checkin,
-        expected_checkout: row.expected_checkout,
+        expected_checkin: toHotelTime(row.expected_checkin),
+        expected_checkout: toHotelTime(row.expected_checkout),
         days: row.days,
       },
       booking_info: {
@@ -366,7 +367,7 @@ class ParkingStatsRepository {
         b.payment_method,
         b.notes,
         CASE 
-          WHEN NOW() > b.expected_checkout THEN 1
+          WHEN ${sqlHotelNow()} > b.expected_checkout THEN 1
           ELSE 0
         END AS is_overdue
       FROM parking_bookings b
@@ -375,7 +376,7 @@ class ParkingStatsRepository {
       WHERE b.status = 'checked_in'
         AND DATE(b.expected_checkout) BETWEEN ? AND ?
       ORDER BY 
-        CASE WHEN NOW() > b.expected_checkout THEN 0 ELSE 1 END,
+        CASE WHEN ${sqlHotelNow()} > b.expected_checkout THEN 0 ELSE 1 END,
         b.expected_checkout, 
         ps.level_code, 
         ps.spot_number
@@ -405,7 +406,7 @@ class ParkingStatsRepository {
         b.payment_method,
         b.notes,
         CASE 
-          WHEN NOW() > b.expected_checkout THEN 1
+          WHEN ${sqlHotelNow()} > b.expected_checkout THEN 1
           ELSE 0
         END AS is_overdue
       FROM parking_bookings b
@@ -414,7 +415,7 @@ class ParkingStatsRepository {
       WHERE b.status = 'checked_in'
         AND DATE(b.expected_checkout) = ?
       ORDER BY 
-        CASE WHEN NOW() > b.expected_checkout THEN 0 ELSE 1 END,
+        CASE WHEN ${sqlHotelNow()} > b.expected_checkout THEN 0 ELSE 1 END,
         b.expected_checkout, 
         ps.level_code, 
         ps.spot_number
@@ -439,9 +440,9 @@ class ParkingStatsRepository {
           }
         : null,
       schedule: {
-        expected_checkin: row.expected_checkin,
-        actual_checkin: row.actual_checkin,
-        expected_checkout: row.expected_checkout,
+        expected_checkin: toHotelTime(row.expected_checkin),
+        actual_checkin: toHotelTime(row.actual_checkin),
+        expected_checkout: toHotelTime(row.expected_checkout),
         planned_days: row.planned_days,
         actual_days: row.actual_days,
         is_overdue: row.is_overdue === 1,

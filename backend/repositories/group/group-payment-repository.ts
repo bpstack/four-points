@@ -10,6 +10,7 @@ import {
   PaymentsSummary,
 } from '../../models/group/index'
 import { ResultSetHeader, RowDataPacket } from 'mysql2'
+import { sqlHotelToday } from '../shared/hotel-clock.js'
 import { buildSetClause } from '../shared/update-columns.js'
 
 export class GroupPaymentRepository {
@@ -199,11 +200,11 @@ export class GroupPaymentRepository {
         gp.*,
         g.name as group_name,
         g.agency,
-        DATEDIFF(gp.due_date, CURDATE()) as days_until_due
+        DATEDIFF(gp.due_date, ${sqlHotelToday()}) as days_until_due
       FROM group_payments gp
       INNER JOIN hotel_groups g ON gp.group_id = g.id
       WHERE gp.status IN ('pending', 'requested', 'partial')
-      AND gp.due_date BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL ? DAY)
+      AND gp.due_date BETWEEN ${sqlHotelToday()} AND DATE_ADD(${sqlHotelToday()}, INTERVAL ? DAY)
       ORDER BY gp.due_date ASC
     `
 
@@ -220,11 +221,11 @@ export class GroupPaymentRepository {
         gp.*,
         g.name as group_name,
         g.agency,
-        DATEDIFF(CURDATE(), gp.due_date) as days_overdue
+        DATEDIFF(${sqlHotelToday()}, gp.due_date) as days_overdue
       FROM group_payments gp
       INNER JOIN hotel_groups g ON gp.group_id = g.id
       WHERE gp.status IN ('pending', 'requested', 'partial')
-      AND gp.due_date < CURDATE()
+      AND gp.due_date < ${sqlHotelToday()}
       ORDER BY gp.due_date ASC
     `
 

@@ -24,6 +24,7 @@ import {
   Asset,
   SummaryStats,
 } from '../../models/backoffice/index.js'
+import { sqlHotelToday } from '../shared/hotel-clock.js'
 import { likeContains } from '../shared/like.js'
 
 // Re-exportar tipos para mantener compatibilidad
@@ -960,7 +961,7 @@ export class BackofficeRepository {
       `SELECT COUNT(*) as count 
        FROM bo_invoices 
        WHERE status IN ('pending', 'validated') AND is_deleted = 0 
-       AND due_date < CURDATE()`
+       AND due_date < ${sqlHotelToday()}`
     )
 
     const [suppliers] = await pool.query<RowDataPacket[]>(
