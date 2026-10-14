@@ -62,6 +62,27 @@ describe('errorCodeMessage', () => {
     )
   })
 
+  it('gives new auth messages in Spanish and in English', () => {
+    expect(errorCodeMessage('AUTH_USER_ALREADY_EXISTS', 'es')).toMatch(
+      /^El nombre de usuario o email ya existe/
+    )
+    expect(errorCodeMessage('AUTH_USER_ALREADY_EXISTS', 'en')).toMatch(
+      /^The username or email is already in use/
+    )
+    expect(errorCodeMessage('AUTH_INVALID_ROLE', 'es')).toMatch(/^Rol no válido/)
+    expect(errorCodeMessage('AUTH_INVALID_ROLE', 'en')).toMatch(/^Invalid role/)
+    expect(errorCodeMessage('AUTH_NEW_PASSWORD_SAME_AS_CURRENT', 'es')).toMatch(
+      /^La nueva contraseña debe ser diferente/
+    )
+    expect(errorCodeMessage('AUTH_NEW_PASSWORD_SAME_AS_CURRENT', 'en')).toMatch(
+      /^The new password must be different/
+    )
+    expect(errorCodeMessage('AUTH_RESET_PASSWORD_ERROR', 'es')).toMatch(
+      /^Error al resetear contraseña/
+    )
+    expect(errorCodeMessage('AUTH_RESET_PASSWORD_ERROR', 'en')).toMatch(/^Error resetting password/)
+  })
+
   it('gives departments messages in Spanish and in English', () => {
     expect(errorCodeMessage('DEPARTMENTS_NAME_REQUIRED', 'es')).toMatch(
       /^El nombre del departamento es requerido/

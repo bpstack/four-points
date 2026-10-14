@@ -129,7 +129,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
  */
 export const demoLogin = async (_req: Request, res: Response): Promise<void> => {
   if (process.env.DEMO_MODE !== 'true') {
-    res.status(404).json({ error: 'Ruta no encontrada' })
+    res.status(404).json({ error: ERROR_CODES.NOT_FOUND, code: ERROR_CODES.NOT_FOUND })
     return
   }
 
@@ -198,7 +198,10 @@ export const register = async (req: Request, res: Response): Promise<void> => {
     const err = error as Error & { code?: string }
 
     if (err.code === 'ER_DUP_ENTRY') {
-      res.status(409).json({ error: err.message })
+      res.status(409).json({
+        error: ERROR_CODES.AUTH_USER_ALREADY_EXISTS,
+        code: ERROR_CODES.AUTH_USER_ALREADY_EXISTS,
+      })
       return
     }
 
@@ -206,7 +209,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
       logger.error({ err: error }, 'Registration error')
     }
 
-    res.status(500).json({ error: 'Internal server error' })
+    res.status(500).json({ error: ERROR_CODES.INTERNAL_ERROR, code: ERROR_CODES.INTERNAL_ERROR })
   }
 }
 
@@ -411,7 +414,10 @@ export const updateProfile = async (req: Request, res: Response): Promise<void> 
     }
 
     if (err.message === 'El nombre de usuario ya está en uso') {
-      res.status(409).json({ error: err.message })
+      res.status(409).json({
+        error: ERROR_CODES.AUTH_USER_ALREADY_EXISTS,
+        code: ERROR_CODES.AUTH_USER_ALREADY_EXISTS,
+      })
       return
     }
 
@@ -480,7 +486,10 @@ export const updatePassword = async (req: Request, res: Response): Promise<void>
     }
 
     if (err.message === 'La nueva contraseña debe ser diferente a la actual') {
-      res.status(400).json({ error: err.message })
+      res.status(400).json({
+        error: ERROR_CODES.AUTH_NEW_PASSWORD_SAME_AS_CURRENT,
+        code: ERROR_CODES.AUTH_NEW_PASSWORD_SAME_AS_CURRENT,
+      })
       return
     }
 

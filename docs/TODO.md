@@ -170,10 +170,9 @@ ahora están en `docs/_archive/TODO.md`, apartado «Errores conocidos pendientes
       inglés se ven en español: scheduling ~135, maintenance ~56, parking ~59
       (`parking.controller.ts`, `stats.controller.ts` y los 400 de check-out,
       cancelar y no-show), middlewares ~39 (`roleCheck.ts`, `rateLimiter.ts`…),
-      cashier ~39, checklist ~20, auth ~13 y algunas de fnb, demo y search; el
-      409 del reinicio de la demo y el subtítulo del login (`login/page.tsx`)
-      también van fijos en español. Ir módulo a módulo (B5.n). _Medido el
-      2026-10-12._
+      cashier ~39, checklist ~20 y algunas de fnb, demo y search; el 409 del
+      reinicio de la demo y el subtítulo del login (`login/page.tsx`) también
+      van fijos en español. Ir módulo a módulo (B5.n). _Medido el 2026-10-12._
 - [ ] **Conciliation: el cierre mensual no tiene pantalla ni congela los días**
       — `PATCH /monthly-summary/:year/:month/status` solo existe en la API
       (`useUpdateMonthlySummaryStatus` no lo usa ningún componente), y con el

@@ -101,6 +101,10 @@
     "AUTH_DELETE_USER_ERROR": "Error deleting user",
     "AUTH_UPLOAD_AVATAR_ERROR": "Error uploading avatar",
     "AUTH_DELETE_AVATAR_ERROR": "Error deleting avatar",
+    "AUTH_INVALID_ROLE": "Invalid role",
+    "AUTH_NEW_PASSWORD_SAME_AS_CURRENT": "The new password must be different from the current one",
+    "AUTH_RESET_PASSWORD_ERROR": "Error resetting password",
+    "AUTH_USER_ALREADY_EXISTS": "The username or email is already in use",
 
     "BACKOFFICE_COST_CENTER_DEPARTMENT_REQUIRED": "Cost center and department are required",
     "BACKOFFICE_NAME_REQUIRED": "Name is required",
