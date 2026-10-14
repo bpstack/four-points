@@ -83,6 +83,19 @@
     "UNAUTHORIZED": "No autorizado",
     "FORBIDDEN": "No tienes permiso para esta acción",
     "NOT_FOUND": "Recurso no encontrado",
+    "DEMO_ACTION_BLOCKED": "Acción no disponible en modo demo. Esta es una cuenta de demostración con funcionalidad limitada.",
+    "RATE_LIMIT_LOGIN": "Demasiados intentos de inicio de sesión. Intenta de nuevo en 15 minutos.",
+    "RATE_LIMIT_DEMO_LOGIN": "Demasiadas entradas a la demo. Intenta de nuevo en 15 minutos.",
+    "RATE_LIMIT_DEMO_WRITE": "Demasiados cambios en la demo. Intenta de nuevo en 15 minutos.",
+    "RATE_LIMIT_DEMO_GENERATE": "Has generado demasiados horarios en la demo. Intenta de nuevo en una hora.",
+    "RATE_LIMIT_DEMO_GENERATE_TOTAL": "La demo ha generado demasiados horarios esta hora. Intenta de nuevo más tarde.",
+    "RATE_LIMIT_PASSWORD_CHANGE": "Demasiados intentos de cambio de contraseña. Intenta de nuevo en 1 hora.",
+    "RATE_LIMIT_PROFILE_UPDATE": "Demasiados intentos de actualización. Intenta de nuevo en 15 minutos.",
+    "RATE_LIMIT_REFRESH": "Demasiadas solicitudes de refresco. Intenta de nuevo en 15 minutos.",
+    "RATE_LIMIT_API": "Demasiadas solicitudes. Intenta de nuevo más tarde.",
+    "IMAGE_INVALID_TYPE": "Solo se permiten imágenes (JPG, PNG, WebP, GIF)",
+    "IMAGE_TOO_LARGE": "La imagen supera el tamaño máximo permitido",
+    "IMAGE_SINGLE_FILE_ONLY": "Solo se admite un archivo de imagen",
 
     "AUTH_CREDENTIALS_REQUIRED": "Usuario y contraseña son requeridos",
     "AUTH_DEMO_UNAVAILABLE": "La demo no está disponible ahora mismo. Inténtalo más tarde.",
@@ -105,6 +118,8 @@
     "AUTH_NEW_PASSWORD_SAME_AS_CURRENT": "La nueva contraseña debe ser diferente a la actual",
     "AUTH_RESET_PASSWORD_ERROR": "Error al resetear contraseña",
     "AUTH_USER_ALREADY_EXISTS": "El nombre de usuario o email ya existe",
+    "AUTH_TOKEN_INVALID": "Sesión no válida. Vuelve a iniciar sesión",
+    "AUTH_TOKEN_EXPIRED": "La sesión ha caducado",
 
     "BACKOFFICE_COST_CENTER_DEPARTMENT_REQUIRED": "Centro de costo y departamento son requeridos",
     "BACKOFFICE_NAME_REQUIRED": "El nombre es requerido",
@@ -235,6 +250,9 @@
     "CASHIER_FETCH_PERIOD_REPORT_ERROR": "Error al obtener reporte de período",
     "CASHIER_FETCH_VOUCHER_HISTORY_ERROR": "Error al obtener historial de vales",
     "CASHIER_FETCH_SHIFT_SUMMARY_ERROR": "Error al obtener resumen de turnos",
+
+    "CHECKLIST_NOT_FOUND": "Checklist no encontrado",
+    "CHECKLIST_INVALID_STEP": "Paso no válido",
 
     "CONCILIATION_DATE_REQUIRED": "La fecha es obligatoria",
     "CONCILIATION_INVALID_YEAR_MONTH": "Año o mes inválido",

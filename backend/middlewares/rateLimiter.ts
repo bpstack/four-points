@@ -4,6 +4,7 @@ import rateLimit from 'express-rate-limit'
 import type { Request, Response } from 'express'
 import { logger } from '../config/logger.js'
 import { clientIpKey } from '../config/client-ip.js'
+import { ERROR_CODES } from '../config/error-codes.js'
 
 /**
  * Helper to get a consistent IP key (handles IPv6). Fails closed if Render's
@@ -22,9 +23,6 @@ function getIpKey(req: Request): string {
 export const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 5, // 5 attempts per window
-  message: {
-    error: 'Demasiados intentos de inicio de sesión. Intenta de nuevo en 15 minutos.',
-  },
   standardHeaders: true,
   legacyHeaders: false,
   // Use IP + username combination as key for more granular limiting
@@ -48,7 +46,8 @@ export const loginLimiter = rateLimit({
       '[SECURITY] login rate limit exceeded'
     )
     res.status(429).json({
-      error: 'Demasiados intentos de inicio de sesión. Intenta de nuevo en 15 minutos.',
+      error: ERROR_CODES.RATE_LIMIT_LOGIN,
+      code: ERROR_CODES.RATE_LIMIT_LOGIN,
     })
   },
 })
@@ -70,7 +69,8 @@ export const loginIpLimiter = rateLimit({
       '[SECURITY] login IP rate limit exceeded'
     )
     res.status(429).json({
-      error: 'Demasiados intentos de inicio de sesión. Intenta de nuevo en 15 minutos.',
+      error: ERROR_CODES.RATE_LIMIT_LOGIN,
+      code: ERROR_CODES.RATE_LIMIT_LOGIN,
     })
   },
 })
@@ -90,7 +90,8 @@ export const demoLoginLimiter = rateLimit({
       '[SECURITY] demo login rate limit exceeded'
     )
     res.status(429).json({
-      error: 'Demasiadas entradas a la demo. Intenta de nuevo en 15 minutos.',
+      error: ERROR_CODES.RATE_LIMIT_DEMO_LOGIN,
+      code: ERROR_CODES.RATE_LIMIT_DEMO_LOGIN,
     })
   },
 })
@@ -99,13 +100,13 @@ export const demoLoginLimiter = rateLimit({
 // total cap where one Render instance is at stake (ADR-038)
 const READ_METHODS = ['GET', 'HEAD', 'OPTIONS']
 
-function demoLimitHandler(kind: string, error: string) {
+function demoLimitHandler(kind: string, code: string) {
   return (req: Request, res: Response) => {
     logger.warn(
       { event: 'rate_limit_exceeded', kind, ip: getIpKey(req) },
       '[SECURITY] demo rate limit exceeded'
     )
-    res.status(429).json({ error })
+    res.status(429).json({ error: code, code })
   }
 }
 
@@ -119,10 +120,7 @@ export const demoWriteLimiter = rateLimit({
   legacyHeaders: false,
   skip: (req: Request) => !req.user?.isDemo || READ_METHODS.includes(req.method),
   keyGenerator: (req: Request) => `demo-write-${getIpKey(req)}`,
-  handler: demoLimitHandler(
-    'demo_write',
-    'Demasiados cambios en la demo. Intenta de nuevo en 15 minutos.'
-  ),
+  handler: demoLimitHandler('demo_write', ERROR_CODES.RATE_LIMIT_DEMO_WRITE),
 })
 
 /**
@@ -136,10 +134,7 @@ const demoGeneratePerIp = rateLimit({
   legacyHeaders: false,
   skip: (req: Request) => !req.user?.isDemo,
   keyGenerator: (req: Request) => `demo-generate-${getIpKey(req)}`,
-  handler: demoLimitHandler(
-    'demo_generate',
-    'Has generado demasiados horarios en la demo. Intenta de nuevo en una hora.'
-  ),
+  handler: demoLimitHandler('demo_generate', ERROR_CODES.RATE_LIMIT_DEMO_GENERATE),
 })
 
 const demoGenerateTotal = rateLimit({
@@ -149,10 +144,7 @@ const demoGenerateTotal = rateLimit({
   legacyHeaders: false,
   skip: (req: Request) => !req.user?.isDemo,
   keyGenerator: () => 'demo-generate-total',
-  handler: demoLimitHandler(
-    'demo_generate_total',
-    'La demo ha generado demasiados horarios esta hora. Intenta de nuevo más tarde.'
-  ),
+  handler: demoLimitHandler('demo_generate_total', ERROR_CODES.RATE_LIMIT_DEMO_GENERATE_TOTAL),
 })
 
 export const demoGenerateLimiter = [demoGeneratePerIp, demoGenerateTotal]
@@ -164,9 +156,6 @@ export const demoGenerateLimiter = [demoGeneratePerIp, demoGenerateTotal]
 export const passwordChangeLimiter = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hour
   max: 3, // 3 attempts per hour
-  message: {
-    error: 'Demasiados intentos de cambio de contraseña. Intenta de nuevo en 1 hora.',
-  },
   standardHeaders: true,
   legacyHeaders: false,
   keyGenerator: (req: Request) => {
@@ -187,7 +176,8 @@ export const passwordChangeLimiter = rateLimit({
       '[SECURITY] password change rate limit exceeded'
     )
     res.status(429).json({
-      error: 'Demasiados intentos de cambio de contraseña. Intenta de nuevo en 1 hora.',
+      error: ERROR_CODES.RATE_LIMIT_PASSWORD_CHANGE,
+      code: ERROR_CODES.RATE_LIMIT_PASSWORD_CHANGE,
     })
   },
 })
@@ -199,9 +189,6 @@ export const passwordChangeLimiter = rateLimit({
 export const profileUpdateLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 5, // 5 attempts per window
-  message: {
-    error: 'Demasiados intentos de actualización. Intenta de nuevo en 15 minutos.',
-  },
   standardHeaders: true,
   legacyHeaders: false,
   keyGenerator: (req: Request) => {
@@ -222,7 +209,8 @@ export const profileUpdateLimiter = rateLimit({
       '[SECURITY] profile update rate limit exceeded'
     )
     res.status(429).json({
-      error: 'Demasiados intentos de actualización. Intenta de nuevo en 15 minutos.',
+      error: ERROR_CODES.RATE_LIMIT_PROFILE_UPDATE,
+      code: ERROR_CODES.RATE_LIMIT_PROFILE_UPDATE,
     })
   },
 })
@@ -234,9 +222,6 @@ export const profileUpdateLimiter = rateLimit({
 export const refreshLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 30, // 30 refreshes per 15 minutes per IP
-  message: {
-    error: 'Demasiadas solicitudes de refresco. Intenta de nuevo en 15 minutos.',
-  },
   standardHeaders: true,
   legacyHeaders: false,
   keyGenerator: (req: Request) => `refresh-${getIpKey(req)}`,
@@ -246,7 +231,8 @@ export const refreshLimiter = rateLimit({
       '[SECURITY] refresh rate limit exceeded'
     )
     res.status(429).json({
-      error: 'Demasiadas solicitudes de refresco. Intenta de nuevo en 15 minutos.',
+      error: ERROR_CODES.RATE_LIMIT_REFRESH,
+      code: ERROR_CODES.RATE_LIMIT_REFRESH,
     })
   },
 })
@@ -259,7 +245,8 @@ export const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 300, // 300 requests per 15 minutes (budget alto para no romper UX)
   message: {
-    error: 'Demasiadas solicitudes. Intenta de nuevo más tarde.',
+    error: ERROR_CODES.RATE_LIMIT_API,
+    code: ERROR_CODES.RATE_LIMIT_API,
   },
   standardHeaders: true,
   legacyHeaders: false,
