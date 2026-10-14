@@ -248,12 +248,7 @@ export type WarningSeverity = 'info' | 'warning' | 'error'
  * Synced from: backend/services/scheduling/types/index.ts
  */
 export type WarningType =
-  | 'coverage'
-  | 'night_block'
-  | 'rest'
-  | 'hours'
-  | 'constraint'
-  | 'validation'
+  'coverage' | 'night_block' | 'rest' | 'hours' | 'constraint' | 'validation'
 
 export interface GenerationWarning {
   type: WarningType

@@ -235,9 +235,9 @@ day is fetched from `GET /api/logbooks/day/:day` (`YYYY-MM-DD`); date ranges use
 
 ## Known gotchas
 
-1. **ES↔EN importance mapping:** two places define the strings (backend uses
-   ES, frontend uses EN). If you add a level, update both ends and both copies
-   of the mapping (`LogbooksList.tsx`, `useLogbooks.ts`) +
+1. **ES↔EN importance mapping:** two places define the strings (backend uses ES,
+   frontend uses EN). If you add a level, update both ends and both copies of
+   the mapping (`LogbooksList.tsx`, `useLogbooks.ts`) +
    `getPriorityBackground()`.
 2. **Only the author edits/deletes:** no admin override. If you need one in the
    future, put it in `services` with its own audit trail

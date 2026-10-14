@@ -186,10 +186,10 @@ a list (`- **key**: description`) instead of a table. Applies to any `.md` in
 the repo (including `docs/`) when creating or editing a table; old ones are
 fixed when touched.
 
-**CI checks every tracked `.md`** with the frontend's Prettier, the one Markdown
-binary: the backend's is a different version and wraps some lines differently.
-Run the same check from the root before committing, and format only the files
-you changed:
+**CI checks every tracked `.md`** with the frontend's Prettier. Both projects
+pin the same version: a different one wraps some lines differently, so upgrade
+them together. Run the same check from the root before committing, and format
+only the files you changed:
 
 ```bash
 git ls-files -z '*.md' | xargs -0 ./frontend/node_modules/.bin/prettier --check --ignore-path .prettierignore --ignore-path frontend/.prettierignore

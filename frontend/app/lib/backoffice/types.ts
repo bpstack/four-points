@@ -134,13 +134,7 @@ export interface InvoiceFormData {
 // ========================================
 
 export type InvoiceAction =
-  | 'created'
-  | 'updated'
-  | 'validated'
-  | 'rejected'
-  | 'paid'
-  | 'deleted'
-  | 'restored'
+  'created' | 'updated' | 'validated' | 'rejected' | 'paid' | 'deleted' | 'restored'
 
 export interface InvoiceHistory {
   id: number

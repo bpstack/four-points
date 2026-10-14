@@ -3,13 +3,7 @@
 export type NotificationPriority = 'low' | 'medium' | 'high' | 'urgent'
 export type NotificationModule = 'groups' | 'parking' | 'logbooks' | 'system' | 'messages'
 export type NotificationRelatedTo =
-  | 'payment'
-  | 'rooming'
-  | 'balance'
-  | 'contract'
-  | 'arrival'
-  | 'general'
-  | 'message'
+  'payment' | 'rooming' | 'balance' | 'contract' | 'arrival' | 'general' | 'message'
 
 export interface Notification {
   id: number

@@ -132,9 +132,4 @@ export interface CashierHistoryEntry {
 // ═══════════════════════════════════════════════════════
 
 export type ReportSection =
-  | 'overview'
-  | 'logbooks'
-  | 'maintenance'
-  | 'groups'
-  | 'cashier'
-  | 'checklist'
+  'overview' | 'logbooks' | 'maintenance' | 'groups' | 'cashier' | 'checklist'

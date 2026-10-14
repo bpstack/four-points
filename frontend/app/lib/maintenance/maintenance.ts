@@ -2,13 +2,7 @@
 
 export type LocationType = 'room' | 'common_area' | 'exterior' | 'facilities' | 'other'
 export type ReportStatus =
-  | 'reported'
-  | 'assigned'
-  | 'in_progress'
-  | 'waiting'
-  | 'completed'
-  | 'closed'
-  | 'canceled'
+  'reported' | 'assigned' | 'in_progress' | 'waiting' | 'completed' | 'closed' | 'canceled'
 export type ReportPriority = 'low' | 'medium' | 'high' | 'urgent'
 export type AssignedType = 'internal' | 'external'
 export type HistoryAction =

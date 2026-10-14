@@ -18,9 +18,9 @@ real-time validation**, plus optional **auto-generation** via a CP-SAT solver
 **Admin only.** The whole router runs `authenticateToken` + `isAdmin`; no other
 role reads the schedule (a read-only view for them is in `TODO.md`).
 
-**Month states:** `draft` (editable, validation surfaces warnings) ↔
-`published` (locked: any edit of its cells, days or constraints answers 409
-until `POST /months/:id/unpublish`).
+**Month states:** `draft` (editable, validation surfaces warnings) ↔ `published`
+(locked: any edit of its cells, days or constraints answers 409 until
+`POST /months/:id/unpublish`).
 
 **Cell locking.** Assignments with `source_constraint_id` are **locked**: they
 come from approvals (vacations, IT, etc.) and can't be overwritten from the UI

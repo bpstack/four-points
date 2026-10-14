@@ -105,8 +105,7 @@ export default function GroupsSection() {
       params.set('order', 'DESC')
 
       const groupsResponse = (await apiClient.get(`${API_URL}/api/groups?${params.toString()}`)) as
-        | { data?: Group[] }
-        | Group[]
+        { data?: Group[] } | Group[]
       const data = (groupsResponse as { data?: Group[] }).data || []
       setGroups(Array.isArray(data) ? data.slice(0, DEFAULT_LIMIT) : [])
     } catch (err: unknown) {
@@ -130,8 +129,7 @@ export default function GroupsSection() {
       setExpandedId(groupId)
       try {
         const response = (await apiClient.get(`${API_URL}/api/groups/${groupId}/history`)) as
-          | { data?: GroupHistoryEntry[] }
-          | GroupHistoryEntry[]
+          { data?: GroupHistoryEntry[] } | GroupHistoryEntry[]
         const data = (response as { data?: GroupHistoryEntry[] }).data || response
         setHistory(Array.isArray(data) ? data : [])
       } catch {
@@ -149,8 +147,7 @@ export default function GroupsSection() {
     setError(null)
     try {
       const response = (await apiClient.get(`${API_URL}/api/groups/${searchId}`)) as
-        | { data?: Group }
-        | Group
+        { data?: Group } | Group
       const group = (response as { data?: Group }).data || (response as Group)
       if (group) setGroups([group])
     } catch {

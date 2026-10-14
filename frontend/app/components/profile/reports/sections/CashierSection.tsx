@@ -198,8 +198,7 @@ export default function CashierSection() {
           `${API_URL}/api/cashier/reports/vouchers-history?${params.toString()}`
         )
         const data = response as
-          | { data?: { vouchers?: Voucher[] }; vouchers?: Voucher[] }
-          | Voucher[]
+          { data?: { vouchers?: Voucher[] }; vouchers?: Voucher[] } | Voucher[]
         if (Array.isArray(data)) {
           setVouchers(data)
         } else {
