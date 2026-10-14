@@ -28,7 +28,7 @@ y auditado, publicación y demo. Sus documentos (`ROADMAP.md`, `GITCLEAN.md`,
 - **Local:** `pnpm setup:local` instala desde cero con admin completo, datos
   ficticios y la base de horarios de la demo (`scheduling-seed.sql`).
 - **Repositorio original:** `four-points-archive`, archivado y privado.
-- **Decisiones:** `DECISIONS.md`, hasta ADR-046.
+- **Decisiones:** `DECISIONS.md`, hasta ADR-047.
 - **Harness:** capa 1 en `backend/AGENTS.md` y `frontend/AGENTS.md`; el
   `AGENTS.md` raíz guarda lo común y los tres niveles se enlazan entre sí
   (ADR-042, ADR-043). La sesión se abre en la raíz y activa el Node de cada lado
@@ -44,6 +44,10 @@ y auditado, publicación y demo. Sus documentos (`ROADMAP.md`, `GITCLEAN.md`,
   día 10 funciona (ADR-046, comprobado en preview y producción); los errores de
   `auth` y de los middlewares llevan `code`; el historial de grupos solo anota
   lo que cambia.
+- **Fechas y horas (ADR-047, en la rama, pendiente de `main`):** el backend
+  corre en UTC en cualquier máquina; «hoy» y el día de un instante se calculan
+  en Madrid; las horas de parking son el reloj del hotel. Los historiales
+  muestran fechas legibles y estados traducidos.
 - **Rama `opencode-tasks`:** trabajo delegado a OpenCode con una directriz
   cerrada (ficheros permitidos, tabla de cambios, verificación); se revisa, se
   commitea y entra en la rama de preview con fast-forward.
@@ -73,9 +77,7 @@ y auditado, publicación y demo. Sus documentos (`ROADMAP.md`, `GITCLEAN.md`,
    de un usuario de la aplicación (`test-login.js`, commit `8595ec0`): cambiarla
    también. Se hace en los paneles y se comprueba que producción y preview
    siguen funcionando.
-2. **Fechas y «hoy» según la zona horaria de cada pieza**, como tarea propia
-   (decidido el 2026-10-12).
-3. Las de prioridad media.
+2. Las de prioridad media.
 
 Los errores conocidos que se aceptan sin arreglarlos ahora están en
 `docs/_archive/TODO.md` (ADR-045).
