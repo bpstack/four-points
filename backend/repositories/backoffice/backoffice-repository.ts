@@ -5,6 +5,7 @@
  */
 
 import pool from '../../config/db.js'
+import { dbx, withTransaction } from '../../config/transaction.js'
 import { RowDataPacket, ResultSetHeader } from 'mysql2'
 import { getNowMadrid } from '../../config/date-utils.js'
 import { logger } from '../../config/logger.js'
@@ -608,56 +609,55 @@ export class BackofficeRepository {
     month: number,
     userId: string
   ): Promise<{ count: number; invoiceIds: number[] }> {
-    // First, get the IDs of invoices that will be updated
-    const [invoicesToUpdate] = await pool.query<RowDataPacket[]>(
-      `SELECT id, invoice_date FROM bo_invoices 
-       WHERE status = 'validated' 
-         AND is_deleted = 0
-         AND YEAR(invoice_date) = ?
-         AND MONTH(invoice_date) = ?`,
-      [year, month]
-    )
-
-    if (invoicesToUpdate.length === 0) {
-      return { count: 0, invoiceIds: [] }
-    }
-
-    const invoiceIds = invoicesToUpdate.map((inv) => inv.id)
-
-    // Update all validated invoices for that month
-    // paid_date is set to the invoice's own invoice_date
-    const [result] = await pool.query<ResultSetHeader>(
-      `UPDATE bo_invoices SET 
-        status = 'paid',
-        paid_date = invoice_date,
-        updated_by = ?,
-        updated_at = NOW()
-       WHERE status = 'validated' 
-         AND is_deleted = 0
-         AND YEAR(invoice_date) = ?
-         AND MONTH(invoice_date) = ?`,
-      [userId, year, month]
-    )
-
-    // Add history entry for each updated invoice
-    for (const invoice of invoicesToUpdate) {
-      await this.addInvoiceHistory(
-        invoice.id,
-        'paid',
-        'status',
-        'validated',
-        'paid',
-        `Pago automático de facturas de ${month}/${year}`,
-        userId
+    // The status change and its history rows commit together; FOR UPDATE keeps
+    // the selected invoices from changing before the UPDATE pays exactly them
+    return withTransaction(async () => {
+      const [invoicesToUpdate] = await dbx().query<RowDataPacket[]>(
+        `SELECT id FROM bo_invoices 
+         WHERE status = 'validated' 
+           AND is_deleted = 0
+           AND YEAR(invoice_date) = ?
+           AND MONTH(invoice_date) = ?
+         FOR UPDATE`,
+        [year, month]
       )
-    }
 
-    logger.info(
-      { affectedRows: result.affectedRows, month, year },
-      '[BackofficeRepository.markValidatedInvoicesAsPaid] Marked invoices as paid'
-    )
+      if (invoicesToUpdate.length === 0) {
+        return { count: 0, invoiceIds: [] }
+      }
 
-    return { count: result.affectedRows, invoiceIds }
+      const invoiceIds: number[] = invoicesToUpdate.map((inv) => inv.id)
+
+      // paid_date is set to the invoice's own invoice_date
+      const [result] = await dbx().query<ResultSetHeader>(
+        `UPDATE bo_invoices SET 
+          status = 'paid',
+          paid_date = invoice_date,
+          updated_by = ?,
+          updated_at = NOW()
+         WHERE id IN (?)`,
+        [userId, invoiceIds]
+      )
+
+      for (const invoiceId of invoiceIds) {
+        await this.addInvoiceHistory(
+          invoiceId,
+          'paid',
+          'status',
+          'validated',
+          'paid',
+          `Pago automático de facturas de ${month}/${year}`,
+          userId
+        )
+      }
+
+      logger.info(
+        { affectedRows: result.affectedRows, month, year },
+        '[BackofficeRepository.markValidatedInvoicesAsPaid] Marked invoices as paid'
+      )
+
+      return { count: result.affectedRows, invoiceIds }
+    })
   }
 
   /**
@@ -842,7 +842,7 @@ export class BackofficeRepository {
     notes: string | null,
     changedBy: string
   ): Promise<number> {
-    const [result] = await pool.query<ResultSetHeader>(
+    const [result] = await dbx().query<ResultSetHeader>(
       `INSERT INTO bo_invoice_history 
         (invoice_id, action, field_changed, old_value, new_value, notes, changed_by)
        VALUES (?, ?, ?, ?, ?, ?, ?)`,

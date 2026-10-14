@@ -1011,3 +1011,32 @@
   - `docs/_archive/` lo ignora git y solo está en el PC principal: desde los
     otros equipos esos puntos no se ven.
   - Los puntos se quitaron del `TODO.md` publicado, pero siguen en su historial.
+
+## ADR-046 — Las tareas programadas se ponen al día al arrancar
+
+- **Estado:** ✅ aceptada (2026-10-14)
+- **Fecha:** 2026-10-14
+- **Decisión:** cada tarea de `services/cron/` (avisos de las 7:00, reset del
+  checklist de las 6:30, purga del lunes y pago de facturas del día 10) se
+  ejecuta también al arrancar el backend si su periodo actual ya toca y no se ha
+  hecho. La tabla `cron_job_runs` guarda el último periodo de cada una y no deja
+  repetirlo; `node-cron` sigue disparando a su hora cuando el backend está
+  despierto. El pago firma con un usuario inactivo `system-cron`
+  (`20261014_cron_catch_up.sql`) y va en una transacción.
+- **Motivo:** Render gratis duerme el backend a los ~15 minutos sin peticiones.
+  En los logs de los 7 días anteriores al 2026-10-14 arrancó unas 40 veces y no
+  hubo ni una ejecución de esas tareas; el día 10 a las 23:59 estaba dormido.
+  Además, el pago fallaba siempre: `system-cron` no existía y `updated_by` y
+  `changed_by` son claves foráneas a `users`. Se descartó despertar el backend
+  desde fuera (GitHub Actions programado): no garantiza la hora y añade una
+  pieza externa. Un plan de pago de Render tampoco entra: solo planes gratuitos.
+- **Consecuencias:**
+  - Las tareas corren con la primera visita después de su hora, no a la hora
+    exacta.
+  - El pago solo recupera el último periodo: si el backend duerme del día 10 a
+    fin de mes, paga en el primer arranque del mes siguiente, pero nunca meses
+    más antiguos.
+  - El primer arranque tras desplegar paga las facturas validadas de septiembre
+    de 2026 (periodo `2026-10`).
+  - La migración tiene que estar en Aiven antes del despliegue; sin la tabla,
+    cada tarea anota el error en el log y no se ejecuta.

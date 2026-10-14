@@ -124,6 +124,13 @@ logging each one to `bo_invoice_history`; it needs `isAdmin` (the preview only
 the module access, which is admin anyway). A `revertBatchPayment` endpoint
 exists for undo (also with a preview).
 
+The same payment runs on its own once a month (`services/cron/`): from day 10 at
+23:59 (Madrid) it pays the validated invoices of the previous month, signed by
+the inactive user `system-cron`. Render's free plan sleeps, so it runs on the
+first start after that time, and `cron_job_runs` keeps it to once per month
+(ADR-046). `markValidatedInvoicesAsPaid` locks the invoices it selects and
+writes their history in the same transaction.
+
 ## Role boundaries
 
 - **Read anything** (stats, categories, suppliers, invoices, assets) — `admin`

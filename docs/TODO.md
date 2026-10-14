@@ -58,9 +58,14 @@ ahora están en `docs/_archive/TODO.md`, apartado «Errores conocidos pendientes
       reales — Aiven hace copias automáticas y existe
       `backend/db-mysql/backup/backup.ps1`, pero no consta que se haya probado a
       restaurar ninguna. Del plan archivado (`Global-Plan.md`, H3-8).
-- [ ] **Comprobar si los cron se ejecutan en Render** — corren dentro del
-      proceso del backend; si el plan gratuito lo duerme por inactividad, no se
-      disparan. _No comprobado._
+- [ ] **Cron en producción: aplicar la migración y comprobarlo en Render** — en
+      Render no se ejecutaba ninguna tarea programada (7 días de logs sin una,
+      2026-10-14: el plan gratuito duerme el backend) y el pago del día 10
+      fallaba por `system-cron`. Arreglado en la rama `opencode-tasks`: se ponen
+      al día al arrancar (ADR-046). Falta: aplicar `20261014_cron_catch_up.sql`
+      en Aiven **antes** de desplegar, desplegar, y ver en los logs de Render el
+      `[CRON] Ejecutando` de cada tarea y la tabla `cron_job_runs` con sus
+      periodos. El primer arranque paga las facturas validadas de septiembre.
 - [ ] **La retención de mensajes borra las conversaciones vacías** — el evento
       MySQL `cleanup_old_messages` borra cada día, además de los mensajes de más
       de 90 días, toda conversación sin mensajes, incluidas las recién creadas y
@@ -124,10 +129,6 @@ ahora están en `docs/_archive/TODO.md`, apartado «Errores conocidos pendientes
       primero» (ADR-015). `MASTER_INSTALL.sql` solo llega al 2026-05-20. Se
       corrigen poco a poco, con `docs/general/database/` como resumen (ADR-016).
       _Comprobado por mí el 2026-09-28._
-- [ ] **El pago automático del día 10 no ha funcionado nunca** — el cron escribe
-      `updated_by = 'system-cron'`, que es clave foránea a `users`, y ese
-      usuario no existe en Aiven (0 facturas pagadas por el cron). Además el
-      pago en lote no va en una transacción. _Comprobado por mí el 2026-09-28._
 - [ ] **La generación manual de notificaciones crea avisos duplicados** con
       varias peticiones a la vez: no hay clave única. (Desde el 2026-10-02 solo
       la lanzan admin y group-admin.) _Según la revisión `security` L3 del
