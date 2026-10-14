@@ -8,6 +8,7 @@ import { parkingApi } from '@/app/lib/parking'
 import { formatDateTimeLocal } from '../helpers'
 import { FiEdit2, FiX, FiSearch, FiMapPin, FiTruck, FiSlash, FiUserX } from 'react-icons/fi'
 import { SelectDropdown } from '@/app/ui/components/SelectDropdown'
+import { getMadridDate } from '@/app/lib/helpers/date'
 
 interface EditBookingModalProps {
   booking: ParkingBooking
@@ -86,9 +87,7 @@ export function EditBookingModal({
 
   const loadAvailableSpots = async () => {
     // Si la fecha de entrada está en el pasado, usar hoy como start_date
-    const startDate = isCheckinInPast
-      ? new Date().toISOString().split('T')[0]
-      : data.expected_checkin.split('T')[0]
+    const startDate = isCheckinInPast ? getMadridDate() : data.expected_checkin.split('T')[0]
     const endDate = data.expected_checkout.split('T')[0]
 
     // Validar que start_date < end_date antes de hacer la llamada

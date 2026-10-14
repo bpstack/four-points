@@ -41,6 +41,7 @@ type BlacklistFormValues = {
 // ✅ Y también las constantes
 import { DOCUMENT_TYPES, SEVERITY_LEVELS } from '@/app/lib/blacklist/types'
 import { privateFileUrl } from '@/app/lib/helpers/private-file'
+import { getMadridDate } from '@/app/lib/helpers/date'
 
 interface BlacklistFormProps {
   mode: 'create' | 'edit'
@@ -82,8 +83,8 @@ export function BlacklistForm({ mode, initialData, onSuccess }: BlacklistFormPro
             guest_name: '',
             document_type: 'DNI',
             document_number: '',
-            check_in_date: new Date(),
-            check_out_date: new Date(),
+            check_in_date: new Date(getMadridDate()),
+            check_out_date: new Date(getMadridDate()),
             reason: '',
             severity: 'MEDIUM',
             comments: '',

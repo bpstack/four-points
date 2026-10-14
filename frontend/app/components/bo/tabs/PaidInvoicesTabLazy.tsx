@@ -10,7 +10,7 @@
 
 import { useMemo, useState, useCallback } from 'react'
 import { useTranslations } from 'next-intl'
-import { formatDateDisplayShort } from '@/app/lib/helpers/date'
+import { formatDateDisplayShort, getMadridDate } from '@/app/lib/helpers/date'
 import {
   FiSearch,
   FiDownload,
@@ -397,7 +397,7 @@ export function PaidInvoicesTabLazy({
     const url = window.URL.createObjectURL(blob)
     const link = document.createElement('a')
     link.href = url
-    link.download = `facturas_pagadas_${new Date().toISOString().split('T')[0]}.csv`
+    link.download = `facturas_pagadas_${getMadridDate()}.csv`
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
@@ -444,7 +444,7 @@ export function PaidInvoicesTabLazy({
       const url = window.URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      const timestamp = new Date().toISOString().slice(0, 10).replace(/-/g, '')
+      const timestamp = getMadridDate().replace(/-/g, '')
       a.download = `facturas_pagadas_${timestamp}.zip`
       document.body.appendChild(a)
       a.click()

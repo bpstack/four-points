@@ -2,7 +2,7 @@
 
 import { create } from 'zustand'
 import { useShallow } from 'zustand/react/shallow'
-import { formatDateForInput } from '@/app/lib/helpers/date'
+import { formatDateForInput, getMadridDate } from '@/app/lib/helpers/date'
 import type { ShiftType, HistoryAction } from '@/app/lib/cashier/types'
 
 // ═══════════════════════════════════════════════════════
@@ -125,7 +125,7 @@ const initialState = {
   modalData: null,
 
   // Logs
-  logsDate: today.toISOString().split('T')[0],
+  logsDate: getMadridDate(),
   logsActionFilter: 'all' as HistoryAction | 'all',
   logsUserFilter: '',
   logsLimit: 50,
@@ -268,7 +268,7 @@ export const useCashierStore = create<CashierStore>((set, get) => ({
 
   logsGoToToday: () => {
     set({
-      logsDate: new Date().toISOString().split('T')[0],
+      logsDate: getMadridDate(),
       logsOffset: 0,
     })
   },

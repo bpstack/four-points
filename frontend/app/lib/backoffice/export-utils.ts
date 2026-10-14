@@ -9,6 +9,7 @@ import { PDFDocument, rgb, StandardFonts } from 'pdf-lib'
 import { encodableFor } from '@/app/lib/helpers/pdfText'
 import type { InvoiceWithDetails } from './types'
 import { INVOICE_STATUS_LABELS, PAYMENT_METHOD_LABELS, formatCurrency } from './types'
+import { getMadridDate } from '@/app/lib/helpers/date'
 
 /**
  * Format date for display in exports (DD/MM/YYYY Madrid). Returns '-' for null.
@@ -100,7 +101,7 @@ export async function exportToExcel(
   XLSX.utils.book_append_sheet(wb, wsSummary, 'Resumen')
 
   // Generate filename
-  const timestamp = new Date().toISOString().slice(0, 10).replace(/-/g, '')
+  const timestamp = getMadridDate().replace(/-/g, '')
   const finalFilename = filename || `facturas_pendientes_${timestamp}.xlsx`
 
   // Download file
@@ -314,7 +315,7 @@ export async function exportToPdf(
   })
 
   // Generate filename
-  const timestamp = new Date().toISOString().slice(0, 10).replace(/-/g, '')
+  const timestamp = getMadridDate().replace(/-/g, '')
   const finalFilename = filename || `facturas_pendientes_${timestamp}.pdf`
 
   // Save and download
