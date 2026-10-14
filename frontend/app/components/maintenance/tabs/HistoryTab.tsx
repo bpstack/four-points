@@ -103,7 +103,7 @@ export function HistoryTab() {
   // Statuses and priorities in words, and the assignee by name, not as stored
   const formatValue = (field: string | null, value: string, name?: string) => {
     if (name) return name
-    const camel = value.replace(/_(w)/g, (_, c: string) => c.toUpperCase())
+    const camel = value.replace(/_([a-z])/g, (_, c: string) => c.toUpperCase())
     if (field === 'status' && t.has(`status.${camel}`)) return t(`status.${camel}`)
     if (field === 'priority' && t.has(`priority.${camel}`)) return t(`priority.${camel}`)
     return value
