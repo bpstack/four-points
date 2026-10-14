@@ -250,6 +250,11 @@ index.ts → routes → controllers → services → repositories → models
   outside production, the production and Vercel domains — plus `FRONTEND_URL`.
   Credentials enabled. It is also the CSRF defence: any other origin gets a 403
   before reaching a route.
+- **Dates (ADR-047)**: the process and every MySQL session run in UTC;
+  timestamps are UTC instants. The hotel's "today" and "now" come from
+  `config/date-utils.ts` and `repositories/shared/hotel-clock.ts`
+  (`sqlHotelToday`, `sqlHotelNow`, `sqlMadridDay`), never from `CURDATE()`,
+  `NOW()`, `DATE(col)` or `toISOString()`.
 - **Cron jobs**: `services/cron/cron-service.ts`, started from `index.ts`. The
   times are in `cron-schedule.ts` (Europe/Madrid). Render's free plan sleeps, so
   on every start the jobs whose period is due and not done run, and

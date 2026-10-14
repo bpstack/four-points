@@ -73,6 +73,12 @@ a method, **update both sides**.
 (`normal`, `ancha`, `mas_ancha`, `esquina`, `accesible`, `estrecha_bicis`). If
 either side changes, update the other.
 
+`expected_checkin`, `expected_checkout`, `actual_checkin` and `actual_checkout`
+are the hotel's wall clock: stored as typed (`12:00` is noon in Madrid), read
+with `parseHotelTime` and answered without `Z` by `toHotelTime`, so the browser
+shows them as typed. `payment_date` and the audit columns are UTC instants
+(ADR-047).
+
 ### Booking status
 
 - **`reserved`**: Booking created, waiting for arrival
