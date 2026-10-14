@@ -195,11 +195,14 @@ export class GroupController {
         await PaymentCalculatorService.recalculatePayments(groupId, updateData.total_amount)
       }
 
+      const changedFields = Object.keys(parsed.data)
+
       await GroupHistoryService.logGroupUpdated(
         groupId,
         userId,
         oldGroup,
-        updatedGroup || updateData
+        updatedGroup || updateData,
+        changedFields
       )
 
       return res.status(200).json({

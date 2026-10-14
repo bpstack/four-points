@@ -47,15 +47,15 @@ export class GroupHistoryService {
     const fieldsToLog = changedFields || Object.keys(nw)
 
     for (const field of fieldsToLog) {
-      if (old[field] !== nw[field]) {
+      if (!this.valuesEqual(old[field], nw[field])) {
         const historyData: CreateGroupHistoryDTO = {
           group_id: groupId,
           action: HistoryAction.UPDATED,
           table_affected: 'groups',
           record_id: groupId,
           field_changed: field,
-          old_value: this.serializeValue(old[field]) ?? undefined, // ✅ FIX
-          new_value: this.serializeValue(nw[field]) ?? undefined, // ✅ FIX
+          old_value: this.serializeValue(old[field]) ?? undefined,
+          new_value: this.serializeValue(nw[field]) ?? undefined,
           changed_by: updatedBy,
           notes: `Campo "${field}" actualizado`,
         }
@@ -66,6 +66,53 @@ export class GroupHistoryService {
     }
 
     return historyRecords
+  }
+
+  /**
+   * Comparar dos valores normalizando tipos comunes:
+   * - null/undefined son iguales
+   * - Date vs Date o Date vs string: comparar por fecha local
+   * - número vs string numérico: comparar con Number()
+   * - resto: ===
+   */
+  private static valuesEqual(a: unknown, b: unknown): boolean {
+    if (a === b) return true
+    if (a == null && b == null) return true
+    if (a == null || b == null) return false
+
+    const isDateA = a instanceof Date
+    const isDateB = b instanceof Date
+
+    if (isDateA || isDateB) {
+      const toLocalDays = (v: unknown): string | null => {
+        if (v instanceof Date) {
+          return `${v.getFullYear()}-${String(v.getMonth() + 1).padStart(2, '0')}-${String(v.getDate()).padStart(2, '0')}`
+        }
+        // 'AAAA-MM-DD' is already a calendar day: new Date() would read it as UTC
+        if (typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v)) return v
+        if (typeof v === 'string' && /^\d{4}-\d{2}-\d{2}T/.test(v)) {
+          const d = new Date(v)
+          if (!isNaN(d.getTime())) {
+            return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+          }
+        }
+        return null
+      }
+      const da = toLocalDays(a)
+      const db = toLocalDays(b)
+      if (da !== null && db !== null) return da === db
+    }
+
+    if (typeof a === 'number' && typeof b === 'string') {
+      const nb = Number(b)
+      if (!isNaN(nb)) return a === nb
+    }
+    if (typeof a === 'string' && typeof b === 'number') {
+      const na = Number(a)
+      if (!isNaN(na)) return na === b
+    }
+
+    return false
   }
 
   /**
