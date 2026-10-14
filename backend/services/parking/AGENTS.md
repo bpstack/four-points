@@ -69,9 +69,9 @@ Booking status and payment method are duplicated in
 the backend (`models/parking/index.ts`) and the DB ENUMs. If you add a status or
 a method, **update both sides**.
 
-⚠️ `SpotType` in `models/parking/index.ts` (`standard`, `large`, `handicapped`,
-`electric`) does not match the `spot_type` ENUM of the DB, which is the list
-below (checked 2026-10-13).
+`SpotType` in `models/parking/index.ts` mirrors the `spot_type` ENUM of the DB
+(`normal`, `ancha`, `mas_ancha`, `esquina`, `accesible`, `estrecha_bicis`). If
+either side changes, update the other.
 
 ### Booking status
 

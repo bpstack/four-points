@@ -2,6 +2,7 @@
 
 import type { Router } from 'express'
 import { getValidStepIds, isKnownChecklist } from '../services/checklist/checklist-content.js'
+import { ERROR_CODES } from '../config/error-codes.js'
 
 const positiveInt = /^[1-9]\d*$/
 
@@ -13,7 +14,9 @@ const positiveInt = /^[1-9]\d*$/
 export function validateChecklistParams(router: Router): void {
   router.param('id', (_req, res, next, id: string) => {
     if (!isKnownChecklist(id)) {
-      res.status(404).json({ error: 'Checklist no encontrado' })
+      res
+        .status(404)
+        .json({ error: ERROR_CODES.CHECKLIST_NOT_FOUND, code: ERROR_CODES.CHECKLIST_NOT_FOUND })
       return
     }
     next()
@@ -21,7 +24,10 @@ export function validateChecklistParams(router: Router): void {
 
   router.param('stepId', (req, res, next, stepId: string) => {
     if (!getValidStepIds(req.params.id)?.has(stepId)) {
-      res.status(400).json({ error: 'Paso no válido' })
+      res.status(400).json({
+        error: ERROR_CODES.CHECKLIST_INVALID_STEP,
+        code: ERROR_CODES.CHECKLIST_INVALID_STEP,
+      })
       return
     }
     next()
@@ -30,7 +36,7 @@ export function validateChecklistParams(router: Router): void {
   for (const name of ['commentId', 'attachmentId']) {
     router.param(name, (_req, res, next, value: string) => {
       if (!positiveInt.test(value)) {
-        res.status(400).json({ error: 'ID inválido' })
+        res.status(400).json({ error: ERROR_CODES.INVALID_ID, code: ERROR_CODES.INVALID_ID })
         return
       }
       next()

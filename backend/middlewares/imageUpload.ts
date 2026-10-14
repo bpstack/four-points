@@ -3,6 +3,7 @@
 import type { Request, Response, NextFunction, RequestHandler } from 'express'
 import multer from 'multer'
 import { isImageFile } from '../services/uploads/image-signature.js'
+import { ERROR_CODES } from '../config/error-codes.js'
 
 const MB = 1024 * 1024
 export const MAX_IMAGE_BYTES = 5 * MB
@@ -29,24 +30,32 @@ export function singleImage(field: string, maxBytes: number = MAX_IMAGE_BYTES): 
     },
   })
   const handler = upload.single(field)
-  const tooLarge = `Máximo ${Math.round((maxBytes / MB) * 10) / 10}MB por archivo`
 
   return (req: Request, res: Response, next: NextFunction) => {
     handler(req, res, (err?: unknown) => {
       if (err instanceof NotAnImageError) {
-        res.status(400).json({ error: 'Solo se permiten imágenes (JPG, PNG, WebP, GIF)' })
+        res
+          .status(400)
+          .json({ error: ERROR_CODES.IMAGE_INVALID_TYPE, code: ERROR_CODES.IMAGE_INVALID_TYPE })
         return
       }
       if (err instanceof multer.MulterError) {
         if (err.code === 'LIMIT_FILE_SIZE') {
-          res.status(413).json({ error: tooLarge })
+          res
+            .status(413)
+            .json({ error: ERROR_CODES.IMAGE_TOO_LARGE, code: ERROR_CODES.IMAGE_TOO_LARGE })
         } else {
-          res.status(400).json({ error: 'Solo se admite un archivo de imagen' })
+          res.status(400).json({
+            error: ERROR_CODES.IMAGE_SINGLE_FILE_ONLY,
+            code: ERROR_CODES.IMAGE_SINGLE_FILE_ONLY,
+          })
         }
         return
       }
       if (!err && req.file && !isImageFile(req.file.buffer)) {
-        res.status(400).json({ error: 'Solo se permiten imágenes (JPG, PNG, WebP, GIF)' })
+        res
+          .status(400)
+          .json({ error: ERROR_CODES.IMAGE_INVALID_TYPE, code: ERROR_CODES.IMAGE_INVALID_TYPE })
         return
       }
       next(err)

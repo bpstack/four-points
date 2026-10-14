@@ -9,21 +9,33 @@ import {
 } from '../checklist/checklist.service.js'
 import { logger } from '../../config/logger.js'
 import { extendAvailability } from '../../repositories/parking/parking.repository.js'
+import { claimRun, finishRun } from '../../repositories/cron/cron-job-runs-repository.js'
+import {
+  CRON_EXPRESSIONS,
+  CRON_JOBS,
+  batchPaymentTarget,
+  duePeriod,
+  type CronJob,
+} from './cron-schedule.js'
 
 /**
  * Servicio de tareas programadas (Cron Jobs)
  *
- * Ejecuta tareas automáticas en intervalos definidos.
+ * Ejecuta tareas automáticas en intervalos definidos (horas en cron-schedule.ts).
  * - Notificaciones: 1x al día a las 7:00 AM
  * - Batch Payment: Día 10 de cada mes a las 23:59 (facturas validated del mes anterior -> paid)
  */
 export class CronService {
   private static isRunning = false
-  // System user ID for automated actions
+  // Inactive user of 20261014_cron_catch_up.sql: updated_by and changed_by are foreign keys
   private static readonly SYSTEM_USER_ID = 'system-cron'
 
   /**
    * Iniciar todos los cron jobs
+   *
+   * Render free duerme el backend y node-cron pierde sus horas: al arrancar se
+   * ejecutan las tareas que tocaban y no se hicieron (catchUp), y cada hora de
+   * node-cron pasa por runIfDue, que no repite un periodo ya hecho.
    */
   static start(): void {
     if (this.isRunning) {
@@ -34,92 +46,12 @@ export class CronService {
     this.isRunning = true
     logger.info('Iniciando cron jobs')
 
-    // ═══════════════════════════════════════════════════════
-    // NOTIFICACIONES AUTOMÁTICAS - Todos los días a las 7:00 AM
-    // ═══════════════════════════════════════════════════════
-    // Formato cron: minuto hora día-mes mes día-semana
-    // '0 7 * * *' = A las 7:00 AM todos los días
-
-    cron.schedule(
-      '0 7 * * *',
-      async () => {
-        logger.info('[CRON] Ejecutando verificación de notificaciones')
-        const startTime = Date.now()
-
-        try {
-          await NotificationGeneratorService.processPendingNotifications()
-          const duration = Date.now() - startTime
-          logger.info({ duration }, '[CRON] Notificaciones procesadas')
-        } catch (error) {
-          logger.error({ err: error }, '[CRON] Error procesando notificaciones')
-        }
-      },
-      { timezone: 'Europe/Madrid' }
-    )
-
-    // ═══════════════════════════════════════════════════════
-    // BATCH PAYMENT - Día 10 de cada mes a las 23:59
-    // ═══════════════════════════════════════════════════════
-    // Marca todas las facturas 'validated' del mes anterior como 'paid'
-    // '59 23 10 * *' = A las 23:59 del día 10 de cada mes
-
-    cron.schedule(
-      '59 23 10 * *',
-      async () => {
-        logger.info('[CRON] Ejecutando batch payment de facturas')
-        const startTime = Date.now()
-
-        try {
-          const result = await this.runBatchPaymentNow()
-          const duration = Date.now() - startTime
-
-          if (result.success) {
-            logger.info({ duration, count: result.count }, '[CRON] Batch payment completado')
-          } else {
-            logger.error({ err: result.error }, '[CRON] Batch payment falló')
-          }
-        } catch (error) {
-          logger.error({ err: error }, '[CRON] Error en batch payment')
-        }
-      },
-      { timezone: 'Europe/Madrid' }
-    )
-
-    // ═══════════════════════════════════════════════════════
-    // CHECKLIST RESET - Todos los días a las 06:30 (Europe/Madrid)
-    // ═══════════════════════════════════════════════════════
-    cron.schedule(
-      '30 6 * * *',
-      async () => {
-        logger.info('[CRON] Ejecutando reset diario de checklists')
-        try {
-          const count = await checklistDailyReset()
-          logger.info({ count }, '[CRON] Checklist reset completado')
-        } catch (error) {
-          logger.error({ err: error }, '[CRON] Error en checklist reset')
-        }
-      },
-      { timezone: 'Europe/Madrid' }
-    )
-
-    // ═══════════════════════════════════════════════════════
-    // CHECKLIST EVENT LOG PURGE - Cada lunes a las 04:00 (Europe/Madrid)
-    // ═══════════════════════════════════════════════════════
-    // Borra eventos de checklist_event_log con más de 7 días.
-    // Datos operativos diarios — no se necesita histórico más allá de una semana.
-    cron.schedule(
-      '0 4 * * 1',
-      async () => {
-        logger.info('[CRON] Purgando checklist_event_log (>7 días)')
-        try {
-          const deleted = await purgeOldEventLogs(7)
-          logger.info({ deleted }, '[CRON] Checklist event log purgado')
-        } catch (error) {
-          logger.error({ err: error }, '[CRON] Error purgando checklist event log')
-        }
-      },
-      { timezone: 'Europe/Madrid' }
-    )
+    for (const job of CRON_JOBS) {
+      cron.schedule(CRON_EXPRESSIONS[job], () => void this.runIfDue(job), {
+        timezone: 'Europe/Madrid',
+      })
+    }
+    void this.catchUp()
 
     // ═══════════════════════════════════════════════════════
     // PARKING CALENDAR - Al arrancar y todos los días a las 03:00 (Europe/Madrid)
@@ -131,12 +63,79 @@ export class CronService {
       timezone: 'Europe/Madrid',
     })
 
-    logger.info('Cron jobs iniciados')
+    logger.info('Cron jobs iniciados (Europe/Madrid; al arrancar se ponen al día)')
     logger.info('   - Notificaciones: Todos los días a las 7:00 AM')
     logger.info('   - Batch Payment: Día 10 de cada mes a las 23:59')
-    logger.info('   - Checklist Reset: Todos los días a las 6:30 AM (Europe/Madrid)')
-    logger.info('   - Checklist Event Log Purge: Cada lunes a las 4:00 AM (Europe/Madrid)')
-    logger.info('   - Parking Calendar: Al arrancar y todos los días a las 3:00 AM (Europe/Madrid)')
+    logger.info('   - Checklist Reset: Todos los días a las 6:30 AM')
+    logger.info('   - Checklist Event Log Purge: Cada lunes a las 4:00 AM')
+    logger.info('   - Parking Calendar: Al arrancar y todos los días a las 3:00 AM')
+  }
+
+  /**
+   * Ejecuta las tareas cuyo periodo actual toca y no se ha hecho, una tras otra
+   */
+  static async catchUp(now: Date = new Date()): Promise<void> {
+    for (const job of CRON_JOBS) {
+      await this.runIfDue(job, now)
+    }
+  }
+
+  /**
+   * Ejecuta `job` si su periodo actual ya toca y nadie lo ha hecho. Nunca lanza:
+   * un fallo queda en cron_job_runs y se reintenta en el siguiente arranque.
+   */
+  static async runIfDue(
+    job: CronJob,
+    now: Date = new Date()
+  ): Promise<'not-due' | 'done' | 'ok' | 'error'> {
+    const period = duePeriod(job, now)
+    if (!period) return 'not-due'
+
+    try {
+      if (!(await claimRun(job, period))) return 'done'
+    } catch (error) {
+      logger.error({ err: error, job, period }, '[CRON] No se pudo reservar la tarea')
+      return 'error'
+    }
+
+    logger.info({ job, period }, '[CRON] Ejecutando')
+    const startTime = Date.now()
+    try {
+      await this.runJob(job, period)
+      await finishRun(job)
+      logger.info({ job, period, duration: Date.now() - startTime }, '[CRON] Completado')
+      return 'ok'
+    } catch (error) {
+      logger.error({ err: error, job, period }, '[CRON] Falló')
+      await finishRun(job, error).catch((err) =>
+        logger.error({ err, job }, '[CRON] No se pudo anotar el fallo')
+      )
+      return 'error'
+    }
+  }
+
+  private static async runJob(job: CronJob, period: string): Promise<void> {
+    switch (job) {
+      case 'notifications':
+        await NotificationGeneratorService.processPendingNotifications()
+        return
+      case 'checklist-reset': {
+        const count = await checklistDailyReset()
+        logger.info({ count }, '[CRON] Checklist reset completado')
+        return
+      }
+      case 'checklist-purge': {
+        const deleted = await purgeOldEventLogs(7)
+        logger.info({ deleted }, '[CRON] Checklist event log purgado')
+        return
+      }
+      case 'batch-payment': {
+        const { year, month } = batchPaymentTarget(period)
+        const result = await this.runBatchPaymentNow(year, month)
+        if (!result.success) throw new Error(result.error ?? 'Batch payment falló')
+        return
+      }
+    }
   }
 
   /**

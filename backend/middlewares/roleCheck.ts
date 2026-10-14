@@ -2,6 +2,7 @@
 
 import { Request, Response, NextFunction } from 'express'
 import { FRONT_DESK_ROLES } from '../services/auth/module-access.js'
+import { ERROR_CODES } from '../config/error-codes.js'
 
 type RoleCheckMiddleware = (req: Request, res: Response, next: NextFunction) => void
 
@@ -13,16 +14,14 @@ export const isAdmin: RoleCheckMiddleware = (req, res, next) => {
   const allowedRoles = ['admin']
 
   if (!req.user?.role) {
-    res.status(403).json({ error: 'No se pudo verificar el rol del usuario' })
+    res.status(403).json({ error: ERROR_CODES.FORBIDDEN, code: ERROR_CODES.FORBIDDEN })
     return
   }
 
   if (allowedRoles.includes(req.user.role.toLowerCase())) {
     next()
   } else {
-    res.status(403).json({
-      error: 'Acceso denegado. Se requiere rol de administrador',
-    })
+    res.status(403).json({ error: ERROR_CODES.FORBIDDEN, code: ERROR_CODES.FORBIDDEN })
   }
 }
 
@@ -48,9 +47,7 @@ export const isOwnerOrAdmin: RoleCheckMiddleware = (req, res, next) => {
   }
 
   // Si no es ni admin ni dueño, denegar acceso
-  res.status(403).json({
-    error: 'No tienes permiso para acceder a este recurso',
-  })
+  res.status(403).json({ error: ERROR_CODES.FORBIDDEN, code: ERROR_CODES.FORBIDDEN })
 }
 
 /**
@@ -61,16 +58,14 @@ export const canManageGroups: RoleCheckMiddleware = (req, res, next) => {
   const allowedRoles = ['admin', 'group-admin']
 
   if (!req.user?.role) {
-    res.status(403).json({ error: 'No se pudo verificar el rol del usuario' })
+    res.status(403).json({ error: ERROR_CODES.FORBIDDEN, code: ERROR_CODES.FORBIDDEN })
     return
   }
 
   if (allowedRoles.includes(req.user.role.toLowerCase())) {
     next()
   } else {
-    res.status(403).json({
-      error: 'Acceso denegado. Se requiere rol de gestor de grupos',
-    })
+    res.status(403).json({ error: ERROR_CODES.FORBIDDEN, code: ERROR_CODES.FORBIDDEN })
   }
 }
 
@@ -83,16 +78,14 @@ export const canViewGroups: RoleCheckMiddleware = (req, res, next) => {
   const allowedRoles = ['admin', 'recepcionista', 'group-admin', 'mantenimiento']
 
   if (!req.user?.role) {
-    res.status(403).json({ error: 'No se pudo verificar el rol del usuario' })
+    res.status(403).json({ error: ERROR_CODES.FORBIDDEN, code: ERROR_CODES.FORBIDDEN })
     return
   }
 
   if (allowedRoles.includes(req.user.role.toLowerCase())) {
     next()
   } else {
-    res.status(403).json({
-      error: 'Acceso denegado. No tienes permisos para ver grupos',
-    })
+    res.status(403).json({ error: ERROR_CODES.FORBIDDEN, code: ERROR_CODES.FORBIDDEN })
   }
 }
 
@@ -112,9 +105,7 @@ export const canViewGroupContacts: RoleCheckMiddleware = (req, res, next) => {
   if (canSeeGroupContacts(req.user?.role)) {
     next()
   } else {
-    res.status(403).json({
-      error: 'Acceso denegado. No tienes permisos para ver los contactos del grupo',
-    })
+    res.status(403).json({ error: ERROR_CODES.FORBIDDEN, code: ERROR_CODES.FORBIDDEN })
   }
 }
 
@@ -126,16 +117,14 @@ export const canManageCashier: RoleCheckMiddleware = (req, res, next) => {
   const allowedRoles = ['admin', 'recepcionista', 'group-admin']
 
   if (!req.user?.role) {
-    res.status(403).json({ error: 'No se pudo verificar el rol del usuario' })
+    res.status(403).json({ error: ERROR_CODES.FORBIDDEN, code: ERROR_CODES.FORBIDDEN })
     return
   }
 
   if (allowedRoles.includes(req.user.role.toLowerCase())) {
     next()
   } else {
-    res.status(403).json({
-      error: 'Acceso denegado. Se requiere rol de admin, recepcionista o group-admin',
-    })
+    res.status(403).json({ error: ERROR_CODES.FORBIDDEN, code: ERROR_CODES.FORBIDDEN })
   }
 }
 
@@ -147,16 +136,14 @@ export const canViewReports: RoleCheckMiddleware = (req, res, next) => {
   const allowedRoles = ['admin']
 
   if (!req.user?.role) {
-    res.status(403).json({ error: 'No se pudo verificar el rol del usuario' })
+    res.status(403).json({ error: ERROR_CODES.FORBIDDEN, code: ERROR_CODES.FORBIDDEN })
     return
   }
 
   if (allowedRoles.includes(req.user.role.toLowerCase())) {
     next()
   } else {
-    res.status(403).json({
-      error: 'Acceso denegado. Se requiere rol de administrador',
-    })
+    res.status(403).json({ error: ERROR_CODES.FORBIDDEN, code: ERROR_CODES.FORBIDDEN })
   }
 }
 
@@ -168,16 +155,14 @@ export const canAccessMaintenance: RoleCheckMiddleware = (req, res, next) => {
   const allowedRoles = ['admin', 'recepcionista', 'group-admin', 'mantenimiento']
 
   if (!req.user?.role) {
-    res.status(403).json({ error: 'No se pudo verificar el rol del usuario' })
+    res.status(403).json({ error: ERROR_CODES.FORBIDDEN, code: ERROR_CODES.FORBIDDEN })
     return
   }
 
   if (allowedRoles.includes(req.user.role.toLowerCase())) {
     next()
   } else {
-    res.status(403).json({
-      error: 'Acceso denegado. No tienes permisos para acceder a mantenimiento',
-    })
+    res.status(403).json({ error: ERROR_CODES.FORBIDDEN, code: ERROR_CODES.FORBIDDEN })
   }
 }
 
@@ -188,16 +173,14 @@ export const canAccessMaintenance: RoleCheckMiddleware = (req, res, next) => {
  */
 export const excludeMantenimiento: RoleCheckMiddleware = (req, res, next) => {
   if (!req.user?.role) {
-    res.status(403).json({ error: 'No se pudo verificar el rol del usuario' })
+    res.status(403).json({ error: ERROR_CODES.FORBIDDEN, code: ERROR_CODES.FORBIDDEN })
     return
   }
 
   if (FRONT_DESK_ROLES.includes(req.user.role.toLowerCase())) {
     next()
   } else {
-    res.status(403).json({
-      error: 'Acceso denegado. Tu rol no tiene acceso a este módulo',
-    })
+    res.status(403).json({ error: ERROR_CODES.FORBIDDEN, code: ERROR_CODES.FORBIDDEN })
   }
 }
 
@@ -210,16 +193,14 @@ export const canAccessBackoffice: RoleCheckMiddleware = (req, res, next) => {
   const allowedRoles = ['admin']
 
   if (!req.user?.role) {
-    res.status(403).json({ error: 'No se pudo verificar el rol del usuario' })
+    res.status(403).json({ error: ERROR_CODES.FORBIDDEN, code: ERROR_CODES.FORBIDDEN })
     return
   }
 
   if (allowedRoles.includes(req.user.role.toLowerCase())) {
     next()
   } else {
-    res.status(403).json({
-      error: 'Acceso denegado. Se requiere rol de administrador para acceder al backoffice',
-    })
+    res.status(403).json({ error: ERROR_CODES.FORBIDDEN, code: ERROR_CODES.FORBIDDEN })
   }
 }
 
@@ -232,16 +213,14 @@ export const canResetChecklist: RoleCheckMiddleware = (req, res, next) => {
   const allowedRoles = ['admin', 'recepcionista']
 
   if (!req.user?.role) {
-    res.status(403).json({ error: 'No se pudo verificar el rol del usuario' })
+    res.status(403).json({ error: ERROR_CODES.FORBIDDEN, code: ERROR_CODES.FORBIDDEN })
     return
   }
 
   if (allowedRoles.includes(req.user.role.toLowerCase())) {
     next()
   } else {
-    res.status(403).json({
-      error: 'Acceso denegado. Se requiere rol de admin o recepcionista para resetear',
-    })
+    res.status(403).json({ error: ERROR_CODES.FORBIDDEN, code: ERROR_CODES.FORBIDDEN })
   }
 }
 
@@ -253,16 +232,14 @@ export const canAccessFnb: RoleCheckMiddleware = (req, res, next) => {
   const allowedRoles = ['admin', 'recepcionista', 'group-admin']
 
   if (!req.user?.role) {
-    res.status(403).json({ error: 'No se pudo verificar el rol del usuario' })
+    res.status(403).json({ error: ERROR_CODES.FORBIDDEN, code: ERROR_CODES.FORBIDDEN })
     return
   }
 
   if (allowedRoles.includes(req.user.role.toLowerCase())) {
     next()
   } else {
-    res.status(403).json({
-      error: 'Acceso denegado. Se requiere rol de admin o recepcionista',
-    })
+    res.status(403).json({ error: ERROR_CODES.FORBIDDEN, code: ERROR_CODES.FORBIDDEN })
   }
 }
 
@@ -274,13 +251,13 @@ export const canRunNotificationCheck: RoleCheckMiddleware = (req, res, next) => 
   const allowedRoles = ['admin', 'group-admin']
 
   if (!req.user?.role) {
-    res.status(403).json({ error: 'No se pudo verificar el rol del usuario' })
+    res.status(403).json({ error: ERROR_CODES.FORBIDDEN, code: ERROR_CODES.FORBIDDEN })
     return
   }
 
   if (allowedRoles.includes(req.user.role.toLowerCase())) {
     next()
   } else {
-    res.status(403).json({ error: 'Acceso denegado. Se requiere rol de admin o group-admin' })
+    res.status(403).json({ error: ERROR_CODES.FORBIDDEN, code: ERROR_CODES.FORBIDDEN })
   }
 }

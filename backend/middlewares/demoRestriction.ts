@@ -11,6 +11,7 @@
 import { Request, Response, NextFunction } from 'express'
 import { DemoActivityRepository } from '../repositories/demo/demo-activity-repository.js'
 import { logger } from '../config/logger.js'
+import { ERROR_CODES } from '../config/error-codes.js'
 
 /**
  * Registra intentos bloqueados en la base de datos
@@ -56,8 +57,8 @@ function block(req: Request, res: Response): void {
 
   res.status(403).json({
     success: false,
-    error:
-      'Acción no disponible en modo demo. Esta es una cuenta de demostración con funcionalidad limitada.',
+    error: ERROR_CODES.DEMO_ACTION_BLOCKED,
+    code: ERROR_CODES.DEMO_ACTION_BLOCKED,
     demo: true,
   })
 }

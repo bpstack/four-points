@@ -68,7 +68,7 @@ describe('singleImage', () => {
     lastSize = undefined
     expect(await upload(MAX_IMAGE_BYTES + 1, 'image/jpeg')).toEqual({
       status: 413,
-      body: { error: 'Máximo 5MB por archivo' },
+      body: { error: 'IMAGE_TOO_LARGE', code: 'IMAGE_TOO_LARGE' },
     })
     expect(lastSize).toBeUndefined()
   })
@@ -76,14 +76,14 @@ describe('singleImage', () => {
   it('answers 400 for a file that is not an image', async () => {
     expect(await upload(100, 'application/pdf')).toEqual({
       status: 400,
-      body: { error: 'Solo se permiten imágenes (JPG, PNG, WebP, GIF)' },
+      body: { error: 'IMAGE_INVALID_TYPE', code: 'IMAGE_INVALID_TYPE' },
     })
   })
 
   it('answers 400 for a file that only claims to be an image', async () => {
     expect(await upload(1024, 'image/jpeg', 'file', true)).toEqual({
       status: 400,
-      body: { error: 'Solo se permiten imágenes (JPG, PNG, WebP, GIF)' },
+      body: { error: 'IMAGE_INVALID_TYPE', code: 'IMAGE_INVALID_TYPE' },
     })
   })
 
@@ -96,7 +96,7 @@ describe('singleImage', () => {
     expect((await upload(MB2, 'image/jpeg', 'avatar', false, '/avatar')).status).toBe(201)
     expect(await upload(MB2 + 1, 'image/jpeg', 'avatar', false, '/avatar')).toEqual({
       status: 413,
-      body: { error: 'Máximo 2MB por archivo' },
+      body: { error: 'IMAGE_TOO_LARGE', code: 'IMAGE_TOO_LARGE' },
     })
   })
 })

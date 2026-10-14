@@ -83,7 +83,7 @@ describe('checklist route params', () => {
   it('answers 404 for a checklist that does not exist', async () => {
     expect(await call('GET', '/cl-invented/run')).toEqual({
       status: 404,
-      body: { error: 'Checklist no encontrado' },
+      body: { error: 'CHECKLIST_NOT_FOUND', code: 'CHECKLIST_NOT_FOUND' },
     })
     expect((await call('GET', '/cl-..%2F..%2Fpackage/run')).status).toBe(404)
   })
@@ -92,7 +92,7 @@ describe('checklist route params', () => {
     // s1-10 exists in night-audit but not in morning-shift
     expect(await call('POST', '/cl-morning-shift/steps/s1-10/comments')).toEqual({
       status: 400,
-      body: { error: 'Paso no válido' },
+      body: { error: 'CHECKLIST_INVALID_STEP', code: 'CHECKLIST_INVALID_STEP' },
     })
     expect((await call('POST', '/cl-night-audit/steps/s99-1/attachments')).status).toBe(400)
   })

@@ -250,7 +250,10 @@ index.ts → routes → controllers → services → repositories → models
   outside production, the production and Vercel domains — plus `FRONTEND_URL`.
   Credentials enabled. It is also the CSRF defence: any other origin gets a 403
   before reaching a route.
-- **Cron jobs**: `services/cron/cron-service.ts`, started from `index.ts`.
+- **Cron jobs**: `services/cron/cron-service.ts`, started from `index.ts`. The
+  times are in `cron-schedule.ts` (Europe/Madrid). Render's free plan sleeps, so
+  on every start the jobs whose period is due and not done run, and
+  `cron_job_runs` keeps each period to one run (ADR-046).
 - **Tests**: Vitest, in `tests/`, one folder per domain.
 
 ## Authentication

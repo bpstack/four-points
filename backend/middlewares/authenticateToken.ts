@@ -5,6 +5,7 @@ import { verifyToken } from '../services/auth/tokenService.js'
 import { demoRestriction } from './demoRestriction.js'
 import { demoWriteLimiter } from './rateLimiter.js'
 import { logger } from '../config/logger.js'
+import { ERROR_CODES } from '../config/error-codes.js'
 
 /**
  * Middleware para verificar el token de acceso JWT.
@@ -30,10 +31,7 @@ export function authenticateToken(req: Request, res: Response, next: NextFunctio
     }
 
     if (!token) {
-      res.status(401).json({
-        error: 'No autorizado, falta token',
-        message: 'Debes enviar el token en cookies o en el header Authorization',
-      })
+      res.status(401).json({ error: ERROR_CODES.UNAUTHORIZED, code: ERROR_CODES.UNAUTHORIZED })
       return
     }
 
@@ -42,12 +40,16 @@ export function authenticateToken(req: Request, res: Response, next: NextFunctio
 
     // Verifica que el payload contenga el id y sea un access token
     if (!decoded?.id) {
-      res.status(401).json({ error: 'Token inválido: no contiene id de usuario' })
+      res
+        .status(401)
+        .json({ error: ERROR_CODES.AUTH_TOKEN_INVALID, code: ERROR_CODES.AUTH_TOKEN_INVALID })
       return
     }
 
     if (decoded.type !== 'access') {
-      res.status(401).json({ error: 'Token inválido: tipo incorrecto' })
+      res
+        .status(401)
+        .json({ error: ERROR_CODES.AUTH_TOKEN_INVALID, code: ERROR_CODES.AUTH_TOKEN_INVALID })
       return
     }
 
@@ -60,18 +62,17 @@ export function authenticateToken(req: Request, res: Response, next: NextFunctio
       isDemo: decoded.demo === true,
     }
   } catch (error) {
-    // Diferencia entre token expirado y token inválido
-    let message = 'Token inválido'
+    let code: string = ERROR_CODES.AUTH_TOKEN_INVALID
 
     if (error instanceof Error) {
       if (error.message === 'Token expirado' || error.name === 'TokenExpiredError') {
-        message = 'Token expirado'
+        code = ERROR_CODES.AUTH_TOKEN_EXPIRED
       } else {
         logger.debug({ err: error.message, path: req.path }, '[authenticateToken] invalid token')
       }
     }
 
-    res.status(401).json({ error: message })
+    res.status(401).json({ error: code, code })
     return
   }
 
