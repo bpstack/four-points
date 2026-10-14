@@ -21,6 +21,7 @@ import type {
 } from '../../models/maintenance/index.js'
 import { getNowMadrid } from '../../config/date-utils.js'
 import { likeContains } from '../shared/like.js'
+import { sqlMadridDay } from '../shared/hotel-clock.js'
 
 // ========================================
 // INTERFACES INTERNAS (para tipado de queries)
@@ -320,17 +321,17 @@ export class MaintenanceRepository {
 
     // Filtro por fecha específica (single day)
     if (date) {
-      conditions.push(`DATE(r.report_date) = ?`)
+      conditions.push(`${sqlMadridDay('r.report_date')} = ?`)
       whereParams.push(date)
     }
 
     // Filtro por rango de fechas (inclusivo en ambos extremos)
     if (date_from && !date) {
-      conditions.push(`DATE(r.report_date) >= ?`)
+      conditions.push(`${sqlMadridDay('r.report_date')} >= ?`)
       whereParams.push(date_from)
     }
     if (date_to && !date) {
-      conditions.push(`DATE(r.report_date) <= ?`)
+      conditions.push(`${sqlMadridDay('r.report_date')} <= ?`)
       whereParams.push(date_to)
     }
 

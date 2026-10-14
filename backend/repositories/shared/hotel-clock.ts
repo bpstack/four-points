@@ -11,3 +11,12 @@ export const sqlHotelToday = (): string => mysql.escape(getTodayMadrid())
 
 /** Madrid's wall-clock time as a quoted 'YYYY-MM-DD HH:mm:ss', for parking check-in/out times */
 export const sqlHotelNow = (): string => mysql.escape(getNowMadrid().format('YYYY-MM-DD HH:mm:ss'))
+
+/**
+ * The Madrid date of an instant column (stored in UTC), in place of DATE(column):
+ * at 00:30 in Madrid the UTC date is still yesterday. Without named time zones
+ * (a local MySQL) CONVERT_TZ gives NULL and it falls back to the UTC date.
+ * `column` is a column name from the code, never input.
+ */
+export const sqlMadridDay = (column: string): string =>
+  `DATE(COALESCE(CONVERT_TZ(${column}, '+00:00', 'Europe/Madrid'), ${column}))`

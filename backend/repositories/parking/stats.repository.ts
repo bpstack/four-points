@@ -4,7 +4,7 @@
 import pool from '../../config/db.js'
 import { RowDataPacket } from 'mysql2/promise'
 import { formatDateMadrid, toHotelTime } from '../../config/date-utils.js'
-import { sqlHotelNow } from '../shared/hotel-clock.js'
+import { sqlHotelNow, sqlMadridDay } from '../shared/hotel-clock.js'
 import type {
   DailyStatsRow,
   OccupancyByLevelRow,
@@ -101,14 +101,14 @@ class ParkingStatsRepository {
       (SELECT COUNT(*) 
       FROM parking_bookings 
       WHERE status = 'canceled'
-        AND DATE(updated_at) = ?
+        AND ${sqlMadridDay('updated_at')} = ?
       ) AS canceled_today,
       
       -- No-shows hoy
       (SELECT COUNT(*) 
       FROM parking_bookings 
       WHERE status = 'no_show'
-        AND DATE(updated_at) = ?
+        AND ${sqlMadridDay('updated_at')} = ?
       ) AS no_shows_today
   `
 
@@ -622,14 +622,14 @@ class ParkingStatsRepository {
       (SELECT COUNT(*)
       FROM parking_bookings
       WHERE status = 'canceled'
-        AND DATE(updated_at) BETWEEN ? AND ?
+        AND ${sqlMadridDay('updated_at')} BETWEEN ? AND ?
       ) AS canceled_in_range,
       
       -- No-shows en el rango
       (SELECT COUNT(*)
       FROM parking_bookings
       WHERE status = 'no_show'
-        AND DATE(updated_at) BETWEEN ? AND ?
+        AND ${sqlMadridDay('updated_at')} BETWEEN ? AND ?
       ) AS no_shows_in_range
     `
 
