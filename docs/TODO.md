@@ -18,7 +18,7 @@ hace que alguien reimplemente lo que ya existe.
 
 ## Rama `claude/compassionate-planck-gh6aof`
 
-Última fusión en `main`: 2026-10-14 (PR #29, commit de merge `47f77b9`). La rama
+Última fusión en `main`: 2026-10-14 (PR #30, commit de merge `9b33943`). La rama
 sigue siendo donde se arregla este fichero y se prueba en el entorno preview.
 
 ## Después de publicar
@@ -58,14 +58,6 @@ ahora están en `docs/_archive/TODO.md`, apartado «Errores conocidos pendientes
       reales — Aiven hace copias automáticas y existe
       `backend/db-mysql/backup/backup.ps1`, pero no consta que se haya probado a
       restaurar ninguna. Del plan archivado (`Global-Plan.md`, H3-8).
-- [ ] **Cron en producción: desplegar y comprobarlo en Render** — en Render no
-      se ejecutaba ninguna tarea programada (7 días de logs sin una, 2026-10-14:
-      el plan gratuito duerme el backend) y el pago del día 10 fallaba por
-      `system-cron`. Arreglado en la rama `opencode-tasks`: se ponen al día al
-      arrancar (ADR-046). `20261014_cron_catch_up.sql` ya está en Aiven
-      (2026-10-14). Falta desplegar y ver en los logs de Render el
-      `[CRON] Ejecutando` de cada tarea y la tabla `cron_job_runs` con sus
-      periodos. El primer arranque paga las facturas validadas de septiembre.
 - [ ] **La retención de mensajes borra las conversaciones vacías** — el evento
       MySQL `cleanup_old_messages` borra cada día, además de los mensajes de más
       de 90 días, toda conversación sin mensajes, incluidas las recién creadas y
